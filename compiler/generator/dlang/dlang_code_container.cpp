@@ -226,20 +226,20 @@ void DLangCodeContainer::produceInternal()
     // Memory methods (as globals)
     if (gGlobal->gMemoryManager) {
         tab(n, *fOut);
-        *fOut << "static " << fKlassName << "* "
+        *fOut << fKlassName << " "
               << "new" << fKlassName << "(dsp_memory_manager* manager) nothrow @nogc {"
               << " return cast(" << fKlassName << "*)new(manager->allocate(sizeof(" << fKlassName << "))) " << fKlassName
               << "(); }";
         tab(n, *fOut);
-        *fOut << "static void delete" << fKlassName << "(" << fKlassName << "* dsp, dsp_memory_manager* manager) nothrow @nogc { dsp->~"
+        *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp, dsp_memory_manager* manager) nothrow @nogc { dsp->~"
               << fKlassName << "(); manager->destroy(dsp); }";
     } else {
         tab(n, *fOut);
-        *fOut << "static " << fKlassName << "* "
+        *fOut << fKlassName << " "
               << "new" << fKlassName << "() nothrow @nogc {"
-              << " return cast(" << fKlassName << "*)mallocNew!(" << fKlassName << ")(); }";
+              << " return mallocNew!(" << fKlassName << ")(); }";
         tab(n, *fOut);
-        *fOut << "static void delete" << fKlassName << "(" << fKlassName << "* dsp) nothrow @nogc { destroyFree(*dsp); }";
+        *fOut << "void delete" << fKlassName << "(" << fKlassName << " dsp) nothrow @nogc { destroyFree(dsp); }";
     }
     tab(n, *fOut);
 }
@@ -355,7 +355,7 @@ void DLangCodeContainer::produceClass()
     produceInfoFunctions(n + 1, "", "dsp", true, true, &fCodeProducer);  // Inits
 
     tab(n + 1, *fOut);
-    *fOut << "static void classInit(int sample_rate) {";
+    *fOut << "void classInit(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateStaticInit(&fCodeProducer);
