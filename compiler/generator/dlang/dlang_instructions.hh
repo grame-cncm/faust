@@ -38,6 +38,8 @@ class DLangInstVisitor : public TextInstVisitor {
     // Polymorphic math functions
     map<string, string> gPolyMathLibTable;
 
+    TypingVisitor fTypingVisitor;
+
    public:
     using TextInstVisitor::visit;
 
@@ -235,6 +237,11 @@ class DLangInstVisitor : public TextInstVisitor {
             gFunctionSymbolTable[inst->fName] = true;
         }
 
+        // Dont declare Math library functions, they are already defined in std.math
+        if (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) {
+            return;
+        }
+
         // Defined as macro in the architecture file...
         if (checkMinMax(inst->fName)) {
             return;
@@ -258,7 +265,7 @@ class DLangInstVisitor : public TextInstVisitor {
     virtual void generateFunDefBody(DeclareFunInst* inst)
     {
         if (inst->fCode->fCode.size() == 0) {
-            *fOut << ") nothrow @nogc;" << endl;  // Pure prototype
+            *fOut << ") nothrow @nogc {}" << endl;  // Pure prototype
         } else {
             // Function body
             *fOut << ") nothrow @nogc {";
@@ -281,16 +288,46 @@ class DLangInstVisitor : public TextInstVisitor {
     virtual void visit(::CastInst* inst)
     {
         string type = fTypeManager->generateType(inst->fType);
-        if (endWith(type, "*")) {
-            *fOut << "static_cast<" << type << ">(";
-            inst->fInst->accept(this);
-            *fOut << ")";
-        } else {
-            *fOut << "cast(" << type << ")(";
-            inst->fInst->accept(this);
-            *fOut << ")";
-        }
+        *fOut << "cast(" << type << ")(";
+        inst->fInst->accept(this);
+        *fOut << ")";
     }
+
+    // virtual void visit(Select2Inst* inst)
+    // {
+    //     inst->fCond->accept(&fTypingVisitor);
+
+    //     switch (fTypingVisitor.fCurType) {
+    //         case Typed::kDouble:
+    //         case Typed::kInt32:
+    //             *fOut << "(((";
+    //             inst->fCond->accept(this);
+    //             *fOut << "==0)?true:false)";
+    //             break;
+    //         case Typed::kFloat:
+    //         case Typed::kFloatMacro:
+    //             *fOut << "(((";
+    //             inst->fCond->accept(this);
+    //             *fOut << "==0.f)?true:false)";
+    //             break;
+    //         case Typed::kBool:
+    //             *fOut << "((";
+    //             inst->fCond->accept(this);
+    //             *fOut << ")";
+    //             break;
+    //         default:
+    //             faustassert(false);
+    //             break;
+    //     }
+
+    //     *fOut << "?";
+    //     inst->fThen->accept(this);
+    //     *fOut << ":";
+    //     inst->fElse->accept(this);
+    //     *fOut << ")";
+
+    //     fTypingVisitor.visit(inst);
+    // }
 
     /*
      Indexed adresses can actually be values in an array or fields in a struct type
@@ -309,34 +346,7 @@ class DLangInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(BitcastInst* inst)
-    {
-        switch (inst->fType->getType()) {
-            case Typed::kInt32:
-                *fOut << "*reinterpret_cast<int*>(&";
-                inst->fInst->accept(this);
-                *fOut << ")";
-                break;
-            case Typed::kInt64:
-                *fOut << "*reinterpret_cast<long long*>(&";
-                inst->fInst->accept(this);
-                *fOut << ")";
-                break;
-            case Typed::kFloat:
-                *fOut << "*reinterpret_cast<float*>(&";
-                inst->fInst->accept(this);
-                *fOut << ")";
-                break;
-            case Typed::kDouble:
-                *fOut << "*reinterpret_cast<double*>(&";
-                inst->fInst->accept(this);
-                *fOut << ")";
-                break;
-            default:
-                faustassert(false);
-                break;
-        }
-    }
+    virtual void visit(BitcastInst* inst) { faustassert(false); }
 
     virtual void visit(FunCallInst* inst)
     {
@@ -345,17 +355,17 @@ class DLangInstVisitor : public TextInstVisitor {
         generateFunCall(inst, name);
     }
 
-    virtual void visit(ForLoopInst* inst)
-    {
-        // Don't generate empty loops...
-        if (inst->fCode->size() == 0) return;
+    // virtual void visit(ForLoopInst* inst)
+    // {
+    //     // Don't generate empty loops...
+    //     if (inst->fCode->size() == 0) return;
 
-        if (gGlobal->gClang && !inst->fIsRecursive) {
-            *fOut << "#pragma clang loop vectorize(enable) interleave(enable)";
-            tab(fTab, *fOut);
-        }
-        TextInstVisitor::visit(inst);
-    }
+    //     if (gGlobal->gClang && !inst->fIsRecursive) {
+    //         *fOut << "#pragma clang loop vectorize(enable) interleave(enable)";
+    //         tab(fTab, *fOut);
+    //     }
+    //     TextInstVisitor::visit(inst);
+    // }
 
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };

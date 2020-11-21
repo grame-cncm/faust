@@ -44,6 +44,7 @@ all:
 	$(MAKE) interp
 	$(MAKE) interp1
 	$(MAKE) rust
+	$(MAKE) dlang
 
 help:
 	@echo "-------- FAUST impulse response tests --------"
@@ -64,6 +65,7 @@ help:
 	@echo " 'interp1' : check double output with interpreter/llvm backend and various options"
 	@echo " 'rust'   : check double output with rust backend and various options"
 	@echo " 'soul'   : check double output with soul backend and various options"
+	@echo " 'dlang'  : check double output with D backend and various options"
 	@echo " 'me'     : check double outputs with the cpp backend in scalar with activated math exceptions"
 	@echo "Warning: you must have at least 10G available on your hard disk to run all the tests"
 	@echo
@@ -261,6 +263,11 @@ rust:
 soul:
 	$(MAKE) -f Make.soul FAUSTOPTIONS="-double"
 	$(MAKE) -f Make.soul soul outdir=soul/mapp FAUSTOPTIONS="-I dsp -mapp"
+
+#########################################################################
+# D backend
+dlang:
+	$(MAKE) -f Make.dlang FAUSTOPTIONS="-double"
 
 #########################################################################
 # output directories

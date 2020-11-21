@@ -57,11 +57,13 @@ class DLangCodeContainer : public virtual CodeContainer {
     virtual void produceClass();
     virtual void generateCompute(int tab) = 0;
     virtual void produceInternal();
+
     void generateImports(int tab);
+    string dModuleName(string fKlassName);
 
     virtual dsp_factory_base* produceFactory();
 
-    virtual void printHeader() { CodeContainer::printHeader(*fOut); }
+    virtual void printHeader();
 
     CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
