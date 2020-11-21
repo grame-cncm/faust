@@ -68,7 +68,7 @@ nothrow:
 @nogc:
     void declare(string id, string key, string value) {}
     void declare(int id, string key, string value) {}
-    void declare(float* id, string key, string value) {}
+    void declare(FAUSTFLOAT* id, string key, string value) {}
 
     // -- layout groups
 
@@ -79,16 +79,16 @@ nothrow:
 
     // -- active widgets
 
-    void addButton(string label, float* val) {}
-    void addCheckButton(string label, float* val) {}
-    void addVerticalSlider(string label, float* val, float init, float min, float max, float step) {}
-    void addHorizontalSlider(string label, float* val, float init, float min, float max, float step) {}
-    void addNumEntry(string label, float* val, float init, float min, float max, float step) {}
+    void addButton(string label, FAUSTFLOAT* val) {}
+    void addCheckButton(string label, FAUSTFLOAT* val) {}
+    void addVerticalSlider(string label, FAUSTFLOAT* val, float init, float min, float max, float step) {}
+    void addHorizontalSlider(string label, FAUSTFLOAT* val, float init, float min, float max, float step) {}
+    void addNumEntry(string label, FAUSTFLOAT* val, float init, float min, float max, float step) {}
 
     // -- passive display widgets
 
-    void addHorizontalBargraph(string label, float* val, float min, float max) {}
-    void addVerticalBargraph(string label, float* val, float min, float max) {}
+    void addHorizontalBargraph(string label, FAUSTFLOAT* val, float min, float max) {}
+    void addVerticalBargraph(string label, FAUSTFLOAT* val, float min, float max) {}
 
 }
 
@@ -105,27 +105,27 @@ nothrow:
         _faustParams = makeVec!FaustParam();
     }
 
-    override void addButton(string label, float* val)
+    override void addButton(string label, FAUSTFLOAT* val)
     {
         _faustParams.pushBack(FaustParam(label, val, 0, 0, 0, 0, true));
     }
     
-    override void addCheckButton(string label, float* val)
+    override void addCheckButton(string label, FAUSTFLOAT* val)
     {
         _faustParams.pushBack(FaustParam(label, val, 0, 0, 0, 0, true));
     }
     
-    override void addVerticalSlider(string label, float* val, float init, float min, float max, float step)
+    override void addVerticalSlider(string label, FAUSTFLOAT* val, float init, float min, float max, float step)
     {
         _faustParams.pushBack(FaustParam(label, val, init, min, max, step));
     }
 
-    override void addHorizontalSlider(string label, float* val, float init, float min, float max, float step)
+    override void addHorizontalSlider(string label, FAUSTFLOAT* val, float init, float min, float max, float step)
     {
         _faustParams.pushBack(FaustParam(label, val, init, min, max, step));
     }
 
-    override void addNumEntry(string label, float* val, float init, float min, float max, float step)
+    override void addNumEntry(string label, FAUSTFLOAT* val, float init, float min, float max, float step)
     {
         _faustParams.pushBack(FaustParam(label, val, init, min, max, step));
     }
@@ -152,7 +152,7 @@ private:
 struct FaustParam
 {
 	string label;
-	float* val;
+	FAUSTFLOAT* val;
 	float initial;
 	float min;
 	float max;

@@ -132,6 +132,22 @@ void DLangCodeContainer::produceInit(int tabs)
     *fOut << "}";
 }
 
+void DLangCodeContainer::printHeader()
+{ 
+    int n = 0;
+    tab(n, *fOut);
+    // *fOut << "#!/usr/bin/env dub\n";
+    *fOut << "/+ dub.sdl:";
+    tab(n + 1, *fOut);
+    *fOut << "name \"" << dModuleName(fKlassName) << "\"";
+    tab(n + 1, *fOut);
+    *fOut << "dependency \"dplug:core\" version=\"*\"";
+    tab(n, *fOut);
+    *fOut << "+/\n";
+    CodeContainer::printHeader(*fOut); 
+    *fOut << "module " << dModuleName(fKlassName) << ";\n";
+}
+
 void DLangCodeContainer::produceInternal()
 {
     int n = 0;
@@ -142,7 +158,9 @@ void DLangCodeContainer::produceInternal()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
-    *fOut << "class " << fKlassName << " {";
+    *fOut << "class " << fKlassName << " {\n";
+    *fOut << "nothrow:\n";
+    *fOut << "@nogc:";
 
     tab(n + 1, *fOut);
 
@@ -174,7 +192,7 @@ void DLangCodeContainer::produceInternal()
 
     // Inits
     tab(n + 1, *fOut);
-    *fOut << "void instanceInit" << fKlassName << "(int sample_rate) {";
+    *fOut << "void instanceInit" << fKlassName << "(int sample_rate) nothrow @nogc {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
@@ -188,10 +206,10 @@ void DLangCodeContainer::produceInternal()
     tab(n + 1, *fOut);
     if (fSubContainerType == kInt) {
         tab(n + 1, *fOut);
-        *fOut << "void fill" << fKlassName << subst("(int $0, int* " + fTableName + ") {", counter);
+        *fOut << "void fill" << fKlassName << subst("(int $0, int* " + fTableName + ") nothrow @nogc {", counter);
     } else {
         tab(n + 1, *fOut);
-        *fOut << "void fill" << fKlassName << subst("(int $0, $1* " + fTableName + ") {", counter, ifloat());
+        *fOut << "void fill" << fKlassName << subst("(int $0, $1[] " + fTableName + ") nothrow @nogc {", counter, ifloat());
     }
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
@@ -209,32 +227,33 @@ void DLangCodeContainer::produceInternal()
     if (gGlobal->gMemoryManager) {
         tab(n, *fOut);
         *fOut << "static " << fKlassName << "* "
-              << "new" << fKlassName << "(dsp_memory_manager* manager) {"
-              << " return (" << fKlassName << "*)new(manager->allocate(sizeof(" << fKlassName << "))) " << fKlassName
+              << "new" << fKlassName << "(dsp_memory_manager* manager) nothrow @nogc {"
+              << " return cast(" << fKlassName << "*)new(manager->allocate(sizeof(" << fKlassName << "))) " << fKlassName
               << "(); }";
         tab(n, *fOut);
-        *fOut << "static void delete" << fKlassName << "(" << fKlassName << "* dsp, dsp_memory_manager* manager) { dsp->~"
+        *fOut << "static void delete" << fKlassName << "(" << fKlassName << "* dsp, dsp_memory_manager* manager) nothrow @nogc { dsp->~"
               << fKlassName << "(); manager->destroy(dsp); }";
     } else {
         tab(n, *fOut);
         *fOut << "static " << fKlassName << "* "
-              << "new" << fKlassName << "() {"
-              << " return (" << fKlassName << "*)new " << fKlassName << "(); }";
+              << "new" << fKlassName << "() nothrow @nogc {"
+              << " return cast(" << fKlassName << "*)mallocNew!(" << fKlassName << ")(); }";
         tab(n, *fOut);
-        *fOut << "static void delete" << fKlassName << "(" << fKlassName << "* dsp) { delete dsp; }";
+        *fOut << "static void delete" << fKlassName << "(" << fKlassName << "* dsp) nothrow @nogc { destroyFree(*dsp); }";
     }
     tab(n, *fOut);
+}
+
+string DLangCodeContainer::dModuleName(string fKlassName)
+{
+    string moduleName = fKlassName;
+    transform(moduleName.begin(), moduleName.end(), moduleName.begin(), ::tolower);
+    return moduleName;
 }
 
 void DLangCodeContainer::produceClass()
 {
     int n = 0;
-   
-    // Declare module name
-    string moduleName = fKlassName;
-    transform(moduleName.begin(), moduleName.end(), moduleName.begin(), ::tolower);
-    *fOut << "module " << moduleName << ";\n";
-    tab(n, *fOut);
 
     // Libraries
     printLibrary(*fOut);
@@ -244,22 +263,24 @@ void DLangCodeContainer::produceClass()
     // Sub containers
     generateSubContainers();
 
-    // Global declarations
-    tab(n, *fOut);
-    fCodeProducer.Tab(n);
-    generateGlobalDeclarations(&fCodeProducer);
 
     tab(n, *fOut);
-    *fOut << "alias FAUSTFLOAT = float;" << endl;
+    *fOut << "alias FAUSTFLOAT = " << ifloat() << ";" << endl;
     tab(n, *fOut);
 
     *fOut << "alias FAUSTCLASS = " << fKlassName << ";" << endl;
     tab(n, *fOut);
+
+    // Global declarations
+    tab(n, *fOut);
+    fCodeProducer.Tab(n);
+    generateGlobalDeclarations(&fCodeProducer);
     
     tab(n, *fOut);
     *fOut << "class " << fKlassName << " : " << fSuperKlassName << "\n{\n";
     *fOut << "nothrow:\n";
     *fOut << "@nogc:\n";
+    
     
     tab(n + 1, *fOut);
 
@@ -437,7 +458,7 @@ void DLangCodeContainer::generateImports(int n)
 {
     *fOut << "import std.math;\n";
     *fOut << "import std.algorithm : min, max;\n";
-    *fOut << "import dplug.core.nogc: mallocNew, mallocSlice;\n";
+    *fOut << "import dplug.core.nogc: mallocNew, mallocSlice, destroyFree;\n";
     tab(n, *fOut);
 }
 
