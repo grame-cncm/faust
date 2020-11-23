@@ -158,7 +158,7 @@ void DLangCodeContainer::produceInternal()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
-    *fOut << "class " << fKlassName << " {\n";
+    *fOut << "struct " << fKlassName << " {\n";
     *fOut << "nothrow:\n";
     *fOut << "@nogc:";
 
@@ -226,7 +226,7 @@ void DLangCodeContainer::produceInternal()
     // Memory methods (as globals)
     if (gGlobal->gMemoryManager) {
         tab(n, *fOut);
-        *fOut << fKlassName << " "
+        *fOut << "static " << fKlassName << " "
               << "new" << fKlassName << "(dsp_memory_manager* manager) nothrow @nogc {"
               << " return cast(" << fKlassName << "*)new(manager->allocate(sizeof(" << fKlassName << "))) " << fKlassName
               << "(); }";
@@ -235,11 +235,11 @@ void DLangCodeContainer::produceInternal()
               << fKlassName << "(); manager->destroy(dsp); }";
     } else {
         tab(n, *fOut);
-        *fOut << fKlassName << " "
+        *fOut << fKlassName << "* "
               << "new" << fKlassName << "() nothrow @nogc {"
-              << " return mallocNew!(" << fKlassName << ")(); }";
+              << " return assumeNothrowNoGC(&mallocNew!(" << fKlassName << "))(); }";
         tab(n, *fOut);
-        *fOut << "void delete" << fKlassName << "(" << fKlassName << " dsp) nothrow @nogc { destroyFree(dsp); }";
+        *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp) nothrow @nogc { destroyFree(dsp); }";
     }
     tab(n, *fOut);
 }
@@ -458,7 +458,7 @@ void DLangCodeContainer::generateImports(int n)
 {
     *fOut << "import std.math;\n";
     *fOut << "import std.algorithm : min, max;\n";
-    *fOut << "import dplug.core.nogc: mallocNew, mallocSlice, destroyFree;\n";
+    *fOut << "import dplug.core.nogc: mallocNew, mallocSlice, destroyFree, assumeNothrowNoGC;\n";
     tab(n, *fOut);
 }
 
