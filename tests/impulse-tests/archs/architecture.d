@@ -3,6 +3,7 @@
 <<includeclass>>
 
 import std.stdio;
+import std.format;
 import std.conv;
 import core.stdc.stdio : snprintf;
 import core.stdc.stdlib;
@@ -71,19 +72,24 @@ void printHeader(ref string file, mydsp dspObj, int numFrames)
     file ~= "number_of_frames  :  " ~ to!string(numFrames) ~ "\n";
 }
 
-void printSampleOutput(ref string file, int n, float value)
+void printSampleOutput(ref string file, int n, double[] outputValues)
 {
-    ushort lineLength = value >= 0 ? 19 : 20;
-    char[] line = new char[lineLength];
-    snprintf(line.ptr, lineLength, "%6i :  %1.6f".ptr, n, value);
-
-    foreach(c; line)
+    double customRound(double num, int precision)
     {
-        if(c != '\0')
-            file ~= c;
+        immutable int trunc = cast(int)round(num * pow(10, precision));
+        return cast(double)trunc / pow(10, precision);
     }
-    file ~= '\n';
-    // writeln(line);
+
+    string s = format!"%6d :  "(n);
+    for(int i = 0; i < outputValues.length; ++i)
+    {
+        s ~= format!"%1.6f"(customRound(outputValues[i], 6));
+        if(i + 1 < outputValues.length)
+        {
+            s ~= " ";
+        }
+    }
+    file ~= s ~ '\n';
 }
 
 void main(string[] args)
@@ -177,14 +183,15 @@ void runDSP(ref string file, mydsp dspObj, int numFrames, int sampleRate, int bl
 
         dspObj.compute(cast(int)bufferSize, inputBuffers, outputBuffers);
 
-        foreach(chan; 0..numOutputs)
+        for(int index = 0; index < bufferSize; ++index)
         {
-            for(int index = 0; index < bufferSize; ++index)
+            double[] outputValues = [];
+            foreach(chan; 0..numOutputs)
             {
-                double sample = outputBuffers[chan][index];
-                printSampleOutput(file, cast(int)index, sample);
-                numFramesWritten++;
+                outputValues ~= outputBuffers[chan][index];
             }
+            printSampleOutput(file, cast(int)index, outputValues);
+            numFramesWritten++;
         }
 
         cycle++;

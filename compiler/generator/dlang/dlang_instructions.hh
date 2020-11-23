@@ -45,7 +45,7 @@ class DLangInstVisitor : public TextInstVisitor {
 
     DLangInstVisitor(std::ostream* out, int tab = 0) : TextInstVisitor(out, ".", ifloat(), "*", tab)
     {
-        gPolyMathLibTable["abs"]   = "abs";
+        gPolyMathLibTable["abs"]   = "std.math.abs";
         gPolyMathLibTable["max_i"] = "max";
         gPolyMathLibTable["min_i"] = "min";
 
@@ -96,6 +96,8 @@ class DLangInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sqrt"]  = "sqrt";
         gPolyMathLibTable["tan"]   = "tan";
         gPolyMathLibTable["tanh"]  = "tanh";
+        gPolyMathLibTable["remainder"] = "remainder";
+        gPolyMathLibTable["rint"] = "round";
     }
 
     virtual ~DLangInstVisitor() {}
@@ -265,7 +267,7 @@ class DLangInstVisitor : public TextInstVisitor {
     virtual void generateFunDefBody(DeclareFunInst* inst)
     {
         if (inst->fCode->fCode.size() == 0) {
-            *fOut << ") nothrow @nogc {}" << endl;  // Pure prototype
+            *fOut << ") nothrow @nogc;" << endl;  // Pure prototype
         } else {
             // Function body
             *fOut << ") nothrow @nogc {";
@@ -353,6 +355,36 @@ class DLangInstVisitor : public TextInstVisitor {
         string name = gGlobal->getMathFunction(inst->fName);
         name = (gPolyMathLibTable.find(name) != gPolyMathLibTable.end()) ? gPolyMathLibTable[name] : name;
         generateFunCall(inst, name);
+    }
+
+    virtual void visit(FloatArrayNumInst* inst)
+    {
+        char sep = '[';
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << sep << checkFloat(inst->fNumTable[i]);
+            sep = ',';
+        }
+        *fOut << ']';
+    }
+
+    virtual void visit(Int32ArrayNumInst* inst)
+    {
+        char sep = '[';
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << sep << inst->fNumTable[i];
+            sep = ',';
+        }
+        *fOut << ']';
+    }
+
+    virtual void visit(DoubleArrayNumInst* inst)
+    {
+        char sep = '[';
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << sep << checkDouble(inst->fNumTable[i]);
+            sep = ',';
+        }
+        *fOut << ']';
     }
 
     // virtual void visit(ForLoopInst* inst)
