@@ -36,9 +36,9 @@ all: ir/dlang/BPF.ir
 # all: ir/dlang/bs.ir
 all: ir/dlang/capture.ir
 all: ir/dlang/carre_volterra.ir
-# all: ir/dlang/comb_bug_exp.ir
-# all: ir/dlang/comb_delay1.ir
-# all: ir/dlang/comb_delay2.ir
+all: ir/dlang/comb_bug_exp.ir
+all: ir/dlang/comb_delay1.ir
+all: ir/dlang/comb_delay2.ir
 all: ir/dlang/cubic_distortion.ir
 # all: ir/dlang/dbmeter.ir
 # all: ir/dlang/delays.ir
@@ -66,8 +66,8 @@ all: ir/dlang/multibandfilter.ir
 all: ir/dlang/noise.ir
 all: ir/dlang/noisemetadata.ir
 all: ir/dlang/notch.ir
-# all: ir/dlang/osc.ir
-# all: ir/dlang/osci.ir
+all: ir/dlang/osc.ir
+all: ir/dlang/osci.ir
 all: ir/dlang/panpot.ir
 all: ir/dlang/parametric_eq.ir
 all: ir/dlang/peakingEQ.ir
@@ -89,18 +89,18 @@ all: ir/dlang/tapiir.ir
 # all: ir/dlang/tester.ir
 # all: ir/dlang/tester2.ir
 all: ir/dlang/tf_exp.ir
-# all: ir/dlang/thru_zero_flanger.ir
+all: ir/dlang/thru_zero_flanger.ir
 # all: ir/dlang/UITester.ir
 all: ir/dlang/vcf_wah_pedals.ir
 all: ir/dlang/virtual_analog_oscillators.ir
 all: ir/dlang/volume.ir
 all: ir/dlang/vumeter.ir
 # all: ir/dlang/waveform1.ir
-# all: ir/dlang/waveform2.ir
-# all: ir/dlang/waveform3.ir
+all: ir/dlang/waveform2.ir
+all: ir/dlang/waveform3.ir
 # all: ir/dlang/waveform4.ir
 # all: ir/dlang/waveform5.ir
-# all: ir/dlang/waveform6.ir
+all: ir/dlang/waveform6.ir
 # all: ir/dlang/zita_rev1.ir
 
 filesCompare:

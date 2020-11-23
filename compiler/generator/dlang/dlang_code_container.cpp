@@ -106,19 +106,15 @@ void DLangCodeContainer::produceMetadata(int tabs)
 
 void DLangCodeContainer::produceInit(int tabs)
 {
-    if (gGlobal->gMemoryManager) {
-        tab(tabs, *fOut);
-        *fOut << "void init(int sample_rate) {}";
-    } else {
-        tab(tabs, *fOut);
-        *fOut << "void init(int sample_rate) {";
-        tab(tabs + 1, *fOut);
-        *fOut << "classInit(sample_rate);";
-        tab(tabs + 1, *fOut);
-        *fOut << "instanceInit(sample_rate);";
-        tab(tabs, *fOut);
-        *fOut << "}";
-    }
+
+    tab(tabs, *fOut);
+    *fOut << "void init(int sample_rate) {";
+    tab(tabs + 1, *fOut);
+    *fOut << "classInit(sample_rate);";
+    tab(tabs + 1, *fOut);
+    *fOut << "instanceInit(sample_rate);";
+    tab(tabs, *fOut);
+    *fOut << "}";
 
     tab(tabs, *fOut);
     *fOut << "void instanceInit(int sample_rate) {";
@@ -206,7 +202,7 @@ void DLangCodeContainer::produceInternal()
     tab(n + 1, *fOut);
     if (fSubContainerType == kInt) {
         tab(n + 1, *fOut);
-        *fOut << "void fill" << fKlassName << subst("(int $0, int* " + fTableName + ") nothrow @nogc {", counter);
+        *fOut << "void fill" << fKlassName << subst("(int $0, int[] " + fTableName + ") nothrow @nogc {", counter);
     } else {
         tab(n + 1, *fOut);
         *fOut << "void fill" << fKlassName << subst("(int $0, $1[] " + fTableName + ") nothrow @nogc {", counter, ifloat());
@@ -223,24 +219,13 @@ void DLangCodeContainer::produceInternal()
     tab(n, *fOut);
     *fOut << "};" << endl;
 
-    // Memory methods (as globals)
-    if (gGlobal->gMemoryManager) {
-        tab(n, *fOut);
-        *fOut << "static " << fKlassName << " "
-              << "new" << fKlassName << "(dsp_memory_manager* manager) nothrow @nogc {"
-              << " return cast(" << fKlassName << "*)new(manager->allocate(sizeof(" << fKlassName << "))) " << fKlassName
-              << "(); }";
-        tab(n, *fOut);
-        *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp, dsp_memory_manager* manager) nothrow @nogc { dsp->~"
-              << fKlassName << "(); manager->destroy(dsp); }";
-    } else {
-        tab(n, *fOut);
-        *fOut << fKlassName << "* "
-              << "new" << fKlassName << "() nothrow @nogc {"
-              << " return assumeNothrowNoGC(&mallocNew!(" << fKlassName << "))(); }";
-        tab(n, *fOut);
-        *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp) nothrow @nogc { destroyFree(dsp); }";
-    }
+    tab(n, *fOut);
+    *fOut << fKlassName << "* "
+            << "new" << fKlassName << "() nothrow @nogc {"
+            << " return assumeNothrowNoGC(&mallocNew!(" << fKlassName << "))(); }";
+    tab(n, *fOut);
+    *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp) nothrow @nogc { destroyFree(dsp); }";
+    
     tab(n, *fOut);
 }
 
@@ -323,11 +308,6 @@ void DLangCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << " public:";
 
-    if (gGlobal->gMemoryManager) {
-        tab(n + 1, *fOut);
-        *fOut << "static dsp_memory_manager* fManager;";
-    }
-
     // Print metadata declaration
     tab(n + 1, *fOut);
     produceMetadata(n + 1);
@@ -361,16 +341,6 @@ void DLangCodeContainer::produceClass()
     generateStaticInit(&fCodeProducer);
     back(1, *fOut);
     *fOut << "}";
-
-    if (gGlobal->gMemoryManager) {
-        tab(n + 1, *fOut);
-        *fOut << "static void classDestroy() {";
-        tab(n + 2, *fOut);
-        fCodeProducer.Tab(n + 2);
-        generateStaticDestroy(&fCodeProducer);
-        back(1, *fOut);
-        *fOut << "}";
-    }
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
@@ -430,12 +400,6 @@ void DLangCodeContainer::produceClass()
     tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "}" << endl;
-
-    // To improve (generalization for all backends...)
-    if (gGlobal->gMemoryManager) {
-        tab(n, *fOut);
-        *fOut << "dsp_memory_manager* " << fKlassName << "::fManager = 0;" << endl;
-    }
 
     // Generate user interface macros if needed
     printMacros(*fOut, n);
