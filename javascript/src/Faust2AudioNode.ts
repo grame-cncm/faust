@@ -25,16 +25,19 @@
 
 namespace Faust {
 
+    let gNodeCount = 0;
+
     export function compileAudioNode(audioCtx: BaseAudioContext, module: FaustModule, dsp_code: string, effect_code: string | null, voices: number)
         : Promise<FaustMonoNode | FaustPolyNode | null> {
         let sp = typeof (window.AudioWorkletNode) == "undefined";
         let libfaust = createLibFaust(module);
         if (libfaust) {
             let compiler = createCompiler(libfaust);
+            gNodeCount++;
             if (voices === 0) {
-                return createAudioNodeFactory().compileMonoNode(audioCtx, "Faust", compiler, dsp_code, "-ftz 2", sp, 0);
+                return createAudioNodeFactory().compileMonoNode(audioCtx, "Faust" + gNodeCount.toString(), compiler, dsp_code, "-ftz 2", sp, 0);
             } else {
-                return createAudioNodeFactory().compilePolyNode(audioCtx, "Faust", compiler, dsp_code, effect_code, "-ftz 2", voices, sp, 0);
+                return createAudioNodeFactory().compilePolyNode(audioCtx, "Faust" + gNodeCount.toString(), compiler, dsp_code, effect_code, "-ftz 2", voices, sp, 0);
             }
         }
         return new Promise<null>(() => { return null; });
