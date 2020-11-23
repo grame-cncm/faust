@@ -108,15 +108,7 @@ void main(string[] args)
         irFile.write(fileText); 
         irFile.close();
     }
-
-    string debugFilePath = "/home/reker/.test/test.ir";
-    File debugFile = File(debugFilePath, "w+");
-    scope(exit) 
-    { 
-        debugFile.write(fileText); 
-        debugFile.close();
-    }
-
+    
     immutable int sampleRate = 44_100;
     immutable int numFrames = 60_000;
     immutable int blockSize = numFrames / 4;
