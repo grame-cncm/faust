@@ -37,10 +37,17 @@ FaustModule().then (module => {
 
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     FaustModule().then(module => {
-        Faust.compileAudioNode(audioCtx, module, getcode(), null, 0).then(node => {
-            node.connect(audioCtx.destination);
+        Faust.compileAudioNode(audioCtx, module, getcode(), null, 0).then(node1 => {
+            node1.connect(audioCtx.destination);
+            Faust.compileAudioNode(audioCtx, module, getcode(), null, 0).then(node2 => {
+                node2.connect(audioCtx.destination);
+                Faust.compileAudioNode(audioCtx, module, getcode(), null, 0).then(node3 => {
+                    node3.connect(audioCtx.destination);
+                });
+            });
         });
     });
+
     const unlockAudioContext = (audioCtx) => {
         if (audioCtx.state !== "suspended") return;
         const b = document.body;
