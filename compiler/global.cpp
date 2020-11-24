@@ -579,7 +579,7 @@ void global::init()
     gMathForeignFunctions["isinfl"] = true;
 }
 
-void global::printCompilationOptions(ostream& dst, bool backend)
+void global::printCompilationOptions(stringstream& dst, bool backend)
 {
     if (backend) {
 #ifdef LLVM_BUILD
@@ -615,6 +615,9 @@ void global::printCompilationOptions(ostream& dst, bool backend)
         dst << ((gFloatSize == 1) ? "-scal" : ((gFloatSize == 2) ? "-double" : (gFloatSize == 3) ? "-quad" : ""))
             << " -ftz " << gFTZMode;
     }
+    
+    // Add 'compile_options' metadata
+    gGlobal->gMetaDataSet[tree("compile_options")].insert(tree("\"" + dst.str() + "\""));
 }
 
 void global::initTypeSizeMap()

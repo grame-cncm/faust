@@ -569,7 +569,7 @@ struct global {
         return (gMathForeignFunctions.find(name) != gMathForeignFunctions.end());
     }
 
-    void printCompilationOptions(ostream& dst, bool backend = true);
+    void printCompilationOptions(stringstream& dst, bool backend = true);
 
     void initTypeSizeMap();
 

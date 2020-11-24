@@ -52,6 +52,8 @@
 #include "faust/gui/PrintUI.h"
 #include "faust/misc.h"
 
+#include "faust/dsp/dsp-compute-adapter.h"
+
 using namespace std;
 
 list<GUI*> GUI::fGuiList;
