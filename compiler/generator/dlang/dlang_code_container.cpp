@@ -375,9 +375,9 @@ void DLangCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << fKlassName << "* clone() {";
+    *fOut << fKlassName << " clone() {";
     tab(n + 2, *fOut);
-    *fOut << "return cast(" << fKlassName << "*)(mallocNew!" << fKlassName << "());";
+    *fOut << "return (mallocNew!" << fKlassName << "());";
     tab(n + 1, *fOut);
     *fOut << "}";
 

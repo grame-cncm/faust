@@ -33,35 +33,35 @@ all: filesCompare
 all: ir/dlang/APF.ir
 all: ir/dlang/bandfilter.ir
 all: ir/dlang/BPF.ir
-# all: ir/dlang/bs.ir
+all: ir/dlang/bs.ir
 all: ir/dlang/capture.ir
 all: ir/dlang/carre_volterra.ir
 all: ir/dlang/comb_bug_exp.ir
 all: ir/dlang/comb_delay1.ir
 all: ir/dlang/comb_delay2.ir
 all: ir/dlang/cubic_distortion.ir
-# all: ir/dlang/dbmeter.ir
-# all: ir/dlang/delays.ir
+all: ir/dlang/dbmeter.ir
+all: ir/dlang/delays.ir
 all: ir/dlang/echo_bug.ir
 all: ir/dlang/echo.ir
-# all: ir/dlang/freeverb.ir
+all: ir/dlang/freeverb.ir
 all: ir/dlang/gate_compressor.ir
-# all: ir/dlang/harpe.ir
+all: ir/dlang/harpe.ir
 all: ir/dlang/highShelf.ir
 all: ir/dlang/HPF.ir
-all: ir/dlang/karplus.ir
+# all: ir/dlang/karplus.ir
 # all: ir/dlang/karplus32.ir
 all: ir/dlang/lfboost.ir
-# all: ir/dlang/logical.ir
+all: ir/dlang/logical.ir
 all: ir/dlang/lowboost.ir
 all: ir/dlang/lowcut.ir
 all: ir/dlang/lowShelf.ir
 all: ir/dlang/LPF.ir
-# all: ir/dlang/math.ir
-# all: ir/dlang/matrix.ir
+all: ir/dlang/math.ir
+all: ir/dlang/matrix.ir
 all: ir/dlang/midi_tester.ir
 all: ir/dlang/mixer.ir
-# all: ir/dlang/modulations.ir
+all: ir/dlang/modulations.ir
 all: ir/dlang/multibandfilter.ir
 all: ir/dlang/noise.ir
 all: ir/dlang/noisemetadata.ir
@@ -72,22 +72,22 @@ all: ir/dlang/panpot.ir
 all: ir/dlang/parametric_eq.ir
 all: ir/dlang/peakingEQ.ir
 all: ir/dlang/peakNotch.ir
-# all: ir/dlang/phaser_flanger.ir
+all: ir/dlang/phaser_flanger.ir
 all: ir/dlang/pitch_shifter.ir
-# all: ir/dlang/precision.ir
-# all: ir/dlang/quadecho.ir
+all: ir/dlang/precision.ir
+all: ir/dlang/quadecho.ir
 # all: ir/dlang/reverb_designer.ir
-all: ir/dlang/reverb_tester.ir
+# all: ir/dlang/reverb_tester.ir
 all: ir/dlang/smoothdelay.ir
 # all: ir/dlang/sound.ir
-# all: ir/dlang/spat.ir
+all: ir/dlang/spat.ir
 all: ir/dlang/spectral_level.ir
 all: ir/dlang/spectral_tilt.ir
 all: ir/dlang/stereoecho.ir
 all: ir/dlang/switcher.ir
 all: ir/dlang/tapiir.ir
-# all: ir/dlang/tester.ir
-# all: ir/dlang/tester2.ir
+all: ir/dlang/tester.ir
+all: ir/dlang/tester2.ir
 all: ir/dlang/tf_exp.ir
 all: ir/dlang/thru_zero_flanger.ir
 # all: ir/dlang/UITester.ir
@@ -95,13 +95,13 @@ all: ir/dlang/vcf_wah_pedals.ir
 all: ir/dlang/virtual_analog_oscillators.ir
 all: ir/dlang/volume.ir
 all: ir/dlang/vumeter.ir
-# all: ir/dlang/waveform1.ir
+all: ir/dlang/waveform1.ir
 all: ir/dlang/waveform2.ir
 all: ir/dlang/waveform3.ir
-# all: ir/dlang/waveform4.ir
-# all: ir/dlang/waveform5.ir
+all: ir/dlang/waveform4.ir
+all: ir/dlang/waveform5.ir
 all: ir/dlang/waveform6.ir
-# all: ir/dlang/zita_rev1.ir
+all: ir/dlang/zita_rev1.ir
 
 filesCompare:
 	$(MAKE) filesCompare
