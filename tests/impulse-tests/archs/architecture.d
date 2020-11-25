@@ -5,7 +5,7 @@ import std.string;
 import std.algorithm : max, min;
 import core.stdc.stdio : snprintf;
 import core.stdc.stdlib;
-import core.stdc.string : memset;
+import core.stdc.string : memset, strlen;
 import core.stdc.math : isinf;
 import dplug.core.vec;
 import dplug.core.map;
@@ -13,33 +13,164 @@ import dplug.core.map;
 class UI {
 nothrow:
 @nogc:
-    void declare(string id, string key, string value) {}
-    void declare(int id, string key, string value) {}
-    void declare(FAUSTFLOAT* id, string key, string value) {}
+    void declare(string id, string key, string value){ }
+    void declare(int id, string key, string value){ }
+    void declare(FAUSTFLOAT* id, string key, string value){ }
 
     // -- layout groups
 
-    void openTabBox(string label) {}
-    void openHorizontalBox(string label) {}
-    void openVerticalBox(string label) {}
-    void closeBox() {}
+    void openTabBox(string label){ }
+    void openHorizontalBox(string label){ }
+    void openVerticalBox(string label){ }
+    void closeBox(){ }
 
     // -- active widgets
 
-    void addButton(string label, FAUSTFLOAT* val) {}
-    void addCheckButton(string label, FAUSTFLOAT* val) {}
-    void addVerticalSlider(string label, FAUSTFLOAT* val, float init, float min, float max, float step) {}
-    void addHorizontalSlider(string label, FAUSTFLOAT* val, float init, float min, float max, float step) {}
-    void addNumEntry(string label, FAUSTFLOAT* val, float init, float min, float max, float step) {}
+    void addButton(string label, FAUSTFLOAT* val){ }
+    void addCheckButton(string label, FAUSTFLOAT* val){ }
+    void addVerticalSlider(string label, FAUSTFLOAT* val, float init, float min, float max, float step){ }
+    void addHorizontalSlider(string label, FAUSTFLOAT* val, float init, float min, float max, float step){ }
+    void addNumEntry(string label, FAUSTFLOAT* val, float init, float min, float max, float step){ }
 
     // -- passive display widgets
 
-    void addHorizontalBargraph(string label, FAUSTFLOAT* val, float min, float max) {}
-    void addVerticalBargraph(string label, FAUSTFLOAT* val, float min, float max) {}
+    void addHorizontalBargraph(string label, FAUSTFLOAT* val, float min, float max){ }
+    void addVerticalBargraph(string label, FAUSTFLOAT* val, float min, float max){ }
 
 }
 
 enum int kFrames = 64;
+
+//----------------------------------------------------------------------------
+// FUI
+//----------------------------------------------------------------------------
+class FUI : UI
+{
+    protected:
+
+        Vec!string fControlsLevel;
+        FAUSTFLOAT*[string] fName2Zone;
+        Vec!(FAUSTFLOAT*) fButtons;
+
+        // add an element by relating its full name and memory zone
+        void addElement(const char* label, FAUSTFLOAT* zone, bool button = false)
+        {
+            string path = buildPath(cast(const string)label[0..strlen(label)]);
+            fName2Zone[path] = zone;
+            if (button) {
+                fButtons.pushBack(zone);
+            }
+        }
+
+    
+    public:
+
+        this() 
+        { 
+            fControlsLevel = makeVec!string();
+            fButtons = makeVec!(FAUSTFLOAT*)();
+        }
+        ~this() {}
+
+        // -- Save and recall methods
+
+        // save the zones values and full names
+        void saveState(const char* filename)
+        {
+            File file = File(cast(string)filename[0..strlen(filename)], "w");
+            
+            if (file.isOpen()) {
+                foreach(kv; fName2Zone.byKeyValue()) 
+                {
+                    file ~ to!string(*(kv).value) ~ ' ' ~ to!string(kv.key) ~ "\n";
+                }
+
+                file ~ "\n";
+                file.close();
+            } else {
+                stderr.writeln("Error opening " ~ filename ~ " file\n");
+            }
+        }
+
+        // recall the zones values and full names
+        void recallState(const char* filename)
+        {
+            File file = File(cast(string)filename[0..strlen(filename)], "r");
+            FAUSTFLOAT value;
+            string path1, path2;
+            while (file.good()) {
+                file >> value >> path1;
+                path2 = "/" + path1;
+                if (fName2Zone.count(path1) > 0) {          // Old path system
+                    *(fName2Zone[path1]) = value;
+                } else if (fName2Zone.count(path2) > 0) {   // New path system with the starting '/'
+                    *(fName2Zone[path2]) = value;
+                } else if (path1.length() > 0) {
+                    stderr.writeln("recallState : parameter not found : " ~ path1 ~ " with value : " ~ value ~ "\n");
+                }
+            }
+            file.close();
+        }
+
+        void setButtons(bool state)
+        {
+            for (size_t i = 0; i < fButtons.length(); i++) {
+                *fButtons[i] = state;
+            }
+        }
+
+        string buildPath(const string label) 
+        {
+            string res = "/";
+            for (size_t i = 0; i < fControlsLevel.size(); i++) {
+                res += fControlsLevel[i];
+                res += "/";
+            }
+            res += label;
+            res.replace(' ', '_');
+            return res;
+        }
+    
+        string buildLabel(string label)
+        {
+            res.replace(' ', '_');
+            return label;
+        }
+    
+        void pushLabel(const (char*) label) { fControlsLevel.pushBack(cast(const string)label[0..strlen(label)]); }
+        void popLabel() { fControlsLevel.popBack(); }
+
+        // -- widget's layouts (just keep track of group labels)
+
+        void openTabBox(const char* label) { pushLabel(label); }
+        void openHorizontalBox(const char* label) { pushLabel(label); }
+        void openVerticalBox(const char* label) { pushLabel(label); }
+        override void closeBox() { popLabel(); }
+
+        // -- active widgets (just add an element)
+
+        void addButton(const char* label, FAUSTFLOAT* zone) { addElement(label, zone, true); }
+        void addCheckButton(const char* label, FAUSTFLOAT* zone) { addElement(label, zone); }
+        void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT)
+                                                                    { addElement(label, zone); }
+        void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT)
+                                                                    { addElement(label, zone); }
+        void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT)
+                                                                    { addElement(label, zone); }
+
+        // -- passive widgets (are ignored)
+
+        void addHorizontalBargraph(const char*, FAUSTFLOAT*, FAUSTFLOAT, FAUSTFLOAT) {};
+        void addVerticalBargraph(const char*, FAUSTFLOAT*, FAUSTFLOAT, FAUSTFLOAT) {};
+    
+        // -- soundfiles
+        // void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
+
+        // -- metadata are not used
+
+        void declare(FAUSTFLOAT*, const char*, const char*) {}
+
+}
 
 //----------------------------------------------------------------------------
 // DSP control UI
@@ -226,8 +357,8 @@ static void runDSP(ref string irFile, mydsp DSP, ref const string file, ref int 
     filename = filename[0..filename.indexOf('.')];
     snprintf(rcfilename.ptr, 255, "%src", filename.ptr);
     
-    // FUI finterface;
-    // DSP.buildUserInterface(cast(UI)&finterface);
+    FUI finterface = new FUI();
+    DSP.buildUserInterface(cast(UI)&finterface);
     
     // // Soundfile
     // TestMemoryReader memory_reader;
@@ -276,7 +407,7 @@ static void runDSP(ref string irFile, mydsp DSP, ref const string file, ref int 
     DSP.instanceInit(44100);
     
     // Init UIs on cloned DSP
-    // DSP.buildUserInterface(cast(UI)&finterface);
+    DSP.buildUserInterface(cast(UI)&finterface);
     // DSP.buildUserInterface(cast(UI)&sound_ui);
     // DSP.buildUserInterface(cast(UI)&midi_ui);
     
@@ -289,7 +420,7 @@ static void runDSP(ref string irFile, mydsp DSP, ref const string file, ref int 
     int run = 0;
     
     // recall saved state
-    // finterface.recallState(rcfilename);
+    finterface.recallState(rcfilename);
     
     // // Test MIDI control
     // for (int i = 0; i < 127; i++) {
@@ -310,11 +441,11 @@ static void runDSP(ref string irFile, mydsp DSP, ref const string file, ref int 
         while (nbsamples > 0) {
             if (run == 0) {
                 ichan.impulse();
-                // finterface.setButtons(true);
+                finterface.setButtons(true);
             }
             if (run >= 1) {
                 ichan.zero();
-                // finterface.setButtons(false);
+                finterface.setButtons(false);
             }
             int nFrames = min(kFrames, nbsamples);
             
