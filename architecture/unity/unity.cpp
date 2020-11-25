@@ -52,8 +52,8 @@ class unitydsp : public mydsp
         {
             buildUserInterface(&fUI);
             if (dspbuffersize > 0) {
-                fInputs = (INPUTS > 0) ? new AudioChannels(dspbuffersize, INPUTS > 0) : nullptr;
-                fOutputs = (OUTPUTS > 0) ? new AudioChannels(dspbuffersize, OUTPUTS > 0) : nullptr;
+                fInputs = (INPUTS > 0) ? new AudioChannels(dspbuffersize, INPUTS) : nullptr;
+                fOutputs = (OUTPUTS > 0) ? new AudioChannels(dspbuffersize, OUTPUTS) : nullptr;
             }
         }
         
