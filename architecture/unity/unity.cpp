@@ -48,12 +48,15 @@ class unitydsp : public mydsp
         
     public:
         
-        unitydsp(UInt32 dspbuffersize = 0)
+        unitydsp(UInt32 buffer_size = 0)
         {
             buildUserInterface(&fUI);
-            if (dspbuffersize > 0) {
-                fInputs = (INPUTS > 0) ? new AudioChannels(dspbuffersize, INPUTS) : nullptr;
-                fOutputs = (OUTPUTS > 0) ? new AudioChannels(dspbuffersize, OUTPUTS) : nullptr;
+            if (buffer_size > 0) {
+                fInputs = (INPUTS > 0) ? new AudioChannels(buffer_size, INPUTS) : nullptr;
+                fOutputs = (OUTPUTS > 0) ? new AudioChannels(buffer_size, OUTPUTS) : nullptr;
+            } else {
+                fInputs = nullptr;
+                fOutputs = nullptr;
             }
         }
         

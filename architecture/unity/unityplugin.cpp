@@ -60,7 +60,7 @@ class unitypolydsp : public decorator_dsp
     
     public:
     
-        unitypolydsp(int dspbuffersize, int nvoices)
+        unitypolydsp(int buffer_size, int nvoices)
         {
             /*
              bool midi_sync = false;
@@ -73,9 +73,12 @@ class unitypolydsp : public decorator_dsp
             fDSP = new mydsp_poly(new mydsp(), nvoices, true, true);
             fDSP->buildUserInterface(&fUI);
             
-            if (dspbuffersize > 0) {
-                fInputs = (INPUTS > 0) ? new AudioChannels(dspbuffersize, INPUTS) : nullptr;
-                fOutputs = (OUTPUTS > 0) ? new AudioChannels(dspbuffersize, OUTPUTS) : nullptr;
+            if (buffer_size > 0) {
+                fInputs = (INPUTS > 0) ? new AudioChannels(buffer_size, INPUTS) : nullptr;
+                fOutputs = (OUTPUTS > 0) ? new AudioChannels(buffer_size, OUTPUTS) : nullptr;
+            } else {
+                fInputs = nullptr;
+                fOutputs = nullptr;
             }
         }
     
@@ -194,12 +197,15 @@ class unitydsp : public mydsp
     
     public:
     
-        unitydsp(int dspbuffersize)
+        unitydsp(int buffer_size)
         {
             buildUserInterface(&fUI);
-            if (dspbuffersize > 0) {
-                fInputs = (INPUTS > 0) ? new AudioChannels(dspbuffersize, INPUTS) : nullptr;
-                fOutputs = (OUTPUTS > 0) ? new AudioChannels(dspbuffersize, OUTPUTS) : nullptr;
+            if (buffer_size > 0) {
+                fInputs = (INPUTS > 0) ? new AudioChannels(buffer_size, INPUTS) : nullptr;
+                fOutputs = (OUTPUTS > 0) ? new AudioChannels(buffer_size, OUTPUTS) : nullptr;
+            } else {
+                fInputs = nullptr;
+                fOutputs = nullptr;
             }
         }
     
@@ -211,8 +217,8 @@ class unitydsp : public mydsp
     
         void unityProcess(float* inbuffer, float* outbuffer, int length, int inchannels, int outchannels)
         {
-            if (INPUTS > 0 ) fInputs->interleavedRead(inbuffer, length, inchannels);
-            compute(length, ((INPUTS > 0 ) ? fInputs->buffers() : nullptr), ((OUTPUTS > 0) ? fOutputs->buffers() : nullptr));
+            if (INPUTS > 0) fInputs->interleavedRead(inbuffer, length, inchannels);
+            compute(length, ((INPUTS > 0) ? fInputs->buffers() : nullptr), ((OUTPUTS > 0) ? fOutputs->buffers() : nullptr));
             if (OUTPUTS > 0) fOutputs->interleavedWrite(outbuffer, length, outchannels);
         }
     
