@@ -1,4 +1,4 @@
-#### Shared library for Unity Plugin ####
+#### Shared library for Unity Monophonic Plugin ####
 
 LOCAL_PATH := $(call my-dir)
 

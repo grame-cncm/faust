@@ -127,7 +127,7 @@ ztimedmap GUI::gTimedZoneMap;
 
 extern "C"
 {
-#define UNITY_POLY_DSP unitypolydsp<FAUST_INPUTS, FAUST_OUTPUTS>
+    #define UNITY_POLY_DSP unitypolydsp<FAUST_INPUTS, FAUST_OUTPUTS>
     
     DllExport UNITY_POLY_DSP* Faust_contextNew(int bufferSize, int nvoices)
     {
