@@ -36,8 +36,8 @@ namespace Faust {
 
     class AudioNodeFactoryImp implements AudioNodeFactory {
 
-        // Table of all create WorkletProcessors, each of them has to be unique
-        private static fWorkletProcessors: Set<string> = new Set();
+        // Set of all created WorkletProcessors, each of them has to be unique
+        private static gWorkletProcessors: Set<string> = new Set();
 
         async compileMonoNode(context: BaseAudioContext, name: string, compiler: Compiler, dsp_code: string, args: string, sp: boolean, buffer_size?: number)
             : Promise<FaustMonoNode | null> {
@@ -55,7 +55,7 @@ namespace Faust {
             } else {
                 const name = name_aux + factory.cfactory.toString();
                 // Dynamically create AudioWorkletProcessor if code not yet created
-                if (!AudioNodeFactoryImp.fWorkletProcessors.has(name)) {
+                if (!AudioNodeFactoryImp.gWorkletProcessors.has(name)) {
                     try {
                         const processor_code = `
                             // Create a Faust namespace
@@ -80,7 +80,7 @@ namespace Faust {
                         const url = window.URL.createObjectURL(new Blob([processor_code], { type: "text/javascript" }));
                         await context.audioWorklet.addModule(url);
                         // Keep the DSP name
-                        AudioNodeFactoryImp.fWorkletProcessors.add(name);
+                        AudioNodeFactoryImp.gWorkletProcessors.add(name);
                     } catch (e) {
                         console.error("=> exception raised while running createMonoNode: " + e);
                         return null;
@@ -144,7 +144,7 @@ namespace Faust {
             } else {
                 const name = name_aux + voice_factory.cfactory.toString() + "_poly";
                 // Dynamically create AudioWorkletProcessor if code not yet created
-                if (!AudioNodeFactoryImp.fWorkletProcessors.has(name)) {
+                if (!AudioNodeFactoryImp.gWorkletProcessors.has(name)) {
                     try {
                         const processor_code = `
                             // Create a Faust namespace
@@ -170,7 +170,7 @@ namespace Faust {
                         const url = window.URL.createObjectURL(new Blob([processor_code], { type: "text/javascript" }));
                         await context.audioWorklet.addModule(url);
                         // Keep the DSP name
-                        AudioNodeFactoryImp.fWorkletProcessors.add(name);
+                        AudioNodeFactoryImp.gWorkletProcessors.add(name);
                     } catch (e) {
                         console.error("=> exception raised while running createPolyNode: " + e);
                         return null;
