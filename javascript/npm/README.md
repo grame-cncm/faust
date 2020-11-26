@@ -26,9 +26,9 @@ The API is organised from low to high level as illustrated by the figure below.
 The first level is the Faust compiler compiled as a wasm library named `libfaust-wasm`.
 It consists in 3 different files:
 
-- libfaust-wasm.wasm : the Faust compiler provided as a Web Assembly module 
-- libfaust-wasm.js : a javascript loader of the Web Assembly module
-- libfaust-wasm.data : a virtual file system containing the Faust libraries.
+- `libfaust-wasm.wasm` : the Faust compiler provided as a Web Assembly module 
+- `libfaust-wasm.js` : a javascript loader of the Web Assembly module
+- `libfaust-wasm.data` : a virtual file system containing the Faust libraries.
 
 You must include `libfaust-wasm.js` in your html page. The loader will take care of providing an instance of the Faust Web assembly module and of the associated virtual file system (libfaust-wasm.data). Note that depending on the relative location of `libfaust-wasm.js`, the loader may fail to find  `libfaust-wasm.data`; in this case, the simple solution consists in copying  `libfaust-wasm.data` aside the refering web page.
 
@@ -56,7 +56,7 @@ Note that ScriptProcessor is marked as [deprecated](https://developer.mozilla.or
 ## Dynamic and Static Instances <a name="ds"></a>
 
 The Faust Wasm and Audio Mode levels make it possible to generate instances from Faust dsp code as well as from pre-compiled Web Assembly modules.
-In the latter case, it is not necessary to include the `faust-wasm.js` library, `FaustLibrary.js` is sufficient to provide the required services.
+In the latter case, it is not necessary to include the `libfaust-wasm.js` library, `FaustLibrary.js` is sufficient to provide the required services.
 This allows to generate lighter and faster-loading HTML pages.
 
 **Note**: to create a polyphonic instance from a pre-compiled Web Assembly module, an additional `mixer32.wasm` module is required and must be present at the same level as the referring HTML page. This module is part of the `dist` folder.
