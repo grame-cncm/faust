@@ -9,6 +9,8 @@ import core.stdc.string : memset, strlen;
 import core.stdc.math : isinf;
 import dplug.core.vec;
 import dplug.core.map;
+import dplug.core.nogc;
+import core.stdc.stdint : uintptr_t;
 
 class UI {
 nothrow:
@@ -40,6 +42,45 @@ nothrow:
 }
 
 enum int kFrames = 64;
+
+// //----------------------------------------------------------------------------
+// // Soundfile
+// //----------------------------------------------------------------------------
+// enum int MAX_SOUNDFILE_PARTS = 256;
+
+// Soundfile* defaultsound = null;
+// class Soundfile {
+// nothrow:
+// @nogc:
+
+//     FAUSTFLOAT** fBuffers;
+//     int* fLength;   // length of each part
+//     int* fSR;       // sample rate of each part
+//     int* fOffset;   // offset of each part in the global buffer
+//     int fChannels;  // max number of channels of all concatenated files
+
+//     this()
+//     {
+//         fBuffers  = null;
+//         fChannels = -1;
+//         fLength   = cast(int*) mallocSlice!int(MAX_SOUNDFILE_PARTS);
+//         fSR       = cast(int*) mallocSlice!int(MAX_SOUNDFILE_PARTS);
+//         fOffset   = cast(int*) mallocSlice!int(MAX_SOUNDFILE_PARTS);
+//     }
+
+//     ~this()
+//     {
+//         // Free the real channels only
+//         for (int chan = 0; chan < fChannels; chan++) {
+//             free(fBuffers[chan]);
+//         }
+//         free(fBuffers);
+//         free(fLength);
+//         free(fSR);
+//         free(fOffset);
+//     }
+
+// }
 
 //----------------------------------------------------------------------------
 // FUI
@@ -106,7 +147,7 @@ nothrow:
         override void addVerticalBargraph(string label, FAUSTFLOAT*, FAUSTFLOAT, FAUSTFLOAT) {}
     
         // -- soundfiles
-        // void addSoundfile(string label, const char* filename, Soundfile** sf_zone) {}
+        // override void addSoundfile(string label, string filename, Soundfile** sf_zone) {}
 
         // -- metadata are not used
 
@@ -262,15 +303,9 @@ class real_channels(T)
             }
         }
 
-        // GC should take care of freeing the buffers        
+        // GC handles free the buffers in this case, nothing to do here
         ~this()
         {
-            // // free separate input channels
-            // for (int chan = 0; chan < fNumChannels; chan++) {
-            //     delete fBuffers[chan];
-            // }
-            // delete fBuffers;
-            // delete fSliceBuffers;
         }
         
         T*[] buffers() { return fBuffers; }

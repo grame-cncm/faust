@@ -79,7 +79,7 @@ all: ir/dlang/quadecho.ir
 all: ir/dlang/reverb_designer.ir
 all: ir/dlang/reverb_tester.ir
 all: ir/dlang/smoothdelay.ir
-all: ir/dlang/sound.ir
+# all: ir/dlang/sound.ir
 all: ir/dlang/spat.ir
 all: ir/dlang/spectral_level.ir
 all: ir/dlang/spectral_tilt.ir
