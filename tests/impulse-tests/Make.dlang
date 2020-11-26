@@ -49,8 +49,8 @@ all: ir/dlang/gate_compressor.ir
 all: ir/dlang/harpe.ir
 all: ir/dlang/highShelf.ir
 all: ir/dlang/HPF.ir
-# all: ir/dlang/karplus.ir
-# all: ir/dlang/karplus32.ir
+all: ir/dlang/karplus.ir
+all: ir/dlang/karplus32.ir
 all: ir/dlang/lfboost.ir
 all: ir/dlang/logical.ir
 all: ir/dlang/lowboost.ir
@@ -76,10 +76,10 @@ all: ir/dlang/phaser_flanger.ir
 all: ir/dlang/pitch_shifter.ir
 all: ir/dlang/precision.ir
 all: ir/dlang/quadecho.ir
-# all: ir/dlang/reverb_designer.ir
-# all: ir/dlang/reverb_tester.ir
+all: ir/dlang/reverb_designer.ir
+all: ir/dlang/reverb_tester.ir
 all: ir/dlang/smoothdelay.ir
-# all: ir/dlang/sound.ir
+all: ir/dlang/sound.ir
 all: ir/dlang/spat.ir
 all: ir/dlang/spectral_level.ir
 all: ir/dlang/spectral_tilt.ir
@@ -90,7 +90,7 @@ all: ir/dlang/tester.ir
 all: ir/dlang/tester2.ir
 all: ir/dlang/tf_exp.ir
 all: ir/dlang/thru_zero_flanger.ir
-# all: ir/dlang/UITester.ir
+all: ir/dlang/UITester.ir
 all: ir/dlang/vcf_wah_pedals.ir
 all: ir/dlang/virtual_analog_oscillators.ir
 all: ir/dlang/volume.ir
