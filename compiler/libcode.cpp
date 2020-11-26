@@ -836,7 +836,6 @@ static void printHelp()
          << "-clang      --clang                     when compiled with clang/clang++, adds specific #pragma for "
             "auto-vectorization."
          << endl;
-    cout << tab << "-flist      --file-list                 use file list used to eval process." << endl;
     cout << tab << "-exp10      --generate-exp10            pow(10,x) replaced by possibly faster exp10(x)." << endl;
     cout << tab << "-os         --one-sample                generate one sample computation." << endl;
     cout << tab << "-cm         --compute-mix               mix in outputs buffers." << endl;
@@ -938,6 +937,7 @@ static void printHelp()
     cout << endl << "Debug options:" << line;
     cout << tab << "-d          --details                   print compilation details." << endl;
     cout << tab << "-time       --compilation-time          display compilation phases timing information." << endl;
+    cout << tab << "-flist      --file-list                 print file list (including libraries) used to eval process." << endl;
     cout << tab << "-tg         --task-graph                print the internal task graph in dot format." << endl;
     cout << tab << "-sg         --signal-graph              print the internal signal graph in dot format." << endl;
     cout << tab << "-norm       --normalized-form           print signals in normalized form and exit." << endl;

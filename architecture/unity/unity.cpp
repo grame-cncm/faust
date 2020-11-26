@@ -90,8 +90,8 @@ class unitydsp : public mydsp
         
         void unityProcess(float* inbuffer, float* outbuffer, unsigned int length, int inchannels, int outchannels)
         {
-            if (INPUTS > 0 ) fInputs->interleavedRead(inbuffer, length, inchannels);
-            compute(length, ((INPUTS > 0 ) ? fInputs->buffers() : nullptr), ((OUTPUTS > 0) ? fOutputs->buffers() : nullptr));
+            if (INPUTS > 0) fInputs->interleavedRead(inbuffer, length, inchannels);
+            compute(length, ((INPUTS > 0) ? fInputs->buffers() : nullptr), ((OUTPUTS > 0) ? fOutputs->buffers() : nullptr));
             if (OUTPUTS > 0) fOutputs->interleavedWrite(outbuffer, length, outchannels);
         }
         
@@ -125,7 +125,6 @@ UNITY_AUDIODSP_RESULT UNITY_AUDIODSP_CALLBACK ResetCallback(UnityAudioEffectStat
     std::cout << "Reset()" << std::endl;
     UNITY_DSP* p = (UNITY_DSP*)state->effectdata;
     if (p) p->init(state->samplerate);
-    
     return UNITY_AUDIODSP_OK;
 }
 
@@ -144,7 +143,6 @@ UNITY_AUDIODSP_RESULT UNITY_AUDIODSP_CALLBACK ProcessCallback(UnityAudioEffectSt
 {
     if (inchannels != outchannels) return UNITY_AUDIODSP_ERR_UNSUPPORTED;
     UNITY_DSP* p = (UNITY_DSP*)state->effectdata;
-    
     if (p) {
         p->unityProcess(inbuffer, outbuffer, length, inchannels, outchannels);
     } else {
@@ -156,7 +154,6 @@ UNITY_AUDIODSP_RESULT UNITY_AUDIODSP_CALLBACK ProcessCallback(UnityAudioEffectSt
 UNITY_AUDIODSP_RESULT UNITY_AUDIODSP_CALLBACK SetFloatParameterCallback(UnityAudioEffectState* state, int pnum, float pval)
 {
     UNITY_DSP* p = (UNITY_DSP*)state->effectdata;
-    
     if (p) {
         p->setParamValue(pnum, pval);
     }
