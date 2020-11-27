@@ -46,6 +46,10 @@ namespace Faust {
 
             // Cleanup the cache
             if (CompilerImp.gFactories.size > 10) {
+                CompilerImp.gFactories.forEach((value, key) => {
+                    // Cleanup C++ side of each factory
+                    this.deleteDSPFactory(value);
+                });
                 CompilerImp.gFactories.clear();
             }
 
