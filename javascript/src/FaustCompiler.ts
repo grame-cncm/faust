@@ -46,10 +46,6 @@ namespace Faust {
 
             // Cleanup the cache
             if (CompilerImp.gFactories.size > 10) {
-                CompilerImp.gFactories.forEach((value, key) => {
-                    // Cleanup C++ side of each factory
-                    this.deleteDSPFactory(value);
-                });
                 CompilerImp.gFactories.clear();
             }
 
@@ -68,6 +64,8 @@ namespace Faust {
                     try {
                         const module = await WebAssembly.compile(this.intVec2intArray(faust_wasm.data));
                         const factory = { cfactory: faust_wasm.cfactory, module: module, json: faust_wasm.json, poly: poly }
+                        // Factory C++ side can be deallocated immediately
+                        this.deleteDSPFactory(factory);
                         // Keep the compiled factory in the cache
                         console.log("Compile factory");
                         CompilerImp.gFactories.set(sha_key, factory);
@@ -105,6 +103,7 @@ namespace Faust {
 
         deleteDSPFactory(factory: Factory): void {
             this.fFaustEngine.deleteDSPFactory(factory.cfactory);
+            factory.cfactory = 0;
         }
 
         expandDSP(dsp_code: string, args: string): string | null {
