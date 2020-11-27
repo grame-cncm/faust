@@ -19,7 +19,9 @@
  ************************************************************************
  ************************************************************************/
 
+
 ///<reference path="FaustCompiler.d.ts"/>
+/*///<reference path="../node_modules/js-sha256/index.d.ts"/>*/
 
 namespace Faust {
 
@@ -29,6 +31,7 @@ namespace Faust {
     class CompilerImp implements Compiler {
         private fFaustEngine: LibFaust;
         private fErrorMessage: string;
+        private static gFactories: Map<string, Factory> = new Map<string, Factory>();
 
         private intVec2intArray(vec: IntVector): Uint8Array {
             const size = vec.size();
@@ -40,21 +43,41 @@ namespace Faust {
         }
 
         private async createDSPFactoryImp(name: string, dsp_code: string, args: string, poly: boolean): Promise<Factory | null> {
-            try {
-                // Can possibly raise an C++ exception catched by the second catch()
-                const faust_wasm = this.fFaustEngine.createDSPFactory(name, dsp_code, args, !poly);
+
+            // Cleanup the cache
+            if (CompilerImp.gFactories.size > 10) {
+                CompilerImp.gFactories.clear();
+            }
+
+            let sha_key = name + dsp_code + args + ((poly) ? "poly" : "mono");
+            console.log(sha_key);
+            //let sha_key = sha256.Hash(name + dsp_code + args + ((poly) ? "poly" : "mono"));
+
+            // If code is already compiled, return the cached factory
+            if (CompilerImp.gFactories.has(sha_key)) {
+                console.log("Use cached factory");
+                return CompilerImp.gFactories.get(sha_key) as Factory;
+            } else {
                 try {
-                    const module = await WebAssembly.compile(this.intVec2intArray(faust_wasm.data));
-                    return { cfactory: faust_wasm.cfactory, module: module, json: faust_wasm.json, poly: poly };
-                } catch (e) {
-                    console.error(e);
+                    // Can possibly raise an C++ exception catched by the second catch()
+                    const faust_wasm = this.fFaustEngine.createDSPFactory(name, dsp_code, args, !poly);
+                    try {
+                        const module = await WebAssembly.compile(this.intVec2intArray(faust_wasm.data));
+                        const factory = { cfactory: faust_wasm.cfactory, module: module, json: faust_wasm.json, poly: poly }
+                        // Keep the compiled factory in the cache
+                        console.log("Compile factory");
+                        CompilerImp.gFactories.set(sha_key, factory);
+                        return factory;
+                    } catch (e) {
+                        console.error(e);
+                        return null;
+                    }
+                } catch {
+                    this.fErrorMessage = this.fFaustEngine.getErrorAfterException();
+                    console.error("=> exception raised while running createDSPFactory: " + this.fErrorMessage);
+                    this.fFaustEngine.cleanupAfterException();
                     return null;
                 }
-            } catch {
-                this.fErrorMessage = this.fFaustEngine.getErrorAfterException();
-                console.error("=> exception raised while running createDSPFactory: " + this.fErrorMessage);
-                this.fFaustEngine.cleanupAfterException();
-                return null;
             }
         }
 
