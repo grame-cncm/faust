@@ -101,57 +101,58 @@ ztimedmap GUI::gTimedZoneMap;
 
 int main(int argc, char* argv[])
 {
-	CMDUI* interface = new CMDUI(argc, argv, true);
-	DSP.buildUserInterface(interface);
+    CMDUI* interface = new CMDUI(argc, argv, true);
+    DSP.buildUserInterface(interface);
     if (argc == 1) {
         interface->printhelp_command(OUTPUT_FILE);
         exit(1);
     }
-	interface->process_command(OUTPUT_FILE);
-  
+    interface->process_command(OUTPUT_FILE);
+    
     int num_samples = loptrm(&argc, argv, "--samples", "-s", kSampleRate*5);
     int sample_rate = loptrm(&argc, argv, "--sample-rate", "-sr", kSampleRate);
     int bit_depth = loptrm(&argc, argv, "--bith-depth (16|24|32)", "-bd", 16);
     
     int bd = (bit_depth == 16) ? SF_FORMAT_PCM_16 : ((bit_depth == 24) ? SF_FORMAT_PCM_24 : SF_FORMAT_PCM_32);
-		
-	// open output file
+    
+    // open output file
     if (interface->files() == 0) {
         interface->printhelp_command(OUTPUT_FILE);
         exit(1);
     }
     SF_INFO out_info = { num_samples, sample_rate, DSP.getNumOutputs(), SF_FORMAT_WAV|bd|SF_ENDIAN_LITTLE, 0, 0};
- 	SNDFILE* out_sf = sf_open(interface->input_file(), SFM_WRITE, &out_info);
-	if (out_sf == NULL) { 
-		cerr << "ERROR : ";
-		sf_perror(out_sf); 
-		exit(1); 
-	}
-	
-	// create interleaver
-	Interleaver ilv(kFrames, DSP.getNumOutputs(), DSP.getNumOutputs());
-	
-	// init signal processor
-	DSP.init(sample_rate);
-	interface->process_init();
-
-	// process all samples
+    SNDFILE* out_sf = sf_open(interface->input_file(), SFM_WRITE, &out_info);
+    if (out_sf == NULL) { 
+        cerr << "ERROR : ";
+        sf_perror(out_sf); 
+        exit(1); 
+    }
+    
+    // create interleaver
+    Interleaver ilv(kFrames, DSP.getNumOutputs(), DSP.getNumOutputs());
+    
+    // init DSP with SR
+    DSP.init(in_info.samplerate);
+    // modify the UI values according to the command line options, after init
+    interface->process_init();
+    
+    // process all samples
     int frames = num_samples;
- 	int nbf = 0;
-	do {
+    int nbf = 0;
+    do {
         if (frames > kFrames) {
             nbf = kFrames;
             frames -= kFrames;
         } else {
-		 	nbf = frames;
-		 	frames = 0;
+            nbf = frames;
+            frames = 0;
         }
-		DSP.compute(nbf, 0, ilv.inputs());
-		ilv.interleave();
-		sf_writef_float(out_sf, ilv.output(), nbf);		
-	} while (nbf);
-	
-	sf_close(out_sf);
+        DSP.compute(nbf, 0, ilv.inputs());
+        ilv.interleave();
+        sf_writef_float(out_sf, ilv.output(), nbf);        
+    } while (nbf);
+    
+    sf_close(out_sf);
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

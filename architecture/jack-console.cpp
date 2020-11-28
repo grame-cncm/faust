@@ -238,7 +238,7 @@ int main(int argc, char* argv[])
     // First restore the state
     finterface.recallState(rcfilename);
     
-    // The process commands and possibly update it
+    // The process commands possibly updates it
     interface.process_command();
     
     if (!audio.start()) {
