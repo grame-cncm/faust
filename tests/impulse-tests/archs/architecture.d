@@ -17,7 +17,7 @@ nothrow:
 @nogc:
     void declare(string id, string key, string value){ }
     void declare(int id, string key, string value){ }
-    void declare(FAUSTFLOAT* id, string key, string value){ }
+    void declare(double* id, string key, string value){ }
 
     // -- layout groups
 
@@ -28,59 +28,20 @@ nothrow:
 
     // -- active widgets
 
-    void addButton(string label, FAUSTFLOAT* val){ }
-    void addCheckButton(string label, FAUSTFLOAT* val){ }
-    void addVerticalSlider(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step){ }
-    void addHorizontalSlider(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step){ }
-    void addNumEntry(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step){ }
+    void addButton(string label, double* val){ }
+    void addCheckButton(string label, double* val){ }
+    void addVerticalSlider(string label, double* val, double init, double min, double max, double step){ }
+    void addHorizontalSlider(string label, double* val, double init, double min, double max, double step){ }
+    void addNumEntry(string label, double* val, double init, double min, double max, double step){ }
 
     // -- passive display widgets
 
-    void addHorizontalBargraph(string label, FAUSTFLOAT* val, FAUSTFLOAT min, FAUSTFLOAT max){ }
-    void addVerticalBargraph(string label, FAUSTFLOAT* val, FAUSTFLOAT min, FAUSTFLOAT max){ }
+    void addHorizontalBargraph(string label, double* val, double min, double max){ }
+    void addVerticalBargraph(string label, double* val, double min, double max){ }
 
 }
 
 enum int kFrames = 64;
-
-// //----------------------------------------------------------------------------
-// // Soundfile
-// //----------------------------------------------------------------------------
-// enum int MAX_SOUNDFILE_PARTS = 256;
-
-// Soundfile* defaultsound = null;
-// class Soundfile {
-// nothrow:
-// @nogc:
-
-//     FAUSTFLOAT** fBuffers;
-//     int* fLength;   // length of each part
-//     int* fSR;       // sample rate of each part
-//     int* fOffset;   // offset of each part in the global buffer
-//     int fChannels;  // max number of channels of all concatenated files
-
-//     this()
-//     {
-//         fBuffers  = null;
-//         fChannels = -1;
-//         fLength   = cast(int*) mallocSlice!int(MAX_SOUNDFILE_PARTS);
-//         fSR       = cast(int*) mallocSlice!int(MAX_SOUNDFILE_PARTS);
-//         fOffset   = cast(int*) mallocSlice!int(MAX_SOUNDFILE_PARTS);
-//     }
-
-//     ~this()
-//     {
-//         // Free the real channels only
-//         for (int chan = 0; chan < fChannels; chan++) {
-//             free(fBuffers[chan]);
-//         }
-//         free(fBuffers);
-//         free(fLength);
-//         free(fSR);
-//         free(fOffset);
-//     }
-
-// }
 
 //----------------------------------------------------------------------------
 // FUI
@@ -96,7 +57,7 @@ nothrow:
         Vec!(FAUSTFLOAT*) fButtons;
 
         // add an element by relating its full name and memory zone
-        void addElement(string label, FAUSTFLOAT* zone, bool button = false)
+        void addElement(string label, double* zone, bool button = false)
         {
             if (button) {
                 fButtons.pushBack(zone);
@@ -132,26 +93,26 @@ nothrow:
 
         // -- active widgets (just add an element)
 
-        override void addButton(string label, FAUSTFLOAT* zone) { addElement(label, zone, true); }
-        override void addCheckButton(string label, FAUSTFLOAT* zone) { addElement(label, zone); }
-        override void addVerticalSlider(string label, FAUSTFLOAT* zone, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT)
+        override void addButton(string label, double* zone) { addElement(label, zone, true); }
+        override void addCheckButton(string label, double* zone) { addElement(label, zone); }
+        override void addVerticalSlider(string label, double* zone, double, double, double, double)
                                                                     { addElement(label, zone); }
-        override void addHorizontalSlider(string label, FAUSTFLOAT* zone, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT)
+        override void addHorizontalSlider(string label, double* zone, double, double, double, double)
                                                                     { addElement(label, zone); }
-        override void addNumEntry(string label, FAUSTFLOAT* zone, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT)
+        override void addNumEntry(string label, double* zone, double, double, double, double)
                                                                     { addElement(label, zone); }
 
         // -- passive widgets (are ignored)
 
-        override void addHorizontalBargraph(string label, FAUSTFLOAT*, FAUSTFLOAT, FAUSTFLOAT) {}
-        override void addVerticalBargraph(string label, FAUSTFLOAT*, FAUSTFLOAT, FAUSTFLOAT) {}
+        override void addHorizontalBargraph(string label, double*, double, double) {}
+        override void addVerticalBargraph(string label, double*, double, double) {}
     
         // -- soundfiles
         // override void addSoundfile(string label, string filename, Soundfile** sf_zone) {}
 
         // -- metadata are not used
 
-        override void declare(FAUSTFLOAT*, string, string) {}
+        override void declare(double*, string, string) {}
 
 }
 
@@ -165,28 +126,28 @@ nothrow:
 @nogc:
     Map!(FAUSTFLOAT*, FAUSTFLOAT) fControlZone;
    
-    override void addButton(string label, FAUSTFLOAT* zone)
+    override void addButton(string label, double* zone)
     {
         addItem(zone, FAUSTFLOAT(0));
     }
-    override void addCheckButton(string label, FAUSTFLOAT* zone)
+    override void addCheckButton(string label, double* zone)
     {
         addItem(zone, FAUSTFLOAT(0));
     }
-    override void addVerticalSlider(string label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    override void addVerticalSlider(string label, double* zone, double init, double min, double max, double step)
     {
         addItem(zone, init);
     }
-    override void addHorizontalSlider(string label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    override void addHorizontalSlider(string label, double* zone, double init, double min, double max, double step)
     {
         addItem(zone, init);
     }
-    override void addNumEntry(string label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    override void addNumEntry(string label, double* zone, double init, double min, double max, double step)
     {
         addItem(zone, init);
     }
     
-    void addItem(FAUSTFLOAT* zone, FAUSTFLOAT init)
+    void addItem(double* zone, double init)
     {
         fControlZone[zone] = init;
     }
@@ -207,20 +168,6 @@ nothrow:
             kv.value = 0.123456789;
         }
     }
-}
-
-interface dsp {
-nothrow:
-@nogc:
-public:
-    int getNumInputs();
-    int getNumOutputs();
-    void buildUserInterface(UI* uiInterface);
-    int getSampleRate();
-    void instanceInit(int sample_rate);
-    void instanceResetUserInterface();
-    void compute(int frames, FAUSTFLOAT*[] inputs, FAUSTFLOAT*[] outputs);
-    void initialize(int sample_rate);
 }
 
 class Meta {

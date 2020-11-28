@@ -57,6 +57,7 @@ class DLangCodeContainer : public virtual CodeContainer {
     virtual void produceClass();
     virtual void generateCompute(int tab) = 0;
     virtual void produceInternal();
+    virtual void generateDSPInterface(int tabs);
 
     void generateImports(int tab);
     string dModuleName(string fKlassName);

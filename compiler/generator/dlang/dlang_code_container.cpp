@@ -144,6 +144,24 @@ void DLangCodeContainer::printHeader()
     *fOut << "module " << dModuleName(fKlassName) << ";\n";
 }
 
+void DLangCodeContainer::generateDSPInterface(int tabs)
+{
+    tab(tabs, *fOut);
+    *fOut << "interface dsp {\n";
+    *fOut << "nothrow:\n";
+    *fOut << "@nogc:\n";
+    *fOut << "public:\n";
+    *fOut << "    int getNumInputs();\n";
+    *fOut << "    int getNumOutputs();\n";
+    *fOut << "    void buildUserInterface(UI* uiInterface);\n";
+    *fOut << "    int getSampleRate();\n";
+    *fOut << "    void instanceInit(int sample_rate);\n";
+    *fOut << "    void instanceResetUserInterface();\n";
+    *fOut << "    void compute(int frames, " << ifloat()  << "*[] inputs, " << ifloat() << "*[] outputs);\n";
+    *fOut << "    void initialize(int sample_rate);\n";
+    *fOut << "}\n";
+}
+
 void DLangCodeContainer::produceInternal()
 {
     int n = 0;
@@ -233,7 +251,7 @@ string DLangCodeContainer::dModuleName(string fKlassName)
 {
     string moduleName = fKlassName;
     transform(moduleName.begin(), moduleName.end(), moduleName.begin(), ::tolower);
-    return moduleName;
+    return gGlobal->gNameSpace + moduleName;
 }
 
 void DLangCodeContainer::produceClass()
@@ -248,13 +266,13 @@ void DLangCodeContainer::produceClass()
     // Sub containers
     generateSubContainers();
 
-
-    tab(n, *fOut);
     *fOut << "alias FAUSTFLOAT = " << ifloat() << ";" << endl;
     tab(n, *fOut);
 
     *fOut << "alias FAUSTCLASS = " << fKlassName << ";" << endl;
     tab(n, *fOut);
+
+    generateDSPInterface(n);
 
     // Global declarations
     tab(n, *fOut);
@@ -403,11 +421,6 @@ void DLangCodeContainer::produceClass()
 
     // Generate user interface macros if needed
     printMacros(*fOut, n);
-    
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
-        tab(n, *fOut);
-        *fOut << "} // namespace " << gGlobal->gNameSpace << endl;
-    }
 }
 
 // Scalar
