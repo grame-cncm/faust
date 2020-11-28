@@ -160,11 +160,18 @@ struct FaustParam
     bool isButton = false;
 }
 
-class dsp {
+interface dsp {
 nothrow:
 @nogc:
 public:
-    int fSamplingFreq;
+    int getNumInputs();
+    int getNumOutputs();
+    void buildUserInterface(UI* uiInterface);
+    int getSampleRate();
+    void instanceInit(int sample_rate);
+    void instanceResetUserInterface();
+    void compute(int frames, FAUSTFLOAT*[] inputs, FAUSTFLOAT*[] outputs);
+    void initialize(int sample_rate);
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

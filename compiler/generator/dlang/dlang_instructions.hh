@@ -259,7 +259,7 @@ class DLangInstVisitor : public TextInstVisitor {
         }
 
         // Prototype
-        *fOut << fTypeManager->generateType(inst->fType->fResult, generateFunName(inst->fName));
+        *fOut << fTypeManager->generateType(inst->fType->fResult, generateFunName(inst->fName == "init" ? "initialize" : inst->fName));
         generateFunDefArgs(inst);
         generateFunDefBody(inst);
     }

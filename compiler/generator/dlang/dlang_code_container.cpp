@@ -108,7 +108,7 @@ void DLangCodeContainer::produceInit(int tabs)
 {
 
     tab(tabs, *fOut);
-    *fOut << "void init(int sample_rate) {";
+    *fOut << "void initialize(int sample_rate) {";
     tab(tabs + 1, *fOut);
     *fOut << "classInit(sample_rate);";
     tab(tabs + 1, *fOut);

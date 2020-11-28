@@ -220,7 +220,7 @@ public:
     void instanceInit(int sample_rate);
     void instanceResetUserInterface();
     void compute(int frames, FAUSTFLOAT*[] inputs, FAUSTFLOAT*[] outputs);
-    void init(int sample_rate);
+    void initialize(int sample_rate);
 }
 
 class Meta {
@@ -350,7 +350,7 @@ static void runDSP(ref string irFile, mydsp DSP, ref const string file, ref int 
     // DSP.buildUserInterface(&midi_ui);
     
     // Init signal processor and the user interface values
-    DSP.init(44100);
+    DSP.initialize(44100);
     
     // Check getSampleRate
     if (DSP.getSampleRate() != 44100) {
