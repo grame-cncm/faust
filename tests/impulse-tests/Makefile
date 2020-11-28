@@ -269,8 +269,6 @@ soul:
 dlang:
 	$(MAKE) -f Make.dlang outdir=dlang/double          FAUSTOPTIONS="-I dsp -double"
 	$(MAKE) -f Make.dlang outdir=dlang/double/vec      FAUSTOPTIONS="-I dsp -double -vec"
-	$(MAKE) -f Make.dlang outdir=dlang/float           FAUSTOPTIONS="-I dsp"
-	$(MAKE) -f Make.dlang outdir=dlang/float/vec       FAUSTOPTIONS="-I dsp -vec"
 
 #########################################################################
 # output directories

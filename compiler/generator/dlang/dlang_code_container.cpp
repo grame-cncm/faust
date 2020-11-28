@@ -431,7 +431,7 @@ void DLangScalarCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << subst("void compute(int $0, $1*[] inputs, $1*[] outputs) {", fFullCount, xfloat());
+    *fOut << subst("void compute(int $0, $1*[] inputs, $1*[] outputs) {", fFullCount, ifloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
 
@@ -464,7 +464,7 @@ void DLangVectorCodeContainer::generateCompute(int n)
 
     // Generates declaration
     tab(n + 1, *fOut);
-    *fOut << subst("void compute(int $0, $1*[] inputs, $1*[] outputs) {", fFullCount, xfloat());
+    *fOut << subst("void compute(int $0, $1*[] inputs, $1*[] outputs) {", fFullCount, ifloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
 
