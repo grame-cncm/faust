@@ -3,9 +3,8 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
     <title>LibFaustWasm API Test</title>
-    <script src="../npm/dist/libfaust-wasm.js"></script>
-    <!-- <script src="../faustcompiler.js"></script> -->
-    <script src="../FaustLibrary.js"></script>
+    <script src="../npm/libfaust-wasm.js"></script>
+    <script src="../npm/FaustLibrary.js"></script>
     <script src="testCompiler.js"></script>
     <style>
         body {
@@ -106,6 +105,8 @@ effect = *(hslider("Left", 0.1, 0, 1, 0.01)), *(hslider("Right", 0.1, 0, 1, 0.01
         });
 
         FaustModule().then((instance) => {
+            let str = "Hello World";
+            log ("Hash '" + str + "' -> " + Faust.hash(str))
             doit(Faust.createLibFaust(instance), context);
         });
 
