@@ -15,10 +15,12 @@
     "pretty": true,
     "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "allowJs" : true
   },
   "include": [
-    "src/*.ts"
+    "src/*.ts",
+    "node_modules/js-sha256/src/sha256.js"
   ],
   "exclude": [
   	"npm",
