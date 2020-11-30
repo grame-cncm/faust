@@ -21,7 +21,6 @@
 
 
 ///<reference path="FaustCompiler.d.ts"/>
-/*///<reference path="../node_modules/js-sha256/index.d.ts"/>*/
 
 namespace Faust {
 
@@ -49,13 +48,9 @@ namespace Faust {
                 CompilerImp.gFactories.clear();
             }
 
-            let sha_key = name + dsp_code + args + ((poly) ? "poly" : "mono");
-            console.log(sha_key);
-            //let sha_key = sha256.Hash(name + dsp_code + args + ((poly) ? "poly" : "mono"));
-
             // If code is already compiled, return the cached factory
+            let sha_key = hash(name + dsp_code + args + ((poly) ? "poly" : "mono"));
             if (CompilerImp.gFactories.has(sha_key)) {
-                console.log("Use cached factory");
                 return CompilerImp.gFactories.get(sha_key) as Factory;
             } else {
                 try {
@@ -67,7 +62,6 @@ namespace Faust {
                         // Factory C++ side can be deallocated immediately
                         this.deleteDSPFactory(factory);
                         // Keep the compiled factory in the cache
-                        console.log("Compile factory");
                         CompilerImp.gFactories.set(sha_key, factory);
                         return factory;
                     } catch (e) {
