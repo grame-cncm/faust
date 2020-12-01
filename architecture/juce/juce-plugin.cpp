@@ -536,7 +536,12 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     fSynth->setCurrentPlaybackSampleRate (sampleRate);
 #else
     
-    // Possibly adapt DSP
+    // Possible sample size adaptation
+    if (sizeof(FAUSTFLOAT) == 8) {
+        fDSP = std::make_unique<dsp_sample_adapter<FAUSTFLOAT, float>>(fDSP.release());
+    }
+    
+    // Possibly adapt DSP inputs/outputs number
     if (fDSP->getNumInputs() > getTotalNumInputChannels() || fDSP->getNumOutputs() > getTotalNumOutputChannels()) {
         fDSP = std::make_unique<dsp_adapter>(fDSP.release(), getTotalNumInputChannels(), getTotalNumOutputChannels(), 4096);
     }

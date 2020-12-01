@@ -1,4 +1,4 @@
-% man(1) Version 2.29.3 (25-November-2020) | Faust man page
+% man(1) Version 2.29.4 (01-December-2020) | Faust man page
 
 NAME
 ====
@@ -69,8 +69,6 @@ Code generation options:
   **-light**      **--light-mode**                do not generate the entire DSP API.
 
   **-clang**      **--clang**                     when compiled with clang/clang++, adds specific #pragma for auto-vectorization.
-
-  **-flist**      **--file-list**                 use file list used to eval process.
 
   **-exp10**      **--generate-exp10**            pow(10,x) replaced by possibly faster exp10(x).
 
@@ -166,6 +164,8 @@ Debug options:
   **-d**          **--details**                   print compilation details.
 
   **-time**       **--compilation-time**          display compilation phases timing information.
+
+  **-flist**      **--file-list**                 print file list (including libraries) used to eval process.
 
   **-tg**         **--task-graph**                print the internal task graph in dot format.
 

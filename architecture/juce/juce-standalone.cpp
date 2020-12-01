@@ -178,7 +178,12 @@ class FaustComponent : public juce::AudioAppComponent, private juce::Timer
             const int maxInputChannels = activeInputChannels.getHighestBit() + 1;
             const int maxOutputChannels = activeOutputChannels.getHighestBit() + 1;
             
-            // Possibly adapt DSP...
+            // Possible sample size adaptation
+            if (sizeof(FAUSTFLOAT) == 8) {
+                fDSP = std::make_unique<dsp_sample_adapter<FAUSTFLOAT, float>>(fDSP.release());
+            }
+            
+            // Possibly adapt DSP inputs/outputs number
             if (fDSP->getNumInputs() > maxInputChannels || fDSP->getNumOutputs() > maxOutputChannels) {
                 fDSP = std::make_unique<dsp_adapter>(fDSP.release(), maxInputChannels, maxOutputChannels, 4096);
             }
