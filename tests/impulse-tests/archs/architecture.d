@@ -12,12 +12,14 @@ import dplug.core.map;
 import dplug.core.nogc;
 import core.stdc.stdint : uintptr_t;
 
+alias FAUSTFLOAT = double;
+
 class UI {
 nothrow:
 @nogc:
     void declare(string id, string key, string value){ }
     void declare(int id, string key, string value){ }
-    void declare(double* id, string key, string value){ }
+    void declare(FAUSTFLOAT* id, string key, string value){ }
 
     // -- layout groups
 
@@ -28,16 +30,16 @@ nothrow:
 
     // -- active widgets
 
-    void addButton(string label, double* val){ }
-    void addCheckButton(string label, double* val){ }
-    void addVerticalSlider(string label, double* val, double init, double min, double max, double step){ }
-    void addHorizontalSlider(string label, double* val, double init, double min, double max, double step){ }
-    void addNumEntry(string label, double* val, double init, double min, double max, double step){ }
+    void addButton(string label, FAUSTFLOAT* val){ }
+    void addCheckButton(string label, FAUSTFLOAT* val){ }
+    void addVerticalSlider(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step){ }
+    void addHorizontalSlider(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step){ }
+    void addNumEntry(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step){ }
 
     // -- passive display widgets
 
-    void addHorizontalBargraph(string label, double* val, double min, double max){ }
-    void addVerticalBargraph(string label, double* val, double min, double max){ }
+    void addHorizontalBargraph(string label, FAUSTFLOAT* val, FAUSTFLOAT min, FAUSTFLOAT max){ }
+    void addVerticalBargraph(string label, FAUSTFLOAT* val, FAUSTFLOAT min, FAUSTFLOAT max){ }
 
 }
 
@@ -57,7 +59,7 @@ nothrow:
         Vec!(FAUSTFLOAT*) fButtons;
 
         // add an element by relating its full name and memory zone
-        void addElement(string label, double* zone, bool button = false)
+        void addElement(string label, FAUSTFLOAT* zone, bool button = false)
         {
             if (button) {
                 fButtons.pushBack(zone);
@@ -93,26 +95,26 @@ nothrow:
 
         // -- active widgets (just add an element)
 
-        override void addButton(string label, double* zone) { addElement(label, zone, true); }
-        override void addCheckButton(string label, double* zone) { addElement(label, zone); }
-        override void addVerticalSlider(string label, double* zone, double, double, double, double)
+        override void addButton(string label, FAUSTFLOAT* zone) { addElement(label, zone, true); }
+        override void addCheckButton(string label, FAUSTFLOAT* zone) { addElement(label, zone); }
+        override void addVerticalSlider(string label, FAUSTFLOAT* zone, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT)
                                                                     { addElement(label, zone); }
-        override void addHorizontalSlider(string label, double* zone, double, double, double, double)
+        override void addHorizontalSlider(string label, FAUSTFLOAT* zone, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT)
                                                                     { addElement(label, zone); }
-        override void addNumEntry(string label, double* zone, double, double, double, double)
+        override void addNumEntry(string label, FAUSTFLOAT* zone, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT)
                                                                     { addElement(label, zone); }
 
         // -- passive widgets (are ignored)
 
-        override void addHorizontalBargraph(string label, double*, double, double) {}
-        override void addVerticalBargraph(string label, double*, double, double) {}
+        override void addHorizontalBargraph(string label, FAUSTFLOAT*, FAUSTFLOAT, FAUSTFLOAT) {}
+        override void addVerticalBargraph(string label, FAUSTFLOAT*, FAUSTFLOAT, FAUSTFLOAT) {}
     
         // -- soundfiles
         // override void addSoundfile(string label, string filename, Soundfile** sf_zone) {}
 
         // -- metadata are not used
 
-        override void declare(double*, string, string) {}
+        override void declare(FAUSTFLOAT*, string, string) {}
 
 }
 
@@ -126,28 +128,28 @@ nothrow:
 @nogc:
     Map!(FAUSTFLOAT*, FAUSTFLOAT) fControlZone;
    
-    override void addButton(string label, double* zone)
+    override void addButton(string label, FAUSTFLOAT* zone)
     {
         addItem(zone, FAUSTFLOAT(0));
     }
-    override void addCheckButton(string label, double* zone)
+    override void addCheckButton(string label, FAUSTFLOAT* zone)
     {
         addItem(zone, FAUSTFLOAT(0));
     }
-    override void addVerticalSlider(string label, double* zone, double init, double min, double max, double step)
+    override void addVerticalSlider(string label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         addItem(zone, init);
     }
-    override void addHorizontalSlider(string label, double* zone, double init, double min, double max, double step)
+    override void addHorizontalSlider(string label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         addItem(zone, init);
     }
-    override void addNumEntry(string label, double* zone, double init, double min, double max, double step)
+    override void addNumEntry(string label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         addItem(zone, init);
     }
     
-    void addItem(double* zone, double init)
+    void addItem(FAUSTFLOAT* zone, FAUSTFLOAT init)
     {
         fControlZone[zone] = init;
     }
