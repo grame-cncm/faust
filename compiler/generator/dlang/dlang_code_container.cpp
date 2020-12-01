@@ -266,9 +266,6 @@ void DLangCodeContainer::produceClass()
     // Sub containers
     generateSubContainers();
 
-    *fOut << "alias FAUSTFLOAT = " << ifloat() << ";" << endl;
-    tab(n, *fOut);
-
     *fOut << "alias FAUSTCLASS = " << fKlassName << ";" << endl;
     tab(n, *fOut);
 

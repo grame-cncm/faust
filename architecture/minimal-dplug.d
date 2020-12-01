@@ -32,12 +32,7 @@
  ************************************************************************
  ************************************************************************/
 
-import std.math;
-import std.stdio;
-import std.conv;
-import std.algorithm;
-import std.format;
-import core.stdc.stdlib;
+// faust -a minimal.d -lang dlang noise.dsp -o noise.d
 
 /******************************************************************************
  *******************************************************************************
@@ -58,6 +53,10 @@ import core.stdc.stdlib;
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+import std.stdio;
+import std.conv;
+import dplug.core.vec;
+
 alias FAUSTFLOAT = float;
 
 class Meta {
@@ -95,43 +94,72 @@ nothrow:
 
 }
 
-enum int BUFFER_SIZE = 64;
-enum int SAMPLE_RATE = 44_100;
+/**
+ * Implements and overrides the methods that would provide parameters for use in 
+ * a plug-in or GUI.  These parameters are stored in a vector which can be accesed via
+ * `readParams()`
+ */
+class FaustParamAccess : UI {
+nothrow:
+@nogc:
+    this()
+    {
+        _faustParams = makeVec!FaustParam();
+    }
 
-void main (string[] args)
-{
-    mydsp dsp = new mydsp();
-    
-    writeln(format!"DSP inputs: %d\n"(dsp.getNumInputs()));
-    writeln(format!"DSP outputs: %d\n"(dsp.getNumOutputs()));
-    
-    // Init with audio driver SR
-    dsp.initialize(SAMPLE_RATE);
-    
-    // Compute one buffer
-    FAUSTFLOAT*[] inputs = new FAUSTFLOAT*[dsp.getNumInputs()];
-    FAUSTFLOAT*[] outputs = new FAUSTFLOAT*[dsp.getNumOutputs()];
-    for (int chan = 0; chan < dsp.getNumInputs(); ++chan) {
-        inputs[chan] = cast(float*)malloc(FAUSTFLOAT.sizeof * BUFFER_SIZE);
-    }
-    for (int chan = 0; chan < dsp.getNumOutputs(); ++chan) {
-        outputs[chan] = cast(float*)malloc(FAUSTFLOAT.sizeof * BUFFER_SIZE);
-    }
-    dsp.compute(BUFFER_SIZE, inputs, outputs);
-    
-    // Print output buffers
-    for (int frame = 0; frame < BUFFER_SIZE; ++frame) {
-        for (int chan = 0; chan <  dsp.getNumOutputs(); ++chan) {
-            writeln(format!"Audio output chan: %d sample: %f\n"(chan, outputs[chan][frame]));
-        }
+    override void addButton(string label, FAUSTFLOAT* val)
+    {
+        _faustParams.pushBack(FaustParam(label, val, 0, 0, 0, 0, true));
     }
     
-    for (int chan = 0; chan < dsp.getNumInputs(); ++chan) {
-        free(inputs[chan]);
+    override void addCheckButton(string label, FAUSTFLOAT* val)
+    {
+        _faustParams.pushBack(FaustParam(label, val, 0, 0, 0, 0, true));
     }
-    for (int chan = 0; chan < dsp.getNumOutputs(); ++chan) {
-        free(outputs[chan]);
+    
+    override void addVerticalSlider(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        _faustParams.pushBack(FaustParam(label, val, init, min, max, step));
     }
+
+    override void addHorizontalSlider(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        _faustParams.pushBack(FaustParam(label, val, init, min, max, step));
+    }
+
+    override void addNumEntry(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        _faustParams.pushBack(FaustParam(label, val, init, min, max, step));
+    }
+
+    FaustParam[] readParams()
+    {
+        return _faustParams.releaseData();
+    }
+
+    FaustParam readParam(int index)
+    {
+        return _faustParams[index];
+    }
+
+    ulong length()
+    {
+        return _faustParams.length();
+    }
+
+private:
+	Vec!FaustParam _faustParams;
 }
 
+struct FaustParam
+{
+	string label;
+	FAUSTFLOAT* val;
+	FAUSTFLOAT initial;
+	FAUSTFLOAT min;
+	FAUSTFLOAT max;
+	FAUSTFLOAT step;
+    bool isButton = false;
+}
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
+
