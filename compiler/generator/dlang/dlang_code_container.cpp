@@ -144,24 +144,6 @@ void DLangCodeContainer::printHeader()
     *fOut << "module " << dModuleName(fKlassName) << ";\n";
 }
 
-void DLangCodeContainer::generateDSPInterface(int tabs)
-{
-    tab(tabs, *fOut);
-    *fOut << "interface dsp {\n";
-    *fOut << "nothrow:\n";
-    *fOut << "@nogc:\n";
-    *fOut << "public:\n";
-    *fOut << "    int getNumInputs();\n";
-    *fOut << "    int getNumOutputs();\n";
-    *fOut << "    void buildUserInterface(UI* uiInterface);\n";
-    *fOut << "    int getSampleRate();\n";
-    *fOut << "    void instanceInit(int sample_rate);\n";
-    *fOut << "    void instanceResetUserInterface();\n";
-    *fOut << "    void compute(int frames, " << ifloat()  << "*[] inputs, " << ifloat() << "*[] outputs);\n";
-    *fOut << "    void initialize(int sample_rate);\n";
-    *fOut << "}\n";
-}
-
 void DLangCodeContainer::produceInternal()
 {
     int n = 0;
@@ -268,8 +250,6 @@ void DLangCodeContainer::produceClass()
 
     *fOut << "alias FAUSTCLASS = " << fKlassName << ";" << endl;
     tab(n, *fOut);
-
-    generateDSPInterface(n);
 
     // Global declarations
     tab(n, *fOut);
@@ -441,7 +421,7 @@ void DLangScalarCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << subst("void compute(int $0, $1*[] inputs, $1*[] outputs) {", fFullCount, ifloat());
+    *fOut << subst("void compute(int $0, $1*[] inputs, $1*[] outputs) {", fFullCount, xfloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
 
@@ -474,7 +454,7 @@ void DLangVectorCodeContainer::generateCompute(int n)
 
     // Generates declaration
     tab(n + 1, *fOut);
-    *fOut << subst("void compute(int $0, $1*[] inputs, $1*[] outputs) {", fFullCount, ifloat());
+    *fOut << subst("void compute(int $0, $1*[] inputs, $1*[] outputs) {", fFullCount, xfloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
 

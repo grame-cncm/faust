@@ -34,25 +34,6 @@
 
 // faust -a minimal.d -lang dlang noise.dsp -o noise.d
 
-/******************************************************************************
- *******************************************************************************
- 
- VECTOR INTRINSICS
- 
- *******************************************************************************
- *******************************************************************************/
-
-<<includeIntrinsic>>
-
-/********************END ARCHITECTURE SECTION (part 1/2)****************/
-
-/**************************BEGIN USER SECTION **************************/
-
-<<includeclass>>
-
-/***************************END USER SECTION ***************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 import std.stdio;
 import std.conv;
 import dplug.core.vec;
@@ -91,7 +72,21 @@ nothrow:
 
     void addHorizontalBargraph(string label, FAUSTFLOAT* val, FAUSTFLOAT min, FAUSTFLOAT max) {}
     void addVerticalBargraph(string label, FAUSTFLOAT* val, FAUSTFLOAT min, FAUSTFLOAT max) {}
+}
 
+interface dsp {
+nothrow:
+@nogc:
+public:
+    void metadata(Meta* m);
+    int getNumInputs();
+    int getNumOutputs();
+    void buildUserInterface(UI* uiInterface);
+    int getSampleRate();
+    void instanceInit(int sample_rate);
+    void instanceResetUserInterface();
+    void compute(int count, FAUSTFLOAT*[] inputs, FAUSTFLOAT*[] outputs);
+    void initialize(int sample_rate);
 }
 
 /**
@@ -161,5 +156,26 @@ struct FaustParam
 	FAUSTFLOAT step;
     bool isButton = false;
 }
+
+/******************************************************************************
+ *******************************************************************************
+ 
+ VECTOR INTRINSICS
+ 
+ *******************************************************************************
+ *******************************************************************************/
+
+<<includeIntrinsic>>
+
+/********************END ARCHITECTURE SECTION (part 1/2)****************/
+
+/**************************BEGIN USER SECTION **************************/
+
+<<includeclass>>
+
+/***************************END USER SECTION ***************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

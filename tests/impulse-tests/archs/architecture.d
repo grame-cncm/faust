@@ -14,6 +14,12 @@ import core.stdc.stdint : uintptr_t;
 
 alias FAUSTFLOAT = double;
 
+class Meta {
+nothrow:
+@nogc:
+    void declare(string name, string value) {}
+}
+
 class UI {
 nothrow:
 @nogc:
@@ -40,7 +46,21 @@ nothrow:
 
     void addHorizontalBargraph(string label, FAUSTFLOAT* val, FAUSTFLOAT min, FAUSTFLOAT max){ }
     void addVerticalBargraph(string label, FAUSTFLOAT* val, FAUSTFLOAT min, FAUSTFLOAT max){ }
+}
 
+interface dsp {
+nothrow:
+@nogc:
+public:
+    void metadata(Meta* m);
+    int getNumInputs();
+    int getNumOutputs();
+    void buildUserInterface(UI* uiInterface);
+    int getSampleRate();
+    void instanceInit(int sample_rate);
+    void instanceResetUserInterface();
+    void compute(int count, FAUSTFLOAT*[] inputs, FAUSTFLOAT*[] outputs);
+    void initialize(int sample_rate);
 }
 
 enum int kFrames = 64;
@@ -115,7 +135,6 @@ nothrow:
         // -- metadata are not used
 
         override void declare(FAUSTFLOAT*, string, string) {}
-
 }
 
 //----------------------------------------------------------------------------
@@ -170,12 +189,6 @@ nothrow:
             kv.value = 0.123456789;
         }
     }
-}
-
-class Meta {
-nothrow:
-@nogc:
-    void declare(string name, string value) {}
 }
 
 static void printHeader(ref string irFile, mydsp DSP, int nbsamples)

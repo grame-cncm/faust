@@ -39,25 +39,6 @@ import std.algorithm;
 import std.format;
 import core.stdc.stdlib;
 
-/******************************************************************************
- *******************************************************************************
- 
- VECTOR INTRINSICS
- 
- *******************************************************************************
- *******************************************************************************/
-
-<<includeIntrinsic>>
-
-/********************END ARCHITECTURE SECTION (part 1/2)****************/
-
-/**************************BEGIN USER SECTION **************************/
-
-<<includeclass>>
-
-/***************************END USER SECTION ***************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 alias FAUSTFLOAT = float;
 
 class Meta {
@@ -92,8 +73,43 @@ nothrow:
 
     void addHorizontalBargraph(string label, FAUSTFLOAT* val, FAUSTFLOAT min, FAUSTFLOAT max) {}
     void addVerticalBargraph(string label, FAUSTFLOAT* val, FAUSTFLOAT min, FAUSTFLOAT max) {}
-
 }
+
+interface dsp {
+nothrow:
+@nogc:
+public:
+    void metadata(Meta* m);
+    int getNumInputs();
+    int getNumOutputs();
+    void buildUserInterface(UI* uiInterface);
+    int getSampleRate();
+    void instanceInit(int sample_rate);
+    void instanceResetUserInterface();
+    void compute(int count, FAUSTFLOAT*[] inputs, FAUSTFLOAT*[] outputs);
+    void initialize(int sample_rate);
+}
+
+/******************************************************************************
+ *******************************************************************************
+ 
+ VECTOR INTRINSICS
+ 
+ *******************************************************************************
+ *******************************************************************************/
+
+<<includeIntrinsic>>
+
+/********************END ARCHITECTURE SECTION (part 1/2)****************/
+
+/**************************BEGIN USER SECTION **************************/
+
+<<includeclass>>
+
+/***************************END USER SECTION ***************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+
 
 enum int BUFFER_SIZE = 64;
 enum int SAMPLE_RATE = 44_100;
