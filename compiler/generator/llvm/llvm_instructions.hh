@@ -89,7 +89,7 @@ struct LLVMTypeHelper {
         fTypeMap[Typed::kFloat_ptr]     = getTyPtr(fTypeMap[Typed::kFloat]);
         fTypeMap[Typed::kFloat_ptr_ptr] = getTyPtr(fTypeMap[Typed::kFloat_ptr]);
     #if !defined(LLVM_120)
-        fTypeMap[Typed::kFloat_vec]     = VectorType::get(fTypeMap[Typed::kFloat], (ElementCount)gGlobal->gVecSize);
+        fTypeMap[Typed::kFloat_vec]     = VectorType::get(fTypeMap[Typed::kFloat], gGlobal->gVecSize);
         fTypeMap[Typed::kFloat_vec_ptr] = getTyPtr(fTypeMap[Typed::kFloat_vec]);
     #endif
         fTypeMap[Typed::kDouble]         = getDoubleTy();
