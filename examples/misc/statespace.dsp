@@ -16,7 +16,6 @@ N = 5; // number of states
 
 A = matrix(N,N);
 B = matrix(N,p);
-Bd = par(i,p,mem) : B; // to follow conventional definition
 C = matrix(q,N);
 D = matrix(q,p);
 
@@ -27,8 +26,9 @@ matrix(M,N) = tgroup("Matrix: %M x %N", par(in, N, _)
   mixer(N,out) = hgroup("Output %out", par(in, N, *(fader(in)) ) :> _ );
 };
 
-bsum(N) = si.bus(2*N) :> si.bus(N);
-
-system = si.bus(p) <: D, (Bd : (bsum(N)~(A)) : C) :> si.bus(q);
+system = si.bus(p) <: D, (Bd : (bsum(N)~(A)) : C) :> si.bus(q) with {
+  Bd = par(i,p,mem) : B; // input delay needed for conventional definition
+  bsum(N) = si.bus(2*N) :> si.bus(N);
+};
 
 process = system;
