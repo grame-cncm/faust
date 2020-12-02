@@ -5,7 +5,7 @@ declare license 	"MIT";
 declare copyright 	"(c) Julius O. Smith III, 2020";
 
 //-----------------------------------------------
-// General Linear State-Space Model: p inputs, q outputs, N states
+// General Linear State-Space Model Example
 //-----------------------------------------------
 
 import("stdfaust.lib");
@@ -30,8 +30,9 @@ Bd = par(i,p,mem) : B; // input delay needed for conventional definition
 bsum(N) = si.bus(2*N) :> si.bus(N); // block sum of two N-vectors
 
 // Illustrate nonzero initial state, following conventional definition:
-impulse = 1-1'; // For zero initial state, can set impulse = 0
-x0 = par(i,N,i*impulse); // initial state = (1,2,3,...,N)
+impulse = 1-1'; // For zero initial state, set impulse = 0 or simplify code
+x0 = par(i,N,i*impulse); // initial state = (0,1,2,3,...,N-1)
+
 system = si.bus(p) <: D, (Bd : (bsum(N)~(A)), x0 : bsum(N) : C) :> si.bus(q);
 
 process = system;
