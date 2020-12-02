@@ -14,10 +14,10 @@ p = 2; // number of inputs
 q = 3; // number of outputs
 N = 5; // number of states
 
-A = matrix(N,N);
-B = matrix(N,p);
-C = matrix(q,N);
-D = matrix(q,p);
+A = matrix(N,N); // state transition matrix
+B = matrix(N,p); // input-to-states matrix
+C = matrix(q,N); // states-to-output matrix
+D = matrix(q,p); // direct-term matrix, bypassing state
 
 // ./matrix.dsp with M and N transposed to follow convention:
 matrix(M,N) = tgroup("Matrix: %M x %N", par(in, N, _)
