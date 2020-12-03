@@ -129,8 +129,6 @@ grep "declare nvoices" $FILES && IS_SYNTH="1" 2>/dev/null
 # compile the *.dsp files
 #-------------------------------------------------------------------
 
-echo $FAUSTFLOAT
-
 for p in $FILES; do
 
     CUR=$(pwd)

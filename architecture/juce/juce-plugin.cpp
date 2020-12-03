@@ -578,7 +578,7 @@ bool FaustPlugInAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
 template <typename FloatType>
 void FaustPlugInAudioProcessor::process (juce::AudioBuffer<FloatType>& buffer, juce::MidiBuffer& midiMessages)
 {
-    AVOIDDENORMALS;
+    juce::ScopedNoDenormals noDenormals;
     
 #ifdef JUCE_POLY
     fSynth->renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());

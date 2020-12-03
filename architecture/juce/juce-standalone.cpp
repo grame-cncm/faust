@@ -196,7 +196,7 @@ class FaustComponent : public juce::AudioAppComponent, private juce::Timer
 
         void getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill) override
         {
-            AVOIDDENORMALS;
+            juce::ScopedNoDenormals noDenormals;
             
             const float** inputs = (const float**)alloca(fDSP->getNumInputs() * sizeof(float));
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
