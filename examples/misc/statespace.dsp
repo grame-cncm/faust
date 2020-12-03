@@ -27,13 +27,13 @@ matrix(M,N) = tgroup("Matrix: %M x %N", par(in, N, _)
 };
 
 Bd = par(i,p,mem) : B; // input delay needed for conventional definition
-bsum(N) = si.bus(2*N) :> si.bus(N); // block sum of two N-vectors
+vsum(N) = si.bus(2*N) :> si.bus(N); // vector sum of two N-vectors
 
 // Illustrate nonzero initial state, following conventional definition:
 impulse = 1-1'; // For zero initial state, set impulse = 0 or simplify code
 x0 = par(i,N,i*impulse); // initial state = (0,1,2,3,...,N-1)
 
-system = si.bus(p) <: D, (Bd : (bsum(N)~(A)), x0 : bsum(N) : C) :> si.bus(q);
+system = si.bus(p) <: D, (Bd : (vsum(N)~(A)), x0 : vsum(N) : C) :> si.bus(q);
 
 process = system;
 
