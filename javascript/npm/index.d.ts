@@ -1,4 +1,4 @@
-///<reference path="Faust2AudioNode.d.ts" />
+
 ///<reference path="FaustCompiler.d.ts" />
 ///<reference path="FaustGenerator.d.ts" />
 ///<reference path="FaustUtilities.d.ts" />
