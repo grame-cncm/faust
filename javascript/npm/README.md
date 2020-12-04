@@ -68,7 +68,7 @@ This allows to generate lighter and faster-loading HTML pages.
 - FaustWAP.d.ts : provides [Web Audio Plugins](https://hal.univ-cotedazur.fr/hal-01893660/document) API support.
 
 ----
-<a href="http://faust.grame.fr"><img src=imgs/faust.png width=200 /></a>
+<a href="http://faust.grame.fr"><img src=https://faust.grame.fr/community/logos/img/LOGO_FAUST_COMPLET_ORANGE.png width=200 /></a>
 
 
 
