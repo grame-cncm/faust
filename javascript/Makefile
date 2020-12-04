@@ -44,7 +44,7 @@ wasm:
 	$(MAKE) -C $(BUILD) wasmlib
 
 js: $(FAUSTWEB)
- 
+
 dist: 
 	cp $(FAUSTAPI) $(DISTDIR)
 	cp $(FAUSTWEB) $(SAMPLEDIR)
