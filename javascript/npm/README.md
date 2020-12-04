@@ -12,6 +12,7 @@ The Faust Web Audio library provides a high level Javascript API over the [Faust
   - [Faust Wasm Instance](#wasm)
   - [Faust Audio Nodes Instances and Offline Processor ](#audio)
   - [High-level API](#high)
+  - [How to use with typescript](#tsuse)
 - [Dynamic and Static Instances](#ds)
 - [Misc. services](#misc)
 
@@ -20,7 +21,7 @@ The Faust Web Audio library provides a high level Javascript API over the [Faust
 
 The API is organised from low to high level as illustrated by the figure below.
 
-![Overview](imgs/overview.png)
+![Overview](https://github.com/grame-cncm/faust/raw/wasm2/javascript/npm/imgs/overview.png)
 
 ### Faust Compiler WebAssembly module <a name="module"></a>
 
@@ -60,7 +61,15 @@ It is described in `FaustWebAudio.d.ts`.
 
 ### High-level API <a name="high"></a>
 
-A high-level API is available to compile a DSP program and create the audio node, either monophonic or polyphonic. It is described in `Faust2AudioNode.d.ts`.   
+A high-level API is available to compile a DSP program and create the audio node, either monophonic or polyphonic. It is described in `index.d.ts`. More generally, the `Faustxxx.d.ts`files describe interfaces and `index.d.ts` describes functions and includes the interface files.
+
+### How to use with typescript <a name="tsuse"></a>
+
+Simply include the following to get access to types and functions:
+~~~~~~~~~~~~~~~
+///<reference types="@grame/libfaust"/>
+~~~~~~~~~~~~~~~
+
 
 ## Dynamic and Static Instances <a name="ds"></a>
 
