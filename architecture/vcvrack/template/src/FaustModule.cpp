@@ -820,12 +820,9 @@ struct mydspModuleWidget : ModuleWidget {
                 + ((module->fDSP[0].getNumOutputs() > 0) ? 10 : 0);
             */
             
-            int needed_width = mm2px(std::max(uint(2), std::max(bargraphs, std::max(buttons, nentries))) * item_width);
-            //int needed_width = mm2px(4 * item_width);
-            //int needed_height = RACK_GRID_HEIGHT - reserved_height;
-            //std::cout << "needed_width " << needed_width << std::endl;
-            //std::cout << "needed_height " << needed_height << std::endl;
-            
+            vector<int> items = { 2, int(bargraphs), int(buttons), int(nentries), module->fDSP[0].getNumInputs(), module->fDSP[0].getNumOutputs() };
+            sort(items.begin(), items.end(), greater<int>());
+            int needed_width = mm2px(items[0] * item_width);
             addBackground(std::max(int(RACK_GRID_WIDTH), int(needed_width)), RACK_GRID_HEIGHT);
             
             /*
