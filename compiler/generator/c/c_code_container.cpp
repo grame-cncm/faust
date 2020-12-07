@@ -586,7 +586,7 @@ void CScalarOneSampleCodeContainer::produceClass()
     }
     
     tab(n, *fOut);
-    *fOut << "void control" << fKlassName << "(" << fKlassName << "* dsp, " << subst("int* iControl, $0* fControl, int* iZone, $0* fZone) {", xfloat());
+    *fOut << "void control" << fKlassName << "(" << fKlassName << "* dsp, " << subst("int* __restrict__ iControl, $0* __restrict__ fControl, int* __restrict__ iZone, $0* __restrict__ fZone) {", xfloat());
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
     // Generates local variables declaration and setup
@@ -695,8 +695,13 @@ void CScalarOneSampleCodeContainer::generateComputeAux(int n)
 {
     // Generates declaration
     tab(n, *fOut);
-    *fOut << "void compute" << fKlassName << "(" << fKlassName
-          << subst("* dsp, $0* inputs, $0* outputs, int* iControl, $0* fControl, int* iZone, $0* fZone) {", xfloat());
+    if (gGlobal->gInPlace) {
+        *fOut << "void compute" << fKlassName << "(" << fKlassName
+              << subst("* dsp, $0* inputs, $0* outputs, int* __restrict__ iControl, $0* __restrict__ fControl, int* __restrict__ iZone, $0* __restrict__ fZone) {", xfloat());
+    } else {
+        *fOut << "void compute" << fKlassName << "(" << fKlassName
+              << subst("* dsp, $0* __restrict__ inputs, $0* __restrict__ outputs, int* __restrict__ iControl, $0* __restrict__ fControl, int* __restrict__ iZone, $0* __restrict__ fZone) {", xfloat());
+    }
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
     

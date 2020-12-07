@@ -34,21 +34,29 @@ class one_sample_dsp : public dsp {
         int* iZone;
         FAUSTFLOAT* fZone;
     
+        FAUSTFLOAT* fInputs;
+        FAUSTFLOAT* fOutputs;
+    
+        void initControl()
+        {
+            iZone = new int[getNumIntControls()];
+            fZone = new FAUSTFLOAT[getNumRealControls()];
+            
+            fInputs = new FAUSTFLOAT[getNumInputs() * 4096];
+            fOutputs = new FAUSTFLOAT[getNumOutputs() * 4096];
+        }
+    
     public:
     
-        one_sample_dsp():iZone(nullptr), fZone(nullptr)
+        one_sample_dsp():iZone(nullptr), fZone(nullptr), fInputs(nullptr), fOutputs(nullptr)
         {}
     
         virtual ~one_sample_dsp()
         {
             delete [] iZone;
             delete [] fZone;
-        }
-    
-        void initControl()
-        {
-            iZone = new int[getNumIntControls()];
-            fZone = new FAUSTFLOAT[getNumRealControls()];
+            delete [] fInputs;
+            delete [] fOutputs;
         }
     
         /**
@@ -86,23 +94,41 @@ class one_sample_dsp : public dsp {
         // The standard 'compute' expressed using the control/compute (one sample) model
         virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
         {
+            if (!fInputs) initControl();
+            
             // Control
             int int_control[getNumIntControls()];
             FAUSTFLOAT real_control[getNumRealControls()];
             control(int_control, real_control);
             
             // Compute
-            FAUSTFLOAT inputs[getNumInputs()];
-            FAUSTFLOAT outputs[getNumOutputs()];
+            int num_inputs = getNumInputs();
+            int num_outputs = getNumOutputs();
+            
+            FAUSTFLOAT* inputs_ptr = &fInputs[0];
+            FAUSTFLOAT* outputs_ptr = &fOutputs[0];
+            
             for (int frame = 0; frame < count; frame++) {
-                for (int chan = 0; chan < getNumInputs(); chan++) {
-                    inputs[chan] = inputs_aux[chan][frame];
+                for (int chan = 0; chan < num_inputs; chan++) {
+                    inputs_ptr[chan] = inputs_aux[chan][frame];
                 }
+                inputs_ptr += num_inputs;
+            }
+            
+            inputs_ptr = &fInputs[0];
+            for (int frame = 0; frame < count; frame++) {
                 // One sample compute
-                compute(inputs, outputs, int_control, real_control);
-                for (int chan = 0; chan < getNumOutputs(); chan++) {
-                    outputs_aux[chan][frame] = outputs[chan];
+                compute(inputs_ptr, outputs_ptr, int_control, real_control);
+                inputs_ptr += num_inputs;
+                outputs_ptr += num_outputs;
+            }
+            
+            outputs_ptr = &fOutputs[0];
+            for (int frame = 0; frame < count; frame++) {
+                for (int chan = 0; chan < num_outputs; chan++) {
+                    outputs_aux[chan][frame] = outputs_ptr[chan];
                 }
+                outputs_ptr += num_outputs;
             }
         }
         

@@ -28,7 +28,7 @@
 #include <math.h>
 
 #include "faust/gui/UI.h"
-#include "faust/dsp/dsp.h"
+#include "faust/dsp/one-sample-dsp.h"
 #include "faust/dsp/dsp-bench.h"
 #include "faust/misc.h"
 
@@ -36,6 +36,7 @@
 
 #include "dsp_scal.h"
 #include "dsp_scal_exp10.h"
+#include "dsp_scal_os.h"
 
 #include "dsp_vec0_4.h"
 #include "dsp_vec0_8.h"
@@ -86,6 +87,7 @@
 
 #include "dsp_scal.h"
 #include "dsp_scal_exp10.h"
+#include "dsp_scal_os.h"
 #include "dsp_vec0_32.h"
 #include "dsp_vec1_32.h"
 #include "dsp_vec0g_32.h"
@@ -129,6 +131,7 @@ extern "C" int bench_all(const char* name, int run, int buffer_size, bool is_tra
     
     options.push_back(ADD_DOUBLE + "-scal");
     options.push_back(ADD_DOUBLE + "-scal -exp10");
+    options.push_back(ADD_DOUBLE + "-scal -os");
     
     options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 4");
     options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 8");
@@ -179,6 +182,7 @@ extern "C" int bench_all(const char* name, int run, int buffer_size, bool is_tra
     
     options.push_back(ADD_DOUBLE + "-scal");
     options.push_back(ADD_DOUBLE + "-scal -exp10");
+    options.push_back(ADD_DOUBLE + "-scal -os");
     options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 32");
     options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 32 -g");
     options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 32");
@@ -197,6 +201,7 @@ extern "C" int bench_all(const char* name, int run, int buffer_size, bool is_tra
     // Scalar
     measures.push_back(bench<FAUSTFLOAT>(new dsp_scal(), sizeof(dsp_scal), options[ind++], run, buffer_size, is_trace, is_control));
     measures.push_back(bench<FAUSTFLOAT>(new dsp_scal_exp10(), sizeof(dsp_scal_exp10), options[ind++], run, buffer_size, is_trace, is_control));
+    measures.push_back(bench<FAUSTFLOAT>(new dsp_scal_os(), sizeof(dsp_scal_os), options[ind++], run, buffer_size, is_trace, is_control));
     
     // Vector -lv 0
     measures.push_back(bench<FAUSTFLOAT>(new dsp_vec1_4(), sizeof(dsp_vec1_4), options[ind++], run, buffer_size, is_trace, is_control));
@@ -240,6 +245,7 @@ extern "C" int bench_all(const char* name, int run, int buffer_size, bool is_tra
     
     measures.push_back(bench<FAUSTFLOAT>(new dsp_scal(), sizeof(dsp_scal), options[ind++], run, buffer_size, is_trace, is_control));
     measures.push_back(bench<FAUSTFLOAT>(new dsp_scal_exp10(), sizeof(dsp_scal_exp10), options[ind++], run, buffer_size, is_trace, is_control));
+    measures.push_back(bench<FAUSTFLOAT>(new dsp_scal_os(), sizeof(dsp_scal_os), options[ind++], run, buffer_size, is_trace, is_control));
     
     measures.push_back(bench<FAUSTFLOAT>(new dsp_vec0_32(), sizeof(dsp_vec0_32), options[ind++], run, buffer_size, is_trace, is_control));
     measures.push_back(bench<FAUSTFLOAT>(new dsp_vec0g_32(), sizeof(dsp_vec0g_32), options[ind++], run, buffer_size, is_trace, is_control));

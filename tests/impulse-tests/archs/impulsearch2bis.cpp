@@ -28,15 +28,12 @@ class Cdsp : public one_sample_dsp {
         Cdsp()
         {
             fDSP = newmydsp();
-            iZone = new int[getiZoneSizemydsp(fDSP)];
-            fZone = new FAUSTFLOAT[getfZoneSizemydsp(fDSP)];
+            initControl();
         }
         
         virtual ~Cdsp()
         {
             deletemydsp(fDSP);
-            delete[] iZone;
-            delete[] fZone;
         }
     
         virtual int getNumIntControls() { return getNumIntControlsmydsp(fDSP); }

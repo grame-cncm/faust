@@ -37,6 +37,7 @@
 #include "faust/gui/PrintUI.h"
 #include "faust/gui/meta.h"
 #include "faust/audio/dummy-audio.h"
+#include "faust/dsp/one-sample-dsp.h"
 
 // faust -a minimal.cpp noise.dsp -o noise.cpp && c++ -std=c++11 noise.cpp -o noise && ./noise
 
@@ -71,7 +72,7 @@ int main(int argc, char* argv[])
 
     // Allocate the audio driver to render 5 buffers of 512 frames
     dummyaudio audio(5);
-    audio.init("Test", &DSP);
+    audio.init("Test", static_cast<dsp*>(&DSP));
     
     // Render buffers...
     audio.start();
