@@ -1112,13 +1112,13 @@ void GraphCompiler::compileSingleInstruction(Tree instr, Klass* K)
         K->addZone4("gTime = time;");
 
     } else if (isSigInstructionTableAccessWrite(instr, id, origin, &nature, &dmin, tid, idx)) {
-        //         fout << *id << " = " << *tid << "[" << ppsig(idx) << "]";
+        // std::cerr << *id << " = " << *tid << "[" << ppsig(idx) << "]";
         string ctype = nature2ctype(nature);
         string vname{tree2str(id)};
         string tname{tree2str(tid)};
 
-        K->addDeclCode(subst("$0 \t$1;", ctype, vname));
-        K->addExecCode(Statement("", subst("$0 = $1[$2];", vname, tname, CS(idx))));
+        // K->addDeclCode(subst("$0 \t$1;", ctype, vname));
+        K->addExecCode(Statement("", subst("$3 $0 = $1[$2];", vname, tname, CS(idx), ctype)));
     } else {
         std::cerr << "ERROR, not a valid sample instruction 1 : " << ppsig(instr) << endl;
         faustassert(false);
