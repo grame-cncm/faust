@@ -72,6 +72,10 @@
 #include "mydspcannonlake.h"
 #endif
 
+#ifdef cascadelake
+#include "mydspcascadelake.h"
+#endif
+
 // Always included
 #include "mydspgeneric.h"
 
@@ -180,6 +184,14 @@ class mydspmulti : public decorator_dsp {
             if (!fDSP && is_cpu("cannonlake")) {
                 std::cout << "Allocate for cannonlake" << std::endl;
                 fDSP = createmydspcannonlake();
+                return;
+            }
+        #endif
+        
+        #ifdef cascadelake
+            if (!fDSP && is_cpu("cascadelake")) {
+                std::cout << "Allocate for cascadelake" << std::endl;
+                fDSP = createmydspcascadelake();
                 return;
             }
         #endif

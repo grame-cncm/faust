@@ -30,7 +30,7 @@ do
     p=$1
  
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [broadwell] [skylake] [skylake_avx512] [cannonlake] [generic] [-all] [-sources] [-multi] [-multifun] [-opt native|generic] [-llvm] [-test] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [broadwell] [skylake] [skylake_avx512] [cannonlake] [cascadelake] [generic] [-all] [-sources] [-multi] [-multifun] [-opt native|generic] [-llvm] [-test] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use 'core2' to compile for Core2 CPU"
         echo "Use 'penryn' to compile for Penryn CPU"
         echo "Use 'nehalem' to compile for Nehalem CPU"
@@ -42,6 +42,7 @@ do
         echo "Use 'skylake' to compile for Skylake CPU"
         echo "Use 'skylake_avx512' to compile for Skylake-avx512 CPU"
         echo "Use 'cannonlake' to compile for Cannonlake CPU"
+        echo "Use 'cascadelake' to compile for Cascadelake CPU"
         echo "Use 'generic' to compile for generic CPU"
         echo "Use '-all' to compile for all CPUs"
         echo "Use '-sources' to only generate source files"
@@ -54,7 +55,7 @@ do
         exit
     fi
 
-    if [ "$p" = "core2" ] || [ "$p" = "penryn" ] || [ "$p" = "nehalem" ] || [ "$p" = "westmere" ] || [ "$p" = "sandybridge" ] || [ "$p" = "ivybridge" ] || [ "$p" = "haswell" ] || [ "$p" = "broadwell" ] || [ "$p" = "skylake" ] || [ "$p" = "skylake_avx512" ] || [ "$p" = "cannonlake" ] || [ "$p" = "generic" ]; then
+    if [ "$p" = "core2" ] || [ "$p" = "penryn" ] || [ "$p" = "nehalem" ] || [ "$p" = "westmere" ] || [ "$p" = "sandybridge" ] || [ "$p" = "ivybridge" ] || [ "$p" = "haswell" ] || [ "$p" = "broadwell" ] || [ "$p" = "skylake" ] || [ "$p" = "skylake_avx512" ] || [ "$p" = "cannonlake" ]  || [ "$p" = "cascadelake" ] || [ "$p" = "generic" ]; then
         CPU="$CPU $p"
     elif [ $p = "-opt" ]; then
         shift
@@ -73,7 +74,7 @@ do
     elif [ $p = "-test" ]; then
         TEST=true
     elif [ $p = "-all" ]; then
-	    CPU="core2 penryn nehalem westmere sandybridge ivybridge haswell broadwell skylake skylake_avx512 cannonlake generic"
+	    CPU="core2 penryn nehalem westmere sandybridge ivybridge haswell broadwell skylake skylake_avx512 cannonlake cascadelake generic"
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
     elif [ ${p:0:1} = "-" ]; then
