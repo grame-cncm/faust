@@ -16,11 +16,11 @@ First, in your app configuration in XCode, make sure that the `AudioToolbox` fra
 
 Import `DspFaust.h` and `DspFaust.cpp` in your project (this can be done simply by dragging these files in your project tree). Then, import `DspFaust.h` (`#import "DspFaust.h"`) in the file where you want to create/control the Faust object (e.g. your main ViewController). Make sure that the file where you import `DspFaust.h` has the `.mm` extension (this is necessary to be able to use C++ code in your objective-c file).
 
-### Using the API
+### Using the C++ API
 
-The current Faust API is designed to seamlessly integrate to the life cycle of an iOS app. It is accessible through a single `DspFaust` object. The constructor of that object is used to set the sampling rate and the block size:
+The current Faust API is designed to seamlessly integrate to the life cycle of an iOS app. It is accessible through a single `DspFaust` object. The constructor of that object is used to set the sampling rate and the buffer size:
 
-	DspFaust* dspFaust = new DspFaust(SR, blockSize);
+	DspFaust* dspFaust = new DspFaust(SR, buffer_size);
 
 The `start()` method is used to start the audio computing and would typically be placed in the `viewDidLoad` method of the app's main `ViewController`.
 
@@ -32,7 +32,7 @@ If your Faust object is polyphonic (e.g. if you used the `-nvoices` option when 
 
 It is possible to change the parameters of polyphonic voices independently using the `setVoiceParamValue` method. This method takes as one of its arguments the address to the voice returned by `keyOn` or `newVoice` when it is called. E.g:
 
-	uintptr_t voiceAddress = dspFaust->keyOn(70,100);
+	uintptr_t voiceAddress = dspFaust->keyOn(70, 100);
 	dspFaust->setVoiceParamValue(1, voiceAddress, 214);
 	dspFaust->keyOff(70);
 	

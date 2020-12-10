@@ -46,9 +46,9 @@ After this, re-synchronize Gradle and try to compile the Android app. Hopefully,
 
 ### Using the JAVA API
 
-The Faust JAVA API is designed to seamlessly integrate to the life cycle of an Android app. It is accessible through a single `DspFaust` object. The constructor of that object is used to set the sampling rate and the block size:
+The Faust JAVA API is designed to seamlessly integrate to the life cycle of an Android app. It is accessible through a single `DspFaust` object. The constructor of that object is used to set the sampling rate and the buffer size:
 
-	DspFaust dspFaust = new DspFaust(SR, blockSize);
+	DspFaust dspFaust = new DspFaust(SR, buffer_size);
 
 The `start()` method is used to start the audio computing and would typically be placed in the `onCreate()` method of the app activity.
 

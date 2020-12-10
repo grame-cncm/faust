@@ -48,6 +48,8 @@ class MapUI : public UI, public PathBuilder
         // Label zone map
         std::map<std::string, FAUSTFLOAT*> fLabelZoneMap;
     
+        std::string fNullStr = "";
+    
     public:
         
         MapUI() {}
@@ -143,10 +145,10 @@ class MapUI : public UI, public PathBuilder
         
         int getParamsCount() { return int(fPathZoneMap.size()); }
         
-        std::string getParamAddress(int index)
+        const std::string& getParamAddress(int index)
         {
             if (index < 0 || index > int(fPathZoneMap.size())) {
-                return "";
+                return fNullStr;
             } else {
                 auto it = fPathZoneMap.begin();
                 while (index-- > 0 && it++ != fPathZoneMap.end()) {}
@@ -154,12 +156,12 @@ class MapUI : public UI, public PathBuilder
             }
         }
     
-        std::string getParamAddress(FAUSTFLOAT* zone)
+        const std::string& getParamAddress(FAUSTFLOAT* zone)
         {
             for (auto& it : fPathZoneMap) {
                 if (it.second == zone) return it.first;
             }
-            return "";
+            return fNullStr;
         }
     
         FAUSTFLOAT* getParamZone(const std::string& str)

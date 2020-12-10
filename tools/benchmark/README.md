@@ -49,13 +49,13 @@ The `-test` parameter can be used to compile a test program which will bench the
  
  Examples:
  
- - create multi-cpu files using the C++ backend (giving an explicit list of supported CPUS), and then compile them as object files:  `faust2object haswell core2 generic foo.dsp`. 
- - create multi-cpu files using the LLVM backend (giving an explicit list of supported CPUS), and then compile them as object files:  `faust2object -llvm haswell core2 generic foo.dsp`. 
- - create multi-cpu files for all possible CPUs using C++ backend, and then compile them as object files : `faust2object -all foo.dsp`. 
- - create multi-cpu files for all possible CPUs and the multi-loader file, and them compile them as object files:  `faust2object -all -multi foo.dsp`. 
- - create multi-cpu files for all possible CPUs and the multi-loader file, them compile them as object files, and compile a test program :  `faust2object -all -multi -test foo.dsp`. 
- - define the  `FAUST_ARCHS` environment variable, create a multi-cpu file for all possible CPUs defined in this variable and create the multi-loader file:  `export FAUST_ARCHS="core2 haswell" && faust2object -sources -multifun generic foo.dsp`. 
- - define the  `FAUST_ARCHS` environment variable, create a multi-cpu file for all possible CPUs defined in this variable and create the multi-loader file, and compile a test program:  `export FAUST_ARCHS="core2 haswell" && faust2object -multifun generic -test foo.dsp`. 
+ - create multi-cpu files using the C++ backend (giving an explicit list of supported CPUs), and then compile them as object files: `faust2object haswell core2 foo.dsp`. 
+ - create multi-cpu files using the LLVM backend (giving an explicit list of supported CPUs), and then compile them as object files: `faust2object -llvm haswell core2 foo.dsp`. 
+ - create multi-cpu files for all possible CPUs using C++ backend, and then compile them as object files: `faust2object -all foo.dsp`. 
+ - create multi-cpu files for all possible CPUs and the multi-loader file, and them compile them as object files: `faust2object -all -multi foo.dsp`. 
+ - create multi-cpu files for all possible CPUs and the multi-loader file, them compile them as object files, and compile a test program: `faust2object -all -multi -test foo.dsp`. 
+ - define the `FAUST_ARCHS` environment variable, create a multi-cpu file for all possible CPUs defined in this variable and create the multi-loader file: `export FAUST_ARCHS="core2 haswell" && faust2object -sources -multifun foo.dsp`. 
+ - define the `FAUST_ARCHS` environment variable, create a multi-cpu file for all possible CPUs defined in this variable and create the multi-loader file, and compile a test program: `export FAUST_ARCHS="core2 haswell" && faust2object -multifun -test foo.dsp`. 
 
 
 ## dynamic-jack-gtk
