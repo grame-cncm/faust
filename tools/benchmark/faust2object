@@ -12,7 +12,8 @@
 . faustoptflags
 
 FILES=""
-CPU=""
+# always include
+CPU="generic"
 OPT=""
 SOURCES=false
 MULTI=false
@@ -25,24 +26,15 @@ MULTI_ADAPTER=$FAUSTINC/faust/dsp/llvm-dsp-multi.h
 MULTIFUN_ADAPTER=$FAUSTINC/faust/dsp/llvm-dsp-multifun.h
 dspName=""
 
+ALL_CPU_LIST="nocona core2 penryn bonnell atom silvermont slm goldmont goldmont-plus tremont nehalem corei7 westmere sandybridge corei7-avx ivybridge core-avx-i haswell core-avx2 broadwell skylake skylake-avx512 skx cascadelake cooperlake cannonlake icelake-client icelake-server tigerlake knl knm k8 athlon64 athlon-fx opteron k8-sse3 athlon64-sse3 opteron-sse3 amdfam10 barcelona btver1 btver2 bdver1 bdver2 bdver3 bdver4 znver1 znver2 x86-64 generic"
+
 while [ $1 ]
 do
     p=$1
  
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [broadwell] [skylake] [skylake_avx512] [cannonlake] [cascadelake] [generic] [-all] [-sources] [-multi] [-multifun] [-opt native|generic] [-llvm] [-test] [additional Faust options (-vec -vs 8...)] <file.dsp>"
-        echo "Use 'core2' to compile for Core2 CPU"
-        echo "Use 'penryn' to compile for Penryn CPU"
-        echo "Use 'nehalem' to compile for Nehalem CPU"
-        echo "Use 'westmere' to compile for Westmere CPU"
-        echo "Use 'sandybridge' to compile for Sandybridge CPU"
-        echo "Use 'ivybridge' to compile for Ivybridge CPU"
-        echo "Use 'haswell' to compile for Haswell CPU"
-        echo "Use 'broadwell' to compile for Broadwell CPU"
-        echo "Use 'skylake' to compile for Skylake CPU"
-        echo "Use 'skylake_avx512' to compile for Skylake-avx512 CPU"
-        echo "Use 'cannonlake' to compile for Cannonlake CPU"
-        echo "Use 'cascadelake' to compile for Cascadelake CPU"
+        echo "faust2object [nocona] [core2] [penryn] [bonnell] [atom] [silvermont] [slm] [goldmont] [goldmont-plus] [tremont] [nehalem] [corei7] [westmere] [sandybridge] [corei7-avx] [ivybridge] [core-avx-i] [haswell] [core-avx2] [broadwell] [skylake] [skylake-avx512] [skx] [cascadelake] [cooperlake] [cannonlake] [icelake-client] [icelake-server] [tigerlake] [knl] [knm] [k8] [athlon64] [athlon-fx] [opteron] [k8-sse3] [athlon64-sse3] [opteron-sse3] [amdfam10] [barcelona] [btver1] [btver2] [bdver1] [bdver2] [bdver3] [bdver4] [znver1] [znver2] [x86-64] [generic] [-all] [-sources] [-multi] [-multifun] [-opt native|generic] [-llvm] [-test] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "Use 'xxx' to compile for 'xxx' CPU"
         echo "Use 'generic' to compile for generic CPU"
         echo "Use '-all' to compile for all CPUs"
         echo "Use '-sources' to only generate source files"
@@ -55,9 +47,7 @@ do
         exit
     fi
 
-    if [ "$p" = "core2" ] || [ "$p" = "penryn" ] || [ "$p" = "nehalem" ] || [ "$p" = "westmere" ] || [ "$p" = "sandybridge" ] || [ "$p" = "ivybridge" ] || [ "$p" = "haswell" ] || [ "$p" = "broadwell" ] || [ "$p" = "skylake" ] || [ "$p" = "skylake_avx512" ] || [ "$p" = "cannonlake" ]  || [ "$p" = "cascadelake" ] || [ "$p" = "generic" ]; then
-        CPU="$CPU $p"
-    elif [ $p = "-opt" ]; then
+    if [ $p = "-opt" ]; then
         shift
         OPT=$1
     elif [ $p = "-cn" ]; then
@@ -74,7 +64,12 @@ do
     elif [ $p = "-test" ]; then
         TEST=true
     elif [ $p = "-all" ]; then
-	    CPU="core2 penryn nehalem westmere sandybridge ivybridge haswell broadwell skylake skylake_avx512 cannonlake cascadelake generic"
+        CPU=$ALL_CPU_LIST
+    elif echo $ALL_CPU_LIST | grep -w $p > /dev/null; then
+        # 'generic' is always included
+        if [ $p != "generic" ]; then
+            CPU="$CPU $p"
+        fi
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
     elif [ ${p:0:1} = "-" ]; then
@@ -112,13 +107,22 @@ for p in $FILES; do
     fi
 
     # compile for each CPU
-    for cpu in $CPU; do
+    for arch_cpu in $CPU; do
+
+        # replace '-' with '_'
+        cpu=$(echo $arch_cpu | sed -e 's/-/_/g')
         echo $cpu
+
+        # renaming
+        if [ $arch_cpu = "generic" ]; then
+            arch_cpu=""
+        fi
+
         if [ $LLVM = true ]; then
         	# generating the LLVM code
             echo "Compiled using LLVM"
             sed -e "s/mydsp/$dspName$cpu/g" $LLVM_ADAPTER > $dspName$cpu".h"
-            dynamic-faust -target x86_64-apple-darwin15.6.0:$cpu -cn $dspName$cpu $OPTIONS $f -o $dspName$cpu".o"
+            dynamic-faust -target x86_64-apple-darwin15.6.0:$arch_cpu -cn $dspName$cpu $OPTIONS $f -o $dspName$cpu".o"
         else
         	# generating the C++ code
             echo "Compiled using C++"
@@ -128,16 +132,7 @@ for p in $FILES; do
             else
             	faust -a $FAUSTARCH/minimal-effect.cpp -cn $dspName$cpu $OPTIONS $f -o $dspName$cpu".cpp"
             fi
-            
-            # renaming
-            if [ $cpu = skylake_avx512 ]; then
-                arch_cpu=skylake-avx512
-            elif [ $cpu = generic ]; then
-                arch_cpu=""
-            else
-                arch_cpu=$cpu
-            fi
-            
+
             # compiling
             if [ $SOURCES = false ]; then
             	$CXX -Ofast -march=$arch_cpu -c $dspName$cpu".cpp"
@@ -150,7 +145,9 @@ for p in $FILES; do
         # create file
         echo "" > $dspName"multi.h"
         # add conditional #define 'cpu'
-        for cpu in $CPU; do
+        for arch_cpu in $CPU; do
+            # replace '-' with '_'
+            cpu=$(echo $arch_cpu | sed -e 's/-/_/g')
             echo "#define "$cpu >> $dspName"multi.h"
         done
         # class naming

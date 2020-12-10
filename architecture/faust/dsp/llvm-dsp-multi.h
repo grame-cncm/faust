@@ -28,6 +28,11 @@
 #include <assert.h>
 
 // CPUs
+
+#ifdef nocona
+#include "mydspnocona.h"
+#endif
+
 #ifdef core2
 #include "mydspcore2.h"
 #endif
@@ -36,8 +41,40 @@
 #include "mydsppenryn.h"
 #endif
 
+#ifdef bonnell
+#include "mydspbonnell.h"
+#endif
+
+#ifdef atom
+#include "mydspatom.h"
+#endif
+
+#ifdef silvermont
+#include "mydspsilvermont.h"
+#endif
+
+#ifdef slm
+#include "mydspslm.h"
+#endif
+
+#ifdef goldmont
+#include "mydspgoldmont.h"
+#endif
+
+#ifdef goldmont_plus
+#include "mydspgoldmont_plus.h"
+#endif
+
+#ifdef tremont
+#include "mydsptremont.h"
+#endif
+
 #ifdef nehalem
 #include "mydspnehalem.h"
+#endif
+
+#ifdef corei7
+#include "mydspcorei7.h"
 #endif
 
 #ifdef westmere
@@ -48,12 +85,24 @@
 #include "mydspsandybridge.h"
 #endif
 
+#ifdef corei7_avx
+#include "mydspcorei7_avx.h"
+#endif
+
 #ifdef ivybridge
 #include "mydspivybridge.h"
 #endif
 
+#ifdef core_avx_i
+#include "mydspcore_avx_i.h"
+#endif
+
 #ifdef haswell
 #include "mydsphaswell.h"
+#endif
+
+#ifdef core_avx2
+#include "mydspcore_avx2.h"
 #endif
 
 #ifdef broadwell
@@ -68,12 +117,112 @@
 #include "mydspskylake_avx512.h"
 #endif
 
-#ifdef cannonlake
-#include "mydspcannonlake.h"
+#ifdef skx
+#include "mydspskx.h"
 #endif
 
 #ifdef cascadelake
 #include "mydspcascadelake.h"
+#endif
+
+#ifdef cooperlake
+#include "mydspcooperlake.h"
+#endif
+
+#ifdef cannonlake
+#include "mydspcannonlake.h"
+#endif
+
+#ifdef icelake_client
+#include "mydspicelake_client.h"
+#endif
+
+#ifdef icelake_server
+#include "mydspicelake_server.h"
+#endif
+
+#ifdef tigerlake
+#include "mydsptigerlake.h"
+#endif
+
+#ifdef knl
+#include "mydspknl.h"
+#endif
+
+#ifdef knm
+#include "mydspknm.h"
+#endif
+
+#ifdef k8
+#include "mydspk8.h"
+#endif
+
+#ifdef athlon64
+#include "mydspathlon64.h"
+#endif
+
+#ifdef athlon_fx
+#include "mydspathlon_fx.h"
+#endif
+
+#ifdef opteron
+#include "mydspopteron.h"
+#endif
+
+#ifdef k8_sse3
+#include "mydspk8_sse3.h"
+#endif
+
+#ifdef athlon64_sse3
+#include "mydspathlon64_sse3.h"
+#endif
+
+#ifdef opteron_sse3
+#include "mydspopteron_sse3.h"
+#endif
+
+#ifdef amdfam10
+#include "mydspamdfam10.h"
+#endif
+
+#ifdef barcelona
+#include "mydspbarcelona.h"
+#endif
+
+#ifdef btver1
+#include "mydspbtver1.h"
+#endif
+
+#ifdef btver2
+#include "mydspbtver2.h"
+#endif
+
+#ifdef bdver1
+#include "mydspbdver1.h"
+#endif
+
+#ifdef bdver2
+#include "mydspbdver2.h"
+#endif
+
+#ifdef bdver3
+#include "mydspbdver3.h"
+#endif
+
+#ifdef bdver4
+#include "mydspbdver4.h"
+#endif
+
+#ifdef znver1
+#include "mydspznver1.h"
+#endif
+
+#ifdef znver2
+#include "mydspznver2.h"
+#endif
+
+#ifdef x86_64
+#include "mydspx86_64.h"
 #endif
 
 // Always included
@@ -100,6 +249,14 @@ class mydspmulti : public decorator_dsp {
         mydspmulti()
         {
             
+        #ifdef nocona
+            if (!fDSP && is_cpu("nocona")) {
+                std::cout << "Allocate for nocona" << std::endl;
+                fDSP = createmydspnocona();
+                return;
+            }
+        #endif
+            
         #ifdef core2
             if (!fDSP && is_cpu("core2")) {
                 std::cout << "Allocate for core2" << std::endl;
@@ -116,10 +273,74 @@ class mydspmulti : public decorator_dsp {
             }
         #endif
             
+        #ifdef bonnell
+            if (!fDSP && is_cpu("bonnell")) {
+                std::cout << "Allocate for bonnell" << std::endl;
+                fDSP = createmydspbonnell();
+                return;
+            }
+        #endif
+            
+        #ifdef atom
+            if (!fDSP && is_cpu("atom")) {
+                std::cout << "Allocate for atom" << std::endl;
+                fDSP = createmydspatom();
+                return;
+            }
+        #endif
+            
+        #ifdef silvermont
+            if (!fDSP && is_cpu("silvermont")) {
+                std::cout << "Allocate for silvermont" << std::endl;
+                fDSP = createmydspsilvermont();
+                return;
+            }
+        #endif
+            
+        #ifdef slm
+            if (!fDSP && is_cpu("slm")) {
+                std::cout << "Allocate for slm" << std::endl;
+                fDSP = createmydspslm();
+                return;
+            }
+        #endif
+            
+        #ifdef goldmont
+            if (!fDSP && is_cpu("goldmont")) {
+                std::cout << "Allocate for goldmont" << std::endl;
+                fDSP = createmydspgoldmont();
+                return;
+            }
+        #endif
+            
+        #ifdef goldmont_plus
+            if (!fDSP && is_cpu("goldmont-plus")) {
+                std::cout << "Allocate for goldmont-plus" << std::endl;
+                fDSP = createmydspgoldmont_plus();
+                return;
+            }
+        #endif
+            
+        #ifdef tremont
+            if (!fDSP && is_cpu("tremont")) {
+                std::cout << "Allocate for tremont" << std::endl;
+                fDSP = createmydsptremont();
+                return;
+            }
+        #endif
+            
         #ifdef nehalem
             if (!fDSP && is_cpu("nehalem")) {
                 std::cout << "Allocate for nehalem" << std::endl;
                 fDSP = createmydspnehalem();
+                return;
+            }
+        #endif
+            
+        #ifdef corei7
+            if (!fDSP && is_cpu("corei7")) {
+                std::cout << "Allocate for corei7" << std::endl;
+                fDSP = createmydspcorei7();
                 return;
             }
         #endif
@@ -140,6 +361,14 @@ class mydspmulti : public decorator_dsp {
             }
         #endif
             
+        #ifdef corei7_avx
+            if (!fDSP && is_cpu("corei7-avx")) {
+                std::cout << "Allocate for corei7-avx" << std::endl;
+                fDSP = createmydspcorei7_avx();
+                return;
+            }
+        #endif
+            
         #ifdef ivybridge
             if (!fDSP && is_cpu("ivybridge")) {
                 std::cout << "Allocate for ivybridge" << std::endl;
@@ -148,10 +377,26 @@ class mydspmulti : public decorator_dsp {
             }
         #endif
             
+        #ifdef core_avx_i
+            if (!fDSP && is_cpu("core-avx-i")) {
+                std::cout << "Allocate for core-avx-i" << std::endl;
+                fDSP = createmydspcore_avx_i();
+                return;
+            }
+        #endif
+            
         #ifdef haswell
             if (!fDSP && is_cpu("haswell")) {
                 std::cout << "Allocate for haswell" << std::endl;
                 fDSP = createmydsphaswell();
+                return;
+            }
+        #endif
+            
+        #ifdef core_avx2
+            if (!fDSP && is_cpu("core-avx2")) {
+                std::cout << "Allocate for core-avx2" << std::endl;
+                fDSP = createmydspcore_avx2();
                 return;
             }
         #endif
@@ -180,6 +425,30 @@ class mydspmulti : public decorator_dsp {
             }
         #endif
             
+        #ifdef skx
+            if (!fDSP && is_cpu("skx")) {
+                std::cout << "Allocate for skx" << std::endl;
+                fDSP = createmydspskx();
+                return;
+            }
+        #endif
+            
+        #ifdef cascadelake
+            if (!fDSP && is_cpu("cascadelake")) {
+                std::cout << "Allocate for cascadelake" << std::endl;
+                fDSP = createmydspcascadelake();
+                return;
+            }
+        #endif
+            
+        #ifdef cooperlake
+            if (!fDSP && is_cpu("cooperlake")) {
+                std::cout << "Allocate for cooperlake" << std::endl;
+                fDSP = createmydspcooperlake();
+                return;
+            }
+        #endif
+            
         #ifdef cannonlake
             if (!fDSP && is_cpu("cannonlake")) {
                 std::cout << "Allocate for cannonlake" << std::endl;
@@ -187,11 +456,187 @@ class mydspmulti : public decorator_dsp {
                 return;
             }
         #endif
-        
-        #ifdef cascadelake
-            if (!fDSP && is_cpu("cascadelake")) {
-                std::cout << "Allocate for cascadelake" << std::endl;
-                fDSP = createmydspcascadelake();
+            
+        #ifdef icelake_client
+            if (!fDSP && is_cpu("icelake-client")) {
+                std::cout << "Allocate for icelake-client" << std::endl;
+                fDSP = createmydspicelake_client();
+                return;
+            }
+        #endif
+            
+        #ifdef icelake_server
+            if (!fDSP && is_cpu("icelake-server")) {
+                std::cout << "Allocate for icelake-server" << std::endl;
+                fDSP = createmydspicelake_server();
+                return;
+            }
+        #endif
+            
+        #ifdef tigerlake
+            if (!fDSP && is_cpu("tigerlake")) {
+                std::cout << "Allocate for tigerlake" << std::endl;
+                fDSP = createmydsptigerlake();
+                return;
+            }
+        #endif
+            
+        #ifdef knl
+            if (!fDSP && is_cpu("knl")) {
+                std::cout << "Allocate for knl" << std::endl;
+                fDSP = createmydspknl();
+                return;
+            }
+        #endif
+            
+        #ifdef knm
+            if (!fDSP && is_cpu("knm")) {
+                std::cout << "Allocate for knm" << std::endl;
+                fDSP = createmydspknm();
+                return;
+            }
+        #endif
+
+        #ifdef k8
+            if (!fDSP && is_cpu("k8")) {
+                std::cout << "Allocate for k8" << std::endl;
+                fDSP = createmydspk8();
+                return;
+            }
+        #endif
+            
+        #ifdef athlon64
+            if (!fDSP && is_cpu("athlon64")) {
+                std::cout << "Allocate for athlon64" << std::endl;
+                fDSP = createmydspathlon64();
+                return;
+            }
+        #endif
+            
+        #ifdef athlon_fx
+            if (!fDSP && is_cpu("athlon-fx")) {
+                std::cout << "Allocate for athlon-fx" << std::endl;
+                fDSP = createmydspathlon_fx();
+                return;
+            }
+        #endif
+            
+        #ifdef opteron
+            if (!fDSP && is_cpu("opteron")) {
+                std::cout << "Allocate for opteron" << std::endl;
+                fDSP = createmydspopteron();
+                return;
+            }
+        #endif
+            
+        #ifdef k8_sse3
+            if (!fDSP && is_cpu("k8-sse3")) {
+                std::cout << "Allocate for k8-sse3" << std::endl;
+                fDSP = createmydspk8_sse3();
+                return;
+            }
+        #endif
+            
+        #ifdef athlon64_sse3
+            if (!fDSP && is_cpu("athlon64-sse3")) {
+                std::cout << "Allocate for athlon64-sse3" << std::endl;
+                fDSP = createmydspathlon64_sse3();
+                return;
+            }
+        #endif
+            
+        #ifdef opteron_sse3
+            if (!fDSP && is_cpu("opteron-sse3")) {
+                std::cout << "Allocate for opteron-sse3" << std::endl;
+                fDSP = createmydspopteron_sse3();
+                return;
+            }
+        #endif
+            
+        #ifdef amdfam10
+            if (!fDSP && is_cpu("amdfam10")) {
+                std::cout << "Allocate for amdfam10" << std::endl;
+                fDSP = createmydspamdfam10();
+                return;
+            }
+        #endif
+            
+        #ifdef barcelona
+            if (!fDSP && is_cpu("barcelona")) {
+                std::cout << "Allocate for barcelona" << std::endl;
+                fDSP = createmydspbarcelona();
+                return;
+            }
+        #endif
+            
+        #ifdef btver1
+            if (!fDSP && is_cpu("btver1")) {
+                std::cout << "Allocate for btver1" << std::endl;
+                fDSP = createmydspbtver1();
+                return;
+            }
+        #endif
+            
+        #ifdef btver2
+            if (!fDSP && is_cpu("btver2")) {
+                std::cout << "Allocate for btver2" << std::endl;
+                fDSP = createmydspbtver2();
+                return;
+            }
+        #endif
+            
+        #ifdef bdver1
+            if (!fDSP && is_cpu("bdver1")) {
+                std::cout << "Allocate for bdver1" << std::endl;
+                fDSP = createmydspbdver1();
+                return;
+            }
+        #endif
+            
+        #ifdef bdver2
+            if (!fDSP && is_cpu("bdver2")) {
+                std::cout << "Allocate for bdver2" << std::endl;
+                fDSP = createmydspbdver2();
+                return;
+            }
+        #endif
+            
+        #ifdef bdver3
+            if (!fDSP && is_cpu("bdver3")) {
+                std::cout << "Allocate for bdver3" << std::endl;
+                fDSP = createmydspbdver3();
+                return;
+            }
+        #endif
+            
+        #ifdef bdver4
+            if (!fDSP && is_cpu("bdver4")) {
+                std::cout << "Allocate for bdver4" << std::endl;
+                fDSP = createmydspbdver4();
+                return;
+            }
+        #endif
+            
+        #ifdef znver1
+            if (!fDSP && is_cpu("znver1")) {
+                std::cout << "Allocate for znver1" << std::endl;
+                fDSP = createmydspznver1();
+                return;
+            }
+        #endif
+            
+        #ifdef znver2
+            if (!fDSP && is_cpu("znver2")) {
+                std::cout << "Allocate for znver2" << std::endl;
+                fDSP = createmydspznver2();
+                return;
+            }
+        #endif
+            
+        #ifdef x86_64
+            if (!fDSP && is_cpu("x86-64")) {
+                std::cout << "Allocate for x86-64" << std::endl;
+                fDSP = createmydspx86_64();
                 return;
             }
         #endif

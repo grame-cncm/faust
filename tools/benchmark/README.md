@@ -21,22 +21,11 @@ Here are the available options:
 
 The **faust2object** tool  either uses the standard C++ compiler or the LLVM dynamic compilation chain (the **dynamic-faust** tool) to compile a Faust DSP to object code files (.o) and wrapper C++ header files for different CPUs. The DSP name is used in the generated C++ and object code files, thus allowing to generate distinct versions of the code that can finally be linked together in a single binary.
 
-`faust2object [core2] [penryn] [nehalem] [westmere] [sandybridge] [ivybridge] [haswell] [skylake] [skylake_avx512] [cannonlake] [cascadelake] [generic] [-all] [-sources] [-multi] [-multifun] [-opt native|generic] [-llvm] [-test] [additional Faust options (-vec -vs 8...)] <file.dsp>`
+`faust2object [nocona] [core2] [penryn] [bonnell] [atom] [silvermont] [slm] [goldmont] [goldmont-plus] [tremont] [nehalem] [corei7] [westmere] [sandybridge] [corei7-avx] [ivybridge] [core-avx-i] [haswell] [core-avx2] [broadwell] [skylake] [skylake-avx512] [skx] [cascadelake] [cooperlake] [cannonlake] [icelake-client] [icelake-server] [tigerlake] [knl] [knm] [k8] [athlon64] [athlon-fx] [opteron] [k8-sse3] [athlon64-sse3] [opteron-sse3] [amdfam10] [barcelona] [btver1] [btver2] [bdver1] [bdver2] [bdver3] [bdver4] [znver1] [znver2] [x86-64] [generic] [-all] [-sources] [-multi] [-multifun] [-opt native|generic] [-llvm] [-test] [additional Faust options (-vec -vs 8...)] <file.dsp>`
 
 Here are the available options:
 
-- `core2 to compile for Core2 CPU`
-- `penryn to compile for Penryn CPU`
-- `nehalem to compile for Nehalem CPU`
-- `westmere to compile for Westmere CPU`
-- `sandybridge to compile for Sandybridge CPU`
-- `ivybridge to compile for Ivybridge CPU`
-- `haswell to compile for Haswell CPU`
-- `broadwell to compile for Broadwell CPU`
-- `skylake to compile for Skylake CPU`
-- `skylake_avx512 to compile for Skylake-avx512 CPU`
-- `cannonlake to compile for Cannonlake CPU`
-- `cascadelake' to compile for Cascadelake CPU`
+- `'xxx' to compile for 'xxx' CPU`
 - `generic to compile for generic CPU`
 - `-all to compile for all CPUs`
 - `-sources' to only generate source files`
