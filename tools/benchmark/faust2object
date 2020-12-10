@@ -65,15 +65,15 @@ do
         TEST=true
     elif [ $p = "-all" ]; then
         CPU=$ALL_CPU_LIST
-    elif echo $ALL_CPU_LIST | grep -w $p > /dev/null; then
-        # 'generic' is always included
-        if [ $p != "generic" ]; then
-            CPU="$CPU $p"
-        fi
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
+    elif [ $(echo $ALL_CPU_LIST | grep -w $p > /dev/null) ]; then
+        # 'generic' is always included
+        if [ $p != "generic" ]; then
+            CPU="$CPU $p"
+        fi
     else
         OPTIONS="$OPTIONS $p"
     fi

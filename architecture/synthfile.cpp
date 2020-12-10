@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
     Interleaver ilv(kFrames, DSP.getNumOutputs(), DSP.getNumOutputs());
     
     // init DSP with SR
-    DSP.init(in_info.samplerate);
+    DSP.init(sample_rate);
     // modify the UI values according to the command line options, after init
     interface->process_init();
     
