@@ -151,13 +151,13 @@ class RustStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kInt64_ptr] = "i64" + fPtrPosfix;
         fTypeDirectTable[Typed::kInt64_vec] = "vector<i64>";
 
-        fTypeDirectTable[Typed::kFloat]     = "f32";
-        fTypeDirectTable[Typed::kFloat_ptr] = "f32" + fPtrPosfix;
-        fTypeDirectTable[Typed::kFloat_vec] = "vector<f32>";
+        fTypeDirectTable[Typed::kFloat]     = "F32";
+        fTypeDirectTable[Typed::kFloat_ptr] = "F32" + fPtrPosfix;
+        fTypeDirectTable[Typed::kFloat_vec] = "vector<F32>";
 
-        fTypeDirectTable[Typed::kDouble]     = "f64";
-        fTypeDirectTable[Typed::kDouble_ptr] = "f64" + fPtrPosfix;
-        fTypeDirectTable[Typed::kDouble_vec] = "vector<f64>";
+        fTypeDirectTable[Typed::kDouble]     = "F64";
+        fTypeDirectTable[Typed::kDouble_ptr] = "F64" + fPtrPosfix;
+        fTypeDirectTable[Typed::kDouble_vec] = "vector<F64>";
 
         fTypeDirectTable[Typed::kQuad]     = "quad";
         fTypeDirectTable[Typed::kQuad_ptr] = "quad" + fPtrPosfix;

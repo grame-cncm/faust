@@ -88,68 +88,68 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["max_i"] = "std::cmp::max";
 
         // Float version
-        fMathLibTable["fabsf"]      = "f32::abs";
-        fMathLibTable["acosf"]      = "f32::acos";
-        fMathLibTable["asinf"]      = "f32::asin";
-        fMathLibTable["atanf"]      = "f32::atan";
-        fMathLibTable["atan2f"]     = "f32::atan2";
-        fMathLibTable["ceilf"]      = "f32::ceil";
-        fMathLibTable["cosf"]       = "f32::cos";
-        fMathLibTable["expf"]       = "f32::exp";
-        fMathLibTable["floorf"]     = "f32::floor";
+        fMathLibTable["fabsf"]      = "F32::abs";
+        fMathLibTable["acosf"]      = "F32::acos";
+        fMathLibTable["asinf"]      = "F32::asin";
+        fMathLibTable["atanf"]      = "F32::atan";
+        fMathLibTable["atan2f"]     = "F32::atan2";
+        fMathLibTable["ceilf"]      = "F32::ceil";
+        fMathLibTable["cosf"]       = "F32::cos";
+        fMathLibTable["expf"]       = "F32::exp";
+        fMathLibTable["floorf"]     = "F32::floor";
         fMathLibTable["fmodf"]      = "libm::fmodf";
-        fMathLibTable["logf"]       = "f32::log";
-        fMathLibTable["log10f"]     = "f32::log10";
-        fMathLibTable["max_f"]      = "f32::max";
-        fMathLibTable["min_f"]      = "f32::min";
-        fMathLibTable["powf"]       = "f32::powf";
-        fMathLibTable["remainderf"] = "f32::rem_euclid";
+        fMathLibTable["logf"]       = "F32::log";
+        fMathLibTable["log10f"]     = "F32::log10";
+        fMathLibTable["max_f"]      = "F32::max";
+        fMathLibTable["min_f"]      = "F32::min";
+        fMathLibTable["powf"]       = "F32::powf";
+        fMathLibTable["remainderf"] = "F32::rem_euclid";
         //fMathLibTable["rintf"]      = "linux_api_math::rintf"; // TODO
-        fMathLibTable["rintf"]      = "f32::round";
-        fMathLibTable["roundf"]     = "f32::round";
-        fMathLibTable["sinf"]       = "f32::sin";
-        fMathLibTable["sqrtf"]      = "f32::sqrt";
-        fMathLibTable["tanf"]       = "f32::tan";
+        fMathLibTable["rintf"]      = "F32::round";
+        fMathLibTable["roundf"]     = "F32::round";
+        fMathLibTable["sinf"]       = "F32::sin";
+        fMathLibTable["sqrtf"]      = "F32::sqrt";
+        fMathLibTable["tanf"]       = "F32::tan";
 
         // Additional hyperbolic math functions
-        fMathLibTable["acoshf"]     = "f32::acosh";
-        fMathLibTable["asinhf"]     = "f32::asinh";
-        fMathLibTable["atanhf"]     = "f32::atanh";
-        fMathLibTable["coshf"]      = "f32::cosh";
-        fMathLibTable["sinhf"]      = "f32::sinh";
-        fMathLibTable["tanhf"]      = "f32::tanh";
+        fMathLibTable["acoshf"]     = "F32::acosh";
+        fMathLibTable["asinhf"]     = "F32::asinh";
+        fMathLibTable["atanhf"]     = "F32::atanh";
+        fMathLibTable["coshf"]      = "F32::cosh";
+        fMathLibTable["sinhf"]      = "F32::sinh";
+        fMathLibTable["tanhf"]      = "F32::tanh";
 
         // Double version
-        fMathLibTable["fabs"]      = "f64::abs";
-        fMathLibTable["acos"]      = "f64::acos";
-        fMathLibTable["asin"]      = "f64::asin";
-        fMathLibTable["atan"]      = "f64::atan";
-        fMathLibTable["atan2"]     = "f64::atan2";
-        fMathLibTable["ceil"]      = "f64::ceil";
-        fMathLibTable["cos"]       = "f64::cos";
-        fMathLibTable["exp"]       = "f64::exp";
-        fMathLibTable["floor"]     = "f64::floor";
+        fMathLibTable["fabs"]      = "F64::abs";
+        fMathLibTable["acos"]      = "F64::acos";
+        fMathLibTable["asin"]      = "F64::asin";
+        fMathLibTable["atan"]      = "F64::atan";
+        fMathLibTable["atan2"]     = "F64::atan2";
+        fMathLibTable["ceil"]      = "F64::ceil";
+        fMathLibTable["cos"]       = "F64::cos";
+        fMathLibTable["exp"]       = "F64::exp";
+        fMathLibTable["floor"]     = "F64::floor";
         fMathLibTable["fmod"]      = "libm::fmod";
-        fMathLibTable["log"]       = "f64::log";
-        fMathLibTable["log10"]     = "f64::log10";
-        fMathLibTable["max_"]      = "f64::max";
-        fMathLibTable["min_"]      = "f64::min";
-        fMathLibTable["pow"]       = "f64::powf";
-        fMathLibTable["remainder"] = "f64::rem_euclid";
+        fMathLibTable["log"]       = "F64::log";
+        fMathLibTable["log10"]     = "F64::log10";
+        fMathLibTable["max_"]      = "F64::max";
+        fMathLibTable["min_"]      = "F64::min";
+        fMathLibTable["pow"]       = "F64::powf";
+        fMathLibTable["remainder"] = "F64::rem_euclid";
         //fMathLibTable["rint"]      = "linux_api_math::rint";  // TODO
-        fMathLibTable["rint"]      = "f64::round";
-        fMathLibTable["round"]     = "f64::round";
-        fMathLibTable["sin"]       = "f64::sin";
-        fMathLibTable["sqrt"]      = "f64::sqrt";
-        fMathLibTable["tan"]       = "f64::tan";
+        fMathLibTable["rint"]      = "F64::round";
+        fMathLibTable["round"]     = "F64::round";
+        fMathLibTable["sin"]       = "F64::sin";
+        fMathLibTable["sqrt"]      = "F64::sqrt";
+        fMathLibTable["tan"]       = "F64::tan";
 
         // Additional hyperbolic math functions
-        fMathLibTable["acosh"]     = "f64::acosh";
-        fMathLibTable["asinh"]     = "f64::asinh";
-        fMathLibTable["atanh"]     = "f64::atanh";
-        fMathLibTable["cosh"]      = "f64::cosh";
-        fMathLibTable["sinh"]      = "f64::sinh";
-        fMathLibTable["tanh"]      = "f64::tanh";
+        fMathLibTable["acosh"]     = "F64::acosh";
+        fMathLibTable["asinh"]     = "F64::asinh";
+        fMathLibTable["atanh"]     = "F64::atanh";
+        fMathLibTable["cosh"]      = "F64::cosh";
+        fMathLibTable["sinh"]      = "F64::sinh";
+        fMathLibTable["tanh"]      = "F64::tanh";
     }
 
     virtual ~RustInstVisitor() {}
@@ -429,9 +429,9 @@ class RustInstVisitor : public TextInstVisitor {
             // Compile parameters
             generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), int(inst->fArgs.size()));
             // Hack for 'log' function that needs a base
-            if (fun_name == "f32::log") {
+            if (fun_name == "F32::log") {
                 *fOut << ", std::f32::consts::E";
-            } else if (fun_name == "f64::log") {
+            } else if (fun_name == "F64::log") {
                 *fOut << ", std::f64::consts::E";
             }
         }

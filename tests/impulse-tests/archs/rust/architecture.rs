@@ -1,3 +1,21 @@
+/************************************************************************
+************************************************************************
+FAUST Architecture File
+Copyright (C) 2020 GRAME, Centre National de Creation Musicale
+---------------------------------------------------------------------
+
+This is sample code. This file is provided as an example of minimal
+FAUST architecture file. Redistribution and use in source and binary
+forms, with or without modification, in part or in full are permitted.
+In particular you can create a derived work of this FAUST architecture
+and distribute that work under terms of your choice.
+
+This sample code is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+************************************************************************
+************************************************************************/
+
 #![allow(unused_parens)]
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
@@ -8,12 +26,21 @@
 
 extern crate libm;
 extern crate num_traits;
+/* extern crate fastfloat; */
 
 use std::fs::File;
 use std::io::Write;
 use std::env;
 
 use num_traits::{cast::FromPrimitive, float::Float};
+
+type F32 = f32;
+type F64 = f64;
+
+/*
+type F32 = Fast<f32>;
+type F64 = Fast<f64>;
+*/
 
 pub trait FaustDsp {
     type Sample;

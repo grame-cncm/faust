@@ -201,7 +201,7 @@ void RustCodeContainer::produceClass()
     // Associated type
     tab(n + 1, *fOut);
     *fOut << "type Sample = " << ifloat() << ";";
-
+    
     // Memory methods
     tab(n + 2, *fOut);
     if (fAllocateInstructions->fCode.size() > 0) {

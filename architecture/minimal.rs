@@ -1,7 +1,7 @@
 /************************************************************************
 ************************************************************************
     FAUST Architecture File
-    Copyright (C) 2017 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2017-2020 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
 
     This is sample code. This file is provided as an example of minimal
@@ -32,6 +32,9 @@ use std::io::Write;
 use std::env;
 
 use num_traits::{cast::FromPrimitive, float::Float};
+
+type F32 = f32;
+type F64 = f64;
 
 pub trait FaustDsp {
     type Sample;

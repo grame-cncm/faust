@@ -60,13 +60,13 @@ void initFaustFloat()
         numsuffix[3] = "";
         
         floatname[0] = FLOATMACRO;
-        floatname[1] = "f32";
-        floatname[2] = "f64";
+        floatname[1] = "F32";
+        floatname[2] = "F64";
         floatname[3] = "dummy";
         
         castname[0] = FLOATCASTER;
-        castname[1] = "as f32";
-        castname[2] = "as f64";
+        castname[1] = "as F32";
+        castname[2] = "as F64";
         castname[3] = "(dummy)";
         
         floatmin[0] = 0;
