@@ -36,8 +36,8 @@ using namespace std;
  - inputN/outputN local buffer variables in 'compute' are not created at all: they are replaced directly in the code
  with inputs[N]/outputs[N] (done in instructions_compiler.cpp)
  - BoolOpcode BinOps always casted to integer
- - 'delete' for SubcContainers is not generated
- - add  'fDummy' zone in 'mydsp' struct to publish it (if needed) in 'declare' when nullptr is used
+ - 'delete' for SubContainers is not generated
+ - add 'fDummy' zone in 'mydsp' struct to publish it (if needed) in 'declare' when nullptr is used
  - add 'kMutable' and 'kReference' address access type
 
 */

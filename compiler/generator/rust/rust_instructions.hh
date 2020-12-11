@@ -304,7 +304,6 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(RetInst* inst)
     {
         if (inst->fResult) {
-            //*fOut << "return ";
             inst->fResult->accept(this);
         } else {
             *fOut << "return";
@@ -538,11 +537,6 @@ class RustInstVisitor : public TextInstVisitor {
             fTab++;
             tab(fTab, *fOut);
             (it.second)->accept(this);
-            /*
-            if (!((*it).second)->hasReturn()) {
-                *fOut << "break;";
-            }
-            */
             fTab--;
             back(1, *fOut);
             *fOut << "},";

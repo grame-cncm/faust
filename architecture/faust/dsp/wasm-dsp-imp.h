@@ -33,7 +33,7 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/JSONUIDecoder.h"
 
-// Generic wasm_dsp_factory class than keeps the JSON decoder.
+// Generic wasm_dsp_factory class that keeps the JSON decoder.
 
 class wasm_dsp_factory_imp : public dsp_factory {
     
@@ -66,7 +66,7 @@ class wasm_dsp_factory_imp : public dsp_factory {
         virtual dsp_memory_manager* getMemoryManager() { return nullptr; }
 };
 
-// Generic wasm_dsp class than creates and use the JSON decoder, and manage DSP and audio memory.
+// Generic wasm_dsp class that creates and use the JSON decoder, and manage DSP and audio memory.
 
 class wasm_dsp_imp : public dsp {
     
