@@ -121,9 +121,6 @@ namespace Faust {
                 return null;
             }
         }
-
-        // TODO
-        //async loadGui();
     }
 
     export function createPolyWAPFactory(context: BaseAudioContext, baseURL: string = "") {
@@ -223,8 +220,5 @@ namespace Faust {
                 return null;
             }
         }
-
-        // TODO
-        //async loadGui();
     }
 }

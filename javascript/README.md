@@ -28,7 +28,6 @@ make help
 ~~~~~~~~
 
 
-
 ## Testing
 
 To test, launch a local server, then open the page: `tests/testCompiler.html`

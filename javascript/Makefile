@@ -23,7 +23,7 @@ all:
 help:
 	@echo "============================================================"
 	@echo "                     Faust Wasm Library"
-	@echo "This Makefile is intended to generate the faust wasm library"
+	@echo "This Makefile is intended to generate the Faust wasm library"
 	@echo "============================================================"
 	@echo "Available targets are:"
 	@echo "  all (default) : call the wasm, js and dist targets"

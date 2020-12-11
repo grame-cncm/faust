@@ -6,35 +6,35 @@ class FaustDSPPoly {
         this.fBaseURL = baseURL;
         this.fVoices = voices;
         this.fSP = sp;
+        this.fNode = null;
     }
 
     async load() {
-        factory = Faust.createPolyWAPFactory(audioCtx, "");
-        return factory.load("DSP.wasm", "DSP.json", "DSP_effect.wasm", "DSP_effect.json", "mixer32.wasm", this.fVoices, this.fSP, 1024);
+        const factory = Faust.createPolyWAPFactory(this.fAudioContext, this.fBaseURL);
+        this.fNode = factory.load("DSP.wasm", "DSP.json", "DSP_effect.wasm", "DSP_effect.json", "mixer32.wasm", this.fVoices, this.fSP, 1024);
+        return this.fNode;
     }
 
     async loadGui() {
         return new Promise((resolve, reject) => {
             try {
-                // DO THIS ONLY ONCE. If another instance has already been added, do not add the html file again
+                // Do this only once. If another instance has already been added, do not add the html file again.
                 let real_url = (this.baseURL === "") ? "main.html" : (this.baseURL + "/main.html");
                 if (!this.linkExists(real_url)) {
-                    // LINK DOES NOT EXIST, let's add it to the document
+                    // Link does nos exist, let's add it to the document
                     let link = document.createElement('link');
                     link.rel = 'import';
                     link.href = real_url;
                     document.head.appendChild(link);
                     link.onload = (e) => {
-                        // the file has been loaded, instanciate GUI
-                        // and get back the HTML elem
-                        // HERE WE COULD REMOVE THE HARD CODED NAME
-                        var element = createDSPGUI(this.node);
+                        // The file has been loaded, instanciate GUI and get back the HTML elem
+                        // Here we could remove the hard coded name.
+                        let element = createDSPGUI(this.fNode);
                         resolve(element);
                     }
                 } else {
-                    // LINK EXIST, WE AT LEAST CREATED ONE INSTANCE PREVIOUSLY
-                    // so we can create another instance
-                    let element = createDSPGUI(this.node);
+                    // Link exist, we at least create one instance previously so we can create another instance.
+                    let element = createDSPGUI(this.fNode);
                     resolve(element);
                 }
             } catch (e) {

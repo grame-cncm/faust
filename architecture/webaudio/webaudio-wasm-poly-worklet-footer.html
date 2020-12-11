@@ -129,7 +129,7 @@
         }
     }
 
-    // Adaptation class
+    // WAP adaptation class
     class FaustDSPPoly {
 
         constructor(context, voices, baseURL, sp = false) {
@@ -140,7 +140,7 @@
         }
 
         async load() {
-            factory = Faust.createPolyWAPFactory(audioCtx, "");
+            const factory = Faust.createPolyWAPFactory(this.fAudioContext, this.fBaseURL);
             return factory.load("DSP.wasm", "DSP.json", "DSP_effect.wasm", "DSP_effect.json", "mixer32.wasm", this.fVoices, this.fSP, 1024);
         }
     }

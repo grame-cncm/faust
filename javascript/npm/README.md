@@ -70,7 +70,6 @@ Simply include the following to get access to types and functions:
 ///<reference types="@grame/libfaust"/>
 ~~~~~~~~~~~~~~~
 
-
 ## Dynamic and Static Instances <a name="ds"></a>
 
 The Faust Wasm and Audio Node levels make it possible to generate instances from Faust dsp code as well as from pre-compiled WebAssembly modules.
