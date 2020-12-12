@@ -67,8 +67,8 @@ A **startnoise** function which creates the Faust WebAudio node is defined with:
 ```
 function startnoise() {
     // Create the Faust generated node
-    var pluginURL = ".";
-    var plugin = new Faustnoise(audio_context, pluginURL);
+    var plugin_url = ".";
+    var plugin = new Faustnoise(audio_context, plugin_url);
     plugin.load().then(node => {
         noise_dsp = node;
         console.log(noise_dsp.getJSON());
@@ -171,10 +171,10 @@ The **FaustModule** global is a promise defined in *FaustLibrary.js* file, that 
 FaustModule().then((module) => { init(module); });
 
 function init(module) {
- 		// Init Faust compiler and node factory 
- 		var faust_compiler = Faust.createCompiler(Faust.createLibFaust(module));
-  	var faust_factory = Faust.createAudioNodeFactory();
-  	....
+    // Init Faust compiler and node factory 
+    var faust_compiler = Faust.createCompiler(Faust.createLibFaust(module));
+    var faust_factory = Faust.createAudioNodeFactory();
+    ....
 }
 ```
 
@@ -262,15 +262,15 @@ FaustModule().then((module) => { startosc(module); });
 
 async function startosc(module) {
 
-		// Dynamically create the Faust generated node from explicit DSP source in 'dsp_code'
-		osc = await Faust.compileAudioNode(audio_context, module, dsp_code, null, 0);
+    // Dynamically create the Faust generated node from explicit DSP source in 'dsp_code'
+    osc = await Faust.compileAudioNode(audio_context, module, dsp_code, null, 0);
 
-		// Print DSP JSON																				
-		console.log(osc.getJSON());
-		// Print paths to be used with 'setParamValue'
-		console.log(osc.getParams());
-		// Connect it to output as a regular WebAudio node
-		osc.connect(audio_context.destination);
+    // Print DSP JSON																				
+    console.log(osc.getJSON());
+    // Print paths to be used with 'setParamValue'
+    console.log(osc.getParams());
+    // Connect it to output as a regular WebAudio node
+    osc.connect(audio_context.destination);
 }
 ```
 
@@ -305,7 +305,7 @@ async function startorgan(module) {
 
 The [Dynamic OSC](dynamic-osc-worklet-wasm.html) page demonstrates the dynamic OSC complete code (based on the example seen before). The [Dynamic Organ](dynamic-organ-worklet-wasm.html) page demonstrates a polyphonic organ instrument, which loads a DSP from an url, and ready to be controlled with a MIDI device or application. 
 
-Note that the **compileAudioNode** automatically adds the *-ftz 2* compilation option (read next section), and create the node in AudioWorklet mode if supported.
+Note that the **compileAudioNode** automatically adds the *-ftz 2* compilation option (see next section), and create the node in AudioWorklet mode if supported.
 
 ## Float denormal handling
 
