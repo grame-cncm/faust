@@ -1,6 +1,10 @@
 # Deploying Faust DSP on the Web
 
-Using developments done for the Web (WebAssembly backends and **libfaust** library compiled in WebAssembly with [Emscripten](https://emscripten.org)), statically and dynamically Faust generated WebAudio nodes can be easily produced and deployed on the Web.
+Using developments done for the Web (WebAssembly backends and **libfaust** library compiled in WebAssembly with [Emscripten](https://emscripten.org)), statically and dynamically Faust generated WebAudio nodes can be easily produced and deployed on the Web. 
+
+The **Faust Web Audio Library** has been completely rewriten in TypeScript and is distributed as an [npm package](https://www.npmjs.com/package/@grame/libfaust), to be used in TypeScript written applications.  An alternative is to use the JavaScript version of the TypeScript source available as the *FaustLibrary.js* JavaScript library. 
+
+This library can be used to load WebAudio nodes created from Faust DSP code (precompiled to WebAssembly), or in conjunction with *libfaust-wasm.js* libray (the WebAssembly version of the **libfaust** library ) containing the compiler, it can be used to dynamically compile and deploy Faust DSP based WebAudio nodes.
 
 ## Deploying statically compiled Faust WebAudio nodes
 
@@ -154,7 +158,9 @@ Assuming that the compiled Faust DSP file is polyphonic ready, the *-poly* param
 
 ## Deploying dynamically compiled Faust WebAudio nodes
 
-Since the **libfaust** library has been compiled for the Web, it becomes possible to **embed the complete dynamic compilation chain in a Web page**, from the Faust DSP source to the executable WebAudio node. First the following resources (located on the Faust GitHub in architecture/webaudio folder) have to be loaded in the page:
+Since the **libfaust** library has been compiled for the Web, it becomes possible to **embed the complete dynamic compilation chain in a Web page**, from the Faust DSP source to the executable WebAudio node. 
+
+First the following resources (located on the Faust GitHub in architecture/webaudio folder) have to be loaded in the page:
 
 ```
 <!-- Load 'libfaust' library and wrapper code -->
@@ -165,7 +171,7 @@ Since the **libfaust** library has been compiled for the Web, it becomes possibl
 
 #### Using the lower-level API
 
-The **FaustModule** global is a promise defined in *FaustLibrary.js* file, that returns a Faust Wasm module when the code is ready. So something like the following line has to be written, when `init` will typically create DSP factories :
+The **FaustModule** global is a promise defined in *FaustLibrary.js* file, that returns a Faust Wasm module when the code is ready. So something like the following lines has to be written, when `init` will typically create DSP factories :
 
 ```
 FaustModule().then((module) => { init(module); });

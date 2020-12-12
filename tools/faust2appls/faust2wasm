@@ -17,7 +17,7 @@ COMB_WRAPPED=
 COMB_WRAPPED_FILES=
 COMB_SEP=
 WASM=
-WORKLET="false"
+WORKLET="true"
 EFFECT=""
 WAP="0"
 NPM="false"
@@ -47,7 +47,7 @@ do
         option "-effect <effect.dsp>"
         option "-effect auto"
         option -opt "optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
-        option -worklet "generates AudioWorklet compatible code"
+        option -worklet "generates AudioWorklet compatible code (default = true)"
         option -wap "generates a WAP (Web Audio Plugin). This forces -worklet mode, and create additional files"
         option -wap2 "generates a WAP V2 (Web Audio Plugin). This forces -worklet mode, and create additional files"
         option -comb "combine several DSPs in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
@@ -244,7 +244,6 @@ EndOfCode
     		mv test$name.html index.html
         	BINARIES="$BINARIES main.js, main.json, $name.wasm, $name.json, index.html"
         else
-        	#BINARIES="$BINARIES$name.js, $name-processor.js, $name.wasm"
         	BINARIES="$BINARIES$name.js, $name.wasm, $name.json"
         fi
     else

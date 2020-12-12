@@ -14,7 +14,7 @@ POLY="false"
 OPT="false"
 EXPORT="false"
 EFFECT=""
-WORKLET="false"
+WORKLET="true"
 WASM=
 OPTIONS="-ftz 2"
 
@@ -35,7 +35,7 @@ do
         option "-effect <effect.dsp>"
         option "-effect auto"
         option -opt "optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
-        option -worklet "generates AudioWorklet compatible code"
+        option -worklet "generates AudioWorklet compatible code (default = true)"
         option -links "add links to source code and SVG diagrams in the generated HTML file"
         option -emcc "use the EMCC generated glue (mandatory when using 'soundfiles' in the DSP code) [experimental]"
         exit
@@ -198,16 +198,16 @@ EndOfCode
     if [ $WORKLET = "true" ]; then
         if [ $EMCC = "true" ]; then
         	cp $FAUSTLIB/webaudio/libfaust-glue.js $FAUSTLIB/webaudio/libfaust-glue.wasm $FAUSTLIB/webaudio/libfaust-worklet-glue.js .
-            BINARIES="$BINARIES$name.html;$name.wasm;libfaust-glue.js;libfaust-glue.wasm;libfaust-worklet-glue.js;"
+            BINARIES="$BINARIES$name.html; $name.wasm; libfaust-glue.js; libfaust-glue.wasm; libfaust-worklet-glue.js;"
         else
-            BINARIES="$BINARIES$name.html;$name.js;$name.wasm;"
+            BINARIES="$BINARIES$name.html; $name.json; $name.wasm;"
         fi
     else
         if [ $EMCC = "true" ]; then
             cp $FAUSTLIB/webaudio/libfaust-glue.js $FAUSTLIB/webaudio/libfaust-glue.wasm $FAUSTLIB/webaudio/libfaust-worklet-glue.js .
             BINARIES="$BINARIES$name.html;$name.wasm;libfaust-glue.js;libfaust-glue.wasm;libfaust-worklet-glue.js;"
         else
-            BINARIES="$BINARIES$name.html;$name.json;$name.wasm;"
+            BINARIES="$BINARIES$name.html; $name.json; $name.wasm;"
         fi
     fi
 
