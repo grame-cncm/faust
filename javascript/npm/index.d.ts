@@ -17,20 +17,12 @@ declare namespace Faust {
     function createLibFaust(module: FaustModule): LibFaust | null;
 
     /**
-     * Transforms a Faust processor JSON description into a high level structured object.
-     *
-     * @param {string} json - a jsong string
-     * @returns {TFaustJSON} a high level structured object describing a Faust processor
-     */
-    function createFaustJSON(json: string): TFaustJSON;
-
-    /**
      * Creates a high level Faust compiler.
      *
-     * @param {LibFaust} engine - an instance of the Faust Library
+     * @param {LibFaust} libfaust - an instance of the Faust Library
      * @returns {Compiler} an instance of the Faust compiler
      */
-    function createCompiler(engine: LibFaust): Compiler;
+    function createCompiler(libfaust: LibFaust): Compiler;
 
     /**
      * Creates an instance of a Generator, which provides memory instances of Web assembly module,
@@ -67,6 +59,14 @@ declare namespace Faust {
      */
     function createMonoAudioWAPFactory(context: BaseAudioContext, baseURL: string): MonoWAPFactory;
     function createPolyWAPFactory(context: BaseAudioContext, baseURL: string): PolyWAPFactory;
+
+    /**
+     * Transforms a Faust processor JSON description into a high level structured object.
+     *
+     * @param {string} json - a jsong string
+     * @returns {TFaustJSON} a high level structured object describing a Faust processor
+     */
+    function createFaustJSON(json: string): TFaustJSON;
 
 }
 

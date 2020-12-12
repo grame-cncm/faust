@@ -12,8 +12,8 @@ This will generate a **foo.wasm** file with the WebAssembly module as binary cod
 
 ```
 // Create the Faust generated node
-var pluginURL = ".";
-var plugin = new Faustosc(audio_context, pluginURL);
+var plugin_url = ".";
+var plugin = new Faustosc(audio_context, plugin_url);
 plugin.load().then(node => {....});
 ```
 
@@ -57,8 +57,7 @@ var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContex
 var noise_dsp = null;
 
 // Slider handler to change the 'noise' volume
-function changeVolume(event)
-{
+function changeVolume(event) {
     noise_dsp.setParamValue("/Noise/Volume", parseFloat(event.target.value));
 }
 ```
@@ -66,8 +65,7 @@ function changeVolume(event)
 A **startnoise** function which creates the Faust WebAudio node is defined with:
 
 ```
-function startnoise()
-{
+function startnoise() {
     // Create the Faust generated node
     var pluginURL = ".";
     var plugin = new Faustnoise(audio_context, pluginURL);
@@ -93,13 +91,13 @@ Note that pages loading an additional .wasm file cannot directly be loaded in Ch
 
 ### Generating Polyphonic WebAudio nodes
 
-Assuming that the compiled Faust DSP file is [polyphonic ready](https://faust.grame.fr/doc/manual/index.html#midi-polyphony-support), a polyphonic ready WebAudio node can be created by adding the *-poly* option (so `faust2wasm -worklet -poly organ.dsp`) , and will generate the following class for the node, to be used like: 
+Assuming that the compiled Faust DSP file is [polyphonic ready](https://faustdoc.grame.fr/manual/midi/#midi-polyphony-support), a polyphonic ready WebAudio node can be created by adding the *-poly* option (so `faust2wasm -worklet -poly organ.dsp`) , and will generate the following class for the node, to be used like: 
 
 
 ```
 // Create the Faust generated node with 16 voices
-var pluginURL = ".";
-var plugin = new FaustorganPoly(audio_context, 16, pluginURL);
+var plugin_url = ".";
+var plugin = new FaustorganPoly(audio_context, 16, plugin_url);
 plugin.load().then(node => {....});
 ```
 
@@ -113,7 +111,7 @@ Polyphonic nodes have an extended API to be controled with MIDI messages:
 * @param pitch - the MIDI pitch (0..127)
 * @param velocity - the MIDI velocity (0..127)
 */
-keyOn = function(channel, pitch, velocity) 
+keyOn = function(channel, pitch, velocity) {...}
 ```
 
 ```
@@ -124,14 +122,14 @@ keyOn = function(channel, pitch, velocity)
 * @param pitch - the MIDI pitch (0..127)
 * @param velocity - the MIDI velocity (0..127)
 */
-keyOff = function(channel, pitch, velocity)
+keyOff = function(channel, pitch, velocity) {...}
 ```
 
 ```
 /**
 * Gently terminates all the active voices.
 */
-allNotesOff = function()
+allNotesOff = function() {...}
 ````
 
 Look at the [Organ](organ-wasm.html) page for the complete code. Look at the JavaScript public documentation section for the complete description. 
@@ -165,96 +163,149 @@ Since the **libfaust** library has been compiled for the Web, it becomes possibl
 <script src="FaustLibrary.js"></script> 
 ```
 
-The **faust_module** global is defined in webaudio-wasm-wrapper.js file, `onRuntimeInitialized` will be called when the code is ready. So something like the following line has to be written:
+#### Using the lower-level API
+
+The **FaustModule** global is a promise defined in *FaustLibrary.js* file, that returns a Faust Wasm module when the code is ready. So something like the following line has to be written, when `init` will typically create DSP factories :
 
 ```
-faust_module['onRuntimeInitialized'] = init;
+FaustModule().then((module) => { init(module); });
+
+function init(module) {
+ 		// Init Faust compiler and node factory 
+ 		var faust_compiler = Faust.createCompiler(Faust.createLibFaust(module));
+  	var faust_factory = Faust.createAudioNodeFactory();
+  	....
+}
 ```
 
-The two following functions are then used to generate factories, creating later on *monophonic* or *polyphonic* instances (this is necessary because of the way internal WebAssembly memory is managed): 
-
-```
-/**
-* Create a DSP factory from source code as a string to be used to create monophonic DSP 
-*
-* @param code - the source code as a string
-* @param argv - an array of parameters to be given to the Faust compiler
-* @param callback - a callback taking the created DSP factory as parameter, or null in case of error
-*/
-faust.createDSPFactory = function (code, argv, callback) 
-```
-
-```
-/**
-* Create a DSP factory from source code as a string to be used to create polyphonic DSP 
-*
-* @param code - the source code as a string
-* @param argv - an array of parameters to be given to the Faust compiler
-* @param callback - a callback taking the created DSP factory as parameter, or null in case of error
-*/
-faust.createPolyDSPFactory = function (code, argv, callback) 
-```
-
-The two following functions are used to generate *monophonic* or *polyphonic* Faust WebAudio nodes:
+The two following functions are used to generate *monophonic* or *polyphonic* Faust WebAudio nodes (here are the TypeScript prototypes):
 
 ```
 /**
-* Create a AudioWorklet Web Audio object from a factory
+* Create a monophonic WebAudio node (either ScriptProcessorNode or AudioWorkletNode)
 *
-* @param factory - the DSP factory
-* @param context - the Web Audio context
-* @param callback - a callback taking the created AudioWorklet as parameter, or null in case of error
+* @param {BaseAudioContext} context the WebAudio context
+* @param {string} name - the DSP name
+* @param {Factory} factory - the Faust factory, either obtained with a compiler (createDSPFactory) or loaded from files (loadDSPFactory)
+* @param {boolean} sp - whether to compile a ScriptProcessorNode or an AudioWorkletNode
+* @param {number} buffer_size - the buffer size in frames to be used in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
+* @preturn {Promise<FaustMonoNode | null>} the compiled WebAudio node or 'null' if failure
 */
-faust.createDSPWorkletInstance = function (factory, context, callback) 
+createMonoNode(context: BaseAudioContext,
+               name: string,
+               factory: Factory,
+               sp: boolean,
+               buffer_size?: number)
+               : Promise<FaustMonoNode | null>;
 ```
 
 ```
 /**
-* Create a 'polyphonic' AudioWorklet Web Audio object from a factory
+* Compile a polyphonic WebAudio node from a single DSP file (either ScriptProcessorNode or AudioWorkletNode)
 *
-* @param factory - the DSP factory
-* @param context - the Web Audio context
-* @param polyphony - the number of polyphonic voices
-* @param callback - a callback taking the created AudioWorklet as parameter, or null in case of error
+* @param {BaseAudioContext} context the WebAudio context
+* @param {string} name - the DSP name
+* @param {Compiler} compiler - the Faust compiler
+* @param {string} dsp_code - the DSP code ('dsp_code' can possibly contain an integrated effect)
+* @param {string | null} effect_code - optional effect DSP code
+* @param {string} args - the compilation parameters
+* @param {number} voices - the number of voices
+* @param {boolean} sp - whether to compile a ScriptProcessorNode or an AudioWorkletNode
+* @param {number} buffer_size - the buffer size in frames to be used, in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
+* @preturn {Promise<FaustPolyNode | null>} the compiled WebAudio node or 'null' if failure
 */
-faust.createPolyDSPWorkletInstance = function (factory, context, polyphony, callback) 
+compilePolyNode(context: BaseAudioContext,
+                name: string,
+                compiler: Compiler,
+                dsp_code: string,
+                effect_code: string | null,
+                args: string,
+                voices: number,
+                sp: boolean,
+                buffer_size?: number)
+                : Promise<FaustPolyNode | null>;
 ```
 
-The resulting nodes have the same API as statically compiled nodes described in the first section, so can be controlled the same way, including the polyphonic ones. Here is a code example using **faust.createDSPFactory** and **faust.createDSPWorkletInstance**:
+The resulting nodes have the same API as statically compiled nodes described in the first section, so can be controlled the same way, including the polyphonic ones.  Look at the [Dynamic Faust compiler](faustlive-wasm.html) page for a more complete use-case of the dynamic compiler.
+
+#### Using the higher-level API
+
+A higher-level API can be used to simplify some of the previously described steps, using the multi-purpose **compileAudioNode** function  (here is the TypeScript prototype):
+
+
+```
+/**
+* Compiles a WebAudio node from its DSP code.
+*
+* @param {BaseAudioContext} context the WebAudio context
+* @param {FaustModule} module - the Faust module as given by an async FaustModule() call
+* @param {string} dsp_code - the Faust dsp code (may contain an integrated effect)
+* @param {string | null} effect_code - optional effect DSP code, that can be used in place of the integrated effect model
+* @param {number} voices - the number of voices. When voices = 0, a monophonic node is created, otherwise a polyphonic one
+* @preturn {Promise<FaustMonoNode | FaustPolyNode | null>} the compiled WebAudio node or 'null' in case of failure
+*/
+function compileAudioNode(audioCtx: BaseAudioContext, module: FaustModule, dsp_code: string, effect_code: string | null, voices: number): Promise<FaustMonoNode | FaustPolyNode | null>
+```
+
+A monophonic can directly be created written with:
 
 ```
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
 var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+
 var dsp_code = "import(\"stdfaust.lib\"); vol = hslider(\"volume [unit:dB]\", 0, -96, 0, 0.1) : ba.db2linear : si.smoo; freq = hslider(\"freq [unit:Hz]\", 1000, 20, 24000, 1); process = vgroup(\"Oscillator\", os.osc(freq) * vol);";
+
 var osc = null;
-var libraries_url = "/modules/libraries/";
 
-function startosc()
-{
-    // Prepare argv list
-    var argv = [];
-    argv.push("-ftz");
-    argv.push("2");
-    argv.push("-I");
-    argv.push(libraries_url);
+// Load handler which call 'startosc' when 'libfaust-wasm.js' is properly loaded
+FaustModule().then((module) => { startosc(module); });
 
-    // Dynamically create the Faust generated node from explicit DSP source in 'dsp_code'
-    faust.createDSPFactory(dsp_code,
-                            argv,
-                            function (factory) {
-                            faust.createDSPWorkletInstance(factory, audio_context
-                                                            function (node) {
-                                                                osc = node;
-                                                                console.log(osc.getJSON());
-                                                                // Print paths to be used with 'setParamValue'
-                                                                console.log(osc.getParams());
-                                                                // Connect it to output as a regular WebAudio node
-                                                                osc.connect(audio_context.destination);
-                                                            })});
+async function startosc(module) {
+
+		// Dynamically create the Faust generated node from explicit DSP source in 'dsp_code'
+		osc = await Faust.compileAudioNode(audio_context, module, dsp_code, null, 0);
+
+		// Print DSP JSON																				
+		console.log(osc.getJSON());
+		// Print paths to be used with 'setParamValue'
+		console.log(osc.getParams());
+		// Connect it to output as a regular WebAudio node
+		osc.connect(audio_context.destination);
 }
 ```
 
-The [Dynamic OSC](dynamic-osc-worklet-wasm.html) page demonstrates the dynamic OSC complete code (based on the example seen before). The [Dynamic Organ](dynamic-organ-worklet-wasm.html) page demonstrates a polyphonic organ instrument, which loads a DSP from an url, and ready to be controlled with a MIDI device or application. Look at the [Dynamic Faust compiler](faustlive-wasm.html) page for a more complete use-case of the dynamic compiler.
+A polyphonic node can directly be created written with:
+
+```
+var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
+var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+var dsp_code_url = "http://127.0.0.1:8000/organ.dsp";
+
+// Load handler which call 'startorgan' when 'libfaust-wasm.js' is properly loaded
+FaustModule().then((module) => { startorgan(module); });
+
+async function startorgan(module) {
+
+    var dsp_file = await fetch(dsp_code_url);
+    var dsp_code = await dsp_file.text();
+
+    // Dynamically create the Faust generated node from explicit DSP source in 'dsp_code'
+    organ = await Faust.compileAudioNode(audio_context, module, dsp_code, null, 16);
+
+    // Print DSP JSON	
+    console.log(organ.getJSON());
+    // Print paths to be used with 'setParamValue'
+    console.log(organ.getParams());
+    // Connect it to output as a regular WebAudio node
+    organ.connect(audio_context.destination);
+    // Activate MIDI
+    activateMIDIInput();
+}
+```
+
+The [Dynamic OSC](dynamic-osc-worklet-wasm.html) page demonstrates the dynamic OSC complete code (based on the example seen before). The [Dynamic Organ](dynamic-organ-worklet-wasm.html) page demonstrates a polyphonic organ instrument, which loads a DSP from an url, and ready to be controlled with a MIDI device or application. 
+
+Note that the **compileAudioNode** automatically adds the *-ftz 2* compilation option (read next section), and create the node in AudioWorklet mode if supported.
 
 ## Float denormal handling
 
@@ -272,7 +323,5 @@ The same for the **faust2webaudiowasm** tool:
 
     faust2webaudiowasm -worklet -ftz 2 foo.dsp 
 
-For dynamic compilation, the *-ftz v* flag will have to be added in the *argv* parameter in **faust.createDSPFactory** or **faust.createPolyDSPFactory**, like for instance:
-
-    faust.createPolyDSPFactory(dsp_code, ['-ftz', '2'], callback);
+For dynamic compilation, the *-ftz v* flag will have to be added in the *argv* parameter in **compileMonoNode** or **compilePolyNode** functions.
 

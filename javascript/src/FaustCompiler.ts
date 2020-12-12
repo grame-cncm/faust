@@ -19,16 +19,15 @@
  ************************************************************************
  ************************************************************************/
 
-
 ///<reference path="FaustCompiler.d.ts"/>
 
 namespace Faust {
 
     export function createFaustJSON(json: string): TFaustJSON { return JSON.parse(json); }
-    export function createCompiler(engine: LibFaust) { return new CompilerImp(engine); }
+    export function createCompiler(libfaust: LibFaust) { return new CompilerImp(libfaust); }
 
     class CompilerImp implements Compiler {
-        private fFaustEngine: LibFaust;
+        private fLibFaust: LibFaust;
         private fErrorMessage: string;
         private static gFactories: Map<string, Factory> = new Map<string, Factory>();
 
@@ -55,7 +54,7 @@ namespace Faust {
             } else {
                 try {
                     // Can possibly raise an C++ exception catched by the second catch()
-                    const faust_wasm = this.fFaustEngine.createDSPFactory(name, dsp_code, args, !poly);
+                    const faust_wasm = this.fLibFaust.createDSPFactory(name, dsp_code, args, !poly);
                     try {
                         const module = await WebAssembly.compile(this.intVec2intArray(faust_wasm.data));
                         const factory = { cfactory: faust_wasm.cfactory, module: module, json: faust_wasm.json, poly: poly }
@@ -69,21 +68,21 @@ namespace Faust {
                         return null;
                     }
                 } catch {
-                    this.fErrorMessage = this.fFaustEngine.getErrorAfterException();
+                    this.fErrorMessage = this.fLibFaust.getErrorAfterException();
                     console.error("=> exception raised while running createDSPFactory: " + this.fErrorMessage);
-                    this.fFaustEngine.cleanupAfterException();
+                    this.fLibFaust.cleanupAfterException();
                     return null;
                 }
             }
         }
 
         // Public API
-        constructor(engine: LibFaust) {
-            this.fFaustEngine = engine;
+        constructor(libfaust: LibFaust) {
+            this.fLibFaust = libfaust;
             this.fErrorMessage = "";
         }
 
-        version(): string { return this.fFaustEngine.version(); }
+        version(): string { return this.fLibFaust.version(); }
 
         getErrorMessage(): string { return this.fErrorMessage; }
 
@@ -96,34 +95,34 @@ namespace Faust {
         }
 
         deleteDSPFactory(factory: Factory): void {
-            this.fFaustEngine.deleteDSPFactory(factory.cfactory);
+            this.fLibFaust.deleteDSPFactory(factory.cfactory);
             factory.cfactory = 0;
         }
 
         expandDSP(dsp_code: string, args: string): string | null {
             try {
-                return this.fFaustEngine.expandDSP("FaustDSP", dsp_code, args);
+                return this.fLibFaust.expandDSP("FaustDSP", dsp_code, args);
             } catch {
-                this.fErrorMessage = this.fFaustEngine.getErrorAfterException();
+                this.fErrorMessage = this.fLibFaust.getErrorAfterException();
                 console.error("=> exception raised while running expandDSP: " + this.fErrorMessage);
-                this.fFaustEngine.cleanupAfterException();
+                this.fLibFaust.cleanupAfterException();
                 return null;
             }
         }
 
         generateAuxFiles(name: string, dsp_code: string, args: string): boolean {
             try {
-                return this.fFaustEngine.generateAuxFiles(name, dsp_code, args);
+                return this.fLibFaust.generateAuxFiles(name, dsp_code, args);
             } catch {
-                this.fErrorMessage = this.fFaustEngine.getErrorAfterException();
+                this.fErrorMessage = this.fLibFaust.getErrorAfterException();
                 console.error("=> exception raised while running generateAuxFiles: " + this.fErrorMessage);
-                this.fFaustEngine.cleanupAfterException();
+                this.fLibFaust.cleanupAfterException();
                 return false;
             }
         }
 
         deleteAllDSPFactories(): void {
-            this.fFaustEngine.deleteAllDSPFactories();
+            this.fLibFaust.deleteAllDSPFactories();
         }
     }
 }

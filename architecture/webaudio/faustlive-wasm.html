@@ -448,8 +448,8 @@
 
         'use strict';
 
-        let faust = null;
-        let fwan = null;
+        let faust_compiler = null;
+        let faust_factory = null;
 
         var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
         var isWasm = (typeof (WebAssembly) !== "undefined");
@@ -833,7 +833,7 @@
 
         function activateMonoDSP(dsp) {
             if (!dsp) {
-                alert(faust.getErrorMessage());
+                alert(faust_compiler.getErrorMessage());
                 return;
             }
 
@@ -859,7 +859,7 @@
 
         function activatePolyDSP(dsp) {
             if (!dsp) {
-                alert(faust.getErrorMessage());
+                alert(faust_compiler.getErrorMessage());
                 return;
             }
             checkPolyphonicDSP(dsp.getJSON());
@@ -898,12 +898,12 @@
             if (poly_flag === "ON") {
                 isPoly = true;
                 console.log("Poly DSP");
-                DSP = await fwan.compilePolyNode(audio_context, "FaustDSP", faust, dsp_code, null, argv, poly_nvoices, (rendering_mode === "ScriptProcessor"), buffer_size);
+                DSP = await faust_factory.compilePolyNode(audio_context, "FaustDSP", faust_compiler, dsp_code, null, argv, poly_nvoices, (rendering_mode === "ScriptProcessor"), buffer_size);
                 activatePolyDSP(DSP);
             } else {
                 isPoly = false;
                 console.log("Mono DSP");
-                DSP = await fwan.compileMonoNode(audio_context, "FaustDSP", faust, dsp_code, argv, (rendering_mode === "ScriptProcessor"), buffer_size);
+                DSP = await faust_factory.compileMonoNode(audio_context, "FaustDSP", faust_compiler, dsp_code, argv, (rendering_mode === "ScriptProcessor"), buffer_size);
                 activateMonoDSP(DSP);
             }
         }
@@ -924,10 +924,10 @@
             loadPageState();
         }
 
-        function init(instance) {
-            // Init Faust compiler and node generator
-            faust = Faust.createCompiler(Faust.createLibFaust(instance));
-            fwan = Faust.createAudioNodeFactory();
+        function init(module) {
+            // Init Faust compiler and node factory 
+            faust_compiler = Faust.createCompiler(Faust.createLibFaust(module));
+            faust_factory = Faust.createAudioNodeFactory();
 
             // Check AudioWorklet support
             if (!workletAvailable()) {
@@ -941,7 +941,7 @@
             filedrag1.addEventListener("dragover", fileDragHover, false);
             filedrag1.addEventListener("dragleave", fileDragHover, false);
             filedrag1.addEventListener("drop", uploadFile, false);
-            filedrag1.textContent = "Drop a Faust .dsp file or URL here (compiled using libfaust version " + faust.version() + ")";
+            filedrag1.textContent = "Drop a Faust .dsp file or URL here (compiled using libfaust version " + faust_compiler.version() + ")";
         }
 
         // Init page
@@ -951,8 +951,8 @@
         setInterval(function () { savePageState(); if (DSP) { saveDSPState(); } }, 1000);
 
         // Init Faust part
-        FaustModule().then((instance) => { init(instance); });
-
+        FaustModule().then((module) => { init(module); });
+    
         // To activate audio on iOS
         window.addEventListener('touchstart', function () {
 
