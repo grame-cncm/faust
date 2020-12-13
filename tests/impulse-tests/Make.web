@@ -41,7 +41,7 @@ help:
 	@echo
 	@echo "Options:"
 	@echo " 'outdir' 	   : define the output directory (default to 'wasm')"
-	@echo " 'FAUSTOPTIONS' : define additional faust options (empty by default)"
+	@echo " 'FAUSTOPTIONS' : define additional Faust options (empty by default)"
 
 #########################################################################
 # web backends
