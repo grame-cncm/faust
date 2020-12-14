@@ -32,9 +32,9 @@ namespace Faust {
         if (libfaust) {
             let compiler = createCompiler(libfaust);
             if (voices === 0) {
-                return createAudioNodeFactory().compileMonoNode(audioCtx, "FaustDSP", compiler, dsp_code, "-ftz 2", sp, 0);
+                return createMonoFactory().compileNode(audioCtx, "FaustDSP", compiler, dsp_code, "-ftz 2", sp, 0);
             } else {
-                return createAudioNodeFactory().compilePolyNode(audioCtx, "FaustDSP", compiler, dsp_code, effect_code, "-ftz 2", voices, sp, 0);
+                return createPolyFactory().compileNode(audioCtx, "FaustDSP", compiler, dsp_code, effect_code, "-ftz 2", voices, sp, 0);
             }
         }
         return new Promise<null>(() => { return null; });

@@ -32,20 +32,28 @@
 
 namespace Faust {
 
-    export function createAudioNodeFactory() { return new AudioNodeFactoryImp(); }
+    export function createMonoFactory() { return new MonoFactoryImp(); }
 
-    class AudioNodeFactoryImp implements AudioNodeFactory {
+    export function createPolyFactory() { return new PolyFactoryImp(); }
+
+    class MonoFactoryImp implements MonoFactory {
+
+        fFactory: Factory | null;
 
         // Set of all created WorkletProcessors, each of them has to be unique
         private static gWorkletProcessors: Set<string> = new Set();
 
-        async compileMonoNode(context: BaseAudioContext, name: string, compiler: Compiler, dsp_code: string, args: string, sp: boolean, buffer_size?: number)
-            : Promise<FaustMonoNode | null> {
-            const factory = await compiler.createMonoDSPFactory(name, dsp_code, args);
-            return (factory) ? this.createMonoNode(context, name, factory, sp, buffer_size) : null;
+        constructor() {
+            this.fFactory = null;
         }
 
-        async createMonoNode(context: BaseAudioContext, name_aux: string, factory: Factory, sp: boolean, buffer_size?: number)
+        async compileNode(context: BaseAudioContext, name: string, compiler: Compiler, dsp_code: string, args: string, sp: boolean, buffer_size?: number)
+            : Promise<FaustMonoNode | null> {
+            this.fFactory = await compiler.createMonoDSPFactory(name, dsp_code, args);
+            return (this.fFactory) ? this.createNode(context, name, this.fFactory, sp, buffer_size) : null;
+        }
+
+        async createNode(context: BaseAudioContext, name_aux: string, factory: Factory, sp: boolean, buffer_size?: number)
             : Promise<FaustMonoNode | null> {
             if (sp) {
                 buffer_size = (buffer_size) ? buffer_size : 1024; // Set a default value if needed
@@ -55,7 +63,7 @@ namespace Faust {
             } else {
                 const name = name_aux + factory.cfactory.toString();
                 // Dynamically create AudioWorkletProcessor if code not yet created
-                if (!AudioNodeFactoryImp.gWorkletProcessors.has(name)) {
+                if (!MonoFactoryImp.gWorkletProcessors.has(name)) {
                     try {
                         const processor_code = `
                             // Create a Faust namespace
@@ -80,7 +88,7 @@ namespace Faust {
                         const url = window.URL.createObjectURL(new Blob([processor_code], { type: "text/javascript" }));
                         await context.audioWorklet.addModule(url);
                         // Keep the DSP name
-                        AudioNodeFactoryImp.gWorkletProcessors.add(name);
+                        MonoFactoryImp.gWorkletProcessors.add(name);
                     } catch (e) {
                         console.error("=> exception raised while running createMonoNode: " + e);
                         return null;
@@ -91,15 +99,33 @@ namespace Faust {
             }
         }
 
-        async createOfflineMonoProcessor(factory: Factory, sample_rate: number, buffer_size: number)
+        async createOfflineProcessor(factory: Factory, sample_rate: number, buffer_size: number)
             : Promise<FaustOfflineProcessor | null> {
             const instance = await createGenerator().createAsyncMonoDSPInstance(factory);
             const mono_dsp = createMonoDSP(instance, sample_rate, buffer_size);
             return new FaustOfflineProcessorImp(mono_dsp, buffer_size);
         }
 
+        getFactory(): Factory | null {
+            return this.fFactory;
+        }
+    }
+
+    class PolyFactoryImp implements PolyFactory {
+
+        fVoiceFactory: Factory | null;
+        fEffectFactory: Factory | null;
+
+        // Set of all created WorkletProcessors, each of them has to be unique
+        private static gWorkletProcessors: Set<string> = new Set();
+
+        constructor() {
+            this.fVoiceFactory = null;
+            this.fEffectFactory = null;
+        }
+
         // 'dsp_code' can possibly contain an integrated effect
-        async compilePolyNode(
+        async compileNode(
             context: BaseAudioContext,
             name: string,
             compiler: Compiler,
@@ -123,10 +149,10 @@ namespace Faust {
             const effect_factory = await compiler.createPolyDSPFactory(name, effect_dsp, args);
             // Compile mixer
             const mixer_module = await createGenerator().loadDSPMixer('/usr/rsrc/mixer32.wasm');
-            return (mixer_module) ? this.createPolyNode(context, name, voice_factory, mixer_module, voices, sp, ((effect_factory) ? effect_factory : undefined), buffer_size) : null;
+            return (mixer_module) ? this.createNode(context, name, voice_factory, mixer_module, voices, sp, ((effect_factory) ? effect_factory : undefined), buffer_size) : null;
         }
 
-        async createPolyNode(
+        async createNode(
             context: BaseAudioContext,
             name_aux: string,
             voice_factory: Factory,
@@ -144,7 +170,7 @@ namespace Faust {
             } else {
                 const name = name_aux + voice_factory.cfactory.toString() + "_poly";
                 // Dynamically create AudioWorkletProcessor if code not yet created
-                if (!AudioNodeFactoryImp.gWorkletProcessors.has(name)) {
+                if (!PolyFactoryImp.gWorkletProcessors.has(name)) {
                     try {
                         const processor_code = `
                             // Create a Faust namespace
@@ -170,7 +196,7 @@ namespace Faust {
                         const url = window.URL.createObjectURL(new Blob([processor_code], { type: "text/javascript" }));
                         await context.audioWorklet.addModule(url);
                         // Keep the DSP name
-                        AudioNodeFactoryImp.gWorkletProcessors.add(name);
+                        PolyFactoryImp.gWorkletProcessors.add(name);
                     } catch (e) {
                         console.error("=> exception raised while running createPolyNode: " + e);
                         return null;
@@ -179,6 +205,14 @@ namespace Faust {
                 // Create the AWN
                 return new FaustPolyAudioWorkletNodeImp(context, name, voice_factory, mixer_module, voices, effect_factory);
             }
+        }
+
+        getVoiceFactory(): Factory | null {
+            return this.fVoiceFactory;
+        }
+
+        getEffectFactory(): Factory | null {
+            return this.fEffectFactory;
         }
     }
 }

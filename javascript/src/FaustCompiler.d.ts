@@ -64,8 +64,17 @@ declare namespace Faust {
     }
     type TFaustUIType = TFaustUIGroupType | TFaustUIOutputType | TFaustUIInputType;
 
+    /**
+     * The Factory structure.
+     * cfactory: a "pointer" (as an integer) on the internal C++ factory 
+     * code: the WASM code as a binary array
+     * module: the compule WASM module
+     * json: the compiled DSP JSON description
+     * poly: whether the factory is a polyphonic one or not
+     */
     interface Factory {
         cfactory: number;
+        code: Uint8Array;
         module: WebAssembly.Module;
         json: string;
         poly: boolean;
@@ -75,7 +84,7 @@ declare namespace Faust {
      * The Compiler constructor.
      * 
      * @param {LibFaust} engine - an instance of the low level engine, actually a libFaustWasm instance of FaustModule
-     * @return the created Compiler object 
+     * @return the created compiler object 
      */
 
     interface Compiler {

@@ -25,8 +25,8 @@ audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 FaustModule().then(module => { 
     let compiler = Faust.createCompiler(Faust.createLibFaust(module));
     log("Faust compiler version " + compiler.version());
-    let factory = Faust.createAudioNodeFactory();
-    factory.compileMonoNode(audioCtx, "Faust", compiler, getcode(), "-ftz 2", false, 128).then(node => {
+    let factory = Faust.createMonoFactory();
+    factory.compileNode(audioCtx, "Faust", compiler, getcode(), "-ftz 2", false, 128).then(node => {
         node.connect(audioCtx.destination);
     });
 });</pre>
@@ -42,8 +42,8 @@ FaustModule().then(module => {
     FaustModule().then(module => {
         let compiler = Faust.createCompiler(Faust.createLibFaust(module));
         log("Faust compiler version " + compiler.version());
-        let factory = Faust.createAudioNodeFactory();
-        factory.compileMonoNode(audioCtx, "Faust", compiler, getcode(), "-ftz 2", false, 128).then(node => {
+        let factory = Faust.createMonoFactory();
+        factory.compileNode(audioCtx, "Faust", compiler, getcode(), "-ftz 2", false, 128).then(node => {
             node.connect(audioCtx.destination);
         });
     })

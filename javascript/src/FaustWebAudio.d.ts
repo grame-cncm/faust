@@ -250,10 +250,10 @@ declare namespace Faust {
         plot(size: number): Float32Array[];
     }
 
-    interface AudioNodeFactory {
+    interface MonoFactory {
 
         /**
-         * Compile a monophonic WebAudio node (either ScriptProcessorNode or AudioWorkletNode)
+         * Compile a monophonic WebAudio node (either ScriptProcessorNode or AudioWorkletNode).
          *
          * @param {BaseAudioContext} context the WebAudio context
          * @param {string} name - the DSP name
@@ -264,7 +264,7 @@ declare namespace Faust {
          * @param {number} buffer_size - the buffer size in frames to be used, in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
          * @preturn {Promise<FaustMonoNode | null>} the compiled WebAudio node or 'null' if failure
          */
-        compileMonoNode(
+        compileNode(
             context: BaseAudioContext,
             name: string,
             compiler: Compiler,
@@ -275,7 +275,7 @@ declare namespace Faust {
             : Promise<FaustMonoNode | null>;
 
         /**
-         * Create a monophonic WebAudio node (either ScriptProcessorNode or AudioWorkletNode)
+         * Create a monophonic WebAudio node (either ScriptProcessorNode or AudioWorkletNode).
          *
          * @param {BaseAudioContext} context the WebAudio context
          * @param {string} name - the DSP name
@@ -284,7 +284,7 @@ declare namespace Faust {
          * @param {number} buffer_size - the buffer size in frames to be used in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
          * @preturn {Promise<FaustMonoNode | null>} the compiled WebAudio node or 'null' if failure
         */
-        createMonoNode(
+        createNode(
             context: BaseAudioContext,
             name: string,
             factory: Factory,
@@ -293,7 +293,29 @@ declare namespace Faust {
             : Promise<FaustMonoNode | null>;
 
         /**
-         * Compile a polyphonic WebAudio node from a single DSP file (either ScriptProcessorNode or AudioWorkletNode)
+         * Return the internal factory.
+         *
+         * @preturn {Factory | null} the internal factory which can be null if compilation failed
+         */
+        getFactory(): Factory | null;
+
+        /**
+        * Create a monophonic Offline processor.
+        *
+        * @param {Factory} factory - the Faust factory, either obtained with a compiler (createDSPFactory) or loaded from files (loadDSPFactory)
+        * @param {number} sample_rate - the sample rate in Hz
+        * @param {number} buffer_size - the buffer size in frames
+        * @preturn {Promise<FaustOfflineProcessor | null>} the compiled processor or 'null' if failure
+       */
+        createOfflineProcessor(factory: Factory, sample_rate: number, buffer_size: number)
+            : Promise<FaustOfflineProcessor | null>;
+    }
+
+    interface PolyFactory {
+
+        /**
+         * Compile a polyphonic WebAudio node from a single DSP file (either ScriptProcessorNode or AudioWorkletNode). 
+         * Note that the an internal cache avoid recompilation when a same DSP program is recompiled several times.
          *
          * @param {BaseAudioContext} context the WebAudio context
          * @param {string} name - the DSP name
@@ -306,7 +328,7 @@ declare namespace Faust {
          * @param {number} buffer_size - the buffer size in frames to be used, in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
          * @preturn {Promise<FaustPolyNode | null>} the compiled WebAudio node or 'null' if failure
          */
-        compilePolyNode(
+        compileNode(
             context: BaseAudioContext,
             name: string,
             compiler: Compiler,
@@ -319,7 +341,8 @@ declare namespace Faust {
             : Promise<FaustPolyNode | null>;
 
         /**
-         * Create a polyphonic WebAudio node (either ScriptProcessorNode or AudioWorkletNode)
+         * Create a polyphonic WebAudio node (either ScriptProcessorNode or AudioWorkletNode).
+         * Note that the an internal cacheavoid recompilation when a same DSP program is recompiled several times.
          *
          * @param {BaseAudioContext} context the WebAudio context
          * @param {string} name - the DSP name
@@ -331,7 +354,7 @@ declare namespace Faust {
          * @param {Factory} effect_factory - the Faust factory for the effect, either obtained with a compiler (createDSPFactory) or loaded from files (loadDSPFactory)
          * @preturn {Promise<FaustPolyNode | null>} the compiled WebAudio node or 'null' if failure
          */
-        createPolyNode(
+        createNode(
             context: BaseAudioContext,
             name: string,
             voice_factory: Factory,
@@ -343,15 +366,19 @@ declare namespace Faust {
             : Promise<FaustPolyNode | null>;
 
         /**
-        * Create a monophonic Offline processor.
+         * Return the internal voice factory.
+         *
+         * @preturn {Factory | null} the internal factory which can be null if compilation failed
+         */
+        getVoiceFactory(): Factory | null;
+
+        /**
+        * Return the internal effect factory.
         *
-        * @param {Factory} factory - the Faust factory, either obtained with a compiler (createDSPFactory) or loaded from files (loadDSPFactory)
-        * @param {number} sample_rate - the sample rate in Hz
-        * @param {number} buffer_size - the buffer size in frames
-        * @preturn {Promise<FaustOfflineProcessor | null>} the compiled processor or 'null' if failure
-       */
-        createOfflineMonoProcessor(factory: Factory, sample_rate: number, buffer_size: number)
-            : Promise<FaustOfflineProcessor | null>;
+        * @preturn {Factory | null} the internal factory which can be null if compilation failed or if effect is not present
+        */
+        getEffectFactory(): Factory | null;
+
     }
 }
 

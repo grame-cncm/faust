@@ -25,7 +25,7 @@ process = os.osc(440)*0.9;</pre>
     <pre class="code colored">
 async function plot( code, size, compiler, anfactory) {
     let factory = await compiler.createMonoDSPFactory("Faust", code, "-I libraries");
-    let offlinep = await anfactory.createOfflineMonoProcessor(factory, 44100, 1024);
+    let offlinep = await anfactory.createOfflineProcessor(factory, 44100, 1024);
     draw(offlinep.plot (600)[0]);
 }
 
@@ -62,14 +62,14 @@ FaustModule().then ( module => {
 
     async function plot(code, size, compiler, anfactory) {
         let factory = await compiler.createMonoDSPFactory("Faust", code, "-I libraries");
-        let offlinep = await anfactory.createOfflineMonoProcessor(factory, 44100, 1024);
+        let offlinep = await anfactory.createOfflineProcessor(factory, 44100, 1024);
         draw(offlinep.plot(600)[0]);
     }
 
     FaustModule().then(module => {
         let compiler = Faust.createCompiler(Faust.createLibFaust(module));
         log("Faust compiler version " + compiler.version());
-        plot(getcode(), 600, compiler, Faust.createAudioNodeFactory());
+        plot(getcode(), 600, compiler, Faust.createMonoFactory());
     });
 </script>
 

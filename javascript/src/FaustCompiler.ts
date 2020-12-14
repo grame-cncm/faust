@@ -56,8 +56,9 @@ namespace Faust {
                     // Can possibly raise a C++ exception catched by the second catch()
                     const faust_wasm = this.fLibFaust.createDSPFactory(name, dsp_code, args, !poly);
                     try {
-                        const module = await WebAssembly.compile(this.intVec2intArray(faust_wasm.data));
-                        const factory = { cfactory: faust_wasm.cfactory, module: module, json: faust_wasm.json, poly: poly }
+                        const code = this.intVec2intArray(faust_wasm.data);
+                        const module = await WebAssembly.compile(code);
+                        const factory = { cfactory: faust_wasm.cfactory, code: code, module: module, json: faust_wasm.json, poly: poly }
                         // Factory C++ side can be deallocated immediately
                         this.deleteDSPFactory(factory);
                         // Keep the compiled factory in the cache

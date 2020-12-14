@@ -146,7 +146,7 @@ namespace Faust {
                 const JSONDsp = createFaustJSON(json);
                 const c_options = JSONDsp.compile_options;
                 const poly = c_options.indexOf('wasm-e') !== -1;
-                return { cfactory: 0, module: module, json: json, poly: poly };
+                return { cfactory: 0, code: wasm_buffer as Uint8Array, module: module, json: json, poly: poly };
             } catch (e) {
                 console.error("=> exception raised while running loadDSPFactory: " + e);
                 return null;

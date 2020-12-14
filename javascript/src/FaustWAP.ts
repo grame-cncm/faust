@@ -85,7 +85,7 @@ namespace Faust {
             sp: boolean,
             buffer_size?: number)
             : Promise<FaustMonoWAPNode | null> {
-            const node = await createAudioNodeFactory().compileMonoNode(context, name, compiler, dsp_code, args, sp, buffer_size);
+            const node = await createMonoFactory().compileNode(context, name, compiler, dsp_code, args, sp, buffer_size);
             // Dynamically add WAP API to the node
             return this.makeMonoWAP(node);
         }
@@ -97,7 +97,7 @@ namespace Faust {
             sp: boolean,
             buffer_size?: number)
             : Promise<FaustMonoWAPNode | null> {
-            const node = await createAudioNodeFactory().createMonoNode(context, name, factory, sp, buffer_size);
+            const node = await createMonoFactory().createNode(context, name, factory, sp, buffer_size);
             // Dynamically add WAP API to the node
             return this.makeMonoWAP(node);
         }
@@ -183,7 +183,7 @@ namespace Faust {
             effect_factory?: Factory,
             buffer_size?: number)
             : Promise<FaustPolyWAPNode | null> {
-            const node = await createAudioNodeFactory().createPolyNode(context, "FaustDSP", voice_factory, mixer_module, voices, sp, effect_factory, buffer_size);
+            const node = await createPolyFactory().createNode(context, "FaustDSP", voice_factory, mixer_module, voices, sp, effect_factory, buffer_size);
             // Dynamically add WAP API to the node
             return this.makePolyWAP(node);
         }

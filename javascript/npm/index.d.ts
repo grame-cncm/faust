@@ -25,9 +25,14 @@ declare namespace Faust {
     function createCompiler(libfaust: LibFaust): Compiler;
 
     /**
-     * Creates a factory ready to generate Monophonic/Polyphonic ScriptProcessorNode and AudioWorkletNode nodes.
+     * Creates a factory ready to generate Monophonic ScriptProcessorNode and AudioWorkletNode nodes.
      */
-    function createAudioNodeFactory(): AudioNodeFactory;
+    function createMonoFactory(): MonoFactory;
+
+    /**
+    * Creates a factory ready to generate Polyphonic ScriptProcessorNode and AudioWorkletNode nodes.
+    */
+    function createPolyFactory(): PolyFactory;
 
     /**
      * Creates an instance of a Generator, which provides memory instances of Web assembly module,
@@ -37,7 +42,7 @@ declare namespace Faust {
     function createGenerator(): Generator;
 
     /**
-     * Compiles a WebAudio node from its DSP code.
+     * Higher level function to compile a WebAudio node from its DSP code.
      *
      * @param {BaseAudioContext} context the WebAudio context
      * @param {FaustModule} module - the Faust module as given by an async FaustModule() call
