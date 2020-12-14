@@ -53,7 +53,7 @@ namespace Faust {
                 return CompilerImp.gFactories.get(sha_key) as Factory;
             } else {
                 try {
-                    // Can possibly raise an C++ exception catched by the second catch()
+                    // Can possibly raise a C++ exception catched by the second catch()
                     const faust_wasm = this.fLibFaust.createDSPFactory(name, dsp_code, args, !poly);
                     try {
                         const module = await WebAssembly.compile(this.intVec2intArray(faust_wasm.data));

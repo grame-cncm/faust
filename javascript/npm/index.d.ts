@@ -25,6 +25,11 @@ declare namespace Faust {
     function createCompiler(libfaust: LibFaust): Compiler;
 
     /**
+     * Creates a factory ready to generate Monophonic/Polyphonic ScriptProcessorNode and AudioWorkletNode nodes.
+     */
+    function createAudioNodeFactory(): AudioNodeFactory;
+
+    /**
      * Creates an instance of a Generator, which provides memory instances of Web assembly module,
      * as well as objects to access and manipulate theses instances.
      * @returns {Generator} a Generator

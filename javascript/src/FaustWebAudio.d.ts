@@ -250,11 +250,6 @@ declare namespace Faust {
         plot(size: number): Float32Array[];
     }
 
-    /**
-     * Monophonic/Polyphonic ScriptProcessorNode and AudioWorkletNode nodes creation.
-     */
-    interface createAudioNodeFactory { (): AudioNodeFactory }
-
     interface AudioNodeFactory {
 
         /**
