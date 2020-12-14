@@ -191,7 +191,7 @@ EndOfCode
     else
 
         # Done in SP and AWN cases
-        sed -e "s/DSP/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 >> $name.js
+        sed -e "s/DSP/"$name"/g" $FAUSTARCH/webaudio/$CODE_WRAPPER1 > $name.js
 
         if [ $WORKLET = "true" ]; then        
             if [ $WAP = "2" ]; then

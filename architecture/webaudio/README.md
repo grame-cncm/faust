@@ -1,3 +1,5 @@
+
+
 # Deploying Faust DSP on the Web
 
 Using developments done for the Web (WebAssembly backends and **libfaust** library compiled in WebAssembly with [Emscripten](https://emscripten.org)), statically and dynamically Faust generated WebAudio nodes can be easily produced and deployed on the Web. 
@@ -171,7 +173,7 @@ First the following resources (located on the Faust GitHub in architecture/webau
 
 #### Using the lower-level API
 
-The **FaustModule** global is a promise defined in *FaustLibrary.js* file, that returns a Faust Wasm module when the code is ready. So something like the following lines has to be written, when `init` will typically create DSP factories :
+The **FaustModule** global is a promise defined in *FaustLibrary.js* file, that returns a Faust Wasm module when the code is ready. So something like the following lines has to be written, when `init` will typically create DSP factories, either monophonic or polyphonic ones:
 
 ```
 FaustModule().then((module) => { init(module); });
@@ -179,12 +181,13 @@ FaustModule().then((module) => { init(module); });
 function init(module) {
     // Init Faust compiler and node factory 
     var faust_compiler = Faust.createCompiler(Faust.createLibFaust(module));
-    var faust_factory = Faust.createAudioNodeFactory();
+    var faust_mono_factory = Faust.createMonoFactory();
+    var faust_poly_factory = Faust.createPolyFactory();
     ....
 }
 ```
 
-The two following functions are used to generate *monophonic* or *polyphonic* Faust WebAudio nodes (here are the TypeScript prototypes):
+The  following function is used to generate a *monophonic* node from a monophonic factory, here is the TypeScript prototype:
 
 ```
 /**
@@ -197,13 +200,16 @@ The two following functions are used to generate *monophonic* or *polyphonic* Fa
 * @param {number} buffer_size - the buffer size in frames to be used in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
 * @preturn {Promise<FaustMonoNode | null>} the compiled WebAudio node or 'null' if failure
 */
-createMonoNode(context: BaseAudioContext,
+createNode(context: BaseAudioContext,
                name: string,
                factory: Factory,
                sp: boolean,
                buffer_size?: number)
                : Promise<FaustMonoNode | null>;
 ```
+
+The  following function is used to generate a *polyphonic* node from a polyphonic factory, here is the TypeScript prototype:
+
 
 ```
 /**
@@ -220,7 +226,7 @@ createMonoNode(context: BaseAudioContext,
 * @param {number} buffer_size - the buffer size in frames to be used, in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
 * @preturn {Promise<FaustPolyNode | null>} the compiled WebAudio node or 'null' if failure
 */
-compilePolyNode(context: BaseAudioContext,
+compileNode(context: BaseAudioContext,
                 name: string,
                 compiler: Compiler,
                 dsp_code: string,

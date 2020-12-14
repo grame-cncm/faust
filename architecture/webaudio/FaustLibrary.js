@@ -67,8 +67,9 @@ var Faust;
                     try {
                         const faust_wasm = this.fLibFaust.createDSPFactory(name, dsp_code, args, !poly);
                         try {
-                            const module = yield WebAssembly.compile(this.intVec2intArray(faust_wasm.data));
-                            const factory = { cfactory: faust_wasm.cfactory, module: module, json: faust_wasm.json, poly: poly };
+                            const code = this.intVec2intArray(faust_wasm.data);
+                            const module = yield WebAssembly.compile(code);
+                            const factory = { cfactory: faust_wasm.cfactory, code: code, module: module, json: faust_wasm.json, poly: poly };
                             this.deleteDSPFactory(factory);
                             CompilerImp.gFactories.set(sha_key, factory);
                             return factory;
@@ -235,7 +236,7 @@ var Faust;
                     const JSONDsp = Faust.createFaustJSON(json);
                     const c_options = JSONDsp.compile_options;
                     const poly = c_options.indexOf('wasm-e') !== -1;
-                    return { cfactory: 0, module: module, json: json, poly: poly };
+                    return { cfactory: 0, code: wasm_buffer, module: module, json: json, poly: poly };
                 }
                 catch (e) {
                     console.error("=> exception raised while running loadDSPFactory: " + e);
