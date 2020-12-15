@@ -34,7 +34,7 @@ type F32 = f32;
 type F64 = f64;
 
 #[derive(Copy, Clone)]
-pub struct ParamIndex(i32);
+pub struct ParamIndex(pub i32);
 
 pub trait FaustDsp {
     type T;
