@@ -825,7 +825,7 @@ static void printHelp()
     cout << tab << "-lang <lang> --language                 select output language," << endl;
     cout << tab
          << "                                        'lang' should be c, ocpp, cpp (default), rust, java, "
-            "llvm, fir, wast/wasm, soul or interp."
+            "llvm, fir, wast/wasm, soul, interp or dlang."
          << endl;
     cout << tab
          << "-single     --single-precision-floats   use single precision floats for internal computations (default)."
