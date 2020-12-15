@@ -226,7 +226,7 @@ class rt_midi : public midi_handler {
             message.push_back(pitch);
             message.push_back(velocity);
             sendMessage(message);
-            return 0;
+            return nullptr;
         }
         
         void keyOff(int channel, int pitch, int velocity) 

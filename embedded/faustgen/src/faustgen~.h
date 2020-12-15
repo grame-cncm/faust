@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2012-2019 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2012-2020 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -61,7 +61,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"stdfaust.lib\");\nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.47"
+#define FAUSTGEN_VERSION "1.48"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 #define FAUST_PDF_LIBRARY "library.pdf"
 
@@ -83,6 +83,114 @@
 
 const char* TEXT_APPL_LIST[] = {"Atom", "Smultron", "TextWrangler", "TextExit", "" };
 
+//===============
+// MIDI handler
+//===============
+
+struct faustgen_midi : public midi_handler {
+    
+    void* m_midi_outlet = NULL;
+    
+    void sendMessage(std::vector<unsigned char>& message)
+    {
+        assert(m_midi_outlet);
+        for (int i = 0; i < message.size(); i++) {
+            outlet_int(m_midi_outlet, message[i]);
+        }
+    }
+    
+    // MIDI output API
+    MapUI* keyOn(int channel, int pitch, int velocity)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_NOTE_ON + channel);
+        message.push_back(pitch);
+        message.push_back(velocity);
+        sendMessage(message);
+        return NULL;
+    }
+    
+    void keyOff(int channel, int pitch, int velocity)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_NOTE_OFF + channel);
+        message.push_back(pitch);
+        message.push_back(velocity);
+        sendMessage(message);
+    }
+    
+    void ctrlChange(int channel, int ctrl, int val)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_CONTROL_CHANGE + channel);
+        message.push_back(ctrl);
+        message.push_back(val);
+        sendMessage(message);
+    }
+    
+    void chanPress(int channel, int press)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_AFTERTOUCH + channel);
+        message.push_back(press);
+        sendMessage(message);
+    }
+    
+    void progChange(int channel, int pgm)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_PROGRAM_CHANGE + channel);
+        message.push_back(pgm);
+        sendMessage(message);
+    }
+    
+    void keyPress(int channel, int pitch, int press)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_POLY_AFTERTOUCH + channel);
+        message.push_back(pitch);
+        message.push_back(press);
+        sendMessage(message);
+    }
+    
+    void pitchWheel(int channel, int wheel)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_PITCH_BEND + channel);
+        message.push_back(wheel & 0x7F);           // lsb 7bit
+        message.push_back((wheel >> 7) & 0x7F);    // msb 7bit
+        sendMessage(message);
+    }
+    
+    void ctrlChange14bits(int channel, int ctrl, int value) {}
+    
+    void startSync(double date)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_START);
+        sendMessage(message);
+    }
+    
+    void stopSync(double date)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_STOP);
+        sendMessage(message);
+    }
+    
+    void clock(double date)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_CLOCK);
+        sendMessage(message);
+    }
+    
+    void sysEx(double, std::vector<unsigned char>& message)
+    {
+        sendMessage(message);
+    }
+};
+
 //===================
 // Faust DSP Factory
 //===================
@@ -100,7 +208,6 @@ class faustgen_factory {
         
         set<faustgen*> fInstances;      // set of all DSP
         llvm_dsp_factory* fDSPfactory;  // pointer to the LLVM Faust factory
-        midi_handler fMidiHandler;      // generic MIDI handler
         SoundUI* fSoundUI;              // generic Soundfile interface
         
         long fSourceCodeSize;           // length of source code string
@@ -223,7 +330,8 @@ class faustgen : public MspCpp5<faustgen> {
         
         faustgen_factory* fDSPfactory;
         map<string, vector<t_object*> > fOutputTable;  // Output UI items (like bargraph) in the patcher to be notified
-        
+    
+        faustgen_midi  fMidiHandler;    // generic MIDI handler
         mspUI* fDSPUI;                  // Control UI
         MidiUI* fMidiUI;                // Midi UI
         OSCUI* fOSCUI;                  // OSC UI

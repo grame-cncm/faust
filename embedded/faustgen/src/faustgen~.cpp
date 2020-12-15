@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2012-2019 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2012-2020 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -173,8 +173,6 @@ faustgen_factory::faustgen_factory(const string& name)
     fPolyphonic = false;
     fSoundUI = NULL;
     
-    fMidiHandler.startMidi();
-    
 #ifdef __APPLE__
     // OSX only : access to the fautgen~ bundle
     CFBundleRef faustgen_bundle = CFBundleGetBundleWithIdentifier(CFSTR("com.grame.faustgen-"));  // - character added since SDK 7.3.3
@@ -224,8 +222,6 @@ faustgen_factory::~faustgen_factory()
     free_dsp_factory();
     free_sourcecode();
     free_bitcode();
-    
-    fMidiHandler.stopMidi();
     
     remove_svg();
 
@@ -1051,6 +1047,8 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     t_atom* ap;
     bool res = false;
     
+    fMidiHandler.startMidi();
+    
     // Allocate factory with a given "name"
     for (i = 0, ap = argv; i < ac; i++, ap++) {
         if (atom_gettype(ap) == A_SYM) {
@@ -1098,7 +1096,8 @@ faustgen::~faustgen()
         fEditor = NULL;
     }
     
-    fDSPfactory->remove_instance(this);
+    fDSPfactory->remove_instance(this);    
+    fMidiHandler.stopMidi();
 }
 
 void faustgen::free_dsp()
@@ -1392,11 +1391,11 @@ void faustgen::midievent(long inlet, t_symbol* s, long ac, t_atom* av)
         int channel = (int)av[0].a_w.w_long & 0x0f;
         
         if (ac == 1) {
-            fDSPfactory->fMidiHandler.handleSync(0.0, av[0].a_w.w_long);
+            fMidiHandler.handleSync(0.0, av[0].a_w.w_long);
         } else if (ac == 2) {
-            fDSPfactory->fMidiHandler.handleData1(0.0, type, channel, av[1].a_w.w_long);
+            fMidiHandler.handleData1(0.0, type, channel, av[1].a_w.w_long);
         } else if (ac == 3) {
-            fDSPfactory->fMidiHandler.handleData2(0.0, type, channel, av[1].a_w.w_long, av[2].a_w.w_long);
+            fMidiHandler.handleData2(0.0, type, channel, av[1].a_w.w_long, av[2].a_w.w_long);
         }
     }
 }
@@ -1512,7 +1511,7 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
             // Use the right outlet to output messages
             dump_outputs();
         }
-        // Done for fMIDIUI and fOSCUI
+        // Done for fMidiUI and fOSCUI
         GUI::updateAllGuis();
         fDSPfactory->unlock_audio();
     } else {
@@ -1595,7 +1594,7 @@ void faustgen::add_midihandler()
     // Polyphonic DSP is controlled by MIDI
     if (fDSPfactory->fPolyphonic) {
         mydsp_poly* poly = static_cast<mydsp_poly*>(fDSP);
-        fDSPfactory->fMidiHandler.addMidiIn(poly);
+        fMidiHandler.addMidiIn(poly);
     }
 }
 
@@ -1604,7 +1603,7 @@ void faustgen::remove_midihandler()
     // Polyphonic DSP is controlled by MIDI
     if (fDSPfactory->fPolyphonic) {
         mydsp_poly* poly = static_cast<mydsp_poly*>(fDSP);
-        fDSPfactory->fMidiHandler.removeMidiIn(poly);
+        fMidiHandler.removeMidiIn(poly);
     }
 }
 
@@ -1618,7 +1617,7 @@ void faustgen::init_controllers()
     
     // MIDI handling
     if (!fMidiUI) {
-        fMidiUI = new MidiUI(&fDSPfactory->fMidiHandler);
+        fMidiUI = new MidiUI(&fMidiHandler);
         add_midihandler();
         fDSP->buildUserInterface(fMidiUI);
     }
@@ -1668,6 +1667,9 @@ void faustgen::create_dsp(bool init)
         }
         
         setupIO(&faustgen::perform, &faustgen::init, fDSP->getNumInputs(), fDSP->getNumOutputs(), init);
+        
+        // Setup m_midi_outlet MIDI output handler
+        fMidiHandler.m_midi_outlet = m_midi_outlet;
         
         // Load old controller state
         fDSP->buildUserInterface(fSavedUI);
