@@ -30,11 +30,15 @@ extern crate num_traits;
 use std::fs::File;
 use std::io::Write;
 use std::env;
+use std::marker::PhantomData;
 
 use num_traits::{cast::FromPrimitive, float::Float};
 
 type F32 = f32;
 type F64 = f64;
+
+#[derive(Copy, Clone)]
+pub struct ParamIndex(i32);
 
 pub trait FaustDsp {
     type T;
@@ -72,18 +76,18 @@ pub trait UI<T> {
     fn close_box(&mut self);
 
     // -- active widgets
-    fn add_button(&mut self, label: &str, zone: &mut T);
-    fn add_check_button(&mut self, label: &str, zone: &mut T);
-    fn add_vertical_slider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T);
-    fn add_horizontal_slider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T);
-    fn add_num_entry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T);
+    fn add_button(&mut self, label: &str, param: ParamIndex);
+    fn add_check_button(&mut self, label: &str, param: ParamIndex);
+    fn add_vertical_slider(&mut self, label: &str, param: ParamIndex, init: T, min: T, max: T, step: T);
+    fn add_horizontal_slider(&mut self, label: &str, param: ParamIndex , init: T, min: T, max: T, step: T);
+    fn add_num_entry(&mut self, label: &str, param: ParamIndex, init: T, min: T, max: T, step: T);
 
     // -- passive widgets
-    fn add_horizontal_bargraph(&mut self, label: &str, zone: &mut T, min: T, max: T);
-    fn add_vertical_bargraph(&mut self, label: &str, zone: &mut T, min: T, max: T);
+    fn add_horizontal_bargraph(&mut self, label: &str, param: ParamIndex, min: T, max: T);
+    fn add_vertical_bargraph(&mut self, label: &str, param: ParamIndex, min: T, max: T);
 
     // -- metadata declarations
-    fn declare(&mut self, zone: &mut T, key: &str, value: &str);
+    fn declare(&mut self, param: Option<ParamIndex>, key: &str, value: &str);
 }
 
 pub struct PrintMeta {}
@@ -96,7 +100,6 @@ impl Meta for PrintMeta {
     }
 
 }
-
 pub struct PrintUI<T>
 {
     phantom: PhantomData<T>
@@ -106,64 +109,65 @@ impl<T> UI<T> for PrintUI<T> {
 
     // -- widget's layouts
 
-    fn openTabBox(&mut self, label: &str) -> ()
+    fn open_tab_box(&mut self, label: &str) -> ()
     {
         println!("openTabBox: {}", label);
     }
-    fn openHorizontalBox(&mut self, label: &str) -> ()
+    fn open_horizontal_box(&mut self, label: &str) -> ()
     {
         println!("openHorizontalBox: {}", label);
     }
-    fn openVerticalBox(&mut self, label: &str) -> ()
+    fn open_vertical_box(&mut self, label: &str) -> ()
     {
         println!("openVerticalBox: {}", label);
     }
-    fn closeBox(&mut self) -> ()
+    fn close_box(&mut self) -> ()
     {
         println!("closeBox:");
     }
 
     // -- active widgets
 
-    fn addButton(&mut self, label: &str, zone: &mut T) -> ()
+    fn add_button(&mut self, label: &str, param: ParamIndex) -> ()
     {
         println!("addButton: {}", label);
     }
-    fn addCheckButton(&mut self, label: &str, zone: &mut T) -> ()
+    fn add_check_button(&mut self, label: &str, param: ParamIndex) -> ()
     {
         println!("addCheckButton: {}", label);
     }
-    fn addVerticalSlider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ()
+    fn add_vertical_slider(&mut self, label: &str, param: ParamIndex, init: T, min: T, max: T, step: T) -> ()
     {
         println!("addVerticalSlider: {}", label);
     }
-    fn addHorizontalSlider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T) -> ()
+    fn add_horizontal_slider(&mut self, label: &str, param: ParamIndex , init: T, min: T, max: T, step: T) -> ()
     {
         println!("addHorizontalSlider: {}", label);
     }
-    fn addNumEntry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ()
+    fn add_num_entry(&mut self, label: &str, param: ParamIndex, init: T, min: T, max: T, step: T) -> ()
     {
         println!("addNumEntry: {}", label);
     }
 
     // -- passive widgets
 
-    fn addHorizontalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ()
+    fn add_horizontal_bargraph(&mut self, label: &str, param: ParamIndex, min: T, max: T) -> ()
     {
         println!("addHorizontalBargraph: {}", label);
     }
-    fn addVerticalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ()
+    fn add_vertical_bargraph(&mut self, label: &str, param: ParamIndex, min: T, max: T) -> ()
     {
         println!("addVerticalBargraph: {}", label);
     }
 
     // -- metadata declarations
 
-    fn declare(&mut self, zone: &mut T, key: &str, value: &str) -> ()
+    fn declare(&mut self, param: Option<ParamIndex>, key: &str, value: &str) -> ()
     {
         println!("declare: {} {}", key, value);
     }
 }
+
 
 <<includeIntrinsic>>
 <<includeclass>>
@@ -182,7 +186,7 @@ fn main() {
 
     // Print UI
     let mut printer = PrintUI::<f32>{ phantom: PhantomData };
-    dsp.buildUserInterface(&mut printer);
+    dsp.build_user_interface(&mut printer);
 
     // Print Meta
     let mut meta = PrintMeta{};
