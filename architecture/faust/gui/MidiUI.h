@@ -124,6 +124,8 @@ struct MidiMeta : public Meta, public std::map<std::string, std::string> {
  * This class decodes MIDI meta data and maps incoming MIDI messages to them.
  * Currently ctrl, keyon/keyoff, keypress, pgm, chanpress, pitchwheel/pitchbend
  * start/stop/clock meta data is handled.
+ * MIDI channel is numbered in [1..16] in this layer.
+ * Channel 0 means "all channels" when receiving or sending.
  ******************************************************************************/
 
 class uiMidi {
@@ -136,13 +138,11 @@ class uiMidi {
         bool fInputCtrl;
         int fChan;
     
-        // To be used when sending messages, returns the effective chan, or 0 when fChan is initialized with -1 (means 'all chans')
-        int rangeChan() { return (((fChan < 0) || (fChan > 15)) ? 0 : fChan); }
         bool inRange(FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT v) { return (min <= v && v <= max); }
     
     public:
         
-        uiMidi(midi* midi_out, bool input, int chan = -1):fMidiOut(midi_out), fInputCtrl(input), fChan(chan)
+        uiMidi(midi* midi_out, bool input, int chan = 0):fMidiOut(midi_out), fInputCtrl(input), fChan(chan)
         {}
         virtual ~uiMidi()
         {}
@@ -157,7 +157,7 @@ class uiMidiItem : public uiMidi, public uiItem {
     
     public:
         
-        uiMidiItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true, int chan = -1)
+        uiMidiItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true, int chan = 0)
             :uiMidi(midi_out, input, chan), uiItem(ui, zone)
         {}
         virtual ~uiMidiItem()
@@ -175,7 +175,7 @@ class uiMidiTimedItem : public uiMidi, public uiTimedItem {
     
     public:
         
-        uiMidiTimedItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true, int chan = -1)
+        uiMidiTimedItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true, int chan = 0)
             :uiMidi(midi_out, input, chan), uiTimedItem(ui, zone)
         {}
         virtual ~uiMidiTimedItem()
@@ -291,7 +291,7 @@ class uiMidiProgChange : public uiMidiTimedItem {
     
         uiMidiProgChange(midi* midi_out, GUI* ui, FAUSTFLOAT* zone,
                          FAUSTFLOAT min, FAUSTFLOAT max,
-                         bool input = true, int chan = -1)
+                         bool input = true, int chan = 0)
             :uiMidiTimedItem(midi_out, ui, zone, input, chan), fMin(min), fMax(max)
         {}
         virtual ~uiMidiProgChange()
@@ -302,7 +302,14 @@ class uiMidiProgChange : public uiMidiTimedItem {
             FAUSTFLOAT v = *fZone;
             fCache = v;
             if (inRange(fMin, fMax, v)) {
-                fMidiOut->progChange(rangeChan(), v);
+                if (fChan == 0) {
+                    // Send on [0..15] channels on the MIDI layer
+                    for (int chan = 0; chan < 16; chan++) {
+                        fMidiOut->progChange(chan, v);
+                    }
+                } else {
+                    fMidiOut->progChange(fChan - 1, v);
+                }
             }
         }
     
@@ -335,7 +342,7 @@ class uiMidiChanPress : public uiMidiTimedItem, public uiConverter {
                         FAUSTFLOAT min, FAUSTFLOAT max,
                         bool input = true,
                         MetaDataUI::Scale scale = MetaDataUI::kLin,
-                        int chan = -1)
+                        int chan = 0)
             :uiMidiTimedItem(midi_out, ui, zone, input, chan), uiConverter(scale, 0., 127., min, max)
         {}
         virtual ~uiMidiChanPress()
@@ -345,7 +352,14 @@ class uiMidiChanPress : public uiMidiTimedItem, public uiConverter {
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->chanPress(rangeChan(), fConverter->faust2ui(v));
+            if (fChan == 0) {
+                // Send on [0..15] channels on the MIDI layer
+                for (int chan = 0; chan < 16; chan++) {
+                    fMidiOut->chanPress(chan, fConverter->faust2ui(v));
+                }
+            } else {
+                fMidiOut->chanPress(fChan - 1, fConverter->faust2ui(v));
+            }
         }
     
         void modifyZone(FAUSTFLOAT v)
@@ -381,7 +395,7 @@ class uiMidiCtrlChange : public uiMidiTimedItem, public uiConverter {
                      FAUSTFLOAT min, FAUSTFLOAT max,
                      bool input = true,
                      MetaDataUI::Scale scale = MetaDataUI::kLin,
-                     int chan = -1)
+                     int chan = 0)
             :uiMidiTimedItem(midi_out, ui, zone, input, chan), uiConverter(scale, 0., 127., min, max), fCtrl(ctrl)
         {}
         virtual ~uiMidiCtrlChange()
@@ -391,7 +405,14 @@ class uiMidiCtrlChange : public uiMidiTimedItem, public uiConverter {
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->ctrlChange(rangeChan(), fCtrl, fConverter->faust2ui(v));
+            if (fChan == 0) {
+                // Send on [0..15] channels on the MIDI layer
+                for (int chan = 0; chan < 16; chan++) {
+                    fMidiOut->ctrlChange(chan, fCtrl, fConverter->faust2ui(v));
+                }
+            } else {
+                fMidiOut->ctrlChange(fChan - 1, fCtrl, fConverter->faust2ui(v));
+            }
         }
         
         void modifyZone(FAUSTFLOAT v)
@@ -419,7 +440,7 @@ class uiMidiPitchWheel : public uiMidiTimedItem {
     
         uiMidiPitchWheel(midi* midi_out, GUI* ui, FAUSTFLOAT* zone,
                          FAUSTFLOAT min, FAUSTFLOAT max,
-                         bool input = true, int chan = -1)
+                         bool input = true, int chan = 0)
             :uiMidiTimedItem(midi_out, ui, zone, input, chan)
         {
             if (min <= 0 && max >= 0) {
@@ -437,7 +458,14 @@ class uiMidiPitchWheel : public uiMidiTimedItem {
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->pitchWheel(rangeChan(), fConverter.faust2ui(v));
+            if (fChan == 0) {
+                // Send on [0..15] channels on the MIDI layer
+                for (int chan = 0; chan < 16; chan++) {
+                    fMidiOut->pitchWheel(chan, fConverter.faust2ui(v));
+                }
+            } else {
+                fMidiOut->pitchWheel(fChan - 1, fConverter.faust2ui(v));
+            }
         }
         
         void modifyZone(FAUSTFLOAT v)
@@ -479,7 +507,7 @@ class uiMidiKeyOn : public uiMidiTimedItem, public uiConverter {
                     FAUSTFLOAT min, FAUSTFLOAT max,
                     bool input = true,
                     MetaDataUI::Scale scale = MetaDataUI::kLin,
-                    int chan = -1)
+                    int chan = 0)
             :uiMidiTimedItem(midi_out, ui, zone, input, chan), uiConverter(scale, 0., 127., min, max), fKeyOn(key)
         {}
         virtual ~uiMidiKeyOn()
@@ -489,7 +517,14 @@ class uiMidiKeyOn : public uiMidiTimedItem, public uiConverter {
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->keyOn(rangeChan(), fKeyOn, fConverter->faust2ui(v));
+            if (fChan == 0) {
+                // Send on [0..15] channels on the MIDI layer
+                for (int chan = 0; chan < 16; chan++) {
+                    fMidiOut->keyOn(chan, fKeyOn, fConverter->faust2ui(v));
+                }
+            } else {
+                fMidiOut->keyOn(fChan - 1, fKeyOn, fConverter->faust2ui(v));
+            }
         }
         
         void modifyZone(FAUSTFLOAT v)
@@ -525,7 +560,7 @@ class uiMidiKeyOff : public uiMidiTimedItem, public uiConverter {
                      FAUSTFLOAT min, FAUSTFLOAT max,
                      bool input = true,
                      MetaDataUI::Scale scale = MetaDataUI::kLin,
-                     int chan = -1)
+                     int chan = 0)
             :uiMidiTimedItem(midi_out, ui, zone, input, chan), uiConverter(scale, 0., 127., min, max), fKeyOff(key)
         {}
         virtual ~uiMidiKeyOff()
@@ -535,7 +570,14 @@ class uiMidiKeyOff : public uiMidiTimedItem, public uiConverter {
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->keyOff(rangeChan(), fKeyOff, fConverter->faust2ui(v));
+            if (fChan == 0) {
+                // Send on [0..15] channels on the MIDI layer
+                for (int chan = 0; chan < 16; chan++) {
+                    fMidiOut->keyOn(chan, fKeyOff, fConverter->faust2ui(v));
+                }
+            } else {
+                fMidiOut->keyOn(fChan - 1, fKeyOff, fConverter->faust2ui(v));
+            }
         }
         
         void modifyZone(FAUSTFLOAT v)
@@ -571,7 +613,7 @@ class uiMidiKeyPress : public uiMidiTimedItem, public uiConverter {
                        FAUSTFLOAT min, FAUSTFLOAT max,
                        bool input = true,
                        MetaDataUI::Scale scale = MetaDataUI::kLin,
-                       int chan = -1)
+                       int chan = 0)
             :uiMidiTimedItem(midi_out, ui, zone, input, chan), uiConverter(scale, 0., 127., min, max), fKey(key)
         {}
         virtual ~uiMidiKeyPress()
@@ -581,7 +623,14 @@ class uiMidiKeyPress : public uiMidiTimedItem, public uiConverter {
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->keyPress(rangeChan(), fKey, fConverter->faust2ui(v));
+            if (fChan == 0) {
+                // Send on [0..15] channels on the MIDI layer
+                for (int chan = 0; chan < 16; chan++) {
+                    fMidiOut->keyOn(chan, fKey, fConverter->faust2ui(v));
+                }
+            } else {
+                fMidiOut->keyOn(fChan - 1, fKey, fConverter->faust2ui(v));
+            }
         }
         
         void modifyZone(FAUSTFLOAT v)
@@ -706,7 +755,8 @@ class MidiUI : public GUI, public midi, public MetaDataUI {
         {
             for (size_t i = 0; i < table.size(); i++) {
                 int channel_aux = table[i]->fChan;
-                if (channel_aux == -1 || channel == channel_aux) {
+                // channel_aux == 0 means "all channels"
+                if (channel_aux == 0 || channel == channel_aux - 1) {
                     if (fTimeStamp) {
                         table[i]->modifyZone(date, FAUSTFLOAT(val1));
                     } else {
@@ -722,7 +772,8 @@ class MidiUI : public GUI, public midi, public MetaDataUI {
             if (table.find(val1) != table.end()) {
                 for (size_t i = 0; i < table[val1].size(); i++) {
                     int channel_aux = table[val1][i]->fChan;
-                    if (channel_aux == -1 || channel == channel_aux) {
+                    // channel_aux == 0 means "all channels"
+                    if (channel_aux == 0 || channel == channel_aux - 1) {
                         if (fTimeStamp) {
                             table[val1][i]->modifyZone(date, FAUSTFLOAT(val2));
                         } else {
@@ -829,8 +880,9 @@ class MidiUI : public GUI, public midi, public MetaDataUI {
         {
             if (ctrl == midi::PITCH_BEND_RANGE) {
                 for (size_t i = 0; i < fPitchWheelTable.size(); i++) {
+                    // channel_aux == 0 means "all channels"
                     int channel_aux = fPitchWheelTable[i]->fChan;
-                    if (channel_aux == -1 || channel == channel_aux) {
+                    if (channel_aux == 0 || channel == channel_aux - 1) {
                         fPitchWheelTable[i]->setRange(value);
                     }
                 }
