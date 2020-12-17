@@ -264,8 +264,9 @@ interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const std::str
  * @param factory - the DSP factory
  * @param bitcode_path - the bitcode file pathname
  *
+ * @return true if success, false otherwise.
  */
-void writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const std::string& bit_code_path);
+bool writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const std::string& bit_code_path);
 
 /*!
  @}

@@ -201,7 +201,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
     // Prepare compilation options
     stringstream compile_options;
     gGlobal->printCompilationOptions(compile_options);
-
+ 
     switch (mode) {
         case 1:
             return new interpreter_dsp_factory_aux<T, 1>(

@@ -1,6 +1,6 @@
 /************************************************************************
     FAUST Architecture File
-    Copyright (C) 2019 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2020 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
@@ -26,8 +26,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "faust/dsp/llvm-dsp.h"
-#include "faust/dsp/libfaust.h"
+#include "faust/dsp/interpreter-dsp.h"
 #include "faust/audio/dummy-audio.h"
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/PrintUI.h"
@@ -42,53 +41,21 @@ static void printList(const vector<string>& list)
     }
 }
 
-struct testUI : public GenericUI {
-    
-    FAUSTFLOAT fInit;
-    FAUSTFLOAT fMin;
-    FAUSTFLOAT fMax;
-    FAUSTFLOAT fStep;
-    
-    testUI(FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-    {
-        fInit = init;
-        fMin = min;
-        fMax = max;
-        fStep = step;
-    }
-    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-    {
-        if (init != fInit) {
-            cerr << "ERROR in addVerticalSlider init : " << fInit << " " << init << "\n";
-        }
-        if (min != fMin) {
-            cerr << "ERROR in addVerticalSlider min : " << fMin << " " << min << "\n";
-        }
-        if (max != fMax) {
-            cerr << "ERROR in addVerticalSlider max : " << fMax << " " << max << "\n";
-        }
-        if (step != fStep) {
-            cerr << "ERROR in addVerticalSlider step : " << fStep << " " << step << "\n";
-        }
-    }
-    
-};
-
 int main(int argc, const char** argv)
 {
     if (isopt((char**)argv, "-h") || isopt((char**)argv, "-help") || argc < 2) {
-        cout << "llvm-test foo.dsp" << endl;
+        cout << "interp-test foo.dsp" << endl;
         exit(EXIT_FAILURE);
     }
     
     string error_msg;
-    cout << "Libfaust version : " << getCLibFaustVersion () << endl;
+    cout << "Libfaust version : " << getCLibFaustVersion() << endl;
     string dspFile = argv[1];
    
     cout << "=============================\n";
-    cout << "Test createDSPFactoryFromFile\n";
+    cout << "Test createInterpreterDSPFactoryFromFile\n";
     {
-        dsp_factory* factory = createDSPFactoryFromFile(dspFile, 0, NULL, "", error_msg, -1);
+        interpreter_dsp_factory* factory = createInterpreterDSPFactoryFromFile(dspFile, 0, NULL, error_msg);
         
         if (!factory) {
             cerr << "Cannot create factory : " << error_msg;
@@ -101,7 +68,7 @@ int main(int argc, const char** argv)
         
         dsp* DSP = factory->createDSPInstance();
         if (!DSP) {
-            cerr << "Cannot create instance "<< endl;
+            cerr << "Cannot create instance " << endl;
             exit(EXIT_FAILURE);
         }
         
@@ -121,15 +88,25 @@ int main(int argc, const char** argv)
         audio.stop();
         
         delete DSP;
-        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+        deleteInterpreterDSPFactory(factory);
     }
     
+    // For bitcode file write/read test
+    string tempPath = "/private/var/tmp/FaustDSP.fbc";
+    
     cout << "=============================\n";
-    cout << "Test createDSPFactoryFromString\n";
+    cout << "Test createInterpreterDSPFactoryFromString\n";
     {
-        dsp_factory* factory = createDSPFactoryFromString("FaustDSP", "process = +;", 0, NULL, "", error_msg, -1);
+        interpreter_dsp_factory* factory = createInterpreterDSPFactoryFromString("FaustDSP", "process = 0.5,0.6;", 0, NULL, error_msg);
         if (!factory) {
             cerr << "Cannot create factory : " << error_msg;
+            exit(EXIT_FAILURE);
+        }
+        
+       // Write bitcode file
+        bool res = writeInterpreterDSPFactoryToBitcodeFile(factory, tempPath);
+        if (!res) {
+            cerr << "Cannot write bitcode file "<< endl;
             exit(EXIT_FAILURE);
         }
         
@@ -139,7 +116,7 @@ int main(int argc, const char** argv)
         
         dsp* DSP = factory->createDSPInstance();
         if (!DSP) {
-            cerr << "Cannot create instance "<< endl;
+            cerr << "Cannot create instance " << endl;
             exit(EXIT_FAILURE);
         }
         
@@ -155,73 +132,44 @@ int main(int argc, const char** argv)
         audio.stop();
         
         delete DSP;
-        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+        deleteInterpreterDSPFactory(factory);
     }
     
     cout << "=============================\n";
-    cout << "Test of UI element encoding\n";
+    cout << "Test readDSPFactoryFromBitcodeFile\n";
     {
-        dsp_factory* factory = createDSPFactoryFromString("FaustDSP", "process = vslider(\"Volume\", 0.5, 0, 1, 0.025);", 0, NULL, "", error_msg, -1);
+        // Read bitcode file
+        interpreter_dsp_factory* factory = readInterpreterDSPFactoryFromBitcodeFile(tempPath, error_msg);
         if (!factory) {
             cerr << "Cannot create factory : " << error_msg;
             exit(EXIT_FAILURE);
         }
         
+        cout << "getCompileOptions " << factory->getCompileOptions() << endl;
+        printList(factory->getLibraryList());
+        printList(factory->getIncludePathnames());
+        
         dsp* DSP = factory->createDSPInstance();
         if (!DSP) {
-            cerr << "Cannot create instance "<< endl;
+            cerr << "Cannot create instance " << endl;
             exit(EXIT_FAILURE);
         }
-
-        testUI test(0.5, 0, 1, 0.025);
-        DSP->buildUserInterface(&test);
+        
+        cout << "getName " << factory->getName() << endl;
+        cout << "getSHAKey " << factory->getSHAKey() << endl;
+        
+        dummyaudio audio(1);
+        if (!audio.init("FaustDSP", DSP)) {
+            return 0;
+        }
+        
+        audio.start();
+        audio.stop();
         
         delete DSP;
-        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+        deleteInterpreterDSPFactory(factory);
     }
-    
-    // Test generateAuxFilesFromFile/generateAuxFilesFromString
-    string tempDir = "/private/var/tmp/";
-    int argc2 = 0;
-    const char* argv2[64];
-    argv2[argc2++] = "-svg";
-    argv2[argc2++] = "-O";
-    argv2[argc2++] = tempDir.c_str();
-    argv2[argc2] = nullptr;  // NULL terminated argv
-   
-    {
-        cout << "=============================\n";
-        cout << "Test generateAuxFilesFromFile\n";
-        if (!generateAuxFilesFromFile(dspFile, argc2, argv2, error_msg)) {
-            cout << "ERROR in generateAuxFilesFromFile : " << error_msg;
-        } else {
-            string filename =  string(dspFile);
-            string pathname = tempDir + filename.substr(0, filename.size() - 4) + "-svg";
-            ifstream reader(pathname.c_str());
-            if (!reader.is_open()) {
-                cerr << "ERROR in generateAuxFilesFromFile error : " << pathname << " cannot be opened\n";
-            } else {
-                cout << "generateAuxFilesFromFile OK\n";
-            }
-        }
-    }
-    
-    {
-        cout << "===============================\n";
-        cout << "Test generateAuxFilesFromString\n";
-        if (!generateAuxFilesFromString("FaustDSP", pathToContent(dspFile), argc2, argv2, error_msg)) {
-            cout << "generateAuxFilesFromString error : " << error_msg;
-        } else {
-            string pathname = tempDir + "/FaustDSP-svg";
-            ifstream reader(pathname.c_str());
-            if (!reader.is_open()) {
-                cerr << "ERROR in generateAuxFilesFromString error : " << pathname << " cannot be opened\n";
-            } else {
-                cout << "generateAuxFilesFromString OK\n";
-            }
-        }
-    }
-    
+
     return 0;
 }
 

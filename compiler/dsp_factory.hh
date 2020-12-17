@@ -53,6 +53,8 @@ class dsp_factory_base {
 
     virtual std::string getDSPCode()                        = 0;
     virtual void        setDSPCode(const std::string& code) = 0;
+    
+    virtual std::string getCompileOptions() = 0;
 
     virtual dsp* createDSPInstance(dsp_factory* factory) = 0;
 
@@ -111,6 +113,8 @@ class dsp_factory_imp : public dsp_factory_base {
 
     std::string getDSPCode() { return fExpandedDSP; }
     void        setDSPCode(const std::string& code) { fExpandedDSP = code; }
+    
+    virtual std::string getCompileOptions() { return ""; };
 
     virtual dsp* createDSPInstance(dsp_factory* factory)
     {
