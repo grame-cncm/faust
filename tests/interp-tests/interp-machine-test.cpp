@@ -66,14 +66,14 @@ int main(int argc, const char** argv)
         printList(factory->getLibraryList());
         printList(factory->getIncludePathnames());
         
+        cout << "getName " << factory->getName() << endl;
+        cout << "getSHAKey " << factory->getSHAKey() << endl;
+        
         dsp* DSP = factory->createDSPInstance();
         if (!DSP) {
             cerr << "Cannot create instance " << endl;
             exit(EXIT_FAILURE);
         }
-        
-        cout << "getName " << factory->getName() << endl;
-        cout << "getSHAKey " << factory->getSHAKey() << endl;
         
         cout << "Print UI parameters" << endl;
         PrintUI print_ui;
