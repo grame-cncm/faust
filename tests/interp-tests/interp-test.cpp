@@ -136,7 +136,7 @@ int main(int argc, const char** argv)
     }
     
     cout << "=============================\n";
-    cout << "Test readDSPFactoryFromBitcodeFile\n";
+    cout << "Test readInterpreterDSPFactoryFromBitcodeFile\n";
     {
         // Read bitcode file
         interpreter_dsp_factory* factory = readInterpreterDSPFactoryFromBitcodeFile(tempPath, error_msg);

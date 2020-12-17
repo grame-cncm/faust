@@ -53,7 +53,7 @@ int main(int argc, const char** argv)
     string fbcFile = argv[1];
     
     cout << "=============================\n";
-    cout << "Test readDSPFactoryFromBitcodeFile\n";
+    cout << "Test readInterpreterDSPFactoryFromBitcodeFile\n";
     {
         // Read precompiled bitcode file
         interpreter_dsp_factory* factory = readInterpreterDSPFactoryFromBitcodeFile(fbcFile, error_msg);
