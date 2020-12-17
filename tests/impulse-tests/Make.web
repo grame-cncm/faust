@@ -18,6 +18,7 @@ wastdir ?= wast
 lang ?= wasm
 wasmarch ?= ../../architecture/webaudio/wasm-standalone-node-wrapper-double.js
 wastarch ?= ../../architecture/webaudio/wasm-standalone-node-wrapper-double.js
+jsarch ?= ../../architecture/webaudio/FaustLibrary.js
 FAUSTOPTIONS ?= 
 
 .PHONY: test 
@@ -67,7 +68,8 @@ ir/$(wasmdir)/%.ir: ir/$(wasmdir)/%.js reference/%.ir
 	$(COMPARE) $@ reference/$(notdir $@) -1 -part || (rm -f $@; false)
 	
 ir/$(wasmdir)/%.js : ir/$(wasmdir)/%.wasm
-	cat $(basename $<).js $(wasmarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp
+	cp $(jsarch) ir/$(wasmdir)
+	cat $(wasmarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp
 	mv $@.tmp $@
 	
 ir/$(wasmdir)/%.wasm : dsp/%.dsp
@@ -89,7 +91,8 @@ ir/$(wastdir)/%.ir: ir/$(wastdir)/%.js reference/%.ir
 	$(COMPARE) $@ reference/$(notdir $@) -1 -part || (rm -f $@; false)
 
 ir/$(wastdir)/%.js : ir/$(wastdir)/%.wast
-	cat $(basename $<).js $(wastarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp
+	cp $(jsarch) ir/$(wasmdir)
+	cat $(wastarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp
 	mv $@.tmp $@
 
 ir/$(wastdir)/%.wast : dsp/%.dsp
