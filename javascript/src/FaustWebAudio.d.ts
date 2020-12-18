@@ -176,10 +176,11 @@ declare namespace Faust {
      * 
      * @param {MonoInstance} instance - an instance created with 'createSyncMonoDSPInstance' or 'createAsyncMonoDSPInstance'
      * @param {number} sample_rate - the sample rate in Hz
-     * @param {number} buffer_size - the buffer size in frames
+     * @param {number} sample_size - the sample size in bytes
+     * @param {number} buffer_size - the buffer size in frames  
      * @return the created MonoDSP object 
      */
-    interface createMonoDSP { (instance: MonoInstance, sample_rate: number, buffer_size: number): MonoDSP }
+    interface createMonoDSP { (instance: MonoInstance, sample_rate: number, sample_size: number, buffer_size: number): MonoDSP }
 
     interface MonoDSP extends BaseDSP { }
 
@@ -192,10 +193,11 @@ declare namespace Faust {
      * 
      * @param {PolyInstance} instance - an instance created with 'createSyncPolyDSPInstance' or 'createAsyncPolyDSPInstance'
      * @param {number} sample_rate - the sample rate in Hz
-     * @param {number} buffer_size - the buffer size in frames
+     * @param {number} sample_size - the sample size in bytes
+     * @param {number} buffer_size - the buffer size in frames 
      * @return the created PolyDSP object 
      */
-    interface createPolyDSP { (instance: PolyInstance, sample_rate: number, buffer_size: number): PolyDSP }
+    interface createPolyDSP { (instance: PolyInstance, sample_rate: number, sample_size: number, buffer_size: number): PolyDSP }
 
     interface PolyDSP extends BaseDSP {
 
@@ -261,7 +263,7 @@ declare namespace Faust {
          * @param {string} dsp_code - the DSP code
          * @param {string} args - the compilation parameters
          * @param {boolean} sp - whether to compile a ScriptProcessorNode or an AudioWorkletNode
-         * @param {number} buffer_size - the buffer size in frames to be used, in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
+         * @param {number} buffer_size - the buffer size in frames to be used, in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames   
          * @preturn {Promise<FaustMonoNode | null>} the compiled WebAudio node or 'null' if failure
          */
         compileNode(
@@ -281,7 +283,7 @@ declare namespace Faust {
          * @param {string} name - the DSP name
          * @param {Factory} factory - the Faust factory, either obtained with a compiler (createDSPFactory) or loaded from files (loadDSPFactory)
          * @param {boolean} sp - whether to compile a ScriptProcessorNode or an AudioWorkletNode
-         * @param {number} buffer_size - the buffer size in frames to be used in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
+         * @param {number} buffer_size - the buffer size in frames to be used in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames  
          * @preturn {Promise<FaustMonoNode | null>} the compiled WebAudio node or 'null' if failure
         */
         createNode(
@@ -304,7 +306,7 @@ declare namespace Faust {
         *
         * @param {Factory} factory - the Faust factory, either obtained with a compiler (createDSPFactory) or loaded from files (loadDSPFactory)
         * @param {number} sample_rate - the sample rate in Hz
-        * @param {number} buffer_size - the buffer size in frames
+        * @param {number} buffer_size - the buffer size in frames   
         * @preturn {Promise<FaustOfflineProcessor | null>} the compiled processor or 'null' if failure
        */
         createOfflineProcessor(factory: Factory, sample_rate: number, buffer_size: number)

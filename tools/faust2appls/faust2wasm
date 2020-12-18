@@ -112,6 +112,7 @@ if [ $POLY = true ]; then
             echo "Compiled with 'wasm' backend in polyphonic mode"
             CODE_WRAPPER1=faustwasm-poly-footer.js
         fi
+        cp $FAUSTARCH/webaudio/mixer32.wasm $FAUSTARCH/webaudio/mixer64.wasm .
     fi
 else
     WASM="wasm"

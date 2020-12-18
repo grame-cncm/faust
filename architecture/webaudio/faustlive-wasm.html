@@ -424,6 +424,13 @@
             <p>1: uses <B>fabs</B> and a <B>threshold</B> to detect denormal values (slower)
             <p>
             <p>2: uses a <B>bitmask</B> to detect denormal values (faster)</p>
+            <H3>Sample format</H3>
+            <form method="POST" name="menu">
+                <select id="selectedSampleFormat" name="selectedSampleFormat" onChange="setSampleFormat(this.form.selectedSampleFormat)">
+                    <option selected value=float> float </option>
+                    <option value=double> double </option>
+                </select>
+            </form>
         </div>
 
     </div>
@@ -475,6 +482,7 @@
         var faust_svg = null;
         var poly_flag = "OFF";
         var ftz_flag = "2";
+        var sample_format = "float";
         var poly_nvoices = 16;
         var rendering_mode = "ScriptProcessor";
         var output_handler = null;
@@ -515,6 +523,11 @@
 
         function setFTZ(ftz_item) {
             ftz_flag = ftz_item.options[ftz_item.selectedIndex].value;
+            compileDSP();
+        }
+        
+        function setSampleFormat(sample_item) {
+            sample_format = sample_item.options[sample_item.selectedIndex].value;
             compileDSP();
         }
 
@@ -698,6 +711,7 @@
                 setStorageItemValue('FaustLibTester', 'buffer_size', buffer_size);
                 setStorageItemValue('FaustLibTester', 'poly_flag', poly_flag);
                 setStorageItemValue('FaustLibTester', 'ftz_flag', ftz_flag);
+                setStorageItemValue('FaustLibTester', 'sample_format', sample_format);
                 setStorageItemValue('FaustLibTester', 'poly_nvoices', poly_nvoices);
                 setStorageItemValue('FaustLibTester', 'rendering_mode', rendering_mode);
             }
@@ -709,6 +723,7 @@
                 poly_flag = (getStorageItemValue('FaustLibTester', 'poly_flag') ? getStorageItemValue('FaustLibTester', 'poly_flag') : "OFF");
                 poly_nvoices = (getStorageItemValue('FaustLibTester', 'poly_nvoices') ? getStorageItemValue('FaustLibTester', 'poly_nvoices') : 16);
                 ftz_flag = (getStorageItemValue('FaustLibTester', 'ftz_flag') ? getStorageItemValue('FaustLibTester', 'ftz_flag') : 2);
+                sample_format = (getStorageItemValue('FaustLibTester', 'sample_format') ? getStorageItemValue('FaustLibTester', 'sample_format') : "float");
                 rendering_mode = (getStorageItemValue('FaustLibTester', 'rendering_mode') ? getStorageItemValue('FaustLibTester', 'rendering_mode') : "ScriptProcessor");
 
                 // Restore menus
@@ -716,6 +731,7 @@
                 restoreMenu("selectedPoly", poly_flag);
                 restoreMenu("polyVoices", poly_nvoices);
                 restoreMenu("selectedFTZ", ftz_flag);
+                restoreMenu("selectedSampleFormat", sample_format);
                 restoreMenu("selectedRenderingMode", rendering_mode);
 
                 if (rendering_mode === "AudioWorklet") {
@@ -892,7 +908,7 @@
             deleteDSP();
 
             // Prepare argv list
-            var argv = "-ftz " + ftz_flag.toString() + " -I libraries/";
+            var argv = "-ftz " + ftz_flag.toString() + " -" + sample_format + " -I libraries/";
             console.log(argv);
 
             if (poly_flag === "ON") {

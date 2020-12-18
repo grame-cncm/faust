@@ -178,8 +178,8 @@ namespace Faust {
             throw e;
         }
 
-        constructor(context: BaseAudioContext, name: string, factory: Factory) {
-            super(context, name, factory, { name: name, factory: factory });
+        constructor(context: BaseAudioContext, name: string, factory: Factory, sample_size: number) {
+            super(context, name, factory, { name: name, factory: factory, sample_size: sample_size });
         }
     }
 
@@ -197,6 +197,7 @@ namespace Faust {
             voice_factory: Factory,
             mixer_module: WebAssembly.Module,
             voices: number,
+            sample_size: number,
             effect_factory?: Factory) {
 
             super(context, name, voice_factory,
@@ -205,6 +206,7 @@ namespace Faust {
                     voice_factory: voice_factory,
                     mixer_module: mixer_module,
                     voices: voices,
+                    sample_size: sample_size,
                     effect_factory: effect_factory
                 });
 

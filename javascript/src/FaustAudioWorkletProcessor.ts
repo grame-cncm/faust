@@ -160,7 +160,10 @@ namespace Faust {
                 super(options);
 
                 // Create Monophonic DSP
-                this.fDSPCode = createMonoDSP(new GeneratorImp().createSyncMonoDSPInstance(options.processorOptions.factory), sampleRate, 128);
+                this.fDSPCode = createMonoDSP(new GeneratorImp().createSyncMonoDSPInstance(options.processorOptions.factory),
+                    sampleRate,
+                    options.processorOptions.sample_size,
+                    128);
 
                 // Setup output handler
                 this.fDSPCode.setOutputParamHandler((path, value) => this.port.postMessage({ path, value, type: "param" }));
@@ -178,7 +181,10 @@ namespace Faust {
                     options.processorOptions.voice_factory,
                     options.processorOptions.mixer_module,
                     options.processorOptions.voices,
-                    options.processorOptions.effect_factory), sampleRate, 128);
+                    options.processorOptions.effect_factory),
+                    sampleRate,
+                    options.processorOptions.sample_size,
+                    128);
 
                 // Setup port message handling
                 this.port.onmessage = (e: MessageEvent) => { this.handleMessageAux(e); }

@@ -35,8 +35,8 @@ namespace Faust {
         protected fCachedEvents: { type: string; data: any }[];
         protected fBufferNum: number;
 
-        protected fInChannels: Float32Array[];
-        protected fOutChannels: Float32Array[];
+        protected fInChannels: Float32Array[] | Float64Array[];
+        protected fOutChannels: Float32Array[] | Float64Array[];
 
         protected fOutputsTimer: number;
 
@@ -63,7 +63,7 @@ namespace Faust {
 
         protected fJSONDsp!: TFaustJSON;
 
-        constructor(buffer_size: number) {
+        constructor(sample_size: number, buffer_size: number) {
             this.fOutputHandler = null;
             this.fComputeHandler = null;
 
@@ -78,7 +78,7 @@ namespace Faust {
             this.fOutChannels = [];
 
             this.gPtrSize = 4;
-            this.gSampleSize = 4;
+            this.gSampleSize = sample_size;
 
             this.fOutputsTimer = 5;
             this.fInputsItems = [];
@@ -241,8 +241,8 @@ namespace Faust {
     // Monophonic DSP
 
     // Public contructor
-    export function createMonoDSP(instance: MonoInstance, sample_rate: number, buffer_size: number) {
-        return new MonoDSPImp(instance, sample_rate, buffer_size);
+    export function createMonoDSP(instance: MonoInstance, sample_rate: number, sample_size: number, buffer_size: number) {
+        return new MonoDSPImp(instance, sample_rate, sample_size, buffer_size);
     }
 
     export class MonoDSPImp extends BaseDSPImp implements MonoDSP {
@@ -250,9 +250,9 @@ namespace Faust {
         private fInstance: MonoInstance;
         private fDSP!: DSP;
 
-        constructor(instance: MonoInstance, sample_rate: number, buffer_size: number) {
+        constructor(instance: MonoInstance, sample_rate: number, sample_size: number, buffer_size: number) {
 
-            super(buffer_size);
+            super(sample_size, buffer_size);
             this.fInstance = instance;
 
             // Create JSON object
@@ -286,7 +286,7 @@ namespace Faust {
 
             const HEAP = this.fInstance.memory.buffer;
             const HEAP32 = new Int32Array(HEAP);
-            const HEAPF32 = new Float32Array(HEAP);
+            const HEAPF = (this.gSampleSize === 4) ? new Float32Array(HEAP) : new Float64Array(HEAP);
 
             if (this.getNumInputs() > 0) {
                 for (let chan = 0; chan < this.getNumInputs(); chan++) {
@@ -295,7 +295,7 @@ namespace Faust {
                 // Prepare Ins buffer tables
                 const dspInChans = HEAP32.subarray(this.fAudioInputs >> 2, (this.fAudioInputs + this.getNumInputs() * this.gPtrSize) >> 2);
                 for (let chan = 0; chan < this.getNumInputs(); chan++) {
-                    this.fInChannels[chan] = HEAPF32.subarray(dspInChans[chan] >> 2, (dspInChans[chan] + this.fBufferSize * this.gSampleSize) >> 2);
+                    this.fInChannels[chan] = HEAPF.subarray(dspInChans[chan] >> Math.log2(this.gSampleSize), (dspInChans[chan] + this.fBufferSize * this.gSampleSize) >> Math.log2(this.gSampleSize));
                 }
             }
             if (this.getNumOutputs() > 0) {
@@ -305,7 +305,7 @@ namespace Faust {
                 // Prepare Out buffer tables
                 const dspOutChans = HEAP32.subarray(this.fAudioOutputs >> 2, (this.fAudioOutputs + this.getNumOutputs() * this.gPtrSize) >> 2);
                 for (let chan = 0; chan < this.getNumOutputs(); chan++) {
-                    this.fOutChannels[chan] = HEAPF32.subarray(dspOutChans[chan] >> 2, (dspOutChans[chan] + this.fBufferSize * this.gSampleSize) >> 2);
+                    this.fOutChannels[chan] = HEAPF.subarray(dspOutChans[chan] >> Math.log2(this.gSampleSize), (dspOutChans[chan] + this.fBufferSize * this.gSampleSize) >> Math.log2(this.gSampleSize));
                 }
             }
         }
@@ -361,7 +361,6 @@ namespace Faust {
                     const dspOutput = this.fOutChannels[chan];
                     output[chan].set(dspOutput);
                 }
-
                 // PlotHandler handling 
                 if (this.fPlotHandler) {
                     this.fPlotHandler(output, this.fBufferNum++, (this.fCachedEvents.length ? this.fCachedEvents : undefined));
@@ -503,8 +502,8 @@ namespace Faust {
     // Polyphonic DSP
 
     // Public contructor
-    export function createPolyDSP(instance: PolyInstance, sample_rate: number, buffer_size: number) {
-        return new PolyDSPImp(instance, sample_rate, buffer_size);
+    export function createPolyDSP(instance: PolyInstance, sample_rate: number, sample_size: number, buffer_size: number) {
+        return new PolyDSPImp(instance, sample_rate, sample_size, buffer_size);
     }
 
     export class PolyDSPImp extends BaseDSPImp implements PolyDSP {
@@ -515,8 +514,8 @@ namespace Faust {
         private fAudioMixing!: AudioBuffer;
         private fVoiceTable: DspVoice[];
 
-        constructor(instance: PolyInstance, sample_rate: number, buffer_size: number) {
-            super(buffer_size);
+        constructor(instance: PolyInstance, sample_rate: number, sample_size: number, buffer_size: number) {
+            super(sample_size, buffer_size);
             this.fInstance = instance;
 
             // Create JSON for voice
@@ -567,7 +566,7 @@ namespace Faust {
 
             const HEAP = this.fInstance.memory.buffer;
             const HEAP32 = new Int32Array(HEAP);
-            const HEAPF32 = new Float32Array(HEAP);
+            const HEAPF = (this.gSampleSize === 4) ? new Float32Array(HEAP) : new Float64Array(HEAP);
 
             if (this.getNumInputs() > 0) {
                 for (let chan = 0; chan < this.getNumInputs(); chan++) {
@@ -576,7 +575,7 @@ namespace Faust {
                 // Prepare Ins buffer tables
                 const dspInChans = HEAP32.subarray(this.fAudioInputs >> 2, (this.fAudioInputs + this.getNumInputs() * this.gPtrSize) >> 2);
                 for (let chan = 0; chan < this.getNumInputs(); chan++) {
-                    this.fInChannels[chan] = HEAPF32.subarray(dspInChans[chan] >> 2, (dspInChans[chan] + this.fBufferSize * this.gSampleSize) >> 2);
+                    this.fInChannels[chan] = HEAPF.subarray(dspInChans[chan] >> Math.log2(this.gSampleSize), (dspInChans[chan] + this.fBufferSize * this.gSampleSize) >> Math.log2(this.gSampleSize));
                 }
             }
             if (this.getNumOutputs() > 0) {
@@ -587,7 +586,7 @@ namespace Faust {
                 // Prepare Out buffer tables
                 const dspOutChans = HEAP32.subarray(this.fAudioOutputs >> 2, (this.fAudioOutputs + this.getNumOutputs() * this.gPtrSize) >> 2);
                 for (let chan = 0; chan < this.getNumOutputs(); chan++) {
-                    this.fOutChannels[chan] = HEAPF32.subarray(dspOutChans[chan] >> 2, (dspOutChans[chan] + this.fBufferSize * this.gSampleSize) >> 2);
+                    this.fOutChannels[chan] = HEAPF.subarray(dspOutChans[chan] >> Math.log2(this.gSampleSize), (dspOutChans[chan] + this.fBufferSize * this.gSampleSize) >> Math.log2(this.gSampleSize));
                 }
             }
         }

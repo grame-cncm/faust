@@ -93,8 +93,8 @@ if [ $POLY = "true" ]; then
             echo "Compiled with 'wasm' backend in polyphonic and AudioWorklet mode"
             WASM="wasm-e"
             HTML_FOOTER=webaudio-wasm-poly-worklet-footer.html
-            echo "The mixer32.wasm code is copied"
-            cp $FAUSTARCH/webaudio/mixer32.wasm .
+            echo "The mixer32.wasm and mixer64.wasm code is copied"
+            cp $FAUSTARCH/webaudio/mixer32.wasm $FAUSTARCH/webaudio/mixer64.wasm .
         fi
     else
         if [ $EMCC = "true" ]; then
@@ -105,8 +105,8 @@ if [ $POLY = "true" ]; then
             echo "Compiled with 'wasm' backend in polyphonic mode"
             WASM="wasm-e"
             HTML_FOOTER=webaudio-wasm-poly-footer.html
-            echo "The mixer32.wasm code is copied"
-            cp $FAUSTARCH/webaudio/mixer32.wasm .
+            echo "The mixer32.wasm and mixer64.wasm code is copied"
+            cp $FAUSTARCH/webaudio/mixer32.wasm $FAUSTARCH/webaudio/mixer64.wasm .
         fi
     fi
 else

@@ -80,13 +80,12 @@ namespace Faust {
             }
         }
 
-        private createWasmMemory(voicesIn: number, dsp_JSON: TFaustJSON, effect_JSON: TFaustJSON | null, buffer_size: number)
+        private createWasmMemory(voices_in: number, sample_size: number, voice_JSON: TFaustJSON, effect_JSON: TFaustJSON | null, buffer_size: number)
             : WebAssembly.Memory {
             // Hack : at least 4 voices (to avoid weird WASM memory bug?)
-            const voices = Math.max(4, voicesIn);
+            const voices = Math.max(4, voices_in);
             // Memory allocator
             const ptr_size = 4;
-            const sample_size = 4;
             const pow2limit = (x: number) => {
                 let n = 65536; // Minimum = 64 kB
                 while (n < x) { n *= 2; }
@@ -96,12 +95,11 @@ namespace Faust {
             // Memory for voices + effect + audio buffers
             let memory_size = pow2limit(
                 effect_size
-                + dsp_JSON.size * voices
-                + (dsp_JSON.inputs + dsp_JSON.outputs * 2)
+                + voice_JSON.size * voices
+                + (voice_JSON.inputs + voice_JSON.outputs * 2)
                 * (ptr_size + buffer_size * sample_size)
             ) / 65536;
             memory_size = Math.max(2, memory_size); // As least 2
-            console.log("memory_size", memory_size);
             return new WebAssembly.Memory({ initial: memory_size, maximum: memory_size });
         }
 
@@ -116,8 +114,9 @@ namespace Faust {
             // Parse JSON to get 'size' and 'inputs/outputs' infos
             const voice_JSON = createFaustJSON(voice_factory.json);
             const effect_JSON = (effect_factory && effect_factory.json) ? createFaustJSON(effect_factory.json) : null;
+            const sample_size = voice_JSON.compile_options.match("-double") ? 8 : 4;
             // Memory will be shared by voice, mixer and (possibly) effect instances
-            return this.createWasmMemory(voices, voice_JSON, effect_JSON, 8192);
+            return this.createWasmMemory(voices, sample_size, voice_JSON, effect_JSON, 8192);
         }
 
         private createMixerAux(mixer_module: WebAssembly.Module, memory: WebAssembly.Memory): MixerAPI {
