@@ -36,6 +36,7 @@ all:
 	$(MAKE) cpp1
 	$(MAKE) ocpp
 	$(MAKE) c
+	$(MAKE) c1
 	$(MAKE) mute
 	$(MAKE) wasm
 	$(MAKE) wast

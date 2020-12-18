@@ -31,30 +31,16 @@ class one_sample_dsp : public dsp {
   
     protected:
         
-        int* iZone;
-        FAUSTFLOAT* fZone;
-    
         FAUSTFLOAT* fInputs;
         FAUSTFLOAT* fOutputs;
     
-        void initControl()
-        {
-            iZone = new int[getNumIntControls()];
-            fZone = new FAUSTFLOAT[getNumRealControls()];
-            
-            fInputs = new FAUSTFLOAT[getNumInputs() * 4096];
-            fOutputs = new FAUSTFLOAT[getNumOutputs() * 4096];
-        }
-    
     public:
     
-        one_sample_dsp():iZone(nullptr), fZone(nullptr), fInputs(nullptr), fOutputs(nullptr)
+        one_sample_dsp():fInputs(nullptr), fOutputs(nullptr)
         {}
     
         virtual ~one_sample_dsp()
         {
-            delete [] iZone;
-            delete [] fZone;
             delete [] fInputs;
             delete [] fOutputs;
         }
@@ -76,8 +62,8 @@ class one_sample_dsp : public dsp {
         /**
          * Update the DSP control state.
          *
-         * @param icontrol - an externally allocated array of 'int' typed values used to keep the DSP control state
-         * @param fcontrol - an externally allocated array of 'float, double or quad' typed values used to keep the DSP control state
+         * @param iControl - an externally allocated array of 'int' typed values used to keep the DSP control state
+         * @param fControl - an externally allocated array of 'float, double or quad' typed values used to keep the DSP control state
          */
         virtual void control(int* iControl, FAUSTFLOAT* fControl) = 0;
         
@@ -86,15 +72,18 @@ class one_sample_dsp : public dsp {
          *
          * @param inputs - the input audio buffers as an array of getNumInputs FAUSTFLOAT samples (either float, double or quad)
          * @param outputs - the output audio buffers as an array of getNumOutputs FAUSTFLOAT samples (either float, double or quad)
-         * @param icontrol - the externally allocated array of 'int' typed values used to keep the DSP control state
-         * @param fcontrol - the externally allocated array of 'float, double or quad' typed values used to keep the DSP control state
+         * @param iControl - the externally allocated array of 'int' typed values used to keep the DSP control state
+         * @param fControl - the externally allocated array of 'float, double or quad' typed values used to keep the DSP control state
          */
         virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs, int* iControl, FAUSTFLOAT* fControl) = 0;
     
         // The standard 'compute' expressed using the control/compute (one sample) model
         virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
         {
-            if (!fInputs) initControl();
+            if (!fInputs) {
+                fInputs = new FAUSTFLOAT[getNumInputs() * 4096];
+                fOutputs = new FAUSTFLOAT[getNumOutputs() * 4096];
+            }
             
             // Control
             int int_control[getNumIntControls()];

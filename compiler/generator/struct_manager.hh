@@ -30,17 +30,22 @@
 
 // Describe a field memory location in the DSP structure
 struct MemoryDesc {
-    int fIndex;   // Field index
-    int fOffset;  // Field offset in bytes
-    int fSize;    // Field size in bytes
+    int fIndex;         // Field index
+    int fOffset;        // Field offset in bytes in a mixed int/real zone
+    int fIntOffset;     // Field offset in bytes in a separated int zone
+    int fRealOffset;    // Field offset in bytes in a separated real zone
+    int fSize;          // Field size in bytes
 
     Typed::VarType fType;
 
-    MemoryDesc() : fIndex(-1), fOffset(-1), fSize(-1), fType(Typed::kNoType) {}
+    MemoryDesc() : fIndex(-1), fOffset(-1), fIntOffset(-1), fRealOffset(-1), fSize(-1), fType(Typed::kNoType) {}
 
     MemoryDesc(int index, int offset, int size, Typed::VarType type)
-    : fIndex(index), fOffset(offset), fSize(size), fType(type) {}
+    : fIndex(index), fOffset(offset), fIntOffset(-1), fRealOffset(-1), fSize(size), fType(type) {}
  
+    MemoryDesc(int index, int offset, int int_offset, int read_offset, int size, Typed::VarType type)
+    : fIndex(index), fOffset(offset), fIntOffset(int_offset), fRealOffset(read_offset), fSize(size), fType(type) {}
+    
     Typed* getTyped()
     {
         if (fSize > 1) {
@@ -79,13 +84,35 @@ struct StructInstVisitor : public DispatchVisitor {
         return false;
     }
     
-    // Return the offset of a given field
+    // Return the offset of a given field in bytes
     int getFieldOffset(const string& name)
     {
         for (auto& field : fFieldTable) {
             if (field.first == name) return field.second.fOffset;
         }
         std::cerr << "ERROR in getFieldOffset : " << name << std::endl;
+        faustassert(false);
+        return -1;
+    }
+    
+    // Return the int offset of a given field in bytes
+    int getFieldIntOffset(const string& name)
+    {
+        for (auto& field : fFieldTable) {
+            if (field.first == name) return field.second.fIntOffset;
+        }
+        std::cerr << "ERROR in getFieldIntOffset : " << name << std::endl;
+        faustassert(false);
+        return -1;
+    }
+    
+    // Return the real offset of a given field in bytes
+    int getFieldRealOffset(const string& name)
+    {
+        for (auto& field : fFieldTable) {
+            if (field.first == name) return field.second.fRealOffset;
+        }
+        std::cerr << "ERROR in getFieldRealOffset : " << name << std::endl;
         faustassert(false);
         return -1;
     }
@@ -147,10 +174,20 @@ struct StructInstVisitor : public DispatchVisitor {
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
                 if (array_typed->fType->getType() == Typed::kInt32) {
-                    fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++, getStructSize(), array_typed->fSize, array_typed->fType->getType())));
+                    fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++,
+                                                                     getStructSize(),
+                                                                     getStructIntSize(),
+                                                                     getStructRealSize(),
+                                                                     array_typed->fSize,
+                                                                     array_typed->fType->getType())));
                     fStructIntOffset += array_typed->getSize();
                 } else {
-                    fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++, getStructSize(), array_typed->fSize, array_typed->fType->getType())));
+                    fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++,
+                                                                     getStructSize(),
+                                                                     getStructIntSize(),
+                                                                     getStructRealSize(),
+                                                                     array_typed->fSize,
+                                                                     array_typed->fType->getType())));
                     fStructRealOffset += array_typed->getSize();
                 }
             } else {
@@ -160,10 +197,18 @@ struct StructInstVisitor : public DispatchVisitor {
         } else {
             if (is_struct) {
                 if (inst->fType->getType() == Typed::kInt32) {
-                    fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++, getStructSize(), 1, inst->fType->getType())));
+                    fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++,
+                                                                     getStructSize(),
+                                                                     getStructIntSize(),
+                                                                     getStructRealSize(),
+                                                                     1, inst->fType->getType())));
                     fStructIntOffset += inst->fType->getSize();
                 } else {
-                    fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++, getStructSize(), 1, inst->fType->getType())));
+                    fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++,
+                                                                     getStructSize(),
+                                                                     getStructIntSize(),
+                                                                     getStructRealSize(),
+                                                                     1, inst->fType->getType())));
                     fStructRealOffset += inst->fType->getSize();
                 }
             } else {
