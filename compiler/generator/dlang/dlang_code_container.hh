@@ -83,6 +83,20 @@ class DLangScalarCodeContainer : public DLangCodeContainer {
     void generateCompute(int tab);
 };
 
+class DLangScalarOneSampleCodeContainer : public DLangScalarCodeContainer {
+   protected:
+    virtual void produceClass();
+   public:
+    DLangScalarOneSampleCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out,
+                                    int sub_container_type)
+    : DLangScalarCodeContainer(name, super, numInputs, numOutputs, out, sub_container_type)
+    {}
+    virtual ~DLangScalarOneSampleCodeContainer()
+    {}
+
+    void generateCompute(int tab);
+};
+
 class DLangVectorCodeContainer : public VectorCodeContainer, public DLangCodeContainer {
    protected:
    public:

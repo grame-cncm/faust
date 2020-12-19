@@ -39,7 +39,9 @@ dsp_factory_base* DLangCodeContainer::produceFactory()
 
 CodeContainer* DLangCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new DLangScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
+    return (gGlobal->gOneSample)
+        ? new DLangScalarOneSampleCodeContainer(name, "", 0, 1, fOut, sub_container_type)
+        : new DLangScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
 }
 
 CodeContainer* DLangCodeContainer::createContainer(const string& name, const string& super, int numInputs,
@@ -67,7 +69,9 @@ CodeContainer* DLangCodeContainer::createContainer(const string& name, const str
     } else if (gGlobal->gVectorSwitch) {
         container = new DLangVectorCodeContainer(name, super, numInputs, numOutputs, dst);
     } else {
-        container = new DLangScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
+        container = (gGlobal->gOneSample)
+            ? new DLangScalarOneSampleCodeContainer(name, super, numInputs, numOutputs, dst, kInt)
+            : new DLangScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
     }
 
     return container;
@@ -129,7 +133,7 @@ void DLangCodeContainer::produceInit(int tabs)
 }
 
 void DLangCodeContainer::printHeader()
-{ 
+{
     int n = 0;
     tab(n, *fOut);
     // *fOut << "#!/usr/bin/env dub\n";
@@ -140,7 +144,7 @@ void DLangCodeContainer::printHeader()
     *fOut << "dependency \"dplug:core\" version=\"*\"";
     tab(n, *fOut);
     *fOut << "+/\n";
-    CodeContainer::printHeader(*fOut); 
+    CodeContainer::printHeader(*fOut);
     *fOut << "module " << dModuleName(fKlassName) << ";\n";
 }
 
@@ -182,7 +186,7 @@ void DLangCodeContainer::produceInternal()
 
     // fKlassName used in method naming for subclasses
     produceInfoFunctions(n + 1, fKlassName, "dsp", true, false, &fCodeProducer);
-    
+
     // TODO
     // generateInstanceInitFun("instanceInit" + fKlassName, true, false)->accept(&fCodeProducer);
 
@@ -225,7 +229,7 @@ void DLangCodeContainer::produceInternal()
             << " return assumeNothrowNoGC(&mallocNew!(" << fKlassName << "))(); }";
     tab(n, *fOut);
     *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp) nothrow @nogc { destroyFree(dsp); }";
-    
+
     tab(n, *fOut);
 }
 
@@ -255,13 +259,13 @@ void DLangCodeContainer::produceClass()
     tab(n, *fOut);
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
-    
+
     tab(n, *fOut);
     *fOut << "class " << fKlassName << " : " << fSuperKlassName << "\n{\n";
     *fOut << "nothrow:\n";
     *fOut << "@nogc:\n";
-    
-    
+
+
     tab(n + 1, *fOut);
 
     if (gGlobal->gUIMacroSwitch) {
@@ -330,7 +334,7 @@ void DLangCodeContainer::produceClass()
     produceInfoFunctions(n + 1, "", "dsp", true, true, &fCodeProducer);  // Inits
 
     tab(n + 1, *fOut);
-    *fOut << "void classInit(int sample_rate) {";
+    *fOut << "static void classInit(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateStaticInit(&fCodeProducer);
@@ -427,15 +431,223 @@ void DLangScalarCodeContainer::generateCompute(int n)
 
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
-   
+
     // Generates one single scalar loop
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
     loop->accept(&fCodeProducer);
-   
+
     generatePostComputeBlock(&fCodeProducer);
 
     back(1, *fOut);
     *fOut << "}";
+}
+
+// One Sample Scalar
+
+void DLangScalarOneSampleCodeContainer::generateCompute(int n)
+{
+    // Generates declaration
+    tab(n + 1, *fOut);
+    tab(n + 1, *fOut);
+    *fOut << subst("void compute($0[] inputs, $0[] outputs, int[] iControl, $0[] fControl) {", xfloat());
+    tab(n + 2, *fOut);
+    fCodeProducer.Tab(n + 2);
+
+    // Generates one sample computation
+    BlockInst* block = fCurLoop->generateOneSample();
+    block->accept(&fCodeProducer);
+
+    /*
+     // TODO : atomic switch
+     // Currently for soundfile management
+     */
+    generatePostComputeBlock(&fCodeProducer);
+
+    back(1, *fOut);
+    *fOut << "}";
+}
+
+void DLangScalarOneSampleCodeContainer::produceClass()
+{
+    int n = 0;
+
+    // Libraries
+    printLibrary(*fOut);
+
+    generateImports(n);
+
+    // Sub containers
+    generateSubContainers();
+
+    *fOut << "alias FAUSTCLASS = " << fKlassName << ";" << endl;
+    tab(n, *fOut);
+
+    // Global declarations
+    tab(n, *fOut);
+    fCodeProducer.Tab(n);
+    generateGlobalDeclarations(&fCodeProducer);
+
+    *fOut << "enum FAUST_INPUTS = " << fNumInputs << ";" << endl;
+    *fOut << "enum FAUST_OUTPUTS = " << fNumOutputs << ";" << endl;
+    *fOut << "enum FAUST_INT_CONTROLS = " << fInt32ControlNum << ";" << endl;
+    *fOut << "enum FAUST_REAL_CONTROLS = " << fRealControlNum << ";" << endl;
+    tab(n, *fOut);
+    fSuperKlassName = "one_sample_dsp";
+
+    tab(n, *fOut);
+    *fOut << "class " << fKlassName << " : " << fSuperKlassName << "\n{\n";
+    *fOut << "nothrow:\n";
+    *fOut << "@nogc:\n";
+    tab(n + 1, *fOut);
+
+    if (gGlobal->gUIMacroSwitch) {
+        tab(n, *fOut);
+        *fOut << " public:";
+    } else {
+        tab(n, *fOut);
+        *fOut << " private:";
+    }
+    tab(n + 1, *fOut);
+
+    // Fields
+    fCodeProducer.Tab(n + 1);
+    tab(n + 1, *fOut);
+    generateDeclarations(&fCodeProducer);
+
+    if (fAllocateInstructions->fCode.size() > 0) {
+        tab(n + 1, *fOut);
+        *fOut << "void allocate() {";
+        tab(n + 2, *fOut);
+        fCodeProducer.Tab(n + 2);
+        generateAllocate(&fCodeProducer);
+        back(1, *fOut);
+        *fOut << "}";
+        tab(n + 1, *fOut);
+    }
+
+    if (fDestroyInstructions->fCode.size() > 0) {
+        tab(n + 1, *fOut);
+        *fOut << "void destroy() {";
+        tab(n + 2, *fOut);
+        fCodeProducer.Tab(n + 2);
+        generateDestroy(&fCodeProducer);
+        back(1, *fOut);
+        *fOut << "}";
+        tab(n + 1, *fOut);
+    }
+
+    tab(n, *fOut);
+    *fOut << " public:";
+
+    // Print metadata declaration
+    tab(n + 1, *fOut);
+    produceMetadata(n + 1);
+
+    if (fAllocateInstructions->fCode.size() > 0) {
+        tab(n + 1, *fOut);
+        *fOut << fKlassName << "() {";
+        tab(n + 2, *fOut);
+        *fOut << "allocate();";
+        tab(n + 1, *fOut);
+        *fOut << "}" << endl;
+    }
+
+    if (fDestroyInstructions->fCode.size() > 0) {
+        tab(n + 1, *fOut);
+        *fOut << "~" << fKlassName << "() {";
+        tab(n + 2, *fOut);
+        *fOut << "destroy();";
+        tab(n + 1, *fOut);
+        *fOut << "}" << endl;
+    }
+
+    tab(n + 1, *fOut);
+    // No class name for main class
+    produceInfoFunctions(n + 1, "", "dsp", true, true, &fCodeProducer);  // Inits
+
+    tab(n + 1, *fOut);
+    *fOut << "static void classInit(int sample_rate) {";
+    tab(n + 2, *fOut);
+    fCodeProducer.Tab(n + 2);
+    generateStaticInit(&fCodeProducer);
+    back(1, *fOut);
+    *fOut << "}";
+
+    tab(n + 1, *fOut);
+    tab(n + 1, *fOut);
+    *fOut << "void instanceConstants(int sample_rate) {";
+    tab(n + 2, *fOut);
+    fCodeProducer.Tab(n + 2);
+    generateInit(&fCodeProducer);
+    back(1, *fOut);
+    *fOut << "}";
+    tab(n + 1, *fOut);
+
+    tab(n + 1, *fOut);
+    *fOut << "void instanceResetUserInterface() {";
+    tab(n + 2, *fOut);
+    fCodeProducer.Tab(n + 2);
+    generateResetUserInterface(&fCodeProducer);
+    back(1, *fOut);
+    *fOut << "}";
+    tab(n + 1, *fOut);
+
+    tab(n + 1, *fOut);
+    *fOut << "void instanceClear() {";
+    tab(n + 2, *fOut);
+    fCodeProducer.Tab(n + 2);
+    generateClear(&fCodeProducer);
+    back(1, *fOut);
+    *fOut << "}";
+    tab(n + 1, *fOut);
+
+    // Init
+    produceInit(n + 1);
+
+    tab(n + 1, *fOut);
+    tab(n + 1, *fOut);
+    *fOut << fKlassName << " clone() {";
+    tab(n + 2, *fOut);
+    *fOut << "return (mallocNew!" << fKlassName << "());";
+    tab(n + 1, *fOut);
+    *fOut << "}";
+
+    tab(n + 1, *fOut);
+    fCodeProducer.Tab(n + 1);
+    tab(n + 1, *fOut);
+    generateGetSampleRate("getSampleRate", "dsp", true, true)->accept(&fCodeProducer);
+
+    // User interface
+    tab(n + 1, *fOut);
+    *fOut << "void buildUserInterface(UI* uiInterface) {";
+    tab(n + 2, *fOut);
+    fCodeProducer.Tab(n + 2);
+    generateUserInterface(&fCodeProducer);
+    back(1, *fOut);
+    *fOut << "}";
+
+    tab(n + 1, *fOut);
+    *fOut << subst("void control(int[] iControl, $0[] fControl) {", xfloat());
+    tab(n + 2, *fOut);
+    fCodeProducer.Tab(n + 2);
+    // Generates local variables declaration and setup
+    generateComputeBlock(&fCodeProducer);
+    back(1, *fOut);
+    *fOut << "}" << endl;
+
+    tab(n + 1, *fOut);
+    *fOut << "int getNumIntControls() { return " << fInt32ControlNum << "; }";
+    tab(n + 1, *fOut);
+    *fOut << "int getNumRealControls() { return " << fRealControlNum << "; }";
+
+    // Compute
+    generateCompute(n);
+    tab(n, *fOut);
+    tab(n, *fOut);
+    *fOut << "};" << endl;
+
+    // Generate user interface macros if needed
+    printMacros(*fOut, n);
 }
 
 // Vector
