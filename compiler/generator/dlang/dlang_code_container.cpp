@@ -80,7 +80,7 @@ CodeContainer* DLangCodeContainer::createContainer(const string& name, const str
 void DLangCodeContainer::produceMetadata(int tabs)
 {
     tab(tabs, *fOut);
-    *fOut << "void metadata(Meta* m) { ";
+    *fOut << "void metadata(Meta* m) nothrow @nogc { ";
 
     // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
     for (auto& i : gGlobal->gMetaDataSet) {
@@ -112,7 +112,7 @@ void DLangCodeContainer::produceInit(int tabs)
 {
 
     tab(tabs, *fOut);
-    *fOut << "void initialize(int sample_rate) {";
+    *fOut << "void initialize(int sample_rate) nothrow @nogc {";
     tab(tabs + 1, *fOut);
     *fOut << "classInit(sample_rate);";
     tab(tabs + 1, *fOut);
@@ -121,7 +121,7 @@ void DLangCodeContainer::produceInit(int tabs)
     *fOut << "}";
 
     tab(tabs, *fOut);
-    *fOut << "void instanceInit(int sample_rate) {";
+    *fOut << "void instanceInit(int sample_rate) nothrow @nogc {";
     tab(tabs + 1, *fOut);
     *fOut << "instanceConstants(sample_rate);";
     tab(tabs + 1, *fOut);
@@ -253,8 +253,7 @@ void DLangCodeContainer::produceClass()
     generateSubContainers();
 
     *fOut << "alias FAUSTCLASS = " << fKlassName << ";" << endl;
-    tab(n, *fOut);
-
+  
     // Global declarations
     tab(n, *fOut);
     fCodeProducer.Tab(n);
@@ -334,7 +333,7 @@ void DLangCodeContainer::produceClass()
     produceInfoFunctions(n + 1, "", "dsp", true, true, &fCodeProducer);  // Inits
 
     tab(n + 1, *fOut);
-    *fOut << "static void classInit(int sample_rate) {";
+    *fOut << "static void classInit(int sample_rate) nothrow @nogc {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateStaticInit(&fCodeProducer);
@@ -343,7 +342,7 @@ void DLangCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "void instanceConstants(int sample_rate) {";
+    *fOut << "void instanceConstants(int sample_rate) nothrow @nogc {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
@@ -352,7 +351,7 @@ void DLangCodeContainer::produceClass()
     tab(n + 1, *fOut);
 
     tab(n + 1, *fOut);
-    *fOut << "void instanceResetUserInterface() {";
+    *fOut << "void instanceResetUserInterface() nothrow @nogc {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateResetUserInterface(&fCodeProducer);
@@ -361,7 +360,7 @@ void DLangCodeContainer::produceClass()
     tab(n + 1, *fOut);
 
     tab(n + 1, *fOut);
-    *fOut << "void instanceClear() {";
+    *fOut << "void instanceClear() nothrow @nogc {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateClear(&fCodeProducer);
@@ -387,7 +386,7 @@ void DLangCodeContainer::produceClass()
 
     // User interface
     tab(n + 1, *fOut);
-    *fOut << "void buildUserInterface(UI* uiInterface) {";
+    *fOut << "void buildUserInterface(UI* uiInterface) nothrow @nogc {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateUserInterface(&fCodeProducer);
@@ -417,7 +416,6 @@ void DLangCodeContainer::generateImports(int n)
     *fOut << "import std.math;\n";
     *fOut << "import std.algorithm : min, max;\n";
     *fOut << "import dplug.core.nogc: mallocNew, mallocSlice, destroyFree, assumeNothrowNoGC;\n";
-    tab(n, *fOut);
 }
 
 void DLangScalarCodeContainer::generateCompute(int n)
@@ -425,7 +423,7 @@ void DLangScalarCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << subst("void compute(int $0, $1*[] inputs, $1*[] outputs) {", fFullCount, xfloat());
+    *fOut << subst("void compute(int $0, $1*[] inputs, $1*[] outputs) nothrow @nogc {", fFullCount, xfloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
 
@@ -449,7 +447,7 @@ void DLangScalarOneSampleCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << subst("void compute($0[] inputs, $0[] outputs, int[] iControl, $0[] fControl) {", xfloat());
+    *fOut << subst("void compute($0[] inputs, $0[] outputs, int[] iControl, $0[] fControl) nothrow @nogc {", xfloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
 
@@ -566,7 +564,7 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     produceInfoFunctions(n + 1, "", "dsp", true, true, &fCodeProducer);  // Inits
 
     tab(n + 1, *fOut);
-    *fOut << "static void classInit(int sample_rate) {";
+    *fOut << "static void classInit(int sample_rate) nothrow @nogc {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateStaticInit(&fCodeProducer);
@@ -575,7 +573,7 @@ void DLangScalarOneSampleCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "void instanceConstants(int sample_rate) {";
+    *fOut << "void instanceConstants(int sample_rate) nothrow @nogc {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
@@ -584,7 +582,7 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     tab(n + 1, *fOut);
 
     tab(n + 1, *fOut);
-    *fOut << "void instanceResetUserInterface() {";
+    *fOut << "void instanceResetUserInterface() nothrow @nogc {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateResetUserInterface(&fCodeProducer);
@@ -593,7 +591,7 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     tab(n + 1, *fOut);
 
     tab(n + 1, *fOut);
-    *fOut << "void instanceClear() {";
+    *fOut << "void instanceClear() nothrow @nogc {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateClear(&fCodeProducer);
@@ -619,7 +617,7 @@ void DLangScalarOneSampleCodeContainer::produceClass()
 
     // User interface
     tab(n + 1, *fOut);
-    *fOut << "void buildUserInterface(UI* uiInterface) {";
+    *fOut << "void buildUserInterface(UI* uiInterface) nothrow @nogc {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateUserInterface(&fCodeProducer);
@@ -627,7 +625,7 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     *fOut << "}";
 
     tab(n + 1, *fOut);
-    *fOut << subst("void control(int[] iControl, $0[] fControl) {", xfloat());
+    *fOut << subst("void control(int[] iControl, $0[] fControl) nothrow @nogc {", xfloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     // Generates local variables declaration and setup
@@ -636,9 +634,9 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     *fOut << "}" << endl;
 
     tab(n + 1, *fOut);
-    *fOut << "int getNumIntControls() { return " << fInt32ControlNum << "; }";
+    *fOut << "int getNumIntControls() nothrow @nogc { return " << fInt32ControlNum << "; }";
     tab(n + 1, *fOut);
-    *fOut << "int getNumRealControls() { return " << fRealControlNum << "; }";
+    *fOut << "int getNumRealControls() nothrow @nogc { return " << fRealControlNum << "; }";
 
     // Compute
     generateCompute(n);
@@ -666,7 +664,7 @@ void DLangVectorCodeContainer::generateCompute(int n)
 
     // Generates declaration
     tab(n + 1, *fOut);
-    *fOut << subst("void compute(int $0, $1*[] inputs, $1*[] outputs) {", fFullCount, xfloat());
+    *fOut << subst("void compute(int $0, $1*[] inputs, $1*[] outputs) nothrow @nogc {", fFullCount, xfloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
 

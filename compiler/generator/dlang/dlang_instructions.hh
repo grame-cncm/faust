@@ -45,6 +45,7 @@ class DLangInstVisitor : public TextInstVisitor {
 
     DLangInstVisitor(std::ostream* out, int tab = 0) : TextInstVisitor(out, ".", ifloat(), "*", tab)
     {
+        // Int version
         gPolyMathLibTable["abs"]   = "std.math.abs";
         gPolyMathLibTable["max_i"] = "max";
         gPolyMathLibTable["min_i"] = "min";
@@ -67,6 +68,7 @@ class DLangInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["max_f"]  = "fmax";
         gPolyMathLibTable["min_f"]  = "fmin";
         gPolyMathLibTable["powf"]   = "pow";
+        gPolyMathLibTable["remainderf"] = "remainder";
         gPolyMathLibTable["roundf"] = "round";
         gPolyMathLibTable["sinf"]   = "sin";
         gPolyMathLibTable["sinhf"]  = "sinh";
@@ -91,13 +93,13 @@ class DLangInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["max_"]  = "fmax";
         gPolyMathLibTable["min_"]  = "fmin";
         gPolyMathLibTable["pow"]   = "pow";
+        gPolyMathLibTable["remainder"] = "remainder";
         gPolyMathLibTable["round"] = "round";
         gPolyMathLibTable["sin"]   = "sin";
         gPolyMathLibTable["sinh"]  = "sinh";
         gPolyMathLibTable["sqrt"]  = "sqrt";
         gPolyMathLibTable["tan"]   = "tan";
         gPolyMathLibTable["tanh"]  = "tanh";
-        
     }
 
     virtual ~DLangInstVisitor() {}
@@ -199,7 +201,7 @@ class DLangInstVisitor : public TextInstVisitor {
         }
 
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
-            *fOut << "static ";
+            *fOut << "__gshared ";
         }
 
         if (inst->fAddress->getAccess() & Address::kVolatile) {
@@ -211,14 +213,8 @@ class DLangInstVisitor : public TextInstVisitor {
             if (inst->fValue) {
                 *fOut << type << "[] " << inst->fAddress->getName() << " = ";
                 inst->fValue->accept(this);
-            }
-            else if (inst->fAddress->getAccess() & Address::kStack) {
-                *fOut << type << "[] " << inst->fAddress->getName() << " = mallocSlice!(" << type << ")(" << array_typed->fSize
-                      << ")";
-            }
-            else {
-                *fOut << type << "[] " << inst->fAddress->getName() << " = new " << type << "[" << array_typed->fSize
-                      << "]";
+            } else {
+                *fOut << type << "[" << array_typed->fSize << "] " << inst->fAddress->getName();
             }
         } else {
             *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
