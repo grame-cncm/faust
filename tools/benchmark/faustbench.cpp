@@ -111,7 +111,7 @@ static double bench(dsp* dsp, int dsp_size, const string& name, int run, int buf
     measure_dsp_aux<REAL> mes(dsp, buffer_size, 5., is_trace, is_control);  // Buffer_size and duration in sec of measure
     for (int i = 0; i < run; i++) {
         mes.measure();
-        if (is_trace) cout << name << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << "), DSP size : " << dsp_size << endl;
+        if (is_trace) cout << name << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << "), DSP struct size in bytes : " << dsp_size << endl;
         FAUSTBENCH_LOG<double>(mes.getStats());
     }
     return mes.getStats();

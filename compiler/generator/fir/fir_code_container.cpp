@@ -312,7 +312,7 @@ void FIRWorkStealingCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostre
     // Possibly generate separated functions
     if (fComputeFunctions->fCode.size() > 0) {
         *dst << endl;
-         *dst << "======= Separated functions begin ==========" << endl;
+        *dst << "======= Separated functions begin ==========" << endl;
         *dst << endl;
         // Complexity estimation
         dumpCost(fComputeFunctions, dst);

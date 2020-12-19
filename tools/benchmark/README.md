@@ -127,7 +127,7 @@ Here are the available options:
 
 ## faustbench
 
-The **faustbench** tool uses the C++ backend to generate a set of C++ files produced with different Faust compiler options. All files are then compiled in a unique binary that will measure the DSP CPU of all versions of the compiled DSP. The tool is supposed to be launched in a terminal, but it can be used to generate an iOS project, ready to be launched and tested in Xcode. Using the `-source` option allows to create and keep the intermediate C++ files, with a Makefile to produce the binary.
+The **faustbench** tool uses the C++ backend to generate a set of C++ files produced with different Faust compiler options. All files are then compiled in a unique binary that will measure the DSP CPU of all versions of the compiled DSP. The tool is supposed to be launched in a terminal, but it can be used to generate an iOS project, ready to be launched and tested in Xcode. Using the `-source` option allows to create and keep the intermediate C++ files, with a Makefile to produce the binary. The generated DSP struct size in bytes is also printed for each compiler option.
 
 `faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-bs <frames>] [-source] [-double] [-opt <level(0..3|-1)>] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
