@@ -410,6 +410,8 @@ if (${CMAKE_GENERATOR} STREQUAL "Visual Studio 14 2015 Win64")
 	set (VS "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/redist/x64/Microsoft.VC140.CRT")
 elseif (${CMAKE_GENERATOR} STREQUAL "Visual Studio 15 2017 Win64")
 	set (VS "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Redist/MSVC/14.16.27012/x64/Microsoft.VC141.CRT")
+elseif (${CMAKE_GENERATOR} STREQUAL "Visual Studio 16 2019 Win64")
+	set (VS "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Redist/MSVC/14.26.28720/x64/Microsoft.VC142.CRT")
 else()
 	set (VS "/unknown/visual/studio/version")
 endif()
@@ -418,7 +420,6 @@ install (
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 endif()
-
 
 
 ####################################
