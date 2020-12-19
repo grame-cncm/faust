@@ -194,7 +194,7 @@ void bench(const char* name)
     // allocate output channels (not initialized)
     for (int i = 0; i < numOutChan; i++) outChannel[i] = (float*)calloc(VSIZE, sizeof(float));
 
-    // init the dsp with a resoneable sampling rate)
+    // init the dsp with a reasonable sampling rate
     DSP.init(48000);
     double* timing = (double*) calloc(COUNT, sizeof(double));
 

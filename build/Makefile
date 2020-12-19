@@ -69,7 +69,7 @@ endif
 ifneq (,$(findstring Makefile, $(GENERATOR)))
 	PROJ = $(FAUSTDIR)/Makefile
 endif
-ifneq (,$(findstring "Visual Studio",$(GENERATOR)))
+ifneq (,$(findstring Visual Studio,$(GENERATOR)))
 	PROJ = $(FAUSTDIR)/faust.sln
 	JOBS ?= /maxcpucount:4
 endif
