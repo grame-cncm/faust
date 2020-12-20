@@ -153,7 +153,7 @@ void CCodeContainer::produceClass()
     *fOut << "extern \"C\" {" << endl;
     *fOut << "#endif" << endl;
     tab(n, *fOut);
-
+  
     // Libraries
     printLibrary(*fOut);
     printIncludeFile(*fOut);
@@ -371,6 +371,13 @@ void CScalarOneSampleCodeContainer::produceClass()
     *fOut << "#endif" << endl;
     tab(n, *fOut);
     
+    *fOut << "#if defined(_WIN32)" << endl;
+    *fOut << "#define RESTRICT __restrict" << endl;
+    *fOut << "#else" << endl;
+    *fOut << "#define RESTRICT __restrict__" << endl;
+    *fOut << "#endif" << endl;
+    tab(n, *fOut);
+
     // Libraries
     printLibrary(*fOut);
     printIncludeFile(*fOut);
@@ -586,7 +593,7 @@ void CScalarOneSampleCodeContainer::produceClass()
     }
     
     tab(n, *fOut);
-    *fOut << "void control" << fKlassName << "(" << fKlassName << "* dsp, " << subst("int* __restrict__ iControl, $0* __restrict__ fControl, int* __restrict__ iZone, $0* __restrict__ fZone) {", xfloat());
+    *fOut << "void control" << fKlassName << "(" << fKlassName << "* dsp, " << subst("int* RESTRICT iControl, $0* RESTRICT fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {", xfloat());
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
     // Generates local variables declaration and setup
@@ -697,10 +704,10 @@ void CScalarOneSampleCodeContainer::generateComputeAux(int n)
     tab(n, *fOut);
     if (gGlobal->gInPlace) {
         *fOut << "void compute" << fKlassName << "(" << fKlassName
-              << subst("* dsp, $0* inputs, $0* outputs, int* __restrict__ iControl, $0* __restrict__ fControl, int* __restrict__ iZone, $0* __restrict__ fZone) {", xfloat());
+              << subst("* dsp, $0* inputs, $0* outputs, int* RESTRICT iControl, $0* RESTRICT fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {", xfloat());
     } else {
         *fOut << "void compute" << fKlassName << "(" << fKlassName
-              << subst("* dsp, $0* __restrict__ inputs, $0* __restrict__ outputs, int* __restrict__ iControl, $0* __restrict__ fControl, int* __restrict__ iZone, $0* __restrict__ fZone) {", xfloat());
+              << subst("* dsp, $0* RESTRICT inputs, $0* RESTRICT outputs, int* RESTRICT iControl, $0* RESTRICT fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {", xfloat());
     }
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
