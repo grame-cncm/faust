@@ -61,15 +61,15 @@ bool setRealtimePriority()
 {
    version (Posix)
    {
-      passwd*                 pw;
-      int                     err;
-      uid_t                   uid;
-      int                     policy;
-      sched_param             param;
+      passwd*      pw;
+      int          err;
+      uid_t        uid;
+      int          policy;
+      sched_param  param;
 
-      uid = getuid ();
-      pw = getpwnam ("root");
-      setuid (pw.pw_uid);
+      uid = getuid();
+      pw = getpwnam("root");
+      setuid(pw.pw_uid);
 
       pthread_getschedparam(pthread_self(), &policy, &param);
       policy = SCHED_RR;
