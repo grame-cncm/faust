@@ -83,9 +83,9 @@
 
 const char* TEXT_APPL_LIST[] = {"Atom", "Smultron", "TextWrangler", "TextExit", "" };
 
-//===============
+//==============
 // MIDI handler
-//===============
+//==============
 
 struct faustgen_midi : public midi_handler {
     

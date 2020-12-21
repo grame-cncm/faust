@@ -133,7 +133,7 @@ using namespace std;
 #define ASSIST_INLET 	1
 #define ASSIST_OUTLET 	2
 
-#define EXTERNAL_VERSION    "0.79"
+#define EXTERNAL_VERSION    "0.80"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -145,6 +145,117 @@ std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
 static t_class* faust_class;
+
+//==============
+// MIDI handler
+//==============
+
+struct faustgen_midi : public midi_handler {
+    
+    void* m_midi_outlet = NULL;
+    
+    faustgen_midi(void* midi_outlet):m_midi_outlet(midi_outlet)
+    {}
+    
+    void sendMessage(std::vector<unsigned char>& message)
+    {
+        assert(m_midi_outlet);
+        for (int i = 0; i < message.size(); i++) {
+            outlet_int(m_midi_outlet, message[i]);
+        }
+    }
+    
+    // MIDI output API
+    MapUI* keyOn(int channel, int pitch, int velocity)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_NOTE_ON + channel);
+        message.push_back(pitch);
+        message.push_back(velocity);
+        sendMessage(message);
+        return NULL;
+    }
+    
+    void keyOff(int channel, int pitch, int velocity)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_NOTE_OFF + channel);
+        message.push_back(pitch);
+        message.push_back(velocity);
+        sendMessage(message);
+    }
+    
+    void ctrlChange(int channel, int ctrl, int val)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_CONTROL_CHANGE + channel);
+        message.push_back(ctrl);
+        message.push_back(val);
+        sendMessage(message);
+    }
+    
+    void chanPress(int channel, int press)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_AFTERTOUCH + channel);
+        message.push_back(press);
+        sendMessage(message);
+    }
+    
+    void progChange(int channel, int pgm)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_PROGRAM_CHANGE + channel);
+        message.push_back(pgm);
+        sendMessage(message);
+    }
+    
+    void keyPress(int channel, int pitch, int press)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_POLY_AFTERTOUCH + channel);
+        message.push_back(pitch);
+        message.push_back(press);
+        sendMessage(message);
+    }
+    
+    void pitchWheel(int channel, int wheel)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_PITCH_BEND + channel);
+        message.push_back(wheel & 0x7F);           // lsb 7bit
+        message.push_back((wheel >> 7) & 0x7F);    // msb 7bit
+        sendMessage(message);
+    }
+    
+    void ctrlChange14bits(int channel, int ctrl, int value) {}
+    
+    void startSync(double date)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_START);
+        sendMessage(message);
+    }
+    
+    void stopSync(double date)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_STOP);
+        sendMessage(message);
+    }
+    
+    void clock(double date)
+    {
+        std::vector<unsigned char> message;
+        message.push_back(MIDI_CLOCK);
+        sendMessage(message);
+    }
+    
+    void sysEx(double, std::vector<unsigned char>& message)
+    {
+        sendMessage(message);
+    }
+};
 
 /*--------------------------------------------------------------------------*/
 static const char* getCodeSize()
@@ -173,7 +284,8 @@ typedef struct faust
     SaveUI* m_savedUI;
 #ifdef MIDICTRL
     MidiUI* m_midiUI;
-    midi_handler* m_midiHandler;
+    faustgen_midi* m_midiHandler;
+    void* m_midi_outlet;
 #endif
 #ifdef SOUNDFILE
     SoundUI* m_soundInterface;
@@ -461,7 +573,8 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     x->m_mute = false;
     
 #ifdef MIDICTRL
-    x->m_midiHandler = new midi_handler();
+    x->m_midi_outlet = outlet_new((t_pxobject*)x, NULL);
+    x->m_midiHandler = new faustgen_midi(x->m_midi_outlet);
     x->m_midiUI = new MidiUI(x->m_midiHandler);
 #endif
     
@@ -473,7 +586,7 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     x->m_Outputs = x->m_dsp->getNumOutputs();
     
     x->m_control_outlet = outlet_new((t_pxobject*)x, (char*)"list");
-
+ 
     // Initialize at the system's sampling rate
     x->m_dsp->init(long(sys_getsr()));
     // Initialize User Interface (here connnection with controls)
