@@ -124,7 +124,7 @@ Code generation options:
 
   **-mapp**      **--math-approximation**         simpler/faster versions of 'floor/ceil/fmod/remainder' functions.
 
-  **-ns** \<name> **--namespace** \<name>           generate C++ code in a namespace \<name>.
+  **-ns** \<name> **--namespace** \<name>           generate C++ or D code in a namespace \<name>.
 
 
 Block diagram options:

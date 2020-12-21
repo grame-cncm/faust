@@ -145,7 +145,8 @@ void DLangCodeContainer::printHeader()
     tab(n, *fOut);
     *fOut << "+/\n";
     CodeContainer::printHeader(*fOut);
-    *fOut << "module " << dModuleName(fKlassName) << ";\n";
+    if (gGlobal->gArchFile == "")
+        *fOut << "module " << dModuleName(fKlassName) << ";\n";
 }
 
 void DLangCodeContainer::produceInternal()
@@ -233,11 +234,13 @@ void DLangCodeContainer::produceInternal()
     tab(n, *fOut);
 }
 
-string DLangCodeContainer::dModuleName(string fKlassName)
+string DLangCodeContainer::dModuleName(const string& klassName)
 {
-    string moduleName = fKlassName;
+    string moduleName = klassName;
     transform(moduleName.begin(), moduleName.end(), moduleName.begin(), ::tolower);
-    return gGlobal->gNameSpace + moduleName;
+    if (gGlobal->gNameSpace != "")
+        moduleName = gGlobal->gNameSpace + "." + moduleName;
+    return moduleName;
 }
 
 void DLangCodeContainer::produceClass()

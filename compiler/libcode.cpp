@@ -699,8 +699,8 @@ static bool processCmdline(int argc, const char* argv[])
         }
     }
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gOutputLang != "cpp") {
-        throw faustexception("ERROR : -ns can only be used with the cpp backend\n");
+    if (gGlobal->gNameSpace != "" && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "dlang") {
+        throw faustexception("ERROR : -ns can only be used with the cpp or dlang backend\n");
     }
     
     if (gGlobal->gMaskDelayLineThreshold < INT_MAX && (gGlobal->gVectorSwitch || (gGlobal->gOutputLang == "ocpp"))) {
@@ -910,7 +910,7 @@ static void printHelp()
     cout << tab
          << "-mapp      --math-approximation         simpler/faster versions of 'floor/ceil/fmod/remainder' functions." << endl;
     cout << tab
-         << "-ns <name> --namespace <name>           generate C++ code in a namespace <name>." << endl;
+         << "-ns <name> --namespace <name>           generate C++ or D code in a namespace <name>." << endl;
     cout << endl << "Block diagram options:" << line;
     cout << tab << "-ps        --postscript                 print block-diagram to a postscript file." << endl;
     cout << tab << "-svg       --svg                        print block-diagram to a svg file." << endl;
@@ -1558,9 +1558,13 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             char* current_directory = getcwd(buffer, FAUST_PATH_MAX);
 
             if ((enrobage = openArchStream(gGlobal->gArchFile.c_str())) != nullptr) {
-                
-                if (gGlobal->gNameSpace != "") *dst.get() << "namespace " << gGlobal->gNameSpace << " {" << endl;
-                
+                if (gGlobal->gNameSpace != "" && gGlobal->gOutputLang == "cpp")
+                    *dst.get() << "namespace " << gGlobal->gNameSpace << " {" << endl;
+#ifdef DLANG_BUILD
+                else if (gGlobal->gOutputLang == "dlang")
+                    *dst.get() << "module " << DLangCodeContainer::dModuleName(container->getClassName()) << ";" << endl;
+#endif
+
                 // Possibly inject code
                 injectCode(enrobage, *dst.get());
 
@@ -1604,9 +1608,10 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                         cerr << "can't restore current directory (" << current_directory << ")" << endl;
                     }
                 }
-                
-                if (gGlobal->gNameSpace != "") *dst.get() << "} // namespace " << gGlobal->gNameSpace << endl;
-                
+
+                if (gGlobal->gNameSpace != "" && gGlobal->gOutputLang == "cpp")
+                    *dst.get() << "} // namespace " << gGlobal->gNameSpace << endl;
+
             } else {
                 stringstream error;
                 error << "ERROR : can't open architecture file " << gGlobal->gArchFile << endl;
