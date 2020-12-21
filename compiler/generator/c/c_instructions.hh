@@ -125,20 +125,14 @@ class CInstVisitor : public TextInstVisitor {
         // Polymath mapping float version
         gPolyMathLibTable["min_f"]  = "fminf";
         gPolyMathLibTable["max_f"]  = "fmaxf";
-        gPolyMathLibTable["isnanf"] = "isnan";
-        gPolyMathLibTable["isinff"] = "isinf";
         
         // Polymath mapping double version
         gPolyMathLibTable["min_"]   = "fmin";
         gPolyMathLibTable["max_"]   = "fmax";
-        gPolyMathLibTable["isnan"]  = "isnan";
-        gPolyMathLibTable["isinf"]  = "isinf";
         
         // Polymath mapping quad version
         gPolyMathLibTable["min_l"]  = "fminl";
         gPolyMathLibTable["max_l"]  = "fmaxl";
-        gPolyMathLibTable["isnanl"] = "isnan";
-        gPolyMathLibTable["isinl"]  = "isinf";
     }
 
     virtual ~CInstVisitor() {}
