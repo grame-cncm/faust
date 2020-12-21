@@ -59,7 +59,7 @@ class DLangCodeContainer : public virtual CodeContainer {
     virtual void produceInternal();
   
     void generateImports(int tab);
-    string dModuleName(string fKlassName);
+    static string dModuleName(const string& klassName);
 
     virtual dsp_factory_base* produceFactory();
 
