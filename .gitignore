@@ -24,6 +24,7 @@ windows/*.user
 *.opensdf
 *.sdf
 compiler/faust
+user.mk
 ### VSCode cache
 .*.VC.db
 .vscode/
