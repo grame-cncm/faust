@@ -1,7 +1,8 @@
-LIB ?= ../../build/lib
 STRIP =
-FASTMATH = ../../architecture/faust/dsp/fastmath.cpp
-INC = ../../architecture/
+
+LIB ?= $(shell faust -libdir)
+FASTMATH = $(shell faust -includedir)/faust/dsp/fastmath.cpp
+INC = $(shell faust -includedir)
 
 DESTDIR ?=
 PREFIX ?= /usr/local
