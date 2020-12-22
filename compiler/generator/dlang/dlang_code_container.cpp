@@ -134,19 +134,30 @@ void DLangCodeContainer::produceInit(int tabs)
 
 void DLangCodeContainer::printHeader()
 {
-    int n = 0;
-    tab(n, *fOut);
-    // *fOut << "#!/usr/bin/env dub\n";
-    *fOut << "/+ dub.sdl:";
-    tab(n + 1, *fOut);
-    *fOut << "name \"" << dModuleName(fKlassName) << "\"";
-    tab(n + 1, *fOut);
-    *fOut << "dependency \"dplug:core\" version=\"*\"";
-    tab(n, *fOut);
-    *fOut << "+/\n";
+    if (gGlobal->gArchFile == "")
+        printDRecipeComment(*fOut, fKlassName);
     CodeContainer::printHeader(*fOut);
     if (gGlobal->gArchFile == "")
-        *fOut << "module " << dModuleName(fKlassName) << ";\n";
+        printDModuleStmt(*fOut, fKlassName);
+}
+
+void DLangCodeContainer::printDRecipeComment(ostream& dst, const string& klassName)
+{
+    int n = 0;
+    tab(n, dst);
+    // dst << "#!/usr/bin/env dub\n";
+    dst << "/+ dub.sdl:";
+    tab(n + 1, dst);
+    dst << "name \"" << dModuleName(klassName) << "\"";
+    tab(n + 1, dst);
+    dst << "dependency \"dplug:core\" version=\"*\"";
+    tab(n, dst);
+    dst << "+/\n";
+}
+
+void DLangCodeContainer::printDModuleStmt(ostream& dst, const string& klassName)
+{
+    dst << "module " << dModuleName(klassName) << ";\n";
 }
 
 void DLangCodeContainer::produceInternal()

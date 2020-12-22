@@ -65,6 +65,9 @@ class DLangCodeContainer : public virtual CodeContainer {
 
     virtual void printHeader();
 
+    static void printDRecipeComment(ostream& dst, const string& klassName);
+    static void printDModuleStmt(ostream& dst, const string& klassName);
+
 
     CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 

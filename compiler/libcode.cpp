@@ -1561,8 +1561,10 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                 if (gGlobal->gNameSpace != "" && gGlobal->gOutputLang == "cpp")
                     *dst.get() << "namespace " << gGlobal->gNameSpace << " {" << endl;
 #ifdef DLANG_BUILD
-                else if (gGlobal->gOutputLang == "dlang")
-                    *dst.get() << "module " << DLangCodeContainer::dModuleName(container->getClassName()) << ";" << endl;
+                else if (gGlobal->gOutputLang == "dlang") {
+                    DLangCodeContainer::printDRecipeComment(*dst.get(), container->getClassName());
+                    DLangCodeContainer::printDModuleStmt(*dst.get(), container->getClassName());
+                }
 #endif
 
                 // Possibly inject code
