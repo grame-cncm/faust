@@ -43,7 +43,7 @@ class DLangInstVisitor : public TextInstVisitor {
    public:
     using TextInstVisitor::visit;
 
-    DLangInstVisitor(std::ostream* out, int tab = 0) : TextInstVisitor(out, ".", ifloat(), "*", tab)
+    DLangInstVisitor(std::ostream* out, int tab = 0) : TextInstVisitor(out, ".", xfloat(), "*", tab)
     {
         // Int version
         gPolyMathLibTable["abs"]   = "std.math.abs";
