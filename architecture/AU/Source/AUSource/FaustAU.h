@@ -26,3 +26,13 @@ enum
 #define CUSTOM_VIEW_BUNDLE_NAME "com.grame.audiounit.FaustAU"
 
 #endif
+
+// ADDED this
+
+#ifndef verify
+#define verify(assertion) __Verify(assertion)
+#endif
+
+#ifndef verify_noerr
+#define verify_noerr(errorCode)  __Verify_noErr(errorCode)
+#endif
