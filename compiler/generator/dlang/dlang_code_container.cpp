@@ -261,7 +261,7 @@ void DLangCodeContainer::produceClass()
     // Libraries
     printLibrary(*fOut);
 
-    generateImports(n);
+    generateImports();
 
     // Sub containers
     generateSubContainers();
@@ -425,7 +425,7 @@ DLangScalarCodeContainer::DLangScalarCodeContainer(const string& name, const str
     fSubContainerType = sub_container_type;
 }
 
-void DLangCodeContainer::generateImports(int n)
+void DLangCodeContainer::generateImports()
 {
     *fOut << "import std.math;\n";
     *fOut << "import std.algorithm : min, max;\n";
@@ -486,7 +486,7 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     // Libraries
     printLibrary(*fOut);
 
-    generateImports(n);
+    generateImports();
 
     // Sub containers
     generateSubContainers();

@@ -58,7 +58,7 @@ class DLangCodeContainer : public virtual CodeContainer {
     virtual void generateCompute(int tab) = 0;
     virtual void produceInternal();
   
-    void generateImports(int tab);
+    void generateImports();
     static string dModuleName(const string& klassName);
 
     virtual dsp_factory_base* produceFactory();
@@ -67,7 +67,6 @@ class DLangCodeContainer : public virtual CodeContainer {
 
     static void printDRecipeComment(ostream& dst, const string& klassName);
     static void printDModuleStmt(ostream& dst, const string& klassName);
-
 
     CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 

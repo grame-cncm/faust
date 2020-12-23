@@ -351,9 +351,4 @@ class DLangInstVisitor : public TextInstVisitor {
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 
-class DLangVecInstVisitor : public DLangInstVisitor {
-   public:
-    DLangVecInstVisitor(std::ostream* out, int tab = 0) : DLangInstVisitor(out, tab) {}
-};
-
 #endif
