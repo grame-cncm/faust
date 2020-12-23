@@ -85,7 +85,7 @@ namespace Faust {
             // Hack : at least 4 voices (to avoid weird WASM memory bug?)
             const voices = Math.max(4, voices_in);
             // Memory allocator
-            const ptr_size = 4;
+            const ptr_size = sample_size; // Done on wast/wasm backend side
             const pow2limit = (x: number) => {
                 let n = 65536; // Minimum = 64 kB
                 while (n < x) { n *= 2; }

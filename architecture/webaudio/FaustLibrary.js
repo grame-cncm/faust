@@ -183,7 +183,7 @@ var Faust;
         }
         createWasmMemory(voices_in, sample_size, voice_JSON, effect_JSON, buffer_size) {
             const voices = Math.max(4, voices_in);
-            const ptr_size = 4;
+            const ptr_size = sample_size;
             const pow2limit = (x) => {
                 let n = 65536;
                 while (n < x) {
@@ -353,7 +353,7 @@ var Faust;
             this.fBufferSize = buffer_size;
             this.fInChannels = [];
             this.fOutChannels = [];
-            this.gPtrSize = 4;
+            this.gPtrSize = sample_size;
             this.gSampleSize = sample_size;
             this.fOutputsTimer = 5;
             this.fInputsItems = [];
@@ -1468,9 +1468,11 @@ var Faust;
                 }
             });
         }
-        createOfflineProcessor(factory, sample_rate, sample_size, buffer_size) {
+        createOfflineProcessor(factory, sample_rate, buffer_size) {
             return __awaiter(this, void 0, void 0, function* () {
                 const instance = yield Faust.createGenerator().createAsyncMonoDSPInstance(factory);
+                const JSONObj = Faust.createFaustJSON(factory.json);
+                const sample_size = JSONObj.compile_options.match("-double") ? 8 : 4;
                 const mono_dsp = Faust.createMonoDSP(instance, sample_rate, sample_size, buffer_size);
                 return new Faust.FaustOfflineProcessorImp(mono_dsp, buffer_size);
             });

@@ -77,7 +77,7 @@ namespace Faust {
             this.fInChannels = [];
             this.fOutChannels = [];
 
-            this.gPtrSize = 4;
+            this.gPtrSize = sample_size; // Done on wast/wasm backend side
             this.gSampleSize = sample_size;
 
             this.fOutputsTimer = 5;
