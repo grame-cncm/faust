@@ -143,6 +143,10 @@ static void enumBackends(ostream& out)
     out << dspto << "C++" << endl;
 #endif
 
+#ifdef DLANG_BUILD
+    out << dspto << "DLang" << endl;
+#endif
+
 #ifdef FIR_BUILD
     out << dspto << "FIR" << endl;
 #endif
@@ -173,10 +177,6 @@ static void enumBackends(ostream& out)
 
 #ifdef WASM_BUILD
     out << dspto << "WebAssembly (wast/wasm)" << endl;
-#endif
-
-#ifdef DLANG_BUILD
-    out << dspto << "DLang" << endl;
 #endif
 }
 
