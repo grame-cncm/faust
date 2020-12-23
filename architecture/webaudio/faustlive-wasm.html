@@ -346,7 +346,8 @@
 
     <P> You can compile Faust .dsp files or URL by just dropping them on the drop zone. A WebAudio node will be created
         and connected to audio inputs/outputs and controlled with the displayed HTML/SVG based GUI.
-    <P>Settings (buffer size, polyphonic mode and voices, audio rendering model, ftz mode) can be changed dynamically
+    <P>Settings (buffer size, polyphonic mode and voices, audio rendering model, sample size and ftz mode) can be
+        changed dynamically
         and the DSP will be recompiled on the fly.
     <P>Clicking on the yellow cross on the top right allows to access to the GRAME online compiler, to generate
         different targets (like for instance standalone applications, VST, Max/MSP plugins, iOS or JUCE ready
@@ -391,7 +392,7 @@
                 </form>
             </div>
             <p>Assuming your DSP code is <a
-                    href="https://faust.grame.fr/news/2016/01/13/polyphonic-instruments.html ">polyphonic ready</a>, you
+                    href="https://faustdoc.grame.fr/manual/midi/#midi-polyphony-support">polyphonic ready</a>, you
                 can activate the polyphonic mode, adjust the number of available voices, and test it with a MIDI device
                 or application (usable with Chrome which implements the <a
                     href="https://webaudio.github.io/web-midi-api/">Web MIDI API</a>).
@@ -406,12 +407,20 @@
                     <option value=AudioWorklet> AudioWorklet </option>
                 </select>
             </form>
-            <p>ScriptProcessor: audio rendering is done using the old ScriptProcessor model</p>
+            <p>ScriptProcessor: audio rendering is done using the old ScriptProcessor model.</p>
             <p>AudioWorklet: audio rendering is done using the new AudioWorklet model.
             <p>
         </div>
 
         <div class="config-element">
+            <H3>Sample format</H3>
+            <form method="POST" name="menu">
+                <select id="selectedSampleFormat" name="selectedSampleFormat"
+                    onChange="setSampleFormat(this.form.selectedSampleFormat)">
+                    <option selected value=float> float </option>
+                    <option value=double> double </option>
+                </select>
+            </form>
             <H3>Float denormals handling</H3>
             <form method="POST" name="menu">
                 <select id="selectedFTZ" name="selectedFTZ" onChange="setFTZ(this.form.selectedFTZ)">
@@ -420,17 +429,10 @@
                     <option selected value=2> 2 </option>
                 </select>
             </form>
-            <p>0: means no denormal handling</p>
-            <p>1: uses <B>fabs</B> and a <B>threshold</B> to detect denormal values (slower)
+            <p>0: means no denormal handling.</p>
+            <p>1: uses <B>fabs</B> and a <B>threshold</B> to detect denormal values (slower).
             <p>
-            <p>2: uses a <B>bitmask</B> to detect denormal values (faster)</p>
-            <H3>Sample format</H3>
-            <form method="POST" name="menu">
-                <select id="selectedSampleFormat" name="selectedSampleFormat" onChange="setSampleFormat(this.form.selectedSampleFormat)">
-                    <option selected value=float> float </option>
-                    <option value=double> double </option>
-                </select>
-            </form>
+            <p>2: uses a <B>bitmask</B> to detect denormal values (faster).</p>
         </div>
 
     </div>
@@ -525,7 +527,7 @@
             ftz_flag = ftz_item.options[ftz_item.selectedIndex].value;
             compileDSP();
         }
-        
+
         function setSampleFormat(sample_item) {
             sample_format = sample_item.options[sample_item.selectedIndex].value;
             compileDSP();
