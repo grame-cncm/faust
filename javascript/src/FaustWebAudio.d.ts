@@ -344,7 +344,7 @@ declare namespace Faust {
 
         /**
          * Create a polyphonic WebAudio node (either ScriptProcessorNode or AudioWorkletNode).
-         * Note that the an internal cacheavoid recompilation when a same DSP program is recompiled several times.
+         * Note that the an internal cache avoid recompilation when a same DSP program is recompiled several times.
          *
          * @param {BaseAudioContext} context the WebAudio context
          * @param {string} name - the DSP name
@@ -352,8 +352,8 @@ declare namespace Faust {
          * @param {WebAssembly.Module} mixer_module - the wasm Mixer module (loaded from 'mixer32.wasm' file)
          * @param {number} voices - the number of voices
          * @param {boolean} sp - whether to compile a ScriptProcessorNode or an AudioWorkletNode
+         * @param {Factory} effect_factory - the Faust factory for the effect, either obtained with a compiler (createDSPFactory) or loaded from files (loadDSPFactory) 
          * @param {number} buffer_size - the buffer size in frames to be used in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
-         * @param {Factory} effect_factory - the Faust factory for the effect, either obtained with a compiler (createDSPFactory) or loaded from files (loadDSPFactory)
          * @preturn {Promise<FaustPolyNode | null>} the compiled WebAudio node or 'null' if failure
          */
         createNode(

@@ -201,41 +201,39 @@ The  following function is used to generate a *monophonic* node from a monophoni
 * @preturn {Promise<FaustMonoNode | null>} the compiled WebAudio node or 'null' if failure
 */
 createNode(context: BaseAudioContext,
-               name: string,
-               factory: Factory,
-               sp: boolean,
-               buffer_size?: number)
-               : Promise<FaustMonoNode | null>;
+            name: string,
+            factory: Factory,
+            sp: boolean,
+            buffer_size?: number)
+            : Promise<FaustMonoNode | null>;
 ```
 
 The  following function is used to generate a *polyphonic* node from a polyphonic factory, here is the TypeScript prototype:
 
-
 ```
 /**
-* Compile a polyphonic WebAudio node from a single DSP file (either ScriptProcessorNode or AudioWorkletNode)
+* Create a polyphonic WebAudio node (either ScriptProcessorNode or AudioWorkletNode).
+* Note that the an internal cache avoid recompilation when a same DSP program is recompiled several times.
 *
 * @param {BaseAudioContext} context the WebAudio context
 * @param {string} name - the DSP name
-* @param {Compiler} compiler - the Faust compiler
-* @param {string} dsp_code - the DSP code ('dsp_code' can possibly contain an integrated effect)
-* @param {string | null} effect_code - optional effect DSP code
-* @param {string} args - the compilation parameters
+* @param {Factory} voice_factory - the Faust factory for voices, either obtained with a compiler (createDSPFactory) or loaded from files (loadDSPFactory)
+* @param {WebAssembly.Module} mixer_module - the wasm Mixer module (loaded from 'mixer32.wasm' file)
 * @param {number} voices - the number of voices
 * @param {boolean} sp - whether to compile a ScriptProcessorNode or an AudioWorkletNode
-* @param {number} buffer_size - the buffer size in frames to be used, in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
+* @param {Factory} effect_factory - the Faust factory for the effect, either obtained with a compiler (createDSPFactory) or loaded from files (loadDSPFactory) 
+* @param {number} buffer_size - the buffer size in frames to be used in ScriptProcessorNode only, since AudioWorkletNode always uses 128 frames
 * @preturn {Promise<FaustPolyNode | null>} the compiled WebAudio node or 'null' if failure
 */
-compileNode(context: BaseAudioContext,
-                name: string,
-                compiler: Compiler,
-                dsp_code: string,
-                effect_code: string | null,
-                args: string,
-                voices: number,
-                sp: boolean,
-                buffer_size?: number)
-                : Promise<FaustPolyNode | null>;
+createNode(context: BaseAudioContext,
+            name: string,
+            voice_factory: Factory,
+            mixer_module: WebAssembly.Module,
+            voices: number,
+            sp: boolean,
+            effect_factory?: Factory,
+            buffer_size?: number)
+            : Promise<FaustPolyNode | null>;
 ```
 
 The resulting nodes have the same API as statically compiled nodes described in the first section, so can be controlled the same way, including the polyphonic ones.  Look at the [Dynamic Faust compiler](faustlive-wasm.html) page for a more complete use-case of the dynamic compiler.
