@@ -40,7 +40,8 @@ declare namespace Faust {
             voice_json_path: string,
             effect_path: string,
             effect_json_path: string,
-            mixer_path: string,
+            mixer32_path: string,
+            mixer64_path: string,
             voices: number,
             sp: boolean,
             buffer_size?: number)

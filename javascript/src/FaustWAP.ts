@@ -198,27 +198,33 @@ namespace Faust {
             voice_json_path_aux: string,
             effect_path_aux: string,
             effect_json_path_aux: string,
-            mixer_path_aux: string,
+            mixer32_path_aux: string,
+            mixer64_path_aux: string,
             voices: number,
             sp: boolean,
             buffer_size?: number)
             : Promise<FaustPolyWAPNode | null> {
             const voice_path = (this.fBaseURL === "") ? voice_path_aux : (this.fBaseURL + '/' + voice_path_aux);
             const voice_json_path = (this.fBaseURL === "") ? voice_json_path_aux : (this.fBaseURL + '/' + voice_json_path_aux);
-            const mixer_path = (this.fBaseURL === "") ? mixer_path_aux : (this.fBaseURL + '/' + mixer_path_aux);
             const effect_path = (this.fBaseURL === "") ? effect_path_aux : (this.fBaseURL + '/' + effect_path_aux);
             const effect_json_path = (this.fBaseURL === "") ? effect_json_path_aux : (this.fBaseURL + '/' + effect_json_path_aux);
             const gen = createGenerator();
             const voice_factory = await gen.loadDSPFactory(voice_path, voice_json_path);
+            if (!voice_factory) return null;
             const effect_factory = await gen.loadDSPFactory(effect_path, effect_json_path);
-            const mixer_module = await gen.loadDSPMixer(mixer_path);
-            if (voice_factory && mixer_module) {
-                const node = await this.createPolyWAPNode(this.fContext, "FaustDSP", voice_factory, mixer_module, voices, sp, ((effect_factory) ? effect_factory : undefined), 1024);
-                if (node) node.fBaseURL = this.fBaseURL;
-                return node;
+            const JSONObj = createFaustJSON(voice_factory.json);
+            const is_double = JSONObj.compile_options.match("-double");
+            let mixer_path = null;
+            if (is_double) {
+                mixer_path = (this.fBaseURL === "") ? mixer64_path_aux : (this.fBaseURL + '/' + mixer64_path_aux);
             } else {
-                return null;
+                mixer_path = (this.fBaseURL === "") ? mixer32_path_aux : (this.fBaseURL + '/' + mixer32_path_aux);
             }
+            const mixer_module = await gen.loadDSPMixer(mixer_path);
+            if (!mixer_module) return null;
+            const node = await this.createPolyWAPNode(this.fContext, "FaustDSP", voice_factory, mixer_module, voices, sp, ((effect_factory) ? effect_factory : undefined), 1024);
+            if (node) node.fBaseURL = this.fBaseURL;
+            return node;
         }
     }
 }
