@@ -11,7 +11,7 @@ FORMAT="pdf"
 for p in $@; do
     if [ "$p" = -svg ]; then
         FORMAT="svg"
-	elif [[ -f "$p" ]]; then
+	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
 	    FILES="$FILES $p"
 	else
 	    IGNORE="$IGNORE $p"

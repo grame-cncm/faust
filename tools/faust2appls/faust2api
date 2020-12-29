@@ -137,7 +137,7 @@ do
         OPT=$1
     elif [ "$PACKAGENAME" = "-1" ]; then
 		PACKAGENAME="$p"
-    elif [[ -f "$p" ]]; then
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
 		FILE="$p"
     elif [ $p = "-android" ]; then
 		ANDROID_DRIVER=1

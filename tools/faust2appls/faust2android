@@ -34,7 +34,7 @@ for p in $@; do
 	if [ $p = "-swig" ]; then
 		SWIG=1
 	fi
-	if [[ -f "$p" ]]; then
+	if [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
 	    FILE="$p"
 	elif [ $p = "-install" ]; then
 		INSTALL=1

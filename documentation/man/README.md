@@ -1,4 +1,4 @@
-% man(1) Version 2.30.3 (21-December-2020) | Faust man page
+% man(1) Version 2.30.4 (29-December-2020) | Faust man page
 
 NAME
 ====
@@ -124,7 +124,7 @@ Code generation options:
 
   **-mapp**      **--math-approximation**         simpler/faster versions of 'floor/ceil/fmod/remainder' functions.
 
-  **-ns** \<name> **--namespace** \<name>           generate C++ code in a namespace \<name>.
+  **-ns** \<name> **--namespace** \<name>           generate C++ or D code in a namespace \<name>.
 
 
 Block diagram options:

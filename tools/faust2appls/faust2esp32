@@ -316,12 +316,12 @@ if [[ "$LIB" == "0" && "$GRAMOPHONE" == "0" ]]; then
     fi
 
     #if [[ "$OSCDEFS" == *OSC* ]]; then
-	#echo '#define OSCCTRL' >> "$PROJECTDIR/tmp.txt"
+		#echo '#define OSCCTRL' >> "$PROJECTDIR/tmp.txt"
     #fi
 
     #if [[ "$GUIDEFS" == *GUI* ]]; then
-    #echo '#define HTTPDGUI' >> "$PROJECTDIR/tmp.txt"
-    #BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust"
+    	#echo '#define HTTPDGUI' >> "$PROJECTDIR/tmp.txt"
+    	#BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust"
     #fi
 
     #if [[ "$SOUNDFILEDEFS" == *SOUNDFILE* ]]; then

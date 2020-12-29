@@ -37,9 +37,9 @@ for p in $@; do
 	HELP=true
 
     elif [ ${p:0:1} = "-" ]; then
-    	OPTIONS="$OPTIONS $p ${params[$n]}"
+    OPTIONS="$OPTIONS $p ${params[$n]}"
 	
-    elif [[ -f "$p" ]]; then
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
 	FILES="$FILES $p"
        
     fi

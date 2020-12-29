@@ -48,7 +48,7 @@ do
         NVOICES=$1
     elif [ $p = "-midi" ]; then
         MIDI=1
-    elif [[ -f "$p" ]]; then
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILE="$p"
     elif [ $p = "-lib" ]; then
         LIB=1

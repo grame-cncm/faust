@@ -52,7 +52,7 @@ do
         SOUNDFILE=true
     elif [ $p = "-source" ]; then
         SOURCE=true
-    elif [[ -f "$p" ]]; then
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILE="$p"
     # other compile options
     else

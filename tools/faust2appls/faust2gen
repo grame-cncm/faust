@@ -30,7 +30,7 @@ do
     	exit
     fi
     
-    if [[ -f "$p" ]]; then
+    if [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
 	    FILES="$FILES $p"
     elif [ $p = "-nvoices" ]; then
         POLY="POLY1"
