@@ -135,7 +135,7 @@ for p in $FILES; do
 
             # compiling
             if [ $SOURCES = false ]; then
-            	$CXX -Ofast -march=$arch_cpu -c $dspName$cpu".cpp"
+            	$CXX -Ofast -march=$arch_cpu -I `faust -includedir` -c $dspName$cpu".cpp"
             fi
         fi
     done

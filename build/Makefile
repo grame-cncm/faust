@@ -55,7 +55,6 @@ BUILDOPT ?= --config Release
 
 #===============================================================
 # options
-JOBS	 ?= -j 4
 BACKENDS ?= $(shell [ -f $(BCACHE) ] && (grep BACKENDS $(BCACHE) | cut -d= -f2) || echo regular.cmake)
 TARGETS  ?= $(shell [ -f $(TCACHE) ] && (grep TARGETS $(TCACHE) | cut -d= -f2) || echo regular.cmake)
 LIBSDIR  ?= $(shell [ -f $(LCACHE) ] && (grep LIBSDIR $(LCACHE) | cut -d= -f2) || echo lib)
@@ -74,6 +73,7 @@ ifneq (,$(findstring Visual Studio,$(GENERATOR)))
 	JOBS ?= /maxcpucount:4
 endif
 
+JOBS	 ?= -j 4
 #===============================================================
 # main targets
 all: $(PROJ)

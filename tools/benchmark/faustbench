@@ -129,13 +129,13 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # creates and compile multiple DSP bench tool
-    if [ "$OPTIONS" != "" ] ; then
+    if [ "$OPTIONS" != "" ]; then
     	if ! $NOTRACE ; then
         	echo "Compiled with additional options :$OPTIONS"
         fi
     fi
 
-    if [ $TESTS == "all" ] ; then
+    if [ $TESTS == "all" ]; then
 
         faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
         faust -cn dsp_scal_exp10 $OPTIONS -exp10 "$SRCDIR/$f" -o "$TMP/dsp_scal_exp10.h"
@@ -186,7 +186,7 @@ for p in $FILES; do
         faust -cn dsp_vec1g_256 $OPTIONS -vec -lv 1 -vs 256 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_256.h"
         faust -cn dsp_vec1g_512 $OPTIONS -vec -lv 1 -vs 512 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_512.h"
 
-    elif [ $TESTS == "fast" ] ; then
+    elif [ $TESTS == "fast" ]; then
 
         faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
         faust -cn dsp_scal_exp10 $OPTIONS -exp10 "$SRCDIR/$f" -o "$TMP/dsp_scal_exp10.h"
@@ -195,24 +195,24 @@ for p in $FILES; do
         faust -cn dsp_vec1_32 $OPTIONS -vec -lv 1 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec1_32.h"
         faust -cn dsp_vec1g_32 $OPTIONS -vec -lv 1 -vs 32 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_32.h"
 
-    elif [ $TESTS == "single" ] ; then
+    elif [ $TESTS == "single" ]; then
 
         faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
     fi
 
-    if [ $IOS == "1" ] ; then
+    if [ $IOS == "1" ]; then
         echo "Files generated for iOS project in $TMP"
         cp "$FAUSTLIB/faustbench.cpp" "$TMP/faustbench.cpp"
-        if [ $DOUBLE == "1" ] ; then
+        if [ $DOUBLE == "1" ]; then
             echo " #define FAUSTFLOAT double" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
         else
             echo " #define FAUSTFLOAT float" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
         fi
-        if [ $TESTS == "all" ] ; then
+        if [ $TESTS == "all" ]; then
             echo " #define ALL_TESTS" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
-        elif [ $TESTS == "fast" ] ; then
+        elif [ $TESTS == "fast" ]; then
             echo " #define FAST_TESTS" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
-        elif [ $TESTS == "single" ] ; then
+        elif [ $TESTS == "single" ]; then
             echo " #define SINGLE_TESTS" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
         fi
         cp -r $FAUSTLIB/iOS-bench/* $TMP
@@ -221,7 +221,7 @@ for p in $FILES; do
 
     cd "$TMP"
 
-    if [ $DOUBLE == "1" ] ; then
+    if [ $DOUBLE == "1" ]; then
         echo " #define FAUSTFLOAT double" | cat - "$FAUSTLIB/faustbench.cpp" > temp && mv temp "faustbench.cpp"
     else
         echo " #define FAUSTFLOAT float" | cat - "$FAUSTLIB/faustbench.cpp" > temp && mv temp "faustbench.cpp"
@@ -231,15 +231,15 @@ for p in $FILES; do
 	if $SOURCE ; then 
         # create Makefile
         echo "$dspName:" > Makefile
-        if [ $TESTS == "all" ] ; then
+        if [ $TESTS == "all" ]; then
             echo -n -e '\t' >> Makefile
-            echo "$CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DALL_TESTS faustbench.cpp $LIBS -o $dspName" >> Makefile
-        elif [ $TESTS == "fast" ] ; then
+            echo "$CXX $CXXFLAGS -std=c++11 -I `faust -includedir` -DALL_TESTS faustbench.cpp $LIBS -o $dspName" >> Makefile
+        elif [ $TESTS == "fast" ]; then
             echo -n -e '\t' >> Makefile
-            echo "$CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DFAST_TESTS faustbench.cpp $LIBS -o $dspName" >> Makefile
-        elif [ $TESTS == "single" ] ; then
+            echo "$CXX $CXXFLAGS -std=c++11 -I `faust -includedir` -DFAST_TESTS faustbench.cpp $LIBS -o $dspName" >> Makefile
+        elif [ $TESTS == "single" ]; then
             echo -n -e '\t' >> Makefile
-            echo "$CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DSINGLE_TESTS faustbench.cpp $LIBS -o $dspName" >> Makefile
+            echo "$CXX $CXXFLAGS -std=c++11 -I `faust -includedir` -DSINGLE_TESTS faustbench.cpp $LIBS -o $dspName" >> Makefile
         fi
         echo -e '\n' >> Makefile
         echo "clean:" >> Makefile
@@ -255,12 +255,12 @@ for p in $FILES; do
         exit
     else
         # compile
-        if [ $TESTS == "all" ] ; then
-            $CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DALL_TESTS faustbench.cpp $LIBS -o $dspName
-        elif [ $TESTS == "fast" ] ; then
-            $CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DFAST_TESTS faustbench.cpp $LIBS -o $dspName
-        elif [ $TESTS == "single" ] ; then
-            $CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DSINGLE_TESTS faustbench.cpp $LIBS -o $dspName
+        if [ $TESTS == "all" ]; then
+            $CXX $CXXFLAGS -std=c++11 -I `faust -includedir` -DALL_TESTS faustbench.cpp $LIBS -o $dspName
+        elif [ $TESTS == "fast" ]; then
+            $CXX $CXXFLAGS -std=c++11 -I `faust -includedir` -DFAST_TESTS faustbench.cpp $LIBS -o $dspName
+        elif [ $TESTS == "single" ]; then
+            $CXX $CXXFLAGS -std=c++11 -I `faust -includedir` -DSINGLE_TESTS faustbench.cpp $LIBS -o $dspName
         fi
 
         # run bench

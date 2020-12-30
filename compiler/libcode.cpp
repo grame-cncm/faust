@@ -874,7 +874,7 @@ static void printHelp()
          << "-rui        --range-ui                  whether to generate code to limit vslider/hslider/nentry values in [min..max] range."
          << endl;
     cout << tab
-         << "-inj <f>    --inject <f>                inject source file <f> into architecture file instead of compile "
+         << "-inj <f>    --inject <f>                inject source file <f> into architecture file instead of compiling "
             "a dsp file."
          << endl;
     cout << tab << "-scal      --scalar                     generate non-vectorized code." << endl;
