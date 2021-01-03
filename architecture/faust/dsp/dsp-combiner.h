@@ -35,31 +35,51 @@
 
 // Base class and common code for binary combiners
 
+enum Layout { kVerticalGroup, kHorizontalGroup, kTabGroup };
+
 class dsp_binary_combiner : public dsp {
 
     protected:
 
         dsp* fDSP1;
         dsp* fDSP2;
+        int fBufferSize;
+        Layout fLayout;
 
         void buildUserInterfaceAux(UI* ui_interface, const char* name)
         {
-            ui_interface->openTabBox(name);
-            ui_interface->openVerticalBox("DSP1");
-            fDSP1->buildUserInterface(ui_interface);
-            ui_interface->closeBox();
-            ui_interface->openVerticalBox("DSP2");
-            fDSP2->buildUserInterface(ui_interface);
-            ui_interface->closeBox();
-            ui_interface->closeBox();
+            switch (fLayout) {
+                case kHorizontalGroup:
+                    ui_interface->openHorizontalBox(name);
+                    fDSP1->buildUserInterface(ui_interface);
+                    fDSP2->buildUserInterface(ui_interface);
+                    ui_interface->closeBox();
+                    break;
+                case kVerticalGroup:
+                    ui_interface->openVerticalBox(name);
+                    fDSP1->buildUserInterface(ui_interface);
+                    fDSP2->buildUserInterface(ui_interface);
+                    ui_interface->closeBox();
+                    break;
+                case kTabGroup:
+                    ui_interface->openTabBox(name);
+                    ui_interface->openVerticalBox("DSP1");
+                    fDSP1->buildUserInterface(ui_interface);
+                    ui_interface->closeBox();
+                    ui_interface->openVerticalBox("DSP2");
+                    fDSP2->buildUserInterface(ui_interface);
+                    ui_interface->closeBox();
+                    ui_interface->closeBox();
+                    break;
+            }
         }
 
-        FAUSTFLOAT** allocateChannels(int num, int buffer_size)
+        FAUSTFLOAT** allocateChannels(int num)
         {
             FAUSTFLOAT** channels = new FAUSTFLOAT*[num];
             for (int chan = 0; chan < num; chan++) {
-                channels[chan] = new FAUSTFLOAT[buffer_size];
-                memset(channels[chan], 0, sizeof(FAUSTFLOAT) * buffer_size);
+                channels[chan] = new FAUSTFLOAT[fBufferSize];
+                memset(channels[chan], 0, sizeof(FAUSTFLOAT) * fBufferSize);
             }
             return channels;
         }
@@ -74,7 +94,8 @@ class dsp_binary_combiner : public dsp {
 
      public:
 
-        dsp_binary_combiner(dsp* dsp1, dsp* dsp2):fDSP1(dsp1), fDSP2(dsp2)
+        dsp_binary_combiner(dsp* dsp1, dsp* dsp2, int buffer_size, Layout layout)
+        :fDSP1(dsp1), fDSP2(dsp2), fBufferSize(buffer_size), fLayout(layout)
         {}
 
         virtual ~dsp_binary_combiner()
@@ -133,9 +154,10 @@ class dsp_sequencer : public dsp_binary_combiner {
 
     public:
 
-        dsp_sequencer(dsp* dsp1, dsp* dsp2, int buffer_size = 4096):dsp_binary_combiner(dsp1, dsp2)
+        dsp_sequencer(dsp* dsp1, dsp* dsp2, int buffer_size = 4096, Layout layout = Layout::kTabGroup)
+        :dsp_binary_combiner(dsp1, dsp2, buffer_size, layout)
         {
-            fDSP1Outputs = allocateChannels(fDSP1->getNumOutputs(), buffer_size);
+            fDSP1Outputs = allocateChannels(fDSP1->getNumOutputs());
         }
 
         virtual ~dsp_sequencer()
@@ -153,7 +175,7 @@ class dsp_sequencer : public dsp_binary_combiner {
 
         virtual dsp* clone()
         {
-            return new dsp_sequencer(fDSP1->clone(), fDSP2->clone());
+            return new dsp_sequencer(fDSP1->clone(), fDSP2->clone(), fBufferSize, fLayout);
         }
 
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -177,7 +199,8 @@ class dsp_parallelizer : public dsp_binary_combiner {
 
     public:
 
-        dsp_parallelizer(dsp* dsp1, dsp* dsp2, int buffer_size = 4096):dsp_binary_combiner(dsp1, dsp2)
+        dsp_parallelizer(dsp* dsp1, dsp* dsp2, int buffer_size = 4096, Layout layout = Layout::kTabGroup)
+        :dsp_binary_combiner(dsp1, dsp2, buffer_size, layout)
         {
             fDSP2Inputs = new FAUSTFLOAT*[fDSP2->getNumInputs()];
             fDSP2Outputs = new FAUSTFLOAT*[fDSP2->getNumOutputs()];
@@ -199,7 +222,7 @@ class dsp_parallelizer : public dsp_binary_combiner {
 
         virtual dsp* clone()
         {
-            return new dsp_parallelizer(fDSP1->clone(), fDSP2->clone());
+            return new dsp_parallelizer(fDSP1->clone(), fDSP2->clone(), fBufferSize, fLayout);
         }
 
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -232,9 +255,10 @@ class dsp_splitter : public dsp_binary_combiner {
 
     public:
 
-        dsp_splitter(dsp* dsp1, dsp* dsp2, int buffer_size = 4096):dsp_binary_combiner(dsp1, dsp2)
+        dsp_splitter(dsp* dsp1, dsp* dsp2, int buffer_size = 4096, Layout layout = Layout::kTabGroup)
+        :dsp_binary_combiner(dsp1, dsp2, buffer_size, layout)
         {
-            fDSP1Outputs = allocateChannels(fDSP1->getNumOutputs(), buffer_size);
+            fDSP1Outputs = allocateChannels(fDSP1->getNumOutputs());
             fDSP2Inputs = new FAUSTFLOAT*[fDSP2->getNumInputs()];
         }
 
@@ -254,7 +278,7 @@ class dsp_splitter : public dsp_binary_combiner {
 
         virtual dsp* clone()
         {
-            return new dsp_splitter(fDSP1->clone(), fDSP2->clone());
+            return new dsp_splitter(fDSP1->clone(), fDSP2->clone(), fBufferSize, fLayout);
         }
 
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -288,10 +312,11 @@ class dsp_merger : public dsp_binary_combiner {
 
     public:
 
-        dsp_merger(dsp* dsp1, dsp* dsp2, int buffer_size = 4096):dsp_binary_combiner(dsp1, dsp2)
+        dsp_merger(dsp* dsp1, dsp* dsp2, int buffer_size = 4096, Layout layout = Layout::kTabGroup)
+        :dsp_binary_combiner(dsp1, dsp2, buffer_size, layout)
         {
-            fDSP1Inputs = allocateChannels(fDSP1->getNumInputs(), buffer_size);
-            fDSP1Outputs = allocateChannels(fDSP1->getNumOutputs(), buffer_size);
+            fDSP1Inputs = allocateChannels(fDSP1->getNumInputs());
+            fDSP1Outputs = allocateChannels(fDSP1->getNumOutputs());
             fDSP2Inputs = new FAUSTFLOAT*[fDSP2->getNumInputs()];
         }
 
@@ -312,7 +337,7 @@ class dsp_merger : public dsp_binary_combiner {
 
         virtual dsp* clone()
         {
-            return new dsp_merger(fDSP1->clone(), fDSP2->clone());
+            return new dsp_merger(fDSP1->clone(), fDSP2->clone(), fBufferSize, fLayout);
         }
 
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -348,12 +373,13 @@ class dsp_recursiver : public dsp_binary_combiner {
 
     public:
 
-        dsp_recursiver(dsp* dsp1, dsp* dsp2):dsp_binary_combiner(dsp1, dsp2)
+        dsp_recursiver(dsp* dsp1, dsp* dsp2, Layout layout = Layout::kTabGroup)
+        :dsp_binary_combiner(dsp1, dsp2, 1, layout)
         {
-            fDSP1Inputs = allocateChannels(fDSP1->getNumInputs(), 1);
-            fDSP1Outputs = allocateChannels(fDSP1->getNumOutputs(), 1);
-            fDSP2Inputs = allocateChannels(fDSP2->getNumInputs(), 1);
-            fDSP2Outputs = allocateChannels(fDSP2->getNumOutputs(), 1);
+            fDSP1Inputs = allocateChannels(fDSP1->getNumInputs());
+            fDSP1Outputs = allocateChannels(fDSP1->getNumOutputs());
+            fDSP2Inputs = allocateChannels(fDSP2->getNumInputs());
+            fDSP2Outputs = allocateChannels(fDSP2->getNumOutputs());
         }
 
         virtual ~dsp_recursiver()
@@ -374,7 +400,7 @@ class dsp_recursiver : public dsp_binary_combiner {
 
         virtual dsp* clone()
         {
-            return new dsp_recursiver(fDSP1->clone(), fDSP2->clone());
+            return new dsp_recursiver(fDSP1->clone(), fDSP2->clone(), fLayout);
         }
 
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
@@ -409,12 +435,13 @@ class dsp_recursiver : public dsp_binary_combiner {
 
 #ifndef __dsp_algebra_api__
 #define __dsp_algebra_api__
+
 // DSP algebra API
 /*
- Each operation takes two DSP as parameters, returns the combined DSPs, or null if failure with an error message.
+ Each operation takes two DSP and a optional Layout parameter, returns the combined DSPs, or null if failure with an error message.
  */
 
-static dsp* createDSPSequencer(dsp* dsp1, dsp* dsp2, std::string& error)
+static dsp* createDSPSequencer(dsp* dsp1, dsp* dsp2, std::string& error, Layout layout = Layout::kTabGroup)
 {
     if (dsp1->getNumOutputs() != dsp2->getNumInputs()) {
         std::stringstream error_aux;
@@ -424,16 +451,16 @@ static dsp* createDSPSequencer(dsp* dsp1, dsp* dsp2, std::string& error)
         error = error_aux.str();
         return nullptr;
     } else {
-        return new dsp_sequencer(dsp1, dsp2);
+        return new dsp_sequencer(dsp1, dsp2, 4096, layout);
     }
 }
 
-static dsp* createDSPParallelizer(dsp* dsp1, dsp* dsp2, std::string& error)
+static dsp* createDSPParallelizer(dsp* dsp1, dsp* dsp2, std::string& error, Layout layout = Layout::kTabGroup)
 {
-    return new dsp_parallelizer(dsp1, dsp2);
+    return new dsp_parallelizer(dsp1, dsp2, 4096, layout);
 }
 
-static dsp* createDSPSplitter(dsp* dsp1, dsp* dsp2, std::string& error)
+static dsp* createDSPSplitter(dsp* dsp1, dsp* dsp2, std::string& error, Layout layout = Layout::kTabGroup)
 {
     if (dsp1->getNumOutputs() == 0) {
         error = "Connection error in dsp_splitter : the first expression has no outputs\n";
@@ -450,13 +477,13 @@ static dsp* createDSPSplitter(dsp* dsp1, dsp* dsp2, std::string& error)
         error = error_aux.str();
         return nullptr;
     } else if (dsp2->getNumInputs() == dsp1->getNumOutputs()) {
-        return new dsp_sequencer(dsp1, dsp2);
+        return new dsp_sequencer(dsp1, dsp2, 4096, layout);
     } else {
-        return new dsp_splitter(dsp1, dsp2);
+        return new dsp_splitter(dsp1, dsp2, 4096, layout);
     }
 }
 
-static dsp* createDSPMerger(dsp* dsp1, dsp* dsp2, std::string& error)
+static dsp* createDSPMerger(dsp* dsp1, dsp* dsp2, std::string& error, Layout layout = Layout::kTabGroup)
 {
     if (dsp1->getNumOutputs() == 0) {
         error = "Connection error in dsp_merger : the first expression has no outputs\n";
@@ -473,13 +500,13 @@ static dsp* createDSPMerger(dsp* dsp1, dsp* dsp2, std::string& error)
         error = error_aux.str();
         return nullptr;
     } else if (dsp2->getNumInputs() == dsp1->getNumOutputs()) {
-        return new dsp_sequencer(dsp1, dsp2);
+        return new dsp_sequencer(dsp1, dsp2, 4096, layout);
     } else {
-        return new dsp_merger(dsp1, dsp2);
+        return new dsp_merger(dsp1, dsp2, 4096, layout);
     }
 }
 
-static dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2, std::string& error)
+static dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2, std::string& error, Layout layout = Layout::kTabGroup)
 {
     if ((dsp2->getNumInputs() > dsp1->getNumOutputs()) || (dsp2->getNumOutputs() > dsp1->getNumInputs())) {
         std::stringstream error_aux;
@@ -499,7 +526,7 @@ static dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2, std::string& error)
         error = error_aux.str();
         return nullptr;
     } else {
-        return new dsp_recursiver(dsp1, dsp2);
+        return new dsp_recursiver(dsp1, dsp2, layout);
     }
 }
 #endif
