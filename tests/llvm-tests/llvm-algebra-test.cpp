@@ -275,6 +275,16 @@ int main(int argc, char* argv[])
         gui.run();
     }
     
+    {
+        dsp1 = createDSP("process = *(hslider(\"vol1\", 0.5, 0, 1, 0.01)),*(hslider(\"vol2\", 0.5, 0, 1, 0.01));");
+        dsp2 = createDSP("process = *(vslider(\"vol1\", 0.5, 0, 1, 0.01)),*(vslider(\"vol2\", 0.5, 0, 1, 0.01));");
+        combined1 = createDSPSequencer(dsp1, dsp2, error_msg, Layout::kVerticalGroup, "FOO");
+        GTKUI gui((char*)"GTKUI", &argc, &argv);
+        combined1->buildUserInterface(&gui);
+        printError(combined1, error_msg);
+        gui.run();
+    }
+    
     return 0;
 }
 
