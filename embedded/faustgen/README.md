@@ -56,15 +56,16 @@ On output, you should find a folder named **faustgen** in the package folder.
 
 Depending of the number of audio inputs and outputs described in the DSP source code, the **faustgen~** object has:
 - N inlets, the first one being the message control one and a regular audio inlet, an all other audio inlets
-- M outlets, audio outs from 1 to M-1, and the right most outlet being the output messages one
+- M outlets, audio outs from 1 to M-1, and the output messages one
+- the right most outlet is used to send MIDI messages if MIDI metadata are used in the DSP UI items
 
 The faustgen~ object can be controlled with the following messages:
 
 - `polyphony <nvoices>` : to set the DSP in polyphonic mode with *nvoices* (note that the DSP code has to follow the [polyphonic convention](https://faustdoc.grame.fr/manual/midi/))
 - `osc <IP inport outport xmit[0|1] bundle[0|1]>`: to activate OSC control in input and output mode, possibly generating messages when *xmit = 1*, and in bundle mode when *bundle = 1* 
 - `midievent <midi message>`: to receive and decode MIDI messages
-- `init`: to generate all inputs and outputs control messages as a message list *[path, init, min, max]* that will be sent on the right most outlet 
-- `dump`: to generate all inputs and outputs control messages as a message list *[path, cur, min, max]* that will be sent on the right most outlet 
+- `init`: to generate all inputs and outputs control messages as a message list *[path, init, min, max]* that will be sent on the output messages outlet
+- `dump`: to generate all inputs and outputs control messages as a message list *[path, cur, min, max]* that will be sent on the output messages outlet 
 - `mute`: to mute audio rendering
 
 When the object has bargraphs, their values are sent in the right most outlet as a message list *[path, cur, min, max]*.

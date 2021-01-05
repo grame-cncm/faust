@@ -1,4 +1,4 @@
-% man(1) Version 2.30.4 (29-December-2020) | Faust man page
+% man(1) Version 2.30.5 (05-January-2021) | Faust man page
 
 NAME
 ====
@@ -92,7 +92,7 @@ Code generation options:
 
   **-rui**        **--range-ui**                  whether to generate code to limit vslider/hslider/nentry values in [min..max] range.
 
-  **-inj** \<f>    **--inject** \<f>                inject source file \<f> into architecture file instead of compile a dsp file.
+  **-inj** \<f>    **--inject** \<f>                inject source file \<f> into architecture file instead of compiling a dsp file.
 
   **-scal**      **--scalar**                     generate non-vectorized code.
 
