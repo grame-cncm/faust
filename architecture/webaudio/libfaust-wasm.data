@@ -312,7 +312,7 @@ with {
 	order(index) = int(index - int(degree(index) * int(degree(index) + 1)));
 
 	// The spherical harmonics
-	y(l, m, theta, phi) =  e(m, theta) * k(l, m) * p(l, m, cos(phi + PI * 0.5))
+	y(l, m, theta, phi) =  e(m, theta) * k(l, m) * p(l, m, cos(phi + ma.PI * 0.5))
 	with {	
 		// The associated Legendre polynomial
 		// If l = 0   => p = 1
@@ -392,7 +392,7 @@ optimMaxRe3D(N) = par(i, (N+1) * (N+1), MaxRe(N, degree(i), _))
 with {
 	// The degree l of the harmonic[l, m]	
 	degree(index)  = int(sqrt(index));
-   	MaxRe(N, l, _)= _ * cos(l  / (2*N+2) * PI);
+   	MaxRe(N, l, _)= _ * cos(l  / (2*N+2) * ma.PI);
 };
 
 
@@ -464,15 +464,16 @@ si = library("signals.lib");
 an = library("analyzers.lib");
 ro = library("routes.lib");
 ma = library("maths.lib");
+it = library("interpolators.lib");
 
 declare name "Faust Compressor Effect Library";
-declare version "0.0";
+declare version "0.1";
 //=============================Functions Reference========================================
 //========================================================================================
 
 //--------------------`(co.)peak_compression_gain_mono`-------------------
 // Mono dynamic range compressor gain computer.
-// `peak_compression_gain_mono` is a standard Faust function
+// `peak_compression_gain_mono` is a standard Faust function.
 //
 // #### Usage
 //
@@ -522,15 +523,14 @@ with {
   gain_computer(strength,thresh,knee,level) =
     select3((level>(thresh-(knee/2)))+(level>(thresh+(knee/2))),
             0,
-            ((level-thresh+(knee/2)):pow(2)/(2*knee)) ,
-            (level-thresh)
-           ) : max(0)*-strength;
+            ((level-thresh+(knee/2)):pow(2)/(2*knee)),
+            (level-thresh)) : max(0)*-strength;
 };
 
 
 //--------------------`(co.)peak_compression_gain_N_chan`-------------------
 // N channel dynamic range compressor gain computer.
-// `peak_compression_gain_N_chan` is a standard Faust function
+// `peak_compression_gain_N_chan` is a standard Faust function.
 //
 // #### Usage
 //
@@ -584,12 +584,12 @@ peak_compression_gain_N_chan(strength,thresh,att,rel,knee,prePost,link,1) =
 // to link/unlink channels
 peak_compression_gain_N_chan(strength,thresh,att,rel,knee,prePost,link,N) =
   par(i, N, peak_compression_gain_mono(strength,thresh,att,rel,knee,prePost))
-  <:(si.bus(N),(ba.minimum(N)<:si.bus(N))):ro.interleave(N,2):par(i,N,(ba.crossfade(link)));
+  <:(si.bus(N),(ba.parallelMin(N)<:si.bus(N))):ro.interleave(N,2):par(i,N,(it.interpolate_linear(link)));
 
 
 //--------------------`(co.)FFcompressor_N_chan`-------------------
 // feed forward N channel dynamic range compressor.
-// `FFcompressor_N_chan` is a standard Faust function
+// `FFcompressor_N_chan` is a standard Faust function.
 //
 // #### Usage
 //
@@ -643,7 +643,7 @@ FFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,meter,N) =
 
 //--------------------`(co.)FBcompressor_N_chan`-------------------
 // feed back N channel dynamic range compressor.
-// `FBcompressor_N_chan` is a standard Faust function
+// `FBcompressor_N_chan` is a standard Faust function.
 //
 // #### Usage
 //
@@ -698,7 +698,7 @@ FBcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,meter,N) =
 //--------------------`(co.)FFFBcompressor_N_chan`-------------------
 // feed forward / feed back N channel dynamic range compressor.
 // the feedback part has a much higher strength, so they end up sounding similar
-// `FFFBcompressor_N_chan` is a standard Faust function
+// `FFFBcompressor_N_chan` is a standard Faust function.
 //
 // #### Usage
 //
@@ -748,8 +748,8 @@ FBFFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N) =
   si.bus(N) <: si.bus(N*2):
   (
     ((
-      (par(i, 2, peak_compression_gain_N_chan(strength*(1+((i==0)*2)),thresh,att,rel,knee,prePost,link,N)):ro.interleave(N,2):par(i, N, ba.crossfade(FBFF)))
-      ,si.bus(N))
+      (par(i, 2, peak_compression_gain_N_chan(strength*(1+((i==0)*2)),thresh,att,rel,knee,prePost,link,N)):ro.interleave(N,2):par(i, N, it.interpolate_linear(FBFF)))
+     ,si.bus(N))
       :(ro.interleave(N,2):par(i,N,meter*_))
     )~si.bus(N)
   );
@@ -812,7 +812,7 @@ with {
 
 //--------------------`(co.)RMS_compression_gain_N_chan`-------------------
 // RMS N channel dynamic range compressor gain computer.
-// `RMS_compression_gain_N_chan` is a standard Faust function
+// `RMS_compression_gain_N_chan` is a standard Faust function.
 //
 // #### Usage
 //
@@ -860,13 +860,13 @@ RMS_compression_gain_N_chan(strength,thresh,att,rel,knee,prePost,link,1) =
 
 RMS_compression_gain_N_chan(strength,thresh,att,rel,knee,prePost,link,N) =
   par(i, N, RMS_compression_gain_mono(strength,thresh,att,rel,knee,prePost))
-  <:(si.bus(N),(ba.minimum(N)<:si.bus(N))):ro.interleave(N,2):par(i,N,(ba.crossfade(link)));
+  <:(si.bus(N),(ba.parallelMin(N)<:si.bus(N))):ro.interleave(N,2):par(i,N,(it.interpolate_linear(link)));
 
 
 //--------------------`(co.)RMS_FFFBcompressor_N_chan`-------------------
 // RMS feed forward / feed back N channel dynamic range compressor.
 // the feedback part has a much higher strength, so they end up sounding similar
-// `RMS_FFFBcompressor_N_chan` is a standard Faust function
+// `RMS_FFFBcompressor_N_chan` is a standard Faust function.
 //
 // #### Usage
 //
@@ -923,8 +923,8 @@ RMS_FBFFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N
   (
     (
       (
-        (ro.interleave(N,2):par(i, N*2, abs) :par(i, N, ba.crossfade(FBFF)) : RMS_compression_gain_N_chan(strength*(1+(((FBFF*-1)+1)*1)),thresh,att,rel,knee,prePost,link,N))
-        ,si.bus(N)
+        (ro.interleave(N,2):par(i, N*2, abs) :par(i, N, it.interpolate_linear(FBFF)) : RMS_compression_gain_N_chan(strength*(1+(((FBFF*-1)+1)*1)),thresh,att,rel,knee,prePost,link,N))
+       ,si.bus(N)
       )
     :(ro.interleave(N,2):par(i,N,meter*_))
     )~si.bus(N)
@@ -937,7 +937,7 @@ RMS_FBFFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N
 // The RMS compressor doesn't have to deal with the peaks,
 // and the peak limiter get's spared from the steady state signal.
 // the feedback part has a much higher strength, so they end up sounding similar
-// `RMS_FBcompressor_peak_limiter_N_chan` is a standard Faust function
+// `RMS_FBcompressor_peak_limiter_N_chan` is a standard Faust function.
 //
 // #### Usage
 //
@@ -1137,7 +1137,7 @@ with {
   // A general 'knee' parameter could be used instead of tying it to att/2:
   kneesmooth(att) = si.smooth(ba.tau2pole(att/2.0));
   // compression gain in dB:
-   outminusindb(ratio,thresh,level) = max(level-thresh,0.0) * (1.0/max(1.0e-7,float(ratio))-1.0);
+   outminusindb(ratio,thresh,level) = max(level-thresh,0.0) * (1.0/max(ma.EPSILON,float(ratio))-1.0);
   // Note: "float(ratio)" REQUIRED when ratio is an integer > 1!
 };
 
@@ -1263,14 +1263,14 @@ limiter_1176_R4_stereo = compressor_stereo(4,-6,0.0008,0.5);
 //
 // #### Reference:
 //
-// http://iem.at/~zmoelnig/publications/limiter/.
+// <http://iem.at/~zmoelnig/publications/limiter/>.
 //------------------------------------------------------------------------------
 declare limiter_lad_N author "Dario Sanfilippo";
 declare limiter_lad_N copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com>";
 declare limiter_lad_N license "GPLv3 license";
 limiter_lad_N(N, LD, ceiling, attack, hold, release) = 
-      si.bus(N) <: par(i, N, @ (LD * ma.SR)) , 
+      si.bus(N) <: par(i, N, @ (LD * ma.SR)), 
                    (scaling <: si.bus(N)) : ro.interleave(N, 2) : par(i, N, *)
       with {
            scaling = ceiling / max(amp_profile, ma.EPSILON) : min(1);
@@ -1303,7 +1303,7 @@ limiter_lad_N(N, LD, ceiling, attack, hold, release) =
 //
 // #### Reference:
 //
-// http://iem.at/~zmoelnig/publications/limiter/.
+// <http://iem.at/~zmoelnig/publications/limiter/>.
 declare limiter_lad_mono author "Dario Sanfilippo";
 declare limiter_lad_mono copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com>";
@@ -1330,7 +1330,7 @@ limiter_lad_mono(LD) = limiter_lad_N(1, LD);
 //
 // #### Reference:
 //
-// http://iem.at/~zmoelnig/publications/limiter/.
+// <http://iem.at/~zmoelnig/publications/limiter/>.
 declare limiter_lad_stereo author "Dario Sanfilippo";
 declare limiter_lad_stereo copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com>";
@@ -1358,7 +1358,7 @@ limiter_lad_stereo(LD) = limiter_lad_N(2, LD);
 //
 // #### Reference:
 //
-// http://iem.at/~zmoelnig/publications/limiter/.
+// <http://iem.at/~zmoelnig/publications/limiter/>.
 declare limiter_lad_quad author "Dario Sanfilippo";
 declare limiter_lad_quad copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com>";
@@ -1385,7 +1385,7 @@ limiter_lad_quad(LD) = limiter_lad_N(4, LD);
 //
 // #### Reference:
 //
-// http://iem.at/~zmoelnig/publications/limiter/.
+// <http://iem.at/~zmoelnig/publications/limiter/>.
 declare limiter_lad_bw author "Dario Sanfilippo";
 declare limiter_lad_bw copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com>";
@@ -1468,7 +1468,7 @@ declare version "0.1";
 //
 // * `n`: number of samples
 //----------------------------
-samp2sec = /(ma.SR);
+samp2sec(n) = n/ma.SR;
 
 
 //-------`(ba.)sec2samp`----------
@@ -1485,7 +1485,7 @@ samp2sec = /(ma.SR);
 //
 // * `d`: duration in seconds
 //----------------------------
-sec2samp = *(ma.SR);
+sec2samp(d) = d*ma.SR;
 
 
 //-------`(ba.)db2linear`----------
@@ -1502,7 +1502,7 @@ sec2samp = *(ma.SR);
 //
 // * `l`: loudness in dB
 //-----------------------------
-db2linear(l) = pow(10, l/20.0);
+db2linear(l) = pow(10.0, l/20.0);
 
 
 //-------`(ba.)linear2db`----------
@@ -1519,7 +1519,7 @@ db2linear(l) = pow(10, l/20.0);
 //
 // * `g`: a linear gain
 //-----------------------------
-linear2db(g) = 20*log10(g);
+linear2db(g) = 20.0*log10(g);
 
 
 //----------`(ba.)lin2LogGain`------------------
@@ -1950,7 +1950,7 @@ pulse_countdown(trig) = - ~ _ * trig;
 //
 // Where:
 //
-// * `n`: the highest number of the countup (included) before reset to 0.
+// * `n`: the highest number of the countup (included) before reset to 0
 // * `trig`: the trigger signal (1: start at next pulse; 0: reset to 0)
 //------------------------------------------------------------------------------
 //TODO: author "Vince"
@@ -1992,7 +1992,7 @@ resetCtr(n,m) = _ <: (_,pulse_countup_loop(n-1,1)) : (_,(_==m)) : *;
 //
 // Where:
 //
-// * `n`: the highest number of the countup (included) before reset to 0.
+// * `n`: the highest number of the countup (included) before reset to 0
 // * `trig`: the trigger signal (1: start at next pulse; 0: reset to 0)
 //------------------------------------------------------------------------------
 //TODO: author "Vince:
@@ -2372,7 +2372,7 @@ with {
 // ```
 //
 // In any case the `x_{i}` must be in increasing order (for all `i`, `x_{i} < x_{i+1}`).
-// For example the following definition :
+// For example the following definition:
 //
 // ```
 // f = bpf.start(x0,y0) : ... : bpf.point(xi,yi) : ... : bpf.end(xn,yn);
@@ -2421,8 +2421,8 @@ listInterp(v) =
 
 
 //-------------------`(ba.)bypass1`-------------------------
-// Takes a mono input signal, route it to `e` and bypass it if `bpc = 1`. When bypassed, `e` is feed with zeros 
-// so that its state is cleanup up.
+// Takes a mono input signal, route it to `e` and bypass it if `bpc = 1`. 
+// When bypassed, `e` is feed with zeros so that its state is cleanup up.
 // `bypass1` is a standard Faust function.
 //
 // #### Usage
@@ -2445,8 +2445,8 @@ with {
 
 
 //-------------------`(ba.)bypass2`-------------------------
-// Takes a stereo input signal, route it to `e` and bypass it if `bpc = 1`. When bypassed, `e` is feed with zeros 
-// so that its state is cleanup up.
+// Takes a stereo input signal, route it to `e` and bypass it if `bpc = 1`. 
+// When bypassed, `e` is feed with zeros so that its state is cleanup up.
 // `bypass2` is a standard Faust function.
 //
 // #### Usage
@@ -2494,9 +2494,11 @@ with {
 
 
 //-------------------`(ba.)bypass_fade`-------------------------
-// Bypass an arbitrary (N x N) circuit with 'n' samples crossfade. Inputs and outputs signals are faded 
-// out when 'e' is bypassed, so that 'e' state is cleanup up.
-// Once bypassed the effect is replaced by par(i,N,_). Bypassed circuits can be chained.
+// Bypass an arbitrary (N x N) circuit with 'n' samples crossfade. 
+// Inputs and outputs signals are faded out when 'e' is bypassed, 
+// so that 'e' state is cleanup up. 
+// Once bypassed the effect is replaced by par(i,N,_). 
+// Bypassed circuits can be chained.
 //
 // #### Usage
 //
@@ -2847,6 +2849,7 @@ with {
     int2nrOfBits(maxN) = int(floor(log(maxN)/log(2))+1);
 };
 
+
 //------------------------------`(ba.)slidingSum`------------------------------
 // The sliding sum of the last n input samples.
 //
@@ -2864,6 +2867,7 @@ with {
 // * `N`: the number of values to process
 //------------------------------------------------------------------------------
 slidingSum(n) = fi.integrator <: _, _@int(max(0,n)) :> -;
+
 
 //------------------------------`(ba.)slidingSump`------------------------------
 // The sliding sum of the last n input samples.
@@ -2900,6 +2904,7 @@ slidingSump(n,maxn) = slidingReduce(+,n,maxn,0);
 //------------------------------------------------------------------------------
 slidingMax(n,maxn) = slidingReduce(max,n,maxn,-(ma.INFINITY));
 
+
 //----------------------------`(ba.)slidingMin`--------------------------------
 // The sliding minimum of the last n input samples.
 //
@@ -2933,6 +2938,7 @@ slidingMin(n,maxn) = slidingReduce(min,n,maxn,ma.INFINITY);
 // * `N`: the number of values to process
 //------------------------------------------------------------------------------
 slidingMean(n) = slidingSum(n)/n;
+
 
 //----------------------------`(ba.)slidingMeanp`-------------------------------
 // The sliding mean of the last n input samples.
@@ -2970,7 +2976,8 @@ slidingMeanp(n,maxn) = slidingSump(n,maxn)/n;
 //
 // * `N`: the number of values to process
 //------------------------------------------------------------------------------
-slidingRMS(n) = pow(2):slidingMean(n) : sqrt;
+slidingRMS(n) = pow(2) : slidingMean(n) : sqrt;
+
 
 //---------------------------`(ba.)slidingRMSp`---------------------------------
 // The root mean square of the last n input samples.
@@ -2988,7 +2995,104 @@ slidingRMS(n) = pow(2):slidingMean(n) : sqrt;
 // * `N`: the number of values to process
 // * `maxN`: the maximum number of values to process, needs to be a power of 2
 //------------------------------------------------------------------------------
-slidingRMSp(n,maxn) = pow(2):slidingMeanp(n,maxn) : sqrt;
+slidingRMSp(n,maxn) = pow(2) : slidingMeanp(n,maxn) : sqrt;
+
+
+
+//========================================================================================
+// section contributed by Bart Brouns (bart@magnetophon.nl).
+// spdx-license-identifier: gpl-3.0
+// copyright (c) 2020 Bart Brouns
+
+//=================================Parallel Operator=========================================
+// Provides various operations on N parallel inputs using a high order
+// `parallelOp(op,N,x)`` function:
+//
+// * `parallelMax(n)`: the max of n parallel inputs
+// * `parallelMin(n)`: the min of n parallel inputs
+// * `parallelMean(n)`: the mean of n parallel inputs
+// * `parallelRMS(n)`: the RMS of n parallel inputs
+
+//-----------------------------`(ba.)parallelOp`-----------------------------
+// Apply a commutative binary operation `<op>` to n parallel inputs.
+//
+// #### usage
+//
+// ```
+// si.bus(n) : parallelOp(op,n) : _
+// ```
+//
+// where:
+//
+// * `n`: the number of parallel inputs
+// * `op`: the operator which needs to be a commutative
+//
+//------------------------------------------------------------------------------
+
+parallelOp(op,1) = _;
+parallelOp(op,2) = op;
+parallelOp(op,n) = op(parallelOp(op,n-1));
+
+//---------------------------`(ba.)parallelMax`---------------------------------
+// The maximum of n parallel inputs.
+//
+// #### Usage
+//
+// ```
+// si.bus(n) : parallelMax(n) : _
+// ```
+//
+// Where:
+//
+// * `n`: the number of parallel inputs
+//------------------------------------------------------------------------------
+parallelMax(n) = parallelOp(max,n);
+
+//---------------------------`(ba.)parallelMin`---------------------------------
+// The minimum of n parallel inputs.
+//
+// #### Usage
+//
+// ```
+// si.bus(n) : parallelMin(n) : _
+// ```
+//
+// Where:
+//
+// * `n`: the number of parallel inputs
+//------------------------------------------------------------------------------
+parallelMin(n) = parallelOp(min,n);
+
+//---------------------------`(ba.)parallelMean`---------------------------------
+// The mean of n parallel inputs.
+//
+// #### Usage
+//
+// ```
+// si.bus(n) : parallelMean(n) : _
+// ```
+//
+// Where:
+//
+// * `n`: the number of parallel inputs
+//------------------------------------------------------------------------------
+parallelMean(n) = si.bus(n):>_/n;
+
+//---------------------------`(ba.)parallelRMS`---------------------------------
+// The RMS of n parallel inputs.
+//
+// #### Usage
+//
+// ```
+// si.bus(n) : parallelRMS(n) : _
+// ```
+//
+// Where:
+//
+// * `n`: the number of parallel inputs
+//------------------------------------------------------------------------------
+parallelRMS(n) = par(i, n, pow(2)) : parallelMean(n) : sqrt;
+
 
 //////////////////////////////////Deprecated Functions////////////////////////////////////
 // This section implements functions that used to be in music.lib but that are now
@@ -4208,7 +4312,7 @@ peak_envelope = amp_follower; // Synonym for more standard naming
 //
 // * "Digital Dynamic Range Compressor Design --- A Tutorial and Analysis", by
 //   Dimitrios Giannoulis, Michael Massberg, and Joshua D. Reiss
-//   <http://www.eecs.qmul.ac.uk/~josh/documents/GiannoulisMassbergReiss-dynamicrangecompression-JAES2012.pdf>
+//   <https://www.eecs.qmul.ac.uk/~josh/documents/2012/GiannoulisMassbergReiss-dynamicrangecompression-JAES2012.pdf>
 //------------------------------------------------------------
 amp_follower_ud(att,rel) = amp_follower(rel) : si.smooth(ba.tau2pole(att));
 
@@ -4462,7 +4566,7 @@ zcr(period, x) = ma.zc(x) : fi.lptau(period);
 // * "Tree-structured complementary filter banks using all-pass sections",
 //   Regalia et al., IEEE Trans. Circuits & Systems, CAS-34:1470-1484, Dec. 1987
 // * "Multirate Systems and Filter Banks", P. Vaidyanathan, Prentice-Hall, 1993
-// * Elementary filter theory: https://ccrma.stanford.edu/~jos/filters/
+// * Elementary filter theory: <https://ccrma.stanford.edu/~jos/filters/>
 //========================================================================================
 
 
@@ -4548,7 +4652,7 @@ mth_octave_spectral_level6e(M,ftop,N,tau,dB_offset) = _<:
     _,mth_octave_analyzer6e(M,ftop,N) :
     _,(display:>_):attach with {
   display = par(i,N,dbmeter(i));
-  dbmeter(i) = abs : si.smooth(ba.tau2pole(tau)) : max(1.0e-7) : ba.linear2db : +(dB_offset) :
+  dbmeter(i) = abs : si.smooth(ba.tau2pole(tau)) : max(ma.EPSILON) : ba.linear2db : +(dB_offset) :
      meter(N-i-1);
     meter(i) = speclevel_group(vbargraph("[%2i] [unit:dB]
      [tooltip: Spectral Band Level in dB]", -50, 10));
@@ -4584,7 +4688,7 @@ third_octave_filterbank(N) = mth_octave_filterbank_default(3,10000,N);
 // See, e.g.,
 //   Acoustics [the book], by L. L. Beranek
 //   Amer. Inst. Physics for the Acoustical Soc. America,
-//   http://asa.aip.org/publications.html, 1986 (1st ed.1954)
+//   <http://asa.aip.org/publications.html, 1986 (1st ed.1954)>
 
 // Third-octave bands across the audio spectrum are too wide for current
 // typical computer screens, so half-octave bands are the default:
@@ -4732,7 +4836,7 @@ goertzel = goertzelOpt;
 
 // Undocumented utility functions used by fft and ifft:
 c_magsq(N) = si.cbus(N) : par(i,N,(par(j,2,abs<:_*_):>_)) :> si.bus(N);
-c_magdb(N) = si.cbus(N) : an.c_magsq(N) : par(i,N,(max(1.0e-7):log10:*(10.0)));
+c_magdb(N) = si.cbus(N) : an.c_magsq(N) : par(i,N,(max(ma.EPSILON):log10:*(10.0)));
 c_select_pos_freqs(2) = (_,_), (_,_); // both dc and SR/2 included with "positive frequencies"
 c_select_pos_freqs(N) = si.cbus(N) : par(i,N/2+1,(_,_)),par(i,N/2-1,(!,!)) : si.cbus(N/2+1); // for complex spectra
   select_pos_freqs(2) = _,_; // both dc and SR/2 included
@@ -5337,8 +5441,9 @@ with {
 // * `d`: decay (sec)
 // * `s`: sustain (fraction of `t`: 0-1)
 // * `r`: release (sec)
-// * `t`: trigger signal (attack is triggered when `t>0`, release is triggered
-// when `t=0`)
+// * `g`: gate signal:
+//        attack is triggered when `g` goes from zero to positive,
+//        release is triggered when `g` returns to 0
 //-----------------------------------------------------
 // Author: JOS
 // License: STK-4.3
@@ -5346,13 +5451,14 @@ adsre(attT60,decT60,susLvl,relT60,gate) = envelope with {
   ugate = gate>0;
   samps = ugate : +~(*(ugate)); // ramp time in samples
   attSamps = int(attT60 * ma.SR);
+  // if attSamps==0, go straight into the decay phase
+  attPhase = (samps<attSamps) |  (ugate:ba.impulsify);
   target = select2(ugate, 0.0,
-           select2(samps<attSamps, (susLvl)*float(ugate), ugate));
-  t60 = select2(ugate, relT60, select2(samps<attSamps, decT60, attT60));
+           select2(attPhase, (susLvl)*float(ugate), ugate));
+  t60 = select2(ugate, relT60, select2(attPhase, decT60, attT60));
   pole = ba.tau2pole(t60/6.91);
   envelope = target : si.smooth(pole);
 };
-
 
 //------------------------`(en.)asre`----------------------
 // ASRE (Attack, Sustain, Release) envelope generator with Exponential segments.
@@ -5554,9 +5660,9 @@ with {
 // Author: Christophe Lebreton
 hsp_phasor(tablesize,freq,p,c) = inc : (+ : d)~(-(_<:(_,*(_,clk))):+(clk*p)) : *(tablesize)
 with {
-        clk = c>0;
-        d   = ma.decimal;
-        inc = freq/float(ma.SR);
+    clk = c>0;
+    d   = ma.decimal;
+    inc = freq/float(ma.SR);
 };
 
 //-----------------------`(os.)oscsin`------------------------
@@ -5611,7 +5717,7 @@ with {
 //
 // * `freq`: the frequency of the wave (Hz)
 //------------------------------------------------------------
-osccos(freq) = rdtable(tablesize, coswaveform(tablesize), int(phasor(tablesize,freq)) )
+osccos(freq) = rdtable(tablesize, coswaveform(tablesize), int(phasor(tablesize,freq)))
 with {
 	tablesize = pl.tablesize;
 };
@@ -5622,15 +5728,15 @@ with {
 // #### Usage
 //
 // ```
-// oscp(freq,p) : _
+// oscp(freq,phase) : _
 // ```
 //
 // Where:
 //
 // * `freq`: the frequency of the wave (Hz)
-// * `p`: the phase in radian
+// * `phase`: the phase in radian
 //------------------------------------------------------------
-oscp(freq,p) = oscsin(freq) * cos(p) + osccos(freq) * sin(p);
+oscp(freq,phase) = oscsin(freq) * cos(phase) + osccos(freq) * sin(phase);
 
 //-----------------------`(os.)osci`------------------------
 // Interpolated phase sine wave oscillator.
@@ -5835,8 +5941,8 @@ lf_rawsaw(periodsamps) = (_,periodsamps : fmod) ~ +(1.0);
 //
 // Where:
 //
-// * `freq`: frequency
 // * `phase`: phase
+// * `freq`: frequency
 //---------------------------------------------------------
 lf_sawpos_phase(phase,freq) = (+(phase-phase') : ma.frac) ~ +(freq/ma.SR);
 
@@ -5858,6 +5964,47 @@ lf_sawpos_phase(phase,freq) = (+(phase-phase') : ma.frac) ~ +(freq/ma.SR);
 // License: STK-4.3
 // MarkDown: Romain Michon
 lf_sawpos(freq) = ma.frac ~ +(freq/ma.SR);
+
+//-----------------`(os.)lf_sawpos_reset`--------------------
+// Simple sawtooth waveform oscillator between 0 and 1.
+// with reset.
+//
+// #### Usage
+//
+// ```
+// lf_sawpos_reset(freq,reset)
+// ```
+//
+// Where:
+//
+// * `freq`: frequency
+// * `reset`: reset the oscillator to 0
+//
+//---------------------------------------------------------
+// Author: Bart Brouns
+// License: STK-4.3
+lf_sawpos_reset(freq,reset) = ma.frac * (reset == 0) ~ +(freq/ma.SR);
+
+//-----------------`(os.)lf_sawpos_phase_reset`--------------------
+// Simple sawtooth waveform oscillator between 0 and 1.
+// with phase control and reset.
+//
+// #### Usage
+//
+// ```
+// lf_sawpos_phase_reset(freq,phase,reset)
+// ```
+//
+// Where:
+//
+// * `freq`: frequency
+// * `phase`: phase between 0 and 1
+// * `reset`: reset the oscillator to 0
+//
+//---------------------------------------------------------
+// Author: Bart Brouns
+// License: STK-4.3
+lf_sawpos_phase_reset(freq,phase,reset) = lf_sawpos_reset(freq,reset) + phase : ma.frac;
 
 //-----------------`(os.)lf_saw`--------------------
 // Simple sawtooth waveform.
@@ -5998,7 +6145,7 @@ saw3 = sawN(3); saw4 = sawN(4); saw5 = sawN(5); saw6 = sawN(6);
 // * `freq`: frequency
 //--------------------------------------------------------
 saw2(freq) = y with { // newer PTR version (stateless - freq can vary at any speed)
-  p0 = float(ma.SR)/float(max(1.0e-7,abs(freq))); // period in samples
+  p0 = float(ma.SR)/float(max(ma.EPSILON,abs(freq))); // period in samples
   t0 = 1.0/p0; // phase increment
   p = ((_<:(-(1)<:_,_),_) <: selector1,selector2) ~(+(t0)):!,_;
   selector1 = select2(<(0)); // for feedback
@@ -6399,7 +6546,19 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 ************************************************************************/
 
 //===================== Casio CZ Oscillators ==========================
-// Oscillators that mimics some of the Casio CZ oscillators.
+// Oscillators that mimic some of the Casio CZ oscillators.
+//
+// There are two sets:
+// - A set with an index parameter
+// - A set with a res parameter
+//
+// The "index oscillators" outputs a sine wave at index=0 and gets brighter with a higher index.
+// There are two versions of the "index oscillators":
+// - with P appended to the name: is phase aligned with 'fund:sin'
+// - without P appended to the name: has the phase of the original CZ oscillators
+//
+// The "res oscillators" have a resonant frequency.
+// "res" is the frequency of resonance as a factor of the fundamental pitch.
 //=====================================================================
 
 //----------`(os.)CZsaw`----------
@@ -6419,12 +6578,35 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 //------------------------------------------------------------
 // Author: Bart Brouns
 // License: GPLv3
-// CZ oscilators by Mike Moser-Booth. ported from pd to Faust by Bart Brouns
+// CZ oscillators by Mike Moser-Booth:
+// <https://forum.pdpatchrepo.info/topic/5992/casio-cz-oscillators>
+// Ported from pd to Faust by Bart Brouns
 
-CZsaw(fund, index) = (((fund*((.5-tmp)/tmp)),(-1*fund+1)*((.5-tmp)/(1-tmp))):min+fund)*2*ma.PI:cos 
-with {
-	tmp = (.5-(index*.5)):max(0.01):min(0.5);
-};
+CZsaw(fund, index) = CZ.sawChooseP(fund, index, 0);
+
+//----------`(os.)CZsawP`----------
+// Oscillator that mimics the Casio CZ saw oscillator,
+// with it's phase aligned to `fund:sin`.
+// `CZsawP` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// CZsawP(fund,index) : _
+// ```
+//
+// Where:
+//
+// * `fund`: a saw-tooth waveform between 0 and 1 that the oscillator slaves to
+// * `index`: the brightness of the oscillator, 0 to 1. 0 = sine-wave, 1 = saw-wave
+//------------------------------------------------------------
+// Author: Bart Brouns
+// License: GPLv3
+// CZ oscillators by Mike Moser-Booth:
+// <https://forum.pdpatchrepo.info/topic/5992/casio-cz-oscillators>
+// Ported from pd to Faust by Bart Brouns
+
+CZsawP(fund, index) = CZ.sawChooseP(fund, index, 1);
 
 //----------`(os.)CZsquare`----------
 // Oscillator that mimics the Casio CZ square oscillator
@@ -6443,12 +6625,35 @@ with {
 //------------------------------------------------------------
 // Author: Bart Brouns
 // License: GPLv3
-// CZ oscilators by Mike Moser-Booth. ported from pd to Faust by Bart Brouns
+// CZ oscillators by Mike Moser-Booth:
+// <https://forum.pdpatchrepo.info/topic/5992/casio-cz-oscillators>
+// Ported from pd to Faust by Bart Brouns
 
-CZsquare(fund, index) = (fund>=0.5), (ma.decimal((fund*2)+1)<:_-min(_,(-1*_+1)*((INDEX)/(1-INDEX)))) :+ *ma.PI:cos*0.5
-with {
-	INDEX = (index:pow(0.25)) * 0.98;
-};
+CZsquare(fund, index) = CZ.squareChooseP(fund, index, 0);
+
+//----------`(os.)CZsquareP`----------
+// Oscillator that mimics the Casio CZ square oscillator,
+// with it's phase aligned to `fund:sin`.
+// `CZsquareP` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// CZsquareP(fund,index) : _
+// ```
+//
+// Where:
+//
+// * `fund`: a saw-tooth waveform between 0 and 1 that the oscillator slaves to
+// * `index`: the brightness of the oscillator, 0 to 1. 0 = sine-wave, 1 = square-wave
+//------------------------------------------------------------
+// Author: Bart Brouns
+// License: GPLv3
+// CZ oscillators by Mike Moser-Booth:
+// <https://forum.pdpatchrepo.info/topic/5992/casio-cz-oscillators>
+// Ported from pd to Faust by Bart Brouns
+
+CZsquareP(fund, index) = CZ.squareChooseP(fund, index, 1);
 
 //----------`(os.)CZpulse`----------
 // Oscillator that mimics the Casio CZ pulse oscillator
@@ -6467,12 +6672,35 @@ with {
 //------------------------------------------------------------
 // Author: Bart Brouns
 // License: GPLv3
-// CZ oscilators by Mike Moser-Booth. ported from pd to Faust by Bart Brouns
+// CZ oscillators by Mike Moser-Booth:
+// <https://forum.pdpatchrepo.info/topic/5992/casio-cz-oscillators>
+// Ported from pd to Faust by Bart Brouns
 
-CZpulse(fund, index) = ((fund-min(fund,((-1*fund+1)*(INDEX/(1-INDEX)))))*2*ma.PI):cos 
-with {
-	INDEX = index:min(0.99):max(0);
-};
+CZpulse(fund, index) = CZ.pulseChooseP(fund, index, 0);
+
+//----------`(os.)CZpulseP`----------
+// Oscillator that mimics the Casio CZ pulse oscillator,
+// with it's phase aligned to `fund:sin`.
+// `CZpulseP` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// CZpulseP(fund,index) : _
+// ```
+//
+// Where:
+//
+// * `fund`: a saw-tooth waveform between 0 and 1 that the oscillator slaves to
+// * `index`: the brightness of the oscillator, 0 gives a sine-wave, 1 is closer to a pulse
+//------------------------------------------------------------
+// Author: Bart Brouns
+// License: GPLv3
+// CZ oscillators by Mike Moser-Booth:
+// <https://forum.pdpatchrepo.info/topic/5992/casio-cz-oscillators>
+// Ported from pd to Faust by Bart Brouns
+
+CZpulseP(fund, index) = CZ.pulseChooseP(fund, index, 1);
 
 //----------`(os.)CZsinePulse`----------
 // Oscillator that mimics the Casio CZ sine/pulse oscillator
@@ -6491,12 +6719,35 @@ with {
 //------------------------------------------------------------
 // Author: Bart Brouns
 // License: GPLv3
-// CZ oscilators by Mike Moser-Booth. ported from pd to Faust by Bart Brouns
+// CZ oscillators by Mike Moser-Booth:
+// <https://forum.pdpatchrepo.info/topic/5992/casio-cz-oscillators>
+// Ported from pd to Faust by Bart Brouns
 
-CZsinePulse(fund, index) = (min(fund*((0.5-INDEX)/INDEX),(-1*fund+1)*((.5-INDEX)/(1-INDEX)))+fund)*4*ma.PI:cos
-with {
-	INDEX = ((index*-0.49)+0.5);
-};
+CZsinePulse(fund, index) = CZ.sinePulseChooseP(fund, index, 0);
+
+//----------`(os.)CZsinePulseP`----------
+// Oscillator that mimics the Casio CZ sine/pulse oscillator,
+// with it's phase aligned to `fund:sin`.
+// `CZsinePulseP` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// CZsinePulseP(fund,index) : _
+// ```
+//
+// Where:
+//
+// * `fund`: a saw-tooth waveform between 0 and 1 that the oscillator slaves to
+// * `index`: the brightness of the oscillator, 0 gives a sine-wave, 1 is a sine minus a pulse
+//------------------------------------------------------------
+// Author: Bart Brouns
+// License: GPLv3
+// CZ oscillators by Mike Moser-Booth:
+// <https://forum.pdpatchrepo.info/topic/5992/casio-cz-oscillators>
+// Ported from pd to Faust by Bart Brouns
+
+CZsinePulseP(fund, index) = CZ.sinePulseChooseP(fund, index, 1);
 
 //----------`(os.)CZhalfSine`----------
 // Oscillator that mimics the Casio CZ half sine oscillator
@@ -6515,12 +6766,35 @@ with {
 //------------------------------------------------------------
 // Author: Bart Brouns
 // License: GPLv3
-// CZ oscilators by Mike Moser-Booth. ported from pd to Faust by Bart Brouns
+// CZ oscillators by Mike Moser-Booth:
+// <https://forum.pdpatchrepo.info/topic/5992/casio-cz-oscillators>
+// Ported from pd to Faust by Bart Brouns
 
-CZhalfSine(fund, index) = (select2(fund<.5, .5*(fund-.5)/INDEX+.5, fund):min(1))*2*ma.PI:cos
-with {
-	INDEX = (.5-(index*0.5)):min(.5):max(.01);
-};
+CZhalfSine(fund, index) = CZ.halfSineChooseP(fund, index, 0);
+
+//----------`(os.)CZhalfSineP`----------
+// Oscillator that mimics the Casio CZ half sine oscillator,
+// with it's phase aligned to `fund:sin`.
+// `CZhalfSineP` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// CZhalfSineP(fund,index) : _
+// ```
+//
+// Where:
+//
+// * `fund`: a saw-tooth waveform between 0 and 1 that the oscillator slaves to
+// * `index`: the brightness of the oscillator, 0 gives a sine-wave, 1 is somewhere between a saw and a square
+//------------------------------------------------------------
+// Author: Bart Brouns
+// License: GPLv3
+// CZ oscillators by Mike Moser-Booth:
+// <https://forum.pdpatchrepo.info/topic/5992/casio-cz-oscillators>
+// Ported from pd to Faust by Bart Brouns
+
+CZhalfSineP(fund, index) = CZ.halfSineChooseP(fund, index, 1);
 
 //----------`(os.)CZresSaw`----------
 // Oscillator that mimics the Casio CZ resonant saw-tooth oscillator
@@ -6539,9 +6813,11 @@ with {
 //------------------------------------------------------------
 // Author: Bart Brouns
 // License: GPLv3
-// CZ oscilators by Mike Moser-Booth. ported from pd to Faust by Bart Brouns
+// CZ oscillators by Mike Moser-Booth:
+// <https://forum.pdpatchrepo.info/topic/5992/casio-cz-oscillators>
+// Ported from pd to Faust by Bart Brouns
 
-CZresSaw(fund,res) = (((-1*(1-fund))*((cos((ma.decimal((max(1,res)*fund)+1))*2*ma.PI)*-.5)+.5))*2)+1;
+CZresSaw(fund,res) = CZ.resSaw(fund,res);
 
 //----------`(os.)CZresTriangle`----------
 // Oscillator that mimics the Casio CZ resonant triangle oscillator
@@ -6560,12 +6836,11 @@ CZresSaw(fund,res) = (((-1*(1-fund))*((cos((ma.decimal((max(1,res)*fund)+1))*2*m
 //------------------------------------------------------------
 // Author: Bart Brouns
 // License: GPLv3
-// CZ oscilators by Mike Moser-Booth. ported from pd to Faust by Bart Brouns
+// CZ oscillators by Mike Moser-Booth:
+// <https://forum.pdpatchrepo.info/topic/5992/casio-cz-oscillators>
+// Ported from pd to Faust by Bart Brouns
 
-CZresTriangle(fund,res) = select2(fund<.5, 2-(fund*2), fund*2)*tmp*2-1 
-with {
-	tmp = ((fund*(res:max(1)))+1:ma.decimal)*2*ma.PI:cos*.5+.5;
-};
+CZresTriangle(fund,res) = CZ.resTriangle(fund,res);
 
 //----------`(os.)CZresTrap`----------
 // Oscillator that mimics the Casio CZ resonant trapeze oscillator
@@ -6584,9 +6859,67 @@ with {
 //------------------------------------------------------------
 // Author: Bart Brouns
 // License: GPLv3
-// CZ oscilators by Mike Moser-Booth. ported from pd to Faust by Bart Brouns
+// CZ oscillators by Mike Moser-Booth:
+// <https://forum.pdpatchrepo.info/topic/5992/casio-cz-oscillators>
+// Ported from pd to Faust by Bart Brouns
 
-CZresTrap(fund, res) = (((1-fund)*2):min(1)*sin(ma.decimal(fund*(res:max(1)))*2*ma.PI));
+CZresTrap(fund, res) = CZ.resTrap(fund, res);
+
+CZ = environment {
+  
+    saw(fund, index) = sawChooseP(fund, index, 0);
+    sawP(fund, index) = sawChooseP(fund, index, 1);
+    sawChooseP(fund, index, p) =
+      (((FUND(fund,align,p)*((.5-INDEX)/INDEX)),(-1*FUND(fund,align,p)+1)*((.5-INDEX)/(1-INDEX))):min+FUND(fund,align,p))*2*ma.PI:cos
+    with {
+      INDEX = (.5-(index*.5)):max(0.01):min(0.5);
+      align = si.interpolate(index, 0.75, 0.5);
+    };
+    
+    square(fund, index) = squareChooseP(fund, index, 0);
+    squareP(fund, index) = squareChooseP(fund, index, 1);
+    squareChooseP(fund, index, p) = (FUND(fund,align,p)>=0.5), (ma.decimal((FUND(fund,align,p)*2)+1)<:_-min(_,(-1*_+1)*((INDEX)/(1-INDEX)))) :+ *ma.PI:cos
+    with {
+      INDEX = (index:pow(0.25)):max(0):min(1);
+      align = si.interpolate(INDEX, -0.25, 0);
+    };
+
+    pulse(fund, index) = pulseChooseP(fund, index, 0);
+    pulseP(fund, index) = pulseChooseP(fund, index, 1);
+    pulseChooseP(fund, index, p) = ((FUND(fund,align,p)-min(FUND(fund,align,p),((-1*FUND(fund,align,p)+1)*(INDEX/(1-INDEX)))))*2*ma.PI):cos
+    with {
+      INDEX = index:min(0.99):max(0);
+      align = si.interpolate(index, -0.25, 0.0);
+    };
+
+    sinePulse(fund, index) = sinePulseChooseP(fund, index, 0);
+    sinePulseP(fund, index) = sinePulseChooseP(fund, index, 1);
+    sinePulseChooseP(fund, index, p) = (min(FUND(fund,align,p)*((0.5-INDEX)/INDEX),(-1*FUND(fund,align,p)+1)*((.5-INDEX)/(1-INDEX)))+FUND(fund,align,p))*4*ma.PI:cos
+    with {
+      INDEX = ((index*-0.49)+0.5);
+      align = si.interpolate(index, -0.125, -0.25);
+    };
+
+    halfSine(fund, index) = halfSineChooseP(fund, index, 0);
+    halfSineP(fund, index) = halfSineChooseP(fund, index, 1);
+    halfSineChooseP(fund, index, p) = (select2(FUND(fund,align,p)<.5, .5*(FUND(fund,align,p)-.5)/INDEX+.5, FUND(fund,align,p)):min(1))*2*ma.PI:cos
+    with {
+      INDEX = (.5-(index*0.5)):min(.5):max(.01);
+      align = si.interpolate(index:min(0.975), -0.25, -0.5);
+    };
+    
+    FUND =
+      case {
+        (fund,align,0) => fund;
+        (fund,align,1) => (fund+align) : ma.frac; // align phase with fund
+      };
+    resSaw(fund,res) = (((-1*(1-fund))*((cos((ma.decimal((max(1,res)*fund)+1))*2*ma.PI)*-.5)+.5))*2)+1;
+    resTriangle(fund,res) = select2(fund<.5, 2-(fund*2), fund*2)*INDEX*2-1
+    with {
+	  INDEX = ((fund*(res:max(1)))+1:ma.decimal)*2*ma.PI:cos*.5+.5;
+    };
+    resTrap(fund, res) = (((1-fund)*2):min(1)*sin(ma.decimal(fund*(res:max(1)))*2*ma.PI));
+};
 
 //===============================PolyBLEP-Based Oscillators=================================
 
@@ -6692,16 +7025,16 @@ polyblep_triangle(f) = polyblep_square(f) : fi.pole(0.999) : *(4 * f / ma.SR);
 // Authors:
 // Dario Sanfilippo <sanfilippo.dario@gmail.com>
 // and Oleg Nesterov (jos ed.)
-quadosc(f) = tick ~ (_ , _) 
+quadosc(f) = tick ~ (_,_) 
 with {
-      k1 = tan(f * ma.PI / ma.SR);
-      k2 = 2 * k1 / (1 + k1 * k1);
-      tick(u_0, v_0) = u_1 , v_1 
-      with {
-       tmp = u_0 - k1 * v_0;
-       v_1 = v_0 + k2 * tmp;
-       u_1 = tmp - k1 * v_1 : select2(1', 1);
-      };
+    k1 = tan(f * ma.PI / ma.SR);
+    k2 = 2 * k1 / (1 + k1 * k1);
+    tick(u_0,v_0) = u_1,v_1 
+    with {
+        tmp = u_0 - k1 * v_0;
+        v_1 = v_0 + k2 * tmp;
+        u_1 = tmp - k1 * v_1 : select2(1',1);
+    };
 };
 
 // end further contributions section
@@ -7471,8 +7804,9 @@ speakerbp(f1,f2) = fi.dcblockerat(f1) : fi.dcblockerat(f1) : fi.lowpass(4,f2);
 //
 // * "Dispersion Modeling in Waveguide Piano Synthesis Using Tunable
 // Allpass Filters", by Jukka Rauhala and Vesa Valimaki, DAFX-2006, pp. 71-76
-// * <http://www.dafx.ca/proceedings/papers/p_071.pdf> (An erratum in Eq. (7)
-// 		is corrected in Dr. Rauhala's encompassing dissertation (and below).)
+// * <http://lib.tkk.fi/Diss/2007/isbn9789512290666/article2.pdf>
+//   An erratum in Eq. (7) is corrected in Dr. Rauhala's encompassing
+//   dissertation (and below).
 // * <http://www.acoustics.hut.fi/research/asp/piano/>
 //------------------------------------------------------------
 // TODO: perhaps this should be moved to physmodels.lib?
@@ -7850,14 +8184,15 @@ echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0
 //
 //------------------------------------------------------------
 version =   1, // MAJOR version when we make incompatible API changes,
-            2, // MINOR version when we add functionality in a backwards compatible manner,
+            3, // MINOR version when we add functionality in a backwards compatible manner,
             0; // PATCH version when we make backwards compatible bug fixes.
 
             
 //#################################### webaudio.lib ########################################
-//An implementation of the WebAudio API filters (https://www.w3.org/TR/webaudio/).  Its official prefix is `wa`.
+//An implementation of the WebAudio API filters (https://www.w3.org/TR/webaudio/). Its official prefix is `wa`.
 //
-// This library implement WebAudio filters, taking their C++ implementation as a starting point. 
+// This library implement WebAudio filters, using their C++ version as a starting point, 
+// taken from Mozilla Firefox implementation.
 //########################################################################################
 
 /************************************************************************
@@ -7901,10 +8236,10 @@ declare license "LGPL with exception";
 ma = library("maths.lib");
 fi = library("filters.lib");
 
-//----------------------------------------
+//---------------------------------------------------
 // biquad coeffs for various filters
 // usage : BiquadFilter(f0, dBgain, Q, aDetune).xxx
-//----------------------------------------
+//---------------------------------------------------
 	
 BiquadFilter(f0, dBgain, Q, aDetune) = environment
 {
@@ -8859,6 +9194,7 @@ cross(n) = bus(n) <: par(i,n,selector(n-i-1,n));
 // through a series of environments.
 //########################################################################################
 
+sf = library("all.lib");
 an = library("analyzers.lib");
 ba = library("basics.lib");
 co = library("compressors.lib");
@@ -8877,6 +9213,7 @@ no = library("noises.lib");
 pf = library("phaflangers.lib");
 pl = library("platform.lib");
 pm = library("physmodels.lib");
+qu = library("quantizer.lib");
 rm = library("reducemaps.lib");
 re = library("reverbs.lib");
 ro = library("routes.lib");
@@ -8885,9 +9222,9 @@ si = library("signals.lib");
 so = library("soundfiles.lib");
 sy = library("synths.lib");
 ve = library("vaeffects.lib");
-wa = library("webaudio.lib");
-sf = library("all.lib");
 vl = library("version.lib");
+wa = library("webaudio.lib");
+wd = library("wdmodels.lib");
 //////////////////////////////////////////////////////////////////////////////////////////
 // WARNING: Deprecated Library!!
 // Read the README file in /libraries for more information
@@ -10971,19 +11308,19 @@ with {
 // considered as "deprecated".
 //////////////////////////////////////////////////////////////////////////////////////////
 
-delay1s(d)		= delay(65536,d);
-delay2s(d)		= delay(131072,d);
-delay5s(d)		= delay(262144,d);
-delay10s(d)		= delay(524288,d);
-delay21s(d)		= delay(1048576,d);
-delay43s(d)		= delay(2097152,d);
+delay1s(d) = delay(65536,d);
+delay2s(d) = delay(131072,d);
+delay5s(d) = delay(262144,d);
+delay10s(d) = delay(524288,d);
+delay21s(d) = delay(1048576,d);
+delay43s(d) = delay(2097152,d);
 
-fdelay1s(d)		= fdelay(65536,d);
-fdelay2s(d)		= fdelay(131072,d);
-fdelay5s(d)		= fdelay(262144,d);
-fdelay10s(d)	= fdelay(524288,d);
-fdelay21s(d)	= fdelay(1048576,d);
-fdelay43s(d)	= fdelay(2097152,d);
+fdelay1s(d) = fdelay(65536,d);
+fdelay2s(d) = fdelay(131072,d);
+fdelay5s(d) = fdelay(262144,d);
+fdelay10s(d) = fdelay(524288,d);
+fdelay21s(d) = fdelay(1048576,d);
+fdelay43s(d) = fdelay(2097152,d);
 //#################################### routes.lib ########################################
 // A library to handle signal routing in Faust. Its official prefix is `ro`.
 //########################################################################################
@@ -11456,7 +11793,7 @@ sample3.play_interp(440.0,
  **/
 
 declare name      "Tonestack Emulation Library";
-declare author    "Guitarix project (http://guitarix.sourceforge.net/)";
+declare author    "Guitarix project (<http://guitarix.sourceforge.net/>)";
 declare copyright "Guitarix project";
 declare version   "0.28";
 declare license   "LGPL";
@@ -11855,7 +12192,1751 @@ fender_deville(T,M,L) = tonestack(t.C1,t.C2,t.C3,t.R1,t.R2,t.R3,t.R4,T,M,L)
 gibsen(T,M,L) = tonestack(t.C1,t.C2,t.C3,t.R1,t.R2,t.R3,t.R4,T,M,L) 
                     with {t = ts.gibsen;};
 
-//##################################### all.lib ##########################################
+//#################################### wdmodels.lib ##############################################################################
+// A library of basic adaptors and methods to help construct Wave Digital Filter models in Faust. Its official prefix is `wd`.
+//################################################################################################################################
+
+// ## Library Readme
+
+// This library is intended for use for creating Wave Digital (WD) based models of audio circuitry for real-time audio processing within the Faust programming language. The goal is to provide a framework to create real-time virtual-analog audio effects and synthesizers using WD models without the use of C++. Furthermore, we seek to provide access to the technique of WD modeling to those without extensive knowledge of advanced digital signal processing techniques. Finally, we hope to provide a library which can integrate with all aspects of Faust, thus creating a platform for virtual circuit bending. 
+
+// The library itself is written in Faust to maintain portability. 
+
+
+// This library is heavily based on Kurt Werner's Dissertation, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters." I have tried to maintain consistent notation between the adaptors appearing within thesis and my adaptor code. The majority of the adaptors found in chapter 1 and chapter 3 are currently supported. 
+
+// For inquires about use of this library in a commercial product, please contact dirk [dot] roosenburg [dot] 30 [at] gmail [dot] com
+
+// This documentation is taken directly from the readme of https://github.com/droosenb/faust-WD-library. Please refer to it for a more updated version. 
+
+// Many of the more in depth comments within the library include jargon. I plan to create videos detailing the theory of WD models
+// For now I recommend Kurt Werner's PhD, "Virtual analog modeling of Audio circuitry using Wave Digital Filters", found here: 
+// <https://searchworks.stanford.edu/view/11891203>   
+// I have tried to maintain consistent syntax and notation to the thesis. 
+// This library currently includes the majority of the adaptors covered in chapter 1 and some from chapter 3. 
+
+
+// ## Using this Library
+
+// Use of this library expects some level of familiarity with WDF techniques, especially simplification and decomposition of electronic circuits into WDF connection trees. I plan to create video to cover both these techniques and use of the library. 
+
+// ### Quick Start
+
+// to get a quick overview of the library, start with the `secondOrderFilters.dsp` code found in `examples`. Make sure that the `wdmodels.lib` is within the compile path. This can be achieved within the [online Faust IDE](https://faustide.grame.fr/) by simply downloading and dragging in `wdmodels.lib` in addition to the example code.
+
+// ### A Simple RC Filter Model
+
+// Creating a model using this library consists fo three steps. First, declare a set of components. Second, model the relationship between them using a tree. Finally, build the tree using the libraries build functions.  
+
+// First, a set of components is declared using adaptors from the library.  This list of components is created based on analysis of the circuit using WDF techniques, though generally each circuit element (resistor, capacitor, diode, etc.) can be expected to appear within the component set. For example, first order RC lowpass filter would require an unadapted voltage source, a 47k resistor, and a 10nF capacitor which outputs the voltage across itself. These can be declared with: 
+
+// ```
+// vs1(i) = wd.u_voltage(i, no.noise);
+// r1(i) = wd.resistor(i, 47*10^3);
+// c1(i) = wd.capacitor_output(i, 10*10^-9);
+// ```
+
+// Note that the first argument, i, is left un-parametrized. Components must be declared in this form, as the build algorithm expects to receive adaptors which have exactly one parameter. 
+
+// Also note that we have chosen to declare a white noise function as the input to our voltage source. We could potentially declare this as a direct input to our model, but to do so is more complicated process which cannot be covered within this tutorial. For information on how to do this see Declaring Model Parameters as Inputs or see various implementations in `examples`.
+
+
+// Second, the declared components and interconnection/structural adaptors (i.e. series, parallel, etc) are arranged into the connection tree which is produced from performing WD analysis on the modeled circuit. For example, to produce our first order RC lowpass circuit model, the following tree is declared: 
+
+// `tree_lowpass = vs1(i) : WD.series : (r1, c1)`
+
+// For more information on how to represent trees in Faust, see Trees in Faust. 
+
+// Finally, the tree is built using the the `buildtree` function. To build and compute our first order RC lowpass circuit model, we use
+
+// `process = buildtree(tree_lowpass);`
+
+// More information about build functions, see Build Functions. 
+
+// ### Building a Model
+
+// After creating a connection tree which consists of WD adaptors, the connection tree must be passed to a build function in order to build the model.
+
+// ##### Automatic model building 
+
+// `buildtree(connection_tree)`
+
+// The simplest build function for use with basic models. This automatically implements `buildup`, `builddown`, and `buildout` to create a working model. However, it gives minimum control to the user and cannot currently be used on trees which have parameters declared as inputs.
+
+// ##### Manual model building
+
+// Wave Digital Filters are an explicit state-space model, meaning they use a previous system state in order to calculate the current output. This is achieved in Faust by using a single global feedback operator. The models feed-forward terms are generated using `builddown` and the models feedback terms are generated using `buildup`. Thus, the most common model implementation (the method used by `buildtree`) is
+
+// `builddown(connection_tree)~buildup(connection_tree) : buildout(connection_tree)`.
+
+// Since the `~` operator in Faust will leave feedback terms hanging as outputs, `buildout` is a function provided for convenience. It automatically truncates the hanging outputs by identifying leaf components which have an intended output and generating an output matrix.
+
+// Building the model manually allows for greater user control and is often very helpful in testing. Also provided for testing are the `getres` and `parres` functions, which can be used to determine the upward-facing port resistance of an element. 
+
+// ### Declaring Model Parameters as Inputs
+
+// When possible, parameters of components should be declared explicitly, meaning they are dependent on a function with no inputs. This might be something as simple as integer(declaring a static component), a function dependent on a UI input (declaring a component with variable value), or even a time-dependent function like an oscillator (declaring an audio input or circuit bending). 
+
+// However, it is often necessary to declare parameters as input. To achieve this there are two possible methods. The first and recommended option is to create a separate model function and declare parameters which will later be implemented as inputs. This allows inputs to be explicitly declared as component parameters. For example, one might use
+
+// ```
+// model(in1) = buildtree(tree)
+// with{
+//    ...
+//    vin(i) = wd.u_voltage(i, in1);
+//    ...
+
+//    tree = vin : ...; 
+// };
+// ```
+
+// In order to simulate an audio input to the circuit. 
+
+// Note that the tree and components must be declared inside a `with{...}` statement, or the model's parameters will not be accessible. 
+
+// ##### Depreciated Input Method (Not Recommended)
+
+// It is also possible to declare inputs using the signal operator, `_`. For example, one might use
+
+// `vin(i) = wd.u_voltage(i, _);`
+
+// in order to simulate an audio input to the circuit.
+
+// However, since build functions do not have access to individual component parameter details, the task of declaring inputs using this method can quickly become complex and **is not recommended**. 
+
+// Only the root and bottom-most / left-most leaf element can accept a parameter input this way. 
+
+// Additionally, manual routing must be performed within the feedforward term as the function input/output mismatch will cause errors in the model. 
+
+
+// ### Trees in Faust
+
+// Since WD models use connection trees to represent relationships of elements, a comprehensive way to represent trees is critical. As there is no current convention for creating trees in Faust, I've developed a method using the existing series and parallel/list methods in Faust.
+
+// The series operator ` : ` is used to separate parent and child elements. For example the tree
+
+// ```
+//    A
+//    |
+//    B
+// ```
+
+// is represented by
+
+// `A : B` 
+
+// in Faust. 
+
+// To denote a parent element with multiple child elements, simply use a list `(a1, a2, ... an)` of children connected to a single parent. For example the tree
+
+// ```
+//    A
+//   / \
+//  B   C
+
+// ```
+// is represented by
+
+// `A : (B, C)`
+
+// Finally, for a tree with many levels, simply break the tree into subtrees following the above rules and connect the subtree as if it was an individual node. For example the tree
+
+// ```
+//       A
+//      / \
+//     B   C
+//    /   / \
+//   X   Y   Z
+// ```
+
+// can be represented by
+
+// ```
+// B_sub = B : X; //B subtree
+// C_sub = C : (Y, Z); //C subtree
+// tree = A : (B_sub, C_sub); //full tree
+// ```
+
+// or more simply, using parentheses: 
+
+// `A : ((B : X), (C : (Y, Z)))`
+
+// ### How Adaptors are Structured
+
+// In wave digital filters, adaptors can be described by the form 
+
+// `b = Sa`
+
+// where `b` is a vector of output waves `b = (b0, b1, b2, ... bn)`, `a` is a vector of input waves`a = (a0, a1, a2, ... an)`, and `S` is an n x n scattering matrix. `S` is dependent on `R`, a list of port resistances `(R0, R1, R2, ... Rn)`. 
+
+// The output wave vector `b` can be divided into downward-going and upward-going waves (downward-going waves travel down the connection tree, upward-going waves travel up). For adapted adaptors, with the zeroth port being  the upward-facing port, the downward-going wave vector is `(b1, b2, ... bn)` and the upward-going wave vector is `(b0)`. For unadapted adaptors, there are no upward-going waves, so the downward-going wave vector is simply `b = (b0, b1, b2, ... bn)`. 
+
+// In order for adaptors to be interpretable by the compiler, they must be structured in a specific way. 
+// Each adaptor is divided into three cases by their first parameter. This parameter, while accessible by the user, should only be set by the compiler/builder.
+
+// All other parameters are value declarations (for components), inputs (for voltage or current ins), or parameter controls (for potentiometers/variable capacitors/variable inductors)
+
+// ##### first case - downward going waves
+
+// `(0, params) => downward-going(R1, ... Rn, a0, a1, ... an)` 
+// outputs : `(b1, b2, ... bn)`
+
+//    this function takes any number of port resistances, the downward going wave, and any number of upward going waves as inputs. 
+   
+//    These values/waves are used to calculate the downward going waves coming from this adaptor
+
+// ##### second case 
+
+// `(1, params) =>  upward-going(R1, ... Rn, a1, ... an)`
+// outputs : `(b0)`
+
+//    this function takes any number of port resistances and any number of upward going waves as inputs
+
+//    these values/waves are used to calculate the upward going wave coming from this adaptor
+
+// ##### third case  
+
+// `(2, params) => port-resistance(R1, ... Rn)` 
+// outputs:  `(R0)`
+
+//    this function takes any number of port resistances as inputs
+
+//    these values are used to calculate the upward going port resistance of the element
+
+
+// ##### Unadapted Adaptors
+
+// Unadapted adaptor's names will always begin "u_"
+// An unadapted adaptor MUST be used as the root of the WD connection tree.
+// Unadapted adaptors can ONLY be used as a root of the WD connection tree. 
+// While unadapted adaptors contain all three cases, the second and third are purely structural. 
+// Only the first case should contain computational information. 
+
+// ### How the Build Functions Work
+
+// Expect this section to be added soon! It's currently in progress.
+
+// ### Acknowledgements
+
+// Many thanks to Kurt Werner for helping me to understand wave digital filter models. Without his publications and consultations, the library would not exist. 
+// Thanks also to my advisors, Rob Owen and Eli Stine whose input was critical to the development of the library.
+// Finally, thanks to Romain Michon, Stephane Letz, and the Faust slack for contributing to testing, development, and inspiration when creating the library. 
+
+
+
+
+ba = library("basics.lib");
+ro = library("routes.lib");
+ma = library("maths.lib");
+si = library("signals.lib");
+
+declare name "Faust Wave Digital Model Library";
+declare version "0.1.1";
+
+
+
+//=============================Algebraic One Port Adaptors=================================
+//=========================================================================================
+
+//----------------------`(wd.)resistor`--------------------------
+// Resistor
+// A basic adaptor implementing a resistor for use within Wave Digital Filter connection trees.
+//
+// It should be used as a leaf/terminating element of the connection tree.
+//
+// #### Usage
+//
+// ```
+// r1(i) = resistor(i, R);
+// buildtree( A : r1 );
+// ```
+//
+// Where:
+//
+// * `i`: index used by model-building functions. Should never be user declared.
+// * `R` : Resistance/Impedance of the resistor being modeled in Ohms. 
+//
+// Note:
+// The adaptor must be declared as a separate function before integration into the connection tree.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.2.1
+//----------------------------------------------------------
+declare resistor author "Dirk Roosenburg";
+declare resistor copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare resistor license "MIT-style STK-4.3 license";
+resistor = 
+case{
+    (0, R) => !, 0; 
+    (1, R) => _; 
+    (2, R) => R0 
+    with{
+        R0 = R; 
+    };
+};
+
+
+//----------------------`(wd.)resistor_output`--------------------------
+// Resistor + voltage Out.
+// A basic adaptor implementing a resistor for use within Wave Digital Filter connection trees.
+//
+// It should be used as a leaf/terminating element of the connection tree.
+// The resistor will also pass the voltage across itself as an output of the model.
+//
+// #### Usage
+//
+// ```
+// rout(i) = resistor_output(i, R);
+// buildtree( A : rout ) : _;
+// ```
+//
+// Where:
+//
+// * `i`: index used by model-building functions. Should never be user declared.
+// * `R` : Resistance/Impedance of the resistor being modeled in Ohms. 
+//
+// Note: 
+// The adaptor must be declared as a separate function before integration into the connection tree.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.2.1
+//----------------------------------------------------------
+declare resistor_output author "Dirk Roosenburg";
+declare resistor_output copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare resistor_output license "MIT-style STK-4.3 license";
+resistor_output = 
+case{
+    (0, R) => 0, _*.5; 
+    (1, R) => _, !; 
+    (2, R) => R0 
+    with{
+        R0 = R; 
+    };
+};
+
+
+//----------------------`(wd.)resistor_output_current`--------------------------
+// Resistor + current Out.
+// A basic adaptor implementing a resistor for use within Wave Digital Filter connection trees.
+//
+// It should be used as a leaf/terminating element of the connection tree.
+// The resistor will also pass the current through itself as an output of the model.
+//
+// #### Usage
+//
+// ```
+// rout(i) = resistor_output_current(i, R);
+// buildtree( A : rout ) : _;
+// ```
+//
+// Where:
+//
+// * `i`: index used by model-building functions. Should never be user declared.
+// * `R` : Resistance/Impedance of the resistor being modeled in Ohms. 
+//
+// Note: 
+// The adaptor must be declared as a separate function before integration into the connection tree.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.2.1
+//----------------------------------------------------------
+declare resistor_output_current author "Dirk Roosenburg";
+declare resistor_output_current copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare resistor_output_current license "MIT-style STK-4.3 license";
+resistor_output_current = 
+case{
+    (0, R) => 0, _*.5/R; 
+    (1, R) => _, !; 
+    (2, R) => R0 
+    with{
+        R0 = R; 
+    };
+};
+
+
+//----------------------`(wd.)u_voltage`--------------------------
+// Ideal Voltage Source (Unadapted).
+// An adaptor implementing an ideal voltage source within Wave Digital Filter connection trees.
+//
+// It should be used as the root/top element of the connection tree.
+// Can be used for either DC (constant) or AC (signal) voltage sources.
+//
+// #### Usage
+//
+// ```
+// v1(i) = u_Voltage(i, ein);
+// buildtree( v1 : B );
+// ```
+//
+// Where:
+//
+// * `i`: index used by model-building functions. Should never be user declared.
+// * `ein` : Voltage/Potential across ideal voltage source in Volts
+//
+// Note: 
+// Only usable as the root of a tree
+// The adaptor must be declared as a seperate function before integration into the connection tree.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.2.2
+//----------------------------------------------------------
+declare u_voltage author "Dirk Roosenburg";
+declare u_voltage copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare u_voltage license "MIT-style STK-4.3 license";
+u_voltage = 
+case{
+    (0 , ein) => b0
+    with{
+        b0(R0, a0) = 2*R0^(p-1)*ein -a0;
+    };
+    (1, ein) => !, !; 
+    (2, ein) => 0; 
+};
+
+
+//----------------------`(wd.)u_current`--------------------------
+// Resistive Current Source (Unadapted).
+// An unadapted adaptor implementing an ideal current source within Wave Digital Filter connection trees.
+//
+// It should be used as the root/top element of the connection tree.
+// Can be used for either DC (constant) or AC (signal) current sources.
+//
+// #### Usage
+//
+// ```
+// i1(i) = u_current(i, jin);
+// buildtree( i1 : B );
+// ```
+//
+// Where:
+//
+// * `i`: index used by model-building functions. Should never be user declared.
+// * `jin` : Current through the ideal current source in Amps
+//
+// Note: 
+// Only usable as the root of a tree.
+// The adaptor must be declared as a seperate function before integration into the connection tree.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.2.3
+//----------------------------------------------------------
+declare u_current author "Dirk Roosenburg";
+declare u_current copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare u_current license "MIT-style STK-4.3 license";
+u_current = 
+case{
+    (0 , jin) => b0
+    with{
+        b0(R0, a0) = 2*R0^(p)*jin + a0;
+    };
+    (1, jin) => !, !; 
+    (2, jin) => 0; 
+};
+
+//----------------------`(wd.)resVoltage`--------------------------
+// Resistive Voltage Source.
+// An adaptor implementing a resitive voltage source within Wave Digital Filter connection trees.
+//
+// It should be used as a leaf/terminating element of the connection tree.
+// It is comprised of an ideal voltage source in series with a resistor.
+// Can be used for either DC (constant) or AC (signal) voltage sources.
+//
+// #### Usage
+//
+// ```
+// v1(i) = resVoltage(i, R, ein);
+// buildtree( A : v1 );
+// ```
+//
+// Where:
+//
+// * `i`: index used by model-building functions. Should never be user declared
+// * `R` : Resistance/Impedence of the series resistor in Ohms
+// * `ein` : Voltage/Potential of the ideal voltage source in Volts
+//
+// Note: 
+// The adaptor must be declared as a seperate function before integration into the connection tree.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.2.4
+//----------------------------------------------------------
+declare resVoltage author "Dirk Roosenburg";
+declare resVoltage copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare resVoltage license "MIT-style STK-4.3 license";
+resVoltage = 
+case{
+    (0, R, ein) => R^(1-p)*ein;
+    (1, R, ein) => _; 
+    (2, R, ein) => R0
+    with {
+        R0 = R; 
+    };
+}; 
+
+//----------------------`(wd.)resVoltage_output`--------------------------
+// Resistive Voltage Source + voltage output.
+// An adaptor implementing a resitive voltage source within Wave Digital Filter connection trees.
+//
+// It should be used as a leaf/terminating element of the connection tree.
+// It is comprised of an ideal voltage source in series with a resistor.
+// Can be used for either DC (constant) or AC (signal) voltage sources.
+// The resistive voltage source will also pass the voltage across it as an output of the model.
+//
+// #### Usage
+//
+// ```
+// vout(i) = resVoltage_output(i, R, ein);
+// buildtree( A : vout ) : _;
+// ```
+//
+// Where:
+//
+// * `i`: index used by model-building functions. Should never be user declared
+// * `R` : Resistance/Impedence of the series resistor in Ohms
+// * `ein` : Voltage/Potential across ideal voltage source in Volts
+//
+// Note: 
+// The adaptor must be declared as a seperate function before integration into the connection tree.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.2.4
+//----------------------------------------------------------
+declare resVoltage_output author "Dirk Roosenburg";
+declare resVoltage_output copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare resVoltage_output license "MIT-style STK-4.3 license";
+resVoltage_output = 
+case{
+    (0, R, ein) => R^(1-p)*ein, _*.5 + R^(1-p)*ein*.5;
+    (1, R, ein) => _, !; 
+    (2, R, ein) => R0
+    with {
+        R0 = R; 
+    };
+}; 
+
+//----------------------`(wd.)u_resVoltage`--------------------------
+// Resistive Voltage Source (Unadapted).
+// An unadapted adaptor implementing a resitive voltage source within Wave Digital Filter connection trees.
+//
+// It should be used as the root/top element of the connection tree.
+// It is comprised of an ideal voltage source in series with a resistor.
+// Can be used for either DC (constant) or AC (signal) voltage sources.
+//
+// #### Usage
+//
+// ```
+// v1(i) = u_resVoltage(i, R, ein);
+// buildtree( v1 : B );
+// ```
+//
+// Where:
+//
+// * `i`: index used by model-building functions. Should never be user declared
+// * `R` : Resistance/Impedence of the series resistor in Ohms
+// * `ein` : Voltage/Potential across ideal voltage source in Volts
+//
+// Note: 
+// Only usable as the root of a tree.
+// The adaptor must be declared as a seperate function before integration into the connection tree.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.2.4
+//----------------------------------------------------------
+declare u_resVoltage author "Dirk Roosenburg";
+declare u_resVoltage copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare u_resVoltage license "MIT-style STK-4.3 license";
+u_resVoltage =
+case {
+    (0, R, ein) => b0
+    with{
+        b0(R0, a0) = a0*(R - R0)/(R+R0) + ein*(2*R0^p)/(R + R0);
+    };
+    (1, R, ein) => !, !; 
+    (2, R, ein) => 0; 
+
+};
+
+
+//----------------------`(wd.)resCurrent`--------------------------
+// Resistive Current Source.
+// An adaptor implementing a resitive current source within Wave Digital Filter connection trees.
+//
+// It should be used as a leaf/terminating element of the connection tree.
+// It is comprised of an ideal current source in parallel with a resistor.
+// Can be used for either DC (constant) or AC (signal) current sources.
+//
+// #### Usage
+//
+// ```
+// i1(i) = resCurrent(i, R, jin);
+// buildtree( A : i1 );
+// ```
+//
+// Where:
+//
+// * `i`: index used by model-building functions. Should never be user declared.
+// * `R` : Resistance/Impedence of the parallel resistor in Ohms
+// * `jin` : Current through the ideal current source in Amps
+//
+// Note: 
+// The adaptor must be declared as a seperate function before integration into the connection tree.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.2.5
+//----------------------------------------------------------
+declare resCurrent author "Dirk Roosenburg";
+declare resCurrent copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare resCurrent license "MIT-style STK-4.3 license";
+resCurrent =
+case {
+    (0, R, jin) => !, 2*R^(p)*jin;
+    (1, R, jin) => _; 
+    (2, R, jin) => R0
+    with {
+        R0 = R; 
+    };
+}; 
+
+//----------------------`(wd.)u_resCurrent`--------------------------
+// Resistive Current Source (Uadapted).
+// An unadapted adaptor implementing a resitive current source within Wave Digital Filter connection trees.
+//
+// It should be used as the root/top element of the connection tree
+// It is comprised of an ideal current source in parallel with a resistor
+// Can be used for either DC (constant) or AC (signal) current sources.
+//
+// #### Usage
+//
+// ```
+// i1(i) = u_resCurrent(i, R, jin);
+// buildtree( i1 : B );
+// ```
+//
+// Where:
+//
+// * `i`: index used by model-building functions. Should never be user declared.
+// * `R` : Resistance/Impedence of the series resistor in Ohms
+// * `jin` : Current through the ideal current source in Amps
+//
+// Note: 
+// Only usable as the root of a tree.
+// The adaptor must be declared as a seperate function before integration into the connection tree.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.2.5
+//----------------------------------------------------------
+declare u_resCurrent author "Dirk Roosenburg";
+declare u_resCurrent copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare u_resCurrent license "MIT-style STK-4.3 license";
+u_resCurrent =
+case {
+    (0, R, jin) => b0
+    with{
+        b0(R0, a0) = a0*(R - R0)/(R + R0) + jin*(2*R*R0^p)/(R + R0);
+    };
+    (1, R, jin) => !, !; 
+    (2, R, jin) => 0; 
+
+};
+
+//TODO
+//add short circuit (1.2.6), add open circuit (1.2.7)
+
+//----------------------`(wd.)u_switch`--------------------------
+// Ideal Switch (Unadapted).
+// An unadapted adaptor implementing an ideal switch for Wave Digital Filter connection trees.
+//
+// It should be used as the root/top element of the connection tree
+//
+// #### Usage
+//
+// ```
+// s1(i) = u_resCurrent(i, lambda);
+// buildtree( s1 : B );
+// ```
+//
+// Where:
+//
+// * `i`: index used by model-building functions. Should never be user declared.
+// * `lambda` : switch state control. -1 for closed switch, 1 for open switch.
+//
+// Note: 
+// Only usable as the root of a tree
+// The adaptor must be declared as a seperate function before integration into the connection tree.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.2.8
+//----------------------------------------------------------
+declare u_Switch author "Dirk Roosenburg";
+declare u_Switch copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare u_Switch license "MIT-style STK-4.3 license";
+u_Switch = 
+case {
+    (0, lambda) => b0
+    with{
+        b0(R0, a0) = a0*lambda; 
+    };
+    (1, lambda) => !, !; 
+    (2, lambda) => 0; 
+};
+
+//=============================Reactive One Port Adaptors=================================
+//========================================================================================
+//TODO - add mobius transform or alpha transform versions
+
+//----------------------`(wd.)capacitor`--------------------------
+// Capacitor.
+// A basic adaptor implementing a capacitor for use within Wave Digital Filter connection trees.
+//
+// It should be used as a leaf/terminating element of the connection tree.
+// This capacitor model was digitized using the bi-linear transform.
+//
+// #### Usage
+//
+// ```
+// c1(i) = capacitor(i, R);
+// buildtree( A : c1 ) : _;
+// ```
+//
+// Where:
+//
+// * `i`: index used by model-building functions. Should never be user declared.
+// * `R` : Capacitance/Impedence of the capacitor being modeled in Farads. 
+//
+// Note:
+// The adaptor must be declared as a seperate function before integration into the connection tree.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.3.1
+//----------------------------------------------------------
+declare capacitor author "Dirk Roosenburg";
+declare capacitor copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare capacitor license "MIT-style STK-4.3 license";
+capacitor =
+case{
+    (0, R) => _*1; 
+    (1, R) => _; 
+    (2, R) => R0
+    with {
+        R0 = t/(2*R); 
+    };
+};
+
+//----------------------`(wd.)capacitor_output`--------------------------
+// Capacitor + voltage out.
+// A basic adaptor implementing a capacitor for use within Wave Digital Filter connection trees.
+//
+// It should be used as a leaf/terminating element of the connection tree.
+// The capacitor will also pass the voltage across itself as an output of the model.
+// This capacitor model was digitized using the bi-linear transform.
+//
+// #### Usage
+//
+// ```
+// cout(i) = capacitor_output(i, R);
+// buildtree( A : cout ) : _;
+// ```
+//
+// Where:
+//
+// * `i`: index used by model-building functions. Should never be user declared
+// * `R` : Capacitance/Impedence of the capacitor being modeled in Farads
+//
+// Note: 
+// The adaptor must be declared as a seperate function before integration into the connection tree.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.3.1
+//----------------------------------------------------------
+declare capacitor_output author "Dirk Roosenburg";
+declare capacitor_output copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare capacitor_output license "MIT-style STK-4.3 license";
+capacitor_output = 
+case{
+    (0, R) => b0
+    with{
+        b0(a1) = a1*1, a1*.5 + (a1')*.5; 
+    };
+    (1, R) => _, !; 
+    (2, R) => R0
+    with {
+        R0 = t/(2*R); 
+    };
+};
+
+//----------------------`(wd.)inductor`--------------------------
+// Inductor.
+// A basic adaptor implementing an inductor for use within Wave Digital Filter connection trees.
+//
+// It should be used as a leaf/terminating element of the connection tree.
+// This inductor model was digitized using the bi-linear transform.
+//
+// #### Usage
+//
+// ```
+// l1(i) = inductor(i, R);
+// buildtree( A : l1 );
+// ```
+//
+// Where:
+//
+// * `i`: index used by model-building functions. Should never be user declared
+// * `R` : Inductance/Impedence of the inductor being modeled in Henries
+//
+// Note: 
+// The adaptor must be declared as a seperate function before integration into the connection tree.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.3.2
+//----------------------------------------------------------
+declare inductor author "Dirk Roosenburg";
+declare inductor copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare inductor license "MIT-style STK-4.3 license";
+inductor =
+case{
+    (0, R) => _*(-1); 
+    (1, R) => _; 
+    (2, R) => R0
+    with {
+        R0 = (2*R)/t; 
+    };
+};
+
+//----------------------`(wd.)inductor_output`--------------------------
+// Inductor + Voltage out.
+// A basic adaptor implementing an inductor for use within Wave Digital Filter connection trees.
+//
+// It should be used as a leaf/terminating element of the connection tree.
+// The inductor will also pass the voltage across itself as an output of the model.
+// This inductor model was digitized using the bi-linear transform.
+//
+// #### Usage
+//
+// ```
+// lout(i) = inductor_output(i, R);
+// buildtree( A : lout ) : _;
+// ```
+//
+// Where:
+//
+// * `i`: index used by model-building functions. Should never be user declared
+// * `R` : Inductance/Impedence of the inductor being modeled in Henries
+//
+// Note: 
+// The adaptor must be declared as a seperate function before integration into the connection tree.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.3.2
+//----------------------------------------------------------
+declare inductor_output author "Dirk Roosenburg";
+declare inductor_output copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare inductor_output license "MIT-style STK-4.3 license";
+inductor_output = 
+case{
+    (0, R) => b0
+    with{
+        b0(a1) = a1*(-1), a1*.5 - (a1')*.5; 
+    };
+    (1, R) => _, !; 
+    (2, R) => R0
+    with {
+        R0 = (2*R)/t; 
+    };
+};
+
+//===============================Nonlinear One Port Adaptors==============================
+//========================================================================================
+
+//----------------------`(wd.)u_idealDiode`--------------------------
+// Ideal Diode (Unadapted).
+// An unadapted adaptor implementing an ideal diode for Wave Digital Filter connection trees.
+//
+// It should be used as the root/top element of the connection tree.
+//
+// #### Usage
+//
+// ```
+// buildtree( u_idealDiode : B );
+// ```
+//
+// Note: 
+// Only usable as the root of a tree
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 3.2.3
+//----------------------------------------------------------
+declare u_idealDiode author "Dirk Roosenburg";
+declare u_idealDiode copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare u_idealDiode license "MIT-style STK-4.3 license";
+u_idealDiode =
+case{
+    (0) => b1
+    with{
+        b1(R1, a0) = a0 : abs : *(-1);
+    };
+    (1) => !, !; 
+    (2) => 0; 
+};
+
+//----------------------`(wd.)u_chua`--------------------------
+// Chua Diode (Unadapted).
+// An adaptor implementing the chua diode / non-linear resistor within Wave Digital Filter connection trees.
+//
+// It should be used as the root/top element of the connection tree.
+//
+// #### Usage
+//
+// ```
+// chua1(i) = u_chua(i, G1, G2, V0);
+// buildtree( chua1 : B );
+// ```
+//
+// Where:
+//
+// * `i`: index used by model-building functions. Should never be user declared
+// * `G1` : resistance parameter 1 of the chua diode
+// * `G2` : resistance parameter 2 of the chua diode
+// * `V0` : voltage parameter of the chua diode
+//
+// Note: 
+// Only usable as the root of a tree.
+// The adaptor must be declared as a seperate function before integration into the connection tree.
+// Correct implementation is shown above.
+// #### Reference
+// Meerkotter and Scholz, "Digital Simulation of Nonlinear Circuits by Wave Digital Filter Principles"
+//----------------------------------------------------------
+declare u_chua author "Dirk Roosenburg";
+declare u_chua copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare u_chua license "MIT-style STK-4.3 license";
+u_chua = 
+case{
+    (0, G1, G2, V0) => b1
+    with{
+        b1(R1, a0) = g_1*a0 + 1/2*(g_2 - g_1)*(((a0 + a_0) : abs) - ((a0 - a_0): abs))
+        with{
+            g_1 = (1-G1*R1)/(1+G1*R1);
+            g_2 = (1-G2*R1)/(1+G2*R1);
+            a_0 = V0*(1+G2*R1);
+        };
+    };
+    (1, G1, G2, V0) => !, !; 
+    (2, G1, G2, V0) => 0; 
+};
+
+
+//----------------------`(wd.)lambert`--------------------------
+// An implementation of the lambert function.
+// It uses Halley's method of iteration to aproximate the output.
+// Included in the WD library for use in non-linear diode models.
+// Adapted from  K M Brigg's c++ lambert function approximator.
+//
+// #### Usage
+//
+// ```
+// lambert(n, itr) : _;
+// ```
+//
+// Where:
+// * `n`: value at which the lambert function will be evaluated
+// * `itr`: number of iterations before output
+//
+//----------------------------------------------------------
+declare lambert author "Dirk Roosenburg";
+declare lambert copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare lambert license "MIT-style STK-4.3 license";
+lambert(z, itr) = ba.if((z<(-em1+.0001)), less_approx, greater_approx)
+with{
+    less_approx = -1.0
+     +2.331643981597124203363536062168*r
+     -1.812187885639363490240191647568*q
+     +1.936631114492359755363277457668*r*q
+     -2.353551201881614516821543561516*q2
+    with{
+        q = z+em1;
+        r = sqrt(q);
+        q2 = q*q; 
+    };
+    eps=4.0e-16; 
+    em1=0.3678794411714423215955237701614608;
+    greater_approx = z : init : seq(i, itr, approx)
+    with{
+        init(w) = ba.if((z<1), init1, init2)
+        with{
+            init1 = -1.0+p*(1.0+p*(-0.333333333333333333333+p*0.152777777777777777777777))
+            with{
+                p = sqrt(2.0*(2.7182818284590452353602874713526625*z+1.0));
+            };
+            init2 = log(abs(z));
+        };
+        approx(w) = w-t
+        with{
+            e = exp(w);
+            t = (w*e-z)/(e*p-.5*(p+1.0)*(w*e-z)/p);
+            p = w+1; 
+        };
+    };
+};
+
+
+//----------------------`(wd.)u_diodePair`--------------------------
+// A pair of diodes facing in opposite directions.
+// An unadapted adaptor implementing two antiparallel diodes for Wave Digital Filter connection trees.
+// The behavior is approximated using Schottkey's ideal diode law.
+//
+// #### Usage
+//
+// ```
+// d1 = u_diodePair(i, Is, Vt);
+// buildtree( d1 : B );
+// ```
+//
+// Where:
+// 
+// * `i`: index used by model-building functions. Should never be user declared
+// * `Is` : saturation current of the diodes
+// * `Vt` : thermal resistances of the diodes
+//
+// Note: 
+// Only usable as the root of a tree.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner et al. "An Improved and Generalized Diode Clipper Model for Wave Digital Filters"
+//----------------------------------------------------------
+declare u_diodePair author "Dirk Roosenburg";
+declare u_diodePair copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare u_diodePair license "MIT-style STK-4.3 license";
+u_diodePair = 
+case{
+    (0, Is, Vt) => b1
+    with{
+        b1(R1, a1) = a1 + 2*R1*Is - 2*Vt*lambert((R1*Is/Vt*(((a1+R1*Is)/Vt), 3) : exp));
+    };
+    (1, Is, Vt) => !, !; 
+    (2, Is, Vt) => 0; 
+};
+
+
+//----------------------`(wd.)u_diodeSingle`--------------------------
+// A single diode.
+// An unadapted adaptor implementing a single diode for Wave Digital Filter connection trees.
+// The behavior is approximated using Schottkey's ideal diode law.
+//
+// #### Usage
+//
+// ```
+// d1 = u_diodeSingle(i, Is, Vt);
+// buildtree( d1 : B );
+// ```
+//
+// Where:
+// 
+// * `i`: index used by model-building functions. Should never be user declared
+// * `Is` : saturation current of the diodes
+// * `Vt` : thermal resistances of the diodes
+//
+// Note: 
+// Only usable as the root of a tree
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner et al. "An Improved and Generalized Diode Clipper Model for Wave Digital Filters"
+//----------------------------------------------------------
+declare u_diodeSingle author "Dirk Roosenburg";
+declare u_diodeSingle copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare u_diodeSingle license "MIT-style STK-4.3 license";
+u_diodeSingle = 
+case{
+    (0, Is, Vt) => b1
+    with{
+        b1(R1, a1) = ma.signum(a1)*( (a1 : abs) + 2*R1*Is - 2*Vt*(lambert((R1*Is/Vt*((((a1 : abs)+R1*Is)/Vt) : exp)),3) + lambert((-R1*Is/Vt*(((-1*(a1 : abs)+R1*Is)/Vt) : exp)),3)));
+    };
+    (1, Is, Vt) => !, !; 
+    (2, Is, Vt) => 0; 
+};
+
+//----------------------`(wd.)u_diodeAntiparallel`--------------------------
+// A set of antiparallel diodes with M diodes facing forwards and N diodes facing backwards.
+// An unadapted adaptor implementing antiparallel diodes for Wave Digital Filter connection trees.
+// The behavior is approximated using Schottkey's ideal diode law.
+//
+// #### Usage
+//
+// ```
+// d1 = u_diodeAntiparallel(i, Is, Vt);
+// buildtree( d1 : B );
+// ```
+//
+// Where:
+// 
+// * `i`: index used by model-building functions. Should never be user declared
+// * `Is` : saturation current of the diodes
+// * `Vt` : thermal resistances of the diodes
+//
+// Note: 
+// Only usable as the root of a tree
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner et al. "An Improved and Generalized Diode Clipper Model for Wave Digital Filters"
+//----------------------------------------------------------
+declare u_diodeAntiparallel author "Dirk Roosenburg";
+declare u_diodeAntiparallel copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare u_diodeAntiparallel license "MIT-style STK-4.3 license";
+u_diodeAntiparallel =
+case{
+    (0, Is, Vt, M, N) => b1
+    with{
+        b1(R1, a1) = a1 - 2*lam*Vt*(mu0* lambert(((R1*Is)/(mu0*Vt) * exp((lam*a1)/(mu0*Vt))), 3) + 
+                                    mu1* lambert(((-R1*Is)/(mu1*Vt) * exp((-lam*a1)/(mu1*Vt))), 3))
+        with{
+            lam = ma.signum(a1); 
+            mu0 = ba.if((a1 < 0), N, M);
+            mu1 = ba.if((a1 > 0), M, N);
+        };
+    };
+    (1, Is, Vt, M, N) => !, !; 
+    (2, Is, Vt, M, N) => 0; 
+};
+
+
+//=============================Two Port Adaptors==========================================
+//========================================================================================
+
+
+//----------------------`(wd.)u_parallel_2`--------------------------
+// 2-port parallel adaptor (Unadapted).
+// An unadapted adaptor implementing a 2-port parallel connection between adaptors for Wave Digital Filter connection trees.
+// Elements connected to this adaptor will behave as if connected in parallel in circuit.
+//
+// #### Usage
+//
+// ```
+// buildtree( u_parallel_2 : (A, B) );
+// ```
+//
+// Note: 
+// Only usable as the root of a tree.
+// This adaptor has no user-accessible parameters. 
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.4.1
+//----------------------------------------------------------
+declare u_parallel_2 author "Dirk Roosenburg";
+declare u_parallel_2 copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare u_parallel_2 license "MIT-style STK-4.3 license";
+u_parallel_2 = 
+case{
+    (0) => u_par
+    with{ 
+        u_par = si.bus(4) <: b1, b2;
+        b0(R0, R1, a0, a1) = (-a0*(R0-R1) + a1*(2*R0^p*R1^(1-p)))/(R0+R1);
+        b1(R0, R1, a0, a1) = (a1*(R0-R1) + a0*(2*R0^(1-p)*R1^p))/(R0+R1);
+    };
+    (1) => !, !, !, !;
+    (2) => 0; 
+};
+
+
+//----------------------`(wd.)parallel_2`--------------------------
+// 2-port parallel adaptor.
+// An adaptor implementing a 2-port parallel connection between adaptors for Wave Digital Filter connection trees.
+// Elements connected to this adaptor will behave as if connected in parallel in circuit.
+//
+// #### Usage
+//
+// ```
+// buildtree( A : parallel_2 : B );
+// ```
+//
+// Note: 
+// This adaptor has no user-accessible parameters. 
+// It should be used within the connection tree with one previous and one forward adaptor.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.4.1
+//----------------------------------------------------------
+declare parallel_2 author "Dirk Roosenburg";
+declare parallel_2 copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare parallel_2 license "MIT-style STK-4.3 license";
+parallel_2 = 
+case{
+    (0) => par_down
+    with{
+        par_down = b1; 
+        b1(R1, a0, a1) = a0;  
+    };
+    (1) => par_up
+    with{
+        par_up = b0; 
+        b0(R1, a1) = a1; 
+    };
+    (2) => R0
+    with{
+        R0(R1) = R1; 
+    };
+};
+
+//----------------------`(wd.)u_series_2`--------------------------
+// 2-port series adaptor (Unadapted).
+// An unadapted adaptor implementing a 2-port series connection between adaptors for Wave Digital Filter connection trees.
+// Elements connected to this adaptor will behave as if connected in series in circuit.
+//
+// #### Usage
+//
+// ```
+// buildtree( u_series_2 : (A, B) );
+// ```
+//
+// Note: 
+// Only usable as the root of a tree.
+// This adaptor has no user-accessible parameters. 
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.4.1
+//----------------------------------------------------------
+declare u_series_2 author "Dirk Roosenburg";
+declare u_series_2 copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare u_series_2 license "MIT-style STK-4.3 license";
+u_series_2 = 
+case{
+    (0) => u_ser
+    with{ 
+        u_ser = si.bus(4) <: b1, b2;
+        b0(R0, R1, a0, a1) = (-a0*(R0-R1) - a1*(2*R0^p*R1^(1-p)))/(R0+R1);
+        b1(R0, R1, a0, a1) = (a1*(R0-R1) - a0*(2*R0^(1-p)*R1^p))/(R0+R1);
+    };
+    (1) => !, !, !, !;
+    (2) => 0; 
+};
+
+
+//----------------------`(wd.)series_2`--------------------------
+// 2-port series adaptor.
+// An adaptor implementing a 2-port series connection between adaptors for Wave Digital Filter connection trees.
+// Elements connected to this adaptor will behave as if connected in series in circuit.
+//
+// #### Usage
+//
+// ```
+// buildtree( A : series_2 : B );
+// ```
+//
+// Note: 
+// This adaptor has no user-accessible parameters. 
+// It should be used within the connection tree with one previous and one forward adaptor.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.4.1
+//----------------------------------------------------------
+declare series_2 author "Dirk Roosenburg";
+declare series_2 copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare series_2 license "MIT-style STK-4.3 license";
+series_2 = 
+case{
+    (0) => ser_down
+    with{
+        ser_down = b1; 
+        b1(R1, a0, a1) = -a0;  
+    };
+    (1) => ser_up
+    with{
+        ser_up = b0; 
+        b0(R1, a1) = -a1; 
+    };
+    (2) => R0
+    with{
+        R0(R1) = R1; 
+    };
+};
+
+
+//----------------------`(wd.)parallel_current`--------------------------
+// 2-port parallel adaptor + ideal current source.
+// An adaptor implementing a 2-port series connection and internal idealized current source between adaptors for Wave Digital Filter connection trees.
+// This adaptor connects the two connected elements and an additional ideal current source in parallel.
+//
+// #### Usage
+//
+// ```
+// i1 = parallel_current(i, jin);
+// buildtree(A : i1 : B);
+// ```
+//
+// Where:
+//
+// * `i`: index used by model-building functions. Should never be user declared
+// * `jin` :  Current through the ideal current source in Amps
+//
+// Note: 
+// The adaptor must be declared as a seperate function before integration into the connection tree.
+// It should be used within a connection tree with one previous and one forward adaptor.
+// Correct implementation is shown above.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.4.2
+//----------------------------------------------------------
+declare parallel_current author "Dirk Roosenburg";
+declare parallel_current copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare parallel_current license "MIT-style STK-4.3 license";
+parallel_current = 
+case{
+    (0, jin) => par_current_down
+    with{
+        par_current_down = b1; 
+        b1(R1, a0, a1) = a0 + R1^p*jin;  
+    };
+    (1, jin) => par_current_up
+    with{
+        par_current_up = b0; 
+        b0(R1, a1) = a1 + R1^p*jin; 
+    };
+    (2, jin) => R0
+    with{
+        R0(R1) = R1; 
+    };
+};
+
+
+//----------------------`(wd.)series_voltage`--------------------------
+// 2-port series adaptor + ideal voltage source.
+// An adaptor implementing a 2-port series connection and internal ideal voltage source between adaptors for Wave Digital Filter connection trees.
+// This adaptor connects the two connected adaptors and an additional ideal voltage source in series.
+//
+// #### Usage
+//
+// ```
+// v1 = series_voltage(i, vin)
+// buildtree( A : v1 : B );
+// ```
+//
+// Where:
+//
+// * `i`: index used by model-building functions. Should never be user declared
+// * `vin` :  voltage across the ideal current source in Volts
+//
+// Note: 
+// The adaptor must be declared as a seperate function before integration into the connection tree.
+// It should be used within the connection tree with one previous and one forward adaptor.
+// #### Reference
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.4.2
+//----------------------------------------------------------
+declare series_voltage author "Dirk Roosenburg";
+declare series_voltage copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare series_voltage license "MIT-style STK-4.3 license";
+series_voltage = 
+case{
+    (0, vin) => ser_down
+    with{
+        ser_down = b1; 
+        b1(R1, a0, a1) = -a0 - R1^(p-1)*vin;  
+    };
+    (1, vin) => ser_up
+    with{
+        ser_up = b0; 
+        b0(R1, a1) = -a1 - R1^(p-1)*vin; 
+    };
+    (2, vin) => R0
+    with{
+        R0(R1) = R1; 
+    };
+};
+
+
+//===============================Three Port Adaptors======================================
+//========================================================================================
+
+
+//----------------------`(wd.)parallel`--------------------------
+// 3-port parallel adaptor.
+// An adaptor implementing a 3-port parallel connection between adaptors for Wave Digital Filter connection trees.
+// This adaptor is used to connect adaptors simulating components connected in parallel in the circuit.
+//
+// #### Usage
+//
+// ```
+// buildtree( A : parallel : (B, C) );
+// ```
+//
+// Note: 
+// This adaptor has no user-accessible parameters. 
+// It should be used within the connection tree with one previous and two forward adaptors.
+// #### Reference
+// K. Werner Dissertation, 1.5.1
+//----------------------------------------------------------
+declare parallel author "Dirk Roosenburg";
+declare parallel copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare parallel license "MIT-style STK-4.3 license";
+parallel= 
+case{
+    (0) => par_down
+    with{
+        par_down = si.bus(5) <: b1, b2;
+        b1(R1, R2, a0, a1, a2) = a0 +  a1 * -R1/(R1 + R2) + a2 * R1/(R1 + R2);
+        b2(R1, R2, a0, a1, a2) = a0 +  a1 * R2/(R1 + R2) + a2 * -R2/(R1 + R2);
+    };
+    (1) => par_up
+    with{
+        par_up = b0;
+        b0(R1, R2, a1, a2) = a1 * R2/(R1 + R2) + a2 * R1/(R1 + R2);
+    };
+    (2) => R0
+    with{
+        R0(R1, R2) = 1/(1/R1+1/R2); 
+    };
+
+};
+
+
+//----------------------`(wd.)series`--------------------------
+// 3-port series adaptor.
+// An adaptor implementing a 3-port series connection between adaptors for Wave Digital Filter connection trees.
+// This adaptor is used to connect adaptors simulating components connected in series in the circuit.
+//
+// #### Usage
+//
+// ```
+//
+// tree =  A : (series : (B, C));
+// ```
+//
+// Note: 
+// This adaptor has no user-accessible parameters. 
+// It should be used within the connection tree with one previous and two forward adaptors.
+// #### Reference
+// K. Werner Dissertation, 1.5.2
+//----------------------------------------------------------
+declare zero author "Dirk Roosenburg";
+declare zero copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare zero license "MIT-style STK-4.3 license";
+series= 
+case{
+
+    (0) => ser_down
+    with{
+        ser_down = si.bus(5)<: b1, b2;
+        b1(R1, R2, a0, a1, a2) = a0 * -R1/(R1+R2) + a1 * R2/(R1+R2) +  a2 *-R1/(R1+R2);
+        b2(R1, R2, a0, a1, a2) = a0 * -R2/(R1+R2) + a1 * -R2/(R1+R2) + a2 * R1/(R1+R2);
+    };
+    (1) => ser_up
+    with{
+        ser_up = b0;
+        b0(R1, R2, a1, a2) = -a1 - a2;
+    };
+    (2) => R0
+    with{
+        R0(R1, R2) = R1 + R2; 
+    };
+};
+
+
+
+//constant declrations for library
+p = 1; 
+//some functions are declared in terms of p (rho) in advance of support of multiple kinds of waves within the system. 
+//multiple waves are currently unsupported, only voltage waves are currently used.
+
+t = 1/ma.SR; //sampling rate reference for reactive elements
+
+
+//===============================Model Building Functions=================================
+//========================================================================================
+
+
+//----------------------`(wd.)builddown`--------------------------
+// Function for building the strucutre for calculating waves travling down the WD connection tree.
+// It recursively steps through the given tree, parametrizes the adaptors, and builds an algorithm.
+// It is used in conjunction with the buildup() function to create a full structure.
+//
+// #### Usage
+//
+// ```
+// builddown(A : B)~buildup(A : B);
+// ```
+//
+// Where: 
+// * `(A : B)` : is a connection tree composed of WD adaptors
+//----------------------------------------------------------
+declare builddown author "Dirk Roosenburg";
+declare builddown copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare builddown license "MIT-style STK-4.3 license";
+builddown(A : As) = ((upPortRes, addins(inputs(A(0)) - outputs(upPortRes))) :  A(0)) , addins(inputs(pardown(As)) - outputs(A(0))) : route(mtxsum(s_mtx(As)), mtxsum(s_mtx(As)), gencross(0, 0, 0, 0, 0, s_mtx(As))) : pardown(As)
+with{
+
+    //substitute for si.bus which can accept an argument of 0
+    addins = 
+    case{
+        (0) => 0 : !; 
+        (x) => si.bus(x);
+    };
+    
+    //recursively build in parallel
+    pardown = 
+    case{
+        ((Ax, Axx)) => builddown(Ax), pardown(Axx);
+        (Ax) => builddown(Ax);
+    };
+    
+    //generate a list of inputs from the next stage down the tree
+    s_mtx = 
+    case{
+        ((Ax, Axx)) => inputs(builddown(Ax)), s_mtx(Axx);
+        (Ax) => inputs(builddown(Ax));
+    };
+
+    //take the sum of the list
+    mtxsum(t_mtx) = sum(i, ba.count(t_mtx), ba.take(i+1, t_mtx));
+
+    upPortRes = parres(As);
+
+    //generate a crossover matrix for the route object based on a list of i/o dimensions
+    gencross = 
+    case{
+        (0, 0, 0, 0, 0, (1, 1)) => 1, 1, 2, 2; 
+        (0, 0, 0, 0, 0, (xs, xxs)) => (1, 1), gencross(2, xs+1, ba.count((xs, xxs))-1, 2, mtxsum((xs, xxs)), xxs);
+
+        (0, 0, 0, 0, 0, 0) => 0 : !;
+        (0, 0, 0, 0, 0, x) => par(i, x, i+1, i+1);
+
+        //((out, next, norm_index, spec_index, sum), (xs, xxs))
+
+        (msum, msum, count, fcount, msum, xs) => (fcount, msum);  //output is a special output
+        (msum, next, count, fcount, msum, xs) => (msum, msum-count); //escape case, reached end of bus
+
+        (out, out, count, fcount, msum, (xs, xxs)) => (fcount, out), gencross(out+1, xs+out, count-1, fcount+1, msum, xxs);
+        (out, out, count, fcount, msum, xs) => (fcount, out), gencross(out+1, xs+out, count-1, fcount+1, msum, 0);  //output is a special output
+
+        (out, next, count, fcount, msum, xs) => ((count+out), out), gencross(out+1, next, count, fcount, msum, xs); //output is not a special output
+    };
+}; 
+
+builddown(A) = A(0); 
+
+
+//----------------------`(wd.)buildup`--------------------------
+// Function for building the strucutre for calculating waves travling up the WD connection tree.
+// It recursively steps through the given tree, parametrizes the adaptors, and builds an algorithm.
+// It is used in conjunction with the builddown() function to create a full structure.
+//
+// #### Usage
+//
+// ```
+// builddown(A : B)~buildup(A : B);
+// ```
+//
+// Where: 
+// * `(A : B)` : is a connection tree composed of WD adaptors
+//----------------------------------------------------------
+declare builddown author "Dirk Roosenburg";
+declare builddown copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare builddown license "MIT-style STK-4.3 license";
+buildup(A : As) = upPortRes, (parup(As) : route(mtxsum(s_mtx(As)), mtxsum(s_mtx(As)), gencross_up(0, 0, 0, 0, 0, s_mtx(As))) : split(s_mtx(As))) : A(1), addins(outputs(split(s_mtx(As))) + outputs(upPortRes) - inputs(A(1))) 
+with{
+
+    //substitute for si.bus which can accept an argument of 0
+    addins = 
+    case{
+        (0) => 0 : !; 
+        (x) => si.bus(x);
+    };
+
+    //recursively build in parallel
+    parup =  //<: crossover(out_list(Ap)) : split(out_list(Ap))
+    case{
+        ((Ax, Axx)) => buildup(Ax), parup(Axx);
+        (Ax) => buildup(Ax);
+    };
+
+    //generate a list of outputs from the next stage down the tree
+    s_mtx = 
+    case{
+        ((Ax, Axx)) => outputs(buildup(Ax)), s_mtx(Axx);
+        (Ax) => outputs(buildup(Ax));
+    };
+    
+    //take the sum of a list
+    mtxsum(t_mtx) = sum(i, ba.count(t_mtx), ba.take(i+1, t_mtx));
+
+    //split based on a list of i/o dimensions
+    split(inl) = (si.bus(n) <: si.bus(n), si.bus(n)), (addins(s-n))
+    with{
+        n = ba.count(inl);
+        s = inl :> _; 
+    };
+
+    //generate a crossover matrix based for the route object based on a list of i/o dimensions
+    gencross_up = 
+    case{
+        //corner case which must be coded manually
+        (0, 0, 0, 0, 0, (1, 1)) => 1, 1, 2, 2; 
+        //user access function
+        (0, 0, 0, 0, 0, (xs, xxs)) => (1, 1), gencross_up(2, xs+1, ba.count((xs, xxs))-1, 2, mtxsum((xs, xxs)), xxs);
+
+        //more corner cases
+        (0, 0, 0, 0, 0, 0) => 0: !;
+        (0, 0, 0, 0, 0, x) => par(i, x, i+1, i+1);
+
+        //((out, next, norm_index, spec_index, sum), (xs, xxs))
+
+        (msum, msum, count, fcount, msum, xs) => (msum, fcount);  //output is a special output
+        (msum, next, count, fcount, msum, xs) => (msum-count, msum); //escape case, reached end of bus
+
+        (out, out, count, fcount, msum, (xs, xxs)) => (out, fcount), gencross_up(out+1, xs+out, count-1, fcount+1, msum, xxs);
+        (out, out, count, fcount, msum, xs) => (out, fcount), gencross_up(out+1, xs+out, count-1, fcount+1, msum, 0);  //output is a special output
+
+        (out, next, count, fcount, msum, xs) => (out, (count+out)), gencross_up(out+1, next, count, fcount, msum, xs); //output is not a special output
+    };
+
+    upPortRes = parres(As);
+};
+
+buildup(A) = A(1);
+
+//----------------------`(wd.)getres`--------------------------
+// Function for determining the upward-facing port resistance of a partial WD connection tree.
+// It recursively steps through the given tree, parametrizes the adaptors, and builds and algorithm.
+// It is used by the buildup and builddown functions but is also helpful in testing.
+//
+// #### Usage
+//
+// ```
+// getres(A : B)~getres(A : B);
+// ```
+//
+// Where: 
+// * `(A : B)` : is a partial connection tree composed of WD adaptors
+//
+// Note:
+// This function cannot be used on a complete WD tree. When called on an unadapted adaptor (u_ prefix), it will create errors
+//----------------------------------------------------------
+declare getres author "Dirk Roosenburg";
+declare getres copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare getres license "MIT-style STK-4.3 license";
+getres(A: As) = parres(As) : A(2);
+getres(A) = A(2); 
+
+
+//----------------------`(wd.)parres`--------------------------
+// Function for determining the upward-facing port resistance of a partial WD connection tree.
+// It recursively steps through the given tree, parametrizes the adaptors, and builds and algorithm.
+// It is used by the buildup and builddown functions but is also helpful in testing.
+// This function is a parallelized version of getres.
+//
+// #### Usage
+//
+// ```
+// parres((A , B))~parres((A , B));
+// ```
+//
+// Where: 
+// * `(A , B)` : is a partial connection tree composed of WD adaptors
+//
+// Note:
+// This function cannot be used on a complete WD tree. When called on an unadapted adaptor (u_ prefix), it will create errors
+//----------------------------------------------------------
+declare parres author "Dirk Roosenburg";
+declare parres copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare parres license "MIT-style STK-4.3 license";
+parres((Ap1, Ap2)) = getres(Ap1) , parres(Ap2);
+parres(Ap) = getres(Ap);
+
+
+//----------------------`(wd.)buildout`--------------------------
+// Function for creating the output matrix for a WD connection tree.
+// It recursively steps through the given tree and creates an output matrix passing only outputs.
+//
+// #### Usage
+//
+// ```
+// buildout( A : B );
+// ```
+//
+// Where: 
+// * `(A : B)` : is a connection tree composed of WD adaptors
+//
+//----------------------------------------------------------
+declare buildout author "Dirk Roosenburg";
+declare buildout copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare buildout license "MIT-style STK-4.3 license";
+buildout(A: As) = parout(As)
+with{
+    parout((A, Ap)) = buildout(A), parout(Ap);
+    parout(A) = buildout(A);
+};
+buildout(A) = outmtx(outputs(A(0)))
+with{
+    outmtx(1) = !; 
+    outmtx(2) = !, _; 
+};
+
+
+//----------------------`(wd.)buildtree`--------------------------
+// Function for building the functioning DSP model from a WD connection tree.
+// It recursively steps through the given tree, parametrizes the adaptors, and builds the algorithm.
+//
+// #### Usage
+//
+// ```
+// buildtree(A : B);
+// ```
+//
+// Where: 
+// * `(A : B)` : a connection tree composed of WD adaptors
+//----------------------------------------------------------
+declare buildtree author "Dirk Roosenburg";
+declare buildtree copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
+declare buildtree license "MIT-style STK-4.3 license";
+buildtree((A : B)) = builddown(A : B)~buildup(A : B) : buildout(A : B);
+
+
+//TODO
+//add input constructor. currently just performed manually. 
+//this will likely include adding additional param options to adaptors. 
+//add comments in Faust formating
+
+
+/*******************************************************************************
+# Licenses
+
+## STK 4.3 License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of 
+this software and associated documentation files (the "Software"), to deal in 
+the Software without restriction, including without limitation the rights to 
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies 
+of the Software, and to permit persons to whom the Software is furnished to do 
+so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all 
+copies or substantial portions of the Software.
+
+Any person wishing to distribute modifications to the Software is asked to send 
+the modifications to the original developer so that they can be incorporated 
+into the canonical version.  For software copyrighted by Dirk Roosenburg, 
+email your modifications to <dirk.roosenburg.30@gmail.com>.  This is, however, not a 
+binding provision of this license.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE 
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
+SOFTWARE.
+
+--------------------------------------------------------------------------------
+
+## LGPL License
+
+This program is free software; you can redistribute it and/or modify it under 
+the terms of the GNU Lesser General Public License as published by the Free 
+Software Foundation; either version 2.1 of the License, or (at your option) any 
+later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY 
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License along 
+with the GNU C Library; if not, write to the Free Software Foundation, Inc., 
+59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+*******************************************************************************///##################################### all.lib ##########################################
 // The purpose of this library is to give access to all the Faust standard libraries
 // from a single point.
 //########################################################################################
@@ -11877,6 +13958,7 @@ import("oscillators.lib");
 import("noises.lib");
 import("phaflangers.lib");
 import("physmodels.lib");
+import("quantizers.lib");
 import("reducemaps.lib");
 import("reverbs.lib");
 import("routes.lib");
@@ -11885,6 +13967,8 @@ import("soundfiles.lib");
 import("spats.lib");
 import("synths.lib");
 import("vaeffects.lib");
+import("version.lib");
+import("wdmodels.lib");
 import("webaudio.lib");
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -19294,7 +21378,7 @@ with{
 // feedback paths found in the block diagram. These feedback paths are labeled 
 // as connecting states. Rather than separately storing these connecting states 
 // in the Faust implementation, they are simply implicitly calculated by 
-// tracing back to the other states (s1,s2,s3,s4) each recursive step.
+// tracing back to the other states (`s1`,`s2`,`s3`,`s4`) each recursive step.
 //
 // This filter was implemented in Faust by Eric Tarr during the 
 // [2019 Embedded DSP With Faust Workshop](https://ccrma.stanford.edu/workshops/faust-embedded-19/).
@@ -19514,7 +21598,7 @@ with{
 //==================================Oberheim Filters======================================
 // The following filter (4 types) is an implementation of the virtual analog 
 // model described in Section 7.2 of the Will Pirkle book, "Designing Software 
-// Synthesizer Plug-ins in C++. It is based on the block diagram in Figure 7.5. 
+// Synthesizer Plug-ins in C++". It is based on the block diagram in Figure 7.5. 
 //
 // The Oberheim filter is a state-variable filter with soft-clipping distortion 
 // within the circuit. 
@@ -19525,7 +21609,7 @@ with{
 //========================================================================================
 
 //------------------`(ve.)oberheim`-----------------
-// Generic multi-outputs Oberheim filter (see description above).
+// Generic multi-outputs Oberheim filter that produces the BSF, BPF, HPF and LPF outputs (see description above).
 //
 // #### Usage
 //
@@ -19564,7 +21648,9 @@ with{
 
 
 //------------------`(ve.)oberheimBSF`-----------------
-// Band-Stop Oberheim filter (see description above).
+// Band-Stop Oberheim filter (see description above). 
+// Specialize the generic implementation: keep the first BSF output, 
+// the compiler will only generate the needed code.
 //
 // #### Usage
 //
@@ -19579,12 +21665,13 @@ with{
 //---------------------------------------------------------------------
 declare oberheimBSF author "Eric Tarr";
 declare oberheimBSF license "MIT-style STK-4.3 license";
-// Specialize the generic implementation: keep the first BSF output, the compiler will only generate the needed code 
 oberheimBSF(normFreq,Q) = oberheim(normFreq,Q):_,!,!,!;
 
 
 //------------------`(ve.)oberheimBPF`-----------------
 // Band-Pass Oberheim filter (see description above).
+// Specialize the generic implementation: keep the second BPF output, 
+// the compiler will only generate the needed code.
 //
 // #### Usage
 //
@@ -19599,12 +21686,13 @@ oberheimBSF(normFreq,Q) = oberheim(normFreq,Q):_,!,!,!;
 //---------------------------------------------------------------------
 declare oberheimBPF author "Eric Tarr";
 declare oberheimBPF license "MIT-style STK-4.3 license";
-// Specialize the generic implementation: keep the second BPF output, the compiler will only generate the needed code
 oberheimBPF(normFreq,Q) = oberheim(normFreq,Q):!,_,!,!;
 
 
 //------------------`(ve.)oberheimHPF`-----------------
 // High-Pass Oberheim filter (see description above).
+// Specialize the generic implementation: keep the third HPF output, 
+// the compiler will only generate the needed code.
 //
 // #### Usage
 //
@@ -19619,12 +21707,13 @@ oberheimBPF(normFreq,Q) = oberheim(normFreq,Q):!,_,!,!;
 //---------------------------------------------------------------------
 declare oberheimHPF author "Eric Tarr";
 declare oberheimHPF license "MIT-style STK-4.3 license";
-// Specialize the generic implementation: keep the third HPF output, the compiler will only generate the needed code
 oberheimHPF(normFreq,Q) = oberheim(normFreq,Q):!,!,_,!;
 
 
 //------------------`(ve.)oberheimLPF`-----------------
-// Low-Pass Oberheim filter (see description above).
+// Low-Pass Oberheim filter (see description above). 
+// Specialize the generic implementation: keep the fourth LPF output,
+// the compiler will only generate the needed code.
 //
 // #### Usage
 //
@@ -19639,7 +21728,6 @@ oberheimHPF(normFreq,Q) = oberheim(normFreq,Q):!,!,_,!;
 //---------------------------------------------------------------------
 declare oberheimLPF author "Eric Tarr";
 declare oberheimLPF license "MIT-style STK-4.3 license";
-// Specialize the generic implementation: keep the fourth LPF output
 oberheimLPF(normFreq,Q) = oberheim(normFreq,Q):!,!,!,_;
 
 
@@ -19667,7 +21755,7 @@ oberheimLPF(normFreq,Q) = oberheim(normFreq,Q):!,!,!,_;
 //========================================================================================
 
 //------------------`(ve.)sallenKeyOnePole`-----------------
-// Sallen-Key generic One Pole filter (see description above).
+// Sallen-Key generic One Pole filter that produces the LPF and HPF outputs (see description above).
 //
 // For the Faust implementation of this filter, recursion (`letrec`) is used 
 // for storing filter "states". The output (e.g. `y`) is calculated by using 
@@ -19682,9 +21770,9 @@ oberheimLPF(normFreq,Q) = oberheim(normFreq,Q):!,!,!,_;
 // The simplest example is the 1st-order LPF (shown on the cover of Zavalishin 
 // 2018 and Fig 4.3 of <https://www.willpirkle.com/706-2/>). Here, the input 
 // signal is split in parallel for the calculation of the output signal, `y`, and 
-// the state, s. The value of the state is only used for feedback to the next 
+// the state `s`. The value of the state is only used for feedback to the next 
 // step of recursion. It is blocked (!) from also being routed to the output. 
-// A trick used for calculating the state, s, is to observe that the input to 
+// A trick used for calculating the state `s` is to observe that the input to 
 // the delay block is the sum of two signal: what appears to be a feedforward 
 // path and a feedback path. In reality, the signals being summed are identical 
 // (signal*2) plus the value of the current state.
@@ -19718,6 +21806,8 @@ with{
 
 //------------------`(ve.)sallenKeyOnePoleLPF`-----------------
 // Sallen-Key One Pole lowpass filter (see description above).
+// Specialize the generic implementation: keep the first LPF output, 
+// the compiler will only generate the needed code.
 //
 // #### Usage
 //
@@ -19731,7 +21821,6 @@ with{
 //--------------------------------------------------------------------- 
 declare sallenKeyOnePoleLPF author "Eric Tarr";
 declare sallenKeyOnePoleLPF license "MIT-style STK-4.3 license";
-// Specialize the generic implementation: keep the first LPF output, the compiler will only generate the needed code
 sallenKeyOnePoleLPF(normFreq) = sallenKeyOnePole(normFreq) : _,!;
 
 
@@ -19739,6 +21828,8 @@ sallenKeyOnePoleLPF(normFreq) = sallenKeyOnePole(normFreq) : _,!;
 // Sallen-Key One Pole Highpass filter (see description above). The dry input 
 // signal is routed in parallel to the output. The LPF'd signal is subtracted 
 // from the input so that the HPF remains.
+// Specialize the generic implementation: keep the second HPF output, 
+// the compiler will only generate the needed code.
 //
 // #### Usage
 //
@@ -19752,12 +21843,11 @@ sallenKeyOnePoleLPF(normFreq) = sallenKeyOnePole(normFreq) : _,!;
 //---------------------------------------------------------------------
 declare sallenKeyOnePoleHPF author "Eric Tarr";
 declare sallenKeyOnePoleHPF license "MIT-style STK-4.3 license";
-// Specialize the generic implementation: keep the second HPF output, the compiler will only generate the needed code
 sallenKeyOnePoleHPF(normFreq) = sallenKeyOnePole(normFreq) : !,_;
 
 
 //------------------`(ve.)sallenKey2ndOrder`-----------------
-// Sallen-Key generic multi-outputs 2nd order filter. 
+// Sallen-Key generic 2nd order filter that produces the LPF, BPF and HPF outputs. 
 //
 // This is a 2nd-order Sallen-Key state-variable filter. The idea is that by 
 // "tapping" into different points in the circuit, different filters 
@@ -19766,13 +21856,13 @@ sallenKeyOnePoleHPF(normFreq) = sallenKeyOnePole(normFreq) : !,_;
 //
 // This is also a good example of the next step for generalizing the Faust 
 // programming approach used for all these VA filters. In this case, there are 
-// three things to calculate each recursive step (y,s1,s2). For each thing, the 
+// three things to calculate each recursive step (`y`,`s1`,`s2`). For each thing, the 
 // circuit is only calculated up to that point. 
 //
-// Comparing the LPF to BPF, the output signal (y) is calculated similarly. 
+// Comparing the LPF to BPF, the output signal (`y`) is calculated similarly. 
 // Except, the output of the BPF stops earlier in the circuit. Similarly, the 
-// states (s1 and s2) only differ in that s2 includes a couple more terms 
-// beyond what is used for s1. 
+// states (`s1` and `s2`) only differ in that `s2` includes a couple more terms 
+// beyond what is used for `s1`. 
 //
 // #### Usage
 //
@@ -19810,7 +21900,8 @@ with{
 
 //------------------`(ve.)sallenKey2ndOrderLPF`-----------------
 // Sallen-Key 2nd order lowpass filter (see description above). 
-//
+// Specialize the generic implementation: keep the first LPF output,
+// the compiler will only generate the needed code.
 //
 // #### Usage
 //
@@ -19825,13 +21916,13 @@ with{
 //---------------------------------------------------------------------
 declare sallenKey2ndOrderLPF author "Eric Tarr";
 declare sallenKey2ndOrderLPF license "MIT-style STK-4.3 license";
-// Specialize the generic implementation: keep the first LPF output, the compiler will only generate the needed code
 sallenKey2ndOrderLPF(normFreq,Q) = sallenKey2ndOrder(normFreq,Q) : _,!,!;
 
 
 //------------------`(ve.)sallenKey2ndOrderBPF`-----------------
 // Sallen-Key 2nd order bandpass filter (see description above). 
-//
+// Specialize the generic implementation: keep the second BPF output, 
+// the compiler will only generate the needed code.
 //
 // #### Usage
 //
@@ -19846,13 +21937,13 @@ sallenKey2ndOrderLPF(normFreq,Q) = sallenKey2ndOrder(normFreq,Q) : _,!,!;
 //---------------------------------------------------------------------
 declare sallenKey2ndOrderBPF author "Eric Tarr";
 declare sallenKey2ndOrderBPF license "MIT-style STK-4.3 license";
-// Specialize the generic implementation: keep the second BPF output, the compiler will only generate the needed code
 sallenKey2ndOrderBPF(normFreq,Q) = sallenKey2ndOrder(normFreq,Q) : !,_,!;
 
 
 //------------------`(ve.)sallenKey2ndOrderHPF`-----------------
 // Sallen-Key 2nd order highpass filter (see description above). 
-//
+// Specialize the generic implementation: keep the third HPF output, 
+// the compiler will only generate the needed code.
 //
 // #### Usage
 //
@@ -19867,7 +21958,6 @@ sallenKey2ndOrderBPF(normFreq,Q) = sallenKey2ndOrder(normFreq,Q) : !,_,!;
 //---------------------------------------------------------------------
 declare sallenKey2ndOrderHPF author "Eric Tarr";
 declare sallenKey2ndOrderHPF license "MIT-style STK-4.3 license";
-// Specialize the generic implementation: keep the third HPF output, the compiler will only generate the needed code
 sallenKey2ndOrderHPF(normFreq,Q) = sallenKey2ndOrder(normFreq,Q) : !,!,_;
 
 
@@ -20078,7 +22168,7 @@ atodb = db2lin;
 //
 //	from : Cookbook formulae for audio EQ biquad filter coefficients
 //        by : Robert Bristow-Johnson  <rbj@audioimagination.com>
-//       URL : http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
+//       URL : <http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt>
 //
 //-------------------------------------------------------------------------
 
@@ -20660,7 +22750,7 @@ reduce(op, n, x) = compute ~ (_,_,_) : (!,!,_)
 // #### Usage
 //
 // ```
-// reducemap (op, foo, n, x)
+// reducemap(op, foo, n, x)
 // ```
 //-----------------------------------------------------------------------------
 
@@ -20923,7 +23013,7 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 //##################################### filters.lib ########################################
 // Faust Filters library. Its official prefix is `fi`.
 //
-// The Filters library is organized into 18 sections:
+// The Filters library is organized into 19 sections:
 //
 // * Basic Filters
 // * Comb Filters
@@ -20943,6 +23033,7 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 // * Parametric Equalizers (Shelf, Peaking)
 // * Mth-Octave Filter-Banks
 // * Arbitrary-Crossover Filter-Banks and Spectrum Analyzers
+// * SVF filters
 //
 //########################################################################################
 
@@ -20953,6 +23044,7 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 
 ma = library("maths.lib");
 ba = library("basics.lib");
+ro = library("routes.lib");
 de = library("delays.lib");
 an = library("analyzers.lib");
 ef = library("misceffects.lib");
@@ -20960,6 +23052,7 @@ si = library("signals.lib");
 fi = library("filters.lib"); // for compatible copy/paste out of this file
 
 declare name "Faust Filters Library";
+declare version "0.2";
 
 //===============================Basic Filters============================================
 //========================================================================================
@@ -21120,7 +23213,7 @@ lpt19(tN, x) = lptN(19, tN, x); // T19 constant, i.e., 1/e^2.2 atten. after tN s
 declare ff_comb author "Julius O. Smith III";
 declare ff_comb copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare ff_comb license "MIT-style STK-4.3 license";
-ff_comb(maxdel,M,b0,bM) = _ <: *(b0), bM * de.delay(maxdel,M) : + ;
+ff_comb(maxdel,M,b0,bM) = _ <: *(b0), bM * de.delay(maxdel,M) : +;
 
 //------`(fi.)ff_fcomb`--------
 // Feed-Forward Comb Filter. Note that `ff_fcomb` takes floating-point delays
@@ -21182,7 +23275,7 @@ ffcombfilter(maxdel,del,g) = ff_comb(maxdel,del,1,g);
 declare fb_comb author "Julius O. Smith III";
 declare fb_comb copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare fb_comb license "MIT-style STK-4.3 license";
-fb_comb(maxdel,N,b0,aN) = (+ <: de.delay(maxdel,N-1),_) ~ *(-aN) : !,*(b0):mem;
+fb_comb(maxdel,N,b0,aN) = (+ <: de.delay(maxdel,N-1),_) ~ *(-aN) : !,*(b0) : mem;
 
 
 //-----------------------`(fi.)fb_fcomb`-----------------------
@@ -21209,7 +23302,7 @@ fb_comb(maxdel,N,b0,aN) = (+ <: de.delay(maxdel,N-1),_) ~ *(-aN) : !,*(b0):mem;
 declare fb_fcomb author "Julius O. Smith III";
 declare fb_fcomb copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare fb_fcomb license "MIT-style STK-4.3 license";
-fb_fcomb(maxdel,N,b0,aN) = (+ <: de.fdelay(maxdel,float(N)-1.0),_) ~ *(-aN) : !,*(b0):mem;
+fb_fcomb(maxdel,N,b0,aN) = (+ <: de.fdelay(maxdel,float(N)-1.0),_) ~ *(-aN) : !,*(b0) : mem;
 
 //-----------------------`(fi.)rev1`-----------------------
 // Special case of `fb_comb` (`rev1(maxdel,N,g)`).
@@ -21351,6 +23444,7 @@ declare allpass_fcomb1a copyright "Copyright (C) 2003-2019 by Julius O. Smith II
 declare allpass_fcomb1a license "MIT-style STK-4.3 license";
 allpass_fcomb1a(maxdel,N,aN) = (+ <: de.fdelay1a(maxdel,N-1),*(aN)) ~ *(-aN) : mem,_ : +;
 
+
 //========================Direct-Form Digital Filter Sections=============================
 //========================================================================================
 
@@ -21371,7 +23465,6 @@ allpass_fcomb1a(maxdel,N,aN) = (+ <: de.fdelay1a(maxdel,N-1),*(aN)) ~ *(-aN) : m
 //
 // Where:
 //
-// * `order`: filter order (int) = max(#poles,#zeros)
 // * `bcoeffs`: (b0,b1,...,b_order) = TF numerator coefficients
 // * `acoeffs`: (a1,...,a_order) = TF denominator coeffs (a0=1)
 //
@@ -21424,7 +23517,7 @@ declare fir copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma
 declare fir license "MIT-style STK-4.3 license";
 fir((b0,bv)) = _ <: *(b0), R(1,bv) :> _ with {
 	R(n,(bn,bv)) = (@(n):*(bn)), R(n+1,bv);
-	R(n, bn)     = (@(n):*(bn));              };
+	R(n, bn)     = (@(n):*(bn)); };
 fir(b0) = *(b0);
 
 //---------------`(fi.)conv` and `(fi.)convN`-------------------------------
@@ -21477,7 +23570,7 @@ tf1(b0,b1,a1) = _ <: *(b0), (mem : *(b1)) :> + ~ *(0-a1);
 declare tf2 author "Julius O. Smith III";
 declare tf2 copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare tf2 license "MIT-style STK-4.3 license";
-tf2(b0,b1,b2,a1,a2) = iir((b0,b1,b2),(a1,a2)); // cf. TF2 in music.lib)
+tf2(b0,b1,b2,a1,a2) = iir((b0,b1,b2),(a1,a2));
 // tf2 is a variant of tf22 below with duplicated mems
 
 declare tf3 author "Julius O. Smith III";
@@ -21715,9 +23808,7 @@ declare allpassnt author "Julius O. Smith III";
 declare allpassnt copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare allpassnt license "MIT-style STK-4.3 license";
 allpassnt(0,sv) = _;
-allpassnt(n,sv) =
-//0:   x <: ((+ <: (allpassnt(n-1,sv)),*(s))~(*(-s))) : _',_ :+
-       _ : ((+ <: (allpassnt(n-1,sv),*(s)))~*(-s)) : fsec(n)
+allpassnt(n,sv) = _ : ((+ <: (allpassnt(n-1,sv),*(s)))~*(-s)) : fsec(n)
 with {
   fsec(1) = ro.crossnn(1) : _, (_<:mem,_) : +,_;
   fsec(n) = ro.crossn1(n) : _, (_<:mem,_),par(i,n-1,_) : +, par(i,n,_);
@@ -21814,22 +23905,21 @@ with {
 // #### Usage
 //
 // ```
-// _ : allpassn1mt(n,sv) : _
+// _ : allpassn1mt(N,sv) : _
 // ```
 //
 // Where:
 //
-// * `n`: the order of the filter
+// * `N`: the order of the filter (fixed at compile time)
 // * `sv`: the reflection coefficients (-1 1)
 //------------------------------------------------------------
 declare allpassn1mt author "Julius O. Smith III";
 declare allpassn1mt copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare allpassn1mt license "MIT-style STK-4.3 license";
 allpassn1mt(0,sv) = _;
-allpassn1mt(n,sv)= _ <: _,_ : ((+:*(s) <: _,_),_ : _,+ : ro.crossnn(1)
+allpassn1mt(n,sv) = _ <: _,_ : ((+:*(s) <: _,_),_ : _,+ : ro.crossnn(1)
 		  : allpassn1mt(n-1,sv),_)~(*(-1)) : fsec(n)
 with {
-//0:  fsec(n) = _',_ : +
   fsec(1) = ro.crossnn(1) : _, (_<:mem,_) : +,_;
   fsec(n) = ro.crossn1(n) : _, (_<:mem,_),par(i,n-1,_) : +, par(i,n,_);
   innertaps(n) = par(i,n,_);
@@ -21876,12 +23966,12 @@ with {
 // #### Usage:
 //
 // ```
-// _ : allpassnnlt(n,sv) : _
+// _ : allpassnnlt(N,sv) : _
 // ```
 //
 // Where:
 //
-// * `n`: the order of the filter
+// * `N`: the order of the filter (fixed at compile time)
 // * `sv`: the reflection coefficients (-1,1)
 //
 // #### References
@@ -21926,7 +24016,7 @@ declare tf2np copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccr
 declare tf2np license "MIT-style STK-4.3 license";
 tf2np(b0,b1,b2,a1,a2) = allpassnnlt(M,sv) : sum(i,M+1,*(tghr(i)))
 with {
-  smax = 0.9999; // maximum reflection-coefficient magnitude allowed
+  smax = 1.0-ma.EPSILON; // maximum reflection-coefficient magnitude allowed
   s2 = max(-smax, min(smax,a2)); // Project both reflection-coefficients
   s1 = max(-smax, min(smax,a1/(1+a2))); // into the defined stability-region.
   sv = (s1,s2); // vector of sin(theta) reflection coefficients
@@ -21968,7 +24058,7 @@ wgr(f,r,x) = (*(G),_<:_,((+:*(C))<:_,_),_:+,_,_:+(x),-) ~ cross : _,*(0-gi)
 with {
   C = cos(2*ma.PI*f/ma.SR);
   gi = sqrt(max(0,(1+C)/(1-C))); // compensate amplitude (only needed when
-  G = r*(1-1' + gi')/gi;         //   frequency changes substantially)
+  G = r*(1-1' + gi')/gi;         // frequency changes substantially)
   cross = _,_ <: !,_,_,!;
 };
 
@@ -22146,7 +24236,7 @@ with { s = ba.take(n,sv); cross = _,_ <: !,_,_,!; };
 //-------------------------`(fi.)tf2s` and `(fi.)tf2snp`--------------------------------
 // Second-order direct-form digital filter,
 // specified by ANALOG transfer-function polynomials B(s)/A(s),
-// and a frequency-scaling parameter.  Digitization via the
+// and a frequency-scaling parameter. Digitization via the
 // bilinear transform is built in.
 //
 // #### Usage
@@ -22168,8 +24258,8 @@ with { s = ba.take(n,sv); cross = _,_ <: !,_,_,!; };
 // #### Example
 //
 // A second-order ANALOG Butterworth lowpass filter,
-//          normalized to have cutoff frequency at 1 rad/sec,
-//          has transfer function
+// normalized to have cutoff frequency at 1 rad/sec,
+// has transfer function:
 //
 // ```
 //              1
@@ -22233,7 +24323,7 @@ declare tf3slf license "MIT-style STK-4.3 license";
 tf3slf(b3,b2,b1,b0,a3,a2,a1,a0) = tf3(b0d,b1d,b2d,b3d,a1d,a2d,a3d) with {
   c   = 2.0 * ma.SR; // bilinear-transform scale-factor ("lf" case)
   csq = c*c;
-  cc = csq*c;
+  cc  = csq*c;
   // Thank you maxima:
   b3d = (b3*c^3-b2*c^2+b1*c-b0)/d;
   b2d = (-3*b3*c^3+b2*c^2+b1*c-3*b0)/d;
@@ -22266,8 +24356,8 @@ tf3slf(b3,b2,b1,b0,a3,a2,a1,a0) = tf3(b0d,b1d,b2d,b3d,a1d,a2d,a3d) with {
 //
 // #### Example
 // A first-order ANALOG Butterworth lowpass filter,
-//          normalized to have cutoff frequency at 1 rad/sec,
-//          has transfer function
+// normalized to have cutoff frequency at 1 rad/sec,
+// has transfer function:
 //
 //           1
 // H(s) = -------
@@ -22524,6 +24614,7 @@ with {
   };
 };
 
+
 //================Special Filter-Bank Delay-Equalizing Allpass Filters====================
 // These special allpass filters are needed by filterbank et al. below.
 // They are equivalent to (`lowpass(N,fc)` +|- `highpass(N,fc))/2`, but with
@@ -22586,12 +24677,13 @@ declare highpass_plus_lowpass_odd license "MIT-style STK-4.3 license";
 //        to eliminate pole-zero cancellations:
 highpass_minus_lowpass_odd(N,fc) = highpass(N,fc) - lowpass(N,fc);
 
+
 //==========================Elliptic (Cauer) Lowpass Filters==============================
 // Elliptic (Cauer) Lowpass Filters
 //
 // #### References
-// * <http://en.wikipedia.org/wiki/Elliptic_filter
-// * functions `ncauer` and `ellip` in Octave
+// * <http://en.wikipedia.org/wiki/Elliptic_filter>
+// * functions `ncauer` and `ellip` in Octave.
 //========================================================================================
 
 //-----------------------------`(fi.)lowpass3e`-----------------------------
@@ -22683,6 +24775,7 @@ with {
   w1 = 2*ma.PI*fc;
 };
 
+
 //=========================Elliptic Highpass Filters======================================
 //========================================================================================
 
@@ -22757,6 +24850,7 @@ with {
   a03 = 1.069358407707312;
   w1 = 2*ma.PI*fc;
 };
+
 
 //========================Butterworth Bandpass/Bandstop Filters===========================
 //========================================================================================
@@ -22841,6 +24935,7 @@ with {
     a1s = -2*cos(-1*ma.PI + (1-parity)*ma.PI/(2*Nh) + (S-1+parity)*ma.PI/Nh);
   };
 };
+
 
 //===========================Elliptic Bandpass Filters====================================
 //========================================================================================
@@ -22978,15 +25073,16 @@ pospass0(lpf) = unmodulate : lpf, lpf : modulate with {
   modulate(x,y) = c*x-s*y, c*y + s*x; // add SR/4 to all frequencies
 };
 
+
 //=================Parametric Equalizers (Shelf, Peaking)=================================
 // Parametric Equalizers (Shelf, Peaking).
 //
 // #### References
 // * <http://en.wikipedia.org/wiki/Equalization>
-// * <http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt>
+// * <https://webaudio.github.io/Audio-EQ-Cookbook/Audio-EQ-Cookbook.txt>
 // * Digital Audio Signal Processing, Udo Zolzer, Wiley, 1999, p. 124
-// * https://ccrma.stanford.edu/~jos/filters/Low_High_Shelving_Filters.html>
-// * https://ccrma.stanford.edu/~jos/filters/Peaking_Equalizers.html>
+// * <https://ccrma.stanford.edu/~jos/filters/Low_High_Shelving_Filters.html>
+// * <https://ccrma.stanford.edu/~jos/filters/Peaking_Equalizers.html>
 // * maxmsp.lib in the Faust distribution
 // * bandfilter.dsp in the faust2pd distribution
 //========================================================================================
@@ -23216,7 +25312,7 @@ peak_eq_rm(Lfx,fx,tanPiBT) = _ <: _,A,_ : +,- : *(0.5),*(K/2.0) : + with {
 // J.O. Smith and H.F. Smith,
 // "Closed Form Fractional Integration and Differentiation via Real Exponentially Spaced Pole-Zero Pairs",
 // arXiv.org publication arXiv:1606.06154 [cs.CE], June 7, 2016,
-// http://arxiv.org/abs/1606.06154
+// <http://arxiv.org/abs/1606.06154>
 //------------------------------------------------------------
 declare spectral_tilt author "Julius O. Smith III";
 declare spectral_tilt copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
@@ -23232,7 +25328,7 @@ spectral_tilt(N,f0,bw,alpha) = seq(i,N,sec(i)) with {
     prewarp(w,SR,wp) = wp * tan(w*T/2) / tan(wp*T/2) with { T = 1/ma.SR; };
     mz(i) = w0 * r ^ (-alpha+i); // minus zero i in s plane
     mp(i) = w0 * r ^ i; // minus pole i in s plane
-    f0p = max(f0,1.0e-7); // cannot go to zero
+    f0p = max(f0,ma.EPSILON); // cannot go to zero
     w0 = 2 * ma.PI * f0p; // radian frequency of first pole
     f1 = f0p + bw; // upper band limit
     r = (f1/f0p)^(1.0/float(N-1)); // pole ratio (2 => octave spacing)
@@ -23339,7 +25435,7 @@ levelfilterN(N,freq,L) = seq(i,N,levelfilter((L/N),freq));
 // * "Tree-structured complementary filter banks using all-pass sections",
 //   Regalia et al., IEEE Trans. Circuits & Systems, CAS-34:1470-1484, Dec. 1987
 // * "Multirate Systems and Filter Banks", P. Vaidyanathan, Prentice-Hall, 1993
-// * Elementary filter theory: https://ccrma.stanford.edu/~jos/filters/
+// * Elementary filter theory: <https://ccrma.stanford.edu/~jos/filters/>
 //========================================================================================
 
 //------------------------`(fi.)mth_octave_filterbank[n]`-------------------------
@@ -23371,13 +25467,12 @@ levelfilterN(N,freq,L) = seq(i,N,levelfilter((L/N),freq));
 declare mth_octave_filterbank author "Julius O. Smith III";
 declare mth_octave_filterbank copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare mth_octave_filterbank license "MIT-style STK-4.3 license";
-mth_octave_filterbank(O,M,ftop,N) =
-    an.mth_octave_analyzer(O,M,ftop,N) :
-    delayeq(N) with {
-  fc(n) = ftop * 2^(float(n-N+1)/float(M)); // -3dB crossover frequencies
-  ap(n) = highpass_plus_lowpass(O,fc(n));   // delay-equalizing allpass
-  delayeq(N) = par(i,N-2,apchain(i+1)), _, _;
-  apchain(i) = seq(j,N-1-i,ap(j+1));
+mth_octave_filterbank(O,M,ftop,N) = an.mth_octave_analyzer(O,M,ftop,N) : delayeq(N) 
+with {
+   fc(n) = ftop * 2^(float(n-N+1)/float(M)); // -3dB crossover frequencies
+   ap(n) = highpass_plus_lowpass(O,fc(n));   // delay-equalizing allpass
+   delayeq(N) = par(i,N-2,apchain(i+1)), _, _;
+   apchain(i) = seq(j,N-1-i,ap(j+1));
 };
 
 // dc-inverted version.  This reduces the delay-equalizer order for odd O.
@@ -23386,12 +25481,12 @@ mth_octave_filterbank(O,M,ftop,N) =
 declare mth_octave_filterbank_alt author "Julius O. Smith III";
 declare mth_octave_filterbank_alt copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare mth_octave_filterbank_alt license "MIT-style STK-4.3 license";
-mth_octave_filterbank_alt(O,M,ftop,N) =
-    an.mth_octave_analyzer(O,M,ftop,N) : delayeqi(O,N) with {
-  fc(n) = ftop * 2^(float(n-N+1)/float(M)); // -3dB crossover frequencies
-  ap(n) = highpass_minus_lowpass(O,fc(n)); // half the order of 'plus' case
-  delayeqi(N) = par(i,N-2,apchain(i+1)), _, *(-1.0);
-  apchain(i) = seq(j,N-1-i,ap(j+1));
+mth_octave_filterbank_alt(O,M,ftop,N) = an.mth_octave_analyzer(O,M,ftop,N) : delayeqi(O,N) 
+with {
+    fc(n) = ftop * 2^(float(n-N+1)/float(M)); // -3dB crossover frequencies
+    ap(n) = highpass_minus_lowpass(O,fc(n)); // half the order of 'plus' case
+    delayeqi(N) = par(i,N-2,apchain(i+1)), _, *(-1.0);
+    apchain(i) = seq(j,N-1-i,ap(j+1));
 };
 
 // Note that even-order cases require complex coefficients.
@@ -23446,15 +25541,15 @@ mth_octave_filterbank_default = mth_octave_filterbank5;
 declare filterbank author "Julius O. Smith III";
 declare filterbank copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare filterbank license "MIT-style STK-4.3 license";
-filterbank(O,lfreqs) = an.analyzer(O,lfreqs) : delayeq(nb) with
-{
+filterbank(O,lfreqs) = an.analyzer(O,lfreqs) : delayeq(nb) 
+with {
    nb = ba.count(lfreqs);
    fc(n) = ba.take(n, lfreqs);
    ap(n) = highpass_plus_lowpass(O,fc(n));
    delayeq(1) = _,_; // par(i,0,...) does not fly
    delayeq(nb) = par(i,nb-1,apchain(nb-1-i)),_,_;
    apchain(0) = _;
-   apchain(i) =  ap(i) : apchain(i-1);
+   apchain(i) = ap(i) : apchain(i-1);
 };
 
 //-----------------`(fi.)filterbanki`----------------------
@@ -23482,8 +25577,8 @@ filterbank(O,lfreqs) = an.analyzer(O,lfreqs) : delayeq(nb) with
 declare filterbanki author "Julius O. Smith III";
 declare filterbanki copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare filterbanki license "MIT-style STK-4.3 license";
-filterbanki(O,lfreqs) = _ <: bsplit(nb) with
-{
+filterbanki(O,lfreqs) = _ <: bsplit(nb) 
+with {
    nb = ba.count(lfreqs);
    fc(n) = ba.take(n, lfreqs);
    lp(n) = lowpass(O,fc(n));
@@ -23494,6 +25589,88 @@ filterbanki(O,lfreqs) = _ <: bsplit(nb) with
    delayeq(0) = _; // moving the *(-1) here inverts all outputs BUT dc
    delayeq(i) = ap(i) : delayeq(i-1);
 };
+
+
+//===============SVF Filters=========================================================
+// #### References 
+// Solving the continuous SVF equations using trapezoidal integration
+// <https://cytomic.com/files/dsp/SvfLinearTrapOptimised2.pdf>
+//========================================================================================
+
+//-----------------`(fi.)svf`----------------------
+// An environment with `lp`, `bp`, `hp`, `notch`, `peak`, `ap`, `bell`, `ls`, `hs` SVF based filters. 
+// All filters have `freq` and `Q` parameters, the `bell`, `ls`, `hs` ones also have a `gain` third parameter.
+//
+// #### Usage
+//
+// ```
+// _ : svf.xx(freq, Q, [gain]) : _
+// ```
+//
+// Where:
+//
+// * `freq`: cut frequency
+// * `Q`: quality factor
+// * `[gain]`: gain in dB
+//
+/// ```
+//---------------------------------------------------
+declare svf author "Oleg Nesterov";
+declare svf copyright "Copyright (C) 2020 Oleg Nesterov <oleg@redhat.com>";
+declare svf license "MIT-style STK-4.3 license";
+
+svf = environment {
+
+	// Internal implementation
+	svf(T,F,Q,G) = tick ~ (_,_) : !,!,si.dot(3, mix)
+	with {
+		tick(ic1eq, ic2eq, v0) =
+			2*v1 - ic1eq,
+			2*v2 - ic2eq,
+			v0, v1, v2
+		with {
+			v1 = ic1eq + g *(v0-ic2eq) : /(1 + g*(g+k));
+			v2 = ic2eq + g * v1;
+		};
+
+		A = pow(10.0, G/40.0);
+
+		g = tan(F * ma.PI/ma.SR) : case {
+			(7) => /(sqrt(A));
+			(8) => *(sqrt(A));
+			(t) => _;
+		} (T);
+
+		k = case {
+			(6) => 1/(Q*A);
+			(t) => 1/Q;
+		} (T);
+
+		mix = case {
+			(0) => 0, 0, 1;
+			(1) => 0, 1, 0;
+			(2) => 1, -k, -1;
+			(3) => 1, -k, 0;
+			(4) => 1, -k, -2;
+			(5) => 1, -2*k, 0;
+			(6) => 1, k*(A*A-1), 0;
+			(7) => 1, k*(A-1), A*A-1;
+			(8) => A*A, k*(1-A)*A, 1-A*A;
+		} (T);
+	};
+
+	// External API 
+	lp(f,q)     = svf(0, f, q, 0);
+	bp(f,q)     = svf(1, f, q, 0);
+	hp(f,q)     = svf(2, f, q, 0);
+	notch(f,q)  = svf(3, f, q, 0);
+	peak(f,q)   = svf(4, f, q, 0);
+	ap(f,q)     = svf(5, f, q, 0);
+	bell(f,q,g) = svf(6, f, q, g);
+	ls(f,q,g)   = svf(7, f, q, g);
+	hs(f,q,g)   = svf(8, f, q, g);
+};
+
 
 /*******************************************************************************
 # Licenses
@@ -23640,7 +25817,7 @@ block(n) = par(i, n, !);
 //
 // * `i`: interpolation control between 0 and 1 (0: first input; 1: second input)
 //-----------------------------------------------------------------------------
-interpolate(i) = *(1.0-i),*(i) : +;
+interpolate(i,x,y) = x + i*(y-x);  
 
 //------------------------`(si.)smoo`---------------------------------------
 // Smoothing function based on `smooth` ideal to smooth UI signals
@@ -23984,7 +26161,7 @@ bow(offset,slope) = pow(abs(sample) + 0.75, -4) : saturationPos
 //   offset = offset between 0 and 1
 //   slope = slope between 0 and 1
 // REFERENCE:
-//   https://ccrma.stanford.edu/~jos/pasp/View_Single_Reed_Oscillation.html
+//   <https://ccrma.stanford.edu/~jos/pasp/View_Single_Reed_Oscillation.html>
 
 reed(offset,slope) = reedTable : saturationPos : saturationNeg
     with {
@@ -24012,7 +26189,7 @@ poleZero(b0,b1,a1,x) = (b0*x + b1*x' - a1*_)~_;
 //   _ : oneZero0(b0,b1) : _
 //   _ : oneZero1(b0,b1) : _
 // REFERENCE:
-//   https://ccrma.stanford.edu/~jos/fp2/One_Zero.html
+//   <https://ccrma.stanford.edu/~jos/fp2/One_Zero.html>
 
 oneZero0(b0,b1,x) = (*(b1) + x*b0)~_;
 oneZero1(b0,b1,x) = (x'*b1 + x*b0);
@@ -24106,7 +26283,7 @@ nonLinearModulator(nonlinearity,env,freq,typeMod,freqMod,order) =
 // where
 //   periodDuration = period duration of the tone being played in number of samples
 // REFERENCE:
-//   https://ccrma.stanford.edu/realsimple/faust_strings/
+//   <https://ccrma.stanford.edu/realsimple/faust_strings/>
 
 stereoizer(periodDuration) = _ <: _,widthdelay : stereopanner
     with {
@@ -24134,6 +26311,300 @@ re.zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax),_,_ <: _,!,_,!,!,_,!,_ : +,+
         t60m = roomSize*2;
         fsmax = 48000;
     };
+//##################################### quantizers.lib ########################################
+// Faust Frequency Quantization Library. Its official prefix is `qu`.
+//########################################################################################
+
+ba = library("basics.lib");
+
+declare name "Faust Frequency Quantization Library";
+declare version "0.0";
+
+//=============================Functions Reference========================================
+//========================================================================================
+
+/************************************************************************
+************************************************************************
+This is free and unencumbered software released into the public domain.
+
+Anyone is free to copy, modify, publish, use, compile, sell, or
+distribute this software, either in source code form or as a compiled
+binary, for any purpose, commercial or non-commercial, and by any
+means.
+
+In jurisdictions that recognize copyright laws, the author or authors
+of this software dedicate any and all copyright interest in the
+software to the public domain. We make this dedication for the benefit
+of the public at large and to the detriment of our heirs and
+successors. We intend this dedication to be an overt act of
+relinquishment in perpetuity of all present and future rights to this
+software under copyright law.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+For more information, please refer to <http://unlicense.org/>
+************************************************************************
+************************************************************************/
+
+
+//-------`(qu.)quantize`----------
+// Configurable frequency quantization tool. Outputs only the frenquencies that are part of the specified scale.
+//
+// Works for positive audio frequencies.
+//
+// #### Usage
+//
+// ```
+// _ : quantize(rf,nl) : _
+// ```
+// Where :
+//
+// * `rf` : frequency of the root note of the scale.
+// * `nl` : list of the ratio of the frequencies of each note in relation to the root frequency.
+//------------------------
+quantize(rf,nl) = _:min(max(8,_),30000)<: octave, _ <: _, !, noteRatio(nN) : rf * _ * _                       
+with{
+    octave = log(_/rf)/log(2)<:
+        (_<0)*(1/(pow(2,max(0,(-1*(_-1)):int))))+
+        (_>=0)*(pow(2,_:int));
+    nN = ba.count(nl);
+    noteRatio(1,oct) = 1;
+    noteRatio(n,oct) = _ <: (ba.take(n,nl)<=((_/oct)/rf))*ba.take(n,nl)+
+                            (ba.take(n,nl)>((_/oct)/rf))*(noteRatio(n-1,oct));
+};
+
+
+//-------`(qu.)quantizeSmoothed`----------
+// Configurable frequency quantization tool. Outputs frenquencies that are closer to the frequencies of the notes of the specified scale.
+//
+// Works for positive audio frequencies.
+//
+//
+// #### Usage
+//
+// ```
+// _ : quantizeSmoothed(rf,nl) : _
+// nl = (1,1.2,1.4,1.7);
+// ```
+// Where :
+//
+// * `rf` : frequency of the root note of the scale.
+// * `nl` : list of the ratio of the frequencies of each note in relation to the root frequency.
+//------------------------
+quantizeSmoothed(rf,nl) = _:min(max(8,_),30000)<: octave, _ <: _, !, noteRatio(nN) : rf * _ * _                       
+with{
+    octave = log(_/rf)/log(2)<:
+        (_<0)*(1/(pow(2,max(0,(-1*(_-1)):int))))+
+        (_>0)*(pow(2,_:int))+
+		(_==0)*2;
+    nN = ba.count(nl);
+    noteRatio(1,oct) = findValue(1,oct);
+    noteRatio(n,oct) = _ <: (ba.take(n,nl)<=((_/oct)/rf))*findValue(n,oct)+
+                            (ba.take(n,nl)>((_/oct)/rf))*(noteRatio(n-1,oct));
+
+    findValue(n,oct) =  _<: (n<nN)*
+            (((_/oct)/rf)-ba.take(n,nl))/((ba.take(min(n+1,nN)-(n==nN),nl)-ba.take(n,nl)))
+                    +(n==nN)*
+            (((_/oct)/rf)-ba.take(n,nl))/(2-ba.take(n,nl)):       
+            0.5*atan(_*20-10)/1.4711+0.5 :  //smoothing curve
+            _*(
+                (n<nN)*(ba.take(min(n+1,nN)-(n==nN),nl)-ba.take(n,nl))+
+                (n==nN)*(2-ba.take(n,nl))
+            )+ba.take(n,nl);
+};
+
+
+//---------------------`(qu.)ionian`--------------------------
+// List of the frequency ratios of the notes of the ionian mode.
+//
+// #### Usage
+// ```
+// _ : quantize(rf,ionian) : _
+// ```
+//
+// Where:
+//
+// * `rf`: frequency of the root note of the scale.
+//-------------------------------------------------------------
+ionian = (1,pow(2,2/12),pow(2,4/12),pow(2,5/12),pow(2,7/12),pow(2,9/12),pow(2,11/12));
+
+//---------------------`(qu.)dorian`--------------------------
+// List of the frequency ratios of the notes of the dorian mode.
+//
+// #### Usage
+// ```
+// _ : quantize(rf,dorian) : _
+// ```
+//
+// Where:
+//
+// * `rf`: frequency of the root note of the scale.
+//-------------------------------------------------------------
+dorian = (1,pow(2,2/12),pow(2,3/12),pow(2,5/12),pow(2,7/12),pow(2,8/12),pow(2,10/12));
+
+//---------------------`(qu.)phrygian`--------------------------
+// List of the frequency ratios of the notes of the phrygian mode.
+//
+// #### Usage
+// ```
+// _ : quantize(rf,phrygian) : _
+// ```
+//
+// Where:
+//
+// * `rf`: frequency of the root note of the scale.
+//-------------------------------------------------------------
+phrygian = (1,pow(2,1/12),pow(2,3/12),pow(2,5/12),pow(2,7/12),pow(2,8/12),pow(2,10/12));
+
+//---------------------`(qu.)lydian`--------------------------
+// List of the frequency ratios of the notes of the lydian mode.
+//
+// #### Usage
+// ```
+// _ : quantize(rf,lydian) : _
+// ```
+//
+// Where:
+//
+// * `rf`: frequency of the root note of the scale.
+//-------------------------------------------------------------
+lydian = (1,pow(2,2/12),pow(2,4/12),pow(2,6/12),pow(2,7/12),pow(2,9/12),pow(2,11/12));
+
+//---------------------`(qu.)mixo`--------------------------
+// List of the frequency ratios of the notes of the mixolydian mode.
+//
+// #### Usage
+// ```
+// _ : quantize(rf,mixo) : _
+// ```
+//
+// Where:
+//
+// * `rf`: frequency of the root note of the scale.
+//-------------------------------------------------------------
+mixo = (1,pow(2,2/12),pow(2,4/12),pow(2,5/12),pow(2,7/12),pow(2,9/12),pow(2,10/12));
+
+//---------------------`(qu.)eolian`--------------------------
+// List of the frequency ratios of the notes of the eolian mode.
+//
+// #### Usage
+// ```
+// _ : quantize(rf,eolian) : _
+// ```
+//
+// Where:
+//
+// * `rf`: frequency of the root note of the scale.
+//-------------------------------------------------------------
+eolian = (1,pow(2,2/12),pow(2,3/12),pow(2,5/12),pow(2,7/12),pow(2,8/12),pow(2,10/12));
+
+//---------------------`(qu.)locrian`--------------------------
+// List of the frequency ratios of the notes of the locrian mode.
+//
+// #### Usage
+// ```
+// _ : quantize(rf,locrian) : _
+// ```
+//
+// Where:
+//
+// * `rf`: frequency of the root note of the scale.
+//-------------------------------------------------------------
+locrian = (1,pow(2,1/12),pow(2,3/12),pow(2,5/12),pow(2,6/12),pow(2,8/12),pow(2,10/12));
+
+
+//---------------------`(qu.)pentanat`--------------------------
+// List of the frequency ratios of the notes of the pythagorean tuning for the minor pentatonic scale.
+//
+// #### Usage
+// ```
+// _ : quantize(rf,pentanat) : _
+// ```
+//
+// Where:
+//
+// * `rf`: frequency of the root note of the scale.
+//-------------------------------------------------------------
+pentanat = (1,32/27,4/3,3/2,16/9);
+
+
+//---------------------`(qu.)kumoi`--------------------------
+// List of the frequency ratios of the notes of the kumoijoshi, the japanese pentatonic scale.
+//
+// #### Usage
+// ```
+// _ : quantize(rf,kumoi) : _
+// ```
+//
+// Where:
+//
+// * `rf`: frequency of the root note of the scale.
+//-------------------------------------------------------------
+kumoi = (1,16/15,4/3,3/2,8/5);
+
+
+//---------------------`(qu.)natural`--------------------------
+// List of the frequency ratios of the notes of the natural major scale.
+//
+// #### Usage
+// ```
+// _ : quantize(rf,natural) : _
+// ```
+//
+// Where:
+//
+// * `rf`: frequency of the root note of the scale.
+//-------------------------------------------------------------
+natural = (1,9/8,5/4,4/3,3/2,5/3,15/8);
+
+
+//---------------------`(qu.)dodeca`--------------------------
+// List of the frequency ratios of the notes of the dodecaphonic scale.
+//
+// #### Usage
+// ```
+// _ : quantize(rf,dodeca) : _
+// ```
+//
+// Where:
+//
+// * `rf`: frequency of the root note of the scale.
+//-------------------------------------------------------------
+dodeca = (1,pow(2,1/12),pow(2,2/12),pow(2,3/12),pow(2,4/12),pow(2,5/12),pow(2,6/12),pow(2,7/12),pow(2,8/12),pow(2,9/12),pow(2,10/12),pow(2,11/12));
+
+//---------------------`(qu.)dimin`--------------------------
+// List of the frequency ratios of the notes of the diminished scale.
+//
+// #### Usage
+// ```
+// _ : quantize(rf,dimin) : _
+// ```
+//
+// Where:
+//
+// * `rf`: frequency of the root note of the scale.
+//-------------------------------------------------------------
+dimin = (1,pow(2,1/12),pow(2,3/12),pow(2,4/12),pow(2,6/12),pow(2,7/12),pow(2,9/12),pow(2,10/12));
+
+//---------------------`(qu.)penta`--------------------------
+// List of the frequency ratios of the notes of the minor pentatonic scale.
+//
+// #### Usage
+// ```
+// _ : quantize(rf,penta) : _
+// ```
+//
+// Where:
+//
+// * `rf`: frequency of the root note of the scale.
+//-------------------------------------------------------------
+penta = (1,pow(2,3/12),pow(2,5/12),pow(2,7/12),pow(2,10/12));
 //##################################### noises.lib ########################################
 // Faust Noise Generator Library. Its official prefix is `no`.
 //########################################################################################
@@ -24565,7 +27036,7 @@ saw3 = sawN(3); saw4 = sawN(4); saw5 = sawN(5); saw6 = sawN(6);
 
 
 saw2(freq) = y with { // newer PTR version (stateless - freq can vary at any speed)
-  p0 = float(ml.SR)/float(max(1.0e-7,abs(freq))); // period in samples
+  p0 = float(ml.SR)/float(max(ma.EPSILON,abs(freq))); // period in samples
   t0 = 1.0/p0; // phase increment
   p = ((_<:(-(1)<:_,_),_) <: selector1,selector2) ~(+(t0)):!,_;
   selector1 = select2(<(0)); // for feedback
@@ -24888,9 +27359,10 @@ lfnoise(freq) = lfnoise0(freq) : seq(i,5,fl.lowpass(1,freq)); // non-overshootin
 // by a `idv` read index signal. Two points and four points interpolations are implemented.
 //
 // The `idv` parameter is to be used as a read index. In float (= singleprecision) mode, 
-// we use a technique with a pure integer index and a fractional part in the [0,1] range 
-// to avoid accumulating errors. In -double (= doubleprecision)/-quad (= quadprecision) modes, 
-// we use a standard implementation with a fractional index.
+// a technique based on 2 signals with the pure integer index and a fractional part in the [0,1] 
+// range is used to avoid accumulating errors. In -double (= doubleprecision)/-quad (= quadprecision) modes, 
+// a standard implementation with a single fractional index signal is used. 
+// Three functions `int_part`, `frac_part` and `mak_idv` are available to manipule the read index signal.
 //
 // Use-case with `waveform`. Here the signal given to `interpolator_XXX` uses the `idv` model.
 // 
@@ -25152,7 +27624,7 @@ interpolate_cosine(dv,v0,v1) = v0 + a2*(v1-v0) with { a2 = 0.5 * (1.0 - cos(dv*m
 //--------------------------------------------
 
 interpolate_cubic(dv,v0,v1,v2,v3) 
-	= v1 + 0.5 *dv*(v2 - v0 + dv*(2.0*v0 - 5.0*v1 + 4.0*v2 - v3 + dv*(3.0*(v1 - v2) + v3 - v0)));
+	= v1 + 0.5*dv*(v2 - v0 + dv*(2.0*v0 - 5.0*v1 + 4.0*v2 - v3 + dv*(3.0*(v1 - v2) + v3 - v0)));
 
 
 //=========================Two points interpolators=======================================
@@ -26739,7 +29211,7 @@ jcrev = *(0.06) : allpass_chain <: comb_bank : mix_mtx with {
 // which was recovered from an old SAIL DART backup tape.
 // John Chowning thinks this might be the one used on his
 // often-heard brass canon sound examples, one of which can be found at
-// <https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav>.
+// <https://ccrma.stanford.edu/~jos/wav/FM-BrassCanon2.wav>.
 //
 // #### Usage
 //
@@ -27066,7 +29538,7 @@ with {
     allpasstuningL(3) = adaptSR(225);
     
     // Lowpass Feedback Combfilter:
-    // https://ccrma.stanford.edu/~jos/pasp/Lowpass_Feedback_Comb_Filter.html
+    // <https://ccrma.stanford.edu/~jos/pasp/Lowpass_Feedback_Comb_Filter.html>
     lbcf(dt, fb, damp) = (+:@(dt)) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
      
     origSR = 44100;
@@ -27147,7 +29619,7 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 // physical models of musical instruments using Faust can be found
 // [here](https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-physical-models-of-musical-instruments-with-faust) as well.
 //########################################################################################
-// Authors: Romain Michon , Pierre-Amaury Grumiaux, and Yann Orlarey
+// Authors: Romain Michon, Pierre-Amaury Grumiaux, and Yann Orlarey
 
 import("stdfaust.lib");
 
@@ -27718,7 +30190,7 @@ with{
     oti = nti*(1-pickupPosition); // pickup to excitation length
     itb = length*(1-pluckPosition); // pickup to bottom length
     strChain = chain(stringSegment(maxStringLength,nto) : out :
-    stringSegment(maxStringLength,oti) : in(excitation) : dispersion :
+    stringSegment(maxStringLength,oti) : in(excitation) : dispersionFilters :
     stringSegment(maxStringLength,itb));
 };
 
@@ -31065,7 +33537,7 @@ with{
 // ```
 //
 // Further reading: [Grumiaux et. al., 2017:
-// Impulse-Response and CAD-Mod// el-Based Physical Modeling in
+// Impulse-Response and CAD-Model-Based Physical Modeling in
 // Faust](https://raw.githubusercontent.com/grame-cncm/faust/master-dev/tools/physicalModeling/ir2dsp/lacPaper2017.pdf)
 //
 //--------------------------------------
@@ -31152,6 +33624,7 @@ ma = library("maths.lib"); // for compatible copy/paste out of this file
 //-----------------------------------------------------------------------------
 SR = pl.SR;
 
+
 //---------------------------------`(ma.)BS`---------------------------------------
 // Current block-size. Can change during the execution.
 //
@@ -31173,7 +33646,19 @@ BS = fvariable(int count, <math.h>);
 // PI : _
 // ```
 //-----------------------------------------------------------------------------
-PI = 3.1415926535897932385;
+PI = 3.14159265358979323846;
+
+
+//---------------------------------`(ma.)E`---------------------------------------
+// Constant e in double precision.
+//
+// #### Usage
+//
+// ```
+// E : _
+// ```
+//-----------------------------------------------------------------------------
+E = 2.71828182845904523536;
 
 
 //---------------------------------`(ma.)EPSILON`---------------------------------------
@@ -31229,7 +33714,9 @@ quadprecision INFINITY = 1.7976931348623158e+308;
 // _ : FTZ : _
 // ```
 //
-// See : <http://docs.oracle.com/cd/E19957-01/806-3568/ncg_math.html>
+// #### Reference
+//
+// <http://docs.oracle.com/cd/E19957-01/806-3568/ncg_math.html>
 //-----------------------------------------------------------------------------
 FTZ(x) = x * (abs(x) > MIN);
 
@@ -31832,6 +34319,7 @@ avg_rect(period, x) = x : ba.slidingMean(rint(period * ma.SR));
 // or to reach 1-1/e of its final value.
 //
 // #### Reference
+//
 // <https://ccrma.stanford.edu/~jos/mdft/Exponentials.html>
 //-----------------------------------------------------------------------------
 declare avg_tau author "Dario Sanfilippo and Julius O. Smith III";
@@ -31859,6 +34347,7 @@ avg_tau(period, x) = fi.lptau(period, x);
 // or to reach 1-1/1000 of its final value.
 //
 // #### Reference
+//
 // <https://ccrma.stanford.edu/~jos/mdft/Audio_Decay_Time_T60.html>
 //-----------------------------------------------------------------------------
 declare avg_t60 author "Dario Sanfilippo and Julius O. Smith III";
