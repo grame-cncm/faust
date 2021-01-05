@@ -1,9 +1,9 @@
-% man(1) Version 2.30.5 (05-January-2021) | Faust man page
+% man(1) Version 2.30.5 (06-January-2021) | Faust man page
 
 NAME
 ====
 
-Faust  -  DSP  to  C/C++,  Rust,  LLVM  IR,  JAVA, WebAssembly (wast/wasm), Interpreter compiler
+Faust - DSP to C/C++, Rust, LLVM IR, JAVA, WebAssembly (wast/wasm), Interpreter, SOUL and D compiler
 
 SYNOPSIS
 ========
@@ -214,6 +214,6 @@ Please report bugs to: **<https://github.com/grame-cncm/faust/issues>**
 AUTHOR
 ======
 
-Copyright (C) 2002-2020, GRAME - Centre National de Creation Musicale.
+Copyright (C) 2002-2021, GRAME - Centre National de Creation Musicale.
 All rights reserved.
 
