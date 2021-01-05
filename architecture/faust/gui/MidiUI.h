@@ -331,10 +331,6 @@ class uiMidiProgChange : public uiMidiTimedItem {
 
 class uiMidiChanPress : public uiMidiTimedItem, public uiConverter {
     
-    private:
-        
-        int fPress;
-  
     public:
     
         uiMidiChanPress(midi* midi_out, GUI* ui,

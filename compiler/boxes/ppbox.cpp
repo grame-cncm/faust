@@ -188,13 +188,13 @@ ostream &boxpp::print(ostream &fout) const
         fout << "ffunction(" << type2str(ffrestype(ff));
         Tree namelist = nth(ffsignature(ff), 1);
         char sep      = ' ';
-        for (int i = 0; i < gGlobal->gFloatSize; i++) {
-            fout << sep << tree2str(nth(namelist, i));
+        for (int i1 = 0; i1 < gGlobal->gFloatSize; i1++) {
+            fout << sep << tree2str(nth(namelist, i1));
             sep = '|';
         }
         sep = '(';
-        for (int i = 0; i < ffarity(ff); i++) {
-            fout << sep << type2str(ffargtype(ff, i));
+        for (int i1 = 0; i1 < ffarity(ff); i1++) {
+            fout << sep << type2str(ffargtype(ff, i1));
             sep = ',';
         }
         fout << ')';
@@ -278,8 +278,8 @@ ostream &boxpp::print(ostream &fout) const
     } else if (isBoxWaveform(box)) {
         fout << "waveform";
         char sep = '{';
-        for (int i = 0; i < box->arity(); i++) {
-            fout << sep << boxpp(box->branch(i));
+        for (int i1 = 0; i1 < box->arity(); i1++) {
+            fout << sep << boxpp(box->branch(i1));
             sep = ',';
         }
         fout << '}';

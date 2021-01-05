@@ -64,7 +64,7 @@ class ppsig : public virtual Garbageable {
     ostream& printff(ostream& fout, Tree ff, Tree largs) const;
     ostream& printrec(ostream& fout, Tree var, Tree lexp, bool hide) const;
     ostream& printrec(ostream& fout, Tree lexp, bool hide) const;
-    ostream& printextended(ostream& fout, Tree sig) const;
+    ostream& printextended(ostream& fout, Tree sig1) const;
     ostream& printui(ostream& fout, const string& funame, Tree label) const;
     ostream& printui(ostream& fout, const string& funame, Tree label, Tree lo, Tree hi, Tree step) const;
     ostream& printui(ostream& fout, const string& funame, Tree label, Tree cur, Tree lo, Tree hi, Tree step) const;

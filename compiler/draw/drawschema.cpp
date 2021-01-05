@@ -481,18 +481,18 @@ static schema* generateInsideSchema(Tree t)
     else if (isBoxVGroup(t, l, a)) {
         stringstream s;
         s << "vgroup(" << extractName(l) << ")";
-        schema* r = generateDiagramSchema(a);
-        return makeDecorateSchema(r, 10, s.str());
+        schema* s1 = generateDiagramSchema(a);
+        return makeDecorateSchema(s1, 10, s.str());
     } else if (isBoxHGroup(t, l, a)) {
         stringstream s;
         s << "hgroup(" << extractName(l) << ")";
-        schema* r = generateDiagramSchema(a);
-        return makeDecorateSchema(r, 10, s.str());
+        schema* s1 = generateDiagramSchema(a);
+        return makeDecorateSchema(s1, 10, s.str());
     } else if (isBoxTGroup(t, l, a)) {
         stringstream s;
         s << "tgroup(" << extractName(l) << ")";
-        schema* r = generateDiagramSchema(a);
-        return makeDecorateSchema(r, 10, s.str());
+        schema* s1 = generateDiagramSchema(a);
+        return makeDecorateSchema(s1, 10, s.str());
     }
 
     else if (isBoxSeq(t, a, b)) {

@@ -181,10 +181,10 @@ void print(Tree t, FILE* out)
     int k = t->arity();
     if (k > 0) {
         char sep = '[';
-        for (int i = 0; i < k; i++) {
+        for (int i1 = 0; i1 < k; i1++) {
             fputc(sep, out);
             sep = ',';
-            print(t->branch(i), out);
+            print(t->branch(i1), out);
         }
         fputc(']', out);
     }

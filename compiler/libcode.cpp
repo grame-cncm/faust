@@ -684,8 +684,9 @@ static bool processCmdline(int argc, const char* argv[])
     if (gGlobal->gFunTaskSwitch) {
         if (!(gGlobal->gOutputLang == "c"
               || gGlobal->gOutputLang == "cpp"
-              || gGlobal->gOutputLang == "llvm")) {
-            throw faustexception("ERROR : -fun can only be used with c, cpp or llvm backends\n");
+              || gGlobal->gOutputLang == "llvm"
+              || gGlobal->gOutputLang == "fir")) {
+            throw faustexception("ERROR : -fun can only be used with c, cpp, llvm or fir backends\n");
         }
     }
 

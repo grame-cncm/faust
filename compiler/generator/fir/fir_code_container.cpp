@@ -276,7 +276,6 @@ void FIRVectorCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* ds
 
     // Possibly generate separated functions
     if (fComputeFunctions->fCode.size() > 0) {
-        *dst << endl;
         *dst << "======= Separated functions begin ==========" << endl;
         *dst << endl;
         // Complexity estimation
@@ -297,7 +296,6 @@ void FIROpenMPCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* ds
 
     // Possibly generate separated functions
     if (fComputeFunctions->fCode.size() > 0) {
-        *dst << endl;
         *dst << "======= Separated functions begin ==========" << endl;
         *dst << endl;
         // Complexity estimation
@@ -311,7 +309,6 @@ void FIRWorkStealingCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostre
 {
     // Possibly generate separated functions
     if (fComputeFunctions->fCode.size() > 0) {
-        *dst << endl;
         *dst << "======= Separated functions begin ==========" << endl;
         *dst << endl;
         // Complexity estimation
