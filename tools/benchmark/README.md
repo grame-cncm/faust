@@ -62,7 +62,7 @@ The `-test` parameter can be used to compile a test program which will bench the
 
 The **dynamic-jack-gtk** tool uses the dynamic compilation chain, compiles a Faust DSP source, and runs it with the LLVM or Interpreter backend. It can also read a precompiled DSP factory, either in IR (.ll), bitcode (.bc), or machine code (.mc) when using the LLVM backend, or byte code (.bc) when using the Interpreter backend.
 
-`dynamic-jack-gtk [-llvm|interp] [-nvoices N] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc`
+`dynamic-jack-gtk [-llvm|interp] [-nvoices N] [-all] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc`
 
 Here are the available options:
 
@@ -162,7 +162,7 @@ Here are the available options:
 - `-single to only execute the one test (scalar by default)`
 - `-run <num> to execute each test <num> times`
 - `-bs <frames> to set the buffer-size in frames`
-- `-opt <level>' to pass an optimisation level to LLVM, between 0 and 4 (-1 means "maximal level" if range changes in the future)`
+- `-opt <level>' to pass an optimisation level to LLVM, between 0 and 4 (-1 means 'maximal level' if range changes in the future)`
 
 Using `-single` and additional Faust options (like `-vec -vs 8...`) allows to run a single test with specific options.
 
@@ -193,7 +193,7 @@ The **faust-tester** tool allows to test a Faust effect DSP with test input sign
 
 Here is the available options:
 
-- `-imp to test with an dirac impulse`
+- `-imp to test with a Dirac impulse`
 - `-pulse <num (in samples)> to test with a periodic pulse generated every 'num' samples`
 - `-display <num> to diplay 'num' samples (default 44100)`
 

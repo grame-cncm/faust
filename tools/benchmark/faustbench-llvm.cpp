@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
         cout << "Use '-single' to execute only one test (scalar by default)\n";
         cout << "Use '-run <num>' to execute each test <num> times\n";
         cout << "Use '-bs <frames>' to set the buffer-size in frames\n";
-        cout << "Use '-opt <level (0..4|-1)>' to pass an optimisation level to LLVM\n";
+        cout << "Use '-opt <level (0..4|-1)>' to pass an optimisation level to LLVM, between 0 and 4 (-1 means 'maximal level' if range changes in the future)\n";
         return 0;
     }
     
