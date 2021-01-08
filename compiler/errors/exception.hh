@@ -54,7 +54,7 @@ class faustexception : public std::runtime_error {
 
 inline void stacktrace(std::stringstream& str, int val)
 {
-#if !defined(EMCC) && !defined(WIN32) && !defined(ANDROID)
+#if !defined(EMCC) && !defined(WIN32) && !defined(ANDROID) && !defined(ALPINE)
     void*  callstack[val];
     int    frames = backtrace(callstack, val);
     char** strs   = backtrace_symbols(callstack, frames);
