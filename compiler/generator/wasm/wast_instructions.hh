@@ -459,9 +459,9 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     void visitAuxInt(BinopInst* inst, Typed::VarType type)
     {
         *fOut << "(";
-        if (type == Typed::kInt32 || type == Typed::kBool) {
+        if (isInt32Type(type) || isBoolType(type)) {
             *fOut << gBinOpTable[inst->fOpcode]->fNameWastInt32;
-        } else if (type == Typed::kInt64) {
+        } else if (isInt64Type(type)) {
             *fOut << gBinOpTable[inst->fOpcode]->fNameWastInt64;
         } else {
             faustassert(false);
@@ -476,9 +476,9 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     void visitAuxReal(BinopInst* inst, Typed::VarType type)
     {
         *fOut << "(";
-        if (type == Typed::kFloat) {
+        if (isFloatType(type)) {
             *fOut << gBinOpTable[inst->fOpcode]->fNameWastFloat;
-        } else if (type == Typed::kDouble) {
+        } else if (isDoubleType(type)) {
             *fOut << gBinOpTable[inst->fOpcode]->fNameWastDouble;
         } else {
             faustassert(false);
@@ -505,7 +505,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 visitAuxReal(inst, type2);
             } else if (isIntType(type1) || isIntType(type2)) {
                 visitAuxInt(inst, type2);
-            } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
+            } else if (isBoolType(type1) && isBoolType(type2)) {
                 visitAuxInt(inst, type1);
             } else {
                 // Should never happen...

@@ -145,6 +145,16 @@ inline bool isInt64Type(Typed::VarType type)
     return (type == Typed::kInt64);
 }
 
+inline bool isFloatType(Typed::VarType type)
+{
+    return (type == Typed::kFloat);
+}
+
+inline bool isDoubleType(Typed::VarType type)
+{
+    return (type == Typed::kDouble);
+}
+
 inline bool isIntPtrType(Typed::VarType type)
 {
     return (type == Typed::kInt32_ptr || type == Typed::kInt64_ptr);

@@ -1136,9 +1136,9 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     {
         inst->fInst1->accept(this);
         inst->fInst2->accept(this);
-        if (type == Typed::kInt32 || type == Typed::kBool) {
+        if (isInt32Type(type) || isBoolType(type)) {
             *fOut << int8_t(gBinOpTable[inst->fOpcode]->fWasmInt32);
-        } else if (type == Typed::kInt64) {
+        } else if (isInt64Type(type)) {
             *fOut << int8_t(gBinOpTable[inst->fOpcode]->fWasmInt64);
         } else {
             faustassert(false);
@@ -1149,9 +1149,9 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     {
         inst->fInst1->accept(this);
         inst->fInst2->accept(this);
-        if (type == Typed::kFloat) {
+        if (isFloatType(type)) {
             *fOut << int8_t(gBinOpTable[inst->fOpcode]->fWasmFloat);
-        } else if (type == Typed::kDouble) {
+        } else if (isDoubleType(type)) {
             *fOut << int8_t(gBinOpTable[inst->fOpcode]->fWasmDouble);
         } else {
             faustassert(false);
@@ -1173,7 +1173,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 visitAuxReal(inst, type2);
             } else if (isIntType(type1) || isIntType(type2)) {
                 visitAuxInt(inst, type2);
-            } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
+            } else if (isBoolType(type1) && isBoolType(type2)) {
                 visitAuxInt(inst, type1);
             } else {
                 // Should never happen...

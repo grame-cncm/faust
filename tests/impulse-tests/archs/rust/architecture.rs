@@ -24,6 +24,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #![allow(unused_mut)]
 #![allow(non_upper_case_globals)]
 
+#![recursion_limit="256"]
+
 extern crate libm;
 extern crate num_traits;
 /* extern crate fastfloat; */
