@@ -152,6 +152,8 @@ void SOULCodeContainer::produceInit(int tabs)
     tab(tabs + 1, *fOut);
     *fOut << "let sample_rate = int(processor.frequency);";
     tab(tabs + 1, *fOut);
+    *fOut << "fControlSlice = int (processor.frequency) / 50;";
+    tab(tabs + 1, *fOut);
     *fOut << "// classInit is not called here since the tables are actually not shared between instances";
     tab(tabs + 1, *fOut);
     *fOut << "instanceInit (sample_rate);";
@@ -225,6 +227,8 @@ void SOULCodeContainer::produceClass()
   
     // Control
     *fOut << "bool fUpdated;";
+    tab(n + 1, *fOut);
+    *fOut << "int fControlSlice;";
     tab(n + 1, *fOut);
  
     // For control computation
@@ -407,6 +411,10 @@ void SOULScalarCodeContainer::generateCompute(int n)
     // Currently for soundfile management
     generatePostComputeBlock(&fCodeProducer);
 
+    tab(n + 2, *fOut);
+    *fOut << "// Update output controlslice";
+    tab(n + 2, *fOut);
+    *fOut << "if (fControlSlice-- == 0) { fControlSlice = int (processor.frequency) / 50; }";
     tab(n + 2, *fOut);
     *fOut << "// Moves all streams forward by one 'tick'";
     tab(n + 2, *fOut);

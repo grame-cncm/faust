@@ -56,7 +56,8 @@ On output, you should find a folder named **faustgen** in the package folder.
 
 Depending of the number of audio inputs and outputs described in the DSP source code, the **faustgen~** object has:
 - N inlets, the first one being the message control one and a regular audio inlet, an all other audio inlets
-- M outlets, audio outs from 1 to M-1, and the output messages one
+- M outlets, audio outs from 1 to M-2
+- an output messages outlet 
 - the right most outlet is used to send MIDI messages if MIDI metadata are used in the DSP UI items
 
 The faustgen~ object can be controlled with the following messages:

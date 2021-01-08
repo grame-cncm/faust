@@ -389,14 +389,18 @@ class SOULInstVisitor : public TextInstVisitor {
                 inst->fValue->accept(this);
                 EndLine();
             }
+            
             // and the bargraph variable is sent using the 'output' event handler
             {
+                *fOut << "if (fControlSlice == 0) { ";
                 *fOut << "event";
                 inst->fAddress->accept(this);
                 *fOut << " << ";
                 inst->fAddress->accept(this);
-                EndLine();
+                *fOut << "; }";
+                tab(fTab, *fOut);
             }
+            
         } else {
             inst->fAddress->accept(this);
             *fOut << " = ";
