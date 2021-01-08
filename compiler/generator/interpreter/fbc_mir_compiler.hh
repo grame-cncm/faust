@@ -46,8 +46,8 @@ extern "C" {
 #define typedReal(op1, op2) ((sizeof(T) == sizeof(float)) ? op1 : op2)
 
 // FBC MIR compiler
-template <class T>
-class FBCMIRCompiler : public FBCExecuteFun<T> {
+template <class REAL>
+class FBCMIRCompiler : public FBCExecuteFun<REAL> {
 
     typedef void (*compiledFun)(MIR_val_t int_heap, MIR_val_t real_heap, MIR_val_t inputs, MIR_val_t outputs);
 
@@ -87,7 +87,7 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
     MIR_op_t genDouble(double num) { return MIR_new_double_op(fContext, num); }
     MIR_op_t genReal(double num) { return (sizeof(T) == sizeof(double)) ? genDouble(num) : genFloat(num); }
     MIR_op_t genInt32(int num) { return MIR_new_int_op(fContext, num); }
-    MIR_op_t genInt64(long long num) { return MIR_new_int_op(fContext, num); }
+    MIR_op_t genInt64(int64_t num) { return MIR_new_int_op(fContext, num); }
 
     MIR_type_t getFloatTy() { return MIR_T_F; }
     MIR_type_t getDoubleTy() { return MIR_T_D; }
@@ -685,7 +685,7 @@ class FBCMIRCompiler : public FBCExecuteFun<T> {
                     it++;
                     break;
 
-                case FBCInstruction::kRshInt:
+                case FBCInstruction::kARshInt:
                     pushBinop(MIR_RSHS, getInt64Ty());
                     it++;
                     break;

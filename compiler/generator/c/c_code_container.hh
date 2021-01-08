@@ -87,6 +87,8 @@ class CCodeContainer : public virtual CodeContainer {
 
         // For malloc/free
         addIncludeFile("<stdlib.h>");
+        // For int64_t type
+        addIncludeFile("<stdint.h>");
         
         fCodeProducer = new CInstVisitor(out, name);
     }

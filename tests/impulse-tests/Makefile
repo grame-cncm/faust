@@ -173,16 +173,18 @@ web:
 wasm:
 	$(MAKE) -f Make.web wasm
 	$(MAKE) -f Make.web wasm wasmdir=wasm/mapp FAUSTOPTIONS="-I dsp -mapp"
-	$(MAKE) -f Make.web wasm wasmdir=wasm/rui FAUSTOPTIONS="-I dsp -rui"
 	$(MAKE) -f Make.web wasm wasmdir=wasm/dlt0 FAUSTOPTIONS="-I dsp -dlt 0"
 	$(MAKE) -f Make.web wasm wasmdir=wasm/dlt256 FAUSTOPTIONS="-I dsp -dlt 256"
 	$(MAKE) -f Make.web wasm wasmdir=wasm/ftz1 FAUSTOPTIONS="-I dsp -ftz 1"
+	$(MAKE) -f Make.web wasm wasmdir=wasm/ftz2 FAUSTOPTIONS="-I dsp -ftz 2"
 
 wast:
 	$(MAKE) -f Make.web wast
+	$(MAKE) -f Make.web wast wastdir=wast/mapp FAUSTOPTIONS="-I dsp -mapp"
 	$(MAKE) -f Make.web wast wastdir=wast/dlt0 FAUSTOPTIONS="-I dsp -dlt 0"
 	$(MAKE) -f Make.web wast wastdir=wast/dlt256 FAUSTOPTIONS="-I dsp -dlt 256"
 	$(MAKE) -f Make.web wast wastdir=wast/ftz1 FAUSTOPTIONS="-I dsp -ftz 1"
+	$(MAKE) -f Make.web wast wastdir=wast/ftz2 FAUSTOPTIONS="-I dsp -ftz 2"
 
 #########################################################################
 # llvm backend

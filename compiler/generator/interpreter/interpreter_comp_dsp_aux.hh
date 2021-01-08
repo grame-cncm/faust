@@ -27,20 +27,20 @@
 
 // Interpreter factory using a LLVM or MIR compiler for the 'compute' method
 
-template <class T, int TRACE>
-struct interpreter_comp_dsp_factory_aux : public interpreter_dsp_factory_aux<T,TRACE> {
+template <class REAL, int TRACE>
+struct interpreter_comp_dsp_factory_aux : public interpreter_dsp_factory_aux<REAL,TRACE> {
     
     // Shared between all DSP instances
-    typename FBCCompiler<T>::CompiledBlocksType* fCompiledBlocks;
+    typename FBCCompiler<REAL>::CompiledBlocksType* fCompiledBlocks;
 
     interpreter_comp_dsp_factory_aux(const std::string& name, const std::string& compile_options, const std::string& sha_key,
                                 int version_num, int inputs, int outputs, int int_heap_size, int real_heap_size,
                                 int sound_heap_size, int sr_offset, int count_offset, int iota_offset, int opt_level,
-                                FIRMetaBlockInstruction* meta, FIRUserInterfaceBlockInstruction<T>* firinterface,
-                                FBCBlockInstruction<T>* static_init, FBCBlockInstruction<T>* init,
-                                FBCBlockInstruction<T>* resetui, FBCBlockInstruction<T>* clear,
-                                FBCBlockInstruction<T>* compute_control, FBCBlockInstruction<T>* compute_dsp)
-    : interpreter_dsp_factory_aux<T,TRACE>(name, compile_options, sha_key,
+                                FIRMetaBlockInstruction* meta, FIRUserInterfaceBlockInstruction<REAL>* firinterface,
+                                FBCBlockInstruction<REAL>* static_init, FBCBlockInstruction<REAL>* init,
+                                FBCBlockInstruction<REAL>* resetui, FBCBlockInstruction<REAL>* clear,
+                                FBCBlockInstruction<REAL>* compute_control, FBCBlockInstruction<REAL>* compute_dsp)
+    : interpreter_dsp_factory_aux<REAL,TRACE>(name, compile_options, sha_key,
                                   version_num, inputs, outputs, int_heap_size, real_heap_size,
                                   sound_heap_size, sr_offset, count_offset,iota_offset, opt_level,
                                   meta, firinterface,
@@ -48,12 +48,12 @@ struct interpreter_comp_dsp_factory_aux : public interpreter_dsp_factory_aux<T,T
                                   resetui, clear,
                                   compute_control, compute_dsp)
     {
-        fCompiledBlocks = new std::map<FBCBlockInstruction<T>*, FBCExecuteFun<T>*>();
+        fCompiledBlocks = new std::map<FBCBlockInstruction<REAL>*, FBCExecuteFun<REAL>*>();
     }
 
-    virtual FBCExecutor<T>* createFBCExecutor()
+    virtual FBCExecutor<REAL>* createFBCExecutor()
     {
-        return new FBCCompiler<T>(this, fCompiledBlocks);
+        return new FBCCompiler<REAL>(this, fCompiledBlocks);
     }
 
     virtual ~interpreter_comp_dsp_factory_aux()
@@ -68,10 +68,10 @@ struct interpreter_comp_dsp_factory_aux : public interpreter_dsp_factory_aux<T,T
 
 // Interpreter instance using a LLVM or MIR compiler for the 'compute' method
 
-template <class T, int TRACE>
-struct interpreter_comp_dsp_aux : public interpreter_dsp_aux<T,TRACE> {
+template <class REAL, int TRACE>
+struct interpreter_comp_dsp_aux : public interpreter_dsp_aux<REAL,TRACE> {
 
-    interpreter_comp_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory)
+    interpreter_comp_dsp_aux(interpreter_dsp_factory_aux<REAL, TRACE>* factory)
     {
         this->fFactory = factory;
         this->fInitialized = false;

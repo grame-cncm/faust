@@ -47,7 +47,7 @@ Tree SignalPromotion::transformation(Tree sig)
     }
 
     // Binary operations
-    // kAdd, kSub, kMul, kDiv, kRem, kLsh, kRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
+    // kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
     else if (isSigBinOp(sig, &i, x, y)) {
         Type tx = getCertifiedSigType(x);
         Type ty = getCertifiedSigType(y);
@@ -88,7 +88,7 @@ Tree SignalPromotion::transformation(Tree sig)
             case kOR:
             case kXOR:
             case kLsh:
-            case kRsh:
+            case kARsh:
                 // these operations require integers
                 return sigBinOp(i, smartIntCast(tx, self(x)), smartIntCast(ty, self(y)));
 

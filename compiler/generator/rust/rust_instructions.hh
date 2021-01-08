@@ -378,7 +378,7 @@ class RustInstVisitor : public TextInstVisitor {
         }
         *fOut << ']';
     }
-
+  
     virtual void visit(DoubleArrayNumInst* inst)
     {
         char sep = '[';
@@ -387,6 +387,36 @@ class RustInstVisitor : public TextInstVisitor {
             sep = ',';
         }
         *fOut << ']';
+    }
+    
+    virtual void visit(BinopInst* inst)
+    {
+        // Special case for 'logical right-shift'
+        if (strcmp(gBinOpTable[inst->fOpcode]->fName, ">>>") == 0) {
+            TypingVisitor typing;
+            inst->fInst1->accept(&typing);
+            *fOut << "(((";
+            inst->fInst1->accept(this);
+            if (isInt64Type(typing.fCurType)) {
+                *fOut << " as u64)";
+            } else if (isInt32Type(typing.fCurType)) {
+                *fOut << " as u32)";
+            } else {
+                faustassert(false);
+            }
+            *fOut << " >> ";
+            inst->fInst2->accept(this);
+            *fOut << ")";
+            if (isInt64Type(typing.fCurType)) {
+                *fOut << " as i64)";
+            } else if (isInt32Type(typing.fCurType)) {
+                *fOut << " as i32)";
+            } else {
+                faustassert(false);
+            }
+        } else {
+            TextInstVisitor::visit(inst);
+        }
     }
 
     virtual void visit(::CastInst* inst)

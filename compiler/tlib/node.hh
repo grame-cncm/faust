@@ -300,7 +300,12 @@ inline const Node lshNode(const Node& x, const Node& y)
     return Node(int(x) << int(y));
 }
 
-inline const Node rshNode(const Node& x, const Node& y)
+inline const Node arshNode(const Node& x, const Node& y)
+{
+    return Node(int(x) >> int(y));
+}
+
+inline const Node lrshNode(const Node& x, const Node& y)
 {
     return Node(int(x) >> int(y));
 }

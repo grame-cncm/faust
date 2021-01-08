@@ -49,6 +49,7 @@
 #include "sqrtprim.hh"
 #include "tanprim.hh"
 #include "tree.hh"
+#include "floats.hh"
 
 #ifdef WIN32
 #pragma warning(disable : 4996)
@@ -411,16 +412,16 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gOutputLang          = "";
 
 #ifdef WASM_BUILD
-    gWASMVisitor = 0;  // Will be (possibly) allocated in WebAssembly backend
-    gWASTVisitor = 0;  // Will be (possibly) allocated in WebAssembly backend
+    gWASMVisitor = nullptr;  // Will be (possibly) allocated in WebAssembly backend
+    gWASTVisitor = nullptr;  // Will be (possibly) allocated in WebAssembly backend
 #endif
 
 #ifdef INTERP_BUILD
-    gInterpreterVisitor = 0;  // Will be (possibly) allocated in Interp backend
+    gInterpreterVisitor = nullptr;  // Will be (possibly) allocated in Interp backend
 #endif
 
 #ifdef SOUL_BUILD
-    gTableSizeVisitor = 0;  // Will be (possibly) allocated in SOUL backend
+    gTableSizeVisitor = nullptr;    // Will be (possibly) allocated in SOUL backend
 #endif
 
     gHelpSwitch       = false;
@@ -442,8 +443,8 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gTimeout = 120;  // Time out to abort compiler (in seconds)
 
     // Globals to transfer results in thread based evaluation
-    gProcessTree  = 0;
-    gLsignalsTree = 0;
+    gProcessTree  = nullptr;
+    gLsignalsTree = nullptr;
     gNumInputs    = 0;
     gNumOutputs   = 0;
     gErrorMessage = "";
@@ -519,7 +520,7 @@ void global::init()
 
     // yyfilename is defined in errormsg.cpp but must be redefined at each compilation.
     yyfilename = "";
-    yyin       = 0;
+    yyin       = nullptr;
 
     gLatexheaderfilename = "latexheader.tex";
     gDocTextsDefaultFile = "mathdoctexts-default.txt";
@@ -672,6 +673,22 @@ int global::audioSampleSize()
     return int(pow(2.f, float(gFloatSize + 1)));
 }
 
+BasicTyped* global::genBasicTyped(Typed::VarType type)
+{
+    // Possibly force FAUSTFLOAT type (= kFloatMacro) to internal real
+    Typed::VarType new_type = ((type == Typed::kFloatMacro) && gFAUSTFLOAT2Internal) ? itfloat() : type;
+    
+    // If not defined, add the type in the table
+    if (gTypeTable.find(new_type) == gTypeTable.end()) {
+        gTypeTable[new_type] = new BasicTyped(new_type);
+    }
+    return gTypeTable[new_type];
+}
+
+void global::setVarType(const string& name, Typed::VarType type) { gVarTypeTable[name] = genBasicTyped(type); }
+
+Typed::VarType global::getVarType(const string& name) { return gVarTypeTable[name]->getType(); }
+
 global::~global()
 {
     Garbageable::cleanup();
@@ -716,7 +733,7 @@ void global::destroy()
     }
 #endif
     delete gGlobal;
-    gGlobal = NULL;
+    gGlobal = nullptr;
 }
 
 string global::makeDrawPath()

@@ -32,13 +32,13 @@
 #endif
 
 // FBC compiler
-template <class T>
-class FBCCompiler : public FBCInterpreter<T,0> {
+template <class REAL>
+class FBCCompiler : public FBCInterpreter<REAL,0> {
    public:
-    typedef typename std::map<FBCBlockInstruction<T>*, FBCExecuteFun<T>*>           CompiledBlocksType;
-    typedef typename std::map<FBCBlockInstruction<T>*, FBCExecuteFun<T>*>::iterator CompiledBlocksTypeIT;
+    typedef typename std::map<FBCBlockInstruction<REAL>*, FBCExecuteFun<REAL>*>           CompiledBlocksType;
+    typedef typename std::map<FBCBlockInstruction<REAL>*, FBCExecuteFun<REAL>*>::iterator CompiledBlocksTypeIT;
 
-    FBCCompiler(interpreter_dsp_factory_aux<T,0>* factory, CompiledBlocksType* map) : FBCInterpreter<T,0>(factory)
+    FBCCompiler(interpreter_dsp_factory_aux<REAL,0>* factory, CompiledBlocksType* map) : FBCInterpreter<REAL,0>(factory)
     {
         fCompiledBlocks = map;
 
@@ -49,7 +49,7 @@ class FBCCompiler : public FBCInterpreter<T,0> {
 
     virtual ~FBCCompiler() {}
 
-    void ExecuteBlock(FBCBlockInstruction<T>* block, bool compile)
+    void ExecuteBlock(FBCBlockInstruction<REAL>* block, bool compile)
     {
         if (compile && fCompiledBlocks->find(block) == fCompiledBlocks->end()) {
             CompileBlock(block);
@@ -59,22 +59,22 @@ class FBCCompiler : public FBCInterpreter<T,0> {
         if (fCompiledBlocks->find(block) != fCompiledBlocks->end()) {
             ((*fCompiledBlocks)[block])->Execute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
         } else {
-            FBCInterpreter<T,0>::ExecuteBlock(block);
+            FBCInterpreter<REAL,0>::ExecuteBlock(block);
         }
     }
 
    protected:
     CompiledBlocksType* fCompiledBlocks;
 
-    void CompileBlock(FBCBlockInstruction<T>* block)
+    void CompileBlock(FBCBlockInstruction<REAL>* block)
     {
         if (fCompiledBlocks->find(block) == fCompiledBlocks->end()) {
         #ifdef MIR_BUILD
             // Run with interp/MIR compiler
-            (*fCompiledBlocks)[block] = new FBCMIRCompiler<T>(block);
+            (*fCompiledBlocks)[block] = new FBCMIRCompiler<REAL>(block);
         #elif LLVM_BUILD
             // Run with interp/LLVM compiler
-            (*fCompiledBlocks)[block] = new FBCLLVMCompiler<T>(block);
+            (*fCompiledBlocks)[block] = new FBCLLVMCompiler<REAL>(block);
         #endif
         } else {
             // std::cout << "FBCCompiler: reuse compiled block" << std::endl;

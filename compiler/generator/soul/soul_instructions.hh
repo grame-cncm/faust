@@ -416,7 +416,7 @@ class SOULInstVisitor : public TextInstVisitor {
         }
         *fOut << ')';
     }
-
+  
     virtual void visit(Int32ArrayNumInst* inst)
     {
         char sep = '(';
@@ -426,6 +426,8 @@ class SOULInstVisitor : public TextInstVisitor {
         }
         *fOut << ')';
     }
+    
+    virtual void visit(Int64NumInst* inst) { *fOut << inst->fNum << "L"; }
 
     virtual void visit(DoubleNumInst* inst) { *fOut << checkDouble(inst->fNum); }
     
@@ -500,7 +502,15 @@ class SOULInstVisitor : public TextInstVisitor {
 
         // Hack to make it work again with 'soul' version 0.0.6
         if (isLogicalOpcode(inst->fOpcode)) {
-            *fOut << "int (";
+            TypingVisitor typing;
+            inst->fInst1->accept(&typing);
+            if (isInt64Type(typing.fCurType)) {
+                *fOut << "int64 (";
+            } else if (isInt32Type(typing.fCurType) || isBoolType(typing.fCurType)) {
+                *fOut << "int32 (";
+            } else {
+                faustassert(false);
+            }
         }
 
         inst->fInst1->accept(this);
@@ -516,7 +526,15 @@ class SOULInstVisitor : public TextInstVisitor {
 
         // Hack to make it work again with 'soul' version 0.0.6
         if (isLogicalOpcode(inst->fOpcode)) {
-            *fOut << "int (";
+            TypingVisitor typing;
+            inst->fInst2->accept(&typing);
+            if (isInt64Type(typing.fCurType)) {
+                *fOut << "int64 (";
+            } else if (isInt32Type(typing.fCurType) || isBoolType(typing.fCurType)) {
+                *fOut << "int32 (";
+            } else {
+                faustassert(false);
+            }
         }
 
         inst->fInst2->accept(this);

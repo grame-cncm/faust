@@ -60,9 +60,9 @@ class CStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kInt32_ptr] = "int" + fPtrPosfix;
         fTypeDirectTable[Typed::kInt32_vec] = "vector<int>";
 
-        fTypeDirectTable[Typed::kInt64]     = "long long";
-        fTypeDirectTable[Typed::kInt64_ptr] = "long long" + fPtrPosfix;
-        fTypeDirectTable[Typed::kInt64_vec] = "vector<long long>";
+        fTypeDirectTable[Typed::kInt64]     = "int64_t";
+        fTypeDirectTable[Typed::kInt64_ptr] = "int64_t" + fPtrPosfix;
+        fTypeDirectTable[Typed::kInt64_vec] = "vector<int64_t>";
 
         fTypeDirectTable[Typed::kFloat]         = "float";
         fTypeDirectTable[Typed::kFloat_ptr]     = "float" + fPtrPosfix;

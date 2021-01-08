@@ -30,6 +30,8 @@
 #define FLOATMACROPTR "FAUSTFLOAT*"
 #define FLOATCASTER "(" FLOATMACRO ")"
 
+using namespace std;
+
 //-----------------------------------------------
 // float size coding :
 //-----------------------------------------------
@@ -74,9 +76,8 @@ void initFaustFloat()
         floatmin[2] = DBL_MIN;
         floatmin[3] = LDBL_MIN;
         
-        // Specific for D backend
-    }
-    else if (gGlobal->gOutputLang == "dlang") {
+    // Specific for D backend
+    } else if (gGlobal->gOutputLang == "dlang") {
         numsuffix[0] = "";
         numsuffix[1] = "";
         numsuffix[2] = "";
@@ -97,9 +98,8 @@ void initFaustFloat()
         floatmin[2] = DBL_MIN;
         floatmin[3] = LDBL_MIN;
         
-        // Specific for C/C++ backends
-    } 
-     else {
+    // Specific for C/C++ backends
+    } else {
         numsuffix[0] = "";
         numsuffix[1] = "f";
         numsuffix[2] = "";
@@ -122,22 +122,28 @@ void initFaustFloat()
     }
 }
 
+///< suffix for math functions
 const char* isuffix()
 {
     return mathsuffix[gGlobal->gFloatSize];
-}  ///< suffix for math functions
+}
+
+///< suffix for numeric constants
 const char* inumix()
 {
     return numsuffix[gGlobal->gFloatSize];
-}  ///< suffix for numeric constants
+}
+
 const char* ifloat()
 {
     return floatname[gGlobal->gFloatSize];
 }
+
 const char* icast()
 {
     return castname[gGlobal->gFloatSize];
 }
+
 double inummin()
 {
     return floatmin[gGlobal->gFloatSize];
@@ -147,6 +153,7 @@ const char* xfloat()
 {
     return floatname[0];
 }
+
 const char* xcast()
 {
     return castname[0];
@@ -199,11 +206,11 @@ Typed::VarType itfloatptr()
 
 void printfloatdef(std::ostream& fout, bool quad)
 {
-    fout << "#ifndef " << FLOATMACRO << std::endl;
-    fout << "#define " << FLOATMACRO << " float" << std::endl;
-    fout << "#endif " << std::endl;
-    fout << std::endl;
+    fout << "#ifndef " << FLOATMACRO << endl;
+    fout << "#define " << FLOATMACRO << " float" << endl;
+    fout << "#endif " << endl;
+    fout << endl;
     if (quad) {
-        fout << "typedef long double quad;" << std::endl;
+        fout << "typedef long double quad;" << endl;
     }
 }

@@ -67,10 +67,13 @@ BinOp* gBinOpTable[] = {
     new BinOp("<<", "shift_left_vec", "shift_left_scal", "", "", Instruction::Shl, Instruction::Shl, "i32.shl",
               "i64.shl", "dummy", "dummy", WasmOp::I32Shl, WasmOp::I64Shl, WasmOp::Dummy, WasmOp::Dummy,
               FBCInstruction::kLshInt, FBCInstruction::kLshInt, &lshNode, &noNtrl, &isZero, 8),
-    new BinOp(">>", "shift_right_vec", "shift_right_scal", "", "", Instruction::LShr, Instruction::LShr, "i32.shr_s",
+    new BinOp(">>", "ashift_right_vec", "ashift_right_scal", "", "", Instruction::AShr, Instruction::AShr, "i32.shr_s",
               "i64.shr_s", "dummy", "dummy", WasmOp::I32ShrS, WasmOp::I64ShrS, WasmOp::Dummy, WasmOp::Dummy,
-              FBCInstruction::kRshInt, FBCInstruction::kRshInt, &rshNode, &noNtrl, &isZero, 8),
-
+              FBCInstruction::kARshInt, FBCInstruction::kARshInt, &arshNode, &noNtrl, &isZero, 8),
+    new BinOp(">>>", "lshift_right_vec", "lshift_right_scal", "", "", Instruction::LShr, Instruction::LShr, "i32.shr_u",
+              "i64.shr_u", "dummy", "dummy", WasmOp::I32ShrU, WasmOp::I64ShrU, WasmOp::Dummy, WasmOp::Dummy,
+              FBCInstruction::kLRshInt, FBCInstruction::kLRshInt, &lrshNode, &noNtrl, &isZero, 8),
+    
     new BinOp(">", "gt_vec", "gt_scal", "icmp sgt", "fcmp sgt", ICmpInst::ICMP_SGT, FCmpInst::FCMP_OGT, "i32.gt_s",
               "i64.gt_s", "f32.gt", "f64.gt", WasmOp::I32GtS, WasmOp::I64GtS, WasmOp::F32Gt, WasmOp::F64Gt,
               FBCInstruction::kGTInt, FBCInstruction::kGTReal, &gtNode, &noNtrl, &noNtrl, 5),
@@ -123,9 +126,12 @@ BinOp* gBinOpTable[] = {
     new BinOp("<<", "shift_left_vec", "shift_left_scal", "", "", 0, 0, "i32.shl", "i64.shl", "dummy", "dummy",
               WasmOp::I32Shl, WasmOp::I64Shl, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kLshInt,
               FBCInstruction::kLshInt, &lshNode, &noNtrl, &isZero, 8),
-    new BinOp(">>", "shift_right_vec", "shift_right_scal", "", "", 0, 0, "i32.shr_s", "i64.shr_s", "dummy", "dummy",
-              WasmOp::I32ShrS, WasmOp::I64ShrS, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kRshInt,
-              FBCInstruction::kRshInt, &rshNode, &noNtrl, &isZero, 8),
+    new BinOp(">>", "ashift_right_vec", "ashift_right_scal", "", "", 0, 0, "i32.shr_s", "i64.shr_s", "dummy", "dummy",
+              WasmOp::I32ShrS, WasmOp::I64ShrS, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kARshInt,
+              FBCInstruction::kARshInt, &arshNode, &noNtrl, &isZero, 8),
+    new BinOp(">>>", "lshift_right_vec", "lshift_right_scal", "", "", 0, 0, "i32.shr_u", "i64.shr_u", "dummy", "dummy",
+              WasmOp::I32ShrU, WasmOp::I64ShrU, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kLRshInt,
+              FBCInstruction::kLRshInt, &lrshNode, &noNtrl, &isZero, 8),
 
     new BinOp(">", "gt_vec", "gt_scal", "icmp sgt", "fcmp sgt", 0, 0, "i32.gt_s", "i64.gt_s", "f32.gt", "f64.gt",
               WasmOp::I32GtS, WasmOp::I64GtS, WasmOp::F32Gt, WasmOp::F64Gt, FBCInstruction::kGTInt,
@@ -180,9 +186,12 @@ BinOp* gBinOpLateqTable[] = {
     new BinOp("\\hiderel{\\ll}", "shift_left_vec", "shift_left_scal", "", "", 0, 0, "i32.shl", "i64.shl", "dummy",
               "dummy", WasmOp::I32Shl, WasmOp::I64Shl, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kLshInt,
               FBCInstruction::kLshInt, &lshNode, &noNtrl, &isZero, 8),
-    new BinOp("\\hiderel{\\gg}", "shift_right_vec", "shift_right_scal", "", "", 0, 0, "i32.shr_s", "i64.shr_s", "dummy",
-              "dummy", WasmOp::I32ShrS, WasmOp::I64ShrS, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kRshInt,
-              FBCInstruction::kRshInt, &rshNode, &noNtrl, &isZero, 8),
+    new BinOp("\\hiderel{\\gg}", "ashift_right_vec", "ashift_right_scal", "", "", 0, 0, "i32.shr_s", "i64.shr_s", "dummy",
+              "dummy", WasmOp::I32ShrS, WasmOp::I64ShrS, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kARshInt,
+              FBCInstruction::kARshInt, &arshNode, &noNtrl, &isZero, 8),
+    new BinOp("\\hiderel{\\gg}", "lshift_right_vec", "lshift_right_scal", "", "", 0, 0, "i32.shr_u", "i64.shr_u", "dummy",
+              "dummy", WasmOp::I32ShrU, WasmOp::I64ShrU, WasmOp::Dummy, WasmOp::Dummy, FBCInstruction::kLRshInt,
+              FBCInstruction::kLRshInt, &lrshNode, &noNtrl, &isZero, 8),
 
     new BinOp("\\hiderel{>}", "gt_vec", "gt_scal", "icmp sgt", "fcmp sgt", 0, 0, "i32.gt_s", "i64.gt_s", "f32.gt",
               "f64.gt", WasmOp::I32GtS, WasmOp::I64GtS, WasmOp::F32Gt, WasmOp::F64Gt, FBCInstruction::kGTInt,
@@ -230,5 +239,5 @@ bool isLogicalOpcode(int o)
 
 bool isShiftOpcode(int o)
 {
-    return (o >= kLsh && o <= kRsh);
+    return (o >= kLsh && o <= kARsh);
 }

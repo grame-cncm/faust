@@ -141,7 +141,7 @@ struct LLVMTypeHelper {
     // Value generation
     LLVMValue genInt1(int num) { return ConstantInt::get(llvm::Type::getInt1Ty(fModule->getContext()), num); }
     LLVMValue genInt32(int num) { return ConstantInt::get(llvm::Type::getInt32Ty(fModule->getContext()), num); }
-    LLVMValue genInt64(long long num) { return ConstantInt::get(llvm::Type::getInt64Ty(fModule->getContext()), num); }
+    LLVMValue genInt64(int64_t num) { return ConstantInt::get(llvm::Type::getInt64Ty(fModule->getContext()), num); }
     LLVMValue genFloat(float num) { return ConstantFP::get(fModule->getContext(), APFloat(num)); }
     LLVMValue genDouble(double num) { return ConstantFP::get(fModule->getContext(), APFloat(num)); }
    
@@ -735,8 +735,24 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     void visitCastAux(Typed::VarType type)
     {
         switch (type) {
-            case Typed::kFloat:
+                
+            case Typed::kInt32:
                 if (getCurType() == getInt32Ty()) {
+                    // Nothing to do
+                } else if (getCurType() == getFloatTy() || getCurType() == getDoubleTy()) {
+                    fCurValue = fBuilder->CreateFPToSI(fCurValue, getInt32Ty());
+                } else if (getCurType() == getInt64Ty()) {
+                    fCurValue = fBuilder->CreateTrunc(fCurValue, getInt32Ty());
+                } else if (getCurType()->isPointerTy()) {
+                    // Use BitCast for pointer to kInt32
+                    fCurValue = fBuilder->CreateBitCast(fCurValue, getInt32Ty());
+                } else {
+                    faustassert(false);
+                }
+                break;
+     
+            case Typed::kFloat:
+                if (getCurType() == getInt32Ty() || getCurType() == getInt64Ty()) {
                     fCurValue = fBuilder->CreateSIToFP(fCurValue, getFloatTy());
                 } else if (getCurType() == getFloatTy()) {
                     // Nothing to do
@@ -747,21 +763,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 }
                 break;
 
-            case Typed::kInt32:
-                if (getCurType() == getInt32Ty()) {
-                    // Nothing to do
-                } else if (getCurType() == getFloatTy() || getCurType() == getDoubleTy()) {
-                    fCurValue = fBuilder->CreateFPToSI(fCurValue, getInt32Ty());
-                } else if (getCurType()->isPointerTy()) {
-                    // Use BitCast for pointer to kInt32
-                    fCurValue = fBuilder->CreateBitCast(fCurValue, getInt32Ty());
-                } else {
-                    faustassert(false);
-                }
-                break;
-
             case Typed::kDouble:
-                if (getCurType() == getInt32Ty()) {
+                if (getCurType() == getInt32Ty() || getCurType() == getInt64Ty()) {
                     fCurValue = fBuilder->CreateSIToFP(fCurValue, getDoubleTy());
                 } else if (getCurType() == getFloatTy()) {
                     fCurValue = fBuilder->CreateFPExt(fCurValue, getDoubleTy());
@@ -785,6 +788,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 break;
 
             case Typed::kQuad:
+            case Typed::kInt64:
             default:
                 faustassert(false);
                 break;

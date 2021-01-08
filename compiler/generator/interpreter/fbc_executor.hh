@@ -25,32 +25,32 @@
 #include "faust/gui/CGlue.h"
 #include "interpreter_bytecode.hh"
 
-template <class T>
+template <class REAL>
 struct FBCExecutor {
     
-    virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue) {};
-    virtual void ExecuteBlock(FBCBlockInstruction<T>* block, bool compile = false) {};
+    virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<REAL>* block, UITemplate* glue) {};
+    virtual void ExecuteBlock(FBCBlockInstruction<REAL>* block, bool compile = false) {};
 
     virtual void setIntValue(int offset, int value) {}
     virtual int  getIntValue(int offset) { return -1; }
 
-    virtual void setInput(int offset, T* buffer) {}
-    virtual void setOutput(int offset, T* buffer) {}
+    virtual void setInput(int offset, REAL* buffer) {}
+    virtual void setOutput(int offset, REAL* buffer) {}
 
     virtual ~FBCExecutor() {}
 
-    virtual void dumpMemory(FBCBlockInstruction<T>* block, const std::string& name, const std::string& filename) {}
+    virtual void dumpMemory(FBCBlockInstruction<REAL>* block, const std::string& name, const std::string& filename) {}
     
 };
 
-template <class T>
+template <class REAL>
 struct FBCExecuteFun {
 
     FBCExecuteFun() {}
-    FBCExecuteFun(FBCBlockInstruction<T>* fbc_block) {}
+    FBCExecuteFun(FBCBlockInstruction<REAL>* fbc_block) {}
     virtual ~FBCExecuteFun() {}
    
-    virtual void Execute(int* int_heap, T* real_heap, T** inputs, T** outputs) {}
+    virtual void Execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs) {}
     
 };
 

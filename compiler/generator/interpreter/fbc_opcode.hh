@@ -81,7 +81,8 @@ struct FBCInstruction {
         kRemReal,
         kRemInt,
         kLshInt,
-        kRshInt,
+        kARshInt,
+        kLRshInt,
         kGTInt,
         kLTInt,
         kGEInt,
@@ -110,7 +111,8 @@ struct FBCInstruction {
         kRemRealHeap,
         kRemIntHeap,
         kLshIntHeap,
-        kRshIntHeap,
+        kARshIntHeap,
+        kLRshIntHeap,
         kGTIntHeap,
         kLTIntHeap,
         kGEIntHeap,
@@ -139,7 +141,8 @@ struct FBCInstruction {
         kRemRealStack,
         kRemIntStack,
         kLshIntStack,
-        kRshIntStack,
+        kARshIntStack,
+        kLRshIntStack,
         kGTIntStack,
         kLTIntStack,
         kGEIntStack,
@@ -168,7 +171,8 @@ struct FBCInstruction {
         kRemRealStackValue,
         kRemIntStackValue,
         kLshIntStackValue,
-        kRshIntStackValue,
+        kARshIntStackValue,
+        kLRshIntStackValue,
         kGTIntStackValue,
         kLTIntStackValue,
         kGEIntStackValue,
@@ -197,7 +201,8 @@ struct FBCInstruction {
         kRemRealValue,
         kRemIntValue,
         kLshIntValue,
-        kRshIntValue,
+        kARshIntValue,
+        kLRshIntValue,
         kGTIntValue,
         kLTIntValue,
         kGEIntValue,
@@ -222,7 +227,8 @@ struct FBCInstruction {
         kRemRealValueInvert,
         kRemIntValueInvert,
         kLshIntValueInvert,
-        kRshIntValueInvert,
+        kARshIntValueInvert,
+        kLRshIntValueInvert,
         kGTIntValueInvert,
         kLTIntValueInvert,
         kGEIntValueInvert,
@@ -411,38 +417,38 @@ static std::string gFBCInstructionTable[] = {
 
     // Standard math (stack OP stack)
     "kAddReal", "kAddInt", "kSubReal", "kSubInt", "kMultReal", "kMultInt", "kDivReal", "kDivInt", "kRemReal", "kRemInt",
-    "kLshInt", "kRshInt", "kGTInt", "kLTInt", "kGEInt", "kLEInt", "kEQInt", "kNEInt", "kGTReal", "kLTReal", "kGEReal",
+    "kLshInt", "kARshInt", "kLRshInt", "kGTInt", "kLTInt", "kGEInt", "kLEInt", "kEQInt", "kNEInt", "kGTReal", "kLTReal", "kGEReal",
     "kLEReal", "kEQReal", "kNEReal", "kANDInt", "kORInt", "kXORInt",
 
     // Standard math (heap OP heap)
     "kAddRealHeap", "kAddIntHeap", "kSubRealHeap", "kSubIntHeap", "kMultRealHeap", "kMultIntHeap", "kDivRealHeap",
-    "kDivIntHeap", "kRemRealHeap", "kRemIntHeap", "kLshIntHeap", "kRshIntHeap", "kGTIntHeap", "kLTIntHeap",
+    "kDivIntHeap", "kRemRealHeap", "kRemIntHeap", "kLshIntHeap", "kARshIntHeap", "kLRshIntHeap", "kGTIntHeap", "kLTIntHeap",
     "kGEIntHeap", "kLEIntHeap", "kEQIntHeap", "kNEIntHeap", "kGTRealHeap", "kLTRealHeap", "kGERealHeap", "kLERealHeap",
     "kEQRealHeap", "kNERealHeap", "kANDIntHeap", "kORIntHeap", "kXORIntHeap",
 
     // Standard math (heap OP stack)
     "kAddRealStack", "kAddIntStack", "kSubRealStack", "kSubIntStack", "kMultRealStack", "kMultIntStack",
-    "kDivRealStack", "kDivIntStack", "kRemRealStack", "kRemIntStack", "kLshIntStack", "kRshIntStack", "kGTIntStack",
+    "kDivRealStack", "kDivIntStack", "kRemRealStack", "kRemIntStack", "kLshIntStack", "kARshIntStack", "kLRshIntStack", "kGTIntStack",
     "kLTIntStack", "kGEIntStack", "kLEIntStack", "kEQIntStack", "kNEIntStack", "kGTRealStack", "kLTRealStack",
     "kGERealStack", "kLERealStack", "kEQRealStack", "kNERealStack", "kANDIntStack", "kORIntStack", "kXORIntStack",
 
     // Standard math (value OP stack)
     "kAddRealStackValue", "kAddIntStackValue", "kSubRealStackValue", "kSubIntStackValue", "kMultRealStackValue",
     "kMultIntStackValue", "kDivRealStackValue", "kDivIntStackValue", "kRemRealStackValue", "kRemIntStackValue",
-    "kLshIntStackValue", "kRshIntStackValue", "kGTIntStackValue", "kLTIntStackValue", "kGEIntStackValue",
+    "kLshIntStackValue", "kARshIntStackValue", "kLRshIntStackValue", "kGTIntStackValue", "kLTIntStackValue", "kGEIntStackValue",
     "kLEIntStackValue", "kEQIntStackValue", "kNEIntStackValue", "kGTRealStackValue", "kLTRealStackValue",
     "kGERealStackValue", "kLERealStackValue", "kEQRealStackValue", "kNERealStackValue", "kANDIntStackValue",
     "kORIntStackValue", "kXORIntStackValue",
 
     // Standard math (value OP heap)
     "kAddRealValue", "kAddIntValue", "kSubRealValue", "kSubIntValue", "kMultRealValue", "kMultIntValue",
-    "kDivRealValue", "kDivIntValue", "kRemRealValue", "kRemIntValue", "kLshIntValue", "kRshIntValue", "kGTIntValue",
+    "kDivRealValue", "kDivIntValue", "kRemRealValue", "kRemIntValue", "kLshIntValue", "kARshIntValue", "kLRshIntValue", "kGTIntValue",
     "kLTIntValue", "kGEIntValue", "kLEIntValue", "kEQIntValue", "kNEIntValue", "kGTRealValue", "kLTRealValue",
     "kGERealValue", "kLERealValue", "kEQRealValue", "kNERealValue", "kANDIntValue", "kORIntValue", "kXORIntValue",
 
     // Standard math (value OP heap) : non commutative operations
     "kSubRealValueInvert", "kSubIntValueInvert", "kDivRealValueInvert", "kDivIntValueInvert", "kRemRealValueInvert",
-    "kRemIntValueInvert", "kLshIntValueInvert", "kRshIntValueInvert", "kGTIntValueInvert", "kLTIntValueInvert",
+    "kRemIntValueInvert", "kLshIntValueInvert", "kARshIntValueInvert", "kLRshIntValueInvert", "kGTIntValueInvert", "kLTIntValueInvert",
     "kLTIntValueInvert", "kLEIntValueInvert", "kGTRealValueInvert", "kLTRealValueInvert", "kGERealValueInvert",
     "kLERealValueInvert",
 
@@ -487,6 +493,6 @@ static std::string gFBCInstructionTable[] = {
 
     "kNop"};
 
-#define INTERP_FILE_VERSION 7
+#define INTERP_FILE_VERSION 8
 
 #endif

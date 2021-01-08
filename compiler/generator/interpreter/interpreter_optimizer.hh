@@ -50,15 +50,15 @@ static std::map<FBCInstruction::Opcode, FBCInstruction::Opcode> gFIRExtendedMath
 // Optimization
 //=======================
 
-template <class T>
+template <class REAL>
 struct FBCInstructionOptimizer;
 
 // Copy (= identity) optimizer (used to test...)
-template <class T>
-struct FBCInstructionCopyOptimizer : public FBCInstructionOptimizer<T> {
+template <class REAL>
+struct FBCInstructionCopyOptimizer : public FBCInstructionOptimizer<REAL> {
     FBCInstructionCopyOptimizer() {}
     
-    virtual FBCBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    virtual FBCBasicInstruction<REAL>* rewrite(InstructionIT cur, InstructionIT& end)
     {
         end = cur + 1;
         return (*cur)->copy();
@@ -66,21 +66,21 @@ struct FBCInstructionCopyOptimizer : public FBCInstructionOptimizer<T> {
 };
 
 // Cast optimizer
-template <class T>
-struct FBCInstructionCastOptimizer : public FBCInstructionOptimizer<T> {
+template <class REAL>
+struct FBCInstructionCastOptimizer : public FBCInstructionOptimizer<REAL> {
     FBCInstructionCastOptimizer() {}
     
-    virtual FBCBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    virtual FBCBasicInstruction<REAL>* rewrite(InstructionIT cur, InstructionIT& end)
     {
-        FBCBasicInstruction<T>* &inst1 = *cur;
-        FBCBasicInstruction<T>* &inst2 = *(cur + 1);
+        FBCBasicInstruction<REAL>* &inst1 = *cur;
+        FBCBasicInstruction<REAL>* &inst2 = *(cur + 1);
         
         if (inst1->fOpcode == FBCInstruction::kLoadInt && inst2->fOpcode == FBCInstruction::kCastReal) {
             end = cur + 2;
-            return new FBCBasicInstruction<T>(FBCInstruction::kCastRealHeap, 0, 0, inst1->fOffset1, 0);
+            return new FBCBasicInstruction<REAL>(FBCInstruction::kCastRealHeap, 0, 0, inst1->fOffset1, 0);
         } else if (inst1->fOpcode == FBCInstruction::kLoadReal && inst2->fOpcode == FBCInstruction::kCastInt) {
             end = cur + 2;
-            return new FBCBasicInstruction<T>(FBCInstruction::kCastIntHeap, 0, 0, inst1->fOffset1, 0);
+            return new FBCBasicInstruction<REAL>(FBCInstruction::kCastIntHeap, 0, 0, inst1->fOffset1, 0);
         } else {
             end = cur + 1;
             return (*cur)->copy();
@@ -89,31 +89,31 @@ struct FBCInstructionCastOptimizer : public FBCInstructionOptimizer<T> {
 };
 
 // Rewrite indexed Load/Store as simple Load/Store
-template <class T>
-struct FBCInstructionLoadStoreOptimizer : public FBCInstructionOptimizer<T> {
+template <class REAL>
+struct FBCInstructionLoadStoreOptimizer : public FBCInstructionOptimizer<REAL> {
     FBCInstructionLoadStoreOptimizer() {}
     
     virtual ~FBCInstructionLoadStoreOptimizer() {}
     
-    FBCBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    FBCBasicInstruction<REAL>* rewrite(InstructionIT cur, InstructionIT& end)
     {
-        FBCBasicInstruction<T>* &inst1 = *cur;
-        FBCBasicInstruction<T>* &inst2 = *(cur + 1);
+        FBCBasicInstruction<REAL>* &inst1 = *cur;
+        FBCBasicInstruction<REAL>* &inst2 = *(cur + 1);
         
         if (inst1->fOpcode == FBCInstruction::kInt32Value && inst2->fOpcode == FBCInstruction::kLoadIndexedReal) {
             end = cur + 2;
-            return new FBCBasicInstruction<T>(FBCInstruction::kLoadReal, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
+            return new FBCBasicInstruction<REAL>(FBCInstruction::kLoadReal, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
         } else if (inst1->fOpcode == FBCInstruction::kInt32Value && inst2->fOpcode == FBCInstruction::kLoadIndexedInt) {
             end = cur + 2;
-            return new FBCBasicInstruction<T>(FBCInstruction::kLoadInt, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
+            return new FBCBasicInstruction<REAL>(FBCInstruction::kLoadInt, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
         } else if (inst1->fOpcode == FBCInstruction::kInt32Value &&
                    inst2->fOpcode == FBCInstruction::kStoreIndexedReal) {
             end = cur + 2;
-            return new FBCBasicInstruction<T>(FBCInstruction::kStoreReal, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
+            return new FBCBasicInstruction<REAL>(FBCInstruction::kStoreReal, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
         } else if (inst1->fOpcode == FBCInstruction::kInt32Value &&
                    inst2->fOpcode == FBCInstruction::kStoreIndexedInt) {
             end = cur + 2;
-            return new FBCBasicInstruction<T>(FBCInstruction::kStoreInt, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
+            return new FBCBasicInstruction<REAL>(FBCInstruction::kStoreInt, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
         } else {
             end = cur + 1;
             return (*cur)->copy();
@@ -122,34 +122,34 @@ struct FBCInstructionLoadStoreOptimizer : public FBCInstructionOptimizer<T> {
 };
 
 // Rewrite heap Load/Store as Move or direct Value store
-template <class T>
-struct FBCInstructionMoveOptimizer : public FBCInstructionOptimizer<T> {
+template <class REAL>
+struct FBCInstructionMoveOptimizer : public FBCInstructionOptimizer<REAL> {
     FBCInstructionMoveOptimizer() {}
     
     virtual ~FBCInstructionMoveOptimizer() {}
     
-    FBCBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    FBCBasicInstruction<REAL>* rewrite(InstructionIT cur, InstructionIT& end)
     {
-        FBCBasicInstruction<T>* &inst1 = *cur;
-        FBCBasicInstruction<T>* &inst2 = *(cur + 1);
+        FBCBasicInstruction<REAL>* &inst1 = *cur;
+        FBCBasicInstruction<REAL>* &inst2 = *(cur + 1);
         
         // Optimize Heap Load/Store as Move
         if (inst1->fOpcode == FBCInstruction::kLoadReal && inst2->fOpcode == FBCInstruction::kStoreReal) {
             end = cur + 2;
-            return new FBCBasicInstruction<T>(FBCInstruction::kMoveReal, 0, 0, inst2->fOffset1,
-                                              inst1->fOffset1);  // reverse order
+            return new FBCBasicInstruction<REAL>(FBCInstruction::kMoveReal, 0, 0, inst2->fOffset1,
+                                                 inst1->fOffset1);  // reverse order
         } else if (inst1->fOpcode == FBCInstruction::kLoadInt && inst2->fOpcode == FBCInstruction::kStoreInt) {
             end = cur + 2;
-            return new FBCBasicInstruction<T>(FBCInstruction::kMoveInt, 0, 0, inst2->fOffset1,
-                                              inst1->fOffset1);  // reverse order
+            return new FBCBasicInstruction<REAL>(FBCInstruction::kMoveInt, 0, 0, inst2->fOffset1,
+                                                 inst1->fOffset1);  // reverse order
             // Optimize Value Load/Store as direct value Store
         } else if (inst1->fOpcode == FBCInstruction::kRealValue && inst2->fOpcode == FBCInstruction::kStoreReal) {
             end = cur + 2;
-            return new FBCBasicInstruction<T>(FBCInstruction::kStoreRealValue, 0, inst1->fRealValue, inst2->fOffset1,
-                                              0);
+            return new FBCBasicInstruction<REAL>(FBCInstruction::kStoreRealValue, 0, inst1->fRealValue, inst2->fOffset1,
+                                                 0);
         } else if (inst1->fOpcode == FBCInstruction::kInt32Value && inst2->fOpcode == FBCInstruction::kStoreInt) {
             end = cur + 2;
-            return new FBCBasicInstruction<T>(FBCInstruction::kStoreIntValue, inst1->fIntValue, 0, inst2->fOffset1, 0);
+            return new FBCBasicInstruction<REAL>(FBCInstruction::kStoreIntValue, inst1->fIntValue, 0, inst2->fOffset1, 0);
         } else {
             end = cur + 1;
             return (*cur)->copy();
@@ -168,16 +168,16 @@ struct FBCInstructionMoveOptimizer : public FBCInstructionOptimizer<T> {
  ==>  opcode 13 kBlockPairMoveReal int 0 real 0 offset1 120321 offset2 120327
  */
 
-template <class T>
-struct FBCInstructionBlockMoveOptimizer : public FBCInstructionOptimizer<T> {
+template <class REAL>
+struct FBCInstructionBlockMoveOptimizer : public FBCInstructionOptimizer<REAL> {
     FBCInstructionBlockMoveOptimizer() {}
     
     virtual ~FBCInstructionBlockMoveOptimizer() {}
     
-    FBCBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    FBCBasicInstruction<REAL>* rewrite(InstructionIT cur, InstructionIT& end)
     {
-        FBCBasicInstruction<T>* inst = *cur;
-        InstructionIT           next = cur;
+        FBCBasicInstruction<REAL>* inst = *cur;
+        InstructionIT              next = cur;
         
         int begin_move  = -1;
         int end_move    = -1;
@@ -199,7 +199,7 @@ struct FBCInstructionBlockMoveOptimizer : public FBCInstructionOptimizer<T> {
         if (begin_move != -1 && end_move != -1 && ((end_move - begin_move) > 4)) {
             // std::cout << "FBCInstructionBlockMoveOptimizer " << begin_move  << " " << end_move << std::endl;
             end = next;
-            return new FBCBasicInstruction<T>(FBCInstruction::kBlockPairMoveReal, 0, 0, begin_move, end_move);
+            return new FBCBasicInstruction<REAL>(FBCInstruction::kBlockPairMoveReal, 0, 0, begin_move, end_move);
         } else {
             end = cur + 1;
             return (*cur)->copy();
@@ -219,27 +219,27 @@ struct FBCInstructionBlockMoveOptimizer : public FBCInstructionOptimizer<T> {
  opcode 14 kPairMoveReal int 0 real 0 offset1 120325 offset2 120324
  */
 
-template <class T>
-struct FBCInstructionPairMoveOptimizer : public FBCInstructionOptimizer<T> {
+template <class REAL>
+struct FBCInstructionPairMoveOptimizer : public FBCInstructionOptimizer<REAL> {
     FBCInstructionPairMoveOptimizer() {}
     
     virtual ~FBCInstructionPairMoveOptimizer() {}
     
-    FBCBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    FBCBasicInstruction<REAL>* rewrite(InstructionIT cur, InstructionIT& end)
     {
-        FBCBasicInstruction<T>* &inst1 = *cur;
-        FBCBasicInstruction<T>* &inst2 = *(cur + 1);
+        FBCBasicInstruction<REAL>* &inst1 = *cur;
+        FBCBasicInstruction<REAL>* &inst2 = *(cur + 1);
         
         if (inst1->fOpcode == FBCInstruction::kMoveReal && inst2->fOpcode == FBCInstruction::kMoveReal &&
             (inst1->fOffset1 == (inst1->fOffset2 + 1)) && (inst2->fOffset1 == (inst2->fOffset2 + 1)) &&
             (inst2->fOffset1 == inst1->fOffset2)) {
             end = cur + 2;
-            return new FBCBasicInstruction<T>(FBCInstruction::kPairMoveReal, 0, 0, inst1->fOffset1, inst2->fOffset1);
+            return new FBCBasicInstruction<REAL>(FBCInstruction::kPairMoveReal, 0, 0, inst1->fOffset1, inst2->fOffset1);
         } else if (inst1->fOpcode == FBCInstruction::kMoveInt && inst2->fOpcode == FBCInstruction::kMoveInt &&
                    (inst1->fOffset1 == (inst1->fOffset2 + 1)) && (inst2->fOffset1 == (inst2->fOffset2 + 1)) &&
                    (inst2->fOffset1 == inst1->fOffset2)) {
             end = cur + 2;
-            return new FBCBasicInstruction<T>(FBCInstruction::kPairMoveInt, 0, 0, inst1->fOffset1, inst2->fOffset1);
+            return new FBCBasicInstruction<REAL>(FBCInstruction::kPairMoveInt, 0, 0, inst1->fOffset1, inst2->fOffset1);
         } else {
             end = cur + 1;
             return (*cur)->copy();
@@ -248,8 +248,8 @@ struct FBCInstructionPairMoveOptimizer : public FBCInstructionOptimizer<T> {
 };
 
 // Rewrite math operations as 'heap', 'stack' or 'Value' versions
-template <class T>
-struct FBCInstructionMathOptimizer : public FBCInstructionOptimizer<T> {
+template <class REAL>
+struct FBCInstructionMathOptimizer : public FBCInstructionOptimizer<REAL> {
     virtual ~FBCInstructionMathOptimizer() {}
     
     FBCInstructionMathOptimizer()
@@ -301,7 +301,7 @@ struct FBCInstructionMathOptimizer : public FBCInstructionOptimizer<T> {
         gFIRMath2ValueInvert[FBCInstruction::kRemReal] = FBCInstruction::kRemRealValueInvert;
         gFIRMath2ValueInvert[FBCInstruction::kRemInt]  = FBCInstruction::kRemIntValueInvert;
         gFIRMath2ValueInvert[FBCInstruction::kLshInt]  = FBCInstruction::kLshIntValueInvert;
-        gFIRMath2ValueInvert[FBCInstruction::kRshInt]  = FBCInstruction::kRshIntValueInvert;
+        gFIRMath2ValueInvert[FBCInstruction::kARshInt]  = FBCInstruction::kARshIntValueInvert;
         gFIRMath2ValueInvert[FBCInstruction::kGTInt]   = FBCInstruction::kGTIntValueInvert;
         gFIRMath2ValueInvert[FBCInstruction::kLTInt]   = FBCInstruction::kLTIntValueInvert;
         gFIRMath2ValueInvert[FBCInstruction::kGEInt]   = FBCInstruction::kGEIntValueInvert;
@@ -358,11 +358,11 @@ struct FBCInstructionMathOptimizer : public FBCInstructionOptimizer<T> {
         }
     }
     
-    FBCBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    FBCBasicInstruction<REAL>* rewrite(InstructionIT cur, InstructionIT& end)
     {
-        FBCBasicInstruction<T>* &inst1 = *cur;
-        FBCBasicInstruction<T>* &inst2 = *(cur + 1);
-        FBCBasicInstruction<T>* &inst3 = *(cur + 2);
+        FBCBasicInstruction<REAL>* &inst1 = *cur;
+        FBCBasicInstruction<REAL>* &inst2 = *(cur + 1);
+        FBCBasicInstruction<REAL>* &inst3 = *(cur + 2);
         
         faustassert(gFIRMath2Heap.size() > 0);
         faustassert(gFIRMath2Stack.size() > 0);
@@ -389,14 +389,14 @@ struct FBCInstructionMathOptimizer : public FBCInstructionOptimizer<T> {
             FBCInstruction::isMath(inst3->fOpcode)) {
             end = cur + 3;
             faustassert(gFIRMath2Heap.find(inst3->fOpcode) != gFIRMath2Heap.end());
-            return new FBCBasicInstruction<T>(gFIRMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1, inst1->fOffset1);
+            return new FBCBasicInstruction<REAL>(gFIRMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1, inst1->fOffset1);
             
             // kLoadInt OP kLoadInt ==> Heap version
         } else if (inst1->fOpcode == FBCInstruction::kLoadInt && inst2->fOpcode == FBCInstruction::kLoadInt &&
                    FBCInstruction::isMath(inst3->fOpcode)) {
             end = cur + 3;
             faustassert(gFIRMath2Heap.find(inst3->fOpcode) != gFIRMath2Heap.end());
-            return new FBCBasicInstruction<T>(gFIRMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1, inst1->fOffset1);
+            return new FBCBasicInstruction<REAL>(gFIRMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1, inst1->fOffset1);
             
             //===============
             // EXTENDED MATH
@@ -407,16 +407,16 @@ struct FBCInstructionMathOptimizer : public FBCInstructionOptimizer<T> {
                    FBCInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
             end = cur + 3;
             faustassert(gFIRExtendedMath2Heap.find(inst3->fOpcode) != gFIRExtendedMath2Heap.end());
-            return new FBCBasicInstruction<T>(gFIRExtendedMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1,
-                                              inst1->fOffset1);
+            return new FBCBasicInstruction<REAL>(gFIRExtendedMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1,
+                                                 inst1->fOffset1);
             
             // kLoadInt EXTENDED-OP kLoadInt ==> Heap version
         } else if (inst1->fOpcode == FBCInstruction::kLoadInt && inst2->fOpcode == FBCInstruction::kLoadInt &&
                    FBCInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
             end = cur + 3;
             faustassert(gFIRExtendedMath2Heap.find(inst3->fOpcode) != gFIRExtendedMath2Heap.end());
-            return new FBCBasicInstruction<T>(gFIRExtendedMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1,
-                                              inst1->fOffset1);
+            return new FBCBasicInstruction<REAL>(gFIRExtendedMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1,
+                                                 inst1->fOffset1);
             
             //=======
             // VALUE
@@ -431,30 +431,30 @@ struct FBCInstructionMathOptimizer : public FBCInstructionOptimizer<T> {
                    FBCInstruction::isMath(inst3->fOpcode)) {
             end = cur + 3;
             faustassert(gFIRMath2Value.find(inst3->fOpcode) != gFIRMath2Value.end());
-            return new FBCBasicInstruction<T>(gFIRMath2Value[inst3->fOpcode], 0, inst2->fRealValue, inst1->fOffset1, 0);
+            return new FBCBasicInstruction<REAL>(gFIRMath2Value[inst3->fOpcode], 0, inst2->fRealValue, inst1->fOffset1, 0);
             
             // kRealValue OP kLoadReal ==> Value version (special case for non-commutative operation)
         } else if (inst1->fOpcode == FBCInstruction::kRealValue && inst2->fOpcode == FBCInstruction::kLoadReal &&
                    FBCInstruction::isMath(inst3->fOpcode)) {
             end = cur + 3;
             faustassert(gFIRMath2ValueInvert.find(inst3->fOpcode) != gFIRMath2ValueInvert.end());
-            return new FBCBasicInstruction<T>(gFIRMath2ValueInvert[inst3->fOpcode], 0, inst1->fRealValue,
-                                              inst2->fOffset1, 0);
+            return new FBCBasicInstruction<REAL>(gFIRMath2ValueInvert[inst3->fOpcode], 0, inst1->fRealValue,
+                                                 inst2->fOffset1, 0);
             
             // kLoadInt OP kInt32Value ==> Value version
         } else if (inst1->fOpcode == FBCInstruction::kLoadInt && inst2->fOpcode == FBCInstruction::kInt32Value &&
                    FBCInstruction::isMath(inst3->fOpcode)) {
             end = cur + 3;
             faustassert(gFIRMath2Value.find(inst3->fOpcode) != gFIRMath2Value.end());
-            return new FBCBasicInstruction<T>(gFIRMath2Value[inst3->fOpcode], inst2->fIntValue, 0, inst1->fOffset1, 0);
+            return new FBCBasicInstruction<REAL>(gFIRMath2Value[inst3->fOpcode], inst2->fIntValue, 0, inst1->fOffset1, 0);
             
             // kInt32Value OP kLoadInt ==> Value version (special case for non-commutative operation)
         } else if (inst1->fOpcode == FBCInstruction::kInt32Value && inst2->fOpcode == FBCInstruction::kLoadInt &&
                    FBCInstruction::isMath(inst3->fOpcode)) {
             end = cur + 3;
             faustassert(gFIRMath2ValueInvert.find(inst3->fOpcode) != gFIRMath2ValueInvert.end());
-            return new FBCBasicInstruction<T>(gFIRMath2ValueInvert[inst3->fOpcode], inst1->fIntValue, 0,
-                                              inst2->fOffset1, 0);
+            return new FBCBasicInstruction<REAL>(gFIRMath2ValueInvert[inst3->fOpcode], inst1->fIntValue, 0,
+                                                 inst2->fOffset1, 0);
             
             //===============
             // EXTENDED MATH
@@ -465,32 +465,32 @@ struct FBCInstructionMathOptimizer : public FBCInstructionOptimizer<T> {
                    FBCInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
             end = cur + 3;
             faustassert(gFIRExtendedMath2Value.find(inst3->fOpcode) != gFIRExtendedMath2Value.end());
-            return new FBCBasicInstruction<T>(gFIRExtendedMath2Value[inst3->fOpcode], 0, inst2->fRealValue,
-                                              inst1->fOffset1, 0);
+            return new FBCBasicInstruction<REAL>(gFIRExtendedMath2Value[inst3->fOpcode], 0, inst2->fRealValue,
+                                                 inst1->fOffset1, 0);
             
             // kRealValue EXTENDED-OP kLoadReal ==> Value version (special case for non-commutative operation)
         } else if (inst1->fOpcode == FBCInstruction::kRealValue && inst2->fOpcode == FBCInstruction::kLoadReal &&
                    FBCInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
             end = cur + 3;
             faustassert(gFIRExtendedMath2ValueInvert.find(inst3->fOpcode) != gFIRExtendedMath2ValueInvert.end());
-            return new FBCBasicInstruction<T>(gFIRExtendedMath2ValueInvert[inst3->fOpcode], 0, inst1->fRealValue,
-                                              inst2->fOffset1, 0);
+            return new FBCBasicInstruction<REAL>(gFIRExtendedMath2ValueInvert[inst3->fOpcode], 0, inst1->fRealValue,
+                                                 inst2->fOffset1, 0);
             
             // kLoadInt EXTENDED-OP kInt32Value ==> Value version
         } else if (inst1->fOpcode == FBCInstruction::kLoadInt && inst2->fOpcode == FBCInstruction::kInt32Value &&
                    FBCInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
             end = cur + 3;
             faustassert(gFIRExtendedMath2Value.find(inst3->fOpcode) != gFIRExtendedMath2Value.end());
-            return new FBCBasicInstruction<T>(gFIRExtendedMath2Value[inst3->fOpcode], inst2->fIntValue, 0,
-                                              inst1->fOffset1, 0);
+            return new FBCBasicInstruction<REAL>(gFIRExtendedMath2Value[inst3->fOpcode], inst2->fIntValue, 0,
+                                                 inst1->fOffset1, 0);
             
             // kInt32Value EXTENDED-OP kLoadInt ==> Value version (special case for non-commutative operation)
         } else if (inst1->fOpcode == FBCInstruction::kInt32Value && inst2->fOpcode == FBCInstruction::kLoadInt &&
                    FBCInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
             end = cur + 3;
             faustassert(gFIRExtendedMath2ValueInvert.find(inst3->fOpcode) != gFIRExtendedMath2ValueInvert.end());
-            return new FBCBasicInstruction<T>(gFIRExtendedMath2ValueInvert[inst3->fOpcode], inst1->fIntValue, 0,
-                                              inst2->fOffset1, 0);
+            return new FBCBasicInstruction<REAL>(gFIRExtendedMath2ValueInvert[inst3->fOpcode], inst1->fIntValue, 0,
+                                                 inst2->fOffset1, 0);
             
             //=======
             // STACK
@@ -505,13 +505,13 @@ struct FBCInstructionMathOptimizer : public FBCInstructionOptimizer<T> {
                    FBCInstruction::isMath(inst2->fOpcode)) {
             end = cur + 2;
             faustassert(gFIRMath2Stack.find(inst2->fOpcode) != gFIRMath2Stack.end());
-            return new FBCBasicInstruction<T>(gFIRMath2Stack[inst2->fOpcode], 0, 0, inst1->fOffset1, 0);
+            return new FBCBasicInstruction<REAL>(gFIRMath2Stack[inst2->fOpcode], 0, 0, inst1->fOffset1, 0);
             
             // kRealValue binary OP ==> Stack/Value version
         } else if ((inst1->fOpcode == FBCInstruction::kRealValue) && FBCInstruction::isMath(inst2->fOpcode)) {
             end = cur + 2;
             faustassert(gFIRMath2StackValue.find(inst2->fOpcode) != gFIRMath2StackValue.end());
-            return new FBCBasicInstruction<T>(gFIRMath2StackValue[inst2->fOpcode], 0, inst1->fRealValue);
+            return new FBCBasicInstruction<REAL>(gFIRMath2StackValue[inst2->fOpcode], 0, inst1->fRealValue);
             
             // kInt32Value binary OP ==> Stack/Value version
         } else if (((inst1->fOpcode == FBCInstruction::kRealValue) ||
@@ -519,7 +519,7 @@ struct FBCInstructionMathOptimizer : public FBCInstructionOptimizer<T> {
                    FBCInstruction::isMath(inst2->fOpcode)) {
             end = cur + 2;
             faustassert(gFIRMath2StackValue.find(inst2->fOpcode) != gFIRMath2StackValue.end());
-            return new FBCBasicInstruction<T>(gFIRMath2StackValue[inst2->fOpcode], inst1->fIntValue, 0);
+            return new FBCBasicInstruction<REAL>(gFIRMath2StackValue[inst2->fOpcode], inst1->fIntValue, 0);
             
             //===============
             // EXTENDED MATH
@@ -530,21 +530,21 @@ struct FBCInstructionMathOptimizer : public FBCInstructionOptimizer<T> {
                    FBCInstruction::isExtendedBinaryMath(inst2->fOpcode)) {
             end = cur + 2;
             faustassert(gFIRExtendedMath2Stack.find(inst2->fOpcode) != gFIRExtendedMath2Stack.end());
-            return new FBCBasicInstruction<T>(gFIRExtendedMath2Stack[inst2->fOpcode], 0, 0, inst1->fOffset1, 0);
+            return new FBCBasicInstruction<REAL>(gFIRExtendedMath2Stack[inst2->fOpcode], 0, 0, inst1->fOffset1, 0);
             
             // kRealValue EXTENDED-OP ==> Stack/Value version
         } else if ((inst1->fOpcode == FBCInstruction::kRealValue) &&
                    FBCInstruction::isExtendedBinaryMath(inst2->fOpcode)) {
             end = cur + 2;
             faustassert(gFIRExtendedMath2StackValue.find(inst2->fOpcode) != gFIRExtendedMath2StackValue.end());
-            return new FBCBasicInstruction<T>(gFIRExtendedMath2StackValue[inst2->fOpcode], 0, inst1->fRealValue);
+            return new FBCBasicInstruction<REAL>(gFIRExtendedMath2StackValue[inst2->fOpcode], 0, inst1->fRealValue);
             
             // kInt32Value binary EXTENDED-OP ==> Stack/Value version
         } else if ((inst1->fOpcode == FBCInstruction::kInt32Value) &&
                    FBCInstruction::isExtendedBinaryMath(inst2->fOpcode)) {
             end = cur + 2;
             faustassert(gFIRExtendedMath2StackValue.find(inst2->fOpcode) != gFIRExtendedMath2StackValue.end());
-            return new FBCBasicInstruction<T>(gFIRExtendedMath2StackValue[inst2->fOpcode], inst1->fIntValue, 0);
+            return new FBCBasicInstruction<REAL>(gFIRExtendedMath2StackValue[inst2->fOpcode], inst1->fIntValue, 0);
             
             //=====================
             // UNARY EXTENDED MATH
@@ -554,7 +554,7 @@ struct FBCInstructionMathOptimizer : public FBCInstructionOptimizer<T> {
         } else if (inst1->fOpcode == FBCInstruction::kLoadReal && FBCInstruction::isExtendedUnaryMath(inst2->fOpcode)) {
             end = cur + 2;
             faustassert(gFIRExtendedMath2Heap.find(inst2->fOpcode) != gFIRExtendedMath2Heap.end());
-            return new FBCBasicInstruction<T>(gFIRExtendedMath2Heap[inst2->fOpcode], 0, 0, inst1->fOffset1, 0);
+            return new FBCBasicInstruction<REAL>(gFIRExtendedMath2Heap[inst2->fOpcode], 0, 0, inst1->fOffset1, 0);
             
         } else {
             end = cur + 1;
@@ -568,28 +568,28 @@ struct FBCInstructionMathOptimizer : public FBCInstructionOptimizer<T> {
 //============================================
 
 // Constant Values Optimizer : propagate Int and Real constant values
-template <class T>
-struct FBCInstructionConstantValueMap2Heap : public FBCInstructionOptimizer<T> {
-    std::map<int, int>& fIntMap;
-    std::map<int, T>&   fRealMap;
+template <class REAL>
+struct FBCInstructionConstantValueMap2Heap : public FBCInstructionOptimizer<REAL> {
+    std::map<int, int>&  fIntMap;
+    std::map<int, REAL>& fRealMap;
     
-    FBCInstructionConstantValueMap2Heap(std::map<int, int>& int_map, std::map<int, T>& real_map)
+    FBCInstructionConstantValueMap2Heap(std::map<int, int>& int_map, std::map<int, REAL>& real_map)
     : fIntMap(int_map), fRealMap(real_map)
     {
     }
     
     virtual ~FBCInstructionConstantValueMap2Heap() {}
     
-    virtual FBCBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    virtual FBCBasicInstruction<REAL>* rewrite(InstructionIT cur, InstructionIT& end)
     {
-        FBCBasicInstruction<T>* inst = *cur;
+        FBCBasicInstruction<REAL>* inst = *cur;
         
         if (inst->fOpcode == FBCInstruction::kLoadInt && fIntMap.find(inst->fOffset1) != fIntMap.end()) {
             end = cur + 1;
-            return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, fIntMap[inst->fOffset1], 0);
+            return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, fIntMap[inst->fOffset1], 0);
         } else if (inst->fOpcode == FBCInstruction::kLoadReal && fRealMap.find(inst->fOffset1) != fRealMap.end()) {
             end = cur + 1;
-            return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, fRealMap[inst->fOffset1]);
+            return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, fRealMap[inst->fOffset1]);
         } else {
             end = cur + 1;
             return (*cur)->copy();
@@ -598,22 +598,22 @@ struct FBCInstructionConstantValueMap2Heap : public FBCInstructionOptimizer<T> {
 };
 
 // Constant Values Optimizer : propagate Int and Real constant values
-template <class T>
-struct FBCInstructionConstantValueHeap2Map : public FBCInstructionOptimizer<T> {
-    std::map<int, int>& fIntMap;
-    std::map<int, T>&   fRealMap;
+template <class REAL>
+struct FBCInstructionConstantValueHeap2Map : public FBCInstructionOptimizer<REAL> {
+    std::map<int, int>&  fIntMap;
+    std::map<int, REAL>& fRealMap;
     
-    FBCInstructionConstantValueHeap2Map(std::map<int, int>& int_map, std::map<int, T>& real_map)
+    FBCInstructionConstantValueHeap2Map(std::map<int, int>& int_map, std::map<int, REAL>& real_map)
     : fIntMap(int_map), fRealMap(real_map)
     {
     }
     
     virtual ~FBCInstructionConstantValueHeap2Map() {}
     
-    virtual FBCBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    virtual FBCBasicInstruction<REAL>* rewrite(InstructionIT cur, InstructionIT& end)
     {
-        FBCBasicInstruction<T>* &inst1 = *cur;
-        FBCBasicInstruction<T>* &inst2 = *(cur + 1);
+        FBCBasicInstruction<REAL>* &inst1 = *cur;
+        FBCBasicInstruction<REAL>* &inst2 = *(cur + 1);
         
         if (inst1->fOpcode == FBCInstruction::kRealValue && inst2->fOpcode == FBCInstruction::kStoreReal) {
             end = cur + 2;
@@ -633,23 +633,23 @@ struct FBCInstructionConstantValueHeap2Map : public FBCInstructionOptimizer<T> {
 };
 
 // Cast specializer
-template <class T>
-struct FBCInstructionCastSpecializer : public FBCInstructionOptimizer<T> {
+template <class REAL>
+struct FBCInstructionCastSpecializer : public FBCInstructionOptimizer<REAL> {
     FBCInstructionCastSpecializer() {}
     
     virtual ~FBCInstructionCastSpecializer() {}
     
-    virtual FBCBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    virtual FBCBasicInstruction<REAL>* rewrite(InstructionIT cur, InstructionIT& end)
     {
-        FBCBasicInstruction<T>* &inst1 = *cur;
-        FBCBasicInstruction<T>* &inst2 = *(cur + 1);
+        FBCBasicInstruction<REAL>* &inst1 = *cur;
+        FBCBasicInstruction<REAL>* &inst2 = *(cur + 1);
         
         if (inst1->fOpcode == FBCInstruction::kInt32Value && inst2->fOpcode == FBCInstruction::kCastReal) {
             end = cur + 2;
-            return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, T(inst1->fIntValue));
+            return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, T(inst1->fIntValue));
         } else if (inst1->fOpcode == FBCInstruction::kRealValue && inst2->fOpcode == FBCInstruction::kCastInt) {
             end = cur + 2;
-            return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, int(inst1->fRealValue), 0);
+            return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, int(inst1->fRealValue), 0);
         } else {
             end = cur + 1;
             return (*cur)->copy();
@@ -658,55 +658,55 @@ struct FBCInstructionCastSpecializer : public FBCInstructionOptimizer<T> {
 };
 
 // Math specializer
-template <class T>
-struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
+template <class REAL>
+struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<REAL> {
     FBCInstructionMathSpecializer() {}
     
     virtual ~FBCInstructionMathSpecializer() {}
     
     // Beware : inverted args...
-    FBCBasicInstruction<T>* rewriteBinaryRealMath(FBCBasicInstruction<T>* inst1, FBCBasicInstruction<T>* inst2,
-                                                  FBCBasicInstruction<T>* inst3)
+    FBCBasicInstruction<REAL>* rewriteBinaryRealMath(FBCBasicInstruction<REAL>* inst1, FBCBasicInstruction<REAL>* inst2,
+                                                     FBCBasicInstruction<REAL>* inst3)
     {
         switch (inst3->fOpcode) {
             case FBCInstruction::kAddReal:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, inst2->fRealValue + inst1->fRealValue);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, inst2->fRealValue + inst1->fRealValue);
                 
             case FBCInstruction::kSubReal:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, inst2->fRealValue - inst1->fRealValue);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, inst2->fRealValue - inst1->fRealValue);
                 
             case FBCInstruction::kMultReal:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, inst2->fRealValue * inst1->fRealValue);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, inst2->fRealValue * inst1->fRealValue);
                 
             case FBCInstruction::kDivReal:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, inst2->fRealValue / inst1->fRealValue);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, inst2->fRealValue / inst1->fRealValue);
                 
             case FBCInstruction::kRemReal:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0,
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0,
                                                   std::remainder(inst2->fRealValue, inst1->fRealValue));
                 
             case FBCInstruction::kGTReal:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fRealValue > inst1->fRealValue,
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fRealValue > inst1->fRealValue,
                                                   0);
                 
             case FBCInstruction::kLTReal:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fRealValue < inst1->fRealValue,
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fRealValue < inst1->fRealValue,
                                                   0);
                 
             case FBCInstruction::kGEReal:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fRealValue >= inst1->fRealValue,
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fRealValue >= inst1->fRealValue,
                                                   0);
                 
             case FBCInstruction::kLEReal:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fRealValue <= inst1->fRealValue,
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fRealValue <= inst1->fRealValue,
                                                   0);
                 
             case FBCInstruction::kEQReal:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fRealValue == inst1->fRealValue,
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fRealValue == inst1->fRealValue,
                                                   0);
                 
             case FBCInstruction::kNEReal:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fRealValue != inst1->fRealValue,
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fRealValue != inst1->fRealValue,
                                                   0);
                 
             default:
@@ -717,33 +717,33 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
     
     // FBCInstruction::kRealValue
     // FBCInstruction::kLoadReal
-    FBCBasicInstruction<T>* rewriteBinaryRealMath2(FBCBasicInstruction<T>* inst1, FBCBasicInstruction<T>* inst2,
-                                                   FBCBasicInstruction<T>* inst3)
+    FBCBasicInstruction<REAL>* rewriteBinaryRealMath2(FBCBasicInstruction<REAL>* inst1, FBCBasicInstruction<REAL>* inst2,
+                                                      FBCBasicInstruction<REAL>* inst3)
     {
         switch (inst3->fOpcode) {
             case FBCInstruction::kAddReal:
-                return (inst1->fRealValue == T(0))
-                    ? new FBCBasicInstruction<T>(FBCInstruction::kLoadReal, 0, 0, inst2->fOffset1, 0)
+                return (inst1->fRealValue == REAL(0))
+                    ? new FBCBasicInstruction<REAL>(FBCInstruction::kLoadReal, 0, 0, inst2->fOffset1, 0)
                     : nullptr;
                 
             case FBCInstruction::kSubReal:
-                return (inst1->fRealValue == T(0))
-                    ? new FBCBasicInstruction<T>(FBCInstruction::kLoadReal, 0, 0, inst2->fOffset1, 0)
+                return (inst1->fRealValue == REAL(0))
+                    ? new FBCBasicInstruction<REAL>(FBCInstruction::kLoadReal, 0, 0, inst2->fOffset1, 0)
                     : nullptr;
                 
             case FBCInstruction::kMultReal: {
-                if (inst1->fRealValue == T(1)) {  // neutral
-                    return new FBCBasicInstruction<T>(FBCInstruction::kLoadReal, 0, 0, inst2->fOffset1, 0);
-                } else if (inst1->fRealValue == T(0)) {  // absorbant
-                    return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, T(0));
+                if (inst1->fRealValue == REAL(1)) {  // neutral
+                    return new FBCBasicInstruction<REAL>(FBCInstruction::kLoadReal, 0, 0, inst2->fOffset1, 0);
+                } else if (inst1->fRealValue == REAL(0)) {  // absorbant
+                    return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, REAL(0));
                 } else {
                     return nullptr;
                 }
             }
                 
             case FBCInstruction::kDivReal:
-                return (inst1->fRealValue == T(1))
-                ? new FBCBasicInstruction<T>(FBCInstruction::kLoadReal, 0, 0, inst2->fOffset1, 0)
+                return (inst1->fRealValue == REAL(1))
+                ? new FBCBasicInstruction<REAL>(FBCInstruction::kLoadReal, 0, 0, inst2->fOffset1, 0)
                 : nullptr;
                 
             default:
@@ -753,20 +753,20 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
     
     // FBCInstruction::kLoadReal
     // FBCInstruction::kRealValue : sub and div not rewritten
-    FBCBasicInstruction<T>* rewriteBinaryRealMath3(FBCBasicInstruction<T>* inst1, FBCBasicInstruction<T>* inst2,
-                                                   FBCBasicInstruction<T>* inst3)
+    FBCBasicInstruction<REAL>* rewriteBinaryRealMath3(FBCBasicInstruction<REAL>* inst1, FBCBasicInstruction<REAL>* inst2,
+                                                      FBCBasicInstruction<REAL>* inst3)
     {
         switch (inst3->fOpcode) {
             case FBCInstruction::kAddReal:
-                return (inst2->fRealValue == T(0))
-                    ? new FBCBasicInstruction<T>(FBCInstruction::kLoadReal, 0, 0, inst1->fOffset1, 0)
+                return (inst2->fRealValue == REAL(0))
+                    ? new FBCBasicInstruction<REAL>(FBCInstruction::kLoadReal, 0, 0, inst1->fOffset1, 0)
                     : nullptr;
                 
             case FBCInstruction::kMultReal:
-                if (inst2->fRealValue == T(1)) {  // neutral
-                    return new FBCBasicInstruction<T>(FBCInstruction::kLoadReal, 0, 0, inst1->fOffset1, 0);
-                } else if (inst2->fRealValue == T(0)) {  // absorbant
-                    return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, T(0));
+                if (inst2->fRealValue == REAL(1)) {  // neutral
+                    return new FBCBasicInstruction<REAL>(FBCInstruction::kLoadReal, 0, 0, inst1->fOffset1, 0);
+                } else if (inst2->fRealValue == REAL(0)) {  // absorbant
+                    return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, REAL(0));
                 } else {
                     return nullptr;
                 }
@@ -776,57 +776,57 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
         }
     }
     
-    FBCBasicInstruction<T>* rewriteBinaryIntMath(FBCBasicInstruction<T>* inst1, FBCBasicInstruction<T>* inst2,
-                                                 FBCBasicInstruction<T>* inst3)
+    FBCBasicInstruction<REAL>* rewriteBinaryIntMath(FBCBasicInstruction<REAL>* inst1, FBCBasicInstruction<REAL>* inst2,
+                                                    FBCBasicInstruction<REAL>* inst3)
     {
         switch (inst3->fOpcode) {
             case FBCInstruction::kAddInt:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fIntValue + inst1->fIntValue, 0);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fIntValue + inst1->fIntValue, 0);
                 
             case FBCInstruction::kSubInt:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fIntValue - inst1->fIntValue, 0);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fIntValue - inst1->fIntValue, 0);
                 
             case FBCInstruction::kMultInt:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fIntValue * inst1->fIntValue, 0);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fIntValue * inst1->fIntValue, 0);
                 
             case FBCInstruction::kDivInt:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fIntValue / inst1->fIntValue, 0);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fIntValue / inst1->fIntValue, 0);
                 
             case FBCInstruction::kRemInt:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fIntValue % inst1->fIntValue, 0);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fIntValue % inst1->fIntValue, 0);
                 
             case FBCInstruction::kLshInt:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fIntValue << inst1->fIntValue, 0);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fIntValue << inst1->fIntValue, 0);
                 
-            case FBCInstruction::kRshInt:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fIntValue >> inst1->fIntValue, 0);
+            case FBCInstruction::kARshInt:
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fIntValue >> inst1->fIntValue, 0);
                 
             case FBCInstruction::kGTInt:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fIntValue > inst1->fIntValue, 0);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fIntValue > inst1->fIntValue, 0);
                 
             case FBCInstruction::kLTInt:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fIntValue < inst1->fIntValue, 0);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fIntValue < inst1->fIntValue, 0);
                 
             case FBCInstruction::kGEInt:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fIntValue >= inst1->fIntValue, 0);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fIntValue >= inst1->fIntValue, 0);
                 
             case FBCInstruction::kLEInt:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fIntValue <= inst1->fIntValue, 0);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fIntValue <= inst1->fIntValue, 0);
                 
             case FBCInstruction::kEQInt:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fIntValue == inst1->fIntValue, 0);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fIntValue == inst1->fIntValue, 0);
                 
             case FBCInstruction::kNEInt:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fIntValue != inst1->fIntValue, 0);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fIntValue != inst1->fIntValue, 0);
                 
             case FBCInstruction::kANDInt:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fIntValue & inst1->fIntValue, 0);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fIntValue & inst1->fIntValue, 0);
                 
             case FBCInstruction::kORInt:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fIntValue | inst1->fIntValue, 0);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fIntValue | inst1->fIntValue, 0);
                 
             case FBCInstruction::kXORInt:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst2->fIntValue ^ inst1->fIntValue, 0);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, inst2->fIntValue ^ inst1->fIntValue, 0);
                 
             default:
                 faustassert(false);
@@ -837,48 +837,48 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
     // FBCInstruction::kInt32Value
     // FBCInstruction::kLoadInt
     
-    FBCBasicInstruction<T>* rewriteBinaryIntMath2(FBCBasicInstruction<T>* inst1, FBCBasicInstruction<T>* inst2,
-                                                  FBCBasicInstruction<T>* inst3)
+    FBCBasicInstruction<REAL>* rewriteBinaryIntMath2(FBCBasicInstruction<REAL>* inst1, FBCBasicInstruction<REAL>* inst2,
+                                                     FBCBasicInstruction<REAL>* inst3)
     {
         switch (inst3->fOpcode) {
             case FBCInstruction::kAddInt:
                 return (inst1->fIntValue == 0)
-                    ? new FBCBasicInstruction<T>(FBCInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0)
+                    ? new FBCBasicInstruction<REAL>(FBCInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0)
                     : nullptr;
                 
             case FBCInstruction::kSubInt:
                 return (inst1->fIntValue == 0)
-                    ? new FBCBasicInstruction<T>(FBCInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0)
+                    ? new FBCBasicInstruction<REAL>(FBCInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0)
                     : nullptr;
                 
             case FBCInstruction::kMultInt:
                 if (inst1->fIntValue == 1) {  // neutral
-                    new FBCBasicInstruction<T>(FBCInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0);
+                    new FBCBasicInstruction<REAL>(FBCInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0);
                 } else if (inst1->fIntValue == 0) {  // absorbant
-                    new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, 0, 0);
+                    new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, 0, 0);
                 } else {
                     return nullptr;
                 }
                 
             case FBCInstruction::kDivInt:
                 return (inst1->fIntValue == 1)
-                ? new FBCBasicInstruction<T>(FBCInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0)
+                ? new FBCBasicInstruction<REAL>(FBCInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0)
                 : nullptr;
                 
             case FBCInstruction::kANDInt:
                 if (inst1->fIntValue == 1) {  // neutral
-                    new FBCBasicInstruction<T>(FBCInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0);
+                    new FBCBasicInstruction<REAL>(FBCInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0);
                 } else if (inst1->fIntValue == 0) {  // absorbant
-                    new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, 0, 0);
+                    new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, 0, 0);
                 } else {
                     return nullptr;
                 }
                 
             case FBCInstruction::kORInt:
                 if (inst1->fIntValue == 1) {  // absorbant
-                    new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, 1, 0);
+                    new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, 1, 0);
                 } else if (inst1->fIntValue == 0) {  // neutral
-                    new FBCBasicInstruction<T>(FBCInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0);
+                    new FBCBasicInstruction<REAL>(FBCInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0);
                 } else {
                     return nullptr;
                 }
@@ -890,18 +890,18 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
     
     // FBCInstruction::kLoadInt
     // FBCInstruction::kInt32Value : sub and div not rewritten
-    FBCBasicInstruction<T>* rewriteBinaryIntMath3(FBCBasicInstruction<T>* inst1, FBCBasicInstruction<T>* inst2,
-                                                  FBCBasicInstruction<T>* inst3)
+    FBCBasicInstruction<REAL>* rewriteBinaryIntMath3(FBCBasicInstruction<REAL>* inst1, FBCBasicInstruction<REAL>* inst2,
+                                                     FBCBasicInstruction<REAL>* inst3)
     {
         switch (inst3->fOpcode) {
             case FBCInstruction::kAddInt:
-                return (inst2->fIntValue == T(0))
-                    ? new FBCBasicInstruction<T>(FBCInstruction::kLoadInt, 0, 0, inst1->fOffset1, 0)
+                return (inst2->fIntValue == REAL(0))
+                    ? new FBCBasicInstruction<REAL>(FBCInstruction::kLoadInt, 0, 0, inst1->fOffset1, 0)
                     : nullptr;
                 
             case FBCInstruction::kMultInt:
-                return (inst2->fIntValue == T(1))
-                    ? new FBCBasicInstruction<T>(FBCInstruction::kLoadInt, 0, 0, inst1->fOffset1, 0)
+                return (inst2->fIntValue == REAL(1))
+                    ? new FBCBasicInstruction<REAL>(FBCInstruction::kLoadInt, 0, 0, inst1->fOffset1, 0)
                     : nullptr;
                 
             default:
@@ -909,29 +909,29 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
         }
     }
     
-    FBCBasicInstruction<T>* rewriteExtendedBinaryRealMath(FBCBasicInstruction<T>* inst1, FBCBasicInstruction<T>* inst2,
-                                                          FBCBasicInstruction<T>* inst3)
+    FBCBasicInstruction<REAL>* rewriteExtendedBinaryRealMath(FBCBasicInstruction<REAL>* inst1, FBCBasicInstruction<REAL>* inst2,
+                                                             FBCBasicInstruction<REAL>* inst3)
     {
         switch (inst3->fOpcode) {
             case FBCInstruction::kAtan2f:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0,
-                                                  std::atan2(inst2->fRealValue, inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0,
+                                                     std::atan2(inst2->fRealValue, inst1->fRealValue));
                 
             case FBCInstruction::kFmodf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0,
-                                                  std::fmod(inst2->fRealValue, inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0,
+                                                     std::fmod(inst2->fRealValue, inst1->fRealValue));
                 
             case FBCInstruction::kPowf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0,
-                                                  std::pow(inst2->fRealValue, inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0,
+                                                     std::pow(inst2->fRealValue, inst1->fRealValue));
                 
             case FBCInstruction::kMaxf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0,
-                                                  std::max(inst2->fRealValue, inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0,
+                                                     std::max(inst2->fRealValue, inst1->fRealValue));
                 
             case FBCInstruction::kMinf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0,
-                                                  std::min(inst2->fRealValue, inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0,
+                                                     std::min(inst2->fRealValue, inst1->fRealValue));
                 
             default:
                 faustassert(false);
@@ -939,17 +939,17 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
         }
     }
     
-    FBCBasicInstruction<T>* rewriteExtendedBinaryIntMath(FBCBasicInstruction<T>* inst1, FBCBasicInstruction<T>* inst2,
-                                                         FBCBasicInstruction<T>* inst3)
+    FBCBasicInstruction<REAL>* rewriteExtendedBinaryIntMath(FBCBasicInstruction<REAL>* inst1, FBCBasicInstruction<REAL>* inst2,
+                                                            FBCBasicInstruction<REAL>* inst3)
     {
         switch (inst3->fOpcode) {
             case FBCInstruction::kMax:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value,
-                                                  std::max(inst2->fIntValue, inst1->fIntValue), 0);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value,
+                                                     std::max(inst2->fIntValue, inst1->fIntValue), 0);
                 
             case FBCInstruction::kMin:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value,
-                                                  std::min(inst2->fIntValue, inst1->fIntValue), 0);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value,
+                                                     std::min(inst2->fIntValue, inst1->fIntValue), 0);
                 
             default:
                 faustassert(false);
@@ -957,62 +957,62 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
         }
     }
     
-    FBCBasicInstruction<T>* rewriteUnaryRealMath(FBCBasicInstruction<T>* inst1, FBCBasicInstruction<T>* inst2)
+    FBCBasicInstruction<REAL>* rewriteUnaryRealMath(FBCBasicInstruction<REAL>* inst1, FBCBasicInstruction<REAL>* inst2)
     {
         switch (inst2->fOpcode) {
             case FBCInstruction::kAbsf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::fabs(inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, std::fabs(inst1->fRealValue));
                 
             case FBCInstruction::kAcosf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::acos(inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, std::acos(inst1->fRealValue));
                 
             case FBCInstruction::kAsinf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::asin(inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, std::asin(inst1->fRealValue));
                 
             case FBCInstruction::kAtanf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::atan(inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, std::atan(inst1->fRealValue));
                 
             case FBCInstruction::kCeilf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::ceil(inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, std::ceil(inst1->fRealValue));
                 
             case FBCInstruction::kCosf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::cos(inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, std::cos(inst1->fRealValue));
                 
             case FBCInstruction::kCoshf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::cosh(inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, std::cosh(inst1->fRealValue));
                 
             case FBCInstruction::kExpf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::exp(inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, std::exp(inst1->fRealValue));
                 
             case FBCInstruction::kFloorf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::floor(inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, std::floor(inst1->fRealValue));
                 
             case FBCInstruction::kLogf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::log(inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, std::log(inst1->fRealValue));
                 
             case FBCInstruction::kLog10f:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::log10(inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, std::log10(inst1->fRealValue));
                 
             case FBCInstruction::kRintf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::rint(inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, std::rint(inst1->fRealValue));
                 
             case FBCInstruction::kRoundf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::round(inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, std::round(inst1->fRealValue));
                 
             case FBCInstruction::kSinf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::sin(inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, std::sin(inst1->fRealValue));
                 
             case FBCInstruction::kSinhf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::sinh(inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, std::sinh(inst1->fRealValue));
                 
             case FBCInstruction::kSqrtf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::sqrt(inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, std::sqrt(inst1->fRealValue));
                 
             case FBCInstruction::kTanf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::tan(inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, std::tan(inst1->fRealValue));
                 
             case FBCInstruction::kTanhf:
-                return new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, std::tanh(inst1->fRealValue));
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kRealValue, 0, std::tanh(inst1->fRealValue));
                 
             default:
                 faustassert(false);
@@ -1020,11 +1020,11 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
         }
     }
     
-    FBCBasicInstruction<T>* rewriteUnaryIntMath(FBCBasicInstruction<T>* inst1, FBCBasicInstruction<T>* inst2)
+    FBCBasicInstruction<REAL>* rewriteUnaryIntMath(FBCBasicInstruction<REAL>* inst1, FBCBasicInstruction<REAL>* inst2)
     {
         switch (inst2->fOpcode) {
             case FBCInstruction::kAbs:
-                return new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, std::abs(inst1->fIntValue), 0);
+                return new FBCBasicInstruction<REAL>(FBCInstruction::kInt32Value, std::abs(inst1->fIntValue), 0);
                 
             default:
                 faustassert(false);
@@ -1032,13 +1032,13 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
         }
     }
     
-    virtual FBCBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end)
+    virtual FBCBasicInstruction<REAL>* rewrite(InstructionIT cur, InstructionIT& end)
     {
-        FBCBasicInstruction<T>* &inst1 = *cur;
-        FBCBasicInstruction<T>* &inst2 = *(cur + 1);
-        FBCBasicInstruction<T>* &inst3 = *(cur + 2);
+        FBCBasicInstruction<REAL>* &inst1 = *cur;
+        FBCBasicInstruction<REAL>* &inst2 = *(cur + 1);
+        FBCBasicInstruction<REAL>* &inst3 = *(cur + 2);
         
-        FBCBasicInstruction<T>* res;
+        FBCBasicInstruction<REAL>* res;
         
         // Real
         if (inst1->fOpcode == FBCInstruction::kRealValue && inst2->fOpcode == FBCInstruction::kRealValue &&
@@ -1127,11 +1127,11 @@ struct FBCInstructionMathSpecializer : public FBCInstructionOptimizer<T> {
     }
 };
 
-template <class T>
+template <class REAL>
 struct FBCInstructionOptimizer {
     virtual ~FBCInstructionOptimizer() {}
     
-    static void displayMaps(std::map<int, int>& int_map, std::map<int, T>& real_map)
+    static void displayMaps(std::map<int, int>& int_map, std::map<int, REAL>& real_map)
     {
         std::cout << "displayMaps : int_map" << std::endl;
         for (auto& it1 : int_map) {
@@ -1146,11 +1146,11 @@ struct FBCInstructionOptimizer {
     
     // Rewrite a sequence of instructions starting from 'cur' to 'end' in a new single instruction.
     // Update 'end' so that caller can move at the correct next location
-    virtual FBCBasicInstruction<T>* rewrite(InstructionIT cur, InstructionIT& end) { return nullptr; }
+    virtual FBCBasicInstruction<REAL>* rewrite(InstructionIT cur, InstructionIT& end) { return nullptr; }
     
     // Return an optimized block by traversing it (including sub-blocks) with an 'optimizer'
-    static FBCBlockInstruction<T>* optimize_aux(FBCBlockInstruction<T>*     cur_block,
-                                                FBCInstructionOptimizer<T>& optimizer)
+    static FBCBlockInstruction<REAL>* optimize_aux(FBCBlockInstruction<REAL>*     cur_block,
+                                                   FBCInstructionOptimizer<REAL>& optimizer)
     {
         faustassert(cur_block);
         
@@ -1159,12 +1159,12 @@ struct FBCInstructionOptimizer {
             return cur_block->copy();
         }
         
-        FBCBlockInstruction<T>* new_block = new FBCBlockInstruction<T>();
-        InstructionIT           next, cur = cur_block->fInstructions.begin();
+        FBCBlockInstruction<REAL>* new_block = new FBCBlockInstruction<REAL>();
+        InstructionIT              next, cur = cur_block->fInstructions.begin();
         
         do {
-            FBCBasicInstruction<T>* &inst1 = *cur;
-            FBCBasicInstruction<T>* &inst2 = *(cur + 1);
+            FBCBasicInstruction<REAL>* &inst1 = *cur;
+            FBCBasicInstruction<REAL>* &inst2 = *(cur + 1);
             
             // Specialization
             if (inst1->fOpcode == FBCInstruction::kInt32Value && FBCInstruction::isChoice(inst2->fOpcode)) {
@@ -1177,19 +1177,19 @@ struct FBCInstructionOptimizer {
                 }
                 cur += 2;
             } else if (inst1->fOpcode == FBCInstruction::kLoop) {
-                new_block->push(new FBCBasicInstruction<T>(
+                new_block->push(new FBCBasicInstruction<REAL>(
                     inst1->fOpcode, inst1->fName, inst1->fIntValue, inst1->fRealValue, inst1->fOffset1, inst1->fOffset2,
                     inst1->fBranch1->copy(),  // No optimization for loop variable declaration
                     optimize_aux(inst1->fBranch2, optimizer)));
                 cur++;
             } else if (FBCInstruction::isChoice(inst1->fOpcode)) {
-                new_block->push(new FBCBasicInstruction<T>(
+                new_block->push(new FBCBasicInstruction<REAL>(
                     inst1->fOpcode, inst1->fName, inst1->fIntValue, inst1->fRealValue, inst1->fOffset1, inst1->fOffset2,
                     optimize_aux(inst1->fBranch1, optimizer), optimize_aux(inst1->fBranch2, optimizer)));
                 cur++;
             } else if (inst1->fOpcode == FBCInstruction::kCondBranch) {
                 // Special case for loops : branch to new_block
-                new_block->push(new FBCBasicInstruction<T>(FBCInstruction::kCondBranch, "", 0, 0, 0, 0, new_block, 0));
+                new_block->push(new FBCBasicInstruction<REAL>(FBCInstruction::kCondBranch, "", 0, 0, 0, 0, new_block, 0));
                 cur++;
             } else {
                 new_block->push(optimizer.rewrite(cur, next));
@@ -1202,15 +1202,15 @@ struct FBCInstructionOptimizer {
     }
     
     // Apply an optimizer on the block, return the optimized new block, then delete the original one
-    static FBCBlockInstruction<T>* optimize(FBCBlockInstruction<T>* cur_block, FBCInstructionOptimizer<T>& optimizer)
+    static FBCBlockInstruction<REAL>* optimize(FBCBlockInstruction<REAL>* cur_block, FBCInstructionOptimizer<REAL>& optimizer)
     {
-        FBCBlockInstruction<T>* new_block = optimize_aux(cur_block, optimizer);
+        FBCBlockInstruction<REAL>* new_block = optimize_aux(cur_block, optimizer);
         delete cur_block;
         return new_block;
     }
     
     // Specialize a block with an optimizer
-    static FBCBlockInstruction<T>* specialize(FBCBlockInstruction<T>* cur_block, FBCInstructionOptimizer<T>& optimizer)
+    static FBCBlockInstruction<REAL>* specialize(FBCBlockInstruction<REAL>* cur_block, FBCInstructionOptimizer<REAL>& optimizer)
     {
         int cur_block_size = cur_block->size();
         int new_block_size = cur_block->size();
@@ -1224,23 +1224,23 @@ struct FBCInstructionOptimizer {
         return cur_block;
     }
     
-    static FBCBlockInstruction<T>* specialize2Heap(FBCBlockInstruction<T>* cur_block, std::map<int, int>& int_map,
-                                                   std::map<int, T>& real_map)
+    static FBCBlockInstruction<REAL>* specialize2Heap(FBCBlockInstruction<REAL>* cur_block, std::map<int, int>& int_map,
+                                                      std::map<int, REAL>& real_map)
     {
-        FBCInstructionConstantValueHeap2Map<T> heap_2_map(int_map, real_map);
+        FBCInstructionConstantValueHeap2Map<REAL> heap_2_map(int_map, real_map);
         
         // Propagate constant values stored in the code into the heap
         return optimize(cur_block, heap_2_map);
     }
     
     // Specialize a block
-    static FBCBlockInstruction<T>* specialize(FBCBlockInstruction<T>* cur_block, std::map<int, int>& int_map,
-                                              std::map<int, T>& real_map)
+    static FBCBlockInstruction<REAL>* specialize(FBCBlockInstruction<REAL>* cur_block, std::map<int, int>& int_map,
+                                                 std::map<int, REAL>& real_map)
     {
-        FBCInstructionConstantValueMap2Heap<T> map_2_heap(int_map, real_map);
-        FBCInstructionCastSpecializer<T>       cast_specializer;
-        FBCInstructionMathSpecializer<T>       math_specializer;
-        FBCInstructionConstantValueHeap2Map<T> heap_2_map(int_map, real_map);
+        FBCInstructionConstantValueMap2Heap<REAL> map_2_heap(int_map, real_map);
+        FBCInstructionCastSpecializer<REAL>       cast_specializer;
+        FBCInstructionMathSpecializer<REAL>       math_specializer;
+        FBCInstructionConstantValueHeap2Map<REAL> heap_2_map(int_map, real_map);
         
         // Global specialization
         int cur_block_size = cur_block->size();
@@ -1270,42 +1270,42 @@ struct FBCInstructionOptimizer {
         return cur_block;
     }
     
-    static FBCBlockInstruction<T>* optimizeBlock(FBCBlockInstruction<T>* block, int min_level, int max_level)
+    static FBCBlockInstruction<REAL>* optimizeBlock(FBCBlockInstruction<REAL>* block, int min_level, int max_level)
     {
         if (min_level <= 1 && 1 <= max_level) {
             // 1) optimize indexed 'heap' load/store in normal load/store
-            FBCInstructionLoadStoreOptimizer<T> opt1;
-            block = FBCInstructionOptimizer<T>::optimize(block, opt1);
+            FBCInstructionLoadStoreOptimizer<REAL> opt1;
+            block = FBCInstructionOptimizer<REAL>::optimize(block, opt1);
         }
         
         if (min_level <= 2 && 2 <= max_level) {
             // 2) optimize simple 'heap' load/store in move
-            FBCInstructionMoveOptimizer<T> opt2;
-            block = FBCInstructionOptimizer<T>::optimize(block, opt2);
+            FBCInstructionMoveOptimizer<REAL> opt2;
+            block = FBCInstructionOptimizer<REAL>::optimize(block, opt2);
         }
         
         if (min_level <= 3 && 3 <= max_level) {
             // 3) optimize moves in block move
-            FBCInstructionBlockMoveOptimizer<T> opt3;
-            block = FBCInstructionOptimizer<T>::optimize(block, opt3);
+            FBCInstructionBlockMoveOptimizer<REAL> opt3;
+            block = FBCInstructionOptimizer<REAL>::optimize(block, opt3);
         }
         
         if (min_level <= 4 && 4 <= max_level) {
             // 4) optimize 2 moves in pair move
-            FBCInstructionPairMoveOptimizer<T> opt4;
-            block = FBCInstructionOptimizer<T>::optimize(block, opt4);
+            FBCInstructionPairMoveOptimizer<REAL> opt4;
+            block = FBCInstructionOptimizer<REAL>::optimize(block, opt4);
         }
         
         if (min_level <= 5 && 5 <= max_level) {
             // 5) optimize 'cast' in heap cast
-            FBCInstructionCastOptimizer<T> opt5;
-            block = FBCInstructionOptimizer<T>::optimize(block, opt5);
+            FBCInstructionCastOptimizer<REAL> opt5;
+            block = FBCInstructionOptimizer<REAL>::optimize(block, opt5);
         }
         
         if (min_level <= 6 && 6 <= max_level) {
             // 6) optimize 'heap' and 'value' math operations
-            FBCInstructionMathOptimizer<T> opt6;
-            block = FBCInstructionOptimizer<T>::optimize(block, opt6);
+            FBCInstructionMathOptimizer<REAL> opt6;
+            block = FBCInstructionOptimizer<REAL>::optimize(block, opt6);
         }
         
         return block;

@@ -178,7 +178,7 @@ inline Tree sigLeftShift(Tree x, Tree y)
 }
 inline Tree sigRightShift(Tree x, Tree y)
 {
-    return sigBinOp(kRsh, x, y);
+    return sigBinOp(kARsh, x, y);
 }
 
 inline Tree sigGT(Tree x, Tree y)

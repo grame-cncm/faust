@@ -188,20 +188,23 @@ enum ASTNodes {
     End         = 0x0b,
     Br          = 0x0c,
     BrIf        = 0x0d,
-    TableSwitch = 0x0e,  // TODO: Rename to BrTable
+    BrTable     = 0x0e,
     Return      = 0x0f,
 
     CallFunction = 0x10,
     CallIndirect = 0x11,
+    RetCallFunction = 0x12,
+    RetCallIndirect = 0x13,
 
     Drop   = 0x1a,
     Select = 0x1b,
+    SelectWithType = 0x1c, // added in reference types proposal
 
-    GetLocal  = 0x20,
-    SetLocal  = 0x21,
-    TeeLocal  = 0x22,
-    GetGlobal = 0x23,
-    SetGlobal = 0x24,
+    LocalGet = 0x20,
+    LocalSet = 0x21,
+    LocalTee = 0x22,
+    GlobalGet = 0x23,
+    GlobalSet = 0x24,
 
     I32LoadMem = 0x28,
     I64LoadMem = 0x29,
@@ -230,8 +233,8 @@ enum ASTNodes {
     I64StoreMem16 = 0x3d,
     I64StoreMem32 = 0x3e,
 
-    CurrentMemory = 0x3f,
-    GrowMemory    = 0x40,
+    MemorySize = 0x3f,
+    MemoryGrow = 0x40,
 
     I32Const = 0x41,
     I64Const = 0x42,
@@ -240,13 +243,13 @@ enum ASTNodes {
 
     // Math operation moved in Binop.hh
 
-    I32ConvertI64  = 0xa7,  // TODO: rename to I32WrapI64
+    I32WrapI64     = 0xa7,
     I32STruncF32   = 0xa8,
     I32UTruncF32   = 0xa9,
     I32STruncF64   = 0xaa,
     I32UTruncF64   = 0xab,
-    I64STruncI32   = 0xac,  // TODO: rename to I64SExtendI32
-    I64UTruncI32   = 0xad,  // TODO: likewise
+    I64SExtendI32  = 0xac,
+    I64UExtendI32  = 0xad,
     I64STruncF32   = 0xae,
     I64UTruncF32   = 0xaf,
     I64STruncF64   = 0xb0,
@@ -255,12 +258,12 @@ enum ASTNodes {
     F32UConvertI32 = 0xb3,
     F32SConvertI64 = 0xb4,
     F32UConvertI64 = 0xb5,
-    F32ConvertF64  = 0xb6,  // TODO: rename to F32DemoteI64
+    F32DemoteI64   = 0xb6,
     F64SConvertI32 = 0xb7,
     F64UConvertI32 = 0xb8,
     F64SConvertI64 = 0xb9,
     F64UConvertI64 = 0xba,
-    F64ConvertF32  = 0xbb,  // TODO: rename to F64PromoteF32
+    F64PromoteF32  = 0xbb,
 
     I32ReinterpretF32 = 0xbc,
     I64ReinterpretF64 = 0xbd,

@@ -140,14 +140,7 @@ DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* co
 
 BasicTyped* InstBuilder::genBasicTyped(Typed::VarType type)
 {
-    // Possibly force FAUSTFLOAT type (= kFloatMacro) to internal real
-    Typed::VarType new_type = ((type == Typed::kFloatMacro) && gGlobal->gFAUSTFLOAT2Internal) ? itfloat() : type;
-
-    // If not defined, add the type in the table
-    if (gGlobal->gTypeTable.find(new_type) == gGlobal->gTypeTable.end()) {
-        gGlobal->gTypeTable[new_type] = new BasicTyped(new_type);
-    }
-    return gGlobal->gTypeTable[new_type];
+    return gGlobal->genBasicTyped(type);
 }
 
 int BasicTyped::getSize() const

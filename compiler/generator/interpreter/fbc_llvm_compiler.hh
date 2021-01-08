@@ -37,10 +37,10 @@
 #include "fbc_executor.hh"
 
 // FBC LLVM compiler
-template <class T>
-class FBCLLVMCompiler : public FBCExecuteFun<T> {
+template <class REAL>
+class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
 
-    typedef void (*compiledFun)(int* int_heap, T* real_heap, T** inputs, T** outputs);
+    typedef void (*compiledFun)(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs);
 
    protected:
     LLVMExecutionEngineRef fJIT;
@@ -62,18 +62,18 @@ class FBCLLVMCompiler : public FBCExecuteFun<T> {
    
     LLVMValueRef genFloat(float num) { return LLVMConstReal(LLVMFloatType(), num); }
     LLVMValueRef genDouble(double num) { return LLVMConstReal(LLVMDoubleType(), num); }
-    LLVMValueRef genReal(double num) { return (sizeof(T) == sizeof(double)) ? genDouble(num) : genFloat(num); }
+    LLVMValueRef genReal(double num) { return (sizeof(REAL) == sizeof(double)) ? genDouble(num) : genFloat(num); }
     LLVMValueRef genInt32(int num) { return LLVMConstInt(LLVMInt32Type(), num, true); }
-    LLVMValueRef genInt64(long long num) { return LLVMConstInt(LLVMInt64Type(), num, true); }
+    LLVMValueRef genInt64(int64_t num) { return LLVMConstInt(LLVMInt64Type(), num, true); }
 
     LLVMTypeRef getFloatTy() { return LLVMFloatType(); }
     LLVMTypeRef getDoubleTy() { return LLVMDoubleType(); }
-    LLVMTypeRef getRealTy() { return (sizeof(T) == sizeof(double)) ? getDoubleTy() : getFloatTy(); }
+    LLVMTypeRef getRealTy() { return (sizeof(REAL) == sizeof(double)) ? getDoubleTy() : getFloatTy(); }
     LLVMTypeRef getInt32Ty() { return LLVMInt32Type(); }
     LLVMTypeRef getInt64Ty() { return LLVMInt64Type(); }
     LLVMTypeRef getInt1Ty() { return LLVMInt1Type(); }
   
-    std::string getMathName(const std::string& name) { return (sizeof(T) == sizeof(float)) ? (name + "f") : name; }
+    std::string getMathName(const std::string& name) { return (sizeof(REAL) == sizeof(float)) ? (name + "f") : name; }
 
     void         pushValue(LLVMValueRef val) { fLLVMStack[fLLVMStackIndex++] = val; }
     LLVMValueRef popValue() { return fLLVMStack[--fLLVMStackIndex]; }
@@ -275,7 +275,7 @@ class FBCLLVMCompiler : public FBCExecuteFun<T> {
         pushValue(LLVMBuildLoad(fBuilder, typed_res, ""));
     }
 
-    void CompileBlock(FBCBlockInstruction<T>* block, LLVMBasicBlockRef code_block)
+    void CompileBlock(FBCBlockInstruction<REAL>* block, LLVMBasicBlockRef code_block)
     {
         InstructionIT it  = block->fInstructions.begin();
         bool          end = false;
@@ -463,7 +463,7 @@ class FBCLLVMCompiler : public FBCExecuteFun<T> {
                     it++;
                     break;
 
-                case FBCInstruction::kRshInt:
+                case FBCInstruction::kARshInt:
                     pushBinop(LLVMLShr);
                     it++;
                     break;
@@ -803,7 +803,7 @@ class FBCLLVMCompiler : public FBCExecuteFun<T> {
     }
 
    public:
-    FBCLLVMCompiler(FBCBlockInstruction<T>* fbc_block)
+    FBCLLVMCompiler(FBCBlockInstruction<REAL>* fbc_block)
     {
         fLLVMStackIndex = 0;
         fAddrStackIndex = 0;
@@ -929,7 +929,7 @@ class FBCLLVMCompiler : public FBCExecuteFun<T> {
         LLVMShutdown();
     }
 
-    void Execute(int* int_heap, T* real_heap, T** inputs, T** outputs)
+    void Execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs)
     {
         fCompiledFun(int_heap, real_heap, inputs, outputs);
     }

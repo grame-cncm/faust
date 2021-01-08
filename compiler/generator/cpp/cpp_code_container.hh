@@ -59,6 +59,8 @@ class CPPCodeContainer : public virtual CodeContainer {
         } else {
             addIncludeFile("<cmath>");
             addIncludeFile("<algorithm>");
+            // For int64_t type
+            addIncludeFile("<cstdint>");
         }
     }
 

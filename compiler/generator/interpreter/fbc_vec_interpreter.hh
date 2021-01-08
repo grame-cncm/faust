@@ -37,21 +37,21 @@
 //#define interp_assert(exp) faustassert(exp)
 #define interp_assert(exp)
 
-template <class T, int TRACE>
+template <class REAL, int TRACE>
 struct interpreter_dsp_factory_aux;
 
 // FBC interpreter
-template <class T, int VEC>
-class FBCVecInterpreter : public FBCExecutor<T> {
+template <class REAL, int VEC>
+class FBCVecInterpreter : public FBCExecutor<REAL> {
    protected:
     interpreter_dsp_factory_aux<T, 0>* fFactory;
 
     int*        fIntHeap;
-    T*          fRealHeap;
+    REAL*       fRealHeap;
     Soundfile** fSoundHeap;
 
-    T** fInputs;
-    T** fOutputs;
+    REAL** fInputs;
+    REAL** fOutputs;
 
 #define POP_INT() (int_stack[--int_stack_index])
 
@@ -131,7 +131,7 @@ class FBCVecInterpreter : public FBCExecutor<T> {
     }
 
     // virtual void ExecuteVecLoop(FBCBasicInstruction<T>* block)
-    virtual void ExecuteBlock(FBCBlockInstruction<T>* block)
+    virtual void ExecuteBlock(FBCBlockInstruction<REAL>* block)
     {
         static void* fDispatchTable[] = {
 
@@ -150,21 +150,21 @@ class FBCVecInterpreter : public FBCExecutor<T> {
 
             // Standard math (stack OP stack)
             &&do_kAddReal, &&do_kAddInt, &&do_kSubReal, &&do_kSubInt, &&do_kMultReal, &&do_kMultInt, &&do_kDivReal,
-            &&do_kDivInt, &&do_kRemReal, &&do_kRemInt, &&do_kLshInt, &&do_kRshInt, &&do_kGTInt, &&do_kLTInt,
+            &&do_kDivInt, &&do_kRemReal, &&do_kRemInt, &&do_kLshInt, &&do_kARshInt, &&do_kGTInt, &&do_kLTInt,
             &&do_kGEInt, &&do_kLEInt, &&do_kEQInt, &&do_kNEInt, &&do_kGTReal, &&do_kLTReal, &&do_kGEReal, &&do_kLEReal,
             &&do_kEQReal, &&do_kNEReal, &&do_kANDInt, &&do_kORInt, &&do_kXORInt,
 
             // Standard math (heap OP heap)
             &&do_kAddRealHeap, &&do_kAddIntHeap, &&do_kSubRealHeap, &&do_kSubIntHeap, &&do_kMultRealHeap,
             &&do_kMultIntHeap, &&do_kDivRealHeap, &&do_kDivIntHeap, &&do_kRemRealHeap, &&do_kRemIntHeap,
-            &&do_kLshIntHeap, &&do_kRshIntHeap, &&do_kGTIntHeap, &&do_kLTIntHeap, &&do_kGEIntHeap, &&do_kLEIntHeap,
+            &&do_kLshIntHeap, &&do_kARshIntHeap, &&do_kGTIntHeap, &&do_kLTIntHeap, &&do_kGEIntHeap, &&do_kLEIntHeap,
             &&do_kEQIntHeap, &&do_kNEIntHeap, &&do_kGTRealHeap, &&do_kLTRealHeap, &&do_kGERealHeap, &&do_kLERealHeap,
             &&do_kEQRealHeap, &&do_kNERealHeap, &&do_kANDIntHeap, &&do_kORIntHeap, &&do_kXORIntHeap,
 
             // Standard math (heap OP stack)
             &&do_kAddRealStack, &&do_kAddIntStack, &&do_kSubRealStack, &&do_kSubIntStack, &&do_kMultRealStack,
             &&do_kMultIntStack, &&do_kDivRealStack, &&do_kDivIntStack, &&do_kRemRealStack, &&do_kRemIntStack,
-            &&do_kLshIntStack, &&do_kRshIntStack, &&do_kGTIntStack, &&do_kLTIntStack, &&do_kGEIntStack,
+            &&do_kLshIntStack, &&do_kARshIntStack, &&do_kGTIntStack, &&do_kLTIntStack, &&do_kGEIntStack,
             &&do_kLEIntStack, &&do_kEQIntStack, &&do_kNEIntStack, &&do_kGTRealStack, &&do_kLTRealStack,
             &&do_kGERealStack, &&do_kLERealStack, &&do_kEQRealStack, &&do_kNERealStack, &&do_kANDIntStack,
             &&do_kORIntStack, &&do_kXORIntStack,
@@ -172,7 +172,7 @@ class FBCVecInterpreter : public FBCExecutor<T> {
             // Standard math (value OP stack)
             &&do_kAddRealStackValue, &&do_kAddIntStackValue, &&do_kSubRealStackValue, &&do_kSubIntStackValue,
             &&do_kMultRealStackValue, &&do_kMultIntStackValue, &&do_kDivRealStackValue, &&do_kDivIntStackValue,
-            &&do_kRemRealStackValue, &&do_kRemIntStackValue, &&do_kLshIntStackValue, &&do_kRshIntStackValue,
+            &&do_kRemRealStackValue, &&do_kRemIntStackValue, &&do_kLshIntStackValue, &&do_kARshIntStackValue,
             &&do_kGTIntStackValue, &&do_kLTIntStackValue, &&do_kGEIntStackValue, &&do_kLEIntStackValue,
             &&do_kEQIntStackValue, &&do_kNEIntStackValue, &&do_kGTRealStackValue, &&do_kLTRealStackValue,
             &&do_kGERealStackValue, &&do_kLERealStackValue, &&do_kEQRealStackValue, &&do_kNERealStackValue,
@@ -181,14 +181,14 @@ class FBCVecInterpreter : public FBCExecutor<T> {
             // Standard math (value OP heap)
             &&do_kAddRealValue, &&do_kAddIntValue, &&do_kSubRealValue, &&do_kSubIntValue, &&do_kMultRealValue,
             &&do_kMultIntValue, &&do_kDivRealValue, &&do_kDivIntValue, &&do_kRemRealValue, &&do_kRemIntValue,
-            &&do_kLshIntValue, &&do_kRshIntValue, &&do_kGTIntValue, &&do_kLTIntValue, &&do_kGEIntValue,
+            &&do_kLshIntValue, &&do_kARshIntValue, &&do_kGTIntValue, &&do_kLTIntValue, &&do_kGEIntValue,
             &&do_kLEIntValue, &&do_kEQIntValue, &&do_kNEIntValue, &&do_kGTRealValue, &&do_kLTRealValue,
             &&do_kGERealValue, &&do_kLERealValue, &&do_kEQRealValue, &&do_kNERealValue, &&do_kANDIntValue,
             &&do_kORIntValue, &&do_kXORIntValue,
 
             // Standard math (value OP heap) : non commutative operations
             &&do_kSubRealValueInvert, &&do_kSubIntValueInvert, &&do_kDivRealValueInvert, &&do_kDivIntValueInvert,
-            &&do_kRemRealValueInvert, &&do_kRemIntValueInvert, &&do_kLshIntValueInvert, &&do_kRshIntValueInvert,
+            &&do_kRemRealValueInvert, &&do_kRemIntValueInvert, &&do_kLshIntValueInvert, &&do_kARshIntValueInvert,
             &&do_kGTIntValueInvert, &&do_kLTIntValueInvert, &&do_kGEIntValueInvert, &&do_kLEIntValueInvert,
             &&do_kGTRealValueInvert, &&do_kLTRealValueInvert, &&do_kGERealValueInvert, &&do_kLERealValueInvert,
 
@@ -237,7 +237,7 @@ class FBCVecInterpreter : public FBCExecutor<T> {
         int sound_stack_index = 0;
         int addr_stack_index  = 0;
 
-        T             real_stack[512];
+        REAL          real_stack[512];
         int           int_stack[512];
         Soundfile*    sound_stack[512];
         InstructionIT address_stack[64];
@@ -321,8 +321,8 @@ class FBCVecInterpreter : public FBCExecutor<T> {
 
         int v1_int[VEC];
         int v2_int[VEC];
-        T   v1_real[VEC];
-        T   v2_real[VEC];
+        REAL v1_real[VEC];
+        REAL v2_real[VEC];
 
         try {
             InstructionIT it = block->fInstructions.begin();
@@ -681,7 +681,7 @@ class FBCVecInterpreter : public FBCExecutor<T> {
             dispatchNextVec();
         }
 
-        do_kRshInt : {
+        do_kARshInt : {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(v2_int[j] = POP_VEC_INT());
@@ -916,7 +916,7 @@ class FBCVecInterpreter : public FBCExecutor<T> {
             dispatchNextVec();
         }
 
-        do_kRshIntHeap : {
+        do_kARshIntHeap : {
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) >> READ_HEAP_VEC_INT((*it)->fOffset2)));
             STACK_UP_INT();
             dispatchNextVec();
@@ -1108,7 +1108,7 @@ class FBCVecInterpreter : public FBCExecutor<T> {
             dispatchNextVec();
         }
 
-        do_kRshIntStack : {
+        do_kARshIntStack : {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) >> v1_int[j]));
@@ -1332,7 +1332,7 @@ class FBCVecInterpreter : public FBCExecutor<T> {
             dispatchNextVec();
         }
 
-        do_kRshIntStackValue : {
+        do_kARshIntStackValue : {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue >> v1_int[j]));
@@ -1534,7 +1534,7 @@ class FBCVecInterpreter : public FBCExecutor<T> {
             dispatchNextVec();
         }
 
-        do_kRshIntValue : {
+        do_kARshIntValue : {
             VEC_LOOP(PUSH_VEC_INT((*it)->fIntValue >> READ_HEAP_VEC_INT((*it)->fOffset1)));
             STACK_UP_INT();
             dispatchNextVec();
@@ -1681,7 +1681,7 @@ class FBCVecInterpreter : public FBCExecutor<T> {
             dispatchNextVec();
         }
 
-        do_kRshIntValueInvert : {
+        do_kARshIntValueInvert : {
             VEC_LOOP(PUSH_VEC_INT(READ_HEAP_VEC_INT((*it)->fOffset1) >> (*it)->fIntValue));
             STACK_UP_INT();
             dispatchNextVec();
@@ -2432,7 +2432,7 @@ class FBCVecInterpreter : public FBCExecutor<T> {
     }
 
    public:
-    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 0>* factory)
+    FBCVecInterpreter(interpreter_dsp_factory_aux<REAL, 0>* factory)
     {
         /*
         std::cout << "FBCVecInterpreter :"
@@ -2463,42 +2463,42 @@ class FBCVecInterpreter : public FBCExecutor<T> {
         // std::cout << "fIntHeapSize = " << fFactory->fIntHeapSize << std::endl;
 
         // Initialise HEAP with 0
-        memset(fRealHeap, 0, fFactory->fRealHeapSize * sizeof(T));
+        memset(fRealHeap, 0, fFactory->fRealHeapSize * sizeof(REAL));
         memset(fIntHeap, 0, fFactory->fIntHeapSize * sizeof(int));
     }
 
-    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 1>* factory)
-        : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory)
+    FBCVecInterpreter(interpreter_dsp_factory_aux<REAL, 1>* factory)
+        : FBCVecInterpreter((interpreter_dsp_factory_aux<REAL, 0>*)factory)
     {
     }
 
-    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 2>* factory)
-        : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory)
+    FBCVecInterpreter(interpreter_dsp_factory_aux<REAL, 2>* factory)
+        : FBCVecInterpreter((interpreter_dsp_factory_aux<REAL, 0>*)factory)
     {
     }
 
-    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 3>* factory)
-        : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory)
+    FBCVecInterpreter(interpreter_dsp_factory_aux<REAL, 3>* factory)
+        : FBCVecInterpreter((interpreter_dsp_factory_aux<REAL, 0>*)factory)
     {
     }
 
-    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 4>* factory)
-        : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory)
+    FBCVecInterpreter(interpreter_dsp_factory_aux<REAL, 4>* factory)
+        : FBCVecInterpreter((interpreter_dsp_factory_aux<REAL, 0>*)factory)
     {
     }
 
-    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 5>* factory)
-        : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory)
+    FBCVecInterpreter(interpreter_dsp_factory_aux<REAL, 5>* factory)
+        : FBCVecInterpreter((interpreter_dsp_factory_aux<REAL, 0>*)factory)
     {
     }
 
-    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 6>* factory)
-        : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory)
+    FBCVecInterpreter(interpreter_dsp_factory_aux<REAL, 6>* factory)
+        : FBCVecInterpreter((interpreter_dsp_factory_aux<REAL, 0>*)factory)
     {
     }
 
-    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 7>* factory)
-        : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory)
+    FBCVecInterpreter(interpreter_dsp_factory_aux<REAL, 7>* factory)
+        : FBCVecInterpreter((interpreter_dsp_factory_aux<REAL, 0>*)factory)
     {
     }
 
@@ -2522,8 +2522,8 @@ class FBCVecInterpreter : public FBCExecutor<T> {
     void setIntValue(int offset, int value) { fIntHeap[offset] = value; }
     int  getIntValue(int offset) { return fIntHeap[offset]; }
 
-    virtual void setInput(int offset, T* buffer) { fInputs[offset] = buffer; }
-    virtual void setOutput(int offset, T* buffer) { fOutputs[offset] = buffer; }
+    virtual void setInput(int offset, REAL* buffer) { fInputs[offset] = buffer; }
+    virtual void setOutput(int offset, REAL* buffer) { fOutputs[offset] = buffer; }
 };
 
 #endif

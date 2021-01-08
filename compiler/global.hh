@@ -561,8 +561,12 @@ struct global {
     }
 
     bool hasVarType(const string& name) { return gVarTypeTable.find(name) != gVarTypeTable.end(); }
+    
+    BasicTyped* genBasicTyped(Typed::VarType type);
 
-    Typed::VarType getVarType(const string& name) { return gVarTypeTable[name]->getType(); }
+    Typed::VarType getVarType(const string& name);
+    
+    void setVarType(const string& name, Typed::VarType type);
 
     bool isMathForeignFunction(const string& name)
     {

@@ -393,8 +393,6 @@ void SOULScalarCodeContainer::generateCompute(int n)
     tab(n + 1, *fOut);
     *fOut << "{";
     tab(n + 2, *fOut);
-
-    tab(n + 2, *fOut);
     *fOut << "if (fUpdated) { fUpdated = false; control(); }";
     tab(n + 2, *fOut);
     tab(n + 2, *fOut);

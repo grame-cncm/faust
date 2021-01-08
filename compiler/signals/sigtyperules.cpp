@@ -744,7 +744,7 @@ static interval arithmetic(int opcode, const interval& x, const interval& y)
             return x % y;
         case kLsh:
             return x << y;
-        case kRsh:
+        case kARsh:
             return x >> y;
         case kGT:
             return x > y;

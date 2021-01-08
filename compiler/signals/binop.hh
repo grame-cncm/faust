@@ -213,7 +213,7 @@ struct BinOp {
 extern BinOp* gBinOpTable[];
 extern BinOp* gBinOpLateqTable[];
 
-enum { kAdd, kSub, kMul, kDiv, kRem, kLsh, kRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
+enum { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
 
 bool isBoolOpcode(int o);
 bool isLogicalOpcode(int o);

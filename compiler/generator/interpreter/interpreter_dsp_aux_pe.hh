@@ -26,21 +26,21 @@
 
 // Specialization using partial evaluation: making controllers constant and optimizing the code.
 
-template <class T, int TRACE>
-class interpreter_dsp_aux_pe : public interpreter_dsp_aux<T, TRACE> {
+template <class REAL, int TRACE>
+class interpreter_dsp_aux_pe : public interpreter_dsp_aux<REAL, TRACE> {
     protected:
-        FBCBlockInstruction<T>* fStaticInitBlock;
-        FBCBlockInstruction<T>* fInitBlock;
-        FBCBlockInstruction<T>* fResetUIBlock;
-        FBCBlockInstruction<T>* fClearBlock;
-        FBCBlockInstruction<T>* fComputeBlock;
-        FBCBlockInstruction<T>* fComputeDSPBlock;
+        FBCBlockInstruction<REAL>* fStaticInitBlock;
+        FBCBlockInstruction<REAL>* fInitBlock;
+        FBCBlockInstruction<REAL>* fResetUIBlock;
+        FBCBlockInstruction<REAL>* fClearBlock;
+        FBCBlockInstruction<REAL>* fComputeBlock;
+        FBCBlockInstruction<REAL>* fComputeDSPBlock;
     
-        std::map<int, int> fIntMap;
-        std::map<int, T>   fRealMap;
+        std::map<int, int>  fIntMap;
+        std::map<int, REAL> fRealMap;
     
     public:
-        interpreter_dsp_aux_pe(interpreter_dsp_factory_aux<T, TRACE>* factory)
+        interpreter_dsp_aux_pe(interpreter_dsp_factory_aux<REAL, TRACE>* factory)
         {
             std::cout << "interpreter_dsp_aux_pe\n";
             /*

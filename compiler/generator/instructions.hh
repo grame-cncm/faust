@@ -122,7 +122,12 @@ inline bool isRealType(Typed::VarType type)
 
 inline bool isRealPtrType(Typed::VarType type)
 {
-    return (type == Typed::kFloat_ptr || type == Typed::kFloatMacro_ptr || type == Typed::kDouble_ptr);
+    return (type == Typed::kFloat_ptr
+            || type == Typed::kFloat_ptr_ptr
+            || type == Typed::kFloatMacro_ptr
+            || type == Typed::kFloatMacro_ptr_ptr
+            || type == Typed::kDouble_ptr
+            || type == Typed::kDouble_ptr_ptr);
 }
 
 inline bool isIntType(Typed::VarType type)
@@ -130,12 +135,12 @@ inline bool isIntType(Typed::VarType type)
     return (type == Typed::kInt32 || type == Typed::kInt64);
 }
 
-inline bool isIntType32(Typed::VarType type)
+inline bool isInt32Type(Typed::VarType type)
 {
     return (type == Typed::kInt32);
 }
 
-inline bool isIntType64(Typed::VarType type)
+inline bool isInt64Type(Typed::VarType type)
 {
     return (type == Typed::kInt64);
 }
@@ -965,9 +970,9 @@ struct Int32NumInst : public ValueInst, public NumValueInst {
 };
 
 struct Int64NumInst : public ValueInst, public NumValueInst {
-    const long long fNum;
+    const int64_t fNum;
 
-    Int64NumInst(long long num) : ValueInst(), fNum(num) {}
+    Int64NumInst(int64_t num) : ValueInst(), fNum(num) {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1968,7 +1973,7 @@ struct InstBuilder {
     }
 
     static Int32NumInst* genInt32NumInst(int num) { return new Int32NumInst(num); }
-    static Int64NumInst* genInt64NumInst(long long num) { return new Int64NumInst(num); }
+    static Int64NumInst* genInt64NumInst(int64_t num) { return new Int64NumInst(num); }
     static BoolNumInst*  genBoolNumInst(bool num) { return new BoolNumInst(num); }
 
     // Numerical computation
@@ -2124,8 +2129,10 @@ struct InstBuilder {
     static BasicTyped* genBasicTyped(Typed::VarType type);  // moved in instructions.cpp
 
     static BasicTyped* genInt32Typed() { return genBasicTyped(Typed::kInt32); }
+    static BasicTyped* genInt64Typed() { return genBasicTyped(Typed::kInt64); }
     static BasicTyped* genVoidTyped() { return genBasicTyped(Typed::kVoid); }
     static BasicTyped* genFloatTyped() { return genBasicTyped(Typed::kFloat); }
+    static BasicTyped* genDoubleTyped() { return genBasicTyped(Typed::kDouble); }
     static BasicTyped* genFloatMacroTyped() { return genBasicTyped(Typed::kFloatMacro); }
 
     static NamedTyped* genNamedTyped(const string& name, Typed* type);
@@ -2528,7 +2535,7 @@ struct FIRIndex {
     /* explicit constructors in order to avoid the generation of implicit conversions */
     explicit FIRIndex(ValueInst* inst) : fValue(inst) {}
 
-    explicit FIRIndex(int i) : fValue(InstBuilder::genInt32NumInst(i)) {}
+    explicit FIRIndex(int num) : fValue(InstBuilder::genInt32NumInst(num)) {}
 
     FIRIndex(FIRIndex const& rhs) : fValue(rhs.fValue) {}
 

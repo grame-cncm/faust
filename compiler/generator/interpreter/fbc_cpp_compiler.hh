@@ -127,7 +127,7 @@ class FBCCPPCompiler {
     }
     std::string genReal(double num) { return (sizeof(T) == sizeof(double)) ? genDouble(num) : genFloat(num); }
     std::string genInt32(int num) { return std::to_string(num); }
-    std::string genInt64(long long num) { return std::to_string(num); }
+    std::string genInt64(int64_t num) { return std::to_string(num); }
 
     void        pushValue(const std::string& val) { fCPPStack[fCPPStackIndex++] = val; }
     std::string popValue() { return fCPPStack[--fCPPStackIndex]; }
@@ -330,7 +330,7 @@ class FBCCPPCompiler {
                     it++;
                     break;
 
-                case FBCInstruction::kRshInt:
+                case FBCInstruction::kARshInt:
                     pushBinopCall(">>");
                     it++;
                     break;

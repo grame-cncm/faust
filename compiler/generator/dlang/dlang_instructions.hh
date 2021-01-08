@@ -38,13 +38,16 @@ class DLangInstVisitor : public TextInstVisitor {
     // Polymorphic math functions
     map<string, string> gPolyMathLibTable;
 
-    TypingVisitor fTypingVisitor;
-
    public:
     using TextInstVisitor::visit;
 
     DLangInstVisitor(std::ostream* out, int tab = 0) : TextInstVisitor(out, ".", xfloat(), "*", tab)
     {
+        // Set 64 bits types
+        fTypeManager->fTypeDirectTable[Typed::kInt64]     = "long";
+        fTypeManager->fTypeDirectTable[Typed::kInt64_ptr] = "long*";
+        fTypeManager->fTypeDirectTable[Typed::kInt64_vec] = "vector<long>";
+     
         // Int version
         gPolyMathLibTable["abs"]   = "std.math.abs";
         gPolyMathLibTable["max_i"] = "max";
@@ -283,13 +286,34 @@ class DLangInstVisitor : public TextInstVisitor {
         *fOut << "&";
         inst->fAddress->accept(this);
     }
+    
+    virtual void visit(BinopInst* inst)
+    {
+        // Special case for 'logical right-shift'
+        if (strcmp(gBinOpTable[inst->fOpcode]->fName, ">>>") == 0) {
+            TypingVisitor typing;
+            inst->fInst1->accept(&typing);
+            if (isInt64Type(typing.fCurType)) {
+                *fOut << "(cast(long)(cast(ulong)";
+            } else if (isInt32Type(typing.fCurType)) {
+                *fOut << "(cast(int)(cast(uint)";
+            } else {
+                faustassert(false);
+            }
+            inst->fInst1->accept(this);
+            *fOut << " >> ";
+            inst->fInst2->accept(this);
+            *fOut << "))";
+        } else {
+            TextInstVisitor::visit(inst);
+        }
+    }
 
     virtual void visit(::CastInst* inst)
     {
         string type = fTypeManager->generateType(inst->fType);
-        *fOut << "cast(" << type << ")(";
+        *fOut << "cast(" << type << ")";
         inst->fInst->accept(this);
-        *fOut << ")";
     }
 
     /*
@@ -317,7 +341,7 @@ class DLangInstVisitor : public TextInstVisitor {
         name = (gPolyMathLibTable.find(name) != gPolyMathLibTable.end()) ? gPolyMathLibTable[name] : name;
         generateFunCall(inst, name);
     }
-
+    
     virtual void visit(FloatArrayNumInst* inst)
     {
         char sep = '[';

@@ -28,8 +28,8 @@
 #endif
 
 // Factory reader
-template <class T, int TRACE>
-interpreter_dsp_factory_aux<T, TRACE>* interpreter_dsp_factory_aux<T, TRACE>::read(std::istream* in)
+template <class REAL, int TRACE>
+interpreter_dsp_factory_aux<REAL, TRACE>* interpreter_dsp_factory_aux<REAL, TRACE>::read(std::istream* in)
 {
     std::string dummy;
     
@@ -148,76 +148,76 @@ interpreter_dsp_factory_aux<T, TRACE>* interpreter_dsp_factory_aux<T, TRACE>::re
     
     // Read user interface block
     getline(*in, dummy);  // Read "user_interface_block" line
-    FIRUserInterfaceBlockInstruction<T>* ui_block = readUIBlock(in);
+    FIRUserInterfaceBlockInstruction<REAL>* ui_block = readUIBlock(in);
     
     // Read static init block
     getline(*in, dummy);  // Read "static_init_block" line
-    FBCBlockInstruction<T>* static_init_block = readCodeBlock(in);
+    FBCBlockInstruction<REAL>* static_init_block = readCodeBlock(in);
     
     // Read constants block
     getline(*in, dummy);  // Read "constants_block" line
-    FBCBlockInstruction<T>* init_block = readCodeBlock(in);
+    FBCBlockInstruction<REAL>* init_block = readCodeBlock(in);
     
     // Read default ui block
     getline(*in, dummy);  // Read "clear_block" line
-    FBCBlockInstruction<T>* resetui_block = readCodeBlock(in);
+    FBCBlockInstruction<REAL>* resetui_block = readCodeBlock(in);
     
     // Read clear block
     getline(*in, dummy);  // Read "clear_block" line
-    FBCBlockInstruction<T>* clear_block = readCodeBlock(in);
+    FBCBlockInstruction<REAL>* clear_block = readCodeBlock(in);
     
     // Read control block
     getline(*in, dummy);  // Read "control_block" line
-    FBCBlockInstruction<T>* compute_control_block = readCodeBlock(in);
+    FBCBlockInstruction<REAL>* compute_control_block = readCodeBlock(in);
     
     // Read DSP block
     getline(*in, dummy);  // Read "dsp_block" line
-    FBCBlockInstruction<T>* compute_dsp_block = readCodeBlock(in);
+    FBCBlockInstruction<REAL>* compute_dsp_block = readCodeBlock(in);
 #ifdef MACHINE
-    return new interpreter_comp_dsp_factory_aux<T,TRACE>(factory_name, compile_options, sha_key, file_num, inputs, outputs, int_heap_size, real_heap_size,
+    return new interpreter_comp_dsp_factory_aux<REAL,TRACE>(factory_name, compile_options, sha_key, file_num, inputs, outputs, int_heap_size, real_heap_size,
                                                          sound_heap_size, sr_offset, count_offset, iota_offset, opt_level, meta_block, ui_block, static_init_block,
                                                          init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
 #else
-    return new interpreter_dsp_factory_aux<T,TRACE>(factory_name, compile_options, sha_key, file_num, inputs, outputs, int_heap_size, real_heap_size,
+    return new interpreter_dsp_factory_aux<REAL,TRACE>(factory_name, compile_options, sha_key, file_num, inputs, outputs, int_heap_size, real_heap_size,
                                                     sound_heap_size, sr_offset, count_offset, iota_offset, opt_level, meta_block, ui_block, static_init_block,
                                                     init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
 #endif
 }
 
-template <class T, int TRACE>
-void interpreter_dsp_factory_aux<T, TRACE>::optimize()
+template <class REAL, int TRACE>
+void interpreter_dsp_factory_aux<REAL, TRACE>::optimize()
 {
     if (!fOptimized) {
         fOptimized = true;
         // Bytecode optimization
         if (TRACE == 0) {
     #ifndef MACHINE
-            fStaticInitBlock = FBCInstructionOptimizer<T>::optimizeBlock(fStaticInitBlock, 1, fOptLevel);
-            fInitBlock       = FBCInstructionOptimizer<T>::optimizeBlock(fInitBlock, 1, fOptLevel);
-            fResetUIBlock    = FBCInstructionOptimizer<T>::optimizeBlock(fResetUIBlock, 1, fOptLevel);
-            fClearBlock      = FBCInstructionOptimizer<T>::optimizeBlock(fClearBlock, 1, fOptLevel);
-            fComputeBlock    = FBCInstructionOptimizer<T>::optimizeBlock(fComputeBlock, 1, fOptLevel);
-            fComputeDSPBlock = FBCInstructionOptimizer<T>::optimizeBlock(fComputeDSPBlock, 1, fOptLevel);
+            fStaticInitBlock = FBCInstructionOptimizer<REAL>::optimizeBlock(fStaticInitBlock, 1, fOptLevel);
+            fInitBlock       = FBCInstructionOptimizer<REAL>::optimizeBlock(fInitBlock, 1, fOptLevel);
+            fResetUIBlock    = FBCInstructionOptimizer<REAL>::optimizeBlock(fResetUIBlock, 1, fOptLevel);
+            fClearBlock      = FBCInstructionOptimizer<REAL>::optimizeBlock(fClearBlock, 1, fOptLevel);
+            fComputeBlock    = FBCInstructionOptimizer<REAL>::optimizeBlock(fComputeBlock, 1, fOptLevel);
+            fComputeDSPBlock = FBCInstructionOptimizer<REAL>::optimizeBlock(fComputeDSPBlock, 1, fOptLevel);
     #endif
         }
     }
 }
 
-template <class T, int TRACE>
-dsp* interpreter_dsp_factory_aux<T, TRACE>::createDSPInstance(dsp_factory* factory)
+template <class REAL, int TRACE>
+dsp* interpreter_dsp_factory_aux<REAL, TRACE>::createDSPInstance(dsp_factory* factory)
 {
     interpreter_dsp_factory* tmp = static_cast<interpreter_dsp_factory*>(factory);
     faustassert(tmp);
     
     if (tmp->getMemoryManager()) {
         return new (tmp->getFactory()->allocate(sizeof(interpreter_dsp)))
-        interpreter_dsp(tmp, new (tmp->getFactory()->allocate(sizeof(interpreter_dsp_aux<T, TRACE>)))
-                        interpreter_dsp_aux<T, TRACE>(this));
+        interpreter_dsp(tmp, new (tmp->getFactory()->allocate(sizeof(interpreter_dsp_aux<REAL, TRACE>)))
+                        interpreter_dsp_aux<REAL, TRACE>(this));
     } else {
     #ifdef MACHINE
-        return new interpreter_dsp(tmp, new interpreter_comp_dsp_aux<T, TRACE>(this));
+        return new interpreter_dsp(tmp, new interpreter_comp_dsp_aux<REAL, TRACE>(this));
     #else
-        return new interpreter_dsp(tmp, new interpreter_dsp_aux<T, TRACE>(this));
+        return new interpreter_dsp(tmp, new interpreter_dsp_aux<REAL, TRACE>(this));
     #endif
     }
 }

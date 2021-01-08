@@ -39,8 +39,6 @@ struct TypingVisitor : public InstVisitor {
 
     virtual void visit(LoadVarInst* inst)
     {
-        // dump2FIR(inst);
-
         // Stack or struct variables
         if (gGlobal->hasVarType(inst->getName())) {
             fCurType                = gGlobal->getVarType(inst->getName());
@@ -60,6 +58,7 @@ struct TypingVisitor : public InstVisitor {
             fCurType = Typed::kInt32;
         } else {
             fCurType = Typed::kNoType;
+            throw faustexception("ERROR in TypingVisitor : variable '" + inst->getName() + "' has Typed::kNoType\n");
         }
     }
 
@@ -102,9 +101,9 @@ struct TypingVisitor : public InstVisitor {
                 Typed::VarType type2 = fCurType;
                 if (isRealType(type2)) {
                     fCurType = type2;
-                } else if (isIntType32(type1) || isIntType32(type2)) {
+                } else if (isInt32Type(type1) || isInt32Type(type2)) {
                     fCurType = Typed::kInt32;
-                } else if (isIntType64(type1) || isIntType64(type2)) {
+                } else if (isInt64Type(type1) || isInt64Type(type2)) {
                     fCurType = Typed::kInt64;
                 } else if (isBoolType(type1) && isBoolType(type2)) {
                     fCurType = Typed::kBool;
