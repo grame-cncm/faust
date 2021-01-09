@@ -79,6 +79,7 @@ struct TableSizeCloneVisitor : public BasicCloneVisitor {
 class SOULCodeContainer : public virtual CodeContainer {
    protected:
     SOULInstVisitor fCodeProducer;
+    SOULInstUIVisitor fUIVisitor;
     std::ostream*   fOut;
 
     void produceInit(int tabs);
@@ -95,7 +96,7 @@ class SOULCodeContainer : public virtual CodeContainer {
             gGlobal->gTableSizeVisitor = new TableSizeVisitor();
         }
     }
-
+   
     CodeContainer* createScalarContainer(const string& name, int sub_container_type);
     void           produceInternal();
     void           produceClass();

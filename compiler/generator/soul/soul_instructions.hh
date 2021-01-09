@@ -37,11 +37,13 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
     std::stringstream     fOut;
     SOULStringTypeManager fTypeManager;
     int                   fTab;
+    bool                  fHasBargraph;  // Whether the DSP code has some Bargraphs
+    
     std::vector<std::pair <std::string, std::string> > fMetaAux;
 
     using DispatchVisitor::visit;
 
-    SOULInstUIVisitor(int tab) : fTypeManager(xfloat(), "*"), fTab(tab) {}
+    SOULInstUIVisitor(int tab = 1) : fTypeManager(xfloat(), "*"), fTab(tab), fHasBargraph(false) {}
     
     void addMeta()
     {
@@ -122,6 +124,9 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
 
     virtual void visit(AddBargraphInst* inst)
     {
+        // We have bargraphs
+        fHasBargraph = true;
+        
         if (gGlobal->gOutputLang == "soul-poly") {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
@@ -275,7 +280,7 @@ class SOULInstVisitor : public TextInstVisitor {
     }
 
     virtual ~SOULInstVisitor() {}
-
+   
     virtual void visit(AddButtonInst* inst)
     {
         *fOut << "// " << inst->fLabel;
@@ -382,6 +387,7 @@ class SOULInstVisitor : public TextInstVisitor {
             // special case for 'bargraph' considered as an 'output event'
         } else if (startWith(inst->fAddress->getName(), "fHbargraph") ||
                    startWith(inst->fAddress->getName(), "fVbargraph")) {
+            
             // value is stored in the bargraph variable
             {
                 inst->fAddress->accept(this);
