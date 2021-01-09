@@ -173,7 +173,6 @@ void DLangCodeContainer::produceInternal()
     *fOut << "struct " << fKlassName << " {\n";
     *fOut << "nothrow:\n";
     *fOut << "@nogc:";
-
     tab(n + 1, *fOut);
 
     if (gGlobal->gUIMacroSwitch) {
@@ -269,16 +268,13 @@ void DLangCodeContainer::produceClass()
     *fOut << "alias FAUSTCLASS = " << fKlassName << ";" << endl;
   
     // Global declarations
-    tab(n, *fOut);
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
     tab(n, *fOut);
     *fOut << "class " << fKlassName << " : " << fSuperKlassName << "\n{\n";
     *fOut << "nothrow:\n";
-    *fOut << "@nogc:\n";
-
-
+    *fOut << "@nogc:";
     tab(n + 1, *fOut);
 
     if (gGlobal->gUIMacroSwitch) {
@@ -492,10 +488,8 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     generateSubContainers();
 
     *fOut << "alias FAUSTCLASS = " << fKlassName << ";" << endl;
-    tab(n, *fOut);
-
+  
     // Global declarations
-    tab(n, *fOut);
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
 
@@ -503,13 +497,12 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     *fOut << "enum FAUST_OUTPUTS = " << fNumOutputs << ";" << endl;
     *fOut << "enum FAUST_INT_CONTROLS = " << fInt32ControlNum << ";" << endl;
     *fOut << "enum FAUST_REAL_CONTROLS = " << fRealControlNum << ";" << endl;
-    tab(n, *fOut);
     fSuperKlassName = "one_sample_dsp";
 
     tab(n, *fOut);
     *fOut << "class " << fKlassName << " : " << fSuperKlassName << "\n{\n";
     *fOut << "nothrow:\n";
-    *fOut << "@nogc:\n";
+    *fOut << "@nogc:";
     tab(n + 1, *fOut);
 
     if (gGlobal->gUIMacroSwitch) {
