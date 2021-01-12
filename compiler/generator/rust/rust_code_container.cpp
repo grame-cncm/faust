@@ -100,7 +100,6 @@ void RustCodeContainer::produceInternal()
 
     tab(n, *fOut);
     *fOut << "pub struct " << fKlassName << " {";
-
     tab(n + 1, *fOut);
 
     // Fields
@@ -355,6 +354,9 @@ void RustCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "}" << endl;
     tab(n, *fOut);
+    
+    // Generate user interface macros if needed
+    printMacros(*fOut, n);
 }
 
 void RustCodeContainer::produceMetadata(int n)

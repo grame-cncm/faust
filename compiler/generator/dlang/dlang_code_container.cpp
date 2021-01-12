@@ -175,13 +175,9 @@ void DLangCodeContainer::produceInternal()
     *fOut << "@nogc:";
     tab(n + 1, *fOut);
 
-    if (gGlobal->gUIMacroSwitch) {
-        tab(n, *fOut);
-        *fOut << "  public:";
-    } else {
-        tab(n, *fOut);
-        *fOut << "  private:";
-    }
+    tab(n, *fOut);
+    *fOut << "  private:";
+    
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
 
@@ -277,13 +273,8 @@ void DLangCodeContainer::produceClass()
     *fOut << "@nogc:";
     tab(n + 1, *fOut);
 
-    if (gGlobal->gUIMacroSwitch) {
-        tab(n, *fOut);
-        *fOut << " public:";
-    } else {
-        tab(n, *fOut);
-        *fOut << " private:";
-    }
+    tab(n, *fOut);
+    *fOut << " private:";
     tab(n + 1, *fOut);
 
     // Fields
@@ -408,9 +399,6 @@ void DLangCodeContainer::produceClass()
     tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "}" << endl;
-
-    // Generate user interface macros if needed
-    printMacros(*fOut, n);
 }
 
 // Scalar
@@ -505,13 +493,8 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     *fOut << "@nogc:";
     tab(n + 1, *fOut);
 
-    if (gGlobal->gUIMacroSwitch) {
-        tab(n, *fOut);
-        *fOut << " public:";
-    } else {
-        tab(n, *fOut);
-        *fOut << " private:";
-    }
+    tab(n, *fOut);
+    *fOut << " private:";
     tab(n + 1, *fOut);
 
     // Fields
@@ -649,10 +632,7 @@ void DLangScalarOneSampleCodeContainer::produceClass()
     generateCompute(n);
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "};" << endl;
-
-    // Generate user interface macros if needed
-    printMacros(*fOut, n);
+    *fOut << "}" << endl;
 }
 
 // Vector
