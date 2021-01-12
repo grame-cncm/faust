@@ -1445,7 +1445,7 @@ closed source license or any other license if you decide so.
 
 ma = library("maths.lib");
 ro = library("routes.lib");
-ba = library("basics.lib"); // so functions here can be copy/pasted out
+ba = library("basics.lib"); // for compatible copy/paste out of this file
 fi = library("filters.lib");
 si = library("signals.lib");
 
@@ -3008,7 +3008,7 @@ slidingRMSp(n,maxn) = pow(2) : slidingMeanp(n,maxn) : sqrt;
 
 //=================================Parallel Operator=========================================
 // Provides various operations on N parallel inputs using a high order
-// `parallelOp(op,N,x)`` function:
+// `parallelOp(op,N,x)` function:
 //
 // * `parallelMax(n)`: the max of n parallel inputs
 // * `parallelMin(n)`: the min of n parallel inputs
@@ -4192,7 +4192,7 @@ declare abs_envelope_rect copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com> and 
        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare abs_envelope_rect license "MIT-style STK-4.3 license";
-abs_envelope_rect(period, x) = abs(x) : ma.avg_rect(period);
+abs_envelope_rect(period, x) = abs(x) : fi.avg_rect(period);
 
 
 
@@ -4215,7 +4215,7 @@ declare abs_envelope_tau copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com> and 
        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare abs_envelope_tau license "MIT-style STK-4.3 license";
-abs_envelope_tau(period, x) = abs(x) : ma.avg_tau(period);
+abs_envelope_tau(period, x) = abs(x) : fi.avg_tau(period);
 
 
 //------------------`(an.)abs_envelope_t60`------------------------------------
@@ -4237,7 +4237,7 @@ declare abs_envelope_t60 copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com> and 
        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare abs_envelope_t60 license "MIT-style STK-4.3 license";
-abs_envelope_t60(period, x) = abs(x) : ma.avg_t60(period);
+abs_envelope_t60(period, x) = abs(x) : fi.avg_t60(period);
 
 
 //------------------`(an.)abs_envelope_t19`------------------------------------
@@ -4259,7 +4259,7 @@ declare abs_envelope_t19 copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com> and 
        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare abs_envelope_t19 license "MIT-style STK-4.3 license";
-abs_envelope_t19(period, x) = abs(x) : ma.avg_t19(period);
+abs_envelope_t19(period, x) = abs(x) : fi.avg_t19(period);
 
 
 //---------------------------`(an.)amp_follower`---------------------------
@@ -4355,7 +4355,7 @@ declare ms_envelope_rect copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com> and 
        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare ms_envelope_rect license "MIT-style STK-4.3 license";
-ms_envelope_rect(period, x) = x * x : ma.avg_rect(period);
+ms_envelope_rect(period, x) = x * x : fi.avg_rect(period);
 
 
 //------------------`(an.)ms_envelope_tau`-------------------------------------
@@ -4377,7 +4377,7 @@ declare ms_envelope_tau copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com> and 
        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare ms_envelope_tau license "MIT-style STK-4.3 license";
-ms_envelope_tau(period, x) = x * x : ma.avg_tau(period);
+ms_envelope_tau(period, x) = x * x : fi.avg_tau(period);
 
 
 //------------------`(an.)ms_envelope_t60`-------------------------------------
@@ -4399,7 +4399,7 @@ declare ms_envelope_t60 copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com> and 
        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare ms_envelope_t60 license "MIT-style STK-4.3 license";
-ms_envelope_t60(period, x) = x * x : ma.avg_t60(period);
+ms_envelope_t60(period, x) = x * x : fi.avg_t60(period);
 
 
 //------------------`(an.)ms_envelope_t19`-------------------------------------
@@ -4421,7 +4421,7 @@ declare ms_envelope_t19 copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com> and 
        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare ms_envelope_t19 license "MIT-style STK-4.3 license";
-ms_envelope_t19(period, x) = x * x : ma.avg_t19(period);
+ms_envelope_t19(period, x) = x * x : fi.avg_t19(period);
 
 
 //------------------`(an.)rms_envelope_rect`-----------------------------------
@@ -8188,8 +8188,8 @@ echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0
 // ```
 //
 //------------------------------------------------------------
-version =   1, // MAJOR version when we make incompatible API changes,
-            3, // MINOR version when we add functionality in a backwards compatible manner,
+version =   2, // MAJOR version when we make incompatible API changes,
+            0, // MINOR version when we add functionality in a backwards compatible manner,
             0; // PATCH version when we make backwards compatible bug fixes.
 
             
@@ -14497,6 +14497,8 @@ chebychevpoly(lcoef) = _ <: L(0,lcoef) :> _
  **
  ******************************************************************************/
 
+fi = library("filters.lib");
+
 /*******************************************************************************
   * 1-dimensional function tables for linear interpolation
 *******************************************************************************/
@@ -14546,7 +14548,7 @@ getFactor(low, step, size, x) =
  ******************************************************************************/
 
 tubestageF(tb,vplus,divider,fck,Rk,Vk0) = tube : hpf with {
-    lpfk = library("filters.lib").lowpass(1,fck);
+    lpfk = fi.lowpass(1,fck);
     Rp = 100.0e3;
     VkC = Vk0 * (Rp/Rk);
 
@@ -14557,7 +14559,7 @@ tubestageF(tb,vplus,divider,fck,Rk,Vk0) = tube : hpf with {
     size = 2000; // (real size = 2001, set the actual size at 2001-1 for interpolation to work at the last point)
 
     tube = (+ : -(Vk0) : tubeF(tb, low, high, step, size) : +(VkC-vplus)) ~ (*(Rk/Rp) : lpfk) : /(divider);
-    hpf = library("filters.lib").highpass(1,31.0);
+    hpf = fi.highpass(1,31.0);
 };
 
 tubestage(tb,fck,Rk,Vk0)       = tubestageF(tb,250.0,40.0,fck,Rk,Vk0);
@@ -23057,7 +23059,7 @@ si = library("signals.lib");
 fi = library("filters.lib"); // for compatible copy/paste out of this file
 
 declare name "Faust Filters Library";
-declare version "0.2";
+declare version "0.3";
 
 //===============================Basic Filters============================================
 //========================================================================================
@@ -25677,6 +25679,119 @@ svf = environment {
 };
 
 
+//============================Averaging Functions==============================
+//=============================================================================
+//
+// These are a set of samplerate independent averaging functions based on
+// moving-average and one-pole filters with specific response characteristics.
+
+//----------------------------`(fi.)avg_rect`----------------------------------
+// Moving average.
+//
+// #### Usage
+//
+// ```
+// _ : avg_rect(period) : _
+// ```
+//
+// Where:
+//
+// * `period` is the averaging frame in seconds
+//-----------------------------------------------------------------------------
+declare avg_rect author "Dario Sanfilippo and Julius O. Smith III";
+declare avg_rect copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare avg_rect license "MIT-style STK-4.3 license";
+avg_rect(period, x) = x : ba.slidingMean(rint(period * ma.SR));
+
+
+//----------------------------(fi.)avg_tau-------------------------------------
+// Averaging function based on a one-pole filter and the tau response time.
+// Tau represents the effective length of the one-pole impulse response,
+// that is, tau is the integral of the filter's impulse response. This
+// response is slower to reach the final value but has less ripples in
+// non-steady signals.
+// 
+// #### Usage
+//
+// ```
+// _ avg_tau(period) : _
+// ```
+//
+// Where:
+//
+// * `period` is the time, in seconds, for the system to decay by 1/e, 
+// or to reach 1-1/e of its final value.
+//
+// #### Reference
+//
+// <https://ccrma.stanford.edu/~jos/mdft/Exponentials.html>
+//-----------------------------------------------------------------------------
+declare avg_tau author "Dario Sanfilippo and Julius O. Smith III";
+declare avg_tau copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare avg_tau license "MIT-style STK-4.3 license";
+avg_tau(period, x) = fi.lptau(period, x);
+
+
+//----------------------------(fi.)avg_t60-------------------------------------
+// Averaging function based on a one-pole filter and the t60 response time.
+// This response is particularly useful when the system is required to 
+// reach the final value after about `period` seconds.
+// 
+// #### Usage
+//
+// ```
+// _ avg_t60(period) : _
+// ```
+//
+// Where:
+//
+// * `period` is the time, in seconds, for the system to decay by 1/1000, 
+// or to reach 1-1/1000 of its final value.
+//
+// #### Reference
+//
+// <https://ccrma.stanford.edu/~jos/mdft/Audio_Decay_Time_T60.html>
+//-----------------------------------------------------------------------------
+declare avg_t60 author "Dario Sanfilippo and Julius O. Smith III";
+declare avg_t60 copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare avg_t60 license "MIT-style STK-4.3 license";
+avg_t60(period, x) = fi.lpt60(period, x);
+
+
+//----------------------------(fi.)avg_t19-------------------------------------
+// Averaging function based on a one-pole filter and the t19 response time.
+// This response is close to the moving-average algorithm as it roughly reaches
+// the final value after `period` seconds and shows about the same
+// oscillations for non-steady signals.
+//
+// #### Usage
+//
+// ```
+// _ avg_t19(period) : _
+// ```
+//
+// Where:
+//
+// * `period` is the time, in seconds, for the system to decay by 1/e^2.2, 
+// or to reach 1-1/e^2.2 of its final value.
+//
+// #### Reference
+// Zölzer, U. (2008). Digital audio signal processing (Vol. 9). New York: Wiley.
+//-----------------------------------------------------------------------------
+declare avg_t19 author "Dario Sanfilippo and Julius O. Smith III";
+declare avg_t19 copyright "Copyright (C) 2020 Dario Sanfilippo
+      <sanfilippo.dario@gmail.com> and
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare avg_t19 license "MIT-style STK-4.3 license";
+avg_t19(period, x) = fi.lpt19(period, x); 
+
+
 /*******************************************************************************
 # Licenses
 
@@ -25788,7 +25903,7 @@ declare version "0.0";
 //
 // Where:
 //
-// * `N`: is an integer known at compile time that indicates the number of parallel cables.
+// * `N`: is an integer known at compile time that indicates the number of parallel cables
 //-----------------------------------------------------------------------------
 bus(2) = _,_; // avoids a lot of "bus(1)" labels in block diagrams
 bus(n) = par(i, n, _);
@@ -25805,7 +25920,7 @@ bus(n) = par(i, n, _);
 //
 // Where:
 //
-// * `N`: the number of signals to be blocked known at compile time. 
+// * `N`: the number of signals to be blocked known at compile time 
 //--------------------------------------
 block(n) = par(i, n, !);
 
@@ -33608,9 +33723,6 @@ declare license "LGPL with exception";
 
 // This library contains platform specific constants 
 pl = library("platform.lib");
-ba = library("basics.lib");
-si = library("signals.lib");
-fi = library("filters.lib");
 ma = library("maths.lib"); // for compatible copy/paste out of this file
 
 //=============================Functions Reference========================================
@@ -34277,115 +34389,3 @@ nextpow2(x) = ceil(log(x)/log(2.0));
 //-----------------------------------------------------------------------------
 zc(x) = x * x' < 0;
 
-
-//============================Averaging Functions==============================
-//=============================================================================
-//
-// These are a set of samplerate independent averaging functions based on
-// moving-average and one-pole filters with specific response characteristics.
-
-//----------------------------`(ma.)avg_rect`----------------------------------
-// Moving average.
-//
-// #### Usage
-//
-// ```
-// _ : avg_rect(period) : _
-// ```
-//
-// Where:
-//
-// * `period` is the averaging frame in seconds
-//-----------------------------------------------------------------------------
-declare avg_rect author "Dario Sanfilippo and Julius O. Smith III";
-declare avg_rect copyright "Copyright (C) 2020 Dario Sanfilippo 
-      <sanfilippo.dario@gmail.com> and 
-       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
-declare avg_rect license "MIT-style STK-4.3 license";
-avg_rect(period, x) = x : ba.slidingMean(rint(period * ma.SR));
-
-
-//----------------------------(ma.)avg_tau-------------------------------------
-// Averaging function based on a one-pole filter and the tau response time.
-// Tau represents the effective length of the one-pole impulse response,
-// that is, tau is the integral of the filter's impulse response. This
-// response is slower to reach the final value but has less ripples in
-// non-steady signals.
-// 
-// #### Usage
-//
-// ```
-// _ avg_tau(period) : _
-// ```
-//
-// Where:
-//
-// * `period` is the time, in seconds, for the system to decay by 1/e, 
-// or to reach 1-1/e of its final value.
-//
-// #### Reference
-//
-// <https://ccrma.stanford.edu/~jos/mdft/Exponentials.html>
-//-----------------------------------------------------------------------------
-declare avg_tau author "Dario Sanfilippo and Julius O. Smith III";
-declare avg_tau copyright "Copyright (C) 2020 Dario Sanfilippo 
-      <sanfilippo.dario@gmail.com> and 
-       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
-declare avg_tau license "MIT-style STK-4.3 license";
-avg_tau(period, x) = fi.lptau(period, x);
-
-
-//----------------------------(ma.)avg_t60-------------------------------------
-// Averaging function based on a one-pole filter and the t60 response time.
-// This response is particularly useful when the system is required to 
-// reach the final value after about `period` seconds.
-// 
-// #### Usage
-//
-// ```
-// _ avg_t60(period) : _
-// ```
-//
-// Where:
-//
-// * `period` is the time, in seconds, for the system to decay by 1/1000, 
-// or to reach 1-1/1000 of its final value.
-//
-// #### Reference
-//
-// <https://ccrma.stanford.edu/~jos/mdft/Audio_Decay_Time_T60.html>
-//-----------------------------------------------------------------------------
-declare avg_t60 author "Dario Sanfilippo and Julius O. Smith III";
-declare avg_t60 copyright "Copyright (C) 2020 Dario Sanfilippo 
-      <sanfilippo.dario@gmail.com> and 
-       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
-declare avg_t60 license "MIT-style STK-4.3 license";
-avg_t60(period, x) = fi.lpt60(period, x);
-
-
-//----------------------------(ma.)avg_t19-------------------------------------
-// Averaging function based on a one-pole filter and the t19 response time.
-// This response is close to the moving-average algorithm as it roughly reaches
-// the final value after `period` seconds and shows about the same
-// oscillations for non-steady signals.
-//
-// #### Usage
-//
-// ```
-// _ avg_t19(period) : _
-// ```
-//
-// Where:
-//
-// * `period` is the time, in seconds, for the system to decay by 1/e^2.2, 
-// or to reach 1-1/e^2.2 of its final value.
-//
-// #### Reference
-// Zölzer, U. (2008). Digital audio signal processing (Vol. 9). New York: Wiley.
-//-----------------------------------------------------------------------------
-declare avg_t19 author "Dario Sanfilippo and Julius O. Smith III";
-declare avg_t19 copyright "Copyright (C) 2020 Dario Sanfilippo
-      <sanfilippo.dario@gmail.com> and
-       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
-declare avg_t19 license "MIT-style STK-4.3 license";
-avg_t19(period, x) = fi.lpt19(period, x); 
