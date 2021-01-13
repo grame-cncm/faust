@@ -14,8 +14,6 @@ import android.view.ViewGroup;
 
 import com.DspFaust.DspFaust;
 
-import junit.framework.Assert;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -282,7 +280,6 @@ public class MultiKeyboard extends ViewGroup {
         // case where no pitch keyboard is on: we trigger the main voice on startup
         if ((int)keyboardParameters.get("Max Keyboard Polyphony") == 0) {
             voices[0] = dspFaust.newVoice();
-             Assert.assertFalse(voices[0] == 0);
         }
 
         ArrayList<String> dspKeys = new ArrayList<String>();
@@ -624,7 +621,6 @@ public class MultiKeyboard extends ViewGroup {
             if ((int) keyboardParameters.get("Max Keyboard Polyphony") > 0) {
                 // allocating new voice to finger
                 voices[fingerId] = dspFaust.newVoice();
-                 Assert.assertFalse(voices[fingerId] == 0);
             }
             else{
                 voices[fingerId] = voices[0];
