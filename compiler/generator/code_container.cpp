@@ -506,13 +506,13 @@ void CodeContainer::printMacros(ostream& fout, int n)
             }
             fout << "#endif" << endl;
         } else if (gGlobal->gOutputLang == "rust") {
-            fout << "const FAUST_INPUTS: i32 = " << fNumInputs << ";";
+            fout << "pub const FAUST_INPUTS: i32 = " << fNumInputs << ";";
             tab(n, fout);
-            fout << "const FAUST_OUTPUTS: i32 = " << fNumOutputs << ";";
+            fout << "pub const FAUST_OUTPUTS: i32 = " << fNumOutputs << ";";
             tab(n, fout);
-            fout << "const FAUST_ACTIVES: i32 = " << fNumActives << ";";
+            fout << "pub const FAUST_ACTIVES: i32 = " << fNumActives << ";";
             tab(n, fout);
-            fout << "const FAUST_PASSIVES: i32 = " << fNumPassives << ";";
+            fout << "pub const FAUST_PASSIVES: i32 = " << fNumPassives << ";";
             tab(n, fout);
         } else {
             faustassert(false);

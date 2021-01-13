@@ -70,11 +70,11 @@ class time_bench {
         int fCount;
         int fSkip;
     
-        // These values are used to determine the number of clocks in a second
+        // These values are used to determine the number of ticks in a second
         uint64_t fFirstRDTSC;
         uint64_t fLastRDTSC;
     
-        // These tables contains the last fCount in clocks
+        // These tables contains the last fCount in ticks
         uint64_t* fStarts;
         uint64_t* fStops;
     
@@ -101,7 +101,7 @@ class time_bench {
         }
 
         /**
-         * return the number of RDTSC clocks per seconds
+         * return the number of RDTSC ticks per seconds
          */
         double rdtscpersec()
         {
@@ -119,7 +119,7 @@ class time_bench {
         }
   
         /**
-         * Converts a duration, expressed in RDTSC clocks, into seconds
+         * Converts a duration, expressed in RDTSC ticks, into seconds
          */
         double rdtsc2sec(uint64_t clk)
         {
@@ -132,7 +132,7 @@ class time_bench {
         }
     
         /**
-         * Converts RDTSC clocks into Megabytes/seconds according to the
+         * Converts RDTSC ticks into MBytes/seconds according to the
          * number of frames processed during the period, the number of channels
          * and sizeof(REAL) bytes samples
          */
@@ -405,7 +405,7 @@ class measure_dsp_aux : public decorator_dsp {
          *
          * @param dsp - the dsp to be measured.
          * @param buffer_size - the buffer size used when calling 'computeAll'
-         * @param count - the number of cycles using in 'computeAll'
+         * @param count - the number of audio cycles used in 'computeAll'
          * @param trace - whether to log the trace
          * @param control - whether to activate random changes of all control values at each cycle
          *
@@ -547,7 +547,7 @@ class measure_dsp_aux : public decorator_dsp {
     
         float getCPULoad()
         {
-            return (fBench->measureDurationUsec() / 1000.0 * BENCH_SAMPLE_RATE) / (fBench->getCount() * fBufferSize * 1000.0);
+            return (fBench->measureDurationUsec() / 1000.0 * BENCH_SAMPLE_RATE) / (double(fBench->getCount()) * double(fBufferSize) * 1000.0);
         }
     
         int getCount() { return fCount; }

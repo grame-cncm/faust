@@ -111,7 +111,7 @@ static double bench(dsp* dsp, int dsp_size, const string& name, int run, int buf
     measure_dsp_aux<REAL> mes(dsp, buffer_size, 5., is_trace, is_control);  // Buffer_size and duration in sec of measure
     for (int i = 0; i < run; i++) {
         mes.measure();
-        if (is_trace) cout << name << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << "), DSP struct memory size in bytes : " << dsp_size << endl;
+        if (is_trace) cout << name << " : " << mes.getStats() << " MBytes/sec (DSP CPU % : " << (mes.getCPULoad() * 100) << " at " << BENCH_SAMPLE_RATE << " Hz), DSP struct memory size in bytes : " << dsp_size << endl;
         FAUSTBENCH_LOG<double>(mes.getStats());
     }
     return mes.getStats();
@@ -265,7 +265,7 @@ extern "C" int bench_all(const char* name, int run, int buffer_size, bool is_tra
     long int pos = distance(measures.begin(), it);
     
     if (is_trace) {
-        cout << "Best value is : " << measures1[measures1.size()-1] << " with " << options[pos] << endl;
+        cout << "Best value is : " << measures1[measures1.size()-1] << " MBytes/sec with " << options[pos] << endl;
     } else {
         cout << options[pos] << endl;
     }

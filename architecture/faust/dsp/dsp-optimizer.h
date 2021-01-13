@@ -80,7 +80,7 @@ class dsp_optimizer {
                 measure_dsp_aux<REAL> mes(fDSP, fBufferSize, fCount, fTrace, fControl);
                 for (int i = 0; i < run; i++) {
                     mes.measure();
-                    if (fTrace) std::cout << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << std::endl;
+                    if (fTrace) std::cout << mes.getStats() << " MBytes/sec (DSP CPU % : " << (mes.getCPULoad() * 100) << " at " << BENCH_SAMPLE_RATE << " Hz)" << std::endl;
                     FAUSTBENCH_LOG<double>(mes.getStats());
                 }
                 return mes.getStats();

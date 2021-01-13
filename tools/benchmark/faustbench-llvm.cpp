@@ -32,7 +32,7 @@ template <typename REAL>
 static void bench(dsp_optimizer<REAL> optimizer, const string& name, bool is_trace)
 {
     pair<double, vector<string> > res = optimizer.findOptimizedParameters();
-    if (is_trace) cout << "Best value for '" << name << "' is : " << res.first << " with ";
+    if (is_trace) cout << "Best value for '" << name << "' is : " << res.first << " MBytes/sec with ";
     for (int i = 0; i < res.second.size(); i++) {
         cout << res.second[i] << " ";
     }
