@@ -47,6 +47,14 @@ type F64 = Fast<f64>;
 #[derive(Copy, Clone)]
 pub struct ParamIndex(i32);
 
+pub struct Soundfile<'a> {
+    fBuffers: &'a&'a F32,
+    fLength: &'a i32,
+    fSR: &'a i32,
+    fOffset: &'a i32,
+    fChannels: i32
+}
+
 pub trait FaustDsp {
     type T;
 
