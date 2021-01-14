@@ -64,9 +64,9 @@
 PRE_PACKED_STRUCTURE
 struct Soundfile {
     FAUSTFLOAT** fBuffers;
-    int* fLength;   // length of each part
-    int* fSR;       // sample rate of each part
-    int* fOffset;   // offset of each part in the global buffer
+    int* fLength;   // length of each part (so fLength[P] contains the length in frames of part P)
+    int* fSR;       // sample rate of each part (so fSR[P] contains the SR of part P)
+    int* fOffset;   // offset of each part in the global buffer (so fOffset[P] contains the offset in frames of part P)
     int fChannels;  // max number of channels of all concatenated files
 
     Soundfile()

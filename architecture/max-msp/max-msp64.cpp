@@ -211,37 +211,8 @@ void faust_allocate(t_faust* x, int nvoices)
     #ifdef POST
         post("monophonic DSP");
     #endif
-    #if (DOWN_SAMPLING > 0)
-        #if (FILTER_TYPE == 0)
-            x->m_dsp = new dsp_down_sampler<Identity<Double<1,1>, DOWN_SAMPLING>>(new mydsp());
-        #elif (FILTER_TYPE == 1)
-            x->m_dsp = new dsp_down_sampler<LowPass3<Double<45,100>, DOWN_SAMPLING, double>>(new mydsp());
-        #elif (FILTER_TYPE == 2)
-            x->m_dsp = new dsp_down_sampler<LowPass4<Double<45,100>, DOWN_SAMPLING, double>>(new mydsp());
-        #elif (FILTER_TYPE == 3)
-            x->m_dsp = new dsp_down_sampler<LowPass3e<Double<45,100>, DOWN_SAMPLING, double>>(new mydsp());
-        #elif (FILTER_TYPE == 4)
-            x->m_dsp = new dsp_down_sampler<LowPass6eé<Double<45,100>, DOWN_SAMPLING, double>>(new mydsp());
-        #else
-            #error "ERROR : Filter type must be in [0..4] range"
-        #endif
-    #elif (UP_SAMPLING > 0)
-        #if (FILTER_TYPE == 0)
-            x->m_dsp = new dsp_up_sampler<Identity<Double<1,1>, UP_SAMPLING>>(new mydsp());
-        #elif (FILTER_TYPE == 1)
-            x->m_dsp = new dsp_up_sampler<LowPass3<Double<45,100>, UP_SAMPLING, double>>(new mydsp());
-        #elif (FILTER_TYPE == 2)
-            x->m_dsp = new dsp_up_sampler<LowPass4<Double<45,100>, UP_SAMPLING, double>>(new mydsp());
-        #elif (FILTER_TYPE == 3)
-            x->m_dsp = new dsp_up_sampler<LowPass3e<Double<45,100>, UP_SAMPLING, double>>(new mydsp());
-        #elif (FILTER_TYPE == 4)
-            x->m_dsp = new dsp_up_sampler<LowPass6e<Double<45,100>, UP_SAMPLING, double>>(new mydsp());
-        #else
-            #error "ERROR : Filter type must be in [0..4] range"
-        #endif
-    #else
-        x->m_dsp = new mydsp();
-    #endif
+        // Create a DS/US + Filter adapted DSP
+        x->m_dsp = createSRAdapter<FAUSTFLOAT>(new mydsp(), DOWN_SAMPLING, UP_SAMPLING, FILTER_TYPE);
     }
     
 #ifdef MIDICTRL

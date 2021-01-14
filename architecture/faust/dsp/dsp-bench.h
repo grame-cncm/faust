@@ -41,6 +41,7 @@
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/MapUI.h"
+#include "faust/dsp/dsp-adapter.h"
 
 // number of vectors in BIG buffer (should exceed cache)
 #define NBV 4096
@@ -408,10 +409,20 @@ class measure_dsp_aux : public decorator_dsp {
          * @param count - the number of audio cycles used in 'computeAll'
          * @param trace - whether to log the trace
          * @param control - whether to activate random changes of all control values at each cycle
+         * @param ds - downsampling factor
+         * @param us - upsampling factor
+         * @param filter - filter type
          *
          */
-        measure_dsp_aux(dsp* dsp, int buffer_size, int count, bool trace = true, bool control = false)
-            :decorator_dsp(dsp), fBufferSize(buffer_size), fCount(count), fControl(control)
+        measure_dsp_aux(dsp* dsp,
+                        int buffer_size,
+                        int count,
+                        bool trace = true,
+                        bool control = false,
+                        int ds = 0,
+                        int us = 0,
+                        int filter = 0)
+            :decorator_dsp(createSRAdapter<REAL>(dsp, ds, us, filter)), fBufferSize(buffer_size), fCount(count), fControl(control)
         {
             init();
             fBench = new time_bench<REAL>(fCount, 10);
@@ -424,11 +435,21 @@ class measure_dsp_aux : public decorator_dsp {
          * @param buffer_size - the buffer size used when calling 'computeAll'
          * @param duration_in_sec - the wanted duration used in 'computeAll'
          * @param trace - whether to log the trace
-         * @param random - whether to activate random changes of all control values at each cycle
+         * @param control - whether to activate random changes of all control values at each cycle
+         * @param ds - downsampling factor
+         * @param us - upsampling factor
+         * @param filter - filter type
          *
          */
-        measure_dsp_aux(dsp* dsp, int buffer_size, double duration_in_sec, bool trace = true, bool control = false)
-            :decorator_dsp(dsp), fBufferSize(buffer_size), fControl(control)
+        measure_dsp_aux(dsp* dsp,
+                        int buffer_size,
+                        double duration_in_sec,
+                        bool trace = true,
+                        bool control = false,
+                        int ds = 0,
+                        int us = 0,
+                        int filter = 0)
+            :decorator_dsp(createSRAdapter<REAL>(dsp, ds, us, filter)), fBufferSize(buffer_size), fControl(control)
         {
             init();
             

@@ -1,4 +1,4 @@
-/************************** BEGIN llvm-dsp-multifun.h **************************/
+/************************** BEGIN dsp-multifun.h **************************/
 /************************************************************************
  ************************************************************************
  Copyright (C) 2020 GRAME, Centre National de Creation Musicale
@@ -20,13 +20,14 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef LLVM_mydsp_multifun_H
-#define LLVM_mydsp_multifun_H
+#ifndef dsp_multifun_H
+#define dsp_multifun_H
 
 #include <string>
 #include <iostream>
 #include <assert.h>
 
+#include "faust/dsp/dsp-adapter.h"
 #include "mydspgeneric.h"
 
 /*
@@ -40,7 +41,8 @@ class mydspmulti : public decorator_dsp {
     
     public:
     
-        mydspmulti():decorator_dsp(createmydspgeneric())
+        // Create a DS/US + Filter adapted DSP
+        mydspmulti():decorator_dsp(createSRAdapter<float>(createmydspgeneric(), DOWN_SAMPLING, UP_SAMPLING, FILTER_TYPE))
         {}
     
         virtual ~mydspmulti()
@@ -52,7 +54,7 @@ class mydspmulti : public decorator_dsp {
 dsp* createmydspmulti() { return new mydspmulti(); }
 
 #endif
-/**************************  END  llvm-dsp-multifun.h **************************/
+/**************************  END  dsp-multifun.h **************************/
 
 #ifdef TEST
 int main()

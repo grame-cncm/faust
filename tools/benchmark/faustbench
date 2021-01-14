@@ -4,7 +4,7 @@
 #                                                                   #
 #               Bench several versions of a Faust DSP program       #
 #               usign different compilation options                 #
-#               (c) Grame, 2020                                     #
+#               (c) Grame, 2020-2021                                #
 #                                                                   #
 #####################################################################
 
@@ -23,6 +23,9 @@ OPT=-1
 NOTRACE=false
 GENERIC=false
 SOURCE=false
+US="0"
+DS="0"
+FILTER="0"
 
 # Set default value for CXX
 if [ "$CXX" = "" ]; then
@@ -34,7 +37,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faustbench [-notrace] [-control] [-generic] [-ios] [-single] [-fast] [-run <num>] [-bs <frames>] [-source] [-opt <level(0..3|-1)>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp"
+        echo "faustbench [-notrace] [-control] [-generic] [-ios] [-single] [-fast] [-run <num>] [-bs <frames>] [-source] [-double] [-opt <level(0..3|-1)>] [-us <factor>] [-ds <factor>] [-filter <filter(0..4)>] [additional Faust options (-vec -vs 8...)] foo.dsp"
         echo "Use '-notrace' to only generate the best compilation parameters"
         echo "Use '-control' to update all controllers with random values at each cycle"
         echo "Use '-generic' to compile for a generic processor, otherwise -march=native will be used"
@@ -46,6 +49,9 @@ do
         echo "Use '-source' to keep the intermediate source folder and exit"
         echo "Use '-double' to compile DSP in double and set FAUSTFLOAT to double"
         echo "Use '-opt <level (0..3|-1)>' to pass an optimisation level to C++ (-1 means 'maximal level =-Ofast for now' but may change in the future)"
+        echo "Use '-us <factor>' to upsample the DSP by a factor"
+        echo "Use '-ds <factor>' to downsample the DSP by a factor"
+        echo "Use '-filter <filter>' for upsampling or downsampling [0..4]"
         echo ""
         echo "Use 'export CXX=/path/to/compiler' before running faustbench to change the C++ compiler"
         echo "Use 'export CXXFLAGS=options' before running faustbench to change the C++ compiler options"
@@ -75,6 +81,15 @@ do
     elif [ "$p" = "-opt" ]; then
         shift
         OPT=$1
+    elif [ $p = "-us" ]; then
+        shift
+        US=$1
+    elif [ $p = "-ds" ]; then
+        shift
+        DS=$1
+    elif [ $p = "-filter" ]; then
+        shift
+        FILTER=$1
     elif [ "$p" = "-double" ]; then
         DOUBLE="1"
         OPTIONS="$OPTIONS $p"
@@ -226,7 +241,12 @@ for p in $FILES; do
     else
         echo " #define FAUSTFLOAT float" | cat - "$FAUSTLIB/faustbench.cpp" > temp && mv temp "faustbench.cpp"
     fi
-    
+
+    # add info for UP/DS + filter adapter
+    echo "#define DOWN_SAMPLING $DS" | cat -  "$FAUSTLIB/faustbench.cpp" > temp && mv temp "faustbench.cpp"
+    echo "#define UP_SAMPLING $US" | cat -  "$FAUSTLIB/faustbench.cpp" > temp && mv temp "faustbench.cpp"
+    echo "#define FILTER_TYPE $FILTER" | cat -  "$FAUSTLIB/faustbench.cpp" > temp && mv temp "faustbench.cpp"
+
     # keep sources
 	if $SOURCE ; then 
         # create Makefile
@@ -267,15 +287,15 @@ for p in $FILES; do
         cd ../../
         if $NOTRACE; then
             if $CONTROL; then
-                ./$TDR/$dspName/$dspName -notrace -control -run $RUN -bs $BUFFER_SIZE
+                ./$TDR/$dspName/$dspName -notrace -control -run $RUN -bs $BUFFER_SIZE -ds $DS -us $US -filter $FILTER
             else
-                ./$TDR/$dspName/$dspName -notrace -run $RUN -bs $BUFFER_SIZE
+                ./$TDR/$dspName/$dspName -notrace -run $RUN -bs $BUFFER_SIZE -ds $DS -us $US -filter $FILTER
             fi
         else
             if $CONTROL; then
-                ./$TDR/$dspName/$dspName -control -run $RUN -bs $BUFFER_SIZE
+                ./$TDR/$dspName/$dspName -control -run $RUN -bs $BUFFER_SIZE -ds $DS -us $US -filter $FILTER
             else
-                ./$TDR/$dspName/$dspName -run $RUN -bs $BUFFER_SIZE
+                ./$TDR/$dspName/$dspName -run $RUN -bs $BUFFER_SIZE -ds $DS -us $US -filter $FILTER
             fi
         fi
 

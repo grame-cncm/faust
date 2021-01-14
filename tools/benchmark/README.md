@@ -19,9 +19,9 @@ Here are the available options:
 
 ## faust2object
 
-The **faust2object** tool  either uses the standard C++ compiler or the LLVM dynamic compilation chain (the **dynamic-faust** tool) to compile a Faust DSP to object code files (.o) and wrapper C++ header files for different CPUs. The DSP name is used in the generated C++ and object code files, thus allowing to generate distinct versions of the code that can finally be linked together in a single binary.
+The **faust2object** tool  either uses the standard C++ compiler or the LLVM dynamic compilation chain (the **dynamic-faust** tool) to compile a Faust DSP to object code files (.o) and wrapper C++ header files for different CPUs. The DSP name is used in the generated C++ and object code files, thus allowing to generate distinct versions of the code that can finally be linked together in a single binary. Using a C++ wrapper, the DSP can be downsampled of upsampled by a factor, with a filter going from 0 (= no filter), then 1 (lower quality) to 4 (better quality).
 
-`faust2object [nocona] [core2] [penryn] [bonnell] [atom] [silvermont] [slm] [goldmont] [goldmont-plus] [tremont] [nehalem] [corei7] [westmere] [sandybridge] [corei7-avx] [ivybridge] [core-avx-i] [haswell] [core-avx2] [broadwell] [skylake] [skylake-avx512] [skx] [cascadelake] [cooperlake] [cannonlake] [icelake-client] [icelake-server] [tigerlake] [knl] [knm] [k8] [athlon64] [athlon-fx] [opteron] [k8-sse3] [athlon64-sse3] [opteron-sse3] [amdfam10] [barcelona] [btver1] [btver2] [bdver1] [bdver2] [bdver3] [bdver4] [znver1] [znver2] [x86-64] [generic] [-all] [-sources] [-multi] [-multifun] [-opt native|generic] [-llvm] [-test] [additional Faust options (-vec -vs 8...)] <file.dsp>`
+`faust2object [nocona] [core2] [penryn] [bonnell] [atom] [silvermont] [slm] [goldmont] [goldmont-plus] [tremont] [nehalem] [corei7] [westmere] [sandybridge] [corei7-avx] [ivybridge] [core-avx-i] [haswell] [core-avx2] [broadwell] [skylake] [skylake-avx512] [skx] [cascadelake] [cooperlake] [cannonlake] [icelake-client] [icelake-server] [tigerlake] [knl] [knm] [k8] [athlon64] [athlon-fx] [opteron] [k8-sse3] [athlon64-sse3] [opteron-sse3] [amdfam10] [barcelona] [btver1] [btver2] [bdver1] [bdver2] [bdver3] [bdver4] [znver1] [znver2] [x86-64] [generic] [-all] [-sources] [-multi] [-multifun] [-opt native|generic] [-llvm] [-test] [-us <factor>] [-ds <factor>] [-filter <filter(0..4)>] [additional Faust options (-vec -vs 8...)] <file.dsp>`
 
 Here are the available options:
 
@@ -35,6 +35,9 @@ Here are the available options:
 - `-opt generic to activate the best compilation options for a generic CPU`
 - `-llvm to compile using the LLVM backend, otherwise the C++ backend is used`
 - `-test to compile a test program which will bench the DSP and render it`
+- `-us <factor> to upsample the DSP by a factor`
+- `-ds <factor> to downsample the DSP by a factor`
+- `-filter <filter> for upsampling or downsampling [0..4]`
 
 
 A set of header and object code files will be generated, and will have to be added in the final project. The header file typically contains the `<DSPName><CPU>` class and a `create<DSPName><CPU>` function needed to create a DSP instance (for instance compiling a `noise.dsp` DSP for a generic CPU will generate the `createnoisegeneric()` creation function). The `-opt native|generic` option runs the **faustbench-llvm** to discover the best possible compilation options and use them in the C++ or LLVM compilation step.
@@ -131,7 +134,7 @@ The **faustbench** tool uses the C++ backend to generate a set of C++ files prod
 
 Notes that result is given as *MBytes/sec* (higher is better) which is computed as the mean of the 10 best values on the measurement period. An estimation of the DSP CPU use (in percentage of the available bandwidth at 44.1 kHz) is also computed using the effective duration of the measure. This value may not be perfectly coherent with the MBytes/sec value which is the one to be taken in account.
 
-`faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-bs <frames>] [-source] [-double] [-opt <level(0..3|-1)>] [additional Faust options (-vec -vs 8...)] foo.dsp` 
+`faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-bs <frames>] [-source] [-double] [-opt <level(0..3|-1)>] [-us <factor>] [-ds <factor>] [-filter <filter(0..4)>] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
 Here are the available options:
 
@@ -145,6 +148,9 @@ Here are the available options:
  - `-source to keep the intermediate source folder and exit`
  - `-double to compile DSP in double and set FAUSTFLOAT to double`
  - `-opt <level (0..3|-1)>' to pass an optimisation level to C++ (-1 means 'maximal level =-Ofast for now' but may change in the future)`
+ - `-us <factor> to upsample the DSP by a factor`
+ - `-ds <factor> to downsample the DSP by a factor`
+ - `-filter <filter> for upsampling or downsampling [0..4]`
 
 Use `export CXX=/path/to/compiler` before running faustbench to change the C++ compiler, and `export CXXFLAGS=options` to change the C++ compiler options. Additional Faust compiler options can be given.
 
@@ -156,7 +162,7 @@ The **faustbench-llvm** tool uses the libfaust library and its LLVM backend to d
 
 Notes that result is given as *MBytes/sec* (higher is better) which is computed as the mean of the 10 best values on the measurement period. An estimation of the DSP CPU use (in percentage of the available bandwidth at 44.1 kHz) is also computed using the effective duration of the measure. This value may not be perfectly coherent with the MBytes/sec value which is the one to be taken in account, and is finally used to return the best estimation.
 
-`faustbench-llvm [-notrace] [-control] [-generic] [-single] [-run <num] [-bs <frames>] [-opt <level(0..4|-1)>] [additional Faust options (-vec -vs 8...)] foo.dsp` 
+`faustbench-llvm [-notrace] [-control] [-generic] [-single] [-run <num] [-bs <frames>] [-opt <level(0..4|-1)>] [-us <factor>] [-ds <factor>] [-filter <filter(0..4)>] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
 Here are the available options:
 
@@ -167,6 +173,9 @@ Here are the available options:
 - `-run <num> to execute each test <num> times`
 - `-bs <frames> to set the buffer-size in frames`
 - `-opt <level>' to pass an optimisation level to LLVM, between 0 and 4 (-1 means 'maximal level' if range changes in the future)`
+- `-us <factor> to upsample the DSP by a factor`
+- `-ds <factor> to downsample the DSP by a factor`
+- `-filter <filter> for upsampling or downsampling [0..4]`
 
 Using `-single` and additional Faust options (like `-vec -vs 8...`) allows to run a single test with specific options.
 

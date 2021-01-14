@@ -39,13 +39,13 @@
 class dsp_adapter : public decorator_dsp {
     
     private:
-        
+    
         FAUSTFLOAT** fAdaptedInputs;
         FAUSTFLOAT** fAdaptedOutputs;
         int fHWInputs;
         int fHWOutputs;
         int fBufferSize;
-        
+    
         void adaptBuffers(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             for (int i = 0; i < fHWInputs; i++) {
@@ -55,15 +55,15 @@ class dsp_adapter : public decorator_dsp {
                 fAdaptedOutputs[i] = outputs[i];
             }
         }
-        
+    
     public:
-        
+    
         dsp_adapter(dsp* dsp, int hw_inputs, int hw_outputs, int buffer_size):decorator_dsp(dsp)
         {
             fHWInputs = hw_inputs;
             fHWOutputs = hw_outputs;
             fBufferSize = buffer_size;
-             
+            
             fAdaptedInputs = new FAUSTFLOAT*[dsp->getNumInputs()];
             for (int i = 0; i < dsp->getNumInputs() - fHWInputs; i++) {
                 fAdaptedInputs[i + fHWInputs] = new FAUSTFLOAT[buffer_size];
@@ -76,7 +76,7 @@ class dsp_adapter : public decorator_dsp {
                 memset(fAdaptedOutputs[i + fHWOutputs], 0, sizeof(FAUSTFLOAT) * buffer_size);
             }
         }
-        
+    
         virtual ~dsp_adapter()
         {
             for (int i = 0; i < fDSP->getNumInputs() - fHWInputs; i++) {
@@ -100,7 +100,7 @@ class dsp_adapter : public decorator_dsp {
             adaptBuffers(inputs, outputs);
             fDSP->compute(date_usec, count, fAdaptedInputs, fAdaptedOutputs);
         }
-        
+    
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             adaptBuffers(inputs, outputs);
@@ -181,7 +181,7 @@ class dsp_sample_adapter : public decorator_dsp {
             // DSP base class uses FAUSTFLOAT** type, so reinterpret_cast has to be used even if the real DSP uses REAL_INT
             fDSP->compute(date_usec, count, reinterpret_cast<FAUSTFLOAT**>(fAdaptedInputs), reinterpret_cast<FAUSTFLOAT**>(fAdaptedOutputs));
             adaptOutputsBuffers(count, outputs);
-       }
+        }
 };
 
 // Template used to specialize double parameters expressed as NUM/DENOM
@@ -210,16 +210,16 @@ struct Identity : public Filter<fVslider0, fVslider1> {
 // Generated with process = fi.lowpass(3, ma.SR*hslider("FCFactor", 0.4, 0.4, 0.5, 0.01)/hslider("Factor", 2, 2, 8, 1));
 template <class fVslider0, int fVslider1, typename REAL>
 struct LowPass3 : public Filter<fVslider0, fVslider1> {
-
+    
     REAL fVec0[2];
     REAL fRec1[2];
     REAL fRec0[3];
-
+    
     inline REAL LowPass3_faustpower2_f(REAL value)
     {
         return (value * value);
     }
-
+    
     LowPass3()
     {
         for (int l0 = 0; (l0 < 2); l0 = (l0 + 1)) {
@@ -232,7 +232,7 @@ struct LowPass3 : public Filter<fVslider0, fVslider1> {
             fRec0[l2] = 0.0;
         }
     }
-
+    
     inline void compute(int count, FAUSTFLOAT* input0, FAUSTFLOAT* output0)
     {
         // Computed at template specialization time
@@ -306,7 +306,7 @@ struct LowPass4 : public Filter<fVslider0, fVslider1> {
 // Generated with process = fi.lowpass3e(ma.SR*hslider("FCFactor", 0.4, 0.4, 0.5, 0.01)/hslider("Factor", 2, 2, 8, 1));
 template <class fVslider0, int fVslider1, typename REAL>
 struct LowPass3e : public Filter<fVslider0, fVslider1> {
-
+    
     REAL fRec1[3];
     REAL fVec0[2];
     REAL fRec0[2];
@@ -361,7 +361,7 @@ struct LowPass3e : public Filter<fVslider0, fVslider1> {
 // Generated with process = fi.lowpass6e(ma.SR*hslider("FCFactor", 0.4, 0.4, 0.5, 0.01)/hslider("Factor", 2, 2, 8, 1));
 template <class fVslider0, int fVslider1, typename REAL>
 struct LowPass6e : public Filter<fVslider0, fVslider1> {
-
+    
     REAL fRec2[3];
     REAL fRec1[3];
     REAL fRec0[3];
@@ -477,7 +477,7 @@ struct dsp_bus : public dsp {
 // Base class for sample-rate adapter
 template <typename FILTER>
 class sr_sampler : public decorator_dsp {
-
+    
     protected:
     
         std::vector<FILTER> fInputLowPass;
@@ -496,7 +496,7 @@ class sr_sampler : public decorator_dsp {
                 fOutputLowPass.push_back(FILTER());
             }
         }
- };
+};
 
 // Down sample-rate adapter
 template <typename FILTER>
@@ -527,9 +527,9 @@ class dsp_down_sampler : public sr_sampler<FILTER> {
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             int real_count = count / this->getFactor();
-           
+            
             // Adapt inputs
-            FAUSTFLOAT* fInputs[this->fDSP->getNumInputs()];
+            FAUSTFLOAT** fInputs = (FAUSTFLOAT**)alloca(this->fDSP->getNumInputs() * sizeof(FAUSTFLOAT*));
             for (int chan = 0; chan < this->fDSP->getNumInputs(); chan++) {
                 // Lowpass filtering in place on 'inputs'
                 this->fInputLowPass[chan].compute(count, inputs[chan], inputs[chan]);
@@ -542,7 +542,7 @@ class dsp_down_sampler : public sr_sampler<FILTER> {
             }
             
             // Allocate fOutputs with 'real_count' frames
-            FAUSTFLOAT* fOutputs[this->fDSP->getNumOutputs()];
+            FAUSTFLOAT** fOutputs = (FAUSTFLOAT**)alloca(this->fDSP->getNumOutputs() * sizeof(FAUSTFLOAT*));
             for (int chan = 0; chan < this->fDSP->getNumOutputs(); chan++) {
                 fOutputs[chan] = (FAUSTFLOAT*)alloca(sizeof(FAUSTFLOAT) * real_count);
             }
@@ -640,5 +640,179 @@ class dsp_up_sampler : public sr_sampler<FILTER> {
         virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
 };
 
+// Create a UP/DS + Filter adapted DSP
+template <typename REAL>
+dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
+{
+    if (ds > 0) {
+        switch (filter) {
+            case 0:
+                if (ds == 2) {
+                    return new dsp_down_sampler<Identity<Double<1,1>, 2>>(DSP);
+                } else if (ds == 4) {
+                    return new dsp_down_sampler<Identity<Double<1,1>, 4>>(DSP);
+                } else if (ds == 8) {
+                    return new dsp_down_sampler<Identity<Double<1,1>, 8>>(DSP);
+                } else if (ds == 16) {
+                    return new dsp_down_sampler<Identity<Double<1,1>, 16>>(DSP);
+                } else if (ds == 32) {
+                    return new dsp_down_sampler<Identity<Double<1,1>, 32>>(DSP);
+                } else {
+                    std::cerr << "ERROR : ds factor type must be in [2..32] range\n";
+                    assert(false);
+                }
+            case 1:
+                if (ds == 2) {
+                    return new dsp_down_sampler<LowPass3<Double<45,100>, 2, REAL>>(DSP);
+                } else if (ds == 4) {
+                    return new dsp_down_sampler<LowPass3<Double<45,100>, 4, REAL>>(DSP);
+                } else if (ds == 8) {
+                    return new dsp_down_sampler<LowPass3<Double<45,100>, 8, REAL>>(DSP);
+                } else if (ds == 16) {
+                    return new dsp_down_sampler<LowPass3<Double<45,100>, 16, REAL>>(DSP);
+                } else if (ds == 32) {
+                    return new dsp_down_sampler<LowPass3<Double<45,100>, 32, REAL>>(DSP);
+                } else {
+                    std::cerr << "ERROR : ds factor type must be in [2..32] range\n";
+                    assert(false);
+                }
+            case 2:
+                if (ds == 2) {
+                    return new dsp_down_sampler<LowPass4<Double<45,100>, 2, REAL>>(DSP);
+                } else if (ds == 4) {
+                    return new dsp_down_sampler<LowPass4<Double<45,100>, 4, REAL>>(DSP);
+                } else if (ds == 8) {
+                    return new dsp_down_sampler<LowPass4<Double<45,100>, 8, REAL>>(DSP);
+                } else if (ds == 16) {
+                    return new dsp_down_sampler<LowPass4<Double<45,100>, 16, REAL>>(DSP);
+                } else if (ds == 32) {
+                    return new dsp_down_sampler<LowPass4<Double<45,100>, 32, REAL>>(DSP);
+                } else {
+                    std::cerr << "ERROR : ds factor type must be in [2..32] range\n";
+                    assert(false);
+                }
+            case 3:
+                if (ds == 2) {
+                    return new dsp_down_sampler<LowPass3e<Double<45,100>, 2, REAL>>(DSP);
+                } else if (ds == 4) {
+                    return new dsp_down_sampler<LowPass3e<Double<45,100>, 4, REAL>>(DSP);
+                } else if (ds == 8) {
+                    return new dsp_down_sampler<LowPass3e<Double<45,100>, 8, REAL>>(DSP);
+                } else if (ds == 16) {
+                    return new dsp_down_sampler<LowPass3e<Double<45,100>, 16, REAL>>(DSP);
+                } else if (ds == 32) {
+                    return new dsp_down_sampler<LowPass3e<Double<45,100>, 32, REAL>>(DSP);
+                } else {
+                    std::cerr << "ERROR : ds factor type must be in [2..32] range\n";
+                    assert(false);
+                }
+            case 4:
+                if (ds == 2) {
+                    return new dsp_down_sampler<LowPass6e<Double<45,100>, 2, REAL>>(DSP);
+                } else if (ds == 4) {
+                    return new dsp_down_sampler<LowPass6e<Double<45,100>, 4, REAL>>(DSP);
+                } else if (ds == 8) {
+                    return new dsp_down_sampler<LowPass6e<Double<45,100>, 8, REAL>>(DSP);
+                } else if (ds == 16) {
+                    return new dsp_down_sampler<LowPass6e<Double<45,100>, 16, REAL>>(DSP);
+                } else if (ds == 32) {
+                    return new dsp_down_sampler<LowPass6e<Double<45,100>, 32, REAL>>(DSP);
+                } else {
+                    std::cerr << "ERROR : ds factor type must be in [2..32] range\n";
+                    assert(false);
+                }
+            default:
+                std::cerr << "ERROR : filter type must be in [0..4] range\n";
+                assert(false);
+                break;
+        }
+    } else if (us > 0) {
+        
+        switch (filter) {
+            case 0:
+                if (us == 2) {
+                    return new dsp_up_sampler<Identity<Double<1,1>, 2>>(DSP);
+                } else if (us == 4) {
+                    return new dsp_up_sampler<Identity<Double<1,1>, 4>>(DSP);
+                } else if (us == 8) {
+                    return new dsp_up_sampler<Identity<Double<1,1>, 8>>(DSP);
+                } else if (us == 16) {
+                    return new dsp_up_sampler<Identity<Double<1,1>, 16>>(DSP);
+                } else if (us == 32) {
+                    return new dsp_up_sampler<Identity<Double<1,1>, 32>>(DSP);
+                } else {
+                    std::cerr << "ERROR : us factor type must be in [2..32] range\n";
+                    assert(false);
+                }
+            case 1:
+                if (us == 2) {
+                    return new dsp_up_sampler<LowPass3<Double<45,100>, 2, REAL>>(DSP);
+                } else if (us == 4) {
+                    return new dsp_up_sampler<LowPass3<Double<45,100>, 4, REAL>>(DSP);
+                } else if (us == 8) {
+                    return new dsp_up_sampler<LowPass3<Double<45,100>, 8, REAL>>(DSP);
+                } else if (us == 16) {
+                    return new dsp_up_sampler<LowPass3<Double<45,100>, 16, REAL>>(DSP);
+                } else if (us == 32) {
+                    return new dsp_up_sampler<LowPass3<Double<45,100>, 32, REAL>>(DSP);
+                } else {
+                    std::cerr << "ERROR : us factor type must be in [2..32] range\n";
+                    assert(false);
+                }
+            case 2:
+                if (us == 2) {
+                    return new dsp_up_sampler<LowPass4<Double<45,100>, 2, REAL>>(DSP);
+                } else if (us == 4) {
+                    return new dsp_up_sampler<LowPass4<Double<45,100>, 4, REAL>>(DSP);
+                } else if (us == 8) {
+                    return new dsp_up_sampler<LowPass4<Double<45,100>, 8, REAL>>(DSP);
+                } else if (us == 16) {
+                    return new dsp_up_sampler<LowPass4<Double<45,100>, 16, REAL>>(DSP);
+                } else if (us == 32) {
+                    return new dsp_up_sampler<LowPass4<Double<45,100>, 32, REAL>>(DSP);
+                } else {
+                    std::cerr << "ERROR : us factor type must be in [2..32] range\n";
+                    assert(false);
+                }
+            case 3:
+                if (us == 2) {
+                    return new dsp_up_sampler<LowPass3e<Double<45,100>, 2, REAL>>(DSP);
+                } else if (us == 4) {
+                    return new dsp_up_sampler<LowPass3e<Double<45,100>, 4, REAL>>(DSP);
+                } else if (us == 8) {
+                    return new dsp_up_sampler<LowPass3e<Double<45,100>, 8, REAL>>(DSP);
+                } else if (us == 16) {
+                    return new dsp_up_sampler<LowPass3e<Double<45,100>, 16, REAL>>(DSP);
+                } else if (us == 32) {
+                    return new dsp_up_sampler<LowPass3e<Double<45,100>, 32, REAL>>(DSP);
+                } else {
+                    std::cerr << "ERROR : us factor type must be in [2..32] range\n";
+                    assert(false);
+                }
+            case 4:
+                if (us == 2) {
+                    return new dsp_up_sampler<LowPass6e<Double<45,100>, 2, REAL>>(DSP);
+                } else if (us == 4) {
+                    return new dsp_up_sampler<LowPass6e<Double<45,100>, 4, REAL>>(DSP);
+                } else if (us == 8) {
+                    return new dsp_up_sampler<LowPass6e<Double<45,100>, 8, REAL>>(DSP);
+                } else if (us == 16) {
+                    return new dsp_up_sampler<LowPass6e<Double<45,100>, 16, REAL>>(DSP);
+                } else if (us == 32) {
+                    return new dsp_up_sampler<LowPass6e<Double<45,100>, 32, REAL>>(DSP);
+                } else {
+                    std::cerr << "ERROR : us factor type must be in [2..32] range\n";
+                    assert(false);
+                }
+            default:
+                std::cerr << "ERROR : filter type must be in [0..4] range\n";
+                assert(false);
+                break;
+        }
+    } else {
+        return DSP;
+    }
+}
+    
 #endif
 /**************************  END  dsp-adapter.h **************************/

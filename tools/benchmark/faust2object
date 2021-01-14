@@ -20,10 +20,13 @@ MULTI=false
 MULTIFUN=false
 LLVM=false
 TEST=false
+US="0"
+DS="0"
+FILTER="0"
 LLVM_ADAPTER=$FAUSTINC/faust/dsp/llvm-dsp-adapter.h
 CPP_ADAPTER=$FAUSTINC/faust/dsp/cpp-dsp-adapter.h
-MULTI_ADAPTER=$FAUSTINC/faust/dsp/llvm-dsp-multi.h
-MULTIFUN_ADAPTER=$FAUSTINC/faust/dsp/llvm-dsp-multifun.h
+MULTI_ADAPTER=$FAUSTINC/faust/dsp/dsp-multi.h
+MULTIFUN_ADAPTER=$FAUSTINC/faust/dsp/dsp-multifun.h
 dspName=""
 
 ALL_CPU_LIST="nocona core2 penryn bonnell atom silvermont slm goldmont goldmont-plus tremont nehalem corei7 westmere sandybridge corei7-avx ivybridge core-avx-i haswell core-avx2 broadwell skylake skylake-avx512 skx cascadelake cooperlake cannonlake icelake-client icelake-server tigerlake knl knm k8 athlon64 athlon-fx opteron k8-sse3 athlon64-sse3 opteron-sse3 amdfam10 barcelona btver1 btver2 bdver1 bdver2 bdver3 bdver4 znver1 znver2 x86-64 generic"
@@ -33,7 +36,7 @@ do
     p=$1
  
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2object [nocona] [core2] [penryn] [bonnell] [atom] [silvermont] [slm] [goldmont] [goldmont-plus] [tremont] [nehalem] [corei7] [westmere] [sandybridge] [corei7-avx] [ivybridge] [core-avx-i] [haswell] [core-avx2] [broadwell] [skylake] [skylake-avx512] [skx] [cascadelake] [cooperlake] [cannonlake] [icelake-client] [icelake-server] [tigerlake] [knl] [knm] [k8] [athlon64] [athlon-fx] [opteron] [k8-sse3] [athlon64-sse3] [opteron-sse3] [amdfam10] [barcelona] [btver1] [btver2] [bdver1] [bdver2] [bdver3] [bdver4] [znver1] [znver2] [x86-64] [generic] [-all] [-sources] [-multi] [-multifun] [-opt native|generic] [-llvm] [-test] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faust2object [nocona] [core2] [penryn] [bonnell] [atom] [silvermont] [slm] [goldmont] [goldmont-plus] [tremont] [nehalem] [corei7] [westmere] [sandybridge] [corei7-avx] [ivybridge] [core-avx-i] [haswell] [core-avx2] [broadwell] [skylake] [skylake-avx512] [skx] [cascadelake] [cooperlake] [cannonlake] [icelake-client] [icelake-server] [tigerlake] [knl] [knm] [k8] [athlon64] [athlon-fx] [opteron] [k8-sse3] [athlon64-sse3] [opteron-sse3] [amdfam10] [barcelona] [btver1] [btver2] [bdver1] [bdver2] [bdver3] [bdver4] [znver1] [znver2] [x86-64] [generic] [-all] [-sources] [-multi] [-multifun] [-opt native|generic] [-llvm] [-test] [-us <factor>] [-ds <factor>] [-filter <filter(0..4)>] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use 'xxx' to compile for 'xxx' CPU"
         echo "Use 'generic' to compile for generic CPU"
         echo "Use '-all' to compile for all CPUs"
@@ -44,6 +47,9 @@ do
         echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
         echo "Use '-llvm' to compile using the LLVM backend, otherwise the C++ backend is used"
         echo "Use '-test' to compile a test program which will bench the DSP and render it"
+        echo "Use '-us <factor>' to upsample the DSP by a factor"
+        echo "Use '-ds <factor>' to downsample the DSP by a factor"
+        echo "Use '-filter <filter>' for upsampling or downsampling [0..4]"
         exit
     fi
 
@@ -65,11 +71,20 @@ do
         TEST=true
     elif [ $p = "-all" ]; then
         CPU=$ALL_CPU_LIST
+    elif [ $p = "-us" ]; then
+        shift
+        US=$1
+    elif [ $p = "-ds" ]; then
+        shift
+        DS=$1
+    elif [ $p = "-filter" ]; then
+        shift
+        FILTER=$1
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
-    elif [ $(echo $ALL_CPU_LIST | grep -w $p > /dev/null) ]; then
+    elif echo $ALL_CPU_LIST | grep -w $p > /dev/null; then
         # 'generic' is always included
         if [ $p != "generic" ]; then
             CPU="$CPU $p"
@@ -122,9 +137,13 @@ for p in $FILES; do
         	# generating the LLVM code
             echo "Compiled using LLVM"
             sed -e "s/mydsp/$dspName$cpu/g" $LLVM_ADAPTER > $dspName$cpu".h"
-            dynamic-faust -target x86_64-apple-darwin15.6.0:$arch_cpu -cn $dspName$cpu $OPTIONS $f -o $dspName$cpu".o"
+
+            # compiling
+            if [ $SOURCES = false ]; then
+                dynamic-faust -target x86_64-apple-darwin15.6.0:$arch_cpu -cn $dspName$cpu $OPTIONS $f -o $dspName$cpu".o"
+            fi
         else
-        	# generating the C++ code
+            # generating the C++ code
             echo "Compiled using C++"
             sed -e "s/mydsp/$dspName$cpu/g" $CPP_ADAPTER > $dspName$cpu".h"
             if [ $MULTIFUN = true ]; then
@@ -170,8 +189,14 @@ for p in $FILES; do
     	
     	# create and compile the test
     	faust -inj $dspName"multi.h" -a $FAUSTARCH/minimal-bench.cpp -cn $dspName"multi" $OPTIONS $p -o $dspName"multi.cpp"
+
+        # add info for UP/DS + filter adapter
+        echo "#define DOWN_SAMPLING $DS" | cat -  $dspName"multi.cpp" > temp && mv temp $dspName"multi.cpp"
+        echo "#define UP_SAMPLING $US" | cat -  $dspName"multi.cpp" > temp && mv temp $dspName"multi.cpp"
+        echo "#define FILTER_TYPE $FILTER" | cat -  $dspName"multi.cpp" > temp && mv temp $dspName"multi.cpp"
+
     	if [ $MULTI = true ]; then
-    		$CXX -Ofast -std=c++14 $dspName"multi.cpp" -dead_strip -I `llvm-config --includedir` `llvm-config --ldflags --libs all --system-libs` $dspName*".o" -o $dspName"multi"
+    		$CXX -Ofast -std=c++14 $dspName"multi.cpp" -dead_strip -I `llvm-config --includedir --ldflags --libs all --system-libs` $dspName*".o" -o $dspName"multi"
     	elif [ $MULTIFUN = true ]; then
     		$CXX -Ofast -std=c++14 $dspName"multi.cpp" $dspName"generic.cpp" -o $dspName"multi"
     	fi
