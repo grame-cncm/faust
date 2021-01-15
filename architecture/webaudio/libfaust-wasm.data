@@ -1445,8 +1445,9 @@ closed source license or any other license if you decide so.
 
 ma = library("maths.lib");
 ro = library("routes.lib");
-ba = library("basics.lib"); // so functions here can be copy/pasted out
+ba = library("basics.lib"); // for compatible copy/paste out of this file
 fi = library("filters.lib");
+si = library("signals.lib");
 
 declare name "Faust Basic Element Library";
 declare version "0.1";
@@ -2088,7 +2089,7 @@ subseq(head, 0, n)         = head;
 // Where:
 //
 // * `cond`: condition
-// * `cond`: signal selected while cond is true
+// * `then`: signal selected while cond is true
 // * `else`: signal selected while cond is false
 //-----------------------------------------------------------------------------
 if(cond,then,else) = select2(cond,else,then);
@@ -2777,6 +2778,7 @@ selectoutn(n, s) = _ <: par(i, n, *(s==i));
 // SPDX-License-Identifier: GPL-3.0
 // Copyright (C) 2018 Bart Brouns
 
+
 //-----------------------------`(ba.)slidingReduce`-----------------------------
 // Fold-like high order function. Apply a commutative binary operation `<op>` to
 // the last `<n>` consecutive samples of a signal `<x>`. For example :
@@ -2921,6 +2923,7 @@ slidingMax(n,maxn) = slidingReduce(max,n,maxn,-(ma.INFINITY));
 //------------------------------------------------------------------------------
 slidingMin(n,maxn) = slidingReduce(min,n,maxn,ma.INFINITY);
 
+
 //----------------------------`(ba.)slidingMean`-------------------------------
 // The sliding mean of the last n input samples.
 //
@@ -2998,7 +3001,6 @@ slidingRMS(n) = pow(2) : slidingMean(n) : sqrt;
 slidingRMSp(n,maxn) = pow(2) : slidingMeanp(n,maxn) : sqrt;
 
 
-
 //========================================================================================
 // section contributed by Bart Brouns (bart@magnetophon.nl).
 // spdx-license-identifier: gpl-3.0
@@ -3006,7 +3008,7 @@ slidingRMSp(n,maxn) = pow(2) : slidingMeanp(n,maxn) : sqrt;
 
 //=================================Parallel Operator=========================================
 // Provides various operations on N parallel inputs using a high order
-// `parallelOp(op,N,x)`` function:
+// `parallelOp(op,N,x)` function:
 //
 // * `parallelMax(n)`: the max of n parallel inputs
 // * `parallelMin(n)`: the min of n parallel inputs
@@ -3014,7 +3016,7 @@ slidingRMSp(n,maxn) = pow(2) : slidingMeanp(n,maxn) : sqrt;
 // * `parallelRMS(n)`: the RMS of n parallel inputs
 
 //-----------------------------`(ba.)parallelOp`-----------------------------
-// Apply a commutative binary operation `<op>` to n parallel inputs.
+// Apply a commutative binary operation `<op>` to N parallel inputs.
 //
 // #### usage
 //
@@ -3024,8 +3026,8 @@ slidingRMSp(n,maxn) = pow(2) : slidingMeanp(n,maxn) : sqrt;
 //
 // where:
 //
-// * `n`: the number of parallel inputs
-// * `op`: the operator which needs to be a commutative
+// * `N`: the number of parallel inputs known at compile time
+// * `op`: the operator which needs to be commutative
 //
 //------------------------------------------------------------------------------
 
@@ -3034,7 +3036,7 @@ parallelOp(op,2) = op;
 parallelOp(op,n) = op(parallelOp(op,n-1));
 
 //---------------------------`(ba.)parallelMax`---------------------------------
-// The maximum of n parallel inputs.
+// The maximum of N parallel inputs.
 //
 // #### Usage
 //
@@ -3044,12 +3046,13 @@ parallelOp(op,n) = op(parallelOp(op,n-1));
 //
 // Where:
 //
-// * `n`: the number of parallel inputs
+// * `N`: the number of parallel inputs known at compile time
 //------------------------------------------------------------------------------
 parallelMax(n) = parallelOp(max,n);
 
+
 //---------------------------`(ba.)parallelMin`---------------------------------
-// The minimum of n parallel inputs.
+// The minimum of N parallel inputs.
 //
 // #### Usage
 //
@@ -3059,12 +3062,13 @@ parallelMax(n) = parallelOp(max,n);
 //
 // Where:
 //
-// * `n`: the number of parallel inputs
+// * `N`: the number of parallel inputs known at compile time
 //------------------------------------------------------------------------------
 parallelMin(n) = parallelOp(min,n);
 
+
 //---------------------------`(ba.)parallelMean`---------------------------------
-// The mean of n parallel inputs.
+// The mean of N parallel inputs.
 //
 // #### Usage
 //
@@ -3074,12 +3078,13 @@ parallelMin(n) = parallelOp(min,n);
 //
 // Where:
 //
-// * `n`: the number of parallel inputs
+// * `N`: the number of parallel inputs known at compile time
 //------------------------------------------------------------------------------
 parallelMean(n) = si.bus(n):>_/n;
 
+
 //---------------------------`(ba.)parallelRMS`---------------------------------
-// The RMS of n parallel inputs.
+// The RMS of N parallel inputs.
 //
 // #### Usage
 //
@@ -3089,7 +3094,7 @@ parallelMean(n) = si.bus(n):>_/n;
 //
 // Where:
 //
-// * `n`: the number of parallel inputs
+// * `N`: the number of parallel inputs known at compile time
 //------------------------------------------------------------------------------
 parallelRMS(n) = par(i, n, pow(2)) : parallelMean(n) : sqrt;
 
@@ -4187,13 +4192,12 @@ declare abs_envelope_rect copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com> and 
        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare abs_envelope_rect license "MIT-style STK-4.3 license";
-abs_envelope_rect(period, x) = abs(x) : ma.avg_rect(period);
-
+abs_envelope_rect(period, x) = abs(x) : fi.avg_rect(period);
 
 
 //------------------`(an.)abs_envelope_tau`------------------------------------
 // Absolute value average with one-pole lowpass and tau response. 
-// (See maths.lib.)
+// (See filters.lib.)
 //
 // #### Usage
 //
@@ -4210,12 +4214,12 @@ declare abs_envelope_tau copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com> and 
        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare abs_envelope_tau license "MIT-style STK-4.3 license";
-abs_envelope_tau(period, x) = abs(x) : ma.avg_tau(period);
+abs_envelope_tau(period, x) = abs(x) : fi.avg_tau(period);
 
 
 //------------------`(an.)abs_envelope_t60`------------------------------------
 // Absolute value average with one-pole lowpass and t60 response.
-// (See maths.lib.)
+// (See filters.lib.)
 //
 // #### Usage
 //
@@ -4232,12 +4236,12 @@ declare abs_envelope_t60 copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com> and 
        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare abs_envelope_t60 license "MIT-style STK-4.3 license";
-abs_envelope_t60(period, x) = abs(x) : ma.avg_t60(period);
+abs_envelope_t60(period, x) = abs(x) : fi.avg_t60(period);
 
 
 //------------------`(an.)abs_envelope_t19`------------------------------------
 // Absolute value average with one-pole lowpass and t19 response. 
-// (See maths.lib.)
+// (See filters.lib.)
 //
 // #### Usage
 //
@@ -4254,7 +4258,7 @@ declare abs_envelope_t19 copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com> and 
        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare abs_envelope_t19 license "MIT-style STK-4.3 license";
-abs_envelope_t19(period, x) = abs(x) : ma.avg_t19(period);
+abs_envelope_t19(period, x) = abs(x) : fi.avg_t19(period);
 
 
 //---------------------------`(an.)amp_follower`---------------------------
@@ -4350,12 +4354,12 @@ declare ms_envelope_rect copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com> and 
        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare ms_envelope_rect license "MIT-style STK-4.3 license";
-ms_envelope_rect(period, x) = x * x : ma.avg_rect(period);
+ms_envelope_rect(period, x) = x * x : fi.avg_rect(period);
 
 
 //------------------`(an.)ms_envelope_tau`-------------------------------------
 // Mean square average with one-pole lowpass and tau response. 
-// (See maths.lib.)
+// (See filters.lib.)
 //
 // #### Usage
 //
@@ -4372,12 +4376,12 @@ declare ms_envelope_tau copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com> and 
        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare ms_envelope_tau license "MIT-style STK-4.3 license";
-ms_envelope_tau(period, x) = x * x : ma.avg_tau(period);
+ms_envelope_tau(period, x) = x * x : fi.avg_tau(period);
 
 
 //------------------`(an.)ms_envelope_t60`-------------------------------------
 // Mean square with one-pole lowpass and t60 response. 
-// (See maths.lib.)
+// (See filters.lib.)
 //
 // #### Usage
 //
@@ -4394,12 +4398,12 @@ declare ms_envelope_t60 copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com> and 
        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare ms_envelope_t60 license "MIT-style STK-4.3 license";
-ms_envelope_t60(period, x) = x * x : ma.avg_t60(period);
+ms_envelope_t60(period, x) = x * x : fi.avg_t60(period);
 
 
 //------------------`(an.)ms_envelope_t19`-------------------------------------
 // Mean square with one-pole lowpass and t19 response. 
-// (See maths.lib.)
+// (See filters.lib.)
 //
 // #### Usage
 //
@@ -4416,7 +4420,7 @@ declare ms_envelope_t19 copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com> and 
        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare ms_envelope_t19 license "MIT-style STK-4.3 license";
-ms_envelope_t19(period, x) = x * x : ma.avg_t19(period);
+ms_envelope_t19(period, x) = x * x : fi.avg_t19(period);
 
 
 //------------------`(an.)rms_envelope_rect`-----------------------------------
@@ -4442,7 +4446,7 @@ rms_envelope_rect(period, x) = ms_envelope_rect(period, x) : sqrt;
 
 //------------------`(an.)rms_envelope_tau`------------------------------------
 // Root mean square with one-pole lowpass and tau response.
-// (See maths.lib.)
+// (See filters.lib.)
 //
 // #### Usage
 //
@@ -4464,7 +4468,7 @@ rms_envelope_tau(period, x) = ms_envelope_tau(period, x) : sqrt;
 
 //------------------`(an.)rms_envelope_t60`------------------------------------
 // Root mean square with one-pole lowpass and t60 response.
-// (See maths.lib.)
+// (See filters.lib.)
 //
 // #### Usage
 //
@@ -4486,7 +4490,7 @@ rms_envelope_t60(period, x) = ms_envelope_t60(period, x) : sqrt;
 
 //------------------`(an.)rms_envelope_t19`------------------------------------
 // Root mean square with one-pole lowpass and t19 response.
-// (See maths.lib.)
+// (See filters.lib.)
 //
 // #### Usage
 //
@@ -4504,6 +4508,7 @@ declare rms_envelope_t19 copyright "Copyright (C) 2020 Dario Sanfilippo
        2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare rms_envelope_t19 license "MIT-style STK-4.3 license";
 rms_envelope_t19(period, x) = ms_envelope_t19(period, x) : sqrt;
+
 
 //-----------------------`(an.)zcr`--------------------------------------------
 // Zero-crossing rate (ZCR) with one-pole lowpass averaging based on the tau 
@@ -4529,6 +4534,7 @@ declare zcr copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com>";
 declare zcr license "MIT-style STK-4.3 license";
 zcr(period, x) = ma.zc(x) : fi.lptau(period);
+
 
 //=============================Spectrum-Analyzers=========================================
 // Spectrum-analyzers split the input signal into a bank of parallel signals, one for
@@ -4944,6 +4950,7 @@ with {
     w(k) = 2.0*ma.PI*float(k)/float(N);
   };
 };
+
 
 // ========== FFT Analyzers ==========
 rfft_analyzer_c(N) = an.rtocv(N) : an.fft(N) : an.c_select_pos_freqs(N); // complex spectral bins 0 to N/2
@@ -5452,7 +5459,7 @@ adsre(attT60,decT60,susLvl,relT60,gate) = envelope with {
   samps = ugate : +~(*(ugate)); // ramp time in samples
   attSamps = int(attT60 * ma.SR);
   // if attSamps==0, go straight into the decay phase
-  attPhase = (samps<attSamps) |  (ugate:ba.impulsify);
+  attPhase = (samps<attSamps) | (ugate:ba.impulsify);
   target = select2(ugate, 0.0,
            select2(attPhase, (susLvl)*float(ugate), ugate));
   t60 = select2(ugate, relT60, select2(attPhase, decT60, attT60));
@@ -8183,8 +8190,8 @@ echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0
 // ```
 //
 //------------------------------------------------------------
-version =   1, // MAJOR version when we make incompatible API changes,
-            3, // MINOR version when we add functionality in a backwards compatible manner,
+version =   2, // MAJOR version when we make incompatible API changes,
+            0, // MINOR version when we add functionality in a backwards compatible manner,
             0; // PATCH version when we make backwards compatible bug fixes.
 
             
@@ -9202,6 +9209,7 @@ de = library("delays.lib");
 dm = library("demos.lib");
 dx = library("dx7.lib");
 en = library("envelopes.lib");
+fd = library("fds.lib");
 fi = library("filters.lib");
 ho = library("hoa.lib");
 it = library("interpolators.lib");
@@ -12202,7 +12210,6 @@ gibsen(T,M,L) = tonestack(t.C1,t.C2,t.C3,t.R1,t.R2,t.R3,t.R4,T,M,L)
 
 // The library itself is written in Faust to maintain portability. 
 
-
 // This library is heavily based on Kurt Werner's Dissertation, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters." I have tried to maintain consistent notation between the adaptors appearing within thesis and my adaptor code. The majority of the adaptors found in chapter 1 and chapter 3 are currently supported. 
 
 // For inquires about use of this library in a commercial product, please contact dirk [dot] roosenburg [dot] 30 [at] gmail [dot] com
@@ -12239,7 +12246,6 @@ gibsen(T,M,L) = tonestack(t.C1,t.C2,t.C3,t.R1,t.R2,t.R3,t.R4,T,M,L)
 // Note that the first argument, i, is left un-parametrized. Components must be declared in this form, as the build algorithm expects to receive adaptors which have exactly one parameter. 
 
 // Also note that we have chosen to declare a white noise function as the input to our voltage source. We could potentially declare this as a direct input to our model, but to do so is more complicated process which cannot be covered within this tutorial. For information on how to do this see Declaring Model Parameters as Inputs or see various implementations in `examples`.
-
 
 // Second, the declared components and interconnection/structural adaptors (i.e. series, parallel, etc) are arranged into the connection tree which is produced from performing WD analysis on the modeled circuit. For example, to produce our first order RC lowpass circuit model, the following tree is declared: 
 
@@ -13948,6 +13954,7 @@ import("delays.lib");
 import("demos.lib");
 import("dx7.lib");
 import("envelopes.lib");
+import("fds.lib");
 import("filters.lib");
 import("hoa.lib");
 import("interpolators.lib");
@@ -14492,6 +14499,8 @@ chebychevpoly(lcoef) = _ <: L(0,lcoef) :> _
  **
  ******************************************************************************/
 
+fi = library("filters.lib");
+
 /*******************************************************************************
   * 1-dimensional function tables for linear interpolation
 *******************************************************************************/
@@ -14541,7 +14550,7 @@ getFactor(low, step, size, x) =
  ******************************************************************************/
 
 tubestageF(tb,vplus,divider,fck,Rk,Vk0) = tube : hpf with {
-    lpfk = library("filters.lib").lowpass(1,fck);
+    lpfk = fi.lowpass(1,fck);
     Rp = 100.0e3;
     VkC = Vk0 * (Rp/Rk);
 
@@ -14552,7 +14561,7 @@ tubestageF(tb,vplus,divider,fck,Rk,Vk0) = tube : hpf with {
     size = 2000; // (real size = 2001, set the actual size at 2001-1 for interpolation to work at the last point)
 
     tube = (+ : -(Vk0) : tubeF(tb, low, high, step, size) : +(VkC-vplus)) ~ (*(Rk/Rp) : lpfk) : /(divider);
-    hpf = library("filters.lib").highpass(1,31.0);
+    hpf = fi.highpass(1,31.0);
 };
 
 tubestage(tb,fck,Rk,Vk0)       = tubestageF(tb,250.0,40.0,fck,Rk,Vk0);
@@ -22641,11 +22650,12 @@ co = sf;
 de = sf;
 dm = sf;
 dx = sf;
+ef = sf;
 en = sf;
+fd = sf;
 fi = sf;
 ho = sf;
 ma = sf;
-ef = sf;
 os = sf;
 no = sf;
 pf = sf;
@@ -22659,6 +22669,536 @@ sy = sf;
 ve = sf;
 wa = sf;
 //-----
+//############################# fds.lib ######################################
+
+// This library allows to build linear, explicit finite difference schemes
+// physical models in 1 or 2 dimensions using an approach based on the cellular
+// automata formalism. Its official prefix is `fd`. 
+// In order to use the library, one needs to discretize the linear partial
+// differential equation of the desired system both at boundaries and in-between
+// them, thus obtaining a set of explicit recursion relations. Each one
+// of these will provide, for each spatial point the scalar coefficients to be
+// multiplied by the states of the current and past neighbour points.
+// Coefficients need to be stacked in parallel in order to form a coefficients
+// matrix for each point in the mesh. It is necessary to provide one matrix for
+// coefficients matrices are defined, they need to be placed in parallel and
+// ordered following the desired mesh structure (i.e., coefficients for the top
+// left boundaries will come first, while bottom right boundaries will come
+// last), to form a *coefficients scheme*, which can be used with the library
+// functions.
+
+// ## Sources
+
+// Here are listed some works on finite difference schemes and cellular
+// automata thet were the basis for the implementation of this library
+//
+// * S. Bilbao, Numerical Sound Synthesis.Chichester, UK: John Wiley Sons,
+// Ltd, 2009
+
+// * P. Narbel, "Qualitative and quantitative cellular automata from
+// differential equations," Lecture Notes in Computer Science, vol. 4173,
+// pp. 112–121, 10 2006
+
+// * X.-S. Yang and Y. Young, Cellular Automata, PDEs, and Pattern Formation.
+// Chapman & Hall/CRC, 092005, ch. 18, pp. 271–282.
+//#############################################################################
+
+ba = library("basics.lib");
+si = library("signals.lib");
+ma = library("maths.lib");
+
+declare name "Faust Finite Difference Schemes Library";
+declare version "0.0";
+declare author "Riccardo Russo";
+declare author "Romain Michon";
+
+/*
+TODO:
+  - In case of big 2-D meshes the generated c++ code is too long, making the
+    compiler crash. Consider introducing data structures support.
+  - Implement a way to set nonzero initial conditions.
+  - It would be nice to set the length of a mesh directly in meters and not
+    in points.
+  - Cubic interpolators.
+*/
+
+//===============================Model Construction=============================
+// Once the coefficients scheme is defined, the user can simply call one of
+// these functions to obtain a fully working physical model. They expect to
+// receive a force input signal for each mesh point and output the state of each
+// point. Interpolation operators can be used to drive external forces to the
+// desired points, and to get the signal only from a certain area of the mesh.
+//==============================================================================
+
+//--------------------------------`(fd.)model1D`-------------------------------
+// This function can be used to obtain a physical model in 1 dimension.
+// Takes a force input signal for each point and outputs the state of each
+// point.
+//
+// #### Usage
+//
+// ```
+// si.bus(points) : model1D(points,R,T,scheme) : si.bus(points)
+// ```
+//
+// Where:
+//
+// * `points`: size of the mesh in points
+// * `R`: neighbourhood radius, indicates how many side points are needed (i.e.
+//        if R=1 the mesh depends on one point on the left and one on the right)
+// * `T`: time coefficient, indicates how much steps back in time are needed (i.
+//        e. if T=1 the maximum delay needed for a neighbour state is 1 sample)
+// * `scheme`: coefficients scheme
+//------------------------------------------------------------------------------
+model1D(points,R,T,scheme) =
+    (route1D(points,R,T,scheme) : buildScheme1D(points,R,T)) ~ si.bus(points);
+
+//--------------------------------`(fd.)model2D`-------------------------------
+// This function can be used to obtain a physical model in 2 dimension.
+// Takes a force input signal for each point and outputs the state of each
+// point.
+// IMPORTANT: 2D models with more than 30x20 points might crash the c++
+// compiler. 2D models need to be compiled with the command line compiler,
+// the online one presents some issues.
+//
+// #### Usage
+//
+// ```
+// si.bus(pointsX*pointsY) : model2D(pointsX,pointsY,R,T,scheme) :
+//    si.bus(pointsX*pointsY)
+// ```
+//
+// Where:
+//
+// * `pointsX`: horizontal size of the mesh in points
+// * `pointsY`: vertical size of the mesh in points
+// * `R`: neighbourhood radius, indicates how many side points are needed (i.e.
+//        if R=1 the mesh depends on one point on the left and one on the right)
+// * `T`: time coefficient, indicates how much steps back in time are needed (i.
+//        e. if T=1 the maximum delay needed for a neighbour state is 1 sample)
+// * `scheme`: coefficients scheme
+//------------------------------------------------------------------------------
+model2D(pointsX,pointsY,R,T,scheme) =
+    (route2D(pointsX,pointsY,R,T,scheme) :
+        buildScheme2D(pointsX,pointsY,R,T)) ~ si.bus(pointsX*pointsY);
+
+//===============================Interpolation=================================
+// Interpolation functions can be used to drive the input signals to the
+// correct mesh points, or to get the output signal from the
+// desired points. All the interpolation functions allow to change the
+// input/output points at run time. In general, all these functions get in
+// input a number of connections, and output the same number of connections,
+// where each signal is multiplied by zero except the ones specified by the
+// arguments.
+//==============================================================================
+
+//-----------------------------`(fd.)stairsInterp1D`---------------------------
+// Stairs interpolator in 1 dimension. Takes a number of signals and outputs
+// the same number of signals, where each one is multiplied by zero except the
+// one specified by the argument. This can vary at run time (i.e. a slider),
+// but must be an integer.
+//
+// #### Usage
+//
+// ```
+// si.bus(points) : stairsInterp1D(points,point) : si.bus(points)
+// ```
+//
+// Where:
+//
+// * `points`: total number of points in the mesh
+// * `point`: number of the desired nonzero signal
+//------------------------------------------------------------------------------
+stairsInterp1D(points,point) = par(i,points,_*select2(i==point,0,1));
+
+//-----------------------------`(fd.)stairsInterp2D`---------------------------
+// Stairs interpolator in 2 dimensions. Similar to the 1-D version.
+//
+// #### Usage
+//
+// ```
+// si.bus(pointsX*pointsY) : stairsInterp2D(pointsX,pointsY,pointX,pointY) :
+//    si.bus(pointsX*pointsY)
+// ```
+//
+// Where:
+//
+// * `pointsX`: total number of points in the X direction
+// * `pointsY`: total number of points in the Y direction
+// * `pointX`: horizontal index of the desired nonzero signal
+// * `pointY`: vertical index of the desired nonzero signal
+//------------------------------------------------------------------------------
+stairsInterp2D(pointsX,pointsY,pointX,pointY) =
+    par(i,pointsX,
+        par(j,pointsY,_*select2((i==pointX) & (j==pointY),0,1)));
+
+//-----------------------------`(fd.)linInterp1D`---------------------------
+// Linear interpolator in 1 dimension. Takes a number of signals and outputs
+// the same number of signals, where each one is multiplied by zero except two
+// signals around a floating point index. This is essentially a Faust
+// implementation of the $J(x_i)$ operator, not scaled by the spatial step.
+// (see Stefan Bilbao's book, Numerical Sound Synthesis). The index can vary
+// at run time.
+//
+// #### Usage
+//
+// ```
+// si.bus(points) : linInterp1D(points,point) : si.bus(points)
+// ```
+//
+// Where:
+//
+// * `points`: total number of points in the mesh
+// * `point`: floating point index
+//------------------------------------------------------------------------------
+linInterp1D(points,point) = par(i,points,_*select2(
+        i==int(point), select2(i==int(point+1),0,fraction),(1-fraction)))
+with
+{
+    fraction = ma.frac(point);
+};
+
+//-----------------------------`(fd.)linInterp2D`---------------------------
+// Linear interpolator in 2 dimensions. Similar to the 1 D version.
+//
+// #### Usage
+//
+// ```
+// si.bus(pointsX*pointsY) : linInterp2D(pointsX,pointsY,pointX,pointY) :
+//    si.bus(pointsX*pointsY)
+// ```
+//
+// Where:
+//
+// * `pointsX`: total number of points in the X direction
+// * `pointsY`: total number of points in the Y direction
+// * `pointX`: horizontal float index
+// * `pointY`: vertical float index
+//------------------------------------------------------------------------------
+linInterp2D(pointsX,pointsY,pointX,pointY) =
+par(i,pointsX,
+    par(j,pointsY,_*
+        select2((i==intX) & (j==intY),
+            select2((i==(intX+1)) & (j==intY),
+                select2((i==intX) & (j==(intY+1)),
+                    select2((i==(intX+1)) & (j==(intY+1)),
+                        0,
+                        fractionX*fractionY),
+                    (1-fractionX)*fractionY),
+                fractionX*(1-fractionY)),
+            (1-fractionX)*(1-fractionY))))
+with
+{
+    fractionX = ma.frac(pointX);
+    fractionY = ma.frac(pointY);
+    intX = int(pointX);
+    intY = int(pointY);
+};
+
+//---------------------------`(fd.)stairsInterp1DOut`--------------------------
+// Stairs interpolator in 1 dimension. Similar to stairsInterp1D, except it
+// outputs only the desired signal.
+//
+// #### Usage
+//
+// ```
+// si.bus(points) : stairsInterp1DOut(points,point) : _
+// ```
+//
+// Where:
+//
+// * `points`: total number of points in the mesh
+// * `point`: number of the desired nonzero signal
+//------------------------------------------------------------------------------
+stairsInterp1DOut(points,point) = ba.selectn(points,point);
+
+//---------------------------`(fd.)stairsInterp2DOut`--------------------------
+// Stairs interpolator in 2 dimensions which outputs only one signal.
+//
+// #### Usage
+//
+// ```
+// si.bus(pointsX*pointsY) : stairsInterp2DOut(pointsX,pointsY,pointX,pointY) : _
+// ```
+//
+// Where:
+//
+// * `pointsX`: total number of points in the X direction
+// * `pointsY`: total number of points in the Y direction
+// * `pointX`: horizontal index of the desired nonzero signal
+// * `pointY`: vertical index of the desired nonzero signal
+//------------------------------------------------------------------------------
+stairsInterp2DOut(pointsX,pointsY,pointX,pointY) =
+    ba.selectn(pointsX*pointsY,pointY+pointX*Y);
+
+//---------------------------`(fd.)linInterp1DOut`--------------------------
+// Linear interpolator in 1 dimension. Similar to stairsInterp1D, except it
+// sums each output signal and provides only one output value.
+//
+// #### Usage
+//
+// ```
+// si.bus(points) : linInterp1DOut(points,point) : _
+// ```
+//
+// Where:
+//
+// * `points`: total number of points in the mesh
+// * `point`: floating point index
+//------------------------------------------------------------------------------
+linInterp1DOut(points,point) = linInterp1D(points,point):>_;
+
+//---------------------------`(fd.)stairsInterp2DOut`--------------------------
+// Linear interpolator in 2 dimensions which outputs only one signal.
+//
+// #### Usage
+//
+// ```
+// si.bus(pointsX*pointsY) : linInterp2DOut(pointsX,pointsY,pointX,pointY) : _
+// ```
+//
+// Where:
+//
+// * `pointsX`: total number of points in the X direction
+// * `pointsY`: total number of points in the Y direction
+// * `pointX`: horizontal float index
+// * `pointY`: vertical float index
+//------------------------------------------------------------------------------
+linInterp2DOut(pointsX,pointsY,pointX,pointY) =
+    linInterp2D(pointsX,pointsY,pointX,pointY):>_;
+
+//====================================Routing==================================
+// The routing functions are used internally by the model building functions,
+// but can also be taken separately. These functions route the forces, the
+// coefficients scheme and the neighbours’ signals into the correct scheme
+// points and take as input, in this order: the coefficients block, the
+// feedback signals and the forces. In output they provide, in order, for each
+// scheme point: the force signal, the coefficient matrices and the neighbours’
+// signals. These functions are based on the Faust route primitive.
+//==============================================================================
+
+//---------------------------------`(fd.)route1D`------------------------------
+// Routing function for 1 dimensional schemes.
+//
+// #### Usage
+//
+// ```
+// si.bus((2*R+1)*(T+1)*points),si.bus(points*2) : route1D(points, R, T) :
+//    si.bus((1 + ((2*R+1)*(T+1)) + (2*R+1))*points)
+// ```
+//
+// Where:
+//
+// * `points`: total number of points in the mesh
+// * `R`: neighbourhood radius
+// * `T`: time coefficient
+//------------------------------------------------------------------------------
+route1D(points, R, T) = route(points*2+points*nCoeffs, points*nInputs,
+                                par(x, points, connections(x)))
+with
+{
+    connections(x) =  par(k,nCoeffs,x*nCoeffs+k+1,C(x,k+1)),
+                      P(x) + points, C(x,0),
+                      par(i, nNeighbors, P(x),C(x-R+i,nInputs-1-i));
+
+    P(x) = x+1 + nCoeffs*points;
+    C(x,count) = (1 + count + (x*nInputs)) * (x>=0) * (x<points);
+
+    nNeighbors = 2*R+1;
+    nCoeffs = nNeighbors*(T+1);
+    nInputs = nNeighbors+1+nCoeffs;
+};
+
+//--------------------------------`(fd.)route2D`-------------------------------
+// Routing function for 2 dimensional schemes.
+//
+// #### Usage
+//
+// ```
+// si.bus((2*R+1)^2*(T+1)*pointsX*pointsY),si.bus(pointsX*pointsY*2) :
+//    route2D(pointsX, pointsY, R, T) :
+//        si.bus((1 + ((2*R+1)^2*(T+1)) + (2*R+1)^2)*pointsX*pointsY)
+// ```
+//
+// Where:
+//
+// * `pointsX`: total number of points in the X direction
+// * `pointsY`: total number of points in the Y direction
+// * `R`: neighbourhood radius
+// * `T`: time coefficient
+//------------------------------------------------------------------------------
+route2D(pointsX, pointsY, R, T) =
+    route(nPoints*2+nPoints*nCoeffs, nPoints*nInputs,
+        par(x, pointsX, par(y, pointsY, connections(x,y))))
+with
+{
+    connections(x,y) =
+        P(x,y) + nPoints, C(x,y,0),
+        par(k,nCoeffs,(x*pointsY+y)*nCoeffs+k+1,C(x,y,k+1)),
+        par(j,nNeighborsXY,
+        par(i,nNeighborsXY,
+            P(x,y),C(x+i-R,y+j-R,nInputs-1-(i*nNeighborsXY+j))));
+
+    P(x,y) = x*pointsY+y+1 + nCoeffs*nPoints;
+    C(x,y,count) = (1 + count + (x*pointsY+y)*nInputs)
+                      * (x>=0) * (x<pointsX) * (y>=0) * (y<pointsY);
+
+    nNeighborsXY = 2*R+1;
+    nNeighbors = nNeighborsXY^2;
+    nCoeffs = nNeighbors*(T+1);
+    nInputs = nNeighbors+1+nCoeffs;
+    nPoints = pointsX*pointsY;
+};
+
+//================================Scheme Operations=============================
+// The scheme operation functions are used internally by the model building
+// functions but can also be taken separately. The schemePoint function is
+// where the update equation is actually calculated. The buildScheme functions
+// are used to stack in parallel several schemePoint blocks, according to the
+// choosed mesh size.
+//==============================================================================
+
+//------------------------------`(fd.)schemePoint`-----------------------------
+// This function calculates the next state for each mesh point, in order to
+// form a scheme, several of these blocks need to be stacked in parallel.
+// This function takes in input, in order, the force, the coefficient matrices
+// and the neighbours’ signals and outputs the next point state.
+//
+// #### Usage
+//
+// ```
+// _,si.bus((2*R+1)^D*(T+1)),si.bus((2*R+1)^D) : schemePoint(R,T,D) : _
+// ```
+//
+// Where:
+//
+// * `R`: neighbourhood radius
+// * `T`: time coefficient
+// * `D`: scheme spatial dimensions (i.e. 1 if 1-D, 2 if 2-D)
+//------------------------------------------------------------------------------
+schemePoint(R,T,D) = routing:operations:>_
+with
+{
+    nNeighbors = (2*R+1)^D;
+    routing =
+        route(nNeighbors*(T+1)+nNeighbors+1,2*nNeighbors*(T+1)+1,
+            (1,1),
+            par(t,T+1,
+                par(i,nNeighbors,i+t*nNeighbors+2,2*(i+t*nNeighbors)+3,
+                                i+nNeighbors*(T+1)+2,2*(i+t*nNeighbors)+2)));
+    operations = _,par(t,T+1,
+                    par(i,nNeighbors,(_@t),_:*));
+};
+
+//------------------------------`(fd.)buildScheme1D`---------------------------
+// This function is used to stack in parallel several schemePoint functions in
+// 1 dimension, according to the number of points.
+//
+// #### Usage
+//
+// ```
+// si.bus((1 + ((2*R+1)*(T+1)) + (2*R+1))*points) : buildScheme1D(points,R,T) :
+//    si.bus(points)
+// ```
+//
+// Where:
+//
+// * `points`: total number of points in the mesh
+// * `R`: neighbourhood radius
+// * `T`: time coefficient
+//------------------------------------------------------------------------------
+buildScheme1D(points,R,T) =
+    par (x, points,schemePoint(R,T,1));
+
+//------------------------------`(fd.)buildScheme2D`---------------------------
+// This function is used to stack in parallel several schemePoint functions in
+// 2 dimensions, according to the number of points in the X and Y directions.
+//
+// #### Usage
+//
+// ```
+// si.bus((1 + ((2*R+1)^2*(T+1)) + (2*R+1)^2)*pointsX*pointsY) :
+//    buildScheme2D(pointsX,pointsY,R,T) : si.bus(pointsX*pointsY)
+// ```
+//
+// Where:
+//
+// * `pointsX`: total number of points in the X direction
+// * `pointsY`: total number of points in the Y direction
+// * `R`: neighbourhood radius
+// * `T`: time coefficient
+//------------------------------------------------------------------------------
+buildScheme2D(pointsX,pointsY,R,T) =
+    par (x, pointsX,
+        par(y,pointsY, schemePoint(R,T,2)));
+
+//================================Interaction Models============================
+// Here are defined two physically based interaction algorithms: a hammer and
+// a bow. These functions need to be coupled to the mesh pde, in the point
+// where the interaction happens: to do so, the mesh output signals can be fed
+// back and driven into the force block using the interpolation operators.
+// The latters can be also used to drive the single force output signal to the
+// correct scheme points.
+//==============================================================================
+
+//---------------------------------`(fd.)hammer`-------------------------------
+// Implementation of a nonlinear collision model. The hammer is essentially a
+// finite difference scheme of a linear damped oscillator, which is coupled
+// with the mesh through the collision model (see Stefan Bilbao's book,
+// Numerical Sound Synthesis).
+//
+// #### Usage
+//
+// ```
+// _ :hammer(coeff,omega0Sqr,sigma0,kH,alpha,k,offset,fIn) : _
+// ```
+//
+// Where:
+//
+// * `coeff`: output force scaling coefficient
+// * `omega0Sqr`: squared angular frequency of the hammer oscillator
+// * `sigma0`: damping coefficient of the hammer oscillator
+// * `kH`: hammer stiffness coefficient
+// * `alpha`: nonlinearity parameter
+// * `k`: time sampling step (the same as for the mesh)
+// * `offset`: distance between the string and the hammer at rest in meters
+// * `fIn`: hammer excitation signal (i.e. a button)
+//------------------------------------------------------------------------------
+hammer(coeff,omega0Sqr,sigma0,kH,alpha,k,offset,fIn) =
+    (hammerForce<:hammerModel(fIn,k,offset,_),_)~_:!,_*coeff
+with
+{
+    hammerModel(in,k,offset) =
+        (_,_,_*forceCoeff,in :> _) ~ (_ <: A*_,B*_') :_-offset;
+    hammerForce(uh,u)=select2((uh-u)>0,0,((uh-u)^alpha)*(-kH));
+    A = (2-omega0Sqr^2*k^2)/(1+sigma0*k);
+    B = (-1)*(1-sigma0*k)/(1+sigma0*k);
+    forceCoeff = k^2/(1+sigma0*k);
+};
+
+//---------------------------------`(fd.)bow`-------------------------------
+// Implementation of a nonlinear friction based interaction model that induces
+// Helmholtz motion. (see Stefan Bilbao's book, Numerical Sound Synthesis).
+//
+// #### Usage
+//
+// ```
+// _ :bow(coeff,alpha,k,vb) : _
+// ```
+//
+// Where:
+//
+// * `coeff`: output force scaling coefficient
+// * `alpha`: nonlinearity parameter
+// * `k`: time sampling step (the same as for the mesh)
+// * `vb`: bow velocity [m/s]
+//------------------------------------------------------------------------------
+bow(coeff,alpha,k,vb) = _:phi*(-coeff)
+with
+{
+    phi(u) = 1.41*alpha*dVel(u)*exp(-alpha*dVel(u)*dVel(u)+0.5);
+    dVel(x) = select2(vb==0,(x-x')/k - vb,0);
+};
 //#################################### reducemaps.lib ########################################
 // A library to handle reduce/map kind of operation in Faust. Its official prefix is `rm`.
 //##############################################################################################
@@ -23052,7 +23592,7 @@ si = library("signals.lib");
 fi = library("filters.lib"); // for compatible copy/paste out of this file
 
 declare name "Faust Filters Library";
-declare version "0.2";
+declare version "0.3";
 
 //===============================Basic Filters============================================
 //========================================================================================
@@ -25672,6 +26212,119 @@ svf = environment {
 };
 
 
+//============================Averaging Functions==============================
+//=============================================================================
+//
+// These are a set of samplerate independent averaging functions based on
+// moving-average and one-pole filters with specific response characteristics.
+
+//----------------------------`(fi.)avg_rect`----------------------------------
+// Moving average.
+//
+// #### Usage
+//
+// ```
+// _ : avg_rect(period) : _
+// ```
+//
+// Where:
+//
+// * `period` is the averaging frame in seconds
+//-----------------------------------------------------------------------------
+declare avg_rect author "Dario Sanfilippo and Julius O. Smith III";
+declare avg_rect copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare avg_rect license "MIT-style STK-4.3 license";
+avg_rect(period, x) = x : ba.slidingMean(rint(period * ma.SR));
+
+
+//----------------------------(fi.)avg_tau-------------------------------------
+// Averaging function based on a one-pole filter and the tau response time.
+// Tau represents the effective length of the one-pole impulse response,
+// that is, tau is the integral of the filter's impulse response. This
+// response is slower to reach the final value but has less ripples in
+// non-steady signals.
+// 
+// #### Usage
+//
+// ```
+// _ avg_tau(period) : _
+// ```
+//
+// Where:
+//
+// * `period` is the time, in seconds, for the system to decay by 1/e, 
+// or to reach 1-1/e of its final value.
+//
+// #### Reference
+//
+// <https://ccrma.stanford.edu/~jos/mdft/Exponentials.html>
+//-----------------------------------------------------------------------------
+declare avg_tau author "Dario Sanfilippo and Julius O. Smith III";
+declare avg_tau copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare avg_tau license "MIT-style STK-4.3 license";
+avg_tau(period, x) = fi.lptau(period, x);
+
+
+//----------------------------(fi.)avg_t60-------------------------------------
+// Averaging function based on a one-pole filter and the t60 response time.
+// This response is particularly useful when the system is required to 
+// reach the final value after about `period` seconds.
+// 
+// #### Usage
+//
+// ```
+// _ avg_t60(period) : _
+// ```
+//
+// Where:
+//
+// * `period` is the time, in seconds, for the system to decay by 1/1000, 
+// or to reach 1-1/1000 of its final value.
+//
+// #### Reference
+//
+// <https://ccrma.stanford.edu/~jos/mdft/Audio_Decay_Time_T60.html>
+//-----------------------------------------------------------------------------
+declare avg_t60 author "Dario Sanfilippo and Julius O. Smith III";
+declare avg_t60 copyright "Copyright (C) 2020 Dario Sanfilippo 
+      <sanfilippo.dario@gmail.com> and 
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare avg_t60 license "MIT-style STK-4.3 license";
+avg_t60(period, x) = fi.lpt60(period, x);
+
+
+//----------------------------(fi.)avg_t19-------------------------------------
+// Averaging function based on a one-pole filter and the t19 response time.
+// This response is close to the moving-average algorithm as it roughly reaches
+// the final value after `period` seconds and shows about the same
+// oscillations for non-steady signals.
+//
+// #### Usage
+//
+// ```
+// _ avg_t19(period) : _
+// ```
+//
+// Where:
+//
+// * `period` is the time, in seconds, for the system to decay by 1/e^2.2, 
+// or to reach 1-1/e^2.2 of its final value.
+//
+// #### Reference
+// Zölzer, U. (2008). Digital audio signal processing (Vol. 9). New York: Wiley.
+//-----------------------------------------------------------------------------
+declare avg_t19 author "Dario Sanfilippo and Julius O. Smith III";
+declare avg_t19 copyright "Copyright (C) 2020 Dario Sanfilippo
+      <sanfilippo.dario@gmail.com> and
+       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare avg_t19 license "MIT-style STK-4.3 license";
+avg_t19(period, x) = fi.lpt19(period, x); 
+
+
 /*******************************************************************************
 # Licenses
 
@@ -25771,25 +26424,25 @@ declare version "0.0";
 //========================================================================================
 
 //--------------------------------`(si.)bus`-------------------------------------
-// n parallel cables.
+// Put n cables in parallel.
 // `bus` is a standard Faust function.
 //
 // #### Usage
 //
 // ```
-// bus(n)
+// bus(N)
 // bus(4) : _,_,_,_
 // ```
 //
 // Where:
 //
-// * `n`: is an integer known at compile time that indicates the number of parallel cables.
+// * `N`: is an integer known at compile time that indicates the number of parallel cables
 //-----------------------------------------------------------------------------
 bus(2) = _,_; // avoids a lot of "bus(1)" labels in block diagrams
 bus(n) = par(i, n, _);
 
 //--------------`(si.)block`--------------
-// Block - terminate n signals.
+// Block - terminate N signals.
 // `block` is a standard Faust function.
 //
 // #### Usage
@@ -25800,7 +26453,7 @@ bus(n) = par(i, n, _);
 //
 // Where:
 //
-// * `n`: the number of signals to be blocked
+// * `N`: the number of signals to be blocked known at compile time 
 //--------------------------------------
 block(n) = par(i, n, !);
 
@@ -33603,9 +34256,6 @@ declare license "LGPL with exception";
 
 // This library contains platform specific constants 
 pl = library("platform.lib");
-ba = library("basics.lib");
-si = library("signals.lib");
-fi = library("filters.lib");
 ma = library("maths.lib"); // for compatible copy/paste out of this file
 
 //=============================Functions Reference========================================
@@ -34272,115 +34922,3 @@ nextpow2(x) = ceil(log(x)/log(2.0));
 //-----------------------------------------------------------------------------
 zc(x) = x * x' < 0;
 
-
-//============================Averaging Functions==============================
-//=============================================================================
-//
-// These are a set of samplerate independent averaging functions based on
-// moving-average and one-pole filters with specific response characteristics.
-
-//----------------------------`(ma.)avg_rect`----------------------------------
-// Moving average.
-//
-// #### Usage
-//
-// ```
-// _ : avg_rect(period) : _
-// ```
-//
-// Where:
-//
-// * `period` is the averaging frame in seconds
-//-----------------------------------------------------------------------------
-declare avg_rect author "Dario Sanfilippo and Julius O. Smith III";
-declare avg_rect copyright "Copyright (C) 2020 Dario Sanfilippo 
-      <sanfilippo.dario@gmail.com> and 
-       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
-declare avg_rect license "MIT-style STK-4.3 license";
-avg_rect(period, x) = x : ba.slidingMean(rint(period * ma.SR));
-
-
-//----------------------------(ma.)avg_tau-------------------------------------
-// Averaging function based on a one-pole filter and the tau response time.
-// Tau represents the effective length of the one-pole impulse response,
-// that is, tau is the integral of the filter's impulse response. This
-// response is slower to reach the final value but has less ripples in
-// non-steady signals.
-// 
-// #### Usage
-//
-// ```
-// _ avg_tau(period) : _
-// ```
-//
-// Where:
-//
-// * `period` is the time, in seconds, for the system to decay by 1/e, 
-// or to reach 1-1/e of its final value.
-//
-// #### Reference
-//
-// <https://ccrma.stanford.edu/~jos/mdft/Exponentials.html>
-//-----------------------------------------------------------------------------
-declare avg_tau author "Dario Sanfilippo and Julius O. Smith III";
-declare avg_tau copyright "Copyright (C) 2020 Dario Sanfilippo 
-      <sanfilippo.dario@gmail.com> and 
-       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
-declare avg_tau license "MIT-style STK-4.3 license";
-avg_tau(period, x) = fi.lptau(period, x);
-
-
-//----------------------------(ma.)avg_t60-------------------------------------
-// Averaging function based on a one-pole filter and the t60 response time.
-// This response is particularly useful when the system is required to 
-// reach the final value after about `period` seconds.
-// 
-// #### Usage
-//
-// ```
-// _ avg_t60(period) : _
-// ```
-//
-// Where:
-//
-// * `period` is the time, in seconds, for the system to decay by 1/1000, 
-// or to reach 1-1/1000 of its final value.
-//
-// #### Reference
-//
-// <https://ccrma.stanford.edu/~jos/mdft/Audio_Decay_Time_T60.html>
-//-----------------------------------------------------------------------------
-declare avg_t60 author "Dario Sanfilippo and Julius O. Smith III";
-declare avg_t60 copyright "Copyright (C) 2020 Dario Sanfilippo 
-      <sanfilippo.dario@gmail.com> and 
-       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
-declare avg_t60 license "MIT-style STK-4.3 license";
-avg_t60(period, x) = fi.lpt60(period, x);
-
-
-//----------------------------(ma.)avg_t19-------------------------------------
-// Averaging function based on a one-pole filter and the t19 response time.
-// This response is close to the moving-average algorithm as it roughly reaches
-// the final value after `period` seconds and shows about the same
-// oscillations for non-steady signals.
-//
-// #### Usage
-//
-// ```
-// _ avg_t19(period) : _
-// ```
-//
-// Where:
-//
-// * `period` is the time, in seconds, for the system to decay by 1/e^2.2, 
-// or to reach 1-1/e^2.2 of its final value.
-//
-// #### Reference
-// Zölzer, U. (2008). Digital audio signal processing (Vol. 9). New York: Wiley.
-//-----------------------------------------------------------------------------
-declare avg_t19 author "Dario Sanfilippo and Julius O. Smith III";
-declare avg_t19 copyright "Copyright (C) 2020 Dario Sanfilippo
-      <sanfilippo.dario@gmail.com> and
-       2003-2020 by Julius O. Smith III <jos@ccrma.stanford.edu>";
-declare avg_t19 license "MIT-style STK-4.3 license";
-avg_t19(period, x) = fi.lpt19(period, x); 
