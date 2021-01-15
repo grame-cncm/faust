@@ -67,6 +67,16 @@
 
 // FAUSTFLOAT is setup by faust2max6
 
+#ifndef DOWN_SAMPLING
+#define DOWN_SAMPLING 0
+#endif
+#ifndef UP_SAMPLING
+#define UP_SAMPLING 0
+#endif
+#ifndef FILTER_TYPE
+#define FILTER_TYPE 0
+#endif
+
 #include "faust/gui/UI.h"
 #include "faust/gui/SimpleParser.h"
 #include "faust/gui/PathBuilder.h"
@@ -133,7 +143,7 @@ using namespace std;
 #define ASSIST_INLET 	1
 #define ASSIST_OUTLET 	2
 
-#define EXTERNAL_VERSION    "0.80"
+#define EXTERNAL_VERSION    "0.81"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"

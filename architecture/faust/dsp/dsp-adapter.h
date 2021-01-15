@@ -660,6 +660,7 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else {
                     std::cerr << "ERROR : ds factor type must be in [2..32] range\n";
                     assert(false);
+                    return nullptr;
                 }
             case 1:
                 if (ds == 2) {
@@ -675,6 +676,7 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else {
                     std::cerr << "ERROR : ds factor type must be in [2..32] range\n";
                     assert(false);
+                    return nullptr;
                 }
             case 2:
                 if (ds == 2) {
@@ -690,6 +692,7 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else {
                     std::cerr << "ERROR : ds factor type must be in [2..32] range\n";
                     assert(false);
+                    return nullptr;
                 }
             case 3:
                 if (ds == 2) {
@@ -705,6 +708,7 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else {
                     std::cerr << "ERROR : ds factor type must be in [2..32] range\n";
                     assert(false);
+                    return nullptr;
                 }
             case 4:
                 if (ds == 2) {
@@ -720,11 +724,12 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else {
                     std::cerr << "ERROR : ds factor type must be in [2..32] range\n";
                     assert(false);
+                    return nullptr;
                 }
             default:
                 std::cerr << "ERROR : filter type must be in [0..4] range\n";
                 assert(false);
-                break;
+                return nullptr;
         }
     } else if (us > 0) {
         
@@ -743,6 +748,7 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else {
                     std::cerr << "ERROR : us factor type must be in [2..32] range\n";
                     assert(false);
+                    return nullptr;
                 }
             case 1:
                 if (us == 2) {
@@ -758,6 +764,7 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else {
                     std::cerr << "ERROR : us factor type must be in [2..32] range\n";
                     assert(false);
+                    return nullptr;
                 }
             case 2:
                 if (us == 2) {
@@ -773,6 +780,7 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else {
                     std::cerr << "ERROR : us factor type must be in [2..32] range\n";
                     assert(false);
+                    return nullptr;
                 }
             case 3:
                 if (us == 2) {
@@ -788,6 +796,7 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else {
                     std::cerr << "ERROR : us factor type must be in [2..32] range\n";
                     assert(false);
+                    return nullptr;
                 }
             case 4:
                 if (us == 2) {
@@ -803,11 +812,12 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else {
                     std::cerr << "ERROR : us factor type must be in [2..32] range\n";
                     assert(false);
+                    return nullptr;
                 }
             default:
                 std::cerr << "ERROR : filter type must be in [0..4] range\n";
                 assert(false);
-                break;
+                return nullptr;
         }
     } else {
         return DSP;
