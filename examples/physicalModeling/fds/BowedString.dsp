@@ -4,7 +4,7 @@ import("stdfaust.lib");
 // Generic string
 
 //nPoints=int(Length/h);
-nPoints = 100;
+nPoints1 = 100;
 
 k = 1/ma.SR;
 //Stability condition
@@ -33,25 +33,25 @@ E = K^2*k^2/den/h^4;
 midCoeff = E,C,A,C,E;
 midCoeffDel = 0,D,B,D,0;
 
-r=2;
-t=1;
+r = 2;
+t = 1;
 
 scheme(points) = par(i,points,midCoeff,midCoeffDel);
 
 //----------------------------------Controls---------------------------------//
 play = button("hit");
-inPoint=hslider("input point", floor(nPoints/2),0,nPoints-1,1);
-outPoint=hslider("output point",floor(nPoints/2),0,nPoints-1,0.01):si.smoo;
+inPoint = hslider("input point", floor(nPoints1/2),0,nPoints1-1,1);
+outPoint = hslider("output point",floor(nPoints1/2),0,nPoints1-1,0.01):si.smoo;
 
 //----------------------------------Force---------------------------------//
 Vb = hslider("bow vel", 0,-10,10,0.01); //bow velocity [m/s]
 Fb = 1000000; //[m/s^2]
 J = Fb*k^2/den/h;
-alpha=0.0001;
+alpha = 0.0001;
 
 //----------------------------------Process---------------------------------//
 //TODO: lin interp in input causes 0 output at .5 due to opposite phase
 process =
-    (fd.stairsInterp1D(nPoints,inPoint):>fd.bow(J,alpha,k,Vb)<:fd.linInterp1D(nPoints,inPoint):
-  fd.model1D(nPoints,r,t,scheme(nPoints)))~si.bus(nPoints):fd.linInterp1DOut(nPoints,outPoint)
+    (fd.stairsInterp1D(nPoints1,inPoint):>fd.bow(J,alpha,k,Vb)<:fd.linInterp1D(nPoints1,inPoint):
+  fd.model1D(nPoints1,r,t,scheme(nPoints1)))~si.bus(nPoints1):fd.linInterp1DOut(nPoints1,outPoint)
     <:_,_;

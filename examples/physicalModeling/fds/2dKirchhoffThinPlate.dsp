@@ -46,8 +46,8 @@ midCoeffDelay1 = 0,0,0,0,0,
                  0,0,F,0,0,
                  0,0,0,0,0;
 
-r=2;
-t=1;
+r = 2;
+t = 1;
 
 coefficients = midCoeff,midCoeffDelay1;
 

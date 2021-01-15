@@ -31,15 +31,15 @@ E = K^2*k^2/den/h^4;
 midCoeff = E,C,A,C,E;
 midCoeffDel = 0,D,B,D,0;
 
-r=2;
-t=1;
+r = 2;
+t = 1;
 
 scheme(points) = par(i,points,midCoeff,midCoeffDel);
 
 //----------------------------------Controls---------------------------------//
 play = button("Play");
-inPoint=hslider("Input Point", floor(nPoints/2),0,nPoints-1,0.01);
-outPoint=hslider("Output Point",floor(nPoints/2),0,nPoints-1,0.01):si.smoo;
+inPoint = hslider("Input Point", floor(nPoints/2),0,nPoints-1,0.01);
+outPoint = hslider("Output Point",floor(nPoints/2),0,nPoints-1,0.01):si.smoo;
 
 //----------------------------------Force---------------------------------//
 forceModel = play:ba.impulsify;

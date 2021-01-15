@@ -20,7 +20,7 @@ nPoints = 77;
 k = 1/ma.SR;
 //Stability condition
 coeff = c^2*k^2 + 4*sigma1*k;
-h =sqrt((coeff + sqrt((coeff)^2 + 16*k^2*K^2))/2);
+h = sqrt((coeff + sqrt((coeff)^2 + 16*k^2*K^2))/2);
 
 T = 667.1;                  // Tension [N]
 radius = 0.5e-03;           // Radius (0.016 gauge) [m]
@@ -46,16 +46,16 @@ E = K^2*k^2/den/h^4;
 midCoeff = E,C,A,C,E;
 midCoeffDel = 0,D,B,D,0;
 
-r=2;
-t=1;
+r = 2;
+t = 1;
 
 scheme(points) = par(i,points,midCoeff,midCoeffDel);
 
 
 //----------------------------------Controls---------------------------------//
 play = button("Play"):ba.impulsify;
-inPoint=hslider("Input Point", floor(nPoints/2),0,nPoints-1,0.01);
-outPoint=hslider("Output Point",floor(nPoints/2),0,nPoints-1,0.01):si.smoo;
+inPoint = hslider("Input Point", floor(nPoints/2),0,nPoints-1,0.01);
+outPoint = hslider("Output Point",floor(nPoints/2),0,nPoints-1,0.01):si.smoo;
 
 //----------------------------------Force---------------------------------//
 /*Hammer stiffness from:
@@ -73,7 +73,7 @@ mH = 0.9;
 omega0SqrH = KH/mH;
 sigma0H = 14;
 alpha = 2.5;
-offset=0.23;
+offset = 0.23;
 forceScaling = 0.01;
 
 //----------------------------------Process---------------------------------//
