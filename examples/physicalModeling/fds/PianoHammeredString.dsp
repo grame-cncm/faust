@@ -51,7 +51,6 @@ t = 1;
 
 scheme(points) = par(i,points,midCoeff,midCoeffDel);
 
-
 //----------------------------------Controls---------------------------------//
 play = button("Play"):ba.impulsify;
 inPoint = hslider("Input Point", floor(nPoints/2),0,nPoints-1,0.01);

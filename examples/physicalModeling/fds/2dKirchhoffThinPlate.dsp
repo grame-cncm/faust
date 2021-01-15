@@ -25,7 +25,7 @@ h = sqrt((coeff+sqrt(coeff*coeff+16*K*K*k*k)));
 lambda = c*k/h;
 
 //----------------------------------Equations--------------------------------//
-mu=K*K*k*k/(h^4);
+mu = K*K*k*k/(h^4);
 den = 1+s0*k;
 A = 2*(1-10*mu-2*lambda*lambda-4*s1*k*k)/den;
 B = (s0*k+4*k*k-1)/den;
@@ -51,12 +51,12 @@ t = 1;
 
 coefficients = midCoeff,midCoeffDelay1;
 
-scheme(pointsX,pointsY) = par (i, pointsX,
+scheme(pointsX,pointsY) = par(i, pointsX,
                                 par(j,pointsY, coefficients));
 
 //----------------------------------Controls---------------------------------//
-inPointX=hslider("Input Point X", floor(nPointsX/2),0,nPointsX-1,0.01);
-inPointY=hslider("Input Point Y", floor(nPointsY/2),0,nPointsY-1,0.01);
+inPointX=hslider("Input Point X",floor(nPointsX/2),0,nPointsX-1,0.01);
+inPointY=hslider("Input Point Y",floor(nPointsY/2),0,nPointsY-1,0.01);
 outPointX=hslider("Output Point X",floor(nPointsX/2),0,nPointsX-1,0.01);
 outPointY=hslider("Output Point Y",floor(nPointsY/2),0,nPointsY-1,0.01);
 hit = button("Play");

@@ -40,7 +40,7 @@ scheme(points) = par(i,points,midCoeff,midCoeffDel);
 
 //----------------------------------Controls---------------------------------//
 play = button("hit");
-inPoint = hslider("input point", floor(nPoints1/2),0,nPoints1-1,1);
+inPoint = hslider("input point",floor(nPoints1/2),0,nPoints1-1,1);
 outPoint = hslider("output point",floor(nPoints1/2),0,nPoints1-1,0.01):si.smoo;
 
 //----------------------------------Force---------------------------------//

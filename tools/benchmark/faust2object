@@ -178,7 +178,12 @@ for p in $FILES; do
         # class naming
         sed -e "s/mydsp/$dspName/g" $MULTIFUN_ADAPTER >> $dspName"multi.h"
     fi
-    
+
+    # add info for DS/US + filter adapter
+    echo "#define DOWN_SAMPLING $DS" | cat -  $dspName"multi.h" > temp && mv temp $dspName"multi.h"
+    echo "#define UP_SAMPLING $US" | cat -  $dspName"multi.h" > temp && mv temp $dspName"multi.h"
+    echo "#define FILTER_TYPE $FILTER" | cat -  $dspName"multi.h" > temp && mv temp $dspName"multi.h"
+
     # create a test program
     if [ $TEST = true ]; then
     
@@ -189,11 +194,6 @@ for p in $FILES; do
     	
     	# create and compile the test
     	faust -inj $dspName"multi.h" -a $FAUSTARCH/minimal-bench.cpp -cn $dspName"multi" $OPTIONS $p -o $dspName"multi.cpp"
-
-        # add info for UP/DS + filter adapter
-        echo "#define DOWN_SAMPLING $DS" | cat -  $dspName"multi.cpp" > temp && mv temp $dspName"multi.cpp"
-        echo "#define UP_SAMPLING $US" | cat -  $dspName"multi.cpp" > temp && mv temp $dspName"multi.cpp"
-        echo "#define FILTER_TYPE $FILTER" | cat -  $dspName"multi.cpp" > temp && mv temp $dspName"multi.cpp"
 
     	if [ $MULTI = true ]; then
     		$CXX -Ofast -std=c++14 $dspName"multi.cpp" -dead_strip -I `llvm-config --includedir --ldflags --libs all --system-libs` $dspName*".o" -o $dspName"multi"

@@ -7,7 +7,7 @@ nPoints = 100;
 k = 1/ma.SR;
 //Stability condition
 coeff = c^2*k^2 + 4*sigma1*k;
-h =sqrt((coeff + sqrt((coeff)^2 + 16*k^2*K^2))/2);
+h = sqrt((coeff + sqrt((coeff)^2 + 16*k^2*K^2))/2);
 
 T = 150;                    // Tension [N]
 radius = 3.5560e-04;        // Radius (0.016 gauge) [m]
@@ -38,7 +38,7 @@ scheme(points) = par(i,points,midCoeff,midCoeffDel);
 
 //----------------------------------Controls---------------------------------//
 play = button("Play");
-inPoint = hslider("Input Point", floor(nPoints/2),0,nPoints-1,0.01);
+inPoint = hslider("Input Point",floor(nPoints/2),0,nPoints-1,0.01);
 outPoint = hslider("Output Point",floor(nPoints/2),0,nPoints-1,0.01):si.smoo;
 
 //----------------------------------Force---------------------------------//

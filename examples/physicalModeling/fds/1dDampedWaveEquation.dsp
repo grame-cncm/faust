@@ -18,14 +18,14 @@ C = C2/C1;
 midCoeff = B,A,B;
 midCoeffDel = 0,C,0;
 
-r=1;
-t=1;
+r = 1;
+t = 1;
 
 scheme(points) = par(i,points,midCoeff,midCoeffDel);
 
 //----------------------------------Controls---------------------------------//
 play = button("Play");
-inPoint = hslider("Input Point", floor(nPoints/2),0,nPoints-1,0.01);
+inPoint = hslider("Input Point",floor(nPoints/2),0,nPoints-1,0.01);
 outPoint = hslider("Output Point",floor(nPoints/2),0,nPoints-1,0.01):si.smoo;
 
 //----------------------------------Force---------------------------------//
