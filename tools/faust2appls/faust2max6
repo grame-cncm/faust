@@ -90,7 +90,7 @@ do
         echo "Compiles Faust programs to Max6 externals using double precision samples"
         option
         options -osc -midi -soundfile
-        option -soundfile-static "similar to -soundfile with resources in statuc mode."
+        option -soundfile-static "similar to -soundfile with resources in static mode."
         option "-opt native|generic" "activates the best compilation options for the native or generic CPU."
         option "-nvoices <num>"
         option "-us <factor>"

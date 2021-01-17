@@ -33,7 +33,7 @@
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/SimpleParser.h"
 
-#if defined(__APPLE__) && !defined(__VCVRACK__)
+#if defined(__APPLE__) && !defined(__VCVRACK__) && !defined(JUCE_32BIT) && !defined(JUCE_64BIT)
 #include <CoreFoundation/CFBundle.h>
 #endif
 
@@ -148,7 +148,7 @@ class SoundUI : public GenericUI
         static std::string getBinaryPath()
         {
             std::string bundle_path_str;
-        #if defined(__APPLE__) && !defined(__VCVRACK__)
+        #if defined(__APPLE__) && !defined(__VCVRACK__) && !defined(JUCE_32BIT) && !defined(JUCE_64BIT)
             CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
             if (!bundle_ref) { std::cerr << "getBinaryPath CFBundleCopyBundleURL error\n"; return ""; }
       
@@ -176,7 +176,7 @@ class SoundUI : public GenericUI
         static std::string getBinaryPathFrom(const std::string& path)
         {
             std::string bundle_path_str;
-        #if defined(__APPLE__) && !defined(__VCVRACK__)
+        #if defined(__APPLE__) && !defined(__VCVRACK__) && !defined(JUCE_32BIT) && !defined(JUCE_64BIT)
             CFBundleRef bundle = CFBundleGetBundleWithIdentifier(CFStringCreateWithCString(kCFAllocatorDefault, path.c_str(), CFStringGetSystemEncoding()));
             if (!bundle) { std::cerr << "getBinaryPathFrom CFBundleGetBundleWithIdentifier error '" << path << "'" << std::endl; return ""; }
          
