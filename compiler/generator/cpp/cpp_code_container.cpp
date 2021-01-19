@@ -609,8 +609,6 @@ void CPPScalarOneSampleCodeContainer::produceClass()
     *fOut << "#endif" << endl;
     tab(n, *fOut);
     
-    *fOut << "#define FAUST_INPUTS " << fNumInputs << endl;
-    *fOut << "#define FAUST_OUTPUTS  " << fNumOutputs << endl;
     *fOut << "#define FAUST_INT_CONTROLS " << fInt32ControlNum  << endl;
     *fOut << "#define FAUST_REAL_CONTROLS " << fRealControlNum;
     tab(n, *fOut);
