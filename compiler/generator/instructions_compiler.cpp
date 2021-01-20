@@ -2505,11 +2505,11 @@ void InstructionsCompiler::generateWidgetMacro(const string& pathname, Tree full
 
     if (isSigButton(sig, path)) {
         fContainer->addUIMacro(subst("FAUST_ADDBUTTON(\"$0\", $1);", pathlabel, tree2str(varname)));
-        fContainer->addUIMacroActives(subst("p(BUTTON, $0, \"$1\", $2, 0.0, 0.0, 1.0, 1.0) \\", rawlabel, pathlabel, tree2str(varname)));
+        fContainer->addUIMacroActives(subst("p(BUTTON, $0, \"$1\", $2, $3, $4, $5, $6) \\", rawlabel, pathlabel, tree2str(varname), T(0.), T(0.), T(1.0), T(1.0)));
 
     } else if (isSigCheckbox(sig, path)) {
         fContainer->addUIMacro(subst("FAUST_ADDCHECKBOX(\"$0\", $1);", pathlabel, tree2str(varname)));
-        fContainer->addUIMacroActives(subst("p(CHECKBOX, $0, \"$1\", $2, 0.0, 0.0, 1.0, 1.0) \\", rawlabel, pathlabel, tree2str(varname)));
+        fContainer->addUIMacroActives(subst("p(CHECKBOX, $0, \"$1\", $2, $3, $4, $5, $6) \\", rawlabel, pathlabel, tree2str(varname), T(0.), T(0.), T(1.0), T(1.0)));
 
     } else if (isSigVSlider(sig, path, c, x, y, z)) {
         fContainer->addUIMacro(subst("FAUST_ADDVERTICALSLIDER(\"$0\", $1, $2, $3, $4, $5);", pathlabel,
