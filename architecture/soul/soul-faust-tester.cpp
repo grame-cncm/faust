@@ -47,7 +47,7 @@ static void measureDSP(const string& filename, dsp* DSP)
     // Buffer_size and duration in sec of measure, no trace and activated control 
     measure_dsp mes(DSP, buffer_size, 5., false, is_control);
     mes.measure();
-    cout << filename << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
+    cout << filename << " : " << mes.getStats() << " MBytes/sec (DSP CPU % : " << (mes.getCPULoad() * 100) << " at 44100 Hz)" << endl;
     FAUSTBENCH_LOG<double>(mes.getStats());
 }
 

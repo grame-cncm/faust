@@ -45,7 +45,7 @@ static void bench_single(const string& in_filename, dsp* DSP, int buffer_size, i
     measure_dsp_aux<REAL> mes(DSP, buffer_size, 5., true, is_control);  // Buffer_size and duration in sec of measure
     for (int i = 0; i < run; i++) {
         mes.measure();
-        if (is_trace) cout << in_filename << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
+        if (is_trace) cout << in_filename << " : " << mes.getStats() << " MBytes/sec (DSP CPU % : " << (mes.getCPULoad() * 100) << " at 44100 Hz)" << endl;
         FAUSTBENCH_LOG<REAL>(mes.getStats());
     }
 }

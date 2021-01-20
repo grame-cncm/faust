@@ -26,45 +26,45 @@
 #define __ValueConverter__
 
 /***************************************************************************************
-								ValueConverter.h
-                            (GRAME, Copyright 2015-2019)
-
-Set of conversion objects used to map user interface values (for example a gui slider
-delivering values between 0 and 1) to faust values (for example a vslider between
-20 and 20000) using a log scale.
-
--- Utilities
-
-Range(lo,hi) : clip a value x between lo and hi
-Interpolator(lo,hi,v1,v2) : Maps a value x between lo and hi to a value y between v1 and v2
-Interpolator3pt(lo,mi,hi,v1,vm,v2) : Map values between lo mid hi to values between v1 vm v2
-
--- Value Converters
-
-ValueConverter::ui2faust(x)
-ValueConverter::faust2ui(x)
-
--- ValueConverters used for sliders depending of the scale
-
-LinearValueConverter(umin, umax, fmin, fmax)
-LinearValueConverter2(lo, mi, hi, v1, vm, v2) using 2 segments
-LogValueConverter(umin, umax, fmin, fmax)
-ExpValueConverter(umin, umax, fmin, fmax)
-
--- ValueConverters used for accelerometers based on 3 points
-
-AccUpConverter(amin, amid, amax, fmin, fmid, fmax)		-- curve 0
-AccDownConverter(amin, amid, amax, fmin, fmid, fmax)	-- curve 1
-AccUpDownConverter(amin, amid, amax, fmin, fmid, fmax)	-- curve 2
-AccDownUpConverter(amin, amid, amax, fmin, fmid, fmax)	-- curve 3
-
--- lists of ZoneControl are used to implement accelerometers metadata for each axes
-
-ZoneControl(zone, valueConverter) : a zone with an accelerometer data converter
-
--- ZoneReader are used to implement screencolor metadata
-
-ZoneReader(zone, valueConverter) : a zone with a data converter
+ ValueConverter.h
+ (GRAME, Copyright 2015-2019)
+ 
+ Set of conversion objects used to map user interface values (for example a gui slider
+ delivering values between 0 and 1) to faust values (for example a vslider between
+ 20 and 20000) using a log scale.
+ 
+ -- Utilities
+ 
+ Range(lo,hi) : clip a value x between lo and hi
+ Interpolator(lo,hi,v1,v2) : Maps a value x between lo and hi to a value y between v1 and v2
+ Interpolator3pt(lo,mi,hi,v1,vm,v2) : Map values between lo mid hi to values between v1 vm v2
+ 
+ -- Value Converters
+ 
+ ValueConverter::ui2faust(x)
+ ValueConverter::faust2ui(x)
+ 
+ -- ValueConverters used for sliders depending of the scale
+ 
+ LinearValueConverter(umin, umax, fmin, fmax)
+ LinearValueConverter2(lo, mi, hi, v1, vm, v2) using 2 segments
+ LogValueConverter(umin, umax, fmin, fmax)
+ ExpValueConverter(umin, umax, fmin, fmax)
+ 
+ -- ValueConverters used for accelerometers based on 3 points
+ 
+ AccUpConverter(amin, amid, amax, fmin, fmid, fmax)        -- curve 0
+ AccDownConverter(amin, amid, amax, fmin, fmid, fmax)      -- curve 1
+ AccUpDownConverter(amin, amid, amax, fmin, fmid, fmax)    -- curve 2
+ AccDownUpConverter(amin, amid, amax, fmin, fmid, fmax)    -- curve 3
+ 
+ -- lists of ZoneControl are used to implement accelerometers metadata for each axes
+ 
+ ZoneControl(zone, valueConverter) : a zone with an accelerometer data converter
+ 
+ -- ZoneReader are used to implement screencolor metadata
+ 
+ ZoneReader(zone, valueConverter) : a zone with a data converter
 
 ****************************************************************************************/
 
@@ -78,10 +78,10 @@ ZoneReader(zone, valueConverter) : a zone with a data converter
 // Interpolator(lo,hi,v1,v2)
 // Maps a value x between lo and hi to a value y between v1 and v2
 // y = v1 + (x-lo)/(hi-lo)*(v2-v1)
-// y = v1 + (x-lo) * coef   		with coef = (v2-v1)/(hi-lo)
+// y = v1 + (x-lo) * coef           with coef = (v2-v1)/(hi-lo)
 // y = v1 + x*coef - lo*coef
 // y = v1 - lo*coef + x*coef
-// y = offset + x*coef				with offset = v1 - lo*coef
+// y = offset + x*coef              with offset = v1 - lo*coef
 //--------------------------------------------------------------------------------------
 class Interpolator
 {

@@ -143,7 +143,7 @@ using namespace std;
 #define ASSIST_INLET 	1
 #define ASSIST_OUTLET 	2
 
-#define EXTERNAL_VERSION    "0.82"
+#define EXTERNAL_VERSION    "0.83"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -662,8 +662,10 @@ void faust_assist(t_faust* x, void* b, long msg, long a, char* dst)
     } else if (msg == ASSIST_OUTLET) {
         if (a < x->m_dsp->getNumOutputs()) {
             sprintf(dst, "(signal) : Audio Output %ld", (a+1));
-        } else {
+        } else if (a == x->m_dsp->getNumOutputs()) {
             sprintf(dst, "(list) : [path, cur|init, min, max]*");
+        } else {
+            sprintf(dst, "(int) : raw MIDI bytes*");
         }
     }
 }
