@@ -61,7 +61,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"stdfaust.lib\");\nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.48"
+#define FAUSTGEN_VERSION "1.49"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 #define FAUST_PDF_LIBRARY "library.pdf"
 
@@ -315,6 +315,8 @@ class faustgen : public MspCpp5<faustgen> {
         
         // Called when the user double-clicks on the faustgen object inside the Max patcher
         void dblclick(long inlet);
+    
+        void assist(void* b, long msg, long a, char* dst);
         
         // Called when closing the text editor, calls for the creation of a new Faust module with the updated sourcecode
         void edclose(long inlet, char** text, long size);

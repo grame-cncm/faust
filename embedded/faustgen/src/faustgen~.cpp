@@ -615,6 +615,29 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
     }
 }
 
+void faustgen::assist(void* b, long msg, long a, char* dst)
+{
+    if (msg == ASSIST_INLET) {
+        if (a == 0) {
+            if (fDSP->getNumInputs() == 0) {
+                sprintf(dst, "(messages)");
+            } else {
+                sprintf(dst, "(messages/signal) : Audio Input %ld", (a+1));
+            }
+        } else if (a < fDSP->getNumInputs()) {
+            sprintf(dst, "(signal) : Audio Input %ld", (a+1));
+        }
+    } else if (msg == ASSIST_OUTLET) {
+        if (a < fDSP->getNumOutputs()) {
+            sprintf(dst, "(signal) : Audio Output %ld", (a+1));
+        } else if (a == fDSP->getNumOutputs()) {
+            sprintf(dst, "(list) : [path, cur|init, min, max]*");
+        } else {
+            sprintf(dst, "(int) : raw MIDI bytes*");
+        }
+    }
+}
+
 bool faustgen_factory::try_open_svg()
 {
     // Open the svg diagram file inside a web browser
@@ -1785,7 +1808,7 @@ extern "C" void ext_main(void* r)
     t_class * mclass = faustgen::makeMaxClass("faustgen~");
     post("faustgen~ v%s (sample = 64 bits code = %s)", FAUSTGEN_VERSION, getCodeSize());
     post("LLVM powered Faust embedded compiler v%s", getCLibFaustVersion());
-    post("Copyright (c) 2012-2020 Grame");
+    post("Copyright (c) 2012-2021 Grame");
     
     // Start 'libfaust' in multi-thread safe mode
     startMTDSPFactories();
@@ -1817,6 +1840,7 @@ extern "C" void ext_main(void* r)
     REGISTER_METHOD_DEFSYM(faustgen, librarypath);
     REGISTER_METHOD_LONG(faustgen, mute);
     REGISTER_METHOD_CANT(faustgen, dblclick);
+    REGISTER_METHOD_ASSIST(faustgen, assist);
     REGISTER_METHOD_EDCLOSE(faustgen, edclose);
     REGISTER_METHOD_JSAVE(faustgen, appendtodictionary);
 }

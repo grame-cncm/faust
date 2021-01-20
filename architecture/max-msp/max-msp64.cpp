@@ -652,9 +652,9 @@ void faust_assist(t_faust* x, void* b, long msg, long a, char* dst)
     if (msg == ASSIST_INLET) {
         if (a == 0) {
             if (x->m_dsp->getNumInputs() == 0) {
-                sprintf(dst, "(message) : Unused Input");
+                sprintf(dst, "(messages)");
             } else {
-                sprintf(dst, "(signal) : Audio Input %ld", (a+1));
+                sprintf(dst, "(messages/signal) : Audio Input %ld", (a+1));
             }
         } else if (a < x->m_dsp->getNumInputs()) {
             sprintf(dst, "(signal) : Audio Input %ld", (a+1));
