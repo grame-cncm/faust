@@ -39,11 +39,29 @@
  */
 class mydspmulti : public decorator_dsp {
     
+    private:
+    
+        struct Meta1 : Meta
+        {
+            std::string fOptions;
+            
+            void declare(const char* key, const char* value)
+            {
+                if (strcmp("compile_options", key) == 0) {
+                    fOptions = value;
+                }
+            }
+        };
+                
     public:
     
         // Create a DS/US + Filter adapted DSP
         mydspmulti():decorator_dsp(createSRAdapter<float>(createmydspgeneric(), DOWN_SAMPLING, UP_SAMPLING, FILTER_TYPE))
-        {}
+        {
+            Meta1 meta;
+            fDSP->metadata(&meta);
+            std::cout << "Faust compile options : " << meta.fOptions << std::endl;
+        }
     
         virtual ~mydspmulti()
         {}
