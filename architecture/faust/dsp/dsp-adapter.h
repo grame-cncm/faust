@@ -649,6 +649,8 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
             case 0:
                 if (ds == 2) {
                     return new dsp_down_sampler<Identity<Double<1,1>, 2>>(DSP);
+                } else if (ds == 3) {
+                    return new dsp_down_sampler<Identity<Double<1,1>, 3>>(DSP);
                 } else if (ds == 4) {
                     return new dsp_down_sampler<Identity<Double<1,1>, 4>>(DSP);
                 } else if (ds == 8) {
@@ -665,6 +667,8 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
             case 1:
                 if (ds == 2) {
                     return new dsp_down_sampler<LowPass3<Double<45,100>, 2, REAL>>(DSP);
+                } else if (ds == 3) {
+                    return new dsp_down_sampler<LowPass3<Double<45,100>, 3, REAL>>(DSP);
                 } else if (ds == 4) {
                     return new dsp_down_sampler<LowPass3<Double<45,100>, 4, REAL>>(DSP);
                 } else if (ds == 8) {
@@ -681,6 +685,8 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
             case 2:
                 if (ds == 2) {
                     return new dsp_down_sampler<LowPass4<Double<45,100>, 2, REAL>>(DSP);
+                } else if (ds == 3) {
+                    return new dsp_down_sampler<LowPass4<Double<45,100>, 3, REAL>>(DSP);
                 } else if (ds == 4) {
                     return new dsp_down_sampler<LowPass4<Double<45,100>, 4, REAL>>(DSP);
                 } else if (ds == 8) {
@@ -697,6 +703,8 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
             case 3:
                 if (ds == 2) {
                     return new dsp_down_sampler<LowPass3e<Double<45,100>, 2, REAL>>(DSP);
+                } else if (ds == 3) {
+                    return new dsp_down_sampler<LowPass3e<Double<45,100>, 3, REAL>>(DSP);
                 } else if (ds == 4) {
                     return new dsp_down_sampler<LowPass3e<Double<45,100>, 4, REAL>>(DSP);
                 } else if (ds == 8) {
@@ -713,6 +721,8 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
             case 4:
                 if (ds == 2) {
                     return new dsp_down_sampler<LowPass6e<Double<45,100>, 2, REAL>>(DSP);
+                } else if (ds == 3) {
+                    return new dsp_down_sampler<LowPass6e<Double<45,100>, 3, REAL>>(DSP);
                 } else if (ds == 4) {
                     return new dsp_down_sampler<LowPass6e<Double<45,100>, 4, REAL>>(DSP);
                 } else if (ds == 8) {
@@ -737,6 +747,8 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
             case 0:
                 if (us == 2) {
                     return new dsp_up_sampler<Identity<Double<1,1>, 2>>(DSP);
+                } else if (us == 3) {
+                    return new dsp_up_sampler<Identity<Double<1,1>, 3>>(DSP);
                 } else if (us == 4) {
                     return new dsp_up_sampler<Identity<Double<1,1>, 4>>(DSP);
                 } else if (us == 8) {
@@ -753,6 +765,8 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
             case 1:
                 if (us == 2) {
                     return new dsp_up_sampler<LowPass3<Double<45,100>, 2, REAL>>(DSP);
+                } else if (us == 3) {
+                    return new dsp_up_sampler<LowPass3<Double<45,100>, 3, REAL>>(DSP);
                 } else if (us == 4) {
                     return new dsp_up_sampler<LowPass3<Double<45,100>, 4, REAL>>(DSP);
                 } else if (us == 8) {
@@ -769,6 +783,8 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
             case 2:
                 if (us == 2) {
                     return new dsp_up_sampler<LowPass4<Double<45,100>, 2, REAL>>(DSP);
+                } else if (us == 3) {
+                    return new dsp_up_sampler<LowPass4<Double<45,100>, 3, REAL>>(DSP);
                 } else if (us == 4) {
                     return new dsp_up_sampler<LowPass4<Double<45,100>, 4, REAL>>(DSP);
                 } else if (us == 8) {
@@ -785,6 +801,8 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
             case 3:
                 if (us == 2) {
                     return new dsp_up_sampler<LowPass3e<Double<45,100>, 2, REAL>>(DSP);
+                } else if (us == 3) {
+                    return new dsp_up_sampler<LowPass3e<Double<45,100>, 3, REAL>>(DSP);
                 } else if (us == 4) {
                     return new dsp_up_sampler<LowPass3e<Double<45,100>, 4, REAL>>(DSP);
                 } else if (us == 8) {
@@ -801,6 +819,8 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
             case 4:
                 if (us == 2) {
                     return new dsp_up_sampler<LowPass6e<Double<45,100>, 2, REAL>>(DSP);
+                } else if (us == 3) {
+                    return new dsp_up_sampler<LowPass6e<Double<45,100>, 3, REAL>>(DSP);
                 } else if (us == 4) {
                     return new dsp_up_sampler<LowPass6e<Double<45,100>, 4, REAL>>(DSP);
                 } else if (us == 8) {
