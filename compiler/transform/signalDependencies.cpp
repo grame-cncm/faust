@@ -10,6 +10,7 @@
 
 using namespace std;
 
+#if 0
 class XYTableDependencies : public SignalVisitor {
    protected:
     set<Tree> fTables;
@@ -42,6 +43,7 @@ set<Tree> listTableDependencies(Tree t)
     D.self(t);
     return D.tables();
 }
+#endif
 
 /**
  * @brief Compute the dependency graph of a signal
@@ -237,4 +239,99 @@ Tree uniqueID(const char* prefix, Tree sig)
         setProperty(sig, key, ID);
         return ID;
     }
+}
+
+/**
+ * @brief Compute the memory dependencies of a vector of instructions
+ *
+ */
+class MemoryDependencies : public SignalVisitor {
+    std::vector<std::pair<std::string, std::string>> MD;
+
+   public:
+    void analyze(Tree sig)
+    {
+        Tree id, tid, origin, content, init, idx, exp;
+        int  i, nature, dmax, dmin, tblsize;
+        // Analyzed signals are supposed to be "instructions": DelayLines, Shared, Controls or Outputs.
+        // It is an error otherwise
+        if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, content)) {
+            self(content);
+            MD.push_back(std::make_pair("write1", tree2str(id)));
+        } else if (isSigInstructionSharedWrite(sig, id, origin, &nature, content)) {
+            self(content);
+            // MD.push_back(std::make_pair("write2", tree2str(id)));
+        } else if (isSigInstructionVectorWrite(sig, id, origin, &nature, content)) {
+            self(content);
+            MD.push_back(std::make_pair("write3", tree2str(id)));
+        } else if (isSigInstructionShortDLineWrite(sig, id, origin, &nature, content)) {
+            self(content);
+            MD.push_back(std::make_pair("write4", tree2str(id)));
+        } else if (isSigInstructionControlWrite(sig, id, origin, &nature, content)) {
+            self(content);
+            MD.push_back(std::make_pair("write5", tree2str(id)));
+        } else if (isSigInstructionBargraphWrite(sig, id, origin, &nature, content)) {
+            self(content);
+            MD.push_back(std::make_pair("write6", tree2str(id)));
+        } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, exp)) {
+            self(idx);
+            self(exp);
+            MD.push_back(std::make_pair("write7", tree2str(id)));
+        } else if (isSigInstructionTableAccessWrite(sig, id, origin, &nature, &dmin, tid, idx)) {
+            self(idx);
+            MD.push_back(std::make_pair("read0", tree2str(tid)));
+        } else if (isSigOutput(sig, &i, content)) {
+            self(content);
+        } else if (isSigInstructionTimeWrite(sig)) {
+        } else {
+            std::cerr << "ERROR, not an instruction: " << ppsig(sig) << endl;
+            faustassert(false);
+        }
+    }
+    const std::vector<std::pair<std::string, std::string>>& getAnalysis() const
+    {
+        // std::cerr << "The dependency-graph of " << fRoot << "@" << ppsig(fRoot) << " is " << fGraph << std::endl;
+        return MD;
+    }
+
+   protected:
+    void visit(Tree t) override
+    {
+        Tree id, origin, dl;
+        int  nature, dmax, dmin;
+
+        // the dependencies are DelayLines, shared expressions or Control signals
+        if (isSigInstructionDelayLineRead(t, id, origin, &nature, &dmax, &dmin, dl)) {
+            self(dl);
+            MD.push_back(std::make_pair("read1", tree2str(id)));
+        } else if (isSigInstructionTableRead(t, id, origin, &nature, &dmin, dl)) {
+            self(dl);
+            MD.push_back(std::make_pair("read2", tree2str(id)));
+        } else if (isSigInstructionSharedRead(t, id, origin, &nature)) {
+            // MD.push_back(std::make_pair("read3", tree2str(id)));
+        } else if (isSigInstructionVectorRead(t, id, origin, &nature)) {
+            MD.push_back(std::make_pair("read4", tree2str(id)));
+        } else if (isSigInstructionShortDLineRead(t, id, origin, &nature, &dmin)) {
+            MD.push_back(std::make_pair("read5", tree2str(id)));
+        } else if (isSigInstructionTimeRead(t)) {
+        } else if (isSigInstructionControlRead(t, id, origin, &nature)) {
+        } else if (isSigInstructionBargraphRead(t, id, origin, &nature)) {
+        } else {
+            SignalVisitor::visit(t);
+        }
+    }
+};
+
+//================================================================
+// memoryDependencies(const std::vector<Tree>& I) : Compute the
+// memory dependecies, a list of memory access
+//================================================================
+
+std::vector<std::pair<std::string, std::string>> memoryDependencies(const std::vector<Tree>& I)
+{
+    MemoryDependencies M;
+    for (auto i : I) {
+        M.analyze(i);
+    }
+    return M.getAnalysis();
 }

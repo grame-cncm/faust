@@ -24,6 +24,9 @@
 #include <cstdlib>
 #include <iostream>
 #include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "digraph.hh"
 #include "digraphop.hh"
@@ -35,7 +38,9 @@
 using namespace std;
 
 digraph<Tree> dependencyGraph(Tree sig);
-set<Tree>     listTableDependencies(Tree sig);
+
+std::vector<std::pair<string, string>> memoryDependencies(const std::vector<Tree>& I);
+// set<Tree>     listTableDependencies(Tree sig);
 
 ostream& dotfile2(ostream& file, const digraph<Tree>& g);
 

@@ -367,6 +367,16 @@ void GraphCompiler::InstructionsToMethod(const set<Tree>& I, Klass* K)
     for (Tree instr : S.fExecLevel) {
         compileSingleInstruction(instr, K);
     }
+
+    // print the list of memory access
+    {
+        std::vector<std::pair<string, string>> md = memoryDependencies(S.fExecLevel);
+        std::cerr << "MEMORY ACCESS" << std::endl;
+        int l = 0;
+        for (auto p : md) {
+            std::cerr << ++l << '\t' << p.first << ':' << p.second << std::endl;
+        }
+    }
 }
 
 /**
