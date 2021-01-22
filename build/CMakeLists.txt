@@ -57,7 +57,7 @@ file (GLOB HH  ${SRCDIR}/*.hh  ${SRCDIR}/*/*.hh  ${SRCDIR}/generator/fir/*.hh)
 ####################################
 # include directories
 set (FAUST_INC ${SRCDIR}
-	${SRCDIR}/boxes ${SRCDIR}/documentator ${SRCDIR}/draw
+	${SRCDIR}/boxes ${SRCDIR}/documentator ${SRCDIR}/dglib ${SRCDIR}/draw
 	${SRCDIR}/errors ${SRCDIR}/evaluate ${SRCDIR}/extended
 	${SRCDIR}/generator
 	${SRCDIR}/generator/fir

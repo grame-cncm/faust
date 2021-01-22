@@ -127,17 +127,17 @@ class SignalDependencies : public SignalVisitor {
             fGraph.add(fRoot, getIDInstruction(id), dmin);
             self(dl);
         } else if (isSigInstructionSharedRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, getIDInstruction(id));
+            fGraph.add(fRoot, getIDInstruction(id), 0);
         } else if (isSigInstructionVectorRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, getIDInstruction(id));
+            fGraph.add(fRoot, getIDInstruction(id), 0);
         } else if (isSigInstructionShortDLineRead(t, id, origin, &nature, &dmin)) {
             fGraph.add(fRoot, getIDInstruction(id), dmin);
         } else if (isSigInstructionTimeRead(t)) {
             fGraph.add(fRoot, sigInstructionTimeWrite(), 0);  // TODO : a verifier (YO)
         } else if (isSigInstructionControlRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, getIDInstruction(id));
+            fGraph.add(fRoot, getIDInstruction(id), 0);
         } else if (isSigInstructionBargraphRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, getIDInstruction(id));
+            fGraph.add(fRoot, getIDInstruction(id), 0);
         } else {
             SignalVisitor::visit(t);
         }

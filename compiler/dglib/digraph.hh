@@ -13,10 +13,13 @@
 
 #include <cstdio>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <set>
 #include <stack>
+
+#include "arrow.hh"
 
 //===========================================================
 // digraph : a directed graph, a set of nodes f type N and a
@@ -25,20 +28,10 @@
 // to represent the time dependency between computations.
 //===========================================================
 
-template <typename A>
-class arrow_traits
-{
-};
-
-template <>
-struct arrow_traits<int> {
-    static int zero() { return 0; }
-    static int combine(int x, int y) { return (x < y) ? y : x; }
-};
-
 template <typename N, typename A = int>
 class digraph
 {
+   public:
     using policy = arrow_traits<A>;
 
    private:
@@ -67,7 +60,7 @@ class digraph
         // Add the nodes n1 and n2 and the connection (n1 -d-> n2) to the graph.
         // If a connection (n1 -d'-> n2) already exists, the connection is updated
         // with the min(d,d')
-        void add(const N& n1, const N& n2, const A& d = policy::zero())
+        void add(const N& n1, const N& n2, const A& d)
         {
             add(n1);
             add(n2);
@@ -131,7 +124,7 @@ class digraph
         return *this;
     }
 
-    digraph& add(const N& n1, const N& n2, const A& d = policy::zero())
+    digraph& add(const N& n1, const N& n2, const A& d)
     {
         fContent->add(n1, n2, d);
         return *this;
