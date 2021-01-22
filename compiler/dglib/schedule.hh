@@ -199,9 +199,9 @@ inline schedule<N> dfcyclesschedule(const digraph<N, A>& G)
 template <typename N, typename A>
 inline schedule<N> bfcyclesschedule(const digraph<N, A>& G)
 {
-    digraph<digraph<N, A>>  H  = graph2dag(G);
-    schedule<digraph<N, A>> SH = bfschedule(H);
-    schedule<N>             S;
+    digraph<digraph<N, A>, A> H  = graph2dag(G);
+    schedule<digraph<N, A>>   SH = bfschedule(H);
+    schedule<N>               S;
     for (const digraph<N, A>& n : SH.elements()) { S.append(dfschedule(cut(n, 1))); }
     return S;
 }

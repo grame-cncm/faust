@@ -37,12 +37,12 @@
 
 using namespace std;
 
-digraph<Tree> dependencyGraph(Tree sig);
+digraph<Tree, int> dependencyGraph(Tree sig);
 
 std::vector<std::pair<string, string>> memoryDependencies(const std::vector<Tree>& I);
 // set<Tree>     listTableDependencies(Tree sig);
 
-ostream& dotfile2(ostream& file, const digraph<Tree>& g);
+ostream& dotfile2(ostream& file, const digraph<Tree, int>& g);
 
 /**
  * A bijective function that returns a unique ID, that starts with prefix, associated to sig

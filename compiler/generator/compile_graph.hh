@@ -54,7 +54,7 @@ class GraphCompiler : public Compiler {
     property<int>                  fTableInitNature;            // init nature associated with each table ID
     property<set<Tree>>            fTableInitInstructions;      // init expression associated with each table ID
     property<Scheduling>           fTableInitScheduling;        // instruction scheduling for each init expression
-    digraph<Tree>                  fTableInitGraph;             // Graph of table IDs
+    digraph<Tree, int>             fTableInitGraph;             // Graph of table IDs
 
     map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
 

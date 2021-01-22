@@ -28,7 +28,7 @@
 //===========================================================
 //===========================================================
 
-template <typename N, typename A = int>
+template <typename N, typename A>
 class Tarjan
 {
     // Additional information associated to each node
@@ -114,7 +114,7 @@ class Tarjan
 //===========================================================
 //===========================================================
 
-template <typename N, typename A = int>
+template <typename N, typename A>
 inline int cycles(const digraph<N, A>& g)
 {
     Tarjan<N, A> T(g);
@@ -130,7 +130,7 @@ inline int cycles(const digraph<N, A>& g)
 //===========================================================
 //===========================================================
 
-template <typename N, typename A = int>
+template <typename N, typename A>
 inline digraph<digraph<N, A>, A> graph2dag(const digraph<N, A>& g)
 {
     Tarjan<N, A>               T(g);  // the partition of g
@@ -178,7 +178,7 @@ inline digraph<digraph<N, A>, A> graph2dag(const digraph<N, A>& g)
 //===========================================================
 //===========================================================
 
-template <typename N, typename A = int>
+template <typename N, typename A>
 inline digraph<digraph<N, A>, A> graph2dag2(const digraph<N, A>& g)
 {
     Tarjan<N, A>               T(g);  // the partition of g
@@ -231,7 +231,7 @@ inline digraph<digraph<N, A>, A> graph2dag2(const digraph<N, A>& g)
 //===========================================================
 //===========================================================
 
-template <typename N, typename A = int>
+template <typename N, typename A>
 inline std::vector<std::vector<N>> parallelize(const digraph<N, A>& g)
 {
     //-----------------------------------------------------------
@@ -265,7 +265,7 @@ inline std::vector<std::vector<N>> parallelize(const digraph<N, A>& g)
     return v;
 }
 
-template <typename N, typename A = int>
+template <typename N, typename A>
 inline std::vector<std::vector<N>> rparallelize(const digraph<N, A>& G)
 {
     std::vector<std::vector<N>> P = parallelize(G);
@@ -288,7 +288,7 @@ inline std::vector<std::vector<N>> rparallelize(const digraph<N, A>& G)
 //===========================================================
 //===========================================================
 
-template <typename N, typename A = int>
+template <typename N, typename A>
 inline std::vector<N> serialize(const digraph<N, A>& G)
 {
     //------------------------------------------------------------------------
@@ -322,10 +322,10 @@ inline std::vector<N> serialize(const digraph<N, A>& G)
 //===========================================================
 //===========================================================
 
-template <typename N, typename M, typename A = int>
+template <typename N, typename M, typename A>
 inline digraph<M, A> mapnodes(const digraph<N, A>& g, std::function<M(const N&)> foo)
 {
-    digraph<M>     r;
+    digraph<M, A>  r;
     std::map<N, M> cache;
     // create a new graph with the transformed nodes
     for (const auto& n1 : g.nodes()) {
@@ -349,7 +349,7 @@ inline digraph<M, A> mapnodes(const digraph<N, A>& g, std::function<M(const N&)>
 //===========================================================
 //===========================================================
 
-template <typename N, typename A = int>
+template <typename N, typename A>
 inline digraph<N, A> reverse(const digraph<N, A>& g)
 {
     digraph<N, A> r;
@@ -370,7 +370,7 @@ inline digraph<N, A> reverse(const digraph<N, A>& g)
 //===========================================================
 //===========================================================
 
-template <typename N, typename A = int>
+template <typename N, typename A>
 inline digraph<N, A> mapconnections(const digraph<N, A>&                         G,
                                     std::function<bool(const N&, const N&, int)> keep)
 {
@@ -399,7 +399,7 @@ inline digraph<N, A> mapconnections(const digraph<N, A>&                        
  * @param L resulting graph of left nodes
  * @param R resulting graph of right nodes
  */
-template <typename N, typename A = int>
+template <typename N, typename A>
 void splitgraph(const digraph<N, A>& G, std::function<bool(const N&)> left, digraph<N, A>& L,
                 digraph<N, A>& R)
 {
@@ -432,7 +432,7 @@ void splitgraph(const digraph<N, A>& G, std::function<bool(const N&)> left, digr
  * @param S the set of nodes to keep with their dependencies
  * @return the resulting subgraph
  */
-template <typename N, typename A = int>
+template <typename N, typename A>
 digraph<N, A> subgraph(const digraph<N, A>& G, const std::set<N>& S)
 {
     digraph<N, A> R;     // the (R)esulting graph
@@ -462,7 +462,7 @@ digraph<N, A> subgraph(const digraph<N, A>& G, const std::set<N>& S)
 //===========================================================
 //===========================================================
 
-template <typename N, typename A = int>
+template <typename N, typename A>
 inline digraph<N, A> cut(const digraph<N, A>& G, int dm)
 {
     return mapconnections<N>(G, [dm](const N&, const N&, int d) -> bool { return d < dm; });
@@ -477,7 +477,7 @@ inline digraph<N, A> cut(const digraph<N, A>& G, int dm)
 //===========================================================
 //===========================================================
 
-template <typename N, typename A = int>
+template <typename N, typename A>
 inline digraph<N, A> chain(const digraph<N, A>& g, bool strict)
 {
     const digraph<N, A> h = reverse(g);
@@ -493,7 +493,7 @@ inline digraph<N, A> chain(const digraph<N, A>& g, bool strict)
     return r;
 }
 
-template <typename N, typename A = int>
+template <typename N, typename A>
 inline std::vector<N> roots(const digraph<N, A>& G)
 {
     std::map<N, int> R;
@@ -507,7 +507,7 @@ inline std::vector<N> roots(const digraph<N, A>& G)
     return V;
 }
 
-template <typename N, typename A = int>
+template <typename N, typename A>
 inline std::vector<N> leaves(const digraph<N, A>& G)
 {
     std::vector<N> L;

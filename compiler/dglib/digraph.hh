@@ -28,7 +28,7 @@
 // to represent the time dependency between computations.
 //===========================================================
 
-template <typename N, typename A = int>
+template <typename N, typename A>
 class digraph
 {
    public:

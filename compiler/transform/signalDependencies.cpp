@@ -50,8 +50,8 @@ set<Tree> listTableDependencies(Tree t)
  *
  */
 class SignalDependencies : public SignalVisitor {
-    Tree          fRoot;   // the ID of the signal we analyze
-    digraph<Tree> fGraph;  // Its graph of dependencies
+    Tree               fRoot;   // the ID of the signal we analyze
+    digraph<Tree, int> fGraph;  // Its graph of dependencies
 
    public:
     SignalDependencies(Tree sig)
@@ -107,7 +107,7 @@ class SignalDependencies : public SignalVisitor {
             faustassert(false);
         }
     }
-    const digraph<Tree>& graph() const
+    const digraph<Tree, int>& graph() const
     {
         // std::cerr << "The dependency-graph of " << fRoot << "@" << ppsig(fRoot) << " is " << fGraph << std::endl;
         return fGraph;
@@ -150,7 +150,7 @@ class SignalDependencies : public SignalVisitor {
 // returns the dependency graph
 //================================================================
 
-digraph<Tree> dependencyGraph(Tree sig)
+digraph<Tree, int> dependencyGraph(Tree sig)
 {
     SignalDependencies D(sig);
     D.trace(gGlobal->gDebugSwitch, "SignalDependencies");
@@ -189,7 +189,7 @@ static string format(const string& s)
     }
 }
 
-ostream& dotfile2(ostream& file, const digraph<Tree>& g)
+ostream& dotfile2(ostream& file, const digraph<Tree, int>& g)
 {
     // cerr << "\n\nDOT2FILE of graph " << g << "\n" << endl;
 
