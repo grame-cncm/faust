@@ -369,15 +369,15 @@ void GraphCompiler::InstructionsToMethod(const set<Tree>& I, Klass* K)
         compileSingleInstruction(instr, K);
     }
 
-    // print the list of memory access
-    {
-        std::vector<std::pair<string, string>> md = memoryDependencies(S.fExecLevel);
-        std::cerr << "MEMORY ACCESS" << std::endl;
-        int l = 0;
-        for (auto p : md) {
-            std::cerr << ++l << '\t' << p.first << ':' << p.second << std::endl;
-        }
-    }
+    // // print the list of memory access
+    // {
+    //     std::vector<std::pair<string, string>> md = memoryDependencies(S.fExecLevel);
+    //     std::cerr << "MEMORY ACCESS" << std::endl;
+    //     int l = 0;
+    //     for (auto p : md) {
+    //         std::cerr << ++l << '\t' << p.first << ':' << p.second << std::endl;
+    //     }
+    // }
 }
 
 /**
@@ -793,7 +793,7 @@ set<Tree> GraphCompiler::collectTableIDs(const set<Tree> I)
 #if 0
 static void lookForChains(const set<Tree>& I)
 {
-    digraph<Tree,int> G;  // the signal graph
+    digraph<Tree, int> G;  // the signal graph
     Scheduling    S;
 
     // 1) build the graph and the dictionnary
@@ -802,10 +802,10 @@ static void lookForChains(const set<Tree>& I)
         // S.fDic.add(i);
     }
 
-    digraph<Tree,int> T;  // the subgraph of control instructions (temporary)
-    digraph<Tree,int> K;  // the subgraph of init-time instructions
-    digraph<Tree,int> B;  // the subgraph of block-time instructions
-    digraph<Tree,int> E;  // the subgraph at sample-time instructions
+    digraph<Tree, int> T;  // the subgraph of control instructions (temporary)
+    digraph<Tree, int> K;  // the subgraph of init-time instructions
+    digraph<Tree, int> B;  // the subgraph of block-time instructions
+    digraph<Tree, int> E;  // the subgraph at sample-time instructions
 
     // 2) split in three sub-graphs: K, B, E
     // G <: T, E
@@ -814,8 +814,8 @@ static void lookForChains(const set<Tree>& I)
     splitgraph<Tree>(G, &isControl, T, E);
     splitgraph<Tree>(T, &isInit, K, B);
 
-    digraph<digraph<Tree,int>,int> DG = graph2dag(E);
-    digraph<digraph<Tree,int>,int> DC = chain(DG, true);
+    digraph<digraph<Tree, int>, int> DG = graph2dag(E);
+    digraph<digraph<Tree, int>, int> DC = chain(DG, true);
 
     cerr << "CHAIN: " << DC << endl;
 }
@@ -825,7 +825,7 @@ static void lookForChains(const set<Tree>& I)
  * @brief convert a set of instructions into a directed graph
  *
  * @param I a set of instructions
- * @return digraph<Tree,int> the resulting graph
+ * @return digraph<Tree, int> the resulting graph
  */
 static digraph<Tree, int> instructions2graph(const set<Tree>& I)
 {
