@@ -54,7 +54,7 @@ void signalGraph(const string& filename, const set<Tree>& I)
 {
     // cerr << "\n\nBEGIN build Dependency Graph: " << filename << endl;
 
-    digraph<Tree, int> G;
+    digraph<Tree, multidep> G;
     // Dictionnary   Dic;
 
     for (auto i : I) {
@@ -82,7 +82,7 @@ void signalGraph2(const string& filename, const set<Tree>& I)
 {
     // cerr << "\n\nBEGIN build Dependency Graph: " << filename << endl;
 
-    digraph<Tree, int> G;
+    digraph<Tree, multidep> G;
     // Dictionnary   Dic;
 
     for (auto i : I) {
@@ -90,7 +90,7 @@ void signalGraph2(const string& filename, const set<Tree>& I)
         // Dic.add(i);
     }
 
-    digraph<digraph<Tree, int>, int> SG = graph2dag2(G);
+    digraph<digraph<Tree, multidep>, int> SG = graph2dag2(G);
     /*
         for (auto g : SG.nodes()) {
             std::cerr << g << std::endl;

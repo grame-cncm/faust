@@ -465,7 +465,7 @@ set<Tree> GraphVectorCompiler::ExpressionsListToInstructionsSet(Tree L3)
 #if 0
 static void lookForChains(const set<Tree>& I)
 {
-    digraph<Tree, int> G;  // the signal graph
+    digraph<Tree, multidep> G;  // the signal graph
     Scheduling    S;
 
     // 1) build the graph and the dictionnary
@@ -474,10 +474,10 @@ static void lookForChains(const set<Tree>& I)
         // S.fDic.add(i);
     }
 
-    digraph<Tree, int> T;  // the subgraph of control instructions (temporary)
-    digraph<Tree, int> K;  // the subgraph of init-time instructions
-    digraph<Tree, int> B;  // the subgraph of block-time instructions
-    digraph<Tree, int> E;  // the subgraph at sample-time instructions
+    digraph<Tree, multidep> T;  // the subgraph of control instructions (temporary)
+    digraph<Tree, multidep> K;  // the subgraph of init-time instructions
+    digraph<Tree, multidep> B;  // the subgraph of block-time instructions
+    digraph<Tree, multidep> E;  // the subgraph at sample-time instructions
 
     // 2) split in three sub-graphs: K, B, E
     // G <: T, E
@@ -486,8 +486,8 @@ static void lookForChains(const set<Tree>& I)
     splitgraph<Tree>(G, &isControl, T, E);
     splitgraph<Tree>(T, &isInit, K, B);
 
-    digraph<digraph<Tree, int>, int> DG = graph2dag(E);
-    digraph<digraph<Tree, int>, int> DC = chain(DG, true);
+    digraph<digraph<Tree, multidep>, multidep> DG = graph2dag(E);
+    digraph<digraph<Tree, multidep>, multidep> DC = chain(DG, true);
 
     cerr << "CHAIN: " << DC << endl;
 }
@@ -497,11 +497,11 @@ static void lookForChains(const set<Tree>& I)
  * @brief convert a set of instructions into a directed graph
  *
  * @param I a set of instructions
- * @return digraph<Tree, int> the resulting graph
+ * @return digraph<Tree, multidep> the resulting graph
  */
-static digraph<Tree, int> instructions2graph(const set<Tree>& I)
+static digraph<Tree, multidep> instructions2graph(const set<Tree>& I)
 {
-    digraph<Tree, int> G;  // the signal graph
+    digraph<Tree, multidep> G;  // the signal graph
     for (auto i : I) G.add(dependencyGraph(i));
     return G;
 }
@@ -675,7 +675,7 @@ void GraphVectorCompiler::tableDependenciesGraph(const set<Tree>& I)
                 // compute the set D of tables needed to initialise id
                 set<Tree> D = collectTableIDs(J);
                 for (Tree dst : D) {
-                    fTableInitGraph.add(id, dst, 0);
+                    fTableInitGraph.add(id, dst, mdep("MMM", 0));
                     if ((TID.count(dst) == 0) || (R.count(dst) == 0)) {
                         N.insert(dst);  // dst is unseen
                     }
@@ -878,12 +878,12 @@ void GraphVectorCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* K
     compileInsOuts(Kl);
     compileGlobalTime(Kl);
 
-    digraph<Tree, int> G = instructions2graph(I);
+    digraph<Tree, multidep> G = instructions2graph(I);
 
-    digraph<Tree, int> T;  // the subgraph of control instructions (temporary)
-    digraph<Tree, int> K;  // the subgraph of init-time instructions
-    digraph<Tree, int> B;  // the subgraph of block-time instructions
-    digraph<Tree, int> E;  // the subgraph at sample-time instructions
+    digraph<Tree, multidep> T;  // the subgraph of control instructions (temporary)
+    digraph<Tree, multidep> K;  // the subgraph of init-time instructions
+    digraph<Tree, multidep> B;  // the subgraph of block-time instructions
+    digraph<Tree, multidep> E;  // the subgraph at sample-time instructions
 
     // 2) split in three sub-graphs: K, B, E
 
@@ -898,9 +898,9 @@ void GraphVectorCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* K
     for (Tree i : serialize(B)) compileSingleInstruction(i, Kl);
 
     // b) for the sample level graph we have (probably) cycles
-    digraph<digraph<Tree, int>, int> DG = graph2dag(E);
-    vector<digraph<Tree, int>>       VG = serialize(DG);
-    for (digraph<Tree, int> g : VG) {
+    digraph<digraph<Tree, multidep>, multidep> DG = graph2dag(E);
+    vector<digraph<Tree, multidep>>            VG = serialize(DG);
+    for (digraph<Tree, multidep> g : VG) {
         vector<Tree> v = serialize(cut(g, 1));
         Kl->addExecCode(Statement("", "open for loop"));
         for (Tree i : v) {
@@ -960,8 +960,8 @@ void GraphVectorCompiler::SchedulingToMethod(const Scheduling& S, Klass* K)
  */
 Scheduling GraphVectorCompiler::schedule(const set<Tree>& I)
 {
-    digraph<Tree, int> G;  // the signal graph
-    Scheduling         S;
+    digraph<Tree, multidep> G;  // the signal graph
+    Scheduling              S;
 
     // 1) build the graph and the dictionnary
     for (auto i : I) {
@@ -969,10 +969,10 @@ Scheduling GraphVectorCompiler::schedule(const set<Tree>& I)
         // S.fDic.add(i);
     }
 
-    digraph<Tree, int> T;  // the subgraph of control instructions (temporary)
-    digraph<Tree, int> K;  // the subgraph of init-time instructions
-    digraph<Tree, int> B;  // the subgraph of block-time instructions
-    digraph<Tree, int> E;  // the subgraph at sample-time instructions
+    digraph<Tree, multidep> T;  // the subgraph of control instructions (temporary)
+    digraph<Tree, multidep> K;  // the subgraph of init-time instructions
+    digraph<Tree, multidep> B;  // the subgraph of block-time instructions
+    digraph<Tree, multidep> E;  // the subgraph at sample-time instructions
 
     // 2) split in three sub-graphs: K, B, E
 
@@ -988,9 +988,9 @@ Scheduling GraphVectorCompiler::schedule(const set<Tree>& I)
 
     if (gGlobal->gCodeMode == 0) {
         // b) for the sample level graph we have (probably) cycles
-        digraph<digraph<Tree, int>, int> DG = graph2dag(E);
-        vector<digraph<Tree, int>>       VG = serialize(DG);
-        for (digraph<Tree, int> g : VG) {
+        digraph<digraph<Tree, multidep>, multidep> DG = graph2dag(E);
+        vector<digraph<Tree, multidep>>            VG = serialize(DG);
+        for (digraph<Tree, multidep> g : VG) {
             vector<Tree> v = serialize(cut(g, 1));
             for (Tree i : v) {
                 S.fExecLevel.push_back(i);

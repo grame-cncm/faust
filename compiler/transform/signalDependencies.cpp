@@ -8,6 +8,12 @@
 #include "signalDependencies.hh"
 #include "symbol.hh"
 
+#include "arrow.hh"
+#include "digraph.hh"
+#include "digraphop.hh"
+#include "schedule.hh"
+#include "stdprinting.hh"
+
 using namespace std;
 
 #if 0
@@ -50,8 +56,8 @@ set<Tree> listTableDependencies(Tree t)
  *
  */
 class SignalDependencies : public SignalVisitor {
-    Tree               fRoot;   // the ID of the signal we analyze
-    digraph<Tree, int> fGraph;  // Its graph of dependencies
+    Tree                    fRoot;   // the ID of the signal we analyze
+    digraph<Tree, multidep> fGraph;  // Its graph of dependencies
 
    public:
     SignalDependencies(Tree sig)
@@ -93,7 +99,7 @@ class SignalDependencies : public SignalVisitor {
         } else if (isSigInstructionTableAccessWrite(sig, id, origin, &nature, &dmin, tid, idx)) {
             fRoot   = sig;
             Tree tw = getIDInstruction(tid);
-            fGraph.add(fRoot, tw, dmin);
+            fGraph.add(fRoot, tw, mdep("MMM", dmin));
             self(idx);
         } else if (isSigOutput(sig, &i, content)) {
             fRoot = sig;
@@ -107,7 +113,7 @@ class SignalDependencies : public SignalVisitor {
             faustassert(false);
         }
     }
-    const digraph<Tree, int>& graph() const
+    const digraph<Tree, multidep>& graph() const
     {
         // std::cerr << "The dependency-graph of " << fRoot << "@" << ppsig(fRoot) << " is " << fGraph << std::endl;
         return fGraph;
@@ -121,23 +127,23 @@ class SignalDependencies : public SignalVisitor {
 
         // the dependencies are DelayLines, shared expressions or Control signals
         if (isSigInstructionDelayLineRead(t, id, origin, &nature, &dmax, &dmin, dl)) {
-            fGraph.add(fRoot, getIDInstruction(id), dmin);
+            fGraph.add(fRoot, getIDInstruction(id), mdep("MMM", dmin));
             self(dl);
         } else if (isSigInstructionTableRead(t, id, origin, &nature, &dmin, dl)) {
-            fGraph.add(fRoot, getIDInstruction(id), dmin);
+            fGraph.add(fRoot, getIDInstruction(id), mdep("MMM", dmin));
             self(dl);
         } else if (isSigInstructionSharedRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, getIDInstruction(id), 0);
+            fGraph.add(fRoot, getIDInstruction(id), mdep("MMM", 0));
         } else if (isSigInstructionVectorRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, getIDInstruction(id), 0);
+            fGraph.add(fRoot, getIDInstruction(id), mdep("MMM", 0));
         } else if (isSigInstructionShortDLineRead(t, id, origin, &nature, &dmin)) {
-            fGraph.add(fRoot, getIDInstruction(id), dmin);
+            fGraph.add(fRoot, getIDInstruction(id), mdep("MMM", dmin));
         } else if (isSigInstructionTimeRead(t)) {
-            fGraph.add(fRoot, sigInstructionTimeWrite(), 0);  // TODO : a verifier (YO)
+            fGraph.add(fRoot, sigInstructionTimeWrite(), mdep("MMM", 0));  // TODO : a verifier (YO)
         } else if (isSigInstructionControlRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, getIDInstruction(id), 0);
+            fGraph.add(fRoot, getIDInstruction(id), mdep("MMM", 0));
         } else if (isSigInstructionBargraphRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, getIDInstruction(id), 0);
+            fGraph.add(fRoot, getIDInstruction(id), mdep("MMM", 0));
         } else {
             SignalVisitor::visit(t);
         }
@@ -150,7 +156,7 @@ class SignalDependencies : public SignalVisitor {
 // returns the dependency graph
 //================================================================
 
-digraph<Tree, int> dependencyGraph(Tree sig)
+digraph<Tree, multidep> dependencyGraph(Tree sig)
 {
     SignalDependencies D(sig);
     D.trace(gGlobal->gDebugSwitch, "SignalDependencies");
@@ -189,7 +195,7 @@ static string format(const string& s)
     }
 }
 
-ostream& dotfile2(ostream& file, const digraph<Tree, int>& g)
+ostream& dotfile2(ostream& file, const digraph<Tree, multidep>& g)
 {
     // cerr << "\n\nDOT2FILE of graph " << g << "\n" << endl;
 
@@ -207,9 +213,10 @@ ostream& dotfile2(ostream& file, const digraph<Tree, int>& g)
             dst << ppsig(c.first);
             sm << '"' << format(dst.str()) << '"';
             hascnx = true;
-            if (c.second == 0) {
+            if (c.second.second == 0) {
                 file << "\t" << sn.str() << "->" << sm.str() << ";" << endl;
             } else {
+                std::string l = arrow_traits<multidep>::label(c.second);
                 file << "\t" << sn.str() << "->" << sm.str() << " [label=\"" << c.second << "\"];" << endl;
             }
         }
