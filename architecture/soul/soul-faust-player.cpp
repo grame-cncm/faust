@@ -52,7 +52,7 @@ static bool endWith(const string& str, const string& suffix)
 int main(int argc, char* argv[])
 {
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "soul-faust-player foo.dsp (pure Faust code), foo.soulpatch (pure SOUL patch) or foo.soul (pure SOUL code or Faust/SOUL hybrid code)" << endl;
+        cout << "soul-faust-player <foo.dsp> (pure Faust code), <foo.soulpatch> (pure SOUL patch) or <foo.soul> (pure SOUL code or Faust/SOUL hybrid code)" << endl;
         exit(-1);
     }
     

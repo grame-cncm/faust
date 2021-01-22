@@ -2,7 +2,7 @@
 
 The **faust2soul** tool compiles a Faust DSP program in a folder containing the SOUL source code and SOUL patch.  The result can be a monophonic DSP or a MIDI controllable polyphonic one (when the DSP describes an instrument, following the `freq, gain, gate` [parameter naming convention](https://faust.grame.fr/doc/manual/index.html#midi-polyphony-support)). The resulting SOUL code can be played using the *soul* program, or by pasting and compiling the code in the [SOUL Playground](https://soul.dev/playground):
 
-`faust2soul [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-play] [additional Faust options (-cn foo -double...)] <file.dsp>`
+`faust2soul [-midi] [-nvoices <num>] [-effect auto|<effect.dsp>] [-juce] [-dsp] [-play] [additional Faust options (-cn foo -double...)] <file.dsp>`
 
 Here are the available options:
 
@@ -25,6 +25,8 @@ So for instance:
 
 The **soul-faust-player** tool loads a Faust DSP file, a SOUL patch or an hybrid Faust/SOUL code file, wraps it as a Faust DSP object, and runs it in the Faust runtime audio/control machinery. 
 
+`soul-faust-player <foo.dsp> (pure Faust code), <foo.soulpatch> (pure SOUL patch) or <foo.soul> (pure SOUL code or Faust/SOUL hybrid code)`
+
 So for instance:
 
 - `faust2soul clarinetMIDI.dsp` to produce the two `clarinetMIDI.soul` and `clarinetMIDI.soulpatch` files
@@ -43,7 +45,7 @@ Or:
 
 The **soul-faust-tester** tool allows to test DSP CPU usage of Faust and SOUL programs, dynamically compiling them, and running them in the Faust runtime or SOUL runtime. It measures the DSP CPU usage as MBytes/sec and % of audio bandwidth at 44.1 kHz.
 
-`soul-faust-tester [-bs <frames>] [-control] [Faust options : any option (e.g. -vec -vs 8...)] foo.dsp|foo.soulpatch`
+`soul-faust-tester [-bs <frames>] [-control] [Faust options : any option (e.g. -vec -vs 8...)] <foo.dsp|foo.soulpatch>`
 
 Here are the available options:
 
