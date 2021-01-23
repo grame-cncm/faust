@@ -4,7 +4,7 @@
 GRAME - Centre national de creation musicale
 http://www.grame.fr
 ====================================================
-Copyright GRAME (c) 2012-2020
+Copyright GRAME (c) 2012-2021
 
 ----------------------------------------------------
 Version 1.49 - 01/20/2021
@@ -14,7 +14,7 @@ Version 1.49 - 01/20/2021
 ----------------------------------------------------
 Version 1.48 - 12/16/2020
 
-- use Faust 2.30.0 and LLVM 10.0
+- use Faust 2.30.5 and LLVM 10.0
 - add a new MIDI output on a new most-right outlet, that send MIDI messages when the DSP code uses MIDI metadata.
 
 ----------------------------------------------------
