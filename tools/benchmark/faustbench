@@ -17,6 +17,8 @@ OPTIONS=""
 LIBS=""
 TESTS="all"
 RUN=1
+BUFFER_SIZE=512
+CONTROL=false
 OPT=-1
 NOTRACE=false
 GENERIC=false
@@ -32,18 +34,21 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-source] [-opt <level(0..3|-1)>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp"
+        echo "faustbench [-notrace] [-control] [-generic] [-ios] [-single] [-fast] [-run <num>] [-bs <frames>] [-source] [-opt <level(0..3|-1)>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp"
         echo "Use '-notrace' to only generate the best compilation parameters"
+        echo "Use '-control' to update all controllers with random values at each cycle"
         echo "Use '-generic' to compile for a generic processor, otherwise -march=native will be used"
         echo "Use '-ios' to generate an iOS project"
-        echo "Use '-single' to only execute the scalar test"
+        echo "Use '-single' to only execute the one test (scalar by default)"
         echo "Use '-fast' to only execute some tests"
         echo "Use '-run <num>' to execute each test <num> times"
+        echo "Use '-bs <frames>' to set the buffer-size in frames"
         echo "Use '-source' to keep the intermediate source folder and exit"
         echo "Use '-double' to compile DSP in double and set FAUSTFLOAT to double"
+        echo "Use '-opt <level (0..3|-1)>' to pass an optimisation level to C++ (-1 means 'maximal level =-Ofast for now' but may change in the future)"
+        echo ""
         echo "Use 'export CXX=/path/to/compiler' before running faustbench to change the C++ compiler"
         echo "Use 'export CXXFLAGS=options' before running faustbench to change the C++ compiler options"
-        echo "Use '-opt <level (0..3|-1)>' to pass an optimisation level to c++ (-1 means 'maximal level =-Ofast for now' but may change in the future)\n";
         exit
     fi
 
@@ -51,6 +56,8 @@ do
         IOS="1"
     elif [ "$p" = "-notrace" ]; then
         NOTRACE=true
+    elif [ "$p" = "-control" ]; then
+        CONTROL=true
     elif [ "$p" = "-generic" ]; then
         GENERIC=true
     elif [ "$p" = "-fast" ]; then
@@ -60,6 +67,9 @@ do
     elif [ "$p" = "-run" ]; then
         shift
         RUN=$1
+    elif [ "$p" = "-bs" ]; then
+        shift
+        BUFFER_SIZE=$1
     elif [ "$p" = "-source" ]; then
         SOURCE=true
     elif [ "$p" = "-opt" ]; then
@@ -119,16 +129,17 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # creates and compile multiple DSP bench tool
-    if [ "$OPTIONS" != "" ] ; then
+    if [ "$OPTIONS" != "" ]; then
     	if ! $NOTRACE ; then
         	echo "Compiled with additional options :$OPTIONS"
         fi
     fi
 
-    if [ $TESTS == "all" ] ; then
+    if [ $TESTS == "all" ]; then
 
         faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
         faust -cn dsp_scal_exp10 $OPTIONS -exp10 "$SRCDIR/$f" -o "$TMP/dsp_scal_exp10.h"
+        faust -cn dsp_scal_os $OPTIONS -os "$SRCDIR/$f" -o "$TMP/dsp_scal_os.h"
 
         faust -cn dsp_vec0_4 $OPTIONS -vec -lv 0 -vs 4 "$SRCDIR/$f" -o "$TMP/dsp_vec0_4.h"
         faust -cn dsp_vec0_8 $OPTIONS -vec -lv 0 -vs 8 "$SRCDIR/$f" -o "$TMP/dsp_vec0_8.h"
@@ -175,7 +186,7 @@ for p in $FILES; do
         faust -cn dsp_vec1g_256 $OPTIONS -vec -lv 1 -vs 256 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_256.h"
         faust -cn dsp_vec1g_512 $OPTIONS -vec -lv 1 -vs 512 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_512.h"
 
-    elif [ $TESTS == "fast" ] ; then
+    elif [ $TESTS == "fast" ]; then
 
         faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
         faust -cn dsp_scal_exp10 $OPTIONS -exp10 "$SRCDIR/$f" -o "$TMP/dsp_scal_exp10.h"
@@ -184,24 +195,24 @@ for p in $FILES; do
         faust -cn dsp_vec1_32 $OPTIONS -vec -lv 1 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec1_32.h"
         faust -cn dsp_vec1g_32 $OPTIONS -vec -lv 1 -vs 32 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_32.h"
 
-    elif [ $TESTS == "single" ] ; then
+    elif [ $TESTS == "single" ]; then
 
         faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
     fi
 
-    if [ $IOS == "1" ] ; then
+    if [ $IOS == "1" ]; then
         echo "Files generated for iOS project in $TMP"
         cp "$FAUSTLIB/faustbench.cpp" "$TMP/faustbench.cpp"
-        if [ $DOUBLE == "1" ] ; then
+        if [ $DOUBLE == "1" ]; then
             echo " #define FAUSTFLOAT double" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
         else
             echo " #define FAUSTFLOAT float" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
         fi
-        if [ $TESTS == "all" ] ; then
+        if [ $TESTS == "all" ]; then
             echo " #define ALL_TESTS" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
-        elif [ $TESTS == "fast" ] ; then
+        elif [ $TESTS == "fast" ]; then
             echo " #define FAST_TESTS" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
-        elif [ $TESTS == "single" ] ; then
+        elif [ $TESTS == "single" ]; then
             echo " #define SINGLE_TESTS" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
         fi
         cp -r $FAUSTLIB/iOS-bench/* $TMP
@@ -210,7 +221,7 @@ for p in $FILES; do
 
     cd "$TMP"
 
-    if [ $DOUBLE == "1" ] ; then
+    if [ $DOUBLE == "1" ]; then
         echo " #define FAUSTFLOAT double" | cat - "$FAUSTLIB/faustbench.cpp" > temp && mv temp "faustbench.cpp"
     else
         echo " #define FAUSTFLOAT float" | cat - "$FAUSTLIB/faustbench.cpp" > temp && mv temp "faustbench.cpp"
@@ -220,15 +231,15 @@ for p in $FILES; do
 	if $SOURCE ; then 
         # create Makefile
         echo "$dspName:" > Makefile
-        if [ $TESTS == "all" ] ; then
+        if [ $TESTS == "all" ]; then
             echo -n -e '\t' >> Makefile
-            echo "$CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DALL_TESTS faustbench.cpp $LIBS -o $dspName" >> Makefile
-        elif [ $TESTS == "fast" ] ; then
+            echo "$CXX $CXXFLAGS -std=c++11 -I `faust -includedir` -DALL_TESTS faustbench.cpp $LIBS -o $dspName" >> Makefile
+        elif [ $TESTS == "fast" ]; then
             echo -n -e '\t' >> Makefile
-            echo "$CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DFAST_TESTS faustbench.cpp $LIBS -o $dspName" >> Makefile
-        elif [ $TESTS == "single" ] ; then
+            echo "$CXX $CXXFLAGS -std=c++11 -I `faust -includedir` -DFAST_TESTS faustbench.cpp $LIBS -o $dspName" >> Makefile
+        elif [ $TESTS == "single" ]; then
             echo -n -e '\t' >> Makefile
-            echo "$CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DSINGLE_TESTS faustbench.cpp $LIBS -o $dspName" >> Makefile
+            echo "$CXX $CXXFLAGS -std=c++11 -I `faust -includedir` -DSINGLE_TESTS faustbench.cpp $LIBS -o $dspName" >> Makefile
         fi
         echo -e '\n' >> Makefile
         echo "clean:" >> Makefile
@@ -244,20 +255,28 @@ for p in $FILES; do
         exit
     else
         # compile
-        if [ $TESTS == "all" ] ; then
-            $CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DALL_TESTS faustbench.cpp $LIBS -o $dspName
-        elif [ $TESTS == "fast" ] ; then
-            $CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DFAST_TESTS faustbench.cpp $LIBS -o $dspName
-        elif [ $TESTS == "single" ] ; then
-            $CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DSINGLE_TESTS faustbench.cpp $LIBS -o $dspName
+        if [ $TESTS == "all" ]; then
+            $CXX $CXXFLAGS -std=c++11 -I `faust -includedir` -DALL_TESTS faustbench.cpp $LIBS -o $dspName
+        elif [ $TESTS == "fast" ]; then
+            $CXX $CXXFLAGS -std=c++11 -I `faust -includedir` -DFAST_TESTS faustbench.cpp $LIBS -o $dspName
+        elif [ $TESTS == "single" ]; then
+            $CXX $CXXFLAGS -std=c++11 -I `faust -includedir` -DSINGLE_TESTS faustbench.cpp $LIBS -o $dspName
         fi
 
         # run bench
         cd ../../
         if $NOTRACE; then
-            ./$TDR/$dspName/$dspName -run $RUN -notrace
+            if $CONTROL; then
+                ./$TDR/$dspName/$dspName -notrace -control -run $RUN -bs $BUFFER_SIZE
+            else
+                ./$TDR/$dspName/$dspName -notrace -run $RUN -bs $BUFFER_SIZE
+            fi
         else
-            ./$TDR/$dspName/$dspName -run $RUN
+            if $CONTROL; then
+                ./$TDR/$dspName/$dspName -control -run $RUN -bs $BUFFER_SIZE
+            else
+                ./$TDR/$dspName/$dspName -run $RUN -bs $BUFFER_SIZE
+            fi
         fi
 
         # cleanup

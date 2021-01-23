@@ -87,7 +87,7 @@ do
         UNPCK="1"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
-    elif [[ -f "$p" ]]; then
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
         OPTIONS="$OPTIONS $p"
@@ -130,7 +130,7 @@ for p in $FILES; do
     rm params.txt
 
     # compiles faust to c++ and json (adds JSON to C# string)
-    faust -json "$SRCDIR/$f" -o /dev/null;
+    faust -uim -json "$SRCDIR/$f" -o /dev/null;
     tr -d '\n' < $f.json > $NAME.json
     sed 's/\"/\\\\"/g;s/\//\\\//g' $NAME.json > $f.json
     JSON=$(<$f.json)
@@ -216,7 +216,7 @@ for p in $FILES; do
 
     elif [ "$SRC" = "1" ]; then
         # add .dsp and .cpp files to sources folder
-        faust -i -a $FAUSTARCH/unity/unityplugin.cpp $f -o $NAME.cpp
+        faust -uim -i -a $FAUSTARCH/unity/unityplugin.cpp $f -o $NAME.cpp
         mv "$NAME.cpp" "$FNAME/$NAME.cpp"
         cp "$f" "$FNAME/$f"
         SNAME=$FNAME\_sources

@@ -1,7 +1,7 @@
 /************************************************************************
 ************************************************************************
     FAUST Architecture File
-    Copyright (C) 2017 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2017-2020 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
 
     This is sample code. This file is provided as an example of minimal
@@ -30,27 +30,37 @@ extern crate num_traits;
 use std::fs::File;
 use std::io::Write;
 use std::env;
+use std::marker::PhantomData;
 
 use num_traits::{cast::FromPrimitive, float::Float};
 
+type F32 = f32;
+type F64 = f64;
+
+#[derive(Copy, Clone)]
+pub struct ParamIndex(pub i32);
+
 pub trait FaustDsp {
-    type Sample;
+    type T;
 
     fn new() -> Self where Self: Sized;
-    fn metadata(&mut self, m: &mut dyn Meta);
-    fn get_sample_rate(&mut self) -> i32;
-    fn get_num_inputs(&mut self) -> i32;
-    fn get_num_outputs(&mut self) -> i32;
-    fn get_input_rate(&mut self, channel: i32) -> i32;
-    fn get_output_rate(&mut self, channel: i32) -> i32;
+    fn metadata(&self, m: &mut dyn Meta);
+    fn get_sample_rate(&self) -> i32;
+    fn get_num_inputs(&self) -> i32;
+    fn get_num_outputs(&self) -> i32;
+    fn get_input_rate(&self, channel: i32) -> i32;
+    fn get_output_rate(&self, channel: i32) -> i32;
     fn class_init(sample_rate: i32) where Self: Sized;
-    fn instance_reset_user_interface(&mut self);
+    fn instance_reset_params(&mut self);
     fn instance_clear(&mut self);
     fn instance_constants(&mut self, sample_rate: i32);
     fn instance_init(&mut self, sample_rate: i32);
     fn init(&mut self, sample_rate: i32);
-    fn build_user_interface(&mut self, ui_interface: &mut dyn UI<Self::Sample>);
-    fn compute(&mut self, count: i32, inputs: &[&[Self::Sample]], outputs: &mut[&mut[Self::Sample]]);
+    fn build_user_interface(&self, ui_interface: &mut dyn UI<Self::T>);
+    fn build_user_interface_static(ui_interface: &mut dyn UI<Self::T>) where Self: Sized;
+    fn get_param(&self, param: ParamIndex) -> Option<Self::T>;
+    fn set_param(&mut self, param: ParamIndex, value: Self::T);
+    fn compute(&mut self, count: i32, inputs: &[&[Self::T]], outputs: &mut[&mut[Self::T]]);
 }
 
 pub trait Meta {
@@ -66,18 +76,18 @@ pub trait UI<T> {
     fn close_box(&mut self);
 
     // -- active widgets
-    fn add_button(&mut self, label: &str, zone: &mut T);
-    fn add_check_button(&mut self, label: &str, zone: &mut T);
-    fn add_vertical_slider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T);
-    fn add_horizontal_slider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T);
-    fn add_num_entry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T);
+    fn add_button(&mut self, label: &str, param: ParamIndex);
+    fn add_check_button(&mut self, label: &str, param: ParamIndex);
+    fn add_vertical_slider(&mut self, label: &str, param: ParamIndex, init: T, min: T, max: T, step: T);
+    fn add_horizontal_slider(&mut self, label: &str, param: ParamIndex , init: T, min: T, max: T, step: T);
+    fn add_num_entry(&mut self, label: &str, param: ParamIndex, init: T, min: T, max: T, step: T);
 
     // -- passive widgets
-    fn add_horizontal_bargraph(&mut self, label: &str, zone: &mut T, min: T, max: T);
-    fn add_vertical_bargraph(&mut self, label: &str, zone: &mut T, min: T, max: T);
+    fn add_horizontal_bargraph(&mut self, label: &str, param: ParamIndex, min: T, max: T);
+    fn add_vertical_bargraph(&mut self, label: &str, param: ParamIndex, min: T, max: T);
 
     // -- metadata declarations
-    fn declare(&mut self, zone: &mut T, key: &str, value: &str);
+    fn declare(&mut self, param: Option<ParamIndex>, key: &str, value: &str);
 }
 
 pub struct PrintMeta {}
@@ -90,7 +100,6 @@ impl Meta for PrintMeta {
     }
 
 }
-
 pub struct PrintUI<T>
 {
     phantom: PhantomData<T>
@@ -100,64 +109,65 @@ impl<T> UI<T> for PrintUI<T> {
 
     // -- widget's layouts
 
-    fn openTabBox(&mut self, label: &str) -> ()
+    fn open_tab_box(&mut self, label: &str) -> ()
     {
         println!("openTabBox: {}", label);
     }
-    fn openHorizontalBox(&mut self, label: &str) -> ()
+    fn open_horizontal_box(&mut self, label: &str) -> ()
     {
         println!("openHorizontalBox: {}", label);
     }
-    fn openVerticalBox(&mut self, label: &str) -> ()
+    fn open_vertical_box(&mut self, label: &str) -> ()
     {
         println!("openVerticalBox: {}", label);
     }
-    fn closeBox(&mut self) -> ()
+    fn close_box(&mut self) -> ()
     {
         println!("closeBox:");
     }
 
     // -- active widgets
 
-    fn addButton(&mut self, label: &str, zone: &mut T) -> ()
+    fn add_button(&mut self, label: &str, param: ParamIndex) -> ()
     {
         println!("addButton: {}", label);
     }
-    fn addCheckButton(&mut self, label: &str, zone: &mut T) -> ()
+    fn add_check_button(&mut self, label: &str, param: ParamIndex) -> ()
     {
         println!("addCheckButton: {}", label);
     }
-    fn addVerticalSlider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ()
+    fn add_vertical_slider(&mut self, label: &str, param: ParamIndex, init: T, min: T, max: T, step: T) -> ()
     {
         println!("addVerticalSlider: {}", label);
     }
-    fn addHorizontalSlider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T) -> ()
+    fn add_horizontal_slider(&mut self, label: &str, param: ParamIndex , init: T, min: T, max: T, step: T) -> ()
     {
         println!("addHorizontalSlider: {}", label);
     }
-    fn addNumEntry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ()
+    fn add_num_entry(&mut self, label: &str, param: ParamIndex, init: T, min: T, max: T, step: T) -> ()
     {
         println!("addNumEntry: {}", label);
     }
 
     // -- passive widgets
 
-    fn addHorizontalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ()
+    fn add_horizontal_bargraph(&mut self, label: &str, param: ParamIndex, min: T, max: T) -> ()
     {
         println!("addHorizontalBargraph: {}", label);
     }
-    fn addVerticalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ()
+    fn add_vertical_bargraph(&mut self, label: &str, param: ParamIndex, min: T, max: T) -> ()
     {
         println!("addVerticalBargraph: {}", label);
     }
 
     // -- metadata declarations
 
-    fn declare(&mut self, zone: &mut T, key: &str, value: &str) -> ()
+    fn declare(&mut self, param: Option<ParamIndex>, key: &str, value: &str) -> ()
     {
         println!("declare: {} {}", key, value);
     }
 }
+
 
 <<includeIntrinsic>>
 <<includeclass>>
@@ -176,7 +186,7 @@ fn main() {
 
     // Print UI
     let mut printer = PrintUI::<f32>{ phantom: PhantomData };
-    dsp.buildUserInterface(&mut printer);
+    dsp.build_user_interface(&mut printer);
 
     // Print Meta
     let mut meta = PrintMeta{};

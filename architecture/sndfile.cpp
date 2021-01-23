@@ -54,7 +54,7 @@
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
-#endif  
+#endif
 
 #define READ_SAMPLE sf_readf_float
 //#define READ_SAMPLE sf_readf_double
@@ -151,8 +151,10 @@ int main(int argc, char* argv[])
     Deinterleaver sep(kFrames, in_info.channels, DSP.getNumInputs());
     Interleaver ilv(kFrames, DSP.getNumOutputs(), DSP.getNumOutputs());
     
-    // init signal processor
+    // init DSP with SR
     DSP.init(in_info.samplerate);
+    
+    // modify the UI values according to the command line options, after init
     interface->process_init();
     
     // process all samples

@@ -60,13 +60,13 @@ void initFaustFloat()
         numsuffix[3] = "";
         
         floatname[0] = FLOATMACRO;
-        floatname[1] = "f32";
-        floatname[2] = "f64";
+        floatname[1] = "F32";
+        floatname[2] = "F64";
         floatname[3] = "dummy";
         
         castname[0] = FLOATCASTER;
-        castname[1] = "as f32";
-        castname[2] = "as f64";
+        castname[1] = "as F32";
+        castname[2] = "as F64";
         castname[3] = "(dummy)";
         
         floatmin[0] = 0;
@@ -74,8 +74,32 @@ void initFaustFloat()
         floatmin[2] = DBL_MIN;
         floatmin[3] = LDBL_MIN;
         
+        // Specific for D backend
+    }
+    else if (gGlobal->gOutputLang == "dlang") {
+        numsuffix[0] = "";
+        numsuffix[1] = "";
+        numsuffix[2] = "";
+        numsuffix[3] = "";
+        
+        floatname[0] = FLOATMACRO;
+        floatname[1] = "float";
+        floatname[2] = "double";
+        floatname[3] = "real";
+        
+        castname[0] = FLOATCASTER;
+        castname[1] = "cast(float)";
+        castname[2] = "cast(double)";
+        castname[3] = "cast(real)";
+        
+        floatmin[0] = 0;
+        floatmin[1] = FLT_MIN;
+        floatmin[2] = DBL_MIN;
+        floatmin[3] = LDBL_MIN;
+        
         // Specific for C/C++ backends
-    } else {
+    } 
+     else {
         numsuffix[0] = "";
         numsuffix[1] = "f";
         numsuffix[2] = "";

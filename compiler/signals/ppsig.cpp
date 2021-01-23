@@ -160,14 +160,14 @@ ostream& ppsig::printrec(ostream& fout, Tree lexp, bool hide) const
     return fout;
 }
 
-ostream& ppsig::printextended(ostream& fout, Tree sig) const
+ostream& ppsig::printextended(ostream& fout, Tree sig1) const
 {
     string   sep = "";
     xtended* p   = (xtended*)getUserData(sig);
 
     fout << p->name() << '(';
-    for (int i = 0; i < sig->arity(); i++) {
-        fout << sep << ppsig(sig->branch(i), fEnv);
+    for (int i = 0; i < sig1->arity(); i++) {
+        fout << sep << ppsig(sig1->branch(i), fEnv);
         sep = ", ";
     }
     fout << ')';

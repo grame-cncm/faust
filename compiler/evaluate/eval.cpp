@@ -547,10 +547,10 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
 
         // static
     } else if (isBoxInputs(exp, body)) {
-        int  ins, outs;
+        int  ins1, outs1;
         Tree b = a2sb(eval(body, visited, localValEnv));
-        if (getBoxType(b, &ins, &outs)) {
-            return boxInt(ins);
+        if (getBoxType(b, &ins1, &outs1)) {
+            return boxInt(ins1);
         } else {
             stringstream error;
             error << "ERROR : can't evaluate ' : " << *exp << endl;
@@ -558,10 +558,10 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
         }
 
     } else if (isBoxOutputs(exp, body)) {
-        int  ins, outs;
+        int  ins1, outs1;
         Tree b = a2sb(eval(body, visited, localValEnv));
-        if (getBoxType(b, &ins, &outs)) {
-            return boxInt(outs);
+        if (getBoxType(b, &ins1, &outs1)) {
+            return boxInt(outs1);
         } else {
             stringstream error;
             error << "ERROR : can't evaluate ' : " << *exp << endl;
@@ -849,47 +849,44 @@ static string evalLabel(const char* src, Tree visited, Tree localValEnv)
     string format;     // current format
 
     while (state != -1) {
-        char c = *src++;
-
         if (state == 0) {
-            if (c == 0) {
+            if (*src == 0) {
                 state = -1;
-            } else if (c == '%') {
+            } else if (*src == '%') {
                 ident  = "";
                 format = "";
                 state  = 1;
+                src++;
             } else {
-                dst += c;
+                dst += *src++;
                 state = 0;
             }
 
         } else if (state == 1) {
-            if (c == 0) {
+            if (*src == 0) {
                 // fin et pas d'indentifiant, abandon
                 dst += '%';
                 dst += format;
                 state = -1;
-            } else if (isDigitChar(c)) {
-                format += c;
+            } else if (isDigitChar(*src)) {
+                format += *src++;
                 state = 1;
-            } else if (isIdentChar(c)) {
-                ident += c;
+            } else if (isIdentChar(*src)) {
+                ident += *src++;
                 state = 2;
             } else {
                 // caractere de ponctuation et pas d'indentifiant, abandon
                 dst += '%';
                 dst += format;
-                src--;
                 state = 0;
             }
 
         } else if (state == 2) {
-            if (isIdentChar(c)) {
-                ident += c;
+            if (isIdentChar(*src)) {
+                ident += *src++;
                 state = 2;
             } else {
                 writeIdentValue(dst, format, ident, visited, localValEnv);
-                src--;
                 state = 0;
             }
 
@@ -1469,16 +1466,16 @@ Tree numericBoxSimplification(Tree box)
             result = box;
         } else {
             // propagate signals to discover if it simplifies to a number
-            int    i;
-            double x;
+            int    i1;
+            double x1;
             Tree   lsignals = boxPropagateSig(gGlobal->nil, box, makeSigInputList(0));
             // cerr << "simplify 1389" << endl;
             Tree s = simplify(hd(lsignals));
 
-            if (isSigReal(s, &x)) {
-                result = boxReal(x);
-            } else if (isSigInt(s, &i)) {
-                result = boxInt(i);
+            if (isSigReal(s, &x1)) {
+                result = boxReal(x1);
+            } else if (isSigInt(s, &i1)) {
+                result = boxInt(i1);
             } else {
                 result = insideBoxSimplification(box);
             }

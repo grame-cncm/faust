@@ -31,6 +31,7 @@ POLY="POLY"
 DEPLOY="yes"
 EFFECT=""
 PRESETDIR="auto"
+PRESETDEFS=""
 NVOICES=-1
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
@@ -111,7 +112,7 @@ do
         QRDEFS="DEFINES += QRCODECTRL"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
-    elif [[ -f "$p" ]]; then
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
         OPTIONS="$OPTIONS $p"        
@@ -186,7 +187,7 @@ EndOfCode
     else
         faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
     fi
-
+    
     # add preset management
     if [ $PRESETDIR = "auto" ]; then
         echo "#define PRESETDIR \"/var/tmp/\"" > "$TMP/preset.cpp"
@@ -195,8 +196,7 @@ EndOfCode
     fi
 
     cat "$TMP/preset.cpp" "$TMP/${f%.dsp}_tmp.cpp" > "$TMP/${f%.dsp}.cpp"
-    rm "$TMP/preset.cpp"
-    rm "$TMP/${f%.dsp}_tmp.cpp"
+    rm "$TMP/preset.cpp" "$TMP/${f%.dsp}_tmp.cpp"
 
     # compile c++ to binary
     (

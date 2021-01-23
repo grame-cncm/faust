@@ -112,7 +112,7 @@ struct Soundfile {
     {
         // Free the real channels only
         for (int chan = 0; chan < fChannels; chan++) {
-            delete fBuffers[chan];
+            delete[] fBuffers[chan];
         }
         delete[] fBuffers;
         delete[] fLength;
@@ -318,8 +318,7 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
 
    public:
     llvm_dsp_factory(llvm_dsp_factory_aux* factory) : fFactory(factory) {}
-    llvm_dsp_factory(dsp_factory_base* factory) : fFactory(static_cast<llvm_dsp_factory_aux*>(factory)) {}
-
+  
     std::string getName() { return fFactory->getName(); }
 
     std::string getSHAKey() { return fFactory->getSHAKey(); }

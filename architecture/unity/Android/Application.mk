@@ -1,5 +1,5 @@
 APP_OPTIM := release
-APP_STL := gnustl_static
+APP_STL := c++_static
 LOCAL_PATH := $(call my-dir)
 APP_CPPFLAGS += -fexceptions
 APP_CPPFLAGS += -std=c++11

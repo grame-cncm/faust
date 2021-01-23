@@ -46,7 +46,6 @@ class CPPInstVisitor : public TextInstVisitor {
     {
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;
-
         gFunctionSymbolTable["max"] = true;
         gFunctionSymbolTable["min"] = true;
 
@@ -147,10 +146,7 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sinf"]       = "std::sin";
         gPolyMathLibTable["sqrtf"]      = "std::sqrt";
         gPolyMathLibTable["tanf"]       = "std::tan";
-        
-        gPolyMathLibTable["isnanf"] = "std::isnan";
-        gPolyMathLibTable["isinff"] = "std::isinf";
-
+   
         // Polymath mapping double version
         gPolyMathLibTable["max_"] = "std::max<double>";
         gPolyMathLibTable["min_"] = "std::min<double>";
@@ -177,9 +173,6 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sin"]       = "std::sin";
         gPolyMathLibTable["sqrt"]      = "std::sqrt";
         gPolyMathLibTable["tan"]       = "std::tan";
-        
-        gPolyMathLibTable["isnan"] = "std::isnan";
-        gPolyMathLibTable["isinf"] = "std::isinf";
       
         // Polymath mapping quad version
         gPolyMathLibTable["max_l"] = "std::max<quad>";
@@ -207,10 +200,7 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sinl"]       = "std::sin";
         gPolyMathLibTable["sqrtl"]      = "std::sqrt";
         gPolyMathLibTable["tanl"]       = "std::tan";
-        
-        gPolyMathLibTable["isnanl"] = "std::isnan";
-        gPolyMathLibTable["isinfl"] = "std::isinf";
-    }
+     }
 
     virtual ~CPPInstVisitor() {}
 

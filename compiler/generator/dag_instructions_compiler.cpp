@@ -114,7 +114,13 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 
             // Cast to external float
             ValueInst* res = InstBuilder::genCastFloatMacroInst(CS(sig));
-            pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
+            
+            if (gGlobal->gComputeMix) {
+                ValueInst* res1 = InstBuilder::genAdd(res, InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex()));
+                pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res1));
+            } else {
+                pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
+            }
 
             fContainer->closeLoop(sig);
         }

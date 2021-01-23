@@ -76,6 +76,7 @@ void FAUSTBENCH_LOG(VAL_TYPE val)
     A class to do do timing measurements
 */
 
+template <typename REAL>
 class time_bench {
     
     protected:
@@ -152,11 +153,11 @@ class time_bench {
         /**
          * Converts RDTSC clocks into Megabytes/seconds according to the
          * number of frames processed during the period, the number of channels
-         * and 4 bytes samples.
+         * and sizeof(REAL) bytes samples
          */
         double megapersec(int frames, int chans, uint64 clk)
         {
-            return double(frames) * double(chans) * 4 / double(1024 * 1024 * rdtsc2sec(clk));
+            return (double(frames) * double(chans) * double(sizeof(REAL))) / (1024. * 1024. * rdtsc2sec(clk));
         }
         
         /**
@@ -217,7 +218,7 @@ class time_bench {
         }
     
         /**
-         *  Returns best estimation.
+         *  Returns best estimation
          */
         double getStats(int bsize, int ichans, int ochans)
         {
@@ -236,7 +237,7 @@ class time_bench {
         }
 
         /**
-         * Print the median value (in Megabytes/second) of fCount throughputs measurements.
+         * Print the median value (in Megabytes/second) of fCount throughputs measurements
          */
         void printStats(const char* applname, int bsize, int ichans, int ochans)
         {
@@ -355,7 +356,7 @@ class measure_dsp_aux : public decorator_dsp {
         REAL** fAllInputs;
         REAL** fOutputs;
         REAL** fAllOutputs;
-        time_bench* fBench;
+        time_bench<REAL>* fBench;
         int fBufferSize;
         int fInputIndex;
         int fOutputIndex;
@@ -435,7 +436,7 @@ class measure_dsp_aux : public decorator_dsp {
             :decorator_dsp(dsp), fBufferSize(buffer_size), fCount(count), fControl(control)
         {
             init();
-            fBench = new time_bench(fCount, 10);
+            fBench = new time_bench<REAL>(fCount, 10);
         }
     
         /**
@@ -454,15 +455,18 @@ class measure_dsp_aux : public decorator_dsp {
             init();
             
             // Creates a first time_bench object to estimate the proper 'count' number of measure to do later
-            fBench = new time_bench(1000, 10);
+            fBench = new time_bench<REAL>(1000, 10);
             measure();
             double duration = fBench->measureDurationUsec();
-            if (trace) std::cout << "duration " << (duration / 1e6) << std::endl;
+            if (trace) {
+                std::cout << "Duration " << (duration / 1e6) << std::endl;
+                if (control) std::cout << "Random control is on" << std::endl;
+            }
             fCount = int(1000 * (duration_in_sec * 1e6 / duration));
             delete fBench;
             
             // Then allocate final time_bench object with proper 'count' parameter
-            fBench = new time_bench(fCount, 10);
+            fBench = new time_bench<REAL>(fCount, 10);
         }
     
         virtual ~measure_dsp_aux()
@@ -491,8 +495,8 @@ class measure_dsp_aux : public decorator_dsp {
             AVOIDDENORMALS;
             // Possibly update all controllers
             if (fControl) fRandomUI.update();
-            fBench->startMeasure();
             // Only measure the 'compute' method
+            fBench->startMeasure();
             fDSP->compute(count, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
             fBench->stopMeasure();
         }

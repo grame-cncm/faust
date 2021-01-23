@@ -53,14 +53,16 @@ class soulpatch_dsp : public dsp {
     
     private:
     
+        /*
         struct ConsolePrinter : public soul::patch::RefCountHelper<soul::patch::ConsoleMessageHandler, ConsolePrinter>
         {
-            /** Called when a message is sent to the console by the program. */
+            // Called when a message is sent to the console by the program.
             void handleConsoleMessage(uint64_t sampleCount, const char* endpointName, const char* message)
             {
                 std::cout << sampleCount << " " << endpointName << ": " << message << std::endl;
             }
         };
+        */
 
         bool startWith(const std::string& str, const std::string& prefix)
         {
@@ -120,8 +122,8 @@ class soulpatch_dsp : public dsp {
     
         // MIDI handling
         midi_handler* fMIDIHander;
-        std::vector<soul::patch::MIDIMessage> fMIDIInputMessages;
-        std::vector<soul::patch::MIDIMessage> fMIDIOutputMessages;
+        std::vector<soul::MIDIEvent> fMIDIInputMessages;
+        std::vector<soul::MIDIEvent> fMIDIOutputMessages;
     
     public:
 
@@ -441,7 +443,7 @@ soulpatch_dsp::soulpatch_dsp(soul_dsp_factory* factory, std::string& error_msg)
     
     fConfig.sampleRate = 44100;
     fConfig.maxFramesPerBlock = 4096;
-    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr, nullptr);
+    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr);
     if (!fPlayer->isPlayable()) {
         soul::patch::Span<soul::patch::CompilationMessage> errors = fPlayer->getCompileMessages();
         error_msg = "getCompileError";
@@ -461,8 +463,7 @@ soulpatch_dsp::soulpatch_dsp(soul_dsp_factory* factory, std::string& error_msg)
 void soulpatch_dsp::init(int sample_rate)
 {
     fConfig.sampleRate = double(sample_rate);
-    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr, nullptr);
-    //fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr, new ConsolePrinter());
+    fPlayer = fFactory->fPatch->compileNewPlayer(fConfig, nullptr, fFactory->fProcessor.get(), nullptr);
     fMIDIInputMessages.resize(1024);
     fMIDIOutputMessages.resize(1024);
     

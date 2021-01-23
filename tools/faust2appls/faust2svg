@@ -10,7 +10,7 @@ for p in $@; do
     	exit
     fi
     
-    if [[ -f "$p" ]]; then
+    if [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
         OPTIONS="$OPTIONS $p"        

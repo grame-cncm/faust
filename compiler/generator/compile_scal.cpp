@@ -116,9 +116,13 @@ Tree ScalarCompiler::prepare(Tree LS)
     Tree L2b = SK.mapself(L2);
     endTiming("Constant propagation");
 
+    startTiming("privatise");
     Tree L3 = privatise(L2b);  // Un-share tables with multiple writers
-
+    endTiming("privatise");
+    
+    startTiming("conditionAnnotation");
     conditionAnnotation(L3);
+    endTiming("conditionAnnotation");
     // conditionStatistics(L3);        // count condition occurrences
 
     // dump normal form
@@ -127,19 +131,25 @@ Tree ScalarCompiler::prepare(Tree LS)
         throw faustexception("Dump normal form finished...\n");
     }
 
-    recursivnessAnnotation(L3);  // Annotate L3 with recursivness information
+    startTiming("recursivnessAnnotation");
+    recursivnessAnnotation(L3); // Annotate L3 with recursivness information
+    endTiming("recursivnessAnnotation");
 
     startTiming("typeAnnotation");
-    typeAnnotation(L3, true);  // Annotate L3 with type information
+    typeAnnotation(L3, true);   // Annotate L3 with type information
     endTiming("typeAnnotation");
 
-    sharingAnalysis(L3);  // annotate L3 with sharing count
+    startTiming("sharingAnalysis");
+    sharingAnalysis(L3);        // annotate L3 with sharing count
+    endTiming("sharingAnalysis");
 
+    startTiming("occurrences analysis");
     if (fOccMarkup != 0) {
         delete fOccMarkup;
     }
     fOccMarkup = new old_OccMarkup(fConditionProperty);
     fOccMarkup->mark(L3);  // annotate L3 with occurrences analysis
+    endTiming("occurrences analysis");
 
     endTiming("ScalarCompiler::prepare");
 

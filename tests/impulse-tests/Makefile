@@ -36,6 +36,7 @@ all:
 	$(MAKE) cpp1
 	$(MAKE) ocpp
 	$(MAKE) c
+	$(MAKE) c1
 	$(MAKE) mute
 	$(MAKE) wasm
 	$(MAKE) wast
@@ -44,6 +45,7 @@ all:
 	$(MAKE) interp
 	$(MAKE) interp1
 	$(MAKE) rust
+	$(MAKE) dlang
 
 help:
 	@echo "-------- FAUST impulse response tests --------"
@@ -61,8 +63,10 @@ help:
 	@echo " 'llvm'   : check double output with llvm backend and various options"
 	@echo " 'llvm1'  : check double output with llvm backend in object code mode and various options"
 	@echo " 'interp' : check double output with interpreter backend and various options"
-	@echo " 'interp1' : check double output with interpreter/LLVM backend and various options"
+	@echo " 'interp1' : check double output with interpreter/llvm backend and various options"
 	@echo " 'rust'   : check double output with rust backend and various options"
+	@echo " 'soul'   : check double output with soul backend and various options"
+	@echo " 'dlang'  : check double output with D backend and various options"
 	@echo " 'me'     : check double outputs with the cpp backend in scalar with activated math exceptions"
 	@echo "Warning: you must have at least 10G available on your hard disk to run all the tests"
 	@echo
@@ -92,15 +96,16 @@ travis:
 # c++ and c backends
 cpp:
 	$(MAKE) -f Make.gcc outdir=cpp/double           lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
-	$(MAKE) -f Make.gcc outdir=cpp/double/mapp           lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -mapp"
+	$(MAKE) -f Make.gcc outdir=cpp/double/mapp          lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -mapp"
+	$(MAKE) -f Make.gcc outdir=cpp/double/rui           lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -rui"
 	$(MAKE) -f Make.gcc outdir=cpp/double/dlt0      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -dlt 0"
 	$(MAKE) -f Make.gcc outdir=cpp/double/dlt256    lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -dlt 256"
 	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv0   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0"
 	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv0/fun   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0 -fun"
-	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv0/vs16   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0 -vs 16"
+	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv0/vs16  lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0 -vs 16"
 	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv1   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1"
 	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv1/fun   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1 -fun"
-	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv1/vs16   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1 -vs 16"
+	$(MAKE) -f Make.gcc outdir=cpp/double/vec/lv1/vs16  lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1 -vs 16"
 	$(MAKE) -f Make.gcc outdir=cpp/double/sched     lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -sch"
 	$(MAKE) -f Make.gcc outdir=cpp/double/sched/fun lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -sch -fun"
 	$(MAKE) -f Make.gcc outdir=cpp/double/omp       lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -omp"
@@ -129,10 +134,10 @@ c:
 	$(MAKE) -f Make.gcc outdir=c/double/dlt256      lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -dlt 256"
 	$(MAKE) -f Make.gcc outdir=c/double/vec/lv0     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0"
 	$(MAKE) -f Make.gcc outdir=c/double/vec/lv0/fun     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0 -fun"
-	$(MAKE) -f Make.gcc outdir=c/double/vec/lv0/vs16     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0 -vs 16"
+	$(MAKE) -f Make.gcc outdir=c/double/vec/lv0/vs16    lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 0 -vs 16"
 	$(MAKE) -f Make.gcc outdir=c/double/vec/lv1     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1"
 	$(MAKE) -f Make.gcc outdir=c/double/vec/lv1/fun     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1 -fun"
-	$(MAKE) -f Make.gcc outdir=c/double/vec/lv1/vs16     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1 -vs 16"
+	$(MAKE) -f Make.gcc outdir=c/double/vec/lv1/vs16    lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -vec -lv 1 -vs 16"
 	$(MAKE) -f Make.gcc outdir=c/double/sched       lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -sch"
 	$(MAKE) -f Make.gcc outdir=c/double/sched/fun   lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -sch -fun"
 	$(MAKE) -f Make.gcc outdir=c/double/omp         lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -double -omp"
@@ -145,7 +150,7 @@ c:
 c1:
 	$(MAKE) -f Make.gcc outdir=c1/double           lang=c arch=impulsearch2bis.cpp FAUSTOPTIONS="-I dsp -double -os"
 	$(MAKE) -f Make.gcc outdir=c1/double/dlt0      lang=c arch=impulsearch2bis.cpp FAUSTOPTIONS="-I dsp -double -os -dlt 0"
-	$(MAKE) -f Make.gcc outdir=c1/double/dlt256      lang=c arch=impulsearch2bis.cpp FAUSTOPTIONS="-I dsp -double -os -dlt 256"
+	$(MAKE) -f Make.gcc outdir=c1/double/dlt256    lang=c arch=impulsearch2bis.cpp FAUSTOPTIONS="-I dsp -double -os -dlt 256"
 
 quad:
 	$(MAKE) -f Make.gcc outdir=cpp/quad         lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -quad"
@@ -160,29 +165,31 @@ quad:
 mute: ir/mute  $(mutefiles)
 
 #########################################################################
-# web backends
+# web backends ('wasmdir/wastdir' used instead of 'outdir')
 web:
 	$(MAKE) wasm
 	$(MAKE) wast
 
 wasm:
 	$(MAKE) -f Make.web wasm
-	$(MAKE) -f Make.web wasm outdir=wasm/mapp FAUSTOPTIONS="-I dsp -mapp"
-	$(MAKE) -f Make.web wasm outdir=wasm/dlt0 FAUSTOPTIONS="-I dsp -dlt 0"
-	$(MAKE) -f Make.web wasm outdir=wasm/dlt256 FAUSTOPTIONS="-I dsp -dlt 256"
-	$(MAKE) -f Make.web wasm outdir=wasm/ftz1 FAUSTOPTIONS="-I dsp -ftz 1"
+	$(MAKE) -f Make.web wasm wasmdir=wasm/mapp FAUSTOPTIONS="-I dsp -mapp"
+	$(MAKE) -f Make.web wasm wasmdir=wasm/rui FAUSTOPTIONS="-I dsp -rui"
+	$(MAKE) -f Make.web wasm wasmdir=wasm/dlt0 FAUSTOPTIONS="-I dsp -dlt 0"
+	$(MAKE) -f Make.web wasm wasmdir=wasm/dlt256 FAUSTOPTIONS="-I dsp -dlt 256"
+	$(MAKE) -f Make.web wasm wasmdir=wasm/ftz1 FAUSTOPTIONS="-I dsp -ftz 1"
 
 wast:
 	$(MAKE) -f Make.web wast
-	$(MAKE) -f Make.web wast outdir=wast/dlt0 FAUSTOPTIONS="-I dsp -dlt 0"
-	$(MAKE) -f Make.web wast outdir=wast/dlt256 FAUSTOPTIONS="-I dsp -dlt 256"
-	$(MAKE) -f Make.web wast outdir=wast/ftz1 FAUSTOPTIONS="-I dsp -ftz 1"
+	$(MAKE) -f Make.web wast wastdir=wast/dlt0 FAUSTOPTIONS="-I dsp -dlt 0"
+	$(MAKE) -f Make.web wast wastdir=wast/dlt256 FAUSTOPTIONS="-I dsp -dlt 256"
+	$(MAKE) -f Make.web wast wastdir=wast/ftz1 FAUSTOPTIONS="-I dsp -ftz 1"
 
 #########################################################################
 # llvm backend
 llvm:
 	$(MAKE) -f Make.llvm
 	$(MAKE) -f Make.llvm outdir=llvm/mapp FAUSTOPTIONS="-I dsp -mapp"
+	$(MAKE) -f Make.llvm outdir=llvm/rui FAUSTOPTIONS="-I dsp -rui"
 	$(MAKE) -f Make.llvm outdir=llvm/inpl FAUSTOPTIONS="-I dsp -inpl"
 	$(MAKE) -f Make.llvm outdir=llvm/dlt0 FAUSTOPTIONS="-I dsp -dlt 0"
 	$(MAKE) -f Make.llvm outdir=llvm/dlt256 FAUSTOPTIONS="-I dsp -dlt 256"
@@ -220,6 +227,7 @@ llvm1:
 interp:
 	$(MAKE) -f Make.interp
 	$(MAKE) -f Make.interp outdir=interp/mapp FAUSTOPTIONS="-I dsp -mapp"
+	$(MAKE) -f Make.interp outdir=interp/rui FAUSTOPTIONS="-I dsp -rui"
 	$(MAKE) -f Make.interp outdir=interp/dlt0 FAUSTOPTIONS="-I dsp -dlt 0"
 	$(MAKE) -f Make.interp outdir=interp/dlt256 FAUSTOPTIONS="-I dsp -dlt 256"
 	#$(MAKE) -f Make.interp outdir=interp/lv0 FAUSTOPTIONS="-I dsp -vec -lv 0"
@@ -256,6 +264,12 @@ rust:
 soul:
 	$(MAKE) -f Make.soul FAUSTOPTIONS="-double"
 	$(MAKE) -f Make.soul soul outdir=soul/mapp FAUSTOPTIONS="-I dsp -mapp"
+
+#########################################################################
+# D backend
+dlang:
+	$(MAKE) -f Make.dlang outdir=dlang/double          FAUSTOPTIONS="-I dsp -double"
+	$(MAKE) -f Make.dlang outdir=dlang/double/vec      FAUSTOPTIONS="-I dsp -double -vec"
 
 #########################################################################
 # output directories

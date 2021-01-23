@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2012-2019 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2012-2020 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -37,6 +37,7 @@
 #include <string>
 #include <set>
 #include <vector>
+#include <mutex>
 #include <map>
 
 #include "faust/dsp/llvm-dsp.h"
@@ -60,7 +61,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"stdfaust.lib\");\nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.45"
+#define FAUSTGEN_VERSION "1.48"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 #define FAUST_PDF_LIBRARY "library.pdf"
 
@@ -99,7 +100,6 @@ class faustgen_factory {
         
         set<faustgen*> fInstances;      // set of all DSP
         llvm_dsp_factory* fDSPfactory;  // pointer to the LLVM Faust factory
-        midi_handler fMidiHandler;      // generic MIDI handler
         SoundUI* fSoundUI;              // generic Soundfile interface
         
         long fSourceCodeSize;           // length of source code string
@@ -118,8 +118,9 @@ class faustgen_factory {
         string fName;                   // name of the DSP group
         string fJSON;                   // JSON
         
-        t_systhread_mutex fDSPMutex;    // mutex to protect RT audio thread when recompiling DSP
-        
+        recursive_mutex fAudioMutex;    // mutex to protect RT audio thread when recompiling DSP
+        recursive_mutex fUIMutex;       // mutex to protect UI thread when recompiling DSP
+    
         vector<string> fCompileOptions; // Faust compiler options
         
         int fOptLevel;                  // the LLVM optimization level
@@ -194,11 +195,16 @@ class faustgen_factory {
                 delete this;
             }
         }
-        
-        bool try_lock() { return systhread_mutex_trylock(fDSPMutex) == MAX_ERR_NONE; }
-        bool lock() { return systhread_mutex_lock(fDSPMutex) == MAX_ERR_NONE; }
-        void unlock() { systhread_mutex_unlock(fDSPMutex); }
-        
+    
+        // Mutex between the audio thread and the DSP creation thread
+        bool try_lock_audio() { return fAudioMutex.try_lock(); }
+        void lock_audio() { fAudioMutex.lock(); }
+        void unlock_audio() { fAudioMutex.unlock(); }
+    
+        // Mutex between the UI thread and the DSP creation thread
+        void lock_ui() { fUIMutex.lock(); }
+        void unlock_ui() { fUIMutex.unlock(); }
+    
         static int gFaustCounter;       // global variable to count the number of faustgen objects inside the patcher
         
         static map<string, faustgen_factory*> gFactoryMap;
@@ -216,7 +222,8 @@ class faustgen : public MspCpp5<faustgen> {
         
         faustgen_factory* fDSPfactory;
         map<string, vector<t_object*> > fOutputTable;  // Output UI items (like bargraph) in the patcher to be notified
-        
+    
+        faustgen_midi  fMidiHandler;    // generic MIDI handler
         mspUI* fDSPUI;                  // Control UI
         MidiUI* fMidiUI;                // Midi UI
         OSCUI* fOSCUI;                  // OSC UI
@@ -289,8 +296,12 @@ class faustgen : public MspCpp5<faustgen> {
         void polyphony(long inlet, t_symbol* s, long argc, t_atom* argv);
         void init(long inlet, t_symbol* s, long argc, t_atom* argv);
         void dump(long inlet, t_symbol* s, long argc, t_atom* argv);
+    
         void midievent(long inlet, t_symbol* s, long argc, t_atom* argv);
         void osc(long inlet, t_symbol* s, long argc, t_atom* argv);
+    
+        void dump_inputs();
+        void dump_outputs();
         
         void librarypath(long inlet, t_symbol* s);
         

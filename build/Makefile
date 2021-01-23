@@ -11,7 +11,7 @@ system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo 
 # output directories
 FAUSTDIR ?= faustdir
 IOSDIR   := iosdir
-VERSION := 2.27.1
+VERSION := 2.30.5
 
 #===============================================================
 # current generator and backends
@@ -55,7 +55,6 @@ BUILDOPT ?= --config Release
 
 #===============================================================
 # options
-JOBS	 ?= -j 4
 BACKENDS ?= $(shell [ -f $(BCACHE) ] && (grep BACKENDS $(BCACHE) | cut -d= -f2) || echo regular.cmake)
 TARGETS  ?= $(shell [ -f $(TCACHE) ] && (grep TARGETS $(TCACHE) | cut -d= -f2) || echo regular.cmake)
 LIBSDIR  ?= $(shell [ -f $(LCACHE) ] && (grep LIBSDIR $(LCACHE) | cut -d= -f2) || echo lib)
@@ -69,11 +68,12 @@ endif
 ifneq (,$(findstring Makefile, $(GENERATOR)))
 	PROJ = $(FAUSTDIR)/Makefile
 endif
-ifneq (,$(findstring "Visual Studio",$(GENERATOR)))
+ifneq (,$(findstring Visual Studio,$(GENERATOR)))
 	PROJ = $(FAUSTDIR)/faust.sln
 	JOBS ?= /maxcpucount:4
 endif
 
+JOBS	 ?= -j 4
 #===============================================================
 # main targets
 all: $(PROJ)
@@ -321,9 +321,10 @@ install:
 	if test -d ../.git; then git submodule update --init; fi
 	cd $(FAUSTDIR) && cmake .. -DCMAKE_INSTALL_PREFIX=$(PREFIX)
 	cmake  --build $(FAUSTDIR) --target install
-uninstall: installedfiles = $(shell cat $(installLog))
+
 uninstall: $(installLog)
-	rm -f $(installedfiles) $(installLog)
+	$(shell cat $(installLog) | xargs rm -f)
+	rm -f $(installLog)
 
 #===============================================================
 undefined:

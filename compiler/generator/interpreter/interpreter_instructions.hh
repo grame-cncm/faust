@@ -98,6 +98,9 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["sqrtf"]      = FBCInstruction::kSqrtf;
         gMathLibTable["tanf"]       = FBCInstruction::kTanf;
         
+        gMathLibTable["isnanf"]     = FBCInstruction::kIsnanf;
+        gMathLibTable["isinff"]     = FBCInstruction::kIsinff;
+        
         // Hyperbolic
         gMathLibTable["acoshf"]     = FBCInstruction::kAcoshf;
         gMathLibTable["asinhf"]     = FBCInstruction::kAsinhf;
@@ -128,6 +131,9 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["sin"]       = FBCInstruction::kSinf;
         gMathLibTable["sqrt"]      = FBCInstruction::kSqrtf;
         gMathLibTable["tan"]       = FBCInstruction::kTanf;
+        
+        gMathLibTable["isnan"]     = FBCInstruction::kIsnanf;
+        gMathLibTable["isinf"]     = FBCInstruction::kIsinff;
         
         // Hyperbolic
         gMathLibTable["acosh"]     = FBCInstruction::kAcoshf;

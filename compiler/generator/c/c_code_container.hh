@@ -41,6 +41,32 @@ class CCodeContainer : public virtual CodeContainer {
     virtual void produceClass();
     void produceMetadata(int tabs);
     virtual void produceInternal();
+    
+    virtual void generateComputeAux(int tab) = 0;
+    
+    void generateCompute(int n)
+    {
+        // Possibly generate separated functions
+        tab(n, *fOut);
+        fCodeProducer->Tab(n);
+        generateComputeFunctions(fCodeProducer);
+        
+        char* archs = getenv("FAUST_ARCHS");
+        if (archs) {
+            tab(n, *fOut);
+            for (auto& it : tokenizeString(archs, ' ')) {
+                *fOut << "__attribute__ ((target (\"arch=" << it << "\")))";
+                generateComputeAux(n);
+                tab(n, *fOut);
+            }
+            // Default version
+            *fOut << "__attribute__ ((target (\"default\")))";
+            generateComputeAux(n);
+            tab(n, *fOut);
+        } else {
+            generateComputeAux(n);
+        }
+    }
 
    public:
     CCodeContainer()
@@ -69,8 +95,6 @@ class CCodeContainer : public virtual CodeContainer {
     {
         // fCodeProducer is a 'Garbageable'
     }
-  
-    virtual void generateCompute(int tab) = 0;
     
     virtual dsp_factory_base* produceFactory();
 
@@ -100,7 +124,7 @@ class CCodeContainer : public virtual CodeContainer {
 
 class CScalarCodeContainer : public CCodeContainer {
    protected:
- 
+   
    public:
     CScalarCodeContainer()
     {}
@@ -112,7 +136,7 @@ class CScalarCodeContainer : public CCodeContainer {
     virtual ~CScalarCodeContainer()
     {}
 
-    void generateCompute(int tab);
+    void generateComputeAux(int tab);
 };
 
 // Special version for -os generation mode
@@ -150,7 +174,7 @@ class CScalarOneSampleCodeContainer : public CScalarCodeContainer {
     virtual ~CScalarOneSampleCodeContainer()
     {}
     
-    void generateCompute(int tab);
+    void generateComputeAux(int tab);
 };
 
 class CVectorCodeContainer : public VectorCodeContainer, public CCodeContainer {
@@ -160,7 +184,7 @@ class CVectorCodeContainer : public VectorCodeContainer, public CCodeContainer {
     virtual ~CVectorCodeContainer()
     {}
 
-    void generateCompute(int n);
+    void generateComputeAux(int n);
 };
 
 class COpenMPCodeContainer : public OpenMPCodeContainer, public CCodeContainer {
@@ -170,7 +194,7 @@ class COpenMPCodeContainer : public OpenMPCodeContainer, public CCodeContainer {
     virtual ~COpenMPCodeContainer()
     {}
 
-    void generateCompute(int tab);
+    void generateComputeAux(int tab);
 };
 
 class CWorkStealingCodeContainer : public WSSCodeContainer, public CCodeContainer {
@@ -180,7 +204,7 @@ class CWorkStealingCodeContainer : public WSSCodeContainer, public CCodeContaine
     virtual ~CWorkStealingCodeContainer()
     {}
 
-    void generateCompute(int tab);
+    void generateComputeAux(int tab);
 };
 
 #endif

@@ -56,7 +56,7 @@ do
         POLY="POLY2"
         shift
         EFFECT=$1
-   elif [ $p = "-osc" ]; then
+   	elif [ $p = "-osc" ]; then
 	 	OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
 	 	HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
@@ -64,7 +64,7 @@ do
         MIDIDEFS="-DMIDICTRL"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]]; then
+	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
 	    FILES="$FILES $p"
 	else
 	    OPTIONS="$OPTIONS $p"

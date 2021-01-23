@@ -269,6 +269,16 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << ")";
         EndLine();
     }
+    
+    // For Rust backend
+    virtual void visit(DeclareBufferIteratorsRust* inst)
+    {
+        *fOut << "DeclareBufferIteratorsRust(";
+        *fOut << inst->fBufferName << " ";
+        *fOut << inst->fNumChannels << " ";
+        *fOut << inst->fMutable << ")";
+        EndLine();
+    }
 
     virtual void visit(DeclareStructTypeInst* inst)
     {
@@ -549,6 +559,23 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         fTab--;
         back(1, *fOut);
         *fOut << "EndForLoop";
+        tab(fTab, *fOut);
+    }
+    
+    // For Rust backend
+    virtual void visit(IteratorForLoopInst* inst)
+    {
+        *fOut << "IteratorForLoopInst ";
+        fTab++;
+        tab(fTab, *fOut);
+        for (auto& it : inst->fIterators) {
+            it->accept(this);
+            tab(fTab, *fOut);
+        }
+        inst->fCode->accept(this);
+        fTab--;
+        back(1, *fOut);
+        *fOut << "EndIteratorForLoop";
         tab(fTab, *fOut);
     }
 

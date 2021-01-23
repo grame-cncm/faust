@@ -434,17 +434,35 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
 
     else if (isBoxVSlider(box, label, cur, min, max, step)) {
         faustassert(lsig.size() == 0);
-        return makeList(sigVSlider(normalizePath(cons(label, path)), cur, min, max, step));
+        Tree slider = sigVSlider(normalizePath(cons(label, path)), cur, min, max, step);
+        // Possibly limit the value in [min..max]
+        if (gGlobal->gRangeUI) {
+            return makeList(tree(gGlobal->gMaxPrim->symbol(), min, tree(gGlobal->gMinPrim->symbol(), max, slider)));
+        } else {
+            return makeList(slider);
+        }
     }
 
     else if (isBoxHSlider(box, label, cur, min, max, step)) {
         faustassert(lsig.size() == 0);
-        return makeList(sigHSlider(normalizePath(cons(label, path)), cur, min, max, step));
+        Tree slider = sigHSlider(normalizePath(cons(label, path)), cur, min, max, step);
+        // Possibly limit the value in [min..max]
+        if (gGlobal->gRangeUI) {
+            return makeList(tree(gGlobal->gMaxPrim->symbol(), min, tree(gGlobal->gMinPrim->symbol(), max, slider)));
+        } else {
+            return makeList(slider);
+        }
     }
 
     else if (isBoxNumEntry(box, label, cur, min, max, step)) {
         faustassert(lsig.size() == 0);
-        return makeList(sigNumEntry(normalizePath(cons(label, path)), cur, min, max, step));
+        Tree nentry = sigNumEntry(normalizePath(cons(label, path)), cur, min, max, step);
+        // Possibly limit the value in [min..max]
+        if (gGlobal->gRangeUI) {
+            return makeList(tree(gGlobal->gMaxPrim->symbol(), min, tree(gGlobal->gMinPrim->symbol(), max, nentry)));
+        } else {
+            return makeList(nentry);
+        }
     }
 
     else if (isBoxVBargraph(box, label, min, max)) {
@@ -469,8 +487,8 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
         // compute bound limited read index : int(max(0, min(ridx,length-1)))
         Tree ridx = sigIntCast(tree(gGlobal->gMaxPrim->symbol(), sigInt(0),
                                     tree(gGlobal->gMinPrim->symbol(), lsig[1], sigAdd(lsig2[0], sigInt(-1)))));
-        for (int i = 0; i < c; i++) {
-            lsig2[i + 2] = sigSoundfileBuffer(soundfile, sigInt(i), part, ridx);
+        for (int i1 = 0; i1 < c; i1++) {
+            lsig2[i1 + 2] = sigSoundfileBuffer(soundfile, sigInt(i1), part, ridx);
         }
         return lsig2;
     }
@@ -584,13 +602,13 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
         // cerr << "TRACE propagate into a route " << boxpp(box) << endl;
         if (isBoxInt(t1, &ins) && isBoxInt(t2, &outs) && isIntTree(t3, route)) {
             // initialize output signals
-            for (int i = 0; i < outs; i++) outsigs.push_back(sigInt(0));
+            for (int i1 = 0; i1 < outs; i1++) outsigs.push_back(sigInt(0));
 
             // route propagation
             size_t m = route.size() - 1;
-            for (size_t i = 0; i < m; i += 2) {
-                int src = route[i];
-                int dst = route[i + 1];
+            for (size_t i1 = 0; i1 < m; i1 += 2) {
+                int src = route[i1];
+                int dst = route[i1 + 1];
                 if ((dst > 0) & (dst <= outs)) {
                     // we have a destination
                     Tree exp = outsigs[dst - 1];

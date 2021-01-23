@@ -134,7 +134,8 @@ struct global {
     bool gUIMacroSwitch;
     bool gDumpNorm;
     int  gFTZMode;
-
+    bool gRangeUI;      // whether to generate code to limit vslider/hslider/nentry values in [min..max] range
+    
     int gFloatSize;
 
     bool gPrintFileListSwitch;
@@ -169,6 +170,7 @@ struct global {
     bool   gRemoveVarAddress;      // If used of variable addresses (like &foo or &foo[n]) have to be removed
     bool   gOneSample;             // Generate one sample computation
     bool   gOneSampleControl;      // Generate one sample computation control structure in DSP module
+    bool   gComputeMix;            // Mix in outputs buffers
     string gFastMathLib;           // The fastmath code mapping file
     string gNameSpace;             // Wrapping namespace used with the C++ backend
 
@@ -516,7 +518,6 @@ struct global {
     bool   gPrintXMLSwitch;
     bool   gPrintJSONSwitch;
     bool   gPrintDocSwitch;
-    int    gBalancedSwitch;
     string gArchFile;
     bool   gExportDSP;
 
@@ -568,7 +569,7 @@ struct global {
         return (gMathForeignFunctions.find(name) != gMathForeignFunctions.end());
     }
 
-    void printCompilationOptions(ostream& dst, bool backend = true);
+    void printCompilationOptions(stringstream& dst, bool backend = true);
 
     void initTypeSizeMap();
 

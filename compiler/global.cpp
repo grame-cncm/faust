@@ -78,6 +78,10 @@
 #include "rust_code_container.hh"
 #endif
 
+#ifdef DLANG_BUILD
+#include "dlang_code_container.hh"
+#endif
+
 // Parser
 extern FILE*       yyin;
 extern const char* yyfilename;
@@ -132,6 +136,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gUIMacroSwitch = false;
     gDumpNorm      = false;
     gFTZMode       = 0;
+    gRangeUI       = false;
 
     gFloatSize = 1;
 
@@ -169,6 +174,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gRemoveVarAddress     = false;
     gOneSample            = false;
     gOneSampleControl     = false;
+    gComputeMix           = false;
     gFastMathLib          = "default";
     gNameSpace            = "";
 
@@ -430,7 +436,6 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gPrintXMLSwitch   = false;
     gPrintJSONSwitch  = false;
     gPrintDocSwitch   = false;
-    gBalancedSwitch   = 0;
     gArchFile         = "";
     gExportDSP        = false;
 
@@ -578,7 +583,7 @@ void global::init()
     gMathForeignFunctions["isinfl"] = true;
 }
 
-void global::printCompilationOptions(ostream& dst, bool backend)
+void global::printCompilationOptions(stringstream& dst, bool backend)
 {
     if (backend) {
 #ifdef LLVM_BUILD
@@ -594,28 +599,29 @@ void global::printCompilationOptions(ostream& dst, bool backend)
     if (gInPlace) dst << "-inpl ";
     if (gOneSample) dst << "-os ";
     if (gLightMode) dst << "-light ";
-    if (gSchedulerSwitch) {
-        dst << "-sch"
-            << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "") << ((gGroupTaskSwitch) ? " -g" : "")
-            << ((gDeepFirstSwitch) ? " -dfs" : "")
-            << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
-            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "");
-    } else if (gVectorSwitch) {
+    if (gMemoryManager) dst << "-mem ";
+    if (gComputeMix) dst << "-cm ";
+    if (gRangeUI) dst << "-rui ";
+    if (gMathApprox) dst << "-mapp ";
+    if (gMaskDelayLineThreshold != INT_MAX) dst << "-dtl " << gMaskDelayLineThreshold << " ";
+    dst << "-es " << gEnableFlag << " ";
+    if (gHasExp10) dst << "-exp10 ";
+    if (gOneSample) dst << "-os ";
+    if (gSchedulerSwitch) dst << "-sch ";
+    if (gOpenMPSwitch) dst << "-omp " << ((gOpenMPLoop) ? "-pl " : "");
+    if (gVectorSwitch) {
         dst << "-vec"
             << " -lv " << gVectorLoopVariant << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
             << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
             << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
-            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "");
-    } else if (gOpenMPSwitch) {
-        dst << "-omp"
-            << " -vs " << gVecSize << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
-            << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
-            << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
-            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "");
+            << gGlobal->gMaxCopyDelay;
     } else {
         dst << ((gFloatSize == 1) ? "-scal" : ((gFloatSize == 2) ? "-double" : (gFloatSize == 3) ? "-quad" : ""))
-            << " -ftz " << gFTZMode << ((gMemoryManager) ? " -mem" : "");
+            << " -ftz " << gFTZMode;
     }
+    
+    // Add 'compile_options' metadata
+    gGlobal->gMetaDataSet[tree("compile_options")].insert(tree("\"" + dst.str() + "\""));
 }
 
 void global::initTypeSizeMap()
@@ -689,6 +695,9 @@ global::~global()
 #endif
 #ifdef RUST_BUILD
     RustInstVisitor::cleanup();
+#endif
+#ifdef DLANG_BUILD
+    DLangInstVisitor::cleanup();
 #endif
 }
 

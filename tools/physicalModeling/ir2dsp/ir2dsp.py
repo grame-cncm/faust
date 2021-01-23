@@ -82,7 +82,8 @@ for i in range(0, nbOfPeaks) :
 	b = n
 
 	bandwidth = (b-a)/(fs/x.size) # bandwidth in Hz
-	peakst60.append(6.91/fs/(1-math.exp(-math.pi*bandwidth/fs)))
+	peakst60.append((6.91/fs/(1-math.exp(-math.pi*bandwidth/fs)))*150.0)
+	#	peakst60.append(6.91/fs/(1-math.exp(-math.pi*bandwidth/fs))) s 
 
 print("Frequency peaks and corresponding gains and T60 has been successfully calculated.")
 
@@ -129,7 +130,9 @@ file.write(");\n");
 # file.write('\ngate = button("gate");')
 # file.write("\nprocess = pm.impulseExcitation(gate) : " + modelName + " <: _,_; ")
 
-file.write("\nmodalModel(n,modeFreqs,modeRes,modeGains) = _ <: par(i,n,pm.modeFilter(freqs(i),res(i),gain(i))) :> _\n")
+# file.write("\nmodalModel(n,modeFreqs,modeRes,modeGains) = _ <: par(i,n,pm.modeFilter(freqs(i),res(i),gain(i))) :> _\n")
+
+file.write("\nmodalModel(n,modeFreqs,modeRes,modeGains) = _ <: par(i,n,pm.modeFilter(freqs(i),res(i),gain(i))) :> _/n\n")
 file.write("with{\n")
 file.write("freqs(i) = ba.take(i+1,modeFreqs);\n")
 file.write("res(i) = ba.take(i+1,modeRes);\n")

@@ -38,6 +38,9 @@ class MapUI;
 class MidiUI;
 class esp32_midi;
 #endif
+#ifdef SOUNDFILE
+class SoundUI;
+#endif
 
 class AudioFaust
 {
@@ -49,6 +52,9 @@ class AudioFaust
     #ifdef MIDICTRL
         esp32_midi* fMIDIHandler;        
         MidiUI* fMIDIInterface;
+    #endif
+    #ifdef SOUNDFILE
+        SoundUI* fSoundUI;
     #endif
 
     public:

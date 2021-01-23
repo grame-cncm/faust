@@ -51,10 +51,12 @@ do
     if [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
-        ANDROID_MK=AndroidPoly.mk
+        if [ $NVOICES != -1 ]; then
+		    ANDROID_MK=AndroidPoly.mk
+        fi
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
-    elif [[ -f "$p" ]]; then
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
         OPTIONS="$OPTIONS $p"
@@ -84,11 +86,11 @@ for p in $FILES; do
     fi
 
     # compiles faust to c++
-    faust -i -a $FAUSTLIB/unity/unityplugin.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/$NAME.cpp" || (echo "$f : Faust to C++ compilation failed in faust2androidunity"; exit 1)
+    faust -uim -i -a $FAUSTLIB/unity/unityplugin.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/$NAME.cpp" || (echo "$f : Faust to C++ compilation failed in faust2androidunity"; exit 1)
 
     # compiles c++ to binary
     cd "$TMP"
-
+  
     # Android.mk and Application.mk contains the compilation settings.
     # They are moved to the working directory for compilation then deleted
     cp -r "$FAUSTLIB/unity/Android/$ANDROID_MK" "Android.mk"

@@ -188,10 +188,10 @@ static Tree calcliftn(Tree t, int threshold)
         return rec(liftn(u, threshold + 1));
 
     } else {
-        int n = t->arity();
+        int n1 = t->arity();
         // Tree	br[4];
-        tvec br(n);
-        for (int i = 0; i < n; i++) {
+        tvec br(n1);
+        for (int i = 0; i < n1; i++) {
             br[i] = liftn(t->branch(i), threshold);
         }
         // return CTree::make(t->node(), n, br);
@@ -236,8 +236,8 @@ static Tree calcDeBruijn2Sym(Tree t)
         int  a = t->arity();
         tvec br(a);
 
-        for (int i = 0; i < a; i++) {
-            br[i] = deBruijn2Sym(t->branch(i));
+        for (int i1 = 0; i1 < a; i1++) {
+            br[i1] = deBruijn2Sym(t->branch(i1));
         }
         // return CTree::make(t->node(), a, br);
         return CTree::make(t->node(), br);

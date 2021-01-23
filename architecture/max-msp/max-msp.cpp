@@ -132,7 +132,7 @@ using namespace std;
 #define ASSIST_INLET 	1
 #define ASSIST_OUTLET 	2
 
-#define EXTERNAL_VERSION    "0.77"
+#define EXTERNAL_VERSION    "0.80"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -165,7 +165,8 @@ typedef struct faust
     SaveUI* m_savedUI;
 #ifdef MIDICTRL
     MidiUI* m_midiUI;
-    midi_handler* m_midiHandler;
+    faustgen_midi* m_midiHandler;
+    void* m_midi_outlet;
 #endif
 #ifdef SOUNDFILE
     SoundUI* m_soundInterface;
@@ -323,9 +324,8 @@ void faust_polyphony(t_faust* x, t_symbol* s, short ac, t_atom* av)
     if (systhread_mutex_lock(x->m_mutex) == MAX_ERR_NONE) {
         
     #ifdef MIDICTRL
-        mydsp_poly* poly = dynamic_cast<mydsp_poly*>(x->m_dsp);
-        if (poly) {
-            x->m_midiHandler->removeMidiIn(poly);
+        if (x->m_dsp_poly) {
+            x->m_midiHandler->removeMidiIn(x->m_dsp_poly);
         }
     #endif
         
@@ -445,7 +445,8 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     x->m_mute = false;
     
 #ifdef MIDICTRL
-    x->m_midiHandler = new midi_handler();
+    x->m_midi_outlet = outlet_new((t_pxobject*)x, NULL);
+    x->m_midiHandler = new faustgen_midi(x->m_midi_outlet);
     x->m_midiUI = new MidiUI(x->m_midiHandler);
 #endif
 
@@ -595,8 +596,7 @@ void faust_init(t_faust* x, t_symbol* s, short ac, t_atom* av)
 }
 
 /*--------------------------------------------------------------------------*/
-// Dump controllers as list of: [path, cur, min, max]
-void faust_dump(t_faust* x, t_symbol* s, short ac, t_atom* av)
+void faust_dump_inputs(t_faust* x)
 {
     // Input controllers
     for (mspUI::iterator it = x->m_dspUI->begin2(); it != x->m_dspUI->end2(); it++) {
@@ -607,6 +607,11 @@ void faust_dump(t_faust* x, t_symbol* s, short ac, t_atom* av)
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(x->m_control_outlet, 0, 4, myList);
     }
+}
+
+/*--------------------------------------------------------------------------*/
+void faust_dump_outputs(t_faust* x)
+{
     // Output controllers
     for (mspUI::iterator it = x->m_dspUI->begin4(); it != x->m_dspUI->end4(); it++) {
         t_atom myList[4];
@@ -616,6 +621,14 @@ void faust_dump(t_faust* x, t_symbol* s, short ac, t_atom* av)
         atom_setfloat(&myList[3], (*it).second->getMaxValue());
         outlet_list(x->m_control_outlet, 0, 4, myList);
     }
+}
+
+/*--------------------------------------------------------------------------*/
+// Dump controllers as list of [path, cur, min, max]
+void faust_dump(t_faust* x, t_symbol* s, short ac, t_atom* av)
+{
+    faust_dump_inputs(x);
+    faust_dump_outputs(x);
 }
 
 /*--------------------------------------------------------------------------*/
@@ -691,7 +704,9 @@ t_int* faust_perform(t_int* w)
         #ifdef OSCCTRL
             if (x->m_oscInterface) x->m_oscInterface->endBundle();
         #endif
-            faust_update_outputs(x);
+            //faust_update_outputs(x);
+            // Use the right outlet to output messages
+            faust_dump_outputs(x);
         }
     #if defined(MIDICTRL) || defined(OSCCTRL)
         GUI::updateAllGuis();
@@ -761,8 +776,7 @@ void ext_main(void* r)
     tmp_dsp->buildUserInterface(&tmp_UI);
     
     // Setup attribute
-    int i = 0;
-    for (mspUI::iterator it = tmp_UI.begin1(); it != tmp_UI.end1(); it++, i++) {
+    for (mspUI::iterator it = tmp_UI.begin1(); it != tmp_UI.end1(); it++) {
         CLASS_ATTR_FLOAT(c, (*it).first.c_str(), 0, t_faust, m_ob);
         CLASS_ATTR_ACCESSORS(c, (*it).first.c_str(), NULL, (method)faust_attr_set);
     }
@@ -772,7 +786,7 @@ void ext_main(void* r)
     faust_class = c;
     
     post((char*)"Faust DSP object v%s (sample = 32 bits code = 32 bits)", EXTERNAL_VERSION);
-    post((char*)"Copyright (c) 2012-2020 Grame");
+    post((char*)"Copyright (c) 2012-2021 Grame");
    
     Max_Meta1 meta1;
     tmp_dsp->metadata(&meta1);

@@ -181,7 +181,7 @@
 (defvar faust-regexp-keywords-ui (regexp-opt faust-keywords-ui 'words))
 (defvar faust-regexp-keywords-lib (regexp-opt faust-keywords-lib 'words))
 
-(defconst faust-regexp-faust-operator (rx (any ",'@:*/%^-+|&~>=<!")))
+(defconst faust-regexp-faust-operator (rx (any ?- ",'@:*/%^+|&~>=<!")))
 
 (defconst faust-regexp-faust-delimiters (rx (any "{}()[];")))
 

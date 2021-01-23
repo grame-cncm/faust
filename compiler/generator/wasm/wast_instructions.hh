@@ -33,7 +33,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
    private:
     string type2String(Typed::VarType type)
     {
-        if (isIntOrPtrType(type)) {
+        if (isIntOrPtrType(type) || isBoolType(type)) {
             return "i32";
         } else if (type == Typed::kFloat) {
             return "f32";
@@ -650,7 +650,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         
         fTypingVisitor.visit(inst);
     }
-
+ 
     // Conditional : if
     virtual void visit(IfInst* inst)
     {

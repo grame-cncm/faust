@@ -116,8 +116,8 @@ void llvm_dsp_factory_aux::startLLVMLibrary()
 {
     if (llvm_dsp_factory_aux::gInstance++ == 0) {
         // Install an LLVM error handler
-    #if defined(__APPLE__) && defined(LLVM_110)
-        #warning Crash on OSX with LLVM_11, so deactivated in this case
+    #if defined(__APPLE__) && (defined(LLVM_110) || defined(LLVM_120))
+        #warning Crash on OSX with LLVM_11 or LLVM_12, so deactivated in this case
     #else
         LLVMInstallFatalErrorHandler(llvm_dsp_factory_aux::LLVMFatalErrorHandler);
     #endif

@@ -137,7 +137,7 @@ do
         OPT=$1
     elif [ "$PACKAGENAME" = "-1" ]; then
 		PACKAGENAME="$p"
-    elif [[ -f "$p" ]]; then
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
 		FILE="$p"
     elif [ $p = "-android" ]; then
 		ANDROID_DRIVER=1
@@ -323,7 +323,7 @@ fi
 if [ "$BUILD" = "1" ]; then
 
     if [ "$DYNAMIC_DSP" = "1" ]; then
-        echo "Compile as a binary named 'dynamic-api' "
+        echo "Compile as a binary named 'dynamic-api'"
         # compile c++ to binary liked with lbfaust/LLSM
         (
             $CXX $CXXFLAGS $APIFOLDER/DspFaust.cpp /usr/local/lib/libfaust.a -lz -lncurses -lOSCFaust `llvm-config --ldflags --libs all --system-libs`  `pkg-config --cflags --static --libs jack sndfile` -o dynamic-api

@@ -51,6 +51,7 @@ struct MIDIMessage
  * MIDI input or output handling classes will implement this interface,
  * so the same method names (keyOn, ctrlChange...) will be used either
  * when decoding MIDI input or encoding MIDI output events.
+ * MIDI channel is numbered in [0..15] in this layer.
  *******************************************************************************/
 
 class midi {

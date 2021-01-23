@@ -110,6 +110,10 @@
 #include "wast_code_container.hh"
 #endif
 
+#ifdef DLANG_BUILD
+#include "dlang_code_container.hh"
+#endif
+
 using namespace std;
 
 static unique_ptr<ifstream> injcode;
@@ -137,6 +141,10 @@ static void enumBackends(ostream& out)
 
 #ifdef CPP_BUILD
     out << dspto << "C++" << endl;
+#endif
+
+#ifdef DLANG_BUILD
+    out << dspto << "DLang" << endl;
 #endif
 
 #ifdef FIR_BUILD
@@ -358,18 +366,6 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gSimpleNames = true;
             i += 1;
 
-        } else if (isCmd(argv[i], "-lb", "--left-balanced")) {
-            gGlobal->gBalancedSwitch = 0;
-            i += 1;
-
-        } else if (isCmd(argv[i], "-mb", "--mid-balanced")) {
-            gGlobal->gBalancedSwitch = 1;
-            i += 1;
-
-        } else if (isCmd(argv[i], "-rb", "--right-balanced")) {
-            gGlobal->gBalancedSwitch = 2;
-            i += 1;
-
         } else if (isCmd(argv[i], "-mcd", "--max-copy-delay") && (i + 1 < argc)) {
             gGlobal->gMaxCopyDelay = std::atoi(argv[i + 1]);
             i += 2;
@@ -522,6 +518,10 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-os", "--one-sample")) {
             gGlobal->gOneSample = true;
             i += 1;
+            
+        } else if (isCmd(argv[i], "-cm", "--compute-mix")) {
+            gGlobal->gComputeMix = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-ftz", "--flush-to-zero")) {
             gGlobal->gFTZMode = std::atoi(argv[i + 1]);
@@ -531,6 +531,10 @@ static bool processCmdline(int argc, const char* argv[])
                 throw faustexception(error.str());
             }
             i += 2;
+            
+        } else if (isCmd(argv[i], "-rui", "--range-ui")) {
+            gGlobal->gRangeUI = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-fm", "--fast-math")) {
             gGlobal->gFastMath    = true;
@@ -652,7 +656,7 @@ static bool processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : 'ocpp' backend can only be used in scalar mode\n");
     }
 #endif
-    if (gGlobal->gOneSample && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "c" &&
+    if (gGlobal->gOneSample && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "c" && gGlobal->gOutputLang != "dlang" &&
         !startWith(gGlobal->gOutputLang, "soul") && gGlobal->gOutputLang != "fir") {
         throw faustexception("ERROR : '-os' option cannot only be used with 'cpp', 'c', 'fir' or 'soul' backends\n");
     }
@@ -680,8 +684,9 @@ static bool processCmdline(int argc, const char* argv[])
     if (gGlobal->gFunTaskSwitch) {
         if (!(gGlobal->gOutputLang == "c"
               || gGlobal->gOutputLang == "cpp"
-              || gGlobal->gOutputLang == "llvm")) {
-            throw faustexception("ERROR : -fun can only be used with c, cpp or llvm backends\n");
+              || gGlobal->gOutputLang == "llvm"
+              || gGlobal->gOutputLang == "fir")) {
+            throw faustexception("ERROR : -fun can only be used with c, cpp, llvm or fir backends\n");
         }
     }
 
@@ -695,12 +700,22 @@ static bool processCmdline(int argc, const char* argv[])
         }
     }
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gOutputLang != "cpp") {
-        throw faustexception("ERROR : -ns can only be used with cpp backend\n");
+    if (gGlobal->gNameSpace != "" && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "dlang") {
+        throw faustexception("ERROR : -ns can only be used with the cpp or dlang backend\n");
     }
     
     if (gGlobal->gMaskDelayLineThreshold < INT_MAX && (gGlobal->gVectorSwitch || (gGlobal->gOutputLang == "ocpp"))) {
-        throw faustexception("ERROR : '-dlt < INT_MAX' option can only be used in scalar mode and not with -ocpp backend\n");
+        throw faustexception("ERROR : '-dlt < INT_MAX' option can only be used in scalar mode and not with the -ocpp backend\n");
+    }
+    
+    if (gGlobal->gComputeMix && gGlobal->gOutputLang == "ocpp") {
+        throw faustexception("ERROR : -cm cannot be used with the -ocpp backend\n");
+    }
+    if (gGlobal->gComputeMix && gGlobal->gOutputLang == "interp") {
+        throw faustexception("ERROR : -cm cannot be used with the -interp backend\n");
+    }
+    if (gGlobal->gComputeMix && gGlobal->gOutputLang == "soul") {
+        throw faustexception("ERROR : -cm cannot be used with the -soul backend\n");
     }
     
     if (gGlobal->gArchFile != ""
@@ -770,7 +785,7 @@ static void printVersion()
 #ifdef LLVM_BUILD
     cout << "Build with LLVM version " << LLVM_VERSION << "\n";
 #endif
-    cout << "Copyright (C) 2002-2020, GRAME - Centre National de Creation Musicale. All rights reserved. \n";
+    cout << "Copyright (C) 2002-2021, GRAME - Centre National de Creation Musicale. All rights reserved. \n";
 }
 
 static void printHelp()
@@ -810,8 +825,8 @@ static void printHelp()
     cout << endl << "Code generation options:" << line;
     cout << tab << "-lang <lang> --language                 select output language," << endl;
     cout << tab
-         << "                                        'lang' should be in c, ocpp, cpp (default), rust, java, "
-            "llvm, cllvm, fir, wast/wasm, soul, interp."
+         << "                                        'lang' should be c, ocpp, cpp (default), rust, java, "
+            "llvm, fir, wast/wasm, soul, interp or dlang."
          << endl;
     cout << tab
          << "-single     --single-precision-floats   use single precision floats for internal computations (default)."
@@ -830,9 +845,9 @@ static void printHelp()
          << "-clang      --clang                     when compiled with clang/clang++, adds specific #pragma for "
             "auto-vectorization."
          << endl;
-    cout << tab << "-flist      --file-list                 use file list used to eval process." << endl;
     cout << tab << "-exp10      --generate-exp10            pow(10,x) replaced by possibly faster exp10(x)." << endl;
     cout << tab << "-os         --one-sample                generate one sample computation." << endl;
+    cout << tab << "-cm         --compute-mix               mix in outputs buffers." << endl;
     cout << tab
          << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp."
          << endl;
@@ -841,9 +856,6 @@ static void printHelp()
          << endl;
     cout << tab << "-pn <name>  --process-name <name>       specify the name of the dsp entry-point instead of process."
          << endl;
-    cout << tab << "-lb         --left-balanced             generate left balanced expressions." << endl;
-    cout << tab << "-mb         --mid-balanced              generate mid balanced expressions (default)." << endl;
-    cout << tab << "-rb         --right-balanced            generate right balanced expressions." << endl;
     cout << tab
          << "-mcd <n>    --max-copy-delay <n>        threshold between copy and ring buffer implementation (default 16 "
             "samples)."
@@ -860,7 +872,10 @@ static void printHelp()
             "2:mask based (fastest)]."
          << endl;
     cout << tab
-         << "-inj <f>    --inject <f>                inject source file <f> into architecture file instead of compile "
+         << "-rui        --range-ui                  whether to generate code to limit vslider/hslider/nentry values in [min..max] range."
+         << endl;
+    cout << tab
+         << "-inj <f>    --inject <f>                inject source file <f> into architecture file instead of compiling "
             "a dsp file."
          << endl;
     cout << tab << "-scal      --scalar                     generate non-vectorized code." << endl;
@@ -891,13 +906,12 @@ static void printHelp()
          << endl;
     cout << tab
          << "-fm <file> --fast-math <file>           use optimized versions of mathematical functions implemented in "
-            "<file>."
+            "<file>, use 'faust/dsp/fastmath.cpp' when file is 'def'."
          << endl;
-    cout << tab << "                                        use 'faust/dsp/fastmath.cpp' when file is 'def'." << endl;
-    cout << tab
-         << "-ns <name> --namespace <name>           generate C++ code in a namespace <name>." << endl;
     cout << tab
          << "-mapp      --math-approximation         simpler/faster versions of 'floor/ceil/fmod/remainder' functions." << endl;
+    cout << tab
+         << "-ns <name> --namespace <name>           generate C++ or D code in a namespace <name>." << endl;
     cout << endl << "Block diagram options:" << line;
     cout << tab << "-ps        --postscript                 print block-diagram to a postscript file." << endl;
     cout << tab << "-svg       --svg                        print block-diagram to a svg file." << endl;
@@ -932,10 +946,11 @@ static void printHelp()
     cout << endl << "Debug options:" << line;
     cout << tab << "-d          --details                   print compilation details." << endl;
     cout << tab << "-time       --compilation-time          display compilation phases timing information." << endl;
+    cout << tab << "-flist      --file-list                 print file list (including libraries) used to eval process." << endl;
     cout << tab << "-tg         --task-graph                print the internal task graph in dot format." << endl;
     cout << tab << "-sg         --signal-graph              print the internal signal graph in dot format." << endl;
     cout << tab << "-norm       --normalized-form           print signals in normalized form and exit." << endl;
-    cout << tab << "-ct         --check-table               check table index range and fails." << endl;
+    cout << tab << "-ct         --check-table               check table index range and exit at first failure." << endl;
     cout << tab << "-cat        --check-all-table           check all table index range." << endl;
 
     cout << endl << "Information options:" << line;
@@ -1499,6 +1514,13 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #else
             throw faustexception("ERROR : -lang wasm not supported since WASM backend is not built\n");
 #endif
+        } else if (startWith(gGlobal->gOutputLang, "dlang")) {
+#ifdef DLANG_BUILD
+            container = DLangCodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
+                                                            numOutputs, dst.get());
+#else
+            throw faustexception("ERROR : -lang dlang not supported since D backend is not built\n");
+#endif
         } else {
             stringstream error;
             error << "ERROR : cannot find backend for "
@@ -1537,9 +1559,15 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             char* current_directory = getcwd(buffer, FAUST_PATH_MAX);
 
             if ((enrobage = openArchStream(gGlobal->gArchFile.c_str())) != nullptr) {
-                
-                if (gGlobal->gNameSpace != "") *dst.get() << "namespace " << gGlobal->gNameSpace << " {" << endl;
-                
+                if (gGlobal->gNameSpace != "" && gGlobal->gOutputLang == "cpp")
+                    *dst.get() << "namespace " << gGlobal->gNameSpace << " {" << endl;
+#ifdef DLANG_BUILD
+                else if (gGlobal->gOutputLang == "dlang") {
+                    DLangCodeContainer::printDRecipeComment(*dst.get(), container->getClassName());
+                    DLangCodeContainer::printDModuleStmt(*dst.get(), container->getClassName());
+                }
+#endif
+
                 // Possibly inject code
                 injectCode(enrobage, *dst.get());
 
@@ -1583,9 +1611,10 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                         cerr << "can't restore current directory (" << current_directory << ")" << endl;
                     }
                 }
-                
-                if (gGlobal->gNameSpace != "") *dst.get() << "} // namespace " << gGlobal->gNameSpace << endl;
-                
+
+                if (gGlobal->gNameSpace != "" && gGlobal->gOutputLang == "cpp")
+                    *dst.get() << "} // namespace " << gGlobal->gNameSpace << endl;
+
             } else {
                 stringstream error;
                 error << "ERROR : can't open architecture file " << gGlobal->gArchFile << endl;

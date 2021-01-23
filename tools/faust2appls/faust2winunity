@@ -47,7 +47,7 @@ do
         NVOICES=$1
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
-    elif [[ -f "$p" ]]; then
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
         OPTIONS="$OPTIONS $p"
@@ -88,7 +88,7 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-    faust -i -a $FAUSTARCH/unity/unityplugin.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/$NAME.cpp" || (echo "$f : Faust to C++ compilation failed in faust2unitywin"; exit 1)
+    faust -uim -i -a $FAUSTARCH/unity/unityplugin.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/$NAME.cpp" || (echo "$f : Faust to C++ compilation failed in faust2unitywin"; exit 1)
 
     for BIT in $BITS; do
         #-----------------------------------------------------------------------

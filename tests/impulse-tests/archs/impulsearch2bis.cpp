@@ -20,23 +20,25 @@
 class Cdsp : public one_sample_dsp {
     
     private:
-        
+    
+        int* iZone;
+        FAUSTFLOAT* fZone;
         mydsp* fDSP;
     
     public:
         
         Cdsp()
         {
-            fDSP = newmydsp();
             iZone = new int[getiZoneSizemydsp(fDSP)];
             fZone = new FAUSTFLOAT[getfZoneSizemydsp(fDSP)];
+            fDSP = newmydsp();
         }
         
         virtual ~Cdsp()
         {
+            delete [] iZone;
+            delete [] fZone;
             deletemydsp(fDSP);
-            delete[] iZone;
-            delete[] fZone;
         }
     
         virtual int getNumIntControls() { return getNumIntControlsmydsp(fDSP); }

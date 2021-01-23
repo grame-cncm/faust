@@ -49,7 +49,7 @@ On part d'un DAG de loops, on veut pouvoir:
 Scalarisation d'une boucle:
 
 - identifier tous les vecteurs d'entrée et de sortie
-- transformer les vecteur en scalaire
+- transformer les vecteurs en scalaire
 - transformer les accès (Load/Store) en accès scalaire
 
 */
@@ -161,7 +161,9 @@ class CodeLoop : public virtual Garbageable {
 
     ForLoopInst* generateScalarLoop(const string& counter, bool loop_var_in_bytes = false);
 
+    // For Rust backend
     SimpleForLoopInst* generateSimpleScalarLoop(const string& counter);
+    IteratorForLoopInst* generateSimpleScalarLoop(const std::vector<string>& iterators);
 
     BlockInst* generateOneSample();
 

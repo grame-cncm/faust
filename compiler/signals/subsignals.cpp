@@ -41,8 +41,8 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
     Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
 
     if (getUserData(sig)) {
-        for (int i = 0; i < sig->arity(); i++) {
-            vsigs.push_back(sig->branch(i));
+        for (int i1 = 0; i1 < sig->arity(); i1++) {
+            vsigs.push_back(sig->branch(i1));
         }
         return sig->arity();
     } else if (isSigInt(sig, &i)) {

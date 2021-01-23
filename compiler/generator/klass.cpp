@@ -191,14 +191,11 @@ void Klass::printLibrary(ostream& fout)
  */
 void Klass::printIncludeFile(ostream& fout)
 {
-    set<string>           S;
-    set<string>::iterator f;
-
     if (gGlobal->gOpenMPSwitch) {
-        fout << "#include <omp.h>"
-             << "\n";
+        fout << "#include <omp.h>\n";
     }
 
+    set<string> S;
     collectIncludeFile(S);
     for (auto& f : S) {
         string inc = f;

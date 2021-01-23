@@ -1,7 +1,8 @@
-LIB ?= ../../build/lib
 STRIP =
-FASTMATH = ../../architecture/faust/dsp/fastmath.cpp
-INC = ../../architecture/
+
+LIB ?= $(shell faust -libdir)
+FASTMATH = $(shell faust -includedir)/faust/dsp/fastmath.cpp
+INC = $(shell faust -includedir)
 
 DESTDIR ?=
 PREFIX ?= /usr/local
@@ -46,6 +47,9 @@ faust-osc-controller: faust-osc-controller.cpp
 interp-tracer: interp-tracer.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 interp-tracer.cpp $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs gtk+-2.0` $(STRIP) -lz -lncurses -lpthread -o interp-tracer
 
+layout-ui: layout-ui.cpp
+	$(CXX) -std=c++11 -O3 layout-ui.cpp -I $(INC) $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` -o layout-ui
+
 fastmath: $(FASTMATH)
 	clang++ -Ofast -emit-llvm -S $(FASTMATH) -o fastmath.ll
 	clang++ -Ofast -emit-llvm -c $(FASTMATH) -o fastmath.bc
@@ -75,6 +79,7 @@ install:
 	([ -e fastmath.bc ]) && cp fastmath.bc $(prefix)/share/faust || echo fastmath.bc not found
 	([ -e fastmath.wasm ]) && cp fastmath.wasm $(prefix)/share/faust || echo fastmath.wasm not found
 	([ -e faust-osc-controller ]) && cp faust-osc-controller $(prefix)/bin || echo faust-osc-controller not found
+	([ -e layout-ui ]) && cp layout-ui $(prefix)/bin || echo layout-ui not found
 	cp -r iOS-bench $(shell faust --archdir)
 
 clean:
@@ -92,3 +97,4 @@ clean:
 	([ -e fastmath.bc ]) && rm fastmath.bc || echo fastmath.bc not found
 	([ -e fastmath.wasm ]) && rm fastmath.wasm || echo fastmath.wasm not found
 	([ -e faust-osc-controller ]) && rm faust-osc-controller || echo faust-osc-controller not found
+	([ -e layout-ui ]) && rm layout-ui || echo layout-ui not found

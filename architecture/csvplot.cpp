@@ -142,11 +142,11 @@ int main(int argc, char* argv[])
         exit(1);
     }
     
-    // modify the UI values according to the command line options
-    interface->process_init();
-    
     // init DSP with SR
     DSP.init(sample_rate);
+    
+    // modify the UI values according to the command line options, after init
+    interface->process_init();
     
 #ifdef SOUNDFILE
     SoundUI soundinterface;

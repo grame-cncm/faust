@@ -33,7 +33,7 @@
 
 struct JuceReader : public SoundfileReader {
     
-    AudioFormatManager fFormatManager;
+    juce::AudioFormatManager fFormatManager;
     
     JuceReader() { fFormatManager.registerBasicFormats(); }
     virtual ~JuceReader()
@@ -41,7 +41,7 @@ struct JuceReader : public SoundfileReader {
     
     bool checkFile(const std::string& path_name)
     {
-        File file(path_name);
+        juce::File file(path_name);
         if (file.existsAsFile()) {
             return true;
         } else {
@@ -52,14 +52,14 @@ struct JuceReader : public SoundfileReader {
     
     void getParamsFile(const std::string& path_name, int& channels, int& length)
     {
-        std::unique_ptr<AudioFormatReader> formatReader (fFormatManager.createReaderFor (File (path_name)));
+        std::unique_ptr<juce::AudioFormatReader> formatReader (fFormatManager.createReaderFor (juce::File (path_name)));
         channels = int(formatReader->numChannels);
         length = int(formatReader->lengthInSamples);
     }
     
     void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
-        std::unique_ptr<AudioFormatReader> formatReader (fFormatManager.createReaderFor (File (path_name)));
+        std::unique_ptr<juce::AudioFormatReader> formatReader (fFormatManager.createReaderFor (juce::File (path_name)));
         
         soundfile->fLength[part] = int(formatReader->lengthInSamples);
         soundfile->fSR[part] = int(formatReader->sampleRate);
@@ -75,7 +75,7 @@ struct JuceReader : public SoundfileReader {
             if (!formatReader->usesFloatingPointData) {
                 for (int chan = 0; chan < int(formatReader->numChannels); ++chan) {
                     FAUSTFLOAT* buffer = &soundfile->fBuffers[chan][soundfile->fOffset[part]];
-                    FloatVectorOperations::convertFixedToFloat(buffer, reinterpret_cast<const int*>(buffer), 1.0f/0x7fffffff, int(formatReader->lengthInSamples));
+                    juce::FloatVectorOperations::convertFixedToFloat(buffer, reinterpret_cast<const int*>(buffer), 1.0f/0x7fffffff, int(formatReader->lengthInSamples));
                 }
             }
             

@@ -3,7 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.27.1)
+set (VERSION 2.30.5)
 macro (get_major_minor_patch version)
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\1"  VERSION_MAJOR ${version} )
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\2"  VERSION_MINOR ${version} )
@@ -66,6 +66,7 @@ set (FAUST_INC ${SRCDIR}
 	${SRCDIR}/generator/interpreter
 	${SRCDIR}/generator/rust
 	${SRCDIR}/generator/soul
+	${SRCDIR}/generator/dlang
 	${SRCDIR}/normalize ${SRCDIR}/parallelize ${SRCDIR}/parser
 	${SRCDIR}/patternmatcher ${SRCDIR}/propagate ${SRCDIR}/signals
 	${SRCDIR}/tlib ${SRCDIR}/transform ${SRCDIR}/utils
@@ -366,6 +367,7 @@ file (GLOB FAUSTDPSEMB ${ROOT}/libraries/embedded/*.lib)
 file (GLOB FAUSTARCHS   ${ARCHDIR}/*.cpp ${ARCHDIR}/*.c
 						${ARCHDIR}/*.rs  ${ARCHDIR}/*.js
 						${ARCHDIR}/*.java ${ARCHDIR}/*.h
+						${ARCHDIR}/*.d   ${ARCHDIR}/*.d
 						${ARCHDIR}/mathdoctexts-*.txt  ${ARCHDIR}/latexheader.tex)
 install (
     FILES     ${FAUSTDSPLIBS} ${FAUSTARCHS} ${ROOT}/tools/faust2appls/Info.plist DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust
@@ -377,7 +379,7 @@ install (
 )
 
 # install folders
-set (ARCHSRC android api AU esp32 iOS juce soul max-msp nodejs osclib sam smartKeyboard teensy unity webaudio)
+set (ARCHSRC android api AU esp32 iOS juce soul max-msp nodejs osclib sam smartKeyboard teensy unity vcvrack webaudio)
 foreach (dir ${ARCHSRC})
 	set(ARCHFOLDERS ${ARCHFOLDERS} ${ARCHDIR}/${dir})
 endforeach()
@@ -404,19 +406,8 @@ endif()
 ####################################
 # install VS redistributables
 if (MSVC)
-if (${CMAKE_GENERATOR} STREQUAL "Visual Studio 14 2015 Win64")
-	set (VS "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/redist/x64/Microsoft.VC140.CRT")
-elseif (${CMAKE_GENERATOR} STREQUAL "Visual Studio 15 2017 Win64")
-	set (VS "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Redist/MSVC/14.16.27012/x64/Microsoft.VC141.CRT")
-else()
-	set (VS "/unknown/visual/studio/version")
+  include (InstallRequiredSystemLibraries)
 endif()
-install (
-    FILES  "${VS}/msvcp140.dll" "${VS}/vcruntime140.dll" DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-)
-endif()
-
 
 
 ####################################

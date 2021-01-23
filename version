@@ -75,7 +75,7 @@ mv TMP$$ $CMAKE
 
 MAKERELEASE=$ROOT/build/MakeRelease.bat
 echo " updating $MAKERELEASE"
-sed "s/^SET VERSION=[0-9].*/SET (VERSION=$VERSION)/" $MAKERELEASE > TMP$$
+sed "s/^SET VERSION=[0-9].*/SET VERSION=$VERSION/" $MAKERELEASE > TMP$$
 mv TMP$$ $MAKERELEASE
 
 FAUST=$ROOT/compiler/generator/export.hh

@@ -153,7 +153,7 @@ void CCodeContainer::produceClass()
     *fOut << "extern \"C\" {" << endl;
     *fOut << "#endif" << endl;
     tab(n, *fOut);
-
+  
     // Libraries
     printLibrary(*fOut);
     printIncludeFile(*fOut);
@@ -371,6 +371,13 @@ void CScalarOneSampleCodeContainer::produceClass()
     *fOut << "#endif" << endl;
     tab(n, *fOut);
     
+    *fOut << "#if defined(_WIN32)" << endl;
+    *fOut << "#define RESTRICT __restrict" << endl;
+    *fOut << "#else" << endl;
+    *fOut << "#define RESTRICT __restrict__" << endl;
+    *fOut << "#endif" << endl;
+    tab(n, *fOut);
+
     // Libraries
     printLibrary(*fOut);
     printIncludeFile(*fOut);
@@ -586,7 +593,7 @@ void CScalarOneSampleCodeContainer::produceClass()
     }
     
     tab(n, *fOut);
-    *fOut << "void control" << fKlassName << "(" << fKlassName << "* dsp, " << subst("int* iControl, $0* fControl, int* iZone, $0* fZone) {", xfloat());
+    *fOut << "void control" << fKlassName << "(" << fKlassName << "* dsp, " << subst("int* RESTRICT iControl, $0* RESTRICT fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {", xfloat());
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
     // Generates local variables declaration and setup
@@ -664,10 +671,9 @@ CScalarCodeContainer::CScalarCodeContainer(const string& name, int numInputs, in
     fSubContainerType = sub_container_type;
 }
 
-void CScalarCodeContainer::generateCompute(int n)
+void CScalarCodeContainer::generateComputeAux(int n)
 {
     // Generates declaration
-    tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "void compute" << fKlassName << "(" << fKlassName
           << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
@@ -692,13 +698,17 @@ void CScalarCodeContainer::generateCompute(int n)
 }
 
 // Special version for -os generation mode
-void CScalarOneSampleCodeContainer::generateCompute(int n)
+void CScalarOneSampleCodeContainer::generateComputeAux(int n)
 {
     // Generates declaration
     tab(n, *fOut);
-    tab(n, *fOut);
-    *fOut << "void compute" << fKlassName << "(" << fKlassName
-          << subst("* dsp, $0* inputs, $0* outputs, int* iControl, $0* fControl, int* iZone, $0* fZone) {", xfloat());
+    if (gGlobal->gInPlace) {
+        *fOut << "void compute" << fKlassName << "(" << fKlassName
+              << subst("* dsp, $0* inputs, $0* outputs, int* RESTRICT iControl, $0* RESTRICT fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {", xfloat());
+    } else {
+        *fOut << "void compute" << fKlassName << "(" << fKlassName
+              << subst("* dsp, $0* RESTRICT inputs, $0* RESTRICT outputs, int* RESTRICT iControl, $0* RESTRICT fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {", xfloat());
+    }
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
     
@@ -722,13 +732,8 @@ CVectorCodeContainer::CVectorCodeContainer(const string& name, int numInputs, in
 {
 }
 
-void CVectorCodeContainer::generateCompute(int n)
+void CVectorCodeContainer::generateComputeAux(int n)
 {
-    // Possibly generate separated functions
-    fCodeProducer->Tab(n);
-    tab(n, *fOut);
-    generateComputeFunctions(fCodeProducer);
-
     // Generates declaration
     tab(n, *fOut);
     *fOut << "void compute" << fKlassName << "(" << fKlassName
@@ -752,13 +757,8 @@ COpenMPCodeContainer::COpenMPCodeContainer(const string& name, int numInputs, in
 {
 }
 
-void COpenMPCodeContainer::generateCompute(int n)
+void COpenMPCodeContainer::generateComputeAux(int n)
 {
-    // Possibly generate separated functions
-    fCodeProducer->Tab(n);
-    tab(n, *fOut);
-    generateComputeFunctions(fCodeProducer);
-
     // Compute declaration
     tab(n, *fOut);
     *fOut << "void compute" << fKlassName << "(" << fKlassName
@@ -783,13 +783,8 @@ CWorkStealingCodeContainer::CWorkStealingCodeContainer(const string& name, int n
 {
 }
 
-void CWorkStealingCodeContainer::generateCompute(int n)
+void CWorkStealingCodeContainer::generateComputeAux(int n)
 {
-    // Possibly generate separated functions
-    fCodeProducer->Tab(n);
-    tab(n, *fOut);
-    generateComputeFunctions(fCodeProducer);
-
     // Generates "computeThread" code
     tab(n, *fOut);
     *fOut << "static void computeThread" << fKlassName << "(" << fKlassName << "* dsp, int num_thread) {";

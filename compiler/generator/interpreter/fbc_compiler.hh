@@ -22,12 +22,12 @@
 #ifndef _FBC_COMPILER_H
 #define _FBC_COMPILER_H
 
-//#define MIR 1
+//#define MIR_BUILD 1
 
 #include "fbc_interpreter.hh"
-#ifdef MIR
+#ifdef MIR_BUILD
 #include "fbc_mir_compiler.hh"
-#else
+#elif LLVM_BUILD
 #include "fbc_llvm_compiler.hh"
 #endif
 
@@ -69,11 +69,11 @@ class FBCCompiler : public FBCInterpreter<T,0> {
     void CompileBlock(FBCBlockInstruction<T>* block)
     {
         if (fCompiledBlocks->find(block) == fCompiledBlocks->end()) {
-        #ifdef MIR
-            // Test with interp/MIR compiler
+        #ifdef MIR_BUILD
+            // Run with interp/MIR compiler
             (*fCompiledBlocks)[block] = new FBCMIRCompiler<T>(block);
-        #else
-            // Test with interp/LLVM compiler
+        #elif LLVM_BUILD
+            // Run with interp/LLVM compiler
             (*fCompiledBlocks)[block] = new FBCLLVMCompiler<T>(block);
         #endif
         } else {

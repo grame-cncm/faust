@@ -1,9 +1,9 @@
-% man(1) Version 2.27.1 (15-July-2020) | Faust man page
+% man(1) Version 2.30.5 (06-January-2021) | Faust man page
 
 NAME
 ====
 
-Faust  -  DSP  to  C/C++,  Rust,  LLVM  IR,  JAVA, WebAssembly (wast/wasm), Interpreter compiler
+Faust - DSP to C/C++, Rust, LLVM IR, JAVA, WebAssembly (wast/wasm), Interpreter, SOUL and D compiler
 
 SYNOPSIS
 ========
@@ -54,7 +54,7 @@ Code generation options:
 ---------------------------------------
 
   **-lang** \<lang> **--language**                 select output language,
-                                          'lang' should be in c, ocpp, cpp (default), rust, java, llvm, cllvm, fir, wast/wasm, soul, interp.
+                                          'lang' should be c, ocpp, cpp (default), rust, java, llvm, fir, wast/wasm, soul, interp or dlang.
 
   **-single**     **--single-precision-floats**   use single precision floats for internal computations (default).
 
@@ -70,23 +70,17 @@ Code generation options:
 
   **-clang**      **--clang**                     when compiled with clang/clang++, adds specific #pragma for auto-vectorization.
 
-  **-flist**      **--file-list**                 use file list used to eval process.
-
   **-exp10**      **--generate-exp10**            pow(10,x) replaced by possibly faster exp10(x).
 
   **-os**         **--one-sample**                generate one sample computation.
+
+  **-cm**         **--compute-mix**               mix in outputs buffers.
 
   **-cn** \<name>  **--class-name** \<name>         specify the name of the dsp class to be used instead of mydsp.
 
   **-scn** \<name> **--super-class-name** \<name>   specify the name of the super class to be used instead of dsp.
 
   **-pn** \<name>  **--process-name** \<name>       specify the name of the dsp entry-point instead of process.
-
-  **-lb**         **--left-balanced**             generate left balanced expressions.
-
-  **-mb**         **--mid-balanced**              generate mid balanced expressions (default).
-
-  **-rb**         **--right-balanced**            generate right balanced expressions.
 
   **-mcd** \<n>    **--max-copy-delay** \<n>        threshold between copy and ring buffer implementation (default 16 samples).
 
@@ -96,7 +90,9 @@ Code generation options:
 
   **-ftz** \<n>    **--flush-to-zero** \<n>         code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)].
 
-  **-inj** \<f>    **--inject** \<f>                inject source file \<f> into architecture file instead of compile a dsp file.
+  **-rui**        **--range-ui**                  whether to generate code to limit vslider/hslider/nentry values in [min..max] range.
+
+  **-inj** \<f>    **--inject** \<f>                inject source file \<f> into architecture file instead of compiling a dsp file.
 
   **-scal**      **--scalar**                     generate non-vectorized code.
 
@@ -124,13 +120,11 @@ Code generation options:
 
   **-fun**       **--fun-tasks**                  separate tasks code as separated functions (in -vec, -sch, or -omp mode).
 
-  **-fm** \<file> **--fast-math** \<file>           use optimized versions of mathematical functions implemented in \<file>.
-
-                                          use 'faust/dsp/fastmath.cpp' when file is 'def'.
-
-  **-ns** \<name> **--namespace** \<name>           generate C++ code in a namespace \<name>.
+  **-fm** \<file> **--fast-math** \<file>           use optimized versions of mathematical functions implemented in \<file>, use 'faust/dsp/fastmath.cpp' when file is 'def'.
 
   **-mapp**      **--math-approximation**         simpler/faster versions of 'floor/ceil/fmod/remainder' functions.
+
+  **-ns** \<name> **--namespace** \<name>           generate C++ or D code in a namespace \<name>.
 
 
 Block diagram options:
@@ -171,13 +165,15 @@ Debug options:
 
   **-time**       **--compilation-time**          display compilation phases timing information.
 
+  **-flist**      **--file-list**                 print file list (including libraries) used to eval process.
+
   **-tg**         **--task-graph**                print the internal task graph in dot format.
 
   **-sg**         **--signal-graph**              print the internal signal graph in dot format.
 
   **-norm**       **--normalized-form**           print signals in normalized form and exit.
 
-  **-ct**         **--check-table**               check table index range and fails.
+  **-ct**         **--check-table**               check table index range and exit at first failure.
 
   **-cat**        **--check-all-table**           check all table index range.
 
@@ -218,6 +214,6 @@ Please report bugs to: **<https://github.com/grame-cncm/faust/issues>**
 AUTHOR
 ======
 
-Copyright (C) 2002-2020, GRAME - Centre National de Creation Musicale.
+Copyright (C) 2002-2021, GRAME - Centre National de Creation Musicale.
 All rights reserved.
 

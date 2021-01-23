@@ -49,7 +49,7 @@ static void* runUI(void* ptr)
 // 									MAIN
 //-------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     char name[256];
     char* home = getenv("HOME");
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 
     pthread_create(&gThread, NULL, runUI, interface);
 
-    // Measuring DSP...
+    // Measuring DSP
     dsp->openMeasure();
 
     coreaudio audio(srate, fpb);

@@ -92,99 +92,84 @@ using namespace std;
 // Wrapping C++ class for the C object
 
 class Cdsp : public dsp {
-
-  private:
-
-	mydsp* fDSP;
-
-  public:
-
-	Cdsp()
-	{
-        fDSP = newmydsp();
-	}
-
-	virtual ~Cdsp()
-	{
-		deletemydsp(fDSP);
-	}
-	virtual int getNumInputs() 	{ return getNumInputsmydsp(fDSP); }
     
-	virtual int getNumOutputs() { return getNumOutputsmydsp(fDSP); }
+    private:
     
-    virtual void buildUserInterface(UI* interface)
-    {
-        UIGlue glue;
-        glue.uiInterface = interface;
-        glue.openTabBox = openTabBoxGlueFloat;
-        glue.openHorizontalBox = openHorizontalBoxGlueFloat;
-        glue.openVerticalBox = openVerticalBoxGlueFloat;
-        glue.closeBox = closeBoxGlueFloat;
-        glue.addButton = addButtonGlueFloat;
-        glue.addCheckButton = addCheckButtonGlueFloat;
-        glue.addVerticalSlider = addVerticalSliderGlueFloat;
-        glue.addHorizontalSlider = addHorizontalSliderGlueFloat;
-        glue.addNumEntry = addNumEntryGlueFloat;
-        glue.addHorizontalBargraph = addHorizontalBargraphGlueFloat;
-        glue.addVerticalBargraph = addVerticalBargraphGlueFloat;
-        glue.addSoundFile = addSoundFileGlueFloat;
-        glue.declare = declareGlueFloat;
-        
-        buildUserInterfacemydsp(fDSP, &glue);
-    }
-
-    virtual int getSampleRate()
-    {
-        return getSampleRatemydsp(fDSP);
-    }
+        mydsp* fDSP;
     
-    virtual void init(int samplingRate)
-    {
-        initmydsp(fDSP, samplingRate);
-    }
-
-	static void classInit(int samplingRate)
-    {
-        classInitmydsp(samplingRate);
-    }
-
-	virtual void instanceInit(int samplingRate)
-    {
-		instanceInitmydsp(fDSP, samplingRate);
-	}
+    public:
     
-    virtual void instanceConstants(int samplingRate)
-    {
-        instanceConstantsmydsp(fDSP, samplingRate);
-    }
+        Cdsp():fDSP(newmydsp())
+        {}
     
-    virtual void instanceResetUserInterface()
-    {
-        instanceResetUserInterfacemydsp(fDSP);
-    }
+        virtual ~Cdsp()
+        {
+            deletemydsp(fDSP);
+        }
     
-    virtual void instanceClear()
-    {
-        instanceClearmydsp(fDSP);
-    }
-  
-    virtual dsp* clone()
-    {
-        return new Cdsp();
-    }
+        virtual int getNumInputs() { return getNumInputsmydsp(fDSP); }
     
-    virtual void metadata(Meta* m)
-    {
-        MetaGlue glue;
-        buildMetaGlue(&glue, m);
-        metadatamydsp(&glue);
-    }
-  
-	virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
-    {
-		computemydsp(fDSP, count, input, output);
-	}
-
+        virtual int getNumOutputs() { return getNumOutputsmydsp(fDSP); }
+    
+        virtual void buildUserInterface(UI* interface)
+        {
+            UIGlue glue;
+            buildUIGlue(&glue, interface, sizeof(FAUSTFLOAT) == 8);
+            buildUserInterfacemydsp(fDSP, &glue);
+        }
+    
+        virtual int getSampleRate()
+        {
+            return getSampleRatemydsp(fDSP);
+        }
+    
+        virtual void init(int samplingRate)
+        {
+            initmydsp(fDSP, samplingRate);
+        }
+    
+        static void classInit(int samplingRate)
+        {
+            classInitmydsp(samplingRate);
+        }
+    
+        virtual void instanceInit(int samplingRate)
+        {
+            instanceInitmydsp(fDSP, samplingRate);
+        }
+    
+        virtual void instanceConstants(int samplingRate)
+        {
+            instanceConstantsmydsp(fDSP, samplingRate);
+        }
+    
+        virtual void instanceResetUserInterface()
+        {
+            instanceResetUserInterfacemydsp(fDSP);
+        }
+    
+        virtual void instanceClear()
+        {
+            instanceClearmydsp(fDSP);
+        }
+    
+        virtual Cdsp* clone()
+        {
+            return new Cdsp();
+        }
+    
+        virtual void metadata(Meta* m)
+        {
+            MetaGlue glue;
+            buildMetaGlue(&glue, m);
+            metadatamydsp(&glue);
+        }
+    
+        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+        {
+            computemydsp(fDSP, count, input, output);
+        }
+    
 };
 
 /***************************END USER SECTION ***************************/
@@ -198,7 +183,7 @@ ztimedmap GUI::gTimedZoneMap;
 // 									MAIN
 //-------------------------------------------------------------------------
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 	char appname[256];
 	char rcfilename[256];

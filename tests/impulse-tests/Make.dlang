@@ -1,0 +1,62 @@
+
+#
+# Makefile for testing the Faust compiler output
+#
+
+system := $(shell uname -s)
+system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
+ifeq ($(system), MINGW)
+ FAUST ?= ../../build/bin/faust.exe
+ COMPARE := ./filesCompare.exe
+else
+ FAUST ?= ../../build/bin/faust
+ COMPARE := ./filesCompare
+endif
+ifeq (, $(shell which dub))
+ $(error "No dub executable found for compiling D backend")
+endif
+MAKE ?= make
+
+outdir ?= dlang
+FAUSTOPTIONS ?= -double
+precision ?=		# filesCompare precision (empty by default)
+
+.PHONY: test
+.DELETE_ON_ERROR:
+
+alldspfiles := $(wildcard dsp/*.dsp)
+allirfiles = $(alldspfiles:dsp/%.dsp=ir/$(outdir)/%.ir)
+
+all: filesCompare
+
+all: $(allirfiles)
+
+all: ir/$(outdir)/sound.ir
+
+filesCompare:
+	$(MAKE) filesCompare
+
+#########################################################################
+# rules
+ir/$(outdir)/sound.ir: reference/sound.ir
+	@echo "sound.ir cannot be tested with D backend"
+
+# Specific rule to test 'control' primitive that currently uses the -lang ocpp backend (still compiling in scalar mode...)
+ir/$(outdir)/control.ir : dsp/control.dsp
+	@echo "Can only be tested in scalar mode"
+	$(FAUST) -lang dlang -double -i -A ../../architecture -a archs/architecture.d dsp/control.dsp -o dsp/control.d
+	cd dsp/ && dub run --single control.d -- ../$@
+	$(COMPARE) $@ reference/$(notdir $@) $(precision) && (rm -f dsp/control.d; true)
+
+# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
+ir/dlang/double/vec/osc_enable.ir : dsp/osc_enable.dsp
+	@echo "Can only be tested in scalar mode"
+	$(FAUST) -lang dlang -double -i -A ../../architecture -a archs/architecture.d dsp/osc_enable.dsp -o dsp/osc_enable.d
+	cd dsp/ && dub run --single osc_enable.d -- ../$@
+	$(COMPARE) $@ reference/$(notdir $@) $(precision) && (rm -f dsp/osc_enable.d; true)
+
+ir/$(outdir)/%.ir: reference/%.ir
+	mkdir -p ir/$(outdir)
+	$(FAUST) -lang dlang $(FAUSTOPTIONS) -i -A ../../architecture -a archs/architecture.d dsp/$*.dsp -o dsp/$*.d
+	cd dsp/ && dub run --single $*.d -- ../$@
+	$(COMPARE) $@ reference/$(notdir $@) $(precision) && (rm -f dsp/$*.d; true)

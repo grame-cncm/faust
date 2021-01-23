@@ -50,6 +50,11 @@
 #include "faust/gui/Esp32SensorUI.h"
 #include "faust/audio/esp32-dsp.h"
 
+#ifdef MIDICTRL
+#include "faust/gui/MidiUI.h"
+#include "faust/midi/gramophone-midi.h"
+#endif
+
 #ifdef SOUNDFILE
 #include "faust/gui/SoundUI.h"
 #endif
@@ -74,6 +79,11 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
+#ifdef MIDICTRL
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
+#endif
+
 class Gramophone
 {
     private:
@@ -85,7 +95,10 @@ class Gramophone
     #ifdef SOUNDFILE
         SoundUI* fSoundUI;
     #endif
-    
+    #ifdef MIDICTRL
+        gramophone_midi* fMIDIHandler;
+        MidiUI* fMIDIInterface;
+    #endif
     public:
     
         Gramophone(int sample_rate, int buffer_size);
@@ -109,6 +122,13 @@ Gramophone::Gramophone(int sample_rate, int buffer_size)
     fSoundUI = new SoundUI();
     fDSP->buildUserInterface(fSoundUI);
 #endif
+#ifdef MIDICTRL
+    bt_meta fBT;
+    fDSP->metadata(&fBT);
+    fMIDIHandler = new gramophone_midi(fBT);
+    fMIDIInterface = new MidiUI(fMIDIHandler);
+    fDSP->buildUserInterface(fMIDIInterface);
+#endif
    
     fAudio = new esp32audio(sample_rate, buffer_size);
     fAudio->init("esp32", fDSP);
@@ -124,12 +144,19 @@ Gramophone::~Gramophone()
 #ifdef SOUNDFILE
     delete fSoundUI;
 #endif
+#ifdef MIDICTRL
+    delete fMIDIHandler;
+    delete fMIDIInterface;
+#endif
 }
 
 bool Gramophone::start()
 {
     if (!fControlUI->start()) return false;
     if (!fSensorUI->start()) return false;
+#ifdef MIDICTRL
+    if (!fMIDIInterface->run()) return false;
+#endif
     return fAudio->start();
 }
 
@@ -137,6 +164,9 @@ void Gramophone::stop()
 {
     fControlUI->stop();
     fSensorUI->stop();
+#ifdef MIDICTRL
+    fMIDIInterface->stop();
+#endif
     fAudio->stop();
 }
 

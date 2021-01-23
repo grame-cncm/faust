@@ -100,13 +100,12 @@ public:
     
     virtual void drawComplexControl(ComplexControl cc, const QStyleOptionComplex* opt, QPainter* p, const QWidget* widget = NULL) const
     {
-        if (cc != QStyle::CC_Dial)
-        {
+        if (cc != QStyle::CC_Dial) {
             QCommonStyle::drawComplexControl(cc, opt, p, widget);
             return;
         }
         
-        const QStyleOptionSlider* dial = qstyleoption_cast<const QStyleOptionSlider *>(opt);
+        const QStyleOptionSlider* dial = qstyleoption_cast<const QStyleOptionSlider*>(opt);
         if (dial == NULL) return;
         
         double angle = DIAL_MIN // offset
@@ -251,9 +250,7 @@ public:
     
 };
 
-//
 //===============================END QSYNTHKNOB======================================
-
 
 //==============================BEGIN DISPLAYS===================================
 //
@@ -310,8 +307,8 @@ class dbAbstractDisplay : public AbstractDisplay
     
 protected:
     
-    FAUSTFLOAT      fScaleMin;
-    FAUSTFLOAT      fScaleMax;
+    FAUSTFLOAT fScaleMin;
+    FAUSTFLOAT fScaleMax;
     std::vector<int>     fLevel;
     std::vector<QBrush>  fBrush;
     
@@ -391,7 +388,7 @@ protected:
     
 public:
     
-    dbAbstractDisplay(FAUSTFLOAT lo, FAUSTFLOAT hi) : AbstractDisplay(lo, hi)
+    dbAbstractDisplay(FAUSTFLOAT lo, FAUSTFLOAT hi) : AbstractDisplay(lo, hi), fScaleMin(0), fScaleMax(0)
     {}
     
     /**
@@ -422,7 +419,6 @@ protected:
         painter.drawRect(rect());
         
         if (fValue <= fLevel[0]) {
-            
             // interpolate the first color on the alpha channel
             QColor c(40, 160, 40) ;
             FAUSTFLOAT a = (fValue-fMin)/(fLevel[0]-fMin);
@@ -430,7 +426,6 @@ protected:
             painter.fillRect(rect(), c);
             
         } else {
-            
             // find the minimal level > value
             size_t l = fLevel.size()-1; while (fValue < fLevel[l] && l > 0) l--;
             painter.fillRect(rect(), fBrush[l]);
@@ -464,7 +459,7 @@ protected:
     /**
      * Draw the LED using a transparency depending of its value
      */
-    virtual void paintEvent(QPaintEvent *)
+    virtual void paintEvent(QPaintEvent*)
     {
         QPainter painter(this);
         painter.drawRect(rect());
@@ -477,7 +472,7 @@ protected:
     
 public:
     
-    LED(FAUSTFLOAT lo, FAUSTFLOAT hi) : AbstractDisplay(lo,hi), fColor("yellow")
+    LED(FAUSTFLOAT lo, FAUSTFLOAT hi) : AbstractDisplay(lo, hi), fColor("yellow")
     {
         setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     }
@@ -503,7 +498,7 @@ protected:
      */
     void paintScale(QPainter* painter) const
     {
-        painter->drawRect(0,0,width(),height());
+        painter->drawRect(0, 0, width(), height());
     }
     
     /**
@@ -511,20 +506,20 @@ protected:
      */
     void paintContent(QPainter* painter) const
     {
-        int     w = width();
-        int     h = height();
-        FAUSTFLOAT   v = (fValue-fMin)/(fMax-fMin);
+        int w = width();
+        int h = height();
+        FAUSTFLOAT v = (fValue-fMin)/(fMax-fMin);
         
         if (h > w) {
             // draw vertical rectangle
-            painter->fillRect(0,(1-v)*h,w, v*h, fBrush);
+            painter->fillRect(0, (1-v)*h, w, v*h, fBrush);
         } else {
             // draw horizontal rectangle
             painter->fillRect(0, 0, v*w, h, fBrush);
         }
     }
     
-    virtual void paintEvent(QPaintEvent *)
+    virtual void paintEvent(QPaintEvent*)
     {
         QPainter painter(this);
         paintContent(&painter);
@@ -533,7 +528,7 @@ protected:
     
 public:
     
-    linBargraph(FAUSTFLOAT lo, FAUSTFLOAT hi) : AbstractDisplay(lo,hi)
+    linBargraph(FAUSTFLOAT lo, FAUSTFLOAT hi) : AbstractDisplay(lo, hi)
     {
         // compute the brush that will be used to
         // paint the value
@@ -557,7 +552,7 @@ class linVerticalBargraph : public linBargraph
     
 public:
     
-    linVerticalBargraph(FAUSTFLOAT lo, FAUSTFLOAT hi) : linBargraph(lo,hi)
+    linVerticalBargraph(FAUSTFLOAT lo, FAUSTFLOAT hi) : linBargraph(lo, hi)
     {
         setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
     }
@@ -576,7 +571,7 @@ class linHorizontalBargraph : public linBargraph
     
 public:
     
-    linHorizontalBargraph(FAUSTFLOAT lo, FAUSTFLOAT hi) : linBargraph(lo,hi)
+    linHorizontalBargraph(FAUSTFLOAT lo, FAUSTFLOAT hi) : linBargraph(lo, hi)
     {
         setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     }
@@ -595,7 +590,7 @@ class dbBargraph : public dbAbstractDisplay
     
 protected:
     
-    QBrush  fBackColor;
+    QBrush fBackColor;
     
     // These two abstract methods are implemented
     // according to the vertical or horizontal direction
@@ -636,7 +631,7 @@ protected:
         painter->drawRect(0,0,width(),height());
     }
     
-    virtual void paintEvent(QPaintEvent *)
+    virtual void paintEvent(QPaintEvent*)
     {
         QPainter painter(this);
         paintScale(&painter);
@@ -740,7 +735,7 @@ protected:
     {
         int n = 10;
         int x = dB2x(v);
-        QRect r(x-n,0,2*n, height());
+        QRect r(x-n, 0, 2*n, height());
         painter->drawText(r, Qt::AlignHCenter|Qt::AlignVCenter, QString::number(v));
     }
     
@@ -757,7 +752,7 @@ protected:
     
 public:
     
-    dbHorizontalBargraph(FAUSTFLOAT lo, FAUSTFLOAT hi) : dbBargraph(lo,hi)
+    dbHorizontalBargraph(FAUSTFLOAT lo, FAUSTFLOAT hi) : dbBargraph(lo, hi)
     {
         setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
         initLevelsColors(0);
@@ -770,7 +765,6 @@ public:
     
 };
 
-//
 //===============================END DISPLAYS====================================
 
 /******************************************************************************
@@ -793,7 +787,7 @@ class uiButton : public QObject, public uiItem
     
 public:
     
-    QAbstractButton* 	fButton;
+    QAbstractButton* fButton;
     
     uiButton(GUI* ui, FAUSTFLOAT* zone, QAbstractButton* b) : uiItem(ui, zone), fButton(b) {}
     
@@ -820,7 +814,7 @@ class uiCheckButton : public QObject, public uiItem
     
 public:
     
-    QCheckBox* 	fCheckBox;
+    QCheckBox* fCheckBox;
     
     uiCheckButton(GUI* ui, FAUSTFLOAT* zone, QCheckBox* b) : uiItem(ui, zone), fCheckBox(b) {}
     
@@ -903,7 +897,6 @@ public:
     void set(bool)
     {
         *fZone = fValue;
-        // qDebug() << "setting " << fValue << " --> " << fZone;
     }
 };
 
@@ -981,10 +974,10 @@ public:
         fCache = v;
         
         // select closest value
-        int             defaultitem = -1;
-        double          mindelta = FLT_MAX;
+        int defaultitem = -1;
+        double mindelta = FLT_MAX;
         
-        for (unsigned int i=0; i<fValues.size(); i++) {
+        for (unsigned int i = 0; i < fValues.size(); i++) {
             double delta = fabs(fValues[i]-v);
             if (delta < mindelta) {
                 mindelta = delta;
@@ -1020,8 +1013,8 @@ public:
         
         if (parseMenuList(mdescr, names, values)) {
             
-            int     defaultitem = -1;
-            double  mindelta = FLT_MAX;
+            int defaultitem = -1;
+            double mindelta = FLT_MAX;
             
             for (unsigned int i = 0; i < names.size(); i++) {
                 double v = values[i];
@@ -1115,11 +1108,11 @@ class uiNumEntry : public QObject, public uiItem
     
 protected:
     
-    QDoubleSpinBox* 	fNumEntry;
-    FAUSTFLOAT			fCur;
-    FAUSTFLOAT			fMin;
-    FAUSTFLOAT			fMax;
-    FAUSTFLOAT			fStep;
+    QDoubleSpinBox* fNumEntry;
+    FAUSTFLOAT fCur;
+    FAUSTFLOAT fMin;
+    FAUSTFLOAT fMax;
+    FAUSTFLOAT fStep;
     
 public:
     
@@ -1222,7 +1215,7 @@ protected:
             QWidget* mother = fGroupStack.top();
             QTabWidget*	tab = dynamic_cast<QTabWidget*>(mother);
             if (tab) {
-                tab->addTab(widget,label);
+                tab->addTab(widget, label);
             } else {
                 widget->setParent(mother);
                 mother->layout()->addWidget(widget);
@@ -1346,8 +1339,6 @@ protected:
     
     void update()
     {
-        //std::cout << '.' << std::endl;
-        //		updateAllZones();
         updateAllGuis();
     }
     
@@ -1421,7 +1412,7 @@ public:
         for (it = ipAdresses.begin(); it != ipAdresses.end(); it++) {
             if ((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) != QHostAddress::LocalHost) {
                 return it->toString();
-            } else if((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) == QHostAddress::LocalHost) {
+            } else if ((*it).protocol() == QAbstractSocket::IPv4Protocol && (*it) == QHostAddress::LocalHost) {
                 localhost = it->toString();
             }
         }
@@ -1564,7 +1555,7 @@ public:
         openBox(label, new QVBoxLayout());
     }
     
-    virtual void openFrameBox(const char* )
+    virtual void openFrameBox(const char*)
     {}
     
     virtual void openTabBox(const char* label)
@@ -1590,9 +1581,9 @@ public:
     
     virtual void addButton(const char* label, FAUSTFLOAT* zone)
     {
-        QAbstractButton* 	w = new QPushButton(label);
+        QAbstractButton* w = new QPushButton(label);
         w->setAttribute(Qt::WA_MacNoClickThrough);
-        uiButton* 			c = new uiButton(this, zone, w);
+        uiButton* c = new uiButton(this, zone, w);
         
         insert(label, w);
         QObject::connect(w, SIGNAL(pressed()), c, SLOT(pressed()));
@@ -1635,8 +1626,8 @@ public:
         }
         //insert(label, new QDoubleSpinBox());
         if (label && label[0]) openVerticalBox(label);
-        QDoubleSpinBox*     w = new QDoubleSpinBox();
-        uiNumEntry*         c = new uiNumEntry(this, zone, w, init, min, max, step);
+        QDoubleSpinBox* w = new QDoubleSpinBox();
+        uiNumEntry* c = new uiNumEntry(this, zone, w, init, min, max, step);
         insert(label, w);
         std::string suffix = " " + fUnit[zone];
         w->setSuffix(suffix.c_str());
@@ -1651,7 +1642,7 @@ public:
     {
         //insert(label, new QDoubleSpinBox());
         if (label && label[0]) openVerticalBox(label);
-        QDoubleSpinBox*     w = new QDoubleSpinBox();
+        QDoubleSpinBox* w = new QDoubleSpinBox();
         w->setAlignment(Qt::AlignHCenter);
 #if 1
         w->setStyleSheet(
@@ -1692,10 +1683,10 @@ public:
         addNumDisplay(0, zone, init, min, max, step);
         
         // compute the size of the knob+display
-        int width = int(64*pow(2,fGuiSize[zone]));
-        int height = int(100*pow(2,fGuiSize[zone]));
-        fGroupStack.top()->setMinimumSize(width,height);
-        fGroupStack.top()->setMaximumSize(width,height);
+        int width = int(64 * pow(2, fGuiSize[zone]));
+        int height = int(100 * pow(2, fGuiSize[zone]));
+        fGroupStack.top()->setMinimumSize(width, height);
+        fGroupStack.top()->setMaximumSize(width, height);
         
         closeBox();
         checkForTooltip(zone, w);

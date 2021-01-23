@@ -547,7 +547,11 @@ void CPPScalarOneSampleCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << subst("virtual void compute($0* inputs, $0* outputs, int* iControl, $0* fControl) {", xfloat());
+    if (gGlobal->gInPlace) {
+        *fOut << subst("virtual void compute($0* inputs, $0* outputs, int* RESTRICT iControl, $0* RESTRICT fControl) {", xfloat());
+    } else {
+        *fOut << subst("virtual void compute($0* RESTRICT inputs, $0* RESTRICT outputs, int* RESTRICT iControl, $0* RESTRICT fControl) {", xfloat());
+    }
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     
@@ -595,6 +599,13 @@ void CPPScalarOneSampleCodeContainer::produceClass()
     *fOut << "#ifdef __APPLE__ " << endl;
     *fOut << "#define exp10f __exp10f" << endl;
     *fOut << "#define exp10 __exp10" << endl;
+    *fOut << "#endif" << endl;
+    tab(n, *fOut);
+    
+    *fOut << "#if defined(_WIN32)" << endl;
+    *fOut << "#define RESTRICT __restrict" << endl;
+    *fOut << "#else" << endl;
+    *fOut << "#define RESTRICT __restrict__" << endl;
     *fOut << "#endif" << endl;
     tab(n, *fOut);
     
@@ -751,7 +762,7 @@ void CPPScalarOneSampleCodeContainer::produceClass()
     *fOut << "}";
     
     tab(n + 1, *fOut);
-    *fOut << subst("virtual void control(int* iControl, $0* fControl) {", xfloat());
+    *fOut << subst("virtual void control(int* RESTRICT iControl, $0* RESTRICT fControl) {", xfloat());
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     // Generates local variables declaration and setup

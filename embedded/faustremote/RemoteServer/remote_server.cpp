@@ -502,7 +502,7 @@ dsp_server_connection_info_post::dsp_server_connection_info_post(MHD_Connection*
 {
     fPostprocessor = 0;
     fAnswercode = MHD_HTTP_OK;
-    if (!(fPostprocessor = MHD_create_post_processor(connection, POSTBUFFERSIZE, DSPServer::iteratePost, this))) {
+    if (!(fPostprocessor = MHD_create_post_processor(connection, POSTBUFFERSIZE, (MHD_PostDataIterator)DSPServer::iteratePost, this))) {
         throw -1;
     }
 }
@@ -568,7 +568,7 @@ bool DSPServer::start(int port)
                                port, 
                                NULL, 
                                NULL, 
-                               answerToConnection, 
+                               (MHD_AccessHandlerCallback)answerToConnection, 
                                this, MHD_OPTION_NOTIFY_COMPLETED, 
                                requestCompleted, NULL, MHD_OPTION_END);
     if (!fDaemon) {

@@ -29,14 +29,25 @@
 using namespace std;
 
 template <typename REAL>
-static void bench(dsp_optimizer<REAL> optimizer, const string& name, bool trace)
+static void bench(dsp_optimizer<REAL> optimizer, const string& name, bool is_trace)
 {
     pair<double, vector<string> > res = optimizer.findOptimizedParameters();
-    if (trace) cout << "Best value for '" << name << "' is : " << res.first << " with ";
+    if (is_trace) cout << "Best value for '" << name << "' is : " << res.first << " with ";
     for (int i = 0; i < res.second.size(); i++) {
         cout << res.second[i] << " ";
     }
     cout << endl;
+}
+
+template <typename REAL>
+static void bench_single(const string& in_filename, dsp* DSP, int buffer_size, int run, bool is_control, bool is_trace)
+{
+    measure_dsp_aux<REAL> mes(DSP, buffer_size, 5., true, is_control);  // Buffer_size and duration in sec of measure
+    for (int i = 0; i < run; i++) {
+        mes.measure();
+        if (is_trace) cout << in_filename << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
+        FAUSTBENCH_LOG<REAL>(mes.getStats());
+    }
 }
 
 static void splitTarget(const string& target, string& triple, string& cpu)
@@ -51,14 +62,14 @@ static void splitTarget(const string& target, string& triple, string& cpu)
 int main(int argc, char* argv[])
 {
     if (argc == 1 || isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "faustbench-llvm [-notrace] [-generic] [-single] [-run <num>] [-bs <frames>] [-opt <level (0..4|-1)>] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
+        cout << "faustbench-llvm [-notrace] [-control] [-generic] [-single] [-run <num>] [-bs <frames>] [-opt <level (0..4|-1)>] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
         cout << "Use '-notrace' to only generate the best compilation parameters\n";
         cout << "Use '-control' to update all controllers with random values at each cycle\n";
         cout << "Use '-generic' to compile for a generic processor, otherwise the native CPU will be used\n";
-        cout << "Use '-single' to execute only scalar test\n";
+        cout << "Use '-single' to execute only one test (scalar by default)\n";
         cout << "Use '-run <num>' to execute each test <num> times\n";
-        cout << "Use '-bs <frames>' to set the maximum buffer-size in frames\n";
-        cout << "Use '-opt <level (0..4|-1)>' to pass an optimisation level to LLVM\n";
+        cout << "Use '-bs <frames>' to set the buffer-size in frames\n";
+        cout << "Use '-opt <level (0..4|-1)>' to pass an optimisation level to LLVM, between 0 and 4 (-1 means 'maximal level' if range changes in the future)\n";
         return 0;
     }
     
@@ -118,8 +129,7 @@ int main(int argc, char* argv[])
     try {
         if (is_single) {
             string error_msg;
-            
-            dsp_factory* factory = createDSPFactoryFromFile(in_filename, argc1, argv1, "", error_msg, opt);
+            dsp_factory* factory = createDSPFactoryFromFile(in_filename, argc1, argv1, target, error_msg, opt);
             if (!factory) {
                 cerr << error_msg;
                 exit(EXIT_FAILURE);
@@ -132,19 +142,9 @@ int main(int argc, char* argv[])
             }
             
             if (is_double) {
-                measure_dsp_aux<double> mes(DSP, buffer_size, 5., true, is_control);  // Buffer_size and duration in sec of measure
-                for (int i = 0; i < run; i++) {
-                    mes.measure();
-                    if (is_trace) cout << in_filename << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
-                    FAUSTBENCH_LOG<double>(mes.getStats());
-                }
+                bench_single<double>(in_filename,DSP, buffer_size, run, is_control, is_trace);
             } else {
-                measure_dsp_aux<float> mes(DSP, buffer_size, 5., true, is_control);  // Buffer_size and duration in sec of measure
-                for (int i = 0; i < run; i++) {
-                    mes.measure();
-                    if (is_trace) cout << in_filename << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
-                    FAUSTBENCH_LOG<double>(mes.getStats());
-                }
+                bench_single<float>(in_filename,DSP, buffer_size, run, is_control, is_trace);
             }
             
         } else {

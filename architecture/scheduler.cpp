@@ -30,8 +30,6 @@
 #include <errno.h>
 #include <string.h>
 #include <semaphore.h>
-#include <sys/types.h>
-#include <sys/sysctl.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -390,6 +388,9 @@ struct AtomicCounter
 #include <mach/thread_policy.h>
 #include <mach/thread_act.h>
 #include <mach/mach_time.h>
+    
+#include <sys/types.h>
+#include <sys/sysctl.h>
 
 #define THREAD_SET_PRIORITY         0
 #define THREAD_SCHEDULED_PRIORITY   1

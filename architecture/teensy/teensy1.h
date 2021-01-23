@@ -46,7 +46,9 @@ class AudioFaust : public teensyaudio
     
         AudioFaust();
         ~AudioFaust();
+    
         void setParamValue(const std::string& path, float value);
+        float getParamValue(const std::string& path);
     
     private:
     

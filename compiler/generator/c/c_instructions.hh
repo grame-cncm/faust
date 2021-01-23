@@ -125,20 +125,14 @@ class CInstVisitor : public TextInstVisitor {
         // Polymath mapping float version
         gPolyMathLibTable["min_f"]  = "fminf";
         gPolyMathLibTable["max_f"]  = "fmaxf";
-        gPolyMathLibTable["isnanf"] = "isnan";
-        gPolyMathLibTable["isinff"] = "isinf";
         
         // Polymath mapping double version
         gPolyMathLibTable["min_"]   = "fmin";
         gPolyMathLibTable["max_"]   = "fmax";
-        gPolyMathLibTable["isnan"]  = "isnan";
-        gPolyMathLibTable["isinf"]  = "isinf";
         
         // Polymath mapping quad version
         gPolyMathLibTable["min_l"]  = "fminl";
         gPolyMathLibTable["max_l"]  = "fmaxl";
-        gPolyMathLibTable["isnanl"] = "isnan";
-        gPolyMathLibTable["isinl"]  = "isinf";
     }
 
     virtual ~CInstVisitor() {}
@@ -407,7 +401,7 @@ class CInstVisitor1 : public CInstVisitor {
     
     private:
     
-        StructInstVisitor1 fStructVisitor;
+        StructInstVisitor fStructVisitor;
         bool fZoneAddress;      // If a zone address is currently written
         bool fIndexedAddress;   // If an indexed address is currently written
     
@@ -435,7 +429,7 @@ class CInstVisitor1 : public CInstVisitor {
                 || startWith(name, "fVbargraph")
                 || startWith(name, "fHbargraph")
                 || name == "fSampleRate";
-            if (((access & Address::kStruct) || (access & Address::kStaticStruct)) && !is_control){
+            if (((access & Address::kStruct) || (access & Address::kStaticStruct)) && !is_control) {
                 fStructVisitor.visit(inst);
             } else {
                 CInstVisitor::visit(inst);
@@ -448,16 +442,11 @@ class CInstVisitor1 : public CInstVisitor {
             if (fStructVisitor.hasField(named->fName, type)) {
                 // Zone address zone[id][index] are rewritten as zone[id+index]
                 fZoneAddress = true;
-                string zone;
-                int zone_size;
                 if (type == Typed::kInt32) {
-                    zone = "iZone";
-                    zone_size = sizeof(int);
+                    *fOut << "iZone" << "[" << fStructVisitor.getFieldIntOffset(named->fName)/sizeof(int);
                 } else {
-                    zone = "fZone";
-                    zone_size = ifloatsize();
+                    *fOut << "fZone" << "[" << fStructVisitor.getFieldRealOffset(named->fName)/ifloatsize();
                 }
-                *fOut << zone << "[" << fStructVisitor.getFieldOffset(named->fName)/zone_size;
                 if (!fIndexedAddress) { *fOut << "]"; }
             } else {
                 fZoneAddress = false;

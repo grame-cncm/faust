@@ -1,0 +1,314 @@
+/************************************************************************
+ IMPORTANT NOTE : this file contains two clearly delimited sections :
+ the ARCHITECTURE section (in two parts) and the USER section. Each section
+ is governed by its own copyright and license. Please check individually
+ each section for license and copyright information.
+ *************************************************************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
+
+/************************************************************************
+ FAUST Architecture File
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
+ ************************************************************************
+ ************************************************************************/
+
+// faust -a minimal.d -lang dlang noise.dsp -o noise.d
+
+import dplug.core.vec;
+import dplug.client;
+
+alias FAUSTFLOAT = float;
+
+class Meta {
+nothrow:
+@nogc:
+    void declare(string name, string value) {}
+}
+
+class UI {
+nothrow:
+@nogc:
+    void declare(string id, string key, string value) {}
+    void declare(int id, string key, string value) {}
+    void declare(FAUSTFLOAT* id, string key, string value) {}
+
+    // -- layout groups
+
+    void openTabBox(string label) {}
+    void openHorizontalBox(string label) {}
+    void openVerticalBox(string label) {}
+    void closeBox() {}
+
+    // -- active widgets
+
+    void addButton(string label, FAUSTFLOAT* val) {}
+    void addCheckButton(string label, FAUSTFLOAT* val) {}
+    void addVerticalSlider(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {}
+    void addHorizontalSlider(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {}
+    void addNumEntry(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {}
+
+    // -- passive display widgets
+
+    void addHorizontalBargraph(string label, FAUSTFLOAT* val, FAUSTFLOAT min, FAUSTFLOAT max) {}
+    void addVerticalBargraph(string label, FAUSTFLOAT* val, FAUSTFLOAT min, FAUSTFLOAT max) {}
+}
+
+interface dsp {
+nothrow:
+@nogc:
+public:
+    void metadata(Meta* m);
+    int getNumInputs();
+    int getNumOutputs();
+    void buildUserInterface(UI* uiInterface);
+    int getSampleRate();
+    void instanceInit(int sample_rate);
+    void instanceResetUserInterface();
+    void compute(int count, FAUSTFLOAT*[] inputs, FAUSTFLOAT*[] outputs);
+    void initialize(int sample_rate);
+}
+
+/**
+ * Implements and overrides the methods that would provide parameters for use in 
+ * a plug-in or GUI.  These parameters are stored in a vector which can be accesed via
+ * `readParams()`
+ */
+class FaustParamAccess : UI {
+nothrow:
+@nogc:
+    this()
+    {
+        _faustParams = makeVec!FaustParam();
+    }
+
+    override void addButton(string label, FAUSTFLOAT* val)
+    {
+        _faustParams.pushBack(FaustParam(label, val, 0, 0, 0, 0, true));
+    }
+    
+    override void addCheckButton(string label, FAUSTFLOAT* val)
+    {
+        _faustParams.pushBack(FaustParam(label, val, 0, 0, 0, 0, true));
+    }
+    
+    override void addVerticalSlider(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        _faustParams.pushBack(FaustParam(label, val, init, min, max, step));
+    }
+
+    override void addHorizontalSlider(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        _faustParams.pushBack(FaustParam(label, val, init, min, max, step));
+    }
+
+    override void addNumEntry(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        _faustParams.pushBack(FaustParam(label, val, init, min, max, step));
+    }
+
+    FaustParam[] readParams()
+    {
+        return _faustParams.releaseData();
+    }
+
+    FaustParam readParam(int index)
+    {
+        return _faustParams[index];
+    }
+
+    ulong length()
+    {
+        return _faustParams.length();
+    }
+
+private:
+	Vec!FaustParam _faustParams;
+}
+
+struct FaustParam
+{
+	string label;
+	FAUSTFLOAT* val;
+	FAUSTFLOAT initial;
+	FAUSTFLOAT min;
+	FAUSTFLOAT max;
+	FAUSTFLOAT step;
+    bool isButton = false;
+}
+
+version(unittest){}
+else
+mixin(pluginEntryPoints!FaustClient);
+
+final class FaustClient : dplug.client.Client
+{
+public:
+nothrow:
+@nogc:
+
+    this()
+    {
+        buildFaustModule();
+    }
+
+    void buildFaustModule()
+    {
+        _dsp = mallocNew!(FAUSTCLASS)();
+        FaustParamAccess _faustUI = mallocNew!FaustParamAccess();
+        _dsp.buildUserInterface(cast(UI*)(&_faustUI));
+        _faustParams = _faustUI.readParams();
+    }
+
+    override PluginInfo buildPluginInfo()
+    {
+        // Plugin info is parsed from plugin.json here at compile time.
+        // Indeed it is strongly recommended that you do not fill PluginInfo 
+        // manually, else the information could diverge.
+        static immutable PluginInfo pluginInfo = parsePluginInfo(import("plugin.json"));
+        return pluginInfo;
+    }
+
+    // This is an optional overload, default is zero parameter.
+    // Caution when adding parameters: always add the indices
+    // in the same order as the parameter enum.
+    override Parameter[] buildParameters()
+    {
+        auto params = makeVec!Parameter();
+
+        // Add faust parameters
+        buildFaustModule();
+        int faustParamIndexStart = 0;
+        foreach(param; _faustParams)
+        {
+            if(param.isButton)
+            {
+                params ~= mallocNew!BoolParameter(faustParamIndexStart++, param.label, cast(bool)(*param.val));
+            }
+            else
+            {
+                params ~= mallocNew!LinearFloatParameter(faustParamIndexStart++, param.label, param.label, param.min, param.max, param.initial);
+            }
+        }
+
+        return params.releaseData();
+    }
+
+    override LegalIO[] buildLegalIO()
+    {
+        auto io = makeVec!LegalIO();
+		if(_dsp is null)
+		{
+			_dsp = mallocNew!(FAUSTCLASS)();
+		}
+        io ~= LegalIO(_dsp.getNumInputs(), _dsp.getNumOutputs());
+        return io.releaseData();
+    }
+
+    // This override is optional, the default implementation will
+    // have one default preset.
+    override Preset[] buildPresets() nothrow @nogc
+    {
+        auto presets = makeVec!Preset();
+        presets ~= makeDefaultPreset();
+        return presets.releaseData();
+    }
+
+    // This override is also optional. It allows to split audio buffers in order to never
+    // exceed some amount of frames at once.
+    // This can be useful as a cheap chunking for parameter smoothing.
+    // Buffer splitting also allows to allocate statically or on the stack with less worries.
+    override int maxFramesInProcess() const //nothrow @nogc
+    {
+        return 512;
+    }
+
+    override void reset(double sampleRate, int maxFrames, int numInputs, int numOutputs) nothrow @nogc
+    {
+        // Clear here any state and delay buffers you might have.
+        _dsp.initialize(cast(int)sampleRate);
+        assert(maxFrames <= 512); // guaranteed by audio buffer splitting
+    }
+
+    // TODO: use parameter listeners to update the faust param values rather
+    // than force updating them on every process call
+    void updateFaustParams()
+    {
+        foreach(param; params())
+        {
+            foreach(faustParam; _faustParams)
+            {
+                if(param.label() == faustParam.label)
+                {
+                    *(faustParam.val) = (cast(FloatParameter)param).value();
+                }
+            }
+        }
+    }
+
+    override void processAudio(const(float*)[] inputs, float*[]outputs, int frames,
+                               TimeInfo info) nothrow @nogc
+    {
+        assert(frames <= 512); // guaranteed by audio buffer splitting
+
+        int numInputs = cast(int)inputs.length;
+        int numOutputs = cast(int)outputs.length;
+
+        int minChan = numInputs > numOutputs ? numOutputs : numInputs;
+
+        // do reverb
+        updateFaustParams();
+        _dsp.compute(frames, cast(float*[])inputs, cast(float*[])outputs);
+
+        // fill with zero the remaining channels
+        for (int chan = minChan; chan < numOutputs; ++chan)
+            outputs[chan][0..frames] = 0; // D has array slices assignments and operations
+    }
+
+private:
+    FAUSTCLASS _dsp;
+    UI _faustUI;
+    FaustParam[] _faustParams;
+}
+
+/******************************************************************************
+ *******************************************************************************
+ 
+ VECTOR INTRINSICS
+ 
+ *******************************************************************************
+ *******************************************************************************/
+
+<<includeIntrinsic>>
+
+/********************END ARCHITECTURE SECTION (part 1/2)****************/
+
+/**************************BEGIN USER SECTION **************************/
+
+<<includeclass>>
+
+/***************************END USER SECTION ***************************/
+
+/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+
+/********************END ARCHITECTURE SECTION (part 2/2)****************/
+

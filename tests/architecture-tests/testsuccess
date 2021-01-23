@@ -21,6 +21,7 @@ OSXPOLY2MIDI="faust2caqt faust2ios faust2max6 faust2msp faust2juce faust2netjack
 OSXHTTPD="faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole"
 OSXOSC="faust2ios faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole faust2max6 faust2msp faust2android"
 OSXOSCHTTPD="faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole"
+OSXPRESET="faust2caqt faust2jack faust2jaqt"
 
 LINUX="faust2alqt faust2alsa faust2alsaconsole faust2android faust2asmjs faust2bela faust2csound faust2dssi faust2eps faust2faustvst faust2firefox faust2graph faust2graphviewer faust2jack faust2jackinternal faust2jackserver faust2jaqt faust2ladspa faust2lv2 faust2mathdoc  faust2md  faust2netjackconsole faust2netjackqt faust2octave faust2owl faust2paqt faust2pdf faust2plot faust2png faust2puredata faust2raqt faust2ros faust2rosgtk faust2rpialsaconsole faust2rpinetjackconsole faust2sig faust2sigviewer faust2supercollider faust2svg faust2w32max6 faust2w32msp faust2w32puredata faust2w32vst faust2w64vst faust2netjackconsole faust2netjackqt faust2jackconsole"
 LINUXMIDI="faust2jaqt faust2netjackconsole faust2netjackqt faust2jackconsole"
@@ -53,6 +54,7 @@ if [ "$system" = "Darwin" ]; then
     echo "Test -httpd $OSXHTTPD"
     echo "Test -osc $OSXOSC"
     echo "Test -osc -httpd $OSXOSCHTTPD"
+    echo "Test -preset auto $OSXPRESET"
   
     faust2dummy good.dsp > /dev/null
     ./good > good.txt
@@ -131,6 +133,10 @@ if [ "$system" = "Darwin" ]; then
 
     for scriptname in $OSXOSCHTTPD; do
         ($scriptname -osc -httpd good.dsp &> LOG)&&(echo "OK: $scriptname -osc -httpd succeeded !")||(echo "ERROR: $scriptname -osc -httpd failed")
+    done
+    
+    for scriptname in $OSXPRESET; do
+        ($scriptname -preset auto good.dsp &> LOG)&&(echo "OK: $scriptname -preset auto succeeded !")||(echo "ERROR: $scriptname -preset auto failed")
     done
     
     (faust2api -jack good.dsp &> LOG && unzip dsp-faust.zip && cd dsp-faust && c++ -std=c++11 DspFaust.cpp -DBUILD -ljack -o DspFaust)&&(echo "OK: faust2api -jack succeeded !")||(echo "ERROR: faust2api -jack failed")

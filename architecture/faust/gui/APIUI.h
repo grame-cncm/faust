@@ -376,8 +376,20 @@ class APIUI : public PathBuilder, public Meta, public UI
         FAUSTFLOAT getParamInit(int p) { return fInit[p]; }
 
         FAUSTFLOAT* getParamZone(int p) { return fZone[p]; }
+    
         FAUSTFLOAT getParamValue(int p) { return *fZone[p]; }
+        FAUSTFLOAT getParamValue(const char* path)
+        {
+            int index = getParamIndex(path);
+            return (index >= 0) ? getParamValue(index) : FAUSTFLOAT(0);
+        }
+    
         void setParamValue(int p, FAUSTFLOAT v) { *fZone[p] = v; }
+        void setParamValue(const char* path, FAUSTFLOAT v)
+        {
+            int index = getParamIndex(path);
+            if (index >= 0) setParamValue(index, v);
+        }
 
         double getParamRatio(int p) { return fConversion[p]->faust2ui(*fZone[p]); }
         void setParamRatio(int p, double r) { *fZone[p] = fConversion[p]->ui2faust(r); }

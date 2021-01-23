@@ -38,7 +38,7 @@ STYLE=""
 
 PROCARCH="-fPIC"
 dllext=".so"
-CXXFLAGS+=" $MYGCCFLAGS -fvisibility=hidden"  # So that additional CXXFLAGS can be used
+CXXFLAGS+=" -std=c++11 -fvisibility=hidden -O3"  # WARNING: don't modify this setting
 
 echo $CXXFLAGS
 
@@ -101,7 +101,7 @@ EOF
 		VOICE_CTRLS=0
     elif [ $p = "-gui" ]; then
 		FAUST_UI=1
-	plugin_gui=yes
+		plugin_gui=yes
     elif [ $p = "-qt4" ]; then
 		FAUST_UI=1
 		plugin_gui=yes
@@ -129,7 +129,7 @@ EOF
 		STYLE=${!i}
     elif [ ${p:0:1} = "-" ]; then
 		OPTIONS="$OPTIONS $p"
-    elif [[ -f "$p" ]]; then
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
 		FILES="$FILES $p"
     else
 		OPTIONS="$OPTIONS $p"

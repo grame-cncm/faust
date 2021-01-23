@@ -521,7 +521,7 @@ class FBCInterpreter : public FBCExecutor<T> {
             &&do_kAbs, &&do_kAbsf, &&do_kAcosf, &&do_kAcoshf, &&do_kAsinf, &&do_kAsinhf, &&do_kAtanf, &&do_kAtanhf, &&do_kCeilf,
             &&do_kCosf, &&do_kCoshf,
             &&do_kExpf, &&do_kFloorf, &&do_kLogf, &&do_kLog10f, &&do_kRintf, &&do_kRoundf, &&do_kSinf, &&do_kSinhf, &&do_kSqrtf,
-            &&do_kTanf, &&do_kTanhf,
+            &&do_kTanf, &&do_kTanhf, &&do_kIsnanf, &&do_kIsinff,
 
             // Extended unary math (heap OP heap)
             &&do_kAbsHeap, &&do_kAbsfHeap, &&do_kAcosfHeap, &&do_kAcoshfHeap, &&do_kAsinfHeap, &&do_kAsinhfHeap, &&do_kAtanfHeap, &&do_kAtanhfHeap,
@@ -1992,6 +1992,18 @@ class FBCInterpreter : public FBCExecutor<T> {
     do_kTanhf : {
         T v = popReal(it);
         pushReal(it, std::tanh(v));
+        dispatchNextScal();
+    }
+        
+    do_kIsnanf : {
+        T v = popReal(it);
+        pushInt(std::isnan(v));
+        dispatchNextScal();
+    }
+    
+    do_kIsinff : {
+        T v = popReal(it);
+        pushInt(std::isinf(v));
         dispatchNextScal();
     }
 

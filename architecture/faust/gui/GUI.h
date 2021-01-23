@@ -428,11 +428,16 @@ static void createUiCallbackItem(GUI* ui, FAUSTFLOAT* zone, uiCallback foo, void
 static void deleteClist(clist* cl)
 {
     for (auto& it : *cl) {
+        // This specific code is only used in JUCE context. TODO: use proper 'shared_ptr' based memory management.
+    #if defined(JUCE_32BIT) || defined(JUCE_64BIT)
         uiOwnedItem* owned = dynamic_cast<uiOwnedItem*>(it);
         // owned items are deleted by external code
         if (!owned) {
             delete it;
         }
+    #else
+        delete it;
+    #endif
     }
 }
 

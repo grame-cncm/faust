@@ -84,7 +84,6 @@ int main(int argc, const char** argv)
     string error_msg;
     cout << "Libfaust version : " << getCLibFaustVersion () << endl;
     string dspFile = argv[1];
-    string tempDir = "/private/var/tmp/";
    
     cout << "=============================\n";
     cout << "Test createDSPFactoryFromFile\n";
@@ -128,7 +127,7 @@ int main(int argc, const char** argv)
     cout << "=============================\n";
     cout << "Test createDSPFactoryFromString\n";
     {
-        dsp_factory* factory = createDSPFactoryFromString("score", "process = +;", 0, NULL, "", error_msg, -1);
+        dsp_factory* factory = createDSPFactoryFromString("FaustDSP", "process = +;", 0, NULL, "", error_msg, -1);
         if (!factory) {
             cerr << "Cannot create factory : " << error_msg;
             exit(EXIT_FAILURE);
@@ -162,7 +161,7 @@ int main(int argc, const char** argv)
     cout << "=============================\n";
     cout << "Test of UI element encoding\n";
     {
-        dsp_factory* factory = createDSPFactoryFromString("score", "process = vslider(\"Volume\", 0.5, 0, 1, 0.025);", 0, NULL, "", error_msg, -1);
+        dsp_factory* factory = createDSPFactoryFromString("FaustDSP", "process = vslider(\"Volume\", 0.5, 0, 1, 0.025);", 0, NULL, "", error_msg, -1);
         if (!factory) {
             cerr << "Cannot create factory : " << error_msg;
             exit(EXIT_FAILURE);
@@ -176,16 +175,20 @@ int main(int argc, const char** argv)
 
         testUI test(0.5, 0, 1, 0.025);
         DSP->buildUserInterface(&test);
+        
+        delete DSP;
+        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
     }
     
     // Test generateAuxFilesFromFile/generateAuxFilesFromString
+    string tempDir = "/private/var/tmp/";
     int argc2 = 0;
     const char* argv2[64];
     argv2[argc2++] = "-svg";
     argv2[argc2++] = "-O";
     argv2[argc2++] = tempDir.c_str();
     argv2[argc2] = nullptr;  // NULL terminated argv
-    
+   
     {
         cout << "=============================\n";
         cout << "Test generateAuxFilesFromFile\n";

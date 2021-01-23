@@ -33,7 +33,7 @@ vsum(N) = si.bus(2*N) :> si.bus(N); // vector sum of two N-vectors
 impulse = 1-1'; // For zero initial state, set impulse = 0 or simplify code
 x0 = par(i,N,i*impulse); // initial state = (0,1,2,3,...,N-1)
 
-system = si.bus(p) <: D, (Bd : (vsum(N)~(A)), x0 : vsum(N) : C) :> si.bus(q);
+system = si.bus(p) <: D, (Bd : vsum(N)~(A), x0 : vsum(N) : C) :> si.bus(q);
 
 process = system;
 

@@ -307,3 +307,13 @@ string replaceCharList(string str, const vector<char>& ch1, char ch2)
     }
     return str;
 }
+
+vector<string> tokenizeString(const string& str, char sep)
+{
+    vector<string> res;
+    istringstream is(str);
+    string token;
+    while (getline(is, token, sep)) res.push_back(token);
+    return res;
+}
+    

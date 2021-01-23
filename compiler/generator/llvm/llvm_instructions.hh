@@ -49,20 +49,22 @@
 
 using namespace llvm;
 
+#define LLVMValue llvm::Value*
+#define LLVMType llvm::Type*
+#define LLVMPtrType llvm::PointerType*
+#define LLVMVecTypes vector<LLVMType>
+#define MapOfTtypes map<Typed::VarType, LLVMType>
+
+#define MakeIdx(beg, end) llvm::ArrayRef<LLVMValue>(beg, end)
+#define MakeArgs(args) llvm::ArrayRef<lLLVMValue>(args)
 #define MakeStructGEP(v1, v2) fBuilder->CreateStructGEP(0, v1, v2);
 #define MakeConstGEP32(type_def, llvm_name) fBuilder->CreateConstGEP2_32(type_def, llvm_name, 0, 0);
 #define MakeIntPtrType() fModule->getDataLayout().getIntPtrType(fModule->getContext())
 
-#define LLVMValue llvm::Value*
-#define LLVMType llvm::Type*
-#define LLVMPtrType llvm::PointerType*
-#define GetIterator(it) &(*(it))
-#define LLVMVecTypes vector<LLVMType>
-#define MapOfTtypes map<Typed::VarType, LLVMType>
-#define MakeIdx(beg, end) llvm::ArrayRef<LLVMValue>(beg, end)
-#define MakeArgs(args) llvm::ArrayRef<lLLVMValue>(args)
 #define CreateFuncall(fun, args) fBuilder->CreateCall(fun, makeArrayRef(args))
 #define CreatePhi(type, name) fBuilder->CreatePHI(type, 0, name);
+
+#define GetIterator(it) &(*(it))
 
 #define dumpLLVM(val)                    \
     {                                    \
@@ -86,30 +88,35 @@ struct LLVMTypeHelper {
         fTypeMap[Typed::kFloat]         = getFloatTy();
         fTypeMap[Typed::kFloat_ptr]     = getTyPtr(fTypeMap[Typed::kFloat]);
         fTypeMap[Typed::kFloat_ptr_ptr] = getTyPtr(fTypeMap[Typed::kFloat_ptr]);
+    #if !defined(LLVM_120)
         fTypeMap[Typed::kFloat_vec]     = VectorType::get(fTypeMap[Typed::kFloat], gGlobal->gVecSize);
         fTypeMap[Typed::kFloat_vec_ptr] = getTyPtr(fTypeMap[Typed::kFloat_vec]);
-
+    #endif
         fTypeMap[Typed::kDouble]         = getDoubleTy();
         fTypeMap[Typed::kDouble_ptr]     = getTyPtr(fTypeMap[Typed::kDouble]);
         fTypeMap[Typed::kDouble_ptr_ptr] = getTyPtr(fTypeMap[Typed::kDouble_ptr]);
+    #if !defined(LLVM_120)
         fTypeMap[Typed::kDouble_vec]     = VectorType::get(fTypeMap[Typed::kDouble], gGlobal->gVecSize);
         fTypeMap[Typed::kDouble_vec_ptr] = getTyPtr(fTypeMap[Typed::kDouble_vec]);
-
+    #endif
         fTypeMap[Typed::kInt32]         = getInt32Ty();
         fTypeMap[Typed::kInt32_ptr]     = getTyPtr(fTypeMap[Typed::kInt32]);
+    #if !defined(LLVM_120)
         fTypeMap[Typed::kInt32_vec]     = VectorType::get(fTypeMap[Typed::kInt32], gGlobal->gVecSize);
         fTypeMap[Typed::kInt32_vec_ptr] = getTyPtr(fTypeMap[Typed::kInt32_vec]);
-
+    #endif
         fTypeMap[Typed::kInt64]         = getInt64Ty();
         fTypeMap[Typed::kInt64_ptr]     = getTyPtr(fTypeMap[Typed::kInt64]);
+    #if !defined(LLVM_120)
         fTypeMap[Typed::kInt64_vec]     = VectorType::get(fTypeMap[Typed::kInt64], gGlobal->gVecSize);
         fTypeMap[Typed::kInt64_vec_ptr] = getTyPtr(fTypeMap[Typed::kInt64_vec]);
-
+    #endif
         fTypeMap[Typed::kBool]         = getInt1Ty();
         fTypeMap[Typed::kBool_ptr]     = getTyPtr(fTypeMap[Typed::kBool]);
+    #if !defined(LLVM_120)
         fTypeMap[Typed::kBool_vec]     = VectorType::get(fTypeMap[Typed::kBool], gGlobal->gVecSize);
         fTypeMap[Typed::kBool_vec_ptr] = getTyPtr(fTypeMap[Typed::kBool_vec]);
-
+    #endif
         // Takes the type of internal real
         fTypeMap[Typed::kFloatMacro]         = fTypeMap[itfloat()];
         fTypeMap[Typed::kFloatMacro_ptr]     = getTyPtr(fTypeMap[Typed::kFloatMacro]);
@@ -193,7 +200,12 @@ struct LLVMTypeHelper {
                        ? fTypeMap[array_typed->getType()]
                        : ArrayType::get(fTypeMap[Typed::getTypeFromPtr(array_typed->getType())], array_typed->fSize);
         } else if (vector_typed) {
+        #if !defined(LLVM_120)
             return VectorType::get(fTypeMap[vector_typed->fType->fType], vector_typed->fSize);
+        #else
+            faustassert(false);
+            return nullptr;
+        #endif
         } else if (struct_typed) {
             LLVMVecTypes llvm_types;
             for (auto& it : struct_typed->fFields) {
@@ -226,7 +238,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
     list<string> fMathLibTable;                 // All standard math functions
 
-#if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110)
+#if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110) || defined(LLVM_120)
     map<string, Intrinsic::ID> fUnaryIntrinsicTable;    // LLVM unary intrinsic
     map<string, Intrinsic::ID> fBinaryIntrinsicTable;   // LLVM binary intrinsic
 #endif
@@ -300,7 +312,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         fTypeMap[Typed::kObj_ptr] = dsp_ptr;
         fAllocaBuilder            = new IRBuilder<>(fModule->getContext());
  
-    #if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110)
+    #if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110) || defined(LLVM_120)
         
         /* This does not work in visit(FunCallInst* inst) for intrinsic, which are deactivated for now
         call_inst->addAttribute(AttributeList::FunctionIndex, Attribute::Builtin);
@@ -827,7 +839,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             fCurValue = generateFunPolymorphicMinMax(fun_args[0], fun_args[1], kLT);
         } else if (checkMax(inst->fName) && fun_args.size() == 2) {
             fCurValue = generateFunPolymorphicMinMax(fun_args[0], fun_args[1], kGT);
-    #if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110)
+    #if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110) || defined(LLVM_120)
         // LLVM unary intrinsic
         } else if (fUnaryIntrinsicTable.find(inst->fName) != fUnaryIntrinsicTable.end()) {
             

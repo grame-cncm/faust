@@ -31,16 +31,19 @@ class one_sample_dsp : public dsp {
   
     protected:
         
-        int* iZone;
-        FAUSTFLOAT* fZone;
+        FAUSTFLOAT* fInputs;
+        FAUSTFLOAT* fOutputs;
     
     public:
     
-        one_sample_dsp():iZone(NULL),fZone(NULL)
+        one_sample_dsp():fInputs(nullptr), fOutputs(nullptr)
         {}
     
         virtual ~one_sample_dsp()
-        {}
+        {
+            delete [] fInputs;
+            delete [] fOutputs;
+        }
     
         /**
          * Return the number of 'int' typed values necessary to compute the internal DSP state
@@ -59,8 +62,8 @@ class one_sample_dsp : public dsp {
         /**
          * Update the DSP control state.
          *
-         * @param icontrol - an externally allocated array of 'int' typed values used to keep the DSP control state
-         * @param fcontrol - an externally allocated array of 'float, double or quad' typed values used to keep the DSP control state
+         * @param iControl - an externally allocated array of 'int' typed values used to keep the DSP control state
+         * @param fControl - an externally allocated array of 'float, double or quad' typed values used to keep the DSP control state
          */
         virtual void control(int* iControl, FAUSTFLOAT* fControl) = 0;
         
@@ -69,31 +72,52 @@ class one_sample_dsp : public dsp {
          *
          * @param inputs - the input audio buffers as an array of getNumInputs FAUSTFLOAT samples (either float, double or quad)
          * @param outputs - the output audio buffers as an array of getNumOutputs FAUSTFLOAT samples (either float, double or quad)
-         * @param icontrol - the externally allocated array of 'int' typed values used to keep the DSP control state
-         * @param fcontrol - the externally allocated array of 'float, double or quad' typed values used to keep the DSP control state
+         * @param iControl - the externally allocated array of 'int' typed values used to keep the DSP control state
+         * @param fControl - the externally allocated array of 'float, double or quad' typed values used to keep the DSP control state
          */
         virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs, int* iControl, FAUSTFLOAT* fControl) = 0;
     
         // The standard 'compute' expressed using the control/compute (one sample) model
         virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
         {
+            if (!fInputs) {
+                fInputs = new FAUSTFLOAT[getNumInputs() * 4096];
+                fOutputs = new FAUSTFLOAT[getNumOutputs() * 4096];
+            }
+            
             // Control
             int int_control[getNumIntControls()];
             FAUSTFLOAT real_control[getNumRealControls()];
             control(int_control, real_control);
             
             // Compute
-            FAUSTFLOAT inputs[getNumInputs()];
-            FAUSTFLOAT outputs[getNumOutputs()];
+            int num_inputs = getNumInputs();
+            int num_outputs = getNumOutputs();
+            
+            FAUSTFLOAT* inputs_ptr = &fInputs[0];
+            FAUSTFLOAT* outputs_ptr = &fOutputs[0];
+            
             for (int frame = 0; frame < count; frame++) {
-                for (int chan = 0; chan < getNumInputs(); chan++) {
-                    inputs[chan] = inputs_aux[chan][frame];
+                for (int chan = 0; chan < num_inputs; chan++) {
+                    inputs_ptr[chan] = inputs_aux[chan][frame];
                 }
+                inputs_ptr += num_inputs;
+            }
+            
+            inputs_ptr = &fInputs[0];
+            for (int frame = 0; frame < count; frame++) {
                 // One sample compute
-                compute(inputs, outputs, int_control, real_control);
-                for (int chan = 0; chan < getNumOutputs(); chan++) {
-                    outputs_aux[chan][frame] = outputs[chan];
+                compute(inputs_ptr, outputs_ptr, int_control, real_control);
+                inputs_ptr += num_inputs;
+                outputs_ptr += num_outputs;
+            }
+            
+            outputs_ptr = &fOutputs[0];
+            for (int frame = 0; frame < count; frame++) {
+                for (int chan = 0; chan < num_outputs; chan++) {
+                    outputs_aux[chan][frame] = outputs_ptr[chan];
                 }
+                outputs_ptr += num_outputs;
             }
         }
         

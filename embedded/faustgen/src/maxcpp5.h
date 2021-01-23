@@ -233,11 +233,14 @@ public:
     maxmethodinit m_init;
     double m_samplerate;
     void* m_control_outlet;
+    void* m_midi_outlet;
     
     MspCpp5():m_siginlets(0), m_sigoutlets(0), m_perform(NULL), m_init(NULL), m_samplerate(0)
     {
         // Additional control output
-        m_control_outlet = outlet_append((t_object*)this, NULL, NULL); // Can send any message
+        m_control_outlet = outlet_append((t_object*)this, NULL, NULL);
+        // Additional MIDI output
+        m_midi_outlet = outlet_append((t_object*)this, NULL, NULL);
     }
 	
 	static t_class * makeMaxClass(const char* name);
@@ -350,7 +353,11 @@ template<typename T> void MspCpp5<T>::out_anything(t_symbol* s, short ac, t_atom
 	outlet_anything(outlet_nth((t_object*)this, m_sigoutlets), s, ac, av);
 }
 
-template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, maxmethodinit init, unsigned int siginlets, unsigned int sigoutlets, bool initialize) {
+template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth,
+                                              maxmethodinit init,
+                                              unsigned int siginlets,
+                                              unsigned int sigoutlets,
+                                              bool initialize) {
     m_perform = meth;
     m_init = init;
     
@@ -386,6 +393,9 @@ template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, maxmethodin
         if (sigoutlets > m_sigoutlets) {
             
             // Delete the m_control_outlet at 'm_sigoutlets' index
+            outlet_delete(outlet_nth((t_object*)this, m_sigoutlets+1));
+            
+            // Delete the m_control_outlet at 'm_sigoutlets' index
             outlet_delete(outlet_nth((t_object*)this, m_sigoutlets));
             
             for (unsigned int i = m_sigoutlets; i < sigoutlets; i++) {
@@ -393,9 +403,15 @@ template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, maxmethodin
             }
             
             // Additional control output
-            m_control_outlet = outlet_append((t_object*)this, NULL, NULL);  // Can send any message
+            m_control_outlet = outlet_append((t_object*)this, NULL, NULL);
+            
+            // Additional MIDI output
+            m_midi_outlet = outlet_append((t_object*)this, NULL, NULL);
             
         } else if (sigoutlets < m_sigoutlets) {
+            
+            // Delete the m_control_outlet at 'm_sigoutlets' index
+            outlet_delete(outlet_nth((t_object*)this, m_sigoutlets+1));
             
             // Delete the m_control_outlet at 'm_sigoutlets' index
             outlet_delete(outlet_nth((t_object*)this, m_sigoutlets));
@@ -405,7 +421,10 @@ template<typename T> void MspCpp5<T>::setupIO(maxmethodperform meth, maxmethodin
             }
             
             // Additional control output
-            m_control_outlet = outlet_append((t_object*)this, NULL, NULL);  // Can send any message
+            m_control_outlet = outlet_append((t_object*)this, NULL, NULL);
+            
+            // Additional MIDI output
+            m_midi_outlet = outlet_append((t_object*)this, NULL, NULL);
         }
         
         // End the transaction
@@ -434,7 +453,7 @@ template<typename T> void MspCpp5<T>::internal_dsp_32(MspCpp5<T>* x, t_signal** 
 		pdata.outputs[i] = sp[s]->s_vec;
 	}
     
-	dsp_addv(MspCpp5<T>::internal_perform_32, sizeof(PerformData)/sizeof(t_int), (void **)&pdata);
+	dsp_addv(MspCpp5<T>::internal_perform_32, sizeof(PerformData)/sizeof(t_int), (void**)&pdata);
 	pdata.x->dsp();
 }
 
@@ -452,7 +471,12 @@ template<typename T> t_int * MspCpp5<T>::internal_perform_32(t_int* w) {
 
 #endif
 
-template<typename T> void MspCpp5<T>::internal_dsp_64(MspCpp5<T>* x, t_object* dsp64, short *count, double samplerate, long maxvectorsize, long flags) {
+template<typename T> void MspCpp5<T>::internal_dsp_64(MspCpp5<T>* x,
+                                                      t_object* dsp64,
+                                                      short* count,
+                                                      double samplerate,
+                                                      long maxvectorsize,
+                                                      long flags) {
     T* self = (T*)x;	
     if (samplerate != self->m_samplerate) {
         ((self)->*(self->m_init))(samplerate);
@@ -461,8 +485,15 @@ template<typename T> void MspCpp5<T>::internal_dsp_64(MspCpp5<T>* x, t_object* d
     object_method(dsp64, gensym("dsp_add64"), x, MspCpp5<T>::internal_perform_64, 0, NULL);
 }
 
-template<typename T> void MspCpp5<T>::internal_perform_64(MspCpp5<T>* x, t_object* dsp64, double** ins, long numins,
-    double** outs, long numouts, long sampleframes, long flags, void *userparam) {
+template<typename T> void MspCpp5<T>::internal_perform_64(MspCpp5<T>* x,
+                                                          t_object* dsp64,
+                                                          double** ins,
+                                                          long numins,
+                                                          double** outs,
+                                                          long numouts,
+                                                          long sampleframes,
+                                                          long flags,
+                                                          void* userparam) {
     T* self = (T*)x;	
     AVOIDDENORMALS;
     ((self)->*(self->m_perform))(sampleframes, ins, numins, outs, numouts);

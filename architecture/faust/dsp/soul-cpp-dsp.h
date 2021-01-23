@@ -75,14 +75,8 @@ class soul_cpp_dsp : public dsp {
         soul_cpp_dsp()
         {
             fDecoder = nullptr;
-            
-            /*
-            std::vector<souldsp::EndpointDetails> endpoints = fDSP.getInputEndpoints();
-            assert(std::string(endpoints[0].name) == "eventbuildUserInterface");
-            */
-            
-            std::vector<souldsp::ParameterProperties> properties = fDSP.getParameterProperties();
-            fZoneMap = new FAUSTFLOAT[properties.size()];
+            std::vector<souldsp::Parameter> parameters = fDSP.createParameterList();
+            fZoneMap = new FAUSTFLOAT[parameters.size()];
         }
     
         virtual ~soul_cpp_dsp()
@@ -105,33 +99,35 @@ class soul_cpp_dsp : public dsp {
         {
             //fDecoder->buildUserInterface(ui_interface);
             
-            std::vector<souldsp::ParameterProperties> prop = fDSP.getParameterProperties();
-            for (int i= 0; i < prop.size(); i++) {
-                if (prop[i].isBoolean) {
-                    if (startWith(prop[i].UID, "eventfCheckbox")) {
-                        ui_interface->addCheckButton(prop[i].name, &fZoneMap[i]);
-                    } else if (startWith(prop[i].UID, "eventfButton")) {
-                        ui_interface->addButton(prop[i].name, &fZoneMap[i]);
+            std::vector<souldsp::Parameter> parameters = fDSP.createParameterList();
+            for (int i = 0; i < parameters.size(); i++) {
+                souldsp::Parameter& param = parameters[i];
+                souldsp::ParameterProperties& prop = param.properties;
+                if (prop.isBoolean) {
+                    if (startWith(prop.UID, "eventfCheckbox")) {
+                        ui_interface->addCheckButton(prop.name, &fZoneMap[i]);
+                    } else if (startWith(prop.UID, "eventfButton")) {
+                        ui_interface->addButton(prop.name, &fZoneMap[i]);
                     }
                     fZoneMap[i] = 0;
-                    fZoneFunMap[&fZoneMap[i]] = prop[i].applyValue;
-                } else if (startWith(prop[i].UID, "eventfHslider")) {
-                    ui_interface->addHorizontalSlider(prop[i].name, &fZoneMap[i], prop[i].initialValue, prop[i].minValue, prop[i].maxValue, prop[i].step);
-                    fZoneMap[i] = prop[i].initialValue;
-                    fZoneFunMap[&fZoneMap[i]] = prop[i].applyValue;
-                } else if (startWith(prop[i].UID, "eventfVslider")) {
-                    ui_interface->addVerticalSlider(prop[i].name, &fZoneMap[i], prop[i].initialValue, prop[i].minValue, prop[i].maxValue, prop[i].step);
-                    fZoneMap[i] = prop[i].initialValue;
-                    fZoneFunMap[&fZoneMap[i]] = prop[i].applyValue;
-                } else if (startWith(prop[i].UID, "eventfEntry")) {
-                    ui_interface->addNumEntry(prop[i].name, &fZoneMap[i], prop[i].initialValue, prop[i].minValue, prop[i].maxValue, prop[i].step);
-                    fZoneMap[i] = prop[i].initialValue;
-                    fZoneFunMap[&fZoneMap[i]] = prop[i].applyValue;
-                } else if (startWith(prop[i].UID, "eventfVbargraph")) {
-                    ui_interface->addHorizontalBargraph(prop[i].name, &fZoneMap[i], prop[i].minValue, prop[i].maxValue);
+                    fZoneFunMap[&fZoneMap[i]] = param.applyValue;
+                } else if (startWith(prop.UID, "eventfHslider")) {
+                    ui_interface->addHorizontalSlider(prop.name, &fZoneMap[i], prop.initialValue, prop.minValue, prop.maxValue, prop.step);
+                    fZoneMap[i] = prop.initialValue;
+                    fZoneFunMap[&fZoneMap[i]] = param.applyValue;
+                } else if (startWith(prop.UID, "eventfVslider")) {
+                    ui_interface->addVerticalSlider(prop.name, &fZoneMap[i], prop.initialValue, prop.minValue, prop.maxValue, prop.step);
+                    fZoneMap[i] = prop.initialValue;
+                    fZoneFunMap[&fZoneMap[i]] = param.applyValue;
+                } else if (startWith(prop.UID, "eventfEntry")) {
+                    ui_interface->addNumEntry(prop.name, &fZoneMap[i], prop.initialValue, prop.minValue, prop.maxValue, prop.step);
+                    fZoneMap[i] = prop.initialValue;
+                    fZoneFunMap[&fZoneMap[i]] = param.applyValue;
+                } else if (startWith(prop.UID, "eventfVbargraph")) {
+                    ui_interface->addHorizontalBargraph(prop.name, &fZoneMap[i], prop.minValue, prop.maxValue);
                     fZoneMap[i] = 0;
-                } else if (startWith(prop[i].UID, "eventfHbargraph")) {
-                    ui_interface->addVerticalBargraph(prop[i].name, &fZoneMap[i], prop[i].minValue, prop[i].maxValue);
+                } else if (startWith(prop.UID, "eventfHbargraph")) {
+                    ui_interface->addVerticalBargraph(prop.name, &fZoneMap[i], prop.minValue, prop.maxValue);
                     fZoneMap[i] = 0;
                 }
             }

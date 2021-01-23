@@ -31,6 +31,7 @@ POLY=""
 MIDIDEFS=""
 #OSCDEFS=""
 DRIVER=""
+SOUNDFILE="0"
 #OPTIONS=""
 
 echoHelp ()
@@ -43,10 +44,10 @@ echoHelp ()
     option -gramophone "generates for GRAME Gramophone"
     option -multi "generate for GRAME Gramophone in multi DSP mode"
     option -lib "generates a package containing an object compatible with any ESP32 project"
-    option -midi
+    options -midi -soundfile
     option -main "add a 'main' entry point"
     option "-nvoices <num>"
-    option "-wm8978 or -ac101" "to choose codec driver"
+    option "-wm8978, -es8388 or -ac101" "to choose codec driver"
     option "Faust options"
 }
 
@@ -83,12 +84,18 @@ do
     # -lib 
     elif [ $p = "-lib" ]; then
     	LIB=1
+    # -soundfile 
+    elif [ $p = "-soundfile" ]; then
+    	SOUNDFILE=1
     # -wm8978 (ttgo t-audio)
     elif [ $p = "-wm8978" ] || [ $p = "-WM8978" ]; then
     	DRIVER="wm8978"
     # -ac101 (Ai-thinker a1s-board)
     elif [ $p = "-ac101" ] || [ $p = "-AC101" ]; then
     	DRIVER="ac101"
+    # -es8388 (espressif LyraT)
+    elif [ $p = "-es8388" ] || [ $p = "-ES8388" ]; then
+    	DRIVER="es8388"
     # other compile options
     else
         OPTIONS="$OPTIONS $p"
@@ -114,7 +121,7 @@ MODULENAME="${BASENAME%.dsp}"
 # Generating a lib package
 ###########################
 
-if [ $LIB -eq 1 ]; then
+if [[ "$LIB" == "1" || "$GRAMOPHONE" == "1" ]]; then
     mkdir -p $MODULENAME
     if [ $GRAMOPHONE -eq 1 ]; then
     	if [ $MULTI -eq 1 ]; then
@@ -132,7 +139,7 @@ if [ $LIB -eq 1 ]; then
             # Use the volume wrapper
             cp $FILE $MODULENAME/mono.dsp
             cp $FAUSTARCH/esp32/volume.dsp $MODULENAME
-            faust -a $FAUSTARCH/esp32/gramophone.cpp -i $OPTIONS $MODULENAME/volume.dsp -o $MODULENAME/$MODULENAME.cpp
+            faust -a $FAUSTARCH/esp32/gramophone.cpp -I $FAUSTARCH/embedded/ -i $OPTIONS $MODULENAME/volume.dsp -o $MODULENAME/$MODULENAME.cpp
             rm $MODULENAME/volume.dsp $MODULENAME/mono.dsp
     	fi
     	
@@ -160,6 +167,10 @@ if [ $LIB -eq 1 ]; then
     elif [[ $DRIVER = "ac101" ]]; then
         cp $FAUSTARCH/esp32/drivers/ac101/AC101.cpp $MODULENAME
         cp $FAUSTARCH/esp32/drivers/ac101/AC101.h $MODULENAME
+    elif [[ $DRIVER = "es8388" ]]; then
+        cp $FAUSTARCH/esp32/drivers/es8388/es8388.cpp $MODULENAME
+        cp $FAUSTARCH/esp32/drivers/es8388/es8388.h $MODULENAME
+        cp $FAUSTARCH/esp32/drivers/es8388/adf_structs.h $MODULENAME
     else
         cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
         cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
@@ -174,6 +185,10 @@ if [ $LIB -eq 1 ]; then
     if [ $MAIN -eq 1 ]; then
         echo '#define HAS_MAIN' >> "$MODULENAME/tmp.txt"
     fi
+    
+    if [ $SOUNDFILE -eq 1 ]; then
+        echo '#define SOUNDFILE' >> "$MODULENAME/tmp.txt"
+    fi
 
     if [[ "$MIDIDEFS" == *MIDI* ]]; then
     	echo '#define MIDICTRL' >> "$MODULENAME/tmp.txt"
@@ -185,6 +200,10 @@ if [ $LIB -eq 1 ]; then
 
     if [[ "$DRIVER" == *ac101* ]]; then
     	echo '#define A1S_BOARD true' >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [[ "$DRIVER" == *es8388* ]]; then
+        echo '#define LYRA_T true' >> "$MODULENAME/tmp.txt"
     fi
 
     #if [[ "$OSCDEFS" == *OSC* ]]; then
@@ -203,7 +222,21 @@ if [ $LIB -eq 1 ]; then
 
     cat "$MODULENAME/$MODULENAME.cpp" >> "$MODULENAME/tmp.txt"
     mv "$MODULENAME/tmp.txt" "$MODULENAME/$MODULENAME.cpp" #"$MODULENAME/render.cpp"
-
+    
+    if [ $LIB -eq 0  ]; then
+      mv $MODULENAME/$MODULENAME.cpp $MODULENAME/Gramophone.cpp
+      mkdir tmp
+      mv $MODULENAME/* tmp
+      cp -r $FAUSTARCH/esp32/gramo-bt-midi/* $MODULENAME
+      mv tmp/* $MODULENAME/main
+      rm -r tmp
+      if [[ $MIDIDEFS == "" ]]; then
+        rm -r $MODULENAME/components
+        rm $MODULENAME/sdkconfig-bt
+      else
+        mv $MODULENAME/sdkconfig-bt $MODULENAME/sdkconfig
+      fi
+    fi
     zip -r $MODULENAME.zip $MODULENAME > $LOG
     rm -r $MODULENAME
 fi
@@ -212,7 +245,7 @@ fi
 # Generating a component package
 ################################
 
-if [ $LIB -eq 0 ]; then
+if [[ "$LIB" == "0" && "$GRAMOPHONE" == "0" ]]; then
     mkdir -p $MODULENAME/FaustDSP/include
     faust -uim -a $FAUSTARCH/esp32/esp32.cpp -i $FILE -o $MODULENAME/FaustDSP/$MODULENAME.cpp
     cp $FAUSTARCH/esp32/esp32.h $MODULENAME/FaustDSP/include/$MODULENAME.h
@@ -230,6 +263,13 @@ if [ $LIB -eq 0 ]; then
         cp $FAUSTARCH/esp32/drivers/ac101/component.mk $MODULENAME/AC101
         cp $FAUSTARCH/esp32/drivers/ac101/AC101.cpp $MODULENAME/AC101
         cp $FAUSTARCH/esp32/drivers/ac101/AC101.h $MODULENAME/AC101/include
+    elif [[ $DRIVER = "es8388" ]]; then
+        mkdir -p $MODULENAME/es8388/include
+        cp $FAUSTARCH/esp32/drivers/es8388/CMakeLists.txt $MODULENAME/es8388
+        cp $FAUSTARCH/esp32/drivers/es8388/component.mk $MODULENAME/es8388
+        cp $FAUSTARCH/esp32/drivers/es8388/es8388.cpp $MODULENAME/es8388
+        cp $FAUSTARCH/esp32/drivers/es8388/es8388.h $MODULENAME/es8388/include
+        cp $FAUSTARCH/esp32/drivers/es8388/adf_structs.h $MODULENAME/es8388/include
     else
         mkdir -p $MODULENAME/WM8978/include
         cp $FAUSTARCH/esp32/drivers/wm8978/CMakeLists.txt $MODULENAME/WM8978
@@ -267,17 +307,21 @@ if [ $LIB -eq 0 ]; then
     	echo '#define A1S_BOARD true' >> "$MODULENAME/tmp.txt"
     fi
 
-    if [[ "$DRIVER" == *wm8798* ]]; then
+    if [[ "$DRIVER" == *es8388* ]]; then
+        echo '#define LYRA_T true' >> "$MODULENAME/tmp.txt"
+    fi
+
+    if [[ "$DRIVER" == *wm8978* ]]; then
     	echo '#define TTGO_TAUDIO true' >> "$MODULENAME/tmp.txt"
     fi
 
     #if [[ "$OSCDEFS" == *OSC* ]]; then
-	#echo '#define OSCCTRL' >> "$PROJECTDIR/tmp.txt"
+		#echo '#define OSCCTRL' >> "$PROJECTDIR/tmp.txt"
     #fi
 
     #if [[ "$GUIDEFS" == *GUI* ]]; then
-    #echo '#define HTTPDGUI' >> "$PROJECTDIR/tmp.txt"
-    #BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust"
+    	#echo '#define HTTPDGUI' >> "$PROJECTDIR/tmp.txt"
+    	#BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust"
     #fi
 
     #if [[ "$SOUNDFILEDEFS" == *SOUNDFILE* ]]; then

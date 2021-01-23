@@ -250,7 +250,7 @@ inline void finishSectionAux(BufferWithRandomAccess* out, int32_t start)
 
 inline S32LEB type2Binary(Typed::VarType type)
 {
-    if (isIntOrPtrType(type)) {
+    if (isIntOrPtrType(type) || isBoolType(type)) {
         return S32LEB(BinaryConsts::EncodedType::i32);
     } else if (type == Typed::kFloat) {
         return S32LEB(BinaryConsts::EncodedType::f32);

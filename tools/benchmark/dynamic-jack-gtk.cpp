@@ -30,10 +30,10 @@
 #include <vector>
 
 /*
- #ifndef FAUSTFLOAT
- #define FAUSTFLOAT double
- #endif
- */
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT double
+#endif
+*/
 
 #include "faust/audio/jack-dsp.h"
 #include "faust/dsp/dsp-optimizer.h"
@@ -52,7 +52,7 @@
 #include "faust/gui/PrintUI.h"
 #include "faust/misc.h"
 
-#include "faust/dsp/llvm-dsp-adapter.h"
+#include "faust/dsp/dsp-compute-adapter.h"
 
 using namespace std;
 

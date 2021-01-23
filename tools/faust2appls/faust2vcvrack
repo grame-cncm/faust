@@ -1,0 +1,177 @@
+#!/bin/bash -e
+
+#####################################################################
+#                                                                   #
+#                    faust2vcvrack generator                        #
+#                       (c) Grame, 2020                             #
+#                                                                   #
+#####################################################################
+
+. faustpath
+. faustoptflags
+. usage.sh
+
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
+
+ARCHFILE=$FAUSTARCH/vcvrack/template/src/FaustModule.cpp
+
+# exit if a command fails
+set -e
+
+# global option variables
+NVOICES=1
+POLY=""
+SOURCE=false
+SOUNDFILE=false
+
+echoHelp ()
+{
+    echo "faust2vcvrack [-soundfile] [-source] [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+    options -soundfile
+    option "-source"
+    option "-nvoices <num>"
+    echo ""
+}
+
+###########################
+# Processing Arguments
+###########################
+
+while [ $1 ]
+do
+    p=$1
+    # help
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echoHelp
+        exit 0
+    # -nvoices:
+    elif [ $p = "-nvoices" ]; then
+        shift
+        NVOICES=$1
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILE=true
+    elif [ $p = "-source" ]; then
+        SOURCE=true
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILE="$p"
+    # other compile options
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+
+shift
+
+done
+
+if [ -z $FILE ]; then
+    echo "Please, provide a Faust file to process"
+    exit 1
+fi
+
+createPluginJSON()
+{
+    (
+    echo '{'
+    echo -e "\t\"slug\": \"$1\","
+    echo -e "\t\"name\": \"$1\","
+    echo -e '\t"version": "1.0.0",'
+    echo -e '\t"license": "MIT",'
+    echo -e '\t"brand": "Faust",'
+    echo -e '\t"author": "GRAME",'
+    echo -e '\t"authorEmail": "research@grame.fr",'
+    echo -e '\t"authorUrl": "https://faust.grame.fr",'
+    echo -e '\t"pluginUrl": "",'
+    echo -e '\t"manualUrl": "",'
+    echo -e '\t"sourceUrl": "https://github.com/grame-cncm/faust",'
+    echo -e '\t"donateUrl": "",'
+    echo -e '\t"changelogUrl": "",'
+    echo -e '\t"modules": ['
+    echo -e '\t\t{'
+    echo -e "\t\t\t\"slug\": \"$1\","
+    echo -e "\t\t\t\"name\": \"$1\","
+    echo -e '\t\t\t"description": "",'
+    echo -e '\t\t\t"tags": ['
+    if [ $NVOICES -gt 1 ]; then
+        echo -e '\t\t\t\t"Polyphonic"'
+    fi
+    echo -e '\t\t\t]'
+    echo -e '\t\t}'
+    echo -e '\t]'
+    echo '}'
+    ) > "$2"
+}
+
+###########################
+# Compile the *.dsp files
+###########################
+
+for p in $FILE; do
+    CUR=$(pwd)
+    f=$(basename "$p")
+    SRCDIR=$(dirname "$p")
+    
+    # creates the dir 
+    dspName="${f%.dsp}"
+    rm -rf "$SRCDIR/$dspName"
+    mkdir "$SRCDIR/$dspName"
+    
+    # compile faust to c++
+    cp -r $FAUSTARCH/vcvrack/template/* "$SRCDIR/$dspName/"
+    faust -json -os -cn $dspName -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/src/FaustModule.cpp" || exit
+
+    # add NVOICES flag
+    echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/src/FaustModule.cpp" > temp && mv temp "$SRCDIR/$dspName/src/FaustModule.cpp"
+
+    # set DSP name and polyphonic mode in plugin.json
+    createPluginJSON "$dspName" "$SRCDIR/$dspName/plugin.json"
+
+    # soundfiles handling
+    if [ $SOUNDFILE = true ]; then
+        # needed for SoundUI.h to compile
+        echo "#define __VCVRACK__" | cat - "$SRCDIR/$dspName/src/FaustModule.cpp" > temp && mv temp "$SRCDIR/$dspName/src/FaustModule.cpp"
+        echo "#define SOUNDFILE" | cat - "$SRCDIR/$dspName/src/FaustModule.cpp" > temp && mv temp "$SRCDIR/$dspName/src/FaustModule.cpp"
+ 
+        echo $p.json
+        # get all soundfiles from the JSON file
+        cat $p.json | awk '
+            BEGIN { FS=":"; SOFI=0; }
+                /"soundfile"/ { SOFI=1; }
+                /"url"/ {
+                if (SOFI) {
+                    match($2, /"[^"]*/);
+                    split(substr($2, RSTART+2, RLENGTH-3), res, ";");
+                    for (x in res) print substr(res[x], 2, length(res[x])-2);
+                    SOFI=0;
+                }
+            }
+        ' > $p-tmp.txt
+        # copy found soundfiles in the final binary
+        for snd in $(cat $p-tmp.txt); do
+            if [ -f $snd ]; then
+                if [ ${snd:0:1} = "/" ]; then 
+                    echo "Warning: soundfile with absolute path is not copied !"
+                else
+                    # create destination path and possibly create directory
+                    sfpath="$SRCDIR/$dspName/res/$(dirname $snd)/"
+                    if ! [ -d $sfpath ]; then 
+                        echo "Create $sfpath"
+                        mkdir $sfpath
+                    fi
+                    echo "Copy $snd in ${f%.dsp}$EXT"
+                    cp $snd $sfpath
+                fi
+            else
+                echo "Error: file $snd not found !"
+            fi
+        done
+        rm $p-tmp.txt
+    fi
+
+    # compile and install plugin or keep the source folder
+    if [ $SOURCE == false ]; then
+    	( cd "$SRCDIR/$dspName" && make && make install ) > /dev/null || exit
+    	rm -rf "$SRCDIR/$dspName"
+    else
+    	echo "Create the $SRCDIR/$dspName folder"
+    fi 
+done

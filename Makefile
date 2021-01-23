@@ -1,7 +1,8 @@
-version := 2.27.1
+version := 2.30.5
 
 system	?= $(shell uname -s)
 
+-include user.mk
 DESTDIR ?=
 PREFIX ?= /usr/local
 INSTALL_LIBDIR ?= lib

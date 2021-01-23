@@ -40,6 +40,11 @@
 #include "faust/gui/MapUI.h"
 #include "faust/audio/esp32-dsp.h"
 
+#ifdef SOUNDFILE
+#define ESP32
+#include "faust/gui/SoundUI.h"
+#endif
+
 // MIDI support
 #ifdef MIDICTRL
 #include "faust/gui/MidiUI.h"
@@ -96,6 +101,11 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
     fAudio = new esp32audio(sample_rate, buffer_size);
     fAudio->init("esp32", fDSP);
     
+#ifdef SOUNDFILE
+    fSoundUI = new SoundUI("/sdcard/", sample_rate);
+    fDSP->buildUserInterface(fSoundUI);
+#endif
+    
 #ifdef MIDICTRL
     fMIDIHandler = new esp32_midi();
 #ifdef NVOICES
@@ -114,6 +124,9 @@ AudioFaust::~AudioFaust()
 #ifdef MIDICTRL
     delete fMIDIInterface;
     delete fMIDIHandler;
+#endif
+#ifdef SOUNDFILE
+    delete fSoundUI;
 #endif
 }
 

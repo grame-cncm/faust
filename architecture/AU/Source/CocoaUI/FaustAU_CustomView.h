@@ -49,10 +49,10 @@
 #import <AudioUnit/AudioUnit.h>
 #import <AudioToolbox/AudioToolbox.h>
 
-#import <FaustAU_Slider.h>
-#import <FaustAU_Knob.h>
-#import <FaustAU_Button.h>
-#import <FaustAU_Bargraph.h>
+#import "FaustAU_Slider.h"
+#import "FaustAU_Knob.h"
+#import "FaustAU_Button.h"
+#import "FaustAU_Bargraph.h"
 
 //TODO
 #define MAX_CONTROLS 1000

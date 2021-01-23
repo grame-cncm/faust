@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.4.0)
 project (faustgen)
-set (VERSION "1.45")
+set (VERSION "1.48")
 
 set(ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
-option ( USE_LLVM_CONFIG 	"Use llvm-config"	on )
+option (USE_LLVM_CONFIG "Use llvm-config" on)
 
 #######################################
 set (CMAKE_CXX_STANDARD 11)

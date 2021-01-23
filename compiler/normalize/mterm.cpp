@@ -354,9 +354,9 @@ mterm gcd(const mterm& m1, const mterm& m2)
         if (p2 != m2.fFactors.end()) {
             int v1 = p1->second;
             int v2 = p2->second;
-            int c  = common(v1, v2);
-            if (c != 0) {
-                R.fFactors[t] = c;
+            int c1  = common(v1, v2);
+            if (c1 != 0) {
+                R.fFactors[t] = c1;
             }
         }
     }

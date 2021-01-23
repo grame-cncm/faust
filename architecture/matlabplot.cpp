@@ -98,9 +98,6 @@ int main(int argc, char* argv[])
     interface->addOption("-us", &up_sample, 1.0, 1.0, 16.0);
     interface->addOption("-filter", &filter_type, 1.0, 1.0, 4.0);
     
-    // modify the UI values according to the command-line options:
-    interface->process_command();
-    
     if ((down_sample != 1.0) && (up_sample != 1.0)) {
         cerr << "ERROR : -ds '" << down_sample << "' and -us '" << up_sample << "' cannot be used at the same time !\n";
         exit(1);
@@ -182,6 +179,9 @@ int main(int argc, char* argv[])
     
     // init signal processor and the user interface values:
     DSP->init(int(sample_rate));
+
+    // modify the UI values according to the command line options, after init
+    interface->process_command();
 
     // prepare input channels (if any) with an impulse
     int nins = DSP->getNumInputs();

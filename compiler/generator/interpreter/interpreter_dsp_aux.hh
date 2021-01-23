@@ -205,6 +205,8 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
             fComputeDSPBlock->write(out, small);
         }
     }
+    
+    std::string getCompileOptions() { return fCompileOptions; };
 
     // Factory reader
     static interpreter_dsp_factory_aux<T, TRACE>* read(std::istream* in);
@@ -851,7 +853,7 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
     std::string getDSPCode() { return fFactory->getDSPCode(); }
     void        setDSPCode(std::string code) { fFactory->setDSPCode(code); }
 
-    std::string getCompileOptions() { return ""; }
+    std::string getCompileOptions() { return fFactory->getCompileOptions(); }
 
     interpreter_dsp* createDSPInstance();
 
@@ -883,7 +885,7 @@ EXPORT std::string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* 
 EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const std::string& bitcode_path,
                                                                          std::string&       error_msg);
 
-EXPORT void writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const std::string& bitcode_path);
+EXPORT bool writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const std::string& bitcode_path);
 
 EXPORT void deleteAllInterpreterDSPFactories();
 

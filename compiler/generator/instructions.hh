@@ -53,6 +53,7 @@ struct Printable;
 struct NullValueInst;
 struct NullStatementInst;
 struct DeclareVarInst;
+struct DeclareBufferIteratorsRust;
 struct DeclareFunInst;
 struct DeclareStructTypeInst;
 struct LoadVarInst;
@@ -82,6 +83,7 @@ struct ControlInst;
 struct IfInst;
 struct ForLoopInst;
 struct SimpleForLoopInst;
+struct IteratorForLoopInst;
 struct WhileLoopInst;
 struct BlockInst;
 struct SwitchInst;
@@ -190,6 +192,7 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(DeclareVarInst* inst) {}
     virtual void visit(DeclareFunInst* inst) {}
     virtual void visit(DeclareStructTypeInst* inst) {}
+    virtual void visit(DeclareBufferIteratorsRust* inst) {}
 
     // Memory
     virtual void visit(LoadVarInst* inst) {}
@@ -233,6 +236,7 @@ struct InstVisitor : public virtual Garbageable {
     // Loops
     virtual void visit(ForLoopInst* inst) {}
     virtual void visit(SimpleForLoopInst* inst) {}
+    virtual void visit(IteratorForLoopInst* inst) {}
     virtual void visit(WhileLoopInst* inst) {}
 
     // Block
@@ -260,6 +264,7 @@ struct CloneVisitor : public virtual Garbageable {
     virtual StatementInst* visit(DeclareVarInst* inst)        = 0;
     virtual StatementInst* visit(DeclareFunInst* inst)        = 0;
     virtual StatementInst* visit(DeclareStructTypeInst* inst) = 0;
+    virtual StatementInst* visit(DeclareBufferIteratorsRust* inst) = 0;
 
     // Memory
     virtual ValueInst*     visit(LoadVarInst* inst)        = 0;
@@ -303,6 +308,7 @@ struct CloneVisitor : public virtual Garbageable {
     // Loops
     virtual StatementInst* visit(ForLoopInst* inst)       = 0;
     virtual StatementInst* visit(SimpleForLoopInst* inst) = 0;
+    virtual StatementInst* visit(IteratorForLoopInst* inst) = 0;
     virtual StatementInst* visit(WhileLoopInst* inst)     = 0;
 
     // Block
@@ -494,7 +500,7 @@ struct StructTyped : public Typed {
         }
         return size;
     }
-    
+
     int getOffset(int field) const
     {
         int offset = 0;
@@ -604,7 +610,7 @@ struct NamedAddress : public Address {
 struct IndexedAddress : public Address {
     Address*   fAddress;
     ValueInst* fIndex;
-  
+
     IndexedAddress(Address* address, ValueInst* index) : fAddress(address), fIndex(index) {}
 
     virtual ~IndexedAddress() {}
@@ -643,7 +649,7 @@ struct AddMetaDeclareInst : public StatementInst {
 
 struct OpenboxInst : public StatementInst {
     enum BoxType { kVerticalBox, kHorizontalBox, kTabBox };
-    
+
     const string  fName;
     const BoxType fOrient;
 
@@ -769,6 +775,22 @@ struct DeclareVarInst : public StatementInst {
 
     struct StoreVarInst* store(ValueInst* val);
     struct LoadVarInst*  load();
+};
+
+struct DeclareBufferIteratorsRust : public StatementInst {
+    std::string fBufferName;
+    int         fNumChannels;
+    bool        fMutable;
+
+    DeclareBufferIteratorsRust(const std::string& buffer_name, int num_channels, bool mut) :
+        fBufferName(buffer_name), fNumChannels(num_channels), fMutable(mut)
+        {};
+
+    virtual ~DeclareBufferIteratorsRust() {}
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
 // ==============
@@ -1093,21 +1115,21 @@ struct Select2Inst : public ValueInst {
 struct ControlInst : public StatementInst {
     ValueInst* fCond;
     StatementInst* fStatement;
-    
+
     ControlInst(ValueInst* cond_inst, StatementInst* exp_inst)
     : fCond(cond_inst), fStatement(exp_inst)
     {
     }
-    
+
     virtual ~ControlInst() {}
-    
+
     // Test if (cond == fCond)
     bool hasCondition(ValueInst* cond);
-    
+
     void accept(InstVisitor* visitor) { visitor->visit(this); }
-    
+
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
-    
+
 };
 
 struct IfInst : public StatementInst {
@@ -1183,9 +1205,9 @@ struct DeclareFunInst : public StatementInst {
     DeclareFunInst(const string& name, FunTyped* type, BlockInst* code = new BlockInst());
 
     virtual ~DeclareFunInst() {}
-    
+
     Typed::VarType getResType() { return fType->fResult->getType(); }
-  
+
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
@@ -1258,6 +1280,27 @@ struct SimpleForLoopInst : public StatementInst {
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+struct IteratorForLoopInst : public StatementInst {
+    std::vector<NamedAddress*> fIterators;
+    const bool                 fReverse;
+    BlockInst*                 fCode;
+
+    IteratorForLoopInst(const std::vector<NamedAddress*>& iterators, bool reverse, BlockInst* code)
+        : fIterators(iterators), fReverse(reverse), fCode(code)
+    {
+    }
+
+    virtual ~IteratorForLoopInst() {}
+
+    void pushFrontInst(StatementInst* inst) { fCode->pushFrontInst(inst); }
+
+    void pushBackInst(StatementInst* inst) { fCode->pushBackInst(inst); }
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
 struct WhileLoopInst : public StatementInst {
     ValueInst* fCond;
     BlockInst* fCode;
@@ -1300,6 +1343,10 @@ class BasicCloneVisitor : public CloneVisitor {
     virtual StatementInst* visit(DeclareStructTypeInst* inst)
     {
         return new DeclareStructTypeInst(static_cast<StructTyped*>(inst->fType->clone(this)));
+    }
+    virtual StatementInst* visit(DeclareBufferIteratorsRust* inst)
+    {
+        return new DeclareBufferIteratorsRust(inst->fBufferName, inst->fNumChannels, inst->fMutable);
     }
 
     // Memory
@@ -1380,12 +1427,12 @@ class BasicCloneVisitor : public CloneVisitor {
         // cond_exp has to be evaluated last for FunctionInliner to correctly work in gHasTeeLocal mode
         return new Select2Inst(cond_exp, then_exp, else_exp);
     }
-    
+
     virtual StatementInst* visit(ControlInst* inst)
     {
         return new ControlInst(inst->fCond->clone(this), inst->fStatement->clone(this));
     }
-    
+
     virtual StatementInst* visit(IfInst* inst)
     {
         return new IfInst(inst->fCond->clone(this), static_cast<BlockInst*>(inst->fThen->clone(this)),
@@ -1411,6 +1458,11 @@ class BasicCloneVisitor : public CloneVisitor {
     {
         return new SimpleForLoopInst(inst->fName, inst->fUpperBound->clone(this), inst->fLowerBound->clone(this),
                                      inst->fReverse, static_cast<BlockInst*>(inst->fCode->clone(this)));
+    }
+
+    virtual StatementInst* visit(IteratorForLoopInst* inst)
+    {
+        return new IteratorForLoopInst(inst->fIterators, inst->fReverse, static_cast<BlockInst*>(inst->fCode->clone(this)));
     }
 
     virtual StatementInst* visit(WhileLoopInst* inst)
@@ -1568,13 +1620,13 @@ struct DispatchVisitor : public InstVisitor {
         inst->fThen->accept(this);
         inst->fElse->accept(this);
     }
-    
+
     virtual void visit(ControlInst* inst)
     {
         inst->fCond->accept(this);
         inst->fStatement->accept(this);
     }
-  
+
     virtual void visit(IfInst* inst)
     {
         inst->fCond->accept(this);
@@ -1593,6 +1645,11 @@ struct DispatchVisitor : public InstVisitor {
     virtual void visit(SimpleForLoopInst* inst)
     {
         inst->fUpperBound->accept(this);
+        inst->fCode->accept(this);
+    }
+
+    virtual void visit(IteratorForLoopInst* inst)
+    {
         inst->fCode->accept(this);
     }
 
@@ -1718,7 +1775,7 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
     virtual void visit(FunCallInst* inst) { Dispatch2Visitor(inst); }
 
     virtual void visit(Select2Inst* inst) { Dispatch2Visitor(inst); }
-    
+
 };
 
 // ===================
@@ -1813,7 +1870,7 @@ struct InstBuilder {
     {
         return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kHorizontal);
     }
-    
+
     static AddBargraphInst* genAddVerticalBargraphInst(const string& label, const string& zone, double min, double max)
     {
         return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kVertical);
@@ -1848,6 +1905,11 @@ struct InstBuilder {
     static DeclareStructTypeInst* genDeclareStructTypeInst(StructTyped* type)
     {
         return new DeclareStructTypeInst(type);
+    }
+
+    static DeclareBufferIteratorsRust* genDeclareBufferIteratorsRust(const std::string& buffer_name, int num_channels, bool mut)
+    {
+        return new DeclareBufferIteratorsRust(buffer_name, num_channels, mut);
     }
 
     // Memory
@@ -1989,13 +2051,13 @@ struct InstBuilder {
     {
         return new Select2Inst(cond_inst, then_inst, else_inst);
     }
-    
+
     static StatementInst* genControlInst(ValueInst* cond_inst, StatementInst* exp_inst)
     {
         // If called with a NullValueInst, then the exp_inst is going to be always computed
         return (dynamic_cast<NullValueInst*>(cond_inst)) ? exp_inst : new ControlInst(cond_inst, exp_inst);
     }
-    
+
     static IfInst* genIfInst(ValueInst* cond_inst, BlockInst* then_inst, BlockInst* else_inst)
     {
         return new IfInst(cond_inst, then_inst, else_inst);
@@ -2046,6 +2108,11 @@ struct InstBuilder {
         faustassert(dynamic_cast<Int32NumInst*>(upperBound) || dynamic_cast<LoadVarInst*>(upperBound));
         faustassert(dynamic_cast<Int32NumInst*>(lowerBound) || dynamic_cast<LoadVarInst*>(lowerBound));
         return new SimpleForLoopInst(index, upperBound, lowerBound, reverse, code);
+    }
+    static IteratorForLoopInst* genIteratorForLoopInst(const std::vector<NamedAddress*>& iterators, bool reverse = false,
+                                                       BlockInst* code = new BlockInst())
+    {
+        return new IteratorForLoopInst(iterators, reverse, code);
     }
 
     static WhileLoopInst* genWhileLoopInst(ValueInst* cond, BlockInst* code) { return new WhileLoopInst(cond, code); }
@@ -2551,22 +2618,22 @@ struct FIRIndex {
     {
         return FIRIndex(InstBuilder::genEqual(lhs.fValue, rhs));
     }
-    
+
     friend FIRIndex operator==(FIRIndex const& lhs, FIRIndex const& rhs) { return operator==(lhs, rhs.fValue); }
-    
+
     friend FIRIndex operator==(FIRIndex const& lhs, int rhs)
     {
         return operator==(lhs, InstBuilder::genInt32NumInst(rhs));
     }
-    
+
     // Inf
     friend FIRIndex operator<(FIRIndex const& lhs, ValueInst* rhs)
     {
         return FIRIndex(InstBuilder::genLessThan(lhs.fValue, rhs));
     }
-    
+
     friend FIRIndex operator<(FIRIndex const& lhs, FIRIndex const& rhs) { return operator<(lhs, rhs.fValue); }
-    
+
     friend FIRIndex operator<(FIRIndex const& lhs, int rhs)
     {
         return operator<(lhs, InstBuilder::genInt32NumInst(rhs));
