@@ -217,7 +217,7 @@ ostream& dotfile2(ostream& file, const digraph<Tree, multidep>& g)
                 file << "\t" << sn.str() << "->" << sm.str() << ";" << endl;
             } else {
                 std::string l = arrow_traits<multidep>::label(c.second);
-                file << "\t" << sn.str() << "->" << sm.str() << " [label=\"" << c.second << "\"];" << endl;
+                file << "\t" << sn.str() << "->" << sm.str() << " [label=\"" << l << "\"];" << endl;
             }
         }
         if (!hascnx) {

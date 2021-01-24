@@ -75,11 +75,11 @@ static set<Tree> ListOutputs(const set<Tree>& I);
 static void      scheduleInstr(const digraph<Tree, multidep>& G, Tree i, vector<Tree>& SCHED, set<Tree>& DONE,
                                set<Tree>& POSTPONE);
 
-template <typename N>
-inline vector<N> serialize2(const digraph<N, int>& g, const set<N>& E);
+template <typename N, typename A>
+inline vector<N> serialize2(const digraph<N, A>& g, const set<N>& E);
 
-template <typename N>
-inline vector<N> serialize3(const digraph<N, int>& g, const set<N>& E);
+template <typename N, typename A>
+inline vector<N> serialize3(const digraph<N, A>& g, const set<N>& E);
 
 //=============================================================================================================
 //====================================================== API ==================================================
@@ -546,7 +546,7 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
 
                         // schedule its dependencies
                         for (auto p : DG.connections(i)) {
-                            if (p.second > 0) {
+                            if (arrow_traits<multidep>::mindist(p.second) > 0) {
                                 POSTPONE.insert(p.first);
                             } else {
                                 // TO FIX: scheduleInstr(G, p.first, SCHED, DONE, POSTPONE);
@@ -574,8 +574,8 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
 //===========================================================
 //===========================================================
 
-template <typename N>
-inline vector<N> serialize2(const digraph<N, int>& g, const set<N>& E)
+template <typename N, typename A>
+inline vector<N> serialize2(const digraph<N, A>& g, const set<N>& E)
 {
     //------------------------------------------------------------------------
     // visit : a local function (simulated using a lambda) to visit a graph
@@ -584,8 +584,8 @@ inline vector<N> serialize2(const digraph<N, int>& g, const set<N>& E)
     // V : set of already visited nodes
     // S : serialized vector of nodes
     //------------------------------------------------------------------------
-    using Visitfun = function<void(const digraph<N, int>&, const N&, set<N>&, vector<N>&)>;
-    Visitfun visit = [&visit](const digraph<N, int>& graph, const N& n, set<N>& V, vector<N>& S) {
+    using Visitfun = function<void(const digraph<N, A>&, const N&, set<N>&, vector<N>&)>;
+    Visitfun visit = [&visit](const digraph<N, A>& graph, const N& n, set<N>& V, vector<N>& S) {
         if (V.find(n) == V.end()) {
             V.insert(n);
             for (const auto& p : graph.connections(n)) {
@@ -613,8 +613,8 @@ inline vector<N> serialize2(const digraph<N, int>& g, const set<N>& E)
 //===========================================================
 //===========================================================
 
-template <typename N>
-inline vector<N> serialize3(const digraph<N, int>& g, const set<N>& E)
+template <typename N, typename A>
+inline vector<N> serialize3(const digraph<N, A>& g, const set<N>& E)
 {
     //------------------------------------------------------------------------
     // visit : a local function (simulated using a lambda) to visit a graph
@@ -624,12 +624,12 @@ inline vector<N> serialize3(const digraph<N, int>& g, const set<N>& E)
     // L : set of related nodes (but not visited yet)
     // S : serialized vector of nodes
     //------------------------------------------------------------------------
-    using Visitfun = function<void(const digraph<N, int>&, const N&, set<N>&, set<N>&, vector<N>&)>;
-    Visitfun visit = [&visit](const digraph<N, int>& graph, const N& n, set<N>& V, set<N>& L, vector<N>& S) {
+    using Visitfun = function<void(const digraph<N, A>&, const N&, set<N>&, set<N>&, vector<N>&)>;
+    Visitfun visit = [&visit](const digraph<N, A>& graph, const N& n, set<N>& V, set<N>& L, vector<N>& S) {
         if (V.find(n) == V.end()) {
             V.insert(n);
             for (const auto& p : graph.connections(n)) {
-                if (p.second > 0) {
+                if (arrow_traits<A>::mindist(p.second) > 0) {
                     // don't follow delayed connexions
                     L.insert(p.first);
                 } else {
@@ -1241,7 +1241,7 @@ static void scheduleInstr(const digraph<Tree, multidep>& G, Tree i, vector<Tree>
         DONE.insert(i);
         // schedule its dependencies
         for (auto p : G.connections(i)) {
-            if (p.second > 0) {
+            if (arrow_traits<multidep>::mindist(p.second) > 0) {
                 POSTPONE.insert(p.first);
             } else {
                 scheduleInstr(G, p.first, SCHED, DONE, POSTPONE);
