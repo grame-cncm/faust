@@ -171,7 +171,7 @@ inline digraph<digraph<N, A>, A> graph2dag(const digraph<N, A>& g)
 
     return sg;
 }
-
+#if 0
 //===========================================================
 //===========================================================
 // graph2dag2 : transfoms a graph into a dag of supernodes,
@@ -225,6 +225,7 @@ inline digraph<digraph<N, A>, int> graph2dag2(const digraph<N, A>& g)
 
     return sg;
 }
+#endif
 
 //===========================================================
 //===========================================================

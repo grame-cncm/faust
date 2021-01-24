@@ -72,6 +72,7 @@ void signalGraph(const string& filename, const set<Tree>& I)
     // cerr << "END build Dependency Graph: " << filename << "\n\n" << endl;
 }
 
+#if 0
 /**
  * @brief generates a dotfile graph of a set of instructions
  *
@@ -111,3 +112,4 @@ void signalGraph2(const string& filename, const set<Tree>& I)
     f.close();
     // cerr << "END build Dependency Graph: " << filename << "\n\n" << endl;
 }
+#endif
