@@ -686,7 +686,7 @@ static bool processCmdline(int argc, const char* argv[])
               || gGlobal->gOutputLang == "cpp"
               || gGlobal->gOutputLang == "llvm"
               || gGlobal->gOutputLang == "fir")) {
-            throw faustexception("ERROR : -fun can only be used with c, cpp, llvm or fir backends\n");
+            throw faustexception("ERROR : -fun can only be used with 'c', 'cpp', 'llvm' or 'fir' backends\n");
         }
     }
 
@@ -696,26 +696,26 @@ static bool processCmdline(int argc, const char* argv[])
               || gGlobal->gOutputLang == "llvm"
               || startWith(gGlobal->gOutputLang, "wast")
               || startWith(gGlobal->gOutputLang, "wasm"))) {
-            throw faustexception("ERROR : -fm can only be used with c, cpp, llvm or wast/wast backends\n");
+            throw faustexception("ERROR : -fm can only be used with 'c', 'cpp', 'llvm' or 'wast/wast' backends\n");
         }
     }
     
     if (gGlobal->gNameSpace != "" && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "dlang") {
-        throw faustexception("ERROR : -ns can only be used with the cpp or dlang backend\n");
+        throw faustexception("ERROR : -ns can only be used with the 'cpp' or 'dlang' backend\n");
     }
     
     if (gGlobal->gMaskDelayLineThreshold < INT_MAX && (gGlobal->gVectorSwitch || (gGlobal->gOutputLang == "ocpp"))) {
-        throw faustexception("ERROR : '-dlt < INT_MAX' option can only be used in scalar mode and not with the -ocpp backend\n");
+        throw faustexception("ERROR : '-dlt < INT_MAX' option can only be used in scalar mode and not with the 'ocpp' backend\n");
     }
     
     if (gGlobal->gComputeMix && gGlobal->gOutputLang == "ocpp") {
-        throw faustexception("ERROR : -cm cannot be used with the -ocpp backend\n");
+        throw faustexception("ERROR : -cm cannot be used with the 'ocpp' backend\n");
     }
     if (gGlobal->gComputeMix && gGlobal->gOutputLang == "interp") {
-        throw faustexception("ERROR : -cm cannot be used with the -interp backend\n");
+        throw faustexception("ERROR : -cm cannot be used with the 'interp' backend\n");
     }
     if (gGlobal->gComputeMix && gGlobal->gOutputLang == "soul") {
-        throw faustexception("ERROR : -cm cannot be used with the -soul backend\n");
+        throw faustexception("ERROR : -cm cannot be used with the 'soul' backend\n");
     }
     
     if (gGlobal->gArchFile != ""
@@ -724,7 +724,7 @@ static bool processCmdline(int argc, const char* argv[])
             || (gGlobal->gOutputLang == "interp")
             || (gGlobal->gOutputLang == "llvm")
             || (gGlobal->gOutputLang == "fir"))) {
-            throw faustexception("ERROR : -a can only be used with c, cpp, ocpp, rust and soul backends\n");
+            throw faustexception("ERROR : -a can only be used with 'c', 'cpp', 'ocpp', 'rust' and 'soul' backends\n");
         }
 
     if (err != 0) {

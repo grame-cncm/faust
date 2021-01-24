@@ -48,9 +48,25 @@ class audio {
         audio():fShutdown(nullptr), fShutdownArg(nullptr) {}
         virtual ~audio() {}
 
+        /**
+         * Init the DSP.
+         * @param name - the DSP name to be given to the audio driven
+         * (could appear as a JACK client for instance)
+         * @param dsp - the dsp that will be initialized with the driver sample rate
+         *
+         * @return true is sucessful, false in case of driver failure.
+         **/
         virtual bool init(const char* name, dsp* dsp) = 0;
     
+        /**
+         * Start audio processing.
+         * @return true is sucessful, false if case of driver failure.
+         **/
         virtual bool start() = 0;
+    
+        /**
+         * Stop audio processing.
+         **/
         virtual void stop() = 0;
     
         void setShutdownCallback(shutdown_callback cb, void* arg)
@@ -63,10 +79,12 @@ class audio {
         {
             fComputeCallbackList.insert(std::make_pair(cb, arg));
         }
+    
         bool removeControlCallback(compute_callback cb, void* arg)
         {
             return (fComputeCallbackList.erase(std::make_pair(cb, arg)) == 1);
         }
+    
         void runControlCallbacks()
         {
             for (auto& it : fComputeCallbackList) {
@@ -74,13 +92,22 @@ class audio {
             }
         }
     
+        // Return buffer size in frames.
         virtual int getBufferSize() = 0;
+    
+        // Return the driver sample rate in Hz.
         virtual int getSampleRate() = 0;
 
+        // Return the driver hardware inputs number.
         virtual int getNumInputs() = 0;
+    
+        // Return the driver hardware outputs number.
         virtual int getNumOutputs() = 0;
     
-        // Returns the average proportion of available CPU being spent inside the audio callbacks (between 0 and 1.0).
+        /**
+         * @return Returns the average proportion of available CPU
+         * being spent inside the audio callbacks (between 0.0 and 1.0).
+         **/
         virtual float getCPULoad() { return 0.f; }
 };
 					
