@@ -191,7 +191,8 @@ The  following function is used to generate a *monophonic* node from a monophoni
 
 ```
 /**
-* Create a monophonic WebAudio node (either ScriptProcessorNode or AudioWorkletNode)
+* Create a monophonic WebAudio node (either ScriptProcessorNode or AudioWorkletNode).
+* Note that an internal cache avoids recompilation when a same DSP program is recompiled several times.
 *
 * @param {BaseAudioContext} context the WebAudio context
 * @param {string} name - the DSP name
@@ -213,12 +214,12 @@ The  following function is used to generate a *polyphonic* node from a polyphoni
 ```
 /**
 * Create a polyphonic WebAudio node (either ScriptProcessorNode or AudioWorkletNode).
-* Note that the an internal cache avoid recompilation when a same DSP program is recompiled several times.
+* Note that an internal cache avoids recompilation when a same DSP program is recompiled several times.
 *
 * @param {BaseAudioContext} context the WebAudio context
 * @param {string} name - the DSP name
 * @param {Factory} voice_factory - the Faust factory for voices, either obtained with a compiler (createDSPFactory) or loaded from files (loadDSPFactory)
-* @param {WebAssembly.Module} mixer_module - the wasm Mixer module (loaded from 'mixer32.wasm' file)
+* @param {WebAssembly.Module} mixer_module - the wasm Mixer module (loaded from 'mixer32.wasm' or 'mixer64.wasm' files)
 * @param {number} voices - the number of voices
 * @param {boolean} sp - whether to compile a ScriptProcessorNode or an AudioWorkletNode
 * @param {Factory} effect_factory - the Faust factory for the effect, either obtained with a compiler (createDSPFactory) or loaded from files (loadDSPFactory) 
