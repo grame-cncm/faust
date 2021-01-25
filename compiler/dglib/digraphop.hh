@@ -482,7 +482,6 @@ digraph<N, A> subgraph(const digraph<N, A>& G, const std::set<N>& S)
 // cuts all the connections of graph g of weight >= d
 //===========================================================
 //===========================================================
-// TODO : vérifiez qu'il ne faille pas faire plus
 template <typename N, typename A>
 inline digraph<N, A> cut(const digraph<N, A>& G, int dm)
 {

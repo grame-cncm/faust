@@ -66,8 +66,14 @@ struct arrow_traits<int> {
 
 using multidep = std::pair<std::map<std::string, int>, int>;
 
-inline multidep mdep(const std::string& s) { return {{{s, 0}}, 0}; }
-inline multidep mdep(const std::string& s, int d) { return {{{s, d}}, d}; }
+inline multidep mdep(const std::string& s)
+{
+    return {{{s, 0}}, 0};
+}
+inline multidep mdep(const std::string& s, int d)
+{
+    return {{{s, d}}, d};
+}
 
 template <>
 struct arrow_traits<multidep> {
