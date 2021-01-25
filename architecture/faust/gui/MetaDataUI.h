@@ -128,7 +128,7 @@ class MetaDataUI {
         /**
          * Format tooltip string by replacing some white spaces by
          * return characters so that line width doesn't exceed n.
-         * Limitation : long words exceeding n are not cut
+         * Limitation : long words exceeding n are not cut.
          */
         std::string formatTooltip(int n, const std::string& tt)
         {
@@ -299,7 +299,7 @@ class MetaDataUI {
         }
         
         /**
-         * Analyses the widget zone metadata declarations and takes appropriate actions
+         * Analyses the widget zone metadata declarations and takes appropriate actions.
          */
         void declare(FAUSTFLOAT* zone, const char* key, const char* value)
         {

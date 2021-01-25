@@ -41,9 +41,9 @@
 #define snprintf _snprintf
 #endif
 
-//-------------------------------------------------------------------
-//  Decode a dsp JSON description and implement 'buildUserInterface'
-//-------------------------------------------------------------------
+//------------------------------------------------------------------------------------------
+//  Decode a dsp JSON description and implement 'buildUserInterface' and 'metadata' methods
+//------------------------------------------------------------------------------------------
 
 #define REAL_UI(ui_interface) reinterpret_cast<UIReal<REAL>*>(ui_interface)
 #define REAL_ADR(offset)      reinterpret_cast<REAL*>(&memory_block[offset])

@@ -32,7 +32,6 @@
 /**
  *  Interpreter backend based Polyphonic DSP factory class.
  */
-
 struct interpreter_dsp_poly_factory : public dsp_poly_factory {
     
     interpreter_dsp_poly_factory(const std::string& name_app,

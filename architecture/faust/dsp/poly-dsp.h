@@ -55,7 +55,6 @@
 /**
  * Allows to control zones in a grouped manner.
  */
-
 class GroupUI : public GUI, public PathBuilder
 {
 
@@ -150,7 +149,6 @@ class GroupUI : public GUI, public PathBuilder
 /**
  * One voice of polyphony.
  */
-
 struct dsp_voice : public MapUI, public decorator_dsp {
     
     typedef std::function<double(int)> TransformFunction;
@@ -257,7 +255,6 @@ struct dsp_voice : public MapUI, public decorator_dsp {
 /**
  * A group of voices.
  */
-
 struct dsp_voice_group {
 
     GroupUI fGroups;
@@ -342,9 +339,8 @@ struct dsp_voice_group {
 };
 
 /**
- * Base class for MIDI controllable DSP.
+ * Base class for MIDI controllable polyphonic DSP.
  */
-
 #ifdef EMCC
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/MidiUI.h"
@@ -463,7 +459,6 @@ class dsp_poly : public decorator_dsp, public midi, public JSONControl {
  * All voices are preallocated by cloning the single DSP voice given at creation time.
  * Dynamic voice allocation is done in 'getFreeVoice'
  */
-
 class mydsp_poly : public dsp_voice_group, public dsp_poly {
 
     private:
@@ -826,18 +821,19 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
 };
 
 /**
- * Polyphonic DSP with an integrated effect. fPolyDSP will respond to MIDI messages.
+ * Polyphonic DSP with an integrated effect.
  */
 class dsp_poly_effect : public dsp_poly {
     
     private:
-        
+    
+        // fPolyDSP will respond to MIDI messages.
         dsp_poly* fPolyDSP;
         
     public:
         
-        dsp_poly_effect(dsp_poly* dsp1, dsp* dsp2)
-        :dsp_poly(dsp2), fPolyDSP(dsp1)
+        dsp_poly_effect(dsp_poly* voice, dsp* combined)
+        :dsp_poly(combined), fPolyDSP(voice)
         {}
         
         virtual ~dsp_poly_effect()
@@ -893,12 +889,27 @@ class dsp_poly_effect : public dsp_poly {
 /**
  * Polyphonic DSP factory class. Helper code to support polyphonic DSP source with an integrated effect.
  */
-
 struct dsp_poly_factory : public dsp_factory {
     
     dsp_factory* fProcessFactory;
     dsp_factory* fEffectFactory;
-    
+
+    dsp_poly_factory(dsp_factory* process_factory = nullptr,
+                     dsp_factory* effect_factory = nullptr):
+    fProcessFactory(process_factory)
+    ,fEffectFactory(effect_factory)
+    {}
+
+    virtual ~dsp_poly_factory()
+    {}
+
+    virtual std::string getName() { return fProcessFactory->getName(); }
+    virtual std::string getSHAKey() { return fProcessFactory->getSHAKey(); }
+    virtual std::string getDSPCode() { return fProcessFactory->getDSPCode(); }
+    virtual std::string getCompileOptions() { return fProcessFactory->getCompileOptions(); }
+    virtual std::vector<std::string> getLibraryList() { return fProcessFactory->getLibraryList(); }
+    virtual std::vector<std::string> getIncludePathnames() { return fProcessFactory->getIncludePathnames(); }
+
     std::string getEffectCode(const std::string& dsp_content)
     {
         std::stringstream effect_code;
@@ -908,22 +919,6 @@ struct dsp_poly_factory : public dsp_factory {
         return effect_code.str();
     }
 
-    dsp_poly_factory(dsp_factory* process_factory = NULL,
-                     dsp_factory* effect_factory = NULL):
-    fProcessFactory(process_factory)
-    ,fEffectFactory(effect_factory)
-    {}
-    
-    virtual ~dsp_poly_factory()
-    {}
-    
-    virtual std::string getName() { return fProcessFactory->getName(); }
-    virtual std::string getSHAKey() { return fProcessFactory->getSHAKey(); }
-    virtual std::string getDSPCode() { return fProcessFactory->getDSPCode(); }
-    virtual std::string getCompileOptions() { return fProcessFactory->getCompileOptions(); }
-    virtual std::vector<std::string> getLibraryList() { return fProcessFactory->getLibraryList(); }
-    virtual std::vector<std::string> getIncludePathnames() { return fProcessFactory->getIncludePathnames(); }
-    
     virtual void setMemoryManager(dsp_memory_manager* manager)
     {
         fProcessFactory->setMemoryManager(manager);
@@ -932,7 +927,7 @@ struct dsp_poly_factory : public dsp_factory {
         }
     }
     virtual dsp_memory_manager* getMemoryManager() { return fProcessFactory->getMemoryManager(); }
-    
+
     /* Create a new polyphonic DSP instance with global effect, to be deleted with C++ 'delete'
      *
      * @param nvoices - number of polyphony voices, should be at least 1
@@ -952,13 +947,13 @@ struct dsp_poly_factory : public dsp_factory {
             return new dsp_poly_effect(dsp_poly, dsp_poly);
         }
     }
-    
+
     /* Create a new DSP instance, to be deleted with C++ 'delete' */
     dsp* createDSPInstance()
     {
         return fProcessFactory->createDSPInstance();
     }
-    
+
 };
 
 #endif // __poly_dsp__

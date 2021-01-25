@@ -32,12 +32,11 @@
 #include "faust/gui/JSONUIDecoder.h"
 #include "faust/gui/JSONUI.h"
 
-//----------------------------------------------------------------
-//  Proxy dsp definition created from the DSP JSON description
-//  This class allows a 'proxy' dsp to control a real dsp 
-//  possibly running somewhere else.
-//----------------------------------------------------------------
-
+/**
+ * Proxy dsp definition created from the DSP JSON description.
+ * This class allows a 'proxy' dsp to control a real dsp
+ * possibly running somewhere else.
+ */
 class proxy_dsp : public dsp {
 
     private:

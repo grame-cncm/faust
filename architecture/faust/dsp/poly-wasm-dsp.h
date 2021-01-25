@@ -41,7 +41,6 @@ std::string pathToContent(const string& str) { return ""; }
 /**
  *  wasm backend based Polyphonic DSP factory class.
  */
-
 struct wasm_dsp_poly_factory : public dsp_poly_factory {
     
     wasm_dsp_poly_factory(const std::string& name_app,

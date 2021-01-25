@@ -32,7 +32,6 @@
 /**
  *  LLVM backend based Polyphonic DSP factory class.
  */
-
 struct llvm_dsp_poly_factory : public dsp_poly_factory {
     
     llvm_dsp_poly_factory(const std::string& name_app,

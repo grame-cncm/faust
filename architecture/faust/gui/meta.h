@@ -25,11 +25,13 @@
 #ifndef __meta__
 #define __meta__
 
+/**
+ The base class of Meta handler to be used in dsp::metadata(Meta* m) method to retrieve (key, value) metadata.
+ */
 struct Meta
 {
     virtual ~Meta() {};
     virtual void declare(const char* key, const char* value) = 0;
-    
 };
 
 #endif
