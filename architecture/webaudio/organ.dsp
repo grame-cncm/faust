@@ -19,4 +19,4 @@ with {
 voice(gate, gain, freq) = envelop(gate, gain) * timbre(freq);
 
 // Main
-process = voice(midigate, midigain, midifreq) * hslider("volume", 0.5, 0, 1, 0.01);
+process = voice(midigate, midigain, midifreq) * hslider("volume", 0.5, 0, 1, 0.01) <: (_,_);

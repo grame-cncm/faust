@@ -26,6 +26,7 @@
                 alert("WebAssembly or AudioWorklet is not supported in this browser !")
             }
 
+            // Init audio context
             var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
             var audio_context = (isWebKitAudio) ? new webkitAudioContext({ latencyHint: 0.00001 }) : new AudioContext({ latencyHint: 0.00001 });
             audio_context.destination.channelInterpretation = "discrete";
@@ -69,6 +70,7 @@
                 }
             }
 
+            // Generic MIDI handler
             function midiMessageReceived(ev) {
                 var cmd = ev.data[0] >> 4;
                 var channel = ev.data[0] & 0xf;
@@ -125,6 +127,7 @@
 
             async function startorgan(module) {
 
+                // Load the DSP file
                 var dsp_file = await fetch(dsp_code_url);
                 var dsp_code = await dsp_file.text();
 

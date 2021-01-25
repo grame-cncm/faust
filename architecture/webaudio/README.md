@@ -4,17 +4,17 @@
 
 Using developments done for the Web (WebAssembly backends and **libfaust** library compiled in WebAssembly with [Emscripten](https://emscripten.org)), statically and dynamically Faust generated WebAudio nodes can be easily produced and deployed on the Web. 
 
-The **Faust Web Audio Library** has been completely rewriten in TypeScript and is distributed as an [npm package](https://www.npmjs.com/package/@grame/libfaust), to be used in TypeScript written applications.  An alternative is to use the JavaScript version of the TypeScript source available as the *FaustLibrary.js* JavaScript library. 
+The **Faust Web Audio Library** has been completely rewriten in TypeScript and is distributed as an [npm package](https://www.npmjs.com/package/@grame/libfaust), to be used in TypeScript written applications.  An alternative is to use the JavaScript version of the TypeScript source available as the `FaustLibrary.js` JavaScript library. 
 
-This library can be used to load WebAudio nodes created from Faust DSP code (precompiled to WebAssembly), or in conjunction with *libfaust-wasm.js* libray (the WebAssembly version of the **libfaust** library ) containing the compiler, it can be used to dynamically compile and deploy Faust DSP based WebAudio nodes.
+This library can be used to load WebAudio nodes created from Faust DSP code (precompiled to WebAssembly), or in conjunction with `libfaust-wasm.js` libray (the WebAssembly version of the **libfaust** library) containing the compiler, it can be used to dynamically compile and deploy Faust DSP based WebAudio nodes.
 
 ## Deploying statically compiled Faust WebAudio nodes
 
-From a **foo.dsp** source file, JavaScript and the associated WebAssembly files can be produced with the following script:
+From a **foo.dsp** source file, a JSON and WebAssembly files can be produced with the following script:
 
     faust2wasm -worklet foo.dsp 
 
-This will generate a **foo.wasm** file with the WebAssembly module as binary code, as well as a **foo.js** wrapper file containing the code needed to turn the Faust DSP in a fully working WebAudio node (using an extended **AudioWorkletNode** node). The name of the Faust DSP code file is used to define the final AudioWorkletNode constructor name. So for instance if **osc.dsp** file is compiled, the **Faustosc** class will be generated and can be used the following way:
+This will generate a **foo.wasm** file with the WebAssembly module as binary code, as well as a **foo.js** file that will use code in FaustLibrary.js to create a WebAudio node (using an extended **AudioWorkletNode** node if supported or using the old **ScriptProcessor** model if needed). The name of the Faust DSP code file is used to define the final **AudioWorkletNode** constructor name. So for instance if **osc.dsp** file is compiled, the **Faustosc** class will be generated and can be used the following way:
 
 ```
 // Create the Faust generated node
@@ -35,7 +35,7 @@ A full JSON description of the node with the complete UI, can be retrieved with:
 
     var json = node.getJSON(); 
 
-The complete usable API is fully documented in the generated JavaScript file in the *Public API* section. **To properly deallocate ressources at the end of its life, be sure to call the *destroy* function on the node.**. Use `faust2wasm -h` to see all available options.
+To properly deallocate ressources at the end of its life, be sure to call the `destroy` function on the node. Use `faust2wasm -h` to see all available options.
 
 ### A simple example Web page
 
@@ -173,7 +173,7 @@ First the following resources (located on the Faust GitHub in architecture/webau
 
 #### Using the lower-level API
 
-The **FaustModule** global is a promise defined in *FaustLibrary.js* file, that returns a Faust Wasm module when the code is ready. So something like the following lines has to be written, when `init` will typically create DSP factories, either monophonic or polyphonic ones:
+The **FaustModule** global is a promise defined in `FaustLibrary.js` file, that returns a Faust Wasm module when the code is ready. So something like the following lines has to be written, when `init` will typically create DSP factories, either monophonic or polyphonic ones:
 
 ```
 FaustModule().then((module) => { init(module); });

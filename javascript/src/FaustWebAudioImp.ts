@@ -660,6 +660,7 @@ namespace Faust {
 
         // Public API
         compute(input: Float32Array[], output: Float32Array[]) {
+
             // Check DSP state
             if (this.fDestroyed) return false;
 

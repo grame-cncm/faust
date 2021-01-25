@@ -11,7 +11,7 @@ class FaustorganPoly {
 
     async load() {
         const factory = Faust.createPolyWAPFactory(this.fAudioContext, this.fBaseURL);
-        this.fNode = factory.load("organ.wasm", "organ.json", "organ_effect.wasm", "organ_effect.json", "mixer32.wasm", this.fVoices, this.fSP, 1024);
+        this.fNode = factory.load("organ.wasm", "organ.json", "organ_effect.wasm", "organ_effect.json", "mixer32.wasm", "mixer64.wasm", this.fVoices, this.fSP, 1024);
         return this.fNode;
     }
 

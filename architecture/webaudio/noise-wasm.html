@@ -20,6 +20,7 @@
                 alert("WebAssembly is not supported in this browser, the page will not work !")
             }
 
+            // Init audio context
             var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
             var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
             var noise_dsp = null;
@@ -32,6 +33,7 @@
                 noise_dsp.setParamValue("/noise/Volume", val);
             }
 
+            // Create WebAudio node and connect it to output
             function startnoise() {
                 // Create the Faust generated node
                 var pluginURL = ".";
