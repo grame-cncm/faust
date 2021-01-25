@@ -340,10 +340,11 @@ class APIUI : public PathBuilder, public Meta, public UI
         virtual void declare(const char* key, const char* val)
         {}
 
-		//-------------------------------------------------------------------------------
-		// Simple API part
-		//-------------------------------------------------------------------------------
-		int getParamsCount() { return fNumParameters; }
+	//-------------------------------------------------------------------------------
+	// Simple API part
+	//-------------------------------------------------------------------------------
+	int getParamsCount() { return fNumParameters; }
+	
         int getParamIndex(const char* path)
         {
             if (fPathMap.find(path) != fPathMap.end()) {
