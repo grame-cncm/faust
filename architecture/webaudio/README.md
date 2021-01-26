@@ -12,15 +12,15 @@ This library can be used to load WebAudio nodes created from Faust DSP code (pre
 
 From a **foo.dsp** source file, a JSON and WebAssembly files can be produced with the following script:
 
-    faust2wasm -worklet foo.dsp 
+    faust2wasm foo.dsp 
 
-This will generate a **foo.wasm** file with the WebAssembly module as binary code, as well as a **foo.js** file that will use code in FaustLibrary.js to create a WebAudio node (using an extended **AudioWorkletNode** node if supported or using the old **ScriptProcessor** model if needed). The name of the Faust DSP code file is used to define the final **AudioWorkletNode** constructor name. So for instance if **osc.dsp** file is compiled, the **Faustosc** class will be generated and can be used the following way:
+The compiler generates a **foo.wasm** file with the WebAssembly module as binary code and a **foo.json** file, and `faust2wasm` creates and additional loader **foo.js** file that will use code in FaustLibrary.js to create a WebAudio node (using an extended **AudioWorkletNode** node if supported or using the old **ScriptProcessor** model if needed). The name of the Faust DSP code file is used to define the final **AudioWorkletNode** constructor name. So for instance if **osc.dsp** file is compiled, the **Faustosc** class will be generated and can be used the following way:
 
 ```
 // Create the Faust generated node
-var plugin_url = ".";
-var plugin = new Faustosc(audio_context, plugin_url);
-plugin.load().then(node => {....});
+var factory_url = ".";
+var factory = new Faustosc(audio_context, factory_url);
+factory.create().then(node => {....});
 ```
 
 The resulting node is an extended AudioWorkletNode, to be used as a regular node (like connected to other WebAudio nodes), as well as JavaScript more specific functions. For instance the following ones will have to be used to control the node:
@@ -73,9 +73,9 @@ A **startnoise** function which creates the Faust WebAudio node is defined with:
 ```
 function startnoise() {
     // Create the Faust generated node
-    var plugin_url = ".";
-    var plugin = new Faustnoise(audio_context, plugin_url);
-    plugin.load().then(node => {
+    var factory_url = ".";
+    var factory = new Faustnoise(audio_context, factory_url);
+    factory.create().then(node => {
         noise_dsp = node;
         console.log(noise_dsp.getJSON());
         // Print path to be used with 'setParamValue'
@@ -97,14 +97,18 @@ Note that pages loading an additional .wasm file cannot directly be loaded in Ch
 
 ### Generating Polyphonic WebAudio nodes
 
-Assuming that the compiled Faust DSP file is [polyphonic ready](https://faustdoc.grame.fr/manual/midi/#midi-polyphony-support), a polyphonic ready WebAudio node can be created by adding the *-poly* option (so `faust2wasm -worklet -poly organ.dsp`) , and will generate the following class for the node, to be used like: 
+Assuming that the compiled Faust DSP file is [polyphonic ready](https://faustdoc.grame.fr/manual/midi/#midi-polyphony-support), a polyphonic ready WebAudio node can be created by adding the *-poly* option:
+
+    faust2wasm -poly organ.dsp 
+
+and will generate the **FaustorganPoly** class for the node, to be used like: 
 
 
 ```
 // Create the Faust generated node with 16 voices
-var plugin_url = ".";
-var plugin = new FaustorganPoly(audio_context, 16, plugin_url);
-plugin.load().then(node => {....});
+var factory_url = ".";
+var factory = new FaustorganPoly(audio_context, 16, factory_url);
+factory.create().then(node => {....});
 ```
 
 Polyphonic nodes have an extended API to be controled with MIDI messages: 
@@ -153,7 +157,7 @@ In this case a generic **main.js** file is created (which will load a **osc.wasm
 
 The **faust2webaudiowasm** script can be used to generate a fully working self-contained HTML page, with a SVG/CSS a Graphical User Interface. From the **osc.dsp** Faust DSP source file, it will generate an **osc.html** file:
 
-    faust2webaudiowasm -worklet osc.dsp
+    faust2webaudiowasm osc.dsp
 
 Assuming that the compiled Faust DSP file is polyphonic ready, the *-poly* parameter can be used to generate a polyphonic MIDI controllable instrument, to be used with a MIDI application or device. Use `faust2webaudiowasm -h` to see all available options.
 
@@ -328,11 +332,11 @@ The *-ftz 1* mode adds a test in each recursive loop which uses the *fabs* funct
 
 Use for example the following line to active software denormal handing when using **faust2wasm** tool:
 
-    faust2wasm -worklet -ftz 2 foo.dsp 
+    faust2wasm -ftz 2 foo.dsp 
 
 The same for the **faust2webaudiowasm** tool:
 
-    faust2webaudiowasm -worklet -ftz 2 foo.dsp 
+    faust2webaudiowasm -ftz 2 foo.dsp 
 
 For dynamic compilation, the *-ftz v* flag will have to be added in the *argv* parameter in **compileMonoNode** or **compilePolyNode** functions.
 

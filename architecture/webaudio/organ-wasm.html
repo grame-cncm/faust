@@ -113,9 +113,9 @@
             // Create WebAudio node and connect it to output
             function startorgan() {
                 // Create the Faust generated node
-                var pluginURL = ".";
-                var plugin = new FaustorganPoly(audio_context, 16, pluginURL);
-                plugin.load().then(node => {
+                var factory_url = ".";
+                var factory = new FaustorganPoly(audio_context, 16, factory_url);
+                factory.create().then(node => {
                     organ_dsp = node;
                     console.log(organ_dsp.getJSON());
                     // Print paths to be used with 'setParamValue'

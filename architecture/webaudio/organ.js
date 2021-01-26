@@ -15,6 +15,11 @@ class FaustorganPoly {
         return this.fNode;
     }
 
+    // A synonym creation function
+    async create() {
+        return this.load();
+    }
+
     async loadGui() {
         return new Promise((resolve, reject) => {
             try {

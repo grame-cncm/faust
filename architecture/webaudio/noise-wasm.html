@@ -36,9 +36,9 @@
             // Create WebAudio node and connect it to output
             function startnoise() {
                 // Create the Faust generated node
-                var pluginURL = ".";
-                var plugin = new Faustnoise(audio_context, pluginURL);
-                plugin.load().then(node => {
+                var factory_url = ".";
+                var factory = new Faustnoise(audio_context, factory_url);
+                factory.create().then(node => {
                     noise_dsp = node;
                     console.log(noise_dsp.getJSON());
                     // Print path to be used with 'setParamValue'

@@ -31,42 +31,42 @@
             var audio_context = (isWebKitAudio) ? new webkitAudioContext({ latencyHint: 0.00001 }) : new AudioContext({ latencyHint: 0.00001 });
             audio_context.destination.channelInterpretation = "discrete";
 
-            var organ = null;
+            var organ_dsp = null;
             var midi_input = [];
             var dsp_code_url = "http://127.0.0.1:8000/organ.dsp";
 
             // Slider handler to change the 'noise' volume
             function changeVolume(event) {
-                if (organ) {
+                if (organ_dsp) {
                     var val = event.target.value;
                     val = parseFloat(val);
                     console.log(val);
-                    organ.setParamValue("/FaustDSP/volume", val);
+                    organ_dsp.setParamValue("/FaustDSP/volume", val);
                 }
             }
 
             // MIDI input handling
             function keyOn(channel, pitch, velocity) {
-                if (organ) {
-                    organ.keyOn(channel, pitch, velocity);
+                if (organ_dsp) {
+                    organ_dsp.keyOn(channel, pitch, velocity);
                 }
             }
 
             function keyOff(channel, pitch, velocity) {
-                if (organ) {
-                    organ.keyOff(channel, pitch, velocity);
+                if (organ_dsp) {
+                    organ_dsp.keyOff(channel, pitch, velocity);
                 }
             }
 
             function pitchWheel(channel, bend) {
-                if (organ) {
-                    organ.pitchWheel(channel, bend);
+                if (organ_dsp) {
+                    organ_dsp.pitchWheel(channel, bend);
                 }
             }
 
             function ctrlChange(channel, ctrl, value) {
-                if (organ) {
-                    organ.ctrlChange(channel, ctrl, value);
+                if (organ_dsp) {
+                    organ_dsp.ctrlChange(channel, ctrl, value);
                 }
             }
 
@@ -122,7 +122,7 @@
                 }
             }
 
-            // Load handler which call 'startorgan' when 'libfaust-wasm.js' is properly loaded
+            // Load handler which call 'startorgan_dsp' when 'libfaust-wasm.js' is properly loaded
             FaustModule().then((module) => { startorgan(module); });
 
             async function startorgan(module) {
@@ -132,14 +132,14 @@
                 var dsp_code = await dsp_file.text();
 
                 // Dynamically create the Faust generated node from explicit DSP source in 'dsp_code'
-                organ = await Faust.compileAudioNode(audio_context, module, dsp_code, null, 16);
+                organ_dsp = await Faust.compileAudioNode(audio_context, module, dsp_code, null, 16);
 
                 // Print DSP JSON	
-                console.log(organ.getJSON());
+                console.log(organ_dsp.getJSON());
                 // Print paths to be used with 'setParamValue'
-                console.log(organ.getParams());
+                console.log(organ_dsp.getParams());
                 // Connect it to output as a regular WebAudio node
-                organ.connect(audio_context.destination);
+                organ_dsp.connect(audio_context.destination);
                 // Activate MIDI
                 activateMIDIInput();
             }
