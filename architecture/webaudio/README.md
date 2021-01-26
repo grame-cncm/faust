@@ -270,7 +270,7 @@ var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContex
 
 var dsp_code = "import(\"stdfaust.lib\"); vol = hslider(\"volume [unit:dB]\", 0, -96, 0, 0.1) : ba.db2linear : si.smoo; freq = hslider(\"freq [unit:Hz]\", 1000, 20, 24000, 1); process = vgroup(\"Oscillator\", os.osc(freq) * vol);";
 
-var osc = null;
+var osc_dsp = null;
 
 // Load handler which call 'startosc' when 'libfaust-wasm.js' is properly loaded
 FaustModule().then((module) => { startosc(module); });
@@ -278,14 +278,14 @@ FaustModule().then((module) => { startosc(module); });
 async function startosc(module) {
 
     // Dynamically create the Faust generated node from explicit DSP source in 'dsp_code'
-    osc = await Faust.compileAudioNode(audio_context, module, dsp_code, null, 0);
+    osc_dsp = await Faust.compileAudioNode(audio_context, module, dsp_code, null, 0);
 
     // Print DSP JSON																				
-    console.log(osc.getJSON());
+    console.log(osc_dsp.getJSON());
     // Print paths to be used with 'setParamValue'
-    console.log(osc.getParams());
+    console.log(osc_dsp.getParams());
     // Connect it to output as a regular WebAudio node
-    osc.connect(audio_context.destination);
+    osc_dsp.connect(audio_context.destination);
 }
 ```
 
@@ -305,14 +305,14 @@ async function startorgan(module) {
     var dsp_code = await dsp_file.text();
 
     // Dynamically create the Faust generated node from explicit DSP source in 'dsp_code'
-    organ = await Faust.compileAudioNode(audio_context, module, dsp_code, null, 16);
+    organ_dsp = await Faust.compileAudioNode(audio_context, module, dsp_code, null, 16);
 
     // Print DSP JSON	
-    console.log(organ.getJSON());
+    console.log(organ_dsp.getJSON());
     // Print paths to be used with 'setParamValue'
-    console.log(organ.getParams());
+    console.log(organ_dsp.getParams());
     // Connect it to output as a regular WebAudio node
-    organ.connect(audio_context.destination);
+    organ_dsp.connect(audio_context.destination);
     // Activate MIDI
     activateMIDIInput();
 }
