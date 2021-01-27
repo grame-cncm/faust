@@ -84,7 +84,13 @@ if (INCLUDE_LLVM )
 		llvm_cmake()
 	endif()
 
-	string (REGEX REPLACE "([0-9]+)\\.([0-9]+).*" "LLVM_\\1\\2" LLVM_VERSION ${LLVM_PACKAGE_VERSION})
+	string (REGEX REPLACE "([0-9]+)\\.[0-9]+.*" "\\1" LLVM_MAJOR_VERSION ${LLVM_PACKAGE_VERSION})
+	string (REGEX REPLACE "[0-9]+\\.([0-9]+).*" "\\1" LLVM_MINOR_VERSION ${LLVM_PACKAGE_VERSION})
+        if(LLVM_MAJOR_VERSION GREATER 9)
+          set(LLVM_VERSION "LLVM_${LLVM_MAJOR_VERSION}0")
+        else()
+          set(LLVM_VERSION "LLVM_${LLVM_MAJOR_VERSION}${LLVM_MINOR_VERSION}")
+        endif()
 
 	# the declarations below are redundant but necessary to cope with different cmake behaviors on different platforms
 	set (TMP ${SRCDIR}/generator/llvm)
