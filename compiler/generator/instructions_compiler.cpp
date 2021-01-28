@@ -1067,7 +1067,7 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
         }
 
     } else if (sharing > 1 || (o->hasMultiOccurences())) {
-        return generateVariableStore(sig, exp);
+        return generateVariableStore(sig, exp, o);
 
     } else if (sharing == 1) {
         return exp;
@@ -1103,7 +1103,7 @@ ValueInst* InstructionsCompiler::forceCacheCode(Tree sig, ValueInst* exp)
     }
 }
 
-ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
+ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp, old_Occurences* o)
 {
     // If value is already a simple value, no need to create a variable, just reuse it...
     if (exp->isSimpleValue()) {
@@ -1117,9 +1117,16 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
     switch (t->variability()) {
         case kKonst:
             getTypedNames(t, "Const", ctype, vname);
-            pushDeclare(InstBuilder::genDecStructVar(vname, InstBuilder::genBasicTyped(ctype)));
-            pushInitMethod(InstBuilder::genStoreStructVar(vname, exp));
-            return InstBuilder::genLoadStructVar(vname);
+            // The variable is used in compute (kBlock or kSamp), so define is as a field in the DSP struct
+            if (o->getOccurence(kBlock) || o->getOccurence(kSamp)) {
+                pushDeclare(InstBuilder::genDecStructVar(vname, InstBuilder::genBasicTyped(ctype)));
+                pushInitMethod(InstBuilder::genStoreStructVar(vname, exp));
+                return InstBuilder::genLoadStructVar(vname);
+            } else {
+                // Otherwise it can stay as a local variable
+                pushInitMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype), exp));
+                return InstBuilder::genLoadStackVar(vname);
+            }
 
         case kBlock:
             if (gGlobal->gOneSample || gGlobal->gOneSampleControl) {

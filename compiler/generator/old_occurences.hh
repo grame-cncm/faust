@@ -45,6 +45,7 @@ class old_Occurences : public virtual Garbageable {
     int  getMaxDelay() const;            ///< return the maximal delay collected
     int  getMinDelay() const;            ///< return the minimal delay collected
     Tree getExecCondition() const;       ///< return the exec condition
+    int getOccurence(int variability) const; ///< return the number of occurence by variability
 };
 
 /**

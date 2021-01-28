@@ -46,6 +46,11 @@ static int xVariability(int v, int r)
 //	Occurences methods
 //-------------------------------------------------
 
+int old_Occurences::getOccurence(int variability) const
+{
+    return fOccurences[variability];
+}
+
 old_Occurences::old_Occurences(int v, int r, Tree xc) : fXVariability(xVariability(v, r))
 {
     for (int i = 0; i < 4; i++) fOccurences[i] = 0;

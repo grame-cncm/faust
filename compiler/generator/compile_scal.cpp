@@ -692,7 +692,7 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
         }
 
     } else if ((sharing > 1) || (o->hasMultiOccurences())) {
-        return generateVariableStore(sig, exp);
+        return generateVariableStore(sig, exp, o);
 
     } else if (sharing == 1) {
         return exp;
@@ -730,7 +730,7 @@ string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
     }
 }
 
-string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
+string ScalarCompiler::generateVariableStore(Tree sig, const string& exp, old_Occurences* o)
 {
     string vname, vname_perm, ctype;
     Type   t = getCertifiedSigType(sig);
@@ -738,8 +738,14 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
     switch (t->variability()) {
         case kKonst:
             getTypedNames(t, "Const", ctype, vname);
-            fClass->addDeclCode(subst("$0 \t$1;", ctype, vname));
-            fClass->addInitCode(subst("$0 = $1;", vname, exp));
+            // The variable is used in compute (kBlock or kSamp), so define is as a field in the DSP struct
+            if (o->getOccurence(kBlock) || o->getOccurence(kSamp)) {
+                fClass->addDeclCode(subst("$0 \t$1;", ctype, vname));
+                fClass->addInitCode(subst("$0 = $1;", vname, exp));
+            } else {
+                // Otherwise it can stay as a local variable
+                fClass->addInitCode(subst("$0 \t$1 = $2;", ctype, vname, exp));
+            }
             break;
 
         case kBlock:
