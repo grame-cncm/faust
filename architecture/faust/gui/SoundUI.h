@@ -61,7 +61,7 @@ Soundfile* defaultsound = gReader.createSoundfile(path_name_list, MAX_CHAN);
 class SoundUI : public GenericUI
 {
 		
-    private:
+    protected:
     
         std::vector<std::string> fSoundfileDir;             // The soundfile directories
         std::map<std::string, Soundfile*> fSoundfileMap;    // Map to share loaded soundfiles

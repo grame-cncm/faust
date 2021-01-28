@@ -27,6 +27,7 @@
 
 #include <iostream>
 #include <string.h>
+#include <vector>
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -77,7 +78,7 @@ struct Soundfile {
         fSR       = new int[MAX_SOUNDFILE_PARTS];
         fOffset   = new int[MAX_SOUNDFILE_PARTS];
     }
-
+ 
     ~Soundfile()
     {
         // Free the real channels only
@@ -225,7 +226,7 @@ class SoundfileReader {
     Soundfile* createSoundfile(const std::vector<std::string>& path_name_list, int max_chan)
     {
         try {
-            int cur_chan = 1; // At least one buffer
+            int cur_chan = 1; // At least one channel
             int total_length = 0;
             
             // Compute total length and channels max of all files
