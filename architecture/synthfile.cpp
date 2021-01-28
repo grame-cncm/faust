@@ -32,6 +32,7 @@
  ************************************************************************
  ************************************************************************/
 
+#include <libgen.h>
 #include <errno.h>
 #include <limits.h>
 #include <math.h>
@@ -48,8 +49,10 @@
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/console.h"
+#include "faust/gui/FUI.h"
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp-tools.h"
+#include "faust/misc.h"
 
 using namespace std;
 
@@ -101,6 +104,16 @@ ztimedmap GUI::gTimedZoneMap;
 
 int main(int argc, char* argv[])
 {
+    char name[256];
+    char rcfilename[256];
+    char* home = getenv("HOME");
+    snprintf(name, 256, "%s", basename(argv[0]));
+    snprintf(rcfilename, 256, "%s/.%src", home, name);
+    
+    // Recall state before handling commands
+    FUI finterface;
+    DSP.buildUserInterface(&finterface);
+    
     CMDUI* interface = new CMDUI(argc, argv, true);
     DSP.buildUserInterface(interface);
     if (argc == 1) {
@@ -112,6 +125,7 @@ int main(int argc, char* argv[])
     int num_samples = loptrm(&argc, argv, "--samples", "-s", kSampleRate*5);
     int sample_rate = loptrm(&argc, argv, "--sample-rate", "-sr", kSampleRate);
     int bit_depth = loptrm(&argc, argv, "--bith-depth (16|24|32)", "-bd", 16);
+    bool is_rc = loptrm(&argc, argv, "-rc", "-rc", 0);
     
     int bd = (bit_depth == 16) ? SF_FORMAT_PCM_16 : ((bit_depth == 24) ? SF_FORMAT_PCM_24 : SF_FORMAT_PCM_32);
     
@@ -133,6 +147,12 @@ int main(int argc, char* argv[])
     
     // init DSP with SR
     DSP.init(sample_rate);
+    
+    // Possibly restore saved state
+    if (is_rc) {
+        finterface.recallState(rcfilename);
+    }
+    
     // modify the UI values according to the command line options, after init
     interface->process_init();
     
@@ -153,6 +173,9 @@ int main(int argc, char* argv[])
     } while (nbf);
     
     sf_close(out_sf);
+    if (is_rc) {
+        finterface.saveState(rcfilename);
+    }
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
