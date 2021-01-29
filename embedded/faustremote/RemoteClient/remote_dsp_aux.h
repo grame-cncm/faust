@@ -173,7 +173,7 @@ class remote_dsp_factory : public smartable {
 
 // The proxy DSP instance
 
-class remote_dsp_aux : public dsp, public jack_midi_handler {
+class remote_dsp_aux : public dsp, public jack_midi {
     
     private:
     

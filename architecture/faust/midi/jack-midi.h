@@ -40,7 +40,7 @@ class MapUI;
 // MIDI input/output handling using JACK library
 //-----------------------------------------------
 
-class jack_midi_handler : public midi_handler {
+class jack_midi : public midi_handler {
         
     protected:
 
@@ -129,12 +129,12 @@ class jack_midi_handler : public midi_handler {
 
     public:
 
-        jack_midi_handler(const std::string& name = "JACKHandler")
+        jack_midi(const std::string& name = "JACKHandler")
             :midi_handler(name), fInputMidiPort(nullptr), fOutputMidiPort(nullptr)
         {
             fOutBuffer = ringbuffer_create(8192);
         }
-        virtual ~jack_midi_handler()
+        virtual ~jack_midi()
         {
             ringbuffer_free(fOutBuffer);
         }

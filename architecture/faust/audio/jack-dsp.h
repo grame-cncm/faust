@@ -426,7 +426,7 @@ class jackaudio : public audio {
 
 // Add JACK MIDI
 
-class jackaudio_midi : public jackaudio, public jack_midi_handler {
+class jackaudio_midi : public jackaudio, public jack_midi {
         
     protected:
     
@@ -502,7 +502,7 @@ class jackaudio_midi : public jackaudio, public jack_midi_handler {
     public:
         
         jackaudio_midi(bool auto_connect = true, bool is_polling = false)
-        :jackaudio(auto_connect), jack_midi_handler("JACKMidi"), fPolling(is_polling)
+        :jackaudio(auto_connect), jack_midi("JACKMidi"), fPolling(is_polling)
         {}
         
         virtual ~jackaudio_midi()
