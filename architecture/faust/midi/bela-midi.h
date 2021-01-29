@@ -33,6 +33,9 @@
 
 class MapUI;
 
+/**
+ * MIDI handler for the Bela board: https://bela.io
+ */
 class bela_midi : public midi_handler {
 
     private:

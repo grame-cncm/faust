@@ -29,10 +29,9 @@
 
 class MapUI;
 
-//-----------------------------------------------
-// MIDI input/output handling using JUCE library
-//-----------------------------------------------
-
+/**
+ *  MIDI input/output handling using JUCE framework: https://juce.com
+ */
 class juce_midi_handler : public midi_handler {
     
     protected:

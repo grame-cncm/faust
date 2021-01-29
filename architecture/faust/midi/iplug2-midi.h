@@ -32,10 +32,9 @@ class MapUI;
 
 BEGIN_IPLUG_NAMESPACE
 
-//-------------------------------------------------
-// MIDI input/output handling using iPlug2 library
-//-------------------------------------------------
-
+/**
+ * MIDI input/output handling using iPlug2 framework: https://iplug2.github.io
+ */
 struct iplug2_midi_handler : public midi_handler {
     
     IMidiMsg fMessage;

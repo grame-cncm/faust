@@ -32,10 +32,9 @@
 
 class MapUI;
 
-//-------------------------------------------------
-// MIDI input/output handling using RtMidi library
-//-------------------------------------------------
-
+/**
+ *  MIDI input/output handling using RtMidi library: http://www.music.mcgill.ca/~gary/rtmidi/
+ */
 class rt_midi : public midi_handler {
 
     private:

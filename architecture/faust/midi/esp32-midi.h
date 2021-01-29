@@ -51,6 +51,9 @@ using namespace jdksmidi;
 #define PORT_NUM UART_NUM_1
 #define RX_BUF_SIZE 1024
 
+/**
+ * MIDI handler for the ESP32 boards.
+ */
 class esp32_midi : public midi_handler {
     
     private:

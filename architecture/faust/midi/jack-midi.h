@@ -36,10 +36,9 @@
 
 class MapUI;
 
-//-----------------------------------------------
-// MIDI input/output handling using JACK library
-//-----------------------------------------------
-
+/**
+ *  MIDI input/output handling using JACK library: https://jackaudio.org
+ */
 class jack_midi : public midi_handler {
         
     protected:
