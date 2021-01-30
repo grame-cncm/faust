@@ -651,7 +651,7 @@ class uiMidiKeyPress : public uiMidiTimedItem, public uiConverter {
  *  - sending their internal state as MIDI output events
  *******************************************************************************************/
 
-class MidiUI : public GUI, public midi, public MetaDataUI {
+class MidiUI : public GUI, public midi, public midi_interface, public MetaDataUI {
 
     // Add uiItem subclasses objects are deallocated by the inherited GUI class
     typedef std::map <int, std::vector<uiMidiCtrlChange*> > TCtrlChangeTable;
@@ -779,6 +779,7 @@ class MidiUI : public GUI, public midi, public MetaDataUI {
         {
             fMidiHandler = midi_handler;
             fMidiHandler->addMidiIn(this);
+            // TODO: use shared_ptr based implementation
             fDelete = delete_handler;
             fTimeStamp = false;
         }
@@ -786,6 +787,7 @@ class MidiUI : public GUI, public midi, public MetaDataUI {
         virtual ~MidiUI() 
         { 
             fMidiHandler->removeMidiIn(this);
+            // TODO: use shared_ptr based implementation
             if (fDelete) delete fMidiHandler;
         }
     

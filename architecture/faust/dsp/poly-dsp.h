@@ -39,9 +39,10 @@
 
 #include "faust/midi/midi.h"
 #include "faust/dsp/dsp-combiner.h"
+#include "faust/dsp/proxy-dsp.h"
+
 #include "faust/gui/GUI.h"
 #include "faust/gui/MapUI.h"
-#include "faust/dsp/proxy-dsp.h"
 #include "faust/gui/JSONControl.h"
 
 #define kActiveVoice      0
@@ -252,6 +253,10 @@ struct dsp_voice : public MapUI, public decorator_dsp {
 
 };
 
+#ifndef __SoundUI_H__
+class SoundUIInterface : public GenericUI {};
+#endif
+
 /**
  * A group of voices.
  */
@@ -320,7 +325,7 @@ struct dsp_voice_group {
             ui_interface->closeBox();
 
             // If not grouped, also add individual voices UI
-            if (!fGroupControl) {
+            if (!fGroupControl || dynamic_cast<SoundUIInterface*>(ui_interface)) {
                 for (size_t i = 0; i < fVoiceTable.size(); i++) {
                     char buffer[32];
                     snprintf(buffer, 32, ((fVoiceTable.size() < 8) ? "Voice%ld" : "V%ld"), long(i+1));
@@ -465,6 +470,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
 
         FAUSTFLOAT** fMixBuffer;
         FAUSTFLOAT** fOutBuffer;
+        midi_interface* fMidiHandler; // The midi_interface the DSP is connected to
         int fDate;
   
         FAUSTFLOAT mixCheckVoice(int count, FAUSTFLOAT** mixBuffer, FAUSTFLOAT** outBuffer)
@@ -624,6 +630,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         : dsp_voice_group(panic, this, control, group), dsp_poly(dsp) // dsp parameter is deallocated by ~dsp_poly
         {
             fDate = 0;
+            fMidiHandler = nullptr;
 
             // Create voices
             assert(nvoices > 0);
@@ -644,18 +651,25 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
 
         virtual ~mydsp_poly()
         {
+            // Remove from fMidiHandler
+            if (fMidiHandler) fMidiHandler->removeMidiIn(this);
             for (int chan = 0; chan < getNumOutputs(); chan++) {
                 delete[] fMixBuffer[chan];
                 delete[] fOutBuffer[chan];
             }
             delete[] fMixBuffer;
             delete[] fOutBuffer;
+            
         }
 
         // DSP API
-    
         void buildUserInterface(UI* ui_interface)
         {
+            // MidiUI ui_interface contains the midi_handler connected to the MIDI driver
+            if (dynamic_cast<midi_interface*>(ui_interface)) {
+                fMidiHandler = dynamic_cast<midi_interface*>(ui_interface);
+                fMidiHandler->addMidiIn(this);
+            }
             dsp_voice_group::buildUserInterface(ui_interface);
         }
 

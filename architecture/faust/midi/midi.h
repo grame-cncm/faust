@@ -267,6 +267,13 @@ class MidiNRPN {
     
 };
 
+/**
+ * A pure interface for MIDI handlers that can send/receive MIDI messages to/from 'midi' objects.
+ */
+struct midi_interface {
+    virtual void addMidiIn(midi* midi_dsp)      = 0;
+    virtual void removeMidiIn(midi* midi_dsp)   = 0;
+};
 
 /****************************************************
  * Base class for MIDI input handling.
@@ -277,7 +284,7 @@ class MidiNRPN {
  * - decoding two data byte messages: handleData2
  * - getting ready messages in polling mode
  ****************************************************/
-class midi_handler : public midi {
+class midi_handler : public midi, public midi_interface {
 
     protected:
 
@@ -289,7 +296,7 @@ class midi_handler : public midi {
   
     public:
 
-        midi_handler(const std::string& name = "MIDIHandler"):fName(name) {}
+        midi_handler(const std::string& name = "MIDIHandler"):midi_interface(), fName(name) {}
         virtual ~midi_handler() {}
 
         void addMidiIn(midi* midi_dsp) { if (midi_dsp) fMidiInputs.push_back(midi_dsp); }

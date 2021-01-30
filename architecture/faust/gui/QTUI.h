@@ -852,7 +852,7 @@ public:
     {
         fSlider->setMinimum(0);
         fSlider->setMaximum(10000);
-        fSlider->setSingleStep(fStep);
+        //fSlider->setSingleStep(fStep);
         fSlider->setValue(int(0.5+fConverter->faust2ui(fCur)));
         *fZone = fCur;
     }

@@ -30,7 +30,6 @@
 #include <string>
 #include <iostream>
 
-#include "faust/gui/DecoratorUI.h"
 #include "faust/gui/SimpleParser.h"
 
 #if defined(__APPLE__) && !defined(__VCVRACK__) && !defined(JUCE_32BIT) && !defined(JUCE_64BIT)
@@ -58,7 +57,9 @@ LibsndfileReader gReader;
 std::vector<std::string> path_name_list;
 Soundfile* defaultsound = gReader.createSoundfile(path_name_list, MAX_CHAN);
 
-class SoundUI : public GenericUI
+class SoundUIInterface : public GenericUI {};
+
+class SoundUI : public SoundUIInterface
 {
 		
     protected:
