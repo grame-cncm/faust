@@ -70,7 +70,7 @@ class ScalarCompiler : public Compiler {
     virtual string generateCode(Tree sig);
     virtual string generateCacheCode(Tree sig, const string& exp);
     virtual string forceCacheCode(Tree sig, const string& exp);
-    virtual string generateVariableStore(Tree sig, const string& exp, old_Occurences* o = nullptr);
+    virtual string generateVariableStore(Tree sig, const string& exp);
 
     string getFreshID(const string& prefix);
 

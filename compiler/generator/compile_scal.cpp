@@ -692,7 +692,7 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
         }
 
     } else if ((sharing > 1) || (o->hasMultiOccurences())) {
-        return generateVariableStore(sig, exp, o);
+        return generateVariableStore(sig, exp);
 
     } else if (sharing == 1) {
         return exp;
@@ -730,10 +730,12 @@ string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
     }
 }
 
-string ScalarCompiler::generateVariableStore(Tree sig, const string& exp, old_Occurences* o)
+string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
 {
     string vname, vname_perm, ctype;
     Type   t = getCertifiedSigType(sig);
+    old_Occurences*    o = fOccMarkup->retrieve(sig);
+    faustassert(o);
 
     switch (t->variability()) {
         case kKonst:

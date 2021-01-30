@@ -171,7 +171,7 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual void compileMultiSignal(Tree sig);
     virtual void compileSingleSignal(Tree sig);
 
-    virtual ValueInst* generateVariableStore(Tree sig, ValueInst* inst, old_Occurences* o = nullptr);
+    virtual ValueInst* generateVariableStore(Tree sig, ValueInst* inst);
     virtual ValueInst* generateCacheCode(Tree sig, ValueInst* inst);
     virtual ValueInst* forceCacheCode(Tree sig, ValueInst* inst);
 

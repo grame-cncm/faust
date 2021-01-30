@@ -1067,7 +1067,7 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
         }
 
     } else if (sharing > 1 || (o->hasMultiOccurences())) {
-        return generateVariableStore(sig, exp, o);
+        return generateVariableStore(sig, exp);
 
     } else if (sharing == 1) {
         return exp;
@@ -1103,7 +1103,7 @@ ValueInst* InstructionsCompiler::forceCacheCode(Tree sig, ValueInst* exp)
     }
 }
 
-ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp, old_Occurences* o)
+ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
 {
     // If value is already a simple value, no need to create a variable, just reuse it...
     if (exp->isSimpleValue()) {
@@ -1113,6 +1113,8 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp,
     string         vname, vname_perm;
     Typed::VarType ctype;
     ::Type         t = getCertifiedSigType(sig);
+    old_Occurences*    o = fOccMarkup->retrieve(sig);
+    faustassert(o);
 
     switch (t->variability()) {
         case kKonst:
