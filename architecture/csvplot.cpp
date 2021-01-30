@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
     CMDUI* interface = new CMDUI(argc, argv);
     DSP.buildUserInterface(interface);
     interface->addOption("-n", &nb_samples, 4096.0, 0.0, 100000000.0);
-    interface->addOption("-sr", &sample_rate, 44100.0, 0.0, 192000.0);
+    interface->addOption("-r", &sample_rate, 44100.0, 0.0, 192000.0);
     interface->addOption("-bs", &buffer_size, kFrames, 0.0, kFrames * 16);
     interface->addOption("-s", &start_at_sample, 0, 0.0, 100000000.0);
     
@@ -142,7 +142,10 @@ int main(int argc, char* argv[])
         exit(1);
     }
     
-    // init DSP with SR
+    // SR has to be read before DSP init
+    interface->process_one_init("-r");
+    
+    // init signal processor and the user interface values
     DSP.init(sample_rate);
     
     // modify the UI values according to the command line options, after init
@@ -183,7 +186,7 @@ int main(int argc, char* argv[])
     int nbsamples = int(nb_samples);
     cout << setprecision(numeric_limits<FAUSTFLOAT>::max_digits10);
     
-    // Print by buffer
+    // print by buffer
     while (nbsamples > buffer_size) {
         DSP.compute(buffer_size, 0, chan.buffers());
         for (int i = 0; i < buffer_size; i++) {
@@ -198,7 +201,7 @@ int main(int argc, char* argv[])
         nbsamples -= buffer_size;
     }
     
-    // Print remaining frames
+    // print remaining frames
     if (nbsamples) {
         DSP.compute(nbsamples, 0, chan.buffers());
         for (int i = 0; i < nbsamples; i++) {

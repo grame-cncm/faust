@@ -278,6 +278,22 @@ class CMDUI : public UI
             }
         }
     
+        // check if exist and process one single parameter
+        void process_one_init(const char* param1)
+        {
+            for (int i = 1; i < fArgc; i++) {
+                if (fArgv[i][0] == '-') {
+                    std::map<std::string, param>::iterator p = fKeyParam.find(fArgv[i]);
+                    if ((p != fKeyParam.end()) && (strcmp(fArgv[i], param1) == 0)) {
+                        char* end;
+                        *(p->second.fZone) = FAUSTFLOAT(std::strtod(fArgv[i+1], &end));
+                        break;
+                    }
+                    i++;
+                }
+            }
+        }
+    
         unsigned long files() { return fFiles.size(); }
         char* file(int n) { return fFiles[n]; }
     
