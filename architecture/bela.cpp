@@ -400,8 +400,6 @@ bool setup(BelaContext* context, void* userData)
 {
     int nvoices = 0;
     bool midi_sync = false;
-    mydsp_poly* dsp_poly = NULL;
-    
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
@@ -422,16 +420,16 @@ bool setup(BelaContext* context, void* userData)
 #ifdef POLY2
     int group = 1;
     std::cout << "Started with " << nvoices << " voices\n";
-    dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+    gDSP = new mydsp_poly(new mydsp(), nvoices, true, group);
     
 #ifdef MIDICTRL
     if (midi_sync) {
-        gDSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
+        gDSP = new timed_dsp(new dsp_sequencer(gDSP, new effect()));
     } else {
-        gDSP = new dsp_sequencer(dsp_poly, new effect());
+        gDSP = new dsp_sequencer(gDSP, new effect());
     }
 #else
-    gDSP = new dsp_sequencer(dsp_poly, new effect());
+    gDSP = new dsp_sequencer(gDSP, new effect());
 #endif
     
 #else
@@ -439,16 +437,12 @@ bool setup(BelaContext* context, void* userData)
     
     if (nvoices > 0) {
         std::cout << "Started with " << nvoices << " voices\n";
-        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+        gDSP = new mydsp_poly(new mydsp(), nvoices, true, group);
         
 #ifdef MIDICTRL
         if (midi_sync) {
-            gDSP = new timed_dsp(dsp_poly);
-        } else {
-            gDSP = dsp_poly;
+            gDSP = new timed_dsp(DSP);
         }
-#else
-        gDSP = dsp_poly;
 #endif
     } else {
 #ifdef MIDICTRL
@@ -477,9 +471,6 @@ bool setup(BelaContext* context, void* userData)
 #endif /* HTTPDGUI */
 
 #ifdef MIDICTRL
-#ifdef NVOICES
-    gMIDI.addMidiIn(dsp_poly);
-#endif
     gMidiInterface = new MidiUI(&gMIDI);
     gDSP->buildUserInterface(gMidiInterface);
     gMidiInterface->run();
@@ -493,9 +484,7 @@ bool setup(BelaContext* context, void* userData)
     
 #ifdef SOUNDFILE
     // SoundUI has to be dispatched on all internal voices
-    if (dsp_poly) dsp_poly->setGroup(false);
     gDSP->buildUserInterface(&gSoundInterface);
-    if (dsp_poly) dsp_poly->setGroup(group);
 #endif
     
     return true;

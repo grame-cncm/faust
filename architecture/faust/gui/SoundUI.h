@@ -31,6 +31,7 @@
 #include <iostream>
 
 #include "faust/gui/SimpleParser.h"
+#include "faust/gui/DecoratorUI.h"
 
 #if defined(__APPLE__) && !defined(__VCVRACK__) && !defined(JUCE_32BIT) && !defined(JUCE_64BIT)
 #include <CoreFoundation/CFBundle.h>
@@ -56,8 +57,6 @@ LibsndfileReader gReader;
 // To be used by DSP code if no SoundUI is used
 std::vector<std::string> path_name_list;
 Soundfile* defaultsound = gReader.createSoundfile(path_name_list, MAX_CHAN);
-
-class SoundUIInterface : public GenericUI {};
 
 class SoundUI : public SoundUIInterface
 {

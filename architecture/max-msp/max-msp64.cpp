@@ -143,7 +143,7 @@ using namespace std;
 #define ASSIST_INLET 	1
 #define ASSIST_OUTLET 	2
 
-#define EXTERNAL_VERSION    "0.83"
+#define EXTERNAL_VERSION    "0.84"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -174,7 +174,6 @@ typedef struct faust
     void** m_args;
     mspUI* m_dspUI;
     dsp* m_dsp;
-    mydsp_poly* m_dsp_poly;
     void* m_control_outlet;
     char* m_json;
     t_systhread_mutex m_mutex;    
@@ -208,14 +207,9 @@ void faust_allocate(t_faust* x, int nvoices)
     #ifdef POST
         post("polyphonic DSP voices = %d", nvoices);
     #endif
-        x->m_dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
+        x->m_dsp = new mydsp_poly(new mydsp(), nvoices, true, true);
     #ifdef POLY2
-        x->m_dsp = new dsp_sequencer(x->m_dsp_poly, new effect());
-    #else
-        x->m_dsp = x->m_dsp_poly;
-    #endif
-    #ifdef MIDICTRL
-        x->m_midiHandler->addMidiIn(x->m_dsp_poly);
+        x->m_dsp = new dsp_sequencer(x->m_dsp, new effect());
     #endif
     } else {
     #ifdef POST
@@ -320,12 +314,6 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 void faust_polyphony(t_faust* x, t_symbol* s, short ac, t_atom* av)
 {
     if (systhread_mutex_lock(x->m_mutex) == MAX_ERR_NONE) {
-        
-    #ifdef MIDICTRL
-        if (x->m_dsp_poly) {
-            x->m_midiHandler->removeMidiIn(x->m_dsp_poly);
-        }
-    #endif
         
         faust_allocate(x, av[0].a_w.w_long);
         
@@ -438,7 +426,6 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     x->m_savedUI = new SaveLabelUI();
     x->m_dspUI = NULL;
     x->m_dsp = NULL;
-    x->m_dsp_poly = NULL;
     x->m_json = NULL;
     x->m_mute = false;
     
@@ -496,10 +483,7 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
         post("Bundle_path '%s' cannot be found!", meta3.fName.c_str());
     }
     x->m_soundInterface = new SoundUI(bundle_path_str);
-    // SoundUI has to be dispatched on all internal voices
-    if (x->m_dsp_poly) x->m_dsp_poly->setGroup(false);
     x->m_dsp->buildUserInterface(x->m_soundInterface);
-    if (x->m_dsp_poly) x->m_dsp_poly->setGroup(true);
 #endif
     
 #ifdef OSCCTRL

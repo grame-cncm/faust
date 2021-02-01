@@ -41,6 +41,7 @@
 #include "faust/dsp/dsp-combiner.h"
 #include "faust/dsp/proxy-dsp.h"
 
+#include "faust/gui/DecoratorUI.h"
 #include "faust/gui/GUI.h"
 #include "faust/gui/MapUI.h"
 #include "faust/gui/JSONControl.h"
@@ -252,10 +253,6 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     }
 
 };
-
-#ifndef __SoundUI_H__
-class SoundUIInterface : public GenericUI {};
-#endif
 
 /**
  * A group of voices.

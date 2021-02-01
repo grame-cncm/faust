@@ -104,7 +104,6 @@ float uiBox::gDummy = 0;
     
     bool midi_sync = false;
     int nvoices = 0;
-    mydsp_poly* dsp_poly = NULL;
     
 #if MIDICTRL
     mydsp* tmp_dsp = new mydsp();
@@ -115,32 +114,28 @@ float uiBox::gDummy = 0;
 #if POLY2
     bool group = true;
     std::cout << "Started with " << nvoices << " voices\n";
-    dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+    DSP = new mydsp_poly(new mydsp(), nvoices, true, group);
     
     #if MIDICTRL
     if (midi_sync) {
-        DSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
+        DSP = new timed_dsp(new dsp_sequencer(DSP, new effect()));
     } else {
-        DSP = new dsp_sequencer(dsp_poly, new effect());
+        DSP = new dsp_sequencer(DSP, new effect());
     }
     #else
-        DSP = new dsp_sequencer(dsp_poly, new effect());
+        DSP = new dsp_sequencer(DSP, new effect());
     #endif
 #else
     bool group = true;
     
     if (nvoices > 0) {
         std::cout << "Started with " << nvoices << " voices\n";
-        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+        DSP = new mydsp_poly(new mydsp(), nvoices, true, group);
         
     #if MIDICTRL
         if (midi_sync) {
-            DSP = new timed_dsp(dsp_poly);
-        } else {
-            DSP = dsp_poly;
+            DSP = new timed_dsp(DSP);
         }
-    #else
-        DSP = dsp_poly;
     #endif
     } else {
     #if MIDICTRL
@@ -174,7 +169,6 @@ float uiBox::gDummy = 0;
     finterface = new FUI();
 #if MIDICTRL
     midi_handler = new rt_midi(_name);
-    midi_handler->addMidiIn(dsp_poly);
     midiinterface = new MidiUI(midi_handler);
 #endif
       
@@ -203,10 +197,7 @@ float uiBox::gDummy = 0;
 #if SOUNDFILE
     // Use bundle path
     soundinterface = new SoundUI(SoundUI::getBinaryPath());
-    // SoundUI has to be dispatched on all internal voices
-    if (dsp_poly) dsp_poly->setGroup(false);
     DSP->buildUserInterface(soundinterface);
-    if (dsp_poly) dsp_poly->setGroup(group);
 #endif
     
 #if MIDICTRL

@@ -273,6 +273,7 @@ class MidiNRPN {
 struct midi_interface {
     virtual void addMidiIn(midi* midi_dsp)      = 0;
     virtual void removeMidiIn(midi* midi_dsp)   = 0;
+    virtual ~midi_interface() {}
 };
 
 /****************************************************

@@ -122,23 +122,22 @@ int main(int argc, char *argv[] )
     char rcfilename[256];
     char* home = getenv("HOME");
     int nvoices = 0;
-    mydsp_poly* dsp_poly = NULL;
     snprintf(rcfilename, 256, "%s/.%src", home, appname);
 
 #ifdef POLY2
     nvoices = lopt(argv, "--nvoices", nvoices);
     int group = lopt(argv, "--group", 1);
     std::cout << "Started with " << nvoices << " voices\n";
-    dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+    DSP = new mydsp_poly(new mydsp(), nvoices, true, group);
 
 #if MIDICTRL
     if (hasMIDISync()) {
-        DSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
+        DSP = new timed_dsp(new dsp_sequencer(DSP, new effect()));
     } else {
-        DSP = new dsp_sequencer(dsp_poly, new effect());
+        DSP = new dsp_sequencer(DSP, new effect());
     }
 #else
-    DSP = new dsp_sequencer(dsp_poly, new effect());
+    DSP = new dsp_sequencer(DSP, new effect());
 #endif
     
 #else
@@ -147,16 +146,12 @@ int main(int argc, char *argv[] )
     
     if (nvoices > 0) {
         std::cout << "Started with " << nvoices << " voices\n";
-        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+        DSP = new mydsp_poly(new mydsp(), nvoices, true, group);
         
 #if MIDICTRL
         if (hasMIDISync()) {
-            DSP = new timed_dsp(dsp_poly);
-        } else {
-            DSP = dsp_poly;
+            DSP = new timed_dsp(DSP);
         }
-#else
-        DSP = dsp_poly;
 #endif
     } else {
 #if MIDICTRL
@@ -183,7 +178,6 @@ int main(int argc, char *argv[] )
 
 #ifdef MIDICTRL
     rt_midi midi_handler(appname);
-    midi_handler.addMidiIn(dsp_poly);
     MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
     std::cout << "MIDI is on" << std::endl;

@@ -111,24 +111,18 @@ int main(int argc, char* argv[])
     char name[256];
     char rcfilename[256];
     char* home = getenv("HOME");
-    mydsp_poly* dsp_poly = NULL;
-
     snprintf(name, 256, "%s", basename(argv[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, name);
 
 #ifdef POLY
     int poly = lopt(argv, "--poly", 4);
     int group = lopt(argv, "--group", 1);
-    dsp_poly = new mydsp_poly(new mydsp(), poly, true, group);
+    DSP = new mydsp_poly(new mydsp(), poly, true, group);
 
 #if MIDICTRL
     if (hasMIDISync()) {
-        DSP = new timed_dsp(dsp_poly);
-    } else {
-        DSP = dsp_poly;
+        DSP = new timed_dsp(DSP);
     }
-#else
-    DSP = dsp_poly;
 #endif
 
 #else
@@ -157,7 +151,6 @@ int main(int argc, char* argv[])
 
 #ifdef MIDICTRL
     rt_midi midi_handler(name);
-    midi_handler.addMidiIn(dsp_poly);
     MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
     std::cout << "MIDI is on" << std::endl;

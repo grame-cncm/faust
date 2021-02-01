@@ -89,8 +89,7 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
 {
 #ifdef NVOICES
     int nvoices = NVOICES;
-    mydsp_poly* dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
-    fDSP = dsp_poly;
+    fDSP = new mydsp_poly(new mydsp(), nvoices, true, true);
 #else
     fDSP = new mydsp();
 #endif
@@ -108,9 +107,6 @@ AudioFaust::AudioFaust(int sample_rate, int buffer_size)
     
 #ifdef MIDICTRL
     fMIDIHandler = new esp32_midi();
-#ifdef NVOICES
-    fMIDIHandler->addMidiIn(dsp_poly);
-#endif
     fMIDIInterface = new MidiUI(fMIDIHandler);
     fDSP->buildUserInterface(fMIDIInterface);
 #endif

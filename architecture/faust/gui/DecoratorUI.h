@@ -108,5 +108,8 @@ class DecoratorUI : public UI
     
 };
 
+// Defined here to simplify header #include inclusion 
+class SoundUIInterface : public GenericUI {};
+
 #endif
 /**************************  END  DecoratorUI.h **************************/

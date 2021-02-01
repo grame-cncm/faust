@@ -342,36 +342,35 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
 #else
     
     bool group = true;
-    mydsp_poly* dsp_poly = nullptr;
     
 #ifdef POLY2
     assert(nvoices > 0);
     std::cout << "Started with " << nvoices << " voices\n";
-    dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+    dsp* dsp = new mydsp_poly(new mydsp(), nvoices, true, group);
     
 #if MIDICTRL
     if (midi_sync) {
-        fDSP = std::make_unique<timed_dsp>(new dsp_sequencer(dsp_poly, new effect()));
+        fDSP = std::make_unique<timed_dsp>(new dsp_sequencer(dsp, new effect()));
     } else {
-        fDSP = std::make_unique<dsp_sequencer>(dsp_poly, new effect());
+        fDSP = std::make_unique<dsp_sequencer>(dsp, new effect());
     }
 #else
-    fDSP = std::make_unique<dsp_sequencer>(dsp_poly, new effects());
+    fDSP = std::make_unique<dsp_sequencer>(dsp, new effects());
 #endif
     
 #else
     if (nvoices > 0) {
         std::cout << "Started with " << nvoices << " voices\n";
-        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+        dsp* dsp = new mydsp_poly(new mydsp(), nvoices, true, group);
         
 #if MIDICTRL
         if (midi_sync) {
-            fDSP = std::make_unique<timed_dsp>(dsp_poly);
+            fDSP = std::make_unique<timed_dsp>(dsp);
         } else {
-            fDSP = std::make_unique<decorator_dsp>(dsp_poly);
+            fDSP = std::make_unique<decorator_dsp>(dsp);
         }
 #else
-        fDSP = std::make_unique<decorator_dsp>(dsp_poly);
+        fDSP = std::make_unique<decorator_dsp>(dsp);
 #endif
     } else {
 #if MIDICTRL
@@ -389,7 +388,6 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     
 #if defined(MIDICTRL)
     fMIDIHandler = std::make_unique<juce_midi_handler>();
-    fMIDIHandler->addMidiIn(dsp_poly);
     fMIDIUI = std::make_unique<MidiUI>(fMIDIHandler.get());
     fDSP->buildUserInterface(fMIDIUI.get());
     if (!fMIDIUI->run()) {
@@ -416,10 +414,7 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     auto file = juce::File::getSpecialLocation(juce::File::currentExecutableFile)
         .getParentDirectory().getParentDirectory().getChildFile("Resources");
     fSoundUI = std::make_unique<SoundUI>(file.getFullPathName().toStdString());
-    // SoundUI has to be dispatched on all internal voices
-    if (dsp_poly) dsp_poly->setGroup(false);
     fDSP->buildUserInterface(fSoundUI.get());
-    if (dsp_poly) dsp_poly->setGroup(group);
 #endif
     
 #ifdef JUCE_POLY

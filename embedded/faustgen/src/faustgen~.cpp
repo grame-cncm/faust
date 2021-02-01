@@ -276,9 +276,9 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
         /*
          std::vector<std::string> sound_directories = factory->getIncludePathnames();
          for (int i = 0; i < sound_directories.size(); i++) {
-         post("sound_directories %d %s", i, sound_directories[i].c_str());
+            post("sound_directories %d %s", i, sound_directories[i].c_str());
          }
-         */
+        */
     } else {
         post("%s", error_msg.c_str());
     }
@@ -324,7 +324,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
          for (int i= 0; i < sound_directories.size(); i++) {
             post("sound_directories %d %s", i, sound_directories[i].c_str());
          }
-         */
+        */
         return factory;
     } else {
         // Update all instances
@@ -1128,9 +1128,6 @@ void faustgen::free_dsp()
     // Save controller state
     fSavedUI->save();
     
-    // Has to be done *before* remove_instance that may free fDSPfactory and thus fDSPfactory->fMidiHandler
-    remove_midihandler();
-    
     delete fMidiUI;
     fMidiUI = NULL;
     
@@ -1612,24 +1609,6 @@ void faustgen::hilight_error(const string& error)
     object_error_obtrusive((t_object*)&m_ob, (char*)error.c_str());
 }
 
-void faustgen::add_midihandler()
-{
-    // Polyphonic DSP is controlled by MIDI
-    if (fDSPfactory->fPolyphonic) {
-        mydsp_poly* poly = static_cast<mydsp_poly*>(fDSP);
-        fMidiHandler.addMidiIn(poly);
-    }
-}
-
-void faustgen::remove_midihandler()
-{
-    // Polyphonic DSP is controlled by MIDI
-    if (fDSPfactory->fPolyphonic) {
-        mydsp_poly* poly = static_cast<mydsp_poly*>(fDSP);
-        fMidiHandler.removeMidiIn(poly);
-    }
-}
-
 void faustgen::init_controllers()
 {
     // Initialize User Interface (here connnection with controls)
@@ -1641,7 +1620,6 @@ void faustgen::init_controllers()
     // MIDI handling
     if (!fMidiUI) {
         fMidiUI = new MidiUI(&fMidiHandler);
-        add_midihandler();
         fDSP->buildUserInterface(fMidiUI);
     }
     
@@ -1652,15 +1630,7 @@ void faustgen::init_controllers()
     
     // Soundfile handling
     if (fDSPfactory->fSoundUI) {
-        if (fDSPfactory->fPolyphonic) {
-            mydsp_poly* poly = static_cast<mydsp_poly*>(fDSP);
-            // SoundUI has to be dispatched on all internal voices
-            poly->setGroup(false);
-            fDSP->buildUserInterface(fDSPfactory->fSoundUI);
-            poly->setGroup(true);
-        } else {
-            fDSP->buildUserInterface(fDSPfactory->fSoundUI);
-        }
+        fDSP->buildUserInterface(fDSPfactory->fSoundUI);
     }
 }
 

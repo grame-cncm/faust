@@ -97,8 +97,7 @@ int main(int argc, char* argv[])
     bool midi_sync = false;
     int nvoices = 0;
     bool control = true;
-    mydsp_poly* dsp_poly = NULL;
-
+  
     int celt = lopt(argv, "--c", -1);
     const char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
     int master_port = lopt(argv, "--p", DEFAULT_PORT);
@@ -123,16 +122,16 @@ int main(int argc, char* argv[])
     int group = lopt(argv, "--group", 1);
     
     std::cout << "Started with " << nvoices << " voices\n";
-    dsp_poly = new mydsp_poly(new mydsp(), nvoices, control, group);
+    DSP = new mydsp_poly(new mydsp(), nvoices, control, group);
     
 #if MIDICTRL
     if (midi_sync) {
-        DSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
+        DSP = new timed_dsp(new dsp_sequencer(DSP, new effect()));
     } else {
-        DSP = new dsp_sequencer(dsp_poly, new effect());
+        DSP = new dsp_sequencer(DSP, new effect());
     }
 #else
-    DSP = new dsp_sequencer(dsp_poly, new effect());
+    DSP = new dsp_sequencer(DSP, new effect());
 #endif
     
 #else
@@ -142,16 +141,12 @@ int main(int argc, char* argv[])
     
     if (nvoices > 0) {
         std::cout << "Started with " << nvoices << " voices\n";
-        dsp_poly = new mydsp_poly(new mydsp(), nvoices, control, group);
+        DSP = new mydsp_poly(new mydsp(), nvoices, control, group);
         
 #if MIDICTRL
         if (midi_sync) {
-            DSP = new timed_dsp(dsp_poly);
-        } else {
-            DSP = dsp_poly;
+            DSP = new timed_dsp(DSP);
         }
-#else
-        DSP = dsp_poly;
 #endif
     } else {
 #if MIDICTRL
@@ -200,7 +195,6 @@ int main(int argc, char* argv[])
 #ifdef MIDICTRL
     MidiUI* midiinterface = new MidiUI(&audio);
     DSP->buildUserInterface(midiinterface);
-    audio.addMidiIn(dsp_poly);
     std::cout << "MIDI is on" << std::endl;
 #endif
 
