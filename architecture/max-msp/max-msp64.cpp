@@ -227,6 +227,32 @@ void faust_allocate(t_faust* x, int nvoices)
     if (sizeof(FAUSTFLOAT) == 4) {
         x->m_dsp = new dsp_sample_adapter<FAUSTFLOAT, double>(x->m_dsp);
     }
+    
+    x->m_Inputs = x->m_dsp->getNumInputs();
+    x->m_Outputs = x->m_dsp->getNumOutputs();
+    
+    // Initialize at the system's sampling rate
+    x->m_dsp->init(long(sys_getsr()));
+    
+    // Initialize User Interface (here connnection with controls)
+    x->m_dsp->buildUserInterface(x->m_dspUI);
+    
+#ifdef SOUNDFILE
+    x->m_dsp->buildUserInterface(x->m_soundInterface);
+#endif
+    
+    // Prepare JSON
+    faust_make_json(x);
+    
+    // Send JSON to JS script
+    faust_create_jsui(x);
+    
+#ifdef OSCCTRL
+    x->m_oscInterface = NULL;
+#endif
+    
+    // Load old controller state
+    x->m_dsp->buildUserInterface(x->m_savedUI);
 }
 
 /*--------------------------------------------------------------------------*/
@@ -314,23 +340,7 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 void faust_polyphony(t_faust* x, t_symbol* s, short ac, t_atom* av)
 {
     if (systhread_mutex_lock(x->m_mutex) == MAX_ERR_NONE) {
-        
         faust_allocate(x, av[0].a_w.w_long);
-        
-        // Initialize at the system's sampling rate
-        x->m_dsp->init(long(sys_getsr()));
-        // Initialize User Interface (here connnection with controls)
-        x->m_dsp->buildUserInterface(x->m_dspUI);
-        
-        // Prepare JSON
-        faust_make_json(x);
-        
-        // Send JSON to JS script
-        faust_create_jsui(x);
-        
-        // Load old controller state
-        x->m_dsp->buildUserInterface(x->m_savedUI);
-        
         systhread_mutex_unlock(x->m_mutex);
     } else {
         post("Mutex lock cannot be taken...");
@@ -416,18 +426,27 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
 {
     bool midi_sync = false;
     int nvoices = 0;
+    t_faust* x = (t_faust*)object_alloc(faust_class);
     
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
+ #ifdef SOUNDFILE
+    Max_Meta3 meta3;
+    tmp_dsp->metadata(&meta3);
+    string bundle_path_str = SoundUI::getBinaryPathFrom(meta3.fName);
+    if (bundle_path_str == "") {
+        post("Bundle_path '%s' cannot be found!", meta3.fName.c_str());
+    }
+    x->m_soundInterface = new SoundUI(bundle_path_str);
+ #endif
     delete tmp_dsp;
     
-    t_faust* x = (t_faust*)object_alloc(faust_class);
-    
     x->m_savedUI = new SaveLabelUI();
-    x->m_dspUI = NULL;
+    x->m_dspUI = new mspUI();
     x->m_dsp = NULL;
     x->m_json = NULL;
     x->m_mute = false;
+    x->m_control_outlet = outlet_new((t_pxobject*)x, (char*)"list");
     
 #ifdef MIDICTRL
     x->m_midi_outlet = outlet_new((t_pxobject*)x, NULL);
@@ -435,27 +454,11 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     x->m_midiUI = new MidiUI(x->m_midiHandler);
 #endif
     
-    x->m_dspUI = new mspUI();
-    
     faust_allocate(x, nvoices);
-    
-    x->m_Inputs = x->m_dsp->getNumInputs();
-    x->m_Outputs = x->m_dsp->getNumOutputs();
-    
-    x->m_control_outlet = outlet_new((t_pxobject*)x, (char*)"list");
- 
-    // Initialize at the system's sampling rate
-    x->m_dsp->init(long(sys_getsr()));
-    // Initialize User Interface (here connnection with controls)
-    x->m_dsp->buildUserInterface(x->m_dspUI);
-    
-    t_max_err err = systhread_mutex_new(&x->m_mutex, SYSTHREAD_MUTEX_NORMAL);
-    if (err != MAX_ERR_NONE) {
+   
+    if (systhread_mutex_new(&x->m_mutex, SYSTHREAD_MUTEX_NORMAL) != MAX_ERR_NONE) {
         post("Cannot allocate mutex...");
     }
-    
-    // Prepare JSON
-    faust_make_json(x);
     
     int num_input;
     if (x->m_dspUI->isMulti()) {
@@ -465,6 +468,7 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     }
     
     x->m_args = (void**)calloc((num_input + x->m_dsp->getNumOutputs()) + 2, sizeof(void*));
+    
     /* Multi in */
     dsp_setup((t_pxobject*)x, num_input);
 
@@ -474,35 +478,14 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     }
 
     ((t_pxobject*)x)->z_misc = Z_NO_INPLACE; // To assure input and output buffers are actually different
-
-#ifdef SOUNDFILE
-    Max_Meta3 meta3;
-    x->m_dsp->metadata(&meta3);
-    string bundle_path_str = SoundUI::getBinaryPathFrom(meta3.fName);
-    if (bundle_path_str == "") {
-        post("Bundle_path '%s' cannot be found!", meta3.fName.c_str());
-    }
-    x->m_soundInterface = new SoundUI(bundle_path_str);
-    x->m_dsp->buildUserInterface(x->m_soundInterface);
-#endif
-    
-#ifdef OSCCTRL
-    x->m_oscInterface = NULL;
-#endif
-    
-    // Send JSON to JS script
-    faust_create_jsui(x);
-    
-    // Load old controller state
-    x->m_dsp->buildUserInterface(x->m_savedUI);
-    
+ 
     // Display controls
 #ifdef POST
     x->m_dspUI->displayControls();
-#endif   
+#endif
+    
     // Get attributes values
     attr_args_process(x, ac, av);
-    
     return x;
 }
 
