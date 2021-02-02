@@ -547,6 +547,10 @@ int DspFaust::getScreenColor()
 int main(int argc, char* argv[])
 {
 #ifdef DYNAMIC_DSP
+    if (argc == 1) {
+        std::cout << "./dynamic-api <foo.dsp> \n";
+        exit(-1);
+    }
     DspFaust* dsp = new DspFaust(argv[1], 44100, 512);
 #else
     DspFaust* dsp = new DspFaust(44100, 512);
