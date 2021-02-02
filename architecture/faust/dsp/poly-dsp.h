@@ -449,10 +449,6 @@ class dsp_poly : public decorator_dsp, public midi, public JSONControl {
             midi::progChange(channel, pgm);
         }
     
-        // Group API
-        virtual void setGroup(bool group) {}
-        virtual bool getGroup() { return false; }
-
 };
 
 /**
@@ -617,7 +613,6 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
          * @param group - if true, voices are not individually accessible, a global "Voices" tab will automatically dispatch
          *                a given control on all voices, assuming GUI::updateAllGuis() is called.
          *                If false, all voices can be individually controlled.
-         *                setGroup/getGroup methods can be used to set/get the group state.
          *
          */
         mydsp_poly(dsp* dsp,
@@ -793,10 +788,6 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                 std::cout << "Voice not found\n";
             }
         }
-    
-        // Group API
-        void setGroup(bool group) { fGroupControl = group; }
-        bool getGroup() { return fGroupControl; }
 
         // MIDI API
         MapUI* keyOn(int channel, int pitch, int velocity)
@@ -885,16 +876,7 @@ class dsp_poly_effect : public dsp_poly {
         {
             fPolyDSP->progChange(channel, pgm);
         }
-        
-        // Group API
-        void setGroup(bool group)
-        {
-            fPolyDSP->setGroup(group);
-        }
-        bool getGroup()
-        {
-            return fPolyDSP->getGroup();
-        }
+    
 };
 
 /**

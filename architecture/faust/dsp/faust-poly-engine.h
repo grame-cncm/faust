@@ -62,7 +62,7 @@ class FaustPolyEngine {
         midi_handler fMidiHandler;
         MidiUI fMidiUI;
     
-        void init(dsp* mono_dsp, audio* driver, midi_handler* midi)
+        void init(dsp* mono_dsp, audio* driver, midi_handler* handler)
         {
             bool midi_sync = false;
             int nvoices = 0;
@@ -83,8 +83,6 @@ class FaustPolyEngine {
             if (nvoices > 0) {
                 
                 fPolyDSP = new mydsp_poly(mono_dsp, nvoices, true);
-                fMidiHandler.addMidiIn(fPolyDSP);
-                if (midi) midi->addMidiIn(fPolyDSP);
                 
             #if POLY2
                 fFinalDSP = new dsp_sequencer(fPolyDSP, new effect());
@@ -122,7 +120,7 @@ class FaustPolyEngine {
       
             MyMeta meta;
             fFinalDSP->metadata(&meta);
-            if (midi) midi->setName(meta.fName);
+            if (handler) handler->setName(meta.fName);
             
             if (driver) {
                 // If driver cannot be initialized, start will fail later on...
@@ -185,9 +183,6 @@ class FaustPolyEngine {
             }
         }
     
-        void setGroup(bool group) { if (fPolyDSP) fPolyDSP->setGroup(group); }
-        bool getGroup() { return (fPolyDSP) ? fPolyDSP->getGroup() : false; }
-    
         /*
          * keyOn(pitch, velocity)
          * Instantiates a new polyphonic voice where velocity
@@ -210,10 +205,10 @@ class FaustPolyEngine {
          * De-instantiates a polyphonic voice where pitch is the
          * MIDI number of the note (0-127). keyOff can only be
          * used if the [style:poly] metadata is used in the Faust
-         * code. keyOn will return 0 if the object is not polyphonic
+         * code. keyOff will return 0 if the object is not polyphonic
          * and 1 otherwise.
          */
-        int keyOff(int pitch, int velocity = 127)
+        int keyOff(int pitch, int velocity = 0)
         {
             if (fPolyDSP) {
                 fPolyDSP->keyOff(0, pitch, velocity);

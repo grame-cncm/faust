@@ -38,7 +38,7 @@
 #include "faust/misc.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
-#include "faust/gui/UI.h"
+#include "faust/gui/DecoratorUI.h"
 #include "faust/gui/JSONUIDecoder.h"
 
 #ifdef SOUNDFILE

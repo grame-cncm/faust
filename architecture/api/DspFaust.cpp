@@ -21,7 +21,7 @@
 #include <cstring>
 
 #include "faust/misc.h"
-#include "faust/gui/UI.h"
+#include "faust/gui/DecoratorUI.h"
 #include "faust/gui/JSONUIDecoder.h"
 #include "faust/dsp/dsp.h"
 #include "faust/dsp/dsp-adapter.h"
@@ -235,21 +235,21 @@ audio* DspFaust::createDriver(int sample_rate, int buffer_size, bool auto_connec
 void DspFaust::init(dsp* mono_dsp, audio* driver)
 {
 #if MIDICTRL
-    midi_handler* midi;
+    midi_handler* handler;
 #if JACK_DRIVER
-    midi = static_cast<jackaudio_midi*>(driver);
-    fMidiInterface = new MidiUI(midi);
+    handler = static_cast<jackaudio_midi*>(driver);
+    fMidiInterface = new MidiUI(handler);
 #elif JUCE_DRIVER
-    midi = new juce_midi();
-    fMidiInterface = new MidiUI(midi, true);
+    handler = new juce_midi();
+    fMidiInterface = new MidiUI(handler, true);
 #elif TEENSY_DRIVER
-    midi = new teensy_midi();
-    fMidiInterface = new MidiUI(midi, true);
+    handler = new teensy_midi();
+    fMidiInterface = new MidiUI(handler, true);
 #else
-    midi = new rt_midi();
-    fMidiInterface = new MidiUI(midi, true);
+    handler = new rt_midi();
+    fMidiInterface = new MidiUI(handler, true);
 #endif
-    fPolyEngine = new FaustPolyEngine(mono_dsp, driver, midi);
+    fPolyEngine = new FaustPolyEngine(mono_dsp, driver, handler);
     fPolyEngine->buildUserInterface(fMidiInterface);
 #else
     fPolyEngine = new FaustPolyEngine(mono_dsp, driver);
@@ -289,10 +289,7 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
     // Use bundle path
     fSoundInterface = new SoundUI(SoundUI::getBinaryPath());
 #endif
-    // SoundUI has to be dispatched on all internal voices
-    fPolyEngine->setGroup(false);
     fPolyEngine->buildUserInterface(fSoundInterface);
-    fPolyEngine->setGroup(true);
 #endif
 }
 
@@ -301,15 +298,15 @@ DspFaust::~DspFaust()
 #if OSCCTRL
     delete fOSCInterface;
 #endif
-#if MIDICTRL
-    delete fMidiInterface;
-#endif
 #if SOUNDFILE
     delete fSoundInterface;
 #endif
     delete fPolyEngine;
 #if DYNAMIC_DSP
     deleteDSPFactory(static_cast<llvm_dsp_factory*>(fFactory));
+#endif
+#if MIDICTRL
+    delete fMidiInterface;  // after deleting fPolyEngine;
 #endif
 }
 
