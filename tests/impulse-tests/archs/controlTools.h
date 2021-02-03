@@ -163,9 +163,7 @@ static void runPolyDSP(dsp* dsp, int& linenum, int nbsamples, int num_voices = 4
     // Soundfile
     TestMemoryReader memory_reader;
     SoundUI sound_ui("", -1, &memory_reader);
-    DSP->setGroup(false);
     DSP->buildUserInterface(&sound_ui);
-    DSP->setGroup(true);
   
     // Get control and then 'initRandom'
     CheckControlUI controlui;
