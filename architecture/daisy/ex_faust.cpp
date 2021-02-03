@@ -71,7 +71,6 @@ using namespace std;
 
 #ifdef POLY
 #include "faust/dsp/poly-dsp.h"
-mydsp_poly* dsp_poly = nullptr;
 #endif
 
 DaisySeed hw;
@@ -104,11 +103,10 @@ int main(void)
 #ifdef POLY
     int nvoices = 0;
     bool midi_sync = false;
-    mydsp* dsp = new mydsp();
-    MidiMeta::analyse(dsp, midi_sync, nvoices);
-    dsp_poly = new mydsp_poly(dsp, nvoices, true, true);
-    DSP = dsp_poly;
-#else
+    DSP = new mydsp();
+    MidiMeta::analyse(DSP, midi_sync, nvoices);
+    DSP = new mydsp_poly(DSP, nvoices, true, true);
+ else
     DSP = new mydsp();
 #endif
     
@@ -130,9 +128,6 @@ int main(void)
     
 #ifdef MIDICTRL
     daisy_midi midi_handler;
-#ifdef POLY
-    midi_handler.addMidiIn(dsp_poly);
-#endif
     MidiUI midi_interface(&midi_handler);
     DSP->buildUserInterface(&midi_interface);
     midi_handler.startMidi();
