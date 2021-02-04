@@ -75,7 +75,7 @@ class soul_cpp_dsp : public dsp {
         soul_cpp_dsp()
         {
             fDecoder = nullptr;
-            std::vector<souldsp::Parameter> parameters = fDSP.createParameterList();
+            souldsp::ParameterList parameters = fDSP.createParameterList();
             fZoneMap = new FAUSTFLOAT[parameters.size()];
         }
     
@@ -99,7 +99,7 @@ class soul_cpp_dsp : public dsp {
         {
             //fDecoder->buildUserInterface(ui_interface);
             
-            std::vector<souldsp::Parameter> parameters = fDSP.createParameterList();
+            souldsp::ParameterList parameters = fDSP.createParameterList();
             for (int i = 0; i < parameters.size(); i++) {
                 souldsp::Parameter& param = parameters[i];
                 souldsp::ParameterProperties& prop = param.properties;
