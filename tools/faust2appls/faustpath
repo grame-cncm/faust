@@ -2,10 +2,10 @@
 
 #####################################################################
 #                                                                   #
-#               Search where Faust is installed and defines   		#
-#				$FAUSTLIB and $FAUSTINC so that we can use			#
-#				-L$FAUSTLIB and -I$FAUSTINC where needed.			#
-#               (c) Grame, 2013                                    #
+#               Search where Faust is installed and defines         #
+#               $FAUSTLIB and $FAUSTINC so that we can use          #
+#               -L$FAUSTLIB and -I$FAUSTINC where needed.           #
+#               (c) Grame, 2013                                     #
 #                                                                   #
 #####################################################################
 
@@ -33,13 +33,13 @@ VSTSDK=""
 FPATH="$FAUST_INSTALL /usr/local /usr /opt /opt/local"; # <- where to search
 if [ -z "$FAUSTLIB" -o -z "$FAUSTINC" ]; then 
 for f in $FPATH; do
-	if [ -e $f/share/faust ]; 	then FAUSTLIB=$f/share/faust;	fi
+	if [ -e $f/share/faust ]; then FAUSTLIB=$f/share/faust;	fi
 	if [ -e $f/include/faust ];	then FAUSTINC=$f/include/; fi
 done
 fi
 
 for f in $FPATH; do
-	if [ -e $f/lib/libmicrohttpd.a ]; 	then HTTPLIB=$f/share/faust;	fi
+	if [ -e $f/lib/libmicrohttpd.a ]; then HTTPLIB=$f/share/faust;	fi
 done
 
 if [ -e /etc/faust/faustpath ]; then
