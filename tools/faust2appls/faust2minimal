@@ -1,0 +1,80 @@
+#! /bin/bash -e
+
+#####################################################################
+#                                                                   #
+#               A minimal faust2minimal  template                   #
+#               (c) Grame, 2021                                     #
+#                                                                   #
+#####################################################################
+
+# Define some common paths
+. faustpath
+
+# Define compilation flags
+. faustoptflags
+
+# Helper file to build the 'help' option
+. usage.sh
+
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
+
+# The architecture file name
+ARCHFILE=$FAUSTARCH/minimal.cpp
+
+# Global variables
+OPTIONS=""
+FILES=""
+
+#-------------------------------------------------------------------
+# dispatch command arguments
+#-------------------------------------------------------------------
+
+while [ $1 ]
+do
+    p=$1
+ 
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        usage faust2minimal "[options] [Faust options] <file.dsp>"
+        exit
+    fi
+    
+    echo "dispatch command arguments"
+
+    if [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"        
+	fi
+
+shift
+
+done
+
+#-------------------------------------------------------------------
+# compile the *.dsp files 
+#-------------------------------------------------------------------
+
+for f in $FILES; do
+
+	# compile the DSP to c++ using the architecture file
+	echo "compile the DSP to c++ using the architecture file"
+    faust -i -a $ARCHFILE $OPTIONS "$f" -o "${f%.dsp}.cpp"|| exit
+   
+	# compile c++ to binary
+	echo "compile c++ to binary"
+	(
+		$CXX $CXXFLAGS "${f%.dsp}.cpp" -o "${f%.dsp}"
+	) > /dev/null || exit
+
+    # remove tempory files
+	rm -f "${f%.dsp}.cpp"
+
+	# collect binary file name for FaustWorks
+	BINARIES="$BINARIES${f%.dsp};"
+done
+
+echo $BINARIES
+
+
