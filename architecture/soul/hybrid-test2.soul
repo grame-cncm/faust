@@ -1,0 +1,48 @@
+
+faust Clarinet
+{
+    import("stdfaust.lib");
+    process = os.osc(500) <: (_,_);
+}
+
+faust Reverb
+{
+    import("stdfaust.lib");
+    process = dm.freeverb_demo;
+}
+
+processor Gain
+{
+    input stream float input0;
+    input stream float input1;
+
+    output stream float output0;
+    output stream float output1;
+
+    void run() 
+    {
+        loop {
+            output0 << input0 * 0.5f;
+            output1 << input1 * 0.5f;
+            advance();
+        }
+    }
+}
+
+graph sequence [[main]]
+{
+    output stream float audioOut0;
+    output stream float audioOut1;
+
+    connection 
+    {
+        Clarinet.output0 -> Reverb.input0;
+        Clarinet.output1 -> Reverb.input1;
+
+        Reverb.output0 -> Gain.input0;
+        Reverb.output1 -> Gain.input1;
+
+        Gain.output0 -> audioOut0;
+        Gain.output1 -> audioOut1;
+    }
+}

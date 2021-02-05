@@ -666,7 +666,7 @@ static bool processCmdline(int argc, const char* argv[])
     }
     
     if (gGlobal->gFTZMode == 2 && gGlobal->gOutputLang == "soul") {
-        throw faustexception("ERROR : '-ftz 2' option cannot only be used in 'soul' backend\n");
+        throw faustexception("ERROR : '-ftz 2' option cannot be used in 'soul' backend\n");
     }
 
     if (gGlobal->gVectorLoopVariant < 0 || gGlobal->gVectorLoopVariant > 1) {

@@ -58,3 +58,15 @@ So for instance:
 
 - `soul-faust-tester foo.soulpatch` to test a SOUL patch compiled to LLVM-IR and JITted to native code, and running in the SOUL runtime.
 
+# soul-faust-editor
+
+The **soul-faust-editor** tool loads an hybrid Faust/SOUL code file and compile it in a SOUL patch each time the source file content changes. It can be used in conjunction with the **soul** runtime or any SOUL aware plugin to create a *Faust/SOUL => SOUL => executable code* edit loop. The SOUL generated files are  `hybrid.soul` and  `hybrid.soulpatch`.
+
+`soul-faust-editor [Faust options : any option (e.g. -vec -vs 8...)] <foo.soul>`
+
+So for instance:
+
+- `soul-faust-editor hybrid-test2.soul ` to start editing an hybrid Faust/SOUL code and  `soul play hybrid.soulpatch` to play the SOUL dynamically generated `hybrid.soulpatch`.
+
+**Note**: the code has a dependency with the [efsw](https://github.com/havoc-io/efsw) library.
+
