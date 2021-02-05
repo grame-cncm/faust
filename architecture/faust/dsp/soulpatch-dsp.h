@@ -674,9 +674,10 @@ class faust_soul_parser  {
             return res;
         }
     
-        void createSOULPatch(const std::string& soulpatch_file, const std::string& soul_file)
+        void createSOULPatch(const std::string& soul_file)
         {
             // Generate "soulpatch" file
+            std::string soulpatch_file = soul_file + "patch";
             std::ofstream patch_file(soulpatch_file);
             patch_file << "{" << std::endl;
                 patch_file << "\t\"soulPatchV1\":" << std::endl;

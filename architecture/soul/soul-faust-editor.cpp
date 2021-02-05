@@ -30,9 +30,6 @@
 #include "faust/dsp/soulpatch-dsp.h"
 #include "faust/misc.h"
 
-#define HYBRID_FILE       "hybrid.soul"
-#define HYBRID_PATCH_FILE "hybrid.soulpatch"
-
 using namespace std;
 
 static bool endWith(const string& str, const string& suffix)
@@ -43,18 +40,20 @@ static bool endWith(const string& str, const string& suffix)
 
 struct HybridEditor {
     
-    string fFilename;
+    string fInFilename;
+    string fOutFilename;
     int fArgc1;
     const char** fArgv1;
     efsw_watcher fEfsw;
     
-    HybridEditor(const string& file_name,
+    HybridEditor(const string& in_filename,
+                 const string& out_filename,
                  int argc1,
                  const char* argv1[])
-    :fFilename(file_name), fArgc1(argc1), fArgv1(argv1)
+    :fInFilename(in_filename), fOutFilename(out_filename), fArgc1(argc1), fArgv1(argv1)
     {
         char temp[PATH_MAX + 1];
-        char* path = realpath(file_name.c_str(), temp);
+        char* path = realpath(in_filename.c_str(), temp);
         std::string dir = dirname(path);
         
         fEfsw = efsw_create(false);
@@ -77,13 +76,13 @@ struct HybridEditor {
     {
         // We have a pure SOUL file or a Faust/SOUL file, parse it, compile the Faust part to SOUL, generate the SOUL result
         faust_soul_parser parser;
-        if (!parser.parseSOULFile(fFilename, HYBRID_FILE, fArgc1, fArgv1)) {
-            cerr << "ERROR : file '" << fFilename << "' cannot be opened or compiled!\n";
+        if (!parser.parseSOULFile(fInFilename, fOutFilename, fArgc1, fArgv1)) {
+            cerr << "ERROR : file '" << fInFilename << "' cannot be opened or compiled!\n";
             return;
         }
         
         // Generate "soulpatch" file
-        parser.createSOULPatch(HYBRID_PATCH_FILE, HYBRID_FILE);
+        parser.createSOULPatch(fOutFilename);
     }
     
     static void watchCallback(efsw_watcher watcher,
@@ -100,7 +99,7 @@ struct HybridEditor {
             || action == EFSW_MODIFIED
             || action == EFSW_MOVED) {
             // Check filename
-            if (string(filename) == editor->fFilename) {
+            if (string(filename) == editor->fInFilename) {
                 editor->compilePatch();
             }
         }
@@ -111,19 +110,28 @@ struct HybridEditor {
 int main(int argc, char* argv[])
 {
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "soul-faust-editor [Faust options : any option (e.g. -vec -vs 8...)] foo.soul" << endl;
+        cout << "soul-faust-editor [Faust options : any option (e.g. -vec -vs 8...)] <foo.soul> -o <output.soul>" << endl;
         exit(-1);
     }
     
-    char* filename = argv[argc-1];
+    char* in_filename;
+    char* out_filename;
     int argc1 = 0;
     const char* argv1[64];
     for (int i = 1; i < argc-1; i++) {
+        if (endWith(string(argv[i]), ".soul")) {
+            in_filename = argv[i];
+            continue;
+        } else if (string(argv[i]) == "-o") {
+            out_filename = argv[i+1];
+            i++;
+            continue;
+        }
         argv1[argc1++] = argv[i];
     }
     
-    if (endWith(filename, "soul")) {
-        HybridEditor editor(filename, argc1, argv1);
+    if (endWith(in_filename, "soul")) {
+        HybridEditor editor(in_filename, out_filename, argc1, argv1);
     } else {
         cout << "ERROR : incorrect file type" << endl;
         exit(-1);

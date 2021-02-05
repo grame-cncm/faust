@@ -60,13 +60,97 @@ So for instance:
 
 # soul-faust-editor
 
-The **soul-faust-editor** tool loads an hybrid Faust/SOUL code file and compile it in a SOUL patch each time the source file content changes. It can be used in conjunction with the **soul** runtime or any SOUL aware plugin to create a *Faust/SOUL => SOUL => executable code* edit loop. The SOUL generated files are  `hybrid.soul` and  `hybrid.soulpatch`.
+The **soul-faust-editor** tool loads an hybrid Faust/SOUL code file and compile it in a SOUL patch each time the source file content changes. It can be used in conjunction with the **soul** runtime or any SOUL aware plugin to create a *Faust/SOUL => SOUL => executable code* edit loop. The SOUL generated files are  `hybrid.soul` and  `hybrid.soulpatch` by default.
 
-`soul-faust-editor [Faust options : any option (e.g. -vec -vs 8...)] <foo.soul>`
+`soul-faust-editor [Faust options : any option (e.g. -ftz 1...)] <foo.soul> -o <output.soul>`
 
 So for instance:
 
 - `soul-faust-editor hybrid-test2.soul ` to start editing an hybrid Faust/SOUL code and  `soul play hybrid.soulpatch` to play the SOUL dynamically generated `hybrid.soulpatch`.
+
+## Syntax
+
+A Faust block is using the following syntax:
+
+ ```
+faust Name
+{
+  ... Faust code...
+}
+ ```
+
+It will be compiled in SOUL code as a `processor Name { ...SOUL code... } ` and inserted back in the resulting SOUL file. Here is a real example:
+
+ ```
+faust Osc
+{
+    import("stdfaust.lib");
+    freq = hslider("freq [soul:osc_freq]", 300, 200, 2000, 0.1);
+    vol = hslider("vol", 0.5, 0, 1, 0.01);
+    process = os.osc(freq) * vol <: (_,_);  
+}
+ ```
+
+ Faust processors audio inputs are numbered `input0/input1..inputN` and audio outputs  `output0/output1..outputN`. So a given `faust Foo {...}` block can be used in the graph section with: `Foo.input0`,  `Foo.input1`, `Foo.ouput0`,  `Foo.output1` for instance.
+
+Control parameters (button, sliders, nentry) are using their label name, or a possible *alias* is the `[soul:alias]` metadata appears in the label string.
+
+## Example of an hybrid file
+
+The following example combines:
+
+- an `Osc` Faust block with *freq* and *vol* controllers
+- a `Gain` SOUL processor with a *gain* controller
+- a `Sequence` graph connecting the Faust osc in the SOUL gain and exposing the three controllers
+
+ ```
+faust Osc
+{
+    import("stdfaust.lib");
+    freq = hslider("freq [soul:osc_freq]", 300, 200, 2000, 0.1);
+    vol = hslider("vol", 0.5, 0, 1, 0.01);
+    process = os.osc(freq) * vol <: (_,_);  
+}
+
+processor Gain
+{
+    input stream float gain [[ name: "Gain", min: 0, max: 1, init: 0.1, step: 0.01 ]]; 
+
+    input stream float input0;
+    input stream float input1;
+
+    output stream float output0;
+    output stream float output1;
+
+    void run() 
+    {
+        loop {
+            output0 << input0 * volume;
+            output1 << input1 * volume;
+            advance();
+        }
+    }
+}
+
+graph Sequence [[main]]
+{
+    input Osc.osc_freq;
+    input Osc.vol;
+    input Gain.volume;
+
+    output stream float audioOut0;
+    output stream float audioOut1;
+
+    connection 
+    {
+        Osc.output0 -> Gain.input0;
+        Osc.output1 -> Gain.input1;
+
+        Gain.output0 -> audioOut0;
+        Gain.output1 -> audioOut1;
+    }
+}
+ ```
 
 **Note**: the code has a dependency with the [efsw](https://github.com/havoc-io/efsw) library.
 

@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
         }
         
         // Generate "soulpatch" file
-        parser.createSOULPatch(FAUST_PATCH_FILE, FAUST_FILE);
+        parser.createSOULPatch(FAUST_FILE);
         real_file = FAUST_PATCH_FILE;
         
     } else if (endWith(filename, ".soul")) {
@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
         }
         
         // Generate "soulpatch" file
-        parser.createSOULPatch(HYBRID_PATCH_FILE, HYBRID_FILE);
+        parser.createSOULPatch(HYBRID_FILE);
         real_file = HYBRID_PATCH_FILE;
         
     } else if (endWith(filename, ".soulpatch")) {
