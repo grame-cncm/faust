@@ -1,36 +1,36 @@
 #!/usr/bin/env bash
 
 function usage() {
-	name=$1
-	shift
-	args=$*
-	echo "Usage: $name $args"
+    name=$1
+    shift
+    args=$*
+    echo "Usage: $name $args"
 }
 
 function platform() {
-	echo "Target platform: $*"
+    echo "Target platform: $*"
 }
 
 function require() {
-	echo "Require: $*"
+    echo "Require: $*"
 }
 
 function options() {
-	while [ "$1" ]
-	do
+    while [ "$1" ]
+    do
         option $1
         shift
-	done
+    done
 }
 
 function option() {
-	if [ $# -ne 0 ] 
-	then
-		option=$1
-		shift
-		doc=$*
-		if [ -z "$doc" ]
-		then
+    if [ $# -ne 0 ] 
+    then
+        option=$1
+        shift
+        doc=$*
+        if [ -z "$doc" ]
+        then
             case $option in
                 "-httpd") doc="activates HTTP control";;
                 "-osc") doc="activates OSC control";;
