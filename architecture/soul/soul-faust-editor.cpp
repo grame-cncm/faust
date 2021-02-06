@@ -74,7 +74,7 @@ struct HybridEditor {
     
     void compilePatch()
     {
-        cout << "compilePatch : '" << fInFilename << "' to '" << fOutFilename << "'" << endl;
+        cout << "compilePatch : '" << fInFilename << "' to '" << fOutFilename << "' and '" << fOutFilename + "patch'" << endl;
         // We have a pure SOUL file or a Faust/SOUL file, parse it, compile the Faust part to SOUL, generate the SOUL result
         faust_soul_parser parser;
         if (!parser.parseSOULFile(fInFilename, fOutFilename, fArgc1, fArgv1)) {
