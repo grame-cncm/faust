@@ -74,6 +74,7 @@ struct HybridEditor {
     
     void compilePatch()
     {
+        cout << "compilePatch : '" << fInFilename << "' to '" << fOutFilename << "'" << endl;
         // We have a pure SOUL file or a Faust/SOUL file, parse it, compile the Faust part to SOUL, generate the SOUL result
         faust_soul_parser parser;
         if (!parser.parseSOULFile(fInFilename, fOutFilename, fArgc1, fArgv1)) {
@@ -110,7 +111,8 @@ struct HybridEditor {
 int main(int argc, char* argv[])
 {
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "soul-faust-editor [Faust options : any option (e.g. -ftz 1...)] <foo.soul> -o <output.soul>" << endl;
+        cout << "Copyright (c) 2021 Grame, version 0.1" << endl;
+        cout << "Usage: soul-faust-editor [Faust options : any option (e.g. -ftz 1...)] <foo.soul> -o <output.soul>" << endl;
         exit(-1);
     }
     
