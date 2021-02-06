@@ -69,7 +69,7 @@ So for instance:
 - `soul-faust-editor hybrid-test2.soul` to start editing an hybrid Faust/SOUL code
 - `soul play hybrid.soulpatch` to play the SOUL dynamically generated `hybrid.soulpatch`
 
-## Syntax
+## Hybrid Faust/SOUL Syntax
 
 A Faust block uses the following syntax:
 
@@ -135,8 +135,11 @@ processor Gain
 
 graph Sequence [[main]]
 {
+    // Used in 'hslider' label with [soul:osc_freq] metadata in Faust Osc {...}
     input Osc.osc_freq;
+    // Used as 'hslider' label in Faust Osc {...}
     input Osc.vol;
+    // Using in SOUL processor Gain {...}
     input Gain.volume;
 
     output stream float audioOut0;
@@ -144,6 +147,7 @@ graph Sequence [[main]]
 
     connection 
     {
+        // Faust Osc {...} audio outputs are output0/output1...outputN
         Osc.output0 -> Gain.input0;
         Osc.output1 -> Gain.input1;
 
@@ -153,5 +157,5 @@ graph Sequence [[main]]
 }
  ```
 
-**Note**: the code has a dependency with the [efsw](https://github.com/havoc-io/efsw) library.
+**Note**: the code has a dependency with the [efsw](https://github.com/havoc-io/efsw) library which has to be installed before compilation.
 

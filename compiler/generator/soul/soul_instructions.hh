@@ -75,7 +75,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
     virtual void visit(AddButtonInst* inst)
     {
         if (gGlobal->gOutputLang == "soul-poly") {
-            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.', '-'};
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << replaceCharList(inst->fLabel, rep, '_')
             << " [[ name: " << quote(inst->fLabel)
@@ -89,7 +89,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             fOut << " ]];";
         } else if (gGlobal->gOutputLang == "soul-hybrid") {
             string soul_meta = getSoulMatadata();
-            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.', '-'};
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " " << ((soul_meta != "") ? soul_meta : replaceCharList(inst->fLabel, rep, '_'))
             << " [[ name: " << quote(inst->fLabel)
@@ -120,7 +120,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
     virtual void visit(AddSliderInst* inst)
     {
         if (gGlobal->gOutputLang == "soul-poly") {
-            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.', '-'};
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << replaceCharList(inst->fLabel, rep, '_')
             << " [[ name: " << quote(inst->fLabel)
@@ -165,7 +165,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
         fHasBargraph = true;
         
         if (gGlobal->gOutputLang == "soul-poly") {
-            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.', '-'};
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << quote(replaceCharList(inst->fLabel, rep, '_'))
             << " [[ name: " << quote(inst->fLabel)
@@ -176,7 +176,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             fOut << " ]];";
         } else if (gGlobal->gOutputLang == "soul-hybrid") {
             string soul_meta = getSoulMatadata();
-            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.', '-'};
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " " << ((soul_meta != "") ? soul_meta : replaceCharList(inst->fLabel, rep, '_'))
             << " [[ name: " << quote(inst->fLabel)
@@ -361,13 +361,13 @@ class SOULInstVisitor : public TextInstVisitor {
         *fOut << "// " << inst->fLabel;
         EndLine(' ');
         if (gGlobal->gOutputLang == "soul-poly") {
-            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.', '-'};
             *fOut << "event event_" << replaceCharList(inst->fLabel, rep, '_') << " ("
                   << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone
                   << " = val; fUpdated = true; }";
         } else if (gGlobal->gOutputLang == "soul-hybrid") {
             string soul_meta = getSoulMatadata();
-            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.', '-'};
             *fOut << "event " << ((soul_meta != "") ? soul_meta : replaceCharList(inst->fLabel, rep, '_'))
                   << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
                   << inst->fZone << " = val; fUpdated = true; }";
@@ -386,13 +386,13 @@ class SOULInstVisitor : public TextInstVisitor {
               << ", step = " << checkReal(inst->fStep) << "]";
         EndLine(' ');
         if (gGlobal->gOutputLang == "soul-poly") {
-            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.', '-'};
             *fOut << "event event_" << replaceCharList(inst->fLabel, rep, '_') << " ("
                   << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone
                   << " = val; fUpdated = true; }";
         } else if (gGlobal->gOutputLang == "soul-hybrid") {
             string soul_meta = getSoulMatadata();
-            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.', '-'};
             *fOut << "event " << ((soul_meta != "") ? soul_meta : replaceCharList(inst->fLabel, rep, '_'))
                   << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
                   << inst->fZone << " = val; fUpdated = true; }";
