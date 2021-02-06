@@ -57,12 +57,12 @@ faust stereoEcho
 graph sequence [[main]]
 {
     // Events to control Faust Synth
-    input event float32 eventfHslider1 [[ name: "freq", path: "/addSynth/freq", min: 100.0f, max: 2000.0f, init: 500.0f, step: 0.01f, unit: "Hz" ]];
-    input event float32 eventfHslider0 [[ name: "volume", path: "/addSynth/volume", min: -96.0f, max: 0.0f, init: -20.0f, step: 0.100000001f, unit: "dB" ]];
+    input event float32 freq [[ name: "freq", path: "/addSynth/freq", min: 100.0f, max: 2000.0f, init: 500.0f, step: 0.01f, unit: "Hz" ]];
+    input event float32 volume [[ name: "volume", path: "/addSynth/volume", min: -96.0f, max: 0.0f, init: -20.0f, step: 0.100000001f, unit: "dB" ]];
 
     // Events to control Faust Echo
-    input event float32 eventfHslider2 [[ name: "gain", path: "/stereoEcho/gain", min: 0.0f, max: 1.0f, init: 0.5, step: 0.01f ]];
-    input event float32 eventfHslider3 [[ name: "feedback", path: "/stereoEcho/feedback", min: 0.0f, max: 1.0f, init: 0.8, step: 0.01f ]];
+    input event float32 gain [[ name: "gain", path: "/stereoEcho/gain", min: 0.0f, max: 1.0f, init: 0.5, step: 0.01f ]];
+    input event float32 feedback [[ name: "feedback", path: "/stereoEcho/feedback", min: 0.0f, max: 1.0f, init: 0.8, step: 0.01f ]];
 
     output stream float audioOut0;
     output stream float audioOut1;
@@ -70,12 +70,12 @@ graph sequence [[main]]
     connection 
     {
         // Connect to Faust addSynth
-        eventfHslider0 -> addSynth.eventfHslider0;
-        eventfHslider1 -> addSynth.eventfHslider1;
+        volume -> addSynth.volume;
+        freq -> addSynth.freq;
 
         // Connect to Faust stereoEcho
-        eventfHslider3 -> stereoEcho.eventfHslider0;
-        eventfHslider2 -> stereoEcho.eventfHslider1;
+        feedback -> stereoEcho.feedback;
+        gain -> stereoEcho.gain;
 
         addSynth.output0 -> stereoEcho.input0;
         ClassicRingtone.out -> stereoEcho.input1;
