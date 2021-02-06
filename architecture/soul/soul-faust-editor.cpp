@@ -110,15 +110,15 @@ struct HybridEditor {
 int main(int argc, char* argv[])
 {
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "soul-faust-editor [Faust options : any option (e.g. -vec -vs 8...)] <foo.soul> -o <output.soul>" << endl;
+        cout << "soul-faust-editor [Faust options : any option (e.g. -ftz 1...)] <foo.soul> -o <output.soul>" << endl;
         exit(-1);
     }
     
-    char* in_filename;
-    char* out_filename;
+    char* in_filename = (char*)"";
+    char* out_filename = (char*)"hybrid.soul";
     int argc1 = 0;
     const char* argv1[64];
-    for (int i = 1; i < argc-1; i++) {
+    for (int i = 1; i < argc; i++) {
         if (endWith(string(argv[i]), ".soul")) {
             in_filename = argv[i];
             continue;

@@ -569,7 +569,7 @@ class faust_soul_parser  {
                         brackets++;
                         continue;
                     } else {
-                        faust_block << line;
+                        faust_block << line << "\n";
                     }
                     continue;
                 } else {
@@ -593,7 +593,8 @@ class faust_soul_parser  {
             int argc1 = 0;
             const char* argv1[64];
             argv1[argc1++] = "-lang";
-            argv1[argc1++] = "soul";
+            //argv1[argc1++] = "soul";
+            argv1[argc1++] = "soul-hybrid";
             argv1[argc1++] = "-cn";
             argv1[argc1++] = name.c_str();
             argv1[argc1++] = "-o";

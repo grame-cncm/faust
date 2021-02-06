@@ -57,6 +57,16 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
         fMetaAux.clear();
     }
     
+    std::string getSoulMatadata()
+    {
+        if (fMetaAux.size() > 0) {
+            for (size_t i = 0; i < fMetaAux.size(); i++) {
+                if (fMetaAux[i].first == "soul") return fMetaAux[i].second;
+            }
+        }
+        return "";
+    }
+    
     virtual void visit(AddMetaDeclareInst* inst)
     {
         fMetaAux.push_back(std::make_pair(inst->fKey, inst->fValue));
@@ -74,6 +84,20 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
                 fOut << ", latching";
             }
             fOut<< ", text: \"off|on\""
+            << ", boolean";
+            addMeta();
+            fOut << " ]];";
+        } else if (gGlobal->gOutputLang == "soul-hybrid") {
+            string soul_meta = getSoulMatadata();
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
+            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
+            << " " << ((soul_meta != "") ? soul_meta : replaceCharList(inst->fLabel, rep, '_'))
+            << " [[ name: " << quote(inst->fLabel)
+            << ", group: " << quote(buildPath(inst->fLabel));
+            if (inst->fType != AddButtonInst::kDefaultButton) {
+                fOut << ", latching";
+            }
+            fOut << ", text: \"off|on\""
             << ", boolean";
             addMeta();
             fOut << " ]];";
@@ -107,6 +131,19 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             << ", step: " << checkReal(inst->fStep);
             addMeta();
             fOut << " ]];";
+        } else if (gGlobal->gOutputLang == "soul-hybrid") {
+            string soul_meta = getSoulMatadata();
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
+            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
+            << " " << ((soul_meta != "") ? soul_meta : replaceCharList(inst->fLabel, rep, '_'))
+            << " [[ name: " << quote(inst->fLabel)
+            << ", group: " << quote(buildPath(inst->fLabel))
+            << ", min: " << checkReal(inst->fMin)
+            << ", max: " << checkReal(inst->fMax)
+            << ", init: " << checkReal(inst->fInit)
+            << ", step: " << checkReal(inst->fStep);
+            addMeta();
+            fOut << " ]];";
         } else {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event" << inst->fZone
@@ -131,6 +168,17 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << quote(replaceCharList(inst->fLabel, rep, '_'))
+            << " [[ name: " << quote(inst->fLabel)
+            << ", group: " << quote(buildPath(inst->fLabel))
+            << ", min: " << checkReal(inst->fMin)
+            << ", max: " << checkReal(inst->fMax);
+            addMeta();
+            fOut << " ]];";
+        } else if (gGlobal->gOutputLang == "soul-hybrid") {
+            string soul_meta = getSoulMatadata();
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
+            fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
+            << " " << ((soul_meta != "") ? soul_meta : replaceCharList(inst->fLabel, rep, '_'))
             << " [[ name: " << quote(inst->fLabel)
             << ", group: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
@@ -182,6 +230,8 @@ class SOULInstVisitor : public TextInstVisitor {
     // Whether to consider an 'int' as a 'boolean' later on in code generation
     bool fIntAsBool;
     
+    std::vector<std::pair <std::string, std::string> > fMetaAux;
+    
     inline string checkFloat(float val)
     {
         return (std::isinf(val)) ? "inf" : T(val);
@@ -189,6 +239,16 @@ class SOULInstVisitor : public TextInstVisitor {
     inline string checkDouble(double val)
     {
         return (std::isinf(val)) ? "inf" : T(val);
+    }
+    
+    std::string getSoulMatadata()
+    {
+        if (fMetaAux.size() > 0) {
+            for (size_t i = 0; i < fMetaAux.size(); i++) {
+                if (fMetaAux[i].first == "soul") return fMetaAux[i].second;
+            }
+        }
+        return "";
     }
 
    public:
@@ -281,6 +341,21 @@ class SOULInstVisitor : public TextInstVisitor {
 
     virtual ~SOULInstVisitor() {}
    
+    virtual void visit(AddMetaDeclareInst* inst)
+    {
+        fMetaAux.push_back(std::make_pair(inst->fKey, inst->fValue));
+    }
+    
+    virtual void visit(OpenboxInst* inst)
+    {
+        fMetaAux.clear();
+    }
+    
+    virtual void visit(CloseboxInst* inst)
+    {
+        fMetaAux.clear();
+    }
+    
     virtual void visit(AddButtonInst* inst)
     {
         *fOut << "// " << inst->fLabel;
@@ -290,6 +365,13 @@ class SOULInstVisitor : public TextInstVisitor {
             *fOut << "event event_" << replaceCharList(inst->fLabel, rep, '_') << " ("
                   << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone
                   << " = val; fUpdated = true; }";
+        } else if (gGlobal->gOutputLang == "soul-hybrid") {
+            string soul_meta = getSoulMatadata();
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
+            *fOut << "event " << ((soul_meta != "") ? soul_meta : replaceCharList(inst->fLabel, rep, '_'))
+                  << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
+                  << inst->fZone << " = val; fUpdated = true; }";
+            fMetaAux.clear();
         } else {
             *fOut << "event event" << inst->fZone << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
                   << inst->fZone << " = val; fUpdated = true; }";
@@ -308,6 +390,13 @@ class SOULInstVisitor : public TextInstVisitor {
             *fOut << "event event_" << replaceCharList(inst->fLabel, rep, '_') << " ("
                   << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone
                   << " = val; fUpdated = true; }";
+        } else if (gGlobal->gOutputLang == "soul-hybrid") {
+            string soul_meta = getSoulMatadata();
+            vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
+            *fOut << "event " << ((soul_meta != "") ? soul_meta : replaceCharList(inst->fLabel, rep, '_'))
+                  << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
+                  << inst->fZone << " = val; fUpdated = true; }";
+            fMetaAux.clear();
         } else {
             *fOut << "event event" << inst->fZone << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
                   << inst->fZone << " = val; fUpdated = true; }";
@@ -327,7 +416,7 @@ class SOULInstVisitor : public TextInstVisitor {
         // Not supported for now
         throw faustexception("ERROR : AddSoundfileInst not supported for SOUL\n");
     }
-
+    
     virtual void visit(DeclareVarInst* inst)
     {
         string name = inst->fAddress->getName();

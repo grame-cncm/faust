@@ -60,17 +60,18 @@ So for instance:
 
 # soul-faust-editor
 
-The **soul-faust-editor** tool loads an hybrid Faust/SOUL code file and compile it in a SOUL patch each time the source file content changes. It can be used in conjunction with the **soul** runtime or any SOUL aware plugin to create a *Faust/SOUL => SOUL => executable code* edit loop. The SOUL generated files are  `hybrid.soul` and  `hybrid.soulpatch` by default.
+The **soul-faust-editor** tool loads an hybrid Faust/SOUL code file and compile it in a SOUL patch each time the source file content changes. It can be used in conjunction with the **soul** runtime or any SOUL aware plugin to create a *Faust/SOUL => SOUL => executable code* edit loop. The SOUL generated files can be set using the`-o <output.soul>` option and are `hybrid.soul` and  `hybrid.soulpatch` by default.
 
 `soul-faust-editor [Faust options : any option (e.g. -ftz 1...)] <foo.soul> -o <output.soul>`
 
 So for instance:
 
-- `soul-faust-editor hybrid-test2.soul ` to start editing an hybrid Faust/SOUL code and  `soul play hybrid.soulpatch` to play the SOUL dynamically generated `hybrid.soulpatch`.
+- `soul-faust-editor hybrid-test2.soul` to start editing an hybrid Faust/SOUL code
+- `soul play hybrid.soulpatch` to play the SOUL dynamically generated `hybrid.soulpatch`
 
 ## Syntax
 
-A Faust block is using the following syntax:
+A Faust block uses the following syntax:
 
  ```
 faust Name
@@ -91,16 +92,16 @@ faust Osc
 }
  ```
 
- Faust processors audio inputs are numbered `input0/input1..inputN` and audio outputs  `output0/output1..outputN`. So a given `faust Foo {...}` block can be used in the graph section with: `Foo.input0`,  `Foo.input1`, `Foo.ouput0`,  `Foo.output1` for instance.
+ By convention, Faust processors audio inputs are numbered `input0/input1..inputN` and audio outputs  `output0/output1..outputN`. So a given `faust Foo {...}` block can be used in the graph section with: `Foo.input0`,  `Foo.input1`, `Foo.ouput0`,  `Foo.output1` for instance.
 
-Control parameters (button, sliders, nentry) are using their label name, or a possible *alias* is the `[soul:alias]` metadata appears in the label string.
+Control parameters (button, sliders, nentry) are using their label name, or a possible *alias* if the `[soul:alias]` metadata appears in the label string.
 
 ## Example of an hybrid file
 
 The following example combines:
 
 - an `Osc` Faust block with *freq* and *vol* controllers
-- a `Gain` SOUL processor with a *gain* controller
+- a `Gain` SOUL processor with a *volume* controller
 - a `Sequence` graph connecting the Faust osc in the SOUL gain and exposing the three controllers
 
  ```
@@ -114,7 +115,7 @@ faust Osc
 
 processor Gain
 {
-    input stream float gain [[ name: "Gain", min: 0, max: 1, init: 0.1, step: 0.01 ]]; 
+    input stream float volume [[ name: "Gain", min: 0, max: 1, init: 0.1, step: 0.01 ]]; 
 
     input stream float input0;
     input stream float input1;
