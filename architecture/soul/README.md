@@ -60,11 +60,11 @@ So for instance:
 
 # soul-faust-editor
 
-The **soul-faust-editor** tool loads an hybrid Faust/SOUL code file and compile it in a SOUL patch each time the source file content changes. It can be used together with the **soul** runtime or any SOUL aware plugin to create a *Faust/SOUL => SOUL => executable code* edit loop. The SOUL generated files can be set using the`-o <output.soul>` option and are `hybrid.soul` and  `hybrid.soulpatch` by default.
+The **soul-faust-editor** tool loads an hybrid Faust/SOUL code file and compile it in a SOUL patch each time the source file content changes. It can be used together with the **soul** runtime or any SOUL aware plugin to create a *Faust/SOUL => SOUL => executable code* edit loop. The SOUL generated files can be set using the`-o <output.soul>` option and are named `hybrid.soul` and  `hybrid.soulpatch` by default.
 
 `soul-faust-editor [Faust options : any option (e.g. -ftz 1...)] <foo.soul> -o <output.soul>`
 
-So for instance:
+So for instance to setup a Faust/SOUL hybrid file edition session:
 
 - `soul-faust-editor hybrid-test2.soul` to start editing an hybrid Faust/SOUL code
 - `soul play hybrid.soulpatch` to play the SOUL dynamically generated `hybrid.soulpatch`
@@ -100,7 +100,7 @@ Control parameters (button, slider, nentry) are using their label name, or a pos
 
 The following example combines:
 
-- an `Osc` Faust block with *freq* and *vol* controllers
+- an `Osc` Faust block with *freq (using an 'osc_freq' alias)* and *vol* controllers
 - a `Gain` SOUL processor with a *volume* controller
 - a `Sequence` graph connecting the Faust osc in the SOUL gain and exposing the three controllers
 
@@ -135,11 +135,11 @@ processor Gain
 
 graph Sequence [[main]]
 {
-    // Used in 'hslider' label with [soul:osc_freq] metadata in Faust Osc {...}
+    // Used in 'hslider' label with [soul:osc_freq] metadata in 'Faust Osc {...}' block
     input Osc.osc_freq;
-    // Used as 'hslider' label in Faust Osc {...}
+    // Used as 'hslider' label in 'Faust Osc {...}' block
     input Osc.vol;
-    // Using in SOUL processor Gain {...}
+    // Using in SOUL 'processor Gain {...}' block
     input Gain.volume;
 
     output stream float audioOut0;
