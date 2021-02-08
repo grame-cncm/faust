@@ -74,7 +74,7 @@ class PowPrim : public xtended {
         faustassert(args.size() == arity());
         if (isNum(args[0], n) && isNum(args[1], m)) {
             if (!isfloat(n) && !isfloat(m)) {
-                return tree(int(ipow(int(n), int(m))));
+                return tree(ipow(int(n), int(m)));
             } else {
                 return tree(pow(double(n), double(m)));
             }
