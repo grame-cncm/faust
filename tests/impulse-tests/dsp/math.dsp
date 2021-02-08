@@ -9,7 +9,8 @@ quadprecision my_INFINITY = 1.7976931348623158e+308;
 my_isnan = ffunction(int isnanf|isnan|isnanl (float),<math.h>,"");
 my_isinf = ffunction(int isinff|isinf|isinfl (float),<math.h>,"");
 
-process = _ >> _,
+process = ((2.0', 2', 2.0, 2) : par( i, 4, ^(31))),
+        _ >> _,
 		_ << _,
 		int(_*10.5) % 3,
 		_*10.5 % 3.0,

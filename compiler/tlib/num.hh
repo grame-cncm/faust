@@ -87,8 +87,8 @@ class num : public virtual Garbageable {
 
     // accessors
     int type() const { return fType; }
-        operator int() const { return (fType) ? int(fData.f) : fData.i; }
-        operator double() const { return (fType) ? fData.f : double(fData.i); }
+    operator int() const { return (fType) ? int(fData.f) : fData.i; }
+    operator double() const { return (fType) ? fData.f : double(fData.i); }
 
     // predicats
     bool operator==(const num& n) const { return fType == n.fType && fData.i == n.fData.i; }
