@@ -3,12 +3,19 @@
 #  usage : faust2sig foo.dsp        -> foo-sig.pdf
 #  usage : faust2sig -svg foo.dsp   -> foo-sig.svg
 
+. usage.sh
+
 FILES=""
 IGNORE=""
 FORMAT="pdf"
 
 # Analyze command line
 for p in $@; do
+	if [ $p = "-help" ] || [ $p = "-h" ]; then
+        usage faust2sig "[options] <file.dsp>" to display the graph of signals
+        option "-svg" to display the SVG
+        exit
+    fi
     if [ "$p" = -svg ]; then
         FORMAT="svg"
 	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then

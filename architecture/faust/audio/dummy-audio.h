@@ -218,7 +218,6 @@ class dummyaudio_real : public audio {
 
 struct dummyaudio : public dummyaudio_real<FAUSTFLOAT> {
     
-    
     dummyaudio(int sr, int bs,
                int count = BUFFER_TO_RENDER,
                int sample = -1,

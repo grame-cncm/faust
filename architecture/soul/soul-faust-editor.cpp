@@ -116,8 +116,8 @@ int main(int argc, char* argv[])
         exit(-1);
     }
     
-    char* in_filename = (char*)"";
-    char* out_filename = (char*)"hybrid.soul";
+    string in_filename;
+    string out_filename = "hybrid.soul";
     int argc1 = 0;
     const char* argv1[64];
     for (int i = 1; i < argc; i++) {

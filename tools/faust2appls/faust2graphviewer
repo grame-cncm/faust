@@ -3,7 +3,8 @@
 # Usage.
 print_usage() 
 {
-    echo Usage : args of faust2graphviewer should be a \'.dsp\' file, or a list of \'.dsp\' files.
+    echo Usage : args of faust2graphviewer should be a \'.dsp\' file, or a list of \'.dsp\' files . 
+    echo Display the graph of tasks       
 }
 
 # prepare how we are going to open .pdf files
