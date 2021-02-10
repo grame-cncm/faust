@@ -99,7 +99,7 @@ class SignalDependencies : public SignalVisitor {
         } else if (isSigInstructionTableAccessWrite(sig, id, origin, &nature, &dmin, tid, idx)) {
             fRoot   = sig;
             Tree tw = getIDInstruction(tid);
-            fGraph.add(fRoot, tw, mdep("MMM", dmin));
+            fGraph.add(fRoot, tw, mdep(/*std::string("8-") + */ tree2str(tid), dmin));
             self(idx);
         } else if (isSigOutput(sig, &i, content)) {
             fRoot = sig;
@@ -127,23 +127,23 @@ class SignalDependencies : public SignalVisitor {
 
         // the dependencies are DelayLines, shared expressions or Control signals
         if (isSigInstructionDelayLineRead(t, id, origin, &nature, &dmax, &dmin, dl)) {
-            fGraph.add(fRoot, getIDInstruction(id), mdep("MMM", dmin));
+            fGraph.add(fRoot, getIDInstruction(id), mdep(/*std::string("1-") + */ tree2str(id), dmin));
             self(dl);
         } else if (isSigInstructionTableRead(t, id, origin, &nature, &dmin, dl)) {
-            fGraph.add(fRoot, getIDInstruction(id), mdep("MMM", dmin));
+            fGraph.add(fRoot, getIDInstruction(id), mdep(/*std::string("2-") + */ tree2str(id), dmin));
             self(dl);
         } else if (isSigInstructionSharedRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, getIDInstruction(id), mdep("MMM", 0));
+            fGraph.add(fRoot, getIDInstruction(id), mdep(/*std::string("3-") + */ tree2str(id), 0));
         } else if (isSigInstructionVectorRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, getIDInstruction(id), mdep("MMM", 0));
+            fGraph.add(fRoot, getIDInstruction(id), mdep(/*std::string("4-") + */ tree2str(id), 0));
         } else if (isSigInstructionShortDLineRead(t, id, origin, &nature, &dmin)) {
-            fGraph.add(fRoot, getIDInstruction(id), mdep("MMM", dmin));
+            fGraph.add(fRoot, getIDInstruction(id), mdep(/*std::string("5-") + */ tree2str(id), dmin));
         } else if (isSigInstructionTimeRead(t)) {
-            fGraph.add(fRoot, sigInstructionTimeWrite(), mdep("MMM", 0));  // TODO : a verifier (YO)
+            fGraph.add(fRoot, sigInstructionTimeWrite(), mdep("time", 0));  // TODO : a verifier (YO)
         } else if (isSigInstructionControlRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, getIDInstruction(id), mdep("MMM", 0));
+            fGraph.add(fRoot, getIDInstruction(id), mdep(/*std::string("6-") + */ tree2str(id), 0));
         } else if (isSigInstructionBargraphRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, getIDInstruction(id), mdep("MMM", 0));
+            fGraph.add(fRoot, getIDInstruction(id), mdep(/*std::string("7-") + */ tree2str(id), 0));
         } else {
             SignalVisitor::visit(t);
         }
@@ -212,13 +212,9 @@ ostream& dotfile2(ostream& file, const digraph<Tree, multidep>& g)
             // cerr << "dotfile2: transcribing " << c << endl;
             dst << ppsig(c.first);
             sm << '"' << format(dst.str()) << '"';
-            hascnx = true;
-            if (c.second.second == 0) {
-                file << "\t" << sn.str() << "->" << sm.str() << ";" << endl;
-            } else {
-                std::string l = arrow_traits<multidep>::label(c.second);
-                file << "\t" << sn.str() << "->" << sm.str() << " [label=\"" << l << "\"];" << endl;
-            }
+            hascnx        = true;
+            std::string l = arrow_traits<multidep>::label(c.second);
+            file << "\t" << sn.str() << "->" << sm.str() << " [label=\"" << l << "\"];" << endl;
         }
         if (!hascnx) {
             file << "\t" << sn.str() << ";" << endl;

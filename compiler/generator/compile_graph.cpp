@@ -1003,7 +1003,7 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
                 // compute the set D of tables needed to initialise id
                 set<Tree> D = collectTableIDs(J);
                 for (Tree dst : D) {
-                    fTableInitGraph.add(id, dst, mdep("MMM", 0));
+                    fTableInitGraph.add(id, dst, mdep(/*std::string("0-") + */ tree2str(id), 0));
                     if ((TID.count(dst) == 0) || (R.count(dst) == 0)) {
                         N.insert(dst);  // dst is unseen
                     }
