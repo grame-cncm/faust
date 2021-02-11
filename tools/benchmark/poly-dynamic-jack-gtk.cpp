@@ -246,10 +246,7 @@ int main(int argc, char* argv[])
     } else {
         soundinterface = new SoundUI();
     }
-    // SoundUI has to be dispatched on all internal voices
-    DSP->setGroup(false);
     DSP->buildUserInterface(soundinterface);
-    DSP->setGroup(true);
     
     if (is_httpd) {
         httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
