@@ -43,6 +43,7 @@ std::vector<std::pair<string, string>> memoryDependencies(const std::vector<Tree
 // set<Tree>     listTableDependencies(Tree sig);
 
 ostream& dotfile2(ostream& file, const digraph<Tree, multidep>& g);
+ostream& dotfile3(ostream& file, const digraph<digraph<Tree, multidep>, multidep>& g);
 
 /**
  * A bijective function that returns a unique ID, that starts with prefix, associated to sig

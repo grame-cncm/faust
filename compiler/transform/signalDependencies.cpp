@@ -224,6 +224,47 @@ ostream& dotfile2(ostream& file, const digraph<Tree, multidep>& g)
     return file << "}" << endl;
 }
 
+static std::ostream& serialcontent(std::ostream& file, const digraph<Tree, multidep>& g)
+{
+    std::string       sep = "";
+    std::vector<Tree> V   = serialize(cut(g, 1));
+
+    for (Tree i : V) {
+        file << ppsig(i) << "\n";
+    }
+    return file;
+}
+
+ostream& dotfile3(ostream& file, const digraph<digraph<Tree, multidep>, multidep>& g)
+{
+    cerr << "\n\nDOTFILE3 of graph " << g << "\n" << endl;
+
+    file << "digraph mygraph { \n\t node [shape=box]" << endl;
+    for (const auto& n : g.nodes()) {
+        stringstream sn, src;
+        cerr << "Handling node: " << n << endl;
+        // cerr << "dict[" << *n << "] = " << *dict[n] << endl;
+        serialcontent(std::cerr, n);
+        serialcontent(src, n);
+        sn << '"' << src.str() << '"';
+        bool hascnx = false;
+        for (const auto& c : g.connections(n)) {
+            stringstream sm, dst;
+            // cerr << "dotfile2: transcribing " << c << endl;
+            serialcontent(dst, c.first);
+            sm << '"' << dst.str() << '"';
+            hascnx        = true;
+            std::string l = arrow_traits<multidep>::label(c.second);
+            file << "\t" << sn.str() << "->" << sm.str() << " [label=\"" << l << "\"];" << endl;
+        }
+        if (!hascnx) {
+            file << "\t" << sn.str() << endl;
+        }
+    }
+
+    return file << "}" << endl;
+}
+
 /**
  * @brief associates a unique ID to a signal
  *

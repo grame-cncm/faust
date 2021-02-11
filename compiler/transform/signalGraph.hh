@@ -37,4 +37,11 @@ using namespace std;
  * @param instr the set of instructions
  */
 void signalGraph(const string& filename, const set<Tree>& instr);
-// void signalGraph2(const string& filename, const set<Tree>& instr);
+
+/**
+ * @brief generates a dotfile graph of a set of instructions in vector mode
+ *
+ * @param "filename.dot" the name of the file
+ * @param instr the set of instructions
+ */
+void signalVectorGraph(const string& filename, const set<Tree>& instr);

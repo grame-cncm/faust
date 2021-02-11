@@ -72,44 +72,29 @@ void signalGraph(const string& filename, const set<Tree>& I)
     // cerr << "END build Dependency Graph: " << filename << "\n\n" << endl;
 }
 
-#if 0
 /**
- * @brief generates a dotfile graph of a set of instructions
+ * @brief generates a dotfile graph of a set of instructions in vector mode
  *
  * @param "filename.dot" the name of the file
  * @param instr the set of instructions
  */
-void signalGraph2(const string& filename, const set<Tree>& I)
+void signalVectorGraph(const string& filename, const set<Tree>& I)
 {
     // cerr << "\n\nBEGIN build Dependency Graph: " << filename << endl;
 
     digraph<Tree, multidep> G;
-    // Dictionnary   Dic;
 
     for (auto i : I) {
-        if (i) G.add(dependencyGraph(i));
-        // Dic.add(i);
+        G.add(dependencyGraph(i));
     }
 
-    digraph<digraph<Tree, multidep>, int> SG = graph2dag2(G);
-    /*
-        for (auto g : SG.nodes()) {
-            std::cerr << g << std::endl;
-            for (auto i : g.nodes()) {
-                std::cerr << ppsig(i) << std::endl;
-                for (auto r : instructionInputs(i)) {
-                    std::cerr << "\t" << ppsig(r) << std::endl;
-                }
-            }
-        }
-    */
-    ofstream f;
+    digraph<digraph<Tree, multidep>, multidep> VG = graph2dag(G);
+    ofstream                                   f;
     f.open(filename);
     // cerr << "\n\nCreate dotfile: " << filename << endl;
 
     // dotfile2(f, Dic, G);
-    dotfile(f, SG);
+    dotfile3(f, VG);
     f.close();
     // cerr << "END build Dependency Graph: " << filename << "\n\n" << endl;
 }
-#endif

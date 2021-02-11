@@ -312,6 +312,9 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
     set<Tree> INSTR6 = (gGlobal->gSplitAdditions) ? splitAddBranches(INSTR5) : INSTR5;
     if (gGlobal->gDebugDiagram) signalGraph("phase6-addbranch.dot", INSTR6);
 
+    // cerr << " experimental vector graph"
+    if (gGlobal->gDebugDiagram) signalVectorGraph("phase7-vectorgraph.dot", INSTR6);
+
         // signalGraph("SPECIAL1.dot", INSTR6);
         // signalGraph2("SPECIAL2.dot", INSTR6);
 #if 0
