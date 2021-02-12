@@ -73,7 +73,7 @@ class TransformDelayToTable : public SignalIdentity {
         faustassert(v >= x);
         return v;
     }
-
+#if 0
     Tree transformation(Tree sig) override
     {
         faustassert(sig);
@@ -103,6 +103,33 @@ class TransformDelayToTable : public SignalIdentity {
             return SignalIdentity::transformation(sig);
         }
     }
+#else
+    Tree transformation(Tree sig) override
+    {
+        faustassert(sig);
+
+        Tree id, origin, dl, exp;
+        int  nature, dmin, dmax;
+
+        if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, exp)) {
+            int  size = dmax2size(dmax);
+            Tree tr   = sigInstructionTableWrite(id, origin, nature, size, sigGen(sigInt(0)),
+                                               sigAND(sigTime(), sigInt(size - 1)), self(exp));
+            fInstr.insert(tr);
+            return tr;
+        } else if (isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl)) {
+            int mask = dmax2size(dmax) - 1;
+            if (isZero(dl)) {
+                return sigInstructionTableRead(id, sig, nature, dmin, sigAND(sigTime(), sigInt(mask)));
+            } else {
+                return sigInstructionTableRead(id, sig, nature, dmin,
+                                               sigAND(sigSub(sigTime(), self(dl)), sigInt(mask)));
+            }
+        } else {
+            return SignalIdentity::transformation(sig);
+        }
+    }
+#endif
 };
 
 /**
