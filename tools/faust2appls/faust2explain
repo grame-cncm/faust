@@ -56,6 +56,8 @@ cat > $1 << ENDOFHEADER
 
 \begin{document}
 
+\maketitle
+
 ENDOFHEADER
 }
 
@@ -161,6 +163,12 @@ Transforms common subexpressions into instructions to avoid redondant computatio
 \includegraphics[width=0.75\textwidth]{phase5-afterCSE.dot.pdf}
 \end{center}
 
+\subsection{Phase 6 : Vector graph, DAG of cycles}
+Cycles are grouped together, preliminary step to vectorization.
+\begin{center}
+\includegraphics[width=0.75\textwidth]{phase7-vectorgraph.dot.pdf}
+\end{center}
+
 ENDOFSECTION
     
 }
@@ -203,8 +211,8 @@ for f in *.dot; do echo $f; dot -Tpdf $f >$f.pdf; done
 
 latexheader $T $F
 faustcode $T $F
-cppcode $T $C
 graphs $T
+cppcode $T $C
 latexfooter $T
 
 ## compile the latex file to pdf
