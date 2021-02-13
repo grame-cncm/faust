@@ -74,7 +74,7 @@ using namespace std;
 #endif
 
 DaisySeed hw;
-DaisyControlUI* control_UI;
+DaisyControlUI* control_UI = nullptr;
 dsp* DSP = nullptr;
 
 #ifdef MIDICTRL
@@ -106,7 +106,7 @@ int main(void)
     DSP = new mydsp();
     MidiMeta::analyse(DSP, midi_sync, nvoices);
     DSP = new mydsp_poly(DSP, nvoices, true, true);
- else
+#else
     DSP = new mydsp();
 #endif
     
