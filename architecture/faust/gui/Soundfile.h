@@ -25,7 +25,6 @@
 #ifndef __Soundfile__
 #define __Soundfile__
 
-#include <iostream>
 #include <string.h>
 #include <vector>
 
