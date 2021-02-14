@@ -32,7 +32,7 @@
 #define FAUSTFLOAT float
 #endif
 
-#define BUFFER_SIZE 16384
+#define BUFFER_SIZE 1024
 #define SAMPLE_RATE 44100
 #define MAX_CHAN 64
 #define MAX_SOUNDFILE_PARTS 256
