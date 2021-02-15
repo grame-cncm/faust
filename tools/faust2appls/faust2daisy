@@ -24,14 +24,20 @@ NVOICES=0
 MIDI=false
 POLY=""
 PATCH=false
+SR=44100
+BS=16
+SOURCE=false
 
 echoHelp ()
 {
-    echo "faust2daisy [-patch] [-midi] [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+    echo "faust2daisy [-patch] [-midi] [-nvoices <num>] [-sr <num>] [-bs <num>] [-source] [additional Faust options (-vec -vs 8...)] <file.dsp>"
     option
     option -patch "to compile for 4 ins/outs Patch"
     options -midi
     option "-nvoices <num>"
+    option "-sr <num> to specify sample rate (default 44100)"
+    option "-bs <num> to specify buffer size (default 16)"
+    option "-source to only create the source folder"
     echo ""
 }
 
@@ -56,6 +62,17 @@ do
     elif [ $p = "-patch" ]; then
         PATCH="1"
         ARCHFILE=$FAUSTARCH/daisy/ex_faust_patch.cpp
+    # -sr
+    elif [ $p = "-sr" ]; then
+        shift
+        SR=$1
+    # -bs
+    elif [ $p = "-bs" ]; then
+        shift
+        BS=$1
+    # -source
+    elif [  $p = "-source" ]; then
+        SOURCE=true
     elif [[ -f "$p" ]]; then
         FILE="$p"
     # other compile options
@@ -89,14 +106,29 @@ for p in $FILE; do
     # compile faust to c++
     cp -r $FAUSTARCH/daisy/Makefile "$SRCDIR/$dspName/"
     faust -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
+
     # for MIDI
     if [ $MIDI == true ]; then
         echo "#define MIDICTRL" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
+    # for Sample Rate 
+    echo "#define MY_SAMPLE_RATE $SR" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    # for Buffer Size
+    echo "#define MY_BUFFER_SIZE $BS" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     # for POLY
     if [ "$NVOICES" -gt "0" ]; then
         echo "#define POLY" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
         echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
+
+    # compile and install plugin or keep the source folder
+    if [ $SOURCE == false ]; then
+        read -p "Press ENTER when Daisy is in DFU mode"
+        ( cd "$SRCDIR/$dspName" && make && make program-dfu ) > /dev/null || exit
+        rm -rf "$SRCDIR/$dspName"
+        echo "Success !"
+    else
+        echo "Create the $SRCDIR/$dspName folder"
+    fi 
     
 done

@@ -82,8 +82,6 @@ list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 #endif
 
-#define MY_BUFFER_SIZE 32
-
 static void AudioCallback(float** in, float** out, size_t count)
 {
     // Update controllers
@@ -114,10 +112,10 @@ int main(void)
     hw.SetAudioBlockSize(MY_BUFFER_SIZE);
     
     // init Faust DSP
-    DSP->init(hw.AudioSampleRate());
+    DSP->init(MY_SAMPLE_RATE);
     
     // setup controllers
-    control_UI = new DaisyControlUI(&hw, hw.AudioSampleRate()/MY_BUFFER_SIZE);
+    control_UI = new DaisyControlUI(&hw, MY_SAMPLE_RATE/MY_BUFFER_SIZE);
     DSP->buildUserInterface(control_UI);
     
     // start ADC
