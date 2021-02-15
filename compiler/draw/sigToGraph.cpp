@@ -45,7 +45,7 @@ static string sigLabel(Tree sig);
  * Draw a list of signals as a directed graph using graphviz's dot language
  */
 void sigToGraph(Tree L, ofstream& fout)
-{
+{ 
     set<Tree> alreadyDrawn;
 
     fout << "strict digraph loopgraph {\n"
@@ -107,8 +107,11 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout)
                 }
 
                 for (int i = 0; i < n; i++) {
+                    Type ty;
                     recdraw(subsig[i], drawn, fout);
-                    fout << 'S' << subsig[i] << " -> " << 'S' << sig << "[" << edgeattr(getCertifiedSigType(subsig[i]))
+                    ty = getCertifiedSigType(subsig[i]);
+                    fout << 'S' << subsig[i] << " -> " << 'S' << sig << "[" << edgeattr(ty) << " label=\""
+                         << ty->getInterval() << "\""
                          << "];" << endl;
                 }
             }
