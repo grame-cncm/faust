@@ -35,9 +35,9 @@ echoHelp ()
     option -patch "to compile for 4 ins/outs Patch"
     options -midi
     option "-nvoices <num>"
-    option "-sr <num> to specify sample rate (default 44100)"
-    option "-bs <num> to specify buffer size (default 16)"
-    option "-source to only create the source folder"
+    option "-sr <num>"
+    option "-bs <num>"
+    option -source 
     echo ""
 }
 

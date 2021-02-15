@@ -38,6 +38,8 @@ function option() {
                 "-qrcode") doc="activates QR code generation";;
                 "-poly") doc="produces a polyphonic DSP, ready to be used with MIDI events";;
                 "-nvoices <num>") doc="produces a polyphonic DSP with <num> voices, ready to be used with MIDI events";;
+                "-sr <num>") doc="to specify sample rate";;
+                "-bs <num>") doc="to specify buffer size";;
                 "-us <factor>") doc="upsample the DSP by a factor";;
                 "-ds <factor>") doc="downsample the DSP by a factor";;
                 "-filter <filter>") doc="use a filter for upsampling or downsampling [0..4]";;
