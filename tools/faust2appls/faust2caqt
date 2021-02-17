@@ -46,10 +46,10 @@ do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2caqt "[options] [Faust options] <file.dsp>"
-		platform MacOS
-		require Qt
-		echo "Compiles Faust programs to CoreAudio and QT"
-		option
+	platform MacOS
+	require Qt
+	echo "Compiles Faust programs to CoreAudio and QT"
+	option
         options -httpd -osc -midi -qrcode -soundfile
         option "-opt native' to activate the best compilation options for the native CPU"
         option "-opt generic' to activate the best compilation options for a generic CPU"
@@ -148,11 +148,11 @@ for p in $FILES; do
 
     CUR=$(pwd)
     f=$(basename "$p")
-	SRCDIR=$(dirname "$p")
+    SRCDIR=$(dirname "$p")
 
     # creates a temporary dir 
     TDR=$(mktemp -d faust.XXXXXX)
-	TMP="$TDR/${f%.dsp}"
+    TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
 
     # discover best compilation options
@@ -200,9 +200,9 @@ EndOfCode
 
     # compile c++ to binary
     (
-	    cd "$TMP"
-	    qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$MATHDEFS" "$SAMPLERATEDEFS" "$PRESETDEFS"
-	    qmake $SPEC
+	cd "$TMP"
+	qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$MATHDEFS" "$SAMPLERATEDEFS" "$PRESETDEFS"
+	qmake $SPEC
         make
     ) > /dev/null || exit
 
@@ -257,16 +257,14 @@ EndOfCode
     RMTMP=true
     if $DEBUG;
     then
-	    echo "====> delete temporary folder $TDR ? [Y/n]"
-	    read DEL
-	    [ $DEL == "n" ] && RMTMP=false
-	fi	
-	[ $RMTMP == true ] && rm -rf "$TDR"
+        echo "====> delete temporary folder $TDR ? [Y/n]"
+        read DEL
+        [ $DEL == "n" ] && RMTMP=false
+    fi	
+    [ $RMTMP == true ] && rm -rf "$TDR"
 
     # collect binary file name for FaustGIDE
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
 done
 
 echo $BINARIES
-
-
