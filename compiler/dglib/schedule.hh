@@ -6,7 +6,7 @@
     the dependecies.
 
     Created by Yann Orlarey on 17/03/2020.
-    Copyright © 2017 Grame. All rights reserved.
+    Copyright © 2017-2021 Grame. All rights reserved.
 
  *******************************************************************************
  ******************************************************************************/

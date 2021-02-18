@@ -4,7 +4,7 @@
     digraphop : a set of operations on directed graphs
 
     Created by Yann Orlarey on 31/01/2017.
-    Copyright © 2017 Grame. All rights reserved.
+    Copyright © 2017-2021 Grame. All rights reserved.
 
  *******************************************************************************
  ******************************************************************************/
@@ -621,4 +621,27 @@ inline std::ostream& dotfile(std::ostream& file, const digraph<N, A>& g, bool cl
     }
 
     return file << "}" << std::endl;
+}
+
+// List incoming and outcoming arrows of a graph
+
+template <typename N, typename A>
+inline std::pair<std::map<N, A>, std::map<N, A>> arrows(const digraph<N, A>& G)
+{
+    std::map<N, A> incoming;   // arrows arriving to a node
+    std::map<N, A> outcoming;  // arrows departing from a node
+
+    // Init incoming and outcoming arrows to empty
+    for (const N& n : G.nodes()) {
+        incoming[n]  = arrow_traits<A>::empty();
+        outcoming[n] = arrow_traits<A>::empty();
+    }
+    // Collect incoming and outcoming arrows
+    for (const N& n : G.nodes()) {
+        for (const auto& c : G.connections(n)) {
+            outcoming[n]      = arrow_traits<A>::combine(outcoming[n], c.second);
+            incoming[c.first] = arrow_traits<A>::combine(incoming[c.first], c.second);
+        }
+    }
+    return {incoming, outcoming};
 }

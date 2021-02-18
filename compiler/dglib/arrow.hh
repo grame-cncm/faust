@@ -70,9 +70,15 @@ inline multidep mdep(const std::string& s)
 {
     return {{{s, 0}}, 0};
 }
+
 inline multidep mdep(const std::string& s, int d)
 {
     return {{{s, d}}, d};
+}
+
+inline multidep mdep()
+{
+    return {{}, INT32_MAX};
 }
 
 template <>

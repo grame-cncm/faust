@@ -4,7 +4,7 @@
     digraph : directed graph
 
     Created by Yann Orlarey on 31/01/2017.
-    Copyright © 2017 Grame. All rights reserved.
+    Copyright © 2017-2021 Grame. All rights reserved.
 
  *******************************************************************************
  ******************************************************************************/
