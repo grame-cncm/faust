@@ -315,4 +315,22 @@ inline interval abs(const interval& x)
     }
 }
 
+
+struct bDepth : public virtual Garbageable {
+    bool valid; ///< true if it is a valid bit depth
+    int  index;   ///< the index of the lsb, if any
+
+    bDepth(): valid(false), index(0){}
+    bDepth(int i): valid(true), index(i){}
+};
+
+inline ostream& operator<<(ostream& dst, const bDepth& bd)
+{
+    if (bd.valid) {
+        return dst << "lsb(" << bd.index << ")";
+    } else {
+        return dst << "lsb(?)";
+    }
+}
+
 #endif

@@ -25,7 +25,7 @@ zname := faust-$(version)
 # The main targets
 
 compiler : updatesubmodules
-	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=regular.cmake TARGETS=regular.cmake
+	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=regular.cmake TARGETS=regular.cmake CMAKEOPT=-DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 	$(MAKE) -C $(BUILDLOCATION)
 
 most : updatesubmodules

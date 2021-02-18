@@ -111,7 +111,7 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout)
                     recdraw(subsig[i], drawn, fout);
                     ty = getCertifiedSigType(subsig[i]);
                     fout << 'S' << subsig[i] << " -> " << 'S' << sig << "[" << edgeattr(ty) << " label=\""
-                         << ty->getInterval() << "\""
+                         << ty->getInterval() << "," << ty->getLsb() << "\"" 
                          << "];" << endl;
                 }
             }
