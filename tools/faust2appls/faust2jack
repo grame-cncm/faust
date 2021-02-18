@@ -147,6 +147,9 @@ EndOfCode
 	# compile c++ to binary
 	(
 		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS "${f%.dsp}.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $SAMPLERATELIBS $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $SAMPLERATEDEFS $PRESETDEFS $ARCHLIB $LFLAGS -o "${f%.dsp}"
+		if [[ $(uname) == Darwin ]]; then
+		    codesign --sign - --deep --force "${f%.dsp}"
+		fi
 	) > /dev/null || exit
 
     # remove tempory files

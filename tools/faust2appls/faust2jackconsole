@@ -95,6 +95,9 @@ for f in $FILES; do
 	# compile c++ to binary
 	(
 		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack` $PROCARCH $SOUNDFILELIBS $OSCDEFS $HTTPDEFS $MIDIDEFS $SOUNDFILEDEFS $ARCHLIB -lpthread -o "${f%.dsp}"
+		if [[ $(uname) == Darwin ]]; then
+		    codesign --sign - --deep --force "${f%.dsp}"
+		fi
 	) > /dev/null || exit
 	
 	# remove tempory files

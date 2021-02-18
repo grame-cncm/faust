@@ -571,7 +571,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                     goto result;
                 } else if (oldest_date_playing != INT_MAX) {
                     fprintf(stderr, "Steal playing voice : voice_date = %d cur_date = %d voice = %d \n",
-                            fVoiceTable[voice_release]->fDate,
+                            fVoiceTable[voice_playing]->fDate,
                             fDate,
                             voice_release);
                     voice = voice_playing;

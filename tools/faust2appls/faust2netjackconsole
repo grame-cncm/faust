@@ -111,7 +111,10 @@ EndOfCode
     fi
 
     # compile c++ to binary
-    $CXX $CXXFLAGS "$TMP/${f%.dsp}.cpp" $FAUSTTOOLSFLAGS $ARCHLIB $OSCDEFS $HTTPDEFS $MIDIDEFS $POLYDEFS -o ${f%.dsp} || exit
+    $CXX $CXXFLAGS "$TMP/${f%.dsp}.cpp" $FAUSTTOOLSFLAGS $ARCHLIB $OSCDEFS $HTTPDEFS $MIDIDEFS $POLYDEFS -o "${f%.dsp}" || exit   
+    if [[ $(uname) == Darwin ]]; then
+        codesign --sign - --deep --force "${f%.dsp}"
+    fi   
     rm -rf "$TDR"
 
     # collect binary file name for FaustGIDE

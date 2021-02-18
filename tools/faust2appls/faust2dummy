@@ -84,7 +84,11 @@ for f in $FILES; do
 	# compile c++ to binary
 	(
 		$CXX $CXXFLAGS "$f.cpp" $OSCDEFS $HTTPDEFS $POLYDEFS $MIDIDEFS $ARCHLIB -o "${f%.dsp}"
+		if [[ $(uname) == Darwin ]]; then
+		    codesign --sign - --deep --force "${f%.dsp}"
+		fi
 	) > /dev/null || exit
+	
 	rm "$f.cpp"
 
 	# collect binary file name for FaustWorks

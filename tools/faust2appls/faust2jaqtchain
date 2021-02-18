@@ -142,7 +142,10 @@ rm "$TMP/combined_dsp.cpp"
     make
 ) > /dev/null || exit
 
-cp -r "$TMP/chain$EXT" "$SRCDIR/chain$EXT"
+cp -a "$TMP/chain$EXT" "$SRCDIR/chain$EXT"
+if [[ $(uname) == Darwin ]]; then
+    codesign --sign - --deep --force "$SRCDIR/chain$EXT"
+fi
 rm -rf "$TDR"
 
 # collect binary file name for FaustGIDE

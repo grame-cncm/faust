@@ -127,7 +127,10 @@ for p in $FILES; do
     fi
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
-    cp -r "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
+    cp -a "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
+    if [[ $(uname) == Darwin ]]; then
+        codesign --sign - --deep --force "$SRCDIR/${f%.dsp}$EXT"
+    fi
     rm -rf "$TDR"
 
     # collect binary file name for FaustGIDE
@@ -135,5 +138,3 @@ for p in $FILES; do
 done
 
 echo $BINARIES
-
-
