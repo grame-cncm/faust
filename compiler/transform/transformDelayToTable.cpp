@@ -59,77 +59,47 @@ class TransformDelayToTable : public SignalIdentity {
 
    protected:
     /**
-     * @brief compute the size 2^p of a delayline large enough for dmax+1 samples
+     * @brief compute the size 2^p of a delayline large enough for dmax+vectorsize samples
      *
      * @param dmax the max delay
      * @return int 2^p >= dmax+1
      */
     static int dmax2size(int dmax)
     {
-        int x = dmax + 1;
+        int s = gGlobal->gVectorSwitch ? gGlobal->gVecSize : 1;
+        int x = dmax + s;
         int p = int(log2(x));
         int v = 1 << p;
         while (v < x) v = v << 1;
         faustassert(v >= x);
         return v;
     }
-#if 0
+
     Tree transformation(Tree sig) override
     {
         faustassert(sig);
 
         Tree id, origin, dl, exp;
         int  nature, dmin, dmax;
+        Tree time = sigTime();
 
         if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, exp)) {
             int  size = dmax2size(dmax);
             Tree tr   = sigInstructionTableWrite(id, origin, nature, size, sigGen(sigInt(0)),
-                                               sigAND(sigTime(), sigInt(size - 1)), self(exp));
-            fInstr.insert(tr);
-            return tr;
-        } else if (isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl)) {
-            Tree wid  = (nature == kInt) ? uniqueID("W", sig) : uniqueID("W", sig);
-            int  mask = dmax2size(dmax) - 1;
-            if (isZero(dl)) {
-                fInstr.insert(
-                    sigInstructionTableAccessWrite(wid, origin, nature, dmin, id, sigAND(sigTime(), sigInt(mask))));
-                return sigInstructionSharedRead(wid, sig, nature);
-            } else {
-                fInstr.insert(sigInstructionTableAccessWrite(wid, origin, nature, dmin, id,
-                                                             sigAND(sigSub(sigTime(), self(dl)), sigInt(mask))));
-                return sigInstructionSharedRead(wid, sig, nature);
-            }
-        } else {
-            return SignalIdentity::transformation(sig);
-        }
-    }
-#else
-    Tree transformation(Tree sig) override
-    {
-        faustassert(sig);
-
-        Tree id, origin, dl, exp;
-        int  nature, dmin, dmax;
-
-        if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, exp)) {
-            int  size = dmax2size(dmax);
-            Tree tr   = sigInstructionTableWrite(id, origin, nature, size, sigGen(sigInt(0)),
-                                               sigAND(sigTime(), sigInt(size - 1)), self(exp));
+                                               sigAND(time, sigInt(size - 1)), self(exp));
             fInstr.insert(tr);
             return tr;
         } else if (isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl)) {
             int mask = dmax2size(dmax) - 1;
             if (isZero(dl)) {
-                return sigInstructionTableRead(id, sig, nature, dmin, sigAND(sigTime(), sigInt(mask)));
+                return sigInstructionTableRead(id, sig, nature, dmin, sigAND(time, sigInt(mask)));
             } else {
-                return sigInstructionTableRead(id, sig, nature, dmin,
-                                               sigAND(sigSub(sigTime(), self(dl)), sigInt(mask)));
+                return sigInstructionTableRead(id, sig, nature, dmin, sigAND(sigSub(time, self(dl)), sigInt(mask)));
             }
         } else {
             return SignalIdentity::transformation(sig);
         }
     }
-#endif
 };
 
 /**

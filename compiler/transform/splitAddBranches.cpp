@@ -76,7 +76,7 @@ class SplitAddBranches : public SignalIdentity {
         if (candidate(sig)) {
             Type t  = getSimpleType(sig);
             Tree r  = SignalIdentity::transformation(sig);
-            Tree id = (t->nature() == kInt) ? uniqueID("iAddVar", sig) : uniqueID("fAddVar", sig);
+            Tree id = (t->nature() == kInt) ? uniqueID("AI", sig) : uniqueID("AF", sig);
             fSplittedSignals.insert(sigInstructionSharedWrite(id, sig, t->nature(), r));
             Tree inst = sigInstructionSharedRead(id, sig, t->nature());
             return inst;

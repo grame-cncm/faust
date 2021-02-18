@@ -136,6 +136,19 @@ void Klass::closeLoop(Tree sig)
 }
 
 /**
+ * Close the top loop and either keep it
+ * or absorb it within its enclosing loop.
+ */
+void Klass::closeLoop()
+{
+    faustassert(fTopLoop);
+    Loop* l  = fTopLoop;
+    fTopLoop = l->fEnclosingLoop;
+    faustassert(fTopLoop);
+    fTopLoop->fBackwardLoopDependencies.insert(l);
+}
+
+/**
  * Print a list of elements (e1, e2,...)
  */
 void printdecllist(int n, const string& decl, list<string>& content, ostream& fout)
@@ -1084,7 +1097,7 @@ void Klass::printComputeMethodVectorSimple(int n, ostream& fout)
     tab(n + 2, fout);
     fout << "for (int index = 0; index < fullcount; index += " << gGlobal->gVecSize << ") {";
     tab(n + 3, fout);
-    fout << "int count = min(" << gGlobal->gVecSize << ", fullcount-index);";
+    fout << "int count = std::min(" << gGlobal->gVecSize << ", fullcount-index);";
     printlines(n + 3, fZone3Code, fout);
     printLoopGraphVector(n + 3, fout);
     tab(n + 2, fout);

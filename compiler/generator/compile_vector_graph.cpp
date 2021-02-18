@@ -808,11 +808,10 @@ static void compileGlobalTime(Klass* K)
     // Handling global time 'gTime' with a local version 'time'
     K->addDeclCode("int \tgTime;");
     K->addClearCode("gTime = 0;");
-    K->addZone3("int \ttime = gTime+index;");
-    K->addPostCode(Statement("", "++time;"));
+    K->addZone3("int \ttime = gTime+index;");  // local time in each loop will be (time+i)
     K->addZone4("gTime = gTime + fullcount;");
 }
-#if 1
+#if 0
 void GraphVectorCompiler::compileMultiSignal(Tree L)
 {
     L               = prepare(L);  // optimize, share and annotate expressions
@@ -835,7 +834,7 @@ void GraphVectorCompiler::compileMultiSignal(Tree L)
     }
 }
 #else
-void GraphCompiler::compileMultiSignal(Tree L)
+void GraphVectorCompiler::compileMultiSignal(Tree L)
 {
     L               = prepare(L);  // optimize, share and annotate expressions
     set<Tree> INSTR = ExpressionsListToInstructionsSet(L);
@@ -898,15 +897,39 @@ void GraphVectorCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* K
     for (Tree i : serialize(B)) compileSingleInstruction(i, Kl);
 
     // b) for the sample level graph we have (probably) cycles
-    digraph<digraph<Tree, multidep>, multidep> DG = graph2dag(E);
-    vector<digraph<Tree, multidep>>            VG = serialize(DG);
+    digraph<digraph<Tree, multidep>, multidep> DG  = graph2dag(E);
+    auto                                       foo = arrows(DG);
+    vector<digraph<Tree, multidep>>            VG  = serialize(DG);
     for (digraph<Tree, multidep> g : VG) {
+        std::stringstream ss;
+        ss << "// incoming arrows: " << foo.first[g] << ", outcoming arrows: " << foo.second[g];
         vector<Tree> v = serialize(cut(g, 1));
-        Kl->addExecCode(Statement("", "open for loop"));
+        Kl->openLoop("count");
+
+        // get samples from the expressions it depends on
+        for (auto d : foo.second[g].first) {
+            if (d.first[0] != 'R') {
+                Kl->addExecCode(Statement("", subst("auto $0=W$0[i];", d.first)));
+            }
+        }
+
         for (Tree i : v) {
+            Kl->addExecCode(Statement("", ss.str()));
             compileSingleInstruction(i, Kl);
         }
-        Kl->addExecCode(Statement("", "close for loop"));
+        // send samples to the expressions that depend on this one
+        for (auto d : foo.first[g].first) {
+            if (d.first[0] != 'R') {
+                std::stringstream vs;
+                vs << gGlobal->gVecSize;
+                std::string ts = (d.first[1] == 'I') ? "int" : "FAUSTFLOAT";
+                Kl->addPreCode(Statement("", subst("$0 W$1[$2];", ts, d.first, vs.str())));
+
+                Kl->addExecCode(Statement("", subst("W$0[i] = $0;", d.first)));
+            }
+        }
+
+        Kl->closeLoop();
     }
 }
 
@@ -1122,7 +1145,7 @@ string GraphVectorCompiler::generateCode(Tree sig)
     if (getUserData(sig)) {
         return generateXtended(sig);
     } else if (isSigTime(sig)) {
-        return "time";
+        return "(time+i)";
     } else if (isSigInstructionTableRead(sig, id, origin, &nature, &dmin, idx)) {
         return subst("$0[$1]", tree2str(id), CS(idx));
     } else if (isSigInstructionSharedRead(sig, id, origin, &nature)) {
