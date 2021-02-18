@@ -751,7 +751,7 @@ Tree getIDInstruction(Tree id)
 /**
  * @brief A delayline write "instruction"
  *
- * @param id: unique indetifier of the delayline
+ * @param id: unique identifier of the delayline
  * @param origin: the original signal (for its type)
  * @param nature: kInt or kReal (type of samples)
  * @param dmax: maximun delay (ie size of the delayline)
@@ -760,6 +760,7 @@ Tree getIDInstruction(Tree id)
  */
 Tree sigInstructionDelayLineWrite(Tree id, Tree origin, int nature, int dmax, Tree sig)
 {
+    std::cerr << *id << std::endl;
     Tree instr = tree(gGlobal->SIGINSTRUCTIONDELAYLINEWRITE, id, origin, tree(nature), tree(dmax), sig);
     setIDInstruction(id, instr);
     return instr;

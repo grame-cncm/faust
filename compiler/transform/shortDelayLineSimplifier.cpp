@@ -69,6 +69,21 @@ class removeFalseSDL : public SignalVisitor {
     }
 };
 
+static Tree transformID(Tree id)
+{
+    const char* src = name(id->node().getSym());
+    char        dst[128];
+
+    strncpy(dst, src, 126);
+    dst[0] = 'X';
+
+    Tree id2 = tree(Node(dst));
+
+    // std::cerr << "Transform ID " << *id << " -> " << *id2 << std::endl;
+
+    return id2;
+}
+
 class replaceShortDLine : public SignalIdentity {
     const set<Tree>& fCandidates;
 
@@ -89,9 +104,9 @@ class replaceShortDLine : public SignalIdentity {
         int  nature, dmax1, dmin1;
 
         if (isSigInstructionDelayLineRead(sig, ID1, origin, &nature, &dmax1, &dmin1, dl1) && isCandidate(ID1)) {
-            return sigInstructionShortDLineRead(ID1, origin, nature, dmin1);
+            return sigInstructionShortDLineRead(transformID(ID1), origin, nature, dmin1);
         } else if (isSigInstructionDelayLineWrite(sig, ID1, origin, &nature, &dmax1, content) && isCandidate(ID1)) {
-            return sigInstructionShortDLineWrite(ID1, origin, nature, self(content));
+            return sigInstructionShortDLineWrite(transformID(ID1), origin, nature, self(content));
         } else {
             return SignalIdentity::transformation(sig);
         }
