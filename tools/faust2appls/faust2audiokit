@@ -22,10 +22,6 @@ set -e
 NVOICES=0
 MIDI=false
 POLY=""
-PATCH=false
-SR=44100
-BS=16
-SOURCE=false
 
 echoHelp ()
 {
