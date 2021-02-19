@@ -44,7 +44,6 @@
 #include "faust/gui/MapUI.h"
 
 #ifdef MIDICTRL
-#include "faust/midi/daisy-midi.h"
 #include "faust/gui/MidiUI.h"
 #endif
 
