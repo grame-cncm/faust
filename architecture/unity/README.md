@@ -1,8 +1,8 @@
 # faust2unity
 
-`faust2unity` transforms a Faust DSP program into a fully working Unity audio plugin, which can be an effect or a synthesiser to perform procedural audio.
+**faust2unity** transforms a Faust DSP program into a fully working Unity audio plugin, which can be an effect or a synthesiser to perform procedural audio.
 
-The compiled folder is a Unity package (i.e. FaustPlugin_<dspname>.unitypackage) which contains two different types of files :
+The compiled folder is a Unity package (i.e. FaustPlugin_<dspname>.unitypackage) which contains two different types of files:
 
     - Libraries (in `libFaustPlugin_<dspname>.bundle`) containing the native C++ part.
     - Two C# scripts (`FaustPlugin_<dspname>.cs` and `FaustUtilities_<dspname>.cs`) containing the methods and classes which link the native part to the Unity audio system, and manage the plugin inspector interface.
@@ -17,7 +17,7 @@ Libraries are available for several platforms and architectures:
 
 ## How to use
 
-`faust2unity` is used with the following command:
+**faust2unity** is used with the following command:
 
 `faust2unity [-w32] [-w64] [-osx] [-ios] [-android] [-linux] [-nvoices <num>] [-source] [-unpacked] <file1.dsp> [<file2.dsp>]`
 
@@ -45,7 +45,7 @@ Android SDK (containing Android NDK) should be installed to generate Android lib
 
 ## Options
 
-The following options are available :
+The following options are available:
 
   - `-w32`          : produces a Windows 32bits library
   - `-w64`          : produces a Windows 64bits library
@@ -58,7 +58,7 @@ The following options are available :
   - `-unpacked`     : produces a folder with all selected architectures ordered like the Unity Assets hierarchy (i.e. `Assets/Plugins/FaustPlugin_<dspname>/iOS/libFaustPlugin_<dspname>.a`).
   - `-help or -h`   : shows different options and comments
 
-`faust2unity` script calls six different commands :
+**faust2unity** script calls six different commands:
 
   - `faust2w32unity <file.dsp>`
   - `faust2w64unity <file.dsp>`
@@ -67,4 +67,4 @@ The following options are available :
   - `faust2linuxunity <file.dsp>`
   - `encoderunitypackage <folder>`
 
-These commands can be called independently and will generate the libraries only (without the C# files). Specific compilation options can be changed in `faust2<platform>unity` scripts.
+These commands can be called independently and will generate the libraries only (without the C# files). Specific compilation options can be changed in **faust2<platform>unity** scripts.
