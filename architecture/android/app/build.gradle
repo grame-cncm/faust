@@ -18,8 +18,8 @@ android {
     }
     
     packagingOptions {
-        exclude 'lib/arm64-v8a/libOSCFaust.so'
-        exclude 'lib/armeabi-v7a/libOSCFaust.so'
+        pickFirst 'lib/arm64-v8a/libOSCFaust.so'
+        pickFirst 'lib/armeabi-v7a/libOSCFaust.so'
     }
 
     sourceSets {
