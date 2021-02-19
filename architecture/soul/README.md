@@ -1,6 +1,6 @@
 # faust2soul
 
-The **faust2soul** tool compiles a Faust DSP program in a folder containing the SOUL source code and SOUL patch.  The result can be a monophonic DSP or a MIDI controllable polyphonic one (when the DSP describes an instrument, following the `freq, gain, gate` [parameter naming convention](https://faust.grame.fr/doc/manual/index.html#midi-polyphony-support)). The resulting SOUL code can be played using the *soul* program, or by pasting and compiling the code in the [SOUL Playground](https://soul.dev/playground):
+The **faust2soul** tool compiles a Faust DSP program in a folder containing the SOUL source code and SOUL patch. The result can be a monophonic DSP or a MIDI controllable polyphonic one (when the DSP describes an instrument, following the `freq, gain, gate` [parameter naming convention](https://faust.grame.fr/doc/manual/index.html#midi-polyphony-support)). The resulting SOUL code can be played using the **soul** runtime, or by pasting and compiling the code in the [SOUL Playground](https://soul.dev/playground):
 
 `faust2soul [-midi] [-nvoices <num>] [-effect auto|<effect.dsp>] [-juce] [-dsp] [-play] [additional Faust options (-cn foo -double...)] <file.dsp>`
 
@@ -43,7 +43,7 @@ Or:
 
 # soul-faust-tester 
 
-The **soul-faust-tester** tool allows to test DSP CPU usage of Faust and SOUL programs, dynamically compiling them, and running them in the Faust runtime or SOUL runtime. It measures the DSP CPU usage as MBytes/sec and % of audio bandwidth at 44.1 kHz.
+The **soul-faust-tester** tool allows to test DSP CPU usage of Faust and SOUL programs, dynamically compiling them, and running them in the Faust runtime or **soul** runtime. It measures the DSP CPU usage as MBytes/sec and % of audio bandwidth at 44.1 kHz.
 
 `soul-faust-tester [-bs <frames>] [-control] [Faust options : any option (e.g. -vec -vs 8...)] <foo.dsp|foo.soulpatch>`
 
@@ -54,9 +54,9 @@ Here are the available options:
 
 So for instance:
 
-- `soul-faust-tester foo.dsp` to test 1) the Faust DSP code compiled to LLVM-IR and JITted to native code, then running in the Faust runtime, 2) the Faust DSP code compiled to SOUL, then compiled to LLVM-IR and JITted to native code, and running in the SOUL runtime.
+- `soul-faust-tester foo.dsp` to test 1) the Faust DSP code compiled to LLVM-IR and JITted to native code, then running in the Faust runtime, 2) the Faust DSP code compiled to SOUL, then compiled to LLVM-IR and JITted to native code, and running in the **soul** runtime.
 
-- `soul-faust-tester foo.soulpatch` to test a SOUL patch compiled to LLVM-IR and JITted to native code, and running in the SOUL runtime.
+- `soul-faust-tester foo.soulpatch` to test a SOUL patch compiled to LLVM-IR and JITted to native code, and running in the **soul** runtime.
 
 # soul-faust-editor
 
