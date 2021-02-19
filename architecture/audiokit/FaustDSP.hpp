@@ -33,13 +33,11 @@
  ************************************************************************
  ************************************************************************/
 
-// Copyright AudioKit. All Rights Reserved. Revision History at http://github.com/AudioKit/AudioKit/
-
 #ifndef Faustmydsp_hpp
 #define Faustmydsp_hpp
 
 #import "DSPBase.h"
-#import <cmath>
+#import <algorithm>
 #import <assert.h>
 
 #include "faust/dsp/dsp.h"
@@ -132,8 +130,8 @@ class Faustmydsp : public DSPBase {
             float* inputs[channelCount];
             float* outputs[channelCount];
             for (int channel = 0; channel < channelCount; ++channel) {
-                inputs[channel] = (float *)inputBufferLists[0]->mBuffers[channel].mData + frameOffset;
-                outputs[channel] = (float *)outputBufferList->mBuffers[channel].mData + frameOffset;
+                inputs[channel] = (float*)inputBufferLists[0]->mBuffers[channel].mData + bufferOffset;
+                outputs[channel] = (float*)outputBufferList->mBuffers[channel].mData + bufferOffset;
             }
             fDSP->compute(int(frameCount), inputs, outputs);
         }
