@@ -21,7 +21,6 @@ set -e
 # global option variables
 NVOICES=0
 MIDI=false
-POLY=""
 
 echoHelp ()
 {
