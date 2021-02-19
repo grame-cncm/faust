@@ -52,11 +52,14 @@ void sigToGraph(Tree L, ofstream& fout)
          << "    rankdir=LR; node [fontsize=10];" << endl;
     int out = 0;
     while (isList(L)) {
+        Type ty(getCertifiedSigType(hd(L)));
         recdraw(hd(L), alreadyDrawn, fout);
 
         fout << "OUTPUT_" << out << "[color=\"red2\" style=\"filled\" fillcolor=\"pink\"];" << endl;
         fout << 'S' << hd(L) << " -> "
-             << "OUTPUT_" << out++ << "[" << edgeattr(getCertifiedSigType(hd(L))) << "];" << endl;
+             << "OUTPUT_" << out++ << "[" << edgeattr(ty)
+             << " label=\"" << ty->getInterval() << "," << ty->getLsb() << "\""
+             << "];" << endl;
         L = tl(L);
     }
 
@@ -107,9 +110,8 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout)
                 }
 
                 for (int i = 0; i < n; i++) {
-                    Type ty;
+                    Type ty(getCertifiedSigType(subsig[i]));
                     recdraw(subsig[i], drawn, fout);
-                    ty = getCertifiedSigType(subsig[i]);
                     fout << 'S' << subsig[i] << " -> " << 'S' << sig << "[" << edgeattr(ty) << " label=\""
                          << ty->getInterval() << "," << ty->getLsb() << "\"" 
                          << "];" << endl;
