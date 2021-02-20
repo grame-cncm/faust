@@ -40,6 +40,10 @@ all : updatesubmodules
 	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=all.cmake TARGETS=all.cmake
 	$(MAKE) -C $(BUILDLOCATION)
 
+libsall : updatesubmodules
+	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=regular.cmake TARGETS=all.cmake
+	$(MAKE) -C $(BUILDLOCATION)
+
 travis : updatesubmodules
 	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=backends.cmake TARGETS=regular.cmake
 	$(MAKE) -C $(BUILDLOCATION)
@@ -116,6 +120,7 @@ help :
 	@echo " 'most'          : builds the Faust compiler with LLVM backend and every static libraries"
 	@echo " 'developer'     : builds the Faust compiler with every possible backends and every static libraries"
 	@echo " 'all'           : builds the Faust compiler with every possible backends and every static and dynamic libraries"
+	@echo " 'libsall'       : builds the Faust compiler (without the LLVM backend) and includes all the static and dynamic libraries"
 	@echo
 	@echo " 'install'       : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/share/faust $(prefix)/include/faust"
 	@echo " 'clean'         : remove all object files"
