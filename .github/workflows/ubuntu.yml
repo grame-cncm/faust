@@ -1,8 +1,10 @@
-name: C/C++ CI
+name: Ubuntu
 
 on:
   push:
-    branches: [ master-dev ]
+    branches: 
+        - master
+        - master-dev
   pull_request:
     branches: [ master-dev ]
 
@@ -13,5 +15,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: make
+
+    - name: Build Faust
       run: make
