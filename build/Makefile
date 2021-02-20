@@ -63,25 +63,22 @@ EMCC 	 ?= emcc
 #===============================================================
 ifeq ($(GENERATOR), Xcode)
 	PROJ = $(FAUSTDIR)/faust.xcodeproj
-	JOBS ?= -jobs 4
 endif
 ifneq (,$(findstring Makefile, $(GENERATOR)))
 	PROJ = $(FAUSTDIR)/Makefile
 endif
 ifneq (,$(findstring Visual Studio,$(GENERATOR)))
 	PROJ = $(FAUSTDIR)/faust.sln
-	JOBS ?= /maxcpucount:4
 endif
 
-JOBS	 ?= -j 4
 #===============================================================
 # main targets
 all: $(PROJ)
-	cmake --build $(FAUSTDIR) $(BUILDOPT) -- $(JOBS)
+	cmake --build $(FAUSTDIR) $(BUILDOPT) 
 
 full:
 	$(MAKE) cmake BACKENDS=all.cmake TARGETS=all.cmake 
-	cmake --build $(FAUSTDIR) $(BUILDOPT) -- $(JOBS)
+	cmake --build $(FAUSTDIR) $(BUILDOPT) 
 
 clean:
 	cmake --build $(FAUSTDIR) --target clean
@@ -124,8 +121,7 @@ help:
 	@echo "  BUILDOPT=<cmake options>    : pass options to cmake at build time (default to $(BUILDOPT))."
 	@echo "  BACKENDS=<backends file>    : see 'Backends' below"
 	@echo "  TARGETS=<targets file>      : see 'Targets' below"
-	@echo "  JOBS    : intended to set the number of tasks to run in parallel (default is $(JOBS))"
-	@echo "  WORKLET : Compile wasm glue library for worklet (default is off)"
+	@echo "  WORKLET                     : Compile wasm glue library for worklet (default is off)"
 	@echo
 	@echo "Backends:"
 	@echo "  the FAUST backends currently included are described in the '$(BACKENDS)' file"
@@ -159,22 +155,22 @@ help:
 
 	
 faust: $(PROJ) 
-	cmake --build $(FAUSTDIR) --target faust $(BUILDOPT) -- $(JOBS)
+	cmake --build $(FAUSTDIR) --target faust $(BUILDOPT) 
 
 osc: $(PROJ)
-	cmake --build $(FAUSTDIR) --target oscstatic $(BUILDOPT) -- $(JOBS)
+	cmake --build $(FAUSTDIR) --target oscstatic $(BUILDOPT) 
 
 oscdynamic: $(PROJ)
-	cmake --build $(FAUSTDIR) --target oscdynamic $(BUILDOPT) -- $(JOBS)
+	cmake --build $(FAUSTDIR) --target oscdynamic $(BUILDOPT) 
 
 oscandroid: $(PROJ)
 	cd ../architecture/osclib/android/&& ndk-build 
 
 http: $(PROJ)
-	cmake --build $(FAUSTDIR) --target httpstatic $(BUILDOPT) -- $(JOBS)
+	cmake --build $(FAUSTDIR) --target httpstatic $(BUILDOPT) 
 
 httpdynamic: $(PROJ)
-	cmake --build $(FAUSTDIR) --target httpdynamic $(BUILDOPT) -- $(JOBS)
+	cmake --build $(FAUSTDIR) --target httpdynamic $(BUILDOPT) 
 
 jsscripts: 
 	$(MAKE) -C ../architecture/httpdlib/src/hexa
@@ -253,19 +249,18 @@ native: $(FAUSTDIR)
 # building libraries
 #===============================================================
 staticlib: $(PROJ)
-	cmake --build $(FAUSTDIR) --target staticlib $(BUILDOPT)  -- $(JOBS) 
+	cmake --build $(FAUSTDIR) --target staticlib $(BUILDOPT)   
 
 dynamiclib: $(PROJ)
-	cmake --build $(FAUSTDIR) --target dynamiclib $(BUILDOPT) -- $(JOBS)
+	cmake --build $(FAUSTDIR) --target dynamiclib $(BUILDOPT) 
 
 
 #===============================================================
 # building libfaust.a for ios
 #===============================================================
-ioslib: JOBS ?= -jobs 4
 ioslib: $(IOSDIR) $(IOSDIR)/faust.xcodeproj
-	cmake --build $(IOSDIR) --target staticlib $(BUILDOPT) -- $(JOBS)
-	cmake --build $(IOSDIR) --target oscstatic $(BUILDOPT) -- $(JOBS)
+	cmake --build $(IOSDIR) --target staticlib $(BUILDOPT) 
+	cmake --build $(IOSDIR) --target oscstatic $(BUILDOPT) 
 
 $(IOSDIR)/faust.xcodeproj: CMakeLists.txt backends/ios.cmake
 	cd $(IOSDIR) && cmake -C ../backends/ios.cmake ..  -DINCLUDE_STATIC=on -DINCLUDE_HTTP=off -G Xcode
@@ -302,12 +297,12 @@ cmake: $(FAUSTDIR)
 wasmlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	@$(MAKE) checkemcc
 	mkdir -p wasm-libraries && cp ../libraries/*.lib ../libraries/old/*.lib wasm-libraries
-	cmake --build $(FAUSTDIR) --target wasmlib $(BUILDOPT) -- $(JOBS)
+	cmake --build $(FAUSTDIR) --target wasmlib $(BUILDOPT)
 	rm -rf wasm-libraries
 
 wasmglue: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	@$(MAKE) checkemcc
-	cmake --build $(FAUSTDIR) --target wasmglue $(BUILDOPT) -- $(JOBS)
+	cmake --build $(FAUSTDIR) --target wasmglue $(BUILDOPT) 
 
 checkemcc:
 	@which $(EMCC) > /dev/null || (echo "### emcc must be available from your PATH."; false;)
