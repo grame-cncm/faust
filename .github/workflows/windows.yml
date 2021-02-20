@@ -35,4 +35,6 @@ jobs:
         uses: lukka/get-cmake@latest
 
       - name: Build Faust
-        run: make 
+        run: |
+    	  make -C build cmake BACKENDS=regular.cmake TARGETS=win-ci.cmake
+          make -C build
