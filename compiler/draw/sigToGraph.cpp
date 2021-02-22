@@ -45,21 +45,18 @@ static string sigLabel(Tree sig);
  * Draw a list of signals as a directed graph using graphviz's dot language
  */
 void sigToGraph(Tree L, ofstream& fout)
-{ 
+{
     set<Tree> alreadyDrawn;
 
     fout << "strict digraph loopgraph {\n"
          << "    rankdir=LR; node [fontsize=10];" << endl;
     int out = 0;
     while (isList(L)) {
-        Type ty(getCertifiedSigType(hd(L)));
         recdraw(hd(L), alreadyDrawn, fout);
 
         fout << "OUTPUT_" << out << "[color=\"red2\" style=\"filled\" fillcolor=\"pink\"];" << endl;
         fout << 'S' << hd(L) << " -> "
-             << "OUTPUT_" << out++ << "[" << edgeattr(ty)
-             << " label=\"" << ty->getInterval() << "," << ty->getLsb() << "\""
-             << "];" << endl;
+             << "OUTPUT_" << out++ << "[" << edgeattr(getCertifiedSigType(hd(L))) << "];" << endl;
         L = tl(L);
     }
 
@@ -110,11 +107,8 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout)
                 }
 
                 for (int i = 0; i < n; i++) {
-                    Type ty(getCertifiedSigType(subsig[i]));
                     recdraw(subsig[i], drawn, fout);
-                    fout << 'S' << subsig[i] << " -> " << 'S' << sig << "[" << edgeattr(ty) << " label=\""
-                         << ty->getInterval() << "," << ty->getLsb() << "\"" 
-                         << "];" << endl;
+                    fout << 'S' << subsig[i] << " -> " << 'S' << sig << "[" << edgeattr(getCertifiedSigType(subsig[i])) << "]" << endl;
                 }
             }
         }
@@ -122,25 +116,34 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout)
     // cerr << --gGlobal->TABBER << "EXIT REC DRAW OF " << sig << endl;
 }
 
-/**
- * Convert a signal type into edge attributes
- */
-static string edgeattr(Type t)
-{
-    string s;
 
+stringstream commonAttr(Type t)
+{
+    stringstream fout;
     // nature
     if (t->nature() == kInt) {
-        s += " color=\"blue\"";
+        fout << " color=\"blue\"";
     } else {
-        s += " color=\"red\"";
+        fout << " color=\"red\"";
     }
 
     // vectorability
     if (t->vectorability() == kVect && t->variability() == kSamp) {
-        s += " style=\"bold\"";
+        fout << " style=\"bold\"";
     }
-    return s;
+    return fout;
+}
+
+/**
+ * Convert a signal type into edge attributes
+ */
+
+
+static string edgeattr(Type t)
+{
+    stringstream fout(commonAttr(t));
+    fout << " label =\"" << t->getInterval() << ", " << t->getLsb() << "\"";
+    return fout.str();
 }
 
 /**
@@ -148,18 +151,17 @@ static string edgeattr(Type t)
  */
 static string nodeattr(Type t)
 {
-    string s = edgeattr(t);
+    stringstream fout(commonAttr(t));
 
     // variability
     if (t->variability() == kKonst) {
-        s += " shape=\"box\"";
+        fout << " shape=\"box\"";
     } else if (t->variability() == kBlock) {
-        s += " shape=\"hexagon\"";
+        fout << " shape=\"hexagon\"";
     } else if (t->variability() == kSamp) {
-        s += " shape=\"ellipse\"";
+        fout << " shape=\"ellipse\"";
     }
-
-    return s;
+    return fout.str();
 }
 
 /**
