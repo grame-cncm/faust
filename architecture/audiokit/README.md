@@ -13,4 +13,4 @@ Here are the available options:
 - `-midi` : activates MIDI control
 - `-nvoices <num>` : to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI
 
-The result is a folder containing `FaustDSP.hpp` and `FaustDSP.mm` files including the Faust generated C++ class for the DSP, to be added and compiled in the AudioKit framework. 
+The result is a folder containing `FaustDSP.hpp` and `FaustDSP.mm` files including the Faust generated C++ class for the DSP, to be added and compiled in the AudioKit framework. Note that the generated C++ class takes the name of the compiled DSP, so that several different DSP can be generated and used in a same project. 
