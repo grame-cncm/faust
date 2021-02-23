@@ -83,11 +83,13 @@ void typeAnnotation(Tree sig, bool causality)
     gGlobal->gCausality = causality;
     Tree sl             = symlist(sig);
     int  n              = len(sl);
-
+    int  itnum          = 12;  //<<< maximal number of iterations for program analysis
+    bool finished = false;
+    
     vector<Tree> vrec, vdef;
     vector<Type> vtype;
 
-    // cerr << "Symlist " << *sl << endl;
+    cerr << "Symlist " << *sl << endl;
     for (Tree l = sl; isList(l); l = tl(l)) {
         Tree id, body;
         faustassert(isRec(hd(l), id, body));
@@ -107,8 +109,8 @@ void typeAnnotation(Tree sig, bool causality)
     faustassert(int(vdef.size()) == n);
     faustassert(int(vtype.size()) == n);
 
-    // cerr << "find least fixpoint" << endl;
-    for (bool finished = false; !finished;) {
+    cerr << "find least fixpoint" << endl;
+    for (int i = 0; !finished && i < itnum; i++) {
         // init recursive types
         CTree::startNewVisit();
         for (int i = 0; i < n; i++) {
@@ -124,9 +126,16 @@ void typeAnnotation(Tree sig, bool causality)
         // check finished
         finished = true;
         for (int i = 0; i < n; i++) {
-            // cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] << endl;
+            cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] << endl;
             finished = finished && (getSigType(vrec[i]) == vtype[i]);
         }
+    }
+
+    for (int i=0; i < n; i++){
+        if (getSigType(vrec[i]) != vtype[i]){
+            cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " != " << *vtype[i] << " FAILURE" << endl;
+            faustassert(1==2);
+        }    
     }
 
     // type full term
