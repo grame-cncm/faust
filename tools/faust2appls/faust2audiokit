@@ -13,7 +13,7 @@
 
 CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
-ARCHFILE=$FAUSTARCH/audiokit/FaustDSP.hpp
+ARCHFILE=$FAUSTARCH/audiokit/FaustDSP.mm
 
 # exit if a command fails
 set -e
@@ -79,8 +79,7 @@ for p in $FILE; do
     mkdir "$SRCDIR/$dspName"
     
     # compile faust to c++
-    cp -r $FAUSTARCH/audiokit/FaustDSP.mm "$SRCDIR/$dspName/"
-    faust -i -cn $dspName -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/FaustDSP.hpp" || exit
+    faust -uim -i -cn $dspName -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/FaustDSP.mm" || exit
 
     # for MIDI
     if [ $MIDI == true ]; then
