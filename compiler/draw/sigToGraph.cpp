@@ -142,7 +142,7 @@ stringstream commonAttr(Type t)
 static string edgeattr(Type t)
 {
     stringstream fout(commonAttr(t));
-    fout << " label =\"" << t->getInterval() << ", " << t->getLsb() << "\"";
+    fout << " label =\"" << t->getInterval() << ", " << t->getRes() << "\"";
     return fout.str();
 }
 

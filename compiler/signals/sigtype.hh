@@ -94,12 +94,12 @@ class AudioType : public virtual Garbageable {
     int fBoolean;        ///< when a signal stands for a boolean value
 
     interval fInterval;  ///< Minimal and maximal values the signal can take
-    bDepth   fLsb;       ///< Least Significant Bit (fixed-point)
+    res   fRes;       ///< Resolution (fixed-point)
     Tree     fCode;      ///< Tree representation (for memoization purposes)
 
    public:
-    AudioType(int n, int v, int c, int vec = kVect, int b = kNum, interval i = interval(), bDepth fLsb = bDepth())
-        : fNature(n), fVariability(v), fComputability(c), fVectorability(vec), fBoolean(b), fInterval(i), fLsb(fLsb), fCode(0)
+    AudioType(int n, int v, int c, int vec = kVect, int b = kNum, interval i = interval(), res r = res())
+        : fNature(n), fVariability(v), fComputability(c), fVectorability(vec), fBoolean(b), fInterval(i), fRes(r), fCode(0)
     {
     }                        ///< constructs an abstract audio type
     virtual ~AudioType() {}  ///< not really useful here, but make compiler happier
@@ -117,7 +117,7 @@ class AudioType : public virtual Garbageable {
     int boolean() const { return fBoolean; }              ///< returns when a signal stands for a boolean value
 
     interval getInterval() const { return fInterval; }  ///< returns the interval (min dn max values) of a signal
-    bDepth getLsb() const { return fLsb; } ///< return the Least Significant Bit of the signal (fixed)
+    res getRes() const { return fRes; } ///< return the resolution of the signal (fixed)
     
     void setCode(Tree code) { fCode = code; }  ///< returns the interval (min dn max values) of a signal
     Tree getCode() { return fCode; }           ///< returns the interval (min dn max values) of a signal
@@ -218,7 +218,7 @@ inline interval mergeinterval(const vector<Type>& v)
 }
 
 AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i);
-AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i, const bDepth& lsb);
+AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i, const res& lsb);
 //didn't use a default arg, would have created a cyclic dependancy with global.hh
 
 AudioType* makeTableType(const Type& ct);
@@ -236,7 +236,7 @@ AudioType* makeTupletType(const vector<Type>& vt, int n, int v, int c, int vec, 
  */
 class SimpleType : public AudioType {
    public:
-    SimpleType(int n, int v, int c, int vec, int b, const interval& i, const bDepth& lsb) : AudioType(n, v, c, vec, b, i, lsb)
+    SimpleType(int n, int v, int c, int vec, int b, const interval& i, const res& lsb) : AudioType(n, v, c, vec, b, i, lsb)
     {
         // cerr << "new simple type " << i << " -> " << *this << endl;
     }  ///< constructs a SimpleType from a nature a variability and a computability

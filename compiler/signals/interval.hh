@@ -99,9 +99,9 @@ struct interval : public virtual Garbageable {
 inline ostream& operator<<(ostream& dst, const interval& i)
 {
     if (i.valid) {
-        return dst << "interval(" << i.lo << ", " << i.hi << ")";
+        return dst << "[" << i.lo << ", " << i.hi << "]";
     } else {
-        return dst << "interval()";
+        return dst << "[-inf; +inf]";
     }
 }
 
@@ -316,20 +316,27 @@ inline interval abs(const interval& x)
 }
 
 
-struct bDepth : public virtual Garbageable {
+/**
+ * @struct res
+ * 
+ *
+ *
+ */
+
+struct res : public virtual Garbageable {
     bool valid; ///< true if it is a valid bit depth
     int  index;   ///< the index of the lsb, if any
 
-    bDepth(): valid(false), index(0){}
-    bDepth(int i): valid(true), index(i){}
+    res(): valid(false), index(0){}
+    res(int i): valid(true), index(i){}
 };
 
-inline ostream& operator<<(ostream& dst, const bDepth& bd)
+inline ostream& operator<<(ostream& dst, const res& r)
 {
-    if (bd.valid) {
-        return dst << "lsb(" << bd.index << ")";
+    if (r.valid) {
+        return dst << "r(" << r.index << ")";
     } else {
-        return dst << "lsb(?)";
+        return dst << "r(?)";
     }
 }
 

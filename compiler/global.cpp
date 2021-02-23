@@ -491,7 +491,7 @@ void global::init()
 
     // empty Predefined bit depth
 
-    BD = bDepth();
+    RES = res();
     
     // Predefined symbols CONS and NIL
     CONS = symbol("cons");

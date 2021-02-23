@@ -422,7 +422,7 @@ struct global {
     // Trying to accelerate type convergence
     Type TREC;  // kVect ou kScal ?
 
-    bDepth BD;
+    res RES;
     
     Sym  CONS;
     Sym  NIL;
