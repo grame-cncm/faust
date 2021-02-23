@@ -73,6 +73,14 @@
 #include "faust/gui/qrcodegen.h"
 #endif
 
+#if QT_VERSION >= 0x040300
+  #define QTColorLighter	lighter
+  #define QTColorDarker		darker
+#else
+  #define QTColorLighter	light
+  #define QTColorDarker		dark
+#endif
+
 // for compatibility
 #define minValue minimum
 #define maxValue maximum
@@ -132,7 +140,7 @@ public:
         
         QPalette pal = opt->palette;
         QColor knobColor = pal.mid().color();
-        QColor borderColor = knobColor.light();
+        QColor borderColor = knobColor.QTColorLighter();
         QColor meterColor = (dial->state & State_Enabled) ?
         QColor("orange") : pal.mid().color();
         // pal.highlight().color() : pal.mid().color();
@@ -143,9 +151,9 @@ public:
         
         // The bright metering bit...
         QConicalGradient meterShadow(xcenter, ycenter, -90);
-        meterShadow.setColorAt(0, meterColor.dark());
+        meterShadow.setColorAt(0, meterColor.QTColorDarker());
         meterShadow.setColorAt(0.5, meterColor);
-        meterShadow.setColorAt(1.0, meterColor.light().light());
+        meterShadow.setColorAt(1.0, meterColor.QTColorLighter().QTColorLighter());
         p->setBrush(meterShadow);
         p->setPen(Qt::transparent);
         p->drawPie(xcenter - meterWidth / 2, ycenter - meterWidth / 2,
@@ -169,9 +177,9 @@ public:
         
         QRadialGradient gradient(xcenter - shineCenter, ycenter - shineCenter,
                                  shineExtension,	xcenter - shineFocus, ycenter - shineFocus);
-        gradient.setColorAt(0.2, knobColor.light().light());
+        gradient.setColorAt(0.2, knobColor.QTColorLighter().QTColorLighter());
         gradient.setColorAt(0.5, knobColor);
-        gradient.setColorAt(1.0, knobColor.dark(150));
+        gradient.setColorAt(1.0, knobColor.QTColorDarker(150));
         QBrush knobBrush(gradient);
         p->setBrush(knobBrush);
         p->drawEllipse(xcenter - knobWidth / 2, ycenter - knobWidth / 2,
@@ -209,8 +217,8 @@ public:
         if (knobBorderWidth > 0) {
             QLinearGradient inShadow(xcenter - side / 4, ycenter - side / 4,
                                      xcenter + side / 4, ycenter + side / 4);
-            inShadow.setColorAt(0.0, borderColor.light());
-            inShadow.setColorAt(1.0, borderColor.dark());
+            inShadow.setColorAt(0.0, borderColor.QTColorLighter());
+            inShadow.setColorAt(1.0, borderColor.QTColorDarker());
             p->setPen(QPen(QBrush(inShadow), knobBorderWidth * 7 / 8));
             p->drawEllipse(xcenter - side / 2 + indent,
                            ycenter - side / 2 + indent,
@@ -220,8 +228,8 @@ public:
         // Scale shadow...
         QLinearGradient outShadow(xcenter - side / 3, ycenter - side / 3,
                                   xcenter + side / 3, ycenter + side / 3);
-        outShadow.setColorAt(0.0, background.dark().dark());
-        outShadow.setColorAt(1.0, background.light().light());
+        outShadow.setColorAt(0.0, background.QTColorDarker().QTColorDarker());
+        outShadow.setColorAt(1.0, background.QTColorLighter().QTColorLighter());
         p->setPen(QPen(QBrush(outShadow), scaleShadowWidth));
         p->drawArc(xcenter - side / 2 + scaleShadowWidth / 2,
                    ycenter - side / 2 + scaleShadowWidth / 2,
@@ -235,11 +243,11 @@ public:
         double y = ycenter + len * cos(angle);
         
         QColor pointerColor = pal.dark().color();
-        pen.setColor((dial->state & State_Enabled) ? pointerColor.dark(140) : pointerColor);
+        pen.setColor((dial->state & State_Enabled) ? pointerColor.QTColorDarker(140) : pointerColor);
         pen.setWidth(pointerWidth + 2);
         p->setPen(pen);
         p->drawLine(QLineF(xcenter, ycenter, x, y));
-        pen.setColor((dial->state & State_Enabled) ? pointerColor.light() : pointerColor.light(140));
+        pen.setColor((dial->state & State_Enabled) ? pointerColor.QTColorLighter() : pointerColor.QTColorLighter(140));
         pen.setWidth(pointerWidth);
         p->setPen(pen);
         p->drawLine(QLineF(xcenter - 1, ycenter - 1, x - 1, y - 1));
