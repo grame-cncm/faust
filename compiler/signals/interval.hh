@@ -315,20 +315,19 @@ inline interval abs(const interval& x)
     }
 }
 
-
 /**
  * @struct res
- * 
- *
- *
+ * the fixed-point resolution of the signal
+ * i.e. the index of the least significant bit of the fixed-point representation of the signal.
+ * which is a _relative_ number.
  */
 
 struct res : public virtual Garbageable {
-    bool valid; ///< true if it is a valid bit depth
-    int  index;   ///< the index of the lsb, if any
+    bool valid;  ///< true if a resolution has indeed been compiled
+    int  index;  ///< the index of the lsb, if any
 
-    res(): valid(false), index(0){}
-    res(int i): valid(true), index(i){}
+    res() : valid(false), index(0) {}
+    res(int i) : valid(true), index(i) {}
 };
 
 inline ostream& operator<<(ostream& dst, const res& r)

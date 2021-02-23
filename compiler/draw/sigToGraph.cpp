@@ -108,14 +108,14 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout)
 
                 for (int i = 0; i < n; i++) {
                     recdraw(subsig[i], drawn, fout);
-                    fout << 'S' << subsig[i] << " -> " << 'S' << sig << "[" << edgeattr(getCertifiedSigType(subsig[i])) << "]" << endl;
+                    fout << 'S' << subsig[i] << " -> " << 'S' << sig << "[" << edgeattr(getCertifiedSigType(subsig[i]))
+                         << "]" << endl;
                 }
             }
         }
     }
     // cerr << --gGlobal->TABBER << "EXIT REC DRAW OF " << sig << endl;
 }
-
 
 stringstream commonAttr(Type t)
 {
@@ -126,7 +126,6 @@ stringstream commonAttr(Type t)
     } else {
         fout << " color=\"red\"";
     }
-
     // vectorability
     if (t->vectorability() == kVect && t->variability() == kSamp) {
         fout << " style=\"bold\"";
@@ -137,7 +136,6 @@ stringstream commonAttr(Type t)
 /**
  * Convert a signal type into edge attributes
  */
-
 
 static string edgeattr(Type t)
 {
