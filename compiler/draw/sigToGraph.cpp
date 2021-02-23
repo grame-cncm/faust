@@ -109,7 +109,7 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout)
                 for (int i = 0; i < n; i++) {
                     recdraw(subsig[i], drawn, fout);
                     fout << 'S' << subsig[i] << " -> " << 'S' << sig << "[" << edgeattr(getCertifiedSigType(subsig[i]))
-                         << "];" << endl;
+                         << "]" << endl;
                 }
             }
         }
@@ -117,25 +117,31 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout)
     // cerr << --gGlobal->TABBER << "EXIT REC DRAW OF " << sig << endl;
 }
 
+stringstream commonAttr(Type t)
+{
+    stringstream fout;
+    // nature
+    if (t->nature() == kInt) {
+        fout << " color=\"blue\"";
+    } else {
+        fout << " color=\"red\"";
+    }
+    // vectorability
+    if (t->vectorability() == kVect && t->variability() == kSamp) {
+        fout << " style=\"bold\"";
+    }
+    return fout;
+}
+
 /**
  * Convert a signal type into edge attributes
  */
+
 static string edgeattr(Type t)
 {
-    string s;
-
-    // nature
-    if (t->nature() == kInt) {
-        s += " color=\"blue\"";
-    } else {
-        s += " color=\"red\"";
-    }
-
-    // vectorability
-    if (t->vectorability() == kVect && t->variability() == kSamp) {
-        s += " style=\"bold\"";
-    }
-    return s;
+    stringstream fout(commonAttr(t));
+    fout << " label =\"" << t->getInterval() << ", " << t->getRes() << "\"";
+    return fout.str();
 }
 
 /**
@@ -143,18 +149,17 @@ static string edgeattr(Type t)
  */
 static string nodeattr(Type t)
 {
-    string s = edgeattr(t);
+    stringstream fout(commonAttr(t));
 
     // variability
     if (t->variability() == kKonst) {
-        s += " shape=\"box\"";
+        fout << " shape=\"box\"";
     } else if (t->variability() == kBlock) {
-        s += " shape=\"hexagon\"";
+        fout << " shape=\"hexagon\"";
     } else if (t->variability() == kSamp) {
-        s += " shape=\"ellipse\"";
+        fout << " shape=\"ellipse\"";
     }
-
-    return s;
+    return fout.str();
 }
 
 /**

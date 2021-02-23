@@ -366,12 +366,18 @@ static Tree codeSimpleType(SimpleType* st)
     elems.push_back(tree(st->getInterval().lo));
     elems.push_back(tree(st->getInterval().hi));
 
+    elems.push_back(tree(st->getRes().valid));
+    elems.push_back(tree(st->getRes().index));
     return CTree::make(gGlobal->SIMPLETYPE, elems);
 }
 
-AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i)
+AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i){
+    return makeSimpleType(n, v, c, vec, b, i, gGlobal->RES);
+}
+
+AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i, const res& lsb)
 {
-    SimpleType prototype(n, v, c, vec, b, i);
+    SimpleType prototype(n, v, c, vec, b, i, lsb);
     Tree       code = codeAudioType(&prototype);
 
     AudioType* t;
@@ -379,7 +385,7 @@ AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i
         return t;
     } else {
         gGlobal->gAllocationCount++;
-        t = new SimpleType(n, v, c, vec, b, i);
+        t = new SimpleType(n, v, c, vec, b, i, lsb);
         gGlobal->gMemoizedTypes->set(code, t);
         t->setCode(code);
         return t;

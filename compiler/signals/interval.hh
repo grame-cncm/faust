@@ -99,9 +99,9 @@ struct interval : public virtual Garbageable {
 inline ostream& operator<<(ostream& dst, const interval& i)
 {
     if (i.valid) {
-        return dst << "interval(" << i.lo << ", " << i.hi << ")";
+        return dst << "[" << i.lo << ", " << i.hi << "]";
     } else {
-        return dst << "interval()";
+        return dst << "[-inf; +inf]";
     }
 }
 
@@ -312,6 +312,30 @@ inline interval abs(const interval& x)
         }
     } else {
         return x;
+    }
+}
+
+/**
+ * @struct res
+ * the fixed-point resolution of the signal
+ * i.e. the index of the least significant bit of the fixed-point representation of the signal.
+ * which is a _relative_ number.
+ */
+
+struct res : public virtual Garbageable {
+    bool valid;  ///< true if a resolution has indeed been compiled
+    int  index;  ///< the index of the lsb, if any
+
+    res() : valid(false), index(0) {}
+    res(int i) : valid(true), index(i) {}
+};
+
+inline ostream& operator<<(ostream& dst, const res& r)
+{
+    if (r.valid) {
+        return dst << "r(" << r.index << ")";
+    } else {
+        return dst << "r(?)";
     }
 }
 
