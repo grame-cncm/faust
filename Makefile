@@ -25,7 +25,7 @@ zname := faust-$(version)
 # The main targets
 
 compiler : updatesubmodules
-	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=regular.cmake TARGETS=regular.cmake CMAKEOPT=-DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=regular.cmake TARGETS=regular.cmake
 	$(MAKE) -C $(BUILDLOCATION)
 
 most : updatesubmodules
@@ -127,7 +127,7 @@ help :
 	@echo 
 	@echo "Other targets"
 	@echo " 'debug'         : similar to 'all' target but with debug info. Output is in $(BUILDLOCATION)/$(DEBUGFOLDER)"
-	@echo " 'wasm'          : builds the Faust WebAssembly libraries"
+ 	@echo " 'wasm'          : builds the Faust WebAssembly libraries"
 	@echo " 'benchmark'     : builds the benchmark tools (see tools/benchmark)"
 	@echo " 'remote'        : builds the libfaustremote.a library and the Faust RemoteServer"
 	@echo " 'sound2faust'   : builds the sound2faust utilities (requires libsndfile)"
