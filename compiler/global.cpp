@@ -32,6 +32,7 @@
 #include "cosprim.hh"
 #include "exp10prim.hh"
 #include "expprim.hh"
+#include "floats.hh"
 #include "floorprim.hh"
 #include "fmodprim.hh"
 #include "ftzprim.hh"
@@ -49,7 +50,6 @@
 #include "sqrtprim.hh"
 #include "tanprim.hh"
 #include "tree.hh"
-#include "floats.hh"
 
 #ifdef WIN32
 #pragma warning(disable : 4996)
@@ -421,7 +421,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 #endif
 
 #ifdef SOUL_BUILD
-    gTableSizeVisitor = nullptr;    // Will be (possibly) allocated in SOUL backend
+    gTableSizeVisitor = nullptr;  // Will be (possibly) allocated in SOUL backend
 #endif
 
     gHelpSwitch       = false;
@@ -463,9 +463,9 @@ void global::init()
     gSymListProp           = new property<Tree>();
 
     // Essential predefined types
-    gMemoizedTypes   = new property<AudioType*>();
-    gAllocationCount = 0;
-    gMaskDelayLineThreshold  = INT_MAX;
+    gMemoizedTypes          = new property<AudioType*>();
+    gAllocationCount        = 0;
+    gMaskDelayLineThreshold = INT_MAX;
 
     // True by default but only usable with -lang ocpp backend
     gEnableFlag = true;
@@ -487,12 +487,12 @@ void global::init()
     TGUI01   = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval(0, 1));
     INT_TGUI = makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval());
 
-    TREC = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(0,0));
+    TREC = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval());
 
     // empty Predefined bit depth
 
     RES = res();
-    
+
     // Predefined symbols CONS and NIL
     CONS = symbol("cons");
     NIL  = symbol("nil");
@@ -578,13 +578,13 @@ void global::init()
     gMathForeignFunctions["tanhf"] = true;
     gMathForeignFunctions["tanh"]  = true;
     gMathForeignFunctions["tanhl"] = true;
-    
+
     gMathForeignFunctions["isnanf"] = true;
-    gMathForeignFunctions["isnan"] = true;
+    gMathForeignFunctions["isnan"]  = true;
     gMathForeignFunctions["isnanl"] = true;
-    
+
     gMathForeignFunctions["isinff"] = true;
-    gMathForeignFunctions["isinf"] = true;
+    gMathForeignFunctions["isinf"]  = true;
     gMathForeignFunctions["isinfl"] = true;
 }
 
@@ -618,13 +618,18 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
         dst << "-vec"
             << " -lv " << gVectorLoopVariant << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
             << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
-            << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
-            << gGlobal->gMaxCopyDelay;
+            << ((gFloatSize == 2)   ? " -double"
+                : (gFloatSize == 3) ? " -quad"
+                                    : "")
+            << " -ftz " << gFTZMode << " -mcd " << gGlobal->gMaxCopyDelay;
     } else {
-        dst << ((gFloatSize == 1) ? "-scal" : ((gFloatSize == 2) ? "-double" : (gFloatSize == 3) ? "-quad" : ""))
+        dst << ((gFloatSize == 1) ? "-scal"
+                                  : ((gFloatSize == 2)   ? "-double"
+                                     : (gFloatSize == 3) ? "-quad"
+                                                         : ""))
             << " -ftz " << gFTZMode;
     }
-    
+
     // Add 'compile_options' metadata
     gGlobal->gMetaDataSet[tree("compile_options")].insert(tree("\"" + dst.str() + "\""));
 }
@@ -681,7 +686,7 @@ BasicTyped* global::genBasicTyped(Typed::VarType type)
 {
     // Possibly force FAUSTFLOAT type (= kFloatMacro) to internal real
     Typed::VarType new_type = ((type == Typed::kFloatMacro) && gFAUSTFLOAT2Internal) ? itfloat() : type;
-    
+
     // If not defined, add the type in the table
     if (gTypeTable.find(new_type) == gTypeTable.end()) {
         gTypeTable[new_type] = new BasicTyped(new_type);
@@ -689,9 +694,15 @@ BasicTyped* global::genBasicTyped(Typed::VarType type)
     return gTypeTable[new_type];
 }
 
-void global::setVarType(const string& name, Typed::VarType type) { gVarTypeTable[name] = genBasicTyped(type); }
+void global::setVarType(const string& name, Typed::VarType type)
+{
+    gVarTypeTable[name] = genBasicTyped(type);
+}
 
-Typed::VarType global::getVarType(const string& name) { return gVarTypeTable[name]->getType(); }
+Typed::VarType global::getVarType(const string& name)
+{
+    return gVarTypeTable[name]->getType();
+}
 
 global::~global()
 {
