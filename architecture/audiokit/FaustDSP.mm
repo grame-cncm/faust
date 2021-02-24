@@ -88,22 +88,22 @@ class Faustmydsp : public DSPBase, public GenericUI {
             fZones.push_back(zone);
         }
         void addHorizontalSlider(const char*
-                             label,
-                             FAUSTFLOAT* zone,
-                             FAUSTFLOAT init,
-                             FAUSTFLOAT min,
-                             FAUSTFLOAT max,
-                             FAUSTFLOAT step) override
+                                 label,
+                                 FAUSTFLOAT* zone,
+                                 FAUSTFLOAT init,
+                                 FAUSTFLOAT min,
+                                 FAUSTFLOAT max,
+                                 FAUSTFLOAT step) override
         {
             fZones.push_back(zone);
         }
         void addNumEntry(const char*
-                     label,
-                     FAUSTFLOAT* zone,
-                     FAUSTFLOAT init,
-                     FAUSTFLOAT min,
-                     FAUSTFLOAT max,
-                     FAUSTFLOAT step) override
+                         label,
+                         FAUSTFLOAT* zone,
+                         FAUSTFLOAT init,
+                         FAUSTFLOAT min,
+                         FAUSTFLOAT max,
+                         FAUSTFLOAT step) override
         {
             fZones.push_back(zone);
         }

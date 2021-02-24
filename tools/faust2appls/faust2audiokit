@@ -79,17 +79,24 @@ for p in $FILE; do
     mkdir "$SRCDIR/$dspName"
     
     # compile faust to c++
-    faust -uim -i -cn $dspName -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/FaustDSP.mm" || exit
-
+    faust -json -uim -i -cn $dspName -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/FaustDSP.mm" || exit
+    
     # for MIDI
     if [ $MIDI == true ]; then
-        echo "#define MIDICTRL" | cat - "$SRCDIR/$dspName/FaustDSP.hpp" > temp && mv temp "$SRCDIR/$dspName/FaustDSP.hpp"
+        echo "#define MIDICTRL" | cat - "$SRCDIR/$dspName/FaustDSP.mm" > temp && mv temp "$SRCDIR/$dspName/FaustDSP.mm"
     fi
     # for POLY
     if [ "$NVOICES" -gt "0" ]; then
-        echo "#define POLY" | cat - "$SRCDIR/$dspName/FaustDSP.hpp" > temp && mv temp "$SRCDIR/$dspName/FaustDSP.hpp"
-        echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/FaustDSP.hpp" > temp && mv temp "$SRCDIR/$dspName/FaustDSP.hpp"
+        echo "#define POLY" | cat - "$SRCDIR/$dspName/FaustDSP.mm" > temp && mv temp "$SRCDIR/$dspName/FaustDSP.mm"
+        echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/FaustDSP.mm" > temp && mv temp "$SRCDIR/$dspName/FaustDSP.mm"
     fi
+
+ 	# create Swift wrapper
+    (
+    	mv "$SRCDIR/$dspName.dsp.json" "$SRCDIR/$dspName"
+    	cd "$SRCDIR/$dspName" && faust2swift "$dspName.dsp.json"
+    	rm "$dspName.dsp.json"
+    ) > /dev/null || exit
 
     # create the source folder
     echo "Create the $SRCDIR/$dspName folder"
