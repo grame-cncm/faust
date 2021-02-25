@@ -57,6 +57,11 @@
 #if QT_VERSION >= 0x050000
 #include <QtWidgets>
 #endif
+#if QT_VERSION >= 0x060000
+#define QTSetMargins(a) setContentsMargins(a, a, a, a)
+#else
+#define QTSetMargins(a) setMargin(a)
+#endif
 #include <QApplication>
 #include <QLabel>
 #include <QComboBox>
@@ -1270,7 +1275,7 @@ protected:
         std::map<std::string, std::string> metadata;
         std::string label;
         extractMetadata(fulllabel, label, metadata);
-        layout->setMargin(5);
+        layout->QTSetMargins(5);
         QWidget* box;
         
         label = startWith(label, "0x") ? "" : label;
@@ -1290,7 +1295,7 @@ protected:
                 
             } else {
                 // no label here we use simple widget
-                layout->setMargin(0);
+                layout->QTSetMargins(0);
                 box = new QWidget(this);
             }
             
@@ -1315,7 +1320,7 @@ protected:
                 
             } else {
                 // no label here we use simple widget
-                layout->setMargin(0);
+                layout->QTSetMargins(0);
                 box = new QWidget;
             }
             
@@ -1591,7 +1596,7 @@ public:
     virtual void addButton(const char* label, FAUSTFLOAT* zone)
     {
         QAbstractButton* w = new QPushButton(label);
-        w->setAttribute(Qt::WA_MacNoClickThrough);
+//        w->setAttribute(Qt::WA_MacNoClickThrough); // obsolete at least since Qt 5.11
         uiButton* c = new uiButton(this, zone, w);
         
         insert(label, w);
