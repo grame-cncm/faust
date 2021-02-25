@@ -86,7 +86,17 @@ void typeAnnotation(Tree sig, bool causality)
 
     vector<Tree> vrec, vdef;
     vector<Type> vtype;
+    vector<uint> vAgeMin(n, 0);
+    vector<uint> vAgeMax(n, 0);
 
+    // to move into compiler option (set to 0 to disable recursive interval computation)
+    const uint AGE_LIMIT = 1;
+    
+    Type oldType;
+
+    interval newI;
+    interval oldI;
+    
     // cerr << "Symlist " << *sl << endl;
     for (Tree l = sl; isList(l); l = tl(l)) {
         Tree id, body;
@@ -106,6 +116,8 @@ void typeAnnotation(Tree sig, bool causality)
     faustassert(int(vrec.size()) == n);
     faustassert(int(vdef.size()) == n);
     faustassert(int(vtype.size()) == n);
+    faustassert((int)vAgeMin.size() == n);
+    faustassert((int)vAgeMax.size() == n);
 
     // cerr << "find least fixpoint" << endl;
     for (bool finished = false; !finished;) {
@@ -113,6 +125,7 @@ void typeAnnotation(Tree sig, bool causality)
         CTree::startNewVisit();
         for (int i = 0; i < n; i++) {
             setSigType(vrec[i], vtype[i]);
+            cerr << i << "-" << *getSigType(vrec[i]) << endl;
             vrec[i]->setVisited();
         }
 
@@ -124,11 +137,32 @@ void typeAnnotation(Tree sig, bool causality)
         // check finished
         finished = true;
         for (int i = 0; i < n; i++) {
-            // cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] << endl;
-            finished = finished && (getSigType(vrec[i]) == vtype[i]);
+            oldType = getSigType(vrec[i]);
+            cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] << endl;
+            //cerr << vAgeMin[i] << " " << vAgeMax[i] << endl;
+            if(vtype[i] != oldType){
+                finished = false;
+                newI = vtype[i]->getInterval();
+                oldI = oldType->getInterval();
+                if(newI.lo != oldI.lo){
+                    //faustassert(newI.lo < oldI.lo);
+                    vAgeMin[i]++;
+                    if(vAgeMin[i] > AGE_LIMIT){
+                        vtype[i] = vtype[i]->promoteInterval(interval(-HUGE_VAL, newI.hi));
+                        //cerr << "low widening of " << vtype[i] << endl;
+                    }
+                }
+                if(newI.hi != oldI.hi){
+                    //faustassert(newI.hi > oldI.hi);
+                    vAgeMax[i]++;
+                    if(vAgeMax[i] > AGE_LIMIT){
+                        vtype[i] = vtype[i]->promoteInterval(interval(newI.lo, HUGE_VAL));
+                        //cerr << "up widening of " << vtype[i] << endl;
+                    }
+                }
+            }
         }
     }
-
     // type full term
     T(sig, gGlobal->NULLTYPEENV);
 }
