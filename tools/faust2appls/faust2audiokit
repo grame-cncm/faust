@@ -13,7 +13,8 @@
 
 CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
-ARCHFILE=$FAUSTARCH/audiokit/FaustDSP.mm
+ARCHFILE1=$FAUSTARCH/audiokit/FaustDSP.mm
+ARCHFILE2=$FAUSTARCH/audiokit/SwiftGenerator.cpp
 
 # exit if a command fails
 set -e
@@ -79,7 +80,8 @@ for p in $FILE; do
     mkdir "$SRCDIR/$dspName"
     
     # compile faust to c++
-    faust -json -uim -i -cn $dspName -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/FaustDSP.mm" || exit
+    faust -uim -i -cn $dspName -a $ARCHFILE1 $OPTIONS $f -o "$SRCDIR/$dspName/FaustDSP.mm" || exit
+    faust -i -a $ARCHFILE2  $f -o "$SRCDIR/$dspName/faust2swift.cpp" || exit
     
     # for MIDI
     if [ $MIDI == true ]; then
@@ -93,9 +95,7 @@ for p in $FILE; do
 
  	# create Swift wrapper
     (
-    	mv "$SRCDIR/$dspName.dsp.json" "$SRCDIR/$dspName"
-    	cd "$SRCDIR/$dspName" && faust2swift "$dspName.dsp.json"
-    	rm "$dspName.dsp.json"
+    	cd "$SRCDIR/$dspName" && c++ -std=c++11 -O3 faust2swift.cpp -o faust2swift && ./faust2swift && rm faust2swift faust2swift.cpp
     ) > /dev/null || exit
 
     # create the source folder

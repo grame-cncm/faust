@@ -26,30 +26,14 @@
 #include <ostream>
 #include <sstream>
 
-#include "faust/gui/JSONUIDecoder.h"
+#include "faust/dsp/dsp.h"
 #include "faust/gui/DecoratorUI.h"
+#include "faust/misc.h"
 
 using namespace std;
 
-static string pathToContent(const string& path)
-{
-    ifstream file(path.c_str(), ifstream::binary);
-    
-    file.seekg(0, file.end);
-    int size = int(file.tellg());
-    file.seekg(0, file.beg);
-    
-    // And allocate buffer to that a single line can be read...
-    char* buffer = new char[size + 1];
-    file.read(buffer, size);
-    
-    // Terminate the string
-    buffer[size]  = 0;
-    string result = buffer;
-    file.close();
-    delete[] buffer;
-    return result;
-}
+<<includeIntrinsic>>
+<<includeclass>>
 
 struct SwiftFilePrinter : public GenericUI
 {
@@ -132,8 +116,7 @@ struct SwiftFilePrinter : public GenericUI
         // Reset unit metadata
         fUnit = "";
     }
-
-    
+   
     // -- active widgets
     virtual void addButton(const char* label, FAUSTFLOAT* zone)
     {
@@ -169,23 +152,33 @@ struct SwiftFilePrinter : public GenericUI
     
 };
 
+struct Meta1 : Meta
+{
+    string fFileName;
+    void declare(const char* key, const char* value)
+    {
+        if (strcmp("filename", key) == 0) {
+            fFileName = value;
+        }
+    }
+};
+
 int main(int argc, char* argv[])
 {
-    // Load JSON file and decode it
-    string JSON = pathToContent(argv[1]);
-    JSONUIDecoder decoded_ui(JSON);
-
-    // Genarate swift file
-    string file_name = decoded_ui.fFileName;
+    mydsp dsp;
+    
+    Meta1 meta1;
+    dsp.metadata(&meta1);
+   
+    // Generate the swift output file
+    string file_name = meta1.fFileName;
     file_name.erase(file_name.end() - 4, file_name.end());
     
     ofstream out_file("Faust" + file_name + ".swift");
     SwiftFilePrinter printer(file_name, out_file);
     printer.printHeader();
-    decoded_ui.buildUserInterface(&printer);
+    dsp.buildUserInterface(&printer);
     printer.printFooter();
     
     return 0;
 }
-
-
