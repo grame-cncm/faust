@@ -27,6 +27,10 @@ LLVM_ADAPTER=$FAUSTINC/faust/dsp/llvm-dsp-adapter.h
 CPP_ADAPTER=$FAUSTINC/faust/dsp/cpp-dsp-adapter.h
 MULTI_ADAPTER=$FAUSTINC/faust/dsp/dsp-multi.h
 MULTIFUN_ADAPTER=$FAUSTINC/faust/dsp/dsp-multifun.h
+SOUNDFILE="0"
+SOUNDFILEDEFS=""
+SOUNDFILEINCS=""
+SOUNDFILELIBS=""
 dspName=""
 
 ALL_CPU_LIST="nocona core2 penryn bonnell atom silvermont slm goldmont goldmont-plus tremont nehalem corei7 westmere sandybridge corei7-avx ivybridge core-avx-i haswell core-avx2 broadwell skylake skylake-avx512 skx cascadelake cooperlake cannonlake icelake-client icelake-server tigerlake knl knm k8 athlon64 athlon-fx opteron k8-sse3 athlon64-sse3 opteron-sse3 amdfam10 barcelona btver1 btver2 bdver1 bdver2 bdver3 bdver4 znver1 znver2 x86-64 generic"
@@ -36,10 +40,11 @@ do
     p=$1
  
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2object [nocona] [core2] [penryn] [bonnell] [atom] [silvermont] [slm] [goldmont] [goldmont-plus] [tremont] [nehalem] [corei7] [westmere] [sandybridge] [corei7-avx] [ivybridge] [core-avx-i] [haswell] [core-avx2] [broadwell] [skylake] [skylake-avx512] [skx] [cascadelake] [cooperlake] [cannonlake] [icelake-client] [icelake-server] [tigerlake] [knl] [knm] [k8] [athlon64] [athlon-fx] [opteron] [k8-sse3] [athlon64-sse3] [opteron-sse3] [amdfam10] [barcelona] [btver1] [btver2] [bdver1] [bdver2] [bdver3] [bdver4] [znver1] [znver2] [x86-64] [generic] [-all] [-sources] [-multi] [-multifun] [-opt native|generic] [-llvm] [-test] [-us <factor>] [-ds <factor>] [-filter <filter(0..4)>] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faust2object [nocona] [core2] [penryn] [bonnell] [atom] [silvermont] [slm] [goldmont] [goldmont-plus] [tremont] [nehalem] [corei7] [westmere] [sandybridge] [corei7-avx] [ivybridge] [core-avx-i] [haswell] [core-avx2] [broadwell] [skylake] [skylake-avx512] [skx] [cascadelake] [cooperlake] [cannonlake] [icelake-client] [icelake-server] [tigerlake] [knl] [knm] [k8] [athlon64] [athlon-fx] [opteron] [k8-sse3] [athlon64-sse3] [opteron-sse3] [amdfam10] [barcelona] [btver1] [btver2] [bdver1] [bdver2] [bdver3] [bdver4] [znver1] [znver2] [x86-64] [generic] [-all] [-soundfile] [-sources] [-multi] [-multifun] [-opt native|generic] [-llvm] [-test] [-us <factor>] [-ds <factor>] [-filter <filter(0..4)>] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use 'xxx' to compile for 'xxx' CPU"
         echo "Use 'generic' to compile for generic CPU"
         echo "Use '-all' to compile for all CPUs"
+        echo "Use '-soundfile' when compiling a DSP using the 'soundfile' primitive, add required resources"
         echo "Use '-sources' to only generate source files"
         echo "Use '-multi' to compile for several CPUs and aggregate them in a 'multi' class that choose the correct one at runtime"
         echo "Use '-multifun' to compile for several CPUs using GCC MultiFun feature and aggregate them in a 'multi' class that choose the correct one at runtime"
@@ -80,6 +85,11 @@ do
     elif [ $p = "-filter" ]; then
         shift
         FILTER=$1
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILE="1"
+        SOUNDFILEDEFS="-DSOUNDFILE"
+        SOUNDFILEINCS=`pkg-config --cflags sndfile`
+        SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
     elif [ ${p:0:1} = "-" ]; then
@@ -154,7 +164,7 @@ for p in $FILES; do
 
             # compiling
             if [ $SOURCES = false ]; then
-            	$CXX -Ofast -march=$arch_cpu -I `faust -includedir` -c $dspName$cpu".cpp"
+            	$CXX -Ofast -march=$arch_cpu -I `faust -includedir` $SOUNDFILEDEFS $SOUNDFILEINCS -c $dspName$cpu".cpp"
             fi
         fi
     done
@@ -196,9 +206,9 @@ for p in $FILES; do
     	faust -inj $dspName"multi.h" -a $FAUSTARCH/minimal-bench.cpp -cn $dspName"multi" $OPTIONS $p -o $dspName"multi.cpp"
 
     	if [ $MULTI = true ]; then
-    		$CXX -Ofast -std=c++14 $dspName"multi.cpp" -dead_strip -I `llvm-config --includedir --ldflags --libs all --system-libs` $dspName*".o" -o $dspName"multi"
+    		$CXX -Ofast -std=c++14 $dspName"multi.cpp" -dead_strip $SOUNDFILEDEFS $SOUNDFILELIBS -I `llvm-config --includedir --ldflags --libs all --system-libs` $dspName*".o" -o $dspName"multi"
     	elif [ $MULTIFUN = true ]; then
-    		$CXX -Ofast -std=c++14 $dspName"multi.cpp" $dspName"generic.cpp" -o $dspName"multi"
+    		$CXX -Ofast -std=c++14 $dspName"multi.cpp" $dspName"generic.cpp" $SOUNDFILEDEFS $SOUNDFILELIBS -o $dspName"multi"
     	fi
    		
     	echo "Run ./"$dspName"multi"" to test the program"

@@ -39,6 +39,10 @@
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
 
+#if defined(SOUNDFILE)
+#include "faust/gui/SoundUI.h"
+#endif
+
 using std::max;
 using std::min;
 

@@ -42,24 +42,24 @@
 
 #if defined(JUCE_32BIT) || defined(JUCE_64BIT)
 #include "faust/gui/JuceReader.h"
-JuceReader gReader;
+static JuceReader gReader;
 #elif defined(ESP32)
 #include "faust/gui/Esp32Reader.h"
-Esp32Reader gReader;
+static Esp32Reader gReader;
 #elif defined(DAISY)
 #include "faust/gui/WaveReader.h"
-WaveReader gReader;
+static WaveReader gReader;
 #elif defined(MEMORY_READER)
 #include "faust/gui/MemoryReader.h"
-MemoryReader gReader;
+static MemoryReader gReader;
 #else
 #include "faust/gui/LibsndfileReader.h"
-LibsndfileReader gReader;
+static LibsndfileReader gReader;
 #endif
 
 // To be used by DSP code if no SoundUI is used
-std::vector<std::string> path_name_list;
-Soundfile* defaultsound = gReader.createSoundfile(path_name_list, MAX_CHAN);
+static std::vector<std::string> path_name_list;
+static Soundfile* defaultsound = gReader.createSoundfile(path_name_list, MAX_CHAN);
 
 class SoundUI : public SoundUIInterface
 {

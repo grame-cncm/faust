@@ -23,6 +23,10 @@
 #ifndef CPP_mydsp_adapter_H
 #define CPP_mydsp_adapter_H
 
+#if defined(SOUNDFILE)
+#include "faust/gui/SoundUI.h"
+#endif
+
 class dsp;
 
 // Factory API
