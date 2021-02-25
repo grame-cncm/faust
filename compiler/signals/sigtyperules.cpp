@@ -86,8 +86,9 @@ void typeAnnotation(Tree sig, bool causality)
 
     vector<Tree> vrec, vdef;
     vector<Type> vtype;
-    vector<uint> vAgeMin(n, 0);
-    vector<uint> vAgeMax(n, 0);
+
+    vector<vector<uint>> vAgeMin; ///< age of the minimum of every subsignal of the recursive signal
+    vector<vector<uint>> vAgeMax; ///< age of the maximum of every subsignal of the recursive signal
 
     // to move into compiler option (set to 0 to disable recursive interval computation)
     const uint AGE_LIMIT = 1;
@@ -106,6 +107,8 @@ void typeAnnotation(Tree sig, bool causality)
         }
         vrec.push_back(hd(l));
         vdef.push_back(body);
+        vAgeMin.push_back(vector<uint>(body->arity(),0));
+        vAgeMax.push_back(vector<uint>(body->arity(),0));
     }
 
     // init recursive types
@@ -137,28 +140,27 @@ void typeAnnotation(Tree sig, bool causality)
         // check finished
         finished = true;
         for (int i = 0; i < n; i++) {
-            oldType = getSigType(vrec[i]);
             cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] << endl;
-            //cerr << vAgeMin[i] << " " << vAgeMax[i] << endl;
             if(vtype[i] != oldType){
                 finished = false;
-                newI = vtype[i]->getInterval();
-                oldI = oldType->getInterval();
-                if(newI.lo != oldI.lo){
-                    //faustassert(newI.lo < oldI.lo);
-                    vAgeMin[i]++;
-                    if(vAgeMin[i] > AGE_LIMIT){
-                        vtype[i] = vtype[i]->promoteInterval(interval(-HUGE_VAL, newI.hi));
-                        //cerr << "low widening of " << vtype[i] << endl;
+                for(int j=0; j < vdef[i]->arity(); j++){
+                    if(newI.lo != oldI.lo){
+                        //faustassert(newI.lo < oldI.lo);
+                        vAgeMin[i][j]++;
+                        if(vAgeMin[i][j] > AGE_LIMIT){
+                            vdef[i][j].setType(vtype[i][j].promoteInterval(interval(-HUGE_VAL, newI.hi)));
+                            cerr << "low widening of " << vtype[i][j] << endl;
+                        }
                     }
-                }
-                if(newI.hi != oldI.hi){
-                    //faustassert(newI.hi > oldI.hi);
-                    vAgeMax[i]++;
-                    if(vAgeMax[i] > AGE_LIMIT){
-                        vtype[i] = vtype[i]->promoteInterval(interval(newI.lo, HUGE_VAL));
-                        //cerr << "up widening of " << vtype[i] << endl;
-                    }
+                    if(newI.hi != oldI.hi){
+                        //faustassert(newI.hi > oldI.hi);
+                        vAgeMax[i][j]++;
+                        if(vAgeMax[i][j] > AGE_LIMIT){
+                            vdef[i][j].setType(vtype[i][j].promoteInterval(interval(newI.lo, HUGE_VAL)));
+                            cerr << "up widening of " << vdef[i][j] << " : " << *getSigType(&vdef[i][j]) << endl;
+                        }
+                    }                        
+                    
                 }
             }
         }
