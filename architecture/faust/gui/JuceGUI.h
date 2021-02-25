@@ -1421,7 +1421,7 @@ class uiVUMeter : public uiComponent, public juce::SettableTooltipClient, public
         {
             FAUSTFLOAT rawLevel = *fZone;
         #if JUCE_DEBUG
-            if (isnan(rawLevel)) {
+            if (std::isnan(rawLevel)) {
                 std::cerr << "uiVUMeter: NAN\n";
             }
         #endif
