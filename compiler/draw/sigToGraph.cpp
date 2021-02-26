@@ -117,20 +117,20 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout)
     // cerr << --gGlobal->TABBER << "EXIT REC DRAW OF " << sig << endl;
 }
 
-stringstream commonAttr(Type t)
+string commonAttr(Type t)
 {
-    stringstream fout;
+    string sout;
     // nature
     if (t->nature() == kInt) {
-        fout << " color=\"blue\"";
+        sout += " color=\"blue\"";
     } else {
-        fout << " color=\"red\"";
+        sout += " color=\"red\"";
     }
     // vectorability
     if (t->vectorability() == kVect && t->variability() == kSamp) {
-        fout << " style=\"bold\"";
+        sout += " style=\"bold\"";
     }
-    return fout;
+    return sout;
 }
 
 /**
@@ -139,9 +139,13 @@ stringstream commonAttr(Type t)
 
 static string edgeattr(Type t)
 {
-    stringstream fout(commonAttr(t));
-    fout << " label =\"" << t->getInterval() << ", " << t->getRes() << "\"";
-    return fout.str();
+    string sout(commonAttr(t));
+    sout += " label =\"";
+    sout += t->getInterval().toString();
+    sout += ", ";
+    sout += t->getRes().toString();
+    sout += "\"";
+    return sout;
 }
 
 /**
@@ -149,17 +153,17 @@ static string edgeattr(Type t)
  */
 static string nodeattr(Type t)
 {
-    stringstream fout(commonAttr(t));
+    string sout(commonAttr(t));
 
     // variability
     if (t->variability() == kKonst) {
-        fout << " shape=\"box\"";
+        sout += " shape=\"box\"";
     } else if (t->variability() == kBlock) {
-        fout << " shape=\"hexagon\"";
+        sout += " shape=\"hexagon\"";
     } else if (t->variability() == kSamp) {
-        fout << " shape=\"ellipse\"";
+        sout += " shape=\"ellipse\"";
     }
-    return fout.str();
+    return sout;
 }
 
 /**

@@ -94,15 +94,31 @@ struct interval : public virtual Garbageable {
         return isconst() && ((n & (-n)) == n);
     }
     bool haszero() { return (lo <= 0) && (0 <= hi); }
+
+    
+    /**
+     * @brief pretty print an interval (string version)
+     * @details usage of stringsteams seems problematic for old versions of gcc
+     * @return a string representing the interval if valid, ??? otherwise
+     */
+    string toString() const
+    {
+        string sout = ("[");
+        if (valid) {
+            sout += to_string(lo);
+            sout += ", ";
+            sout += to_string(hi);
+        } else {
+            sout += "???";
+        }
+        sout += "]";
+        return sout;
+    }
 };
 
 inline ostream& operator<<(ostream& dst, const interval& i)
 {
-    if (i.valid) {
-        return dst << "[" << i.lo << ", " << i.hi << "]";
-    } else {
-        return dst << "[-inf; +inf]";
-    }
+    return dst << i.toString();
 }
 
 inline interval reunion(const interval& x, const interval& y)
@@ -328,15 +344,20 @@ struct res : public virtual Garbageable {
 
     res() : valid(false), index(0) {}
     res(int i) : valid(true), index(i) {}
+
+    string toString() const
+    {
+        string sout;
+        sout += "r(";
+        sout += valid ? to_string(index) : "???";
+        sout += ")";
+        return sout;
+    }
 };
 
 inline ostream& operator<<(ostream& dst, const res& r)
 {
-    if (r.valid) {
-        return dst << "r(" << r.index << ")";
-    } else {
-        return dst << "r(?)";
-    }
+    return dst << r.toString();
 }
 
 #endif
