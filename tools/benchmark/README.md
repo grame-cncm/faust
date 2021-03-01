@@ -47,6 +47,8 @@ The `-multi` mode generates an additional header file (like `<DSPName>multi.h`, 
 
 Note that this code uses the [LLVM](https://llvm.org) `llvm::sys::getHostCPUName()` function to discover the machine CPU. Thus the LLVM tool chain has to be installed, and the `llvm-config --ldflags --libs all --system-libs` command will typically have to be used at link time to add the needed LLVM libraries, along with `-dead_strip` to only keep what is really mandatory in the final binary.
 
+When used with the `-source` option, the `-DSOUNDFILE` and `pkg-config --cflags sndfile` flags have to be added to compile the generated C++ files, and `pkg-config --static --libs` sndfile has to be added at link time.
+
 The `-multifun` mode uses the GCC [multiversion feature](https://gcc.gnu.org/wiki/FunctionMultiVersioning) to generate an additional header file (like `<DSPName>multi.h`, containing a `<DSPName>multi` class) that will dynamically load and instantiate the correct code for the machine CPU (or a generic version if the given CPU is not supported). An instance of this aggregation class will have to be created at runtime (like with `dsp* dsp = new<DSPName>multi();`  or  `dsp* dsp = create<DSPName>multi();`) to load the appropriate object code version depending on the running machine CPU. The list of CPUs to be compiled for must be defined in the `FAUST_ARCHS` environment variable.
 
 The `-test` parameter can be used to compile a test program which will bench the DSP, print its UI, and render it.

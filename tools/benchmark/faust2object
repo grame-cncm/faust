@@ -89,7 +89,7 @@ do
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE"
         SOUNDFILEINCS=`pkg-config --cflags sndfile`
-        SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
+        SOUNDFILELIBS=`pkg-config --static --libs sndfile`
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
     elif [ ${p:0:1} = "-" ]; then
@@ -164,7 +164,7 @@ for p in $FILES; do
 
             # compiling
             if [ $SOURCES = false ]; then
-            	$CXX -Ofast -march=$arch_cpu -I `faust -includedir` $SOUNDFILEDEFS $SOUNDFILEINCS -c $dspName$cpu".cpp"
+            	$CXX -std=c++14 -Ofast -march=$arch_cpu -I `faust -includedir` $SOUNDFILEDEFS $SOUNDFILEINCS -c $dspName$cpu".cpp"
             fi
         fi
     done
