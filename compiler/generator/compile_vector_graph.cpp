@@ -723,8 +723,8 @@ void GraphVectorCompiler::tableDependenciesGraph(const set<Tree>& I)
  */
 void GraphVectorCompiler::compileSingleInstruction(Tree instr, Klass* K)
 {
-    Tree id, origin, content, init, initval, idx;
-    int  i, nature, tblsize;
+    Tree id, tid, origin, content, init, initval, idx;
+    int  i, nature, tblsize, dmin;
 
     if (isSigInstructionControlWrite(instr, id, origin, &nature, content)) {
         string ctype = nature2ctype(nature);
@@ -786,6 +786,22 @@ void GraphVectorCompiler::compileSingleInstruction(Tree instr, Klass* K)
         K->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
         K->addExecCode(Statement("", subst("$0 = ($1)$2;", varname, xfloat(), CS(content))));
         addUIWidget(reverse(tl(path)), uiWidget(hd(path), id, origin));
+
+    } else if (isSigInstructionTimeWrite(instr)) {
+        K->addDeclCode("int \tgTime;");
+        K->addClearCode("gTime = -1;");
+        K->addZone3("int \ttime = gTime;");
+        K->addExecCode(Statement("", "++time;"));
+        K->addZone4("gTime = time;");
+
+    } else if (isSigInstructionTableAccessWrite(instr, id, origin, &nature, &dmin, tid, idx)) {
+        // std::cerr << *id << " = " << *tid << "[" << ppsig(idx) << "]";
+        string ctype = nature2ctype(nature);
+        string vname{tree2str(id)};
+        string tname{tree2str(tid)};
+
+        // K->addDeclCode(subst("$0 \t$1;", ctype, vname));
+        K->addExecCode(Statement("", subst("$3 $0 = $1[$2];", vname, tname, CS(idx), ctype)));
 
     } else {
         std::cerr << "ERROR, not a valid sample instruction 1 : " << ppsig(instr) << endl;

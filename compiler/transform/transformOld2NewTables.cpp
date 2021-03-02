@@ -70,7 +70,8 @@ class TransformTables : public SignalIdentity {
                     faustassert(isSigTable(itbl, id, tblsize, init));
                 }
                 // cerr << "We have a read-write table to tranform: " << ppsig(sig) << endl;
-                id2   = uniqueID("RWT", tbl);
+                // TRW : Table Read Write
+                id2   = uniqueID("TRW", tbl);
                 instr = sigInstructionTableWrite(id2, tbl, nat, tree2int(tblsize), init, self(widx), self(wsig));
 
             } else {
@@ -79,11 +80,15 @@ class TransformTables : public SignalIdentity {
                     faustassert(isSigTable(tbl, id, tblsize, init));
                 }
                 // cerr << "We have a read-only table to tranform: " << ppsig(sig) << endl;
-                id2   = uniqueID("RDT", tbl);
+                // TRO : Table Read Only
+                id2   = uniqueID("TRO", tbl);
                 instr = sigInstructionTableWrite(id2, tbl, nat, tree2int(tblsize), init, gGlobal->nil, gGlobal->nil);
             }
             fSplittedSignals.insert(instr);
-            return sigInstructionTableRead(id2, sig, nat, 0, self(ridx));
+            // Cache table read
+            Tree wid = (nat == kInt) ? uniqueID("VI", sig) : uniqueID("VF", sig);
+            fSplittedSignals.insert(sigInstructionTableAccessWrite(wid, sig, nat, 0, id2, self(ridx)));
+            return sigInstructionSharedRead(wid, sig, nat);
         } else {
             return SignalIdentity::transformation(sig);
         }
