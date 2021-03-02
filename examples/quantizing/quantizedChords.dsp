@@ -29,15 +29,18 @@ declare license "MIT";
 
 
 import("stdfaust.lib");
+
 Nb = 3;
 
-process = chords*gain<:_,_;
+process = synth*gain<:_,_;
 
-chords = freq <: f2quantizedChord, f2quantizedChordSmoo, f2chord :> par(i,Nb,os.osc):>_/Nb;
+synth = freq : chord <: mQuantizer, mQuantizerSmooth, mBypass :> par(i,Nb,os.osc):>_/Nb;
 
-f2quantizedChord = _ <: par(i,Nb,(_*(i+2)/(i+1):qu.quantize(200,qu.ionian) *(check==0) ));
-f2quantizedChordSmoo = _ <: par(i,Nb,(_*(i+2)/(i+1):qu.quantizeSmoothed(200,qu.ionian) *(check==1) ));
-f2chord = _ <: par(i,Nb,(_*(i+2)/(i+1)) *(check==2) );
+chord = _ <: par(i,Nb,(_*(i+2)/(i+1)));
+
+mQuantizer = par(i,Nb,_:qu.quantize(200,qu.ionian) *(check==0) );
+mQuantizerSmooth = par(i,Nb,_:qu.quantizeSmoothed(200,qu.ionian) *(check==1) );
+mBypass = par(i,Nb,_*(check==2) );
 
 //freq = hslider("freq",200,200,400,2);
 freq = os.osc(rate)*100+300;
