@@ -84,16 +84,18 @@ void typeAnnotation(Tree sig, bool causality)
     Tree sl             = symlist(sig);
     int  n              = len(sl);
 
-    vector<Tree> vrec, vdef;
-    vector<Type> vtype;
+    vector<Tree> vrec; ///< array of all the recursive signal groups
+    vector<Tree> vdef; ///< definitions of all the recursive signal groups (vector of lists)
+    vector<Type> vtype; ///< type of the recursive signals
 
     vector<vector<uint>> vAgeMin; ///< age of the minimum of every subsignal of the recursive signal
     vector<vector<uint>> vAgeMax; ///< age of the maximum of every subsignal of the recursive signal
 
     // to move into compiler option (set to 0 to disable recursive interval computation)
     const uint AGE_LIMIT = 1;
-    
-    Type oldType;
+
+    TupletType* newType;
+    TupletType* oldType;
 
     interval newI;
     interval oldI;
@@ -136,32 +138,46 @@ void typeAnnotation(Tree sig, bool causality)
         for (int i = 0; i < n; i++) {
             vtype[i] = T(vdef[i], gGlobal->NULLTYPEENV);
         }
-
+ 
         // check finished
         finished = true;
         for (int i = 0; i < n; i++) {
+            newType = isTupletType(vtype[i]);
+            oldType = isTupletType(getSigType(vrec[i]));
+            
+            faustassert(newType && oldType);
+            faustassert(newType->arity() == oldType->arity() == vdef[i]->arity());
+            
             cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] << endl;
-            if(vtype[i] != oldType){
+            
+            if(newType != oldType){ // use * here ?
                 finished = false;
                 for(int j=0; j < vdef[i]->arity(); j++){
+                    newI = newType[i][j]->getInterval();
+                    oldI = oldType[i][j]->getInterval();
                     if(newI.lo != oldI.lo){
                         //faustassert(newI.lo < oldI.lo);
                         vAgeMin[i][j]++;
                         if(vAgeMin[i][j] > AGE_LIMIT){
-                            vdef[i][j].setType(vtype[i][j].promoteInterval(interval(-HUGE_VAL, newI.hi)));
-                            cerr << "low widening of " << vtype[i][j] << endl;
+                            // put sth here, NOT what is above (vdef doesn't change, and it is a list, not an array)
+                            // we will need a constructor that modifies only 1 elt of a TupletType (promoteProjection)
+                            // that will lead to sth like newType = promoteProjection(promoteInterval( machin ))
+                            //vdef[i][j].setType(vtype[i][j].promoteInterval(interval(-HUGE_VAL, newI.hi)));
+                            cerr << "low widening of " << newType[i][j] << endl;
                         }
                     }
                     if(newI.hi != oldI.hi){
                         //faustassert(newI.hi > oldI.hi);
                         vAgeMax[i][j]++;
                         if(vAgeMax[i][j] > AGE_LIMIT){
-                            vdef[i][j].setType(vtype[i][j].promoteInterval(interval(newI.lo, HUGE_VAL)));
-                            cerr << "up widening of " << vdef[i][j] << " : " << *getSigType(&vdef[i][j]) << endl;
+                            // put sth here, NOT what is above (vdef doesn't change, and it is a list, not an array)b
+                            // vdef[i][j].setType(vtype[i][j].promoteInterval(interval(newI.lo, HUGE_VAL)));
+                            cerr << "up widening of " << newType[i][j];
                         }
                     }                        
                     
                 }
+                // !!! Do NOT forget : reCast newType (easy way), and put it into vtype[i] !!!
             }
         }
     }
