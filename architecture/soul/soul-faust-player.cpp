@@ -127,8 +127,7 @@ int main(int argc, char* argv[])
         midi_handler.startMidi();
         audio.start();
         
-        // Call run all GUI instances
-        GUI::runAllGuis();
+        interface.run();
         
         midi_handler.stopMidi();
         audio.stop();

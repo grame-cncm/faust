@@ -94,7 +94,8 @@ int main(int argc, char* argv[])
     DSP->buildUserInterface(&finterface);
     finterface.recallState(rcfilename);
     
-    GUI::runAllGuis();
+    interface.run();
+    
     finterface.saveState(rcfilename);
     
     delete DSP;

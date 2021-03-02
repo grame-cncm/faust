@@ -83,9 +83,11 @@
 
 #include "faust/dsp/poly-dsp.h"
 
+using namespace std;
+
 dsp* DSP;
 
-std::list<GUI*> GUI::fGuiList;
+list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
 static bool hasMIDISync()
@@ -93,13 +95,13 @@ static bool hasMIDISync()
     JSONUI jsonui;
     mydsp* tmp_dsp = new mydsp();
     tmp_dsp->buildUserInterface(&jsonui);
-    std::string json = jsonui.JSON();
+    string json = jsonui.JSON();
     delete tmp_dsp;
     
-    return ((json.find("midi") != std::string::npos) &&
-            ((json.find("start") != std::string::npos) ||
-            (json.find("stop") != std::string::npos) ||
-            (json.find("clock") != std::string::npos)));
+    return ((json.find("midi") != string::npos) &&
+            ((json.find("start") != string::npos) ||
+            (json.find("stop") != string::npos) ||
+            (json.find("clock") != string::npos)));
 }
 
 //-------------------------------------------------------------------------
@@ -140,7 +142,7 @@ int main(int argc, char* argv[])
 #endif
      
     if (!DSP) {
-        std::cerr << "Unable to allocate Faust DSP object" << std::endl;
+        cerr << "Unable to allocate Faust DSP object" << endl;
         exit(1);
     }
 
@@ -153,13 +155,13 @@ int main(int argc, char* argv[])
     rt_midi midi_handler(name);
     MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
-    std::cout << "MIDI is on" << std::endl;
+    cout << "MIDI is on" << endl;
 #endif
 
 #ifdef HTTPCTRL
     httpdUI* httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(httpdinterface);
-    std::cout << "HTTPD is on" << std::endl;
+    cout << "HTTPD is on" << endl;
 #endif
 
 #ifdef OSCCTRL
@@ -181,7 +183,7 @@ int main(int argc, char* argv[])
 #endif
 #ifdef MIDICTRL
     if (!midiinterface.run()) {
-        std::cerr << "MidiUI run error\n";
+        cerr << "MidiUI run error\n";
     }
 #endif
     interface->run();

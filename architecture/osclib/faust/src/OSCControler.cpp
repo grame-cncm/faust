@@ -65,7 +65,7 @@ int OSCControler::gXmit = 0;		// a static variable to control the transmission o
                                     // i.e. the use of the interface as a controler
 int OSCControler::gBundle = 0;		// a static variable to control the transmission of values
 
-std::vector<OSCRegexp*> OSCControler::fFilteredPaths;
+vector<OSCRegexp*> OSCControler::fFilteredPaths;
 	
 //--------------------------------------------------------------------------
 // help and usage
@@ -83,7 +83,7 @@ static void osc_usage()
 	cout << "\t" << kXmitFilterOpt  << " <filtered paths list>" << endl;
 }
 
-static void checkHelp(int argc, char *argv[], const std::string& option)
+static void checkHelp(int argc, char *argv[], const string& option)
 {
 	for (int i = 1; i < argc; i++)
 		if (option == argv[i]) osc_usage();
@@ -92,7 +92,7 @@ static void checkHelp(int argc, char *argv[], const std::string& option)
 //--------------------------------------------------------------------------
 // utilities for command line arguments 
 //--------------------------------------------------------------------------
-static int getPortOption(int argc, char *argv[], const std::string& option, int defaultValue)
+static int getPortOption(int argc, char *argv[], const string& option, int defaultValue)
 {
 	for (int i = 0; i < argc-1; i++) {
 		if (option == argv[i]) {
@@ -103,7 +103,7 @@ static int getPortOption(int argc, char *argv[], const std::string& option, int 
 	return defaultValue;
 }
 
-static const char* getDestOption(int argc, char* argv[], const std::string& option, const char* defaultValue)
+static const char* getDestOption(int argc, char* argv[], const string& option, const char* defaultValue)
 {
 	for (int i = 1; i < argc-1; i++) {
 		if (option == argv[i])
@@ -112,7 +112,7 @@ static const char* getDestOption(int argc, char* argv[], const std::string& opti
 	return defaultValue;
 }
 
-static int getIntOption(int argc, char* argv[], const std::string& option, bool defaultValue)
+static int getIntOption(int argc, char* argv[], const string& option, bool defaultValue)
 {
 	for (int i = 1; i < argc-1; i++) {
     	if (option == argv[i]) {
@@ -123,7 +123,7 @@ static int getIntOption(int argc, char* argv[], const std::string& option, bool 
 	return defaultValue;
 }
 
-static void treatXmitFilterOption(int argc, char* argv[], const std::string& option)
+static void treatXmitFilterOption(int argc, char* argv[], const string& option)
 {
     for (int i = 1; i < argc-1; i++) {
         if (option == argv[i]) {
@@ -174,9 +174,9 @@ float OSCControler::version()			{ return kVersion; }
 const char* OSCControler::versionstr()	{ return kVersionStr; }
 
 //--------------------------------------------------------------------------
-static std::string quote(const char* str)	
+static string quote(const char* str)
 { 
-	std::string outstr(str);
+	string outstr(str);
 	outstr.insert (0, 1, '\'');
 	outstr += '\''; 
 	return outstr;
@@ -230,14 +230,14 @@ void OSCControler::endBundle() { if (gBundle && fOsc) fOsc->endBundle(); }
 const char*	OSCControler::getRootName() const { return fFactory->root()->getName(); }
 
 //--------------------------------------------------------------------------    
-void OSCControler::addFilteredPath(std::string path) 
+void OSCControler::addFilteredPath(string path)
 {
     OSCRegexp* regexp = new OSCRegexp(path.c_str());
     fFilteredPaths.push_back(regexp);
 }
     
 //--------------------------------------------------------------------------
-bool OSCControler::isPathFiltered(std::string path) 
+bool OSCControler::isPathFiltered(string path) 
 {
     for (size_t i = 0; i < fFilteredPaths.size(); i++) {
         if (fFilteredPaths[i]->match(path.c_str()))

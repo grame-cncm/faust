@@ -26,6 +26,7 @@
 #define __Soundfile__
 
 #include <string.h>
+#include <string>
 #include <vector>
 
 #ifndef FAUSTFLOAT

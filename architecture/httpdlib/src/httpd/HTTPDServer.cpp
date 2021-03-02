@@ -183,7 +183,7 @@ namespace httpdfaust
     }
     
     //--------------------------------------------------------------------------
-    int HTTPDServer::send(struct MHD_Connection* connection, const std::vector<Message*>& msgs)
+    int HTTPDServer::send(struct MHD_Connection* connection, const vector<Message*>& msgs)
     {
         stringstream page;
         string mime;

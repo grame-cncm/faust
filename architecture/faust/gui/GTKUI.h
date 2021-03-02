@@ -518,7 +518,6 @@ class GTKUI : public GUI, public MetaDataUI
         int         fTop;
         GtkWidget*  fBox[kStackSize];
         int         fMode[kStackSize];
-        bool        fStopped;
     
         GtkWidget* addWidget(const char* label, GtkWidget* w);
         virtual void pushBox(int mode, GtkWidget* w);
@@ -579,7 +578,6 @@ class GTKUI : public GUI, public MetaDataUI
         virtual void addNumDisplay(const char* label, FAUSTFLOAT* zone, int precision);
         virtual void addTextDisplay(const char* label, FAUSTFLOAT* zone, const char* names[], FAUSTFLOAT min, FAUSTFLOAT max);
     
-        virtual void show();
         virtual bool run();
     
 };
@@ -621,7 +619,6 @@ GTKUI::GTKUI(char * name, int* pargc, char*** pargv)
     fTop = 0;
     fBox[fTop] = gtk_vbox_new(homogene, 4);
     fMode[fTop] = kBoxMode;
-    fStopped = false;
 }
 
 // Stack a box
@@ -846,7 +843,7 @@ GtkWidget* GTKUI::addWidget(const char* label, GtkWidget* w)
         case kBoxMode       : gtk_box_pack_start(GTK_BOX(fBox[fTop]), w, expand, fill, 0);                 break;
         case kTabMode       : gtk_notebook_append_page(GTK_NOTEBOOK(fBox[fTop]), w, gtk_label_new(label)); break;
     }
-    gtk_widget_show (w);
+    gtk_widget_show(w);
     return w;
 }
 
@@ -1340,13 +1337,6 @@ void GTKUI::addTextDisplay(const char* label, FAUSTFLOAT* zone, const char* name
     closeBox();
     
     checkForTooltip(zone, lw);
-}
-
-void GTKUI::show()
-{
-    assert(fTop == 0);
-    gtk_widget_show(fBox[0]);
-    gtk_widget_show(fWindow);
 }
 
 /**

@@ -133,7 +133,7 @@ class GUI : public UI
         static std::list<GUI*> fGuiList;
         zmap fZoneMap;
         bool fStopped;
-        
+    
      public:
             
         GUI():fStopped(false)
@@ -158,7 +158,7 @@ class GUI : public UI
             if (fZoneMap.find(z) == fZoneMap.end()) fZoneMap[z] = new clist();
             fZoneMap[z]->push_back(c);
         }
- 
+    
         void updateZone(FAUSTFLOAT* z)
         {
             FAUSTFLOAT v = *z;
@@ -182,21 +182,14 @@ class GUI : public UI
             }
         }
     
-        static void runAllGuis()
-        {
-            for (auto& g : fGuiList) {
-                g->run();
-            }
-        }
-    
         void addCallback(FAUSTFLOAT* zone, uiCallback foo, void* data)
         {
             createUiCallbackItem(this, zone, foo, data);
         }
 
-        virtual void show() {};	
+        // Start event or message processing
         virtual bool run() { return false; };
-
+        // Stop event or message processing
         virtual void stop() { fStopped = true; }
         bool stopped() { return fStopped; }
     

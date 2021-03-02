@@ -2604,12 +2604,9 @@ public:
         insert(label, item);
     }
     
-    virtual void show()
-    {}
-    
     virtual bool run()
     {
-        return false;
+        return true;
     }
     
     virtual void declare(float* zone, const char* key, const char* value)

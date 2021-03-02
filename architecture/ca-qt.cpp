@@ -394,8 +394,8 @@ int main(int argc, char* argv[])
     
     // After the allocation of controllers
     finterface.recallState(rcfilename);
-    /* call run all GUI instances */
-    GUI::runAllGuis();
+ 
+    interface->run();
     
     myApp.setStyleSheet(interface->styleSheet());
     myApp.exec();

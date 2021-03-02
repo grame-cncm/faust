@@ -140,7 +140,7 @@ using namespace std;
 #include "faust/gui/mspUI.h"
 #include "faust/dsp/poly-dsp.h"
 
-std::list<GUI*> GUI::fGuiList;
+list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
 static t_class* faust_class;

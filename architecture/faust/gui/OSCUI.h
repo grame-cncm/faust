@@ -187,8 +187,6 @@ class OSCUI : public GUI
             fJSON.declare(zone, key, alias);
         }
         
-        virtual void show() {}
-        
         bool run()
         {
             fCtrl->run();

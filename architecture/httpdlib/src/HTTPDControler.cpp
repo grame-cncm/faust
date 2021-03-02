@@ -53,7 +53,7 @@ static const char* kPortOpt	= "-port";
 //--------------------------------------------------------------------------
 // utility for command line arguments 
 //--------------------------------------------------------------------------
-static int getPortOption(int argc, char* argv[], const std::string& option, int defaultValue)
+static int getPortOption(int argc, char* argv[], const string& option, int defaultValue)
 {
 	for (int i = 0; i < argc-1; i++) {
 		if (option == argv[i]) {
@@ -208,7 +208,7 @@ void HTTPDControler::stop()
 }
 
 //------------------------------Accessor to json Interface
-std::string HTTPDControler::getJSON() 
+string HTTPDControler::getJSON() 
 {   
     return fJson->root().json();
 }

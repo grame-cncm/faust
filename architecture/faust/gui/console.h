@@ -187,7 +187,6 @@ class CMDUI : public UI
     
         virtual void closeBox() { fPrefix.pop(); }
     
-        virtual void show() {}
         virtual bool run()
         {
             char c;

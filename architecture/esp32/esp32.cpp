@@ -80,8 +80,10 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
+using namespace std;
+
 #ifdef MIDICTRL
-std::list<GUI*> GUI::fGuiList;
+list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 #endif
 
@@ -142,12 +144,12 @@ void AudioFaust::stop()
     fAudio->stop();
 }
 
-void AudioFaust::setParamValue(const std::string& path, float value)
+void AudioFaust::setParamValue(const string& path, float value)
 {
     fUI->setParamValue(path, value);
 }
 
-float AudioFaust::getParamValue(const std::string& path)
+float AudioFaust::getParamValue(const string& path)
 {
     return fUI->getParamValue(path);
 }

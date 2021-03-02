@@ -38,11 +38,11 @@ void OSCStream::start()
 {
     if (fRefCount++ == 0) {
         _socket = new UdpSocket;
-        if (!_socket) throw std::bad_alloc();
+        if (!_socket) throw bad_alloc();
         _oscout = new OSCStream(_socket);
-        if (!_oscout) throw std::bad_alloc();
+        if (!_oscout) throw bad_alloc();
         _oscerr = new OSCStream(_socket);
-        if (!_oscerr) throw std::bad_alloc();
+        if (!_oscerr) throw bad_alloc();
     }
 }
 

@@ -253,8 +253,8 @@ int main(int argc, char* argv[])
     
     // After the allocation of controllers
     finterface.recallState(rcfilename);
-    /* call run all GUI instances */
-    GUI::runAllGuis();
+ 
+    interface->run();
   
 #ifdef MIDICTRL
     midiinterface->stop();
