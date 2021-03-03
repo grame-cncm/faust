@@ -25,6 +25,7 @@
 #include <iostream>
 #include <ostream>
 #include <sstream>
+#include <vector>
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/DecoratorUI.h"
@@ -42,8 +43,9 @@ struct SwiftFilePrinter : public GenericUI
     string fUnit;
     stringstream fInit1;
     stringstream fInit2;
+    vector<string> fInit3;
     
-    SwiftFilePrinter(const string& class_name, ofstream& out_file):fKlassName(class_name), fOutFile(out_file)
+    SwiftFilePrinter(const string& class_name, ofstream& out_file):fKlassName("Faust" + class_name), fOutFile(out_file)
     {
         fInit1 << "public init(_ input: Node";
     }
@@ -53,9 +55,10 @@ struct SwiftFilePrinter : public GenericUI
         fOutFile << "// Copyright AudioKit. All Rights Reserved. Revision History at http://github.com/AudioKit/AudioKit/" << endl;
         fOutFile << "import AVFoundation" << endl;
         fOutFile << "import CAudioKit" << endl;
+        fOutFile << "import AudioKit" << endl;
         fOutFile << endl;
-        fOutFile << "/// Faust node." << endl;
-        fOutFile << "public class Faust" << fKlassName << ": Node, AudioUnitContainer, Toggleable {" << endl;
+        fOutFile << "/// Faust node" << endl;
+        fOutFile << "public class " << fKlassName << ": Node, AudioUnitContainer, Toggleable {" << endl;
         fOutFile << endl;
         fOutFile << "\t" << "/// Unique four-letter identifier \"dclp\"" << endl;
         fOutFile << "\t" << "public static let ComponentDescription = AudioComponentDescription(effect: \"dclp\")" << endl;
@@ -73,9 +76,32 @@ struct SwiftFilePrinter : public GenericUI
     {
         fOutFile << "\t" << "// MARK: - Initialization" << endl;
         fOutFile << "\t" << fInit1.str() << ")" << endl;
-        fOutFile << "\t{" << endl;
+        fOutFile << "\t\t" << "super.init(avAudioNode: input.avAudioUnitOrNode)" << endl;
+        fOutFile << "\t\t" << "instantiateAudioUnit { avAudioUnit in" << endl;
+        fOutFile << "\t\t\t" << "self.avAudioUnit = avAudioUnit" << endl;
+        fOutFile << "\t\t\t" << "self.avAudioNode = avAudioUnit" << endl;
+        fOutFile << "\t\t\t" << "guard let audioUnit = avAudioUnit.auAudioUnit as? AudioUnitType else { fatalError(\"Couldn't create audio unit\") }" << endl;
+        fOutFile << "\t\t\t" << "self.internalAU = audioUnit" << endl;
+        fOutFile << "\t\t\t" << "self.stop()" << endl;
         fOutFile << fInit2.str();
+        fOutFile << "\t\t}" << endl;
+        fOutFile << "}" << endl << endl;
+        
+        fOutFile << "public class InternalAU: AudioUnitBase {" << endl;
+        fOutFile << "\t" << "/// Get an array of the parameter definitions" << endl;
+        fOutFile << "\t" << "/// - Returns: Array of parameter definitions" << endl;
+        fOutFile << "\t" << "public override func getParameterDefs() -> [NodeParameterDef] {" << endl;
+        fOutFile << "\t\t" << "[";
+        for (int i = 0; i < fInit3.size(); i++) {
+            fOutFile << fInit3[i];
+            if (i < fInit3.size() - 1) fOutFile << ",\n\t\t";
+        }
+        fOutFile << "]" << endl;
         fOutFile << "\t}" << endl;
+        
+        fOutFile << "\t/// Create the DSP Refence for this node" << endl;
+        fOutFile << "\t/// - Returns: DSP Reference" << endl;
+        fOutFile << "\tpublic override func createDSP() -> DSPRef { akCreateDSP(\"" << fKlassName << "\") }" << endl;
         fOutFile << "}" << endl;
     }
     
@@ -86,23 +112,28 @@ struct SwiftFilePrinter : public GenericUI
         } else if (fUnit == "dB") {
             return ".decibels";
         } else {
-            return "";
+            return ".customUnit";
         }
     }
     
-    void printButton(const char* label)
+    void printButton(const char* label_aux)
     {
-        
+        string label = label_aux;
+        std::replace(label.begin(), label.end(), ' ', '_');
     }
-    void printParam(const char* label, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT init)
+    
+    void printParam(const char* label_aux, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT init)
     {
+        string label = label_aux;
+        std::replace(label.begin(), label.end(), ' ', '_');
+
         fOutFile << "\t" << "// " << label << endl;
-        fOutFile << "\t" << "public static let" << label << "Def = NodeParameterDef(identifier: \"" << label << "\", ";
+        fOutFile << "\t" << "public static var let" << label << "Def = NodeParameterDef(identifier: \"" << label << "\", ";
+        fInit3.push_back("let" + string(label) + "Def");
         fOutFile << "name: \"" << label << "\", ";
         fOutFile << "address: akGetParameterAddress(\"" << fKlassName << "_" << label << "\"), ";
         fOutFile << "range: " << min << " ... " << max << ", ";
-        string unit = printUnit();
-        if (unit.size() > 0) fOutFile << "unit: " << unit << ", ";
+        fOutFile << "unit: " << printUnit() << ", ";
         fOutFile << "flags: .default)";
         fOutFile << endl << endl;
         fOutFile << "\t" << "@Parameter public var " << label << ": AUValue" << endl << endl;
@@ -111,7 +142,7 @@ struct SwiftFilePrinter : public GenericUI
         fInit1 << ", " << label << ": AUValue = " << init;
         
         // Complete fInit2
-        fInit2 << "\t\t" << "self." << label << " = " << label << endl;
+        fInit2 << "\t\t\t" << "self." << label << " = " << label << endl;
         
         // Reset unit metadata
         fUnit = "";
