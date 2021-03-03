@@ -148,7 +148,10 @@ void typeAnnotation(Tree sig, bool causality)
             vtype[i] = T(vdef[i], gGlobal->NULLTYPEENV);
         }
         // experiment on intervals
-        cerr << "#### TEST " << std::to_string(HUGE_VAL) << " ####" << endl;
+
+        to_string(HUGE_VAL);
+        
+        cerr << "#### TEST " << to_string(HUGE_VAL) << " ####" << endl;
         
         // check finished
         finished = true;
