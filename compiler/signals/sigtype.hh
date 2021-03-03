@@ -445,8 +445,31 @@ class TupletType : public AudioType {
     }  ///< promote the booleanity of a type
     virtual AudioType* promoteInterval(const interval& i)
     {
-        return makeTupletType(fComponents, fNature, fVariability, fComputability, fVectorability, fBoolean, i);
+        return new TupletType(fComponents, fNature, fVariability, fComputability, fVectorability, fBoolean, i);
     }  ///< promote the interval of a type
+
+    virtual AudioType* promoteProjection(const int coord, const Type t){
+        cerr << "call promoteProjection on " << coord << " with " << t << " " << *t << endl;
+        AudioType* truc;
+        vector<Type> newComp = vector<Type>(fComponents);
+        newComp[coord] = t;
+        cerr << "[";
+        for(auto const &c : fComponents){
+            cerr << c << ", ";
+        }
+        cerr << "]";
+
+        cerr << "[";
+        for(auto const &c : newComp){
+            cerr << c << ", ";
+        }
+        cerr << "]";
+        
+        truc = makeTupletType(newComp, fNature, fVariability, fComputability, fVectorability, fBoolean, fInterval);
+        cerr << truc << endl;
+        return truc;
+    } ///< promote a component of the type
+    
 
     virtual bool isMaximal() const;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
 };
