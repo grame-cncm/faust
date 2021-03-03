@@ -147,6 +147,8 @@ void typeAnnotation(Tree sig, bool causality)
         for (int i = 0; i < n; i++) {
             vtype[i] = T(vdef[i], gGlobal->NULLTYPEENV);
         }
+        // experiment on intervals
+        cerr << "#### TEST " << std::to_string(HUGE_VAL) << " ####" << endl;
         
         // check finished
         finished = true;
@@ -172,15 +174,13 @@ void typeAnnotation(Tree sig, bool causality)
                     newI = newType[j]->getInterval();
                     oldI = oldType[j]->getInterval();
 
-                    cerr << newTuplet[j];
-                    cerr << *(newTuplet[j]->promoteInterval(interval(0,0))) << endl;
-                    
+                    cerr << "inspecting " << newTuplet[j] << endl;                    
                     if (newI.lo != oldI.lo) {
                         // faustassert(newI.lo < oldI.lo);
                         vAgeMin[i][j]++;
                         if (vAgeMin[i][j] > AGE_LIMIT) {
                             cerr << "low widening of " << newType[j] << endl;
-                            newTuplet[j] = castInterval(newTuplet[j], interval(-HUGE_VAL, newI.hi));
+                            newTuplet[j] = newTuplet[j]->promoteInterval(interval(-HUGE_VAL, newI.hi));
                             cerr << newTuplet[j];
                         }
                     }
@@ -188,12 +188,14 @@ void typeAnnotation(Tree sig, bool causality)
                         // faustassert(newI.hi > oldI.hi);
                         vAgeMax[i][j]++;
                         if (vAgeMax[i][j] > AGE_LIMIT) {
-                            cerr << "up widening of " << newType[j] << endl;
-                            newTuplet[j] = castInterval(newTuplet[j], interval(newI.lo, HUGE_VAL));
-                            cerr << newTuplet[j];
+                            cerr << "XXX Up widening of " << newType[j] << " to " << interval(true, 0, HUGE_VAL) << endl;
+                            cerr << newTuplet[j] << endl;
+                            cerr << newTuplet[j]->promoteInterval(interval(newI.lo, HUGE_VAL)) << endl;
+                            cerr << "XXX Up widening ended" << endl;
                         }
                     }
                 }
+                vtype[i] = new TupletType(newTuplet);
             }
         }
     }
