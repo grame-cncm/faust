@@ -104,9 +104,9 @@ struct interval : public virtual Garbageable {
     {
         string sout = ("[");
         if (valid) {
-            sout += to_string(lo);
+            sout += (lo > -HUGE_VAL)?to_string(lo):"-inf";
             sout += ", ";
-            sout += to_string(hi);
+            sout += (hi < HUGE_VAL)?to_string(hi):"inf";
         } else {
             sout += "???";
         }
