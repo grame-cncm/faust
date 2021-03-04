@@ -20,6 +20,8 @@ android {
     packagingOptions {
         pickFirst 'lib/arm64-v8a/libOSCFaust.so'
         pickFirst 'lib/armeabi-v7a/libOSCFaust.so'
+        pickFirst 'lib/arm64-v8a/libsndfile.so'
+        pickFirst 'lib/armeabi-v7a/libsndfile.so'
     }
 
     sourceSets {
