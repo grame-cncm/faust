@@ -62,7 +62,7 @@ static Type infereWaveformType(Tree lv, Tree env);
 static interval arithmetic(int opcode, const interval& x, const interval& y);
 
 // Uncomment to activate type inferrence tracing
-//#define TRACE(x) x
+// #define TRACE(x) x
 #define TRACE(x) \
     {            \
         ;        \
@@ -95,7 +95,7 @@ void typeAnnotation(Tree sig, bool causality)
     vector<vector<uint>> vAgeMax; ///< age of the maximum of every subsignal of the recursive signal
 
     // to move into compiler option (set to 0 to disable recursive interval computation)
-    const uint AGE_LIMIT = 1;
+    const uint AGE_LIMIT = 3;
 
     TupletType* newTypeP;
     TupletType* oldTypeP;
@@ -105,6 +105,9 @@ void typeAnnotation(Tree sig, bool causality)
 
     interval newI;
     interval oldI;
+
+    // experiment on intervals
+
     
     // cerr << "Symlist " << *sl << endl;
     for (Tree l = sl; isList(l); l = tl(l)) {
@@ -133,7 +136,7 @@ void typeAnnotation(Tree sig, bool causality)
     faustassert((int)vAgeMin.size() == n);
     faustassert((int)vAgeMax.size() == n);
 
-    // cerr << "find least fixpoint" << endl;
+    cerr << "find least fixpoint" << endl;
     for (bool finished = false; !finished;) {
         // init recursive types
         CTree::startNewVisit();
@@ -147,11 +150,6 @@ void typeAnnotation(Tree sig, bool causality)
         for (int i = 0; i < n; i++) {
             vtype[i] = T(vdef[i], gGlobal->NULLTYPEENV);
         }
-        // experiment on intervals
-
-        to_string(HUGE_VAL);
-        
-        cerr << "#### TEST " << to_string(HUGE_VAL) << " ####" << endl;
         
         // check finished
         finished = true;
@@ -191,10 +189,9 @@ void typeAnnotation(Tree sig, bool causality)
                         // faustassert(newI.hi > oldI.hi);
                         vAgeMax[i][j]++;
                         if (vAgeMax[i][j] > AGE_LIMIT) {
-                            cerr << "XXX Up widening of " << newType[j] << " to " << interval(true, 0, HUGE_VAL) << endl;
-                            cerr << newTuplet[j] << endl;
-                            cerr << newTuplet[j]->promoteInterval(interval(newI.lo, HUGE_VAL)) << endl;
-                            cerr << "XXX Up widening ended" << endl;
+                            cerr << "up widening of " << newType[j] << endl;
+                            newTuplet[j] = newTuplet[j]->promoteInterval(interval(newI.lo, HUGE_VAL));
+                            cerr << "up widening ended" << endl;
                         }
                     }
                 }
