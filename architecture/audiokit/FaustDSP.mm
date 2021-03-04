@@ -195,9 +195,9 @@ class Faustmydsp : public DSPBase, public GenericUI {
 
 // Register AK class and parameters
 
-enum {
+enum mydspParameter : AUParameterAddress {
 #define ACTIVE_ENUM_MEMBER(type, ident, name, var, def, min, max, step) \
-FAUSTCLASS_##ident,
+mydsp_##ident,
     FAUST_LIST_ACTIVES(ACTIVE_ENUM_MEMBER)
     kNumActives,
 };
@@ -205,7 +205,7 @@ FAUSTCLASS_##ident,
 AK_REGISTER_DSP(Faustmydsp)
 
 #define REGISTER_PARAMETER(type, ident, name, var, def, min, max, step) \
-    AK_REGISTER_PARAMETER(FAUSTCLASS_##ident)
+    AK_REGISTER_PARAMETER(mydsp_##ident)
 FAUST_LIST_ACTIVES(REGISTER_PARAMETER);
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
