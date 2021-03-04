@@ -140,17 +140,17 @@ void typeAnnotation(Tree sig, bool causality)
     faustassert((int)vAgeMin.size() == n);
     faustassert((int)vAgeMax.size() == n);
 
-    cerr << "find least fixpoint" << endl;
+    //cerr << "find least fixpoint" << endl;
     while(!finished){
         // init recursive types
         CTree::startNewVisit();
         for (int i = 0; i < n; i++) {
             setSigType(vrec[i], vtype[i]);
-            cerr << i << "-" << *getSigType(vrec[i]) << endl;
+            //cerr << i << "-" << *getSigType(vrec[i]) << endl;
             vrec[i]->setVisited();
         }
 
-        cerr << "compute recursive types" << endl;
+        //cerr << "compute recursive types" << endl;
         for (int i = 0; i < n; i++) {
             newType = T(vdef[i], gGlobal->NULLTYPEENV);
             newTuplet.clear();
@@ -161,10 +161,10 @@ void typeAnnotation(Tree sig, bool causality)
                 newTuplet.push_back(newRecType[j]);
                 newI = newRecType[j]->getInterval();
                 oldI = oldRecType[j]->getInterval();
-                cerr << "inspecting " << newTuplet[j] << endl;
+                //cerr << "inspecting " << newTuplet[j] << endl;
                 
                 if (oldI.contains(newI)) {
-                    cerr << "old " << oldI << " contains " << newI << " in " << newRecType[j] << endl;
+                    //cerr << "old " << oldI << " contains " << newI << " in " << newRecType[j] << endl;
                     newTuplet[j] = newTuplet[j]->promoteInterval(oldI);
                 }
                 
@@ -181,7 +181,7 @@ void typeAnnotation(Tree sig, bool causality)
             oldRecType = derefRecCert(getSigType(vrec[i]));
             
             //faustassert(newRecType.arity() == oldRecType.arity() && newRecType.arity() == vdefSizes[i]);
-            cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] << endl;
+            //cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] << endl;
             if (vtype[i] != getSigType(vrec[i])) {
                 finished = false;
                 for (int j = 0; j < vdefSizes[i]; j++) {
@@ -189,21 +189,21 @@ void typeAnnotation(Tree sig, bool causality)
                     newI = newRecType[j]->getInterval();
                     oldI = oldRecType[j]->getInterval();
 
-                    cerr << "inspecting " << newTuplet[j] << endl;                    
+                    //cerr << "inspecting " << newTuplet[j] << endl;                    
                     if (newI.lo != oldI.lo) {
                         vAgeMin[i][j]++;
                         if (vAgeMin[i][j] > AGE_LIMIT) {
-                            cerr << "low widening of " << newRecType[j] << endl;
+                            //cerr << "low widening of " << newRecType[j] << endl;
                             newTuplet[j] = newTuplet[j]->promoteInterval(interval(-HUGE_VAL, newI.hi));
-                            cerr << newTuplet[j];
+                            //cerr << newTuplet[j];
                         }
                     }
                     if (newI.hi != oldI.hi) {
                         vAgeMax[i][j]++;
                         if (vAgeMax[i][j] > AGE_LIMIT) {
-                            cerr << "up widening of " << newRecType[j] << endl;
+                            //cerr << "up widening of " << newRecType[j] << endl;
                             newTuplet[j] = newTuplet[j]->promoteInterval(interval(newI.lo, HUGE_VAL));
-                            cerr << "up widening ended" << endl;
+                            //cerr << "up widening ended" << endl;
                         }
                     }
                 }
