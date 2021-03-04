@@ -129,7 +129,7 @@ struct SwiftFilePrinter : public GenericUI
 
         fOutFile << "\t" << "// " << label << endl;
         fOutFile << "\t" << "public static var let" << label << "Def = NodeParameterDef(identifier: \"" << label << "\", ";
-        fInit3.push_back("let" + string(label) + "Def");
+        fInit3.push_back(fKlassName + ".let" + string(label) + "Def");
         fOutFile << "name: \"" << label << "\", ";
         fOutFile << "address: akGetParameterAddress(\"" << fKlassName << "_" << label << "\"), ";
         fOutFile << "range: " << min << " ... " << max << ", ";
