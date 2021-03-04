@@ -449,7 +449,7 @@ soulpatch_dsp::soulpatch_dsp(soul_dsp_factory* factory, std::string& error_msg)
         error_msg = "getCompileError";
         for (int i = 0; i < errors.size(); i++) {
             error_msg += " ";
-            error_msg += std::string(errors[i].fullMessage->getCharPointer());
+            error_msg += errors[i].getFullMessage();
         }
         error_msg += "\n";
         throw std::bad_alloc();
