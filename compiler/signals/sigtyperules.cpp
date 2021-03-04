@@ -256,6 +256,20 @@ static Type getSigType(Tree sig)
     return ty;
 }
 
+/**
+ * dereference a Type to AudioType and promote its type to TupletType
+ * if the AudioType is not a TupletType, then fails
+ * @param t the type to promote
+ * @return the *t as a TupletType
+ */
+
+::TupletType derefRecCert(Type t){
+    TupletType* p = isTupletType(t);
+    faustassert(p);
+    return *p;
+}
+
+
 /**************************************************************************
 
                         Type Inference System
@@ -668,16 +682,10 @@ static Type infereDocAccessTblType(Type tbl, Type ridx)
  * Compute an initial type solution for a recursive block
  * E1,E2,...En -> TREC,TREC,...TREC
  */
-static Type initialRecType(Tree t)
+static TupletType* initialRecType(Tree t)
 {
     faustassert(isList(t));
-
-    vector<Type> v;
-    while (isList(t)) {
-        v.push_back(gGlobal->TREC);
-        t = tl(t);
-    };
-    return new TupletType(v);
+    return new TupletType(vector<Type>(len(t), gGlobal->TREC));
 }
 
 /**
