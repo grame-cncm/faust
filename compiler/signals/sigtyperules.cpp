@@ -41,7 +41,7 @@
 
 static void setSigType(Tree sig, Type t);
 static Type getSigType(Tree sig);
-static Type initialRecType(Tree t);
+static TupletType* initialRecType(Tree t);
 
 static Type T(Tree term, Tree env);
 
@@ -58,6 +58,8 @@ static Type infereDocConstantTblType(Type size, Type init);
 static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig);
 static Type infereDocAccessTblType(Type tbl, Type ridx);
 static Type infereWaveformType(Tree lv, Tree env);
+
+TupletType derefRecCert(Type t);
 
 static interval arithmetic(int opcode, const interval& x, const interval& y);
 
@@ -85,28 +87,30 @@ void typeAnnotation(Tree sig, bool causality)
     int  n              = len(sl);
 
     uint size;
+    bool finished = false;
     
     vector<Tree> vrec; ///< array of all the recursive signal groups
     vector<Tree> vdef; ///< definitions of all the recursive signal groups (vector of _lists_)
     vector<int> vdefSizes; ///< number of signals for each group
     vector<Type> vtype; ///< type of the recursive signals
 
-    vector<vector<uint>> vAgeMin; ///< age of the minimum of every subsignal of the recursive signal
-    vector<vector<uint>> vAgeMax; ///< age of the maximum of every subsignal of the recursive signal
+    vector<Type> newTuplet;
+    
+    vector<vector<int>> vAgeMin; ///< age of the minimum of every subsignal of the recursive signal
+    vector<vector<int>> vAgeMax; ///< age of the maximum of every subsignal of the recursive signal
 
     // to move into compiler option (set to 0 to disable recursive interval computation)
-    const uint AGE_LIMIT = 3;
+    const int AGE_LIMIT = 0;
 
-    TupletType* newTypeP;
-    TupletType* oldTypeP;
+    // used in type inference loop
 
-    TupletType newType;
-    TupletType oldType;
+    Type newType;
+    
+    TupletType newRecType;
+    TupletType oldRecType;
 
     interval newI;
     interval oldI;
-
-    // experiment on intervals
 
     
     // cerr << "Symlist " << *sl << endl;
@@ -121,8 +125,8 @@ void typeAnnotation(Tree sig, bool causality)
 
         size = len(body);
         vdefSizes.push_back(size);
-        vAgeMin.push_back(vector<uint>(size, 0));
-        vAgeMax.push_back(vector<uint>(size, 0));
+        vAgeMin.push_back(vector<int>(size, 0));
+        vAgeMax.push_back(vector<int>(size, 0));
     }
 
     // init recursive types
@@ -137,7 +141,7 @@ void typeAnnotation(Tree sig, bool causality)
     faustassert((int)vAgeMax.size() == n);
 
     cerr << "find least fixpoint" << endl;
-    for (bool finished = false; !finished;) {
+    while(!finished){
         // init recursive types
         CTree::startNewVisit();
         for (int i = 0; i < n; i++) {
@@ -146,50 +150,58 @@ void typeAnnotation(Tree sig, bool causality)
             vrec[i]->setVisited();
         }
 
-        // compute recursive types
+        cerr << "compute recursive types" << endl;
         for (int i = 0; i < n; i++) {
-            vtype[i] = T(vdef[i], gGlobal->NULLTYPEENV);
+            newType = T(vdef[i], gGlobal->NULLTYPEENV);
+            newTuplet.clear();
+            oldRecType = derefRecCert(getSigType(vrec[i]));
+            newRecType = derefRecCert(newType);
+            
+            for (int j = 0; j < vdefSizes[i]; j++) {
+                newTuplet.push_back(newRecType[j]);
+                newI = newRecType[j]->getInterval();
+                oldI = oldRecType[j]->getInterval();
+                cerr << "inspecting " << newTuplet[j] << endl;
+                
+                if (oldI.contains(newI)) {
+                    cerr << "old " << oldI << " contains " << newI << " in " << newRecType[j] << endl;
+                    newTuplet[j] = newTuplet[j]->promoteInterval(oldI);
+                }
+                
+            }
+            vtype[i] = new TupletType(newTuplet);    
         }
         
         // check finished
         finished = true;
         for (int i = 0; i < n; i++) {
-            vector<Type> newTuplet = vector<Type>();
-            // isTupletType returns a pointer to a type
-            // (i.e. a pointer to a smart pointer to an object TupletType, which can be overloaded with [])
+            newTuplet.clear();
+            faustassert(!newTuplet.size());
+            newRecType = derefRecCert(vtype[i]);
+            oldRecType = derefRecCert(getSigType(vrec[i]));
             
-            newTypeP = isTupletType(vtype[i]);
-            oldTypeP = isTupletType(getSigType(vrec[i]));
-            faustassert(oldTypeP && newTypeP);
-            
-            newType = *newTypeP;
-            oldType = *oldTypeP;
-            
-            // to be deleted : len is linear in list size
-            faustassert(newType.arity() == oldType.arity() && newType.arity() == vdefSizes[i]);
+            //faustassert(newRecType.arity() == oldRecType.arity() && newRecType.arity() == vdefSizes[i]);
             cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] << endl;
             if (vtype[i] != getSigType(vrec[i])) {
                 finished = false;
                 for (int j = 0; j < vdefSizes[i]; j++) {
-                    newTuplet.push_back(newType[j]);
-                    newI = newType[j]->getInterval();
-                    oldI = oldType[j]->getInterval();
+                    newTuplet.push_back(newRecType[j]);
+                    newI = newRecType[j]->getInterval();
+                    oldI = oldRecType[j]->getInterval();
 
                     cerr << "inspecting " << newTuplet[j] << endl;                    
                     if (newI.lo != oldI.lo) {
-                        // faustassert(newI.lo < oldI.lo);
                         vAgeMin[i][j]++;
                         if (vAgeMin[i][j] > AGE_LIMIT) {
-                            cerr << "low widening of " << newType[j] << endl;
+                            cerr << "low widening of " << newRecType[j] << endl;
                             newTuplet[j] = newTuplet[j]->promoteInterval(interval(-HUGE_VAL, newI.hi));
                             cerr << newTuplet[j];
                         }
                     }
                     if (newI.hi != oldI.hi) {
-                        // faustassert(newI.hi > oldI.hi);
                         vAgeMax[i][j]++;
                         if (vAgeMax[i][j] > AGE_LIMIT) {
-                            cerr << "up widening of " << newType[j] << endl;
+                            cerr << "up widening of " << newRecType[j] << endl;
                             newTuplet[j] = newTuplet[j]->promoteInterval(interval(newI.lo, HUGE_VAL));
                             cerr << "up widening ended" << endl;
                         }
