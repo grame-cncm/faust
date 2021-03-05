@@ -31,7 +31,7 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-    cout << "Libfaust version : " << getCLibFaustVersion () << endl;
+    cout << "Libfaust version : " << getCLibFaustVersion() << endl;
     
     string error_msg;
     dsp_factory* factory = readInterpreterDSPFactoryFromBitcodeFile(argv[argc-1], error_msg);

@@ -132,7 +132,7 @@ int main(int argc, char* argv[])
         cout << "-trace 7 to only check LOAD/STORE errors and exit\n";
         exit(EXIT_FAILURE);
     }
-    cout << "Libfaust version : " << getCLibFaustVersion () << endl;
+    cout << "Libfaust version : " << getCLibFaustVersion() << endl;
     
     int argc1 = 0;
     const char* argv1[64];

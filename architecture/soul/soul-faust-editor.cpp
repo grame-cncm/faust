@@ -28,6 +28,7 @@
 #include <efsw/efsw.h>
 
 #include "faust/dsp/soulpatch-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 #include "faust/misc.h"
 
 using namespace std;
@@ -131,6 +132,8 @@ int main(int argc, char* argv[])
         }
         argv1[argc1++] = argv[i];
     }
+    
+    cout << "Libfaust version : " << getCLibFaustVersion() << endl;
     
     if (endWith(in_filename, "soul")) {
         HybridEditor editor(in_filename, out_filename, argc1, argv1);

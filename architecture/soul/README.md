@@ -60,7 +60,7 @@ So for instance:
 
 # soul-faust-editor
 
-The **soul-faust-editor** tool loads an hybrid Faust/SOUL code file and compile it in a SOUL patch each time the source file content changes. It can be used together with the **soul** runtime or any SOUL aware plugin to create a *Faust/SOUL => SOUL => executable code* edit loop. The SOUL generated files can be set using the`-o <output.soul>` option and are named `hybrid.soul` and  `hybrid.soulpatch` by default.
+The **soul-faust-editor** tool loads an hybrid Faust/SOUL code file and compiles it in a SOUL patch each time the source file content changes. It can be used together with the **soul** runtime or any SOUL aware plugin to create a *Faust/SOUL => SOUL => executable code* edit loop. The SOUL generated files can be set using the`-o <output.soul>` option and are named `hybrid.soul` and  `hybrid.soulpatch` by default.
 
 `soul-faust-editor [Faust options : any option (e.g. -ftz 1...)] <foo.soul> -o <output.soul>`
 
@@ -156,6 +156,6 @@ graph Sequence [[main]]
     }
 }
  ```
-
+ 
 **Note**: the code has a dependency with the [efsw](https://github.com/havoc-io/efsw) library which has to be installed before compilation.
 

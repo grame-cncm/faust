@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
     coreaudio audio(44100, 512);
     string error_msg;
     
-    cout << "Libfaust version : " << getCLibFaustVersion () << endl;
+    cout << "Libfaust version : " << getCLibFaustVersion() << endl;
     
     int argc1 = 0;
     const char* argv1[64];

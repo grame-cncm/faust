@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
     int us = lopt(argv, "-us", 0);
     int filter = lopt(argv, "-filter", 0);
     
-    if (is_trace) cout << "Libfaust version : " << getCLibFaustVersion () << endl;
+    if (is_trace) cout << "Libfaust version : " << getCLibFaustVersion() << endl;
     
     // Possibly activate 'generic' generation mode
     string target;

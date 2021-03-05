@@ -82,7 +82,7 @@ int main(int argc, char* argv[])
     bool is_double = isopt(argv, "-double");
     
     string in_filename, out_filename, error_msg;
-    cout << "Libfaust version : " << getCLibFaustVersion () << endl;
+    cout << "Libfaust version : " << getCLibFaustVersion() << endl;
     
     int argc1 = 0;
     const char* argv1[64];

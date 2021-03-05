@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
     jackaudio_midi audio;
     string error_msg;
     
-    cout << "Libfaust version : " << getCLibFaustVersion () << endl;
+    cout << "Libfaust version : " << getCLibFaustVersion() << endl;
     
     factory = readInterpreterDSPFactoryFromBitcodeFile(argv[argc-1], error_msg);
     if (!factory) {

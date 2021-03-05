@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
         return 0;
     }
     
-    cout << "Libfaust version : " << getCLibFaustVersion () << endl;
+    cout << "Libfaust version : " << getCLibFaustVersion() << endl;
     
     string error_msg1;
     string error_msg2;
