@@ -83,7 +83,7 @@ static interval arithmetic(int opcode, const interval& x, const interval& y);
 void typeAnnotation(Tree sig, bool causality)
 {
     // to move into compiler option (set to 0 to disable recursive interval computation)
-    const int AGE_LIMIT = 256;
+    const int AGE_LIMIT = 5;
 
     gGlobal->gCausality = causality;
     Tree sl             = symlist(sig);
@@ -103,7 +103,6 @@ void typeAnnotation(Tree sig, bool causality)
     vector<vector<int>> vAgeMax;  ///< age of the maximum of every subsignal of the recursive signal
 
     // used in type inference loops
-
     Type newType;
 
     TupletType newRecType;
@@ -111,7 +110,7 @@ void typeAnnotation(Tree sig, bool causality)
 
     interval newI;
     interval oldI;
-
+    
     // cerr << "Symlist " << *sl << endl;
     for (Tree l = sl; isList(l); l = tl(l)) {
         Tree id, body;
@@ -139,13 +138,13 @@ void typeAnnotation(Tree sig, bool causality)
     faustassert((int)vAgeMin.size() == n);
     faustassert((int)vAgeMax.size() == n);
 
-    // cerr << "find least fixpoint" << endl;
+    cerr << "find least fixpoint" << endl;
     while (!finished) {
         // init recursive types
         CTree::startNewVisit();
         for (int i = 0; i < n; i++) {
             setSigType(vrec[i], vtype[i]);
-            // cerr << i << "-" << *getSigType(vrec[i]) << endl;
+            cerr << i << "-" << *getSigType(vrec[i]) << endl;
             vrec[i]->setVisited();
         }
 
@@ -163,11 +162,11 @@ void typeAnnotation(Tree sig, bool causality)
                 newI = newRecType[j]->getInterval();
                 oldI = oldRecType[j]->getInterval();
                 // cerr << "inspecting " << newTuplet[j] << endl;
-
-                if (oldI.contains(newI)) {
-                    // cerr << "old " << oldI << " contains " << newI << " in " << newRecType[j] << endl;
-                    newTuplet[j] = newTuplet[j]->promoteInterval(oldI);
-                }
+                if (vAgeMin[i][j] > AGE_LIMIT)
+                    newI.lo = oldI.lo;
+                if (vAgeMax[i][j] > AGE_LIMIT)
+                    newI.hi = oldI.hi;
+                newTuplet[j] = newTuplet[j]->promoteInterval(newI);
             }
             vtype[i] = new TupletType(newTuplet);
         }
