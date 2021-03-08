@@ -72,6 +72,22 @@ void signalGraph(const string& filename, const set<Tree>& I)
     // cerr << "END build Dependency Graph: " << filename << "\n\n" << endl;
 }
 
+
+
+/**
+ * @brief generates a dotfile graph of a graph of instructions
+ *
+ * @param "filename.dot" the name of the file
+ * @param instr the set of instructions
+ */
+void graph2dot(const string& filename, const digraph<Tree, multidep>& G)
+{
+     ofstream f;
+    f.open(filename);
+    dotfile2(f, G);
+    f.close();
+}
+
 /**
  * @brief generates a dotfile graph of a set of instructions in vector mode
  *

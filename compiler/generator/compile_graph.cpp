@@ -983,11 +983,13 @@ static string nature2ctype(int n)
 void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
 {
     set<Tree> TID;                     // Treated IDs so far
-    set<Tree> C = collectTableIDs(I);  // Remaining to be treated
-    set<Tree> R = C;                   // Remaining to be treated
+    set<Tree> C = collectTableIDs(I);  // C = collect the IDS of all the table used in set of instructions I
+    //for (Tree s : C) std::cerr << "TableID : " << *s << std::endl;
+    set<Tree> R = C;                   // R = IDs Remaining to be treated
     while (!R.empty()) {
         set<Tree> N;                  // Set of unseen IDs
         for (Tree id : R) {           // for each table ID remaining to treat
+
             fTableInitGraph.add(id);  // add it to the table init graph
             TID.insert(id);           // remember it has been treated
 
@@ -1018,11 +1020,14 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
         }
         R = N;  // process unseen IDs
     }
+    // Here fTableInitGraph contains the graph of all table initialisations
+    //if (gGlobal->gDebugDiagram) graph2dot("init-graph.dot", fTableInitGraph);
 
     // we can now compute the initialization order of the tables
     vector<Tree> S = serialize(fTableInitGraph);
     // cerr << "Table order" << endl;
     for (Tree id : S) {
+        // std::cerr << "serialized TableID : " << *id << std::endl;
         Tree       init = nullptr;
         int        tblsize;
         int        nature;
@@ -1036,7 +1041,13 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
             } else {
                 k = new SigFloatFillMethod(nullptr, tree2str(id));
             }
+            // Hack !!!
+            Klass* SavedClass = fClass;
+            fClass = k;
+            fClass->setParentKlass(SavedClass);
             SchedulingToMethod(s, k);
+            fClass = SavedClass;
+
             fClass->addMethod(k);
             string tmp = subst("fill$0($1, $2);", k->getClassName(), T(tblsize), tree2str(id));
             fClass->addClearCode(tmp);
@@ -1056,6 +1067,8 @@ void GraphCompiler::compileSingleInstruction(Tree instr, Klass* K)
 {
     Tree id, tid, origin, content, init, initval, idx;
     int  i, nature, tblsize, dmin;
+
+    //std::cerr << "GraphCompiler::compileSingleInstruction " << ppsig(instr) << " in klass " << K << std::endl;
 
     if (isSigInstructionControlWrite(instr, id, origin, &nature, content)) {
         string ctype = nature2ctype(nature);
@@ -1126,7 +1139,7 @@ void GraphCompiler::compileSingleInstruction(Tree instr, Klass* K)
         K->addZone4("gTime = time;");
 
     } else if (isSigInstructionTableAccessWrite(instr, id, origin, &nature, &dmin, tid, idx)) {
-        // std::cerr << *id << " = " << *tid << "[" << ppsig(idx) << "]";
+        std::cerr << *id << " = " << *tid << "[" << ppsig(idx) << "]";
         string ctype = nature2ctype(nature);
         string vname{tree2str(id)};
         string tname{tree2str(tid)};
@@ -2030,11 +2043,11 @@ void GraphCompiler::declareWaveform(Tree sig, string& vname, int& size)
     content << '}';
 
     // Declares the Waveform
-    fClass->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
+    fClass->getTopParentKlass()->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
     fClass->addDeclCode(subst("int \tidx$0;", vname));
     fClass->addInitCode(subst("idx$0 = 0;", vname));
     fClass->getTopParentKlass()->addStaticFields(
-        subst("$0 \t$1::$2[$3] = ", ctype, fClass->getFullClassName(), vname, T(size)) + content.str() + ";");
+        subst("$0 \t$1::$2[$3] = ", ctype, fClass->getTopParentKlass()->getFullClassName(), vname, T(size)) + content.str() + ";");
 }
 
 string GraphCompiler::generateWaveform(Tree sig)

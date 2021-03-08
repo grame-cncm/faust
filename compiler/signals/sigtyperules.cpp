@@ -62,7 +62,7 @@ static Type infereWaveformType(Tree lv, Tree env);
 static interval arithmetic(int opcode, const interval& x, const interval& y);
 
 // Uncomment to activate type inference tracing
-//#define TRACE(x) x
+// #define TRACE(x) x
 #define TRACE(x) \
     {            \
         ;        \
@@ -169,7 +169,7 @@ void annotationStatistics()
  */
 static void setSigType(Tree sig, Type t)
 {
-    TRACE(cerr << gGlobal->TABBER << "SET FIX TYPE OF " << *sig << " TO TYPE " << *t << endl;)
+    TRACE(cerr << gGlobal->TABBER << "SET FIX TYPE OF " << ppsig(sig) << " TO TYPE " << *t << endl;)
     sig->setType(t);
 }
 
@@ -182,9 +182,9 @@ static Type getSigType(Tree sig)
     auto* ty = (AudioType*)sig->getType();
     if (ty == nullptr) {
         std::cerr << "Empty type for " << ppsig(sig) << std::endl;
-        TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << *sig << " HAS NO TYPE YET" << endl;)
+        TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << ppsig(sig) << " HAS NO TYPE YET" << endl;)
     } else {
-        TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << *sig << " IS TYPE " << *ty << endl;)
+        TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << ppsig(sig) << " IS TYPE " << *ty << endl;)
     }
     return ty;
 }
@@ -210,18 +210,18 @@ static Type getSigType(Tree sig)
  */
 static Type T(Tree term, Tree ignoreenv)
 {
-    TRACE(cerr << ++gGlobal->TABBER << "ENTER T() " << *term << endl;)
+    TRACE(cerr << ++gGlobal->TABBER << "ENTER T() " << ppsig(term) << endl;)
 
     if (term->isAlreadyVisited()) {
         Type ty = getSigType(term);
-        TRACE(cerr << --gGlobal->TABBER << "EXIT 1 T() " << *term << " AS TYPE " << *ty << endl);
+        TRACE(cerr << --gGlobal->TABBER << "EXIT 1 T() " << ppsig(term) << " AS TYPE " << *ty << endl);
         return ty;
 
     } else {
         Type ty = infereSigType(term, ignoreenv);
         setSigType(term, ty);
         term->setVisited();
-        TRACE(cerr << --gGlobal->TABBER << "EXIT 2 T() " << *term << " AS TYPE " << *ty << endl);
+        TRACE(cerr << --gGlobal->TABBER << "EXIT 2 T() " << ppsig(term) << " AS TYPE " << *ty << endl);
         return ty;
     }
 }

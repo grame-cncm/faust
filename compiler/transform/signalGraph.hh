@@ -27,6 +27,7 @@
 #include <string>
 
 #include "signals.hh"
+#include "digraph.hh"
 
 using namespace std;
 
@@ -37,6 +38,7 @@ using namespace std;
  * @param instr the set of instructions
  */
 void signalGraph(const string& filename, const set<Tree>& instr);
+void graph2dot(const string& filename, const digraph<Tree, multidep>& G);
 
 /**
  * @brief generates a dotfile graph of a set of instructions in vector mode

@@ -86,9 +86,29 @@ class TransformTables : public SignalIdentity {
             }
             fSplittedSignals.insert(instr);
             // Cache table read
-            Tree wid = (nat == kInt) ? uniqueID("VI", sig) : uniqueID("VF", sig);
-            fSplittedSignals.insert(sigInstructionTableAccessWrite(wid, sig, nat, 0, id2, self(ridx)));
-            return sigInstructionSharedRead(wid, sig, nat);
+            if (t->variability() == kBlock) {
+                Tree wid = (nat == kInt) ? uniqueID("CI", sig) : uniqueID("CF", sig);
+                Tree winstr = sigInstructionControlWrite(wid, sig, nat, sigInstructionTableRead(id2,sig,nat,0,self(ridx)));
+                Tree rinstr = sigInstructionControlRead(wid,sig, nat);
+                fSplittedSignals.insert(winstr);
+                return rinstr;
+            } else if (t->variability() == kSamp) {
+                Tree wid = (nat == kInt) ? uniqueID("VI", sig) : uniqueID("VF", sig);
+                Tree winstr = sigInstructionSharedWrite(wid, sig, nat, sigInstructionTableRead(id2,sig,nat,0,self(ridx)));
+                Tree rinstr = sigInstructionSharedRead(wid,sig, nat);
+                fSplittedSignals.insert(winstr);
+                return rinstr;
+            } else {
+                std::cerr << "NOT SUPPOSED TO HAPPEN" << std::endl;
+                return nullptr;
+                exit(1);
+            }
+            // Tree wid = (nat == kInt) ? uniqueID("VI", sig) : uniqueID("VF", sig);
+            // if 
+            // Tree  instr = (t->variability()>= kSamp) ? sigInstruction
+            // //fSplittedSignals.insert(sigInstructionTableAccessWrite(wid, sig, nat, 0, id2, self(ridx)));
+            // fSplittedSignals.insert(sigInstructionTableAccessWrite(wid, sig, nat, 0, id2, self(ridx)));
+            // return sigInstructionSharedRead(wid, sig, nat);
         } else {
             return SignalIdentity::transformation(sig);
         }
