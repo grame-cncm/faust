@@ -42,6 +42,7 @@
 static void setSigType(Tree sig, Type t);
 static Type getSigType(Tree sig);
 static TupletType* initialRecType(Tree t);
+static TupletType* maximalRecType(Tree t);
 
 static Type T(Tree term, Tree env);
 
@@ -84,7 +85,8 @@ void typeAnnotation(Tree sig, bool causality)
 {
     // to move into compiler option (set to 0 to disable recursive interval computation)
     const int AGE_LIMIT = 5;
-
+    const int UP_ITER = 3;
+    
     gGlobal->gCausality = causality;
     Tree sl             = symlist(sig);
     int  n              = len(sl);
@@ -96,14 +98,17 @@ void typeAnnotation(Tree sig, bool causality)
     vector<Tree> vdef;       ///< definitions of all the recursive signal groups (vector of _lists_)
     vector<int>  vdefSizes;  ///< number of signals for each group
     vector<Type> vtype;      ///< type of the recursive signals
-
-    vector<Type> newTuplet;
+    vector<Type> vtypeUp;    ///< an upperbound of the recursive signals type
+    vector<TupletType> vUp;  ///< the unfolded version of the variable above
 
     vector<vector<int>> vAgeMin;  ///< age of the minimum of every subsignal of the recursive signal
     vector<vector<int>> vAgeMax;  ///< age of the maximum of every subsignal of the recursive signal
 
-    // used in type inference loops
+    // work variables used in type inference loops
+    
     Type newType;
+
+    vector<Type> newTuplet;
 
     TupletType newRecType;
     TupletType oldRecType;
@@ -129,16 +134,36 @@ void typeAnnotation(Tree sig, bool causality)
 
     // init recursive types
     for (int i = 0; i < n; i++) {
+        vtypeUp.push_back(maximalRecType(vdef[i]));
         vtype.push_back(initialRecType(vdef[i]));
     }
-
+    
     faustassert(int(vrec.size()) == n);
     faustassert(int(vdef.size()) == n);
     faustassert(int(vtype.size()) == n);
     faustassert((int)vAgeMin.size() == n);
     faustassert((int)vAgeMax.size() == n);
 
-    cerr << "find least fixpoint" << endl;
+    cerr << "compute upper bounds for recursive types" << endl;
+
+    for (int k=0; k < UP_ITER; k++) {
+        CTree::startNewVisit();
+        for (int i = 0; i < n; i++) {
+            setSigType(vrec[i], vtypeUp[i]);
+            cerr << i << "-" << *getSigType(vrec[i]) << endl;
+            vrec[i]->setVisited();
+        }
+        for (int i = 0; i < n; i++) {
+            vtypeUp[i] = T(vdef[i], gGlobal->NULLTYPEENV);
+        }
+    }
+    
+    for (auto ty : vtypeUp) {
+        vUp.push_back(derefRecCert(ty));
+    }
+    
+    cerr << "find an upperbound of the least fixpoint" << endl;
+    
     while (!finished) {
         // init recursive types
         CTree::startNewVisit();
@@ -170,7 +195,7 @@ void typeAnnotation(Tree sig, bool causality)
             }
             vtype[i] = new TupletType(newTuplet);
         }
-
+        
         // check finished
         finished = true;
         for (int i = 0; i < n; i++) {
@@ -192,17 +217,19 @@ void typeAnnotation(Tree sig, bool causality)
                     if (newI.lo != oldI.lo) {
                         vAgeMin[i][j]++;
                         if (vAgeMin[i][j] > AGE_LIMIT) {
-                            // cerr << "low widening of " << newRecType[j] << endl;
-                            newTuplet[j] = newTuplet[j]->promoteInterval(interval(-HUGE_VAL, newI.hi));
-                            // cerr << newTuplet[j];
+                            cerr << "low widening of " << newRecType[j] << endl;
+                            newTuplet[j] = newTuplet[j]->promoteInterval(
+                                interval(vUp[i][j]->getInterval().lo, newI.hi));
+                            cerr << newTuplet[j];
                         }
                     }
                     if (newI.hi != oldI.hi) {
                         vAgeMax[i][j]++;
                         if (vAgeMax[i][j] > AGE_LIMIT) {
-                            // cerr << "up widening of " << newRecType[j] << endl;
-                            newTuplet[j] = newTuplet[j]->promoteInterval(interval(newI.lo, HUGE_VAL));
-                            // cerr << "up widening ended" << endl;
+                            cerr << "up widening of " << newRecType[j] << endl;
+                            newTuplet[j] = newTuplet[j]->promoteInterval(
+                                interval(newI.lo, vUp[i][j]->getInterval().hi));
+                            cerr << "up widening ended" << endl;
                         }
                     }
                 }
@@ -697,6 +724,18 @@ static TupletType* initialRecType(Tree t)
 {
     faustassert(isList(t));
     return new TupletType(vector<Type>(len(t), gGlobal->TREC));
+}
+
+
+/**
+ * Compute a maximal type solution for a recursive block
+ * useful for widening approx
+ * E1,E2,...En -> TRECMAX,TRECMAX,...TRECMAX
+ */
+static TupletType* maximalRecType(Tree t)
+{
+    faustassert(isList(t));
+    return new TupletType(vector<Type>(len(t), gGlobal->TRECMAX));
 }
 
 /**
