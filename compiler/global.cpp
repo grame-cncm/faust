@@ -496,7 +496,7 @@ void global::init()
     INT_TGUI = makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval());
 
     TREC = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(0, 0));
-
+    TRECMAX = makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval(-HUGE_VAL,HUGE_VAL));
     // empty Predefined bit depth
 
     RES = res();

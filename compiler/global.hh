@@ -422,6 +422,7 @@ struct global {
 
     // Trying to accelerate type convergence
     Type TREC;  // kVect ou kScal ?
+    Type TRECMAX;
 
     res RES;
     
