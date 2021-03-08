@@ -94,8 +94,9 @@ struct interval : public virtual Garbageable {
     }
     bool haszero() { return (lo <= 0) && (0 <= hi); }
 
+    // convention, the invalid interval contains everyone 
     bool contains(interval j){
-        return lo <= j.lo && hi >= j.hi;
+        return !valid || (lo <= j.lo && hi >= j.hi);
     }
     
     /**
