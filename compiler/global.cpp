@@ -75,6 +75,10 @@
 #include "java_code_container.hh"
 #endif
 
+#ifdef CSHARP_BUILD
+#include "csharp_code_container.hh"
+#endif
+
 #ifdef RUST_BUILD
 #include "rust_code_container.hh"
 #endif
@@ -724,6 +728,9 @@ global::~global()
 #endif
 #ifdef JAVA_BUILD
     JAVAInstVisitor::cleanup();
+#endif
+#ifdef CSHARP_BUILD
+    CSharpInstVisitor::cleanup();
 #endif
 #ifdef RUST_BUILD
     RustInstVisitor::cleanup();
