@@ -172,14 +172,14 @@ void typeAnnotation(Tree sig, bool causality)
             cerr << i << "-" << *getSigType(vrec[i]) << endl;
             vrec[i]->setVisited();
         }
-
+        
         // cerr << "compute recursive types" << endl;
         for (int i = 0; i < n; i++) {
             newType = T(vdef[i], gGlobal->NULLTYPEENV);
             newTuplet.clear();
             oldRecType = derefRecCert(getSigType(vrec[i]));
             newRecType = derefRecCert(newType);
-
+            
             // prevent widened interval to be erased by smaller intervals
             // and create an infinite loop
             for (int j = 0; j < vdefSizes[i]; j++) {
@@ -213,25 +213,24 @@ void typeAnnotation(Tree sig, bool causality)
                     newI = newRecType[j]->getInterval();
                     oldI = oldRecType[j]->getInterval();
 
-                    // cerr << "inspecting " << newTuplet[j] << endl;
+                    cerr << "inspecting " << newTuplet[j] << endl;
                     if (newI.lo != oldI.lo) {
                         vAgeMin[i][j]++;
                         if (vAgeMin[i][j] > AGE_LIMIT) {
-                            cerr << "low widening of " << newRecType[j] << endl;
-                            newTuplet[j] = newTuplet[j]->promoteInterval(
-                                interval(vUp[i][j]->getInterval().lo, newI.hi));
-                            cerr << newTuplet[j];
+                            cerr << "low widening of " << newTuplet[j] << endl;
+                            newI.lo = vUp[i][j]->getInterval().lo;
                         }
                     }
+
                     if (newI.hi != oldI.hi) {
                         vAgeMax[i][j]++;
                         if (vAgeMax[i][j] > AGE_LIMIT) {
-                            cerr << "up widening of " << newRecType[j] << endl;
-                            newTuplet[j] = newTuplet[j]->promoteInterval(
-                                interval(newI.lo, vUp[i][j]->getInterval().hi));
-                            cerr << "up widening ended" << endl;
+                            cerr << "up widening of " << newTuplet[j] << endl;
+                            newI.hi = vUp[i][j]->getInterval().hi;
                         }
                     }
+                    newTuplet[j] = newTuplet[j]->promoteInterval(newI);
+                    cerr << "widening ended : " << newTuplet[j] << endl;
                 }
                 vtype[i] = new TupletType(newTuplet);
             }
