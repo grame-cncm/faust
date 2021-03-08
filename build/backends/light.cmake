@@ -12,6 +12,7 @@ set ( CPP_BACKEND    COMPILER STATIC DYNAMIC CACHE STRING  "Include CPP backend"
 set ( FIR_BACKEND    OFF         CACHE STRING  "Include FIR backend" FORCE )
 set ( INTERP_BACKEND OFF         CACHE STRING  "Include INTERPRETER backend" FORCE )
 set ( JAVA_BACKEND   OFF         CACHE STRING  "Include JAVA backend" FORCE )
+set ( CSHARP_BACKEND OFF	 CACHE STRING  "Include CSharp backend" FORCE )
 set ( LLVM_BACKEND   OFF         CACHE STRING  "Include LLVM backend" FORCE )
 set ( OLDCPP_BACKEND COMPILER STATIC DYNAMIC CACHE STRING  "Include old CPP backend" FORCE )
 set ( RUST_BACKEND   OFF         CACHE STRING  "Include RUST backend" FORCE )
