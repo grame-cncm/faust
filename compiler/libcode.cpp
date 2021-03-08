@@ -85,6 +85,10 @@
 #include "java_code_container.hh"
 #endif
 
+#ifdef CSHARP_BUILD
+#include "csharp_code_container.hh"
+#endif
+
 #ifdef LLVM_BUILD
 #include "clang_code_container.hh"
 #include "llvm_code_container.hh"
@@ -157,6 +161,10 @@ static void enumBackends(ostream& out)
 
 #ifdef JAVA_BUILD
     out << dspto << "Java" << endl;
+#endif
+
+#ifdef CSHARP_BUILD
+    out << dspto << "CSharp" << endl;
 #endif
 
 #ifdef LLVM_BUILD
@@ -1422,6 +1430,14 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #ifdef JAVA_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
             container = JAVACodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
+                                                           numOutputs, dst.get());
+#else
+            throw faustexception("ERROR : -lang java not supported since JAVA backend is not built\n");
+#endif
+        } else if (gGlobal->gOutputLang == "csharp") {
+#ifdef CSHARP_BUILD
+            gGlobal->gAllowForeignFunction = false;  // No foreign functions
+            container = CSharpCodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
                                                            numOutputs, dst.get());
 #else
             throw faustexception("ERROR : -lang java not supported since JAVA backend is not built\n");
