@@ -165,7 +165,7 @@ void CSharpCodeContainer::produceClass()
     printLibrary(*fOut);
 
     tab(n, *fOut);
-    *fOut << "public class " << fKlassName << " : " << fSuperKlassName;
+    *fOut << "public class " << fKlassName << " : " << fSuperKlassName << ", " << "IFaustDSP";
     tab(n, *fOut);
     *fOut << "{";
 
