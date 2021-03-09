@@ -160,10 +160,28 @@ public class FaustUIDefinition
     }
 }
 
+public interface IFaustDSP
+{
+    FaustUIDefinition UIDefinition { get; }
+    FaustMetaData MetaData { get; }
+
+    int GetNumInputs();
+    int GetNumOutputs();
+    int GetInputRate(int channel);
+    int GetOutputRate(int channel);
+    void ClassInit(int sample_rate);
+    void InstanceConstants(int sample_rate);
+    void InstanceResetUserInterface();
+    void InstanceClear();
+    void Init(int sample_rate);
+    void InstanceInit(int sample_rate);
+    void Compute(int count, double[][] inputs, double[][] outputs);
+}
+
 public class dsp
 {
-    public FaustUIDefinition UIDefinition { get; set; }
-    public FaustMetaData MetaData { get; set; }
+    public FaustUIDefinition UIDefinition { get; private set; }
+    public FaustMetaData MetaData { get; private set; }
 
     public dsp()
     {
