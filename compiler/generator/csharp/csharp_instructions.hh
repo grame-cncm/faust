@@ -46,7 +46,7 @@ class CSharpInstVisitor : public TextInstVisitor {
     {
         initMathTable();
 
-        // Pointer to JAVA object is actually the object itself...
+        // Pointer to C# object is actually the object itself...
         fTypeManager->fTypeDirectTable[Typed::kObj_ptr] = "";
     }
 
@@ -114,29 +114,17 @@ class CSharpInstVisitor : public TextInstVisitor {
     string createVarAccess(string varname)
     {
         if (strcmp(ifloat(), "float") == 0) {
-            return "new FaustVarAccess() {\n"
-                   "\t\t\t\tpublic String getId() { return \"" +
-                   varname +
-                   "\"; }\n"
-                   "\t\t\t\tpublic void set(float val) { " +
-                   varname +
-                   " = val; }\n"
-                   "\t\t\t\tpublic float get() { return (float)" +
-                   varname +
-                   "; }\n"
+            return "new FaustVariableAccessor {\n"
+                   "\t\t\t\tID = \"" + varname + "\",\n"
+                   "\t\t\t\tSetValue = delegate(double val) { " + varname + " = (float)val; },\n" +
+                   "\t\t\t\tGetValue = delegate { return " + varname + "; }\n" +
                    "\t\t\t}\n"
                    "\t\t\t";
         } else {
-            return "new FaustVarAccess() {\n"
-                   "\t\t\t\tpublic String getId() { return \"" +
-                   varname +
-                   "\"; }\n"
-                   "\t\t\t\tpublic void set(double val) { " +
-                   varname +
-                   " = val; }\n"
-                   "\t\t\t\tpublic float get() { return (double)" +
-                   varname +
-                   "; }\n"
+            return "new FaustVariableAccessor {\n"
+                   "\t\t\t\tID = \"" + varname + "\",\n"
+                   "\t\t\t\tSetValue = delegate(double val) { " + varname + " = val; },\n" +
+                   "\t\t\t\tGetValue = delegate { return " + varname + "; }\n" +
                    "\t\t\t}\n"
                    "\t\t\t";
         }
@@ -144,80 +132,77 @@ class CSharpInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddMetaDeclareInst* inst)
     {
-        *fOut << "ui_interface.declare(\"" << inst->fZone << "\", \"" << inst->fKey << "\", \"" << inst->fValue
-              << "\")";
+        *fOut << "UIDefinition.DeclareElementMetaData(\"" << inst->fZone << "\", \"" << inst->fKey << "\", \"" << inst->fValue << "\")";
         EndLine();
     }
 
     virtual void visit(OpenboxInst* inst)
     {
-        string name;
         switch (inst->fOrient) {
             case OpenboxInst::kVerticalBox:
-                name = "ui_interface.openVerticalBox(";
+                *fOut << "UIDefinition.StartBox(new FaustBoxElement(EFaustUIElementType.VerticalBox, " << quote(inst->fName) << "))";
                 break;
             case OpenboxInst::kHorizontalBox:
-                name = "ui_interface.openHorizontalBox(";
+                *fOut << "UIDefinition.StartBox(new FaustBoxElement(EFaustUIElementType.HorizontalBox, " << quote(inst->fName) << "))";
                 break;
             case OpenboxInst::kTabBox:
-                name = "ui_interface.openTabBox(";
+                *fOut << "UIDefinition.StartBox(new FaustBoxElement(EFaustUIElementType.TabBox, " << quote(inst->fName) << "))";
                 break;
         }
-        *fOut << name << quote(inst->fName) << ")";
         EndLine();
     }
 
     virtual void visit(CloseboxInst* inst)
     {
-        *fOut << "ui_interface.closeBox();";
+        *fOut << "UIDefinition.EndBox();";
         tab(fTab, *fOut);
     }
 
     virtual void visit(AddButtonInst* inst)
     {
-        string name;
         if (inst->fType == AddButtonInst::kDefaultButton) {
-            name = "ui_interface.addButton(";
+            *fOut << "UIDefinition.AddElement(new FaustUIVariableElement(EFaustUIElementType.Button, " << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << "))";
         } else {
-            name = "ui_interface.addCheckButton(";
+            *fOut << "UIDefinition.AddElement(new FaustUIVariableElement(EFaustUIElementType.CheckBox, " << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << "))";
         }
-        *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ")";
         EndLine();
     }
 
     virtual void visit(AddSliderInst* inst)
     {
         string name;
+
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
-                name = "ui_interface.addHorizontalSlider(";
+                name = "UIDefinition.AddElement(new FaustUIWriteableFloatElement(EFaustUIElementType.HorizontalSlider, ";
                 break;
             case AddSliderInst::kVertical:
-                name = "ui_interface.addVerticalSlider(";
+                name = "UIDefinition.AddElement(new FaustUIWriteableFloatElement(EFaustUIElementType.VerticalSlider, ";
                 break;
             case AddSliderInst::kNumEntry:
-                name = "ui_interface.addNumEntry(";
+                name = "UIDefinition.AddElement(new FaustUIWriteableFloatElement(EFaustUIElementType.NumEntry, ";
                 break;
         }
         *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", " << checkReal(inst->fInit)
               << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep)
-              << ")";
+              << "))";
         EndLine();
     }
 
     virtual void visit(AddBargraphInst* inst)
     {
         string name;
+
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
-                name = "ui_interface.addHorizontalBargraph(";
+                name = "UIDefinition.AddElement(new FaustUIFloatElement(EFaustUIElementType.HorizontalBargraph, ";
                 break;
             case AddBargraphInst::kVertical:
-                name = "ui_interface.addVerticalBargraph(";
+                name = "UIDefinition.AddElement(new FaustUIFloatElement(EFaustUIElementType.VerticalBargraph, ";
                 break;
         }
         *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", " << checkReal(inst->fMin)
-              << ", " << checkReal(inst->fMax) << ")";
+              << ", " << checkReal(inst->fMax) << "))";
         EndLine();
     }
 
@@ -259,15 +244,48 @@ class CSharpInstVisitor : public TextInstVisitor {
             gFunctionSymbolTable[inst->fName] = true;
         }
 
-        // Do not declare Math library functions, they are defined in java.lang.Math and used in a polymorphic way.
+        // Do not declare Math library functions
         if (gMathLibTable.find(inst->fName) != gMathLibTable.end()) {
             return;
+        }
+
+        // Prototype arguments
+        if (inst->fType->fAttribute & FunTyped::kInline) {
+            *fOut << "[MethodImpl(MethodImplOptions.AggressiveInlining)]" << endl;
+        }
+
+        if (!(inst->fType->fAttribute & FunTyped::kLocal)) {
+            *fOut << "public ";
+        }
+
+        if (inst->fType->fAttribute & FunTyped::kStatic) {
+            *fOut << "static ";
         }
 
         // Prototype
         *fOut << fTypeManager->generateType(inst->fType->fResult, generateFunName(inst->fName));
         generateFunDefArgs(inst);
         generateFunDefBody(inst);
+    }
+
+    virtual void generateFunDefBody(DeclareFunInst* inst)
+    {
+        if (inst->fCode->fCode.size() == 0) {
+            *fOut << ");" << endl;  // Pure prototype
+        } else {
+            // Function body
+            *fOut << ")";
+            tab(fTab, *fOut);
+            *fOut << "{";
+            fTab++;
+            tab(fTab, *fOut);
+            inst->fCode->accept(this);
+            fTab--;
+            back(1, *fOut);
+            *fOut << "}";
+            *fOut << endl;
+            tab(fTab, *fOut);
+        }
     }
 
     virtual void visit(LoadVarInst* inst)
@@ -278,7 +296,7 @@ class CSharpInstVisitor : public TextInstVisitor {
 
     virtual void visit(LoadVarAddressInst* inst)
     {
-        // Not implemented in JAVA
+        // Not implemented in C#
         faustassert(false);
     }
 
@@ -304,107 +322,6 @@ class CSharpInstVisitor : public TextInstVisitor {
     {
         fTypingVisitor.visit(inst);
         TextInstVisitor::visit(inst);
-    }
-
-    virtual void visit(BinopInst* inst)
-    {
-        if (isBoolOpcode(inst->fOpcode)) {
-            *fOut << "(";
-            inst->fInst1->accept(this);
-            *fOut << " ";
-            *fOut << gBinOpTable[inst->fOpcode]->fName;
-            *fOut << " ";
-            inst->fInst2->accept(this);
-            *fOut << ")";
-        } else {
-            inst->fInst1->accept(&fTypingVisitor);
-            Typed::VarType type1 = fTypingVisitor.fCurType;
-
-            inst->fInst2->accept(&fTypingVisitor);
-            Typed::VarType type2 = fTypingVisitor.fCurType;
-
-            *fOut << "(";
-
-            if (type1 == Typed::kInt32 && type2 == Typed::kInt32) {
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                inst->fInst2->accept(this);
-            } else if (type1 == Typed::kInt32 && type2 == Typed::kFloat) {
-                *fOut << "(float)";
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                inst->fInst2->accept(this);
-            } else if (type1 == Typed::kFloat && type2 == Typed::kInt32) {
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                *fOut << "(float)";
-                inst->fInst2->accept(this);
-            } else if (type1 == Typed::kFloat && type2 == Typed::kFloat) {
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                inst->fInst2->accept(this);
-            } else if (type1 == Typed::kInt32 && type2 == Typed::kBool) {
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                *fOut << "((";
-                inst->fInst2->accept(this);
-                *fOut << ")?1:0)";
-            } else if (type1 == Typed::kBool && type2 == Typed::kInt32) {
-                *fOut << "((";
-                inst->fInst1->accept(this);
-                *fOut << ")?1:0)";
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                inst->fInst2->accept(this);
-            } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
-                *fOut << "((";
-                inst->fInst1->accept(this);
-                *fOut << ")?1:0)";
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                *fOut << "((";
-                inst->fInst2->accept(this);
-                *fOut << ")?1:0)";
-            } else if (type1 == Typed::kFloat && type2 == Typed::kBool) {
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                *fOut << "((";
-                inst->fInst2->accept(this);
-                *fOut << ")?1.f:0.f)";
-            } else if (type1 == Typed::kBool && type2 == Typed::kFloat) {
-                *fOut << "((";
-                inst->fInst1->accept(this);
-                *fOut << ")?1.f:0.f)";
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                inst->fInst2->accept(this);
-            } else {  // Default
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                inst->fInst2->accept(this);
-            }
-
-            *fOut << ")";
-        }
-
-        fTypingVisitor.visit(inst);
     }
 
     virtual void visit(::CastInst* inst)
@@ -464,42 +381,6 @@ class CSharpInstVisitor : public TextInstVisitor {
         string fun_name =
             (gMathLibTable.find(inst->fName) != gMathLibTable.end()) ? gMathLibTable[inst->fName] : inst->fName;
         generateFunCall(inst, fun_name);
-    }
-
-    virtual void visit(Select2Inst* inst)
-    {
-        inst->fCond->accept(&fTypingVisitor);
-
-        switch (fTypingVisitor.fCurType) {
-            case Typed::kDouble:
-            case Typed::kInt32:
-                *fOut << "(((";
-                inst->fCond->accept(this);
-                *fOut << "==0)?true:false)";
-                break;
-            case Typed::kFloat:
-            case Typed::kFloatMacro:
-                *fOut << "(((";
-                inst->fCond->accept(this);
-                *fOut << "==0.f)?true:false)";
-                break;
-            case Typed::kBool:
-                *fOut << "((";
-                inst->fCond->accept(this);
-                *fOut << ")";
-                break;
-            default:
-                faustassert(false);
-                break;
-        }
-
-        *fOut << "?";
-        inst->fThen->accept(this);
-        *fOut << ":";
-        inst->fElse->accept(this);
-        *fOut << ")";
-
-        fTypingVisitor.visit(inst);
     }
 
     static void cleanup()
