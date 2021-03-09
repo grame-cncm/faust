@@ -833,7 +833,7 @@ static void printHelp()
     cout << endl << "Code generation options:" << line;
     cout << tab << "-lang <lang> --language                 select output language," << endl;
     cout << tab
-         << "                                        'lang' should be c, ocpp, cpp (default), rust, java, "
+         << "                                        'lang' should be c, ocpp, cpp (default), csharp, rust, java, "
             "llvm, fir, wast/wasm, soul, interp or dlang."
          << endl;
     cout << tab
