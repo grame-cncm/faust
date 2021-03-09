@@ -126,7 +126,8 @@ class Klass  //: public Target
     Klass* getTopParentKlass() { return (fParentKlass != nullptr) ? fParentKlass->getTopParentKlass() : this; }
     string getFullClassName()
     {
-        return (fParentKlass != nullptr) ? fParentKlass->getFullClassName() + "::" + getClassName() : getClassName();
+        string fcn = (fParentKlass != nullptr) ? fParentKlass->getFullClassName() + "::" + getClassName() : getClassName();
+        return fcn;
     }  ///< Returns the name of the class
 
     void addMethod(Klass* k);

@@ -197,7 +197,7 @@ static string format(const string& s)
 
 ostream& dotfile2(ostream& file, const digraph<Tree, multidep>& g)
 {
-    // cerr << "\n\nDOT2FILE of graph " << g << "\n" << endl;
+    cerr << "\n\nDOT2FILE of graph " << g << "\n" << endl;
 
     file << "digraph mygraph { \n\t node [shape=box]" << endl;
     for (Tree n : g.nodes()) {

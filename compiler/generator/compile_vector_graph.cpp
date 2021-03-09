@@ -415,40 +415,40 @@ set<Tree> GraphVectorCompiler::ExpressionsListToInstructionsSet(Tree L3)
     // cerr << ">>Transformation into Instructions\n" << endl;
     startTiming("Transformation into Instructions");
     set<Tree> INSTR1 = splitSignalsToInstr(fConditionProperty, L3d);
-    if (gGlobal->gDebugDiagram) signalGraph("phase1-beforeSimplification.dot", INSTR1);
+    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase1-beforeSimplification.dot", INSTR1);
 
     // cerr << ">>delayLineSimplifier\n" << endl;
     set<Tree> INSTR2 = delayLineSimplifier(INSTR1);
-    if (gGlobal->gDebugDiagram) signalGraph("phase2-afterSimplification.dot", INSTR2);
+    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase2-afterSimplification.dot", INSTR2);
 
     // list short dline candidates (IN PROGRESS)
     set<Tree> INSTR2b = (gGlobal->gOptShortDLines) ? ShortDelayLineSimplifier(INSTR2) : INSTR2;
-    if (gGlobal->gDebugDiagram) signalGraph("phase2b-afterShortDLine.dot", INSTR2b);
+    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase2b-afterShortDLine.dot", INSTR2b);
 
     // cerr << ">>transformDelayToTable\n" << endl;
     set<Tree> INSTR3 = transformDelayToTable(INSTR2b);
-    if (gGlobal->gDebugDiagram) signalGraph("phase3-afterTable.dot", INSTR3);
+    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase3-afterTable.dot", INSTR3);
 
     // cerr << ">>transformOld2NewTables\n" << endl;
     set<Tree> INSTR4 = transformOld2NewTables(INSTR3);
-    if (gGlobal->gDebugDiagram) signalGraph("phase4-afterTableTransform.dot", INSTR4);
+    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase4-afterTableTransform.dot", INSTR4);
 
     // cerr << ">>splitCommonSubexpr\n" << endl;
     set<Tree> INSTR5 = splitCommonSubexpr(INSTR4);
-    if (gGlobal->gDebugDiagram) signalGraph("phase5-afterCSE.dot", INSTR5);
+    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase5-afterCSE.dot", INSTR5);
 
     // cerr << ">>splitAddBranches\n" << endl;
     set<Tree> INSTR6 = (gGlobal->gSplitAdditions) ? splitAddBranches(INSTR5) : INSTR5;
-    if (gGlobal->gDebugDiagram) signalGraph("phase6-addbranch.dot", INSTR6);
+    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase6-addbranch.dot", INSTR6);
 
-    signalGraph("SPECIAL1.dot", INSTR6);
+    signalGraph(fClass->getFullClassName()+"-SPECIAL1.dot", INSTR6);
     // signalGraph2("SPECIAL2.dot", INSTR6);
 #if 0
     cerr << "Start scalarscheduling" << endl;
-    scalarScheduling("phase5-scalarScheduling.txt", INSTR4);
+    scalarScheduling(fClass->getFullClassName()+"-phase5-scalarScheduling.txt", INSTR4);
 
     cerr << "Start parallelScheduling" << endl;
-    parallelScheduling("phase6-parallelScheduling.txt", INSTR4);
+    parallelScheduling(fClass->getFullClassName()+"-phase6-parallelScheduling.txt", INSTR4);
 
     endTiming("Transformation into Instructions");
 #endif
@@ -705,7 +705,15 @@ void GraphVectorCompiler::tableDependenciesGraph(const set<Tree>& I)
             } else {
                 k = new SigFloatFillMethod(nullptr, tree2str(id));
             }
+            // Hack !!!
+            Klass* SavedClass = fClass;
+            fClass            = k;
+            fClass->setParentKlass(SavedClass);
+            std::cerr << "FULLNAME :" << fClass->getFullClassName() << std::endl;
+            
             SchedulingToMethod(s, k);
+            fClass = SavedClass;
+
             fClass->addMethod(k);
             string tmp = subst("fill$0($1, $2);", k->getClassName(), T(tblsize), tree2str(id));
             fClass->addClearCode(tmp);
@@ -1902,11 +1910,11 @@ void GraphVectorCompiler::declareWaveform(Tree sig, string& vname, int& size)
     content << '}';
 
     // Declares the Waveform
-    fClass->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
+    fClass->getTopParentKlass()->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
     fClass->addDeclCode(subst("int \tidx$0;", vname));
     fClass->addInitCode(subst("idx$0 = 0;", vname));
     fClass->getTopParentKlass()->addStaticFields(
-        subst("$0 \t$1::$2[$3] = ", ctype, fClass->getFullClassName(), vname, T(size)) + content.str() + ";");
+        subst("$0 \t$1::$2[$3] = ", ctype, fClass->getTopParentKlass()->getFullClassName(), vname, T(size)) + content.str() + ";");
 }
 
 string GraphVectorCompiler::generateWaveform(Tree sig)

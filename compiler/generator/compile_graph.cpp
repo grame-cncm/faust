@@ -282,38 +282,38 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
     // cerr << ">>Transformation into Instructions\n" << endl;
     startTiming("Transformation into Instructions");
     set<Tree> INSTR1 = splitSignalsToInstr(fConditionProperty, L3d);
-    if (gGlobal->gDebugDiagram) signalGraph("phase1-beforeSimplification.dot", INSTR1);
+    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase1-beforeSimplification.dot", INSTR1);
 
     // cerr << ">>delayLineSimplifier\n" << endl;
     set<Tree> INSTR2 = delayLineSimplifier(INSTR1);
-    if (gGlobal->gDebugDiagram) signalGraph("phase2-afterSimplification.dot", INSTR2);
+    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase2-afterSimplification.dot", INSTR2);
 
     // list short dline candidates (IN PROGRESS)
     set<Tree> INSTR2b = (gGlobal->gOptShortDLines) ? ShortDelayLineSimplifier(INSTR2) : INSTR2;
-    if (gGlobal->gDebugDiagram) signalGraph("phase2b-afterShortDLine.dot", INSTR2b);
+    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase2b-afterShortDLine.dot", INSTR2b);
 
     // cerr << ">>transformDelayToTable\n" << endl;
     set<Tree> INSTR3 = transformDelayToTable(INSTR2b);
-    if (gGlobal->gDebugDiagram) signalGraph("phase3-afterTable.dot", INSTR3);
+    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase3-afterTable.dot", INSTR3);
 
     // cerr << ">>transformOld2NewTables\n" << endl;
     set<Tree> INSTR4 = transformOld2NewTables(INSTR3);
-    if (gGlobal->gDebugDiagram) signalGraph("phase4-afterTableTransform.dot", INSTR4);
+    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase4-afterTableTransform.dot", INSTR4);
 
     // cerr << ">>transformTime\n" << endl;
     set<Tree> INSTR4b = transformTime(INSTR4);
-    if (gGlobal->gDebugDiagram) signalGraph("phase4b-afterTimeTransform.dot", INSTR4);
+    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase4b-afterTimeTransform.dot", INSTR4);
 
     // cerr << ">>splitCommonSubexpr\n" << endl;
     set<Tree> INSTR5 = splitCommonSubexpr(INSTR4b);
-    if (gGlobal->gDebugDiagram) signalGraph("phase5-afterCSE.dot", INSTR5);
+    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase5-afterCSE.dot", INSTR5);
 
     // cerr << ">>splitAddBranches\n" << endl;
     set<Tree> INSTR6 = (gGlobal->gSplitAdditions) ? splitAddBranches(INSTR5) : INSTR5;
-    if (gGlobal->gDebugDiagram) signalGraph("phase6-addbranch.dot", INSTR6);
+    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase6-addbranch.dot", INSTR6);
 
     // cerr << " experimental vector graph"
-    if (gGlobal->gDebugDiagram) signalVectorGraph("phase7-vectorgraph.dot", INSTR6);
+    if (gGlobal->gDebugDiagram) signalVectorGraph(fClass->getFullClassName()+"-phase7-vectorgraph.dot", INSTR6);
 
         // signalGraph("SPECIAL1.dot", INSTR6);
         // signalGraph2("SPECIAL2.dot", INSTR6);
@@ -1045,6 +1045,7 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
             Klass* SavedClass = fClass;
             fClass = k;
             fClass->setParentKlass(SavedClass);
+            std::cerr << "fullname :" << fClass->getFullClassName() << std::endl;
             SchedulingToMethod(s, k);
             fClass = SavedClass;
 

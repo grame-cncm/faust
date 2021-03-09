@@ -52,12 +52,13 @@ using namespace std;
  */
 void signalGraph(const string& filename, const set<Tree>& I)
 {
-    // cerr << "\n\nBEGIN build Dependency Graph: " << filename << endl;
+    cerr << "\n\nBEGIN build Dependency Graph: " << filename << endl;
 
     digraph<Tree, multidep> G;
     // Dictionnary   Dic;
 
     for (auto i : I) {
+        std::cerr << ppsig(i) << std::endl;
         G.add(dependencyGraph(i));
         // Dic.add(i);
     }
