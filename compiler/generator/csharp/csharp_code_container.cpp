@@ -97,7 +97,9 @@ void CSharpCodeContainer::produceInternal()
     // generateGlobalDeclarations(&fCodeProducer);
 
     tab(n, *fOut);
-    *fOut << "final class " << fKlassName << " {";
+    *fOut << "class " << fKlassName;
+    tab(n, *fOut);
+    *fOut << "{";
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
@@ -115,7 +117,7 @@ void CSharpCodeContainer::produceInternal()
 
     // Inits
     tab(n + 1, *fOut);
-    *fOut << "void instanceInit" << fKlassName << "(int sample_rate) {";
+    *fOut << "public void instanceInit" << fKlassName << "(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
@@ -128,10 +130,10 @@ void CSharpCodeContainer::produceInternal()
     string counter = "count";
     if (fSubContainerType == kInt) {
         tab(n + 1, *fOut);
-        *fOut << "void fill" << fKlassName << subst("(int $0, int[] output) {", counter);
+        *fOut << "public void fill" << fKlassName << subst("(int $0, int[] " + fTableName + ") { ", counter);
     } else {
         tab(n + 1, *fOut);
-        *fOut << "void fill" << fKlassName << subst("(int $0, $1[] output) {", counter, ifloat());
+        *fOut << "public void fill" << fKlassName << subst("(int $0, $1[] " + fTableName + ") {", counter, ifloat());
     }
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
@@ -163,7 +165,9 @@ void CSharpCodeContainer::produceClass()
     printLibrary(*fOut);
 
     tab(n, *fOut);
-    *fOut << "public class " << fKlassName << " : " << fSuperKlassName << " {";
+    *fOut << "public class " << fKlassName << " : " << fSuperKlassName;
+    tab(n, *fOut);
+    *fOut << "{";
 
     // Global declarations
     tab(n + 1, *fOut);
@@ -201,22 +205,39 @@ void CSharpCodeContainer::produceClass()
         tab(n + 1, *fOut);
     }
 
+    tab(n + 1, *fOut);
+    *fOut << "public " << fKlassName << "()";
+    tab(n + 1, *fOut);
+    *fOut << "{";
+    tab(n + 2, *fOut);
+    *fOut << "SetMetaData();";
+    tab(n + 2, *fOut);
+    *fOut << "BuildUserInterface();";
+    tab(n + 1, *fOut);
+    *fOut << "}";
+    tab(n + 1, *fOut);
+
+    tab(n + 1, *fOut);
+    produceInfoFunctions(n + 1, "", "dsp", true, true, &fCodeProducer);
+
     // Print metadata declaration
     tab(n + 1, *fOut);
-    *fOut << "public void metadata(Meta m) { ";
+    *fOut << "void SetMetaData()";
+    tab(n + 1, *fOut);
+    *fOut << "{";
 
     for (auto& i : gGlobal->gMetaDataSet) {
         if (i.first != tree("author")) {
             tab(n + 2, *fOut);
-            *fOut << "m.declare(\"" << *(i.first) << "\", " << **(i.second.begin()) << ");";
+            *fOut << "MetaData.Declare(\"" << *(i.first) << "\", " << **(i.second.begin()) << ");";
         } else {
             for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
                 if (j == i.second.begin()) {
                     tab(n + 2, *fOut);
-                    *fOut << "m.declare(\"" << *(i.first) << "\", " << **j << ");";
+                    *fOut << "MetaData.Declare(\"" << *(i.first) << "\", " << **j << ");";
                 } else {
                     tab(n + 2, *fOut);
-                    *fOut << "m.declare(\""
+                    *fOut << "MetaData.Declare(\""
                           << "contributor"
                           << "\", " << **j << ");";
                 }
@@ -227,9 +248,18 @@ void CSharpCodeContainer::produceClass()
     tab(n + 1, *fOut);
     *fOut << "}" << endl;
 
+    // User interface
     tab(n + 1, *fOut);
-    // No class name for main class
-    produceInfoFunctions(n + 1, "", "dsp", true, true, &fCodeProducer);
+    tab(n + 1, *fOut);
+    *fOut << "void BuildUserInterface()";
+    tab(n + 1, *fOut);
+    *fOut << "{";
+    tab(n + 2, *fOut);
+    fCodeProducer.Tab(n + 2);
+    generateUserInterface(&fCodeProducer);
+    printlines(n + 2, fUICode, *fOut);
+    tab(n + 1, *fOut);
+    *fOut << "}" << endl;
 
     // Inits
 
@@ -240,7 +270,9 @@ void CSharpCodeContainer::produceClass()
     */
 
     tab(n + 1, *fOut);
-    *fOut << "public void classInit(int sample_rate) {";
+    *fOut << "public void ClassInit(int sample_rate)";
+    tab(n + 1, *fOut);
+    *fOut << "{";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateStaticInit(&fCodeProducer);
@@ -249,7 +281,9 @@ void CSharpCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "public void instanceConstants(int sample_rate) {";
+    *fOut << "public void InstanceConstants(int sample_rate)";
+    tab(n + 1, *fOut);
+    *fOut << "{";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
@@ -258,7 +292,9 @@ void CSharpCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "public void instanceResetUserInterface() {";
+    *fOut << "public void InstanceResetUserInterface()";
+    tab(n + 1, *fOut);
+    *fOut << "{";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateResetUserInterface(&fCodeProducer);
@@ -267,7 +303,9 @@ void CSharpCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "public void instanceClear() {";
+    *fOut << "public void InstanceClear()";
+    tab(n + 1, *fOut);
+    *fOut << "{";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateClear(&fCodeProducer);
@@ -276,34 +314,27 @@ void CSharpCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "public void init(int sample_rate) {";
+    *fOut << "public void Init(int sample_rate)";
+    tab(n + 1, *fOut);
+    *fOut << "{";
     tab(n + 2, *fOut);
-    *fOut << "classInit(sample_rate);";
+    *fOut << "ClassInit(sample_rate);";
     tab(n + 2, *fOut);
-    *fOut << "instanceInit(sample_rate);";
+    *fOut << "InstanceInit(sample_rate);";
     tab(n + 1, *fOut);
     *fOut << "}";
 
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << "public void instanceInit(int sample_rate) {";
-    tab(n + 2, *fOut);
-    *fOut << "instanceConstants(sample_rate);";
-    tab(n + 2, *fOut);
-    *fOut << "instanceResetUserInterface();";
-    tab(n + 2, *fOut);
-    *fOut << "instanceClear();";
+    *fOut << "public void InstanceInit(int sample_rate)";
     tab(n + 1, *fOut);
-    *fOut << "}";
-
-    // User interface
-    tab(n + 1, *fOut);
-    tab(n + 1, *fOut);
-    *fOut << "public void buildUserInterface(UI ui_interface) {";
+    *fOut << "{";
     tab(n + 2, *fOut);
-    fCodeProducer.Tab(n + 2);
-    generateUserInterface(&fCodeProducer);
-    printlines(n + 2, fUICode, *fOut);
+    *fOut << "InstanceConstants(sample_rate);";
+    tab(n + 2, *fOut);
+    *fOut << "InstanceResetUserInterface();";
+    tab(n + 2, *fOut);
+    *fOut << "InstanceClear();";
     tab(n + 1, *fOut);
     *fOut << "}";
 
@@ -319,11 +350,30 @@ void CSharpCodeContainer::produceClass()
     *fOut << "};\n" << endl;
 }
 
+void CSharpCodeContainer::produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod,
+                                         bool isvirtual, TextInstVisitor* producer)
+{
+    // Input/Output method
+    producer->Tab(tabs);
+    generateGetInputs(subst("GetNumInputs$0", classname), obj, ismethod, isvirtual)->accept(producer);
+    generateGetOutputs(subst("GetNumOutputs$0", classname), obj, ismethod, isvirtual)->accept(producer);
+
+    // Input Rates
+    producer->Tab(tabs);
+    generateGetInputRate(subst("GetInputRate$0", classname), obj, ismethod, isvirtual)->accept(producer);
+
+    // Output Rates
+    producer->Tab(tabs);
+    generateGetOutputRate(subst("GetOutputRate$0", classname), obj, ismethod, isvirtual)->accept(producer);
+}
+
 void CSharpScalarCodeContainer::generateCompute(int n)
 {
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << subst("public void compute(int $0, $1[][] inputs, $1[][] outputs) {", fFullCount, ifloat());
+    *fOut << subst("public void Compute(int $0, $1[][] inputs, $1[][] outputs)", fFullCount, ifloat());
+    tab(n + 1, *fOut);
+    *fOut << "{";
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
 
