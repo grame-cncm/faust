@@ -82,7 +82,7 @@ class CPPCodeContainer : public virtual CodeContainer {
         *fOut << "#define  __" << gGlobal->gClassName << "_H__" << std::endl << std::endl;
     }
 
-    virtual void printFloatDef() { printfloatdef(*fOut, (gGlobal->gFloatSize == 3)); }
+    virtual void printFloatDef() { printfloatdef(*fOut); }
 
     virtual void printFooter()
     {

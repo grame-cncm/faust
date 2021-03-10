@@ -1,4 +1,4 @@
-% man(1) Version 2.30.14 (25-February-2021) | Faust man page
+% man(1) Version 2.31.0 (10-March-2021) | Faust man page
 
 NAME
 ====
@@ -61,6 +61,8 @@ Code generation options:
   **-double**     **--double-precision-floats**   use double precision floats for internal computations.
 
   **-quad**       **--quad-precision-floats**     use quad precision floats for internal computations.
+
+  **-fx**         **--fixed-point**               use fixed-point for internal computations.
 
   **-es** 1|0     **--enable-semantics** 1|0      use enable semantics when 1 (default), and simple multiplication otherwise.
 

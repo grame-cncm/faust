@@ -272,7 +272,6 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         } else if (int1 && int2) {
             faustassert(false);
             return 0;
-            // return new Int32NumInst(inst->fOpcode(int1->fNum, int2->fNum));
         } else {
             return InstBuilder::genBinopInst(inst->fOpcode, val1, val2);
         }

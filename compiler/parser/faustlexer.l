@@ -219,6 +219,7 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "singleprecision"  return FLOATMODE;
 "doubleprecision"  return DOUBLEMODE;
 "quadprecision"    return QUADMODE;
+"fixedpointprecision"    return FIXEDPOINTMODE;
 
 
 _{ID}   	return IDENT;

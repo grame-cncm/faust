@@ -71,6 +71,8 @@ struct Int32ArrayNumInst;
 struct BoolNumInst;
 struct DoubleNumInst;
 struct DoubleArrayNumInst;
+struct FixedPointNumInst;
+struct FixedPointArrayNumInst;
 struct BinopInst;
 struct CastInst;
 struct BitcastInst;
@@ -229,6 +231,8 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(BoolNumInst* inst) {}
     virtual void visit(DoubleNumInst* inst) {}
     virtual void visit(DoubleArrayNumInst* inst) {}
+    virtual void visit(FixedPointNumInst* inst) {}
+    virtual void visit(FixedPointArrayNumInst* inst) {}
 
     // Numerical computation
     virtual void visit(BinopInst* inst) {}
@@ -301,6 +305,8 @@ struct CloneVisitor : public virtual Garbageable {
     virtual ValueInst* visit(BoolNumInst* inst)        = 0;
     virtual ValueInst* visit(DoubleNumInst* inst)      = 0;
     virtual ValueInst* visit(DoubleArrayNumInst* inst) = 0;
+    virtual ValueInst* visit(FixedPointNumInst* inst)      = 0;
+    virtual ValueInst* visit(FixedPointArrayNumInst* inst) = 0;
 
     // Numerical computation
     virtual ValueInst* visit(BinopInst* inst) = 0;
@@ -967,6 +973,27 @@ struct DoubleArrayNumInst : public ArrayNumInst<double> {
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+struct FixedPointNumInst : public ValueInst, public NumValueInst {
+    const double fNum;
+    
+    FixedPointNumInst(double num) : ValueInst(), fNum(num) {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    virtual bool isSimpleValue() const { return true; }
+};
+
+struct FixedPointArrayNumInst : public ArrayNumInst<double> {
+    FixedPointArrayNumInst(const vector<double>& nums) : ArrayNumInst<double>(nums) {}
+    FixedPointArrayNumInst(int size) : ArrayNumInst<double>(size) {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
 struct Int32NumInst : public ValueInst, public NumValueInst {
     const int fNum;
 
@@ -1396,6 +1423,8 @@ class BasicCloneVisitor : public CloneVisitor {
     virtual ValueInst* visit(BoolNumInst* inst) { return new BoolNumInst(inst->fNum); }
     virtual ValueInst* visit(DoubleNumInst* inst) { return new DoubleNumInst(inst->fNum); }
     virtual ValueInst* visit(DoubleArrayNumInst* inst) { return new DoubleArrayNumInst(inst->fNumTable); }
+    virtual ValueInst* visit(FixedPointNumInst* inst) { return new FixedPointNumInst(inst->fNum); }
+    virtual ValueInst* visit(FixedPointArrayNumInst* inst) { return new FixedPointArrayNumInst(inst->fNumTable); }
 
     // Numerical computation
     virtual ValueInst* visit(BinopInst* inst)
@@ -1781,6 +1810,10 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
 
     virtual void visit(DoubleArrayNumInst* inst) { Dispatch2Visitor(inst); }
 
+    virtual void visit(FixedPointNumInst* inst) { Dispatch2Visitor(inst); }
+    
+    virtual void visit(FixedPointArrayNumInst* inst) { Dispatch2Visitor(inst); }
+
     virtual void visit(BinopInst* inst) { Dispatch2Visitor(inst); }
 
     virtual void visit(CastInst* inst) { Dispatch2Visitor(inst); }
@@ -1948,6 +1981,8 @@ struct InstBuilder {
     static FloatArrayNumInst*  genFloatArrayNumInst(int size) { return new FloatArrayNumInst(size); }
     static DoubleNumInst*      genDoubleNumInst(double num) { return new DoubleNumInst(num); }
     static DoubleArrayNumInst* genDoubleArrayNumInst(int size) { return new DoubleArrayNumInst(size); }
+    static FixedPointNumInst*       genFixedPointNumInst(double num) { return new FixedPointNumInst(num); }
+    static FixedPointArrayNumInst*  genFixedPointArrayNumInst(int size) { return new FixedPointArrayNumInst(size); }
     static DoubleNumInst*      genQuadNumInst(double num) { return new DoubleNumInst(num); }  // Use DoubleNumInst
 
     static ValueInst* genTypedZero(Typed::VarType type);
@@ -1962,6 +1997,8 @@ struct InstBuilder {
             return new DoubleNumInst(num);
         } else if (ctype == Typed::kQuad) {
             return new DoubleNumInst(num);
+        } else if (ctype == Typed::kFixedPoint) {
+            return new FixedPointNumInst(num);
         } else {
             faustassert(false);
         }
@@ -1976,6 +2013,8 @@ struct InstBuilder {
             return new FloatArrayNumInst(size);
         } else if (ctype == Typed::kDouble) {
             return new DoubleArrayNumInst(size);
+        } else if (ctype == Typed::kFixedPoint) {
+            return new FixedPointArrayNumInst(size);
         } else {
             faustassert(false);
         }
@@ -2744,7 +2783,7 @@ TODO : gestion des indices de boucles:
 
  - dans IndexedAddress, mettre un ValueInst à la place de fIndex, mettre à jour les visiteurs
 
- - dans InstructionsCompiler, generer des accès avec "LoadVar" (loop-index)
+ - dans InstructionsCompiler, générer des accès avec "LoadVar" (loop-index)
 
  - dans ForLoopInst, fName devient un "DeclareVarInst" (permet de nommer et d'initialiser l'indice), ajout d'une
 expression test, ajout de ValueInst fNext, calcul qui utilise fName.

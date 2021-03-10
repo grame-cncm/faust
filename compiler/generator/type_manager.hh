@@ -77,6 +77,11 @@ class CStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kQuad]     = "quad";
         fTypeDirectTable[Typed::kQuad_ptr] = "quad" + fPtrRef;
         fTypeDirectTable[Typed::kQuad_vec] = "vector<quad>";
+        
+        fTypeDirectTable[Typed::kFixedPoint]     = "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_ptr] = "fixpoint_t" + fPtrRef;
+        fTypeDirectTable[Typed::kFixedPoint_ptr] = "fixpoint_t" + fPtrRef + fPtrRef;
+        fTypeDirectTable[Typed::kFixedPoint_vec] = "vector<fixpoint_t>";
 
         fTypeDirectTable[Typed::kBool]     = "bool";
         fTypeDirectTable[Typed::kBool_ptr] = "bool" + fPtrRef;
@@ -171,6 +176,11 @@ class RustStringTypeManager : public StringTypeManager {
 
         fTypeDirectTable[Typed::kQuad]     = "quad";
         fTypeDirectTable[Typed::kQuad_ptr] = fPtrRef + "quad";
+        
+        fTypeDirectTable[Typed::kFixedPoint]     = "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_ptr] = fPtrRef + "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_ptr] = fPtrRef + fPtrRef + "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_vec] = "vector<fixpoint_t>";
 
         fTypeDirectTable[Typed::kBool]     = "bool";
         fTypeDirectTable[Typed::kBool_ptr] = fPtrRef + "bool";
@@ -258,6 +268,11 @@ class SOULStringTypeManager : public StringTypeManager {
 
         fTypeDirectTable[Typed::kQuad]     = "quad";
         fTypeDirectTable[Typed::kQuad_ptr] = "quad" + fPtrRef;
+        
+        fTypeDirectTable[Typed::kFixedPoint]     = "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_ptr] = "fixpoint_t" + fPtrRef;
+        fTypeDirectTable[Typed::kFixedPoint_ptr] = "fixpoint_t" + fPtrRef + fPtrRef;
+        fTypeDirectTable[Typed::kFixedPoint_vec] = "vector<fixpoint_t>";
 
         fTypeDirectTable[Typed::kBool]     = "bool";
         fTypeDirectTable[Typed::kBool_ptr] = "bool" + fPtrRef;

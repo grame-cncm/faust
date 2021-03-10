@@ -588,6 +588,23 @@ void global::init()
     gMathForeignFunctions["isinfl"] = true;
 }
 
+static string printFloat()
+{
+    switch (gGlobal->gFloatSize) {
+        case 1:
+            return "-single";
+        case 2:
+            return "-double";
+        case 3:
+            return "-quad";
+        case 4:
+            return "-fp";
+        default:
+            faustassert(false);
+            return "";
+    }
+}
+
 void global::printCompilationOptions(stringstream& dst, bool backend)
 {
     if (backend) {
@@ -618,16 +635,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
         dst << "-vec"
             << " -lv " << gVectorLoopVariant << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
             << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
-            << ((gFloatSize == 2)   ? " -double"
-                : (gFloatSize == 3) ? " -quad"
-                                    : "")
-            << " -ftz " << gFTZMode << " -mcd " << gGlobal->gMaxCopyDelay;
+            << printFloat() << " -ftz " << gFTZMode << " -mcd " << gGlobal->gMaxCopyDelay;
     } else {
-        dst << ((gFloatSize == 1) ? "-scal"
-                                  : ((gFloatSize == 2)   ? "-double"
-                                     : (gFloatSize == 3) ? "-quad"
-                                                         : ""))
-            << " -ftz " << gFTZMode;
+        dst << printFloat() << " -ftz " << gFTZMode;
     }
 
     // Add 'compile_options' metadata

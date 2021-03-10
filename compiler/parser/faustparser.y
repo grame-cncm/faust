@@ -41,11 +41,11 @@ inline char replaceCR(char c)
 	return (c!='\n') ? c : ' ';
 }
 
-// A defintion is accepted if the prefixset is empty or if
+// A definition is accepted if the prefixset is empty or if
 // the current float precision is member of the prefix set
 bool acceptdefinition(int prefixset)
 {
-	int precisions[] = {0, 1, 2, 4};
+	int precisions[] = {0, 1, 2, 4, 8};
 	return (prefixset==0) || (prefixset & precisions[gGlobal->gFloatSize]);
 }
 
@@ -220,6 +220,7 @@ Tree unquote(char* str)
 %token FLOATMODE
 %token DOUBLEMODE
 %token QUADMODE
+%token FIXEDPOINTMODE
 
 
 
@@ -349,6 +350,7 @@ variantlist     : /*empty*/                     	{ $$ = 0; }
 variant			: FLOATMODE							{ $$ = 1;}
 				| DOUBLEMODE						{ $$ = 2;}
 				| QUADMODE							{ $$ = 4;}
+                | FIXEDPOINTMODE                    { $$ = 8;}
 				;
 
 

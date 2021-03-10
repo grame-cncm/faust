@@ -42,7 +42,7 @@ const char* xcast();
 
 void initFaustFloat();
 
-void printfloatdef(std::ostream& fout, bool quad);
+void printfloatdef(std::ostream& fout);
 
 typedef long double quad;
 
