@@ -66,12 +66,12 @@ class CSharpInstVisitor : public TextInstVisitor {
         gMathLibTable["asinf"]  = "(float)Math.Asin";
         gMathLibTable["atanf"]  = "(float)Math.Atan";
         gMathLibTable["atan2f"] = "(float)Math.Atan2";
-        gMathLibTable["ceilf"]  = "(float)Math.Ceil";
+        gMathLibTable["ceilf"]  = "(float)Math.Ceiling";
         gMathLibTable["cosf"]   = "(float)Math.Cos";
         gMathLibTable["coshf"]  = "(float)Math.Cosh";
         gMathLibTable["expf"]   = "(float)Math.Exp";
         gMathLibTable["floorf"] = "(float)Math.Floor";
-        gMathLibTable["fmodf"]  = "(float)Math.IEEEremainder";
+        gMathLibTable["fmodf"]  = "(float)Math.IEEERemainder";   // **** This isn't quite right - should be %
         gMathLibTable["logf"]   = "(float)Math.Log";
         gMathLibTable["log10f"] = "(float)Math.Log10";
         gMathLibTable["max_f"]  = "(float)Math.Max";
@@ -84,18 +84,28 @@ class CSharpInstVisitor : public TextInstVisitor {
         gMathLibTable["tanf"]   = "(float)Math.Tan";
         gMathLibTable["tanhf"]  = "(float)Math.Tanh";
 
+        gMathLibTable["remainderf"] = "(float)Math.IEEERemainder";
+        gMathLibTable["rintf"]  = "(float)Math.Truncate";
+
+        gMathLibTable["acoshf"] = "(float)Math.Acosh";
+        gMathLibTable["asinhf"] = "(float)Math.Asinh";
+        gMathLibTable["atanhf"] = "(float)Math.Atanh";
+        gMathLibTable["coshf"]  = "(float)Math.Cosh";
+        gMathLibTable["sinhf"]  = "(float)Math.Sinh";
+        gMathLibTable["tanhf"]  = "(float)Math.Tanh";
+
         // Double version
         gMathLibTable["fabs"]  = "Math.Abs";
         gMathLibTable["acos"]  = "Math.Acos";
         gMathLibTable["asin"]  = "Math.Asin";
         gMathLibTable["atan"]  = "Math.Atan";
         gMathLibTable["atan2"] = "Math.Atan2";
-        gMathLibTable["ceil"]  = "Math.Ceil";
+        gMathLibTable["ceil"]  = "Math.Ceiling";
         gMathLibTable["cos"]   = "Math.Cos";
         gMathLibTable["cosh"]  = "Math.Cosh";
         gMathLibTable["exp"]   = "Math.Exp";
         gMathLibTable["floor"] = "Math.Floor";
-        gMathLibTable["fmod"]  = "Math.IEEEremainder";
+        gMathLibTable["fmod"]  = "Math.IEEERemainder";  // **** This isn't quite right - should be %
         gMathLibTable["log"]   = "Math.Log";
         gMathLibTable["log10"] = "Math.Log10";
         gMathLibTable["max_"]  = "Math.Max";
@@ -106,6 +116,16 @@ class CSharpInstVisitor : public TextInstVisitor {
         gMathLibTable["sinh"]  = "Math.Sinh";
         gMathLibTable["sqrt"]  = "Math.Sqrt";
         gMathLibTable["tan"]   = "Math.Tan";
+        gMathLibTable["tanh"]  = "Math.Tanh";
+
+        gMathLibTable["remainder"] = "Math.IEEERemainder";
+        gMathLibTable["rint"]  = "Math.Truncate";
+
+        gMathLibTable["acosh"] = "Math.Acosh";
+        gMathLibTable["asinh"] = "Math.Asinh";
+        gMathLibTable["atanh"] = "Math.Atanh";
+        gMathLibTable["cosh"]  = "Math.Cosh";
+        gMathLibTable["sinh"]  = "Math.Sinh";
         gMathLibTable["tanh"]  = "Math.Tanh";
     }
 
@@ -324,6 +344,43 @@ class CSharpInstVisitor : public TextInstVisitor {
         TextInstVisitor::visit(inst);
     }
 
+    virtual void visit(BinopInst* inst)
+    {
+            inst->fInst1->accept(&fTypingVisitor);
+            Typed::VarType type1 = fTypingVisitor.fCurType;
+
+            inst->fInst2->accept(&fTypingVisitor);
+            Typed::VarType type2 = fTypingVisitor.fCurType;
+
+            if ((type1 == Typed::kBool) && (type2 != Typed::kBool)) {
+                *fOut << "((";
+                inst->fInst1->accept(this);
+                *fOut << " ";
+                *fOut << gBinOpTable[inst->fOpcode]->fName;
+                *fOut << "?1:0) ";
+                inst->fInst2->accept(this);
+                *fOut << ")";
+            } else if ((type2 == Typed::kBool) && (type1 != Typed::kBool)) {
+                *fOut << "(";
+                inst->fInst1->accept(this);
+                *fOut << " ";
+                *fOut << gBinOpTable[inst->fOpcode]->fName;
+                *fOut << " (";
+                inst->fInst2->accept(this);
+                *fOut << "?1:0))";
+
+            } else {
+                *fOut << "(";
+                inst->fInst1->accept(this);
+                *fOut << " ";
+                *fOut << gBinOpTable[inst->fOpcode]->fName;
+                *fOut << " ";
+                inst->fInst2->accept(this);
+                *fOut << ")";
+            }
+
+    }
+
     virtual void visit(::CastInst* inst)
     {
         inst->fInst->accept(&fTypingVisitor);
@@ -363,7 +420,7 @@ class CSharpInstVisitor : public TextInstVisitor {
                 case Typed::kBool:
                     *fOut << "((";
                     inst->fInst->accept(this);
-                    *fOut << ")?1.f:0.f)";
+                    *fOut << ")?1.0f:0.0f)";
                     break;
                 default:
                     printf("visitor.fCurType %d\n", fTypingVisitor.fCurType);
