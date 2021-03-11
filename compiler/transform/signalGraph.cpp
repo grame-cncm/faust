@@ -52,13 +52,13 @@ using namespace std;
  */
 void signalGraph(const string& filename, const set<Tree>& I)
 {
-    cerr << "\n\nBEGIN build Dependency Graph: " << filename << endl;
+    // cerr << "\n\nBEGIN build Dependency Graph: " << filename << endl;
 
     digraph<Tree, multidep> G;
     // Dictionnary   Dic;
 
     for (auto i : I) {
-        std::cerr << ppsig(i) << std::endl;
+        // std::cerr << ppsig(i) << std::endl;
         G.add(dependencyGraph(i));
         // Dic.add(i);
     }
@@ -73,8 +73,6 @@ void signalGraph(const string& filename, const set<Tree>& I)
     // cerr << "END build Dependency Graph: " << filename << "\n\n" << endl;
 }
 
-
-
 /**
  * @brief generates a dotfile graph of a graph of instructions
  *
@@ -83,7 +81,7 @@ void signalGraph(const string& filename, const set<Tree>& I)
  */
 void graph2dot(const string& filename, const digraph<Tree, multidep>& G)
 {
-     ofstream f;
+    ofstream f;
     f.open(filename);
     dotfile2(f, G);
     f.close();

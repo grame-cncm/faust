@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <functional>
 #include <iostream>
 #include <list>
@@ -126,26 +127,23 @@ inline int cycles(const digraph<N, A>& g)
 
 //===========================================================
 //===========================================================
-// graph2dag : transfoms a graph into a dag of supernodes,
-// ie strongly connected components. The connection value
-// between two supernodes A and B is the smallest value of all
-// the connections between nodes of A and nodes of B.
+// partitionGraph(G,P) : apply a partition P to a graph G
+// resulting in a graph of graphs
 //===========================================================
 //===========================================================
 
 template <typename N, typename A>
-inline digraph<digraph<N, A>, A> graph2dag(const digraph<N, A>& g)
+inline digraph<digraph<N, A>, A> partitionGraph(const digraph<N, A>& g, const std::set<std::set<N>>& partition)
 {
-    Tarjan<N, A>               T(g);  // the partition of g
-    std::map<N, digraph<N, A>> M;     // std::mapping between nodes and supernodes
-    digraph<digraph<N, A>, A>  sg;    // the resulting supergraph
+    std::map<N, digraph<N, A>> M;   // std::mapping between nodes and supernodes
+    digraph<digraph<N, A>, A>  sg;  // the resulting supergraph
 
     // build the graph of supernodes
 
     // For each std::set s of the partition, create the corresponding graph sn
     // create also a std::mapping in order to retrieve the supernode a node
     /// belongs to.
-    for (const auto& s : T.partition()) {
+    for (const auto& s : partition) {
         digraph<N, A> sn;                     // the supernode graph
         for (const N& n : s) {                // for each node of a cycle
             M.insert(std::make_pair(n, sn));  // remember its supernode
@@ -171,61 +169,22 @@ inline digraph<digraph<N, A>, A> graph2dag(const digraph<N, A>& g)
 
     return sg;
 }
-#if 0
+
 //===========================================================
 //===========================================================
-// graph2dag2 : transfoms a graph into a dag of supernodes,
+// graph2dag : transfoms a graph into a dag of supernodes,
 // ie strongly connected components. The connection value
-// between two supernodes A and B is the number of existing
-// connections between nodes of A and nodes of B.
+// between two supernodes A and B is the smallest value of all
+// the connections between nodes of A and nodes of B.
 //===========================================================
 //===========================================================
 
 template <typename N, typename A>
-inline digraph<digraph<N, A>, int> graph2dag2(const digraph<N, A>& g)
+inline digraph<digraph<N, A>, A> graph2dag(const digraph<N, A>& g)
 {
-    Tarjan<N, A>                                           T(g);  // the partition of g
-    std::map<N, digraph<N, A>>                             M;     // std::mapping between nodes and supernodes
-    digraph<digraph<N, A>, A>                              sg;    // the resulting supergraph
-    std::map<std::pair<digraph<N, A>, digraph<N, A>>, int> CC;    // count of connections between supernodes
-
-    // build the graph of supernodes
-
-    // for each std::set s of the partition, create the corresponding graph sn
-    // create also a std::mapping in order to retrieve the supernode a node
-    /// belongs to.
-    for (const auto& s : T.partition()) {
-        digraph<N, A> sn;                     // the supernode graph
-        for (const N& n : s) {                // for each node of a cycle
-            M.insert(std::make_pair(n, sn));  // remember its supernode
-            sn.add(n);                        // and add it to the super node
-        }
-        sg.add(sn);  // and add the super node to the super graph
-    }
-
-    // compute the number of connections between the supernodes
-    for (const auto& n1 : g.nodes()) {             // for each node n1
-        digraph<N, A> sn1(M[n1]);                  // retrieve the supernode
-        for (const auto& c : g.connections(n1)) {  // for each destination of n
-            digraph<N, A> sn2(M[c.first]);
-            if (sn1 == sn2) {
-                // the connection is inside the same supernode
-                sn1.add(n1, c.first, c.second);
-            } else {
-                // We count the external connections between two supernodes
-                CC[std::make_pair(sn1, sn2)] += 1;
-            }
-        }
-    }
-
-    // we connect the super nodes using the count of external connections
-    for (const auto& entry : CC) {
-        sg.add(entry.first.first, entry.first.second, entry.second);
-    }
-
-    return sg;
+    Tarjan<N, A> T(g);  // the partition of g
+    return partitionGraph(g, T.partition());
 }
-#endif
 
 //===========================================================
 //===========================================================
@@ -645,3 +604,67 @@ inline std::pair<std::map<N, A>, std::map<N, A>> arrows(const digraph<N, A>& G)
     }
     return {incoming, outcoming};
 }
+//===========================================================
+//===========================================================
+//  PartitionMaker M(P); creates a PartitionMaker from an
+//  existing partition P
+//  M.group(n,m); group nodes n and m
+//  P' = M.partition(); // get the resulting partition
+//===========================================================
+//===========================================================
+
+/**
+ * @brief PartitionMaker helps to create partitions
+ *
+ * @tparam N the type of nodes
+ */
+
+template <typename N>
+class PartitionMaker {
+    std::map<N, std::set<N>> fGroupOf;  ///< the group associated to each node
+
+    void ensureGroup(const N& n)  ///< make sure a node has an associated group (at least itself)
+    {
+        fGroupOf[n].insert(n);
+    }
+
+   public:
+    explicit PartitionMaker(const std::set<N>& S)  ///< create a PartitionMaker from a set of nodes
+    {
+        for (const N& n : S) {
+            fGroupOf[n].insert(n);
+        }
+    }
+
+    explicit PartitionMaker(const std::set<std::set<N>>& P)  ///< Create a PartitionMaker from an existing partition P
+    {
+        for (const std::set<N>& s : P) {
+            for (const N& n : s) {
+                fGroupOf[n] = s;
+            }
+        }
+    }
+
+    void group(const N& n, const N& m)  ///< group together n and m and their respective groups
+    {
+        ensureGroup(n);
+        ensureGroup(m);
+        // because we group n and m, we group also the nodes they are grouped with
+        std::set<N> r = fGroupOf[n];
+        for (const N& x : fGroupOf[m]) {
+            r.insert(x);
+        }
+        for (const N& q : r) {
+            fGroupOf[q] = r;  // we make sure each node of the group is associated to the new group
+        }
+    }
+
+    std::set<std::set<N>> partition()  ///< get the resulting partition
+    {
+        std::set<std::set<N>> P;
+        for (const auto& p : fGroupOf) {
+            P.insert(p.second);
+        }
+        return P;
+    }
+};

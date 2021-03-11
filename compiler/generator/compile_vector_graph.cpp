@@ -56,12 +56,20 @@
 #include "simplify.hh"
 #include "splitAddBranches.hh"
 #include "splitCommonSubexpr.hh"
+#include "symbol.hh"
 #include "timing.hh"
 #include "transformDelayToTable.hh"
 #include "transformOld2NewTables.hh"
 #include "xtended.hh"
 
 using namespace std;
+
+static string generateNewFilePrefix()
+{
+    Sym    u = unique("dotfile");
+    string s = name(u);
+    return s;
+}
 
 //===========================================================
 //===========================================================
@@ -414,41 +422,42 @@ set<Tree> GraphVectorCompiler::ExpressionsListToInstructionsSet(Tree L3)
 
     // cerr << ">>Transformation into Instructions\n" << endl;
     startTiming("Transformation into Instructions");
-    set<Tree> INSTR1 = splitSignalsToInstr(fConditionProperty, L3d);
-    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase1-beforeSimplification.dot", INSTR1);
+    std::string fileprefix = generateNewFilePrefix();
+    set<Tree>   INSTR1     = splitSignalsToInstr(fConditionProperty, L3d);
+    if (gGlobal->gDebugDiagram) signalGraph(fileprefix + "-phase1-beforeSimplification.dot", INSTR1);
 
     // cerr << ">>delayLineSimplifier\n" << endl;
     set<Tree> INSTR2 = delayLineSimplifier(INSTR1);
-    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase2-afterSimplification.dot", INSTR2);
+    if (gGlobal->gDebugDiagram) signalGraph(fileprefix + "-phase2-afterSimplification.dot", INSTR2);
 
     // list short dline candidates (IN PROGRESS)
     set<Tree> INSTR2b = (gGlobal->gOptShortDLines) ? ShortDelayLineSimplifier(INSTR2) : INSTR2;
-    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase2b-afterShortDLine.dot", INSTR2b);
+    if (gGlobal->gDebugDiagram) signalGraph(fileprefix + "-phase2b-afterShortDLine.dot", INSTR2b);
 
     // cerr << ">>transformDelayToTable\n" << endl;
     set<Tree> INSTR3 = transformDelayToTable(INSTR2b);
-    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase3-afterTable.dot", INSTR3);
+    if (gGlobal->gDebugDiagram) signalGraph(fileprefix + "-phase3-afterTable.dot", INSTR3);
 
     // cerr << ">>transformOld2NewTables\n" << endl;
     set<Tree> INSTR4 = transformOld2NewTables(INSTR3);
-    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase4-afterTableTransform.dot", INSTR4);
+    if (gGlobal->gDebugDiagram) signalGraph(fileprefix + "-phase4-afterTableTransform.dot", INSTR4);
 
     // cerr << ">>splitCommonSubexpr\n" << endl;
     set<Tree> INSTR5 = splitCommonSubexpr(INSTR4);
-    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase5-afterCSE.dot", INSTR5);
+    if (gGlobal->gDebugDiagram) signalGraph(fileprefix + "-phase5-afterCSE.dot", INSTR5);
 
     // cerr << ">>splitAddBranches\n" << endl;
     set<Tree> INSTR6 = (gGlobal->gSplitAdditions) ? splitAddBranches(INSTR5) : INSTR5;
-    if (gGlobal->gDebugDiagram) signalGraph(fClass->getFullClassName()+"-phase6-addbranch.dot", INSTR6);
+    if (gGlobal->gDebugDiagram) signalGraph(fileprefix + "-phase6-addbranch.dot", INSTR6);
 
-    signalGraph(fClass->getFullClassName()+"-SPECIAL1.dot", INSTR6);
-    // signalGraph2("SPECIAL2.dot", INSTR6);
+        // signalGraph(fileprefix + "-SPECIAL1.dot", INSTR6);
+        // signalGraph2("SPECIAL2.dot", INSTR6);
 #if 0
     cerr << "Start scalarscheduling" << endl;
-    scalarScheduling(fClass->getFullClassName()+"-phase5-scalarScheduling.txt", INSTR4);
+    scalarScheduling(fileprefix+"-phase5-scalarScheduling.txt", INSTR4);
 
     cerr << "Start parallelScheduling" << endl;
-    parallelScheduling(fClass->getFullClassName()+"-phase6-parallelScheduling.txt", INSTR4);
+    parallelScheduling(fileprefix+"-phase6-parallelScheduling.txt", INSTR4);
 
     endTiming("Transformation into Instructions");
 #endif
@@ -709,8 +718,8 @@ void GraphVectorCompiler::tableDependenciesGraph(const set<Tree>& I)
             Klass* SavedClass = fClass;
             fClass            = k;
             fClass->setParentKlass(SavedClass);
-            std::cerr << "FULLNAME :" << fClass->getFullClassName() << std::endl;
-            
+            // std::cerr << "FULLNAME :" << fClass->getFullClassName() << std::endl;
+
             SchedulingToMethod(s, k);
             fClass = SavedClass;
 
@@ -770,7 +779,7 @@ void GraphVectorCompiler::compileSingleInstruction(Tree instr, Klass* K)
     } else if (isSigInstructionTableWrite(instr, id, origin, &nature, &tblsize, init, idx, content)) {
         int    ival;
         double rval;
-
+        std::cerr << "COMPILING isSigInstructionTableWrite: " << ppsig(instr) << std::endl;
         string vname{tree2str(id)};
         K->addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
         // cerr << "init is " << ppsig(init) << endl;
@@ -834,6 +843,12 @@ static void compileGlobalTime(Klass* K)
     K->addClearCode("gTime = 0;");
     K->addZone3("int \ttime = gTime+index;");  // local time in each loop will be (time+i)
     K->addZone4("gTime = gTime + fullcount;");
+}
+
+static void compileGlobalTimeNoIndex(Klass* K)
+{
+    // Handling global time 'gTime' with a local version 'time'
+    K->addZone3("int \ttime = 0;");  // local time in each loop will be (time+i)
 }
 #if 0
 void GraphVectorCompiler::compileMultiSignal(Tree L)
@@ -921,12 +936,40 @@ void GraphVectorCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* K
     for (Tree i : serialize(B)) compileSingleInstruction(i, Kl);
 
     // b) for the sample level graph we have (probably) cycles
-    digraph<digraph<Tree, multidep>, multidep> DG  = graph2dag(E);
+    Tarjan<Tree, multidep>   TJ(E);  // the partition of g
+    std::set<std::set<Tree>> P1 = TJ.partition();
+#if 1
+    // improve partition
+    PartitionMaker<Tree> PM(P1);
+
+    for (const auto& n : E.nodes()) {
+        for (const auto& c : E.connections(n)) {
+            for (const auto& d : c.second.first) {
+                std::string name = d.first;
+                if (name[0] == 'T') {
+                    std::cerr << "We group " << ppsig(n) << " and " << ppsig(c.first) << std::endl;
+                    PM.group(n, c.first);
+                }
+            }
+        }
+    }
+    std::set<std::set<Tree>> P2 = PM.partition();
+    std::cerr << "PARTITION P2:\n" << std::endl;
+    for (const auto& s : P2) {
+        std::cerr << " <--- " << std::endl;
+        for (const auto& i : s) {
+            std::cerr << " : " << ppsig(i) << std::endl;
+        }
+        std::cerr << " ---> " << std::endl;
+    }
+#endif
+    digraph<digraph<Tree, multidep>, multidep> DG  = partitionGraph(E, P2);  // temporaire, revenir a P2
     auto                                       foo = arrows(DG);
     vector<digraph<Tree, multidep>>            VG  = serialize(DG);
-    for (digraph<Tree, multidep> g : VG) {
+    for (const digraph<Tree, multidep>& g : VG) {
+        std::cerr << " FOOO " << g << std::endl;
         std::stringstream ss;
-        ss << "// incoming arrows: " << foo.first[g] << ", outcoming arrows: " << foo.second[g];
+        ss << "// incoming arrows for " << g << ": " << foo.first[g] << ", outcoming arrows: " << foo.second[g];
         vector<Tree> v = serialize(cut(g, 1));
         Kl->openLoop("count");
 
@@ -938,7 +981,7 @@ void GraphVectorCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* K
         }
 
         for (Tree i : v) {
-            Kl->addExecCode(Statement("", ss.str()));
+            // Kl->addExecCode(Statement("", ss.str()));
             compileSingleInstruction(i, Kl);
         }
         // send samples to the expressions that depend on this one
@@ -983,7 +1026,7 @@ void GraphVectorCompiler::InstructionsToMethod(const set<Tree>& I, Klass* K)
  */
 void GraphVectorCompiler::SchedulingToMethod(const Scheduling& S, Klass* K)
 {
-    compileGlobalTime(K);
+    compileGlobalTimeNoIndex(K);
 
     for (Tree instr : S.fInitLevel) {
         compileSingleInstruction(instr, K);
@@ -1914,7 +1957,8 @@ void GraphVectorCompiler::declareWaveform(Tree sig, string& vname, int& size)
     fClass->addDeclCode(subst("int \tidx$0;", vname));
     fClass->addInitCode(subst("idx$0 = 0;", vname));
     fClass->getTopParentKlass()->addStaticFields(
-        subst("$0 \t$1::$2[$3] = ", ctype, fClass->getTopParentKlass()->getFullClassName(), vname, T(size)) + content.str() + ";");
+        subst("$0 \t$1::$2[$3] = ", ctype, fClass->getTopParentKlass()->getFullClassName(), vname, T(size)) +
+        content.str() + ";");
 }
 
 string GraphVectorCompiler::generateWaveform(Tree sig)
