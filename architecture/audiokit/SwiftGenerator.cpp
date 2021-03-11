@@ -40,14 +40,18 @@ struct SwiftFilePrinter : public GenericUI
 {
     ofstream& fOutFile;
     string fKlassName;
+    string fDSPName;
+    string fUniqueCode;
     string fUnit;
     stringstream fInit1;
     stringstream fInit2;
     vector<string> fInit3;
     
-    SwiftFilePrinter(const string& class_name, ofstream& out_file):fKlassName("Faust" + class_name), fOutFile(out_file)
+    SwiftFilePrinter(const string& class_name, ofstream& out_file):fKlassName("Faust" + class_name), fDSPName(class_name), fOutFile(out_file)
     {
-        fInit1 << "public init(_ input: Node";
+        fInit1 << "public init(_ input: Node? = nil";
+        // this may need to be unique per node
+        fUniqueCode = "Fdsp";
     }
     
     void printHeader()
@@ -60,8 +64,8 @@ struct SwiftFilePrinter : public GenericUI
         fOutFile << "/// Faust node" << endl;
         fOutFile << "public class " << fKlassName << ": Node, AudioUnitContainer, Toggleable {" << endl;
         fOutFile << endl;
-        fOutFile << "\t" << "/// Unique four-letter identifier \"dclp\"" << endl;
-        fOutFile << "\t" << "public static let ComponentDescription = AudioComponentDescription(effect: \"dclp\")" << endl;
+        fOutFile << "\t" << "/// Unique four-letter identifier. If using multiple Faust generated nodes, make this unique for each" << endl;
+        fOutFile << "\t" << "public static let ComponentDescription = AudioComponentDescription(instrument: \"" << fUniqueCode << "\")" << endl;
         fOutFile << endl;
         fOutFile << "\t" << "/// Internal type of audio unit for this node" << endl;
         fOutFile << "\t" << "public typealias AudioUnitType = InternalAU" << endl;
@@ -74,9 +78,28 @@ struct SwiftFilePrinter : public GenericUI
     
     void printFooter()
     {
+
+        fOutFile << "\t" << "// MARK: - Audio Unit" << endl;
+        fOutFile << "\tpublic class InternalAU: AudioUnitBase {" << endl;
+        fOutFile << "\t\t" << "/// Get an array of the parameter definitions" << endl;
+        fOutFile << "\t\t" << "/// - Returns: Array of parameter definitions" << endl;
+        fOutFile << "\t\t" << "public override func getParameterDefs() -> [NodeParameterDef] {" << endl;
+        fOutFile << "\t\t\t" << "[";
+        for (int i = 0; i < fInit3.size(); i++) {
+            fOutFile << fInit3[i];
+            if (i < fInit3.size() - 1) fOutFile << ",\n\t\t\t";
+        }
+        fOutFile << "]" << endl;
+        fOutFile << "\t\t}" << endl;
+        
+        fOutFile << "\t\t/// Create the DSP Refence for this node" << endl;
+        fOutFile << "\t\t/// - Returns: DSP Reference" << endl;
+        fOutFile << "\t\tpublic override func createDSP() -> DSPRef { akCreateDSP(\"" << fKlassName << "\") }" << endl;
+        fOutFile << "\t}" << endl << endl;
+        
         fOutFile << "\t" << "// MARK: - Initialization" << endl;
-        fOutFile << "\t" << fInit1.str() << ")" << endl;
-        fOutFile << "\t\t" << "super.init(avAudioNode: input.avAudioUnitOrNode)" << endl;
+        fOutFile << "\t" << fInit1.str() << ") {" << endl;
+        fOutFile << "\t\t" << "super.init(avAudioNode: input?.avAudioUnitOrNode ?? AVAudioNode())" << endl;
         fOutFile << "\t\t" << "instantiateAudioUnit { avAudioUnit in" << endl;
         fOutFile << "\t\t\t" << "self.avAudioUnit = avAudioUnit" << endl;
         fOutFile << "\t\t\t" << "self.avAudioNode = avAudioUnit" << endl;
@@ -85,24 +108,9 @@ struct SwiftFilePrinter : public GenericUI
         fOutFile << "\t\t\t" << "self.stop()" << endl;
         fOutFile << fInit2.str();
         fOutFile << "\t\t}" << endl;
-        fOutFile << "}" << endl << endl;
-        
-        fOutFile << "public class InternalAU: AudioUnitBase {" << endl;
-        fOutFile << "\t" << "/// Get an array of the parameter definitions" << endl;
-        fOutFile << "\t" << "/// - Returns: Array of parameter definitions" << endl;
-        fOutFile << "\t" << "public override func getParameterDefs() -> [NodeParameterDef] {" << endl;
-        fOutFile << "\t\t" << "[";
-        for (int i = 0; i < fInit3.size(); i++) {
-            fOutFile << fInit3[i];
-            if (i < fInit3.size() - 1) fOutFile << ",\n\t\t";
-        }
-        fOutFile << "]" << endl;
         fOutFile << "\t}" << endl;
         
-        fOutFile << "\t/// Create the DSP Refence for this node" << endl;
-        fOutFile << "\t/// - Returns: DSP Reference" << endl;
-        fOutFile << "\tpublic override func createDSP() -> DSPRef { akCreateDSP(\"" << fKlassName << "\") }" << endl;
-        fOutFile << "}" << endl;
+        fOutFile << "}" << endl << endl;
     }
     
     string printUnit()
@@ -131,7 +139,7 @@ struct SwiftFilePrinter : public GenericUI
         fOutFile << "\t" << "public static var let" << label << "Def = NodeParameterDef(identifier: \"" << label << "\", ";
         fInit3.push_back(fKlassName + ".let" + string(label) + "Def");
         fOutFile << "name: \"" << label << "\", ";
-        fOutFile << "address: akGetParameterAddress(\"" << fKlassName << "_" << label << "\"), ";
+        fOutFile << "address: akGetParameterAddress(\"" << fDSPName << "_" << label << "\"), ";
         fOutFile << "range: " << min << " ... " << max << ", ";
         fOutFile << "unit: " << printUnit() << ", ";
         fOutFile << "flags: .default)";
