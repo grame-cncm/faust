@@ -48,57 +48,59 @@ struct bt_meta : Meta
 #define GMH_TAG "GramoMidiHandler"
 
 class gramophone_midi : public midi_handler {
-private:
     
-    bt_meta fBTMeta;
+    private:
     
-    static void callback_midi_message_received(uint8_t blemidi_port,
-                                               uint16_t timestamp,
-                                               uint8_t midi_status,
-                                               uint8_t* remaining_message,
-                                               size_t len,
-                                               size_t continued_sysex_pos,
-                                               void* arg)
-    {
-        gramophone_midi* midi = static_cast<gramophone_midi*>(arg);
-        if (len == 1) {
-            midi->handleData1(timestamp,(int)midi_status,0,
-                              (int)remaining_message[0]);
+        bt_meta fBTMeta;
+    
+        static void callback_midi_message_received(uint8_t blemidi_port,
+                                                   uint16_t timestamp,
+                                                   uint8_t midi_status,
+                                                   uint8_t* remaining_message,
+                                                   size_t len,
+                                                   size_t continued_sysex_pos,
+                                                   void* arg)
+        {
+            gramophone_midi* midi = static_cast<gramophone_midi*>(arg);
+            if (len == 1) {
+                midi->handleData1(timestamp,(int)midi_status,0,
+                                  (int)remaining_message[0]);
+            } else if (len == 2) {
+                midi->handleData2(timestamp,(int)midi_status,0,
+                                  (int)remaining_message[0],
+                                  (int)remaining_message[1]);
+            }
         }
-        else if (len == 2) {
-            midi->handleData2(timestamp,(int)midi_status,0,
-                              (int)remaining_message[0],
-                              (int)remaining_message[1]);
+    
+    public:
+    
+        gramophone_midi(bt_meta& btMeta) : midi_handler("gramophone")
+        {
+            fBTMeta = btMeta;
         }
-    }
     
-public:
-    
-    gramophone_midi(bt_meta& btMeta) : midi_handler("gramophone")
-    {
-        fBTMeta = btMeta;
-    }
-    
-    virtual ~gramophone_midi()
-    {
-    }
-    
-    bool startMidi()
-    {
-        int status = blemidi_init((void*)callback_midi_message_received,fBTMeta.localName.c_str(),fBTMeta.remoteName.c_str(),(void*)this);
-        if (status < 0) {
-            ESP_LOGE(GMH_TAG, "BLE MIDI Driver returned status=%d", status);
-            return false;
-        } else {
-            ESP_LOGI(GMH_TAG, "BLE MIDI Driver initialized successfully");
-            return true;
+        virtual ~gramophone_midi()
+        {
+            stopMidi();
         }
-    }
     
-    void stopMidi()
-    {
-        // This should probably implemented eventually but it can remaind as is for now
-    }
+        bool startMidi()
+        {
+            int status = blemidi_init((void*)callback_midi_message_received, fBTMeta.localName.c_str(), fBTMeta.remoteName.c_str(), (void*)this);
+            if (status < 0) {
+                ESP_LOGE(GMH_TAG, "BLE MIDI Driver returned status=%d", status);
+                return false;
+            } else {
+                ESP_LOGI(GMH_TAG, "BLE MIDI Driver initialized successfully");
+                return true;
+            }
+        }
+    
+        void stopMidi()
+        {
+            // This should probably implemented eventually but it can remaind as is for now
+        }
+    
 };
 
 #endif
