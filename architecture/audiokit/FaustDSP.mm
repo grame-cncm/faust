@@ -68,6 +68,8 @@ class Faustmydsp : public DSPBase, public GenericUI {
     
     private:
         mydsp* fDSP;
+        size_t inputChannelCount = 0;
+        size_t outputChannelCount = 0;
         std::vector<FAUSTFLOAT*> fZones;
     #ifdef MIDICTRL
         midi_handler fMidiHandler;
@@ -129,7 +131,8 @@ class Faustmydsp : public DSPBase, public GenericUI {
         #else
             fDSP = new mydsp();
         #endif
-            channelCount = std::max(fDSP->getNumInputs(), fDSP->getNumOutputs());
+            inputChannelCount = fDSP->getNumInputs();
+            outputChannelCount = fDSP->getNumOutputs();
         #ifdef MIDICTRL
             fDSP->buildUserInterface(&fMidiUI);
         #endif
@@ -182,10 +185,13 @@ class Faustmydsp : public DSPBase, public GenericUI {
         // Need to override this since it's pure virtual.
         void process(AUAudioFrameCount frameCount, AUAudioFrameCount bufferOffset) override
         {
-            float* inputs[channelCount];
-            float* outputs[channelCount];
-            for (int channel = 0; channel < channelCount; ++channel) {
+            float* inputs[inputChannelCount];
+            float* outputs[outputChannelCount];
+
+            for (int channel = 0; channel < inputChannelCount; ++channel) {
                 inputs[channel] = (float*)inputBufferLists[0]->mBuffers[channel].mData + bufferOffset;
+            }
+            for (int channel = 0; channel < outputChannelCount; ++channel) {
                 outputs[channel] = (float*)outputBufferList->mBuffers[channel].mData + bufferOffset;
             }
             fDSP->compute(int(frameCount), inputs, outputs);
