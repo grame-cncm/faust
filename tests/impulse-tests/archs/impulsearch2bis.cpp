@@ -17,6 +17,7 @@
 
 // Wrapping C++ class for the C object in 'one sample' mode
 
+/*
 class Cdsp : public one_sample_dsp {
     
     private:
@@ -93,7 +94,7 @@ class Cdsp : public one_sample_dsp {
         
         virtual void instanceClear()
         {
-            instanceClearmydsp(iZone, fZone);
+            instanceClearmydsp(fDSP, iZone, fZone);
         }
         
         virtual dsp* clone()
@@ -111,6 +112,99 @@ class Cdsp : public one_sample_dsp {
         virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs, int* iControl, FAUSTFLOAT* fControl)
         {
             computemydsp(fDSP, inputs, outputs, iControl, fControl, iZone, fZone);
+        }
+    
+};
+*/
+
+class Cdsp : public one_sample_dsp {
+    
+    private:
+    
+        mydsp* fDSP;
+    
+    public:
+    
+        Cdsp()
+        {
+            fDSP = newmydsp();
+        }
+    
+        virtual ~Cdsp()
+        {
+            deletemydsp(fDSP);
+        }
+    
+        virtual int getNumIntControls() { return getNumIntControlsmydsp(fDSP); }
+    
+        virtual int getNumRealControls() { return getNumRealControlsmydsp(fDSP); }
+    
+        virtual void control(int* iControl, FAUSTFLOAT* fControl)
+        {
+            controlmydsp(fDSP, iControl, fControl);
+        }
+    
+        virtual int getNumInputs() { return getNumInputsmydsp(fDSP); }
+    
+        virtual int getNumOutputs() { return getNumOutputsmydsp(fDSP); }
+    
+        virtual void buildUserInterface(UI* ui_interface)
+        {
+            UIGlue glue;
+            buildUIGlue(&glue, ui_interface, true);
+            buildUserInterfacemydsp(fDSP, &glue);
+        }
+    
+        virtual int getSampleRate()
+        {
+            return getSampleRatemydsp(fDSP);
+        }
+    
+        virtual void init(int sample_rate)
+        {
+            initmydsp(fDSP, sample_rate);
+        }
+    
+        static void classInit(int sample_rate)
+        {
+            classInitmydsp(sample_rate);
+        }
+    
+        virtual void instanceInit(int sample_rate)
+        {
+            instanceInitmydsp(fDSP, sample_rate);
+        }
+    
+        virtual void instanceConstants(int sample_rate)
+        {
+            instanceConstantsmydsp(fDSP, sample_rate);
+        }
+    
+        virtual void instanceResetUserInterface()
+        {
+            instanceResetUserInterfacemydsp(fDSP);
+        }
+    
+        virtual void instanceClear()
+        {
+            instanceClearmydsp(fDSP);
+        }
+    
+        virtual dsp* clone()
+        {
+            return new Cdsp();
+        }
+    
+        virtual void metadata(Meta* m)
+        {
+            MetaGlue glue;
+            buildMetaGlue(&glue, m);
+            metadatamydsp(&glue);
+        }
+    
+        virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs, int* iControl, FAUSTFLOAT* fControl)
+        {
+            computemydsp(fDSP, inputs, outputs, iControl, fControl);
         }
     
 };

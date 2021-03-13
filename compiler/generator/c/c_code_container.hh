@@ -142,11 +142,11 @@ class CScalarCodeContainer : public CCodeContainer {
 };
 
 // Special version for -os generation mode
-class CScalarOneSampleCodeContainer : public CScalarCodeContainer {
+class CScalarOneSampleCodeContainer1 : public CScalarCodeContainer {
    protected:
     virtual void produceClass();
    public:
-    CScalarOneSampleCodeContainer(const std::string& name,
+    CScalarOneSampleCodeContainer1(const std::string& name,
                                   int numInputs,
                                   int numOutputs,
                                   std::ostream* out,
@@ -168,15 +168,50 @@ class CScalarOneSampleCodeContainer : public CScalarCodeContainer {
         addIncludeFile("<stdlib.h>");
         
         fSubContainerType = sub_container_type;
-        
-        //fCodeProducer = new CInstVisitor(out, name);
-        fCodeProducer = new CInstVisitor1(out, name);
+        fCodeProducer = new CInstVisitor(out, name);
     }
 
-    virtual ~CScalarOneSampleCodeContainer()
+    virtual ~CScalarOneSampleCodeContainer1()
     {}
     
     void generateComputeAux(int tab);
+};
+
+
+// Special version for -os generation mode with iZone and fZone
+class CScalarOneSampleCodeContainer2 : public CScalarCodeContainer {
+    protected:
+        virtual void produceClass();
+    public:
+        CScalarOneSampleCodeContainer2(const std::string& name,
+                                      int numInputs,
+                                      int numOutputs,
+                                      std::ostream* out,
+                                      int sub_container_type)
+        {
+            initialize(numInputs, numOutputs);
+            fKlassName = name;
+            fOut = out;
+            
+            // For mathematical functions
+            if (gGlobal->gFastMath) {
+                addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
+                               : ("\"" + gGlobal->gFastMathLib + "\""));
+            } else {
+                addIncludeFile("<math.h>");
+            }
+            
+            // For malloc/free
+            addIncludeFile("<stdlib.h>");
+            
+            fSubContainerType = sub_container_type;
+            fCodeProducer = new CInstVisitor1(out, name);
+        }
+    
+        virtual ~CScalarOneSampleCodeContainer2()
+        {}
+    
+        void generateComputeAux(int tab);
 };
 
 class CVectorCodeContainer : public VectorCodeContainer, public CCodeContainer {
