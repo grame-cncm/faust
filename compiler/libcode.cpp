@@ -182,9 +182,14 @@ static void enumBackends(ostream& out)
 
 static void callFun(compile_fun fun)
 {
-#if defined(EMCC) || defined(_WIN32)
+#if defined(EMCC)
     // No thread support in JS or WIN32
     fun(NULL);
+#elif defined(_WIN32)
+    DWORD id;
+	HANDLE thread = CreateThread(NULL, MAX_STACK_SIZE, LPTHREAD_START_ROUTINE(fun), NULL, 0, &id);
+	faustassert(thread != NULL);
+	WaitForSingleObject(thread, INFINITE);
 #else
     pthread_t      thread;
     pthread_attr_t attr;
