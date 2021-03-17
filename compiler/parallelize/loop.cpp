@@ -133,7 +133,7 @@ bool Loop::isEmpty()
  */
 void Loop::addPreCode(const Statement& stmt)
 {
-    // cerr << this << "->addExecCode " << str << endl;
+    // cerr << this << "->addExecCode " << stmt.code() << endl;
     fPreCode.push_back(stmt);
 }
 
@@ -142,7 +142,7 @@ void Loop::addPreCode(const Statement& stmt)
  */
 void Loop::addExecCode(const Statement& stmt)
 {
-    // cerr << this << "->addExecCode " << str << endl;
+    // cerr << this << "->addExecCode " << stmt.code() << endl;
     fExecCode.push_back(stmt);
 }
 
@@ -151,7 +151,7 @@ void Loop::addExecCode(const Statement& stmt)
  */
 void Loop::addPostCode(const Statement& stmt)
 {
-    // cerr << this << "->addPostCode " << str << endl;
+    // cerr << this << "->addPostCode " << stmt.code() << endl;
     fPostCode.push_front(stmt);
 }
 

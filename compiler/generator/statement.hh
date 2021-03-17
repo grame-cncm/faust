@@ -23,8 +23,6 @@
 
 // implements a code statement with an optional condition
 
-namespace std {
-}
 using namespace std;
 
 #include <string>
@@ -38,8 +36,8 @@ class Statement {
    public:
     Statement(const string& condition, const string& code) : fHasCondition(true), fCondition(condition), fCode(code) {}
 
-    bool          hasCondition() { return fHasCondition; }
-    bool          hasCondition(const string& cond) { return (fCondition == cond); }
-    const string& condition() { return fCondition; }
-    const string& code() { return fCode; }
+    bool          hasCondition() const { return fHasCondition; }
+    bool          hasCondition(const string& cond) const { return (fCondition == cond); }
+    const string& condition() const { return fCondition; }
+    const string& code() const { return fCode; }
 };

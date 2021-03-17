@@ -779,7 +779,7 @@ void GraphVectorCompiler::compileSingleInstruction(Tree instr, Klass* K)
     } else if (isSigInstructionTableWrite(instr, id, origin, &nature, &tblsize, init, idx, content)) {
         int    ival;
         double rval;
-        std::cerr << "COMPILING isSigInstructionTableWrite: " << ppsig(instr) << std::endl;
+        // std::cerr << "COMPILING isSigInstructionTableWrite: " << ppsig(instr) << std::endl;
         string vname{tree2str(id)};
         K->addDeclCode(subst("$0 \t$1[$2];", nature2ctype(nature), vname, T(tblsize)));
         // cerr << "init is " << ppsig(init) << endl;
@@ -947,13 +947,14 @@ void GraphVectorCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* K
             for (const auto& d : c.second.first) {
                 std::string name = d.first;
                 if (name[0] == 'T') {
-                    std::cerr << "We group " << ppsig(n) << " and " << ppsig(c.first) << std::endl;
+                    // std::cerr << "We group " << ppsig(n) << " and " << ppsig(c.first) << std::endl;
                     PM.group(n, c.first);
                 }
             }
         }
     }
     std::set<std::set<Tree>> P2 = PM.partition();
+#if 0
     std::cerr << "PARTITION P2:\n" << std::endl;
     for (const auto& s : P2) {
         std::cerr << " <--- " << std::endl;
@@ -963,15 +964,38 @@ void GraphVectorCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* K
         std::cerr << " ---> " << std::endl;
     }
 #endif
-    digraph<digraph<Tree, multidep>, multidep> DG  = partitionGraph(E, P2);  // temporaire, revenir a P2
+#endif
+    digraph<digraph<Tree, multidep>, multidep> DG  = partitionGraph(E, P2);
     auto                                       foo = arrows(DG);
     vector<digraph<Tree, multidep>>            VG  = serialize(DG);
+
+#if 0
+    {
+        std::cerr << "SERIALIZED VECTOR CODE (E PART) {" << std::endl;
+        for (const digraph<Tree, multidep>& g : VG) {
+            std::cerr << "\n\topen node " << g << "{" << std::endl;
+            std::cerr << "\tRequired values: " << foo.second[g] << std::endl;
+
+            vector<Tree> v = serialize(cut(g, 1));
+            for (Tree i : v) {
+                std::cerr << "\t\t" << ppsig(i) << std::endl;
+            }
+            std::cerr << "\tProvided values:" << foo.first[g] << std::endl;
+            std::cerr << "\tclose node " << g << "}\n" << std::endl;
+        }
+        std::cerr << "} SERIALIZED VECTOR CODE (E PART)" << std::endl;
+    }
+#endif
+
+    Loop* prevLoop = nullptr;
+    Loop* currLoop = nullptr;
     for (const digraph<Tree, multidep>& g : VG) {
-        std::cerr << " FOOO " << g << std::endl;
-        std::stringstream ss;
-        ss << "// incoming arrows for " << g << ": " << foo.first[g] << ", outcoming arrows: " << foo.second[g];
+        // std::cerr << " FOOO " << g << std::endl;
+        // std::stringstream ss;
+        // ss << "// incoming arrows for " << g << ": " << foo.first[g] << ", outcoming arrows: " << foo.second[g];
         vector<Tree> v = serialize(cut(g, 1));
         Kl->openLoop("count");
+        currLoop = Kl->topLoop();
 
         // get samples from the expressions it depends on
         for (auto d : foo.second[g].first) {
@@ -997,6 +1021,8 @@ void GraphVectorCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* K
         }
 
         Kl->closeLoop();
+        if (prevLoop) currLoop->fBackwardLoopDependencies.insert(prevLoop);
+        prevLoop = currLoop;
     }
 }
 

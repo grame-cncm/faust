@@ -51,6 +51,7 @@ help:
 	@echo
 	@echo " 'cpp'    : check float and double outputs with the cpp backend in scalar, vec, openmp and sched modes"
 	@echo " 'ocpp'   : check float and double outputs with the ocpp backend in scalar mode"
+	@echo " 'ocppvec'   : check float and double outputs with the ocpp backend in vector mode"
 	@echo " 'cpp1'   : check float and double outputs with the cpp backend in scalar one-sample mode"
 	@echo " 'c'      : check float and double outputs with the c backend in scalar, vec, openmp and sched modes"
 	@echo " 'mute'   : check double output with mute"
@@ -113,6 +114,10 @@ ocpp:
 	$(MAKE) -f Make.gcc outdir=ocpp/double/cm4           lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-double -osd -cm 4"
 	$(MAKE) -f Make.gcc outdir=ocpp/double/cm5           lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-double -osd -cm 5"
 
+ocppvec:
+	$(MAKE) -f Make.gcc outdir=ocpp/double/vec/cm0           lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-double -vec -lv 1 -cm 0"
+	$(MAKE) -f Make.gcc outdir=ocpp/double/vec/cm2           lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-double -vec -lv 1 -cm 2"
+	
 c:
 	$(MAKE) -f Make.gcc outdir=c/double             lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double"
 	$(MAKE) -f Make.gcc outdir=c/double/vec/lv0     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double -vec -lv 0"
