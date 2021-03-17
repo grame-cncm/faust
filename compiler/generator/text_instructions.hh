@@ -49,7 +49,7 @@ class TextInstVisitor : public InstVisitor {
         }
     }
     
-    void visitCond(ValueInst* cond)
+    virtual void visitCond(ValueInst* cond)
     {
         if (dynamic_cast<LoadVarInst*>(cond)) *fOut << "(";
         cond->accept(this);
@@ -369,7 +369,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(::SwitchInst* inst)
     {
         *fOut << "switch (";
-        visitCond(inst->fCond);
+        inst->fCond->accept(this);
         *fOut << ") {";
         fTab++;
         tab(fTab, *fOut);
