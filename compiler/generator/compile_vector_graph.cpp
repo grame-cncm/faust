@@ -724,7 +724,7 @@ void GraphVectorCompiler::tableDependenciesGraph(const set<Tree>& I)
 
     // we can now compute the initialization order of the tables
     vector<Tree> S = serialize(fTableInitGraph);
-    // cerr << "Table order" << endl;
+    cerr << "Table order" << endl;
     for (Tree id : S) {
         std::cerr << "ID " << *id << std::endl;
         Tree       init = nullptr;
