@@ -1,0 +1,23 @@
+#!/bin/bash
+
+
+###########################################################
+###########################################################
+#                    Main section
+###########################################################
+###########################################################
+
+
+
+##A="-*,cert-*,clang-analyzer-*,modernize-*,performance-*,cppcoreguidelines-*,google-*,bugprone-*,misc-*,-google-runtime-references,-cppcoreguidelines-avoid-magic-numbers,-modernize-use-trailing-return-type,-cppcoreguidelines-avoid-c-arrays,-google-readability-casting,-modernize-avoid-c-arrays,-cppcoreguidelines-pro-bounds-pointer-arithmetic"
+
+## we check only real errors
+A="-*,cert-*,clang-analyzer-*,performance-*,bugprone-*,misc-*,-bugprone-narrowing-conversions,-misc-unused-parameters"
+
+# compile faust code annd control it with clang-tidy
+./build/bin/faust -lang ocpp -a minimaltidy.cpp -o temp.cpp $@
+clang-tidy --quiet --extra-arg="--std=c++11" -checks="$A" temp.cpp
+
+
+# for f in tests/impulse-tests/dsp/*.dsp; do echo "";  echo $f; ./faust2analysis -lang ocpp -vec -lv 1 $f; done
+# for f in examples/*/*.dsp; do echo "";  echo $f; ./faust2analysis -lang ocpp -vec -lv 1 $f; done

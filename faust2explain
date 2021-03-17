@@ -1,0 +1,212 @@
+#!/bin/bash
+
+
+###########################################################
+###########################################################
+#       Functions used to generate the latex file
+###########################################################
+###########################################################
+
+
+
+###########################################################
+#                    Header
+###########################################################
+
+function latexheader {
+cat > $1 << ENDOFHEADER
+\documentclass[9pt, a4paper,oneside]{article}
+
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{syntax}
+\usepackage{semantic}
+\usepackage{euscript}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[pdf]{graphviz}
+\usepackage{ifpdf}
+
+\usepackage{color}
+\usepackage{listings}
+\definecolor{mygrey}{rgb}{0.96,0.96,0.96}
+\lstset{
+  tabsize=4,
+  basicstyle=\ttfamily,
+  backgroundcolor=\color{mygrey},
+  captionpos=b,
+  breaklines=true
+}
+
+\usepackage[english]{babel}
+\usepackage{caption}
+\usepackage{subfig, color}
+
+\usepackage{times}
+\usepackage[T1]{fontenc}
+%\usepackage{pgf,pgfarrows,pgfnodes,pgfautomata,pgfheaps,pgfshade}
+
+%\includeonlyframes{current}
+
+\newcommand{\breathe}{\vspace{4mm}}
+\newcommand{\lcolorb}[1]{\color<#1>[rgb]{0,0,1}}
+\newcommand{\lcolort}[1]{\color<#1>[rgb]{0.5,0,0}}
+
+
+\title{$2}
+
+\begin{document}
+
+ENDOFHEADER
+}
+
+
+###########################################################
+#                    Faust Code
+###########################################################
+
+function faustcode {
+    
+cat >> $1 << ENDOFSECTION
+\section{Faust code}
+The Faust code that was compiled:
+
+\begin{lstlisting}
+ENDOFSECTION
+    
+    cat $2 >> $1
+    
+cat >> $1 << ENDOFSECTION
+\end{lstlisting}
+ENDOFSECTION
+    
+}
+
+
+###########################################################
+#                    C++ code
+###########################################################
+
+function cppcode {
+    
+cat >> $1 << ENDOFSECTION
+\section{C++ code}
+The C++ code that was generated:
+
+\begin{lstlisting}
+ENDOFSECTION
+    
+    cat $2 >> $1
+    
+cat >> $1 << ENDOFSECTION
+\end{lstlisting}
+ENDOFSECTION
+    
+}
+
+
+###########################################################
+#                    C++ code
+###########################################################
+
+function graphs {
+    
+cat >> $1 << ENDOFSECTION
+\section{Transformation steps}
+The various transformations steps of the instruction's graph.
+
+\subsection{Phase 1 : transforms signals into instructions}
+The list of output signals are transformed into instructions reflecting
+the fact that some signals have to be written in memory, in particular delay lines.
+
+\begin{center}
+\includegraphics[width=0.75\textwidth]{dotfile0-phase1-beforeSimplification.dot.pdf}
+\end{center}
+
+\subsection{Phase 2 : combine delay-lines that can be combined}
+Remove delay lines definitions of type \lstinline'DL1 := DL2(k)' by replacing
+occurrences of \lstinline'DL1(d1)' with \lstinline'DL2(k+d1)'.
+
+\begin{center}
+\includegraphics[width=0.75\textwidth]{dotfile0-phase2-afterSimplification.dot.pdf}
+\end{center}
+
+\subsection{Phase 2b : optimize 1-sample delay lines}
+If \lstinline'x(t-1)' is only used to compute \lstinline'x(t)' and never used elsewere, we can
+optimize the code by using a simple variable instead of a ring buffer for the delay line.
+\begin{center}
+\includegraphics[width=0.75\textwidth]{dotfile0-phase2b-afterShortDLine.dot.pdf}
+\end{center}
+
+\subsection{Phase 3 : transform delay-lines into read-write tables}
+Delay-lines are implemented using read-write tables used as ring buffers.
+\begin{center}
+\includegraphics[width=0.75\textwidth]{dotfile0-phase3-afterTable.dot.pdf}
+\end{center}
+
+\subsection{Phase 4 : additional table transformations}
+Old read-write tables are transformed into new read-write tables
+\begin{center}
+\includegraphics[width=0.75\textwidth]{dotfile0-phase4-afterTableTransform.dot.pdf}
+\end{center}
+
+\subsection{Phase 4b : Time transformation}
+Make explicit the time increment
+\begin{center}
+\includegraphics[width=0.75\textwidth]{dotfile0-phase4b-afterTimeTransform.dot.pdf}
+\end{center}
+
+\subsection{Phase 5 : Common Subexpressions Elimination}
+Transforms common subexpressions into instructions to avoid redondant computations
+\begin{center}
+\includegraphics[width=0.75\textwidth]{dotfile0-phase5-afterCSE.dot.pdf}
+\end{center}
+
+ENDOFSECTION
+    
+}
+
+
+###########################################################
+#                    C++ code
+###########################################################
+
+function latexfooter {
+cat >> $1 << ENDOFFOOTER
+\end{document}
+ENDOFFOOTER
+}
+
+
+
+###########################################################
+###########################################################
+#                    Main section
+###########################################################
+###########################################################
+
+
+# $1 is the faust source file to compile
+
+F=$1
+C=${1%.dsp}.cpp
+D=${1%.dsp}.md
+T=${1%.dsp}.tex
+P=${1%.dsp}.pdf
+
+# compile the faust code and generate pdf versions of the debug graphs
+
+faust -lang ocpp -dd $F -o $C
+for f in *.dot; do echo $f; dot -Tpdf $f >$f.pdf; done
+
+
+## generate the latex file
+
+latexheader $T $F
+faustcode $T $F
+cppcode $T $C
+graphs $T
+latexfooter $T
+
+## compile the latex file to pdf
+
+pdflatex $T
