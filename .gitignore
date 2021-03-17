@@ -37,3 +37,11 @@ compiler/faust
 tests/impulse-tests/ir
 ### ESLint
 .eslintrc.json
+
+### ignore various toplevel test files
+/*.dot
+/*.dot.pdf
+/*.cpp
+/*.dsp
+/*.lib
+/*.tex
