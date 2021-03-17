@@ -381,6 +381,25 @@ class CSharpInstVisitor : public TextInstVisitor {
 
     }
 
+    virtual void visit(Select2Inst* inst)
+    {
+        *fOut << "(";
+        visitCond(inst->fCond);
+        *fOut << " ? ";
+        inst->fThen->accept(this);
+        *fOut << " : ";
+        inst->fElse->accept(this);
+        *fOut << ")";
+        
+    }
+
+    virtual void visitCond(ValueInst* cond)
+    {
+        if (dynamic_cast<LoadVarInst*>(cond)) * fOut << "(";
+        cond->accept(this);
+        if (dynamic_cast<LoadVarInst*>(cond)) * fOut << " != 0)";        
+    }
+
     virtual void visit(::CastInst* inst)
     {
         inst->fInst->accept(&fTypingVisitor);
