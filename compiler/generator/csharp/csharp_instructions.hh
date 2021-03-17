@@ -37,8 +37,6 @@ class CSharpInstVisitor : public TextInstVisitor {
     static map<string, bool>   gFunctionSymbolTable;
     static map<string, string> gMathLibTable;
 
-    TypingVisitor fTypingVisitor;
-
    public:
     using TextInstVisitor::visit;
 
@@ -226,8 +224,6 @@ class CSharpInstVisitor : public TextInstVisitor {
         EndLine();
     }
 
-    virtual void visit(LabelInst* inst) {}
-
     virtual void visit(DeclareVarInst* inst)
     {
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
@@ -248,7 +244,23 @@ class CSharpInstVisitor : public TextInstVisitor {
             *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
             if (inst->fValue) {
                 *fOut << " = ";
-                inst->fValue->accept(this);
+
+                if (dynamic_cast<BinopInst*>(inst->fValue)) {
+                    TypingVisitor fTypingVisitor;
+                    inst->fValue->accept(&fTypingVisitor);
+
+                    if (fTypingVisitor.fCurType == Typed::kBool) {
+                        *fOut << "(";
+                    }
+
+                    inst->fValue->accept(this);
+
+                    if (fTypingVisitor.fCurType == Typed::kBool) {
+                        *fOut << "?1:0)";
+                    }
+                } else {
+                     inst->fValue->accept(this);
+                }
             }
         }
 
@@ -308,146 +320,158 @@ class CSharpInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(LoadVarInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        TextInstVisitor::visit(inst);
-    }
-
     virtual void visit(LoadVarAddressInst* inst)
     {
         // Not implemented in C#
         faustassert(false);
     }
 
-    virtual void visit(FloatNumInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        TextInstVisitor::visit(inst);
-    }
-
-    virtual void visit(Int32NumInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        TextInstVisitor::visit(inst);
-    }
-
-    virtual void visit(BoolNumInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        TextInstVisitor::visit(inst);
-    }
-
-    virtual void visit(DoubleNumInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        TextInstVisitor::visit(inst);
-    }
-
     virtual void visit(BinopInst* inst)
     {
-            inst->fInst1->accept(&fTypingVisitor);
-            Typed::VarType type1 = fTypingVisitor.fCurType;
+        TypingVisitor fTypingVisitor;
 
-            inst->fInst2->accept(&fTypingVisitor);
-            Typed::VarType type2 = fTypingVisitor.fCurType;
+        inst->fInst1->accept(&fTypingVisitor);
+        Typed::VarType type1 = fTypingVisitor.fCurType;
 
-            if ((type1 == Typed::kBool) && (type2 != Typed::kBool)) {
-                *fOut << "((";
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << "?1:0) ";
-                inst->fInst2->accept(this);
-                *fOut << ")";
-            } else if ((type2 == Typed::kBool) && (type1 != Typed::kBool)) {
-                *fOut << "(";
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " (";
-                inst->fInst2->accept(this);
-                *fOut << "?1:0))";
+        inst->fInst2->accept(&fTypingVisitor);
+        Typed::VarType type2 = fTypingVisitor.fCurType;
 
-            } else {
-                *fOut << "(";
-                inst->fInst1->accept(this);
-                *fOut << " ";
-                *fOut << gBinOpTable[inst->fOpcode]->fName;
-                *fOut << " ";
-                inst->fInst2->accept(this);
-                *fOut << ")";
-            }
+        *fOut << "(";
 
+        if (type1 != Typed::kBool) {
+            inst->fInst1->accept(this);
+        } else {
+            *fOut << "(";
+            inst->fInst1->accept(this);
+            *fOut << "?1:0)";
+        }
+
+        *fOut << " ";
+        *fOut << gBinOpTable[inst->fOpcode]->fName;
+        *fOut << " ";
+
+        if (type2 != Typed::kBool) {
+            inst->fInst2->accept(this);
+        } else {
+            *fOut << "(";
+            inst->fInst2->accept(this);
+            *fOut << "?1:0)";
+        }
+
+        *fOut << ")";
     }
 
     virtual void visit(Select2Inst* inst)
     {
+        TypingVisitor fTypingVisitor;
+
+        inst->fThen->accept(&fTypingVisitor);
+        Typed::VarType type1 = fTypingVisitor.fCurType;
+
+        inst->fElse->accept(&fTypingVisitor);
+        Typed::VarType type2 = fTypingVisitor.fCurType;
+
+        bool forceInt = (type1 != Typed::kBool) || (type2 != Typed::kBool);
+
         *fOut << "(";
         visitCond(inst->fCond);
         *fOut << " ? ";
-        inst->fThen->accept(this);
+
+        if (forceInt && (type1 == Typed::kBool)) {
+            *fOut << "(";
+            inst->fThen->accept(this);
+            *fOut << "?1:0)";
+        } else {
+            inst->fThen->accept(this);
+        }
         *fOut << " : ";
-        inst->fElse->accept(this);
-        *fOut << ")";
-        
+
+        if (forceInt && (type2 == Typed::kBool)) {
+            *fOut << "(";
+            inst->fElse->accept(this);
+            *fOut << "?1:0)";
+        } else {
+            inst->fElse->accept(this);
+        }
+
+        *fOut << ")";        
     }
+
+    virtual void visit(::SwitchInst* inst)
+    {
+        *fOut << "switch (";
+        inst->fCond->accept(this);
+        *fOut << ")";
+        tab(fTab, *fOut);
+        *fOut << "{";
+        fTab++;
+        tab(fTab, *fOut);
+        list<pair<int, BlockInst*> >::const_iterator it;
+        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
+            if ((*it).first == -1) {  // -1 used to code "default" case
+                *fOut << "default:";
+            } else {
+                *fOut << "case " << (*it).first << ":";
+            }
+            fTab++;
+            tab(fTab, *fOut);
+            ((*it).second)->accept(this);
+            if (!((*it).second)->hasReturn()) {
+                *fOut << "break;";
+            }
+            fTab--;
+            tab(fTab, *fOut);
+        }
+        fTab--;
+        back(1, *fOut);
+        *fOut << "}";
+        tab(fTab, *fOut);
+    }
+
 
     virtual void visitCond(ValueInst* cond)
     {
-        if (dynamic_cast<LoadVarInst*>(cond)) * fOut << "(";
+        *fOut << "(";
+
         cond->accept(this);
-        if (dynamic_cast<LoadVarInst*>(cond)) * fOut << " != 0)";        
+
+        TypingVisitor fTypingVisitor;
+        cond->accept(&fTypingVisitor);
+
+        if (fTypingVisitor.fCurType != Typed::kBool)
+            *fOut << " != 0";
+        
+        *fOut << ")";        
     }
 
     virtual void visit(::CastInst* inst)
     {
+        TypingVisitor fTypingVisitor;
         inst->fInst->accept(&fTypingVisitor);
 
-        if (fTypeManager->generateType(inst->fType) == "int") {
-            switch (fTypingVisitor.fCurType) {
-                case Typed::kDouble:
-                case Typed::kFloat:
-                case Typed::kFloatMacro:
-                    *fOut << "(int)";
-                    inst->fInst->accept(this);
-                    break;
-                case Typed::kInt32:
-                    inst->fInst->accept(this);
-                    break;
-                case Typed::kBool:
-                    *fOut << "((";
-                    inst->fInst->accept(this);
-                    *fOut << ")?1:0)";
-                    break;
-                default:
-                    printf("visitor.fCurType %d\n", fTypingVisitor.fCurType);
-                    faustassert(false);
-                    break;
+        if (fTypingVisitor.fCurType == Typed::kBool) {
+            if (fTypeManager->generateType(inst->fType) != "bool") {
+                *fOut << "((";
+                inst->fInst->accept(this);
+                *fOut << ") ?1:0)";
+
+                return;
             }
         } else {
-            switch (fTypingVisitor.fCurType) {
-                case Typed::kDouble:
-                case Typed::kInt32:
-                    *fOut << "(float)";
-                    inst->fInst->accept(this);
-                    break;
-                case Typed::kFloat:
-                case Typed::kFloatMacro:
-                    inst->fInst->accept(this);
-                    break;
-                case Typed::kBool:
-                    *fOut << "((";
-                    inst->fInst->accept(this);
-                    *fOut << ")?1.0f:0.0f)";
-                    break;
-                default:
-                    printf("visitor.fCurType %d\n", fTypingVisitor.fCurType);
-                    faustassert(false);
-                    break;
+            if (fTypeManager->generateType(inst->fType) == "bool") {
+                *fOut << "((";
+                inst->fInst->accept(this);
+                *fOut << ")!=0)";
+
+                return;
             }
         }
-        fTypingVisitor.visit(inst);
+
+        string type = fTypeManager->generateType(inst->fType);
+        *fOut << "(" << type << ")"
+              << "(";
+        inst->fInst->accept(this);
+        *fOut << ")";
     }
 
     virtual void visit(BitcastInst* inst) { faustassert(false); }

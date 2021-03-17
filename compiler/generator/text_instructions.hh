@@ -369,7 +369,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(::SwitchInst* inst)
     {
         *fOut << "switch (";
-        inst->fCond->accept(this);
+        visitCond(inst->fCond);
         *fOut << ") {";
         fTab++;
         tab(fTab, *fOut);
