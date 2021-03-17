@@ -62,7 +62,7 @@ static Type infereWaveformType(Tree lv, Tree env);
 static interval arithmetic(int opcode, const interval& x, const interval& y);
 
 // Uncomment to activate type inference tracing
-// #define TRACE(x) x
+//#define TRACE(x) x
 #define TRACE(x) \
     {            \
         ;        \

@@ -397,8 +397,30 @@ set<Tree> GraphVectorCompiler::collectTableIDs(const set<Tree> I)
     return IDs;
 }
 
+static void checkTypeOfInstructionSet(const set<Tree>& I)
+{
+    std::cerr << "start checkTypeOfInstructionSet" << std::endl;
+    for (Tree i : I) {
+        std::cerr << "instruction: " << ppsig(i) << std::endl;
+        Type t = getSimpleType(i);
+        std::cerr << "instruction: " << ppsig(i) << " has type " << t << std::endl;
+    }
+    std::cerr << "end checkTypeOfInstructionSet" << std::endl;
+}
+
+static void checkTypeOfInstructionVec(const vector<Tree>& I)
+{
+    std::cerr << "start checkTypeOfInstructionVec" << std::endl;
+    for (Tree i : I) {
+        std::cerr << "instruction: " << ppsig(i) << std::endl;
+        Type t = getSimpleType(i);
+        std::cerr << "instruction: " << ppsig(i) << " has type " << t << std::endl;
+    }
+    std::cerr << "end checkTypeOfInstructionVec" << std::endl;
+}
+
 /**
- * @brief ExpressionsListToInstructionsSet(): transfoms a list of signals expressions
+ * @brief ExpressionsListToInstructionsSet(): transforms a list of signals expressions
  * into a set of instructions
  *
  * @param L3 a list of expressions
@@ -424,6 +446,7 @@ set<Tree> GraphVectorCompiler::ExpressionsListToInstructionsSet(Tree L3)
     startTiming("Transformation into Instructions");
     std::string fileprefix = generateNewFilePrefix();
     set<Tree>   INSTR1     = splitSignalsToInstr(fConditionProperty, L3d);
+    // checkTypeOfInstructionSet(INSTR1);
     if (gGlobal->gDebugDiagram) signalGraph(fileprefix + "-phase1-beforeSimplification.dot", INSTR1);
 
     // cerr << ">>delayLineSimplifier\n" << endl;
@@ -660,6 +683,7 @@ static string nature2ctype(int n)
  */
 void GraphVectorCompiler::tableDependenciesGraph(const set<Tree>& I)
 {
+    std::cerr << "TITI 1" << std::endl;
     set<Tree> TID;                     // Treated IDs so far
     set<Tree> C = collectTableIDs(I);  // Remaining to be treated
     set<Tree> R = C;                   // Remaining to be treated
@@ -696,11 +720,13 @@ void GraphVectorCompiler::tableDependenciesGraph(const set<Tree>& I)
         }
         R = N;  // process unseen IDs
     }
+    std::cerr << "TITI 2" << std::endl;
 
     // we can now compute the initialization order of the tables
     vector<Tree> S = serialize(fTableInitGraph);
     // cerr << "Table order" << endl;
     for (Tree id : S) {
+        std::cerr << "ID " << *id << std::endl;
         Tree       init = nullptr;
         int        tblsize;
         int        nature;
@@ -708,28 +734,36 @@ void GraphVectorCompiler::tableDependenciesGraph(const set<Tree>& I)
 
         if (fTableInitExpression.get(id, init) && fTableInitSize.get(id, tblsize) && fTableInitNature.get(id, nature) &&
             fTableInitScheduling.get(init, s)) {
+            std::cerr << "BLABLA 1" << std::endl;
             Klass* k = nullptr;
             if (nature == kInt) {
                 k = new SigIntFillMethod(nullptr, tree2str(id));
             } else {
                 k = new SigFloatFillMethod(nullptr, tree2str(id));
             }
+            std::cerr << "BLABLA 2" << std::endl;
+
             // Hack !!!
             Klass* SavedClass = fClass;
             fClass            = k;
             fClass->setParentKlass(SavedClass);
             // std::cerr << "FULLNAME :" << fClass->getFullClassName() << std::endl;
+            std::cerr << "BLABLA 3" << std::endl;
 
             SchedulingToMethod(s, k);
             fClass = SavedClass;
+            std::cerr << "BLABLA 4" << std::endl;
 
             fClass->addMethod(k);
             string tmp = subst("fill$0($1, $2);", k->getClassName(), T(tblsize), tree2str(id));
             fClass->addClearCode(tmp);
+            std::cerr << "BLABLA 5" << std::endl;
+
         } else {
             faustassert(false);
         }
     }
+    std::cerr << "TITI 3" << std::endl;
 }
 
 /**
@@ -879,6 +913,7 @@ void GraphVectorCompiler::compileMultiSignal(Tree L)
     set<Tree> INSTR = ExpressionsListToInstructionsSet(L);
 
     InstructionsToVectorClass(INSTR, fClass);
+    checkTypeOfInstructionSet(INSTR);
     tableDependenciesGraph(INSTR);
 
     generateMetaData();
@@ -1053,18 +1088,24 @@ void GraphVectorCompiler::InstructionsToMethod(const set<Tree>& I, Klass* K)
 void GraphVectorCompiler::SchedulingToMethod(const Scheduling& S, Klass* K)
 {
     compileGlobalTimeNoIndex(K);
+    std::cerr << "BLABLA 10" << std::endl;
 
     for (Tree instr : S.fInitLevel) {
         compileSingleInstruction(instr, K);
     }
+    std::cerr << "BLABLA 11" << std::endl;
 
     for (Tree instr : S.fBlockLevel) {
         compileSingleInstruction(instr, K);
     }
+    std::cerr << "BLABLA 12" << std::endl;
+    checkTypeOfInstructionVec(S.fExecLevel);
 
     for (Tree instr : S.fExecLevel) {
+        std::cerr << "BLABLA 12 : " << ppsig(instr) << std::endl;
         compileSingleInstruction(instr, K);
     }
+    std::cerr << "BLABLA 13" << std::endl;
 }
 
 /**
