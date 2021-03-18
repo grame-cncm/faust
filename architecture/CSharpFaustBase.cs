@@ -188,6 +188,16 @@ public class dsp
         UIDefinition = new FaustUIDefinition();
         MetaData = new FaustMetaData();
     }
+
+    public static double FMod(double val1, double val2)
+    {
+        return val1 % val2;
+    }
+
+    public static float FModF(float val1, float val2)
+    {
+        return val1 % val2;
+    }
 }
 
 
