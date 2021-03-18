@@ -1,7 +1,6 @@
 # FAUST Impulse Response Tests  #
 
-This test suite allows to check that the compiler generates correct code by comparing the impulse response of a set of Faust programs with the expected one.
-
+This test suite allows to check that the compiler generates correct code by comparing the impulse response of a set of Faust programs with the expected one. When the DSP code contains buttons, they are set to 1 at the first sample to simulate button press.
 
 ### Prerequisites
 - `faust`, `libfaust.a` and `libfaustmachine.a` must be available from the `../../build/bin` and `../../build/lib/` folders. They must be compiled with all backends.
@@ -16,7 +15,6 @@ The principle of both test systems is to generate impulse responses for each of 
 
 There is a significant intersection between the tests performed by the two systems.
 
-
 #### Using the Makefile
 The use of `make` allows to benefit from parallelism (option -j n).
 The generated impulse responses are stored in a folder named `ir`.
@@ -30,14 +28,12 @@ When using the make option `-j`, I suggest to also add a `-i` option (`--ignore-
 
 If `make` fails with the first check and since intermediate files are removed, the steps _1)_ and _2)_ will restart from the beginning (which is quite time consuming) on next run. With the `-i` option, `make` will run to the end and on next run, only the faulty DSP will be rebuilt.
 
-
 #### Using the shell scripts (**deprecated**)
 The main script is `test.sh`. Type `test.sh -help` for details about the available tests.
 
 The generated impulse responses are not preserved by the shell scripts. Intermediate files may be generated in the dsp folder without being deleted.
 
 You should run `make tools` before first run of `tests.sh`.
-
 
 ### To do
 - add precision arg to filesCompare (for float and fastmath outputs)
