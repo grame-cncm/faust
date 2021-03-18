@@ -384,6 +384,8 @@ void CSharpScalarCodeContainer::generateCompute(int n)
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
     loop->accept(&fCodeProducer);
 
+    generatePostComputeBlock(&fCodeProducer);
+
     tab(n + 1, *fOut);
     *fOut << "}";
 }
