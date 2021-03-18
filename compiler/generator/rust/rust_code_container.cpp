@@ -474,6 +474,9 @@ void RustScalarCodeContainer::generateCompute(int n)
     }
     IteratorForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(iterators);
     loop->accept(&fCodeProducer);
+    
+    // Currently for soundfile management
+    generatePostComputeBlock(&fCodeProducer);
 
     back(1, *fOut);
     *fOut << "}" << endl;

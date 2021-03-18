@@ -171,7 +171,6 @@ void CSharpCodeContainer::produceClass()
 
     // Global declarations
     tab(n + 1, *fOut);
-    tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
     generateGlobalDeclarations(&fCodeProducer);
 
@@ -258,7 +257,7 @@ void CSharpCodeContainer::produceClass()
     fCodeProducer.Tab(n + 2);
     generateUserInterface(&fCodeProducer);
     printlines(n + 2, fUICode, *fOut);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}" << endl;
 
     // Inits
@@ -276,7 +275,7 @@ void CSharpCodeContainer::produceClass()
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateStaticInit(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 
     tab(n + 1, *fOut);
@@ -287,7 +286,7 @@ void CSharpCodeContainer::produceClass()
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateInit(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 
     tab(n + 1, *fOut);
@@ -298,7 +297,7 @@ void CSharpCodeContainer::produceClass()
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateResetUserInterface(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 
     tab(n + 1, *fOut);
@@ -309,7 +308,7 @@ void CSharpCodeContainer::produceClass()
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateClear(&fCodeProducer);
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 
     tab(n + 1, *fOut);
@@ -346,7 +345,7 @@ void CSharpCodeContainer::produceClass()
     tab(n + 1, *fOut);
     generateComputeFunctions(&fCodeProducer);
 
-    tab(n, *fOut);
+    back(1, *fOut);
     *fOut << "};\n" << endl;
 }
 
@@ -384,8 +383,12 @@ void CSharpScalarCodeContainer::generateCompute(int n)
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
     loop->accept(&fCodeProducer);
 
+    /*
+     // TODO : atomic switch
+     // Currently for soundfile management
+     */
     generatePostComputeBlock(&fCodeProducer);
 
-    tab(n + 1, *fOut);
+    back(1, *fOut);
     *fOut << "}";
 }

@@ -49,11 +49,10 @@ class TextInstVisitor : public InstVisitor {
         }
     }
     
+    // To be adapted in subclasses
     virtual void visitCond(ValueInst* cond)
     {
-        if (dynamic_cast<LoadVarInst*>(cond)) *fOut << "(";
         cond->accept(this);
-        if (dynamic_cast<LoadVarInst*>(cond)) *fOut << ")";
     }
   
    public:
@@ -283,9 +282,9 @@ class TextInstVisitor : public InstVisitor {
 
     virtual void visit(IfInst* inst)
     {
-        *fOut << "if ";
+        *fOut << "if (";
         visitCond(inst->fCond);
-        *fOut << " {";
+        *fOut << ") {";
         fTab++;
         tab(fTab, *fOut);
         inst->fThen->accept(this);
@@ -369,7 +368,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(::SwitchInst* inst)
     {
         *fOut << "switch (";
-        visitCond(inst->fCond);
+        inst->fCond->accept(this);
         *fOut << ") {";
         fTab++;
         tab(fTab, *fOut);

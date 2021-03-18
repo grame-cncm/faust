@@ -397,38 +397,6 @@ class CSharpInstVisitor : public TextInstVisitor {
         *fOut << ")";        
     }
 
-    virtual void visit(::SwitchInst* inst)
-    {
-        *fOut << "switch (";
-        inst->fCond->accept(this);
-        *fOut << ")";
-        tab(fTab, *fOut);
-        *fOut << "{";
-        fTab++;
-        tab(fTab, *fOut);
-        list<pair<int, BlockInst*> >::const_iterator it;
-        for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-            if ((*it).first == -1) {  // -1 used to code "default" case
-                *fOut << "default:";
-            } else {
-                *fOut << "case " << (*it).first << ":";
-            }
-            fTab++;
-            tab(fTab, *fOut);
-            ((*it).second)->accept(this);
-            if (!((*it).second)->hasReturn()) {
-                *fOut << "break;";
-            }
-            fTab--;
-            tab(fTab, *fOut);
-        }
-        fTab--;
-        back(1, *fOut);
-        *fOut << "}";
-        tab(fTab, *fOut);
-    }
-
-
     virtual void visitCond(ValueInst* cond)
     {
         *fOut << "(";
@@ -439,7 +407,7 @@ class CSharpInstVisitor : public TextInstVisitor {
         cond->accept(&fTypingVisitor);
 
         if (fTypingVisitor.fCurType != Typed::kBool)
-            *fOut << " != 0";
+            *fOut << "!=0";
         
         *fOut << ")";        
     }
@@ -453,7 +421,7 @@ class CSharpInstVisitor : public TextInstVisitor {
             if (fTypeManager->generateType(inst->fType) != "bool") {
                 *fOut << "((";
                 inst->fInst->accept(this);
-                *fOut << ") ?1:0)";
+                *fOut << ")?1:0)";
 
                 return;
             }
