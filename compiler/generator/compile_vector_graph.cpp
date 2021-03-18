@@ -974,6 +974,17 @@ void GraphVectorCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* K
     Tarjan<Tree, multidep>   TJ(E);  // the partition of g
     std::set<std::set<Tree>> P1 = TJ.partition();
 #if 1
+    std::cerr << "PARTITION P1 (Tarjan):\n" << std::endl;
+    for (const auto& s : P1) {
+        std::cerr << " <--- " << std::endl;
+        for (const auto& i : s) {
+            std::cerr << " : " << ppsig(i) << std::endl;
+        }
+        std::cerr << " ---> " << std::endl;
+    }
+#endif
+
+#if 1
     // improve partition
     PartitionMaker<Tree> PM(P1);
 
@@ -982,14 +993,14 @@ void GraphVectorCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* K
             for (const auto& d : c.second.first) {
                 std::string name = d.first;
                 if (name[0] == 'T') {
-                    // std::cerr << "We group " << ppsig(n) << " and " << ppsig(c.first) << std::endl;
+                    std::cerr << "We group " << ppsig(n) << " and " << ppsig(c.first) << std::endl;
                     PM.group(n, c.first);
                 }
             }
         }
     }
     std::set<std::set<Tree>> P2 = PM.partition();
-#if 0
+#if 1
     std::cerr << "PARTITION P2:\n" << std::endl;
     for (const auto& s : P2) {
         std::cerr << " <--- " << std::endl;
