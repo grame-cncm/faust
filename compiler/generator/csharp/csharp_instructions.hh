@@ -69,7 +69,7 @@ class CSharpInstVisitor : public TextInstVisitor {
         gMathLibTable["coshf"]  = "(float)Math.Cosh";
         gMathLibTable["expf"]   = "(float)Math.Exp";
         gMathLibTable["floorf"] = "(float)Math.Floor";
-        gMathLibTable["fmodf"]  = "(float)Math.IEEERemainder";   // **** This isn't quite right - should be %
+        gMathLibTable["fmodf"]  = "FModF";
         gMathLibTable["logf"]   = "(float)Math.Log";
         gMathLibTable["log10f"] = "(float)Math.Log10";
         gMathLibTable["max_f"]  = "(float)Math.Max";
@@ -83,7 +83,7 @@ class CSharpInstVisitor : public TextInstVisitor {
         gMathLibTable["tanhf"]  = "(float)Math.Tanh";
 
         gMathLibTable["remainderf"] = "(float)Math.IEEERemainder";
-        gMathLibTable["rintf"]  = "(float)Math.Truncate";
+        gMathLibTable["rintf"]  = "(float)Math.Round";
 
         gMathLibTable["acoshf"] = "(float)Math.Acosh";
         gMathLibTable["asinhf"] = "(float)Math.Asinh";
@@ -103,7 +103,7 @@ class CSharpInstVisitor : public TextInstVisitor {
         gMathLibTable["cosh"]  = "Math.Cosh";
         gMathLibTable["exp"]   = "Math.Exp";
         gMathLibTable["floor"] = "Math.Floor";
-        gMathLibTable["fmod"]  = "Math.IEEERemainder";  // **** This isn't quite right - should be %
+        gMathLibTable["fmod"]  = "FMod";
         gMathLibTable["log"]   = "Math.Log";
         gMathLibTable["log10"] = "Math.Log10";
         gMathLibTable["max_"]  = "Math.Max";
@@ -117,7 +117,7 @@ class CSharpInstVisitor : public TextInstVisitor {
         gMathLibTable["tanh"]  = "Math.Tanh";
 
         gMathLibTable["remainder"] = "Math.IEEERemainder";
-        gMathLibTable["rint"]  = "Math.Truncate";
+        gMathLibTable["rint"]  = "Math.Round";
 
         gMathLibTable["acosh"] = "Math.Acosh";
         gMathLibTable["asinh"] = "Math.Asinh";
