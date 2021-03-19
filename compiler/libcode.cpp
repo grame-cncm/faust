@@ -147,6 +147,10 @@ static void enumBackends(ostream& out)
     out << dspto << "C++" << endl;
 #endif
 
+#ifdef CSHARP_BUILD
+    out << dspto << "CSharp" << endl;
+#endif
+
 #ifdef DLANG_BUILD
     out << dspto << "DLang" << endl;
 #endif
@@ -161,10 +165,6 @@ static void enumBackends(ostream& out)
 
 #ifdef JAVA_BUILD
     out << dspto << "Java" << endl;
-#endif
-
-#ifdef CSHARP_BUILD
-    out << dspto << "CSharp" << endl;
 #endif
 
 #ifdef LLVM_BUILD
@@ -733,11 +733,17 @@ static bool processCmdline(int argc, const char* argv[])
     if (gGlobal->gComputeMix && gGlobal->gOutputLang == "ocpp") {
         throw faustexception("ERROR : -cm cannot be used with the 'ocpp' backend\n");
     }
+    
     if (gGlobal->gComputeMix && gGlobal->gOutputLang == "interp") {
         throw faustexception("ERROR : -cm cannot be used with the 'interp' backend\n");
     }
+    
     if (gGlobal->gComputeMix && gGlobal->gOutputLang == "soul") {
         throw faustexception("ERROR : -cm cannot be used with the 'soul' backend\n");
+    }
+    
+    if (gGlobal->gFloatSize == 4 && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "ocpp" && gGlobal->gOutputLang != "c") {
+        throw faustexception("ERROR : -fx can ony be used with 'c', 'cpp' or 'ocpp' backends\n");
     }
     
     if (gGlobal->gArchFile != ""
@@ -847,8 +853,8 @@ static void printHelp()
     cout << endl << "Code generation options:" << line;
     cout << tab << "-lang <lang> --language                 select output language," << endl;
     cout << tab
-         << "                                        'lang' should be c, ocpp, cpp (default), csharp, rust, java, "
-            "llvm, fir, wast/wasm, soul, interp or dlang."
+         << "                                        'lang' should be c, cpp (default), csharp, dlang, fir, interp, java, llvm, "
+            "ocpp, rust, soul or wast/wasm."
          << endl;
     cout << tab
          << "-single     --single-precision-floats   use single precision floats for internal computations (default)."

@@ -1,4 +1,4 @@
-% man(1) Version 2.31.1 (13-March-2021) | Faust man page
+% man(1) Version 2.32.0 (19-March-2021) | Faust man page
 
 NAME
 ====
@@ -54,15 +54,13 @@ Code generation options:
 ---------------------------------------
 
   **-lang** \<lang> **--language**                 select output language,
-                                          'lang' should be c, ocpp, cpp (default), rust, java, llvm, fir, wast/wasm, soul, interp or dlang.
+                                          'lang' should be c, ocpp, cpp (default), csharp, rust, java, llvm, fir, wast/wasm, soul, interp or dlang.
 
   **-single**     **--single-precision-floats**   use single precision floats for internal computations (default).
 
   **-double**     **--double-precision-floats**   use double precision floats for internal computations.
 
   **-quad**       **--quad-precision-floats**     use quad precision floats for internal computations.
-
-  **-fx**         **--fixed-point**               use fixed-point for internal computations.
 
   **-es** 1|0     **--enable-semantics** 1|0      use enable semantics when 1 (default), and simple multiplication otherwise.
 
