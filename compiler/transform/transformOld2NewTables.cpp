@@ -57,58 +57,53 @@ class TransformTables : public SignalIdentity {
    protected:
     Tree transformation(Tree sig) override
     {
-        Tree tbl, ridx, id, itbl, widx, wsig, tblsize, init;
+        Tree tbl, ridx, id, itbl, widx, wsig, tblsize, tblinit;
 
         if (isSigRDTbl(sig, tbl, ridx)) {
             Type t   = getSimpleType(sig);
             int  nat = t->nature();
-            Tree id2, instr;
-            // cerr << "TRANFORMATION " << ppsig(sig) << endl;
-            if (isSigWRTbl(tbl, id, itbl, widx, wsig)) {
-                if (!isSigTable(itbl, id, tblsize, init)) {
-                    cerr << "NOT EXPECTED (1) sigTable " << ppsig(itbl) << endl;
-                    faustassert(isSigTable(itbl, id, tblsize, init));
-                }
-                // cerr << "We have a read-write table to tranform: " << ppsig(sig) << endl;
-                // TRW : Table Read Write
-                id2   = uniqueID("TRW", tbl);
-                instr = sigInstructionTableWrite(id2, tbl, nat, tree2int(tblsize), init, self(widx), self(wsig));
 
-            } else {
-                if (!isSigTable(tbl, id, tblsize, init)) {
-                    cerr << "NOT EXPECTED (2) sigTable " << ppsig(tbl) << endl;
-                    faustassert(isSigTable(tbl, id, tblsize, init));
+            if (isSigTable(tbl, id, tblsize, tblinit)) {
+                // Case of a readonly table
+                Tree id2   = uniqueID("TRO", tbl);  // the name of the table. It will be shared if we have several readers
+                Tree instr = sigInstructionTableWrite(id2, tbl, nat, tree2int(tblsize), tblinit, gGlobal->nil, gGlobal->nil);
+                fSplittedSignals.insert(instr);  // This instruction will only be used to init the table
+                return sigInstructionTableRead(id2, sig, nat, 0, self(ridx));
+            } else if (isSigWRTbl(tbl, id, itbl, widx, wsig)) {
+                // Case of a readwrite table
+                if (isSigTable(itbl, id, tblsize, tblinit)) {
+                    // The id should be the same TODO
+                    Tree id2   = uniqueID("TRW", sig);
+                    Tree instr = sigInstructionTableWrite(id2, tbl, nat, tree2int(tblsize), tblinit, self(widx), self(wsig));
+                    fSplittedSignals.insert(instr);
+                    // Cache table read
+                    if (t->variability() == kBlock) {
+                        Tree wid    = (nat == kInt) ? uniqueID("CI", sig) : uniqueID("CF", sig);
+                        Tree winstr = sigInstructionControlWrite(wid, sig, nat, sigInstructionTableRead(id2, sig, nat, 0, self(ridx)));
+                        Tree rinstr = sigInstructionControlRead(wid, sig, nat);
+                        fSplittedSignals.insert(winstr);
+                        return rinstr;
+                    } else if (t->variability() == kSamp) {
+                        Tree wid    = (nat == kInt) ? uniqueID("VI", sig) : uniqueID("VF", sig);
+                        Tree winstr = sigInstructionSharedWrite(wid, sig, nat, sigInstructionTableRead(id2, sig, nat, 0, self(ridx)));
+                        Tree rinstr = sigInstructionSharedRead(wid, sig, nat);
+                        fSplittedSignals.insert(winstr);
+                        return rinstr;
+                    } else {
+                        std::cerr << "NOT SUPPOSED TO HAPPEN" << std::endl;
+                        return nullptr;
+                        exit(1);
+                    }
+                } else {
+                    std::cerr << "NOT SUPPOSED TO HAPPEN 1" << std::endl;
+                    exit(1);
+                    return nullptr;
                 }
-                // cerr << "We have a read-only table to tranform: " << ppsig(sig) << endl;
-                // TRO : Table Read Only
-                id2   = uniqueID("TRO", tbl);
-                instr = sigInstructionTableWrite(id2, tbl, nat, tree2int(tblsize), init, gGlobal->nil, gGlobal->nil);
-            }
-            fSplittedSignals.insert(instr);
-            // Cache table read
-            if (t->variability() == kBlock) {
-                Tree wid = (nat == kInt) ? uniqueID("CI", sig) : uniqueID("CF", sig);
-                Tree winstr = sigInstructionControlWrite(wid, sig, nat, sigInstructionTableRead(id2,sig,nat,0,self(ridx)));
-                Tree rinstr = sigInstructionControlRead(wid,sig, nat);
-                fSplittedSignals.insert(winstr);
-                return rinstr;
-            } else if (t->variability() == kSamp) {
-                Tree wid = (nat == kInt) ? uniqueID("VI", sig) : uniqueID("VF", sig);
-                Tree winstr = sigInstructionSharedWrite(wid, sig, nat, sigInstructionTableRead(id2,sig,nat,0,self(ridx)));
-                Tree rinstr = sigInstructionSharedRead(wid,sig, nat);
-                fSplittedSignals.insert(winstr);
-                return rinstr;
             } else {
-                std::cerr << "NOT SUPPOSED TO HAPPEN" << std::endl;
-                return nullptr;
+                std::cerr << "NOT SUPPOSED TO HAPPEN 2" << std::endl;
                 exit(1);
+                return nullptr;
             }
-            // Tree wid = (nat == kInt) ? uniqueID("VI", sig) : uniqueID("VF", sig);
-            // if 
-            // Tree  instr = (t->variability()>= kSamp) ? sigInstruction
-            // //fSplittedSignals.insert(sigInstructionTableAccessWrite(wid, sig, nat, 0, id2, self(ridx)));
-            // fSplittedSignals.insert(sigInstructionTableAccessWrite(wid, sig, nat, 0, id2, self(ridx)));
-            // return sigInstructionSharedRead(wid, sig, nat);
         } else {
             return SignalIdentity::transformation(sig);
         }

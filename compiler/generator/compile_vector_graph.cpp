@@ -946,6 +946,27 @@ void GraphVectorCompiler::InstructionsToClass(const set<Tree>& I, Klass* K)
     InstructionsToMethod(I, K);
 }
 
+/**
+ * @brief check if a communication variable can be vectorised. this is encoded in the name. Names starting with R or TR must not be
+ * vectorized.
+ *
+ * @param name of the communication variable
+ * @return true
+ * @return false
+ */
+
+static bool canBeVectorized(std::string name)
+{
+    return !(name[0] == 'R' || (name[0] == 'T') && (name[1] == 'R'));
+}
+
+/**
+ * @brief Compiles a set of instructions in vector mode
+ *
+ * @param I the set of instructions to compile
+ * @param Kl the class where the code will be stored
+ */
+
 void GraphVectorCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* Kl)
 {
     compileInsOuts(Kl);
@@ -992,7 +1013,7 @@ void GraphVectorCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* K
         for (const auto& c : E.connections(n)) {
             for (const auto& d : c.second.first) {
                 std::string name = d.first;
-                if (name[0] == 'T') {
+                if ((name[0] == 'T') && (name[1] == 'W')) {
                     std::cerr << "We group " << ppsig(n) << " and " << ppsig(c.first) << std::endl;
                     PM.group(n, c.first);
                 }
@@ -1045,7 +1066,7 @@ void GraphVectorCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* K
 
         // get samples from the expressions it depends on
         for (auto d : foo.second[g].first) {
-            if (d.first[0] != 'R') {
+            if (canBeVectorized(d.first)) {
                 Kl->addExecCode(Statement("", subst("auto $0=W$0[i];", d.first)));
             }
         }
@@ -1056,7 +1077,7 @@ void GraphVectorCompiler::InstructionsToVectorClass(const set<Tree>& I, Klass* K
         }
         // send samples to the expressions that depend on this one
         for (auto d : foo.first[g].first) {
-            if (d.first[0] != 'R') {
+            if (canBeVectorized(d.first)) {
                 std::stringstream vs;
                 vs << gGlobal->gVecSize;
                 std::string ts = (d.first[1] == 'I') ? "int" : "FAUSTFLOAT";
@@ -1208,8 +1229,7 @@ Scheduling GraphVectorCompiler::schedule(const set<Tree>& I)
         for (Tree instr : E.nodes()) {
             int  nature, tblsize;
             Tree id, origin, init, idx, content;
-            if (isSigInstructionTableWrite(instr, id, origin, &nature, &tblsize, init, idx, content))
-                tables.insert(instr);
+            if (isSigInstructionTableWrite(instr, id, origin, &nature, &tblsize, init, idx, content)) tables.insert(instr);
         }
         vector<Tree> v = serialize2(cut(E, 1), tables);
         for (Tree i : v) {
@@ -1774,8 +1794,7 @@ string GraphVectorCompiler::generateStaticTable(Tree /*sig*/, Tree tsize, Tree c
     if (gGlobal->gMemoryManager) {
         fClass->addDeclCode(subst("static $0* \t$1;", ctype, vname));
         fClass->addStaticFields(subst("$0* \t$1::$2 = 0;", ctype, fClass->getClassName(), vname));
-        fClass->addStaticInitCode(
-            subst("$0 = static_cast<$1*>(fManager->allocate(sizeof($1) * $2));", vname, ctype, T(size)));
+        fClass->addStaticInitCode(subst("$0 = static_cast<$1*>(fManager->allocate(sizeof($1) * $2));", vname, ctype, T(size)));
         fClass->addStaticDestroyCode(subst("fManager->destroy($0);", vname));
     } else {
         fClass->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
@@ -2035,8 +2054,7 @@ void GraphVectorCompiler::declareWaveform(Tree sig, string& vname, int& size)
     fClass->addDeclCode(subst("int \tidx$0;", vname));
     fClass->addInitCode(subst("idx$0 = 0;", vname));
     fClass->getTopParentKlass()->addStaticFields(
-        subst("$0 \t$1::$2[$3] = ", ctype, fClass->getTopParentKlass()->getFullClassName(), vname, T(size)) +
-        content.str() + ";");
+        subst("$0 \t$1::$2[$3] = ", ctype, fClass->getTopParentKlass()->getFullClassName(), vname, T(size)) + content.str() + ";");
 }
 
 string GraphVectorCompiler::generateWaveform(Tree sig)
