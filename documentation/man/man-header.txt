@@ -3,7 +3,7 @@
 NAME
 ====
 
-Faust - DSP to C/C++, Rust, LLVM IR, JAVA, WebAssembly (wast/wasm), Interpreter, SOUL and D compiler
+Faust - DSP to C/C++, CSharp, DLang, Interpreter, Java, LLVM IR, Rust, SOUL, and WebAssembly (wast/wasm)
 
 SYNOPSIS
 ========

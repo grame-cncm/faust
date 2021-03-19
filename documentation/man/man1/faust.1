@@ -4,8 +4,8 @@
 .hy
 .SH NAME
 .PP
-Faust - DSP to C/C++, Rust, LLVM IR, JAVA, WebAssembly (wast/wasm),
-Interpreter, SOUL and D compiler
+Faust - DSP to C/C++, CSharp, DLang, Interpreter, Java, LLVM IR, Rust,
+SOUL, and WebAssembly (wast/wasm)
 .SH SYNOPSIS
 .PP
 \f[B]faust\f[R] [options] file1 [file2 \&...]
@@ -54,8 +54,8 @@ directory of the generated output code and of additional generated files
 .SS Code generation options:
 .PP
 \f[B]-lang\f[R] <lang> \f[B]\[en]language\f[R] select output language,
-`lang' should be c, ocpp, cpp (default), csharp, rust, java, llvm, fir,
-wast/wasm, soul, interp or dlang.
+`lang' should be c, cpp (default), csharp, dlang, fir, interp, java,
+llvm, ocpp, rust, soul or wast/wasm.
 .PP
 \f[B]-single\f[R] \f[B]\[en]single-precision-floats\f[R] use single
 precision floats for internal computations (default).
@@ -65,6 +65,9 @@ precision floats for internal computations.
 .PP
 \f[B]-quad\f[R] \f[B]\[en]quad-precision-floats\f[R] use quad precision
 floats for internal computations.
+.PP
+\f[B]-fx\f[R] \f[B]\[en]fixed-point\f[R] use fixed-point for internal
+computations.
 .PP
 \f[B]-es\f[R] 1|0 \f[B]\[en]enable-semantics\f[R] 1|0 use enable
 semantics when 1 (default), and simple multiplication otherwise.

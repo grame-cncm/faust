@@ -1446,7 +1446,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             container = CSharpCodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
                                                            numOutputs, dst.get());
 #else
-            throw faustexception("ERROR : -lang java not supported since JAVA backend is not built\n");
+            throw faustexception("ERROR : -lang csharp not supported since CSharp backend is not built\n");
 #endif
         } else if (startWith(gGlobal->gOutputLang, "soul")) {
 #ifdef SOUL_BUILD
