@@ -9,6 +9,7 @@ namespace IRTest
         static bool WriteOutput = false;
         static int ComputeBlockSize = 64;
         static string FaustDir = @"..\..\..\..\..\..\..\..\..\";
+        static string[] ExcludeDSP = { "sound.dsp" };
 
         static void Main(string[] args)
         {
@@ -29,6 +30,15 @@ namespace IRTest
 
             foreach (string dspFile in Directory.GetFiles(dspPath, "*.dsp"))
             {
+                string dspName = Path.GetFileName(dspFile);
+
+                if (Array.Exists<string>(ExcludeDSP, element => element == dspName))
+                {
+                    Console.WriteLine(dspName + " - Excluded");
+
+                    continue;
+                }
+
                 if (Verbose)
                     Console.WriteLine("Compiling: " + dspFile);
 

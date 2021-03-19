@@ -94,7 +94,7 @@ void CSharpCodeContainer::produceInternal()
     // Global declarations
     tab(n, *fOut);
     fCodeProducer.Tab(n);
-    // generateGlobalDeclarations(&fCodeProducer);
+    generateGlobalDeclarations(&fCodeProducer);
 
     tab(n, *fOut);
     *fOut << "class " << fKlassName;
