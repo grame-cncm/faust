@@ -25,7 +25,7 @@ namespace IRTest
 
             using (Process process = new Process())
             {
-                process.StartInfo.FileName = Path.Combine(faustDir, @"build\bin\Debug\faust.exe");
+                process.StartInfo.FileName = Path.Combine(faustDir, @"build\bin\Release\faust.exe");
                 process.StartInfo.Arguments = "-lang csharp -a " + faustDir + @"\architecture\CSharpFaustClass.cs -double " + dspPath;
                 process.StartInfo.CreateNoWindow = true;
                 process.StartInfo.RedirectStandardOutput = true;
