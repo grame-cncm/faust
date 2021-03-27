@@ -40,6 +40,7 @@ esp_err_t AC101::InitI2C(void)
 {
     i2c_port_t i2c_master_port = (i2c_port_t) I2C_MASTER_NUM;
     i2c_config_t conf;
+    memset(&conf, 0, sizeof(i2c_config_t));
     conf.mode = I2C_MODE_MASTER;
     conf.sda_io_num = (gpio_num_t) I2C_MASTER_SDA_IO;
     conf.sda_pullup_en = GPIO_PULLUP_ENABLE;
@@ -59,9 +60,8 @@ esp_err_t AC101::InitI2C(void)
 // @return false on success, true on failure.
 esp_err_t AC101::begin()
 {
-    if(InitI2C()) return -1;
-    esp_err_t res;
-    res = WriteReg(CHIP_AUDIO_RS, 0x123);
+    if (InitI2C()) return -1;
+    esp_err_t res = WriteReg(CHIP_AUDIO_RS, 0x123);
     WriteReg(CHIP_AUDIO_RS, 0x123);
     
     vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -219,21 +219,18 @@ esp_err_t AC101::SetI2sClock(I2sBitClockDiv_t bitClockDiv, bool bitClockInv, I2s
 esp_err_t AC101::SetMode(Mode_t mode)
 {
     esp_err_t ret = ESP_OK;
-    if (MODE_LINE == mode)
-    {
+    if (MODE_LINE == mode) {
         ret |= WriteReg(ADC_SRC, 0x0408);
         ret |= WriteReg(ADC_DIG_CTRL, 0x8000);
         ret |= WriteReg(ADC_APC_CTRL, 0x3bc0);
     }
     
-    if ((MODE_ADC == mode) or (MODE_ADC_DAC == mode) or (MODE_LINE == mode))
-    {
+    if ((MODE_ADC == mode) or (MODE_ADC_DAC == mode) or (MODE_LINE == mode)) {
         ret |= WriteReg(MOD_CLK_ENA,  0x800c);
         ret |= WriteReg(MOD_RST_CTRL, 0x800c);
     }
     
-    if ((MODE_DAC == mode) or (MODE_ADC_DAC == mode) or (MODE_LINE == mode))
-    {
+    if ((MODE_DAC == mode) or (MODE_ADC_DAC == mode) or (MODE_LINE == mode)) {
         // Enable Headphone output
         ret |= WriteReg(OMIXER_DACA_CTRL, 0xff80);
         ret |= WriteReg(HPOUT_CTRL, 0xc3c1);
@@ -254,8 +251,7 @@ esp_err_t AC101::SetMode(Mode_t mode)
 // prints out contents of the AC101 registers in hex
 void AC101::DumpRegisters()
 {
-    for (size_t i = 0; i < ARRAY_SIZE(regs); ++i)
-    {
+    for (size_t i = 0; i < ARRAY_SIZE(regs); ++i) {
         printf("%02x", regs[i]);
         printf(" = ");
         printf("%04x", ReadReg(regs[i]));
@@ -284,16 +280,14 @@ void AC101::ac101_pa_power(bool enable)
 
 // printBits
 // print out any value in binary format used for debugging
-void AC101::printBits(size_t const size, void const * const ptr)
+void AC101::printBits(size_t const size, void const* const ptr)
 {
-    unsigned char *b = (unsigned char*) ptr;
+    unsigned char *b = (unsigned char*)ptr;
     unsigned char byte;
     int i, j;
     
-    for (i=size-1;i>=0;i--)
-    {
-        for (j=7;j>=0;j--)
-        {
+    for (i = size-1; i >= 0; i--) {
+        for (j = 7; j >= 0; j--) {
             byte = (b[i] >> j) & 1;
             printf("%u", byte);
         }
@@ -305,7 +299,7 @@ void AC101::printBits(size_t const size, void const * const ptr)
 void AC101::printRead(uint8_t reg)
 {
     uint8_t buf[2];
-    ReadReg_Full(reg, buf, 2 );
+    ReadReg_Full(reg, buf, 2);
     printBits(sizeof(buf), &buf);
 }
 
@@ -336,10 +330,9 @@ esp_err_t AC101::WriteReg(uint8_t reg, uint16_t val)
 // @return false on success, true on failure.
 uint16_t AC101::ReadReg(uint8_t reg)
 {
-    uint16_t val = 0;
     uint8_t data_rd[2];
     ReadReg_Full(reg, data_rd, 2);
-    val=(data_rd[0]<<8)+data_rd[1];
+    uint16_t val = (data_rd[0]<<8) + data_rd[1];
     return val;
 }
 
@@ -351,10 +344,10 @@ uint16_t AC101::ReadReg(uint8_t reg)
 // @return false on success, true on failure.
 esp_err_t AC101::ReadReg_Full(uint8_t reg, uint8_t* data_rd, size_t size)
 {
-    esp_err_t ret = ESP_OK;
     if (size == 0) {
         return ESP_OK;
     }
+    esp_err_t ret = ESP_OK;
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
     ret |= i2c_master_start(cmd);
     ret |= i2c_master_write_byte(cmd, (AC101_ADDR << 1), ACK_CHECK_EN);
