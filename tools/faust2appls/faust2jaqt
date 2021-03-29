@@ -104,20 +104,20 @@ do
         OSCDEFS="DEFINES += OSCCTRL"
         OSCLIBS="-lOSCFaust"
     elif [ "$p" = "-httpd" ]; then
-	    HTTPDEFS="DEFINES += HTTPCTRL"
-	    HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+	HTTPDEFS="DEFINES += HTTPCTRL"
+	HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
     elif [ "$p" = "-preset" ]; then
         PRESETDEFS="DEFINES += PRESETUI"
         shift
         PRESETDIR=$1
     elif [ "$p" = "-qrcode" ]; then # requires -httpd
-	    QRDEFS="DEFINES += QRCODECTRL"
+    	QRDEFS="DEFINES += QRCODECTRL"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
+	OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-	    OPTIONS="$OPTIONS $p"
+	OPTIONS="$OPTIONS $p"
     fi
 
 shift
