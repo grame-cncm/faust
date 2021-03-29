@@ -35,6 +35,7 @@ PRESETDEFS=""
 NVOICES=-1
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
+SOUNDFILEINC=""
 SOUNDFILELIBS=""
 SAMPLERATEDEFS=""
 SAMPLERATELIBS=""
@@ -72,11 +73,11 @@ do
         shift
         OPT=$1
     elif [ $p = "-nodeploy" ]; then
-    	DEPLOY="no"
+        DEPLOY="no"
     elif [ "$p" = "-icc" ]; then
         ignore=" "
     elif [ "$p" = "-me" ]; then
-    	MATHDEFS="DEFINES += HAS_MATH_EXCEPTION"
+        MATHDEFS="DEFINES += HAS_MATH_EXCEPTION"
     elif [ $p = "-nvoices" ]; then
         POLYDEFS="DEFINES += POLY"
         shift
@@ -94,13 +95,14 @@ do
     elif [ $p = "-soundfile" ]; then
         SOUNDFILE="1"
         SOUNDFILEDEFS="DEFINES += SOUNDFILE"
-        SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
+        SOUNDFILEINC=$(pkg-config --cflags sndfile | cut -c 3-)
+        SOUNDFILELIBS=`pkg-config --static --libs sndfile`
     elif [ $p = "-resample" ]; then
         SAMPLERATEDEFS="DEFINES += SAMPLERATE"
         SAMPLERATELIBS=`pkg-config --cflags --static --libs samplerate`
     elif [ $p = "-osc" ]; then
-         OSCDEFS="DEFINES += OSCCTRL"
-         OSCLIBS="-lOSCFaust"
+        OSCDEFS="DEFINES += OSCCTRL"
+        OSCLIBS="-lOSCFaust"
     elif [ "$p" = "-httpd" ]; then
         HTTPDEFS="DEFINES += HTTPCTRL"
         HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
@@ -115,8 +117,8 @@ do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
-	fi
+        OPTIONS="$OPTIONS $p"
+    fi
 
 shift
 
@@ -200,9 +202,9 @@ EndOfCode
 
     # compile c++ to binary
     (
-	cd "$TMP"
-	qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$MATHDEFS" "$SAMPLERATEDEFS" "$PRESETDEFS"
-	qmake $SPEC
+        cd "$TMP"
+        qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$FAUSTINC" "INCLUDEPATH+=$SOUNDFILEINC" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "LIBS+=$ARCHLIB $SOUNDFILELIBS $SAMPLERATELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$MATHDEFS" "$SAMPLERATEDEFS" "$PRESETDEFS"
+        qmake $SPEC
         make
     ) > /dev/null || exit
 
