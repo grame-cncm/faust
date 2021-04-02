@@ -77,7 +77,7 @@ void LLVMCodeContainer::init(const string& name, int numInputs, int numOutputs, 
     
     // Set "-fast-math"
     FastMathFlags FMF;
-#if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110) || defined(LLVM_120)
+#if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110) || defined(LLVM_120) || defined(LLVM_130)
     FMF.setFast();  // has replaced the following function
 #else
     FMF.setUnsafeAlgebra();
