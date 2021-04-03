@@ -22,6 +22,9 @@
  architecture section is not modified.
  ************************************************************************/
 
+#ifndef JUCE_GUI_H
+#define JUCE_GUI_H
+
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif
@@ -2050,4 +2053,6 @@ class JuceGUI : public GUI, public MetaDataUI, public juce::Component
         }
     
 };
+
+#endif
 /**************************  END  JuceGUI.h **************************/
