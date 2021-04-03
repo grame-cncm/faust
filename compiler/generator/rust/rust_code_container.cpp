@@ -396,10 +396,17 @@ void RustCodeContainer::produceInfoFunctions(int tabs, const string& classname, 
     producer->Tab(tabs);
     generateGetInputs(subst("get_num_inputs$0", classname), obj, false, false)->accept(&fCodeProducer);
     generateGetOutputs(subst("get_num_outputs$0", classname), obj, false, false)->accept(&fCodeProducer);
+    
+    /*
+    // 03/04/21: suppressed for now
+    // Input Rates
     producer->Tab(tabs);
     generateGetInputRate(subst("get_input_rate$0", classname), obj, false, false)->accept(&fCodeProducer);
+    
+    // Output Rates
     producer->Tab(tabs);
     generateGetOutputRate(subst("get_output_rate$0", classname), obj, false, false)->accept(&fCodeProducer);
+    */
 }
 
 void RustCodeContainer::produceParameterGetterSetter(int tabs, map<string, int> parameterLookup)

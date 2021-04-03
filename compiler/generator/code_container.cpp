@@ -312,6 +312,8 @@ void CodeContainer::produceInfoFunctions(int tabs, const string& classname, cons
     generateGetInputs(subst("getNumInputs$0", classname), obj, ismethod, isvirtual)->accept(producer);
     generateGetOutputs(subst("getNumOutputs$0", classname), obj, ismethod, isvirtual)->accept(producer);
 
+    /*
+    // 03/04/21: suppressed fo now
     // Input Rates
     producer->Tab(tabs);
     generateGetInputRate(subst("getInputRate$0", classname), obj, ismethod, isvirtual)->accept(producer);
@@ -319,6 +321,7 @@ void CodeContainer::produceInfoFunctions(int tabs, const string& classname, cons
     // Output Rates
     producer->Tab(tabs);
     generateGetOutputRate(subst("getOutputRate$0", classname), obj, ismethod, isvirtual)->accept(producer);
+    */
 }
 
 void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst* count, bool omp)
