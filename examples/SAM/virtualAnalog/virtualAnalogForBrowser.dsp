@@ -18,10 +18,10 @@ octaveSelect(1) = osc1(vslider("[1] Octave1 [midi:ctrl 23] [style:knob]",1,0,5,1
 // Osc1 detunes like Osc2 and Osc3 (unlike in the Minimoog where it would be an expensive extra knob):
 detuneOctaves(1) = osc1(vslider("[2] DeTuning1 [units:Octaves] [midi:ctrl 24] [style:knob]",0.0,-1.0,1.0,0.001));
 waveSelect(1) = osc1(vslider("[3] Waveform1 [midi:ctrl 25] [style:knob]",5,0,5,1):int);
-amp1Enable = mr1(vslider("[1] On [midi:ctrl 12] [style:knob] [color:blue]",1,0,1,1));
+amp1Enable = mr1(vslider("[1] amp1Enable [midi:ctrl 12] [style:knob] [color:blue]",1,0,1,1));
 oscamp(1) = mr1(vslider("[0] Osc1 Amp [midi:ctrl 26] [style:knob]",0.5,0.0,1.0,0.001)) * amp1Enable;
 
-eei = mr2(vslider("[1] On [midi:ctrl 13] [style:knob] [color:blue]",0,0,1,1)); // External input = MAIN OUTPUT when "off"
+eei = mr2(vslider("[1] extInputOn [midi:ctrl 13] [style:knob] [color:blue]",0,0,1,1)); // External input = MAIN OUTPUT when "off"
 sei = mr2(vslider("[0] Ext Input [midi:ctrl 27] [style: knob]",0,0,1.0,0.001));
 extInput(fb,extSig) = fb,extSig : select2(eei) : *(sei) : extClipLED;
 extClipLED = _ <: _, (abs : >(0.95) : mr2(vbargraph("[2] Ext Input Clip [style:led]",0,1)):!);
@@ -31,19 +31,19 @@ controlSelect(2) = osc2(vrockerred); // ("[0] use as LFO"));
 octaveSelect(2) = osc2(vslider("[1] Octave2 [midi:ctrl 28] [style:knob]",1,0,5,1):int); // LO, 32', 16', 8', 4', 2'
 detuneOctaves(2) = osc2(vslider("[2] DeTuning2 [units:Octaves] [midi:ctrl 29] [style:knob]",0.41667,-1.0,1.0,0.001));
 waveSelect(2) = osc2(vslider("[3] Waveform2 [midi:ctrl 30] [style:knob]",5,0,5,1):int);
-amp2Enable = mr3(vslider("[1] On [midi:ctrl 14] [style:knob] [color:blue]",1,0,1,1));
+amp2Enable = mr3(vslider("[1] amp2Enable [midi:ctrl 14] [style:knob] [color:blue]",1,0,1,1));
 oscamp(2) = mr3(vslider("[0] Osc2 Amp [midi:ctrl 31] [style:knob]",0.5,0.0,1.0,0.001)) * amp2Enable;
 
 noise = select2(ntype,no.noise,10.0*no.pink_noise); // pink noise needs some "make-up gain"
 namp = mr4(vslider("[0] Noise Amp [midi:ctrl 32] [style: knob]",0.0,0.0,1.0,0.001));
-noiseOff = mr4cbg(vslider("[0] On [midi:ctrl 15] [style:knob] [color:blue]",0,0,1,1));
+noiseOff = mr4cbg(vslider("[0] noiseEnable [midi:ctrl 15] [style:knob] [color:blue]",0,0,1,1));
 ntype = mr4cbg(vslider("[1] White/Pink [midi:ctrl 16] [tooltip: Choose either White or Pink Noise] [style: knob] [color:blue]",1,0,1,1));
 
 controlSelect(3) = osc3(vrockerred); // ("[0] use as LFO"));
 octaveSelect(3) = osc3(vslider("[1] Octave3 [midi:ctrl 33] [style:knob]",0,0,5,1):int); // LO, 32', 16', 8', 4', 2'
 detuneOctaves(3) = osc3(vslider("[2] DeTuning3 [units:Octaves] [midi:ctrl 34] [style:knob]",0.3,-1.0,1.0,0.001));
 waveSelect(3) = osc3(vslider("[3] Waveform3 [midi:ctrl 35] [style:knob]",0,0,5,1):int);
-amp3Enable = mr5(vslider("[1] On [midi:ctrl 17] [style:knob] [color:blue]",0,0,1,1));
+amp3Enable = mr5(vslider("[1] amp3Enable [midi:ctrl 17] [style:knob] [color:blue]",0,0,1,1));
 oscamp(3) = mr5(vslider("[0] Osc3 Amp [midi:ctrl 36] [style:knob]",0.5,0.0,1.0,0.001)) * amp3Enable;
 
 waveforms(i) = (tri(i), bent(i), saw(i), sq(i), ptm(i), ptn(i));
@@ -134,7 +134,7 @@ attT60VCF = 0.001 * vcf2(vslider("[0] AttackF [midi:ctrl 40] [tooltip: Attack Ti
 decT60VCF = 0.001 * vcf2(vslider("[0] DecayF [midi:ctrl 41] [tooltip: Decay-to-Sustain Time] [unit:ms] [style: knob]",10,10,10000,1));
 susLvlVCF = 0.01 * vcf2(vslider("[0] SustainF [midi:ctrl 42] [tooltip: Sustain level as percent of max] [style: knob]",80,0,100,0.1));
 decayButton = wg(vslider("Decay [midi:ctrl 20] [tooltip:Envelope Release either Decay value or 0][style:knob]",1,0,1,1):int); // was Staccato
-legatoButton = wg(vslider("Glide [midi:ctrl 65] [tooltip: Glide from note to note][style:knob]",1,0,1,1)); // was Legato
+legatoButton = wg(vslider("GlideEnable [midi:ctrl 65] [tooltip: Glide from note to note][style:knob]",1,0,1,1)); // was Legato
 relT60VCF = select2(decayButton,0.010,decT60VCF);
 envelopeVCF = en.adsre(attT60VCF,decT60VCF,susLvlVCF,relT60VCF,gate);
 

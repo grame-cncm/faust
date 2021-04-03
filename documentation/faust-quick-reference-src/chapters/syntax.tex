@@ -99,7 +99,7 @@ File imports allow to import definitions from other source files.
 fileimport : "import" '(' filename ')' ';';
 \end{rail}
 
-For example \lstinline{import("math.lib");} imports the definitions of the \lstinline{math.lib} library, a set of additional mathematical functions provided as foreign functions.
+For example \lstinline{import("maths.lib");} imports the definitions of the \lstinline{maths.lib} library, a set of additional mathematical functions provided as foreign functions.
 
 
 \subsection{Documentation}
@@ -862,7 +862,7 @@ foreignexp : 'ffunction' '(' signature ',' includefile ',' library')'
 
 \subsubsection{ffunction} 
 An external C function is declared by indicating its name and signature as well as the required include file.
-The file \lstinline'"math.lib"' of the \faust distribution contains several foreign function definitions, for example the inverse hyperbolic sine function \lstinline'asinh':
+The file \lstinline'"maths.lib"' of the \faust distribution contains several foreign function definitions, for example the inverse hyperbolic sine function \lstinline'asinh':
 
 \begin{lstlisting}
 asinh = ffunction(float asinh (float), <math.h>, "");
@@ -892,7 +892,7 @@ type : 'int'|'float';
 \end{rail}
 
 \subsubsection{variables and constants} 
-External variables and constants can also be declared with a similar syntax. In the same \lstinline'"math.lib"' file, the definition of the sampling rate constant \lstinline'SR' and the definition of the block-size variable \lstinline'BS' can be found :
+External variables and constants can also be declared with a similar syntax. In the same \lstinline'"maths.lib"' file, the definition of the sampling rate constant \lstinline'SR' and the definition of the block-size variable \lstinline'BS' can be found :
 
 \begin{lstlisting}
 SR    = min(192000.0, 
@@ -1203,7 +1203,7 @@ $n.m$ & $\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}$ & floating point number: $y(t)
 \subsection{\texttt{math.h}-equivalent primitives}
 %--------------------------------------------------------------------------------------------------------------
 
-Most of the C \texttt{math.h} functions are also built-in as primitives (the others are defined as external functions in file \texttt{math.lib}).
+Most of the C \texttt{math.h} functions are also built-in as primitives (the others are defined as external functions in file \texttt{maths.lib}).
 
 \bigskip
 \begin{tabular}{|l|l|l|}
