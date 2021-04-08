@@ -33,6 +33,6 @@ using namespace std;
  * Draw a list of signals L as a directed graph using
  * graphviz's dot language
  */
-void sigToGraph(Tree sig, ofstream& fout);
+void sigToGraph(Tree sig, ostream& fout);
 
 #endif  // SIGTOGRAPH_HH
