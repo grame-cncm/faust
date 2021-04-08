@@ -30,6 +30,7 @@
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/dsp-combiner.h"
 #include "faust/dsp/dsp-optimizer.h"
+#include "faust/audio/dummy-audio.h"
 
 using namespace std;
 
@@ -90,6 +91,9 @@ static dsp* createDSP(const string& code)
 {
     string error_msg;
     dsp_factory* factory = createDSPFactoryFromString("FaustDSP", code, 0, nullptr, "", error_msg);
+    if (!factory) {
+        cout << error_msg;
+    }
     assert(factory);
     return factory->createDSPInstance();
 }
@@ -119,7 +123,7 @@ int main(int argc, char* argv[])
     dsp_factory* factory1, *factory2, *factory3;
     dsp* dsp1, *dsp2, *dsp3, *combined1, *combined2;
     string error_msg;
-    
+      
     cout << "Testing createDSPSequencer\n";
     
     dsp1 = createDSP("process = (_);");
@@ -282,6 +286,25 @@ int main(int argc, char* argv[])
         GTKUI gui((char*)"GTKUI", &argc, &argv);
         combined1->buildUserInterface(&gui);
         printError(combined1, error_msg);
+        gui.run();
+    }
+    
+    {
+        dsp1 = createDSP("import(\"stdfaust.lib\"); process = os.osc(500);");
+        dsp2 = createDSP("import(\"stdfaust.lib\"); process = os.square(700);");
+        combined1 = createDSPCrossfader(dsp1, dsp2, error_msg, Layout::kVerticalGroup);
+        GTKUI gui((char*)"GTKUI", &argc, &argv);
+        combined1->buildUserInterface(&gui);
+        printError(combined1, error_msg);
+        
+        dummyaudio audio(1);
+        if (!audio.init("FaustDSP", combined1)) {
+            return 0;
+        }
+        
+        audio.start();
+        audio.stop();
+        
         gui.run();
     }
     

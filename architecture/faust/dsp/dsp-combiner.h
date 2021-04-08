@@ -448,6 +448,102 @@ class dsp_recursiver : public dsp_binary_combiner {
 
 };
 
+/*
+ Crossfade between two DSP.
+ When fCrossfade = 1, the first DSP only is computed, when fCrossfade = 0,
+ the second DSP only is computed, otherwise both DSPs are computed and mixed.
+*/
+
+class dsp_crossfader: public dsp_binary_combiner {
+
+    private:
+    
+        FAUSTFLOAT fCrossfade;
+        FAUSTFLOAT** fDSPOutputs1;
+        FAUSTFLOAT** fDSPOutputs2;
+    
+    public:
+    
+        dsp_crossfader(dsp* dsp1, dsp* dsp2,
+                       Layout layout = Layout::kTabGroup,
+                       const std::string& label = "Crossfade")
+        :dsp_binary_combiner(dsp1, dsp2, 4096, layout, label),fCrossfade(FAUSTFLOAT(0.5))
+        {
+            fDSPOutputs1 = allocateChannels(fDSP1->getNumOutputs());
+            fDSPOutputs2 = allocateChannels(fDSP1->getNumOutputs());
+        }
+    
+        virtual ~dsp_crossfader()
+        {
+            deleteChannels(fDSPOutputs1, fDSP1->getNumInputs());
+            deleteChannels(fDSPOutputs2, fDSP1->getNumOutputs());
+        }
+    
+        virtual int getNumInputs() { return fDSP1->getNumInputs(); }
+        virtual int getNumOutputs() { return fDSP1->getNumOutputs(); }
+
+        void buildUserInterface(UI* ui_interface)
+        {
+            switch (fLayout) {
+                case kHorizontalGroup:
+                    ui_interface->openHorizontalBox(fLabel.c_str());
+                    ui_interface->addHorizontalSlider("Crossfade", &fCrossfade, FAUSTFLOAT(0.5), FAUSTFLOAT(0), FAUSTFLOAT(1), FAUSTFLOAT(0.01));
+                    fDSP1->buildUserInterface(ui_interface);
+                    fDSP2->buildUserInterface(ui_interface);
+                    ui_interface->closeBox();
+                    break;
+                case kVerticalGroup:
+                    ui_interface->openVerticalBox(fLabel.c_str());
+                    ui_interface->addHorizontalSlider("Crossfade", &fCrossfade, FAUSTFLOAT(0.5), FAUSTFLOAT(0), FAUSTFLOAT(1), FAUSTFLOAT(0.01));
+                    fDSP1->buildUserInterface(ui_interface);
+                    fDSP2->buildUserInterface(ui_interface);
+                    ui_interface->closeBox();
+                    break;
+                case kTabGroup:
+                    ui_interface->openTabBox(fLabel.c_str());
+                    ui_interface->openVerticalBox("Crossfade");
+                    ui_interface->addHorizontalSlider("Crossfade", &fCrossfade, FAUSTFLOAT(0.5), FAUSTFLOAT(0), FAUSTFLOAT(1), FAUSTFLOAT(0.01));
+                    ui_interface->closeBox();
+                    ui_interface->openVerticalBox("DSP1");
+                    fDSP1->buildUserInterface(ui_interface);
+                    ui_interface->closeBox();
+                    ui_interface->openVerticalBox("DSP2");
+                    fDSP2->buildUserInterface(ui_interface);
+                    ui_interface->closeBox();
+                    ui_interface->closeBox();
+                    break;
+            }
+        }
+    
+        virtual dsp* clone()
+        {
+            return new dsp_crossfader(fDSP1->clone(), fDSP2->clone(), fLayout, fLabel);
+        }
+    
+        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
+            if (fCrossfade == FAUSTFLOAT(1)) {
+                fDSP1->compute(count, inputs, outputs);
+            } else if (fCrossfade == FAUSTFLOAT(0)) {
+                fDSP2->compute(count, inputs, outputs);
+            } else {
+                // Compute each effect
+                fDSP1->compute(count, inputs, fDSPOutputs1);
+                fDSP2->compute(count, inputs, fDSPOutputs2);
+                // Mix between the two effects
+                FAUSTFLOAT gain1 = fCrossfade;
+                FAUSTFLOAT gain2 = FAUSTFLOAT(1) - gain1;
+                for (int frame = 0; (frame < count); frame++) {
+                    for (int chan = 0; chan < fDSP1->getNumOutputs(); chan++) {
+                        outputs[chan][frame] = fDSPOutputs1[chan][frame] * gain1 + fDSPOutputs2[chan][frame] * gain2;
+                    }
+                }
+            }
+        }
+    
+        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
+};
+
 #ifndef __dsp_algebra_api__
 #define __dsp_algebra_api__
 
@@ -556,6 +652,31 @@ static dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2,
         return new dsp_recursiver(dsp1, dsp2, layout, label);
     }
 }
+
+static dsp* createDSPCrossfader(dsp* dsp1, dsp* dsp2,
+                                 std::string& error,
+                                 Layout layout = Layout::kTabGroup,
+                                 const std::string& label = "Switcher")
+{
+    if (dsp1->getNumInputs() != dsp2->getNumInputs()) {
+        std::stringstream error_aux;
+        error_aux << "Connection error int dsp_crossfader : the number of inputs ("
+        << dsp1->getNumInputs() << ") of A "
+        << "must be equal to the number of inputs (" << dsp2->getNumInputs() << ") of B" << std::endl;
+        error = error_aux.str();
+        return nullptr;
+    } else if (dsp1->getNumOutputs() != dsp2->getNumOutputs()) {
+        std::stringstream error_aux;
+        error_aux << "Connection error int dsp_crossfader : the number of outputs ("
+        << dsp1->getNumOutputs() << ") of A "
+        << "must be equal to the number of outputs (" << dsp2->getNumOutputs() << ") of B" << std::endl;
+        error = error_aux.str();
+        return nullptr;
+    } else {
+        return new dsp_crossfader(dsp1, dsp2, layout, label);
+    }
+}
+
 #endif
 
 #endif

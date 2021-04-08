@@ -92,7 +92,7 @@ class PresetUI : public DecoratorUI
                 // Start of top-level group
                 fUI->openHorizontalBox("Preset manager");
                 fUI->addButton("Save", &fSave);
-                fUI->addNumEntry("Preset", &fPreset, FAUSTFLOAT(0),FAUSTFLOAT(0), FAUSTFLOAT(100), FAUSTFLOAT(1));
+                fUI->addNumEntry("Preset", &fPreset, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(100), FAUSTFLOAT(1));
                 fUI->addButton("Load", &fLoad);
                 fUI->addButton("Reset", &fReset);
                 fUI->closeBox();
