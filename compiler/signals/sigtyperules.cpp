@@ -66,11 +66,13 @@ static interval arithmetic(int opcode, const interval& x, const interval& y);
 
 // Uncomment to activate type inferrence tracing
 #define TRACE(x) x
-/*#define TRACE(x)                              \
-    {            \
-        ;        \
-    }
+/* #define TRACE(x)                             \
+ {            \
+     ;        \
+ }
 */
+
+
 /**
  * The empty type environment (also property key for closed term type)
  */
@@ -83,10 +85,6 @@ static interval arithmetic(int opcode, const interval& x, const interval& y);
 
 void typeAnnotation(Tree sig, bool causality)
 {
-    // to move into compiler option (set to 0 to disable recursive interval computation)
-    const int AGE_LIMIT = 5;
-    const int UP_ITER = 1;
-    
     gGlobal->gCausality = causality;
     Tree sl             = symlist(sig);
     int  n              = len(sl);
@@ -115,7 +113,9 @@ void typeAnnotation(Tree sig, bool causality)
 
     interval newI;
     interval oldI;
-    
+
+    // stuff for drawing (hide them in sth later)
+
     // cerr << "Symlist " << *sl << endl;
     for (Tree l = sl; isList(l); l = tl(l)) {
         Tree id, body;
@@ -146,7 +146,7 @@ void typeAnnotation(Tree sig, bool causality)
 
     cerr << "compute upper bounds for recursive types" << endl;
 
-    for (int k=0; k < UP_ITER; k++) {
+    for (int k=0; k < gGlobal->gUpIter; k++) {
         CTree::startNewVisit();
         for (int i = 0; i < n; i++) {
             setSigType(vrec[i], vtypeUp[i]);
@@ -214,7 +214,7 @@ void typeAnnotation(Tree sig, bool causality)
                     if (newI.lo != oldI.lo) {
                         faustassert(newI.lo < oldI.lo);
                         vAgeMin[i][j]++;
-                        if (vAgeMin[i][j] > AGE_LIMIT) {
+                        if (vAgeMin[i][j] > gGlobal->gAgeLimit) {
                             TRACE(cerr << gGlobal->TABBER << "low widening of " << newTuplet[j] << endl;)
                             newI.lo = vUp[i][j]->getInterval().lo;
                         }
@@ -223,7 +223,7 @@ void typeAnnotation(Tree sig, bool causality)
                     if (newI.hi != oldI.hi) {
                         faustassert(newI.hi > oldI.hi);
                         vAgeMax[i][j]++;
-                        if (vAgeMax[i][j] > AGE_LIMIT) {
+                        if (vAgeMax[i][j] > gGlobal->gAgeLimit) {
                             TRACE(cerr << gGlobal->TABBER << "up widening of " << newTuplet[j] << endl;)
                             newI.hi = vUp[i][j]->getInterval().hi;
                         }
@@ -237,7 +237,7 @@ void typeAnnotation(Tree sig, bool causality)
     }
     // type full term
     T(sig, gGlobal->NULLTYPEENV);
-    cerr << "type success : " << endl << "BYE" << endl;
+    TRACE(cerr << "type success : " << endl << "BYE" << endl;)
 }
 
 void annotationStatistics()
@@ -254,6 +254,7 @@ void annotationStatistics()
  * @param sig the signal we want to know the type
  * @return the type of the signal
  */
+
 ::Type getCertifiedSigType(Tree sig)
 {
     Type ty = getSigType(sig);

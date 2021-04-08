@@ -183,6 +183,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gFastMathLib          = "default";
     gNameSpace            = "";
 
+    gUpIter   = 0;
+    gAgeLimit = 0;
+
     // Fastmath mapping float version
     gFastMathLibTable["fabsf"]      = "fast_fabsf";
     gFastMathLibTable["acosf"]      = "fast_acosf";
