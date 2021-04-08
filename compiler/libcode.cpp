@@ -653,6 +653,12 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gCheckTable = "cat";
             i += 1;
 
+        } else if (isCmd(argv[i], "--widening-iterations") && (i + 1 < argc)) {
+            gGlobal->gAgeLimit = std::atoi(argv[i+1]);
+            i += 2;
+        } else if (isCmd(argv[i], "--widening-up-iter") && (i + 1 < argc)){
+            gGlobal->gUpIter = std::atoi(argv[i+1]);
+            i += 2;
         } else if (isCmd(argv[i], "-lm", "--local-machine") || isCmd(argv[i], "-rm", "--remote-machine") ||
                    isCmd(argv[i], "-poly", "--polyphonic-mode") || isCmd(argv[i], "-voices", "--polyphonic-voices") ||
                    isCmd(argv[i], "-group", "--polyphonic-group")) {
