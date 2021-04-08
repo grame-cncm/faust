@@ -175,6 +175,9 @@ struct global {
     string gFastMathLib;           // The fastmath code mapping file
     string gNameSpace;             // Wrapping namespace used with the C++ backend
 
+    int gAgeLimit;  // Max number of iterations before interval widening
+    int gUpIter;    // Max number of iterations to compute interval widener
+
     map<string, string> gFastMathLibTable;      // Mapping table for fastmath functions
     map<string, bool>   gMathForeignFunctions;  // Map of math foreign functions
 
