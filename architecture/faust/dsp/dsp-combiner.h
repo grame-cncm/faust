@@ -559,7 +559,7 @@ static dsp* createDSPSequencer(dsp* dsp1, dsp* dsp2,
 {
     if (dsp1->getNumOutputs() != dsp2->getNumInputs()) {
         std::stringstream error_aux;
-        error_aux << "Connection error int dsp_sequencer : the number of outputs ("
+        error_aux << "Connection error in dsp_sequencer : the number of outputs ("
                   << dsp1->getNumOutputs() << ") of A "
                   << "must be equal to the number of inputs (" << dsp2->getNumInputs() << ") of B" << std::endl;
         error = error_aux.str();
@@ -656,18 +656,18 @@ static dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2,
 static dsp* createDSPCrossfader(dsp* dsp1, dsp* dsp2,
                                  std::string& error,
                                  Layout layout = Layout::kTabGroup,
-                                 const std::string& label = "Switcher")
+                                 const std::string& label = "Crossfade")
 {
     if (dsp1->getNumInputs() != dsp2->getNumInputs()) {
         std::stringstream error_aux;
-        error_aux << "Connection error int dsp_crossfader : the number of inputs ("
+        error_aux << "Connection error in dsp_crossfader : the number of inputs ("
         << dsp1->getNumInputs() << ") of A "
         << "must be equal to the number of inputs (" << dsp2->getNumInputs() << ") of B" << std::endl;
         error = error_aux.str();
         return nullptr;
     } else if (dsp1->getNumOutputs() != dsp2->getNumOutputs()) {
         std::stringstream error_aux;
-        error_aux << "Connection error int dsp_crossfader : the number of outputs ("
+        error_aux << "Connection error in dsp_crossfader : the number of outputs ("
         << dsp1->getNumOutputs() << ") of A "
         << "must be equal to the number of outputs (" << dsp2->getNumOutputs() << ") of B" << std::endl;
         error = error_aux.str();
