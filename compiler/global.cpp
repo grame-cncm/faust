@@ -596,13 +596,13 @@ static string printFloat()
 {
     switch (gGlobal->gFloatSize) {
         case 1:
-            return "-single";
+            return " -single";
         case 2:
-            return "-double";
+            return " -double";
         case 3:
-            return "-quad";
+            return " -quad";
         case 4:
-            return "-fp";
+            return " -fp";
         default:
             faustassert(false);
             return "";
