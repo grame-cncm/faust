@@ -5674,7 +5674,8 @@ pl = library("platform.lib");
 //
 // * `tablesize`: the table size
 //------------------------------------------------------------
-sinwaveform(tablesize) = float(ba.time)*(2.0*ma.PI)/float(tablesize) : sin;
+sinwaveform(tablesize) = 
+    sin(float(ba.period(tablesize)) * (2.0 * ma.PI) / float(tablesize));
 
 //-----------------------`(os.)coswaveform`------------------------
 // Cosine waveform ready to use with a `rdtable`.
@@ -5689,7 +5690,8 @@ sinwaveform(tablesize) = float(ba.time)*(2.0*ma.PI)/float(tablesize) : sin;
 //
 // * `tablesize`: the table size
 //------------------------------------------------------------
-coswaveform(tablesize) = float(ba.time)*(2.0*ma.PI)/float(tablesize) : cos;
+coswaveform(tablesize) = 
+    cos(float(ba.period(tablesize)) * (2.0 * ma.PI) / float(tablesize));
 
 //-----------------------`(os.)phasor`------------------------
 // A simple phasor to be used with a `rdtable`.
@@ -8086,7 +8088,7 @@ with {
 //
 // Where:
 //
-// *     `N`: Number of channels desired (1 or more)
+// *     `N`: Number of output channels desired (1 or more)
 // * `delay`: echo delay (integer power of 2)
 //
 // #### Demo
@@ -12506,7 +12508,7 @@ hardclip2(x) = ADAA2(EPS, f, F1, F2, x)
       };
 // -----------------------------------------------------------------------------
 
-// ---------- (aa.)cubic; ------------------------------------------------------
+// ---------- (aa.)cubic1; -----------------------------------------------------
 //
 // First-order ADAA cubic saturator.
 //
@@ -12515,13 +12517,13 @@ hardclip2(x) = ADAA2(EPS, f, F1, F2, x)
 //
 // #### Usage
 // ```
-// _ : aa.cubic : _;
+// _ : aa.cubic1 : _;
 // ```
-declare cubic author "Dario Sanfilippo";
-declare cubic copyright "Copyright (C) 2021 Dario Sanfilippo
+declare cubic1 author "Dario Sanfilippo";
+declare cubic1 copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
-declare cubic license "LGPL v3.0 license";
-cubic(x) = ADAA1(EPS, f, F1, x)
+declare cubic1 license "LGPL v3.0 license";
+cubic1(x) = ADAA1(EPS, f, F1, x)
       with {
            EPS = 1.0 / ma.SR;
            f(x_f) = ba.if( (x_f < 1.0) & (x_f > -1.0), 
@@ -12608,11 +12610,11 @@ declare hyperbolic copyright "Copyright (C) 2021 Dario Sanfilippo
      <sanfilippo.dario@gmail.com>";
 declare hyperbolic license "LGPL v3.0 license";
 hyperbolic(x) = ADAA1(EPS, f, F1, x)
-      with {
-           EPS = 1.0 / ma.SR;
-           f(x_f) = x_f / (1.0 + abs(x_f));
-           F1(x_F1) = abs(x_F1) - log(1.0 + abs(x_F1));
-      };
+    with {
+        EPS = 1.0 / ma.SR;
+        f(x_f) = x_f / (1.0 + abs(x_f));
+        F1(x_F1) = abs(x_F1) - log(1.0 + abs(x_F1));
+    };
 // -----------------------------------------------------------------------------
 
 // ---------- (aa.)hyperbolic2; ------------------------------------------------
@@ -12630,14 +12632,13 @@ declare hyperbolic2 copyright "Copyright (C) 2021 Dario Sanfilippo
      <sanfilippo.dario@gmail.com>";
 declare hyperbolic2 license "LGPL v3.0 license";
 hyperbolic2(x) = ADAA2(EPS, f, F1, F2, x)
-     with {
-           EPS = 1.0 / ma.SR;
-           f(x_f) = x_f / (1.0 + abs(x_f));
-           F1(x_F1) = abs(x_F1) - log(1.0 + abs(x_F1));
-           F2(x_F2) = ma.signum(x_F2) * (.5 * (3.0 - 2.0 * abs(x_F2) +
-                 x_F2 ^ 2.0 + 2.0 * log(1.0 + abs(x_F2))) - 3.0 / 2.0) + 
-                   3.0 / 2.0;
-     };
+    with {
+        EPS = 1.0 / ma.SR;
+        f(x_f) = x_f / (1.0 + abs(x_f));
+        F1(x_F1) = abs(x_F1) - log(1.0 + abs(x_F1));
+        F2(x_F2) = ma.signum(x_F2) * (.5 * (3.0 - 2.0 * abs(x_F2) + x_F2 ^ 2.0 + 
+            2.0 * log(1.0 + abs(x_F2))) - 3.0 / 2.0) + 3.0 / 2.0;
+    };
 // -----------------------------------------------------------------------------
 
 // ---------- (aa.)sinarctan; --------------------------------------------------
@@ -12691,7 +12692,7 @@ sinarctan2(x) = ADAA2(EPS, f, F1, F2, x)
       };
 // -----------------------------------------------------------------------------
 
-// ---------- (aa.)tanh; -------------------------------------------------------
+// ---------- (aa.)tanh1; ------------------------------------------------------
 //
 // First-order ADAA tanh() saturator.
 //
@@ -12699,13 +12700,13 @@ sinarctan2(x) = ADAA2(EPS, f, F1, F2, x)
 //
 // #### Usage
 // ```
-// _ : aa.tanh : _;
+// _ : aa.tanh1 : _;
 // ```
-declare tanh author "Dario Sanfilippo";
-declare tanh copyright "Copyright (C) 2021 Dario Sanfilippo
+declare tanh1 author "Dario Sanfilippo";
+declare tanh1 copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
-declare tanh license "LGPL v3.0 license";
-tanh(x) = ADAA1(EPS, f, F1, x) 
+declare tanh1 license "LGPL v3.0 license";
+tanh1(x) = ADAA1(EPS, f, F1, x) 
       with {
            EPS = 1.0 / ma.SR;
            f(x_f) = ma.tanh(x_f);
@@ -12758,7 +12759,7 @@ arctan2(x) = ADAA2(EPS, f, F1, F2, x)
       };
 // -----------------------------------------------------------------------------
 
-// ---------- (aa.)asinh; ------------------------------------------------------
+// ---------- (aa.)asinh1; -----------------------------------------------------
 //
 // First-order ADAA asinh() saturator (unbounded).
 //
@@ -12766,13 +12767,13 @@ arctan2(x) = ADAA2(EPS, f, F1, F2, x)
 //
 // #### Usage
 // ```
-// _ : aa.asinh : _;
+// _ : aa.asinh1 : _;
 // ```
-declare asinh author "Dario Sanfilippo";
-declare asinh copyright "Copyright (C) 2021 Dario Sanfilippo
+declare asinh1 author "Dario Sanfilippo";
+declare asinh1 copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
-declare asinh license "LGPL v3.0 license";
-asinh(x) = ADAA1(EPS, f, F1, x)
+declare asinh1 license "LGPL v3.0 license";
+asinh1(x) = ADAA1(EPS, f, F1, x)
       with {
            EPS = 1.0 / ma.SR;
            f(x_f) = ma.asinh(x_f);
@@ -12821,7 +12822,7 @@ asinh2(x) = ADAA2(EPS, f, F1, F2, x)
 // These functions are reliable if input signals are within their domains.
 // -----------------------------------------------------------------------------
 
-// ---------- (aa.)cosine; -----------------------------------------------------
+// ---------- (aa.)cosine1; ----------------------------------------------------
 //
 // First-order ADAA cos().
 //
@@ -12829,13 +12830,13 @@ asinh2(x) = ADAA2(EPS, f, F1, F2, x)
 //
 // #### Usage
 // ```
-// _ : aa.cosine : _;
+// _ : aa.cosine1 : _;
 // ```
-declare cosine author "Dario Sanfilippo";
-declare cosine copyright "Copyright (C) 2021 Dario Sanfilippo
+declare cosine1 author "Dario Sanfilippo";
+declare cosine1 copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
-declare cosine license "LGPL v3.0 license";
-cosine(x) = ADAA1(EPS, f, F1, x)
+declare cosine1 license "LGPL v3.0 license";
+cosine1(x) = ADAA1(EPS, f, F1, x)
       with {
            EPS = 1.0 / ma.SR;
            f(x_f) = cos(x_f);
@@ -12923,7 +12924,7 @@ arccos2(x) = ADAA2(EPS, f, F1, F2, x)
       };
 // -----------------------------------------------------------------------------
 
-// ---------- (aa.)acosh; ------------------------------------------------------
+// ---------- (aa.)acosh1; -----------------------------------------------------
 //
 // First-order ADAA acosh(). 
 //
@@ -12931,13 +12932,13 @@ arccos2(x) = ADAA2(EPS, f, F1, F2, x)
 //
 // #### Usage
 // ```
-// _ : aa.acosh : _;
+// _ : aa.acosh1 : _;
 // ```
-declare acosh author "Dario Sanfilippo";
-declare acosh copyright "Copyright (C) 2021 Dario Sanfilippo
+declare acosh1 author "Dario Sanfilippo";
+declare acosh1 copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
-declare acosh license "LGPL v3.0 license";
-acosh(x) = ADAA1(EPS, f, F1, x)
+declare acosh1 license "LGPL v3.0 license";
+acosh1(x) = ADAA1(EPS, f, F1, x)
       with {
            EPS = 1.0 / ma.SR;
            f(x_f) = Racosh(x_f);
@@ -13097,7 +13098,7 @@ tangent(x) = ADAA1(EPS, f, F1, x)
       };
 // -----------------------------------------------------------------------------
 
-// ---------- (aa.)atanh; ------------------------------------------------------
+// ---------- (aa.)atanh1; -----------------------------------------------------
 //
 // First-order ADAA atanh(). 
 //
@@ -13105,13 +13106,13 @@ tangent(x) = ADAA1(EPS, f, F1, x)
 //
 // #### Usage
 // ```
-// _ : aa.atanh : _;
+// _ : aa.atanh1 : _;
 // ```
-declare atanh author "Dario Sanfilippo";
-declare atanh copyright "Copyright (C) 2021 Dario Sanfilippo
+declare atanh1 author "Dario Sanfilippo";
+declare atanh1 copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
-declare atanh license "LGPL v3.0 license";
-atanh(x) = ADAA1(EPS, f, F1, x)
+declare atanh1 license "LGPL v3.0 license";
+atanh1(x) = ADAA1(EPS, f, F1, x)
       with {
            EPS = 1.0 / ma.SR;
            f(x_f) = Ratanh(x_f);
@@ -14227,7 +14228,7 @@ u_diodePair =
 case{
     (0, Is, Vt) => b1
     with{
-        b1(R1, a1) = a1 + 2*R1*Is - 2*Vt*lambert((R1*Is/Vt*(a1+R1*Is))/Vt), 3) : exp;
+        b1(R1, a1) = a1 + 2*R1*Is - 2*Vt*lambert((R1*Is/Vt*(((a1+R1*Is)/Vt), 3) : exp));
     };
     (1, Is, Vt) => !, !; 
     (2, Is, Vt) => 0; 
@@ -14722,7 +14723,7 @@ with{
     with{
         s(1,1) =-1*(R0-gamma1*gamma2*R1)/(R0+gamma1*gamma2*R1);
         s(1,2) = (2*gamma1*R0^rho*R1^(1-rho))/(R0+gamma1*gamma2*R1);
-        s(2,1) = ((2*gamma2*R0^(1-rho)*R1^rho/(R0+gamma1*gamma2*R1);
+        s(2,1) = (2*gamma2*R0^(1-rho)*R1^rho)/(R0+gamma1*gamma2*R1);
         s(2,2) = (R0-gamma1*gamma2*R1)/(R0+gamma1*gamma2*R1);
         s(i,j) = 10; 
 
@@ -14771,7 +14772,7 @@ with{
     with{
         s(1,1) =-1*(R0-gamma1*gamma2*R1)/(R0+gamma1*gamma2*R1);
         s(1,2) = (2*gamma1*R0^rho*R1^(1-rho))/(R0+gamma1*gamma2*R1);
-        s(2,1) = ((2*gamma2*R0^(1-rho)*R1^rho/(R0+gamma1*gamma2*R1);
+        s(2,1) = (2*gamma2*R0^(1-rho)*R1^rho)/(R0+gamma1*gamma2*R1);
         s(2,2) = (R0-gamma1*gamma2*R1)/(R0+gamma1*gamma2*R1);
         s(i,j) = 10; 
 
@@ -15440,7 +15441,8 @@ PARTICULAR PURPOSE.  See the GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License along 
 with the GNU C Library; if not, write to the Free Software Foundation, Inc., 
 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-*******************************************************************************///##################################### all.lib ##########################################
+*******************************************************************************/
+//##################################### all.lib ##########################################
 // The purpose of this library is to give access to all the Faust standard libraries
 // from a single point.
 //########################################################################################
@@ -25213,8 +25215,8 @@ dcblocker = zero(1) : pole(0.995);
 // impulse response to decay by `N` dB
 //
 // #### Reference
-//
 // <https://ccrma.stanford.edu/~jos/mdft/Exponentials.html>
+//----------------------------------------------------------
 declare lptN author "Julius O. Smith III";
 declare lptN copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare lptN license "MIT-style STK-4.3 license";
@@ -27166,6 +27168,11 @@ pospass0(lpf) = unmodulate : lpf, lpf : modulate with {
 // 	* lf1 = lfx + L0/N = dB-frequency at which level goes up from L0.
 //
 //  See `lowshelf_other_freq`.
+//
+// #### References
+// See "Parametric Equalizers" above for references regarding
+// `low_shelf`, `high_shelf`, and `peak_eq`.
+//
 //--------------------------------------------------------------
 declare lowshelf author "Julius O. Smith III";
 declare lowshelf copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
@@ -27214,6 +27221,11 @@ lowshelf_other_freq(N, L0, fx) = ba.db2linear(ba.linear2db(fx) + L0/N); // conve
 //
 // The gain at dc is constrained to be 1.
 // See `lowshelf` documentation above for more details on shelf shape.
+//
+// #### References
+// See "Parametric Equalizers" above for references regarding
+// `low_shelf`, `high_shelf`, and `peak_eq`.
+//
 //--------------------------------------------------------------
 declare highshelf author "Julius O. Smith III";
 declare highshelf copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
@@ -27255,6 +27267,11 @@ highshelf_other_freq(N, Lpi, fx) = ba.db2linear(ba.linear2db(fx) - Lpi/N);
 // * `Lfx`: level (dB) at fx (boost Lfx>0 or cut Lfx<0)
 // * `fx`: peak frequency (Hz)
 // * `B`: bandwidth (B) of peak in Hz
+//
+// #### References
+// See "Parametric Equalizers" above for references regarding
+// `low_shelf`, `high_shelf`, and `peak_eq`.
+//
 //--------------------------------------------------------------
 declare peak_eq author "Julius O. Smith III";
 declare peak_eq copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
@@ -27284,6 +27301,11 @@ peak_eq(Lfx,fx,B) = tf2s(1,b1s,1,a1s,1,wx) with {
 // * `Lfx`: level (dB) at fx
 // * `fx`: boost or cut frequency (Hz)
 // * `Q`: "Quality factor" = fx/B where B = bandwidth of peak in Hz
+//
+// #### References
+// See "Parametric Equalizers" above for references regarding
+// `low_shelf`, `high_shelf`, and `peak_eq`.
+//
 //------------------------------------------------------------
 declare peak_eq_cq author "Julius O. Smith III";
 declare peak_eq_cq copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
@@ -27310,6 +27332,9 @@ peak_eq_cq(Lfx,fx,Q) = peak_eq(Lfx,fx,fx/Q);
 // P.A. Regalia, S.K. Mitra, and P.P. Vaidyanathan,
 // "The Digital All-Pass Filter: A Versatile Signal Processing Building Block"
 // Proceedings of the IEEE, 76(1):19-37, Jan. 1988.  (See pp. 29-30.)
+// See also "Parametric Equalizers" above for references on shelf
+// and peaking equalizers in general.
+//
 //------------------------------------------------------------
 declare peak_eq_rm author "Julius O. Smith III";
 declare peak_eq_rm copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
@@ -27996,7 +28021,7 @@ smoo = si.smooth(1 - 44.1 / ma.SR);
 // #### Usage
 //
 // ```
-// hslider(...) : polySmooth(g,s,d) : _
+// hslider(...) : si.polySmooth(g,s,d) : _
 // ```
 //
 // Where:
@@ -28006,7 +28031,7 @@ smoo = si.smooth(1 - 44.1 / ma.SR);
 // * `d`: the number of samples to wait before the signal start being
 // 		smoothed after `g` switched to 1
 //-------------------------------------------------------------------
-polySmooth(g,s,d) = smooth(s*((g==(g@d)) | (g == 0)));
+polySmooth(g,s,d) = si.smooth(s*((g==(g@d)) | (g == 0)));
 
 //-----------------------`(si.)smoothAndH`--------------------------------
 // A smoothing function based on `smooth` that holds its output
@@ -28025,7 +28050,7 @@ polySmooth(g,s,d) = smooth(s*((g==(g@d)) | (g == 0)));
 // * `g`: the hold signal (0 for hold, 1 for bypass)
 // * `s`: the smoothness (see `smooth`)
 //-------------------------------------------------------------------
-smoothAndH(t,s) = smooth(s*t) : ba.sAndH(t);
+smoothAndH(t,s) = si.smooth(s*t) : ba.sAndH(t);
 
 //-----------------------------`(si.)bsmooth`------------------------------
 // Block smooth linear interpolation during a block of samples.
@@ -28079,7 +28104,7 @@ Michon and Julius O. Smith III, and are released under the
 // #### Usage:
 //
 // ```
-// _ : smooth(tau2pole(tau)) : _
+// _ : si.smooth(ba.tau2pole(tau)) : _
 // ```
 //
 // Where:
@@ -28087,7 +28112,7 @@ Michon and Julius O. Smith III, and are released under the
 // * `tau`: desired smoothing time constant in seconds, or
 //
 // ```
-// hslider(...) : smooth(s) : _
+// hslider(...) : si.smooth(s) : _
 // ```
 //
 // Where:
@@ -28571,13 +28596,12 @@ with{
     noteRatio(n,oct) = _ <: (ba.take(n,nl)<=((_/oct)/rf))*findValue(n,oct)+
                             (ba.take(n,nl)>((_/oct)/rf))*(noteRatio(n-1,oct));
 
-    findValue(n,oct) =  _<: (n<nN)*
+    findValue(n,oct) = _<: (n<nN)*
             (((_/oct)/rf)-ba.take(n,nl))/((ba.take(min(n+1,nN)-(n==nN),nl)-ba.take(n,nl)))
                     +(n==nN)*
             (((_/oct)/rf)-ba.take(n,nl))/(2-ba.take(n,nl)):       
             qSmooth :  //smoothing curve
-            _*(
-                (n<nN)*(ba.take(min(n+1,nN)-(n==nN),nl)-ba.take(n,nl))+
+            _*((n<nN)*(ba.take(min(n+1,nN)-(n==nN),nl)-ba.take(n,nl))+
                 (n==nN)*(2-ba.take(n,nl))
             )+ba.take(n,nl);
 };
@@ -28597,6 +28621,7 @@ with{
 //-------------------------------------------------------------
 ionian = (1,pow(2,2/12),pow(2,4/12),pow(2,5/12),pow(2,7/12),pow(2,9/12),pow(2,11/12));
 
+
 //---------------------`(qu.)dorian`--------------------------
 // List of the frequency ratios of the notes of the dorian mode.
 //
@@ -28610,6 +28635,7 @@ ionian = (1,pow(2,2/12),pow(2,4/12),pow(2,5/12),pow(2,7/12),pow(2,9/12),pow(2,11
 // * `rf`: frequency of the root note of the scale.
 //-------------------------------------------------------------
 dorian = (1,pow(2,2/12),pow(2,3/12),pow(2,5/12),pow(2,7/12),pow(2,8/12),pow(2,10/12));
+
 
 //---------------------`(qu.)phrygian`--------------------------
 // List of the frequency ratios of the notes of the phrygian mode.
@@ -28625,6 +28651,7 @@ dorian = (1,pow(2,2/12),pow(2,3/12),pow(2,5/12),pow(2,7/12),pow(2,8/12),pow(2,10
 //-------------------------------------------------------------
 phrygian = (1,pow(2,1/12),pow(2,3/12),pow(2,5/12),pow(2,7/12),pow(2,8/12),pow(2,10/12));
 
+
 //---------------------`(qu.)lydian`--------------------------
 // List of the frequency ratios of the notes of the lydian mode.
 //
@@ -28638,6 +28665,7 @@ phrygian = (1,pow(2,1/12),pow(2,3/12),pow(2,5/12),pow(2,7/12),pow(2,8/12),pow(2,
 // * `rf`: frequency of the root note of the scale.
 //-------------------------------------------------------------
 lydian = (1,pow(2,2/12),pow(2,4/12),pow(2,6/12),pow(2,7/12),pow(2,9/12),pow(2,11/12));
+
 
 //---------------------`(qu.)mixo`--------------------------
 // List of the frequency ratios of the notes of the mixolydian mode.
@@ -28653,6 +28681,7 @@ lydian = (1,pow(2,2/12),pow(2,4/12),pow(2,6/12),pow(2,7/12),pow(2,9/12),pow(2,11
 //-------------------------------------------------------------
 mixo = (1,pow(2,2/12),pow(2,4/12),pow(2,5/12),pow(2,7/12),pow(2,9/12),pow(2,10/12));
 
+
 //---------------------`(qu.)eolian`--------------------------
 // List of the frequency ratios of the notes of the eolian mode.
 //
@@ -28666,6 +28695,7 @@ mixo = (1,pow(2,2/12),pow(2,4/12),pow(2,5/12),pow(2,7/12),pow(2,9/12),pow(2,10/1
 // * `rf`: frequency of the root note of the scale.
 //-------------------------------------------------------------
 eolian = (1,pow(2,2/12),pow(2,3/12),pow(2,5/12),pow(2,7/12),pow(2,8/12),pow(2,10/12));
+
 
 //---------------------`(qu.)locrian`--------------------------
 // List of the frequency ratios of the notes of the locrian mode.
@@ -28741,6 +28771,7 @@ natural = (1,9/8,5/4,4/3,3/2,5/3,15/8);
 //-------------------------------------------------------------
 dodeca = (1,pow(2,1/12),pow(2,2/12),pow(2,3/12),pow(2,4/12),pow(2,5/12),pow(2,6/12),pow(2,7/12),pow(2,8/12),pow(2,9/12),pow(2,10/12),pow(2,11/12));
 
+
 //---------------------`(qu.)dimin`--------------------------
 // List of the frequency ratios of the notes of the diminished scale.
 //
@@ -28754,6 +28785,7 @@ dodeca = (1,pow(2,1/12),pow(2,2/12),pow(2,3/12),pow(2,4/12),pow(2,5/12),pow(2,6/
 // * `rf`: frequency of the root note of the scale.
 //-------------------------------------------------------------
 dimin = (1,pow(2,1/12),pow(2,3/12),pow(2,4/12),pow(2,6/12),pow(2,7/12),pow(2,9/12),pow(2,10/12));
+
 
 //---------------------`(qu.)penta`--------------------------
 // List of the frequency ratios of the notes of the minor pentatonic scale.
@@ -29653,6 +29685,7 @@ declare version "0.3";
 ba = library("basics.lib");
 ro = library("routes.lib");
 ma = library("maths.lib");
+si = library("signals.lib");
 
 reset(trig) = (trig-trig') <= 0;
  
@@ -29945,6 +29978,145 @@ with {
                     interpolator_cubic(gen, idv),
                     interpolator_null(gen, idv));
 };
+
+// ---------- `(it.)lagrange_h(N)` ---------------------------------------------
+//
+// Function to generate N + 1 coefficients for an Nth-order Lagrange
+// interpolation filter for an index between 0 and N.
+//
+// #### Usage
+//
+// ```
+// lagrange_h(N, idx) : si.bus(N);
+// ```
+//
+// Where:
+//
+// * `N`: order of the interpolation filter, known at compile-time;
+// * `idx`: a fractional index between 0 and N.
+//
+// Reference:
+//      https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html.
+//
+declare lagrange_h author "Dario Sanfilippo";
+declare lagrange_h copyright "Copyright (C) 2021 Dario Sanfilippo
+    <sanfilippo.dario@gmail.com>";
+declare lagrange_h license "LGPL v3.0 license";
+lagrange_h(N, idx) = par(n, N + 1, prod(k, N + 1, f(n, k)))
+    with {
+        f(n, k) = ((idx - k) * (n != k) + (n == k)) / ((n - k) + (n == k));
+    };
+// -----------------------------------------------------------------------------
+
+// ---------- `(it.)lagrangeN(N)` ----------------------------------------------
+//
+// Nth-order Lagrange interpolator to interpolate between a set of N + 1 points.
+//
+// #### Usage
+//
+// ```
+// lagrangeN(N, idx, si.bus(N + 1)) : _;
+// ```
+//
+// Where:
+//
+// * `N`: order of the interpolator, known at compile-time;
+// * `idx`: a fractional index between 0 and N to interpolate between a set
+//      of N + 1 points being crossed at positions 0, 1, 2, ..., N.
+//
+// Reference:
+//      https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html.
+//
+// Example: find the centre position of a set of four points using an order-3
+// Lagrange function fitting the four points [2, 5, -1, 3]:
+//
+// N = 3;
+// process = lagrangeN(N, N / 2, 2, 5, -1, 3);
+//
+// which outputs ~1.938.
+//
+declare lagrangeN author "Dario Sanfilippo";
+declare lagrangeN copyright "Copyright (C) 2021 Dario Sanfilippo
+    <sanfilippo.dario@gmail.com>";
+declare lagrangeN license "LGPL v3.0 license";
+lagrangeN(N, idx) = si.dot(N + 1, lagrange_h(N, idx));
+// -----------------------------------------------------------------------------
+
+// ---------- `(it.)frdtable(N, S)` --------------------------------------------
+//
+// Look-up circular table with Nth-order Lagrange interpolation for fractional
+// indexes. The index is wrapped-around and the table is cycles for an index
+// span of size S, which is the table size in samples.
+//
+// #### Usage
+//
+// ```
+// frdtable(N, S, init, idx) : _;
+// ```
+//
+// Where:
+//
+// * `N`: Lagrange interpolation order, known at compile-time;
+// * `S`: table size in samples, known at compile-time;
+// * `init`: signal for table initialisation;
+// * `idx`: fractional index wrapped-around 0 and S.
+//
+// Example: test the effectiveness of the 5th-order interpolation scheme by 
+// creating a table look-up oscillator using only 16 points of a sinewave; 
+// compare the result with a non-interpolated version.
+//
+// N = 5;
+// S = 16;
+// index = os.phasor(S, 1000);
+// process =    rdtable(S, os.sinwaveform(S), int(index)) ,
+//              frdtable(N, S, os.sinwaveform(S), index);
+//
+declare frdtable author "Dario Sanfilippo";
+declare frdtable copyright "Copyright (C) 2021 Dario Sanfilippo
+    <sanfilippo.dario@gmail.com>";
+declare frdtable license "LGPL v3.0 license";
+frdtable(N, S, init, idx) =
+    lagrangeN(N, f_idx, par(i, N + 1, table(i_idx - int(N / 2) + i)))
+    with {
+        table(j) = rdtable(S, init, int(ma.modulo(j, S)));
+        f_idx = ma.frac(idx) + int(N / 2);
+        i_idx = int(idx);
+    };
+// -----------------------------------------------------------------------------
+
+// ---------- `(it.)frwtable(N, S)` --------------------------------------------
+//
+// Look-up updatable circular table with Nth-order Lagrange interpolation for
+// fractional indexes. The index is wrapped-around and the table is circular
+// indexes ranging from 0 to S, which is the table size in samples.
+//
+// #### Usage
+//
+// ```
+// frwtable(N, S, init, w_idx, x, r_idx) : _;
+// ```
+//
+// Where:
+//
+// * `N`: Lagrange interpolation order, known at compile-time;
+// * `S`: table size in samples, known at compile-time;
+// * `init`: constant for table initialisation, known at compile-time;
+// * `w_idx`: it should be an INT between 0 and S - 1;
+// * `x`: input signal written on the w_idx positions;
+// * `r_idx`: fractional index wrapped-around 0 and S.
+//
+declare frwtable author "Dario Sanfilippo";
+declare frwtable copyright "Copyright (C) 2021 Dario Sanfilippo
+    <sanfilippo.dario@gmail.com>";
+declare frwtable license "LGPL v3.0 license";
+frwtable(N, S, init, w_idx, x, r_idx) =
+    lagrangeN(N, f_idx, par(i, N + 1, table(i_idx - int(N / 2) + i)))
+    with {
+        table(j) = rwtable(S, init, w_idx, x, int(ma.modulo(j, S)));
+        f_idx = ma.frac(r_idx) + int(N / 2);
+        i_idx = int(r_idx);
+    };
+// -----------------------------------------------------------------------------
 //#################################### demos.lib ##########################################
 // This library contains a set of demo functions based on examples located in the
 // `/examples` folder. Its official prefix is `dm`.
@@ -30028,7 +30200,9 @@ Michon and Julius O. Smith III, and are released under the
 // _ : spectral_level_demo : _; // 2/3 octave
 // ```
 //------------------------------------------------------------
+// Author: Julius Smith
 // Coauthor: Yann Orlarey
+// License: MIT
 mth_octave_spectral_level_demo(BPO) =  an.mth_octave_spectral_level_default(M,ftop,N,tau,dB_offset)
 with{
 	M = BPO;
@@ -30060,6 +30234,8 @@ spectral_level_demo = mth_octave_spectral_level_demo(1.5); // 2/3 octave
 // _ : parametric_eq_demo : _ ;
 // ```
 //------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 parametric_eq_demo = fi.low_shelf(LL,FL) : fi.peak_eq(LP,FP,BP) : fi.high_shelf(LH,FH)
 with{
 	eq_group(x) = hgroup("[0] PARAMETRIC EQ SECTIONS [tooltip: See Faust's filters.lib
@@ -30107,6 +30283,8 @@ with{
 //
 // All other parameters interactive
 //------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 spectral_tilt_demo(N) = fi.spectral_tilt(O,f0,bw,alpha)
 with{
 	O = N;
@@ -30128,7 +30306,7 @@ with{
 //
 // Where:
 //
-// * `N`: number of bands per octave
+// * `M`: number of bands per octave
 //--------------------------------------------------------------
 mth_octave_filterbank_demo(O) = bp1(bp,mthoctavefilterbankdemo)
 with{
@@ -30164,6 +30342,8 @@ filterbank_demo = mth_octave_filterbank_demo(1); // octave-bands = default
 // _ : cubicnl_demo : _;
 // ```
 //------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 cubicnl_demo = ba.bypass1(bp, ef.cubicnl_nodc(drive:si.smoo,offset:si.smoo))
 with{
 	cnl_group(x)  = vgroup("CUBIC NONLINEARITY cubicnl [tooltip: Reference:
@@ -30186,6 +30366,8 @@ with{
 // _,_ : gate_demo : _,_;
 // ```
 //------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 gate_demo = ba.bypass2(gbp,gate_stereo_demo)
 with{
 	gate_group(x) = vgroup("GATE  [tooltip: Reference:
@@ -30233,6 +30415,8 @@ with{
 // _,_ : compressor_demo : _,_;
 // ```
 //------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 compressor_demo = ba.bypass2(cbp,compressor_stereo_demo)
 with{
 	comp_group(x) = vgroup("COMPRESSOR [tooltip: Reference:
@@ -30293,6 +30477,8 @@ with{
 // _ : moog_vcf_demo : _;
 // ```
 //------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 moog_vcf_demo = ba.bypass1(bp,vcf)
 with{
 	mvcf_group(x) = hgroup("MOOG VCF (Voltage Controlled Filter) [tooltip: See Faust's
@@ -30333,6 +30519,8 @@ with{
 // _ : wah4_demo : _;
 // ```
 //------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 wah4_demo = ba.bypass1(bp, ve.wah4(fr))
 with{
 	wah4_group(x) = hgroup("WAH4 [tooltip: Fourth-order wah effect made using moog_vcf]", x);
@@ -30344,7 +30532,6 @@ with{
 	// Also, avoid very high resonance frequencies (e.g., 5kHz or above).
 };
 
-
 //-------------------------`(dm.)crybaby_demo`---------------------------
 // Crybaby effect application.
 //
@@ -30354,6 +30541,8 @@ with{
 // _ : crybaby_demo : _ ;
 // ```
 //------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 crybaby_demo = ba.bypass1(bp, ve.crybaby(wah))
 with{
 	crybaby_group(x) = hgroup("CRYBABY [tooltip: Reference:
@@ -30364,7 +30553,6 @@ with{
 		0 (rocked back) and 1 (rocked forward)]",0.8,0,1,0.01));
 };
 
-
 //-------------------------`(dm.)flanger_demo`---------------------------
 // Flanger effect application.
 //
@@ -30374,6 +30562,8 @@ with{
 // _,_ : flanger_demo : _,_;
 // ```
 //------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 flanger_demo = ba.bypass2(fbp,flanger_stereo_demo)
 with{
 	flanger_group(x) = vgroup("FLANGER
@@ -30421,6 +30611,8 @@ with{
 // _,_ : phaser2_demo : _,_;
 // ```
 //------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 phaser2_demo = ba.bypass2(pbp,phaser2_stereo_demo)
 with{
 	phaser2_group(x) = vgroup("PHASER2 [tooltip: Reference:
@@ -30509,6 +30701,8 @@ with{
 // _ : stereo_reverb_tester : _
 // ```
 //------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 stereo_reverb_tester(revin_group,x,y) = reverb_tester(_)
 with {
 	reverb_tester(revin_group,x,y) = inx,iny with {
@@ -30554,6 +30748,8 @@ with {
 // * `bbso` = Butterworth band-split order / order of lowpass/highpass bandsplit
 //	used at each crossover freq / odd positive integer
 //------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 fdnrev0_demo(N,NB,BBSO) = stereo_reverb_tester(revin_group)
 	  <: re.fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl)
 	  :> *(gain),*(gain)
@@ -30606,8 +30802,6 @@ with{
 	// (can cause infinite loop:) with { db2linear(x) = pow(10, x/20.0); };
 };
 
-
-
 //---------------------------`(dm.)zita_rev_fdn_demo`------------------------------
 // Reverb demo application based on `zita_rev_fdn`.
 //
@@ -30617,6 +30811,8 @@ with{
 // si.bus(8) : zita_rev_fdn_demo : si.bus(8)
 // ```
 //------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 zita_rev_fdn_demo = re.zita_rev_fdn(f1,f2,t60dc,t60m,fsmax)
 with{
 	fsmax = 48000.0;
@@ -30646,6 +30842,8 @@ with{
 // _,_ : zita_light : _,_
 // ```
 //------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 zita_light = hgroup("Zita Light",(_,_ <: re.zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax),_,_ : 
 	out_eq,_,_ : dry_wet : out_level))
 with{
@@ -30697,6 +30895,8 @@ with{
 //
 // <http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html>
 //------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 zita_rev1 = _,_ <: re.zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax),_,_ : out_eq,_,_ :
 	dry_wet : out_level
 with{
@@ -30792,6 +30992,8 @@ with{
 // sawtooth_demo : _
 // ```
 //------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 sawtooth_demo = signal
 with{
 	osc_group(x) = vgroup("[0] SAWTOOTH OSCILLATOR [tooltip: See Faust's oscillators.lib
@@ -30837,6 +31039,8 @@ with{
 // virtual_analog_oscillator_demo : _
 // ```
 //------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 virtual_analog_oscillator_demo = signal
 with{
 	osc_group(x) = vgroup("[0] VIRTUAL ANALOG OSCILLATORS
@@ -30923,6 +31127,8 @@ with{
 // oscrs_demo : _
 // ```
 //-------------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 oscrs_demo = signal
 with{
 	osc_group(x) = vgroup("[0] SINE WAVE OSCILLATOR oscrs [tooltip: Sine oscillator based
@@ -30954,7 +31160,8 @@ oscr_demo = oscrs_demo; // synonym
 // velvet_noise_demo : _
 // ```
 //-------------------------------------------------------------------
-
+// Author: Julius Smith
+// License: MIT
 velvet_noise_demo = vn
 with{
 	amp = hslider("Amp [unit:dB]",-10,-70,10,0.1) : ba.db2linear;
@@ -30975,6 +31182,8 @@ with{
 // Octave:1> plot(faustout);
 // ```
 //-------------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 latch_demo = x, c, ba.latch(c,x) // plot(faustout) after faust2octave
 with{
 	f = float(ma.SR)/1000.0;
@@ -30995,6 +31204,8 @@ with{
 // Octave:1> plot(faustout);
 // ```
 //-------------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 envelopes_demo = gate <: _*1.1,envSE,envAR,envARFE,envARE,envASR,envADSR,envADSRE
 with{
 	gate = (1-(1@500)) + 0.5*(1@750-(1@1700)); // retrigger at 1/2 amp
@@ -31030,6 +31241,8 @@ with{
 //   ./fft_spectral_level_demo
 // ```
 //-------------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 fft_spectral_level_demo(N) =  an.rfft_spectral_level(N,tau,dB_offset)
 with{
 	ctl_group(x)  = hgroup("[1] FFT SPECTRUM ANALYZER CONTROLS", x);
@@ -31062,6 +31275,8 @@ with{
 // Etc.
 // ```
 //-------------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 reverse_echo_demo(nChans) =  ef.reverseEchoN(nChans,delMax) : ef.uniformPanToStereo(nChans) 
 with {
 	delMax = 2^int(nentry("Log2(Delay)",15,5,16,1)); // delay line length
@@ -31098,6 +31313,8 @@ with {
 // Etc.
 // ```
 //-------------------------------------------------------------------
+// Author: Julius Smith
+// License: MIT
 pospass_demo(x) = analytic_signal, modulator : si.cmul with {
   N = 6; // pospass filter order
   fc = ma.SR/(2*N); // guard-band for filter roll-off
@@ -35833,6 +36050,7 @@ E = 2.71828182845904523536;
 singleprecision EPSILON = 1.192092896e-07;
 doubleprecision EPSILON = 2.2204460492503131e-016;
 quadprecision EPSILON = 2.2204460492503131e-016;
+fixedpointprecision EPSILON = 2.2204460492503131e-016;
 
 
 //---------------------------------`(ma.)MIN`---------------------------------------
@@ -35847,6 +36065,7 @@ quadprecision EPSILON = 2.2204460492503131e-016;
 singleprecision MIN = 1.175494351e-38;
 doubleprecision MIN = 2.2250738585072014e-308;
 quadprecision MIN = 2.2250738585072014e-308;
+fixedpointprecision MIN = 2.2250738585072014e-308;
 
 
 //---------------------------------`(ma.)INFINITY`------------------------------
@@ -35861,6 +36080,7 @@ quadprecision MIN = 2.2250738585072014e-308;
 singleprecision INFINITY = 3.402823466e+38;
 doubleprecision INFINITY = 1.7976931348623158e+308;
 quadprecision INFINITY = 1.7976931348623158e+308;
+fixedpointprecision INFINITY = 1.7976931348623158e+308;
 
 
 //---------------------------------`(ma.)FTZ`---------------------------------------
