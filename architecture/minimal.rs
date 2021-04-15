@@ -56,8 +56,6 @@ pub trait FaustDsp {
     fn get_sample_rate(&self) -> i32;
     fn get_num_inputs(&self) -> i32;
     fn get_num_outputs(&self) -> i32;
-    fn get_input_rate(&self, channel: i32) -> i32;
-    fn get_output_rate(&self, channel: i32) -> i32;
     fn class_init(sample_rate: i32) where Self: Sized;
     fn instance_reset_params(&mut self);
     fn instance_clear(&mut self);
