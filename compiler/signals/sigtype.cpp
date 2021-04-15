@@ -38,7 +38,7 @@ bool SimpleType::isMaximal() const  ///< true when type is maximal (and therefor
 
 //------------------------------------------------------------------------------------
 //
-//		Surcharges de l'operateur d'impression <<
+//		Overloading << printing operator
 //
 //------------------------------------------------------------------------------------
 
@@ -64,7 +64,7 @@ ostream& operator<<(ostream& dst, const TupletType& t)
 
 //------------------------------------------------------------------------------------
 //
-//		Definition des methodes d'impression
+//		Print method definition
 //
 //------------------------------------------------------------------------------------
 
@@ -88,7 +88,7 @@ ostream& TableType::print(ostream& dst) const
 }
 
 /**
- *  true when type is maximal (and therefore can't change depending of hypothesis)
+ *  True when type is maximal (and therefore can't change depending of hypothesis)
  */
 bool TableType::isMaximal() const
 {
@@ -111,7 +111,7 @@ ostream& TupletType::print(ostream& dst) const
 }
 
 /**
- *  true when type is maximal (and therefore can't change depending of hypothesis)
+ *  True when type is maximal (and therefore can't change depending of hypothesis)
  */
 bool TupletType::isMaximal() const
 {
@@ -123,7 +123,7 @@ bool TupletType::isMaximal() const
 
 //------------------------------------------------------------------------------------
 //
-//		Construction des types
+//		Types constructions
 // 		t := p, table(t), t|t, t*t
 //
 //------------------------------------------------------------------------------------
@@ -232,11 +232,11 @@ TupletType* isTupletType(AudioType* t)
 }
 
 //--------------------------------------------------
-// verification de type
+// Type checking
 
 Type checkInt(Type t)
 {
-    // verifie que t est entier
+    // check that t is an integer
     SimpleType* st = isSimpleType(t);
     if (st == 0 || st->nature() > kInt) {
         stringstream error;
@@ -248,7 +248,7 @@ Type checkInt(Type t)
 
 Type checkKonst(Type t)
 {
-    // verifie que t est constant
+    // check that t is a constant
     if (t->variability() > kKonst) {
         stringstream error;
         error << "ERROR : checkKonst failed for type " << t << endl;
@@ -259,7 +259,7 @@ Type checkKonst(Type t)
 
 Type checkInit(Type t)
 {
-    // verifie que t est connu a l'initialisation
+    // check that t is a known at init time
     if (t->computability() > kInit) {
         stringstream error;
         error << "ERROR : checkInit failed for type " << t << endl;
@@ -275,7 +275,7 @@ Type checkIntParam(Type t)
 
 Type checkWRTbl(Type tbl, Type wr)
 {
-    // verifie que wr est compatible avec le contenu de tbl
+    // check that wr is compatible with tbl content
     if (wr->nature() > tbl->nature()) {
         stringstream error;
         error << "ERROR : checkWRTbl failed, the content of " << tbl << " is incompatible with " << wr << endl;
@@ -301,7 +301,7 @@ int checkDelayInterval(Type t)
     }
 }
 
-// Donne le nom du type C correspondant a la nature d'un signal
+// Give the name of C type, corresponding to signal nature
 string old_cType(Type t)
 {
     return (t->nature() == kInt) ? "int" : "float";
@@ -395,7 +395,6 @@ AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i
 /**
  * Code a table type as a tree in order to benefit of memoization
  */
-
 static Tree codeTableType(TableType* tt)
 {
     return tree(gGlobal->TABLETYPE, codeAudioType(tt->content()));
@@ -454,7 +453,6 @@ AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec)
 /**
  * Code a tuplet type as a tree in order to benefit of memoization
  */
-
 static Tree codeTupletType(TupletType* nt)
 {
     vector<Tree> elems;

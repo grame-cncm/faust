@@ -326,7 +326,7 @@ Tree sigFloatCast(Tree t)
     return tree(gGlobal->SIGFLOATCAST, t);
 }
 
-// Tree  sigFloatCast(Tree t)						{ return isSigFloatCast(t)? t : tree(gGlobal->SIGFLOATCAST, t); }
+// Tree sigFloatCast(Tree t) { return isSigFloatCast(t)? t : tree(gGlobal->SIGFLOATCAST, t); }
 
 bool isSigIntCast(Tree t)
 {

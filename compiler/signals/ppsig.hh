@@ -23,8 +23,7 @@
 #define _PPSIG_H
 
 /**********************************************************************
-            - ppsig.h : pretty print signals expressions (projet FAUST) -
-
+        - ppsig.h : pretty print signals expressions (projet FAUST) -
 
         Historique :
         -----------

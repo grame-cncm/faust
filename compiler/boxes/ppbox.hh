@@ -23,7 +23,7 @@
 #define _PPBOX_H
 
 /**********************************************************************
-            - ppbox.h : pretty print box expressions (projet FAUST) -
+        - ppbox.h : pretty print box expressions (projet FAUST) -
 
 
         Historique :

@@ -25,7 +25,7 @@
 #include "sigtype.hh"
 #include "sigtyperules.hh"
 
-// imprime le type d'un signal en clair
+// Print the signal type
 #if 0
 void printSigType(Tree tp)
 {

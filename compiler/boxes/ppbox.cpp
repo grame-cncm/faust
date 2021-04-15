@@ -113,7 +113,7 @@ static void printRule(ostream &fout, Tree rule)
 }
 
 /*****************************************************************************
-     affichage d'une expression box comme en entree
+     Convert type as a string
 *****************************************************************************/
 
 static string type2str(int type)
@@ -369,7 +369,7 @@ ostream &boxpp::print(ostream &fout) const
 }
 
 /*****************************************************************************
-     affichage d'un environnement
+     Environment printing
 *****************************************************************************/
 
 ostream &envpp::print(ostream &fout) const

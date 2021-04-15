@@ -140,8 +140,6 @@ ostream& ppsig::printFixDelay(ostream& fout, Tree exp, Tree delay) const
     return fout;
 }
 
-//	else if ( isSigFixDelay(sig, x, y) ) 			{ printinfix(fout, "@", 8, x, y); 	}
-
 ostream& ppsig::printrec(ostream& fout, Tree var, Tree lexp, bool hide) const
 {
     if (isElement(var, fEnv)) {

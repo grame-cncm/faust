@@ -25,7 +25,7 @@
 #include "sigtype.hh"
 #include "tlib.hh"
 
-// fonction de gestion des foreign functions (ffun) dans FAUST (fonctions C externes)
+// Foreign functions management functions (ffun) (external C functions)
 
 Tree ffunction(Tree signature, Tree incfile, Tree libfile);
 

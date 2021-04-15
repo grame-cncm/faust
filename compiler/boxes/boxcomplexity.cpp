@@ -23,7 +23,7 @@
  * Implement complexity computation for box diagrams.
  */
 
-// construction des representations graphiques
+// Build graphical representation
 
 #include "boxcomplexity.hh"
 #include <ostream>
@@ -184,7 +184,7 @@ int computeBoxComplexity(Tree box)
     else if (isBoxRoute(box, t1, t2, t3))
         return 0;
 
-    // a completer
+    // to complete
     else {
         // fout << tree2str(box);
         stringstream error;

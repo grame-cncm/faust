@@ -46,7 +46,7 @@
  **********************************************************************/
 
 //--------------------------------------------------
-// qualite des types simples
+// simple types quality
 
 enum { kInt = 0, kReal = 1 };  ///< nature : integer or floating point values
 enum {
@@ -59,8 +59,8 @@ enum {
     kVect     = 0,
     kScal     = 1,
     kTrueScal = 3 /*, kIndex = 4*/
-};  ///< vectorability: when a signal can be vectorized ( actually, only kVect and kScal matter; kTrueScal and kIndex
-    ///< don't denote types but are here to simplify code generation )
+};  ///< vectorability: when a signal can be vectorized (actually, only kVect and kScal matter; kTrueScal and kIndex
+    ///< don't denote types but are here to simplify code generation)
 
 /*---------------------------------------------------------------------
 
@@ -94,7 +94,7 @@ class AudioType : public virtual Garbageable {
     int fBoolean;        ///< when a signal stands for a boolean value
 
     interval fInterval;  ///< Minimal and maximal values the signal can take
-    res   fRes;       ///< Resolution (fixed-point)
+    res      fRes;       ///< Resolution (fixed-point)
     Tree     fCode;      ///< Tree representation (for memoization purposes)
 
    public:
@@ -518,15 +518,15 @@ ostream& operator<<(ostream& dst, const TupletType& t);
 //--------------------------------------------------
 // verification de type
 
-Type checkInt(Type t);    ///< verifie que t est entier
-Type checkKonst(Type t);  ///< verifie que t est constant
-Type checkInit(Type t);   ///< verifie que t est connu a l'initialisation
+Type checkInt(Type t);    ///< check that t is an integer
+Type checkKonst(Type t);  ///< check that t is a constant
+Type checkInit(Type t);   ///< check that t is a known at init time
 
-Type checkIntParam(Type t);  ///< verifie que t est connu a l'initialisation, constant et entier
+Type checkIntParam(Type t);  ///< check that t is a known at init time, constant and an integer
 
-Type checkWRTbl(Type tbl, Type wr);  ///< verifie que wr est compatible avec le contenu de tbl
+Type checkWRTbl(Type tbl, Type wr);  ///< check that wr is compatible with tbl content
 
-int checkDelayInterval(Type t);  ///< Check if the interval of t is appropriate for a delay
+int checkDelayInterval(Type t);      ///< check if the interval of t is appropriate for a delay
 
 //--------------------------------------------------
 // Type conversion

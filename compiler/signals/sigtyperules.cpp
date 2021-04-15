@@ -577,7 +577,7 @@ static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig)
 {
     checkKonst(checkInt(checkInit(size)));
 
-    Type temp = init->promoteVariability(kSamp)  // difficult to tell, therefore kSamp to be safe
+    Type temp = init->promoteVariability(kSamp)        // difficult to tell, therefore kSamp to be safe
                     ->promoteComputability(widx->computability() | wsig->computability())
                     ->promoteVectorability(kScal)      // difficult to tell, therefore kScal to be safe
                     ->promoteNature(wsig->nature())    // nature of the initial and written signal
@@ -625,10 +625,10 @@ static Type infereRecType(Tree sig, Tree body, Tree env)
  */
 static Type infereFFType(Tree ff, Tree ls, Tree env)
 {
-    // une primitive externe ne peut pas se calculer au plus tot qu'a
-    // l'initialisation. Sa variabilite depend de celle de ses arguments
-    // sauf si elle n'en pas, auquel cas on considere que c'est comme
-    // rand() c'est a dire que le resultat varie a chaque appel.
+    // An external primitive can't be computed earlier than at initialization.
+    // Its variability depends on the variability of its arguments unless it has no arguments,
+    // in which case it is considered as rand(), i.e. the result varies at each call.
+    
     if (ffarity(ff) == 0) {
         // case of functions like rand()
         return makeSimpleType(ffrestype(ff), kSamp, kInit, kVect, kNum, interval());
@@ -641,8 +641,6 @@ static Type infereFFType(Tree ff, Tree ls, Tree env)
             ls = tl(ls);
         }
         // but the result type is defined by the function
-
-        // return t;
         return makeSimpleType(ffrestype(ff), t->variability(), t->computability(), t->vectorability(), t->boolean(),
                               interval());
     }
@@ -653,9 +651,8 @@ static Type infereFFType(Tree ff, Tree ls, Tree env)
  */
 static Type infereFConstType(Tree type)
 {
-    // une constante externe ne peut pas se calculer au plus tot qu'a
-    // l'initialisation. Elle est constante, auquel cas on considere que c'est comme
-    // rand() c'est a dire que le resultat varie a chaque appel.
+    // An external constant cannot be calculated at the earliest possible time the initialization.
+    // It is constant, in which case it is considered a rand() i.e. the result varies at each call.
     return makeSimpleType(tree2int(type), kKonst, kInit, kVect, kNum, interval());
 }
 
@@ -664,8 +661,8 @@ static Type infereFConstType(Tree type)
  */
 static Type infereFVarType(Tree type)
 {
-    // une variable externe ne peut pas se calculer au plus tot qu'a
-    // l'execution. Elle varie par blocs comme les éléments d'interface utilisateur.
+    // An external variable cannot be calculated as soon as it is executed.
+    // It varies by blocks like the user interface elements.
     return makeSimpleType(tree2int(type), kBlock, kExec, kVect, kNum, interval());
 }
 

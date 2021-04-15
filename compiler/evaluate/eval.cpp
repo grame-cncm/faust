@@ -228,7 +228,7 @@ bool getArgName(Tree t, Tree& id)
 }
 
 /**
- * set the value of box in the environment env
+ * Set the value of box in the environment env
  * @param box the block diagram we have evaluated
  * @param env the evaluation environment
  * @param value the evaluated block diagram
@@ -239,7 +239,7 @@ void setEvalProperty(Tree box, Tree env, Tree value)
 }
 
 /**
- * retrieve the value of box in the environment env
+ * Retrieve the value of box in the environment env
  * @param box the expression we want to retrieve the value
  * @param env the lexical environment
  * @param value the returned value if any
@@ -1051,7 +1051,7 @@ static bool boxlistOutputs(Tree boxlist, int* outputs)
 #endif
 
 /**
- * repeat n times a wire
+ * Repeat a wire n times
  */
 static Tree nwires(int n)
 {
@@ -1412,7 +1412,7 @@ static Tree vec2list(const vector<Tree>& v)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// further simplification : replace bloc-diagrams that denote constant number by this number
+// Further simplification : replace bloc-diagrams that denote constant number by this number
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static Tree numericBoxSimplification(Tree box);

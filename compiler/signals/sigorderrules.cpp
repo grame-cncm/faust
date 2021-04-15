@@ -49,7 +49,7 @@
 static int infereSigOrder(Tree sig);
 
 /**
- * retrieve the order annotation (between 0 and 3) of a signal.
+ * Retrieve the order annotation (between 0 and 3) of a signal.
  * (compute the order the first time). Orders have the following meanings
  *	0 : numbers
  *	1 : constants

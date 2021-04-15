@@ -114,7 +114,7 @@ static int annotate(Tree env, Tree sig)
 }
 
 /**
- * return the position of a signal in the current recursive environment
+ * Return the position of a signal in the current recursive environment
  * @param env the current recursive environment of the signal
  * @param t signal we want to know the position
  * @return the position in the recursive environment
@@ -131,7 +131,7 @@ static int position(Tree env, Tree t, int p)
 //-----------------------------------list recursive symbols-----------------------
 
 /**
- * return the set of recursive symbols appearing in a signal.
+ * Return the set of recursive symbols appearing in a signal.
  * @param sig the signal to analyze
  * @return the set of symbols
  */
