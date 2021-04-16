@@ -670,7 +670,7 @@ static bool processCmdline(int argc, const char* argv[])
 
     // Check options coherency
     if (gGlobal->gInPlace && gGlobal->gVectorSwitch) {
-        throw faustexception("ERROR : 'in-place' option can only be used in scalar mode\n");
+        throw faustexception("ERROR : '-inpl' option can only be used in scalar mode\n");
     }
     
 #if 0
@@ -730,6 +730,7 @@ static bool processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : '-dlt < INT_MAX' option can only be used in scalar mode and not with the 'ocpp' backend\n");
     }
     
+    // gComputeMix check
     if (gGlobal->gComputeMix && gGlobal->gOutputLang == "ocpp") {
         throw faustexception("ERROR : -cm cannot be used with the 'ocpp' backend\n");
     }
@@ -744,6 +745,10 @@ static bool processCmdline(int argc, const char* argv[])
     
     if (gGlobal->gFloatSize == 4 && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "ocpp" && gGlobal->gOutputLang != "c") {
         throw faustexception("ERROR : -fx can ony be used with 'c', 'cpp' or 'ocpp' backends\n");
+    }
+    
+    if (gGlobal->gMemoryManager && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "ocpp") {
+        throw faustexception("ERROR : -mem can ony be used with 'cpp' or 'ocpp' backends\n");
     }
     
     if (gGlobal->gArchFile != ""

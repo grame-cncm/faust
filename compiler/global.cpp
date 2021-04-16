@@ -596,13 +596,13 @@ static string printFloat()
 {
     switch (gGlobal->gFloatSize) {
         case 1:
-            return " -single";
+            return "-single ";
         case 2:
-            return " -double";
+            return "-double ";
         case 3:
-            return " -quad";
+            return "-quad ";
         case 4:
-            return " -fp";
+            return "-fp ";
         default:
             faustassert(false);
             return "";
@@ -636,12 +636,12 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     if (gSchedulerSwitch) dst << "-sch ";
     if (gOpenMPSwitch) dst << "-omp " << ((gOpenMPLoop) ? "-pl " : "");
     if (gVectorSwitch) {
-        dst << "-vec"
-            << " -lv " << gVectorLoopVariant << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
-            << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
-            << printFloat() << " -ftz " << gFTZMode << " -mcd " << gGlobal->gMaxCopyDelay;
+        dst << "-vec "
+            << "-lv " << gVectorLoopVariant << " " << "-vs " << gVecSize << " " << ((gFunTaskSwitch) ? "-fun " : "")
+            << ((gGroupTaskSwitch) ? "-g " : "") << ((gDeepFirstSwitch) ? "-dfs " : "")
+            << printFloat() << "-ftz " << gFTZMode << " " << "-mcd " << gGlobal->gMaxCopyDelay;
     } else {
-        dst << printFloat() << " -ftz " << gFTZMode;
+        dst << printFloat() << "-ftz " << gFTZMode;
     }
 
     // Add 'compile_options' metadata

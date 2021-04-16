@@ -47,9 +47,6 @@ CodeContainer* JAVACodeContainer::createContainer(const string& name, const stri
 {
     CodeContainer* container;
 
-    if (gGlobal->gMemoryManager) {
-        throw faustexception("ERROR : -mem not supported for Java\n");
-    }
     if (gGlobal->gFloatSize == 3) {
         throw faustexception("ERROR : quad format not supported for Java\n");
     }

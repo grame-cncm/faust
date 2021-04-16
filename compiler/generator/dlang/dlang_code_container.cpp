@@ -49,9 +49,6 @@ CodeContainer* DLangCodeContainer::createContainer(const string& name, const str
 {
     CodeContainer* container;
 
-    if (gGlobal->gMemoryManager) {
-        throw faustexception("ERROR : -mem not supported for D\n");
-    }
     if (gGlobal->gFloatSize == 3) {
         throw faustexception("ERROR : quad format not supported for D\n");
     }

@@ -48,9 +48,6 @@ CodeContainer* CSharpCodeContainer::createContainer(const string& name, const st
 {
     CodeContainer* container;
 
-    if (gGlobal->gMemoryManager) {
-        throw faustexception("ERROR : -mem not supported for CSharp\n");
-    }
     if (gGlobal->gFloatSize == 3) {
         throw faustexception("ERROR : quad format not supported for CSharp\n");
     }
