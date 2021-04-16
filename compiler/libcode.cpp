@@ -335,6 +335,14 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gOutputFile = argv[i + 1];
             i += 2;
 
+        } else if (isCmd(argv[i], "-wi", "--widening-iterations") && (i + 1 < argc)) {
+            gGlobal->gAgeLimit = std::atoi(argv[i+1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-wu", "--widening-up-iter") && (i + 1 < argc)){
+            gGlobal->gUpIter = std::atoi(argv[i+1]);
+            i += 2;
+
         } else if (isCmd(argv[i], "-ps", "--postscript")) {
             gGlobal->gDrawPSSwitch = true;
             i += 1;
@@ -653,12 +661,6 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gCheckTable = "cat";
             i += 1;
 
-        } else if (isCmd(argv[i], "--widening-iterations") && (i + 1 < argc)) {
-            gGlobal->gAgeLimit = std::atoi(argv[i+1]);
-            i += 2;
-        } else if (isCmd(argv[i], "--widening-up-iter") && (i + 1 < argc)){
-            gGlobal->gUpIter = std::atoi(argv[i+1]);
-            i += 2;
         } else if (isCmd(argv[i], "-lm", "--local-machine") || isCmd(argv[i], "-rm", "--remote-machine") ||
                    isCmd(argv[i], "-poly", "--polyphonic-mode") || isCmd(argv[i], "-voices", "--polyphonic-voices") ||
                    isCmd(argv[i], "-group", "--polyphonic-group")) {
@@ -967,6 +969,15 @@ static void printHelp()
          << "-mapp      --math-approximation         simpler/faster versions of 'floor/ceil/fmod/remainder' functions." << endl;
     cout << tab
          << "-ns <name> --namespace <name>           generate C++ or D code in a namespace <name>." << endl;
+
+    cout << tab
+         << "-wi <n> --widening-iterations <n>       number of iterations before widening in signal bounding"
+         << endl;
+
+    cout << tab
+         << "-wu <n> --widening-up-iter <n>          number of iterations to compute the widened in signal bounding"
+         << endl;
+
     cout << endl << "Block diagram options:" << line;
     cout << tab << "-ps        --postscript                 print block-diagram to a postscript file." << endl;
     cout << tab << "-svg       --svg                        print block-diagram to a svg file." << endl;
