@@ -78,6 +78,57 @@ static interval arithmetic(int opcode, const interval& x, const interval& y);
  */
 
 /**
+ * Do one step of type inference on the recursive signal groups of a signal
+ * The types of the recursive signals are updated to vtype and then vtype is updated to the next step
+ *
+ * @param vrec array of all the recursive signal groups
+ * @param vdef definitions of all the recursive signal groups (vector of _lists_)
+ * @param vdefSizes number of signals in each recursive signal groups
+ * @param vtype types of the recursive signals
+ * @param inter if set to false, the interval of the new type is the union of the old one and the computed one, otherwise it is the intersection
+ */
+
+void updateRecTypes(vector<Tree>& vrec, const vector<Tree>& vdef, const vector<int>& vdefSizes,
+                    vector<Type>& vtype, const bool inter)
+{
+    Type         newType;
+    vector<Type> newTuplet;
+    TupletType newRecType;
+    TupletType oldRecType;
+    interval newI;
+    interval oldI;
+
+    const int n = vdef.size();
+
+    CTree::startNewVisit();
+    
+    // init recursive types
+    for (int i = 0; i < n; i++) {
+        setSigType(vrec[i], vtype[i]);
+        cerr << i << "-" << *getSigType(vrec[i]) << endl;
+        vrec[i]->setVisited();
+    }
+
+    cerr << "compute recursive types" << endl;
+    for (int i = 0; i < n; i++) {
+        newType = T(vdef[i], gGlobal->NULLTYPEENV);
+        newTuplet.clear();
+        oldRecType = derefRecCert(getSigType(vrec[i]));
+        newRecType = derefRecCert(newType);
+
+        for (int j = 0; j < vdefSizes[i]; j++) {
+            newTuplet.push_back(newRecType[j]);
+            newI = newRecType[j]->getInterval();
+            oldI = oldRecType[j]->getInterval();
+            
+            newI = inter ? intersection(newI, oldI) : reunion(newI, oldI);
+            newTuplet[j] = newTuplet[j]->promoteInterval(newI);
+        }
+        vtype[i] = new TupletType(newTuplet);
+    }
+}
+
+/**
  * Fully annotate every subtree of term with type information.
  * @param sig the signal term tree to annotate
  * @param causality when true check causality issues
@@ -102,19 +153,14 @@ void typeAnnotation(Tree sig, bool causality)
     vector<vector<int>> vAgeMin;  ///< age of the minimum of every subsignal of the recursive signal
     vector<vector<int>> vAgeMax;  ///< age of the maximum of every subsignal of the recursive signal
 
-    // work variables used in type inference loops
+    // work variables used in widening loop
     
     Type newType;
-
     vector<Type> newTuplet;
-
     TupletType newRecType;
     TupletType oldRecType;
-
     interval newI;
     interval oldI;
-
-    // stuff for drawing (hide them in sth later)
 
     // cerr << "Symlist " << *sl << endl;
     for (Tree l = sl; isList(l); l = tl(l)) {
@@ -137,7 +183,7 @@ void typeAnnotation(Tree sig, bool causality)
         vtypeUp.push_back(maximalRecType(vdef[i]));
         vtype.push_back(initialRecType(vdef[i]));
     }
-    
+
     faustassert(int(vrec.size()) == n);
     faustassert(int(vdef.size()) == n);
     faustassert(int(vtype.size()) == n);
@@ -147,15 +193,7 @@ void typeAnnotation(Tree sig, bool causality)
     cerr << "compute upper bounds for recursive types" << endl;
 
     for (int k=0; k < gGlobal->gUpIter; k++) {
-        CTree::startNewVisit();
-        for (int i = 0; i < n; i++) {
-            setSigType(vrec[i], vtypeUp[i]);
-            cerr << i << "-" << *getSigType(vrec[i]) << endl;
-            vrec[i]->setVisited();
-        }
-        for (int i = 0; i < n; i++) {
-            vtypeUp[i] = T(vdef[i], gGlobal->NULLTYPEENV);
-        }
+        updateRecTypes(vrec, vdef, vdefSizes, vtypeUp, true);
     }
     
     for (auto ty : vtypeUp) {
@@ -165,46 +203,17 @@ void typeAnnotation(Tree sig, bool causality)
     cerr << "find an upperbound of the least fixpoint" << endl;
     
     while (!finished) {
-        CTree::startNewVisit();
-        
-        // init recursive types
-        for (int i = 0; i < n; i++) {
-            setSigType(vrec[i], vtype[i]);
-            cerr << i << "-" << *getSigType(vrec[i]) << endl;
-            vrec[i]->setVisited();
-        }
-        
-        cerr << "compute recursive types" << endl;
-        for (int i = 0; i < n; i++) {
-            newType = T(vdef[i], gGlobal->NULLTYPEENV);
-            newTuplet.clear();
-            oldRecType = derefRecCert(getSigType(vrec[i]));
-            newRecType = derefRecCert(newType);
-            
-            // ensure increasing intervals
-            for (int j = 0; j < vdefSizes[i]; j++) {
-                newTuplet.push_back(newRecType[j]);
-                newI = newRecType[j]->getInterval();
-                oldI = oldRecType[j]->getInterval();
-                TRACE(cerr << gGlobal->TABBER << "inspecting " << newTuplet[j] << endl;)
-                newI = reunion(newI, oldI);
-                newTuplet[j] = newTuplet[j]->promoteInterval(newI);
-            }
-            vtype[i] = new TupletType(newTuplet);
-        }
+        updateRecTypes(vrec, vdef, vdefSizes, vtype, false);
         
         // check finished
         finished = true;
         for (int i = 0; i < n; i++) {
             newTuplet.clear();
-            faustassert(!newTuplet.size());
-            newRecType = derefRecCert(vtype[i]);
-            oldRecType = derefRecCert(getSigType(vrec[i]));
-
-            // faustassert(newRecType.arity() == oldRecType.arity() && newRecType.arity() == vdefSizes[i]);
             cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] << endl;
             if (vtype[i] != getSigType(vrec[i])) {
                 finished = false;
+                newRecType = derefRecCert(vtype[i]);
+                oldRecType = derefRecCert(getSigType(vrec[i]));
                 for (int j = 0; j < vdefSizes[i]; j++) {
                     newTuplet.push_back(newRecType[j]);
                     newI = newRecType[j]->getInterval();
@@ -228,6 +237,7 @@ void typeAnnotation(Tree sig, bool causality)
                             newI.hi = vUp[i][j]->getInterval().hi;
                         }
                     }
+                    
                     newTuplet[j] = newTuplet[j]->promoteInterval(newI);
                     TRACE(cerr << gGlobal->TABBER << "widening ended : " << newTuplet[j] << endl;)
                 }
