@@ -26,6 +26,8 @@ You can use 'sudo make install' to install them.
 
 * `faust2jaqt <file.dsp>` : create JACK/QT application for each input file
 
+* `faust2juce <file.dsp>` : create JUCE Projucer project for each input file
+
 * `faust2ladspa <file.dsp>` : create a LADSPA plugin for each input file
 
 * `faust2lv2 <file.dsp>` : create an LV2 plugin for each input file

@@ -31,7 +31,12 @@ IS_LLVM="0"
 JUCE_POLY="0"
 FAUSTFLOAT="float"
 JUCER=""
+VST2_SDK=""  # The directory containing "plugininterfaces/vst2.x/aeffect.h"
+BUILD_VST2="0"  # By default, don't build VST2
 JUCE_MODULES_DIR="\.\.\/\.\.\/modules"  # By default, the generated folder is supposed to be copied in JUCE/examples folder
+PLUGIN_FORMATS="buildAU,buildAUv3,buildVST3"  # can append "buildStandalone" and "buildVST"
+PLUGIN_CHARACTERISTICS=""
+DISPLAY_SPLASH_SCREEN="1"
 
 while [ $1 ]
 do
@@ -47,7 +52,9 @@ do
         option "-effect <effect.dsp>"
         option "-effect auto"
         option -standalone "to produce a standalone project, otherwise a plugin project is generated"
+        option -"vst2sdkdir <folder>" "to set directory to VST 2 SDK."
         option -"jucemodulesdir <folder>" "to set JUCE modules directory to <folder>, such as ~/JUCE/modules"
+        option -disable-splash-screen "to disable the JUCE splash screen (license is required)."
         option -jsynth "to use JUCE polyphonic Synthesizer instead of Faust polyphonic code"
         option -llvm "to use the LLVM compilation chain (OSX and Linux for now)"
         exit
@@ -60,14 +67,24 @@ do
         NVOICES=$1
     elif [ $p = "-standalone" ]; then
         STANDALONE="1"
+        PLUGIN_FORMATS+=",buildstandalone"
     elif [ $p = "-effect" ]; then
         DEF+="POLY2 "
         POLY="POLY2"
         shift
         EFFECT=$1
+    elif [ $p = "-vst2sdkdir" ]; then
+        shift
+        VST2_SDK=$(echo $1 | sed -e 's/\//\\\//g')
+        if [ $VST2_SDK != "" ]; then
+            PLUGIN_FORMATS+=",buildVST"
+            BUILD_VST2="1"
+        fi
     elif [ $p = "-jucemodulesdir" ]; then
 	    shift
 	    JUCE_MODULES_DIR=$(echo $1 | sed -e 's/\//\\\//g')
+    elif [ $p = "-disable-splash-screen" ]; then
+        DISPLAY_SPLASH_SCREEN="0"
     elif [ $p = "-jsynth" ]; then
         DEF+="JUCE_POLY "
         JUCE_POLY="1"
@@ -122,8 +139,28 @@ if [ $POLY = "POLY2" ] && [ $JUCE_POLY = "1" ]; then
 fi
 
 #look for polyphonic "nvoices" metadata in the DSP file
+if [ $(cat $FILES | grep -c "nvoices:") ] || [ $(cat $FILES | grep -c "declare nvoices") ]
+then
+    # a variation of the string "nvoices" was found
+    IS_SYNTH="1"
+else
+    # "nvoices" was not found
+    IS_SYNTH="0"
+fi
 
 grep "declare nvoices" $FILES && IS_SYNTH="1" 2>/dev/null
+
+# Set PLUGIN_CHARACTERISTICS, and the order matters.
+if [ $IS_SYNTH = "1" ]; then
+    PLUGIN_CHARACTERISTICS+=",pluginIsSynth"
+fi
+if [ $IS_MIDI = "1" ]; then
+    PLUGIN_CHARACTERISTICS+=",pluginProducesMidiOut,pluginWantsMidiIn"
+fi
+# Don't allow PLUGIN_CHARACTERISTICS to start with a comma
+if [ ${PLUGIN_CHARACTERISTICS::1}="," ]; then
+    PLUGIN_CHARACTERISTICS="${PLUGIN_CHARACTERISTICS:1}"
+fi
 
 #-------------------------------------------------------------------
 # compile the *.dsp files
@@ -167,11 +204,24 @@ for p in $FILES; do
     # JUCE_MODULES_DIR
     sed -e "s/JUCE_MODULES_DIR_DEFAULT/$JUCE_MODULES_DIR/g" "$SRCDIR/$dspName/$dspName-temp4.jucer" >> "$SRCDIR/$dspName/$dspName-temp5.jucer"
 
+    # VST2_SDK
+    sed -e "s/VST2_SDK_DEFAULT/$VST2_SDK/g" "$SRCDIR/$dspName/$dspName-temp5.jucer" >> "$SRCDIR/$dspName/$dspName-temp6.jucer"
+    sed -e "s/BUILD_VST2_DEFAULT/$BUILD_VST2/g" "$SRCDIR/$dspName/$dspName-temp6.jucer" >> "$SRCDIR/$dspName/$dspName-temp7.jucer"
+
+    # PLUGIN_FORMATS
+    sed -e "s/PLUGIN_FORMATS_DEFAULT/$PLUGIN_FORMATS/g" "$SRCDIR/$dspName/$dspName-temp7.jucer" >> "$SRCDIR/$dspName/$dspName-temp8.jucer"
+
+    # PLUGIN_CHARACTERISTICS
+    sed -e "s/PLUGIN_CHARACTERISTICS_DEFAULT/$PLUGIN_CHARACTERISTICS/g" "$SRCDIR/$dspName/$dspName-temp8.jucer" >> "$SRCDIR/$dspName/$dspName-temp9.jucer"
+
+    # DISPLAY_SPLASH_SCREEN
+    sed -e "s/DISPLAY_SPLASH_SCREEN_DEFAULT/$DISPLAY_SPLASH_SCREEN/g" "$SRCDIR/$dspName/$dspName-temp9.jucer" >> "$SRCDIR/$dspName/$dspName-temp10.jucer"
+
     # possibly set NVOICES value
     if [ $NVOICES -ge 0 ]; then
-        sed -e "s/NUM_VOICES/$NVOICES/g" "$SRCDIR/$dspName/$dspName-temp5.jucer" >> "$SRCDIR/$dspName/$dspName.jucer"
+        sed -e "s/NUM_VOICES/$NVOICES/g" "$SRCDIR/$dspName/$dspName-temp10.jucer" >> "$SRCDIR/$dspName/$dspName.jucer"
     else
-        cp "$SRCDIR/$dspName/$dspName-temp5.jucer" "$SRCDIR/$dspName/$dspName.jucer"
+        cp "$SRCDIR/$dspName/$dspName-temp10.jucer" "$SRCDIR/$dspName/$dspName.jucer"
     fi
 
     # standalone or plugin mode
@@ -184,7 +234,9 @@ for p in $FILES; do
     rm "$SRCDIR/$dspName/$dspName-temp.jucer"  "$SRCDIR/$dspName/$dspName-temp0.jucer" 
     rm "$SRCDIR/$dspName/$dspName-temp1.jucer" "$SRCDIR/$dspName/$dspName-temp2.jucer"
     rm "$SRCDIR/$dspName/$dspName-temp3.jucer" "$SRCDIR/$dspName/$dspName-temp4.jucer" 
-    rm "$SRCDIR/$dspName/$dspName-temp5.jucer"
+    rm "$SRCDIR/$dspName/$dspName-temp5.jucer" "$SRCDIR/$dspName/$dspName-temp6.jucer"
+    rm "$SRCDIR/$dspName/$dspName-temp7.jucer" "$SRCDIR/$dspName/$dspName-temp8.jucer"
+    rm "$SRCDIR/$dspName/$dspName-temp9.jucer" "$SRCDIR/$dspName/$dspName-temp10.jucer"
 
     # standalone of plugin mode
     if [ $STANDALONE = "0" ]; then
@@ -205,7 +257,7 @@ for p in $FILES; do
 
     if [ $POLY = "POLY2" ]; then
         if [ $EFFECT = "auto" ]; then
-            cat > $SRCDIR/$dspName/effect.dsp << EndOfCode
+            cat > "$SRCDIR/$dspName/effect.dsp" << EndOfCode
             adapt(1,1) = _;
             adapt(2,2) = _,_;
             adapt(1,2) = _ <: _,_;
