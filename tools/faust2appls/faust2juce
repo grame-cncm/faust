@@ -142,11 +142,11 @@ for p in $FILES; do
     rm -rf "$SRCDIR/$dspName"
  
     if [ $STANDALONE = "0" ]; then
-        cp -r $FAUSTARCH/juce/plugin "$SRCDIR/$dspName/"
+        cp -r "$FAUSTARCH/juce/plugin" "$SRCDIR/$dspName/"
         # setting plugin name to match the dsp
         sed -e "s/SUB_TYPE/$SUB_TYPE/g" "$SRCDIR/$dspName/$JUCER" >> "$SRCDIR/$dspName/$dspName-temp.jucer"
     else
-        cp -r $FAUSTARCH/juce/standalone "$SRCDIR/$dspName/"
+        cp -r "$FAUSTARCH/juce/standalone" "$SRCDIR/$dspName/"
         # setting project name to match the dsp
         sed -e "s/ProjectTitle/$dspName/g" "$SRCDIR/$dspName/$JUCER" >> "$SRCDIR/$dspName/$dspName-temp.jucer"
     fi
@@ -189,17 +189,17 @@ for p in $FILES; do
     # standalone of plugin mode
     if [ $STANDALONE = "0" ]; then
         if [ $IS_LLVM = "1" ]; then
-            faust -inj $FAUSTINC/faust/dsp/llvm-dsp-adapter.h -uim -i -a $FAUSTARCH/juce/juce-plugin.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustPluginProcessor.cpp" || exit
+            faust -inj "$FAUSTINC/faust/dsp/llvm-dsp-adapter.h" -uim -i -a "$FAUSTARCH/juce/juce-plugin.cpp" $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustPluginProcessor.cpp" || exit
             dynamic-faust $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/dynamic.o"
         else
-            faust -uim -i -a $FAUSTARCH/juce/juce-plugin.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustPluginProcessor.cpp" || exit
+            faust -uim -i -a "$FAUSTARCH/juce/juce-plugin.cpp" $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustPluginProcessor.cpp" || exit
         fi
     else
         if [ $IS_LLVM = "1" ]; then
-            faust -inj $FAUSTINC/faust/dsp/llvm-dsp-adapter.h -i -a $FAUSTARCH/juce/juce-standalone.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustAudioApplication.cpp" || exit
+            faust -inj "$FAUSTINC/faust/dsp/llvm-dsp-adapter.h" -i -a "$FAUSTARCH/juce/juce-standalone.cpp" $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustAudioApplication.cpp" || exit
             dynamic-faust $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/dynamic.o"
         else
-            faust -i -a $FAUSTARCH/juce/juce-standalone.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustAudioApplication.cpp" || exit
+            faust -i -a "$FAUSTARCH/juce/juce-standalone.cpp" $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustAudioApplication.cpp" || exit
         fi
     fi
 
