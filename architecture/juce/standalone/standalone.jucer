@@ -2,20 +2,20 @@
 
 <JUCERPROJECT id="RhW0aI" name="ProjectTitle" projectType="guiapp" version="1.0.0"
               bundleIdentifier="com.grame.ProjectTitle" includeBinaryInAppConfig="1"
-              jucerVersion="4.3.1" companyName="Grame" companyWebsite="faust.grame.fr">
+              companyName="Grame" companyWebsite="faust.grame.fr" displaySplashScreen="DISPLAY_SPLASH_SCREEN_DEFAULT"
+              jucerFormatVersion="1">
   <MAINGROUP id="QPZtN1" name="ProjectTitle">
     <GROUP id="{9BA54E73-8A9C-DD5D-C876-2C85CD9C7B4F}" name="Source">
-      <FILE id="IFCXRB" name="FaustAudioApplication.cpp" compile="1" resource="0" file="FaustAudioApplication.cpp"/>
+      <FILE id="IFCXRB" name="FaustAudioApplication.cpp" compile="1" resource="0"
+            file="FaustAudioApplication.cpp"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" extraCompilerFlags="-I /usr/local/include/ -I /opt/local/include -DNVOICES=NUM_VOICES"
                extraDefs="PreProcDef" extraLinkerFlags="-L /opt/local/lib">
       <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="APPL_NAME"
-                       osxSDK="default" osxCompatibility="default"/>
-        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="APPL_NAME"
-                       osxSDK="default" osxCompatibility="default"/>
+        <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="APPL_NAME"/>
+        <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="JUCE_MODULES_DIR_DEFAULT"/>
@@ -33,7 +33,7 @@
         <MODULEPATH id="juce_audio_utils" path="JUCE_MODULES_DIR_DEFAULT"/>
       </MODULEPATHS>
     </XCODE_MAC>
-    <XCODE_IPHONE targetFolder="Builds/iOS" iosScreenOrientation="portraitlandscape"
+    <XCODE_IPHONE targetFolder="Builds/iOS" iosScreenOrientation="UIInterfaceOrientationPortrait,UIInterfaceOrientationLandscapeLeft,UIInterfaceOrientationLandscapeRight"
                   extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="APPL_NAME"/>
@@ -78,29 +78,6 @@
         <MODULEPATH id="juce_audio_utils" path="JUCE_MODULES_DIR_DEFAULT"/>
       </MODULEPATHS>
     </VS2015>
-    <VS2013 targetFolder="Builds/VisualStudio2013" extraDefs="PreProcDef">
-      <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
-                       isDebug="1" optimisation="1" targetName="APPL_NAME"/>
-        <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
-                       isDebug="0" optimisation="3" targetName="APPL_NAME"/>
-      </CONFIGURATIONS>
-      <MODULEPATHS>
-        <MODULEPATH id="juce_core" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_events" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_graphics" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_data_structures" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_gui_basics" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_gui_extra" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_opengl" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_audio_basics" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_audio_devices" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_audio_formats" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_audio_processors" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_osc" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_audio_utils" path="JUCE_MODULES_DIR_DEFAULT"/>
-      </MODULEPATHS>
-    </VS2013>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="APPL_NAME"/>
@@ -191,6 +168,27 @@
         <MODULEPATH id="juce_audio_utils" path="JUCE_MODULES_DIR_DEFAULT"/>
       </MODULEPATHS>
     </CODEBLOCKS_LINUX>
+    <VS2019 targetFolder="Builds/VisualStudio2019">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_osc"/>
+        <MODULEPATH id="juce_opengl"/>
+        <MODULEPATH id="juce_gui_extra"/>
+        <MODULEPATH id="juce_gui_basics"/>
+        <MODULEPATH id="juce_graphics"/>
+        <MODULEPATH id="juce_events"/>
+        <MODULEPATH id="juce_data_structures"/>
+        <MODULEPATH id="juce_core"/>
+        <MODULEPATH id="juce_audio_utils"/>
+        <MODULEPATH id="juce_audio_processors"/>
+        <MODULEPATH id="juce_audio_formats"/>
+        <MODULEPATH id="juce_audio_devices"/>
+        <MODULEPATH id="juce_audio_basics"/>
+      </MODULEPATHS>
+    </VS2019>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0"/>
@@ -210,5 +208,6 @@
   <JUCEOPTIONS/>
   <LIVE_SETTINGS>
     <OSX systemHeaderPath="" extraCompilerFlags="" extraDLLs=""/>
+    <WINDOWS/>
   </LIVE_SETTINGS>
 </JUCERPROJECT>
