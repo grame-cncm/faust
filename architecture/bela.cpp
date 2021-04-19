@@ -5,7 +5,7 @@
  each section for license and copyright information.
  *************************************************************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
+/******************* BEGIN bela.cpp ****************/
 
 /************************************************************************
  Bela FAUST Architecture file
@@ -513,5 +513,5 @@ void cleanup(BelaContext* context, void* userData)
 #endif
 }
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
+/******************** END bela.cpp ****************/
 

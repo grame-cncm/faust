@@ -5,7 +5,7 @@
  each section for license and copyright information.
  *************************************************************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
+/******************* BEGIN csound.cpp ****************/
 
 /************************************************************************
  FAUST Architecture File
@@ -242,4 +242,4 @@ extern "C" {
     LINKAGE
 }
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
+/******************** END csound.cpp ****************/

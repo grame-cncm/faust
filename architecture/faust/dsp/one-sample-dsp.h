@@ -129,4 +129,4 @@ class one_sample_dsp : public dsp {
 };
 
 #endif
-/**************************  END  one-sample-dsp.h **************************/
+/************************** END one-sample-dsp.h **************************/

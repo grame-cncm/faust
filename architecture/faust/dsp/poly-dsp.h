@@ -954,4 +954,4 @@ struct dsp_poly_factory : public dsp_factory {
 };
 
 #endif // __poly_dsp__
-/**************************  END  poly-dsp.h **************************/
+/************************** END poly-dsp.h **************************/

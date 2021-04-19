@@ -5,8 +5,7 @@
  each section for license and copyright information.
  *************************************************************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
+/******************* BEGIN ios-coreaudio-jack.cpp ****************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
@@ -61,6 +60,5 @@
 
 mydsp DSP;
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
-
+/******************* END ios-coreaudio-jack.cpp ****************/
 

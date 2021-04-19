@@ -225,4 +225,4 @@ bool writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, c
  */
 
 #endif
-/**************************  END  interpreter-machine-dsp.h **************************/
+/************************** END interpreter-machine-dsp.h **************************/

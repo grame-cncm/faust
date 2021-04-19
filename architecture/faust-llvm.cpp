@@ -1,3 +1,4 @@
+/******************* BEGIN faust-llvm.cpp ****************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -78,6 +79,7 @@ int main(int argc, char* argv[])
 }
 
 #endif
+/******************** END faust-llvm.cpp ****************/
 
 /*
 Compilation:

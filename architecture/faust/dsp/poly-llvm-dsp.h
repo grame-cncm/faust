@@ -245,4 +245,4 @@ static void writePolyDSPFactoryToMachineFile(dsp_poly_factory* factory, const st
 }
 
 #endif // __poly_llvm_dsp_tools__
-/**************************  END  poly-llvm-dsp.h **************************/
+/************************** END poly-llvm-dsp.h **************************/

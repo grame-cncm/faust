@@ -5,8 +5,7 @@
  each section for license and copyright information.
  *************************************************************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
+/******************* BEGIN minimal-static.cpp ****************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2020 Jean Pierre Cimalando, GRAME, Centre National de Creation Musicale
@@ -157,5 +156,5 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
+/******************* END minimal-static.cpp ****************/
 

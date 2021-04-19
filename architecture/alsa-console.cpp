@@ -5,7 +5,7 @@
  each section for license and copyright information.
  *************************************************************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
+/******************* BEGIN alsa-console.cpp ****************/
 
 /************************************************************************
  FAUST Architecture File
@@ -235,4 +235,4 @@ int main(int argc, char *argv[] )
     return 0;
 }
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
+/******************** END alsa-console.cpp ****************/

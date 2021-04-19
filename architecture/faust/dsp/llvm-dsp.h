@@ -463,4 +463,4 @@ DEPRECATED(void deleteDSPInstance(llvm_dsp* dsp));
  */
 
 #endif
-/**************************  END  llvm-dsp.h **************************/
+/************************** END llvm-dsp.h **************************/

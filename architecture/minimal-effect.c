@@ -5,7 +5,7 @@
  each section for license and copyright information.
  *************************************************************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
+/******************* BEGIN minimal-effect.c ****************/
 
 /************************************************************************
  FAUST Architecture File
@@ -147,4 +147,4 @@ class Cdsp : public dsp {
 // Factory API
 dsp* createmydsp() { return new Cdsp(); }
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
+/******************** END minimal-effect.c ****************/

@@ -680,4 +680,4 @@ static dsp* createDSPCrossfader(dsp* dsp1, dsp* dsp2,
 #endif
 
 #endif
-/**************************  END  dsp-combiner.h **************************/
+/************************** END dsp-combiner.h **************************/

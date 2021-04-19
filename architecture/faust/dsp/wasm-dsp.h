@@ -295,4 +295,4 @@ EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp)
 #endif
 
 #endif
-/**************************  END  wasm-dsp.h **************************/
+/************************** END wasm-dsp.h **************************/

@@ -590,4 +590,4 @@ struct measure_dsp : measure_dsp_aux<FAUSTFLOAT> {
 };
 
 #endif
-/**************************  END  dsp-bench.h **************************/
+/************************** END dsp-bench.h **************************/

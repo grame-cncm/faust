@@ -159,4 +159,4 @@ class dsp_compute_inpl_mix : public decorator_dsp {
 
 #endif
 
-/**************************  END  dsp-compute-adapter **************************/
+/************************** END dsp-compute-adapter.h **************************/

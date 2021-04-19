@@ -5,8 +5,7 @@
  each section for license and copyright information.
  *************************************************************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
+/******************* BEGIN ladspa.cpp ****************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
@@ -516,4 +515,4 @@ const LADSPA_Descriptor* ladspa_descriptor(unsigned long Index)
 	}
 }
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
+/******************* END ladspa.cpp ****************/

@@ -1,5 +1,4 @@
 /************************** BEGIN dsp-optimizer.h **************************/
-
 /************************************************************************
     FAUST Architecture File
     Copyright (C) 2016-2020 GRAME, Centre National de Creation Musicale
@@ -425,4 +424,5 @@ class dsp_optimizer {
 };
 
 #endif
-/**************************  END  dsp-optimizer.h **************************/
+
+/************************** END dsp-optimizer.h **************************/

@@ -1,3 +1,4 @@
+/******************* BEGIN faust-netjack-gtk.cpp ****************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
@@ -112,3 +113,4 @@ int main(int argc, char* argv[])
   	return 0;
 }
 
+/******************* End faust-netjack-gtk.cpp ****************/

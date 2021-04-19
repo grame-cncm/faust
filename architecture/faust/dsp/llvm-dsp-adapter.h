@@ -155,4 +155,4 @@ class mydsp : public dsp {
 dsp* createmydsp() { return new mydsp(); }
 
 #endif
-/**************************  END  llvm-dsp-adapter.h **************************/
+/************************** END llvm-dsp-adapter.h **************************/

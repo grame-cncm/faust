@@ -845,4 +845,4 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
 }
     
 #endif
-/**************************  END  dsp-adapter.h **************************/
+/************************** END dsp-adapter.h **************************/

@@ -5,8 +5,7 @@
  each section for license and copyright information.
  *************************************************************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
+/******************* BEGIN owl.cpp ****************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
@@ -342,5 +341,5 @@ extern "C" {
 
 #endif // __FaustPatch_h__
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
+/******************* END owl.cpp ****************/
 

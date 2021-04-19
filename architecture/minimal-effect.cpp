@@ -5,8 +5,7 @@
  each section for license and copyright information.
  *************************************************************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
+/******************* BEGIN minimal-effect.cpp ****************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
@@ -69,4 +68,4 @@ using std::min;
 // Factory API
 dsp* createmydsp() { return new mydsp(); }
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
+/******************* END minimal-effect.cpp ****************/

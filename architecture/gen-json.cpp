@@ -5,8 +5,7 @@
  each section for license and copyright information.
  *************************************************************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
+/******************* BEGIN gen-json.cpp ****************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
@@ -73,5 +72,5 @@ int main(int argc, char* argv[])
     cout << json.JSON();
 }
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
+/******************* END gen-json.cpp ****************/
 

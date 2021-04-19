@@ -611,6 +611,7 @@ static string printFloat()
 
 void global::printCompilationOptions(stringstream& dst, bool backend)
 {
+    if (gArchFile != "") dst << "-a " << gArchFile << " ";
     if (backend) {
 #ifdef LLVM_BUILD
         if (gOutputLang == "llvm") {

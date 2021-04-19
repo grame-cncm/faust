@@ -620,4 +620,4 @@ extern "C" {
 #endif
 
 #endif // __faust_poly_engine__
-/**************************  END  faust-poly-engine.h **************************/
+/************************** END faust-poly-engine.h **************************/

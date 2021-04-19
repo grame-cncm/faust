@@ -5,8 +5,7 @@
  each section for license and copyright information.
  *************************************************************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
+/******************* BEGIN minimal-bench.cpp ****************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2020 GRAME, Centre National de Creation Musicale
@@ -92,5 +91,4 @@ int main(int argc, char* argv[])
     audio.stop();
 }
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
-
+/******************* END minimal-bench.cpp ****************/

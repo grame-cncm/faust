@@ -6,8 +6,7 @@
     each section for license and copyright information.
 *************************************************************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
+/******************* BEGIN max-msp.cpp ****************/
 /************************************************************************
     FAUST Architecture File
     Copyright (C) 2004-2018 GRAME, Centre National de Creation Musicale
@@ -725,5 +724,4 @@ void ext_main(void* r)
 #endif
 }
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
-
+/******************* END max-msp.cpp ****************/

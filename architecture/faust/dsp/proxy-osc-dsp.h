@@ -106,4 +106,4 @@ class proxy_osc_dsp : public proxy_dsp {
 };
 
 #endif
-/**************************  END  proxy-osc-dsp.h **************************/
+/************************** END proxy-osc-dsp.h **************************/

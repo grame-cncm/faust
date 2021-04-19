@@ -1,5 +1,4 @@
 /************************** BEGIN faust-dynamic-engine.h **************************/
-
 /************************************************************************
 FAUST API
 Copyright (C) 2015-2016 GRAME, Centre National de Creation Musicale
@@ -104,4 +103,4 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
-/**************************  END  faust-dynamic-engine.h **************************/
+/************************** END faust-dynamic-engine.h **************************/

@@ -371,4 +371,4 @@ char* load_program_source(const char* filename)
 #ifdef __cplusplus
 }
 #endif
-/**************************  END  thread.h **************************/
+/************************** END thread.h **************************/

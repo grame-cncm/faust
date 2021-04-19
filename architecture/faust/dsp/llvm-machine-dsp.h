@@ -212,4 +212,4 @@ llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_
  */
 
 #endif
-/**************************  END  llvm-machine-dsp.h **************************/
+/************************** END llvm-machine-dsp.h **************************/

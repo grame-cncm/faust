@@ -6,8 +6,7 @@
  each section for license and copyright information.
  *************************************************************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
+/******************* BEGIN FaustDSP.mm ****************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2004-2021 GRAME, Centre National de Creation Musicale
@@ -214,4 +213,4 @@ AK_REGISTER_DSP(Faustmydsp)
     AK_REGISTER_PARAMETER(mydsp_##ident)
 FAUST_LIST_ACTIVES(REGISTER_PARAMETER);
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
+/******************* END FaustDSP.mm ****************/

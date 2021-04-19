@@ -72,7 +72,6 @@ class mydspmulti : public decorator_dsp {
 dsp* createmydspmulti() { return new mydspmulti(); }
 
 #endif
-/**************************  END  dsp-multifun.h **************************/
 
 #ifdef TEST
 int main()
@@ -82,3 +81,5 @@ int main()
     std::cout << multi.getNumOutputs() << std::endl;
 }
 #endif
+
+/************************** END dsp-multifun.h **************************/

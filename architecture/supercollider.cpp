@@ -5,8 +5,7 @@
  each section for license and copyright information.
  *************************************************************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
+/******************* BEGIN supercollider.cpp ****************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2005-2012 Stefan Kersten.
@@ -563,5 +562,5 @@ extern "C" FAUST_EXPORT int server_type(void) { return sc_server_supernova; }
 extern "C" FAUST_EXPORT int server_type(void) { return sc_server_scsynth; }
 #endif
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
+/******************* END supercollider.cpp ****************/
 

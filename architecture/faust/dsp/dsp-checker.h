@@ -112,4 +112,4 @@ class dsp_me_checker : public decorator_dsp
 };
 
 #endif
-/**************************  END  dsp-checker.h **************************/
+/************************** END dsp-checker.h **************************/

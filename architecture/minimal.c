@@ -5,7 +5,7 @@
  each section for license and copyright information.
  *************************************************************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
+/******************* BEGIN minimal.c ****************/
 
 /************************************************************************
  FAUST Architecture File
@@ -100,4 +100,4 @@ int main(int argc, char* argv[])
     deletemydsp(dsp);
 }
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
+/******************** END minimal.c ****************/

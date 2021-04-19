@@ -277,4 +277,4 @@ class timed_dsp : public decorator_dsp {
 };
 
 #endif
-/**************************  END  timed-dsp.h **************************/
+/************************** END timed-dsp.h **************************/

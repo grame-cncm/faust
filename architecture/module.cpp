@@ -5,8 +5,7 @@
  each section for license and copyright information.
  *************************************************************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
+/******************* BEGIN module.cpp ****************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
@@ -88,5 +87,5 @@ extern "C" EXPORT dsp*  clone(dsp* self) { return self->clone(); }
 extern "C" EXPORT void metadata(dsp* self, Meta* m) { self->metadata(m); }
 extern "C" EXPORT void compute(dsp* self, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { self->compute(count, inputs, outputs); }
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
+/******************* END module.cpp ****************/
 

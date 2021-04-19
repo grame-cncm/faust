@@ -425,4 +425,4 @@ class PositionManager : public GUI {
  */
 
 #endif
-/**************************  END  sound-player.h **************************/
+/************************** END sound-player.h **************************/
