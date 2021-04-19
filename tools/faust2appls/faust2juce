@@ -148,8 +148,6 @@ else
     IS_SYNTH="0"
 fi
 
-grep "declare nvoices" $FILES && IS_SYNTH="1" 2>/dev/null
-
 # Set PLUGIN_CHARACTERISTICS, and the order matters.
 if [ $IS_SYNTH = "1" ]; then
     PLUGIN_CHARACTERISTICS+=",pluginIsSynth"
