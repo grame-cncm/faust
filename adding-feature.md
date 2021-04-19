@@ -32,7 +32,7 @@ certaines techniques devraient être assez similaires.
 
 On se propose d'ajouter deux paires de primitives à Faust :
 
- * `upB(s)` et `lowB(s)`, signaux à une entrée retournant respectivement le
+ * `upB(s)` et `loB(s)`, signaux à une entrée retournant respectivement le
  majorant et le minorant du signal `s` calculé par le compilateur. D'un point
  de vue du treillis des types Faust, il s'agit de constantes, calculable à la
  compilation (bien sûr), flottantes (donc pas booléennes), parallélisables (je
@@ -42,3 +42,50 @@ On se propose d'ajouter deux paires de primitives à Faust :
 
 N.B. Il faudra sans doute ajouter deux autres primitives concernant la
 résolution des signaux.
+
+## Lexer/Parser
+
+La première étape est d'étendre l'ensemble des programmes Faust valides pour
+qu'ils contiennent (de préférence exactement) les chaînes de caractère
+représentant ces primitives, en modifiant la syntaxe (lexing) et la sémantique
+(parsing) de Faust. En effet, si l'on demande à Faust de compiler le programme
+suivant :
+
+    process = isLt(1);
+
+on obtient l'erreur suivante
+
+    1 : ERROR : undefined symbol : isLt
+
+Pour ce faire, il nous faut modifier les fichiers décrivant le lexer et le
+parser, ici écrits en Flex/Bison (pour plus de détails, voir le Dragon Book)
+
+Dans Faust, ces fichiers se trouvent dans `compiler/parser`.
+
+### Lexing
+
+En Bison, la déclaration des tokens se fait dans le parser (faut pas
+chercher), ici `faustparser.y`, déclarons donc 4 nouveaux tokens:
+
+    %token ISLT
+    %token ISGT
+    %token UPB
+    %token LOB
+
+Il faut ensuite que ces Tokens soient associés à des chaînes de caractères
+Faust, pour cela, modifions le lexer. Le fichier contenant le lexer se trouve
+dans `faustlexer.l`. Il suffit d'ajouter (entre les deux `%%`) :
+  
+    "isLt" return ISLT;
+    "isGt" return ISGT;
+    "upB"  return UPB;
+    "loB"  return LOB;
+    
+Recompilons le parser et le compilateur (`make parser` et `make` à la racine).
+En compilant l'exemple
+
+    process = isLt(1);
+
+on obtient à présent
+
+    1 : ERROR : syntax error
