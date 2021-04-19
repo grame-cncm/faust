@@ -216,7 +216,12 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "case"		return CASE;
 "=>"		return ARROW;
 
-"singleprecision"  return FLOATMODE;
+"isLt" return ISLT;
+"isGt" return ISGT;
+"upB"  return UPB;
+"loB"  return LOB;
+
+"singleprecision" return FLOATMODE;
 "doubleprecision"  return DOUBLEMODE;
 "quadprecision"    return QUADMODE;
 "fixedpointprecision"    return FIXEDPOINTMODE;

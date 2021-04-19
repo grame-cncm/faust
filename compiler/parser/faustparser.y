@@ -218,6 +218,11 @@ Tree unquote(char* str)
 %token CASE
 %token ARROW
 
+%token ISLT
+%token ISGT
+%token UPB
+%token LOB
+
 %token FLOATMODE
 %token DOUBLEMODE
 %token QUADMODE
