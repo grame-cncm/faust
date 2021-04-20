@@ -89,8 +89,8 @@ Tree unquote(char* str)
 %start program
 
 /* With local environment (lowest priority)*/
-%precedence WITH
-%precedence LETREC
+%left WITH
+%left LETREC
 
 /* Block Diagram Algebra */
 /*%left SEQ SPLIT MIX*/
@@ -107,9 +107,9 @@ Tree unquote(char* str)
 %left MUL DIV MOD AND XOR LSH RSH
 %left POWOP
 %left FDELAY
-%precedence DELAY1
+%left DELAY1
 /*%left APPL*/
-%precedence DOT
+%left DOT
 
 
 %token MEM
@@ -181,11 +181,11 @@ Tree unquote(char* str)
 %token CUT
 %token ENDDEF
 %token VIRG
-%precedence LPAR
+%left LPAR
 %token RPAR
 %token LBRAQ
 %token RBRAQ
-%precedence LCROC
+%left LCROC
 %token RCROC
 %token WITH
 %token LETREC
@@ -336,15 +336,15 @@ Tree unquote(char* str)
 program         : stmtlist 							{ $$ = $1; gGlobal->gResult = formatDefinitions($$); }
 				;
 
-stmtlist        : /*empty*/                     	 %empty { $$ = gGlobal->nil; }
+stmtlist        : /*empty*/                     	  { $$ = gGlobal->nil; }
 				| stmtlist variantlist statement    { if (acceptdefinition($2)) $$ = cons ($3,$1); else $$=$1; }
 				;
 
-deflist         : /*empty*/                     	 %empty { $$ = gGlobal->nil; }
+deflist         : /*empty*/                     	  { $$ = gGlobal->nil; }
 				| deflist variantlist definition    { if (acceptdefinition($2)) $$ = cons ($3,$1); else $$=$1;}
 				;
 
-variantlist     : /*empty*/                     	 %empty { $$ = 0; }
+variantlist     : /*empty*/                     	  { $$ = 0; }
 				| variantlist variant    			{ $$ = $1 | $2;}
 				;
 
@@ -355,7 +355,7 @@ variant			: FLOATMODE							{ $$ = 1;}
 				;
 
 
-reclist         : /*empty*/                              %empty { $$ = gGlobal->nil; }
+reclist         : /*empty*/                               { $$ = gGlobal->nil; }
                 | reclist recinition                    { $$ = cons ($2,$1); }
                 ;
 
@@ -383,7 +383,7 @@ statement       : IMPORT LPAR uqstring RPAR ENDDEF	   	{ $$ = importFile($3); }
 				| BDOC doc EDOC						   	{ declareDoc($2); $$ = gGlobal->nil; /* cerr << "Yacc : doc : " << *$2 << endl; */ }
                 ;
 
-doc             : /* empty */						   	 %empty { $$ = gGlobal->nil; }
+doc             : /* empty */						   	  { $$ = gGlobal->nil; }
 				| doc docelem						   	{ $$ = cons ($2,$1); }
 				;
 
@@ -395,7 +395,7 @@ docelem         : doctxt 							   	{ $$ = docTxt($1->c_str()); delete $1; }
 				| docmtd 							   	{ $$ = docMtd($1); }
 				;
 
-doctxt          : /* empty */				   		   	 %empty { $$ = new string(); }
+doctxt          : /* empty */				   		   	  { $$ = new string(); }
 				| doctxt DOCCHAR					   	{ $$ = &($1->append(yytext)); }
 				;
 
@@ -411,7 +411,7 @@ docntc          : NOTICE								{ }
 doclst          : BLST lstattrlist ELST					{ }
 				;
 
-lstattrlist		: /* empty */							 %empty { }
+lstattrlist		: /* empty */							  { }
 				| lstattrlist lstattrdef				{ }
 				;
 
