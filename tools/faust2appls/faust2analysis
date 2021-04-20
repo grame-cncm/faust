@@ -1,0 +1,67 @@
+#! /bin/bash -e
+
+#####################################################################
+#                                                                   #
+#               A minimal faust2minimal  template                   #
+#               (c) Grame, 2021                                     #
+#                                                                   #
+#####################################################################
+
+# Define some common paths
+. faustpath
+
+# Define compilation flags
+. faustoptflags
+
+# Helper file to build the 'help' option
+. usage.sh
+
+CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
+
+# The architecture file name
+ARCHFILE=$FAUSTARCH/minimal.cpp
+
+# Global variables
+OPTIONS=""
+FILES=""
+
+#-------------------------------------------------------------------
+# dispatch command arguments
+#-------------------------------------------------------------------
+
+while [ $1 ]
+do
+    p=$1
+ 
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        usage faust2analysis "[options] [Faust options] <file.dsp> : uses clang-tidy to analyze the generated C++ code"
+        exit
+    fi
+    
+    if [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"        
+	fi
+
+shift
+
+done
+
+#-------------------------------------------------------------------
+# compile the *.dsp files 
+#-------------------------------------------------------------------
+echo "FAUST COMPILATION OPTIONS USED : $OPTIONS"
+echo "C++ COMPILATION OPTIONS USED   : $CXXFLAGS"
+echo "ARCHITECTURE FILE USED         : $ARCHFILE"
+ech ""
+
+for f in $FILES; do
+	echo "ANALYSIS OF : $f"
+	faust -i -a $ARCHFILE $OPTIONS "$f" -o "${f%.dsp}.cpp" && clang-tidy --extra-arg="--std=c++11" -checks=${ANALYSIS} -header-filter=.* "${f%.dsp}.cpp" --  $CXXFLAGS "${f%.dsp}.cpp" && rm -f "${f%.dsp}.cpp" && echo "DONE WITH : $f" || echo "FAILED COMPILING : $f"
+	echo ""
+
+done
+
