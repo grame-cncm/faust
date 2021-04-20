@@ -34,7 +34,7 @@ JUCER=""
 VST2_SDK=""  # The directory containing "plugininterfaces/vst2.x/aeffect.h"
 BUILD_VST2="0"  # By default, don't build VST2
 JUCE_MODULES_DIR="\.\.\/\.\.\/modules"  # By default, the generated folder is supposed to be copied in JUCE/examples folder
-PLUGIN_FORMATS="buildAU,buildAUv3,buildVST3"  # can append "buildStandalone" and "buildVST"
+PLUGIN_FORMATS="buildAU,buildAUv3,buildVST3,buildStandalone"  # can append "buildVST"
 PLUGIN_CHARACTERISTICS=""
 DISPLAY_SPLASH_SCREEN="1"
 
@@ -67,7 +67,6 @@ do
         NVOICES=$1
     elif [ $p = "-standalone" ]; then
         STANDALONE="1"
-        PLUGIN_FORMATS+=",buildstandalone"
     elif [ $p = "-effect" ]; then
         DEF+="POLY2 "
         POLY="POLY2"
