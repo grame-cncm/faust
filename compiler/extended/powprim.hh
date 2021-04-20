@@ -51,6 +51,7 @@ class PowPrim : public xtended {
         return max(args[0], args[1]);
     }
     
+    // Fast integer based power, for positive exponent
     template <typename Type1, typename Type2>
     Type1 ipow(Type1 a, Type2 ex)
     {
@@ -73,7 +74,7 @@ class PowPrim : public xtended {
         num n, m;
         faustassert(args.size() == arity());
         if (isNum(args[0], n) && isNum(args[1], m)) {
-            if (!isfloat(n) && !isfloat(m)) {
+            if (!isfloat(n) && !isfloat(m) && int(m) > 0) {
                 return tree(ipow(int(n), int(m)));
             } else {
                 return tree(pow(double(n), double(m)));

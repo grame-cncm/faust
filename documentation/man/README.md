@@ -1,4 +1,4 @@
-% man(1) Version 2.32.5 (19-April-2021) | Faust man page
+% man(1) Version 2.32.6 (20-April-2021) | Faust man page
 
 NAME
 ====
@@ -178,8 +178,6 @@ Debug options:
   **-ct**         **--check-table**               check table index range and exit at first failure.
 
   **-cat**        **--check-all-table**           check all table index range.
-
-  **-estat**      **--enable-statistics**         list enable conditions used.
 
 
 Information options:
