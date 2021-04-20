@@ -56,7 +56,7 @@ done
 echo "FAUST COMPILATION OPTIONS USED : $OPTIONS"
 echo "C++ COMPILATION OPTIONS USED   : $CXXFLAGS"
 echo "ARCHITECTURE FILE USED         : $ARCHFILE"
-ech ""
+echo ""
 
 for f in $FILES; do
 	echo "ANALYSIS OF : $f"
