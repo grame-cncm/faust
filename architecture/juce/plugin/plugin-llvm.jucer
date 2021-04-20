@@ -3,7 +3,7 @@
 <JUCERPROJECT id="L9dULy" name="APPL_NAME" projectType="audioplug" version="1.0.0"
               bundleIdentifier="com.grame.APPL_NAME" includeBinaryInAppConfig="1"
               buildVST="BUILD_VST2_DEFAULT" buildVST3="1" buildAU="1" buildAUv3="1" buildRTAS="0"
-              buildAAX="0" buildStandalone="0" pluginName="APPL_NAME" pluginDesc="APPL_NAME"
+              buildAAX="0" buildStandalone="1" pluginName="APPL_NAME" pluginDesc="APPL_NAME"
               pluginManufacturer="GRAME" pluginManufacturerCode="Manu" pluginCode="SUB_TYPE"
               pluginChannelConfigs="" pluginIsSynth="IS_SYNTH" pluginWantsMidiIn="IS_MIDI"
               pluginProducesMidiOut="IS_MIDI" pluginIsMidiEffectPlugin="0"
