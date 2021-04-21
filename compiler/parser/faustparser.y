@@ -568,6 +568,11 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 				| SELECT2 						{ $$ = boxPrim3(sigSelect2); }
 				| SELECT3						{ $$ = boxPrim4(sigSelect3); }
 
+				| ISLT							{ $$ = boxPrim2(sigIsLt)}
+				| ISGT							{ $$ = boxPrim2(sigIsGt)}
+				| UPB							{ $$ = boxPrim1(sigUpB)}
+				| LOB							{ $$ = boxPrim1(sigLoB)}
+
 				| ident 						{ $$ = $1;  setUseProp($1, yyfilename, yylineno);}
                 | SUB ident                     { $$ = boxSeq(boxPar(boxInt(0),$2),boxPrim2(sigSub)); }
 
