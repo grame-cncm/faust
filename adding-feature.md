@@ -95,3 +95,18 @@ on obtient à présent
 Puisque nous allons ajouter une primitive, celle-ci va logiquement être issue du
 non-terminal `primitive`. Puisqu'il s'agit de primitives, nos tokens seront
 d'ailleurs terminaux.
+
+Attention : on parle ici de l'implantation d'une nouvelle primitive, pas d'une `xtended`.
+
+Comme ils ont une arité de 1 et 2, il faut définir deux nouvelles boîtes
+
+	| ISLT							{ $$ = boxPrim2(sigIsLt)}
+	| ISGT							{ $$ = boxPrim2(sigIsGt)}
+	| UPB							{ $$ = boxPrim1(sigUpB)}
+	| LOB							{ $$ = boxPrim1(sigLoB)}
+
+le parsing est terminé
+
+## Signaux
+
+Pour pouvoir compiler, il faut à présent définir les 4 signaux nommés précédemment : `sigIsLT, sigIsGt, sigUpB, sigLoB`.
