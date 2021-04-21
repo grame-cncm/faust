@@ -98,15 +98,85 @@ d'ailleurs terminaux.
 
 Attention : on parle ici de l'implantation d'une nouvelle primitive, pas d'une `xtended`.
 
+Dans la plupart des compilateurs, pour une primitive d'arité `n`, il est d'usage
+de demander au parser de construire un objet symbolisant la primitive en
+appelant le constructeur `C++` de la primitive avec pour arguments le résultat
+du parsing des arguments de la primitive. Cependant, comme le langage Faust
+décrit une algèbre de blocs, les arguments ne sont pas toujours explicitement
+passés à la primitive, ils peuvent être routés. D'où un petit _wrapper_ autour
+du constructeur de la primitive, dépendant de l'airté de celle-ci.
+
 Comme ils ont une arité de 1 et 2, il faut définir deux nouvelles boîtes
 
-	| ISLT							{ $$ = boxPrim2(sigIsLt)}
-	| ISGT							{ $$ = boxPrim2(sigIsGt)}
-	| UPB							{ $$ = boxPrim1(sigUpB)}
-	| LOB							{ $$ = boxPrim1(sigLoB)}
+	| ISLT							{ $$ = boxPrim2(sigIsLt);}
+	| ISGT							{ $$ = boxPrim2(sigIsGt);}
+	| UPB							{ $$ = boxPrim1(sigUpB);}
+	| LOB							{ $$ = boxPrim1(sigLoB);}
 
 le parsing est terminé
 
-## Signaux
+## Constructeurs de signaux
 
-Pour pouvoir compiler, il faut à présent définir les 4 signaux nommés précédemment : `sigIsLT, sigIsGt, sigUpB, sigLoB`.
+Les constructeurs Faust sont extrêmement classiques d'un point de vue
+compilation : chaque signal est un arbre avec dans sa racine un symbole
+unique à l'opération du signal (par exemple un symbole ADD pour une addition) et
+comme enfants ses arguments. (boilerplate code incoming)
+
+Ils sont définis dans `signals.cpp` avec leurs destructeurs (dans le sens
+programmation fonctionnel du terme, et pas gestion mémoire).
+
+Il nous faut cepandant d'abord définir les symboles des signaux. Pour des
+raisons d'optimisation, ils sont définis une fois pour toute dans `global.hh` et
+`global.cpp` (un objet unique mutable appelé `gGlobal` qui émule les variables
+globales à l'ensemble du code) :
+
+`global.hh`
+
+    Sym SIGISLT;
+    Sym SIGISGT;
+    Sym SIGUPB;
+    Sym SIGLOB;
+
+`global.cpp`
+
+    SIGISLT            = symbol("sigIsLt");
+    SIGISGT            = symbol("sigIsGt");
+    SIGUPB             = symbol("sigUpB");
+    SIGLOB             = symbol("sigLoB");
+
+Nous pouvons à présent définir le constructeur du signal `isLt` ainsi que son destructeur :
+
+`signals.hh`
+
+	Tree sigIsLt(Tree s1, Tree s2);
+	Tree sigIsGt(Tree s1, Tree s2);
+	Tree sigLoB(Tree s);
+	Tree sigUpB(Tree s);
+
+	bool isSigIsLt(Tree t, Tree& s1, Tree& s2);
+	bool isSigIsGt(Tree t, Tree& s1, Tree& s2);
+	bool isSigLoB(Tree t, Tree& s);
+	bool isSigUpB(Tree t, Tree& s);
+
+
+`signals.cpp`
+
+	Tree sigIsLt(Tree s1, Tree s2)
+	{
+		return tree(gGlobal->SIGISLT, s1, s2);
+	}
+
+	bool isSigIsLt(Tree t, Tree& s1, Tree& s2){
+		return isTree(t, gGlobal->SIGISLT, s1, s2);
+	}
+
+
+Et maintenant ça compile, malheureusement. En effet, si le compilateur est
+désormais capable de créer un objet pour les primitives, il n'a toujours aucune
+idée de comment le compiler. Et en effet, si on compile l'exemple
+
+	process = isLt(1);
+
+On obtient
+
+    ERROR : getSubSignals unrecognized signal : sigIsLt[SigInput[0],1]

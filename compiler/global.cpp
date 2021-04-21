@@ -365,6 +365,10 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     SIGDOCACCESSTBL    = symbol("SigDocAccessTbl");
     SIGSELECT2         = symbol("SigSelect2");
     SIGSELECT3         = symbol("SigSelect3");
+    SIGISLT            = symbol("sigIsLt");
+    SIGISGT            = symbol("sigIsGt");
+    SIGUPB             = symbol("sigUpB");
+    SIGLOB             = symbol("sigLoB");
     SIGBINOP           = symbol("SigBinOp");
     SIGFFUN            = symbol("SigFFun");
     SIGFCONST          = symbol("SigFConst");
