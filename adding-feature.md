@@ -89,3 +89,9 @@ En compilant l'exemple
 on obtient à présent
 
     1 : ERROR : syntax error
+
+### Parsing
+
+Puisque nous allons ajouter une primitive, celle-ci va logiquement être issue du
+non-terminal `primitive`. Puisqu'il s'agit de primitives, nos tokens seront
+d'ailleurs terminaux.
