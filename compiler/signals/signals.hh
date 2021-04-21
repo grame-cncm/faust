@@ -118,6 +118,18 @@ Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3);
 bool isSigSelect2(Tree t, Tree& selector, Tree& s1, Tree& s2);
 bool isSigSelect3(Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3);
 
+// interval annotation
+
+Tree sigIsLt(Tree s1, Tree s2);
+Tree sigIsGt(Tree s1, Tree s2);
+Tree sigLoB(Tree s);
+Tree sigUpB(Tree s);
+
+bool isSigIsLt(Tree t, Tree& s1, Tree& s2);
+bool isSigIsGt(Tree t, Tree& s1, Tree& s2);
+bool isSigLoB(Tree t, Tree& s);
+bool isSigUpB(Tree t, Tree& s);
+
 // arithmetical operations
 
 Tree sigBinOp(int op, Tree x, Tree y);

@@ -233,6 +233,40 @@ bool isSigSelect3(Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)
     return isTree(t, gGlobal->SIGSELECT3, selector, s1, s2, s3);
 }
 
+Tree sigIsLt(Tree s1, Tree s2)
+{
+    return tree(gGlobal->SIGISLT, s1, s2);
+}
+
+bool isSigIsLt(Tree t, Tree& s1, Tree& s2){
+    return isTree(t, gGlobal->SIGISLT, s1, s2);
+}
+
+Tree sigIsGt(Tree s1, Tree s2)
+{
+    return tree(gGlobal->SIGISGT, s1, s2);
+}
+
+bool isSigIsGt(Tree t, Tree& s1, Tree& s2){
+    return isTree(t, gGlobal->SIGISGT, s1, s2);
+}
+
+Tree sigLoB(Tree s){
+    return tree(gGlobal->SIGLOB, s);
+}
+
+bool isSigLoB(Tree t, Tree& s){
+    return isTree(t, gGlobal->SIGLOB, s);
+}
+
+Tree sigUpB(Tree s){
+    return tree(gGlobal->SIGUPB, s);
+}
+
+bool isSigUpB(Tree t, Tree& s){
+    return isTree(t, gGlobal->SIGUPB, s);
+}
+
 // Arithmetical operations
 
 Tree sigBinOp(int op, Tree x, Tree y)
