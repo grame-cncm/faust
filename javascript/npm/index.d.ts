@@ -53,7 +53,7 @@ declare namespace Faust {
      * 
      * @preturn {Promise<FaustMonoNode | FaustPolyNode | null>} the compiled WebAudio node or 'null' in case of failure
      */
-    function compileAudioNode(audioCtx: BaseAudioContext, module: FaustModule, dsp_code: string, effect_code: string | null, voices: number, sample_size: number): Promise<FaustMonoNode | FaustPolyNode | null>
+    function compileAudioNode(audioCtx: BaseAudioContext, module: FaustModule, dsp_code: string, effect_code: string | null, voices: number, is_double: number): Promise<FaustMonoNode | FaustPolyNode | null>
 
     /**
      * The SVGDiagrams generator constructor.
