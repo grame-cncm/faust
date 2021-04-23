@@ -75,7 +75,7 @@ publish:
 	@echo "You are about to publish the libfaust package v.$(VERSION) on npm."
 	@echo "Make sure you are logged in (npm login)"
 	@read -p "Continue [y|n]: " answer && [ $$answer == "y" ]
-	npm publish $(NPMDIR) --access public
+	cd npm && npm publish --access public
 	@echo "libfaust version " $(VERSION) " published"
 
 
