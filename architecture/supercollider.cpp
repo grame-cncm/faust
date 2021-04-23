@@ -255,9 +255,6 @@ struct Faust : public Unit
 static size_t       g_numControls; // Number of controls
 static const char*  g_unitName;    // Unit name
 
-// Initialize the global state with unit name and sample rate.
-void initState(const std::string& name, int sampleRate);
-
 // Return the unit size in bytes, including static fields and controls.
 static size_t unitSize();
 
@@ -266,21 +263,6 @@ static std::string fileNameToUnitName(const std::string& fileName);
 
 // Convert the XML unit name to a valid class name.
 static std::string normalizeClassName(const std::string& name);
-
-void initState(const std::string& name, int sampleRate)
-{
-    g_unitName = STRDUP(name.c_str());
-
-    mydsp* dsp = new FAUSTCLASS;
-    ControlCounter* cc = new ControlCounter;
-
-    dsp->classInit(sampleRate);
-    dsp->buildUserInterface(cc);
-    g_numControls = cc->getNumControls();
-
-    delete dsp;
-    delete cc;
-}
 
 size_t unitSize()
 {
@@ -512,14 +494,11 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
     MetaData meta;
     mydsp* tmp_dsp = new FAUSTCLASS;
     tmp_dsp->metadata(&meta);
-    delete tmp_dsp;
  
     std::string name = meta["name"];
-
     if (name.empty()) {
         name = fileNameToUnitName(__FILE__);
     }
-  
     name = normalizeClassName(name);
 
 #if defined(F2SC_DEBUG_MES) & defined(SC_API_EXPORT)
@@ -531,16 +510,23 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
         Print("Faust [supercollider.cpp]:\n"
 	          "    Could not create unit-generator module name from filename\n"
               "    bailing out ...\n");
+        delete tmp_dsp;
         return;
     }
 
     if (strncmp(name.c_str(), SC_FAUST_PREFIX, strlen(SC_FAUST_PREFIX)) != 0) {
         name = SC_FAUST_PREFIX + name;
     }
- 
-    // Initialize global data
-    // TODO: Use correct sample rate
-    initState(name, 48000);
+  
+    g_unitName = STRDUP(name.c_str());
+    
+    // TODO: use correct sample rate
+    tmp_dsp->classInit(48000);
+    ControlCounter cc;
+    tmp_dsp->buildUserInterface(&cc);
+    g_numControls = cc.getNumControls();
+    
+    delete tmp_dsp;
 
     // Register ugen
     (*ft->fDefineUnit)(

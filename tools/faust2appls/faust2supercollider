@@ -31,25 +31,25 @@ SC3="/usr/include/SuperCollider"
 SC4="/usr/include/supercollider"
 SC5="/usr/local/include/SuperCollider/"
 
-# check if directory exists
+# Check if directory exists
 if [ -d $SC0/plugin_interface ]; then
-	SC=$SC0
+    SC=$SC0
 elif [ -d $SC1 ]; then
-	SC=$SC1
+    SC=$SC1
 elif [ -d $SC2 ]; then
-	SC=$SC2
+    SC=$SC2
 elif [ -d $SC3 ]; then
-	SC=$SC3
+    SC=$SC3
 elif [ -d $SC4 ]; then
-	SC=$SC4
+    SC=$SC4
 elif [ -d $SC5 ]; then
     SC=$SC5
 else 
-	echo "Can't find SuperCollider headers"
-	exit 1
+    echo "Can't find SuperCollider headers"
+    exit 1
 fi 
 
-###echo Using SC Headers in $SC
+# Echo Using SC Headers in $SC
 
 INCLUDE="-I$SC/plugin_interface/ -I$SC/common/ -I$SC/server/ -I$FAUSTINC"
 
@@ -72,16 +72,7 @@ fi
 # existing *.dsp files          -> FILES
 #
 
-# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
-# without having to configure CXX and CXXFLAGS
-for p in $@; do
-	if [ "$p" = -icc ]; then
-		CXX=icpc
-		CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2'
-    fi
-done
-
-#PHASE 2 : dispatch command arguments
+# PHASE 2 : dispatch command arguments
 F2SC_DEBUG=0
 F2SC_DEBUG_MES=0
 SUPERNOVA_FLAG=0
@@ -104,12 +95,12 @@ for p in $@; do
     elif [ "$p" = -sn ] || [ "$p" = -supernova ]; then
         SUPERNOVA_FLAG=1
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
 done
 
 if [ $F2SC_DEBUG = 1 ]; then
@@ -136,55 +127,56 @@ fi
 #
 if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
     EXT="scx"
-	SCFLAGS="-DNO_LIBSNDFILE -DSC_DARWIN $DNDEBUG -bundle"
+    SCFLAGS="-DNO_LIBSNDFILE -DSC_DARWIN $DNDEBUG -bundle"
 elif [[ $(uname) == Linux ]]; then
     EXT="so"
-	SCFLAGS="-DNO_LIBSNDFILE -DSC_LINUX $DNDEBUG -shared -fPIC"
+    SCFLAGS="-DNO_LIBSNDFILE -DSC_LINUX $DNDEBUG -shared -fPIC"
 else
-	echo "unsupported plateform"
-	exit 1
+    echo "unsupported plateform"
+    exit 1
 fi
 
 #-------------------------------------------------------------------
-# compile the *.dsp files
+# Compile the *.dsp files
 #
 for p in $FILES; do
 
     CUR=$(pwd)
     f=$(basename "$p")
-	SRCDIR=$(dirname "$p")
+    SRCDIR=$(dirname "$p")
 
     # creates a temporary dir
     TDR=$(mktemp -d faust.XXXXXX)
-	TMP=$TDR/${f%.dsp}
+    TMP=$TDR/${f%.dsp}
     mkdir "$TMP"
 
     # compile the .dsp file to c++ and xml
     faust -i -a $ARCHFILE -xml $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
-    mv "$SRCDIR/$f.xml" $TMP/
+    mv "$SRCDIR/$f.xml" "$TMP/"
+    
 
     # compile c++ to binary; --prefix should be same as in ../../examples/Makefile.sccompile
     (
-	SC_FAUST_PREFIX="Faust"
-	if [ $NO_FAUST_PREFIX = 1 ]; then
-        SC_FAUST_PREFIX=""
-	fi
+        SC_FAUST_PREFIX="Faust"
+        if [ $NO_FAUST_PREFIX = 1 ]; then
+            SC_FAUST_PREFIX=""
+        fi
 
         cd "$TMP"
-        faust2sc --prefix=$SC_FAUST_PREFIX $SYNTHDEF $f.xml > "${f%.dsp}.sc" 2>$OUTDEV
+        faust2sc --prefix="$SC_FAUST_PREFIX" $SYNTHDEF "$f.xml" > "${f%.dsp}.sc" 2>$OUTDEV
         BUILDFLAGS="-O3 $FAUSTTOOLSFLAGS $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP -DSC_FAUST_PREFIX=\"$SC_FAUST_PREFIX\""
-        
-        #build for build scsynth
-        $CXX $BUILDFLAGS -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
-        
-        #build for supernova
+
+        # build for build scsynth
+        $CXX $BUILDFLAGS "-Dmydsp=${f%.dsp}" -o "${f%.dsp}.$EXT" "${f%.dsp}.cpp"
+
+        # build for supernova
         if [ $SUPERNOVA_FLAG = 1 ]; then
-        	$CXX $BUILDFLAGS -DSUPERNOVA -Dmydsp=${f%.dsp} -o ${f%.dsp}_supernova.$EXT ${f%.dsp}.cpp
+            $CXX $BUILDFLAGS -DSUPERNOVA "-Dmydsp=${f%.dsp}" -o "${f%.dsp}_supernova.$EXT" "${f%.dsp}.cpp"
         fi
 
     )> $OUTDEV || exit
 
-    ## move the produced files from tmp to source dir
+    # move the produced files from tmp to source dir
     cp "$TMP/${f%.dsp}.$EXT" "$SRCDIR/${f%.dsp}.$EXT"
     if [ $SUPERNOVA_FLAG = 1 ]; then
         cp "$TMP/${f%.dsp}_supernova.$EXT" "$SRCDIR/${f%.dsp}_supernova.$EXT"
@@ -196,18 +188,18 @@ for p in $FILES; do
     fi
 
     if [ $F2SC_DEBUG = 1 ]; then
-    	echo "Retaining intermediate products directory '$TDR'"
+        echo "Retaining intermediate products directory '$TDR'"
         OUTDEV=/dev/tty
     else       
         rm -rf "$TDR"
     fi
 
     # collects all the files produced
-     BINARIES="$SRCDIR/${f%.dsp}.$EXT;"
-     if [ $SUPERNOVA_FLAG = 1 ]; then
-    	BINARIES="$BINARIES$SRCDIR/${f%.dsp}_supernova.$EXT;"
-     fi
-     BINARIES="$BINARIES$SRCDIR/${f%.dsp}.sc;"
+    BINARIES="$SRCDIR/${f%.dsp}.$EXT;"
+    if [ $SUPERNOVA_FLAG = 1 ]; then
+        BINARIES="$BINARIES$SRCDIR/${f%.dsp}_supernova.$EXT;"
+    fi
+    BINARIES="$BINARIES$SRCDIR/${f%.dsp}.sc;"
 
 done
 
