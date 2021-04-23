@@ -1,6 +1,7 @@
 {
   "name": "@grame/libfaust",
-  "version": "1.0.1-beta",
+  "author": "GRAME-CNCM",
+  "version": "1.0.2",
   "description": "The Faust compiler provided with high-level services that transform DSP code into Faust Audio nodes.",
   "main": "FaustLibrary.js",
   "directories": {
