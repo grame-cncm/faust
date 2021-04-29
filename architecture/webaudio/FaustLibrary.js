@@ -607,15 +607,15 @@ var Faust;
             DspVoice.kActiveVoice = 0;
             DspVoice.kFreeVoice = -1;
             DspVoice.kReleaseVoice = -2;
-            DspVoice.kNoVoice = -3;
+            DspVoice.kLegatoVoice = -3;
+            DspVoice.kNoVoice = -4;
             DspVoice.VOICE_STOP_LEVEL = 0.0005;
             this.fKeyFun = (pitch) => { return DspVoice.midiToFreq(pitch); };
             this.fVelFun = (velocity) => { return velocity / 127.0; };
+            this.fCurNote = DspVoice.kFreeVoice;
+            this.fNextNote = this.fNextVel = -1;
             this.fLevel = 0;
-            this.fRelease = 0;
-            this.fMaxRelease = sample_rate / 2;
-            this.fNote = DspVoice.kFreeVoice;
-            this.fDate = 0;
+            this.fDate = this.fRelease = 0;
             this.fDSP = dsp;
             this.fAPI = api;
             this.fGateLabel = [];
@@ -648,22 +648,34 @@ var Faust;
                 }
             });
         }
-        keyOn(pitch, velocity) {
-            this.fAPI.instanceClear(this.fDSP);
-            this.fFreqLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, this.fKeyFun(pitch)));
-            this.fGateLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, 1));
-            this.fGainLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, this.fVelFun(velocity)));
-            this.fNote = pitch;
+        keyOn(pitch, velocity, legato = false) {
+            if (legato) {
+                this.fNextNote = pitch;
+                this.fNextVel = velocity;
+            }
+            else {
+                this.fFreqLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, this.fKeyFun(pitch)));
+                this.fGateLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, 1));
+                this.fGainLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, this.fVelFun(velocity)));
+                this.fCurNote = pitch;
+            }
         }
         keyOff(hard = false) {
             this.fGateLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, 0));
             if (hard) {
-                this.fNote = DspVoice.kFreeVoice;
+                this.fCurNote = DspVoice.kFreeVoice;
             }
             else {
-                this.fRelease = this.fMaxRelease;
-                this.fNote = DspVoice.kReleaseVoice;
+                this.fRelease = this.fAPI.getSampleRate(this.fDSP) / 2;
+                this.fCurNote = DspVoice.kReleaseVoice;
             }
+        }
+        computeLegato(buffer_size, inputs, output_zero, outputs_half) {
+            let size = buffer_size / 2;
+            this.fGateLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, 0));
+            this.fAPI.compute(this.fDSP, size, inputs, output_zero);
+            this.keyOn(this.fNextNote, this.fNextVel);
+            this.fAPI.compute(this.fDSP, size, inputs, outputs_half);
         }
         compute(buffer_size, inputs, outputs) {
             this.fAPI.compute(this.fDSP, buffer_size, inputs, outputs);
@@ -703,7 +715,8 @@ var Faust;
             this.fAudioInputs = audio_ptr;
             this.fAudioOutputs = this.fAudioInputs + this.getNumInputs() * this.gPtrSize;
             this.fAudioMixing = this.fAudioOutputs + this.getNumOutputs() * this.gPtrSize;
-            const audio_inputs_ptr = this.fAudioMixing + this.getNumOutputs() * this.gPtrSize;
+            this.fAudioMixingHalf = this.fAudioMixing + this.getNumOutputs() * this.gPtrSize;
+            const audio_inputs_ptr = this.fAudioMixingHalf + this.getNumOutputs() * this.gPtrSize;
             const audio_outputs_ptr = audio_inputs_ptr + this.getNumInputs() * this.fBufferSize * this.gSampleSize;
             const audio_mixing_ptr = audio_outputs_ptr + this.getNumOutputs() * this.fBufferSize * this.gSampleSize;
             const HEAP = this.fInstance.memory.buffer;
@@ -722,6 +735,7 @@ var Faust;
                 for (let chan = 0; chan < this.getNumOutputs(); chan++) {
                     HEAP32[(this.fAudioOutputs >> 2) + chan] = audio_outputs_ptr + this.fBufferSize * this.gSampleSize * chan;
                     HEAP32[(this.fAudioMixing >> 2) + chan] = audio_mixing_ptr + this.fBufferSize * this.gSampleSize * chan;
+                    HEAP32[(this.fAudioMixingHalf >> 2) + chan] = audio_mixing_ptr + this.fBufferSize * this.gSampleSize * chan + this.fBufferSize / 2 * this.gSampleSize;
                 }
                 const dspOutChans = HEAP32.subarray(this.fAudioOutputs >> 2, (this.fAudioOutputs + this.getNumOutputs() * this.gPtrSize) >> 2);
                 for (let chan = 0; chan < this.getNumOutputs(); chan++) {
@@ -736,37 +750,39 @@ var Faust;
             str += "this.fAudioInputs: " + this.fAudioInputs;
             str += "this.fAudioOutputs: " + this.fAudioOutputs;
             str += "this.fAudioMixing: " + this.fAudioMixing;
+            str += "this.fAudioMixingHalf: " + this.fAudioMixingHalf;
             return str;
         }
-        allocVoice(voice) {
+        allocVoice(voice, type) {
             this.fVoiceTable[voice].fDate++;
-            this.fVoiceTable[voice].fNote = DspVoice.kActiveVoice;
+            this.fVoiceTable[voice].fCurNote = type;
             return voice;
         }
         getPlayingVoice(pitch) {
-            let playing_voice = DspVoice.kNoVoice;
+            let voice_playing = DspVoice.kNoVoice;
             let oldest_date_playing = Number.MAX_VALUE;
             for (let voice = 0; voice < this.fInstance.voices; voice++) {
-                if (this.fVoiceTable[voice].fNote === pitch) {
+                if (this.fVoiceTable[voice].fCurNote === pitch) {
                     if (this.fVoiceTable[voice].fDate < oldest_date_playing) {
                         oldest_date_playing = this.fVoiceTable[voice].fDate;
-                        playing_voice = voice;
+                        voice_playing = voice;
                     }
                 }
             }
-            return playing_voice;
+            return voice_playing;
         }
         getFreeVoice() {
             for (let voice = 0; voice < this.fInstance.voices; voice++) {
-                if (this.fVoiceTable[voice].fNote === DspVoice.kFreeVoice)
-                    return this.allocVoice(voice);
+                if (this.fVoiceTable[voice].fCurNote === DspVoice.kFreeVoice) {
+                    return this.allocVoice(voice, DspVoice.kActiveVoice);
+                }
             }
             let voice_release = DspVoice.kNoVoice;
             let voice_playing = DspVoice.kNoVoice;
             let oldest_date_release = Number.MAX_VALUE;
             let oldest_date_playing = Number.MAX_VALUE;
             for (let voice = 0; voice < this.fInstance.voices; voice++) {
-                if (this.fVoiceTable[voice].fNote === DspVoice.kReleaseVoice) {
+                if (this.fVoiceTable[voice].fCurNote === DspVoice.kReleaseVoice) {
                     if (this.fVoiceTable[voice].fDate < oldest_date_release) {
                         oldest_date_release = this.fVoiceTable[voice].fDate;
                         voice_release = voice;
@@ -779,11 +795,11 @@ var Faust;
             }
             if (oldest_date_release !== Number.MAX_VALUE) {
                 console.log(`Steal release voice : voice_date = ${this.fVoiceTable[voice_release].fDate} voice = ${voice_release}`);
-                return this.allocVoice(voice_release);
+                return this.allocVoice(voice_release, DspVoice.kLegatoVoice);
             }
             if (oldest_date_playing !== Number.MAX_VALUE) {
                 console.log(`Steal playing voice : voice_date = ${this.fVoiceTable[voice_playing].fDate} voice = ${voice_playing}`);
-                return this.allocVoice(voice_playing);
+                return this.allocVoice(voice_playing, DspVoice.kLegatoVoice);
             }
             return DspVoice.kNoVoice;
         }
@@ -806,12 +822,17 @@ var Faust;
                 this.fComputeHandler(this.fBufferSize);
             this.fInstance.mixer_api.clearOutput(this.fBufferSize, this.getNumOutputs(), this.fAudioOutputs);
             this.fVoiceTable.forEach(voice => {
-                if (voice.fNote !== DspVoice.kFreeVoice) {
+                if (voice.fCurNote === DspVoice.kLegatoVoice) {
+                    voice.computeLegato(this.fBufferSize, this.fAudioInputs, this.fAudioMixing, this.fAudioMixingHalf);
+                    this.fInstance.mixer_api.fadeOut(this.fBufferSize / 2, this.getNumOutputs(), this.fAudioMixing);
+                    voice.fLevel = this.fInstance.mixer_api.mixCheckVoice(this.fBufferSize, this.getNumOutputs(), this.fAudioMixing, this.fAudioOutputs);
+                }
+                else if (voice.fCurNote !== DspVoice.kFreeVoice) {
                     voice.compute(this.fBufferSize, this.fAudioInputs, this.fAudioMixing);
-                    voice.fLevel = this.fInstance.mixer_api.mixVoice(this.fBufferSize, this.getNumOutputs(), this.fAudioMixing, this.fAudioOutputs);
+                    voice.fLevel = this.fInstance.mixer_api.mixCheckVoice(this.fBufferSize, this.getNumOutputs(), this.fAudioMixing, this.fAudioOutputs);
                     voice.fRelease -= this.fBufferSize;
-                    if ((voice.fNote == DspVoice.kReleaseVoice) && ((voice.fLevel < DspVoice.VOICE_STOP_LEVEL) && (voice.fRelease < 0))) {
-                        voice.fNote = DspVoice.kFreeVoice;
+                    if ((voice.fCurNote == DspVoice.kReleaseVoice) && ((voice.fLevel < DspVoice.VOICE_STOP_LEVEL) && (voice.fRelease < 0))) {
+                        voice.fCurNote = DspVoice.kFreeVoice;
                     }
                 }
             });
@@ -934,7 +955,7 @@ var Faust;
         }
         keyOn(channel, pitch, velocity) {
             const voice = this.getFreeVoice();
-            this.fVoiceTable[voice].keyOn(pitch, velocity);
+            this.fVoiceTable[voice].keyOn(pitch, velocity, this.fVoiceTable[voice].fCurNote == DspVoice.kLegatoVoice);
         }
         keyOff(channel, pitch, velocity) {
             const voice = this.getPlayingVoice(pitch);

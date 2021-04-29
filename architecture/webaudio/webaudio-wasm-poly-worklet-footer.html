@@ -178,7 +178,7 @@
         if (isWasm) {
             if (workletAvailable()) {
                 factory = new FaustDSPPoly(audioCtx, 16, "");
-                console.log("Running in AudioWorklet mdoe");
+                console.log("Running in AudioWorklet mode");
             } else {
                 factory = new FaustDSPPoly(audioCtx, 16, "", true);
                 console.log("Running in ScriptProcessor mode");

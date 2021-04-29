@@ -401,6 +401,7 @@ namespace Faust {
         static kActiveVoice: number;
         static kFreeVoice: number;
         static kReleaseVoice: number;
+        static kLegatoVoice: number;
         static kNoVoice: number;
         static VOICE_STOP_LEVEL: number;
         private fFreqLabel: number[];
@@ -411,11 +412,12 @@ namespace Faust {
         private fKeyFun: TransformFunction;
         private fVelFun: TransformFunction;
         // Accessed by PolyDSPImp class
+        fCurNote: number;
+        fNextNote: number;
+        fNextVel: number;
+        fDate: number;
         fLevel: number;
         fRelease: number;
-        fMaxRelease: number;
-        fNote: number;
-        fDate: number;
 
         constructor(dsp: DSP,
             api: InstanceAPI,
@@ -426,16 +428,16 @@ namespace Faust {
             DspVoice.kActiveVoice = 0;
             DspVoice.kFreeVoice = -1;
             DspVoice.kReleaseVoice = -2;
-            DspVoice.kNoVoice = -3;
+            DspVoice.kLegatoVoice = -3;
+            DspVoice.kNoVoice = -4;
             DspVoice.VOICE_STOP_LEVEL = 0.0005;
             // Default versions
             this.fKeyFun = (pitch: number) => { return DspVoice.midiToFreq(pitch); }
             this.fVelFun = (velocity: number) => { return velocity / 127.0; }
+            this.fCurNote = DspVoice.kFreeVoice;
+            this.fNextNote = this.fNextVel = -1;
             this.fLevel = 0;
-            this.fRelease = 0;
-            this.fMaxRelease = sample_rate / 2;
-            this.fNote = DspVoice.kFreeVoice;
-            this.fDate = 0;
+            this.fDate = this.fRelease = 0;
             this.fDSP = dsp;
             this.fAPI = api;
             this.fGateLabel = [];
@@ -468,23 +470,44 @@ namespace Faust {
         }
 
         // Public API
-        keyOn(pitch: number, velocity: number) {
-            this.fAPI.instanceClear(this.fDSP);
-            this.fFreqLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, this.fKeyFun(pitch)));
-            this.fGateLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, 1));
-            this.fGainLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, this.fVelFun(velocity)));
-            // Keep pitch
-            this.fNote = pitch;
+        keyOn(pitch: number, velocity: number, legato: boolean = false) {
+            if (legato) {
+                this.fNextNote = pitch;
+                this.fNextVel = velocity;
+            } else {
+                this.fFreqLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, this.fKeyFun(pitch)));
+                this.fGateLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, 1));
+                this.fGainLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, this.fVelFun(velocity)));
+                // Keep pitch
+                this.fCurNote = pitch;
+            }
         }
 
         keyOff(hard: boolean = false) {
             this.fGateLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, 0));
             if (hard) {
-                this.fNote = DspVoice.kFreeVoice;
+                this.fCurNote = DspVoice.kFreeVoice;
             } else {
-                this.fRelease = this.fMaxRelease;
-                this.fNote = DspVoice.kReleaseVoice;
+                this.fRelease = this.fAPI.getSampleRate(this.fDSP) / 2;
+                this.fCurNote = DspVoice.kReleaseVoice;
             }
+        }
+
+        computeLegato(buffer_size: number, inputs: AudioBuffer, output_zero: AudioBuffer, outputs_half: AudioBuffer) {
+
+            let size = buffer_size / 2;
+
+            // Reset envelops
+            this.fGateLabel.forEach(index => this.fAPI.setParamValue(this.fDSP, index, 0));
+
+            // Compute current voice on half buffer
+            this.fAPI.compute(this.fDSP, size, inputs, output_zero);
+
+            // Start next keyOn
+            this.keyOn(this.fNextNote, this.fNextVel);
+
+            // Compute on second half buffer
+            this.fAPI.compute(this.fDSP, size, inputs, outputs_half);
         }
 
         compute(buffer_size: number, inputs: AudioBuffer, outputs: AudioBuffer) {
@@ -512,6 +535,7 @@ namespace Faust {
         private fEffect!: DSP;
         private fJSONEffect: TFaustJSON | null;
         private fAudioMixing!: AudioBuffer;
+        private fAudioMixingHalf!: AudioBuffer;
         private fVoiceTable: DspVoice[];
 
         constructor(instance: PolyInstance, sample_rate: number, sample_size: number, buffer_size: number) {
@@ -558,9 +582,10 @@ namespace Faust {
             this.fAudioInputs = audio_ptr;
             this.fAudioOutputs = this.fAudioInputs + this.getNumInputs() * this.gPtrSize;
             this.fAudioMixing = this.fAudioOutputs + this.getNumOutputs() * this.gPtrSize;
+            this.fAudioMixingHalf = this.fAudioMixing + this.getNumOutputs() * this.gPtrSize;
 
             // Prepare wasm memory layout
-            const audio_inputs_ptr = this.fAudioMixing + this.getNumOutputs() * this.gPtrSize;
+            const audio_inputs_ptr = this.fAudioMixingHalf + this.getNumOutputs() * this.gPtrSize;
             const audio_outputs_ptr = audio_inputs_ptr + this.getNumInputs() * this.fBufferSize * this.gSampleSize;
             const audio_mixing_ptr = audio_outputs_ptr + this.getNumOutputs() * this.fBufferSize * this.gSampleSize;
 
@@ -582,6 +607,7 @@ namespace Faust {
                 for (let chan = 0; chan < this.getNumOutputs(); chan++) {
                     HEAP32[(this.fAudioOutputs >> 2) + chan] = audio_outputs_ptr + this.fBufferSize * this.gSampleSize * chan;
                     HEAP32[(this.fAudioMixing >> 2) + chan] = audio_mixing_ptr + this.fBufferSize * this.gSampleSize * chan;
+                    HEAP32[(this.fAudioMixingHalf >> 2) + chan] = audio_mixing_ptr + this.fBufferSize * this.gSampleSize * chan + this.fBufferSize / 2 * this.gSampleSize;
                 }
                 // Prepare Out buffer tables
                 const dspOutChans = HEAP32.subarray(this.fAudioOutputs >> 2, (this.fAudioOutputs + this.getNumOutputs() * this.gPtrSize) >> 2);
@@ -598,34 +624,37 @@ namespace Faust {
             str += "this.fAudioInputs: " + this.fAudioInputs;
             str += "this.fAudioOutputs: " + this.fAudioOutputs;
             str += "this.fAudioMixing: " + this.fAudioMixing;
+            str += "this.fAudioMixingHalf: " + this.fAudioMixingHalf;
             return str;
         }
 
-        private allocVoice(voice: number) {
+        private allocVoice(voice: number, type: number) {
             this.fVoiceTable[voice].fDate++;
-            this.fVoiceTable[voice].fNote = DspVoice.kActiveVoice;
+            this.fVoiceTable[voice].fCurNote = type;
             return voice;
         }
 
         private getPlayingVoice(pitch: number) {
-            let playing_voice = DspVoice.kNoVoice;
+            let voice_playing = DspVoice.kNoVoice;
             let oldest_date_playing = Number.MAX_VALUE;
 
             for (let voice = 0; voice < this.fInstance.voices; voice++) {
-                if (this.fVoiceTable[voice].fNote === pitch) {
+                if (this.fVoiceTable[voice].fCurNote === pitch) {
                     // Keeps oldest playing voice
                     if (this.fVoiceTable[voice].fDate < oldest_date_playing) {
                         oldest_date_playing = this.fVoiceTable[voice].fDate;
-                        playing_voice = voice;
+                        voice_playing = voice;
                     }
                 }
             }
-            return playing_voice;
+            return voice_playing;
         }
 
         private getFreeVoice() {
             for (let voice = 0; voice < this.fInstance.voices; voice++) {
-                if (this.fVoiceTable[voice].fNote === DspVoice.kFreeVoice) return this.allocVoice(voice);
+                if (this.fVoiceTable[voice].fCurNote === DspVoice.kFreeVoice) {
+                    return this.allocVoice(voice, DspVoice.kActiveVoice);
+                }
             }
 
             let voice_release = DspVoice.kNoVoice;
@@ -635,7 +664,7 @@ namespace Faust {
 
             for (let voice = 0; voice < this.fInstance.voices; voice++) { // Scan all voices
                 // Try to steal a voice in DspVoice.kReleaseVoice mode...
-                if (this.fVoiceTable[voice].fNote === DspVoice.kReleaseVoice) {
+                if (this.fVoiceTable[voice].fCurNote === DspVoice.kReleaseVoice) {
                     // Keeps oldest release voice
                     if (this.fVoiceTable[voice].fDate < oldest_date_release) {
                         oldest_date_release = this.fVoiceTable[voice].fDate;
@@ -649,11 +678,11 @@ namespace Faust {
             // Then decide which one to steal
             if (oldest_date_release !== Number.MAX_VALUE) {
                 console.log(`Steal release voice : voice_date = ${this.fVoiceTable[voice_release].fDate} voice = ${voice_release}`);
-                return this.allocVoice(voice_release);
+                return this.allocVoice(voice_release, DspVoice.kLegatoVoice);
             }
             if (oldest_date_playing !== Number.MAX_VALUE) {
                 console.log(`Steal playing voice : voice_date = ${this.fVoiceTable[voice_playing].fDate} voice = ${voice_playing}`);
-                return this.allocVoice(voice_playing);
+                return this.allocVoice(voice_playing, DspVoice.kLegatoVoice);
             }
             return DspVoice.kNoVoice;
         }
@@ -690,12 +719,22 @@ namespace Faust {
             // Compute
             this.fInstance.mixer_api.clearOutput(this.fBufferSize, this.getNumOutputs(), this.fAudioOutputs);
             this.fVoiceTable.forEach(voice => {
-                if (voice.fNote !== DspVoice.kFreeVoice) {
+                if (voice.fCurNote === DspVoice.kLegatoVoice) {
+                    // Play from current note and next note
+                    voice.computeLegato(this.fBufferSize, this.fAudioInputs, this.fAudioMixing, this.fAudioMixingHalf);
+                    // FadeOut on first half buffer
+                    this.fInstance.mixer_api.fadeOut(this.fBufferSize / 2, this.getNumOutputs(), this.fAudioMixing);
+                    // Mix it in result
+                    voice.fLevel = this.fInstance.mixer_api.mixCheckVoice(this.fBufferSize, this.getNumOutputs(), this.fAudioMixing, this.fAudioOutputs);
+                } else if (voice.fCurNote !== DspVoice.kFreeVoice) {
+                    // Compute current note
                     voice.compute(this.fBufferSize, this.fAudioInputs, this.fAudioMixing);
-                    voice.fLevel = this.fInstance.mixer_api.mixVoice(this.fBufferSize, this.getNumOutputs(), this.fAudioMixing, this.fAudioOutputs);
+                    // Mix it in result
+                    voice.fLevel = this.fInstance.mixer_api.mixCheckVoice(this.fBufferSize, this.getNumOutputs(), this.fAudioMixing, this.fAudioOutputs);
+                    // Check the level to possibly set the voice in kFreeVoice again
                     voice.fRelease -= this.fBufferSize;
-                    if ((voice.fNote == DspVoice.kReleaseVoice) && ((voice.fLevel < DspVoice.VOICE_STOP_LEVEL) && (voice.fRelease < 0))) {
-                        voice.fNote = DspVoice.kFreeVoice;
+                    if ((voice.fCurNote == DspVoice.kReleaseVoice) && ((voice.fLevel < DspVoice.VOICE_STOP_LEVEL) && (voice.fRelease < 0))) {
+                        voice.fCurNote = DspVoice.kFreeVoice;
                     }
                 }
             });
@@ -819,7 +858,7 @@ namespace Faust {
 
         keyOn(channel: number, pitch: number, velocity: number) {
             const voice = this.getFreeVoice();
-            this.fVoiceTable[voice].keyOn(pitch, velocity);
+            this.fVoiceTable[voice].keyOn(pitch, velocity, this.fVoiceTable[voice].fCurNote == DspVoice.kLegatoVoice);
         }
 
         keyOff(channel: number, pitch: number, velocity: number) {
