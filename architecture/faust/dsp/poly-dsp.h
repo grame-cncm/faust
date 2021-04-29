@@ -191,13 +191,6 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     virtual ~dsp_voice()
     {}
     
-    void clear()
-    {
-        fCurNote = kFreeVoice;
-        // So that DSP state is always re-initialized
-        fDSP->instanceClear();
-    }
-    
     void computeSlice(int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
         FAUSTFLOAT** inputsSlice = static_cast<FAUSTFLOAT**>(alloca(sizeof(FAUSTFLOAT*) * getNumInputs()));
@@ -215,10 +208,15 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     {
         int slice = count/2;
         
+        // Reset envelops
+        for (size_t i = 0; i < fGatePath.size(); i++) {
+            setParamValue(fGatePath[i], FAUSTFLOAT(0));
+        }
+        
         // Compute current voice on half buffer
         computeSlice(0, slice, inputs, outputs);
         
-        // fadeOut on half buffer
+        // FadeOut on half buffer
         for (int chan = 0; chan < getNumOutputs(); chan++) {
             double factor = 1., step = 1./double(slice);
             for (int frame = 0; frame < slice; frame++) {
@@ -271,9 +269,6 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     // Normalized MIDI velocity [0..1]
     void keyOn(int pitch, double velocity)
     {
-        // So that DSP state is always re-initialized
-        fDSP->instanceClear();
-        
         for (size_t i = 0; i < fFreqPath.size(); i++) {
             setParamValue(fFreqPath[i], fKeyFun(pitch));
         }
@@ -837,9 +832,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         // Additional polyphonic API
         MapUI* newVoice()
         {
-            int voice = getFreeVoice();
-            fVoiceTable[voice]->clear();
-            return fVoiceTable[voice];
+            return fVoiceTable[getFreeVoice()];
         }
 
         void deleteVoice(MapUI* voice)
