@@ -58,8 +58,7 @@
 /**
  * Allows to control zones in a grouped manner.
  */
-class GroupUI : public GUI, public PathBuilder
-{
+class GroupUI : public GUI, public PathBuilder {
 
     private:
 
@@ -215,16 +214,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         
         // Compute current voice on half buffer
         computeSlice(0, slice, inputs, outputs);
-        
-        // FadeOut on half buffer
-        for (int chan = 0; chan < getNumOutputs(); chan++) {
-            double factor = 1., step = 1./double(slice);
-            for (int frame = 0; frame < slice; frame++) {
-                outputs[chan][frame] *= factor;
-                factor -= step;
-            }
-        }
-        
+         
         // Start next keyOn
         keyOn(fNextNote, fNextVel);
         
