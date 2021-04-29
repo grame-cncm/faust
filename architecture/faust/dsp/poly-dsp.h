@@ -512,7 +512,19 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         FAUSTFLOAT** fOutBuffer;
         midi_interface* fMidiHandler; // The midi_interface the DSP is connected to
         int fDate;
-  
+    
+        void fadeOut(int count, FAUSTFLOAT** outBuffer)
+        {
+            // FadeOut on half buffer
+            for (int chan = 0; chan < getNumOutputs(); chan++) {
+                double factor = 1., step = 1./double(count);
+                for (int frame = 0; frame < count; frame++) {
+                    outBuffer[chan][frame] *= factor;
+                    factor -= step;
+                }
+            }
+        }
+    
         FAUSTFLOAT mixCheckVoice(int count, FAUSTFLOAT** mixBuffer, FAUSTFLOAT** outBuffer)
         {
             FAUSTFLOAT level = 0;
@@ -570,71 +582,63 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             return voice_playing;
         }
     
+        int allocVoice(int voice, int type)
+        {
+            fVoiceTable[voice]->fDate++;
+            fVoiceTable[voice]->fCurNote = type;
+            return voice;
+        }
+    
         // Always returns a voice
         int getFreeVoice()
         {
-            int voice = kNoVoice;
-            
             // Looks for the first available voice
             for (size_t i = 0; i < fVoiceTable.size(); i++) {
                 if (fVoiceTable[i]->fCurNote == kFreeVoice) {
-                    voice = int(i);
-                    fVoiceTable[voice]->fDate = fDate++;
-                    fVoiceTable[voice]->fCurNote = kActiveVoice;
-                    return voice;
+                    return allocVoice(i, kActiveVoice);
                 }
             }
 
-            {
-                // Otherwise steal one
-                int voice_release = kNoVoice;
-                int voice_playing = kNoVoice;
-                
-                int oldest_date_release = INT_MAX;
-                int oldest_date_playing = INT_MAX;
+            // Otherwise steal one
+            int voice_release = kNoVoice;
+            int voice_playing = kNoVoice;
+            int oldest_date_release = INT_MAX;
+            int oldest_date_playing = INT_MAX;
 
-                // Scan all voices
-                for (size_t i = 0; i < fVoiceTable.size(); i++) {
-                    if (fVoiceTable[i]->fCurNote == kReleaseVoice) {
-                        // Keeps oldest release voice
-                        if (fVoiceTable[i]->fDate < oldest_date_release) {
-                            oldest_date_release = fVoiceTable[i]->fDate;
-                            voice_release = int(i);
-                        }
-                    } else {
-                        // Otherwise keeps oldest playing voice
-                        if (fVoiceTable[i]->fDate < oldest_date_playing) {
-                            oldest_date_playing = fVoiceTable[i]->fDate;
-                            voice_playing = int(i);
-                        }
+            // Scan all voices
+            for (size_t i = 0; i < fVoiceTable.size(); i++) {
+                if (fVoiceTable[i]->fCurNote == kReleaseVoice) {
+                    // Keeps oldest release voice
+                    if (fVoiceTable[i]->fDate < oldest_date_release) {
+                        oldest_date_release = fVoiceTable[i]->fDate;
+                        voice_release = int(i);
+                    }
+                } else {
+                    // Otherwise keeps oldest playing voice
+                    if (fVoiceTable[i]->fDate < oldest_date_playing) {
+                        oldest_date_playing = fVoiceTable[i]->fDate;
+                        voice_playing = int(i);
                     }
                 }
-            
-                // Then decide which one to steal
-                if (oldest_date_release != INT_MAX) {
-                    fprintf(stderr, "Steal release voice : voice_date = %d cur_date = %d voice = %d \n",
-                            fVoiceTable[voice_release]->fDate,
-                            fDate,
-                            voice_release);
-                    voice = voice_release;
-                    goto result;
-                } else if (oldest_date_playing != INT_MAX) {
-                    fprintf(stderr, "Steal playing voice : voice_date = %d cur_date = %d voice = %d \n",
-                            fVoiceTable[voice_playing]->fDate,
-                            fDate,
-                            voice_release);
-                    voice = voice_playing;
-                    goto result;
-                } else {
-                    assert(false);
-                    return kNoVoice;
-                }
             }
-            
-        result:
-            fVoiceTable[voice]->fDate = fDate++;
-            fVoiceTable[voice]->fCurNote = kLegatoVoice;
-            return voice;
+        
+            // Then decide which one to steal
+            if (oldest_date_release != INT_MAX) {
+                fprintf(stderr, "Steal release voice : voice_date = %d cur_date = %d voice = %d \n",
+                        fVoiceTable[voice_release]->fDate,
+                        fDate,
+                        voice_release);
+                return allocVoice(voice_release, kLegatoVoice);
+            } else if (oldest_date_playing != INT_MAX) {
+                fprintf(stderr, "Steal playing voice : voice_date = %d cur_date = %d voice = %d \n",
+                        fVoiceTable[voice_playing]->fDate,
+                        fDate,
+                        voice_release);
+                return allocVoice(voice_playing, kLegatoVoice);
+            } else {
+                assert(false);
+                return kNoVoice;
+            }
         }
 
         static void panic(FAUSTFLOAT val, void* arg)
@@ -788,6 +792,8 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                     if (voice->fCurNote == kLegatoVoice) {
                         // Play from current note and next note
                         voice->computeLegato(count, inputs, fMixBuffer);
+                        // FadeOut on first half buffer
+                        fadeOut(count/2, fMixBuffer);
                         // Mix it in result
                         voice->fLevel = mixCheckVoice(count, fMixBuffer, fOutBuffer);
                     } else if (voice->fCurNote != kFreeVoice) {
