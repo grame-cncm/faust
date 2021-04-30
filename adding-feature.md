@@ -208,3 +208,9 @@ du second signal au premier, il suffit d'utiliser la méthode `promoteInterval`
 ??? Yann : il y a des types sommes dans Faust
 
 !!! Yann : réactivé promoteIntervals
+
+autres fichiers à changer, pour le backend -ocpp
+
++ sigToGraph.cpp
++ sigIdentity.cpp
++ compile-scal.cpp 

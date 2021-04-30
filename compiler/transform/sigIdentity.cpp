@@ -186,6 +186,13 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigControl(self(x), self(y));
     }
 
+    // Signal interval annotation
+    else if (isSigIsGt(sig, x, y)){
+	return sigIsGt(self(x), self(y));
+    } else if (isSigIsLt(sig, x, y)){
+	return sigIsLt(self(x), self(y));
+    }
+	
     else {
         stringstream error;
         error << "ERROR : unrecognized signal : " << *sig << endl;
