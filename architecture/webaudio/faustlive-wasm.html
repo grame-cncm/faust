@@ -382,6 +382,8 @@
                 </form>
                 <form method="POST" name="menu">
                     <select id="polyVoices" name="polyVoices" onChange="setPolyVoices(this.form.polyVoices)">
+                    	<option value=1> 1 </option>
+                    	<option value=2> 2 </option>
                         <option value=4> 4 </option>
                         <option value=8> 8 </option>
                         <option selected value=16> 16 </option>
@@ -843,7 +845,6 @@
                 DSP.disconnect(audio_context.destination);
                 DSP.destroy();
                 _f4u$t.hard_delete(faust_svg);
-
                 DSP = null;
                 faust_svg = null;
             }

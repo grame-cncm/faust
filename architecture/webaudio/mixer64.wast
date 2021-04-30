@@ -85,10 +85,10 @@
                 (local.set $step (f64.div (local.get $factor) (f64.convert_i32_s (local.get $count))))
                 (loop $for-in-i
                     (block $for-out-i
-                        (local.set $sample (f64.load (i32.add (local.get $output) (i32.shl (local.get $i) (i32.const 2)))))
+                        (local.set $sample (f64.load (i32.add (local.get $output) (i32.shl (local.get $i) (i32.const 3)))))
                         (local.set $sample (f64.mul (local.get $sample) (local.get $factor)))
                         (local.set $factor (f64.sub (local.get $factor) (local.get $step)))
-                        (f64.store (i32.add (local.get $output) (i32.shl (local.get $i) (i32.const 2))) (local.get $sample))
+                        (f64.store (i32.add (local.get $output) (i32.shl (local.get $i) (i32.const 3))) (local.get $sample))
                         (local.set $i (i32.add (local.get $i) (i32.const 1)))
                         (if (i32.lt_s (local.get $i) (local.get $count)) (br $for-in-i) (br $for-out-i))
                     )
