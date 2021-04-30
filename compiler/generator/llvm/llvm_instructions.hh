@@ -170,7 +170,7 @@ struct LLVMTypeHelper {
     LLVMType getStructType(const string& name, const LLVMVecTypes& types)
     {
         // We want to have a unique creation for struct types, so check if the given type has already been created
-    #if defined(LLVM_130)
+    #if defined(LLVM_120) || defined(LLVM_130)
         StructType* struct_type = StructType::getTypeByName(fModule->getContext(), name);
     #else
         StructType* struct_type = fModule->getTypeByName(name);
@@ -195,7 +195,7 @@ struct LLVMTypeHelper {
         if (basic_typed) {
             return fTypeMap[basic_typed->fType];
         } else if (named_typed) {
-        #if defined(LLVM_130)
+        #if defined(LLVM_120) || defined(LLVM_130)
             LLVMType type = StructType::getTypeByName(fModule->getContext(), "struct.dsp" + named_typed->fName);
         #else
             LLVMType type = fModule->getTypeByName("struct.dsp" + named_typed->fName);
