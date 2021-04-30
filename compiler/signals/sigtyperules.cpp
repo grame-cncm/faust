@@ -619,6 +619,23 @@ static Type infereSigType(Tree sig, Tree env)
         return T(hd(sig), env) * T(tl(sig), env);
     }
 
+    /* min/max don't work here, so handmade version */
+    else if (isSigIsLt(sig, s1, s2)){
+	Type t1 = T(s1, env);
+	Type t2 = T(s2, env);
+	interval i1 = t1->getInterval();
+	interval i2 = t2->getInterval();
+	return t1->promoteInterval(interval(i1.valid || i2.valid, i1.lo, i2.hi < i1.hi ? i2.hi : i1.hi));
+    }
+
+    else if (isSigIsGt(sig, s1, s2)){
+	Type t1 = T(s1, env);
+	Type t2 = T(s2, env);
+	interval i1 = t1->getInterval();
+	interval i2 = t2->getInterval();
+	return t1->promoteInterval(interval(i1.valid || i2.valid, i2.lo > i1.lo ? i2.lo : i1.lo, i1.hi));
+    }    
+
     // unrecognized signal here
     throw faustexception("ERROR inferring signal type : unrecognized signal\n");
     return 0;

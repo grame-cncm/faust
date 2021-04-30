@@ -265,13 +265,13 @@ class SimpleType : public AudioType {
     }  ///< promote the booleanity of a type
     virtual AudioType* promoteInterval(const interval& i)
     {
-        //cerr << "promote to Interval " << i << endl;
-        //cerr << "for type : " << *this << endl;
-        return makeSimpleType(fNature, fVariability, fComputability, fVectorability, fBoolean, i);  ///<
-        // promote the interval of a type 		cerr << "gives type " << *t << endl; 		return t;
-    };
-
-        virtual bool isMaximal()
+        // cerr << "promote to Interval " << i << endl;
+        // cerr << "for type : " << *this << endl;
+        Type t = makeSimpleType(fNature, fVariability, fComputability, fVectorability, fBoolean, i);  ///< promote the interval of a type
+	// cerr << "gives type " << *t << endl;
+        return t;
+    }
+    virtual bool isMaximal()
             const;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
     };
 
@@ -383,7 +383,10 @@ class TableType : public AudioType {
     {
         return makeTableType(fContent, fNature, fVariability, fComputability, fVectorability, fBoolean, i);
     }  ///< promote the interval of a type
+<<<<<<< HEAD
     
+=======
+>>>>>>> 687e4f6cf (add interval handling for isLt, isGt)
 
     virtual bool isMaximal() const;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
 };
@@ -447,7 +450,11 @@ class TupletType : public AudioType {
     {
         return new TupletType(fComponents, fNature, fVariability, fComputability, fVectorability, fBoolean, i);
     }  ///< promote the interval of a type
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 687e4f6cf (add interval handling for isLt, isGt)
     virtual bool isMaximal() const;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
 };
 
