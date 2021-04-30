@@ -180,3 +180,31 @@ idée de comment le compiler. Et en effet, si on compile l'exemple
 On obtient
 
     ERROR : getSubSignals unrecognized signal : sigIsLt[SigInput[0],1]
+
+
+## Compilation
+
+Les signaux étant construits, nous pouvons entrer dans la compilation proprement
+dite.  Modifions donc la fonction getSubSignals. Cette fonction se trouve dans
+le fichier `subsignals.cpp` (on pourra par exemple utiliser la documentation
+auto-générée avec Doxygen `make doc` à la racine, ou encore les fonctionnalités
+de recherche de définitions dans des éditeurs modernes comme Emacs), elle
+extrait juste les signaux des sous-arbres de l'arbre signal (n'oublions pas
+qu'un signal est stocké sous forme d'arbre). Nos boîtes ont toutes deux signaux,
+on pourra s'inspirer du cas sigPrefix.
+
+Après compilation et exécution du code, on obtient la nouvelle erreur plus
+intéressante
+
+	ERROR inferring signal type : unrecognized signal
+	
+Il faut donc modifier le système d'inférence de types présent dans le fichier
+`signals/sigtyperules.cpp`. La définition formelle des types Faust peut se
+trouver en commentaire de l'en-tête du fichier `sigtype.hh`.
+
+Commençons par `isLt`, le principe de cette fonction étant d'ajouter le majorant
+du second signal au premier, il suffit d'utiliser la méthode `promoteInterval`
+
+??? Yann : il y a des types sommes dans Faust
+
+!!! Yann : réactivé promoteIntervals
