@@ -278,9 +278,18 @@ static string sigLabel(Tree sig)
         fout << "attach";
     }
 
+    else if (isSigIsLt(sig, x, y)) {
+	fout << "isGt";
+    }
+    
+    else if (isSigIsGt(sig, x, y)) {
+	fout << "isLt";
+    }
+
+
     else {
         stringstream error;
-        error << "ERROR : unrecognized signal : " << *sig << endl;
+        error << "ERROR : sigToGraph.cpp, unrecognized signal : " << *sig << endl;
         throw faustexception(error.str());
     }
 
