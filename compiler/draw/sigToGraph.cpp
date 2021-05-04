@@ -278,12 +278,16 @@ static string sigLabel(Tree sig)
         fout << "attach";
     }
 
-    else if (isSigIsLt(sig, x, y)) {
-	fout << "isGt";
+    else if (isSigAssertBounds(sig, x, y, z)){
+	fout << "assertbounds";
+    }
+
+    else if (isSigLowest(sig, x)){
+	fout << "lowest";
     }
     
-    else if (isSigIsGt(sig, x, y)) {
-	fout << "isLt";
+    else if (isSigHighest(sig, x)){
+	fout << "highest";
     }
 
 

@@ -159,34 +159,33 @@ extern int yydebug;
     DECLARE = 360,                 /* DECLARE  */
     CASE = 361,                    /* CASE  */
     ARROW = 362,                   /* ARROW  */
-    ISLT = 363,                    /* ISLT  */
-    ISGT = 364,                    /* ISGT  */
-    UPB = 365,                     /* UPB  */
-    LOB = 366,                     /* LOB  */
-    FLOATMODE = 367,               /* FLOATMODE  */
-    DOUBLEMODE = 368,              /* DOUBLEMODE  */
-    QUADMODE = 369,                /* QUADMODE  */
-    FIXEDPOINTMODE = 370,          /* FIXEDPOINTMODE  */
-    BDOC = 371,                    /* BDOC  */
-    EDOC = 372,                    /* EDOC  */
-    BEQN = 373,                    /* BEQN  */
-    EEQN = 374,                    /* EEQN  */
-    BDGM = 375,                    /* BDGM  */
-    EDGM = 376,                    /* EDGM  */
-    BLST = 377,                    /* BLST  */
-    ELST = 378,                    /* ELST  */
-    BMETADATA = 379,               /* BMETADATA  */
-    EMETADATA = 380,               /* EMETADATA  */
-    DOCCHAR = 381,                 /* DOCCHAR  */
-    NOTICE = 382,                  /* NOTICE  */
-    LISTING = 383,                 /* LISTING  */
-    LSTTRUE = 384,                 /* LSTTRUE  */
-    LSTFALSE = 385,                /* LSTFALSE  */
-    LSTDEPENDENCIES = 386,         /* LSTDEPENDENCIES  */
-    LSTMDOCTAGS = 387,             /* LSTMDOCTAGS  */
-    LSTDISTRIBUTED = 388,          /* LSTDISTRIBUTED  */
-    LSTEQ = 389,                   /* LSTEQ  */
-    LSTQ = 390                     /* LSTQ  */
+    ASSERTBOUNDS = 363,            /* ASSERTBOUNDS  */
+    LOWEST = 364,                  /* LOWEST  */
+    HIGHEST = 365,                 /* HIGHEST  */
+    FLOATMODE = 366,               /* FLOATMODE  */
+    DOUBLEMODE = 367,              /* DOUBLEMODE  */
+    QUADMODE = 368,                /* QUADMODE  */
+    FIXEDPOINTMODE = 369,          /* FIXEDPOINTMODE  */
+    BDOC = 370,                    /* BDOC  */
+    EDOC = 371,                    /* EDOC  */
+    BEQN = 372,                    /* BEQN  */
+    EEQN = 373,                    /* EEQN  */
+    BDGM = 374,                    /* BDGM  */
+    EDGM = 375,                    /* EDGM  */
+    BLST = 376,                    /* BLST  */
+    ELST = 377,                    /* ELST  */
+    BMETADATA = 378,               /* BMETADATA  */
+    EMETADATA = 379,               /* EMETADATA  */
+    DOCCHAR = 380,                 /* DOCCHAR  */
+    NOTICE = 381,                  /* NOTICE  */
+    LISTING = 382,                 /* LISTING  */
+    LSTTRUE = 383,                 /* LSTTRUE  */
+    LSTFALSE = 384,                /* LSTFALSE  */
+    LSTDEPENDENCIES = 385,         /* LSTDEPENDENCIES  */
+    LSTMDOCTAGS = 386,             /* LSTMDOCTAGS  */
+    LSTDISTRIBUTED = 387,          /* LSTDISTRIBUTED  */
+    LSTEQ = 388,                   /* LSTEQ  */
+    LSTQ = 389                     /* LSTQ  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -203,7 +202,7 @@ union YYSTYPE
 	bool b;
 	int numvariant;
 
-#line 207 "faustparser.hpp"
+#line 206 "faustparser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

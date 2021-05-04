@@ -370,10 +370,9 @@ struct global {
     Sym SIGDOCACCESSTBL;
     Sym SIGSELECT2;
     Sym SIGSELECT3;
-    Sym SIGISLT;
-    Sym SIGISGT;
-    Sym SIGUPB;
-    Sym SIGLOB;
+    Sym SIGASSERTBOUNDS;
+    Sym SIGHIGHEST;
+    Sym SIGLOWEST;
     Sym SIGBINOP;
     Sym SIGFFUN;
     Sym SIGFCONST;

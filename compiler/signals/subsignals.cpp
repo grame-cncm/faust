@@ -225,11 +225,12 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
     } else if (isNil(sig)) {
         return 0;
 
-    } else if (isSigIsLt(sig, x, y) || isSigIsGt(sig, x, y)) {
+    } else if (isSigAssertBounds(sig, x, y, z)) {
         vsigs.push_back(x);
         vsigs.push_back(y);
-        return 2;
-    } else if (isSigLoB(sig, x) || isSigUpB(sig, x)){
+	vsigs.push_back(z);
+        return 3;
+    } else if (isSigHighest(sig, x) || isSigLowest(sig, x)){
 	vsigs.push_back(x);
 	return 1;
     }

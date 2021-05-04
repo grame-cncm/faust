@@ -32,13 +32,17 @@ certaines techniques devraient être assez similaires.
 
 On se propose d'ajouter deux paires de primitives à Faust :
 
- * `upB(s)` et `loB(s)`, signaux à une entrée retournant respectivement le
- majorant et le minorant du signal `s` calculé par le compilateur. D'un point
- de vue du treillis des types Faust, il s'agit de constantes, calculable à la
+ * `highest(s)` et `lowest(s)`, signaux à une entrée retournant respectivement le
+ majorant et le minorant du signal `s` calculé par le compilateur. D'un point de
+ vue du treillis des types Faust, il s'agit de constantes, calculable à la
  compilation (bien sûr), flottantes (donc pas booléennes), parallélisables (je
- crois), et ce quelque soit le signal en entrée
+ crois), et ce, quelque soit le signal en entrée
 
- * `isLt(s)` et `isGt(s)`
+ * `assertbounds(lo, hi, sig)`, avec `lo` et `hi` deux constantes connues à la
+   compilation, qui aura deux comportement : en mode normal, elle crée un signal
+   dont la valeur est celle de `sig` mais dont l'intervalle est `[lo, hi]`, en
+   mode debug, elle vérifie pendant l'exécution que cet intervalle est bien
+   vérifié.
 
 N.B. Il faudra sans doute ajouter deux autres primitives concernant la
 résolution des signaux.
@@ -51,11 +55,11 @@ représentant ces primitives, en modifiant la syntaxe (lexing) et la sémantique
 (parsing) de Faust. En effet, si l'on demande à Faust de compiler le programme
 suivant :
 
-    process = isLt(1);
+    process = assertbounds(-1, 1);
 
 on obtient l'erreur suivante
 
-    1 : ERROR : undefined symbol : isLt
+    1 : ERROR : undefined symbol : assertbounds
 
 Pour ce faire, il nous faut modifier les fichiers décrivant le lexer et le
 parser, ici écrits en Flex/Bison (pour plus de détails, voir le Dragon Book)
@@ -64,27 +68,25 @@ Dans Faust, ces fichiers se trouvent dans `compiler/parser`.
 
 ### Lexing
 
-En Bison, la déclaration des tokens se fait dans le parser (faut pas
-chercher), ici `faustparser.y`, déclarons donc 4 nouveaux tokens:
+En Bison, la déclaration des tokens se fait dans le parser, ici `faustparser.y`,
+déclarons donc 4 nouveaux tokens:
 
-    %token ISLT
-    %token ISGT
-    %token UPB
-    %token LOB
+	%token ASSERTBOUNDS
+    %token LOWEST
+    %token HIGHEST
 
 Il faut ensuite que ces Tokens soient associés à des chaînes de caractères
 Faust, pour cela, modifions le lexer. Le fichier contenant le lexer se trouve
 dans `faustlexer.l`. Il suffit d'ajouter (entre les deux `%%`) :
-  
-    "isLt" return ISLT;
-    "isGt" return ISGT;
-    "upB"  return UPB;
-    "loB"  return LOB;
+
+    "assertbounds" return ASSERTBOUNDS;
+    "lowest"  return LOWEST;
+    "highest"  return HIGHEST;
     
 Recompilons le parser et le compilateur (`make parser` et `make` à la racine).
 En compilant l'exemple
 
-    process = isLt(1);
+    process = assertbounds(-1, 1);
 
 on obtient à présent
 
@@ -106,12 +108,11 @@ décrit une algèbre de blocs, les arguments ne sont pas toujours explicitement
 passés à la primitive, ils peuvent être routés. D'où un petit _wrapper_ autour
 du constructeur de la primitive, dépendant de l'airté de celle-ci.
 
-Comme ils ont une arité de 1 et 2, il faut définir deux nouvelles boîtes
+Comme ils ont une arité de 1 et 3, il faut définir deux nouvelles boîtes
 
-	| ISLT							{ $$ = boxPrim2(sigIsLt);}
-	| ISGT							{ $$ = boxPrim2(sigIsGt);}
-	| UPB							{ $$ = boxPrim1(sigUpB);}
-	| LOB							{ $$ = boxPrim1(sigLoB);}
+	| ASSERTBOUNDS					{ $$ = boxPrim3(sigAssertBounds);}
+	| LOWEST						{ $$ = boxPrim1(sigLowest);}
+	| HIGHEST						{ $$ = boxPrim1(sigHighest);}
 
 le parsing est terminé
 
@@ -132,42 +133,37 @@ globales à l'ensemble du code) :
 
 `global.hh`
 
-    Sym SIGISLT;
-    Sym SIGISGT;
-    Sym SIGUPB;
-    Sym SIGLOB;
+    Sym SIGASSERTBOUNDS;
+    Sym SIGHIGHEST;
+    Sym SIGLOWEST;
 
 `global.cpp`
 
-    SIGISLT            = symbol("sigIsLt");
-    SIGISGT            = symbol("sigIsGt");
-    SIGUPB             = symbol("sigUpB");
-    SIGLOB             = symbol("sigLoB");
-
-Nous pouvons à présent définir le constructeur du signal `isLt` ainsi que son destructeur :
+	SIGASSERTBOUNDS    = symbol("sigAssertBounds");
+    SIGHIGHEST         = symbol("sigHighest");
+    SIGLOWEST          = symbol("sigLowest");
+	
+Nous pouvons à présent définir le constructeur du signal `assertbounds` ainsi que son destructeur :
 
 `signals.hh`
 
-	Tree sigIsLt(Tree s1, Tree s2);
-	Tree sigIsGt(Tree s1, Tree s2);
-	Tree sigLoB(Tree s);
-	Tree sigUpB(Tree s);
+	Tree sigAssertBounds(Tree s1, Tree s2, Tree s3);
+	Tree sigLowest(Tree s);
+	Tree sigHighest(Tree s);
 
-	bool isSigIsLt(Tree t, Tree& s1, Tree& s2);
-	bool isSigIsGt(Tree t, Tree& s1, Tree& s2);
-	bool isSigLoB(Tree t, Tree& s);
-	bool isSigUpB(Tree t, Tree& s);
-
+	bool isSigAssertBounds(Tree t, Tree& s1, Tree& s2, Tree& s3);
+	bool isSigLowest(Tree t, Tree& s);
+	bool isSigHighest(Tree t, Tree& s);
 
 `signals.cpp`
 
-	Tree sigIsLt(Tree s1, Tree s2)
-	{
-		return tree(gGlobal->SIGISLT, s1, s2);
+
+	Tree sigAssertBounds(Tree s1, Tree s2, Tree s3){
+		return tree(gGlobal->SIGASSERTBOUNDS, s1, s2, s3);
 	}
 
-	bool isSigIsLt(Tree t, Tree& s1, Tree& s2){
-		return isTree(t, gGlobal->SIGISLT, s1, s2);
+	bool isSigAssertBounds(Tree t, Tree& s1, Tree& s2, Tree& s3){
+		return isTree(t, gGlobal->SIGASSERTBOUNDS, s1, s2, s3);
 	}
 
 
@@ -175,11 +171,11 @@ Et maintenant ça compile, malheureusement. En effet, si le compilateur est
 désormais capable de créer un objet pour les primitives, il n'a toujours aucune
 idée de comment le compiler. Et en effet, si on compile l'exemple
 
-	process = isLt(1);
+	process = isSigAssertBounds
 
 On obtient
 
-    ERROR : getSubSignals unrecognized signal : sigIsLt[SigInput[0],1]
+    ERROR : getSubSignals unrecognized signal : sigAssertBounds[-1,1,SigInput[0]]
 
 
 ## Compilation
@@ -202,15 +198,11 @@ Il faut donc modifier le système d'inférence de types présent dans le fichier
 `signals/sigtyperules.cpp`. La définition formelle des types Faust peut se
 trouver en commentaire de l'en-tête du fichier `sigtype.hh`.
 
-Commençons par `isLt`, le principe de cette fonction étant d'ajouter le majorant
-du second signal au premier, il suffit d'utiliser la méthode `promoteInterval`
+Commençons par `assertbounds`, le principe de cette fonction étant d'ajouter des
+bornes à un signal, il suffit d'utiliser la méthode `promoteInterval`
 
-??? Yann : il y a des types sommes dans Faust
-
-!!! Yann : réactivé promoteIntervals
-
-autres fichiers à changer, pour le backend -ocpp
+autres fichiers à changer pour le backend -ocpp
 
 + sigToGraph.cpp
 + sigIdentity.cpp
-+ compile-scal.cpp 
++ compile_scal.cpp 

@@ -523,9 +523,17 @@ string ScalarCompiler::generateCode(Tree sig)
             throw faustexception("ERROR : 'control/enable' can only be used in scalar mode\n");
         }
         return generateControl(sig, x, y);
-    } else if (isSigIsGt(sig, x, y) || isSigIsLt(sig, x, y)){
-	return generateCode(x);
+
+    } else if (isSigAssertBounds(sig, x, y, z)){
+	/* no debug at this stage */
+	return generateCode(z);
+    } else if (isSigLowest(sig, x)){
+	return generateNumber(sig, T(tree2float(sig)));
+    }  else if (isSigHighest(sig, x)){
+	return generateNumber(sig, T(tree2float(sig)));
     }
+
+    
     /* we should not have any control at this stage*/
     else {
         stringstream error;

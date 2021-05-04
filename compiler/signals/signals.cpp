@@ -233,38 +233,29 @@ bool isSigSelect3(Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)
     return isTree(t, gGlobal->SIGSELECT3, selector, s1, s2, s3);
 }
 
-Tree sigIsLt(Tree s1, Tree s2)
+Tree sigAssertBounds(Tree s1, Tree s2, Tree s3)
 {
-    return tree(gGlobal->SIGISLT, s1, s2);
+    return tree(gGlobal->SIGASSERTBOUNDS, s1, s2, s3);
 }
 
-bool isSigIsLt(Tree t, Tree& s1, Tree& s2){
-    return isTree(t, gGlobal->SIGISLT, s1, s2);
+bool isSigAssertBounds(Tree t, Tree& s1, Tree& s2, Tree& s3){
+    return isTree(t, gGlobal->SIGASSERTBOUNDS, s1, s2, s3);
 }
 
-Tree sigIsGt(Tree s1, Tree s2)
-{
-    return tree(gGlobal->SIGISGT, s1, s2);
+Tree sigHighest(Tree s){
+    return tree(gGlobal->SIGHIGHEST, s);
 }
 
-bool isSigIsGt(Tree t, Tree& s1, Tree& s2){
-    return isTree(t, gGlobal->SIGISGT, s1, s2);
+bool isSigHighest(Tree t, Tree& s){
+    return isTree(t, gGlobal->SIGHIGHEST, s);
 }
 
-Tree sigLoB(Tree s){
-    return tree(gGlobal->SIGLOB, s);
+Tree sigLowest(Tree s){
+    return tree(gGlobal->SIGLOWEST, s);
 }
 
-bool isSigLoB(Tree t, Tree& s){
-    return isTree(t, gGlobal->SIGLOB, s);
-}
-
-Tree sigUpB(Tree s){
-    return tree(gGlobal->SIGUPB, s);
-}
-
-bool isSigUpB(Tree t, Tree& s){
-    return isTree(t, gGlobal->SIGUPB, s);
+bool isSigLowest(Tree t, Tree& s){
+    return isTree(t, gGlobal->SIGLOWEST, s);
 }
 
 // Arithmetical operations

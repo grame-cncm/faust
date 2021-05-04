@@ -620,22 +620,22 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     /* min/max don't work here, so handmade version */
-    else if (isSigIsLt(sig, s1, s2)){
-	Type t1 = T(s1, env);
-	Type t2 = T(s2, env);
-	interval i1 = t1->getInterval();
-	interval i2 = t2->getInterval();
-	return t1->promoteInterval(interval(i1.valid || i2.valid, i1.lo, i2.hi < i1.hi ? i2.hi : i1.hi));
+    else if (isSigAssertBounds(sig, min, max, cur)){
+        Type     t1 = T(cur, env);
+        interval i1 = t1->getInterval();
+        return t1->promoteInterval(interval(std::min(i1.lo, tree2float(min)), std::max(i1.hi, tree2float(max))));
     }
 
-    else if (isSigIsGt(sig, s1, s2)){
-	Type t1 = T(s1, env);
-	Type t2 = T(s2, env);
-	interval i1 = t1->getInterval();
-	interval i2 = t2->getInterval();
-	return t1->promoteInterval(interval(i1.valid || i2.valid, i2.lo > i1.lo ? i2.lo : i1.lo, i1.hi));
-    }    
-
+    else if (isSigLowest(sig, s1)){
+	interval i1 = T(s1, env)->getInterval();
+	return makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(i1.lo));
+    }
+    
+    else if (isSigHighest(sig, s1)){
+	interval i1 = T(s1, env)->getInterval();
+	return makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(i1.hi));
+    }
+    
     // unrecognized signal here
     throw faustexception("ERROR inferring signal type : unrecognized signal\n");
     return 0;
