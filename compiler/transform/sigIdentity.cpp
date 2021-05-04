@@ -187,12 +187,18 @@ Tree SignalIdentity::transformation(Tree sig)
     }
 
     // Signal interval annotation
-    else if (isSigIsGt(sig, x, y)){
-	return sigIsGt(self(x), self(y));
-    } else if (isSigIsLt(sig, x, y)){
-	return sigIsLt(self(x), self(y));
+    else if (isSigAssertBounds(sig, x, y, z)){
+	return sigAssertBounds(self(x), self(y), self(z));
     }
-	
+
+    else if (isSigLowest(sig, x)){
+	return sigLowest(self(x));
+    }
+    
+    else if (isSigHighest(sig, x)){
+	return sigHighest(self(x));
+    }
+    	
     else {
         stringstream error;
         error << "ERROR : unrecognized signal : " << *sig << endl;
