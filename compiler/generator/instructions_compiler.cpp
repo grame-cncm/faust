@@ -999,32 +999,33 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     fContainer->addIncludeFile(ffincfile(ff));
     fContainer->addLibrary(fflibfile(ff));
     string funname = ffname(ff);
-
-    if (!gGlobal->gAllowForeignFunction && !gGlobal->isMathForeignFunction(funname)) {
+    
+    if (gGlobal->gAllowForeignFunction || ((gGlobal->gOutputLang == "llvm") && gGlobal->isMathForeignFunction(funname))) {
+        
+        list<ValueInst*>  args_value;
+        list<NamedTyped*> args_types;
+        
+        for (int i = 0; i < ffarity(ff); i++) {
+            Tree parameter = nth(largs, i);
+            // Reversed...
+            int         sig_argtype = ffargtype(ff, (ffarity(ff) - 1) - i);
+            BasicTyped* argtype     = genBasicFIRTyped(sig_argtype);
+            args_types.push_back(InstBuilder::genNamedTyped("dummy" + to_string(i), argtype));
+            args_value.push_back(InstBuilder::genCastInst(CS(parameter), argtype));
+        }
+        
+        // Add function declaration
+        FunTyped* fun_type = InstBuilder::genFunTyped(args_types, genBasicFIRTyped(ffrestype(ff)));
+        pushExtGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
+        
+        return generateCacheCode(sig, InstBuilder::genCastInst(InstBuilder::genFunCallInst(funname, args_value),
+                                                               genBasicFIRTyped(ffrestype(ff))));
+    } else {
         stringstream error;
         error << "ERROR : calling foreign function '" << funname << "'"
               << " is not allowed in this compilation mode!" << endl;
         throw faustexception(error.str());
     }
-
-    list<ValueInst*>  args_value;
-    list<NamedTyped*> args_types;
-
-    for (int i = 0; i < ffarity(ff); i++) {
-        Tree parameter = nth(largs, i);
-        // Reversed...
-        int         sig_argtype = ffargtype(ff, (ffarity(ff) - 1) - i);
-        BasicTyped* argtype     = genBasicFIRTyped(sig_argtype);
-        args_types.push_back(InstBuilder::genNamedTyped("dummy" + to_string(i), argtype));
-        args_value.push_back(InstBuilder::genCastInst(CS(parameter), argtype));
-    }
-
-    // Add function declaration
-    FunTyped* fun_type = InstBuilder::genFunTyped(args_types, genBasicFIRTyped(ffrestype(ff)));
-    pushExtGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
-
-    return generateCacheCode(sig, InstBuilder::genCastInst(InstBuilder::genFunCallInst(funname, args_value),
-                                                           genBasicFIRTyped(ffrestype(ff))));
 }
 
 /*****************************************************************************
