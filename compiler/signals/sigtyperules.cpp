@@ -427,7 +427,7 @@ static Type infereSigType(Tree sig, Tree env)
         //				<< t1 << ':' << ppsig(s1) << ", s2 = "
         //                << t2 << ':' << ppsig(s2) << endl;
         if (gGlobal->gCausality) {
-            if (!i1.valid) {
+            if (!(i1.valid) || !(i1.isbounded())) {
                 stringstream error;
                 error << "ERROR : can't compute the min and max values of : " << ppsig(s2) << endl
                       << "        used in delay expression : " << ppsig(sig) << endl
