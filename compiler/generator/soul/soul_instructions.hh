@@ -566,11 +566,11 @@ class SOULInstVisitor : public TextInstVisitor {
     virtual void visit(IfInst* inst)
     {
         *fOut << "if ";
-        *fOut << "(bool ";
+        *fOut << "(bool (";
         fIntAsBool = true;
         visitCond(inst->fCond);
         fIntAsBool = false;
-        *fOut << ")";
+        *fOut << "))";
         *fOut << " {";
         fTab++;
         tab(fTab, *fOut);
