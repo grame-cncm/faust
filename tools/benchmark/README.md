@@ -53,6 +53,8 @@ The `-multifun` mode uses the GCC [multiversion feature](https://gcc.gnu.org/wik
 
 The `-test` parameter can be used to compile a test program which will bench the DSP, print its UI, and render it.
 
+Note that using the `-inj foo.cpp` option allows to compile any C++ class containing a `dsp` subclass, so for instance a manually written C++ class. This is a convenient way to optimise any C++ DSP class.
+
  Examples:
 
  - create multi-cpu files using the C++ backend (giving an explicit list of supported CPUs), and then compile them as object files: `faust2object haswell core2 foo.dsp`. 
@@ -62,6 +64,7 @@ The `-test` parameter can be used to compile a test program which will bench the
  - create multi-cpu files for all possible CPUs and the multi-loader file, them compile them as object files, and compile a test program: `faust2object -all -multi -test foo.dsp`. 
  - define the `FAUST_ARCHS` environment variable, create a multi-cpu file for all possible CPUs defined in this variable and create the multi-loader file: `export FAUST_ARCHS="core2 haswell" && faust2object -sources -multifun foo.dsp`. 
  - define the `FAUST_ARCHS` environment variable, create a multi-cpu file for all possible CPUs defined in this variable and create the multi-loader file, and compile a test program: `export FAUST_ARCHS="core2 haswell" && faust2object -multifun -test foo.dsp`. 
+ - compile a `foo.cpp` file (possibly manually written) and containing a  `dsp` subclass: `faust2object haswell -inj foo.cpp -multi -test foo.dsp`. 
 
 
 ## dynamic-jack-gtk

@@ -4,7 +4,7 @@
 #                                                                   #
 #               Compiles Faust DSP to machine code                  #
 #               for several CPUs using dynamic-faust                #
-#               (c) Grame, 2020                                     #
+#               (c) Grame, 2020-2021                                #
 #                                                                   #
 #####################################################################
 
@@ -48,7 +48,7 @@ do
         echo "Use '-sources' to only generate source files"
         echo "Use '-multi' to compile for several CPUs and aggregate them in a 'multi' class that choose the correct one at runtime"
         echo "Use '-multifun' to compile for several CPUs using GCC MultiFun feature and aggregate them in a 'multi' class that choose the correct one at runtime"
-       	echo "Use '-opt native' to activate the best compilation options for the native CPU"
+        echo "Use '-opt native' to activate the best compilation options for the native CPU"
         echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
         echo "Use '-llvm' to compile using the LLVM backend, otherwise the C++ backend is used"
         echo "Use '-test' to compile a test program which will bench the DSP and render it"
@@ -90,10 +90,10 @@ do
         SOUNDFILEDEFS="-DSOUNDFILE"
         SOUNDFILEINCS=`pkg-config --cflags sndfile`
         SOUNDFILELIBS=`pkg-config --static --libs sndfile`
-    elif [[ -f "$p" ]]; then
-        FILES="$FILES $p"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
     elif echo $ALL_CPU_LIST | grep -E "(\s|^)$p(\s|$)" > /dev/null; then  #See https://www.golinuxcloud.com/grep-exact-match/
         # 'generic' is always included
         if [ $p != "generic" ]; then
@@ -144,7 +144,7 @@ for p in $FILES; do
         fi
 
         if [ $LLVM = true ]; then
-        	# generating the LLVM code
+            # generating the LLVM code
             echo "Compiled using LLVM"
             sed -e "s/mydsp/$dspName$cpu/g" $LLVM_ADAPTER > $dspName$cpu".h"
 
@@ -157,14 +157,14 @@ for p in $FILES; do
             echo "Compiled using C++"
             sed -e "s/mydsp/$dspName$cpu/g" $CPP_ADAPTER > $dspName$cpu".h"
             if [ $MULTIFUN = true ]; then
-            	faust -lang c -a $FAUSTARCH/minimal-effect.c -cn $dspName$cpu $OPTIONS $f -o $dspName$cpu".cpp"
+                faust -lang c -a $FAUSTARCH/minimal-effect.c -cn $dspName$cpu $OPTIONS $f -o $dspName$cpu".cpp"
             else
-            	faust -a $FAUSTARCH/minimal-effect.cpp -cn $dspName$cpu $OPTIONS $f -o $dspName$cpu".cpp"
+                faust -a $FAUSTARCH/minimal-effect.cpp -cn $dspName$cpu $OPTIONS $f -o $dspName$cpu".cpp"
             fi
 
             # compiling
             if [ $SOURCES = false ]; then
-            	$CXX -std=c++14 -Ofast -march=$arch_cpu -I `faust -includedir` $SOUNDFILEDEFS $SOUNDFILEINCS -c $dspName$cpu".cpp"
+                $CXX -std=c++14 -Ofast -march=$arch_cpu -I `faust -includedir` $SOUNDFILEDEFS $SOUNDFILEINCS -c $dspName$cpu".cpp"
             fi
         fi
     done
@@ -197,21 +197,21 @@ for p in $FILES; do
     # create a test program
     if [ $TEST = true ]; then
     
-    	if [ $MULTI = false ] && [ $MULTIFUN = false ]; then
-    		echo "ERROR : -test option can only be used with -multi or -multifun options"
-    		exit
-    	fi
-    	
-    	# create and compile the test
-    	faust -inj $dspName"multi.h" -a $FAUSTARCH/minimal-bench.cpp -cn $dspName"multi" $OPTIONS $p -o $dspName"multi.cpp"
+        if [ $MULTI = false ] && [ $MULTIFUN = false ]; then
+            echo "ERROR : -test option can only be used with -multi or -multifun options"
+            exit
+        fi
+        
+        # create and compile the test (note that -inj $dspName"multi.h" will correctly be used instead of any other use of 'inj -foo.cpp' in $OPTIONS)
+        faust $OPTIONS -inj $dspName"multi.h" -a $FAUSTARCH/minimal-bench.cpp -cn $dspName"multi" $p -o $dspName"multi.cpp"
 
-    	if [ $MULTI = true ]; then
-    		$CXX -Ofast -std=c++14 $dspName"multi.cpp" -dead_strip $SOUNDFILEDEFS $SOUNDFILELIBS -I `llvm-config --includedir --ldflags --libs all --system-libs` $dspName*".o" -o $dspName"multi"
-    	elif [ $MULTIFUN = true ]; then
-    		$CXX -Ofast -std=c++14 $dspName"multi.cpp" $dspName"generic.cpp" $SOUNDFILEDEFS $SOUNDFILELIBS -o $dspName"multi"
-    	fi
-   		
-    	echo "Run ./"$dspName"multi"" to test the program"
+        if [ $MULTI = true ]; then
+            $CXX -Ofast -std=c++14 $dspName"multi.cpp" -dead_strip $SOUNDFILEDEFS $SOUNDFILELIBS -I `llvm-config --includedir --ldflags --libs all --system-libs` $dspName*".o" -o $dspName"multi"
+        elif [ $MULTIFUN = true ]; then
+            $CXX -Ofast -std=c++14 $dspName"multi.cpp" $dspName"generic.cpp" $SOUNDFILEDEFS $SOUNDFILELIBS -o $dspName"multi"
+        fi
+         
+        echo "Run ./"$dspName"multi"" to test the program"
     fi
 
 done
