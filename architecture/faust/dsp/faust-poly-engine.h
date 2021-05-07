@@ -273,6 +273,7 @@ class FaustPolyEngine {
             if (count == 3) fMidiHandler.handleData2(time, type, channel, data1, data2);
             else if (count == 2) fMidiHandler.handleData1(time, type, channel, data1);
             else if (count == 1) fMidiHandler.handleSync(time, type);
+            // In POLY mode, update all voices
             GUI::updateAllGuis();
         }
     
@@ -326,11 +327,7 @@ class FaustPolyEngine {
         void setParamValue(const char* address, float value)
         {
             int id = (address) ? fAPIUI.getParamIndex(address) : -1;
-            if (id >= 0) {
-                fAPIUI.setParamValue(id, value);
-                // In POLY mode, update all voices
-                GUI::updateAllGuis();
-            }
+            if (id >= 0) setParamValue(id, value);
         }
 
         /*
@@ -511,6 +508,7 @@ class FaustPolyEngine {
         void propagateAcc(int acc, float v)
         {
             fAPIUI.propagateAcc(acc, v);
+            // In POLY mode, update all voices
             GUI::updateAllGuis();
         }
 
@@ -530,6 +528,7 @@ class FaustPolyEngine {
         void propagateGyr(int gyr, float v)
         {
             fAPIUI.propagateGyr(gyr, v);
+            // In POLY mode, update all voices
             GUI::updateAllGuis();
         }
 
