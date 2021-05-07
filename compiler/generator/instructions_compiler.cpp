@@ -1000,7 +1000,7 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     fContainer->addLibrary(fflibfile(ff));
     string funname = ffname(ff);
     
-    if (gGlobal->gAllowForeignFunction || ((gGlobal->gOutputLang == "llvm") && gGlobal->isMathForeignFunction(funname))) {
+    if (gGlobal->gAllowForeignFunction || gGlobal->hasMathForeignFunction(funname)) {
         
         list<ValueInst*>  args_value;
         list<NamedTyped*> args_types;

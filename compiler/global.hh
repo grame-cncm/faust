@@ -569,10 +569,24 @@ struct global {
     Typed::VarType getVarType(const string& name);
     
     void setVarType(const string& name, Typed::VarType type);
-
-    bool isMathForeignFunction(const string& name)
+    
+    inline bool startWith(const string& str, const string& prefix)
     {
-        return (gMathForeignFunctions.find(name) != gMathForeignFunctions.end());
+        return (str.substr(0, prefix.size()) == prefix);
+    }
+
+    // Some backends have an internal implementation of foreign functions like acos, asinh...
+    bool hasMathForeignFunction(const string& name)
+    {
+        bool has_internal_math_ff = ((gOutputLang == "llvm")
+                                     || startWith(gOutputLang, "wast")
+                                     || startWith(gOutputLang, "wasm")
+                                     || (gOutputLang == "interp")
+                                     || startWith(gOutputLang, "soul")
+                                     || (gOutputLang == "dlang")
+                                     || (gOutputLang == "csharp")
+                                     || (gOutputLang == "rust"));
+        return has_internal_math_ff && (gMathForeignFunctions.find(name) != gMathForeignFunctions.end());
     }
 
     void printCompilationOptions(stringstream& dst, bool backend = true);
