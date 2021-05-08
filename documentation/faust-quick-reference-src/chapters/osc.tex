@@ -415,6 +415,34 @@ As we can see TouchOSC send the x, y and z accelerometers in a single message, a
 \lstinline'"...[osc:' \emph{address}\lstinline']..."' & alias with \emph{min}, \emph{max} clipping
 \end{tabular}
 
+\section{DSP with polyphonic support}
+
+When the DSP code is compiled in polyphonic mode, the generated program will create a more complex hierarchy to possibly access and control individual voices.
+
+The following OSC messages reflect the same DSP code either compiled normally, or in polyphonic mode (only part of the OSC hierarchies are displayed here):
+
+\begin{lstlisting}
+// Mono mode
+
+/Organ/vol f -10.0
+/Organ/pan f 0.0
+\end{lstlisting}
+
+\begin{lstlisting}
+// Polyphonic mode
+
+/Polyphonic/Voices/Organ/pan f 0.0
+/Polyphonic/Voices/Organ/vol f -10.0
+...
+/Polyphonic/Voice1/Organ/vol f -10.0
+/Polyphonic/Voice1/Organ/pan f 0.0
+...
+/Polyphonic/Voice2/Organ/vol f -10.0
+/Polyphonic/Voice2/Organ/pan f 0.0
+\end{lstlisting}
+
+Note that to save space on the screen, the \code{/Polyphonic/VoiceX/xxx} syntax is used when the number of allocated voices is less than 8, then the \code{/Polyphonic/VX/xxx} syntax is used when more voices are used.
+
 %
 %\section{OLD}
 %
