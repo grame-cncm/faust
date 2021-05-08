@@ -8,7 +8,7 @@
 /******************* BEGIN path-printer.cpp ****************/
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2021 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
     // kind of funny, but it's the fastest way
     MapUI* idpVoice = fPolyEngine.keyOn(100,100);
 
-    std::cout << "### Independent Voices" << "\n\n";
+    std::cout << "### Independent Voice" << "\n\n";
     for(int i = 0; i < idpVoice->getParamsCount(); i++) {
         std::cout << "* **" << i << "**: `" << idpVoice->getParamAddress(i) << "`" << "\n";
     }

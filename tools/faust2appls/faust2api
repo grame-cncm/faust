@@ -375,7 +375,11 @@ if [ $NODOC -eq 0 ]; then
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS "$PPFILE" `pkg-config --cflags --static --libs sndfile` -lpthread -o "$PPBINARY"
+		if [ "$NVOICES" -gt "0" ]; then
+		    $CXX $CXXFLAGS -DPOLY_VOICES "$PPFILE" `pkg-config --cflags --static --libs sndfile` -lpthread -o "$PPBINARY"
+		else
+		    $CXX $CXXFLAGS "$PPFILE" `pkg-config --cflags --static --libs sndfile` -lpthread -o "$PPBINARY"
+		fi
 	) > /dev/null || exit 1
 	rm "$PPFILE" || exit 1
 

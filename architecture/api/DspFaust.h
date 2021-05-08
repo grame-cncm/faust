@@ -67,10 +67,8 @@ class DspFaust
 
     public:
 
-        //--------------`DspFaust()`----------------
-        // Default constructor, to be used wih audio drivers
-        /// that impose their sample rate and buffer size
-        // (like JACK and JUCE)
+        //--------------`DspFaust(bool auto_connect = true)`----------------
+        // Default constructor, to be used wih audio drivers that impose their sample rate and buffer size (like JACK and JUCE).
         //
         // #### Arguments
         //
@@ -78,7 +76,7 @@ class DspFaust
         //----
         DspFaust(bool auto_connect = true);
 
-        //--------------`DspFaust(int SR, int BS)`----------------
+        //--------------`DspFaust(int SR, int BS, bool auto_connect = true)`----------------
         // Constructor.
         //
         // #### Arguments
@@ -89,7 +87,7 @@ class DspFaust
         //--------------------------------------------------------
         DspFaust(int SR, int BS, bool auto_connect = true);
 
-        //--------------`DspFaust(const string& dsp_content, int SR, int BS)`----------------
+        //--------------`DspFaust(const string& dsp_content, int SR, int BS, bool auto_connect = true)`----------------
         // Constructor.
         //
         // #### Arguments
@@ -126,12 +124,12 @@ class DspFaust
         //--------`long keyOn(int pitch, int velocity)`-----------
         // Instantiate a new polyphonic voice. This method can
         // only be used if the `[style:poly]` metadata is used in
-        // the Faust code or if the `-polyvoices` flag has been
+        // the Faust code or if the `-nvoices` flag has been
         // provided before compilation.
         //
         // `keyOn` will return 0 if the Faust object is not
         // polyphonic or the address to the allocated voice as
-        // a `uintptr_t` otherwise. This value can be used later with
+        // an `uintptr_t` otherwise. This value can be used later with
         // [`setVoiceParamValue`](#setvoiceparamvalue) or
         // [`getVoiceParamValue`](#getvoiceparamvalue) to access
         // the parameters of a specific voice.

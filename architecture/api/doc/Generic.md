@@ -1,8 +1,8 @@
 # Faust API
 
-This API allows to interact with a Faust object and its associated audio engine at a high level. The idea is that all the audio part of the app is implemented in Faust allowing developers to focus on the design of the app itself. 
+This API allows to interact with a Faust object and its associated audio engine at a high level. The idea is that all the audio part of the app is implemented in Faust allowing developers to focus on the design of the application itself. 
 
-### App Set-Up
+### Application Set-Up
 
 Import `DspFaust.h` and `DspFaust.cpp` in your project (this can be done simply by dragging these files in your project tree). Then, import `DspFaust.h` (`#include "DspFaust.h"`) in the file where you want to create/control the Faust object. 
 
@@ -10,7 +10,7 @@ Import `DspFaust.h` and `DspFaust.cpp` in your project (this can be done simply 
 
 The current Faust API is designed to seamlessly integrate to the life cycle of an app. It is accessible through a single `DspFaust` object. The constructor of that object is used to set the sampling rate and the buffer size:
 
-	DspFaust* dspFaust = new DspFaust(SR, buffer_size);
+	DspFaust* dspFaust = new DspFaust(SR, BS);
 
 The `start()` method is used to start the audio computing. Similarly, `stop()` can be called to stop the audio computing.
 
@@ -32,7 +32,7 @@ Finally, note that new voices don't necessarily have to be created using `keyOn`
 	dspFaust->setVoiceParamValue(1, voiceAddress, 214);
 	dspFaust->deleteVoice(voiceAddress);
 
-This is particularly useful when making apps where each finger of the user is an independent sound that doesn't necessarily has a pitch.
+This is particularly useful when making applications where each finger of the user is an independent sound that doesn't necessarily has a pitch.
 
 In case you would like to use the built-in accelerometer or gyroscope of your device to control some of the parameters of your Faust object, all you have to do is to send the raw accelerometer data to it by using the `propagateAcc` or `propagateGyr` for the gyroscope. After that, mappings can be configured directly from the Faust code using [this technique](#using-built-in-sensors-to-control-parameters) or using the `setAccConverter` and `setGyrConverter` method.
 

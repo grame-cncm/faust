@@ -1,6 +1,6 @@
 # Faust Android API
 
-This API allows to interact with a natively compiled Faust object and its associated audio engine at a very high level from the JAVA layer of an Android app. The idea is that all the audio part of the app is implemented in Faust allowing developers to focus on the design of the app itself. 
+This API allows to interact with a natively compiled Faust object and its associated audio engine at a very high level from the JAVA layer of an Android app. The idea is that all the audio part of the app is implemented in Faust allowing developers to focus on the design of the application itself. 
 
 For more details on how to create Android apps from scratch using this tool, check the [`faust2api` documentation](https://ccrma.stanford.edu/~rmichon/faust2api) or the [*Adding Faust Real-Time Audio Support to Android Apps Tutorial*](https://ccrma.stanford.edu/~rmichon/faustTutorials/#adding-faust-real-time-audio-support-to-android-apps).
 
@@ -8,7 +8,7 @@ For more details on how to create Android apps from scratch using this tool, che
 
 This section is an accelerated version of the [*Adding Faust Real-Time Audio Support to Android Apps Tutorial*](https://ccrma.stanford.edu/~rmichon/faustTutorials/#adding-faust-real-time-audio-support-to-android-apps). We strongly recommend you to read it if this is the first time that you use this tool or if you never used the Android NDK (Native Development Kit).
 
-### App Set-Up
+### Application Set-Up
 
 Very little work has to be done to integrate this package to your Android app. Once this is done, you will be able to interact with the Faust DSP module from JAVA without having to write a line of native C++ code.
 
@@ -48,7 +48,7 @@ After this, re-synchronize Gradle and try to compile the Android app. Hopefully,
 
 The Faust JAVA API is designed to seamlessly integrate to the life cycle of an Android app. It is accessible through a single `DspFaust` object. The constructor of that object is used to set the sampling rate and the buffer size:
 
-	DspFaust dspFaust = new DspFaust(SR, buffer_size);
+	DspFaust dspFaust = new DspFaust(SR, BS);
 
 The `start()` method is used to start the audio computing and would typically be placed in the `onCreate()` method of the app activity.
 
@@ -74,7 +74,7 @@ Finally, note that new voices don't necessarily have to be created using `keyOn`
 	dspFaust.setVoiceParamValue(1, voiceAddress, 214);
 	dspFaust.deleteVoice(voiceAddress);
 
-This is particularly useful when making apps where each finger of the user is an independent sound that doesn't necessarily has a pitch.
+This is particularly useful when making applications where each finger of the user is an independent sound that doesn't necessarily has a pitch.
 
 In case you would like to use the the built-in accelerometer or gyroscope of your device to control some of the parameters of your Faust object, all you have to do is to send the raw accelerometer data to it by using the `propagateAcc` or `propagateGyr` for the gyroscope. After that, mappings can be configured directly from the Faust code using [this technique](#using-built-in-sensors-to-control-parameters) or using the `setAccConverter` and `setGyrConverter` method.
 
