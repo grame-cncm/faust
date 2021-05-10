@@ -461,11 +461,11 @@ class mspUI : public UI, public PathBuilder
 // MIDI handler
 //==============
 
-struct faustgen_midi : public midi_handler {
+struct max_midi : public midi_handler {
     
     void* m_midi_outlet = NULL;
     
-    faustgen_midi(void* midi_outlet = NULL):m_midi_outlet(midi_outlet)
+    max_midi(void* midi_outlet = NULL):m_midi_outlet(midi_outlet)
     {}
     
     void sendMessage(std::vector<unsigned char>& message)

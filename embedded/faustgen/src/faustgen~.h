@@ -223,7 +223,7 @@ class faustgen : public MspCpp5<faustgen> {
         faustgen_factory* fDSPfactory;
         map<string, vector<t_object*> > fOutputTable;  // Output UI items (like bargraph) in the patcher to be notified
     
-        faustgen_midi  fMidiHandler;    // generic MIDI handler
+        max_midi  fMidiHandler;         // generic MIDI handler
         mspUI* fDSPUI;                  // Control UI
         MidiUI* fMidiUI;                // Midi UI
         OSCUI* fOSCUI;                  // OSC UI

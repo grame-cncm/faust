@@ -181,7 +181,7 @@ typedef struct faust
     SaveUI* m_savedUI;
 #ifdef MIDICTRL
     MidiUI* m_midiUI;
-    faustgen_midi* m_midiHandler;
+    max_midi* m_midiHandler;
     void* m_midi_outlet;
 #endif
 #ifdef SOUNDFILE
@@ -449,7 +449,7 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     
 #ifdef MIDICTRL
     x->m_midi_outlet = outlet_new((t_pxobject*)x, NULL);
-    x->m_midiHandler = new faustgen_midi(x->m_midi_outlet);
+    x->m_midiHandler = new max_midi(x->m_midi_outlet);
     x->m_midiUI = new MidiUI(x->m_midiHandler);
 #endif
     
