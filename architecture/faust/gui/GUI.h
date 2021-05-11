@@ -230,7 +230,7 @@ class GUI : public UI
  * User Interface Item: abstract definition.
  */
 template <typename REAL>
-class uiTypedItem : public uiItemBase
+class uiTypedItemReal : public uiItemBase
 {
     protected:
         
@@ -238,7 +238,7 @@ class uiTypedItem : public uiItemBase
         REAL* fZone;
         REAL fCache;
         
-        uiTypedItem(GUI* ui, REAL* zone):uiItemBase(ui, static_cast<FAUSTFLOAT*>(zone)),
+        uiTypedItemReal(GUI* ui, REAL* zone):uiItemBase(ui, static_cast<FAUSTFLOAT*>(zone)),
         fGUI(ui), fZone(zone), fCache(REAL(-123456.654321))
         {
             ui->registerZone(zone, this);
@@ -246,7 +246,7 @@ class uiTypedItem : public uiItemBase
         
     public:
         
-        virtual ~uiTypedItem()
+        virtual ~uiTypedItemReal()
         {}
     
         void modifyZone(REAL v)
@@ -262,11 +262,11 @@ class uiTypedItem : public uiItemBase
     
 };
 
-class uiItem : public uiTypedItem<FAUSTFLOAT> {
+class uiItem : public uiTypedItemReal<FAUSTFLOAT> {
     
     protected:
     
-        uiItem(GUI* ui, FAUSTFLOAT* zone):uiTypedItem<FAUSTFLOAT>(ui, zone)
+        uiItem(GUI* ui, FAUSTFLOAT* zone):uiTypedItemReal<FAUSTFLOAT>(ui, zone)
         {}
 
     public:

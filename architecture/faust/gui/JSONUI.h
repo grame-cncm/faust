@@ -31,6 +31,7 @@
 #include <iomanip>
 #include <sstream>
 #include <algorithm>
+#include <limits>
 
 #include "faust/gui/UI.h"
 #include "faust/gui/PathBuilder.h"

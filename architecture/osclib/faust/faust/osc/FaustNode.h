@@ -51,7 +51,7 @@ template <typename C> struct mapping
 /*!
 	\brief a faust node is a terminal node and represents a faust parameter controler
 */
-template <typename C> class FaustNode : public MessageDriven, public uiTypedItem<C>
+template <typename C> class FaustNode : public MessageDriven, public uiTypedItemReal<C>
 {
 	mapping<C>	fMapping;
     RootNode*   fRoot;
@@ -68,7 +68,7 @@ template <typename C> class FaustNode : public MessageDriven, public uiTypedItem
 
 	protected:
 		FaustNode(RootNode* root, const char *name, C* zone, C init, C min, C max, const char* prefix, GUI* ui, bool initZone, bool input) 
-			: MessageDriven(name, prefix), uiTypedItem<C>(ui, zone), fMapping(min, max), fRoot(root), fInput(input)
+			: MessageDriven(name, prefix), uiTypedItemReal<C>(ui, zone), fMapping(min, max), fRoot(root), fInput(input)
 			{
                 if (initZone) {
                     *zone = init; 

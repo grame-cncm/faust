@@ -29,7 +29,7 @@
 using namespace std;
 
 template <typename REAL>
-static void bench(dsp_optimizer<REAL> optimizer, const string& in_filename, bool is_trace)
+static void bench(dsp_optimizer_real<REAL> optimizer, const string& in_filename, bool is_trace)
 {
     pair<double, vector<string> > res = optimizer.findOptimizedParameters();
     if (is_trace) cout << "Best value for '" << in_filename << "' is : " << res.first << " MBytes/sec with ";
@@ -42,7 +42,7 @@ static void bench(dsp_optimizer<REAL> optimizer, const string& in_filename, bool
 template <typename REAL>
 static void bench_single(const string& in_filename, dsp* DSP, int buffer_size, int run, bool is_control, bool is_trace)
 {
-    measure_dsp_aux<REAL> mes(DSP, buffer_size, 5., true, is_control);  // Buffer_size and duration in sec of measure
+    measure_dsp_real<REAL> mes(DSP, buffer_size, 5., true, is_control);  // Buffer_size and duration in sec of measure
     for (int i = 0; i < run; i++) {
         mes.measure();
         if (is_trace) cout << in_filename << " : " << mes.getStats() << " MBytes/sec (DSP CPU % : " << (mes.getCPULoad() * 100) << " at 44100 Hz)" << endl;
@@ -158,25 +158,25 @@ int main(int argc, char* argv[])
             
         } else {
             if (is_double) {
-                bench(dsp_optimizer<double>(in_filename.c_str(),
-                                            argc1, argv1,
-                                            target, buffer_size,
-                                            run, -1,
-                                            is_trace,
-                                            is_control,
-                                            ds, us, filter),
-                                            in_filename,
-                                            is_trace);
+                bench(dsp_optimizer_real<double>(in_filename.c_str(),
+                                                argc1, argv1,
+                                                target, buffer_size,
+                                                run, -1,
+                                                is_trace,
+                                                is_control,
+                                                ds, us, filter),
+                                                in_filename,
+                                                is_trace);
             } else {
-                bench(dsp_optimizer<float>(in_filename.c_str(),
-                                           argc1, argv1,
-                                           target, buffer_size,
-                                           run, -1,
-                                           is_trace,
-                                           is_control,
-                                           ds, us, filter),
-                                           in_filename,
-                                           is_trace);
+                bench(dsp_optimizer_real<float>(in_filename.c_str(),
+                                               argc1, argv1,
+                                               target, buffer_size,
+                                               run, -1,
+                                               is_trace,
+                                               is_control,
+                                               ds, us, filter),
+                                               in_filename,
+                                               is_trace);
             }
         }
     } catch (...) {

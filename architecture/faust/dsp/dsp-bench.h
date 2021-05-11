@@ -63,7 +63,7 @@ void FAUSTBENCH_LOG(VAL_TYPE val)
 */
 
 template <typename REAL>
-class time_bench {
+class time_bench_real {
     
     protected:
     
@@ -155,7 +155,7 @@ class time_bench {
   
     public:
     
-        time_bench(int count, int skip)
+        time_bench_real(int count, int skip)
         {
             fSkip = skip;
             fCount = count;
@@ -166,7 +166,7 @@ class time_bench {
             fStops = new uint64_t[fCount];
         }
     
-        virtual ~time_bench()
+        virtual ~time_bench_real()
         {
             delete [] fStarts;
             delete [] fStops;
@@ -327,7 +327,7 @@ A class to measure DSP CPU use
 */
 
 template <typename REAL>
-class measure_dsp_aux : public decorator_dsp {
+class measure_dsp_real : public decorator_dsp {
     
     protected:
     
@@ -335,7 +335,7 @@ class measure_dsp_aux : public decorator_dsp {
         REAL** fAllInputs;
         REAL** fOutputs;
         REAL** fAllOutputs;
-        time_bench<REAL>* fBench;
+        time_bench_real<REAL>* fBench;
         int fBufferSize;
         int fInputIndex;
         int fOutputIndex;
@@ -414,7 +414,7 @@ class measure_dsp_aux : public decorator_dsp {
          * @param filter - filter type
          *
          */
-        measure_dsp_aux(dsp* dsp,
+        measure_dsp_real(dsp* dsp,
                         int buffer_size,
                         int count,
                         bool trace = true,
@@ -425,7 +425,7 @@ class measure_dsp_aux : public decorator_dsp {
             :decorator_dsp(createSRAdapter<REAL>(dsp, ds, us, filter)), fBufferSize(buffer_size), fCount(count), fControl(control)
         {
             init();
-            fBench = new time_bench<REAL>(fCount, 10);
+            fBench = new time_bench_real<REAL>(fCount, 10);
         }
     
         /**
@@ -441,7 +441,7 @@ class measure_dsp_aux : public decorator_dsp {
          * @param filter - filter type
          *
          */
-        measure_dsp_aux(dsp* dsp,
+        measure_dsp_real(dsp* dsp,
                         int buffer_size,
                         double duration_in_sec,
                         bool trace = true,
@@ -453,8 +453,8 @@ class measure_dsp_aux : public decorator_dsp {
         {
             init();
             
-            // Creates a first time_bench object to estimate the proper 'count' number of measure to do later
-            fBench = new time_bench<REAL>(1000, 10);
+            // Creates a first time_bench_real object to estimate the proper 'count' number of measure to do later
+            fBench = new time_bench_real<REAL>(1000, 10);
             measure();
             double duration = fBench->measureDurationUsec();
             if (trace) {
@@ -464,11 +464,11 @@ class measure_dsp_aux : public decorator_dsp {
             fCount = int(1000 * (duration_in_sec * 1e6 / duration));
             delete fBench;
             
-            // Then allocate final time_bench object with proper 'count' parameter
-            fBench = new time_bench<REAL>(fCount, 10);
+            // Then allocate final time_bench_real object with proper 'count' parameter
+            fBench = new time_bench_real<REAL>(fCount, 10);
         }
     
-        virtual ~measure_dsp_aux()
+        virtual ~measure_dsp_real()
         {
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 delete [] fAllInputs[i];
@@ -575,14 +575,14 @@ class measure_dsp_aux : public decorator_dsp {
     
 };
 
-struct measure_dsp : measure_dsp_aux<FAUSTFLOAT> {
+struct measure_dsp : measure_dsp_real<FAUSTFLOAT> {
 
     measure_dsp(dsp* dsp,
                 int buffer_size,
                 double duration_in_sec,
                 bool trace = true,
                 bool control = false)
-        :measure_dsp_aux(dsp, buffer_size, duration_in_sec, trace, control)
+        :measure_dsp_real(dsp, buffer_size, duration_in_sec, trace, control)
     {}
     virtual~ measure_dsp()
     {}

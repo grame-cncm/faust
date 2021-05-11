@@ -40,7 +40,7 @@
     A class to find optimal Faust compiler parameters for a given DSP.
 */
 template <typename REAL>
-class dsp_optimizer {
+class dsp_optimizer_real {
 
     private:
     
@@ -73,13 +73,13 @@ class dsp_optimizer {
         {
             // First call with fCount = -1 will be used to estimate fCount by giving the wanted measure duration
             if (fCount == -1) {
-                measure_dsp_aux<REAL> mes(fDSP, fBufferSize, 5., fTrace, fControl, fDownSampling, fUpSampling, fFilter);
+                measure_dsp_real<REAL> mes(fDSP, fBufferSize, 5., fTrace, fControl, fDownSampling, fUpSampling, fFilter);
                 mes.measure();
                 // fCount is kept from the first duration measure
                 fCount = mes.getCount();
                 return mes.getStats();
             } else {
-                measure_dsp_aux<REAL> mes(fDSP, fBufferSize, fCount, fTrace, fControl, fDownSampling, fUpSampling, fFilter);
+                measure_dsp_real<REAL> mes(fDSP, fBufferSize, fCount, fTrace, fControl, fDownSampling, fUpSampling, fFilter);
                 for (int i = 0; i < run; i++) {
                     mes.measure();
                     if (fTrace) {
@@ -339,50 +339,25 @@ class dsp_optimizer {
          * @param filter - filter type
          * since the maximum value may change with new LLVM versions)
          */
-        dsp_optimizer(const char* filename,
-                      int argc,
-                      const char* argv[],
-                      const std::string& target,
-                      int buffer_size,
-                      int run = 1,
-                      int opt_level = -1,
-                      bool trace = true,
-                      bool control = false,
-                      int ds = 0,
-                      int us = 0,
-                      int filter = 0)
+        dsp_optimizer_real(const char* filename,
+                           int argc,
+                           const char* argv[],
+                           const std::string& target,
+                           int buffer_size,
+                           int run = 1,
+                           int opt_level = -1,
+                           bool trace = true,
+                           bool control = false,
+                           int ds = 0,
+                           int us = 0,
+                           int filter = 0)
         {
             if (!init(filename, "", argc, argv, target, buffer_size, run, opt_level, trace, control, ds, us, filter)) {
                 throw std::bad_alloc();
             }
         }
     
-        /**
-         * Constructor.
-         *
-         * @param input - the Faust program as a string
-         * @param argc - the number of parameters in argv array
-         * @param argv - the array of parameters
-         * @param target - the LLVM machine target (using empty string will take current machine settings)
-         * @param buffer_size - the buffer size in sampels
-         * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
-         * since the maximum value may change with new LLVM versions)
-         */
-        /*
-        dsp_optimizer(const std::string& input,
-                      int argc,
-                      const char* argv[],
-                      const std::string& target,
-                      int buffer_size,
-                      int opt_level = -1)
-        {
-            if (!init("", input, argc, argv, target, buffer_size, opt_level)) {
-                throw std::bad_alloc();
-            }
-        }
-        */
-    
-        virtual ~dsp_optimizer()
+        virtual ~dsp_optimizer_real()
         {}
     
         /**
@@ -423,6 +398,31 @@ class dsp_optimizer {
     
 };
 
+class dsp_optimizer : public dsp_optimizer_real<FAUSTFLOAT> {
+
+    public:
+    
+        dsp_optimizer(const char* filename,
+                       int argc,
+                       const char* argv[],
+                       const std::string& target,
+                       int buffer_size,
+                       int run = 1,
+                       int opt_level = -1,
+                       bool trace = true,
+                       bool control = false,
+                       int ds = 0,
+                       int us = 0,
+                       int filter = 0)
+        :dsp_optimizer_real<FAUSTFLOAT>(filename, argc, argv,
+                                        target, buffer_size,
+                                        run, opt_level,
+                                        trace, control,
+                                        ds, us, filter)
+        {}
+    
+};
+    
 #endif
 
 /************************** END dsp-optimizer.h **************************/
