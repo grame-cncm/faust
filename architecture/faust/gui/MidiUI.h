@@ -784,6 +784,7 @@ class MidiUI : public GUI, public midi, public midi_interface, public MetaDataUI
  
         virtual ~MidiUI() 
         {
+            // Remove from fMidiHandler
             fMidiHandler->removeMidiIn(this);
             // TODO: use shared_ptr based implementation
             if (fDelete) delete fMidiHandler;

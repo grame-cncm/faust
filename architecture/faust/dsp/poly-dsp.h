@@ -392,14 +392,14 @@ class dsp_poly : public decorator_dsp, public midi, public JSONControl {
     #ifdef EMCC
         MapUI fMapUI;
         std::string fJSON;
-        midi_handler fMIDIHandler;
+        midi_handler fMidiHandler;
         MidiUI fMIDIUI;
     #endif
     
     public:
     
     #ifdef EMCC
-        dsp_poly(dsp* dsp):decorator_dsp(dsp), fMIDIUI(&fMIDIHandler)
+        dsp_poly(dsp* dsp):decorator_dsp(dsp), fMIDIUI(&fMidiHandler)
         {
             JSONUI jsonui(getNumInputs(), getNumOutputs());
             buildUserInterface(&jsonui);
