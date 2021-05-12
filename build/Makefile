@@ -11,7 +11,7 @@ system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo 
 # output directories
 FAUSTDIR ?= faustdir
 IOSDIR   := iosdir
-VERSION := 2.32.10
+VERSION := 2.32.11
 
 #===============================================================
 # current generator and backends
@@ -47,6 +47,7 @@ WORKLETOPT = "-DWORKLET=off"
 ifeq ($(WORKLET), on)
 WORKLETOPT = "-DWORKLET=on"
 endif
+
 CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release $(WORKLETOPT)
 BUILDOPT ?= --config Release
 

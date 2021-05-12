@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
                         || (strcmp(argv1[i], "-sch") == 0);
     }
     
-    llvm_dsp_factory* factory = NULL;
+    llvm_dsp_factory* factory = nullptr;
     int linenum = 0;
     int nbsamples = 60000;
     

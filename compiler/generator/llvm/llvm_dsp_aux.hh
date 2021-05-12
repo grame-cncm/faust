@@ -138,6 +138,7 @@ class llvm_dsp_factory;
 class EXPORT llvm_dsp : public dsp {
    private:
     llvm_dsp_factory* fFactory;
+    JSONUITemplatedDecoder* fDecoder;
     dsp_imp*          fDSP;
 
    public:
@@ -208,6 +209,7 @@ typedef const char* (* getJSONFun) ();
 
 class llvm_dsp_factory_aux : public dsp_factory_imp {
     friend class llvm_dsp;
+    friend class llvm_dsp_factory;
 
    protected:
     llvm::ExecutionEngine*  fJIT;

@@ -164,11 +164,12 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, Module* module
     fSHAKey = sha_key;
     fTarget = (target == "") ? fTarget = (sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
     setOptlevel(opt_level);
-
-    fModule  = module;
-    fContext = context;
-    fDecoder = nullptr;
+    
     fObjectCache = nullptr;
+ 
+    fContext = context;
+    fModule  = module;
+    fDecoder = nullptr;
 }
 
 llvm_dsp_factory_aux::~llvm_dsp_factory_aux()
@@ -334,9 +335,10 @@ vector<string> llvm_dsp_factory_aux::getIncludePathnames()
 
 // Instance
 
-llvm_dsp::llvm_dsp(llvm_dsp_factory* factory, dsp_imp* dsp) : fFactory(factory), fDSP(dsp)
+llvm_dsp::llvm_dsp(llvm_dsp_factory* factory, dsp_imp* dsp):fFactory(factory), fDSP(dsp)
 {
     // Used in -sch mode
+    fDecoder = createJSONUIDecoder(fFactory->getFactory()->fGetJSON());
     fFactory->getFactory()->fAllocate(fDSP);
 }
 
@@ -354,6 +356,7 @@ llvm_dsp::~llvm_dsp()
         // LLVM module memory code
         free(fDSP);
     }
+    delete fDecoder;
 }
 
 void llvm_dsp::metadata(Meta* m)
@@ -401,7 +404,10 @@ void llvm_dsp::instanceConstants(int sample_rate)
 
 void llvm_dsp::instanceResetUserInterface()
 {
-    fFactory->getFactory()->fDecoder->resetUserInterface(fDSP, dynamic_defaultsound);
+    // Reset the DSP proxy
+    fDecoder->resetUserInterface();
+    // Reset the real DSP
+    fDecoder->resetUserInterface(fDSP, dynamic_defaultsound);
 }
 
 void llvm_dsp::instanceClear()
@@ -416,22 +422,40 @@ llvm_dsp* llvm_dsp::clone()
 
 int llvm_dsp::getSampleRate()
 {
-    return fFactory->getFactory()->fDecoder->getSampleRate(fDSP);
+    return fDecoder->getSampleRate(fDSP);
 }
 
 void llvm_dsp::buildUserInterface(UI* ui_interface)
 {
-    fFactory->getFactory()->fDecoder->buildUserInterface(ui_interface, fDSP);
+    if (fDecoder->hasCompileOption("-double") && ui_interface->sizeOfFAUSTFLOAT() == 4) {
+        // Setup a DSP proxy
+        fDecoder->setupDSPProxy(fDSP);
+        fDecoder->buildUserInterface(ui_interface);
+    } else {
+        fDecoder->buildUserInterface(ui_interface, fDSP);
+    }
 }
 
 void llvm_dsp::buildUserInterface(UIGlue* glue)
 {
-    fFactory->getFactory()->fDecoder->buildUserInterface(glue, fDSP);
+    fDecoder->buildUserInterface(glue, fDSP);
 }
 
 void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
-    fFactory->getFactory()->fCompute(fDSP, count, input, output);
+    if (fDecoder->hasDSPProxy()) {
+        // Update inputs control
+        for (auto& i : fDecoder->getInputControls()) {
+            i->reflectZone();
+        }
+        fFactory->getFactory()->fCompute(fDSP, count, input, output);
+        // Update outputs control
+        for (auto& i : fDecoder->getOutputControls()) {
+            i->modifyZone();
+        }
+    } else {
+        fFactory->getFactory()->fCompute(fDSP, count, input, output);
+    }
 }
 
 string llvm_dsp_factory_aux::writeDSPFactoryToMachineAux(const string& target)

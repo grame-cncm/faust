@@ -71,7 +71,6 @@ int main(int argc, char* argv[])
     
     dsp_factory* factory = nullptr;
     dsp* DSP = nullptr;
-    mydsp_poly* dsp_poly = nullptr;
     MidiUI* midiinterface = nullptr;
     httpdUI* httpdinterface = nullptr;
     GUI* oscinterface = nullptr;
@@ -101,7 +100,7 @@ int main(int argc, char* argv[])
     
     if (nvoices > 0) {
         cout << "Starting polyphonic mode nvoices : " << nvoices << endl;
-        DSP = dsp_poly = new mydsp_poly(DSP, nvoices, true, true);
+        DSP = new mydsp_poly(DSP, nvoices, true, true);
     }
     
     if (isopt(argv, "-double")) {
@@ -131,10 +130,6 @@ int main(int argc, char* argv[])
     if (is_midi) {
         midiinterface = new MidiUI(&audio);
         DSP->buildUserInterface(midiinterface);
-    }
-    
-    if (nvoices > 0) {
-        audio.addMidiIn(dsp_poly);
     }
     
     // State (after UI construction)

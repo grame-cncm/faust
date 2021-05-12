@@ -131,7 +131,6 @@ int main(int argc, char* argv[])
     
     dsp_factory* factory = nullptr;
     dsp* DSP = nullptr;
-    mydsp_poly* dsp_poly = nullptr;
     MidiUI* midiinterface = nullptr;
     httpdUI* httpdinterface = nullptr;
     GUI* oscinterface = nullptr;
@@ -237,20 +236,6 @@ int main(int argc, char* argv[])
     //factory->setMemoryManager(&manager);  causes crash in -fm mode
     DSP = factory->createDSPInstance();
     
-    // For test
-    //DSP = new mydsp();
-    
-    /*
-     measure_dsp* mes = new measure_dsp(DSP->clone(), 512, 5.);  // Buffer_size and duration in sec of measure
-     for (int i = 0; i < 2; i++) {
-        mes->measure();
-        cout << argv[argc-1] << " : " << mes->getStats() << " " << "(DSP CPU % : " << (mes->getCPULoad() * 100) << ")" << endl;
-     }
-    */
-    
-    // To test compiled block reuse
-    //DSP = factory->createDSPInstance();
-    
     if (!DSP) {
         cerr << "Cannot create instance "<< endl;
         exit(EXIT_FAILURE);
@@ -265,14 +250,14 @@ int main(int argc, char* argv[])
     
     if (nvoices > 0) {
         cout << "Starting polyphonic mode 'nvoices' : " << nvoices << " and 'all' : " << is_all << endl;
-        DSP = dsp_poly = new mydsp_poly(DSP, nvoices, !is_all, true);
+        DSP = new mydsp_poly(DSP, nvoices, !is_all, true);
     }
     
     if (isopt(argv, "-double")) {
         cout << "Running in double..." << endl;
         DSP = new dsp_sample_adapter<double, float>(DSP);
     }
-    
+   
     GUI* interface = new GTKUI(filename, &argc, &argv);
     DSP->buildUserInterface(interface);
     
@@ -308,10 +293,6 @@ int main(int argc, char* argv[])
     if (is_midi) {
         midiinterface = new MidiUI(&audio);
         DSP->buildUserInterface(midiinterface);
-    }
-    
-    if (nvoices > 0) {
-        audio.addMidiIn(dsp_poly);
     }
     
     // State (after UI construction)

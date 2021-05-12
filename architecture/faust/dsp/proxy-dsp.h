@@ -39,10 +39,16 @@
  */
 class proxy_dsp : public dsp {
 
-    private:
+    protected:
     
         JSONUIDecoder* fDecoder;
         int fSampleRate;
+    
+        void init(const std::string& json)
+        {
+            fDecoder = new JSONUIDecoder(json);
+            fSampleRate = -1;
+        }
         
     public:
     
@@ -52,12 +58,6 @@ class proxy_dsp : public dsp {
         proxy_dsp(const std::string& json)
         {
             init(json);
-        }
-    
-        void init(const std::string& json)
-        {
-            fDecoder = new JSONUIDecoder(json);
-            fSampleRate = -1;
         }
           
         proxy_dsp(dsp* dsp)
@@ -73,7 +73,7 @@ class proxy_dsp : public dsp {
         {
             delete fDecoder;
         }
-       
+    
         virtual int getNumInputs() { return fDecoder->fNumInputs; }
         virtual int getNumOutputs() { return fDecoder->fNumOutputs; }
         
