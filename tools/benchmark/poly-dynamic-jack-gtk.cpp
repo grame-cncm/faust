@@ -87,6 +87,7 @@ int main(int argc, char* argv[])
     bool is_osc = isopt(argv, "-osc");
     bool is_httpd = isopt(argv, "-httpd");
     bool is_resample = isopt(argv, "-resample");
+    bool is_double = isopt(argv, "-double");
     int nvoices = lopt(argv, "-nvoices", -1);
     
     malloc_memory_manager manager;
@@ -210,7 +211,7 @@ int main(int argc, char* argv[])
     }
     
     //factory->setMemoryManager(&manager);  // causes crash in -fm mode
-    DSP = factory->createPolyDSPInstance(nvoices, true, true);
+    DSP = factory->createPolyDSPInstance(nvoices, true, true, is_double);
     if (!DSP) {
         cerr << "Cannot create instance "<< endl;
         exit(EXIT_FAILURE);
@@ -218,10 +219,6 @@ int main(int argc, char* argv[])
     
     cout << "getName " << factory->getName() << endl;
     //cout << "getSHAKey " << factory->getSHAKey() << endl;
-    
-    if (isopt(argv, "-double")) {
-        cout << "Running in double..." << endl;
-    }
     
     /*
      JSONUI json(DSP->getNumInputs(), DSP->getNumOutputs());

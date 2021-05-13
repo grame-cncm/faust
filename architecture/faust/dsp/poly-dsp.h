@@ -39,6 +39,7 @@
 
 #include "faust/midi/midi.h"
 #include "faust/dsp/dsp-combiner.h"
+#include "faust/dsp/dsp-adapter.h"
 #include "faust/dsp/proxy-dsp.h"
 
 #include "faust/gui/DecoratorUI.h"
@@ -938,6 +939,11 @@ struct dsp_poly_factory : public dsp_factory {
     
     dsp_factory* fProcessFactory;
     dsp_factory* fEffectFactory;
+    
+    dsp* adaptDSP(dsp* dsp, bool is_double)
+    {
+        return (is_double) ? new dsp_sample_adapter<double, float>(dsp) : dsp;
+    }
 
     dsp_poly_factory(dsp_factory* process_factory = nullptr,
                      dsp_factory* effect_factory = nullptr):
@@ -981,13 +987,14 @@ struct dsp_poly_factory : public dsp_factory {
      * @param group - if true, voices are not individually accessible, a global "Voices" tab will automatically dispatch
      *                a given control on all voices, assuming GUI::updateAllGuis() is called.
      *                If false, all voices can be individually controlled.
+     * @param is_double - if true, internally allocated DSPs will be adapted to receive 'double' samples.
      */
-    dsp_poly* createPolyDSPInstance(int nvoices, bool control, bool group)
+    dsp_poly* createPolyDSPInstance(int nvoices, bool control, bool group, bool is_double = false)
     {
-        dsp_poly* dsp_poly = new mydsp_poly(fProcessFactory->createDSPInstance(), nvoices, control, group);
+        dsp_poly* dsp_poly = new mydsp_poly(adaptDSP(fProcessFactory->createDSPInstance(), is_double), nvoices, control, group);
         if (fEffectFactory) {
             // the 'dsp_poly' object has to be controlled with MIDI, so kept separated from new dsp_sequencer(...) object
-            return new dsp_poly_effect(dsp_poly, new dsp_sequencer(dsp_poly, fEffectFactory->createDSPInstance()));
+            return new dsp_poly_effect(dsp_poly, new dsp_sequencer(dsp_poly, adaptDSP(fEffectFactory->createDSPInstance(), is_double)));
         } else {
             return new dsp_poly_effect(dsp_poly, dsp_poly);
         }

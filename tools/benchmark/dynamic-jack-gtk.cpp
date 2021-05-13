@@ -236,6 +236,11 @@ int main(int argc, char* argv[])
     //factory->setMemoryManager(&manager);  causes crash in -fm mode
     DSP = factory->createDSPInstance();
     
+    if (isopt(argv, "-double")) {
+        cout << "Running in double..." << endl;
+        DSP = new dsp_sample_adapter<double, float>(DSP);
+    }
+    
     if (!DSP) {
         cerr << "Cannot create instance "<< endl;
         exit(EXIT_FAILURE);
@@ -251,11 +256,6 @@ int main(int argc, char* argv[])
     if (nvoices > 0) {
         cout << "Starting polyphonic mode 'nvoices' : " << nvoices << " and 'all' : " << is_all << endl;
         DSP = new mydsp_poly(DSP, nvoices, !is_all, true);
-    }
-    
-    if (isopt(argv, "-double")) {
-        cout << "Running in double..." << endl;
-        DSP = new dsp_sample_adapter<double, float>(DSP);
     }
    
     GUI* interface = new GTKUI(filename, &argc, &argv);
