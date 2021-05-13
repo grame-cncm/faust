@@ -718,9 +718,9 @@ void faustgen_factory::display_documentation()
     // Open the Web documentation
     char command[512];
 #ifdef WIN32
-    sprintf(command, "start \"\" \"https://faust.grame.fr/doc/manual/index.html\"");
+    sprintf(command, "start \"\" \"https://faustdoc.grame.fr/manual/introduction\"");
 #else
-    sprintf(command, "open \"https://faust.grame.fr/doc/manual/index.html\"");
+    sprintf(command, "open \"https://faustdoc.grame.fr/manual/introduction\"");
 #endif
     system(command);
 }
