@@ -417,7 +417,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     void updateOutputControls()
     {
         for (auto& i : fPathOutputTable) {
-            i.second->reflectZone();
+            i.second->modifyZone();
         }
     }
 
@@ -452,7 +452,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         if (fPathInputTable.find(offset) != fPathInputTable.end()) {
             return fPathInputTable[offset];
         } else if (fPathOutputTable.find(offset) != fPathOutputTable.end()) {
-            return fPathInputTable[offset];
+            return fPathOutputTable[offset];
         } else {
             return new ZoneParam();
         }
