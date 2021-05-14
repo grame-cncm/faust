@@ -58,10 +58,45 @@
 template <class REAL, int TRACE>
 struct interpreter_dsp_factory_aux;
 
+typedef std::function<void(double)> ReflectFunction;
+typedef std::function<double()> ModifyFunction;
+
+
 // FBC interpreter
 template <class REAL, int TRACE>
 class FBCInterpreter : public FBCExecutor<REAL> {
    protected:
+    
+    struct ZoneParam {
+        
+        FAUSTFLOAT fZone;
+        ReflectFunction fReflect;
+        ModifyFunction fModify;
+        
+    #if defined(TARGET_OS_IPHONE) || defined(WIN32)
+        ZoneParam(ReflectFunction reflect = nullptr, ModifyFunction modify = nullptr)
+        :fReflect(reflect), fModify(modify)
+        {}
+        void reflectZone() { if (fReflect) fReflect(fZone); }
+        void modifyZone() { if (fModify) fZone = fModify(); }
+    #else
+        ZoneParam(ReflectFunction reflect = [](REAL value) {}, ModifyFunction modify = []() { return REAL(-1); })
+        :fReflect(reflect), fModify(modify)
+        {}
+        void reflectZone() { fReflect(fZone); }
+        void modifyZone() { fZone = fModify(); }
+    #endif
+        
+        void setReflectZoneFun(ReflectFunction reflect) { fReflect = reflect; }
+        void setModifyZoneFun(ModifyFunction modify) { fModify = modify; }
+        
+    };
+    
+    typedef std::map<int, ZoneParam*> controlMap;
+    
+    controlMap fPathInputTable;     // [path, ZoneParam]
+    controlMap fPathOutputTable;    // [path, ZoneParam]
+    
     interpreter_dsp_factory_aux<REAL, TRACE>* fFactory;
 
     int*        fIntHeap;
@@ -72,7 +107,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     REAL** fOutputs;
 
     std::map<int, int64_t> fRealStats;
-
+    
     /*
      Keeps the latest TRACE_STACK_SIZE executed instructions, to be displayed when an error occurs.
      */
@@ -372,6 +407,20 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     inline REAL checkReal(InstructionIT it, REAL val) { return (TRACE > 0) ? checkRealAux(it, val) : val; }
 
+    void updateInputControls()
+    {
+        for (auto& i : fPathInputTable) {
+            i.second->reflectZone();
+        }
+        
+    }
+    void updateOutputControls()
+    {
+        for (auto& i : fPathOutputTable) {
+            i.second->reflectZone();
+        }
+    }
+
 #define pushInt(val) (int_stack[int_stack_index++] = val)
 #define popInt() (int_stack[--int_stack_index])
 
@@ -383,9 +432,38 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
 #define pushAddr_(addr) (address_stack[addr_stack_index++] = addr)
 #define popAddr_() (address_stack[--addr_stack_index])
+    
+    ZoneParam* getZoneParam(controlMap& map, ZoneParam* cur_param, int offset)
+    {
+        if (cur_param) {
+            map[offset] = cur_param;
+            return cur_param;
+        } else if (map.find(offset) == map.end()) {
+            ZoneParam* param = new ZoneParam();
+            map[offset] = param;
+            return param;
+        } else {
+             return map[offset];
+        }
+    }
+    
+    ZoneParam* getZoneParam(int offset)
+    {
+        if (fPathInputTable.find(offset) != fPathInputTable.end()) {
+            return fPathInputTable[offset];
+        } else if (fPathOutputTable.find(offset) != fPathOutputTable.end()) {
+            return fPathInputTable[offset];
+        } else {
+            return new ZoneParam();
+        }
+    }
 
     void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<REAL>* block, UITemplate* glue)
     {
+        // UI may have to be adapted if REAL and FAUSTFLOAT size do not match
+        bool need_proxy = (sizeof(REAL) == 8 && reinterpret_cast<UI*>(glue->fCPPInterface)->sizeOfFAUSTFLOAT() == 4);
+        ZoneParam* cur_param = nullptr;
+        
         for (auto& it : block->fInstructions) {
             // it->write(&std::cout);
 
@@ -407,26 +485,64 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     break;
 
                 case FBCInstruction::kAddButton:
-                    glue->addButton(it->fLabel.c_str(), &fRealHeap[it->fOffset]);
+                    if (need_proxy) {
+                        ZoneParam* param = getZoneParam(fPathInputTable, cur_param, it->fOffset);
+                        param->setReflectZoneFun([=](REAL value) { fRealHeap[it->fOffset] = value; });
+                        glue->addButton(it->fLabel.c_str(), &param->fZone);
+                        cur_param = nullptr;
+                    } else {
+                        glue->addButton(it->fLabel.c_str(), &fRealHeap[it->fOffset]);
+                    }
                     break;
 
                 case FBCInstruction::kAddCheckButton:
-                    glue->addCheckButton(it->fLabel.c_str(), &fRealHeap[it->fOffset]);
+                    if (need_proxy) {
+                        ZoneParam* param = getZoneParam(fPathInputTable, cur_param, it->fOffset);
+                        param->setReflectZoneFun([=](REAL value) { fRealHeap[it->fOffset] = value; });
+                        glue->addCheckButton(it->fLabel.c_str(), &param->fZone);
+                        cur_param = nullptr;
+                    } else {
+                        glue->addCheckButton(it->fLabel.c_str(), &fRealHeap[it->fOffset]);
+                    }
                     break;
 
                 case FBCInstruction::kAddHorizontalSlider:
-                    glue->addHorizontalSlider(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fInit, it->fMin,
-                                              it->fMax, it->fStep);
+                    if (need_proxy) {
+                        ZoneParam* param = getZoneParam(fPathInputTable, cur_param, it->fOffset);
+                        param->setReflectZoneFun([=](REAL value) { fRealHeap[it->fOffset] = value; });
+                        glue->addHorizontalSlider(it->fLabel.c_str(), &param->fZone,
+                                                  it->fInit, it->fMin,it->fMax, it->fStep);
+                        cur_param = nullptr;
+                    } else {
+                        glue->addHorizontalSlider(it->fLabel.c_str(), &fRealHeap[it->fOffset],
+                                                  it->fInit, it->fMin,it->fMax, it->fStep);
+                    }
                     break;
 
                 case FBCInstruction::kAddVerticalSlider:
-                    glue->addVerticalSlider(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fInit, it->fMin, it->fMax,
-                                            it->fStep);
+                    if (need_proxy) {
+                        ZoneParam* param = getZoneParam(fPathInputTable, cur_param, it->fOffset);
+                        param->setReflectZoneFun([=](REAL value) { fRealHeap[it->fOffset] = value; });
+                        glue->addVerticalSlider(it->fLabel.c_str(), &param->fZone,
+                                                  it->fInit, it->fMin,it->fMax, it->fStep);
+                        cur_param = nullptr;
+                    } else {
+                        glue->addVerticalSlider(it->fLabel.c_str(), &fRealHeap[it->fOffset],
+                                                it->fInit, it->fMin, it->fMax, it->fStep);
+                    }
                     break;
 
                 case FBCInstruction::kAddNumEntry:
-                    glue->addNumEntry(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fInit, it->fMin, it->fMax,
-                                      it->fStep);
+                    if (need_proxy) {
+                        ZoneParam* param = getZoneParam(fPathInputTable, cur_param, it->fOffset);
+                        param->setReflectZoneFun([=](REAL value) { fRealHeap[it->fOffset] = value; });
+                        glue->addNumEntry(it->fLabel.c_str(), &param->fZone,
+                                          it->fInit, it->fMin,it->fMax, it->fStep);
+                        cur_param = nullptr;
+                    } else {
+                        glue->addNumEntry(it->fLabel.c_str(), &fRealHeap[it->fOffset],
+                                          it->fInit, it->fMin, it->fMax, it->fStep);
+                    }
                     break;
 
                 case FBCInstruction::kAddSoundfile:
@@ -434,11 +550,25 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     break;
 
                 case FBCInstruction::kAddHorizontalBargraph:
-                    glue->addHorizontalBargraph(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fMin, it->fMax);
+                    if (need_proxy) {
+                        ZoneParam* param = getZoneParam(fPathOutputTable, cur_param, it->fOffset);
+                        param->setModifyZoneFun([=]() { return fRealHeap[it->fOffset]; });
+                        glue->addHorizontalBargraph(it->fLabel.c_str(), &param->fZone, it->fMin, it->fMax);
+                        cur_param = nullptr;
+                    } else {
+                        glue->addHorizontalBargraph(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fMin, it->fMax);
+                    }
                     break;
 
                 case FBCInstruction::kAddVerticalBargraph:
-                    glue->addVerticalBargraph(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fMin, it->fMax);
+                    if (need_proxy) {
+                        ZoneParam* param = getZoneParam(fPathOutputTable, cur_param, it->fOffset);
+                        param->setModifyZoneFun([=]() { return fRealHeap[it->fOffset]; });
+                        glue->addVerticalBargraph(it->fLabel.c_str(), &param->fZone, it->fMin, it->fMax);
+                        cur_param = nullptr;
+                    } else {
+                        glue->addVerticalBargraph(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fMin, it->fMax);
+                    }
                     break;
 
                 case FBCInstruction::kDeclare:
@@ -446,7 +576,12 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     if (it->fOffset == -1) {
                         glue->declare(static_cast<REAL*>(nullptr), it->fKey.c_str(), it->fValue.c_str());
                     } else {
-                        glue->declare(&fRealHeap[it->fOffset], it->fKey.c_str(), it->fValue.c_str());
+                        if (need_proxy) {
+                            if (!cur_param) cur_param = getZoneParam(it->fOffset);
+                            glue->declare(&cur_param->fZone, it->fKey.c_str(), it->fValue.c_str());
+                        } else {
+                            glue->declare(&fRealHeap[it->fOffset], it->fKey.c_str(), it->fValue.c_str());
+                        }
                     }
                     break;
 
@@ -4450,7 +4585,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         */
 
         fFactory = factory;
-
+   
         if (fFactory->getMemoryManager()) {
             fRealHeap  = static_cast<REAL*>(fFactory->allocate(sizeof(REAL) * fFactory->fRealHeapSize));
             fIntHeap   = static_cast<int*>(fFactory->allocate(sizeof(REAL) * fFactory->fIntHeapSize));
@@ -4487,6 +4622,12 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     virtual ~FBCInterpreter()
     {
+        for (auto& it : fPathInputTable) {
+            delete it.second;
+        }
+        for (auto& it : fPathOutputTable) {
+            delete it.second;
+        }
         if (fFactory->getMemoryManager()) {
             fFactory->destroy(fRealHeap);
             fFactory->destroy(fIntHeap);

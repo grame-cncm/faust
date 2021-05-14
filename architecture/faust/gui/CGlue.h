@@ -305,137 +305,133 @@ static void buildUIGlue(UIGlue* glue, UI* ui_interface, bool is_double)
     }
 }
     
-class UITemplate
+struct UITemplate
 {
     
-    private:
-        
-        void* fCPPInterface;
-        
-    public:
-        
-        UITemplate(void* cpp_interface):fCPPInterface(cpp_interface)
-        {}
-        
-        virtual ~UITemplate() {}
-        
-        // -- widget's layouts
-        
-        virtual void openTabBox(const char* label)
-        {
-            openTabBoxGlueFloat(fCPPInterface, label);
-        }
-        virtual void openHorizontalBox(const char* label)
-        {
-            openHorizontalBoxGlueFloat(fCPPInterface, label);
-        }
-        virtual void openVerticalBox(const char* label)
-        {
-            openVerticalBoxGlueFloat(fCPPInterface, label);
-        }
-        virtual void closeBox()
-        {
-            closeBoxGlueFloat(fCPPInterface);
-        }
-        
-        // float version
-        
-        // -- active widgets
-        
-        virtual void addButton(const char* label, float* zone)
-        {
-            addButtonGlueFloat(fCPPInterface, label, zone);
-        }
-        virtual void addCheckButton(const char* label, float* zone)
-        {
-            addCheckButtonGlueFloat(fCPPInterface, label, zone);
-        }
-        
-        virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
-        {
-            addVerticalSliderGlueFloat(fCPPInterface, label, zone, init, min, max, step);
-        }
-        
-        virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
-        {
-            addHorizontalSliderGlueFloat(fCPPInterface, label, zone, init, min, max, step);
-        }
-        
-        virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
-        {
-            addNumEntryGlueFloat(fCPPInterface, label, zone, init, min, max, step);
-        }
-        
-        // -- passive widgets
-        
-        virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max)
-        {
-            addHorizontalBargraphGlueFloat(fCPPInterface, label, zone, min, max);
-        }
-        
-        virtual void addVerticalBargraph(const char* label, float* zone, float min, float max)
-        {
-            addVerticalBargraphGlueFloat(fCPPInterface, label, zone, min, max);
-        }
+    void* fCPPInterface;
+
+    UITemplate(void* cpp_interface):fCPPInterface(cpp_interface)
+    {}
     
-        // -- metadata declarations
-        
-        virtual void declare(float* zone, const char* key, const char* val)
-        {
-            declareGlueFloat(fCPPInterface, zone, key, val);
-        }
-        
-        // double version
-        
-        virtual void addButton(const char* label, double* zone)
-        {
-            addButtonGlueDouble(fCPPInterface, label, zone);
-        }
-        virtual void addCheckButton(const char* label, double* zone)
-        {
-            addCheckButtonGlueDouble(fCPPInterface, label, zone);
-        }
-        
-        virtual void addVerticalSlider(const char* label, double* zone, double init, double min, double max, double step)
-        {
-            addVerticalSliderGlueDouble(fCPPInterface, label, zone, init, min, max, step);
-        }
-        
-        virtual void addHorizontalSlider(const char* label, double* zone, double init, double min, double max, double step)
-        {
-            addHorizontalSliderGlueDouble(fCPPInterface, label, zone, init, min, max, step);
-        }
-        
-        virtual void addNumEntry(const char* label, double* zone, double init, double min, double max, double step)
-        {
-            addNumEntryGlueDouble(fCPPInterface, label, zone, init, min, max, step);
-        }
+    virtual ~UITemplate() {}
     
-        // -- soundfiles
-        
-        virtual void addSoundfile(const char* label, const char* url, Soundfile** sf_zone)
-        {
-            addSoundfileGlueFloat(fCPPInterface, label, url, sf_zone);
-        }
+    // -- widget's layouts
     
-        // -- passive widgets
-        
-        virtual void addHorizontalBargraph(const char* label, double* zone, double min, double max)
-        {
-            addHorizontalBargraphGlueDouble(fCPPInterface, label, zone, min, max);
-        }
-        
-        virtual void addVerticalBargraph(const char* label, double* zone, double min, double max)
-        {
-            addVerticalBargraphGlueDouble(fCPPInterface, label, zone, min, max);
-        }
+    virtual void openTabBox(const char* label)
+    {
+        openTabBoxGlueFloat(fCPPInterface, label);
+    }
+    virtual void openHorizontalBox(const char* label)
+    {
+        openHorizontalBoxGlueFloat(fCPPInterface, label);
+    }
+    virtual void openVerticalBox(const char* label)
+    {
+        openVerticalBoxGlueFloat(fCPPInterface, label);
+    }
+    virtual void closeBox()
+    {
+        closeBoxGlueFloat(fCPPInterface);
+    }
     
-        // -- metadata declarations
-        
-        virtual void declare(double* zone, const char* key, const char* val)
-        {
-            declareGlueDouble(fCPPInterface, zone, key, val);
-        }
+    // float version
+    
+    // -- active widgets
+    
+    virtual void addButton(const char* label, float* zone)
+    {
+        addButtonGlueFloat(fCPPInterface, label, zone);
+    }
+    virtual void addCheckButton(const char* label, float* zone)
+    {
+        addCheckButtonGlueFloat(fCPPInterface, label, zone);
+    }
+    
+    virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
+    {
+        addVerticalSliderGlueFloat(fCPPInterface, label, zone, init, min, max, step);
+    }
+    
+    virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
+    {
+        addHorizontalSliderGlueFloat(fCPPInterface, label, zone, init, min, max, step);
+    }
+    
+    virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
+    {
+        addNumEntryGlueFloat(fCPPInterface, label, zone, init, min, max, step);
+    }
+    
+    // -- passive widgets
+    
+    virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max)
+    {
+        addHorizontalBargraphGlueFloat(fCPPInterface, label, zone, min, max);
+    }
+    
+    virtual void addVerticalBargraph(const char* label, float* zone, float min, float max)
+    {
+        addVerticalBargraphGlueFloat(fCPPInterface, label, zone, min, max);
+    }
+
+    // -- metadata declarations
+    
+    virtual void declare(float* zone, const char* key, const char* val)
+    {
+        declareGlueFloat(fCPPInterface, zone, key, val);
+    }
+    
+    // double version
+    
+    virtual void addButton(const char* label, double* zone)
+    {
+        addButtonGlueDouble(fCPPInterface, label, zone);
+    }
+    virtual void addCheckButton(const char* label, double* zone)
+    {
+        addCheckButtonGlueDouble(fCPPInterface, label, zone);
+    }
+    
+    virtual void addVerticalSlider(const char* label, double* zone, double init, double min, double max, double step)
+    {
+        addVerticalSliderGlueDouble(fCPPInterface, label, zone, init, min, max, step);
+    }
+    
+    virtual void addHorizontalSlider(const char* label, double* zone, double init, double min, double max, double step)
+    {
+        addHorizontalSliderGlueDouble(fCPPInterface, label, zone, init, min, max, step);
+    }
+    
+    virtual void addNumEntry(const char* label, double* zone, double init, double min, double max, double step)
+    {
+        addNumEntryGlueDouble(fCPPInterface, label, zone, init, min, max, step);
+    }
+
+    // -- soundfiles
+    
+    virtual void addSoundfile(const char* label, const char* url, Soundfile** sf_zone)
+    {
+        addSoundfileGlueFloat(fCPPInterface, label, url, sf_zone);
+    }
+
+    // -- passive widgets
+    
+    virtual void addHorizontalBargraph(const char* label, double* zone, double min, double max)
+    {
+        addHorizontalBargraphGlueDouble(fCPPInterface, label, zone, min, max);
+    }
+    
+    virtual void addVerticalBargraph(const char* label, double* zone, double min, double max)
+    {
+        addVerticalBargraphGlueDouble(fCPPInterface, label, zone, min, max);
+    }
+
+    // -- metadata declarations
+    
+    virtual void declare(double* zone, const char* key, const char* val)
+    {
+        declareGlueDouble(fCPPInterface, zone, key, val);
+    }
 
 };
 

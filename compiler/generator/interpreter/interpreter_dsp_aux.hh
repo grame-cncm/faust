@@ -706,12 +706,17 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
             fFBCExecutor->setIntValue(fFactory->fCountOffset, count);
             
             try {
+                // Needed when used in DSPProxy
+                fFBCExecutor->updateInputControls();
                 
                 // Executes the 'control' block
                 fFBCExecutor->ExecuteBlock(fFactory->fComputeBlock);
 
                 // Executes the 'DSP' block
                 fFBCExecutor->ExecuteBlock(fFactory->fComputeDSPBlock);
+                
+                // Needed when used in DSPProxy
+                fFBCExecutor->updateOutputControls();
                 
             } catch (faustexception& e) {
                 std::cerr << e.Message();

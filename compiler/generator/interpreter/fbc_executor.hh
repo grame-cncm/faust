@@ -28,6 +28,8 @@
 template <class REAL>
 struct FBCExecutor {
     
+    virtual ~FBCExecutor() {}
+    
     virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<REAL>* block, UITemplate* glue) {};
     virtual void ExecuteBlock(FBCBlockInstruction<REAL>* block, bool compile = false) {};
 
@@ -37,7 +39,8 @@ struct FBCExecutor {
     virtual void setInput(int offset, REAL* buffer) {}
     virtual void setOutput(int offset, REAL* buffer) {}
 
-    virtual ~FBCExecutor() {}
+    virtual void updateInputControls() {}
+    virtual void updateOutputControls() {}
 
     virtual void dumpMemory(FBCBlockInstruction<REAL>* block, const std::string& name, const std::string& filename) {}
     

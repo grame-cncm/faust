@@ -29,12 +29,6 @@
 #include <string>
 #include <vector>
 
-/*
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT double
-#endif
-*/
-
 #include "faust/audio/jack-dsp.h"
 #include "faust/dsp/dsp-optimizer.h"
 #include "faust/dsp/llvm-dsp.h"
@@ -49,7 +43,6 @@
 #include "faust/gui/httpdUI.h"
 #include "faust/gui/OSCUI.h"
 #include "faust/gui/SoundUI.h"
-#include "faust/gui/PrintUI.h"
 #include "faust/misc.h"
 
 #include "faust/dsp/dsp-compute-adapter.h"
@@ -235,15 +228,14 @@ int main(int argc, char* argv[])
     
     //factory->setMemoryManager(&manager);  causes crash in -fm mode
     DSP = factory->createDSPInstance();
+    if (!DSP) {
+        cerr << "Cannot create instance "<< endl;
+        exit(EXIT_FAILURE);
+    }
     
     if (isopt(argv, "-double")) {
         cout << "Running in double..." << endl;
         DSP = new dsp_sample_adapter<double, float>(DSP);
-    }
-    
-    if (!DSP) {
-        cerr << "Cannot create instance "<< endl;
-        exit(EXIT_FAILURE);
     }
     
     cout << "getName " << factory->getName() << endl;
@@ -281,9 +273,6 @@ int main(int argc, char* argv[])
         httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
         DSP->buildUserInterface(httpdinterface);
     }
-    
-    //PrintUI print_ui;
-    //DSP->buildUserInterface(&print_ui);
     
     if (is_osc) {
         oscinterface = new OSCUI(filename, argc, argv);
@@ -324,8 +313,6 @@ int main(int argc, char* argv[])
     delete httpdinterface;
     delete oscinterface;
     delete soundinterface;
-    
-    //delete mes;
     
     if (is_llvm) {
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
