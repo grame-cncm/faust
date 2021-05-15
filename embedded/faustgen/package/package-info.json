@@ -1,0 +1,40 @@
+{
+	"name" : "faustgen",
+	"displayname" : "",
+	"version" : "1.5.1",
+	"author" : "GRAME",
+	"authors" : [  ],
+	"description" : "Faust programming environment in Max",
+	"tags" : [ "Faust", "libfaust", "Dynamic Programming", "DSP", "LLVM", "GRAME" ],
+	"website" : "https://faust.grame.fr",
+	"extends" : "",
+	"extensible" : 0,
+	"max_version_min" : "7.0",
+	"max_version_max" : "none",
+	"os" : 	{
+		"macintosh" : 		{
+			"min_version" : "10.11.x",
+			"platform" : [ "x64" ]
+		}
+	,
+		"windows" : 		{
+			"min_version" : "7",
+			"platform" : [ "x64" ]
+		}
+	}
+	,
+	"homepatcher" : "faustgen.overview.maxpat",
+	"filelist" : 	{
+		"extensions" : [ "faustgen.mxe64", "faustgen.mxo" ],
+		"examples" : [],
+		"externals" : [ "faustgen.mxe64", "faustgen.mxo" ]
+		"patchers" : []
+		"help" : []
+		"interfaces" : [],
+		"docs" : []
+		"extras" : []	
+	}
+	,
+	"c74install" : 1,
+	"installdate" : 3703851369
+}

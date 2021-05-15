@@ -13,6 +13,15 @@
 		</o>
 		allows to easily use Faust source code inside a Max/MSP patcher, edit it, change compilation options, and even produce the processor flow chart as an SVG diagram. Double-click on the object to display the set of available commands.
 	</description>
+	<!--INLETS-->
+	<inletlist>
+		 <inlet id="0" type="signal/messages">
+			<digest>Audio signal and messages.</digest>
+			<description>
+				The audio signal and messages to control the DSP.
+			</description>
+		</inlet>
+	</inletlist>
 	<!--METADATA-->
 	<metadatalist>
 		<metadata name="author">
@@ -26,7 +35,7 @@
 	<objarglist>
 		<objarg name="name" type="symbol" optional = "1">
 			<digest>
-				TEXT_HERE
+				A name for the internal DSP code.
 			</digest>
 			<description>
 				A name for the internal DSP code, all faustgen~ objects using the same name will actually be instances of the same DSP code.
@@ -40,7 +49,7 @@
 				<arg name="pathname" type="symbol" optional="0" id="0" />
 			</arglist>
 			<digest>
-				TEXT_HERE
+				The pathname of the .dsp file to be loaded.
 			</digest>
 			<description>
 				The pathname of the .dsp file to be loaded.
@@ -51,7 +60,7 @@
 				<arg name="pathname" type="symbol" optional="0" id="0" />
 			</arglist>
 			<digest>
-				TEXT_HERE
+				The pathname of the .dsp file to be saved.
 			</digest>
 			<description>
 				The pathname of the .dsp file to be saved.
@@ -62,7 +71,7 @@
 				<arg name="pathname" type="symbol" optional="0" id="0" />
 			</arglist>
 			<digest>
-				TEXT_HERE
+				The folder pathname of additionnal Faust libraries.
 			</digest>
 			<description>
 				The folder pathname of additionnal Faust libraries.
@@ -73,10 +82,37 @@
 				<arg name="options" type="list  of symbols" optional="1" id="0" />
 			</arglist>
 			<digest>
-				TEXT_HERE
+				The list of compile options.
 			</digest>
 			<description>
 				The list of compile options to be given to the Faust compiler (typically : -vec -lv 1, or -vec -lv 0 -vs 32).
+			</description>
+		</method>
+		<method name="osc">
+			<arglist>
+				<arg name="IP inport outport xmit[0|1] bundle[0|1]" type="list of symbols and int"/>
+			</arglist>
+			<digest>
+				To activate OSC control in input and output mode.
+			</digest>
+			<description>
+				To activate OSC control in input and output mode, possibly generating messages when xmit = 1, and in bundle mode when bundle = 1.
+			</description>
+		</method>
+		<method name="init">
+			<digest>
+				To generate all inputs and outputs control messages.
+			</digest>
+			<description>
+				To generate all inputs and outputs control messages as a message list [path, init, min, max].
+			</description>
+		</method>
+		<method name="dump">
+			<digest>
+				To generate all inputs and outputs control messages.
+			</digest>
+			<description>
+				To generate all inputs and outputs control messages as a message list [path, cur, min, max].
 			</description>
 		</method>
 		<method name="mute">
@@ -84,11 +120,22 @@
 				<arg name="on/off-flag" type="int"/>
 			</arglist>
 			<digest>
-				TEXT_HERE
+				To mute the DSP.
 			</digest>
 			<description>
 				To mute the DSP.
 			</description>
+		</method>
+		<method name="polyphony">
+		<arglist>
+			<arg name="nvoices" type="int"/>
+		</arglist>
+		<digest>
+			To set the DSP in polyphonic mode.
+		</digest>
+		<description>
+			To set the DSP in polyphonic mode with nvoices (int)>.
+		</description>
 		</method>
 	</methodlist>
 		<misc name="Output">

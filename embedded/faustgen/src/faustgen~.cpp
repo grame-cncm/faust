@@ -35,6 +35,7 @@
 #define LLVM_DSP
 #include "faust/dsp/poly-dsp.h"
 
+// Globals
 int faustgen_factory::gFaustCounter = 0;
 map<string, faustgen_factory*> faustgen_factory::gFactoryMap;
 t_jrgba faustgen::gDefaultColor = {-1., -1., -1., -1.};
@@ -1530,9 +1531,9 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
             //update_outputs();
             // Use the right outlet to output messages
             dump_outputs();
+            // Done for fMidiUI and fOSCUI
+            GUI::updateAllGuis();
         }
-        // Done for fMidiUI and fOSCUI
-        GUI::updateAllGuis();
         fDSPfactory->unlock_audio();
     } else {
         // Write null buffers to outs

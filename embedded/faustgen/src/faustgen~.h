@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2012-2020 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2012-2021 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -98,35 +98,35 @@ class faustgen_factory {
         
     private:
         
-        set<faustgen*> fInstances;      // set of all DSP
-        llvm_dsp_factory* fDSPfactory;  // pointer to the LLVM Faust factory
-        SoundUI* fSoundUI;              // generic Soundfile interface
+        set<faustgen*> fInstances;      // Set of all DSP
+        llvm_dsp_factory* fDSPfactory;  // Pointer to the LLVM Faust factory
+        SoundUI* fSoundUI;              // Generic Soundfile interface
         
-        long fSourceCodeSize;           // length of source code string
-        char** fSourceCode;             // source code string
+        long fSourceCodeSize;           // Length of source code string
+        char** fSourceCode;             // Source code string
         
-        long fBitCodeSize;              // length of the bitcode string
-        char** fBitCode;                // bitcode string
+        long fBitCodeSize;              // Length of the bitcode string
+        char** fBitCode;                // Bitcode string
         
-        set<string> fLibraryPath;       // path towards the Faust libraries
-        string fDrawPath;               // path where to put SVG files
+        set<string> fLibraryPath;       // Path towards the Faust libraries
+        string fDrawPath;               // Path where to put SVG files
         
-        vector<string> fOptions;        // options set in the 'compileoptions' message
+        vector<string> fOptions;        // Options set in the 'compileoptions' message
         
         int fFaustNumber;               // faustgen object's number inside the patcher
         
-        string fName;                   // name of the DSP group
+        string fName;                   // Name of the DSP group
         string fJSON;                   // JSON
         
-        recursive_mutex fAudioMutex;    // mutex to protect RT audio thread when recompiling DSP
-        recursive_mutex fUIMutex;       // mutex to protect UI thread when recompiling DSP
+        recursive_mutex fAudioMutex;    // Mutex to protect RT audio thread when recompiling DSP
+        recursive_mutex fUIMutex;       // Mutex to protect UI thread when recompiling DSP
     
         vector<string> fCompileOptions; // Faust compiler options
         
-        int fOptLevel;                  // the LLVM optimization level
+        int fOptLevel;                  // LLVM optimization level
         bool fPolyphonic;               // Whether the created DSP is polyphonic
         
-        short fDefaultPath;             // default path to be saved in factory constructor (using path_getdefault)
+        short fDefaultPath;             // Default path to be saved in factory constructor (using path_getdefault)
                                         // and explicitly set in 'read' and 'write' (using path_setdefault)
         
         int m_siginlets;
@@ -205,7 +205,7 @@ class faustgen_factory {
         void lock_ui() { fUIMutex.lock(); }
         void unlock_ui() { fUIMutex.unlock(); }
     
-        static int gFaustCounter;       // global variable to count the number of faustgen objects inside the patcher
+        static int gFaustCounter; // Global variable to count the number of faustgen objects inside the patcher
         
         static map<string, faustgen_factory*> gFactoryMap;
 };
@@ -223,7 +223,7 @@ class faustgen : public MspCpp5<faustgen> {
         faustgen_factory* fDSPfactory;
         map<string, vector<t_object*> > fOutputTable;  // Output UI items (like bargraph) in the patcher to be notified
     
-        max_midi  fMidiHandler;         // generic MIDI handler
+        max_midi  fMidiHandler;         // Generic MIDI handler
         mspUI* fDSPUI;                  // Control UI
         MidiUI* fMidiUI;                // Midi UI
         OSCUI* fOSCUI;                  // OSC UI
