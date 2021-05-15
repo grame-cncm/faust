@@ -28,6 +28,7 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <functional>
 
 #include "exception.hh"
 #include "fbc_executor.hh"
@@ -58,15 +59,14 @@
 template <class REAL, int TRACE>
 struct interpreter_dsp_factory_aux;
 
-typedef std::function<void(double)> ReflectFunction;
-typedef std::function<double()> ModifyFunction;
-
-
 // FBC interpreter
 template <class REAL, int TRACE>
 class FBCInterpreter : public FBCExecutor<REAL> {
    protected:
-    
+
+    typedef std::function<void(double)> ReflectFunction;
+    typedef std::function<double()> ModifyFunction;
+
     struct ZoneParam {
         
         FAUSTFLOAT fZone;

@@ -16,7 +16,7 @@ The DSP code can describe generator or effects, and can run in polyphonic mode, 
 
 A new **faustgen~** object will be created with a default DSP program (a stereo in/out passthrough). Two diffrent ways of creating objects are available:
 
-- using **faustgen~ **object without a specific name let's you define the DSP program only for this instance, with a default name factory ID
+- using **faustgen~** object without a specific name let's you define the DSP program only for this instance, with a default name factory ID
 - using **faustgen~ name** allows to specify a name for this instance, and share the *same Faust code with all objects with this name*. If you load another patch with a same faustgen~ name, you'll keep the current code. Be carefull, if you change the name you loose your previous code (so copy it before)
 
 ### Using
@@ -28,12 +28,12 @@ Depending of the number of audio inputs and outputs described in the DSP source 
 - an output messages outlet (see later)
 - the right most outlet is used to send MIDI messages if MIDI metadata are used in the DSP UI items
 
-The **faustgen~** object has several menu items:
+When double-clicking on it, the **faustgen~** object opens several menu items:
 
-- *Edit DSP code* allows to open the integrated text editor to edit the DSP code
+- *Edit DSP code* allows to open the integrated text editor, edit the DSP code, then JIT compile it when the window is closed
 - *View DSP parameters* print each parameters in the Max console window with its label, complete path (as *xxx/yyy/zzz* syntax) and range, as well as the complete DSP JSON 
 - *View compile options* print all Faust compilation options in the Max console window
-- *View SVG digram* creates the block diagram SVG reprentation and opens it in a browser
+- *View SVG digram* creates the block diagram SVG view and opens it in a browser
 -  *View Web documention* access the standard Faust documention in a browser
 - *View libraries* open the embedded Faust libraies in a text editor
 
@@ -41,8 +41,8 @@ The **faustgen~** object has several menu items:
 
 The **faustgen~** object can be controlled with the following messages:
 
-- `read <pathname>`: to read an external DSP file
-- `write <pathname>`: to write the DSP code in an external file
+- `read <pathname>`: to read an external DSP file (pathname is optional)
+- `write <pathname>`: to write the DSP code in an external file (pathname is optional)
 - `librarypath <pathname>` to add the folder pathname of additional Faust libraries
 - `compileoptions <options>`: to add most of the Faust [compiler options]( https://faustdoc.grame.fr/manual/options/) (like `vec -lv 1 -vs 8 `...)
 - `osc <IP inport outport xmit[0|1] bundle[0|1]>`: to activate OSC control in input and output mode, possibly generating messages when *xmit = 1*, and in bundle mode when *bundle = 1* 
@@ -50,7 +50,6 @@ The **faustgen~** object can be controlled with the following messages:
 - `dump`: to generate all inputs and outputs control messages as a message list *[path, cur, min, max]* that will be sent on the output messages outlet. 
 - `mute`: to mute audio rendering
 - `polyphony <nvoices>` : to set the DSP in polyphonic mode with *nvoices* 
-- `midievent <midi message>`: to receive and decode MIDI messages, to be used when the `[midi xxx]` metadata is used i the DSP code, or in polyphonic mode.
 
 #### Input controllers 
 

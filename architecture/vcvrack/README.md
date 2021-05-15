@@ -16,7 +16,7 @@ Faust DSP code classically produces audio signals in the [-1..1] range. Since VC
 
 Polyphonic modules can be created using the  `-nvoices <num>` parameter up to 16 voices. The  `freq/gate/gain` convention can be used in the DSP code. VCV Rack follows the 1V/octave convention for MIDI pitch values, so the MIDI signals are automatically converted to `freq` using this convention. Gain and gates signals (using the [0v..10v] range) are converted to [0..1] values.
 
-Note that **creating polyphonic effects** also make sense in VCV Rack. For instance a reverb connected to a polyphonic instrument would need to be polyphonic. Thus the  `-nvoices <num>` parameter can also be used in this case.
+Note that **creating polyphonic effects** also makes sense in VCV Rack. For instance a reverb connected to a polyphonic instrument would need to be polyphonic. Thus the `-nvoices <num>` parameter can also be used in this case.
 
 ## Metadata
 
