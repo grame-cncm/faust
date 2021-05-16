@@ -13,11 +13,11 @@ XLIST1="faust2md"
 
 OSXSOUND="faust2cagtk faust2android faust2caqt faust2jaqt faust2jack faust2ios faust2max6 faust2msp faust2jackconsole faust2juce faust2bela"
 OSXSOUNDSR="faust2cagtk faust2caqt faust2jaqt faust2jack"
-OSX="faust2cagtk faust2android faust2au faust2caqt faust2csound faust2faustvst faust2jack faust2jaqt faust2w32max6 faust2w64max6 faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2w32vst faust2w64vst faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole faust2lv2 faust2sndfile faust2csvplot faust2plot"
-OSXMIDI="faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole"
-OSXPOLY="faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole faust2lv2"
-OSXPOLYMIDI="faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole"
-OSXPOLY2MIDI="faust2cagtk faust2caqt faust2ios faust2max6 faust2msp faust2juce faust2netjackconsole faust2netjackqt"
+OSX="faust2soul faust2vcvrack faust2cagtk faust2android faust2au faust2caqt faust2csound faust2faustvst faust2jack faust2jaqt faust2w32max6 faust2w64max6 faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2w32vst faust2w64vst faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole faust2lv2 faust2sndfile faust2csvplot faust2plot"
+OSXMIDI="faust2soul faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole"
+OSXPOLY="faust2soul faust2vcvrack faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole faust2lv2"
+OSXPOLYMIDI="faust2soul faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole"
+OSXPOLY2MIDI="faust2soul faust2cagtk faust2caqt faust2ios faust2max6 faust2msp faust2juce faust2netjackconsole faust2netjackqt"
 OSXHTTPD="faust2cagtk faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole"
 OSXOSC="faust2cagtk faust2ios faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole faust2max6 faust2msp faust2android"
 OSXOSCHTTPD="faust2cagtk faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole"
@@ -76,31 +76,33 @@ if [ "$system" = "Darwin" ]; then
     ./waveform4 > waveform4.txt
     diff waveform4.txt waveform4_ref.txt && echo "OK: faust2dummymem waveform4.dsp succeeded !" || echo "ERROR: faust2dummymem waveform4.dsp failed"
 
-	for scriptname in $OSX; do
-    	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
- 	done
+    for scriptname in $OSX; do
+        ($scriptname good.dsp &> LOG) && (echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
+        rm -rf good
+    done
 
     for scriptname in $OSXMIDI; do
-        ($scriptname -midi good.dsp &> LOG)&&(echo "OK: $scriptname -midi succeeded !")||(echo "ERROR: $scriptname -midi failed")
+        ($scriptname -midi good.dsp &> LOG) && (echo "OK: $scriptname -midi succeeded !")||(echo "ERROR: $scriptname -midi failed")
+        rm -rf good
     done
 
     for scriptname in $OSXPOLY; do
-        ($scriptname -nvoices 8 good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 succeeded !")||(echo "ERROR: $scriptname -nvoices 8 failed")
+        ($scriptname -nvoices 8 good.dsp &> LOG) && (echo "OK: $scriptname -nvoices 8 succeeded !")||(echo "ERROR: $scriptname -nvoices 8 failed")
         rm -rf good
     done
 
     for scriptname in $OSXPOLYMIDI; do
-        ($scriptname -nvoices 8 -midi good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -midi failed")
+        ($scriptname -nvoices 8 -midi good.dsp &> LOG) && (echo "OK: $scriptname -nvoices 8 -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -midi failed")
         rm -rf good
     done
 
     for scriptname in $OSXPOLY2MIDI; do
-        ($scriptname -nvoices 8 -effect good.dsp -midi good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 -effect good.dsp -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -effect good.dsp -midi failed")
+        ($scriptname -nvoices 8 -effect good.dsp -midi good.dsp &> LOG) && (echo "OK: $scriptname -nvoices 8 -effect good.dsp -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -effect good.dsp -midi failed")
         rm -rf good
     done
     
     for scriptname in $OSXSOUND; do
-        ($scriptname -soundfile -lang ocpp sound.dsp &> LOG)&&(echo "OK: $scriptname -soundfile -lang ocpp succeeded !")||(echo "ERROR: $scriptname -soundfile -lang ocpp failed")
+        ($scriptname -soundfile -lang ocpp sound.dsp &> LOG) && (echo "OK: $scriptname -soundfile -lang ocpp succeeded !")||(echo "ERROR: $scriptname -soundfile -lang ocpp failed")
         rm -rf good
     done
 
@@ -108,7 +110,7 @@ if [ "$system" = "Darwin" ]; then
     rm -rf sound
     
     for scriptname in $OSXSOUND; do
-        ($scriptname -soundfile sound.dsp &> LOG)&&(echo "OK: $scriptname -soundfile succeeded !")||(echo "ERROR: $scriptname -soundfile failed")
+        ($scriptname -soundfile sound.dsp &> LOG) && (echo "OK: $scriptname -soundfile succeeded !")||(echo "ERROR: $scriptname -soundfile failed")
         rm -rf good
     done
     
@@ -116,67 +118,71 @@ if [ "$system" = "Darwin" ]; then
     rm -rf sound
     
     for scriptname in $OSXSOUNDSR; do
-        ($scriptname -soundfile -resample sound.dsp &> LOG)&&(echo "OK: $scriptname -soundfile -resample succeeded !")||(echo "ERROR: $scriptname -soundfile -resample failed")
+        ($scriptname -soundfile -resample sound.dsp &> LOG) && (echo "OK: $scriptname -soundfile -resample succeeded !")||(echo "ERROR: $scriptname -soundfile -resample failed")
         rm -rf good
     done
     
-    (faust2juce -soundfile -standalone sound.dsp &> LOG)&&(echo "OK: faust2juce -soundfile -standalone succeeded !")||(echo "ERROR: faust2juce -soundfile -standalone failed")
+    (faust2juce -soundfile -standalone sound.dsp &> LOG) && (echo "OK: faust2juce -soundfile -standalone succeeded !")||(echo "ERROR: faust2juce -soundfile -standalone failed")
     rm -rf good
 
     for scriptname in $OSXHTTPD; do
-        ($scriptname -httpd good.dsp &> LOG)&&(echo "OK: $scriptname -httpd succeeded !")||(echo "ERROR: $scriptname -httpd failed")
+        ($scriptname -httpd good.dsp &> LOG) && (echo "OK: $scriptname -httpd succeeded !")||(echo "ERROR: $scriptname -httpd failed")
+        rm -rf good
     done
 
     for scriptname in $OSXOSC; do
-        ($scriptname -osc good.dsp &> LOG)&&(echo "OK: $scriptname -osc succeeded !")||(echo "ERROR: $scriptname -osc failed")
+        ($scriptname -osc good.dsp &> LOG) && (echo "OK: $scriptname -osc succeeded !")||(echo "ERROR: $scriptname -osc failed")
+        rm -rf good
     done
 
     for scriptname in $OSXOSCHTTPD; do
-        ($scriptname -osc -httpd good.dsp &> LOG)&&(echo "OK: $scriptname -osc -httpd succeeded !")||(echo "ERROR: $scriptname -osc -httpd failed")
+        ($scriptname -osc -httpd good.dsp &> LOG) && (echo "OK: $scriptname -osc -httpd succeeded !")||(echo "ERROR: $scriptname -osc -httpd failed")
+        rm -rf good
     done
     
     for scriptname in $OSXPRESET; do
-        ($scriptname -preset auto good.dsp &> LOG)&&(echo "OK: $scriptname -preset auto succeeded !")||(echo "ERROR: $scriptname -preset auto failed")
+        ($scriptname -preset auto good.dsp &> LOG) && (echo "OK: $scriptname -preset auto succeeded !")||(echo "ERROR: $scriptname -preset auto failed")
+        rm -rf good
     done
     
-    (faust2api -jack good.dsp &> LOG && unzip dsp-faust.zip && cd dsp-faust && c++ -std=c++11 DspFaust.cpp -DBUILD -ljack -o DspFaust)&&(echo "OK: faust2api -jack succeeded !")||(echo "ERROR: faust2api -jack failed")
+    (faust2api -jack good.dsp &> LOG && unzip dsp-faust.zip && cd dsp-faust && c++ -std=c++11 DspFaust.cpp -DBUILD -ljack -o DspFaust) && (echo "OK: faust2api -jack succeeded !")||(echo "ERROR: faust2api -jack failed")
     
-    (faust2api -jack -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2api -jack -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api -jack -midi -nvoices 8 failed")
+    (faust2api -jack -midi -nvoices 8 good.dsp &> LOG) && (echo "OK: faust2api -jack -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api -jack -midi -nvoices 8 failed")
 
-    (faust2api -jack -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -jack -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api -jack -nvoices 8 -effect effect.dsp -midi failed")
+    (faust2api -jack -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG) && (echo "OK: faust2api -jack -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api -jack -nvoices 8 -effect effect.dsp -midi failed")
 
-    (faust2api -jack -soundfile -lang ocpp sound.dsp &> LOG)&&(echo "OK: faust2api -jack -soundfile -lang ocpp succeeded !")||(echo "ERROR: faust2api -jack -soundfile -lang ocpp failed")
+    (faust2api -jack -soundfile -lang ocpp sound.dsp &> LOG) && (echo "OK: faust2api -jack -soundfile -lang ocpp succeeded !")||(echo "ERROR: faust2api -jack -soundfile -lang ocpp failed")
 
-    (faust2nodejs -coreaudio good.dsp &> LOG)&&(echo "OK: faust2nodejs -coreaudio succeeded !")||(echo "ERROR: faust2nodejs -coreaudio failed")
-	rm -rf good-faustnode
-	
-    (faust2nodejs -coreaudio -midi good.dsp &> LOG)&&(echo "OK: faust2nodejs -coreaudio -midi succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -midi failed")
-	rm -rf good-faustnode
-	
-    (faust2nodejs -coreaudio -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2nodejs -coreaudio -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -midi -nvoices 8 failed")
-	rm -rf good-faustnode
-	
-    (faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi failed")
-	rm -rf good-faustnode
-	
-    (faust2smartkeyb -android good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -android succeeded !")||(echo "ERROR: faust2smartkeyb -android failed")
+    (faust2nodejs -coreaudio good.dsp &> LOG) && (echo "OK: faust2nodejs -coreaudio succeeded !")||(echo "ERROR: faust2nodejs -coreaudio failed")
+    rm -rf good-faustnode
+    
+    (faust2nodejs -coreaudio -midi good.dsp &> LOG) && (echo "OK: faust2nodejs -coreaudio -midi succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -midi failed")
+    rm -rf good-faustnode
+    
+    (faust2nodejs -coreaudio -midi -nvoices 8 good.dsp &> LOG) && (echo "OK: faust2nodejs -coreaudio -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -midi -nvoices 8 failed")
+    rm -rf good-faustnode
+    
+    (faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG) && (echo "OK: faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi failed")
+    rm -rf good-faustnode
+    
+    (faust2smartkeyb -android good.dsp &> LOG) && (echo "OK: faust2smartkeyb -android succeeded !")||(echo "ERROR: faust2smartkeyb -android failed")
 
-    (faust2smartkeyb -android -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -android -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -android -midi -nvoices 8 failed")
+    (faust2smartkeyb -android -nvoices 8 good.dsp &> LOG) && (echo "OK: faust2smartkeyb -android -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -android -midi -nvoices 8 failed")
 
-    (faust2smartkeyb -android -effect effect.dsp -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -android -effect effect.dsp -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -android -effect effect.dsp -nvoices 8 failed")
+    (faust2smartkeyb -android -effect effect.dsp -nvoices 8 good.dsp &> LOG) && (echo "OK: faust2smartkeyb -android -effect effect.dsp -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -android -effect effect.dsp -nvoices 8 failed")
 
-    (faust2smartkeyb -ios good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios succeeded !")||(echo "ERROR: faust2smartkeyb -ios failed")
+    (faust2smartkeyb -ios good.dsp &> LOG) && (echo "OK: faust2smartkeyb -ios succeeded !")||(echo "ERROR: faust2smartkeyb -ios failed")
 
-    (faust2smartkeyb -ios -osc good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios -osc succeeded !")||(echo "ERROR: faust2smartkeyb -ios -osc failed")
+    (faust2smartkeyb -ios -osc good.dsp &> LOG) && (echo "OK: faust2smartkeyb -ios -osc succeeded !")||(echo "ERROR: faust2smartkeyb -ios -osc failed")
 
-    (faust2smartkeyb -ios -osc -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios -osc -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -ios -osc -nvoices 8 failed")
+    (faust2smartkeyb -ios -osc -nvoices 8 good.dsp &> LOG) && (echo "OK: faust2smartkeyb -ios -osc -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -ios -osc -nvoices 8 failed")
 
-    (faust2smartkeyb -ios -effect effect.dsp -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios -effect effect.dsp -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -ios -effect effect.dsp -nvoices 8 failed")
+    (faust2smartkeyb -ios -effect effect.dsp -nvoices 8 good.dsp &> LOG) && (echo "OK: faust2smartkeyb -ios -effect effect.dsp -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -ios -effect effect.dsp -nvoices 8 failed")
 
     # Test of -exp10
     (faust2jack -exp10 exp10.dsp) &&(echo "OK: faust2jack -exp10 succeeded !")||(echo "ERROR: faust2jack -exp10 failed")
 
-    (faust2android -exp10 exp10.dsp)&&(echo "WARNING: faust2android -exp10 succeeded ?")||(echo "OK: faust2android -exp10 correctly failed !")
+    (faust2android -exp10 exp10.dsp) && (echo "WARNING: faust2android -exp10 succeeded ?")||(echo "OK: faust2android -exp10 correctly failed !")
 
 elif [ "$system" = "Linux" ]; then
     echo "Test $LINUX"
@@ -205,49 +211,49 @@ elif [ "$system" = "Linux" ]; then
     ./waveform4 > waveform4.txt
     diff waveform4.txt waveform4_ref.txt && echo "OK: faust2dummymem waveform4.dsp succeeded !" || echo "ERROR: faust2dummy waveform4.dsp failed"
 
-	for scriptname in $LINUX; do
-    	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
-	done
+    for scriptname in $LINUX; do
+        ($scriptname good.dsp &> LOG) && (echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
+    done
 
     for scriptname in $LINUXMIDI; do
-        ($scriptname -midi good.dsp &> LOG)&&(echo "OK: $scriptname -midi succeeded !")||(echo "ERROR: $scriptname -midi failed")
+        ($scriptname -midi good.dsp &> LOG) && (echo "OK: $scriptname -midi succeeded !")||(echo "ERROR: $scriptname -midi failed")
     done
 
     for scriptname in $LINUXPOLY; do
-        ($scriptname -nvoices 8 good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 succeeded !")||(echo "ERROR: $scriptname -nvoices 8 failed")
+        ($scriptname -nvoices 8 good.dsp &> LOG) && (echo "OK: $scriptname -nvoices 8 succeeded !")||(echo "ERROR: $scriptname -nvoices 8 failed")
         rm -rf good
     done
 
     for scriptname in $LINUXPOLYMIDI; do
-        ($scriptname -nvoices 8 -midi good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -midi failed")
+        ($scriptname -nvoices 8 -midi good.dsp &> LOG) && (echo "OK: $scriptname -nvoices 8 -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -midi failed")
         rm -rf good
     done
 
     for scriptname in $LINUXOSCHTTPD; do
-        ($scriptname -osc -httpd good.dsp &> LOG)&&(echo "OK: $scriptname -osc -httpd succeeded !")||(echo "ERROR: $scriptname -osc -httpd failed")
+        ($scriptname -osc -httpd good.dsp &> LOG) && (echo "OK: $scriptname -osc -httpd succeeded !")||(echo "ERROR: $scriptname -osc -httpd failed")
     done
 
-    (faust2api -jack good.dsp &> LOG && unzip dsp-faust.zip && cd dsp-faust && c++ -std=c++11 DspFaust.cpp -DBUILD -ljack -o DspFaust)&&(echo "OK: faust2api -jack succeeded !")||(echo "ERROR: faust2api -jack failed")
+    (faust2api -jack good.dsp &> LOG && unzip dsp-faust.zip && cd dsp-faust && c++ -std=c++11 DspFaust.cpp -DBUILD -ljack -o DspFaust) && (echo "OK: faust2api -jack succeeded !")||(echo "ERROR: faust2api -jack failed")
 
-    (faust2api -android good.dsp &> LOG)&&(echo "OK: faust2api -android succeeded !")||(echo "ERROR: faust2api -android failed")
+    (faust2api -android good.dsp &> LOG) && (echo "OK: faust2api -android succeeded !")||(echo "ERROR: faust2api -android failed")
 
-    (faust2api -android -midi good.dsp &> LOG)&&(echo "OK: faust2api -android -midi succeeded !")||(echo "ERROR: faust2api -android -midi failed")
+    (faust2api -android -midi good.dsp &> LOG) && (echo "OK: faust2api -android -midi succeeded !")||(echo "ERROR: faust2api -android -midi failed")
 
-    (faust2api -android -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2api -android -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api -android -midi -nvoices 8 failed")
+    (faust2api -android -midi -nvoices 8 good.dsp &> LOG) && (echo "OK: faust2api -android -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api -android -midi -nvoices 8 failed")
 
-    (faust2api -android -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -android -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api -android -nvoices 8 -effect effect.dsp -midi failed")
+    (faust2api -android -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG) && (echo "OK: faust2api -android -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api -android -nvoices 8 -effect effect.dsp -midi failed")
 
 elif [ "$system" = "MINGW" ]; then
-	echo "not yet implemented"
+    echo "not yet implemented"
 
 else
-	echo
-	echo "Test all Faust2xxx to work"
-	echo
-	for S in ../../tools/faust2appls/faust2*; do
-		scriptname=`basename $S .in`
-		if notinlist  $S "$XLIST1"; then
-			($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
-		fi
-	done
+    echo
+    echo "Test all Faust2xxx to work"
+    echo
+    for S in ../../tools/faust2appls/faust2*; do
+        scriptname=`basename $S .in`
+        if notinlist  $S "$XLIST1"; then
+            ($scriptname good.dsp &> LOG) && (echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
+        fi
+    done
 fi

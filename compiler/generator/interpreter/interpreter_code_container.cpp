@@ -304,7 +304,7 @@ FIRMetaBlockInstruction* InterpreterCodeContainer<REAL>::produceMetadata(string&
     FIRMetaBlockInstruction* block = new FIRMetaBlockInstruction();
 
     // Add global metadata
-    for (auto& it : gGlobal->gMetaDataSet) {
+    for (const auto& it : gGlobal->gMetaDataSet) {
         if (it.first != tree("author")) {
             stringstream str1, str2;
             str1 << *(it.first);

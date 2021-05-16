@@ -396,13 +396,13 @@ void faust_create_jsui(t_faust* x)
 /*--------------------------------------------------------------------------*/
 void faust_update_outputs(t_faust* x)
 {
-    for (auto& it1 : x->m_output_table) {
+    for (const auto& it1 : x->m_output_table) {
         bool new_val = false;
         FAUSTFLOAT value = x->m_dspUI->getOutputValue(it1.first, new_val);
         if (new_val) {
             t_atom at_value;
             atom_setfloat(&at_value, value);
-            for (auto& it2 : it1.second) {
+            for (const auto& it2 : it1.second) {
                 object_method_typed(it2, gensym("float"), 1, &at_value, 0);
             }
         }

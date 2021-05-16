@@ -78,7 +78,7 @@ void CodeContainer::transformDAG(DispatchVisitor* visitor)
     lclgraph G;
     CodeLoop::sortGraph(fCurLoop, G);
     for (int l = int(G.size() - 1); l >= 0; l--) {
-        for (auto& p : G[l]) {
+        for (const auto& p : G[l]) {
             p->transform(visitor);
         }
     }
@@ -228,13 +228,13 @@ void CodeContainer::printGraphDotFormat(ostream& fout)
     // for each level of the graph
     for (int l = int(G.size() - 1); l >= 0; l--) {
         // for each task in the level
-        for (auto& t : G[l]) {
+        for (const auto& t : G[l]) {
             // print task label "Lxxx : 0xffffff"
             fout << '\t' << 'L' << t << "[label=<<font face=\"verdana,bold\">L"
                  << lnum++ << "</font> : " << t
                  << ">];" << endl;
             // for each source of the task
-            for (auto& src : t->fBackwardLoopDependencies) {
+            for (const auto& src : t->fBackwardLoopDependencies) {
                 // print the connection Lxxx -> Lyyy;
                 fout << '\t' << 'L' << src << "->" << 'L' << t << ';' << endl;
             }
@@ -253,9 +253,9 @@ void CodeContainer::computeForwardDAG(lclgraph dag, int& loop_count, vector<int>
     int loop_index = START_TASK_MAX;  // First index to be used for remaining tasks
 
     for (int l = int(dag.size() - 1); l >= 0; l--) {
-        for (auto& p : dag[l]) {
+        for (const auto& p : dag[l]) {
             // Setup forward dependancy
-            for (auto& p1 : p->fBackwardLoopDependencies) {
+            for (const auto& p1 : p->fBackwardLoopDependencies) {
                 p1->fForwardLoopDependencies.insert(p);
             }
 
@@ -293,7 +293,7 @@ void CodeContainer::sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<
     visited.insert(l);
 
     // Compute the dependencies loops (that need to be computed before this one)
-    for (auto& p : l->fBackwardLoopDependencies) {
+    for (const auto& p : l->fBackwardLoopDependencies) {
         sortDeepFirstDAG(p, visited, result);
     }
 
@@ -359,14 +359,14 @@ void CodeContainer::generateDAGLoop(BlockInst* block, DeclareVarInst* count)
         set<CodeLoop*>  visited;
         list<CodeLoop*> result;
         sortDeepFirstDAG(fCurLoop, visited, result);
-        for (auto& p : result) {
+        for (const auto& p : result) {
             generateDAGLoopAux(p, block, count, loop_num++);
         }
     } else {
         lclgraph G;
         CodeLoop::sortGraph(fCurLoop, G);
         for (int l = int(G.size() - 1); l >= 0; l--) {
-            for (auto& p : G[l]) {
+            for (const auto& p : G[l]) {
                 generateDAGLoopAux(p, block, count, loop_num++);
             }
         }
@@ -426,7 +426,7 @@ BlockInst* CodeContainer::flattenFIR(void)
 
     // Subcontainers
     global_block->pushBackInst(InstBuilder::genLabelInst("========== Subcontainers =========="));
-    for (auto& it : fSubContainers) {
+    for (const auto& it : fSubContainers) {
         global_block->merge(it->flattenFIR());
     }
 
@@ -448,7 +448,7 @@ BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
     //dump2FIR(block);
 
     // Inline subcontainers 'instanceInit' and 'fill' function call
-    for (auto& it : fSubContainers) {
+    for (const auto& it : fSubContainers) {
         // Build the function to be inlined (prototype and code)
         DeclareFunInst* inst_init_fun = it->generateInstanceInitFun("instanceInit" + it->getClassName(), "dsp", true, false);
         //dump2FIR(inst_init_fun);
@@ -475,7 +475,7 @@ void CodeContainer::printMacros(ostream& fout, int n)
             fout << "#ifdef FAUST_UIMACROS";
             tab(n + 1, fout);
             tab(n + 1, fout);
-            for (auto& it : gGlobal->gMetaDataSet) {
+            for (const auto& it : gGlobal->gMetaDataSet) {
                 if (it.first == tree("filename")) {
                     fout << "#define FAUST_FILE_NAME " << **(it.second.begin());
                     break;
@@ -601,7 +601,7 @@ DeclareFunInst* CodeContainer::generateGetIORate(const string& name, const strin
     block->pushBackInst(switch_block);
 
     int i = 0;
-    for (auto& it : io) {
+    for (const auto& it : io) {
         // Creates "case" block
         BlockInst* case_block = InstBuilder::genBlockInst();
         // Compiles "case" block

@@ -82,14 +82,14 @@ class SaveUI : public GenericUI {
 
         void reset()
         {
-            for (auto& it : fName2Zone) {
+            for (const auto& it : fName2Zone) {
                 *it.second.fZone = it.second.fInit;
             }
         }
         
         void display()
         {
-            for (auto& it : fName2Zone) {
+            for (const auto& it : fName2Zone) {
                 std::cout << "SaveUI::display path = " << it.first << " value = " << *it.second.fZone << std::endl;
             }
         }

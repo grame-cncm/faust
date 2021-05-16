@@ -87,7 +87,7 @@ class audio {
     
         void runControlCallbacks()
         {
-            for (auto& it : fComputeCallbackList) {
+            for (const auto& it : fComputeCallbackList) {
                 it.first(it.second);
             }
         }

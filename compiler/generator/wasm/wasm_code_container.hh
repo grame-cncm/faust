@@ -60,7 +60,7 @@ class WASMCodeContainer : public virtual CodeContainer {
 
         std::map<std::string, int>    path_index_table;
         map<string, MemoryDesc>&      fieldTable1 = gGlobal->gWASMVisitor->getFieldTable();
-        for (auto& it : json_visitor1.fPathTable) {
+        for (const auto& it : json_visitor1.fPathTable) {
             faustassert(path_index_table.find(it.second) == path_index_table.end());
             // Get field index
             MemoryDesc tmp              = fieldTable1[it.first];

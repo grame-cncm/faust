@@ -71,7 +71,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
         generateUserInterface(&json_visitor1);
 
         map<string, int> path_index_table;
-        for (auto& it : json_visitor1.fPathTable) {
+        for (const auto& it : json_visitor1.fPathTable) {
             // Get field index
             path_index_table[it.second] = fStructVisitor.getFieldOffset(it.first);
         }

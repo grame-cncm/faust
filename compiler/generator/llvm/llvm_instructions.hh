@@ -129,7 +129,7 @@ struct LLVMTypeHelper {
         fTypeMap[Typed::kVoid_ptr_ptr] = getTyPtr(fTypeMap[Typed::kVoid_ptr]);
 
         // External structured type definition
-        for (auto& it : gGlobal->gExternalStructTypes) {
+        for (const auto& it : gGlobal->gExternalStructTypes) {
             LLVMType new_type                         = convertFIRType((it.second)->fType);
             fTypeMap[it.first]                        = new_type;
             fTypeMap[Typed::getPtrFromType(it.first)] = getTyPtr(new_type);
@@ -216,7 +216,7 @@ struct LLVMTypeHelper {
         #endif
         } else if (struct_typed) {
             LLVMVecTypes llvm_types;
-            for (auto& it : struct_typed->fFields) {
+            for (const auto& it : struct_typed->fFields) {
                 llvm_types.push_back(convertFIRType(it));
             }
             return getStructType("struct.dsp" + struct_typed->fName, llvm_types);
@@ -252,7 +252,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 #endif
     void printVarTable()
     {
-        for (auto& it : fStackVars) {
+        for (const auto& it : fStackVars) {
             cout << "Stack var = " << it.first << endl;
         }
     }
@@ -494,7 +494,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Prepare vector of LLVM types for args
             LLVMVecTypes fun_args_type;
-            for (auto& it : inst->fType->fArgsTypes) {
+            for (const auto& it : inst->fType->fArgsTypes) {
                 fun_args_type.push_back(fTypeMap[it->getType()]);
             }
 
@@ -514,7 +514,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Set name for function arguments
             Function::arg_iterator args = function->arg_begin();
-            for (auto& it : inst->fType->fArgsTypes) {
+            for (const auto& it : inst->fType->fArgsTypes) {
                 LLVMValue arg = GetIterator(args++);
                 arg->setName(it->fName);
             }
@@ -844,7 +844,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     {
         // Compile function arguments
         vector<LLVMValue> fun_args;
-        for (auto& it : inst->fArgs) {
+        for (const auto& it : inst->fArgs) {
             // Each argument is compiled and result is in fCurValue
             it->accept(this);
             fun_args.push_back(fCurValue);
@@ -1193,7 +1193,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         }
 
         // Generates block internal code
-        for (auto& it : inst->fCode) {
+        for (const auto& it : inst->fCode) {
             it->accept(this);
         }
 

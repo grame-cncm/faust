@@ -144,7 +144,7 @@ class GUI : public UI
         virtual ~GUI() 
         {   
             // delete all items
-            for (auto& it : fZoneMap) {
+            for (const auto& it : fZoneMap) {
                 delete it.second;
             }
             // suppress 'this' in static fGuiList
@@ -163,21 +163,21 @@ class GUI : public UI
         {
             FAUSTFLOAT v = *z;
             clist* cl = fZoneMap[z];
-            for (auto& c : *cl) {
+            for (const auto& c : *cl) {
                 if (c->cache() != v) c->reflectZone();
             }
         }
     
         void updateAllZones()
         {
-            for (auto& m : fZoneMap) {
+            for (const auto& m : fZoneMap) {
                 updateZone(m.first);
             }
         }
     
         static void updateAllGuis()
         {
-            for (auto& g : fGuiList) {
+            for (const auto& g : fGuiList) {
                 g->updateAllZones();
             }
         }
@@ -429,7 +429,7 @@ class uiGroupItem : public uiItem
             fCache = v;
             
             // Update all zones of the same group
-            for (auto& it : fZoneMap) {
+            for (const auto& it : fZoneMap) {
                 *it = v;
             }
         }
@@ -447,7 +447,7 @@ static void createUiCallbackItem(GUI* ui, FAUSTFLOAT* zone, uiCallback foo, void
 
 static void deleteClist(clist* cl)
 {
-    for (auto& it : *cl) {
+    for (const auto& it : *cl) {
         // This specific code is only used in JUCE context. TODO: use proper 'shared_ptr' based memory management.
     #if defined(JUCE_32BIT) || defined(JUCE_64BIT)
         uiOwnedItem* owned = dynamic_cast<uiOwnedItem*>(it);

@@ -201,7 +201,7 @@ class CMDUI : public UI
         void printhelp_command(int file = NO_FILE)
         {
             std::cout << fArgv[0] << " ";
-            for (auto& i : fKeyParam) {
+            for (const auto& i : fKeyParam) {
                 std::cout << "[ " << i.first << " " << i.second.fMin << ".." << i.second.fMax <<" ] ";
             }
             std::cout << std::endl;
@@ -215,7 +215,7 @@ class CMDUI : public UI
         void printhelp_init()
         {
             std::cout << fArgv[0] << " option list : ";
-            for (auto& i : fKeyParam) {
+            for (const auto& i : fKeyParam) {
                 std::cout << "[ " << i.first << " " << i.second.fMin << ".." << i.second.fMax <<" ] ";
             }
             std::cout << std::endl;

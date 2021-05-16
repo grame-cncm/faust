@@ -202,9 +202,9 @@ static list<string> xmlOfMetadata(const map<string, set<string>>& metadata, int 
 
     line.reserve(128);
 
-    for (auto& it1 : metadata) {
+    for (const auto& it1 : metadata) {
         const string& key = it1.first;
-        for (auto& it2 : it1.second) {
+        for (const auto& it2 : it1.second) {
             const string& value = it2;
             line.assign(level, '\t');
             line += "<meta key=\"";
@@ -243,7 +243,7 @@ void Description::print(int n, ostream& fout)
     tab(n + 1, fout);
     fout << "<outputs>" << fOutputs << "</outputs>";
 
-    for (auto& s : metaDataLines) {
+    for (const auto& s : metaDataLines) {
         tab(n + 1, fout);
         fout << s;
     }
@@ -256,7 +256,7 @@ void Description::print(int n, ostream& fout)
     fout << "<activewidgets>";
     tab(n + 3, fout);
     fout << "<count>" << fActiveWidgetCount << "</count>";
-    for (auto& s : fActiveLines) {
+    for (const auto& s : fActiveLines) {
         tab(n + 3, fout);
         fout << s;
     }
@@ -270,7 +270,7 @@ void Description::print(int n, ostream& fout)
     fout << "<passivewidgets>";
     tab(n + 3, fout);
     fout << "<count>" << fPassiveWidgetCount << "</count>";
-    for (auto& s : fPassiveLines) {
+    for (const auto& s : fPassiveLines) {
         tab(n + 3, fout);
         fout << s;
     }
@@ -446,7 +446,7 @@ void Description::addActiveMetadata(Tree label)
     extractMetadata(tree2str(label), shortLabel, metadata);
     lines = xmlOfMetadata(metadata, 1);
 
-    for (auto& it : lines) fActiveLines.push_back(it);
+    for (const auto& it : lines) fActiveLines.push_back(it);
 }
 
 void Description::addPassiveMetadata(Tree label)
@@ -458,5 +458,5 @@ void Description::addPassiveMetadata(Tree label)
     extractMetadata(tree2str(label), shortLabel, metadata);
     lines = xmlOfMetadata(metadata, 1);
 
-    for (auto& it : lines) fPassiveLines.push_back(it);
+    for (const auto& it : lines) fPassiveLines.push_back(it);
 }

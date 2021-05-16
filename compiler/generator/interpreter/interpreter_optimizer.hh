@@ -1134,12 +1134,12 @@ struct FBCInstructionOptimizer {
     static void displayMaps(std::map<int, int>& int_map, std::map<int, REAL>& real_map)
     {
         std::cout << "displayMaps : int_map" << std::endl;
-        for (auto& it1 : int_map) {
+        for (const auto& it1 : int_map) {
             std::cout << "int_map offset " << it1.first << " value " << it1.second << std::endl;
         }
         
         std::cout << "displayMaps : real_map" << std::endl;
-        for (auto& it2 : real_map) {
+        for (const auto& it2 : real_map) {
             std::cout << "real_map offset " << it2.first << " value " << it2.second << std::endl;
         }
     }

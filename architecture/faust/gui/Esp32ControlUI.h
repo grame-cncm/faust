@@ -262,9 +262,9 @@ class Esp32ControlUI : public GenericUI
     
         virtual ~Esp32ControlUI()
         {
-            for (auto& it : fKnob1Converter) delete it;
-            for (auto& it : fKnob2Converter) delete it;
-            for (auto& it : fKnob3Converter) delete it;
+            for (const auto& it : fKnob1Converter) delete it;
+            for (const auto& it : fKnob2Converter) delete it;
+            for (const auto& it : fKnob3Converter) delete it;
             stop();
         }
     

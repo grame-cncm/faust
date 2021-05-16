@@ -247,7 +247,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     string error;
     
     if (S.size() > 0) {
-        for (auto& f : S) {
+        for (const auto& f : S) {
             string module_name = unquote(f);
             if (endWith(module_name, ".bc") || endWith(module_name, ".ll")) {
                 ModulePTR module = loadModule(module_name, fContext);

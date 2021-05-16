@@ -26,10 +26,6 @@
 #include "floats.hh"
 #include "global.hh"
 
-#define FLOATMACRO "FAUSTFLOAT"
-#define FLOATMACROPTR "FAUSTFLOAT*"
-#define FLOATCASTER "(" FLOATMACRO ")"
-
 using namespace std;
 
 //-----------------------------------------------

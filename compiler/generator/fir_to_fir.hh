@@ -295,11 +295,11 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                 }
             }
 
-            for (auto& it : store) {
+            for (const auto& it : store) {
                 dst->pushFrontInst(it);
             }
 
-            for (auto& it : dec) {
+            for (const auto& it : dec) {
                 dst->pushFrontInst(it);
             }
         } else {

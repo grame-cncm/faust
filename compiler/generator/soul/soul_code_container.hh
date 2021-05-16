@@ -64,7 +64,7 @@ struct TableSizeCloneVisitor : public BasicCloneVisitor {
             LoadVarInst* table = dynamic_cast<LoadVarInst*>(*it);
             faustassert(table);
             list<ValueInst*> cloned_args;
-            for (auto& it1 : inst->fArgs) {
+            for (const auto& it1 : inst->fArgs) {
                 cloned_args.push_back(it1->clone(this));
             }
             return new FunCallInst(inst->fName + "_" + to_string(size->fNum), cloned_args, inst->fMethod);

@@ -412,13 +412,13 @@ class mspUI : public UI, public PathBuilder
     
         void clear()
         {
-            for (auto& it : fInputLabelTable) {
+            for (const auto& it : fInputLabelTable) {
                 delete it.second;
             }
             fInputLabelTable.clear();
             fInputPathTable.clear();
             
-            for (auto& it : fOutputLabelTable) {
+            for (const auto& it : fOutputLabelTable) {
                 delete it.second;
             }
             fOutputLabelTable.clear();
@@ -428,7 +428,7 @@ class mspUI : public UI, public PathBuilder
         void displayControls()
         {
             post("------- Range and path ----------");
-            for (auto& it : fInputPathTable) {
+            for (const auto& it : fInputPathTable) {
                 char param[STR_SIZE];
                 it.second->toString(param);
                 post(param);

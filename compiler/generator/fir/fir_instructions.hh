@@ -104,7 +104,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         } else if (struct_typed) {
             std::stringstream res;
             res << "StructType<\"" << struct_typed->fName << "\",";
-            for (auto& it : struct_typed->fFields) {
+            for (const auto& it : struct_typed->fFields) {
                 res << "(" << generateType(it) << ")";
             }
             res << ">";
@@ -157,7 +157,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         } else if (struct_typed) {
             std::stringstream res;
             res << "StructType<\"" << struct_typed->fName << "\",";
-            for (auto& it : struct_typed->fFields) {
+            for (const auto& it : struct_typed->fFields) {
                 res << "(" << generateType(it) << ")";
             }
             res << ">";
@@ -330,7 +330,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         if (size > 0) {  // Has more arguments...
             *fOut << ", ";
         }
-        for (auto& it : inst->fType->fArgsTypes) {
+        for (const auto& it : inst->fType->fArgsTypes) {
             *fOut << generateType(it);
             if (i++ < size - 1) *fOut << ", ";
         }
@@ -489,7 +489,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
         size_t size = inst->fArgs.size(), i = 0;
         if (size > 0) *fOut << ", ";
-        for (auto& it : inst->fArgs) {
+        for (const auto& it : inst->fArgs) {
             // Compile argument
             it->accept(this);
             if (i++ < size - 1) *fOut << ", ";
@@ -568,7 +568,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << "IteratorForLoopInst ";
         fTab++;
         tab(fTab, *fOut);
-        for (auto& it : inst->fIterators) {
+        for (const auto& it : inst->fIterators) {
             it->accept(this);
             tab(fTab, *fOut);
         }
@@ -598,7 +598,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         if (inst->fCode.size() > 0) {
             fTab++;
             tab(fTab, *fOut);
-            for (auto& it : inst->fCode) {
+            for (const auto& it : inst->fCode) {
                 it->accept(this);
             }
             fTab--;
@@ -617,7 +617,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         fTab++;
         tab(fTab, *fOut);
         if (inst->fCode.size() > 0) {
-            for (auto& it : inst->fCode) {
+            for (const auto& it : inst->fCode) {
                 if (it.first == -1) {  // -1 used to code "default" case
                     *fOut << "Default ";
                 } else {

@@ -260,7 +260,7 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
             std::list<dsp*> dsp_list = (*it).second;
             if (factory->refs() == 2) {  // Function argument + the one in table...
                 // Possibly delete remaining DSP
-                for (auto& it1 : dsp_list) {
+                for (const auto& it1 : dsp_list) {
                     delete it1;
                 }
                 // Last use, remove from the global table, pointer will be deleted

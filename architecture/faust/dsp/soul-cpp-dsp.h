@@ -65,7 +65,7 @@ class soul_cpp_dsp : public dsp {
   
         void updateControls()
         {
-            for (auto& it : fZoneFunMap) {
+            for (const auto& it : fZoneFunMap) {
                 it.second(*it.first);
             }
         }

@@ -170,7 +170,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
             float w_ratio = width / real_width;
             float h_ratio = height / real_height;
             
-            for (auto& it : fItems) {
+            for (const auto& it : fItems) {
                 it->setSize(it->getWidth() * w_ratio, it->getHeight() * h_ratio);
             }
         }
@@ -185,7 +185,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         float getWidth() override
         {
             float res = 0.f;
-            for (auto& it : fItems) {
+            for (const auto& it : fItems) {
                 res += it->getWidth();
             }
             return res;
@@ -194,7 +194,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         float getHeight() override
         {
             float res = 0.f;
-            for (auto& it : fItems) {
+            for (const auto& it : fItems) {
                 res = std::max(res, it->getHeight());
             }
             return res;
@@ -202,7 +202,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         
         void setPos(float top_x, float top_y) override
         {
-            for (auto& it : fItems) {
+            for (const auto& it : fItems) {
                 it->setPos(top_x, top_y);
                 top_x += it->getWidth();
             }
@@ -217,7 +217,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         float getWidth() override
         {
             float res = 0.f;
-            for (auto& it : fItems) {
+            for (const auto& it : fItems) {
                 res = std::max(res, it->getWidth());
             }
             return res;
@@ -226,7 +226,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         float getHeight() override
         {
             float res = 0.f;
-            for (auto& it : fItems) {
+            for (const auto& it : fItems) {
                 res += it->getHeight();
             }
             return res;
@@ -234,7 +234,7 @@ struct LayoutUI : public GenericUI, public PathBuilder, public MetaDataUI
         
         void setPos(float top_x, float top_y) override
         {
-            for (auto& it : fItems) {
+            for (const auto& it : fItems) {
                 it->setPos(top_x, top_y);
                 top_y += it->getHeight();
             }

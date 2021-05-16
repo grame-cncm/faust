@@ -60,7 +60,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
 
     virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue)
     {
-        for (auto& it : block->fInstructions) {
+        for (const auto& it : block->fInstructions) {
             // it->write(&std::cout);
 
             switch (it->fOpcode) {

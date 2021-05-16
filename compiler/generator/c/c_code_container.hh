@@ -54,7 +54,7 @@ class CCodeContainer : public virtual CodeContainer {
         char* archs = getenv("FAUST_ARCHS");
         if (archs) {
             tab(n, *fOut);
-            for (auto& it : tokenizeString(archs, ' ')) {
+            for (const auto& it : tokenizeString(archs, ' ')) {
                 *fOut << "__attribute__ ((target (\"arch=" << it << "\")))";
                 generateComputeAux(n);
                 tab(n, *fOut);

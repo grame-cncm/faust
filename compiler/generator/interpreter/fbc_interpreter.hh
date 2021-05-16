@@ -409,14 +409,14 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     void updateInputControls()
     {
-        for (auto& i : fPathInputTable) {
+        for (const auto& i : fPathInputTable) {
             i.second->reflectZone();
         }
         
     }
     void updateOutputControls()
     {
-        for (auto& i : fPathOutputTable) {
+        for (const auto& i : fPathOutputTable) {
             i.second->modifyZone();
         }
     }
@@ -464,7 +464,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         bool need_proxy = (sizeof(REAL) == 8 && reinterpret_cast<UI*>(glue->fCPPInterface)->sizeOfFAUSTFLOAT() == 4);
         ZoneParam* cur_param = nullptr;
         
-        for (auto& it : block->fInstructions) {
+        for (const auto& it : block->fInstructions) {
             // it->write(&std::cout);
 
             switch (it->fOpcode) {
@@ -4622,10 +4622,10 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     virtual ~FBCInterpreter()
     {
-        for (auto& it : fPathInputTable) {
+        for (const auto& it : fPathInputTable) {
             delete it.second;
         }
-        for (auto& it : fPathOutputTable) {
+        for (const auto& it : fPathOutputTable) {
             delete it.second;
         }
         if (fFactory->getMemoryManager()) {

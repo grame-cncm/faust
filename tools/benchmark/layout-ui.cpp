@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
     
     {
         cout << "==========================" << endl;
-        for (auto& it : layoutUI.fPathItemMap) {
+        for (const auto& it : layoutUI.fPathItemMap) {
             cout << it.first << endl;
             cout << it.second << endl;
         }
@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
         layoutUI.fCurrentGroup->setSize(100.f, 30.f);
         layoutUI.fCurrentGroup->setPos(0.f, 0.f);
         
-        for (auto& it : layoutUI.fPathItemMap) {
+        for (const auto& it : layoutUI.fPathItemMap) {
             cout << it.first << endl;
             cout << it.second << endl;
         }

@@ -249,10 +249,10 @@ class APIUI : public PathBuilder, public Meta, public UI
         
         virtual ~APIUI()
         {
-            for (auto& it : fConversion) delete it;
+            for (const auto& it : fConversion) delete it;
             for (int i = 0; i < 3; i++) {
-                for (auto& it : fAcc[i]) delete it;
-                for (auto& it : fGyr[i]) delete it;
+                for (const auto& it : fAcc[i]) delete it;
+                for (const auto& it : fGyr[i]) delete it;
             }
             delete fRedReader;
             delete fGreenReader;

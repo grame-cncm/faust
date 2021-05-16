@@ -308,7 +308,7 @@ struct RandomControlUI : public MapUI {
     
     void update()
     {
-        for (auto& it : fControls) {
+        for (const auto& it : fControls) {
             *it.fZone = it.fMin + (FAUSTFLOAT(rand())/FAUSTFLOAT(RAND_MAX)) * std::abs(it.fMax - it.fMin);
         }
     }
@@ -316,7 +316,7 @@ struct RandomControlUI : public MapUI {
     void display()
     {
         std::cout << "--------- RandomControlUI ---------\n";
-        for (auto& it : fControls) {
+        for (const auto& it : fControls) {
             std::cout << "Path: \"" << getParamAddress(it.fZone) << "\" min: " << it.fMin << " max: " << it.fMax << " cur: " << *it.fZone << std::endl;
         }
     }

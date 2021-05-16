@@ -69,7 +69,7 @@ void FIRCodeContainer::dumpUserInterface(FIRInstVisitor& firvisitor, ostream* ds
 void FIRCodeContainer::dumpSubContainers(FIRInstVisitor& firvisitor, ostream* dst)
 {
     *dst << "======= Sub container begin ==========" << endl << endl;
-    for (auto& it : fSubContainers) {
+    for (const auto& it : fSubContainers) {
         it->produceInternal();
         it->dump(dst);
     }
@@ -180,7 +180,7 @@ void FIRCodeContainer::dumpMemory(ostream* dst)
     if (fTopLevel) {
         int total_heap_size = 0;
 
-        for (auto& it : fSubContainers) {
+        for (const auto& it : fSubContainers) {
             VariableSizeCounter heap_counter(Address::AccessType(Address::kStruct | Address::kStaticStruct));
             it->generateDeclarations(&heap_counter);
             total_heap_size += heap_counter.fSizeBytes;
@@ -230,7 +230,7 @@ void FIRCodeContainer::produceClass()
 
     *fOut << "======= External types declaration ==========" << endl;
     *fOut << endl;
-    for (auto& it : gGlobal->gExternalStructTypes) {
+    for (const auto& it : gGlobal->gExternalStructTypes) {
         (it.second)->accept(&firvisitor);
         *fOut << endl;
     }
@@ -323,7 +323,7 @@ void FIRWorkStealingCodeContainer::dumpMemory(ostream* dst)
     // Compute memory footprint
     if (fTopLevel) {
         int total_heap_size = 0;
-        for (auto& it : fSubContainers) {
+        for (const auto& it : fSubContainers) {
             VariableSizeCounter heap_counter(Address::AccessType(Address::kStruct | Address::kStaticStruct));
             it->generateDeclarations(&heap_counter);
             total_heap_size += heap_counter.fSizeBytes;

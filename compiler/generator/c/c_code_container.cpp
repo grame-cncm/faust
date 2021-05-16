@@ -901,7 +901,7 @@ void CCodeContainer::produceMetadata(int tabs)
     *fOut << "void metadata" << fKlassName << "(MetaGlue* m) { ";
 
     // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
-    for (auto& i : gGlobal->gMetaDataSet) {
+    for (const auto& i : gGlobal->gMetaDataSet) {
         if (i.first != tree("author")) {
             tab(tabs + 1, *fOut);
             *fOut << "m->declare(m->metaInterface, \"" << *(i.first) << "\", " << **(i.second.begin()) << ");";

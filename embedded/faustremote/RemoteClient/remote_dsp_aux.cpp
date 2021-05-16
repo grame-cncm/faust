@@ -309,7 +309,7 @@ void remote_dsp_factory::decodeJSON(const string& json)
 // Declaring meta datas
 void remote_dsp_factory::metadataRemoteDSPFactory(Meta* m)
 {
-    for (auto& it : fJSONDecoder->fMetadata) {
+    for (const auto& it : fJSONDecoder->fMetadata) {
         m->declare(it.first.c_str(), it.second.c_str());
     }
 }
@@ -903,8 +903,8 @@ EXPORT bool deleteRemoteDSPFactory(remote_dsp_factory* factory)
             if (sfactory->refs() == 2) { // Local stack pointer + the one in gRemoteFactoryDSPTable...
                 
                 // Possibly delete remaining DSP
-                for (auto& it : dsp_list1) { delete it; }
-                for (auto& it : dsp_list2) { delete it; }
+                for (const auto& it : dsp_list1) { delete it; }
+                for (const auto& it : dsp_list2) { delete it; }
                 
                 // Last use, remove from the global table, pointer will be deleted
                 remote_dsp_factory::gRemoteFactoryDSPTable.erase(factory);
@@ -921,7 +921,7 @@ EXPORT bool deleteRemoteDSPFactory(remote_dsp_factory* factory)
 EXPORT void deleteAllRemoteDSPFactories()
 {
     // Delete remote factories...
-    for (auto& it : remote_dsp_factory::gRemoteFactoryDSPTable) {
+    for (const auto& it : remote_dsp_factory::gRemoteFactoryDSPTable) {
         // Decrement counter up to one...
         while ((it.first)->refs() > 1) { (it.first)->removeReference(); }
     }
@@ -929,7 +929,7 @@ EXPORT void deleteAllRemoteDSPFactories()
     remote_dsp_factory::gRemoteFactoryDSPTable.clear();
     
     // Delete our own local LLVM factories...
-    for (auto& it : remote_dsp_factory::gLocalFactoryDSPTable) {
+    for (const auto& it : remote_dsp_factory::gLocalFactoryDSPTable) {
         while (!deleteDSPFactory(it)) {}
     }
 }
@@ -960,7 +960,7 @@ EXPORT bool getRemoteDSPMachines(map<string, remote_dsp_machine* >* machine_list
 {
     if (remote_dsp_factory::gDNS && remote_dsp_factory::gDNS->fLocker.Lock()) {
         
-        for (auto& it : remote_dsp_factory::gDNS->fClients) {
+        for (const auto& it : remote_dsp_factory::gDNS->fClients) {
             
             remote_DNS::member iterMem = it.second;
             lo_timetag now;

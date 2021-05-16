@@ -77,13 +77,12 @@ struct Soundfile {
         fSR       = new int[MAX_SOUNDFILE_PARTS];
         fOffset   = new int[MAX_SOUNDFILE_PARTS];
         fIsDouble = is_double;
-        
+        fChannels = cur_chan;
         if (fIsDouble) {
             fBuffers = allocBufferReal<double>(cur_chan, length, max_chan);
         } else {
             fBuffers = allocBufferReal<float>(cur_chan, length, max_chan);
         }
-        fChannels = cur_chan;
     }
     
     template <typename REAL>

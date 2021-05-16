@@ -468,7 +468,7 @@ struct FunTyped : public Typed {
     {
         string res;
         if (fArgsTypes.size() > 0) {
-            for (auto& it : fArgsTypes) {
+            for (const auto& it : fArgsTypes) {
                 res += gTypeString[it->getType()];
             }
         } else {
@@ -516,7 +516,7 @@ struct StructTyped : public Typed {
     int getSize() const
     {
         int size = 0;
-        for (auto& it : fFields) {
+        for (const auto& it : fFields) {
             size += it->getSize();
         }
         return size;
@@ -1123,7 +1123,7 @@ struct BlockInst : public StatementInst {
 
     void merge(BlockInst* inst)
     {
-        for (auto& it : inst->fCode) {
+        for (const auto& it : inst->fCode) {
             fCode.push_back(it);
         }
     }
@@ -1447,7 +1447,7 @@ class BasicCloneVisitor : public CloneVisitor {
     virtual ValueInst* visit(FunCallInst* inst)
     {
         list<ValueInst*> cloned_args;
-        for (auto& it : inst->fArgs) {
+        for (const auto& it : inst->fArgs) {
             cloned_args.push_back(it->clone(this));
         }
 
@@ -1485,7 +1485,7 @@ class BasicCloneVisitor : public CloneVisitor {
     virtual StatementInst* visit(SwitchInst* inst)
     {
         SwitchInst* cloned = new SwitchInst(inst->fCond->clone(this));
-        for (auto& it : inst->fCode) {
+        for (const auto& it : inst->fCode) {
             cloned->addCase(it.first, static_cast<BlockInst*>((it.second)->clone(this)));
         }
         return cloned;
@@ -1520,7 +1520,7 @@ class BasicCloneVisitor : public CloneVisitor {
         // fBlockStack is used when inlining functions
         BlockInst* cloned = new BlockInst();
         fBlockStack.push(cloned);
-        for (auto& it : inst->fCode) {
+        for (const auto& it : inst->fCode) {
             cloned->pushBackInst(it->clone(this));
         }
         fBlockStack.pop();
@@ -1559,7 +1559,7 @@ class BasicCloneVisitor : public CloneVisitor {
     virtual Typed* visit(FunTyped* typed)
     {
         list<NamedTyped*> cloned;
-        for (auto& it : typed->fArgsTypes) {
+        for (const auto& it : typed->fArgsTypes) {
             cloned.push_back(static_cast<NamedTyped*>(it->clone(this)));
         }
         return new FunTyped(cloned, static_cast<BasicTyped*>(typed->fResult->clone(this)), typed->fAttribute);
@@ -1571,7 +1571,7 @@ class BasicCloneVisitor : public CloneVisitor {
     virtual Typed* visit(StructTyped* typed)
     {
         vector<NamedTyped*> cloned;
-        for (auto& it : typed->fFields) {
+        for (const auto& it : typed->fFields) {
             cloned.push_back(static_cast<NamedTyped*>(it->clone(this)));
         }
         return new StructTyped(typed->fName, cloned);
@@ -1639,7 +1639,7 @@ struct DispatchVisitor : public InstVisitor {
 
     virtual void visit(FunCallInst* inst)
     {
-        for (auto& it : inst->fArgs) {
+        for (const auto& it : inst->fArgs) {
             it->accept(this);
         }
     }
@@ -1706,14 +1706,14 @@ struct DispatchVisitor : public InstVisitor {
     virtual void visit(SwitchInst* inst)
     {
         inst->fCond->accept(this);
-        for (auto& it : inst->fCode) {
+        for (const auto& it : inst->fCode) {
             (it.second)->accept(this);
         }
     }
 
     virtual void visit(BlockInst* inst)
     {
-        for (auto& it : inst->fCode) {
+        for (const auto& it : inst->fCode) {
             it->accept(this);
         }
     }
@@ -1722,14 +1722,14 @@ struct DispatchVisitor : public InstVisitor {
     virtual void visit(FunTyped* typed)
     {
         typed->fResult->accept(this);
-        for (auto& it : typed->fArgsTypes) {
+        for (const auto& it : typed->fArgsTypes) {
             it->accept(this);
         }
     }
     virtual void visit(ArrayTyped* typed) { typed->fType->accept(this); }
     virtual void visit(StructTyped* typed)
     {
-        for (auto& it : typed->fFields) {
+        for (const auto& it : typed->fFields) {
             it->accept(this);
         }
     }

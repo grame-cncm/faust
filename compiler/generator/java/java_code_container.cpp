@@ -200,7 +200,7 @@ void JAVACodeContainer::produceClass()
     tab(n + 1, *fOut);
     *fOut << "public void metadata(Meta m) { ";
 
-    for (auto& i : gGlobal->gMetaDataSet) {
+    for (const auto& i : gGlobal->gMetaDataSet) {
         if (i.first != tree("author")) {
             tab(n + 2, *fOut);
             *fOut << "m.declare(\"" << *(i.first) << "\", " << **(i.second.begin()) << ");";

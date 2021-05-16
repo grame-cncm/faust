@@ -115,7 +115,7 @@ class CStringTypeManager : public StringTypeManager {
             return fTypeDirectTable[array_typed->getType()];
         } else if (struct_typed) {
             std::string res = "typedef struct " + struct_typed->fName + " { ";
-            for (auto& it : struct_typed->fFields) {
+            for (const auto& it : struct_typed->fFields) {
                 res = res + generateType(it) + "; ";
             }
             res += "} " + struct_typed->fName + ";";

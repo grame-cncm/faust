@@ -27,6 +27,11 @@
 
 #include "instructions.hh"
 
+#define FLOATMACRO "FAUSTFLOAT"
+#define FLOATMACROPTR "FAUSTFLOAT*"
+#define FLOATMACROPTRPTR "FAUSTFLOAT**"
+#define FLOATCASTER "(" FLOATMACRO ")"
+
 const char* isuffix();
 const char* inumix();
 double      inummin();

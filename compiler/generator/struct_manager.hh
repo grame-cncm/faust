@@ -75,7 +75,7 @@ struct StructInstVisitor : public DispatchVisitor {
     // Check if the field name exists
     bool hasField(const string& name, Typed::VarType& type)
     {
-        for (auto& field : fFieldTable) {
+        for (const auto& field : fFieldTable) {
             if (field.first == name) {
                 type = field.second.fType;
                 return true;
@@ -87,7 +87,7 @@ struct StructInstVisitor : public DispatchVisitor {
     // Return the offset of a given field in bytes
     int getFieldOffset(const string& name)
     {
-        for (auto& field : fFieldTable) {
+        for (const auto& field : fFieldTable) {
             if (field.first == name) return field.second.fOffset;
         }
         std::cerr << "ERROR in getFieldOffset : " << name << std::endl;
@@ -98,7 +98,7 @@ struct StructInstVisitor : public DispatchVisitor {
     // Return the int offset of a given field in bytes
     int getFieldIntOffset(const string& name)
     {
-        for (auto& field : fFieldTable) {
+        for (const auto& field : fFieldTable) {
             if (field.first == name) return field.second.fIntOffset;
         }
         std::cerr << "ERROR in getFieldIntOffset : " << name << std::endl;
@@ -109,7 +109,7 @@ struct StructInstVisitor : public DispatchVisitor {
     // Return the real offset of a given field in bytes
     int getFieldRealOffset(const string& name)
     {
-        for (auto& field : fFieldTable) {
+        for (const auto& field : fFieldTable) {
             if (field.first == name) return field.second.fRealOffset;
         }
         std::cerr << "ERROR in getFieldRealOffset : " << name << std::endl;
@@ -120,7 +120,7 @@ struct StructInstVisitor : public DispatchVisitor {
     // Return the index of a given field
     int getFieldIndex(const string& name)
     {
-        for (auto& field : fFieldTable) {
+        for (const auto& field : fFieldTable) {
             if (field.first == name) return field.second.fIndex;
         }
         std::cerr << "ERROR in getFieldIndex : " << name << std::endl;

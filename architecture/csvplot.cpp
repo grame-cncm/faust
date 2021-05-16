@@ -76,7 +76,7 @@ struct DisplayUI : public GenericUI {
         int c = 0;
         if (fTable.size() > 0)
             printf(",\t");
-        for (auto& it : fTable) {
+        for (const auto& it : fTable) {
             if (c > 0)
                 printf(",\t");
             printf("bargraph %d", c + 1);
@@ -89,7 +89,7 @@ struct DisplayUI : public GenericUI {
         int c = 0;
         if (fTable.size() > 0)
             printf(",\t");
-        for (auto& it : fTable) {
+        for (const auto& it : fTable) {
             if (c > 0)
                 printf(",\t");
             cout << *it.second;

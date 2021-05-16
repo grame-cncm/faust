@@ -308,7 +308,7 @@ struct RackUI : public GenericUI
     
     virtual ~RackUI()
     {
-        for (auto& it : fConverters) delete it;
+        for (const auto& it : fConverters) delete it;
     }
     
     void reset()
@@ -527,12 +527,12 @@ struct RackUI : public GenericUI
     
     void updateInputs(Module* module)
     {
-        for (auto& it : fUpdateFunIn) it(module);
+        for (const auto& it : fUpdateFunIn) it(module);
     }
     
     void updateOutputs(Module* module)
     {
-        for (auto& it : fUpdateFunOut) it(module);
+        for (const auto& it : fUpdateFunOut) it(module);
     }
 };
 
@@ -719,7 +719,7 @@ struct mydspModule : Module {
         fDSP[0].buildUserInterface(&fLayoutUI);
         
         cout << "==========================" << endl;
-        for (auto& it : fLayoutUI.fPathItemMap) {
+        for (const auto& it : fLayoutUI.fPathItemMap) {
             cout << it.first << endl;
             cout << it.second << endl;
         }
@@ -737,7 +737,7 @@ struct mydspModule : Module {
         fLayoutUI.fCurrentGroup->setPos(x_pos, y_pos);
         
         cout << "==========================" << endl;
-        for (auto& it : fLayoutUI.fPathItemMap) {
+        for (const auto& it : fLayoutUI.fPathItemMap) {
             cout << it.first << endl;
             cout << it.second << endl;
         }

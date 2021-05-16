@@ -126,7 +126,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
             loop_code->pushBackInst(InstBuilder::genLabelInst("#pragma omp sections"));
             omp_sections_block->setIndent(true);
         }
-        for (auto& p : dag[l]) {
+        for (const auto& p : dag[l]) {
             BlockInst* omp_section_block = InstBuilder::genBlockInst();
             if (dag[l].size() == 1) {  // Only one loop
                 if (!p->isRecursive() && gGlobal->gOpenMPLoop) {

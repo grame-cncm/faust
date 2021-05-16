@@ -108,7 +108,7 @@ void SOULCodeContainer::produceInternal()
     // Retrieves the table size kept in gTableSizeVisitor to generate the correct table type
     string fun_name = "fill" + fKlassName;
     // We possibly have to generate several versions of the function with a different table size
-    for (auto& it : gGlobal->gTableSizeVisitor->fSizeTable) {
+    for (const auto& it : gGlobal->gTableSizeVisitor->fSizeTable) {
         string fun_name_aux = it.first;
         int    table_size   = it.second;
         if (startWith(fun_name_aux, fun_name)) {

@@ -104,7 +104,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* gen_code,
     // Compute init section
     gen_code->pushBackInst(InstBuilder::genLabelInst("/* Only initialize tasks with more than one input */"));
     for (int l = int(dag.size()) - 1; l >= 0; l--) {
-        for (auto& p : dag[l]) {
+        for (const auto& p : dag[l]) {
             if (p->getBackwardLoopDependencies().size() > 1) {  // Only initialize tasks with more than 1 input,
                                                                    // since tasks with one input are "directly"
                                                                    // activated.
@@ -356,7 +356,7 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
                 CodeLoop* keep = nullptr;
 
                 // Find one output with only one backward dependencies
-                for (auto& p1 : (*p)->getForwardLoopDependencies()) {
+                for (const auto& p1 : (*p)->getForwardLoopDependencies()) {
                     if (p1->getBackwardLoopDependencies().size() == 1) {
                         keep = p1;
                         break;
@@ -368,7 +368,7 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
                         InstBuilder::genStoreStackVar("tasknum", InstBuilder::genInt32NumInst(WORK_STEALING_INDEX)));
                 }
 
-                for (auto& p1 : (*p)->getForwardLoopDependencies()) {
+                for (const auto& p1 : (*p)->getForwardLoopDependencies()) {
                     if (p1->getBackwardLoopDependencies().size() == 1) {  // Task is the only input
                         if (p1 != keep) {
                             list<ValueInst*> fun_args;

@@ -224,14 +224,14 @@ class BufferWithRandomAccess : public std::vector<uint8_t> {
     string toString()
     {
         stringstream str;
-        for (auto c : *this) str << c;
+        for (const auto& c : *this) str << c;
         return str.str();
     }
 
     template <typename T>
     void writeTo(T& o)
     {
-        for (auto c : *this) o << c;
+        for (const auto& c : *this) o << c;
     }
 };
 
@@ -316,7 +316,7 @@ struct LocalVariableCounter : public DispatchVisitor {
     virtual void visit(DeclareFunInst* inst)
     {
         // funarg variable accessed by [var_num, type] pairs
-        for (auto& argType : inst->fType->fArgsTypes) {
+        for (const auto& argType : inst->fType->fArgsTypes) {
             fLocalVarTable[argType->fName] = LocalVarDesc(fFunArgIndex++, argType->fType->getType(), Address::kFunArgs);
         }
 
@@ -352,7 +352,7 @@ struct LocalVariableCounter : public DispatchVisitor {
     void dump()
     {
         std::cout << "===== LocalVariableCounter begin =====" << std::endl;
-        for (auto& varDesc : fLocalVarTable) {
+        for (const auto& varDesc : fLocalVarTable) {
             std::cout << "varDesc " << varDesc.first << " index = " << varDesc.second.fIndex
                       << " type = " << Typed::gTypeString[varDesc.second.fType] << std::endl;
         }
@@ -528,7 +528,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         // If imported function
         if (fFunImports.find(name) != fFunImports.end()) {
             int i = 0;
-            for (auto& import : fFunImports) {
+            for (const auto& import : fFunImports) {
                 if (import.first == name) {
                     return i;
                 }
@@ -537,7 +537,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             // Otherwise module defined function
         } else {
             int i = int(fFunImports.size());
-            for (auto& type : fFunTypes) {
+            for (const auto& type : fFunTypes) {
                 if (fFunImports.find(type.first) == fFunImports.end()) {
                     if (type.first == name) {
                         return i;
@@ -556,7 +556,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
     int32_t getFunctionTypeIndex(const string& name)
     {
         int i = 0;
-        for (auto& type : fFunTypes) {
+        for (const auto& type : fFunTypes) {
             if (type.first == name) {
                 return i;
             }
@@ -572,7 +572,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         int32_t start = startSectionAux(out, BinaryConsts::Section::Type);
         *out << U32LEB(uint32_t(fFunTypes.size()));
 
-        for (auto& type_int : fFunTypes) {
+        for (const auto& type_int : fFunTypes) {
             FunTyped* type = type_int.second;
             *out << S32LEB(BinaryConsts::EncodedType::Func);
             *out << U32LEB(uint32_t(type->fArgsTypes.size()));
@@ -606,7 +606,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
                                 // size (shoud be OK for any JSON)
         }
 
-        for (auto& import : fFunImports) {
+        for (const auto& import : fFunImports) {
             *out << import.second.first;  // module
             // Possibly map fastmath functions, emcc compiled functions are prefixed with '_'
             *out << ("_" + gGlobal->getMathFunction(import.first));  // base
@@ -632,7 +632,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         *out << U32LEB(uint32_t(fFunTypes.size() - fFunImports.size()));
 
         // Module internally defined functions (those not in FunImports)
-        for (auto& type : fFunTypes) {
+        for (const auto& type : fFunTypes) {
             if (fFunImports.find(type.first) == fFunImports.end()) {
                 *out << U32LEB(getFunctionTypeIndex(type.first));
             }
@@ -1280,7 +1280,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     virtual void visit(FunCallInst* inst)
     {
         // Compile args first
-        for (auto& it : inst->fArgs) {
+        for (const auto& it : inst->fArgs) {
             it->accept(this);
         }
 

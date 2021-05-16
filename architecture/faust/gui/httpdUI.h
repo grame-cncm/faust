@@ -211,7 +211,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
         {
             httpdClientUI* ui = static_cast<httpdClientUI*>(arg);
             while (ui->fRunning) {
-                for (auto& it : ui->fZoneMap) {
+                for (const auto& it : ui->fZoneMap) {
                     char* answer;
                     std::string path = it.first;
                     http_fetch(path.c_str(), &answer);

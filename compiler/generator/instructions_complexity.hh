@@ -211,7 +211,7 @@ class InstComplexityVisitor : public DispatchVisitor {
         *dst << " Mathop = " << fMathop;
         if (fMathop > 0) {
             *dst << " [ ";
-            for (auto& it : gFunctionSymbolTable) {
+            for (const auto& it : gFunctionSymbolTable) {
                 if (it.second > 0) {
                     *dst << it.first << " = " << it.second << " ";
                 }

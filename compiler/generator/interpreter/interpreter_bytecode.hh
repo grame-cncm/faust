@@ -374,7 +374,7 @@ struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
 
     virtual ~FIRUserInterfaceBlockInstruction()
     {
-        for (auto& it : fInstructions) {
+        for (const auto& it : fInstructions) {
             delete it;
         }
     }
@@ -387,7 +387,7 @@ struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
     virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
-        for (auto& it : fInstructions) {
+        for (const auto& it : fInstructions) {
             it->write(out, binary, small, recurse);
         }
     }
@@ -397,7 +397,7 @@ struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
         // Build the [path, offset] map
         PathBuilder path_builder;
 
-        for (auto& it : fInstructions) {
+        for (const auto& it : fInstructions) {
             switch (it->fOpcode) {
                 case FBCInstruction::kOpenVerticalBox:
                     path_builder.pushLabel(it->fLabel);
@@ -433,7 +433,7 @@ struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
 
     void freezeDefaultValues(std::map<int, REAL>& real_map)
     {
-        for (auto& it : fInstructions) {
+        for (const auto& it : fInstructions) {
             if (it->fOpcode == FBCInstruction::kAddButton
                 || it->fOpcode == FBCInstruction::kAddCheckButton
                 || it->fOpcode == FBCInstruction::kAddHorizontalSlider
@@ -446,7 +446,7 @@ struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
 
     void unFreezeValue(std::map<int, REAL>& real_map, FBCInstruction::Opcode opcode)
     {
-        for (auto& it : fInstructions) {
+        for (const auto& it : fInstructions) {
             if ((it->fOpcode == opcode) && real_map.find(it->fOffset) != real_map.end()) {
                 real_map.erase(real_map.find(it->fOffset));
             }
@@ -462,7 +462,7 @@ struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
 
     void unFreezeValue(std::map<int, REAL>& real_map)
     {
-        for (auto& it : fInstructions) {
+        for (const auto& it : fInstructions) {
             if (real_map.find(it->fOffset) != real_map.end()) {
                 real_map.erase(real_map.find(it->fOffset));
             }
@@ -475,7 +475,7 @@ struct FIRMetaBlockInstruction : public FBCInstruction {
 
     virtual ~FIRMetaBlockInstruction()
     {
-        for (auto& it : fInstructions) {
+        for (const auto& it : fInstructions) {
             delete it;
         }
     }
@@ -488,7 +488,7 @@ struct FIRMetaBlockInstruction : public FBCInstruction {
     virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
-        for (auto& it : fInstructions) {
+        for (const auto& it : fInstructions) {
             it->write(out, binary, small, recurse);
         }
     }
@@ -500,7 +500,7 @@ struct FBCBlockInstruction : public FBCInstruction {
 
     virtual ~FBCBlockInstruction()
     {
-        for (auto& it : fInstructions) {
+        for (const auto& it : fInstructions) {
             delete it;
         }
     }
@@ -520,7 +520,7 @@ struct FBCBlockInstruction : public FBCInstruction {
 
     void merge(FBCBlockInstruction<REAL>* block)
     {
-        for (auto& it : block->fInstructions) {
+        for (const auto& it : block->fInstructions) {
             if (it->fOpcode != FBCInstruction::kReturn) {  // kReturn must be removed...
                 fInstructions.push_back(it);
             }
@@ -530,7 +530,7 @@ struct FBCBlockInstruction : public FBCInstruction {
     virtual void write(std::ostream* out, bool binary = false, bool small = false, bool recurse = true)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
-        for (auto& it : fInstructions) {
+        for (const auto& it : fInstructions) {
             it->write(out, binary, small, recurse);
         }
     }
@@ -540,7 +540,7 @@ struct FBCBlockInstruction : public FBCInstruction {
         std::cout << "FBCBlockInstruction::stackMove" << std::endl;
         int tmp_int_index  = 0;
         int tmp_real_index = 0;
-        for (auto& it : fInstructions) {
+        for (const auto& it : fInstructions) {
             it->stackMove(tmp_int_index, tmp_real_index);
             it->write(&std::cout);
             std::cout << "int_stack_index " << tmp_int_index << " real_stack_index " << tmp_real_index << std::endl;
@@ -553,7 +553,7 @@ struct FBCBlockInstruction : public FBCInstruction {
     virtual FBCBlockInstruction<REAL>* copy()
     {
         FBCBlockInstruction<REAL>* block = new FBCBlockInstruction<REAL>();
-        for (auto& it : fInstructions) {
+        for (const auto& it : fInstructions) {
             FBCBasicInstruction<REAL>* inst_copy = it->copy();
             if (it->fOpcode == kCondBranch) {  // Special case for loops
                 inst_copy->fBranch1 = block;
@@ -566,7 +566,7 @@ struct FBCBlockInstruction : public FBCInstruction {
     int size()
     {
         int size = 0;
-        for (auto& it : fInstructions) {
+        for (const auto& it : fInstructions) {
             size += it->size();
         }
         return size;

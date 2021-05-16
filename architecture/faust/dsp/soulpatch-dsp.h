@@ -77,7 +77,7 @@ class soulpatch_dsp : public dsp {
         int countTotalBusChannels(soul::patch::Span<soul::patch::Bus> buses)
         {
             int res = 0;
-            for (auto& i : buses) {
+            for (const auto& i : buses) {
                 res += i.numChannels;
             }
             return res;
@@ -132,10 +132,10 @@ class soulpatch_dsp : public dsp {
     
         virtual ~soulpatch_dsp()
         {
-            for (auto& i : fInputsControl) {
+            for (const auto& i : fInputsControl) {
                 delete i;
             }
-            for (auto& i : fOutputsControl) {
+            for (const auto& i : fOutputsControl) {
                 delete i;
             }
             delete fDecoder;
@@ -284,11 +284,11 @@ class soulpatch_dsp : public dsp {
         {
             // Update inputs control
             if (fDecoder) {
-                for (auto& i : fDecoder->getInputControls()) {
+                for (const auto& i : fDecoder->getInputControls()) {
                     i->reflectZone();
                 }
             } else {
-                for (auto& i : fInputsControl) {
+                for (const auto& i : fInputsControl) {
                     i->reflectZone();
                 }
             }
@@ -328,11 +328,11 @@ class soulpatch_dsp : public dsp {
             
             // Update outputs control
             if (fDecoder) {
-                for (auto& i : fDecoder->getOutputControls()) {
+                for (const auto& i : fDecoder->getOutputControls()) {
                     i->modifyZone();
                 }
             } else {
-                for (auto& i : fOutputsControl) {
+                for (const auto& i : fOutputsControl) {
                     i->modifyZone();
                 }
             }
@@ -638,7 +638,7 @@ class faust_soul_parser  {
                 std::map<std::string, std::string> faust_blocks = extractFaustBlocks(reader, soul_file);
                 
                 // Write all Faust blocks translated to SOUL
-                for (auto& it : faust_blocks) {
+                for (const auto& it : faust_blocks) {
                     std::string block = generateSOULBlock(it.first, it.second, argc, argv);
                     if (block == "") return false;
                     output_file << block;

@@ -1006,7 +1006,7 @@ static void printHelp()
 
 static void printDeclareHeader(ostream& dst)
 {
-    for (auto& i : gGlobal->gMetaDataSet) {
+    for (const auto& i : gGlobal->gMetaDataSet) {
         if (i.first != tree("author")) {
             dst << "declare ";
             stringstream key;
@@ -1043,11 +1043,11 @@ static void printHeader(ostream& dst)
     selectedKeys.insert(tree("version"));
 
     dst << "//----------------------------------------------------------" << endl;
-    for (auto& i : gGlobal->gMetaDataSet) {
+    for (const auto& i : gGlobal->gMetaDataSet) {
         if (selectedKeys.count(i.first)) {
             dst << "// " << *(i.first);
             const char* sep = ": ";
-            for (auto& j : i.second) {
+            for (const auto& j : i.second) {
                 dst << sep << *j;
                 sep = ", ";
             }
@@ -1889,7 +1889,7 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
 
     // Encode all libraries paths as 'declare'
     vector<string> pathnames = gGlobal->gReader.listSrcFiles();
-    for (auto& it : pathnames) {
+    for (const auto& it : pathnames) {
         out << "declare "
             << "library_path " << '"' << it << "\";" << endl;
     }
@@ -1992,7 +1992,7 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
 
         // Encode all libraries paths as 'declare'
         vector<string> pathnames = gGlobal->gReader.listSrcFiles();
-        for (auto& it : pathnames) {
+        for (const auto& it : pathnames) {
             out << "declare "
                  << "library_path " << '"' << it << "\";" << endl;
         }

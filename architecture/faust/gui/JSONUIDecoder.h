@@ -170,7 +170,7 @@ struct JSONUIDecoderReal {
         fDSPProxy = false;
         
         // Prepare the fPathTable and init zone
-        for (auto& it : fUiItems) {
+        for (const auto& it : fUiItems) {
             std::string type = it.type;
             // Meta data declaration for input items
             if (isInput(type)) {
@@ -189,24 +189,24 @@ struct JSONUIDecoderReal {
     
     virtual ~JSONUIDecoderReal()
     {
-        for (auto& it : fPathInputTable) {
+        for (const auto& it : fPathInputTable) {
             delete it;
         }
-        for (auto& it : fPathOutputTable) {
+        for (const auto& it : fPathOutputTable) {
             delete it;
         }
     }
     
     void metadata(Meta* m)
     {
-        for (auto& it : fMetadata) {
+        for (const auto& it : fMetadata) {
             m->declare(it.first.c_str(), it.second.c_str());
         }
     }
     
     void metadata(MetaGlue* m)
     {
-        for (auto& it : fMetadata) {
+        for (const auto& it : fMetadata) {
             m->declare(m->metaInterface, it.first.c_str(), it.second.c_str());
         }
     }
@@ -214,7 +214,7 @@ struct JSONUIDecoderReal {
     void resetUserInterface()
     {
         int item = 0;
-        for (auto& it : fUiItems) {
+        for (const auto& it : fUiItems) {
             if (isInput(it.type)) {
                 static_cast<ZoneParam*>(fPathInputTable[item++])->fZone = it.init;
             }
@@ -223,7 +223,7 @@ struct JSONUIDecoderReal {
     
     void resetUserInterface(char* memory_block, Soundfile* defaultsound = nullptr)
     {
-        for (auto& it : fUiItems) {
+        for (const auto& it : fUiItems) {
             int index = it.index;
             if (isInput(it.type)) {
                 *REAL_ADR(index) = it.init;
@@ -246,7 +246,7 @@ struct JSONUIDecoderReal {
             fDSPProxy = true;
             int countIn = 0;
             int countOut = 0;
-            for (auto& it : fUiItems) {
+            for (const auto& it : fUiItems) {
                 std::string type = it.type;
                 int index = it.index;
                 if (isInput(type)) {
@@ -257,9 +257,9 @@ struct JSONUIDecoderReal {
             }
         }
         
-        // Setup soundfile
-        for (auto& it : fUiItems) {
-            if (it.type == "soundfile") {
+        // Setup soundfile in any case
+        for (const auto& it : fUiItems) {
+            if (isSoundfile(it.type)) {
                 ui_interface->addSoundfile(it.label.c_str(), it.url.c_str(), SOUNDFILE_ADR(it.index));
             }
         }
@@ -280,7 +280,7 @@ struct JSONUIDecoderReal {
         int countOut = 0;
         int countSound = 0;
         
-        for (auto& it : fUiItems) {
+        for (const auto& it : fUiItems) {
             
             std::string type = it.type;
             REAL init = REAL(it.init);
@@ -357,7 +357,7 @@ struct JSONUIDecoderReal {
         }
         setlocale(LC_ALL, "C");
         
-        for (auto& it : fUiItems) {
+        for (const auto& it : fUiItems) {
             
             std::string type = it.type;
             int index = it.index;
@@ -427,7 +427,7 @@ struct JSONUIDecoderReal {
         }
         setlocale(LC_ALL, "C");
         
-        for (auto& it : fUiItems) {
+        for (const auto& it : fUiItems) {
             
             std::string type = it.type;
             int index = it.index;

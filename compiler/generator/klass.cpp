@@ -161,7 +161,7 @@ void printdecllist(int n, const string& decl, list<string>& content, ostream& fo
         tab(n, fout);
         fout << decl;
         string sep = "(";
-        for (auto& s : content) {
+        for (const auto& s : content) {
             fout << sep << s;
             sep = ", ";
         }
@@ -197,7 +197,7 @@ void Klass::printIncludeFile(ostream& fout)
 
     set<string> S;
     collectIncludeFile(S);
-    for (auto& f : S) {
+    for (const auto& f : S) {
         string inc = f;
         // Only print non-empty include (inc is actually quoted)
         if (inc.size() > 2) {
@@ -256,14 +256,14 @@ void Klass::printMetadata(int n, const MetaDataSet& S, ostream& fout)
     fout << "virtual void metadata(Meta* m) { ";
 
     // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
-    for (auto& i : gGlobal->gMetaDataSet) {
+    for (const auto& i : gGlobal->gMetaDataSet) {
         if (i.first != tree("author")) {
             tab(n + 1, fout);
             fout << "m->declare(\"" << *(i.first) << "\", " << **(i.second.begin()) << ");";
         } else {
             // But the "author" meta data is accumulated, the upper level becomes the main author and sub-levels become
             // "contributor"
-            for (auto& j : i.second) {
+            for (const auto& j : i.second) {
                 if (j == *i.second.begin()) {
                     tab(n + 1, fout);
                     fout << "m->declare(\"" << *(i.first) << "\", " << *j << ");";
@@ -965,7 +965,7 @@ void Klass::println(int n, ostream& fout)
         fout << "#ifdef FAUST_UIMACROS";
         tab(n + 1, fout);
         tab(n + 1, fout);
-        for (auto& it : gGlobal->gMetaDataSet) {
+        for (const auto& it : gGlobal->gMetaDataSet) {
             if (it.first == tree("filename")) {
                 fout << "#define FAUST_FILE_NAME " << **(it.second.begin());
                 break;
@@ -1415,7 +1415,7 @@ void SigIntGenKlass::println(int n, ostream& fout)
     tab(n + 1, fout);
     fout << "int fSampleRate;";
 
-    for (auto& k : fSubClassList) k->println(n + 1, fout);
+    for (const auto& k : fSubClassList) k->println(n + 1, fout);
 
     printlines(n + 1, fDeclCode, fout);
 
@@ -1465,7 +1465,7 @@ void SigFloatGenKlass::println(int n, ostream& fout)
     tab(n + 1, fout);
     fout << "int fSampleRate;";
 
-    for (auto& k : fSubClassList) k->println(n + 1, fout);
+    for (const auto& k : fSubClassList) k->println(n + 1, fout);
 
     printlines(n + 1, fDeclCode, fout);
 
@@ -1504,17 +1504,17 @@ void SigFloatGenKlass::println(int n, ostream& fout)
 
 static void merge(set<string>& dst, set<string>& src)
 {
-    for (auto& i : src) dst.insert(i);
+    for (const auto& i : src) dst.insert(i);
 }
 
 void Klass::collectIncludeFile(set<string>& S)
 {
-    for (auto& k : fSubClassList) k->collectIncludeFile(S);
+    for (const auto& k : fSubClassList) k->collectIncludeFile(S);
     merge(S, fIncludeFileSet);
 }
 
 void Klass::collectLibrary(set<string>& S)
 {
-    for (auto& k : fSubClassList) k->collectLibrary(S);
+    for (const auto& k : fSubClassList) k->collectLibrary(S);
     merge(S, fLibrarySet);
 }

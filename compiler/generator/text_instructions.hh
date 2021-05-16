@@ -349,7 +349,7 @@ class TextInstVisitor : public InstVisitor {
             tab(fTab, *fOut);
         }
         RetInst* ret_inst = nullptr;
-        for (auto& it : inst->fCode) {
+        for (const auto& it : inst->fCode) {
             // Special case for "return" as last instruction
             if ((it == *inst->fCode.rbegin()) && (ret_inst = dynamic_cast<RetInst*>(it))) {
                 visitAux(ret_inst, false);

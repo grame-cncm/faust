@@ -397,7 +397,7 @@ static Tree addFunctionMetadata(Tree ldef, FunMDSet& M)
 		} else {
 			Tree foo = hd(def);
             Tree exp = tl(def);
-            for (auto& m : M[foo]) {
+            for (const auto& m : M[foo]) {
                 exp = boxMetadata(exp, m);
             }
             lresult = cons(cons(foo,exp), lresult);

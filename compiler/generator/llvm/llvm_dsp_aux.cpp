@@ -445,12 +445,12 @@ void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     if (fDecoder->hasDSPProxy()) {
         // Update inputs control
-        for (auto& i : fDecoder->getInputControls()) {
+        for (const auto& i : fDecoder->getInputControls()) {
             i->reflectZone();
         }
         fFactory->getFactory()->fCompute(fDSP, count, input, output);
         // Update outputs control
-        for (auto& i : fDecoder->getOutputControls()) {
+        for (const auto& i : fDecoder->getOutputControls()) {
             i->modifyZone();
         }
     } else {

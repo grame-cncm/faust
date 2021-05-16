@@ -158,7 +158,7 @@ class MapUI : public UI, public PathBuilder
     
         const std::string& getParamAddress(FAUSTFLOAT* zone)
         {
-            for (auto& it : fPathZoneMap) {
+            for (const auto& it : fPathZoneMap) {
                 if (it.second == zone) return it.first;
             }
             return fNullStr;

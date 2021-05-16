@@ -2351,10 +2351,10 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t, bool root)
         extractMetadata(str, simplifiedLabel, metadata);
 
         // add metadata if any
-        for (auto& i : metadata) {
+        for (const auto& i : metadata) {
             const string&      key    = i.first;
             const set<string>& values = i.second;
-            for (auto& j : values) {
+            for (const auto& j : values) {
                 pushUserInterfaceMethod(InstBuilder::genAddMetaDeclareInst("0", rmWhiteSpaces(key), rmWhiteSpaces(j)));
             }
         }
@@ -2400,10 +2400,10 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
 
     // Extract "url" metadata to be given as parameter to 'addSoundfile' function
     if (isSigSoundfile(sig, path)) {
-        for (auto& i : metadata) {
+        for (const auto& i : metadata) {
             const string&      key    = i.first;
             const set<string>& values = i.second;
-            for (auto& j : values) {
+            for (const auto& j : values) {
                 if (key == "url") {
                     url = prepareURL(j);
                 }
@@ -2411,10 +2411,10 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
         }
     } else {
         // Add metadata if any
-        for (auto& i : metadata) {
+        for (const auto& i : metadata) {
             const string&      key    = i.first;
             const set<string>& values = i.second;
-            for (auto& j : values) {
+            for (const auto& j : values) {
                 pushUserInterfaceMethod(InstBuilder::genAddMetaDeclareInst(tree2str(varname), rmWhiteSpaces(key), rmWhiteSpaces(j)));
             }
         }

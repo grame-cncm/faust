@@ -489,14 +489,14 @@ class RustInstVisitor : public TextInstVisitor {
         tab(fTab, *fOut);
         inst->fThen->accept(this);
         fTab--;
-        tab(fTab, *fOut);
+        back(1, *fOut);
         if (inst->fElse->fCode.size() > 0) {
             *fOut << "} else {";
             fTab++;
             tab(fTab, *fOut);
             inst->fElse->accept(this);
             fTab--;
-            tab(fTab, *fOut);
+            back(1, *fOut);
             *fOut << "}";
         } else {
             *fOut << "}";
@@ -594,7 +594,7 @@ class RustInstVisitor : public TextInstVisitor {
         *fOut << ") {";
         fTab++;
         tab(fTab, *fOut);
-        for (auto& it : inst->fCode) {
+        for (const auto& it : inst->fCode) {
             if (it.first == -1) {  // -1 used to code "default" case
                 *fOut << "_ => {";
             } else {
@@ -642,7 +642,7 @@ class UserInterfaceParameterMapping : public InstVisitor {
     {
         // BlockInst visitor is unimplemented in base class, so we need a trivial implementation
         // to actually visit the user interface statements in the BlockInst.
-        for (auto& it : inst->fCode) {
+        for (const auto& it : inst->fCode) {
             it->accept(this);
         }
     }

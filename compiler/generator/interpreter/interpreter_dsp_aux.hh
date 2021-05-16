@@ -450,7 +450,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
     void ExecuteMeta(FIRMetaBlockInstruction* block, Meta* meta)
     {
-        for (auto& it : block->fInstructions) {
+        for (const auto& it : block->fInstructions) {
             meta->declare(it->fKey.c_str(), it->fValue.c_str());
         }
     }
@@ -516,13 +516,13 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
     void freezeValues(std::map<int, int>& int_map, std::map<int, REAL>& real_map)
     {
         std::cout << "freezeValues Int " << std::endl;
-        for (auto& it1 : int_map) {
+        for (const auto& it1 : int_map) {
             std::cout << "offset " << it1.first << " value " << it1.second << std::endl;
             this->fIntHeap[it1.first] = it1.second;
         }
 
         std::cout << "freezeValues Real" << std::endl;
-        for (auto& it2 : real_map) {
+        for (const auto& it2 : real_map) {
             std::cout << "offset " << it2.first << " value " << it2.second << std::endl;
             this->fRealHeap[it2.first] = it2.second;
         }

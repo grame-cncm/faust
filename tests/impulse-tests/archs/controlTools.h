@@ -109,7 +109,7 @@ struct CheckControlUI : public GenericUI {
    
     bool checkDefaults()
     {
-        for (auto& it : fControlZone) {
+        for (const auto& it : fControlZone) {
             if (*it.first != it.second) return false;
         }
         return true;
@@ -117,7 +117,7 @@ struct CheckControlUI : public GenericUI {
     
     void initRandom()
     {
-        for (auto& it : fControlZone) {
+        for (const auto& it : fControlZone) {
             *it.first = 0.123456789;
         }
     }

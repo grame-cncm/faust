@@ -112,7 +112,7 @@ class SoundUI : public SoundUIInterface
         virtual ~SoundUI()
         {   
             // Delete all soundfiles
-            for (auto& it : fSoundfileMap) {
+            for (const auto& it : fSoundfileMap) {
                 delete it.second;
             }
         }

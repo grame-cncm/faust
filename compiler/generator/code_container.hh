@@ -116,18 +116,18 @@ class CodeContainer : public virtual Garbageable {
 
     void merge(set<string>& dst, set<string>& src)
     {
-        for (auto& i : src) dst.insert(i);
+        for (const auto& i : src) dst.insert(i);
     }
 
     void collectIncludeFile(set<string>& S)
     {
-        for (auto& k : fSubContainers) k->collectIncludeFile(S);
+        for (const auto& k : fSubContainers) k->collectIncludeFile(S);
         merge(S, fIncludeFileSet);
     }
 
     void collectLibrary(set<string>& S)
     {
-        for (auto& k : fSubContainers) k->collectLibrary(S);
+        for (const auto& k : fSubContainers) k->collectLibrary(S);
         merge(S, fLibrarySet);
     }
 
@@ -146,11 +146,11 @@ class CodeContainer : public virtual Garbageable {
         selectedKeys.insert(tree("version"));
 
         dst << "/* ------------------------------------------------------------" << endl;
-        for (auto& i : gGlobal->gMetaDataSet) {
+        for (const auto& i : gGlobal->gMetaDataSet) {
             if (selectedKeys.count(i.first)) {
                 dst << *(i.first);
                 const char* sep = ": ";
-                for (auto& j : i.second) {
+                for (const auto& j : i.second) {
                     dst << sep << *j;
                     sep = ", ";
                 }
@@ -295,7 +295,7 @@ class CodeContainer : public virtual Garbageable {
     void generateMetaData(JSONUIReal<REAL>* json)
     {
         // Add global metadata
-        for (auto& i : gGlobal->gMetaDataSet) {
+        for (const auto& i : gGlobal->gMetaDataSet) {
             if (i.first != tree("author")) {
                 stringstream str1, str2;
                 str1 << *(i.first);
@@ -587,7 +587,7 @@ class CodeContainer : public virtual Garbageable {
 
     void generateSubContainers()
     {
-        for (auto& it : fSubContainers) {
+        for (const auto& it : fSubContainers) {
             it->produceInternal();
         }
     }
@@ -595,7 +595,7 @@ class CodeContainer : public virtual Garbageable {
     // merge declaration part
     void mergeSubContainers()
     {
-        for (auto& it : fSubContainers) {
+        for (const auto& it : fSubContainers) {
             // Merge the subcontainer in the main one
             fExtGlobalDeclarationInstructions->merge(it->fExtGlobalDeclarationInstructions);
             fGlobalDeclarationInstructions->merge(it->fGlobalDeclarationInstructions);
