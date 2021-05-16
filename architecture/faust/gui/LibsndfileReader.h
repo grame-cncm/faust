@@ -138,7 +138,7 @@ struct LibsndfileReader : public SoundfileReader {
 	
     LibsndfileReader() {}
 	
-    typedef sf_count_t (* sample_read)(SNDFILE* sndfile, FAUSTFLOAT* ptr, sf_count_t frames);
+    typedef sf_count_t (* sample_read)(SNDFILE* sndfile, void* buffer, sf_count_t frames);
 	
     // Check file
     bool checkFile(const std::string& path_name)
@@ -200,15 +200,6 @@ struct LibsndfileReader : public SoundfileReader {
     }
     
     // Read the file
-    void copyToOut(Soundfile* soundfile, int size, int channels, int max_channels, int offset, FAUSTFLOAT* buffer)
-    {
-        for (int sample = 0; sample < size; sample++) {
-            for (int chan = 0; chan < channels; chan++) {
-                soundfile->fBuffers[chan][offset + sample] = buffer[sample * max_channels + chan];
-            }
-        }
-    }
-    
     void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
         SF_INFO	snd_info;
@@ -247,19 +238,21 @@ struct LibsndfileReader : public SoundfileReader {
 		
         // Read and fill snd_info.channels number of channels
         sf_count_t nbf;
-        FAUSTFLOAT* buffer_in = (FAUSTFLOAT*)alloca(BUFFER_SIZE * sizeof(FAUSTFLOAT) * snd_info.channels);
-        sample_read reader;
         
-        if (sizeof(FAUSTFLOAT) == 4) {
-            reader = reinterpret_cast<sample_read>(sf_readf_float);
-        } else {
+        void* buffer_in = nullptr;
+        sample_read reader;
+        if (soundfile->fIsDouble) {
+            buffer_in = (double*)alloca(BUFFER_SIZE * sizeof(double) * snd_info.channels);
             reader = reinterpret_cast<sample_read>(sf_readf_double);
+        } else {
+            buffer_in = (float*)alloca(BUFFER_SIZE * sizeof(float) * snd_info.channels);
+            reader = reinterpret_cast<sample_read>(sf_readf_float);
         }
         
     #ifdef SAMPLERATE
         // Resampling
         SRC_STATE* resampler = nullptr;
-        FAUSTFLOAT* buffer_out = nullptr;
+        void* buffer_out = nullptr;
         if  (isResampling(snd_info.samplerate)) {
             int error;
             resampler = src_new(SRC_SINC_FASTEST, channels, &error);
@@ -267,7 +260,11 @@ struct LibsndfileReader : public SoundfileReader {
                 std::cerr << "ERROR : src_new " << src_strerror(error) << std::endl;
                 throw -1;
             }
-            buffer_out = (FAUSTFLOAT*)alloca(BUFFER_SIZE * sizeof(FAUSTFLOAT) * snd_info.channels);
+            if (soundfile->fIsDouble) {
+                buffer_out = (double*)alloca(BUFFER_SIZE * sizeof(double) * snd_info.channels);
+            } else {
+                buffer_out = (float*)alloca(BUFFER_SIZE * sizeof(float) * snd_info.channels);
+            }
         }
     #endif
         
@@ -290,18 +287,18 @@ struct LibsndfileReader : public SoundfileReader {
                         std::cerr << "ERROR : src_process " << src_strerror(res) << std::endl;
                         throw -1;
                     }
-                    copyToOut(soundfile, src_data.output_frames_gen, channels, snd_info.channels, offset, buffer_out);
+                    soundfile->copyToOut(src_data.output_frames_gen, channels, snd_info.channels, offset, buffer_out);
                     in_offset += src_data.input_frames_used;
                     // Update offset
                     offset += src_data.output_frames_gen;
                 } while (in_offset < nbf);
             } else {
-                copyToOut(soundfile, nbf, channels, snd_info.channels, offset, buffer_in);
+                soundfile->copyToOut(nbf, channels, snd_info.channels, offset, buffer_in);
                 // Update offset
                 offset += nbf;
             }
         #else
-            copyToOut(soundfile, nbf, channels, snd_info.channels, offset, buffer_in);
+            soundfile->copyToOut(nbf, channels, snd_info.channels, offset, buffer_in);
             // Update offset
             offset += nbf;
         #endif

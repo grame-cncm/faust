@@ -59,7 +59,7 @@ static LibsndfileReader gReader;
 
 // To be used by DSP code if no SoundUI is used
 static std::vector<std::string> path_name_list;
-static Soundfile* defaultsound = gReader.createSoundfile(path_name_list, MAX_CHAN);
+static Soundfile* defaultsound = nullptr;
 
 class SoundUI : public SoundUIInterface
 {
@@ -69,6 +69,7 @@ class SoundUI : public SoundUIInterface
         std::vector<std::string> fSoundfileDir;             // The soundfile directories
         std::map<std::string, Soundfile*> fSoundfileMap;    // Map to share loaded soundfiles
         SoundfileReader* fSoundReader;
+        bool fIsDouble;
 
      public:
     
@@ -81,11 +82,13 @@ class SoundUI : public SoundUIInterface
          *
          * @return the soundfile loader.
          */
-        SoundUI(const std::string& sound_directory = "", int sample_rate = -1, SoundfileReader* reader = nullptr)
+        SoundUI(const std::string& sound_directory = "", int sample_rate = -1, SoundfileReader* reader = nullptr, bool is_double = false)
         {
             fSoundfileDir.push_back(sound_directory);
             fSoundReader = (reader) ? reader : &gReader;
             fSoundReader->setSampleRate(sample_rate);
+            fIsDouble = is_double;
+            if (!defaultsound) defaultsound = gReader.createSoundfile(path_name_list, MAX_CHAN, is_double);
         }
     
         /**
@@ -97,11 +100,13 @@ class SoundUI : public SoundUIInterface
          *
          * @return the soundfile loader.
          */
-        SoundUI(const std::vector<std::string>& sound_directories, int sample_rate = -1, SoundfileReader* reader = nullptr)
+        SoundUI(const std::vector<std::string>& sound_directories, int sample_rate = -1, SoundfileReader* reader = nullptr, bool is_double = false)
         :fSoundfileDir(sound_directories)
         {
             fSoundReader = (reader) ? reader : &gReader;
             fSoundReader->setSampleRate(sample_rate);
+            fIsDouble = is_double;
+            if (!defaultsound) defaultsound = gReader.createSoundfile(path_name_list, MAX_CHAN, is_double);
         }
     
         virtual ~SoundUI()
@@ -123,13 +128,14 @@ class SoundUI : public SoundUIInterface
             if (!menu) { file_name_list.push_back(saved_url); }
             
             // Parse the possible list
-            if (fSoundfileMap.find(saved_url) == fSoundfileMap.end()) {
+            std::string saved_url_real = std::string(saved_url) + "_" + std::to_string(fIsDouble); // fIsDouble is used in the key
+            if (fSoundfileMap.find(saved_url_real) == fSoundfileMap.end()) {
                 // Check all files and get their complete path
                 std::vector<std::string> path_name_list = fSoundReader->checkFiles(fSoundfileDir, file_name_list);
                 // Read them and create the Soundfile
-                Soundfile* sound_file = fSoundReader->createSoundfile(path_name_list, MAX_CHAN);
+                Soundfile* sound_file = fSoundReader->createSoundfile(path_name_list, MAX_CHAN, fIsDouble);
                 if (sound_file) {
-                    fSoundfileMap[saved_url] = sound_file;
+                    fSoundfileMap[saved_url_real] = sound_file;
                 } else {
                     // If failure, use 'defaultsound'
                     std::cerr << "addSoundfile : soundfile for " << saved_url << " cannot be created !" << std::endl;
@@ -139,7 +145,7 @@ class SoundUI : public SoundUIInterface
             }
             
             // Get the soundfile
-            *sf_zone = fSoundfileMap[saved_url];
+            *sf_zone = fSoundfileMap[saved_url_real];
         }
     
         /**

@@ -1432,7 +1432,8 @@ ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf
             InstBuilder::genLoadStructPtrVar(SFcache, Address::kStruct, InstBuilder::genInt32NumInst(0));
 
         pushDeclare(InstBuilder::genDecStructVar(SFcache_buffer, type1));
-        pushComputeBlockMethod(InstBuilder::genStoreStructVar(SFcache_buffer, load1));
+        pushComputeBlockMethod(InstBuilder::genStoreStructVar(SFcache_buffer,
+                                                              InstBuilder::genCastInst(load1, InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr))));
 
         pushDeclare(InstBuilder::genDecStructVar(SFcache_buffer_chan, InstBuilder::genArrayTyped(type2, 0)));
         pushComputeBlockMethod(InstBuilder::genStoreStructVar(
@@ -1452,7 +1453,8 @@ ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf
         LoadVarInst* load1 =
             InstBuilder::genLoadStructPtrVar(SFcache, Address::kStack, InstBuilder::genInt32NumInst(0));
 
-        pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_buffer, type1, load1));
+        pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_buffer, type1,
+                                                           InstBuilder::genCastInst(load1, InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr))));
         pushComputeBlockMethod(
             InstBuilder::genDecStackVar(SFcache_buffer_chan, InstBuilder::genArrayTyped(type2, 0),
                                         InstBuilder::genLoadStructPtrVar(SFcache_buffer, Address::kStack, x)));

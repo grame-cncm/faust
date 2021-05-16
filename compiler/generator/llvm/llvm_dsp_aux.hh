@@ -82,6 +82,7 @@ struct Soundfile {
     int* fSR;       // sample rate of each part
     int* fOffset;   // offset of each part in the global buffer
     int fChannels;  // max number of channels of all concatenated files
+    bool fIsDouble;
  
     Soundfile(int max_chan)
     {

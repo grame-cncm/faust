@@ -105,6 +105,7 @@ int main(int argc, char* argv[])
     bool is_generic = isopt(argv, "-generic");
     bool is_httpd = isopt(argv, "-httpd");
     bool is_resample = isopt(argv, "-resample");
+    bool is_double = isopt(argv, "-double");
     
     malloc_memory_manager manager;
     
@@ -233,7 +234,7 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
     
-    if (isopt(argv, "-double")) {
+    if (is_double) {
         cout << "Running in double..." << endl;
         DSP = new dsp_sample_adapter<double, float>(DSP);
     }
@@ -263,9 +264,9 @@ int main(int argc, char* argv[])
     // After audio init to get SR
     SoundUI* soundinterface = nullptr;
     if (is_resample) {
-        soundinterface = new SoundUI("", audio.getSampleRate());
+        soundinterface = new SoundUI("", audio.getSampleRate(), nullptr, is_double);
     } else {
-        soundinterface = new SoundUI();
+        soundinterface = new SoundUI("", -1, nullptr, is_double);
     }
     DSP->buildUserInterface(soundinterface);
     

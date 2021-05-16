@@ -66,9 +66,10 @@ static vector<string> bench(dsp_optimizer_real<T> optimizer, const string& name)
 int main(int argc, char* argv[])
 {
     if (argc == 1 || isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "dynamic-faust [-target xxx] [-opt (native|generic)] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
+        cout << "dynamic-faust [-target xxx] [-opt native|generic] [-o foo.ll|foo.bc|foo.mc|foo.o] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
         cout << "Use '-target xxx' to cross-compile the code for a different architecture (like 'x86_64-apple-darwin15.6.0:haswell')\n";
-        cout << "Use '-opt (native|generic)' to discover and compile with the optimal compilation parameters\n";
+        cout << "Use '-opt native' to activate the best compilation options for the native CPU\n";
+        cout << "Use '-opt generic' to activate the best compilation options for a generic CPU\n";
         cout << "Use '-o foo.ll' to generate an LLVM IR textual file\n";
         cout << "Use '-o foo.bc' to generate an LLVM bitcode file\n";
         cout << "Use '-o foo.mc' to generate an LLVM machine code file\n";

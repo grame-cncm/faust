@@ -783,14 +783,18 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 }
                 break;
 
+            case Typed::kFloat_ptr:
+            case Typed::kFloat_ptr_ptr:
+            case Typed::kDouble_ptr:
+            case Typed::kDouble_ptr_ptr:
+            case Typed::kInt32_ptr:
+            case Typed::kFloatMacro_ptr:
+            case Typed::kFloatMacro_ptr_ptr:
             case Typed::kObj_ptr:
-                fCurValue = fBuilder->CreateBitCast(fCurValue, fTypeMap[Typed::kObj_ptr]);
-                break;
-
             case Typed::kVoid_ptr:
-                fCurValue = fBuilder->CreateBitCast(fCurValue, fTypeMap[Typed::kVoid_ptr]);
+                fCurValue = fBuilder->CreateBitCast(fCurValue, fTypeMap[type]);
                 break;
-
+                
             case Typed::kUint_ptr:
                 fCurValue = fBuilder->CreatePtrToInt(fCurValue, MakeIntPtrType());
                 break;

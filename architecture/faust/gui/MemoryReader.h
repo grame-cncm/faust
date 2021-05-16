@@ -85,9 +85,17 @@ struct MemoryReader : public SoundfileReader {
         soundfile->fOffset[part] = offset;
         
         // Audio frames have to be written for each chan
-        for (int sample = 0; sample < SOUND_LENGTH; sample++) {
-            for (int chan = 0; chan < SOUND_CHAN; chan++) {
-                soundfile->fBuffers[chan][offset + sample] = 0.f;
+        if (soundfile->fIsDouble) {
+            for (int sample = 0; sample < SOUND_LENGTH; sample++) {
+                for (int chan = 0; chan < SOUND_CHAN; chan++) {
+                    static_cast<double**>(soundfile->fBuffers)[chan][offset + sample] = 0.f;
+                }
+            }
+        } else {
+            for (int sample = 0; sample < SOUND_LENGTH; sample++) {
+                for (int chan = 0; chan < SOUND_CHAN; chan++) {
+                    static_cast<float**>(soundfile->fBuffers)[chan][offset + sample] = 0.f;
+                }
             }
         }
         

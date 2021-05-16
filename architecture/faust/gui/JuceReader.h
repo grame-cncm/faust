@@ -65,17 +65,27 @@ struct JuceReader : public SoundfileReader {
         soundfile->fSR[part] = int(formatReader->sampleRate);
         soundfile->fOffset[part] = offset;
         
-        FAUSTFLOAT** buffers = static_cast<FAUSTFLOAT**>(alloca(soundfile->fChannels * sizeof(FAUSTFLOAT*)));
-                                                             
-        getBuffersOffset(soundfile, buffers, offset);
+        void* buffers;
+        if (soundfile->fIsDouble) {
+            buffers = alloca(soundfile->fChannels * sizeof(double*));
+            soundfile->getBuffersOffsetReal<double>(buffers, offset);
+        } else {
+            buffers = alloca(soundfile->fChannels * sizeof(float*));
+            soundfile->getBuffersOffsetReal<float>(buffers, offset);
+        }
         
         if (formatReader->read(reinterpret_cast<int *const *>(buffers), int(formatReader->numChannels), 0, int(formatReader->lengthInSamples), false)) {
             
-            // Possibly concert samples
+            // Possibly convert samples
             if (!formatReader->usesFloatingPointData) {
                 for (int chan = 0; chan < int(formatReader->numChannels); ++chan) {
-                    FAUSTFLOAT* buffer = &soundfile->fBuffers[chan][soundfile->fOffset[part]];
-                    juce::FloatVectorOperations::convertFixedToFloat(buffer, reinterpret_cast<const int*>(buffer), 1.0f/0x7fffffff, int(formatReader->lengthInSamples));
+                    if (soundfile->fIsDouble) {
+                        // TODO
+                    } else {
+                        float* buffer = &(static_cast<float**>(soundfile->fBuffers))[chan][soundfile->fOffset[part]];
+                        juce::FloatVectorOperations::convertFixedToFloat(buffer, reinterpret_cast<const int*>(buffer),
+                                                                         1.0f/0x7fffffff, int(formatReader->lengthInSamples));
+                    }
                 }
             }
             

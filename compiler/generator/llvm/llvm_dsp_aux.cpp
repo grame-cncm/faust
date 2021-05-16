@@ -429,7 +429,7 @@ void llvm_dsp::buildUserInterface(UI* ui_interface)
 {
     if (fDecoder->hasCompileOption("-double") && ui_interface->sizeOfFAUSTFLOAT() == 4) {
         // Setup a DSP proxy
-        fDecoder->setupDSPProxy(fDSP);
+        fDecoder->setupDSPProxy(ui_interface, fDSP);
         fDecoder->buildUserInterface(ui_interface);
     } else {
         fDecoder->buildUserInterface(ui_interface, fDSP);

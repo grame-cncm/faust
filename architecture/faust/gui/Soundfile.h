@@ -64,28 +64,80 @@
 
 PRE_PACKED_STRUCTURE
 struct Soundfile {
-    FAUSTFLOAT** fBuffers;
+    void* fBuffers;
     int* fLength;   // length of each part (so fLength[P] contains the length in frames of part P)
     int* fSR;       // sample rate of each part (so fSR[P] contains the SR of part P)
     int* fOffset;   // offset of each part in the global buffer (so fOffset[P] contains the offset in frames of part P)
     int fChannels;  // max number of channels of all concatenated files
+    bool fIsDouble; // keep the sample format (float or double)
 
-    Soundfile()
+    Soundfile(int cur_chan, int length, int max_chan, bool is_double)
     {
-        fBuffers  = nullptr;
-        fChannels = -1;
         fLength   = new int[MAX_SOUNDFILE_PARTS];
         fSR       = new int[MAX_SOUNDFILE_PARTS];
         fOffset   = new int[MAX_SOUNDFILE_PARTS];
+        fIsDouble = is_double;
+        
+        if (fIsDouble) {
+            fBuffers = allocBufferReal<double>(cur_chan, length, max_chan);
+        } else {
+            fBuffers = allocBufferReal<float>(cur_chan, length, max_chan);
+        }
+        fChannels = cur_chan;
+    }
+    
+    template <typename REAL>
+    void* allocBufferReal(int cur_chan, int length, int max_chan)
+    {
+        REAL** buffers = new REAL*[max_chan];
+        for (int chan = 0; chan < cur_chan; chan++) {
+            buffers[chan] = new REAL[length];
+            memset(buffers[chan], 0, sizeof(REAL) * length);
+        }
+        return buffers;
+    }
+    
+    void copyToOut(int size, int channels, int max_channels, int offset, void* buffer)
+    {
+        if (fIsDouble) {
+            copyToOutReal<double>(size, channels, max_channels, offset, buffer);
+       } else {
+            copyToOutReal<float>(size, channels, max_channels, offset, buffer);
+        }
+    }
+    
+    template <typename REAL>
+    void copyToOutReal(int size, int channels, int max_channels, int offset, void* buffer)
+    {
+        for (int sample = 0; sample < size; sample++) {
+            for (int chan = 0; chan < channels; chan++) {
+                static_cast<REAL**>(fBuffers)[chan][offset + sample] = static_cast<REAL*>(buffer)[sample * max_channels + chan];
+            }
+        }
+    }
+    
+    template <typename REAL>
+    void getBuffersOffsetReal(void* buffers, int offset)
+    {
+        for (int chan = 0; chan < fChannels; chan++) {
+            static_cast<REAL**>(buffers)[chan] = &(static_cast<REAL**>(fBuffers))[chan][offset];
+        }
     }
  
     ~Soundfile()
     {
         // Free the real channels only
-        for (int chan = 0; chan < fChannels; chan++) {
-            delete[] fBuffers[chan];
+        if (fIsDouble) {
+            for (int chan = 0; chan < fChannels; chan++) {
+                delete[] static_cast<double**>(fBuffers)[chan];
+            }
+            delete[] static_cast<double**>(fBuffers);
+        } else {
+            for (int chan = 0; chan < fChannels; chan++) {
+                delete[] static_cast<float**>(fBuffers)[chan];
+            }
+            delete[] static_cast<float**>(fBuffers);
         }
-        delete[] fBuffers;
         delete[] fLength;
         delete[] fSR;
         delete[] fOffset;
@@ -112,27 +164,11 @@ class SoundfileReader {
         offset += soundfile->fLength[part];
     }
 
-    Soundfile* createSoundfile(int cur_chan, int length, int max_chan)
+    Soundfile* createSoundfile(int cur_chan, int length, int max_chan, bool is_double)
     {
-        Soundfile* soundfile = new Soundfile();
-        soundfile->fBuffers = new FAUSTFLOAT*[max_chan];
-        
-        for (int chan = 0; chan < cur_chan; chan++) {
-            soundfile->fBuffers[chan] = new FAUSTFLOAT[length];
-            memset(soundfile->fBuffers[chan], 0, sizeof(FAUSTFLOAT) * length);
-        }
-        
-        soundfile->fChannels = cur_chan;
-        return soundfile;
+        return new Soundfile(cur_chan, length, max_chan, is_double);
     }
 
-    void getBuffersOffset(Soundfile* soundfile, FAUSTFLOAT** buffers, int offset)
-    {
-        for (int chan = 0; chan < soundfile->fChannels; chan++) {
-            buffers[chan] = &soundfile->fBuffers[chan][offset];
-        }
-    }
-    
     // Check if a soundfile exists and return its real path_name
     std::string checkFile(const std::vector<std::string>& sound_directories, const std::string& file_name)
     {
@@ -223,7 +259,7 @@ class SoundfileReader {
     
     void setSampleRate(int sample_rate) { fDriverSR = sample_rate; }
    
-    Soundfile* createSoundfile(const std::vector<std::string>& path_name_list, int max_chan)
+    Soundfile* createSoundfile(const std::vector<std::string>& path_name_list, int max_chan, bool is_double)
     {
         try {
             int cur_chan = 1; // At least one channel
@@ -246,7 +282,7 @@ class SoundfileReader {
             total_length += (MAX_SOUNDFILE_PARTS - path_name_list.size()) * BUFFER_SIZE;
             
             // Create the soundfile
-            Soundfile* soundfile = createSoundfile(cur_chan, total_length, max_chan);
+            Soundfile* soundfile = createSoundfile(cur_chan, total_length, max_chan, is_double);
             
             // Init offset
             int offset = 0;
@@ -266,8 +302,14 @@ class SoundfileReader {
             }
             
             // Share the same buffers for all other channels so that we have max_chan channels available
-            for (int chan = cur_chan; chan < max_chan; chan++) {
-                soundfile->fBuffers[chan] = soundfile->fBuffers[chan % cur_chan];
+            if (soundfile->fIsDouble) {
+                for (int chan = cur_chan; chan < max_chan; chan++) {
+                    static_cast<double**>(soundfile->fBuffers)[chan] = static_cast<double**>(soundfile->fBuffers)[chan % cur_chan];
+                }
+            } else {
+                for (int chan = cur_chan; chan < max_chan; chan++) {
+                    static_cast<float**>(soundfile->fBuffers)[chan] = static_cast<float**>(soundfile->fBuffers)[chan % cur_chan];
+                }
             }
             
             return soundfile;

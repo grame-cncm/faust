@@ -108,10 +108,7 @@ struct JSONUIDecoderReal {
     std::vector<std::string> fLibraryList;
     std::vector<std::string> fIncludePathnames;
     
-    Soundfile** fSoundfiles;
-    
     int fNumInputs, fNumOutputs, fSRIndex;
-    int fSoundfileItems;
     int fDSPSize;
     bool fDSPProxy;
     
@@ -170,16 +167,6 @@ struct JSONUIDecoderReal {
         fNumInputs = getInt(meta_data1, "inputs");
         fNumOutputs = getInt(meta_data1, "outputs");
         fSRIndex = getInt(meta_data1, "sr_index");
-       
-        fSoundfileItems = 0;
-        for (auto& it : fUiItems) {
-            std::string type = it.type;
-            if (isSoundfile(type)) {
-                fSoundfileItems++;
-            }
-        }
-        fSoundfiles = new Soundfile*[fSoundfileItems];
-        
         fDSPProxy = false;
         
         // Prepare the fPathTable and init zone
@@ -202,7 +189,6 @@ struct JSONUIDecoderReal {
     
     virtual ~JSONUIDecoderReal()
     {
-        delete [] fSoundfiles;
         for (auto& it : fPathInputTable) {
             delete it;
         }
@@ -254,7 +240,7 @@ struct JSONUIDecoderReal {
         return *reinterpret_cast<int*>(&memory_block[fSRIndex]);
     }
     
-    void setupDSPProxy(char* memory_block)
+    void setupDSPProxy(UI* ui_interface, char* memory_block)
     {
         if (!fDSPProxy) {
             fDSPProxy = true;
@@ -268,6 +254,13 @@ struct JSONUIDecoderReal {
                 } else if (isOutput(type)) {
                     fPathOutputTable[countOut++]->setModifyZoneFun([=]() { return *REAL_ADR(index); });
                 }
+            }
+        }
+        
+        // Setup soundfile
+        for (auto& it : fUiItems) {
+            if (it.type == "soundfile") {
+                ui_interface->addSoundfile(it.label.c_str(), it.url.c_str(), SOUNDFILE_ADR(it.index));
             }
         }
     }
@@ -327,7 +320,7 @@ struct JSONUIDecoderReal {
             } else if (type == "checkbox") {
                 ui_interface->addCheckButton(it.label.c_str(), &static_cast<ZoneParam*>(fPathInputTable[countIn])->fZone);
             } else if (type == "soundfile") {
-                ui_interface->addSoundfile(it.label.c_str(), it.url.c_str(), &fSoundfiles[countSound]);
+                // Nothing
             } else if (type == "hbargraph") {
                 ui_interface->addHorizontalBargraph(it.label.c_str(), &static_cast<ZoneParam*>(fPathOutputTable[countOut])->fZone, min, max);
             } else if (type == "vbargraph") {
@@ -527,7 +520,7 @@ struct JSONUITemplatedDecoder
     virtual int getSampleRate(char* memory_block) = 0;
     virtual void setReflectZoneFun(int index, ReflectFunction fun) = 0;
     virtual void setModifyZoneFun(int index, ModifyFunction fun) = 0;
-    virtual void setupDSPProxy(char* memory_block) = 0;
+    virtual void setupDSPProxy(UI* ui_interface, char* memory_block) = 0;
     virtual bool hasDSPProxy() = 0;
     virtual std::vector<ExtZoneParam*>& getInputControls() = 0;
     virtual std::vector<ExtZoneParam*>& getOutputControls() = 0;
@@ -565,9 +558,9 @@ struct JSONUIFloatDecoder : public JSONUIDecoderReal<float>, public JSONUITempla
     {
         JSONUIDecoderReal<float>::setModifyZoneFun(index, fun);
     }
-    void setupDSPProxy(char* memory_block)
+    void setupDSPProxy(UI* ui_interface, char* memory_block)
     {
-        JSONUIDecoderReal<float>::setupDSPProxy(memory_block);
+        JSONUIDecoderReal<float>::setupDSPProxy(ui_interface, memory_block);
     }
     bool hasDSPProxy()
     {
@@ -630,9 +623,9 @@ struct JSONUIDoubleDecoder : public JSONUIDecoderReal<double>, public JSONUITemp
     {
         JSONUIDecoderReal<double>::setModifyZoneFun(index, fun);
     }
-    void setupDSPProxy(char* memory_block)
+    void setupDSPProxy(UI* ui_interface, char* memory_block)
     {
-        JSONUIDecoderReal<double>::setupDSPProxy(memory_block);
+        JSONUIDecoderReal<double>::setupDSPProxy(ui_interface, memory_block);
     }
     bool hasDSPProxy()
     {

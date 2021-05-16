@@ -273,7 +273,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
     if (factory) {
         // Reset fSoundUI with the new factory getIncludePathnames
         delete fSoundUI;
-        fSoundUI = new SoundUI(factory->getIncludePathnames());
+        fSoundUI = new SoundUI(factory->getIncludePathnames(), -1, nullptr, true);
         /*
          std::vector<std::string> sound_directories = factory->getIncludePathnames();
          for (int i = 0; i < sound_directories.size(); i++) {
@@ -319,10 +319,10 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     if (factory) {
         // Reset fSoundUI with the new factory getIncludePathnames
         delete fSoundUI;
-        fSoundUI = new SoundUI(factory->getIncludePathnames());
+        fSoundUI = new SoundUI(factory->getIncludePathnames(), -1, nullptr, true);
         /*
          std::vector<std::string> sound_directories = factory->getIncludePathnames();
-         for (int i= 0; i < sound_directories.size(); i++) {
+         for (int i = 0; i < sound_directories.size(); i++) {
             post("sound_directories %d %s", i, sound_directories[i].c_str());
          }
         */
