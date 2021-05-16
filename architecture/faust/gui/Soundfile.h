@@ -64,7 +64,7 @@
 
 PRE_PACKED_STRUCTURE
 struct Soundfile {
-    void* fBuffers;
+    void* fBuffers; // will be set with double** or float** chosen at runtime
     int* fLength;   // length of each part (so fLength[P] contains the length in frames of part P)
     int* fSR;       // sample rate of each part (so fSR[P] contains the SR of part P)
     int* fOffset;   // offset of each part in the global buffer (so fOffset[P] contains the offset in frames of part P)
@@ -106,6 +106,20 @@ struct Soundfile {
         }
     }
     
+    void shareBuffers(int cur_chan, int max_chan)
+    {
+        // Share the same buffers for all other channels so that we have max_chan channels available
+        if (fIsDouble) {
+            for (int chan = cur_chan; chan < max_chan; chan++) {
+                static_cast<double**>(fBuffers)[chan] = static_cast<double**>(fBuffers)[chan % cur_chan];
+            }
+        } else {
+            for (int chan = cur_chan; chan < max_chan; chan++) {
+                static_cast<float**>(fBuffers)[chan] = static_cast<float**>(fBuffers)[chan % cur_chan];
+            }
+        }
+    }
+    
     template <typename REAL>
     void copyToOutReal(int size, int channels, int max_channels, int offset, void* buffer)
     {
@@ -122,6 +136,15 @@ struct Soundfile {
         for (int chan = 0; chan < fChannels; chan++) {
             static_cast<REAL**>(buffers)[chan] = &(static_cast<REAL**>(fBuffers))[chan][offset];
         }
+    }
+    
+    void emptyFile(int part, int& offset)
+    {
+        fLength[part] = BUFFER_SIZE;
+        fSR[part] = SAMPLE_RATE;
+        fOffset[part] = offset;
+        // Update offset
+        offset += fLength[part];
     }
  
     ~Soundfile()
@@ -154,21 +177,7 @@ class SoundfileReader {
    protected:
     
     int fDriverSR;
-    
-    void emptyFile(Soundfile* soundfile, int part, int& offset)
-    {
-        soundfile->fLength[part] = BUFFER_SIZE;
-        soundfile->fSR[part] = SAMPLE_RATE;
-        soundfile->fOffset[part] = offset;
-        // Update offset
-        offset += soundfile->fLength[part];
-    }
-
-    Soundfile* createSoundfile(int cur_chan, int length, int max_chan, bool is_double)
-    {
-        return new Soundfile(cur_chan, length, max_chan, is_double);
-    }
-
+   
     // Check if a soundfile exists and return its real path_name
     std::string checkFile(const std::vector<std::string>& sound_directories, const std::string& file_name)
     {
@@ -282,7 +291,7 @@ class SoundfileReader {
             total_length += (MAX_SOUNDFILE_PARTS - path_name_list.size()) * BUFFER_SIZE;
             
             // Create the soundfile
-            Soundfile* soundfile = createSoundfile(cur_chan, total_length, max_chan, is_double);
+            Soundfile* soundfile = new Soundfile(cur_chan, total_length, max_chan, is_double);
             
             // Init offset
             int offset = 0;
@@ -290,7 +299,7 @@ class SoundfileReader {
             // Read all files
             for (int i = 0; i < int(path_name_list.size()); i++) {
                 if (path_name_list[i] == "__empty_sound__") {
-                    emptyFile(soundfile, i, offset);
+                    soundfile->emptyFile(i, offset);
                 } else {
                     readFile(soundfile, path_name_list[i], i, offset, max_chan);
                 }
@@ -298,20 +307,11 @@ class SoundfileReader {
             
             // Complete with empty parts
             for (int i = int(path_name_list.size()); i < MAX_SOUNDFILE_PARTS; i++) {
-                emptyFile(soundfile, i, offset);
+                soundfile->emptyFile(i, offset);
             }
             
             // Share the same buffers for all other channels so that we have max_chan channels available
-            if (soundfile->fIsDouble) {
-                for (int chan = cur_chan; chan < max_chan; chan++) {
-                    static_cast<double**>(soundfile->fBuffers)[chan] = static_cast<double**>(soundfile->fBuffers)[chan % cur_chan];
-                }
-            } else {
-                for (int chan = cur_chan; chan < max_chan; chan++) {
-                    static_cast<float**>(soundfile->fBuffers)[chan] = static_cast<float**>(soundfile->fBuffers)[chan % cur_chan];
-                }
-            }
-            
+            soundfile->shareBuffers(cur_chan, max_chan);
             return soundfile;
             
         } catch (...) {
