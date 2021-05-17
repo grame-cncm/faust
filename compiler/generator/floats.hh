@@ -38,8 +38,11 @@ double      inummin();
 
 int            ifloatsize();
 const char*    ifloat();
+const char*    ifloatptr();
+const char*    ifloatptrptr();
 Typed::VarType itfloat();
 Typed::VarType itfloatptr();
+Typed::VarType itfloatptrptr();
 const char*    icast();
 
 const char* xfloat();

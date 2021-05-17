@@ -502,7 +502,7 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateCacheCode(sig, subst("$0cache->fSR[$1]", CS(sf), CS(x)));
     } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
         return generateCacheCode(sig,
-                                 subst("(($1)$0cache->fBuffers)[$2][$0cache->fOffset[$3]+$4]", CS(sf), FLOATMACROPTRPTR, CS(x), CS(y), CS(z)));
+                                 subst("(($1)$0cache->fBuffers)[$2][$0cache->fOffset[$3]+$4]", CS(sf), ifloatptrptr(), CS(x), CS(y), CS(z)));
     }
 
     else if (isSigAttach(sig, x, y)) {
