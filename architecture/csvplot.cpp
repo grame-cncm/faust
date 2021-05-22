@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
     interface->addOption("-s", &start_at_sample, 0, 0.0, 100000000.0);
     
     if (DSP.getNumInputs() > 0) {
-        fprintf(stderr, "no inputs allowed\n");
+        cerr << "no inputs allowed " << endl;
         exit(1);
     }
     

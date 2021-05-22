@@ -80,7 +80,7 @@ class OSCUI : public GUI
         const char* tr(const char* label) const
         {
             static char buffer[1024];
-            char * ptr = buffer; int n=1;
+            char* ptr = buffer; int n = 1;
             while (*label && (n++ < 1024)) {
                 switch (*label) {
                     case ' ': case '	':
@@ -110,10 +110,14 @@ class OSCUI : public GUI
         
     public:
         
-        OSCUI(const char* /*applicationname*/, int argc, char* argv[], oscfaust::OSCIO* io = NULL, ErrorCallback errCallback = NULL, void* arg = NULL, bool init = true) : GUI()
+        OSCUI(const char* /*applicationname*/, int argc, char* argv[],
+              oscfaust::OSCIO* io = NULL,
+              ErrorCallback errCallback = NULL,
+              void* arg = NULL,
+              bool init = true) : GUI()
         {
             fCtrl = new oscfaust::OSCControler(argc, argv, this, &fJSON, io, errCallback, arg, init);
-            //		fCtrl->opengroup(applicationname);
+            // fCtrl->opengroup(applicationname);
         }
         
         virtual ~OSCUI() { delete fCtrl; }

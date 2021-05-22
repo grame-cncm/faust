@@ -14,6 +14,7 @@
 CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 ARCHFILE=$FAUSTARCH/sndfile.cpp
+FILE_MODE=""
 
 #-------------------------------------------------------------------
 # Set Faust include path
@@ -56,9 +57,10 @@ for f in $FILES; do
 	NINPUTS=${LINPUTS//[^0-9]/}
 	if [ $NINPUTS -gt 0 ]; then
 		echo "Will process an input file to produce an output file"
-		echo "With the compiled program 'foo', you can add [-c samples] for the number of frames to append beyond the input file"
-		echo "With the compiled program 'foo', you can add [-rc 1] to use the foo.rc file"
-		ARCHFILE=$FAUSTARCH/sndfile.cpp
+		echo "With the compiled program 'foo' you can add:"
+		echo "[-c samples] for the number of frames to append beyond the input file (default: 0)"
+		echo "[-rc 1] to use the foo.rc file"
+		FILE_MODE="INPUT_OUTPUT_FILE"
 	else
 		echo "Will generate an output file"
 		echo "With the compiled program 'foo' you can add:"
@@ -66,13 +68,13 @@ for f in $FILES; do
 		echo "[-sr <num>] to setup the output file sample rate (default: 44100)"
 		echo "[-s <num>] to setup the output file length in frames (default: SR*5)"
 		echo "[-rc 1] to use the foo.rc file"
-		ARCHFILE=$FAUSTARCH/synthfile.cpp
+		FILE_MODE="OUTPUT_FILE"
 	fi
 
     # compile Faust DSP then create the binary
     faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
     (
-        $CXX $CXXFLAGS "$f.cpp" `pkg-config --cflags --static --libs sndfile` -o "${f%.dsp}"
+        $CXX $CXXFLAGS -DFILE_MODE=$FILE_MODE "$f.cpp" `pkg-config --cflags --static --libs sndfile` -o "${f%.dsp}"
     ) > /dev/null || exit
 
     # remove c++ file

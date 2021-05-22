@@ -84,9 +84,8 @@ using namespace std;
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-
-// loptrm : Scan command-line arguments and remove and return long int value when found
-long loptrm(int* argcP, char* argv[], const char* longname, const char* shortname, long def)
+// loptrm : scan command-line arguments and remove and return long int value when found
+static long loptrm(int* argcP, char* argv[], const char* longname, const char* shortname, long def)
 {
     int argc = *argcP;
     for (int i = 2; i < argc; i++) {
@@ -107,7 +106,8 @@ mydsp DSP;
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
-#define kFrames 512
+#define kFrames      512
+#define kSampleRate  44100
 
 int main(int argc, char* argv[])
 {
@@ -123,81 +123,130 @@ int main(int argc, char* argv[])
     
     CMDUI* interface = new CMDUI(argc, argv, true);
     DSP.buildUserInterface(interface);
-    if (argc == 1) {
-        interface->printhelp_command(INPUT_OUTPUT_FILE);
-        exit(1);
-    }
-    interface->process_command(INPUT_OUTPUT_FILE);
     
-    long num_samples = loptrm(&argc, argv, "--continue", "-c", 0);
+    interface->process_command(FILE_MODE);
+    interface->printhelp_command(FILE_MODE);
+    
     bool is_rc = loptrm(&argc, argv, "-rc", "-rc", 0);
     
-    SNDFILE* in_sf;
-    SNDFILE* out_sf;
-    SF_INFO in_info;
-    SF_INFO out_info;
-    
-    // open input file
-    in_info.format = 0;
-    in_info.channels = 0;
-    in_sf = sf_open(interface->input_file(), SFM_READ, &in_info);
-    if (in_sf == NULL) {
-        fprintf(stderr, "*** Input file not found.\n");
-        sf_perror(in_sf);
-        exit(1);
-    }
-    
-    // open output file
-    out_info = in_info;
-    out_info.format = in_info.format;
-    out_info.channels = DSP.getNumOutputs();
-    out_sf = sf_open(interface->output_file(), SFM_WRITE, &out_info);
-    if (out_sf == NULL) {
-        fprintf(stderr, "*** Cannot write output file.\n");
-        sf_perror(out_sf);
-        exit(1);
-    }
-    
-    // create separator and interleaver
-    Deinterleaver sep(kFrames, in_info.channels, DSP.getNumInputs());
-    Interleaver ilv(kFrames, DSP.getNumOutputs(), DSP.getNumOutputs());
-    
-    // init DSP with SR
-    DSP.init(in_info.samplerate);
-    
-    // Possibly restore saved state
-    if (is_rc) {
-        finterface.recallState(rcfilename);
-    }
-    
-    // modify the UI values according to the command line options, after init
-    interface->process_init();
-    
-    // process all samples
-    int nbf;
-    do {
-        nbf = READ_SAMPLE(in_sf, sep.input(), kFrames);
-        sep.deinterleave();
-        DSP.compute(nbf, sep.outputs(), ilv.inputs());
-        ilv.interleave();
-        WRITE_SAMPLE(out_sf, ilv.output(), nbf);
-    } while (nbf == kFrames);
-    
-    sf_close(in_sf);
-    
-    // compute tail, if any
-    if (num_samples > 0) {
-        FAUSTFLOAT* input = (FAUSTFLOAT*)calloc(num_samples * DSP.getNumInputs(), sizeof(FAUSTFLOAT));
-        FAUSTFLOAT* inputs[1] = { input };
-        Interleaver ailv(num_samples, DSP.getNumOutputs(), DSP.getNumOutputs());
-        DSP.compute(num_samples, inputs, ailv.inputs());
-        ailv.interleave();
-        WRITE_SAMPLE(out_sf, ailv.output(), num_samples);
-    }
-    
-    sf_close(out_sf);
-    if (is_rc) {
-        finterface.saveState(rcfilename);
+    if (FILE_MODE == INPUT_OUTPUT_FILE) {
+        
+        int num_samples = loptrm(&argc, argv, "--continue", "-c", 0);
+        
+        SF_INFO in_info;
+        memset(&in_info, 0, sizeof(in_info));
+        SNDFILE* in_sf = sf_open(interface->input_file(), SFM_READ, &in_info);
+        if (!in_sf) {
+            cerr << "ERROR : input file not found" << endl;
+            sf_perror(in_sf);
+            exit(1);
+        }
+        
+        SF_INFO out_info = in_info;
+        out_info.format = in_info.format;
+        out_info.channels = DSP.getNumOutputs();
+        SNDFILE* out_sf = sf_open(interface->output_file(), SFM_WRITE, &out_info);
+        if (!out_sf) {
+            cerr << "ERROR : cannot write output file" << endl;
+            sf_perror(out_sf);
+            exit(1);
+        }
+        
+        // Init DSP with SR
+        DSP.init(in_info.samplerate);
+        
+        // Possibly restore saved state
+        if (is_rc) {
+            finterface.recallState(rcfilename);
+        }
+        
+        // Modify the UI values according to the command line options, after init
+        interface->process_init();
+        
+        // Create deinterleaver and interleaver
+        Deinterleaver dilv(kFrames, in_info.channels, DSP.getNumInputs());
+        Interleaver ilv(kFrames, DSP.getNumOutputs(), DSP.getNumOutputs());
+        
+        // Process all samples
+        int nbf;
+        do {
+            nbf = READ_SAMPLE(in_sf, dilv.input(), kFrames);
+            dilv.deinterleave();
+            DSP.compute(nbf, dilv.outputs(), ilv.inputs());
+            ilv.interleave();
+            WRITE_SAMPLE(out_sf, ilv.output(), nbf);
+        } while (nbf == kFrames);
+        
+        sf_close(in_sf);
+        
+        // Compute tail, if any
+        if (num_samples > 0) {
+            FAUSTFLOAT* input = (FAUSTFLOAT*)calloc(num_samples * DSP.getNumInputs(), sizeof(FAUSTFLOAT));
+            FAUSTFLOAT* inputs[1] = { input };
+            Interleaver ilv(num_samples, DSP.getNumOutputs(), DSP.getNumOutputs());
+            DSP.compute(num_samples, inputs, ilv.inputs());
+            ilv.interleave();
+            WRITE_SAMPLE(out_sf, ilv.output(), num_samples);
+        }
+        
+        sf_close(out_sf);
+        
+        // Possibly save state
+        if (is_rc) {
+            finterface.saveState(rcfilename);
+        }
+        
+    } else {
+        
+        int num_samples = loptrm(&argc, argv, "--samples", "-s", kSampleRate * 5);
+        int sample_rate = loptrm(&argc, argv, "--sample-rate", "-sr", kSampleRate);
+        int bit_depth = loptrm(&argc, argv, "--bith-depth (16|24|32)", "-bd", 16);
+        int bd = (bit_depth == 16) ? SF_FORMAT_PCM_16 : ((bit_depth == 24) ? SF_FORMAT_PCM_24 : SF_FORMAT_PCM_32);
+        
+        SF_INFO out_info = { num_samples, sample_rate, DSP.getNumOutputs(), SF_FORMAT_WAV|bd|SF_ENDIAN_LITTLE, 0, 0};
+        SNDFILE* out_sf = sf_open(interface->input_file(), SFM_WRITE, &out_info);
+        if (!out_sf) {
+            cerr << "ERROR : cannot write output file" << endl;
+            sf_perror(out_sf);
+            exit(1);
+        }
+        
+        // Init DSP with SR
+        DSP.init(sample_rate);
+        
+        // Possibly restore saved state
+        if (is_rc) {
+            finterface.recallState(rcfilename);
+        }
+        
+        // Modify the UI values according to the command line options, after init
+        interface->process_init();
+        
+        // Create interleaver
+        Interleaver ilv(kFrames, DSP.getNumOutputs(), DSP.getNumOutputs());
+        
+        // Process all samples
+        int frames = num_samples;
+        int nbf = 0;
+        do {
+            if (frames > kFrames) {
+                nbf = kFrames;
+                frames -= kFrames;
+            } else {
+                nbf = frames;
+                frames = 0;
+            }
+            DSP.compute(nbf, nullptr, ilv.inputs());
+            ilv.interleave();
+            WRITE_SAMPLE(out_sf, ilv.output(), nbf);
+        } while (nbf);
+        
+        sf_close(out_sf);
+        
+        // Possibly save state
+        if (is_rc) {
+            finterface.saveState(rcfilename);
+        }
     }
 }
 

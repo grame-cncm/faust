@@ -46,17 +46,17 @@
  *******************************************************************************/
 
 #define NO_FILE             0
-#define INPUT_OUTPUT_FILE   1
-#define OUTPUT_FILE         2
-
-struct param {
-    FAUSTFLOAT* fZone; FAUSTFLOAT fMin; FAUSTFLOAT fMax;
-    param(FAUSTFLOAT* z, FAUSTFLOAT init, FAUSTFLOAT a, FAUSTFLOAT b) : fZone(z), fMin(a), fMax(b) { *z = init; }
-};
+#define OUTPUT_FILE         1
+#define INPUT_OUTPUT_FILE   2
 
 class CMDUI : public UI
 {
     private:
+    
+        struct param {
+            FAUSTFLOAT* fZone; FAUSTFLOAT fMin; FAUSTFLOAT fMax;
+            param(FAUSTFLOAT* z, FAUSTFLOAT init, FAUSTFLOAT a, FAUSTFLOAT b) : fZone(z), fMin(a), fMax(b) { *z = init; }
+        };
     
         int                           fArgc;
         char**                        fArgv;
@@ -90,14 +90,12 @@ class CMDUI : public UI
                     case 0 :
                     case 1 :
                     case 2 :
-                        // Skip the begin of the label "--foo-"
-                        // until 3 '-' have been read
+                        // Skip the begin of the label "--foo-" until 3 '-' have been read
                         if (src[i] == '-') { level++; }
                         break;
                         
                     case 3 :
-                        // copy the content, but skip non alphnum
-                        // and content in parenthesis
+                        // copy the content, but skip non alphanum and content in parenthesis
                         switch (src[i]) {
                             case '(' :
                             case '[' :
@@ -114,9 +112,7 @@ class CMDUI : public UI
                         break;
                         
                     default :
-                        // here we are inside parenthesis and
-                        // we skip the content until we are back to
-                        // level 3
+                        // here we are inside parenthesis and we skip the content until we are back to level 3
                         switch (src[i]) {
                             case '(' :
                             case '[' :
@@ -141,11 +137,17 @@ class CMDUI : public UI
         : UI(), fArgc(argc), fArgv(argv), fIgnoreParam(ignore_param) { fPrefix.push("-"); }
         virtual ~CMDUI() {}
     
+        // Can be used as public method
         void addOption(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max)
         {
             std::string fullname = "-" + simplify(fPrefix.top() + "-" + label);
             fKeyParam.insert(make_pair(fullname, param(zone, init, min, max)));
         }
+    
+        virtual void openTabBox(const char* label) { openAnyBox(label); }
+        virtual void openHorizontalBox(const char* label) { openAnyBox(label); }
+        virtual void openVerticalBox(const char* label) { openAnyBox(label); }
+        virtual void closeBox() { fPrefix.pop(); }
     
         virtual void addButton(const char* label, FAUSTFLOAT* zone)
         {
@@ -181,12 +183,6 @@ class CMDUI : public UI
     
         virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
     
-        virtual void openTabBox(const char* label) { openAnyBox(label); }
-        virtual void openHorizontalBox(const char* label) { openAnyBox(label); }
-        virtual void openVerticalBox(const char* label) { openAnyBox(label); }
-    
-        virtual void closeBox() { fPrefix.pop(); }
-    
         virtual bool run()
         {
             char c;
@@ -198,17 +194,20 @@ class CMDUI : public UI
             return true;
         }
     
-        void printhelp_command(int file = NO_FILE)
+        void printhelp_command(int file_mode = NO_FILE)
         {
-            std::cout << fArgv[0] << " ";
-            for (const auto& i : fKeyParam) {
-                std::cout << "[ " << i.first << " " << i.second.fMin << ".." << i.second.fMax <<" ] ";
-            }
-            std::cout << std::endl;
-            if (file == INPUT_OUTPUT_FILE) {
-                std::cout << "infile outfile\n";
-            } else if (file == OUTPUT_FILE) {
-                std::cout << "outfile\n";
+            if ((file_mode == OUTPUT_FILE && files() < 1)
+                || (file_mode == INPUT_OUTPUT_FILE && files() < 2)) {
+                std::cout << fArgv[0] << " ";
+                for (const auto& i : fKeyParam) {
+                    std::cout << "[ " << i.first << " " << i.second.fMin << ".." << i.second.fMax <<" ] ";
+                }
+                if (file_mode == INPUT_OUTPUT_FILE) {
+                    std::cout << "infile outfile\n";
+                } else if (file_mode == OUTPUT_FILE) {
+                    std::cout << "outfile\n";
+                }
+                exit(1);
             }
         }
     
@@ -219,9 +218,10 @@ class CMDUI : public UI
                 std::cout << "[ " << i.first << " " << i.second.fMin << ".." << i.second.fMax <<" ] ";
             }
             std::cout << std::endl;
+            exit(1);
         }
     
-        void process_command(int file = NO_FILE)
+        void process_command(int file_mode = NO_FILE)
         {
             std::map<std::string, param>::iterator p;
             for (int i = 1; i < fArgc; i++) {
@@ -229,15 +229,13 @@ class CMDUI : public UI
                     if ((strcmp(fArgv[i], "-help") == 0)
                         || (strcmp(fArgv[i], "-h") == 0)
                         || (strcmp(fArgv[i], "--help") == 0)) {
-                        printhelp_command(file);
-                        exit(1);
+                        printhelp_command(file_mode);
                     }
                     p = fKeyParam.find(fArgv[i]);
                     if (p == fKeyParam.end()) {
                         if (!fIgnoreParam) {
                             std::cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
-                            printhelp_command();
-                            exit(1);
+                            printhelp_command(file_mode);
                         } else {
                             // Argument with a value, so also ignore the value
                             if ((i+1 < fArgc) && (fArgv[i+1][0] != '-')) i++;
@@ -262,13 +260,11 @@ class CMDUI : public UI
                         || (strcmp(fArgv[i], "-h") == 0)
                         || (strcmp(fArgv[i], "--help") == 0)) {
                         printhelp_init();
-                        exit(1);
                     }
                     p = fKeyParam.find(fArgv[i]);
                     if (p == fKeyParam.end()) {
                         std::cout << fArgv[0] << " : unrecognized option " << fArgv[i] << "\n";
                         printhelp_init();
-                        exit(1);
                     }
                     char* end;
                     *(p->second.fZone) = FAUSTFLOAT(std::strtod(fArgv[i+1], &end));
