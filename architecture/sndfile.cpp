@@ -49,6 +49,7 @@
 #include "faust/dsp/dsp.h"
 #include "faust/gui/console.h"
 #include "faust/gui/FUI.h"
+#include "faust/gui/ControlSequenceUI.h"
 #include "faust/dsp/dsp-tools.h"
 #include "faust/misc.h"
 
@@ -106,16 +107,28 @@ mydsp DSP;
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
-#define kFrames      512
+#define kFrames      64
 #define kSampleRate  44100
 
-int main(int argc, char* argv[])
+int main(int argc_aux, char* argv_aux[])
 {
     char name[256];
     char rcfilename[256];
     char* home = getenv("HOME");
-    snprintf(name, 256, "%s", basename(argv[0]));
+    snprintf(name, 256, "%s", basename(argv_aux[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, name);
+    string cfilename;
+    
+    int argc = 0;
+    char* argv[64];
+    for (int i = 0; i < argc_aux; i++) {
+        if (string(argv_aux[i]) == "-ct") {
+            cfilename = argv_aux[i+1];
+            i++;
+            continue;
+        }
+        argv[argc++] = argv_aux[i];
+    }
     
     // Recall state before handling commands
     FUI finterface;
@@ -127,7 +140,7 @@ int main(int argc, char* argv[])
     interface->process_command(FILE_MODE);
     interface->printhelp_command(FILE_MODE);
     
-    bool is_rc = loptrm(&argc, argv, "-rc", "-rc", 0);
+    bool is_rc = loptrm(&argc, argv, "--rcfile", "-rc", 0);
     
     if (FILE_MODE == INPUT_OUTPUT_FILE) {
         
@@ -152,6 +165,9 @@ int main(int argc, char* argv[])
             exit(1);
         }
         
+        ControlSequenceUI sequenceUI(OSCSequenceReader::read(cfilename, in_info.samplerate));
+        DSP.buildUserInterface(&sequenceUI);
+        
         // Init DSP with SR
         DSP.init(in_info.samplerate);
         
@@ -169,10 +185,17 @@ int main(int argc, char* argv[])
         
         // Process all samples
         int nbf;
+        uint64_t cur_frame = 0;
         do {
+            // Read samples
             nbf = READ_SAMPLE(in_sf, dilv.input(), kFrames);
             dilv.deinterleave();
+            // Update controllers
+            sequenceUI.process(cur_frame, cur_frame + nbf);
+            cur_frame += nbf;
+            // Compute DSP
             DSP.compute(nbf, dilv.outputs(), ilv.inputs());
+            // Write samples
             ilv.interleave();
             WRITE_SAMPLE(out_sf, ilv.output(), nbf);
         } while (nbf == kFrames);
@@ -198,8 +221,14 @@ int main(int argc, char* argv[])
         
     } else {
         
-        int num_samples = loptrm(&argc, argv, "--samples", "-s", kSampleRate * 5);
         int sample_rate = loptrm(&argc, argv, "--sample-rate", "-sr", kSampleRate);
+        
+        ControlSequenceUI sequenceUI(OSCSequenceReader::read(cfilename, sample_rate));
+        uint64_t begin, end;
+        sequenceUI.getRange(begin, end);
+        DSP.buildUserInterface(&sequenceUI);
+        
+        int num_samples = loptrm(&argc, argv, "--samples", "-s", ((end > 0) ? (end + kSampleRate) : kSampleRate * 5));
         int bit_depth = loptrm(&argc, argv, "--bith-depth (16|24|32)", "-bd", 16);
         int bd = (bit_depth == 16) ? SF_FORMAT_PCM_16 : ((bit_depth == 24) ? SF_FORMAT_PCM_24 : SF_FORMAT_PCM_32);
         
@@ -226,20 +255,18 @@ int main(int argc, char* argv[])
         Interleaver ilv(kFrames, DSP.getNumOutputs(), DSP.getNumOutputs());
         
         // Process all samples
-        int frames = num_samples;
-        int nbf = 0;
+        uint64_t cur_frame = 0;
         do {
-            if (frames > kFrames) {
-                nbf = kFrames;
-                frames -= kFrames;
-            } else {
-                nbf = frames;
-                frames = 0;
-            }
+            int nbf = std::min(int(num_samples - cur_frame), int(kFrames));
+            // Update controllers
+            sequenceUI.process(cur_frame, cur_frame + nbf);
+            // Compute DSP
             DSP.compute(nbf, nullptr, ilv.inputs());
+            // Write samples
             ilv.interleave();
             WRITE_SAMPLE(out_sf, ilv.output(), nbf);
-        } while (nbf);
+            cur_frame += nbf;
+        } while (cur_frame < num_samples);
         
         sf_close(out_sf);
         

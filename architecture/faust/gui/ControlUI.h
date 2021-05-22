@@ -29,29 +29,21 @@
 #include <vector>
 #include <assert.h>
 
-#include "faust/gui/UI.h"
+#include "faust/gui/DecoratorUI.h"
 
-class ControlUI : public UI {  
+class ControlUI : public DecoratorUI {
 
     protected:
     
         std::vector<FAUSTFLOAT*> fControlIn;
         std::vector<FAUSTFLOAT*> fControlOut;
      
-         // -- widget's layouts
-
-        void openTabBox(const char* label) {}
-        void openHorizontalBox(const char* label) {}
-        void openVerticalBox(const char* label) {};
-        void closeBox() {}
-
         // -- active widgets
 
         void addButton(const char* label, FAUSTFLOAT* zone) { fControlIn.push_back(zone); }
         void addCheckButton(const char* label, FAUSTFLOAT* zone) { fControlIn.push_back(zone); }
         void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fControlIn.push_back(zone); };
         void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fControlIn.push_back(zone); };
-
         void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fControlIn.push_back(zone); };
 
         // -- passive widgets
@@ -59,10 +51,6 @@ class ControlUI : public UI {
         void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) { fControlOut.push_back(zone); };
         void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) { fControlOut.push_back(zone); };
     
-        // -- soundfiles
-    
-        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
-   
     public:
     
         ControlUI() {}
