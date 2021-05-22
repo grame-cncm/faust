@@ -8,7 +8,7 @@
 /******************* BEGIN sndfile.cpp ****************/
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2021 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -57,11 +57,8 @@
 #define FAUSTFLOAT float
 #endif
 
-#define READ_SAMPLE sf_readf_float
-//#define READ_SAMPLE sf_readf_double
-
-#define WRITE_SAMPLE sf_writef_float
-//#define WRITE_SAMPLE sf_writef_float
+typedef sf_count_t (* sample_read)(SNDFILE* sndfile, void* buffer, sf_count_t frames);
+typedef sf_count_t (* sample_write)(SNDFILE* sndfile, void* buffer, sf_count_t frames);
 
 using namespace std;
 
@@ -140,6 +137,16 @@ int main(int argc_aux, char* argv_aux[])
     interface->process_command(FILE_MODE);
     interface->printhelp_command(FILE_MODE);
     
+    sample_read reader;
+    sample_write writer;
+    if (sizeof(FAUSTFLOAT) == 4) {
+        reader = reinterpret_cast<sample_read>(sf_readf_float);
+        writer = reinterpret_cast<sample_write>(sf_writef_float);
+    } else {
+        reader = reinterpret_cast<sample_read>(sf_readf_double);
+        writer = reinterpret_cast<sample_write>(sf_writef_double);
+    }
+    
     bool is_rc = loptrm(&argc, argv, "--rcfile", "-rc", 0);
     
     if (FILE_MODE == INPUT_OUTPUT_FILE) {
@@ -188,7 +195,7 @@ int main(int argc_aux, char* argv_aux[])
         uint64_t cur_frame = 0;
         do {
             // Read samples
-            nbf = READ_SAMPLE(in_sf, dilv.input(), kFrames);
+            nbf = reader(in_sf, dilv.input(), kFrames);
             dilv.deinterleave();
             // Update controllers
             sequenceUI.process(cur_frame, cur_frame + nbf);
@@ -197,7 +204,7 @@ int main(int argc_aux, char* argv_aux[])
             DSP.compute(nbf, dilv.outputs(), ilv.inputs());
             // Write samples
             ilv.interleave();
-            WRITE_SAMPLE(out_sf, ilv.output(), nbf);
+            writer(out_sf, ilv.output(), nbf);
         } while (nbf == kFrames);
         
         sf_close(in_sf);
@@ -209,7 +216,7 @@ int main(int argc_aux, char* argv_aux[])
             Interleaver ilv(num_samples, DSP.getNumOutputs(), DSP.getNumOutputs());
             DSP.compute(num_samples, inputs, ilv.inputs());
             ilv.interleave();
-            WRITE_SAMPLE(out_sf, ilv.output(), num_samples);
+            writer(out_sf, ilv.output(), num_samples);
         }
         
         sf_close(out_sf);
@@ -264,7 +271,7 @@ int main(int argc_aux, char* argv_aux[])
             DSP.compute(nbf, nullptr, ilv.inputs());
             // Write samples
             ilv.interleave();
-            WRITE_SAMPLE(out_sf, ilv.output(), nbf);
+            writer(out_sf, ilv.output(), nbf);
             cur_frame += nbf;
         } while (cur_frame < num_samples);
         
