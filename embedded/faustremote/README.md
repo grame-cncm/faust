@@ -6,13 +6,13 @@ The `libfaustremote` library allows to compile and process a Faust DSP  program 
 ### Remote server 
 
 The server launches a compilation service, waiting for DSPs to compile. Dependencies are:        
-* `LLVM`               using macport
-* `faust`             make + sudo make install at the root of faust project
+* `LLVM`         using macport
+* `faust`        make + sudo make install at the root of faust project
 * `HTTPDFaust`   make httpd + sudo make install at the root of faust project
 * `microhttpd`   using macport
 * `libjacknet`   download JackOSX package at: https://jackaudio.org
 
-Here is te API:
+Here is the API:
 
 * `remote_dsp_server* createRemoteDSPServer()`
 * `void deleteRemoteDSPServer(remote_dsp_server* server)`
