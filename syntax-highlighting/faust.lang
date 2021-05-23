@@ -32,8 +32,7 @@
 
     <styles>
         <style id="primitive"         _name="Primitive"           map-to="def:keyword"/>
-        <style id="structure"         _name="Structure"           map-to="def:statement"/>
-        
+        <style id="structure"         _name="Structure"           map-to="def:statement"/>       
         <style id="comment"           _name="Comment"             map-to="def:comment"/>
         <style id="error"             _name="Error"               map-to="def:error"/>
         <style id="string"            _name="String"              map-to="def:string"/>
@@ -210,6 +209,9 @@
 				  <keyword>ffunction</keyword>
 				  <keyword>fconstant</keyword>
 				  <keyword>fvariable</keyword>
+				  <keyword>route</keyword>
+				  <keyword>waveform</keyword>
+				  <keyword>soundfile</keyword>
 				  <keyword>button</keyword>
 				  <keyword>checkbox</keyword>
 				  <keyword>vslider</keyword>
@@ -260,9 +262,6 @@
 				  
 				  <keyword>declare</keyword>
                 </context>
-
- 
-
             </include>
         </context>
     </definitions>

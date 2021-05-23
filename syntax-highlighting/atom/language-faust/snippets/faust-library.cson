@@ -31,133 +31,133 @@
 		'body': 'an.amp_follower_ar'
 	'samp2sec':
 		'prefix': 'samp2sec'
-		'body': 'an.samp2sec'
+		'body': 'ba.samp2sec'
 	'sec2samp':
 		'prefix': 'sec2samp'
-		'body': 'an.sec2samp'
+		'body': 'ba.sec2samp'
 	'db2linear':
 		'prefix': 'db2linear'
-		'body': 'an.db2linear'
+		'body': 'ba.db2linear'
 	'linear2db':
 		'prefix': 'linear2db'
-		'body': 'an.linear2db'
+		'body': 'ba.linear2db'
 	'lin2LogGain':
 		'prefix': 'lin2LogGain'
-		'body': 'an.lin2LogGain'
+		'body': 'ba.lin2LogGain'
 	'log2LinGain':
 		'prefix': 'log2LinGain'
-		'body': 'an.log2LinGain'
+		'body': 'ba.log2LinGain'
 	'tau2pole':
 		'prefix': 'tau2pole'
-		'body': 'an.tau2pole'
+		'body': 'ba.tau2pole'
 	'pole2tau':
 		'prefix': 'pole2tau'
-		'body': 'an.pole2tau'
+		'body': 'ba.pole2tau'
 	'midikey2hz':
 		'prefix': 'midikey2hz'
-		'body': 'an.midikey2hz'
+		'body': 'ba.midikey2hz'
 	'pianokey2hz':
 		'prefix': 'pianokey2hz'
-		'body': 'an.pianokey2hz'
+		'body': 'ba.pianokey2hz'
 	'hz2pianokey':
 		'prefix': 'hz2pianokey'
-		'body': 'an.hz2pianokey'
+		'body': 'ba.hz2pianokey'
 	'countdown':
 		'prefix': 'countdown'
-		'body': 'an.countdown'
+		'body': 'ba.countdown'
 	'countup':
 		'prefix': 'countup'
-		'body': 'an.countup'
+		'body': 'ba.countup'
 	'sweep':
 		'prefix': 'sweep'
-		'body': 'an.sweep'
+		'body': 'ba.sweep'
 	'time':
 		'prefix': 'time'
-		'body': 'an.time'
+		'body': 'ba.time'
 	'tempo':
 		'prefix': 'tempo'
-		'body': 'an.tempo'
+		'body': 'ba.tempo'
 	'period':
 		'prefix': 'period'
-		'body': 'an.period'
+		'body': 'ba.period'
 	'pulse':
 		'prefix': 'pulse'
-		'body': 'an.pulse'
+		'body': 'ba.pulse'
 	'pulsen':
 		'prefix': 'pulsen'
-		'body': 'an.pulsen'
+		'body': 'ba.pulsen'
 	'beat':
 		'prefix': 'beat'
-		'body': 'an.beat'
+		'body': 'ba.beat'
 	'pulse_countup':
 		'prefix': 'pulse_countup'
-		'body': 'an.pulse_countup'
+		'body': 'ba.pulse_countup'
 	'pulse_countdown':
 		'prefix': 'pulse_countdown'
-		'body': 'an.pulse_countdown'
+		'body': 'ba.pulse_countdown'
 	'pulse_countup_loop':
 		'prefix': 'pulse_countup_loop'
-		'body': 'an.pulse_countup_loop'
+		'body': 'ba.pulse_countup_loop'
 	'pulse_countdown_loop':
 		'prefix': 'pulse_countdown_loop'
-		'body': 'an.pulse_countdown_loop'
+		'body': 'ba.pulse_countdown_loop'
 	'count':
 		'prefix': 'count'
-		'body': 'an.count'
+		'body': 'ba.count'
 	'take':
 		'prefix': 'take'
-		'body': 'an.take'
+		'body': 'ba.take'
 	'subseq':
 		'prefix': 'subseq'
-		'body': 'an.subseq'
+		'body': 'ba.subseq'
 	'if':
 		'prefix': 'if'
-		'body': 'an.if'
+		'body': 'ba.if'
 	'selector':
 		'prefix': 'selector'
-		'body': 'an.selector'
+		'body': 'ba.selector'
 	'selectn':
 		'prefix': 'selectn'
-		'body': 'an.selectn'
+		'body': 'ba.selectn'
 	'select2stereo':
 		'prefix': 'select2stereo'
-		'body': 'an.select2stereo'
+		'body': 'ba.select2stereo'
 	'latch':
 		'prefix': 'latch'
-		'body': 'an.latch'
+		'body': 'ba.latch'
 	'sAndH':
 		'prefix': 'sAndH'
-		'body': 'an.sAndH'
+		'body': 'ba.sAndH'
 	'peakhold':
 		'prefix': 'peakhold'
-		'body': 'an.peakhold'
+		'body': 'ba.peakhold'
 	'peakholder':
 		'prefix': 'peakholder'
-		'body': 'an.peakholder'
+		'body': 'ba.peakholder'
 	'impulsify':
 		'prefix': 'impulsify'
-		'body': 'an.impulsify'
+		'body': 'ba.impulsify'
 	'automat':
 		'prefix': 'automat'
-		'body': 'an.automat'
+		'body': 'ba.automat'
 	'bpf':
 		'prefix': 'bpf'
-		'body': 'an.bpf'
+		'body': 'ba.bpf'
 	'bypass1':
 		'prefix': 'bypass1'
-		'body': 'an.bypass1'
+		'body': 'ba.bypass1'
 	'bypass2':
 		'prefix': 'bypass2'
-		'body': 'an.bypass2'
+		'body': 'ba.bypass2'
 	'toggle':
 		'prefix': 'toggle'
-		'body': 'an.toggle'
+		'body': 'ba.toggle'
 	'on_and_off':
 		'prefix': 'on_and_off'
-		'body': 'an.on_and_off'
+		'body': 'ba.on_and_off'
 	'selectoutn':
 		'prefix': 'selectoutn'
-		'body': 'an.selectoutn'
+		'body': 'ba.selectoutn'
 	'compressor_mono':
 		'prefix': 'compressor_mono'
 		'body': 'co.compressor_mono'
@@ -476,124 +476,124 @@
 		'body': 'ho.rotate'
 	'SR':
 		'prefix': 'SR'
-		'body': 'ho.SR'
+		'body': 'ma.SR'
 	'BS':
 		'prefix': 'BS'
-		'body': 'ho.BS'
+		'body': 'ma.BS'
 	'PI':
 		'prefix': 'PI'
-		'body': 'ho.PI'
+		'body': 'ma.PI'
 	'FTZ':
 		'prefix': 'FTZ'
-		'body': 'ho.FTZ'
+		'body': 'ma.FTZ'
 	'neg':
 		'prefix': 'neg'
-		'body': 'ho.neg'
+		'body': 'ma.neg'
 	'sub(x,y)':
 		'prefix': 'sub(x,y)'
-		'body': 'ho.sub(x,y)'
+		'body': 'ma.sub(x,y)'
 	'inv':
 		'prefix': 'inv'
-		'body': 'ho.inv'
+		'body': 'ma.inv'
 	'cbrt':
 		'prefix': 'cbrt'
-		'body': 'ho.cbrt'
+		'body': 'ma.cbrt'
 	'hypot':
 		'prefix': 'hypot'
-		'body': 'ho.hypot'
+		'body': 'ma.hypot'
 	'ldexp':
 		'prefix': 'ldexp'
-		'body': 'ho.ldexp'
+		'body': 'ma.ldexp'
 	'scalb':
 		'prefix': 'scalb'
-		'body': 'ho.scalb'
+		'body': 'ma.scalb'
 	'log1p':
 		'prefix': 'log1p'
-		'body': 'ho.log1p'
+		'body': 'ma.log1p'
 	'logb':
 		'prefix': 'logb'
-		'body': 'ho.logb'
+		'body': 'ma.logb'
 	'ilogb':
 		'prefix': 'ilogb'
-		'body': 'ho.ilogb'
+		'body': 'ma.ilogb'
 	'log2':
 		'prefix': 'log2'
-		'body': 'ho.log2'
+		'body': 'ma.log2'
 	'expm1':
 		'prefix': 'expm1'
-		'body': 'ho.expm1'
+		'body': 'ma.expm1'
 	'acosh':
 		'prefix': 'acosh'
-		'body': 'ho.acosh'
+		'body': 'ma.acosh'
 	'asinh':
 		'prefix': 'asinh'
-		'body': 'ho.asinh'
+		'body': 'ma.asinh'
 	'atanh':
 		'prefix': 'atanh'
-		'body': 'ho.atanh'
+		'body': 'ma.atanh'
 	'sinh':
 		'prefix': 'sinh'
-		'body': 'ho.sinh'
+		'body': 'ma.sinh'
 	'cosh':
 		'prefix': 'cosh'
-		'body': 'ho.cosh'
+		'body': 'ma.cosh'
 	'tanh':
 		'prefix': 'tanh'
-		'body': 'ho.tanh'
+		'body': 'ma.tanh'
 	'erf':
 		'prefix': 'erf'
-		'body': 'ho.erf'
+		'body': 'ma.erf'
 	'erfc':
 		'prefix': 'erfc'
-		'body': 'ho.erfc'
+		'body': 'ma.erfc'
 	'gamma':
 		'prefix': 'gamma'
-		'body': 'ho.gamma'
+		'body': 'ma.gamma'
 	'lgamma':
 		'prefix': 'lgamma'
-		'body': 'ho.lgamma'
+		'body': 'ma.lgamma'
 	'J0':
 		'prefix': 'J0'
-		'body': 'ho.J0'
+		'body': 'ma.J0'
 	'J1':
 		'prefix': 'J1'
-		'body': 'ho.J1'
+		'body': 'ma.J1'
 	'Jn':
 		'prefix': 'Jn'
-		'body': 'ho.Jn'
+		'body': 'ma.Jn'
 	'Y0':
 		'prefix': 'Y0'
-		'body': 'ho.Y0'
+		'body': 'ma.Y0'
 	'Y1':
 		'prefix': 'Y1'
-		'body': 'ho.Y1'
+		'body': 'ma.Y1'
 	'Yn':
 		'prefix': 'Yn'
-		'body': 'ho.Yn'
+		'body': 'ma.Yn'
 	'np2':
 		'prefix': 'np2'
-		'body': 'ho.np2'
+		'body': 'ma.np2'
 	'frac':
 		'prefix': 'frac'
-		'body': 'ho.frac'
+		'body': 'ma.frac'
 	'isnan':
 		'prefix': 'isnan'
-		'body': 'ho.isnan'
+		'body': 'ma.isnan'
 	'chebychev':
 		'prefix': 'chebychev'
-		'body': 'ho.chebychev'
+		'body': 'ma.chebychev'
 	'chebychevpoly':
 		'prefix': 'chebychevpoly'
-		'body': 'ho.chebychevpoly'
+		'body': 'ma.chebychevpoly'
 	'diffn':
 		'prefix': 'diffn'
-		'body': 'ho.diffn'
+		'body': 'ma.diffn'
 	'signum':
 		'prefix': 'signum'
-		'body': 'ho.signum'
+		'body': 'ma.signum'
 	'cubicnl':
 		'prefix': 'cubicnl'
-		'body': 'ef.cubicnl'
+		'body': 'ma.cubicnl'
 	'gate_mono':
 		'prefix': 'gate_mono'
 		'body': 'ef.gate_mono'

@@ -14,6 +14,9 @@
       <item> ffunction </item>
       <item> fconstant</item>
       <item> fvariable</item>
+      <item> route <item>
+      <item> waveform <item>
+      <item> soundfile <item>
       <item> button </item>
       <item> checkbox </item>
       <item> vslider </item>

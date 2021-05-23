@@ -8,15 +8,14 @@
 # This file is for highlight (http:/www.andre-simon.de/), a free source code 
 # converter released under the GPL.
 # It describes how to highlight the syntax of Faust a functional programming language 
-# for realtime signal processing (http://faust.grame.fr)
+# for realtime signal processing (https://faust.grame.fr)
 #
 
 $DESCRIPTION=Faust
 
-$KW_LIST(kwa)=component library environment mem prefix int float rdtable rwtable select2 select3 ffunction fconstant fvariable button checkbox vslider hslider nentry vgroup hgroup tgroup vbargraph hbargraph attach acos asin atan atan2 cos sin tan exp log log10 pow sqrt abs min max fmod remainder floor ceil rint
+$KW_LIST(kwa)=component library environment mem prefix int float rdtable rwtable select2 select3 ffunction fconstant fvariable route waveform soundfile button checkbox vslider hslider nentry vgroup hgroup tgroup vbargraph hbargraph attach acos asin atan atan2 cos sin tan exp log log10 pow sqrt abs min max fmod remainder floor ceil rint
 
 $KW_LIST(kwc)=process with case seq par sum prod import declare
-
 
 $STRINGDELIMITERS="
 

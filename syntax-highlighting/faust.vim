@@ -23,7 +23,7 @@ syn clear
 " faust primitives
 " the list is taken from the faust.xml file writen for the kate-editor and may
 " not be complete
-syn keyword fstPrims mem prefix int float rdtable rwtable select2 select3 ffunction fconstant fvariable button checkbox vslider hslider nentry vgroup hgroup tgroup vbargraph hbargraph attach acos asin atan atan2 cos sin tan exp log log10 pow sqrt abs min max fmod remainder floor ceil rint
+syn keyword fstPrims mem prefix int float rdtable rwtable select2 select3 ffunction fconstant fvariable route waveform soundfile button checkbox vslider hslider nentry vgroup hgroup tgroup vbargraph hbargraph attach acos asin atan atan2 cos sin tan exp log log10 pow sqrt abs min max fmod remainder floor ceil rint
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " faust operators

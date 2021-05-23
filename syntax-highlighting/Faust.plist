@@ -33,6 +33,9 @@
 		<string>ffunction</string>
 		<string>fconstant</string>
 		<string>fvariable</string>
+		<string>route</string>
+		<string>waveform</string>
+		<string>soundfile</string>
 		<string>button</string>
 		<string>checkbox</string>
 		<string>vslider</string>

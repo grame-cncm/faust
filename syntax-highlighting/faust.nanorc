@@ -4,8 +4,6 @@
 
 syntax "faust" "\.dsp$"
 
-
-
 color brightmagenta "(min|max|cos|sin|floor|abs|sqrt)"
 color brightmagenta "(vbargraph|hbargraph|button|attach|checkbox|library|par|vgroup|hgroup|tgroup|pow|tan|ffunction|rdtable|hslider|vslider|nentry)"
 color brightred "(<:|:>|~|:|,)"

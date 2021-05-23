@@ -20,7 +20,6 @@ Install the file `faust.xml` into Kate syntax folder (`/opt/kde3/share/apps/kate
 
 Install the file `faust.lang` into gedit syntax folder (`/usr/share/gtksourceview-2.0/language-specs` on Ubuntu 9.10)
 
-
 ## TextWrangler
 Install the file `Faust.plist` into `~/Library/Application Support/TextWrangler/Language Modules/`
 
