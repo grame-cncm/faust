@@ -8,7 +8,7 @@
 ;; Maintainer: Yassin Philip <xaccrocheur@gmail.com>
 ;; Maintainer: Juan A. Romero <rukano@gmail.com>
 ;; Keywords: languages, faust
-;; Version: 0.2
+;; Version: 0.3
 ;; URL: https://github.com/rukano/emacs-faust-mode
 ;; License: GPLv3
 ;; MELPA: yes
@@ -53,7 +53,7 @@
 ;; ### Faust
 
 ;; Oh, and of course install [the latest
-;; Faust](http://faust.grame.fr/download/) and ensure it's in the
+;; Faust](https://faust.grame.fr/downloads/) and ensure it's in the
 ;; PATH.
 
 ;; ### Faustine
