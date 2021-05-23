@@ -423,7 +423,7 @@ with {
 };
 
 
-//#################################### compressors.lib ####################################
+//#################################### compressors.lib ###################################
 // A library of compressor effects. Its official prefix is `co`.
 //########################################################################################
 
@@ -468,6 +468,7 @@ it = library("interpolators.lib");
 
 declare name "Faust Compressor Effect Library";
 declare version "0.1";
+
 //=============================Functions Reference========================================
 //========================================================================================
 
@@ -5305,7 +5306,7 @@ si = library("signals.lib");
 // ```
 //
 // * `ar`: attack and release duration (s)
-// * `t`: trigger signal (attack is triggered when `t>0`, release is triggered 
+// * `t`: trigger signal (attack is triggered when `t>0`, release is triggered
 // when `t=0`)
 //----------------------------------------------------------------
 // Author: RM
@@ -5326,21 +5327,21 @@ smoothEnvelope(ar,t) = t : si.smooth(ba.tau2pole(ar));
 //
 // * `at`: attack (sec)
 // * `rt`: release (sec)
-// * `t`: trigger signal (attack is triggered when `t>0`, release is triggered 
+// * `t`: trigger signal (attack is triggered when `t>0`, release is triggered
 // when `t=0`)
 //-----------------------------------------------------
 declare ar author "Yann Orlarey, Stéphane Letz";
-ar(at,rt,gate) = AR : max(0) 
+ar(at,rt,gate) = AR : max(0)
 with {
 
     // Durations in samples
-    an = max(1, at*ma.SR);  
+    an = max(1, at*ma.SR);
     rn = max(1, rt*ma.SR);
 
     // Deltas per samples
     adelta = 1/an;
     rdelta = 1/rn;
-    
+
     // Attack time (starts at gate upfront and raises infinitely)
     atime = (raise*reset + upfront) ~ _
     with {
@@ -5351,14 +5352,14 @@ with {
 
     // Attack curve
     A = atime * adelta;
-    
+
     // Release curve
     D0 = 1 + an * rdelta;
     D = D0 - atime * rdelta;
 
     // AR part
     AR = min(A, D);
-    
+
 };
 
 
@@ -5376,7 +5377,7 @@ with {
 //
 // * `a`, `r`: attack (sec), release (sec)
 // * `f`: final value to approach upon release (such as 0)
-// * `t`: trigger signal (attack is triggered when `t>0`, release is triggered 
+// * `t`: trigger signal (attack is triggered when `t>0`, release is triggered
 // when `t=0`)
 //-----------------------------------------------------
 // Author: JOS
@@ -5404,7 +5405,7 @@ arfe(attT60,relT60,fv,gate) = envelope with {
 //
 // * `a`: attack (sec)
 // * `r`: release (sec)
-// * `t`: trigger signal (attack is triggered when `t>0`, release is triggered 
+// * `t`: trigger signal (attack is triggered when `t>0`, release is triggered
 // when `t=0`)
 //-----------------------------------------------------
 // Author: JOS
@@ -5425,9 +5426,9 @@ are(attT60,relT60,gate) = arfe(attT60,relT60,0,gate);
 // Where:
 //
 // * `at`: attack (sec)
-// * `sl`: sustain level (between 0..1) 
+// * `sl`: sustain level (between 0..1)
 // * `r`: release (sec)
-// * `t`: trigger signal (attack is triggered when `t>0`, release is triggered 
+// * `t`: trigger signal (attack is triggered when `t>0`, release is triggered
 // when `t=0`)
 //-----------------------------------------------------
 declare asr author "Yann Orlarey, Stéphane Letz";
@@ -5435,7 +5436,7 @@ asr(at,sl,rt,gate) = AS - R : max(0)
 with {
 
     // Durations in samples
-    an = max(1, at*ma.SR);  
+    an = max(1, at*ma.SR);
     rn = max(1, rt*ma.SR);
 
     // Deltas per samples
@@ -5451,7 +5452,7 @@ with {
     // AS part
     AS = min(A, sl);
 
-    // Release time starts when gate is 0 
+    // Release time starts when gate is 0
     rtime = (+(1) : *(gate == 0)) ~ _;
 
     // Release curve starts when gate is 0 with the current value of the envelope
@@ -5474,24 +5475,24 @@ with {
 //
 // * `at`: attack time (sec)
 // * `dt`: decay time (sec)
-// * `sl`: sustain level (between 0..1) 
+// * `sl`: sustain level (between 0..1)
 // * `rt`: release time (sec)
-// * `gate`: trigger signal (attack is triggered when `gate>0`, release is triggered 
+// * `gate`: trigger signal (attack is triggered when `gate>0`, release is triggered
 // when `gate=0`)
 //-----------------------------------------------------
-declare adsr author "Yann Orlarey";
-adsr(at,dt,sl,rt,gate) = ADS - R : max(0)
+declare adsr author "Yann Orlarey and Andrey Bundin";
+adsr(at,dt,sl,rt,gate) = ADS : *(1-R) : max(0)
 with {
 
     // Durations in samples
-    an = max(1, at*ma.SR);  
+    an = max(1, at*ma.SR);
     dn = max(1, dt*ma.SR);
     rn = max(1, rt*ma.SR);
 
     // Deltas per samples
     adelta = 1/an;
     ddelta = (1-sl)/dn;
-    rdelta = sl/rn;
+
 
     // Attack time (starts when gate changes and raises until gate == 0)
     atime = +(gate) ~ *(gate' >= gate);
@@ -5510,13 +5511,13 @@ with {
     rtime = (+(1) : *(gate == 0)) ~ _;
 
     // Release curve starts when gate is 0 with the current value of the envelope
-    R = rtime * rdelta;
+    R = rtime/rn;
 
 };
 
 
 //------------------------`(en.)adsre`----------------------
-// ADSRE (Attack, Decay, Sustain, Release) envelope generator with Exponential 
+// ADSRE (Attack, Decay, Sustain, Release) envelope generator with Exponential
 // segments.
 //
 // #### Usage
@@ -5562,9 +5563,9 @@ adsre(attT60,decT60,susLvl,relT60,gate) = envelope with {
 // Where:
 //
 // * `a`: attack (sec)
-// * `s`: sustain (fraction of `t`: 0-1) 
+// * `s`: sustain (fraction of `t`: 0-1)
 // * `r`: release (sec)
-// * `t`: trigger signal (attack is triggered when `t>0`, release is triggered 
+// * `t`: trigger signal (attack is triggered when `t>0`, release is triggered
 // when `t=0`)
 //-----------------------------------------------------
 // Author: JOS
@@ -5653,6 +5654,7 @@ declare version "0.1";
 ma = library("maths.lib");
 ba = library("basics.lib");
 fi = library("filters.lib");
+si = library("signals.lib");
 
 // This library contains platform specific constants 
 pl = library("platform.lib");
@@ -8254,12 +8256,12 @@ with {
 // considered as "deprecated".
 //////////////////////////////////////////////////////////////////////////////////////////
 
-echo1s  = vgroup("echo  1000", +~(de.delay(65536,   int(hslider("millisecond", 0, 0,	1000, 0.10)*ba.millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
-echo2s  = vgroup("echo  2000", +~(de.delay(131072,  int(hslider("millisecond", 0, 0,	2000, 0.25)*ba.millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
-echo5s  = vgroup("echo  5000", +~(de.delay(262144,  int(hslider("millisecond", 0, 0,	5000, 0.50)*ba.millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
-echo10s = vgroup("echo 10000", +~(de.delay(524288,  int(hslider("millisecond", 0, 0,  10000, 1.00)*ba.millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
-echo21s = vgroup("echo 21000", +~(de.delay(1048576, int(hslider("millisecond", 0, 0,  21000, 1.00)*ba.millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
-echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0, 0,  43000, 1.00)*ba.millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
+echo1s  = vgroup("echo 1000", +~(de.delay(65536, int(hslider("millisecond", 0, 0, 1000, 0.10)*ba.millisec)-1) * (hslider("feedback", 0, 0, 100, 0.1)/100.0)));
+echo2s  = vgroup("echo 2000", +~(de.delay(131072, int(hslider("millisecond", 0, 0, 2000, 0.25)*ba.millisec)-1) * (hslider("feedback", 0, 0, 100, 0.1)/100.0)));
+echo5s  = vgroup("echo 5000", +~(de.delay(262144, int(hslider("millisecond", 0, 0, 5000, 0.50)*ba.millisec)-1) * (hslider("feedback", 0, 0, 100, 0.1)/100.0)));
+echo10s = vgroup("echo 10000", +~(de.delay(524288, int(hslider("millisecond", 0, 0, 10000, 1.00)*ba.millisec)-1) * (hslider("feedback", 0, 0, 100, 0.1)/100.0)));
+echo21s = vgroup("echo 21000", +~(de.delay(1048576, int(hslider("millisecond", 0, 0, 21000, 1.00)*ba.millisec)-1) * (hslider("feedback", 0, 0, 100, 0.1)/100.0)));
+echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0, 0, 43000, 1.00)*ba.millisec)-1) * (hslider("feedback", 0, 0, 100, 0.1)/100.0)));
 //################################ version.lib ##########################################
 // Semantic versioning for the Faust libraries. Its official prefix is `vl`.
 //########################################################################################
@@ -8276,8 +8278,8 @@ echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0
 //
 //------------------------------------------------------------
 version =   2, // MAJOR version when we make incompatible API changes,
-            1, // MINOR version when we add functionality in a backwards compatible manner,
-            0; // PATCH version when we make backwards compatible bug fixes.
+            2, // MINOR version when we add functionality in a backwards compatible manner,
+            1; // PATCH version when we make backwards compatible bug fixes.
 
             
 //#################################### webaudio.lib ########################################
@@ -12286,9 +12288,8 @@ fender_deville(T,M,L) = tonestack(t.C1,t.C2,t.C3,t.R1,t.R2,t.R3,t.R4,T,M,L)
 gibsen(T,M,L) = tonestack(t.C1,t.C2,t.C3,t.R1,t.R2,t.R3,t.R4,T,M,L) 
                     with {t = ts.gibsen;};
 
-// #############################################################################
-// ##########  Antialiased nonlinearities (aanl.lib) ###########################
-// #############################################################################
+//################################ aanl.lib ##########################################
+// A library for antialiased nonlinearities. Its official prefix is `aa`. 
 //
 // This library provides aliasing-suppressed nonlinearities through first-order 
 // and second-order approximations of continuous-time signals, functions,
@@ -12317,15 +12318,13 @@ gibsen(T,M,L) = tonestack(t.C1,t.C2,t.C3,t.R1,t.R2,t.R3,t.R4,T,M,L)
 // Also note that due to division by differences, it is vital to use
 // double-precision or more to reduce errors.
 //
-// The environment identifier for this library is "aa". After importing
-// the standard libraries in Faust, the functions below can be called as:
+// The environment identifier for this library is `aa`. After importing
+// the standard libraries in Faust, the functions below can be called as `aa.function_name`.
+// 
+// #### References
 //
-//    "aa.function_name".
-//
-// Reference:
-// https://www.dafx.de/paper-archive/2016/dafxpapers/20-DAFx-16_paper_41-PN.pdf.
-//
-// #############################################################################
+// * <https://www.dafx.de/paper-archive/2016/dafxpapers/20-DAFx-16_paper_41-PN.pdf>
+//########################################################################################
 
 declare name "Antialiased nonlinearities";
 declare version "0.1";
@@ -12333,69 +12332,77 @@ declare version "0.1";
 ba = library("basics.lib");
 ma = library("maths.lib");
 
-
-
-// =============================================================================
-// ========== Auxiliary Functions ==============================================
-// =============================================================================
+//==============================Auxiliary Functions=======================================
+//========================================================================================
 
 // ---------- Constant --------------------------------------------------------
-//
 MAX = ma.INFINITY;
-// -----------------------------------------------------------------------------
 
-// ---------- clip; ------------------------------------------------------------
-//
+
+//-------`(aa.)clip`----------
+// Clipping function.
+//-----------------------------
 clip(l, h, x) = max(l, min(h, x));
-// -----------------------------------------------------------------------------
 
-// ---------- Real-valued sqrt() -----------------------------------------------
-//
+
+//-------`(aa.)Rsqrt`----------
+// Real-valued sqrt().
+//-----------------------------
 Rsqrt(x) = sqrt(max(0.0, x));
-// -----------------------------------------------------------------------------
 
-// ---------- Real-valued log() ------------------------------------------------
-//
+
+//-------`(aa.)Rlog`----------
+// Real-valued log().
+//-----------------------------
 Rlog(x) = log(max(ma.EPSILON, x));
-// -----------------------------------------------------------------------------
 
-// ---------- Real-valued tan() ------------------------------------------------
-//
+
+//-------`(aa.)Rtan`----------
+// Real-valued tan().
+//-----------------------------
 Rtan(x) = tan(clip(-MAX, MAX, x));
-// -----------------------------------------------------------------------------
 
-// ---------- Real-valued acos() -----------------------------------------------
-//
+
+//-------`(aa.)Racos`----------
+// Real-valued acos().
+//-----------------------------
 Racos(x) = acos(clip(-1.0, 1.0, x));
-// -----------------------------------------------------------------------------
 
-// ---------- Real-valued asin() -----------------------------------------------
-//
-Rasin(x) = asin(clip(-1.0, 1.0, x));
-// -----------------------------------------------------------------------------
 
-// ---------- Real-valued acosh() ----------------------------------------------
-//
-Racosh(x) = ma.acosh(clip(1.0, MAX, x));
-// -----------------------------------------------------------------------------
+//-------`(aa.)Rasin`----------
+// Real-valued asin().
+//-----------------------------
+Racos(x) = asin(clip(-1.0, 1.0, x));
 
-// ---------- Real-valued cosh() -----------------------------------------------
-//
+
+//-------`(aa.)Racosh`----------
+// Real-valued acosh()
+//-----------------------------
+Racos(x) = ma.acosh(clip(1.0, MAX, x));
+
+
+//-------`(aa.)Rcosh`----------
+// Real-valued cosh().
+//-----------------------------
 Rcosh(x) = min(MAX, ma.cosh(x));
-// -----------------------------------------------------------------------------
 
-// ---------- Real-valued sinh() -----------------------------------------------
-//
+
+//-------`(aa.)Rsinh`----------
+// Real-valued sinh().
+//------------------------------
 Rsinh(x) = clip(-MAX, MAX, ma.sinh(x));
-// -----------------------------------------------------------------------------
 
-// ---------- Real-valued atanh() ----------------------------------------------
-//
+
+//-------`(aa.)Ratanh`----------
+// Real-valued atanh().
+//------------------------------
 Ratanh(x) = ma.atanh(clip(-1.0 + ma.EPSILON, 1.0 - ma.EPSILON, x));
-// -----------------------------------------------------------------------------
 
-// ---------- Generalised first-order ADAA function ----------------------------
-//
+
+//-------`(aa.)ADAA1`---------------------
+//  Generalised first-order ADAA function.
+//----------------------------------------
+
 declare ADAA1 author "Dario Sanfilippo";
 declare ADAA1 copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
@@ -12409,10 +12416,12 @@ ADAA1(EPS, f, F1, x) = D1q
                    x_m = .5 * (x + x');
                };
       };
-// -----------------------------------------------------------------------------
 
-// ---------- Generalised second-order ADAA function ---------------------------
-//
+
+//-------`(aa.)ADAA2`---------------------
+//  Generalised second-order ADAA function.
+//----------------------------------------
+
 declare ADAA2 author "Dario Sanfilippo";
 declare ADAA2 copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
@@ -12432,17 +12441,12 @@ ADAA2(EPS, f, F1, F2, x) = T1 + T2
                        ((x'' - x') ^ 2.0);
                };
       };
-// -----------------------------------------------------------------------------
 
 
+//==============================Main functions============================================
+//========================================================================================
 
-// =============================================================================
-// ========== Main functions ===================================================
-// =============================================================================
-
-// -----------------------------------------------------------------------------
-// ---------- Saturators -------------------------------------------------------
-// -----------------------------------------------------------------------------
+//================= Saturators ===============
 //
 // These antialiased saturators perform best with high-amplitude input
 // signals. If the input is only slightly saturated, hence producing
@@ -12454,9 +12458,9 @@ ADAA2(EPS, f, F1, F2, x) = T1 + T2
 // functions perform adequately, it might be sensible to cross-fade
 // between the trivial and the antialiased saturators according to the
 // amplitude profile of the input signal.
-// -----------------------------------------------------------------------------
+//==============================================
 
-// ---------- (aa.)hardclip; ---------------------------------------------------
+//-------`(aa.)hardclip`---------------------
 //
 // First-order ADAA hard-clip.
 //
@@ -12466,6 +12470,7 @@ ADAA2(EPS, f, F1, F2, x) = T1 + T2
 // ```
 // _ : aa.hardclip : _;
 // ```
+
 declare hardclip author "Dario Sanfilippo";
 declare hardclip copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
@@ -12478,9 +12483,9 @@ hardclip(x) = ADAA1(EPS, f, F1, x)
                                .5 * x_F1 ^ 2.0, 
                                x_F1 * ma.signum(x_F1) - .5);
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)hardclip2; --------------------------------------------------
+
+//-------`(aa.)hardclip2`---------------------
 //
 // Second-order ADAA hard-clip.
 //
@@ -12490,6 +12495,7 @@ hardclip(x) = ADAA1(EPS, f, F1, x)
 // ```
 // _ : aa.hardclip2 : _;
 // ```
+
 declare hardclip2 author "Dario Sanfilippo";
 declare hardclip2 copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
@@ -12506,9 +12512,9 @@ hardclip2(x) = ADAA2(EPS, f, F1, F2, x)
                                ((.5 * x_F2 ^ 2.0) - 1.0 / 6.0) * 
                                    ma.signum(x_F2));
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)cubic1; -----------------------------------------------------
+
+//-------`(aa.)cubic1`---------------------
 //
 // First-order ADAA cubic saturator.
 //
@@ -12519,6 +12525,7 @@ hardclip2(x) = ADAA2(EPS, f, F1, F2, x)
 // ```
 // _ : aa.cubic1 : _;
 // ```
+
 declare cubic1 author "Dario Sanfilippo";
 declare cubic1 copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
@@ -12535,9 +12542,9 @@ cubic1(x) = ADAA1(EPS, f, F1, x)
                                        x_F1 * 2.0 / 3.0,
                                        x_F1 ^ 2.0 / 2.0 - x_F1 ^ 4.0 / 12.0));
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)parabolic; --------------------------------------------------
+
+//-------`(aa.)parabolic`---------------------
 //
 // First-order ADAA parabolic saturator.
 //
@@ -12547,6 +12554,7 @@ cubic1(x) = ADAA1(EPS, f, F1, x)
 // ```
 // _ : aa.parabolic : _;
 // ```
+
 declare parabolic author "Dario Sanfilippo";
 declare parabolic copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
@@ -12562,9 +12570,9 @@ parabolic(x) = ADAA1(EPS, f, F1, x)
                                    (x_F1 * ma.signum(x_F1) - 6.0),
                                abs(x_F1));
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)parabolic2; -------------------------------------------------
+
+//-------`(aa.)parabolic2`---------------------
 //
 // Second-order ADAA parabolic saturator.
 //
@@ -12574,6 +12582,7 @@ parabolic(x) = ADAA1(EPS, f, F1, x)
 // ```
 // _ : aa.parabolic : _;
 // ```
+
 declare parabolic2 author "Dario Sanfilippo";
 declare parabolic2 copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
@@ -12593,9 +12602,9 @@ parabolic2(x) = ADAA2(EPS, f, F1, F2, x)
                                    (16.0 - 3.0 * x_F2 * ma.signum(x_F2)),
                                .5 * x_F2 ^ 2.0 * ma.signum(x_F2));
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)hyperbolic; -------------------------------------------------
+
+//-------`(aa.)hyperbolic`---------------------
 //
 // First-order ADAA hyperbolic saturator.
 //
@@ -12615,9 +12624,9 @@ hyperbolic(x) = ADAA1(EPS, f, F1, x)
         f(x_f) = x_f / (1.0 + abs(x_f));
         F1(x_F1) = abs(x_F1) - log(1.0 + abs(x_F1));
     };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)hyperbolic2; ------------------------------------------------
+
+//-------`(aa.)hyperbolic2`---------------------
 //
 // Second-order ADAA hyperbolic saturator.
 //
@@ -12639,9 +12648,9 @@ hyperbolic2(x) = ADAA2(EPS, f, F1, F2, x)
         F2(x_F2) = ma.signum(x_F2) * (.5 * (3.0 - 2.0 * abs(x_F2) + x_F2 ^ 2.0 + 
             2.0 * log(1.0 + abs(x_F2))) - 3.0 / 2.0) + 3.0 / 2.0;
     };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)sinarctan; --------------------------------------------------
+
+//-------`(aa.)sinarctan`---------------------
 //
 // First-order ADAA sin(atan()) saturator.
 //
@@ -12664,9 +12673,9 @@ sinarctan(x) = ADAA1(EPS, f, F1, x)
                    const = -1.0; // for F1(0) = 0 to minimise precision loss
                };
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)sinarctan2; -------------------------------------------------
+
+//-------`(aa.)sinarctan2`---------------------
 //
 // Second-order ADAA sin(atan()) saturator.
 //
@@ -12690,9 +12699,9 @@ sinarctan2(x) = ADAA2(EPS, f, F1, F2, x)
                };
            F2(x_F2) = .5 * x_F2 * sqrt(x_F2 ^ 2.0 + 1.0) - .5 * ma.asinh(x_F2);
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)tanh1; ------------------------------------------------------
+
+//-------`(aa.)tanh1`---------------------
 //
 // First-order ADAA tanh() saturator.
 //
@@ -12712,9 +12721,9 @@ tanh1(x) = ADAA1(EPS, f, F1, x)
            f(x_f) = ma.tanh(x_f);
            F1(x_F1) = log(Rcosh(x_F1));
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)arctan; -----------------------------------------------------
+
+//-------`(aa.)arctan`---------------------
 //
 // First-order ADAA atan().
 //
@@ -12734,9 +12743,9 @@ arctan(x) = ADAA1(EPS, f, F1, x)
            f(x_f) = atan(x_f);
            F1(x_F1) = x_F1 * f(x_F1) - .5 * log(x_F1 ^ 2.0 + 1.0);
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)arctan2; ----------------------------------------------------
+
+//-------`(aa.)arctan2`---------------------
 //
 // Second-order ADAA atan().
 //
@@ -12757,9 +12766,9 @@ arctan2(x) = ADAA2(EPS, f, F1, F2, x)
            F1(x_F1) = x_F1 * f(x_F1) - .5 * log(x_F1 ^ 2.0 + 1.0);
            F2(x_F2) = .5 * x_F2 ^ 2.0 * f(x_F2) - x_F2 / 2.0 + .5 * f(x_F2);
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)asinh1; -----------------------------------------------------
+
+//-------`(aa.)asinh1`---------------------
 //
 // First-order ADAA asinh() saturator (unbounded).
 //
@@ -12783,9 +12792,9 @@ asinh1(x) = ADAA1(EPS, f, F1, x)
                };
 
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)asinh2; -----------------------------------------------------
+
+//-------`(aa.)asinh2`---------------------
 //
 // Second-order ADAA asinh() saturator (unbounded).
 //
@@ -12811,18 +12820,14 @@ asinh2(x) = ADAA2(EPS, f, F1, F2, x)
                sqrt(x_F2 ^ 2.0 + 1.0) * x_F2);
 
       };
-// -----------------------------------------------------------------------------
 
 
-
-// -----------------------------------------------------------------------------
-// ---------- Trigonometry -----------------------------------------------------
-// -----------------------------------------------------------------------------
-//
+//================= Trigonometry ===============
 // These functions are reliable if input signals are within their domains.
-// -----------------------------------------------------------------------------
+//============================================
 
-// ---------- (aa.)cosine1; ----------------------------------------------------
+
+//-------`(aa.)cosine1`---------------------
 //
 // First-order ADAA cos().
 //
@@ -12842,9 +12847,9 @@ cosine1(x) = ADAA1(EPS, f, F1, x)
            f(x_f) = cos(x_f);
            F1(x_F1) = sin(x_F1);
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)cosine2; ----------------------------------------------------
+
+//-------`(aa.)cosine2`---------------------
 //
 // Second-order ADAA cos().
 //
@@ -12865,9 +12870,10 @@ cosine2(x) = ADAA2(EPS, f, F1, F2, x)
            F1(x_F1) = sin(x_F1);
            F2(x_F2) = x_F2 * sin(x_F2) + cos(x_F2);
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)arccos; -----------------------------------------------------
+
+
+//-------`(aa.)arccos`---------------------
 //
 // First-order ADAA acos().
 //
@@ -12891,9 +12897,9 @@ arccos(x) = ADAA1(EPS, f, F1, x)
                    const = 1.0; // for F1(0) = 0 to minimise precision loss
                };
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)arccos2; ----------------------------------------------------
+
+//-------`(aa.)arccos2`---------------------
 //
 // Second-order ADAA acos().
 //
@@ -12922,9 +12928,9 @@ arccos2(x) = ADAA2(EPS, f, F1, F2, x)
            F2(x_F2) = .25 * (2.0 * x_F2 ^ 2.0 * f(x_F2) + Rasin(x_F2) -
                Rsqrt(1.0 - x_F2 ^ 2.0));
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)acosh1; -----------------------------------------------------
+
+//-------`(aa.)acosh1`---------------------
 //
 // First-order ADAA acosh(). 
 //
@@ -12944,9 +12950,9 @@ acosh1(x) = ADAA1(EPS, f, F1, x)
            f(x_f) = Racosh(x_f);
            F1(x_F1) = x_F1 * f(x_F1) - Rsqrt(x_F1 - 1.0) * Rsqrt(x_F1 + 1.0);
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)acosh2; -----------------------------------------------------
+
+//-------`(aa.)acosh2`---------------------
 //
 // Second-order ADAA acosh().
 //
@@ -12972,9 +12978,9 @@ acosh2(x) = ADAA2(EPS, f, F1, F2, x)
                Rsqrt(x_F2 - 1.0) * Rsqrt(x_F2 + 1.0) * x_F2 -
                    .25 * Rlog(x_F2 + Rsqrt(x_F2 - 1.0) * Rsqrt(x_F2 + 1.0));
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)sine; -------------------------------------------------------
+
+//-------`(aa.)sine`---------------------
 //
 // First-order ADAA sin().
 //
@@ -12994,9 +13000,9 @@ sine(x) = ADAA1(EPS, f, F1, x)
            f(x_f) = sin(x_f);
            F1(x_F1) = -1.0 * cos(x_F1);
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)sine2; ------------------------------------------------------
+
+//-------`(aa.)sine2`---------------------
 //
 // Second-order ADAA sin().
 //
@@ -13017,9 +13023,9 @@ sine2(x) = ADAA2(EPS, f, F1, F2, x)
            F1(x_F1) = 1.0 - cos(x_F1);
            F2(x_F2) = sin(x_F2) - x_F2 * cos(x_F2);
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)arcsin; -----------------------------------------------------
+
+//-------`(aa.)arcsin`---------------------
 //
 // First-order ADAA asin().
 //
@@ -13043,9 +13049,9 @@ arcsin(x) = ADAA1(EPS, f, F1, x)
                    const = -1.0; // for F1(0) = 0 to minimise precision loss
                };
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)arcsin2; ----------------------------------------------------
+
+//-------`(aa.)arcsin2`---------------------
 //
 // Second-order ADAA asin().
 //
@@ -13074,9 +13080,9 @@ arcsin2(x) = ADAA2(EPS, f, F1, F2, x)
            F2(x_F2) = .25 * (Rsqrt(1.0 - x_F2 ^ 2.0) * x_F2 + 
                (2.0 * x_F2 ^ 2.0 - 1.0) * f(x_F2));
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)tangent; ----------------------------------------------------
+
+//-------`(aa.)tangent`---------------------
 //
 // First-order ADAA tan().
 //
@@ -13096,9 +13102,9 @@ tangent(x) = ADAA1(EPS, f, F1, x)
            f(x_f) = Rtan(x_f);
            F1(x_F1) = -1.0 * Rlog(cos(x_F1));
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)atanh1; -----------------------------------------------------
+
+//-------`(aa.)atanh1`---------------------
 //
 // First-order ADAA atanh(). 
 //
@@ -13118,9 +13124,9 @@ atanh1(x) = ADAA1(EPS, f, F1, x)
            f(x_f) = Ratanh(x_f);
            F1(x_F1) = .5 * Rlog(1.0 - x_F1 ^ 2.0) + x_F1 * f(x_F1);
       };
-// -----------------------------------------------------------------------------
 
-// ---------- (aa.)atanh2; -----------------------------------------------------
+
+//-------`(aa.)atanh2`---------------------
 //
 // Second-order ADAA atanh().
 //
@@ -13142,147 +13148,135 @@ atanh2(x) = ADAA2(EPS, f, F1, F2, x)
            F2(x_F2) = .5 * x_F2 ^ 2.0 * f(x_F2) + x_F2 / 2.0 + .25 * 
                Rlog(1.0 - x_F2) - .25 * Rlog(1.0 + x_F2);
       };
-// -----------------------------------------------------------------------------
 //#################################### wdmodels.lib ##############################################################################
 // A library of basic adaptors and methods to help construct Wave Digital Filter models in Faust. Its official prefix is `wd`.
-//################################################################################################################################
 
 // ## Library Readme
 
 // This library is intended for use for creating Wave Digital (WD) based models of audio circuitry for real-time audio processing within the Faust programming language. The goal is to provide a framework to create real-time virtual-analog audio effects and synthesizers using WD models without the use of C++. Furthermore, we seek to provide access to the technique of WD modeling to those without extensive knowledge of advanced digital signal processing techniques. Finally, we hope to provide a library which can integrate with all aspects of Faust, thus creating a platform for virtual circuit bending. 
-
 // The library itself is written in Faust to maintain portability. 
-
+//
 // This library is heavily based on Kurt Werner's Dissertation, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters." I have tried to maintain consistent notation between the adaptors appearing within thesis and my adaptor code. The majority of the adaptors found in chapter 1 and chapter 3 are currently supported. 
-
-// For inquires about use of this library in a commercial product, please contact dirk [dot] roosenburg [dot] 30 [at] gmail [dot] com
-
-// This documentation is taken directly from the readme of https://github.com/droosenb/faust-WD-library. Please refer to it for a more updated version. 
-
-// Many of the more in depth comments within the library include jargon. I plan to create videos detailing the theory of WD models
-// For now I recommend Kurt Werner's PhD, "Virtual analog modeling of Audio circuitry using Wave Digital Filters", found here: 
-// <https://searchworks.stanford.edu/view/11891203>   
+//
+// For inquires about use of this library in a commercial product, please contact dirk [dot] roosenburg [dot] 30 [at] gmail [dot] com.
+// This documentation is taken directly from the [readme](https://github.com/droosenb/faust-wdf-library). Please refer to it for a more updated version. 
+//
+// Many of the more in depth comments within the library include jargon. I plan to create videos detailing the theory of WD models.
+// For now I recommend Kurt Werner's PhD, [Virtual analog modeling of Audio circuitry using Wave Digital Filters](https://searchworks.stanford.edu/view/11891203).   
 // I have tried to maintain consistent syntax and notation to the thesis. 
 // This library currently includes the majority of the adaptors covered in chapter 1 and some from chapter 3. 
-
-
+//
+//
 // ## Using this Library
-
+//
 // Use of this library expects some level of familiarity with WDF techniques, especially simplification and decomposition of electronic circuits into WDF connection trees. I plan to create video to cover both these techniques and use of the library. 
-
+//
 // ### Quick Start
-
+//
 // to get a quick overview of the library, start with the `secondOrderFilters.dsp` code found in `examples`. Make sure that the `wdmodels.lib` is within the compile path. This can be achieved within the [online Faust IDE](https://faustide.grame.fr/) by simply downloading and dragging in `wdmodels.lib` in addition to the example code.
-
+//
 // ### A Simple RC Filter Model
-
+//
 // Creating a model using this library consists fo three steps. First, declare a set of components. Second, model the relationship between them using a tree. Finally, build the tree using the libraries build functions.  
-
-// First, a set of components is declared using adaptors from the library.  This list of components is created based on analysis of the circuit using WDF techniques, though generally each circuit element (resistor, capacitor, diode, etc.) can be expected to appear within the component set. For example, first order RC lowpass filter would require an unadapted voltage source, a 47k resistor, and a 10nF capacitor which outputs the voltage across itself. These can be declared with: 
-
+//
+// First, a set of components is declared using adaptors from the library. This list of components is created based on analysis of the circuit using WDF techniques, though generally each circuit element (resistor, capacitor, diode, etc.) can be expected to appear within the component set. For example, first order RC lowpass filter would require an unadapted voltage source, a 47k resistor, and a 10nF capacitor which outputs the voltage across itself. These can be declared with: 
+//
 // ```
 // vs1(i) = wd.u_voltage(i, no.noise);
 // r1(i) = wd.resistor(i, 47*10^3);
 // c1(i) = wd.capacitor_Vout(i, 10*10^-9);
 // ```
-
+//
 // Note that the first argument, i, is left un-parametrized. Components must be declared in this form, as the build algorithm expects to receive adaptors which have exactly one parameter. 
-
+//
 // Also note that we have chosen to declare a white noise function as the input to our voltage source. We could potentially declare this as a direct input to our model, but to do so is more complicated process which cannot be covered within this tutorial. For information on how to do this see Declaring Model Parameters as Inputs or see various implementations in `examples`.
-
+//
 // Second, the declared components and interconnection/structural adaptors (i.e. series, parallel, etc) are arranged into the connection tree which is produced from performing WD analysis on the modeled circuit. For example, to produce our first order RC lowpass circuit model, the following tree is declared: 
-
+//
 // `tree_lowpass = vs1(i) : WD.series : (r1, c1)`
-
+//
 // For more information on how to represent trees in Faust, see Trees in Faust. 
-
-// Finally, the tree is built using the the `buildtree` function. To build and compute our first order RC lowpass circuit model, we use
-
+//
+// Finally, the tree is built using the the `buildtree` function. To build and compute our first order RC lowpass circuit model, we use:
+//
 // `process = buildtree(tree_lowpass);`
-
+//
 // More information about build functions, see Build Functions. 
-
+//
 // ### Building a Model
-
+//
 // After creating a connection tree which consists of WD adaptors, the connection tree must be passed to a build function in order to build the model.
-
+//
 // ##### Automatic model building 
-
+//
 // `buildtree(connection_tree)`
-
+//
 // The simplest build function for use with basic models. This automatically implements `buildup`, `builddown`, and `buildout` to create a working model. However, it gives minimum control to the user and cannot currently be used on trees which have parameters declared as inputs.
-
+//
 // ##### Manual model building
-
-// Wave Digital Filters are an explicit state-space model, meaning they use a previous system state in order to calculate the current output. This is achieved in Faust by using a single global feedback operator. The models feed-forward terms are generated using `builddown` and the models feedback terms are generated using `buildup`. Thus, the most common model implementation (the method used by `buildtree`) is
-
-// `builddown(connection_tree)~buildup(connection_tree) : buildout(connection_tree)`.
-
+//
+// Wave Digital Filters are an explicit state-space model, meaning they use a previous system state in order to calculate the current output. This is achieved in Faust by using a single global feedback operator. The models feed-forward terms are generated using `builddown` and the models feedback terms are generated using `buildup`. Thus, the most common model implementation (the method used by `buildtree`) is:
+//
+// `builddown(connection_tree)~buildup(connection_tree) : buildout(connection_tree)`
+//
 // Since the `~` operator in Faust will leave feedback terms hanging as outputs, `buildout` is a function provided for convenience. It automatically truncates the hanging outputs by identifying leaf components which have an intended output and generating an output matrix.
-
+//
 // Building the model manually allows for greater user control and is often very helpful in testing. Also provided for testing are the `getres` and `parres` functions, which can be used to determine the upward-facing port resistance of an element. 
-
+//
 // ### Declaring Model Parameters as Inputs
-
+//
 // When possible, parameters of components should be declared explicitly, meaning they are dependent on a function with no inputs. This might be something as simple as integer(declaring a static component), a function dependent on a UI input (declaring a component with variable value), or even a time-dependent function like an oscillator (declaring an audio input or circuit bending). 
-
+//
 // However, it is often necessary to declare parameters as input. To achieve this there are two possible methods. The first and recommended option is to create a separate model function and declare parameters which will later be implemented as inputs. This allows inputs to be explicitly declared as component parameters. For example, one might use
-
+//
 // ```
 // model(in1) = buildtree(tree)
-// with{
+// with {
 //    ...
 //    vin(i) = wd.u_voltage(i, in1);
 //    ...
-
 //    tree = vin : ...; 
 // };
 // ```
-
+//
 // In order to simulate an audio input to the circuit. 
-
-// Note that the tree and components must be declared inside a `with{...}` statement, or the model's parameters will not be accessible. 
-
+//
+// Note that the tree and components must be declared inside a `with {...}` statement, or the model's parameters will not be accessible. 
+//
 // ##### The Empty Signal Operator
-
+//
 // The Empty signal operator, `_` should NEVER be used to declare a parameter as in input in a wave-digital model. 
-
+//
 // Using it will result on breaking the internal routing of the model and thus breaks the model. Instead, use explicit declaration as shown directly above. 
-
-
-
+//
 // ### Trees in Faust
-
+//
 // Since WD models use connection trees to represent relationships of elements, a comprehensive way to represent trees is critical. As there is no current convention for creating trees in Faust, I've developed a method using the existing series and parallel/list methods in Faust.
-
+//
 // The series operator ` : ` is used to separate parent and child elements. For example the tree
-
+//
 // ```
 //    A
 //    |
 //    B
 // ```
-
-// is represented by
-
-// `A : B` 
-
-// in Faust. 
-
-// To denote a parent element with multiple child elements, simply use a list `(a1, a2, ... an)` of children connected to a single parent. For example the tree
-
+//
+// is represented by `A : B` in Faust. 
+//
+// To denote a parent element with multiple child elements, simply use a list `(a1, a2, ... an)` of children connected to a single parent. For example the tree:
+//
 // ```
 //    A
 //   / \
 //  B   C
-
+//
 // ```
-// is represented by
-
+// is represented by:
+//
 // `A : (B, C)`
-
-// Finally, for a tree with many levels, simply break the tree into subtrees following the above rules and connect the subtree as if it was an individual node. For example the tree
-
+//
+// Finally, for a tree with many levels, simply break the tree into subtrees following the above rules and connect the subtree as if it was an individual node. For example the tree:
+//
 // ```
 //       A
 //      / \
@@ -13290,82 +13284,69 @@ atanh2(x) = ADAA2(EPS, f, F1, F2, x)
 //    /   / \
 //   X   Y   Z
 // ```
-
-// can be represented by
-
+//
+// can be represented by:
+//
 // ```
 // B_sub = B : X; //B subtree
 // C_sub = C : (Y, Z); //C subtree
 // tree = A : (B_sub, C_sub); //full tree
 // ```
-
+//
 // or more simply, using parentheses: 
-
+//
 // `A : ((B : X), (C : (Y, Z)))`
 
 // ### How Adaptors are Structured
 
-// In wave digital filters, adaptors can be described by the form 
-
-// `b = Sa`
-
-// where `b` is a vector of output waves `b = (b0, b1, b2, ... bn)`, `a` is a vector of input waves`a = (a0, a1, a2, ... an)`, and `S` is an n x n scattering matrix. `S` is dependent on `R`, a list of port resistances `(R0, R1, R2, ... Rn)`. 
-
+// In wave digital filters, adaptors can be described by the form `b = Sa` where `b` is a vector of output waves `b = (b0, b1, b2, ... bn)`, `a` is a vector of input waves`a = (a0, a1, a2, ... an)`, and `S` is an n x n scattering matrix. `S` is dependent on `R`, a list of port resistances `(R0, R1, R2, ... Rn)`. 
+//
 // The output wave vector `b` can be divided into downward-going and upward-going waves (downward-going waves travel down the connection tree, upward-going waves travel up). For adapted adaptors, with the zeroth port being  the upward-facing port, the downward-going wave vector is `(b1, b2, ... bn)` and the upward-going wave vector is `(b0)`. For unadapted adaptors, there are no upward-going waves, so the downward-going wave vector is simply `b = (b0, b1, b2, ... bn)`. 
-
+//
 // In order for adaptors to be interpretable by the compiler, they must be structured in a specific way. 
 // Each adaptor is divided into three cases by their first parameter. This parameter, while accessible by the user, should only be set by the compiler/builder.
-
+//
 // All other parameters are value declarations (for components), inputs (for voltage or current ins), or parameter controls (for potentiometers/variable capacitors/variable inductors)
-
-// ##### first case - downward going waves
-
+//
+// ##### First case - downward going waves
+//
 // `(0, params) => downward-going(R1, ... Rn, a0, a1, ... an)` 
-// outputs : `(b1, b2, ... bn)`
-
-//    this function takes any number of port resistances, the downward going wave, and any number of upward going waves as inputs. 
-   
-//    These values/waves are used to calculate the downward going waves coming from this adaptor
-
-// ##### second case 
-
+// outputs: `(b1, b2, ... bn)`
+// this function takes any number of port resistances, the downward going wave, and any number of upward going waves as inputs. 
+// These values/waves are used to calculate the downward going waves coming from this adaptor.
+//
+// ##### Second case 
+//
 // `(1, params) =>  upward-going(R1, ... Rn, a1, ... an)`
 // outputs : `(b0)`
-
-//    this function takes any number of port resistances and any number of upward going waves as inputs
-
-//    these values/waves are used to calculate the upward going wave coming from this adaptor
-
-// ##### third case  
-
+// this function takes any number of port resistances and any number of upward going waves as inputs
+// these values/waves are used to calculate the upward going wave coming from this adaptor.
+//
+// ##### Third case  
+//
 // `(2, params) => port-resistance(R1, ... Rn)` 
-// outputs:  `(R0)`
-
-//    this function takes any number of port resistances as inputs
-
-//    these values are used to calculate the upward going port resistance of the element
-
-
+// outputs: `(R0)`
+// this function takes any number of port resistances as inputs
+// these values are used to calculate the upward going port resistance of the element.
+//
 // ##### Unadapted Adaptors
-
-// Unadapted adaptor's names will always begin "u_"
+//
+// Unadapted adaptor's names will always begin `u_`
 // An unadapted adaptor MUST be used as the root of the WD connection tree.
 // Unadapted adaptors can ONLY be used as a root of the WD connection tree. 
 // While unadapted adaptors contain all three cases, the second and third are purely structural. 
 // Only the first case should contain computational information. 
-
+//
 // ### How the Build Functions Work
-
+//
 // Expect this section to be added soon! It's currently in progress.
-
+//
 // ### Acknowledgements
-
+//
 // Many thanks to Kurt Werner for helping me to understand wave digital filter models. Without his publications and consultations, the library would not exist. 
 // Thanks also to my advisors, Rob Owen and Eli Stine whose input was critical to the development of the library.
 // Finally, thanks to Romain Michon, Stephane Letz, and the Faust slack for contributing to testing, development, and inspiration when creating the library. 
-
-
-
+//################################################################################################################################
 
 ba = library("basics.lib");
 ro = library("routes.lib");
@@ -13376,12 +13357,11 @@ declare name "Faust Wave Digital Model Library";
 declare version "0.2.0";
 
 
-
 //=============================Algebraic One Port Adaptors=================================
 //=========================================================================================
 
 //----------------------`(wd.)resistor`--------------------------
-// Adapted Resistor
+// Adapted Resistor.
 //
 // A basic node implementing a resistor for use within Wave Digital Filter connection trees.
 //
@@ -13404,6 +13384,7 @@ declare version "0.2.0";
 // Correct implementation is shown above.
 //
 // #### Reference
+//
 // K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.2.1
 //----------------------------------------------------------
 declare resistor author "Dirk Roosenburg";
@@ -13507,7 +13488,7 @@ case{
 
 
 //----------------------`(wd.)u_voltage`--------------------------
-// Unadapted Ideal Voltage Source
+// Unadapted Ideal Voltage Source.
 //
 // An adaptor implementing an ideal voltage source within Wave Digital Filter connection trees.
 //
@@ -13552,7 +13533,7 @@ case{
 
 
 //----------------------`(wd.)u_current`--------------------------
-// Unadapted Ideal Current Source
+// Unadapted Ideal Current Source.
 //
 // An unadapted adaptor implementing an ideal current source within Wave Digital Filter connection trees.
 //
@@ -13596,7 +13577,7 @@ case{
 };
 
 //----------------------`(wd.)resVoltage`--------------------------
-// Adapted Resistive Voltage Source
+// Adapted Resistive Voltage Source.
 //
 // An adaptor implementing a resistive voltage source within Wave Digital Filter connection trees.
 //
@@ -13687,7 +13668,7 @@ case{
 }; 
 
 //----------------------`(wd.)u_resVoltage`--------------------------
-// Unadapted Resistive Voltage Source
+// Unadapted Resistive Voltage Source.
 //
 // An unadapted adaptor implementing a resistive voltage source within Wave Digital Filter connection trees.
 //
@@ -13735,7 +13716,7 @@ case {
 
 
 //----------------------`(wd.)resCurrent`--------------------------
-// Unadapted Resistive Current Source
+// Unadapted Resistive Current Source.
 //
 // An adaptor implementing a resistive current source within Wave Digital Filter connection trees.
 //
@@ -13780,12 +13761,12 @@ case {
 }; 
 
 //----------------------`(wd.)u_resCurrent`--------------------------
-// Unadapted Resistive Current Source 
+// Unadapted Resistive Current Source.
 //
 // An unadapted adaptor implementing a resistive current source within Wave Digital Filter connection trees.
 //
-// It should be used as the root/top element of the connection tree
-// It is comprised of an ideal current source in parallel with a resistor
+// It should be used as the root/top element of the connection tree.
+// It is comprised of an ideal current source in parallel with a resistor.
 // Can be used for either DC (constant) or AC (signal) current sources.
 //
 // #### Usage
@@ -13830,7 +13811,7 @@ case {
 //add short circuit (1.2.6), add open circuit (1.2.7)
 
 //----------------------`(wd.)u_switch`--------------------------
-// Unadapted Ideal Switch
+// Unadapted Ideal Switch.
 //
 // An unadapted adaptor implementing an ideal switch for Wave Digital Filter connection trees.
 //
@@ -13875,7 +13856,7 @@ case {
 //TODO - add mobius transform and alpha transform digitizations
 
 //----------------------`(wd.)capacitor`--------------------------
-// Adapted Capacitor
+// Adapted Capacitor.
 //
 // A basic adaptor implementing a capacitor for use within Wave Digital Filter connection trees.
 //
@@ -13918,7 +13899,7 @@ case{
 };
 
 //----------------------`(wd.)capacitor_Vout`--------------------------
-// Adapted Capacitor + voltage out
+// Adapted Capacitor + voltage out.
 //
 // A basic adaptor implementing a capacitor for use within Wave Digital Filter connection trees.
 //
@@ -13965,7 +13946,7 @@ case{
 };
 
 //----------------------`(wd.)inductor`--------------------------
-// Unadapted Inductor
+// Unadapted Inductor.
 //
 // A basic adaptor implementing an inductor for use within Wave Digital Filter connection trees.
 //
@@ -14008,7 +13989,7 @@ case{
 };
 
 //----------------------`(wd.)inductor_Vout`--------------------------
-// Unadapted Inductor + Voltage out
+// Unadapted Inductor + Voltage out.
 //
 // A basic adaptor implementing an inductor for use within Wave Digital Filter connection trees.
 //
@@ -14058,7 +14039,7 @@ case{
 //========================================================================================
 
 //----------------------`(wd.)u_idealDiode`--------------------------
-// Unadapted Ideal Diode
+// Unadapted Ideal Diode.
 //
 // An unadapted adaptor implementing an ideal diode for Wave Digital Filter connection trees.
 //
@@ -14092,7 +14073,7 @@ case{
 };
 
 //----------------------`(wd.)u_chua`--------------------------
-// Unadapted Chua Diode
+// Unadapted Chua Diode.
 //
 // An adaptor implementing the chua diode / non-linear resistor within Wave Digital Filter connection trees.
 //
@@ -14327,7 +14308,7 @@ case{
 
 
 //----------------------`(wd.)u_parallel2Port`--------------------------
-// Unadapted 2-port parallel connection
+// Unadapted 2-port parallel connection.
 //
 // An unadapted adaptor implementing a 2-port parallel connection between adaptors for Wave Digital Filter connection trees.
 // Elements connected to this adaptor will behave as if connected in parallel in circuit.
@@ -14366,7 +14347,7 @@ case{
 
 
 //----------------------`(wd.)parallel2Port`--------------------------
-// Adapted 2-port parallel connection
+// Adapted 2-port parallel connection.
 //
 // An adaptor implementing a 2-port parallel connection between adaptors for Wave Digital Filter connection trees.
 // Elements connected to this adaptor will behave as if connected in parallel in circuit.
@@ -14408,7 +14389,7 @@ case{
 };
 
 //----------------------`(wd.)u_series2Port`--------------------------
-// Unadapted 2-port series connection
+// Unadapted 2-port series connection.
 //
 // An unadapted adaptor implementing a 2-port series connection between adaptors for Wave Digital Filter connection trees.
 // Elements connected to this adaptor will behave as if connected in series in circuit.
@@ -14447,7 +14428,7 @@ case{
 
 
 //----------------------`(wd.)series2Port`--------------------------
-// Adapted 2-port series connection
+// Adapted 2-port series connection.
 //
 // An adaptor implementing a 2-port series connection between adaptors for Wave Digital Filter connection trees.
 // Elements connected to this adaptor will behave as if connected in series in circuit.
@@ -14490,7 +14471,7 @@ case{
 
 
 //----------------------`(wd.)parallelCurrent`--------------------------
-// Adapted 2-port parallel connection + ideal current source
+// Adapted 2-port parallel connection + ideal current source.
 //
 // An adaptor implementing a 2-port series connection and internal idealized current source between adaptors for Wave Digital Filter connection trees.
 // This adaptor connects the two connected elements and an additional ideal current source in parallel.
@@ -14590,7 +14571,7 @@ case{
 };
 
 //----------------------`(wd.)u_transformer`--------------------------
-// Unadapted ideal transformer
+// Unadapted ideal transformer.
 //
 // An adaptor implementing an ideal transformer for Wave Digital Filter connection trees.
 // The first downward-facing port corresponds to the primary winding connections, and the second downward-facing port to the secondary winding connections
@@ -14636,7 +14617,7 @@ with{
 };
 
 //----------------------`(wd.)transformer`--------------------------
-// Adapted ideal transformer
+// Adapted ideal transformer.
 //
 // An adaptor implementing an ideal transformer for Wave Digital Filter connection trees.
 // The upward-facing port corresponds to the primary winding connections, and the downward-facing port to the secondary winding connections
@@ -14686,7 +14667,7 @@ with{
 
 
 //----------------------`(wd.)u_transformerActive`--------------------------
-// Unadapted ideal active transformer
+// Unadapted ideal active transformer.
 //
 // An adaptor implementing an ideal transformer for Wave Digital Filter connection trees.
 // The first downward-facing port corresponds to the primary winding connections, and the second downward-facing port to the secondary winding connections
@@ -14733,7 +14714,7 @@ with{
 
 
 //----------------------`(wd.)transformerActive`--------------------------
-// Adapted ideal active transformer
+// Adapted ideal active transformer.
 //
 // An adaptor implementing an ideal active transformer for Wave Digital Filter connection trees.
 // The upward-facing port corresponds to the primary winding connections, and the downward-facing port to the secondary winding connections
@@ -14788,7 +14769,7 @@ with{
 
 
 //----------------------`(wd.)parallel`--------------------------
-// Adapted 3-port parallel connection
+// Adapted 3-port parallel connection.
 //
 // An adaptor implementing a 3-port parallel connection between adaptors for Wave Digital Filter connection trees.
 // This adaptor is used to connect adaptors simulating components connected in parallel in the circuit.
@@ -14805,7 +14786,7 @@ with{
 //
 // #### Reference
 //
-// K. Werner Dissertation, 1.5.1
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.5.1
 //----------------------------------------------------------
 declare parallel author "Dirk Roosenburg";
 declare parallel copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
@@ -14832,7 +14813,7 @@ case{
 
 
 //----------------------`(wd.)series`--------------------------
-// Adapted 3-port series connection
+// Adapted 3-port series connection.
 //
 // An adaptor implementing a 3-port series connection between adaptors for Wave Digital Filter connection trees.
 // This adaptor is used to connect adaptors simulating components connected in series in the circuit.
@@ -14850,7 +14831,7 @@ case{
 //
 // #### Reference
 //
-// K. Werner Dissertation, 1.5.2
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 1.5.2
 //----------------------------------------------------------
 declare series author "Dirk Roosenburg";
 declare series copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
@@ -14880,7 +14861,7 @@ case{
 
 
 //----------------------`(wd.)u_sixportPassive`--------------------------
-// Unadapted six-port rigid connection
+// Unadapted six-port rigid connection.
 //
 // An adaptor implementing a six-port passive rigid connection between elements. 
 // It implements the simplest possible rigid connection found in the Fender Bassman Tonestack circuit
@@ -14899,7 +14880,7 @@ case{
 //
 // #### Reference
 //
-// K. Werner Dissertation, 2.1.5
+// K. Werner, "Virtual Analog Modeling of Audio Circuitry Using Wave Digital Filters", 2.1.5
 //----------------------------------------------------------
 declare u_sixportPassive author "Dirk Roosenburg";
 declare u_sixportPassive copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
@@ -15014,7 +14995,7 @@ with{
 
 
 //----------------------`(wd.)genericNode_Vout`--------------------------
-// Function for generating a terminating/leaf node which gives the voltage across itself as a model output
+// Function for generating a terminating/leaf node which gives the voltage across itself as a model output.
 //
 // This function generates a node which is suitable for use in the connection tree structure. 
 // It also calculates the voltage across the element and gives it as a model output
@@ -15058,7 +15039,7 @@ case{
 };
 
 //----------------------`(wd.)genericNode_Iout`--------------------------
-// Function for generating a terminating/leaf node which gives the current through itself as a model output
+// Function for generating a terminating/leaf node which gives the current through itself as a model output.
 //
 // This function generates a node which is suitable for use in the connection tree structure. 
 // It also calculates the current through the element and gives it as a model output
@@ -15103,7 +15084,7 @@ case{
 
 
 //----------------------`(wd.)u_genericNode`--------------------------
-// Function for generating an unadapted node from another Faust function or scattering matrix
+// Function for generating an unadapted node from another Faust function or scattering matrix.
 //
 // This function generates a node which is suitable for use as the root of the connection tree structure. 
 //
@@ -15156,7 +15137,7 @@ with{
 // ```
 //
 // Where: 
-// * `(A : B)` : is a connection tree composed of WD adaptors
+//  `(A : B)` : is a connection tree composed of WD adaptors
 //----------------------------------------------------------
 declare builddown author "Dirk Roosenburg";
 declare builddown copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
@@ -15227,7 +15208,7 @@ builddown(A) = A(0);
 // ```
 //
 // Where: 
-// * `(A : B)` : is a connection tree composed of WD adaptors
+// `(A : B)` : is a connection tree composed of WD adaptors
 //----------------------------------------------------------
 declare builddown author "Dirk Roosenburg";
 declare builddown copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
@@ -15297,7 +15278,7 @@ buildup(A) = A(1);
 //----------------------`(wd.)getres`--------------------------
 // Function for determining the upward-facing port resistance of a partial WD connection tree.
 //
-// It recursively steps through the given tree, parametrizes the adaptors, and builds and algorithm.
+// It recursively steps through the given tree, parametrizes the adaptors, and builds an algorithm.
 // It is used by the buildup and builddown functions but is also helpful in testing.
 //
 // #### Usage
@@ -15307,10 +15288,10 @@ buildup(A) = A(1);
 // ```
 //
 // Where: 
-// * `(A : B)` : is a partial connection tree composed of WD adaptors
+// `(A : B)` : is a partial connection tree composed of WD adaptors
 //
 // Note:
-// This function cannot be used on a complete WD tree. When called on an unadapted adaptor (u_ prefix), it will create errors
+// This function cannot be used on a complete WD tree. When called on an unadapted adaptor (u_ prefix), it will create errors.
 //----------------------------------------------------------
 declare getres author "Dirk Roosenburg";
 declare getres copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
@@ -15322,7 +15303,7 @@ getres(A) = A(2);
 //----------------------`(wd.)parres`--------------------------
 // Function for determining the upward-facing port resistance of a partial WD connection tree.
 //
-// It recursively steps through the given tree, parametrizes the adaptors, and builds and algorithm.
+// It recursively steps through the given tree, parametrizes the adaptors, and builds an algorithm.
 // It is used by the buildup and builddown functions but is also helpful in testing.
 // This function is a parallelized version of getres.
 //
@@ -15333,10 +15314,10 @@ getres(A) = A(2);
 // ```
 //
 // Where: 
-// * `(A , B)` : is a partial connection tree composed of WD adaptors
+// `(A , B)` : is a partial connection tree composed of WD adaptors
 //
 // Note:
-// This function cannot be used on a complete WD tree. When called on an unadapted adaptor (u_ prefix), it will create errors
+// This function cannot be used on a complete WD tree. When called on an unadapted adaptor (u_ prefix), it will create errors.
 //----------------------------------------------------------
 declare parres author "Dirk Roosenburg";
 declare parres copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
@@ -15357,7 +15338,7 @@ parres(Ap) = getres(Ap);
 // ```
 //
 // Where: 
-// * `(A : B)` : is a connection tree composed of WD adaptors
+// `(A : B)` : is a connection tree composed of WD adaptors
 //
 //----------------------------------------------------------
 declare buildout author "Dirk Roosenburg";
@@ -15387,7 +15368,7 @@ with{
 // ```
 //
 // Where: 
-// * `(A : B)` : a connection tree composed of WD adaptors
+// `(A : B)` : a connection tree composed of WD adaptors
 //----------------------------------------------------------
 declare buildtree author "Dirk Roosenburg";
 declare buildtree copyright "Copyright (C) 2020 by Dirk Roosenburg <dirk.roosenburg.30@gmail.com>";
@@ -23296,7 +23277,7 @@ oberheimLPF(normFreq,Q) = oberheim(normFreq,Q):!,!,!,_;
 // Where:
 //
 // * `normFreq`: normalized frequency (0-1)
-//--------------------------------------------------------------------- 
+
 declare sallenKeyOnePole author "Eric Tarr";
 declare sallenKeyOnePole license "MIT-style STK-4.3 license";
 sallenKeyOnePole(normFreq) = _<:(s,ylpf,-(ylpf)) : !,_,_
@@ -23328,7 +23309,7 @@ with{
 // Where:
 //
 // * `normFreq`: normalized frequency (0-1)
-//--------------------------------------------------------------------- 
+
 declare sallenKeyOnePoleLPF author "Eric Tarr";
 declare sallenKeyOnePoleLPF license "MIT-style STK-4.3 license";
 sallenKeyOnePoleLPF(normFreq) = sallenKeyOnePole(normFreq) : _,!;
@@ -30068,8 +30049,8 @@ lagrangeN(N, idx) = si.dot(N + 1, lagrange_h(N, idx));
 // N = 5;
 // S = 16;
 // index = os.phasor(S, 1000);
-// process =    rdtable(S, os.sinwaveform(S), int(index)) ,
-//              frdtable(N, S, os.sinwaveform(S), index);
+// process = rdtable(S, os.sinwaveform(S), int(index)) ,
+//           frdtable(N, S, os.sinwaveform(S), index);
 //
 declare frdtable author "Dario Sanfilippo";
 declare frdtable copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -30848,7 +30829,7 @@ zita_light = hgroup("Zita Light",(_,_ <: re.zita_rev1_stereo(rdel,f1,f2,t60dc,t6
 	out_eq,_,_ : dry_wet : out_level))
 with{
 	fsmax = 48000.0;  // highest sampling rate that will be used
-	rdel = 60;
+	rdel = 60;	
 	f1 = 200;
 	t60dc = 3;
 	t60m = 2;
@@ -30977,6 +30958,51 @@ with{
 
 	gain = out_group(vslider("[2] Level [unit:dB] [style:knob] [tooltip: Output scale
 		factor]", -20, -70, 40, 0.1)) : ba.db2linear : si.smoo;
+};
+
+//----------------------------------`(dm.)dattorro_rev_demo`------------------------------
+// Example GUI for `dattorro_rev` with all parameters exposed. With additional
+// dry/wet and output gain control.
+//
+// #### Usage
+//
+// ```
+// _,_ : dattorro_rev_demo : _,_
+// ```
+//
+//------------------------------------------------------------
+// Author: Jakob Zerbian
+// License: MIT-style STK-4.3 license
+
+declare dattorro_rev_demo author "Jakob Zerbian";
+declare dattorro_rev_demo license "MIT-style STK-4.3 license";
+
+dattorro_rev_demo = _,_ <: re.dattorro_rev(pre_delay, bw, i_diff1, i_diff2, decay, d_diff1, d_diff2, damping),_,_:
+    dry_wet : out_level
+with {
+    rev_group(x) = hgroup("[0] Dattorro Reverb",x);
+
+    in_group(x) = rev_group(hgroup("[0] Input",x));
+    pre_delay = 0;
+    bw = in_group(vslider("[1] Prefilter [style:knob] [tooltip: lowpass-like filter, 0 = no signal, 1 = no filtering]",0.7,0.0,1.0,0.001) : si.smoo);
+    i_diff1 = in_group(vslider("[2] Diffusion 1 [style:knob] [tooltip: diffusion factor, influences reverb color and density]",0.625,0.0,1.0,0.001) : si.smoo);
+    i_diff2 = in_group(vslider("[3] Diffusion 2 [style:knob] [tooltip: diffusion factor, influences reverb color and density]",0.625,0.0,1.0,0.001) : si.smoo);
+
+    fdb_group(x) = rev_group(hgroup("[1] Feedback", x));
+    d_diff1 = fdb_group(vslider("[1] Diffusion 1 [style:knob] [tooltip: diffusion factor, influences reverb color and density]",0.625,0.0,1.0,0.001) : si.smoo);
+    d_diff2 = fdb_group(vslider("[2] Diffusion 2 [style:knob] [tooltip: diffusion factor, influences reverb color and density]",0.625,0.0,1.0,0.001) : si.smoo);
+    decay = fdb_group(vslider("[3] Decay Rate [style:knob] [tooltip: decay length, 1 = infinite]",0.7,0.0,1.0,0.001) : si.smoo);
+    damping = fdb_group(vslider("[4] Damping [style:knob] [tooltip: dampening in feedback network]",0.625,0.0,1.0,0.001) : si.smoo);
+
+    out_group(x) = rev_group(hgroup("[2] Output",x));
+    dry_wet(x,y) = *(dry) + wet*x, *(dry) + wet*y 
+	with {
+		wet = 0.5*(drywet+1.0);
+		dry = 1.0-wet;
+	};
+	drywet = out_group(vslider("[1] Dry/Wet Mix [style:knob] [tooltip: -1 = dry, 1 = wet]",0,-1.0,1.0,0.01) : si.smoo);
+	gain = out_group(vslider("[2] Level [unit:dB] [style:knob] [tooltip: Output Gain]", -6, -70, 40, 0.1) : ba.db2linear : si.smoo);
+	out_level = *(gain),*(gain);
 };
 
 
@@ -31518,7 +31544,7 @@ si = library("signals.lib");
 fi = library("filters.lib");
 
 declare name "Faust Reverb Library";
-declare version "0.0";
+declare version "0.1";
 
 //########################################################################################
 /************************************************************************
@@ -31947,7 +31973,7 @@ with {
 // * `spread`: spatial spread in number of samples (for stereo)
 //------------------------------------------------------------
 // TODO: author RM
-stereo_freeverb(fb1, fb2, damp, spread) =  + <: mono_freeverb(fb1, fb2, damp, 0), mono_freeverb(fb1, fb2, damp, spread);
+stereo_freeverb(fb1, fb2, damp, spread) = + <: mono_freeverb(fb1, fb2, damp, 0), mono_freeverb(fb1, fb2, damp, spread);
 
 //########################################################################################
 /************************************************************************
@@ -31960,6 +31986,87 @@ license disposition, if their license choice is not already indicated
 elsewhere among the libraries.  It is expected that all software will be
 released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 ************************************************************************/
+
+//===============================Dattorro Reverb============================
+//==========================================================================
+
+//-------------------------------`(re.)dattorro_rev`-------------------------------
+// Reverberator based on the Dattorro reverb topology. This implementation does
+// not use modulated delay lengths (excursion).
+//
+// #### Usage
+//
+// ```
+// _,_ : dattorro_rev(pre_delay, bw, i_diff1, i_diff2, decay, d_diff1, d_diff2, damping) : _,_
+// ```
+//
+// Where:
+//
+// * `pre_delay`: pre-delay in samples (fixed at compile time)
+// * `bw`: band-width filter (pre filtering); (0 - 1)
+// * `i_diff1`: input diffusion factor 1; (0 - 1)
+// * `i_diff2`: input diffusion factor 2;
+// * `decay`: decay rate; (0 - 1); infinite decay = 1.0
+// * `d_diff1`: decay diffusion factor 1; (0 - 1)
+// * `d_diff2`: decay diffusion factor 2;
+// * `damping`: high-frequency damping; no damping = 0.0
+//
+// #### Reference
+//
+// <https://ccrma.stanford.edu/~dattorro/EffectDesignPart1.pdf>
+//------------------------------------------------------------
+
+// Author: Jakob Zerbian
+// License: MIT-style STK-4.3 license
+declare dattorro_rev author "Jakob Zerbian";
+declare dattorro_rev license "MIT-style STK-4.3 license";
+
+dattorro_rev(pre_delay, bw, i_diff1, i_diff2, decay, d_diff1, d_diff2, damping) = 
+    si.bus(2) : + : *(0.5) : predelay : bw_filter : diffusion_network <: ((si.bus(4) :> _,_) ~ (reverb_network : ro.cross(2)))
+with {
+    //allpass using delay with fixed size
+    allpass_f(t, a) = (+ <: @(t),*(a)) ~ *(-a) : mem,_ : +;
+
+    // input pre-delay and diffusion
+    predelay = @(pre_delay);
+    bw_filter = *(bw) : +~(mem : *(1-bw));
+    diffusion_network = allpass_f(142, i_diff1) : allpass_f(107, i_diff1) : allpass_f(379, i_diff2) : allpass_f(277, i_diff2);
+
+    // reverb loop
+    reverb_network = par(i, 2, block(i)) with {
+        d = (672, 908, 4453, 4217, 1800, 2656, 3720, 3163);
+        block(i) = allpass_f(ba.take(i+1, d),-d_diff1) : @(ba.take(i+3, d)) : damp : 
+            allpass_f(ba.take(i+5, d), d_diff2) : @(ba.take(i+5, d)) : *(decay)
+        with {
+            damp = *(1-damping) : +~*(damping) : *(decay);
+        };
+    };
+};
+
+
+//-------------------------------`(re.)dattorro_rev_default`-------------------------------
+// Reverberator based on the Dattorro reverb topology with reverb parameters from the
+// original paper.
+// This implementation does not use modulated delay lengths (excursion) and
+// uses zero length pre-delay.
+//
+// #### Usage
+//
+// ```
+// _,_ : dattorro_rev_default : _,_
+// ```
+//
+// #### Reference
+//
+// <https://ccrma.stanford.edu/~dattorro/EffectDesignPart1.pdf>
+//------------------------------------------------------------
+
+// Author: Jakob Zerbian
+// License: MIT-style STK-4.3 license
+declare dattorro_rev_default author "Jakob Zerbian";
+declare dattorro_rev_default license "MIT-style STK-4.3 license";
+
+dattorro_rev_default = dattorro_rev(0, 0.9995, 0.75, 0.625, 0.5, 0.7, 0.5, 0.0005);
 
 // end further further contributions section
 //##################################### physmodels.lib ###################################
