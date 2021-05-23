@@ -1,16 +1,16 @@
 
 ## The libfaustremote library
 
-The `libfaustremote` library allows to compile and process a Faust DSP  program on a remote machine.
+The `libfaustremote` library allows to compile and process a Faust DSP program on a remote machine.
 
 ### Remote server 
 
 The server launches a compilation service, waiting for DSPs to compile. Dependencies are:        
-* `LLVM`         using macport
-* `faust`        make + sudo make install at the root of faust project
-* `HTTPDFaust`   make httpd + sudo make install at the root of faust project
-* `microhttpd`   using macport
-* `libjacknet`   download JackOSX package at: https://jackaudio.org
+* `LLVM` using macport
+* `faust` make + sudo make install at the root of Faust project
+* `HTTPDFaust` make httpd + sudo make install at the root of Faust project
+* `libmicrohttpd` using macport
+* `libjacknet` download JackOSX package at: https://jackaudio.org
 
 Here is the API:
 
@@ -44,7 +44,7 @@ To easily include remote processing in your projects, this API has been created.
 * `createRemoteDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[], const string& ipServer, int portServer, string& error, int opt_level)`
 * `createRemoteDSPInstance(remote_dsp_factory* factory, int argc, const char* argv[], int samplingRate, int bufferSize, string& error)`
 
-Use instance as any "static" DSP:
+Use instance as any static DSP:
 
 * `virtual int getNumInputs()`
 * `virtual int getNumOutputs()`
@@ -57,9 +57,9 @@ Use instance as any "static" DSP:
 
 This example shows how to use the API. In this example you can pass in command line:
 
-* `the IP of remote Server you want to use`
-* `NetJack parameters of slave to be open on remote machine (localIP/Port/Latency/Compression)`
-* `the dsp files you want to run in JACK/QT environment and the number of instances for each`
-* `syntax is given with ./RemoteClient --help`
+* the IP of remote Server you want to use
+* NetJack parameters of slave to be open on remote machine (localIP/Port/Latency/Compression)
+* the dsp files you want to run in JACK/QT environment and the number of instances for each
+* syntax is given with `./RemoteClient --help`
 
 The following has to be added at link time: `-lfaustremote -lcurl -ljacknet`.

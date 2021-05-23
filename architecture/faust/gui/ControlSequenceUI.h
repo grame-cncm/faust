@@ -33,9 +33,9 @@
 #include "faust/gui/MapUI.h"
 
 struct TSMessage {
-    uint64_t fDateSample;
+    uint64_t    fDateSample;
     std::string fPath;
-    FAUSTFLOAT fValue;
+    FAUSTFLOAT  fValue;
     
     TSMessage(uint64_t ds, const std::string& path, FAUSTFLOAT value)
     :fDateSample(ds), fPath(path), fValue(value)
@@ -43,15 +43,15 @@ struct TSMessage {
 };
 
 /*
- Allows to process a sequence of time-stamped controller messages.
+ Allows to process a sequence of time-stamped messages.
  */
 class ControlSequenceUI : public MapUI {
     
     protected:
     
         std::vector<TSMessage> fSequence;
-        uint64_t fDateSample;
-        int fEvent;
+        uint64_t               fDateSample;
+        int                    fEvent;
     
         void processMessage(const TSMessage& message)
         {
@@ -67,14 +67,16 @@ class ControlSequenceUI : public MapUI {
         {
             if (fSequence.size() == 0) return;
             
-            // Init if needed
+            // Restart from begining if needed
             if (begin < fDateSample) {
                 fDateSample = 0;
                 fEvent = 0;
             }
             
             // Move until start of range
-            while (fSequence[fEvent].fDateSample < begin && fEvent < fSequence.size()) fEvent++;
+            while (fEvent < fSequence.size() && fSequence[fEvent].fDateSample < begin) {
+                fEvent++;
+            }
             
             // Process all messages in [begin, end] range
             while (fEvent < fSequence.size() && fSequence[fEvent].fDateSample <= end) {
@@ -122,18 +124,17 @@ struct OSCSequenceReader {
     {
         std::stringstream tokenizer(date);
         
-        std::string date1, date2;
-        getline(tokenizer, date1, '.');
-        getline(tokenizer, date2, '.');
+        std::string sec, frac;
+        getline(tokenizer, sec, '.');
+        getline(tokenizer, frac, '.');
         
-        std::istringstream date1_reader("0x" + date1);
-        std::istringstream date2_reader("0x" + date2);
-        uint32_t sec, frac;
-        date1_reader >> std::hex >> sec;
-        date2_reader >> std::hex >> frac;
+        std::istringstream sec_reader("0x" + sec);
+        std::istringstream frac_reader("0x" + frac);
+        uint32_t sec_t, frac_t;
+        sec_reader >> std::hex >> sec_t;
+        frac_reader >> std::hex >> frac_t;
         
-        double res = double(sec) + (double(frac)/std::pow(2,32));
-        return uint64_t(res * sample_rate);
+        return uint64_t(sample_rate * (double(sec_t) + (double(frac_t)/std::pow(2,32))));
     }
     
     static std::vector<TSMessage> read(const std::string& pathname, int sample_rate)

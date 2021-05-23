@@ -53,15 +53,6 @@
 #include "faust/dsp/dsp-tools.h"
 #include "faust/misc.h"
 
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
-#endif
-
-typedef sf_count_t (* sample_read)(SNDFILE* sndfile, void* buffer, sf_count_t frames);
-typedef sf_count_t (* sample_write)(SNDFILE* sndfile, void* buffer, sf_count_t frames);
-
-using namespace std;
-
 /******************************************************************************
  *******************************************************************************
  
@@ -81,6 +72,15 @@ using namespace std;
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif
+
+typedef sf_count_t (* sample_read)(SNDFILE* sndfile, void* buffer, sf_count_t frames);
+typedef sf_count_t (* sample_write)(SNDFILE* sndfile, void* buffer, sf_count_t frames);
+
+using namespace std;
 
 // loptrm : scan command-line arguments and remove and return long int value when found
 static long loptrm(int* argcP, char* argv[], const char* longname, const char* shortname, long def)
@@ -172,6 +172,7 @@ int main(int argc_aux, char* argv_aux[])
             exit(1);
         }
         
+        // Handling of the file containing sequence of time-stamped OSC messages
         ControlSequenceUI sequenceUI(OSCSequenceReader::read(cfilename, in_info.samplerate));
         DSP.buildUserInterface(&sequenceUI);
         
@@ -230,6 +231,7 @@ int main(int argc_aux, char* argv_aux[])
         
         int sample_rate = loptrm(&argc, argv, "--sample-rate", "-sr", kSampleRate);
         
+        // Handling of the file containing sequence of time-stamped OSC messages
         ControlSequenceUI sequenceUI(OSCSequenceReader::read(cfilename, sample_rate));
         uint64_t begin, end;
         sequenceUI.getRange(begin, end);
