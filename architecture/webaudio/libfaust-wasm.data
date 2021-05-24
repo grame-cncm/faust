@@ -7143,7 +7143,7 @@ with {
 // linear interactions, etc.) together to form topological networks.
 // Models can be assembled by hand, however in more complex scenarios it is
 // recommended to use a scripting tool (such as MIMS) to generate the FAUST
-// signal routing for a given physical network.
+// signal routing for a given physical network. Its official prefix is `mi`.
 //
 // <https://github.com/rmichon/mi_faust>
 // <http://mi-creative.eu/tool_miFaust.html>
