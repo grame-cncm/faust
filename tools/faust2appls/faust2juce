@@ -80,8 +80,8 @@ do
             BUILD_VST2="1"
         fi
     elif [ $p = "-jucemodulesdir" ]; then
-	    shift
-	    JUCE_MODULES_DIR=$(echo $1 | sed -e 's/\//\\\//g')
+        shift
+        JUCE_MODULES_DIR=$(echo $1 | sed -e 's/\//\\\//g')
     elif [ $p = "-disable-splash-screen" ]; then
         DISPLAY_SPLASH_SCREEN="0"
     elif [ $p = "-jsynth" ]; then
@@ -91,21 +91,21 @@ do
         DEF+="MIDICTRL "
         IS_MIDI="1"
     elif [ $p = "-osc" ]; then
-    	DEF+="OSCCTRL "
-	elif [ $p = "-llvm" ]; then
-		IS_LLVM="1"
+        DEF+="OSCCTRL "
+    elif [ $p = "-llvm" ]; then
+        IS_LLVM="1"
     elif [ $p = "-soundfile" ]; then
         DEF+="SOUNDFILE "
     elif [ ${p:0:1} = "-" ]; then
         if [ $p = "-double" ]; then
             FAUSTFLOAT="double"
         fi
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
+    fi
 
 shift
 
@@ -167,7 +167,7 @@ for p in $FILES; do
 
     CUR=$(pwd)
     f=$(basename "$p")
-	SRCDIR=$(dirname "$p")
+    SRCDIR=$(dirname "$p")
 
     # creates the dir 
     dspName="${f%.dsp}"

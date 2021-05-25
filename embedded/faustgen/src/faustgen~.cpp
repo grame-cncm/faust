@@ -744,6 +744,7 @@ void faustgen_factory::display_libraries()
 #ifdef WIN32
     open_file(FAUST_PDF_LIBRARY);
     open_file("all.lib");
+    open_file("aanl.lib");
     open_file("analyzers.lib");
     open_file("basics.lib");
     open_file("compressors.lib");
@@ -753,7 +754,7 @@ void faustgen_factory::display_libraries()
     open_file("dx7.lib");
     open_file("envelopes.lib");
     open_file("filters.lib");
-    open_file("float.lib");
+    open_file("fds.lib");
     open_file("hoa.lib");
     open_file("instruments.lib");
     open_file("interpolators.lib");
@@ -765,6 +766,8 @@ void faustgen_factory::display_libraries()
     open_file("oscillators.lib");
     open_file("phaflangers.lib");
     open_file("physmodels.lib");
+    open_file("platform.lib");
+    open_file("quantizers.lib");
     open_file("reducemaps.lib");
     open_file("reverbs.lib");
     open_file("routes.lib");
@@ -778,9 +781,12 @@ void faustgen_factory::display_libraries()
     open_file("tonestacks.lib");
     open_file("tubes.lib");
     open_file("vaeffects.lib");
+    open_file("version.lib");
+    open_file("wdmodels.lib");
+    open_file("webaudio.lib");
 #else
-    open_file(FAUST_PDF_LIBRARY);
     display_libraries_aux("all.lib");
+    display_libraries_aux("aanl.lib");
     display_libraries_aux("analyzers.lib");
     display_libraries_aux("basics.lib");
     display_libraries_aux("compressors.lib");
@@ -790,7 +796,7 @@ void faustgen_factory::display_libraries()
     display_libraries_aux("dx7.lib");
     display_libraries_aux("envelopes.lib");
     display_libraries_aux("filters.lib");
-    display_libraries_aux("float.lib");
+    display_libraries_aux("fds.lib");
     display_libraries_aux("hoa.lib");
     display_libraries_aux("instruments.lib");
     display_libraries_aux("interpolators.lib");
@@ -802,6 +808,8 @@ void faustgen_factory::display_libraries()
     display_libraries_aux("oscillators.lib");
     display_libraries_aux("phaflangers.lib");
     display_libraries_aux("physmodels.lib");
+    display_libraries_aux("platform.lib");
+    display_libraries_aux("quantizers.lib");
     display_libraries_aux("reducemaps.lib");
     display_libraries_aux("reverbs.lib");
     display_libraries_aux("routes.lib");
@@ -815,6 +823,9 @@ void faustgen_factory::display_libraries()
     display_libraries_aux("tonestacks.lib");
     display_libraries_aux("tubes.lib");
     display_libraries_aux("vaeffects.lib");
+    display_libraries_aux("version.lib");
+    display_libraries_aux("wdmodels.lib");
+    display_libraries_aux("webaudio.lib");
 #endif
 }
 
