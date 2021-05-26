@@ -4,7 +4,7 @@ faustgen~
 ## The swiss knife for [Faust](https://faust.grame.fr) development in Max/MSP.
 --------------
 
-[Faust](https://faust.grame.fr) (Functional Audio Stream) is a functional programming language for sound synthesis and audio processing with a strong focus on the design of synthesizers, musical instruments, audio effects, etc. Faust targets high-performance signal processing applications and audio plug-ins for a variety of platforms and standards, and is distributed with a [huge library](  https://faustlibraries.grame.fr) of various DSP algorithms.
+[Faust](https://faust.grame.fr) (Functional Audio Stream) is a functional programming language for sound synthesis and audio processing with a strong focus on the design of synthesizers, musical instruments, audio effects, etc. Faust targets high-performance signal processing applications and audio plug-ins for a variety of platforms and standards, and is distributed with a [huge library](https://faustlibraries.grame.fr) of various DSP algorithms.
 
 **faustgen~** is a Max external prototyping environment for the Faust programming language with an ultra-short edit-compile-run cycle. It is based on the [libfaust](https://faust.grame.fr) library (the embeddable version of the Faust compiler) and on [LLVM](http://llvm.org). The DSP code can be edited in an embedded editor and will be JIT compiled in native code using LLVM when the editor is closed. For faster reloading, the compiled code is saved in the patch and re-loaded when the patch is opened again. The **faustgen~** external contains all standard Faust libraries, but additional ones can be used by adding the `-I <pathname>` option in the `compileoptions` message, or using the `librarypath`message.
 

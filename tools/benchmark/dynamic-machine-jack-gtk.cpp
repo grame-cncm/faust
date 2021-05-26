@@ -61,7 +61,7 @@ int main(int argc, char* argv[])
     bool is_httpd = isopt(argv, "-httpd");
     
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "dynamic-machine-jack-gtk [-nvoices N] [-midi] [-osc] [-httpd] foo.fbc" << endl;
+        cout << "dynamic-machine-jack-gtk [-nvoices <num>] [-midi] [-osc] [-httpd] foo.fbc" << endl;
         cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
         cout << "Use '-midi' to activate MIDI control\n";
         cout << "Use '-osc' to activate OSC control\n";

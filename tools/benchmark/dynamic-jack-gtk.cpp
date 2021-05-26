@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2016 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2016-2021 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -30,11 +30,9 @@
 #include <vector>
 
 #include "faust/audio/jack-dsp.h"
-#include "faust/dsp/dsp-optimizer.h"
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/interpreter-dsp.h"
 #include "faust/dsp/dsp-adapter.h"
-#include "faust/dsp/proxy-dsp.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/FUI.h"
@@ -45,28 +43,10 @@
 #include "faust/gui/SoundUI.h"
 #include "faust/misc.h"
 
-#include "faust/dsp/dsp-compute-adapter.h"
-
 using namespace std;
 
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
-
-struct malloc_memory_manager : public dsp_memory_manager {
-    
-    void* allocate(size_t size)
-    {
-        void* res = malloc(size);
-        //cout << "malloc_manager : " << size << " " << res << endl;
-        return res;
-    }
-    virtual void destroy(void* ptr)
-    {
-        //cout << "free_manager : " << ptr << endl;
-        free(ptr);
-    }
-    
-};
 
 static void printList(const vector<string>& list)
 {
@@ -84,243 +64,227 @@ static void splitTarget(const string& target, string& triple, string& cpu)
     }
 }
 
+struct DynamicDSP {
+    
+    dsp_factory* fFactory = nullptr;
+    dsp* fDSP = nullptr;
+    MidiUI* fMIDIInterface = nullptr;
+    httpdUI* fHTTPDinterface = nullptr;
+    GUI* fInterface = nullptr;
+    GUI* fOSCinterface = nullptr;
+    FUI* fFInterface = nullptr;
+    SoundUI* fSoundinterface = nullptr;
+    jackaudio_midi fAudio;
+    
+    bool is_llvm = false;
+    
+    DynamicDSP(int argc, char* argv[])
+    {
+        char name[256];
+        char filename[256];
+        char rcfilename[256];
+        char* home = getenv("HOME");
+        int nvoices = 0;
+        bool midi_sync = false;
+        string error_msg;
+        
+        snprintf(name, 255, "%s", basename(argv[0]));
+        snprintf(filename, 255, "%s", basename(argv[argc-1]));
+        snprintf(rcfilename, 255, "%s/.%s-%src", home, name, filename);
+        
+        is_llvm = isopt(argv, "-llvm");
+        bool is_interp = isopt(argv, "-interp");
+        bool is_midi = isopt(argv, "-midi");
+        bool is_osc = isopt(argv, "-osc");
+        bool is_all = isopt(argv, "-all");
+        bool is_generic = isopt(argv, "-generic");
+        bool is_httpd = isopt(argv, "-httpd");
+        bool is_resample = isopt(argv, "-resample");
+        bool is_double = isopt(argv, "-double");
+        
+        if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
+            cout << "dynamic-jack-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
+            cout << "Use '-llvm' to use LLVM backend\n";
+            cout << "Use '-interp' to use Interpreter backend, using either .dsp or .fbc (Faust Byte Code) files\n";
+            cout << "Use '-edit' to start an edit/compile/run loop: closing the window will reopen a new one with the new compiled code\n";
+            cout << "Use '-generic' to JIT for a generic CPU (otherwise 'native' mode is used)\n";
+            cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
+            cout << "Use '-all' to active the 'all voices always playing' mode\n";
+            cout << "Use '-midi' to activate MIDI control\n";
+            cout << "Use '-osc' to activate OSC control\n";
+            cout << "Use '-httpd' to activate HTTP control\n";
+            cout << "Use '-resample' to resample soundfiles to the audio driver sample rate\n";
+            exit(EXIT_FAILURE);
+        }
+        
+        cout << "Libfaust version : " << getCLibFaustVersion() << endl;
+        
+        int argc1 = 0;
+        const char* argv1[64];
+        
+        cout << "Compiled with additional options : ";
+        for (int i = 1; i < argc-1; i++) {
+            if ((string(argv[i]) == "-llvm")
+                || (string(argv[i]) == "-interp")
+                || (string(argv[i]) == "-edit")
+                || (string(argv[i]) == "-generic")
+                || (string(argv[i]) == "-midi")
+                || (string(argv[i]) == "-osc")
+                || (string(argv[i]) == "-all")
+                || (string(argv[i]) == "-httpd")
+                || (string(argv[i]) == "-resample")) {
+                continue;
+            } else if (string(argv[i]) == "-nvoices") {
+                i++;
+                continue;
+            }
+            argv1[argc1++] = argv[i];
+            cout << argv[i] << " ";
+        }
+        cout << endl;
+        argv1[argc1] = nullptr;  // NULL terminated argv
+        
+        if (is_llvm) {
+            
+            string opt_target;
+            if (is_generic) {
+                string triple, cpu;
+                splitTarget(getDSPMachineTarget(), triple, cpu);
+                opt_target = triple + ":generic";
+                cout << "Using LLVM backend in 'generic' mode\n";
+            } else {
+                cout << "Using LLVM backend in 'native' mode\n";
+            }
+            
+            // argc : without the filename (last element);
+            fFactory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, opt_target, error_msg, -1);
+            
+            if (!fFactory) {
+                cerr << error_msg;
+                return;
+            }
+            
+        } else {
+            cout << "Using interpreter backend" << endl;
+            // argc : without the filename (last element);
+            fFactory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
+        }
+        
+        if (!fFactory) {
+            cerr << error_msg;
+            return;
+        }
+        
+        cout << "getCompileOptions " << fFactory->getCompileOptions() << endl;
+        printList(fFactory->getLibraryList());
+        printList(fFactory->getIncludePathnames());
+        
+        fDSP = fFactory->createDSPInstance();
+        if (!fDSP) {
+            cerr << "Cannot create instance "<< endl;
+            return;
+        }
+        
+        if (is_double) {
+            cout << "Running in double..." << endl;
+            fDSP = new dsp_sample_adapter<double, float>(fDSP);
+        }
+        
+        cout << "getName " << fFactory->getName() << endl;
+        cout << "getSHAKey " << fFactory->getSHAKey() << endl;
+        
+        // Before reading the -nvoices parameter
+        MidiMeta::analyse(fDSP, midi_sync, nvoices);
+        nvoices = lopt(argv, "-nvoices", nvoices);
+        
+        if (nvoices > 0) {
+            cout << "Starting polyphonic mode 'nvoices' : " << nvoices << " and 'all' : " << is_all << endl;
+            fDSP = new mydsp_poly(fDSP, nvoices, !is_all, true);
+        }
+        
+        fInterface = new GTKUI(filename, &argc, &argv);
+        fDSP->buildUserInterface(fInterface);
+        
+        fFInterface = new FUI();
+        fDSP->buildUserInterface(fFInterface);
+        
+        if (!fAudio.init(filename, fDSP)) {
+            return;
+        }
+        
+        // After audio init to get SR
+        if (is_resample) {
+            fSoundinterface = new SoundUI("", fAudio.getSampleRate(), nullptr, is_double);
+        } else {
+            fSoundinterface = new SoundUI("", -1, nullptr, is_double);
+        }
+        fDSP->buildUserInterface(fSoundinterface);
+        
+        if (is_httpd) {
+            fHTTPDinterface = new httpdUI(name, fDSP->getNumInputs(), fDSP->getNumOutputs(), argc, argv);
+            fDSP->buildUserInterface(fHTTPDinterface);
+        }
+        
+        if (is_osc) {
+            fOSCinterface = new OSCUI(filename, argc, argv);
+            fDSP->buildUserInterface(fOSCinterface);
+        }
+        
+        if (is_midi) {
+            fMIDIInterface = new MidiUI(&fAudio);
+            fDSP->buildUserInterface(fMIDIInterface);
+        }
+        
+        // State (after UI construction)
+        fFInterface->recallState(rcfilename);
+        fAudio.start();
+        
+        if (is_httpd) {
+            fHTTPDinterface->run();
+        }
+        
+        if (is_osc) {
+            fOSCinterface->run();
+        }
+        
+        if (is_midi) {
+            fMIDIInterface->run();
+        }
+        
+        fInterface->run();
+        
+        fAudio.stop();
+        fFInterface->saveState(rcfilename);
+    }
+    
+    ~DynamicDSP()
+    {
+        delete fDSP;
+        delete fInterface;
+        delete fFInterface;
+        delete fMIDIInterface;
+        delete fHTTPDinterface;
+        delete fOSCinterface;
+        delete fSoundinterface;
+        
+        if (is_llvm) {
+            deleteDSPFactory(static_cast<llvm_dsp_factory*>(fFactory));
+        } else {
+            deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(fFactory));
+        }
+    }
+        
+};
+
 int main(int argc, char* argv[])
 {
-    char name[256];
-    char filename[256];
-    char rcfilename[256];
-    char* home = getenv("HOME");
-    int nvoices = 0;
-    bool midi_sync = false;
-    
-    snprintf(name, 255, "%s", basename(argv[0]));
-    snprintf(filename, 255, "%s", basename(argv[argc-1]));
-    snprintf(rcfilename, 255, "%s/.%s-%src", home, name, filename);
-    
-    bool is_llvm = isopt(argv, "-llvm");
-    bool is_interp = isopt(argv, "-interp");
-    bool is_midi = isopt(argv, "-midi");
-    bool is_osc = isopt(argv, "-osc");
-    bool is_all = isopt(argv, "-all");
-    bool is_generic = isopt(argv, "-generic");
-    bool is_httpd = isopt(argv, "-httpd");
-    bool is_resample = isopt(argv, "-resample");
-    bool is_double = isopt(argv, "-double");
-    
-    malloc_memory_manager manager;
-    
-    if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
-        cout << "dynamic-jack-gtk [-llvm|interp] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
-        cout << "Use '-llvm' to use LLVM backend\n";
-        cout << "Use '-interp' to use Interpreter backend (using either .dsp or .fbc (Faust Byte Code) files\n";
-        cout << "Use '-generic' to JIT for a generic CPU (otherwise 'native' mode is used)\n";
-        cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
-        cout << "Use '-all' to active the 'all voices always playing' mode\n";
-        cout << "Use '-midi' to activate MIDI control\n";
-        cout << "Use '-osc' to activate OSC control\n";
-        cout << "Use '-httpd' to activate HTTP control\n";
-        cout << "Use '-resample' to resample soundfiles to the audio driver sample rate\n";
-        exit(EXIT_FAILURE);
-    }
-    
-    dsp_factory* factory = nullptr;
-    dsp* DSP = nullptr;
-    MidiUI* midiinterface = nullptr;
-    httpdUI* httpdinterface = nullptr;
-    GUI* oscinterface = nullptr;
-    jackaudio_midi audio;
-    string error_msg;
-    
-    cout << "Libfaust version : " << getCLibFaustVersion() << endl;
-    
-    int argc1 = 0;
-    const char* argv1[64];
-    
-    cout << "Compiled with additional options : ";
-    for (int i = 1; i < argc-1; i++) {
-        if ((string(argv[i]) == "-llvm")
-            || (string(argv[i]) == "-interp")
-            || (string(argv[i]) == "-generic")
-            || (string(argv[i]) == "-midi")
-            || (string(argv[i]) == "-osc")
-            || (string(argv[i]) == "-all")
-            || (string(argv[i]) == "-httpd")
-            || (string(argv[i]) == "-resample")) {
-            continue;
-        } else if (string(argv[i]) == "-nvoices") {
-            i++;
-            continue;
-        }
-        argv1[argc1++] = argv[i];
-        cout << argv[i] << " ";
-    }
-    cout << endl;
-    argv1[argc1] = nullptr;  // NULL terminated argv
-    
-    if (is_llvm) {
-        
-        string opt_target;
-        if (is_generic) {
-            string triple, cpu;
-            splitTarget(getDSPMachineTarget(), triple, cpu);
-            opt_target = triple + ":generic";
-            cout << "Using LLVM backend in 'generic' mode\n";
-        } else {
-            cout << "Using LLVM backend in 'native' mode\n";
-        }
-        
-        // argc : without the filename (last element);
-        factory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, opt_target, error_msg, -1);
-        
-        if (!factory) {
-            cerr << error_msg;
-            cout << "Trying to use readDSPFactoryFromIRFile..." << endl;
-            factory = readDSPFactoryFromIRFile(argv[argc-1], "", error_msg, -1);
-        }
-        
-        if (!factory) {
-            cerr << error_msg;
-            cout << "Trying to use readDSPFactoryFromIRFile..." << endl;
-            factory = readDSPFactoryFromBitcodeFile(argv[argc-1], "", error_msg, -1);
-        }
-        
-        if (!factory) {
-            cerr << error_msg;
-            cout << "Trying to use readDSPFactoryFromMachineFile..." << endl;
-            factory = readDSPFactoryFromMachineFile(argv[argc-1], "", error_msg);
-        }
-        
-        //cout << "getDSPMachineTarget " << getDSPMachineTarget() << endl;
-        
-        /*
-         // Test Write/Read
-         string path_name = factory->getName();
-         
-         cout << "Test writeDSPFactoryToBitcodeFile/readDSPFactoryFromBitcodeFile" << endl;
-         writeDSPFactoryToBitcodeFile(static_cast<llvm_dsp_factory*>(factory), path_name);
-         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
-         factory = readDSPFactoryFromBitcodeFile(path_name, "", -1);
-         cout << "getCompileOptions " << factory->getCompileOptions() << endl;
-         
-         printList(factory->getLibraryList());
-         printList(factory->getIncludePathnames());
-         */
-        
+    if (isopt(argv, "-edit")) {
+        // A very harsh way of updating the DSP code...
+        while (true) DynamicDSP(argc, argv);
     } else {
-        cout << "Using interpreter backend" << endl;
-        // argc : without the filename (last element);
-        factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
-        
-        if (!factory) {
-            cerr << error_msg;
-            cout << "Trying to use createInterpreterDSPFactoryFromFile..." << endl;
-            factory = readInterpreterDSPFactoryFromBitcodeFile(argv[argc-1], error_msg);
-        }
+        // Run once
+        DynamicDSP(argc, argv);
     }
-    
-    if (!factory) {
-        cerr << error_msg;
-        exit(EXIT_FAILURE);
-    }
-    
-    cout << "getCompileOptions " << factory->getCompileOptions() << endl;
-    printList(factory->getLibraryList());
-    printList(factory->getIncludePathnames());
-    
-    //factory->setMemoryManager(&manager);  causes crash in -fm mode
-    DSP = factory->createDSPInstance();
-    if (!DSP) {
-        cerr << "Cannot create instance "<< endl;
-        exit(EXIT_FAILURE);
-    }
-    
-    if (is_double) {
-        cout << "Running in double..." << endl;
-        DSP = new dsp_sample_adapter<double, float>(DSP);
-    }
-    
-    cout << "getName " << factory->getName() << endl;
-    cout << "getSHAKey " << factory->getSHAKey() << endl;
-    
-    // Before reading the -nvoices parameter
-    MidiMeta::analyse(DSP, midi_sync, nvoices);
-    nvoices = lopt(argv, "-nvoices", nvoices);
-    
-    if (nvoices > 0) {
-        cout << "Starting polyphonic mode 'nvoices' : " << nvoices << " and 'all' : " << is_all << endl;
-        DSP = new mydsp_poly(DSP, nvoices, !is_all, true);
-    }
-   
-    GUI* interface = new GTKUI(filename, &argc, &argv);
-    DSP->buildUserInterface(interface);
-    
-    FUI* finterface = new FUI();
-    DSP->buildUserInterface(finterface);
-    
-    if (!audio.init(filename, DSP)) {
-        exit(EXIT_FAILURE);
-    }
-    
-    // After audio init to get SR
-    SoundUI* soundinterface = nullptr;
-    if (is_resample) {
-        soundinterface = new SoundUI("", audio.getSampleRate(), nullptr, is_double);
-    } else {
-        soundinterface = new SoundUI("", -1, nullptr, is_double);
-    }
-    DSP->buildUserInterface(soundinterface);
-    
-    if (is_httpd) {
-        httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
-        DSP->buildUserInterface(httpdinterface);
-    }
-    
-    if (is_osc) {
-        oscinterface = new OSCUI(filename, argc, argv);
-        DSP->buildUserInterface(oscinterface);
-    }
-    
-    if (is_midi) {
-        midiinterface = new MidiUI(&audio);
-        DSP->buildUserInterface(midiinterface);
-    }
-    
-    // State (after UI construction)
-    finterface->recallState(rcfilename);
-    audio.start();
-    
-    if (is_httpd) {
-        httpdinterface->run();
-    }
-    
-    if (is_osc) {
-        oscinterface->run();
-    }
-    
-    if (is_midi) {
-        midiinterface->run();
-    }
-    
-    interface->run();
-    
-    audio.stop();
-    
-    finterface->saveState(rcfilename);
-    
-    delete DSP;
-    delete interface;
-    delete finterface;
-    delete midiinterface;
-    delete httpdinterface;
-    delete oscinterface;
-    delete soundinterface;
-    
-    if (is_llvm) {
-        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
-    } else {
-        deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
-    }
-    
     return 0;
 }
 
