@@ -1382,12 +1382,12 @@ bool GTKUI::run()
     
     gtk_timeout_add(40, callUpdateAllGuis, 0);
     gtk_main();
-    stop();
     return true;
 }
 
 void GTKUI::stop()
 {
+    GUI::stop();
     gtk_main_quit();
     gtk_signal_emit_by_name((GtkObject*)fWindow, "destroy");
 }

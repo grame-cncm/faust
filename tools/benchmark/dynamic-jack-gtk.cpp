@@ -78,7 +78,6 @@ struct DynamicDSP {
     SoundUI* fSoundinterface = nullptr;
     jackaudio_midi fAudio;
     string fRCfilename;
-    bool fIsStopped = false;
     bool is_llvm = false;
     
     DynamicDSP(int argc, char* argv[], bool is_dsp_only = false)
@@ -274,12 +273,12 @@ struct DynamicDSP {
     
     bool start()
     {
-        return fInterface->run();
+        fInterface->run();
+        return fInterface->stopped();
     }
     
     void stop()
     {
-        fIsStopped = true;
         fInterface->stop();
     }
     
@@ -331,8 +330,7 @@ static bool allocDynamicDSP(int argc, char* argv[], bool is_dsp_only = false)
 {
     try {
         gDynamicDSP = new DynamicDSP(argc, argv, is_dsp_only);
-        gDynamicDSP->start();
-        bool res = gDynamicDSP->fIsStopped;
+        bool res = gDynamicDSP->start();
         delete gDynamicDSP;
         return res;
     } catch (...) {
