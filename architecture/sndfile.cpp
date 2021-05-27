@@ -104,7 +104,7 @@ mydsp DSP;
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
-#define kFrames      64
+#define kBufferSize  64
 #define kSampleRate  44100
 
 int main(int argc_aux, char* argv_aux[])
@@ -149,6 +149,8 @@ int main(int argc_aux, char* argv_aux[])
     
     bool is_rc = loptrm(&argc, argv, "--rcfile", "-rc", 0);
     
+    int buffer_size = loptrm(&argc, argv, "--buffer-size", "-bs", kBufferSize);
+    
     if (FILE_MODE == INPUT_OUTPUT_FILE) {
         
         int num_samples = loptrm(&argc, argv, "--continue", "-c", 0);
@@ -188,15 +190,15 @@ int main(int argc_aux, char* argv_aux[])
         interface->process_init();
         
         // Create deinterleaver and interleaver
-        Deinterleaver dilv(kFrames, in_info.channels, DSP.getNumInputs());
-        Interleaver ilv(kFrames, DSP.getNumOutputs(), DSP.getNumOutputs());
+        Deinterleaver dilv(buffer_size, in_info.channels, DSP.getNumInputs());
+        Interleaver ilv(buffer_size, DSP.getNumOutputs(), DSP.getNumOutputs());
         
         // Process all samples
         int nbf;
         uint64_t cur_frame = 0;
         do {
             // Read samples
-            nbf = reader(in_sf, dilv.input(), kFrames);
+            nbf = reader(in_sf, dilv.input(), buffer_size);
             dilv.deinterleave();
             // Update controllers
             sequenceUI.process(cur_frame, cur_frame + nbf);
@@ -206,7 +208,7 @@ int main(int argc_aux, char* argv_aux[])
             // Write samples
             ilv.interleave();
             writer(out_sf, ilv.output(), nbf);
-        } while (nbf == kFrames);
+        } while (nbf == buffer_size);
         
         sf_close(in_sf);
         
@@ -261,12 +263,12 @@ int main(int argc_aux, char* argv_aux[])
         interface->process_init();
         
         // Create interleaver
-        Interleaver ilv(kFrames, DSP.getNumOutputs(), DSP.getNumOutputs());
+        Interleaver ilv(buffer_size, DSP.getNumOutputs(), DSP.getNumOutputs());
         
         // Process all samples
         uint64_t cur_frame = 0;
         do {
-            int nbf = std::min(int(num_samples - cur_frame), int(kFrames));
+            int nbf = std::min(int(num_samples - cur_frame), int(buffer_size));
             // Update controllers
             sequenceUI.process(cur_frame, cur_frame + nbf);
             // Compute DSP

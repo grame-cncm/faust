@@ -57,12 +57,14 @@ for f in $FILES; do
 	NINPUTS=${LINPUTS//[^0-9]/}
 	if [ $NINPUTS -gt 0 ]; then
 		echo "Will process an input file to produce an output file. With the compiled program 'foo' you can add:"
+		echo "[-bs <num>] to setup the rendering buffer size in frames (default: 64)"
 		echo "[-c samples] for the number of frames to append beyond the input file (default: 0)"
 		echo "[-ct <filename>] to use the <filename> control messages file"
 		echo "[-rc 1] to use the foo.rc file"
 		FILE_MODE="INPUT_OUTPUT_FILE"
 	else
 		echo "Will generate an output file. With the compiled program 'foo' you can add:"
+		echo "[-bs <num>] to setup the rendering buffer size in frames (default: 64)"
 		echo "[-bd 16|24|32] to setup the output file bit-depth (default: 16)"
 		echo "[-sr <num>] to setup the output file sample rate (default: 44100)"
 		echo "[-s <num>] to setup the output file length in frames (default: SR*5)"
