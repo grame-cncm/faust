@@ -326,7 +326,7 @@ static void run(Context* context)
     }
 }
 
-static bool allocDynamicDSP(int argc, char* argv[], bool is_dsp_only = false)
+static bool runDynamicDSP(int argc, char* argv[], bool is_dsp_only = false)
 {
     try {
         gDynamicDSP = new DynamicDSP(argc, argv, is_dsp_only);
@@ -342,11 +342,11 @@ static bool allocDynamicDSP(int argc, char* argv[], bool is_dsp_only = false)
 int main(int argc, char* argv[])
 {
     if (isopt(argv, "-edit")) {
-        thread* ui_tread = new thread(run, new Context(argc, argv));
-        while (allocDynamicDSP(argc, argv, true)) {};
+        new thread(run, new Context(argc, argv));
+        while (runDynamicDSP(argc, argv, true)) {};
     } else {
         // Run once
-        allocDynamicDSP(argc, argv);
+        runDynamicDSP(argc, argv);
     }
     
     return 0;

@@ -67,7 +67,7 @@ for f in $FILES; do
 		echo "[-bs <num>] to setup the rendering buffer size in frames (default: 64)"
 		echo "[-bd 16|24|32] to setup the output file bit-depth (default: 16)"
 		echo "[-sr <num>] to setup the output file sample rate (default: 44100)"
-		echo "[-s <num>] to setup the output file length in frames (default: SR*5)"
+		echo "[-s <num>] to setup the output file length in frames, when -ct is not used (default: SR*5)"
 		echo "[-ct <filename>] to use the <filename> control messages file"
 		echo "[-rc 1] to use the foo.rc file"
 		FILE_MODE="OUTPUT_FILE"
