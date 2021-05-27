@@ -115,24 +115,19 @@ bool llvm_dsp_factory_aux::crossCompile(const string& target)
 void llvm_dsp_factory_aux::startLLVMLibrary()
 {
     if (llvm_dsp_factory_aux::gInstance++ == 0) {
-        // Install an LLVM error handler
-    #if defined(__APPLE__) && (defined(LLVM_110) || defined(LLVM_120) || defined(LLVM_130))
-        #warning Crash on OSX with LLVM_11 or LLVM_12, so deactivated in this case
-    #else
         LLVMInstallFatalErrorHandler(llvm_dsp_factory_aux::LLVMFatalErrorHandler);
-    #endif
     }
 }
 
 void llvm_dsp_factory_aux::stopLLVMLibrary()
 {
     if (--llvm_dsp_factory_aux::gInstance == 0) {
-        // Remove the LLVM error handler
-#ifdef __APPLE__
-    #warning Crash on OSX so deactivated in this case
-#else
+    // Remove the LLVM error handler
+    #if defined(__APPLE__) && (defined(LLVM_110) || defined(LLVM_120) || defined(LLVM_130))
+        #warning Crash on OSX so deactivated in this case
+    #else
         LLVMResetFatalErrorHandler();
-#endif
+    #endif
     }
 }
 
@@ -187,7 +182,7 @@ llvm_dsp_factory_aux::~llvm_dsp_factory_aux()
 
 void llvm_dsp_factory_aux::LLVMFatalErrorHandler(const char* reason)
 {
-    throw faustexception(string(reason) + "\n");
+    throw faustexception("ERROR : " + string(reason));
 }
 
 void llvm_dsp_factory_aux::init(const string& type_name, const string& dsp_name)

@@ -579,6 +579,7 @@ class GTKUI : public GUI, public MetaDataUI
         virtual void addTextDisplay(const char* label, FAUSTFLOAT* zone, const char* names[], FAUSTFLOAT min, FAUSTFLOAT max);
     
         virtual bool run();
+        virtual void stop();
     
 };
 
@@ -1383,6 +1384,11 @@ bool GTKUI::run()
     gtk_main();
     stop();
     return true;
+}
+
+void GTKUI::stop()
+{
+    gtk_main_quit();
 }
 
 #endif
