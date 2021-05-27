@@ -28,12 +28,14 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <thread>
 
 #include "faust/audio/jack-dsp.h"
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/interpreter-dsp.h"
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/dsp/poly-dsp.h"
+#include "faust/dsp/libfaust.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/GTKUI.h"
@@ -75,10 +77,11 @@ struct DynamicDSP {
     FUI* fFInterface = nullptr;
     SoundUI* fSoundinterface = nullptr;
     jackaudio_midi fAudio;
-    
+    string fRCfilename;
+    bool fIsStopped = false;
     bool is_llvm = false;
     
-    DynamicDSP(int argc, char* argv[])
+    DynamicDSP(int argc, char* argv[], bool is_dsp_only = false)
     {
         char name[256];
         char filename[256];
@@ -91,6 +94,7 @@ struct DynamicDSP {
         snprintf(name, 255, "%s", basename(argv[0]));
         snprintf(filename, 255, "%s", basename(argv[argc-1]));
         snprintf(rcfilename, 255, "%s/.%s-%src", home, name, filename);
+        fRCfilename = rcfilename;
         
         is_llvm = isopt(argv, "-llvm");
         bool is_interp = isopt(argv, "-interp");
@@ -159,27 +163,29 @@ struct DynamicDSP {
             // argc : without the filename (last element);
             fFactory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, opt_target, error_msg, -1);
             
-            if (!fFactory) {
-                cerr << error_msg;
-                cout << "Trying to use readDSPFactoryFromIRFile..." << endl;
-                fFactory = readDSPFactoryFromIRFile(argv[argc-1], "", error_msg, -1);
+            if (!is_dsp_only) {
+                if (!fFactory) {
+                    cerr << error_msg;
+                    cout << "Trying to use readDSPFactoryFromIRFile..." << endl;
+                    fFactory = readDSPFactoryFromIRFile(argv[argc-1], "", error_msg, -1);
+                }
+                
+                if (!fFactory) {
+                    cerr << error_msg;
+                    cout << "Trying to use readDSPFactoryFromBitcodeFile..." << endl;
+                    fFactory = readDSPFactoryFromBitcodeFile(argv[argc-1], "", error_msg, -1);
+                }
+                
+                if (!fFactory) {
+                    cerr << error_msg;
+                    cout << "Trying to use readDSPFactoryFromMachineFile..." << endl;
+                    fFactory = readDSPFactoryFromMachineFile(argv[argc-1], "", error_msg);
+                }
             }
-            
+                
             if (!fFactory) {
                 cerr << error_msg;
-                cout << "Trying to use readDSPFactoryFromBitcodeFile..." << endl;
-                fFactory = readDSPFactoryFromBitcodeFile(argv[argc-1], "", error_msg, -1);
-            }
-            
-            if (!fFactory) {
-                cerr << error_msg;
-                cout << "Trying to use readDSPFactoryFromMachineFile..." << endl;
-                fFactory = readDSPFactoryFromMachineFile(argv[argc-1], "", error_msg);
-            }
-            
-            if (!fFactory) {
-                cerr << error_msg;
-                return;
+                throw bad_alloc();
             }
             
         } else {
@@ -190,7 +196,7 @@ struct DynamicDSP {
         
         if (!fFactory) {
             cerr << error_msg;
-            return;
+            throw bad_alloc();
         }
         
         cout << "getCompileOptions " << fFactory->getCompileOptions() << endl;
@@ -200,7 +206,7 @@ struct DynamicDSP {
         fDSP = fFactory->createDSPInstance();
         if (!fDSP) {
             cerr << "Cannot create instance "<< endl;
-            return;
+            throw bad_alloc();
         }
         
         if (is_double) {
@@ -227,7 +233,7 @@ struct DynamicDSP {
         fDSP->buildUserInterface(fFInterface);
         
         if (!fAudio.init(filename, fDSP)) {
-            return;
+            throw bad_alloc();
         }
         
         // After audio init to get SR
@@ -264,17 +270,26 @@ struct DynamicDSP {
         if (is_midi) {
             fMIDIInterface->run();
         }
-        
-        fInterface->run();
-        
-        fAudio.stop();
-        fFInterface->saveState(rcfilename);
+    }
+    
+    bool start()
+    {
+        return fInterface->run();
+    }
+    
+    void stop()
+    {
+        fIsStopped = true;
+        fInterface->stop();
     }
     
     ~DynamicDSP()
     {
-        delete fDSP;
+        fAudio.stop();
+        fFInterface->saveState(fRCfilename.c_str());
+        
         delete fInterface;
+        delete fDSP;
         delete fFInterface;
         delete fMIDIInterface;
         delete fHTTPDinterface;
@@ -290,15 +305,52 @@ struct DynamicDSP {
         
 };
 
+struct Context {
+    int fArgc;
+    char** fArgv;
+    string fSHAKey;
+    Context(int argc, char** argv):fArgc(argc), fArgv(argv) {}
+};
+
+DynamicDSP* gDynamicDSP = nullptr;
+
+// Switch to a new DynamicDSP if file content is different
+static void run(Context* context)
+{
+    while (true) {
+        string sha_key = generateSHA1(pathToContent(context->fArgv[context->fArgc-1]));
+        if (sha_key != context->fSHAKey) {
+            context->fSHAKey = sha_key;
+            if (gDynamicDSP) gDynamicDSP->stop();
+        }
+        usleep(500000);
+    }
+}
+
+static bool allocDynamicDSP(int argc, char* argv[], bool is_dsp_only = false)
+{
+    try {
+        gDynamicDSP = new DynamicDSP(argc, argv, is_dsp_only);
+        gDynamicDSP->start();
+        bool res = gDynamicDSP->fIsStopped;
+        delete gDynamicDSP;
+        return res;
+    } catch (...) {
+        gDynamicDSP = nullptr;
+        return true;
+    }
+}
+
 int main(int argc, char* argv[])
 {
     if (isopt(argv, "-edit")) {
-        // A very harsh way of updating the DSP code...
-        while (true) DynamicDSP(argc, argv);
+        thread* ui_tread = new thread(run, new Context(argc, argv));
+        while (allocDynamicDSP(argc, argv, true)) {};
     } else {
         // Run once
-        DynamicDSP(argc, argv);
+        allocDynamicDSP(argc, argv);
     }
+    
     return 0;
 }
 

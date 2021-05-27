@@ -1389,6 +1389,7 @@ bool GTKUI::run()
 void GTKUI::stop()
 {
     gtk_main_quit();
+    gtk_signal_emit_by_name((GtkObject*)fWindow, "destroy");
 }
 
 #endif
