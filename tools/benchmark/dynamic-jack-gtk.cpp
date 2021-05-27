@@ -161,6 +161,24 @@ struct DynamicDSP {
             
             if (!fFactory) {
                 cerr << error_msg;
+                cout << "Trying to use readDSPFactoryFromIRFile..." << endl;
+                fFactory = readDSPFactoryFromIRFile(argv[argc-1], "", error_msg, -1);
+            }
+            
+            if (!fFactory) {
+                cerr << error_msg;
+                cout << "Trying to use readDSPFactoryFromBitcodeFile..." << endl;
+                fFactory = readDSPFactoryFromBitcodeFile(argv[argc-1], "", error_msg, -1);
+            }
+            
+            if (!fFactory) {
+                cerr << error_msg;
+                cout << "Trying to use readDSPFactoryFromMachineFile..." << endl;
+                fFactory = readDSPFactoryFromMachineFile(argv[argc-1], "", error_msg);
+            }
+            
+            if (!fFactory) {
+                cerr << error_msg;
                 return;
             }
             
@@ -213,11 +231,7 @@ struct DynamicDSP {
         }
         
         // After audio init to get SR
-        if (is_resample) {
-            fSoundinterface = new SoundUI("", fAudio.getSampleRate(), nullptr, is_double);
-        } else {
-            fSoundinterface = new SoundUI("", -1, nullptr, is_double);
-        }
+        fSoundinterface = new SoundUI("", ((is_resample) ? fAudio.getSampleRate() : -1), nullptr, is_double);
         fDSP->buildUserInterface(fSoundinterface);
         
         if (is_httpd) {

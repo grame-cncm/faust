@@ -102,7 +102,7 @@ static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer, LLVMContext& Context, stri
 {
     Expected<unique_ptr<Module>> ModuleOrErr = parseBitcodeFile(Buffer, Context);
     if (!ModuleOrErr) {
-        if (ErrMsg) *ErrMsg = "Failed to read bitcode";
+        if (ErrMsg) *ErrMsg = "ERROR : failed to read bitcode\n";
         return nullptr;
     } else {
         return ModuleOrErr.get().release();
