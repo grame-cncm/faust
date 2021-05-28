@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 #include <thread>
+#include <mutex>
 
 #include "faust/audio/jack-dsp.h"
 #include "faust/dsp/llvm-dsp.h"
@@ -169,19 +170,16 @@ struct DynamicDSP {
             fFactory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, opt_target, error_msg, -1);
             
             if (!is_dsp_only) {
-                
                 if (!fFactory) {
                     cerr << error_msg;
                     cout << "Trying to use readDSPFactoryFromIRFile..." << endl;
                     fFactory = readDSPFactoryFromIRFile(argv[argc-1], "", error_msg, -1);
                 }
-                
                 if (!fFactory) {
                     cerr << error_msg;
                     cout << "Trying to use readDSPFactoryFromBitcodeFile..." << endl;
                     fFactory = readDSPFactoryFromBitcodeFile(argv[argc-1], "", error_msg, -1);
                 }
-                
                 if (!fFactory) {
                     cerr << error_msg;
                     cout << "Trying to use readDSPFactoryFromMachineFile..." << endl;
@@ -194,10 +192,12 @@ struct DynamicDSP {
             // argc : without the filename (last element);
             fFactory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
             
-            if (!fFactory) {
-                cerr << error_msg;
-                cout << "Trying to use readDSPFactoryFromBitcodeFile..." << endl;
-                fFactory = readInterpreterDSPFactoryFromBitcodeFile(argv[argc-1], error_msg);
+            if (!is_dsp_only) {
+                if (!fFactory) {
+                    cerr << error_msg;
+                    cout << "Trying to use readDSPFactoryFromBitcodeFile..." << endl;
+                    fFactory = readInterpreterDSPFactoryFromBitcodeFile(argv[argc-1], error_msg);
+                }
             }
         }
         
@@ -320,6 +320,7 @@ struct Context {
     Context(int argc, char** argv):fArgc(argc), fArgv(argv) {}
 };
 
+static mutex gMutex;
 static DynamicDSP* gDynamicDSP = nullptr;
 
 // Stop the current gDynamicDSP if file content is different, the main thread will then allocate a new one
@@ -329,7 +330,9 @@ static void run(Context* context)
         string sha_key = generateSHA1(pathToContent(context->fArgv[context->fArgc-1]));
         if (sha_key != context->fSHAKey) {
             context->fSHAKey = sha_key;
+            gMutex.lock();
             if (gDynamicDSP) gDynamicDSP->stop();
+            gMutex.unlock();
         }
         usleep(500000);
     }
@@ -342,7 +345,10 @@ static bool runDynamicDSP(int argc, char* argv[], bool is_dsp_only = false)
         gDynamicDSP = new DynamicDSP(argc, argv, is_dsp_only);
         bool res = gDynamicDSP->start();
         // 'start' returns either because the DSP file content has changed or the window was closed by the user
+        gMutex.lock();
         delete gDynamicDSP;
+        gDynamicDSP = nullptr;
+        gMutex.unlock();
         // 'res' is true when gDynamicDSP whe stopped by the additional thread
         return res;
     } catch (...) {
