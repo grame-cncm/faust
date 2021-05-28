@@ -78,7 +78,7 @@ Here are the available options:
 
 - `-llvm' to use LLVM backend- `
 - `-interp' to use Interpreter backend, using either .dsp or .fbc (Faust Byte Code) files)`
-- `-edit' to start an edit/compile/run loop: closing the window will reopen a new one with the new compiled code`
+- `-edit' to start an edit/compile/run loop`
 - `-generic to JIT for a generic CPU (otherwise 'native' mode is used)`
 - `-nvoices <num> to start the DSP in polyphonic mode with <num> voices`
 - `-all' to active the 'all voices always playing' mode`

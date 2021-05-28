@@ -109,7 +109,7 @@ struct DynamicDSP {
             cout << "dynamic-jack-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
             cout << "Use '-llvm' to use LLVM backend\n";
             cout << "Use '-interp' to use Interpreter backend, using either .dsp or .fbc (Faust Byte Code) files\n";
-            cout << "Use '-edit' to start an edit/compile/run loop: closing the window will reopen a new one with the new compiled code\n";
+            cout << "Use '-edit' to start an edit/compile/run loop\n";
             cout << "Use '-generic' to JIT for a generic CPU (otherwise 'native' mode is used)\n";
             cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
             cout << "Use '-all' to active the 'all voices always playing' mode\n";
@@ -180,11 +180,6 @@ struct DynamicDSP {
                     cout << "Trying to use readDSPFactoryFromMachineFile..." << endl;
                     fFactory = readDSPFactoryFromMachineFile(argv[argc-1], "", error_msg);
                 }
-            }
-                
-            if (!fFactory) {
-                cerr << error_msg;
-                throw bad_alloc();
             }
             
         } else {
@@ -304,6 +299,7 @@ struct DynamicDSP {
         
 };
 
+// Global context shared between 'main' and the additional thread
 struct Context {
     int fArgc;
     char** fArgv;
@@ -311,9 +307,9 @@ struct Context {
     Context(int argc, char** argv):fArgc(argc), fArgv(argv) {}
 };
 
-DynamicDSP* gDynamicDSP = nullptr;
+static DynamicDSP* gDynamicDSP = nullptr;
 
-// Switch to a new DynamicDSP if file content is different
+// Stop the current gDynamicDSP if file content is different, the main thread will then allocate a new one
 static void run(Context* context)
 {
     while (true) {
@@ -329,9 +325,12 @@ static void run(Context* context)
 static bool runDynamicDSP(int argc, char* argv[], bool is_dsp_only = false)
 {
     try {
+        // Allocate a new DynamicDSP and start it
         gDynamicDSP = new DynamicDSP(argc, argv, is_dsp_only);
         bool res = gDynamicDSP->start();
+        // 'start' returns either because the DSP file content has changed or the window was closed by the user
         delete gDynamicDSP;
+        // 'res' is true when gDynamicDSP whe stopped by the additional thread
         return res;
     } catch (...) {
         gDynamicDSP = nullptr;
@@ -342,7 +341,9 @@ static bool runDynamicDSP(int argc, char* argv[], bool is_dsp_only = false)
 int main(int argc, char* argv[])
 {
     if (isopt(argv, "-edit")) {
+        // Start an additional thread that continuously check if the DSP file content has changed
         new thread(run, new Context(argc, argv));
+        // And edit/compile/run forever
         while (runDynamicDSP(argc, argv, true)) {};
     } else {
         // Run once
