@@ -118,7 +118,7 @@ struct DynamicDSP {
             cout << "Use '-edit' to start an edit/compile/run loop, using a foo.dsp kind of source file\n";
             cout << "Use '-generic' to JIT for a generic CPU (otherwise 'native' mode is used)\n";
             cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
-            cout << "Use '-all' to active the 'all voices always playing' mode\n";
+            cout << "Use '-all' to active the 'all voices always playing' mode when polyphony is used\n";
             cout << "Use '-midi' to activate MIDI control\n";
             cout << "Use '-osc' to activate OSC control\n";
             cout << "Use '-httpd' to activate HTTP control\n";

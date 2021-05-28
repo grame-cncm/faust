@@ -72,16 +72,16 @@ Note that using the `-inj foo.cpp` option allows to compile any C++ class contai
 
 The **dynamic-jack-gtk** tool uses the dynamic compilation chain, compiles a Faust DSP source, and runs it with the LLVM or Interpreter backend. It can also read a precompiled DSP factory, either in IR (.ll), bitcode (.bc), or machine code (.mc) when using the LLVM backend, or byte code (.fbc) when using the Interpreter backend. The `-edit` option can be used to start an *edit/compile/run loop* where the DSP can be edited with an external editor, and will be recompiled on the fly and executed. 
 
-`dynamic-jack-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc`
+`dynamic-jack-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.ll/foo.bc/foo.mc/foo.fbc`
 
 Here are the available options:
 
-- `-llvm' to use LLVM backend- `
+- `-llvm' to use LLVM backend, using either .dsp, .ll, .bc or .mc files`
 - `-interp' to use Interpreter backend, using either .dsp or .fbc (Faust Byte Code) files)`
 - `-edit' to start an edit/compile/run loop, using a foo.dsp kind of source file`
 - `-generic to JIT for a generic CPU (otherwise 'native' mode is used)`
 - `-nvoices <num> to start the DSP in polyphonic mode with <num> voices`
-- `-all' to active the 'all voices always playing' mode`
+- `-all' to active the 'all voices always playing' mode when polyphony is used`
 - `-midi to activate MIDI control`
 - `-osc to activate OSC control`
 - `-httpd to activate HTTPD control`
