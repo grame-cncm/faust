@@ -50,6 +50,12 @@ using namespace std;
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
+static bool endWith(const string& str, const string& suffix)
+{
+    size_t i = str.rfind(suffix);
+    return (i != string::npos) && (i == (str.length() - suffix.length()));
+}
+
 static void printList(const vector<string>& list)
 {
     for (int i = 0; i < list.size(); i++) {
@@ -107,9 +113,9 @@ struct DynamicDSP {
         
         if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
             cout << "dynamic-jack-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
-            cout << "Use '-llvm' to use LLVM backend\n";
+            cout << "Use '-llvm' to use LLVM backend, using either .dsp, .ll, .bc or .mc files\n";
             cout << "Use '-interp' to use Interpreter backend, using either .dsp or .fbc (Faust Byte Code) files\n";
-            cout << "Use '-edit' to start an edit/compile/run loop\n";
+            cout << "Use '-edit' to start an edit/compile/run loop, using a foo.dsp kind of source file\n";
             cout << "Use '-generic' to JIT for a generic CPU (otherwise 'native' mode is used)\n";
             cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
             cout << "Use '-all' to active the 'all voices always playing' mode\n";
@@ -163,6 +169,7 @@ struct DynamicDSP {
             fFactory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, opt_target, error_msg, -1);
             
             if (!is_dsp_only) {
+                
                 if (!fFactory) {
                     cerr << error_msg;
                     cout << "Trying to use readDSPFactoryFromIRFile..." << endl;
@@ -186,6 +193,12 @@ struct DynamicDSP {
             cout << "Using interpreter backend" << endl;
             // argc : without the filename (last element);
             fFactory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
+            
+            if (!fFactory) {
+                cerr << error_msg;
+                cout << "Trying to use readDSPFactoryFromBitcodeFile..." << endl;
+                fFactory = readInterpreterDSPFactoryFromBitcodeFile(argv[argc-1], error_msg);
+            }
         }
         
         if (!fFactory) {
@@ -341,6 +354,10 @@ static bool runDynamicDSP(int argc, char* argv[], bool is_dsp_only = false)
 int main(int argc, char* argv[])
 {
     if (isopt(argv, "-edit")) {
+        if (!endWith(argv[argc-1], ".dsp")) {
+            cout << "Cannot use -edit mode with '" << argv[argc-1] << "', use a foo.dsp kind of source file!" << endl;
+            exit(EXIT_FAILURE);
+        }
         // Start an additional thread that continuously check if the DSP file content has changed
         new thread(run, new Context(argc, argv));
         // And edit/compile/run forever
