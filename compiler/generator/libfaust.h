@@ -22,6 +22,7 @@
 #ifndef LIBFAUST_H
 #define LIBFAUST_H
 
+#include <string>
 #include <string.h>
 
 #ifdef _WIN32
