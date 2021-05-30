@@ -354,6 +354,8 @@ void CSharpCodeContainer::produceInfoFunctions(int tabs, const string& classname
     generateGetInputs(subst("GetNumInputs$0", classname), obj, ismethod, isvirtual)->accept(producer);
     generateGetOutputs(subst("GetNumOutputs$0", classname), obj, ismethod, isvirtual)->accept(producer);
 
+    /*
+    // 03/04/21: suppressed fo now
     // Input Rates
     producer->Tab(tabs);
     generateGetInputRate(subst("GetInputRate$0", classname), obj, ismethod, isvirtual)->accept(producer);
@@ -361,6 +363,7 @@ void CSharpCodeContainer::produceInfoFunctions(int tabs, const string& classname
     // Output Rates
     producer->Tab(tabs);
     generateGetOutputRate(subst("GetOutputRate$0", classname), obj, ismethod, isvirtual)->accept(producer);
+    */
 }
 
 void CSharpScalarCodeContainer::generateCompute(int n)
