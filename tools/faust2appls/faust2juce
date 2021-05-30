@@ -203,7 +203,14 @@ for p in $FILES; do
 
     # VST2_SDK
     sed -e "s/VST2_SDK_DEFAULT/$VST2_SDK/g" "$SRCDIR/$dspName/$dspName-temp5.jucer" >> "$SRCDIR/$dspName/$dspName-temp6.jucer"
-    sed -e "s/BUILD_VST2_DEFAULT/$BUILD_VST2/g" "$SRCDIR/$dspName/$dspName-temp6.jucer" >> "$SRCDIR/$dspName/$dspName-temp7.jucer"
+    # if you have used the flag for VST2 SDK path, then set
+    # the flag for VST3 to be updated from VST2
+    if [ "$VST2_SDK" != "" ]; then
+        sed -e "s/BUILD_VST2_DEFAULT/$BUILD_VST2/g" "$SRCDIR/$dspName/$dspName-temp6.jucer" >> "$SRCDIR/$dspName/$dspName-temp6a.jucer"
+        sed -e "s/JUCE_VST3_CAN_REPLACE_VST2=\"0\""/"JUCE_VST3_CAN_REPLACE_VST2=\"1\"/g" "$SRCDIR/$dspName/$dspName-temp6a.jucer" >> "$SRCDIR/$dspName/$dspName-temp7.jucer"
+    else
+        sed -e "s/BUILD_VST2_DEFAULT/$BUILD_VST2/g" "$SRCDIR/$dspName/$dspName-temp6.jucer" >> "$SRCDIR/$dspName/$dspName-temp7.jucer"
+    fi
 
     # PLUGIN_FORMATS
     sed -e "s/PLUGIN_FORMATS_DEFAULT/$PLUGIN_FORMATS/g" "$SRCDIR/$dspName/$dspName-temp7.jucer" >> "$SRCDIR/$dspName/$dspName-temp8.jucer"
@@ -232,6 +239,10 @@ for p in $FILES; do
     rm "$SRCDIR/$dspName/$dspName-temp1.jucer" "$SRCDIR/$dspName/$dspName-temp2.jucer"
     rm "$SRCDIR/$dspName/$dspName-temp3.jucer" "$SRCDIR/$dspName/$dspName-temp4.jucer" 
     rm "$SRCDIR/$dspName/$dspName-temp5.jucer" "$SRCDIR/$dspName/$dspName-temp6.jucer"
+    # temp6a is only created when you set -vst2sdkdir
+    if [ -f "$SRCDIR/$dspName/$dspName-temp6a.jucer" ]; then
+        rm "$SRCDIR/$dspName/$dspName-temp6a.jucer"
+    fi    
     rm "$SRCDIR/$dspName/$dspName-temp7.jucer" "$SRCDIR/$dspName/$dspName-temp8.jucer"
     rm "$SRCDIR/$dspName/$dspName-temp9.jucer" "$SRCDIR/$dspName/$dspName-temp10.jucer"
 
