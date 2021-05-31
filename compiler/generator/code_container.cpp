@@ -67,7 +67,7 @@ CodeContainer::CodeContainer()
       fInt32ControlNum(0),
       fRealControlNum(0)
 {
-    fCurLoop = new CodeLoop(0, "i");
+    fCurLoop = new CodeLoop(0, gGlobal->getFreshID("i"));
 }
 
 CodeContainer::~CodeContainer()
@@ -461,8 +461,11 @@ BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
         block = FunctionCallInliner(fill_fun).getCode(block);
         //dump2FIR(block);
     }
-
     // dump2FIR(block);
+    
+    // Rename all loop variables name to avoid name clash
+    LoopVariableRenamer loop_renamer;
+    block = loop_renamer.getCode(block);
     return block;
 }
 
