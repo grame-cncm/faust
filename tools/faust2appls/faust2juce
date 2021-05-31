@@ -205,7 +205,7 @@ for p in $FILES; do
     sed -e "s/VST2_SDK_DEFAULT/$VST2_SDK/g" "$SRCDIR/$dspName/$dspName-temp5.jucer" >> "$SRCDIR/$dspName/$dspName-temp6.jucer"
     # if you have used the flag for VST2 SDK path, then set
     # the flag for VST3 to be updated from VST2
-    if [ "$VST2_SDK" != "" ]; then
+    if [ "$BUILD_VST2" == "1" ]; then
         sed -e "s/BUILD_VST2_DEFAULT/$BUILD_VST2/g" "$SRCDIR/$dspName/$dspName-temp6.jucer" >> "$SRCDIR/$dspName/$dspName-temp6a.jucer"
         sed -e "s/JUCE_VST3_CAN_REPLACE_VST2=\"0\""/"JUCE_VST3_CAN_REPLACE_VST2=\"1\"/g" "$SRCDIR/$dspName/$dspName-temp6a.jucer" >> "$SRCDIR/$dspName/$dspName-temp7.jucer"
     else
