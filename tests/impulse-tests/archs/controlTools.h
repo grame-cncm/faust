@@ -170,7 +170,7 @@ static void runPolyDSP(dsp* dsp, int& linenum, int nbsamples, int num_voices = 4
     
     // Soundfile
     TestMemoryReader memory_reader;
-    SoundUI sound_ui("", -1, &memory_reader);
+    SoundUI sound_ui("", -1, &memory_reader, (sizeof(FAUSTFLOAT) == sizeof(double)));
     DSP->buildUserInterface(&sound_ui);
   
     // Get control and then 'initRandom'
@@ -259,7 +259,7 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
     
     // Soundfile
     TestMemoryReader memory_reader;
-    SoundUI sound_ui("", -1, &memory_reader);
+    SoundUI sound_ui("", -1, &memory_reader, (sizeof(FAUSTFLOAT) == sizeof(double)));
     DSP->buildUserInterface(&sound_ui);
     
     // Get control and then 'initRandom'
