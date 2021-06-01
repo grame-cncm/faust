@@ -134,18 +134,18 @@ struct global {
     bool gUIMacroSwitch;
     bool gDumpNorm;
     int  gFTZMode;
-    bool gRangeUI;      // whether to generate code to limit vslider/hslider/nentry values in [min..max] range
-    
+    bool gRangeUI;  // whether to generate code to limit vslider/hslider/nentry values in [min..max] range
+
     int gFloatSize;
 
     bool gPrintFileListSwitch;
     bool gInlineArchSwitch;
 
     bool gDSPStruct;
-    bool gLightMode;    // do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module
-                        // for JavaScript)
-    bool gClang;        // when compiled with clang/clang++, adds specific #pragma for auto-vectorization
-    string gCheckTable; // whether to check RDTable and RWTable index range
+    bool gLightMode;  // do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module
+                      // for JavaScript)
+    bool   gClang;    // when compiled with clang/clang++, adds specific #pragma for auto-vectorization
+    string gCheckTable;  // whether to check RDTable and RWTable index range
 
     string gClassName;       // name of the generated dsp class, by default 'mydsp'
     string gSuperClassName;  // name of the root class the generated dsp class inherits from, by default 'dsp'
@@ -423,7 +423,7 @@ struct global {
     Type TREC;  // kVect ou kScal ?
 
     res RES;
-    
+
     Sym  CONS;
     Sym  NIL;
     Tree nil;
@@ -486,8 +486,8 @@ struct global {
     char* gCurrentLocal;
 
     int gAllocationCount;  // Internal signal types counter
-    
-    int gMaskDelayLineThreshold;   // Power-of-two and mask delay-lines treshold
+
+    int gMaskDelayLineThreshold;  // Power-of-two and mask delay-lines treshold
 
     bool gEnableFlag;
 
@@ -517,6 +517,8 @@ struct global {
     bool   gGraphSwitch;
     bool   gDrawPSSwitch;
     bool   gDrawSVGSwitch;
+    bool   gVHDLSwitch;
+    bool   gVHDLTrace;
     bool   gPrintXMLSwitch;
     bool   gPrintJSONSwitch;
     bool   gPrintDocSwitch;
@@ -563,29 +565,22 @@ struct global {
     }
 
     bool hasVarType(const string& name) { return gVarTypeTable.find(name) != gVarTypeTable.end(); }
-    
+
     BasicTyped* genBasicTyped(Typed::VarType type);
 
     Typed::VarType getVarType(const string& name);
-    
+
     void setVarType(const string& name, Typed::VarType type);
-    
-    inline bool startWith(const string& str, const string& prefix)
-    {
-        return (str.substr(0, prefix.size()) == prefix);
-    }
+
+    inline bool startWith(const string& str, const string& prefix) { return (str.substr(0, prefix.size()) == prefix); }
 
     // Some backends have an internal implementation of foreign functions like acos, asinh...
     bool hasMathForeignFunction(const string& name)
     {
-        bool has_internal_math_ff = ((gOutputLang == "llvm")
-                                     || startWith(gOutputLang, "wast")
-                                     || startWith(gOutputLang, "wasm")
-                                     || (gOutputLang == "interp")
-                                     || startWith(gOutputLang, "soul")
-                                     || (gOutputLang == "dlang")
-                                     || (gOutputLang == "csharp")
-                                     || (gOutputLang == "rust"));
+        bool has_internal_math_ff =
+            ((gOutputLang == "llvm") || startWith(gOutputLang, "wast") || startWith(gOutputLang, "wasm") ||
+             (gOutputLang == "interp") || startWith(gOutputLang, "soul") || (gOutputLang == "dlang") ||
+             (gOutputLang == "csharp") || (gOutputLang == "rust"));
         return has_internal_math_ff && (gMathForeignFunctions.find(name) != gMathForeignFunctions.end());
     }
 
