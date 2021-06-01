@@ -41,7 +41,7 @@ void Signal2VHDLVisitor::visit(Tree sig)
     int    i;
     double r;
     Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
-    
+
     if (getUserData(sig)) {
         for (Tree b : sig->branches()) {
             self(b);
@@ -147,10 +147,8 @@ void Signal2VHDLVisitor::visit(Tree sig)
 
     // recursive signals
     else if (isProj(sig, &i, x)) {
-        self(x);
-        return;
-    } else if (isRec(sig, var, le)) {
-        mapself(le);
+        faustassert(isRec(x, var, le));
+        self(nth(le, i));
         return;
     }
 
