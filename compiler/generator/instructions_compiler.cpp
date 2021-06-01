@@ -296,6 +296,8 @@ Tree InstructionsCompiler::prepare(Tree LS)
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
         sigToGraph(L5, dotfile);
     }
+
+    
     return L5;
 }
 

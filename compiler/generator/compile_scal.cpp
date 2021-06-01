@@ -42,6 +42,7 @@
 #include "sigConstantPropagation.hh"
 #include "sigPromotion.hh"
 #include "sigToGraph.hh"
+#include "signal2vhdlVisitor.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
@@ -119,7 +120,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     startTiming("privatise");
     Tree L3 = privatise(L2b);  // Un-share tables with multiple writers
     endTiming("privatise");
-    
+
     startTiming("conditionAnnotation");
     conditionAnnotation(L3);
     endTiming("conditionAnnotation");
@@ -132,15 +133,15 @@ Tree ScalarCompiler::prepare(Tree LS)
     }
 
     startTiming("recursivnessAnnotation");
-    recursivnessAnnotation(L3); // Annotate L3 with recursivness information
+    recursivnessAnnotation(L3);  // Annotate L3 with recursivness information
     endTiming("recursivnessAnnotation");
 
     startTiming("typeAnnotation");
-    typeAnnotation(L3, true);   // Annotate L3 with type information
+    typeAnnotation(L3, true);  // Annotate L3 with type information
     endTiming("typeAnnotation");
 
     startTiming("sharingAnalysis");
-    sharingAnalysis(L3);        // annotate L3 with sharing count
+    sharingAnalysis(L3);  // annotate L3 with sharing count
     endTiming("sharingAnalysis");
 
     startTiming("occurrences analysis");
@@ -157,6 +158,13 @@ Tree ScalarCompiler::prepare(Tree LS)
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
         // SL : 28/09/17 : deactivated for now
         // sigToGraph(L3, dotfile);
+    }
+
+    // Generate VHDL if --vhdl option is set
+    if (gGlobal->gVHDLSwitch) {
+        Signal2VHDLVisitor V;
+        V.trace(gGlobal->gVHDLTrace, "VHDL");  // activate with --trace option
+        V.mapself(L3);
     }
 
     return L3;
@@ -501,8 +509,8 @@ string ScalarCompiler::generateCode(Tree sig)
     } else if (isSigSoundfileRate(sig, sf, x)) {
         return generateCacheCode(sig, subst("$0cache->fSR[$1]", CS(sf), CS(x)));
     } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
-        return generateCacheCode(sig,
-                                 subst("(($1)$0cache->fBuffers)[$2][$0cache->fOffset[$3]+$4]", CS(sf), ifloatptrptr(), CS(x), CS(y), CS(z)));
+        return generateCacheCode(sig, subst("(($1)$0cache->fBuffers)[$2][$0cache->fOffset[$3]+$4]", CS(sf),
+                                            ifloatptrptr(), CS(x), CS(y), CS(z)));
     }
 
     else if (isSigAttach(sig, x, y)) {
@@ -731,9 +739,9 @@ string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
 
 string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
 {
-    string vname, vname_perm, ctype;
-    Type   t = getCertifiedSigType(sig);
-    old_Occurences*    o = fOccMarkup->retrieve(sig);
+    string          vname, vname_perm, ctype;
+    Type            t = getCertifiedSigType(sig);
+    old_Occurences* o = fOccMarkup->retrieve(sig);
     faustassert(o);
 
     switch (t->variability()) {
@@ -1519,14 +1527,14 @@ void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname,
     } else {
         // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
         int N = pow2limit(mxd + 1);
-        
+
         // we need an iota index
         fMaxIota = 0;
-        
+
         // declare and init
         fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(N)));
         fClass->addClearCode(subst("for (int i=0; i<$1; i++) $0[i] = 0;", vname, T(N)));
-        
+
         // execute
         fClass->addExecCode(Statement(ccs, subst("$0[IOTA&$1] = $2;", vname, T(N - 1), exp)));
     }
