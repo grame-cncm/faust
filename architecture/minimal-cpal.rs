@@ -1,7 +1,7 @@
 /************************************************************************
 ************************************************************************
 FAUST Architecture File
-Copyright (C) 2017-2020 GRAME, Centre National de Creation Musicale
+Copyright (C) 2021 GRAME, Centre National de Creation Musicale
 ---------------------------------------------------------------------
 
 This is sample code. This file is provided as an example of minimal
@@ -24,9 +24,10 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 #![allow(unused_mut)]
 #![allow(non_upper_case_globals)]
 
-//! PortAudio architecture file
-extern crate portaudio;
-use portaudio as pa;
+//! Faust CPAL architecture file
+extern crate anyhow;
+extern crate cpal;
+use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use std::io;
 extern crate libm;
 
@@ -95,81 +96,80 @@ pub trait UI<T> {
 <<includeIntrinsic>>
 <<includeclass>>
 
-const CHANNELS: i32 = 2;
-const SAMPLE_RATE: f64 = 44_100.0;
-const FRAMES_PER_BUFFER: u32 = 64;
-
-fn main() {
-    run().unwrap()
-}
-
-fn run() -> Result<(), pa::Error> {
-
-    let pa = pa::PortAudio::new()?;
+fn main() -> Result<(), anyhow::Error> {
 
     // Allocation DSP on the heap
     let mut dsp = Box::new(mydsp::new());
 
-    println!("Faust Rust code running with Portaudio: sample-rate = {} buffer-size = {}", SAMPLE_RATE, FRAMES_PER_BUFFER);
+    println!("Faust Rust code running with CPAL: sample-rate = {} buffer-size = {}", client.sample_rate(), client.buffer_size());
 
-    //Create a input/output stream with the same number of input and output channels
-    const INTERLEAVED: bool = false;// We want NON interleaved streams
-    let input_device = pa.default_input_device()?;
-    let output_device = pa.default_output_device()?;
-    let input_latency = pa.device_info(input_device)?.default_low_input_latency;
-    let output_latency = pa.device_info(output_device)?.default_low_input_latency;
+    println!("Supported hosts:\n  {:?}", cpal::ALL_HOSTS);
+    let available_hosts = cpal::available_hosts();
+    println!("Available hosts:\n  {:?}", available_hosts);
 
-    let in_params = pa::StreamParameters::new(input_device, CHANNELS, INTERLEAVED, input_latency);
-    let out_params = pa::StreamParameters::new(output_device, CHANNELS, INTERLEAVED, output_latency);
-    let settings = pa::DuplexStreamSettings::new(in_params, out_params, SAMPLE_RATE, FRAMES_PER_BUFFER);
-    //This would have been interleaved:
-    //let mut settings = try!(pa.default_duplex_stream_settings(CHANNELS, CHANNELS, SAMPLE_RATE, FRAMES_PER_BUFFER));
+    for host_id in available_hosts {
+        println!("{}", host_id.name());
+        let host = cpal::host_from_id(host_id)?;
 
-    println!("get_num_inputs: {}", dsp.get_num_inputs());
-    println!("get_num_outputs: {}", dsp.get_num_outputs());
+        let default_in = host.default_input_device().map(|e| e.name().unwrap());
+        let default_out = host.default_output_device().map(|e| e.name().unwrap());
+        println!("  Default Input Device:\n    {:?}", default_in);
+        println!("  Default Output Device:\n    {:?}", default_out);
 
-    // Init DSP with a given SR
-    dsp.init(SAMPLE_RATE as i32);
+        /*
+        let devices = host.devices()?;
+        println!("  Devices: ");
+        for (device_index, device) in devices.enumerate() {
+            println!("  {}. \"{}\"", device_index + 1, device.name()?);
 
-    //settings.flags = pa::stream_flags::CLIP_OFF;
+            // Input configs
+            if let Ok(conf) = device.default_input_config() {
+                println!("    Default input stream config:\n      {:?}", conf);
+            }
+            let input_configs = match device.supported_input_configs() {
+                Ok(f) => f.collect(),
+                Err(e) => {
+                    println!("    Error getting supported input configs: {:?}", e);
+                    Vec::new()
+                }
+            };
+            if !input_configs.is_empty() {
+                println!("    All supported input stream configs:");
+                for (config_index, config) in input_configs.into_iter().enumerate() {
+                    println!(
+                        "      {}.{}. {:?}",
+                        device_index + 1,
+                        config_index + 1,
+                        config
+                    );
+                }
+            }
 
-    // This routine will be called by the PortAudio engine when audio is needed. It may called at
-    // interrupt level on some machines so don't do anything that could mess up the system like
-    // dynamic resource allocation or IO.
-    let callback = move |pa::DuplexStreamCallbackArgs { in_buffer, out_buffer, frames, time, .. } : pa::DuplexStreamCallbackArgs<f32, f32>| {
-        let out_buffr: &mut [*mut f32];
-        let in_buffr: & [*const f32];
-        //rust-portaudio does not support non-interleaved audio out of the box (but portaudio does)
-        unsafe {
-            let out_buffer: *mut *mut f32 = ::std::mem::transmute(out_buffer.get_unchecked_mut(0));
-            out_buffr = ::std::slice::from_raw_parts_mut(out_buffer, CHANNELS as usize);
-            let output0 = ::std::slice::from_raw_parts_mut(out_buffr[0], frames);
-            let output1 = ::std::slice::from_raw_parts_mut(out_buffr[1], frames);
-
-            let in_buffer: *const *const f32 = ::std::mem::transmute(in_buffer.get_unchecked(0));
-            in_buffr = ::std::slice::from_raw_parts(in_buffer, CHANNELS as usize);
-            let input0 = ::std::slice::from_raw_parts(in_buffr[0], frames);
-            let input1 = ::std::slice::from_raw_parts(in_buffr[1], frames);
-
-            let inputs = &[input0, input1];
-            let outputs = &mut [output0, output1];
-
-            dsp.compute(frames as i32, inputs, outputs);
+            // Output configs
+            if let Ok(conf) = device.default_output_config() {
+                println!("    Default output stream config:\n      {:?}", conf);
+            }
+            let output_configs = match device.supported_output_configs() {
+                Ok(f) => f.collect(),
+                Err(e) => {
+                    println!("    Error getting supported output configs: {:?}", e);
+                    Vec::new()
+                }
+            };
+            if !output_configs.is_empty() {
+                println!("    All supported output stream configs:");
+                for (config_index, config) in output_configs.into_iter().enumerate() {
+                    println!(
+                        "      {}.{}. {:?}",
+                        device_index + 1,
+                        config_index + 1,
+                        config
+                    );
+                }
+            }
         }
-        pa::Continue
-    };
-
-    let mut stream = pa.open_non_blocking_stream(settings, callback)?;
-
-    stream.start()?;
-
-    // Wait for user input to quit
-    println!("Press enter/return to quit...");
-    let mut user_input = String::new();
-    io::stdin().read_line(&mut user_input).ok();
-
-    stream.stop()?;
-    stream.close()?;
+        */
+    }
 
     Ok(())
 }
