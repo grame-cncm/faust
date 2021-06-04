@@ -101,7 +101,10 @@ fn main() -> Result<(), anyhow::Error> {
     // Allocation DSP on the heap
     let mut dsp = Box::new(mydsp::new());
 
-    println!("Faust Rust code running with CPAL: sample-rate = {} buffer-size = {}", client.sample_rate(), client.buffer_size());
+    println!("get_num_inputs: {}", dsp.get_num_inputs());
+    println!("get_num_outputs: {}", dsp.get_num_outputs());
+
+    //println!("Faust Rust code running with CPAL: sample-rate = {} buffer-size = {}", client.sample_rate(), client.buffer_size());
 
     println!("Supported hosts:\n  {:?}", cpal::ALL_HOSTS);
     let available_hosts = cpal::available_hosts();
