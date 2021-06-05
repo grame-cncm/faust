@@ -138,7 +138,7 @@ if [ $POLY = "POLY2" ] && [ $JUCE_POLY = "1" ]; then
 fi
 
 #look for polyphonic "nvoices" metadata in the DSP file
-if [ $(cat $FILES | grep -c "nvoices:") ] || [ $(cat $FILES | grep -c "declare nvoices") ]
+if [ $(cat $FILES | grep "nvoices:") ] || [ $(cat $FILES | grep "declare nvoices") ]
 then
     # a variation of the string "nvoices" was found
     IS_SYNTH="1"
