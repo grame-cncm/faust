@@ -294,7 +294,6 @@ struct LocalVariableCounter : public DispatchVisitor {
         string         name = inst->fAddress->getName();
         Typed::VarType type = inst->fType->getType();
 
-        // std::cout << "WASMInstVisitor::DeclareVarInst " << name << std::endl;
         faustassert(fLocalVarTable.find(name) == fLocalVarTable.end());
 
         // stack/loop variables accessed by [var_num, type] pairs

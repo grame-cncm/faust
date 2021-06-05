@@ -789,6 +789,12 @@ class RustUIInstVisitor : public TextInstVisitor {
               << ", " << checkReal(inst->fMax) << ")";
         EndLine();
     }
+    
+    virtual void visit(AddSoundfileInst* inst)
+    {
+        // Not supported for now
+        throw faustexception("ERROR : AddSoundfileInst not yet supported for Rust\n");
+    }
 };
 
 #endif

@@ -4,24 +4,24 @@
 #                                                                   #
 #               Cross-compiles Faust programs to PureData           #
 #                      from : Linux or OSX                          #
-#                        to : Windows 32                            #
-#                       (c) Grame, 2011                             #
+#                        to : Windows 64                            #
+#                       (c) Grame, 2021                             #
 #                                                                   #
 #####################################################################
 
 #------------------------------------------------------------------------------
-# mingw crosscompiler should be installed ('mingw32' package on Ubuntu)
+# mingw crosscompiler should be installed ('mingw64' package on Ubuntu)
 # the exact prefix should be specified in the environment variable MINGW
-PDW32INCLUDEDIR=/usr/include/pd
-PDW32BINDIR=/usr/lib/i686-w64-mingw32/pd
+PDW64INCLUDEDIR=/usr/include/pd
+PDW64BINDIR=/usr/lib/x86_64-w64-mingw32/pd
 . faustpath
 
-: ${MINGWPREFIX="i686-w64-mingw32-"}
+: ${MINGWPREFIX="x86_64-w64-mingw32-"}
 CXX="${MINGWPREFIX}g++"
 (which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found"; exit 1)
 
-if [ ! -e "${PDW32BINDIR}/pd.dll" ]; then
-    echo "Unable to locate pd.dll: PDW32BINDIR=${PDW32BINDIR}!" 1>&2
+if [ ! -e "${PDW64BINDIR}/pd.dll" ]; then
+    echo "Unable to locate pd.dll: PDW64BINDIR=${PDW64BINDIR}!" 1>&2
     exit 1
 fi
 
@@ -30,7 +30,7 @@ fi
 
 CXXFLAGS="-std=c++11 -O3 -mfpmath=sse -msse -ffast-math -Wl,--enable-auto-import"
 
-LIB="-I${PDW32INCLUDEDIR} -shared ${PDW32BINDIR}/pd.dll"
+LIB="-I${PDW64INCLUDEDIR} -shared ${PDW64BINDIR}/pd.dll"
 EXT="~.dll"
 
 #-------------------------------------------------------------------

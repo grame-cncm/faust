@@ -240,7 +240,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     virtual void visit(AddSoundfileInst* inst)
     {
         // Not supported for now
-        throw faustexception("ERROR : AddSoundfileInst not supported for interp\n");
+        throw faustexception("ERROR : AddSoundfileInst not yet supported for interp\n");
 
         MemoryDesc tmp = fFieldTable[inst->fSFZone];
         fUserInterfaceBlock->push(

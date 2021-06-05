@@ -73,6 +73,112 @@ bool sortTypeDeclarations(StatementInst* a, StatementInst* b)
     }
 }
 
+// Inlining tools
+// TODO: stack variables should be renamed since inlining the same function several times will create variables name clash
+
+BlockInst* FunctionInliner::ReplaceParameterByArg(BlockInst* code, NamedTyped* named, ValueInst* arg)
+{
+    struct ValueInliner : public BasicCloneVisitor {
+        NamedTyped*          fNamed;
+        ValueInst*           fArg;
+        map<string, string>& fVarTable;
+        int                  fOccurence;
+        
+        ValueInliner(NamedTyped* named, ValueInst* arg, map<string, string>& table, int occurence)
+        : fNamed(named), fArg(arg), fVarTable(table), fOccurence(occurence)
+        {
+        }
+        
+        Address* renameAddress(Address* address, const string& name)
+        {
+            Address* cloned_address = address->clone(this);
+            cloned_address->setName(name);
+            return cloned_address;
+        }
+        
+        ValueInst* visit(LoadVarInst* inst)
+        {
+            BasicCloneVisitor cloner;
+            if (inst->fAddress->getName() == fNamed->fName) {
+                if (fArg->isSimpleValue() || (fOccurence == 1)) {
+                    return fArg->clone(&cloner);
+                } else {
+                    // More complex expressions are computed and shared in a new stack variable
+                    if (fVarTable.find(fNamed->fName) == fVarTable.end()) {
+                        // Create a stack variable with the value
+                        string tmp_in            = gGlobal->getFreshID("tmp_in");
+                        fVarTable[fNamed->fName] = tmp_in;
+                        if (gGlobal->gHasTeeLocal) {
+                            fBlockStack.top()->pushBackInst(
+                                                            InstBuilder::genDecStackVar(tmp_in, fNamed->fType->clone(&cloner)));
+                            return InstBuilder::genTeeVar(tmp_in, fArg->clone(&cloner));
+                        } else {
+                            fBlockStack.top()->pushBackInst(InstBuilder::genDecStackVar(
+                                                                                        tmp_in, fNamed->fType->clone(&cloner), fArg->clone(&cloner)));
+                            return InstBuilder::genLoadStackVar(tmp_in);
+                        }
+                    } else {
+                        return InstBuilder::genLoadStackVar(fVarTable[fNamed->fName]);
+                    }
+                }
+            } else {
+                return inst->clone(&cloner);
+            }
+        }
+        
+        StatementInst* visit(StoreVarInst* inst)
+        {
+            LoadVarInst* arg;
+            //dump2FIR(inst);
+            if ((inst->fAddress->getName() == fNamed->fName) && (arg = dynamic_cast<LoadVarInst*>(fArg))) {
+                return InstBuilder::genStoreVarInst(renameAddress(inst->fAddress, arg->fAddress->getName()),
+                                                    inst->fValue->clone(this));
+            } else {
+                return BasicCloneVisitor::visit(inst);
+            }
+        }
+        
+        BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
+    };
+    
+    // Count variable load occurences in a block
+    struct VariableLoadCounter : public DispatchVisitor {
+        string fName;
+        int    fOccurence;
+        
+        VariableLoadCounter(const string& name) : fName(name), fOccurence(0) {}
+        
+        virtual void visit(LoadVarInst* inst)
+        {
+            if (inst->fAddress->getName() == fName) {
+                fOccurence++;
+            }
+        }
+    };
+    
+    // Count variable occurence
+    VariableLoadCounter counter(named->fName);
+    code->accept(&counter);
+    
+    ValueInliner inliner(named, arg, fVarTable, counter.fOccurence);
+    return inliner.getCode(code);
+}
+
+BlockInst* FunctionInliner::ReplaceParametersByArgs(BlockInst* code, list<NamedTyped*> args_type, list<ValueInst*> args,
+                                                    bool ismethod)
+{
+    list<NamedTyped*>::iterator it1 = args_type.begin();
+    list<ValueInst*>::iterator  it2 = args.begin();
+    if (ismethod) { it2++; }
+    
+    for (; it1 != args_type.end(); it1++, it2++) {
+        faustassert(it2 != args.end());
+        code = ReplaceParameterByArg(code, *it1, *it2);
+    }
+    
+    return code;
+}
+
 // Expand and rewrite ControlInst as 'IF (cond) {....}' instructions
 void ControlExpander::beginCond(ControlInst* inst)
 {

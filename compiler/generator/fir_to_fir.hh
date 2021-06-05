@@ -159,11 +159,10 @@ struct RemoverCloneVisitor : public BasicCloneVisitor {
     }
 };
 
-// Used in WebAssembly backends
+// Used in WebAssembly and Interp backends
 
 /*
- For subcontainers table generation : rename 'sig' in 'dsp' and remove 'dsp' allocation
- (used in wast/wasm backends)
+ For subcontainers table generation : rename 'sig' in 'dsp' and remove 'dsp' allocation.
 */
 
 struct DspRenamer : public BasicCloneVisitor {
@@ -411,138 +410,45 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
     }
 };
 
+/*
+ Rename loop variable and all access (warning: does not work with nested loops with the same variable name...)
+ */
+struct LoopVariableRenamer : public BasicCloneVisitor {
+  
+    std::map<std::string, std::string> fLoopIndexMap;
+    
+    virtual StatementInst* visit(DeclareVarInst* inst)
+    {
+        // Rename 'loop' variables
+        if (dynamic_cast<NamedAddress*>(inst->fAddress) && inst->fAddress->getAccess() == Address::kLoop) {
+            std::string name = inst->fAddress->getName();
+            fLoopIndexMap[name] = gGlobal->getFreshID(name + "_re");
+        }
+        return BasicCloneVisitor::visit(inst);
+    }
+    
+    virtual Address* visit(NamedAddress* address)
+    {
+        if (address->fAccess == Address::kLoop && fLoopIndexMap.find(address->getName()) != fLoopIndexMap.end()) {
+            return new NamedAddress(fLoopIndexMap[address->getName()], address->fAccess);
+        } else {
+            return BasicCloneVisitor::visit(address);
+        }
+    }
+    
+    BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
+};
+
+
 // Inlining tools
 
-// TODO : stack variables should be renamed since inlining the same function several times will create variables name clash
+// TODO: stack variables should be renamed since inlining the same function several times will create variables name clash
 
 struct FunctionInliner {
     map<string, string> fVarTable;
 
-    BlockInst* ReplaceParameterByArg(BlockInst* code, NamedTyped* named, ValueInst* arg)
-    {
-        struct InlineValue : public BasicCloneVisitor {
-            NamedTyped*          fNamed;
-            ValueInst*           fArg;
-            string               fInLoop;
-            map<string, string>& fVarTable;
-            int                  fOccurence;
-
-            InlineValue(NamedTyped* named, ValueInst* arg, map<string, string>& table, int occurence)
-                : fNamed(named), fArg(arg), fInLoop(""), fVarTable(table), fOccurence(occurence)
-            {
-            }
-
-            Address* renameAddress(Address* address, const string& name)
-            {
-                Address* cloned_address = address->clone(this);
-                cloned_address->setName(name);
-                return cloned_address;
-            }
-
-            StatementInst* visit(DeclareVarInst* inst)
-            {
-                if (inst->fAddress->getAccess() == Address::kLoop) {
-                    // Rename loop index with a fresh one
-                    fInLoop = gGlobal->getFreshID("re_i");
-                    return InstBuilder::genDeclareVarInst(renameAddress(inst->fAddress, fInLoop),
-                                                          inst->fType->clone(this),
-                                                          (inst->fValue) ? inst->fValue->clone(this) : nullptr);
-                } else {
-                    return BasicCloneVisitor::visit(inst);
-                }
-            }
-
-            ValueInst* visit(LoadVarInst* inst)
-            {
-                if (inst->fAddress->getAccess() == Address::kLoop) {
-                    // Rename loop index
-                    return InstBuilder::genLoadVarInst(renameAddress(inst->fAddress, fInLoop));
-                } else {
-                    BasicCloneVisitor cloner;
-                    if (inst->fAddress->getName() == fNamed->fName) {
-                        if (fArg->isSimpleValue() || (fOccurence == 1)) {
-                            return fArg->clone(&cloner);
-                        } else {
-                            // More complex expressions are computed and shared in a new stack variable
-                            if (fVarTable.find(fNamed->fName) == fVarTable.end()) {
-                                // Create a stack variable with the value
-                                string tmp_in            = gGlobal->getFreshID("tmp_in");
-                                fVarTable[fNamed->fName] = tmp_in;
-                                if (gGlobal->gHasTeeLocal) {
-                                    fBlockStack.top()->pushBackInst(
-                                        InstBuilder::genDecStackVar(tmp_in, fNamed->fType->clone(&cloner)));
-                                    return InstBuilder::genTeeVar(tmp_in, fArg->clone(&cloner));
-                                } else {
-                                    fBlockStack.top()->pushBackInst(InstBuilder::genDecStackVar(
-                                        tmp_in, fNamed->fType->clone(&cloner), fArg->clone(&cloner)));
-                                    return InstBuilder::genLoadStackVar(tmp_in);
-                                }
-                            } else {
-                                return InstBuilder::genLoadStackVar(fVarTable[fNamed->fName]);
-                            }
-                        }
-                    } else {
-                        return inst->clone(&cloner);
-                    }
-                }
-            }
-
-            StatementInst* visit(StoreVarInst* inst)
-            {
-                LoadVarInst* arg;
-
-                if ((inst->fAddress->getName() == fNamed->fName) && (arg = dynamic_cast<LoadVarInst*>(fArg))) {
-                    return InstBuilder::genStoreVarInst(renameAddress(inst->fAddress, arg->fAddress->getName()),
-                                                        inst->fValue->clone(this));
-                } else if (inst->fAddress->getAccess() == Address::kLoop) {
-                    // Rename loop index
-                    return InstBuilder::genStoreVarInst(renameAddress(inst->fAddress, fInLoop),
-                                                        inst->fValue->clone(this));
-                } else {
-                    return BasicCloneVisitor::visit(inst);
-                }
-            }
-
-            BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
-        };
-
-        // Count variable load occurences in a block
-        struct VariableLoadCounter : public DispatchVisitor {
-            string fName;
-            int    fOccurence;
-
-            VariableLoadCounter(const string& name) : fName(name), fOccurence(0) {}
-
-            virtual void visit(LoadVarInst* inst)
-            {
-                if (inst->fAddress->getName() == fName) {
-                    fOccurence++;
-                }
-            }
-        };
-
-        // Count variable occurence
-        VariableLoadCounter counter(named->fName);
-        code->accept(&counter);
-
-        InlineValue inliner(named, arg, fVarTable, counter.fOccurence);
-        return inliner.getCode(code);
-    }
-
-    BlockInst* ReplaceParametersByArgs(BlockInst* code, list<NamedTyped*> args_type, list<ValueInst*> args,
-                                       bool ismethod)
-    {
-        list<NamedTyped*>::iterator it1 = args_type.begin();
-        list<ValueInst*>::iterator  it2 = args.begin();
-        if (ismethod) { it2++; }
-
-        for (; it1 != args_type.end(); it1++, it2++) {
-            faustassert(it2 != args.end());
-            code = ReplaceParameterByArg(code, *it1, *it2);
-        }
-
-        return code;
-    }
+    BlockInst* ReplaceParameterByArg(BlockInst* code, NamedTyped* named, ValueInst* arg);
+    BlockInst* ReplaceParametersByArgs(BlockInst* code, list<NamedTyped*> args_type, list<ValueInst*> args, bool ismethod);
 };
 
 // Replace a function call with the actual inlined function code
@@ -558,6 +464,7 @@ struct FunctionCallInliner : public BasicCloneVisitor {
             FunctionInliner inliner;
             BlockInst*      inlined = inliner.ReplaceParametersByArgs(fFunction->fCode, fFunction->fType->fArgsTypes,
                                                                  fun_call->fArgs, fun_call->fMethod);
+            
             // Get return value and remove it from the block
             ValueInst* res = inlined->getReturnValue();
             // Put the code without the value into the enclosing block
@@ -675,34 +582,6 @@ struct VarAddressRemover : public BasicCloneVisitor {
             ValueInst* id2 = id_add2->getIndex();
             return InstBuilder::genIndexedAddress(id_add1->fAddress->clone(this),
                                                   InstBuilder::genAdd(id1->clone(this), id2->clone(this)));
-        } else {
-            return BasicCloneVisitor::visit(address);
-        }
-    }
-
-    BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
-};
-
-/*
- Rename loop variable and all access (warning: does not work with nested loops with the same variable name...)
-*/
-struct LoopVariableRenamer : public BasicCloneVisitor {
-    std::map<std::string, std::stack<std::string> > fLoopIndexMap;
-
-    virtual StatementInst* visit(DeclareVarInst* inst)
-    {
-        // Rename 'loop' variables
-        if (dynamic_cast<NamedAddress*>(inst->fAddress) && inst->fAddress->getAccess() == Address::kLoop) {
-            std::string name = inst->fAddress->getName();
-            fLoopIndexMap[name].push(gGlobal->getFreshID(name));
-        }
-        return BasicCloneVisitor::visit(inst);
-    }
-
-    virtual Address* visit(NamedAddress* address)
-    {
-        if (address->fAccess == Address::kLoop) {
-            return new NamedAddress(fLoopIndexMap[address->getName()].top(), address->fAccess);
         } else {
             return BasicCloneVisitor::visit(address);
         }
