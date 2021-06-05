@@ -64,6 +64,7 @@ do
     	DEBUG=true
     elif [ $p = "-nvoices" ]; then
         shift
+	IS_SYNTH="1"
         NVOICES=$1
     elif [ $p = "-standalone" ]; then
         STANDALONE="1"
@@ -137,14 +138,17 @@ if [ $POLY = "POLY2" ] && [ $JUCE_POLY = "1" ]; then
     exit
 fi
 
-#look for polyphonic "nvoices" metadata in the DSP file
-if [ $(cat $FILES | grep "nvoices:") ] || [ $(cat $FILES | grep "declare nvoices") ]
-then
-    # a variation of the string "nvoices" was found
-    IS_SYNTH="1"
-else
-    # "nvoices" was not found
-    IS_SYNTH="0"
+# IS_SYNTH may have previously been set by the "-nvoices" command line option
+if [ "$IS_SYNTH" == "0" ]; then
+    #look for polyphonic "nvoices" metadata in the DSP file
+    if [ $(cat $FILES | grep -c "nvoices:") -ne 0 ] || [ $(cat $FILES | grep -c "declare nvoices") -ne 0 ]
+    then
+        # a variation of the string "nvoices" was found
+        IS_SYNTH="1"
+    else
+        # "nvoices" was not found
+        IS_SYNTH="0"
+    fi
 fi
 
 # Set PLUGIN_CHARACTERISTICS, and the order matters.
