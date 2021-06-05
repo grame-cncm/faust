@@ -138,16 +138,13 @@ if [ $POLY = "POLY2" ] && [ $JUCE_POLY = "1" ]; then
     exit
 fi
 
-# IS_SYNTH may have previously been set by the "-nvoices" command line option
+# IS_SYNTH may have previously been set to "1" by the "-nvoices" command line option
 if [ "$IS_SYNTH" == "0" ]; then
     #look for polyphonic "nvoices" metadata in the DSP file
     if [ $(cat $FILES | grep -c "nvoices:") -ne 0 ] || [ $(cat $FILES | grep -c "declare nvoices") -ne 0 ]
     then
         # a variation of the string "nvoices" was found
         IS_SYNTH="1"
-    else
-        # "nvoices" was not found
-        IS_SYNTH="0"
     fi
 fi
 
