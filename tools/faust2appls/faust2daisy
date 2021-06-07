@@ -59,9 +59,9 @@ do
     # -midi
     elif [ $p = "-midi" ]; then
         MIDI=true
+    #patch
     elif [ $p = "-patch" ]; then
-        PATCH="1"
-        ARCHFILE=$FAUSTARCH/daisy/ex_faust_patch.cpp
+        PATCH=true
     # -sr
     elif [ $p = "-sr" ]; then
         shift
@@ -107,14 +107,22 @@ for p in $FILE; do
     cp -r $FAUSTARCH/daisy/Makefile "$SRCDIR/$dspName/"
     faust -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
 
+    # for PATCH support
+    if [ $PATCH == true ]; then
+        echo "#define PATCH" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    fi
+    
     # for MIDI
     if [ $MIDI == true ]; then
         echo "#define MIDICTRL" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
+    
     # for Sample Rate 
     echo "#define MY_SAMPLE_RATE $SR" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    
     # for Buffer Size
     echo "#define MY_BUFFER_SIZE $BS" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    
     # for POLY
     if [ "$NVOICES" -gt "0" ]; then
         echo "#define POLY" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"

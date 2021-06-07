@@ -9,7 +9,7 @@
 
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2020 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2020-2021 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -33,7 +33,12 @@
  ************************************************************************/
 
 #include "daisysp.h"
+
+#ifdef PATCH
+#include "daisy_patch.h"
+#else
 #include "daisy_seed.h"
+#endif
 
 #include "faust/gui/meta.h"
 #include "faust/gui/UI.h"
@@ -73,9 +78,14 @@ using namespace std;
 #include "faust/dsp/poly-dsp.h"
 #endif
 
-DaisySeed hw;
-DaisyControlUI* control_UI = nullptr;
-dsp* DSP = nullptr;
+#ifdef PATCH
+static DaisyPatch hw;
+#else
+static DaisySeed hw;
+#endif
+
+static DaisyControlUI* control_UI = nullptr;
+static dsp* DSP = nullptr;
 
 #ifdef MIDICTRL
 list<GUI*> GUI::fGuiList;
@@ -119,7 +129,7 @@ int main(void)
     DSP->buildUserInterface(control_UI);
     
     // start ADC
-    hw.adc.Start();
+    hw.StartAdc();
     
     // define and start callback
     hw.StartAudio(AudioCallback);
@@ -133,9 +143,9 @@ int main(void)
     
     // MIDI handling loop
     while(1) {
-#ifdef MIDICTRL
+    #ifdef MIDICTRL
         midi_handler.processMidi();
-#endif
+    #endif
     }
 }
 
