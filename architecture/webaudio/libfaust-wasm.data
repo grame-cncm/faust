@@ -1167,7 +1167,7 @@ with {
 // #### Usage
 //
 // ```
-//  _ : limiter_1176_R4_mono : _;
+//  _ : limiter_1176_R4_mono : _
 // ```
 //
 // #### Reference:
@@ -1199,7 +1199,7 @@ limiter_1176_R4_mono = compressor_mono(4,-6,0.0008,0.5);
 // #### Usage
 //
 // ```
-//  _,_ : limiter_1176_R4_stereo : _,_;
+//  _,_ : limiter_1176_R4_stereo : _,_
 // ```
 //
 // #### Reference:
@@ -1248,7 +1248,7 @@ limiter_1176_R4_stereo = compressor_stereo(4,-6,0.0008,0.5);
 //
 // ```
 // si.bus(N) : limiter_lad_N(N, LD, ceiling, attack, hold, release) : 
-//    si.bus(N);
+//    si.bus(N)
 // ```
 //
 // Where:
@@ -1291,7 +1291,7 @@ limiter_lad_N(N, LD, ceiling, attack, hold, release) =
 // #### Usage
 //
 // ```
-// _ : limiter_lad_mono(LD, ceiling, attack, hold, release) : _;
+// _ : limiter_lad_mono(LD, ceiling, attack, hold, release) : _
 // ```
 //
 // Where:
@@ -1319,7 +1319,7 @@ limiter_lad_mono(LD) = limiter_lad_N(1, LD);
 // #### Usage
 //
 // ```
-// _ , _ : limiter_lad_stereo(LD, ceiling, attack, hold, release) : _ , _;
+// _,_ : limiter_lad_stereo(LD, ceiling, attack, hold, release) : _,_
 // ```
 //
 // Where:
@@ -1348,7 +1348,7 @@ limiter_lad_stereo(LD) = limiter_lad_N(2, LD);
 //
 // ```
 // si.bus(4) : limiter_lad_quad(LD, ceiling, attack, hold, release) : 
-//    si.bus(4);
+//    si.bus(4)
 // ```
 //
 // Where:
@@ -1384,7 +1384,7 @@ limiter_lad_quad(LD) = limiter_lad_N(4, LD);
 // #### Usage
 //
 // ```
-// _ : limiter_lad_bw : _;
+// _ : limiter_lad_bw : _
 // ```
 //
 // #### Reference:
@@ -1396,9 +1396,9 @@ declare limiter_lad_bw copyright "Copyright (C) 2020 Dario Sanfilippo
       <sanfilippo.dario@gmail.com>";
 declare limiter_lad_bw license "GPLv3 license";
 limiter_lad_bw = limiter_lad_mono(.01, 1, .01 / twopi, .1, 1 / twopi)
-      with {
-           twopi = 2 * ma.PI;
-      };
+with {
+    twopi = 2 * ma.PI;
+};
 //#################################### basics.lib ########################################
 // A library of basic elements. Its official prefix is `ba`.
 //########################################################################################
@@ -2090,7 +2090,7 @@ subseq(head, 0, n)         = head;
 // #### Usage
 //
 // ```
-// tabulate(C, fun, size, r0, r1, x).(val | lin | cub)
+// tabulate(C, fun, size, r0, r1, x).(val|lin|cub) : _
 // ```
 //
 // Where:
@@ -2366,7 +2366,7 @@ with {
 // #### Usage
 //
 // ```
-// _ : peakhold(mode) : _;
+// _ : peakhold(mode) : _
 // ```
 //
 // Where:
@@ -2385,7 +2385,7 @@ peakhold = (*,_:max) ~ _;
 // #### Usage
 //
 // ```
-// _ : peakholder(n) : _;
+// _ : peakholder(n) : _
 // ```
 //
 // Where:
@@ -4264,7 +4264,7 @@ Michon and Julius O. Smith III, and is released under the
 // #### Usage
 //
 // ```
-// _ : abs_envelope_rect(period) : _;
+// _ : abs_envelope_rect(period) : _
 // ```
 //
 //  Where:
@@ -4286,7 +4286,7 @@ abs_envelope_rect(period, x) = abs(x) : fi.avg_rect(period);
 // #### Usage
 //
 // ```
-// _ : abs_envelope_tau(period) : _;
+// _ : abs_envelope_tau(period) : _
 // ```
 //
 //  Where:
@@ -4308,7 +4308,7 @@ abs_envelope_tau(period, x) = abs(x) : fi.avg_tau(period);
 // #### Usage
 //
 // ```
-// _ : abs_envelope_t60(period) : _;
+// _ : abs_envelope_t60(period) : _
 // ```
 //
 //  Where:
@@ -4330,7 +4330,7 @@ abs_envelope_t60(period, x) = abs(x) : fi.avg_t60(period);
 // #### Usage
 //
 // ```
-// _ : abs_envelope_t19(period) : _;
+// _ : abs_envelope_t19(period) : _
 // ```
 //
 //  Where:
@@ -4413,7 +4413,7 @@ amp_follower_ud(att,rel) = amp_follower(rel) : si.smooth(ba.tau2pole(att));
 // #### Usage
 //
 // ```
-// _ : amp_follower_ar(att,rel) : _;
+// _ : amp_follower_ar(att,rel) : _
 // ```
 // * Author Jonatan Liljedahl, revised by RM
 //---------------------------------------------------------
@@ -4426,7 +4426,7 @@ amp_follower_ar(att,rel) = abs : si.lag_ud(att,rel);
 // #### Usage
 //
 // ```
-// _ : ms_envelope_rect(period) : _;
+// _ : ms_envelope_rect(period) : _
 // ```
 //
 //  Where:
@@ -4448,7 +4448,7 @@ ms_envelope_rect(period, x) = x * x : fi.avg_rect(period);
 // #### Usage
 //
 // ```
-// _ : ms_envelope_tau(period) : _;
+// _ : ms_envelope_tau(period) : _
 // ```
 //
 //  Where:
@@ -4470,7 +4470,7 @@ ms_envelope_tau(period, x) = x * x : fi.avg_tau(period);
 // #### Usage
 //
 // ```
-// _ : ms_envelope_t60(period) : _;
+// _ : ms_envelope_t60(period) : _
 // ```
 //
 //  Where:
@@ -4492,7 +4492,7 @@ ms_envelope_t60(period, x) = x * x : fi.avg_t60(period);
 // #### Usage
 //
 // ```
-// _ : ms_envelope_t19(period) : _;
+// _ : ms_envelope_t19(period) : _
 // ```
 //
 //  Where:
@@ -4513,7 +4513,7 @@ ms_envelope_t19(period, x) = x * x : fi.avg_t19(period);
 // #### Usage
 //
 // ```
-// _ : rms_envelope_rect(period) : _;
+// _ : rms_envelope_rect(period) : _
 // ```
 //
 //  Where:
@@ -4535,7 +4535,7 @@ rms_envelope_rect(period, x) = ms_envelope_rect(period, x) : sqrt;
 // #### Usage
 //
 // ```
-// _ : rms_envelope_tau(period) : _;
+// _ : rms_envelope_tau(period) : _
 // ```
 //
 //  Where:
@@ -4557,7 +4557,7 @@ rms_envelope_tau(period, x) = ms_envelope_tau(period, x) : sqrt;
 // #### Usage
 //
 // ```
-// _ : rms_envelope_t60(period) : _;
+// _ : rms_envelope_t60(period) : _
 // ```
 //
 //  Where:
@@ -4579,7 +4579,7 @@ rms_envelope_t60(period, x) = ms_envelope_t60(period, x) : sqrt;
 // #### Usage
 //
 // ```
-// _ : rms_envelope_t19(period) : _;
+// _ : rms_envelope_t19(period) : _
 // ```
 //
 //  Where:
@@ -4607,7 +4607,7 @@ rms_envelope_t19(period, x) = ms_envelope_t19(period, x) : sqrt;
 // #### Usage
 //
 // ```
-// _ : zcr(tau) : _;
+// _ : zcr(tau) : _
 // ```
 //
 // Where:
@@ -4666,15 +4666,15 @@ zcr(period, x) = ma.zc(x) : fi.lptau(period);
 //
 // #### Usage
 // ```
-// _ : mth_octave_analyzer(O,M,ftop,N) : par(i,N,_); // Oth-order Butterworth
-// _ : mth_octave_analyzer6e(M,ftop,N) : par(i,N,_); // 6th-order elliptic
+// _ : mth_octave_analyzer(O,M,ftop,N) : par(i,N,_) // Oth-order Butterworth
+// _ : mth_octave_analyzer6e(M,ftop,N) : par(i,N,_) // 6th-order elliptic
 // ```
 //
 // Also for convenience:
 //
 // ```
-// _ : mth_octave_analyzer3(M,ftop,N) : par(i,N,_); // 3d-order Butterworth
-// _ : mth_octave_analyzer5(M,ftop,N) : par(i,N,_); // 5th-roder Butterworth
+// _ : mth_octave_analyzer3(M,ftop,N) : par(i,N,_) // 3d-order Butterworth
+// _ : mth_octave_analyzer5(M,ftop,N) : par(i,N,_) // 5th-roder Butterworth
 // mth_octave_analyzer_default = mth_octave_analyzer6e;
 // ```
 //
@@ -4720,7 +4720,7 @@ mth_octave_analyzer_default = mth_octave_analyzer6e; // default analyzer
 // #### Usage:
 //
 // ```
-// _ : mth_octave_spectral_level6e(M,ftop,NBands,tau,dB_offset) : _;
+// _ : mth_octave_spectral_level6e(M,ftop,NBands,tau,dB_offset) : _
 // ```
 //
 // Where:
@@ -4804,7 +4804,7 @@ octave_analyzer(N) = mth_octave_analyzer_default(1,10000,N);
 // #### Usage
 //
 // ```
-// _ : analyzer(O,freqs) : par(i,N,_); // No delay equalizer
+// _ : analyzer(O,freqs) : par(i,N,_) // No delay equalizer
 // ```
 //
 // Where:
@@ -4840,7 +4840,7 @@ analyzer(O,lfreqs) = _ <: bsplit(nb) with
 // #### Usage
 //
 // ```
-// _ : goertzelOpt(freq,N) : _;
+// _ : goertzelOpt(freq,N) : _
 // ```
 //
 // Where:
@@ -4873,7 +4873,7 @@ with{
 // #### Usage
 //
 // ```
-// _ : goertzelComp(freq,N) : _;
+// _ : goertzelComp(freq,N) : _
 // ```
 //
 // Where:
@@ -4910,7 +4910,7 @@ with{
 // #### Usage
 //
 // ```
-// _ : goertzel(freq,N) : _;
+// _ : goertzel(freq,N) : _
 // ```
 //
 // Where:
@@ -4955,7 +4955,7 @@ c_bit_reverse_shuffle(N) = si.cbus(N) <: par(i,N,c_bit_reverse_permuter(N,i)) wi
 // #### Usage
 //
 // ```
-// si.cbus(N) : fft(N) : si.cbus(N);
+// si.cbus(N) : fft(N) : si.cbus(N)
 // ```
 //
 // Where:
@@ -5011,7 +5011,7 @@ with {
 // #### Usage
 //
 // ```
-// si.cbus(N) : ifft(N) : si.cbus(N);
+// si.cbus(N) : ifft(N) : si.cbus(N)
 // ```
 //
 // Where:
@@ -6014,7 +6014,7 @@ lf_triangle(freq) = 2*lf_trianglepos(freq) - 1;
 // #### Usage
 //
 // ```
-// lf_rawsaw(periodsamps)
+// lf_rawsaw(periodsamps) : _
 // ```
 //
 // Where:
@@ -6030,7 +6030,7 @@ lf_rawsaw(periodsamps) = (_,periodsamps : fmod) ~ +(1.0);
 // #### Usage
 //
 // ```
-// lf_sawpos_phase(phase,freq)
+// lf_sawpos_phase(phase,freq) : _
 // ```
 //
 // Where:
@@ -6046,7 +6046,7 @@ lf_sawpos_phase(phase,freq) = (+(phase-phase') : ma.frac) ~ +(freq/ma.SR);
 // #### Usage
 //
 // ```
-// lf_sawpos(freq)
+// lf_sawpos(freq) : _
 // ```
 //
 // Where:
@@ -6066,7 +6066,7 @@ lf_sawpos(freq) = ma.frac ~ +(freq/ma.SR);
 // #### Usage
 //
 // ```
-// lf_sawpos_reset(freq,reset)
+// lf_sawpos_reset(freq,reset) : _
 // ```
 //
 // Where:
@@ -6086,7 +6086,7 @@ lf_sawpos_reset(freq,reset) = ma.frac * (reset == 0) ~ +(freq/ma.SR);
 // #### Usage
 //
 // ```
-// lf_sawpos_phase_reset(freq,phase,reset)
+// lf_sawpos_phase_reset(freq,phase,reset) : _
 // ```
 //
 // Where:
@@ -6107,7 +6107,7 @@ lf_sawpos_phase_reset(freq,phase,reset) = lf_sawpos_reset(freq,reset) + phase : 
 // #### Usage
 //
 // ```
-// lf_saw(freq)
+// lf_saw(freq) : _
 // ```
 //
 // Where:
@@ -6163,10 +6163,10 @@ lf_saw(freq) = saw1(freq);
 // sawNp(N,freq,phase) : _
 // saw2dpw(freq) : _
 // saw2(freq) : _
-// saw3(freq) : _ // based on sawN
-// saw4(freq) : _ // based on sawN
-// saw5(freq) : _ // based on sawN
-// saw6(freq) : _ // based on sawN
+// saw3(freq) : _     // based on sawN
+// saw4(freq) : _     // based on sawN
+// saw5(freq) : _     // based on sawN
+// saw6(freq) : _     // based on sawN
 // sawtooth(freq) : _ // = saw2
 // saw2f2(freq) : _
 // saw2f4(freq) : _
@@ -6246,6 +6246,7 @@ saw2(freq) = y with { // newer PTR version (stateless - freq can vary at any spe
   selector2 = select2(<(0), (_<:_,(*(1-p0):+(1)):+), _); // for output
   y = 2*p-1;
 };
+
 // --- sawtooth ---
 sawtooth = saw2; // default choice for sawtooth signal - see also sawN
 
@@ -7023,7 +7024,7 @@ CZ = environment {
 // #### Usage
 //
 // ```
-// polyblep(Q, phase) : _
+// polyblep(Q,phase) : _
 // ```
 //
 // Where:
@@ -7969,7 +7970,7 @@ with {
 // #### Usage
 //
 // ```
-// bus(4*N) : mesh_square(N) : bus(4*N);
+// bus(4*N) : mesh_square(N) : bus(4*N)
 // ```
 //
 // Where:
@@ -8278,7 +8279,7 @@ echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0
 //
 //------------------------------------------------------------
 version =   2, // MAJOR version when we make incompatible API changes,
-            2, // MINOR version when we add functionality in a backwards compatible manner,
+            3, // MINOR version when we add functionality in a backwards compatible manner,
             1; // PATCH version when we make backwards compatible bug fixes.
 
             
@@ -8500,7 +8501,7 @@ BiquadFilter(f0, dBgain, Q, aDetune) = environment
 // #### Usage
 //
 // ```
-// _: lowpass2(f0, Q, dtune) :_
+// _ : lowpass2(f0, Q, dtune) : _
 // ```
 //
 // Where:
@@ -8524,7 +8525,7 @@ lowpass2(f0, Q, dtune, x) = BiquadFilter(f0, 1, Q, dtune).lowpass2, x : fi.tf2;
 // #### Usage
 //
 // ```
-// _: highpass2(f0, Q, dtune) :_
+// _ : highpass2(f0, Q, dtune) : _
 // ```
 //
 // Where:
@@ -8548,7 +8549,7 @@ highpass2(f0, Q, dtune, x) = BiquadFilter(f0, 1, Q, dtune).highpass2, x : fi.tf2
 // #### Usage
 //
 // ```
-// _: bandpass2(f0, Q, dtune) :_
+// _ : bandpass2(f0, Q, dtune) : _
 // ```
 //
 // Where:
@@ -8573,7 +8574,7 @@ bandpass2(f0, Q, dtune, x) = BiquadFilter(f0, 1, Q, dtune).bandpass2, x : fi.tf2
 // #### Usage
 //
 // ```
-// _: notch2(f0, Q, dtune) :_
+// _ : notch2(f0, Q, dtune) : _
 // ```
 //
 // Where:
@@ -8597,7 +8598,7 @@ notch2(f0, Q, dtune, x) = BiquadFilter(f0, 1, Q, dtune).notch2, x : fi.tf2;
 // #### Usage
 //
 // ```
-// _: allpass2(f0, Q, dtune) :_
+// _ : allpass2(f0, Q, dtune) : _
 // ```
 //
 // Where:
@@ -8620,7 +8621,7 @@ allpass2(f0, Q, dtune, x) = BiquadFilter(f0, 1, Q, dtune).allpass2, x : fi.tf2;
 // #### Usage
 //
 // ```
-// _: peaking2(f0, gain, Q, dtune) :_
+// _ : peaking2(f0, gain, Q, dtune) : _
 // ```
 //
 // Where:
@@ -8643,7 +8644,7 @@ peaking2(f0, gain, Q, dtune, x) = BiquadFilter(f0, gain, Q, dtune).peaking2, x :
 // Frequencies lower than the frequency get a boost, or an attenuation, frequencies over it are unchanged.
 //
 // ```
-// _: lowshelf2(f0, gain, dtune) :_
+// _ : lowshelf2(f0, gain, dtune) : _
 // ```
 //
 // Where:
@@ -8665,7 +8666,7 @@ lowshelf2(f0, gain, dtune, x) = BiquadFilter(f0, gain, 1, dtune).lowshelf2, x : 
 // Frequencies higher than the frequency get a boost or an attenuation, frequencies lower than it are unchanged.
 //
 // ```
-// _: highshelf2(f0, gain, dtune) :_
+// _ : highshelf2(f0, gain, dtune) : _
 // ```
 //
 // Where:
@@ -11729,7 +11730,7 @@ super = environment {
 // #### Usage
 //
 // ```
-// loop(sf, part)
+// loop(sf, part) : si.bus(outputs(sf))
 // ```
 //
 // Where:
@@ -11748,7 +11749,7 @@ loop(sf, part) = super.loop(sf, part);
 // #### Usage
 //
 // ```
-// loop_speed(sf, part, speed)
+// loop_speed(sf, part, speed) : si.bus(outputs(sf))
 // ```
 //
 // Where:
@@ -11768,7 +11769,7 @@ loop_speed(sf, part, speed) = super.loop_speed(sf, part, speed);
 // #### Usage
 //
 // ```
-// loop_speed_level(sf, part, speed, level)
+// loop_speed_level(sf, part, speed, level) : si.bus(outputs(sf))
 // ```
 //
 // Where:
@@ -12468,7 +12469,7 @@ ADAA2(EPS, f, F1, F2, x) = T1 + T2
 //
 // #### Usage
 // ```
-// _ : aa.hardclip : _;
+// _ : aa.hardclip : _
 // ```
 
 declare hardclip author "Dario Sanfilippo";
@@ -12493,7 +12494,7 @@ hardclip(x) = ADAA1(EPS, f, F1, x)
 //
 // #### Usage
 // ```
-// _ : aa.hardclip2 : _;
+// _ : aa.hardclip2 : _
 // ```
 
 declare hardclip2 author "Dario Sanfilippo";
@@ -12523,7 +12524,7 @@ hardclip2(x) = ADAA2(EPS, f, F1, F2, x)
 //
 // #### Usage
 // ```
-// _ : aa.cubic1 : _;
+// _ : aa.cubic1 : _
 // ```
 
 declare cubic1 author "Dario Sanfilippo";
@@ -12552,7 +12553,7 @@ cubic1(x) = ADAA1(EPS, f, F1, x)
 //
 // #### Usage
 // ```
-// _ : aa.parabolic : _;
+// _ : aa.parabolic : _
 // ```
 
 declare parabolic author "Dario Sanfilippo";
@@ -12580,7 +12581,7 @@ parabolic(x) = ADAA1(EPS, f, F1, x)
 //
 // #### Usage
 // ```
-// _ : aa.parabolic : _;
+// _ : aa.parabolic : _
 // ```
 
 declare parabolic2 author "Dario Sanfilippo";
@@ -12612,7 +12613,7 @@ parabolic2(x) = ADAA2(EPS, f, F1, F2, x)
 //
 // #### Usage
 // ```
-// _ : aa.hyperbolic : _;
+// _ : aa.hyperbolic : _
 // ```
 declare hyperbolic author "Dario Sanfilippo";
 declare hyperbolic copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -12634,7 +12635,7 @@ hyperbolic(x) = ADAA1(EPS, f, F1, x)
 //
 // #### Usage
 // ```
-// _ : aa.hyperbolic2 : _;
+// _ : aa.hyperbolic2 : _
 // ```
 declare hyperbolic2 author "Dario Sanfilippo";
 declare hyperbolic2 copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -12658,7 +12659,7 @@ hyperbolic2(x) = ADAA2(EPS, f, F1, F2, x)
 //
 // #### Usage
 // ```
-// _ : aa.sinatan : _;
+// _ : aa.sinatan : _
 // ```
 declare sinarctan author "Dario Sanfilippo";
 declare sinarctan copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -12683,7 +12684,7 @@ sinarctan(x) = ADAA1(EPS, f, F1, x)
 //
 // #### Usage
 // ```
-// _ : aa.sinarctan2 : _;
+// _ : aa.sinarctan2 : _
 // ```
 declare sinarctan2 author "Dario Sanfilippo";
 declare sinarctan2 copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -12709,7 +12710,7 @@ sinarctan2(x) = ADAA2(EPS, f, F1, F2, x)
 //
 // #### Usage
 // ```
-// _ : aa.tanh1 : _;
+// _ : aa.tanh1 : _
 // ```
 declare tanh1 author "Dario Sanfilippo";
 declare tanh1 copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -12731,7 +12732,7 @@ tanh1(x) = ADAA1(EPS, f, F1, x)
 //
 // #### Usage
 // ```
-// _ : aa.arctan : _;
+// _ : aa.arctan : _
 // ```
 declare arctan author "Dario Sanfilippo";
 declare arctan copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -12753,7 +12754,7 @@ arctan(x) = ADAA1(EPS, f, F1, x)
 //
 // #### Usage
 // ```
-// _ : aa.arctan2 : _;
+// _ : aa.arctan2 : _
 // ```
 declare arctan2 author "Dario Sanfilippo";
 declare arctan2 copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -12776,7 +12777,7 @@ arctan2(x) = ADAA2(EPS, f, F1, F2, x)
 //
 // #### Usage
 // ```
-// _ : aa.asinh1 : _;
+// _ : aa.asinh1 : _
 // ```
 declare asinh1 author "Dario Sanfilippo";
 declare asinh1 copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -12802,7 +12803,7 @@ asinh1(x) = ADAA1(EPS, f, F1, x)
 //
 // #### Usage
 // ```
-// _ : aa.asinh2 : _;
+// _ : aa.asinh2 : _
 // ```
 declare asinh2 author "Dario Sanfilippo";
 declare asinh2 copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -12835,7 +12836,7 @@ asinh2(x) = ADAA2(EPS, f, F1, F2, x)
 //
 // #### Usage
 // ```
-// _ : aa.cosine1 : _;
+// _ : aa.cosine1 : _
 // ```
 declare cosine1 author "Dario Sanfilippo";
 declare cosine1 copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -12857,7 +12858,7 @@ cosine1(x) = ADAA1(EPS, f, F1, x)
 //
 // #### Usage
 // ```
-// _ : aa.cosine2 : _;
+// _ : aa.cosine2 : _
 // ```
 declare cosine2 author "Dario Sanfilippo";
 declare cosine2 copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -12882,7 +12883,7 @@ cosine2(x) = ADAA2(EPS, f, F1, F2, x)
 //
 // #### Usage
 // ```
-// _ : aa.arccos : _;
+// _ : aa.arccos : _
 // ```
 declare arccos author "Dario Sanfilippo";
 declare arccos copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -12911,7 +12912,7 @@ arccos(x) = ADAA1(EPS, f, F1, x)
 //
 // #### Usage
 // ```
-// _ : aa.arccos2 : _;
+// _ : aa.arccos2 : _
 // ```
 declare arccos2 author "Dario Sanfilippo";
 declare arccos2 copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -12938,7 +12939,7 @@ arccos2(x) = ADAA2(EPS, f, F1, F2, x)
 //
 // #### Usage
 // ```
-// _ : aa.acosh1 : _;
+// _ : aa.acosh1 : _
 // ```
 declare acosh1 author "Dario Sanfilippo";
 declare acosh1 copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -12963,7 +12964,7 @@ acosh1(x) = ADAA1(EPS, f, F1, x)
 //
 // #### Usage
 // ```
-// _ : aa.acosh2 : _;
+// _ : aa.acosh2 : _
 // ```
 declare acosh2 author "Dario Sanfilippo";
 declare acosh2 copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -12988,7 +12989,7 @@ acosh2(x) = ADAA2(EPS, f, F1, F2, x)
 //
 // #### Usage
 // ```
-// _ : aa.sine : _;
+// _ : aa.sine : _
 // ```
 declare sine author "Dario Sanfilippo";
 declare sine copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -13010,7 +13011,7 @@ sine(x) = ADAA1(EPS, f, F1, x)
 //
 // #### Usage
 // ```
-// _ : aa.sine2 : _;
+// _ : aa.sine2 : _
 // ```
 declare sine2 author "Dario Sanfilippo";
 declare sine2 copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -13034,7 +13035,7 @@ sine2(x) = ADAA2(EPS, f, F1, F2, x)
 //
 // #### Usage
 // ```
-// _ : aa.arcsin : _;
+// _ : aa.arcsin : _
 // ```
 declare arcsin author "Dario Sanfilippo";
 declare arcsin copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -13063,7 +13064,7 @@ arcsin(x) = ADAA1(EPS, f, F1, x)
 //
 // #### Usage
 // ```
-// _ : aa.arcsin2 : _;
+// _ : aa.arcsin2 : _
 // ```
 declare arcsin2 author "Dario Sanfilippo";
 declare arcsin2 copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -13090,7 +13091,7 @@ arcsin2(x) = ADAA2(EPS, f, F1, F2, x)
 //
 // #### Usage
 // ```
-// _ : aa.tangent : _;
+// _ : aa.tangent : _
 // ```
 declare tangent author "Dario Sanfilippo";
 declare tangent copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -13112,7 +13113,7 @@ tangent(x) = ADAA1(EPS, f, F1, x)
 //
 // #### Usage
 // ```
-// _ : aa.atanh1 : _;
+// _ : aa.atanh1 : _
 // ```
 declare atanh1 author "Dario Sanfilippo";
 declare atanh1 copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -13134,7 +13135,7 @@ atanh1(x) = ADAA1(EPS, f, F1, x)
 //
 // #### Usage
 // ```
-// _ : aa.atanh2 : _;
+// _ : aa.atanh2 : _
 // ```
 declare atanh2 author "Dario Sanfilippo";
 declare atanh2 copyright "Copyright (C) 2021 Dario Sanfilippo
@@ -13413,7 +13414,7 @@ case{
 //
 // ```
 // rout(i) = resistor_Vout(i, R);
-// buildtree( A : rout ) : _;
+// buildtree( A : rout ) : _
 // ```
 //
 // Where:
@@ -13457,7 +13458,7 @@ case{
 //
 // ```
 // rout(i) = resistor_Iout(i, R);
-// buildtree( A : rout ) : _;
+// buildtree( A : rout ) : _
 // ```
 //
 // Where:
@@ -13635,7 +13636,7 @@ case{
 //
 // ```
 // vout(i) = resVoltage_Vout(i, R, ein);
-// buildtree( A : vout ) : _;
+// buildtree( A : vout ) : _
 // ```
 //
 // Where:
@@ -13867,7 +13868,7 @@ case {
 //
 // ```
 // c1(i) = capacitor(i, R);
-// buildtree( A : c1 ) : _;
+// buildtree( A : c1 ) : _
 // ```
 //
 // Where:
@@ -13911,7 +13912,7 @@ case{
 //
 // ```
 // cout(i) = capacitor_Vout(i, R);
-// buildtree( A : cout ) : _;
+// buildtree( A : cout ) : _
 // ```
 //
 // Where:
@@ -14001,7 +14002,7 @@ case{
 //
 // ```
 // lout(i) = inductor_Vout(i, R);
-// buildtree( A : lout ) : _;
+// buildtree( A : lout ) : _
 // ```
 //
 // Where:
@@ -14125,12 +14126,12 @@ case{
 // An implementation of the lambert function.
 // It uses Halley's method of iteration to approximate the output.
 // Included in the WD library for use in non-linear diode models.
-// Adapted from  K M Brigg's c++ lambert function approximation.
+// Adapted from K M Brigg's c++ lambert function approximation.
 //
 // #### Usage
 //
 // ```
-// lambert(n, itr) : _;
+// lambert(n, itr) : _
 // ```
 //
 // Where:
@@ -14250,7 +14251,7 @@ u_diodeSingle =
 case{
     (0, Is, Vt) => b1
     with{
-        b1(R1, a1) = ma.signum(a1)*( (a1 : abs) + 2*R1*Is - 2*Vt*(lambert((R1*Is/Vt*((((a1 : abs)+R1*Is)/Vt) : exp)),3) + lambert((-R1*Is/Vt*(((-1*(a1 : abs)+R1*Is)/Vt) : exp)),3)));
+        b1(R1, a1) = ma.signum(a1)*((a1 : abs) + 2*R1*Is - 2*Vt*(lambert((R1*Is/Vt*((((a1 : abs)+R1*Is)/Vt) : exp)),3) + lambert((-R1*Is/Vt*(((-1*(a1 : abs)+R1*Is)/Vt) : exp)),3)));
     };
     (1, Is, Vt) => !, !; 
     (2, Is, Vt) => 0; 
@@ -15967,7 +15968,7 @@ chebychevpoly(lcoef) = _ <: L(0,lcoef) :> _
  **
  **
  **  USAGE:
- **        _:component("tubes.lib").model:_
+ **        _ : component("tubes.lib").model : _
  **  where
  **       model is on of the models above.
  **
@@ -22681,7 +22682,7 @@ Michon and Julius O. Smith III, and are released under the
 // #### Usage
 //
 // ```
-// moog_vcf(res,fr)
+// _ : moog_vcf(res,fr) : _
 // ```
 // Where:
 //
@@ -22717,8 +22718,8 @@ with {
 // #### Usage
 //
 // ```
-// moog_vcf_2b(res,fr)
-// moog_vcf_2bn(res,fr)
+// _ : moog_vcf_2b(res,fr) : _
+// _ : moog_vcf_2bn(res,fr) : _
 // ```
 //
 // Where:
@@ -23245,6 +23246,7 @@ oberheimLPF(normFreq,Q) = oberheim(normFreq,Q):!,!,!,_;
 // <https://www.willpirkle.com/706-2/>
 //========================================================================================
 
+
 //------------------`(ve.)sallenKeyOnePole`-----------------
 // Sallen-Key generic One Pole filter that produces the LPF and HPF outputs (see description above).
 //
@@ -23576,7 +23578,7 @@ closed source license or any other license if you decide so.
 // #### Usage
 //
 // ```
-// _ : vocoder(nBands,att,rel,BWRatio,source,excitation) : _;
+// _ : vocoder(nBands,att,rel,BWRatio,source,excitation) : _
 // ```
 //
 // Where:
@@ -23946,7 +23948,7 @@ no = library("noises.lib");
 // #### Usage
 //
 // ```
-// popFilterDrum(freq,q,gate) : _;
+// popFilterDrum(freq,q,gate) : _
 // ```
 //
 // Where:
@@ -23966,7 +23968,7 @@ popFilterDrum(freq,q,gate) = en.ar(0.001,0.001,gate)*no.noise : fi.resonbp(freq,
 // #### Usage
 //
 // ```
-// dubDub(freq,ctFreq,q,gate) : _;
+// dubDub(freq,ctFreq,q,gate) : _
 // ```
 //
 // Where:
@@ -24017,7 +24019,7 @@ with {
 // #### Usage
 //
 // ```
-// combString(freq,res,gate) : _;
+// combString(freq,res,gate) : _
 // ```
 //
 // Where:
@@ -24738,9 +24740,9 @@ ba = library("basics.lib");
 
 
 //--------------------`(rm.)reduce`------------------------------
-// Fold-like high order function. Apply a binary operation <op> 
-// on a block of <n> consecutive samples of a signal <x>. 
-// For example : reduce(max,128) will compute the maximun of each
+// Fold-like high order function. Apply a binary operation `op`
+// on a block of consecutive samples of a signal `x`. 
+// For example: `reduce(max,128)` will compute the maximun of each
 // block of 128 samples. Please note that the resulting
 // value, while produced continuously, will be constant for 
 // the duration of a block. A new value is only produced 
@@ -24764,9 +24766,9 @@ reduce(op, n, x) = compute ~ (_,_,_) : (!,!,_)
 
 
 //--------------------`(rm.)reducemap`---------------------------
-// Like reduce but a foo function is applied to the result. From
-// a mathematical point of view :
-// reducemap(op,foo,n) is equivalent to reduce(op,n):foo
+// Like `reduce` but a `foo` function is applied to the result. From
+// a mathematical point of view:
+// `reducemap(op,foo,n)` is equivalent to `reduce(op,n):foo`
 // but more efficient.
 //
 // #### Usage
@@ -24837,7 +24839,7 @@ Michon and Julius O. Smith III, and are released under the
 // #### Usage:
 //
 // ```
-// _ : flanger_mono(dmax,curdel,depth,fb,invert) : _;
+// _ : flanger_mono(dmax,curdel,depth,fb,invert) : _
 // ```
 //
 // Where:
@@ -24864,7 +24866,7 @@ flanger_mono(dmax,curdel,depth,fb,invert)
 // #### Usage:
 //
 // ```
-// _,_ : flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert) : _,_;
+// _,_ : flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert) : _,_
 // ```
 //
 // Where:
@@ -24912,7 +24914,7 @@ with {
 // #### Phaser
 //
 // ```
-// _ : phaser2_mono(Notches,phase,width,frqmin,fratio,frqmax,speed,depth,fb,invert) : _;
+// _ : phaser2_mono(Notches,phase,width,frqmin,fratio,frqmax,speed,depth,fb,invert) : _
 // ```
 //
 // Where:
@@ -24953,7 +24955,7 @@ with {               // depth=0 => direct-signal only
 // #### Phaser
 //
 // ```
-// _ : phaser2_stereo(Notches,phase,width,frqmin,fratio,frqmax,speed,depth,fb,invert) : _;
+// _ : phaser2_stereo(Notches,phase,width,frqmin,fratio,frqmax,speed,depth,fb,invert) : _
 // ```
 //
 // Where:
@@ -25482,7 +25484,7 @@ allpass_fcomb1a(maxdel,N,aN) = (+ <: de.fdelay1a(maxdel,N-1),*(aN)) ~ *(-aN) : m
 // #### Usage
 //
 // ```
-//   _ : iir(bcoeffs,acoeffs) : _
+// _ : iir(bcoeffs,acoeffs) : _
 // ```
 //
 // Where:
@@ -25548,8 +25550,8 @@ fir(b0) = *(b0);
 // #### Usage
 //
 // ```
-// _ : conv((k1,k2,k3,...,kN)) : _; // Argument = one signal bank
-// _ : convN(N,(k1,k2,k3,...)) : _; // Useful when N < count((k1,...))
+// _ : conv((k1,k2,k3,...,kN)) : _ // Argument = one signal bank
+// _ : convN(N,(k1,k2,k3,...)) : _ // Useful when N < count((k1,...))
 // ```
 //------------------------------------------------------------
 //convN(N,kv,x) = sum(i,N,take(i+1,kv) * x@i); // take() defined in math.lib
@@ -26327,6 +26329,20 @@ with {
   a2d = (a0 - a1*c + csq)/d;
 };
 
+//-----------------------------`(fi.)tf1snp`-------------------------------
+// First-order special case of tf2snp above
+//
+// #### Usage
+//
+// ```
+// _ : tf1snp(b1,b0,a0) : _
+// ```
+//----------------------------------------------
+declare tf1snp author "Julius O. Smith III";
+declare tf1snp copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
+declare tf1snp license "MIT-style STK-4.3 license";
+tf1snp(b1,b0,a0,w1) = fi.tf2snp(b1,b0,0,a0,0,w1); // FIXME: Faust compiler does not fully optimize - does C++?
+
 //-----------------------------`(fi.)tf3slf`-------------------------------
 // Analogous to tf2s above, but third order, and using the typical
 // low-frequency-matching bilinear-transform constant 2/T ("lf" series)
@@ -26365,7 +26381,7 @@ tf3slf(b3,b2,b1,b0,a3,a2,a1,a0) = tf3(b0d,b1d,b2d,b3d,a1d,a2d,a3d) with {
 // #### Usage
 //
 // ```
-// tf1s(b1,b0,a0,w1)
+// _ : tf1s(b1,b0,a0,w1) : _
 // ```
 // Where:
 //
@@ -27240,7 +27256,7 @@ highshelf_other_freq(N, Lpi, fx) = ba.db2linear(ba.linear2db(fx) - Lpi/N);
 // #### Usage
 //
 // ```
-// _ : peak_eq(Lfx,fx,B) : _;
+// _ : peak_eq(Lfx,fx,B) : _
 // ```
 //
 // Where:
@@ -27274,7 +27290,7 @@ peak_eq(Lfx,fx,B) = tf2s(1,b1s,1,a1s,1,wx) with {
 // #### Usage
 //
 // ```
-// _ : peak_eq_cq(Lfx,fx,Q) : _;
+// _ : peak_eq_cq(Lfx,fx,Q) : _
 // ```
 //
 // Where:
@@ -27299,7 +27315,7 @@ peak_eq_cq(Lfx,fx,Q) = peak_eq(Lfx,fx,fx/Q);
 // #### Usage
 //
 // ```
-// _ : peak_eq_rm(Lfx,fx,tanPiBT) : _;
+// _ : peak_eq_rm(Lfx,fx,tanPiBT) : _
 // ```
 //
 // Where:
@@ -27490,15 +27506,15 @@ levelfilterN(N,freq,L) = seq(i,N,levelfilter((L/N),freq));
 // #### Usage
 //
 // ```
-// _ : mth_octave_filterbank(O,M,ftop,N) : par(i,N,_); // Oth-order
-// _ : mth_octave_filterbank_alt(O,M,ftop,N) : par(i,N,_); // dc-inverted version
+// _ : mth_octave_filterbank(O,M,ftop,N) : par(i,N,_)     // Oth-order
+// _ : mth_octave_filterbank_alt(O,M,ftop,N) : par(i,N,_) // dc-inverted version
 // ```
 //
 // Also for convenience:
 //
 // ```
-// _ : mth_octave_filterbank3(M,ftop,N) : par(i,N,_); // 3rd-order Butterworth
-// _ : mth_octave_filterbank5(M,ftop,N) : par(i,N,_); // 5th-order Butterworth
+// _ : mth_octave_filterbank3(M,ftop,N) : par(i,N,_) // 3rd-order Butterworth
+// _ : mth_octave_filterbank5(M,ftop,N) : par(i,N,_) // 5th-order Butterworth
 // mth_octave_filterbank_default = mth_octave_filterbank5;
 // ```
 //
@@ -27568,7 +27584,7 @@ mth_octave_filterbank_default = mth_octave_filterbank5;
 // #### Usage
 //
 // ```
-// _ : filterbank (O,freqs) : par(i,N,_); // Butterworth band-splits
+// _ : filterbank (O,freqs) : par(i,N,_) // Butterworth band-splits
 // ```
 // Where:
 //
@@ -27603,7 +27619,7 @@ with {
 // #### Usage
 //
 // ```
-// _ : filterbanki(O,freqs) : par(i,N,_); // Inverted-dc version
+// _ : filterbanki(O,freqs) : par(i,N,_) // Inverted-dc version
 // ```
 //
 // Where:
@@ -27754,7 +27770,7 @@ avg_rect(period, x) = x : ba.slidingMean(rint(period * ma.SR));
 // #### Usage
 //
 // ```
-// _ avg_tau(period) : _
+// _ : avg_tau(period) : _
 // ```
 //
 // Where:
@@ -27782,7 +27798,7 @@ avg_tau(period, x) = fi.lptau(period, x);
 // #### Usage
 //
 // ```
-// _ avg_t60(period) : _
+// _ : avg_t60(period) : _
 // ```
 //
 // Where:
@@ -27811,7 +27827,7 @@ avg_t60(period, x) = fi.lpt60(period, x);
 // #### Usage
 //
 // ```
-// _ avg_t19(period) : _
+// _ : avg_t19(period) : _
 // ```
 //
 // Where:
@@ -28135,7 +28151,7 @@ cbus(n) = par(i, n, (_,_));
 // #### Usage
 //
 // ```
-// (r1,i1) : cmul(r2,i2) : (_,_);
+// (r1,i1) : cmul(r2,i2) : (_,_)
 // ```
 //
 // Where:
@@ -28153,7 +28169,7 @@ cmul(r1,i1,r2,i2) = (r1*r2 - i1*i2), (r1*i2 + r2*i1);
 // #### Usage
 //
 // ```
-// (r1,i1) : cconj : (_,_);
+// (r1,i1) : cconj : (_,_)
 // ```
 //
 // Where:
@@ -28181,7 +28197,7 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 // #### Usage
 //
 // ```
-// _ : lag_ud(up, dn) : _;
+// _ : lag_ud(up, dn) : _
 // ```
 //----------------------------------------------------
 // Author: Jonatan Liljedahl
@@ -28198,7 +28214,7 @@ lag_ud(up,dn) = _ <: ((>,ba.tau2pole(up),ba.tau2pole(dn):select2),_:si.smooth) ~
 // #### Usage
 //
 // ```
-// _ : rev(N) : _;
+// _ : rev(N) : _
 // ```
 //
 // Where:
@@ -28913,7 +28929,7 @@ Michon and/or Julius O. Smith III, and are released under the
 // #### Usage
 //
 // ```
-// pink_noise : _;
+// pink_noise : _
 // ```
 //
 // #### Reference:
@@ -28933,7 +28949,7 @@ pink_noise_m = pink_noise * 12.5; // Equalizes loudness to that of no.noise (tha
 // #### Usage
 //
 // ```
-// pink_noise_vm(N) : _;
+// pink_noise_vm(N) : _
 // ```
 //
 // Where:
@@ -28957,9 +28973,9 @@ with {
 // #### Usage
 //
 // ```
-// lfnoise0(rate) : _;   // new random number every int(SR/rate) samples or so
-// lfnoiseN(N,rate) : _; // same as "lfnoise0(rate) : lowpass(N,rate)" [see filters.lib]
-// lfnoise(rate) : _;    // same as "lfnoise0(rate) : seq(i,5,lowpass(N,rate))" (no overshoot)
+// lfnoise0(rate) : _   // new random number every int(SR/rate) samples or so
+// lfnoiseN(N,rate) : _ // same as "lfnoise0(rate) : lowpass(N,rate)" [see filters.lib]
+// lfnoise(rate) : _    // same as "lfnoise0(rate) : seq(i,5,lowpass(N,rate))" (no overshoot)
 // ```
 //
 // #### Example
@@ -28983,7 +28999,7 @@ lfnoise(freq) = lfnoise0(freq) : seq(i,5,fi.lowpass(1,freq)); // non-overshootin
 // #### Usage
 //
 // ```
-// sparse_noise(f0) : _;
+// sparse_noise(f0) : _
 // ```
 //
 // Where:
@@ -29014,7 +29030,7 @@ with {
 // #### Usage
 //
 // ```
-// velvet_noise(amp,f0) : _;
+// velvet_noise(amp,f0) : _
 // ```
 //
 // Where:
@@ -29042,7 +29058,7 @@ with {
 // #### Usage
 //
 // ```
-// gnoise(N) : _;
+// gnoise(N) : _
 // ```
 //
 // Where:
@@ -29813,7 +29829,7 @@ interpolate_cubic(dv,v0,v1,v2,v3)
 // #### Usage
 //
 // ```
-// interpolator_two_points(gen, idv, interpolate_two_points) : _,_... (equal to N = outputs(gen))
+// interpolator_two_points(gen, idv, interpolate_two_points) : si.bus(outputs(gen))
 // ```
 //
 // Where:
@@ -29840,7 +29856,7 @@ with {
 // #### Usage
 //
 // ```
-// interpolator_linear(gen, idv) : _,_... (equal to N = outputs(gen))
+// interpolator_linear(gen, idv) : si.bus(outputs(gen))
 // ```
 //
 // Where:
@@ -29859,7 +29875,7 @@ interpolator_linear(gen, idv) = interpolator_two_points(gen, idv, interpolate_li
 // #### Usage
 //
 // ```
-// interpolator_cosine(gen, idv) : _,_... (equal to N = outputs(gen))
+// interpolator_cosine(gen, idv) : si.bus(outputs(gen))
 // ```
 //
 // Where:
@@ -29885,7 +29901,7 @@ interpolator_null(gen, idv) = interpolator_two_points(gen, idv, \(dv,v0,v1).(v0)
 // #### Usage
 //
 // ```
-// interpolator_four_points(gen, idv, interpolate_four_points) : _,_... (equal to N = outputs(gen))
+// interpolator_four_points(gen, idv, interpolate_four_points) : si.bus(outputs(gen))
 // ```
 //
 // Where:
@@ -29914,7 +29930,7 @@ with {
 // #### Usage
 //
 // ```
-// interpolator_cubic(gen, idv) : _,_... (equal to N = outputs(gen))
+// interpolator_cubic(gen, idv) : si.bus(outputs(gen))
 // ```
 //
 // Where:
@@ -29960,7 +29976,10 @@ with {
                     interpolator_null(gen, idv));
 };
 
-// ---------- `(it.)lagrange_h(N)` ---------------------------------------------
+//=========================Lagrange based interpolators====================================
+//========================================================================================
+
+//-------`(it.)lagrange_h(N)` ---------------------------------------------
 //
 // Function to generate N + 1 coefficients for an Nth-order Lagrange
 // interpolation filter for an index between 0 and N.
@@ -29968,17 +29987,19 @@ with {
 // #### Usage
 //
 // ```
-// lagrange_h(N, idx) : si.bus(N);
+// lagrange_h(N, idx) : si.bus(N)
 // ```
 //
 // Where:
 //
-// * `N`: order of the interpolation filter, known at compile-time;
-// * `idx`: a fractional index between 0 and N.
+// * `N`: order of the interpolation filter, known at compile-time
+// * `idx`: a fractional index between 0 and N
 //
-// Reference:
-//      https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html.
+// #### Reference
 //
+// <https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html>
+//------------------------------------------------------------
+
 declare lagrange_h author "Dario Sanfilippo";
 declare lagrange_h copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
@@ -29987,43 +30008,46 @@ lagrange_h(N, idx) = par(n, N + 1, prod(k, N + 1, f(n, k)))
     with {
         f(n, k) = ((idx - k) * (n != k) + (n == k)) / ((n - k) + (n == k));
     };
-// -----------------------------------------------------------------------------
 
-// ---------- `(it.)lagrangeN(N)` ----------------------------------------------
+
+//-------`(it.)lagrangeN(N)` ----------------------------------------------
 //
 // Nth-order Lagrange interpolator to interpolate between a set of N + 1 points.
 //
 // #### Usage
 //
 // ```
-// lagrangeN(N, idx, si.bus(N + 1)) : _;
+// lagrangeN(N, idx, si.bus(N + 1)) : _
 // ```
 //
 // Where:
 //
-// * `N`: order of the interpolator, known at compile-time;
+// * `N`: order of the interpolator, known at compile-time
 // * `idx`: a fractional index between 0 and N to interpolate between a set
-//      of N + 1 points being crossed at positions 0, 1, 2, ..., N.
-//
-// Reference:
-//      https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html.
+//      of N + 1 points being crossed at positions 0, 1, 2, ..., N
 //
 // Example: find the centre position of a set of four points using an order-3
 // Lagrange function fitting the four points [2, 5, -1, 3]:
 //
+// ```
 // N = 3;
-// process = lagrangeN(N, N / 2, 2, 5, -1, 3);
+// process = it.lagrangeN(N, N / 2, 2, 5, -1, 3);
+// ```
 //
 // which outputs ~1.938.
 //
+// #### Reference
+// <https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html>
+//------------------------------------------------------------
+
 declare lagrangeN author "Dario Sanfilippo";
 declare lagrangeN copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
 declare lagrangeN license "LGPL v3.0 license";
 lagrangeN(N, idx) = si.dot(N + 1, lagrange_h(N, idx));
-// -----------------------------------------------------------------------------
 
-// ---------- `(it.)frdtable(N, S)` --------------------------------------------
+
+//-------`(it.)frdtable(N, S)` --------------------------------------------
 //
 // Look-up circular table with Nth-order Lagrange interpolation for fractional
 // indexes. The index is wrapped-around and the table is cycles for an index
@@ -30032,26 +30056,29 @@ lagrangeN(N, idx) = si.dot(N + 1, lagrange_h(N, idx));
 // #### Usage
 //
 // ```
-// frdtable(N, S, init, idx) : _;
+// frdtable(N, S, init, idx) : _
 // ```
 //
 // Where:
 //
-// * `N`: Lagrange interpolation order, known at compile-time;
-// * `S`: table size in samples, known at compile-time;
-// * `init`: signal for table initialisation;
-// * `idx`: fractional index wrapped-around 0 and S.
+// * `N`: Lagrange interpolation order, known at compile-time
+// * `S`: table size in samples, known at compile-time
+// * `init`: signal for table initialisation
+// * `idx`: fractional index wrapped-around 0 and S
 //
 // Example: test the effectiveness of the 5th-order interpolation scheme by 
 // creating a table look-up oscillator using only 16 points of a sinewave; 
-// compare the result with a non-interpolated version.
+// compare the result with a non-interpolated version:
 //
+// ```
 // N = 5;
 // S = 16;
 // index = os.phasor(S, 1000);
 // process = rdtable(S, os.sinwaveform(S), int(index)) ,
-//           frdtable(N, S, os.sinwaveform(S), index);
-//
+//           it.frdtable(N, S, os.sinwaveform(S), index);
+// ```
+//------------------------------------------------------------
+
 declare frdtable author "Dario Sanfilippo";
 declare frdtable copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
@@ -30063,9 +30090,9 @@ frdtable(N, S, init, idx) =
         f_idx = ma.frac(idx) + int(N / 2);
         i_idx = int(idx);
     };
-// -----------------------------------------------------------------------------
 
-// ---------- `(it.)frwtable(N, S)` --------------------------------------------
+
+//-------`(it.)frwtable(N, S)` --------------------------------------------
 //
 // Look-up updatable circular table with Nth-order Lagrange interpolation for
 // fractional indexes. The index is wrapped-around and the table is circular
@@ -30074,18 +30101,19 @@ frdtable(N, S, init, idx) =
 // #### Usage
 //
 // ```
-// frwtable(N, S, init, w_idx, x, r_idx) : _;
+// frwtable(N, S, init, w_idx, x, r_idx) : _
 // ```
 //
 // Where:
 //
-// * `N`: Lagrange interpolation order, known at compile-time;
-// * `S`: table size in samples, known at compile-time;
-// * `init`: constant for table initialisation, known at compile-time;
-// * `w_idx`: it should be an INT between 0 and S - 1;
-// * `x`: input signal written on the w_idx positions;
-// * `r_idx`: fractional index wrapped-around 0 and S.
-//
+// * `N`: Lagrange interpolation order, known at compile-time
+// * `S`: table size in samples, known at compile-time
+// * `init`: constant for table initialisation, known at compile-time
+// * `w_idx`: it should be an INT between 0 and S - 1
+// * `x`: input signal written on the w_idx positions
+// * `r_idx`: fractional index wrapped-around 0 and S
+//------------------------------------------------------------
+
 declare frwtable author "Dario Sanfilippo";
 declare frwtable copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
@@ -30097,7 +30125,6 @@ frwtable(N, S, init, w_idx, x, r_idx) =
         f_idx = ma.frac(r_idx) + int(N / 2);
         i_idx = int(r_idx);
     };
-// -----------------------------------------------------------------------------
 //#################################### demos.lib ##########################################
 // This library contains a set of demo functions based on examples located in the
 // `/examples` folder. Its official prefix is `dm`.
@@ -30177,8 +30204,8 @@ Michon and Julius O. Smith III, and are released under the
 //
 // #### Usage
 // ```
-// _ : mth_octave_spectral_level_demo(BandsPerOctave);
-// _ : spectral_level_demo : _; // 2/3 octave
+// _ : mth_octave_spectral_level_demo(BandsPerOctave) : _
+// _ : spectral_level_demo : _ // 2/3 octave
 // ```
 //------------------------------------------------------------
 // Author: Julius Smith
@@ -30212,7 +30239,7 @@ spectral_level_demo = mth_octave_spectral_level_demo(1.5); // 2/3 octave
 // #### Usage:
 //
 // ```
-// _ : parametric_eq_demo : _ ;
+// _ : parametric_eq_demo : _
 // ```
 //------------------------------------------------------------
 // Author: Julius Smith
@@ -30255,7 +30282,7 @@ with{
 // #### Usage
 //
 // ```
-// _ : spectral_tilt_demo(N) : _ ;
+// _ : spectral_tilt_demo(N) : _ 
 // ```
 //
 // Where:
@@ -30320,7 +30347,7 @@ filterbank_demo = mth_octave_filterbank_demo(1); // octave-bands = default
 // #### Usage:
 //
 // ```
-// _ : cubicnl_demo : _;
+// _ : cubicnl_demo : _
 // ```
 //------------------------------------------------------------
 // Author: Julius Smith
@@ -30344,7 +30371,7 @@ with{
 // #### Usage
 //
 // ```
-// _,_ : gate_demo : _,_;
+// _,_ : gate_demo : _,_
 // ```
 //------------------------------------------------------------
 // Author: Julius Smith
@@ -30393,7 +30420,7 @@ with{
 // #### Usage
 //
 // ```
-// _,_ : compressor_demo : _,_;
+// _,_ : compressor_demo : _,_
 // ```
 //------------------------------------------------------------
 // Author: Julius Smith
@@ -30455,7 +30482,7 @@ with{
 // #### Usage
 //
 // ```
-// _ : moog_vcf_demo : _;
+// _ : moog_vcf_demo : _
 // ```
 //------------------------------------------------------------
 // Author: Julius Smith
@@ -30497,7 +30524,7 @@ with{
 // #### Usage
 //
 // ```
-// _ : wah4_demo : _;
+// _ : wah4_demo : _
 // ```
 //------------------------------------------------------------
 // Author: Julius Smith
@@ -30519,7 +30546,7 @@ with{
 // #### Usage
 //
 // ```
-// _ : crybaby_demo : _ ;
+// _ : crybaby_demo : _
 // ```
 //------------------------------------------------------------
 // Author: Julius Smith
@@ -30540,7 +30567,7 @@ with{
 // #### Usage
 //
 // ```
-// _,_ : flanger_demo : _,_;
+// _,_ : flanger_demo : _,_
 // ```
 //------------------------------------------------------------
 // Author: Julius Smith
@@ -30589,7 +30616,7 @@ with{
 // #### Usage
 //
 // ```
-// _,_ : phaser2_demo : _,_;
+// _,_ : phaser2_demo : _,_
 // ```
 //------------------------------------------------------------
 // Author: Julius Smith
@@ -30637,13 +30664,16 @@ with{
 	mdepth = select2(vibr,depth,2); // Improve "ease of use"
 };
 
+//======================================Reverbs===========================================
+//========================================================================================
+
 //----------------------------`(dm.)freeverb_demo`-------------------------
 // Freeverb demo application.
 //
 // #### Usage
 //
 // ```
-// _,_ : freeverb_demo : _,_;
+// _,_ : freeverb_demo : _,_
 // ```
 //------------------------------------------------------------
 // Author: Romain Michon
@@ -31005,6 +31035,64 @@ with {
 	out_level = *(gain),*(gain);
 };
 
+//----------------------------------`(dm.)jprev_demo`------------------------------
+// Example GUI for `jprev` with all parameters exposed. 
+//
+// #### Usage
+//
+// ```
+// _,_ : jprev_demo : _,_
+// ```
+//
+//------------------------------------------------------------
+// Author: Till Bovermann
+// License: GPL2+
+
+declare jprev_demo author "Till Bovermann";
+declare jprev_demo license "GPL2+";
+
+jprev_demo = re.jpverb(t60, damp, size, early_diff, mod_depth, mod_freq, low, mid, high, low_cutoff, high_cutoff)
+with {
+    t60         = hslider("[01]t60",       1.0  , 0.1, 60.000, 0.1000);
+    damp        = hslider("[03]damp",      0.0  , 0.0,  0.999, 0.0001);
+    size        = hslider("[02]size",      1.0  , 0.5,  3.000, 0.0100);
+    early_diff  = hslider("[04]earlyDiff", 0.707, 0.0,  0.990, 0.0010);
+    mod_depth   = hslider("[05]mDepth", 0.1, 0.0,  1.0, 0.001);
+    mod_freq    = hslider("[06]mFreq",  2.0, 0.0, 10.0, 0.010);
+    low         = hslider("[07]lowX",   1.0, 0.0,  1.0, 0.010);
+    mid         = hslider("[08]midX",   1.0, 0.0,  1.0, 0.010);
+    high        = hslider("[09]highX",  1.0, 0.0,  1.0, 0.010);
+    low_cutoff  = hslider("[10]lowBand",  500,  100.0,  6000.0, 0.1);
+    high_cutoff = hslider("[11]highBand",2000, 1000.0, 10000.0, 0.1);
+};
+
+
+//----------------------------------`(dm.)greyhole_demo`------------------------------
+// Example GUI for `greyhole` with all parameters exposed. 
+//
+// #### Usage
+//
+// ```
+// _,_ : greyhole_demo : _,_
+// ```
+//
+//------------------------------------------------------------
+// Author: Till Bovermann
+// License: GPL2+
+
+declare greyhole_demo author "Till Bovermann";
+declare greyhole_demo license "GPL2+";
+
+greyhole_demo = re.greyhole(dt, damp, size, early_diff, feedback, mod_depth, mod_freq)
+with {
+    dt         = hslider("[01]delayTime", 0.2, 0.001,  1.45, 0.0001);
+    damp       = hslider("[02]damping",   0.0, 0.000,  0.99, 0.0010);
+    size       = hslider("[03]size",      1.0, 0.500,  3.00, 0.0001);
+    early_diff = hslider("[04]diffusion", 0.5, 0.000,  0.99, 0.0001);
+    feedback   = hslider("[05]feedback",  0.9, 0.000,  1.00, 0.0100);
+    mod_depth  = hslider("[06]modDepth",  0.1, 0.000,  1.00, 0.0010);
+    mod_freq   = hslider("[07]modFreq",   2.0, 0.000, 10.00, 0.0100);
+};
 
 //====================================Generators==========================================
 //========================================================================================
@@ -31510,7 +31598,7 @@ with{
 // #### Usage
 //
 // ```
-// _ : vocoder_demo : _;
+// _ : vocoder_demo : _
 // ```
 //------------------------------------------------------------
 // Author: Romain Michon
@@ -31542,9 +31630,10 @@ de = library("delays.lib");
 ro = library("routes.lib");
 si = library("signals.lib");
 fi = library("filters.lib");
+os = library("oscillators.lib");
 
 declare name "Faust Reverb Library";
-declare version "0.1";
+declare version "0.2";
 
 //########################################################################################
 /************************************************************************
@@ -31717,7 +31806,7 @@ with {
 // #### Usage
 //
 // ```
-// bus(8) : zita_rev_fdn(f1,f2,t60dc,t60m,fsmax) : bus(8)
+// si.bus(8) : zita_rev_fdn(f1,f2,t60dc,t60m,fsmax) : si.bus(8)
 // ```
 //
 // Where:
@@ -31907,7 +31996,7 @@ closed source license or any other license if you decide so.
 // #### Usage
 //
 // ```
-// _ : mono_freeverb(fb1, fb2, damp, spread) : _;
+// _ : mono_freeverb(fb1, fb2, damp, spread) : _
 // ```
 //
 // Where:
@@ -31962,7 +32051,7 @@ with {
 // #### Usage
 //
 // ```
-// _,_ : stereo_freeverb(fb1, fb2, damp, spread) : _,_;
+// _,_ : stereo_freeverb(fb1, fb2, damp, spread) : _,_
 // ```
 //
 // Where:
@@ -32068,6 +32157,161 @@ declare dattorro_rev_default license "MIT-style STK-4.3 license";
 
 dattorro_rev_default = dattorro_rev(0, 0.9995, 0.75, 0.625, 0.5, 0.7, 0.5, 0.0005);
 
+//===============================JPverb and Greyhole Reverbs============================
+//======================================================================================
+
+jp_gh_rev = environment {
+
+    diffuser_aux(angle, g, scale1, scale2, size, block) = si.bus(2) <: ((si.bus(2):par(i,2,*(c_norm))
+        : ((si.bus(4) :> si.bus(2)
+            : block
+            : rotator(angle)
+            : (de.fdelay1a(8192, prime_delays(size*scale1):smooth_init(0.9999,prime_delays(size*scale1)) -1),
+               de.fdelay1a(8192, prime_delays(size*scale2):smooth_init(0.9999,prime_delays(size*scale2)) -1)))
+        ~ par(i,2,*(-s_norm))) : par(i,2,mem:*(c_norm)))
+        ,
+        par(i,2,*(s_norm)))
+        :> si.bus(2)
+        with {
+            rotator(angle) = si.bus(2) <: (*(c),*(-s),*(s),*(c)) :(+,+) : si.bus(2)
+            with {
+                c = cos(angle);
+                s = sin(angle);
+            };
+            c_norm = cos(g);
+            s_norm = sin(g);
+        };
+
+    diffuser(angle, g, scale1, scale2, size) = diffuser_aux(angle,g,scale1,scale2,size,si.bus(2));
+
+    // Nested version
+    diffuser_nested(1, angle, g, scale, size) = diffuser_aux(angle,g,scale,scale+10,size,si.bus(2));
+    diffuser_nested(N, angle, g, scale, size) = diffuser_aux(angle,g,scale,scale+10,size,diffuser_nested(N-1,angle,g,scale+13,size));
+
+    prime_delays(x) = (waveform {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281, 283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409, 419, 421, 431, 433, 439, 443, 449, 457, 461, 463, 467, 479, 487, 491, 499, 503, 509, 521, 523, 541, 547, 557, 563, 569, 571, 577, 587, 593, 599, 601, 607, 613, 617, 619, 631, 641, 643, 647, 653, 659, 661, 673, 677, 683, 691, 701, 709, 719, 727, 733, 739, 743, 751, 757, 761, 769, 773, 787, 797, 809, 811, 821, 823, 827, 829, 839, 853, 857, 859, 863, 877, 881, 883, 887, 907, 911, 919, 929, 937, 941, 947, 953, 967, 971, 977, 983, 991, 997, 1009, 1013, 1019, 1021, 1031, 1033, 1039, 1049, 1051, 1061, 1063, 1069, 1087, 1091, 1093, 1097, 1103, 1109, 1117, 1123, 1129, 1151, 1153, 1163, 1171, 1181, 1187, 1193, 1201, 1213, 1217, 1223, 1229, 1231, 1237, 1249, 1259, 1277, 1279, 1283, 1289, 1291, 1297, 1301, 1303, 1307, 1319, 1321, 1327, 1361, 1367, 1373, 1381, 1399, 1409, 1423, 1427, 1429, 1433, 1439, 1447, 1451, 1453, 1459, 1471, 1481, 1483, 1487, 1489, 1493, 1499, 1511, 1523, 1531, 1543, 1549, 1553, 1559, 1567, 1571, 1579, 1583, 1597, 1601, 1607, 1609, 1613, 1619, 1621, 1627, 1637, 1657, 1663, 1667, 1669, 1693, 1697, 1699, 1709, 1721, 1723, 1733, 1741, 1747, 1753, 1759, 1777, 1783, 1787, 1789, 1801, 1811, 1823, 1831, 1847, 1861, 1867, 1871, 1873, 1877, 1879, 1889, 1901, 1907, 1913, 1931, 1933, 1949, 1951, 1973, 1979, 1987, 1993, 1997, 1999, 2003, 2011, 2017, 2027, 2029, 2039, 2053, 2063, 2069, 2081, 2083, 2087, 2089, 2099, 2111, 2113, 2129, 2131, 2137, 2141, 2143, 2153, 2161, 2179, 2203, 2207, 2213, 2221, 2237, 2239, 2243, 2251, 2267, 2269, 2273, 2281, 2287, 2293, 2297, 2309, 2311, 2333, 2339, 2341, 2347, 2351, 2357, 2371, 2377, 2381, 2383, 2389, 2393, 2399, 2411, 2417, 2423, 2437, 2441, 2447, 2459, 2467, 2473, 2477, 2503, 2521, 2531, 2539, 2543, 2549, 2551, 2557, 2579, 2591, 2593, 2609, 2617, 2621, 2633, 2647, 2657, 2659, 2663, 2671, 2677, 2683, 2687, 2689, 2693, 2699, 2707, 2711, 2713, 2719, 2729, 2731, 2741, 2749, 2753, 2767, 2777, 2789, 2791, 2797, 2801, 2803, 2819, 2833, 2837, 2843, 2851, 2857, 2861, 2879, 2887, 2897, 2903, 2909, 2917, 2927, 2939, 2953, 2957, 2963, 2969, 2971, 2999, 3001, 3011, 3019, 3023, 3037, 3041, 3049, 3061, 3067, 3079, 3083, 3089, 3109, 3119, 3121, 3137, 3163, 3167, 3169, 3181, 3187, 3191, 3203, 3209, 3217, 3221, 3229, 3251, 3253, 3257, 3259, 3271, 3299, 3301, 3307, 3313, 3319, 3323, 3329, 3331, 3343, 3347, 3359, 3361, 3371, 3373, 3389, 3391, 3407, 3413, 3433, 3449, 3457, 3461, 3463, 3467, 3469, 3491, 3499, 3511, 3517, 3527, 3529, 3533, 3539, 3541, 3547, 3557, 3559, 3571, 3581, 3583, 3593, 3607, 3613, 3617, 3623, 3631, 3637, 3643, 3659, 3671, 3673, 3677, 3691, 3697, 3701, 3709, 3719, 3727, 3733, 3739, 3761, 3767, 3769, 3779, 3793, 3797, 3803, 3821, 3823, 3833, 3847, 3851, 3853, 3863, 3877, 3881, 3889, 3907, 3911, 3917, 3919, 3923, 3929, 3931, 3943, 3947, 3967, 3989, 4001, 4003, 4007, 4013, 4019, 4021, 4027, 4049, 4051, 4057, 4073, 4079, 4091, 4093, 4099, 4111, 4127, 4129, 4133, 4139, 4153, 4157, 4159, 4177, 4201, 4211, 4217, 4219, 4229, 4231, 4241, 4243, 4253, 4259, 4261, 4271, 4273, 4283, 4289, 4297, 4327, 4337, 4339, 4349, 4357, 4363, 4373, 4391, 4397, 4409, 4421, 4423, 4441, 4447, 4451, 4457, 4463, 4481, 4483, 4493, 4507, 4513, 4517, 4519, 4523, 4547, 4549, 4561, 4567, 4583, 4591, 4597, 4603, 4621, 4637, 4639, 4643, 4649, 4651, 4657, 4663, 4673, 4679, 4691, 4703, 4721, 4723, 4729, 4733, 4751, 4759, 4783, 4787, 4789, 4793, 4799, 4801, 4813, 4817, 4831, 4861, 4871, 4877, 4889, 4903, 4909, 4919, 4931, 4933, 4937, 4943, 4951, 4957, 4967, 4969, 4973, 4987, 4993, 4999, 5003, 5009, 5011, 5021, 5023, 5039, 5051, 5059, 5077, 5081, 5087, 5099, 5101, 5107, 5113, 5119, 5147, 5153, 5167, 5171, 5179, 5189, 5197, 5209, 5227, 5231, 5233, 5237, 5261, 5273, 5279, 5281, 5297, 5303, 5309, 5323, 5333, 5347, 5351, 5381, 5387, 5393, 5399, 5407, 5413, 5417, 5419, 5431, 5437, 5441, 5443, 5449, 5471, 5477, 5479, 5483, 5501, 5503, 5507, 5519, 5521, 5527, 5531, 5557, 5563, 5569, 5573, 5581, 5591, 5623, 5639, 5641, 5647, 5651, 5653, 5657, 5659, 5669, 5683, 5689, 5693, 5701, 5711, 5717, 5737, 5741, 5743, 5749, 5779, 5783, 5791, 5801, 5807, 5813, 5821, 5827, 5839, 5843, 5849, 5851, 5857, 5861, 5867, 5869, 5879, 5881, 5897, 5903, 5923, 5927, 5939, 5953, 5981, 5987, 6007, 6011, 6029, 6037, 6043, 6047, 6053, 6067, 6073, 6079, 6089, 6091, 6101, 6113, 6121, 6131, 6133, 6143, 6151, 6163, 6173, 6197, 6199, 6203, 6211, 6217, 6221, 6229, 6247, 6257, 6263, 6269, 6271, 6277, 6287, 6299, 6301, 6311, 6317, 6323, 6329, 6337, 6343, 6353, 6359, 6361, 6367, 6373, 6379, 6389, 6397, 6421, 6427, 6449, 6451, 6469, 6473, 6481, 6491, 6521, 6529, 6547, 6551, 6553, 6563, 6569, 6571, 6577, 6581, 6599, 6607, 6619, 6637, 6653, 6659, 6661, 6673, 6679, 6689, 6691, 6701, 6703, 6709, 6719, 6733, 6737, 6761, 6763, 6779, 6781, 6791, 6793, 6803, 6823, 6827, 6829, 6833, 6841, 6857, 6863, 6869, 6871, 6883, 6899, 6907, 6911, 6917, 6947, 6949, 6959, 6961, 6967, 6971, 6977, 6983, 6991, 6997, 7001, 7013, 7019, 7027, 7039, 7043, 7057, 7069, 7079, 7103, 7109, 7121, 7127, 7129, 7151, 7159, 7177, 7187, 7193, 7207, 7211, 7213, 7219, 7229, 7237, 7243, 7247, 7253, 7283, 7297, 7307, 7309, 7321, 7331, 7333, 7349, 7351, 7369, 7393, 7411, 7417, 7433, 7451, 7457, 7459, 7477, 7481, 7487, 7489, 7499, 7507, 7517, 7523, 7529, 7537, 7541, 7547, 7549, 7559, 7561, 7573, 7577, 7583, 7589, 7591, 7603, 7607, 7621, 7639, 7643, 7649, 7669, 7673, 7681, 7687, 7691, 7699, 7703, 7717, 7723, 7727, 7741, 7753, 7757, 7759, 7789, 7793, 7817, 7823, 7829, 7841, 7853, 7867, 7873, 7877, 7879, 7883, 7901, 7907, 7919, 7927, 7933, 7937, 7949, 7951, 7963, 7993, 8009, 8011, 8017, 8039, 8053, 8059, 8069, 8081, 8087, 8089, 8093, 8101, 8111, 8117, 8123, 8147, 8161, 8167, 8171, 8179, 8191, 8209, 8219, 8221, 8231, 8233, 8237, 8243, 8263, 8269, 8273, 8287, 8291, 8293, 8297, 8311, 8317, 8329, 8353, 8363, 8369, 8377, 8387, 8389, 8419, 8423, 8429, 8431, 8443, 8447, 8461, 8467, 8501, 8513, 8521, 8527, 8537, 8539, 8543, 8563, 8573, 8581, 8597, 8599, 8609, 8623, 8627, 8629, 8641, 8647, 8663, 8669, 8677, 8681, 8689, 8693, 8699, 8707, 8713, 8719, 8731, 8737, 8741, 8747, 8753, 8761, 8779, 8783, 8803, 8807, 8819, 8821, 8831, 8837, 8839, 8849, 8861, 8863, 8867, 8887, 8893, 8923, 8929, 8933, 8941, 8951, 8963, 8969, 8971, 8999, 9001, 9007, 9011, 9013, 9029, 9041, 9043, 9049, 9059, 9067, 9091, 9103, 9109, 9127, 9133, 9137, 9151, 9157, 9161, 9173, 9181, 9187, 9199, 9203, 9209, 9221, 9227, 9239, 9241, 9257, 9277, 9281, 9283, 9293, 9311, 9319, 9323, 9337, 9341, 9343, 9349, 9371, 9377, 9391, 9397, 9403, 9413, 9419, 9421, 9431, 9433, 9437, 9439, 9461, 9463, 9467, 9473, 9479, 9491, 9497, 9511, 9521, 9533, 9539, 9547, 9551, 9587, 9601, 9613, 9619, 9623, 9629, 9631, 9643, 9649, 9661, 9677, 9679, 9689, 9697, 9719, 9721, 9733, 9739, 9743, 9749, 9767, 9769, 9781, 9787, 9791, 9803, 9811, 9817, 9829, 9833, 9839, 9851, 9857, 9859, 9871, 9883, 9887, 9901, 9907, 9923, 9929, 9931, 9941, 9949, 9967, 9973, 10007, 10009, 10037, 10039, 10061, 10067, 10069, 10079, 10091, 10093, 10099, 10103, 10111, 10133, 10139, 10141, 10151, 10159, 10163, 10169, 10177, 10181, 10193, 10211, 10223, 10243, 10247, 10253, 10259, 10267, 10271, 10273, 10289, 10301, 10303, 10313, 10321, 10331, 10333, 10337, 10343, 10357, 10369, 10391, 10399, 10427, 10429, 10433, 10453, 10457, 10459, 10463, 10477, 10487, 10499, 10501, 10513, 10529, 10531, 10559, 10567, 10589, 10597, 10601, 10607, 10613, 10627, 10631, 10639, 10651, 10657, 10663, 10667}, int(x)) : rdtable;
+
+    smooth_init(s,default) = *(1.0 - s) : + ~ (+(default*init(1)):*(s)) with { init(value) = value - value'; };
+
+    jpverb(t60, damp, size, early_diff, mod_depth, mod_freq, low, mid, high, low_cutoff, high_cutoff)
+        = ((si.bus(4) :> (de.fdelay4(512, depth + depth*os.oscrs(mod_freq) + 5),de.fdelay4(512, depth + depth*os.oscrc(mod_freq) + 5))
+            : par(i,2,si.smooth(damp))
+            : diffuser(ma.PI/4,early_diff,55,240,size)
+            : diffuser(ma.PI/4,early_diff,215,85,size)
+            : diffuser(ma.PI/4,early_diff,115,190,size)
+            : diffuser(ma.PI/4,early_diff,175,145,size)
+        )~(seq(i,5,diffuser(ma.PI/4,0.707,10+30*i,110+30*i,size))
+            : par(i,2,de.fdelay4(512, depth + (-1^i)*depth*os.oscrc(mod_freq)+5)
+            : de.fdelay1a(8192,(prime_delays(size*(54+150*i))
+            : smooth_init(0.995,prime_delays(size*(54+150*i)))) -1))
+            : seq(i,5,diffuser(ma.PI/4,0.707,125+30*i,25+30*i,size))
+            : par(i,2,de.fdelay4(8192, depth + (-1^i)*depth*os.oscrs(mod_freq)+5)
+            : de.fdelay1a(8192,(prime_delays(size*(134-100*i))
+            : smooth_init(0.995,prime_delays(size*(134-100*i)))) -1))
+            : par(i,2,fi.filterbank(5,(low_cutoff,high_cutoff)):(_*(high),_*(mid),_*(low)) :> _)
+            : par(i,2,*(fb))))
+        with {
+            depth = 50*mod_depth;
+            calib = 1.7; // Calibration constant given by t60 in seconds when fb = 0.5
+            total_length = calib*0.1*(size*5/4 -1/4);
+            fb = 10^(-3/((t60)/(total_length)));
+        };
+
+    greyhole(dt, damp, size, early_diff, feedback, mod_depth, mod_freq)
+        = (si.bus(4) :> seq(i,3,diffuser_nested(4,ma.PI/2,(-1^i)*diff,10+19*i,size))
+            : par(i,2,si.smooth(damp_interp)))
+        ~((de.fdelay4(512, 10+depth + depth*os.oscrc(freq)),de.fdelay4(512, 10 + depth + depth*os.oscrs(freq)))
+            : (de.sdelay(65536,44100/2,floor(dt_constrained)),de.sdelay(65536,44100/2,floor(dt_constrained)))
+            : par(i,2,*(fb)))
+        with {
+            fb = feedback:linear_interp;
+            depth = ((ma.SR/44100)*50*mod_depth):linear_interp;
+            freq = mod_freq:linear_interp;
+            diff = early_diff:linear_interp;
+            dt_constrained = min(65533,ma.SR*dt);
+            damp_interp = damp:linear_interp;
+            linear_interp(x) = (x+x')/2;
+        };
+
+};
+
+//-------------------------------`(re.)jpverb`-------------------------------
+// An algorithmic reverb (stereo in/out), inspired by the lush chorused sound 
+// of certain vintage Lexicon and Alesis reverberation units. 
+// Designed to sound great with synthetic sound sources, rather than sound like a realistic space.
+//
+// #### Usage
+//
+// ```
+// _,_ : jpverb(t60, damp, size, early_diff, mod_depth, mod_freq, low, mid, high, low_cutoff, high_cutoff) : _,_
+// ```
+//
+// Where:
+//
+// * `t60`: approximate reverberation time in seconds (`[0.1..60]` sec) (T60 - the time for the reverb to decay by 60db when damp == 0 ). Does not effect early reflections
+// * `damp`: controls damping of high-frequencies as the reverb decays. `0` is no damping, `1` is very strong damping. Values should be between (`[0..1]`)
+// * `size`: scales size of delay-lines within the reverberator, producing the impression of a larger or smaller space. Values below `1` can sound metallic. Values should be between `[0.5..5]
+// * `early_diff`: controls shape of early reflections. Values of `0.707` or more produce smooth exponential decay. Lower values produce a slower build-up of echoes. Values should be between (`[0..1]`)
+// * `mod_depth`: depth (`[0..1]`) of delay-line modulation. Use in combination with `mod_freq` to set amount of chorusing within the structure
+// * `modFreq`: frequency (`[0..10]` Hz) of delay-line modulation. Use in combination with modDepth to set amount of chorusing within the structure
+// * `low`: multiplier (`[0..1]`) for the reverberation time within the low band
+// * `mid`: multiplier (`[0..1]`) for the reverberation time within the mid band
+// * `high`: multiplier (`[0..1]`) for the reverberation time within the high band
+// * `lowcut`: frequency (100..6000 Hz) at which the crossover between the low and mid bands of the reverb occurs
+// * `highcut`: frequency (1000..10000 Hz) at which the crossover between the mid and high bands of the reverb occurs
+//
+// #### Reference
+//
+// <https://doc.sccode.org/Overviews/DEIND.html>
+//------------------------------------------------------------
+
+// Author: Julian Parker, bug fixes and minor interface changes by Till Bovermann
+// License: GPL2+
+declare jpverb author "Julian Parker, bug fixes and minor interface changes by Till Bovermann";
+declare jpverb license "GPL2+";
+
+jpverb(t60, damp, size, early_diff, 
+		mod_depth, mod_freq, 
+		low, mid, high, 
+		low_cutoff, high_cutoff)
+    = jp_gh_rev.jpverb(t60, damp, size, early_diff, mod_depth, mod_freq, low, mid, high, low_cutoff, high_cutoff);
+
+
+//-------------------------------`(re.)greyhole`-------------------------------
+// A complex echo-like effect (stereo in/out), inspired by the classic Eventide effect of a similar name. 
+// The effect consists of a diffuser (like a mini-reverb, structurally similar to the one used in `jpverb`)
+// connected in a feedback system with a long, modulated delay-line. 
+// Excels at producing spacey washes of sound.
+//
+// #### Usage
+//
+// ```
+// _,_ : greyhole(dt, damp, size, early_diff, feedback, mod_depth, mod_freq) : _,_
+// ```
+//
+// Where:
+//
+// * `dt`: approximate reverberation time in seconds (`[0.1..60 sec]`)
+// * `damp`: controls damping of high-frequencies as the reverb decays. `0` is no damping, `1` is very strong damping. Values should be between (`[0..1]`)
+// * `size`: scales size of delay-lines within the diffusion unit, producing the impression of a larger or smaller space. Values below `1` can sound metallic. Values should be between (`[0.5..5]`)
+// * `size`: control of relative "room size" roughly between (`[0.5..3]`)
+// * `early_diff`: controls pattern of echoes produced by the diffuser. At very low values, the diffuser acts like a delay-line whose length is controlled by the 'size' parameter. Medium values produce a slow build-up of echoes, giving the sound a reversed-like quality. Values of `0.707` or greater than produce smooth exponentially decaying echoes. Values should be in the range (`[0..1]`)
+// * `feedback`: amount of feedback through the system. Sets the number of repeating echoes. A setting of `1.0` produces infinite sustain. Values should be in the range (`[0..1]`)
+// * `mod_depth`: depth (`[0..1]`) of delay-line modulation. Use in combination with mod_freq to produce chorus and pitch-variations in the echoes
+// * `mod_freq`: frequency (`[0..10]` Hz) of delay-line modulation. Use in combination with mod_depth to produce chorus and pitch-variations in the echoes
+//
+// #### Reference
+//
+// <https://doc.sccode.org/Overviews/DEIND.html>
+//------------------------------------------------------------
+
+// Author: Julian Parker, bug fixes and minor interface changes by Till Bovermann
+// License: GPL2+
+declare greyhole author "Julian Parker, bug fixes and minor interface changes by Till Bovermann";
+declare greyhole license "GPL2+";
+
+greyhole(dt, damp, size, early_diff, feedback, mod_depth, mod_freq) 
+	= jp_gh_rev.greyhole(dt, damp, size, early_diff, feedback, mod_depth, mod_freq);
+
 // end further further contributions section
 //##################################### physmodels.lib ###################################
 // Faust physical modeling library. Its official prefix is `pm`.
@@ -32117,7 +32361,7 @@ TODO:
 	- When setting pole of filters by hand (e.g. smooth, should adjust pole in function of SR)
 	- Probably need a single resonator function / see how to integrate that with "mode"
 	- Need a non-linear function and see how this can be integrated with modal synthesis
-	- See how bowed modal models could be integarted to this
+	- See how bowed modal models could be integrated to this
 	- Currently still missing keyboard instruments
 	- Currently still missing vocal synth: easy to fix (create a formant filter function)
 	- Real polyphonic instruments should be designated with some kind of prefix (e.g.,
@@ -32377,7 +32621,7 @@ rTermination(b,c) = (_,_,_,_ : +,_,_ : b) ~ (!,c);
 // #### Usage
 //
 // ```
-// closeIns : chain(...) : 	_,_,_
+// closeIns : chain(...) : _,_,_
 // ```
 //----------------------------------------
 closeIns = 0,0,0;
@@ -35997,7 +36241,7 @@ with{
 // UNCATEGORIZED FUNCTIONS (TODO)
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-//-------`modalModel`--------------
+//-------`(pm).modalModel`--------------
 //
 // Implement multiple resonance modes using resonant bandpass filters.
 //
