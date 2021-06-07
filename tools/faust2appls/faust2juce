@@ -61,10 +61,10 @@ do
     fi
 
     if [ "$p" = -debug ]; then
-    	DEBUG=true
+        DEBUG=true
     elif [ $p = "-nvoices" ]; then
         shift
-	IS_SYNTH="1"
+        IS_SYNTH="1"
         NVOICES=$1
     elif [ $p = "-standalone" ]; then
         STANDALONE="1"
