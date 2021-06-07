@@ -104,7 +104,9 @@ static void AudioCallback(float** in, float** out, size_t count)
 int main(void)
 {
     // initialize seed hardware and daisysp modules
+#ifndef PATCH
     hw.Configure();
+#endif
     hw.Init();
     
     // allocate DSP
@@ -125,7 +127,11 @@ int main(void)
     DSP->init(MY_SAMPLE_RATE);
     
     // setup controllers
+#ifdef PATCH
+    control_UI = new DaisyControlUI(&hw.seed, MY_SAMPLE_RATE/MY_BUFFER_SIZE);
+#else
     control_UI = new DaisyControlUI(&hw, MY_SAMPLE_RATE/MY_BUFFER_SIZE);
+#endif
     DSP->buildUserInterface(control_UI);
     
     // start ADC
