@@ -1,13 +1,13 @@
 
 /*
-Code generated with Faust version 2.20.3
-Compilation options: -lang wasm-ib -scal -ftz 2
+Code generated with Faust version 2.32.15
+Compilation options: -lang wasm-ib -es 1 -single -ftz 2
 */
 
 function getJSONnoise() {
-	return '{"name": "noise","filename": "noise.dsp","version": "2.20.3","compile_options": "-lang wasm-ib -scal -ftz 2","library_list": ["/usr/local/share/faust/stdfaust.lib","/usr/local/share/faust/noises.lib"],"include_pathnames": ["/usr/local/share/faust","/usr/local/share/faust","/usr/share/faust",".","/Documents/faust-github-faust2/architecture/webaudio"],"size": 16,"inputs": 0,"outputs": 1,"meta": [ { "filename": "noise.dsp" },{ "name": "noise" },{ "noises.lib/name": "Faust Noise Generator Library" },{ "noises.lib/version": "0.0" }],"ui": [ {"type": "vgroup","label": "noise","items": [ {"type": "hslider","label": "Volume","address": "/noise/Volume","index": 0,"init": 0.5,"min": 0,"max": 1,"step": 0.01}]}]}';
+	return '{"name": "noise","filename": "noise.dsp","version": "2.32.15","compile_options": "-lang wasm-ib -es 1 -single -ftz 2","library_list": ["/usr/local/share/faust/stdfaust.lib","/usr/local/share/faust/noises.lib"],"include_pathnames": ["/usr/local/share/faust","/usr/local/share/faust","/usr/share/faust",".","/Documents/faust-github-faust2/architecture/webaudio"],"size": 16,"inputs": 0,"outputs": 1,"meta": [ { "compile_options": "-lang wasm-ib -es 1 -single -ftz 2" },{ "filename": "noise.dsp" },{ "name": "noise" },{ "noises.lib/name": "Faust Noise Generator Library" },{ "noises.lib/version": "0.0" }],"ui": [ {"type": "vgroup","label": "noise","items": [ {"type": "hslider","label": "Volume","address": "/noise/Volume","index": 0,"init": 0.5,"min": 0,"max": 1,"step": 0.01}]}]}';
 }
-function getBase64Codenoise() { return "AGFzbQEAAAABy4CAgAAOYAJ/fwBgBH9/f38AYAF/AX9gAX8Bf2ACf38BfWABfwF/YAJ/fwBgAX8AYAJ/fwBgAn9/AGABfwBgAn9/AX9gAn9/AX9gA39/fQACgYCAgAAAA4+AgIAADgABAgMEBQYHCAkKCwwNBYyAgIAAAQGBgICAAOmHgIAAB7qBgIAADAdjb21wdXRlAAEMZ2V0TnVtSW5wdXRzAAINZ2V0TnVtT3V0cHV0cwADDWdldFBhcmFtVmFsdWUABA1nZXRTYW1wbGVSYXRlAAUEaW5pdAAGDWluc3RhbmNlQ2xlYXIABxFpbnN0YW5jZUNvbnN0YW50cwAIDGluc3RhbmNlSW5pdAAJGmluc3RhbmNlUmVzZXRVc2VySW50ZXJmYWNlAAoNc2V0UGFyYW1WYWx1ZQANBm1lbW9yeQIACvSCgIAADoKAgIAAAAv9gICAAAICfwF9QQAhBEMAAAAAIQZBACEFIANBAGooAgAhBEMAAAAwQQAqAgCUIQZBACEFA0ACQEEAQe2cmY4EQQAoAghsQbngAGo2AgQgBCAFaiAGQQAoAgSylDgCAEEAQQAoAgQ2AgggBUEEaiEFIAVBBCABbEgEQAwCDAELCwsLhYCAgAAAQQAPC4WAgIAAAEEBDwuLgICAAAAgACABaioCAA8LiICAgAAAQQAoAgwPC46AgIAAACAAIAEQACAAIAEQCQuygICAAAEBf0EAIQFBACEBA0ACQEEEIAFBAnRqQQA2AgAgAUEBaiEBIAFBAkgEQAwCDAELCwsLiYCAgAAAQQAgATYCDAuQgICAAAAgACABEAggABAKIAAQBwuMgICAAABBAEMAAAA/OAIAC5CAgIAAACAAIAFIBH8gAQUgAAsPC5CAgIAAACAAIAFIBH8gAAUgAQsPC4yAgIAAACAAIAFqIAI4AgALC82FgIAAAQBBAAvGBXsibmFtZSI6ICJub2lzZSIsImZpbGVuYW1lIjogIm5vaXNlLmRzcCIsInZlcnNpb24iOiAiMi4yMC4zIiwiY29tcGlsZV9vcHRpb25zIjogIi1sYW5nIHdhc20taWIgLXNjYWwgLWZ0eiAyIiwibGlicmFyeV9saXN0IjogWyIvdXNyL2xvY2FsL3NoYXJlL2ZhdXN0L3N0ZGZhdXN0LmxpYiIsIi91c3IvbG9jYWwvc2hhcmUvZmF1c3Qvbm9pc2VzLmxpYiJdLCJpbmNsdWRlX3BhdGhuYW1lcyI6IFsiL3Vzci9sb2NhbC9zaGFyZS9mYXVzdCIsIi91c3IvbG9jYWwvc2hhcmUvZmF1c3QiLCIvdXNyL3NoYXJlL2ZhdXN0IiwiLiIsIi9Eb2N1bWVudHMvZmF1c3QtZ2l0aHViLWZhdXN0Mi9hcmNoaXRlY3R1cmUvd2ViYXVkaW8iXSwic2l6ZSI6IDE2LCJpbnB1dHMiOiAwLCJvdXRwdXRzIjogMSwibWV0YSI6IFsgeyAiZmlsZW5hbWUiOiAibm9pc2UuZHNwIiB9LHsgIm5hbWUiOiAibm9pc2UiIH0seyAibm9pc2VzLmxpYi9uYW1lIjogIkZhdXN0IE5vaXNlIEdlbmVyYXRvciBMaWJyYXJ5IiB9LHsgIm5vaXNlcy5saWIvdmVyc2lvbiI6ICIwLjAiIH1dLCJ1aSI6IFsgeyJ0eXBlIjogInZncm91cCIsImxhYmVsIjogIm5vaXNlIiwiaXRlbXMiOiBbIHsidHlwZSI6ICJoc2xpZGVyIiwibGFiZWwiOiAiVm9sdW1lIiwiYWRkcmVzcyI6ICIvbm9pc2UvVm9sdW1lIiwiaW5kZXgiOiAwLCJpbml0IjogMC41LCJtaW4iOiAwLCJtYXgiOiAxLCJzdGVwIjogMC4wMX1dfV19"; }
+function getBase64Codenoise() { return "AGFzbQEAAAABy4CAgAAOYAJ/fwBgBH9/f38AYAF/AX9gAX8Bf2ACf38BfWABfwF/YAJ/fwBgAX8AYAJ/fwBgAn9/AGABfwBgAn9/AX9gAn9/AX9gA39/fQACgYCAgAAAA4+AgIAADgABAgMEBQYHCAkKCwwNBYyAgIAAAQGBgICAAOmHgIAAB7qBgIAADAdjb21wdXRlAAEMZ2V0TnVtSW5wdXRzAAINZ2V0TnVtT3V0cHV0cwADDWdldFBhcmFtVmFsdWUABA1nZXRTYW1wbGVSYXRlAAUEaW5pdAAGDWluc3RhbmNlQ2xlYXIABxFpbnN0YW5jZUNvbnN0YW50cwAIDGluc3RhbmNlSW5pdAAJGmluc3RhbmNlUmVzZXRVc2VySW50ZXJmYWNlAAoNc2V0UGFyYW1WYWx1ZQANBm1lbW9yeQIACvSCgIAADoKAgIAAAAv9gICAAAICfwF9QQAhBEMAAAAAIQZBACEFIANBAGooAgAhBEMAAAAwQQAqAgCUIQZBACEFA0ACQEEAQe2cmY4EQQAoAghsQbngAGo2AgQgBCAFaiAGQQAoAgSylDgCAEEAQQAoAgQ2AgggBUEEaiEFIAVBBCABbEgEQAwCDAELCwsLhYCAgAAAQQAPC4WAgIAAAEEBDwuLgICAAAAgACABaioCAA8LiICAgAAAQQAoAgwPC46AgIAAACAAIAEQACAAIAEQCQuygICAAAEBf0EAIQFBACEBA0ACQEEEIAFBAnRqQQA2AgAgAUEBaiEBIAFBAkgEQAwCDAELCwsLiYCAgAAAQQAgATYCDAuQgICAAAAgACABEAggABAKIAAQBwuMgICAAABBAEMAAAA/OAIAC5CAgIAAACAAIAFIBH8gAQUgAAsPC5CAgIAAACAAIAFIBH8gAAUgAQsPC4yAgIAAACAAIAFqIAI4AgALC5KGgIAAAQBBAAuLBnsibmFtZSI6ICJub2lzZSIsImZpbGVuYW1lIjogIm5vaXNlLmRzcCIsInZlcnNpb24iOiAiMi4zMi4xNSIsImNvbXBpbGVfb3B0aW9ucyI6ICItbGFuZyB3YXNtLWliIC1lcyAxIC1zaW5nbGUgLWZ0eiAyIiwibGlicmFyeV9saXN0IjogWyIvdXNyL2xvY2FsL3NoYXJlL2ZhdXN0L3N0ZGZhdXN0LmxpYiIsIi91c3IvbG9jYWwvc2hhcmUvZmF1c3Qvbm9pc2VzLmxpYiJdLCJpbmNsdWRlX3BhdGhuYW1lcyI6IFsiL3Vzci9sb2NhbC9zaGFyZS9mYXVzdCIsIi91c3IvbG9jYWwvc2hhcmUvZmF1c3QiLCIvdXNyL3NoYXJlL2ZhdXN0IiwiLiIsIi9Eb2N1bWVudHMvZmF1c3QtZ2l0aHViLWZhdXN0Mi9hcmNoaXRlY3R1cmUvd2ViYXVkaW8iXSwic2l6ZSI6IDE2LCJpbnB1dHMiOiAwLCJvdXRwdXRzIjogMSwibWV0YSI6IFsgeyAiY29tcGlsZV9vcHRpb25zIjogIi1sYW5nIHdhc20taWIgLWVzIDEgLXNpbmdsZSAtZnR6IDIiIH0seyAiZmlsZW5hbWUiOiAibm9pc2UuZHNwIiB9LHsgIm5hbWUiOiAibm9pc2UiIH0seyAibm9pc2VzLmxpYi9uYW1lIjogIkZhdXN0IE5vaXNlIEdlbmVyYXRvciBMaWJyYXJ5IiB9LHsgIm5vaXNlcy5saWIvdmVyc2lvbiI6ICIwLjAiIH1dLCJ1aSI6IFsgeyJ0eXBlIjogInZncm91cCIsImxhYmVsIjogIm5vaXNlIiwiaXRlbXMiOiBbIHsidHlwZSI6ICJoc2xpZGVyIiwibGFiZWwiOiAiVm9sdW1lIiwiYWRkcmVzcyI6ICIvbm9pc2UvVm9sdW1lIiwiaW5kZXgiOiAwLCJpbml0IjogMC41LCJtaW4iOiAwLCJtYXgiOiAxLCJzdGVwIjogMC4wMX1dfV19"; }
 
 /*
  faust2wasm: GRAME 2017-2019
@@ -16,56 +16,51 @@ function getBase64Codenoise() { return "AGFzbQEAAAABy4CAgAAOYAJ/fwBgBH9/f38AYAF/
 'use strict';
 
 if (typeof (AudioWorkletNode) === "undefined") {
-	alert("AudioWorklet is not supported in this browser !")
+    alert("AudioWorklet is not supported in this browser !")
 }
 
 class noiseNode extends AudioWorkletNode {
 
-    constructor(context, baseURL, options)
-    {
+    constructor(context, baseURL, options) {
         super(context, 'noise', options);
-        
+
         this.baseURL = baseURL;
         this.json = options.processorOptions.json;
         this.json_object = JSON.parse(this.json);
-     
+
         // JSON parsing functions
-        this.parse_ui = function(ui, obj)
-        {
+        this.parse_ui = function (ui, obj) {
             for (var i = 0; i < ui.length; i++) {
                 this.parse_group(ui[i], obj);
             }
         }
 
-        this.parse_group = function(group, obj)
-        {
+        this.parse_group = function (group, obj) {
             if (group.items) {
                 this.parse_items(group.items, obj);
             }
         }
 
-        this.parse_items = function(items, obj)
-        {
+        this.parse_items = function (items, obj) {
             for (var i = 0; i < items.length; i++) {
-            	this.parse_item(items[i], obj);
+                this.parse_item(items[i], obj);
             }
         }
 
-        this.parse_item = function(item, obj)
-        {
+        this.parse_item = function (item, obj) {
             if (item.type === "vgroup"
                 || item.type === "hgroup"
                 || item.type === "tgroup") {
                 this.parse_items(item.items, obj);
             } else if (item.type === "hbargraph"
-                       || item.type === "vbargraph") {
+                || item.type === "vbargraph") {
                 // Keep bargraph adresses
                 obj.outputs_items.push(item.address);
             } else if (item.type === "vslider"
-                       || item.type === "hslider"
-                       || item.type === "button"
-                       || item.type === "checkbox"
-                       || item.type === "nentry") {
+                || item.type === "hslider"
+                || item.type === "button"
+                || item.type === "checkbox"
+                || item.type === "nentry") {
                 // Keep inputs adresses
                 obj.inputs_items.push(item.address);
                 obj.descriptor.push(item);
@@ -74,23 +69,27 @@ class noiseNode extends AudioWorkletNode {
                     for (var i = 0; i < item.meta.length; i++) {
                         if (item.meta[i].midi !== undefined) {
                             if (item.meta[i].midi.trim() === "pitchwheel") {
-                                obj.fPitchwheelLabel.push({ path:item.address,
-                                      min:parseFloat(item.min),
-                                      max:parseFloat(item.max) });
+                                obj.fPitchwheelLabel.push({
+                                    path: item.address,
+                                    min: parseFloat(item.min),
+                                    max: parseFloat(item.max)
+                                });
                             } else if (item.meta[i].midi.trim().split(" ")[0] === "ctrl") {
                                 obj.fCtrlLabel[parseInt(item.meta[i].midi.trim().split(" ")[1])]
-                                .push({ path:item.address,
-                                      min:parseFloat(item.min),
-                                      max:parseFloat(item.max) });
+                                    .push({
+                                        path: item.address,
+                                        min: parseFloat(item.min),
+                                        max: parseFloat(item.max)
+                                    });
                             }
                         }
                     }
-                }      
+                }
                 // Define setXXX/getXXX, replacing '/c' with 'C' everywhere in the string
                 var set_name = "set" + item.address;
                 var get_name = "get" + item.address;
-                set_name = set_name.replace(/\/./g, (x) => { return x.substr(1,1).toUpperCase(); });     
-                get_name = get_name.replace(/\/./g, (x) => { return x.substr(1,1).toUpperCase(); });
+                set_name = set_name.replace(/\/./g, (x) => { return x.substr(1, 1).toUpperCase(); });
+                get_name = get_name.replace(/\/./g, (x) => { return x.substr(1, 1).toUpperCase(); });
                 obj[set_name] = (val) => { obj.setParamValue(item.address, val); };
                 obj[get_name] = () => { return obj.getParamValue(item.address); };
                 //console.log(set_name);
@@ -104,7 +103,7 @@ class noiseNode extends AudioWorkletNode {
         this.inputs_items = [];
         this.outputs_items = [];
         this.descriptor = [];
-        
+
         // MIDI
         this.fPitchwheelLabel = [];
         this.fCtrlLabel = new Array(128);
@@ -117,12 +116,11 @@ class noiseNode extends AudioWorkletNode {
         this.port.onmessage = this.handleMessage.bind(this);
         try {
             if (this.parameters) this.parameters.forEach(p => p.automationRate = "k-rate");
-        } catch (e) {}
+        } catch (e) { }
     }
 
     // To be called by the message port with messages coming from the processor
-    handleMessage(event)
-    {
+    handleMessage(event) {
         var msg = event.data;
         if (this.output_handler) {
             this.output_handler(msg.path, msg.value);
@@ -130,12 +128,11 @@ class noiseNode extends AudioWorkletNode {
     }
 
     // Public API
-    
+
     /**
      * Destroy the node, deallocate resources.
      */
-    destroy()
-    {
+    destroy() {
         this.port.postMessage({ type: "destroy" });
         this.port.close();
     }
@@ -143,22 +140,20 @@ class noiseNode extends AudioWorkletNode {
     /**
      *  Returns a full JSON description of the DSP.
      */
-    getJSON()
-    {
+    getJSON() {
         return this.json;
     }
-    
+
     // For WAP
-    async getMetadata() 
-    {
+    async getMetadata() {
         return new Promise(resolve => {
             let real_url = (this.baseURL === "") ? "main.json" : (this.baseURL + "/main.json");
             fetch(real_url).then(responseJSON => {
-            	return responseJSON.json();
-        	}).then(json => {
-        		resolve(json);
-        	})
-    	});
+                return responseJSON.json();
+            }).then(json => {
+                resolve(json);
+            })
+        });
     }
 
     /**
@@ -167,15 +162,13 @@ class noiseNode extends AudioWorkletNode {
      * @param path - a path to the control
      * @param val - the value to be set
      */
-    setParamValue(path, val)
-    {
+    setParamValue(path, val) {
         // Needed for sample accurate control
         this.parameters.get(path).setValueAtTime(val, 0);
     }
-    
+
     // For WAP
-    setParam(path, val)
-    {
+    setParam(path, val) {
         // Needed for sample accurate control
         this.parameters.get(path).setValueAtTime(val, 0);
     }
@@ -185,14 +178,12 @@ class noiseNode extends AudioWorkletNode {
      *
      * @return the current control value
      */
-    getParamValue(path)
-    {
+    getParamValue(path) {
         return this.parameters.get(path).value;
     }
-    
+
     // For WAP
-    getParam(path) 
-    {
+    getParam(path) {
         return this.parameters.get(path).value;
     }
 
@@ -203,51 +194,43 @@ class noiseNode extends AudioWorkletNode {
      *
      * @param handler - a function of type function(path, value)
      */
-    setOutputParamHandler(handler)
-    {
+    setOutputParamHandler(handler) {
         this.output_handler = handler;
     }
 
     /**
      * Get the current output handler.
      */
-    getOutputParamHandler()
-    {
+    getOutputParamHandler() {
         return this.output_handler;
     }
 
-    getNumInputs()
-    {
+    getNumInputs() {
         return parseInt(this.json_object.inputs);
     }
 
-    getNumOutputs()
-    {
+    getNumOutputs() {
         return parseInt(this.json_object.outputs);
     }
-    
+
     // For WAP
-    inputChannelCount() 
-    {
+    inputChannelCount() {
         return parseInt(this.json_object.inputs);
     }
 
-    outputChannelCount() 
-    {
+    outputChannelCount() {
         return parseInt(this.json_object.outputs);
     }
 
     /**
      * Returns an array of all input paths (to be used with setParamValue/getParamValue)
      */
-    getParams()
-    {
+    getParams() {
         return this.inputs_items;
     }
-    
+
     // For WAP
-    getDescriptor() 
-    {
+    getDescriptor() {
         var desc = {};
         for (const item in this.descriptor) {
             if (this.descriptor.hasOwnProperty(item)) {
@@ -266,8 +249,7 @@ class noiseNode extends AudioWorkletNode {
      * @param ctrl - the MIDI controller number (0..127)
      * @param value - the MIDI controller value (0..127)
      */
-    ctrlChange(channel, ctrl, value)
-    {
+    ctrlChange(channel, ctrl, value) {
         if (this.fCtrlLabel[ctrl] !== []) {
             for (var i = 0; i < this.fCtrlLabel[ctrl].length; i++) {
                 var path = this.fCtrlLabel[ctrl][i].path;
@@ -283,10 +265,9 @@ class noiseNode extends AudioWorkletNode {
      * PitchWeel
      *
      * @param channel - the MIDI channel (0..15, not used for now)
-     * @param value - the MIDI controller value (-1..1)
+     * @param value - the MIDI controller value (0..16383)
      */
-    pitchWheel(channel, wheel)
-    {
+    pitchWheel(channel, wheel) {
         for (var i = 0; i < this.fPitchwheelLabel.length; i++) {
             var pw = this.fPitchwheelLabel[i];
             this.setParamValue(pw.path, noiseNode.remap(wheel, 0, 16383, pw.min, pw.max));
@@ -299,13 +280,12 @@ class noiseNode extends AudioWorkletNode {
     /**
      * Generic MIDI message handler.
      */
-    midiMessage(data)
-    {
+    midiMessage(data) {
         var cmd = data[0] >> 4;
         var channel = data[0] & 0xf;
         var data1 = data[1];
         var data2 = data[2];
-        
+
         if (channel === 9) {
             return;
         } else if (cmd === 11) {
@@ -314,18 +294,16 @@ class noiseNode extends AudioWorkletNode {
             this.pitchWheel(channel, (data2 * 128.0 + data1));
         }
     }
-    
+
     // For WAP
-    onMidi(data) 
-    {
-     	midiMessage(data);
+    onMidi(data) {
+        midiMessage(data);
     }
-    
+
     /**
      * @returns {Object} describes the path for each available param and its current value
      */
-    async getState() 
-    {
+    async getState() {
         var params = new Object();
         for (let i = 0; i < this.getParams().length; i++) {
             Object.assign(params, { [this.getParams()[i]]: `${this.getParam(this.getParams()[i])}` });
@@ -337,8 +315,7 @@ class noiseNode extends AudioWorkletNode {
      * Sets each params with the value indicated in the state object
      * @param {Object} state 
      */
-    async setState(state) 
-    {
+    async setState(state) {
         return new Promise(resolve => {
             for (const param in state) {
                 if (state.hasOwnProperty(param)) this.setParam(param, state[param]);
@@ -351,25 +328,25 @@ class noiseNode extends AudioWorkletNode {
             resolve(state);
         })
     }
-    
+
     /**
      * A different call closer to the preset management
      * @param {Object} patch to assign as a preset to the node
      */
-    setPatch(patch) 
-    {
+    setPatch(patch) {
         this.setState(this.presets[patch])
     }
-    
-    static remap(v, mn0, mx0, mn1, mx1)
-    {
+
+    static remap(v, mn0, mx0, mn1, mx1) {
         return (1.0 * (v - mn0) / (mx0 - mn0)) * (mx1 - mn1) + mn1;
     }
-    
+
 }
 
 // Factory class
 class noise {
+
+    static fWorkletProcessors;
 
     /**
      * Factory constructor.
@@ -377,19 +354,19 @@ class noise {
      * @param context - the audio context
      * @param baseURL - the baseURL of the plugin folder
      */
-    constructor(context, baseURL = "")
-    {
-    	console.log("baseLatency " + context.baseLatency);
-    	console.log("outputLatency " + context.outputLatency);
-    	console.log("sampleRate " + context.sampleRate);
-    	
+    constructor(context, baseURL = "") {
+        console.log("baseLatency " + context.baseLatency);
+        console.log("outputLatency " + context.outputLatency);
+        console.log("sampleRate " + context.sampleRate);
+
         this.context = context;
         this.baseURL = baseURL;
         this.pathTable = [];
+
+        this.fWorkletProcessors = this.fWorkletProcessors || [];
     }
 
-    heap2Str(buf)
-    {
+    heap2Str(buf) {
         let str = "";
         let i = 0;
         while (buf[i] !== 0) {
@@ -397,19 +374,18 @@ class noise {
         }
         return str;
     }
-    
+
     /**
      * Load additionnal resources to prepare the custom AudioWorkletNode. Returns a promise to be used with the created node.
      */
-    async load()
-    {
+    async load() {
         try {
             const importObject = {
                 env: {
                     memoryBase: 0,
                     tableBase: 0,
                     _abs: Math.abs,
-                        
+
                     // Float version
                     _acosf: Math.acos,
                     _asinf: Math.asin,
@@ -436,7 +412,7 @@ class noise {
                     _coshf: Math.cosh,
                     _sinhf: Math.sinh,
                     _tanhf: Math.tanh,
-                        
+
                     // Double version
                     _acos: Math.acos,
                     _asin: Math.asin,
@@ -463,7 +439,7 @@ class noise {
                     _cosh: Math.cosh,
                     _sinh: Math.sinh,
                     _tanh: Math.tanh,
-                    
+
                     table: new WebAssembly.Table({ initial: 0, element: "anyfunc" })
                 }
             };
@@ -473,46 +449,47 @@ class noise {
             const dspBuffer = await dspFile.arrayBuffer();
             const dspModule = await WebAssembly.compile(dspBuffer);
             const dspInstance = await WebAssembly.instantiate(dspModule, importObject);
-            
-            return new Promise((resolve, reject) => {   
-            
-                let HEAPU8 = new Uint8Array(dspInstance.exports.memory.buffer);
-                let json = this.heap2Str(HEAPU8);
-                let json_object = JSON.parse(json);  
-                let options = { wasm_module: dspModule, json: json };
-                
-                let re = /JSON_STR/g;
-                let noiseProcessorString1 = noiseProcessorString.replace(re, json);
-                let real_url = window.URL.createObjectURL(new Blob([noiseProcessorString1], { type: 'text/javascript' }));
-                
-                this.context.audioWorklet.addModule(real_url).then(() => {
-                    this.node = new noiseNode(this.context, this.baseURL, 
-                                        { numberOfInputs: (parseInt(json_object.inputs) > 0) ? 1 : 0,
-                                        numberOfOutputs: (parseInt(json_object.outputs) > 0) ? 1 : 0,
-                                        channelCount: Math.max(1, parseInt(json_object.inputs)),
-                                        outputChannelCount: [parseInt(json_object.outputs)],
-                                        channelCountMode: "explicit",
-                                        channelInterpretation: "speakers",
-                                        processorOptions: options });
-                    this.node.onprocessorerror = () => { console.log('An error from noise-processor was detected.');}
-                    return (this.node);
-                }).then((node) => {
-                    resolve(node);
-                }).catch((e) => {
-                    reject(e);
+
+            let HEAPU8 = new Uint8Array(dspInstance.exports.memory.buffer);
+            let json = this.heap2Str(HEAPU8);
+            let json_object = JSON.parse(json);
+            let options = { wasm_module: dspModule, json: json };
+
+            if (this.fWorkletProcessors.indexOf(name) === -1) {
+                try {
+                    let re = /JSON_STR/g;
+                    let noiseProcessorString1 = noiseProcessorString.replace(re, json);
+                    let real_url = window.URL.createObjectURL(new Blob([noiseProcessorString1], { type: 'text/javascript' }));
+                    await this.context.audioWorklet.addModule(real_url);
+                    // Keep the DSP name
+                    console.log("Keep the DSP name");
+                    this.fWorkletProcessors.push(name);
+                } catch (e) {
+                    console.error(e);
+                    console.error("Faust " + this.name + " cannot be loaded or compiled");
+                    return null;
+                }
+            }
+            this.node = new noiseNode(this.context, this.baseURL,
+                {
+                    numberOfInputs: (parseInt(json_object.inputs) > 0) ? 1 : 0,
+                    numberOfOutputs: (parseInt(json_object.outputs) > 0) ? 1 : 0,
+                    channelCount: Math.max(1, parseInt(json_object.inputs)),
+                    outputChannelCount: [parseInt(json_object.outputs)],
+                    channelCountMode: "explicit",
+                    channelInterpretation: "speakers",
+                    processorOptions: options
                 });
-            });
-            
+            this.node.onprocessorerror = () => { console.log('An error from noise-processor was detected.'); }
+            return (this.node);
         } catch (e) {
             console.error(e);
             console.error("Faust " + this.name + " cannot be loaded or compiled");
             return null;
         }
-    	
     }
-    
-    async loadGui()
-    {
+
+    async loadGui() {
         return new Promise((resolve, reject) => {
             try {
                 // DO THIS ONLY ONCE. If another instance has already been added, do not add the html file again
@@ -543,10 +520,9 @@ class noise {
         });
     };
 
-	linkExists(url) 
-	{
-    	return document.querySelectorAll(`link[href="${url}"]`).length > 0;
-   	}
+    linkExists(url) {
+        return document.querySelectorAll(`link[href="${url}"]`).length > 0;
+    }
 }
 
 // Template string for AudioWorkletProcessor
@@ -726,6 +702,7 @@ let noiseProcessorString = `
             this.HEAP32 = new Int32Array(this.HEAP);
             this.HEAPF32 = new Float32Array(this.HEAP);
 
+            // Warning: keeps a ref on HEAP in Chrome and prevent proper GC
             //console.log(this.HEAP);
             //console.log(this.HEAP32);
             //console.log(this.HEAPF32);
