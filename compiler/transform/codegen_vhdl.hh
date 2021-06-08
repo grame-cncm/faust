@@ -20,32 +20,26 @@
  ************************************************************************/
 
 #pragma once
-
 #include <cstdlib>
+#include <string>
 #include "property.hh"
-#include "signalVisitor.hh"
+//#include "signalVisitor.hh"
 #include "sigtyperules.hh"
 #include "tree.hh"
-#include "treeTraversal.hh"
-#include "codegen_vhdl.hh"
+//#include "treeTraversal.hh"
 
-//-------------------------Signal2VHDLVisitor-------------------------------
-// A a signal visitor used to compile signals to vhdl code
-//----------------------------------------------------------------------
 
-class Signal2VHDLVisitor : public TreeTraversal {
-    bool fVisitGen;
-    std::set<Tree> fVisited;           // avoid visiting a tree twice
+using namespace std;
 
-   public:
-    Signal2VHDLVisitor() : TreeTraversal(), fVisitGen(false){};
+string addr_to_str(Tree t);
 
-    void trans(Tree t, string * str0, string * str1, string * str2, string * str3);
-    void sigToVHDL(Tree sig, ofstream& fout);
+string val_to_str(Tree t);
 
-   //void generate_arith_entity(string name, const char* op);
 
-   protected:
-    void parcours(Tree t, string * str0, string * str1, string * str2, string * str3);
-    void visit(Tree sig) override;
-};
+string * arith_entity(string name, const char* op, string * str);
+string * delay_entity(string * str);
+string * faust_entity(string * str);
+string * empty_entity(string name, string * str);
+string * faust_process(string * str);
+string * arith_component(string name, string * str);
+string * delay_component(Tree sig, Tree x, Tree y, string * str);
