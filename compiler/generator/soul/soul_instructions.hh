@@ -414,7 +414,7 @@ class SOULInstVisitor : public TextInstVisitor {
     virtual void visit(AddSoundfileInst* inst)
     {
         // Not supported for now
-        throw faustexception("ERROR : AddSoundfileInst not yet supported for SOUL\n");
+        throw faustexception("ERROR : 'soundfile' primitive not yet supported for SOUL\n");
     }
     
     virtual void visit(DeclareVarInst* inst)
