@@ -63,15 +63,15 @@ declare namespace Faust {
      * @param {string} json_path - the JSON file path
      * @param {number} buffer_size - the buffer size, used in ScriptProcessor mode
      * 
-     * @preturn {Promise<FaustMonoNode | FaustPolyNode | null>} the compiled WebAudio node or 'null' in case of failure
+     * @preturn {Promise<FaustMonoNode | null>} the compiled WebAudio node or 'null' in case of failure
      */
     function createMonoAudioNode(context: BaseAudioContext,
         wasm_path: string,
         json_path: string,
-        buffer_size?: number): Promise<FaustMonoNode | FaustPolyNode | null>
+        buffer_size?: number): Promise<FaustMonoNode | null>
 
     /**
-     * Higher level function to create a monophonic WebAudio node from its (precompiled) wasm code.
+     * Higher level function to create a polyphonic WebAudio node from its (precompiled) wasm code.
      *
      * @param {BaseAudioContext} context the WebAudio context
      * @param {string} voice_path - the wasm voice file path
@@ -82,7 +82,7 @@ declare namespace Faust {
      * @param {number} voices - the number of voices
      * @param {number} buffer_size - the buffer size, used in ScriptProcessor mode
      * 
-     * @preturn {Promise<FaustMonoNode | FaustPolyNode | null>} the compiled WebAudio node or 'null' in case of failure
+     * @preturn {Promise<FaustPolyNode | null>} the compiled WebAudio node or 'null' in case of failure
      */
     function createPolyAudioNode(context: BaseAudioContext,
         voice_path: string,
@@ -91,7 +91,7 @@ declare namespace Faust {
         effect_json_path: string,
         mixer_path: string,
         voices: number,
-        buffer_size?: number): Promise<FaustMonoNode | FaustPolyNode | null>
+        buffer_size?: number): Promise<FaustPolyNode | null>
 
 }
 

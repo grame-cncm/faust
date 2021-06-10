@@ -51,7 +51,7 @@ namespace Faust {
         wasm_path: string,
         json_path: string,
         buffer_size?: number)
-        : Promise<FaustMonoNode | FaustPolyNode | null> {
+        : Promise<FaustMonoNode | null> {
         let sp = typeof (window.AudioWorkletNode) == "undefined";
         const factory = await createGenerator().loadDSPFactory(wasm_path, json_path);
         return (factory) ? createMonoFactory().createNode(context, "FaustDSP", factory, sp, buffer_size) : null;
@@ -66,7 +66,7 @@ namespace Faust {
         mixer_path: string,
         voices: number,
         buffer_size?: number)
-        : Promise<FaustMonoNode | FaustPolyNode | null> {
+        : Promise<FaustPolyNode | null> {
         {
             let sp = typeof (window.AudioWorkletNode) == "undefined";
             const gen = createGenerator();
