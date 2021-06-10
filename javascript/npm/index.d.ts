@@ -53,32 +53,72 @@ declare namespace Faust {
      * 
      * @preturn {Promise<FaustMonoNode | FaustPolyNode | null>} the compiled WebAudio node or 'null' in case of failure
      */
-    function compileAudioNode(audioCtx: BaseAudioContext, module: FaustModule, dsp_code: string, effect_code: string | null, voices: number, is_double: boolean): Promise<FaustMonoNode | FaustPolyNode | null>
+    function compileAudioNode(context: BaseAudioContext, module: FaustModule, dsp_code: string, effect_code: string | null, voices: number, is_double: boolean): Promise<FaustMonoNode | FaustPolyNode | null>
 
     /**
-     * The SVGDiagrams generator constructor.
-     * You should check the object status using the success() method after creation.
-     * 
-     * @param {LibFaust} engine - an instance of the Faust engine 
-     * @param {string} name - an arbitrary name for the Faust module
-     * @param {string} dsp_code - Faust dsp code
-     * @param {string} args - the compiler options, only svg specific options are meaningfull (automatically appends -svg)
-     */
-    function createSVGDiagrams(engine: LibFaust, name: string, dsp_code: string, args: string): SVGDiagrams;
-
-    /**
-     * WAP (Web Audio Plugins see https://github.com/micbuffa/WebAudioPlugins) API.   
-     */
-    function createMonoAudioWAPFactory(context: BaseAudioContext, baseURL: string): MonoWAPFactory;
-    function createPolyWAPFactory(context: BaseAudioContext, baseURL: string): PolyWAPFactory;
-
-    /**
-     * Transforms a Faust processor JSON description into a high level structured object.
+     * Higher level function to create a monophonic WebAudio node from its (precompiled) wasm code.
      *
-     * @param {string} json - a jsong string
-     * @returns {TFaustJSON} a high level structured object describing a Faust processor
+     * @param {BaseAudioContext} context the WebAudio context
+     * @param {string} wasm_path - the wasm file path
+     * @param {string} json_path - the JSON file path
+     * @param {number} buffer_size - the buffer size, used in ScriptProcessor mode
+     * 
+     * @preturn {Promise<FaustMonoNode | FaustPolyNode | null>} the compiled WebAudio node or 'null' in case of failure
      */
-    function createFaustJSON(json: string): TFaustJSON;
+    function createMonoAudioNode(context: BaseAudioContext,
+        wasm_path: string,
+        json_path: string,
+        buffer_size?: number): Promise<FaustMonoNode | FaustPolyNode | null>
+
+    /**
+     * Higher level function to create a monophonic WebAudio node from its (precompiled) wasm code.
+     *
+     * @param {BaseAudioContext} context the WebAudio context
+     * @param {string} voice_path - the wasm voice file path
+     * @param {string} json_path - the voice JSON file path
+     * @param {string | null} effect_path - the wasm effect file path
+     * @param {string | null} effect_json_path - the effect JSON file path
+     * @param {string} mixer_path - the wasm mixer path
+     * @param {number} voices - the number of voices
+     * @param {number} buffer_size - the buffer size, used in ScriptProcessor mode
+     * 
+     * @preturn {Promise<FaustMonoNode | FaustPolyNode | null>} the compiled WebAudio node or 'null' in case of failure
+     */
+    function createPolyAudioNode(context: BaseAudioContext,
+        voice_path: string,
+        voice_json_path: string,
+        effect_path: string,
+        effect_json_path: string,
+        mixer_path: string,
+        voices: number,
+        buffer_size?: number): Promise<FaustMonoNode | FaustPolyNode | null>
+
+}
+
+/**
+ * The SVGDiagrams generator constructor.
+ * You should check the object status using the success() method after creation.
+ * 
+ * @param {LibFaust} engine - an instance of the Faust engine 
+ * @param {string} name - an arbitrary name for the Faust module
+ * @param {string} dsp_code - Faust dsp code
+ * @param {string} args - the compiler options, only svg specific options are meaningfull (automatically appends -svg)
+ */
+function createSVGDiagrams(engine: LibFaust, name: string, dsp_code: string, args: string): SVGDiagrams;
+
+/**
+ * WAP (Web Audio Plugins see https://github.com/micbuffa/WebAudioPlugins) API.   
+ */
+function createMonoAudioWAPFactory(context: BaseAudioContext, baseURL: string): MonoWAPFactory;
+function createPolyWAPFactory(context: BaseAudioContext, baseURL: string): PolyWAPFactory;
+
+/**
+ * Transforms a Faust processor JSON description into a high level structured object.
+ *
+ * @param {string} json - a jsong string
+ * @returns {TFaustJSON} a high level structured object describing a Faust processor
+ */
+function createFaustJSON(json: string): TFaustJSON;
 
 }
 

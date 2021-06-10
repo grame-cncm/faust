@@ -76,7 +76,7 @@ The Faust Wasm and Audio Node levels make it possible to generate instances from
 In the latter case, it is not necessary to include the `libfaust-wasm.js` library, `FaustLibrary.js` is sufficient to provide the required services.
 This allows to generate lighter and faster-loading HTML pages.
 
-**Note**: to create a polyphonic instance from a pre-compiled WebAssembly module, an additional `mixer32.wasm` module is required and must be present at the same level as the referring HTML page. This module is part of the `dist` folder.
+**Note**: to create a polyphonic instance from a pre-compiled WebAssembly module, an additional `mixer32.wasm` file (or `mixer64.wasm`  when compiled in `-double` ) is required and must be present at the same level as the referring HTML page. This module is part of the `dist` folder.
 
 
 ## Misc. services <a name="misc"></a>

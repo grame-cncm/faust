@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <script src="FaustLibrary.js"></script>
+    <link href="exemples.css" rel="stylesheet">
+</head>
+
+<body>
+    <h1>Faust Web Assembly Library</h1>
+    <h2>Mono Audio node example</h2>
+    <h3>Load and run the following precompiled dsp code, using: <I>faust -lang wasm djembe.dsp -o djembe.wasm</I></h3>
+
+    <pre id=code class=code>
+import("stdfaust.lib");
+process = ba.pulsen(1, 10000) : pm.djembe(60, 0.3, 0.4, 1) <: dm.freeverb_demo;
+        </pre>
+    <p id=log> </p>
+
+    <h3>Javascript code</h3>
+    <pre class="code colored">
+audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+Faust.createMonoAudioNode(audioCtx, "djembe.wasm", "djembe.json").then(node => {
+    node.connect(audioCtx.destination);
+});
+</pre>
+    <p>More information about <a href=https://faust.grame.fr>Faust</a></p>
+    <img src=../imgs/faust.png alt="Faust Logo" class=logo>
+</body>
+
+<script>
+    function log(msg) { let div = document.getElementById("log"); div.textContent += msg + "\n"; }       
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    Faust.createMonoAudioNode(audioCtx, "djembe.wasm", "djembe.json").then(node1 => {
+        node1.connect(audioCtx.destination);
+        Faust.createMonoAudioNode(udioCtx, "djembe.wasm", "djembe.json").then(node2 => {
+            node2.connect(audioCtx.destination);
+            Faust.createMonoAudioNode(audioCtx, "djembe.wasm", "djembe.json").then(node3 => {
+                node3.connect(audioCtx.destination);
+            });
+        });
+    });
+  
+    const unlockAudioContext = (audioCtx) => {
+        if (audioCtx.state !== "suspended") return;
+        const b = document.body;
+        const events = ["touchstart", "touchend", "mousedown", "keydown"];
+        const unlock = () => audioCtx.resume().then(clean);
+        const clean = () => events.forEach(e => b.removeEventListener(e, unlock));
+        events.forEach(e => b.addEventListener(e, unlock, false));
+    }
+    unlockAudioContext(audioCtx);
+</script>
+
+</html>

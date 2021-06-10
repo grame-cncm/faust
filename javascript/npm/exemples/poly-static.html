@@ -3,7 +3,6 @@
 
 <head>
     <meta charset="UTF-8">
-    <script src="libfaust-wasm.js"></script>
     <script src="FaustLibrary.js"></script>
     <link href="exemples.css" rel="stylesheet">
 </head>
@@ -11,7 +10,7 @@
 <body>
     <h1>Faust Web Assembly Library</h1>
     <h2>Poly Audio node example</h2>
-    <h3>Compiles and run the following dsp code with 4 voices</h3>
+    <h3>Load and run the following precompiled dsp code with 4 voices, using: <I>faust -lang wasm-e marimba.dsp -o marimba.wasm</I></h3>
 
     <pre id=code class=code>
 import("stdfaust.lib");
@@ -20,7 +19,7 @@ process = ba.pulsen(1, ba.hz2midikey(freq) * 1000) : pm.marimba(freq, 0, 7000, 0
   gain = hslider("gain", 0.5, 0, 1, 0.01);
   gate = button("gate");
 };
-effect = dm.freeverb_demo;</pre>
+</pre>
     <p id=log> </p>
 
     <h3>Javascript code</h3>
@@ -34,11 +33,10 @@ function play(node)   {
 }
 
 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-FaustModule().then(module => { 
-    Faust.compileAudioNode(audioCtx, module, getcode(), null, 4).then (node => {
-        node.connect(audioCtx.destination);
-        play(node);
-    });
+Faust.createPolyAudioNode(audioCtx, "marimba.wasm", "marimba.json", null, null, "../mixer32.wasm", 4).then(node => {
+    node.connect(audioCtx.destination);
+    play(node);
+
 });</pre>
     <p>More information about <a href=https://faust.grame.fr>Faust</a></p>
     <img src=../imgs/faust.png alt="Faust Logo" class=logo>
@@ -56,12 +54,10 @@ FaustModule().then(module => {
     }
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     document.body.style.cursor = "wait";
-    FaustModule().then(module => {
-        Faust.compileAudioNode(audioCtx, module, getcode(), null, 4).then(node => {
-            document.body.style.cursor = "initial";
-            node.connect(audioCtx.destination);
-            play(node);
-        });
+	Faust.createPolyAudioNode(audioCtx, "marimba.wasm", "marimba.json", null, null, "../mixer32.wasm", 4).then(node => {
+        document.body.style.cursor = "initial";
+        node.connect(audioCtx.destination);
+        play(node);
     });
     const unlockAudioContext = (audioCtx) => {
         if (audioCtx.state !== "suspended") return;
