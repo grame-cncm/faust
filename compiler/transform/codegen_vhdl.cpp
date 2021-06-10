@@ -37,8 +37,8 @@ string val_to_str(Tree t)
     return s.str();
 }
 
-string * arith_entity(string name, const char* op, string * str) {
-    (*str) += "library ieee;\n"
+void arith_entity(string name, const char* op, string & str) {
+    str += "library ieee;\n"
     "use ieee.std_logic_1164.all;\n"
     "use ieee.std_logic_arith.all;\n"
     "use ieee.std_logic_signed.all;\n"
@@ -56,11 +56,10 @@ string * arith_entity(string name, const char* op, string * str) {
     "begin\n"
     "output  <=  resize(input_0 " + op + " input_1,msb,lsb);\n"
     "end behavioral;\n\n";
-    return str;
 }
 
-string * delay_entity(string * str) {
-    (*str) += "library ieee;\n"
+void delay_entity(string & str) {
+    str += "library ieee;\n"
     "use ieee.std_logic_1164.all;\n"
     "use ieee.std_logic_arith.all;\n"
     "use ieee.std_logic_signed.all;\n"
@@ -71,9 +70,9 @@ string * delay_entity(string * str) {
     "    msb    : integer;\n"
     "    lsb    : integer);\n"
     "port (\n"
-    "    ws     : in std_logic;\n"
-    "    input  : in  sfixed(msb downto lsb);\n"
-    "    output : out sfixed(msb downto lsb));\n"
+    "    ws       : in std_logic;\n"
+    "    input_0  : in  sfixed(msb downto lsb);\n"
+    "    output_0 : out sfixed(msb downto lsb));\n"
     "end delay;\n"
     "architecture behavioral of delay is\n"
     "type mem is array (delay downto 0) of sfixed(msb downto lsb);\n"
@@ -81,20 +80,19 @@ string * delay_entity(string * str) {
     "begin\n"
     "process(ws)\n"
     "    begin\n"
-    "    ligne(0) <= input;\n"
+    "    ligne(0) <= input_0;\n"
     "    if rising_edge(ws) then\n"
     "        for i in 1 to delay loop\n"
     "            ligne(i) <= ligne(i-1);\n"
     "        end loop;\n"
     "    end if;\n"
     "end process;\n"
-    "output <= ligne(delay);\n"
+    "output_0 <= ligne(delay);\n"
     "end behavioral;\n\n";
-    return str;
 }
 
-string * empty_entity(string name, string * str) {
-    (*str) += "library ieee;\n"
+void empty_entity(string name, string & str) {
+    str += "library ieee;\n"
     "use ieee.std_logic_1164.all;\n"
     "use ieee.std_logic_arith.all;\n"
     "use ieee.std_logic_signed.all;\n"
@@ -104,18 +102,17 @@ string * empty_entity(string name, string * str) {
     "    msb     : integer;\n"
     "    lsb     : integer);\n"
     "port (\n"
-    "    input   : in  sfixed(msb downto lsb);\n"
-    "    output  : out sfixed(msb downto lsb));\n"
+    "    input_0  : in  sfixed(msb downto lsb);\n"
+    "    output_0 : out sfixed(msb downto lsb));\n"
     "end " + name + ";\n"
     "architecture behavioral of " + name + " is\n"
     "begin\n"
-    "output  <=  input;\n"
+    "output_0  <=  input_0;\n"
     "end behavioral;\n\n";
-    return str;
 }
 
-string * faust_entity(string * str) {
-    (*str) = "library ieee;\n"
+void faust_entity(string & str) {
+    str += "library ieee;\n"
     "use ieee.std_logic_1164.all;\n"
     "use ieee.numeric_std.all;\n"
     "use ieee.std_logic_signed.all;\n"
@@ -146,11 +143,10 @@ string * faust_entity(string * str) {
     "signal    out_right_V_int :  std_logic_vector (23 downto 0);\n"
     "signal    step_cnt : integer;\n"
     "signal    ap_start_reg : std_logic;";
-    return str;
 }
 
-string * faust_process(string * str) {
-    (*str) = "begin\n\n"
+void faust_process(string & str) {
+    str += "begin\n\n"
     " process(ap_clk, ap_rst_n)\n"
     "   variable clock_cnt : integer := 0;\n"
     " begin\n\n"
@@ -191,32 +187,72 @@ string * faust_process(string * str) {
     " ------------------------------------------------------------------------\n"
     " --------------   Data flow equation          ---------------------------\n"
     " ------------------------------------------------------------------------\n\n";
-    return str;
 }
 
-string * arith_component(string name, string * str) {
-    (*str) += "component " + name + " is\n"
+void box_component(string name, int input, string & str) {
+    str += "component " + name + " is\n"
     "generic (\n"
     "    msb  : integer;\n"
     "    lsb  : integer);\n"
-    "port (\n"
-    "   input_0 : in  sfixed(msb downto lsb);\n"
-    "   input_1 : in  sfixed(msb downto lsb);\n"
-    "   output  : out sfixed(msb downto lsb));\n"
+    "port (\n";
+    for (int i = 0; i < input; i++) {
+      str += "   input_"+ to_string(i) + " : in  sfixed(msb downto lsb);\n";
+    }
+    str += "   output_0 : in  sfixed(msb downto lsb);\n"
     "end component;\n\n";
-    return str;
 }
 
 
-string * delay_component(Tree sig, Tree x, Tree y, string * str) {
-    (*str) += "DELAY_" + addr_to_str(sig) + " : delay\n"
+void delay_instantiate(Tree sig, Tree x, Tree y, string & str) {
+    str += "DELAY_" + addr_to_str(sig) + " : delay\n"
     "generic map (\n"
     "    delay => "+ val_to_str(y) +",\n"
     "    msb => 1,\n"
     "    lsb => -22)\n"
     "port map (\n"
     "    ws => ap_ws,\n"
-    "    input  => sig"+ addr_to_str(y) +",\n"
-    "    output => sig"+ addr_to_str(sig) +");\n\n";
-    return str;
+    "    input_0  => sig"+ addr_to_str(x) +",\n"
+    "    output_1 => sig"+ addr_to_str(sig) +");\n\n";
+}
+
+void proj_instantiate(Tree sig, Tree x, string & str) {
+    str += "PROJ_" + addr_to_str(sig) + " : PROJ\n"
+    "generic map (\n"
+    "    msb => 1,\n"
+    "    lsb => -22)\n"
+    "port map (\n"
+    "    input_0  => sig"+ addr_to_str(x) +",\n"
+    "    output_1 => sig"+ addr_to_str(sig) +");\n\n";
+}
+
+
+void box_instantiate(string name, Tree sig, Tree x, Tree y, string & str) {
+  str += name + "_" + addr_to_str(sig) + " : " + name + "\n"
+  "generic map (\n"
+  "    msb => 1,\n"
+  "    lsb => -22)\n"
+  "port map (\n"
+  "    input_0  => sig"+ addr_to_str(x) +",\n"
+  "    input_1  => sig"+ addr_to_str(y) +",\n"
+  "    output_1 => sig"+ addr_to_str(sig) +");\n\n";
+}
+
+void decl_sig_1(Tree x, string & str) {
+  str += "signal    sig"+ addr_to_str(x) +" : sfixed(1 downto -22) :\n";
+}
+
+
+void decl_sig_2(Tree x, Tree y, string & str) {
+  int i;
+  double r;
+  if (isSigInt(y, &i) || isSigReal(y, &r)) {
+    str += "signal    sig"+addr_to_str(y)+" : sfixed(1 downto -22) := to_sfixed("+val_to_str(y)+",1,-22);\n";
+  } else {
+    str += "signal    sig"+ addr_to_str(y) +" : sfixed(1 downto -22) :\n";
+  }
+  str += "signal    sig"+ addr_to_str(x) +" : sfixed(1 downto -22) :\n";
+}
+
+void input_affectation(Tree sig, string & str) {
+  str += "sig" + addr_to_str(sig) + " <= to_sfixed(in_left_V_buf,1,-22);\n";
 }

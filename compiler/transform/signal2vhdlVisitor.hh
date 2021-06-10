@@ -28,24 +28,31 @@
 #include "tree.hh"
 #include "treeTraversal.hh"
 #include "codegen_vhdl.hh"
+#include "xtended.hh"
 
 //-------------------------Signal2VHDLVisitor-------------------------------
 // A a signal visitor used to compile signals to vhdl code
 //----------------------------------------------------------------------
+using namespace std;
 
 class Signal2VHDLVisitor : public TreeTraversal {
     bool fVisitGen;
-    std::set<Tree> fVisited;           // avoid visiting a tree twice
+    set<Tree> fVisited;           // avoid visiting a tree twice
+    map<string, bool> fEntity;
+    string input;
+    string bloc_0;
+    string bloc_1;
+    string bloc_2;
+    string bloc_3;
+    string bloc_4;
+    string bloc_5;
 
    public:
     Signal2VHDLVisitor() : TreeTraversal(), fVisitGen(false){};
 
-    void trans(Tree t, string * str0, string * str1, string * str2, string * str3);
+    void self(Tree t);
     void sigToVHDL(Tree sig, ofstream& fout);
 
-   //void generate_arith_entity(string name, const char* op);
-
    protected:
-    void parcours(Tree t, string * str0, string * str1, string * str2, string * str3);
     void visit(Tree sig) override;
 };

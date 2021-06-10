@@ -32,14 +32,17 @@
 using namespace std;
 
 string addr_to_str(Tree t);
-
 string val_to_str(Tree t);
 
-
-string * arith_entity(string name, const char* op, string * str);
-string * delay_entity(string * str);
-string * faust_entity(string * str);
-string * empty_entity(string name, string * str);
-string * faust_process(string * str);
-string * arith_component(string name, string * str);
-string * delay_component(Tree sig, Tree x, Tree y, string * str);
+void arith_entity(string name, const char* op, string & str);
+void delay_entity(string & str);
+void faust_entity(string & str);
+void empty_entity(string name, string & str);
+void faust_process(string & str);
+void box_component(string name, int input, string & str);
+void delay_instantiate(Tree sig, Tree x, Tree y, string & str);
+void proj_instantiate(Tree sig, Tree x, string & str);
+void box_instantiate(string name, Tree sig, Tree x, Tree y, string & str);
+void decl_sig_1(Tree x, string & str);
+void decl_sig_2(Tree x, Tree y, string & str);
+void input_affectation(Tree sig, string & str);
