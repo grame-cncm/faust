@@ -30213,18 +30213,18 @@ Michon and Julius O. Smith III, and are released under the
 // License: MIT
 mth_octave_spectral_level_demo(BPO) =  an.mth_octave_spectral_level_default(M,ftop,N,tau,dB_offset)
 with{
-	M = BPO;
-	ftop = 16000;
-	Noct = 10; // number of octaves down from ftop
-	// Lowest band-edge is at ftop*2^(-Noct+2) = 62.5 Hz when ftop=16 kHz:
-	N = int(Noct*M); // without 'int()', segmentation fault observed for M=1.67
-	ctl_group(x)  = hgroup("[1] SPECTRUM ANALYZER CONTROLS", x);
-	tau = ctl_group(hslider("[0] Level Averaging Time [unit:ms] [scale:log]
-		[tooltip: band-level averaging time in milliseconds]",
-	100,1,10000,1)) * 0.001;
-	dB_offset = ctl_group(hslider("[1] Level dB Offset [unit:dB]
-	[tooltip: Level offset in decibels]",
-	50,-50,100,1));
+    M = BPO;
+    ftop = 16000;
+    Noct = 10; // number of octaves down from ftop
+    // Lowest band-edge is at ftop*2^(-Noct+2) = 62.5 Hz when ftop=16 kHz:
+    N = int(Noct*M); // without 'int()', segmentation fault observed for M=1.67
+    ctl_group(x)  = hgroup("[1] SPECTRUM ANALYZER CONTROLS", x);
+    tau = ctl_group(hslider("[0] Level Averaging Time [unit:ms] [scale:log]
+        [tooltip: band-level averaging time in milliseconds]",
+    100,1,10000,1)) * 0.001;
+    dB_offset = ctl_group(hslider("[1] Level dB Offset [unit:dB]
+    [tooltip: Level offset in decibels]",
+    50,-50,100,1));
 };
 
 spectral_level_demo = mth_octave_spectral_level_demo(1.5); // 2/3 octave
@@ -30246,33 +30246,33 @@ spectral_level_demo = mth_octave_spectral_level_demo(1.5); // 2/3 octave
 // License: MIT
 parametric_eq_demo = fi.low_shelf(LL,FL) : fi.peak_eq(LP,FP,BP) : fi.high_shelf(LH,FH)
 with{
-	eq_group(x) = hgroup("[0] PARAMETRIC EQ SECTIONS [tooltip: See Faust's filters.lib
-		for info and pointers]",x);
-	ls_group(x) = eq_group(vgroup("[1] Low Shelf",x));
+    eq_group(x) = hgroup("[0] PARAMETRIC EQ SECTIONS [tooltip: See Faust's filters.lib
+        for info and pointers]",x);
+    ls_group(x) = eq_group(vgroup("[1] Low Shelf",x));
 
-	LL = ls_group(hslider("[0] Low Boost|Cut [unit:dB] [style:knob]
-		[tooltip: Amount of low-frequency boost or cut in decibels]",0,-40,40,0.1));
-	FL = ls_group(hslider("[1] Transition Frequency [unit:Hz] [style:knob] [scale:log]
-		[tooltip: Transition-frequency from boost (cut) to unity gain]",200,1,5000,1));
+    LL = ls_group(hslider("[0] Low Boost|Cut [unit:dB] [style:knob]
+        [tooltip: Amount of low-frequency boost or cut in decibels]",0,-40,40,0.1));
+    FL = ls_group(hslider("[1] Transition Frequency [unit:Hz] [style:knob] [scale:log]
+        [tooltip: Transition-frequency from boost (cut) to unity gain]",200,1,5000,1));
 
-	pq_group(x) = eq_group(vgroup("[2] Peaking Equalizer[tooltip: Parametric Equalizer
-		sections from filters.lib]",x));
-	LP = pq_group(hslider("[0] Peak Boost|Cut [unit:dB] [style:knob][tooltip: Amount of
-		local boost or cut in decibels]",0,-40,40,0.1));
-	FP = pq_group(hslider("[1] Peak Frequency [unit:PK] [style:knob] [tooltip: Peak
-		Frequency in Piano Key (PK) units (A440 = 49PK)]",49,1,100,1)) : si.smooth(0.999)
-		: ba.pianokey2hz;
-	Q = pq_group(hslider("[2] Peak Q [style:knob] [scale:log] [tooltip: Quality factor
-		(Q) of the peak = center-frequency/bandwidth]",40,1,1000,0.1));
+    pq_group(x) = eq_group(vgroup("[2] Peaking Equalizer[tooltip: Parametric Equalizer
+        sections from filters.lib]",x));
+    LP = pq_group(hslider("[0] Peak Boost|Cut [unit:dB] [style:knob][tooltip: Amount of
+        local boost or cut in decibels]",0,-40,40,0.1));
+    FP = pq_group(hslider("[1] Peak Frequency [unit:PK] [style:knob] [tooltip: Peak
+        Frequency in Piano Key (PK) units (A440 = 49PK)]",49,1,100,1)) : si.smooth(0.999)
+        : ba.pianokey2hz;
+    Q = pq_group(hslider("[2] Peak Q [style:knob] [scale:log] [tooltip: Quality factor
+        (Q) of the peak = center-frequency/bandwidth]",40,1,1000,0.1));
 
-	BP = FP/Q;
+    BP = FP/Q;
 
-	hs_group(x) = eq_group(vgroup("[3] High Shelf [tooltip: A high shelf provides a boost
-		or cut above some frequency]",x));
-	LH = hs_group(hslider("[0] High Boost|Cut [unit:dB] [style:knob] [tooltip: Amount of
-		high-frequency boost or cut in decibels]",0,-40,40,.1));
-	FH = hs_group(hslider("[1] Transition Frequency [unit:Hz] [style:knob] [scale:log]
-	[tooltip: Transition-frequency from boost (cut) to unity gain]",8000,20,10000,1));
+    hs_group(x) = eq_group(vgroup("[3] High Shelf [tooltip: A high shelf provides a boost
+        or cut above some frequency]",x));
+    LH = hs_group(hslider("[0] High Boost|Cut [unit:dB] [style:knob] [tooltip: Amount of
+        high-frequency boost or cut in decibels]",0,-40,40,.1));
+    FH = hs_group(hslider("[1] Transition Frequency [unit:Hz] [style:knob] [scale:log]
+    [tooltip: Transition-frequency from boost (cut) to unity gain]",8000,20,10000,1));
 };
 
 
@@ -30295,10 +30295,10 @@ with{
 // License: MIT
 spectral_tilt_demo(N) = fi.spectral_tilt(O,f0,bw,alpha)
 with{
-	O = N;
-	alpha = hslider("[1] Slope of Spectral Tilt across Band",-1/2,-1,1,0.001);
-	f0 = hslider("[2] Band Start Frequency [unit:Hz]",100,20,10000,1);
-	bw = hslider("[3] Band Width [unit:Hz]",5000,100,10000,1);
+    O = N;
+    alpha = hslider("[1] Slope of Spectral Tilt across Band",-1/2,-1,1,0.001);
+    f0 = hslider("[2] Band Start Frequency [unit:Hz]",100,20,10000,1);
+    bw = hslider("[3] Band Width [unit:Hz]",5000,100,10000,1);
 };
 
 
@@ -30318,21 +30318,21 @@ with{
 //--------------------------------------------------------------
 mth_octave_filterbank_demo(O) = bp1(bp,mthoctavefilterbankdemo)
 with{
-	M = O;
-	bp1 = ba.bypass1;
-	mofb_group(x) = vgroup("CONSTANT-Q FILTER BANK (Butterworth dyadic tree)
-		[tooltip: See Faust's filters.lib for documentation and references]", x);
-	bypass_group(x) = mofb_group(hgroup("[0]", x));
-	slider_group(x)	 = mofb_group(hgroup("[1]", x));
+    M = O;
+    bp1 = ba.bypass1;
+    mofb_group(x) = vgroup("CONSTANT-Q FILTER BANK (Butterworth dyadic tree)
+        [tooltip: See Faust's filters.lib for documentation and references]", x);
+    bypass_group(x) = mofb_group(hgroup("[0]", x));
+    slider_group(x)     = mofb_group(hgroup("[1]", x));
 
-	N = 10*M; // total number of bands (highpass band, octave-bands, dc band)
-	ftop = 10000;
-	mthoctavefilterbankdemo = chan;
-	chan = fi.mth_octave_filterbank_default(M,ftop,N) : sum(i,N,(*(ba.db2linear(fader(N-i)))));
-	fader(i) = slider_group(vslider("Band%2i [unit:dB] [tooltip: Bandpass filter
-		gain in dB]", -10, -70, 10, 0.1)) : si.smoo;
-	bp = bypass_group(checkbox("[0] Bypass
-		[tooltip: When this is checked, the filter-bank has no effect]"));
+    N = 10*M; // total number of bands (highpass band, octave-bands, dc band)
+    ftop = 10000;
+    mthoctavefilterbankdemo = chan;
+    chan = fi.mth_octave_filterbank_default(M,ftop,N) : sum(i,N,(*(ba.db2linear(fader(N-i)))));
+    fader(i) = slider_group(vslider("Band%2i [unit:dB] [tooltip: Bandpass filter
+        gain in dB]", -10, -70, 10, 0.1)) : si.smoo;
+    bp = bypass_group(checkbox("[0] Bypass
+        [tooltip: When this is checked, the filter-bank has no effect]"));
 };
 
 filterbank_demo = mth_octave_filterbank_demo(1); // octave-bands = default
@@ -30354,14 +30354,14 @@ filterbank_demo = mth_octave_filterbank_demo(1); // octave-bands = default
 // License: MIT
 cubicnl_demo = ba.bypass1(bp, ef.cubicnl_nodc(drive:si.smoo,offset:si.smoo))
 with{
-	cnl_group(x)  = vgroup("CUBIC NONLINEARITY cubicnl [tooltip: Reference:
-		https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html]", x);
-	bp = cnl_group(checkbox("[0] Bypass [tooltip: When this is checked, the
-		nonlinearity has no effect]"));
-	drive = cnl_group(hslider("[1] Drive [tooltip: Amount of distortion]",
-		0, 0, 1, 0.01));
-	offset = cnl_group(hslider("[2] Offset [tooltip: Brings in even harmonics]",
-		0, 0, 1, 0.01));
+    cnl_group(x)  = vgroup("CUBIC NONLINEARITY cubicnl [tooltip: Reference:
+        https://ccrma.stanford.edu/~jos/pasp/Cubic_Soft_Clipper.html]", x);
+    bp = cnl_group(checkbox("[0] Bypass [tooltip: When this is checked, the
+        nonlinearity has no effect]"));
+    drive = cnl_group(hslider("[1] Drive [tooltip: Amount of distortion]",
+        0, 0, 1, 0.01));
+    offset = cnl_group(hslider("[2] Offset [tooltip: Brings in even harmonics]",
+        0, 0, 1, 0.01));
 };
 
 
@@ -30378,39 +30378,39 @@ with{
 // License: MIT
 gate_demo = ba.bypass2(gbp,gate_stereo_demo)
 with{
-	gate_group(x) = vgroup("GATE  [tooltip: Reference:
-		http://en.wikipedia.org/wiki/Noise_gate]", x);
-	meter_group(x) = gate_group(hgroup("[0]", x));
-	knob_group(x) = gate_group(hgroup("[1]", x));
+    gate_group(x) = vgroup("GATE  [tooltip: Reference:
+        http://en.wikipedia.org/wiki/Noise_gate]", x);
+    meter_group(x) = gate_group(hgroup("[0]", x));
+    knob_group(x) = gate_group(hgroup("[1]", x));
 
-	gbp = meter_group(checkbox("[0] Bypass	[tooltip: When this is checked,
-		the gate has no effect]"));
+    gbp = meter_group(checkbox("[0] Bypass    [tooltip: When this is checked,
+        the gate has no effect]"));
 
-	gateview = ef.gate_gain_mono(gatethr,gateatt,gatehold,gaterel) : ba.linear2db :
-	meter_group(hbargraph("[1] Gate Gain [unit:dB] [tooltip: Current gain of the
-	gate in dB]", -50,+10)); // [style:led]
+    gateview = ef.gate_gain_mono(gatethr,gateatt,gatehold,gaterel) : ba.linear2db :
+    meter_group(hbargraph("[1] Gate Gain [unit:dB] [tooltip: Current gain of the
+    gate in dB]", -50,+10)); // [style:led]
 
-	gate_stereo_demo(x,y) = attach(x,gateview(abs(x)+abs(y))),y :
-	ef.gate_stereo(gatethr,gateatt,gatehold,gaterel);
+    gate_stereo_demo(x,y) = attach(x,gateview(abs(x)+abs(y))),y :
+    ef.gate_stereo(gatethr,gateatt,gatehold,gaterel);
 
-	gatethr = knob_group(hslider("[1] Threshold [unit:dB] [style:knob] [tooltip: When
-		the signal level falls below the Threshold (expressed in dB), the signal is
-		muted]", -30, -120, 0, 0.1));
+    gatethr = knob_group(hslider("[1] Threshold [unit:dB] [style:knob] [tooltip: When
+        the signal level falls below the Threshold (expressed in dB), the signal is
+        muted]", -30, -120, 0, 0.1));
 
-	gateatt = knob_group(hslider("[2] Attack [unit:us] [style:knob] [scale:log]
-	[tooltip: Time constant in MICROseconds (1/e smoothing time) for the gate
-	gain to go (exponentially) from 0 (muted) to 1 (unmuted)]",
-	10, 10, 10000, 1)) : *(0.000001) : max(1.0/float(ma.SR));
+    gateatt = knob_group(hslider("[2] Attack [unit:us] [style:knob] [scale:log]
+    [tooltip: Time constant in MICROseconds (1/e smoothing time) for the gate
+    gain to go (exponentially) from 0 (muted) to 1 (unmuted)]",
+    10, 10, 10000, 1)) : *(0.000001) : max(1.0/float(ma.SR));
 
-	gatehold = knob_group(hslider("[3] Hold [unit:ms] [style:knob] [scale:log]
-	[tooltip: Time in ms to keep the gate open (no muting) after the signal
-	level falls below the Threshold]", 200, 1, 1000, 1)) : *(0.001) :
-	max(1.0/float(ma.SR));
+    gatehold = knob_group(hslider("[3] Hold [unit:ms] [style:knob] [scale:log]
+    [tooltip: Time in ms to keep the gate open (no muting) after the signal
+    level falls below the Threshold]", 200, 1, 1000, 1)) : *(0.001) :
+    max(1.0/float(ma.SR));
 
-	gaterel = knob_group(hslider("[4] Release [unit:ms] [style:knob] [scale:log]
-	[tooltip: Time constant in ms (1/e smoothing time) for the gain to go
-	(exponentially) from 1 (unmuted) to 0 (muted)]",
-	100, 1, 1000, 1)) : *(0.001) : max(1.0/float(ma.SR));
+    gaterel = knob_group(hslider("[4] Release [unit:ms] [style:knob] [scale:log]
+    [tooltip: Time constant in ms (1/e smoothing time) for the gain to go
+    (exponentially) from 1 (unmuted) to 0 (muted)]",
+    100, 1, 1000, 1)) : *(0.001) : max(1.0/float(ma.SR));
 };
 
 
@@ -30427,52 +30427,52 @@ with{
 // License: MIT
 compressor_demo = ba.bypass2(cbp,compressor_stereo_demo)
 with{
-	comp_group(x) = vgroup("COMPRESSOR [tooltip: Reference:
-		http://en.wikipedia.org/wiki/Dynamic_range_compression]", x);
+    comp_group(x) = vgroup("COMPRESSOR [tooltip: Reference:
+        http://en.wikipedia.org/wiki/Dynamic_range_compression]", x);
 
-	meter_group(x)	= comp_group(hgroup("[0]", x));
-	knob_group(x)  = comp_group(hgroup("[1]", x));
+    meter_group(x)    = comp_group(hgroup("[0]", x));
+    knob_group(x)  = comp_group(hgroup("[1]", x));
 
-	cbp = meter_group(checkbox("[0] Bypass	[tooltip: When this is checked, the compressor
-		has no effect]"));
-	gainview = co.compression_gain_mono(ratio,threshold,attack,release) : ba.linear2db :
-	meter_group(hbargraph("[1] Compressor Gain [unit:dB] [tooltip: Current gain of
-	the compressor in dB]",-50,+10));
+    cbp = meter_group(checkbox("[0] Bypass    [tooltip: When this is checked, the compressor
+        has no effect]"));
+    gainview = co.compression_gain_mono(ratio,threshold,attack,release) : ba.linear2db :
+    meter_group(hbargraph("[1] Compressor Gain [unit:dB] [tooltip: Current gain of
+    the compressor in dB]",-50,+10));
 
-	displaygain = _,_ <: _,_,(abs,abs:+) : _,_,gainview : _,attach;
+    displaygain = _,_ <: _,_,(abs,abs:+) : _,_,gainview : _,attach;
 
-	compressor_stereo_demo =
-	displaygain(co.compressor_stereo(ratio,threshold,attack,release)) :
-	*(makeupgain), *(makeupgain);
+    compressor_stereo_demo =
+    displaygain(co.compressor_stereo(ratio,threshold,attack,release)) :
+    *(makeupgain), *(makeupgain);
 
-	ctl_group(x)  = knob_group(hgroup("[3] Compression Control", x));
+    ctl_group(x)  = knob_group(hgroup("[3] Compression Control", x));
 
-	ratio = ctl_group(hslider("[0] Ratio [style:knob]
-	[tooltip: A compression Ratio of N means that for each N dB increase in input
-	signal level above Threshold, the output level goes up 1 dB]",
-	5, 1, 20, 0.1));
+    ratio = ctl_group(hslider("[0] Ratio [style:knob]
+    [tooltip: A compression Ratio of N means that for each N dB increase in input
+    signal level above Threshold, the output level goes up 1 dB]",
+    5, 1, 20, 0.1));
 
-	threshold = ctl_group(hslider("[1] Threshold [unit:dB] [style:knob]
-	[tooltip: When the signal level exceeds the Threshold (in dB), its level
-	is compressed according to the Ratio]",
-	-30, -100, 10, 0.1));
+    threshold = ctl_group(hslider("[1] Threshold [unit:dB] [style:knob]
+    [tooltip: When the signal level exceeds the Threshold (in dB), its level
+    is compressed according to the Ratio]",
+    -30, -100, 10, 0.1));
 
-	env_group(x)  = knob_group(hgroup("[4] Compression Response", x));
+    env_group(x)  = knob_group(hgroup("[4] Compression Response", x));
 
-	attack = env_group(hslider("[1] Attack [unit:ms] [style:knob] [scale:log]
-	[tooltip: Time constant in ms (1/e smoothing time) for the compression gain
-	to approach (exponentially) a new lower target level (the compression
-	`kicking in')]", 50, 1, 1000, 0.1)) : *(0.001) : max(1/ma.SR);
+    attack = env_group(hslider("[1] Attack [unit:ms] [style:knob] [scale:log]
+    [tooltip: Time constant in ms (1/e smoothing time) for the compression gain
+    to approach (exponentially) a new lower target level (the compression
+    `kicking in')]", 50, 1, 1000, 0.1)) : *(0.001) : max(1/ma.SR);
 
-	release = env_group(hslider("[2] Release [unit:ms] [style: knob] [scale:log]
-	[tooltip: Time constant in ms (1/e smoothing time) for the compression gain
-	to approach (exponentially) a new higher target level (the compression
-	'releasing')]", 500, 1, 1000, 0.1)) : *(0.001) : max(1/ma.SR);
+    release = env_group(hslider("[2] Release [unit:ms] [style: knob] [scale:log]
+    [tooltip: Time constant in ms (1/e smoothing time) for the compression gain
+    to approach (exponentially) a new higher target level (the compression
+    'releasing')]", 500, 1, 1000, 0.1)) : *(0.001) : max(1/ma.SR);
 
-	makeupgain = comp_group(hslider("[5] Makeup Gain [unit:dB]
-	[tooltip: The compressed-signal output level is increased by this amount
-	(in dB) to make up for the level lost due to compression]",
-	40, -96, 96, 0.1)) : ba.db2linear;
+    makeupgain = comp_group(hslider("[5] Makeup Gain [unit:dB]
+    [tooltip: The compressed-signal output level is increased by this amount
+    (in dB) to make up for the level lost due to compression]",
+    40, -96, 96, 0.1)) : ba.db2linear;
 };
 
 
@@ -30489,32 +30489,32 @@ with{
 // License: MIT
 moog_vcf_demo = ba.bypass1(bp,vcf)
 with{
-	mvcf_group(x) = hgroup("MOOG VCF (Voltage Controlled Filter) [tooltip: See Faust's
-		vaeffects.lib for info and references]",x);
-	cb_group(x) = mvcf_group(hgroup("[0]",x));
+    mvcf_group(x) = hgroup("MOOG VCF (Voltage Controlled Filter) [tooltip: See Faust's
+        vaeffects.lib for info and references]",x);
+    cb_group(x) = mvcf_group(hgroup("[0]",x));
 
-	bp = cb_group(checkbox("[0] Bypass  [tooltip: When this is checked, the Moog VCF
-		has no effect]"));
-	archsw = cb_group(checkbox("[1] Use Biquads [tooltip: Select moog_vcf_2b (two-biquad)
-		implementation, instead of the default moog_vcf (analog style) implementation]"));
-	bqsw = cb_group(checkbox("[2] Normalized Ladders [tooltip: If using biquads, make
-		them normalized ladders (moog_vcf_2bn)]"));
+    bp = cb_group(checkbox("[0] Bypass  [tooltip: When this is checked, the Moog VCF
+        has no effect]"));
+    archsw = cb_group(checkbox("[1] Use Biquads [tooltip: Select moog_vcf_2b (two-biquad)
+        implementation, instead of the default moog_vcf (analog style) implementation]"));
+    bqsw = cb_group(checkbox("[2] Normalized Ladders [tooltip: If using biquads, make
+        them normalized ladders (moog_vcf_2bn)]"));
 
-	freq = mvcf_group(hslider("[1] Corner Frequency [unit:PK] [tooltip: The VCF resonates
-		at the corner frequency (specified in PianoKey (PK) units, with A440 = 49 PK).
-		The VCF response is flat below the corner frequency, and rolls off -24 dB per
-		octave above.]",
-		25, 1, 88, 0.01) : ba.pianokey2hz) : si.smoo;
+    freq = mvcf_group(hslider("[1] Corner Frequency [unit:PK] [tooltip: The VCF resonates
+        at the corner frequency (specified in PianoKey (PK) units, with A440 = 49 PK).
+        The VCF response is flat below the corner frequency, and rolls off -24 dB per
+        octave above.]",
+        25, 1, 88, 0.01) : ba.pianokey2hz) : si.smoo;
 
-	res = mvcf_group(hslider("[2] Corner Resonance [style:knob] [tooltip: Amount of
-		resonance near VCF corner frequency (specified between 0 and 1)]", 0.9, 0, 1, 0.01));
+    res = mvcf_group(hslider("[2] Corner Resonance [style:knob] [tooltip: Amount of
+        resonance near VCF corner frequency (specified between 0 and 1)]", 0.9, 0, 1, 0.01));
 
-	outgain = mvcf_group(hslider("[3] VCF Output Level [unit:dB] [style:knob] [tooltip:
-		output level in decibels]", 5, -60, 20, 0.1)) : ba.db2linear : si.smoo;
+    outgain = mvcf_group(hslider("[3] VCF Output Level [unit:dB] [style:knob] [tooltip:
+        output level in decibels]", 5, -60, 20, 0.1)) : ba.db2linear : si.smoo;
 
-	vcfbq = _ <: select2(bqsw, ve.moog_vcf_2b(res,freq), ve.moog_vcf_2bn(res,freq));
-	vcfarch = _ <: select2(archsw, ve.moog_vcf(res^4,freq), vcfbq);
-	vcf = vcfarch : *(outgain);
+    vcfbq = _ <: select2(bqsw, ve.moog_vcf_2b(res,freq), ve.moog_vcf_2bn(res,freq));
+    vcfarch = _ <: select2(archsw, ve.moog_vcf(res^4,freq), vcfbq);
+    vcf = vcfarch : *(outgain);
 };
 
 
@@ -30531,13 +30531,13 @@ with{
 // License: MIT
 wah4_demo = ba.bypass1(bp, ve.wah4(fr))
 with{
-	wah4_group(x) = hgroup("WAH4 [tooltip: Fourth-order wah effect made using moog_vcf]", x);
-	bp = wah4_group(checkbox("[0] Bypass [tooltip: When this is checked, the wah pedal has
-		no effect]"));
-	fr = wah4_group(hslider("[1] Resonance Frequency [scale:log] [tooltip: wah resonance
-		frequency in Hz]", 200,100,2000,1));
-	// Avoid dc with the moog_vcf (amplitude too high when freq comes up from dc)
-	// Also, avoid very high resonance frequencies (e.g., 5kHz or above).
+    wah4_group(x) = hgroup("WAH4 [tooltip: Fourth-order wah effect made using moog_vcf]", x);
+    bp = wah4_group(checkbox("[0] Bypass [tooltip: When this is checked, the wah pedal has
+        no effect]"));
+    fr = wah4_group(hslider("[1] Resonance Frequency [scale:log] [tooltip: wah resonance
+        frequency in Hz]", 200,100,2000,1));
+    // Avoid dc with the moog_vcf (amplitude too high when freq comes up from dc)
+    // Also, avoid very high resonance frequencies (e.g., 5kHz or above).
 };
 
 //-------------------------`(dm.)crybaby_demo`---------------------------
@@ -30553,12 +30553,12 @@ with{
 // License: MIT
 crybaby_demo = ba.bypass1(bp, ve.crybaby(wah))
 with{
-	crybaby_group(x) = hgroup("CRYBABY [tooltip: Reference:
-		https://ccrma.stanford.edu/~jos/pasp/vegf.html]", x);
-	bp = crybaby_group(checkbox("[0] Bypass [tooltip: When this is checked, the wah
-		pedal has no effect]"));
-	wah = crybaby_group(hslider("[1] Wah parameter [tooltip: wah pedal angle between
-		0 (rocked back) and 1 (rocked forward)]",0.8,0,1,0.01));
+    crybaby_group(x) = hgroup("CRYBABY [tooltip: Reference:
+        https://ccrma.stanford.edu/~jos/pasp/vegf.html]", x);
+    bp = crybaby_group(checkbox("[0] Bypass [tooltip: When this is checked, the wah
+        pedal has no effect]"));
+    wah = crybaby_group(hslider("[1] Wah parameter [tooltip: wah pedal angle between
+        0 (rocked back) and 1 (rocked forward)]",0.8,0,1,0.01));
 };
 
 //-------------------------`(dm.)flanger_demo`---------------------------
@@ -30574,39 +30574,39 @@ with{
 // License: MIT
 flanger_demo = ba.bypass2(fbp,flanger_stereo_demo)
 with{
-	flanger_group(x) = vgroup("FLANGER
-		[tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/Flanging.html]", x);
-	meter_group(x) = flanger_group(hgroup("[0]", x));
-	ctl_group(x)  = flanger_group(hgroup("[1]", x));
-	del_group(x)  = flanger_group(hgroup("[2] Delay Controls", x));
-	lvl_group(x)  = flanger_group(hgroup("[3]", x));
+    flanger_group(x) = vgroup("FLANGER
+        [tooltip: Reference: https://ccrma.stanford.edu/~jos/pasp/Flanging.html]", x);
+    meter_group(x) = flanger_group(hgroup("[0]", x));
+    ctl_group(x)  = flanger_group(hgroup("[1]", x));
+    del_group(x)  = flanger_group(hgroup("[2] Delay Controls", x));
+    lvl_group(x)  = flanger_group(hgroup("[3]", x));
 
-	fbp = meter_group(checkbox("[0] Bypass	[tooltip: When this is checked, the flanger
-		has no effect]"));
-	invert = meter_group(checkbox("[1] Invert Flange Sum"));
+    fbp = meter_group(checkbox("[0] Bypass    [tooltip: When this is checked, the flanger
+        has no effect]"));
+    invert = meter_group(checkbox("[1] Invert Flange Sum"));
 
-	// FIXME: This should be an amplitude-response display:
-	flangeview = lfor(freq) + lfol(freq) : meter_group(hbargraph("[2] Flange LFO
-		[style: led] [tooltip: Display sum of flange delays]", -1.5,+1.5));
+    // FIXME: This should be an amplitude-response display:
+    flangeview = lfor(freq) + lfol(freq) : meter_group(hbargraph("[2] Flange LFO
+        [style: led] [tooltip: Display sum of flange delays]", -1.5,+1.5));
 
-	flanger_stereo_demo(x,y) = attach(x,flangeview),y :
-		*(level),*(level) : pf.flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert);
+    flanger_stereo_demo(x,y) = attach(x,flangeview),y :
+        *(level),*(level) : pf.flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert);
 
-	lfol = os.oscrs;
-	lfor = os.oscrc;
+    lfol = os.oscrs;
+    lfor = os.oscrc;
 
-	dmax = 2048;
-	dflange = 0.001 * ma.SR *
-		del_group(hslider("[1] Flange Delay [unit:ms] [style:knob]", 10, 0, 20, 0.001));
-	odflange = 0.001 * ma.SR *
-	del_group(hslider("[2] Delay Offset [unit:ms] [style:knob]", 1, 0, 20, 0.001));
-	freq   = ctl_group(hslider("[1] Speed [unit:Hz] [style:knob]", 0.5, 0, 10, 0.01));
-	depth  = ctl_group(hslider("[2] Depth [style:knob]", 1, 0, 1, 0.001));
-	fb     = ctl_group(hslider("[3] Feedback [style:knob]", 0, -0.999, 0.999, 0.001));
-	level  = lvl_group(hslider("Flanger Output Level [unit:dB]", 0, -60, 10, 0.1)) :
-		ba.db2linear;
-	curdel1 = odflange+dflange*(1 + lfol(freq))/2;
-	curdel2 = odflange+dflange*(1 + lfor(freq))/2;
+    dmax = 2048;
+    dflange = 0.001 * ma.SR *
+        del_group(hslider("[1] Flange Delay [unit:ms] [style:knob]", 10, 0, 20, 0.001));
+    odflange = 0.001 * ma.SR *
+    del_group(hslider("[2] Delay Offset [unit:ms] [style:knob]", 1, 0, 20, 0.001));
+    freq   = ctl_group(hslider("[1] Speed [unit:Hz] [style:knob]", 0.5, 0, 10, 0.01));
+    depth  = ctl_group(hslider("[2] Depth [style:knob]", 1, 0, 1, 0.001));
+    fb     = ctl_group(hslider("[3] Feedback [style:knob]", 0, -0.999, 0.999, 0.001));
+    level  = lvl_group(hslider("Flanger Output Level [unit:dB]", 0, -60, 10, 0.1)) :
+        ba.db2linear;
+    curdel1 = odflange+dflange*(1 + lfol(freq))/2;
+    curdel2 = odflange+dflange*(1 + lfor(freq))/2;
 };
 
 
@@ -30623,45 +30623,45 @@ with{
 // License: MIT
 phaser2_demo = ba.bypass2(pbp,phaser2_stereo_demo)
 with{
-	phaser2_group(x) = vgroup("PHASER2 [tooltip: Reference:
-		https://ccrma.stanford.edu/~jos/pasp/Flanging.html]", x);
-	meter_group(x) = phaser2_group(hgroup("[0]", x));
-	ctl_group(x)  = phaser2_group(hgroup("[1]", x));
-	nch_group(x)  = phaser2_group(hgroup("[2]", x));
-	lvl_group(x)  = phaser2_group(hgroup("[3]", x));
+    phaser2_group(x) = vgroup("PHASER2 [tooltip: Reference:
+        https://ccrma.stanford.edu/~jos/pasp/Flanging.html]", x);
+    meter_group(x) = phaser2_group(hgroup("[0]", x));
+    ctl_group(x)  = phaser2_group(hgroup("[1]", x));
+    nch_group(x)  = phaser2_group(hgroup("[2]", x));
+    lvl_group(x)  = phaser2_group(hgroup("[3]", x));
 
-	pbp = meter_group(checkbox("[0] Bypass	[tooltip: When this is checked, the phaser
-		has no effect]"));
-	invert = meter_group(checkbox("[1] Invert Internal Phaser Sum"));
-	vibr = meter_group(checkbox("[2] Vibrato Mode")); // In this mode you can hear any "Doppler"
+    pbp = meter_group(checkbox("[0] Bypass    [tooltip: When this is checked, the phaser
+        has no effect]"));
+    invert = meter_group(checkbox("[1] Invert Internal Phaser Sum"));
+    vibr = meter_group(checkbox("[2] Vibrato Mode")); // In this mode you can hear any "Doppler"
 
-	// FIXME: This should be an amplitude-response display:
-	// flangeview = phaser2_amp_resp : meter_group(hspectrumview("[2] Phaser Amplitude Response", 0,1));
-	// phaser2_stereo_demo(x,y) = attach(x,flangeview),y : ...
+    // FIXME: This should be an amplitude-response display:
+    // flangeview = phaser2_amp_resp : meter_group(hspectrumview("[2] Phaser Amplitude Response", 0,1));
+    // phaser2_stereo_demo(x,y) = attach(x,flangeview),y : ...
 
-	phaser2_stereo_demo = *(level),*(level) :
-		pf.phaser2_stereo(Notches,width,frqmin,fratio,frqmax,speed,mdepth,fb,invert);
+    phaser2_stereo_demo = *(level),*(level) :
+        pf.phaser2_stereo(Notches,width,frqmin,fratio,frqmax,speed,mdepth,fb,invert);
 
-	Notches = 4; // Compile-time parameter: 2 is typical for analog phaser stomp-boxes
+    Notches = 4; // Compile-time parameter: 2 is typical for analog phaser stomp-boxes
 
-	// FIXME: Add tooltips
-	speed  = ctl_group(hslider("[1] Speed [unit:Hz] [style:knob]", 0.5, 0, 10, 0.001));
-	depth  = ctl_group(hslider("[2] Notch Depth (Intensity) [style:knob]", 1, 0, 1, 0.001));
-	fb     = ctl_group(hslider("[3] Feedback Gain [style:knob]", 0, -0.999, 0.999, 0.001));
+    // FIXME: Add tooltips
+    speed  = ctl_group(hslider("[1] Speed [unit:Hz] [style:knob]", 0.5, 0, 10, 0.001));
+    depth  = ctl_group(hslider("[2] Notch Depth (Intensity) [style:knob]", 1, 0, 1, 0.001));
+    fb     = ctl_group(hslider("[3] Feedback Gain [style:knob]", 0, -0.999, 0.999, 0.001));
 
-	width  = nch_group(hslider("[1] Notch width [unit:Hz] [style:knob] [scale:log]",
-		1000, 10, 5000, 1));
-	frqmin = nch_group(hslider("[2] Min Notch1 Freq [unit:Hz] [style:knob] [scale:log]",
-		100, 20, 5000, 1));
-	frqmax = nch_group(hslider("[3] Max Notch1 Freq [unit:Hz] [style:knob] [scale:log]",
-		800, 20, 10000, 1)) : max(frqmin);
-	fratio = nch_group(hslider("[4] Notch Freq Ratio: NotchFreq(n+1)/NotchFreq(n) [style:knob]",
-		1.5, 1.1, 4, 0.001));
+    width  = nch_group(hslider("[1] Notch width [unit:Hz] [style:knob] [scale:log]",
+        1000, 10, 5000, 1));
+    frqmin = nch_group(hslider("[2] Min Notch1 Freq [unit:Hz] [style:knob] [scale:log]",
+        100, 20, 5000, 1));
+    frqmax = nch_group(hslider("[3] Max Notch1 Freq [unit:Hz] [style:knob] [scale:log]",
+        800, 20, 10000, 1)) : max(frqmin);
+    fratio = nch_group(hslider("[4] Notch Freq Ratio: NotchFreq(n+1)/NotchFreq(n) [style:knob]",
+        1.5, 1.1, 4, 0.001));
 
-	level  = lvl_group(hslider("Phaser Output Level [unit:dB]", 0, -60, 10, 0.1)) :
-		ba.db2linear;
+    level  = lvl_group(hslider("Phaser Output Level [unit:dB]", 0, -60, 10, 0.1)) :
+        ba.db2linear;
 
-	mdepth = select2(vibr,depth,2); // Improve "ease of use"
+    mdepth = select2(vibr,depth,2); // Improve "ease of use"
 };
 
 //======================================Reverbs===========================================
@@ -30679,28 +30679,28 @@ with{
 // Author: Romain Michon
 // License: LGPL
 freeverb_demo = _,_ <: (*(g)*fixedgain,*(g)*fixedgain :
-	re.stereo_freeverb(combfeed, allpassfeed, damping, spatSpread)),
-	*(1-g), *(1-g) :> _,_
+    re.stereo_freeverb(combfeed, allpassfeed, damping, spatSpread)),
+    *(1-g), *(1-g) :> _,_
 with{
-	scaleroom   = 0.28;
-	offsetroom  = 0.7;
-	allpassfeed = 0.5;
-	scaledamp   = 0.4;
-	fixedgain   = 0.1;
-	origSR = 44100;
+    scaleroom   = 0.28;
+    offsetroom  = 0.7;
+    allpassfeed = 0.5;
+    scaledamp   = 0.4;
+    fixedgain   = 0.1;
+    origSR = 44100;
 
-	parameters(x) = hgroup("Freeverb",x);
-	knobGroup(x) = parameters(vgroup("[0]",x));
-	damping = knobGroup(vslider("[0] Damp [style: knob] [tooltip: Somehow control the
-		density of the reverb.]",0.5, 0, 1, 0.025)*scaledamp*origSR/ma.SR);
-	combfeed = knobGroup(vslider("[1] RoomSize [style: knob] [tooltip: The room size
-		between 0 and 1 with 1 for the largest room.]", 0.5, 0, 1, 0.025)*scaleroom*
-		origSR/ma.SR + offsetroom);
-	spatSpread = knobGroup(vslider("[2] Stereo Spread [style: knob] [tooltip: Spatial
-		spread between 0 and 1 with 1 for maximum spread.]",0.5,0,1,0.01)*46*ma.SR/origSR
-		: int);
-	g = parameters(vslider("[1] Wet [tooltip: The amount of reverb applied to the signal
-		between 0 and 1 with 1 for the maximum amount of reverb.]", 0.3333, 0, 1, 0.025));
+    parameters(x) = hgroup("Freeverb",x);
+    knobGroup(x) = parameters(vgroup("[0]",x));
+    damping = knobGroup(vslider("[0] Damp [style: knob] [tooltip: Somehow control the
+        density of the reverb.]",0.5, 0, 1, 0.025)*scaledamp*origSR/ma.SR);
+    combfeed = knobGroup(vslider("[1] RoomSize [style: knob] [tooltip: The room size
+        between 0 and 1 with 1 for the largest room.]", 0.5, 0, 1, 0.025)*scaleroom*
+        origSR/ma.SR + offsetroom);
+    spatSpread = knobGroup(vslider("[2] Stereo Spread [style: knob] [tooltip: Spatial
+        spread between 0 and 1 with 1 for maximum spread.]",0.5,0,1,0.01)*46*ma.SR/origSR
+        : int);
+    g = parameters(vslider("[1] Wet [tooltip: The amount of reverb applied to the signal
+        between 0 and 1 with 1 for the maximum amount of reverb.]", 0.3333, 0, 1, 0.025));
 };
 
 //---------------------`(dm.)stereo_reverb_tester`--------------------
@@ -30716,27 +30716,27 @@ with{
 // License: MIT
 stereo_reverb_tester(revin_group,x,y) = reverb_tester(_)
 with {
-	reverb_tester(revin_group,x,y) = inx,iny with {
-		ck_group(x) = revin_group(vgroup("[1] Input Config",x));
-		mutegain = 1 - ck_group(checkbox("[1] Mute Ext Inputs
-		[tooltip: When this is checked, the stereo external audio inputs are
-		disabled (good for hearing the impulse response or pink-noise response alone)]"));
-		pinkin = ck_group(checkbox("[2] Pink Noise
-		[tooltip: Pink Noise (or 1/f noise) is Constant-Q Noise (useful for adjusting
-		the EQ sections)]"));
+    reverb_tester(revin_group,x,y) = inx,iny with {
+        ck_group(x) = revin_group(vgroup("[1] Input Config",x));
+        mutegain = 1 - ck_group(checkbox("[1] Mute Ext Inputs
+        [tooltip: When this is checked, the stereo external audio inputs are
+        disabled (good for hearing the impulse response or pink-noise response alone)]"));
+        pinkin = ck_group(checkbox("[2] Pink Noise
+        [tooltip: Pink Noise (or 1/f noise) is Constant-Q Noise (useful for adjusting
+        the EQ sections)]"));
 
-		imp_group(x) = revin_group(hgroup("[2] Impulse Selection",x));
-		pulseL =  imp_group(button("[1] Left
-		[tooltip: Send impulse into LEFT channel]")) : ba.impulsify;
-		pulseC =  imp_group(button("[2] Center
-		[tooltip: Send impulse into LEFT and RIGHT channels]")) : ba.impulsify;
-		pulseR = imp_group(button("[3] Right
-		[tooltip: Send impulse into RIGHT channel]")) : ba.impulsify;
+        imp_group(x) = revin_group(hgroup("[2] Impulse Selection",x));
+        pulseL =  imp_group(button("[1] Left
+        [tooltip: Send impulse into LEFT channel]")) : ba.impulsify;
+        pulseC =  imp_group(button("[2] Center
+        [tooltip: Send impulse into LEFT and RIGHT channels]")) : ba.impulsify;
+        pulseR = imp_group(button("[3] Right
+        [tooltip: Send impulse into RIGHT channel]")) : ba.impulsify;
 
-		inx = x*mutegain + (pulseL+pulseC) + pn;
-		iny = y*mutegain + (pulseR+pulseC) + pn;
-		pn = 0.1*pinkin*no.pink_noise;
-	};
+        inx = x*mutegain + (pulseL+pulseC) + pn;
+        iny = y*mutegain + (pulseR+pulseC) + pn;
+        pn = 0.1*pinkin*no.pink_noise;
+    };
 };
 
 
@@ -30752,65 +30752,65 @@ with {
 // Where:
 //
 // * `n`: Feedback Delay Network (FDN) order / number of delay lines used =
-//	order of feedback matrix / 2, 4, 8, or 16 [extend primes array below for
-//	32, 64, ...]
+//    order of feedback matrix / 2, 4, 8, or 16 [extend primes array below for
+//    32, 64, ...]
 // * `nb`: Number of frequency bands / Number of (nearly) independent T60 controls
-//	/ Integer 3 or greater
+//    / Integer 3 or greater
 // * `bbso` = Butterworth band-split order / order of lowpass/highpass bandsplit
-//	used at each crossover freq / odd positive integer
+//    used at each crossover freq / odd positive integer
 //------------------------------------------------------------
 // Author: Julius Smith
 // License: MIT
 fdnrev0_demo(N,NB,BBSO) = stereo_reverb_tester(revin_group)
-	  <: re.fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl)
-	  :> *(gain),*(gain)
+      <: re.fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl)
+      :> *(gain),*(gain)
 with{
-	MAXDELAY = 8192; // sync w delays and prime_power_delays above
-	defdurs = (8.4,6.5,5.0,3.8,2.7); // NB default durations (sec)
-	deffreqs = (500,1000,2000,4000); // NB-1 default crossover frequencies (Hz)
-	deflens = (56.3,63.0); // 2 default min and max path lengths
+    MAXDELAY = 8192; // sync w delays and prime_power_delays above
+    defdurs = (8.4,6.5,5.0,3.8,2.7); // NB default durations (sec)
+    deffreqs = (500,1000,2000,4000); // NB-1 default crossover frequencies (Hz)
+    deflens = (56.3,63.0); // 2 default min and max path lengths
 
-	fdn_group(x)  = vgroup("FEEDBACK DELAY NETWORK (FDN) REVERBERATOR, ORDER 16
-	[tooltip: See Faust's reverbs.lib for documentation and references]", x);
+    fdn_group(x)  = vgroup("FEEDBACK DELAY NETWORK (FDN) REVERBERATOR, ORDER 16
+    [tooltip: See Faust's reverbs.lib for documentation and references]", x);
 
-	freq_group(x)  = fdn_group(vgroup("[1] Band Crossover Frequencies", x));
-	t60_group(x)  = fdn_group(hgroup("[2] Band Decay Times (T60)", x));
-	path_group(x)  = fdn_group(vgroup("[3] Room Dimensions", x));
-	revin_group(x)	= fdn_group(hgroup("[4] Input Controls", x));
-	nonl_group(x) = revin_group(vgroup("[4] Nonlinearity",x));
-	quench_group(x) = revin_group(vgroup("[3] Reverb State",x));
+    freq_group(x)  = fdn_group(vgroup("[1] Band Crossover Frequencies", x));
+    t60_group(x)  = fdn_group(hgroup("[2] Band Decay Times (T60)", x));
+    path_group(x)  = fdn_group(vgroup("[3] Room Dimensions", x));
+    revin_group(x)    = fdn_group(hgroup("[4] Input Controls", x));
+    nonl_group(x) = revin_group(vgroup("[4] Nonlinearity",x));
+    quench_group(x) = revin_group(vgroup("[3] Reverb State",x));
 
-	nonl = nonl_group(hslider("[style:knob] [tooltip: nonlinear mode coupling]",
-	    0, -0.999, 0.999, 0.001));
-	loopgainmax = 1.0-0.5*quench_group(button("[1] Quench
-		[tooltip: Hold down 'Quench' to clear the reverberator]"));
+    nonl = nonl_group(hslider("[style:knob] [tooltip: nonlinear mode coupling]",
+        0, -0.999, 0.999, 0.001));
+    loopgainmax = 1.0-0.5*quench_group(button("[1] Quench
+        [tooltip: Hold down 'Quench' to clear the reverberator]"));
 
-	pathmin = path_group(hslider("[1] min acoustic ray length [unit:m] [scale:log]
-	[tooltip: This length (in meters) determines the shortest delay-line used in the FDN
-	reverberator. Think of it as the shortest wall-to-wall separation in the room.]",
-	46, 0.1, 63, 0.1));
-	pathmax = path_group(hslider("[2] max acoustic ray length [unit:m] [scale:log]
-		[tooltip: This length (in meters) determines the longest delay-line used in the
-		FDN reverberator. Think of it as the largest wall-to-wall separation in the room.]",
-	63, 0.1, 63, 0.1));
+    pathmin = path_group(hslider("[1] min acoustic ray length [unit:m] [scale:log]
+    [tooltip: This length (in meters) determines the shortest delay-line used in the FDN
+    reverberator. Think of it as the shortest wall-to-wall separation in the room.]",
+    46, 0.1, 63, 0.1));
+    pathmax = path_group(hslider("[2] max acoustic ray length [unit:m] [scale:log]
+        [tooltip: This length (in meters) determines the longest delay-line used in the
+        FDN reverberator. Think of it as the largest wall-to-wall separation in the room.]",
+    63, 0.1, 63, 0.1));
 
-	durvals(i) = t60_group(vslider("[%i] %i [unit:s] [scale:log][tooltip: T60 is the 60dB
-		decay-time in seconds. For concert halls, an overall reverberation time (T60) near
-		1.9 seconds is typical [Beranek 2004]. Here we may set T60 independently in each
-		frequency band.	 In real rooms, higher frequency bands generally decay faster due
-		to absorption and scattering.]",ba.take(i+1,defdurs), 0.1, 100, 0.1));
-	durs = par(i,NB,durvals(NB-1-i));
+    durvals(i) = t60_group(vslider("[%i] %i [unit:s] [scale:log][tooltip: T60 is the 60dB
+        decay-time in seconds. For concert halls, an overall reverberation time (T60) near
+        1.9 seconds is typical [Beranek 2004]. Here we may set T60 independently in each
+        frequency band.     In real rooms, higher frequency bands generally decay faster due
+        to absorption and scattering.]",ba.take(i+1,defdurs), 0.1, 100, 0.1));
+    durs = par(i,NB,durvals(NB-1-i));
 
-	freqvals(i) = freq_group(hslider("[%i] Band %i upper edge in Hz [unit:Hz] [scale:log]
-	[tooltip: Each delay-line signal is split into frequency-bands for separate
-	decay-time control in each band]",ba.take(i+1,deffreqs), 100, 10000, 1));
-	freqs = par(i,NB-1,freqvals(i));
+    freqvals(i) = freq_group(hslider("[%i] Band %i upper edge in Hz [unit:Hz] [scale:log]
+    [tooltip: Each delay-line signal is split into frequency-bands for separate
+    decay-time control in each band]",ba.take(i+1,deffreqs), 100, 10000, 1));
+    freqs = par(i,NB-1,freqvals(i));
 
-	delays = de.prime_power_delays(N,pathmin,pathmax);
+    delays = de.prime_power_delays(N,pathmin,pathmax);
 
-	gain = hslider("[3] Output Level (dB) [unit:dB][tooltip: Output scale factor]",
-		-40, -70, 20, 0.1) : ba.db2linear;
-	// (can cause infinite loop:) with { db2linear(x) = pow(10, x/20.0); };
+    gain = hslider("[3] Output Level (dB) [unit:dB][tooltip: Output scale factor]",
+        -40, -70, 20, 0.1) : ba.db2linear;
+    // (can cause infinite loop:) with { db2linear(x) = pow(10, x/20.0); };
 };
 
 //---------------------------`(dm.)zita_rev_fdn_demo`------------------------------
@@ -30826,22 +30826,22 @@ with{
 // License: MIT
 zita_rev_fdn_demo = re.zita_rev_fdn(f1,f2,t60dc,t60m,fsmax)
 with{
-	fsmax = 48000.0;
-	fdn_group(x) = hgroup("Zita_Rev Internal FDN Reverb [tooltip: ~ Zita_Rev's internal
-		8x8 Feedback Delay Network (FDN) & Schroeder allpass-comb reverberator.	 See
-		Faust's reverbs.lib for documentation and references]",x);
-	t60dc = fdn_group(vslider("[1] Low RT60 [unit:s] [style:knob][style:knob]
-	[tooltip: T60 = time (in seconds) to decay 60dB in low-frequency band]",
-	3, 1, 8, 0.1));
-	f1 = fdn_group(vslider("[2] LF X [unit:Hz] [style:knob] [scale:log]
-	[tooltip: Crossover frequency (Hz) separating low and middle frequencies]",
-	200, 50, 1000, 1));
-	t60m = fdn_group(vslider("[3] Mid RT60 [unit:s] [style:knob] [scale:log]
-	[tooltip: T60 = time (in seconds) to decay 60dB in middle band]",
-	2, 1, 8, 0.1));
-	f2 = fdn_group(vslider("[4] HF Damping [unit:Hz] [style:knob] [scale:log]
-	[tooltip: Frequency (Hz) at which the high-frequency T60 is half the middle-band's T60]",
-	6000, 1500, 0.49*fsmax, 1));
+    fsmax = 48000.0;
+    fdn_group(x) = hgroup("Zita_Rev Internal FDN Reverb [tooltip: ~ Zita_Rev's internal
+        8x8 Feedback Delay Network (FDN) & Schroeder allpass-comb reverberator.     See
+        Faust's reverbs.lib for documentation and references]",x);
+    t60dc = fdn_group(vslider("[1] Low RT60 [unit:s] [style:knob][style:knob]
+    [tooltip: T60 = time (in seconds) to decay 60dB in low-frequency band]",
+    3, 1, 8, 0.1));
+    f1 = fdn_group(vslider("[2] LF X [unit:Hz] [style:knob] [scale:log]
+    [tooltip: Crossover frequency (Hz) separating low and middle frequencies]",
+    200, 50, 1000, 1));
+    t60m = fdn_group(vslider("[3] Mid RT60 [unit:s] [style:knob] [scale:log]
+    [tooltip: T60 = time (in seconds) to decay 60dB in middle band]",
+    2, 1, 8, 0.1));
+    f2 = fdn_group(vslider("[4] HF Damping [unit:Hz] [style:knob] [scale:log]
+    [tooltip: Frequency (Hz) at which the high-frequency T60 is half the middle-band's T60]",
+    6000, 1500, 0.49*fsmax, 1));
 };
 
 //---------------------------`(dm.)zita_light`------------------------------
@@ -30856,43 +30856,43 @@ with{
 // Author: Julius Smith
 // License: MIT
 zita_light = hgroup("Zita Light",(_,_ <: re.zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax),_,_ : 
-	out_eq,_,_ : dry_wet : out_level))
+    out_eq,_,_ : dry_wet : out_level))
 with{
-	fsmax = 48000.0;  // highest sampling rate that will be used
-	rdel = 60;	
-	f1 = 200;
-	t60dc = 3;
-	t60m = 2;
-	f2 = 6000;
-	out_eq = pareq_stereo(eq1f,eq1l,eq1q) : pareq_stereo(eq2f,eq2l,eq2q);
-	pareq_stereo(eqf,eql,Q) = fi.peak_eq_rm(eql,eqf,tpbt), fi.peak_eq_rm(eql,eqf,tpbt)
-	with {
-		tpbt = wcT/sqrt(max(0,g)); // tan(PI*B/SR), B bw in Hz (Q^2 ~ g/4)
-		wcT = 2*ma.PI*eqf/ma.SR;  // peak frequency in rad/sample
-		g = ba.db2linear(eql); // peak gain
-	};
-	eq1f = 315;
-	eq1l = 0;
-	eq1q = 3;
-	eq2f = 1500;
-	eq2l = 0;
-	eq2q = 3;
-	dry_wet(x,y) = *(wet) + dry*x, *(wet) + dry*y 
-	with {
-		wet = 0.5*(drywet+1.0);
-		dry = 1.0-wet;
-	};
-	drywet = vslider("[1] Dry/Wet Mix [style:knob] [tooltip: -1 = dry, 1 = wet]",
-		0,-1.0,1.0,0.01) : si.smoo;
-	gain = vslider("[2] Level [unit:dB] [style:knob] [tooltip: Output scale
-		factor]", -6, -70, 40, 0.1) : ba.db2linear : si.smoo;
-	out_level = *(gain),*(gain);
+    fsmax = 48000.0;  // highest sampling rate that will be used
+    rdel = 60;    
+    f1 = 200;
+    t60dc = 3;
+    t60m = 2;
+    f2 = 6000;
+    out_eq = pareq_stereo(eq1f,eq1l,eq1q) : pareq_stereo(eq2f,eq2l,eq2q);
+    pareq_stereo(eqf,eql,Q) = fi.peak_eq_rm(eql,eqf,tpbt), fi.peak_eq_rm(eql,eqf,tpbt)
+    with {
+        tpbt = wcT/sqrt(max(0,g)); // tan(PI*B/SR), B bw in Hz (Q^2 ~ g/4)
+        wcT = 2*ma.PI*eqf/ma.SR;  // peak frequency in rad/sample
+        g = ba.db2linear(eql); // peak gain
+    };
+    eq1f = 315;
+    eq1l = 0;
+    eq1q = 3;
+    eq2f = 1500;
+    eq2l = 0;
+    eq2q = 3;
+    dry_wet(x,y) = *(wet) + dry*x, *(wet) + dry*y 
+    with {
+        wet = 0.5*(drywet+1.0);
+        dry = 1.0-wet;
+    };
+    drywet = vslider("[1] Dry/Wet Mix [style:knob] [tooltip: -1 = dry, 1 = wet]",
+        0,-1.0,1.0,0.01) : si.smoo;
+    gain = vslider("[2] Level [unit:dB] [style:knob] [tooltip: Output scale
+        factor]", -6, -70, 40, 0.1) : ba.db2linear : si.smoo;
+    out_level = *(gain),*(gain);
 };
 
 //----------------------------------`(dm.)zita_rev1`------------------------------
 // Example GUI for `zita_rev1_stereo` (mostly following the Linux `zita-rev1` GUI).
 //
-// Only the dry/wet and output level parameters are "dezippered" here.	If
+// Only the dry/wet and output level parameters are "dezippered" here.    If
 // parameters are to be varied in real time, use `smooth(0.999)` or the like
 // in the same way.
 //
@@ -30909,85 +30909,85 @@ with{
 // Author: Julius Smith
 // License: MIT
 zita_rev1 = _,_ <: re.zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax),_,_ : out_eq,_,_ :
-	dry_wet : out_level
+    dry_wet : out_level
 with{
-	fsmax = 48000.0;  // highest sampling rate that will be used
+    fsmax = 48000.0;  // highest sampling rate that will be used
 
-	fdn_group(x) = hgroup(
-	"[0] Zita_Rev1 [tooltip: ~ ZITA REV1 FEEDBACK DELAY NETWORK (FDN) & SCHROEDER
-	ALLPASS-COMB REVERBERATOR (8x8). See Faust's reverbs.lib for documentation and
-	references]", x);
+    fdn_group(x) = hgroup(
+    "[0] Zita_Rev1 [tooltip: ~ ZITA REV1 FEEDBACK DELAY NETWORK (FDN) & SCHROEDER
+    ALLPASS-COMB REVERBERATOR (8x8). See Faust's reverbs.lib for documentation and
+    references]", x);
 
-	in_group(x) = fdn_group(hgroup("[1] Input", x));
+    in_group(x) = fdn_group(hgroup("[1] Input", x));
 
-	rdel = in_group(vslider("[1] In Delay [unit:ms] [style:knob] [tooltip: Delay in ms
-		before reverberation begins]",60,20,100,1));
+    rdel = in_group(vslider("[1] In Delay [unit:ms] [style:knob] [tooltip: Delay in ms
+        before reverberation begins]",60,20,100,1));
 
-	freq_group(x) = fdn_group(hgroup("[2] Decay Times in Bands (see tooltips)", x));
+    freq_group(x) = fdn_group(hgroup("[2] Decay Times in Bands (see tooltips)", x));
 
-	f1 = freq_group(vslider("[1] LF X [unit:Hz] [style:knob] [scale:log] [tooltip:
-		Crossover frequency (Hz) separating low and middle frequencies]", 200, 50, 1000, 1));
+    f1 = freq_group(vslider("[1] LF X [unit:Hz] [style:knob] [scale:log] [tooltip:
+        Crossover frequency (Hz) separating low and middle frequencies]", 200, 50, 1000, 1));
 
-	t60dc = freq_group(vslider("[2] Low RT60 [unit:s] [style:knob] [scale:log]
-	[style:knob] [tooltip: T60 = time (in seconds) to decay 60dB in low-frequency band]",
-	3, 1, 8, 0.1));
+    t60dc = freq_group(vslider("[2] Low RT60 [unit:s] [style:knob] [scale:log]
+    [style:knob] [tooltip: T60 = time (in seconds) to decay 60dB in low-frequency band]",
+    3, 1, 8, 0.1));
 
-	t60m = freq_group(vslider("[3] Mid RT60 [unit:s] [style:knob] [scale:log] [tooltip:
-		T60 = time (in seconds) to decay 60dB in middle band]",2, 1, 8, 0.1));
+    t60m = freq_group(vslider("[3] Mid RT60 [unit:s] [style:knob] [scale:log] [tooltip:
+        T60 = time (in seconds) to decay 60dB in middle band]",2, 1, 8, 0.1));
 
-	f2 = freq_group(vslider("[4] HF Damping [unit:Hz] [style:knob] [scale:log]
-	[tooltip: Frequency (Hz) at which the high-frequency T60 is half the middle-band's T60]",
-	6000, 1500, 0.49*fsmax, 1));
+    f2 = freq_group(vslider("[4] HF Damping [unit:Hz] [style:knob] [scale:log]
+    [tooltip: Frequency (Hz) at which the high-frequency T60 is half the middle-band's T60]",
+    6000, 1500, 0.49*fsmax, 1));
 
-	out_eq = pareq_stereo(eq1f,eq1l,eq1q) : pareq_stereo(eq2f,eq2l,eq2q);
-	// Zolzer style peaking eq (not used in zita-rev1) (filters.lib):
-	// pareq_stereo(eqf,eql,Q) = peak_eq(eql,eqf,eqf/Q), peak_eq(eql,eqf,eqf/Q);
-	// Regalia-Mitra peaking eq with "Q" hard-wired near sqrt(g)/2 (filters.lib):
-	pareq_stereo(eqf,eql,Q) = fi.peak_eq_rm(eql,eqf,tpbt), fi.peak_eq_rm(eql,eqf,tpbt)
-	with {
-		tpbt = wcT/sqrt(max(0,g)); // tan(PI*B/SR), B bw in Hz (Q^2 ~ g/4)
-		wcT = 2*ma.PI*eqf/ma.SR;  // peak frequency in rad/sample
-		g = ba.db2linear(eql); // peak gain
-	};
+    out_eq = pareq_stereo(eq1f,eq1l,eq1q) : pareq_stereo(eq2f,eq2l,eq2q);
+    // Zolzer style peaking eq (not used in zita-rev1) (filters.lib):
+    // pareq_stereo(eqf,eql,Q) = peak_eq(eql,eqf,eqf/Q), peak_eq(eql,eqf,eqf/Q);
+    // Regalia-Mitra peaking eq with "Q" hard-wired near sqrt(g)/2 (filters.lib):
+    pareq_stereo(eqf,eql,Q) = fi.peak_eq_rm(eql,eqf,tpbt), fi.peak_eq_rm(eql,eqf,tpbt)
+    with {
+        tpbt = wcT/sqrt(max(0,g)); // tan(PI*B/SR), B bw in Hz (Q^2 ~ g/4)
+        wcT = 2*ma.PI*eqf/ma.SR;  // peak frequency in rad/sample
+        g = ba.db2linear(eql); // peak gain
+    };
 
-	eq1_group(x) = fdn_group(hgroup("[3] RM Peaking Equalizer 1", x));
+    eq1_group(x) = fdn_group(hgroup("[3] RM Peaking Equalizer 1", x));
 
-	eq1f = eq1_group(vslider("[1] Eq1 Freq [unit:Hz] [style:knob] [scale:log] [tooltip:
-		Center-frequency of second-order Regalia-Mitra peaking equalizer section 1]",
-	315, 40, 2500, 1));
+    eq1f = eq1_group(vslider("[1] Eq1 Freq [unit:Hz] [style:knob] [scale:log] [tooltip:
+        Center-frequency of second-order Regalia-Mitra peaking equalizer section 1]",
+    315, 40, 2500, 1));
 
-	eq1l = eq1_group(vslider("[2] Eq1 Level [unit:dB] [style:knob] [tooltip: Peak level
-		in dB of second-order Regalia-Mitra peaking equalizer section 1]", 0, -15, 15, 0.1));
+    eq1l = eq1_group(vslider("[2] Eq1 Level [unit:dB] [style:knob] [tooltip: Peak level
+        in dB of second-order Regalia-Mitra peaking equalizer section 1]", 0, -15, 15, 0.1));
 
-	eq1q = eq1_group(vslider("[3] Eq1 Q [style:knob] [tooltip: Q = centerFrequency/bandwidth
-		of second-order peaking equalizer section 1]", 3, 0.1, 10, 0.1));
+    eq1q = eq1_group(vslider("[3] Eq1 Q [style:knob] [tooltip: Q = centerFrequency/bandwidth
+        of second-order peaking equalizer section 1]", 3, 0.1, 10, 0.1));
 
-	eq2_group(x) = fdn_group(hgroup("[4] RM Peaking Equalizer 2", x));
+    eq2_group(x) = fdn_group(hgroup("[4] RM Peaking Equalizer 2", x));
 
-	eq2f = eq2_group(vslider("[1] Eq2 Freq [unit:Hz] [style:knob] [scale:log] [tooltip:
-		Center-frequency of second-order Regalia-Mitra peaking equalizer section 2]",
-	1500, 160, 10000, 1));
+    eq2f = eq2_group(vslider("[1] Eq2 Freq [unit:Hz] [style:knob] [scale:log] [tooltip:
+        Center-frequency of second-order Regalia-Mitra peaking equalizer section 2]",
+    1500, 160, 10000, 1));
 
-	eq2l = eq2_group(vslider("[2] Eq2 Level [unit:dB] [style:knob] [tooltip: Peak level
-		in dB of second-order Regalia-Mitra peaking equalizer section 2]", 0, -15, 15, 0.1));
+    eq2l = eq2_group(vslider("[2] Eq2 Level [unit:dB] [style:knob] [tooltip: Peak level
+        in dB of second-order Regalia-Mitra peaking equalizer section 2]", 0, -15, 15, 0.1));
 
-	eq2q = eq2_group(vslider("[3] Eq2 Q [style:knob] [tooltip: Q = centerFrequency/bandwidth
-		of second-order peaking equalizer section 2]", 3, 0.1, 10, 0.1));
+    eq2q = eq2_group(vslider("[3] Eq2 Q [style:knob] [tooltip: Q = centerFrequency/bandwidth
+        of second-order peaking equalizer section 2]", 3, 0.1, 10, 0.1));
 
-	out_group(x)  = fdn_group(hgroup("[5] Output", x));
+    out_group(x)  = fdn_group(hgroup("[5] Output", x));
 
-	dry_wet(x,y) = *(wet) + dry*x, *(wet) + dry*y with {
-		wet = 0.5*(drywet+1.0);
-		dry = 1.0-wet;
-	};
+    dry_wet(x,y) = *(wet) + dry*x, *(wet) + dry*y with {
+        wet = 0.5*(drywet+1.0);
+        dry = 1.0-wet;
+    };
 
-	drywet = out_group(vslider("[1] Dry/Wet Mix [style:knob] [tooltip: -1 = dry, 1 = wet]",
-	0, -1.0, 1.0, 0.01)) : si.smoo;
+    drywet = out_group(vslider("[1] Dry/Wet Mix [style:knob] [tooltip: -1 = dry, 1 = wet]",
+    0, -1.0, 1.0, 0.01)) : si.smoo;
 
-	out_level = *(gain),*(gain);
+    out_level = *(gain),*(gain);
 
-	gain = out_group(vslider("[2] Level [unit:dB] [style:knob] [tooltip: Output scale
-		factor]", -20, -70, 40, 0.1)) : ba.db2linear : si.smoo;
+    gain = out_group(vslider("[2] Level [unit:dB] [style:knob] [tooltip: Output scale
+        factor]", -20, -70, 40, 0.1)) : ba.db2linear : si.smoo;
 };
 
 //----------------------------------`(dm.)dattorro_rev_demo`------------------------------
@@ -31018,7 +31018,7 @@ with {
     i_diff1 = in_group(vslider("[2] Diffusion 1 [style:knob] [tooltip: diffusion factor, influences reverb color and density]",0.625,0.0,1.0,0.001) : si.smoo);
     i_diff2 = in_group(vslider("[3] Diffusion 2 [style:knob] [tooltip: diffusion factor, influences reverb color and density]",0.625,0.0,1.0,0.001) : si.smoo);
 
-    fdb_group(x) = rev_group(hgroup("[1] Feedback", x));
+    fdb_group(x) = rev_group(hgroup("[1] Feedback",x));
     d_diff1 = fdb_group(vslider("[1] Diffusion 1 [style:knob] [tooltip: diffusion factor, influences reverb color and density]",0.625,0.0,1.0,0.001) : si.smoo);
     d_diff2 = fdb_group(vslider("[2] Diffusion 2 [style:knob] [tooltip: diffusion factor, influences reverb color and density]",0.625,0.0,1.0,0.001) : si.smoo);
     decay = fdb_group(vslider("[3] Decay Rate [style:knob] [tooltip: decay length, 1 = infinite]",0.7,0.0,1.0,0.001) : si.smoo);
@@ -31026,13 +31026,13 @@ with {
 
     out_group(x) = rev_group(hgroup("[2] Output",x));
     dry_wet(x,y) = *(dry) + wet*x, *(dry) + wet*y 
-	with {
-		wet = 0.5*(drywet+1.0);
-		dry = 1.0-wet;
-	};
-	drywet = out_group(vslider("[1] Dry/Wet Mix [style:knob] [tooltip: -1 = dry, 1 = wet]",0,-1.0,1.0,0.01) : si.smoo);
-	gain = out_group(vslider("[2] Level [unit:dB] [style:knob] [tooltip: Output Gain]", -6, -70, 40, 0.1) : ba.db2linear : si.smoo);
-	out_level = *(gain),*(gain);
+    with {
+        wet = 0.5*(drywet+1.0);
+        dry = 1.0-wet;
+    };
+    drywet = out_group(vslider("[1] Dry/Wet Mix [style:knob] [tooltip: -1 = dry, 1 = wet]",0,-1.0,1.0,0.01) : si.smoo);
+    gain = out_group(vslider("[2] Level [unit:dB] [style:knob] [tooltip: Output Gain]", -6, -70, 40, 0.1) : ba.db2linear : si.smoo);
+    out_level = *(gain),*(gain);
 };
 
 //----------------------------------`(dm.)jprev_demo`------------------------------
@@ -31053,17 +31053,24 @@ declare jprev_demo license "GPL2+";
 
 jprev_demo = re.jpverb(t60, damp, size, early_diff, mod_depth, mod_freq, low, mid, high, low_cutoff, high_cutoff)
 with {
-    t60         = hslider("[01]t60",       1.0  , 0.1, 60.000, 0.1000);
-    damp        = hslider("[03]damp",      0.0  , 0.0,  0.999, 0.0001);
-    size        = hslider("[02]size",      1.0  , 0.5,  3.000, 0.0100);
-    early_diff  = hslider("[04]earlyDiff", 0.707, 0.0,  0.990, 0.0010);
-    mod_depth   = hslider("[05]mDepth", 0.1, 0.0,  1.0, 0.001);
-    mod_freq    = hslider("[06]mFreq",  2.0, 0.0, 10.0, 0.010);
-    low         = hslider("[07]lowX",   1.0, 0.0,  1.0, 0.010);
-    mid         = hslider("[08]midX",   1.0, 0.0,  1.0, 0.010);
-    high        = hslider("[09]highX",  1.0, 0.0,  1.0, 0.010);
-    low_cutoff  = hslider("[10]lowBand",  500,  100.0,  6000.0, 0.1);
-    high_cutoff = hslider("[11]highBand",2000, 1000.0, 10000.0, 0.1);
+    rev_group(x) = vgroup("[0] JPrev",x);
+    
+    mix_group(x) = rev_group(hgroup("[0] Mix",x));
+    early_diff = mix_group(hslider("[1]earlyDiff [style:knob]", 0.707, 0.0,  0.990, 0.0010));
+    size = mix_group(hslider("[2]size [style:knob]", 1.0, 0.5, 3.000, 0.0100));
+    t60 = mix_group(hslider("[3]t60 [style:knob]", 1.0, 0.1, 60.000, 0.1000));
+    damp = mix_group(hslider("[4]damp [style:knob]", 0.0, 0.0, 0.999, 0.0001));
+    
+    eq_group(x) = rev_group(hgroup("[1] EQ",x));
+    low = eq_group(hslider("[07]lowX [style:knob]", 1.0, 0.0, 1.0, 0.010));
+    mid = eq_group(hslider("[08]midX [style:knob]", 1.0, 0.0, 1.0, 0.010));
+    high = eq_group(hslider("[09]highX [style:knob]", 1.0, 0.0,  1.0, 0.010));
+    low_cutoff = eq_group(hslider("[10]lowBand [style:knob]", 500, 100.0,  6000.0, 0.1));
+    high_cutoff = eq_group(hslider("[11]highBand [style:knob]", 2000, 1000.0, 10000.0, 0.1));
+    
+    mod_group(x) = rev_group(hgroup("[2] Mod",x));
+    mod_depth = mod_group(hslider("[1]mDepth [style:knob]", 0.1, 0.0,  1.0, 0.001));
+    mod_freq = mod_group(hslider("[2]mFreq [style:knob]",  2.0, 0.0, 10.0, 0.010));  
 };
 
 
@@ -31085,13 +31092,19 @@ declare greyhole_demo license "GPL2+";
 
 greyhole_demo = re.greyhole(dt, damp, size, early_diff, feedback, mod_depth, mod_freq)
 with {
-    dt         = hslider("[01]delayTime", 0.2, 0.001,  1.45, 0.0001);
-    damp       = hslider("[02]damping",   0.0, 0.000,  0.99, 0.0010);
-    size       = hslider("[03]size",      1.0, 0.500,  3.00, 0.0001);
-    early_diff = hslider("[04]diffusion", 0.5, 0.000,  0.99, 0.0001);
-    feedback   = hslider("[05]feedback",  0.9, 0.000,  1.00, 0.0100);
-    mod_depth  = hslider("[06]modDepth",  0.1, 0.000,  1.00, 0.0010);
-    mod_freq   = hslider("[07]modFreq",   2.0, 0.000, 10.00, 0.0100);
+
+    rev_group(x) = vgroup("[0] Greyhole",x);
+    
+    mix_group(x) = rev_group(hgroup("[0] Mix",x));
+    dt = mix_group(hslider("[01]delayTime [style:knob]", 0.2, 0.001,  1.45, 0.0001));
+    damp = mix_group(hslider("[02]damping [style:knob]", 0.0, 0.000,  0.99, 0.0010));
+    size = mix_group(hslider("[03]size [style:knob]", 1.0, 0.500,  3.00, 0.0001));
+    early_diff = mix_group(hslider("[04]diffusion [style:knob]", 0.5, 0.000,  0.99, 0.0001));
+    feedback = mix_group(hslider("[05]feedback [style:knob]", 0.9, 0.000,  1.00, 0.0100));
+    
+    mod_group(x) = rev_group(hgroup("[1] Mod",x));
+    mod_depth = mod_group(hslider("[06]modDepth [style:knob]", 0.1, 0.000, 1.00, 0.0010));
+    mod_freq = mod_group(hslider("[07]modFreq [style:knob]", 2.0, 0.000, 10.00, 0.0100));
 };
 
 //====================================Generators==========================================
@@ -31110,37 +31123,37 @@ with {
 // License: MIT
 sawtooth_demo = signal
 with{
-	osc_group(x) = vgroup("[0] SAWTOOTH OSCILLATOR [tooltip: See Faust's oscillators.lib
-		for documentation and references]",x);
-	knob_group(x)  = osc_group(hgroup("[1]", x));
-	ampdb  = knob_group(vslider("[1] Amplitude [unit:dB] [style:knob] [tooltip: Sawtooth
-		waveform amplitude]",-20,-120,10,0.1));
-	amp = ampdb : ba.db2linear : si.smoo;
-	freq = knob_group(vslider("[2] Frequency [unit:PK] [style:knob] [tooltip: Sawtooth
-		frequency as a Piano Key (PK) number (A440 = key 49)]",49,1,88,0.01) : ba.pianokey2hz);
-	detune1 = 1 + 0.01 * knob_group(
-	vslider("[3] Detuning 1 [unit:%%] [style:knob] [tooltip: Percentage frequency-shift
-	up or down for second oscillator]",-0.1,-10,10,0.01));
-	detune2 = 1 + 0.01 * knob_group(vslider("[4] Detuning 2 [unit:%%] [style:knob] [tooltip:
-		Percentage frequency-shift up or down for third detuned oscillator]",+0.1,-10,10,0.01));
-	portamento = knob_group(vslider("[5] Portamento [unit:sec] [style:knob] [scale:log]
-	[tooltip: Portamento (frequency-glide) time-constant in seconds]",0.1,0.001,10,0.001));
-	sfreq = freq : si.smooth(ba.tau2pole(portamento));
-	saworder = knob_group(nentry("[6] Saw Order [tooltip: Order of sawtootn aliasing
-		suppression]",2,1,os.MAX_SAW_ORDER,1));
-	sawchoice = _ <: par(i,os.MAX_SAW_ORDER,os.sawN(i+1)) :
-		ba.selectn(int(os.MAX_SAW_ORDER), int(saworder-1)); // when max is pwr of 2
-	tone = (amp/3) * (sawchoice(sfreq) + sawchoice(sfreq*detune1) + sawchoice(sfreq*detune2));
-	signal = amp * select2(ei, select2(ss, tone, white_or_pink_noise), _);
-	white_or_pink_noise = select2(wp,no.noise,no.pink_noise);
-	checkbox_group(x) = knob_group(vgroup("[7] Alternate Signals",x));
-	ss = checkbox_group(checkbox("[0] Noise (White or Pink - uses only Amplitude control on
-		the left)"));
-	wp = checkbox_group(checkbox("[1] Pink instead of White Noise (also called 1/f Noise)
-		[tooltip: Pink Noise (or 1/f noise) is Constant-Q Noise, meaning that it has the
-		same total power in every octave]"));
-	ei = checkbox_group(checkbox("[2] External Signal Input (overrides Sawtooth/Noise
-		selection above)"));
+    osc_group(x) = vgroup("[0] SAWTOOTH OSCILLATOR [tooltip: See Faust's oscillators.lib
+        for documentation and references]",x);
+    knob_group(x)  = osc_group(hgroup("[1]", x));
+    ampdb  = knob_group(vslider("[1] Amplitude [unit:dB] [style:knob] [tooltip: Sawtooth
+        waveform amplitude]",-20,-120,10,0.1));
+    amp = ampdb : ba.db2linear : si.smoo;
+    freq = knob_group(vslider("[2] Frequency [unit:PK] [style:knob] [tooltip: Sawtooth
+        frequency as a Piano Key (PK) number (A440 = key 49)]",49,1,88,0.01) : ba.pianokey2hz);
+    detune1 = 1 + 0.01 * knob_group(
+    vslider("[3] Detuning 1 [unit:%%] [style:knob] [tooltip: Percentage frequency-shift
+    up or down for second oscillator]",-0.1,-10,10,0.01));
+    detune2 = 1 + 0.01 * knob_group(vslider("[4] Detuning 2 [unit:%%] [style:knob] [tooltip:
+        Percentage frequency-shift up or down for third detuned oscillator]",+0.1,-10,10,0.01));
+    portamento = knob_group(vslider("[5] Portamento [unit:sec] [style:knob] [scale:log]
+    [tooltip: Portamento (frequency-glide) time-constant in seconds]",0.1,0.001,10,0.001));
+    sfreq = freq : si.smooth(ba.tau2pole(portamento));
+    saworder = knob_group(nentry("[6] Saw Order [tooltip: Order of sawtootn aliasing
+        suppression]",2,1,os.MAX_SAW_ORDER,1));
+    sawchoice = _ <: par(i,os.MAX_SAW_ORDER,os.sawN(i+1)) :
+        ba.selectn(int(os.MAX_SAW_ORDER), int(saworder-1)); // when max is pwr of 2
+    tone = (amp/3) * (sawchoice(sfreq) + sawchoice(sfreq*detune1) + sawchoice(sfreq*detune2));
+    signal = amp * select2(ei, select2(ss, tone, white_or_pink_noise), _);
+    white_or_pink_noise = select2(wp,no.noise,no.pink_noise);
+    checkbox_group(x) = knob_group(vgroup("[7] Alternate Signals",x));
+    ss = checkbox_group(checkbox("[0] Noise (White or Pink - uses only Amplitude control on
+        the left)"));
+    wp = checkbox_group(checkbox("[1] Pink instead of White Noise (also called 1/f Noise)
+        [tooltip: Pink Noise (or 1/f noise) is Constant-Q Noise, meaning that it has the
+        same total power in every octave]"));
+    ei = checkbox_group(checkbox("[2] External Signal Input (overrides Sawtooth/Noise
+        selection above)"));
 };
 
 
@@ -31157,78 +31170,78 @@ with{
 // License: MIT
 virtual_analog_oscillator_demo = signal
 with{
-	osc_group(x) = vgroup("[0] VIRTUAL ANALOG OSCILLATORS
-		[tooltip: See Faust's oscillators.lib for documentation and references]",x);
+    osc_group(x) = vgroup("[0] VIRTUAL ANALOG OSCILLATORS
+        [tooltip: See Faust's oscillators.lib for documentation and references]",x);
 
-	// Signals
-	sawchoice = _ <:
-	// When MAX_SAW_ORDER is a power of 2:
-	par(i,os.MAX_SAW_ORDER,os.sawN(i+1)) : ba.selectn(int(os.MAX_SAW_ORDER), int(saworder-1));
-	// When MAX_SAW_ORDER is NOT a power of 2:
-	// (par(i,MAX_SAW_ORDER,sawN(i+1)), par(j,MAX_SAW_ORDER_NEXTPOW2-MAX_SAW_ORDER,_))
-	//   : selectn(MAX_SAW_ORDER_NEXTPOW2, saworder-1);
-	saw = (amp/3) *
-		(sawchoice(sfreq) + sawchoice(sfreq*detune1) + sawchoice(sfreq*detune2));
-	sq = (amp/3) *
-	(os.square(sfreq) + os.square(sfreq*detune1) + os.square(sfreq*detune2));
-	tri = (amp/3) *
-	(os.triangle(sfreq) + os.triangle(sfreq*detune1) + os.triangle(sfreq*detune2));
-	pt = (amp/3) * (os.pulsetrain(sfreq,ptd)
-		    + os.pulsetrain(sfreq*detune1,ptd)
-			+ os.pulsetrain(sfreq*detune2,ptd));
-	ptN = (amp/3) * (os.pulsetrainN(N,sfreq,ptd)
-		    + os.pulsetrainN(N,sfreq*detune1,ptd)
-			+ os.pulsetrainN(N,sfreq*detune2,ptd)) with { N=3; };
-	pn = amp * no.pink_noise;
+    // Signals
+    sawchoice = _ <:
+    // When MAX_SAW_ORDER is a power of 2:
+    par(i,os.MAX_SAW_ORDER,os.sawN(i+1)) : ba.selectn(int(os.MAX_SAW_ORDER), int(saworder-1));
+    // When MAX_SAW_ORDER is NOT a power of 2:
+    // (par(i,MAX_SAW_ORDER,sawN(i+1)), par(j,MAX_SAW_ORDER_NEXTPOW2-MAX_SAW_ORDER,_))
+    //   : selectn(MAX_SAW_ORDER_NEXTPOW2, saworder-1);
+    saw = (amp/3) *
+        (sawchoice(sfreq) + sawchoice(sfreq*detune1) + sawchoice(sfreq*detune2));
+    sq = (amp/3) *
+    (os.square(sfreq) + os.square(sfreq*detune1) + os.square(sfreq*detune2));
+    tri = (amp/3) *
+    (os.triangle(sfreq) + os.triangle(sfreq*detune1) + os.triangle(sfreq*detune2));
+    pt = (amp/3) * (os.pulsetrain(sfreq,ptd)
+            + os.pulsetrain(sfreq*detune1,ptd)
+            + os.pulsetrain(sfreq*detune2,ptd));
+    ptN = (amp/3) * (os.pulsetrainN(N,sfreq,ptd)
+            + os.pulsetrainN(N,sfreq*detune1,ptd)
+            + os.pulsetrainN(N,sfreq*detune2,ptd)) with { N=3; };
+    pn = amp * no.pink_noise;
 
-	signal = ssaw*saw + ssq*sq + stri*tri
-	       + spt*((ssptN*ptN)+(1-ssptN)*pt)
-		   + spn*pn + sei*_;
+    signal = ssaw*saw + ssq*sq + stri*tri
+           + spt*((ssptN*ptN)+(1-ssptN)*pt)
+           + spn*pn + sei*_;
 
-	// Signal controls:
-	signal_group(x) = osc_group(hgroup("[0] Signal Levels",x));
-	ssaw = signal_group(vslider("[0] Sawtooth [style:vslider]",1,0,1,0.01));
+    // Signal controls:
+    signal_group(x) = osc_group(hgroup("[0] Signal Levels",x));
+    ssaw = signal_group(vslider("[0] Sawtooth [style:vslider]",1,0,1,0.01));
 
-	pt_group(x) = signal_group(vgroup("[1] Pulse Train",x));
-	ssptN = pt_group(checkbox("[0] Order 3
-		[tooltip: When checked, use 3rd-order aliasing suppression (up from 2)
-	See if you can hear a difference with the freq high and swept]"));
-	spt = pt_group(vslider("[1] [style:vslider]",0,0,1,0.01));
-	ptd = pt_group(vslider("[2] Duty Cycle [style:knob]",0.5,0,1,0.01))
-	: si.smooth(0.99);
+    pt_group(x) = signal_group(vgroup("[1] Pulse Train",x));
+    ssptN = pt_group(checkbox("[0] Order 3
+        [tooltip: When checked, use 3rd-order aliasing suppression (up from 2)
+    See if you can hear a difference with the freq high and swept]"));
+    spt = pt_group(vslider("[1] [style:vslider]",0,0,1,0.01));
+    ptd = pt_group(vslider("[2] Duty Cycle [style:knob]",0.5,0,1,0.01))
+    : si.smooth(0.99);
 
-	ssq = signal_group(vslider("[2] Square [style:vslider]",0,0,1,0.01));
-	stri = signal_group(vslider("[3] Triangle [style:vslider]",0,0,1,0.01));
-	spn = signal_group(vslider(
-		"[4] Pink Noise [style:vslider][tooltip: Pink Noise (or 1/f noise) is
-		Constant-Q Noise, meaning that it has the same total power in every octave
-		(uses only amplitude controls)]",0,0,1,0.01));
-	sei = signal_group(vslider("[5] Ext Input [style:vslider]",0,0,1,0.01));
+    ssq = signal_group(vslider("[2] Square [style:vslider]",0,0,1,0.01));
+    stri = signal_group(vslider("[3] Triangle [style:vslider]",0,0,1,0.01));
+    spn = signal_group(vslider(
+        "[4] Pink Noise [style:vslider][tooltip: Pink Noise (or 1/f noise) is
+        Constant-Q Noise, meaning that it has the same total power in every octave
+        (uses only amplitude controls)]",0,0,1,0.01));
+    sei = signal_group(vslider("[5] Ext Input [style:vslider]",0,0,1,0.01));
 
-	// Signal Parameters
-	knob_group(x) = osc_group(hgroup("[1] Signal Parameters", x));
-	af_group(x) = knob_group(vgroup("[0]", x));
-	ampdb = af_group(hslider("[1] Mix Amplitude [unit:dB] [style:hslider]
-		[tooltip: Sawtooth waveform amplitude]",-20,-120,10,0.1));
-	amp = ampdb : ba.db2linear : si.smoo;
-	freq = af_group(hslider("[2] Frequency [unit:PK] [style:hslider] [tooltip: Sawtooth
-		frequency as a Piano Key (PK) number (A440 = key 49)]",49,1,88,0.01) : ba.pianokey2hz);
+    // Signal Parameters
+    knob_group(x) = osc_group(hgroup("[1] Signal Parameters", x));
+    af_group(x) = knob_group(vgroup("[0]", x));
+    ampdb = af_group(hslider("[1] Mix Amplitude [unit:dB] [style:hslider]
+        [tooltip: Sawtooth waveform amplitude]",-20,-120,10,0.1));
+    amp = ampdb : ba.db2linear : si.smoo;
+    freq = af_group(hslider("[2] Frequency [unit:PK] [style:hslider] [tooltip: Sawtooth
+        frequency as a Piano Key (PK) number (A440 = key 49)]",49,1,88,0.01) : ba.pianokey2hz);
 
-	detune1 = 1 - 0.01 * knob_group(
-		vslider("[3] Detuning 1 [unit:%%] [style:knob]
-	[tooltip: Percentage frequency-shift up or down for second oscillator]",
-	-0.1,-10,10,0.01));
-	detune2 = 1 + 0.01 * knob_group(
-	vslider("[4] Detuning 2 [unit:%%] [style:knob]
-	[tooltip: Percentage frequency-shift up or down for third detuned oscillator]",
-	+0.1,-10,10,0.01));
-	portamento = knob_group(
-	vslider("[5] Portamento [unit:sec] [style:knob] [scale:log]
-	[tooltip: Portamento (frequency-glide) time-constant in seconds]",
-	0.1,0.001,10,0.001));
-	saworder = knob_group(nentry("[6] Saw Order [tooltip: Order of sawtooth aliasing
-	suppression]",2,1,os.MAX_SAW_ORDER,1));
-	sfreq = freq : si.smooth(ba.tau2pole(portamento));
+    detune1 = 1 - 0.01 * knob_group(
+        vslider("[3] Detuning 1 [unit:%%] [style:knob]
+    [tooltip: Percentage frequency-shift up or down for second oscillator]",
+    -0.1,-10,10,0.01));
+    detune2 = 1 + 0.01 * knob_group(
+    vslider("[4] Detuning 2 [unit:%%] [style:knob]
+    [tooltip: Percentage frequency-shift up or down for third detuned oscillator]",
+    +0.1,-10,10,0.01));
+    portamento = knob_group(
+    vslider("[5] Portamento [unit:sec] [style:knob] [scale:log]
+    [tooltip: Portamento (frequency-glide) time-constant in seconds]",
+    0.1,0.001,10,0.001));
+    saworder = knob_group(nentry("[6] Saw Order [tooltip: Order of sawtooth aliasing
+    suppression]",2,1,os.MAX_SAW_ORDER,1));
+    sfreq = freq : si.smooth(ba.tau2pole(portamento));
 };
 
 
@@ -31245,21 +31258,21 @@ with{
 // License: MIT
 oscrs_demo = signal
 with{
-	osc_group(x) = vgroup("[0] SINE WAVE OSCILLATOR oscrs [tooltip: Sine oscillator based
-		on 2D vector rotation]",x);
-	ampdb  = osc_group(hslider("[1] Amplitude [unit:dB] [tooltip: Sawtooth waveform
-		amplitude]",-20,-120,10,0.1));
-	amp = ampdb : ba.db2linear : si.smoo;
-	freq = osc_group(
-		hslider("[2] Frequency [unit:PK]
-	[tooltip: Sine wave frequency as a Piano Key (PK) number (A440 = 49 PK)]",
-	49,1,88,0.01) : ba.pianokey2hz);
-	portamento = osc_group(
-	hslider("[3] Portamento [unit:sec] [scale:log]
-	[tooltip: Portamento (frequency-glide) time-constant in seconds]",
-	0.1,0.001,10,0.001));
-	sfreq = freq : si.smooth(ba.tau2pole(portamento));
-	signal = amp * os.oscrs(sfreq);
+    osc_group(x) = vgroup("[0] SINE WAVE OSCILLATOR oscrs [tooltip: Sine oscillator based
+        on 2D vector rotation]",x);
+    ampdb  = osc_group(hslider("[1] Amplitude [unit:dB] [tooltip: Sawtooth waveform
+        amplitude]",-20,-120,10,0.1));
+    amp = ampdb : ba.db2linear : si.smoo;
+    freq = osc_group(
+        hslider("[2] Frequency [unit:PK]
+    [tooltip: Sine wave frequency as a Piano Key (PK) number (A440 = 49 PK)]",
+    49,1,88,0.01) : ba.pianokey2hz);
+    portamento = osc_group(
+    hslider("[3] Portamento [unit:sec] [scale:log]
+    [tooltip: Portamento (frequency-glide) time-constant in seconds]",
+    0.1,0.001,10,0.001));
+    sfreq = freq : si.smooth(ba.tau2pole(portamento));
+    signal = amp * os.oscrs(sfreq);
 };
 
 oscr_demo = oscrs_demo; // synonym
@@ -31278,9 +31291,9 @@ oscr_demo = oscrs_demo; // synonym
 // License: MIT
 velvet_noise_demo = vn
 with{
-	amp = hslider("Amp [unit:dB]",-10,-70,10,0.1) : ba.db2linear;
-	f0 = 10.0, hslider("Freq [unit:log10(Hz)]",3,0,4,0.001) : pow;
-	vn = no.velvet_noise(amp,f0);
+    amp = hslider("Amp [unit:dB]",-10,-70,10,0.1) : ba.db2linear;
+    f0 = 10.0, hslider("Freq [unit:log10(Hz)]",3,0,4,0.001) : pow;
+    vn = no.velvet_noise(amp,f0);
 };
 
 
@@ -31300,9 +31313,9 @@ with{
 // License: MIT
 latch_demo = x, c, ba.latch(c,x) // plot(faustout) after faust2octave
 with{
-	f = float(ma.SR)/1000.0;
-	x = os.oscr(f);
-	c = 0.5 * os.oscrs(5*f); // sample 5 times per period
+    f = float(ma.SR)/1000.0;
+    x = os.oscr(f);
+    c = 0.5 * os.oscrs(5*f); // sample 5 times per period
 };
 
 
@@ -31322,18 +31335,18 @@ with{
 // License: MIT
 envelopes_demo = gate <: _*1.1,envSE,envAR,envARFE,envARE,envASR,envADSR,envADSRE
 with{
-	gate = (1-(1@500)) + 0.5*(1@750-(1@1700)); // retrigger at 1/2 amp
-	envSE    = en.smoothEnvelope(attSec/6.91); // uses time-constant not t60
-	envAR    = en.ar(attSec,relT60);
-	envARFE  = en.arfe(attSec,relT60,0.25);
-	envARE   = en.are(attSec,relT60);
-	envASR   = en.asr(attSec,susLvl,relT60);
-	envADSR  = en.adsr(attSec,decT60,susLvl,relT60);
-	envADSRE = en.adsre(attSec,decT60,susLvl,relT60);
-	attSec=0.002; //  2 ms attack time
-	decT60=0.010; // 10 ms decay-to-sustain time
-	susLvl=0.80;  // Sustain level = 0.8
-	relT60=0.010; // 10 ms release (decay-to-zero) time
+    gate = (1-(1@500)) + 0.5*(1@750-(1@1700)); // retrigger at 1/2 amp
+    envSE    = en.smoothEnvelope(attSec/6.91); // uses time-constant not t60
+    envAR    = en.ar(attSec,relT60);
+    envARFE  = en.arfe(attSec,relT60,0.25);
+    envARE   = en.are(attSec,relT60);
+    envASR   = en.asr(attSec,susLvl,relT60);
+    envADSR  = en.adsr(attSec,decT60,susLvl,relT60);
+    envADSRE = en.adsre(attSec,decT60,susLvl,relT60);
+    attSec=0.002; //  2 ms attack time
+    decT60=0.010; // 10 ms decay-to-sustain time
+    susLvl=0.80;  // Sustain level = 0.8
+    relT60=0.010; // 10 ms release (decay-to-zero) time
 };
 
 //-------------------`(dm.)fft_spectral_level_demo`------------------
@@ -31359,13 +31372,13 @@ with{
 // License: MIT
 fft_spectral_level_demo(N) =  an.rfft_spectral_level(N,tau,dB_offset)
 with{
-	ctl_group(x)  = hgroup("[1] FFT SPECTRUM ANALYZER CONTROLS", x);
-	tau = ctl_group(hslider("[0] Level Averaging Time [unit:ms] [scale:log]
-		[tooltip: band-level averaging time in milliseconds]",
-		100,1,10000,1)) * 0.001;
-	dB_offset = ctl_group(hslider("[1] Level dB Offset [unit:dB]
-		[tooltip: Level offset in decibels]",
-		50,-50,100,1));
+    ctl_group(x)  = hgroup("[1] FFT SPECTRUM ANALYZER CONTROLS", x);
+    tau = ctl_group(hslider("[0] Level Averaging Time [unit:ms] [scale:log]
+        [tooltip: band-level averaging time in milliseconds]",
+        100,1,10000,1)) * 0.001;
+    dB_offset = ctl_group(hslider("[1] Level dB Offset [unit:dB]
+        [tooltip: Level offset in decibels]",
+        50,-50,100,1));
 };
 
 //-----------------`(dm.)reverse_echo_demo(nChans)`----------------
@@ -31393,7 +31406,7 @@ with{
 // License: MIT
 reverse_echo_demo(nChans) =  ef.reverseEchoN(nChans,delMax) : ef.uniformPanToStereo(nChans) 
 with {
-	delMax = 2^int(nentry("Log2(Delay)",15,5,16,1)); // delay line length
+    delMax = 2^int(nentry("Log2(Delay)",15,5,16,1)); // delay line length
 };
 
 //------------------------`(dm.)pospass_demo`------------------------
@@ -31433,7 +31446,7 @@ pospass_demo(x) = analytic_signal, modulator : si.cmul with {
   N = 6; // pospass filter order
   fc = ma.SR/(2*N); // guard-band for filter roll-off
   octavesShift = hslider("Frequency Shift in octaves away from SR/16",
-		 -2,-7,3,0.001) : si.smooth(0.999);
+         -2,-7,3,0.001) : si.smooth(0.999);
   in_select = checkbox("Use Mic");
   sine_tone = os.oscrs(f0);
   f0 = ma.SR/16.0;   // original frequency to be shifted
@@ -31493,7 +31506,7 @@ All contributions below should indicate both the contributor and terms
 of license.  If no such indication is found, "git blame" will say who
 last edited each line, and that person can be emailed to inquire about
 license disposition, if their license choice is not already indicated
-elsewhere among the libraries.	It is expected that all software will be
+elsewhere among the libraries.    It is expected that all software will be
 released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 ************************************************************************/
 
@@ -31516,78 +31529,78 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 // Markdown: Romain Michon
 //-------------------------------------------------------------------------------------
 exciter = _ <: (fi.highpass(2, fc) : compressor : pregain : harmonicCreator :
-	postgain), _ : balance
+    postgain), _ : balance
 with{
-	// TODO: rewrite to use the standard compressor from compressors.lib
-	compressor = ba.bypass1(cbp,compressorMono)
-	with{
-		comp_group(x) = vgroup("COMPRESSOR  [tooltip: Reference:
-			http://en.wikipedia.org/wiki/Dynamic_range_compression]", x);
+    // TODO: rewrite to use the standard compressor from compressors.lib
+    compressor = ba.bypass1(cbp,compressorMono)
+    with{
+        comp_group(x) = vgroup("COMPRESSOR  [tooltip: Reference:
+            http://en.wikipedia.org/wiki/Dynamic_range_compression]", x);
 
-	meter_group(x)	= comp_group(hgroup("[0]", x));
-	knob_group(x)  = comp_group(hgroup("[1]", x));
+    meter_group(x)    = comp_group(hgroup("[0]", x));
+    knob_group(x)  = comp_group(hgroup("[1]", x));
 
-	cbp = meter_group(checkbox("[0] Bypass  [tooltip: When this is checked,
-		the compressor has no effect]"));
+    cbp = meter_group(checkbox("[0] Bypass  [tooltip: When this is checked,
+        the compressor has no effect]"));
 
-	gainview = co.compression_gain_mono(ratio,threshold,attack,release) : ba.linear2db
-		: meter_group(hbargraph("[1] Compressor Gain [unit:dB] [tooltip: Current gain
-		of the compressor in dB]",-50,+10));
+    gainview = co.compression_gain_mono(ratio,threshold,attack,release) : ba.linear2db
+        : meter_group(hbargraph("[1] Compressor Gain [unit:dB] [tooltip: Current gain
+        of the compressor in dB]",-50,+10));
 
-	displaygain = _ <: _,abs : _,gainview : attach;
+    displaygain = _ <: _,abs : _,gainview : attach;
 
-	compressorMono = displaygain(co.compressor_mono(ratio,threshold,attack,release));
+    compressorMono = displaygain(co.compressor_mono(ratio,threshold,attack,release));
 
-	ctl_group(x)  = knob_group(hgroup("[3] Compression Control", x));
+    ctl_group(x)  = knob_group(hgroup("[3] Compression Control", x));
 
-	ratio = ctl_group(hslider("[0] Ratio [style:knob]  [tooltip: A compression Ratio
-	of N means that for each N dB increase in input signal level above Threshold, the
-	output level goes up 1 dB]", 5, 1, 20, 0.1));
+    ratio = ctl_group(hslider("[0] Ratio [style:knob]  [tooltip: A compression Ratio
+    of N means that for each N dB increase in input signal level above Threshold, the
+    output level goes up 1 dB]", 5, 1, 20, 0.1));
 
-	threshold = ctl_group(hslider("[1] Threshold [unit:dB] [style:knob] [tooltip:
-	When the signal level exceeds the Threshold (in dB), its level is compressed
-	according to the Ratio]", -30, -100, 10, 0.1));
+    threshold = ctl_group(hslider("[1] Threshold [unit:dB] [style:knob] [tooltip:
+    When the signal level exceeds the Threshold (in dB), its level is compressed
+    according to the Ratio]", -30, -100, 10, 0.1));
 
-	env_group(x)  = knob_group(hgroup("[4] Compression Response", x));
+    env_group(x)  = knob_group(hgroup("[4] Compression Response", x));
 
-	attack = env_group(hslider("[1] Attack [unit:ms] [style:knob]  [tooltip:
-	Time constant in ms (1/e smoothing time) for the compression gain to approach
-	(exponentially) a new lower target level (the compression `kicking in')]",
-	50, 0, 500, 0.1)) : *(0.001) : max(1/ma.SR);
+    attack = env_group(hslider("[1] Attack [unit:ms] [style:knob]  [tooltip:
+    Time constant in ms (1/e smoothing time) for the compression gain to approach
+    (exponentially) a new lower target level (the compression `kicking in')]",
+    50, 0, 500, 0.1)) : *(0.001) : max(1/ma.SR);
 
-	release = env_group(hslider("[2] Release [unit:ms] [style: knob]  [tooltip:
-	Time constant in ms (1/e smoothing time) for the compression gain to approach
-	(exponentially) a new higher target level (the compression 'releasing')]",
-	500, 0, 1000, 0.1)) : *(0.001) : max(1/ma.SR);
-	};
+    release = env_group(hslider("[2] Release [unit:ms] [style: knob]  [tooltip:
+    Time constant in ms (1/e smoothing time) for the compression gain to approach
+    (exponentially) a new higher target level (the compression 'releasing')]",
+    500, 0, 1000, 0.1)) : *(0.001) : max(1/ma.SR);
+    };
 
-	//Exciter GUI controls
-	ex_group(x) = hgroup("EXCITER  [tooltip: Reference: Patent US4150253 A]", x);
+    //Exciter GUI controls
+    ex_group(x) = hgroup("EXCITER  [tooltip: Reference: Patent US4150253 A]", x);
 
-	//Highpass - selectable cutoff frequency
-	fc = ex_group(hslider("[0] Cutoff Frequency [unit:Hz] [style:knob] [scale:log]
-		[tooltip: Cutoff frequency for highpassed components to be excited]",
-	5000, 1000, 10000, 100));
+    //Highpass - selectable cutoff frequency
+    fc = ex_group(hslider("[0] Cutoff Frequency [unit:Hz] [style:knob] [scale:log]
+        [tooltip: Cutoff frequency for highpassed components to be excited]",
+    5000, 1000, 10000, 100));
 
-	//Pre-distortion gain - selectable percentage of harmonics
-	ph = ex_group(hslider("[1] Harmonics [unit:percent] [style:knob] [tooltip:
-		Percentage of harmonics generated]", 20, 0, 200, 1)) / 100;
-	pregain = * (ph);
+    //Pre-distortion gain - selectable percentage of harmonics
+    ph = ex_group(hslider("[1] Harmonics [unit:percent] [style:knob] [tooltip:
+        Percentage of harmonics generated]", 20, 0, 200, 1)) / 100;
+    pregain = * (ph);
 
-	// TODO: same thing: why doesn't this use cubicnl?
-	//Asymmetric cubic soft clipper
-	harmonicCreator(x) = x <: cubDist1, cubDist2, cubDist3 :> _;
-	cubDist1(x) = (x < 0) * x;
-	cubDist2(x) = (x >= 0) * (x <= 1) * (x - x ^ 3 / 3);
-	cubDist3(x) = (x > 1) * 2/3;
+    // TODO: same thing: why doesn't this use cubicnl?
+    //Asymmetric cubic soft clipper
+    harmonicCreator(x) = x <: cubDist1, cubDist2, cubDist3 :> _;
+    cubDist1(x) = (x < 0) * x;
+    cubDist2(x) = (x >= 0) * (x <= 1) * (x - x ^ 3 / 3);
+    cubDist3(x) = (x > 1) * 2/3;
 
-	//Post-distortion gain - undoes effect of pre-gain
-	postgain = * (1/ph);
+    //Post-distortion gain - undoes effect of pre-gain
+    postgain = * (1/ph);
 
-	//Balance - selectable dry/wet mix
-	ml = ex_group(hslider("[2] Mix [style:knob] [tooltip: Dry/Wet mix of original signal
-		to excited signal]", 0.50, 0.00, 1.00, 0.01));
-	balance = (_ * ml), (_ * (1.0 - ml)) :> _;
+    //Balance - selectable dry/wet mix
+    ml = ex_group(hslider("[2] Mix [style:knob] [tooltip: Dry/Wet mix of original signal
+        to excited signal]", 0.50, 0.00, 1.00, 0.01));
+    balance = (_ * ml), (_ * (1.0 - ml)) :> _;
 };
 
 
@@ -31604,19 +31617,19 @@ with{
 // Author: Romain Michon
 // License: LGPL
 vocoder_demo = hgroup("My Vocoder",_,os.lf_imptrain(freq)*gain :
-	ve.vocoder(bands,att,rel,BWRatio) <: _,_)
+    ve.vocoder(bands,att,rel,BWRatio) <: _,_)
 with{
-	bands = 32;
-	vocoderGroup(x) = vgroup("Vocoder",x);
-	att = vocoderGroup(hslider("[0] Attack [style:knob] [tooltip: Attack time in seconds]",
-		5,0.1,100,0.1)*0.001);
-	rel = vocoderGroup(hslider("[1] Release [style:knob] [tooltip: Release time in seconds]",
-		5,0.1,100,0.1)*0.001);
-	BWRatio = vocoderGroup(hslider("[2] BW [style:knob] [tooltip: Coefficient to adjust the
-		bandwidth of each band]",0.5,0.1,2,0.001));
-	excitGroup(x) = vgroup("Excitation",x);
-	freq = excitGroup(hslider("[0] Freq [style:knob]",330,50,2000,0.1));
-	gain = excitGroup(vslider("[1] Gain",0.5,0,1,0.01) : si.smoo);
+    bands = 32;
+    vocoderGroup(x) = vgroup("Vocoder",x);
+    att = vocoderGroup(hslider("[0] Attack [style:knob] [tooltip: Attack time in seconds]",
+        5,0.1,100,0.1)*0.001);
+    rel = vocoderGroup(hslider("[1] Release [style:knob] [tooltip: Release time in seconds]",
+        5,0.1,100,0.1)*0.001);
+    BWRatio = vocoderGroup(hslider("[2] BW [style:knob] [tooltip: Coefficient to adjust the
+        bandwidth of each band]",0.5,0.1,2,0.001));
+    excitGroup(x) = vgroup("Excitation",x);
+    freq = excitGroup(hslider("[0] Freq [style:knob]",330,50,2000,0.1));
+    gain = excitGroup(vslider("[1] Gain",0.5,0,1,0.01) : si.smoo);
 };
 
 // end further contributions section
