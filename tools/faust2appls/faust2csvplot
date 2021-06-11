@@ -2,8 +2,8 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to plotters					#
-#               (c) Grame, 2019                                     #
+#               Compiles Faust programs to plotters                 #
+#               (c) Grame, 2019-2021                                #
 #                                                                   #
 #####################################################################
 
@@ -29,12 +29,16 @@ for p in $@; do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2csvplot "[options]  [Faust options] <file.dsp>"
-        echo "Compiles Faust programs to plotters"
+        echo "Compiles Faust programs to plotters, the following 4 options are given at runtime:"
+        option "-s <n>" "start at the sample number <n> (default is 0)"
+        option "-n <n>" "render <n> samples (default is 16)"
+        option "-r <rate>" "change the sample rate (default is 44100 Hz)"
+        option "-bs <buffer>" "change the buffer size (default is 512 frames)"
         option
- 		option -arch32 "generates a 32 bit architecture."
-		option -arch64 "generates a 64 bit architecture."
-		option -double "generates code with samples of type 'double'."
-		option -soundfile
+        option -arch32 "generates a 32 bit architecture."
+        option -arch64 "generates a 64 bit architecture."
+        option -double "generates code with samples of type 'double'."
+        option -soundfile
         option "Faust options"
         exit
     fi
@@ -44,7 +48,7 @@ for p in $@; do
     elif [ $p = "-arch64" ]; then
         PROCARCH="-m64"
     elif [ $p = "-double" ]; then
-    	OPTIONS="$OPTIONS $p"
+        OPTIONS="$OPTIONS $p"
         FAUSTFLOAT="double"
     elif [ $p = "-soundfile" ]; then
         CXXFLAGS="$CXXFLAGS -DSOUNDFILE"
@@ -62,17 +66,17 @@ done
 # compile the *.dsp files 
 
 for f in $FILES; do
-	
-	# compile Faust to c++
+    
+    # compile Faust to c++
     faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
-	# compile c++ to binary
-	(
-		${CXX=g++} $CXXFLAGS $PROCARCH $SOUNDFILELIBS $OMP -DFAUSTFLOAT=$FAUSTFLOAT "$f.cpp" -o "${f%.dsp}"
-	) > /dev/null || exit
-	rm "$f.cpp"
+    # compile c++ to binary
+    (
+        ${CXX=g++} $CXXFLAGS $PROCARCH $SOUNDFILELIBS $OMP -DFAUSTFLOAT=$FAUSTFLOAT "$f.cpp" -o "${f%.dsp}"
+    ) > /dev/null || exit
+    rm "$f.cpp"
 
-	# collect binary file name for FaustWorks
-	BINARIES="$BINARIES${f%.dsp};"
+    # collect binary file name for FaustWorks
+    BINARIES="$BINARIES${f%.dsp};"
 done
 echo $BINARIES
