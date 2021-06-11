@@ -49,15 +49,15 @@ void Signal2VHDLVisitor::sigToVHDL(Tree L, ofstream& fout)
       self(hd(L)); // comment
       L = tl(L);
   }
-  faust_entity(bloc_1);
-  faust_process(bloc_4);
-  fout << bloc_0 << endl;
-  fout << bloc_1 << endl;
-  fout << bloc_2 << endl;
-  fout << bloc_3 << endl;
-  fout << bloc_4 << endl;
-  fout << input << endl;
-  fout << bloc_5 << endl;
+  entity_faust(fDeclEntity);
+  faust_process(fFaustProcess);
+  fout << fDeclEntity << endl;
+  fout << fFaustEntity << endl;
+  fout << fDeclSig << endl;
+  fout << fDeclCompnt << endl;
+  fout << fFaustProcess << endl;
+  fout << finput << endl;
+  fout << fMapCompnt << endl;
   fout << "out_left_V_int <= to_slv(sig" << Output << ");\n" << endl;
   fout << "end logic;" << endl;
 }
@@ -84,14 +84,8 @@ void Signal2VHDLVisitor::visit(Tree sig)
 
     if (p) {
       if (strcmp(p->name(), "fmod") == 0) {
-        if (fEntity.count("fmod") == 0) {
-          arith_entity("FMOD", "mod", bloc_0);
-          fEntity.insert({"fmod", true});
-        }
-        box_component("FMOD", 2, bloc_3);
         getSubSignals(sig, subsig);
-        decl_sig_2(subsig[0], subsig[1], bloc_2);
-        box_instantiate("FMOD", sig, subsig[0], subsig[1], bloc_5);
+        treatment("FMOD", "mod", sig, subsig[0], subsig[1]);
         self(subsig[0]);
         self(subsig[1]);
       } else {
@@ -102,13 +96,15 @@ void Signal2VHDLVisitor::visit(Tree sig)
 
         return;
     } else if (isSigInt(sig, &i)) {
+        decl_sig(sig, fDeclSig);
         return;
     } else if (isSigReal(sig, &r)) {
+        decl_sig(sig, fDeclSig);
         return;
     } else if (isSigWaveform(sig)) {
         return;
     } else if (isSigInput(sig, &i)) {
-        input_affectation(sig, input);
+        input_affectation(sig, finput);
         return;
     } else if (isSigOutput(sig, &i, x)) {
         self(x);
@@ -118,11 +114,12 @@ void Signal2VHDLVisitor::visit(Tree sig)
         return;
     } else if (isSigFixDelay(sig, x, y)) {
         if (fEntity.count("DELAY") == 0) {
-          delay_entity(bloc_0);
+          entity_delay(fDeclEntity);
+          component_delay(fDeclCompnt);
           fEntity.insert({"DELAY", true});
         }
-        decl_sig_1(x, bloc_2);
-        delay_instantiate(sig, x, y, bloc_5);
+        decl_sig(sig, fDeclSig);
+        inst_delay(sig, x, y, fMapCompnt);
         self(x);
         self(y);
         return;
@@ -136,42 +133,24 @@ void Signal2VHDLVisitor::visit(Tree sig)
     } else if (isSigBinOp(sig, &i, x, y)) {
         switch (i) {
           case 0:
-            if (fEntity.count(binopname[i]) == 0) {
-              arith_entity("ADD", binopname[i], bloc_0);
-              fEntity.insert({binopname[i], true});
-            }
-            box_component("ADD", 2, bloc_3);
-            decl_sig_2(x, y, bloc_2);
-            box_instantiate("ADD", sig, x, y, bloc_5);
+            treatment("ADD", binopname[i], sig, x, y);
             break;
           case 1:
-            if (fEntity.count(binopname[i]) == 0) {
-              arith_entity("SUB", binopname[i], bloc_0);
-              fEntity.insert({binopname[i], true});
-            }
-            box_component("SUB", 2, bloc_3);
-            decl_sig_2(x, y, bloc_2);
-            box_instantiate("SUB", sig, x, y, bloc_5);
+            treatment("SUB", binopname[i], sig, x, y);
             break;
           case 2:
-            if (fEntity.count(binopname[i]) == 0) {
-              arith_entity("MUL", binopname[i], bloc_0);
-              fEntity.insert({binopname[i], true});
-            }
-            box_component("MUL", 2, bloc_3);
-            decl_sig_2(x, y, bloc_2);
-            box_instantiate("MUL", sig, x, y, bloc_5);
+            treatment("MUL", binopname[i], sig, x, y);
             break;
           case 3:
-            if (fEntity.count(binopname[i]) == 0) {
-              arith_entity("DIV", binopname[i], bloc_0);
-              fEntity.insert({binopname[i], true});
-            }
-            box_component("DIV", 2, bloc_3);
-            decl_sig_2(x, y, bloc_2);
-            box_instantiate("DIV", sig, x, y, bloc_5);
+            treatment("DIV", binopname[i], sig, x, y);
             break;
           case 4:
+            break;
+          case 13:
+            treatment("AND", "and", sig, x, y);
+            break;
+          case 14:
+            treatment("OR", "or", sig, x, y);
             break;
           default:
             // operator is doesn't match any case constant (+, -, *, /)
@@ -252,12 +231,12 @@ void Signal2VHDLVisitor::visit(Tree sig)
     else if (isProj(sig, &i, x)) {
         faustassert(isRec(x, var, le));
         if (fEntity.count("proj") == 0) {
-          empty_entity("PROJ", bloc_0);
+          entity_bypass("PROJ", fDeclEntity);
+          component_standard("PROJ", 1, fDeclCompnt);
           fEntity.insert({"proj", true});
         }
-        box_component("PROJ", 1, bloc_3);
-        decl_sig_1(x, bloc_2);
-        proj_instantiate(sig, nth(le, i), bloc_5);
+        decl_sig(sig, fDeclSig);
+        inst_proj(sig, nth(le, i), fMapCompnt);
         self(nth(le, i));
         return;
     }
@@ -327,4 +306,246 @@ void Signal2VHDLVisitor::visit(Tree sig)
         error << __FILE__ << ":" << __LINE__ << " ERROR : unrecognized signal : " << *sig << endl;
         throw faustexception(error.str());
     }
+}
+
+
+void Signal2VHDLVisitor::treatment(string name, const char* op, Tree sig, Tree x, Tree y) {
+  if (fEntity.count(op) == 0) {
+    entity_bin_op(name, op, fDeclEntity);
+    component_standard(name, 2, fDeclCompnt);
+    fEntity.insert({op, true});
+  }
+  decl_sig(sig, fDeclSig);
+  inst_bin_op(name, sig, x, y, fMapCompnt);
+}
+
+string Signal2VHDLVisitor::addr_to_str(Tree t) {
+    stringstream s;
+    s << t;
+    return s.str(); }
+
+string Signal2VHDLVisitor::val_to_str(Tree t) {
+    stringstream s;
+    s << *t;
+    return s.str(); }
+
+void Signal2VHDLVisitor::entity_header(string & str) {
+    str += "library ieee;\n"
+    "use ieee.std_logic_1164.all;\n"
+    "use ieee.numeric_std.all;\n"
+    "use ieee.std_logic_arith.all;\n"
+    "use ieee.std_logic_signed.all;\n"
+    "use work.fixed_pkg.all;\n\n";
+}
+
+void Signal2VHDLVisitor::generic_decl(string & str) {
+    str += "generic (\n"
+    "    msb     : integer;\n"
+    "    lsb     : integer);\n";
+}
+
+void Signal2VHDLVisitor::port_decl(int input, string & str) {
+    str += "port (\n";
+    for (int i = 0; i < input; i++) {
+      str += "   input_"+ to_string(i) + "  : in  sfixed(msb downto lsb);\n";
+    }
+    str += "   output_0 : in  sfixed(msb downto lsb));\n";
+}
+
+void Signal2VHDLVisitor::entity_bin_op(string name, const char* op, string & str) {
+    entity_header(str);
+    str += "entity " + name + " is\n";
+    generic_decl(str);
+    port_decl(2,str);
+    str += "end " + name + ";\n"
+    "architecture behavioral of " + name + " is\n"
+    "begin\n"
+    "output  <=  resize(input_0 " + op + " input_1,msb,lsb);\n"
+    "end behavioral;\n\n";
+}
+
+void Signal2VHDLVisitor::entity_delay(string & str) {
+    entity_header(str);
+    str += "entity DELAY is\n"
+    "generic (\n"
+    "    delay    : integer;\n"
+    "    msb      : integer;\n"
+    "    lsb      : integer);\n"
+    "port (\n"
+    "    ws       : in std_logic;\n"
+    "    input_0  : in  sfixed(msb downto lsb);\n"
+    "    output_0 : out sfixed(msb downto lsb));\n"
+    "end DELAY;\n"
+    "architecture behavioral of DELAY is\n"
+    "type mem is array (delay downto 0) of sfixed(msb downto lsb);\n"
+    "signal ligne : mem;\n"
+    "begin\n"
+    "process(ws)\n"
+    "    begin\n"
+    "    ligne(0) <= input_0;\n"
+    "    if rising_edge(ws) then\n"
+    "        for i in 1 to delay loop\n"
+    "            ligne(i) <= ligne(i-1);\n"
+    "        end loop;\n"
+    "    end if;\n"
+    "end process;\n"
+    "output_0 <= ligne(delay);\n"
+    "end behavioral;\n\n";
+}
+
+void Signal2VHDLVisitor::entity_bypass(string name, string & str) {
+    entity_header(str);
+    str += "entity " + name + " is\n";
+    generic_decl(str);
+    port_decl(1,str);
+    str += "end " + name + ";\n"
+    "architecture behavioral of " + name + " is\n"
+    "begin\n"
+    "output_0  <=  input_0;\n"
+    "end behavioral;\n\n";
+}
+
+void Signal2VHDLVisitor::entity_faust(string & str) {
+    entity_header(str);
+    str += "entity FAUST_IP is\n"
+    "port (\n"
+    "  ap_clk : in std_logic;\n"
+    "  ap_rst_n : in std_logic;\n"
+    "  ap_ws : in std_logic;\n"
+    "  ap_start : in std_logic;\n"
+    "  ap_done : out std_logic;\n"
+    "  bypass_dsp : in std_logic;\n"
+    "  bypass_faust : in std_logic;\n"
+    "  in_left_V : in std_logic_vector (23 downto 0);\n"
+    "  in_right_V : in std_logic_vector (23 downto 0);\n"
+    "  out_left_V_ap_vld : out std_logic;\n"
+    "  out_right_V_ap_vld : out std_logic;\n"
+    "  out_left_V : out std_logic_vector (23 downto 0);\n"
+    "  out_right_V : out std_logic_vector (23 downto 0));\n"
+    "end FAUST_IP;\n"
+    "architecture logic of FAUST_IP is\n\n"
+    "signal    in_left_V_buf : std_logic_vector (23 downto 0);\n"
+    "signal    in_left_fixed : sfixed(23 downto 0);\n"
+    "signal    in_right_V_buf :  std_logic_vector (23 downto 0);\n"
+    "signal    out_left_V_int : std_logic_vector (23 downto 0);\n"
+    "signal    out_left_fixed : sfixed(23 downto 0);\n"
+    "signal    out_right_V_int :  std_logic_vector (23 downto 0);\n"
+    "signal    step_cnt : integer;\n"
+    "signal    ap_start_reg : std_logic;";
+}
+
+
+void Signal2VHDLVisitor::component_standard(string name, int input, string & str) {
+    str += "component " + name + " is\n";
+    generic_decl(str);
+    port_decl(input,str);
+    str += "end component;\n\n";
+}
+
+void Signal2VHDLVisitor::component_delay(string & str) {
+    str += "component DELAY is\n"
+    "generic (\n"
+    "    delay    : integer;\n"
+    "    msb      : integer;\n"
+    "    lsb      : integer);\n"
+    "port (\n"
+    "    ws       : in std_logic;\n"
+    "    input_0  : in  sfixed(msb downto lsb);\n"
+    "    output_0 : out sfixed(msb downto lsb));\n"
+    "end component;\n\n";
+}
+
+
+void Signal2VHDLVisitor::faust_process(string & str) {
+    str += "begin\n\n"
+    " process(ap_clk, ap_rst_n)\n"
+    "   variable clock_cnt : integer := 0;\n"
+    " begin\n\n"
+    "   if(ap_rst_n = '0') then\n"
+    "     step_cnt <= 0;\n"
+    "     clock_cnt := 0;\n"
+    "     ap_done <= '0';\n"
+    "     out_left_V   <= (others => '0');\n"
+    "     out_left_V_ap_vld   <= '0';\n"
+    "     out_right_V  <= (others => '0');\n"
+    "     out_right_V_ap_vld <=   '0' ;\n"
+    "   elsif(ap_clk'event and ap_clk = '1') then\n"
+    "     -- trick used to detect rising edge of ap_start ('event does not work)\n"
+    "     ap_start_reg <= ap_start;\n"
+    "     if (ap_start = '1') and (ap_start_reg /= ap_start) then\n"
+    "       clock_cnt := 0;\n"
+    "     end if;\n"
+    "     -- loading (buffering) input data\n"
+    "     if (clock_cnt = 1) then\n"
+    "       step_cnt <= step_cnt + 1;\n"
+    "       in_left_V_buf <= in_left_V;\n"
+    "       in_right_V_buf <= in_right_V;\n"
+    "     end if;\n"
+    "     clock_cnt := clock_cnt+1;\n\n"
+    "     -- Say faust has read all input at cycle 20 and keeps ready until cycle 400\n"
+    "     if (clock_cnt > 100) and (clock_cnt <102)  then\n"
+    "     end if;\n\n"
+    "     -- Say faust output are ready is active between cycle 50 and 400\n"
+    "     if (clock_cnt >= 300) and (clock_cnt <302) then\n"
+    "       ap_done <= '1';\n"
+    "       out_right_V <=  out_right_V_int;\n"
+    "       out_left_V <= out_left_V_int;\n"
+    "     else\n"
+    "       ap_done <= '0';\n"
+    "     end if ;\n"
+    "   end if;\n"
+    " end process;\n\n"
+    " ------------------------------------------------------------------------\n"
+    " --------------   Data flow equation          ---------------------------\n"
+    " ------------------------------------------------------------------------\n\n";
+}
+
+void Signal2VHDLVisitor::inst_delay(Tree sig, Tree x, Tree y, string & str) {
+    str += "DELAY_" + addr_to_str(sig) + " : delay\n"
+    "generic map (\n"
+    "    delay => "+ val_to_str(y) +",\n"
+    "    msb => 1,\n"
+    "    lsb => -22)\n"
+    "port map (\n"
+    "    ws => ap_ws,\n"
+    "    input_0  => sig"+ addr_to_str(x) +",\n"
+    "    output_1 => sig"+ addr_to_str(sig) +");\n\n";
+}
+
+void Signal2VHDLVisitor::inst_proj(Tree sig, Tree x, string & str) {
+    str += "PROJ_" + addr_to_str(sig) + " : PROJ\n"
+    "generic map (\n"
+    "    msb => 1,\n"
+    "    lsb => -22)\n"
+    "port map (\n"
+    "    input_0  => sig"+ addr_to_str(x) +",\n"
+    "    output_1 => sig"+ addr_to_str(sig) +");\n\n";
+}
+
+
+void Signal2VHDLVisitor::inst_bin_op(string name, Tree sig, Tree x, Tree y, string & str) {
+  str += name + "_" + addr_to_str(sig) + " : " + name + "\n"
+  "generic map (\n"
+  "    msb => 1,\n"
+  "    lsb => -22)\n"
+  "port map (\n"
+  "    input_0  => sig"+ addr_to_str(x) +",\n"
+  "    input_1  => sig"+ addr_to_str(y) +",\n"
+  "    output_1 => sig"+ addr_to_str(sig) +");\n\n";
+}
+
+
+
+void Signal2VHDLVisitor::decl_sig(Tree sig, string & str) {
+  int i;
+  double r;
+  if (isSigInt(sig, &i) || isSigReal(sig, &r)) {
+    str += "signal    sig"+addr_to_str(sig)+" : sfixed(1 downto -22) := to_sfixed(" + val_to_str(sig) + ",1,-22);\n";
+  } else {
+    str += "signal    sig"+ addr_to_str(sig) +" : sfixed(1 downto -22) :\n";
+  }
+}
+
+void Signal2VHDLVisitor::input_affectation(Tree sig, string & str) {
+  str += "sig" + addr_to_str(sig) + " <= to_sfixed(in_left_V_buf,1,-22);\n";
 }
