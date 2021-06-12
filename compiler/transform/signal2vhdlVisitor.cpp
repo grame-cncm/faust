@@ -38,9 +38,6 @@
 //--------------------------------------------------------------------------
 
 static const char* binopname[] = {"+", "-", "*", "/", "%", "<<", ">>", ">", "<", ">=", "<=", "==", "!=", "&", "|", "^"};
-bool delay = false;
-bool proj = false;
-
 
 void Signal2VHDLVisitor::sigToVHDL(Tree L, ofstream& fout)
 {
@@ -56,7 +53,7 @@ void Signal2VHDLVisitor::sigToVHDL(Tree L, ofstream& fout)
   fout << fDeclSig << endl;
   fout << fDeclCompnt << endl;
   fout << fFaustProcess << endl;
-  fout << finput << endl;
+  fout << fInput << endl;
   fout << fMapCompnt << endl;
   fout << "out_left_V_int <= to_slv(sig" << Output << ");\n" << endl;
   fout << "end logic;" << endl;
@@ -71,7 +68,6 @@ void Signal2VHDLVisitor::self(Tree t)
         visit(t);
     }
 }
-
 
 void Signal2VHDLVisitor::visit(Tree sig)
 {
@@ -104,7 +100,7 @@ void Signal2VHDLVisitor::visit(Tree sig)
     } else if (isSigWaveform(sig)) {
         return;
     } else if (isSigInput(sig, &i)) {
-        input_affectation(sig, finput);
+        input_affectation(sig, fInput);
         return;
     } else if (isSigOutput(sig, &i, x)) {
         self(x);
@@ -308,8 +304,7 @@ void Signal2VHDLVisitor::visit(Tree sig)
     }
 }
 
-
-void Signal2VHDLVisitor::treatment(string name, const char* op, Tree sig, Tree x, Tree y) {
+void Signal2VHDLVisitor::treatment(const string& name, const char* op, Tree sig, Tree x, Tree y) {
   if (fEntity.count(op) == 0) {
     entity_bin_op(name, op, fDeclEntity);
     component_standard(name, 2, fDeclCompnt);
@@ -352,7 +347,7 @@ void Signal2VHDLVisitor::port_decl(int input, string & str) {
     str += "   output_0 : in  sfixed(msb downto lsb));\n";
 }
 
-void Signal2VHDLVisitor::entity_bin_op(string name, const char* op, string & str) {
+void Signal2VHDLVisitor::entity_bin_op(const string& name, const char* op, string & str) {
     entity_header(str);
     str += "entity " + name + " is\n";
     generic_decl(str);
@@ -393,7 +388,7 @@ void Signal2VHDLVisitor::entity_delay(string & str) {
     "end behavioral;\n\n";
 }
 
-void Signal2VHDLVisitor::entity_bypass(string name, string & str) {
+void Signal2VHDLVisitor::entity_bypass(const string& name, string & str) {
     entity_header(str);
     str += "entity " + name + " is\n";
     generic_decl(str);
@@ -434,8 +429,7 @@ void Signal2VHDLVisitor::entity_faust(string & str) {
     "signal    ap_start_reg : std_logic;";
 }
 
-
-void Signal2VHDLVisitor::component_standard(string name, int input, string & str) {
+void Signal2VHDLVisitor::component_standard(const string& name, int input, string & str) {
     str += "component " + name + " is\n";
     generic_decl(str);
     port_decl(input,str);
@@ -454,7 +448,6 @@ void Signal2VHDLVisitor::component_delay(string & str) {
     "    output_0 : out sfixed(msb downto lsb));\n"
     "end component;\n\n";
 }
-
 
 void Signal2VHDLVisitor::faust_process(string & str) {
     str += "begin\n\n"
@@ -522,8 +515,7 @@ void Signal2VHDLVisitor::inst_proj(Tree sig, Tree x, string & str) {
     "    output_1 => sig"+ addr_to_str(sig) +");\n\n";
 }
 
-
-void Signal2VHDLVisitor::inst_bin_op(string name, Tree sig, Tree x, Tree y, string & str) {
+void Signal2VHDLVisitor::inst_bin_op(const string& name, Tree sig, Tree x, Tree y, string & str) {
   str += name + "_" + addr_to_str(sig) + " : " + name + "\n"
   "generic map (\n"
   "    msb => 1,\n"
@@ -533,8 +525,6 @@ void Signal2VHDLVisitor::inst_bin_op(string name, Tree sig, Tree x, Tree y, stri
   "    input_1  => sig"+ addr_to_str(y) +",\n"
   "    output_1 => sig"+ addr_to_str(sig) +");\n\n";
 }
-
-
 
 void Signal2VHDLVisitor::decl_sig(Tree sig, string & str) {
   int i;
