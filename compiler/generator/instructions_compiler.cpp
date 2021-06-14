@@ -284,9 +284,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     endTiming("sharingAnalysis");
     
     startTiming("occurrences analysis");
-    if (fOccMarkup != 0) {
-        delete fOccMarkup;
-    }
+    delete fOccMarkup;
     fOccMarkup = new old_OccMarkup(fConditionProperty);
     fOccMarkup->mark(L5);        // Annotate L5 with occurrences analysis
     endTiming("occurrences analysis");
@@ -308,9 +306,7 @@ Tree InstructionsCompiler::prepare2(Tree L0)
     typeAnnotation(L0, true);    // Annotate L0 with type information
     sharingAnalysis(L0);         // Annotate L0 with sharing count
 
-    if (fOccMarkup != 0) {
-        delete fOccMarkup;
-    }
+    delete fOccMarkup;
     fOccMarkup = new old_OccMarkup();
     fOccMarkup->mark(L0);        // Annotate L0 with occurrences analysis
 

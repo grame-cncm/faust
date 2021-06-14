@@ -71,18 +71,18 @@ static Tree privatisation(const Tree& k, const Tree& t)
         return t;
 
     } else if (getProperty(t, k, v)) {
-        /*	Terme deja visité. La propriété nous indique
-            la version privatisée ou nil si elle est identique
-            au terme initial.
+        /*
+         Already visited Term. The property indicates us
+         the privatized version or nil if it is identical
+         to the initial term
         */
         return isNil(v) ? t : v;
 
     } else {
-        /*	Calcul du terme privatisé et mis à jour
-            de la propriété. Nil indique que le terme
-            privatisé est identique à celui de depart
-            (pour eviter les boucles avec les compteurs
-            de references)
+        /*
+         Computation of the privatized and update the property.
+         Nil indicates that the privatized term is identical
+         to the one we start with (to avoid loops with reference counters).
         */
         v = computePrivatisation(k, t);
         if (v != t) {
@@ -99,32 +99,36 @@ static Tree computePrivatisation(const Tree& k, const Tree& exp)
     Tree tbl, size, idx, wrt, content, id, var, body;
 
     if (isSigWRTbl(exp, id, tbl, idx, wrt)) {
-        /*	Ce qui ne peut pas être partagé, ce sont les
-            tables dans lesquelles on ecrit. Pour cela
-            on leur donne un label unique
+        /*
+         What cannot be shared are the tables in which
+         we write. For this purpose we give them a unique label.
         */
         return sigWRTbl(id, labelize(makePrivatisationLabel(exp), privatisation(k, tbl)), privatisation(k, idx),
                         privatisation(k, wrt));
 
     } else if (isSigTable(exp, id, size, content)) {
-        /*	Rien à privatiser dans une table (car size est
-            censée etre une expression entiere)
+        /*
+         Nothing to privatize in a table (because size is supposed to
+         be an integer expression)
         */
         return exp;
 
     } else if (isSigGen(exp, content)) {
-        /*	On ne visite pas les contenus des tables
+        /*
+         We do not visit the contents of the tables.
          */
-        throw faustexception("ERROR 1 in computePrivatisation");
+        throw faustexception("ERROR : computePrivatisation");
 
     } else if (isRec(exp, var, body)) {
-        /*	On ne visite pas les contenus des tables
+        /*
+            We do not visit the contents of the tables.
          */
         setProperty(exp, k, gGlobal->nil);
         return rec(var, privatisation(k, body));
 
     } else {
-        /*	On parcours les autres arbres en privatisant les branches
+        /*
+            We go through the other trees by privatizing the branches
          */
 
         tvec br;
@@ -142,20 +146,21 @@ static Tree labelize(const Tree& newid, const Tree& exp)
     Tree tbl, size, idx, wrt, content, oldid;
 
     if (isSigWRTbl(exp, oldid, tbl, idx, wrt)) {
-        /*	Ce qui ne peut pas être partagé, ce sont les
-            tables dans lesquelles on ecrit. Pour cela
-            on leur donne un label unique
+        /*
+         What cannot be shared are the tables in which
+         we write. For this purpose we give them a unique label.
         */
         return sigWRTbl(newid, tbl, idx, wrt);
 
     } else if (isSigTable(exp, oldid, size, content)) {
-        /*	Rien à privatiser dans une table (car size est
-            censée etre une expression entiere)
+        /*
+         Nothing to privatize in a table (because size is supposed to
+         be an integer expression)
         */
         return sigTable(newid, size, content);
 
     } else {
-        throw faustexception("ERROR labelize");
+        throw faustexception("ERROR : labelize");
     }
 
     return exp;

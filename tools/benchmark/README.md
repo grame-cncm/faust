@@ -54,7 +54,7 @@ The `-multifun` mode uses the GCC [multiversion feature](https://gcc.gnu.org/wik
 
 The `-test` parameter can be used to compile a test program which will bench the DSP, print its UI, and render it.
 
-Note that using the `-inj foo.cpp` option allows to compile any C++ class containing a `dsp` subclass, so for instance a manually written C++ class. This is a convenient way to optimise any C++ DSP class.
+Note that using the `-inj foo.cpp` option allows to compile any C++ class containing a `dsp` subclass (which has obligatorily to be named `mydsp`), so for instance a manually written C++ class. This is a convenient way to optimise any C++ DSP class. 
 
  Examples:
 
