@@ -72,6 +72,10 @@ public:
     void eq5Set(uint8_t cfreq,uint8_t gain);
     void noiseSet(uint8_t enable,uint8_t gain);
     void alcSet(uint8_t enable, uint8_t maxgain, uint8_t mingain);
+    void sleep(uint8_t enable); 
+    void resume(void); 
+    void monoOut(uint8_t enable); 
+    void spkBoost(uint8_t enable); 
 };
 
 #endif
