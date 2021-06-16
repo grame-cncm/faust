@@ -27,19 +27,20 @@ uint8_t WM8978::init(void)
 {
     initI2C();
     uint8_t res;
-    res = writeReg(0,0);// WM8978
+    res = writeReg(0,0);// WM8978 reset
     if(res) return 1;
-    writeReg(1,0X1B);   // R1, MICEN (MIC), BIASEN, VMIDSEL[1:0]
-    writeReg(2,0X1B0);  // R2, ROUT1, LOUT1, BOOSTENR, BOOSTENL
-    writeReg(3,0X6C);   // R3, LOUT2, ROUT2, RMIX, LMIX
-    writeReg(6,0);      // R6, MCLK
+    writeReg(1,0X9B);   // R1, OUT4MIXEN, MICEN (MIC), BIASEN, VMIDSEL[1:0] 
+    writeReg(2,0X1B0);  // R2, ROUT1, LOUT1, BOOSTENR, BOOSTENL 
+    writeReg(3,0X16C);  // R3, OUT4EN, LOUT2EN, ROUT2EN, RMIXEN, LMIXEN 
+    writeReg(6,0);      // R6, MCLK 
     writeReg(43,1<<4);  // R43, INVROUT2
     writeReg(47,1<<8);  // R47, PGABOOSTL, MIC
     writeReg(48,1<<8);  // R48, PGABOOSTR, MIC
     writeReg(49,1<<1);  // R49, TSDEN
-    writeReg(10,1<<3);  // R10, SOFTMUTE
-    writeReg(14,1<<3);  // R14, ADC
+    writeReg(10,1<<3);  // R10, DACOSR
+    writeReg(14,1<<3);  // R14, ADCOSR
     return 0;
+    
 }
 
 // Initialize i2c for the ESP32
@@ -96,7 +97,7 @@ void WM8978::addaCfg(uint8_t dacen,uint8_t adcen)
 {
     uint16_t regval;
     regval = readReg(3);        // R3
-    if(dacen)regval |= 3<<0;    // R3 DACR & DACL
+    if(dacen)regval |= 3<<0;    // R3 DACR & DACL  
     else regval &= ~(3<<0);     // R3 DACR & DACL
     writeReg(3,regval);         // R3
     regval=readReg(2);          // R2
@@ -332,3 +333,41 @@ void WM8978::noiseSet(uint8_t enable,uint8_t gain)
     writeReg(35,regval);    // R18, EQ1
 }
 
+
+/**********************************************************
+Additional functions written for PICO DSP development board
+https://github.com/ohmic-net/pico_dsp 
+**********************************************************/
+
+// Sleep mode for power saving 
+// 1 to enable device standby mode 
+void WM8978::sleep(uint8_t enable)
+{ 
+    uint16_t regval; 
+    regval = (enable<<6);
+    writeReg(2,regval);   // R2, sleep
+}
+
+// Resume / wake up from sleep 
+void WM8978::resume(void)    
+{ 
+    uint16_t regval; 
+    regval = ~(1<<6); 
+    writeReg(2,regval);
+}
+
+// OUT4 (Mono Output) enable
+void WM8978::monoOut(uint8_t enable)
+{ 
+    uint16_t regval; 
+    regval = (enable<<3);
+    writeReg(57,regval); //LDAC2OUT4
+}
+
+// Speaker boost 
+void WM8978::spkBoost(uint8_t enable)
+{
+    uint16_t regval; 
+    regval = (enable<<2);
+    writeReg(49,regval); 
+}
