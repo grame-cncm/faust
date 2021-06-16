@@ -29,10 +29,10 @@ uint8_t WM8978::init(void)
     uint8_t res;
     res = writeReg(0,0);// WM8978 reset
     if(res) return 1;
-    writeReg(1,0X9B);   // R1, OUT4MIXEN, MICEN (MIC), BIASEN, VMIDSEL[1:0] 
-    writeReg(2,0X1B0);  // R2, ROUT1, LOUT1, BOOSTENR, BOOSTENL 
+    writeReg(1,0X9B);   // R1, OUT4MIXEN, MICEN (MIC), BIASEN, VMIDSEL[1:0]
+    writeReg(2,0X1B0);  // R2, ROUT1, LOUT1, BOOSTENR, BOOSTENL
     writeReg(3,0X16C);  // R3, OUT4EN, LOUT2EN, ROUT2EN, RMIXEN, LMIXEN 
-    writeReg(6,0);      // R6, MCLK 
+    writeReg(6,0);      // R6, MCLK
     writeReg(43,1<<4);  // R43, INVROUT2
     writeReg(47,1<<8);  // R47, PGABOOSTL, MIC
     writeReg(48,1<<8);  // R48, PGABOOSTR, MIC
@@ -97,7 +97,7 @@ void WM8978::addaCfg(uint8_t dacen,uint8_t adcen)
 {
     uint16_t regval;
     regval = readReg(3);        // R3
-    if(dacen)regval |= 3<<0;    // R3 DACR & DACL  
+    if(dacen)regval |= 3<<0;    // R3 DACR & DACL 
     else regval &= ~(3<<0);     // R3 DACR & DACL
     writeReg(3,regval);         // R3
     regval=readReg(2);          // R2
