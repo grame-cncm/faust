@@ -19,6 +19,15 @@ A \faust program is essentially a list of \textit{statements}. These statements 
 program : (statement)+;
 \end{rail}
 
+Each statement can be preceded by a variantlist, composed of variants which can be \textit{singleprecision}, \textit{doubleprecision}, \textit{quadprecision} or \textit{fixedpointprecision}. This allows statements to be parsed and defined only for a (or several) specific float precision option in the compiler (that is either \lstinline'-single' , \lstinline'-double' , \lstinline'-quad'  or \lstinline'-fx'  repectively). A typical use-case is the definition of floating point constants in the maths.lib library with the following lines:
+
+\begin{lstlisting}
+
+singleprecision INFINITY = 3.402823466e+38;
+doubleprecision INFINITY = 1.7976931348623158e+308;
+
+\end{lstlisting}
+
 Here is a short \faust program that implements of a simple noise generator. It exhibits various kind of statements: two \textit{declarations}, an \textit{import}, a \textit{comment} and a \textit{definition}. We will see later on \textit{documentation} statements (\ref{sec:documentation}).
 
 \begin{lstlisting}

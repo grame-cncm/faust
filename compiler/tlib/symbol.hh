@@ -20,7 +20,6 @@
  ************************************************************************/
 
 /** \file symbol.hh
- * A library to create and manipulate symbols with a unique name.
  * A library of functions to create and manipulate symbols with a unique name.
  *
  *  <b>API:</b>

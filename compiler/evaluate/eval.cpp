@@ -87,7 +87,7 @@ static Tree boxSimplification(Tree box);
  * Eval "process" from a list of definitions.
  *
  * Strict evaluation of a block diagram expression by applying beta reduction.
- * @param eqlist a list of faust defintions forming the the global environment
+ * @param eqlist a list of Faust definitions forming the global environment
  * @return the process block diagram in normal form
  */
 Tree evalprocess(Tree eqlist)

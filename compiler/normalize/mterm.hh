@@ -39,7 +39,7 @@ using namespace std;
 
 /**
  * Implements a multiplicative term, a term of type
- * k*x^n*y^m*... and its arithmetic
+ * k*x^n*y^m*... and its arithmetic.
  */
 
 struct CompareTree {
@@ -57,7 +57,7 @@ class mterm : public virtual Garbageable {
     mterm(Tree t);          ///< create a mterm from a multiplicative exp
     mterm(const mterm& m);  ///< create a copy of a mterm
 
-    void cleanup();           ///< remove usued factors
+    void cleanup();           ///< remove used factors
     bool isNotZero() const;   ///< true if mterm doesn't represent number 0
     bool isNegative() const;  ///< true if mterm has a negative coefficient
 
@@ -79,7 +79,7 @@ class mterm : public virtual Garbageable {
     int  complexity() const;  ///< return an evaluation of the complexity
     Tree normalizedTree(bool sign = false,
                         bool neg  = false) const;  ///< return the normalized tree of the mterm
-    Tree signatureTree() const;                   ///< return a signature (a normalized tree)
+    Tree signatureTree() const;                    ///< return a signature (a normalized tree)
 
     bool         hasDivisor(const mterm& n) const;       ///< return true if this can be divided by n
     friend mterm gcd(const mterm& m1, const mterm& m2);  /// greatest common divisor of two mterms

@@ -142,7 +142,8 @@ Block diagram options:
 
   **-f** \<n>     **--fold** \<n>                   threshold to activate folding mode during block-diagram generation (default 25 elements).
 
-  **-fc** \<n>    **--fold-complexity** \<n>        complexity threshold to fold an expression in folding mode (default 2)
+  **-fc** \<n>    **--fold-complexity** \<n>        complexity threshold to fold an expression in folding mode (default 2).
+
   **-mns** \<n>   **--max-name-size** \<n>          threshold during block-diagram generation (default 40 char).
 
   **-sn**        **--simple-names**               use simple names (without arguments) during block-diagram generation.

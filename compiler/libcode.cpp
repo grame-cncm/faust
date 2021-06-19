@@ -958,7 +958,7 @@ static void printHelp()
          << endl;
     cout << tab
          << "-fc <n>    --fold-complexity <n>        complexity threshold to fold an expression in folding mode "
-            "(default 2)"
+            "(default 2)."
          << endl;
     cout << tab
          << "-mns <n>   --max-name-size <n>          threshold during block-diagram generation (default 40 char)."

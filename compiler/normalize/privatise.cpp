@@ -74,7 +74,7 @@ static Tree privatisation(const Tree& k, const Tree& t)
         /*
          Already visited Term. The property indicates us
          the privatized version or nil if it is identical
-         to the initial term
+         to the initial term.
         */
         return isNil(v) ? t : v;
 
@@ -121,14 +121,14 @@ static Tree computePrivatisation(const Tree& k, const Tree& exp)
 
     } else if (isRec(exp, var, body)) {
         /*
-            We do not visit the contents of the tables.
+         We do not visit the contents of the tables.
          */
         setProperty(exp, k, gGlobal->nil);
         return rec(var, privatisation(k, body));
 
     } else {
         /*
-            We go through the other trees by privatizing the branches
+         We go through the other trees by privatizing the branches
          */
 
         tvec br;
@@ -155,7 +155,7 @@ static Tree labelize(const Tree& newid, const Tree& exp)
     } else if (isSigTable(exp, oldid, size, content)) {
         /*
          Nothing to privatize in a table (because size is supposed to
-         be an integer expression)
+         be an integer expression).
         */
         return sigTable(newid, size, content);
 

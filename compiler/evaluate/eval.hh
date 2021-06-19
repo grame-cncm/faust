@@ -44,6 +44,9 @@
  **/
 
 Tree evalprocess(Tree eqlist);
+
+/* Eval a documentation expression. */
+
 Tree evaldocexpr(Tree docexpr, Tree eqlist);
 
 /**
