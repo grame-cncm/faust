@@ -56,6 +56,29 @@ declare namespace Faust {
     function compileAudioNode(context: BaseAudioContext, module: FaustModule, dsp_code: string, effect_code: string | null, voices: number, is_double: boolean): Promise<FaustMonoNode | FaustPolyNode | null>
 
     /**
+     * Higher level function to compile a monophonic factory from its DSP code.
+     *
+     * @param {FaustModule} module - the Faust module as given by an async FaustModule() call
+     * @param {string} dsp_code - the Faust dsp code (may contain an integrated effect)
+     * @param {boolean} is_double - whether the sample has to be 'double'
+     * 
+     * @preturn {Promise<Factory| null>} the compiled monophonic factory or 'null' in case of failure
+     */
+    function compileMonoFactory(module: FaustModule, dsp_code: string, is_double: boolean): Promise<Factory | null>
+
+    /**
+     * Higher level function to compile a polyphonic factory from its DSP code.
+     *
+     * @param {FaustModule} module - the Faust module as given by an async FaustModule() call
+     * @param {string} dsp_code - the Faust voice dsp code (may contain an integrated effect)
+     * @param {string | null} effect_code - optional effect DSP code, that can be used in place of the integrated effect model
+     * @param {boolean} is_double - whether the sample has to be 'double'
+     * 
+     * @preturn {[Promise<Factory | null>, Promise<Factory | null>]} a tuple of compiled monophonic factory or 'null' in case of failure
+     */
+    function compilePolyFactory(module: FaustModule, voice_code: string, effect_code: string | null, is_double: boolean): [Promise<Factory | null>, Promise<Factory | null>];
+
+    /**
      * Higher level function to create a monophonic WebAudio node from its (precompiled) wasm code.
      *
      * @param {BaseAudioContext} context the WebAudio context

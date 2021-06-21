@@ -30,7 +30,8 @@ namespace Faust {
         module: FaustModule,
         dsp_code: string,
         effect_code: string | null,
-        voices: number, is_double: boolean)
+        voices: number,
+        is_double: boolean)
         : Promise<FaustMonoNode | FaustPolyNode | null> {
         let sp = typeof (window.AudioWorkletNode) == "undefined";
         let libfaust = createLibFaust(module);
@@ -42,8 +43,45 @@ namespace Faust {
             } else {
                 return createPolyFactory().compileNode(context, "FaustDSP", compiler, dsp_code, effect_code, argv, voices, sp, 0);
             }
+        } else {
+            return new Promise<null>(() => { return null; });
         }
-        return new Promise<null>(() => { return null; });
+    }
+
+    export function compileMonoFactory(
+        module: FaustModule,
+        dsp_code: string,
+        is_double: boolean)
+        : Promise<Factory | null> {
+        let sp = typeof (window.AudioWorkletNode) == "undefined";
+        let libfaust = createLibFaust(module);
+        if (libfaust) {
+            let compiler = createCompiler(libfaust);
+            const args = (is_double) ? "-double -ftz 2" : "-ftz 2";
+            return compiler.createMonoDSPFactory("FaustDSP", dsp_code, args);
+        } else {
+            return new Promise<null>(() => { return null; });
+        }
+    }
+
+    export function compilePolyFactory(
+        module: FaustModule,
+        dsp_code: string,
+        effect_code: string | null,
+        is_double: boolean)
+        : [Promise<Factory | null>, Promise<Factory | null>] {
+        let sp = typeof (window.AudioWorkletNode) == "undefined";
+        let libfaust = createLibFaust(module);
+        let null_res = new Promise<null>(() => { return null; });
+        if (libfaust) {
+            let compiler = createCompiler(libfaust);
+            const args = (is_double) ? "-double -ftz 2" : "-ftz 2";
+            return [
+                compiler.createPolyDSPFactory("FaustDSP", dsp_code, args),
+                (effect_code) ? compiler.createPolyDSPFactory("FaustDSP", effect_code, args) : null_res];
+        } else {
+            return [null_res, null_res];
+        }
     }
 
     export async function createMonoAudioNode(
