@@ -59,7 +59,7 @@ declare namespace Faust {
      * Higher level function to compile a monophonic factory from its DSP code.
      *
      * @param {FaustModule} module - the Faust module as given by an async FaustModule() call
-     * @param {string} dsp_code - the Faust dsp code (may contain an integrated effect)
+     * @param {string} dsp_code - the Faust dsp code
      * @param {boolean} is_double - whether the sample has to be 'double'
      * 
      * @preturn {Promise<Factory| null>} the compiled monophonic factory or 'null' in case of failure
