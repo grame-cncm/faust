@@ -371,3 +371,32 @@ void WM8978::spkBoost(uint8_t enable)
     regval = (enable<<2);
     writeReg(49,regval); 
 }
+
+// Set Sample Rate
+// srate: 0~5 , 48kHz, 32kHz, 24kHz, 16kHz, 12kHz, 8kHz 
+void WM8978::sampleRate(uint8_t srate)
+{
+    uint16_t regval = 0;            // 48kHz, default
+    if(srate==1) regval = 0x2;      
+    if(srate==2) regval = 0x4;      
+    if(srate==3) regval = 0x6;      
+    if(srate==4) regval = 0x8;     
+    if(srate==5) regval = 0xA;      
+    writeReg(7,regval);             // R7, Additional Ctrl
+}
+
+// Loopback, ADC data output is fed directly into DAC data input
+void WM8978::loopback(uint8_t enable)
+{ 
+    uint16_t regval; 
+    regval = enable;
+    writeReg(5,regval); 
+}
+
+// DAC Automute (after 1024 consective zeros)
+void WM8978::aMute(uint8_t enable)
+{
+    uint16_t regval; 
+    regval = enable<<2;
+    writeReg(10,regval);
+}
