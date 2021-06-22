@@ -224,7 +224,7 @@ class FaustPlugInAudioProcessor : public juce::AudioProcessor, private juce::Tim
     public:
         
         FaustPlugInAudioProcessor();
-        virtual ~FaustPlugInAudioProcessor();
+        virtual ~FaustPlugInAudioProcessor() {}
         
         void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     
@@ -304,7 +304,7 @@ class FaustPlugInAudioProcessorEditor : public juce::AudioProcessorEditor
     public:
         
         FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor&);
-        virtual ~FaustPlugInAudioProcessorEditor();
+        virtual ~FaustPlugInAudioProcessorEditor() {}
         
         void paint (juce::Graphics&) override;
         void resized() override;
@@ -435,9 +435,6 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     
     startTimerHz(25);
 }
-
-FaustPlugInAudioProcessor::~FaustPlugInAudioProcessor()
-{}
 
 juce::AudioProcessor::BusesProperties FaustPlugInAudioProcessor::getBusesProperties()
 {
@@ -642,9 +639,6 @@ FaustPlugInAudioProcessorEditor::FaustPlugInAudioProcessorEditor (FaustPlugInAud
     juce::Rectangle<int> recommendedSize = fJuceGUI.getSize();
     setSize (recommendedSize.getWidth(), recommendedSize.getHeight());
 }
-
-FaustPlugInAudioProcessorEditor::~FaustPlugInAudioProcessorEditor()
-{}
 
 //==============================================================================
 void FaustPlugInAudioProcessorEditor::paint (juce::Graphics& g)

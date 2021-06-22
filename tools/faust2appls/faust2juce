@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #           Compiles Faust programs to JUCE standalone or plugin    #
-#           (c) Grame, 2016-2019                                    #
+#           (c) Grame, 2016-2021                                    #
 #                                                                   #
 #####################################################################
 
@@ -242,14 +242,14 @@ for p in $FILES; do
             faust -inj "$FAUSTINC/faust/dsp/llvm-dsp-adapter.h" -uim -i -a "$FAUSTARCH/juce/juce-plugin.cpp" $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustPluginProcessor.cpp" || exit
             dynamic-faust $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/dynamic.o"
         else
-            faust -uim -i -a "$FAUSTARCH/juce/juce-plugin.cpp" $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustPluginProcessor.cpp" || exit
+            faust -scn base_dsp -uim -i -a "$FAUSTARCH/juce/juce-plugin.cpp" $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustPluginProcessor.cpp" || exit
         fi
     else
         if [ $IS_LLVM = "1" ]; then
             faust -inj "$FAUSTINC/faust/dsp/llvm-dsp-adapter.h" -i -a "$FAUSTARCH/juce/juce-standalone.cpp" $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustAudioApplication.cpp" || exit
             dynamic-faust $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/dynamic.o"
         else
-            faust -i -a "$FAUSTARCH/juce/juce-standalone.cpp" $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustAudioApplication.cpp" || exit
+            faust -scn base_dsp -i -a "$FAUSTARCH/juce/juce-standalone.cpp" $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustAudioApplication.cpp" || exit
         fi
     fi
 
@@ -263,10 +263,10 @@ for p in $FILES; do
             adaptor(F,G) = adapt(outputs(F),inputs(G));
             process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
 EndOfCode
-            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$dspName/effect.dsp" -o "$SRCDIR/$dspName/effect.h" || exit
+            faust -scn base_dsp -i -cn effect -a minimal-effect.cpp "$SRCDIR/$dspName/effect.dsp" -o "$SRCDIR/$dspName/effect.h" || exit
             rm "$SRCDIR/$dspName/effect.dsp"
         else
-            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$SRCDIR/$dspName/effect.h" || exit
+            faust -scn base_dsp -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$SRCDIR/$dspName/effect.h" || exit
         fi
     fi
 
