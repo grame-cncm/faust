@@ -46,7 +46,7 @@ class Signal2VHDLVisitor : public TreeTraversal {
         string fFaustEntity;         // Faust block specification
         string fDeclSig;             // Signal declaration
         string fDeclCompnt;          // Declaration of components
-        string fFaustProcess;        // Implement the faust process
+        string fFaustProcess;        // Implement the Faust process
         string fMapCompnt;           // Instantiating blocks
 
         string addr_to_str(Tree t);
@@ -56,13 +56,13 @@ class Signal2VHDLVisitor : public TreeTraversal {
         void generic_decl(string & str);
         void port_decl(int input, string & str);
 
-        /** Functions generating different Faust blocks, each block is treated as an entity with declaration of inputs and outputs :
-          *  - Each design must have at least one entity and  one corresponding architecture
+        /** Functions generating different Faust blocks, each block is treated as an entity with declaration of inputs and outputs:
+          *  - Each design must have at least one entity and one corresponding architecture
           *    that specifies the external specification of the design.
           *  - Each entity has a name assigned to it and a port list
           *  - Each port list has a direction (in/out/inout) and a type
           */
-        void entity_bin_op(const string& name, const char* op, string & str);   // arithmetique and modulo operation
+        void entity_bin_op(const string& name, const char* op, string & str);   // arithmetic and modulo operation
         void entity_cmp_op(const string& name, const char* op, string & str);   // compare operation
         void entity_delay(string & str);                                        // delay
         void entity_bypass(const string& name, string & str);                   // bypass module
@@ -75,7 +75,7 @@ class Signal2VHDLVisitor : public TreeTraversal {
         void component_standard(const string& name, int input, string & str);   // arith, mod, bypass, compare, select
         void component_delay(string & str);                                     // delay
 
-        /* Generate the process of the faust module, it determine the behavioral modeling of the faust IP */
+        /* Generate the process of the Faust module, it determine the behavioral modeling of the Faust IP */
         void faust_process();
 
         /** Functions generating instance of components referenced in the declarative area
@@ -86,7 +86,6 @@ class Signal2VHDLVisitor : public TreeTraversal {
         void inst_delay(Tree sig, Tree x, Tree y, string & str);                      // delay
         void inst_bypass(const string& name, Tree sig, Tree x, string & str);         // bypass
         void inst_select2(const string& name, Tree sig, Tree sel, Tree x, Tree y, string & str);  // select
-
 
         void decl_sig(Tree x); // Declare the internal signals of the IP block with a type (and an initial value)
         void input_affectation(Tree sig);

@@ -39,8 +39,6 @@
 
 static const char* binopname[] = {"+", "-", "*", "/", "%", "<<", ">>", ">", "<", ">=", "<=", "==", "!=", "&", "|", "^"};
 
-
-
 void Signal2VHDLVisitor::sigToVHDL(Tree L, ofstream& fout)
 {
     Tree output = hd(L);
@@ -93,7 +91,6 @@ void Signal2VHDLVisitor::visit(Tree sig)
                 self(b);
             }
         }
-
         return;
     } else if (isSigInt(sig, &i)) {
         decl_sig(sig);
@@ -629,7 +626,6 @@ void Signal2VHDLVisitor::inst_select2(const string& name, Tree sig, Tree sel, Tr
     "    input_2  => sig"+ addr_to_str(y) +",\n"
     "    output_0 => sig"+ addr_to_str(sig) +");\n\n";
 }
-
 
 void Signal2VHDLVisitor::decl_sig(Tree sig)
 {
