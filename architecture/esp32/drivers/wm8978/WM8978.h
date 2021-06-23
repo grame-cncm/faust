@@ -76,6 +76,9 @@ public:
     void resume(void); 
     void monoOut(uint8_t enable); 
     void spkBoost(uint8_t enable); 
+    void sampleRate(uint8_t srate);
+    void loopback(uint8_t enable);
+    void aMute(uint8_t enable);
 };
 
 #endif
