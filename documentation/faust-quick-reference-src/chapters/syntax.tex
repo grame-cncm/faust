@@ -19,7 +19,9 @@ A \faust program is essentially a list of \textit{statements}. These statements 
 program : (statement)+;
 \end{rail}
 
-Each statement can be preceded by a variantlist, composed of variants which can be \textit{singleprecision}, \textit{doubleprecision}, \textit{quadprecision} or \textit{fixedpointprecision}. This allows statements to be parsed and defined only for a (or several) specific float precision option in the compiler (that is either \lstinline'-single' , \lstinline'-double' , \lstinline'-quad'  or \lstinline'-fx'  repectively). A typical use-case is the definition of floating point constants in the maths.lib library with the following lines:
+\subsection{Variants}
+
+Some statements (imports, definitions) can be preceded by a variantlist, composed of variants which can be \textit{singleprecision}, \textit{doubleprecision}, \textit{quadprecision} or \textit{fixedpointprecision} This allows some imports and definitions to be effective only for a (or several) specific float precision option in the compiler (that is either \lstinline'-single', \lstinline'-double', \lstinline'-quad' or \lstinline'-fx' respectively). A typical use-case is the definition of floating point constants in the maths.lib library with the following lines:
 
 \begin{lstlisting}
 
@@ -27,6 +29,8 @@ singleprecision INFINITY = 3.402823466e+38;
 doubleprecision INFINITY = 1.7976931348623158e+308;
 
 \end{lstlisting}
+
+\subsection{A Simple Program}
 
 Here is a short \faust program that implements of a simple noise generator. It exhibits various kind of statements: two \textit{declarations}, an \textit{import}, a \textit{comment} and a \textit{definition}. We will see later on \textit{documentation} statements (\ref{sec:documentation}).
 
@@ -314,7 +318,10 @@ Despite its textual syntax, \faust is conceptually a block-diagram language. \fa
 \begin{rail}
 expression : diagram | insouts | numerical | time | lexical | foreign | lambda;
 \end{rail}
-  
+
+\subsection{Constant Numerical Expressions}
+
+Some language primitives (like \textit{rdtable}, \textit{rwtable}, \textit{hslider} etc.) take constant numbers as some of their parameters. Those numbers can be directly given in the code, but can also be computed by more complex expressions which have to produce numbers at compile time. We will refer to them as \texti{constant numerical expressions} in the documentation.
 \subsection{Diagram Expressions}
 
 Diagram expressions are assembled from primitive ones using either binary composition operations or high level iterative constructions.
@@ -324,7 +331,7 @@ diagramexp : diagcomposition | diagiteration;
 \end{rail}
 
 \subsubsection{Diagram composition operations} 
-Five binary \emph{composition operations} are available to combine block-diagrams : \textit{recursion}, \textit{parallel}, \textit{sequential}, \textit{split} and \textit{merge} composition. One can think of each  of these composition operations as a particular way to connect two block diagrams. 
+Five binary \emph{composition operations} are available to combine block-diagrams: \textit{recursion}, \textit{parallel}, \textit{sequential}, \textit{split} and \textit{merge} composition. One can think of each of these composition operations as a particular way to connect two block diagrams. 
 
 \begin{rail}
 diagcomposition : expression (recur|','|':'|'<:'|':>') expression;
@@ -1261,9 +1268,9 @@ The following primitives allow to define fixed delays, read-only and read-write 
 \textbf{Syntax} & \textbf{Type}  & \textbf{Description} \\
 \hline
 
-\texttt{mem} & $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 		& 1-sample delay: 	$y(t+1)=x(t),y(0)=0$  \\
+\texttt{mem} & $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 	& 1-sample delay: 	$y(t+1)=x(t),y(0)=0$  \\
 \texttt{prefix} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 	& 1-sample delay:  	$y(t+1)=x_{2}(t),y(0)=x_{1}(0)$  \\
-\texttt{@} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 			& fixed delay:  	$y(t+x_{2}(t))=x_{1}(t), y(t<x_{2}(t))=0$  \\
+\texttt{@} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 		& fixed delay:  	$y(t+x_{2}(t))=x_{1}(t), y(t<x_{2}(t))=0$  \\
 
 \texttt{rdtable} & $\mathbb{S}^{3}\rightarrow\mathbb{S}^{1}$ 	& read-only table:	$y(t)=T[r(t)]$  \\
 \texttt{rwtable} & $\mathbb{S}^{5}\rightarrow\mathbb{S}^{1}$ 	& read-write table:	$T[w(t)]=c(t); y(t)=T[r(t)]$  \\
