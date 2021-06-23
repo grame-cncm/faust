@@ -1,0 +1,40 @@
+#!/bin/bash
+
+#USAGE : rfaust <servurl> ==> <targets>
+#USAGE : rfaust <servurl> <platform> <arch> <srcfile> ==> <binary.zip>
+
+URL="34.76.156.75"
+
+function targetrequest {
+    curl  "$1/targets"
+}
+
+function compilation {
+    curl -F"file=@\"$4\";filename=\"$4\""  "$1/compile/$2/$3/binary.zip" --output binary.zip
+}
+
+
+if [ "$#" == "0" ]; then
+    targetrequest "$URL"
+elif [ "$#" == "1" ]; then
+    targetrequest "$1"
+elif [ "$#" == "3" ]; then
+    if [ -f "$3" ]; then
+        rm -rf binary.zip
+	    compilation $URL $1 $2 $3
+    else 
+        echo "ERROR: file $3 doesn't exist"
+        exit 1
+    fi
+elif [ "$#" == "4" ]; then
+    if [ -f "$4" ]; then
+        rm -rf binary.zip
+	    compilation $1 $2 $3 $4
+    else 
+        echo "ERROR: file $4 doesn't exist"
+        exit 1
+    fi
+else
+    echo "usage : $0 [<servurl>] [<platform> <arch> <srcfile>]"
+fi 
+
