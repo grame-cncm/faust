@@ -1,7 +1,9 @@
 #!/bin/bash
 
-#USAGE : rfaust <servurl> ==> <targets>
-#USAGE : rfaust <servurl> <platform> <arch> <srcfile> ==> <binary.zip>
+. usage.sh
+
+#USAGE : faustremote <servurl> ==> <targets>
+#USAGE : faustremote <servurl> <platform> <arch> <srcfile> ==> <binary.zip>
 
 URL="34.76.156.75"
 
@@ -14,14 +16,20 @@ function compilation {
 }
 
 
-if [ "$#" == "0" ]; then
+if [ "$1" == "-h" ]; then
+    echo "Access the remote complation service to compile DSP programs"
+    echo "Usage: faustremote [<servurl>] [<platform> <arch> <srcfile>]"
+    echo "faustremote <servurl> ==> <targets>"
+    echo "faustremote <servurl> <platform> <arch> <srcfile> ==> <binary.zip>"
+    echo "When no <servurl> is defined, the default GRAME Faust URL service is used"
+elif [ "$#" == "0" ]; then
     targetrequest "$URL"
 elif [ "$#" == "1" ]; then
     targetrequest "$1"
 elif [ "$#" == "3" ]; then
     if [ -f "$3" ]; then
         rm -rf binary.zip
-	    compilation $URL $1 $2 $3
+        compilation $URL $1 $2 $3
     else 
         echo "ERROR: file $3 doesn't exist"
         exit 1
@@ -29,12 +37,10 @@ elif [ "$#" == "3" ]; then
 elif [ "$#" == "4" ]; then
     if [ -f "$4" ]; then
         rm -rf binary.zip
-	    compilation $1 $2 $3 $4
+        compilation $1 $2 $3 $4
     else 
         echo "ERROR: file $4 doesn't exist"
         exit 1
     fi
-else
-    echo "usage : $0 [<servurl>] [<platform> <arch> <srcfile>]"
 fi 
 
