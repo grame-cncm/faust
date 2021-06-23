@@ -22,21 +22,23 @@
 /* compiler/patternmatcher/patternmatcher.cpp: implementation of the Faust
    rewriting engine */
 
+#include <list>
+#include <set>
+#include <utility>
+#include <vector>
+
 #include "patternmatcher.hh"
 #include "boxes.hh"
 #include "eval.hh"
 #include "list.hh"
 #include "ppbox.hh"
 #include "tlib.hh"
-
-using namespace std;
-#include <list>
-#include <set>
-#include <utility>
-#include <vector>
 #include "exception.hh"
 #include "garbageable.hh"
 #include "global.hh"
+#include "environment.hh"
+
+using namespace std;
 
 /* Uncomment for debugging output. */
 //#define DEBUG

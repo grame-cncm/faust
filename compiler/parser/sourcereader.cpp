@@ -22,7 +22,7 @@
 /*
  sourcereader : Faust source file reader
  This component is in charge of mapping filenames to
- the list of faust definitions they contain.
+ the list of Faust definitions they contain.
 */
 
 #include <iostream>
@@ -106,32 +106,6 @@ static string printPatternError(Tree symbol, Tree lhs1, Tree rhs1, Tree lhs2, Tr
     return error.str();
 }
 
-Tree checkRulelist(Tree lr)
-{
-    Tree lrules = lr;
-    if (isNil(lrules)) {
-        stringstream error;
-        error << "ERROR (file " << yyfilename << ":" << yylineno << ") : a case expression can't be empty" << endl;
-        throw faustexception(error.str());
-    }
-    // first pattern used as a reference
-    Tree lhs1 = hd(hd(lrules));
-    Tree rhs1 = tl(hd(lrules));
-    int npat = len(lhs1);
-    lrules = tl(lrules);
-    while (!isNil(lrules)) {
-        Tree lhs2 = hd(hd(lrules));
-        Tree rhs2 = tl(hd(lrules));
-        if (npat != len(lhs2)) {
-            throw faustexception(printPatternError(nullptr, lhs1, rhs1, lhs2, rhs2));
-        }
-        lhs1 = lhs2;
-        rhs1 = rhs2;
-        lrules = tl(lrules);
-    }
-    return lr;
-}
-
 static string printRedefinitionError(Tree symbol, list<Tree>& variants)
 {
     stringstream error;
@@ -194,40 +168,29 @@ static Tree makeDefinition(Tree symbol, list<Tree>& variants)
 	}
 }
 
-/**
- * Formats a list of raw definitions represented by triplets
- * <name, arglist, body> into abstractions or pattern
- * matching rules when appropriate.
- *
- * @param rldef list of raw definitions in reverse order
- * @return the list of formatted definitions
- */
-
-Tree formatDefinitions(Tree rldef)
+// add function metadata (using a boxMetadata construction) to a list of definitions
+static Tree addFunctionMetadata(Tree ldef, FunMDSet& M)
 {
-	map<Tree, list<Tree> > dic;
-	map<Tree, list<Tree> >::iterator p;
-	Tree ldef2 = gGlobal->nil;
-	Tree file;
+    Tree lresult = gGlobal->nil; // the transformed list of definitions
 
-	// Collects the definitions in a dictionnary
-	while (!isNil(rldef)) {
-		Tree def = hd(rldef);
-		rldef = tl(rldef);
-		if (isImportFile(def, file)) {
-			ldef2 = cons(def,ldef2);
-		} else if (!isNil(def)) {
-			//cout << " def : " << *def << endl;
-			dic[hd(def)].push_front(tl(def));
-		}
-	}
-
-	// Produces the definitions
-	for (p = dic.begin(); p != dic.end(); p++) {
-		ldef2 = cons(cons(p->first, makeDefinition(p->first, p->second)), ldef2);
-	}
-
-	return ldef2;
+    // for each definition def of ldef
+    for ( ;!isNil(ldef); ldef = tl(ldef)) {
+        Tree def = hd(ldef);
+        Tree fname;
+        if (isNil(def)) {
+            // skip null definitions produced by declarations
+        } else if (isImportFile(def, fname)) {
+            lresult = cons(def, lresult);
+        } else {
+            Tree foo = hd(def);
+            Tree exp = tl(def);
+            for (const auto& m : M[foo]) {
+                exp = boxMetadata(exp, m);
+            }
+            lresult = cons(cons(foo,exp), lresult);
+        }
+    }
+    return lresult;
 }
 
 void SourceReader::checkName()
@@ -381,31 +344,6 @@ bool SourceReader::cached(string fname)
 	return fFileCache.find(fname) != fFileCache.end();
 }
 
-// add function metadata (using a boxMetadata construction) to a list of definitions
-static Tree addFunctionMetadata(Tree ldef, FunMDSet& M)
-{
-    Tree lresult = gGlobal->nil; // the transformed list of definitions
-
-    // for each definition def of ldef
-	for ( ;!isNil(ldef); ldef = tl(ldef)) {
-		Tree def = hd(ldef);
-        Tree fname;
-		if (isNil(def)) {
-			// skip null definitions produced by declarations
-		} else if (isImportFile(def, fname)) {
-			lresult = cons(def, lresult);
-		} else {
-			Tree foo = hd(def);
-            Tree exp = tl(def);
-            for (const auto& m : M[foo]) {
-                exp = boxMetadata(exp, m);
-            }
-            lresult = cons(cons(foo,exp), lresult);
-		}
-    }
-	return lresult;
-}
-
 /**
  * Return the list of definitions file contains. Cache the result.
  *
@@ -480,6 +418,72 @@ Tree SourceReader::expandRec(Tree ldef, set<string>& visited, Tree lresult)
 		}
 	}
 	return lresult;
+}
+
+// =================
+// Public functions
+// =================
+
+/**
+ * Formats a list of raw definitions represented by triplets
+ * <name, arglist, body> into abstractions or pattern
+ * matching rules when appropriate.
+ *
+ * @param rldef list of raw definitions in reverse order
+ * @return the list of formatted definitions
+ */
+
+Tree formatDefinitions(Tree rldef)
+{
+    map<Tree, list<Tree> > dic;
+    map<Tree, list<Tree> >::iterator p;
+    Tree ldef2 = gGlobal->nil;
+    Tree file;
+
+    // Collects the definitions in a dictionnary
+    while (!isNil(rldef)) {
+        Tree def = hd(rldef);
+        rldef = tl(rldef);
+        if (isImportFile(def, file)) {
+            ldef2 = cons(def,ldef2);
+        } else if (!isNil(def)) {
+            //cout << " def : " << *def << endl;
+            dic[hd(def)].push_front(tl(def));
+        }
+    }
+
+    // Produces the definitions
+    for (p = dic.begin(); p != dic.end(); p++) {
+        ldef2 = cons(cons(p->first, makeDefinition(p->first, p->second)), ldef2);
+    }
+
+    return ldef2;
+}
+
+Tree checkRulelist(Tree lr)
+{
+    Tree lrules = lr;
+    if (isNil(lrules)) {
+        stringstream error;
+        error << "ERROR (file " << yyfilename << ":" << yylineno << ") : a case expression can't be empty" << endl;
+        throw faustexception(error.str());
+    }
+    // first pattern used as a reference
+    Tree lhs1 = hd(hd(lrules));
+    Tree rhs1 = tl(hd(lrules));
+    int npat = len(lhs1);
+    lrules = tl(lrules);
+    while (!isNil(lrules)) {
+        Tree lhs2 = hd(hd(lrules));
+        Tree rhs2 = tl(hd(lrules));
+        if (npat != len(lhs2)) {
+            throw faustexception(printPatternError(nullptr, lhs1, rhs1, lhs2, rhs2));
+        }
+        lhs1 = lhs2;
+        rhs1 = rhs2;
+        lrules = tl(lrules);
+    }
+    return lr;
 }
 
 void declareMetadata(Tree key, Tree value)

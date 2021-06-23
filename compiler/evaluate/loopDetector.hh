@@ -31,7 +31,6 @@
  **/
 
 #include "boxes.hh"
-#include "sourcereader.hh"
 
 class loopDetector : public virtual Garbageable {
    private:

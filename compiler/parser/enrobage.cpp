@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
  FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -318,7 +318,7 @@ unique_ptr<ifstream> openArchStream(const char* filename)
 
 /**
  * Try to open the file <filename> searching in various directories. If succesful
- *  place its full pathname in the string <fullpath>
+ * place its full pathname in the string <fullpath>
  */
 FILE* fopenSearch(const char* filename, string& fullpath)
 {

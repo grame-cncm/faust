@@ -23,7 +23,7 @@
 #define __NAMES__
 
 #include <string>
-#include "propagate.hh"
+//#include "propagate.hh"
 #include "tlib.hh"
 
 using namespace std;
@@ -47,9 +47,6 @@ bool getDefNameProperty(Tree t, Tree& id);
 void setDefNameProperty(Tree t, Tree id);
 void setDefNameProperty(Tree t, const string& name);
 
-// bool getSigListNickName (Tree t, Tree& id);
-// void setSigListNickName (const siglist&  lsig, const string& nickname);
-
 void setSigListNickName(Tree lsig, const string& nickname);
 
 void setSigNickname(Tree t, const string& id);
@@ -63,8 +60,5 @@ bool getSigNickname(Tree t, Tree& id);
  * @return the new environment
  */
 Tree pushValueDef(Tree id, Tree def, Tree lenv);
-
-/* numeric simplification of pattern arguments */
-Tree simplifyPattern(Tree pattern);
 
 #endif

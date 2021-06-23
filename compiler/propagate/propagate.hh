@@ -24,7 +24,6 @@
 
 #include <vector>
 #include "boxes.hh"
-#include "signals.hh"
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -36,9 +35,7 @@
  */
 ///////////////////////////////////////////////////////////////////////
 
-using namespace std;
-
-typedef vector<Tree> siglist;
+typedef std::vector<Tree> siglist;
 
 siglist makeSigInputList(int n);
 
