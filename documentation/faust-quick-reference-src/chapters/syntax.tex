@@ -321,7 +321,8 @@ expression : diagram | insouts | numerical | time | lexical | foreign | lambda;
 
 \subsection{Constant Numerical Expressions}
 
-Some language primitives (like \textit{rdtable}, \textit{rwtable}, \textit{hslider} etc.) take constant numbers as some of their parameters. Those numbers can be directly given in the code, but can also be computed by more complex expressions which have to produce numbers at compile time. We will refer to them as \texti{constant numerical expressions} in the documentation.
+Some language primitives (like \textit{rdtable}, \textit{rwtable}, \textit{hslider} etc.) take constant numbers as some of their parameters. Those numbers can be directly given in the code, but can also be computed by more complex expressions which have to produce numbers at compile time. We will refer to them as \textit{constant numerical expressions} in the documentation.
+
 \subsection{Diagram Expressions}
 
 Diagram expressions are assembled from primitive ones using either binary composition operations or high level iterative constructions.
@@ -1291,6 +1292,8 @@ The following primitives allow to define fixed delays, read-only and read-write 
 \label{fig:delays}
 \end{figure}
 
+The size input of \textit{rdtable} and \textit{rwtable} are \textit{constant numerical expressions}.
+
 %--------------------------------------------------------------------------------------------------------------
 \subsection{User Interface Elements}
 %--------------------------------------------------------------------------------------------------------------
@@ -1328,7 +1331,7 @@ All these GUI elements produce signals. A button for example (see figure \ref{fi
 \hline
 \end{tabular}
 
-All numerical parameters (like  {\it cur}, {\it min},  {\it max},  {\it step}) have to be known at compile time.
+All numerical parameters (like {\it cur}, {\it min}, {\it max}, {\it step}) are \textit{constant numerical expressions}.
 
 \bigskip
 \subsubsection{Labels}
