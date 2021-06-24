@@ -28,6 +28,7 @@ STANDALONE="0"
 IS_SYNTH="0"
 IS_MIDI="0"
 IS_LLVM="0"
+PLUGIN_MAGIC="0"
 JUCE_POLY="0"
 FAUSTFLOAT="float"
 JUCER=""
@@ -53,10 +54,12 @@ do
         option "-effect auto"
         option -standalone "to produce a standalone project, otherwise a plugin project is generated"
         option -"vst2sdkdir <folder>" "to set directory to VST 2 SDK."
+        option -"magic."
         option -"jucemodulesdir <folder>" "to set JUCE modules directory to <folder>, such as ~/JUCE/modules"
         option -disable-splash-screen "to disable the JUCE splash screen (license is required)."
         option -jsynth "to use JUCE polyphonic Synthesizer instead of Faust polyphonic code"
         option -llvm "to use the LLVM compilation chain (OSX and Linux for now)"
+        option -magic "to generate a project using the PluginGuiMagic GUI builder"
         exit
     fi
 
@@ -95,6 +98,8 @@ do
         DEF+="OSCCTRL "
     elif [ $p = "-llvm" ]; then
         IS_LLVM="1"
+    elif [ $p = "-magic" ]; then
+        DEF+="PLUGIN_MAGIC "
     elif [ $p = "-soundfile" ]; then
         DEF+="SOUNDFILE "
     elif [ ${p:0:1} = "-" ]; then
@@ -140,7 +145,7 @@ fi
 
 # IS_SYNTH may have previously been set to "1" by the "-nvoices" command line option
 if [ "$IS_SYNTH" == "0" ]; then
-    #look for polyphonic "nvoices" metadata in the DSP file
+    # look for polyphonic "nvoices" metadata in the DSP file
     if [ $(cat $FILES | grep -c "nvoices:") -ne 0 ] || [ $(cat $FILES | grep -c "declare nvoices") -ne 0 ]
     then
         # a variation of the string "nvoices" was found

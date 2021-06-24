@@ -218,6 +218,86 @@ class FaustSynthesiser : public juce::Synthesiser, public dsp_voice_group {
 
 #endif
 
+// Using the PluginGuiMagic project (https://foleysfinest.com/developer/pluginguimagic/)
+
+#if defined(PLUGIN_MAGIC)
+
+class FaustPlugInAudioProcessor : public foleys::MagicProcessor, private juce::Timer
+{
+    
+public:
+    juce::AudioProcessorValueTreeState treeState{ *this, nullptr };
+    FaustPlugInAudioProcessor();
+    virtual ~FaustPlugInAudioProcessor() {}
+    
+    void prepareToPlay (double sampleRate, int samplesPerBlock) override;
+    
+    bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
+    
+    void processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override
+    {
+        jassert (! isUsingDoublePrecision());
+        process (buffer, midiMessages);
+    }
+    
+    void processBlock (juce::AudioBuffer<double>& buffer, juce::MidiBuffer& midiMessages) override
+    {
+        jassert (isUsingDoublePrecision());
+        process (buffer, midiMessages);
+    }
+    
+    const juce::String getName() const override;
+    
+    bool acceptsMidi() const override;
+    bool producesMidi() const override;
+    double getTailLengthSeconds() const override;
+    
+    int getNumPrograms() override;
+    int getCurrentProgram() override;
+    void setCurrentProgram (int index) override;
+    const juce::String getProgramName (int index) override;
+    void changeProgramName (int index, const juce::String& newName) override;
+    
+    void releaseResources() override
+    {}
+    
+    void timerCallback() override;
+    
+    juce::AudioProcessor::BusesProperties getBusesProperties();
+    bool supportsDoublePrecisionProcessing() const override;
+    
+#ifdef JUCE_POLY
+    std::unique_ptr<FaustSynthesiser> fSynth;
+#else
+#if defined(MIDICTRL)
+    std::unique_ptr<juce_midi_handler> fMIDIHandler;
+    std::unique_ptr<MidiUI> fMIDIUI;
+#endif
+    std::unique_ptr<dsp> fDSP;
+#endif
+    
+#if defined(OSCCTRL)
+    std::unique_ptr<JuceOSCUI> fOSCUI;
+#endif
+    
+#if defined(SOUNDFILE)
+    std::unique_ptr<SoundUI> fSoundUI;
+#endif
+    
+    JuceStateUI fStateUI;
+    JuceParameterUI fParameterUI;
+    
+private:
+    
+    template <typename FloatType>
+    void process (juce::AudioBuffer<FloatType>& buffer, juce::MidiBuffer& midiMessages);
+    
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FaustPlugInAudioProcessor)
+    
+};
+
+#else
+
 class FaustPlugInAudioProcessor : public juce::AudioProcessor, private juce::Timer
 {
 
@@ -297,6 +377,8 @@ class FaustPlugInAudioProcessor : public juce::AudioProcessor, private juce::Tim
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FaustPlugInAudioProcessor)
     
 };
+
+#endif
 
 class FaustPlugInAudioProcessorEditor : public juce::AudioProcessorEditor
 {

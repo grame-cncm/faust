@@ -24,7 +24,7 @@ Two different achitecture files will be used to glue the previously described fi
 
 **faust2juce** is used with the following command: 
 
-`faust2juce [-osc] [-midi] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-standalone] [-jucemodulesdir <dir>] [-vst2sdkdir <dir>] [-disable-splash-screen] [-jsynth] [-llvm] [additional Faust options (-vec -vs 8...)] file.dsp` 
+`faust2juce [-osc] [-midi] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-standalone] [-jucemodulesdir <dir>] [-vst2sdkdir <dir>] [-disable-splash-screen] [-jsynth] [-llvm] [-magic] [additional Faust options (-vec -vs 8...)] file.dsp` 
 
 By default it will create a plugin project, with a folder named with the dsp file name, containing a .jucer project with a FaustPluginProcessor.cpp file to be used by JUCE.
 
@@ -48,6 +48,7 @@ Here are the available options:
 - `-disable-splash-screen` : to disable the JUCE splash screen (license is required).
 - `-jsynth` : to use JUCE polyphonic Synthesizer instead of Faust polyphonic code
 - `-llvm` : to use the LLVM compilation chain (OSX and Linux for now)
+- `-magic` : to generate a project using the [PluginGuiMagic GUI builder](https://foleysfinest.com/developer/pluginguimagic/)
 - `-help or -h` : shows the different options 
 
 As usual with faust2xx tools, other Faust compiler specific options can be given to **faust2juce**, like `-cn name` to give a name to the generated DSP class, or `-vec -lv 1 -lv 1` to compile in vector mode.etc.
