@@ -1241,6 +1241,7 @@ static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
 
     // search the environment env for a definition of symbol id
     while (!isNil(lenv) && !getProperty(lenv, id, def)) {
+        faustassert(lenv->arity() > 0);
         lenv = lenv->branch(0);
     }
 
