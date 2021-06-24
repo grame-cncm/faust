@@ -54,7 +54,6 @@ do
         option "-effect auto"
         option -standalone "to produce a standalone project, otherwise a plugin project is generated"
         option -"vst2sdkdir <folder>" "to set directory to VST 2 SDK."
-        option -"magic."
         option -"jucemodulesdir <folder>" "to set JUCE modules directory to <folder>, such as ~/JUCE/modules"
         option -disable-splash-screen "to disable the JUCE splash screen (license is required)."
         option -jsynth "to use JUCE polyphonic Synthesizer instead of Faust polyphonic code"
