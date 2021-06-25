@@ -1,19 +1,25 @@
 import("stdfaust.lib");
+
+declare name "1dDampedWaveEquation";
+declare description "1D wave equation with added frequency independent damping.";
+declare author "Riccardo Russo";
+
 //--------------------------------Model Settings-----------------------------//
 nPoints = 100;
 
 k = 1/ma.SR;
 c = 344;
 h = c*k;
-s0 = 500;
+sigma0 = 5;
 lambda = c*k/h;
 
 //----------------------------------Equations--------------------------------//
-C1 = 1+(2*s0*k*k/h);
-C2 = (2*s0*k*k/h)-1;
-A = 2*(1-lambda*lambda)/C1;
-B = lambda*lambda/C1;
+A = 2*(1-lambda^2)/C1;
+B = lambda^2/C1;
 C = C2/C1;
+
+C1 = (sigma0*k) + 1;
+C2 = (sigma0*k) - 1;
 
 midCoeff = B,A,B;
 midCoeffDel = 0,C,0;

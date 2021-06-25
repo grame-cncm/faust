@@ -1,5 +1,9 @@
 import("stdfaust.lib");
 
+declare name "BowedString";
+declare description "Linear string model coupled with a bowing model for excitation.";
+declare author "Riccardo Russo";
+
 //----------------------------------String Settings---------------------------//
 // Generic string
 
@@ -24,11 +28,11 @@ sigma0 = 0.0005;
 
 //----------------------------------Equations--------------------------------//
 den = 1+sigma0*k;
-A = (2*h^4-2*c^2*k^2*h^2-4*sigma1*k*h^2+6*K^2*k^2)/den/h^4;
+A = (2*h^4-2*c^2*k^2*h^2-4*sigma1*k*h^2-6*K^2*k^2)/den/h^4;
 B = (sigma0*k*h^2-h^2+4*sigma1*k)/den/h^2;
-C = (c^2*k^2*h^2+2*sigma1*k*h^2-4*K^2*k^2)/den/h^4;
+C = (c^2*k^2*h^2+2*sigma1*k*h^2+4*K^2*k^2)/den/h^4;
 D = -2*sigma1*k/den/h^2;
-E = K^2*k^2/den/h^4;
+E = -K^2*k^2/den/h^4;
 
 midCoeff = E,C,A,C,E;
 midCoeffDel = 0,D,B,D,0;
