@@ -44,7 +44,7 @@ class JuliaInstVisitor : public TextInstVisitor {
     using TextInstVisitor::visit;
 
     JuliaInstVisitor(std::ostream* out, const string& struct_name, int tab = 0)
-        : TextInstVisitor(out, "->", new CStringTypeManager(xfloat(), "*", struct_name), tab)
+        : TextInstVisitor(out, ".", new JuliaStringTypeManager(xfloat(), "*", struct_name), tab)
     {
         
     }
@@ -88,17 +88,45 @@ class JuliaInstVisitor : public TextInstVisitor {
 
     virtual void visit(DeclareVarInst* inst)
     {
-        
+        /*
+        // TODO
+        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+            *fOut << "static ";
+        }
+
+        if (inst->fAddress->getAccess() & Address::kVolatile) {
+            *fOut << "volatile ";
+        }
+        */
+
+        *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+        if (inst->fValue) {
+            *fOut << " = ";
+            inst->fValue->accept(this);
+        }
+        EndLine();
     }
 
     virtual void visit(DeclareFunInst* inst)
     {
+        // Already generated
+        if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
+           return;
+        } else {
+           gFunctionSymbolTable[inst->fName] = true;
+        }
         
+        *fOut << "function " << inst->fName;
+        generateFunDefArgs(inst);
+        generateFunDefBody(inst);
     }
 
     virtual void visit(NamedAddress* named)
     {
-       
+       if (named->getAccess() & Address::kStruct) {
+           *fOut << "dsp.";
+       }
+       *fOut << named->fName;
     }
 
     virtual void visit(LoadVarAddressInst* inst)
@@ -106,11 +134,13 @@ class JuliaInstVisitor : public TextInstVisitor {
         
     }
     
+    /*
     virtual void visit(BinopInst* inst)
     {
        
     }
-  
+    */
+    
     virtual void visit(::CastInst* inst)
     {
         
@@ -123,16 +153,21 @@ class JuliaInstVisitor : public TextInstVisitor {
     }
 
     // Generate standard funcall (not 'method' like funcall...)
+    
     virtual void visit(FunCallInst* inst)
     {
-        
+        string name = gGlobal->getMathFunction(inst->fName);
+        name = (gPolyMathLibTable.find(name) != gPolyMathLibTable.end()) ? gPolyMathLibTable[name] : name;
+        generateFunCall(inst, name);
     }
-
+  
+    /*
     virtual void visit(ForLoopInst* inst)
     {
        
     }
-
+    */
+    
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 

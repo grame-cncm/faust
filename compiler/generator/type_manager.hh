@@ -328,4 +328,98 @@ class SOULStringTypeManager : public StringTypeManager {
     }
 };
 
+// StringTypeManager for Julia backend
+
+class JuliaStringTypeManager : public StringTypeManager {
+   public:
+    JuliaStringTypeManager(const std::string& float_macro_name, const std::string& ptr_ref, const std::string& struct_name = "")
+        : StringTypeManager(float_macro_name, ptr_ref)
+    {
+        fPtrRef = ptr_ref;
+
+        fTypeDirectTable[Typed::kInt32]     = "Int32";
+        fTypeDirectTable[Typed::kInt32_ptr] = fPtrRef + "Int32";
+        fTypeDirectTable[Typed::kInt32_vec] = "vector<Int32>";
+
+        fTypeDirectTable[Typed::kInt64]     = "Int64";
+        fTypeDirectTable[Typed::kInt64_ptr] =  fPtrRef + "Int64";
+        fTypeDirectTable[Typed::kInt64_vec] = "vector<Int64>";
+
+        fTypeDirectTable[Typed::kFloat]     = "Float32";
+        fTypeDirectTable[Typed::kFloat_ptr] = fPtrRef + "Float32";
+        fTypeDirectTable[Typed::kFloat_ptr_ptr] =  fPtrRef + fPtrRef + "Float32";
+        fTypeDirectTable[Typed::kFloat_vec] = "vector<Float32>";
+
+        fTypeDirectTable[Typed::kDouble]     = "Float64";
+        fTypeDirectTable[Typed::kDouble_ptr] = fPtrRef + "Float64";
+        fTypeDirectTable[Typed::kDouble_ptr_ptr] = fPtrRef + fPtrRef + "Float64";
+        fTypeDirectTable[Typed::kDouble_vec] = "vector<Float64>";
+
+        fTypeDirectTable[Typed::kQuad]     = "quad";
+        fTypeDirectTable[Typed::kQuad_ptr] = fPtrRef + "quad";
+        
+        fTypeDirectTable[Typed::kFixedPoint]     = "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_ptr] = fPtrRef + "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_ptr] = fPtrRef + fPtrRef + "fixpoint_t";
+        fTypeDirectTable[Typed::kFixedPoint_vec] = "vector<fixpoint_t>";
+
+        fTypeDirectTable[Typed::kBool]     = "bool";
+        fTypeDirectTable[Typed::kBool_ptr] = fPtrRef + "bool";
+        fTypeDirectTable[Typed::kBool_vec] = "vector<bool>";
+
+        fTypeDirectTable[Typed::kVoid]     = "void";
+        fTypeDirectTable[Typed::kVoid_ptr] = fPtrRef + "void";
+        
+        fTypeDirectTable[Typed::kSound]     = "Soundfile";
+        fTypeDirectTable[Typed::kSound_ptr] = fPtrRef + "Soundfile";
+
+        // DSP has to be empty here
+        fTypeDirectTable[Typed::kObj]     = struct_name;
+        fTypeDirectTable[Typed::kObj_ptr] = struct_name + fPtrRef;
+
+        fTypeDirectTable[Typed::kUint_ptr] = "uintptr_t";
+    }
+
+    virtual std::string generateType(Typed* type)
+    {
+        BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
+        NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
+        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
+  
+        if (basic_typed) {
+            return fTypeDirectTable[basic_typed->fType];
+        } else if (named_typed) {
+            string ty_str = generateType(named_typed->fType);
+            return named_typed->fName + ((ty_str != "") ? (": " + ty_str) : "");
+        } else if (array_typed) {
+            return fTypeDirectTable[array_typed->getType()];
+        } else {
+            faustassert(false);
+            return "";
+        }
+    }
+
+    virtual std::string generateType(Typed* type, const std::string& name)
+    {
+        BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
+        NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
+        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
+
+        if (basic_typed) {
+            return name + "::" + fTypeDirectTable[basic_typed->fType];
+        } else if (named_typed) {
+            string ty_str = named_typed->fName + generateType(named_typed->fType);
+            return name + ((ty_str != "") ? ("::" + ty_str) : "");
+        } else if (array_typed) {
+            return (array_typed->fSize == 0)
+                       ? name + "::" + fPtrRef + generateType(array_typed->fType)
+                       : name + "::[" + generateType(array_typed->fType) + ";" + std::to_string(array_typed->fSize) + "]";
+        } else {
+            faustassert(false);
+            return "";
+        }
+    }
+};
+
+
 #endif

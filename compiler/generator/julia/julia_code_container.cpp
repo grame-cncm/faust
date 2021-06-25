@@ -77,7 +77,137 @@ void JuliaCodeContainer::produceInternal()
 
 void JuliaCodeContainer::produceClass()
 {
-    *fOut << "// TODO: generate Julia code here" << endl;
+    int n = 0;
+
+    // Sub containers
+    generateSubContainers();
+
+    // Functions
+    tab(n, *fOut);
+    fCodeProducer->Tab(n);
+    generateGlobalDeclarations(fCodeProducer);
+
+    tab(n, *fOut);
+    *fOut << "mutable struct " << fKlassName;
+    tab(n + 1, *fOut);
+
+    // Fields
+    fCodeProducer->Tab(n + 1);
+    generateDeclarations(fCodeProducer);
+    back(1, *fOut);
+    *fOut << "end";
+    tab(n, *fOut);
+
+    // Get sample rate method
+    tab(n, *fOut);
+    fCodeProducer->Tab(n);
+    generateGetSampleRate("getSampleRate" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
+
+    tab(n, *fOut);
+    produceInfoFunctions(n, fKlassName, "dsp", false, false, fCodeProducer);
+    
+    tab(n, *fOut);
+    *fOut << "function classInit" << fKlassName << "(sample_rate::Int32) ";
+    {
+        tab(n + 1, *fOut);
+        // Local visitor here to avoid DSP object incorrect type generation
+        JuliaInstVisitor codeproducer(fOut, "");
+        codeproducer.Tab(n + 1);
+        generateStaticInit(&codeproducer);
+    }
+    back(1, *fOut);
+    *fOut << "end;";
+    
+    tab(n, *fOut);
+    tab(n, *fOut);
+    *fOut << "function instanceResetUserInterface" << fKlassName << "(" << fKlassName << "* dsp) ";
+    {
+        tab(n + 1, *fOut);
+        // Local visitor here to avoid DSP object incorrect type generation
+        JuliaInstVisitor codeproducer(fOut, "");
+        codeproducer.Tab(n + 1);
+        generateResetUserInterface(&codeproducer);
+    }
+    back(1, *fOut);
+    *fOut << "";
+    
+    tab(n, *fOut);
+    tab(n, *fOut);
+    *fOut << "function instanceClear" << fKlassName << "(" << fKlassName << "* dsp) ";
+    {
+        tab(n + 1, *fOut);
+        // Local visitor here to avoid DSP object incorrect type generation
+        JuliaInstVisitor codeproducer(fOut, "");
+        codeproducer.Tab(n + 1);
+        generateClear(&codeproducer);
+    }
+    back(1, *fOut);
+    *fOut << "end;";
+
+    tab(n, *fOut);
+    tab(n, *fOut);
+    *fOut << "function instanceConstants" << fKlassName << "(" << fKlassName << "* dsp, sample_rate::Int32)";
+    {
+        tab(n + 1, *fOut);
+        // Local visitor here to avoid DSP object incorrect type generation
+        JuliaInstVisitor codeproducer(fOut, "");
+        codeproducer.Tab(n + 1);
+        generateInit(&codeproducer);
+    }
+    back(1, *fOut);
+    *fOut << "end;";
+
+    tab(n, *fOut);
+    tab(n, *fOut);
+    *fOut << "function instanceInit" << fKlassName << "(" << fKlassName << "* dsp, sample_rate::Int32)";
+    tab(n + 1, *fOut);
+    *fOut << "instanceConstants" << fKlassName << "(dsp, sample_rate)";
+    tab(n + 1, *fOut);
+    *fOut << "instanceResetUserInterface" << fKlassName << "(dsp)";
+    tab(n + 1, *fOut);
+    *fOut << "instanceClear" << fKlassName << "(dsp)";
+    tab(n, *fOut);
+    *fOut << "end;";
+
+    tab(n, *fOut);
+    tab(n, *fOut);
+    *fOut << "function init" << fKlassName << "(" << fKlassName << "* dsp, sample_rate::Int32)";
+    tab(n + 1, *fOut);
+    *fOut << "classInit" << fKlassName << "(sample_rate)";
+    tab(n + 1, *fOut);
+    *fOut << "instanceInit" << fKlassName << "(dsp, sample_rate)";
+    tab(n, *fOut);
+    *fOut << "end;";
+    tab(n, *fOut);
+    
+    // Compute
+    generateCompute(n);
+}
+
+void JuliaCodeContainer::generateCompute(int n)
+{
+    // Generates declaration
+    tab(n, *fOut);
+    *fOut << "funcion compute" << fKlassName << "(" << fKlassName
+          << subst("* dsp, int $0, $1** inputs, $1** outputs)", fFullCount, xfloat());
+    tab(n + 1, *fOut);
+    fCodeProducer->Tab(n + 1);
+
+    // Generates local variables declaration and setup
+    generateComputeBlock(fCodeProducer);
+
+    // Generates one single scalar loop
+    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
+    loop->accept(fCodeProducer);
+
+    /*
+    // TODO : atomic switch
+    // Currently for soundfile management
+    */
+    generatePostComputeBlock(fCodeProducer);
+
+    back(1, *fOut);
+    *fOut << "end;" << endl;
 }
 
 void JuliaCodeContainer::produceMetadata(int tabs)

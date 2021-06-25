@@ -41,11 +41,8 @@ class JuliaCodeContainer : public virtual CodeContainer {
     virtual void produceClass();
     void produceMetadata(int tabs);
     virtual void produceInternal();
-    
-    void generateCompute(int n)
-    {
-        
-    }
+
+    void generateCompute(int n);
 
    public:
     JuliaCodeContainer()
@@ -54,6 +51,7 @@ class JuliaCodeContainer : public virtual CodeContainer {
     {
         // Mandatory
         initialize(numInputs, numOutputs);
+        fKlassName = name;
         fOut = out;
         
         fCodeProducer = new JuliaInstVisitor(out, name);
