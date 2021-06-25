@@ -46,7 +46,172 @@ class JuliaInstVisitor : public TextInstVisitor {
     JuliaInstVisitor(std::ostream* out, const string& struct_name, int tab = 0)
         : TextInstVisitor(out, ".", new JuliaStringTypeManager(xfloat(), "*", struct_name), tab)
     {
+        // Mark all math.h functions as generated...
+        gFunctionSymbolTable["abs"] = true;
         
+        gFunctionSymbolTable["max"] = true;
+        gFunctionSymbolTable["min"] = true;
+        
+        gFunctionSymbolTable["max_f"] = true;
+        gFunctionSymbolTable["min_f"] = true;
+
+        gFunctionSymbolTable["max_"] = true;
+        gFunctionSymbolTable["min_"] = true;
+
+        gFunctionSymbolTable["max_l"] = true;
+        gFunctionSymbolTable["min_l"] = true;
+
+        // Float version
+        gFunctionSymbolTable["fabsf"]      = true;
+        gFunctionSymbolTable["acosf"]      = true;
+        gFunctionSymbolTable["asinf"]      = true;
+        gFunctionSymbolTable["atanf"]      = true;
+        gFunctionSymbolTable["atan2f"]     = true;
+        gFunctionSymbolTable["ceilf"]      = true;
+        gFunctionSymbolTable["cosf"]       = true;
+        gFunctionSymbolTable["expf"]       = true;
+        gFunctionSymbolTable["exp10f"]     = true;
+        gFunctionSymbolTable["floorf"]     = true;
+        gFunctionSymbolTable["fmodf"]      = true;
+        gFunctionSymbolTable["logf"]       = true;
+        gFunctionSymbolTable["log10f"]     = true;
+        gFunctionSymbolTable["powf"]       = true;
+        gFunctionSymbolTable["remainderf"] = true;
+        gFunctionSymbolTable["rintf"]      = true;
+        gFunctionSymbolTable["roundf"]     = true;
+        gFunctionSymbolTable["sinf"]       = true;
+        gFunctionSymbolTable["sqrtf"]      = true;
+        gFunctionSymbolTable["tanf"]       = true;
+
+        // Double version
+        gFunctionSymbolTable["fabs"]      = true;
+        gFunctionSymbolTable["acos"]      = true;
+        gFunctionSymbolTable["asin"]      = true;
+        gFunctionSymbolTable["atan"]      = true;
+        gFunctionSymbolTable["atan2"]     = true;
+        gFunctionSymbolTable["ceil"]      = true;
+        gFunctionSymbolTable["cos"]       = true;
+        gFunctionSymbolTable["exp"]       = true;
+        gFunctionSymbolTable["exp10"]     = true;
+        gFunctionSymbolTable["floor"]     = true;
+        gFunctionSymbolTable["fmod"]      = true;
+        gFunctionSymbolTable["log"]       = true;
+        gFunctionSymbolTable["log10"]     = true;
+        gFunctionSymbolTable["pow"]       = true;
+        gFunctionSymbolTable["remainder"] = true;
+        gFunctionSymbolTable["rint"]      = true;
+        gFunctionSymbolTable["round"]     = true;
+        gFunctionSymbolTable["sin"]       = true;
+        gFunctionSymbolTable["sqrt"]      = true;
+        gFunctionSymbolTable["tan"]       = true;
+
+        // Quad version
+        gFunctionSymbolTable["fabsl"]      = true;
+        gFunctionSymbolTable["acosl"]      = true;
+        gFunctionSymbolTable["asinl"]      = true;
+        gFunctionSymbolTable["atanl"]      = true;
+        gFunctionSymbolTable["atan2l"]     = true;
+        gFunctionSymbolTable["ceill"]      = true;
+        gFunctionSymbolTable["cosl"]       = true;
+        gFunctionSymbolTable["expl"]       = true;
+        gFunctionSymbolTable["exp10l"]     = true;
+        gFunctionSymbolTable["floorl"]     = true;
+        gFunctionSymbolTable["fmodl"]      = true;
+        gFunctionSymbolTable["logl"]       = true;
+        gFunctionSymbolTable["log10l"]     = true;
+        gFunctionSymbolTable["powl"]       = true;
+        gFunctionSymbolTable["remainderl"] = true;
+        gFunctionSymbolTable["rintl"]      = true;
+        gFunctionSymbolTable["roundl"]     = true;
+        gFunctionSymbolTable["sinl"]       = true;
+        gFunctionSymbolTable["sqrtl"]      = true;
+        gFunctionSymbolTable["tanl"]       = true;
+   
+        // Polymath mapping int version
+        gPolyMathLibTable["abs"]   = "abs";
+        gPolyMathLibTable["max_i"] = "max";
+        gPolyMathLibTable["min_i"] = "min";
+
+        // Polymath mapping float version
+        gPolyMathLibTable["max_f"] = "max";
+        gPolyMathLibTable["min_f"] = "min";
+
+        gPolyMathLibTable["fabsf"]      = "fabs";
+        gPolyMathLibTable["acosf"]      = "acos";
+        gPolyMathLibTable["asinf"]      = "asin";
+        gPolyMathLibTable["atanf"]      = "atan";
+        gPolyMathLibTable["atan2f"]     = "atan2";
+        gPolyMathLibTable["ceilf"]      = "ceil";
+        gPolyMathLibTable["cosf"]       = "cos";
+        gPolyMathLibTable["expf"]       = "exp";
+        gPolyMathLibTable["exp2f"]      = "exp2";
+        gPolyMathLibTable["exp10f"]     = "exp10f";
+        gPolyMathLibTable["floorf"]     = "floor";
+        gPolyMathLibTable["fmodf"]      = "fmod";
+        gPolyMathLibTable["logf"]       = "log";
+        gPolyMathLibTable["log2f"]      = "log2";
+        gPolyMathLibTable["log10f"]     = "log10";
+        gPolyMathLibTable["powf"]       = "pow";
+        gPolyMathLibTable["remainderf"] = "remainder";
+        gPolyMathLibTable["rintf"]      = "rint";
+        gPolyMathLibTable["roundf"]     = "round";
+        gPolyMathLibTable["sinf"]       = "sin";
+        gPolyMathLibTable["sqrtf"]      = "sqrt";
+        gPolyMathLibTable["tanf"]       = "tan";
+
+        // Polymath mapping double version
+        gPolyMathLibTable["max_"] = "max";
+        gPolyMathLibTable["min_"] = "min";
+
+        gPolyMathLibTable["fabs"]      = "fabs";
+        gPolyMathLibTable["acos"]      = "acos";
+        gPolyMathLibTable["asin"]      = "asin";
+        gPolyMathLibTable["atan"]      = "atan";
+        gPolyMathLibTable["atan2"]     = "atan2";
+        gPolyMathLibTable["ceil"]      = "ceil";
+        gPolyMathLibTable["cos"]       = "cos";
+        gPolyMathLibTable["exp"]       = "exp";
+        gPolyMathLibTable["exp2"]      = "exp2";
+        gPolyMathLibTable["exp10"]     = "exp10";
+        gPolyMathLibTable["floor"]     = "floor";
+        gPolyMathLibTable["fmod"]      = "fmod";
+        gPolyMathLibTable["log"]       = "log";
+        gPolyMathLibTable["log2"]      = "log2";
+        gPolyMathLibTable["log10"]     = "log10";
+        gPolyMathLibTable["pow"]       = "pow";
+        gPolyMathLibTable["remainder"] = "remainder";
+        gPolyMathLibTable["rint"]      = "rint";
+        gPolyMathLibTable["round"]     = "round";
+        gPolyMathLibTable["sin"]       = "sin";
+        gPolyMathLibTable["sqrt"]      = "sqrt";
+        gPolyMathLibTable["tan"]       = "tan";
+
+        // Polymath mapping quad version
+        gPolyMathLibTable["max_l"] = "max";
+        gPolyMathLibTable["min_l"] = "min";
+
+        gPolyMathLibTable["fabsl"]      = "fabs";
+        gPolyMathLibTable["acosl"]      = "acos";
+        gPolyMathLibTable["asinl"]      = "asin";
+        gPolyMathLibTable["atanl"]      = "atan";
+        gPolyMathLibTable["atan2l"]     = "atan2";
+        gPolyMathLibTable["ceill"]      = "ceil";
+        gPolyMathLibTable["cosl"]       = "cos";
+        gPolyMathLibTable["expl"]       = "exp";
+        gPolyMathLibTable["exp2l"]      = "exp2";
+        gPolyMathLibTable["exp10l"]     = "exp10";
+        gPolyMathLibTable["floorl"]     = "floor";
+        gPolyMathLibTable["fmodl"]      = "fmod";
+        gPolyMathLibTable["logl"]       = "log";
+        gPolyMathLibTable["log2l"]      = "log2";
+        gPolyMathLibTable["log10l"]     = "log10";
+        gPolyMathLibTable["powl"]       = "pow";
+        gPolyMathLibTable["remainderl"] = "remainder";
+        gPolyMathLibTable["rintl"]      = "rint";
+        gPolyMathLibTable["roundl"]     = "round";
+        gPolyMathLibTable["sinl"]       = "sin";
+        gPolyMathLibTable["sqrtl"]      = "sqrt";
+        gPolyMathLibTable["tanl"]       = "tan";
     }
 
     virtual ~JuliaInstVisitor() {}
@@ -104,9 +269,21 @@ class JuliaInstVisitor : public TextInstVisitor {
             *fOut << " = ";
             inst->fValue->accept(this);
         }
-        EndLine();
+        EndLine(' ');
     }
 
+    virtual void visitAux(RetInst* inst, bool gen_empty)
+    {
+        if (inst->fResult) {
+            *fOut << "return ";
+            inst->fResult->accept(this);
+            EndLine(' ');
+        } else if (gen_empty) {
+            *fOut << "return";
+            EndLine(' ');
+        }
+    }
+    
     virtual void visit(DeclareFunInst* inst)
     {
         // Already generated
@@ -119,6 +296,23 @@ class JuliaInstVisitor : public TextInstVisitor {
         *fOut << "function " << inst->fName;
         generateFunDefArgs(inst);
         generateFunDefBody(inst);
+    }
+    
+    virtual void generateFunDefBody(DeclareFunInst* inst)
+    {
+        if (inst->fCode->fCode.size() == 0) {
+            *fOut << ")" << endl;  // Pure prototype
+        } else {
+            // Function body
+            *fOut << ")";
+            fTab++;
+            tab(fTab, *fOut);
+            inst->fCode->accept(this);
+            fTab--;
+            back(1, *fOut);
+            *fOut << "end";
+            tab(fTab, *fOut);
+        }
     }
 
     virtual void visit(NamedAddress* named)
@@ -134,6 +328,14 @@ class JuliaInstVisitor : public TextInstVisitor {
         
     }
     
+    virtual void visit(StoreVarInst* inst)
+    {
+        inst->fAddress->accept(this);
+        *fOut << " = ";
+        inst->fValue->accept(this);
+        EndLine(' ');
+    }
+    
     /*
     virtual void visit(BinopInst* inst)
     {
@@ -143,7 +345,16 @@ class JuliaInstVisitor : public TextInstVisitor {
     
     virtual void visit(::CastInst* inst)
     {
-        
+        string type = fTypeManager->generateType(inst->fType);
+        if (endWith(type, "*")) {
+            *fOut << "static_cast<" << type << ">(";
+            inst->fInst->accept(this);
+            *fOut << ")";
+        } else {
+            *fOut << type << "(";
+            inst->fInst->accept(this);
+            *fOut << ")";
+        }
     }
 
     // TODO : does not work, put this code in a function
@@ -160,15 +371,56 @@ class JuliaInstVisitor : public TextInstVisitor {
         name = (gPolyMathLibTable.find(name) != gPolyMathLibTable.end()) ? gPolyMathLibTable[name] : name;
         generateFunCall(inst, name);
     }
+    
+    virtual void visit(IfInst* inst)
+       {
+           *fOut << "if ";
+           visitCond(inst->fCond);
+           *fOut << "";
+           fTab++;
+           tab(fTab, *fOut);
+           inst->fThen->accept(this);
+           fTab--;
+           back(1, *fOut);
+           if (inst->fElse->fCode.size() > 0) {
+               *fOut << "elseif";
+               fTab++;
+               tab(fTab, *fOut);
+               inst->fElse->accept(this);
+               fTab--;
+               back(1, *fOut);
+               *fOut << "end";
+           } else {
+               *fOut << "end";
+           }
+           tab(fTab, *fOut);
+       }
   
-    /*
     virtual void visit(ForLoopInst* inst)
     {
-       
+        // Don't generate empty loops...
+        if (inst->fCode->size() == 0) return;
+
+        *fOut << "for ";
+        fFinishLine = false;
+        inst->fInit->accept(this);
+        *fOut << ":";
+        inst->fEnd->accept(this);
+        *fOut << "; ";
+        inst->fIncrement->accept(this);
+        fFinishLine = true;
+        *fOut << "";
+        fTab++;
+        tab(fTab, *fOut);
+        inst->fCode->accept(this);
+        fTab--;
+        back(1, *fOut);
+        *fOut << "end";
+        tab(fTab, *fOut);
     }
-    */
     
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 
 #endif
+

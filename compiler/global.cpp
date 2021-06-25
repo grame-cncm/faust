@@ -733,20 +733,23 @@ global::~global()
 #ifdef CPP_BUILD
     CPPInstVisitor::cleanup();
 #endif
+#ifdef CSHARP_BUILD
+    CSharpInstVisitor::cleanup();
+#endif
+#ifdef DLANG_BUILD
+    DLangInstVisitor::cleanup();
+#endif
 #ifdef FIR_BUILD
     FIRInstVisitor::cleanup();
 #endif
 #ifdef JAVA_BUILD
     JAVAInstVisitor::cleanup();
 #endif
-#ifdef CSHARP_BUILD
-    CSharpInstVisitor::cleanup();
+#ifdef JULIS_BUILD
+    JuliaInstVisitor::cleanup();
 #endif
 #ifdef RUST_BUILD
     RustInstVisitor::cleanup();
-#endif
-#ifdef DLANG_BUILD
-    DLangInstVisitor::cleanup();
 #endif
 }
 

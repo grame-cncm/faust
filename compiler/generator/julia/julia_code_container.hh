@@ -93,6 +93,7 @@ class JuliaVectorCodeContainer : public VectorCodeContainer, public JuliaCodeCon
     virtual ~JuliaVectorCodeContainer()
     {}
 
+    void generateCompute(int tab);
 };
 
 #endif

@@ -79,6 +79,11 @@ void JuliaCodeContainer::produceClass()
 {
     int n = 0;
 
+    // To be moved in architecture file
+    tab(n, *fOut);
+    *fOut << "const FAUSTFLOAT = Float32";
+    tab(n, *fOut);
+
     // Sub containers
     generateSubContainers();
 
@@ -86,7 +91,7 @@ void JuliaCodeContainer::produceClass()
     tab(n, *fOut);
     fCodeProducer->Tab(n);
     generateGlobalDeclarations(fCodeProducer);
-
+   
     tab(n, *fOut);
     *fOut << "mutable struct " << fKlassName;
     tab(n + 1, *fOut);
@@ -116,7 +121,7 @@ void JuliaCodeContainer::produceClass()
         generateStaticInit(&codeproducer);
     }
     back(1, *fOut);
-    *fOut << "end;";
+    *fOut << "end";
     
     tab(n, *fOut);
     tab(n, *fOut);
@@ -129,7 +134,7 @@ void JuliaCodeContainer::produceClass()
         generateResetUserInterface(&codeproducer);
     }
     back(1, *fOut);
-    *fOut << "";
+    *fOut << "end";
     
     tab(n, *fOut);
     tab(n, *fOut);
@@ -142,7 +147,7 @@ void JuliaCodeContainer::produceClass()
         generateClear(&codeproducer);
     }
     back(1, *fOut);
-    *fOut << "end;";
+    *fOut << "end";
 
     tab(n, *fOut);
     tab(n, *fOut);
@@ -155,7 +160,7 @@ void JuliaCodeContainer::produceClass()
         generateInit(&codeproducer);
     }
     back(1, *fOut);
-    *fOut << "end;";
+    *fOut << "end";
 
     tab(n, *fOut);
     tab(n, *fOut);
@@ -167,7 +172,7 @@ void JuliaCodeContainer::produceClass()
     tab(n + 1, *fOut);
     *fOut << "instanceClear" << fKlassName << "(dsp)";
     tab(n, *fOut);
-    *fOut << "end;";
+    *fOut << "end";
 
     tab(n, *fOut);
     tab(n, *fOut);
@@ -177,7 +182,17 @@ void JuliaCodeContainer::produceClass()
     tab(n + 1, *fOut);
     *fOut << "instanceInit" << fKlassName << "(dsp, sample_rate)";
     tab(n, *fOut);
-    *fOut << "end;";
+    *fOut << "end";
+    
+    // User interface
+    tab(n, *fOut);
+    tab(n, *fOut);
+    *fOut << "void buildUserInterface" << fKlassName << "(" << fKlassName << "* dsp, UIGlue* ui_interface)";
+    tab(n + 1, *fOut);
+    fCodeProducer->Tab(n + 1);
+    generateUserInterface(fCodeProducer);
+    back(1, *fOut);
+    *fOut << "end";
     tab(n, *fOut);
     
     // Compute
@@ -188,7 +203,7 @@ void JuliaCodeContainer::generateCompute(int n)
 {
     // Generates declaration
     tab(n, *fOut);
-    *fOut << "funcion compute" << fKlassName << "(" << fKlassName
+    *fOut << "function compute" << fKlassName << "(" << fKlassName
           << subst("* dsp, int $0, $1** inputs, $1** outputs)", fFullCount, xfloat());
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
@@ -207,7 +222,7 @@ void JuliaCodeContainer::generateCompute(int n)
     generatePostComputeBlock(fCodeProducer);
 
     back(1, *fOut);
-    *fOut << "end;" << endl;
+    *fOut << "end" << endl;
 }
 
 void JuliaCodeContainer::produceMetadata(int tabs)
@@ -229,3 +244,25 @@ JuliaVectorCodeContainer::JuliaVectorCodeContainer(const string& name, int numIn
 {
 }
 
+void JuliaVectorCodeContainer::generateCompute(int n)
+{
+    // Possibly generate separated functions
+    fCodeProducer->Tab(n + 1);
+    tab(n + 1, *fOut);
+    generateComputeFunctions(fCodeProducer);
+
+    // Generates declaration
+    tab(n + 1, *fOut);
+    *fOut << subst("function void compute(int $0, $1** inputs, $1** outputs)", fFullCount, xfloat());
+    tab(n + 2, *fOut);
+    fCodeProducer->Tab(n + 2);
+
+    // Generates local variables declaration and setup
+    generateComputeBlock(fCodeProducer);
+
+    // Generates the DSP loop
+    fDAGBlock->accept(fCodeProducer);
+
+    back(1, *fOut);
+    *fOut << "end";
+}

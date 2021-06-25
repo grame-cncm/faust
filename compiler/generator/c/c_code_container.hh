@@ -177,7 +177,6 @@ class CScalarOneSampleCodeContainer1 : public CScalarCodeContainer {
     void generateComputeAux(int tab);
 };
 
-
 // Special version for -os generation mode with iZone and fZone
 class CScalarOneSampleCodeContainer2 : public CScalarCodeContainer {
     protected:
