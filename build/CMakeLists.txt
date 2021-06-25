@@ -62,12 +62,13 @@ set (FAUST_INC ${SRCDIR}
 	${SRCDIR}/boxes ${SRCDIR}/documentator ${SRCDIR}/draw
 	${SRCDIR}/errors ${SRCDIR}/evaluate ${SRCDIR}/extended
 	${SRCDIR}/generator
+	${SRCDIR}/generator/dlang
+	${SRCDIR}/generator/csharp
 	${SRCDIR}/generator/fir
+	${SRCDIR}/generator/julia
 	${SRCDIR}/generator/interpreter
 	${SRCDIR}/generator/rust
 	${SRCDIR}/generator/soul
-	${SRCDIR}/generator/dlang
-	${SRCDIR}/generator/csharp
 	${SRCDIR}/normalize ${SRCDIR}/parallelize ${SRCDIR}/parser
 	${SRCDIR}/patternmatcher ${SRCDIR}/propagate ${SRCDIR}/signals
 	${SRCDIR}/tlib ${SRCDIR}/transform ${SRCDIR}/utils

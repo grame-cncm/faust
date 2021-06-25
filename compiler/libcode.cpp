@@ -73,6 +73,14 @@
 #include "cpp_gpu_code_container.hh"
 #endif
 
+#ifdef CSHARP_BUILD
+#include "csharp_code_container.hh"
+#endif
+
+#ifdef DLANG_BUILD
+#include "dlang_code_container.hh"
+#endif
+
 #ifdef FIR_BUILD
 #include "fir_code_container.hh"
 #endif
@@ -85,8 +93,8 @@
 #include "java_code_container.hh"
 #endif
 
-#ifdef CSHARP_BUILD
-#include "csharp_code_container.hh"
+#ifdef JULIA_BUILD
+#include "julia_code_container.hh"
 #endif
 
 #ifdef LLVM_BUILD
@@ -112,10 +120,6 @@
 #ifdef WASM_BUILD
 #include "wasm_code_container.hh"
 #include "wast_code_container.hh"
-#endif
-
-#ifdef DLANG_BUILD
-#include "dlang_code_container.hh"
 #endif
 
 using namespace std;
@@ -165,6 +169,10 @@ static void enumBackends(ostream& out)
 
 #ifdef JAVA_BUILD
     out << dspto << "Java" << endl;
+#endif
+    
+#ifdef JULIA_BUILD
+    out << dspto << "Julia" << endl;
 #endif
 
 #ifdef LLVM_BUILD
@@ -862,7 +870,7 @@ static void printHelp()
     cout << endl << "Code generation options:" << line;
     cout << tab << "-lang <lang> --language                 select output language," << endl;
     cout << tab
-         << "                                        'lang' should be c, cpp (default), csharp, dlang, fir, interp, java, llvm, "
+         << "                                        'lang' should be c, cpp (default), csharp, dlang, fir, interp, java, julia, llvm, "
             "ocpp, rust, soul or wast/wasm."
          << endl;
     cout << tab
@@ -1450,6 +1458,13 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                                                            numOutputs, dst.get());
 #else
             throw faustexception("ERROR : -lang java not supported since JAVA backend is not built\n");
+#endif
+        } else if (gGlobal->gOutputLang == "julia") {
+#ifdef JULIA_BUILD
+            gGlobal->gAllowForeignFunction = false;  // No foreign functions
+            container = JuliaCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst.get());
+#else
+            throw faustexception("ERROR : -lang julia not supported since Julia backend is not built\n");
 #endif
         } else if (gGlobal->gOutputLang == "csharp") {
 #ifdef CSHARP_BUILD

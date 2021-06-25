@@ -48,11 +48,11 @@ ifeq ($(WORKLET), on)
 WORKLETOPT = "-DWORKLET=on"
 endif
 
-CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release $(WORKLETOPT)
-BUILDOPT ?= --config Release
+#CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release $(WORKLETOPT)
+#BUILDOPT ?= --config Release
 
-#CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug $(WORKLETOPT)
-#BUILDOPT ?= --config Debug
+CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug $(WORKLETOPT)
+BUILDOPT ?= --config Debug
 
 #===============================================================
 # options
@@ -125,7 +125,7 @@ help:
 	@echo "  WORKLET                     : Compile wasm glue library for worklet (default is off)"
 	@echo
 	@echo "Backends:"
-	@echo "  the FAUST backends currently included are described in the '$(BACKENDS)' file"
+	@echo "  the Faust backends currently included are described in the '$(BACKENDS)' file"
 	@echo "  you can freely customize this file or use another file with the BACKENDS option"
 	@echo
 	@echo "Targets:"
@@ -150,8 +150,8 @@ help:
 	@echo "------ see also the README.md file ------"
 	@echo
 	@echo "Packaging targets:"
-	@echo " 'package'    : build a faust package for the current platform"
-	@echo " 'release'    : build a faust release (MacOS only)"
+	@echo " 'package'    : build a Faust package for the current platform"
+	@echo " 'release'    : build a Faust release (MacOS only)"
 	@echo "                includes faust, faustgen and dist packages"
 
 	
