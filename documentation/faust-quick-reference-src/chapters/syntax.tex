@@ -311,6 +311,8 @@ Please note that the order of pattern matching rules matters. The more specific 
 \end{lstlisting}
 the first rule will always match and the second rule will never be called.
 
+Please note that number arguments in pattern matching rules are typically \textit{constant numerical expressions}, so can be the result of more complex expressions involving computations done at compile-time.
+
 \section{Expressions}
 
 Despite its textual syntax, \faust is conceptually a block-diagram language. \faust expressions represent DSP block-diagrams and are assembled from primitive ones using various \textit{composition} operations. More traditional \textit{numerical} expressions in infix notation are also possible. Additionally \faust provides time based expressions, like delays, expressions related to lexical environments, expressions to interface with foreign function and lambda expressions.
@@ -321,7 +323,7 @@ expression : diagram | insouts | numerical | time | lexical | foreign | lambda;
 
 \subsection{Constant Numerical Expressions}
 
-Some language primitives (like \textit{rdtable}, \textit{rwtable}, \textit{hslider} etc.) take constant numbers as some of their parameters. Those numbers can be directly given in the code, but can also be computed by more complex expressions which have to produce numbers at compile time. We will refer to them as \textit{constant numerical expressions} in the documentation.
+Some language primitives (like \textit{rdtable}, \textit{rwtable}, \textit{hslider} etc.) take constant numbers as some of their parameters. This is the case also for expressions using pattern matching techniques. Those numbers can be directly given in the code, but can also be computed by more complex expressions which have to produce numbers at compile time. We will refer to them as \textit{constant numerical expressions} in the documentation.
 
 \subsection{Diagram Expressions}
 
