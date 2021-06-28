@@ -116,32 +116,30 @@ declare namespace Faust {
         voices: number,
         buffer_size?: number): Promise<FaustPolyNode | null>
 
-}
+    /**
+     * The SVGDiagrams generator constructor.
+     * You should check the object status using the success() method after creation.
+     * 
+     * @param {LibFaust} engine - an instance of the Faust engine 
+     * @param {string} name - an arbitrary name for the Faust module
+     * @param {string} dsp_code - Faust dsp code
+     * @param {string} args - the compiler options, only svg specific options are meaningfull (automatically appends -svg)
+     */
+    function createSVGDiagrams(engine: LibFaust, name: string, dsp_code: string, args: string): SVGDiagrams;
 
-/**
- * The SVGDiagrams generator constructor.
- * You should check the object status using the success() method after creation.
- * 
- * @param {LibFaust} engine - an instance of the Faust engine 
- * @param {string} name - an arbitrary name for the Faust module
- * @param {string} dsp_code - Faust dsp code
- * @param {string} args - the compiler options, only svg specific options are meaningfull (automatically appends -svg)
- */
-function createSVGDiagrams(engine: LibFaust, name: string, dsp_code: string, args: string): SVGDiagrams;
+    /**
+     * WAP (Web Audio Plugins see https://github.com/micbuffa/WebAudioPlugins) API.   
+     */
+    function createMonoAudioWAPFactory(context: BaseAudioContext, baseURL: string): MonoWAPFactory;
+    function createPolyWAPFactory(context: BaseAudioContext, baseURL: string): PolyWAPFactory;
 
-/**
- * WAP (Web Audio Plugins see https://github.com/micbuffa/WebAudioPlugins) API.   
- */
-function createMonoAudioWAPFactory(context: BaseAudioContext, baseURL: string): MonoWAPFactory;
-function createPolyWAPFactory(context: BaseAudioContext, baseURL: string): PolyWAPFactory;
-
-/**
- * Transforms a Faust processor JSON description into a high level structured object.
- *
- * @param {string} json - a jsong string
- * @returns {TFaustJSON} a high level structured object describing a Faust processor
- */
-function createFaustJSON(json: string): TFaustJSON;
+    /**
+     * Transforms a Faust processor JSON description into a high level structured object.
+     *
+     * @param {string} json - a jsong string
+     * @returns {TFaustJSON} a high level structured object describing a Faust processor
+     */
+    function createFaustJSON(json: string): TFaustJSON;
 
 }
 
