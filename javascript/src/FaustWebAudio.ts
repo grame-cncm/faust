@@ -93,6 +93,7 @@ namespace Faust {
                         MonoFactoryImp.gWorkletProcessors.add(name);
                     } catch (e) {
                         console.error("=> exception raised while running createMonoNode: " + e);
+                        console.error("=> check that your page is served using https." + e);
                         return null;
                     }
                 }

@@ -15,6 +15,7 @@ The Faust Web Audio library provides a high level Javascript API over the [Faust
   - [How to use with typescript](#tsuse)
 - [Dynamic and Static Instances](#ds)
 - [Misc. services](#misc)
+- [Important note](#note)
 
 
 ## Organisation of the API <a name="org"></a>
@@ -83,6 +84,11 @@ This allows to generate lighter and faster-loading HTML pages.
 
 - `FaustUtilities.d.ts`: provides facilities to browse Faust generated SVG diagrams
 - `FaustWAP.d.ts`: provides [Web Audio Plugins](https://hal.univ-cotedazur.fr/hal-01893660/document) API support.
+
+
+## Important note <a name="note"></a>
+
+Html pages embedding the Faust compiler must be served using https, unless using http://localhost.
 
 ----
 <a href="http://faust.grame.fr"><img src=https://faust.grame.fr/community/logos/img/LOGO_FAUST_COMPLET_ORANGE.png width=200 /></a>
