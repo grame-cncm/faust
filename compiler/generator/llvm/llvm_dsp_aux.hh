@@ -179,6 +179,8 @@ class EXPORT llvm_dsp : public dsp {
 class FaustObjectCache : public llvm::ObjectCache {
    private:
     std::string fMachineCode;
+    
+    virtual void anchor() {}
 
    public:
     FaustObjectCache(const std::string& machine_code = "") : fMachineCode(machine_code) {}
