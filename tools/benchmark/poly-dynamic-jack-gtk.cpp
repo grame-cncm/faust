@@ -254,10 +254,9 @@ int main(int argc, char* argv[])
         oscinterface = new OSCUI(filename, argc, argv);
         DSP->buildUserInterface(oscinterface);
     }
-    rt_midi midi_handler(name);
-    midi_handler.addMidiIn(DSP);
-    
+   
     if (is_midi) {
+        rt_midi midi_handler(name);
         midiinterface = new MidiUI(&midi_handler);
         DSP->buildUserInterface(midiinterface);
         cout << "MIDI is on" << endl;
