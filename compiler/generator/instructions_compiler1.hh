@@ -19,14 +19,14 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _RUST_INSTRUCTION_COMPILER_H
-#define _RUST_INSTRUCTION_COMPILER_H
+#ifndef _INSTRUCTION_COMPILER1_H
+#define _INSTRUCTION_COMPILER1_H
 
 #include "instructions_compiler.hh"
 
-class RustInstructionsCompiler : public InstructionsCompiler {
+class InstructionsCompiler1 : public InstructionsCompiler {
    public:
-    RustInstructionsCompiler(CodeContainer* container);
+    InstructionsCompiler1(CodeContainer* container);
 
    private:
     StatementInst* generateInitArray(const string& vname, Typed::VarType ctype, int delay);

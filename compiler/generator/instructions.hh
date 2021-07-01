@@ -53,7 +53,7 @@ struct Printable;
 struct NullValueInst;
 struct NullStatementInst;
 struct DeclareVarInst;
-struct DeclareBufferIteratorsRust;
+struct DeclareBufferIterators;
 struct DeclareFunInst;
 struct DeclareStructTypeInst;
 struct LoadVarInst;
@@ -209,7 +209,7 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(DeclareVarInst* inst) {}
     virtual void visit(DeclareFunInst* inst) {}
     virtual void visit(DeclareStructTypeInst* inst) {}
-    virtual void visit(DeclareBufferIteratorsRust* inst) {}
+    virtual void visit(DeclareBufferIterators* inst) {}
 
     // Memory
     virtual void visit(LoadVarInst* inst) {}
@@ -283,7 +283,7 @@ struct CloneVisitor : public virtual Garbageable {
     virtual StatementInst* visit(DeclareVarInst* inst)        = 0;
     virtual StatementInst* visit(DeclareFunInst* inst)        = 0;
     virtual StatementInst* visit(DeclareStructTypeInst* inst) = 0;
-    virtual StatementInst* visit(DeclareBufferIteratorsRust* inst) = 0;
+    virtual StatementInst* visit(DeclareBufferIterators* inst) = 0;
 
     // Memory
     virtual ValueInst*     visit(LoadVarInst* inst)        = 0;
@@ -798,16 +798,17 @@ struct DeclareVarInst : public StatementInst {
     struct LoadVarInst*  load();
 };
 
-struct DeclareBufferIteratorsRust : public StatementInst {
-    std::string fBufferName;
+struct DeclareBufferIterators : public StatementInst {
+    std::string fBufferName1;
+    std::string fBufferName2;
     int         fNumChannels;
     bool        fMutable;
 
-    DeclareBufferIteratorsRust(const std::string& buffer_name, int num_channels, bool mut) :
-        fBufferName(buffer_name), fNumChannels(num_channels), fMutable(mut)
+    DeclareBufferIterators(const std::string& name1, const std::string& name2, int num_channels, bool mut) :
+        fBufferName1(name1), fBufferName2(name2), fNumChannels(num_channels), fMutable(mut)
         {};
 
-    virtual ~DeclareBufferIteratorsRust() {}
+    virtual ~DeclareBufferIterators() {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1386,9 +1387,9 @@ class BasicCloneVisitor : public CloneVisitor {
     {
         return new DeclareStructTypeInst(static_cast<StructTyped*>(inst->fType->clone(this)));
     }
-    virtual StatementInst* visit(DeclareBufferIteratorsRust* inst)
+    virtual StatementInst* visit(DeclareBufferIterators* inst)
     {
-        return new DeclareBufferIteratorsRust(inst->fBufferName, inst->fNumChannels, inst->fMutable);
+        return new DeclareBufferIterators(inst->fBufferName1, inst->fBufferName2, inst->fNumChannels, inst->fMutable);
     }
 
     // Memory
@@ -1955,9 +1956,9 @@ struct InstBuilder {
         return new DeclareStructTypeInst(type);
     }
 
-    static DeclareBufferIteratorsRust* genDeclareBufferIteratorsRust(const std::string& buffer_name, int num_channels, bool mut)
+    static DeclareBufferIterators* genDeclareBufferIterators(const std::string& name1, const std::string& name2, int num_channels, bool mut)
     {
-        return new DeclareBufferIteratorsRust(buffer_name, num_channels, mut);
+        return new DeclareBufferIterators(name1, name2, num_channels, mut);
     }
 
     // Memory

@@ -502,9 +502,9 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     if (!gGlobal->gOpenCLSwitch && !gGlobal->gCUDASwitch) {  // HACK
 
         // Input declarations
-        if (gGlobal->gOutputLang == "rust") {
+        if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia") {
             // special handling for Rust backend
-            pushComputeBlockMethod(InstBuilder::genDeclareBufferIteratorsRust("inputs", fContainer->inputs(), false));
+            pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("input", "inputs", fContainer->inputs(), false));
         } else {
             // "input" and "inputs" used as a name convention
             if (gGlobal->gOneSampleControl) {
@@ -531,9 +531,9 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         }
 
         // Output declarations
-        if (gGlobal->gOutputLang == "rust") {
+        if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia") {
             // special handling for Rust backend
-            pushComputeBlockMethod(InstBuilder::genDeclareBufferIteratorsRust("outputs", fContainer->outputs(), true));
+            pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("output", "outputs", fContainer->outputs(), true));
         } else {
             // "output" and "outputs" used as a name convention
             if (gGlobal->gOneSampleControl) {

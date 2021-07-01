@@ -49,6 +49,7 @@
 #include "garbageable.hh"
 #include "global.hh"
 #include "instructions_compiler.hh"
+#include "instructions_compiler1.hh"
 #include "libfaust.h"
 #include "ppbox.hh"
 #include "ppsig.hh"
@@ -110,7 +111,6 @@
 
 #ifdef RUST_BUILD
 #include "rust_code_container.hh"
-#include "rust_instructions_compiler.hh"
 #endif
 
 #ifdef SOUL_BUILD
@@ -1598,8 +1598,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                 new_comp = new DAGInstructionsCompiler(container);
             }
 #ifdef RUST_BUILD
-            else if (gGlobal->gOutputLang == "rust") {
-                new_comp = new RustInstructionsCompiler(container);
+            else if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia") {
+                new_comp = new InstructionsCompiler1(container);
             }
 #endif
             else {

@@ -345,15 +345,15 @@ class JuliaStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kInt64_ptr] =  fPtrRef + "Int64";
         fTypeDirectTable[Typed::kInt64_vec] = "vector<Int64>";
 
-        fTypeDirectTable[Typed::kFloat]     = "Float32";
-        fTypeDirectTable[Typed::kFloat_ptr] = fPtrRef + "Float32";
-        fTypeDirectTable[Typed::kFloat_ptr_ptr] =  fPtrRef + fPtrRef + "Float32";
-        fTypeDirectTable[Typed::kFloat_vec] = "vector<Float32>";
+        fTypeDirectTable[Typed::kFloat]     = "T";
+        fTypeDirectTable[Typed::kFloat_ptr] = fPtrRef + "T";
+        fTypeDirectTable[Typed::kFloat_ptr_ptr] =  fPtrRef + fPtrRef + "T";
+        fTypeDirectTable[Typed::kFloat_vec] = "vector<T>";
 
-        fTypeDirectTable[Typed::kDouble]     = "Float64";
-        fTypeDirectTable[Typed::kDouble_ptr] = fPtrRef + "Float64";
-        fTypeDirectTable[Typed::kDouble_ptr_ptr] = fPtrRef + fPtrRef + "Float64";
-        fTypeDirectTable[Typed::kDouble_vec] = "vector<Float64>";
+        fTypeDirectTable[Typed::kDouble]     = "T";
+        fTypeDirectTable[Typed::kDouble_ptr] = fPtrRef + "T";
+        fTypeDirectTable[Typed::kDouble_ptr_ptr] = fPtrRef + fPtrRef + "T";
+        fTypeDirectTable[Typed::kDouble_vec] = "vector<T>";
 
         fTypeDirectTable[Typed::kQuad]     = "quad";
         fTypeDirectTable[Typed::kQuad_ptr] = fPtrRef + "quad";
@@ -375,7 +375,7 @@ class JuliaStringTypeManager : public StringTypeManager {
 
         // DSP has to be empty here
         fTypeDirectTable[Typed::kObj]     = struct_name;
-        fTypeDirectTable[Typed::kObj_ptr] = struct_name + fPtrRef;
+        fTypeDirectTable[Typed::kObj_ptr] = struct_name + "{T}";
 
         fTypeDirectTable[Typed::kUint_ptr] = "uintptr_t";
     }
@@ -390,7 +390,7 @@ class JuliaStringTypeManager : public StringTypeManager {
             return fTypeDirectTable[basic_typed->fType];
         } else if (named_typed) {
             string ty_str = generateType(named_typed->fType);
-            return named_typed->fName + ((ty_str != "") ? (": " + ty_str) : "");
+            return named_typed->fName + ((ty_str != "") ? ("::" + ty_str) : "");
         } else if (array_typed) {
             return fTypeDirectTable[array_typed->getType()];
         } else {
@@ -413,7 +413,7 @@ class JuliaStringTypeManager : public StringTypeManager {
         } else if (array_typed) {
             return (array_typed->fSize == 0)
                        ? name + "::" + fPtrRef + generateType(array_typed->fType)
-                       : name + "::[" + generateType(array_typed->fType) + ";" + std::to_string(array_typed->fSize) + "]";
+                       : name + "::AbstractVector{" + generateType(array_typed->fType) + "}";
         } else {
             faustassert(false);
             return "";

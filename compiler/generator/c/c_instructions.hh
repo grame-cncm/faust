@@ -49,8 +49,8 @@ class CInstVisitor : public TextInstVisitor {
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;
 
-        gFunctionSymbolTable["min"] = true;
-        gFunctionSymbolTable["max"] = true;
+        gFunctionSymbolTable["min_i"] = true;
+        gFunctionSymbolTable["max_i"] = true;
     
         // Float version
         gFunctionSymbolTable["fabsf"]      = true;

@@ -19,13 +19,13 @@
  ************************************************************************
  ************************************************************************/
 
-#include "rust_instructions_compiler.hh"
+#include "instructions_compiler1.hh"
 
-RustInstructionsCompiler::RustInstructionsCompiler(CodeContainer* container) : InstructionsCompiler(container)
+InstructionsCompiler1::InstructionsCompiler1(CodeContainer* container) : InstructionsCompiler(container)
 {
 }
 
-StatementInst* RustInstructionsCompiler::generateInitArray(const string& vname, Typed::VarType ctype, int delay)
+StatementInst* InstructionsCompiler1::generateInitArray(const string& vname, Typed::VarType ctype, int delay)
 {
     ValueInst*  init  = InstBuilder::genTypedZero(ctype);
     BasicTyped* typed = InstBuilder::genBasicTyped(ctype);
@@ -43,7 +43,7 @@ StatementInst* RustInstructionsCompiler::generateInitArray(const string& vname, 
     return loop;
 }
 
-StatementInst* RustInstructionsCompiler::generateShiftArray(const string& vname, int delay)
+StatementInst* InstructionsCompiler1::generateShiftArray(const string& vname, int delay)
 {
     string index = gGlobal->getFreshID("j");
 
@@ -59,7 +59,7 @@ StatementInst* RustInstructionsCompiler::generateShiftArray(const string& vname,
     return loop;
 }
 
-StatementInst* RustInstructionsCompiler::generateCopyArray(const string& vname_to, const string& vname_from, int size)
+StatementInst* InstructionsCompiler1::generateCopyArray(const string& vname_to, const string& vname_from, int size)
 {
     string index = gGlobal->getFreshID("j");
 

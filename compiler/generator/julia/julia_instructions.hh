@@ -29,6 +29,28 @@
 
 using namespace std;
 
+// Visitor used to initialize array fields into the DSP structure
+struct JuliaInitFieldsVisitor : public DispatchVisitor {
+    std::ostream* fOut;
+    int           fTab;
+    
+    JuliaInitFieldsVisitor(std::ostream* out, int tab = 0) : fOut(out), fTab(tab) {}
+    
+    virtual void visit(DeclareVarInst* inst)
+    {
+        ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(inst->fType);
+        if (array_type) {
+            tab(fTab, *fOut);
+            if (isIntPtrType(inst->fType->getType())) {
+                *fOut << inst->fAddress->getName() << " = zeros(Int32, " << array_type->fSize << ")";
+            } else {
+                *fOut << inst->fAddress->getName() << " = zeros(T, " << array_type->fSize << ")";
+            }
+        }
+    }
+    
+};
+
 class JuliaInstVisitor : public TextInstVisitor {
    private:
     /*
@@ -48,9 +70,9 @@ class JuliaInstVisitor : public TextInstVisitor {
     {
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;
-        
-        gFunctionSymbolTable["max"] = true;
-        gFunctionSymbolTable["min"] = true;
+    
+        gFunctionSymbolTable["max_i"] = true;
+        gFunctionSymbolTable["min_i"] = true;
         
         gFunctionSymbolTable["max_f"] = true;
         gFunctionSymbolTable["min_f"] = true;
@@ -298,13 +320,24 @@ class JuliaInstVisitor : public TextInstVisitor {
         generateFunDefBody(inst);
     }
     
+    virtual void visit(DeclareBufferIterators* inst)
+    {
+        // Don't generate if no channels
+        if (inst->fNumChannels == 0) return;
+    
+        for (int i = 0; i < inst->fNumChannels; ++i) {
+            *fOut << inst->fBufferName1 << i << " = @view " << inst->fBufferName2 << "[:, " << (i+1) << "]";
+            tab(fTab, *fOut);
+        }
+    }
+    
     virtual void generateFunDefBody(DeclareFunInst* inst)
     {
         if (inst->fCode->fCode.size() == 0) {
-            *fOut << ")" << endl;  // Pure prototype
+            *fOut << ") where {T}" << endl;  // Pure prototype
         } else {
             // Function body
-            *fOut << ")";
+            *fOut << ") where {T}";
             fTab++;
             tab(fTab, *fOut);
             inst->fCode->accept(this);
@@ -322,10 +355,33 @@ class JuliaInstVisitor : public TextInstVisitor {
        }
        *fOut << named->fName;
     }
+    
+    /*
+    Indexed address can actually be values in an array or fields in a struct type
+    */
+    virtual void visit(IndexedAddress* indexed)
+    {
+        indexed->fAddress->accept(this);
+        DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
+        if (struct_type) {
+            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
+            *fOut << "->" << struct_type->fType->getName(field_index->fNum);
+        } else {
+            *fOut << "[";
+            Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->fIndex);
+            if (field_index) {
+                // Julia arrays start at 1
+                *fOut << (field_index->fNum + 1) << "]";
+            } else {
+                indexed->fIndex->accept(this);
+                *fOut << "]";
+            }
+        }
+    }
 
     virtual void visit(LoadVarAddressInst* inst)
     {
-        
+        faustassert(false);
     }
     
     virtual void visit(StoreVarInst* inst)
@@ -376,7 +432,6 @@ class JuliaInstVisitor : public TextInstVisitor {
        {
            *fOut << "if ";
            visitCond(inst->fCond);
-           *fOut << "";
            fTab++;
            tab(fTab, *fOut);
            inst->fThen->accept(this);
@@ -409,7 +464,34 @@ class JuliaInstVisitor : public TextInstVisitor {
         *fOut << "; ";
         inst->fIncrement->accept(this);
         fFinishLine = true;
-        *fOut << "";
+        fTab++;
+        tab(fTab, *fOut);
+        inst->fCode->accept(this);
+        fTab--;
+        back(1, *fOut);
+        *fOut << "end";
+        tab(fTab, *fOut);
+    }
+    
+    virtual void visit(SimpleForLoopInst* inst)
+    {
+        // Don't generate empty loops...
+        if (inst->fCode->size() == 0) return;
+        
+        *fOut << "for " << inst->getName() << "::Int32 = ";
+        if (inst->fReverse) {
+            Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(inst->fUpperBound);
+            faustassert(field_index);
+            // Julia arrays start at 1
+            *fOut << (field_index->fNum + 1) << ":";
+            inst->fLowerBound->accept(this);
+        } else {
+            Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(inst->fLowerBound);
+            faustassert(field_index);
+            // Julia arrays start at 1
+            *fOut << (field_index->fNum + 1) << ":";
+            inst->fUpperBound->accept(this);
+        }
         fTab++;
         tab(fTab, *fOut);
         inst->fCode->accept(this);

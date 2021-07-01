@@ -474,7 +474,7 @@ void RustScalarCodeContainer::generateCompute(int n)
         iterators.push_back("inputs" + std::to_string(i));
     }
     for (int i = 0; i < fNumOutputs; ++i) {
-        iterators.push_back("outputs"+ std::to_string(i));
+        iterators.push_back("outputs" + std::to_string(i));
     }
     IteratorForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(iterators);
     loop->accept(&fCodeProducer);

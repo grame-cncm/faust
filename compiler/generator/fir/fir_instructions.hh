@@ -271,10 +271,11 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     }
     
     // For Rust backend
-    virtual void visit(DeclareBufferIteratorsRust* inst)
+    virtual void visit(DeclareBufferIterators* inst)
     {
-        *fOut << "DeclareBufferIteratorsRust(";
-        *fOut << inst->fBufferName << " ";
+        *fOut << "DeclareBufferIterators(";
+        *fOut << inst->fBufferName1 << " ";
+        *fOut << inst->fBufferName2 << " ";
         *fOut << inst->fNumChannels << " ";
         *fOut << inst->fMutable << ")";
         EndLine();
