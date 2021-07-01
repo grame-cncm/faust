@@ -205,4 +205,22 @@ autres fichiers à changer pour le backend -ocpp
 
 + sigToGraph.cpp
 + sigIdentity.cpp
-+ compile_scal.cpp 
++ compile_scal.cpp, ce fichier est celui qui contient la compilation proprement dite
+
+not yet
+
++ sigprint.cpp
+
+TODO: ajouter le dessin SVG
+RK: j'ai mis une fonction d'aide signal -> valeur (intervalle)
+seul endroit où ça compile sans problème: sigtyperules.cpp, mais en fait c'est logique
+Améliorer le message d'erreur (mais c'est générique à Faust)
+
+Réfléchir à des tests par rapport au dernier correctif
+
+1. code généré
+
+2. intervalles
+
+Que se passe-t-il avec des constantes non deucimale dans la version de F2D?
+Que se passe-t-il si l'intervalle donne une version exacte en double mais qu'il y a un dépassement en float (ex gênant des délais)?
