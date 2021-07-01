@@ -626,9 +626,9 @@ static Type infereSigType(Tree sig, Tree env)
         interval i3 = t3->getInterval();
 	interval iEnd;
 	if (i3.valid)
-	    iEnd = interval(std::max(i3.lo, tree2float(min)), std::max(i3.hi, tree2float(max)));
+	    iEnd = interval(std::max(i3.lo, constSig2double(min)), std::min(i3.hi, constSig2double(max)));
 	else
-	    iEnd = interval(tree2float(min), tree2float(max));
+	    iEnd = interval(constSig2double(min), constSig2double(max));
         return t3->promoteInterval(iEnd);
     }
 
@@ -929,4 +929,13 @@ static interval arithmetic(int opcode, const interval& x, const interval& y)
     }
 
     return interval();
+}
+
+double constSig2double(Tree sig){
+    Type ty = getSigType(sig);
+    if(ty->variability() != kKonst){
+	faustexception("ERROR : constSig2double, the parameter must be a constant value known at compile time\n");
+    }
+    interval bds = ty->getInterval();
+    return (bds.hi + bds.lo) / 2;
 }

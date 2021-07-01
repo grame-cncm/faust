@@ -528,9 +528,9 @@ string ScalarCompiler::generateCode(Tree sig)
 	/* no debug at this stage */
 	return generateCode(z);
     } else if (isSigLowest(sig, x)){
-	return generateNumber(sig, T(tree2float(sig)));
+	return generateNumber(sig, T(getCertifiedSigType(x)->getInterval().lo));
     }  else if (isSigHighest(sig, x)){
-	return generateNumber(sig, T(tree2float(sig)));
+	return generateNumber(sig, T(getCertifiedSigType(x)->getInterval().hi));
     }
 
     
