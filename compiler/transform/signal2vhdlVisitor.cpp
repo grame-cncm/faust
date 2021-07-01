@@ -88,24 +88,29 @@ void Signal2VHDLVisitor::visit(Tree sig)
             bin_op("FMOD", "mod", sig, subsig[0], subsig[1]);
             self(subsig[0]);
             self(subsig[1]);
+        } else if (strcmp(p->name(), "sin") == 0) {
+            getSubSignals(sig, subsig);
+            sincos_op("SIN", sig, subsig[0]);
+        } else if (strcmp(p->name(), "cos") == 0) {
+          getSubSignals(sig, subsig);
+          sincos_op("COS", sig, subsig[0]);
         } else {
             for (Tree b : sig->branches()) {
                 self(b);
             }
         }
-
         return;
     } else if (isSigInt(sig, &i)) {
-        decl_sig(sig);
+        decl_sig(sig,1,-22);
         return;
     } else if (isSigReal(sig, &r)) {
-        decl_sig(sig);
+        decl_sig(sig,1,-22);
         return;
     } else if (isSigWaveform(sig)) {
         return;
     } else if (isSigInput(sig, &i)) {
         input_affectation(sig);
-        decl_sig(sig);
+        decl_sig(sig,1,-22);
         return;
     } else if (isSigOutput(sig, &i, x)) {
         self(x);
@@ -123,7 +128,7 @@ void Signal2VHDLVisitor::visit(Tree sig)
               component_delay(fDeclCompnt);
               fEntity.insert({"DELAY", true});
           }
-          decl_sig(sig);
+          decl_sig(sig,1,-22);
           inst_delay(sig, x, y, fMapCompnt);
         }
         self(x);
@@ -150,6 +155,9 @@ void Signal2VHDLVisitor::visit(Tree sig)
             case 3:
                 bin_op("DIV", binopname[i], sig, x, y);
                 break;
+            case 4:
+                bin_op("MODULO", "mod", sig, x, y);
+                break;
             case 8:
                 cmp_op("GT", binopname[i], sig, x, y);
                 break;
@@ -169,7 +177,7 @@ void Signal2VHDLVisitor::visit(Tree sig)
                 cmp_op("DIFF", "/=", sig, x, y);
                 break;
             case 14:
-                bin_op("AND_", "or", sig, x, y);
+                bin_op("AND_", "and", sig, x, y);
                 break;
             case 15:
                 bin_op("OR_", "or", sig, x, y);
@@ -530,6 +538,16 @@ void Signal2VHDLVisitor::component_delay(string & str)
     "end component;\n\n";
 }
 
+void Signal2VHDLVisitor::component_sincos(string & str)
+{
+    str += "component SinCos24 is\n"
+    "port (\n"
+    "    input : in   sfixed(1 downto -22);\n"
+    "    SIN   : out  sfixed(0 downto -23);\n"
+    "    COS   : out  sfixed(0 downto -23));\n"
+    "end component;\n\n";
+}
+
 void Signal2VHDLVisitor::faust_process()
 {
     fFaustProcess += "begin\n\n"
@@ -602,6 +620,14 @@ void Signal2VHDLVisitor::inst_delay(Tree sig, Tree x, Tree y, string & str)
     "    output_0 => sig"+ addr_to_str(sig) +");\n\n";
 }
 
+void Signal2VHDLVisitor::inst_sincos(const string& name, Tree sig, Tree x, string & str)
+{
+    str += name + "_" + addr_to_str(sig) + " : SinCos24\n"
+    "port map (\n"
+    "    input  => sig"+ addr_to_str(x) +",\n"
+    "    " + name + " => sig"+ addr_to_str(sig) +");\n\n";
+}
+
 void Signal2VHDLVisitor::inst_bypass(const string& name, Tree sig, Tree x, string & str)
 {
     str += name + "_" + addr_to_str(sig) + " : " + name + "\n"
@@ -631,14 +657,14 @@ void Signal2VHDLVisitor::inst_select2(const string& name, Tree sig, Tree sel, Tr
 }
 
 
-void Signal2VHDLVisitor::decl_sig(Tree sig)
+void Signal2VHDLVisitor::decl_sig(Tree sig, int msb, int lsb)
 {
     int i;
     double r;
     if (isSigInt(sig, &i) || isSigReal(sig, &r)) {
-        fDeclSig += "signal    sig"+addr_to_str(sig)+" : sfixed(1 downto -22) := to_sfixed(" + val_to_str(sig) + ",1,-22);\n";
+        fDeclSig += "signal    sig"+addr_to_str(sig)+" : sfixed(" +to_string(msb)+ " downto " +to_string(lsb)+") := to_sfixed("+val_to_str(sig)+","+to_string(msb)+","+to_string(lsb)+");\n";
     } else {
-        fDeclSig += "signal    sig"+ addr_to_str(sig) +" : sfixed(1 downto -22);\n";
+        fDeclSig += "signal    sig"+ addr_to_str(sig) +" : sfixed("+to_string(msb)+" downto "+to_string(lsb)+");\n";
     }
 }
 
@@ -654,7 +680,7 @@ void Signal2VHDLVisitor::bin_op(const string& name, const char* op, Tree sig, Tr
         component_standard(name, 2, fDeclCompnt);
         fEntity.insert({op, true});
     }
-    decl_sig(sig);
+    decl_sig(sig,1,-22);
     inst_bin_op(name, sig, x, y, fMapCompnt);
 }
 
@@ -665,7 +691,7 @@ void Signal2VHDLVisitor::select_op(const string& name, Tree sig, Tree sel, Tree 
         component_standard(name, 3, fDeclCompnt);
         fEntity.insert({name, true});
     }
-    decl_sig(sig);
+    decl_sig(sig,1,-22);
     inst_select2(name, sig, sel, x, y, fMapCompnt);
 }
 
@@ -676,17 +702,29 @@ void Signal2VHDLVisitor::cmp_op(const string& name, const char* op, Tree sig, Tr
         component_standard(name, 2, fDeclCompnt);
         fEntity.insert({op, true});
     }
-    decl_sig(sig);
+    decl_sig(sig,1,-22);
     inst_bin_op(name, sig, x, y, fMapCompnt);
 }
 
+void Signal2VHDLVisitor::sincos_op(const string& name, Tree sig, Tree x)
+{
+    if (fEntity.count("SinCos24") == 0) {
+        component_sincos(fDeclCompnt);
+        fEntity.insert({"SinCos24", true});
+    }
+    decl_sig(sig,0,-23);
+    inst_sincos(name, sig, x, fMapCompnt);
+    self(x);
+}
+
+
 void Signal2VHDLVisitor::bypass(const string& name, Tree sig, Tree x)
 {
-  if (fEntity.count(name) == 0) {
-      entity_bypass(name, fDeclEntity);
-      component_standard(name, 1, fDeclCompnt);
-      fEntity.insert({name, true});
-  }
-  decl_sig(sig);
-  inst_bypass(name, sig, x, fMapCompnt);
+   if (fEntity.count(name) == 0) {
+       entity_bypass(name, fDeclEntity);
+       component_standard(name, 1, fDeclCompnt);
+       fEntity.insert({name, true});
+   }
+   decl_sig(sig,1,-22);
+   inst_bypass(name, sig, x, fMapCompnt);
 }
