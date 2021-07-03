@@ -36,6 +36,7 @@
 #include "sigConstantPropagation.hh"
 #include "sigPromotion.hh"
 #include "sigToGraph.hh"
+#include "signal2vhdlVisitor.hh"
 #include "sigprint.hh"
 #include "sigtyperules.hh"
 #include "simplify.hh"
@@ -295,6 +296,16 @@ Tree InstructionsCompiler::prepare(Tree LS)
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
         sigToGraph(L5, dotfile);
     }
+    
+    // Generate VHDL if --vhdl option is set
+    if (gGlobal->gVHDLSwitch) {
+        Signal2VHDLVisitor V;
+        ofstream dotfile(subst("faust.vhd", gGlobal->makeDrawPath()).c_str());
+        V.sigToVHDL(L5, dotfile);
+        V.trace(gGlobal->gVHDLTrace, "VHDL");  // activate with --trace option
+        V.mapself(L5);
+    }
+    
     return L5;
 }
 

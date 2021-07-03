@@ -438,6 +438,8 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gGraphSwitch      = false;
     gDrawPSSwitch     = false;
     gDrawSVGSwitch    = false;
+    gVHDLSwitch       = false;
+    gVHDLTrace        = false;
     gPrintXMLSwitch   = false;
     gPrintJSONSwitch  = false;
     gPrintDocSwitch   = false;
@@ -638,9 +640,10 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     if (gOpenMPSwitch) dst << "-omp " << ((gOpenMPLoop) ? "-pl " : "");
     if (gVectorSwitch) {
         dst << "-vec "
-            << "-lv " << gVectorLoopVariant << " " << "-vs " << gVecSize << " " << ((gFunTaskSwitch) ? "-fun " : "")
-            << ((gGroupTaskSwitch) ? "-g " : "") << ((gDeepFirstSwitch) ? "-dfs " : "")
-            << printFloat() << "-ftz " << gFTZMode << " " << "-mcd " << gGlobal->gMaxCopyDelay;
+            << "-lv " << gVectorLoopVariant << " "
+            << "-vs " << gVecSize << " " << ((gFunTaskSwitch) ? "-fun " : "") << ((gGroupTaskSwitch) ? "-g " : "")
+            << ((gDeepFirstSwitch) ? "-dfs " : "") << printFloat() << "-ftz " << gFTZMode << " "
+            << "-mcd " << gGlobal->gMaxCopyDelay;
     } else {
         dst << printFloat() << "-ftz " << gFTZMode;
     }
