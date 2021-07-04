@@ -515,7 +515,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
                         CS(sigInput(index));
                     }
                 }
-            } else if (gGlobal->gOneSample) {
+            } else if (gGlobal->gOneSample >= 0) {
                 // Nothing...
             } else {
                 for (int index = 0; index < fContainer->inputs(); index++) {
@@ -541,7 +541,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
                     string name = subst("output$0", T(index));
                     pushDeclare(InstBuilder::genDecStructVar(name, InstBuilder::genArrayTyped(type, 0)));
                 }
-            } else if (gGlobal->gOneSample) {
+            } else if (gGlobal->gOneSample >= 0) {
                 // Nothing...
             } else {
                 for (int index = 0; index < fContainer->outputs(); index++) {
@@ -573,7 +573,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
             } else {
                 pushComputeDSPMethod(InstBuilder::genStoreStackVar(name, res));
             }
-        } else if (gGlobal->gOneSample) {
+        } else if (gGlobal->gOneSample >= 0) {
             name = "outputs";
             if (gGlobal->gComputeMix) {
                 ValueInst* res1 = InstBuilder::genAdd(res, InstBuilder::genLoadArrayStackVar(name, InstBuilder::genInt32NumInst(index)));
@@ -880,7 +880,7 @@ ValueInst* InstructionsCompiler::generateFVar(Tree sig, Tree type, const string&
 {
     // Check access (handling 'fFullCount' as a special case)
     if ((name != fFullCount && !gGlobal->gAllowForeignVar)
-        || (name == fFullCount && (gGlobal->gOneSample || gGlobal->gOneSampleControl))) {
+        || (name == fFullCount && (gGlobal->gOneSample >= 0 || gGlobal->gOneSampleControl))) {
         stringstream error;
         error << "ERROR : accessing foreign variable '" << name << "'"
         << " is not allowed in this compilation mode!" << endl;
@@ -918,7 +918,7 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
             InstBuilder::genLoadStackVar(subst("*input$0", T(idx))));
     } else if (gGlobal->gOneSampleControl) {
         res = InstBuilder::genCastFloatInst(InstBuilder::genLoadStructVar(subst("input$0", T(idx))));
-    } else if (gGlobal->gOneSample) {
+    } else if (gGlobal->gOneSample >= 0) {
         res = InstBuilder::genCastFloatInst(
             InstBuilder::genLoadArrayStackVar("inputs", InstBuilder::genInt32NumInst(idx)));
     } else {
@@ -1128,7 +1128,7 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
             }
 
         case kBlock:
-            if (gGlobal->gOneSample || gGlobal->gOneSampleControl) {
+            if (gGlobal->gOneSample >= 0 || gGlobal->gOneSampleControl) {
                 if (t->nature() == kInt) {
                     pushComputeBlockMethod(InstBuilder::genStoreArrayStackVar(
                         "iControl", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum), exp));
@@ -1178,7 +1178,7 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
                     pushDeclare(InstBuilder::genDecStructVar(vname_perm, InstBuilder::genBasicTyped(ctype)));
                     pushClearMethod(InstBuilder::genStoreStructVar(vname_perm, InstBuilder::genTypedZero(ctype)));
 
-                    if (gGlobal->gOneSample || gGlobal->gOneSampleControl) {
+                    if (gGlobal->gOneSample >= 0 || gGlobal->gOneSampleControl) {
                         pushComputeDSPMethod(InstBuilder::genControlInst(getConditionCode(sig), InstBuilder::genStoreStructVar(vname_perm, exp)));
                         return InstBuilder::genLoadStructVar(vname_perm);
                     } else {
@@ -1331,7 +1331,7 @@ ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
             block, InstBuilder::genBlockInst()));
     }
 
-    if (gGlobal->gOneSample) {
+    if (gGlobal->gOneSample >= 0) {
         pushDeclare(InstBuilder::genDecStructVar(SFcache, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
         pushComputeBlockMethod(InstBuilder::genStoreStructVar(SFcache, InstBuilder::genLoadStructVar(varname)));
         pushPostComputeBlockMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadStructVar(SFcache)));
@@ -1354,7 +1354,7 @@ ValueInst* InstructionsCompiler::generateSoundfileLength(Tree sig, ValueInst* sf
     string SFcache        = load->fAddress->getName() + "ca";
     string SFcache_length = gGlobal->getFreshID(SFcache + "_le");
 
-    if (gGlobal->gOneSample) {
+    if (gGlobal->gOneSample >= 0) {
 
         // Struct access using an index that will be converted as a field name
         ValueInst* v1 = InstBuilder::genLoadStructPtrVar(SFcache, Address::kStruct, InstBuilder::genInt32NumInst(1));
@@ -1382,7 +1382,7 @@ ValueInst* InstructionsCompiler::generateSoundfileRate(Tree sig, ValueInst* sf, 
     string SFcache      = load->fAddress->getName() + "ca";
     string SFcache_rate = gGlobal->getFreshID(SFcache + "_ra");
 
-    if (gGlobal->gOneSample) {
+    if (gGlobal->gOneSample >= 0) {
 
         // Struct access using an index that will be converted as a field name
         ValueInst* v1 = InstBuilder::genLoadStructPtrVar(SFcache, Address::kStruct, InstBuilder::genInt32NumInst(2));
@@ -1415,7 +1415,7 @@ ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf
     string SFcache_buffer_chan = gGlobal->getFreshID(SFcache + "_bu_ch");
     string SFcache_offset      = gGlobal->getFreshID(SFcache + "_of");
 
-    if (gGlobal->gOneSample) {
+    if (gGlobal->gOneSample >= 0) {
 
         // Struct access using an index that will be converted as a field name
         ValueInst* v1 = InstBuilder::genLoadStructPtrVar(SFcache, Address::kStruct, InstBuilder::genInt32NumInst(3));

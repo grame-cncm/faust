@@ -44,10 +44,13 @@ dsp_factory_base* CCodeContainer::produceFactory()
 
 CodeContainer* CCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return (gGlobal->gOneSample)
-        ? new CScalarOneSampleCodeContainer1(name, 0, 1, fOut, sub_container_type)
-        //? new CScalarOneSampleCodeContainer2(name, 0, 1, fOut, sub_container_type)
-        : new CScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
+    if (gGlobal->gOneSample == 0) {
+        return new CScalarOneSampleCodeContainer1(name, 0, 1, fOut, sub_container_type);
+    } else if (gGlobal->gOneSample == 1) {
+        return new CScalarOneSampleCodeContainer2(name, 0, 1, fOut, sub_container_type);
+    } else {
+        return new CScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
+    }
 }
 
 CodeContainer* CCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
@@ -69,10 +72,13 @@ CodeContainer* CCodeContainer::createContainer(const string& name, int numInputs
     } else if (gGlobal->gVectorSwitch) {
         container = new CVectorCodeContainer(name, numInputs, numOutputs, dst);
     } else {
-        container = (gGlobal->gOneSample)
-            ? new CScalarOneSampleCodeContainer1(name, numInputs, numOutputs, dst, kInt)
-            //? new CScalarOneSampleCodeContainer2(name, numInputs, numOutputs, dst, kInt)
-            : new CScalarCodeContainer(name, numInputs, numOutputs, dst, kInt);
+        if (gGlobal->gOneSample == 0) {
+            container = new CScalarOneSampleCodeContainer1(name, numInputs, numOutputs, dst, kInt);
+        } else if (gGlobal->gOneSample == 1) {
+            container = new CScalarOneSampleCodeContainer2(name, numInputs, numOutputs, dst, kInt);
+        } else {
+            container = new CScalarCodeContainer(name, numInputs, numOutputs, dst, kInt);
+        }
     }
 
     return container;

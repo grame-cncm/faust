@@ -537,8 +537,12 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gHasExp10 = true;
             i += 1;
 
-        } else if (isCmd(argv[i], "-os", "--one-sample")) {
-            gGlobal->gOneSample = true;
+        } else if (isCmd(argv[i], "-os", "--one-sample") || isCmd(argv[i], "-os0", "--one-sample0")) {
+            gGlobal->gOneSample = 0;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-os1", "--one-sample1")) {
+            gGlobal->gOneSample = 1;
             i += 1;
             
         } else if (isCmd(argv[i], "-cm", "--compute-mix")) {
@@ -881,7 +885,9 @@ static void printHelp()
             "auto-vectorization."
          << endl;
     cout << tab << "-exp10      --generate-exp10            pow(10,x) replaced by possibly faster exp10(x)." << endl;
-    cout << tab << "-os         --one-sample                generate one sample computation." << endl;
+    cout << tab << "-os         --one-sample                generate one sample computation (same as -os0)." << endl;
+    cout << tab << "-os0        --one-sample0               generate one sample computation (0 = separated control)." << endl;
+    cout << tab << "-os1        --one-sample1               generate one sample computation (1 = separated control and DSP struct)." << endl;
     cout << tab << "-cm         --compute-mix               mix in outputs buffers." << endl;
     cout << tab
          << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp."

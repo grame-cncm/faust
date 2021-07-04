@@ -177,7 +177,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gMathApprox           = false;
     gNeedManualPow        = true;
     gRemoveVarAddress     = false;
-    gOneSample            = false;
+    gOneSample            = -1;
     gOneSampleControl     = false;
     gComputeMix           = false;
     gFastMathLib          = "default";
@@ -624,7 +624,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
 #endif
     }
     if (gInPlace) dst << "-inpl ";
-    if (gOneSample) dst << "-os ";
+    if (gOneSample >= 0) dst << "-os" << gOneSample << " ";
     if (gLightMode) dst << "-light ";
     if (gMemoryManager) dst << "-mem ";
     if (gComputeMix) dst << "-cm ";
@@ -633,7 +633,6 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     if (gMaskDelayLineThreshold != INT_MAX) dst << "-dtl " << gMaskDelayLineThreshold << " ";
     dst << "-es " << gEnableFlag << " ";
     if (gHasExp10) dst << "-exp10 ";
-    if (gOneSample) dst << "-os ";
     if (gSchedulerSwitch) dst << "-sch ";
     if (gOpenMPSwitch) dst << "-omp " << ((gOpenMPLoop) ? "-pl " : "");
     if (gVectorSwitch) {

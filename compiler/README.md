@@ -1,4 +1,4 @@
-% man(1) Version 2.32.17 (22-June-2021) | Faust man page
+% man(1) Version 2.33.0 (04-July-2021) | Faust man page
 
 NAME
 ====
@@ -74,7 +74,11 @@ Code generation options:
 
   **-exp10**      **--generate-exp10**            pow(10,x) replaced by possibly faster exp10(x).
 
-  **-os**         **--one-sample**                generate one sample computation.
+  **-os**         **--one-sample**                generate one sample computation (0 = separated control).
+
+  **-os0**        **--one-sample0**               generate one sample computation (0 = separated control).
+
+  **-os1**        **--one-sample1**               generate one sample computation (1 = separated control and DSP struct).
 
   **-cm**         **--compute-mix**               mix in outputs buffers.
 
