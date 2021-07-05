@@ -525,12 +525,14 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateControl(sig, x, y);
 
     } else if (isSigAssertBounds(sig, x, y, z)){
-	/* no debug at this stage */
+	/* no debug option for the moment */
 	return generateCode(z);
     } else if (isSigLowest(sig, x)){
-	return generateNumber(sig, T(getCertifiedSigType(x)->getInterval().lo));
+	r = getCertifiedSigType(x)->getInterval().lo;
+	return generateNumber(sigReal(r), T(r));
     }  else if (isSigHighest(sig, x)){
-	return generateNumber(sig, T(getCertifiedSigType(x)->getInterval().hi));
+	r = getCertifiedSigType(x)->getInterval().hi;
+	return generateNumber(sigReal(r), T(r));
     }
 
     
