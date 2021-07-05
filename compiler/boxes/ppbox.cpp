@@ -39,6 +39,8 @@ const char *prim1name(CTree *(*ptr)(CTree *))
     if (ptr == sigDelay1) return "mem";
     if (ptr == sigIntCast) return "int";
     if (ptr == sigFloatCast) return "float";
+    if (ptr == sigLowest) return "lowest";
+    if (ptr == sigHighest) return "highest";
     return "prim1???";
 }
 
@@ -77,6 +79,7 @@ const char *prim3name(CTree *(*ptr)(CTree *, CTree *, CTree *))
 {
     if (ptr == sigReadOnlyTable) return "rdtable";
     if (ptr == sigSelect2) return "select2";
+    if (ptr == sigAssertBounds) return "assertbounds";
     return "prim3???";
 }
 
