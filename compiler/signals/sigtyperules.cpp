@@ -625,6 +625,7 @@ static Type infereSigType(Tree sig, Tree env)
         Type     t3 = T(cur, env);
         interval i3 = t3->getInterval();
 	interval iEnd;
+	constSig2double(min);
 	if (i3.valid)
 	    iEnd = interval(std::max(i3.lo, constSig2double(min)), std::min(i3.hi, constSig2double(max)));
 	else
@@ -931,11 +932,18 @@ static interval arithmetic(int opcode, const interval& x, const interval& y)
     return interval();
 }
 
-double constSig2double(Tree sig){
+double constSig2double(Tree sig)
+{
     Type ty = getSigType(sig);
-    if(ty->variability() != kKonst){
-	faustexception("ERROR : constSig2double, the parameter must be a constant value known at compile time\n");
+    if (ty->variability() != kKonst) {
+        throw faustexception("ERROR : constSig2double, the parameter must be a constant value"
+			     " known at compile time\n");
     }
     interval bds = ty->getInterval();
-    return (bds.hi + bds.lo) / 2;
+    if (bds.lo != bds.hi) {
+        throw faustexception(
+            "ERROR : constSig2double, constant value with non-singleton interval, don't know what"
+            " to do, please report");
+    }
+    return bds.lo;
 }
