@@ -41,11 +41,28 @@ struct JuliaInitFieldsVisitor : public DispatchVisitor {
         ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(inst->fType);
         if (array_type) {
             tab(fTab, *fOut);
-            if (isIntPtrType(inst->fType->getType())) {
-                *fOut << inst->fAddress->getName() << " = zeros(Int32, " << array_type->fSize << ")";
-            } else {
-                *fOut << inst->fAddress->getName() << " = zeros(T, " << array_type->fSize << ")";
-            }
+            inst->fAddress->accept(this);
+            *fOut << " = ";
+            ZeroInitializer(fOut, inst->fType);
+        }
+    }
+    
+    virtual void visit(NamedAddress* named)
+    {
+        if (named->getAccess() & Address::kStruct) {
+            *fOut << "dsp.";
+        }
+        *fOut << named->fName;
+    }
+    
+    static void ZeroInitializer(std::ostream* fOut, Typed* typed)
+    {
+        ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(typed);
+        faustassert(array_type);
+        if (isIntPtrType(typed->getType())) {
+            *fOut << "zeros(Int32, " << array_type->fSize << ")";
+        } else {
+            *fOut << "zeros(T, " << array_type->fSize << ")";
         }
     }
     
@@ -239,40 +256,26 @@ class JuliaInstVisitor : public TextInstVisitor {
     virtual ~JuliaInstVisitor() {}
 
     virtual void visit(AddMetaDeclareInst* inst)
-    {
-        
-    }
+    {}
 
     virtual void visit(OpenboxInst* inst)
-    {
-        
-    }
+    {}
 
     virtual void visit(CloseboxInst* inst)
-    {
-       
-    }
+    {}
     
     virtual void visit(AddButtonInst* inst)
-    {
-       
-    }
+    {}
 
     virtual void visit(AddSliderInst* inst)
-    {
-        
-    }
+    {}
 
     virtual void visit(AddBargraphInst* inst)
-    {
-        
-    }
+    {}
 
     virtual void visit(AddSoundfileInst* inst)
-    {
-        
-    }
-
+    {}
+   
     virtual void visit(DeclareVarInst* inst)
     {
         /*
@@ -290,6 +293,9 @@ class JuliaInstVisitor : public TextInstVisitor {
         if (inst->fValue) {
             *fOut << " = ";
             inst->fValue->accept(this);
+        } else if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+            *fOut << " = ";
+            JuliaInitFieldsVisitor::ZeroInitializer(fOut, inst->fType);
         }
         EndLine(' ');
     }
@@ -302,6 +308,14 @@ class JuliaInstVisitor : public TextInstVisitor {
             EndLine(' ');
         } else if (gen_empty) {
             *fOut << "return";
+            EndLine(' ');
+        }
+    }
+    
+    virtual void visit(DropInst* inst)
+    {
+        if (inst->fResult) {
+            inst->fResult->accept(this);
             EndLine(' ');
         }
     }
@@ -365,7 +379,7 @@ class JuliaInstVisitor : public TextInstVisitor {
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
             Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
-            *fOut << "->" << struct_type->fType->getName(field_index->fNum);
+            *fOut << "." << struct_type->fType->getName(field_index->fNum);
         } else {
             *fOut << "[";
             Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->fIndex);
@@ -391,41 +405,27 @@ class JuliaInstVisitor : public TextInstVisitor {
         inst->fValue->accept(this);
         EndLine(' ');
     }
-    
-    /*
-    virtual void visit(BinopInst* inst)
-    {
-       
-    }
-    */
-    
+      
     virtual void visit(::CastInst* inst)
     {
-        string type = fTypeManager->generateType(inst->fType);
-        if (endWith(type, "*")) {
-            *fOut << "static_cast<" << type << ">(";
-            inst->fInst->accept(this);
-            *fOut << ")";
-        } else {
-            *fOut << type << "(";
-            inst->fInst->accept(this);
-            *fOut << ")";
-        }
+        *fOut << fTypeManager->generateType(inst->fType) << "(";
+        inst->fInst->accept(this);
+        *fOut << ")";
     }
 
     // TODO : does not work, put this code in a function
     virtual void visit(BitcastInst* inst)
-    {
-        
-    }
+    {}
 
     // Generate standard funcall (not 'method' like funcall...)
-    
     virtual void visit(FunCallInst* inst)
     {
-        string name = gGlobal->getMathFunction(inst->fName);
-        name = (gPolyMathLibTable.find(name) != gPolyMathLibTable.end()) ? gPolyMathLibTable[name] : name;
-        generateFunCall(inst, name);
+        string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
+        *fOut << gGlobal->getMathFunction(name) << "(";
+        
+        // Compile parameters
+        generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
+        *fOut << ")";
     }
     
     virtual void visit(IfInst* inst)

@@ -82,7 +82,7 @@ void JuliaCodeContainer::produceInternal()
     generateGlobalDeclarations(fCodeProducer);
 
     tab(n, *fOut);
-    *fOut << "mutable struct " << fKlassName;
+    *fOut << "mutable struct " << fKlassName << "{T}";
     tab(n + 1, *fOut);
     
     // Fields
@@ -105,7 +105,7 @@ void JuliaCodeContainer::produceInternal()
     produceInfoFunctions(n, fKlassName, "dsp", false, false, fCodeProducer);
     
     tab(n, *fOut);
-    *fOut << "function instanceInit" << fKlassName << "(&mut self, sample_rate::Int32)";
+    *fOut << "function instanceInit" << fKlassName << "(dsp::" << fKlassName << "{T}, sample_rate::Int32) where {T}";
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
     generateInit(fCodeProducer);
@@ -119,30 +119,32 @@ void JuliaCodeContainer::produceInternal()
     string counter = "count";
     if (fSubContainerType == kInt) {
         tab(n, *fOut);
-        *fOut << "fn fill" << fKlassName << subst("(&mut self, $0: i32, table: &mut[i32]) {", counter);
+        *fOut << "function fill" << fKlassName << "(dsp::" << fKlassName << subst("{T}, $0::Int32, table::AbstractVector{Int32}) where {T}", counter);
     } else {
         tab(n, *fOut);
-        *fOut << "fn fill" << fKlassName << subst("(&mut self, $0: i32, table: &mut[$1]) {", counter, ifloat());
+        *fOut << "function fill" << fKlassName << "(dsp::" << fKlassName << subst("{T}, $0::Int32, table::AbstractVector{T}) where {T}", counter, ifloat());
     }
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
     generateComputeBlock(fCodeProducer);
-    //SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(counter);
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
+    SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(counter);
     loop->accept(fCodeProducer);
     back(1, *fOut);
     *fOut << "end" << endl;
     
-    throw faustexception("ERROR : JuliaCodeContainer::produceInternal not yet fully implemented!\n");
+    // Memory methods
+    tab(n, *fOut);
+    tab(n, *fOut);
+    *fOut << "function new" << fKlassName << "()";
+    tab(n + 1, *fOut);
+    *fOut << "return " << fKlassName << "{T}()";
+    tab(n, *fOut);
+    *fOut << "end";
 }
 
 void JuliaCodeContainer::produceClass()
 {
     int n = 0;
-
-    // To be moved in architecture file
-    tab(n, *fOut);
-    *fOut << "const FAUSTFLOAT = Float32";
     tab(n, *fOut);
 
     // Sub containers
