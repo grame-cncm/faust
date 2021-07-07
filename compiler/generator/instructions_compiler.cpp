@@ -510,7 +510,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
         // Input declarations
         if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia") {
-            // special handling for Rust backend
+            // special handling for Rust and Julia backends
             pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("input", "inputs", fContainer->inputs(), false));
         } else {
             // "input" and "inputs" used as a name convention
@@ -539,7 +539,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
         // Output declarations
         if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia") {
-            // special handling for Rust backend
+            // special handling for Rust and Julia backends
             pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("output", "outputs", fContainer->outputs(), true));
         } else {
             // "output" and "outputs" used as a name convention

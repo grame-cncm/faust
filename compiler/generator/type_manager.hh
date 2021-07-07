@@ -338,21 +338,27 @@ class JuliaStringTypeManager : public StringTypeManager {
         fPtrRef = ptr_ref;
 
         fTypeDirectTable[Typed::kInt32]     = "Int32";
-        fTypeDirectTable[Typed::kInt32_ptr] = fPtrRef + "Int32";
+        //fTypeDirectTable[Typed::kInt32_ptr] = fPtrRef + "Int32";
+        fTypeDirectTable[Typed::kInt32_ptr] = "Int32";
         fTypeDirectTable[Typed::kInt32_vec] = "vector<Int32>";
 
         fTypeDirectTable[Typed::kInt64]     = "Int64";
-        fTypeDirectTable[Typed::kInt64_ptr] =  fPtrRef + "Int64";
+        //fTypeDirectTable[Typed::kInt64_ptr] =  fPtrRef + "Int64";
+        fTypeDirectTable[Typed::kInt64_ptr] = "Int64";
         fTypeDirectTable[Typed::kInt64_vec] = "vector<Int64>";
 
         fTypeDirectTable[Typed::kFloat]     = "T";
-        fTypeDirectTable[Typed::kFloat_ptr] = fPtrRef + "T";
-        fTypeDirectTable[Typed::kFloat_ptr_ptr] =  fPtrRef + fPtrRef + "T";
+        //fTypeDirectTable[Typed::kFloat_ptr] = fPtrRef + "T";
+        //fTypeDirectTable[Typed::kFloat_ptr_ptr] =  fPtrRef + fPtrRef + "T";
+        fTypeDirectTable[Typed::kFloat_ptr] = "T";
+        fTypeDirectTable[Typed::kFloat_ptr_ptr] = "T";
         fTypeDirectTable[Typed::kFloat_vec] = "vector<T>";
 
         fTypeDirectTable[Typed::kDouble]     = "T";
-        fTypeDirectTable[Typed::kDouble_ptr] = fPtrRef + "T";
-        fTypeDirectTable[Typed::kDouble_ptr_ptr] = fPtrRef + fPtrRef + "T";
+        //fTypeDirectTable[Typed::kDouble_ptr] = fPtrRef + "T";
+        //fTypeDirectTable[Typed::kDouble_ptr_ptr] = fPtrRef + fPtrRef + "T";
+        fTypeDirectTable[Typed::kDouble_ptr] = "T";
+        fTypeDirectTable[Typed::kDouble_ptr_ptr] = "T";
         fTypeDirectTable[Typed::kDouble_vec] = "vector<T>";
 
         fTypeDirectTable[Typed::kQuad]     = "quad";

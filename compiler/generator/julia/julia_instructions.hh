@@ -256,25 +256,95 @@ class JuliaInstVisitor : public TextInstVisitor {
     virtual ~JuliaInstVisitor() {}
 
     virtual void visit(AddMetaDeclareInst* inst)
-    {}
+    {
+        // Special case
+        if (inst->fZone == "0") {
+            *fOut << "declare(ui_interface, :" << inst->fZone << ", " << quote(inst->fKey)
+            << ", " << quote(inst->fValue) << ")";
+        } else {
+            *fOut << "declare(ui_interface, :" << inst->fZone << ", "
+            << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
+        }
+        EndLine(' ');
+    }
 
     virtual void visit(OpenboxInst* inst)
-    {}
+    {
+        string name;
+        switch (inst->fOrient) {
+            case OpenboxInst::kVerticalBox:
+                name = "openVerticalBox(";
+                break;
+            case OpenboxInst::kHorizontalBox:
+                name = "openHorizontalBox(";
+                break;
+            case OpenboxInst::kTabBox:
+                name = "openTabBox(";
+                break;
+        }
+        *fOut << name << "uiInterface, " << quote(inst->fName) << ")";
+        EndLine(' ');
+    }
 
     virtual void visit(CloseboxInst* inst)
-    {}
+    {
+        *fOut << "closeBox(ui_interface)";
+        tab(fTab, *fOut);
+    }
     
     virtual void visit(AddButtonInst* inst)
-    {}
+    {
+        string name;
+        if (inst->fType == AddButtonInst::kDefaultButton) {
+            name = "addButton(";
+        } else {
+            name = "uaddCheckButton(";
+        }
+        *fOut << name << "ui_interface, " << quote(inst->fLabel) << ", :" << inst->fZone << ")";
+        EndLine(' ');
+    }
 
     virtual void visit(AddSliderInst* inst)
-    {}
+    {
+        string name;
+        switch (inst->fType) {
+            case AddSliderInst::kHorizontal:
+                name = "addHorizontalSlider(";
+                break;
+            case AddSliderInst::kVertical:
+                name = "addVerticalSlider(";
+                break;
+            case AddSliderInst::kNumEntry:
+                name = "addNumEntry(";
+                break;
+        }
+        *fOut << name << "ui_interface, " << quote(inst->fLabel) << ", :" << inst->fZone << ", "
+              << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", "
+              << checkReal(inst->fStep) << ")";
+        EndLine(' ');
+    }
 
     virtual void visit(AddBargraphInst* inst)
-    {}
+    {
+        string name;
+        switch (inst->fType) {
+            case AddBargraphInst::kHorizontal:
+                name = "addHorizontalBargraph(";
+                break;
+            case AddBargraphInst::kVertical:
+                name = "addVerticalBargraph(";
+                break;
+        }
+        *fOut << name << "ui_interface, " << quote(inst->fLabel) << ", :" << inst->fZone << ", "
+              << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
+        EndLine(' ');
+    }
 
     virtual void visit(AddSoundfileInst* inst)
-    {}
+    {
+        // Not supported for now
+        throw faustexception("ERROR : 'soundfile' primitive not yet supported for Julia\n");
+    }
    
     virtual void visit(DeclareVarInst* inst)
     {
@@ -288,14 +358,19 @@ class JuliaInstVisitor : public TextInstVisitor {
             *fOut << "volatile ";
         }
         */
-
-        *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
-        if (inst->fValue) {
-            *fOut << " = ";
-            inst->fValue->accept(this);
-        } else if (inst->fAddress->getAccess() & Address::kStaticStruct) {
-            *fOut << " = ";
+    
+        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+            *fOut << inst->fAddress->getName() << " = get!(faustglobals, (";
+            *fOut << fTypeManager->generateType(inst->fType);
+            *fOut << ", :" << inst->fAddress->getName() << "), ";
             JuliaInitFieldsVisitor::ZeroInitializer(fOut, inst->fType);
+            *fOut << ")";
+        } else {
+            *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+            if (inst->fValue) {
+                *fOut << " = ";
+                inst->fValue->accept(this);
+            }
         }
         EndLine(' ');
     }
@@ -388,7 +463,14 @@ class JuliaInstVisitor : public TextInstVisitor {
                 *fOut << (field_index->fNum + 1) << "]";
             } else {
                 indexed->fIndex->accept(this);
-                *fOut << "]";
+                LoadVarInst* index = dynamic_cast<LoadVarInst*>(indexed->fIndex);
+                // Loop access are already of type 1::n
+                if (index && index->fAddress->getAccess() == Address::kLoop) {
+                    *fOut << "]";
+                } else {
+                    // Otherwise Julia arrays start at 1
+                    *fOut << "+1]";
+                }
             }
         }
     }

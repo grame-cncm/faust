@@ -138,7 +138,7 @@ void JuliaCodeContainer::produceInternal()
     // Memory methods
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "function new" << fKlassName << "()";
+    *fOut << "function new" << fKlassName << "() where {T}";
     tab(n + 1, *fOut);
     *fOut << "return " << fKlassName << "{T}()";
     tab(n, *fOut);
@@ -148,6 +148,8 @@ void JuliaCodeContainer::produceInternal()
 void JuliaCodeContainer::produceClass()
 {
     int n = 0;
+    
+    *fOut << "faustglobals = Dict()";
    
     // Sub containers
     generateSubContainers();
@@ -189,7 +191,7 @@ void JuliaCodeContainer::produceClass()
     produceInfoFunctions(n, fKlassName, "dsp", false, false, fCodeProducer);
     
     tab(n, *fOut);
-    *fOut << "function classInit" << fKlassName << "(sample_rate::Int32)";
+    *fOut << "function classInit" << fKlassName << "(sample_rate::Int32) where {T}";
     {
         tab(n + 1, *fOut);
         // Local visitor here to avoid DSP object incorrect type generation
@@ -264,7 +266,7 @@ void JuliaCodeContainer::produceClass()
     // User interface
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "function buildUserInterface" << fKlassName << "(dsp::" << fKlassName << "{T}, ui_interface::UIGlue) where {T}";
+    *fOut << "function buildUserInterface" << fKlassName << "(dsp::" << fKlassName << "{T}, ui_interface::UI) where {T}";
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
     generateUserInterface(fCodeProducer);

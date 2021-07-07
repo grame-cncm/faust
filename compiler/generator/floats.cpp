@@ -95,7 +95,7 @@ void initFaustFloat()
     // Specific for Julia backend
     } else  if (gGlobal->gOutputLang == "julia") {
         numsuffix[0] = "";
-        numsuffix[1] = "";
+        numsuffix[1] = "f0";
         numsuffix[2] = "";
         numsuffix[3] = "";
         numsuffix[4] = "";
