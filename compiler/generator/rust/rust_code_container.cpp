@@ -71,10 +71,8 @@ CodeContainer* RustCodeContainer::createContainer(const string& name, int numInp
     }
 
     if (gGlobal->gOpenMPSwitch) {
-        // container = new RustOpenMPCodeContainer(name, numInputs, numOutputs, dst);
         throw faustexception("ERROR : OpenMP not supported for Rust\n");
     } else if (gGlobal->gSchedulerSwitch) {
-        // container = new RustWorkStealingCodeContainer(name, numInputs, numOutputs, dst);
         throw faustexception("ERROR : Scheduler not supported for Rust\n");
     } else if (gGlobal->gVectorSwitch) {
         // container = new RustVectorCodeContainer(name, numInputs, numOutputs, dst);

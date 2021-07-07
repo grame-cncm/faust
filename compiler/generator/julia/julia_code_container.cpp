@@ -30,6 +30,9 @@ using namespace std;
 
 /*
  Julia backend and module description:
+ 
+ - 'delete' for SubContainers is not generated
+ 
 */
 
 map<string, bool> JuliaInstVisitor::gFunctionSymbolTable;
@@ -145,8 +148,7 @@ void JuliaCodeContainer::produceInternal()
 void JuliaCodeContainer::produceClass()
 {
     int n = 0;
-    tab(n, *fOut);
-
+   
     // Sub containers
     generateSubContainers();
 
@@ -174,6 +176,9 @@ void JuliaCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "end";
     tab(n, *fOut);
+    
+    // Print metadata declaration
+    produceMetadata(n + 1);
 
     // Get sample rate method
     tab(n, *fOut);
@@ -184,7 +189,7 @@ void JuliaCodeContainer::produceClass()
     produceInfoFunctions(n, fKlassName, "dsp", false, false, fCodeProducer);
     
     tab(n, *fOut);
-    *fOut << "function classInit" << fKlassName << "(sample_rate::Int32) ";
+    *fOut << "function classInit" << fKlassName << "(sample_rate::Int32)";
     {
         tab(n + 1, *fOut);
         // Local visitor here to avoid DSP object incorrect type generation

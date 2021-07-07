@@ -18,7 +18,7 @@
 mutable struct UIGlue
 end
 
-const FAUSTFLOAT = Float32;
+const FAUSTFLOAT = Float32
 
 # Generated code
 <<includeIntrinsic>>
