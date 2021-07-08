@@ -14,6 +14,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # ************************************************************************
 
+const FAUSTFLOAT = Float32
+
 # Architecture
 abstract type UI end
 
@@ -30,21 +32,21 @@ function closeBox()
 end
 
 # -- active widgets
-function addButton(ui_interface::UI, label::String, param::Symbol) where {T}
+function addButton(ui_interface::UI, label::String, param::Symbol) 
 end
-function addCheckButton(ui_interface::UI, label::String, param::Symbol) where {T}
+function addCheckButton(ui_interface::UI, label::String, param::Symbol) 
 end
-function addHorizontalSlider(ui_interface::UI, label::String, param::Symbol, init::T, min::T, max::T, step::T) where {T}
+function addHorizontalSlider(ui_interface::UI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
 end
-function addVerticalSlider(ui_interface::UI, label::String, param::Symbol, init::T, min::T, max::T, step::T) where {T}
+function addVerticalSlider(ui_interface::UI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
 end
-function addNumEntry(ui_interface::UI, label::String, param::Symbol, init::T, min::T, max::T, step::T) where {T}
+function addNumEntry(ui_interface::UI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
 end
 
 # -- passive widgets
-function addHorizontalBargraph(ui_interface::UI, label::String, param::Symbol, min::T, max::T) where {T}
+function addHorizontalBargraph(ui_interface::UI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
 end
-function addVerticalBargraph(ui_interface::UI, label::String, param::Symbol, min::T, max::T) where {T}
+function addVerticalBargraph(ui_interface::UI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
 end
 
 # -- soundfiles
@@ -54,8 +56,6 @@ end
 # -- metadata declarations
 function declare(ui_interface::UI, key::String, val::String) 
 end
-
-const FAUSTFLOAT = Float32
 
 # Generated code
 <<includeIntrinsic>>
