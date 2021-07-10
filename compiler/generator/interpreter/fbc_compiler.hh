@@ -29,6 +29,8 @@
 #include "fbc_mir_compiler.hh"
 #elif LLVM_BUILD
 #include "fbc_llvm_compiler.hh"
+#elif TEMPLATE_BUILD
+#include "fbc_template_compiler.hh"
 #endif
 
 // FBC compiler
@@ -75,6 +77,8 @@ class FBCCompiler : public FBCInterpreter<REAL,0> {
         #elif LLVM_BUILD
             // Run with interp/LLVM compiler
             (*fCompiledBlocks)[block] = new FBCLLVMCompiler<REAL>(block);
+        #elif TEMPLATE_BUILD
+            (*fCompiledBlocks)[block] = new FBCTemplateCompiler<REAL>(block);
         #endif
         } else {
             // std::cout << "FBCCompiler: reuse compiled block" << std::endl;

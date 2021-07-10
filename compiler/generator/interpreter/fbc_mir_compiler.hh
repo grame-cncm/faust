@@ -464,7 +464,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         return gMathLib[name];
     }
     
-    void CompileBlock(FBCBlockInstruction<T>* block, MIR_label_t code_block)
+    void CompileBlock(FBCBlockInstruction<REAL>* block, MIR_label_t code_block)
     {
         InstructionIT it  = block->fInstructions.begin();
         bool          end = false;
@@ -975,7 +975,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
     }
     
    public:
-    FBCMIRCompiler(FBCBlockInstruction<T>* fbc_block)
+    FBCMIRCompiler(FBCBlockInstruction<REAL>* fbc_block)
     {
         // Integer version
         gMathLib["mir_abs"] = (void*)mir_abs;
@@ -1098,7 +1098,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         MIR_finish(fContext);
     }
 
-    void Execute(int* int_heap, T* real_heap, T** inputs, T** outputs)
+    void Execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs)
     {
         fCompiledFun((MIR_val_t){.a = (void*)int_heap},
                      (MIR_val_t){.a = (void*)real_heap},
@@ -1116,7 +1116,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
     
 };
 
-template <class T>
-std::map<std::string, void*> FBCMIRCompiler<T>::gMathLib;
+template <class REAL>
+std::map<std::string, void*> FBCMIRCompiler<REAL>::gMathLib;
 
 #endif
