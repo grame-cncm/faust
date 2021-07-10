@@ -1,0 +1,21 @@
+// import("stdfaust.lib");
+// process = ba.slidingMeanp(ma.SR, 4);
+
+declare compilation_options    "-single -scal -e t1.dsp -o t1_exp.dsp";
+declare library_path "/Users/letz/Developpements/faust/t1.dsp";
+declare library_path "/usr/local/share/faust/stdfaust.lib";
+declare library_path "/usr/local/share/faust/basics.lib";
+declare library_path "/usr/local/share/faust/maths.lib";
+declare library_path "/usr/local/share/faust/platform.lib";
+declare basics_lib_name "Faust Basic Element Library";
+declare basics_lib_version "0.1";
+declare filename "t1.dsp";
+declare maths_lib_author "GRAME";
+declare maths_lib_copyright "GRAME";
+declare maths_lib_license "LGPL with exception";
+declare maths_lib_name "Faust Math Library";
+declare maths_lib_version "2.3";
+declare name "t1";
+declare platform_lib_name "Generic Platform Library";
+declare platform_lib_version "0.1";
+process = \(x1).((x1,0 : @ : _<:(1,((192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),0 : ==) : &),((((192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),1 : / : floor : int),2 : %),0,_ : select2),_ : select2),((x1,(x1,1 : @) : +),(1,(((192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),1 : / : floor : int),2 : %) : *:>_) : @ : _<:(0,((192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),0 : ==) : &),((((192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),2 : / : floor : int),2 : %),0,_ : select2),_ : select2),(((x1,(x1,1 : @) : +),((x1,(x1,1 : @) : +),2 : @) : +),((1,(((192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),1 : / : floor : int),2 : %) : *),(2,(((192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),2 : / : floor : int),2 : %) : *):>_) : @ : _<:(0,((192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),0 : ==) : &),((((192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),4 : / : floor : int),2 : %),0,_ : select2),_ : select2) : +,_ : +),(192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min) : /;

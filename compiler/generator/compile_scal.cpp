@@ -724,7 +724,6 @@ string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname, o->getMaxDelay());
-
     } else {
         return generateVariableStore(sig, exp);
     }

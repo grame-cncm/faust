@@ -29,12 +29,16 @@
 #include "interpreter_bytecode.hh"
 #include "fbc_executor.hh"
 
-// FBC template compiler
+/*
+ * FBC template compiler, where REAL will be either 'float' or 'double'
+ * depending of the compiler choosen option: -single or -double
+ */
 template <class REAL>
 class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
 
    protected:
     
+    // Compile the FBC code use in 'compute'
     void CompileBlock(FBCBlockInstruction<REAL>* block)
     {
         InstructionIT it  = block->fInstructions.begin();
@@ -46,16 +50,14 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
             switch ((*it)->fOpcode) {
                     
                 // Numbers
-                case FBCInstruction::kRealValue: {
+                case FBCInstruction::kRealValue:
                     it++;
                     break;
-                }
-
-                case FBCInstruction::kInt32Value: {
+             
+                case FBCInstruction::kInt32Value:
                     it++;
                     break;
-                }
-
+              
                 // Memory load/store
                 case FBCInstruction::kLoadReal:
                     it++;

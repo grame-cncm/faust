@@ -247,9 +247,9 @@ Tree InstructionsCompiler::prepare(Tree LS)
     Tree L2 = SP.mapself(L1);
     endTiming("Cast and Promotion");
 
-    startTiming("simplification");
+    startTiming("second simplification");
     Tree L3 = simplify(L2);  // Simplify by executing every computable operation
-    endTiming("simplification");
+    endTiming("second simplification");
 
     startTiming("Constant propagation");
     SignalConstantPropagation SK;
@@ -1051,7 +1051,7 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
     string         vname;
     Typed::VarType ctype;
     int            sharing = getSharingCount(sig);
-    old_Occurences*    o   = fOccMarkup->retrieve(sig);
+    old_Occurences* o      = fOccMarkup->retrieve(sig);
     faustassert(o);
 
     // Check for expression occuring in delays
@@ -1102,11 +1102,6 @@ ValueInst* InstructionsCompiler::forceCacheCode(Tree sig, ValueInst* exp)
 
 ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
 {
-    // If value is already a simple value, no need to create a variable, just reuse it...
-    if (exp->isSimpleValue()) {
-        return exp;
-    }
-
     string         vname, vname_perm;
     Typed::VarType ctype;
     ::Type         t = getCertifiedSigType(sig);
@@ -1126,7 +1121,7 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
                 pushInitMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype), exp));
                 return InstBuilder::genLoadStackVar(vname);
             }
-
+  
         case kBlock:
             if (gGlobal->gOneSample >= 0 || gGlobal->gOneSampleControl) {
                 if (t->nature() == kInt) {
