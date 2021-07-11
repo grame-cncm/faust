@@ -5,7 +5,7 @@
  each section for license and copyright information.
  *************************************************************************/
 
-/******************* BEGIN minimal-effect.cpp ****************/
+/******************* BEGIN minimal-fixed-point.cpp ****************/
 /************************************************************************
  FAUST Architecture File
  Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
@@ -41,8 +41,9 @@
 #include "faust/gui/SoundUI.h"
 #endif
 
-using std::max;
-using std::min;
+#include "ap_fixed.h"
+
+typedef ap_fixed<32, 8, AP_RND_CONV, AP_SAT> fixpoint_t;
 
 /******************************************************************************
  *******************************************************************************
@@ -64,7 +65,5 @@ using std::min;
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-// Factory API
-dsp* createmydsp() { return new mydsp(); }
 
-/******************* END minimal-effect.cpp ****************/
+/******************* END minimal-fixed-point.cpp ****************/

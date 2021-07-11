@@ -32,12 +32,11 @@
  ************************************************************************
  ************************************************************************/
  
-#include <math.h>
 #include <algorithm>
 
+#include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
-#include "faust/dsp/dsp.h"
 #include "faust/gui/CGlue.h"
 
 #define max(a,b) ((a < b) ? b : a)
