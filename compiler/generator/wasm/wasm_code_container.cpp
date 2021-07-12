@@ -24,7 +24,6 @@
 #include "exception.hh"
 #include "floats.hh"
 #include "global.hh"
-#include "rn_base64.h"
 
 using namespace std;
 

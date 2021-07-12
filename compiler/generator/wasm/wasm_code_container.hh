@@ -28,6 +28,7 @@
 #include "vec_code_container.hh"
 #include "wasm_instructions.hh"
 #include "json_instructions.hh"
+#include "rn_base64.h"
 
 using namespace std;
 
@@ -69,7 +70,7 @@ class WASMCodeContainer : public virtual CodeContainer {
     
         // "name", "filename" found in metadata
         string dsp_code = gGlobal->gInputString ? gGlobal->gInputString : pathToContent(gGlobal->gMasterDocument);
-        JSONInstVisitor<REAL> json_visitor2("", "", fNumInputs, fNumOutputs, -1, "", dsp_code, FAUSTVERSION, compile_options.str(),
+        JSONInstVisitor<REAL> json_visitor2("", "", fNumInputs, fNumOutputs, -1, "", base64_encode(dsp_code), FAUSTVERSION, compile_options.str(),
         gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList,
         gGlobal->gWASMVisitor->getStructSize(), path_index_table);
         generateUserInterface(&json_visitor2);
