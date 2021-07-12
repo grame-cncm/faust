@@ -36,14 +36,14 @@ extern "C" {
 //#include "mir.h"
 //#include "mir-gen.h"
 
-#include "/Documents/JIT-compilation/mir/mir.h"
-#include "/Documents/JIT-compilation/mir/mir-gen.h"
+#include "/Users/letz/Developpements/JIT-compilation/mir/mir.h"
+#include "/Users/letz/Developpements/JIT-compilation/mir/mir-gen.h"
     
 #ifdef __cplusplus
 }
 #endif
 
-#define typedReal(op1, op2) ((sizeof(T) == sizeof(float)) ? op1 : op2)
+#define typedReal(op1, op2) ((sizeof(REAL) == sizeof(float)) ? op1 : op2)
 
 // FBC MIR compiler
 template <class REAL>
@@ -85,13 +85,13 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
    
     MIR_op_t genFloat(float num) { return MIR_new_float_op(fContext, num); }
     MIR_op_t genDouble(double num) { return MIR_new_double_op(fContext, num); }
-    MIR_op_t genReal(double num) { return (sizeof(T) == sizeof(double)) ? genDouble(num) : genFloat(num); }
+    MIR_op_t genReal(double num) { return (sizeof(REAL) == sizeof(double)) ? genDouble(num) : genFloat(num); }
     MIR_op_t genInt32(int num) { return MIR_new_int_op(fContext, num); }
     MIR_op_t genInt64(int64_t num) { return MIR_new_int_op(fContext, num); }
 
     MIR_type_t getFloatTy() { return MIR_T_F; }
     MIR_type_t getDoubleTy() { return MIR_T_D; }
-    MIR_type_t getRealTy() { return (sizeof(T) == sizeof(double)) ? getDoubleTy() : getFloatTy(); }
+    MIR_type_t getRealTy() { return (sizeof(REAL) == sizeof(double)) ? getDoubleTy() : getFloatTy(); }
     MIR_type_t getInt32Ty() { return MIR_T_I32; }
     MIR_type_t getInt64Ty() { return MIR_T_I64; }
     
@@ -100,7 +100,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         return MIR_new_func_reg(fContext, fCompute->u.func, type, getFreshID(name));
     }
   
-    std::string getMathName(const std::string& name) { return (sizeof(T) == sizeof(float)) ? (name + "f") : name; }
+    std::string getMathName(const std::string& name) { return (sizeof(REAL) == sizeof(float)) ? (name + "f") : name; }
 
     void pushValue(MIR_reg_t val) { fMIRStack[fMIRStackIndex++] = val; }
     MIR_reg_t popValue() { return fMIRStack[--fMIRStackIndex]; }
@@ -262,7 +262,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                                                                         getRealTy(), 0,
                                                                         fMIRRealHeap,
                                                                         index_reg,
-                                                                        sizeof(T))));
+                                                                        sizeof(REAL))));
         pushValue(load_res);
     }
     
@@ -296,7 +296,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                                                          MIR_new_mem_op(fContext,
                                                                         getRealTy(), 0,
                                                                         fMIRRealHeap, index_reg,
-                                                                        sizeof(T)),
+                                                                        sizeof(REAL)),
                                                          MIR_new_reg_op(fContext, popValue())));
     }
 
@@ -322,7 +322,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                                                          MIR_new_mem_op(fContext,
                                                                         getRealTy(), 0,
                                                                         load_res_ptr, popValue(),
-                                                                        sizeof(T))));
+                                                                        sizeof(REAL))));
         pushValue(load_res);
     }
 
@@ -345,7 +345,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                                                          MIR_new_mem_op(fContext,
                                                                         getRealTy(), 0,
                                                                         store_res_ptr, popValue(),
-                                                                        sizeof(T)),
+                                                                        sizeof(REAL)),
                                                          MIR_new_reg_op(fContext, popValue())));
     }
    
@@ -984,7 +984,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         gMathLib["mir_max_i"] = (void*)mir_max_i;
         
         // Float versions
-        if (sizeof(T) == sizeof(float)) {
+        if (sizeof(REAL) == sizeof(float)) {
             gMathLib["mir_fabsf"] = (void*)mir_fabsf;
             gMathLib["mir_acosf"] = (void*)mir_acosf;
             gMathLib["mir_acoshf"] = (void*)mir_acoshf;
@@ -1016,7 +1016,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         }
         
         // Double versions
-        if (sizeof(T) == sizeof(double)) {
+        if (sizeof(REAL) == sizeof(double)) {
             gMathLib["mir_fabs"] = (void*)mir_fabs;
             gMathLib["mir_acos"] = (void*)mir_acos;
             gMathLib["mir_acosh"] = (void*)mir_acosh;
@@ -1085,8 +1085,8 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         MIR_link(fContext, MIR_set_interp_interface, importResolver);
         
         // Code generation
-        MIR_gen_init(fContext);
-        fCompiledFun = (compiledFun)MIR_gen(fContext, fCompute);
+        MIR_gen_init(fContext, 1);
+        fCompiledFun = (compiledFun)MIR_gen(fContext, 0, fCompute);
         MIR_gen_finish(fContext);
         
         // Print module
