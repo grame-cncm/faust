@@ -406,9 +406,9 @@ class FaustPlugInAudioProcessorEditor : public juce::AudioProcessorEditor
         FaustPlugInAudioProcessor& processor;
         
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FaustPlugInAudioProcessorEditor)
-        
+#ifndef PLUGIN_MAGIC        
         JuceGUI fJuceGUI;
-    
+#endif    
 };
 
 #ifndef PLUGIN_MAGIC
@@ -733,6 +733,7 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 }
 
 //==============================================================================
+#ifndef PLUGIN_MAGIC
 FaustPlugInAudioProcessorEditor::FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor& p)
 : juce::AudioProcessorEditor (&p), processor (p), fJuceGUI(!p.fStateUI.fRestored)  // When no previous state was restored, setup GUI with default state of controllers
 {
@@ -759,6 +760,7 @@ void FaustPlugInAudioProcessorEditor::resized()
     fJuceGUI.setBounds(getLocalBounds());
 }
 
+#endif
 // Globals
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
