@@ -51,7 +51,6 @@
 #endif
 
 using namespace daisysp;
-using namespace daisy;
 using namespace std;
 
 /******************************************************************************
@@ -79,9 +78,9 @@ using namespace std;
 #endif
 
 #ifdef PATCH
-static DaisyPatch hw;
+static daisy::DaisyPatch hw;
 #else
-static DaisySeed hw;
+static daisy::DaisySeed hw;
 #endif
 
 static DaisyControlUI* control_UI = nullptr;
