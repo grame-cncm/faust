@@ -652,6 +652,10 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     fDSP->instanceClear();
     
 #endif
+#ifdef MAGIC_LEVEL_SOURCE
+    magicState.prepareToPlay(sampleRate, samplesPerBlock);
+    outputMeter->setupSource(2, sampleRate, 500, 200);
+#endif
 }
 
 bool FaustPlugInAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
