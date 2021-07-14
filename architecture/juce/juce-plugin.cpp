@@ -242,10 +242,10 @@ public:
     void processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override
     {
         jassert (! isUsingDoublePrecision());
+        process (buffer, midiMessages);
 #ifdef MAGIC_LEVEL_SOURCE
 	outputMeter->pushSamples(buffer);
 #endif
-        process (buffer, midiMessages);
     }
     
     void processBlock (juce::AudioBuffer<double>& buffer, juce::MidiBuffer& midiMessages) override
@@ -654,7 +654,7 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
 #endif
 #ifdef MAGIC_LEVEL_SOURCE
     magicState.prepareToPlay(sampleRate, samplesPerBlock);
-    outputMeter->setupSource(2, sampleRate, 500, 200);
+    outputMeter->setupSource(getMainBusNumOutputChannels(), sampleRate, 500, 200);
 #endif
 }
 
