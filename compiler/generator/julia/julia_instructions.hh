@@ -490,7 +490,12 @@ class JuliaInstVisitor : public TextInstVisitor {
       
     virtual void visit(::CastInst* inst)
     {
-        *fOut << fTypeManager->generateType(inst->fType) << "(";
+        if (isIntType(inst->fType->getType())) {
+            *fOut << "floor(";
+            *fOut << fTypeManager->generateType(inst->fType) << ", ";
+        } else {
+            *fOut << fTypeManager->generateType(inst->fType) << "(";
+        }
         inst->fInst->accept(this);
         *fOut << ")";
     }
@@ -503,11 +508,21 @@ class JuliaInstVisitor : public TextInstVisitor {
     virtual void visit(FunCallInst* inst)
     {
         string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
-        *fOut << gGlobal->getMathFunction(name) << "(";
-        
-        // Compile parameters
-        generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
-        *fOut << ")";
+        // Special syntax for pow(x, y) => x ^ y;
+        if (name == "pow") {
+            auto arg = inst->fArgs.begin();
+            *fOut << "(";
+            (*arg)->accept(this);
+            *fOut << " ^ ";
+            ++arg;
+            (*arg)->accept(this);
+            *fOut << ")";
+        } else {
+            *fOut << name << "(";
+            // Compile parameters
+            generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
+            *fOut << ")";
+        }
     }
     
     virtual void visit(IfInst* inst)
