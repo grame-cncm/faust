@@ -62,11 +62,11 @@ static Type infereWaveformType(Tree lv, Tree env);
 static interval arithmetic(int opcode, const interval& x, const interval& y);
 
 // Uncomment to activate type inferrence tracing
-//#define TRACE(x) x
-#define TRACE(x) \
-    {            \
-        ;        \
-    }
+#define TRACE(x) x
+// #define TRACE(x) \
+//     {            \
+//         ;        \
+//     }
 
 /**
  * The empty type environment (also property key for closed term type)
@@ -487,6 +487,30 @@ static Type infereSigType(Tree sig, Tree env)
         return T(hd(sig), env) * T(tl(sig), env);
     }
 
+    else if (isSigAssertBounds(sig, min, max, cur)){
+        Type     t1 = T(min, env);
+        Type     t2 = T(max, env);
+        Type     t3 = T(cur, env);
+        interval i3 = t3->getInterval();
+	interval iEnd;
+	constSig2double(min);
+	if (i3.valid)
+	    iEnd = interval(std::max(i3.lo, constSig2double(min)), std::min(i3.hi, constSig2double(max)));
+	else
+	    iEnd = interval(constSig2double(min), constSig2double(max));
+        return t3->promoteInterval(iEnd);
+    }
+
+    else if (isSigLowest(sig, s1)) {
+        interval i1 = T(s1, env)->getInterval();
+        return makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(i1.lo));
+    }
+
+    else if (isSigHighest(sig, s1)) {
+        interval i1 = T(s1, env)->getInterval();
+        return makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(i1.hi));
+    }
+
     // unrecognized signal here
     throw faustexception("ERROR inferring signal type : unrecognized signal\n");
     return 0;
@@ -768,4 +792,20 @@ static interval arithmetic(int opcode, const interval& x, const interval& y)
     }
 
     return interval();
+}
+
+double constSig2double(Tree sig)
+{
+    Type ty = getSigType(sig);
+    if (ty->variability() != kKonst) {
+        throw faustexception("ERROR : constSig2double, the parameter must be a constant value"
+			     " known at compile time\n");
+    }
+    interval bds = ty->getInterval();
+    if (bds.lo != bds.hi) {
+        throw faustexception(
+            "ERROR : constSig2double, constant value with non-singleton interval, don't know what"
+            " to do, please report");
+    }
+    return bds.lo;
 }

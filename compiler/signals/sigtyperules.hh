@@ -58,4 +58,12 @@ void typeAnnotation(Tree sig, bool causality);
  */
 void annotationStatistics();
 
+/**
+ * convert a constant signal into a double using its bounds (not very safe)
+ * @param sig the signal to be converted
+ * @return the mean of its biggest and smallest value
+ */
+double constSig2double(Tree sig);
+
+
 #endif

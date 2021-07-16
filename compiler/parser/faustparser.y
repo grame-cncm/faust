@@ -218,6 +218,11 @@ Tree unquote(char* str)
 %token CASE
 %token ARROW
 
+%token ASSERTBOUNDS
+%token LOWEST
+%token HIGHEST
+
+
 %token FLOATMODE
 %token DOUBLEMODE
 %token QUADMODE
@@ -562,6 +567,10 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 
 				| SELECT2 						{ $$ = boxPrim3(sigSelect2); }
 				| SELECT3						{ $$ = boxPrim4(sigSelect3); }
+
+				| ASSERTBOUNDS					{ $$ = boxPrim3(sigAssertBounds);}
+				| LOWEST						{ $$ = boxPrim1(sigLowest);}
+				| HIGHEST						{ $$ = boxPrim1(sigHighest);}
 
 				| ident 						{ $$ = $1;  setUseProp($1, yyfilename, yylineno);}
                 | SUB ident                     { $$ = boxSeq(boxPar(boxInt(0),$2),boxPrim2(sigSub)); }

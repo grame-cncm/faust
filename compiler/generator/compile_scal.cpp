@@ -156,7 +156,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     if (gGlobal->gDrawSignals) {
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
         // SL : 28/09/17 : deactivated for now
-        // sigToGraph(L3, dotfile);
+        sigToGraph(L3, dotfile);
     }
 
     return L3;
@@ -513,11 +513,23 @@ string ScalarCompiler::generateCode(Tree sig)
             throw faustexception("ERROR : 'control/enable' can only be used in scalar mode\n");
         }
         return generateControl(sig, x, y);
+
+    } else if (isSigAssertBounds(sig, x, y, z)){
+	/* no debug option for the moment */
+	return generateCode(z);
+    } else if (isSigLowest(sig, x)){
+	r = getCertifiedSigType(x)->getInterval().lo;
+	return generateNumber(sigReal(r), T(r));
+    }  else if (isSigHighest(sig, x)){
+	r = getCertifiedSigType(x)->getInterval().hi;
+	return generateNumber(sigReal(r), T(r));
     }
+
+    
     /* we should not have any control at this stage*/
     else {
         stringstream error;
-        error << "ERROR when compiling, unrecognized signal : " << ppsig(sig) << endl;
+        error << "ERROR when compiling, ScalarCompiler::generateCode unrecognized signal : " << ppsig(sig) << endl;
         throw faustexception(error.str());
     }
     return "error in generated code";

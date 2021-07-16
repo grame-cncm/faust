@@ -278,9 +278,22 @@ static string sigLabel(Tree sig)
         fout << "attach";
     }
 
+    else if (isSigAssertBounds(sig, x, y, z)){
+	fout << "assertbounds";
+    }
+
+    else if (isSigLowest(sig, x)){
+	fout << "lowest";
+    }
+    
+    else if (isSigHighest(sig, x)){
+	fout << "highest";
+    }
+
+
     else {
         stringstream error;
-        error << "ERROR : unrecognized signal : " << *sig << endl;
+        error << "ERROR : sigToGraph.cpp, unrecognized signal : " << *sig << endl;
         throw faustexception(error.str());
     }
 
