@@ -183,6 +183,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gFastMathLib          = "default";
     gNameSpace            = "";
 
+    gUpIter   = 0;
+    gAgeLimit = 0;
+
     // Fastmath mapping float version
     gFastMathLibTable["fabsf"]      = "fast_fabsf";
     gFastMathLibTable["acosf"]      = "fast_acosf";
@@ -486,15 +489,16 @@ void global::init()
     TEXEC = makeSimpleType(kInt, kKonst, kExec, kVect, kNum, interval());
 
     // More predefined types
-    TINPUT   = makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
+    TINPUT   = makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval(-1, 1));
     TGUI     = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval());
     TGUI01   = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval(0, 1));
     INT_TGUI = makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval());
 
-    TREC = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval());
+    TREC = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(0, 0));
+    // !!! TRECMAX Maximal only in the last component of the type lattice
+    TRECMAX = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(-HUGE_VAL,HUGE_VAL));
 
     // empty Predefined bit depth
-
     RES = res();
 
     // Predefined symbols CONS and NIL
