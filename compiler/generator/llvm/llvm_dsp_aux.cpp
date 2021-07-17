@@ -161,7 +161,6 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, Module* module
     setOptlevel(opt_level);
     
     fObjectCache = nullptr;
- 
     fContext = context;
     fModule  = module;
     fDecoder = nullptr;
@@ -244,23 +243,16 @@ bool llvm_dsp_factory_aux::initJITAux(string& error_msg)
     fJIT->runStaticConstructorsDestructors(false);
     fJIT->DisableLazyCompilation(true);
 
-    try {
-        fAllocate          = (allocateDspFun)loadOptimize("allocate" + fClassName);
-        fDestroy           = (destroyDspFun)loadOptimize("destroy" + fClassName);
-        fInstanceConstants = (instanceConstantsFun)loadOptimize("instanceConstants" + fClassName);
-        fInstanceClear     = (instanceClearFun)loadOptimize("instanceClear" + fClassName);
-        fClassInit         = (classInitFun)loadOptimize("classInit" + fClassName);
-        fCompute           = (computeFun)loadOptimize("compute" + fClassName);
-        fGetJSON           = (getJSONFun)loadOptimize("getJSON" + fClassName);
-        
-        endTiming("initJIT");
-        return true;
-    // Module does not contain the Faust entry points, or external symbol was not found...
-    } catch (faustexception& e) {
-        error_msg = e.Message();
-        endTiming("initJIT");
-        return false;
-    }
+    fAllocate          = (allocateDspFun)loadOptimize("allocate" + fClassName);
+    fDestroy           = (destroyDspFun)loadOptimize("destroy" + fClassName);
+    fInstanceConstants = (instanceConstantsFun)loadOptimize("instanceConstants" + fClassName);
+    fInstanceClear     = (instanceClearFun)loadOptimize("instanceClear" + fClassName);
+    fClassInit         = (classInitFun)loadOptimize("classInit" + fClassName);
+    fCompute           = (computeFun)loadOptimize("compute" + fClassName);
+    fGetJSON           = (getJSONFun)loadOptimize("getJSON" + fClassName);
+    
+    endTiming("initJIT");
+    return true;
 }
 
 int llvm_dsp_factory_aux::getOptlevel()
@@ -491,7 +483,6 @@ llvm_dsp_factory* llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFF
                                                                      string& error_msg)
 {
     string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
-    
     dsp_factory_table<SDsp_factory>::factory_iterator it;
 
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
@@ -499,16 +490,20 @@ llvm_dsp_factory* llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFF
         sfactory->addReference();
         return sfactory;
     } else {
-        vector<string>        dummy_list;
-        llvm_dsp_factory_aux* factory_aux = new llvm_dsp_factory_aux(sha_key, MEMORY_BUFFER_GET(buffer).str(), target);
-        if (factory_aux->initJIT(error_msg)) {
-            llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
-            llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
-            factory->setSHAKey(sha_key);
-            return factory;
-        } else {
-            error_msg = "ERROR : " + error_msg + "\n";
-            delete factory_aux;
+        try {
+            llvm_dsp_factory_aux* factory_aux = new llvm_dsp_factory_aux(sha_key, MEMORY_BUFFER_GET(buffer).str(), target);
+            if (factory_aux->initJIT(error_msg)) {
+                llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
+                llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
+                factory->setSHAKey(sha_key);
+                return factory;
+            } else {
+                error_msg = "ERROR : " + error_msg + "\n";
+                delete factory_aux;
+                return nullptr;
+            }
+        } catch (faustexception& e) {
+            error_msg = e.what();
             return nullptr;
         }
     }
@@ -574,12 +569,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_cod
         error_msg = "ERROR : " + ec.message() + "\n";
         return nullptr;
     } else {
-        try {
-            return llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFFER_GET_REF(buffer), target, error_msg);
-        } catch (faustexception& e) {
-            error_msg = e.Message().data();
-            return nullptr;
-        }
+        return llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFFER_GET_REF(buffer), target, error_msg);
     }
 }
 
