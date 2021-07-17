@@ -38,7 +38,7 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
 
    protected:
     
-    // Compile the FBC code use in 'compute'
+    // Compile the FBC code used in 'compute'
     void CompileBlock(FBCBlockInstruction<REAL>* block)
     {
         InstructionIT it  = block->fInstructions.begin();
@@ -388,11 +388,22 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
     
    public:
     FBCTemplateCompiler(FBCBlockInstruction<REAL>* fbc_block)
-    {}
+    {
+        // Compile the 'compute' function once.
+        CompileBlock(fbc_block);
+    }
 
     virtual ~FBCTemplateCompiler()
     {}
 
+    /*
+     * The function to be executed each cycle.
+     *
+     * @param int_heap - the integer heap
+     * @param real_heap - the REAL heap
+     * @param inputs - the audio inputs
+     * @param outputs - the audio outputs
+     */
     void Execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs)
     {}
     

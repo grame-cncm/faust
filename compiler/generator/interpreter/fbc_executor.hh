@@ -25,6 +25,9 @@
 #include "faust/gui/CGlue.h"
 #include "interpreter_bytecode.hh"
 
+/*
+ * The base class for Interpreter and mixed Interpreter/Compiler.
+ */
 template <class REAL>
 struct FBCExecutor {
     
@@ -46,13 +49,25 @@ struct FBCExecutor {
     
 };
 
+/*
+ * The base class for a Compiler to compile the hot 'compute' function.
+ */
 template <class REAL>
 struct FBCExecuteFun {
 
     FBCExecuteFun() {}
+    // The FBC block used in the'compute' function.
     FBCExecuteFun(FBCBlockInstruction<REAL>* fbc_block) {}
     virtual ~FBCExecuteFun() {}
    
+    /*
+     * The function to be executed each cycle.
+     *
+     * @param int_heap - the integer heap
+     * @param real_heap - the REAL heap
+     * @param inputs - the audio inputs
+     * @param outputs - the audio outputs
+     */
     virtual void Execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs) {}
     
 };
