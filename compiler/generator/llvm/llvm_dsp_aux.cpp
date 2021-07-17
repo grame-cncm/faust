@@ -123,7 +123,7 @@ void llvm_dsp_factory_aux::stopLLVMLibrary()
 {
     if (--llvm_dsp_factory_aux::gInstance == 0) {
     // Remove the LLVM error handler
-    #if defined(__APPLE__) && (defined(LLVM_110) || defined(LLVM_120) || defined(LLVM_130))
+    #if defined(__APPLE__) && (defined(LLVM_110) || defined(LLVM_120))
         #warning Crash on OSX so deactivated in this case
     #else
         LLVMResetFatalErrorHandler();
