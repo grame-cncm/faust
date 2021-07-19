@@ -1,4 +1,7 @@
 declare name "reverbDesigner";
+declare version "0.1";
+declare author "JOS";
+declare description "Workbench for building a custom Feedback Delay Network (FDN) Reverebator";
 
 import("stdfaust.lib");
 

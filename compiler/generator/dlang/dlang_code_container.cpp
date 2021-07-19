@@ -39,7 +39,7 @@ dsp_factory_base* DLangCodeContainer::produceFactory()
 
 CodeContainer* DLangCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return (gGlobal->gOneSample)
+    return (gGlobal->gOneSample >= 0)
         ? new DLangScalarOneSampleCodeContainer(name, "", 0, 1, fOut, sub_container_type)
         : new DLangScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
 }
@@ -66,7 +66,7 @@ CodeContainer* DLangCodeContainer::createContainer(const string& name, const str
     } else if (gGlobal->gVectorSwitch) {
         container = new DLangVectorCodeContainer(name, super, numInputs, numOutputs, dst);
     } else {
-        container = (gGlobal->gOneSample)
+        container = (gGlobal->gOneSample >= 0)
             ? new DLangScalarOneSampleCodeContainer(name, super, numInputs, numOutputs, dst, kInt)
             : new DLangScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
     }

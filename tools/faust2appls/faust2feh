@@ -1,0 +1,12 @@
+#! /bin/bash -e
+
+. usage.sh
+
+if [[ $@ = "-help" ]] || [[ $@ = "-h" ]]; then
+    usage faust2feh "<file.dsp>"
+    echo "Compiles Faust programs to SVG and opens it with feh"
+    exit
+fi
+
+faust2svg $@ || exit
+feh --conversion-timeout 0 ${1%.dsp}-svg/process.svg&

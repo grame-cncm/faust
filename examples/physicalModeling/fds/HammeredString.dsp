@@ -1,7 +1,7 @@
 import("stdfaust.lib");
 
-declare name "StiffString";
-declare description "Linear string model with impulse excitation.";
+declare name "HammeredString";
+declare description "Linear string model coupled with a hammer model for excitation.";
 declare author "Riccardo Russo";
 
 //----------------------------------String Settings---------------------------//
@@ -41,14 +41,34 @@ t = 1;
 scheme(points) = par(i,points,midCoeff,midCoeffDel);
 
 //----------------------------------Controls---------------------------------//
-play = button("Play");
-inPoint = hslider("Input Point",floor(nPoints/2),0,nPoints-1,0.01);
+play = button("Play"):ba.impulsify;
+inPoint = hslider("Input Point", floor(nPoints/2),0,nPoints-1,0.01);
 outPoint = hslider("Output Point",floor(nPoints/2),0,nPoints-1,0.01):si.smoo;
 
 //----------------------------------Force---------------------------------//
-forceModel = play:ba.impulsify;
+/*Hammer stiffness from:
+A. Sutlov,
+Experimental and theoretical studies of piano hammer,
+Proceedings of SMAC 03,
+pages 175-178*/
+
+KHammer = 30000;
+
+JCoeff = (k^2/den/rho/Area);
+
+KH = 1000;
+mH = 0.9;
+omega0SqrH = KH/mH;
+sigma0H = 14;
+alpha = 2.5;
+offset = 0.23;
+forceScaling = 0.01;
 
 //----------------------------------Process---------------------------------//
-process = forceModel<:fd.linInterp1D(nPoints,inPoint):
-  fd.model1D(nPoints,r,t,scheme(nPoints)):
-  fd.linInterp1DOut(nPoints,outPoint)<:_,_;
+gain = 600;
+
+process = (fd.linInterp1D(nPoints,inPoint):>
+    fd.hammer(JCoeff,omega0SqrH,sigma0H,KHammer,alpha,k,offset,play*forceScaling)<:
+        fd.linInterp1D(nPoints,inPoint):
+            fd.model1D(nPoints,r,t,scheme(nPoints)))~si.bus(nPoints):
+                fd.linInterp1DOut(nPoints,outPoint)*gain<:_,_;

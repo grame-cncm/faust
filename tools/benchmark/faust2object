@@ -33,6 +33,10 @@ SOUNDFILEINCS=""
 SOUNDFILELIBS=""
 dspName=""
 
+if [ $(uname -s) == Darwin ] && [ $(arch) == arm64 ]; then
+    CXX="arch -arch x86_64 "$CXX
+fi
+
 ALL_CPU_LIST="nocona core2 penryn bonnell atom silvermont slm goldmont goldmont-plus tremont nehalem corei7 westmere sandybridge corei7-avx ivybridge core-avx-i haswell core-avx2 broadwell skylake skylake-avx512 skx cascadelake cooperlake cannonlake icelake-client icelake-server tigerlake knl knm k8 athlon64 athlon-fx opteron k8-sse3 athlon64-sse3 opteron-sse3 amdfam10 barcelona btver1 btver2 bdver1 bdver2 bdver3 bdver4 znver1 znver2 x86-64 generic"
 
 while [ $1 ]

@@ -1,3 +1,5 @@
+import("stdfaust.lib");
+
 /*
 WARNING:
 - At the moment, 2D models with more than 30x20 points might crash the c++
@@ -7,7 +9,9 @@ WARNING:
   compiler might not work.
 */
 
-import("stdfaust.lib");
+declare name "2dKirchhoffThinPlate";
+declare description "Linear plate model with impulse excitation based on Kirchhoff-Love plates theory with added damping.";
+declare author "Riccardo Russo";
 
 //--------------------------------Model Settings-----------------------------//
 nPointsX = 20;

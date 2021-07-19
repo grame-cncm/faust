@@ -293,8 +293,5 @@ void printfloatdef(std::ostream& fout)
     fout << std::endl;
     if (gGlobal->gFloatSize == 3) {
         fout << "typedef long double quad;" << std::endl;
-    } else if (gGlobal->gFloatSize == 4) {
-        fout << "#include \"ap_fixed.h\"" << std::endl;
-        fout << "typedef ap_fixed<32, 8, AP_RND_CONV, AP_SAT> fixpoint_t;" << std::endl;
     }
 }

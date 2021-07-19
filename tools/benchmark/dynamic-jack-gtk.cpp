@@ -31,7 +31,13 @@
 #include <thread>
 #include <mutex>
 
+#ifdef JACK
 #include "faust/audio/jack-dsp.h"
+#else
+#include "faust/audio/coreaudio-dsp.h"
+#include "faust/midi/rt-midi.h"
+#include "faust/midi/RtMidi.cpp"
+#endif
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/interpreter-dsp.h"
 #include "faust/dsp/dsp-adapter.h"
@@ -83,11 +89,19 @@ struct DynamicDSP {
     GUI* fOSCinterface = nullptr;
     FUI* fFInterface = nullptr;
     SoundUI* fSoundinterface = nullptr;
+#ifdef JACK
     jackaudio_midi fAudio;
+#else
+    coreaudio fAudio;
+#endif
     string fRCfilename;
     bool is_llvm = false;
-    
+
+#ifdef JACK
     DynamicDSP(int argc, char* argv[], bool is_dsp_only = false)
+#else
+    DynamicDSP(int argc, char* argv[], bool is_dsp_only = false):fAudio(44100, 512)
+#endif
     {
         char name[256];
         char filename[256];
@@ -113,7 +127,11 @@ struct DynamicDSP {
         bool is_double = isopt(argv, "-double");
         
         if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
+        #ifdef JACK
             cout << "dynamic-jack-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
+        #else
+            cout << "dynamic-coreaudio-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc/foo.ll/foo.bc/foo.mc" << endl;
+        #endif
             cout << "Use '-llvm' to use LLVM backend, using either .dsp, .ll, .bc or .mc files\n";
             cout << "Use '-interp' to use Interpreter backend, using either .dsp or .fbc (Faust Byte Code) files\n";
             cout << "Use '-edit' to start an edit/compile/run loop, using a foo.dsp kind of source file\n";
@@ -258,7 +276,12 @@ struct DynamicDSP {
         }
         
         if (is_midi) {
+        #ifdef JACK
             fMIDIInterface = new MidiUI(&fAudio);
+        #else
+            rt_midi midi_handler(name);
+            fMIDIInterface = new MidiUI(&midi_handler);
+        #endif
             fDSP->buildUserInterface(fMIDIInterface);
         }
         

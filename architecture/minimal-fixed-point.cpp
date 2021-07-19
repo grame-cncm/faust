@@ -5,11 +5,10 @@
  each section for license and copyright information.
  *************************************************************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
+/******************* BEGIN minimal-fixed-point.cpp ****************/
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2020-2021 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -31,27 +30,20 @@
  
  ************************************************************************
  ************************************************************************/
+ 
+#include <algorithm>
 
-#include "daisysp.h"
-
-#ifdef PATCH
-#include "daisy_patch.h"
-#else
-#include "daisy_seed.h"
-#endif
-
-#include "faust/gui/meta.h"
 #include "faust/gui/UI.h"
-#include "faust/gui/DaisyControlUI.h"
+#include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
 
-#ifdef MIDICTRL
-#include "faust/midi/daisy-midi.h"
-#include "faust/gui/MidiUI.h"
+#if defined(SOUNDFILE)
+#include "faust/gui/SoundUI.h"
 #endif
 
-using namespace daisysp;
-using namespace std;
+#include "ap_fixed.h"
+
+typedef ap_fixed<32, 8, AP_RND_CONV, AP_SAT> fixpoint_t;
 
 /******************************************************************************
  *******************************************************************************
@@ -73,85 +65,5 @@ using namespace std;
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-#ifdef POLY
-#include "faust/dsp/poly-dsp.h"
-#endif
 
-#ifdef PATCH
-static daisy::DaisyPatch hw;
-#else
-static daisy::DaisySeed hw;
-#endif
-
-static DaisyControlUI* control_UI = nullptr;
-static dsp* DSP = nullptr;
-
-#ifdef MIDICTRL
-list<GUI*> GUI::fGuiList;
-ztimedmap GUI::gTimedZoneMap;
-#endif
-
-static void AudioCallback(float** in, float** out, size_t count)
-{
-    // Update controllers
-    control_UI->update();
-    
-    // DSP processing
-    DSP->compute(count, in, out);
-}
-
-int main(void)
-{
-    // initialize seed hardware and daisysp modules
-#ifndef PATCH
-    hw.Configure();
-#endif
-    hw.Init();
-    
-    // allocate DSP
-#ifdef POLY
-    int nvoices = 0;
-    bool midi_sync = false;
-    DSP = new mydsp();
-    MidiMeta::analyse(DSP, midi_sync, nvoices);
-    DSP = new mydsp_poly(DSP, nvoices, true, true);
-#else
-    DSP = new mydsp();
-#endif
-    
-    // set buffer-size
-    hw.SetAudioBlockSize(MY_BUFFER_SIZE);
-    
-    // init Faust DSP
-    DSP->init(MY_SAMPLE_RATE);
-    
-    // setup controllers
-#ifdef PATCH
-    control_UI = new DaisyControlUI(&hw.seed, MY_SAMPLE_RATE/MY_BUFFER_SIZE);
-#else
-    control_UI = new DaisyControlUI(&hw, MY_SAMPLE_RATE/MY_BUFFER_SIZE);
-#endif
-    DSP->buildUserInterface(control_UI);
-    
-    // start ADC
-    hw.StartAdc();
-    
-    // define and start callback
-    hw.StartAudio(AudioCallback);
-    
-#ifdef MIDICTRL
-    daisy_midi midi_handler;
-    MidiUI midi_interface(&midi_handler);
-    DSP->buildUserInterface(&midi_interface);
-    midi_handler.startMidi();
-#endif
-    
-    // MIDI handling loop
-    while(1) {
-    #ifdef MIDICTRL
-        midi_handler.processMidi();
-    #endif
-    }
-}
-
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
+/******************* END minimal-fixed-point.cpp ****************/

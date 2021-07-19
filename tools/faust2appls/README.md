@@ -77,6 +77,8 @@ NOTE: In the latest Faust versions there's also an alternative VST architecture 
 
 * `faust2firefox <file1.dsp>` : faust2svg with visualization using firefox
 
+* `faust2feh <file1.dsp>` : faust2svg with visualization using feh
+
 * `faust2octave <file.dsp>` : faust2plot with visualization using octave   
 
 

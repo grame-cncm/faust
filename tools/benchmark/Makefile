@@ -15,7 +15,7 @@ ifeq ($(system), Darwin)
 	STRIP = -dead_strip
 endif
 
-all: dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk dynamic-machine-jack-gtk poly-dynamic-jack-gtk interp-tracer fastmath faust-osc-controller
+all: dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk dynamic-coreaudio-gtk dynamic-machine-jack-gtk poly-dynamic-jack-gtk interp-tracer fastmath faust-osc-controller
 
 faustbench-llvm: faustbench-llvm.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 faustbench-llvm.cpp $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` $(STRIP) -lz -lncurses -lpthread -o faustbench-llvm
@@ -33,7 +33,10 @@ dynamic-faust: dynamic-faust.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 dynamic-faust.cpp $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` $(STRIP) -o dynamic-faust
 
 dynamic-jack-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp  $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack sndfile samplerate gtk+-2.0` $(STRIP) $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a -lmicrohttpd -o dynamic-jack-gtk
+	$(CXX) -DJACK -std=c++11 -O3 dynamic-jack-gtk.cpp  $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs sndfile samplerate jack gtk+-2.0` $(STRIP) $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a -lmicrohttpd -o dynamic-jack-gtk
+
+dynamic-coreaudio-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
+	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp  $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs sndfile samplerate gtk+-2.0` $(STRIP) $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a -lmicrohttpd -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation -o dynamic-coreaudio-gtk
 
 dynamic-machine-jack-gtk: dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a
 	$(CXX) -std=c++11 -O3 dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` $(STRIP) $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a -lmicrohttpd -o dynamic-machine-jack-gtk
@@ -68,6 +71,7 @@ install:
 	cp faustbench $(prefix)/bin
 	cp faust-tester $(prefix)/bin
 	([ -e dynamic-jack-gtk ]) && cp dynamic-jack-gtk $(prefix)/bin || echo dynamic-jack-gtk not found
+	([ -e dynamic-coreaudio-gtk ]) && cp dynamic-coreaudio-gtk $(prefix)/bin || echo dynamic-coreaudio-gtk not found
 	([ -e dynamic-faust ]) && cp dynamic-faust $(prefix)/bin || echo dynamic-faust not found
 	([ -e dynamic-machine-jack-gtk ]) && cp dynamic-machine-jack-gtk $(prefix)/bin || echo dynamic-machine-jack-gtk not found
 	([ -e poly-dynamic-jack-gtk ]) && cp poly-dynamic-jack-gtk $(prefix)/bin || echo poly-dynamic-jack-gtk not found
@@ -85,6 +89,7 @@ install:
 clean:
 
 	([ -e dynamic-jack-gtk ]) && rm dynamic-jack-gtk || echo dynamic-jack-gtk not found
+	([ -e dynamic-coreaudio-gtk ]) && rm dynamic-coreaudio-gtk || echo dynamic-coreaudio-gtk not found
 	([ -e dynamic-faust ]) && rm dynamic-faust || echo dynamic-faust not found
 	([ -e dynamic-machine-jack-gtk ]) && rm dynamic-machine-jack-gtk || echo dynamic-machine-jack-gtk not found
 	([ -e poly-dynamic-jack-gtk ]) && rm poly-dynamic-jack-gtk || echo poly-dynamic-jack-gtk not found
