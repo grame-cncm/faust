@@ -625,11 +625,11 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
                                                                                      dsp_content.c_str(),
                                                                                      error_msg,
                                                                                      true));
-                factory_aux->setTarget(target);
-                factory_aux->setOptlevel(opt_level);
-                factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
-                factory_aux->setName(name_app);
-                if (factory_aux->initJIT(error_msg)) {
+                if (factory_aux && factory_aux->initJIT(error_msg)) {
+                    factory_aux->setTarget(target);
+                    factory_aux->setOptlevel(opt_level);
+                    factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
+                    factory_aux->setName(name_app);
                     factory = new llvm_dsp_factory(factory_aux);
                     llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
                     factory->setSHAKey(sha_key);
