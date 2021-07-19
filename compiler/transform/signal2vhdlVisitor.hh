@@ -28,6 +28,7 @@
 #include "tree.hh"
 #include "treeTraversal.hh"
 #include "xtended.hh"
+#include "old_occurences.hh"
 
 //-------------------------Signal2VHDLVisitor-------------------------------
 // A a signal visitor used to compile signals to vhdl code
@@ -37,6 +38,7 @@ using namespace std;
 class Signal2VHDLVisitor : public TreeTraversal {
 
     private:
+        old_OccMarkup* fOccMarkup;
         bool fVisitGen;
         set<Tree> fVisited;           // avoid visiting a tree twice
         map<string, bool> fEntity;
@@ -96,7 +98,7 @@ class Signal2VHDLVisitor : public TreeTraversal {
         void bypass(const string& name, Tree sig, Tree x);
 
     public:
-        Signal2VHDLVisitor() : TreeTraversal(), fVisitGen(false){};
+        Signal2VHDLVisitor(old_OccMarkup* occ_markup) : TreeTraversal(), fOccMarkup(occ_markup), fVisitGen(false){};
 
         void self(Tree t);
 
