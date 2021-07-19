@@ -60,7 +60,11 @@ e.g. using VisualStudio 2019
 There are a couple of other options as well:
 
 MAGIC_LOAD_BINARY 
-- adds generated code if defined. By default not defined, lets you "bake in" your XML file by adding it to your Jucer project and then defining this variable.  You also have to change the names of the variables magic_xml and magic_xmlSize in the code to match your file name.  If you don't you'll get a compilation error, so you'll know where to look.
+- adds generated code if defined. By default not defined, lets you "bake in" your XML file by adding it to your Jucer project and then defining this variable.  You'll also need to configure the foleys_gui_magic module in Jucer:
+ 
+ ![image](https://user-images.githubusercontent.com/3178344/126184481-b83ba2ff-46c4-4aa5-b010-2d2e87eb4e14.png)
+
+ You also have to change the names of the variables magic_xml and magic_xmlSize in the code to match your file name.  If you don't you'll get a compilation error, so you'll know where to look.
 
 MAGIC_LEVEL_SOURCE
 - adds generated code if defined. By default not defined, just to show you where in the source code you would add hooks for a visualizer.  These are PGM specific features not represented in Faust.  Knowledge of how to use the PGM components is assumed.
