@@ -65,7 +65,7 @@ MAGIC_LOAD_BINARY
 MAGIC_LEVEL_SOURCE
 - adds generated code if defined. By default not defined, just to show you where in the source code you would add hooks for a visualizer.  These are PGM specific features not represented in Faust.  Knowledge of how to use the PGM components is assumed.
 
-To use either of these options, either enter the option into the JUCER project settings page as shown, or add a "#define" line near the top of your FaustPluginProcessor.cpp.
+To use either of these options, either enter the option into the JUCER exporter settings page as shown, or add a "#define" line near the top of your FaustPluginProcessor.cpp.
 
  ---
 - `-help or -h` : shows the different options 
