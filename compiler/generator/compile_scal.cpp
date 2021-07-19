@@ -162,7 +162,7 @@ Tree ScalarCompiler::prepare(Tree LS)
 
     // Generate VHDL if --vhdl option is set
     if (gGlobal->gVHDLSwitch) {
-        Signal2VHDLVisitor V;
+        Signal2VHDLVisitor V(fOccMarkup);
         V.trace(gGlobal->gVHDLTrace, "VHDL");  // activate with --trace option
         V.mapself(L3);
     }

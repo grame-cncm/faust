@@ -111,6 +111,11 @@ void Signal2VHDLVisitor::visit(Tree sig)
         self(x);
         return;
     } else if (isSigFixDelay(sig, x, y)) {
+        
+        // Here is the maximum delay
+        int mxd = fOccMarkup->retrieve(x)->getMaxDelay();
+        std::cout << "getMaxDelay: " << mxd << std::endl;
+        
         if (((y->node()).getInt()) == 0) {
           bypass("DELAY0", sig, x);
         }
