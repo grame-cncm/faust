@@ -48,7 +48,26 @@ Here are the available options:
 - `-disable-splash-screen` : to disable the JUCE splash screen (license is required).
 - `-jsynth` : to use JUCE polyphonic Synthesizer instead of Faust polyphonic code
 - `-llvm` : to use the LLVM compilation chain (OSX and Linux for now)
+ ---
 - `-magic` : to generate a project using the [PluginGuiMagic GUI builder](https://foleysfinest.com/developer/pluginguimagic/)
+Tested with PGM version 1.13. Support for Faust components is incomplete.  Supporting some features (e.g. visualizers) in PGM requires editing the generated C++ code.
+
+ This creates a preprocessor definition "PLUGIN_MAGIC" in the jucer file.  
+e.g. using VisualStudio 2019
+
+![image](https://user-images.githubusercontent.com/3178344/125528513-d8f127a0-a896-4f50-8210-ba7b8dcf0386.png)
+
+There are a couple of other options as well:
+
+MAGIC_LOAD_BINARY 
+- adds generated code if defined. By default not defined, lets you "bake in" your XML file by adding it to your Jucer project and then defining this variable, either in the Jucer file or directly in the cpp file.  You also have to change the names of the variables magic_xml and magic_xmlSize in the code to match your file name.  If you don't you'll get a compilation error, so you'll know where to look.
+
+MAGIC_LEVEL_SOURCE
+- adds generated code if defined. By default not defined, just to show you where in the source code you would add hooks for a visualizer.  These are PGM specific features not represented in Faust.  Knowledge of how to use the PGM components is assumed.
+
+To use either of these options, either enter the option into the JUCER project settings page as shown, or add a "#define" line near the top of your FaustPluginProcessor.cpp.
+
+ ---
 - `-help or -h` : shows the different options 
 
 As usual with faust2xx tools, other Faust compiler specific options can be given to **faust2juce**, like `-cn name` to give a name to the generated DSP class, or `-vec -lv 1 -lv 1` to compile in vector mode.etc.
