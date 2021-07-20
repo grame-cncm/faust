@@ -179,7 +179,7 @@ jsscripts:
 #===============================================================
 # packaging
 #===============================================================
-PACK := package/Faust-$(VERSION)
+PACK := package
 package:
 	$(MAKE) $(NATIVEPACK)
 
