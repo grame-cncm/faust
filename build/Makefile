@@ -179,7 +179,8 @@ jsscripts:
 #===============================================================
 # packaging
 #===============================================================
-PACK := package
+# don't change the PACK variable, files are put at first hierarchy level
+PACK := package/Faust-$(VERSION)
 package:
 	$(MAKE) $(NATIVEPACK)
 
@@ -200,7 +201,7 @@ macpack: package/README.html
 
 mactools:
 	$(MAKE) -C ../tools/benchmark FAUST=$(FAUSTDIR)/bin/faust TARGETS="dynamic-faust faustbench-llvm"
-	$(MAKE) -C ../tools/benchmark install-package PREFIX=$(FAUSTDIR) FAUST=$(FAUSTDIR)/bin/faust TARGETS="dynamic-faust faustbench-llvm"
+	$(MAKE) -C ../tools/benchmark install PREFIX=$(FAUSTDIR) FAUST=$(FAUSTDIR)/bin/faust TARGETS="dynamic-faust faustbench-llvm"
 
 linuxpack:
 	@echo Linux packaging not implemented. 
