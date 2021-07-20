@@ -1,58 +1,64 @@
 STRIP =
 
-FAUST ?= faust
-LIB ?= $(shell $(FAUST) -libdir)
+FAUST 	?= faust
+LIB 	?= $(shell $(FAUST) -libdir)
+INC 	:= $(shell $(FAUST) -includedir)
+LIBS 	:= $(LIB)/libfaust.a
 FASTMATH = $(shell $(FAUST) -includedir)/faust/dsp/fastmath.cpp
-INC = $(shell $(FAUST) -includedir)
+LLVM	:= `llvm-config --ldflags --libs all --system-libs`
+COMPILEOPT  := -std=c++11 -O3
+COMMLIBS	:= $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a  -lmicrohttpd
+MACOSLIBS	:= -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation
 
 DESTDIR ?=
 PREFIX ?= /usr/local
 
 prefix := $(DESTDIR)$(PREFIX)
 
+TARGETS ?= dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk dynamic-machine-jack-gtk interp-tracer fastmath faust-osc-controller
 system := $(shell uname -s)
-
 ifeq ($(system), Darwin)
 	STRIP = -dead_strip
+	TARGETS := $(TARGETS) dynamic-coreaudio-gtk poly-dynamic-jack-gtk
 endif
 
-all: dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk dynamic-coreaudio-gtk dynamic-machine-jack-gtk poly-dynamic-jack-gtk interp-tracer fastmath faust-osc-controller
+all: $(TARGETS)
 
 faustbench-llvm: faustbench-llvm.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 faustbench-llvm.cpp $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` $(STRIP) -lz -lncurses -lpthread -o faustbench-llvm
+	$(CXX) $(COMPILEOPT) faustbench-llvm.cpp $(LIBS) -I $(INC) $(LLVM) $(STRIP) -lz -lncurses -lpthread -o $@
 
 faustbench-llvm-interp: faustbench-llvm-interp.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 faustbench-llvm-interp.cpp  $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` $(STRIP) -lz -lncurses -lpthread -o faustbench-llvm-interp
+	$(CXX) $(COMPILEOPT) faustbench-llvm-interp.cpp  $(LIBS) -I $(INC)  $(LLVM) $(STRIP) -lz -lncurses -lpthread -o f$@
 
 faustbench-interp: faustbench-interp.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 faustbench-interp.cpp  $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` $(STRIP) -lz -lncurses -lpthread -o faustbench-interp
+	$(CXX) $(COMPILEOPT) faustbench-interp.cpp  $(LIBS) -I $(INC)  $(LLVM) $(STRIP) -lz -lncurses -lpthread -o $@
 
 faustbench-interp-comp: faustbench-interp-comp.cpp $(LIB)/libfaustmachine.a
-	$(CXX) -std=c++11 -O3 faustbench-interp-comp.cpp $(LIB)/libfaustmachine.a mir.o mir-gen.o -I $(INC) `llvm-config --ldflags --libs all --system-libs` $(STRIP) -lz -lncurses -lpthread -o faustbench-interp-comp
+	$(CXX) $(COMPILEOPT) faustbench-interp-comp.cpp $(LIB)/libfaustmachine.a mir.o mir-gen.o -I $(INC)  $(LLVM) $(STRIP) -lz -lncurses -lpthread -o $@
 
 dynamic-faust: dynamic-faust.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 dynamic-faust.cpp $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` $(STRIP) -o dynamic-faust
+	$(CXX) $(COMPILEOPT) dynamic-faust.cpp $(LIBS) -I $(INC)  $(LLVM) $(STRIP) -o $@
 
 dynamic-jack-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
-	$(CXX) -DJACK -std=c++11 -O3 dynamic-jack-gtk.cpp  $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs sndfile samplerate jack gtk+-2.0` $(STRIP) $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a -lmicrohttpd -o dynamic-jack-gtk
-
-dynamic-coreaudio-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp  $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs sndfile samplerate gtk+-2.0` $(STRIP) $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a -lmicrohttpd -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation -o dynamic-coreaudio-gtk
+	$(CXX) -DJACK $(COMPILEOPT) dynamic-jack-gtk.cpp  $(LIBS) -I $(INC)  $(LLVM) `pkg-config --cflags --libs sndfile samplerate jack gtk+-2.0` $(STRIP) $(COMMLIBS) -o $@
 
 dynamic-machine-jack-gtk: dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a
-	$(CXX) -std=c++11 -O3 dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` $(STRIP) $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a -lmicrohttpd -o dynamic-machine-jack-gtk
+	$(CXX) $(COMPILEOPT) dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a -I $(INC)  $(LLVM) `pkg-config --cflags --libs jack gtk+-2.0` $(STRIP) $(COMMLIBS) -o $@
+
+dynamic-coreaudio-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
+	$(CXX) $(COMPILEOPT) dynamic-jack-gtk.cpp  $(LIBS) -I $(INC)  $(LLVM) `pkg-config --cflags --libs sndfile samplerate gtk+-2.0` $(STRIP) $(COMMLIBS) $(MACOSLIBS) -o $@
 
 poly-dynamic-jack-gtk: poly-dynamic-jack-gtk.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 poly-dynamic-jack-gtk.cpp $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0 sndfile samplerate` $(STRIP) -lz -lncurses -lpthread $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a -lmicrohttpd -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation -o poly-dynamic-jack-gtk
+	$(CXX) $(COMPILEOPT) poly-dynamic-jack-gtk.cpp $(LIBS) -I $(INC)  $(LLVM) `pkg-config --cflags --libs jack gtk+-2.0 sndfile samplerate` $(STRIP) -lz -lncurses -lpthread $(COMMLIBS) $(MACOSLIBS) -o $@
 
 faust-osc-controller: faust-osc-controller.cpp
-	$(CXX) -std=c++11 -O3 faust-osc-controller.cpp -I $(INC) `pkg-config --cflags --libs gtk+-2.0` $(STRIP) $(LIB)/libOSCFaust.a -llo -o faust-osc-controller
+	$(CXX) $(COMPILEOPT) faust-osc-controller.cpp -I $(INC) `pkg-config --cflags --libs gtk+-2.0` $(STRIP) $(LIB)/libOSCFaust.a -llo -o $@
 
 interp-tracer: interp-tracer.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 interp-tracer.cpp $(LIB)/libfaust.a -I $(INC) `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs gtk+-2.0` $(STRIP) -lz -lncurses -lpthread -o interp-tracer
+	$(CXX) $(COMPILEOPT) interp-tracer.cpp $(LIBS) -I $(INC)  $(LLVM) `pkg-config --cflags --libs gtk+-2.0` $(STRIP) -lz -lncurses -lpthread -o $@
 
 layout-ui: layout-ui.cpp
-	$(CXX) -std=c++11 -O3 layout-ui.cpp -I $(INC) $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` -o layout-ui
+	$(CXX) $(COMPILEOPT) layout-ui.cpp -I $(INC) $(LIBS)  $(LLVM) -o $@
 
 fastmath: $(FASTMATH)
 	clang++ -Ofast -emit-llvm -S $(FASTMATH) -o fastmath.ll
@@ -63,44 +69,31 @@ emcc: $(FASTMATH)
 	wasm-dis fastmath.wasm -o fastmath.wast
 
 install:
+	cp $(TARGETS) $(prefix)/bin
 
-	cp faust2object $(prefix)/bin
-	cp faustbench-wasm $(prefix)/bin
-	cp faust2benchwasm $(prefix)/bin
+#	cp faust2object $(prefix)/bin
+#	cp faustbench-wasm $(prefix)/bin
+#	cp faust2benchwasm $(prefix)/bin
 	cp wasm-node-bench.js wasm-bench.js wasm-bench-emcc.js wasm-bench-jsmem.js $(prefix)/share/faust/webaudio
 	cp faustbench.cpp $(prefix)/share/faust
-	cp faustbench $(prefix)/bin
-	cp faust-tester $(prefix)/bin
-	([ -e dynamic-jack-gtk ]) && cp dynamic-jack-gtk $(prefix)/bin || echo dynamic-jack-gtk not found
-	([ -e dynamic-coreaudio-gtk ]) && cp dynamic-coreaudio-gtk $(prefix)/bin || echo dynamic-coreaudio-gtk not found
-	([ -e dynamic-faust ]) && cp dynamic-faust $(prefix)/bin || echo dynamic-faust not found
-	([ -e dynamic-machine-jack-gtk ]) && cp dynamic-machine-jack-gtk $(prefix)/bin || echo dynamic-machine-jack-gtk not found
-	([ -e poly-dynamic-jack-gtk ]) && cp poly-dynamic-jack-gtk $(prefix)/bin || echo poly-dynamic-jack-gtk not found
-	([ -e interp-tracer ]) && cp interp-tracer $(prefix)/bin || echo interp-tracer not found
-	([ -e faustbench-llvm ]) && cp faustbench-llvm $(prefix)/bin || echo faustbench-llvm not found
-	([ -e faustbench-llvm-interp ]) && cp faustbench-llvm-interp $(prefix)/bin || echo faustbench-llvm-interp not found
-	([ -e faustbench-interp ]) && cp faustbench-interp $(prefix)/bin || echo faustbench-interp not found
-	([ -e faustbench-interp-comp ]) && cp faustbench-interp-comp $(prefix)/bin || echo faustbench-interp-comp not found
-	([ -e fastmath.bc ]) && cp fastmath.bc $(prefix)/share/faust || echo fastmath.bc not found
-	([ -e fastmath.wasm ]) && cp fastmath.wasm $(prefix)/share/faust || echo fastmath.wasm not found
-	([ -e faust-osc-controller ]) && cp faust-osc-controller $(prefix)/bin || echo faust-osc-controller not found
-	([ -e layout-ui ]) && cp layout-ui $(prefix)/bin || echo layout-ui not found
+#	cp faustbench $(prefix)/bin
+#	cp faust-tester $(prefix)/bin
+# 	([ -e dynamic-jack-gtk ]) && cp dynamic-jack-gtk $(prefix)/bin || echo dynamic-jack-gtk not found
+# 	([ -e dynamic-coreaudio-gtk ]) && cp dynamic-coreaudio-gtk $(prefix)/bin || echo dynamic-coreaudio-gtk not found
+# 	([ -e dynamic-faust ]) && cp dynamic-faust $(prefix)/bin || echo dynamic-faust not found
+# 	([ -e dynamic-machine-jack-gtk ]) && cp dynamic-machine-jack-gtk $(prefix)/bin || echo dynamic-machine-jack-gtk not found
+# 	([ -e poly-dynamic-jack-gtk ]) && cp poly-dynamic-jack-gtk $(prefix)/bin || echo poly-dynamic-jack-gtk not found
+# 	([ -e interp-tracer ]) && cp interp-tracer $(prefix)/bin || echo interp-tracer not found
+# 	([ -e faustbench-llvm ]) && cp faustbench-llvm $(prefix)/bin || echo faustbench-llvm not found
+# 	([ -e faustbench-llvm-interp ]) && cp faustbench-llvm-interp $(prefix)/bin || echo faustbench-llvm-interp not found
+# 	([ -e faustbench-interp ]) && cp faustbench-interp $(prefix)/bin || echo faustbench-interp not found
+# 	([ -e faustbench-interp-comp ]) && cp faustbench-interp-comp $(prefix)/bin || echo faustbench-interp-comp not found
+# 	([ -e fastmath.bc ]) && cp fastmath.bc $(prefix)/share/faust || echo fastmath.bc not found
+# 	([ -e fastmath.wasm ]) && cp fastmath.wasm $(prefix)/share/faust || echo fastmath.wasm not found
+# 	([ -e faust-osc-controller ]) && cp faust-osc-controller $(prefix)/bin || echo faust-osc-controller not found
+# 	([ -e layout-ui ]) && cp layout-ui $(prefix)/bin || echo layout-ui not found
 	cp -r iOS-bench $(shell $(FAUST) --archdir)
 
 clean:
-
-	([ -e dynamic-jack-gtk ]) && rm dynamic-jack-gtk || echo dynamic-jack-gtk not found
-	([ -e dynamic-coreaudio-gtk ]) && rm dynamic-coreaudio-gtk || echo dynamic-coreaudio-gtk not found
-	([ -e dynamic-faust ]) && rm dynamic-faust || echo dynamic-faust not found
-	([ -e dynamic-machine-jack-gtk ]) && rm dynamic-machine-jack-gtk || echo dynamic-machine-jack-gtk not found
-	([ -e poly-dynamic-jack-gtk ]) && rm poly-dynamic-jack-gtk || echo poly-dynamic-jack-gtk not found
-	([ -e interp-tracer ]) && rm interp-tracer || echo interp-tracer not found
-	([ -e dynamic-jack-gtk-plugin ]) && rm dynamic-jack-gtk-plugi || echo dynamic-jack-gtk-plugi not found
-	([ -e faustbench-llvm ]) && rm faustbench-llvm || echo faustbench-llvm not found
-	([ -e faustbench-llvm-interp ]) && rm faustbench-llvm-interp || echo faustbench-llvm-interp not found
-	([ -e faustbench-interp ]) && rm faustbench-interp || echo faustbench-interp not found
-	([ -e faustbench-interp-comp ]) && rm faustbench-interp-comp || echo faustbench-interp-comp not found
-	([ -e fastmath.bc ]) && rm fastmath.bc || echo fastmath.bc not found
-	([ -e fastmath.wasm ]) && rm fastmath.wasm || echo fastmath.wasm not found
-	([ -e faust-osc-controller ]) && rm faust-osc-controller || echo faust-osc-controller not found
-	([ -e layout-ui ]) && rm layout-ui || echo layout-ui not found
+	rm -f $(TARGETS)
+	rm -f fastmath.bc fastmath.wasm layout-ui
