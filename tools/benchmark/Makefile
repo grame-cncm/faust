@@ -79,6 +79,12 @@ install:
 	cp faust-tester $(prefix)/bin	
 	cp -r iOS-bench $(shell $(FAUST) --archdir)
 
+install-package:
+	cp $(TARGETS) $(prefix)/bin
+	cp faustbench.cpp $(prefix)/share/faust
+	cp faustbench $(prefix)/bin
+	cp faust2object $(prefix)/bin
+	
 clean:
 	rm -f $(TARGETS)
 	rm -f fastmath.bc fastmath.wasm layout-ui
