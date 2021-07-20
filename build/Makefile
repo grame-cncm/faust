@@ -224,14 +224,21 @@ release:
 	rm -rf Release-$(VERSION)/*
 	cp Faust-$(VERSION).dmg Release-$(VERSION) 
 	$(MAKE) install PREFIX=$(HOME)/Faust-$(VERSION)
+	@echo "################## Building faust src distribution ###################"
+	$(MAKE) -C .. dist
+	mv ../faust-$(VERSION).tar.gz Release-$(VERSION)
+	$(MAKE) faustgen
+	$(MAKE) faustlive
+
+faustgen:
 	@echo "################## Building faustgen package ###################"
 	$(MAKE) -C $(FAUSTGEN) clean
 	$(MAKE) -C $(FAUSTGEN) FAUST=$(HOME)/Faust-$(VERSION)/bin/faust
 	$(MAKE) -C $(FAUSTGEN) package
 	cp $(FAUSTGEN)/package/*.dmg Release-$(VERSION) 
-	@echo "################## Building faust src distribution ###################"
-	$(MAKE) -C .. dist
-	mv ../faust-$(VERSION).tar.gz Release-$(VERSION)
+
+faustlive: APATH=$(shell pwd)
+faustlive:
 	@echo "################## Building faustlive package ###################"
 	$(MAKE) -C $(FAUSTLIVE)/Build release FAUST=$(HOME)/Faust-$(VERSION)/bin/faust DEST=$(APATH)/Release-$(VERSION)
 
