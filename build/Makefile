@@ -193,9 +193,14 @@ macpack: package/README.html
 	-[ -d $(PACK) ] && rm -rf $(PACK)
 	$(MAKE) cmake BACKENDs=all.cmake TARGETS=all.cmake  CMAKEOPT="-DDEPLOYMENT_TARGET=on"
 	$(MAKE) install PREFIX=../$(PACK)/Faust-$(VERSION)
+	$(MAKE) mactools FAUSTDIR=../../build/$(PACK)/Faust-$(VERSION)
 	cp package/INSTALL.html $(PACK)
 	cp package/README.html $(PACK)
 	hdiutil create Faust-$(VERSION).dmg -fs HFS+ -srcfolder $(PACK) -format UDBZ -ov
+
+mactools:
+	$(MAKE) -C ../tools/benchmark FAUST=$(FAUSTDIR)/bin/faust
+	$(MAKE) -C ../tools/benchmark install PREFIX=$(FAUSTDIR) FAUST=$(FAUSTDIR)/bin/faust
 
 linuxpack:
 	@echo Linux packaging not implemented. 

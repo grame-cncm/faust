@@ -1,8 +1,9 @@
 STRIP =
 
-LIB ?= $(shell faust -libdir)
-FASTMATH = $(shell faust -includedir)/faust/dsp/fastmath.cpp
-INC = $(shell faust -includedir)
+FAUST ?= faust
+LIB ?= $(shell $(FAUST) -libdir)
+FASTMATH = $(shell $(FAUST) -includedir)/faust/dsp/fastmath.cpp
+INC = $(shell $(FAUST) -includedir)
 
 DESTDIR ?=
 PREFIX ?= /usr/local
@@ -84,7 +85,7 @@ install:
 	([ -e fastmath.wasm ]) && cp fastmath.wasm $(prefix)/share/faust || echo fastmath.wasm not found
 	([ -e faust-osc-controller ]) && cp faust-osc-controller $(prefix)/bin || echo faust-osc-controller not found
 	([ -e layout-ui ]) && cp layout-ui $(prefix)/bin || echo layout-ui not found
-	cp -r iOS-bench $(shell faust --archdir)
+	cp -r iOS-bench $(shell $(FAUST) --archdir)
 
 clean:
 
