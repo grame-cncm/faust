@@ -50,6 +50,8 @@
 #include "faust/gui/MidiUI.h"
 #endif
 
+
+
 using namespace daisysp;
 using namespace std;
 
@@ -82,6 +84,8 @@ static daisy::DaisyPatch hw;
 #else
 static daisy::DaisySeed hw;
 #endif
+
+
 
 static DaisyControlUI* control_UI = nullptr;
 static dsp* DSP = nullptr;
@@ -135,7 +139,7 @@ int main(void)
     DSP->buildUserInterface(control_UI);
     
     // start ADC
-    hw.adc.start();
+    hw.adc.Start();
     //hw.StartAdc(); // not this way anymore, seed.adc.Start() is now the method
     // define and start callback
     hw.StartAudio(AudioCallback);
