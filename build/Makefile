@@ -200,7 +200,7 @@ macpack: package/README.html
 
 mactools:
 	$(MAKE) -C ../tools/benchmark FAUST=$(FAUSTDIR)/bin/faust
-	$(MAKE) -C ../tools/benchmark install PREFIX=$(FAUSTDIR) FAUST=$(FAUSTDIR)/bin/faust
+	$(MAKE) -C ../tools/benchmark install PREFIX=$(FAUSTDIR) FAUST=$(FAUSTDIR)/bin/faust TARGETS="dynamic-faust faustbench-llvm"
 
 linuxpack:
 	@echo Linux packaging not implemented. 
