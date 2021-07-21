@@ -36,7 +36,9 @@
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/MidiUI.h"
 #include "faust/dsp/poly-dsp.h"
+#ifndef PLUGIN_MAGIC
 #include "faust/gui/JuceGUI.h"
+#endif
 #include "faust/gui/JuceParameterUI.h"
 #include "faust/gui/JuceStateUI.h"
 
@@ -226,6 +228,9 @@ class FaustPlugInAudioProcessor : public foleys::MagicProcessor, private juce::T
 {
     
 public:
+#ifdef MAGIC_LEVEL_SOURCE
+    foleys::MagicLevelSource* fOutputMeter = nullptr;
+#endif
     juce::AudioProcessorValueTreeState treeState{ *this, nullptr };
     FaustPlugInAudioProcessor();
     virtual ~FaustPlugInAudioProcessor() {}
@@ -238,6 +243,9 @@ public:
     {
         jassert (! isUsingDoublePrecision());
         process (buffer, midiMessages);
+#ifdef MAGIC_LEVEL_SOURCE
+        fOutputMeter->pushSamples(buffer);
+#endif
     }
     
     void processBlock (juce::AudioBuffer<double>& buffer, juce::MidiBuffer& midiMessages) override
@@ -398,13 +406,18 @@ class FaustPlugInAudioProcessorEditor : public juce::AudioProcessorEditor
         FaustPlugInAudioProcessor& processor;
         
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FaustPlugInAudioProcessorEditor)
-        
+#ifndef PLUGIN_MAGIC        
         JuceGUI fJuceGUI;
-    
+#endif    
 };
 
+#ifndef PLUGIN_MAGIC
 FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
 : juce::AudioProcessor (getBusesProperties()), fParameterUI(this)
+#else
+FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
+: foleys::MagicProcessor (getBusesProperties()), fParameterUI(this)	
+#endif
 {
     bool midi_sync = false;
     int nvoices = 0;
@@ -412,7 +425,19 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
-    
+	
+#ifdef PLUGIN_MAGIC
+#ifdef MAGIC_LOAD_BINARY
+    // change magic_xml and magic_xmlSize to match the name of your included
+    // XML file from Plugin GUI Magic
+    magicState.setGuiValueTree(BinaryData::magic_xml, BinaryData::magic_xmlSize);
+#endif
+// put other GUI Magic sources here, similar to expression below.
+#ifdef MAGIC_LEVEL_SOURCE
+    fOutputMeter = magicState.createAndAddObject<foleys::MagicLevelSource>("output");
+#endif
+#endif
+   
 #ifdef JUCE_POLY
     assert(nvoices > 0);
     fSynth = std::make_unique<FaustSynthesiser>();
@@ -627,6 +652,10 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     fDSP->instanceClear();
     
 #endif
+#ifdef MAGIC_LEVEL_SOURCE
+    magicState.prepareToPlay(sampleRate, samplesPerBlock);
+    fOutputMeter->setupSource(getMainBusNumOutputChannels(), sampleRate, 500, 200);
+#endif
 }
 
 bool FaustPlugInAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -671,6 +700,7 @@ void FaustPlugInAudioProcessor::process (juce::AudioBuffer<FloatType>& buffer, j
 }
 
 //==============================================================================
+#ifndef PLUGIN_MAGIC
 bool FaustPlugInAudioProcessor::hasEditor() const
 {
     return true;
@@ -698,7 +728,7 @@ void FaustPlugInAudioProcessor::setStateInformation (const void* data, int sizeI
     
     fStateUI.setStateInformation(data, sizeInBytes);
  }
-
+#endif
 //==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
@@ -707,6 +737,7 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 }
 
 //==============================================================================
+#ifndef PLUGIN_MAGIC
 FaustPlugInAudioProcessorEditor::FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor& p)
 : juce::AudioProcessorEditor (&p), processor (p), fJuceGUI(!p.fStateUI.fRestored)  // When no previous state was restored, setup GUI with default state of controllers
 {
@@ -733,6 +764,7 @@ void FaustPlugInAudioProcessorEditor::resized()
     fJuceGUI.setBounds(getLocalBounds());
 }
 
+#endif
 // Globals
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
