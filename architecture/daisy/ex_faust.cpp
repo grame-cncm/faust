@@ -91,13 +91,13 @@ list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 #endif
 
-static void AudioCallback(float** in, float** out, size_t count)
+static void AudioCallback(daisy::AudioHandle::InputBuffer in, daisy::AudioHandle::OutputBuffer out, size_t count)
 {
     // Update controllers
     control_UI->update();
     
     // DSP processing
-    DSP->compute(count, in, out);
+    DSP->compute(count, static_cast<float**>(in), out);
 }
 
 int main(void)
@@ -134,7 +134,7 @@ int main(void)
     DSP->buildUserInterface(control_UI);
     
     // start ADC
-    hw.StartAdc();
+    hw.adc.Start();
     
     // define and start callback
     hw.StartAudio(AudioCallback);
