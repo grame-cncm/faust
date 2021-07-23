@@ -73,5 +73,5 @@ To use either of these options, either enter the option into the JUCER exporter 
 ---
 - `-help or -h` : shows the different options 
 
-As usual with faust2xx tools, other Faust compiler specific options can be given to **faust2juce**, like `-cn name` to give a name to the generated DSP class, or `-vec -lv 1` to compile in vector mode.etc.
+As usual with faust2xx tools, other Faust compiler specific options can be given to **faust2juce**, like `-vec -lv 1` to compile in vector mode.etc.
 
