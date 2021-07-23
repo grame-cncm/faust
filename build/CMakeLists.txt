@@ -372,11 +372,10 @@ install (
 file (GLOB FAUSTDSPLIBS ${ROOT}/libraries/*.lib ${ROOT}/libraries/old/*.lib)
 file (GLOB FAUSTDPSEMB ${ROOT}/libraries/embedded/*.lib)
 # install various files from the architecture root folder
-file (GLOB FAUSTARCHS   ${ARCHDIR}/*.cpp ${ARCHDIR}/*.c
-						${ARCHDIR}/*.rs  ${ARCHDIR}/*.js
-						${ARCHDIR}/*.java ${ARCHDIR}/*.h
-						${ARCHDIR}/*.d   ${ARCHDIR}/*.d
-						${ARCHDIR}/mathdoctexts-*.txt  ${ARCHDIR}/latexheader.tex)
+file (GLOB FAUSTARCHS ${ARCHDIR}/*.cpp ${ARCHDIR}/*.c ${ARCHDIR}/*.cs ${ARCHDIR}/*.rs ${ARCHDIR}/*.jl
+					${ARCHDIR}/*.java ${ARCHDIR}/*.h 
+					${ARCHDIR}/*.d ${ARCHDIR}/mathdoctexts-*.txt  
+					${ARCHDIR}/latexheader.tex)
 install (
     FILES     ${FAUSTDSPLIBS} ${FAUSTARCHS} ${ROOT}/tools/faust2appls/Info.plist DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
