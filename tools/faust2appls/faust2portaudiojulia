@@ -1,0 +1,57 @@
+#! /bin/bash -e
+
+#####################################################################
+#                                                                   #
+#          Compiles Faust programs to PortAudio and Julia binary    #
+#               (c) Grame, 2021                                     #
+#                                                                   #
+#####################################################################
+
+. faustpath
+. faustoptflags
+. usage.sh
+
+SRC="0"
+ARCHFILE=$FAUSTARCH/portaudio.jl
+
+#PHASE 2 : dispatch command arguments
+while [ $1 ]
+do
+    p=$1
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        usage faust2portaudiojulia "[options] [Faust options] <file.dsp>"
+        require PortAudio
+        echo "Compiles Faust programs to PortAudio and Julia binary"
+        option
+        option -source "only generates the source project."
+        option "Faust options"
+    	exit
+    fi
+
+    if [ $p = "-source" ]; then
+        SRC="1"
+    elif [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+
+shift
+
+done
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+#
+
+for p in $FILES; do
+
+    f=$(basename "$p")
+  
+    # compile Faust DSP and put in the cargo folder
+    faust -a $ARCHFILE -lang julia "$f" -o "${f%.dsp}.jl"
+	
+done
