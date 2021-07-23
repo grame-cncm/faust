@@ -121,6 +121,14 @@ class JuliaInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sinf"]       = true;
         gFunctionSymbolTable["sqrtf"]      = true;
         gFunctionSymbolTable["tanf"]       = true;
+    
+        // Hyperbolic
+        gFunctionSymbolTable["acoshf"] = true;
+        gFunctionSymbolTable["asinhf"] = true;
+        gFunctionSymbolTable["atanhf"] = true;
+        gFunctionSymbolTable["coshf"]  = true;
+        gFunctionSymbolTable["sinhf"]  = true;
+        gFunctionSymbolTable["tanhf"]  = true;
 
         // Double version
         gFunctionSymbolTable["fabs"]      = true;
@@ -143,6 +151,14 @@ class JuliaInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sin"]       = true;
         gFunctionSymbolTable["sqrt"]      = true;
         gFunctionSymbolTable["tan"]       = true;
+    
+        // Hyperbolic
+        gFunctionSymbolTable["acosh"] = true;
+        gFunctionSymbolTable["asinh"] = true;
+        gFunctionSymbolTable["atanh"] = true;
+        gFunctionSymbolTable["coshf"]  = true;
+        gFunctionSymbolTable["sinh"]  = true;
+        gFunctionSymbolTable["tanh"]  = true;
 
         // Quad version
         gFunctionSymbolTable["fabsl"]      = true;
@@ -165,6 +181,14 @@ class JuliaInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sinl"]       = true;
         gFunctionSymbolTable["sqrtl"]      = true;
         gFunctionSymbolTable["tanl"]       = true;
+    
+        // Hyperbolic
+        gFunctionSymbolTable["acoshl"] = true;
+        gFunctionSymbolTable["asinhl"] = true;
+        gFunctionSymbolTable["atanhl"] = true;
+        gFunctionSymbolTable["coshl"]  = true;
+        gFunctionSymbolTable["sinhl"]  = true;
+        gFunctionSymbolTable["tanhl"]  = true;
    
         // Polymath mapping int version
         gPolyMathLibTable["abs"]   = "abs";
@@ -175,82 +199,106 @@ class JuliaInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["max_f"] = "max";
         gPolyMathLibTable["min_f"] = "min";
 
-        gPolyMathLibTable["fabsf"]      = "fabs";
+        gPolyMathLibTable["fabsf"]      = "abs";
         gPolyMathLibTable["acosf"]      = "acos";
         gPolyMathLibTable["asinf"]      = "asin";
         gPolyMathLibTable["atanf"]      = "atan";
-        gPolyMathLibTable["atan2f"]     = "atan2";
+        gPolyMathLibTable["atan2f"]     = "atan";
         gPolyMathLibTable["ceilf"]      = "ceil";
         gPolyMathLibTable["cosf"]       = "cos";
         gPolyMathLibTable["expf"]       = "exp";
         gPolyMathLibTable["exp2f"]      = "exp2";
         gPolyMathLibTable["exp10f"]     = "exp10f";
         gPolyMathLibTable["floorf"]     = "floor";
-        gPolyMathLibTable["fmodf"]      = "fmod";
+        gPolyMathLibTable["fmodf"]      = "mod";
         gPolyMathLibTable["logf"]       = "log";
         gPolyMathLibTable["log2f"]      = "log2";
         gPolyMathLibTable["log10f"]     = "log10";
         gPolyMathLibTable["powf"]       = "pow";
-        gPolyMathLibTable["remainderf"] = "remainder";
+        gPolyMathLibTable["remainderf"] = "rem";
         gPolyMathLibTable["rintf"]      = "rint";
         gPolyMathLibTable["roundf"]     = "round";
         gPolyMathLibTable["sinf"]       = "sin";
         gPolyMathLibTable["sqrtf"]      = "sqrt";
         gPolyMathLibTable["tanf"]       = "tan";
+                             
+        // Hyperbolic
+        gPolyMathLibTable["acoshf"]     = "acosh";
+        gPolyMathLibTable["asinhf"]     = "asinh";
+        gPolyMathLibTable["atanhf"]     = "atanh";
+        gPolyMathLibTable["coshf"]      = "cosh";
+        gPolyMathLibTable["sinhf"]      = "sinh";
+        gPolyMathLibTable["tanhf"]      = "tanh";
 
         // Polymath mapping double version
         gPolyMathLibTable["max_"] = "max";
         gPolyMathLibTable["min_"] = "min";
 
-        gPolyMathLibTable["fabs"]      = "fabs";
+        gPolyMathLibTable["fabs"]      = "abs";
         gPolyMathLibTable["acos"]      = "acos";
         gPolyMathLibTable["asin"]      = "asin";
         gPolyMathLibTable["atan"]      = "atan";
-        gPolyMathLibTable["atan2"]     = "atan2";
+        gPolyMathLibTable["atan2"]     = "atan";
         gPolyMathLibTable["ceil"]      = "ceil";
         gPolyMathLibTable["cos"]       = "cos";
         gPolyMathLibTable["exp"]       = "exp";
         gPolyMathLibTable["exp2"]      = "exp2";
         gPolyMathLibTable["exp10"]     = "exp10";
         gPolyMathLibTable["floor"]     = "floor";
-        gPolyMathLibTable["fmod"]      = "fmod";
+        gPolyMathLibTable["fmod"]      = "mod";
         gPolyMathLibTable["log"]       = "log";
         gPolyMathLibTable["log2"]      = "log2";
         gPolyMathLibTable["log10"]     = "log10";
         gPolyMathLibTable["pow"]       = "pow";
-        gPolyMathLibTable["remainder"] = "remainder";
+        gPolyMathLibTable["remainder"] = "rem";
         gPolyMathLibTable["rint"]      = "rint";
         gPolyMathLibTable["round"]     = "round";
         gPolyMathLibTable["sin"]       = "sin";
         gPolyMathLibTable["sqrt"]      = "sqrt";
         gPolyMathLibTable["tan"]       = "tan";
+    
+        // Hyperbolic
+        gPolyMathLibTable["acosh"]     = "acosh";
+        gPolyMathLibTable["asinh"]     = "asinh";
+        gPolyMathLibTable["atanh"]     = "atanh";
+        gPolyMathLibTable["cosh"]      = "cosh";
+        gPolyMathLibTable["sinh"]      = "sinh";
+        gPolyMathLibTable["tanh"]      = "tanh";
 
         // Polymath mapping quad version
         gPolyMathLibTable["max_l"] = "max";
         gPolyMathLibTable["min_l"] = "min";
 
-        gPolyMathLibTable["fabsl"]      = "fabs";
+        gPolyMathLibTable["fabsl"]      = "abs";
         gPolyMathLibTable["acosl"]      = "acos";
         gPolyMathLibTable["asinl"]      = "asin";
         gPolyMathLibTable["atanl"]      = "atan";
-        gPolyMathLibTable["atan2l"]     = "atan2";
+        gPolyMathLibTable["atan2l"]     = "atan";
         gPolyMathLibTable["ceill"]      = "ceil";
         gPolyMathLibTable["cosl"]       = "cos";
         gPolyMathLibTable["expl"]       = "exp";
         gPolyMathLibTable["exp2l"]      = "exp2";
         gPolyMathLibTable["exp10l"]     = "exp10";
         gPolyMathLibTable["floorl"]     = "floor";
-        gPolyMathLibTable["fmodl"]      = "fmod";
+        gPolyMathLibTable["fmodl"]      = "mod";
         gPolyMathLibTable["logl"]       = "log";
         gPolyMathLibTable["log2l"]      = "log2";
         gPolyMathLibTable["log10l"]     = "log10";
         gPolyMathLibTable["powl"]       = "pow";
-        gPolyMathLibTable["remainderl"] = "remainder";
+        gPolyMathLibTable["remainderl"] = "rem";
         gPolyMathLibTable["rintl"]      = "rint";
         gPolyMathLibTable["roundl"]     = "round";
         gPolyMathLibTable["sinl"]       = "sin";
         gPolyMathLibTable["sqrtl"]      = "sqrt";
         gPolyMathLibTable["tanl"]       = "tan";
+    
+        // Hyperbolic
+        gPolyMathLibTable["acoshl"]     = "acosh";
+        gPolyMathLibTable["asinhl"]     = "asinh";
+        gPolyMathLibTable["atanhl"]     = "atanh";
+        gPolyMathLibTable["coshl"]      = "cosh";
+        gPolyMathLibTable["sinhl"]      = "sinh";
+        gPolyMathLibTable["tanhl"]      = "tanh";
     }
 
     virtual ~JuliaInstVisitor() {}
@@ -508,21 +556,10 @@ class JuliaInstVisitor : public TextInstVisitor {
     virtual void visit(FunCallInst* inst)
     {
         string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
-        // Special syntax for pow(x, y) => x ^ y;
-        if (name == "pow") {
-            auto arg = inst->fArgs.begin();
-            *fOut << "(";
-            (*arg)->accept(this);
-            *fOut << " ^ ";
-            ++arg;
-            (*arg)->accept(this);
-            *fOut << ")";
-        } else {
-            *fOut << name << "(";
-            // Compile parameters
-            generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
-            *fOut << ")";
-        }
+        *fOut << name << "(";
+        // Compile parameters
+        generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
+        *fOut << ")";
     }
     
     virtual void visit(IfInst* inst)

@@ -150,7 +150,12 @@ void JuliaCodeContainer::produceClass()
     int n = 0;
     
     *fOut << "faustglobals = Dict()";
-   
+    tab(n, *fOut);
+    // Always generated
+    *fOut << "pow(x, y) = x ^ y";
+    tab(n, *fOut);
+    *fOut << "rint(x) = round(x, Base.Rounding.RoundNearest)";
+    
     // Sub containers
     generateSubContainers();
 

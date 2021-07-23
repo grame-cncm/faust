@@ -585,7 +585,8 @@ struct global {
                                      || startWith(gOutputLang, "soul")
                                      || (gOutputLang == "dlang")
                                      || (gOutputLang == "csharp")
-                                     || (gOutputLang == "rust"));
+                                     || (gOutputLang == "rust")
+                                     || (gOutputLang == "julia"));
         return has_internal_math_ff && (gMathForeignFunctions.find(name) != gMathForeignFunctions.end());
     }
 
