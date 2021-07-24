@@ -73,9 +73,10 @@ devices = PortAudio.devices()
 #dev = filter(x -> x.maxinchans == 2 && x.maxoutchans == 2, devices)[1]
 
 # Selecting a Duplex device here
-dev = devices[10]
+#dev = devices[10]
 
-PortAudioStream(dev, dev) do stream
+#PortAudioStream(dev, dev) do stream
+PortAudioStream(1, 2) do stream
     dsp = mydsp{Float32}()
     println("getNumInputsmydsp ", getNumInputsmydsp(dsp))
     println("getNumOutputsmydsp ", getNumOutputsmydsp(dsp))

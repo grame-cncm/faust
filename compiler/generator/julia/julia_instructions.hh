@@ -70,6 +70,10 @@ struct JuliaInitFieldsVisitor : public DispatchVisitor {
 
 class JuliaInstVisitor : public TextInstVisitor {
    private:
+    
+    // Whether to consider an 'int' as a 'boolean' later on in code generation
+    bool fIntAsBool;
+    
     /*
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
@@ -299,6 +303,8 @@ class JuliaInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["coshl"]      = "cosh";
         gPolyMathLibTable["sinhl"]      = "sinh";
         gPolyMathLibTable["tanhl"]      = "tanh";
+    
+        fIntAsBool = false;
     }
 
     virtual ~JuliaInstVisitor() {}
@@ -551,6 +557,19 @@ class JuliaInstVisitor : public TextInstVisitor {
     // TODO : does not work, put this code in a function
     virtual void visit(BitcastInst* inst)
     {}
+    
+    virtual void visit(Select2Inst* inst)
+    {
+        *fOut << "(Bool(";
+        fIntAsBool = true;
+        inst->fCond->accept(this);
+        fIntAsBool = false;
+        *fOut << ") ? ";
+        inst->fThen->accept(this);
+        *fOut << " : ";
+        inst->fElse->accept(this);
+        *fOut << ")";
+    }
 
     // Generate standard funcall (not 'method' like funcall...)
     virtual void visit(FunCallInst* inst)
@@ -563,27 +582,31 @@ class JuliaInstVisitor : public TextInstVisitor {
     }
     
     virtual void visit(IfInst* inst)
-       {
-           *fOut << "if ";
-           visitCond(inst->fCond);
-           fTab++;
-           tab(fTab, *fOut);
-           inst->fThen->accept(this);
-           fTab--;
-           back(1, *fOut);
-           if (inst->fElse->fCode.size() > 0) {
-               *fOut << "elseif";
-               fTab++;
-               tab(fTab, *fOut);
-               inst->fElse->accept(this);
-               fTab--;
-               back(1, *fOut);
-               *fOut << "end";
-           } else {
-               *fOut << "end";
-           }
-           tab(fTab, *fOut);
-       }
+    {
+        *fOut << "if ";
+        *fOut << "(Bool(";
+        fIntAsBool = true;
+        visitCond(inst->fCond);
+        fIntAsBool = false;
+        *fOut << "))";
+        fTab++;
+        tab(fTab, *fOut);
+        inst->fThen->accept(this);
+        fTab--;
+        back(1, *fOut);
+        if (inst->fElse->fCode.size() > 0) {
+            *fOut << "elseif";
+            fTab++;
+            tab(fTab, *fOut);
+            inst->fElse->accept(this);
+            fTab--;
+            back(1, *fOut);
+            *fOut << "end";
+        } else {
+            *fOut << "end";
+        }
+        tab(fTab, *fOut);
+    }
   
     virtual void visit(ForLoopInst* inst)
     {
