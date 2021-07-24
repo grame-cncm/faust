@@ -170,7 +170,7 @@ The **faustbench-llvm** tool uses the libfaust library and its LLVM backend to d
 
 Note that result is given as *MBytes/sec* (higher is better) which is computed as the mean of the 10 best values on the measurement period. An estimation of the DSP CPU use (in percentage of the available bandwidth at 44.1 kHz) is also computed using the effective duration of the measure. This value may not be perfectly coherent with the MBytes/sec value which is the one to be taken in account, and is finally used to return the best estimation.
 
-Alhough they are estimated using the LLVM backend, note that the result given by **faustbench-llvm** can perfectly be used to optimize the C++ code later on, since both compilation chains are based on the same LLVM instrastructure.
+Alhough they are estimated using the LLVM backend, note that the result given by **faustbench-llvm** can perfectly be used to optimize the C++ code later on, since both compilation chains are based on the same LLVM infrastructure.
 
 `faustbench-llvm [-notrace] [-control] [-generic] [-single] [-run <num] [-bs <frames>] [-opt <level(0..4|-1)>] [-us <factor>] [-ds <factor>] [-filter <filter(0..4)>] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
