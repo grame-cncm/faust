@@ -67,7 +67,6 @@ Note that using the `-inj foo.cpp` option allows to compile any C++ class contai
  - define the `FAUST_ARCHS` environment variable, create a multi-cpu file for all possible CPUs defined in this variable and create the multi-loader file, and compile a test program: `export FAUST_ARCHS="core2 haswell" && faust2object -multifun -test foo.dsp`. 
  - compile a `foo.cpp` file (possibly manually written) and containing a  `dsp` subclass: `faust2object haswell -inj foo.cpp -multi -test foo.dsp`. 
 
-
 ## dynamic-jack-gtk/dynamic-coreaudio-gtk
 
 The **dynamic-jack-gtk/dynamic-coreaudio-gtk** tools use the dynamic compilation chain, compile a Faust DSP source, and run it with the LLVM or Interpreter backend. They can also read a precompiled DSP factory, either in IR (.ll), bitcode (.bc), or machine code (.mc) when using the LLVM backend, or byte code (.fbc) when using the Interpreter backend. The `-edit` option can be used to start an *edit/compile/run loop* where the DSP can be edited with an external editor, and will be recompiled on the fly and executed. 
@@ -141,7 +140,7 @@ Here are the available options:
 
 The **faustbench** tool uses the C++ backend to generate a set of C++ files produced with different Faust compiler options. All files are then compiled in a unique binary that will measure the DSP CPU of all versions of the compiled DSP. The tool is supposed to be launched in a terminal, but it can be used to generate an iOS project, ready to be launched and tested in Xcode. Using the `-source` option allows to create and keep the intermediate C++ files, with a Makefile to produce the binary. The generated DSP struct memory size in bytes is also printed for each compiler option.
 
-Notes that result is given as *MBytes/sec* (higher is better) which is computed as the mean of the 10 best values on the measurement period. An estimation of the DSP CPU use (in percentage of the available bandwidth at 44.1 kHz) is also computed using the effective duration of the measure. This value may not be perfectly coherent with the MBytes/sec value which is the one to be taken in account.
+Note that result is given as *MBytes/sec* (higher is better) which is computed as the mean of the 10 best values on the measurement period. An estimation of the DSP CPU use (in percentage of the available bandwidth at 44.1 kHz) is also computed using the effective duration of the measure. This value may not be perfectly coherent with the MBytes/sec value which is the one to be taken in account.
 
 `faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-bs <frames>] [-source] [-double] [-opt <level(0..3|-1)>] [-us <factor>] [-ds <factor>] [-filter <filter(0..4)>] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
@@ -169,7 +168,9 @@ Using `-single` and additional Faust options (like `-vec -vs 8...`) allows to ru
 
 The **faustbench-llvm** tool uses the libfaust library and its LLVM backend to dynamically compile DSP objects produced with different Faust compiler options, and then measure their DSP CPU. Additional Faust compiler options can be given beside the ones that will be automatically explored by the tool.
 
-Notes that result is given as *MBytes/sec* (higher is better) which is computed as the mean of the 10 best values on the measurement period. An estimation of the DSP CPU use (in percentage of the available bandwidth at 44.1 kHz) is also computed using the effective duration of the measure. This value may not be perfectly coherent with the MBytes/sec value which is the one to be taken in account, and is finally used to return the best estimation.
+Note that result is given as *MBytes/sec* (higher is better) which is computed as the mean of the 10 best values on the measurement period. An estimation of the DSP CPU use (in percentage of the available bandwidth at 44.1 kHz) is also computed using the effective duration of the measure. This value may not be perfectly coherent with the MBytes/sec value which is the one to be taken in account, and is finally used to return the best estimation.
+
+Alhough they are estimated using the LLVM backend, note that the result given by **faustbench-llvm** can perfectly be used to optimize the C++ code later on, since both compilation chains are based on the same LLVM instrastructure.
 
 `faustbench-llvm [-notrace] [-control] [-generic] [-single] [-run <num] [-bs <frames>] [-opt <level(0..4|-1)>] [-us <factor>] [-ds <factor>] [-filter <filter(0..4)>] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
