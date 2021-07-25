@@ -66,11 +66,11 @@ samplerate = Int32(44100)
 block_size = Int32(512)
 
 test!() = begin
-    dsp = mydsp{Float32}()
+    dsp = mydsp{REAL}()
     println("getNumInputsmydsp ", getNumInputsmydsp(dsp))
     println("getNumOutputsmydsp ", getNumOutputsmydsp(dsp))
-    inputs = zeros(Float32, block_size, getNumInputsmydsp(dsp))
-    outputs = zeros(Float32, block_size, getNumOutputsmydsp(dsp))
+    inputs = zeros(REAL, block_size, getNumInputsmydsp(dsp))
+    outputs = zeros(REAL, block_size, getNumOutputsmydsp(dsp))
     initmydsp(dsp, samplerate)
     computemydsp(dsp, block_size, inputs, outputs)
 end

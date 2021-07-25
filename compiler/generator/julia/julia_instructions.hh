@@ -62,7 +62,7 @@ struct JuliaInitFieldsVisitor : public DispatchVisitor {
         if (isIntPtrType(typed->getType())) {
             *fOut << "zeros(Int32, " << array_type->fSize << ")";
         } else {
-            *fOut << "zeros(T, " << array_type->fSize << ")";
+            *fOut << "zeros(" << ifloat() << ", " << array_type->fSize << ")";
         }
     }
     
@@ -491,10 +491,10 @@ class JuliaInstVisitor : public TextInstVisitor {
     virtual void generateFunDefBody(DeclareFunInst* inst)
     {
         if (inst->fCode->fCode.size() == 0) {
-            *fOut << ") where {T}" << endl;  // Pure prototype
+            *fOut << ")" << endl;  // Pure prototype
         } else {
             // Function body
-            *fOut << ") where {T}";
+            *fOut << ")";
             fTab++;
             tab(fTab, *fOut);
             inst->fCode->accept(this);

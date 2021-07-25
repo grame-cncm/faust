@@ -52,6 +52,6 @@ for p in $FILES; do
     f=$(basename "$p")
   
     # compile Faust DSP and put in the cargo folder
-    faust -a $ARCHFILE -lang julia "$f" -o "${f%.dsp}.jl"
+    faust -a $ARCHFILE -lang julia $OPTIONS "$f" -o "${f%.dsp}.jl"
 	
 done

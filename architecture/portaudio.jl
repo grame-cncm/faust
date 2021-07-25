@@ -77,13 +77,13 @@ devices = PortAudio.devices()
 
 #PortAudioStream(dev, dev) do stream
 PortAudioStream(1, 2) do stream
-    dsp = mydsp{Float32}()
+    dsp = mydsp{REAL}()
     println("getNumInputsmydsp ", getNumInputsmydsp(dsp))
     println("getNumOutputsmydsp ", getNumOutputsmydsp(dsp))
     initmydsp(dsp, samplerate)
-    outputs = zeros(Float32, block_size, getNumOutputsmydsp(dsp))
+    outputs = zeros(REAL, block_size, getNumOutputsmydsp(dsp))
     while true
-        inputs = convert(Matrix{Float32}, read(stream, block_size))
+        inputs = convert(Matrix{REAL}, read(stream, block_size))
         computemydsp(dsp, block_size, inputs, outputs)
         write(stream, outputs)
     end

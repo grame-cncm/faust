@@ -62,7 +62,7 @@ for p in $FILES; do
     popd
 
     # compile Faust DSP and put in the cargo folder
-    faust -a $ARCHFILE -lang rust "$SRCDIR/$f" -o "$SRCDIR/$dspName/src/main.rs"
+    faust -a $ARCHFILE -lang rust $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/src/main.rs"
 
     # add dependencies
     echo "portaudio = \"*\"" >> "$SRCDIR/$dspName/Cargo.toml"
