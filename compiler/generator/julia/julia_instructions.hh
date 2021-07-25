@@ -483,7 +483,7 @@ class JuliaInstVisitor : public TextInstVisitor {
         if (inst->fNumChannels == 0) return;
     
         for (int i = 0; i < inst->fNumChannels; ++i) {
-            *fOut << inst->fBufferName1 << i << " = @view " << inst->fBufferName2 << "[:, " << (i+1) << "]";
+            *fOut << inst->fBufferName1 << i << " = @inbounds @view " << inst->fBufferName2 << "[:, " << (i+1) << "]";
             tab(fTab, *fOut);
         }
     }
@@ -649,19 +649,33 @@ class JuliaInstVisitor : public TextInstVisitor {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
         
-        *fOut << "for " << inst->getName() << "::Int32 = ";
+        *fOut << "@inbounds for " << inst->getName() << " = ";
         if (inst->fReverse) {
-            Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(inst->fUpperBound);
-            faustassert(field_index);
+            Int32NumInst* upper_bound = dynamic_cast<Int32NumInst*>(inst->fUpperBound);
+            faustassert(upper_bound);
             // Julia arrays start at 1
-            *fOut << (field_index->fNum + 1) << ":";
-            inst->fLowerBound->accept(this);
+            *fOut << (upper_bound->fNum + 1) << ":";
+            Int32NumInst* lower_bound = dynamic_cast<Int32NumInst*>(inst->fLowerBound);
+            if (lower_bound) {
+                // If an Int32NumInst, we just generate it without any type information
+                // (see visit(Int32NumInst* inst) which adds type information that we don't want here)
+                *fOut << (lower_bound->fNum);
+            } else {
+                inst->fLowerBound->accept(this);
+            }
         } else {
-            Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(inst->fLowerBound);
-            faustassert(field_index);
+            Int32NumInst* lower_bound = dynamic_cast<Int32NumInst*>(inst->fLowerBound);
+            faustassert(lower_bound);
             // Julia arrays start at 1
-            *fOut << (field_index->fNum + 1) << ":";
-            inst->fUpperBound->accept(this);
+            *fOut << (lower_bound->fNum + 1) << ":";
+            Int32NumInst* upper_bound = dynamic_cast<Int32NumInst*>(inst->fUpperBound);
+            if (upper_bound) {
+                // If an Int32NumInst, we just generate it without any type information
+                // (see visit(Int32NumInst* inst) which adds type information that we don't want here)
+                *fOut << (upper_bound->fNum);
+            } else {
+                inst->fUpperBound->accept(this);
+            }
         }
         fTab++;
         tab(fTab, *fOut);

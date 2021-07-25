@@ -291,7 +291,7 @@ void JuliaCodeContainer::generateCompute(int n)
 {
     // Generates declaration
     tab(n, *fOut);
-    *fOut << "function compute" << fKlassName << "(dsp::" << fKlassName
+    *fOut << "@inbounds function compute" << fKlassName << "(dsp::" << fKlassName
           << ", " << fFullCount << "::Int32, inputs, outputs)";
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
@@ -341,7 +341,7 @@ void JuliaVectorCodeContainer::generateCompute(int n)
 
     // Generates declaration
     tab(n + 1, *fOut);
-    *fOut << "function compute" << fKlassName << "(dsp::" << fKlassName
+    *fOut << "@inbounds function compute" << fKlassName << "(dsp::" << fKlassName
           << ", " << fFullCount << "::Int32, inputs, outputs)";
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);
