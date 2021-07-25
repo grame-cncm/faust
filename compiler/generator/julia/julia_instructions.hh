@@ -428,11 +428,8 @@ class JuliaInstVisitor : public TextInstVisitor {
         */
     
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
-            *fOut << inst->fAddress->getName() << " = get!(faustglobals, (";
-            *fOut << fTypeManager->generateType(inst->fType);
-            *fOut << ", :" << inst->fAddress->getName() << "), ";
+            *fOut << "const " << inst->fAddress->getName() << " = ";
             JuliaInitFieldsVisitor::ZeroInitializer(fOut, inst->fType);
-            *fOut << ")";
         } else {
             *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
             if (inst->fValue) {

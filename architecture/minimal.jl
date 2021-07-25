@@ -76,3 +76,12 @@ test!() = begin
 end
 
 test!()
+
+#=
+using BenchmarkTools
+dsp = mydsp()
+initmydsp(dsp, samplerate)
+inputs = zeros(REAL, block_size, getNumInputsmydsp(dsp))
+outputs = zeros(REAL, block_size, getNumOutputsmydsp(dsp))
+@benchmark computemydsp(dsp, block_size, inputs, outputs)
+=#

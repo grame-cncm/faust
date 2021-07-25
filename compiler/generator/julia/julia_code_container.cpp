@@ -153,8 +153,6 @@ void JuliaCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "const REAL = " << ifloat();
     tab(n, *fOut);
-    *fOut << "faustglobals = Dict()";
-    tab(n, *fOut);
     // Always generated
     *fOut << "pow(x, y) = x ^ y";
     tab(n, *fOut);
