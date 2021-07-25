@@ -417,8 +417,7 @@ class JuliaStringTypeManager : public StringTypeManager {
             if (dsp_array && string(dsp_array) == "1") {
                 return (array_typed->fSize == 0)
                         ? name + "::" + fPtrRef + generateType(array_typed->fType)
-                        : name + "::MVector{" + to_string(array_typed->fSize) + "," + generateType(array_typed->fType) + "}";
-                
+                        : name + "::Vector{" + generateType(array_typed->fType) + "}";
             } else {
                 return (array_typed->fSize == 0)
                        ? name + "::" + fPtrRef + generateType(array_typed->fType)
