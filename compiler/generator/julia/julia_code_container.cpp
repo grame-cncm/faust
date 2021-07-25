@@ -149,6 +149,8 @@ void JuliaCodeContainer::produceClass()
 {
     int n = 0;
     
+    *fOut << "using StaticArrays";
+    tab(n, *fOut);
     *fOut << "const REAL = " << ifloat();
     tab(n, *fOut);
     *fOut << "faustglobals = Dict()";
