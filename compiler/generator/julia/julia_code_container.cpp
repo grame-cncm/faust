@@ -167,13 +167,13 @@ void JuliaCodeContainer::produceClass()
     generateGlobalDeclarations(fCodeProducer);
    
     tab(n, *fOut);
-    *fOut << "mutable struct " << fKlassName << "{" << ifloat() << "}";
+    *fOut << "mutable struct " << fKlassName;
     tab(n + 1, *fOut);
 
     // Fields
     fCodeProducer->Tab(n + 1);
     generateDeclarations(fCodeProducer);
-    *fOut << fKlassName << "{" << ifloat() << "}() = begin";
+    *fOut << fKlassName << "() = begin";
     tab(n + 2, *fOut);
     *fOut << "dsp = new()";
     JuliaInitFieldsVisitor initializer(fOut, n + 2);
@@ -211,7 +211,7 @@ void JuliaCodeContainer::produceClass()
     
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "function instanceResetUserInterface" << fKlassName << "(dsp::" << fKlassName << "{" << ifloat() << "})";
+    *fOut << "function instanceResetUserInterface" << fKlassName << "(dsp::" << fKlassName << ")";
     {
         tab(n + 1, *fOut);
         // Local visitor here to avoid DSP object incorrect type generation
@@ -224,7 +224,7 @@ void JuliaCodeContainer::produceClass()
     
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "function instanceClear" << fKlassName << "(dsp::" << fKlassName << "{" << ifloat() << "})";
+    *fOut << "function instanceClear" << fKlassName << "(dsp::" << fKlassName << ")";
     {
         tab(n + 1, *fOut);
         // Local visitor here to avoid DSP object incorrect type generation
@@ -237,7 +237,7 @@ void JuliaCodeContainer::produceClass()
 
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "function instanceConstants" << fKlassName << "(dsp::" << fKlassName << "{" << ifloat() << "}, sample_rate::Int32)";
+    *fOut << "function instanceConstants" << fKlassName << "(dsp::" << fKlassName << ", sample_rate::Int32)";
     {
         tab(n + 1, *fOut);
         // Local visitor here to avoid DSP object incorrect type generation
@@ -250,7 +250,7 @@ void JuliaCodeContainer::produceClass()
 
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "function instanceInit" << fKlassName << "(dsp::" << fKlassName << "{" << ifloat() << "}, sample_rate::Int32)";
+    *fOut << "function instanceInit" << fKlassName << "(dsp::" << fKlassName << ", sample_rate::Int32)";
     tab(n + 1, *fOut);
     *fOut << "instanceConstants" << fKlassName << "(dsp, sample_rate)";
     tab(n + 1, *fOut);
@@ -262,7 +262,7 @@ void JuliaCodeContainer::produceClass()
 
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "function init" << fKlassName << "(dsp::" << fKlassName << "{" << ifloat() << "}, sample_rate::Int32)";
+    *fOut << "function init" << fKlassName << "(dsp::" << fKlassName << ", sample_rate::Int32)";
     tab(n + 1, *fOut);
     *fOut << "classInit" << fKlassName << "(sample_rate)";
     tab(n + 1, *fOut);
@@ -273,7 +273,7 @@ void JuliaCodeContainer::produceClass()
     // User interface
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "function buildUserInterface" << fKlassName << "(dsp::" << fKlassName << "{" << ifloat() << "}, ui_interface::UI)";
+    *fOut << "function buildUserInterface" << fKlassName << "(dsp::" << fKlassName << ", ui_interface::UI)";
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
     generateUserInterface(fCodeProducer);
@@ -290,7 +290,7 @@ void JuliaCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n, *fOut);
     *fOut << "function compute" << fKlassName << "(dsp::" << fKlassName
-          << "{" << ifloat() << "}, " << fFullCount << "::Int32, inputs, outputs)";
+          << ", " << fFullCount << "::Int32, inputs, outputs)";
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
 
@@ -340,7 +340,7 @@ void JuliaVectorCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n + 1, *fOut);
     *fOut << "function compute" << fKlassName << "(dsp::" << fKlassName
-          << "{" << ifloat() << "}, " << fFullCount << "::Int32, inputs, outputs)";
+          << ", " << fFullCount << "::Int32, inputs, outputs)";
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);
 

@@ -66,7 +66,7 @@ samplerate = Int32(44100)
 block_size = Int32(512)
 
 test!() = begin
-    dsp = mydsp{REAL}()
+    dsp = mydsp()
     println("getNumInputsmydsp ", getNumInputsmydsp(dsp))
     println("getNumOutputsmydsp ", getNumOutputsmydsp(dsp))
     inputs = zeros(REAL, block_size, getNumInputsmydsp(dsp))

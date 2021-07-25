@@ -77,7 +77,7 @@ devices = PortAudio.devices()
 
 #PortAudioStream(dev, dev) do stream
 PortAudioStream(1, 2) do stream
-    dsp = mydsp{REAL}()
+    dsp = mydsp()
     println("getNumInputsmydsp ", getNumInputsmydsp(dsp))
     println("getNumOutputsmydsp ", getNumOutputsmydsp(dsp))
     initmydsp(dsp, samplerate)
