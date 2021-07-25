@@ -1597,7 +1597,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             if (gGlobal->gVectorSwitch) {
                 new_comp = new DAGInstructionsCompiler(container);
             }
-#ifdef RUST_BUILD
+#if defined(RUST_BUILD) || defined(JULIA_BUILD)
             else if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia") {
                 new_comp = new InstructionsCompiler1(container);
             }
