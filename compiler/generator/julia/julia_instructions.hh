@@ -399,6 +399,20 @@ class JuliaInstVisitor : public TextInstVisitor {
         // Not supported for now
         throw faustexception("ERROR : 'soundfile' primitive not yet supported for Julia\n");
     }
+    
+    virtual void visit(Int32NumInst* inst) { *fOut << "Int32(" << inst->fNum << ")"; }
+    
+    virtual void visit(Int64NumInst* inst) { *fOut << "Int64(" << inst->fNum << ")"; }
+    
+    virtual void visit(Int32ArrayNumInst* inst)
+    {
+        char sep = '{';
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << sep << "Int32(" << inst->fNumTable[i] << ")";
+            sep = ',';
+        }
+        *fOut << '}';
+    }
    
     virtual void visit(DeclareVarInst* inst)
     {

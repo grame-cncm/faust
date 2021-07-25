@@ -179,26 +179,56 @@ static string ensureFloat(const string& c)
 }
 
 /**
- * Convert a simple-precision float into a string.
- * Adjusts the precision p to the needs.
+ * Special encoding for Julia float numbers, see:
+ * https://docs.julialang.org/en/v1/manual/integers-and-floating-point-numbers/#Floating-Point-Numbers
  */
-string T(float n)
+static string encodeJuliaFloat(const string& c, bool& need_suffix)
 {
-    stringstream num;
-    num << setprecision(numeric_limits<float>::max_digits10) << n;
-    return ensureFloat(num.str()) + inumix();
+    bool isInt = true;
+    string res;
+    for (size_t i = 0; i < c.size(); i++) {
+        if ((c[i] == '.') || (c[i] == 'e')) {
+            isInt = false;
+        }
+        if (c[i] == 'e') {
+            res += 'f';
+            need_suffix = false;
+        } else {
+            res += c[i];
+        }
+    }
+    return (isInt) ? (res + ".0") : res;
 }
 
 /**
- * Convert a double-precision float into a string.
+ * Convert a REAL (float/double) into a string.
  * Adjusts the precision p to the needs.
  */
-string T(double n)
+template <typename REAL>
+static string TAux(REAL n)
 {
     stringstream num;
-    num << setprecision(numeric_limits<double>::max_digits10) << n;
-    return ensureFloat(num.str()) + inumix();
+    num << setprecision(numeric_limits<REAL>::max_digits10) << n;
+    if (gGlobal->gOutputLang == "julia") {
+        bool need_suffix = true;
+        string res = encodeJuliaFloat(num.str(), need_suffix);
+        return (need_suffix) ? (res + inumix()) : res;
+    } else {
+        return ensureFloat(num.str()) + inumix();
+    }
 }
+
+/**
+ * Convert a single-precision float into a string.
+ * Adjusts the precision p to the needs.
+ */
+string T(float n) { return TAux<float>(n); }
+
+/**
+* Convert a double-precision float into a string.
+* Adjusts the precision p to the needs.
+*/
+string T(double n) { return TAux<double>(n); }
 
 /**
  * remove quotes from a string
