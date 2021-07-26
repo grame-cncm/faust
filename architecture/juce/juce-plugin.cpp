@@ -227,80 +227,82 @@ class FaustSynthesiser : public juce::Synthesiser, public dsp_voice_group {
 class FaustPlugInAudioProcessor : public foleys::MagicProcessor, private juce::Timer
 {
     
-public:
-#ifdef MAGIC_LEVEL_SOURCE
-    foleys::MagicLevelSource* fOutputMeter = nullptr;
-#endif
-    juce::AudioProcessorValueTreeState treeState{ *this, nullptr };
-    FaustPlugInAudioProcessor();
-    virtual ~FaustPlugInAudioProcessor() {}
-    
-    void prepareToPlay (double sampleRate, int samplesPerBlock) override;
-    
-    bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
-    
-    void processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override
-    {
-        jassert (! isUsingDoublePrecision());
-        process (buffer, midiMessages);
-#ifdef MAGIC_LEVEL_SOURCE
-        fOutputMeter->pushSamples(buffer);
-#endif
-    }
-    
-    void processBlock (juce::AudioBuffer<double>& buffer, juce::MidiBuffer& midiMessages) override
-    {
-        jassert (isUsingDoublePrecision());
-        process (buffer, midiMessages);
-    }
-    
-    const juce::String getName() const override;
-    
-    bool acceptsMidi() const override;
-    bool producesMidi() const override;
-    double getTailLengthSeconds() const override;
-    
-    int getNumPrograms() override;
-    int getCurrentProgram() override;
-    void setCurrentProgram (int index) override;
-    const juce::String getProgramName (int index) override;
-    void changeProgramName (int index, const juce::String& newName) override;
-    
-    void releaseResources() override
-    {}
-    
-    void timerCallback() override;
-    
-    juce::AudioProcessor::BusesProperties getBusesProperties();
-    bool supportsDoublePrecisionProcessing() const override;
-    
-#ifdef JUCE_POLY
-    std::unique_ptr<FaustSynthesiser> fSynth;
-#else
-#if defined(MIDICTRL)
-    std::unique_ptr<juce_midi_handler> fMIDIHandler;
-    std::unique_ptr<MidiUI> fMIDIUI;
-#endif
-    std::unique_ptr<dsp> fDSP;
-#endif
-    
-#if defined(OSCCTRL)
-    std::unique_ptr<JuceOSCUI> fOSCUI;
-#endif
-    
-#if defined(SOUNDFILE)
-    std::unique_ptr<SoundUI> fSoundUI;
-#endif
-    
-    JuceStateUI fStateUI;
-    JuceParameterUI fParameterUI;
-    
-private:
-    
-    template <typename FloatType>
-    void process (juce::AudioBuffer<FloatType>& buffer, juce::MidiBuffer& midiMessages);
-    
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FaustPlugInAudioProcessor)
+    public:
+    #ifdef MAGIC_LEVEL_SOURCE
+        foleys::MagicLevelSource* fOutputMeter = nullptr;
+    #endif
+        juce::AudioProcessorValueTreeState treeState{ *this, nullptr };
+        FaustPlugInAudioProcessor();
+        virtual ~FaustPlugInAudioProcessor() {}
+        
+        void prepareToPlay (double sampleRate, int samplesPerBlock) override;
+        
+        bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
+        
+        void processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override
+        {
+            jassert (! isUsingDoublePrecision());
+            process (buffer, midiMessages);
+    #ifdef MAGIC_LEVEL_SOURCE
+            fOutputMeter->pushSamples(buffer);
+    #endif
+        }
+        
+        void processBlock (juce::AudioBuffer<double>& buffer, juce::MidiBuffer& midiMessages) override
+        {
+            jassert (isUsingDoublePrecision());
+            process (buffer, midiMessages);
+        }
+        
+        const juce::String getName() const override;
+        
+        bool acceptsMidi() const override;
+        bool producesMidi() const override;
+        double getTailLengthSeconds() const override;
+        
+        int getNumPrograms() override;
+        int getCurrentProgram() override;
+        void setCurrentProgram (int index) override;
+        const juce::String getProgramName (int index) override;
+        void changeProgramName (int index, const juce::String& newName) override;
+        
+        void releaseResources() override
+        {}
+        
+        void timerCallback() override;
+        
+        juce::AudioProcessor::BusesProperties getBusesProperties();
+        bool supportsDoublePrecisionProcessing() const override;
+        
+    #ifdef JUCE_POLY
+        std::unique_ptr<FaustSynthesiser> fSynth;
+    #else
+    #if defined(MIDICTRL)
+        std::unique_ptr<juce_midi_handler> fMIDIHandler;
+        std::unique_ptr<MidiUI> fMIDIUI;
+    #endif
+        std::unique_ptr<dsp> fDSP;
+    #endif
+        
+    #if defined(OSCCTRL)
+        std::unique_ptr<JuceOSCUI> fOSCUI;
+    #endif
+        
+    #if defined(SOUNDFILE)
+        std::unique_ptr<SoundUI> fSoundUI;
+    #endif
+        
+        JuceStateUI fStateUI;
+        JuceParameterUI fParameterUI;
+        
+        bool fIsPrepared = false;
+        
+    private:
+        
+        template <typename FloatType>
+        void process (juce::AudioBuffer<FloatType>& buffer, juce::MidiBuffer& midiMessages);
+        
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FaustPlugInAudioProcessor)
     
 };
 
@@ -376,6 +378,8 @@ class FaustPlugInAudioProcessor : public juce::AudioProcessor, private juce::Tim
     
         JuceStateUI fStateUI;
         JuceParameterUI fParameterUI;
+    
+        bool fIsPrepared = false;
     
     private:
     
@@ -554,7 +558,7 @@ juce::AudioProcessor::BusesProperties FaustPlugInAudioProcessor::getBusesPropert
             .withOutput("Output", juce::AudioChannelSet::discreteChannels(std::min<int>(2, FAUST_OUTPUTS)), true);
         }
     } else {
-        if (FAUST_INPUTS == 0) {
+        if (FAUST_OUTPUTS == 0) {
             return BusesProperties().withOutput("Output", juce::AudioChannelSet::discreteChannels(FAUST_OUTPUTS), true);
         } else {
             return BusesProperties()
@@ -628,8 +632,13 @@ bool FaustPlugInAudioProcessor::supportsDoublePrecisionProcessing() const
 //==============================================================================
 void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
+    // prepareToPlay may be called several times (like in VST3 context)
+    if (fIsPrepared) return;
+    
     // Use this method as the place to do any pre-playback
     // initialisation that you need...
+    
+    fIsPrepared = true;
     
 #ifdef JUCE_POLY
     fSynth->setCurrentPlaybackSampleRate (sampleRate);
@@ -645,7 +654,8 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
         fDSP = std::make_unique<dsp_adapter>(fDSP.release(), getTotalNumInputChannels(), getTotalNumOutputChannels(), 4096);
     }
    
-    // Setting the DSP control values has already been done by 'buildUserInterface(&fStateUI)', using the saved values or the default ones.
+    // Setting the DSP control values has already been done
+    // by 'buildUserInterface(&fStateUI)', using the saved values or the default ones.
     // What has to be done to finish the DSP initialization is done now.
     mydsp::classInit(int(sampleRate));
     fDSP->instanceConstants(int(sampleRate));
