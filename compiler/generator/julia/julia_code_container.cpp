@@ -122,7 +122,7 @@ void JuliaCodeContainer::produceInternal()
     string counter = "count";
     if (fSubContainerType == kInt) {
         tab(n, *fOut);
-        *fOut << "function fill" << fKlassName << "(dsp::" << fKlassName << ", " << counter << "::Int32, table::AbstractVector{Int32})}";
+        *fOut << "function fill" << fKlassName << "(dsp::" << fKlassName << ", " << counter << "::Int32, table::AbstractVector{Int32})";
     } else {
         tab(n, *fOut);
         *fOut << "function fill" << fKlassName << "(dsp::" << fKlassName << ", " << counter << "::Int32, table::AbstractVector{" << ifloat() << "})";

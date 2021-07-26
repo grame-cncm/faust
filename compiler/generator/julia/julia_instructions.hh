@@ -406,12 +406,32 @@ class JuliaInstVisitor : public TextInstVisitor {
     
     virtual void visit(Int32ArrayNumInst* inst)
     {
-        char sep = '{';
+        char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << sep << "Int32(" << inst->fNumTable[i] << ")";
             sep = ',';
         }
-        *fOut << '}';
+        *fOut << ']';
+    }
+    
+    virtual void visit(FloatArrayNumInst* inst)
+    {
+        char sep = '[';
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << sep << checkFloat(inst->fNumTable[i]);
+            sep = ',';
+        }
+        *fOut << ']';
+    }
+    
+    virtual void visit(DoubleArrayNumInst* inst)
+    {
+        char sep = '[';
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << sep << checkDouble(inst->fNumTable[i]);
+            sep = ',';
+        }
+        *fOut << ']';
     }
    
     virtual void visit(DeclareVarInst* inst)
@@ -429,7 +449,11 @@ class JuliaInstVisitor : public TextInstVisitor {
     
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
             *fOut << "const " << inst->fAddress->getName() << " = ";
-            JuliaInitFieldsVisitor::ZeroInitializer(fOut, inst->fType);
+            if (inst->fValue) {
+                inst->fValue->accept(this);
+            } else {
+                JuliaInitFieldsVisitor::ZeroInitializer(fOut, inst->fType);
+            }
         } else {
             *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
             if (inst->fValue) {
