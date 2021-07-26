@@ -413,22 +413,14 @@ class JuliaStringTypeManager : public StringTypeManager {
             string ty_str = named_typed->fName + generateType(named_typed->fType);
             return name + ((ty_str != "") ? ("::" + ty_str) : "");
         } else if (array_typed) {
-            char* dsp_array = getenv("FAUST_JULIA_STATIC");
-            if (dsp_array && string(dsp_array) == "1") {
-                return (array_typed->fSize == 0)
-                        ? name + "::" + fPtrRef + generateType(array_typed->fType)
-                        : name + "::Vector{" + generateType(array_typed->fType) + "}";
-            } else {
-                return (array_typed->fSize == 0)
-                       ? name + "::" + fPtrRef + generateType(array_typed->fType)
-                       : name + "::AbstractVector{" + generateType(array_typed->fType) + "}";
-            }
+            return (array_typed->fSize == 0)
+                    ? name + "::" + fPtrRef + generateType(array_typed->fType)
+                    : name + "::Vector{" + generateType(array_typed->fType) + "}";
         } else {
             faustassert(false);
             return "";
         }
     }
 };
-
 
 #endif
