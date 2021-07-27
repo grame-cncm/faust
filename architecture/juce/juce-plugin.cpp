@@ -228,10 +228,6 @@ class FaustPlugInAudioProcessor : public foleys::MagicProcessor, private juce::T
 {
     
     public:
-    #ifdef MAGIC_LEVEL_SOURCE
-        foleys::MagicLevelSource* fOutputMeter = nullptr;
-    #endif
-        juce::AudioProcessorValueTreeState treeState{ *this, nullptr };
         FaustPlugInAudioProcessor();
         virtual ~FaustPlugInAudioProcessor() {}
         
@@ -273,7 +269,12 @@ class FaustPlugInAudioProcessor : public foleys::MagicProcessor, private juce::T
         
         juce::AudioProcessor::BusesProperties getBusesProperties();
         bool supportsDoublePrecisionProcessing() const override;
-        
+      
+    #ifdef MAGIC_LEVEL_SOURCE
+        foleys::MagicLevelSource* fOutputMeter = nullptr;
+    #endif
+        juce::AudioProcessorValueTreeState treeState{ *this, nullptr };
+    
     #ifdef JUCE_POLY
         std::unique_ptr<FaustSynthesiser> fSynth;
     #else

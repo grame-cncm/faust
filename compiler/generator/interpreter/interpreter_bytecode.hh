@@ -508,11 +508,9 @@ struct FBCBlockInstruction : public FBCInstruction {
     // Check block coherency
     void check()
     {
-        InstructionIT it = fInstructions.end();
-        it--;
-        faustassert((*it)->fOpcode == FBCInstruction::kReturn);
+        faustassert(fInstructions.back()->fOpcode == FBCInstruction::kReturn);
     }
-
+  
     void push(FBCBasicInstruction<REAL>* inst)
     {
         if (inst) fInstructions.push_back(inst);

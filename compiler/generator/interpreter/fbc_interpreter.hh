@@ -604,8 +604,10 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         Soundfile*    sound_stack[512];
         InstructionIT address_stack[64];
         
-        // Check block coherency
-        block->check();
+        if (TRACE > 0) {
+            // Check block coherency
+            block->check();
+        }
         
 #define dispatchFirstScal() \
     {                       \
@@ -2687,8 +2689,10 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     }
 #define emptyReturnScal() (addr_stack_index == 0)
 
-        // Check block coherency
-        block->check();
+        if (TRACE > 0) {
+            // Check block coherency
+            block->check();
+        }
 
         InstructionIT it = block->fInstructions.begin();
         dispatchFirstScal();
