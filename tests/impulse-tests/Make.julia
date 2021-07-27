@@ -1,5 +1,5 @@
 #
-# Makefile for generating ir using interp  
+# Makefile for generating ir using Julia  
 #
 
 system := $(shell uname -s)
@@ -13,8 +13,11 @@ else
 endif
 MAKE ?= make
 
-outdir ?= interp1
-lang ?= interp1
+GCCOPTIONS := -Ofast -I../../architecture -Iarchs -pthread -std=c++17
+outdir ?= julia/double
+lang ?= cpp
+ext  ?= o
+arch ?= impulsejulia.jl
 precision ?=		# filesCompare precision (empty by default)
 FAUSTOPTIONS ?= 
 
@@ -26,7 +29,7 @@ listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir)
 SRCDIR := tools
 
 #########################################################################
-interp1: impulseinterp1 ir/$(outdir) $(call listfiles,$(outdir))
+soul:  impulsesoul ir/$(outdir) $(call listfiles,$(outdir))
 
 test:
 	@echo $(call listfiles,$(outdir))
@@ -34,10 +37,10 @@ test:
 help:
 	@echo "-------- FAUST impulse response tests --------"
 	@echo "Available targets are:"
-	@echo " 'interp1' (default): check the double output using the interp backend"
+	@echo " 'julia' (default): check the double output using the Julia backend"
 	@echo
 	@echo "Options:"
-	@echo " 'outdir' 	   : define the output directory (default to 'llvm')"
+	@echo " 'outdir' 	   : define the output directory (default to 'soul')"
 	@echo " 'FAUSTOPTIONS' : define additional faust options (empty by default)"
     @echo " 'precision'    : define filesCompare expected precision (empty by default)"
 
@@ -46,34 +49,20 @@ help:
 ir/$(outdir):
 	mkdir -p ir/$(outdir)
 
-
 #########################################################################
 # tools
 filesCompare: $(SRCDIR)/filesCompare.cpp
 	$(MAKE) filesCompare
 
-impulseinterp1: $(SRCDIR)/impulseinterp1.cpp $(LIB)
-	$(MAKE) impulseinterp1
-
-
 #########################################################################
 # precision issues
 
 #########################################################################
-# rules for interp1
+# rules for Julia
 
-# Specific rule to test 'control' primitive that currently uses the -lang ocpp backend (still compiling in scalar mode...)
-ir/$(outdir)/control.ir: dsp/control.dsp reference/control.ir
-	@echo "Cannot be tested with the Interp backend"
+ir/$(outdir)/%.jl: dsp/%.dsp 
+	cd $(dir $<); $(FAUST) -lang julia $(notdir $<) -a ../archs/$(arch) $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
 
-# Specific rule to test 'enable/control' primitives that currently only work in scalar mode
-ir/$(outdir)/osc_enable.fbc: dsp/osc_enable.dsp 
-	@echo "Can only be tested in scalar mode"
-	cd $(dir $<); $(FAUST) -lang interp $(notdir $<) -I dsp -double > ../$@ || (rm -f ../$@; false)
-
-ir/$(outdir)/%.fbc: dsp/%.dsp 
-	cd $(dir $<); $(FAUST) -lang interp $(notdir $<) -I dsp -double $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
-
-ir/$(outdir)/%.ir: ir/$(outdir)/%.fbc reference/%.ir
-	./impulseinterp1 $< > $@ || (rm -f ../$@; false)
+ir/$(outdir)/%.ir: ir/$(outdir)/%.jl reference/%.ir
+	julia  $< > $@ || (rm -f ../$@; false)
 	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)

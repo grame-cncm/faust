@@ -22,13 +22,13 @@ abstract type UI end
 # One can override the behavior by defining another set of function that takes a different concrete UI type
 
 # -- widget's layouts
-function openTabBox(label::String)
+function openTabBox(ui_interface::UI, label::String)
 end
-function openHorizontalBox(label::String)
+function openHorizontalBox(ui_interface::UI, label::String)
 end
-function openVerticalBox(label::String)
+function openVerticalBox(ui_interface::UI, label::String)
 end
-function closeBox()
+function closeBox(ui_interface::UI)
 end
 
 # -- active widgets
@@ -54,7 +54,7 @@ function addSoundfile(ui_interface::UI, label::String, filename::String, soundfi
 end
 
 # -- metadata declarations
-function declare(ui_interface::UI, key::String, val::String) 
+function declare(ui_interface::UI, param::Symbol, key::String, val::String) 
 end
 
 # Generated code

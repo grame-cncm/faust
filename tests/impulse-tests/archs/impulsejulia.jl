@@ -1,0 +1,217 @@
+
+# ************************************************************************
+# FAUST Architecture File
+# Copyright (C) 2021 GRAME, Centre National de Creation Musicale
+# ---------------------------------------------------------------------
+
+# This is sample code. This file is provided as an example of minimal
+# FAUST architecture file. Redistribution and use in source and binary
+# forms, with or without modification, in part or in full are permitted.
+# In particular you can create a derived work of this FAUST architecture
+# and distribute that work under terms of your choice.
+
+# This sample code is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# ************************************************************************
+
+const FAUSTFLOAT = Float64
+
+# Architecture
+abstract type UI end
+
+#=
+mutable struct MapUI <: UI
+    paths::Dict{String, Symbol}  # dict from path to symbol e.g. `Dict("/score/freq" => :fHslider0)`
+    # ...
+end
+=#
+
+# One can override the behavior by defining another set of function that takes a different concrete UI type
+
+# -- widget's layouts
+function openTabBox(ui_interface::UI, label::String)
+end
+function openHorizontalBox(ui_interface::UI, label::String)
+end
+function openVerticalBox(ui_interface::UI, label::String)
+end
+function closeBox(ui_interface::UI)
+end
+
+# -- active widgets
+function addButton(ui_interface::UI, label::String, param::Symbol) 
+end
+function addCheckButton(ui_interface::UI, label::String, param::Symbol) 
+end
+function addHorizontalSlider(ui_interface::UI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
+end
+function addVerticalSlider(ui_interface::UI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
+end
+function addNumEntry(ui_interface::UI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
+end
+
+# -- passive widgets
+function addHorizontalBargraph(ui_interface::UI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
+end
+function addVerticalBargraph(ui_interface::UI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
+end
+
+# -- soundfiles
+function addSoundfile(ui_interface::UI, label::String, filename::String, soundfile::Symbol) 
+end
+
+# -- metadata declarations
+function declare(ui_interface::UI, param::Symbol, key::String, val::String) 
+end
+
+# Generated code
+<<includeIntrinsic>>
+<<includeclass>>
+
+# ControlUI to keep buttons
+mutable struct ControlUI <: UI
+    ControlUI(dsp::mydsp) = begin
+        control_ui = new()
+        control_ui.dsp = dsp
+        control_ui.buttons = Vector{Symbol}()
+        control_ui
+	end
+    dsp::mydsp
+    buttons::Vector{Symbol}  # list of buttons (of type :fHslider0)
+end
+
+# -- widget's layouts
+function openTabBox(ui_interface::ControlUI, label::String)
+end
+function openHorizontalBox(ui_interface::ControlUI, label::String)
+end
+function openVerticalBox(ui_interface::ControlUI, label::String)
+end
+function closeBox(ui_interface::ControlUI)
+end
+
+# -- active widgets
+function addButton(ui_interface::ControlUI, label::String, param::Symbol) 
+    push!(ui_interface.buttons, param)
+end
+function addCheckButton(ui_interface::ControlUI, label::String, param::Symbol) 
+    push!(ui_interface.buttons, param)
+end
+function addHorizontalSlider(ui_interface::ControlUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
+end
+function addVerticalSlider(ui_interface::ControlUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
+end
+function addNumEntry(ui_interface::ControlUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
+end
+
+# -- passive widgets
+function addHorizontalBargraph(ui_interface::ControlUI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
+end
+function addVerticalBargraph(ui_interface::ControlUI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
+end
+
+# -- soundfiles
+function addSoundfile(ui_interface::ControlUI, label::String, filename::String, soundfile::Symbol) 
+end
+
+# -- metadata declarations
+function declare(ui_interface::ControlUI, param::Symbol, key::String, val::String) 
+end
+
+function setButtons(ui_interface::ControlUI, state::Bool) 
+    for field in ui_interface.buttons
+        setproperty!(dsp, field, state)
+        println(field)
+    end
+end
+
+# Testing
+using Printf
+
+samplerate = Int32(44100)
+kFrames = Int32(64)
+
+function impulse(chans::Int32, inputs)
+    for i = 1:chans
+        input = @inbounds @view inputs[:, i]
+        input[1] = FAUSTFLOAT(1) 
+     end
+end
+
+function normalize(f::FAUSTFLOAT)
+    if isnan(f) 
+        println("ERROR : isnan")
+        throw(-1)
+    elseif isinf(f)
+        println("ERROR : isinf")
+        throw(-1)
+    end
+    return (abs(f) < FAUSTFLOAT(0.000001) ? FAUSTFLOAT(0.0) : f)
+end
+
+function printHeader(dsp::mydsp, nbsamples::Int32)
+    # Print general informations
+    @printf "number_of_inputs  : %3d\n" getNumInputsmydsp(dsp)
+    @printf "number_of_outputs : %3d\n" getNumOutputsmydsp(dsp)
+    @printf "number_of_frames  : %6d\n" nbsamples
+end
+
+function runDSP(dsp::mydsp, control_ui::ControlUI, nbsamples::Int32)
+    run::Int32 = 0
+    linenum::Int32 = 0
+
+    nins = getNumInputsmydsp(dsp)
+    nouts = getNumOutputsmydsp(dsp)
+
+    inputs = zeros(REAL, kFrames, nins)
+    outputs = zeros(REAL, kFrames, nouts)
+  
+    try 
+        while nbsamples > 0
+
+            if run == 0
+                impulse(nins, inputs)
+                setButtons(control_ui, true);
+            end
+            if run >= 1
+                inputs = zeros(REAL, kFrames, nins)
+                setButtons(control_ui, false);
+            end
+         
+            nFrames = min(kFrames, nbsamples)  
+            computemydsp(dsp, nFrames, inputs, outputs);
+            run += 1
+          
+            for i = 1:nFrames
+                @printf "%6d : " linenum    
+                linenum += 1 
+                for c = 1:nouts
+                    output = @view outputs[i, :]
+                    f::FAUSTFLOAT = normalize(output[c])
+                    @printf " %8.6f" f
+                end
+                println("")
+            end
+          
+            nbsamples -= nFrames
+        end
+    catch
+        @printf "ERROR in file"
+    end 
+end 
+
+main!() = begin
+    nbsamples::Int32 = 60000;
+
+    dsp = mydsp()
+    initmydsp(dsp, samplerate)
+    control_ui::ControlUI = ControlUI(dsp)
+    buildUserInterfacemydsp(dsp, control_ui)
+    printHeader(dsp, nbsamples)
+    runDSP(dsp, control_ui, Int32(nbsamples/4))
+end
+
+main!()
+
+

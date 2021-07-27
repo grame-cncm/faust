@@ -46,6 +46,7 @@ all:
 	$(MAKE) interp1
 	$(MAKE) rust
 	$(MAKE) dlang
+	$(MAKE) julia
 
 help:
 	@echo "-------- FAUST impulse response tests --------"
@@ -67,6 +68,7 @@ help:
 	@echo " 'rust'   : check double output with rust backend and various options"
 	@echo " 'soul'   : check double output with soul backend and various options"
 	@echo " 'dlang'  : check double output with D backend and various options"
+	@echo " 'julia'  : check double output with Julia backend and various options"
 	@echo " 'me'     : check double outputs with the cpp backend in scalar with activated math exceptions"
 	@echo "Warning: you must have at least 10G available on your hard disk to run all the tests"
 	@echo
@@ -272,6 +274,11 @@ soul:
 dlang:
 	$(MAKE) -f Make.dlang outdir=dlang/double          FAUSTOPTIONS="-I dsp -double"
 	$(MAKE) -f Make.dlang outdir=dlang/double/vec      FAUSTOPTIONS="-I dsp -double -vec"
+	
+#########################################################################
+# Julia backend
+julia:
+	$(MAKE) -f Make.julia outdir=julia/double          FAUSTOPTIONS="-I dsp -double"
 
 #########################################################################
 # output directories

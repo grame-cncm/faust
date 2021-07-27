@@ -122,10 +122,10 @@ void JuliaCodeContainer::produceInternal()
     string counter = "count";
     if (fSubContainerType == kInt) {
         tab(n, *fOut);
-        *fOut << "function fill" << fKlassName << "(dsp::" << fKlassName << ", " << counter << "::Int32, table::AbstractVector{Int32})";
+        *fOut << "function fill" << fKlassName << "(dsp::" << fKlassName << ", " << counter << "::Int32, table::Vector{Int32})";
     } else {
         tab(n, *fOut);
-        *fOut << "function fill" << fKlassName << "(dsp::" << fKlassName << ", " << counter << "::Int32, table::AbstractVector{" << ifloat() << "})";
+        *fOut << "function fill" << fKlassName << "(dsp::" << fKlassName << ", " << counter << "::Int32, table::Vector{" << ifloat() << "})";
     }
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
@@ -153,10 +153,13 @@ void JuliaCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "const REAL = " << ifloat();
     tab(n, *fOut);
-    // Always generated
+    
+    // Missing mathematical functions
     *fOut << "pow(x, y) = x ^ y";
     tab(n, *fOut);
     *fOut << "rint(x) = round(x, Base.Rounding.RoundNearest)";
+    tab(n, *fOut);
+    *fOut << "remainder(x, y) = rem(x, y, Base.Rounding.RoundNearest)";
     
     // Sub containers
     generateSubContainers();
@@ -313,7 +316,6 @@ void JuliaCodeContainer::generateCompute(int n)
 
 void JuliaCodeContainer::produceMetadata(int tabs)
 {
-    
 }
 
 // Scalar

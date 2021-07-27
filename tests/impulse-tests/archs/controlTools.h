@@ -333,7 +333,7 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
     GUI::updateAllGuis();
     
     // print audio frames
-    int i;
+    int i = 0;
     try {
         while (nbsamples > 0) {
             if (run == 0) {
@@ -358,7 +358,7 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
            
             run++;
             // Print samples
-            for (int i = 0; i < nFrames; i++) {
+            for (i = 0; i < nFrames; i++) {
                 printf("%6d : ", linenum++);
                 for (int c = 0; c < nouts; c++) {
                     FAUSTFLOAT f = normalize(ochan->buffers()[c][i]);
