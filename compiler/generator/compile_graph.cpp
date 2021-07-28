@@ -31,6 +31,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include "Old2NewInstr.hh"
 #include "compatibility.hh"
 #include "compile.hh"
 #include "compile_graph.hh"
@@ -56,12 +57,12 @@
 #include "simplify.hh"
 #include "splitAddBranches.hh"
 #include "splitCommonSubexpr.hh"
+#include "symbol.hh"
 #include "timing.hh"
 #include "transformDelayToTable.hh"
 #include "transformOld2NewTables.hh"
 #include "transformTime.hh"
 #include "xtended.hh"
-#include "symbol.hh"
 
 using namespace std;
 
@@ -73,8 +74,7 @@ static void      compileInsOuts(Klass* K);
 static bool      isControl(Tree i);
 static bool      isInit(Tree i);
 static set<Tree> ListOutputs(const set<Tree>& I);
-static void      scheduleInstr(const digraph<Tree, multidep>& G, Tree i, vector<Tree>& SCHED, set<Tree>& DONE,
-                               set<Tree>& POSTPONE);
+static void      scheduleInstr(const digraph<Tree, multidep>& G, Tree i, vector<Tree>& SCHED, set<Tree>& DONE, set<Tree>& POSTPONE);
 
 template <typename N, typename A>
 inline vector<N> serialize2(const digraph<N, A>& g, const set<N>& E);
@@ -84,25 +84,30 @@ inline vector<N> serialize3(const digraph<N, A>& g, const set<N>& E);
 
 static string generateNewFilePrefix()
 {
-    Sym u = unique("dotfile");
+    Sym    u = unique("dotfile");
     string s = name(u);
     return s;
 }
 
-    //=============================================================================================================
-    //====================================================== API ==================================================
-    //=============================================================================================================
+//=============================================================================================================
+//====================================================== API ==================================================
+//=============================================================================================================
 
-    /**
-     * @brief Compile a list of signals (Main function)
-     *
-     * @param L
-     */
-    void
-    GraphCompiler::compileMultiSignal(Tree L)
+/**
+ * @brief Compile a list of signals (Main function)
+ *
+ * @param L
+ */
+void GraphCompiler::compileMultiSignal(Tree L)
 {
     L               = prepare(L);  // optimize, share and annotate expressions
     set<Tree> INSTR = ExpressionsListToInstructionsSet(L);
+
+    // experimental
+    Old2NewInstr O2NI;
+    for (Tree i : INSTR) {
+        O2NI.self(i);
+    }
 
     // lookForChains(INSTR);
     InstructionsToClass(INSTR, fClass);
@@ -291,7 +296,7 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
     // cerr << ">>Transformation into Instructions\n" << endl;
     startTiming("Transformation into Instructions");
     std::string fileprefix = generateNewFilePrefix();
-    set<Tree> INSTR1 = splitSignalsToInstr(fConditionProperty, L3d);
+    set<Tree>   INSTR1     = splitSignalsToInstr(fConditionProperty, L3d);
     if (gGlobal->gDebugDiagram) signalGraph(fileprefix + "-phase1-beforeSimplification.dot", INSTR1);
 
     // cerr << ">>delayLineSimplifier\n" << endl;
@@ -482,8 +487,7 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
         for (Tree instr : E.nodes()) {
             int  nature, tblsize;
             Tree id, origin, init, idx, content;
-            if (isSigInstructionTableWrite(instr, id, origin, &nature, &tblsize, init, idx, content))
-                tables.insert(instr);
+            if (isSigInstructionTableWrite(instr, id, origin, &nature, &tblsize, init, idx, content)) tables.insert(instr);
         }
         vector<Tree> v = serialize2(cut(E, 1), tables);
         for (Tree i : v) {
@@ -994,11 +998,11 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
 {
     set<Tree> TID;                     // Treated IDs so far
     set<Tree> C = collectTableIDs(I);  // C = collect the IDS of all the table used in set of instructions I
-    //for (Tree s : C) std::cerr << "TableID : " << *s << std::endl;
-    set<Tree> R = C;                   // R = IDs Remaining to be treated
+    // for (Tree s : C) std::cerr << "TableID : " << *s << std::endl;
+    set<Tree> R = C;  // R = IDs Remaining to be treated
     while (!R.empty()) {
-        set<Tree> N;                  // Set of unseen IDs
-        for (Tree id : R) {           // for each table ID remaining to treat
+        set<Tree> N;         // Set of unseen IDs
+        for (Tree id : R) {  // for each table ID remaining to treat
 
             fTableInitGraph.add(id);  // add it to the table init graph
             TID.insert(id);           // remember it has been treated
@@ -1031,7 +1035,7 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
         R = N;  // process unseen IDs
     }
     // Here fTableInitGraph contains the graph of all table initialisations
-    //if (gGlobal->gDebugDiagram) graph2dot("init-graph.dot", fTableInitGraph);
+    // if (gGlobal->gDebugDiagram) graph2dot("init-graph.dot", fTableInitGraph);
 
     // we can now compute the initialization order of the tables
     vector<Tree> S = serialize(fTableInitGraph);
@@ -1053,7 +1057,7 @@ void GraphCompiler::tableDependenciesGraph(const set<Tree>& I)
             }
             // Hack !!!
             Klass* SavedClass = fClass;
-            fClass = k;
+            fClass            = k;
             fClass->setParentKlass(SavedClass);
             std::cerr << "fullname :" << fClass->getFullClassName() << std::endl;
             SchedulingToMethod(s, k);
@@ -1079,7 +1083,7 @@ void GraphCompiler::compileSingleInstruction(Tree instr, Klass* K)
     Tree id, tid, origin, content, init, initval, idx;
     int  i, nature, tblsize, dmin;
 
-    //std::cerr << "GraphCompiler::compileSingleInstruction " << ppsig(instr) << " in klass " << K << std::endl;
+    // std::cerr << "GraphCompiler::compileSingleInstruction " << ppsig(instr) << " in klass " << K << std::endl;
 
     if (isSigInstructionControlWrite(instr, id, origin, &nature, content)) {
         string ctype = nature2ctype(nature);
@@ -1260,8 +1264,7 @@ static set<Tree> ListOutputs(const set<Tree>& I)
  * @param DONE
  * @param POSTPONE
  */
-static void scheduleInstr(const digraph<Tree, multidep>& G, Tree i, vector<Tree>& SCHED, set<Tree>& DONE,
-                          set<Tree>& POSTPONE)
+static void scheduleInstr(const digraph<Tree, multidep>& G, Tree i, vector<Tree>& SCHED, set<Tree>& DONE, set<Tree>& POSTPONE)
 {
     if (DONE.find(i) == DONE.end()) {
         // mark i as done
@@ -1797,8 +1800,7 @@ string GraphCompiler::generateStaticTable(Tree /*sig*/, Tree tsize, Tree content
     if (gGlobal->gMemoryManager) {
         fClass->addDeclCode(subst("static $0* \t$1;", ctype, vname));
         fClass->addStaticFields(subst("$0* \t$1::$2 = 0;", ctype, fClass->getClassName(), vname));
-        fClass->addStaticInitCode(
-            subst("$0 = static_cast<$1*>(fManager->allocate(sizeof($1) * $2));", vname, ctype, T(size)));
+        fClass->addStaticInitCode(subst("$0 = static_cast<$1*>(fManager->allocate(sizeof($1) * $2));", vname, ctype, T(size)));
         fClass->addStaticDestroyCode(subst("fManager->destroy($0);", vname));
     } else {
         fClass->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
