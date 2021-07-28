@@ -19,7 +19,7 @@ set (SRCDIR ${ROOT}/compiler)
 set (BINDIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set (LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 
 
 #######################################
@@ -51,13 +51,15 @@ endif()
 
 ####################################
 # source and headers files
-file (GLOB SRC ${SRCDIR}/*.cpp ${SRCDIR}/*/*.cpp ${SRCDIR}/draw/*/*.cpp ${SRCDIR}/generator/fir/*.cpp)
-file (GLOB HH  ${SRCDIR}/*.hh  ${SRCDIR}/*/*.hh  ${SRCDIR}/generator/fir/*.hh)
+file (GLOB SRC ${SRCDIR}/*.cpp ${SRCDIR}/*/*.cpp ${SRCDIR}/nlpl/*/*.cpp ${SRCDIR}/draw/*/*.cpp ${SRCDIR}/generator/fir/*.cpp)
+file (GLOB HH  ${SRCDIR}/*.hh  ${SRCDIR}/*/*.hh  ${SRCDIR}/nlpl/*/*.hh  ${SRCDIR}/generator/fir/*.hh)
 
 ####################################
 # include directories
 set (FAUST_INC ${SRCDIR}
-	${SRCDIR}/boxes ${SRCDIR}/documentator ${SRCDIR}/dglib ${SRCDIR}/draw
+	${SRCDIR}/boxes ${SRCDIR}/documentator ${SRCDIR}/dglib 
+	${SRCDIR}/nlpl/Expr ${SRCDIR}/nlpl/Instr ${SRCDIR}/nlpl/Memory 
+	${SRCDIR}/draw
 	${SRCDIR}/errors ${SRCDIR}/evaluate ${SRCDIR}/extended
 	${SRCDIR}/generator
 	${SRCDIR}/generator/fir
