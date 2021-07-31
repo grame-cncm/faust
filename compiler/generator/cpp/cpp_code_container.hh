@@ -38,7 +38,7 @@ using namespace std;
 
 class CPPCodeContainer : public virtual CodeContainer {
    protected:
-    CPPInstVisitor fCodeProducer;
+    CPPInstVisitor* fCodeProducer;
     std::ostream*  fOut;
     string         fSuperKlassName;
 
@@ -46,11 +46,13 @@ class CPPCodeContainer : public virtual CodeContainer {
     void produceInit(int tabs);
 
    public:
-    CPPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-        : fCodeProducer(out), fOut(out), fSuperKlassName(super)
+    CPPCodeContainer()
+    {}
+    CPPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out) : fSuperKlassName(super)
     {
         initialize(numInputs, numOutputs);
         fKlassName = name;
+        fOut = out;
 
         // For mathematical functions
         if (gGlobal->gFastMath) {
@@ -62,9 +64,14 @@ class CPPCodeContainer : public virtual CodeContainer {
             // For int64_t type
             addIncludeFile("<cstdint>");
         }
+    
+        fCodeProducer = new CPPInstVisitor(out);
     }
 
-    virtual ~CPPCodeContainer() {}
+    virtual ~CPPCodeContainer()
+    {
+        // fCodeProducer is a 'Garbageable'
+    }
 
     virtual void produceClass();
     virtual void generateCompute(int tab) = 0;
@@ -99,6 +106,8 @@ class CPPCodeContainer : public virtual CodeContainer {
 class CPPScalarCodeContainer : public CPPCodeContainer {
    protected:
    public:
+    CPPScalarCodeContainer()
+    {}
     CPPScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out,
                            int sub_container_type);
     virtual ~CPPScalarCodeContainer()
@@ -107,18 +116,66 @@ class CPPScalarCodeContainer : public CPPCodeContainer {
     void generateCompute(int tab);
 };
 
-class CPPScalarOneSampleCodeContainer : public CPPScalarCodeContainer {
+// Special version for -os0 generation mode
+class CPPScalarOneSampleCodeContainer1 : public CPPScalarCodeContainer {
    protected:
     virtual void produceClass();
    public:
-    CPPScalarOneSampleCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out,
+    CPPScalarOneSampleCodeContainer1(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out,
                                     int sub_container_type)
-    : CPPScalarCodeContainer(name, super, numInputs, numOutputs, out, sub_container_type)
-    {}
-    virtual ~CPPScalarOneSampleCodeContainer()
+    {
+        initialize(numInputs, numOutputs);
+        fKlassName = name;
+        fOut = out;
+        
+            // For mathematical functions
+        if (gGlobal->gFastMath) {
+            addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
+                           : ("\"" + gGlobal->gFastMathLib + "\""));
+        } else {
+            addIncludeFile("<cmath>");
+            addIncludeFile("<algorithm>");
+                // For int64_t type
+            addIncludeFile("<cstdint>");
+        }
+        
+        fCodeProducer = new CPPInstVisitor(out);
+    }
+    virtual ~CPPScalarOneSampleCodeContainer1()
     {}
     
     void generateCompute(int tab);
+};
+
+// Special version for -os1 generation mode
+class CPPScalarOneSampleCodeContainer2 : public CPPScalarCodeContainer {
+    protected:
+        virtual void produceClass();
+    public:
+        CPPScalarOneSampleCodeContainer2(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out,
+                                         int sub_container_type)
+        {
+            initialize(numInputs, numOutputs);
+            fKlassName = name;
+            fOut = out;
+            
+            // For mathematical functions
+            if (gGlobal->gFastMath) {
+                addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
+                               : ("\"" + gGlobal->gFastMathLib + "\""));
+            } else {
+                addIncludeFile("<cmath>");
+                addIncludeFile("<algorithm>");
+                // For int64_t type
+                addIncludeFile("<cstdint>");
+            }
+        
+            fCodeProducer = new CPPInstVisitor1(out);
+        }
+        virtual ~CPPScalarOneSampleCodeContainer2()
+        {}
+        
+        void generateCompute(int tab);
 };
 
 class CPPVectorCodeContainer : public VectorCodeContainer, public CPPCodeContainer {

@@ -54,10 +54,12 @@ help:
 	@echo " 'all' (default): call all the targets below"
 	@echo
 	@echo " 'cpp'    : check float and double outputs with the cpp backend in scalar, vec, openmp and sched modes"
-	@echo " 'cpp1'   : check double outputs with the cpp backend in scalar one-sample mode"
+	@echo " 'cpp1'   : check double outputs with the cpp backend in scalar one-sample mode (-os0)"
+	@echo " 'cpp2'   : check double outputs with the cpp backend in scalar one-sample mode (-os1)"
 	@echo " 'ocpp'   : check double outputs with the ocpp backend in scalar mode"
 	@echo " 'c'      : check float and double outputs with the c backend in scalar, vec, openmp and sched modes"
-	@echo " 'c1'     : check float and double outputs with the c backend in scalar one-sample mode"
+	@echo " 'c1'     : check float and double outputs with the c backend in scalar one-sample mode (-os0)"
+	@echo " 'c2'     : check float and double outputs with the c backend in scalar one-sample mode (-os1)"
 	@echo " 'mute'   : check double output with mute"
 	@echo " 'wasm'   : check double output with wasm backend and various options"
 	@echo " 'wast'   : check double output with wast backend and various options"
@@ -118,7 +120,10 @@ cpp:
 	$(MAKE) -f Make.gcc outdir=cpp/float/omp        lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -single -omp"
 
 cpp1:
-	$(MAKE) -f Make.gcc outdir=cpp1/double         lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os"
+	$(MAKE) -f Make.gcc outdir=cpp1/double         lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os0"
+
+cpp2:
+	$(MAKE) -f Make.gcc outdir=cpp2/double         lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os1"
 
 ocpp:
 	$(MAKE) -f Make.gcc outdir=ocpp/double         lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
@@ -150,9 +155,14 @@ c:
 	$(MAKE) -f Make.gcc outdir=c/float/omp          lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -single -omp"
 
 c1:
-	$(MAKE) -f Make.gcc outdir=c1/double           lang=c arch=impulsearch2bis.cpp FAUSTOPTIONS="-I dsp -double -os"
-	$(MAKE) -f Make.gcc outdir=c1/double/dlt0      lang=c arch=impulsearch2bis.cpp FAUSTOPTIONS="-I dsp -double -os -dlt 0"
-	$(MAKE) -f Make.gcc outdir=c1/double/dlt256    lang=c arch=impulsearch2bis.cpp FAUSTOPTIONS="-I dsp -double -os -dlt 256"
+	$(MAKE) -f Make.gcc outdir=c1/double           lang=c arch=impulsearch2bis.cpp FAUSTOPTIONS="-I dsp -double -os0"
+	$(MAKE) -f Make.gcc outdir=c1/double/dlt0      lang=c arch=impulsearch2bis.cpp FAUSTOPTIONS="-I dsp -double -os0 -dlt 0"
+	$(MAKE) -f Make.gcc outdir=c1/double/dlt256    lang=c arch=impulsearch2bis.cpp FAUSTOPTIONS="-I dsp -double -os0 -dlt 256"
+
+c2:
+	$(MAKE) -f Make.gcc outdir=c2/double           lang=c arch=impulsearch2ter.cpp FAUSTOPTIONS="-I dsp -double -os1"
+	$(MAKE) -f Make.gcc outdir=c2/double/dlt0      lang=c arch=impulsearch2ter.cpp FAUSTOPTIONS="-I dsp -double -os1 -dlt 0"
+	$(MAKE) -f Make.gcc outdir=c2/double/dlt256    lang=c arch=impulsearch2ter.cpp FAUSTOPTIONS="-I dsp -double -os1 -dlt 256"
 
 quad:
 	$(MAKE) -f Make.gcc outdir=cpp/quad         lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -quad"

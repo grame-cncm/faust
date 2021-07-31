@@ -26,6 +26,7 @@ using namespace std;
 
 #include "text_instructions.hh"
 #include "type_manager.hh"
+#include "struct_manager.hh"
 
 class CPPInstVisitor : public TextInstVisitor {
    private:
@@ -453,6 +454,91 @@ class CPPInstVisitor : public TextInstVisitor {
     }
 
     static void cleanup() { gFunctionSymbolTable.clear(); }
+};
+
+// Used for -os mode (TODO : does not work with 'soundfile')
+class CPPInstVisitor1 : public CPPInstVisitor {
+    
+    private:
+        
+        StructInstVisitor fStructVisitor;
+        bool fZoneAddress;      // If a zone address is currently written
+        bool fIndexedAddress;   // If an indexed address is currently written
+        
+    public:
+        
+        CPPInstVisitor1(std::ostream* out, int tab = 0)
+        :CPPInstVisitor(out, tab), fZoneAddress(false), fIndexedAddress(false)
+        {}
+        
+        virtual void visit(AddSoundfileInst* inst)
+        {
+            // Not supported for now
+            throw faustexception("ERROR : AddSoundfileInst not supported for -os mode\n");
+        }
+        
+        virtual void visit(DeclareVarInst* inst)
+        {
+            Address::AccessType access = inst->fAddress->getAccess();
+            string name = inst->fAddress->getName();
+            bool is_control = startWith(name, "fButton")
+                || startWith(name, "fCheckbox")
+                || startWith(name, "fVslider")
+                || startWith(name, "fHslider")
+                || startWith(name, "fEntry")
+                || startWith(name, "fVbargraph")
+                || startWith(name, "fHbargraph")
+                || name == "fSampleRate";
+            if (((access & Address::kStruct) || (access & Address::kStaticStruct)) && !is_control) {
+                fStructVisitor.visit(inst);
+            } else {
+                CPPInstVisitor::visit(inst);
+            }
+        }
+        
+        virtual void visit(NamedAddress* named)
+        {
+            Typed::VarType type;
+            if (fStructVisitor.hasField(named->fName, type)) {
+                    // Zone address zone[id][index] are rewritten as zone[id+index]
+                fZoneAddress = true;
+                if (type == Typed::kInt32) {
+                    *fOut << "iZone[" << fStructVisitor.getFieldIntOffset(named->fName)/sizeof(int);
+                } else {
+                    *fOut << "fZone[" << fStructVisitor.getFieldRealOffset(named->fName)/ifloatsize();
+                }
+                if (!fIndexedAddress) { *fOut << "]"; }
+            } else {
+                fZoneAddress = false;
+                *fOut << named->fName;
+            }
+        }
+        
+        /*
+         Indexed address can actually be values in an array or fields in a struct type
+         */
+        virtual void visit(IndexedAddress* indexed)
+        {
+            fIndexedAddress = true;
+            indexed->fAddress->accept(this);
+            DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
+            if (struct_type) {
+                Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
+                *fOut << "->" << struct_type->fType->getName(field_index->fNum);
+            } else {
+                    // Zone address zone[id][index] are rewritten as zone[id+index]
+                if (fZoneAddress) { *fOut << "+"; } else { *fOut << "["; }
+                fIndexedAddress = false;
+                fZoneAddress = false;
+                indexed->fIndex->accept(this);
+                *fOut << "]";
+            }
+        }
+        
+        // Size is expressed in unit of the actual type (so 'int' or 'float/double')
+        int getIntZoneSize() { return fStructVisitor.getStructIntSize()/sizeof(int); }
+        int getRealZoneSize() { return fStructVisitor.getStructRealSize()/ifloatsize(); }
+    
 };
 
 class CPPVecInstVisitor : public CPPInstVisitor {

@@ -476,9 +476,9 @@ class CInstVisitor1 : public CInstVisitor {
                 // Zone address zone[id][index] are rewritten as zone[id+index]
                 fZoneAddress = true;
                 if (type == Typed::kInt32) {
-                    *fOut << "iZone" << "[" << fStructVisitor.getFieldIntOffset(named->fName)/sizeof(int);
+                    *fOut << "iZone[" << fStructVisitor.getFieldIntOffset(named->fName)/sizeof(int);
                 } else {
-                    *fOut << "fZone" << "[" << fStructVisitor.getFieldRealOffset(named->fName)/ifloatsize();
+                    *fOut << "fZone[" << fStructVisitor.getFieldRealOffset(named->fName)/ifloatsize();
                 }
                 if (!fIndexedAddress) { *fOut << "]"; }
             } else {

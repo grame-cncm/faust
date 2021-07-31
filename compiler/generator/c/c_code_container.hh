@@ -141,7 +141,7 @@ class CScalarCodeContainer : public CCodeContainer {
     void generateComputeAux(int tab);
 };
 
-// Special version for -os generation mode
+// Special version for -os0 generation mode
 class CScalarOneSampleCodeContainer1 : public CScalarCodeContainer {
    protected:
     virtual void produceClass();
@@ -166,6 +166,8 @@ class CScalarOneSampleCodeContainer1 : public CScalarCodeContainer {
         
         // For malloc/free
         addIncludeFile("<stdlib.h>");
+        // For int64_t type
+        addIncludeFile("<stdint.h>");
         
         fSubContainerType = sub_container_type;
         fCodeProducer = new CInstVisitor(out, name);
@@ -177,7 +179,7 @@ class CScalarOneSampleCodeContainer1 : public CScalarCodeContainer {
     void generateComputeAux(int tab);
 };
 
-// Special version for -os generation mode with iZone and fZone
+// Special version for -os1 generation mode with iZone and fZone
 class CScalarOneSampleCodeContainer2 : public CScalarCodeContainer {
     protected:
         virtual void produceClass();
@@ -202,6 +204,8 @@ class CScalarOneSampleCodeContainer2 : public CScalarCodeContainer {
             
             // For malloc/free
             addIncludeFile("<stdlib.h>");
+            // For int64_t type
+            addIncludeFile("<stdint.h>");
             
             fSubContainerType = sub_container_type;
             fCodeProducer = new CInstVisitor1(out, name);
