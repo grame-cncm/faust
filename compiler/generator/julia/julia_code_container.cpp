@@ -149,6 +149,19 @@ void JuliaCodeContainer::produceClass()
 {
     int n = 0;
     
+    // Print header
+    *fOut << "#=\n"
+          << "Code generated with Faust version " << FAUSTVERSION << endl;
+    *fOut << "Compilation options: ";
+    stringstream stream;
+    gGlobal->printCompilationOptions(stream);
+    *fOut << stream.str();
+    tab(n, *fOut);
+    *fOut << "=#";
+    tab(n, *fOut);
+    
+    // Dependencies and REAL alias
+    tab(n, *fOut);
     *fOut << "using StaticArrays";
     tab(n, *fOut);
     *fOut << "const REAL = " << ifloat();
@@ -161,7 +174,7 @@ void JuliaCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "remainder(x, y) = rem(x, y, Base.Rounding.RoundNearest)";
     
-    // Sub containers
+    // Generate gub containers
     generateSubContainers();
 
     // Functions

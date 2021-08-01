@@ -213,7 +213,7 @@ void LLVMCodeContainer::produceInternal()
 
 dsp_factory_base* LLVMCodeContainer::produceFactory()
 {
-    // Sub containers
+    // Generate gub containers
     generateSubContainers();
 
     // Generate DSP structure

@@ -171,7 +171,7 @@ void CSharpCodeContainer::produceClass()
     fCodeProducer.Tab(n + 1);
     generateGlobalDeclarations(&fCodeProducer);
 
-    // Sub containers
+    // Generate gub containers
     generateSubContainers();
 
     // Fields

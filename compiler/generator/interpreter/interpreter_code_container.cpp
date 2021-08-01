@@ -144,7 +144,7 @@ dsp_factory_base* InterpreterCodeContainer<REAL>::produceFactory()
     pushGlobalDeclare(InstBuilder::genDecGlobalVar("defaultsound", InstBuilder::genBasicTyped(Typed::kSound_ptr),
                                                    InstBuilder::genTypedZero(Typed::kSound_ptr)));
 
-    // Sub containers
+    // Sub containers are merged
     mergeSubContainers();
 
     generateGlobalDeclarations(gGlobal->gInterpreterVisitor);

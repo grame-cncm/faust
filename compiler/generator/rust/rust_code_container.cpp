@@ -165,7 +165,7 @@ void RustCodeContainer::produceClass()
 {
     int n = 0;
 
-    // Sub containers
+    // Generate gub containers
     generateSubContainers();
 
     // Functions

@@ -156,7 +156,7 @@ void WASTCodeContainer::produceClass()
     // Global declarations (mathematical functions, global variables...)
     gGlobal->gWASTVisitor->Tab(n + 1);
 
-    // Sub containers : before functions generation
+    // Sub containers are merged in the main module, before functions generation
     mergeSubContainers();
 
     // All mathematical functions (got from math library as variables) have to be first

@@ -30,11 +30,12 @@
 using namespace std;
 
 /*
-  C++ backend and module description:
-  - in -os mode:
-  - subcontainers are merged
-  - CPPScalarOneSampleCodeContainer2 separates part of the DSP state in iZone and fZone (possibly to be allocated elsewhere)
-  */
+ C++ backend and module description:
+    - in -os mode:
+        - subcontainers are merged in the main class
+        - CPPScalarOneSampleCodeContainer1 (used in -os0) separates the DSP control state in iControl and fControl (possibly to be allocated elsewhere)
+        - CPPScalarOneSampleCodeContainer2 (used in -os1) separates the DSP control state in iControl and fControl and the DSP state in iZone and fZone (possibly to be allocated elsewhere)
+ */
 
 map<string, bool> CPPInstVisitor::gFunctionSymbolTable;
 

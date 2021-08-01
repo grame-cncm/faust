@@ -255,7 +255,7 @@ void DLangCodeContainer::produceClass()
 
     generateImports();
 
-    // Sub containers
+    // Generate gub containers
     generateSubContainers();
 
     *fOut << "alias FAUSTCLASS = " << fKlassName << ";" << endl;

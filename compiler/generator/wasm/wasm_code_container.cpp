@@ -220,7 +220,7 @@ void WASMCodeContainer::produceClass()
     // Module definition
     gGlobal->gWASMVisitor->generateModuleHeader();
 
-    // Sub containers : before functions generation
+    // Sub containers are merged in the main module, before functions generation
     mergeSubContainers();
 
     // Mathematical functions and global variables are handled in a separated visitor that creates functions types and

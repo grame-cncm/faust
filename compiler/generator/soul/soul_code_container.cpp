@@ -293,7 +293,7 @@ void SOULCodeContainer::produceClass()
         tab(n + 1, *fOut);
     }
   
-    // Sub containers
+    // Generate gub containers
     generateSubContainers();
 
     // inputs/outputs
