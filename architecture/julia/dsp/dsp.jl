@@ -25,6 +25,7 @@ end
 
 function getNumInputs(dsp::dsp)
 end
+
 function getNumOutputs(dsp::dsp)
 end
 

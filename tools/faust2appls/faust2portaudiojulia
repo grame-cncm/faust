@@ -23,8 +23,6 @@ do
         usage faust2portaudiojulia "[options] [Faust options] <file.dsp>"
         require PortAudio
         echo "Compiles Faust programs to PortAudio and Julia binary"
-        option
-        option -source "only generates the source project."
         option "Faust options"
     	exit
     fi

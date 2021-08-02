@@ -4,7 +4,7 @@
 
 [Julia](https://julialang.org) is a high-level, high-performance, dynamic programming language. While it is a general-purpose language and can be used to write any application, many of its features are well suited for numerical analysis and computational science.
 
-A Julia backend allows to generate Julia code from the DSP program as a data structure (subtype of a `dsp` type) and a set of methods using this type. Several architecture files have been developed to use  the resulting Julia code:
+A [Julia backend](https://github.com/grame-cncm/faust/tree/master-dev/compiler/generator/julia) allows to generate Julia code from the DSP program as a data structure (subtype of a `dsp` type) and a set of methods using this type. Several architecture files have been developed to use the resulting Julia code:
 
 - `gui/UI.jl`: contains the base UI type definition and associated methods
 - `gui/MapUI.jl`: establishes a mapping beween UI items and their paths, and offers a `setParamValue/getParamValue `API to set and get their values. It uses an helper PathBuilder type to create complete pathnames to the leaves in the UI hierarchy. Note that the item path encodes the UI hierarchy in the form of a /group1/group2/.../label string and is the way to distinguish control that may have the same label, but different localisation in the UI tree. The `setParamValue/getParamValue` API takes either labels or paths as the way to describe the control, but using path is the safer way to use it.

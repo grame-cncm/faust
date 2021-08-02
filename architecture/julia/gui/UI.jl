@@ -14,8 +14,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # ************************************************************************
 
-include("/usr/local/share/faust/julia/dsp/dsp.jl")
-
 # Architecture
 abstract type UI end
 
