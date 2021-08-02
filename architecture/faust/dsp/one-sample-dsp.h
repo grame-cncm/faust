@@ -160,10 +160,12 @@ class one_sample_dsp_real : public dsp {
         FAUSTFLOAT* fOutputs;
         
         int* iControl;
-        REAL* fControl;
+        FAUSTFLOAT* fControl;
     
         int* iZone;
         REAL* fZone;
+    
+        bool fDelete;
     
         void checkAlloc()
         {
@@ -171,8 +173,10 @@ class one_sample_dsp_real : public dsp {
             if (!fInputs) {
                 fInputs = new FAUSTFLOAT[getNumInputs() * 4096];
                 fOutputs = new FAUSTFLOAT[getNumOutputs() * 4096];
-                iControl =  new int[getNumIntControls()];
-                fControl =  new FAUSTFLOAT[getNumRealControls()];
+            }
+            if (!iControl) {
+                iControl = new int[getNumIntControls()];
+                fControl = new FAUSTFLOAT[getNumRealControls()];
                 iZone = new int[getiZoneSize()];
                 fZone = new REAL[getfZoneSize()];
             }
@@ -180,17 +184,28 @@ class one_sample_dsp_real : public dsp {
     
     public:
     
-        one_sample_dsp_real():fInputs(nullptr), fOutputs(nullptr), iControl(nullptr), fControl(nullptr), iZone(nullptr), fZone(nullptr)
+        one_sample_dsp_real()
+        :fInputs(nullptr), fOutputs(nullptr),
+        iControl(nullptr), fControl(nullptr),
+        iZone(nullptr), fZone(nullptr), fDelete(true)
+        {}
+    
+        one_sample_dsp_real(int* icontrol, FAUSTFLOAT* fcontrol, int* izone, REAL* fzone)
+        :fInputs(nullptr), fOutputs(nullptr),
+        iControl(icontrol), fControl(fcontrol),
+        iZone(izone), fZone(fzone), fDelete(false)
         {}
         
         virtual ~one_sample_dsp_real()
         {
             delete [] fInputs;
             delete [] fOutputs;
-            delete [] iControl;
-            delete [] fControl;
-            delete [] iZone;
-            delete [] fZone;
+            if (fDelete) {
+                delete [] iControl;
+                delete [] fControl;
+                delete [] iZone;
+                delete [] fZone;
+            }
         }
     
         virtual void init(int sample_rate)
