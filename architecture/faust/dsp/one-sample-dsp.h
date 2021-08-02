@@ -115,10 +115,8 @@ class one_sample_dsp : public dsp {
         // The standard 'compute' expressed using the control/compute (one sample) model
         virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
         {
-            checkAlloc();
-            
             // Control
-            control(iControl, fControl);
+            control();
             
             // Compute
             int num_inputs = getNumInputs();
@@ -289,7 +287,10 @@ class one_sample_dsp_real : public dsp {
         virtual void control(int* iControl, FAUSTFLOAT* fControl, int* iZone, REAL* fZone) = 0;
         
         // Alternative external version
-        virtual void control() { control(iControl, fControl, iZone, fZone); }
+        virtual void control()
+        {
+            control(iControl, fControl, iZone, fZone);
+        }
     
         /**
          * Compute one sample.
@@ -311,7 +312,7 @@ class one_sample_dsp_real : public dsp {
             assert(fInputs);
             
             // Control
-            control(iControl, fControl, iZone, fZone);
+            control();
             
             // Compute
             int num_inputs = getNumInputs();

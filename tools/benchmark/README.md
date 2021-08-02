@@ -37,9 +37,9 @@ Here are the available options:
 - `-opt generic to activate the best compilation options for a generic CPU`
 - `-llvm to compile using the LLVM backend, otherwise the C++ backend is used`
 - `-test to compile a test program which will bench the DSP and render it`
-- `-us <factor> to upsample the DSP by a factor`
-- `-ds <factor> to downsample the DSP by a factor`
-- `-filter <filter> for upsampling or downsampling [0..4]`
+- `-us <factor> to upsample the DSP by a factor (can be 2, 3, 4, 8, 16, 32)`
+- `-ds <factor> to downsample the DSP by a factor (can be 2, 3, 4, 8, 16, 32)`
+- `-filter <filter> for upsampling or downsampling [0..4], 0 means no filtering`
 
 
 A set of header and object code files will be generated, and will have to be added in the final project. The header file typically contains the `<DSPName><CPU>` class and a `create<DSPName><CPU>` function needed to create a DSP instance (for instance compiling a `noise.dsp` DSP for a generic CPU will generate the `createnoisegeneric()` creation function). The `-opt native|generic` option runs the **faustbench-llvm** to discover the best possible compilation options and use them in the C++ or LLVM compilation step.
@@ -156,9 +156,9 @@ Here are the available options:
  - `-source to keep the intermediate source folder and exit`
  - `-double to compile DSP in double and set FAUSTFLOAT to double`
  - `-opt <level (0..3|-1)>' to pass an optimisation level to C++ (-1 means 'maximal level =-Ofast for now' but may change in the future)`
- - `-us <factor> to upsample the DSP by a factor`
- - `-ds <factor> to downsample the DSP by a factor`
- - `-filter <filter> for upsampling or downsampling [0..4]`
+ - `-us <factor> to upsample the DSP by a factor (can be 2, 3, 4, 8, 16, 32)`
+ - `-ds <factor> to downsample the DSP by a factor (can be 2, 3, 4, 8, 16, 32)`
+ - `-filter <filter> for upsampling or downsampling [0..4], 0 means no filtering`
 
 Use `export CXX=/path/to/compiler` before running faustbench to change the C++ compiler, and `export CXXFLAGS=options` to change the C++ compiler options. Additional Faust compiler options can be given.
 
@@ -183,9 +183,9 @@ Here are the available options:
 - `-run <num> to execute each test <num> times`
 - `-bs <frames> to set the buffer-size in frames`
 - `-opt <level>' to pass an optimisation level to LLVM, between 0 and 4 (-1 means 'maximal level' if range changes in the future)`
-- `-us <factor> to upsample the DSP by a factor`
-- `-ds <factor> to downsample the DSP by a factor`
-- `-filter <filter> for upsampling or downsampling [0..4]`
+- `-us <factor> to upsample the DSP by a factor (can be 2, 3, 4, 8, 16, 32)`
+- `-ds <factor> to downsample the DSP by a factor (can be 2, 3, 4, 8, 16, 32)`
+- `-filter <filter> for upsampling or downsampling [0..4], 0 means no filtering`
 
 Using `-single` and additional Faust options (like `-vec -vs 8...`) allows to run a single test with specific options.
 
