@@ -645,6 +645,14 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
         *fOut << "}" << endl;
     }
     
+    // Constructor
+    tab(n + 1, *fOut);
+    *fOut << fKlassName << "() {}";
+    tab(n + 1, *fOut);
+    *fOut << fKlassName << "(int* icontrol, FAUSTFLOAT* fcontrol)";
+    *fOut << ":one_sample_dsp(icontrol, fcontrol) {}";
+    tab(n + 1, *fOut);
+    
     tab(n + 1, *fOut);
     // No class name for main class
     produceInfoFunctions(n + 1, "", "dsp", true, true, fCodeProducer);  // Inits
@@ -903,6 +911,14 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
         tab(n + 1, *fOut);
         *fOut << "}" << endl;
     }
+    
+    // Constructor
+    tab(n + 1, *fOut);
+    *fOut << fKlassName << "() {}";
+    tab(n + 1, *fOut);
+    *fOut << fKlassName << "(int* icontrol, FAUSTFLOAT* fcontrol, int* izone, " << ifloat() << "* fzone)";
+    *fOut << ":one_sample_dsp_real(icontrol, fcontrol, izone, fzone) {}";
+    tab(n + 1, *fOut);
     
     tab(n + 1, *fOut);
     // No class name for main class

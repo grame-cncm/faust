@@ -38,29 +38,39 @@ class one_sample_dsp : public dsp {
         int* iControl;
         FAUSTFLOAT* fControl;
     
+        bool fDelete;
+    
         void checkAlloc()
         {
             // Allocated once (TODO : make this RT safe)
             if (!fInputs) {
                 fInputs = new FAUSTFLOAT[getNumInputs() * 4096];
                 fOutputs = new FAUSTFLOAT[getNumOutputs() * 4096];
-                iControl =  new int[getNumIntControls()];
-                fControl =  new FAUSTFLOAT[getNumRealControls()];
-          
+            }
+            if (!iControl) {
+                iControl = new int[getNumIntControls()];
+                fControl = new FAUSTFLOAT[getNumRealControls()];
             }
         }
     
     public:
     
-        one_sample_dsp():fInputs(nullptr), fOutputs(nullptr), iControl(nullptr), fControl(nullptr)
+        one_sample_dsp():fInputs(nullptr), fOutputs(nullptr), iControl(nullptr), fControl(nullptr), fDelete(true)
         {}
-    
+        
+        one_sample_dsp(int* icontrol, FAUSTFLOAT* fcontrol)
+        :fInputs(nullptr), fOutputs(nullptr),
+        iControl(icontrol), fControl(fcontrol), fDelete(false)
+        {}
+        
         virtual ~one_sample_dsp()
         {
             delete [] fInputs;
             delete [] fOutputs;
-            delete [] iControl;
-            delete [] fControl;
+            if (fDelete) {
+                delete [] iControl;
+                delete [] fControl;
+            }
         }
     
         /**
