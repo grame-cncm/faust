@@ -43,11 +43,18 @@ PortAudioStream(1, 2) do stream
     println("getNumOutputs ", getNumOutputs(dsp))
     init(dsp, samplerate)
     buildUserInterface(dsp, map_ui)
+
     # Print all paths
     println(getMap(map_ui))
-    # Possibly change control values
-    #setParamValue(map_ui, "/Oscillator/freq", 500.0f0)
-    #setParamValue(map_ui, "/Oscillator/volume", -10.0f0)
+    #= Possibly change control values
+    - using simple labels (end of path):
+    setParamValue(map_ui, "freq", 500.0f0)
+    setParamValue(map_ui, "/volume", -10.0f0)
+    - or using complete path:
+    setParamValue(map_ui, "/Oscillator/freq", 500.0f0)
+    setParamValue(map_ui, "/Oscillator/volume", -10.0f0)
+    =#
+    
     outputs = zeros(REAL, block_size, getNumOutputs(dsp))
     while true
         inputs = convert(Matrix{REAL}, read(stream, block_size))

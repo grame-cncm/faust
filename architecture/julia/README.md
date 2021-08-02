@@ -14,7 +14,7 @@ A [Julia backend](https://github.com/grame-cncm/faust/tree/master-dev/compiler/g
 
 ## faust2portaudiojulia
 
-The **faust2portaudiojulia** tool transforms a Faust DSP program into a fully working Julia source file which uses the [PortAudio library](http://portaudio.com) for real-time audio rendering, and which can be controlled with OSC messages. 
+The **faust2portaudiojulia** tool transforms a Faust DSP program into a fully working Julia source file which uses the [PortAudio library](http://portaudio.com) for real-time audio rendering, and which can be controlled with OSC messages (TODO). 
 
 **faust2portaudiojulia** uses the `MapUI.jl` and `OSCUI.jl` architecture files. 
 

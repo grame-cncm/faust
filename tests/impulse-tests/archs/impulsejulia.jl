@@ -17,6 +17,7 @@
 
 const FAUSTFLOAT = Float64
 
+include("/usr/local/share/faust/julia/dsp/dsp.jl")
 include("/usr/local/share/faust/julia/gui/UI.jl")
 
 # Generated code

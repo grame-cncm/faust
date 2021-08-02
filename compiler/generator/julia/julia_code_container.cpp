@@ -54,10 +54,10 @@ CodeContainer* JuliaCodeContainer::createContainer(const string& name, int numIn
     CodeContainer* container;
 
     if (gGlobal->gOpenCLSwitch) {
-        throw faustexception("ERROR : OpenCL not supported for C\n");
+        throw faustexception("ERROR : OpenCL not supported for Julia\n");
     }
     if (gGlobal->gCUDASwitch) {
-        throw faustexception("ERROR : CUDA not supported for C\n");
+        throw faustexception("ERROR : CUDA not supported for Julia\n");
     }
 
     if (gGlobal->gOpenMPSwitch) {
@@ -262,7 +262,7 @@ void JuliaCodeContainer::produceClass()
     }
     back(1, *fOut);
     *fOut << "end";
-
+   
     tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "function instanceInit(dsp::" << fKlassName << ", sample_rate::Int32)";
@@ -285,6 +285,24 @@ void JuliaCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "end";
     
+    // JSON generation
+    tab(n, *fOut);
+    tab(n, *fOut);
+    *fOut << "function getJSON(dsp::" << fKlassName << ")";
+    {
+        string json;
+        if (gGlobal->gFloatSize == 1) {
+            json = generateJSON<float>();
+        } else {
+            json = generateJSON<double>();
+        }
+        tab(n + 1, *fOut);
+        *fOut << "return \"" << flattenJSON(json) << "\"" << endl;
+        tab(n, *fOut);
+    }
+    back(1, *fOut);
+    *fOut << "end";
+
     // User interface
     tab(n, *fOut);
     tab(n, *fOut);

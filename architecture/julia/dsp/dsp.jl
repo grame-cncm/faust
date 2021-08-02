@@ -44,6 +44,9 @@ end
 function init(dsp::dsp, sample_rate::Int32)
 end
 
+function getJSON(dsp::dsp)
+end
+
 function buildUserInterface(dsp::dsp, ui_interface::UI)
 end
 
