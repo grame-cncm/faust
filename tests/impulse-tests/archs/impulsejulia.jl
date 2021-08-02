@@ -17,53 +17,7 @@
 
 const FAUSTFLOAT = Float64
 
-# Architecture
-abstract type UI end
-
-#=
-mutable struct MapUI <: UI
-    paths::Dict{String, Symbol}  # dict from path to symbol e.g. `Dict("/score/freq" => :fHslider0)`
-    # ...
-end
-=#
-
-# One can override the behavior by defining another set of function that takes a different concrete UI type
-
-# -- widget's layouts
-function openTabBox(ui_interface::UI, label::String)
-end
-function openHorizontalBox(ui_interface::UI, label::String)
-end
-function openVerticalBox(ui_interface::UI, label::String)
-end
-function closeBox(ui_interface::UI)
-end
-
-# -- active widgets
-function addButton(ui_interface::UI, label::String, param::Symbol) 
-end
-function addCheckButton(ui_interface::UI, label::String, param::Symbol) 
-end
-function addHorizontalSlider(ui_interface::UI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
-end
-function addVerticalSlider(ui_interface::UI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
-end
-function addNumEntry(ui_interface::UI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
-end
-
-# -- passive widgets
-function addHorizontalBargraph(ui_interface::UI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
-end
-function addVerticalBargraph(ui_interface::UI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
-end
-
-# -- soundfiles
-function addSoundfile(ui_interface::UI, label::String, filename::String, soundfile::Symbol) 
-end
-
-# -- metadata declarations
-function declare(ui_interface::UI, param::Symbol, key::String, val::String) 
-end
+include("/usr/local/share/faust/julia/gui/UI.jl")
 
 # Generated code
 <<includeIntrinsic>>
@@ -71,13 +25,13 @@ end
 
 # ControlUI to keep buttons
 mutable struct ControlUI <: UI
-    ControlUI(dsp::mydsp) = begin
+    ControlUI(dsp::dsp) = begin
         control_ui = new()
         control_ui.dsp = dsp
         control_ui.buttons = Vector{Symbol}()
         control_ui
 	end
-    dsp::mydsp
+    dsp::dsp
     buttons::Vector{Symbol}  # list of buttons (of type :fHslider0)
 end
 
@@ -152,8 +106,8 @@ end
 
 function printHeader(dsp::mydsp, nbsamples::Int32)
     # Print general informations
-    @printf "number_of_inputs  : %3d\n" getNumInputsmydsp(dsp)
-    @printf "number_of_outputs : %3d\n" getNumOutputsmydsp(dsp)
+    @printf "number_of_inputs  : %3d\n" getNumInputs(dsp)
+    @printf "number_of_outputs : %3d\n" getNumOutputs(dsp)
     @printf "number_of_frames  : %6d\n" nbsamples
 end
 
@@ -161,8 +115,8 @@ function runDSP(dsp::mydsp, control_ui::ControlUI, nbsamples::Int32)
     run::Int32 = 0
     linenum::Int32 = 0
 
-    nins = getNumInputsmydsp(dsp)
-    nouts = getNumOutputsmydsp(dsp)
+    nins = getNumInputs(dsp)
+    nouts = getNumOutputs(dsp)
 
     inputs = zeros(REAL, kFrames, nins)
     outputs = zeros(REAL, kFrames, nouts)
@@ -205,9 +159,9 @@ main!() = begin
     nbsamples::Int32 = 60000;
 
     dsp = mydsp()
-    initmydsp(dsp, samplerate)
+    init(dsp, samplerate)
     control_ui::ControlUI = ControlUI(dsp)
-    buildUserInterfacemydsp(dsp, control_ui)
+    buildUserInterface(dsp, control_ui)
     printHeader(dsp, nbsamples)
     runDSP(dsp, control_ui, Int32(nbsamples/4))
 end

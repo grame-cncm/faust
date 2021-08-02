@@ -28,6 +28,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <iostream>
 
 #include "faust/gui/UI.h"
 #include "faust/gui/PathBuilder.h"
@@ -119,13 +120,15 @@ class MapUI : public UI, public PathBuilder
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {}
         
-        // set/get
+        // setParamValue/getParamValue
         void setParamValue(const std::string& path, FAUSTFLOAT value)
         {
             if (fPathZoneMap.find(path) != fPathZoneMap.end()) {
                 *fPathZoneMap[path] = value;
             } else if (fLabelZoneMap.find(path) != fLabelZoneMap.end()) {
                 *fLabelZoneMap[path] = value;
+            } else {
+                std::cerr << "ERROR : setParamValue '" << path << "' not found\n";
             }
         }
         
@@ -136,7 +139,8 @@ class MapUI : public UI, public PathBuilder
             } else if (fLabelZoneMap.find(path) != fLabelZoneMap.end()) {
                 return *fLabelZoneMap[path];
             } else {
-                return FAUSTFLOAT(0);
+                std::cerr << "ERROR : getParamValue '" << path << "' not found\n";
+                return 0;
             }
         }
     

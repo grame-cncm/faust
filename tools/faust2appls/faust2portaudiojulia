@@ -12,7 +12,7 @@
 . usage.sh
 
 SRC="0"
-ARCHFILE=$FAUSTARCH/portaudio.jl
+ARCHFILE=$FAUSTARCH/julia/audio/portaudio.jl
 
 #PHASE 2 : dispatch command arguments
 while [ $1 ]

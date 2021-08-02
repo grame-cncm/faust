@@ -14,7 +14,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # ************************************************************************
 
-const FAUSTFLOAT = Float32
+include("/usr/local/share/faust/julia/dsp/dsp.jl")
 
 # Architecture
 abstract type UI end
@@ -57,34 +57,3 @@ end
 function declare(ui_interface::UI, param::Symbol, key::String, val::String) 
 end
 
-# Generated code
-<<includeIntrinsic>>
-<<includeclass>>
-
-# Testing
-samplerate = Int32(44100)
-block_size = Int32(512)
-
-# Using PortAudio
-# import Pkg; Pkg.add("PortAudio")
-using PortAudio
-
-devices = PortAudio.devices()
-#dev = filter(x -> x.maxinchans == 2 && x.maxoutchans == 2, devices)[1]
-
-# Selecting a Duplex device here
-#dev = devices[10]
-
-#PortAudioStream(dev, dev) do stream
-PortAudioStream(1, 2) do stream
-    dsp = mydsp()
-    println("getNumInputsmydsp ", getNumInputsmydsp(dsp))
-    println("getNumOutputsmydsp ", getNumOutputsmydsp(dsp))
-    initmydsp(dsp, samplerate)
-    outputs = zeros(REAL, block_size, getNumOutputsmydsp(dsp))
-    while true
-        inputs = convert(Matrix{REAL}, read(stream, block_size))
-        computemydsp(dsp, block_size, inputs, outputs)
-        write(stream, outputs)
-    end
-end
