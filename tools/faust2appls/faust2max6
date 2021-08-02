@@ -153,6 +153,11 @@ do
     elif [ $p = "-filter" ]; then
         shift
         FILTER=$1
+    # '-A path' also added as '-I path' in the C++ command 
+    elif [ $p = "-A" ]; then
+        shift
+        CXXFLAGS="$CXXFLAGS -I $1"
+        OPTIONS="$OPTIONS -A $1"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
@@ -184,9 +189,6 @@ fi
 PATH=$PATH:/usr/local/bin
 
 for p in $FILES; do
-
-# CC is now declared in faustoptflags
-#    CC=g++
 
     CUR=$(pwd)
     f=$(basename "$p")
