@@ -40,3 +40,10 @@ check = checkbox("check [switch:2]");
 // DSP processor
 process = os.osc(freq) * gain * gate, os.sawtooth(freq) * gain * check;
 ```
+
+## Architecture files
+
+Specific architecture files have been developed:
+
+- `faust/gui/DaisyControlUI.h`: to be used with the DSP `buildUserInterface` method to implement `button`, `checkbox`, `hslider`, `vslider` controllers, and interpret the specific metadata previously described
+- `/faust/midi/daisy-midi.h`: implements a [midi_handler](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/midi/midi.h) subclass to decode incoming MIDI events.
