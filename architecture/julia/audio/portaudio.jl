@@ -20,6 +20,7 @@ const FAUSTFLOAT = Float32
 include("/usr/local/share/faust/julia/dsp/dsp.jl")
 include("/usr/local/share/faust/julia/gui/meta.jl")
 include("/usr/local/share/faust/julia/gui/MapUI.jl")
+include("/usr/local/share/faust/julia/gui/GTKUI.jl")
 
 # Generated code
 <<includeIntrinsic>>
@@ -41,10 +42,12 @@ devices = PortAudio.devices()
 #PortAudioStream(dev, dev) do stream
 PortAudioStream(1, 2) do stream
     dsp = mydsp()
-    map_ui = MapUI(dsp)
+    
     println("getNumInputs ", getNumInputs(dsp))
     println("getNumOutputs ", getNumOutputs(dsp))
     init(dsp, samplerate)
+
+    map_ui = MapUI(dsp)
     buildUserInterface(dsp, map_ui)
 
     # Print all paths
@@ -52,12 +55,16 @@ PortAudioStream(1, 2) do stream
     #= Possibly change control values
     - using simple labels (end of path):
     setParamValue(map_ui, "freq", 500.0f0)
-    setParamValue(map_ui, "/volume", -10.0f0)
+    setParamValue(map_ui, "volume", -10.0f0)
     - or using complete path:
     setParamValue(map_ui, "/Oscillator/freq", 500.0f0)
     setParamValue(map_ui, "/Oscillator/volume", -10.0f0)
     =#
     
+    gtk_ui = GTKUI(dsp)
+    buildUserInterface(dsp, gtk_ui)
+    Threads.@spawn run(gtk_ui)
+
     outputs = zeros(REAL, block_size, getNumOutputs(dsp))
     while true
         inputs = convert(Matrix{REAL}, read(stream, block_size))

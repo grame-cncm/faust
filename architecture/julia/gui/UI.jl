@@ -17,7 +17,9 @@
 # Architecture
 abstract type UI end
 
-# One can override the behavior by defining another set of function that takes a different concrete UI type
+# One can override the behavior by defining another set of methods 
+# that takes a different concrete UI type. 
+# Only the needed methods have to be implemented in subtypes.
 
 # -- widget's layouts
 function openTabBox(ui_interface::UI, label::String)

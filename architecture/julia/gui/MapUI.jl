@@ -35,74 +35,66 @@ function buildPath(builder::PathBuilder, label::String)
     "/$path/$label"
 end
 
-# MapUI to keep [path,Symbol]
+# MapUI to keep [path,Symbol] and [label,Symbol] maps
 mutable struct MapUI <: UI
     MapUI(dsp::dsp) = begin
         map_ui = new()
         map_ui.dsp = dsp
-        map_ui.label_paths = Dict{String, Symbol}()
-        map_ui.osc_paths = Dict{String, Symbol}()
-        map_ui.pathBuilder = PathBuilder([])
+        map_ui.label_paths = Dict{String,Symbol}()
+        map_ui.osc_paths = Dict{String,Symbol}()
+        map_ui.path_builder = PathBuilder([])
         map_ui
 	end
     dsp::dsp
-    pathBuilder::PathBuilder
-    label_paths::Dict{String, Symbol}
-    osc_paths::Dict{String, Symbol}
+    path_builder::PathBuilder
+    label_paths::Dict{String,Symbol}
+    osc_paths::Dict{String,Symbol}
 end
 
 # -- widget's layouts
 function openTabBox(ui_interface::MapUI, label::String)
-    pushLabel(ui_interface.pathBuilder, label)
+    pushLabel(ui_interface.path_builder, label)
 end
 function openHorizontalBox(ui_interface::MapUI, label::String)
-    pushLabel(ui_interface.pathBuilder, label)
+    pushLabel(ui_interface.path_builder, label)
 end
 function openVerticalBox(ui_interface::MapUI, label::String)
-    pushLabel(ui_interface.pathBuilder, label)
+    pushLabel(ui_interface.path_builder, label)
 end
 function closeBox(ui_interface::MapUI)
-    popLabel(ui_interface.pathBuilder)
+    popLabel(ui_interface.path_builder)
 end
 
 # -- active widgets
 function addButton(ui_interface::MapUI, label::String, param::Symbol) 
     ui_interface.label_paths[label] = param
-    ui_interface.osc_paths[buildPath(ui_interface.pathBuilder, label)] = param
+    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = param
 end
 function addCheckButton(ui_interface::MapUI, label::String, param::Symbol) 
     ui_interface.label_paths[label] = param
-    ui_interface.osc_paths[buildPath(ui_interface.pathBuilder, label)] = param
+    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = param
 end
 function addHorizontalSlider(ui_interface::MapUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
     ui_interface.label_paths[label] = param
-    ui_interface.osc_paths[buildPath(ui_interface.pathBuilder, label)] = param
+    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = param
 end
 function addVerticalSlider(ui_interface::MapUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
     ui_interface.label_paths[label] = param
-    ui_interface.osc_paths[buildPath(ui_interface.pathBuilder, label)] = param
+    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = param
 end
 function addNumEntry(ui_interface::MapUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
     ui_interface.label_paths[label] = param
-    ui_interface.osc_paths[buildPath(ui_interface.pathBuilder, label)] = param
+    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = param
 end
 
 # -- passive widgets
 function addHorizontalBargraph(ui_interface::MapUI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
     ui_interface.label_paths[label] = param
-    ui_interface.osc_paths[buildPath(ui_interface.pathBuilder, label)] = param
+    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = param
 end
 function addVerticalBargraph(ui_interface::MapUI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
     ui_interface.label_paths[label] = param
-    ui_interface.osc_paths[buildPath(ui_interface.pathBuilder, label)] = param
-end
-
-# -- soundfiles
-function addSoundfile(ui_interface::MapUI, label::String, filename::String, soundfile::Symbol) 
-end
-
-# -- metadata declarations
-function declare(ui_interface::MapUI, param::Symbol, key::String, val::String) 
+    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = param
 end
 
 # setParamValue/getParamValue
