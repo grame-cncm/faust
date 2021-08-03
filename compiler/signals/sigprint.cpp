@@ -66,10 +66,6 @@ void printSigType(int n, int v, int c)
     putchar("CI X"[c]);
 }
 
-const char* binopname[] = {"+", "-", "*", "/", "%", "<<", ">>", ">", "<", ">=", "<=", "==", "!=", "&", "|", "^"};
-
-int binopprec[] = {2, 2, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-
 void printSignal(Tree sig, FILE* out, int prec)
 {
     int    i;

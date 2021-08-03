@@ -169,12 +169,11 @@ struct BinOp {
     pred fRightAbsorbing;
     int  fPriority;
 
-    BinOp(const char* name, const char* name_vec, const char* name_scal, const char* name_llvm_int,
-          const char* name_llvm_float, unsigned int llvm_int, unsigned int llvm_float, const char* name_wasm_int32,
-          const char* name_wasm_int64, const char* name_wasm_float, const char* name_wasm_double, WasmOp wasm_int32,
-          WasmOp wasm_int64, WasmOp wasm_float, WasmOp wasm_double, FBCInstruction::Opcode interp_int32,
-          FBCInstruction::Opcode interp_float, comp f, pred ln, pred rn, int priority, pred la = falsePredicate,
-          pred ra = falsePredicate)
+    BinOp(const char* name, const char* name_vec, const char* name_scal, const char* name_llvm_int, const char* name_llvm_float,
+          unsigned int llvm_int, unsigned int llvm_float, const char* name_wasm_int32, const char* name_wasm_int64,
+          const char* name_wasm_float, const char* name_wasm_double, WasmOp wasm_int32, WasmOp wasm_int64, WasmOp wasm_float,
+          WasmOp wasm_double, FBCInstruction::Opcode interp_int32, FBCInstruction::Opcode interp_float, comp f, pred ln, pred rn,
+          int priority, pred la = falsePredicate, pred ra = falsePredicate)
         : fName(name),
           fNameVec(name_vec),
           fNameScal(name_scal),
@@ -217,3 +216,7 @@ enum { kAdd, kSub, kMul, kDiv, kRem, kLsh, kRsh, kGT, kLT, kGE, kLE, kEQ, kNE, k
 bool isBoolOpcode(int o);
 bool isLogicalOpcode(int o);
 bool isCommutativeOpcode(int o);
+
+extern const char* binopname[];
+extern int         binopprec[];
+extern int         newbinopprec[];

@@ -83,8 +83,7 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout)
             } while (isList(sig));
         } else {
             // draw the node
-            fout << 'S' << sig << "[label=\"" << sigLabel(sig) << "\"" << nodeattr(getCertifiedSigType(sig)) << "];"
-                 << endl;
+            fout << 'S' << sig << "[label=\"" << sigLabel(sig) << "\"" << nodeattr(getCertifiedSigType(sig)) << "];" << endl;
 
             // draw the subsignals
             n = getSubSignals(sig, subsig);
@@ -108,8 +107,7 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout)
 
                 for (int i = 0; i < n; i++) {
                     recdraw(subsig[i], drawn, fout);
-                    fout << 'S' << subsig[i] << " -> " << 'S' << sig << "[" << edgeattr(getCertifiedSigType(subsig[i]))
-                         << "];" << endl;
+                    fout << 'S' << subsig[i] << " -> " << 'S' << sig << "[" << edgeattr(getCertifiedSigType(subsig[i])) << "];" << endl;
                 }
             }
         }
@@ -160,7 +158,7 @@ static string nodeattr(Type t)
 /**
  * translate signal binary operations into strings
  */
-static const char* binopname[] = {"+", "-", "*", "/", "%", "<<", ">>", ">", "<", ">=", "<=", "==", "!=", "&", "|", "^"};
+// static const char* binopname[] = {"+", "-", "*", "/", "%", "<<", ">>", ">", "<", ">=", "<=", "==", "!=", "&", "|", "^"};
 
 /**
  * return the label of a signal as a string

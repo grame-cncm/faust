@@ -9,8 +9,7 @@
 #include <vector>
 #include "HashTuple.hh"
 
-namespace nlpl
-{
+namespace nlpl {
 /**
  * @brief Where should we declare a memory
  *
@@ -27,8 +26,7 @@ using Dependency = std::pair<Memory, int>;
  * @brief A MemoryZone is a place used to read and write expressions
  *
  */
-class MemoryZone
-{
+class MemoryZone {
    public:
     virtual std::string  name()                                     = 0;
     virtual void         print(std::ostream& os)                    = 0;
@@ -67,6 +65,30 @@ inline std::ostream& operator<<(std::ostream& os, Memory m)
 {
     m->print(os);
     return os;
+}
+
+//==================================
+// simplified API
+//==================================
+
+inline Memory sFloat(const std::string& name)
+{
+    return Scalar(kSample, "float", name, kFinal);
+}
+
+inline Memory sInt(const std::string& name)
+{
+    return Scalar(kSample, "int", name, kFinal);
+}
+
+inline Memory vFloat(const std::string& name, size_t size)
+{
+    return Vector(kSample, "float", name, size, kFinal);
+}
+
+inline Memory vInt(const std::string& name, size_t size)
+{
+    return Vector(kSample, "int", name, size, kFinal);
 }
 
 }  // namespace nlpl

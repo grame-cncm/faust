@@ -104,9 +104,11 @@ void GraphCompiler::compileMultiSignal(Tree L)
     set<Tree> INSTR = ExpressionsListToInstructionsSet(L);
 
     // experimental
-    Old2NewInstr O2NI;
+    std::cout << "EXPERIMENTAL" << std::endl;
     for (Tree i : INSTR) {
-        O2NI.self(i);
+        nlpl::Instr ni = old2NewInstr(i);
+        ni->print(std::cout, 0);
+        std::cout << std::endl;
     }
 
     // lookForChains(INSTR);

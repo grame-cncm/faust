@@ -20,7 +20,6 @@
  ************************************************************************/
 
 #include "Old2NewInstr.hh"
-
 #include <cstdlib>
 #include <map>
 #include "Text.hh"
@@ -32,219 +31,214 @@
 #include "sigtyperules.hh"
 #include "tlib.hh"
 #include "tree.hh"
-
-#include "Old2NewInstr.hh"
+#include "xtended.hh"
 
 //-------------------------Old2NewInstr-------------------------------
 // An identity transformation on signals. Can be used to test
 // that everything works, and as a pattern for real transformations.
 //----------------------------------------------------------------------
 
-void Old2NewInstr::traceEnter(Tree t)
-{
-    tab(fIndent, cerr);
-    cerr << "ENTER " << fMessage << ": " << ppsig(t) << endl;
-}
-
-void Old2NewInstr::traceExit(Tree t)
-{
-    tab(fIndent, cerr);
-    cerr << "EXIT  " << fMessage << ": " << ppsig(t) << endl;
-}
-
-void Old2NewInstr::visit(Tree sig)
+nlpl::Expr old2NewExpr(Tree sig)
 {
     int    i, nature, dmax, dmin;
     double r;
     Tree   c, sel, x, y, z, u, v, var, le, label, id, tid, ff, largs, type, name, file, sf, origin, init, idx, exp;
 
     if (getUserData(sig)) {
+        xtended*                xtd = (xtended*)getUserData(sig);
+        std::vector<nlpl::Expr> VE;
         for (Tree b : sig->branches()) {
-            self(b);
+            VE.push_back(old2NewExpr(b));
         }
-        return;
+        return nlpl::Fun(xtd->name(), VE);
+
     } else if (isSigInt(sig, &i)) {
-        return;
+        return nlpl::Integer(i);
     } else if (isSigReal(sig, &r)) {
-        return;
-    } else if (isSigWaveform(sig)) {
-        return;
-    } else if (isSigInput(sig, &i)) {
-        return;
-    } else if (isSigOutput(sig, &i, x)) {
-        self(x);
-        return;
-    } else if (isSigDelay1(sig, x)) {
-        self(x);
-        return;
-    } else if (isSigFixDelay(sig, x, y)) {
-        self(x);
-        self(y);
-        return;
-    } else if (isSigPrefix(sig, x, y)) {
-        self(x);
-        self(y);
-        return;
-    } else if (isSigIota(sig, x)) {
-        self(x);
-        return;
-    } else if (isSigTime(sig)) {
-        return;
+        return nlpl::Float(r);
     } else if (isSigBinOp(sig, &i, x, y)) {
-        self(x);
-        self(y);
-        return;
+        return nlpl::BinaryOp(binopname[i], newbinopprec[i], old2NewExpr(x), old2NewExpr(y));
+    } else if (isSigInput(sig, &i)) {
+        return nlpl::ReadMem(nlpl::sFloat(subst("input$0[i]", T(i))));
     }
 
-    // Foreign functions
-    else if (isSigFFun(sig, ff, largs)) {
-        mapself(largs);
-        return;
-    } else if (isSigFConst(sig, type, name, file)) {
-        return;
-    } else if (isSigFVar(sig, type, name, file)) {
-        return;
-    }
+    /*
+} else if (isSigWaveform(sig)) {
+    return;
+}  else if (isSigDelay1(sig, x)) {
+    self(x);
+    return;
+} else if (isSigFixDelay(sig, x, y)) {
+    self(x);
+    self(y);
+    return;
+} else if (isSigPrefix(sig, x, y)) {
+    self(x);
+    self(y);
+    return;
+} else if (isSigIota(sig, x)) {
+    self(x);
+    return;
+} else if (isSigTime(sig)) {
+    return;
 
-    // Tables
-    else if (isSigTable(sig, id, x, y)) {
-        self(x);
-        self(y);
-        return;
-    } else if (isSigWRTbl(sig, id, x, y, z)) {
-        self(x);
-        self(y);
-        self(z);
-        return;
-    } else if (isSigRDTbl(sig, x, y)) {
-        self(x);
-        self(y);
-        return;
-    }
+// Foreign functions
+else if (isSigFFun(sig, ff, largs)) {
+    mapself(largs);
+    return;
+} else if (isSigFConst(sig, type, name, file)) {
+    return;
+} else if (isSigFVar(sig, type, name, file)) {
+    return;
+}
 
-    // Doc
-    else if (isSigDocConstantTbl(sig, x, y)) {
-        self(x);
-        self(y);
-        return;
-    } else if (isSigDocWriteTbl(sig, x, y, u, v)) {
-        self(x);
-        self(y);
-        self(u);
-        self(v);
-        return;
-    } else if (isSigDocAccessTbl(sig, x, y)) {
-        self(x);
-        self(y);
-        return;
-    }
+// Tables
+else if (isSigTable(sig, id, x, y)) {
+    self(x);
+    self(y);
+    return;
+} else if (isSigWRTbl(sig, id, x, y, z)) {
+    self(x);
+    self(y);
+    self(z);
+    return;
+} else if (isSigRDTbl(sig, x, y)) {
+    self(x);
+    self(y);
+    return;
+}
 
-    // Select2 and Select3
-    else if (isSigSelect2(sig, sel, x, y)) {
-        self(sel);
-        self(x);
-        self(y);
-        return;
-    } else if (isSigSelect3(sig, sel, x, y, z)) {
-        self(sel);
-        self(x);
-        self(y);
-        self(z);
-        return;
-    }
+// Doc
+else if (isSigDocConstantTbl(sig, x, y)) {
+    self(x);
+    self(y);
+    return;
+} else if (isSigDocWriteTbl(sig, x, y, u, v)) {
+    self(x);
+    self(y);
+    self(u);
+    self(v);
+    return;
+} else if (isSigDocAccessTbl(sig, x, y)) {
+    self(x);
+    self(y);
+    return;
+}
 
-    // Table sigGen
-    else if (isSigGen(sig, x)) {
-        if (fVisitGen) {
-            self(x);
-            return;
-        } else {
-            return;
-        }
-    }
+// Select2 and Select3
+else if (isSigSelect2(sig, sel, x, y)) {
+    self(sel);
+    self(x);
+    self(y);
+    return;
+} else if (isSigSelect3(sig, sel, x, y, z)) {
+    self(sel);
+    self(x);
+    self(y);
+    self(z);
+    return;
+}
 
-    // recursive signals
-    else if (isProj(sig, &i, x)) {
-        self(x);
-        return;
-    } else if (isRec(sig, var, le)) {
-        mapself(le);
-        return;
-    }
-
-    // Int and Float Cast
-    else if (isSigIntCast(sig, x)) {
-        self(x);
-        return;
-    } else if (isSigFloatCast(sig, x)) {
+// Table sigGen
+else if (isSigGen(sig, x)) {
+    if (fVisitGen) {
         self(x);
         return;
+    } else {
+        return;
     }
+}
 
-    // UI
-    else if (isSigButton(sig, label)) {
-        return;
-    } else if (isSigCheckbox(sig, label)) {
-        return;
-    } else if (isSigVSlider(sig, label, c, x, y, z)) {
-        self(c), self(x), self(y), self(z);
-        return;
-    } else if (isSigHSlider(sig, label, c, x, y, z)) {
-        self(c), self(x), self(y), self(z);
-        return;
-    } else if (isSigNumEntry(sig, label, c, x, y, z)) {
-        self(c), self(x), self(y), self(z);
-        return;
-    } else if (isSigVBargraph(sig, label, x, y, z)) {
-        self(x), self(y), self(z);
-        return;
-    } else if (isSigHBargraph(sig, label, x, y, z)) {
-        self(x), self(y), self(z);
-        return;
-    }
+// Int and Float Cast
+else if (isSigIntCast(sig, x)) {
+    self(x);
+    return;
+} else if (isSigFloatCast(sig, x)) {
+    self(x);
+    return;
+}
 
-    // Soundfile length, rate, channels, buffer
-    else if (isSigSoundfile(sig, label)) {
-        return;
-    } else if (isSigSoundfileLength(sig, sf, x)) {
-        self(sf), self(x);
-        return;
-    } else if (isSigSoundfileRate(sig, sf, x)) {
-        self(sf), self(x);
-        return;
-    } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
-        self(sf), self(x), self(y), self(z);
-        return;
-    }
+// UI
+else if (isSigButton(sig, label)) {
+    return;
+} else if (isSigCheckbox(sig, label)) {
+    return;
+} else if (isSigVSlider(sig, label, c, x, y, z)) {
+    self(c), self(x), self(y), self(z);
+    return;
+} else if (isSigHSlider(sig, label, c, x, y, z)) {
+    self(c), self(x), self(y), self(z);
+    return;
+} else if (isSigNumEntry(sig, label, c, x, y, z)) {
+    self(c), self(x), self(y), self(z);
+    return;
+} else if (isSigVBargraph(sig, label, x, y, z)) {
+    self(x), self(y), self(z);
+    return;
+} else if (isSigHBargraph(sig, label, x, y, z)) {
+    self(x), self(y), self(z);
+    return;
+}
 
-    // Attach, Enable, Control
-    else if (isSigAttach(sig, x, y)) {
-        self(x), self(y);
-        return;
-    } else if (isSigEnable(sig, x, y)) {
-        self(x), self(y);
-        return;
-    } else if (isSigControl(sig, x, y)) {
-        self(x), self(y);
-        return;
+// Soundfile length, rate, channels, buffer
+else if (isSigSoundfile(sig, label)) {
+    return;
+} else if (isSigSoundfileLength(sig, sf, x)) {
+    self(sf), self(x);
+    return;
+} else if (isSigSoundfileRate(sig, sf, x)) {
+    self(sf), self(x);
+    return;
+} else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
+    self(sf), self(x), self(y), self(z);
+    return;
+}
+
+// Attach, Enable, Control
+else if (isSigAttach(sig, x, y)) {
+    self(x), self(y);
+    return;
+} else if (isSigEnable(sig, x, y)) {
+    self(x), self(y);
+    return;
+} else if (isSigControl(sig, x, y)) {
+    self(x), self(y);
+    return;
+    */
+
+    else {
+        stringstream error;
+        error << __FILE__ << ":" << __LINE__ << " ERROR : unrecognized signal : " << *sig << endl;
+        throw faustexception(error.str());
     }
+}
+
+nlpl::Instr old2NewInstr(Tree sig)
+{
+    int    i, nature, dmax, dmin;
+    double r;
+    Tree   c, sel, x, y, z, u, v, var, le, label, id, tid, ff, largs, type, name, file, sf, origin, init, idx, exp;
 
     // Read and Write
-    else if (isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin,
-                                           y)) {  // x is used as an id, we don't go into it
-        self(y);
+    if (isSigOutput(sig, &i, x)) {
+        // self(x);
+        return nlpl::Write(nlpl::sFloat(subst("output$0[i]", T(i))), old2NewExpr(x));
+    } /*else if (isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin,
+                                             y)) {  // x is used as an id, we don't go into it
+        // self(y);
         return;
     } else if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &i,
                                               y)) {  // x is used as an id, we don't go into it
-        self(y);
+        // self(y);
         return;
     }
 
     // Shared Read and Write
     else if (isSigInstructionSharedRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
         return;
-    } else if (isSigInstructionSharedWrite(sig, id, origin, &nature, y)) {  // x is used as an id, we don't go into it
-        self(y);
+    }
+    else if (isSigInstructionSharedWrite(sig, id, origin, &nature, y)) {  // x is used as an id, we don't go into it
+        // self(y);
         return;
     }
 
@@ -252,7 +246,7 @@ void Old2NewInstr::visit(Tree sig)
     else if (isSigInstructionVectorRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
         return;
     } else if (isSigInstructionVectorWrite(sig, id, origin, &nature, y)) {  // x is used as an id, we don't go into it
-        self(y);
+        // self(y);
         return;
     }
 
@@ -262,20 +256,20 @@ void Old2NewInstr::visit(Tree sig)
         return;
     } else if (isSigInstructionShortDLineWrite(sig, id, origin, &nature,
                                                y)) {  // x is used as an id, we don't go into it
-        self(y);
+        // self(y);
         return;
     }
 
     else if (isSigInstructionTableWrite(sig, id, origin, &nature, &dmax, init, idx, exp)) {
-        self(init);
-        self(idx);
-        self(exp);
+        // self(init);
+        // self(idx);
+        // self(exp);
         return;
     } else if (isSigInstructionTableAccessWrite(sig, id, origin, &nature, &dmin, tid, x)) {
-        self(x);
+        // self(x);
         return;
     } else if (isSigInstructionTableRead(sig, id, origin, &nature, &dmin, x)) {
-        self(x);
+        // self(x);
         return;
     }
 
@@ -283,7 +277,7 @@ void Old2NewInstr::visit(Tree sig)
     else if (isSigInstructionControlRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
         return;
     } else if (isSigInstructionControlWrite(sig, id, origin, &nature, y)) {  // x is used as an id, we don't go into it
-        self(y);
+        // self(y);
         return;
     }
 
@@ -298,14 +292,15 @@ void Old2NewInstr::visit(Tree sig)
     else if (isSigInstructionBargraphRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
         return;
     } else if (isSigInstructionBargraphWrite(sig, id, origin, &nature, y)) {
-        self(y);
+        // self(y);
         return;
     }
 
     else if (isNil(sig)) {
         // now nil can appear in table write instructions
         return;
-    } else {
+    } */
+    else {
         stringstream error;
         error << __FILE__ << ":" << __LINE__ << " ERROR : unrecognized signal : " << *sig << endl;
         throw faustexception(error.str());

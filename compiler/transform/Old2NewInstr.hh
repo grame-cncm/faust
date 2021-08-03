@@ -32,14 +32,6 @@
 // Converts old tre-based instructions into new nlpl instructions
 //----------------------------------------------------------------------
 
-class Old2NewInstr : public SignalVisitor {
-    bool fVisitGen{false};
-
-   public:
-    Old2NewInstr() = default;
-
-   protected:
-    void visit(Tree t) override;
-    void traceEnter(Tree t) override;
-    void traceExit(Tree t) override;
-};
+// conversion from tree representation to nlpl representation
+nlpl::Instr old2NewInstr(Tree e);
+nlpl::Expr  old2NewExpr(Tree sig);

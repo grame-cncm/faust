@@ -8,12 +8,10 @@
 #include "HashTuple.hh"
 #include "Memory.hh"
 
-namespace nlpl
-{
+namespace nlpl {
 // Expressions
 
-class Expression
-{
+class Expression {
    public:
     virtual void getDependencies(std::set<Dependency>& dep) = 0;
     virtual void getSubExpr(std::set<Expression*>& subexpr) = 0;
@@ -29,6 +27,7 @@ Expr ReadMem(Memory mem);
 Expr ReadVec(Memory mem, Expr idx, int minDelay);
 Expr UnaryOp(const std::string& op, int priority, Expr exp);
 Expr BinaryOp(const std::string& op, int priority, Expr left, Expr right);
+Expr Fun(const std::string& op, const std::vector<Expr>& args);
 
 // Printing an expression
 inline std::ostream& operator<<(std::ostream& os, Expr exp)
@@ -38,7 +37,7 @@ inline std::ostream& operator<<(std::ostream& os, Expr exp)
 }
 
 // C++ operator precedence (partial list)
-enum Rank : int {
+enum Rank {
     kTop    = 0,
     kMul    = 5,
     kAdd    = 6,
@@ -55,7 +54,7 @@ enum Rank : int {
 // multiplicative: * / %
 inline Expr Mul(Expr left, Expr right)
 {
-    return BinaryOp("*", kMul, left, right);
+    return BinaryOp("*", Rank::kMul, left, right);
 }
 
 inline Expr Div(Expr left, Expr right)

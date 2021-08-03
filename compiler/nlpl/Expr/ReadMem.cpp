@@ -3,10 +3,8 @@
 
 #include "Expr.hh"
 #include "Memory.hh"
-namespace nlpl
-{
-class ReadMemExpr : public Expression
-{
+namespace nlpl {
+class ReadMemExpr : public Expression {
     Memory fMem;
 
    public:
@@ -14,7 +12,7 @@ class ReadMemExpr : public Expression
     void getDependencies(std::set<Dependency>& dep) override { dep.insert({fMem, 0}); }
     void getSubExpr(std::set<Expression*>&) override {}
     void print(std::ostream& os) override { os << fMem->name(); }
-    int  priority() override { return 0; }
+    int  priority() override { return -1; }
 };
 
 Expr ReadMem(Memory mem)

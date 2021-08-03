@@ -4,10 +4,8 @@
 
 #include "Expr.hh"
 
-namespace nlpl
-{
-class BinaryExpr : public Expression
-{
+namespace nlpl {
+class BinaryExpr : public Expression {
     std::string fOpName;
     int         fPriority;
     Expr        fLeft;
@@ -17,6 +15,7 @@ class BinaryExpr : public Expression
     explicit BinaryExpr(std::string op, int priority, Expr left, Expr right)
         : fOpName(std::move(op)), fPriority(priority), fLeft(left), fRight(right)
     {
+        std::cerr << fOpName << ":" << fPriority << std::endl;
     }
 
     void getDependencies(std::set<Dependency>& dep) override
@@ -33,13 +32,13 @@ class BinaryExpr : public Expression
 
     void print(std::ostream& os) override
     {
-        if (fLeft->priority() >= fPriority) {
+        if (fLeft->priority() > fPriority) {
             os << '(' << fLeft << ')';
         } else {
             os << fLeft;
         }
         os << ' ' << fOpName << ' ';
-        if (fRight->priority() >= fPriority) {
+        if (fRight->priority() > fPriority) {
             os << '(' << fRight << ')';
         } else {
             os << fRight;
@@ -61,6 +60,7 @@ Expr BinaryOp(const std::string& op, int priority, Expr left, Expr right)
     } else {
         Expr e = new BinaryExpr(op, priority, left, right);
         gBinaryExprHash.insert({key, e});
+        std::cout << "P:" << priority << std::endl;
         return e;
     }
 }
