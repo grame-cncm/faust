@@ -202,7 +202,7 @@ void JuliaCodeContainer::produceClass()
     tab(n, *fOut);
     
     // Print metadata declaration
-    produceMetadata(n + 1);
+    produceMetadata(n);
 
     // Get sample rate method
     tab(n, *fOut);
@@ -346,6 +346,33 @@ void JuliaCodeContainer::generateCompute(int n)
 
 void JuliaCodeContainer::produceMetadata(int tabs)
 {
+    tab(tabs, *fOut);
+    *fOut << "function metadata(dsp::" << fKlassName << ", m::Meta)";
+    
+        // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
+    for (const auto& i : gGlobal->gMetaDataSet) {
+        if (i.first != tree("author")) {
+            tab(tabs + 1, *fOut);
+            *fOut << "declare(m, \"" << *(i.first) << "\", " << **(i.second.begin()) << ");";
+        } else {
+                // But the "author" meta data is accumulated, the upper level becomes the main author and sub-levels become
+                // "contributor"
+            for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
+                if (j == i.second.begin()) {
+                    tab(tabs + 1, *fOut);
+                    *fOut << "declare(m, \"" << *(i.first) << "\", " << **j << ");";
+                } else {
+                    tab(tabs + 1, *fOut);
+                    *fOut << "declare(m, \""
+                    << "contributor"
+                    << "\", " << **j << ");";
+                }
+            }
+        }
+    }
+    
+    tab(tabs, *fOut);
+    *fOut << "end" << endl;
 }
 
 // Scalar

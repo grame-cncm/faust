@@ -17,8 +17,10 @@
 
 const FAUSTFLOAT = Float64
 
+# Architecture
 include("/usr/local/share/faust/julia/dsp/dsp.jl")
-include("/usr/local/share/faust/julia/gui/UI.jl")
+include("/usr/local/share/faust/julia/gui/meta.jl")
+include("/usr/local/share/faust/julia/gui/MapUI.jl")
 
 # Generated code
 <<includeIntrinsic>>
