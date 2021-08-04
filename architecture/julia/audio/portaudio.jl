@@ -27,55 +27,55 @@ include("/usr/local/share/faust/julia/gui/OSCUI.jl")
 <<includeIntrinsic>>
 <<includeclass>>
 
-# Testing
+ # Using PortAudio for audio rendiring
+ using PortAudio
+
 samplerate = Int32(44100)
 block_size = Int32(512)
 
-# Using PortAudio
-using PortAudio
+# Main code
+
+# DSP allocation and init
+my_dsp = mydsp()
+println("getNumInputs ", getNumInputs(my_dsp))
+println("getNumOutputs ", getNumOutputs(my_dsp))
+init(my_dsp, samplerate)
+
+map_ui = MapUI(my_dsp)
+buildUserInterface(my_dsp, map_ui)
+
+# Print all paths
+println(getZoneMap(map_ui))
+
+#= Possibly change control values
+- using simple labels (end of path):
+setParamValue(map_ui, "freq", 500.0f0)
+setParamValue(map_ui, "volume", -10.0f0)
+- or using complete path:
+setParamValue(map_ui, "/Oscillator/freq", 500.0f0)
+setParamValue(map_ui, "/Oscillator/volume", -10.0f0)
+=#
+   
+# OSC controller
+osc_ui = OSCUI(my_dsp)
+buildUserInterface(my_dsp, osc_ui)
+run(osc_ui, false)
+
+# GTK controller (not working for now...)
+#=
+gtk_ui = GTKUI(my_dsp)
+buildUserInterface(my_dsp, gtk_ui)
+run(gtk_ui)
+=#
 
 devices = PortAudio.devices()
 
-#dev = filter(x -> x.maxinchans == 2 && x.maxoutchans == 2, devices)[1]
-# Selecting a Duplex device here
-#dev = devices[10]
-
-#PortAudioStream(dev, dev) do stream
 PortAudioStream(1, 2) do stream
-    dsp = mydsp()
-    
-    println("getNumInputs ", getNumInputs(dsp))
-    println("getNumOutputs ", getNumOutputs(dsp))
-    init(dsp, samplerate)
-
-    map_ui = MapUI(dsp)
-    buildUserInterface(dsp, map_ui)
-
-    # Print all paths
-    println(getZoneMap(map_ui))
-    #= Possibly change control values
-    - using simple labels (end of path):
-    setParamValue(map_ui, "freq", 500.0f0)
-    setParamValue(map_ui, "volume", -10.0f0)
-    - or using complete path:
-    setParamValue(map_ui, "/Oscillator/freq", 500.0f0)
-    setParamValue(map_ui, "/Oscillator/volume", -10.0f0)
-    =#
-    
-    # GTK controller
-    #gtk_ui = GTKUI(dsp)
-    #buildUserInterface(dsp, gtk_ui)
-    #Threads.@spawn run(gtk_ui)
-
-    # OSC controller
-    osc_ui = OSCUI(dsp)
-    buildUserInterface(dsp, osc_ui)
-    run(osc_ui, false)
-
-    outputs = zeros(REAL, block_size, getNumOutputs(dsp))
+    outputs = zeros(REAL, block_size, getNumOutputs(my_dsp))
     while true
         inputs = convert(Matrix{REAL}, read(stream, block_size))
-        compute(dsp, block_size, inputs, outputs)
+        compute(my_dsp, block_size, inputs, outputs)
         write(stream, outputs)
     end
 end
+

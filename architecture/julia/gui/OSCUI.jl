@@ -17,7 +17,7 @@
 include("/usr/local/share/faust/julia/dsp/dsp.jl")
 include("/usr/local/share/faust/julia/gui/MapUI.jl")
 
-using OpenSoundControl, Sockets
+using OpenSoundControl, Sockets, MacroTools
 
 # OSCUI: a GUI using the Open Sound Control (OSC) protocol to control parameters
 mutable struct OSCUI <: UI
@@ -43,7 +43,7 @@ function run(ui_interface::OSCUI, block::Bool=true)
     function receiveMessage()
         while true
             message = OscMsg(recv(ui_interface.rcv_socket))
-            println(message)
+            # println(message)
             osc_path = path(message)
             osc_value = message[1]
             if (typeof(osc_value) == String 
@@ -67,6 +67,9 @@ function run(ui_interface::OSCUI, block::Bool=true)
         Threads.@spawn receiveMessage()
     end
 end
+
+# Does not work ?
+# MacroTools.@forward OSCUI.map_ui openTabBox, openHorizontalBox, openVerticalBox, closeBox, addButton, addCheckButton, addHorizontalSlider, addHorizontalSlider, addNumEntry, addHorizontalBargraph, addVerticalBargraph
 
 # -- widget's layouts
 function openTabBox(ui_interface::OSCUI, label::String)

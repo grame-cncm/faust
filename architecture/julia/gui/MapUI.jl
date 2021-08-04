@@ -32,7 +32,11 @@ end
 
 function buildPath(builder::PathBuilder, label::String)
     path = join(builder.controlsLevel, "/")
-    "/$path/$label"
+    res = "/$path/$label"
+    for c in [' ', '#', '*', ',', '?', '[', ']', '{', '}', '(', ')'] 
+        res = replace(res, c => '_')
+    end
+    res
 end
 
 # Range of sliders, nentries, bargraph

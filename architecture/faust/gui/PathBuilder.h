@@ -46,6 +46,18 @@ class PathBuilder
         PathBuilder() {}
         virtual ~PathBuilder() {}
     
+        std::string replaceCharList(std::string str, const std::vector<char>& ch1, char ch2)
+        {
+            std::vector<char>::const_iterator beg = ch1.begin();
+            std::vector<char>::const_iterator end = ch1.end();
+            for (size_t i = 0; i < str.length(); ++i) {
+                if (std::find(beg, end, str[i]) != end) {
+                    str[i] = ch2;
+                }
+            }
+            return str;
+        }
+    
         std::string buildPath(const std::string& label) 
         {
             std::string res = "/";
@@ -54,14 +66,9 @@ class PathBuilder
                 res += "/";
             }
             res += label;
-            std::replace(res.begin(), res.end(), ' ', '_');
+            std::vector<char> rep = {' ', '#', '*', ',', '/', '?', '[', ']', '{', '}', '(', ')'};
+            replaceCharList(res, rep, '_');
             return res;
-        }
-    
-        std::string buildLabel(std::string label)
-        {
-            std::replace(label.begin(), label.end(), ' ', '_');
-            return label;
         }
     
         void pushLabel(const std::string& label) { fControlsLevel.push_back(label); }
