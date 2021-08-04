@@ -21,6 +21,7 @@ include("/usr/local/share/faust/julia/dsp/dsp.jl")
 include("/usr/local/share/faust/julia/gui/meta.jl")
 include("/usr/local/share/faust/julia/gui/MapUI.jl")
 include("/usr/local/share/faust/julia/gui/GTKUI.jl")
+include("/usr/local/share/faust/julia/gui/OSCUI.jl")
 
 # Generated code
 <<includeIntrinsic>>
@@ -34,8 +35,8 @@ block_size = Int32(512)
 using PortAudio
 
 devices = PortAudio.devices()
-#dev = filter(x -> x.maxinchans == 2 && x.maxoutchans == 2, devices)[1]
 
+#dev = filter(x -> x.maxinchans == 2 && x.maxoutchans == 2, devices)[1]
 # Selecting a Duplex device here
 #dev = devices[10]
 
@@ -51,7 +52,7 @@ PortAudioStream(1, 2) do stream
     buildUserInterface(dsp, map_ui)
 
     # Print all paths
-    println(getMap(map_ui))
+    println(getZoneMap(map_ui))
     #= Possibly change control values
     - using simple labels (end of path):
     setParamValue(map_ui, "freq", 500.0f0)
@@ -61,9 +62,15 @@ PortAudioStream(1, 2) do stream
     setParamValue(map_ui, "/Oscillator/volume", -10.0f0)
     =#
     
-    gtk_ui = GTKUI(dsp)
-    buildUserInterface(dsp, gtk_ui)
-    Threads.@spawn run(gtk_ui)
+    # GTK controller
+    #gtk_ui = GTKUI(dsp)
+    #buildUserInterface(dsp, gtk_ui)
+    #Threads.@spawn run(gtk_ui)
+
+    # OSC controller
+    osc_ui = OSCUI(dsp)
+    buildUserInterface(dsp, osc_ui)
+    run(osc_ui, false)
 
     outputs = zeros(REAL, block_size, getNumOutputs(dsp))
     while true

@@ -172,8 +172,7 @@ class MapUI : public UI, public PathBuilder
         {
             if (fPathZoneMap.find(str) != fPathZoneMap.end()) {
                 return fPathZoneMap[str];
-            }
-            if (fLabelZoneMap.find(str) != fLabelZoneMap.end()) {
+            } else if (fLabelZoneMap.find(str) != fLabelZoneMap.end()) {
                 return fLabelZoneMap[str];
             }
             return nullptr;

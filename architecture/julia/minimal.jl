@@ -20,6 +20,7 @@ const FAUSTFLOAT = Float32
 include("/usr/local/share/faust/julia/dsp/dsp.jl")
 include("/usr/local/share/faust/julia/gui/meta.jl")
 include("/usr/local/share/faust/julia/gui/MapUI.jl")
+include("/usr/local/share/faust/julia/gui/OSCUI.jl")
 
 # Generated code
 <<includeIntrinsic>>
@@ -30,17 +31,19 @@ samplerate = Int32(44100)
 block_size = Int32(512)
 
 test!() = begin
+    # Init DSP
     dsp = mydsp()
-    map_ui = MapUI(dsp)
+    init(dsp, samplerate)
+
     println("getNumInputs ", getNumInputs(dsp))
     println("getNumOutputs ", getNumOutputs(dsp))
-    inputs = zeros(REAL, block_size, getNumInputs(dsp))
-    outputs = zeros(REAL, block_size, getNumOutputs(dsp))
-    init(dsp, samplerate)
+  
+    # Create a MapUI controller
+    map_ui = MapUI(dsp)
     buildUserInterface(dsp, map_ui)
-
-     # Print all paths
-     println(getMap(map_ui))
+     # Print all zones
+     println(getZoneMap(map_ui))
+     
      #= Possibly change control values
      - using simple labels (end of path):
      setParamValue(map_ui, "freq", 500.0f0)
@@ -50,7 +53,14 @@ test!() = begin
      setParamValue(map_ui, "/Oscillator/volume", -10.0f0)
      =#
 
+    inputs = zeros(REAL, block_size, getNumInputs(dsp))
+    outputs = zeros(REAL, block_size, getNumOutputs(dsp)) 
     compute(dsp, block_size, inputs, outputs)
+
+    osc_ui = OSCUI(dsp)
+    buildUserInterface(dsp, osc_ui)
+    run(osc_ui)
+
 end
 
 test!()

@@ -27,7 +27,6 @@
  
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "faust/gui/MapUI.h"
 #include "faust/gui/GUI.h"
 #include "faust/gui/APIUI.h"
 

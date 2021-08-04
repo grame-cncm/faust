@@ -35,20 +35,29 @@ function buildPath(builder::PathBuilder, label::String)
     "/$path/$label"
 end
 
+# Range of sliders, nentries, bargraph
+struct UIZone
+    zone::Symbol
+    init::Float32
+    min::Float32
+    max::Float32
+    step::Float32
+end
+
 # MapUI to keep [path,Symbol] and [label,Symbol] maps
 mutable struct MapUI <: UI
     MapUI(dsp::dsp) = begin
         map_ui = new()
         map_ui.dsp = dsp
-        map_ui.label_paths = Dict{String,Symbol}()
-        map_ui.osc_paths = Dict{String,Symbol}()
+        map_ui.label_paths = Dict{String,UIZone}()
+        map_ui.osc_paths = Dict{String,UIZone}()
         map_ui.path_builder = PathBuilder([])
         map_ui
 	end
     dsp::dsp
     path_builder::PathBuilder
-    label_paths::Dict{String,Symbol}
-    osc_paths::Dict{String,Symbol}
+    label_paths::Dict{String,UIZone}
+    osc_paths::Dict{String,UIZone}
 end
 
 # -- widget's layouts
@@ -67,42 +76,49 @@ end
 
 # -- active widgets
 function addButton(ui_interface::MapUI, label::String, param::Symbol) 
-    ui_interface.label_paths[label] = param
-    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = param
+    zone = UIZone(param, 0, 0, 1, 0)
+    ui_interface.label_paths[label] = zone
+    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
 end
 function addCheckButton(ui_interface::MapUI, label::String, param::Symbol) 
-    ui_interface.label_paths[label] = param
-    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = param
+    zone = UIZone(param, 0, 0, 1, 0)
+    ui_interface.label_paths[label] = zone
+    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
 end
 function addHorizontalSlider(ui_interface::MapUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
-    ui_interface.label_paths[label] = param
-    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = param
+    zone = UIZone(param, init, min, max, step)
+    ui_interface.label_paths[label] = zone
+    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
 end
 function addVerticalSlider(ui_interface::MapUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
-    ui_interface.label_paths[label] = param
-    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = param
+    zone = UIZone(param, init, min, max, step)
+    ui_interface.label_paths[label] = zone
+    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
 end
 function addNumEntry(ui_interface::MapUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
-    ui_interface.label_paths[label] = param
-    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = param
+    zone = UIZone(param, init, min, max, step)
+    ui_interface.label_paths[label] = zone
+    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
 end
 
 # -- passive widgets
 function addHorizontalBargraph(ui_interface::MapUI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
-    ui_interface.label_paths[label] = param
-    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = param
+    zone = UIZone(param, 0, min, max, 0)
+    ui_interface.label_paths[label] = zone
+    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
 end
 function addVerticalBargraph(ui_interface::MapUI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
-    ui_interface.label_paths[label] = param
-    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = param
+    zone = UIZone(param, 0, min, max, 0)
+    ui_interface.label_paths[label] = zone
+    ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
 end
 
 # setParamValue/getParamValue
 function setParamValue(ui_interface::MapUI, path::String, value::FAUSTFLOAT)
     if (haskey(ui_interface.osc_paths, path))
-        setproperty!(ui_interface.dsp, ui_interface.osc_paths[path], value)
+        setproperty!(ui_interface.dsp, ui_interface.osc_paths[path].zone, value)
     elseif (haskey(ui_interface.label_paths, path))
-        setproperty!(ui_interface.dsp, ui_interface.label_paths[path], value)
+        setproperty!(ui_interface.dsp, ui_interface.label_paths[path].zone, value)
     else 
         println("ERROR : setParamValue '", path, "' not found")
     end
@@ -110,16 +126,16 @@ end
 
 function getParamValue(ui_interface::MapUI, path::String)
     if (haskey(ui_interface.osc_paths, path))
-        return getproperty(ui_interface.dsp, ui_interface.osc_paths[path])
+        return getproperty(ui_interface.dsp, ui_interface.osc_paths[path].zone)
     elseif (haskey(ui_interface.label_paths, path))
-        return getproperty(ui_interface.dsp, ui_interface.label_paths[path])
+        return getproperty(ui_interface.dsp, ui_interface.label_paths[path].zone)
     else 
         println("ERROR : getParamValue '", path, "' not found")
         return 0;
     end
 end
 
-function getMap(ui_interface::MapUI)
+function getZoneMap(ui_interface::MapUI)
     return ui_interface.osc_paths
 end
 
