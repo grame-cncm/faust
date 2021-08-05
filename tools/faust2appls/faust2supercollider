@@ -154,7 +154,6 @@ for p in $FILES; do
     faust -i -a $ARCHFILE -xml $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     mv "$SRCDIR/$f.xml" "$TMP/"
     
-
     # compile c++ to binary; --prefix should be same as in ../../examples/Makefile.sccompile
     (
         SC_FAUST_PREFIX="Faust"
@@ -182,6 +181,11 @@ for p in $FILES; do
         cp "$TMP/${f%.dsp}_supernova.$EXT" "$SRCDIR/${f%.dsp}_supernova.$EXT"
     fi
     cp "$TMP/${f%.dsp}.sc" "$SRCDIR/${f%.dsp}.sc"
+
+    if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
+        codesign --sign - --deep --force "$SRCDIR/${f%.dsp}.$EXT"
+        codesign --sign - --deep --force "$SRCDIR/${f%.dsp}_supernova.$EXT"
+    fi
 
     if [ $KEEP_SRC = 1 ]; then
         cp "$TMP/${f%.dsp}.cpp" "$SRCDIR/${f%.dsp}.cpp"
