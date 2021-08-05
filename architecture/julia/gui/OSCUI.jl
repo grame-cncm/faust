@@ -60,7 +60,21 @@ end
     
 # Receive and decode incoming OSC messages
 function run(ui_interface::OSCUI, block::Bool=true)
-    function receiveMessage()
+    
+    # Send current state of all input/output controllers
+    function sendMessages()
+        while true
+            for item in getZoneMap(ui_interface.map_ui)
+                path = item.first
+                ctrl_msg = OpenSoundControl.message(path, "f", getParamValue(ui_interface.map_ui, path))
+                send(ui_interface.snd_socket, ip"127.0.0.1", ui_interface.outport, ctrl_msg.data)
+            end
+            sleep(0.5)
+        end
+    end
+
+        # Receive OSC messages 1) to setup 2) update input controllers
+    function receiveMessages()
         while true
             message = OscMsg(recv(ui_interface.rcv_socket))
             osc_path = path(message)
@@ -78,19 +92,25 @@ function run(ui_interface::OSCUI, block::Bool=true)
                 for item in getZoneMap(ui_interface.map_ui)
                     path = item.first
                     zone = item.second
-                    ctrl_msg = OpenSoundControl.message(root, "sfff", path, zone.init, zone.min, zone.max)
+                    ctrl_msg = OpenSoundControl.message(path, "fff", zone.init, zone.min, zone.max)
                     send(ui_interface.snd_socket, ip"127.0.0.1", ui_interface.outport, ctrl_msg.data)
                 end
             end 
         end
-        
-        end
+    end
+
+        # Start send task
+    task = Task(sendMessages)
+    schedule(task)
+
+    # Start block receive function
     if (block) 
-        receiveMessage()
+        receiveMessages()
     else
-        Threads.@spawn receiveMessage()
+        Threads.@spawn receiveMessages()
     end
 end
+
 
 # Does not work ?
 # MacroTools.@forward OSCUI.map_ui openTabBox, openHorizontalBox, openVerticalBox, closeBox, addButton, addCheckButton, addHorizontalSlider, addHorizontalSlider, addNumEntry, addHorizontalBargraph, addVerticalBargraph

@@ -41,7 +41,7 @@ end
 
 # UIZone with for sliders, nentries and bargraph
 struct UIZone
-    zone::Symbol
+    field::Symbol
     init::Float32
     min::Float32
     max::Float32
@@ -120,9 +120,9 @@ end
 # setParamValue/getParamValue
 function setParamValue(ui_interface::MapUI, path::String, value::FAUSTFLOAT)
     if (haskey(ui_interface.osc_paths, path))
-        setproperty!(ui_interface.dsp, ui_interface.osc_paths[path].zone, value)
+        setproperty!(ui_interface.dsp, ui_interface.osc_paths[path].field, value)
     elseif (haskey(ui_interface.label_paths, path))
-        setproperty!(ui_interface.dsp, ui_interface.label_paths[path].zone, value)
+        setproperty!(ui_interface.dsp, ui_interface.label_paths[path].field, value)
     else 
         println("ERROR : setParamValue '", path, "' not found")
     end
@@ -130,9 +130,9 @@ end
 
 function getParamValue(ui_interface::MapUI, path::String)
     if (haskey(ui_interface.osc_paths, path))
-        return getproperty(ui_interface.dsp, ui_interface.osc_paths[path].zone)
+        return getproperty(ui_interface.dsp, ui_interface.osc_paths[path].field)
     elseif (haskey(ui_interface.label_paths, path))
-        return getproperty(ui_interface.dsp, ui_interface.label_paths[path].zone)
+        return getproperty(ui_interface.dsp, ui_interface.label_paths[path].field)
     else 
         println("ERROR : getParamValue '", path, "' not found")
         return 0;
