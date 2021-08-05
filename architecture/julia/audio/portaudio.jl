@@ -27,7 +27,7 @@ include("/usr/local/share/faust/julia/gui/OSCUI.jl")
 <<includeIntrinsic>>
 <<includeclass>>
 
- # Using PortAudio for audio rendiring
+ # Using PortAudio for audio rendering
  using PortAudio, ThreadPools
 
 samplerate = Int32(44100)
@@ -51,8 +51,9 @@ function main!(args)
     # DSP allocation and init
     my_dsp = mydsp()
     init(my_dsp, samplerate)
-    println("getNumInputs ", getNumInputs(my_dsp))
-    println("getNumOutputs ", getNumOutputs(my_dsp), "\n")
+
+    println("getNumInputs: ", getNumInputs(my_dsp))
+    println("getNumOutputs: ", getNumOutputs(my_dsp), "\n")
     
      # Print all paths
     map_ui = MapUI(my_dsp)

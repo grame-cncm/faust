@@ -20,30 +20,44 @@ const FAUSTFLOAT = Float32
 include("/usr/local/share/faust/julia/dsp/dsp.jl")
 include("/usr/local/share/faust/julia/gui/meta.jl")
 include("/usr/local/share/faust/julia/gui/MapUI.jl")
-include("/usr/local/share/faust/julia/gui/OSCUI.jl")
 
 # Generated code
 <<includeIntrinsic>>
 <<includeclass>>
 
+# Retrieve the application name
+mutable struct NameMeta <: Meta
+    name::String
+end
+
+function declare(m::NameMeta, key::String, value::String)
+    if (key == "name") 
+        m.name = value;
+    end
+end
+
 # Testing
 samplerate = Int32(44100)
-block_size = Int32(512)
+block_size = Int32(16)
 
 test!() = begin
     # Init DSP
-    dsp = mydsp()
-    init(dsp, samplerate)
+    my_dsp = mydsp()
+    init(my_dsp, samplerate)
 
-    println("getNumInputs ", getNumInputs(dsp))
-    println("getNumOutputs ", getNumOutputs(dsp))
-  
+    m = NameMeta("")
+    metadata(my_dsp, m)
+    println("Application name: ", m.name, "\n")
+
+    println("getNumInputs: ", getNumInputs(my_dsp))
+    println("getNumOutputs: ", getNumOutputs(my_dsp), "\n")
+    
     # Create a MapUI controller
-    map_ui = MapUI(dsp)
-    buildUserInterface(dsp, map_ui)
+    map_ui = MapUI(my_dsp)
+    buildUserInterface(my_dsp, map_ui)
 
     # Print all zones
-    println(getZoneMap(map_ui))
+    println("Path/UIZone dictionary: ", getZoneMap(map_ui), "\n")
      
     #= Possibly change control values
     - using simple labels (end of path):
@@ -54,22 +68,20 @@ test!() = begin
     setParamValue(map_ui, "/Oscillator/volume", -10.0f0)
     =#
 
-    inputs = zeros(REAL, block_size, getNumInputs(dsp))
-    outputs = zeros(REAL, block_size, getNumOutputs(dsp)) 
-    compute(dsp, block_size, inputs, outputs)
+    inputs = zeros(REAL, block_size, getNumInputs(my_dsp))
+    outputs = zeros(REAL, block_size, getNumOutputs(my_dsp)) 
+    compute(my_dsp, block_size, inputs, outputs)
+    println("One computed output buffer: ", outputs)
 
-    osc_ui = OSCUI(dsp)
-    buildUserInterface(dsp, osc_ui)
-    run(osc_ui)
 end
 
 test!()
 
 #=
 using BenchmarkTools
-dsp = mydsp()
-init(dsp, samplerate)
-inputs = zeros(REAL, block_size, getNumInputs(dsp))
-outputs = zeros(REAL, block_size, getNumOutputsmydsp(dsp))
-@benchmark compute(dsp, block_size, inputs, outputs)
+my_dsp = mydsp()
+init(my_dsp, samplerate)
+inputs = zeros(REAL, block_size, getNumInputs(my_dsp))
+outputs = zeros(REAL, block_size, getNumOutputsmydsp(my_dsp))
+@benchmark compute(my_dsp, block_size, inputs, outputs)
 =#

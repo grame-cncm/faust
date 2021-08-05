@@ -75,7 +75,7 @@ function run(ui_interface::OSCUI, block::Bool=true)
         end
     end
 
-        # Receive OSC messages 1) to setup 2) update input controllers
+        # Receive OSC messages 1) to setup 2) to update input controllers
     function receiveMessages()
         while true
             message = OscMsg(recv(ui_interface.rcv_socket))
@@ -87,9 +87,11 @@ function run(ui_interface::OSCUI, block::Bool=true)
             elseif (typeof(osc_value) == String && osc_path == "/*" && osc_value == "hello") 
                 hello_msg = OpenSoundControl.message(root, "sii", "127.0.0.1", Int32(ui_interface.inport), Int32(ui_interface.outport))
                 send(ui_interface.snd_socket, ip"127.0.0.1", ui_interface.outport, hello_msg.data)
+                println("Faust OSC application '", root[2:end], "' received the 'hello' message")       
             elseif (root == osc_path && typeof(osc_value) == String && osc_value == "json") 
                 json_msg = OpenSoundControl.message(root, "ss", "json", getJSON(ui_interface.dsp))
                 send(ui_interface.snd_socket, ip"127.0.0.1", ui_interface.outport, json_msg.data)
+                println("Faust OSC application '", root[2:end], "' received the 'json' message")
             elseif (root == osc_path && typeof(osc_value) == String && osc_value == "get")
                 for item in getZoneMap(ui_interface.map_ui)
                     path = item.first
@@ -112,7 +114,6 @@ function run(ui_interface::OSCUI, block::Bool=true)
         Threads.@spawn receiveMessages()
     end
 end
-
 
 # Does not work ?
 # MacroTools.@forward OSCUI.map_ui openTabBox, openHorizontalBox, openVerticalBox, closeBox, addButton, addCheckButton, addHorizontalSlider, addHorizontalSlider, addNumEntry, addHorizontalBargraph, addVerticalBargraph
