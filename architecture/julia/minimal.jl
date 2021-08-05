@@ -16,7 +16,7 @@
 
 const FAUSTFLOAT = Float32
 
-# Architecture
+# Architectures
 include("/usr/local/share/faust/julia/dsp/dsp.jl")
 include("/usr/local/share/faust/julia/gui/meta.jl")
 include("/usr/local/share/faust/julia/gui/MapUI.jl")

@@ -17,12 +17,13 @@ A [Julia backend](https://github.com/grame-cncm/faust/tree/master-dev/compiler/g
 
 ## faust2portaudiojulia
 
-The **faust2portaudiojulia** tool transforms a Faust DSP program into a fully working Julia source file which uses the [PortAudio library](http://portaudio.com) for real-time audio rendering, and can be controlled with OSC messages. It uses the `MapUI.jl`, `OSCUI.jl` and `GTKUI.jl` architecture files. 
+The **faust2portaudiojulia** tool transforms a Faust DSP program into a fully working Julia source file which uses the [PortAudio library](http://portaudio.com) for real-time audio rendering, and can be controlled with OSC messages. By default it starts with the GTK based Graphical User Interface. It uses the `MapUI.jl`, `OSCUI.jl` and `GTKUI.jl` architecture files. 
 
-`faust2portaudiojulia [-play <num>] [additional Faust options (-vec -vs 8...)] file.dsp` 
+`faust2portaudiojulia [-osc] [-play <num>] [additional Faust options (-vec -vs 8...)] file.dsp` 
 
 Here are the available options:
 
+- `-osc : to activate OSC control on 5000 and 5001 ports`
 - `-play <num> : to start the 'Julia' runtime with <num> threads and the generated file.jl`
 
 By default, it will create a `file.jl` to be executed with the `julia file.jl` command, or in an interactive session. Using   `-play <num>` optiosn allows to directly start the Julia executable.

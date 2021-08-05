@@ -65,7 +65,7 @@ function run(ui_interface::OSCUI, block::Bool=true)
             message = OscMsg(recv(ui_interface.rcv_socket))
             osc_path = path(message)
             osc_value = message[1]
-            root = getRoot(osc_ui.map_ui)
+            root = getRoot(ui_interface.map_ui)
             if (typeof(osc_value) == Float32)
                 setParamValue(ui_interface.map_ui, osc_path, osc_value);
             elseif (typeof(osc_value) == String && osc_path == "/*" && osc_value == "hello") 
@@ -75,7 +75,7 @@ function run(ui_interface::OSCUI, block::Bool=true)
                 json_msg = OpenSoundControl.message(root, "ss", "json", getJSON(ui_interface.dsp))
                 send(ui_interface.snd_socket, ip"127.0.0.1", ui_interface.outport, json_msg.data)
             elseif (root == osc_path && typeof(osc_value) == String && osc_value == "get")
-                for item in getZoneMap(osc_ui.map_ui)
+                for item in getZoneMap(ui_interface.map_ui)
                     path = item.first
                     zone = item.second
                     ctrl_msg = OpenSoundControl.message(root, "sfff", path, zone.init, zone.min, zone.max)
@@ -83,7 +83,8 @@ function run(ui_interface::OSCUI, block::Bool=true)
                 end
             end 
         end
-    end
+        
+        end
     if (block) 
         receiveMessage()
     else

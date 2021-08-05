@@ -16,7 +16,7 @@
 
 const FAUSTFLOAT = Float32
 
-# Architecture
+# Architectures
 include("/usr/local/share/faust/julia/dsp/dsp.jl")
 include("/usr/local/share/faust/julia/gui/meta.jl")
 include("/usr/local/share/faust/julia/gui/MapUI.jl")
@@ -28,54 +28,67 @@ include("/usr/local/share/faust/julia/gui/OSCUI.jl")
 <<includeclass>>
 
  # Using PortAudio for audio rendiring
- using PortAudio
+ using PortAudio, ThreadPools
 
 samplerate = Int32(44100)
 block_size = Int32(512)
-
-# Main code
-
-# DSP allocation and init
-my_dsp = mydsp()
-println("getNumInputs ", getNumInputs(my_dsp))
-println("getNumOutputs ", getNumOutputs(my_dsp))
-init(my_dsp, samplerate)
-
-map_ui = MapUI(my_dsp)
-buildUserInterface(my_dsp, map_ui)
-
-# Print all paths
-println(getZoneMap(map_ui))
-
-#= Possibly change control values
-- using simple labels (end of path):
-setParamValue(map_ui, "freq", 500.0f0)
-setParamValue(map_ui, "volume", -10.0f0)
-- or using complete path:
-setParamValue(map_ui, "/Oscillator/freq", 500.0f0)
-setParamValue(map_ui, "/Oscillator/volume", -10.0f0)
-=#
-   
-# OSC controller
-osc_ui = OSCUI(my_dsp)
-buildUserInterface(my_dsp, osc_ui)
-run(osc_ui, false)
-
-# GTK controller (not working for now...)
-#=
-gtk_ui = GTKUI(my_dsp)
-buildUserInterface(my_dsp, gtk_ui)
-run(gtk_ui)
-=#
-
 devices = PortAudio.devices()
 
-PortAudioStream(1, 2) do stream
-    outputs = zeros(REAL, block_size, getNumOutputs(my_dsp))
+function runAudio!(dsp)
+    PortAudioStream(1, 2) do stream
+    outputs = zeros(REAL, block_size, getNumOutputs(dsp))
     while true
         inputs = convert(Matrix{REAL}, read(stream, block_size))
-        compute(my_dsp, block_size, inputs, outputs)
+        compute(dsp, block_size, inputs, outputs)
         write(stream, outputs)
+    end
     end
 end
 
+# Main code
+function main!(args)
+
+    # DSP allocation and init
+    my_dsp = mydsp()
+    init(my_dsp, samplerate)
+    println("getNumInputs ", getNumInputs(my_dsp))
+    println("getNumOutputs ", getNumOutputs(my_dsp), "\n")
+    
+     # Print all paths
+    map_ui = MapUI(my_dsp)
+    buildUserInterface(my_dsp, map_ui)
+    println(getZoneMap(map_ui), "\n")
+
+    #= Possibly manually change control values
+    - using simple labels (end of path):
+    setParamValue(map_ui, "freq", 500.0f0)
+    setParamValue(map_ui, "volume", -10.0f0)
+    - or using complete path:
+    setParamValue(map_ui, "/Oscillator/freq", 500.0f0)
+    setParamValue(map_ui, "/Oscillator/volume", -10.0f0)
+    =#
+
+    # No controller
+    if length(args) == 0
+        runAudio!(my_dsp)
+    # OSC controller
+    elseif args[1] == "-osc"
+        ThreadPools.@tspawnat 2 runAudio!(my_dsp)
+        osc_ui = OSCUI(my_dsp)
+        buildUserInterface(my_dsp, osc_ui)
+        # Blocking...
+        run(osc_ui)
+    # GTK controller
+    elseif args[1] == "-gtk"
+        ThreadPools.@tspawnat 2 runAudio!(my_dsp)
+        println("Starting with GTK interface")
+        gtk_ui = GTKUI(my_dsp)
+        buildUserInterface(my_dsp, gtk_ui)
+        # Blocking...
+        run(gtk_ui)
+    end
+
+end
+
+# Start the application
+main!(ARGS)
