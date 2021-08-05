@@ -35,15 +35,26 @@ end
 
 function run(ui_interface::GTKUI)
     showall(ui_interface.window)
+
+    #= 
     if !isinteractive()
         @async Gtk.gtk_main()
         Gtk.waitforsignal(ui_interface.window, :destroy)
+    end =#
+
+    if !isinteractive()
+        c = Condition()
+        signal_connect(ui_interface.window, :destroy) do widget
+            notify(c)
+        end
+        @async Gtk.gtk_main()
+        wait(c)
     end
 end
 
 # -- active widgets
 function addButton(ui_interface::GTKUI, label::String, param::Symbol) 
-     button = GtkObservables.button(label)
+    button = GtkObservables.button(label)
     obs_func = on(observable(button)) do val
         setproperty!(ui_interface.dsp, param, FAUSTFLOAT(1.0))
     end

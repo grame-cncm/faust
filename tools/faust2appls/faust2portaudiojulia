@@ -14,6 +14,9 @@
 SRC="0"
 ARCHFILE=$FAUSTARCH/julia/audio/portaudio.jl
 
+PLAY=false
+THREAD=1
+
 #PHASE 2 : dispatch command arguments
 while [ $1 ]
 do
@@ -23,12 +26,17 @@ do
         usage faust2portaudiojulia "[options] [Faust options] <file.dsp>"
         require PortAudio
         echo "Compiles Faust programs to PortAudio and Julia binary"
+        option -play <num> "to start the 'Julia' runtime with <num> threads and the generated file.jl"
         option "Faust options"
     	exit
     fi
 
     if [ $p = "-source" ]; then
         SRC="1"
+    elif [ $p = "-play" ]; then
+    	PLAY=true
+    	shift
+        THREAD=$1
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
@@ -53,3 +61,7 @@ for p in $FILES; do
     faust -a $ARCHFILE -lang julia $OPTIONS "$f" -o "${f%.dsp}.jl"
 	
 done
+
+if [ $PLAY = true ] ; then
+	julia -t $THREAD "${f%.dsp}.jl"
+fi

@@ -41,17 +41,18 @@ test!() = begin
     # Create a MapUI controller
     map_ui = MapUI(dsp)
     buildUserInterface(dsp, map_ui)
-     # Print all zones
-     println(getZoneMap(map_ui))
+
+    # Print all zones
+    println(getZoneMap(map_ui))
      
-     #= Possibly change control values
-     - using simple labels (end of path):
-     setParamValue(map_ui, "freq", 500.0f0)
-     setParamValue(map_ui, "/volume", -10.0f0)
+    #= Possibly change control values
+    - using simple labels (end of path):
+    setParamValue(map_ui, "freq", 500.0f0)
+    setParamValue(map_ui, "/volume", -10.0f0)
     - or using complete path:
-     setParamValue(map_ui, "/Oscillator/freq", 500.0f0)
-     setParamValue(map_ui, "/Oscillator/volume", -10.0f0)
-     =#
+    setParamValue(map_ui, "/Oscillator/freq", 500.0f0)
+    setParamValue(map_ui, "/Oscillator/volume", -10.0f0)
+    =#
 
     inputs = zeros(REAL, block_size, getNumInputs(dsp))
     outputs = zeros(REAL, block_size, getNumOutputs(dsp)) 
@@ -60,7 +61,6 @@ test!() = begin
     osc_ui = OSCUI(dsp)
     buildUserInterface(dsp, osc_ui)
     run(osc_ui)
-
 end
 
 test!()

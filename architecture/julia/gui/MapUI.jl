@@ -39,7 +39,7 @@ function buildPath(builder::PathBuilder, label::String)
     res
 end
 
-# Range of sliders, nentries, bargraph
+# UIZone with for sliders, nentries and bargraph
 struct UIZone
     zone::Symbol
     init::Float32

@@ -47,7 +47,7 @@ struct StringTypeManager {
     virtual std::string generateType(Typed* type, const std::string& name) = 0;
 };
 
-// StringTypeManager for C/C++, Java  and FIR backends
+// StringTypeManager for C/C++, Java and FIR backends
 
 class CStringTypeManager : public StringTypeManager {
    public:
@@ -338,12 +338,10 @@ class JuliaStringTypeManager : public StringTypeManager {
         fPtrRef = ptr_ref;
 
         fTypeDirectTable[Typed::kInt32]     = "Int32";
-        //fTypeDirectTable[Typed::kInt32_ptr] = fPtrRef + "Int32";
         fTypeDirectTable[Typed::kInt32_ptr] = "Int32";
         fTypeDirectTable[Typed::kInt32_vec] = "vector<Int32>";
 
         fTypeDirectTable[Typed::kInt64]     = "Int64";
-        //fTypeDirectTable[Typed::kInt64_ptr] =  fPtrRef + "Int64";
         fTypeDirectTable[Typed::kInt64_ptr] = "Int64";
         fTypeDirectTable[Typed::kInt64_vec] = "vector<Int64>";
 
