@@ -45,9 +45,11 @@ mutable struct OSCUI <: UI
         osc_ui.snd_socket = UDPSocket()
         osc_ui.inport = inport
         osc_ui.outport = outport
-        meta = NameMeta("")
-        metadata(dsp, meta)
-        println("Faust OSC application '", meta.name, "' is running on UDP ports ", inport, ", ", outport)       
+        # Get root name, without the first '/'
+        tmp_map_ui = MapUI(dsp)
+        buildUserInterface(dsp, tmp_map_ui)
+        root = getRoot(tmp_map_ui)[2:end]
+        println("Faust OSC application '", root, "' is running on UDP ports ", inport, ", ", outport)       
         osc_ui
 	end
     dsp::dsp
