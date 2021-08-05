@@ -26,7 +26,7 @@ do
         usage faust2portaudiojulia "[options] [Faust options] <file.dsp>"
         require PortAudio
         echo "Compiles Faust programs to PortAudio and Julia binary"
-        option -play <num> "to start the 'Julia' runtime with <num> threads and the generated file.jl"
+        option "-play <num>" "to start the 'Julia' runtime with <num> threads and the generated file.jl"
         option "Faust options"
     	exit
     fi

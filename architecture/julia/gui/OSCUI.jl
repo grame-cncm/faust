@@ -19,6 +19,21 @@ include("/usr/local/share/faust/julia/gui/MapUI.jl")
 
 using OpenSoundControl, Sockets, MacroTools
 
+# Retrieve the application name
+mutable struct NameMeta <: Meta
+    name::String
+end
+
+function declare(m::NameMeta, key::String, value::String)
+    if (key == "name") 
+        m.name = value;
+        for c in [' ', '#', '*', ',', '?', '[', ']', '{', '}', '(', ')'] 
+            m.name = replace(m.name, c => '_')
+        end
+        m.name = "/" * m.name
+    end
+end
+
 # OSCUI: a GUI using the Open Sound Control (OSC) protocol to control parameters
 mutable struct OSCUI <: UI
     OSCUI(dsp::dsp, inport::Int=5000, outport::Int=5001) = begin
@@ -28,36 +43,44 @@ mutable struct OSCUI <: UI
         osc_ui.rcv_socket = UDPSocket()
         bind(osc_ui.rcv_socket, ip"127.0.0.1", inport)
         osc_ui.snd_socket = UDPSocket()
+        osc_ui.inport = inport
         osc_ui.outport = outport
+        meta = NameMeta("")
+        metadata(dsp, meta)
+        println("Faust OSC application '", meta.name, "' is running on UDP ports ", inport, ", ", outport)       
         osc_ui
 	end
     dsp::dsp
     map_ui::MapUI
     rcv_socket::UDPSocket
     snd_socket::UDPSocket
+    inport::Int
     outport::Int
- end
-
+end
+    
 # Receive and decode incoming OSC messages
 function run(ui_interface::OSCUI, block::Bool=true)
     function receiveMessage()
         while true
             message = OscMsg(recv(ui_interface.rcv_socket))
-            # println(message)
             osc_path = path(message)
             osc_value = message[1]
-            if (typeof(osc_value) == String 
-                && osc_path == "/*"
-                && osc_value == "hello") 
-                # TODO
-            elseif (typeof(osc_value) == String 
-                    && osc_value == "json") 
-                json_msg = OpenSoundControl.message("/dummy", "ss", "json", getJSON(ui_interface.dsp))
-                send(ui_interface.snd_socket, ip"127.0.0.1", ui_interface.outport, json_msg.data)
-            elseif (typeof(osc_value) == String && osc_value == "get")
-                # TODO
-            elseif (typeof(osc_value) == Float32)
+            root = getRoot(osc_ui.map_ui)
+            if (typeof(osc_value) == Float32)
                 setParamValue(ui_interface.map_ui, osc_path, osc_value);
+            elseif (typeof(osc_value) == String && osc_path == "/*" && osc_value == "hello") 
+                hello_msg = OpenSoundControl.message(root, "sii", "127.0.0.1", Int32(ui_interface.inport), Int32(ui_interface.outport))
+                send(ui_interface.snd_socket, ip"127.0.0.1", ui_interface.outport, hello_msg.data)
+            elseif (root == osc_path && typeof(osc_value) == String && osc_value == "json") 
+                json_msg = OpenSoundControl.message(root, "ss", "json", getJSON(ui_interface.dsp))
+                send(ui_interface.snd_socket, ip"127.0.0.1", ui_interface.outport, json_msg.data)
+            elseif (root == osc_path && typeof(osc_value) == String && osc_value == "get")
+                for item in getZoneMap(osc_ui.map_ui)
+                    path = item.first
+                    zone = item.second
+                    ctrl_msg = OpenSoundControl.message(root, "sfff", path, zone.init, zone.min, zone.max)
+                    send(ui_interface.snd_socket, ip"127.0.0.1", ui_interface.outport, ctrl_msg.data)
+                end
             end 
         end
     end
@@ -70,7 +93,7 @@ end
 
 # Does not work ?
 # MacroTools.@forward OSCUI.map_ui openTabBox, openHorizontalBox, openVerticalBox, closeBox, addButton, addCheckButton, addHorizontalSlider, addHorizontalSlider, addNumEntry, addHorizontalBargraph, addVerticalBargraph
-
+    
 # -- widget's layouts
 function openTabBox(ui_interface::OSCUI, label::String)
     openTabBox(ui_interface.map_ui, label)

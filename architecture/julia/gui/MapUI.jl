@@ -143,3 +143,7 @@ function getZoneMap(ui_interface::MapUI)
     return ui_interface.osc_paths
 end
 
+function getRoot(ui_interface::MapUI)
+    first_path = collect(keys(ui_interface.osc_paths))[1]
+    return "/" * split(first_path, '/')[2]
+end

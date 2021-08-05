@@ -1,6 +1,6 @@
 
 
-# Julia architecture 
+# Julia architecture files 
 
 [Julia](https://julialang.org) is a high-level, high-performance, dynamic programming language. While it is a general-purpose language and can be used to write any application, many of its features are well suited for numerical analysis and computational science.
 
@@ -17,17 +17,15 @@ A [Julia backend](https://github.com/grame-cncm/faust/tree/master-dev/compiler/g
 
 ## faust2portaudiojulia
 
-The **faust2portaudiojulia** tool transforms a Faust DSP program into a fully working Julia source file which uses the [PortAudio library](http://portaudio.com) for real-time audio rendering, and which can be controlled with OSC messages (TODO). 
+The **faust2portaudiojulia** tool transforms a Faust DSP program into a fully working Julia source file which uses the [PortAudio library](http://portaudio.com) for real-time audio rendering, and can be controlled with OSC messages. It uses the `MapUI.jl`, `OSCUI.jl` and `GTKUI.jl` architecture files. 
 
-**faust2portaudiojulia** uses the `MapUI.jl` and `OSCUI.jl` architecture files. 
+`faust2portaudiojulia [-play <num>] [additional Faust options (-vec -vs 8...)] file.dsp` 
 
- ## How to use
+Here are the available options:
 
-**faust2portaudiojulia** is used with the following command: 
+- `-play <num> : to start the 'Julia' runtime with <num> threads and the generated file.jl`
 
-`faust2portaudiojulia [additional Faust options (-vec -vs 8...)] file.dsp` 
-
-By default, it will create a `file.jl` to be executed with the `julia file.jl` command, or in an interactive session.
+By default, it will create a `file.jl` to be executed with the `julia file.jl` command, or in an interactive session. Using   `-play <num>` optiosn allows to directly start the Julia executable.
 
 - `-help or -h` : shows the different options 
 
