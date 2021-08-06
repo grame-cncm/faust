@@ -78,7 +78,19 @@ class DLangInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sqrtf"]  = "sqrt";
         gPolyMathLibTable["tanf"]   = "tan";
         gPolyMathLibTable["tanhf"]  = "tanh";
-
+    
+        // Hyperbolic
+        gPolyMathLibTable["acoshf"]     = "acosh";
+        gPolyMathLibTable["asinhf"]     = "asinh";
+        gPolyMathLibTable["atanhf"]     = "atanh";
+        gPolyMathLibTable["coshf"]      = "cosh";
+        gPolyMathLibTable["sinhf"]      = "sinh";
+        gPolyMathLibTable["tanhf"]      = "tanh";
+        
+        gPolyMathLibTable["isnanf"]     = "isnan";
+        gPolyMathLibTable["isinff"]     = "isinf";
+        gPolyMathLibTable["copysignf"]  = "copysign";
+   
         // Double version
         gPolyMathLibTable["fabs"]  = "fabs";
         gPolyMathLibTable["acos"]  = "acos";
@@ -103,6 +115,18 @@ class DLangInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sqrt"]  = "sqrt";
         gPolyMathLibTable["tan"]   = "tan";
         gPolyMathLibTable["tanh"]  = "tanh";
+    
+        // Hyperbolic
+        gPolyMathLibTable["acosh"]     = "acosh";
+        gPolyMathLibTable["asinh"]     = "asinh";
+        gPolyMathLibTable["atanh"]     = "atanh";
+        gPolyMathLibTable["cosh"]      = "cosh";
+        gPolyMathLibTable["sinh"]      = "sinh";
+        gPolyMathLibTable["tanh"]      = "tanh";
+        
+        gPolyMathLibTable["isnan"]     = "isnan";
+        gPolyMathLibTable["isinf"]     = "isinf";
+        gPolyMathLibTable["copysign"]  = "copysign";
     }
 
     virtual ~DLangInstVisitor() {}

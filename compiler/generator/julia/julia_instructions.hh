@@ -233,7 +233,11 @@ class JuliaInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["coshf"]      = "cosh";
         gPolyMathLibTable["sinhf"]      = "sinh";
         gPolyMathLibTable["tanhf"]      = "tanh";
-
+    
+        gPolyMathLibTable["isnanf"]     = "isnan";
+        gPolyMathLibTable["isinff"]     = "isinf";
+        gPolyMathLibTable["copysignf"]  = "copysign";
+        
         // Polymath mapping double version
         gPolyMathLibTable["max_"] = "max";
         gPolyMathLibTable["min_"] = "min";
@@ -269,40 +273,9 @@ class JuliaInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sinh"]      = "sinh";
         gPolyMathLibTable["tanh"]      = "tanh";
 
-        // Polymath mapping quad version
-        gPolyMathLibTable["max_l"] = "max";
-        gPolyMathLibTable["min_l"] = "min";
-
-        gPolyMathLibTable["fabsl"]      = "abs";
-        gPolyMathLibTable["acosl"]      = "acos";
-        gPolyMathLibTable["asinl"]      = "asin";
-        gPolyMathLibTable["atanl"]      = "atan";
-        gPolyMathLibTable["atan2l"]     = "atan";
-        gPolyMathLibTable["ceill"]      = "ceil";
-        gPolyMathLibTable["cosl"]       = "cos";
-        gPolyMathLibTable["expl"]       = "exp";
-        gPolyMathLibTable["exp2l"]      = "exp2";
-        gPolyMathLibTable["exp10l"]     = "exp10";
-        gPolyMathLibTable["floorl"]     = "floor";
-        gPolyMathLibTable["fmodl"]      = "mod";
-        gPolyMathLibTable["logl"]       = "log";
-        gPolyMathLibTable["log2l"]      = "log2";
-        gPolyMathLibTable["log10l"]     = "log10";
-        gPolyMathLibTable["powl"]       = "pow";
-        gPolyMathLibTable["remainder"]  = "remainder";
-        gPolyMathLibTable["rintl"]      = "rint";
-        gPolyMathLibTable["roundl"]     = "round";
-        gPolyMathLibTable["sinl"]       = "sin";
-        gPolyMathLibTable["sqrtl"]      = "sqrt";
-        gPolyMathLibTable["tanl"]       = "tan";
-    
-        // Hyperbolic
-        gPolyMathLibTable["acoshl"]     = "acosh";
-        gPolyMathLibTable["asinhl"]     = "asinh";
-        gPolyMathLibTable["atanhl"]     = "atanh";
-        gPolyMathLibTable["coshl"]      = "cosh";
-        gPolyMathLibTable["sinhl"]      = "sinh";
-        gPolyMathLibTable["tanhl"]      = "tanh";
+        gPolyMathLibTable["isnan"]     = "isnan";
+        gPolyMathLibTable["isinf"]     = "isinf";
+        gPolyMathLibTable["copysign"]  = "copysign";
     
         fIntAsBool = false;
     }

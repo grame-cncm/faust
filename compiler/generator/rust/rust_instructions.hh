@@ -127,6 +127,10 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["coshf"]      = "F32::cosh";
         fMathLibTable["sinhf"]      = "F32::sinh";
         fMathLibTable["tanhf"]      = "F32::tanh";
+    
+        fMathLibTable["isnanf"]     = "F32::is_nan";
+        fMathLibTable["isinff"]     = "F32::is_infinite";
+        fMathLibTable["copysignf"]  = "F32::copysign";
 
         // Double version
         fMathLibTable["fabs"]      = "F64::abs";
@@ -159,6 +163,10 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["cosh"]      = "F64::cosh";
         fMathLibTable["sinh"]      = "F64::sinh";
         fMathLibTable["tanh"]      = "F64::tanh";
+    
+        fMathLibTable["isnan"]     = "F64::is_nan";
+        fMathLibTable["isinf"]     = "F64::is_infinite";
+        fMathLibTable["copysign"]  = "F64::copysign";
     }
 
     virtual ~RustInstVisitor() {}

@@ -590,6 +590,10 @@ void global::init()
     gMathForeignFunctions["isinff"] = true;
     gMathForeignFunctions["isinf"]  = true;
     gMathForeignFunctions["isinfl"] = true;
+    
+    gMathForeignFunctions["copysignf"] = true;
+    gMathForeignFunctions["copysign"]  = true;
+    gMathForeignFunctions["copysignl"] = true;
 }
 
 static string printFloat()

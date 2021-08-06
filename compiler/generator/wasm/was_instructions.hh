@@ -149,7 +149,8 @@ struct WASInst {
         fMathLibTable["tanhf"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "tanh", Typed::kFloat, Typed::kFloat, 1);
         
         fMathLibTable["isnanf"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "isnan", Typed::kFloat, Typed::kInt32, 1);
-        fMathLibTable["isinff"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "isinf", Typed::kFloat, Typed::kInt32, 1);
+        fMathLibTable["isinff"]     =  MathFunDesc(MathFunDesc::Gen::kExtWAS, "isinf", Typed::kFloat, Typed::kInt32, 1);
+        fMathLibTable["copysignf"]  =  MathFunDesc(MathFunDesc::Gen::kExtWAS, "copysign", Typed::kFloat, Typed::kFloat, 2);
         
         // Double version
         fMathLibTable["fabs"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "abs", WasmOp::F64Abs, Typed::kDouble, Typed::kDouble, 1);
@@ -184,7 +185,8 @@ struct WASInst {
         fMathLibTable["tanh"]      =  MathFunDesc(MathFunDesc::Gen::kExtMath, "tanh", Typed::kDouble, Typed::kDouble, 1);
    
         fMathLibTable["isnan"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "isnan", Typed::kDouble, Typed::kInt32, 1);
-        fMathLibTable["isinf"]     =  MathFunDesc(MathFunDesc::Gen::kExtMath, "isinf", Typed::kDouble, Typed::kInt32, 1);
+        fMathLibTable["isinf"]     =  MathFunDesc(MathFunDesc::Gen::kExtWAS, "isinf", Typed::kDouble, Typed::kInt32, 1);
+        fMathLibTable["copysign"]  =  MathFunDesc(MathFunDesc::Gen::kExtWAS, "copysign", Typed::kDouble, Typed::kDouble, 2);
         
         fStructOffset     = 0;
         fSubContainerType = -1;

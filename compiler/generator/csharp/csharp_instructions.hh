@@ -85,12 +85,18 @@ class CSharpInstVisitor : public TextInstVisitor {
         gMathLibTable["remainderf"] = "(float)Math.IEEERemainder";
         gMathLibTable["rintf"]  = "(float)Math.Round";
 
+        // Additional hyperbolic math functions
         gMathLibTable["acoshf"] = "(float)Math.Acosh";
         gMathLibTable["asinhf"] = "(float)Math.Asinh";
         gMathLibTable["atanhf"] = "(float)Math.Atanh";
         gMathLibTable["coshf"]  = "(float)Math.Cosh";
         gMathLibTable["sinhf"]  = "(float)Math.Sinh";
         gMathLibTable["tanhf"]  = "(float)Math.Tanh";
+    
+        gMathLibTable["isnanf"]     = "(float)Math.IsNan";
+        // Manually implemented
+        gMathLibTable["isinff"]     = "IsInfinity";
+        gMathLibTable["copysignf"]  = "(float)Math.CopySign";
 
         // Double version
         gMathLibTable["fabs"]  = "Math.Abs";
@@ -118,13 +124,20 @@ class CSharpInstVisitor : public TextInstVisitor {
 
         gMathLibTable["remainder"] = "Math.IEEERemainder";
         gMathLibTable["rint"]  = "Math.Round";
-
+    
+        // Additional hyperbolic math functions
         gMathLibTable["acosh"] = "Math.Acosh";
         gMathLibTable["asinh"] = "Math.Asinh";
         gMathLibTable["atanh"] = "Math.Atanh";
         gMathLibTable["cosh"]  = "Math.Cosh";
         gMathLibTable["sinh"]  = "Math.Sinh";
         gMathLibTable["tanh"]  = "Math.Tanh";
+    
+        gMathLibTable["isnan"]     = "Math.IsNan";
+        // Manually implemented
+        gMathLibTable["isinf"]     = "IsInfinity";
+        gMathLibTable["copysign"]  = "Math.CopySign";
+
     }
 
     virtual ~CSharpInstVisitor() {}

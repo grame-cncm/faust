@@ -98,9 +98,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["sqrtf"]      = FBCInstruction::kSqrtf;
         gMathLibTable["tanf"]       = FBCInstruction::kTanf;
         
-        gMathLibTable["isnanf"]     = FBCInstruction::kIsnanf;
-        gMathLibTable["isinff"]     = FBCInstruction::kIsinff;
-        
         // Hyperbolic
         gMathLibTable["acoshf"]     = FBCInstruction::kAcoshf;
         gMathLibTable["asinhf"]     = FBCInstruction::kAsinhf;
@@ -109,6 +106,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["sinhf"]      = FBCInstruction::kSinhf;
         gMathLibTable["tanhf"]      = FBCInstruction::kTanhf;
 
+        gMathLibTable["isnanf"]     = FBCInstruction::kIsnanf;
+        gMathLibTable["isinff"]     = FBCInstruction::kIsinff;
+        gMathLibTable["copysignf"]  = FBCInstruction::kCopysignf;
+        
         // Double version
         gMathLibTable["fabs"]      = FBCInstruction::kAbsf;
         gMathLibTable["acos"]      = FBCInstruction::kAcosf;
@@ -132,9 +133,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["sqrt"]      = FBCInstruction::kSqrtf;
         gMathLibTable["tan"]       = FBCInstruction::kTanf;
         
-        gMathLibTable["isnan"]     = FBCInstruction::kIsnanf;
-        gMathLibTable["isinf"]     = FBCInstruction::kIsinff;
-        
         // Hyperbolic
         gMathLibTable["acosh"]     = FBCInstruction::kAcoshf;
         gMathLibTable["asinh"]     = FBCInstruction::kAsinhf;
@@ -142,7 +140,11 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         gMathLibTable["cosh"]      = FBCInstruction::kCoshf;
         gMathLibTable["sinh"]      = FBCInstruction::kSinhf;
         gMathLibTable["tanh"]      = FBCInstruction::kTanhf;
-
+ 
+        gMathLibTable["isnan"]     = FBCInstruction::kIsnanf;
+        gMathLibTable["isinf"]     = FBCInstruction::kIsinff;
+        gMathLibTable["copysign"]  = FBCInstruction::kCopysignf;
+        
         // Min/max directly handled in FunCallInst
     }
 

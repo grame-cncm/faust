@@ -1,4 +1,4 @@
-// teste la précision des valeurs
+// Test values precision
 process = waveform {-1.83767764006829192879877155064605e+00,-1.83767764006829192879877155064606e+00,2,3,4,5,6,7,8,9,
 	1.2,
 	1.02,
