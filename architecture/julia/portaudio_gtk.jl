@@ -27,6 +27,9 @@ include("/usr/local/share/faust/julia/gui/OSCUI.jl")
 <<includeclass>>
 
 # Main code
+
+using ThreadPools
+
 function main!(args)
 
     # DSP allocation

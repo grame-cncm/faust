@@ -17,8 +17,8 @@
 # Architectures
 include("/usr/local/share/faust/julia/audio/audio.jl")
 
- # Using PortAudio for audio rendering
- using PortAudio, ThreadPools
+# Using PortAudio for audio rendering
+using PortAudio
 
 mutable struct portaudio <: audio
     portaudio(buffer_size::Int, sample_rate::Int) = begin
