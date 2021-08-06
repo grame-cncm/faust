@@ -184,7 +184,9 @@ for p in $FILES; do
 
     if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
         codesign --sign - --deep --force "$SRCDIR/${f%.dsp}.$EXT"
-        codesign --sign - --deep --force "$SRCDIR/${f%.dsp}_supernova.$EXT"
+        if [ $SUPERNOVA_FLAG = 1 ]; then
+            codesign --sign - --deep --force "$SRCDIR/${f%.dsp}_supernova.$EXT"
+        fi
     fi
 
     if [ $KEEP_SRC = 1 ]; then
