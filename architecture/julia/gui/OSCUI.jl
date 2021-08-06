@@ -16,6 +16,7 @@
 
 include("/usr/local/share/faust/julia/dsp/dsp.jl")
 include("/usr/local/share/faust/julia/gui/MapUI.jl")
+include("/usr/local/share/faust/julia/gui/meta.jl")
 
 using OpenSoundControl, Sockets, MacroTools
 

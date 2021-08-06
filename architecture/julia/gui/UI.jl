@@ -14,7 +14,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # ************************************************************************
 
-# Architecture
+# UI architecture
 abstract type UI end
 
 # One can override the behavior by defining another set of methods 
