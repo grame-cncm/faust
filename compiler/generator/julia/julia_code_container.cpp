@@ -333,7 +333,7 @@ void JuliaCodeContainer::generateCompute(int n)
     // Generates one single scalar loop
     SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(fFullCount);
     loop->accept(fCodeProducer);
-
+    
     /*
     // TODO : atomic switch
     // Currently for soundfile management

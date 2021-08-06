@@ -1305,8 +1305,8 @@ struct SimpleForLoopInst : public StatementInst {
     const bool   fReverse;
     BlockInst* fCode;
 
-    SimpleForLoopInst(const string& index, ValueInst* upperBound, ValueInst* lowerBound, bool reverse, BlockInst* code)
-        : fUpperBound(upperBound), fLowerBound(lowerBound), fName(index), fReverse(reverse), fCode(code)
+    SimpleForLoopInst(const string& name, ValueInst* upperBound, ValueInst* lowerBound, bool reverse, BlockInst* code)
+        : fUpperBound(upperBound), fLowerBound(lowerBound), fName(name), fReverse(reverse), fCode(code)
     {
     }
 
@@ -1690,11 +1690,15 @@ struct DispatchVisitor : public InstVisitor {
     virtual void visit(SimpleForLoopInst* inst)
     {
         inst->fUpperBound->accept(this);
+        inst->fLowerBound->accept(this);
         inst->fCode->accept(this);
     }
 
     virtual void visit(IteratorForLoopInst* inst)
     {
+        for (const auto& it : inst->fIterators) {
+            it->accept(this);
+        }
         inst->fCode->accept(this);
     }
 
@@ -2156,13 +2160,13 @@ struct InstBuilder {
     }
 
     // Used for Rust backend
-    static SimpleForLoopInst* genSimpleForLoopInst(const string& index, ValueInst* upperBound,
+    static SimpleForLoopInst* genSimpleForLoopInst(const string& name, ValueInst* upperBound,
                                                    ValueInst* lowerBound = new Int32NumInst(0), bool reverse = false,
                                                    BlockInst* code = new BlockInst())
     {
         faustassert(dynamic_cast<Int32NumInst*>(upperBound) || dynamic_cast<LoadVarInst*>(upperBound));
         faustassert(dynamic_cast<Int32NumInst*>(lowerBound) || dynamic_cast<LoadVarInst*>(lowerBound));
-        return new SimpleForLoopInst(index, upperBound, lowerBound, reverse, code);
+        return new SimpleForLoopInst(name, upperBound, lowerBound, reverse, code);
     }
     static IteratorForLoopInst* genIteratorForLoopInst(const std::vector<NamedAddress*>& iterators, bool reverse = false,
                                                        BlockInst* code = new BlockInst())
