@@ -12,8 +12,10 @@ A [Julia backend](https://github.com/grame-cncm/faust/tree/master-dev/compiler/g
 - `gui/GTKUI.jl`: contains a basic GUI generator developed using the [GtkObservables.jl](https://github.com/JuliaGizmos/GtkObservables.jl) package
 - `gui/OSCUI.jl`: allows to control the DSP parameters using the Open Sound Control (OSC) protocol with the [OSC.jl](https://github.com/fundamental/OpenSoundControl.jl) package
 - `dsp/dsp.jl`: contains the base DSP type definition and associated methods
+- `audio/audio.jl`: defines the base type and methods for audio drivers
 - `audio/portaudio.jl`: allows to use the [PortAudio library](http://portaudio.com) for real-time audio rendering
 - `minimal.jl`: shows how the generated Julia code can be used in a minimal program which allocates and instantiate the DSP, and call the `compute` function. The `MapUI.jl` file is used to possibly control the DSP.  Use  `faust -lang julia -a julia/minimal.jl foo.dsp -o foo.jl ` to create a ready to test  `foo.jl` file.
+- `portaudio_gtk.jl`: an architecture file used by the **faust2portaudiojulia** tool that combines the PortAudio driver and GTK and OSC controllers.
 
 ## faust2portaudiojulia
 
