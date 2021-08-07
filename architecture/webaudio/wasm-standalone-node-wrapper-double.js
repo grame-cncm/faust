@@ -22,8 +22,7 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
     var ptr_size = 8;
     var sample_size = 8;  // double
 
-    function pow2limit (x)
-    {
+    function pow2limit(x) {
         var n = 65536; // Minimum = 64 kB
         while (n < x) { n = 2 * n; }
         return n;
@@ -66,8 +65,7 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
 
     var pathTable = [];
 
-    function update_outputs ()
-    {
+    function update_outputs() {
         if (outputs_items.length > 0 && output_handler && outputs_timer-- === 0) {
             outputs_timer = 5;
             for (var i = 0; i < outputs_items.length; i++) {
@@ -76,8 +74,7 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
         }
     }
 
-    function computeAux (inputs, outputs)
-    {
+    function computeAux(inputs, outputs) {
         var i, j;
 
         // Read inputs
@@ -102,44 +99,40 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
     };
 
     // JSON parsing
-    function parse_ui (ui)
-    {
+    function parse_ui(ui) {
         for (var i = 0; i < ui.length; i++) {
             parse_group(ui[i]);
         }
     }
 
-    function parse_group (group)
-    {
+    function parse_group(group) {
         if (group.items) {
             parse_items(group.items);
         }
     }
 
-    function parse_items (items)
-    {
+    function parse_items(items) {
         var i;
         for (i = 0; i < items.length; i++) {
             parse_item(items[i]);
         }
     }
 
-    function parse_item (item)
-    {
+    function parse_item(item) {
         if (item.type === "vgroup"
-        	|| item.type === "hgroup"
-        	|| item.type === "tgroup") {
+            || item.type === "hgroup"
+            || item.type === "tgroup") {
             parse_items(item.items);
         } else if (item.type === "hbargraph"
-        	|| item.type === "vbargraph") {
+            || item.type === "vbargraph") {
             // Keep bargraph adresses
             outputs_items.push(item.address);
             pathTable[item.address] = parseInt(item.index);
         } else if (item.type === "vslider"
-        	|| item.type === "hslider"
-        	|| item.type === "button"
-        	|| item.type === "checkbox"
-        	|| item.type === "nentry") {
+            || item.type === "hslider"
+            || item.type === "button"
+            || item.type === "checkbox"
+            || item.type === "nentry") {
             // Keep inputs adresses
             inputs_items.push(item.address);
             pathTable[item.address] = parseInt(item.index);
@@ -147,22 +140,21 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
                 buttons_items.push(item.address);
                 default_values.push(0);
             } else if (item.type === "checkbox") {
-            	default_values.push(0);
+                default_values.push(0);
             } else {
                 default_values.push(parseFloat(item.init));
             }
         }
     }
 
-    function init ()
-    {
+    function init() {
         var i;
 
         if (numIn > 0) {
             ins = audio_heap_ptr_inputs;
             for (i = 0; i < numIn; i++) {
                 HEAP32[(ins >> 2) + i] = audio_heap_inputs + ((buffer_size * sample_size) * i);
-           }
+            }
 
             // Prepare Ins buffer tables
             var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);
@@ -196,107 +188,88 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
     // External API
     return {
 
-        getSampleRate : function ()
-        {
+        getSampleRate: function () {
             return factory.getSampleRate(dsp);
         },
 
-        getNumInputs : function ()
-        {
+        getNumInputs: function () {
             return numIn;
         },
 
-        getNumOutputs : function ()
-        {
+        getNumOutputs: function () {
             return numOut;
         },
 
-        init : function (sample_rate)
-        {
+        init: function (sample_rate) {
             factory.init(dsp, sample_rate);
         },
 
-        instanceInit : function (sample_rate)
-        {
+        instanceInit: function (sample_rate) {
             factory.instanceInit(dsp, sample_rate);
         },
 
-        instanceConstants : function (sample_rate)
-        {
+        instanceConstants: function (sample_rate) {
             factory.instanceConstants(dsp, sample_rate);
         },
 
-        instanceResetUserInterface : function ()
-        {
+        instanceResetUserInterface: function () {
             factory.instanceResetUserInterface(dsp);
         },
 
-        instanceClear : function ()
-        {
+        instanceClear: function () {
             factory.instanceClear(dsp);
         },
 
-        setOutputParamHandler : function (handler)
-        {
+        setOutputParamHandler: function (handler) {
             output_handler = handler;
         },
 
-        getOutputParamHandler : function ()
-        {
+        getOutputParamHandler: function () {
             return output_handler;
         },
 
-        setParamValue : function (path, val)
-        {
+        setParamValue: function (path, val) {
             factory.setParamValue(dsp, pathTable[path], val);
         },
 
-        getParamValue : function (path)
-        {
+        getParamValue: function (path) {
             return factory.getParamValue(dsp, pathTable[path]);
         },
 
-        getParams : function()
-        {
+        getParams: function () {
             return inputs_items;
         },
 
-        getButtonsParams : function()
-        {
+        getButtonsParams: function () {
             return buttons_items;
         },
 
-        getJSON : function ()
-        {
+        getJSON: function () {
             return getJSONmydsp();
         },
 
-        compute : function (inputs, outputs)
-        {
+        compute: function (inputs, outputs) {
             computeAux(inputs, outputs);
         },
 
-        checkDefaults : function ()
-		{
-			for (var i = 0; i < default_values.length; i++) {
-				if (default_values[i] !== factory.getParamValue(dsp, pathTable[inputs_items[i]])) return false;
-			}
-			return true;
-		},
+        checkDefaults: function () {
+            for (var i = 0; i < default_values.length; i++) {
+                if (default_values[i] !== factory.getParamValue(dsp, pathTable[inputs_items[i]])) return false;
+            }
+            return true;
+        },
 
-		initRandom : function ()
-		{
-			for (var i = 0; i < default_values.length; i++) {
+        initRandom: function () {
+            for (var i = 0; i < default_values.length; i++) {
                 factory.setParamValue(dsp, pathTable[inputs_items[i]], 0.123456789);
-			}
-		}
+            }
+        }
     };
 };
 
 // Helper functions
 
-var create = function(ins, outs, buffer_size)
-{
+var create = function (ins, outs, buffer_size) {
     for (var i = 0; i < ins; i++) {
         inputs.push(new Float64Array(buffer_size));
     }
@@ -305,8 +278,7 @@ var create = function(ins, outs, buffer_size)
     }
 }
 
-var impulse = function(ins, buffer_size)
-{
+var impulse = function (ins, buffer_size) {
     for (var i = 0; i < ins; i++) {
         inputs[i][0] = 1.0;
         for (var f = 1; f < buffer_size; f++) {
@@ -315,8 +287,7 @@ var impulse = function(ins, buffer_size)
     }
 }
 
-var zero = function(ins, buffer_size)
-{
+var zero = function (ins, buffer_size) {
     for (var i = 0; i < ins; i++) {
         for (var f = 0; f < buffer_size; f++) {
             inputs[i][f] = 0.0;
@@ -324,16 +295,14 @@ var zero = function(ins, buffer_size)
     }
 }
 
-var normalize = function(f)
-{
+var normalize = function (f) {
     return (Math.abs(f) < 0.000001) ? 0.0 : f;
 }
 
-var setButtons = function(dsp, value)
-{
+var setButtons = function (dsp, value) {
     var buttons = dsp.getButtonsParams();
     for (var i = 0; i < buttons.length; i++) {
-         dsp.setParamValue(buttons[i], value);
+        dsp.setParamValue(buttons[i], value);
     }
 }
 
@@ -348,9 +317,8 @@ var linenum = 0;
 var run = 0;
 var control_data;
 
-function startDSP(instance, buffer_size)
-{
-	// Creates DSP and buffers
+function startDSP(instance, buffer_size) {
+    // Creates DSP and buffers
     var DSP = faust.mydsp(null, instance, buffer_size, sample_rate);
     create(DSP.getNumInputs(), DSP.getNumOutputs(), buffer_size);
 
@@ -407,9 +375,9 @@ function startDSP(instance, buffer_size)
         var lines = control_data.split('\n');
         for (var line = 0; line < lines.length; line++) {
             var param = lines[line].split(' ');
-            DSP.setParamValue('/'+ param[1], parseFloat(param[0]));
+            DSP.setParamValue('/' + param[1], parseFloat(param[0]));
         }
-    } catch (e) {}
+    } catch (e) { }
 
     // Compute samples and write output file
     while (nbsamples > 0) {
@@ -436,8 +404,7 @@ function startDSP(instance, buffer_size)
     }
 }
 
-function toUint8Array(buf)
-{
+function toUint8Array(buf) {
     var res = new Uint8Array(buf.length);
     for (var i = 0; i < buf.length; ++i) {
         res[i] = buf[i];
@@ -462,12 +429,12 @@ var importObject = {
         _cosf: Math.cos,
         _expf: Math.exp,
         _floorf: Math.floor,
-        _fmodf: function(x, y) { return x % y; },
+        _fmodf: function (x, y) { return x % y; },
         _logf: Math.log,
         _log10f: Math.log10,
         _max_f: Math.max,
         _min_f: Math.min,
-        _remainderf: function(x, y) { return x - Math.round(x/y) * y; },
+        _remainderf: function (x, y) { return x - Math.round(x / y) * y; },
         _powf: Math.pow,
         _roundf: Math.fround,
         _sinf: Math.sin,
@@ -479,6 +446,9 @@ var importObject = {
         _cosh: Math.cosh,
         _sinh: Math.sinh,
         _tanh: Math.tanh,
+        _isnanf: Number.isNaN,
+        _isinff: function (x) { return !isFinite(x); },
+        _copysignf: function (x, y) { return Math.sign(x) === Math.sign(y) ? x : -x; },
 
         // Double version
         _acos: Math.acos,
@@ -489,12 +459,12 @@ var importObject = {
         _cos: Math.cos,
         _exp: Math.exp,
         _floor: Math.floor,
-        _fmod: function(x, y) { return x % y; },
+        _fmod: function (x, y) { return x % y; },
         _log: Math.log,
         _log10: Math.log10,
         _max_: Math.max,
         _min_: Math.min,
-        _remainder:function(x, y) { return x - Math.round(x/y) * y; },
+        _remainder: function (x, y) { return x - Math.round(x / y) * y; },
         _pow: Math.pow,
         _round: Math.fround,
         _sin: Math.sin,
@@ -506,6 +476,9 @@ var importObject = {
         _cosh: Math.cosh,
         _sinh: Math.sinh,
         _tanh: Math.tanh,
+        _isnan: Number.isNaN,
+        _isinf: function (x) { return !isFinite(x); },
+        _copysign: function (x, y) { return Math.sign(x) === Math.sign(y) ? x : -x; },
 
         table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
     }
@@ -515,8 +488,9 @@ var response = toUint8Array(fs.readFileSync('DSP.wasm'));
 var bytes = response.buffer;
 
 var res = WebAssembly.compile(bytes)
-        .then(m => {
-          WebAssembly.instantiate(m, importObject)
-          .then(instance => { startDSP(instance, buffer_size); })
-          .catch(function(e1) { console.error(e1); console.error("WebAssembly.instantiate ERROR"); process.exit(1); });})
-        .catch(function(e2) { console.error(e2); console.error("WebAssembly.compile ERROR"); process.exit(1);});
+    .then(m => {
+        WebAssembly.instantiate(m, importObject)
+            .then(instance => { startDSP(instance, buffer_size); })
+            .catch(function (e1) { console.error(e1); console.error("WebAssembly.instantiate ERROR"); process.exit(1); });
+    })
+    .catch(function (e2) { console.error(e2); console.error("WebAssembly.compile ERROR"); process.exit(1); });

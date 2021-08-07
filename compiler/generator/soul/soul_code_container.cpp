@@ -186,15 +186,7 @@ void SOULCodeContainer::produceInit(int tabs)
 void SOULCodeContainer::produceClass()
 {
     int n = 0;
-    
-    tab(n, *fOut);
-    if (gGlobal->gFloatSize == 1) {
-        *fOut << "float32 copysign(float32 x, float32 y) { return abs(x) * ((y < 0.0f) ? -1.0f : 1.0f); }";
-    } else if (gGlobal->gFloatSize == 2) {
-        *fOut << "float64 copysign(float64 x, float64 y) { return abs(x) * ((y < 0.0) ? -1.0 : 1.0); }";
-    }
-    tab(n, *fOut);
-
+   
     // Look for the "fillXXX" function
     generateStaticInit(gGlobal->gTableSizeVisitor);
     generateInit(gGlobal->gTableSizeVisitor);
@@ -303,8 +295,18 @@ void SOULCodeContainer::produceClass()
   
     // Generate gub containers
     generateSubContainers();
+    
+    // Missing math functions
+    tab(n + 1, *fOut);
+    if (gGlobal->gFloatSize == 1) {
+        *fOut << "float32 copysign(float32 x, float32 y) { return abs(x) * ((y < 0.0f) ? -1.0f : 1.0f); }";
+    } else if (gGlobal->gFloatSize == 2) {
+        *fOut << "float64 copysign(float64 x, float64 y) { return abs(x) * ((y < 0.0) ? -1.0 : 1.0); }";
+    }
+    tab(n + 1, *fOut);
 
     // inputs/outputs
+    tab(n + 1, *fOut);
     *fOut << "int getNumInputs() { return " << fNumInputs << "; }";
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);

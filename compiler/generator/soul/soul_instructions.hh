@@ -297,7 +297,7 @@ class SOULInstVisitor : public TextInstVisitor {
         
         gPolyMathLibTable["isnanf"]  = "isnan";
         gPolyMathLibTable["isinff"]  = "isinf";
-        // Manually implemented with copysign(x, y) = abs(x) * ((y < 0.0f) ? -1.0f : 1.0f);
+        // Manually implemented
         gPolyMathLibTable["copysignf"]  = "copysign";
 
         // Polymath mapping double version
@@ -337,7 +337,7 @@ class SOULInstVisitor : public TextInstVisitor {
 
         gPolyMathLibTable["isnan"]  = "isnan";
         gPolyMathLibTable["isinf"]  = "isinf";
-        // Manually implemented with copysign(x, y) = abs(x) * ((y < 0.0) ? -1.0 : 1.0);
+        // Manually implemented
         gPolyMathLibTable["copysignf"]  = "copysign";
 
         fIntAsBool = false;
