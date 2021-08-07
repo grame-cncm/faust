@@ -38,48 +38,14 @@ mutable struct ControlUI <: UI
     buttons::Vector{Symbol}  # list of buttons (of type :fHslider0)
 end
 
-# -- widget's layouts
-function openTabBox(ui_interface::ControlUI, label::String)
-end
-function openHorizontalBox(ui_interface::ControlUI, label::String)
-end
-function openVerticalBox(ui_interface::ControlUI, label::String)
-end
-function closeBox(ui_interface::ControlUI)
-end
-
 # -- active widgets
 function addButton(ui_interface::ControlUI, label::String, param::Symbol) 
     push!(ui_interface.buttons, param)
 end
-function addCheckButton(ui_interface::ControlUI, label::String, param::Symbol) 
-    push!(ui_interface.buttons, param)
-end
-function addHorizontalSlider(ui_interface::ControlUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
-end
-function addVerticalSlider(ui_interface::ControlUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
-end
-function addNumEntry(ui_interface::ControlUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
-end
 
-# -- passive widgets
-function addHorizontalBargraph(ui_interface::ControlUI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
-end
-function addVerticalBargraph(ui_interface::ControlUI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
-end
-
-# -- soundfiles
-function addSoundfile(ui_interface::ControlUI, label::String, filename::String, soundfile::Symbol) 
-end
-
-# -- metadata declarations
-function declare(ui_interface::ControlUI, param::Symbol, key::String, val::String) 
-end
-
-function setButtons(ui_interface::ControlUI, state::Bool) 
+function setButtons(dsp::mydsp, ui_interface::ControlUI, state::Bool) 
     for field in ui_interface.buttons
         setproperty!(dsp, field, state)
-        println(field)
     end
 end
 
@@ -129,11 +95,11 @@ function runDSP(dsp::mydsp, control_ui::ControlUI, nbsamples::Int32)
 
             if run == 0
                 impulse(nins, inputs)
-                setButtons(control_ui, true);
+                setButtons(dsp, control_ui, true);
             end
             if run >= 1
                 inputs = zeros(REAL, kFrames, nins)
-                setButtons(control_ui, false);
+                setButtons(dsp, control_ui, false);
             end
          
             nFrames = min(kFrames, nbsamples)  

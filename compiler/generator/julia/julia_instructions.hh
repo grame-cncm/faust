@@ -569,11 +569,11 @@ class JuliaInstVisitor : public TextInstVisitor {
     
     virtual void visit(Select2Inst* inst)
     {
-        *fOut << "(Bool(";
+        *fOut << "((";
         fIntAsBool = true;
         inst->fCond->accept(this);
         fIntAsBool = false;
-        *fOut << ") ? ";
+        *fOut << " != 0) ? ";
         inst->fThen->accept(this);
         *fOut << " : ";
         inst->fElse->accept(this);
@@ -592,12 +592,11 @@ class JuliaInstVisitor : public TextInstVisitor {
     
     virtual void visit(IfInst* inst)
     {
-        *fOut << "if ";
-        *fOut << "(Bool(";
+        *fOut << "if (";
         fIntAsBool = true;
         visitCond(inst->fCond);
         fIntAsBool = false;
-        *fOut << "))";
+        *fOut << " != 0)";
         fTab++;
         tab(fTab, *fOut);
         inst->fThen->accept(this);
