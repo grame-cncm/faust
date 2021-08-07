@@ -89,8 +89,8 @@ class DLangInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sinhf"]      = "sinh";
         gPolyMathLibTable["tanhf"]      = "tanh";
         
-        gPolyMathLibTable["isnanf"]     = "isnan";
-        gPolyMathLibTable["isinff"]     = "isinf";
+        gPolyMathLibTable["isnanf"]     = "isNaN";
+        gPolyMathLibTable["isinff"]     = "isInfinity";
         gPolyMathLibTable["copysignf"]  = "copysign";
    
         // Double version
@@ -126,8 +126,8 @@ class DLangInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sinh"]      = "sinh";
         gPolyMathLibTable["tanh"]      = "tanh";
         
-        gPolyMathLibTable["isnan"]     = "isnan";
-        gPolyMathLibTable["isinf"]     = "isinf";
+        gPolyMathLibTable["isnan"]     = "isNaN";
+        gPolyMathLibTable["isinf"]     = "isInfinity";
         gPolyMathLibTable["copysign"]  = "copysign";
     }
 
