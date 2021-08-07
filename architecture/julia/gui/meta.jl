@@ -18,5 +18,5 @@
 
 abstract type Meta end
 
-function declare(m::Meta, key::String, value::String)
+function declare!(m::Meta, key::String, value::String)
 end

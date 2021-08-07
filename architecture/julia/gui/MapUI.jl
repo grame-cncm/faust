@@ -22,11 +22,11 @@ mutable struct PathBuilder
     controlsLevel::Array{String}
 end
 
-function pushLabel(builder::PathBuilder, label::String)
+function pushLabel!(builder::PathBuilder, label::String)
     push!(builder.controlsLevel, label)
 end
 
-function popLabel(builder::PathBuilder)
+function popLabel!(builder::PathBuilder)
     deleteat!(builder.controlsLevel, lastindex(builder.controlsLevel))
 end
 
@@ -65,60 +65,60 @@ mutable struct MapUI <: UI
 end
 
 # -- widget's layouts
-function openTabBox(ui_interface::MapUI, label::String)
-    pushLabel(ui_interface.path_builder, label)
+function openTabBox!(ui_interface::MapUI, label::String)
+    pushLabel!(ui_interface.path_builder, label)
 end
-function openHorizontalBox(ui_interface::MapUI, label::String)
-    pushLabel(ui_interface.path_builder, label)
+function openHorizontalBox!(ui_interface::MapUI, label::String)
+    pushLabel!(ui_interface.path_builder, label)
 end
-function openVerticalBox(ui_interface::MapUI, label::String)
-    pushLabel(ui_interface.path_builder, label)
+function openVerticalBox!(ui_interface::MapUI, label::String)
+    pushLabel!(ui_interface.path_builder, label)
 end
-function closeBox(ui_interface::MapUI)
-    popLabel(ui_interface.path_builder)
+function closeBox!(ui_interface::MapUI)
+    popLabel!(ui_interface.path_builder)
 end
 
 # -- active widgets
-function addButton(ui_interface::MapUI, label::String, param::Symbol) 
+function addButton!(ui_interface::MapUI, label::String, param::Symbol) 
     zone = UIZone(param, 0, 0, 1, 0)
     ui_interface.label_paths[label] = zone
     ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
 end
-function addCheckButton(ui_interface::MapUI, label::String, param::Symbol) 
+function addCheckButton!(ui_interface::MapUI, label::String, param::Symbol) 
     zone = UIZone(param, 0, 0, 1, 0)
     ui_interface.label_paths[label] = zone
     ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
 end
-function addHorizontalSlider(ui_interface::MapUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
+function addHorizontalSlider!(ui_interface::MapUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
     zone = UIZone(param, init, min, max, step)
     ui_interface.label_paths[label] = zone
     ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
 end
-function addVerticalSlider(ui_interface::MapUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
+function addVerticalSlider!(ui_interface::MapUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
     zone = UIZone(param, init, min, max, step)
     ui_interface.label_paths[label] = zone
     ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
 end
-function addNumEntry(ui_interface::MapUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
+function addNumEntry!(ui_interface::MapUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
     zone = UIZone(param, init, min, max, step)
     ui_interface.label_paths[label] = zone
     ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
 end
 
 # -- passive widgets
-function addHorizontalBargraph(ui_interface::MapUI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
+function addHorizontalBargraph!(ui_interface::MapUI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
     zone = UIZone(param, 0, min, max, 0)
     ui_interface.label_paths[label] = zone
     ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
 end
-function addVerticalBargraph(ui_interface::MapUI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
+function addVerticalBargraph!(ui_interface::MapUI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
     zone = UIZone(param, 0, min, max, 0)
     ui_interface.label_paths[label] = zone
     ui_interface.osc_paths[buildPath(ui_interface.path_builder, label)] = zone
 end
 
 # setParamValue/getParamValue
-function setParamValue(ui_interface::MapUI, path::String, value::FAUSTFLOAT)
+function setParamValue!(ui_interface::MapUI, path::String, value::FAUSTFLOAT)
     if (haskey(ui_interface.osc_paths, path))
         setproperty!(ui_interface.dsp, ui_interface.osc_paths[path].field, value)
     elseif (haskey(ui_interface.label_paths, path))

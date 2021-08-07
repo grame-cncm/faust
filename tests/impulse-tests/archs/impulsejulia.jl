@@ -39,11 +39,11 @@ mutable struct ControlUI <: UI
 end
 
 # -- active widgets
-function addButton(ui_interface::ControlUI, label::String, param::Symbol) 
+function addButton!(ui_interface::ControlUI, label::String, param::Symbol) 
     push!(ui_interface.buttons, param)
 end
 
-function setButtons(dsp::mydsp, ui_interface::ControlUI, state::Bool) 
+function setButtons!(dsp::mydsp, ui_interface::ControlUI, state::Bool) 
     for field in ui_interface.buttons
         setproperty!(dsp, field, state)
     end
@@ -55,7 +55,7 @@ using Printf
 samplerate = Int32(44100)
 kFrames = Int32(64)
 
-function impulse(chans::Int32, inputs)
+function impulse!(chans::Int32, inputs)
     for i = 1:chans
         input = @inbounds @view inputs[:, i]
         input[1] = FAUSTFLOAT(1) 
@@ -80,7 +80,7 @@ function printHeader(dsp::mydsp, nbsamples::Int32)
     @printf "number_of_frames  : %6d\n" nbsamples
 end
 
-function runDSP(dsp::mydsp, control_ui::ControlUI, nbsamples::Int32)
+function runDSP!(dsp::mydsp, control_ui::ControlUI, nbsamples::Int32)
     run::Int32 = 0
     linenum::Int32 = 0
 
@@ -94,16 +94,16 @@ function runDSP(dsp::mydsp, control_ui::ControlUI, nbsamples::Int32)
         while nbsamples > 0
 
             if run == 0
-                impulse(nins, inputs)
-                setButtons(dsp, control_ui, true);
+                impulse!(nins, inputs)
+                setButtons!(dsp, control_ui, true);
             end
             if run >= 1
                 inputs = zeros(REAL, kFrames, nins)
-                setButtons(dsp, control_ui, false);
+                setButtons!(dsp, control_ui, false);
             end
          
             nFrames = min(kFrames, nbsamples)  
-            compute(dsp, nFrames, inputs, outputs);
+            compute!(dsp, nFrames, inputs, outputs);
             run += 1
           
             for i = 1:nFrames
@@ -128,11 +128,11 @@ main!() = begin
     nbsamples::Int32 = 60000;
 
     dsp = mydsp()
-    init(dsp, samplerate)
+    init!(dsp, samplerate)
     control_ui::ControlUI = ControlUI(dsp)
-    buildUserInterface(dsp, control_ui)
+    buildUserInterface!(dsp, control_ui)
     printHeader(dsp, nbsamples)
-    runDSP(dsp, control_ui, Int32(nbsamples/4))
+    runDSP!(dsp, control_ui, Int32(nbsamples/4))
 end
 
 main!()

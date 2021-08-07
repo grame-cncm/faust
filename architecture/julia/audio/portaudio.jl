@@ -33,10 +33,10 @@ mutable struct portaudio <: audio
     name::String        
 end
 
-function init(driver::portaudio, name::String, dsp::dsp)
+function init!(driver::portaudio, name::String, dsp::dsp)
     driver.name = name
     driver.dsp = dsp
-    init(dsp, Int32(driver.sample_rate))
+    init!(dsp, Int32(driver.sample_rate))
 end
 
 function run(driver::portaudio)
@@ -44,7 +44,7 @@ function run(driver::portaudio)
         outputs = zeros(REAL, driver.buffer_size, getNumOutputs(driver.dsp))
         while true
             inputs = convert(Matrix{REAL}, read(stream, driver.buffer_size))
-            compute(driver.dsp, Int32(driver.buffer_size), inputs, outputs)
+            compute!(driver.dsp, Int32(driver.buffer_size), inputs, outputs)
             write(stream, outputs)
         end
     end

@@ -37,14 +37,14 @@ function main!(args)
 
     # Audio driver allocation and init
     driver = portaudio(16, 44100)
-    init(driver, "dummy", my_dsp)
+    init!(driver, "dummy", my_dsp)
 
     println("getNumInputs: ", getNumInputs(my_dsp))
     println("getNumOutputs: ", getNumOutputs(my_dsp), "\n")
     
      # Print all paths
     map_ui = MapUI(my_dsp)
-    buildUserInterface(my_dsp, map_ui)
+    buildUserInterface!(my_dsp, map_ui)
     println(getZoneMap(map_ui), "\n")
 
     #= Possibly manually change control values
@@ -63,7 +63,7 @@ function main!(args)
     elseif args[1] == "-osc"
         ThreadPools.@tspawnat 2 run(driver)
         osc_ui = OSCUI(my_dsp)
-        buildUserInterface(my_dsp, osc_ui)
+        buildUserInterface!(my_dsp, osc_ui)
         # Blocking...
         run(osc_ui)
     # GTK controller
@@ -71,7 +71,7 @@ function main!(args)
         ThreadPools.@tspawnat 2 run(driver)
         println("Starting with GTK interface")
         gtk_ui = GTKUI(my_dsp)
-        buildUserInterface(my_dsp, gtk_ui)
+        buildUserInterface!(my_dsp, gtk_ui)
         # Blocking...
         run(gtk_ui)
     end

@@ -30,7 +30,7 @@ mutable struct NameMeta <: Meta
     name::String
 end
 
-function declare(m::NameMeta, key::String, value::String)
+function declare!(m::NameMeta, key::String, value::String)
     if (key == "name") 
         m.name = value;
     end
@@ -45,10 +45,10 @@ block_size = Int32(512 * 10)
 test!() = begin
     # Init DSP
     my_dsp = mydsp()
-    init(my_dsp, samplerate)
+    init!(my_dsp, samplerate)
 
     m = NameMeta("")
-    metadata(my_dsp, m)
+    metadata!(my_dsp, m)
     println("Application name: ", m.name, "\n")
 
     println("getNumInputs: ", getNumInputs(my_dsp))
@@ -56,7 +56,7 @@ test!() = begin
     
     # Create a MapUI controller
     map_ui = MapUI(my_dsp)
-    buildUserInterface(my_dsp, map_ui)
+    buildUserInterface!(my_dsp, map_ui)
 
     # Print all zones
     println("Path/UIZone dictionary: ", getZoneMap(map_ui), "\n")
@@ -72,7 +72,7 @@ test!() = begin
 
     inputs = zeros(REAL, block_size, getNumInputs(my_dsp))
     outputs = zeros(REAL, block_size, getNumOutputs(my_dsp)) 
-    compute(my_dsp, block_size, inputs, outputs)
+    compute!(my_dsp, block_size, inputs, outputs)
     
     # display the outputs
     display(plot(outputs, layout = (getNumOutputs(my_dsp), 1)))

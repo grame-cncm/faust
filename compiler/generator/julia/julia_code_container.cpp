@@ -32,6 +32,7 @@ using namespace std;
  Julia backend and module description:
  
  - 'delete' for SubContainers is not generated
+ - add the ! to names of functions that modify their arguments (see https://docs.julialang.org/en/v1/manual/style-guide/#bang-convention)
 */
 
 map<string, bool> JuliaInstVisitor::gFunctionSymbolTable;
@@ -107,7 +108,7 @@ void JuliaCodeContainer::produceInternal()
     produceInfoFunctions(n, fKlassName, "dsp", false, false, fCodeProducer);
     
     tab(n, *fOut);
-    *fOut << "function instanceInit" << fKlassName << "(dsp::" << fKlassName << ", sample_rate::Int32)";
+    *fOut << "function instanceInit" << fKlassName << "!(dsp::" << fKlassName << ", sample_rate::Int32)";
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
     generateInit(fCodeProducer);
@@ -121,10 +122,10 @@ void JuliaCodeContainer::produceInternal()
     string counter = "count";
     if (fSubContainerType == kInt) {
         tab(n, *fOut);
-        *fOut << "function fill" << fKlassName << "(dsp::" << fKlassName << ", " << counter << "::Int32, table::Vector{Int32})";
+        *fOut << "function fill" << fKlassName << "!(dsp::" << fKlassName << ", " << counter << "::Int32, table::Vector{Int32})";
     } else {
         tab(n, *fOut);
-        *fOut << "function fill" << fKlassName << "(dsp::" << fKlassName << ", " << counter << "::Int32, table::Vector{" << ifloat() << "})";
+        *fOut << "function fill" << fKlassName << "!(dsp::" << fKlassName << ", " << counter << "::Int32, table::Vector{" << ifloat() << "})";
     }
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
@@ -213,11 +214,12 @@ void JuliaCodeContainer::produceClass()
     produceInfoFunctions(n, "", "dsp", false, false, fCodeProducer);
     
     tab(n, *fOut);
-    *fOut << "function classInit(sample_rate::Int32)";
+    *fOut << "function classInit!(sample_rate::Int32)";
     {
         tab(n + 1, *fOut);
         // Local visitor here to avoid DSP object incorrect type generation
-        JuliaInstVisitor codeproducer(fOut, "");
+        // Ugly hack to have some functions names postfixed by the '!'
+        JuliaInstVisitor codeproducer(fOut, "", 0, true);
         codeproducer.Tab(n + 1);
         generateStaticInit(&codeproducer);
     }
@@ -226,7 +228,7 @@ void JuliaCodeContainer::produceClass()
     
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "function instanceResetUserInterface(dsp::" << fKlassName << ")";
+    *fOut << "function instanceResetUserInterface!(dsp::" << fKlassName << ")";
     {
         tab(n + 1, *fOut);
         // Local visitor here to avoid DSP object incorrect type generation
@@ -239,7 +241,7 @@ void JuliaCodeContainer::produceClass()
     
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "function instanceClear(dsp::" << fKlassName << ")";
+    *fOut << "function instanceClear!(dsp::" << fKlassName << ")";
     {
         tab(n + 1, *fOut);
         // Local visitor here to avoid DSP object incorrect type generation
@@ -252,7 +254,7 @@ void JuliaCodeContainer::produceClass()
 
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "function instanceConstants(dsp::" << fKlassName << ", sample_rate::Int32)";
+    *fOut << "function instanceConstants!(dsp::" << fKlassName << ", sample_rate::Int32)";
     {
         tab(n + 1, *fOut);
         // Local visitor here to avoid DSP object incorrect type generation
@@ -265,23 +267,23 @@ void JuliaCodeContainer::produceClass()
    
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "function instanceInit(dsp::" << fKlassName << ", sample_rate::Int32)";
+    *fOut << "function instanceInit!(dsp::" << fKlassName << ", sample_rate::Int32)";
     tab(n + 1, *fOut);
-    *fOut << "instanceConstants(dsp, sample_rate)";
+    *fOut << "instanceConstants!(dsp, sample_rate)";
     tab(n + 1, *fOut);
-    *fOut << "instanceResetUserInterface(dsp)";
+    *fOut << "instanceResetUserInterface!(dsp)";
     tab(n + 1, *fOut);
-    *fOut << "instanceClear(dsp)";
+    *fOut << "instanceClear!(dsp)";
     tab(n, *fOut);
     *fOut << "end";
 
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "function init(dsp::" << fKlassName << ", sample_rate::Int32)";
+    *fOut << "function init!(dsp::" << fKlassName << ", sample_rate::Int32)";
     tab(n + 1, *fOut);
-    *fOut << "classInit(sample_rate)";
+    *fOut << "classInit!(sample_rate)";
     tab(n + 1, *fOut);
-    *fOut << "instanceInit(dsp, sample_rate)";
+    *fOut << "instanceInit!(dsp, sample_rate)";
     tab(n, *fOut);
     *fOut << "end";
     
@@ -306,7 +308,7 @@ void JuliaCodeContainer::produceClass()
     // User interface
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "function buildUserInterface(dsp::" << fKlassName << ", ui_interface::UI)";
+    *fOut << "function buildUserInterface!(dsp::" << fKlassName << ", ui_interface::UI)";
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
     generateUserInterface(fCodeProducer);
@@ -322,7 +324,7 @@ void JuliaCodeContainer::generateCompute(int n)
 {
     // Generates declaration
     tab(n, *fOut);
-    *fOut << "@inbounds function compute(dsp::" << fKlassName
+    *fOut << "@inbounds function compute!(dsp::" << fKlassName
           << ", " << fFullCount << "::Int32, inputs, outputs)";
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
@@ -347,23 +349,23 @@ void JuliaCodeContainer::generateCompute(int n)
 void JuliaCodeContainer::produceMetadata(int tabs)
 {
     tab(tabs, *fOut);
-    *fOut << "function metadata(dsp::" << fKlassName << ", m::Meta)";
+    *fOut << "function metadata!(dsp::" << fKlassName << ", m::Meta)";
     
         // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
     for (const auto& i : gGlobal->gMetaDataSet) {
         if (i.first != tree("author")) {
             tab(tabs + 1, *fOut);
-            *fOut << "declare(m, \"" << *(i.first) << "\", " << **(i.second.begin()) << ");";
+            *fOut << "declare!(m, \"" << *(i.first) << "\", " << **(i.second.begin()) << ");";
         } else {
                 // But the "author" meta data is accumulated, the upper level becomes the main author and sub-levels become
                 // "contributor"
             for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
                 if (j == i.second.begin()) {
                     tab(tabs + 1, *fOut);
-                    *fOut << "declare(m, \"" << *(i.first) << "\", " << **j << ");";
+                    *fOut << "declare!(m, \"" << *(i.first) << "\", " << **j << ");";
                 } else {
                     tab(tabs + 1, *fOut);
-                    *fOut << "declare(m, \""
+                    *fOut << "declare!(m, \""
                     << "contributor"
                     << "\", " << **j << ");";
                 }
@@ -398,7 +400,7 @@ void JuliaVectorCodeContainer::generateCompute(int n)
 
     // Generates declaration
     tab(n + 1, *fOut);
-    *fOut << "@inbounds function compute(dsp::" << fKlassName
+    *fOut << "@inbounds function compute!(dsp::" << fKlassName
           << ", " << fFullCount << "::Int32, inputs, outputs)";
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);

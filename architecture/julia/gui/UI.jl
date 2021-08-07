@@ -22,38 +22,38 @@ abstract type UI end
 # Only the needed methods have to be implemented in subtypes.
 
 # -- widget's layouts
-function openTabBox(ui_interface::UI, label::String)
+function openTabBox!(ui_interface::UI, label::String)
 end
-function openHorizontalBox(ui_interface::UI, label::String)
+function openHorizontalBox!(ui_interface::UI, label::String)
 end
-function openVerticalBox(ui_interface::UI, label::String)
+function openVerticalBox!(ui_interface::UI, label::String)
 end
-function closeBox(ui_interface::UI)
+function closeBox!(ui_interface::UI)
 end
 
 # -- active widgets
-function addButton(ui_interface::UI, label::String, param::Symbol) 
+function addButton!(ui_interface::UI, label::String, param::Symbol) 
 end
-function addCheckButton(ui_interface::UI, label::String, param::Symbol) 
+function addCheckButton!(ui_interface::UI, label::String, param::Symbol) 
 end
-function addHorizontalSlider(ui_interface::UI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
+function addHorizontalSlider!(ui_interface::UI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
 end
-function addVerticalSlider(ui_interface::UI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
+function addVerticalSlider!(ui_interface::UI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
 end
-function addNumEntry(ui_interface::UI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
+function addNumEntry!(ui_interface::UI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
 end
 
 # -- passive widgets
-function addHorizontalBargraph(ui_interface::UI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
+function addHorizontalBargraph!(ui_interface::UI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
 end
-function addVerticalBargraph(ui_interface::UI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
+function addVerticalBargraph!(ui_interface::UI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
 end
 
 # -- soundfiles
-function addSoundfile(ui_interface::UI, label::String, filename::String, soundfile::Symbol) 
+function addSoundfile!(ui_interface::UI, label::String, filename::String, soundfile::Symbol) 
 end
 
 # -- metadata declarations
-function declare(ui_interface::UI, param::Symbol, key::String, val::String) 
+function declare!(ui_interface::UI, param::Symbol, key::String, val::String) 
 end
 

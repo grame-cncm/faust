@@ -25,7 +25,7 @@ mutable struct NameMeta <: Meta
     name::String
 end
 
-function declare(m::NameMeta, key::String, value::String)
+function declare!(m::NameMeta, key::String, value::String)
     if (key == "name") 
         m.name = value;
         for c in [' ', '#', '*', ',', '?', '[', ']', '{', '}', '(', ')'] 
@@ -48,7 +48,7 @@ mutable struct OSCUI <: UI
         osc_ui.outport = outport
         # Get root name, without the first '/'
         tmp_map_ui = MapUI(dsp)
-        buildUserInterface(dsp, tmp_map_ui)
+        buildUserInterface!(dsp, tmp_map_ui)
         root = getRoot(tmp_map_ui)[2:end]
         println("Faust OSC application '", root, "' is running on UDP ports ", inport, ", ", outport)       
         osc_ui
@@ -84,7 +84,7 @@ function run(ui_interface::OSCUI, block::Bool=true)
             osc_value = message[1]
             root = getRoot(ui_interface.map_ui)
             if (typeof(osc_value) == Float32)
-                setParamValue(ui_interface.map_ui, osc_path, osc_value);
+                setParamValue!(ui_interface.map_ui, osc_path, osc_value);
             elseif (typeof(osc_value) == String && osc_path == "/*" && osc_value == "hello") 
                 hello_msg = OpenSoundControl.message(root, "sii", "127.0.0.1", Int32(ui_interface.inport), Int32(ui_interface.outport))
                 send(ui_interface.snd_socket, ip"127.0.0.1", ui_interface.outport, hello_msg.data)
@@ -120,45 +120,45 @@ end
 # MacroTools.@forward OSCUI.map_ui openTabBox, openHorizontalBox, openVerticalBox, closeBox, addButton, addCheckButton, addHorizontalSlider, addHorizontalSlider, addNumEntry, addHorizontalBargraph, addVerticalBargraph
     
 # -- widget's layouts
-function openTabBox(ui_interface::OSCUI, label::String)
-    openTabBox(ui_interface.map_ui, label)
+function openTabBox!(ui_interface::OSCUI, label::String)
+    openTabBox!(ui_interface.map_ui, label)
 end
-function openHorizontalBox(ui_interface::OSCUI, label::String)
-    openHorizontalBox(ui_interface.map_ui, label)
+function openHorizontalBox!(ui_interface::OSCUI, label::String)
+    openHorizontalBox!(ui_interface.map_ui, label)
 end
-function openVerticalBox(ui_interface::OSCUI, label::String)
-    openVerticalBox(ui_interface.map_ui, label)
+function openVerticalBox!(ui_interface::OSCUI, label::String)
+    openVerticalBox!(ui_interface.map_ui, label)
 end
-function closeBox(ui_interface::OSCUI)
-    closeBox(ui_interface.map_ui)
+function closeBox!(ui_interface::OSCUI)
+    closeBox!(ui_interface.map_ui)
 end
 
 # -- active widgets
-function addButton(ui_interface::OSCUI, label::String, param::Symbol) 
-    addButton(ui_interface.map_ui, label, param)
+function addButton!(ui_interface::OSCUI, label::String, param::Symbol) 
+    addButton!(ui_interface.map_ui, label, param)
 end
 
-function addCheckButton(ui_interface::OSCUI, label::String, param::Symbol) 
-    addCheckButton(ui_interface.map_ui, label, param)
+function addCheckButton!(ui_interface::OSCUI, label::String, param::Symbol) 
+    addCheckButton!(ui_interface.map_ui, label, param)
 end
 
-function addHorizontalSlider(ui_interface::OSCUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
-    addHorizontalSlider(ui_interface.map_ui, label, param, init, min, max, step)
+function addHorizontalSlider!(ui_interface::OSCUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
+    addHorizontalSlider!(ui_interface.map_ui, label, param, init, min, max, step)
 end
 
-function addVerticalSlider(ui_interface::OSCUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
-    addVerticalSlider(ui_interface.map_ui, label, param, init, min, max, step)
+function addVerticalSlider!(ui_interface::OSCUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
+    addVerticalSlider!(ui_interface.map_ui, label, param, init, min, max, step)
 end
 
-function addNumEntry(ui_interface::OSCUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
-    addNumEntry(ui_interface.map_ui, label, param, init, min, max, step)
+function addNumEntry!(ui_interface::OSCUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
+    addNumEntry!(ui_interface.map_ui, label, param, init, min, max, step)
 end
 
 # -- passive widgets
-function addHorizontalBargraph(ui_interface::OSCUI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
-    addHorizontalBargraph(ui_interface.map_ui, label, param, min, max)
+function addHorizontalBargraph!(ui_interface::OSCUI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
+    addHorizontalBargraph!(ui_interface.map_ui, label, param, min, max)
 end
 
-function addVerticalBargraph(ui_interface::OSCUI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
-    addVerticalBargraph(ui_interface.map_ui, label, param, min, max)
+function addVerticalBargraph!(ui_interface::OSCUI, label::String, param::Symbol, min::FAUSTFLOAT, max::FAUSTFLOAT)
+    addVerticalBargraph!(ui_interface.map_ui, label, param, min, max)
 end

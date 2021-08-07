@@ -29,26 +29,26 @@ end
 function getNumOutputs(dsp::dsp)
 end
 
-function classInit(sample_rate::Int32)
+function classInit!(sample_rate::Int32)
 end
 
-function instanceResetUserInterface(dsp::dsp)
+function instanceResetUserInterface!(dsp::dsp)
 end
 
-function instanceClear(dsp::dsp)
+function instanceClear!(dsp::dsp)
 end
 
-function instanceInit(dsp::dsp, sample_rate::Int32)
+function instanceInit!(dsp::dsp, sample_rate::Int32)
 end
 
-function init(dsp::dsp, sample_rate::Int32)
+function init!(dsp::dsp, sample_rate::Int32)
 end
 
 function getJSON(dsp::dsp)
 end
 
-function buildUserInterface(dsp::dsp, ui_interface::UI)
+function buildUserInterface!(dsp::dsp, ui_interface::UI)
 end
 
-function compute(dsp::dsp, count::Int32, inputs, outputs)
+function compute!(dsp::dsp, count::Int32, inputs, outputs)
 end

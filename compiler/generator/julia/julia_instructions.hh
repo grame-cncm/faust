@@ -83,11 +83,13 @@ class JuliaInstVisitor : public TextInstVisitor {
     // Polymorphic math functions
     map<string, string> gPolyMathLibTable;
     
+    bool fMutateFun;
+    
    public:
     using TextInstVisitor::visit;
 
-    JuliaInstVisitor(std::ostream* out, const string& struct_name, int tab = 0)
-        : TextInstVisitor(out, ".", new JuliaStringTypeManager(xfloat(), "*", struct_name), tab)
+    JuliaInstVisitor(std::ostream* out, const string& struct_name, int tab = 0, bool mutate_fun = false)
+        : TextInstVisitor(out, ".", new JuliaStringTypeManager(xfloat(), "*", struct_name), tab), fMutateFun(mutate_fun)
     {
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;
@@ -286,10 +288,10 @@ class JuliaInstVisitor : public TextInstVisitor {
     {
         // Special case
         if (inst->fZone == "0") {
-            *fOut << "declare(ui_interface, :dummy, " << quote(inst->fKey)
+            *fOut << "declare!(ui_interface, :dummy, " << quote(inst->fKey)
             << ", " << quote(inst->fValue) << ")";
         } else {
-            *fOut << "declare(ui_interface, :" << inst->fZone << ", "
+            *fOut << "declare!(ui_interface, :" << inst->fZone << ", "
             << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
         }
         EndLine(' ');
@@ -300,13 +302,13 @@ class JuliaInstVisitor : public TextInstVisitor {
         string name;
         switch (inst->fOrient) {
             case OpenboxInst::kVerticalBox:
-                name = "openVerticalBox(";
+                name = "openVerticalBox!(";
                 break;
             case OpenboxInst::kHorizontalBox:
-                name = "openHorizontalBox(";
+                name = "openHorizontalBox!(";
                 break;
             case OpenboxInst::kTabBox:
-                name = "openTabBox(";
+                name = "openTabBox!(";
                 break;
         }
         *fOut << name << "ui_interface, " << quote(inst->fName) << ")";
@@ -315,7 +317,7 @@ class JuliaInstVisitor : public TextInstVisitor {
 
     virtual void visit(CloseboxInst* inst)
     {
-        *fOut << "closeBox(ui_interface)";
+        *fOut << "closeBox!(ui_interface)";
         tab(fTab, *fOut);
     }
     
@@ -323,9 +325,9 @@ class JuliaInstVisitor : public TextInstVisitor {
     {
         string name;
         if (inst->fType == AddButtonInst::kDefaultButton) {
-            name = "addButton(";
+            name = "addButton!(";
         } else {
-            name = "addCheckButton(";
+            name = "addCheckButton!(";
         }
         *fOut << name << "ui_interface, " << quote(inst->fLabel) << ", :" << inst->fZone << ")";
         EndLine(' ');
@@ -336,13 +338,13 @@ class JuliaInstVisitor : public TextInstVisitor {
         string name;
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
-                name = "addHorizontalSlider(";
+                name = "addHorizontalSlider!(";
                 break;
             case AddSliderInst::kVertical:
-                name = "addVerticalSlider(";
+                name = "addVerticalSlider!(";
                 break;
             case AddSliderInst::kNumEntry:
-                name = "addNumEntry(";
+                name = "addNumEntry!(";
                 break;
         }
         *fOut << name << "ui_interface, " << quote(inst->fLabel) << ", :" << inst->fZone << ", "
@@ -356,10 +358,10 @@ class JuliaInstVisitor : public TextInstVisitor {
         string name;
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
-                name = "addHorizontalBargraph(";
+                name = "addHorizontalBargraph!(";
                 break;
             case AddBargraphInst::kVertical:
-                name = "addVerticalBargraph(";
+                name = "addVerticalBargraph!(";
                 break;
         }
         *fOut << name << "ui_interface, " << quote(inst->fLabel) << ", :" << inst->fZone << ", "
@@ -584,7 +586,8 @@ class JuliaInstVisitor : public TextInstVisitor {
     virtual void visit(FunCallInst* inst)
     {
         string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
-        *fOut << name << "(";
+        // Function that mutate their arguments use the '!' syntax
+        *fOut << name << ((fMutateFun && inst->fArgs.size() > 0) ?  "!(" : "(");
         // Compile parameters
         generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
         *fOut << ")";
