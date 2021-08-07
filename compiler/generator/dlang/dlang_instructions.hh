@@ -37,6 +37,8 @@ class DLangInstVisitor : public TextInstVisitor {
 
     // Polymorphic math functions
     map<string, string> gPolyMathLibTable;
+    
+    string cast2FAUSTFLOAT(const string& str) { return "cast(FAUSTFLOAT)" + str; }
 
    public:
     using TextInstVisitor::visit;
@@ -192,9 +194,11 @@ class DLangInstVisitor : public TextInstVisitor {
                 name = "uiInterface.addNumEntry";
                 break;
         }
-        *fOut << name << "(" << quote(inst->fLabel) << ", "
-              << "&" << inst->fZone << ", " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", "
-              << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
+        *fOut << name << "(" << quote(inst->fLabel) << ", " << "&" << inst->fZone << ", "
+              << cast2FAUSTFLOAT(checkReal(inst->fInit)) << ", "
+              << cast2FAUSTFLOAT(checkReal(inst->fMin)) << ", "
+              << cast2FAUSTFLOAT(checkReal(inst->fMax)) << ", "
+              << cast2FAUSTFLOAT(checkReal(inst->fStep)) << ")";
         EndLine();
     }
 
@@ -209,8 +213,9 @@ class DLangInstVisitor : public TextInstVisitor {
                 name = "uiInterface.addVerticalBargraph";
                 break;
         }
-        *fOut << name << "(" << quote(inst->fLabel) << ", &" << inst->fZone << ", " << checkReal(inst->fMin) << ", "
-              << checkReal(inst->fMax) << ")";
+        *fOut << name << "(" << quote(inst->fLabel) << ", &" << inst->fZone << ", "
+              << cast2FAUSTFLOAT(checkReal(inst->fMin)) << ", "
+              << cast2FAUSTFLOAT(checkReal(inst->fMax)) << ")";
         EndLine();
     }
 

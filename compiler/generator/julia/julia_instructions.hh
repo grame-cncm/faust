@@ -85,6 +85,8 @@ class JuliaInstVisitor : public TextInstVisitor {
     
     bool fMutateFun;
     
+    string cast2FAUSTFLOAT(const string& str) { return "FAUSTFLOAT(" + str + ")"; }
+    
    public:
     using TextInstVisitor::visit;
 
@@ -348,8 +350,10 @@ class JuliaInstVisitor : public TextInstVisitor {
                 break;
         }
         *fOut << name << "ui_interface, " << quote(inst->fLabel) << ", :" << inst->fZone << ", "
-              << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", "
-              << checkReal(inst->fStep) << ")";
+              << cast2FAUSTFLOAT(checkReal(inst->fInit)) << ", "
+              << cast2FAUSTFLOAT(checkReal(inst->fMin)) << ", "
+              << cast2FAUSTFLOAT(checkReal(inst->fMax)) << ", "
+              << cast2FAUSTFLOAT(checkReal(inst->fStep)) << ")";
         EndLine(' ');
     }
 
@@ -365,7 +369,8 @@ class JuliaInstVisitor : public TextInstVisitor {
                 break;
         }
         *fOut << name << "ui_interface, " << quote(inst->fLabel) << ", :" << inst->fZone << ", "
-              << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
+              << cast2FAUSTFLOAT(checkReal(inst->fMin)) << ", "
+              << cast2FAUSTFLOAT(checkReal(inst->fMax)) << ")";
         EndLine(' ');
     }
 
