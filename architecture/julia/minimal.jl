@@ -37,8 +37,10 @@ function declare(m::NameMeta, key::String, value::String)
 end
 
 # Testing
+using Plots
+
 samplerate = Int32(44100)
-block_size = Int32(16)
+block_size = Int32(512 * 10)
 
 test!() = begin
     # Init DSP
@@ -71,8 +73,12 @@ test!() = begin
     inputs = zeros(REAL, block_size, getNumInputs(my_dsp))
     outputs = zeros(REAL, block_size, getNumOutputs(my_dsp)) 
     compute(my_dsp, block_size, inputs, outputs)
-    println("One computed output buffer: ", outputs)
-
+    
+    # display the outputs
+    display(plot(outputs, layout = (getNumOutputs(my_dsp), 1)))
+    
+    println("Type return to quit");
+    readline()
 end
 
 test!()
