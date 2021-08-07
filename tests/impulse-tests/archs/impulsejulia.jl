@@ -137,7 +137,7 @@ function runDSP(dsp::mydsp, control_ui::ControlUI, nbsamples::Int32)
             end
          
             nFrames = min(kFrames, nbsamples)  
-            computemydsp(dsp, nFrames, inputs, outputs);
+            compute(dsp, nFrames, inputs, outputs);
             run += 1
           
             for i = 1:nFrames
@@ -153,8 +153,8 @@ function runDSP(dsp::mydsp, control_ui::ControlUI, nbsamples::Int32)
           
             nbsamples -= nFrames
         end
-    catch
-        @printf "ERROR in file"
+    catch e
+        println("ERROR in file ", e)
     end 
 end 
 

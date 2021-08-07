@@ -27,8 +27,7 @@ using namespace std;
 
 static bool isopt(char* argv[], const char* name)
 {
-    int i;
-    for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return true;
+    for (int i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return true;
     return false;
 }
 
@@ -53,6 +52,7 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
         stringstream l1reader(line1);
         stringstream l2reader(line2);
         
+        // Ignore "number_of_inputs" and ":" tokens
         l1reader >> dummy; l1reader >> dummy;
         l2reader >> dummy; l2reader >> dummy;
         
@@ -82,6 +82,7 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
         stringstream l1reader(line1);
         stringstream l2reader(line2);
         
+        // Ignore "number_of_outputs" and ":" tokens
         l1reader >> dummy; l1reader >> dummy;
         l2reader >> dummy; l2reader >> dummy;
         
@@ -111,6 +112,7 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
         stringstream l1reader(line1);
         stringstream l2reader(line2);
         
+        // Ignore "line_num" and ":" tokens
         l1reader >> dummy; l1reader >> dummy;
         l2reader >> dummy; l2reader >> dummy;
         
@@ -126,7 +128,6 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
     
     // Compare samples
     for (int i = 0; i < count1; i++) {
-        double sample1, sample2;
         
         getline(*in1, line1);
         getline(*in2, line2);
@@ -142,8 +143,11 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
         stringstream l1reader(line1);
         stringstream l2reader(line2);
         
+        // Ignore "line_num" and ":" tokens
         l1reader >> dummy; l1reader >> dummy;
         l2reader >> dummy; l2reader >> dummy;
+        
+        double sample1, sample2;
         
         for (int j = 0; j < output1; j++) {
         

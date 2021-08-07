@@ -57,7 +57,6 @@ declare deprecated "This library is deprecated and is not maintained anymore. It
 // + 28/06/2005	[YO]	removed 'modf' because it requires a pointer as argument
 //------------------------------------------------------------------------------
 
-
 //--------------------------------- SR ---------------------------------------
 // Current sampling rate (between 1Hz and 192000Hz). Constant during
 // program execution.
