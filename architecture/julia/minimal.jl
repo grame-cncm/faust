@@ -77,8 +77,6 @@ test!() = begin
     # display the outputs
     display(plot(outputs, layout = (getNumOutputs(my_dsp), 1)))
     
-    println("Type return to quit");
-    readline()
 end
 
 test!()
