@@ -24,11 +24,14 @@
 #include <map>
 #include "Text.hh"
 #include "global.hh"
+#include "node.hh"
 #include "ppsig.hh"
 #include "property.hh"
+#include "signalDependencies.hh"
 #include "signalVisitor.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
+#include "symbol.hh"
 #include "tlib.hh"
 #include "tree.hh"
 #include "xtended.hh"
@@ -42,7 +45,7 @@ nlpl::Expr old2NewExpr(Tree sig)
 {
     int    i, nature, dmax, dmin;
     double r;
-    Tree   c, sel, x, y, z, u, v, var, le, label, id, tid, ff, largs, type, name, file, sf, origin, init, idx, exp;
+    Tree   c, sel, x, y, z, u, v, var, le, label, id, tid, ff, largs, type, file, sf, origin, init, idx, exp;
 
     if (getUserData(sig)) {
         xtended*                xtd = (xtended*)getUserData(sig);
@@ -61,10 +64,10 @@ nlpl::Expr old2NewExpr(Tree sig)
     } else if (isSigInput(sig, &i)) {
         return nlpl::ReadMem(nlpl::sFloat(subst("input$0[i]", T(i))));
     } else if (isSigButton(sig, label)) {
-        string varname = subst("fButton$0", T(sig));
+        string varname = uniqueStringID("fButton", sig);
         return nlpl::ReadMem(nlpl::sFloat(varname));
     } else if (isSigCheckbox(sig, label)) {
-        string varname = subst("fCheckbox$0", T(sig));
+        string varname = uniqueStringID("fCheckbox", sig);
         return nlpl::ReadMem(nlpl::sFloat(varname));
     } else if (isSigInstructionControlRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
         return nlpl::ReadMem(nlpl::sFloat(tree2str(id)));
