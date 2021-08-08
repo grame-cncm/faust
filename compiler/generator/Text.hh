@@ -48,6 +48,7 @@ string T(int n);
 string T(long n);
 string T(float n);
 string T(double n);
+string T(void* p);
 
 // add and remove quotes of a string
 string unquote(const string& s);

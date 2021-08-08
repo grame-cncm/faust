@@ -60,8 +60,15 @@ nlpl::Expr old2NewExpr(Tree sig)
         return nlpl::BinaryOp(binopname[i], newbinopprec[i], old2NewExpr(x), old2NewExpr(y));
     } else if (isSigInput(sig, &i)) {
         return nlpl::ReadMem(nlpl::sFloat(subst("input$0[i]", T(i))));
+    } else if (isSigButton(sig, label)) {
+        string varname = subst("fButton$0", T(sig));
+        return nlpl::ReadMem(nlpl::sFloat(varname));
+    } else if (isSigCheckbox(sig, label)) {
+        string varname = subst("fCheckbox$0", T(sig));
+        return nlpl::ReadMem(nlpl::sFloat(varname));
+    } else if (isSigInstructionControlRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
+        return nlpl::ReadMem(nlpl::sFloat(tree2str(id)));
     }
-
     /*
 } else if (isSigWaveform(sig)) {
     return;
@@ -223,6 +230,22 @@ nlpl::Instr old2NewInstr(Tree sig)
     if (isSigOutput(sig, &i, x)) {
         // self(x);
         return nlpl::Write(nlpl::sFloat(subst("output$0[i]", T(i))), old2NewExpr(x));
+    } else if (isSigInstructionControlWrite(sig, id, origin, &nature, y)) {  // x is used as an id, we don't go into it
+        // string ctype = nature2ctype(nature);
+        string vname{tree2str(id)};
+        // Type   t = getCertifiedSigType(origin);
+        // nlpl::Expr ye = old2NewExpr(y);
+        return nlpl::Write(nlpl::sFloat(vname), old2NewExpr(y));
+        // if (t->variability() == kKonst) {
+        //     // init level
+        //     K->addDeclCode(subst("$0 \t$1;", ctype, vname));
+        //     K->addInitCode(subst("$0 = $1;", vname, CS(y)));
+        // } else {
+        //     // block level
+        //     K->addFirstPrivateDecl(vname);
+        //     K->addZone2(subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(y)));
+        // }
+
     } /*else if (isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin,
                                              y)) {  // x is used as an id, we don't go into it
         // self(y);

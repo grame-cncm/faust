@@ -81,8 +81,7 @@ string subst(const string& model, const string& a0, const string& a1, const stri
     return substitution(model, args);
 }
 
-string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3,
-             const string& a4)
+string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4)
 {
     vector<string> args(10);
     args[0] = a0;
@@ -93,8 +92,8 @@ string subst(const string& model, const string& a0, const string& a1, const stri
     return substitution(model, args);
 }
 
-string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3,
-             const string& a4, const string& a5)
+string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4,
+             const string& a5)
 {
     vector<string> args(10);
     args[0] = a0;
@@ -106,8 +105,8 @@ string subst(const string& model, const string& a0, const string& a1, const stri
     return substitution(model, args);
 }
 
-string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3,
-             const string& a4, const string& a5, const string& a6)
+string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4,
+             const string& a5, const string& a6)
 {
     vector<string> args(10);
     args[0] = a0;
@@ -158,6 +157,13 @@ string T(long n)
 {
     char c[64];
     snprintf(c, 63, "%ld", n);
+    return string(c);
+}
+
+string T(void* p)
+{
+    char c[64];
+    snprintf(c, 63, "%p", p);
     return string(c);
 }
 

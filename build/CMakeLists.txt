@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.4.0)
 project (faust)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 
 #######################################
 # versions management
@@ -20,7 +20,6 @@ set (BINDIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set (LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
 set (CMAKE_CXX_STANDARD 17)
-
 
 #######################################
 # Output options

@@ -44,7 +44,7 @@ MAKE ?= make
 #CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release
 #BUILDOPT ?= --config Release
 
-CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON 
 BUILDOPT ?= --config Debug
 
 #===============================================================
