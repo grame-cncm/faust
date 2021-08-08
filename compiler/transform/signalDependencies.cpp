@@ -286,6 +286,19 @@ Tree uniqueID(const char* prefix, Tree sig)
 }
 
 /**
+ * @brief associates a unique ID to a signal
+ *
+ * @param prefix the prefix of the ID
+ * @param sig the signal that will be associated to the id
+ * @return Tree always the same unique ID
+ */
+string uniqueStringID(const char* prefix, Tree sig)
+{
+    Tree ID = uniqueID(prefix,sig);
+    return name(ID->node().getSym());
+}
+
+/**
  * @brief Compute the memory dependencies of a vector of instructions
  *
  */

@@ -49,4 +49,5 @@ ostream& dotfile3(ostream& file, const digraph<digraph<Tree, multidep>, multidep
  * A bijective function that returns a unique ID, that starts with prefix, associated to sig
  * uniqueID(prefix,sig) -> ID
  */
-Tree uniqueID(const char* prefix, Tree sig);
+Tree   uniqueID(const char* prefix, Tree sig);
+string uniqueStringID(const char* prefix, Tree sig);
