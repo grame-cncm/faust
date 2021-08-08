@@ -45,3 +45,6 @@ tests/impulse-tests/ir
 /*.dsp
 /*.lib
 /*.tex
+
+# ignore sourcetrail files
+*.srctrl*
