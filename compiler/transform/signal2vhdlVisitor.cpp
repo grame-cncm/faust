@@ -86,6 +86,12 @@ void Signal2VHDLVisitor::visit(Tree sig)
             bin_op("FMOD", "mod", sig, subsig[0], subsig[1]);
             self(subsig[0]);
             self(subsig[1]);
+        } else if (strcmp(p->name(), "sin") == 0) {
+            getSubSignals(sig, subsig);
+            sincos_op("SIN", sig, subsig[0]);
+        } else if (strcmp(p->name(), "cos") == 0) {
+          getSubSignals(sig, subsig);
+          sincos_op("COS", sig, subsig[0]);
         } else {
             for (Tree b : sig->branches()) {
                 self(b);
@@ -93,16 +99,16 @@ void Signal2VHDLVisitor::visit(Tree sig)
         }
         return;
     } else if (isSigInt(sig, &i)) {
-        decl_sig(sig);
+        decl_sig(sig,1,-22);
         return;
     } else if (isSigReal(sig, &r)) {
-        decl_sig(sig);
+        decl_sig(sig,1,-22);
         return;
     } else if (isSigWaveform(sig)) {
         return;
     } else if (isSigInput(sig, &i)) {
         input_affectation(sig);
-        decl_sig(sig);
+        decl_sig(sig,1,-22);
         return;
     } else if (isSigOutput(sig, &i, x)) {
         self(x);
@@ -111,22 +117,38 @@ void Signal2VHDLVisitor::visit(Tree sig)
         self(x);
         return;
     } else if (isSigFixDelay(sig, x, y)) {
-        
+
         // Here is the maximum delay
         int mxd = fOccMarkup->retrieve(x)->getMaxDelay();
-        std::cout << "getMaxDelay: " << mxd << std::endl;
-        
-        if (((y->node()).getInt()) == 0) {
-          bypass("DELAY0", sig, x);
-        }
-        else {
-          if (fEntity.count("DELAY") == 0) {
-              entity_delay(fDeclEntity);
-              component_delay(fDeclCompnt);
-              fEntity.insert({"DELAY", true});
+        if (!(isSigInt(y, &i)) && !(isSigReal(y, &r))) {
+          if (fEntity.count("DELAYVAR") == 0) {
+            if (mxd < 5000) { // to precise number
+                entity_delay_var_reg(fDeclEntity);
+            } else {
+                entity_delay_var_ram(fDeclEntity);
+            }
+            component_delay_var(fDeclCompnt);
+            fEntity.insert({"DELAYVAR", true});
           }
-          decl_sig(sig);
+          decl_sig(sig,1,-22);
+          inst_delay_var(sig, x, y, fMapCompnt, mxd);
+        } else {
+          if (((y->node()).getInt()) == 0) {
+            bypass("DELAY0", sig, x);
+          } else {
+            if (fEntity.count("DELAY") == 0) {
+                entity_delay(fDeclEntity);
+                component_delay(fDeclCompnt);
+                fEntity.insert({"DELAY", true});
+            }
+            decl_sig(sig,1,-22);
+            inst_delay(sig, x, y, fMapCompnt);
+          }
+<<<<<<< HEAD
+=======
+          decl_sig(sig,1,-22);
           inst_delay(sig, x, y, fMapCompnt);
+>>>>>>> c521d740282b04c78adfdcddd7f2d216b58372e4
         }
         self(x);
         self(y);
@@ -152,6 +174,9 @@ void Signal2VHDLVisitor::visit(Tree sig)
             case 3:
                 bin_op("DIV", binopname[i], sig, x, y);
                 break;
+            case 4:
+                bin_op("MODULO", "mod", sig, x, y);
+                break;
             case 8:
                 cmp_op("GT", binopname[i], sig, x, y);
                 break;
@@ -171,13 +196,17 @@ void Signal2VHDLVisitor::visit(Tree sig)
                 cmp_op("DIFF", "/=", sig, x, y);
                 break;
             case 14:
-                bin_op("AND_", "or", sig, x, y);
+<<<<<<< HEAD
+                bin_op("ANDL", "and", sig, x, y);
+=======
+                bin_op("AND_", "and", sig, x, y);
+>>>>>>> c521d740282b04c78adfdcddd7f2d216b58372e4
                 break;
             case 15:
-                bin_op("OR_", "or", sig, x, y);
+                bin_op("ORL", "or", sig, x, y);
                 break;
             case 16:
-                bin_op("XOR_", "xor", sig, x, y);
+                bin_op("XORL", "xor", sig, x, y);
                 break;
             default:
                 // operator is doesn't match any case constant (+, -, *, /, ...)
@@ -369,12 +398,12 @@ void Signal2VHDLVisitor::generic_decl(string & str)
 void Signal2VHDLVisitor::port_decl(int input, string & str)
 {
     str += "port (\n"
-    "   clk      : in std_logic;\n"
-    "   rst      : in std_logic;\n";
+    "   clk     : in std_logic;\n"
+    "   rst     : in std_logic;\n";
     for (int i = 0; i < input; i++) {
-        str += "   input_"+ to_string(i) + "  : in  sfixed(msb downto lsb);\n";
+        str += "   input"+ to_string(i) + "  : in  sfixed(msb downto lsb);\n";
     }
-    str += "   output_0 : out sfixed(msb downto lsb));\n";
+    str += "   output0 : out sfixed(msb downto lsb));\n";
 }
 
 void Signal2VHDLVisitor::entity_bin_op(const string& name, const char* op, string & str)
@@ -386,7 +415,7 @@ void Signal2VHDLVisitor::entity_bin_op(const string& name, const char* op, strin
     str += "end " + name + ";\n"
     "architecture behavioral of " + name + " is\n"
     "begin\n"
-    "output_0  <=  resize(input_0 " + op + " input_1,msb,lsb);\n"
+    "output0  <=  resize(input0 " + op + " input1,msb,lsb);\n"
     "end behavioral;\n\n";
 }
 
@@ -399,12 +428,12 @@ void Signal2VHDLVisitor::entity_cmp_op(const string& name, const char* op, strin
     str += "end " + name + ";\n"
     "architecture behavioral of " + name + " is\n"
     "begin\n"
-    "process(input_0, input_1)\n"
+    "process(input0, input1)\n"
     "begin\n"
-    " if (input_0 " + op + " input_1) then\n"
-    "   output_0 <= to_sfixed(1,msb,lsb);\n"
+    " if (input0 " + op + " input1) then\n"
+    "   output0 <= to_sfixed(1,msb,lsb);\n"
     " else\n"
-    "   output_0 <= to_sfixed(0,msb,lsb);\n"
+    "   output0 <= to_sfixed(0,msb,lsb);\n"
     " end if; \n"
     "end process;\n"
     "end behavioral;\n\n";
@@ -415,13 +444,13 @@ void Signal2VHDLVisitor::entity_delay(string & str)
     entity_header(str);
     str += "entity DELAY is\n"
     "generic (\n"
-    "    delay    : integer;\n"
-    "    msb      : integer;\n"
-    "    lsb      : integer);\n"
+    "    delay   : integer;\n"
+    "    msb     : integer;\n"
+    "    lsb     : integer);\n"
     "port (\n"
-    "    ws       : in std_logic;\n"
-    "    input_0  : in  sfixed(msb downto lsb);\n"
-    "    output_0 : out sfixed(msb downto lsb));\n"
+    "    ws      : in std_logic;\n"
+    "    input0  : in  sfixed(msb downto lsb);\n"
+    "    output0 : out sfixed(msb downto lsb));\n"
     "end DELAY;\n"
     "architecture behavioral of DELAY is\n"
     "type mem is array (delay-1 downto 0) of sfixed(msb downto lsb);\n"
@@ -429,14 +458,92 @@ void Signal2VHDLVisitor::entity_delay(string & str)
     "begin\n"
     "process(ws)\n"
     "    begin\n"
-    "    ligne(0) <= input_0;\n"
+    "    ligne(0) <= input0;\n"
     "    if rising_edge(ws) then\n"
     "        for i in 1 to delay-1 loop\n"
     "            ligne(i) <= ligne(i-1);\n"
     "        end loop;\n"
-    "    output_0 <= ligne(delay-1);\n"
+    "    output0 <= ligne(delay-1);\n"
     "    end if;\n"
     "end process;\n"
+    "end behavioral;\n\n";
+}
+
+void Signal2VHDLVisitor::entity_delay_var_reg(string & str)
+{
+    entity_header(str);
+    str += "entity DELAYVAR is\n"
+    "generic(\n"
+    "    mxd       : integer;\n"
+    "    msb       : integer;\n"
+    "    lsb       : integer);\n"
+    "port(\n"
+    "    ws        : in std_logic;\n"
+    "    rst_n     : in  std_logic;\n"
+    "    delay_var : in  sfixed(23 downto 0);\n"
+    "    input0    : in  sfixed(msb downto lsb);\n"
+    "    output0   : out sfixed(msb downto lsb));\n"
+    "end DELAYVAR;\n"
+    "architecture behavioral of DELAYVAR is\n"
+    "type t_ram is array (mxd downto 0) of sfixed(msb downto lsb);\n"
+    "signal mem : t_ram;\n"
+    "begin\n"
+    "process(ws,delay_var)\n"
+    "begin\n"
+    " if rising_edge(ws) then\n"
+    "   mem(0) <= input0;\n"
+    "   for i in 1 to mxd loop\n"
+    "     mem(i) <= mem(i-1);\n"
+    "   end loop;\n"
+    " end if;\n"
+    "end process;\n"
+    "output0 <= mem(to_integer(delay_var)-1);\n"
+    "end behavioral;\n\n";
+}
+
+void Signal2VHDLVisitor::entity_delay_var_ram(string & str)
+{
+    entity_header(str);
+    str += "entity DELAYVAR is\n"
+    "generic(\n"
+    "    mxd       : integer;\n"
+    "    msb       : integer;\n"
+    "    lsb       : integer);\n"
+    "port(\n"
+    "    ws        : in  std_logic;\n"
+    "    rst_n     : in  std_logic;\n"
+    "    delay_var : in  sfixed(23 downto 0);\n"
+    "    input0    : in  sfixed(msb downto lsb);\n"
+    "    output0   : out sfixed(msb downto lsb));\n"
+    "end DELAYVAR;\n"
+    "architecture behavioral of DELAYVAR is\n"
+    "type t_ram is array (mxd downto 0) of sfixed(msb downto lsb);\n"
+    "signal mem : t_ram;\n"
+    "signal r_addr_wr   : integer range 0 to mxd := 0;\n"
+    "signal r_addr_rd   : integer range 0 to mxd := 0;\n"
+    "begin\n\n"
+    "p_write : process(ws)\n"
+    "begin\n"
+    " if rising_edge(ws) then\n"
+    "   mem(r_addr_wr) <= input0;\n"
+    "   if(r_addr_wr < mxd) then\n"
+    "     r_addr_wr <= r_addr_wr + 1;\n"
+    "   else\n"
+    "     r_addr_wr <= 0;\n"
+    "   end if;\n"
+    " end if;\n"
+    "end process p_write;\n\n"
+    "p_read : process(ws)\n"
+    "begin\n"
+    " if rising_edge(ws) then\n"
+    "   r_addr_rd <= r_addr_wr - to_integer(delay_var);\n"
+    "   if(r_addr_rd < 0) then\n"
+		"     output0 <= mem(r_addr_rd+mxd+1);\n"
+	  "   else\n"
+    "     output0 <= mem(r_addr_rd);\n"
+	  "   end if;\n"
+    " end if;\n"
+    "end process p_read;\n"
     "end behavioral;\n\n";
 }
 
@@ -452,9 +559,9 @@ void Signal2VHDLVisitor::entity_bypass(const string& name, string & str)
     "process (clk,rst)\n"
     "begin\n"
     "  if rst = '0' then\n"
-    "    output_0 <= (others => '0');\n"
+    "    output0 <= (others => '0');\n"
     "  else\n"
-    "    output_0 <= input_0;\n"
+    "    output0 <= input0;\n"
     "  end if;\n"
     "end process;\n"
     "end behavioral;\n\n";
@@ -471,10 +578,10 @@ void Signal2VHDLVisitor::entity_select2(const string& name, string & str)
     "begin\n"
     "process(sel)\n"
     "begin\n"
-    "if (input_0 = 0) then\n"
-    "    output_0 <= input_2;\n"
+    "if (input0 = 0) then\n"
+    "    output0 <= input2;\n"
     "else\n"
-    "    output_0 <= input_1;\n"
+    "    output0 <= input1;\n"
     "end if;\n"
     "end process;\n"
     "end behavioral;\n\n";
@@ -526,9 +633,45 @@ void Signal2VHDLVisitor::component_delay(string & str)
     "    msb      : integer;\n"
     "    lsb      : integer);\n"
     "port (\n"
-    "    ws       : in std_logic;\n"
-    "    input_0  : in  sfixed(msb downto lsb);\n"
-    "    output_0 : out sfixed(msb downto lsb));\n"
+    "    ws      : in std_logic;\n"
+    "    input0  : in  sfixed(msb downto lsb);\n"
+    "    output0 : out sfixed(msb downto lsb));\n"
+    "end component;\n\n";
+}
+
+void Signal2VHDLVisitor::component_delay_var(string & str)
+{
+    str += "component DELAYVAR is\n"
+    "generic (\n"
+    "    mxd      : integer;\n"
+    "    msb      : integer;\n"
+    "    lsb      : integer);\n"
+    "port (\n"
+    "   ws        : in  std_logic;\n"
+    "   rst_n     : in  std_logic;\n"
+    "   delay_var : in  sfixed(msb downto lsb);\n"
+    "   input0    : in  sfixed(msb downto lsb);\n"
+    "   output0   : out sfixed(msb downto lsb));\n"
+    "end component;\n\n";
+}
+
+void Signal2VHDLVisitor::component_sincos(string & str)
+{
+    str += "component SinCos24 is\n"
+    "port (\n"
+    "    input : in   sfixed(1 downto -22);\n"
+    "    SIN   : out  sfixed(0 downto -23);\n"
+    "    COS   : out  sfixed(0 downto -23));\n"
+    "end component;\n\n";
+}
+
+void Signal2VHDLVisitor::component_sincos(string & str)
+{
+    str += "component SinCos24 is\n"
+    "port (\n"
+    "    input : in   sfixed(1 downto -22);\n"
+    "    SIN   : out  sfixed(0 downto -23);\n"
+    "    COS   : out  sfixed(0 downto -23));\n"
     "end component;\n\n";
 }
 
@@ -586,9 +729,9 @@ void Signal2VHDLVisitor::inst_bin_op(const string& name, Tree sig, Tree x, Tree 
     "port map (\n"
     "    clk => ap_clk,\n"
     "    rst => ap_rst_n,\n"
-    "    input_0  => sig"+ addr_to_str(x) +",\n"
-    "    input_1  => sig"+ addr_to_str(y) +",\n"
-    "    output_0 => sig"+ addr_to_str(sig) +");\n\n";
+    "    input0  => sig"+ addr_to_str(x) +",\n"
+    "    input1  => sig"+ addr_to_str(y) +",\n"
+    "    output0 => sig"+ addr_to_str(sig) +");\n\n";
 }
 
 void Signal2VHDLVisitor::inst_delay(Tree sig, Tree x, Tree y, string & str)
@@ -600,8 +743,39 @@ void Signal2VHDLVisitor::inst_delay(Tree sig, Tree x, Tree y, string & str)
     "    lsb => -22)\n"
     "port map (\n"
     "    ws => ws,\n"
-    "    input_0  => sig"+ addr_to_str(x) +",\n"
-    "    output_0 => sig"+ addr_to_str(sig) +");\n\n";
+    "    input0  => sig"+ addr_to_str(x) +",\n"
+    "    output0 => sig"+ addr_to_str(sig) +");\n\n";
+}
+
+void Signal2VHDLVisitor::inst_delay_var(Tree sig, Tree x, Tree y, string & str, int mxd)
+{
+    str += "DELAYVAR_" + addr_to_str(sig) + " : DELAYVAR\n"
+    "generic map (\n"
+    "    mxd => "+ to_string(mxd) +",\n"
+    "    msb => 1,\n"
+    "    lsb => -22)\n"
+    "port map (\n"
+    "    ws => ws,\n"
+    "    rst_n => ap_rst_n,\n"
+    "    delay_var => sig"+ addr_to_str(y) +",\n"
+    "    input0  => sig"+ addr_to_str(x) +",\n"
+    "    output0 => sig"+ addr_to_str(sig) +");\n\n";
+}
+
+void Signal2VHDLVisitor::inst_sincos(const string& name, Tree sig, Tree x, string & str)
+{
+    str += name + "_" + addr_to_str(sig) + " : SinCos24\n"
+    "port map (\n"
+    "    input  => sig"+ addr_to_str(x) +",\n"
+    "    " + name + " => sig"+ addr_to_str(sig) +");\n\n";
+}
+
+void Signal2VHDLVisitor::inst_sincos(const string& name, Tree sig, Tree x, string & str)
+{
+    str += name + "_" + addr_to_str(sig) + " : SinCos24\n"
+    "port map (\n"
+    "    input  => sig"+ addr_to_str(x) +",\n"
+    "    " + name + " => sig"+ addr_to_str(sig) +");\n\n";
 }
 
 void Signal2VHDLVisitor::inst_bypass(const string& name, Tree sig, Tree x, string & str)
@@ -613,8 +787,8 @@ void Signal2VHDLVisitor::inst_bypass(const string& name, Tree sig, Tree x, strin
     "port map (\n"
     "    clk => ap_clk,\n"
     "    rst => ap_rst_n,\n"
-    "    input_0  => sig"+ addr_to_str(x) +",\n"
-    "    output_0 => sig"+ addr_to_str(sig) +");\n\n";
+    "    input0  => sig"+ addr_to_str(x) +",\n"
+    "    output0 => sig"+ addr_to_str(sig) +");\n\n";
 }
 
 void Signal2VHDLVisitor::inst_select2(const string& name, Tree sig, Tree sel, Tree x, Tree y, string & str)
@@ -626,20 +800,24 @@ void Signal2VHDLVisitor::inst_select2(const string& name, Tree sig, Tree sel, Tr
     "port map (\n"
     "    clk => ap_clk,\n"
     "    rst => ap_rst_n,\n"
-    "    input_0  => sig"+ addr_to_str(sel) +",\n"
-    "    input_1  => sig"+ addr_to_str(x) +",\n"
-    "    input_2  => sig"+ addr_to_str(y) +",\n"
-    "    output_0 => sig"+ addr_to_str(sig) +");\n\n";
+    "    input0  => sig"+ addr_to_str(sel) +",\n"
+    "    input1  => sig"+ addr_to_str(x) +",\n"
+    "    input2  => sig"+ addr_to_str(y) +",\n"
+    "    output0 => sig"+ addr_to_str(sig) +");\n\n";
 }
 
-void Signal2VHDLVisitor::decl_sig(Tree sig)
+<<<<<<< HEAD
+=======
+
+>>>>>>> c521d740282b04c78adfdcddd7f2d216b58372e4
+void Signal2VHDLVisitor::decl_sig(Tree sig, int msb, int lsb)
 {
     int i;
     double r;
     if (isSigInt(sig, &i) || isSigReal(sig, &r)) {
-        fDeclSig += "signal    sig"+addr_to_str(sig)+" : sfixed(1 downto -22) := to_sfixed(" + val_to_str(sig) + ",1,-22);\n";
+        fDeclSig += "signal    sig"+addr_to_str(sig)+" : sfixed(" +to_string(msb)+ " downto " +to_string(lsb)+") := to_sfixed("+val_to_str(sig)+","+to_string(msb)+","+to_string(lsb)+");\n";
     } else {
-        fDeclSig += "signal    sig"+ addr_to_str(sig) +" : sfixed(1 downto -22);\n";
+        fDeclSig += "signal    sig"+ addr_to_str(sig) +" : sfixed("+to_string(msb)+" downto "+to_string(lsb)+");\n";
     }
 }
 
@@ -655,7 +833,7 @@ void Signal2VHDLVisitor::bin_op(const string& name, const char* op, Tree sig, Tr
         component_standard(name, 2, fDeclCompnt);
         fEntity.insert({op, true});
     }
-    decl_sig(sig);
+    decl_sig(sig,1,-22);
     inst_bin_op(name, sig, x, y, fMapCompnt);
 }
 
@@ -666,7 +844,7 @@ void Signal2VHDLVisitor::select_op(const string& name, Tree sig, Tree sel, Tree 
         component_standard(name, 3, fDeclCompnt);
         fEntity.insert({name, true});
     }
-    decl_sig(sig);
+    decl_sig(sig,1,-22);
     inst_select2(name, sig, sel, x, y, fMapCompnt);
 }
 
@@ -677,17 +855,41 @@ void Signal2VHDLVisitor::cmp_op(const string& name, const char* op, Tree sig, Tr
         component_standard(name, 2, fDeclCompnt);
         fEntity.insert({op, true});
     }
-    decl_sig(sig);
+    decl_sig(sig,1,-22);
     inst_bin_op(name, sig, x, y, fMapCompnt);
 }
 
+void Signal2VHDLVisitor::sincos_op(const string& name, Tree sig, Tree x)
+{
+    if (fEntity.count("SinCos24") == 0) {
+        component_sincos(fDeclCompnt);
+        fEntity.insert({"SinCos24", true});
+    }
+    decl_sig(sig,0,-23);
+    inst_sincos(name, sig, x, fMapCompnt);
+    self(x);
+}
+
+<<<<<<< HEAD
 void Signal2VHDLVisitor::bypass(const string& name, Tree sig, Tree x)
 {
-  if (fEntity.count(name) == 0) {
+    if (fEntity.count(name) == 0) {
       entity_bypass(name, fDeclEntity);
       component_standard(name, 1, fDeclCompnt);
       fEntity.insert({name, true});
-  }
-  decl_sig(sig);
-  inst_bypass(name, sig, x, fMapCompnt);
+    }
+    decl_sig(sig,1,-22);
+    inst_bypass(name, sig, x, fMapCompnt);
+=======
+
+void Signal2VHDLVisitor::bypass(const string& name, Tree sig, Tree x)
+{
+   if (fEntity.count(name) == 0) {
+       entity_bypass(name, fDeclEntity);
+       component_standard(name, 1, fDeclCompnt);
+       fEntity.insert({name, true});
+   }
+   decl_sig(sig,1,-22);
+   inst_bypass(name, sig, x, fMapCompnt);
+>>>>>>> c521d740282b04c78adfdcddd7f2d216b58372e4
 }

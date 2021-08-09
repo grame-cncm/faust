@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="main_wrapper_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="main_wrapper" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="929999367000fs"></ZoomStartTime>
+      <ZoomEndTime time="1051799367001fs"></ZoomEndTime>
+      <Cursor1Time time="1031499367000fs"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="277"></NameColumnWidth>
+      <ValueColumnWidth column_width="113"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="35" />
+   <wvobject type="logic" fp_name="/main_wrapper/bypass_dsp_0">
+      <obj_property name="ElementShortName">bypass_dsp_0</obj_property>
+      <obj_property name="ObjectShortName">bypass_dsp_0</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/bypass_faust_0">
+      <obj_property name="ElementShortName">bypass_faust_0</obj_property>
+      <obj_property name="ObjectShortName">bypass_faust_0</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/clk_in1_0">
+      <obj_property name="ElementShortName">clk_in1_0</obj_property>
+      <obj_property name="ObjectShortName">clk_in1_0</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/reset_0">
+      <obj_property name="ElementShortName">reset_0</obj_property>
+      <obj_property name="ObjectShortName">reset_0</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/bypass_dsp_0">
+      <obj_property name="ElementShortName">bypass_dsp_0</obj_property>
+      <obj_property name="ObjectShortName">bypass_dsp_0</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/bypass_faust_0">
+      <obj_property name="ElementShortName">bypass_faust_0</obj_property>
+      <obj_property name="ObjectShortName">bypass_faust_0</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/clk_in1_0">
+      <obj_property name="ElementShortName">clk_in1_0</obj_property>
+      <obj_property name="ObjectShortName">clk_in1_0</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/reset_0">
+      <obj_property name="ElementShortName">reset_0</obj_property>
+      <obj_property name="ObjectShortName">reset_0</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/TB_I2S_Faust_0_reset_n">
+      <obj_property name="ElementShortName">TB_I2S_Faust_0_reset_n</obj_property>
+      <obj_property name="ObjectShortName">TB_I2S_Faust_0_reset_n</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/TB_I2S_Faust_0_start">
+      <obj_property name="ElementShortName">TB_I2S_Faust_0_start</obj_property>
+      <obj_property name="ObjectShortName">TB_I2S_Faust_0_start</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/bypass_dsp_0_1">
+      <obj_property name="ElementShortName">bypass_dsp_0_1</obj_property>
+      <obj_property name="ObjectShortName">bypass_dsp_0_1</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/bypass_faust_0_1">
+      <obj_property name="ElementShortName">bypass_faust_0_1</obj_property>
+      <obj_property name="ObjectShortName">bypass_faust_0_1</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/clk_in1_0_1">
+      <obj_property name="ElementShortName">clk_in1_0_1</obj_property>
+      <obj_property name="ObjectShortName">clk_in1_0_1</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/clk_wiz_0_mclk">
+      <obj_property name="ElementShortName">clk_wiz_0_mclk</obj_property>
+      <obj_property name="ObjectShortName">clk_wiz_0_mclk</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/clk_wiz_0_sys_clock">
+      <obj_property name="ElementShortName">clk_wiz_0_sys_clock</obj_property>
+      <obj_property name="ObjectShortName">clk_wiz_0_sys_clock</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/faust_v4_0_ap_done">
+      <obj_property name="ElementShortName">faust_v4_0_ap_done</obj_property>
+      <obj_property name="ObjectShortName">faust_v4_0_ap_done</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/main_wrapper/main_i/faust_v4_0_out_left_V">
+      <obj_property name="ElementShortName">faust_v4_0_out_left_V[23:0]</obj_property>
+      <obj_property name="ObjectShortName">faust_v4_0_out_left_V[23:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/faust_v4_0_out_left_V_ap_vld">
+      <obj_property name="ElementShortName">faust_v4_0_out_left_V_ap_vld</obj_property>
+      <obj_property name="ObjectShortName">faust_v4_0_out_left_V_ap_vld</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/main_wrapper/main_i/faust_v4_0_out_right_V">
+      <obj_property name="ElementShortName">faust_v4_0_out_right_V[23:0]</obj_property>
+      <obj_property name="ObjectShortName">faust_v4_0_out_right_V[23:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/faust_v4_0_out_right_V_ap_vld">
+      <obj_property name="ElementShortName">faust_v4_0_out_right_V_ap_vld</obj_property>
+      <obj_property name="ObjectShortName">faust_v4_0_out_right_V_ap_vld</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/faust_v4_0/ap_done">
+      <obj_property name="ElementShortName">ap_done</obj_property>
+      <obj_property name="ObjectShortName">ap_done</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/main_wrapper/main_i/i2s_transceiver_0_l_data_rx">
+      <obj_property name="ElementShortName">i2s_transceiver_0_l_data_rx[23:0]</obj_property>
+      <obj_property name="ObjectShortName">i2s_transceiver_0_l_data_rx[23:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/main_wrapper/main_i/i2s_transceiver_0_r_data_rx">
+      <obj_property name="ElementShortName">i2s_transceiver_0_r_data_rx[23:0]</obj_property>
+      <obj_property name="ObjectShortName">i2s_transceiver_0_r_data_rx[23:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/i2s_transceiver_0_rdy">
+      <obj_property name="ElementShortName">i2s_transceiver_0_rdy</obj_property>
+      <obj_property name="ObjectShortName">i2s_transceiver_0_rdy</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/i2s_transceiver_0_sclk">
+      <obj_property name="ElementShortName">i2s_transceiver_0_sclk</obj_property>
+      <obj_property name="ObjectShortName">i2s_transceiver_0_sclk</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/i2s_transceiver_0_sd_tx">
+      <obj_property name="ElementShortName">i2s_transceiver_0_sd_tx</obj_property>
+      <obj_property name="ObjectShortName">i2s_transceiver_0_sd_tx</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/i2s_transceiver_0_ws">
+      <obj_property name="ElementShortName">i2s_transceiver_0_ws</obj_property>
+      <obj_property name="ObjectShortName">i2s_transceiver_0_ws</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/reset_0_1">
+      <obj_property name="ElementShortName">reset_0_1</obj_property>
+      <obj_property name="ObjectShortName">reset_0_1</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/NLW_clk_wiz_0_locked_UNCONNECTED">
+      <obj_property name="ElementShortName">NLW_clk_wiz_0_locked_UNCONNECTED</obj_property>
+      <obj_property name="ObjectShortName">NLW_clk_wiz_0_locked_UNCONNECTED</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/NLW_faust_v4_0_ap_idle_UNCONNECTED">
+      <obj_property name="ElementShortName">NLW_faust_v4_0_ap_idle_UNCONNECTED</obj_property>
+      <obj_property name="ObjectShortName">NLW_faust_v4_0_ap_idle_UNCONNECTED</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/main_wrapper/main_i/NLW_faust_v4_0_ap_ready_UNCONNECTED">
+      <obj_property name="ElementShortName">NLW_faust_v4_0_ap_ready_UNCONNECTED</obj_property>
+      <obj_property name="ObjectShortName">NLW_faust_v4_0_ap_ready_UNCONNECTED</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/main_wrapper/main_i/i2s_transceiver_0/U0/l_data_tx_latched">
+      <obj_property name="ElementShortName">l_data_tx_latched[23:0]</obj_property>
+      <obj_property name="ObjectShortName">l_data_tx_latched[23:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/main_wrapper/main_i/i2s_transceiver_0/U0/r_data_tx_latched">
+      <obj_property name="ElementShortName">r_data_tx_latched[23:0]</obj_property>
+      <obj_property name="ObjectShortName">r_data_tx_latched[23:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/main_wrapper/main_i/i2s_transceiver_0/U0/l_data_tx_latched">
+      <obj_property name="ElementShortName">l_data_tx_latched[23:0]</obj_property>
+      <obj_property name="ObjectShortName">l_data_tx_latched[23:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/main_wrapper/main_i/i2s_transceiver_0/U0/r_data_tx_latched">
+      <obj_property name="ElementShortName">r_data_tx_latched[23:0]</obj_property>
+      <obj_property name="ObjectShortName">r_data_tx_latched[23:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
+   </wvobject>
+</wave_config>
