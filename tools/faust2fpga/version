@@ -1,0 +1,7 @@
+v4.1-hand-shake-no-axi tested with
+vivado 2019.1
+faust 2.27.2
+karplus.dsp OK
+sinewaveLFO.dsp  NOK
+bypass OK (+/- vol)
+(bien rebooter la carte avant de flasher)

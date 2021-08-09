@@ -261,7 +261,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     startTiming("privatise");
     Tree L5 = privatise(L4);  // Un-share tables with multiple writers
     endTiming("privatise");
-    
+
     startTiming("conditionAnnotation");
     conditionAnnotation(L5);
     endTiming("conditionAnnotation");
@@ -283,7 +283,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     startTiming("sharingAnalysis");
     sharingAnalysis(L5);         // Annotate L5 with sharing count
     endTiming("sharingAnalysis");
-    
+
     startTiming("occurrences analysis");
     if (fOccMarkup != 0) {
         delete fOccMarkup;
@@ -298,16 +298,20 @@ Tree InstructionsCompiler::prepare(Tree LS)
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
         sigToGraph(L5, dotfile);
     }
-    
+
     // Generate VHDL if --vhdl option is set
     if (gGlobal->gVHDLSwitch) {
+<<<<<<< HEAD
         Signal2VHDLVisitor V(fOccMarkup);
-        ofstream dotfile(subst("$0.vhd", gGlobal->makeDrawPath()).c_str());
+=======
+        Signal2VHDLVisitor V;
+>>>>>>> c521d740282b04c78adfdcddd7f2d216b58372e4
+        ofstream dotfile(subst("faust.vhd", gGlobal->makeDrawPath()).c_str());
         V.sigToVHDL(L5, dotfile);
         V.trace(gGlobal->gVHDLTrace, "VHDL");  // activate with --trace option
         V.mapself(L5);
     }
-    
+
     return L5;
 }
 
@@ -1010,12 +1014,12 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     fContainer->addIncludeFile(ffincfile(ff));
     fContainer->addLibrary(fflibfile(ff));
     string funname = ffname(ff);
-    
+
     if (gGlobal->gAllowForeignFunction || gGlobal->hasMathForeignFunction(funname)) {
-        
+
         list<ValueInst*>  args_value;
         list<NamedTyped*> args_types;
-        
+
         for (int i = 0; i < ffarity(ff); i++) {
             Tree parameter = nth(largs, i);
             // Reversed...
@@ -1024,11 +1028,11 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
             args_types.push_back(InstBuilder::genNamedTyped("dummy" + to_string(i), argtype));
             args_value.push_back(InstBuilder::genCastInst(CS(parameter), argtype));
         }
-        
+
         // Add function declaration
         FunTyped* fun_type = InstBuilder::genFunTyped(args_types, genBasicFIRTyped(ffrestype(ff)));
         pushExtGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
-        
+
         return generateCacheCode(sig, InstBuilder::genCastInst(InstBuilder::genFunCallInst(funname, args_value),
                                                                genBasicFIRTyped(ffrestype(ff))));
     } else {

@@ -67,6 +67,8 @@ class Signal2VHDLVisitor : public TreeTraversal {
         void entity_bin_op(const string& name, const char* op, string & str);   // arithmetic and modulo operation
         void entity_cmp_op(const string& name, const char* op, string & str);   // compare operation
         void entity_delay(string & str);                                        // delay
+        void entity_delay_var_reg(string & str);                                // variable delay (Using Registers)
+        void entity_delay_var_ram(string & str);                                // variable delay (Using Blocks RAM)
         void entity_bypass(const string& name, string & str);                   // bypass module
         void entity_select2(const string& name, string & str);                  // select module
         void entity_faust();                                                    // main module
@@ -76,6 +78,12 @@ class Signal2VHDLVisitor : public TreeTraversal {
           */
         void component_standard(const string& name, int input, string & str);   // arith, mod, bypass, compare, select
         void component_delay(string & str);                                     // delay
+<<<<<<< HEAD
+        void component_delay_var(string & str);                                 // variable delay
+        void component_sincos(string & str);                                    // cosinus & sinus
+=======
+        void component_sincos(string & str);
+>>>>>>> c521d740282b04c78adfdcddd7f2d216b58372e4
 
         /* Generate the process of the Faust module, it determine the behavioral modeling of the Faust IP */
         void faust_process();
@@ -86,15 +94,25 @@ class Signal2VHDLVisitor : public TreeTraversal {
           */
         void inst_bin_op(const string& name, Tree sig, Tree x, Tree y, string & str); // arith, mod, compare
         void inst_delay(Tree sig, Tree x, Tree y, string & str);                      // delay
+<<<<<<< HEAD
+        void inst_delay_var(Tree sig, Tree x, Tree y, string & str, int mxd);         // variable delay
+=======
+>>>>>>> c521d740282b04c78adfdcddd7f2d216b58372e4
+        void inst_sincos(const string& name, Tree sig, Tree x, string & str);         // cosinus & sinus
         void inst_bypass(const string& name, Tree sig, Tree x, string & str);         // bypass
         void inst_select2(const string& name, Tree sig, Tree sel, Tree x, Tree y, string & str);  // select
 
-        void decl_sig(Tree x); // Declare the internal signals of the IP block with a type (and an initial value)
+<<<<<<< HEAD
+=======
+
+>>>>>>> c521d740282b04c78adfdcddd7f2d216b58372e4
+        void decl_sig(Tree x, int msb, int lsb); // Declare the internal signals of the IP block with a type (and an initial value)
         void input_affectation(Tree sig);
 
         void bin_op(const string& name, const char* op, Tree sig, Tree x, Tree y);
         void select_op(const string& name, Tree sig, Tree sel, Tree x, Tree y);
         void cmp_op(const string& name, const char* op, Tree sig, Tree x, Tree y);
+        void sincos_op(const string& name, Tree sig, Tree x);
         void bypass(const string& name, Tree sig, Tree x);
 
     public:
