@@ -49,11 +49,11 @@ function main!(args)
 
     #= Possibly manually change control values
     - using simple labels (end of path):
-    setParamValue(map_ui, "freq", 500.0f0)
-    setParamValue(map_ui, "volume", -10.0f0)
+    setParamValue!(map_ui, "freq", 500.0f0)
+    setParamValue!(map_ui, "volume", -10.0f0)
     - or using complete path:
-    setParamValue(map_ui, "/Oscillator/freq", 500.0f0)
-    setParamValue(map_ui, "/Oscillator/volume", -10.0f0)
+    setParamValue!(map_ui, "/Oscillator/freq", 500.0f0)
+    setParamValue!(map_ui, "/Oscillator/volume", -10.0f0)
     =#
 
     # No controller

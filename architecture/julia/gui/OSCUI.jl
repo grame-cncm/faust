@@ -118,7 +118,7 @@ end
 
 # Does not work ?
 # MacroTools.@forward OSCUI.map_ui openTabBox, openHorizontalBox, openVerticalBox, closeBox, addButton, addCheckButton, addHorizontalSlider, addHorizontalSlider, addNumEntry, addHorizontalBargraph, addVerticalBargraph
-    
+ 
 # -- widget's layouts
 function openTabBox!(ui_interface::OSCUI, label::String)
     openTabBox!(ui_interface.map_ui, label)

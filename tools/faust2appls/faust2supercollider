@@ -182,12 +182,13 @@ for p in $FILES; do
     fi
     cp "$TMP/${f%.dsp}.sc" "$SRCDIR/${f%.dsp}.sc"
 
-    if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
-        codesign --sign - --deep --force "$SRCDIR/${f%.dsp}.$EXT"
-        if [ $SUPERNOVA_FLAG = 1 ]; then
-            codesign --sign - --deep --force "$SRCDIR/${f%.dsp}_supernova.$EXT"
-        fi
-    fi
+    # Deactivated for now
+    #if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
+    #    codesign --sign - --deep --force "$SRCDIR/${f%.dsp}.$EXT"
+    #    if [ $SUPERNOVA_FLAG = 1 ]; then
+    #        codesign --sign - --deep --force "$SRCDIR/${f%.dsp}_supernova.$EXT"
+    #    fi
+    #fi
 
     if [ $KEEP_SRC = 1 ]; then
         cp "$TMP/${f%.dsp}.cpp" "$SRCDIR/${f%.dsp}.cpp"
