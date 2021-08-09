@@ -22,6 +22,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <set>
 #include "Instr.hh"
 #include "property.hh"
 #include "signalVisitor.hh"
@@ -35,3 +36,7 @@
 // conversion from tree representation to nlpl representation
 nlpl::Instr old2NewInstr(Tree e);
 nlpl::Expr  old2NewExpr(Tree sig);
+
+namespace nlpl {
+void graphOf(const std::set<Instr>& I);
+}

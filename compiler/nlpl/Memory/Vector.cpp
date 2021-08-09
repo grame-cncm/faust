@@ -2,10 +2,8 @@
 #include <utility>
 
 #include "Memory.hh"
-namespace nlpl
-{
-class VectorMemory : public MemoryZone
-{
+namespace nlpl {
+class VectorMemory : public MemoryZone {
     DeclareMode  fDecl;
     std::string  fType;
     std::string  fName;
@@ -19,7 +17,7 @@ class VectorMemory : public MemoryZone
     }
 
     std::string  name() override { return fName; }
-    void         print(std::ostream& os) override { os << fType << '[' << fSize << ']' << ' ' << fName; };
+    void         print(std::ostream& os) override { os << (void*)this << ':' << fType << '[' << fSize << ']' << ' ' << fName; };
     DeclareMode  declarationMode() override { return fDecl; }
     unsigned int phase() override { return fPhase; }
     void         getDependencies(std::set<Dependency>& dep) override

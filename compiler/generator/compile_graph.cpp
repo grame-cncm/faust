@@ -104,12 +104,18 @@ void GraphCompiler::compileMultiSignal(Tree L)
     set<Tree> INSTR = ExpressionsListToInstructionsSet(L);
 
     // experimental
-    std::cout << "EXPERIMENTAL" << std::endl;
+    std::cout << "BEGIN EXPERIMENTAL" << std::endl;
+    std::set<nlpl::Instr> SI;
     for (Tree i : INSTR) {
         nlpl::Instr ni = old2NewInstr(i);
         ni->print(std::cout, 0);
+        SI.insert(ni);
         std::cout << std::endl;
     }
+    std::cout << "============================================" << std::endl;
+
+    nlpl::graphOf(SI);
+    std::cout << "END EXPERIMENTAL" << std::endl;
 
     // lookForChains(INSTR);
     InstructionsToClass(INSTR, fClass);

@@ -95,7 +95,7 @@ struct arrow_traits<multidep> {
     }
     static multidep combine(const multidep& X, const multidep& Y)
     {
-        // std::cerr << "combine " << label(X) << " + " << label(Y) << std::endl;
+        std::cerr << "combine " << label(X) << " + " << label(Y) << std::endl;
         multidep M;
         auto     itx = X.first.begin();
         auto     ity = Y.first.begin();

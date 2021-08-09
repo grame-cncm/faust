@@ -15,7 +15,6 @@ class BinaryExpr : public Expression {
     explicit BinaryExpr(std::string op, int priority, Expr left, Expr right)
         : fOpName(std::move(op)), fPriority(priority), fLeft(left), fRight(right)
     {
-        std::cerr << fOpName << ":" << fPriority << std::endl;
     }
 
     void getDependencies(std::set<Dependency>& dep) override
@@ -60,7 +59,6 @@ Expr BinaryOp(const std::string& op, int priority, Expr left, Expr right)
     } else {
         Expr e = new BinaryExpr(op, priority, left, right);
         gBinaryExprHash.insert({key, e});
-        std::cout << "P:" << priority << std::endl;
         return e;
     }
 }

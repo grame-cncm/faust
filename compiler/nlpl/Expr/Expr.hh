@@ -24,6 +24,7 @@ using Expr = Expression*;
 Expr Integer(int i);
 Expr Float(double f);
 Expr ReadMem(Memory mem);
+Expr ReadMem(Memory mem, int minDelay);
 Expr ReadVec(Memory mem, Expr idx, int minDelay);
 Expr UnaryOp(const std::string& op, int priority, Expr exp);
 Expr BinaryOp(const std::string& op, int priority, Expr left, Expr right);

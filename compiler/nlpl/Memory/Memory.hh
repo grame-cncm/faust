@@ -15,7 +15,7 @@ namespace nlpl {
  *
  */
 enum DeclareMode : int { kPermanent, kBlock, kSample };
-enum PhaseMode : unsigned int { kFinal = UINT32_MAX };
+enum PhaseMode : unsigned int { kFinal = 0xffffffff };
 
 // forward declarations
 class MemoryZone;
