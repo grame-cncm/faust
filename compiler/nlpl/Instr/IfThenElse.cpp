@@ -34,7 +34,7 @@ class IfThenElseInstr : public Instruction
         fThen->getDependencies(dep);
         fElse->getDependencies(dep);
     }
-    void getProvided(std::set<Memory>& prov) override
+    void getProvided(std::set<Mem>& prov) override
     {
         fThen->getProvided(prov);
         fElse->getProvided(prov);

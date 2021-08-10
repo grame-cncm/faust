@@ -8,10 +8,12 @@
 #include "HashTuple.hh"
 #include "Memory.hh"
 
-namespace nlpl {
+namespace nlpl
+{
 // Expressions
 
-class Expression {
+class Expression
+{
    public:
     virtual void getDependencies(std::set<Dependency>& dep) = 0;
     virtual void getSubExpr(std::set<Expression*>& subexpr) = 0;
@@ -23,9 +25,9 @@ using Expr = Expression*;
 // Expression builders
 Expr Integer(int i);
 Expr Float(double f);
-Expr ReadMem(Memory mem);
-Expr ReadMem(Memory mem, int minDelay);
-Expr ReadVec(Memory mem, Expr idx, int minDelay);
+Expr ReadMem(Mem mem);
+Expr ReadMem(Mem mem, int minDelay);
+Expr ReadVec(Mem mem, Expr idx, int minDelay);
 Expr UnaryOp(const std::string& op, int priority, Expr exp);
 Expr BinaryOp(const std::string& op, int priority, Expr left, Expr right);
 Expr Fun(const std::string& op, const std::vector<Expr>& args);

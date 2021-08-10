@@ -12,7 +12,8 @@
 #include "HashTuple.hh"
 #include "Memory.hh"
 
-namespace nlpl {
+namespace nlpl
+{
 std::ostream& tab(std::ostream& fout, int n);
 
 /**
@@ -23,16 +24,17 @@ std::ostream& tab(std::ostream& fout, int n);
 class Instruction;
 using Instr = Instruction*;
 
-class Instruction {
+class Instruction
+{
    public:
-    virtual std::set<Instr> lift()                                     = 0;  // lift an instruction into a set of instructions
+    virtual std::set<Instr> lift() = 0;  // lift an instruction into a set of instructions
     virtual void            getDependencies(std::set<Dependency>& dep) = 0;  // dependencies needed by this instr.
-    virtual void            getProvided(std::set<Memory>& prov)        = 0;  // what this instruction provides
+    virtual void            getProvided(std::set<Mem>& prov)           = 0;  // what this instruction provides
     virtual void            getSubInstr(std::set<Instruction*>& expr)  = 0;
     virtual void            print(std::ostream& os, int indent)        = 0;
     virtual Instr           schedule()                                 = 0;  // Transform set of instr. into seq
     virtual Instr           optimize()                                 = 0;  // merge if and repeats
-    virtual void            dispatch(std::map<Expr, Instr>& IMap, std::map<Expr, Instr>& RMap, std::set<Instr>& OMap) = 0;
+    virtual void dispatch(std::map<Expr, Instr>& IMap, std::map<Expr, Instr>& RMap, std::set<Instr>& OMap) = 0;
 };
 
 // Printing an expression
@@ -41,7 +43,7 @@ inline std::ostream& operator<<(std::ostream& os, Instr instr)
     instr->print(os, 0);
     return os;
 }
-// Memory-write modes
+// Mem-write modes
 
 enum WriteMode : int { kReplaceWrite = 0, kAddWrite = 1, kSubWrite = 2 };
 inline const char* WriteModeOp(int m)
@@ -51,9 +53,9 @@ inline const char* WriteModeOp(int m)
 }
 
 // Instructions builders
-Instr SyncMem(Memory mem, const std::set<Memory>& D);
-Instr WriteMem(Memory mem, int mode, Expr expr);
-Instr WriteVec(Memory mem, int mode, Expr idx, Expr exp);
+Instr SyncMem(Mem mem, const std::set<Mem>& D);
+Instr WriteMem(Mem mem, int mode, Expr expr);
+Instr WriteVec(Mem mem, int mode, Expr idx, Expr exp);
 Instr Block(const std::set<Instr>& I);
 Instr Seq(const std::vector<Instr>& I);
 Instr IfThenElse(Expr cond, Instr THEN, Instr ELSE);
@@ -63,11 +65,11 @@ Instr Repeat(Expr count, Instr body);
 void classifyDependencies(Instr i, std::set<Dependency>& internal, std::set<Dependency>& external);
 
 // simplified API
-inline Instr Write(Memory mem, Expr expr)
+inline Instr Write(Mem mem, Expr expr)
 {
     return WriteMem(mem, kReplaceWrite, expr);
 }
-inline Instr Write(Memory mem, Expr idx, Expr expr)
+inline Instr Write(Mem mem, Expr idx, Expr expr)
 {
     return WriteVec(mem, kReplaceWrite, idx, expr);
 }

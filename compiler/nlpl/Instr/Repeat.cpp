@@ -28,7 +28,7 @@ class RepeatInstr : public Instruction
         fCount->getDependencies(dep);
         fBody->getDependencies(dep);
     }
-    void getProvided(std::set<Memory>& prov) override { fBody->getProvided(prov); }
+    void getProvided(std::set<Mem>& prov) override { fBody->getProvided(prov); }
     void getSubInstr(std::set<Instruction*>& I) override { I.insert(fBody); }
     void print(std::ostream& os, int indent) override
     {

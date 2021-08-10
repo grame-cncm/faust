@@ -3,23 +3,25 @@
 
 #include "Expr.hh"
 #include "Memory.hh"
-namespace nlpl {
-class ReadMemExpr : public Expression {
-    Memory fMem;
-    int    fMinDelay;
+namespace nlpl
+{
+class ReadMemExpr : public Expression
+{
+    Mem fMem;
+    int fMinDelay;
 
    public:
-    explicit ReadMemExpr(Memory mem, int minDelay) : fMem(mem), fMinDelay(minDelay) {}
+    explicit ReadMemExpr(Mem mem, int minDelay) : fMem(mem), fMinDelay(minDelay) {}
     void getDependencies(std::set<Dependency>& dep) override { dep.insert({fMem, fMinDelay}); }
     void getSubExpr(std::set<Expression*>&) override {}
-    void print(std::ostream& os) override { os << fMem->name(); }
+    void print(std::ostream& os) override { os << fMem->fName; }
     int  priority() override { return -1; }
 };
 
-Expr ReadMem(Memory mem, int minDelay)
+Expr ReadMem(Mem mem, int minDelay)
 {
-    static std::unordered_map<std::tuple<Memory, int>, Expr> gReadMemExprHash;
-    std::tuple<Memory, int>                                  key(mem, minDelay);
+    static std::unordered_map<std::tuple<Mem, int>, Expr> gReadMemExprHash;
+    std::tuple<Mem, int>                                  key(mem, minDelay);
 
     auto p = gReadMemExprHash.find(key);
     if (p != gReadMemExprHash.end()) {
@@ -31,7 +33,7 @@ Expr ReadMem(Memory mem, int minDelay)
     }
 }
 
-Expr ReadMem(Memory mem)
+Expr ReadMem(Mem mem)
 {
     return ReadMem(mem, 0);
 }

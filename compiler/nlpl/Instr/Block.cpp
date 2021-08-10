@@ -18,13 +18,13 @@ namespace nlpl
 {
 static const std::vector<Instr> scheduleInstructions(const std::set<Instr>& I)
 {
-    std::unordered_map<Memory, Instr> providedBy;  // Collect everything provided by I
-    digraph<Instr, multidep>          G;           // The dependency graph
+    std::unordered_map<Mem, Instr> providedBy;  // Collect everything provided by I
+    digraph<Instr, multidep>       G;           // The dependency graph
     for (Instr i : I) {
         G.add(i);
-        std::set<Memory> M;
+        std::set<Mem> M;
         i->getProvided(M);
-        for (Memory m : M) {
+        for (Mem m : M) {
             providedBy[m] = i;
         }
     }
@@ -36,7 +36,7 @@ static const std::vector<Instr> scheduleInstructions(const std::set<Instr>& I)
             if ((d.second == 0) && (p != providedBy.end())) {
                 // Only consider immediate local dependencies
                 Instr src = p->second;
-                G.add(i, src, mdep(d.first->name(), d.second));
+                G.add(i, src, mdep(d.first->fName, d.second));
             }
         }
     }
@@ -57,7 +57,7 @@ class BlockInstr : public Instruction
     {
         for (auto i : fInstructions) i->getDependencies(dep);
     }
-    void getProvided(std::set<Memory>& prov) override
+    void getProvided(std::set<Mem>& prov) override
     {
         for (auto i : fInstructions) i->getProvided(prov);
     }

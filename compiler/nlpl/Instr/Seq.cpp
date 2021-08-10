@@ -25,7 +25,7 @@ class SeqInstr : public Instruction
         for (auto i : fInstructions) i->getDependencies(dep);
     }
 
-    void getProvided(std::set<Memory>& prov) override
+    void getProvided(std::set<Mem>& prov) override
     {
         for (auto i : fInstructions) i->getProvided(prov);
     }

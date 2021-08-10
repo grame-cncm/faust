@@ -13,7 +13,7 @@ namespace nlpl
 void classifyDependencies(Instr i, std::set<Dependency>& internal, std::set<Dependency>& external)
 {
     std::set<Dependency> D;
-    std::set<Memory>     P;
+    std::set<Mem>        P;
 
     i->getDependencies(D);
     i->getProvided(P);

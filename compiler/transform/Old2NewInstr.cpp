@@ -53,22 +53,16 @@ namespace nlpl {
 void graphOf(const std::set<Instr>& I)
 {
 #if 1
-    std::map<Memory, Instr>  providedBy;  // Collect everything provided by I
+    std::map<Mem, Instr>     providedBy;  // Collect everything provided by I
     digraph<Instr, multidep> G;           // The dependency graph
-    std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ " << std::endl;
     for (Instr i : I) {
         G.add(i);
-        std::set<Memory> M;
+        std::set<Mem> M;
         i->getProvided(M);
-        std::cout << "Instruction " << i << " provides memories: ";
-        for (Memory m : M) std::cout << m << "; ";
-        std::cout << std::endl;
-        for (Memory m : M) {
-            std::cout << "Memory " << m << " is provided by " << i << std::endl;
+        for (Mem m : M) {
             providedBy[m] = i;
         }
     }
-    std::cout << "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ " << std::endl;
     for (Instr i : I) {
         std::set<Dependency> D;
         i->getDependencies(D);
@@ -91,8 +85,8 @@ void graphOf(const std::set<Instr>& I)
             if (/*(d.second == 0) &&*/ (p != providedBy.end())) {
                 // Only consider immediate local dependencies
                 Instr src = p->second;
-                G.add(i, src, mdep(d.first->name(), d.second));
-                std::cout << "\nG.add(" << i << " --" << d.first->name() << "@" << d.second << "--> " << src << ")" << std::endl;
+                G.add(i, src, mdep(d.first->fName, d.second));
+                // std::cout << "\nG.add(" << i << " --" << d.first->fName << "@" << d.second << "--> " << src << ")" << std::endl;
             }
         }
         std::cout << std::endl;
@@ -135,26 +129,23 @@ nlpl::Expr old2NewExpr(Tree sig)
     } else if (isSigBinOp(sig, &i, x, y)) {
         return nlpl::BinaryOp(binopname[i], newbinopprec[i], old2NewExpr(x), old2NewExpr(y));
     } else if (isSigInput(sig, &i)) {
-        return nlpl::ReadMem(nlpl::sFloat(subst("input$0[i]", T(i))));
+        return nlpl::ReadMem(nlpl::memory("float", subst("input$0[i]", T(i)), nlpl::kFinal), 0);
 
     } else if (isSigButton(sig, label)) {
-        string varname = uniqueStringID("fButton", sig);
-        return nlpl::ReadMem(nlpl::sFloat(varname));
+        return nlpl::ReadMem(nlpl::memory("float", uniqueStringID("fButton", sig), nlpl::kFinal), 0);
 
     } else if (isSigCheckbox(sig, label)) {
-        string varname = uniqueStringID("fCheckbox", sig);
-        return nlpl::ReadMem(nlpl::sFloat(varname));
+        return nlpl::ReadMem(nlpl::memory("float", uniqueStringID("fCheckbox", sig), nlpl::kFinal), 0);
 
     } else if (isSigHSlider(sig, label, c, x, y, z)) {
-        string varname = uniqueStringID("fSlider", sig);
-        return nlpl::ReadMem(nlpl::sFloat(varname));
+        return nlpl::ReadMem(nlpl::memory("float", uniqueStringID("fSlider", sig), nlpl::kFinal), 0);
 
     } else if (isSigVSlider(sig, label, c, x, y, z)) {
-        string varname = uniqueStringID("fSlider", sig);
-        return nlpl::ReadMem(nlpl::sFloat(varname));
+        return nlpl::ReadMem(nlpl::memory("float", uniqueStringID("fSlider", sig), nlpl::kFinal), 0);
 
     } else if (isSigInstructionControlRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
-        return nlpl::ReadMem(nlpl::sFloat(tree2str(id)));
+        return nlpl::ReadMem(nlpl::memory(nature2ctype(nature), tree2str(id), nlpl::kFinal), 0);
+
     } else if (isSigIntCast(sig, x)) {
         return nlpl::Fun("int", {old2NewExpr(x)});
     } else if (isSigFloatCast(sig, x)) {
@@ -164,22 +155,22 @@ nlpl::Expr old2NewExpr(Tree sig)
     } else if (isSigSelect3(sig, sel, x, y, z)) {
         return nlpl::Fun("if3", {old2NewExpr(sel), old2NewExpr(x), old2NewExpr(y), old2NewExpr(z)});
     } else if (isSigInstructionTimeRead(sig)) {
-        nlpl::Memory M = nlpl::Scalar(nlpl::kPermanent, "int", "time", nlpl::kFinal);
+        nlpl::Mem M = nlpl::memory("int", "time", nlpl::kFinal);
         return nlpl::ReadMem(M);
     } else if (isSigInstructionTableRead(sig, id, origin, &nature, &dmin, idx)) {
-        string       vname{tree2str(id)};
-        nlpl::Memory V = nlpl::Vector(nlpl::kPermanent, nature2ctype(nature), vname, 123456, nlpl::kReplaceWrite);
+        string    vname{tree2str(id)};
+        nlpl::Mem V = nlpl::memory(nature2ctype(nature), vname, nlpl::kFinal);
         return nlpl::ReadVec(V, old2NewExpr(idx), dmin);
     } else if (isSigInstructionSharedRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
-        string       vname{tree2str(id)};
-        nlpl::Memory M = nlpl::Scalar(nlpl::kSample, nature2ctype(nature), vname, nlpl::kFinal);
+        string    vname{tree2str(id)};
+        nlpl::Mem M = nlpl::memory(nature2ctype(nature), vname, nlpl::kFinal);
         return nlpl::ReadMem(M);
 
     } else if (isSigFConst(sig, type, id, file)) {
-        string varname = tree2str(id);
-        if (varname == "fSamplingFreq") varname = "fSampleRate";
-        int          nature = tree2int(type);
-        nlpl::Memory M      = nlpl::Scalar(nlpl::kPermanent, nature2ctype(nature), varname, nlpl::kFinal);
+        string vname{tree2str(id)};
+        if (vname == "fSamplingFreq") vname = "fSampleRate";
+        int       lnature = tree2int(type);
+        nlpl::Mem M       = nlpl::memory(nature2ctype(lnature), vname, nlpl::kFinal);
         return nlpl::ReadMem(M);
     }
     /*
@@ -337,18 +328,19 @@ nlpl::Instr old2NewInstr(Tree sig)
 {
     int    i, nature, dmax, dmin;
     double r;
-    Tree   c, sel, x, y, z, u, v, var, le, label, id, tid, ff, largs, type, name, file, sf, origin, init, idx, exp;
+    Tree   c, sel, x, y, z, u, v, var, le, label, id, /*tid, ff, largs, type, name, file, sf,*/ origin, init, idx, exp;
 
     // Read and Write
     if (isSigOutput(sig, &i, x)) {
         // self(x);
-        return nlpl::Write(nlpl::sFloat(subst("output$0[i]", T(i))), old2NewExpr(x));
+        return nlpl::Write(nlpl::memory("float", subst("output$0[i]", T(i)), nlpl::kFinal), old2NewExpr(x));
+
     } else if (isSigInstructionControlWrite(sig, id, origin, &nature, y)) {  // x is used as an id, we don't go into it
         // string ctype = nature2ctype(nature);
         string vname{tree2str(id)};
         // Type   t = getCertifiedSigType(origin);
         // nlpl::Expr ye = old2NewExpr(y);
-        return nlpl::Write(nlpl::sFloat(vname), old2NewExpr(y));
+        return nlpl::Write(nlpl::memory(nature2ctype(nature), vname, nlpl::kFinal), old2NewExpr(y));
         // if (t->variability() == kKonst) {
         //     // init level
         //     K->addDeclCode(subst("$0 \t$1;", ctype, vname));
@@ -360,15 +352,17 @@ nlpl::Instr old2NewInstr(Tree sig)
         // }
 
     } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &dmax, init, idx, exp)) {
-        string       vname{tree2str(id)};
-        nlpl::Memory V = nlpl::Vector(nlpl::kPermanent, nature2ctype(nature), vname, dmax, nlpl::kFinal);
+        string    vname{tree2str(id)};
+        nlpl::Mem V = nlpl::memory(nature2ctype(nature), vname, dmax, nlpl::kFinal);
         return nlpl::WriteVec(V, nlpl::kReplaceWrite, old2NewExpr(idx), old2NewExpr(exp));
+
     } else if (isSigInstructionTimeWrite(sig)) {
-        nlpl::Memory M = nlpl::Scalar(nlpl::kPermanent, "int", "time", nlpl::kFinal);
+        nlpl::Mem M = nlpl::memory("int", "time", nlpl::kFinal);
         return nlpl::WriteMem(M, nlpl::kReplaceWrite, nlpl::Add(nlpl::Integer(1), nlpl::ReadMem(M, 1)));
+
     } else if (isSigInstructionSharedWrite(sig, id, origin, &nature, y)) {
-        string       vname{tree2str(id)};
-        nlpl::Memory M = nlpl::Scalar(nlpl::kSample, nature2ctype(nature), vname, nlpl::kFinal);
+        string    vname{tree2str(id)};
+        nlpl::Mem M = nlpl::memory(nature2ctype(nature), vname, nlpl::kFinal);
         return nlpl::WriteMem(M, nlpl::kReplaceWrite, old2NewExpr(y));
     }
 

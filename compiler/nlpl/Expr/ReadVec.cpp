@@ -7,12 +7,12 @@ namespace nlpl
 {
 class ReadVecExpr : public Expression
 {
-    Memory fMem;
-    Expr   fIndex;
-    int    fMinDelay;
+    Mem  fMem;
+    Expr fIndex;
+    int  fMinDelay;
 
    public:
-    explicit ReadVecExpr(Memory mem, Expr idx, int minDelay) : fMem(mem), fIndex(idx), fMinDelay(minDelay) {}
+    explicit ReadVecExpr(Mem mem, Expr idx, int minDelay) : fMem(mem), fIndex(idx), fMinDelay(minDelay) {}
 
     void getDependencies(std::set<Dependency>& dep) override
     {
@@ -22,15 +22,15 @@ class ReadVecExpr : public Expression
 
     void getSubExpr(std::set<Expression*>& subexpr) override { subexpr.insert(fIndex); }
 
-    void print(std::ostream& os) override { os << fMem->name() << '[' << fIndex << ']'; }
+    void print(std::ostream& os) override { os << fMem->fName << '[' << fIndex << ']'; }
 
     int priority() override { return 0; }
 };
 
-Expr ReadVec(Memory mem, Expr idx, int minDelay)
+Expr ReadVec(Mem mem, Expr idx, int minDelay)
 {
-    static std::unordered_map<std::tuple<Memory, Expr, int>, Expr> gReadVecExprHash;
-    std::tuple<Memory, Expr, int>                                  key(mem, idx, minDelay);
+    static std::unordered_map<std::tuple<Mem, Expr, int>, Expr> gReadVecExprHash;
+    std::tuple<Mem, Expr, int>                                  key(mem, idx, minDelay);
 
     auto p = gReadVecExprHash.find(key);
     if (p != gReadVecExprHash.end()) {
