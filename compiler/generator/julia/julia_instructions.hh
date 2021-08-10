@@ -43,13 +43,18 @@ struct JuliaInitFieldsVisitor : public DispatchVisitor {
             tab(fTab, *fOut);
             inst->fAddress->accept(this);
             *fOut << " = ";
-            ZeroInitializer(fOut, inst->fType);
+            if (inst->fValue) {
+                inst->fValue->accept(this);
+            } else {
+                ZeroInitializer(fOut, inst->fType);
+            }
         }
     }
     
     virtual void visit(NamedAddress* named)
     {
-        if (named->getAccess() & Address::kStruct) {
+        // kStaticStruct are actually merged in the main DSP
+        if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
             *fOut << "dsp.";
         }
         *fOut << named->fName;
@@ -62,8 +67,40 @@ struct JuliaInitFieldsVisitor : public DispatchVisitor {
         if (isIntPtrType(typed->getType())) {
             *fOut << "zeros(Int32, " << array_type->fSize << ")";
         } else {
-            *fOut << "zeros(" << ifloat() << ", " << array_type->fSize << ")";
+            *fOut << "zeros(T, " << array_type->fSize << ")";
         }
+    }
+    
+    // Needed for waveforms
+    
+    virtual void visit(Int32ArrayNumInst* inst)
+    {
+        char sep = '[';
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << sep << "Int32(" << inst->fNumTable[i] << ")";
+            sep = ',';
+        }
+        *fOut << ']';
+    }
+    
+    virtual void visit(FloatArrayNumInst* inst)
+    {
+        char sep = '[';
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << sep << checkFloat(inst->fNumTable[i]);
+            sep = ',';
+        }
+        *fOut << ']';
+    }
+    
+    virtual void visit(DoubleArrayNumInst* inst)
+    {
+        char sep = '[';
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << sep << checkDouble(inst->fNumTable[i]);
+            sep = ',';
+        }
+        *fOut << ']';
     }
     
 };
@@ -436,12 +473,8 @@ class JuliaInstVisitor : public TextInstVisitor {
     virtual void visit(DeclareVarInst* inst)
     {
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
-            *fOut << "const " << inst->fAddress->getName() << " = ";
-            if (inst->fValue) {
-                inst->fValue->accept(this);
-            } else {
-                JuliaInitFieldsVisitor::ZeroInitializer(fOut, inst->fType);
-            }
+            *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+            // Allocation is actually done in JuliaInitFieldsVisitor
         } else {
             *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
             if (inst->fValue) {
@@ -500,10 +533,10 @@ class JuliaInstVisitor : public TextInstVisitor {
     virtual void generateFunDefBody(DeclareFunInst* inst)
     {
         if (inst->fCode->fCode.size() == 0) {
-            *fOut << ")" << endl;  // Pure prototype
+            *fOut << ") where {T}" << endl;  // Pure prototype
         } else {
             // Function body
-            *fOut << ")";
+            *fOut << ") where {T}";
             fTab++;
             tab(fTab, *fOut);
             inst->fCode->accept(this);
@@ -516,10 +549,11 @@ class JuliaInstVisitor : public TextInstVisitor {
 
     virtual void visit(NamedAddress* named)
     {
-       if (named->getAccess() & Address::kStruct) {
-           *fOut << "dsp.";
-       }
-       *fOut << named->fName;
+        // kStaticStruct are actually merged in the main DSP
+        if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
+            *fOut << "dsp.";
+        }
+        *fOut << named->fName;
     }
     
     /*

@@ -89,11 +89,12 @@ BlockInst* FunctionInliner::ReplaceParameterByArg(BlockInst* code, NamedTyped* n
         {
         }
         
-        Address* renameAddress(Address* address, const string& name)
+        Address* renameAddress(Address* dst_address, Address* src_address)
         {
-            Address* cloned_address = address->clone(this);
-            cloned_address->setName(name);
-            return cloned_address;
+            Address* cloned_dst_address = dst_address->clone(this);
+            cloned_dst_address->setName(src_address->getName());
+            cloned_dst_address->setAccess(src_address->getAccess());
+            return cloned_dst_address;
         }
         
         ValueInst* visit(LoadVarInst* inst)
@@ -129,9 +130,9 @@ BlockInst* FunctionInliner::ReplaceParameterByArg(BlockInst* code, NamedTyped* n
         StatementInst* visit(StoreVarInst* inst)
         {
             LoadVarInst* arg;
-            //dump2FIR(inst);
             if ((inst->fAddress->getName() == fNamed->fName) && (arg = dynamic_cast<LoadVarInst*>(fArg))) {
-                return InstBuilder::genStoreVarInst(renameAddress(inst->fAddress, arg->fAddress->getName()),
+                
+                return InstBuilder::genStoreVarInst(renameAddress(inst->fAddress, arg->fAddress),
                                                     inst->fValue->clone(this));
             } else {
                 return BasicCloneVisitor::visit(inst);

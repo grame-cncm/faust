@@ -345,15 +345,15 @@ class JuliaStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kInt64_ptr] = "Int64";
         fTypeDirectTable[Typed::kInt64_vec] = "vector<Int64>";
 
-        fTypeDirectTable[Typed::kFloat]     = "Float32";
-        fTypeDirectTable[Typed::kFloat_ptr] = "Float32";
-        fTypeDirectTable[Typed::kFloat_ptr_ptr] = "Float32";
-        fTypeDirectTable[Typed::kFloat_vec] = "vector<Float32>";
-
-        fTypeDirectTable[Typed::kDouble]     = "Float64";
-        fTypeDirectTable[Typed::kDouble_ptr] = "Float64";
-        fTypeDirectTable[Typed::kDouble_ptr_ptr] = "Float64";
-        fTypeDirectTable[Typed::kDouble_vec] = "vector<Float64>";
+        fTypeDirectTable[Typed::kFloat]     = "T";
+        fTypeDirectTable[Typed::kFloat_ptr] = "T";
+        fTypeDirectTable[Typed::kFloat_ptr_ptr] = "T";
+        fTypeDirectTable[Typed::kFloat_vec] = "vector<T>";
+        
+        fTypeDirectTable[Typed::kDouble]     = "T";
+        fTypeDirectTable[Typed::kDouble_ptr] = "T";
+        fTypeDirectTable[Typed::kDouble_ptr_ptr] = "T";
+        fTypeDirectTable[Typed::kDouble_vec] = "vector<T>";
 
         fTypeDirectTable[Typed::kQuad]     = "quad";
         fTypeDirectTable[Typed::kQuad_ptr] = fPtrRef + "quad";
@@ -374,8 +374,8 @@ class JuliaStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kSound_ptr] = fPtrRef + "Soundfile";
 
         // DSP has to be empty here
-        fTypeDirectTable[Typed::kObj]     = struct_name;
-        fTypeDirectTable[Typed::kObj_ptr] = struct_name;
+        fTypeDirectTable[Typed::kObj]     = struct_name + "{T}";
+        fTypeDirectTable[Typed::kObj_ptr] = struct_name + "{T}";
 
         fTypeDirectTable[Typed::kUint_ptr] = "uintptr_t";
     }

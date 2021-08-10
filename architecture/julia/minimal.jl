@@ -44,7 +44,7 @@ block_size = Int32(512 * 10)
 
 test!() = begin
     # Init DSP
-    my_dsp = mydsp()
+    my_dsp = mydsp{REAL}()
     init!(my_dsp, samplerate)
 
     m = NameMeta("")
@@ -70,8 +70,8 @@ test!() = begin
     setParamValue!(map_ui, "/Oscillator/volume", -10.0f0)
     =#
 
-    inputs = zeros(REAL, block_size, getNumInputs(my_dsp))
-    outputs = zeros(REAL, block_size, getNumOutputs(my_dsp)) 
+    inputs = zeros(FAUSTFLOAT, block_size, getNumInputs(my_dsp))
+    outputs = zeros(FAUSTFLOAT, block_size, getNumOutputs(my_dsp)) 
     compute!(my_dsp, block_size, inputs, outputs)
     
     # display the outputs

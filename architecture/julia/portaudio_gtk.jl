@@ -33,7 +33,7 @@ using ThreadPools
 function main!(args)
 
     # DSP allocation
-    my_dsp = mydsp()
+    my_dsp = mydsp{REAL}()
 
     # Audio driver allocation and init
     driver = portaudio(16, 44100)
@@ -60,10 +60,15 @@ function main!(args)
     if length(args) == 0
         run(driver)
     # OSC controller
-    elseif args[1] == "-osc"
+    elseif startswith(args[1], "-osc")
         ThreadPools.@tspawnat 2 run(driver)
         osc_ui = OSCUI(my_dsp)
         buildUserInterface!(my_dsp, osc_ui)
+        if args[1] == "-oscc"
+            # Launch external OSC controller
+            root = getRoot(osc_ui.map_ui)
+            ThreadPools.@tspawnat 2 Base.run(`faust-osc-controller $(root) -port 5001 -outport 5000 -xmit 1`)
+        end   
         # Blocking...
         run(osc_ui)
     # GTK controller

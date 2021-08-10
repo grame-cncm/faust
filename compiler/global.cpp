@@ -424,6 +424,10 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gInterpreterVisitor = nullptr;  // Will be (possibly) allocated in Interp backend
 #endif
 
+#ifdef JULIA_BUILD
+    gJuliaVisitor = nullptr;  // Will be (possibly) allocated in Julia backend
+#endif
+
 #ifdef SOUL_BUILD
     gTableSizeVisitor = nullptr;  // Will be (possibly) allocated in SOUL backend
 #endif

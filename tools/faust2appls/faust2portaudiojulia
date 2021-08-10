@@ -16,7 +16,7 @@ ARCHFILE=$FAUSTARCH/julia/portaudio_gtk.jl
 
 PLAY=false
 THREAD=1
-OSC=false
+OSC=""
 
 #PHASE 2 : dispatch command arguments
 while [ $1 ]
@@ -35,8 +35,8 @@ do
 
     if [ $p = "-source" ]; then
         SRC="1"
-    elif [ $p = "-osc" ]; then
-        OSC=true
+    elif [[ $p = -osc* ]]; then
+        OSC=$p
     elif [ $p = "-play" ]; then
     	PLAY=true
     	shift
@@ -67,8 +67,8 @@ for p in $FILES; do
 done
 
 if [ $PLAY = true ] ; then
-	if [ $OSC = true ] ; then
-		julia -t $THREAD "${f%.dsp}.jl" -osc
+	if [[ $OSC != "" ]] ; then
+ 		julia -t $THREAD "${f%.dsp}.jl" $OSC
 	else
 		julia -t $THREAD "${f%.dsp}.jl" -gtk
 	fi

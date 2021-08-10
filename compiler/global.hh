@@ -56,6 +56,7 @@ class Garbageable;
 struct DispatchVisitor;
 class WASTInstVisitor;
 class WASMInstVisitor;
+class JuliaInstVisitor;
 struct TableSizeVisitor;
 struct DeclareStructTypeInst;
 
@@ -500,6 +501,11 @@ struct global {
 #ifdef INTERP_BUILD
     // One single global visitor Interpreter backend, so that sub-containers and the global container use the same heap
     DispatchVisitor* gInterpreterVisitor;
+#endif
+    
+#ifdef JULIA_BUILD
+    // One single global visitor Julia backend, so that sub-containers and the global container use the same heap
+    JuliaInstVisitor* gJuliaVisitor;
 #endif
 
 #ifdef SOUL_BUILD

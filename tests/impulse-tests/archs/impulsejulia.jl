@@ -127,7 +127,7 @@ end
 main!() = begin
     nbsamples::Int32 = 60000;
 
-    dsp = mydsp()
+    dsp = mydsp{REAL}()
     init!(dsp, samplerate)
     control_ui::ControlUI = ControlUI(dsp)
     buildUserInterface!(dsp, control_ui)

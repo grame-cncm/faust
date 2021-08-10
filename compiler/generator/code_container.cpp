@@ -737,7 +737,12 @@ DeclareFunInst* CodeContainer::generateFillFun(const string& name, const string&
 
     BlockInst* block = InstBuilder::genBlockInst();
     block->pushBackInst(fComputeBlockInstructions);
-    block->pushBackInst(fCurLoop->generateScalarLoop("count"));
+    // Hack for Julia
+    if (gGlobal->gOutputLang == "julia") {
+        block->pushBackInst(fCurLoop->generateSimpleScalarLoop("count"));
+    } else {
+        block->pushBackInst(fCurLoop->generateScalarLoop("count"));
+    }
 
     // Explicit return
     block->pushBackInst(InstBuilder::genRetInst());

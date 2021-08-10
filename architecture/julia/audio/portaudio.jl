@@ -41,9 +41,9 @@ end
 
 function run(driver::portaudio)
     PortAudioStream(1, 2) do stream
-        outputs = zeros(REAL, driver.buffer_size, getNumOutputs(driver.dsp))
+        outputs = zeros(FAUSTFLOAT, driver.buffer_size, getNumOutputs(driver.dsp))
         while true
-            inputs = convert(Matrix{REAL}, read(stream, driver.buffer_size))
+            inputs = convert(Matrix{FAUSTFLOAT}, read(stream, driver.buffer_size))
             compute!(driver.dsp, Int32(driver.buffer_size), inputs, outputs)
             write(stream, outputs)
         end
