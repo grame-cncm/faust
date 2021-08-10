@@ -300,11 +300,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
 
     // Generate VHDL if --vhdl option is set
     if (gGlobal->gVHDLSwitch) {
-<<<<<<< HEAD
         Signal2VHDLVisitor V(fOccMarkup);
-=======
-        Signal2VHDLVisitor V;
->>>>>>> c521d740282b04c78adfdcddd7f2d216b58372e4
         ofstream dotfile(subst("faust.vhd", gGlobal->makeDrawPath()).c_str());
         V.sigToVHDL(L5, dotfile);
         V.trace(gGlobal->gVHDLTrace, "VHDL");  // activate with --trace option
