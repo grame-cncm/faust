@@ -31,7 +31,7 @@ Here are the available options:
 - `-oscc : to activate OSC control on 5000 and 5001 ports and automatically start the faust-osc-controller application`
 - `-play <num> : to start the 'Julia' runtime with <num> threads and the generated file.jl`
 
-By default, it will create a `file.jl` to be executed with the `julia file.jl` command, or in an interactive session. Using   `-play <num>` optiosn allows to directly start the Julia executable.
+By default, it will create a `file.jl` to be executed with the `julia file.jl` command, or in an interactive session. Using the `-play <num>` option allows to directly start the Julia executable.
 
 - `-help or -h` : shows the different options 
 
