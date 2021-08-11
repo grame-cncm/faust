@@ -14,8 +14,11 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # ************************************************************************
 
-# Architectures
-include("/usr/local/share/faust/julia/audio/audio.jl")
+# Architectures are conditionally included (since they may be already inlined in the file)
+try 
+    include("/usr/local/share/faust/julia/audio/audio.jl")
+catch 
+end
 
 # Using PortAudio for audio rendering
 using PortAudio

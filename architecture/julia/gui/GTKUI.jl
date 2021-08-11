@@ -14,8 +14,12 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # ************************************************************************
 
-include("/usr/local/share/faust/julia/dsp/dsp.jl")
-include("/usr/local/share/faust/julia/gui/UI.jl")
+# Architectures are conditionally included (since they may be already inlined in the file)
+try 
+    include("/usr/local/share/faust/julia/dsp/dsp.jl")
+    include("/usr/local/share/faust/julia/gui/UI.jl")
+catch 
+end
 
 using Gtk, GtkObservables
 

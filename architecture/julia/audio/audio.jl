@@ -14,8 +14,11 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # ************************************************************************
 
-# Architecture
-include("/usr/local/share/faust/julia/dsp/dsp.jl")
+# Architectures are conditionally included (since they may be already inlined in the file)
+try 
+    include("/usr/local/share/faust/julia/dsp/dsp.jl")
+catch
+end
 
 abstract type audio end
 

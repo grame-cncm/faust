@@ -14,9 +14,13 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # ************************************************************************
 
-include("/usr/local/share/faust/julia/dsp/dsp.jl")
-include("/usr/local/share/faust/julia/gui/MapUI.jl")
-include("/usr/local/share/faust/julia/gui/meta.jl")
+# Architectures are conditionnaly included (since they may be already inlined in the file)
+try 
+    include("/usr/local/share/faust/julia/dsp/dsp.jl")
+    include("/usr/local/share/faust/julia/gui/MapUI.jl")
+    include("/usr/local/share/faust/julia/gui/meta.jl")
+catch 
+end
 
 using OpenSoundControl, Sockets, MacroTools
 
