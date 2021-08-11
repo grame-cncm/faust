@@ -16,14 +16,11 @@
 
 const FAUSTFLOAT = Float32
 
-# Architectures are conditionally included (since they may be already inlined in the file)
-try 
-    include("/usr/local/share/faust/julia/audio/portaudio.jl")
-    include("/usr/local/share/faust/julia/gui/MapUI.jl")
-    include("/usr/local/share/faust/julia/gui/GTKUI.jl")
-    include("/usr/local/share/faust/julia/gui/OSCUI.jl")
-catch 
-end
+# Architectures files
+include("/usr/local/share/faust/julia/audio/portaudio.jl")
+include("/usr/local/share/faust/julia/gui/MapUI.jl")
+include("/usr/local/share/faust/julia/gui/GTKUI.jl")
+include("/usr/local/share/faust/julia/gui/OSCUI.jl")
 
 # Generated code
 <<includeIntrinsic>>

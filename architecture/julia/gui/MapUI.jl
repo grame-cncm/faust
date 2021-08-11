@@ -14,12 +14,9 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 # ************************************************************************
 
-# Architectures are conditionnaly included (since they may be already inlined in the file)
-try 
-    include("/usr/local/share/faust/julia/dsp/dsp.jl")
-    include("/usr/local/share/faust/julia/gui/UI.jl")
-catch 
-end
+# Architectures files
+include("/usr/local/share/faust/julia/dsp/dsp.jl")
+include("/usr/local/share/faust/julia/gui/UI.jl")
 
 # PathBuilder 
 mutable struct PathBuilder
