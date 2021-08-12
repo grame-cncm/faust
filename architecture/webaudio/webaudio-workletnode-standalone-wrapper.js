@@ -401,6 +401,9 @@ class mydsp {
                     _coshf: Math.cosh,
                     _sinhf: Math.sinh,
                     _tanhf: Math.tanh,
+                    _isnanf: Number.isNaN,
+                    _isinff: function (x) { return !isFinite(x); },
+                    _copysignf: function (x, y) { return Math.sign(x) === Math.sign(y) ? x : -x; },
 
                     // Double version
                     _acos: Math.acos,
@@ -428,6 +431,9 @@ class mydsp {
                     _cosh: Math.cosh,
                     _sinh: Math.sinh,
                     _tanh: Math.tanh,
+                    _isnan: Number.isNaN,
+                    _isinf: function (x) { return !isFinite(x); },
+                    _copysign: function (x, y) { return Math.sign(x) === Math.sign(y) ? x : -x; },
 
                     table: new WebAssembly.Table({ initial: 0, element: "anyfunc" })
                 }

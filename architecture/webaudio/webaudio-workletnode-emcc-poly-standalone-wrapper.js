@@ -5,66 +5,61 @@
 'use strict';
 
 if (typeof (AudioWorkletNode) === "undefined") {
-	alert("AudioWorklet is not supported in this browser !")
+    alert("AudioWorklet is not supported in this browser !")
 }
 
 const faust_module = FaustModule(); // Emscripten generated module
 
 class mydspPolyNode extends AudioWorkletNode {
 
-    constructor(context, baseURL, options)
-    {
+    constructor(context, baseURL, options) {
         super(context, 'mydspPoly', options);
-        
+
         this.baseURL = baseURL;
         this.json = options.processorOptions.json_all;
         this.json_object = JSON.parse(this.json);
-        
+
         // JSON parsing functions
-        this.parse_ui = function(ui, obj)
-        {
+        this.parse_ui = function (ui, obj) {
             for (var i = 0; i < ui.length; i++) {
                 this.parse_group(ui[i], obj);
             }
         }
 
-        this.parse_group = function(group, obj)
-        {
+        this.parse_group = function (group, obj) {
             if (group.items) {
                 this.parse_items(group.items, obj);
             }
         }
 
-        this.parse_items = function(items, obj)
-        {
+        this.parse_items = function (items, obj) {
             for (var i = 0; i < items.length; i++) {
-            	this.parse_item(items[i], obj);
+                this.parse_item(items[i], obj);
             }
         }
 
-        this.parse_item = function(item, obj)
-        {
+        this.parse_item = function (item, obj) {
             if (item.type === "vgroup"
                 || item.type === "hgroup"
                 || item.type === "tgroup") {
                 this.parse_items(item.items, obj);
             } else if (item.type === "hbargraph"
-                       || item.type === "vbargraph") {
+                || item.type === "vbargraph") {
                 // Keep bargraph adresses
                 obj.outputs_items.push(item.address);
             } else if (item.type === "vslider"
-                       || item.type === "hslider"
-                       || item.type === "button"
-                       || item.type === "checkbox"
-                       || item.type === "nentry") {
+                || item.type === "hslider"
+                || item.type === "button"
+                || item.type === "checkbox"
+                || item.type === "nentry") {
                 // Keep inputs adresses
                 obj.inputs_items.push(item.address);
                 obj.descriptor.push(item);
                 // Define setXXX/getXXX, replacing '/c' with 'C' everywhere in the string
                 var set_name = "set" + item.address;
                 var get_name = "get" + item.address;
-                get_name = get_name.replace(/\/./g, (x) => { return x.substr(1,1).toUpperCase(); });
-                set_name = set_name.replace(/\/./g, (x) => { return x.substr(1,1).toUpperCase(); });
+                get_name = get_name.replace(/\/./g, (x) => { return x.substr(1, 1).toUpperCase(); });
+                set_name = set_name.replace(/\/./g, (x) => { return x.substr(1, 1).toUpperCase(); });
                 obj[set_name] = (val) => { obj.setParamValue(item.address, val); };
                 obj[get_name] = () => { return obj.getParamValue(item.address); };
                 //console.log(set_name);
@@ -87,8 +82,7 @@ class mydspPolyNode extends AudioWorkletNode {
     }
 
     // To be called by the message port with messages coming from the processor
-    handleMessage(event)
-    {
+    handleMessage(event) {
         var msg = event.data;
         if (this.output_handler) {
             this.output_handler(msg.path, msg.value);
@@ -96,27 +90,24 @@ class mydspPolyNode extends AudioWorkletNode {
     }
 
     // Public API
-    
+
     /**
      * Destroy the node, deallocate resources.
      */
-	destroy()
-	{
+    destroy() {
         this.port.postMessage({ type: "destroy" });
         this.port.close();
-	}
+    }
 
     /**
      *  Returns a full JSON description of the DSP.
      */
-    getJSON()
-    {
+    getJSON() {
         return this.json;
     }
-    
+
     // For WAP
-    async getMetadata()
-    {
+    async getMetadata() {
         return new Promise(resolve => {
             let real_url = (this.baseURL === "") ? "main.json" : (this.baseURL + "/main.json");
             fetch(real_url).then(responseJSON => {
@@ -133,15 +124,13 @@ class mydspPolyNode extends AudioWorkletNode {
      * @param path - a path to the control
      * @param val - the value to be set
      */
-    setParamValue(path, val)
-    {
+    setParamValue(path, val) {
         this.port.postMessage({ type: "param", key: path, value: val });
         this.parameters.get(path).setValueAtTime(val, 0);
     }
-    
+
     // For WAP
-    setParam(path, val)
-    {
+    setParam(path, val) {
         this.port.postMessage({ type: "param", key: path, value: val });
         this.parameters.get(path).setValueAtTime(val, 0);
     }
@@ -151,14 +140,12 @@ class mydspPolyNode extends AudioWorkletNode {
      *
      * @return the current control value
      */
-    getParamValue(path)
-    {
+    getParamValue(path) {
         return this.parameters.get(path).value;
     }
-    
+
     // For WAP
-    getParam(path)
-    {
+    getParam(path) {
         return this.parameters.get(path).value;
     }
 
@@ -169,51 +156,43 @@ class mydspPolyNode extends AudioWorkletNode {
      *
      * @param handler - a function of type function(path, value)
      */
-    setOutputParamHandler(handler)
-    {
+    setOutputParamHandler(handler) {
         this.output_handler = handler;
     }
 
     /**
      * Get the current output handler.
      */
-    getOutputParamHandler()
-    {
+    getOutputParamHandler() {
         return this.output_handler;
     }
 
-    getNumInputs()
-    {
+    getNumInputs() {
         return parseInt(this.json_object.inputs);
     }
 
-    getNumOutputs()
-    {
+    getNumOutputs() {
         return parseInt(this.json_object.outputs);
     }
-    
+
     // For WAP
-    inputChannelCount()
-    {
+    inputChannelCount() {
         return parseInt(this.json_object.inputs);
     }
-    
-    outputChannelCount()
-    {
+
+    outputChannelCount() {
         return parseInt(this.json_object.outputs);
     }
 
     /**
      * Returns an array of all input paths (to be used with setParamValue/getParamValue)
      */
-    getParams()
-    {
+    getParams() {
         return this.inputs_items;
     }
-        
+
     // For WAP
-    getDescriptor()
-    {
+    getDescriptor() {
         var desc = {};
         for (const item in this.descriptor) {
             if (this.descriptor.hasOwnProperty(item)) {
@@ -232,8 +211,7 @@ class mydspPolyNode extends AudioWorkletNode {
      * @param pitch - the MIDI pitch (0..127)
      * @param velocity - the MIDI velocity (0..127)
      */
-    keyOn(channel, pitch, velocity)
-    {
+    keyOn(channel, pitch, velocity) {
         this.port.postMessage({ type: "keyOn", data: [channel, pitch, velocity] });
     }
 
@@ -244,16 +222,14 @@ class mydspPolyNode extends AudioWorkletNode {
      * @param pitch - the MIDI pitch (0..127)
      * @param velocity - the MIDI velocity (0..127)
      */
-    keyOff(channel, pitch, velocity)
-    {
+    keyOff(channel, pitch, velocity) {
         this.port.postMessage({ type: "keyOff", data: [channel, pitch, velocity] });
     }
 
     /**
      * Gently terminates all the active voices.
      */
-    allNotesOff()
-    {
+    allNotesOff() {
         this.port.postMessage({ type: "ctrlChange", data: [channel, 123, 0] });
     }
 
@@ -264,8 +240,7 @@ class mydspPolyNode extends AudioWorkletNode {
      * @param ctrl - the MIDI controller number (0..127)
      * @param value - the MIDI controller value (0..127)
      */
-    ctrlChange(channel, ctrl, value)
-    {
+    ctrlChange(channel, ctrl, value) {
         this.port.postMessage({ type: "ctrlChange", data: [channel, ctrl, value] });
     }
 
@@ -275,37 +250,33 @@ class mydspPolyNode extends AudioWorkletNode {
      * @param channel - the MIDI channel (0..15, not used for now)
      * @param value - the MIDI controller value (-1..1)
      */
-    pitchWheel(channel, wheel)
-    {
+    pitchWheel(channel, wheel) {
         this.port.postMessage({ type: "pitchWheel", data: [channel, wheel] });
     }
 
     /**
      * Generic MIDI message handler.
      */
-    midiMessage(data)
-    {
-    	this.port.postMessage({ type:"midi", data: data });
+    midiMessage(data) {
+        this.port.postMessage({ type: "midi", data: data });
     }
-    
+
     /**
      * @returns {Object} describes the path for each available param and its current value
      */
-    async getState()
-    {
+    async getState() {
         var params = new Object();
         for (let i = 0; i < this.getParams().length; i++) {
             Object.assign(params, { [this.getParams()[i]]: `${this.getParam(this.getParams()[i])}` });
         }
         return new Promise(resolve => { resolve(params) });
     }
-    
+
     /**
      * Sets each params with the value indicated in the state object
      * @param {Object} state
      */
-    async setState(state)
-    {
+    async setState(state) {
         return new Promise(resolve => {
             for (const param in state) {
                 if (state.hasOwnProperty(param)) this.setParam(param, state[param]);
@@ -331,8 +302,7 @@ class mydspPoly {
      * @param polyphony - the number of voices
      * @param baseURL - the baseURL of the plugin folder
      */
-    constructor(context, polyphony = 16, baseURL = "")
-    {
+    constructor(context, polyphony = 16, baseURL = "") {
         console.log("baseLatency " + context.baseLatency);
         console.log("outputLatency " + context.outputLatency);
         console.log("sampleRate " + context.sampleRate);
@@ -342,27 +312,24 @@ class mydspPoly {
         this.baseURL = baseURL;
         this._log = [];
     }
-    
-    log(str)
-    {
+
+    log(str) {
         this._log.push(str);
         if (this.debug) console.log(str);
     }
-    
-    error(str)
-    {
+
+    error(str) {
         this._log.push(str);
         console.error(str);
     }
-    
+
     async asyncForEach(array, callback) {
         for (let index = 0; index < array.length; index++) {
             await callback(array[index], index, array);
         }
     }
-    
-    async loadAudioFiles(json)
-    {
+
+    async loadAudioFiles(json) {
         // Get filenames in JSON
         let json_object = JSON.parse(json);
         let soundfiles_name = [];
@@ -380,39 +347,38 @@ class mydspPoly {
             }
         }
         parse_ui(json_object.ui);
-        
+
         // Load each file.
         await this.asyncForEach(soundfiles_name, async name_aux => {
-                                let name = name_aux.slice(1, -1);
-                                console.log(name);
-                                const soundfile = await fetch(name);
-                                const data = await soundfile.arrayBuffer();
-                                soundfiles.push({ name: name, data: data });
-                                });
+            let name = name_aux.slice(1, -1);
+            console.log(name);
+            const soundfile = await fetch(name);
+            const data = await soundfile.arrayBuffer();
+            soundfiles.push({ name: name, data: data });
+        });
         return soundfiles;
     }
- 
+
     /**
      * Load additionnal resources to prepare the custom AudioWorkletNode. Returns a promise to be used with the created node.
      */
-    async load(polyphony)
-    {  
-    	faust_module.faust = faust_module.faust || {};
-    	faust_module.faust.wasm_instance = faust_module.faust.wasm_instance || [];
+    async load(polyphony) {
+        faust_module.faust = faust_module.faust || {};
+        faust_module.faust.wasm_instance = faust_module.faust.wasm_instance || [];
 
-    	let real_url = (this.baseURL === "") ? "mydsp.wasm" : (this.baseURL + "/mydsp.wasm");
+        let real_url = (this.baseURL === "") ? "mydsp.wasm" : (this.baseURL + "/mydsp.wasm");
         const wasm_file = await fetch(real_url);
         const wasm_buffer = await wasm_file.arrayBuffer();
         const json = faust_module.wasm_dsp_factory.extractJSON(wasm_buffer);
-     
-     	const importObject = {
+
+        const importObject = {
             env: {
                 memoryBase: 0,
                 tableBase: 0,
-                    
+
                 // Integer version
                 _abs: Math.abs,
-                    
+
                 // Float version
                 _acosf: Math.acos,
                 _asinf: Math.asin,
@@ -422,12 +388,12 @@ class mydspPoly {
                 _cosf: Math.cos,
                 _expf: Math.exp,
                 _floorf: Math.floor,
-                _fmodf: function(x, y) { return x % y; },
+                _fmodf: function (x, y) { return x % y; },
                 _logf: Math.log,
                 _log10f: Math.log10,
                 _max_f: Math.max,
                 _min_f: Math.min,
-                _remainderf: function(x, y) { return x - Math.round(x/y) * y; },
+                _remainderf: function (x, y) { return x - Math.round(x / y) * y; },
                 _powf: Math.pow,
                 _roundf: Math.fround,
                 _sinf: Math.sin,
@@ -439,7 +405,10 @@ class mydspPoly {
                 _coshf: Math.cosh,
                 _sinhf: Math.sinh,
                 _tanhf: Math.tanh,
-                    
+                _isnanf: Number.isNaN,
+                _isinff: function (x) { return !isFinite(x); },
+                _copysignf: function (x, y) { return Math.sign(x) === Math.sign(y) ? x : -x; },
+
                 // Double version
                 _acos: Math.acos,
                 _asin: Math.asin,
@@ -449,12 +418,12 @@ class mydspPoly {
                 _cos: Math.cos,
                 _exp: Math.exp,
                 _floor: Math.floor,
-                _fmod: function(x, y) { return x % y; },
+                _fmod: function (x, y) { return x % y; },
                 _log: Math.log,
                 _log10: Math.log10,
                 _max_: Math.max,
                 _min_: Math.min,
-                _remainder:function(x, y) { return x - Math.round(x/y) * y; },
+                _remainder: function (x, y) { return x - Math.round(x / y) * y; },
                 _pow: Math.pow,
                 _round: Math.fround,
                 _sin: Math.sin,
@@ -466,13 +435,17 @@ class mydspPoly {
                 _cosh: Math.cosh,
                 _sinh: Math.sinh,
                 _tanh: Math.tanh,
-                
-                memory : faust_module.faust.memory,
-                
+                _isnan: Number.isNaN,
+                _isinf: function (x) { return !isFinite(x); },
+                _copysign: function (x, y) { return Math.sign(x) === Math.sign(y) ? x : -x; },
+
+
+                memory: faust_module.faust.memory,
+
                 table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
             }
-        };       
-       
+        };
+
         const wasm_module = await WebAssembly.instantiate(wasm_buffer, importObject);
         faust_module.faust.wasm_instance.push(wasm_module.instance);
         const factory = faust_module.wasm_dsp_factory.createWasmDSPFactory(0, json);
@@ -496,36 +469,38 @@ class mydspPoly {
         const factory_poly = new faust_module.wasm_dsp_poly_factory(factory, factory_effect);
         const dsp = factory_poly.createPolyDSPInstance(2, true, true);
         const json_all = dsp.getJSON();
-        
+
         // Destroy the no more needed DSP and factory
         factory_poly.deletePolyDSPInstance(dsp);
         faust_module.wasm_dsp_poly_factory.deleteWasmPolyDSPFactory(factory_poly);
-        
+
         // Load soundfiles
         let soundfiles = await this.loadAudioFiles(json);
-        
-    	return new Promise((resolve, reject) => {
-                           
-        	let json_object = JSON.parse(json);
-        	
+
+        return new Promise((resolve, reject) => {
+
+            let json_object = JSON.parse(json);
+
             let options = { wasm_module: wasm_module.module, json: json, wasm_effect_module: ((wasm_effect_module) ? wasm_effect_module.module : null), json_effect: json_effect, soundfiles: soundfiles, json_all: json_all, polyphony: this.polyphony };
-                           
-        	let re = /JSON_STR/g;
-        	let mydspPolyProcessorString1 = mydspPolyProcessorString.replace(re, json_all);
-        	let real_url = window.URL.createObjectURL(new Blob([mydspPolyProcessorString1], { type: 'text/javascript' }));
-                         
+
+            let re = /JSON_STR/g;
+            let mydspPolyProcessorString1 = mydspPolyProcessorString.replace(re, json_all);
+            let real_url = window.URL.createObjectURL(new Blob([mydspPolyProcessorString1], { type: 'text/javascript' }));
+
             this.context.audioWorklet.addModule(real_url).then(() => {
                 this.node = new mydspPolyNode(this.context, this.baseURL,
-                                    { numberOfInputs: (parseInt(json_object.inputs) > 0) ? 1 : 0,
-                                    numberOfOutputs: (parseInt(json_object.outputs) > 0) ? 1 : 0,
-                                    channelCount: Math.max(1, parseInt(json_object.inputs)),
-                                    outputChannelCount: [parseInt(json_object.outputs)],
-                                    channelCountMode: "explicit",
-                                    channelInterpretation: "speakers",
-                                    processorOptions: options });
-                this.node.onprocessorerror = () => { console.log('An error from mydsp-processor was detected.');}
+                    {
+                        numberOfInputs: (parseInt(json_object.inputs) > 0) ? 1 : 0,
+                        numberOfOutputs: (parseInt(json_object.outputs) > 0) ? 1 : 0,
+                        channelCount: Math.max(1, parseInt(json_object.inputs)),
+                        outputChannelCount: [parseInt(json_object.outputs)],
+                        channelCountMode: "explicit",
+                        channelInterpretation: "speakers",
+                        processorOptions: options
+                    });
+                this.node.onprocessorerror = () => { console.log('An error from mydsp-processor was detected.'); }
 
-              return (this.node);
+                return (this.node);
             }).then((node) => {
                 resolve(node);
             }).catch((e) => {
@@ -534,8 +509,7 @@ class mydspPoly {
         });
     }
 
-    async loadGui() 
-    {
+    async loadGui() {
         return new Promise((resolve, reject) => {
             try {
                 // DO THIS ONLY ONCE. If another instance has already been added, do not add the html file again
@@ -565,10 +539,9 @@ class mydspPoly {
             }
         });
     };
-    
-    linkExists(url) 
-    {
-    	return document.querySelectorAll(`link[href="${url}"]`).length > 0;
+
+    linkExists(url) {
+        return document.querySelectorAll(`link[href="${url}"]`).length > 0;
     }
 }
 
@@ -716,6 +689,9 @@ let mydspPolyProcessorString = `
                     _coshf: Math.cosh,
                     _sinhf: Math.sinh,
                     _tanhf: Math.tanh,
+                    _isnanf: Number.isNaN,
+                    _isinff: function (x) { return !isFinite(x); },
+                    _copysignf: function (x, y) { return Math.sign(x) === Math.sign(y) ? x : -x; },            
                         
                     // Double version
                     _acos: Math.acos,
@@ -743,7 +719,10 @@ let mydspPolyProcessorString = `
                     _cosh: Math.cosh,
                     _sinh: Math.sinh,
                     _tanh: Math.tanh,
-                    
+                    _isnan: Number.isNaN,
+                    _isinf: function (x) { return !isFinite(x); },
+                    _copysign: function (x, y) { return Math.sign(x) === Math.sign(y) ? x : -x; },
+            
                     memory : AudioWorkletGlobalScope.faust_module.faust.memory,
                     
                     table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })

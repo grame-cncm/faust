@@ -37,13 +37,13 @@ class FaustWasm2ScriptProcessor {
         this._log = [];
         this.debug = false || (typeof options === "object" && options.debug);
     }
-    
+
     async asyncForEach(array, callback) {
         for (let index = 0; index < array.length; index++) {
             await callback(array[index], index, array);
         }
     }
-    
+
     async loadAudioFiles(json) {
 
         // Get filenames in JSON
@@ -87,13 +87,13 @@ class FaustWasm2ScriptProcessor {
     * @returns {ScriptProcessorNode} a valid WebAudio ScriptProcessorNode object or null
     */
     getNode(instance, audioCtx, bufferSize, json) {
-    
+
         this.json = json;
         this.json_object = JSON.parse(this.json);
-        
+
         console.log("getNumInputs " + instance.getNumInputs());
         console.log("getNumOutputs " + instance.getNumOutputs());
-      
+
         let sp;
         const inputs = parseInt(this.json_object.inputs);
         const outputs = parseInt(this.json_object.outputs);
@@ -103,7 +103,7 @@ class FaustWasm2ScriptProcessor {
             this.error("Error in createScriptProcessor: " + e);
             return null;
         }
-     
+
         sp.output_handler = null;
         sp.ins = null;
         sp.outs = null;
@@ -114,9 +114,9 @@ class FaustWasm2ScriptProcessor {
 
         sp.fPitchwheelLabel = [];
         sp.fCtrlLabel = new Array(128).fill(null).map(() => []);
-        
+
         sp.remap = (v, mn0, mx0, mn1, mx1) => (v - mn0) / (mx0 - mn0) * (mx1 - mn1) + mn1;
-     
+
         sp.numIn = inputs;
         sp.numOut = outputs;
 
@@ -135,7 +135,7 @@ class FaustWasm2ScriptProcessor {
 
         // input items
         sp.inputs_items = [];
- 
+
         sp.update_outputs = () => {
             if (sp.outputs_items.length > 0 && sp.output_handler && sp.outputs_timer-- === 0) {
                 sp.outputs_timer = 5;
@@ -145,7 +145,7 @@ class FaustWasm2ScriptProcessor {
 
         sp.compute = e => {
             // Read inputs
-            for (let i = 0; i < sp.numIn; i++) { 
+            for (let i = 0; i < sp.numIn; i++) {
                 const input = e.inputBuffer.getChannelData(i);
                 const dspInput = sp.dspInChannnels[i];
                 dspInput.set(input);
@@ -154,20 +154,20 @@ class FaustWasm2ScriptProcessor {
             if (sp.compute_handler) sp.compute_handler(bufferSize);
             // Compute
             try {
-            	sp.instance.compute(bufferSize, sp.ins, sp.outs); 
-            } catch(e) {
-            	console.log("ERROR in compute (" + e + ")");
+                sp.instance.compute(bufferSize, sp.ins, sp.outs);
+            } catch (e) {
+                console.log("ERROR in compute (" + e + ")");
             }
             // Update bargraph
             sp.update_outputs();
             // Write outputs
-            for (let i = 0; i < sp.numOut; i++) { 
+            for (let i = 0; i < sp.numOut; i++) {
                 const output = e.outputBuffer.getChannelData(i);
                 const dspOutput = sp.dspOutChannnels[i];
                 output.set(dspOutput);
             }
         };
-        
+
         // JSON parsing
         sp.parse_ui = ui => ui.forEach(group => sp.parse_group(group));
         sp.parse_group = group => group.items ? sp.parse_items(group.items) : null;
@@ -179,7 +179,7 @@ class FaustWasm2ScriptProcessor {
                 // Keep bargraph adresses
                 sp.outputs_items.push(item.address);
             } else if (item.type === "vslider" || item.type === "hslider" || item.type === "button"
-                    || item.type === "checkbox" || item.type === "nentry") {
+                || item.type === "checkbox" || item.type === "nentry") {
                 // Keep inputs adresses
                 sp.inputs_items.push(item.address);
                 if (!item.meta) return;
@@ -205,12 +205,12 @@ class FaustWasm2ScriptProcessor {
                 })
             }
         }
-        
+
         // Setup web audio context
         sp.initAux = () => {
             this.log("buffer_size " + bufferSize);
             sp.onaudioprocess = sp.compute;
-            
+
             if (sp.numIn > 0) {
                 sp.ins = faust_module._malloc(sp.numIn * sp.ptr_size);
                 for (let i = 0; i < sp.numIn; i++) {
@@ -240,24 +240,24 @@ class FaustWasm2ScriptProcessor {
                 // Null pointer for C++ side
                 sp.outs = 0;
             }
-            
-    	    // Parse JSON UI part
+
+            // Parse JSON UI part
             sp.parse_ui(this.json_object.ui);
             // Init DSP
             sp.instance.init(audioCtx.sampleRate);
         }
-        
+
         // Public API
-        
+
         /**
          * Destroy the node, deallocate resources.
          */
-    	sp.destroy = () => {}
-        
+        sp.destroy = () => { }
+
         sp.getSampleRate = () => audioCtx.sampleRate;   // Return current sample rate
         sp.getNumInputs = () => sp.numIn;               // Return instance number of audio inputs.
         sp.getNumOutputs = () => sp.numOut;             // Return instance number of audio outputs.
-        
+
         /**
         * Global init, doing the following initialization:
         * - static tables initialization
@@ -266,27 +266,27 @@ class FaustWasm2ScriptProcessor {
         * @param {number} sampleRate - the sampling rate in Hertz
         */
         sp.init = sampleRate => sp.instance.init(sampleRate);
-        
+
         /**
         * Init instance state.
         *
         * @param {number} sampleRate - the sampling rate in Hertz
         */
         sp.instanceInit = sampleRate => sp.instance.instanceInit(sampleRate);
-        
+
         /**
         * Init instance constant state.
         *
         * @param {number} sampleRate - the sampling rate in Hertz
         */
         sp.instanceConstants = sampleRate => sp.instance.instanceConstants(sampleRate);
-        
+
         /* Init default control parameters values. */
         sp.instanceResetUserInterface = () => sp.instance.instanceResetUserInterface();
-        
+
         /* Init instance state (delay lines...).*/
         sp.instanceClear = () => sp.instance.instanceClear();
-        
+
         /**
          * Trigger the Meta handler with instance specific calls to 'declare' (key, value) metadata.
          *
@@ -297,7 +297,7 @@ class FaustWasm2ScriptProcessor {
                 this.json_object.meta.forEach(meta => handler.declare(Object.keys(meta)[0], Object.values(meta)[0]));
             }
         }
-        
+
         /**
          * Setup a control output handler with a function of type (path, value)
          * to be used on each generated output value. This handler will be called
@@ -306,12 +306,12 @@ class FaustWasm2ScriptProcessor {
          * @param {{ declare: (string, any) => any }} handler - a function of type function(path, value)
          */
         sp.setOutputParamHandler = handler => sp.output_handler = handler;
-        
+
         /**
          * Get the current output handler.
          */
         sp.getOutputParamHandler = () => sp.output_handler;
-        
+
         /**
          * Control change
          *
@@ -327,7 +327,7 @@ class FaustWasm2ScriptProcessor {
                 if (sp.output_handler) sp.output_handler(path, sp.getParamValue(path));
             })
         }
-        
+
         /**
          * PitchWeel
          *
@@ -340,7 +340,7 @@ class FaustWasm2ScriptProcessor {
                 if (sp.output_handler) sp.output_handler(pw.path, sp.getParamValue(pw.path));
             })
         }
-        
+
         /**
          * Set control value.
          *
@@ -356,21 +356,21 @@ class FaustWasm2ScriptProcessor {
          * @return {number} the float value
          */
         sp.getParamValue = path => sp.instance.getParamValue(path);
-        
+
         /**
          * Get the table of all input parameters paths.
          *
          * @return {object} the table of all input parameter paths.
          */
         sp.getParams = () => sp.inputs_items;
-        
+
         /**
          * Get DSP JSON description with its UI and metadata
          *
          * @return {string} DSP JSON description
          */
         sp.getJSON = () => this.json;
-        
+
         // Init resulting DSP
         sp.initAux();
         return sp;
@@ -384,9 +384,9 @@ class FaustWasm2ScriptProcessor {
     * @returns {Promise<ScriptProcessorNode>} a Promise for valid WebAudio ScriptProcessorNode object or null
     */
     async createDSP(audioCtx, bufferSize) {
-       
+
         try {
-        	   
+
             faust_module.faust = faust_module.faust || {};
             faust_module.faust.wasm_instance = faust_module.faust.wasm_instance || [];
 
@@ -395,13 +395,13 @@ class FaustWasm2ScriptProcessor {
             const json = faust_module.wasm_dsp_factory.extractJSON(wasm_buffer);
 
             await this.loadAudioFiles(json);
-              
+
             const importObject = {
                 env: {
                     memoryBase: 0,
                     tableBase: 0,
                     _abs: Math.abs,
-                    
+
                     // Float version
                     _acosf: Math.acos,
                     _asinf: Math.asin,
@@ -428,7 +428,10 @@ class FaustWasm2ScriptProcessor {
                     _coshf: Math.cosh,
                     _sinhf: Math.sinh,
                     _tanhf: Math.tanh,
-                    
+                    _isnanf: Number.isNaN,
+                    _isinff: function (x) { return !isFinite(x); },
+                    _copysignf: function (x, y) { return Math.sign(x) === Math.sign(y) ? x : -x; },
+
                     // Double version
                     _acos: Math.acos,
                     _asin: Math.asin,
@@ -455,14 +458,18 @@ class FaustWasm2ScriptProcessor {
                     _cosh: Math.cosh,
                     _sinh: Math.sinh,
                     _tanh: Math.tanh,
+                    _isnan: Number.isNaN,
+                    _isinf: function (x) { return !isFinite(x); },
+                    _copysign: function (x, y) { return Math.sign(x) === Math.sign(y) ? x : -x; },
+
                     _printInt32: (x) => { console.log(x); },
-                    
-                    memory : faust_module.faust.memory,
-                    
+
+                    memory: faust_module.faust.memory,
+
                     table: new WebAssembly.Table({ initial: 0, element: "anyfunc" })
                 }
             };
-             
+
             const wasm_instance = await WebAssembly.instantiate(wasm_buffer, importObject);
             faust_module.faust.wasm_instance.push(wasm_instance.instance);
 
@@ -473,12 +480,12 @@ class FaustWasm2ScriptProcessor {
             this.error("Faust " + this.name + " cannot be loaded or compiled");
         }
     }
-    
+
     log(str) {
         this._log.push(str);
         if (this.debug) console.log(str);
     }
-    
+
     error(str) {
         this._log.push(str);
         console.error(str);
