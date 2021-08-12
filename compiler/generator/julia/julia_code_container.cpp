@@ -36,7 +36,7 @@ using namespace std;
   (see https://docs.julialang.org/en/v1/manual/style-guide/#bang-convention)
  - in order to simplify global array typing, subcontainers are actually merged in the main DSP structure:
     - so 'mergeSubContainers' is used
-    - global variables are added in the DSP stucture
+    - global variables are added in the DSP structure
     - the JuliaInitFieldsVisitor class does initialisation for waveforms
     - the fGlobalDeclarationInstructions contains global functions and variables. It is "manually" used
     to generate global functions and move global variables declaration at DSP structure level.

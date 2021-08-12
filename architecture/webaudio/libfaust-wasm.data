@@ -1853,7 +1853,7 @@ period(p) = %(int(p))~+(1');
 // * `p`: period as a number of samples
 //------------------------
 // NOTE: may be this should go in oscillators.lib
-pulse(p) = period(p)==0;
+pulse(p) = period(p) : \(x).(x <= x');
 
 
 //-------`(ba.)pulsen`----------
@@ -4362,10 +4362,10 @@ abs_envelope_t19(period, x) = abs(x) : fi.avg_t19(period);
 //
 // * `rel`: release time = amplitude-envelope time-constant (sec) going down
 //
-// #### Reference
+// #### References
 //
-// * Musical Engineer's Handbook, Bernie Hutchins, Ithaca NY, 1975 Electronotes
-// Newsletter, Bernie Hutchins
+// * Musical Engineer's Handbook, Bernie Hutchins, Ithaca NY
+// * 1975 Electronotes Newsletter, Bernie Hutchins
 //------------------------------------------------------------
 amp_follower(rel) = abs : env with {
  	p = ba.tau2pole(rel);
@@ -5398,15 +5398,15 @@ arfe(attT60,relT60,fv,gate) = envelope with {
 // #### Usage
 //
 // ```
-// are(a,r,t) : _
+// are(a,r,g) : _
 // ```
 //
 // Where:
 //
 // * `a`: attack (sec)
 // * `r`: release (sec)
-// * `t`: trigger signal (attack is triggered when `t>0`, release is triggered
-// when `t=0`)
+// * `g`: gate signal (attack is triggered when `g>0`, release is triggered
+//    when `g` returns to 0).
 //-----------------------------------------------------
 // Author: JOS
 // License: STK-4.3
@@ -8279,8 +8279,8 @@ echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0
 //
 //------------------------------------------------------------
 version =   2, // MAJOR version when we make incompatible API changes,
-            3, // MINOR version when we add functionality in a backwards compatible manner,
-            1; // PATCH version when we make backwards compatible bug fixes.
+            4, // MINOR version when we add functionality in a backwards compatible manner,
+            0; // PATCH version when we make backwards compatible bug fixes.
 
             
 //#################################### webaudio.lib ########################################
@@ -13194,13 +13194,13 @@ atanh2(x) = ADAA2(EPS, f, F1, F2, x)
 //
 // Second, the declared components and interconnection/structural adaptors (i.e. series, parallel, etc) are arranged into the connection tree which is produced from performing WD analysis on the modeled circuit. For example, to produce our first order RC lowpass circuit model, the following tree is declared: 
 //
-// `tree_lowpass = vs1(i) : WD.series : (r1, c1)`
+// `tree_lowpass = vs1 : wd.series : (r1, c1);`
 //
 // For more information on how to represent trees in Faust, see Trees in Faust. 
 //
 // Finally, the tree is built using the the `buildtree` function. To build and compute our first order RC lowpass circuit model, we use:
 //
-// `process = buildtree(tree_lowpass);`
+// `process = wd.buildtree(tree_lowpass);`
 //
 // More information about build functions, see Build Functions. 
 //
@@ -23659,7 +23659,7 @@ atodb = db2lin;
 //
 // Implementation of MaxMSP filtercoeff
 //
-//	from : Cookbook formulae for audio EQ biquad filter coefficients
+//    from : Cookbook formulae for audio EQ biquad filter coefficients
 //        by : Robert Bristow-Johnson  <rbj@audioimagination.com>
 //       URL : <http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt>
 //
@@ -23667,114 +23667,112 @@ atodb = db2lin;
 
 filtercoeff(f0, dBgain, Q) = environment
 {
-	//----------------------------------------
-	// biquad coeffs for various filters
-	// usage : filtercoeff(f0, dBgain, Q).LPF
-	//----------------------------------------
+    //----------------------------------------
+    // biquad coeffs for various filters
+    // usage : filtercoeff(f0, dBgain, Q).LPF
+    //----------------------------------------
 
-		LPF = rbjcoef(a0, a1, a2, b0, b1, b2)
-  				with {
-				    b0 =  (1 - cos(w0))/2;
-				    b1 =   1 - cos(w0);
-				    b2 =  (1 - cos(w0))/2;
-				    a0 =   1 + alpha;
-				    a1 =  -2*cos(w0);
-				    a2 =   1 - alpha;
- 				};
+    LPF = rbjcoef(a0, a1, a2, b0, b1, b2)
+        with {
+            b0 = (1 - cos(w0))/2;
+            b1 =  1 - cos(w0);
+            b2 = (1 - cos(w0))/2;
+            a0 =  1 + alpha;
+            a1 = -2*cos(w0);
+            a2 =  1 - alpha;
+        };
 
-		HPF = rbjcoef(a0, a1, a2, b0, b1, b2)
-  				with {
-				    b0 =  (1 + cos(w0))/2;
-				    b1 = -1 - cos(w0);
-				    b2 =  (1 + cos(w0))/2;
-				    a0 =   1 + alpha;
-				    a1 =  -2*cos(w0);
-				    a2 =   1 - alpha;
-  				};
+    HPF = rbjcoef(a0, a1, a2, b0, b1, b2)
+        with {
+            b0 = (1 + cos(w0))/2;
+            b1 = -1 - cos(w0);
+            b2 = (1 + cos(w0))/2;
+            a0 =  1 + alpha;
+            a1 = -2*cos(w0);
+            a2 =  1 - alpha;
+        };
 
-		BPF = rbjcoef(a0, a1, a2, b0, b1, b2) // constant 0 dB peak gain
-  				with {
-				    b0 =   alpha;
-				    b1 =   0;
-				    b2 =  -alpha;
-				    a0 =   1 + alpha;
-				    a1 =  -2*cos(w0);
-				    a2 =   1 - alpha;
- 				};
+    BPF = rbjcoef(a0, a1, a2, b0, b1, b2) // constant 0 dB peak gain
+        with {
+            b0 = alpha;
+            b1 = 0;
+            b2 = -alpha;
+            a0 = 1 + alpha;
+            a1 = -2*cos(w0);
+            a2 = 1 - alpha;
+        };
 
-  	  	notch = rbjcoef(a0, a1, a2, b0, b1, b2)
-  				with {
-				    b0 =   1;
-				    b1 =  -2*cos(w0);
-				    b2 =   1;
-				    a0 =   1 + alpha;
-				    a1 =  -2*cos(w0);
-				    a2 =   1 - alpha;
-  				};
+    notch = rbjcoef(a0, a1, a2, b0, b1, b2)
+        with {
+            b0 = 1;
+            b1 = -2*cos(w0);
+            b2 = 1;
+            a0 = 1 + alpha;
+            a1 = -2*cos(w0);
+            a2 = 1 - alpha;
+        };
 
-		APF = rbjcoef(a0, a1, a2, b0, b1, b2)
-  				with {
-				    b0 =   1 - alpha;
-				    b1 =  -2*cos(w0);
-				    b2 =   1 + alpha;
-				    a0 =   1 + alpha;
-				    a1 =  -2*cos(w0);
-				    a2 =   1 - alpha;
- 				};
+    APF = rbjcoef(a0, a1, a2, b0, b1, b2)
+        with {
+            b0 = 1 - alpha;
+            b1 = -2*cos(w0);
+            b2 = 1 + alpha;
+            a0 = 1 + alpha;
+            a1 = -2*cos(w0);
+            a2 = 1 - alpha;
+        };
 
-  		peakingEQ = rbjcoef(a0, a1, a2, b0, b1, b2)
-  				with {
-            		b0 =   1 + alpha*A;
-            		b1 =  -2*cos(w0);
-            		b2 =   1 - alpha*A;
-            		a0 =   1 + alpha/A;
-            		a1 =  -2*cos(w0);
-            		a2 =   1 - alpha/A;
-  				};
+    peakingEQ = rbjcoef(a0, a1, a2, b0, b1, b2)
+        with {
+            b0 = 1 + alpha*A;
+            b1 = -2*cos(w0);
+            b2 = 1 - alpha*A;
+            a0 = 1 + alpha/A;
+            a1 = -2*cos(w0);
+            a2 = 1 - alpha/A;
+        };
 
-  		peakNotch = rbjcoef(a0, a1, a2, b0, b1, b2)
-  				with {
-            		b0 =   1 + alpha*G;
-            		b1 =  -2*cos(w0);
-            		b2 =   1 - alpha*G;
-            		a0 =   1 + alpha/G;
-            		a1 =  -2*cos(w0);
-            		a2 =   1 - alpha/G;
-  				};
+    peakNotch = rbjcoef(a0, a1, a2, b0, b1, b2)
+        with {
+            b0 = 1 + alpha*G;
+            b1 = -2*cos(w0);
+            b2 = 1 - alpha*G;
+            a0 = 1 + alpha/G;
+            a1 = -2*cos(w0);
+            a2 = 1 - alpha/G;
+        };
 
-   		lowShelf = rbjcoef(a0, a1, a2, b0, b1, b2)
-  				with {
-             		b0 =    A*((A+1) - (A-1)*cos(w0) + 2*sqrt(A)*alpha);
-            		b1 =  2*A*((A-1) - (A+1)*cos(w0));
-            		b2 =    A*((A+1) - (A-1)*cos(w0) - 2*sqrt(A)*alpha);
-            		a0 =       (A+1) + (A-1)*cos(w0) + 2*sqrt(A)*alpha;
-            		a1 =   -2*((A-1) + (A+1)*cos(w0));
-            		a2 =       (A+1) + (A-1)*cos(w0) - 2*sqrt(A)*alpha;
-  				};
+    lowShelf = rbjcoef(a0, a1, a2, b0, b1, b2)
+        with {
+            b0 =   A*((A+1) - (A-1)*cos(w0) + 2*sqrt(A)*alpha);
+            b1 = 2*A*((A-1) - (A+1)*cos(w0));
+            b2 =   A*((A+1) - (A-1)*cos(w0) - 2*sqrt(A)*alpha);
+            a0 =      (A+1) + (A-1)*cos(w0) + 2*sqrt(A)*alpha;
+            a1 =  -2*((A-1) + (A+1)*cos(w0));
+            a2 =      (A+1) + (A-1)*cos(w0) - 2*sqrt(A)*alpha;
+        };
 
-  		highShelf = rbjcoef(a0, a1, a2, b0, b1, b2)
-  				with {
-				    b0 =    A*((A+1) + (A-1)*cos(w0) + 2*sqrt(A)*alpha);
-				    b1 = -2*A*((A-1) + (A+1)*cos(w0));
-				    b2 =    A*((A+1) + (A-1)*cos(w0) - 2*sqrt(A)*alpha);
-				    a0 =       (A+1) - (A-1)*cos(w0) + 2*sqrt(A)*alpha;
-				    a1 =    2*((A-1) - (A+1)*cos(w0));
-				    a2 =       (A+1) - (A-1)*cos(w0) - 2*sqrt(A)*alpha;
-				};
+    highShelf = rbjcoef(a0, a1, a2, b0, b1, b2)
+        with {
+            b0 =    A*((A+1) + (A-1)*cos(w0) + 2*sqrt(A)*alpha);
+            b1 = -2*A*((A-1) + (A+1)*cos(w0));
+            b2 =    A*((A+1) + (A-1)*cos(w0) - 2*sqrt(A)*alpha);
+            a0 =       (A+1) - (A-1)*cos(w0) + 2*sqrt(A)*alpha;
+            a1 =    2*((A-1) - (A+1)*cos(w0));
+            a2 =       (A+1) - (A-1)*cos(w0) - 2*sqrt(A)*alpha;
+        };
 
-	// --------------------- implementation ------------------------------
+    // --------------------- implementation ------------------------------
 
-	// convert rbj coeffs to biquad coeffs
-	rbjcoef(a0,a1,a2,b0,b1,b2) = (b0/a0, b1/a0, b2/a0, a1/a0, a2/a0);
+    // convert rbj coeffs to biquad coeffs
+    rbjcoef(a0,a1,a2,b0,b1,b2) = (b0/a0, b1/a0, b2/a0, a1/a0, a2/a0);
 
-	// common values
-//	alpha 	= sin(w0)/(2*Q);
-//	w0 		= 2*ma.PI*f0/Fs;
-	alpha 	= sin(w0)/(2*max(0.001,Q));
-	w0 		= 2*ma.PI*max(0,f0)/Fs;
-	Fs 		= ma.SR;
-	A  		= 10^(dBgain/40);     		// (for peaking and shelving EQ filters only)
-	G  		= sqrt(max(0.00001, dBgain));   // When gain is a linear values (i.e. not in dB)
+    // common values
+    alpha = sin(w0)/(2*max(0.001,Q));
+    w0    = 2*ma.PI*max(0,f0)/Fs;
+    Fs    = ma.SR;
+    A     = 10^(dBgain/40);             // (for peaking and shelving EQ filters only)
+    G     = sqrt(max(0.00001, dBgain)); // When gain is a linear values (i.e. not in dB)
 };
 
 
@@ -23784,10 +23782,10 @@ filtercoeff(f0, dBgain, Q) = environment
 //-------------------------------------------------------------------------
 
 biquad(x,a0,a1,a2,b1,b2) =  x : + ~ ((-1)*conv2(b1, b2)) : conv3(a0, a1, a2)
-	with {
-		conv2(c0,c1,x) = c0*x+c1*x';
-		conv3(c0,c1,c2,x) = c0*x+c1*x'+c2*x'';
-	};
+    with {
+        conv2(c0,c1,x) = c0*x+c1*x';
+        conv3(c0,c1,c2,x) = c0*x+c1*x'+c2*x'';
+    };
 
 //-------------------------------------------------------------------------
 //
@@ -23796,53 +23794,53 @@ biquad(x,a0,a1,a2,b1,b2) =  x : + ~ ((-1)*conv2(b1, b2)) : conv3(a0, a1, a2)
 //-------------------------------------------------------------------------
 
 // Low Pass Filter
-LPF(x, f0, gain, Q) 		= x , filtercoeff(f0,gain,Q).LPF : biquad;
+LPF(x, f0, gain, Q)= x , filtercoeff(f0,gain,Q).LPF : biquad;
 
 // High Pass Filter
-HPF(x, f0, gain, Q) 		= x , filtercoeff(f0,gain,Q).HPF : biquad;
+HPF(x, f0, gain, Q) = x , filtercoeff(f0,gain,Q).HPF : biquad;
 
 // Band Pass Filter
-BPF(x, f0, gain, Q) 		= x , filtercoeff(f0,gain,Q).BPF : biquad;
+BPF(x, f0, gain, Q) = x , filtercoeff(f0,gain,Q).BPF : biquad;
 
 // notch Filter
-notch(x, f0, gain, Q) 		= x , filtercoeff(f0,gain,Q).notch : biquad;
+notch(x, f0, gain, Q)= x , filtercoeff(f0,gain,Q).notch : biquad;
 
 // All Pass Filter
-APF(x, f0, gain, Q) 		= x , filtercoeff(f0,gain,Q).APF : biquad;
+APF(x, f0, gain, Q) = x , filtercoeff(f0,gain,Q).APF : biquad;
 
 // ????
-peakingEQ(x, f0, gain, Q) 	= x , filtercoeff(f0,gain,Q).peakingEQ : biquad;
+peakingEQ(x, f0, gain, Q) = x , filtercoeff(f0,gain,Q).peakingEQ : biquad;
 
 // Max peakNotch is like peakingEQ but with a linear gain
-peakNotch(x, f0, gain, Q) 	= x , filtercoeff(f0,gain,Q).peakNotch : biquad;
+peakNotch(x, f0, gain, Q) = x , filtercoeff(f0,gain,Q).peakNotch : biquad;
 
 // ????
-lowShelf(x, f0, gain, Q) 	= x , filtercoeff(f0,gain,Q).lowShelf : biquad;
+lowShelf(x, f0, gain, Q) = x , filtercoeff(f0,gain,Q).lowShelf : biquad;
 
 // ????
-highShelf(x, f0, gain, Q) 	= x , filtercoeff(f0,gain,Q).highShelf : biquad;
+highShelf(x, f0, gain, Q) = x , filtercoeff(f0,gain,Q).highShelf : biquad;
 
 
 //-------------------------------------------------------------------------
 // Implementation of Max/MSP line~. Generate signal ramp or envelop
 //
 // USAGE : line(value, time)
-// 	value : the desired output value
-//	time  : the interpolation time to reach this value (in milliseconds)
+//    value : the desired output value
+//    time  : the interpolation time to reach this value (in milliseconds)
 //
 // NOTE : the interpolation process is restarted every time the desired
 // output value changes. The interpolation time is sampled only then.
 //-------------------------------------------------------------------------
 
 line(value, time) = state~(_,_):!,_
-	with {
-		state(t, c) = nt,nc 
-		with {
-			nt = ba.if(value != value', samples, t-1);
-			nc = ba.if(nt <= 0, value, c + (value - c)/nt);
-			samples = time*ma.SR/1000.0;
-		};
-	};
+    with {
+        state(t, c) = nt,nc 
+        with {
+            nt = ba.if(value != value', samples, t-1);
+            nc = ba.if(nt <= 0, value, c + (value - c)/nt);
+            samples = time*ma.SR/1000.0;
+        };
+    };
 //#################################### platform.lib ########################################
 // A library to handle platform specific code in Faust. Its official prefix is `pl`.
 //########################################################################################
@@ -23889,6 +23887,7 @@ declare version "0.1";
 // program execution.
 //-----------------------------------------------------------------------------
 SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <math.h>)));
+
 
 //---------------------------------`(pl.)tablesize`----------------------------
 // Oscillator table size
@@ -24955,13 +24954,12 @@ with {               // depth=0 => direct-signal only
 // #### Phaser
 //
 // ```
-// _ : phaser2_stereo(Notches,phase,width,frqmin,fratio,frqmax,speed,depth,fb,invert) : _
+// _,_ : phaser2_stereo(Notches,width,frqmin,fratio,frqmax,speed,depth,fb,invert) : _,_
 // ```
 //
 // Where:
 //
 // * `Notches`: number of spectral notches (MACRO ARGUMENT - not a signal)
-// * `phase`: phase of the oscillator (0-1)
 // * `width`: approximate width of spectral notches in Hz
 // * `frqmin`: approximate minimum frequency of first spectral notch in Hz
 // * `fratio`: ratio of adjacent notch frequencies
@@ -27367,13 +27365,14 @@ peak_eq_rm(Lfx,fx,tanPiBT) = _ <: _,A,_ : +,- : *(0.5),*(K/2.0) : + with {
 //         between -1 and 1 (ln mag / ln radian freq)
 //
 // #### Examples
-// See `spectral_tilt_demo`.
+// See `dm.spectral_tilt_demo` and the documentation for `no.pink_noise`.
 //
 // #### Reference
 // J.O. Smith and H.F. Smith,
 // "Closed Form Fractional Integration and Differentiation via Real Exponentially Spaced Pole-Zero Pairs",
 // arXiv.org publication arXiv:1606.06154 [cs.CE], June 7, 2016,
 // <http://arxiv.org/abs/1606.06154>
+//
 //------------------------------------------------------------
 declare spectral_tilt author "Julius O. Smith III";
 declare spectral_tilt copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
@@ -28224,7 +28223,7 @@ lag_ud(up,dn) = _ <: ((>,ba.tau2pole(up),ba.tau2pole(dn):select2),_:si.smooth) ~
 // Author: Yann Orlarey
 rev(N) = @(phase(N)*2) 
 with {
-	phase(n) = 1 : (+ : %(n)) ~ _ : max(0) : min(n-1);
+    phase(n) = 1 : (+ : %(n)) ~ _ : max(0) : min(n-1);
 };
 //instruments.lib - Faust function of various types useful for building physical model instruments
 
@@ -28923,18 +28922,48 @@ Michon and/or Julius O. Smith III, and are released under the
 ************************************************************************/
 
 //---------------------------`(no.)pink_noise`--------------------------
-// Pink noise (1/f noise) generator (third-order approximation)
+// Pink noise (1/f noise) generator (third-order approximation covering the audio band well).
 // `pink_noise` is a standard Faust function.
 //
 // #### Usage
-//
 // ```
 // pink_noise : _
 // ```
 //
-// #### Reference:
-//
+// #### Reference
 // <https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html>
+//
+// #### Alternatives
+// Higher-order approximations covering any frequency band can be obtained using
+// ```
+// no.noise : fi.spectral_tilt(order,lowerBandLimit,Bandwidth,p)
+// ```
+// where `p=-0.5` means filter rolloff `f^(-1/2)` which gives 1/f rolloff in the
+// power spectral density, and can be changed to other real values.
+//
+// #### Example
+// // pink_noise_compare.dsp - compare three pinking filters
+// ```
+// process = pink_noises with {
+//     f0 = 35; // Lower bandlimit in Hz
+//     bw3 = 0.7 * ma.SR/2.0 - f0; // Bandwidth in Hz, 3rd order case
+//     bw9 = 0.8 * ma.SR/2.0 - f0; // Bandwidth in Hz, 9th order case
+//     pink_tilt_3 = fi.spectral_tilt(3,f0,bw3,-0.5);
+//     pink_tilt_9 = fi.spectral_tilt(9,f0,bw9,-0.5);
+//     pink_noises = 1-1' <:
+//       no.pink_filter, // original designed by invfreqz in Octave
+//       pink_tilt_3,    // newer method using the same filter order
+//       pink_tilt_9;    // newer method using a higher filter order
+// };
+// ```
+//
+// #### Output of Example
+// ```
+// faust2octave pink_noise_compare.dsp
+// Octave:1> semilogx(20*log10(abs(fft(faustout,8192))(1:4096,:)));
+// ...
+// ```
+// <img alt="pink_noise_demo figure" src="https://ccrma.stanford.edu/wiki/Images/8/86/Tpinkd.jpg" width="600" />
 //------------------------------------------------------------
 pink_filter = fi.iir((0.049922035, -0.095993537, 0.050612699, -0.004408786),
                     (-2.494956002, 2.017265875, -0.522189400));
@@ -30892,7 +30921,7 @@ with{
 //----------------------------------`(dm.)zita_rev1`------------------------------
 // Example GUI for `zita_rev1_stereo` (mostly following the Linux `zita-rev1` GUI).
 //
-// Only the dry/wet and output level parameters are "dezippered" here.    If
+// Only the dry/wet and output level parameters are "dezippered" here. If
 // parameters are to be varied in real time, use `smooth(0.999)` or the like
 // in the same way.
 //
@@ -36340,7 +36369,7 @@ closed source license or any other license if you decide so.
 ************************************************************************/
 
 declare name "Faust Math Library";
-declare version "2.3";
+declare version "2.4";
 declare author "GRAME";
 declare copyright "GRAME";
 declare license "LGPL with exception";
@@ -36463,6 +36492,18 @@ fixedpointprecision INFINITY = 1.7976931348623158e+308;
 // <http://docs.oracle.com/cd/E19957-01/806-3568/ncg_math.html>
 //-----------------------------------------------------------------------------
 FTZ(x) = x * (abs(x) > MIN);
+
+
+//---------------------------------`(ma.)copysign`---------------------------------------
+// Changes the sign of x (first input) to that of y (second input).
+//
+// #### Usage
+//
+// ```
+// _,_ : copysign : _
+// ```
+//-----------------------------------------------------------------------------
+copysign = ffunction(float copysignf|copysign|copysignl (float, float), <math.h>,"");
 
 
 //---------------------------------`(ma.)neg`---------------------------------------

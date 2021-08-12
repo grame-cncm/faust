@@ -130,7 +130,7 @@ function setParamValue!(ui_interface::MapUI, path::String, value::FAUSTFLOAT)
     elseif (haskey(ui_interface.label_paths, path))
         setproperty!(ui_interface.dsp, ui_interface.label_paths[path].field, value)
     else 
-        println("ERROR : setParamValue '", path, "' not found")
+        println("ERROR : setParamValue! '", path, "' not found")
     end
 end
 
