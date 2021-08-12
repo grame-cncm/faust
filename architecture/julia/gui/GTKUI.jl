@@ -56,6 +56,7 @@ end
 # -- active widgets
 function addButton!(ui_interface::GTKUI, label::String, param::Symbol) 
     button = GtkObservables.button(label)
+    
     obs_func = on(observable(button)) do val
         setproperty!(ui_interface.dsp, param, FAUSTFLOAT(1.0))
         # Hack to make it work...
@@ -75,25 +76,37 @@ end
 
 function addHorizontalSlider!(ui_interface::GTKUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
     slider = GtkObservables.slider(min:max, value=init, orientation="horizontal")
+    label_str = GtkObservables.label(label)
     obs_func = on(observable(slider)) do val
         setproperty!(ui_interface.dsp, param, val)
     end
-    push!(ui_interface.box, slider)
+    box = GtkBox(:h)
+    push!(box, slider)
+    push!(box, label_str)
+    push!(ui_interface.box, box)
 end
 
 function addVerticalSlider!(ui_interface::GTKUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
     # slider = GtkObservables.slider(min:max, value=init, orientation="vertical") does not work...
     slider = GtkObservables.slider(min:max, value=init, orientation="horizontal")
+    label_str = GtkObservables.label(label)
     obs_func = on(observable(slider)) do val
         setproperty!(ui_interface.dsp, param, val)
     end
-    push!(ui_interface.box, slider)
+    box = GtkBox(:h)
+    push!(box, slider)
+    push!(box, label_str)
+    push!(ui_interface.box, box)
 end
 
 function addNumEntry!(ui_interface::GTKUI, label::String, param::Symbol, init::FAUSTFLOAT, min::FAUSTFLOAT, max::FAUSTFLOAT, step::FAUSTFLOAT) 
     nentry = GtkObservables.textbox(FAUSTFLOAT; range=min:max, value=string(init))
+    label_str = GtkObservables.label(label)
     obs_func = on(observable(nentry)) do val
         setproperty!(ui_interface.dsp, param, val)
     end
-    push!(ui_interface.box, nentry)
+    box = GtkBox(:h)
+    push!(box, nentry)
+    push!(box, label_str)
+    push!(ui_interface.box, box)
 end
