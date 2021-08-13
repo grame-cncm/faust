@@ -490,7 +490,7 @@ void Signal2VHDLVisitor::entity_delay_var_reg(string & str)
     " if (to_integer(delay_var) = 0) then\n"
     "   output <= input;\n"
     " else\n"
-    "   output <= mem(to_integer(delay_var)-1);\n"
+    "   output0 <= mem(to_integer(delay_var)-1);\n"
     " end if;\n"
     "end process;\n"
     "end behavioral;\n\n";
