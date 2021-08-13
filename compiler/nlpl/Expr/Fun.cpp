@@ -12,7 +12,7 @@ class FunExpr : public Expression {
     std::vector<Expr> fArgs;
 
    public:
-    explicit FunExpr(std::string op, const std::vector<Expr>& args) : fOpName(std::move(op)), fArgs(args) {}
+    explicit FunExpr(std::string op, std::vector<Expr>  args) : fOpName(std::move(op)), fArgs(std::move(args)) {}
 
     void getDependencies(std::set<Dependency>& dep) override
     {
