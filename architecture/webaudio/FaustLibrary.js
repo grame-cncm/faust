@@ -362,6 +362,7 @@ var Faust;
             this.fPitchwheelLabel = [];
             this.fCtrlLabel = new Array(128).fill(null).map(() => []);
             this.fPathTable = {};
+            this.fProcessing = false;
             this.fDestroyed = false;
             this.fUICallback = (item) => {
                 if (item.type === "hbargraph" || item.type === "vbargraph") {
@@ -492,6 +493,12 @@ var Faust;
         getJSON() { return ""; }
         getUI() { return this.fJSONDsp.ui; }
         getDescriptors() { return this.fDescriptor; }
+        start() {
+            this.fProcessing = true;
+        }
+        stop() {
+            this.fProcessing = false;
+        }
         destroy() {
             this.fDestroyed = true;
             this.fOutputHandler = null;
@@ -554,6 +561,8 @@ var Faust;
         compute(input, output) {
             if (this.fDestroyed)
                 return false;
+            if (!this.fProcessing)
+                return true;
             if (this.getNumInputs() > 0 && (!input || !input[0] || input[0].length === 0)) {
                 return true;
             }
@@ -806,6 +815,8 @@ var Faust;
         compute(input, output) {
             if (this.fDestroyed)
                 return false;
+            if (!this.fProcessing)
+                return true;
             if (this.getNumInputs() > 0 && (!input || !input[0] || input[0].length === 0)) {
                 return true;
             }
@@ -1083,6 +1094,12 @@ var Faust;
         getJSON() { return this.fJSON; }
         getUI() { return this.fJSONDsp.ui; }
         getDescriptors() { return this.fDescriptor; }
+        start() {
+            this.port.postMessage({ type: "start" });
+        }
+        stop() {
+            this.port.postMessage({ type: "stop" });
+        }
         destroy() {
             this.port.postMessage({ type: "destroy" });
             this.port.close();
@@ -1228,6 +1245,14 @@ var Faust;
                         }
                         break;
                     }
+                    case "start": {
+                        this.fDSPCode.start();
+                        break;
+                    }
+                    case "stop": {
+                        this.fDSPCode.stop();
+                        break;
+                    }
                     case "destroy": {
                         this.port.close();
                         this.fDSPCode.destroy();
@@ -1349,6 +1374,8 @@ var Faust;
             node.getJSON = () => { return this.fDSPCode.getJSON(); };
             node.getDescriptors = () => { return this.fDSPCode.getDescriptors(); };
             node.getUI = () => { return this.fDSPCode.getUI(); };
+            node.start = () => { this.fDSPCode.start(); };
+            node.stop = () => { this.fDSPCode.stop(); };
             node.destroy = () => { this.fDSPCode.destroy(); };
         }
     }

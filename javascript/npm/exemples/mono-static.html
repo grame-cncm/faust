@@ -30,18 +30,21 @@ Faust.createMonoAudioNode(audioCtx, "djembe.wasm", "djembe.json").then(node => {
 </body>
 
 <script>
-    function log(msg) { let div = document.getElementById("log"); div.textContent += msg + "\n"; }       
+    function log(msg) { let div = document.getElementById("log"); div.textContent += msg + "\n"; }
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     Faust.createMonoAudioNode(audioCtx, "djembe.wasm", "djembe.json").then(node1 => {
         node1.connect(audioCtx.destination);
+        node1.start();
         Faust.createMonoAudioNode(udioCtx, "djembe.wasm", "djembe.json").then(node2 => {
             node2.connect(audioCtx.destination);
+            node2.start();
             Faust.createMonoAudioNode(audioCtx, "djembe.wasm", "djembe.json").then(node3 => {
                 node3.connect(audioCtx.destination);
+                node3.start();
             });
         });
     });
-  
+
     const unlockAudioContext = (audioCtx) => {
         if (audioCtx.state !== "suspended") return;
         const b = document.body;

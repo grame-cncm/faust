@@ -39,10 +39,13 @@ FaustModule().then (module => {
     FaustModule().then(module => {
         Faust.compileAudioNode(audioCtx, module, getcode(), null, 0).then(node1 => {
             node1.connect(audioCtx.destination);
+            node1.start();
             Faust.compileAudioNode(audioCtx, module, getcode(), null, 0).then(node2 => {
                 node2.connect(audioCtx.destination);
+                node2.start();
                 Faust.compileAudioNode(audioCtx, module, getcode(), null, 0).then(node3 => {
                     node3.connect(audioCtx.destination);
+                    node3.start();
                 });
             });
         });

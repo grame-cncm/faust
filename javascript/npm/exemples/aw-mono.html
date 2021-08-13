@@ -45,6 +45,7 @@ FaustModule().then(module => {
         let factory = Faust.createMonoFactory();
         factory.compileNode(audioCtx, "Faust", compiler, getcode(), "-ftz 2", false, 128).then(node => {
             node.connect(audioCtx.destination);
+            node.start();
         });
     })
     const unlockAudioContext = (audioCtx) => {

@@ -51,13 +51,14 @@ It is described in `FaustGenerator.d.ts`.
 ### Faust Audio Nodes Instances and Offline Processor <a name="audio"></a>
 
 This level takes a Faust Wasm instance to build an audio node. [AudioWorklet](https://developer.mozilla.org/fr/docs/Web/API/AudioWorklet) and [ScriptProcessor](https://developer.mozilla.org/en-US/docs/Web/API/ScriptProcessorNode) nodes are supported.  
+
 Note that ScriptProcessor is marked as [deprecated](https://developer.mozilla.org/en-US/docs/Web/API/ScriptProcessorNode) but it's the only audio architecture available on Safari. Both monophonic (generators, effects...) or polyphonic (instruments) nodes can be created.
+
+By default, and to save CPU, created audio nodes are not processing audio buffers. They have to be explicitely started with the `start`method (and possibly stopped if needed using the `stop`method).
 
 **Warning**: AudioWorklet is a recent technology and may not be supported by all the browsers. Check the [compatibility](https://developer.mozilla.org/fr/docs/Web/API/AudioWorklet) chart.
 
-An offline processor to render a DSP in a non real-time context and get the computed frames is available.
-
-It is described in `FaustWebAudio.d.ts`.   
+An offline processor to render a DSP in a non real-time context and get the computed frames is available. It is described in `FaustWebAudio.d.ts`.   
 
 
 ### High-level API <a name="high"></a>

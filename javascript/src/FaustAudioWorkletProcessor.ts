@@ -126,6 +126,17 @@ namespace Faust {
                         }
                         break;
                     }
+
+                    case "start": {
+                        this.fDSPCode.start();
+                        break;
+                    }
+
+                    case "stop": {
+                        this.fDSPCode.stop();
+                        break;
+                    }
+
                     case "destroy": {
                         this.port.close();
                         this.fDSPCode.destroy();

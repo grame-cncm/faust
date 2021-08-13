@@ -26,6 +26,7 @@ effect = dm.freeverb_demo;</pre>
     <h3>Javascript code</h3>
     <pre class="code colored">
 function play(node)   { 
+    node.start();
     node.keyOn(0, 60, 100);
     setTimeout(() => node.keyOn(0, 64, 40), 500);
     setTimeout(() => node.keyOn(0, 67, 80), 1000);
@@ -51,6 +52,7 @@ FaustModule().then (module => {
     function getcode() { return document.getElementById("code").textContent; }
     function log(msg) { let div = document.getElementById("log"); div.textContent = msg + "\n"; }
     function play(node) {
+        node.start();
         node.keyOn(0, 60, 100);
         setTimeout(() => node.keyOn(0, 64, 40), 500);
         setTimeout(() => node.keyOn(0, 67, 80), 1000);
@@ -78,7 +80,7 @@ FaustModule().then (module => {
         const clean = () => events.forEach(e => b.removeEventListener(e, unlock));
         events.forEach(e => b.addEventListener(e, unlock, false));
     }
-    unlockAudioContext(audioCtx); 
+    unlockAudioContext(audioCtx);
 </script>
 
 </html>

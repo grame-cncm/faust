@@ -164,6 +164,14 @@ namespace Faust {
         getUI() { return this.fJSONDsp.ui; }
         getDescriptors() { return this.fDescriptor; }
 
+        start() {
+            this.port.postMessage({ type: "start" });
+        }
+
+        stop() {
+            this.port.postMessage({ type: "stop" });
+        }
+
         destroy() {
             this.port.postMessage({ type: "destroy" });
             this.port.close();

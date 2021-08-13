@@ -10,7 +10,8 @@
 <body>
     <h1>Faust Web Assembly Library</h1>
     <h2>Poly Audio node example</h2>
-    <h3>Load and run the following precompiled dsp code with 4 voices, using: <I>faust -lang wasm-e marimba.dsp -o marimba.wasm</I></h3>
+    <h3>Load and run the following precompiled dsp code with 4 voices, using: <I>faust -lang wasm-e marimba.dsp -o
+            marimba.wasm</I></h3>
 
     <pre id=code class=code>
 import("stdfaust.lib");
@@ -25,6 +26,7 @@ process = ba.pulsen(1, ba.hz2midikey(freq) * 1000) : pm.marimba(freq, 0, 7000, 0
     <h3>Javascript code</h3>
     <pre class="code colored">
 function play(node)   { 
+    node.start();
     node.keyOn(0, 60, 100);
     setTimeout(() => node.keyOn(0, 64, 40), 500);
     setTimeout(() => node.keyOn(0, 67, 80), 1000);
@@ -46,6 +48,7 @@ Faust.createPolyAudioNode(audioCtx, "marimba.wasm", "marimba.json", null, null, 
     function getcode() { return document.getElementById("code").textContent; }
     function log(msg) { let div = document.getElementById("log"); div.textContent = msg + "\n"; }
     function play(node) {
+        node.start();
         node.keyOn(0, 60, 100);
         setTimeout(() => node.keyOn(0, 64, 40), 500);
         setTimeout(() => node.keyOn(0, 67, 80), 1000);
@@ -54,7 +57,7 @@ Faust.createPolyAudioNode(audioCtx, "marimba.wasm", "marimba.json", null, null, 
     }
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     document.body.style.cursor = "wait";
-	Faust.createPolyAudioNode(audioCtx, "marimba.wasm", "marimba.json", null, null, "../mixer32.wasm", 4).then(node => {
+    Faust.createPolyAudioNode(audioCtx, "marimba.wasm", "marimba.json", null, null, "../mixer32.wasm", 4).then(node => {
         document.body.style.cursor = "initial";
         node.connect(audioCtx.destination);
         play(node);
@@ -67,7 +70,7 @@ Faust.createPolyAudioNode(audioCtx, "marimba.wasm", "marimba.json", null, null, 
         const clean = () => events.forEach(e => b.removeEventListener(e, unlock));
         events.forEach(e => b.addEventListener(e, unlock, false));
     }
-    unlockAudioContext(audioCtx); 
+    unlockAudioContext(audioCtx);
 </script>
 
 </html>

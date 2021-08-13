@@ -161,6 +161,18 @@ declare namespace Faust {
         getDescriptors(): TFaustUIInputItem[];
 
         /**
+         * Start the DSP.
+         *
+         */
+        start(): void;
+
+        /**
+         * Stop the DSP.
+         *
+         */
+        stop(): void;
+
+        /**
          * Destroy the DSP.
          *
          */
@@ -236,7 +248,6 @@ declare namespace Faust {
      * Polyphonic AudioNode.
      */
     interface FaustPolyNode extends AudioNode, PolyDSP { }
-
 
     /**
      *  For offline rendering.

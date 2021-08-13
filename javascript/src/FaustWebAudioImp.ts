@@ -59,6 +59,8 @@ namespace Faust {
         protected fPathTable: { [address: string]: number };
         protected fUICallback: UIHandler;
 
+        protected fProcessing: boolean;
+
         protected fDestroyed: boolean;
 
         protected fJSONDsp!: TFaustJSON;
@@ -89,6 +91,7 @@ namespace Faust {
             this.fCtrlLabel = new Array(128).fill(null).map(() => []);
             this.fPathTable = {};
 
+            this.fProcessing = false;
             this.fDestroyed = false;
 
             this.fUICallback = (item: TFaustUIItem) => {
@@ -230,6 +233,15 @@ namespace Faust {
         getJSON() { return ""; }
         getUI() { return this.fJSONDsp.ui; }
         getDescriptors() { return this.fDescriptor; }
+
+        start() {
+            this.fProcessing = true;
+        }
+
+        stop() {
+            this.fProcessing = false;
+        }
+
         destroy() {
             this.fDestroyed = true;
             this.fOutputHandler = null;
@@ -325,6 +337,9 @@ namespace Faust {
 
             // Check DSP state
             if (this.fDestroyed) return false;
+
+            // Check Processing state: the node returns 'true' to stay in the graph, even if not processing
+            if (!this.fProcessing) return true;
 
             // Check inputs
             if (this.getNumInputs() > 0 && (!input || !input[0] || input[0].length === 0)) {
@@ -692,6 +707,9 @@ namespace Faust {
 
             // Check DSP state
             if (this.fDestroyed) return false;
+
+            // Check Processing state: the node returns 'true' to stay in the graph, even if not processing
+            if (!this.fProcessing) return true;
 
             // Check inputs
             if (this.getNumInputs() > 0 && (!input || !input[0] || input[0].length === 0)) {
