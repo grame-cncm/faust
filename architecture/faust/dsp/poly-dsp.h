@@ -245,6 +245,15 @@ struct dsp_voice : public MapUI, public decorator_dsp {
             }
         }
     }
+ 
+    void instanceClear()
+    {
+        decorator_dsp::instanceClear();
+        fCurNote = kFreeVoice;
+        fNextNote = fNextVel = -1;
+        fLevel = FAUSTFLOAT(0);
+        fDate = fRelease = 0;
+    }
     
     // Keep 'pitch' and 'velocity' to fadeOut the current voice and start next one in the next buffer
     void keyOn(int pitch, int velocity, bool legato = false)
