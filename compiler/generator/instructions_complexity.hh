@@ -48,6 +48,7 @@ class InstComplexityVisitor : public DispatchVisitor {
     int fLoop;
   
     map<string, int> gFunctionSymbolTable;
+    map<string, int> gBinopSymbolTable;
 
    public:
     using DispatchVisitor::visit;
@@ -89,11 +90,25 @@ class InstComplexityVisitor : public DispatchVisitor {
     virtual void visit(BinopInst* inst)
     {
         fBinop++;
+        TypingVisitor typing1;
+        inst->fInst1->accept(&typing1);
+        TypingVisitor typing2;
+        inst->fInst2->accept(&typing2);
+        if (isRealType(typing1.fCurType) || isRealType(typing1.fCurType)) {
+            gBinopSymbolTable["Real(" + string(gBinOpTable[inst->fOpcode]->fName) + ")"]++;
+        } else {
+            gBinopSymbolTable["Int(" + string(gBinOpTable[inst->fOpcode]->fName) + ")"]++;
+        }
         DispatchVisitor::visit(inst);
     }
     virtual void visit(CastInst* inst)
     {
         fCast++;
+        DispatchVisitor::visit(inst);
+    }
+    virtual void visit(Select2Inst* inst)
+    {
+        fSelect++;
         DispatchVisitor::visit(inst);
     }
 
@@ -150,13 +165,23 @@ class InstComplexityVisitor : public DispatchVisitor {
     void dump(ostream* dst)
     {
         *dst << "Instructions complexity : ";
-        *dst << "Load = " << fLoad << " Store = " << fStore << " Binop = " << fBinop;
+        *dst << "Load = " << fLoad << " Store = " << fStore;
+        *dst << " Binop = " << fBinop;
+        if (fBinop > 0) {
+            *dst << " [ ";
+            for (const auto& it : gBinopSymbolTable) {
+                if (it.second > 0) {
+                    *dst << "{ " << it.first << " = " << it.second << " } ";
+                }
+            }
+            *dst << "]";
+        }
         *dst << " Mathop = " << fMathop;
         if (fMathop > 0) {
             *dst << " [ ";
             for (const auto& it : gFunctionSymbolTable) {
                 if (it.second > 0) {
-                    *dst << it.first << " = " << it.second << " ";
+                    *dst << "{ " << it.first << " = " << it.second << " } ";
                 }
             }
             *dst << "]";
