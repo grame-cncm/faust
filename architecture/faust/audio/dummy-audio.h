@@ -74,7 +74,6 @@ class dummyaudio_real : public audio {
             } catch (...) {
                 if (fExit) exit(EXIT_FAILURE);
             }
-            return 0;
         }
         
     #ifdef USE_PTHREAD

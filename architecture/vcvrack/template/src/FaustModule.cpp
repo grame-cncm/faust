@@ -92,8 +92,15 @@ struct one_sample_dsp : public rack_dsp {
     int* iZone;
     FAUSTFLOAT* fZone;
     
-    one_sample_dsp():iZone(nullptr), fZone(nullptr)
+    one_sample_dsp()
+    :iZone(nullptr), fZone(nullptr)
     {}
+    
+    one_sample_dsp(int* icontrol, FAUSTFLOAT* fcontrol)
+    :iZone(icontrol), fZone(fcontrol)
+    {
+        assert(false);
+    }
     
     virtual ~one_sample_dsp()
     {
