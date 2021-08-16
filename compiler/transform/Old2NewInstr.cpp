@@ -143,6 +143,9 @@ nlpl::Expr old2NewExpr(Tree sig)
     } else if (isSigVSlider(sig, label, c, x, y, z)) {
         return nlpl::ReadMem(nlpl::memory("float", uniqueStringID("fSlider", sig), nlpl::kFinal), 0);
 
+    } else if (isSigNumEntry(sig, label, c, x, y, z)) {
+        return nlpl::ReadMem(nlpl::memory("float", uniqueStringID("fEntry", sig), nlpl::kFinal), 0);
+
     } else if (isSigInstructionControlRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
         return nlpl::ReadMem(nlpl::memory(nature2ctype(nature), tree2str(id), nlpl::kFinal), 0);
 
@@ -352,9 +355,14 @@ nlpl::Instr old2NewInstr(Tree sig)
         // }
 
     } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &dmax, init, idx, exp)) {
-        string    vname{tree2str(id)};
-        nlpl::Mem V = nlpl::memory(nature2ctype(nature), vname, dmax, nlpl::kFinal);
-        return nlpl::WriteVec(V, nlpl::kReplaceWrite, old2NewExpr(idx), old2NewExpr(exp));
+        if (idx != gGlobal->nil && exp != gGlobal->nil) {
+            string    vname{tree2str(id)};
+            nlpl::Mem V = nlpl::memory(nature2ctype(nature), vname, dmax, nlpl::kFinal);
+            return nlpl::WriteVec(V, nlpl::kReplaceWrite, old2NewExpr(idx), old2NewExpr(exp));
+        } else {
+            std::cout << "TRACE READ ONLY TABLE : " << ppsig(sig) << std::endl;
+            return nullptr;
+        }
 
     } else if (isSigInstructionTimeWrite(sig)) {
         nlpl::Mem M = nlpl::memory("int", "time", nlpl::kFinal);
