@@ -50,6 +50,9 @@ c:
 soul:
 	$(MAKE) -f Make.lang outdir=soul lang=soul ext=soul FAUSTOPTIONS=""
 
+trace:
+	$(MAKE) -f Make.lang interp-tracer 
+
 #########################################################################
 # interp lang has a special status since the corresponding backend may not
 # be available due to gcc specific extensions
@@ -68,6 +71,7 @@ help:
 	@echo " 'soul'       : compiles using the SOUL backend"
 	@echo " 'interp'     : compiles using the interpreter backend"
 	@echo " 'web'        : compiles using the wast/wasm backends"
+	@echo " 'trace'      : compiles using the interp-tracer application"
 	@echo "Using a specific version of Faust libraries:"
 	@echo " 'make FAUSTLIBS=/path/to/libraries'"
  	

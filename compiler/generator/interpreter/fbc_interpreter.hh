@@ -117,7 +117,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         std::vector<std::string> fExecTrace;
         int                      fWriteIndex;
         std::stringstream        fMessage;
-
+   
         InterpreterTrace()
         {
             for (int i = 0; i < TRACE_STACK_SIZE; i++) {
@@ -148,15 +148,26 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             push(fMessage.str());
             fMessage.str("");
         }
+        
+        void traceInstruction(InstructionIT it, int int_value, REAL real_value)
+        {
+            (*it)->write(&fMessage, false, false, false);  // Last param = false means no recursion in branches
+            push(fMessage.str());
+            push("Stack [Int: " + std::to_string(int_value) + " ] [REAL: " + std::to_string(real_value) + " ]\n");
+            fMessage.str("");
+        }
     };
 
     InterpreterTrace fTraceContext;
 
     inline void traceInstruction(InstructionIT it)
     {
-        if (TRACE >= 4) {
-            fTraceContext.traceInstruction(it);
-        }
+        fTraceContext.traceInstruction(it);
+    }
+    
+    inline void traceInstruction(InstructionIT it, int int_value, REAL real_value)
+    {
+        fTraceContext.traceInstruction(it, int_value, real_value);
     }
 
     void printStats()
@@ -615,7 +626,9 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     }
 #define dispatchNextScal()    \
     {                         \
-        traceInstruction(it); \
+        if (TRACE >= 4) {     \
+            traceInstruction(it, int_stack[int_stack_index], real_stack[int_stack_index]); \
+        }                     \
         it++;                 \
         dispatchFirstScal()   \
     }
@@ -2653,7 +2666,9 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     }
 #define dispatchNextScal()                    \
     {                                         \
-        traceInstruction(it);                 \
+        if (TRACE >= 4) {     \
+            traceInstruction(it, int_stack[int_stack_index], real_stack[int_stack_index]); \
+        }                                     \
         it++;                                 \
         dispatchFirstScal();                  \
     }

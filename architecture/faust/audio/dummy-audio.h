@@ -65,25 +65,30 @@ class dummyaudio_real : public audio {
         int fCount;
         int fSample;
         bool fManager;
+        bool fExit;
+    
+        void runAux()
+        {
+            try {
+                process();
+            } catch (...) {
+                if (fExit) exit(EXIT_FAILURE);
+            }
+            return 0;
+        }
         
     #ifdef USE_PTHREAD
         pthread_t fAudioThread;
         static void* run(void* ptr)
         {
-            dummyaudio_real* audio = (dummyaudio_real*)ptr;
-            try {
-                audio->process();
-            } catch (...) {}
-            return 0;
+            static_cast<dummyaudio_real*>(ptr)->runAux();
         }
     #else
+        std::thread* fAudioThread = nullptr;
         static void run(dummyaudio_real* audio)
         {
-            try {
-                audio->process();
-            } catch (...) {}
+            audio->runAux();
         }
-        std::thread* fAudioThread = nullptr;
     #endif
         
         void process()
@@ -100,12 +105,14 @@ class dummyaudio_real : public audio {
         dummyaudio_real(int sr, int bs,
                         int count = BUFFER_TO_RENDER,
                         int sample = -1,
-                        bool manager = false)
+                        bool manager = false,
+                        bool exit = false)
         :fSampleRate(sr), fBufferSize(bs),
         fInChannel(nullptr), fOutChannel(nullptr),
         fNumInputs(-1), fNumOutputs(-1),
         fRender(0), fCount(count),
-        fSample(sample), fManager(manager)
+        fSample(sample), fManager(manager),
+        fExit(exit)
         {}
         
         dummyaudio_real(int count = BUFFER_TO_RENDER)
@@ -113,7 +120,8 @@ class dummyaudio_real : public audio {
         fInChannel(nullptr), fOutChannel(nullptr),
         fNumInputs(-1), fNumOutputs(-1),
         fRender(0), fCount(count),
-        fSample(512), fManager(false)
+        fSample(512), fManager(false),
+        fExit(false)
         {}
         
         virtual ~dummyaudio_real()
@@ -221,8 +229,9 @@ struct dummyaudio : public dummyaudio_real<FAUSTFLOAT> {
     dummyaudio(int sr, int bs,
                int count = BUFFER_TO_RENDER,
                int sample = -1,
-               bool manager = false)
-    : dummyaudio_real(sr, bs, count, sample, manager)
+               bool manager = false,
+               bool exit = false)
+    : dummyaudio_real(sr, bs, count, sample, manager, exit)
     {}
     
     dummyaudio(int count = BUFFER_TO_RENDER) : dummyaudio_real(count)

@@ -35,6 +35,11 @@ all: $(version)/$(outdir) $(examplesout) $(regressionout)
 test:
 	@echo $(regressionout)
 
+interp-tracer:
+	for file in $(dspfiles) ; do \
+		interp-tracer -trace 4 -control -noui $$file ; \
+	done
+
 help:
 	@echo "-------- FAUST compilation tests --------"
 	@echo "Available targets are:"

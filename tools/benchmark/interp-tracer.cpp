@@ -132,6 +132,8 @@ int main(int argc, char* argv[])
         cout << "-trace 7 to only check LOAD/STORE errors and exit\n";
         exit(EXIT_FAILURE);
     }
+    
+    cout << "Filename: " << argv[argc-1] << endl;
     cout << "Libfaust version : " << getCLibFaustVersion() << endl;
     
     int argc1 = 0;
@@ -195,9 +197,9 @@ int main(int argc, char* argv[])
         dummyaudio_real<double>* dummy_driver_double = nullptr;
         
         if (isopt(argv, "-double")) {
-            dummy_driver_double = new dummyaudio_real<double>(44100, 16, INT_MAX);
+            dummy_driver_double = new dummyaudio_real<double>(44100, 16, INT_MAX, -1, false, trace_mode == 4);
         } else {
-            dummy_driver_float = new dummyaudio_real<float>(44100, 16, INT_MAX);
+            dummy_driver_float = new dummyaudio_real<float>(44100, 16, INT_MAX, -1, false, trace_mode == 4);
         }
         
         if (dummy_driver_float) {
@@ -319,8 +321,8 @@ int main(int argc, char* argv[])
             DSP->buildUserInterface(&random);
             cout << "------------------------------" << endl;
             cout << "Use RandomControlUI" << endl;
-            for (int step = 0; step < 1000; step++) {
-                cout << "Set random controllers, step: " << step <<  " until: " << 1000 << endl;
+            for (int step = 0; step < 10; step++) {
+                cout << "Set random controllers, step: " << step <<  " until: " << 10 << endl;
                 random.update();
                 if (dummy_driver_float) {
                     dummy_driver_float->render();

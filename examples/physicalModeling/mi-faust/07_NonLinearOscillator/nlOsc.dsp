@@ -19,7 +19,7 @@ in1 = button("Hammer Input Force"): ba.impulsify* -0.1;
 
 OutGain = 1;
 
-nlK = hslider("non-linear stiffness", 0.005, 0., 0.1, 0.0001);
+nlK = hslider("non-linear stiffness", 0.005, ma.MIN, 0.1, 0.0001);
 
 model = (
 	mi.mass(1., 0, 0., 0.),

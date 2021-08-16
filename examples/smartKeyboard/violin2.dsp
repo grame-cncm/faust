@@ -53,13 +53,13 @@ import("stdfaust.lib");
 
 // SMARTKEYBOARD PARAMS
 kbfreq(0) = hslider("kb0freq",220,20,10000,0.01);
-kbbend(0) = hslider("kb0bend",1,0,10,0.01);
+kbbend(0) = hslider("kb0bend",1,ma.EPSILON,10,0.01);
 kbfreq(1) = hslider("kb1freq",330,20,10000,0.01);
-kbbend(1) = hslider("kb1bend",1,0,10,0.01);
+kbbend(1) = hslider("kb1bend",1,ma.EPSILON,10,0.01);
 kbfreq(2) = hslider("kb2freq",440,20,10000,0.01);
-kbbend(2) = hslider("kb2bend",1,0,10,0.01);
+kbbend(2) = hslider("kb2bend",1,ma.EPSILON,10,0.01);
 kbfreq(3) = hslider("kb3freq",550,20,10000,0.01);
-kbbend(3) = hslider("kb3bend",1,0,10,0.01);
+kbbend(3) = hslider("kb3bend",1,ma.EPSILON,10,0.01);
 kbfingers(0) = hslider("kb0fingers",0,0,10,1) : int;
 kbfingers(1) = hslider("kb1fingers",0,0,10,1) : int;
 kbfingers(2) = hslider("kb2fingers",0,0,10,1) : int;

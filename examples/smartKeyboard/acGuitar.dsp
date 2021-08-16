@@ -65,17 +65,17 @@ import("stdfaust.lib");
 
 // SMARTKEYBOARD PARAMS
 kbfreq(0) = hslider("kb0freq",164.8,20,10000,0.01);
-kbbend(0) = hslider("kb0bend",1,0,10,0.01);
+kbbend(0) = hslider("kb0bend",1,ma.EPSILON,10,0.01);
 kbfreq(1) = hslider("kb1freq",220,20,10000,0.01);
-kbbend(1) = hslider("kb1bend",1,0,10,0.01);
+kbbend(1) = hslider("kb1bend",1,ma.EPSILON,10,0.01);
 kbfreq(2) = hslider("kb2freq",293.7,20,10000,0.01);
-kbbend(2) = hslider("kb2bend",1,0,10,0.01);
+kbbend(2) = hslider("kb2bend",1,ma.EPSILON,10,0.01);
 kbfreq(3) = hslider("kb3freq",392,20,10000,0.01);
-kbbend(3) = hslider("kb3bend",1,0,10,0.01);
+kbbend(3) = hslider("kb3bend",1,ma.EPSILON,10,0.01);
 kbfreq(4) = hslider("kb4freq",493.9,20,10000,0.01);
-kbbend(4) = hslider("kb4bend",1,0,10,0.01);
+kbbend(4) = hslider("kb4bend",1,ma.EPSILON,10,0.01);
 kbfreq(5) = hslider("kb5freq",659.2,20,10000,0.01);
-kbbend(5) = hslider("kb5bend",1,0,10,0.01);
+kbbend(5) = hslider("kb5bend",1,ma.EPSILON,10,0.01);
 kb6kstatus(0) = hslider("kb6k0status",0,0,1,1) <: ==(1) | ==(4) : int;
 kb6kstatus(1) = hslider("kb6k1status",0,0,1,1) <: ==(1) | ==(4) : int;
 kb6kstatus(2) = hslider("kb6k2status",0,0,1,1) <: ==(1) | ==(4) : int;
