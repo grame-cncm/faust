@@ -40,6 +40,12 @@ interp-tracer:
 		interp-tracer -trace 4 -control -noui $$file ; \
 	done
 
+julia-tracer:
+	for file in $(dspfiles) ; do \
+		faust -lang julia -a julia/minimal-control.jl $$file -o test.jl ; \
+		julia test.jl ; \
+		rm test.jl ; \
+	done
 help:
 	@echo "-------- FAUST compilation tests --------"
 	@echo "Available targets are:"

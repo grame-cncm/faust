@@ -15,6 +15,7 @@ A [Julia backend](https://github.com/grame-cncm/faust/tree/master-dev/compiler/g
 - `audio/audio.jl`: defines the base type and methods for audio drivers
 - `audio/portaudio.jl`: allows to use the [PortAudio library](http://portaudio.com) for real-time audio rendering
 - `minimal.jl`: shows how the generated Julia code can be used in a minimal program which allocates and instantiate the DSP, and call the `compute` function. The `MapUI.jl` file is used to possibly control the DSP.  Use  `faust -lang julia -a julia/minimal.jl foo.dsp -o foo.jl ` to create a ready to test  `foo.jl` file.
+- `minimal-control.jl`: test the `compute!`method with all controllers min/max range.
 - `portaudio_gtk.jl`: an architecture file used by the **faust2portaudiojulia** tool that combines the PortAudio driver and GTK and OSC controllers.
 
 With a fresh Julia install, all required packages can be installed with the `julia packages.jl` command done in the architecture/julia folder.
