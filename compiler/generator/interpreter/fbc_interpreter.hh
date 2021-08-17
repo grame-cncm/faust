@@ -206,7 +206,25 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             std::cout << "-------- Interpreter 'Overflow' warning trace end --------\n\n";
         }
     }
-
+    
+    inline void checkCastIntOverflow(InstructionIT it)
+    {
+        if (TRACE >= 3) {
+            fRealStats[CAST_INT_OVERFLOW]++;
+        }
+         
+        if (TRACE >= 4) {
+            std::cout << "-------- Interpreter 'CastIntOverflow' warning trace start --------" << std::endl;
+            traceInstruction(it);
+            fTraceContext.write(&std::cout);
+            std::cout << "-------- Interpreter 'CastIntOverflow' warning trace end --------\n\n";
+            // Fails at first error...
+            if (TRACE == 4) {
+                throw faustexception("Interpreter exit\n");
+            }
+        }
+    }
+ 
     inline void checkDivZero(InstructionIT it, REAL val)
     {
         if (TRACE >= 6) return;
@@ -916,7 +934,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     if (TRACE >= 3) {
                         REAL val = popReal(it);
                         if (val > std::numeric_limits<int>::max() || val < std::numeric_limits<int>::min()) {
-                            fRealStats[CAST_INT_OVERFLOW]++;
+                            checkCastIntOverflow(it);
                         }
                         pushInt(int(val));
                     } else {
@@ -929,7 +947,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     if (TRACE >= 3) {
                         REAL val = fRealHeap[(*it)->fOffset1];
                         if (val > std::numeric_limits<int>::max() || val < std::numeric_limits<int>::min()) {
-                            fRealStats[CAST_INT_OVERFLOW]++;
+                            checkCastIntOverflow(it);
                         }
                         pushInt(int(val));
                     } else {
@@ -2970,7 +2988,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         if (TRACE >= 3) {
             REAL val = popReal(it);
             if (val > std::numeric_limits<int>::max() || val < std::numeric_limits<int>::min()) {
-                fRealStats[CAST_INT_OVERFLOW]++;
+                checkCastIntOverflow(it);
             }
             pushInt(int(val));
         } else {
@@ -2983,7 +3001,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         if (TRACE >= 3) {
             REAL val = fRealHeap[(*it)->fOffset1];
             if (val > std::numeric_limits<int>::max() || val < std::numeric_limits<int>::min()) {
-                fRealStats[CAST_INT_OVERFLOW]++;
+                checkCastIntOverflow(it);
             }
             pushInt(int(val));
         } else {

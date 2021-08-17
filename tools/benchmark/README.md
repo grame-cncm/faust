@@ -131,8 +131,8 @@ Here are the available options:
  - `-trace 1 to collect FP_SUBNORMAL only` 
  - `-trace 2 to collect FP_SUBNORMAL, FP_INFINITE and FP_NAN`
  - `-trace 3 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO and CAST_INT_OVERFLOW`
- - `-trace 4 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, CAST_INT_OVERFLOW and LOAD/STORE errors, fails at first FP_INFINITE, FP_NAN or LOAD/STORE error`
- - `-trace 5 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, CAST_INT_OVERFLOW and LOAD/STORE errors, continue after FP_INFINITE, FP_NAN or LOAD/STORE error`
+ - `-trace 4 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, CAST_INT_OVERFLOW and LOAD/STORE errors, fails at first FP_INFINITE, FP_NAN, CAST_INT_OVERFLOW or LOAD/STORE error`
+ - `-trace 5 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, CAST_INT_OVERFLOW and LOAD/STORE errors, continue after FP_INFINITE, FP_NAN, CAST_INT_OVERFLOW or LOAD/STORE error`
  - `-trace 6 to only check LOAD/STORE errors and continue`
  - `-trace 7 to only check LOAD/STORE errors and exit`
 

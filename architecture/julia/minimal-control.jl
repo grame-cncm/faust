@@ -76,6 +76,7 @@ test!() = begin
             setproperty!(map_ui.dsp, zone.field, zone.init) # reset to init
         catch (e) 
             println(e)
+            Base.show_backtrace(stdout, backtrace())
         end
 
         # Test max
@@ -86,6 +87,7 @@ test!() = begin
             setproperty!(map_ui.dsp, zone.field, zone.init) # reset to init
         catch (e) 
             println(e)
+            Base.show_backtrace(stdout, backtrace())
         end
     end
 end

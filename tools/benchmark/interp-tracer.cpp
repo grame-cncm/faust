@@ -126,8 +126,8 @@ int main(int argc, char* argv[])
         cout << "-trace 1 to collect FP_SUBNORMAL only\n";
         cout << "-trace 2 to collect FP_SUBNORMAL, FP_INFINITE and FP_NAN\n";
         cout << "-trace 3 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO and CAST_INT_OVERFLOW\n";
-        cout << "-trace 4 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, CAST_INT_OVERFLOW and LOAD/STORE errors, fails at first FP_INFINITE, FP_NAN or LOAD/STORE errors\n";
-        cout << "-trace 5 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, CAST_INT_OVERFLOW and LOAD/STORE errors, continue after FP_INFINITE, FP_NAN or LOAD/STORE errors\n";
+        cout << "-trace 4 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, CAST_INT_OVERFLOW and LOAD/STORE errors, fails at first FP_INFINITE, FP_NAN, CAST_INT_OVERFLOW or LOAD/STORE errors\n";
+        cout << "-trace 5 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, CAST_INT_OVERFLOW and LOAD/STORE errors, continue after FP_INFINITE, FP_NAN, CAST_INT_OVERFLOW or LOAD/STORE errors\n";
         cout << "-trace 6 to only check LOAD/STORE errors and continue\n";
         cout << "-trace 7 to only check LOAD/STORE errors and exit\n";
         exit(EXIT_FAILURE);
