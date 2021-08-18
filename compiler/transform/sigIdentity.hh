@@ -30,13 +30,14 @@
 //-------------------------SignalIdentity-------------------------------
 // An identity transformation on signals. Can be used to test
 // that everything works, and as a pattern for real transformations.
+// The type of the transformed signals are preserved.
 //----------------------------------------------------------------------
 
 class SignalIdentity : public TreeTransform {
     bool fVisitGen{false};
 
    public:
-    SignalIdentity() = default;
+    SignalIdentity() : TreeTransform(true) {}
 
    protected:
     Tree transformation(Tree t) override;

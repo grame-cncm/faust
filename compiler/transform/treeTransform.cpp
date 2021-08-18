@@ -47,6 +47,14 @@ Tree TreeTransform::self(Tree t)
     Tree r;
     if (!fResult.get(t, r)) {
         r = transformation(t);
+        if (fTypeFlag) {
+            // we probagate the type information (unless already here)
+            auto* ty1 = t->getType();
+            auto* ty2 = r->getType();
+            if ((ty1 != nullptr) && (ty2 == nullptr)) {
+                r->setType(ty1);
+            }
+        }
         fResult.set(t, r);
     }
     fIndent--;
