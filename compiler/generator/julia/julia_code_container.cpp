@@ -64,7 +64,6 @@ JuliaCodeContainer::JuliaCodeContainer(const std::string& name, int numInputs, i
     }
 }
 
-
 CodeContainer* JuliaCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new JuliaScalarCodeContainer(name, 0, 1, fOut, sub_container_type);

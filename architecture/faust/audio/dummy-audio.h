@@ -43,8 +43,13 @@
 
 #define BUFFER_TO_RENDER 10
 
+struct dummyaudio_base : public audio {
+    
+    virtual void render() = 0;
+};
+
 template <typename REAL>
-class dummyaudio_real : public audio {
+class dummyaudio_real : public dummyaudio_base {
     
     private:
         

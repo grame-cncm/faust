@@ -136,7 +136,7 @@ class llvm_dsp_factory;
 class EXPORT llvm_dsp : public dsp {
    private:
     llvm_dsp_factory* fFactory;
-    JSONUITemplatedDecoder* fDecoder;
+    JSONUIDecoderBase* fDecoder;
     dsp_imp*          fDSP;
 
    public:
@@ -216,7 +216,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     FaustObjectCache*       fObjectCache;
     llvm::Module*           fModule;
     llvm::LLVMContext*      fContext;
-    JSONUITemplatedDecoder* fDecoder;
+    JSONUIDecoderBase*      fDecoder;
 
     int         fOptLevel;
     std::string fTarget;

@@ -193,23 +193,15 @@ int main(int argc, char* argv[])
         }
         
         cout << "getName " << factory->getName() << endl;
-        dummyaudio_real<float>* dummy_driver_float = nullptr;
-        dummyaudio_real<double>* dummy_driver_double = nullptr;
+        dummyaudio_base* audio = nullptr;
         
         if (isopt(argv, "-double")) {
-            dummy_driver_double = new dummyaudio_real<double>(44100, 16, INT_MAX, -1, false, trace_mode == 4);
+            audio = new dummyaudio_real<double>(44100, 16, INT_MAX, -1, false, trace_mode == 4);
         } else {
-            dummy_driver_float = new dummyaudio_real<float>(44100, 16, INT_MAX, -1, false, trace_mode == 4);
+            audio = new dummyaudio_real<float>(44100, 16, INT_MAX, -1, false, trace_mode == 4);
         }
-        
-        if (dummy_driver_float) {
-            if (!dummy_driver_float->init(filename, DSP)) {
-                exit(EXIT_FAILURE);
-            }
-        } else {
-            if (!dummy_driver_double->init(filename, DSP)) {
-                exit(EXIT_FAILURE);
-            }
+        if (!audio->init(filename, DSP)) {
+            exit(EXIT_FAILURE);
         }
         
         if (!is_noui) {
@@ -235,20 +227,12 @@ int main(int argc, char* argv[])
                     // Test min
                     cout << "Min: " << min << endl;
                     *ctl.fControlZone[index].first = min;
-                    if (dummy_driver_float) {
-                        dummy_driver_float->render();
-                    } else {
-                        dummy_driver_double->render();
-                    }
+                    audio->render();
                     *ctl.fControlZone[index].first = init; // reset to init
                     // Test max
                     cout << "Max: " << max << endl;
                     *ctl.fControlZone[index].first = max;
-                    if (dummy_driver_float) {
-                        dummy_driver_float->render();
-                    } else {
-                        dummy_driver_double->render();
-                    }
+                    audio->render();
                     *ctl.fControlZone[index].first = init; // reset to init
                 }
             }
@@ -269,19 +253,11 @@ int main(int argc, char* argv[])
                     // Test max
                     cout << "Max: " << max << endl;
                     *ctl.fControlZone[index].first = max;
-                    if (dummy_driver_float) {
-                        dummy_driver_float->render();
-                    } else {
-                        dummy_driver_double->render();
-                    }
+                    audio->render();
                     // Test min
                     cout << "Min: " << min << endl;
                     *ctl.fControlZone[index].first = min;
-                    if (dummy_driver_float) {
-                        dummy_driver_float->render();
-                    } else {
-                        dummy_driver_double->render();
-                    }
+                    audio->render();
                 }
             }
             
@@ -301,19 +277,11 @@ int main(int argc, char* argv[])
                     // Test min
                     cout << "Min: " << min << endl;
                     *ctl.fControlZone[index].first = min;
-                    if (dummy_driver_float) {
-                        dummy_driver_float->render();
-                    } else {
-                        dummy_driver_double->render();
-                    }
+                    audio->render();
                     // Test max
                     cout << "Max: " << max << endl;
                     *ctl.fControlZone[index].first = max;
-                    if (dummy_driver_float) {
-                        dummy_driver_float->render();
-                    } else {
-                        dummy_driver_double->render();
-                    }
+                    audio->render();
                 }
             }
             
@@ -324,21 +292,13 @@ int main(int argc, char* argv[])
             for (int step = 0; step < 10; step++) {
                 cout << "Set random controllers, step: " << step <<  " until: " << 10 << endl;
                 random.update();
-                if (dummy_driver_float) {
-                    dummy_driver_float->render();
-                } else {
-                    dummy_driver_double->render();
-                }
+                audio->render();
             }
             
             goto end;
             
         } else {
-            if (dummy_driver_float) {
-                dummy_driver_float->start();
-            } else {
-                dummy_driver_double->start();
-            }
+            audio->start();
         }
         
         if (!is_noui) {
@@ -348,14 +308,8 @@ int main(int argc, char* argv[])
             usleep(time_out * 1e6);
         }
         
-        if (dummy_driver_float) {
-            dummy_driver_float->stop();
-        } else {
-            dummy_driver_double->stop();
-        }
-        
-        delete dummy_driver_float;
-        delete dummy_driver_double;
+        audio->stop();
+        delete audio;
         
     } catch (...) {
         cout << endl;

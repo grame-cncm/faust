@@ -66,8 +66,40 @@ struct ExtZoneParam {
     
 };
 
+// Templated decoder
+
+struct JSONUIDecoderBase
+{
+    virtual ~JSONUIDecoderBase()
+    {}
+    
+    virtual void metadata(Meta* m) = 0;
+    virtual void metadata(MetaGlue* glue) = 0;
+    virtual int getDSPSize() = 0;
+    virtual std::string getName() = 0;
+    virtual std::string getLibVersion() = 0;
+    virtual std::string getCompileOptions() = 0;
+    virtual std::vector<std::string> getLibraryList() = 0;
+    virtual std::vector<std::string> getIncludePathnames() = 0;
+    virtual int getNumInputs() = 0;
+    virtual int getNumOutputs() = 0;
+    virtual int getSampleRate(char* memory_block) = 0;
+    virtual void setReflectZoneFun(int index, ReflectFunction fun) = 0;
+    virtual void setModifyZoneFun(int index, ModifyFunction fun) = 0;
+    virtual void setupDSPProxy(UI* ui_interface, char* memory_block) = 0;
+    virtual bool hasDSPProxy() = 0;
+    virtual std::vector<ExtZoneParam*>& getInputControls() = 0;
+    virtual std::vector<ExtZoneParam*>& getOutputControls() = 0;
+    virtual void resetUserInterface() = 0;
+    virtual void resetUserInterface(char* memory_block, Soundfile* defaultsound = nullptr) = 0;
+    virtual void buildUserInterface(UI* ui_interface) = 0;
+    virtual void buildUserInterface(UI* ui_interface, char* memory_block) = 0;
+    virtual void buildUserInterface(UIGlue* ui_interface, char* memory_block) = 0;
+    virtual bool hasCompileOption(const std::string& option) = 0;
+};
+
 template <typename REAL>
-struct JSONUIDecoderReal {
+struct JSONUIDecoderReal : public JSONUIDecoderBase {
     
     struct ZoneParam : public ExtZoneParam {
         
@@ -498,49 +530,6 @@ struct JSONUIDecoderReal {
         return false;
     }
     
-};
-
-// Templated decoder
-
-struct JSONUITemplatedDecoder
-{
-    virtual ~JSONUITemplatedDecoder()
-    {}
-    
-    virtual void metadata(Meta* m) = 0;
-    virtual void metadata(MetaGlue* glue) = 0;
-    virtual int getDSPSize() = 0;
-    virtual std::string getName() = 0;
-    virtual std::string getLibVersion() = 0;
-    virtual std::string getCompileOptions() = 0;
-    virtual std::vector<std::string> getLibraryList() = 0;
-    virtual std::vector<std::string> getIncludePathnames() = 0;
-    virtual int getNumInputs() = 0;
-    virtual int getNumOutputs() = 0;
-    virtual int getSampleRate(char* memory_block) = 0;
-    virtual void setReflectZoneFun(int index, ReflectFunction fun) = 0;
-    virtual void setModifyZoneFun(int index, ModifyFunction fun) = 0;
-    virtual void setupDSPProxy(UI* ui_interface, char* memory_block) = 0;
-    virtual bool hasDSPProxy() = 0;
-    virtual std::vector<ExtZoneParam*>& getInputControls() = 0;
-    virtual std::vector<ExtZoneParam*>& getOutputControls() = 0;
-    virtual void resetUserInterface() = 0;
-    virtual void resetUserInterface(char* memory_block, Soundfile* defaultsound = nullptr) = 0;
-    virtual void buildUserInterface(UI* ui_interface) = 0;
-    virtual void buildUserInterface(UI* ui_interface, char* memory_block) = 0;
-    virtual void buildUserInterface(UIGlue* ui_interface, char* memory_block) = 0;
-    virtual bool hasCompileOption(const std::string& option) = 0;
-};
-
-// Float templated decoder
-
-struct JSONUIFloatDecoder : public JSONUIDecoderReal<float>, public JSONUITemplatedDecoder
-{
-    JSONUIFloatDecoder(const std::string& json):JSONUIDecoderReal<float>(json)
-    {}
-    
-    void metadata(Meta* m) { JSONUIDecoderReal<float>::metadata(m); }
-    void metadata(MetaGlue* glue) { JSONUIDecoderReal<float>::metadata(glue); }
     int getDSPSize() { return fDSPSize; }
     std::string getName() { return fName; }
     std::string getLibVersion() { return fVersion; }
@@ -549,88 +538,7 @@ struct JSONUIFloatDecoder : public JSONUIDecoderReal<float>, public JSONUITempla
     std::vector<std::string> getIncludePathnames() { return fIncludePathnames; }
     int getNumInputs() { return fNumInputs; }
     int getNumOutputs() { return fNumOutputs; }
-    int getSampleRate(char* memory_block)  { return JSONUIDecoderReal<float>::getSampleRate(memory_block); }
-    void setReflectZoneFun(int index, ReflectFunction fun)
-    {
-        JSONUIDecoderReal<float>::setReflectZoneFun(index, fun);
-    }
-    void setModifyZoneFun(int index, ModifyFunction fun)
-    {
-        JSONUIDecoderReal<float>::setModifyZoneFun(index, fun);
-    }
-    void setupDSPProxy(UI* ui_interface, char* memory_block)
-    {
-        JSONUIDecoderReal<float>::setupDSPProxy(ui_interface, memory_block);
-    }
-    bool hasDSPProxy()
-    {
-        return JSONUIDecoderReal<float>::hasDSPProxy();
-    }
-    std::vector<ExtZoneParam*>& getInputControls()
-    {
-        return fPathInputTable;
-    }
-    std::vector<ExtZoneParam*>& getOutputControls()
-    {
-        return fPathOutputTable;
-    }
-    void resetUserInterface()
-    {
-        JSONUIDecoderReal<float>::resetUserInterface();
-    }
-    void resetUserInterface(char* memory_block, Soundfile* defaultsound = nullptr)
-    {
-        JSONUIDecoderReal<float>::resetUserInterface(memory_block, defaultsound);
-    }
-    void buildUserInterface(UI* ui_interface)
-    {
-        JSONUIDecoderReal<float>::buildUserInterface(ui_interface);
-    }
-    void buildUserInterface(UI* ui_interface, char* memory_block)
-    {
-        JSONUIDecoderReal<float>::buildUserInterface(ui_interface, memory_block);
-    }
-    void buildUserInterface(UIGlue* ui_interface, char* memory_block)
-    {
-        JSONUIDecoderReal<float>::buildUserInterface(ui_interface, memory_block);
-    }
-    bool hasCompileOption(const std::string& option) { return JSONUIDecoderReal<float>::hasCompileOption(option); }
-};
-
-// Double templated decoder
-
-struct JSONUIDoubleDecoder : public JSONUIDecoderReal<double>, public JSONUITemplatedDecoder
-{
-    JSONUIDoubleDecoder(const std::string& json):JSONUIDecoderReal<double>(json)
-    {}
     
-    void metadata(Meta* m) { JSONUIDecoderReal<double>::metadata(m); }
-    void metadata(MetaGlue* glue) { JSONUIDecoderReal<double>::metadata(glue); }
-    int getDSPSize() { return fDSPSize; }
-    std::string getName() { return fName; }
-    std::string getLibVersion() { return fVersion; }
-    std::string getCompileOptions() { return fCompileOptions; }
-    std::vector<std::string> getLibraryList() { return fLibraryList; }
-    std::vector<std::string> getIncludePathnames() { return fIncludePathnames; }
-    int getNumInputs() { return fNumInputs; }
-    int getNumOutputs() { return fNumOutputs; }
-    int getSampleRate(char* memory_block) { return JSONUIDecoderReal<double>::getSampleRate(memory_block); }
-    void setReflectZoneFun(int index, ReflectFunction fun)
-    {
-        JSONUIDecoderReal<double>::setReflectZoneFun(index, fun);
-    }
-    void setModifyZoneFun(int index, ModifyFunction fun)
-    {
-        JSONUIDecoderReal<double>::setModifyZoneFun(index, fun);
-    }
-    void setupDSPProxy(UI* ui_interface, char* memory_block)
-    {
-        JSONUIDecoderReal<double>::setupDSPProxy(ui_interface, memory_block);
-    }
-    bool hasDSPProxy()
-    {
-        return JSONUIDecoderReal<double>::hasDSPProxy();
-    }
     std::vector<ExtZoneParam*>& getInputControls()
     {
         return fPathInputTable;
@@ -639,27 +547,7 @@ struct JSONUIDoubleDecoder : public JSONUIDecoderReal<double>, public JSONUITemp
     {
         return fPathOutputTable;
     }
-    void resetUserInterface()
-    {
-        JSONUIDecoderReal<double>::resetUserInterface();
-    }
-    void resetUserInterface(char* memory_block, Soundfile* defaultsound = nullptr)
-    {
-        JSONUIDecoderReal<double>::resetUserInterface(memory_block, defaultsound);
-    }
-    void buildUserInterface(UI* ui_interface)
-    {
-        JSONUIDecoderReal<double>::buildUserInterface(ui_interface);
-    }
-    void buildUserInterface(UI* ui_interface, char* memory_block)
-    {
-        JSONUIDecoderReal<double>::buildUserInterface(ui_interface, memory_block);
-    }
-    void buildUserInterface(UIGlue* ui_interface, char* memory_block)
-    {
-        JSONUIDecoderReal<double>::buildUserInterface(ui_interface, memory_block);
-    }
-    bool hasCompileOption(const std::string& option) { return JSONUIDecoderReal<double>::hasCompileOption(option); }
+    
 };
 
 // FAUSTFLOAT templated decoder
@@ -672,13 +560,13 @@ struct JSONUIDecoder : public JSONUIDecoderReal<FAUSTFLOAT>
 
 // Generic factory
 
-static JSONUITemplatedDecoder* createJSONUIDecoder(const std::string& json)
+static JSONUIDecoderBase* createJSONUIDecoder(const std::string& json)
 {
     JSONUIDecoder decoder(json);
     if (decoder.hasCompileOption("-double")) {
-        return new JSONUIDoubleDecoder(json);
+        return new JSONUIDecoderReal<double>(json);
     } else {
-        return new JSONUIFloatDecoder(json);
+        return new JSONUIDecoderReal<float>(json);
     }
 }
 
