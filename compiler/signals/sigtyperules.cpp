@@ -39,8 +39,8 @@
 //--------------------------------------------------------------------------
 // prototypes
 
-static void setSigType(Tree sig, Type t);
-static Type getSigType(Tree sig);
+// static void setSigType(Tree sig, Type t);
+// static Type getSigType(Tree sig);
 static Type initialRecType(Tree t);
 
 static Type T(Tree term, Tree env);
@@ -136,8 +136,7 @@ void typeAnnotation(Tree sig, bool causality)
 
 void annotationStatistics()
 {
-    cerr << gGlobal->TABBER << "COUNT INFERENCE  " << gGlobal->gCountInferences << " AT TIME "
-         << clock() / CLOCKS_PER_SEC << 's' << endl;
+    cerr << gGlobal->TABBER << "COUNT INFERENCE  " << gGlobal->gCountInferences << " AT TIME " << clock() / CLOCKS_PER_SEC << 's' << endl;
     cerr << gGlobal->TABBER << "COUNT ALLOCATION " << gGlobal->gAllocationCount << endl;
     cerr << gGlobal->TABBER << "COUNT MAXIMAL " << gGlobal->gCountMaximal << endl;
 }
@@ -167,17 +166,17 @@ void annotationStatistics()
  * @param sig the signal we want to type
  * @param t the type of the signal
  */
-static void setSigType(Tree sig, Type t)
+void setSigType(Tree sig, ::Type t)
 {
     TRACE(cerr << gGlobal->TABBER << "SET FIX TYPE OF " << ppsig(sig) << " TO TYPE " << *t << endl;)
     sig->setType(t);
 }
 
-/**
- * Retrieve the type annotation of sig
- * @param sig the signal we want to know the type
- */
-static Type getSigType(Tree sig)
+// /**
+//  * Retrieve the type annotation of sig
+//  * @param sig the signal we want to know the type
+//  */
+::Type getSigType(Tree sig)
 {
     auto* ty = (AudioType*)sig->getType();
     if (ty == nullptr) {
@@ -241,8 +240,8 @@ static void CheckPartInterval(Tree s, Type t)
     interval i = t->getInterval();
     if (!i.valid || (i.lo < 0) || (i.hi >= MAX_SOUNDFILE_PARTS)) {
         stringstream error;
-        error << "ERROR : out of range soundfile part number (" << i << " instead of interval(0,"
-              << MAX_SOUNDFILE_PARTS - 1 << ")) in expression : " << ppsig(s) << endl;
+        error << "ERROR : out of range soundfile part number (" << i << " instead of interval(0," << MAX_SOUNDFILE_PARTS - 1
+              << ")) in expression : " << ppsig(s) << endl;
         throw faustexception(error.str());
     }
 }
@@ -485,11 +484,10 @@ static Type infereSigType(Tree sig, Tree env)
         st2   = isSimpleType(T(s2, env));
         stsel = isSimpleType(T(sel, env));
 
-        return makeSimpleType(st1->nature() | st2->nature(),
-                              st1->variability() | st2->variability() | stsel->variability(),
+        return makeSimpleType(st1->nature() | st2->nature(), st1->variability() | st2->variability() | stsel->variability(),
                               st1->computability() | st2->computability() | stsel->computability(),
-                              st1->vectorability() | st2->vectorability() | stsel->vectorability(),
-                              st1->boolean() | st2->boolean(), reunion(st1->getInterval(), st2->getInterval()));
+                              st1->vectorability() | st2->vectorability() | stsel->vectorability(), st1->boolean() | st2->boolean(),
+                              reunion(st1->getInterval(), st2->getInterval()));
     }
 
     else if (isSigSelect3(sig, sel, s1, s2, s3)) {
@@ -663,8 +661,8 @@ static Type infereReadTableType(Type tbl, Type ri)
         error << "ERROR inferring read table type, wrong write index type : " << ri << endl;
         throw faustexception(error.str());
     }
-    Type temp = makeSimpleType(tbl->nature(), ri->variability(), kInit | ri->computability(), ri->vectorability(),
-                               tbl->boolean(), tbl->getInterval());
+    Type temp = makeSimpleType(tbl->nature(), ri->variability(), kInit | ri->computability(), ri->vectorability(), tbl->boolean(),
+                               tbl->getInterval());
 
     return temp;
 }
@@ -746,8 +744,7 @@ static Type infereFFType(Tree ff, Tree ls, Tree env)
         // but the result type is defined by the function
 
         // return t;
-        return makeSimpleType(ffrestype(ff), t->variability(), t->computability(), t->vectorability(), t->boolean(),
-                              interval());
+        return makeSimpleType(ffrestype(ff), t->variability(), t->computability(), t->vectorability(), t->boolean(), interval());
     }
 }
 

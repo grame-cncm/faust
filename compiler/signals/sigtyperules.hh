@@ -61,3 +61,6 @@ void annotationStatistics();
  *	Simple type inference for "instruction" signals
  */
 ::Type getSimpleType(Tree sig);
+
+::Type getSigType(Tree sig);
+void   setSigType(Tree sig, ::Type t);
