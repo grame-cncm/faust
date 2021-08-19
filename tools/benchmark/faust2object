@@ -89,6 +89,11 @@ do
     elif [ $p = "-filter" ]; then
         shift
         FILTER=$1
+    # '-A path' also added as '-I path' in the C++ command 
+    elif [ $p = "-A" ]; then
+        shift
+        CXXFLAGS="$CXXFLAGS -I $1"
+        OPTIONS="$OPTIONS -A $1"
     elif [ $p = "-soundfile" ]; then
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE"
@@ -168,7 +173,7 @@ for p in $FILES; do
 
             # compiling
             if [ $SOURCES = false ]; then
-                $CXX -std=c++14 -Ofast -march=$arch_cpu -I `faust -includedir` $SOUNDFILEDEFS $SOUNDFILEINCS -c $dspName$cpu".cpp"
+                $CXX $CXXFLAGS -Ofast -std=c++14 -march=$arch_cpu -I `faust -includedir` $SOUNDFILEDEFS $SOUNDFILEINCS -c $dspName$cpu".cpp"
             fi
         fi
     done
@@ -210,9 +215,9 @@ for p in $FILES; do
         faust $OPTIONS -inj $dspName"multi.h" -a $FAUSTARCH/minimal-bench.cpp -cn $dspName"multi" $p -o $dspName"multi.cpp"
 
         if [ $MULTI = true ]; then
-            $CXX -Ofast -std=c++14 $dspName"multi.cpp" -dead_strip $SOUNDFILEDEFS $SOUNDFILELIBS -I `llvm-config --includedir --ldflags --libs all --system-libs` $dspName*".o" -o $dspName"multi"
+            $CXX $CXXFLAGS -Ofast -std=c++14 $dspName"multi.cpp" -dead_strip $SOUNDFILEDEFS $SOUNDFILELIBS -I `llvm-config --includedir --ldflags --libs all --system-libs` $dspName*".o" -o $dspName"multi"
         elif [ $MULTIFUN = true ]; then
-            $CXX -Ofast -std=c++14 $dspName"multi.cpp" $dspName"generic.cpp" $SOUNDFILEDEFS $SOUNDFILELIBS -o $dspName"multi"
+            $CXX $CXXFLAGS -Ofast -std=c++14 $dspName"multi.cpp" $dspName"generic.cpp" $SOUNDFILEDEFS $SOUNDFILELIBS -o $dspName"multi"
         fi
          
         echo "Run ./"$dspName"multi"" to test the program"
