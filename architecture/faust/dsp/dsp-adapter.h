@@ -29,9 +29,9 @@
 #include <alloca.h>
 #endif
 #include <string.h>
-#include <iostream>
 #include <cmath>
 #include <assert.h>
+#include <stdio.h>
 
 #include "faust/dsp/dsp.h"
 
@@ -660,7 +660,7 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else if (ds == 32) {
                     return new dsp_down_sampler<Identity<Double<1,1>, 32>>(DSP);
                 } else {
-                    std::cerr << "ERROR : ds factor type must be in [2..32] range\n";
+                    fprintf(stderr, "ERROR : ds factor type must be in [2..32] range\n");
                     assert(false);
                     return nullptr;
                 }
@@ -678,7 +678,7 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else if (ds == 32) {
                     return new dsp_down_sampler<LowPass3<Double<45,100>, 32, REAL>>(DSP);
                 } else {
-                    std::cerr << "ERROR : ds factor type must be in [2..32] range\n";
+                    fprintf(stderr, "ERROR : ds factor type must be in [2..32] range\n");
                     assert(false);
                     return nullptr;
                 }
@@ -696,7 +696,7 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else if (ds == 32) {
                     return new dsp_down_sampler<LowPass4<Double<45,100>, 32, REAL>>(DSP);
                 } else {
-                    std::cerr << "ERROR : ds factor type must be in [2..32] range\n";
+                    fprintf(stderr, "ERROR : ds factor type must be in [2..32] range\n");
                     assert(false);
                     return nullptr;
                 }
@@ -714,7 +714,7 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else if (ds == 32) {
                     return new dsp_down_sampler<LowPass3e<Double<45,100>, 32, REAL>>(DSP);
                 } else {
-                    std::cerr << "ERROR : ds factor type must be in [2..32] range\n";
+                    fprintf(stderr, "ERROR : ds factor type must be in [2..32] range\n");
                     assert(false);
                     return nullptr;
                 }
@@ -732,12 +732,12 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else if (ds == 32) {
                     return new dsp_down_sampler<LowPass6e<Double<45,100>, 32, REAL>>(DSP);
                 } else {
-                    std::cerr << "ERROR : ds factor type must be in [2..32] range\n";
+                    fprintf(stderr, "ERROR : ds factor type must be in [2..32] range\n");
                     assert(false);
                     return nullptr;
                 }
             default:
-                std::cerr << "ERROR : filter type must be in [0..4] range\n";
+                fprintf(stderr, "ERROR : filter type must be in [0..4] range\n");
                 assert(false);
                 return nullptr;
         }
@@ -758,7 +758,7 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else if (us == 32) {
                     return new dsp_up_sampler<Identity<Double<1,1>, 32>>(DSP);
                 } else {
-                    std::cerr << "ERROR : us factor type must be in [2..32] range\n";
+                    fprintf(stderr, "ERROR : us factor type must be in [2..32] range\n");
                     assert(false);
                     return nullptr;
                 }
@@ -776,7 +776,7 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else if (us == 32) {
                     return new dsp_up_sampler<LowPass3<Double<45,100>, 32, REAL>>(DSP);
                 } else {
-                    std::cerr << "ERROR : us factor type must be in [2..32] range\n";
+                    fprintf(stderr, "ERROR : us factor type must be in [2..32] range\n");
                     assert(false);
                     return nullptr;
                 }
@@ -794,7 +794,7 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else if (us == 32) {
                     return new dsp_up_sampler<LowPass4<Double<45,100>, 32, REAL>>(DSP);
                 } else {
-                    std::cerr << "ERROR : us factor type must be in [2..32] range\n";
+                    fprintf(stderr, "ERROR : us factor type must be in [2..32] range\n");
                     assert(false);
                     return nullptr;
                 }
@@ -812,7 +812,7 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else if (us == 32) {
                     return new dsp_up_sampler<LowPass3e<Double<45,100>, 32, REAL>>(DSP);
                 } else {
-                    std::cerr << "ERROR : us factor type must be in [2..32] range\n";
+                    fprintf(stderr, "ERROR : us factor type must be in [2..32] range\n");
                     assert(false);
                     return nullptr;
                 }
@@ -830,12 +830,12 @@ dsp* createSRAdapter(dsp* DSP, int ds = 0, int us = 0, int filter = 0)
                 } else if (us == 32) {
                     return new dsp_up_sampler<LowPass6e<Double<45,100>, 32, REAL>>(DSP);
                 } else {
-                    std::cerr << "ERROR : us factor type must be in [2..32] range\n";
+                    fprintf(stderr, "ERROR : us factor type must be in [2..32] range\n");
                     assert(false);
                     return nullptr;
                 }
             default:
-                std::cerr << "ERROR : filter type must be in [0..4] range\n";
+                fprintf(stderr, "ERROR : filter type must be in [0..4] range\n");
                 assert(false);
                 return nullptr;
         }

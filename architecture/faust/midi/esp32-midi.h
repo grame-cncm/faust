@@ -25,7 +25,6 @@
 #ifndef __esp32_midi__
 #define __esp32_midi__
 
-#include <iostream>
 #include <cstdlib>
 
 #include "driver/uart.h"

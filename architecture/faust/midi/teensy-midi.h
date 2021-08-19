@@ -25,7 +25,6 @@
 #ifndef __teensy_midi__
 #define __teensy_midi__
 
-#include <iostream>
 #include <cstdlib>
 
 #include "Arduino.h"
