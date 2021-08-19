@@ -26,7 +26,7 @@ include("/usr/local/share/faust/julia/gui/MapUI.jl")
 <<includeclass>>
 
 # Retrieve the application name
-mutable struct NameMeta <: Meta
+mutable struct NameMeta <: FMeta
     name::String
 end
 

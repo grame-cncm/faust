@@ -58,10 +58,10 @@ function main!(args)
 
     # No controller
     if length(args) == 0
-        run(driver)
+        run!(driver)
     # OSC controller
     elseif startswith(args[1], "-osc")
-        ThreadPools.@tspawnat 2 run(driver)
+        ThreadPools.@tspawnat 2 run!(driver)
         osc_ui = OSCUI(my_dsp)
         buildUserInterface!(my_dsp, osc_ui)
         if args[1] == "-oscc"
@@ -70,15 +70,15 @@ function main!(args)
             ThreadPools.@tspawnat 2 Base.run(`faust-osc-controller $(root) -port 5001 -outport 5000 -xmit 1`)
         end   
         # Blocking...
-        run(osc_ui)
+        run!(osc_ui)
     # GTK controller
     elseif args[1] == "-gtk"
-        ThreadPools.@tspawnat 2 run(driver)
+        ThreadPools.@tspawnat 2 run!(driver)
         println("Starting with GTK interface")
         gtk_ui = GTKUI(my_dsp)
         buildUserInterface!(my_dsp, gtk_ui)
         # Blocking...
-        run(gtk_ui)
+        run!(gtk_ui)
     end
 
 end

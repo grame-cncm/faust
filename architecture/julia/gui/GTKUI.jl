@@ -34,7 +34,7 @@ mutable struct GTKUI <: UI
     box
 end
 
-function run(ui_interface::GTKUI)
+function run!(ui_interface::GTKUI)
     showall(ui_interface.window)
 
     #= 

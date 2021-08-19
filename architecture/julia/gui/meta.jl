@@ -16,7 +16,7 @@
 
 # The base class of Meta handler to be used in metadata(dsp::dsp, m::Meta) method to retrieve (key, value) metadata.
 
-abstract type Meta end
+abstract type FMeta end
 
-function declare!(m::Meta, key::String, value::String)
+function declare!(m::FMeta, key::String, value::String)
 end

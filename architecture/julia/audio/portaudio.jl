@@ -39,7 +39,7 @@ function init!(driver::portaudio, name::String, dsp::dsp)
     init!(dsp, Int32(driver.sample_rate))
 end
 
-function run(driver::portaudio)
+function run!(driver::portaudio)
     PortAudioStream(1, 2) do stream
         outputs = zeros(FAUSTFLOAT, driver.buffer_size, getNumOutputs(driver.dsp))
         while true

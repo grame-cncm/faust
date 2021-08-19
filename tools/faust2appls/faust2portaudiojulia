@@ -12,7 +12,7 @@
 . usage.sh
 
 SRC="0"
-ARCHFILE=$FAUSTARCH/julia/portaudio_gtk.jl
+ARCHFILE=$FAUSTARCH/julia/portaudio-gtk.jl
 
 PLAY=false
 THREAD=1

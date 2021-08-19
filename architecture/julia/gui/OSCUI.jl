@@ -63,7 +63,7 @@ mutable struct OSCUI <: UI
 end
     
 # Receive and decode incoming OSC messages
-function run(ui_interface::OSCUI, block::Bool=true)
+function run!(ui_interface::OSCUI, block::Bool=true)
     
     # Send current state of all input/output controllers
     function sendMessages()

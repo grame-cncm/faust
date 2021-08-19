@@ -305,7 +305,7 @@ void JuliaCodeContainer::generateCompute(int n)
 void JuliaCodeContainer::produceMetadata(int tabs)
 {
     tab(tabs, *fOut);
-    *fOut << "function metadata!(dsp::" << fKlassName << "{T}, m::Meta) where {T}";
+    *fOut << "function metadata!(dsp::" << fKlassName << "{T}, m::FMeta) where {T}";
     
         // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
     for (const auto& i : gGlobal->gMetaDataSet) {
