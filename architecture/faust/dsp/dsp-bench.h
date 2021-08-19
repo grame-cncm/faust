@@ -38,6 +38,7 @@
 #include <pwd.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/MapUI.h"
@@ -95,9 +96,9 @@ class time_bench_real {
             __asm__ __volatile__("rdtsc" : "=a" (count.i32[0]), "=d" (count.i32[1]));
             return count.i64;
         #else
-            struct timeval tv;
-            gettimeofday(&tv, nullptr);
-            return static_cast<uint64_t>(tv.tv_sec) * 1000000 + static_cast<uint64_t>(tv.tv_usec);
+            timespec res;
+            clock_gettime(CLOCK_MONOTONIC_RAW, &res);
+            return static_cast<uint64_t>(res.tv_sec) * 1e9 + static_cast<uint64_t>(res.tv_nsec);
         #endif
         }
 
