@@ -455,7 +455,7 @@ static std::string gFBCInstructionTable[] = {
 
     // Extended unary math
     "kAbs", "kAbsf", "kAcosf", "kAcoshf", "kAsinf", "kAsinhf", "kAtanf", "kAtanhf", "kCeilf", "kCosf", "kCoshf", "kExpf", "kFloorf", "kLogf", "kLog10f",
-    "kRintf", "kRoundf", "kSinf", "kSinhf", "kSqrtf", "kTanf", "kTanhf", "kIsnanf", "kIsinff", "kCopysignf"
+    "kRintf", "kRoundf", "kSinf", "kSinhf", "kSqrtf", "kTanf", "kTanhf", "kIsnanf", "kIsinff", "kCopysignf",
 
     // Extended unary math (heap OP heap)
     "kAbsHeap", "kAbsfHeap", "kAcosfHeap", "kAcoshfHeap", "kAsinfHeap", "kAsinhfHeap", "kAtanfHeap", "kAtanhfHeap", "kCeilfHeap", "kCosfHeap", "kCoshfHeap",

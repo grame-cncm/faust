@@ -324,6 +324,18 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
                 case FBCInstruction::kTanhf:
                     it++;
                     break;
+                    
+                case FBCInstruction::kIsnanf:
+                    it++;
+                    break;
+                    
+                case FBCInstruction::kIsinff:
+                    it++;
+                    break;
+                    
+                case FBCInstruction::kCopysignf:
+                    it++;
+                    break;
 
                 // Extended binary math
                 case FBCInstruction::kAtan2f:

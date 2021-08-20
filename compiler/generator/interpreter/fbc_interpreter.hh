@@ -2108,6 +2108,13 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     dispatchNextScal();
                 }
                     
+                case FBCInstruction::kCopysignf : {
+                    REAL x = popReal(it);
+                    REAL y = popReal(it);
+                    pushReal(it, std::copysign(x, y));
+                    dispatchNextScal();
+                }
+                
                 //------------------------------------
                 // Extended unary math (heap version)
                 //------------------------------------
@@ -4152,10 +4159,10 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     do_kCopysignf : {
         REAL x = popReal(it);
         REAL y = popReal(it);
-        pushInt(std::copysign(x, y));
+        pushReal(it, std::copysign(x, y));
         dispatchNextScal();
     }
-
+ 
         //------------------------------------
         // Extended unary math (heap version)
         ///-----------------------------------

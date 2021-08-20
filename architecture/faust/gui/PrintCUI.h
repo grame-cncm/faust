@@ -26,6 +26,7 @@
 #define FAUST_PRINTCUI_H
 
 #include <stdio.h>
+
 #include "faust/gui/CInterface.h"
 
 /*******************************************************************************
@@ -35,11 +36,11 @@
  ******************************************************************************/
 
 // Example of UI with a state
-typedef struct PRINTCUI {
+typedef struct PrintCUI {
     int fVar1;
     float fVar2;
     // Some structure to keep [zone, init, min, max, step] parameters...
-} PRINTCUI;
+} PrintCUI;
 
 static void ui_open_tab_box(void* iface, const char* label)
 {
@@ -54,7 +55,7 @@ static void ui_open_horizontal_box(void* iface, const char* label)
 static void ui_open_vertical_box(void* iface, const char* label)
 {
     // Using the 'iface' state
-    PRINTCUI* cui = (PRINTCUI*)iface;
+    PrintCUI* cui = (PrintCUI*)iface;
     printf("ui_open_horizontal_box %s %d %f\n", label, cui->fVar1, cui->fVar2);
 }
 
@@ -115,7 +116,7 @@ static void ui_declare(void* iface, FAUSTFLOAT *zone, const char *key, const cha
 }
 
 // Example of a structure to be given as 'iface' in functions
-PRINTCUI cui = {
+PrintCUI cui = {
     .fVar1 = 1,
     .fVar2 = 0.5
 };

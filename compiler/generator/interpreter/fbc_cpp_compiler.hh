@@ -481,6 +481,21 @@ class FBCCPPCompiler {
                     pushUnaryCall("std::tanh");
                     it++;
                     break;
+                    
+                case FBCInstruction::kIsnanf:
+                    pushUnaryCall("std::isnan");
+                    it++;
+                    break;
+                    
+                case FBCInstruction::kIsinff:
+                    pushUnaryCall("std::isinf");
+                    it++;
+                    break;
+                    
+                case FBCInstruction::kCopysignf:
+                    pushBinaryCall("std::copysign");
+                    it++;
+                    break;
 
                     // Extended binary math
                 case FBCInstruction::kAtan2f:

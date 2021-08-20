@@ -134,14 +134,14 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
         pushValue(LLVMBuildSelect(fBuilder, cond_value, v1, v2, ""));
     }
 
-    void pushUnaryCall(const std::string& name_aux, LLVMTypeRef type, bool rename)
+    void pushUnaryCall(const std::string& name_aux, LLVMTypeRef res_type, LLVMTypeRef arg_type, bool rename)
     {
         std::string  name     = (rename) ? getMathName(name_aux) : name_aux;
         LLVMValueRef function = LLVMGetNamedFunction(fModule, name.c_str());
         if (!function) {
             // Define it
-            LLVMTypeRef param_types[] = {type};
-            LLVMTypeRef ret_type      = LLVMFunctionType(type, param_types, 1, false);
+            LLVMTypeRef param_types[] = { arg_type };
+            LLVMTypeRef ret_type      = LLVMFunctionType(res_type, param_types, 1, false);
             function                  = LLVMAddFunction(fModule, name.c_str(), ret_type);
         }
         // Create the function call
@@ -151,21 +151,21 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
 
     void pushUnaryIntCall(const std::string& name, bool rename = true)
     {
-        return pushUnaryCall(name, getInt32Ty(), rename);
+        return pushUnaryCall(name, getInt32Ty(), getInt32Ty(), rename);
     }
     void pushUnaryRealCall(const std::string& name, bool rename = true)
     {
-        return pushUnaryCall(name, getRealTy(), rename);
+        return pushUnaryCall(name, getRealTy(), getRealTy(), rename);
     }
 
-    void pushBinaryCall(const std::string& name_aux, LLVMTypeRef type)
+    void pushBinaryCall(const std::string& name_aux, LLVMTypeRef res_type, LLVMTypeRef arg1_type, LLVMTypeRef arg2_type)
     {
         std::string  name     = getMathName(name_aux);
         LLVMValueRef function = LLVMGetNamedFunction(fModule, name.c_str());
         if (!function) {
             // Define it
-            LLVMTypeRef param_types[] = {type, type};
-            LLVMTypeRef ret_type      = LLVMFunctionType(type, param_types, 2, false);
+            LLVMTypeRef param_types[] = { arg1_type, arg2_type };
+            LLVMTypeRef ret_type      = LLVMFunctionType(res_type, param_types, 2, false);
             function                  = LLVMAddFunction(fModule, name.c_str(), ret_type);
         }
         // Create the function call
@@ -173,9 +173,9 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
         pushValue(LLVMBuildCall(fBuilder, function, fun_args, 2, ""));
     }
 
-    void pushBinaryIntCall(const std::string& name) { pushBinaryCall(name, getInt32Ty()); }
+    void pushBinaryIntCall(const std::string& name) { pushBinaryCall(name, getInt32Ty(), getInt32Ty(), getInt32Ty()); }
 
-    void pushBinaryRealCall(const std::string& name) { pushBinaryCall(name, getRealTy()); }
+    void pushBinaryRealCall(const std::string& name) { pushBinaryCall(name, getRealTy(), getRealTy(), getRealTy()); }
 
     void pushLoadArray(LLVMValueRef array, int index) { pushLoadArray(array, genInt32(index)); }
 
@@ -651,6 +651,21 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
 
                 case FBCInstruction::kTanhf:
                     pushUnaryRealCall("tanh");
+                    it++;
+                    break;
+                    
+                case FBCInstruction::kIsnanf:
+                    pushUnaryCall("isnan", getInt32Ty(), getRealTy(), true);
+                    it++;
+                    break;
+                    
+                case FBCInstruction::kIsinff:
+                    pushUnaryCall("isinf", getInt32Ty(), getRealTy(), true);
+                    it++;
+                    break;
+                    
+                case FBCInstruction::kCopysignf:
+                    pushBinaryRealCall("copysign");
                     it++;
                     break;
 

@@ -875,6 +875,24 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                     pushUnaryRealCall("mir_tanh");
                     it++;
                     break;
+                    
+                case FBCInstruction::kIsnanf:
+                    // TODO
+                    faustassert(false);
+                    it++;
+                    break;
+                    
+                case FBCInstruction::kIsinff:
+                    // TODO
+                    faustassert(false);
+                    it++;
+                    break;
+                    
+                case FBCInstruction::kCopysignf:
+                    // TODO
+                    faustassert(false);
+                    it++;
+                    break;
 
                     // Extended binary math
                 case FBCInstruction::kAtan2f:
