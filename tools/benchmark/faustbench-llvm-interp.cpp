@@ -22,6 +22,8 @@
  
  ************************************************************************/
 
+#include <iostream>
+
 #include "faust/dsp/dsp-bench.h"
 #include "faust/misc.h"
 #include "faust/dsp/llvm-dsp.h"

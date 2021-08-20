@@ -81,7 +81,7 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
                     break;
              
                 case FBCInstruction::kLoadIndexedInt:
-         
+                    it++;
                     break;
              
                 case FBCInstruction::kStoreIndexedReal:

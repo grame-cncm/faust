@@ -983,8 +983,8 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         gMathLib["mir_min_i"] = (void*)mir_min_i;
         gMathLib["mir_max_i"] = (void*)mir_max_i;
         
-        // Float versions
         if (sizeof(REAL) == sizeof(float)) {
+            // Float versions
             gMathLib["mir_fabsf"] = (void*)mir_fabsf;
             gMathLib["mir_acosf"] = (void*)mir_acosf;
             gMathLib["mir_acoshf"] = (void*)mir_acoshf;
@@ -1013,10 +1013,8 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
             
             gMathLib["mir_minf"] = (void*)mir_minf;
             gMathLib["mir_maxf"] = (void*)mir_maxf;
-        }
-        
-        // Double versions
-        if (sizeof(REAL) == sizeof(double)) {
+        } else if (sizeof(REAL) == sizeof(double)) {
+            // Double versions
             gMathLib["mir_fabs"] = (void*)mir_fabs;
             gMathLib["mir_acos"] = (void*)mir_acos;
             gMathLib["mir_acosh"] = (void*)mir_acosh;
@@ -1045,7 +1043,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
             
             gMathLib["mir_min"] = (void*)mir_min;
             gMathLib["mir_max"] = (void*)mir_max;
-        }
+        } 
         
         fMIRStackIndex = 0;
         fAddrStackIndex = 0;

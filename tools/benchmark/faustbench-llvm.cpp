@@ -23,6 +23,8 @@
  
  ************************************************************************/
 
+#include <iostream>
+
 #include "faust/dsp/dsp-optimizer.h"
 #include "faust/misc.h"
 

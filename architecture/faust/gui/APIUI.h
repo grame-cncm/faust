@@ -28,7 +28,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <iostream>
+#include <stdio.h>
 #include <map>
 
 #include "faust/gui/meta.h"
@@ -112,7 +112,7 @@ class APIUI : public PathBuilder, public Meta, public UI
             fCurrentScale = kLin;
             
             if (fCurrentAcc.size() > 0 && fCurrentGyr.size() > 0) {
-                std::cerr << "warning : 'acc' and 'gyr' metadata used for the same " << label << " parameter !!\n";
+                fprintf(stderr, "warning : 'acc' and 'gyr' metadata used for the same %s parameter !!\n", label);
             }
             
             // handle acc metadata "...[acc : <axe> <curve> <amin> <amid> <amax>]..."
@@ -128,7 +128,7 @@ class APIUI : public PathBuilder, public Meta, public UI
                 {
                     fAcc[axe].push_back(new CurveZoneControl(zone, curve, amin, amid, amax, min, init, max));
                 } else {
-                    std::cerr << "incorrect acc metadata : " << fCurrentAcc << std::endl;
+                    fprintf(stderr, "incorrect acc metadata : %s \n", fCurrentAcc.c_str());
                 }
                 fCurrentAcc = "";
             }
@@ -146,7 +146,7 @@ class APIUI : public PathBuilder, public Meta, public UI
                 {
                     fGyr[axe].push_back(new CurveZoneControl(zone, curve, amin, amid, amax, min, init, max));
                 } else {
-                    std::cerr << "incorrect gyr metadata : " << fCurrentGyr << std::endl;
+                    fprintf(stderr, "incorrect gyr metadata : %s \n", fCurrentGyr.c_str());
                 }
                 fCurrentGyr = "";
             }
@@ -168,7 +168,7 @@ class APIUI : public PathBuilder, public Meta, public UI
                     fBlueReader = new ZoneReader(zone, min, max);
                     fHasScreenControl = true;
                 } else {
-                    std::cerr << "incorrect screencolor metadata : " << fCurrentColor << std::endl;
+                    fprintf(stderr, "incorrect screencolor metadata : %s \n", fCurrentColor.c_str());
                 }
             }
             fCurrentColor = "";

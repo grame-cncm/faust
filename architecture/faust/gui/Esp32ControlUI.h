@@ -26,7 +26,7 @@
 #define FAUST_ESP32CONTROL_H
 
 #include <string>
-#include <iostream>
+#include <stdio.h>
 #include <vector>
 #include <string.h>
 
@@ -286,7 +286,7 @@ class Esp32ControlUI : public GenericUI
         void addButton(const char* label, FAUSTFLOAT* zone)
         {
             if (fKey == "switch") {
-                std::cout << "addButton " << std::endl;
+                fprintf(stdout, "addButton\n");
                 fPushButton.push_back(zone);
             }
             fValue = fKey = "";
@@ -294,7 +294,7 @@ class Esp32ControlUI : public GenericUI
         void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
             if (fKey == "switch") {
-                std::cout << "addCheckButton " << std::endl;
+                fprintf(stdout, "addCheckButton\n");
                 fCheckButton.push_back(zone);
             }
             fValue = fKey = "";
@@ -311,13 +311,13 @@ class Esp32ControlUI : public GenericUI
         {
             if (fKey == "knob") {
                 if (fValue == "1") {
-                    std::cout << "knob1 " << min << " " << max << std::endl;
+                    fprintf(stdout, "knob1 %f %f\n", min, max);
                     fKnob1Converter.push_back(new FilteredConverter(zone, new LinearValueConverter(0., 4095., min, max)));
                 } else if (fValue == "2") {
-                    std::cout << "knob2 " << min << " " << max << std::endl;
+                    fprintf(stdout, "knob2 %f %f\n", min, max);
                     fKnob2Converter.push_back(new FilteredConverter(zone, new LinearValueConverter(0., 4095., min, max)));
                 } else if (fValue == "3") {
-                    std::cout << "knob3 " << min << " " << max << std::endl;
+                    fprintf(stdout, "knob3 %f %f\n", min, max);
                     // This control does not use the full range of [0 4095]
                     fKnob3Converter.push_back(new FilteredConverter(zone, new LinearValueConverter(2700., 4095., min, max)));
                 }
@@ -329,7 +329,7 @@ class Esp32ControlUI : public GenericUI
         void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
             if (strcmp(key, "switch") == 0 || strcmp(key, "knob") == 0) {
-                std::cout << "key " << key << " val " << val << std::endl;
+                fprintf(stdout, "key %s val %s\n", min, max);
                 fKey = key;
                 fValue = val;
             }

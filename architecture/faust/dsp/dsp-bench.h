@@ -28,7 +28,7 @@
 #include <cmath>
 #include <limits.h>
 #include <sys/time.h>
-#include <iostream>
+#include <stdio.h>
 #include <fstream>
 #include <cstdint>
 #include <vector>
@@ -238,13 +238,12 @@ class time_bench_real {
             uint64_t meaval100 = meanValue(V.end() - 5, V.end());
             
             // Printing
-            std::cout << applname
-            << '\t' << megapersec(bsize, ichans+ochans, meaval00)
-            << '\t' << megapersec(bsize, ichans+ochans, meaval25)
-            << '\t' << megapersec(bsize, ichans+ochans, meaval50)
-            << '\t' << megapersec(bsize, ichans+ochans, meaval75)
-            << '\t' << megapersec(bsize, ichans+ochans, meaval100)
-            << std::endl;
+            fprintf(stdout, "%\t%f\t%f\t%f\t%f\t%f\n", applname,
+                    megapersec(bsize, ichans+ochans, meaval00),
+                    megapersec(bsize, ichans+ochans, meaval25),
+                    megapersec(bsize, ichans+ochans, meaval50),
+                    megapersec(bsize, ichans+ochans, meaval75),
+                    megapersec(bsize, ichans+ochans, meaval100));
         }
     
         bool isRunning() { return (fMeasure <= (fCount + fSkip)); }
@@ -316,9 +315,9 @@ struct RandomControlUI : public MapUI {
     
     void display()
     {
-        std::cout << "--------- RandomControlUI ---------\n";
+        fprintf(stdout, "--------- RandomControlUI ---------\n");
         for (const auto& it : fControls) {
-            std::cout << "Path: \"" << getParamAddress(it.fZone) << "\" min: " << it.fMin << " max: " << it.fMax << " cur: " << *it.fZone << std::endl;
+            fprintf(stdout, "Path: \"%s\" min: %f max: %f cur: %f\n", getParamAddress(it.fZone), it.fMin, it.fMax, *it.fZone);
         }
     }
 };
@@ -387,13 +386,13 @@ class measure_dsp_real : public decorator_dsp {
             
             int err = pthread_getschedparam(pthread_self(), &policy, &param);
             if (err != 0) {
-                std::cerr << "setRealtimePriority : pthread_getschedparam res = %d" << err << std::endl;
+                fprintf(stderr, "setRealtimePriority : pthread_getschedparam res = %d\n", err);
             }
             policy = SCHED_RR;
             param.sched_priority = 80;
             err = pthread_setschedparam(pthread_self(), policy, &param);
             if (err != 0) {
-                std::cerr << "setRealtimePriority : pthread_setschedparam res = %d" << err << std::endl;
+                fprintf(stderr, "setRealtimePriority : pthread_setschedparam res = %d\n", err);
             }
             
             setuid(uid);
@@ -459,8 +458,8 @@ class measure_dsp_real : public decorator_dsp {
             measure();
             double duration = fBench->measureDurationUsec();
             if (trace) {
-                std::cout << "Duration " << (duration / 1e6) << std::endl;
-                if (control) std::cout << "Random control is on" << std::endl;
+                fprintf(stdout, "Duration %f\n",  (duration / 1e6));
+                if (control) fprintf(stdout, "Random control is on\n");
             }
             fCount = int(1000 * (duration_in_sec * 1e6 / duration));
             delete fBench;

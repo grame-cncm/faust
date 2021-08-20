@@ -27,7 +27,7 @@
 
 #include <string.h>
 #include <assert.h>
-#include <iostream>
+#include <stdio.h>
 
 #include "faust/gui/Soundfile.h"
 
@@ -181,7 +181,7 @@ struct Reader {
         
         read(buffer, 4);
         if (strncmp(buffer, "RIFF", 4) != 0) {
-            std::cerr << "This is not valid WAV file!\n";
+            fprintf(stderr, "This is not valid WAV file!\n");
             return false;
         }
         fWave->chunk_id = convert_to_int(buffer, 4);
@@ -252,11 +252,11 @@ struct FileReader : public Reader {
     {
         fFile = fopen(file_path.c_str(), "rb");
         if (!fFile) {
-            std::cerr << "FileReader : cannot open file!\n";
+            fprintf(stderr, "FileReader : cannot open file!\n");
             throw -1;
         }
         if (!load_wave_header()) {
-            std::cerr << "FileReader : not a WAV file!\n";
+            fprintf(stderr, "FileReader : not a WAV file!\n");
             throw -1;
         }
     }
@@ -287,7 +287,7 @@ struct MemoryReader : public Reader {
         fStart = start;
         fEnd = end;
         if (!load_wave_header()) {
-            std::cerr << "MemoryReader : not a WAV file!\n";
+            fprintf(stderr, "MemoryReader : not a WAV file!\n");
             throw -1;
         }
     }
@@ -346,7 +346,7 @@ struct WaveReader : public SoundfileReader {
                 }
             }
         } else if (reader.fWave->bits_per_sample == 32) {
-            std::cerr << "readFile : not implemented \n";
+            fprintf(stderr, "readFile : not implemented\n");
         }
         
         // Update offset

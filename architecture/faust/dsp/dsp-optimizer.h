@@ -26,8 +26,7 @@
 #ifndef __dsp_optimizer__
 #define __dsp_optimizer__
 
-#include <iostream>
-#include <sstream>
+#include <stdio.h>
 #include <sys/types.h>
 #include <pwd.h>
 #include <unistd.h>
@@ -83,7 +82,7 @@ class dsp_optimizer_real {
                 for (int i = 0; i < run; i++) {
                     mes.measure();
                     if (fTrace) {
-                        std::cout << mes.getStats() << " MBytes/sec (DSP CPU % : " << (mes.getCPULoad() * 100) << " at " << BENCH_SAMPLE_RATE << " Hz)" << std::endl;
+                        fprintf(stdout, "%f MBytes/sec (DSP CPU % : %f at %d Hz)\n", mes.getStats(), (mes.getCPULoad() * 100), BENCH_SAMPLE_RATE);
                     }
                     FAUSTBENCH_LOG<double>(mes.getStats());
                 }
@@ -201,9 +200,9 @@ class dsp_optimizer_real {
         void printItem(const std::vector <std::string>& item)
         {
             for (int i = 0; i < item.size(); i++) {
-                std::cout << " " << item[i];
+                fprintf(stdout, " %", item[i].c_str());
             }
-            std::cout << " : ";
+            fprintf(stdout, " : ");
         }
     
         std::vector <std::string> addArgvItems(const std::vector <std::string>& item, int argc, const char* argv[])
@@ -231,13 +230,13 @@ class dsp_optimizer_real {
             }
             
             if (!fFactory) {
-                std::cerr << "Cannot create factory : " << fError;
+                fprintf(stderr, "Cannot create factory : %d\n", fError.c_str());
                 return false;
             }
             
             fDSP = fFactory->createDSPInstance();
             if (!fDSP) {
-                std::cerr << "Cannot create instance..." << std::endl;
+                fprintf(stderr, "Cannot create instance...\n");
                 return false;
             }
             
@@ -262,7 +261,7 @@ class dsp_optimizer_real {
                 if (computeOne(addArgvItems(options[i], fArgc, fArgv), fRun, res)) {
                     table_res.push_back(std::make_pair(i, res));
                 } else {
-                    std::cerr << "computeOne error..." << std::endl;
+                    fprintf(stderr, "computeOne error...\n");
                 }
             }
             
@@ -304,16 +303,16 @@ class dsp_optimizer_real {
             
             init();
             
-            if (fTrace) std::cout << "Estimate timing parameters" << std::endl;
+            if (fTrace) fprintf(stdout, "Estimate timing parameters\n");
             double res1 = 0.;
             if (!computeOne(addArgvItems(fOptionsTable[0], fArgc, fArgv), 1, res1)) {
-                std::cerr << "computeOne error..." << std::endl;
+                fprintf(stderr, "computeOne error...\n");
                 return false;
             }
-            if (fTrace) std::cout << "Testing -exp10 need" << std::endl;
+            if (fTrace) fprintf(stdout, "Testing -exp10 need\n");
             double res2 = 0.;
             if (!computeOne(addArgvItems(fOptionsTable[1], fArgc, fArgv), 1, res2)) {
-                std::cerr << "computeOne error..." << std::endl;
+                fprintf(stderr, "computeOne error...\n");
                 return false;
             }
             fNeedExp10 = (res2 > (res1 * 1.05)); // If more than 5% faster
@@ -367,10 +366,10 @@ class dsp_optimizer_real {
          */
         std::pair<double, std::vector<std::string> > findOptimizedParameters()
         {
-            if (fTrace) std::cout << "Discover best parameters option" << std::endl;
+            if (fTrace) fprintf(stdout, "Discover best parameters option\n");
             std::pair<double, std::vector<std::string> > best1 = findOptimizedParametersAux(fOptionsTable);
             
-            if (fTrace) std::cout << "Refined with -mcd" << std::endl;
+            if (fTrace) fprintf(stdout, "Refined with -mcd\n");
             std::vector<std::vector <std::string> > options_table;
             for (int size = 2; size <= 256; size *= 2) {
                 std::vector<std::string> best2 = best1.second;
@@ -380,7 +379,7 @@ class dsp_optimizer_real {
             }
             
             if (fNeedExp10) {
-                if (fTrace) std::cout << "Use -exp10" << std::endl;
+                if (fTrace) fprintf(stdout, "Use -exp10\n");
                 std::vector<std::string> t0_exp10;
                 t0_exp10.push_back("-exp10");
                 options_table.push_back(t0_exp10);
