@@ -142,13 +142,14 @@ nlpl::Expr old2NewExpr(Tree sig)
 
     } else if (isSigVSlider(sig, label, c, x, y, z)) {
         return nlpl::ReadMem(nlpl::memory("float", uniqueStringID("fSlider", sig), nlpl::kFinal), 0);
-
+    } else if (isSigAttach(sig, x, y)) {
+        // TO DO
+        std::cout << "WHAT TO DO WITH SIG ATTACH: " << ppsig(sig) << std::endl;
+        return old2NewExpr(x);
     } else if (isSigNumEntry(sig, label, c, x, y, z)) {
         return nlpl::ReadMem(nlpl::memory("float", uniqueStringID("fEntry", sig), nlpl::kFinal), 0);
-
     } else if (isSigInstructionControlRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
         return nlpl::ReadMem(nlpl::memory(nature2ctype(nature), tree2str(id), nlpl::kFinal), 0);
-
     } else if (isSigIntCast(sig, x)) {
         return nlpl::Fun("int", {old2NewExpr(x)});
     } else if (isSigFloatCast(sig, x)) {
@@ -168,7 +169,6 @@ nlpl::Expr old2NewExpr(Tree sig)
         string    vname{tree2str(id)};
         nlpl::Mem M = nlpl::memory(nature2ctype(nature), vname, nlpl::kFinal);
         return nlpl::ReadMem(M);
-
     } else if (isSigFConst(sig, type, id, file)) {
         string vname{tree2str(id)};
         if (vname == "fSamplingFreq") vname = "fSampleRate";
@@ -369,6 +369,10 @@ nlpl::Instr old2NewInstr(Tree sig)
         return nlpl::WriteMem(M, nlpl::kReplaceWrite, nlpl::Add(nlpl::Integer(1), nlpl::ReadMem(M, 1)));
 
     } else if (isSigInstructionSharedWrite(sig, id, origin, &nature, y)) {
+        string    vname{tree2str(id)};
+        nlpl::Mem M = nlpl::memory(nature2ctype(nature), vname, nlpl::kFinal);
+        return nlpl::WriteMem(M, nlpl::kReplaceWrite, old2NewExpr(y));
+    } else if (isSigInstructionBargraphWrite(sig, id, origin, &nature, y)) {
         string    vname{tree2str(id)};
         nlpl::Mem M = nlpl::memory(nature2ctype(nature), vname, nlpl::kFinal);
         return nlpl::WriteMem(M, nlpl::kReplaceWrite, old2NewExpr(y));
