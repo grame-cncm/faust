@@ -26,7 +26,9 @@
 #include <string>
 #include <iostream>
 #include <assert.h>
+
 #include "faust/dsp/dsp-adapter.h"
+#include "faust/gui/meta.h"
 
 // CPUs
 

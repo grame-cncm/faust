@@ -28,6 +28,7 @@
 #include <assert.h>
 
 #include "faust/dsp/dsp-adapter.h"
+#include "faust/gui/meta.h"
 #include "mydspgeneric.h"
 
 /*
