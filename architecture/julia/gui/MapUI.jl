@@ -43,10 +43,10 @@ end
 # UIZone with for sliders, nentries and bargraph
 struct UIZone
     field::Symbol
-    init::Float32
-    min::Float32
-    max::Float32
-    step::Float32
+    init::FAUSTFLOAT
+    min::FAUSTFLOAT
+    max::FAUSTFLOAT
+    step::FAUSTFLOAT
 end
 
 # MapUI to keep [path,Symbol] and [label,Symbol] maps
@@ -66,7 +66,7 @@ mutable struct MapUI <: UI
     osc_paths::Dict{String,UIZone}
     root::String
 end
-
+    
 # -- widget's layouts
 function openTabBox!(ui_interface::MapUI, label::String)
     if (ui_interface.root == "") ui_interface.root = label end

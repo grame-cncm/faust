@@ -233,6 +233,7 @@
 
 // For 'llvm::sys::getHostCPUName' function
 #include <llvm/Support/Host.h>
+#include <llvm/ADT/StringRef.h>
 
 /*
     A DSP decorator that loads the CPU optimised version of the code and instantiate it.

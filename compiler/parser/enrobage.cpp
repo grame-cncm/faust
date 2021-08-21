@@ -59,7 +59,7 @@ static bool wordBoundaries(const string& str, string::size_type pos, string::siz
 
 /**
  * Replace every occurrence of oldstr by newstr inside str. str is modified
- * and returned as reference for convenience
+ * and returned as reference for convenience.
  */
 static string& replaceOccurrences(string& str, const string& oldstr, const string& newstr, bool force)
 {
