@@ -285,6 +285,27 @@ int main(int argc, char* argv[])
                 }
             }
             
+            // Check by setting each control to zero if contained in the [min..max] range
+            {
+                CheckControlUI ctl;
+                DSP->buildUserInterface(&ctl);
+                
+                cout << "------------------------------" << endl;
+                cout << "Check control to zero if contained in the [min..max] range" << endl;
+                for (int index = 0; index < ctl.fControlZone.size(); index++) {
+                    FAUSTFLOAT min = ctl.fControlZone[index].second.fMin;
+                    FAUSTFLOAT max = ctl.fControlZone[index].second.fMax;
+                    FAUSTFLOAT init = ctl.fControlZone[index].second.fInit;
+                    if (min < 0 && max > 0) {
+                        cout << "------------------------------" << endl;
+                        cout << "Control: " << ctl.getParamAddress(ctl.fControlZone[index].first) << endl;
+                        // Test zero
+                        *ctl.fControlZone[index].first = 0;
+                        audio->render();
+                    }
+                }
+            }
+            
             // Generate random values for controllers
             DSP->buildUserInterface(&random);
             cout << "------------------------------" << endl;
