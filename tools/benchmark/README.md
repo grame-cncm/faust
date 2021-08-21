@@ -126,17 +126,17 @@ The **interp-tracer** tool runs and instruments the compiled program using the I
 
 - [FP_SUBNORMAL, FP_INFINITE and FP_NAN values](https://www.gnu.org/software/libc/manual/html_node/Floating-Point-Classes.html)(*) are produced when compiling with floating point numbers. 
 - [INTEGER_OVERFLOW](https://en.wikipedia.org/wiki/Integer_overflow) is produced when computing with integer numbers (actually 32 bits Integer supported by the compiler) and producing out-of-range result. They can be a wanted effect like in the implementation of the [no.noise](https://github.com/grame-cncm/faustlibraries/blob/master/noises.lib#L63) generator.
-- [CAST_INT_OVERFLOW](https://frama-c.com/2013/10/09/Overflow-float-integer.html)(*) happen when converting a floating point number back in a integer number (like using a `int(val)` expression). 
-- DIV_BY_ZERO(*) happens when dividing number by 0. 
--  LOAD/STORE(*) happens when reading or writing outside of `rdtable` or `rwtable`. 
+- [CAST_INT_OVERFLOW](https://frama-c.com/2013/10/09/Overflow-float-integer.html)(*) happen when converting a floating point number back in an integer number (like when using the `int(val)` expression). 
+- DIV_BY_ZERO(*) happens when dividing a number by 0. 
+-  LOAD/STORE(*) happens when reading or writing outside of `rdtable` or `rwtable`, or when loading a non initialized value (typically used by the Faust compiler developers to check the generated code). 
 
 (*) Those errors typically reveal incorrectly written code which must be corrected.
 
 Mode 4 and 5 allow to display the stack trace of the running code when FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, CAST_INT_OVERFLOW and LOAD/STORE errors are produced. 
 
-The *-control* mode allows to check control parameters, by explicitly setting their *min* and *max* values, then running the DSP and setting all controllers (inside their range) in a random way. 
+The `-control` mode allows to check control parameters, by explicitly setting their *min* and *max* values, then running the DSP and setting all controllers (inside their range) in a random way. 
 
-Mode 4 up to 7 also check LOAD/STORE errors, and are typically used by the Faust compiler developers to check the generated code. 
+Mode 4 up to 7 also check LOAD/STORE errors, mode 7 is typically used by the Faust compiler developers to check the generated code. 
 
 `interp-tracer [-trace <1-7>] [-control] [-output] [additional Faust options (-ftz xx)] foo.dsp`
 
