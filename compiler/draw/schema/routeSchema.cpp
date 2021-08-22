@@ -45,7 +45,7 @@ schema* makeRouteSchema(unsigned int inputs, unsigned int outputs, const std::ve
 /**
  * Build a simple colored routeSchema with a certain number of
  * inputs and outputs, a text to be displayed, and an optional link.
- * The length of the text as well as th number of inputs and outputs
+ * The length of the text as well as the number of inputs and outputs
  * are used to compute the size of the routeSchema
  */
 routeSchema::routeSchema(unsigned int inputs, unsigned int outputs, double width, double height,
@@ -145,7 +145,7 @@ void routeSchema::placeOutputPoints()
 }
 
 /**
- * Draw the routeSchema on the device. This methos can only
+ * Draw the routeSchema on the device. This method can only
  * be called after the routeSchema have been placed
  */
 void routeSchema::draw(device& dev)

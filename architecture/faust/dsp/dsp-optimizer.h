@@ -82,7 +82,7 @@ class dsp_optimizer_real {
                 for (int i = 0; i < run; i++) {
                     mes.measure();
                     if (fTrace) {
-                        fprintf(stdout, "%f MBytes/sec (DSP CPU % : %f at %d Hz)\n", mes.getStats(), (mes.getCPULoad() * 100), BENCH_SAMPLE_RATE);
+                        fprintf(stdout, "%f MBytes/sec (DSP CPU %% : %f at %d Hz)\n", mes.getStats(), (mes.getCPULoad() * 100), int(BENCH_SAMPLE_RATE));
                     }
                     FAUSTBENCH_LOG<double>(mes.getStats());
                 }
