@@ -63,7 +63,7 @@ struct trait : public virtual Garbageable {
     bool  hasRealInput;
     bool  hasRealOutput;
 
-    trait(const point& p1, const point& p2) : start(p1), end(p2) {}
+    trait(const point& p1, const point& p2) : start(p1), end(p2), hasRealInput(false), hasRealOutput(false) {}
     void draw(device& dev) const { dev.trait(start.x, start.y, end.x, end.y); }
 
     bool operator<(const trait& t) const

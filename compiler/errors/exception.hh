@@ -29,7 +29,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 //#include <io.h>
 #endif
 
-#if !defined(EMCC) && !defined(WIN32) && !defined(ANDROID)
+#if !defined(EMCC) && !defined(WIN32) && !defined(ANDROID) && !defined(ALPINE)
 #include <execinfo.h>
 #endif
 

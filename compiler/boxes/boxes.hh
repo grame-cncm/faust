@@ -74,7 +74,7 @@ bool isBoxReal(Tree t, double* r);
 /*****************************************************************************
                                     Waveform
     waveform {1,2,3,...}
-    an object with 2 outputs : the size of the waveform, the actual waveform.
+    an object with 2 outputs: the size of the waveform and the actual waveform.
     A Waveform is int if all its values are int. It is float otherwise.
 *****************************************************************************/
 

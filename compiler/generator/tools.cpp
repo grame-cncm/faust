@@ -79,7 +79,7 @@ size_t cache_line_size()
     p              = fopen("/sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size", "r");
     unsigned int i = 0;
     if (p) {
-        int n = fscanf(p, "%d", &i);
+        fscanf(p, "%d", &i);
         fclose(p);
     }
     return i;

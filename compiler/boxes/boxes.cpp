@@ -335,7 +335,7 @@ Tree buildBoxAbstr(Tree largs, Tree body)
 }
 
 #if 0
-Tree buildBoxAppl 	(Tree fun, Tree revarglist)
+Tree buildBoxAppl(Tree fun, Tree revarglist)
 {
 	if (isNil(revarglist)) {
 		return fun;

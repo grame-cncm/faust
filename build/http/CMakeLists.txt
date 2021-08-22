@@ -165,6 +165,7 @@ if (HTTPDYNAMIC)
 	elseif(MSYS)
 		target_link_libraries (httpdynamic ${LIBMICROHTTPD__LDFLAGS})
 	else()
+		target_link_libraries (httpdynamic ws2_32 microhttpd)
 		set_target_properties (httpdynamic PROPERTIES 
 			COMPILE_FLAGS  "${LIBMICROHTTPD__CFLAGS}"
 			LINK_FLAGS     "${LIBMICROHTTPD__LDFLAGS}")

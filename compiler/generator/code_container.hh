@@ -285,6 +285,12 @@ class CodeContainer : public virtual Garbageable {
     DeclareFunInst* generateInit(const string& name, const string& obj, bool ismethod, bool isvirtual);
     DeclareFunInst* generateInstanceInit(const string& name, const string& obj, bool ismethod, bool isvirtual);
     DeclareFunInst* generateGetSampleRate(const string& name, const string& obj, bool ismethod, bool isvirtual);
+    
+    DeclareFunInst* generateCalloc();
+    DeclareFunInst* generateFree();
+    
+    DeclareFunInst* generateNewDsp(const string& name, int size);
+    DeclareFunInst* generateDeleteDsp(const string& name, const string& obj);
 
     void produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod, bool isvirtual,
                               TextInstVisitor* producer);
@@ -364,12 +370,6 @@ class CodeContainer : public virtual Garbageable {
         generateMetaData(&visitor);
         return visitor.JSON(true);
     }
-
-    DeclareFunInst* generateCalloc();
-    DeclareFunInst* generateFree();
-
-    DeclareFunInst* generateNewDsp(const string& name, int size);
-    DeclareFunInst* generateDeleteDsp(const string& name, const string& obj);
 
     /* Can be overridden by subclasses to transform the FIR before the actual code generation */
     virtual void processFIR(void);

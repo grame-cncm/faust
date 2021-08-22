@@ -40,9 +40,8 @@ using namespace std;
 static int computeBoxComplexity(Tree box);
 
 /**
- * Return the complexity propety of a box expression tree.
- * Return the complexity propety of a box expression tree. If no
- * complexity property exist, it is created an computeBoxComplexity
+ * Return the complexity property of a box expression tree.
+ * If no complexity property exist, it is created and computeBoxComplexity
  * is called do to the job.
  *
  * @param box an evaluated box expression tree
