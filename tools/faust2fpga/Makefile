@@ -1,7 +1,7 @@
 #DSP ?= /faust/karplus.dsp
 #DSP ?= /faust/bypass.ds
 #mydsp ?=echo-oussama
-mydsp ?=delay
+mydsp ?=var_delay
 DSP ?= faust/${mydsp}.dsp
 ORIGIN_DIR=${PWD}
 
