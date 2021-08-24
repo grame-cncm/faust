@@ -65,6 +65,7 @@ class Signal2VHDLVisitor : public TreeTraversal {
           *  - Each port list has a direction (in/out/inout) and a type
           */
         void entity_bin_op(const string& name, const char* op, string & str);   // arithmetic and modulo operation
+        void entity_bin_op_concat(const string& name, const char* op, string & str);   // arithmetic and modulo operation
         void entity_cmp_op(const string& name, const char* op, string & str);   // compare operation
         void entity_delay(string & str);                                        // delay
         void entity_delay_var_reg(string & str);                                // variable delay (Using Registers)

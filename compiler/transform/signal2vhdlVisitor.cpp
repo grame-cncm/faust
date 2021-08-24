@@ -410,6 +410,21 @@ void Signal2VHDLVisitor::entity_bin_op(const string& name, const char* op, strin
     "end behavioral;\n\n";
 }
 
+void Signal2VHDLVisitor::entity_bin_op_concat(const string& name, const char* op, string & str)
+{
+    entity_header(str);
+    str += "entity " + name + " is\n";
+    generic_decl(str);
+    port_decl(2,str);
+    str += "end " + name + ";\n"
+    "architecture behavioral of " + name + " is\n"
+    "signal inter : sfixed(63 downto 0);\n"
+    "begin\n"
+    "inter  <=  resize(input0 " + op + " input1,63,0);\n"
+    "output0 <= inter(msb downto lsb);\n"
+    "end behavioral;\n\n";
+}
+
 void Signal2VHDLVisitor::entity_cmp_op(const string& name, const char* op, string & str)
 {
     entity_header(str);
@@ -571,7 +586,7 @@ void Signal2VHDLVisitor::entity_select2(const string& name, string & str)
     str += "end " + name + ";\n"
     "architecture behavioral of " + name + " is\n"
     "begin\n"
-    "process(sel)\n"
+    "process(input0)\n"
     "begin\n"
     "if (input0 = 0) then\n"
     "    output0 <= input2;\n"
