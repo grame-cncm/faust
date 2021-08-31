@@ -28,7 +28,7 @@ The `architecture/esp32/drivers` folder contains the documentation of each objec
 
 ## Tutorial
 
-A series of tutorials demonstrating how to use `faust2esp32` can be found on the Faust website: <https://faust.grame.fr/doc/tutorials#dsp-on-the-esp32-with-faust>.
+A series of tutorials demonstrating how to use `faust2esp32` can be found on the Faust website: <https://faustdoc.grame.fr/tutorials/esp32/>.
 
 ## Credit
 
