@@ -19,6 +19,8 @@ Most major Faust targets are supported:
 * RTAudio
 * openFrameworks
 * JUCE
+* Teensy
+* ESP32
 
 **NOTE:** This documentation only provides high level information on how to use `faust2api`. For detailed tutorials on this topic, visit [this page](https://ccrma.stanford.edu/~rmichon/faustTutorials/#adding-faust-real-time-audio-support-to-android-apps).
 
@@ -149,6 +151,27 @@ faust2api -juce yourFaustCode.dsp
 
 The `-midi` option can be used to add JUCE MIDI support to the API.
 The `-osc` option can be used to add JUCE OSC support to the API.
+
+### Teensy Support
+
+To turn a Faust code into a Teensy API, just run the following command:
+
+```
+faust2api -teensy yourFaustCode.dsp
+```
+
+The `-midi` option can be used to add Teensy MIDI support to the API.
+
+### ESP32 Support
+
+To turn a Faust code into a ESP32 API, just run the following command:
+
+```
+faust2api -esp32 yourFaustCode.dsp
+```
+
+The `-midi` option can be used to add ESP32 MIDI support to the API.
+
 
 ### Customizing the API
 

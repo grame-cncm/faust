@@ -157,6 +157,17 @@ class MapUI : public UI, public PathBuilder
                 return it->first;
             }
         }
+        
+        const char* getParamAddress1(int index)
+        {
+            if (index < 0 || index > int(fPathZoneMap.size())) {
+                return nullptr;
+            } else {
+                auto it = fPathZoneMap.begin();
+                while (index-- > 0 && it++ != fPathZoneMap.end()) {}
+                return it->first.c_str();
+            }
+        }
     
         std::string getParamAddress(FAUSTFLOAT* zone)
         {

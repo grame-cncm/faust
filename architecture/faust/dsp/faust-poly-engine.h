@@ -422,7 +422,7 @@ class FaustPolyEngine {
          */
         const char* getVoiceParamAddress(int id, uintptr_t voice)
         {
-            return reinterpret_cast<MapUI*>(voice)->getParamAddress(id).c_str();
+            return reinterpret_cast<MapUI*>(voice)->getParamAddress1(id);
         }
         
         /*

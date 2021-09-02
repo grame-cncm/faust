@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #    Generates an API for Android or iOS based on a Faust object    #
-#               (c) Romain Michon CCRMA and Grame, 2016-2020        #
+#               (c) Romain Michon CCRMA and Grame, 2016-2021        #
 #                                                                   #
 #####################################################################
 
@@ -49,6 +49,7 @@ OPEN_FRAMEWORK_DRIVER="0"
 JUCE_DRIVER="0"
 DUMMY_DRIVER="0"
 TEENSY_DRIVER="0"
+ESP32_DRIVER="0"
 
 echoHelp ()
 {
@@ -71,6 +72,7 @@ echoHelp ()
     option -juce "generates a JUCE API"
     option -dummy "generates a dummy audio API" 
     option -teensy "generates a Teensy API" 
+    option -esp32 "generates a ESP32 API" 
     echo 
     echo "Global options:"
     option "-opt native|generic" "activates the best compilation options for the native or generic CPU."
@@ -161,6 +163,9 @@ do
         DUMMY_DRIVER=1
     elif [ $p = "-teensy" ]; then
         TEENSY_DRIVER=1
+        MISC_OPT="-uim"
+    elif [ $p = "-esp32" ]; then
+        ESP32_DRIVER=1
         MISC_OPT="-uim"
     elif [ "$p" = "-effect" ]; then
         POLY2="1"
@@ -311,6 +316,10 @@ elif [ $TEENSY_DRIVER -eq 1 ]; then
     echo "Your $APILOCATION API package for teensy audio is being created"
     createAPI
     echo "#define TEENSY_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+elif [ $ESP32_DRIVER -eq 1 ]; then
+    echo "Your $APILOCATION API package for ESP32 audio is being created"
+    createAPI
+    echo "#define ESP32_DRIVER 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
 else
     echoHelp
     exit 1
