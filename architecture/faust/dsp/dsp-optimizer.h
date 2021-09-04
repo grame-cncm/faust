@@ -200,7 +200,7 @@ class dsp_optimizer_real {
         void printItem(const std::vector <std::string>& item)
         {
             for (int i = 0; i < item.size(); i++) {
-                fprintf(stdout, " %", item[i].c_str());
+                fprintf(stdout, " %s", item[i].c_str());
             }
             fprintf(stdout, " : ");
         }
