@@ -3,7 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.34.5)
+set (VERSION 2.34.6)
 macro (get_major_minor_patch version)
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\1"  VERSION_MAJOR ${version} )
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\2"  VERSION_MINOR ${version} )
@@ -142,7 +142,7 @@ elseif(WIN32 OR MSYS)
 		set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DWIN32 -D__MINGW32__)
 	endif()
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -D_CRT_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES)
-	set (FAUST_LIBS ${FAUST_LIBS} ws2_32) #.lib)
+	set (FAUST_LIBS ${FAUST_LIBS} Ws2_32) #.lib)
 elseif(NOT ANDROID)
 	set (FAUST_LIBS -lpthread ${FAUST_LIBS})
 endif()
