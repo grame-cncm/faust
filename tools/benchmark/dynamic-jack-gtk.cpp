@@ -372,7 +372,7 @@ static bool runDynamicDSP(int argc, char* argv[], bool is_dsp_only = false)
         delete gDynamicDSP;
         gDynamicDSP = nullptr;
         gMutex.unlock();
-        // 'res' is true when gDynamicDSP whe stopped by the additional thread
+        // 'res' is true when gDynamicDSP was stopped by the additional thread
         return res;
     } catch (...) {
         gDynamicDSP = nullptr;
