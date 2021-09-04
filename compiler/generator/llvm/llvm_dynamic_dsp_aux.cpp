@@ -423,7 +423,7 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(const stri
     fModule->setDataLayout(TheTargetMachine->createDataLayout());
 
     error_code EC;
-    raw_fd_ostream  dest(object_code_path.c_str(), EC, sys::fs::F_None);
+    raw_fd_ostream  dest(object_code_path.c_str(), EC, sys::fs::OF_None);
     if (EC) {
         errs() << "ERROR : writeDSPFactoryToObjectcodeFile could not open file : " << EC.message();
         return false;

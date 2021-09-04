@@ -52,7 +52,7 @@
 #define MovePTR(ptr) std::move(ptr)
 #define PASS_MANAGER legacy::PassManager
 #define FUNCTION_PASS_MANAGER legacy::FunctionPassManager
-#define sysfs_binary_flag sys::fs::F_None
+#define sysfs_binary_flag sys::fs::OF_None
 #define OwningPtr std::unique_ptr
 #define llvmcreatePrintModulePass(out) createPrintModulePass(out)
 #define GET_CPU_NAME llvm::sys::getHostCPUName().str()
