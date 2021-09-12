@@ -140,7 +140,7 @@ void typeAnnotation(Tree sig, bool causality)
     Tree sl             = symlist(sig);
     int  n              = len(sl);
 
-    uint size;
+    int size;
     bool finished = false;
 
     vector<Tree> vrec;       ///< array of all the recursive signal groups
