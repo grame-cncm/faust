@@ -383,10 +383,6 @@ class TableType : public AudioType {
     {
         return makeTableType(fContent, fNature, fVariability, fComputability, fVectorability, fBoolean, i);
     }  ///< promote the interval of a type
-<<<<<<< HEAD
-    
-=======
->>>>>>> 687e4f6cf (add interval handling for isLt, isGt)
 
     virtual bool isMaximal() const;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
 };
@@ -450,11 +446,7 @@ class TupletType : public AudioType {
     {
         return new TupletType(fComponents, fNature, fVariability, fComputability, fVectorability, fBoolean, i);
     }  ///< promote the interval of a type
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> 687e4f6cf (add interval handling for isLt, isGt)
     virtual bool isMaximal() const;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
 };
 
