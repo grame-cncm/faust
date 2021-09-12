@@ -479,7 +479,7 @@ string ScalarCompiler::generateCode(Tree sig)
     else if (isProj(sig, &i, x)) {
         return generateRecProj(sig, x, i);
     }
-
+    
     else if (isSigIntCast(sig, x)) {
         return generateIntCast(sig, x);
     } else if (isSigFloatCast(sig, x)) {
@@ -523,18 +523,13 @@ string ScalarCompiler::generateCode(Tree sig)
             throw faustexception("ERROR : 'control/enable' can only be used in scalar mode\n");
         }
         return generateControl(sig, x, y);
-
+	
     } else if (isSigAssertBounds(sig, x, y, z)){
 	/* no debug option for the moment */
 	return generateCode(z);
-    } else if (isSigLowest(sig, x)){
-	r = getCertifiedSigType(x)->getInterval().lo;
-	return generateNumber(sigReal(r), T(r));
-    }  else if (isSigHighest(sig, x)){
-	r = getCertifiedSigType(x)->getInterval().hi;
-	return generateNumber(sigReal(r), T(r));
+    } else if (isSigLowest(sig, x) or isSigHighest(sig, x)){
+	throw faustexception("ERROR : annotations should have been deleted in Simplification process\n");
     }
-
     
     /* we should not have any control at this stage*/
     else {

@@ -38,7 +38,7 @@
 #include "simplify.hh"
 #include "xtended.hh"
 
-#undef TRACE
+#define TRACE
 
 // declarations
 
@@ -201,7 +201,15 @@ static Tree simplification(Tree sig)
 
         else
             return sig;
-
+	
+    } else if (isSigLowest(sig, t1)){
+	Type ty = getCertifiedSigType(t1);
+	return sigReal(ty->getInterval().lo);
+	
+    } else if (isSigHighest(sig, t1)){
+	Type ty = getCertifiedSigType(t1);
+	return sigReal(ty->getInterval().hi);
+	
     } else {
         return sig;
     }
