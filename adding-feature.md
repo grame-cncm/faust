@@ -204,8 +204,11 @@ bornes à un signal, il suffit d'utiliser la méthode `promoteInterval`
 autres fichiers à changer pour le backend -ocpp
 
 + signals/sigToGraph.cpp, pour les graphes de signaux
+
 + signals/sigIdentity.cpp
+
 + boxes/ppbox.cpp, pour les diagrammes
+
 + generator/compile_scal.cpp, ce fichier est celui qui contient la compilation proprement dite
 
 + sigprint.cpp, si a besoin d'un dessin spécial

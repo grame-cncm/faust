@@ -636,11 +636,13 @@ static Type infereSigType(Tree sig, Tree env)
     else if (isSigLowest(sig, s1)) {
         interval i1 = T(s1, env)->getInterval();
         return makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(i1.lo));
+	// change this part   ^^^^^ once there are interval bounds depending on signal type
     }
 
     else if (isSigHighest(sig, s1)) {
         interval i1 = T(s1, env)->getInterval();
         return makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(i1.hi));
+	// change this part   ^^^^^ once there are interval bounds depending on signal type
     }
 
     // unrecognized signal here
