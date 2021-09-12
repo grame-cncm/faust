@@ -105,11 +105,11 @@ void updateRecTypes(vector<Tree>& vrec, const vector<Tree>& vdef, const vector<i
     // init recursive types
     for (int i = 0; i < n; i++) {
         setSigType(vrec[i], vtype[i]);
-        cerr << i << "-" << *getSigType(vrec[i]) << endl;
+        // cerr << i << "-" << *getSigType(vrec[i]) << endl;
         vrec[i]->setVisited();
     }
 
-    cerr << "compute recursive types" << endl;
+    // cerr << "compute recursive types" << endl;
     for (int i = 0; i < n; i++) {
         newType = T(vdef[i], gGlobal->NULLTYPEENV);
         newTuplet.clear();
@@ -190,7 +190,7 @@ void typeAnnotation(Tree sig, bool causality)
     faustassert((int)vAgeMin.size() == n);
     faustassert((int)vAgeMax.size() == n);
 
-    cerr << "compute upper bounds for recursive types" << endl;
+    // cerr << "compute upper bounds for recursive types" << endl;
 
     for (int k=0; k < gGlobal->gUpIter; k++) {
         updateRecTypes(vrec, vdef, vdefSizes, vtypeUp, true);
@@ -200,7 +200,7 @@ void typeAnnotation(Tree sig, bool causality)
         vUp.push_back(derefRecCert(ty));
     }
     
-    cerr << "find an upperbound of the least fixpoint" << endl;
+    // cerr << "find an upperbound of the least fixpoint" << endl;
     
     while (!finished) {
         updateRecTypes(vrec, vdef, vdefSizes, vtype, false);
@@ -209,7 +209,7 @@ void typeAnnotation(Tree sig, bool causality)
         finished = true;
         for (int i = 0; i < n; i++) {
             newTuplet.clear();
-            cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] << endl;
+            // cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] << endl;
             if (vtype[i] != getSigType(vrec[i])) {
                 finished = false;
                 newRecType = derefRecCert(vtype[i]);
