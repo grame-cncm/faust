@@ -527,7 +527,7 @@ string ScalarCompiler::generateCode(Tree sig)
     } else if (isSigAssertBounds(sig, x, y, z)){
 	/* no debug option for the moment */
 	return generateCode(z);
-    } else if (isSigLowest(sig, x) or isSigHighest(sig, x)){
+    } else if (isSigLowest(sig, x) || isSigHighest(sig, x)){
 	throw faustexception("ERROR : annotations should have been deleted in Simplification process\n");
     }
     
