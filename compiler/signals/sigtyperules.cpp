@@ -66,11 +66,11 @@ static interval arithmetic(int opcode, const interval& x, const interval& y);
 
 // Uncomment to activate type inferrence tracing
 #define TRACE(x) x
-/* #define TRACE(x)                             \
- {            \
-     ;        \
- }
-*/
+
+// #define TRACE(x) \
+//     {            \
+//         ;        \
+//     }
 
 
 /**
@@ -619,23 +619,29 @@ static Type infereSigType(Tree sig, Tree env)
         return T(hd(sig), env) * T(tl(sig), env);
     }
 
-    /* min/max don't work here, so handmade version */
     else if (isSigAssertBounds(sig, min, max, cur)){
-        Type     t1 = T(cur, env);
-        interval i1 = t1->getInterval();
-        return t1->promoteInterval(interval(std::min(i1.lo, tree2float(min)), std::max(i1.hi, tree2float(max))));
+        Type     t1 = T(min, env);
+        Type     t2 = T(max, env);
+        Type     t3 = T(cur, env);
+        interval i3 = t3->getInterval();
+	interval iEnd;
+	if (i3.valid)
+	    iEnd = interval(std::max(i3.lo, tree2float(min)), std::max(i3.hi, tree2float(max)));
+	else
+	    iEnd = interval(tree2float(min), tree2float(max));
+        return t3->promoteInterval(iEnd);
     }
 
-    else if (isSigLowest(sig, s1)){
-	interval i1 = T(s1, env)->getInterval();
-	return makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(i1.lo));
+    else if (isSigLowest(sig, s1)) {
+        interval i1 = T(s1, env)->getInterval();
+        return makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(i1.lo));
     }
-    
-    else if (isSigHighest(sig, s1)){
-	interval i1 = T(s1, env)->getInterval();
-	return makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(i1.hi));
+
+    else if (isSigHighest(sig, s1)) {
+        interval i1 = T(s1, env)->getInterval();
+        return makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(i1.hi));
     }
-    
+
     // unrecognized signal here
     throw faustexception("ERROR inferring signal type : unrecognized signal\n");
     return 0;
