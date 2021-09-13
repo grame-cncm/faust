@@ -45,7 +45,7 @@ class wasm_dsp_factory_imp : public dsp_factory {
             delete fDecoder;
         }
     
-        JSONUITemplatedDecoder* fDecoder;
+        JSONUIDecoderBase* fDecoder;
     
         std::string getName() { return fDecoder->getName(); }
     

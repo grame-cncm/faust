@@ -1,4 +1,4 @@
-% man(1) Version 2.34.6 (04-September-2021) | Faust man page
+% man(1) Version 2.35.0 (13-September-2021) | Faust man page
 
 NAME
 ====
@@ -139,6 +139,8 @@ Block diagram options:
   **-ps**        **--postscript**                 print block-diagram to a postscript file.
 
   **-svg**       **--svg**                        print block-diagram to a svg file.
+
+  **-vhdl**      **--vhdl**                       output vhdl file.
 
   **-sd**        **--simplify-diagrams**          try to further simplify diagrams before drawing.
 

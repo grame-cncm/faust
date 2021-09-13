@@ -47,7 +47,7 @@ class soul_cpp_dsp : public dsp {
     
     private:
 
-        JSONUITemplatedDecoder* fDecoder;
+        JSONUIDecoderBase* fDecoder;
         souldsp fDSP;
     
         FAUSTFLOAT* fZoneMap;
