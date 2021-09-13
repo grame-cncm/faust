@@ -243,8 +243,8 @@ EXPORT string expandDSPFromString(const string& name_app, const string& dsp_cont
             sha_key = generateSHA1(dsp_content);
             return dsp_content;
         } else {
-            // Otherwise add a new compilation options line, consider it as the new expanded code : generate SHA key and
-            // return it
+            // Otherwise add a new compilation options line, consider it as the new expanded code,
+            // generate SHA key and return it
             string new_dsp_content =
                 COMPILATION_OPTIONS + reorganizeCompilationOptions(argc, argv) + ";\n" + dsp_content;
             sha_key = generateSHA1(new_dsp_content);
