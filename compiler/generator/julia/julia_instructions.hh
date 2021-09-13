@@ -107,10 +107,7 @@ struct JuliaInitFieldsVisitor : public DispatchVisitor {
 
 class JuliaInstVisitor : public TextInstVisitor {
    private:
-    
-    // Whether to consider an 'int' as a 'boolean' later on in code generation
-    bool fIntAsBool;
-    
+     
     /*
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
@@ -317,8 +314,6 @@ class JuliaInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["isnan"]     = "isnan";
         gPolyMathLibTable["isinf"]     = "isinf";
         gPolyMathLibTable["copysign"]  = "copysign";
-    
-        fIntAsBool = false;
     }
 
     virtual ~JuliaInstVisitor() {}
@@ -608,13 +603,18 @@ class JuliaInstVisitor : public TextInstVisitor {
     virtual void visit(BitcastInst* inst)
     {}
     
+    virtual void visitCond(ValueInst* cond)
+    {
+        *fOut << "(";
+        cond->accept(this);
+        *fOut << " != 0)";
+    }
+    
     virtual void visit(Select2Inst* inst)
     {
-        *fOut << "((";
-        fIntAsBool = true;
-        inst->fCond->accept(this);
-        fIntAsBool = false;
-        *fOut << " != 0) ? ";
+        *fOut << "(";
+        visitCond(inst->fCond);
+        *fOut << " ? ";
         inst->fThen->accept(this);
         *fOut << " : ";
         inst->fElse->accept(this);
@@ -634,11 +634,8 @@ class JuliaInstVisitor : public TextInstVisitor {
     
     virtual void visit(IfInst* inst)
     {
-        *fOut << "if (";
-        fIntAsBool = true;
+        *fOut << "if ";
         visitCond(inst->fCond);
-        fIntAsBool = false;
-        *fOut << " != 0)";
         fTab++;
         tab(fTab, *fOut);
         inst->fThen->accept(this);

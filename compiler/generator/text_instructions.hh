@@ -272,7 +272,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(Select2Inst* inst)
     {
         *fOut << "(";
-        inst->fCond->accept(this);
+        visitCond(inst->fCond);
         *fOut << " ? ";
         inst->fThen->accept(this);
         *fOut << " : ";
