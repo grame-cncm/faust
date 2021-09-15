@@ -336,11 +336,11 @@ static bool processCmdline(int argc, const char* argv[])
             i += 2;
 
         } else if (isCmd(argv[i], "-wi", "--widening-iterations") && (i + 1 < argc)) {
-            gGlobal->gAgeLimit = std::atoi(argv[i+1]);
+            gGlobal->gWideningLimit = std::atoi(argv[i+1]);
             i += 2;
             
-        } else if (isCmd(argv[i], "-wu", "--widening-up-iter") && (i + 1 < argc)){
-            gGlobal->gUpIter = std::atoi(argv[i+1]);
+        } else if (isCmd(argv[i], "-ni", "--narrowing-iterations") && (i + 1 < argc)){
+            gGlobal->gNarrowingLimit = std::atoi(argv[i+1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-ps", "--postscript")) {
@@ -980,7 +980,7 @@ static void printHelp()
          << endl;
 
     cout << tab
-         << "-wu <n> --widening-up-iter <n>          number of iterations to compute the widened in signal bounding"
+         << "-ni <n> --narrowing-iterations <n>          number of iterations before stopping narrowing in signal bounding"
          << endl;
 
     cout << endl << "Block diagram options:" << line;

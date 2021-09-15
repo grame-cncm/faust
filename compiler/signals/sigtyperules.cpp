@@ -65,12 +65,12 @@ TupletType derefRecCert(Type t);
 static interval arithmetic(int opcode, const interval& x, const interval& y);
 
 // Uncomment to activate type inferrence tracing
-//#define TRACE(x) x
+// #define TRACE(x) x
 
 #define TRACE(x) \
      {            \
-         ;        \
-     }
+          ;        \
+      }
 
 
 /**
@@ -192,7 +192,7 @@ void typeAnnotation(Tree sig, bool causality)
 
     // cerr << "compute upper bounds for recursive types" << endl;
 
-    for (int k=0; k < gGlobal->gUpIter; k++) {
+    for (int k=0; k < gGlobal->gNarrowingLimit; k++) {
         updateRecTypes(vrec, vdef, vdefSizes, vtypeUp, true);
     }
     
@@ -223,7 +223,7 @@ void typeAnnotation(Tree sig, bool causality)
                     if (newI.lo != oldI.lo) {
                         faustassert(newI.lo < oldI.lo);
                         vAgeMin[i][j]++;
-                        if (vAgeMin[i][j] > gGlobal->gAgeLimit) {
+                        if (vAgeMin[i][j] > gGlobal->gWideningLimit) {
                             TRACE(cerr << gGlobal->TABBER << "low widening of " << newTuplet[j] << endl;)
                             newI.lo = vUp[i][j]->getInterval().lo;
                         }
@@ -232,7 +232,7 @@ void typeAnnotation(Tree sig, bool causality)
                     if (newI.hi != oldI.hi) {
                         faustassert(newI.hi > oldI.hi);
                         vAgeMax[i][j]++;
-                        if (vAgeMax[i][j] > gGlobal->gAgeLimit) {
+                        if (vAgeMax[i][j] > gGlobal->gWideningLimit) {
                             TRACE(cerr << gGlobal->TABBER << "up widening of " << newTuplet[j] << endl;)
                             newI.hi = vUp[i][j]->getInterval().hi;
                         }
