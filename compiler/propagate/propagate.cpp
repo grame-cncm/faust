@@ -76,7 +76,7 @@ static siglist split(const siglist& inputs, int nbus)
     return outputs;
 }
 
-//! build a list of n projections of a recursiv group
+//! build a list of n projections of a recursive group
 static siglist makeSigProjList(Tree t, int n)
 {
     siglist l(n);
@@ -84,7 +84,7 @@ static siglist makeSigProjList(Tree t, int n)
     return l;
 }
 
-//! build a list of n mem projections of a recursiv group
+//! build a list of n mem projections of a recursive group
 static siglist makeMemSigProjList(Tree t, int n)
 {
     siglist l(n);

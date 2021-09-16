@@ -127,6 +127,8 @@ using namespace std;
 static unique_ptr<ifstream> injcode;
 static unique_ptr<ifstream> enrobage;
 
+unique_ptr<ostream> helpers;
+
 #ifdef OCPP_BUILD
 // Old CPP compiler
 Compiler* old_comp = nullptr;
@@ -1286,10 +1288,313 @@ static void injectCode(unique_ptr<ifstream>& enrobage1, ostream& dst)
     }
 }
 
+static void compileCLLVM(Tree signals, int numInputs, int numOutputs, bool generate)
+{
+#ifdef CLANG_BUILD
+    // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    gGlobal->gFAUSTFLOAT2Internal = true;
+
+    container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+    
+    if (generate) {
+        // TO CHECK ?
+    } else {
+        // To trigger 'sig.dot' generation
+        if (gGlobal->gVectorSwitch) {
+            new_comp = new DAGInstructionsCompiler(container);
+        } else {
+            new_comp = new InstructionsCompiler(container);
+        }
+        new_comp->prepare(signals);
+    }
+#else
+    throw faustexception("ERROR : -lang cllcm not supported since LLVM backend is not built\n");
+#endif
+}
+
+static void compileLLVM(Tree signals, int numInputs, int numOutputs, bool generate)
+{
+#ifdef LLVM_BUILD
+    container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+    
+    // libc functions will be found by the LLVM linker, but not user defined ones...
+    gGlobal->gAllowForeignFunction = false;
+    // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    gGlobal->gFAUSTFLOAT2Internal = true;
+    
+    gGlobal->gUseDefaultSound = false;
+    
+    if (gGlobal->gVectorSwitch) {
+        new_comp = new DAGInstructionsCompiler(container);
+    } else {
+        new_comp = new InstructionsCompiler(container);
+    }
+    
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
+    
+    if (generate) {
+        new_comp->compileMultiSignal(signals);
+    } else {
+        // To trigger 'sig.dot' generation
+        new_comp->prepare(signals);
+    }
+#else
+    throw faustexception("ERROR : -lang llvm not supported since LLVM backend is not built\n");
+#endif
+}
+
+static void compileInterp(Tree signals, int numInputs, int numOutputs, bool generate)
+{
+#ifdef INTERP_BUILD
+    if (gGlobal->gFloatSize == 1) {
+        container = InterpreterCodeContainer<float>::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+    } else if (gGlobal->gFloatSize == 2) {
+        container = InterpreterCodeContainer<double>::createContainer(gGlobal->gClassName, numInputs, numOutputs);
+    } else {
+        throw faustexception("ERROR : quad format not supported in Interp\n");
+    }
+    gGlobal->gAllowForeignFunction = false;  // No foreign functions
+    gGlobal->gAllowForeignConstant = false;  // No foreign constant
+    gGlobal->gAllowForeignVar      = false;  // No foreign variable
+                                             // gGlobal->gComputeIOTA          = true;   // Ensure IOTA base fixed delays are computed once
+    
+    // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    gGlobal->gFAUSTFLOAT2Internal = true;
+    gGlobal->gNeedManualPow       = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+    gGlobal->gRemoveVarAddress    = true;   // To be used in -vec mode
+    
+    if (gGlobal->gVectorSwitch) {
+        new_comp = new DAGInstructionsCompiler(container);
+    } else {
+        new_comp = new InterpreterInstructionsCompiler(container);
+    }
+    
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
+    
+    new_comp->compileMultiSignal(signals);
+#else
+    throw faustexception("ERROR : -lang interp not supported since Interpreter backend is not built\n");
+#endif
+}
+
+static void compileFIR(Tree signals, int numInputs, int numOutputs, bool generate, ostream* out)
+{
+#ifdef FIR_BUILD
+    container = FIRCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out, true);
+    
+    if (gGlobal->gVectorSwitch) {
+        new_comp = new DAGInstructionsCompiler(container);
+    } else {
+        new_comp = new InstructionsCompiler(container);
+    }
+    
+    new_comp->compileMultiSignal(signals);
+#else
+    throw faustexception("ERROR : -lang fir not supported since FIR backend is not built\n");
+#endif
+}
+
+static void compileC(Tree signals, int numInputs, int numOutputs, bool generate, ostream* out)
+{
+#ifdef C_BUILD
+    container = CCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+#else
+    throw faustexception("ERROR : -lang c not supported since C backend is not built\n");
+#endif
+}
+
+static void compileCPP(Tree signals, int numInputs, int numOutputs, bool generate, ostream* out)
+{
+#ifdef CPP_BUILD
+    container = CPPCodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs, out);
+#else
+    throw faustexception("ERROR : -lang cpp not supported since CPP backend is not built\n");
+#endif
+}
+
+static void compileOCPP(Tree signals, int numInputs, int numOutputs, bool generate)
+{
+#ifdef OCPP_BUILD
+    if (gGlobal->gSchedulerSwitch) {
+        old_comp = new SchedulerCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
+    } else if (gGlobal->gVectorSwitch) {
+        old_comp = new VectorCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
+    } else {
+        old_comp = new ScalarCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
+    }
+    
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) old_comp->setDescription(new Description());
+    
+    old_comp->compileMultiSignal(signals);
+#else
+    throw faustexception("ERROR : -lang ocpp not supported since old CPP backend is not built\n");
+#endif
+}
+
+static void compileRust(Tree signals, int numInputs, int numOutputs, bool generate, ostream* out)
+{
+#ifdef RUST_BUILD
+    // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    gGlobal->gFAUSTFLOAT2Internal = true;
+    container = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+#else
+    throw faustexception("ERROR : -lang rust not supported since Rust backend is not built\n");
+#endif
+}
+
+static void compileJava(Tree signals, int numInputs, int numOutputs, bool generate, ostream* out)
+{
+#ifdef JAVA_BUILD
+    gGlobal->gAllowForeignFunction = false;  // No foreign functions
+    container = JAVACodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs, out);
+#else
+    throw faustexception("ERROR : -lang java not supported since JAVA backend is not built\n");
+#endif
+}
+
+static void compileJulia(Tree signals, int numInputs, int numOutputs, bool generate, ostream* out)
+{
+#ifdef JULIA_BUILD
+    gGlobal->gAllowForeignFunction = false;  // No foreign functions
+    container = JuliaCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+#else
+    throw faustexception("ERROR : -lang julia not supported since Julia backend is not built\n");
+#endif
+}
+
+static void compileCSharp(Tree signals, int numInputs, int numOutputs, bool generate, ostream* out)
+{
+#ifdef CSHARP_BUILD
+    gGlobal->gAllowForeignFunction = false;  // No foreign functions
+    container = CSharpCodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs, out);
+#else
+    throw faustexception("ERROR : -lang csharp not supported since CSharp backend is not built\n");
+#endif
+}
+
+static void compileSOUL(Tree signals, int numInputs, int numOutputs, bool generate, ostream* out)
+{
+#ifdef SOUL_BUILD
+    gGlobal->gAllowForeignFunction = false;  // No foreign functions
+    gGlobal->gAllowForeignConstant = false;  // No foreign constant
+    gGlobal->gAllowForeignVar      = false;  // No foreign variable
+    
+        // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    gGlobal->gFAUSTFLOAT2Internal = true;
+    
+        // "one sample control" model by default;
+    gGlobal->gOneSampleControl = true;
+    gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+    
+    container = SOULCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+#else
+    throw faustexception("ERROR : -lang rust not supported since SOUL backend is not built\n");
+#endif
+}
+
+static void compileWAST(Tree signals, int numInputs, int numOutputs, bool generate, ostream* out, const string& outpath)
+{
+#ifdef WASM_BUILD
+    gGlobal->gAllowForeignFunction = false;  // No foreign functions
+    gGlobal->gAllowForeignConstant = false;  // No foreign constant
+    gGlobal->gAllowForeignVar      = false;  // No foreign variable
+    
+        // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    gGlobal->gFAUSTFLOAT2Internal = true;
+        // the 'i' variable used in the scalar loop moves by bytes instead of frames
+    gGlobal->gLoopVarInBytes   = true;
+    gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data
+    gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
+    gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+    gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
+                                         // gGlobal->gHasTeeLocal = true;     // combined store/load
+    
+    gGlobal->gUseDefaultSound = false;
+    
+        // This speedup (freeverb for instance) ==> to be done at signal level
+        // gGlobal->gComputeIOTA = true;     // Ensure IOTA base fixed delays are computed once
+    
+    container = WASTCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out,
+                                                   ((gGlobal->gOutputLang == "wast") || (gGlobal->gOutputLang == "wast-i")));
+    
+        // Additional file with JS code
+    if (gGlobal->gOutputFile == "binary") {
+            // Nothing
+    } else if (gGlobal->gOutputFile != "") {
+        string outpath_js;
+        bool   res = replaceExtension(outpath, ".js", outpath_js);
+        if (res) {
+            helpers = unique_ptr<ostream>(new ofstream(outpath_js.c_str()));
+        } else {
+            cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\""
+            << endl;
+        }
+    } else {
+        helpers = unique_ptr<ostream>(new ostringstream());
+    }
+#else
+    throw faustexception("ERROR : -lang wast not supported since WAST backend is not built\n");
+#endif
+}
+
+static void compileWASM(Tree signals, int numInputs, int numOutputs, bool generate, ostream* out, const string& outpath)
+{
+#ifdef WASM_BUILD
+    gGlobal->gAllowForeignFunction = false;  // No foreign functions
+    gGlobal->gAllowForeignConstant = false;  // No foreign constant
+    gGlobal->gAllowForeignVar      = false;  // No foreign variable
+    
+        // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    gGlobal->gFAUSTFLOAT2Internal = true;
+        // the 'i' variable used in the scalar loop moves by bytes instead of frames
+    gGlobal->gLoopVarInBytes   = true;
+    gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data
+    gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
+    gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+    gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
+                                         // gGlobal->gHasTeeLocal = true;     // combined store/load
+    
+    gGlobal->gUseDefaultSound = false;
+    
+        // This speedup (freeverb for instance) ==> to be done at signal level
+        // gGlobal->gComputeIOTA = true;     // Ensure IOTA base fixed delays are computed once
+    
+    container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out,
+                                                   ((gGlobal->gOutputLang == "wasm") || (gGlobal->gOutputLang == "wasm-i") ||
+                                                    (gGlobal->gOutputLang == "wasm-ib")));
+    
+        // Additional file with JS code
+    if (gGlobal->gOutputFile == "binary") {
+            // Nothing
+    } else if (gGlobal->gOutputFile != "") {
+        string outpath_js;
+        bool   res = replaceExtension(outpath, ".js", outpath_js);
+        if (res) {
+            helpers = unique_ptr<ostream>(new ofstream(outpath_js.c_str()));
+        } else {
+            cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\""
+            << endl;
+        }
+    } else {
+        helpers = unique_ptr<ostream>(new ostringstream());
+    }
+#else
+    throw faustexception("ERROR : -lang wasm not supported since WASM backend is not built\n");
+#endif
+}
+
+static void compileDlang(Tree signals, int numInputs, int numOutputs, bool generate, ostream* out)
+{
+#ifdef DLANG_BUILD
+    container = DLangCodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs, out);
+#else
+    throw faustexception("ERROR : -lang dlang not supported since D backend is not built\n");
+#endif
+}
+
 static void generateCode(Tree signals, int numInputs, int numOutputs, bool generate)
 {
     unique_ptr<ostream> dst;
-    unique_ptr<ostream> helpers;
     string              outpath;
 
     // MANDATORY: use ostringstream which is indeed a subclass of ostream (otherwise subtle dynamic_cast related crash
@@ -1301,8 +1606,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
     } else if (gGlobal->gOutputFile == "binary") {
         dst = unique_ptr<ostream>(new ostringstream(ostringstream::out | ostringstream::binary));
     } else if (gGlobal->gOutputFile != "") {
-        outpath =
-            (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
+        outpath = (gGlobal->gOutputDir != "")
+            ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
 
         unique_ptr<ofstream> fdst = unique_ptr<ofstream>(new ofstream(outpath.c_str()));
         if (!fdst->is_open()) {
@@ -1319,277 +1624,37 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
     startTiming("generateCode");
 
-#ifdef LLVM_BUILD
     if (gGlobal->gOutputLang == "cllvm") {
-        // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-        gGlobal->gFAUSTFLOAT2Internal = true;
-#ifdef CLANG_BUILD
-        container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
-
-        if (generate) {
-            // TO CHECK ?
-        } else {
-            // To trigger 'sig.dot' generation
-            if (gGlobal->gVectorSwitch) {
-                new_comp = new DAGInstructionsCompiler(container);
-            } else {
-                new_comp = new InstructionsCompiler(container);
-            }
-            new_comp->prepare(signals);
-        }
-#endif
-
+        compileCLLVM(signals, numInputs, numOutputs, generate);
     } else if (gGlobal->gOutputLang == "llvm") {
-        container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
-
-        // libc functions will be found by the LLVM linker, but not user defined ones...
-        gGlobal->gAllowForeignFunction = false;
-        // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-        gGlobal->gFAUSTFLOAT2Internal = true;
-
-        gGlobal->gUseDefaultSound = false;
-
-        if (gGlobal->gVectorSwitch) {
-            new_comp = new DAGInstructionsCompiler(container);
-        } else {
-            new_comp = new InstructionsCompiler(container);
-        }
-
-        if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
-
-        if (generate) {
-            new_comp->compileMultiSignal(signals);
-        } else {
-            // To trigger 'sig.dot' generation
-            new_comp->prepare(signals);
-        }
-
-#else
-    if (gGlobal->gOutputLang == "llvm" || gGlobal->gOutputLang == "cllvm") {
-        throw faustexception("ERROR : -lang llvm/cllvm not supported since LLVM backend is not built\n");
-#endif
-
+        compileLLVM(signals, numInputs, numOutputs, generate);
     } else if (gGlobal->gOutputLang == "interp") {
-#ifdef INTERP_BUILD
-        if (gGlobal->gFloatSize == 1) {
-            container = InterpreterCodeContainer<float>::createContainer(gGlobal->gClassName, numInputs, numOutputs);
-        } else if (gGlobal->gFloatSize == 2) {
-            container = InterpreterCodeContainer<double>::createContainer(gGlobal->gClassName, numInputs, numOutputs);
-        } else {
-            throw faustexception("ERROR : quad format not supported in Interp\n");
-        }
-        gGlobal->gAllowForeignFunction = false;  // No foreign functions
-        gGlobal->gAllowForeignConstant = false;  // No foreign constant
-        gGlobal->gAllowForeignVar      = false;  // No foreign variable
-        // gGlobal->gComputeIOTA          = true;   // Ensure IOTA base fixed delays are computed once
-
-        // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-        gGlobal->gFAUSTFLOAT2Internal = true;
-        gGlobal->gNeedManualPow       = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
-        gGlobal->gRemoveVarAddress    = true;   // To be used in -vec mode
-
-        if (gGlobal->gVectorSwitch) {
-            new_comp = new DAGInstructionsCompiler(container);
-        } else {
-            new_comp = new InterpreterInstructionsCompiler(container);
-        }
-
-        if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
-
-        new_comp->compileMultiSignal(signals);
-#else
-        throw faustexception("ERROR : -lang interp not supported since Interpreter backend is not built\n");
-#endif
+        compileInterp(signals, numInputs, numOutputs, generate);
     } else if (gGlobal->gOutputLang == "fir") {
-#ifdef FIR_BUILD
-        container = FIRCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst.get(), true);
-
-        if (gGlobal->gVectorSwitch) {
-            new_comp = new DAGInstructionsCompiler(container);
-        } else {
-            new_comp = new InstructionsCompiler(container);
-        }
-
-        new_comp->compileMultiSignal(signals);
-#else
-        throw faustexception("ERROR : -lang fir not supported since FIR backend is not built\n");
-#endif
+        compileFIR(signals, numInputs, numOutputs, generate, dst.get());
     } else {
         if (gGlobal->gOutputLang == "c") {
-#ifdef C_BUILD
-            container = CCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst.get());
-#else
-            throw faustexception("ERROR : -lang c not supported since C backend is not built\n");
-#endif
-
+            compileC(signals, numInputs, numOutputs, generate, dst.get());
         } else if (gGlobal->gOutputLang == "cpp") {
-#ifdef CPP_BUILD
-            container = CPPCodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
-                                                          numOutputs, dst.get());
-#else
-            throw faustexception("ERROR : -lang cpp not supported since CPP backend is not built\n");
-#endif
-
+            compileCPP(signals, numInputs, numOutputs, generate, dst.get());
         } else if (gGlobal->gOutputLang == "ocpp") {
-#ifdef OCPP_BUILD
-            if (gGlobal->gSchedulerSwitch) {
-                old_comp = new SchedulerCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
-            } else if (gGlobal->gVectorSwitch) {
-                old_comp = new VectorCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
-            } else {
-                old_comp = new ScalarCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
-            }
-
-            if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) old_comp->setDescription(new Description());
-
-            old_comp->compileMultiSignal(signals);
-#else
-            throw faustexception("ERROR : -lang ocpp not supported since old CPP backend is not built\n");
-#endif
-
+            compileOCPP(signals, numInputs, numOutputs, generate);
         } else if (gGlobal->gOutputLang == "rust") {
-#ifdef RUST_BUILD
-            // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            gGlobal->gFAUSTFLOAT2Internal = true;
-            container = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst.get());
-#else
-            throw faustexception("ERROR : -lang rust not supported since Rust backend is not built\n");
-#endif
-
+            compileRust(signals, numInputs, numOutputs, generate, dst.get());
         } else if (gGlobal->gOutputLang == "java") {
-#ifdef JAVA_BUILD
-            gGlobal->gAllowForeignFunction = false;  // No foreign functions
-            container = JAVACodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
-                                                           numOutputs, dst.get());
-#else
-            throw faustexception("ERROR : -lang java not supported since JAVA backend is not built\n");
-#endif
+            compileJava(signals, numInputs, numOutputs, generate, dst.get());
         } else if (gGlobal->gOutputLang == "julia") {
-#ifdef JULIA_BUILD
-            gGlobal->gAllowForeignFunction = false;  // No foreign functions
-            container = JuliaCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst.get());
-#else
-            throw faustexception("ERROR : -lang julia not supported since Julia backend is not built\n");
-#endif
+            compileJulia(signals, numInputs, numOutputs, generate, dst.get());
         } else if (gGlobal->gOutputLang == "csharp") {
-#ifdef CSHARP_BUILD
-            gGlobal->gAllowForeignFunction = false;  // No foreign functions
-            container = CSharpCodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
-                                                             numOutputs, dst.get());
-#else
-            throw faustexception("ERROR : -lang csharp not supported since CSharp backend is not built\n");
-#endif
+            compileCSharp(signals, numInputs, numOutputs, generate, dst.get());
         } else if (startWith(gGlobal->gOutputLang, "soul")) {
-#ifdef SOUL_BUILD
-            gGlobal->gAllowForeignFunction = false;  // No foreign functions
-            gGlobal->gAllowForeignConstant = false;  // No foreign constant
-            gGlobal->gAllowForeignVar      = false;  // No foreign variable
-
-            // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            gGlobal->gFAUSTFLOAT2Internal = true;
-
-            // "one sample control" model by default;
-            gGlobal->gOneSampleControl = true;
-            gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
-
-            container = SOULCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst.get());
-#else
-            throw faustexception("ERROR : -lang rust not supported since SOUL backend is not built\n");
-#endif
+            compileSOUL(signals, numInputs, numOutputs, generate, dst.get());
         } else if (startWith(gGlobal->gOutputLang, "wast")) {
-#ifdef WASM_BUILD
-            gGlobal->gAllowForeignFunction = false;  // No foreign functions
-            gGlobal->gAllowForeignConstant = false;  // No foreign constant
-            gGlobal->gAllowForeignVar      = false;  // No foreign variable
-
-            // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            gGlobal->gFAUSTFLOAT2Internal = true;
-            // the 'i' variable used in the scalar loop moves by bytes instead of frames
-            gGlobal->gLoopVarInBytes   = true;
-            gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data
-            gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
-            gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
-            gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
-            // gGlobal->gHasTeeLocal = true;     // combined store/load
-
-            gGlobal->gUseDefaultSound = false;
-
-            // This speedup (freeverb for instance) ==> to be done at signal level
-            // gGlobal->gComputeIOTA = true;     // Ensure IOTA base fixed delays are computed once
-
-            container = WASTCodeContainer::createContainer(
-                gGlobal->gClassName, numInputs, numOutputs, dst.get(),
-                ((gGlobal->gOutputLang == "wast") || (gGlobal->gOutputLang == "wast-i")));
-
-            // Additional file with JS code
-            if (gGlobal->gOutputFile == "binary") {
-                // Nothing
-            } else if (gGlobal->gOutputFile != "") {
-                string outpath_js;
-                bool   res = replaceExtension(outpath, ".js", outpath_js);
-                if (res) {
-                    helpers = unique_ptr<ostream>(new ofstream(outpath_js.c_str()));
-                } else {
-                    cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\""
-                         << endl;
-                }
-            } else {
-                helpers = unique_ptr<ostream>(new ostringstream());
-            }
-#else
-            throw faustexception("ERROR : -lang wast not supported since WAST backend is not built\n");
-#endif
+            compileWAST(signals, numInputs, numOutputs, generate, dst.get(), outpath);
         } else if (startWith(gGlobal->gOutputLang, "wasm")) {
-#ifdef WASM_BUILD
-            gGlobal->gAllowForeignFunction = false;  // No foreign functions
-            gGlobal->gAllowForeignConstant = false;  // No foreign constant
-            gGlobal->gAllowForeignVar      = false;  // No foreign variable
-
-            // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            gGlobal->gFAUSTFLOAT2Internal = true;
-            // the 'i' variable used in the scalar loop moves by bytes instead of frames
-            gGlobal->gLoopVarInBytes   = true;
-            gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data
-            gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
-            gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
-            gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
-            // gGlobal->gHasTeeLocal = true;     // combined store/load
-
-            gGlobal->gUseDefaultSound = false;
-
-            // This speedup (freeverb for instance) ==> to be done at signal level
-            // gGlobal->gComputeIOTA = true;     // Ensure IOTA base fixed delays are computed once
-
-            container = WASMCodeContainer::createContainer(
-                gGlobal->gClassName, numInputs, numOutputs, dst.get(),
-                ((gGlobal->gOutputLang == "wasm") || (gGlobal->gOutputLang == "wasm-i") ||
-                 (gGlobal->gOutputLang == "wasm-ib")));
-
-            // Additional file with JS code
-            if (gGlobal->gOutputFile == "binary") {
-                // Nothing
-            } else if (gGlobal->gOutputFile != "") {
-                string outpath_js;
-                bool   res = replaceExtension(outpath, ".js", outpath_js);
-                if (res) {
-                    helpers = unique_ptr<ostream>(new ofstream(outpath_js.c_str()));
-                } else {
-                    cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\""
-                         << endl;
-                }
-            } else {
-                helpers = unique_ptr<ostream>(new ostringstream());
-            }
-#else
-            throw faustexception("ERROR : -lang wasm not supported since WASM backend is not built\n");
-#endif
+            compileWASM(signals, numInputs, numOutputs, generate, dst.get(), outpath);
         } else if (startWith(gGlobal->gOutputLang, "dlang")) {
-#ifdef DLANG_BUILD
-            container = DLangCodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
-                                                            numOutputs, dst.get());
-#else
-            throw faustexception("ERROR : -lang dlang not supported since D backend is not built\n");
-#endif
+            compileDlang(signals, numInputs, numOutputs, generate, dst.get());
         } else {
             stringstream error;
             error << "ERROR : cannot find backend for "
