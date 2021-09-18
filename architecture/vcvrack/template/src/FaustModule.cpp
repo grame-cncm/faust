@@ -51,6 +51,10 @@ static Plugin* pluginInstance;
 #define FAUSTFLOAT float
 #endif
 
+#ifdef _WIN32
+typedef unsigned int uint
+#endif
+
 /*
 // Pixels are just a weird unit, defined by VCV Rack as 1/75 inches, or 0.338(6) mm
 */
