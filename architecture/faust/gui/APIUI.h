@@ -44,20 +44,21 @@ class APIUI : public PathBuilder, public Meta, public UI
         
     protected:
         
-        enum { kLin = 0, kLog = 1, kExp = 2 };
-        
-        int fNumParameters;
-        std::vector<std::string> fPaths;
-        std::vector<std::string> fLabels;
-        std::map<std::string, int> fPathMap;
-        std::map<std::string, int> fLabelMap;
-        std::vector<ValueConverter*> fConversion;
-        std::vector<FAUSTFLOAT*> fZone;
-        std::vector<FAUSTFLOAT> fInit;
-        std::vector<FAUSTFLOAT> fMin;
-        std::vector<FAUSTFLOAT> fMax;
-        std::vector<FAUSTFLOAT> fStep;
-        std::vector<ItemType> fItemType;
+        enum Mapping { kLin = 0, kLog = 1, kExp = 2 };
+    
+        struct Item {
+            std::string fPath;
+            std::string fLabel;
+            ValueConverter* fConversion;
+            FAUSTFLOAT* fZone;
+            FAUSTFLOAT fInit;
+            FAUSTFLOAT fMin;
+            FAUSTFLOAT fMax;
+            FAUSTFLOAT fStep;
+            ItemType fItemType;
+        };
+        std::vector<Item> fItems;
+    
         std::vector<std::map<std::string, std::string> > fMetaData;
         std::vector<ZoneControl*> fAcc[3];
         std::vector<ZoneControl*> fGyr[3];
@@ -88,29 +89,24 @@ class APIUI : public PathBuilder, public Meta, public UI
                                   ItemType type)
         {
             std::string path = buildPath(label);
-            fPathMap[path] = fLabelMap[label] = fNumParameters++;
-            fPaths.push_back(path);
-            fLabels.push_back(label);
-            fZone.push_back(zone);
-            fInit.push_back(init);
-            fMin.push_back(min);
-            fMax.push_back(max);
-            fStep.push_back(step);
-            fItemType.push_back(type);
-            
+               
             // handle scale metadata
+            ValueConverter* converter;
             switch (fCurrentScale) {
                 case kLin:
-                    fConversion.push_back(new LinearValueConverter(0, 1, min, max));
+                    converter = new LinearValueConverter(0, 1, min, max);
                     break;
                 case kLog:
-                    fConversion.push_back(new LogValueConverter(0, 1, min, max));
+                    converter = new LogValueConverter(0, 1, min, max);
                     break;
-                case kExp: fConversion.push_back(new ExpValueConverter(0, 1, min, max));
+                case kExp:
+                    converter = new ExpValueConverter(0, 1, min, max);
                     break;
             }
             fCurrentScale = kLin;
-            
+        
+            fItems.push_back({path, label, converter, zone, init, min, max, step, type });
+          
             if (fCurrentAcc.size() > 0 && fCurrentGyr.size() > 0) {
                 fprintf(stderr, "warning : 'acc' and 'gyr' metadata used for the same %s parameter !!\n", label);
             }
@@ -179,7 +175,7 @@ class APIUI : public PathBuilder, public Meta, public UI
         
         int getZoneIndex(std::vector<ZoneControl*>* table, int p, int val)
         {
-            FAUSTFLOAT* zone = fZone[p];
+            FAUSTFLOAT* zone = fItems[p].fZone;
             for (size_t i = 0; i < table[val].size(); i++) {
                 if (zone == table[val][i]->getZone()) return int(i);
             }
@@ -203,12 +199,12 @@ class APIUI : public PathBuilder, public Meta, public UI
                 int id4 = getZoneIndex(table, p, val);
                 if (id4 != -1) {
                     // Reactivate the one we edit...
-                    table[val][id4]->setMappingValues(curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]);
+                    table[val][id4]->setMappingValues(curve, amin, amid, amax, fItems[p].fMin, fItems[p].fInit, fItems[p].fMax);
                     table[val][id4]->setActive(true);
                 } else {
                     // Allocate a new CurveZoneControl which is 'active' by default
-                    FAUSTFLOAT* zone = fZone[p];
-                    table[val].push_back(new CurveZoneControl(zone, curve, amin, amid, amax, fMin[p], fInit[p], fMax[p]));
+                    FAUSTFLOAT* zone = fItems[p].fZone;
+                    table[val].push_back(new CurveZoneControl(zone, curve, amin, amid, amax, fItems[p].fMin, fItems[p].fInit, fItems[p].fMax));
                 }
             }
         }
@@ -244,12 +240,12 @@ class APIUI : public PathBuilder, public Meta, public UI
         
         enum Type { kAcc = 0, kGyr = 1, kNoType };
         
-        APIUI() : fNumParameters(0), fHasScreenControl(false), fRedReader(0), fGreenReader(0), fBlueReader(0), fCurrentScale(kLin)
+        APIUI() : fHasScreenControl(false), fRedReader(0), fGreenReader(0), fBlueReader(0), fCurrentScale(kLin)
         {}
         
         virtual ~APIUI()
         {
-            for (const auto& it : fConversion) delete it;
+            for (const auto& it : fItems) delete it.fConversion;
             for (int i = 0; i < 3; i++) {
                 for (const auto& it : fAcc[i]) delete it;
                 for (const auto& it : fGyr[i]) delete it;
@@ -343,20 +339,24 @@ class APIUI : public PathBuilder, public Meta, public UI
         //-------------------------------------------------------------------------------
         // Simple API part
         //-------------------------------------------------------------------------------
-        int getParamsCount() { return fNumParameters; }
-        
+        int getParamsCount() { return fItems.size(); }
+       
         int getParamIndex(const char* path)
         {
-            if (fPathMap.find(path) != fPathMap.end()) {
-                return fPathMap[path];
-            } else if (fLabelMap.find(path) != fLabelMap.end()) {
-                return fLabelMap[path];
-            } else {
-                return -1;
+            auto it1 = find_if(fItems.begin(), fItems.end(), [=](const Item& it) { return it.fPath == std::string(path); });
+            if (it1 != fItems.end()) {
+                return it1 - fItems.begin();
             }
+        
+            auto it2 = find_if(fItems.begin(), fItems.end(), [=](const Item& it) { return it.fLabel == std::string(path); });
+            if (it2 != fItems.end()) {
+                return it2 - fItems.begin();
+            }
+        
+            return -1;
         }
-        const char* getParamAddress(int p) { return fPaths[p].c_str(); }
-        const char* getParamLabel(int p) { return fLabels[p].c_str(); }
+        const char* getParamAddress(int p) { return fItems[p].fPath.c_str(); }
+        const char* getParamLabel(int p) { return fItems[p].fLabel.c_str(); }
         std::map<const char*, const char*> getMetadata(int p)
         {
             std::map<const char*, const char*> res;
@@ -371,32 +371,32 @@ class APIUI : public PathBuilder, public Meta, public UI
         {
             return (fMetaData[p].find(key) != fMetaData[p].end()) ? fMetaData[p][key].c_str() : "";
         }
-        FAUSTFLOAT getParamMin(int p) { return fMin[p]; }
-        FAUSTFLOAT getParamMax(int p) { return fMax[p]; }
-        FAUSTFLOAT getParamStep(int p) { return fStep[p]; }
-        FAUSTFLOAT getParamInit(int p) { return fInit[p]; }
+        FAUSTFLOAT getParamMin(int p) { return fItems[p].fMin; }
+        FAUSTFLOAT getParamMax(int p) { return fItems[p].fMax; }
+        FAUSTFLOAT getParamStep(int p) { return fItems[p].fStep; }
+        FAUSTFLOAT getParamInit(int p) { return fItems[p].fInit; }
         
-        FAUSTFLOAT* getParamZone(int p) { return fZone[p]; }
+        FAUSTFLOAT* getParamZone(int p) { return fItems[p].fZone; }
         
-        FAUSTFLOAT getParamValue(int p) { return *fZone[p]; }
+        FAUSTFLOAT getParamValue(int p) { return *fItems[p].fZone; }
         FAUSTFLOAT getParamValue(const char* path)
         {
             int index = getParamIndex(path);
             return (index >= 0) ? getParamValue(index) : FAUSTFLOAT(0);
         }
         
-        void setParamValue(int p, FAUSTFLOAT v) { *fZone[p] = v; }
+        void setParamValue(int p, FAUSTFLOAT v) { *fItems[p].fZone = v; }
         void setParamValue(const char* path, FAUSTFLOAT v)
         {
             int index = getParamIndex(path);
             if (index >= 0) setParamValue(index, v);
         }
         
-        double getParamRatio(int p) { return fConversion[p]->faust2ui(*fZone[p]); }
-        void setParamRatio(int p, double r) { *fZone[p] = fConversion[p]->ui2faust(r); }
+        double getParamRatio(int p) { return fItems[p].fConversion->faust2ui(*fItems[p].fZone); }
+        void setParamRatio(int p, double r) { *fItems[p].fZone = fItems[p].fConversion->ui2faust(r); }
         
-        double value2ratio(int p, double r)    { return fConversion[p]->faust2ui(r); }
-        double ratio2value(int p, double r)    { return fConversion[p]->ui2faust(r); }
+        double value2ratio(int p, double r)    { return fItems[p].fConversion->faust2ui(r); }
+        double ratio2value(int p, double r)    { return fItems[p].fConversion->ui2faust(r); }
         
         /**
          * Return the control type (kAcc, kGyr, or -1) for a given parameter
@@ -430,7 +430,7 @@ class APIUI : public PathBuilder, public Meta, public UI
          */
         ItemType getParamItemType(int p)
         {
-            return fItemType[p];
+            return fItems[p].fItemType;
         }
         
         /**
