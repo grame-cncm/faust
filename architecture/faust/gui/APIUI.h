@@ -36,6 +36,8 @@
 #include "faust/gui/PathBuilder.h"
 #include "faust/gui/ValueConverter.h"
 
+typedef unsigned int uint;
+
 class APIUI : public PathBuilder, public Meta, public UI
 {
     public:
