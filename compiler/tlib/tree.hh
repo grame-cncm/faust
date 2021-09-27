@@ -61,7 +61,7 @@
  *
  * <b>Properties:</b>
  *
- * If p and q are two CTree pointers  :
+ * If p and q are two CTree pointers :
  * 		p != q  <=>  *p != *q
  *
  **/

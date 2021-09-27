@@ -134,7 +134,7 @@ static string type2str(int type)
 }
 
 // if t has a node of type symbol, return its name otherwise error
-ostream &boxpp::print(ostream &fout) const
+ostream& boxpp::print(ostream &fout) const
 {
     int    i, id;
     double r;
@@ -148,9 +148,9 @@ ostream &boxpp::print(ostream &fout) const
     Tree t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg, body, fun, args, abstr, genv, vis, lenv,
         ldef, slot, ident, rules, chan, ins, outs, lroutes;
 
-    const char *str;
+    const char* str;
 
-    xtended *xt = (xtended *)getUserData(box);
+    xtended* xt = (xtended*)getUserData(box);
 
     // primitive elements
     if (xt)
@@ -375,9 +375,9 @@ ostream &boxpp::print(ostream &fout) const
      Environment printing
 *****************************************************************************/
 
-ostream &envpp::print(ostream &fout) const
+ostream& envpp::print(ostream& fout) const
 {
-    const char *sep = "";
+    const char* sep = "";
     Tree        l   = fEnv;
 
     fout << '{';

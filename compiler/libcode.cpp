@@ -977,18 +977,19 @@ static void printHelp()
     cout << tab
          << "-ns <name> --namespace <name>           generate C++ or D code in a namespace <name>." << endl;
 
+    cout << tab << "-vhdl      --vhdl                       output vhdl file." << endl;
+    
     cout << tab
-         << "-wi <n> --widening-iterations <n>       number of iterations before widening in signal bounding"
+         << "-wi <n>    --widening-iterations <n>    number of iterations before widening in signal bounding."
          << endl;
 
     cout << tab
-         << "-ni <n> --narrowing-iterations <n>          number of iterations before stopping narrowing in signal bounding"
+         << "-ni <n>    --narrowing-iterations <n>   number of iterations before stopping narrowing in signal bounding."
          << endl;
 
     cout << endl << "Block diagram options:" << line;
     cout << tab << "-ps        --postscript                 print block-diagram to a postscript file." << endl;
     cout << tab << "-svg       --svg                        print block-diagram to a svg file." << endl;
-    cout << tab << "-vhdl      --vhdl                       output vhdl file." << endl;
     cout << tab << "-sd        --simplify-diagrams          try to further simplify diagrams before drawing." << endl;
     cout << tab << "-drf       --draw-route-frame           draw route frames instead of simple cables." << endl;
     cout << tab

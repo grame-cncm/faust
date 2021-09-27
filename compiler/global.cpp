@@ -183,7 +183,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gFastMathLib          = "default";
     gNameSpace            = "";
 
-    gNarrowingLimit   = 0;
+    gNarrowingLimit = 0;
     gWideningLimit = 0;
 
     // Fastmath mapping float version

@@ -28,7 +28,7 @@
 #endif
 
 /**
- * Set the order of a loop and place it to appropriate set
+ * Set the order of a loop and place it to appropriate set.
  */
 static void setOrder(Loop* l, int order, lgraph& V)
 {
@@ -42,7 +42,7 @@ static void setOrder(Loop* l, int order, lgraph& V)
 }
 
 /**
- * Set the order of T1's loops and collect there sons into T2
+ * Set the order of T1's loops and collect there sons into T2.
  */
 static void setLevel(int order, const lset& T1, lset& T2, lgraph& V)
 {

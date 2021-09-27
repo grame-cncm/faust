@@ -26,7 +26,7 @@
 using namespace std;
 
 /**
- * Print a list of lines
+ * Print a list of lines.
  * @param n number of tabs of indentation
  * @param lines list of lines to be printed
  * @param fout output stream
@@ -71,7 +71,7 @@ static void printlines(int n, list<Statement>& lines, ostream& fout)
 }
 
 /**
- * Create a recursive loop
+ * Create a recursive loop.
  * @param recsymbol the recursive symbol defined in this loop
  * @param encl the enclosing loop
  * @param size the number of iterations of the loop
@@ -89,7 +89,7 @@ Loop::Loop(Tree recsymbol, Loop* encl, const string& size)
 }
 
 /**
- * Create a non recursive loop
+ * Create a non recursive loop.
  * @param encl the enclosing loop
  * @param size the number of iterations of the loop
  */
@@ -138,7 +138,7 @@ void Loop::addPreCode(const Statement& stmt)
 }
 
 /**
- * Add a line of exec code
+ * Add a line of exec code.
  */
 void Loop::addExecCode(const Statement& stmt)
 {
@@ -147,7 +147,7 @@ void Loop::addExecCode(const Statement& stmt)
 }
 
 /**
- * Add a line of post exec code (end of the loop)
+ * Add a line of post exec code (end of the loop).
  */
 void Loop::addPostCode(const Statement& stmt)
 {
@@ -234,7 +234,7 @@ void Loop::println(int n, ostream& fout)
 }
 
 /**
- * Print a parallel loop (unless it is empty). Should be called only for loop
+ * Print a parallel loop (unless it is empty). Should be called only for loop.
  * without pre and post processing
  * @param n number of tabs of indentation
  * @param fout output stream
@@ -292,7 +292,7 @@ void Loop::printParLoopln(int n, ostream& fout)
 }
 
 /**
- * Print a single loop (unless it is empty)
+ * Print a single loop (unless it is empty).
  * @param n number of tabs of indentation
  * @param fout output stream
  */

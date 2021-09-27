@@ -34,7 +34,7 @@ static Tree calcsubstitute(Tree t, int level, Tree id);
 static Tree liftn(Tree t, int threshold);
 static Tree calcliftn(Tree t, int threshold);
 
-// Tree	NOVAR		= tree("NOVAR");
+// Tree	NOVAR = tree("NOVAR");
 
 //-----------------------------------------------------------------------------------------
 // rec, isRec : declare recursive trees

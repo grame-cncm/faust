@@ -142,7 +142,7 @@ const mterm& mterm::operator*=(Tree t)
     int  op, n;
     Tree x, y;
 
-    faustassert(t != 0);
+    faustassert(t);
 
     if (isNum(t)) {
         fCoef = mulNums(fCoef, t);
@@ -175,7 +175,7 @@ const mterm& mterm::operator/=(Tree t)
     int  op, n;
     Tree x, y;
 
-    faustassert(t != 0);
+    faustassert(t);
 
     if (isNum(t)) {
         if (isZero(t)) {

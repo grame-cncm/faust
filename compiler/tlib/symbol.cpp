@@ -32,7 +32,7 @@
 using namespace std;
 
 /**
- * Hash table used to store the symbols
+ * Hash table used to store the symbols.
  */
 
 Symbol* Symbol::gSymbolTable[kHashTableSize];
@@ -91,7 +91,7 @@ bool Symbol::isnew(const char* str)
 }
 
 /**
- * Creates a new symbol with a name obtained by concatenating the \p str prefix with a number in order to make it unique
+ * Creates a new symbol with a name obtained by concatenating the \p str prefix with a number in order to make it unique.
  * \param str the prefix of the name
  * \return a symbol of name \p prefix++n
  */
@@ -124,7 +124,7 @@ bool Symbol::equiv(unsigned int hash, const char* str) const
 }
 
 /**
- * Compute the 32-bits hash key of string \p str
+ * Compute the 32-bits hash key of string \p str.
  * \param str the string
  * \return a 32-bits hash key
  */

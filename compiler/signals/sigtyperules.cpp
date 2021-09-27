@@ -719,8 +719,7 @@ static Type infereReadTableType(Type tbl, Type ri)
         error << "ERROR inferring read table type, wrong write index type : " << ri << endl;
         throw faustexception(error.str());
     }
-    Type temp = makeSimpleType(tbl->nature(), ri->variability(), kInit | ri->computability(), ri->vectorability(),
-                               tbl->boolean(), tbl->getInterval());
+    Type temp = makeSimpleType(tbl->nature(), ri->variability(), kInit | ri->computability(), ri->vectorability(), tbl->boolean(), tbl->getInterval());
 
     return temp;
 }
@@ -740,8 +739,7 @@ static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig)
                     ->promoteComputability(widx->computability() | wsig->computability())
                     ->promoteVectorability(kScal)      // difficult to tell, therefore kScal to be safe
                     ->promoteNature(wsig->nature())    // nature of the initial and written signal
-                    ->promoteBoolean(wsig->boolean())  // booleanity of the initial and written signal
-        ;
+                    ->promoteBoolean(wsig->boolean()); // booleanity of the initial and written signal
     return temp;
 }
 
