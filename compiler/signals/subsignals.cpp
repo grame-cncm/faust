@@ -230,7 +230,7 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
         vsigs.push_back(y);
         vsigs.push_back(z);
         return 3;
-    } else if (isSigHighest(sig, x) || isSigLowest(sig, x)){
+    } else if (isSigHighest(sig, x) || isSigLowest(sig, x)) {
         vsigs.push_back(x);
         return 1;
     }

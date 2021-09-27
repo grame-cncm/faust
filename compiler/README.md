@@ -1,4 +1,4 @@
-% man(1) Version 2.35.0 (13-September-2021) | Faust man page
+% man(1) Version 2.36.0 (27-September-2021) | Faust man page
 
 NAME
 ====
@@ -132,6 +132,8 @@ Code generation options:
 
   **-ns** \<name> **--namespace** \<name>           generate C++ or D code in a namespace \<name>.
 
+  **-wi** \<n> **--widening-iterations** \<n>       number of iterations before widening in signal bounding
+  **-ni** \<n> **--narrowing-iterations** \<n>          number of iterations before stopping narrowing in signal bounding
 
 Block diagram options:
 ---------------------------------------

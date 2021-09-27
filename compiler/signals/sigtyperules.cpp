@@ -311,12 +311,12 @@ static Type getSigType(Tree sig)
  * @return the *t as a TupletType
  */
 
-::TupletType derefRecCert(Type t){
+::TupletType derefRecCert(Type t)
+{
     TupletType* p = isTupletType(t);
     faustassert(p);
     return *p;
 }
-
 
 /**************************************************************************
 
@@ -762,7 +762,6 @@ static TupletType* initialRecType(Tree t)
     faustassert(isList(t));
     return new TupletType(vector<Type>(len(t), gGlobal->TREC));
 }
-
 
 /**
  * Compute a maximal type solution for a recursive block
