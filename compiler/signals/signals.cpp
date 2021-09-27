@@ -233,6 +233,36 @@ bool isSigSelect3(Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)
     return isTree(t, gGlobal->SIGSELECT3, selector, s1, s2, s3);
 }
 
+Tree sigAssertBounds(Tree s1, Tree s2, Tree s3)
+{
+    return tree(gGlobal->SIGASSERTBOUNDS, s1, s2, s3);
+}
+
+bool isSigAssertBounds(Tree t, Tree& s1, Tree& s2, Tree& s3)
+{
+    return isTree(t, gGlobal->SIGASSERTBOUNDS, s1, s2, s3);
+}
+
+Tree sigHighest(Tree s)
+{
+    return tree(gGlobal->SIGHIGHEST, s);
+}
+
+bool isSigHighest(Tree t, Tree& s)
+{
+    return isTree(t, gGlobal->SIGHIGHEST, s);
+}
+
+Tree sigLowest(Tree s)
+{
+    return tree(gGlobal->SIGLOWEST, s);
+}
+
+bool isSigLowest(Tree t, Tree& s)
+{
+    return isTree(t, gGlobal->SIGLOWEST, s);
+}
+
 // Arithmetical operations
 
 Tree sigBinOp(int op, Tree x, Tree y)

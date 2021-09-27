@@ -224,8 +224,17 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
         return 2;
     } else if (isNil(sig)) {
         return 0;
-    }
 
+    } else if (isSigAssertBounds(sig, x, y, z)) {
+        vsigs.push_back(x);
+        vsigs.push_back(y);
+        vsigs.push_back(z);
+        return 3;
+    } else if (isSigHighest(sig, x) || isSigLowest(sig, x)){
+        vsigs.push_back(x);
+        return 1;
+    }
+    
     else {
         stringstream error;
         error << "ERROR : getSubSignals unrecognized signal : " << *sig << endl;

@@ -337,6 +337,14 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gOutputFile = argv[i + 1];
             i += 2;
 
+        } else if (isCmd(argv[i], "-wi", "--widening-iterations") && (i + 1 < argc)) {
+            gGlobal->gWideningLimit = std::atoi(argv[i+1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-ni", "--narrowing-iterations") && (i + 1 < argc)){
+            gGlobal->gNarrowingLimit = std::atoi(argv[i+1]);
+            i += 2;
+
         } else if (isCmd(argv[i], "-ps", "--postscript")) {
             gGlobal->gDrawPSSwitch = true;
             i += 1;
@@ -964,9 +972,19 @@ static void printHelp()
             "<file>, use 'faust/dsp/fastmath.cpp' when file is 'def'."
          << endl;
     cout << tab
-         << "-mapp      --math-approximation         simpler/faster versions of 'floor/ceil/fmod/remainder' functions."
+
+         << "-mapp      --math-approximation         simpler/faster versions of 'floor/ceil/fmod/remainder' functions." << endl;
+    cout << tab
+         << "-ns <name> --namespace <name>           generate C++ or D code in a namespace <name>." << endl;
+
+    cout << tab
+         << "-wi <n> --widening-iterations <n>       number of iterations before widening in signal bounding"
          << endl;
-    cout << tab << "-ns <name> --namespace <name>           generate C++ or D code in a namespace <name>." << endl;
+
+    cout << tab
+         << "-ni <n> --narrowing-iterations <n>          number of iterations before stopping narrowing in signal bounding"
+         << endl;
+
     cout << endl << "Block diagram options:" << line;
     cout << tab << "-ps        --postscript                 print block-diagram to a postscript file." << endl;
     cout << tab << "-svg       --svg                        print block-diagram to a svg file." << endl;

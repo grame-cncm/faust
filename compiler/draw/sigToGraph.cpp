@@ -36,7 +36,7 @@
 
 using namespace std;
 
-static void   recdraw(Tree sig, set<Tree>& drawn, ofstream& fout);
+static void   recdraw(Tree sig, set<Tree>& drawn, ostream& fout);
 static string nodeattr(Type t);
 static string edgeattr(Type t);
 static string sigLabel(Tree sig);
@@ -44,7 +44,7 @@ static string sigLabel(Tree sig);
 /**
  * Draw a list of signals as a directed graph using graphviz's dot language
  */
-void sigToGraph(Tree L, ofstream& fout)
+void sigToGraph(Tree L, ostream& fout)
 {
     set<Tree> alreadyDrawn;
 
@@ -68,7 +68,7 @@ void sigToGraph(Tree L, ofstream& fout)
 /**
  * Draw recursively a signal
  */
-static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout)
+static void recdraw(Tree sig, set<Tree>& drawn, ostream& fout)
 {
     // cerr << ++gGlobal->TABBER << "ENTER REC DRAW OF " << sig << "$" << *sig << endl;
     vector<Tree> subsig;
@@ -278,9 +278,21 @@ static string sigLabel(Tree sig)
         fout << "attach";
     }
 
+    else if (isSigAssertBounds(sig, x, y, z)){
+        fout << "assertbounds";
+    }
+
+    else if (isSigLowest(sig, x)){
+        fout << "lowest";
+    }
+    
+    else if (isSigHighest(sig, x)){
+        fout << "highest";
+    }
+
     else {
         stringstream error;
-        error << "ERROR : unrecognized signal : " << *sig << endl;
+        error << "ERROR : sigToGraph.cpp, unrecognized signal : " << *sig << endl;
         throw faustexception(error.str());
     }
 

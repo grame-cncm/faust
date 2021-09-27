@@ -80,6 +80,8 @@ struct interval : public virtual Garbageable {
         }
     }
 
+    bool isvalid() { return valid; }
+    bool isbounded() { return !(isinf(lo) || isinf(hi)); }
     bool isempty() { return hi < lo; }
     bool isconst() { return valid && (lo == hi); }
     bool ispowerof2()
@@ -94,6 +96,11 @@ struct interval : public virtual Garbageable {
     }
     bool haszero() { return (lo <= 0) && (0 <= hi); }
 
+    // convention, the invalid interval contains everyone 
+    bool contains(interval j)
+    {
+        return !valid || (lo <= j.lo && hi >= j.hi);
+    }
     
     /**
      * @brief Pretty print an interval (string version)
@@ -104,9 +111,9 @@ struct interval : public virtual Garbageable {
     {
         string sout = ("[");
         if (valid) {
-            sout += to_string(lo);
+            sout += (lo > -HUGE_VAL)?to_string(lo):"-inf";
             sout += ", ";
-            sout += to_string(hi);
+            sout += (hi < HUGE_VAL)?to_string(hi):"inf";
         } else {
             sout += "???";
         }
