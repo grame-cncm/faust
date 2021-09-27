@@ -799,6 +799,12 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
             throw faustexception("ERROR : 'control/enable' can only be used in scalar mode\n");
         }
         return generateControl(sig, x, y);
+        
+    } else if (isSigAssertBounds(sig, x, y, z)) {
+        /* no debug option for the moment */
+        return generateCode(z);
+    } else if (isSigLowest(sig, x) || isSigHighest(sig, x)) {
+        throw faustexception("ERROR : annotations should have been deleted in Simplification process\n");
     } else {
         stringstream error;
         error << "ERROR when compiling, unrecognized signal : " << ppsig(sig) << endl;
