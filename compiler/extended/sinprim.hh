@@ -39,8 +39,6 @@ class SinPrim : public xtended {
         return castInterval(floatCast(args[0]), interval(-1, 1));
     }
 
-    virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
-
     virtual int infereSigOrder(const vector<int>& args) { return args[0]; }
 
     virtual Tree computeSigOutput(const vector<Tree>& args)

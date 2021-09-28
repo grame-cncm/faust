@@ -32,7 +32,7 @@
  * @return the number of subsignals
  */
 
-int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
+int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
 {
     vsigs.clear();
 

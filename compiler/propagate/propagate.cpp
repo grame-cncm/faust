@@ -36,7 +36,7 @@
 /**
  * propagate : box listOfSignal-> listOfSignal'
  *
- * Propage a list of signals into a box expression representing a
+ * Propagate a list of signals into a box expression representing a
  * signal processor
  */
 ///////////////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ static siglist mix(const siglist& lsig, int nbus)
     return dst;
 }
 
-//! split a  list of signals on n bus
+//! split a list of signals on n bus
 static siglist split(const siglist& inputs, int nbus)
 {
     int nlines = (int)inputs.size();
@@ -118,19 +118,7 @@ static siglist listConcat(const siglist& a, const siglist& b)
 }
 
 /**
- * Convert an stl list of signals into a tree list of signals
- */
-static Tree listConvert(const siglist& a)
-{
-    int  n = (int)a.size();
-    Tree t = gGlobal->nil;
-
-    while (n--) t = cons(a[n], t);
-    return t;
-}
-
-/**
- * Convert a tree list of signals into an stl list of signals
+ * Convert a tree list of signals into an stl vector of signals
  */
 static void treelist2siglist(Tree l, siglist& r)
 {
@@ -215,7 +203,7 @@ static siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
 static siglist wrapWithFTZ(const siglist& l1)
 {
     siglist l2;
-    for (auto x : l1) {
+    for (const auto& x : l1) {
         l2.push_back(sigFTZ(x));
     }
     return l2;
@@ -424,7 +412,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         Tree slider = sigVSlider(normalizePath(cons(label, path)), cur, min, max, step);
         // Possibly limit the value in [min..max]
         if (gGlobal->gRangeUI) {
-            return makeList(tree(gGlobal->gMaxPrim->symbol(), min, tree(gGlobal->gMinPrim->symbol(), max, slider)));
+            return makeList(sigMax(min, sigMin(max, slider)));
         } else {
             return makeList(slider);
         }
@@ -435,7 +423,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         Tree slider = sigHSlider(normalizePath(cons(label, path)), cur, min, max, step);
         // Possibly limit the value in [min..max]
         if (gGlobal->gRangeUI) {
-            return makeList(tree(gGlobal->gMaxPrim->symbol(), min, tree(gGlobal->gMinPrim->symbol(), max, slider)));
+            return makeList(sigMax(min, sigMin(max, slider)));
         } else {
             return makeList(slider);
         }
@@ -446,7 +434,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         Tree nentry = sigNumEntry(normalizePath(cons(label, path)), cur, min, max, step);
         // Possibly limit the value in [min..max]
         if (gGlobal->gRangeUI) {
-            return makeList(tree(gGlobal->gMaxPrim->symbol(), min, tree(gGlobal->gMinPrim->symbol(), max, nentry)));
+            return makeList(sigMax(min, sigMin(max, nentry)));
         } else {
             return makeList(nentry);
         }
@@ -472,8 +460,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         lsig2[1] = sigSoundfileRate(soundfile, part);
 
         // compute bound limited read index : int(max(0, min(ridx,length-1)))
-        Tree ridx = sigIntCast(tree(gGlobal->gMaxPrim->symbol(), sigInt(0),
-                                    tree(gGlobal->gMinPrim->symbol(), lsig[1], sigAdd(lsig2[0], sigInt(-1)))));
+        Tree ridx = sigIntCast(sigMax(sigInt(0), sigMin(lsig[1], sigAdd(lsig2[0], sigInt(-1)))));
         for (int i1 = 0; i1 < c; i1++) {
             lsig2[i1 + 2] = sigSoundfileBuffer(soundfile, sigInt(i1), part, ridx);
         }
@@ -562,13 +549,13 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         siglist ol(out1);  // output list
         int     p = 0;     // projection number
 
-        for (auto exp : l3) {
+        for (const auto& exp : l3) {
             if (exp->aperture() > 0) {
                 // it is a regular recursive expression branch
                 ol[p] = sigDelay0(sigProj(p, g));
             } else {
                 // this expression is a closed term,
-                // it don't need to be inside this recursion group.
+                // it doesn't need to be inside this recursion group.
                 // cerr << "degenerate recursion " << exp << endl;
                 ol[p] = exp;
             }
@@ -623,7 +610,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 }
 
 // Public Interface
-//----------------------
+//------------------
 
 //! build a list of n inputs
 siglist makeSigInputList(int n)

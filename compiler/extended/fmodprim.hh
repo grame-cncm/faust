@@ -47,8 +47,6 @@ class FmodPrim : public xtended {
         return castInterval(floatCast(args[0] | args[1]), fmod(i, j));
     }
 
-    virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
-
     virtual int infereSigOrder(const vector<int>& args)
     {
         faustassert(args.size() == arity());

@@ -356,6 +356,7 @@ struct global {
     property<Tree>* gSymListProp;
 
     Sym SIGINPUT;
+    int gMaxInputs;  // Max input allocated with sigInput;
     Sym SIGOUTPUT;
     Sym SIGDELAY1;
     Sym SIGFIXDELAY;
@@ -532,6 +533,7 @@ struct global {
     bool   gDrawSVGSwitch;
     bool   gVHDLSwitch;
     bool   gVHDLTrace;
+    bool   gElementarySwitch;
     bool   gPrintXMLSwitch;
     bool   gPrintJSONSwitch;
     bool   gPrintDocSwitch;

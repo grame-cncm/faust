@@ -43,8 +43,6 @@ class PowPrim : public xtended {
         return castInterval(args[0] | args[1], pow(i, j));
     }
 
-    virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
-
     virtual int infereSigOrder(const vector<int>& args)
     {
         faustassert(args.size() == arity());

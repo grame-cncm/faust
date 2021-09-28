@@ -55,7 +55,11 @@ faust-osc-controller: faust-osc-controller.cpp
 	$(CXX) $(COMPILEOPT) faust-osc-controller.cpp -I $(INC) `pkg-config --cflags --libs gtk+-2.0` $(STRIP) $(LIB)/libOSCFaust.a -llo -o $@
 
 interp-tracer: interp-tracer.cpp $(LIB)/libfaust.a
-	$(CXX) $(COMPILEOPT) interp-tracer.cpp $(LIBS) -I $(INC)  $(LLVM) `pkg-config --cflags --libs gtk+-2.0` $(STRIP) -lz -lncurses -lpthread -o $@
+	$(CXX) $(COMPILEOPT) interp-tracer.cpp $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs gtk+-2.0` $(STRIP) -lz -lncurses -lpthread -o $@
+
+signal-tester: signal-tester.cpp $(LIB)/libfaust.a
+	$(CXX) $(COMPILEOPT) signal-tester.cpp $(LIBS) -I $(INC) $(LLVM) $(STRIP) -lz -lncurses -lpthread -o $@
+
 
 layout-ui: layout-ui.cpp
 	$(CXX) $(COMPILEOPT) layout-ui.cpp -I $(INC) $(LIBS)  $(LLVM) -o $@

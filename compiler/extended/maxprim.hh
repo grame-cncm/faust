@@ -42,8 +42,6 @@ class MaxPrim : public xtended {
         return castInterval(types[0] | types[1], max(i, j));
     }
 
-    virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
-
     virtual int infereSigOrder(const vector<int>& args)
     {
         faustassert(args.size() == arity());

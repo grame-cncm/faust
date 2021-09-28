@@ -79,6 +79,8 @@ bool isSigReal(Tree t, double* r)
 
 Tree sigInput(int i)
 {
+    // Keep the max input number
+    gGlobal->gMaxInputs = std::max(gGlobal->gMaxInputs, i+1);
     return tree(gGlobal->SIGINPUT, tree(i));
 }
 bool isSigInput(Tree t, int* i)
@@ -491,6 +493,126 @@ bool isSigNumEntry(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& ste
     }
 }
 
+// Extended math functions
+static Tree sigExtended1(Tree sig, Tree x)
+{
+    tvec args;
+    args.push_back(x);
+    return ((xtended*)getUserData(sig))->computeSigOutput(args);
+}
+
+static Tree sigExtended2(Tree sig, Tree x, Tree y)
+{
+    tvec args;
+    args.push_back(x);
+    args.push_back(y);
+    return ((xtended*)getUserData(sig))->computeSigOutput(args);
+}
+
+Tree sigAbs(Tree x)
+{
+    return sigExtended1(gGlobal->gAbsPrim->box(), x);
+}
+
+Tree sigAcos(Tree x)
+{
+    return sigExtended1(gGlobal->gAcosPrim->box(), x);
+}
+
+Tree sigTan(Tree x)
+{
+    return sigExtended1(gGlobal->gTanPrim->box(), x);
+}
+
+Tree sigSqrt(Tree x)
+{
+    return sigExtended1(gGlobal->gSqrtPrim->box(), x);
+}
+
+Tree sigSin(Tree x)
+{
+    return sigExtended1(gGlobal->gSinPrim->box(), x);
+}
+
+Tree sigRint(Tree x)
+{
+    return sigExtended1(gGlobal->gRintPrim->box(), x);
+}
+
+Tree sigRemainder(Tree x, Tree y)
+{
+    return sigExtended2(gGlobal->gRemainderPrim->box(), x, y);
+}
+
+Tree sigPow(Tree x, Tree y)
+{
+    return sigExtended2(gGlobal->gPowPrim->box(), x, y);
+}
+
+Tree sigMin(Tree x, Tree y)
+{
+    return sigExtended2(gGlobal->gMinPrim->box(), x, y);
+}
+
+Tree sigMax(Tree x, Tree y)
+{
+    return sigExtended2(gGlobal->gMaxPrim->box(), x, y);
+}
+
+Tree sigLog(Tree x)
+{
+    return sigExtended1(gGlobal->gLogPrim->box(), x);
+}
+
+Tree sigLog10(Tree x)
+{
+    return sigExtended1(gGlobal->gLog10Prim->box(), x);
+}
+
+Tree sigFmod(Tree x, Tree y)
+{
+    return sigExtended2(gGlobal->gFmodPrim->box(), x, y);
+}
+
+Tree sigFloor(Tree x)
+{
+    return sigExtended1(gGlobal->gFloorPrim->box(), x);
+}
+
+Tree sigExp(Tree x)
+{
+    return sigExtended1(gGlobal->gExpPrim->box(), x);
+}
+
+Tree sigExp10(Tree x)
+{
+    return sigExtended1(gGlobal->gExp10Prim->box(), x);
+}
+
+Tree sigCos(Tree x)
+{
+    return sigExtended1(gGlobal->gCosPrim->box(), x);
+}
+
+Tree sigCeil(Tree x)
+{
+    return sigExtended1(gGlobal->gCeilPrim->box(), x);
+}
+
+Tree sigAtan(Tree x)
+{
+    return sigExtended1(gGlobal->gAtanPrim->box(), x);
+}
+
+Tree sigAtan2(Tree x, Tree y)
+{
+    return sigExtended2(gGlobal->gAtan2Prim->box(), x, y);
+}
+
+Tree sigASin(Tree x)
+{
+    return sigExtended1(gGlobal->gAsinPrim->box(), x);
+}
 // output elements
 
 Tree sigHBargraph(Tree lbl, Tree min, Tree max, Tree x)
@@ -628,10 +750,10 @@ bool isSigDiv(Tree a, Tree& x, Tree& y)
 }
 
 /*****************************************************************************
-                             Sounfiles
+                             Soundfiles
 *****************************************************************************/
 /*
- A boxSounfile(label,c) has 2 inputs and c+3 outputs:
+ A boxSoundfile(label,c) has 2 inputs and c+3 outputs:
  0   sigSoundfileLength(label, part):  the number of frames of the soundfile part (NK)
  1   sigSoundfileRate(label, part): the sampling rate encoded in the file (NK)
  2   sigSoundfileBuffer(label, c, part, ridx): the cth channel content (RK ou RS)
@@ -767,4 +889,16 @@ bool sigList2vecInt(Tree ls, vector<int>& v)
         }
     }
     return true;
+}
+
+/**
+ * Convert an stl vector of signals into a tree list of signals
+ */
+Tree listConvert(const siglist& a)
+{
+    int  n = (int)a.size();
+    Tree t = gGlobal->nil;
+    
+    while (n--) t = cons(a[n], t);
+    return t;
 }

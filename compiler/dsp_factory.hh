@@ -173,7 +173,7 @@ class text_dsp_factory_aux : public dsp_factory_imp {
 
 // Backend API implemented in libcode.cpp
 
-dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* name, const char* input,
+dsp_factory_base* compileFactory(int argc, const char* argv[], const char* name, const char* input,
                                       std::string& error_msg, bool generate);
 
 std::string expandDSP(int argc, const char* argv[], const char* name, const char* input, std::string& sha_key,

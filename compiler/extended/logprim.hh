@@ -44,8 +44,6 @@ class LogPrim : public xtended {
         }
     }
 
-    virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
-
     virtual int infereSigOrder(const vector<int>& args)
     {
         faustassert(args.size() == arity());

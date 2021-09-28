@@ -43,8 +43,6 @@
 
 #include "garbageable.hh"
 
-using namespace std;
-
 //--------------------------------SYMBOL-------------------------------------
 
 /**
@@ -54,18 +52,18 @@ class Symbol : public virtual Garbageable {
    private:
     static const int kHashTableSize = 511;          ///< Size of the hash table (a prime number is recommended)
     static Symbol*   gSymbolTable[kHashTableSize];  ///< Hash table used to store the symbols
-    static map<const char*, unsigned int> gPrefixCounters;
+    static std::map<const char*, unsigned int> gPrefixCounters;
 
     // Fields
-    string       fName;  ///< Name of the symbol
+    std::string  fName;  ///< Name of the symbol
     unsigned int fHash;  ///< Hash key computed from the name and used to determine the hash table entry
     Symbol*      fNext;  ///< Next symbol in the hash table entry
     void*        fData;  ///< Field to user disposal to store additional data
 
     // Constructors & destructors
-    Symbol(const string&, unsigned int hsh,
+    Symbol(const std::string&, unsigned int hsh,
            Symbol* nxt);  ///< Constructs a new symbol ready to be placed in the hash table
-    ~Symbol();            ///< The Destructor is never used
+    ~Symbol();            ///< The destructor is never used
 
     // Others
     bool                equiv(unsigned int hash,
@@ -73,16 +71,16 @@ class Symbol : public virtual Garbageable {
     static unsigned int calcHashKey(const char* str);  ///< Compute the 32-bits hash key of string \p str
 
     // Static methods
-    static Symbol* get(const string& str);   ///< Get the symbol of name \p str
-    static Symbol* get(const char* str);     ///< Get the symbol of name \p str
-    static Symbol* prefix(const char* str);  ///< Creates a new symbol of name prefixed by \p str
-    static bool    isnew(const char* str);   ///< Returns \b true if no symbol of name \p str exists
+    static Symbol* get(const std::string& str);   ///< Get the symbol of name \p str
+    static Symbol* get(const char* str);          ///< Get the symbol of name \p str
+    static Symbol* prefix(const char* str);       ///< Creates a new symbol of name prefixed by \p str
+    static bool    isnew(const char* str);        ///< Returns \b true if no symbol of name \p str exists
 
    public:
-    ostream& print(ostream& fout) const;  ///< print a symbol on a stream
+    std::ostream& print(std::ostream& fout) const;  ///< print a symbol on a stream
 
     friend Symbol*     symbol(const char* str);
-    friend Symbol*     symbol(const string& str);
+    friend Symbol*     symbol(const std::string& str);
     friend Symbol*     unique(const char* str);
     friend const char* name(Symbol* sym);
 
@@ -96,7 +94,7 @@ inline Symbol* symbol(const char* str)
 {
     return Symbol::get(str);
 }  ///< Returns (and creates if new) the symbol of name \p str
-inline Symbol* symbol(const string& str)
+inline Symbol* symbol(const std::string& str)
 {
     return Symbol::get(str);
 }  ///< Returns (and creates if new) the symbol of name \p str
@@ -118,7 +116,7 @@ inline void setUserData(Symbol* sym, void* d)
     sym->fData = d;
 }  ///< Set user data
 
-inline ostream& operator<<(ostream& s, const Symbol& n)
+inline std::ostream& operator<<(std::ostream& s, const Symbol& n)
 {
     return n.print(s);
 }

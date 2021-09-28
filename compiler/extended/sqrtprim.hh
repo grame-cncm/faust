@@ -45,13 +45,11 @@ class SqrtPrim : public xtended {
         }
     }
 
-    virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
-
     virtual int infereSigOrder(const vector<int>& args) { return args[0]; }
 
     virtual Tree computeSigOutput(const vector<Tree>& args)
     {
-        // verifier les simplifications
+        // check simplifications
         num n;
         if (isNum(args[0], n)) {
             return tree(sqrt(double(n)));

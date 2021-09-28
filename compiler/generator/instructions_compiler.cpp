@@ -38,6 +38,7 @@
 #include "sigPromotion.hh"
 #include "sigToGraph.hh"
 #include "signal2vhdlVisitor.hh"
+#include "signal2Elementary.hh"
 #include "sigprint.hh"
 #include "sigtyperules.hh"
 #include "simplify.hh"
@@ -298,15 +299,23 @@ Tree InstructionsCompiler::prepare(Tree LS)
         sigToGraph(L5, dotfile);
     }
 
-    // Generate VHDL if --vhdl option is set
+    // Generate VHDL if -vhdl option is set
     if (gGlobal->gVHDLSwitch) {
         Signal2VHDLVisitor V(fOccMarkup);
-        ofstream dotfile(subst("faust.vhd", gGlobal->makeDrawPath()).c_str());
-        V.sigToVHDL(L5, dotfile);
+        ofstream vhdl_file(subst("faust.vhd", gGlobal->makeDrawPath()).c_str());
+        V.sigToVHDL(L5, vhdl_file);
         V.trace(gGlobal->gVHDLTrace, "VHDL");  // activate with --trace option
         V.mapself(L5);
     }
 
+    // Generate Elementary code if -elm option is set
+    if (gGlobal->gElementarySwitch) {
+        Signal2Elementary V;
+        ofstream js_file(subst("$0-el.js", gGlobal->makeDrawPath()).c_str());
+        V.sig2Elementary(L5, js_file);
+        V.mapself(L5);
+    }
+    
     return L5;
 }
 

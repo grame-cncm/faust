@@ -31,7 +31,7 @@
 static Tree calcDeBruijn2Sym(Tree t);
 static Tree substitute(Tree t, int n, Tree id);
 static Tree calcsubstitute(Tree t, int level, Tree id);
-static Tree liftn(Tree t, int threshold);
+Tree liftn(Tree t, int threshold);
 static Tree calcliftn(Tree t, int threshold);
 
 // Tree	NOVAR = tree("NOVAR");
@@ -145,7 +145,7 @@ void printSignal(Tree sig, FILE* out, int prec = 0);
 #if 0
 static Tree _liftn(Tree t, int threshold);
 
-static Tree liftn(Tree t, int threshold)
+Tree liftn(Tree t, int threshold)
 {
 	fprintf(stderr, "call of liftn("); printSignal(t, stderr); fprintf(stderr, ", %d)\n", threshold);
 	Tree r = _liftn(t, threshold);
@@ -155,7 +155,7 @@ static Tree liftn(Tree t, int threshold)
 }
 #endif
 
-static Tree liftn(Tree t, int threshold)
+Tree liftn(Tree t, int threshold)
 {
     Tree L  = tree(Node(gGlobal->SYMLIFTN), tree(Node(threshold)));
     Tree t2 = t->getProperty(L);

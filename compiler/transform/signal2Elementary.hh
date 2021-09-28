@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
+    Copyright (C) 22021 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,24 +19,32 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _PROPAGATE_
-#define _PROPAGATE_
+#ifndef __SIG2ELEMENTARY__
+#define __SIG2ELEMENTARY__
 
-#include <vector>
-#include "boxes.hh"
+#include <stdlib.h>
+#include <cstdlib>
+#include <sstream>
+#include "property.hh"
+#include "sigtyperules.hh"
+#include "tree.hh"
+#include "treeTraversal.hh"
 
-////////////////////////////////////////////////////////////////////////
-/**
- * boxPropagateSig : box listOfSignal-> listOfSignal'
- *
- * Propagate a list of signals into a block-diagram. Fo example to
- * compute the list of outputs of a block-diagram with n inputs, do:
- * Tree lsig =  boxPropagateSig(box, makeSigInputList(n));
- */
-///////////////////////////////////////////////////////////////////////
+//-------------------------Signal2Elementary-------------------------------
+// Transforms signals to Elementary code
+//----------------------------------------------------------------------
 
-siglist makeSigInputList(int n);
+class Signal2Elementary : public TreeTraversal {
+    bool fVisitGen;
+    std::stringstream fOut;
 
-Tree boxPropagateSig(Tree path, Tree box, const siglist& lsig);
+   public:
+    Signal2Elementary() : fVisitGen(false) {}
+    
+    void sig2Elementary(Tree L, ofstream& fout);
+
+   protected:
+    void visit(Tree);
+};
 
 #endif

@@ -39,8 +39,6 @@ class FloorPrim : public xtended {
         return floatCast(args[0]);
     }
 
-    virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
-
     virtual int infereSigOrder(const vector<int>& args)
     {
         faustassert(args.size() == arity());

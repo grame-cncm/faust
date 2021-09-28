@@ -184,13 +184,13 @@ struct LLVMTypeHelper {
     }
 
     // Convert FIR types to LLVM types
-    LLVMType convertFIRType(Typed* type)
+    LLVMType convertFIRType(Typed* ext_type)
     {
-        BasicTyped*  basic_typed  = dynamic_cast<BasicTyped*>(type);
-        NamedTyped*  named_typed  = dynamic_cast<NamedTyped*>(type);
-        ArrayTyped*  array_typed  = dynamic_cast<ArrayTyped*>(type);
-        VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(type);
-        StructTyped* struct_typed = dynamic_cast<StructTyped*>(type);
+        BasicTyped*  basic_typed  = dynamic_cast<BasicTyped*>(ext_type);
+        NamedTyped*  named_typed  = dynamic_cast<NamedTyped*>(ext_type);
+        ArrayTyped*  array_typed  = dynamic_cast<ArrayTyped*>(ext_type);
+        VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(ext_type);
+        StructTyped* struct_typed = dynamic_cast<StructTyped*>(ext_type);
 
         if (basic_typed) {
             return fTypeMap[basic_typed->fType];

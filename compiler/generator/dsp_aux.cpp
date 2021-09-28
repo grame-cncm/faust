@@ -291,7 +291,7 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
         argv1[argc1] = nullptr;  // NULL terminated argv
 
         dsp_factory_base* factory =
-            compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, false);
+            compileFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, false);
         // Factory is no more needed
         delete factory;
         return (factory != nullptr);

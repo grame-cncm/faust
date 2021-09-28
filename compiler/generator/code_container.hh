@@ -212,11 +212,11 @@ class CodeContainer : public virtual Garbageable {
     void setInputs(int inputs) { fNumInputs = inputs; }
     void setOutputs(int outputs) { fNumOutputs = outputs; }
 
-    void setInputRate(int channel, int rate) { fInputRates[channel] = rate; }
-    void setOutputRate(int channel, int rate) { fOutputRates[channel] = rate; }
+    void setInputRate(int channel, int rate) { faustassert(channel < int(fInputRates.size())); fInputRates[channel] = rate; }
+    void setOutputRate(int channel, int rate) { faustassert(channel < int(fOutputRates.size())); fOutputRates[channel] = rate; }
 
-    int getInputRate(int channel) { return fInputRates[channel]; }
-    int getOutputRate(int channel) { return fOutputRates[channel]; }
+    int getInputRate(int channel) { faustassert(channel < int(fInputRates.size())); return fInputRates[channel]; }
+    int getOutputRate(int channel) { faustassert(channel < int(fOutputRates.size())); return fOutputRates[channel]; }
 
     void addSubContainer(CodeContainer* container) { fSubContainers.push_back(container); }
 

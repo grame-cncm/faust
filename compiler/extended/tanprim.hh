@@ -52,8 +52,6 @@ class TanPrim : public xtended {
         return castInterval(floatCast(args[0]), resultInterval);
     }
 
-    virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
-
     virtual int infereSigOrder(const vector<int>& args) { return args[0]; }
 
     virtual Tree computeSigOutput(const vector<Tree>& args)

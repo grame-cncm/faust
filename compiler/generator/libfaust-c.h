@@ -38,7 +38,6 @@ extern "C" {
  * Compute a SHA1 key from a string.
  *
  * @param data - the string to be converted in SHA1 key
- *
  * @param key - a 64 characters buffer to be filled with the computed key
  *
  */

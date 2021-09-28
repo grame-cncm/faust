@@ -65,6 +65,8 @@
 #include "sourcereader.hh"
 #include "timing.hh"
 
+#include "xtended.hh"
+
 #ifdef C_BUILD
 #include "c_code_container.hh"
 #endif
@@ -387,6 +389,10 @@ static bool processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-trace", "--trace")) {
             gGlobal->gVHDLTrace = true;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-elm", "--elementary")) {
+            gGlobal->gElementarySwitch = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-f", "--fold") && (i + 1 < argc)) {
@@ -1575,16 +1581,16 @@ static void compileWASM(Tree signals, int numInputs, int numOutputs, bool genera
     
     gGlobal->gUseDefaultSound = false;
     
-        // This speedup (freeverb for instance) ==> to be done at signal level
-        // gGlobal->gComputeIOTA = true;     // Ensure IOTA base fixed delays are computed once
+    // This speedup (freeverb for instance) ==> to be done at signal level
+    // gGlobal->gComputeIOTA = true;     // Ensure IOTA base fixed delays are computed once
     
     container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out,
                                                    ((gGlobal->gOutputLang == "wasm") || (gGlobal->gOutputLang == "wasm-i") ||
                                                     (gGlobal->gOutputLang == "wasm-ib")));
     
-        // Additional file with JS code
+    // Additional file with JS code
     if (gGlobal->gOutputFile == "binary") {
-            // Nothing
+        // Nothing
     } else if (gGlobal->gOutputFile != "") {
         string outpath_js;
         bool   res = replaceExtension(outpath, ".js", outpath_js);
@@ -1611,7 +1617,7 @@ static void compileDlang(Tree signals, int numInputs, int numOutputs, bool gener
 #endif
 }
 
-static void generateCode(Tree signals, int numInputs, int numOutputs, bool generate)
+void generateCode(Tree signals, int numInputs, int numOutputs, bool generate)
 {
     unique_ptr<ostream> dst;
     string              outpath;
@@ -1680,25 +1686,24 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                   << "\"" << gGlobal->gOutputLang << "\"" << endl;
             throw faustexception(error.str());
         }
-
+    
         // New compiler
-        if (container) {
-            if (gGlobal->gVectorSwitch) {
-                new_comp = new DAGInstructionsCompiler(container);
-            }
-#if defined(RUST_BUILD) || defined(JULIA_BUILD)
-            else if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia") {
-                new_comp = new InstructionsCompiler1(container);
-            }
-#endif
-            else {
-                new_comp = new InstructionsCompiler(container);
-            }
-
-            if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
-
-            new_comp->compileMultiSignal(signals);
+        faustassert(container);
+        
+        if (gGlobal->gVectorSwitch) {
+            new_comp = new DAGInstructionsCompiler(container);
         }
+#if defined(RUST_BUILD) || defined(JULIA_BUILD)
+        else if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia") {
+            new_comp = new InstructionsCompiler1(container);
+        }
+#endif
+        else {
+            new_comp = new InstructionsCompiler(container);
+        }
+
+        if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
+        new_comp->compileMultiSignal(signals);
     }
 
     /****************************************************************
@@ -1999,8 +2004,7 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     // Encode all libraries paths as 'declare'
     vector<string> pathnames = gGlobal->gReader.listSrcFiles();
     for (const auto& it : pathnames) {
-        out << "declare "
-            << "library_path " << '"' << it << "\";" << endl;
+        out << "declare library_path " << '"' << it << "\";" << endl;
     }
 
     printDeclareHeader(out);
@@ -2008,11 +2012,9 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     return out.str();
 }
 
-static void compileFaustFactoryAux(int argc, const char* argv[], const char* name, const char* dsp_content,
+static void compileFactoryAux(int argc, const char* argv[], const char* name, const char* dsp_content,
                                    bool generate)
 {
-    gGlobal->gPrintFileListSwitch = false;
-
     /****************************************************************
      1 - process command line
     *****************************************************************/
@@ -2140,25 +2142,43 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
     generateOutputFiles();
 }
 
+static void compileSignalFactoryAux(int argc, const char* argv[], const char* name, Tree signals, int numInputs, int numOutputs, bool generate)
+{
+    /****************************************************************
+     1 - process command line
+     *****************************************************************/
+    initFaustDirectories(argc, argv);
+    processCmdline(argc, argv);
+    initDocumentNames();
+    initFaustFloat();
+    
+    /*************************************************************************
+     5 - preparation of the signal tree and translate output signals
+     **************************************************************************/
+    
+    gGlobal->gMetaDataSet[tree("name")].insert(tree(quote(name)));
+    generateCode(signals, numInputs, numOutputs, generate);
+}
+
 // ============
 // Backend API
 // ============
 
-dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* name, const char* dsp_content,
+dsp_factory_base* compileFactory(int argc, const char* argv[], const char* name, const char* dsp_content,
                                       string& error_msg, bool generate)
 {
     gGlobal                   = nullptr;
     dsp_factory_base* factory = nullptr;
-
+    
     try {
         global::allocate();
-        compileFaustFactoryAux(argc, argv, name, dsp_content, generate);
+        compileFactoryAux(argc, argv, name, dsp_content, generate);
         error_msg = gGlobal->gErrorMsg;
         factory   = gGlobal->gDSPFactory;
     } catch (faustexception& e) {
         error_msg = e.Message();
     }
-
+    
     global::destroy();
     return factory;
 }
@@ -2168,7 +2188,7 @@ string expandDSP(int argc, const char* argv[], const char* name, const char* dsp
 {
     gGlobal    = nullptr;
     string res = "";
-
+    
     try {
         global::allocate();
         res       = expandDSPInternal(argc, argv, name, dsp_content);
@@ -2177,7 +2197,128 @@ string expandDSP(int argc, const char* argv[], const char* name, const char* dsp
     } catch (faustexception& e) {
         error_msg = e.Message();
     }
-
+    
     global::destroy();
     return res;
+}
+
+// ============
+// Signal API
+// ============
+
+EXPORT dsp_factory_base* compileDSPSignalFactory(int argc, const char* argv[],
+                                                const string& name,
+                                                tvec signals,
+                                                string& error_msg)
+{
+    dsp_factory_base* factory = nullptr;
+    
+    int         argc1 = 0;
+    const char* argv1[64];
+    argv1[argc1++] = "faust";
+    
+    // Copy arguments
+    for (int i = 0; i < argc; i++) {
+        argv1[argc1++] = argv[i];
+    }
+    argv1[argc1] = nullptr;  // NULL terminated argv
+    /*
+    for (const auto& sig : signals) {
+        printSignal(sig, stderr);
+    }
+    */
+    try {
+        compileSignalFactoryAux(argc1, argv1, name.c_str(), listConvert(signals), gGlobal->gMaxInputs, signals.size(), true);
+        error_msg = gGlobal->gErrorMsg;
+        factory   = gGlobal->gDSPFactory;
+    } catch (faustexception& e) {
+        error_msg = e.Message();
+    }
+    
+    return factory;
+}
+
+// Foreign
+
+EXPORT Tree sigFFun(Tree ff, tvec largs)
+{
+    return sigFFun(ff, listConvert(largs));
+}
+
+enum SType { kSInt, kSReal };
+
+EXPORT Tree sigFConst(SType type, const string& name, const string& file)
+{
+    return sigFConst(tree(type), tree(name), tree(file));
+}
+
+EXPORT Tree sigFVar(SType type, const string& name, const string& file)
+{
+    return sigFVar(tree(type), tree(name), tree(file));
+}
+
+// User Interface
+
+EXPORT Tree sigButton(const std::string& label)
+{
+    return sigButton(cons(tree(label), tree("root/")));
+}
+
+EXPORT Tree sigCheckbox(const std::string& label)
+{
+    return sigCheckbox(cons(tree(label), tree("root/")));
+}
+
+EXPORT Tree sigVSlider(const std::string& label, Tree cur, Tree min, Tree max, Tree step)
+{
+    return sigVSlider(cons(tree(label), tree("root/")), cur, min, max, step);
+}
+
+EXPORT Tree sigHSlider(const std::string& label, Tree cur, Tree min, Tree max, Tree step)
+{
+    return sigHSlider(cons(tree(label), tree("root/")), cur, min, max, step);
+}
+
+EXPORT Tree sigNumEntry(const std::string& label, Tree cur, Tree min, Tree max, Tree step)
+{
+    return sigNumEntry(cons(tree(label), tree("root/")), cur, min, max, step);
+}
+
+EXPORT Tree sigVBargraph(const std::string& label, Tree min, Tree max, Tree x)
+{
+    return sigVBargraph(cons(tree(label), tree("root/")), min, max, x);
+}
+
+EXPORT Tree sigHBargraph(const std::string& label, Tree min, Tree max, Tree x)
+{
+    return sigHBargraph(cons(tree(label), tree("root/")), min, max, x);
+}
+
+EXPORT Tree sigSoundfile(const std::string& label)
+{
+    return sigSoundfile(cons(tree(label), tree("root/")));
+}
+
+EXPORT Tree sigSelf()
+{
+    return sigDelay1(sigProj(0, ref(1)));
+}
+
+//Tree liftn(Tree t, int threshold);
+
+EXPORT Tree sigRecursion(Tree s)
+{
+    //return sigDelay0(sigProj(0, rec(cons(liftn(s, 0), gGlobal->nil))));
+    return sigDelay0(sigProj(0, rec(cons(s, gGlobal->nil))));
+}
+
+EXPORT void createLibContext()
+{
+    gGlobal = nullptr;
+    global::allocate();
+}
+
+EXPORT void destroyLibContext()
+{
+    global::destroy();
 }

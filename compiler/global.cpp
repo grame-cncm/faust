@@ -351,6 +351,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     FFUN        = symbol("ForeignFunction");
 
     SIGINPUT           = symbol("SigInput");
+    gMaxInputs         = 0;
     SIGOUTPUT          = symbol("SigOutput");
     SIGDELAY1          = symbol("SigDelay1");
     SIGFIXDELAY        = symbol("SigFixDelay");
@@ -450,6 +451,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gDrawSVGSwitch    = false;
     gVHDLSwitch       = false;
     gVHDLTrace        = false;
+    gElementarySwitch = false;
     gPrintXMLSwitch   = false;
     gPrintJSONSwitch  = false;
     gPrintDocSwitch   = false;

@@ -3,7 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.36.0)
+set (VERSION 2.36.1)
 macro (get_major_minor_patch version)
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\1"  VERSION_MAJOR ${version} )
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\2"  VERSION_MINOR ${version} )
@@ -307,7 +307,7 @@ install (
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 install (
-    FILES     ${SRCDIR}/generator/libfaust.h ${SRCDIR}/generator/libfaust-c.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust/dsp
+    FILES     ${SRCDIR}/generator/libfaust.h ${SRCDIR}/generator/libfaust-signal.h ${SRCDIR}/generator/libfaust-c.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust/dsp
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 # the file below is part of the httpd lib but installed even if the lib is not part of the config

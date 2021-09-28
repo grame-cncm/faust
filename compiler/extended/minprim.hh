@@ -42,8 +42,6 @@ class MinPrim : public xtended {
         return castInterval(types[0] | types[1], min(i, j));
     }
 
-    virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
-
     virtual int infereSigOrder(const vector<int>& args)
     {
         faustassert(args.size() == arity());

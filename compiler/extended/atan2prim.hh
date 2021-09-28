@@ -39,8 +39,6 @@ class Atan2Prim : public xtended {
         return floatCast(args[0] | args[1]);
     }
 
-    virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
-
     virtual int infereSigOrder(const vector<int>& args) { return max(args[0], args[1]); }
 
     virtual Tree computeSigOutput(const vector<Tree>& args)

@@ -43,8 +43,6 @@ class AbsPrim : public xtended {
         return t;
     }
 
-    virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
-
     virtual int infereSigOrder(const vector<int>& args)
     {
         faustassert(args.size() == arity());

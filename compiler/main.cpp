@@ -42,7 +42,7 @@ unsigned faust_alarm(unsigned seconds)
 int main(int argc, const char* argv[])
 {
     string            error_msg;
-    dsp_factory_base* factory = compileFaustFactory(argc, argv, "FaustDSP", 0, error_msg, true);
+    dsp_factory_base* factory = compileFactory(argc, argv, "FaustDSP", 0, error_msg, true);
     delete factory;
     if (error_msg == "") {
         return 0;
