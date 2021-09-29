@@ -187,9 +187,8 @@ class FaustPolyEngine {
          * keyOn(pitch, velocity)
          * Instantiates a new polyphonic voice where velocity
          * and pitch are MIDI numbers (0-127). keyOn can only
-         * be used if the [style:poly] metadata is used in the
-         * Faust code. keyOn will return 0 if the object is not
-         * polyphonic and the allocated voice otherwise.
+         * be used if nvoices > 0. keyOn will return 0 if the
+         * object is not polyphonic and the allocated voice otherwise.
          */
         MapUI* keyOn(int pitch, int velocity)
         {
@@ -204,9 +203,8 @@ class FaustPolyEngine {
          * keyOff(pitch)
          * De-instantiates a polyphonic voice where pitch is the
          * MIDI number of the note (0-127). keyOff can only be
-         * used if the [style:poly] metadata is used in the Faust
-         * code. keyOff will return 0 if the object is not polyphonic
-         * and 1 otherwise.
+         * used if nvoices > 0. keyOff will return 0 if the
+         * object is not polyphonic and 1 otherwise.
          */
         int keyOff(int pitch, int velocity = 0)
         {
@@ -366,7 +364,7 @@ class FaustPolyEngine {
          * setVoiceParamValue(address, voice, value)
          * Sets the value of the parameter associated with address for
          * the voice. setVoiceParamValue can only be
-         * used if the [style:poly] metadata is used in the Faust code.
+         * used if nvoices > 0.
          */
         void setVoiceParamValue(const char* address, uintptr_t voice, float value)
         {
@@ -377,7 +375,7 @@ class FaustPolyEngine {
          * setVoiceParamValue(id, voice, value)
          * Sets the value of the parameter associated with the id for
          * the voice. setVoiceParamValue can only be
-         * used if the [style:poly] metadata is used in the Faust code.
+         * used if nvoices > 0.
          */
         void setVoiceParamValue(int id, uintptr_t voice, float value)
         {
@@ -387,8 +385,7 @@ class FaustPolyEngine {
         /*
          * getVoiceParamValue(address, voice)
          * Gets the parameter value associated with address for the voice.
-         * getVoiceParamValue can only be used if the [style:poly] metadata
-         * is used in the Faust code.
+         * getVoiceParamValue can only be used if nvoices > 0.
          */
         float getVoiceParamValue(const char* address, uintptr_t voice)
         {
@@ -398,8 +395,7 @@ class FaustPolyEngine {
         /*
          * getVoiceParamValue(id, voice)
          * Gets the parameter value associated with the id for the voice.
-         * getVoiceParamValue can only be used if the [style:poly] metadata
-         * is used in the Faust code.
+         * getVoiceParamValue can only be used if nvoices > 0.
          */
         float getVoiceParamValue(int id, uintptr_t voice)
         {

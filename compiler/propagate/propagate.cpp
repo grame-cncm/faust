@@ -210,7 +210,7 @@ static siglist wrapWithFTZ(const siglist& l1)
 }
 
 // Collect the leaf numbers of tree l into vector v.
-// return true if l a number or a parallel tree of numbers
+// return true if l is a number or a parallel tree of numbers
 static bool isIntTree(Tree l, vector<int>& v)
 {
     int    n;
