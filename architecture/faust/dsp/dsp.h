@@ -202,6 +202,11 @@ class dsp_factory {
     
 };
 
+// Denormal handling
+
+#if defined (__SSE__)
+#include <xmmintrin.h>
+#endif
 
 class ScopedNoDenormals
 {
@@ -235,7 +240,6 @@ class ScopedNoDenormals
             intptr_t mask = (1 << 24 /* FZ */);
         #else
             #if defined(__SSE__)
-            #include <xmmintrin.h>
             #if defined(__SSE2__)
                 intptr_t mask = 0x8040;
             #else
