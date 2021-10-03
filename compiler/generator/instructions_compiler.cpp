@@ -58,7 +58,7 @@ InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
     : fContainer(container),
       fSharingKey(nullptr),
       fOccMarkup(nullptr),
-      fUIRoot(uiFolder(cons(tree(0), tree(subst("$0", ""))), gGlobal->nil)),
+      fUIRoot(uiFolder(cons(tree(0), tree("")))),
       fDescription(0),
       fHasIota(false)
 {
@@ -624,10 +624,11 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         fContainer->setOutputRate(index, rate);
     }
 
-    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
-    generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
+    Tree ui = InstructionsCompiler::prepareUserInterfaceTree(fUIRoot);
+    generateUserInterfaceTree(ui, true);
+    generateMacroInterfaceTree("", ui);
     if (fDescription) {
-        fDescription->ui(prepareUserInterfaceTree(fUIRoot));
+        fDescription->ui(ui);
     }
 
     // Apply FIR to FIR transformations
@@ -660,10 +661,11 @@ void InstructionsCompiler::compileSingleSignal(Tree sig)
 
     pushComputeDSPMethod(InstBuilder::genStoreArrayFunArgsVar(name, getCurrentLoopIndex(), CS(sig)));
 
-    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
-    generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
+    Tree ui = InstructionsCompiler::prepareUserInterfaceTree(fUIRoot);
+    generateUserInterfaceTree(ui);
+    generateMacroInterfaceTree("", ui);
     if (fDescription) {
-        fDescription->ui(prepareUserInterfaceTree(fUIRoot));
+        fDescription->ui(ui);
     }
 }
 

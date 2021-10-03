@@ -46,18 +46,13 @@ Signal sigInput(int i);
 // Delay
 Signal sigFixDelay(Signal t0, Signal t1);
 
-// Int and Double casting
+// Int and Float/Double casting
 Signal sigIntCast(Signal t);
 Signal sigFloatCast(Signal t);
 
 // Tables
-Signal sigRDTbl(Signal t, Signal i);
-Signal sigWRTbl(Signal id, Signal t, Signal i, Signal s);
-Signal sigTable(Signal id, Signal n, Signal sig);
-Signal sigGen(Signal content);
-
-Signal sigWriteReadTable(Signal n, Signal init, Signal widx, Signal wsig, Signal ridx);
 Signal sigReadOnlyTable(Signal n, Signal init, Signal ridx);
+Signal sigWriteReadTable(Signal n, Signal init, Signal widx, Signal wsig, Signal ridx);
 
 // Waveforms
 Signal sigWaveform(const tvec& wf);
