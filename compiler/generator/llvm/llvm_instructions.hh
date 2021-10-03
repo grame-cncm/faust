@@ -842,9 +842,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
 #ifndef ADD_ATTRIBUTE_AT_INDEX(a, b, c)
     #if defined(LLVM_140)
-        #define ADD_ATTRIBUTE_AT_INDEX(a, b, c) call_inst->addAttributeAtIndex(AttributeList::FunctionIndex, Attribute::Builtin);
+        #define ADD_ATTRIBUTE_AT_INDEX(a, b, c) a->addAttributeAtIndex(b, c);
     #else
-        #define ADD_ATTRIBUTE_AT_INDEX(a, b, c) call_inst->addAttribute(AttributeList::FunctionIndex, Attribute::Builtin);
+        #define ADD_ATTRIBUTE_AT_INDEX(a, b, c) a->addAttribute(b, c);
     #endif
 #endif
 
