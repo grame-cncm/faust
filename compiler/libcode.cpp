@@ -1504,10 +1504,10 @@ static void compileSOUL(Tree signals, int numInputs, int numOutputs, bool genera
     gGlobal->gAllowForeignConstant = false;  // No foreign constant
     gGlobal->gAllowForeignVar      = false;  // No foreign variable
     
-        // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
     
-        // "one sample control" model by default;
+    // "one sample control" model by default;
     gGlobal->gOneSampleControl = true;
     gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
     
@@ -1524,9 +1524,9 @@ static void compileWAST(Tree signals, int numInputs, int numOutputs, bool genera
     gGlobal->gAllowForeignConstant = false;  // No foreign constant
     gGlobal->gAllowForeignVar      = false;  // No foreign variable
     
-        // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
-        // the 'i' variable used in the scalar loop moves by bytes instead of frames
+    // the 'i' variable used in the scalar loop moves by bytes instead of frames
     gGlobal->gLoopVarInBytes   = true;
     gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data
     gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
@@ -1536,15 +1536,15 @@ static void compileWAST(Tree signals, int numInputs, int numOutputs, bool genera
     
     gGlobal->gUseDefaultSound = false;
     
-        // This speedup (freeverb for instance) ==> to be done at signal level
-        // gGlobal->gComputeIOTA = true;     // Ensure IOTA base fixed delays are computed once
+    // This speedup (freeverb for instance) ==> to be done at signal level
+    // gGlobal->gComputeIOTA = true;     // Ensure IOTA base fixed delays are computed once
     
     container = WASTCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out,
                                                    ((gGlobal->gOutputLang == "wast") || (gGlobal->gOutputLang == "wast-i")));
     
-        // Additional file with JS code
+    // Additional file with JS code
     if (gGlobal->gOutputFile == "binary") {
-            // Nothing
+        // Nothing
     } else if (gGlobal->gOutputFile != "") {
         string outpath_js;
         bool   res = replaceExtension(outpath, ".js", outpath_js);
@@ -1569,9 +1569,9 @@ static void compileWASM(Tree signals, int numInputs, int numOutputs, bool genera
     gGlobal->gAllowForeignConstant = false;  // No foreign constant
     gGlobal->gAllowForeignVar      = false;  // No foreign variable
     
-        // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+    // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
-        // the 'i' variable used in the scalar loop moves by bytes instead of frames
+    // the 'i' variable used in the scalar loop moves by bytes instead of frames
     gGlobal->gLoopVarInBytes   = true;
     gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data
     gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
