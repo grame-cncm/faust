@@ -2003,8 +2003,11 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
 
     // Encode all libraries paths as 'declare'
     vector<string> pathnames = gGlobal->gReader.listSrcFiles();
+    // Remove DSP filename
+    pathnames.erase(pathnames.begin());
+    int i = 0;
     for (const auto& it : pathnames) {
-        out << "declare library_path " << '"' << it << "\";" << endl;
+        out << "declare library_path" << to_string(i++) << " \"" << it << "\";" << endl;
     }
 
     printDeclareHeader(out);
@@ -2101,13 +2104,14 @@ static void compileFactoryAux(int argc, const char* argv[], const char* name, co
 
         // Encode all libraries paths as 'declare'
         vector<string> pathnames = gGlobal->gReader.listSrcFiles();
+        // Remove DSP filename
+        pathnames.erase(pathnames.begin());
+        int i = 0;
         for (const auto& it : pathnames) {
-            out << "declare "
-                << "library_path " << '"' << it << "\";" << endl;
+            out << "declare library_path" << to_string(i++) << " \"" << it << "\";" << endl;
         }
 
         printDeclareHeader(out);
-
         out << "process = " << boxpp(process) << ";" << endl;
         return;
     }

@@ -146,6 +146,11 @@ struct JSONUIDecoderReal : public JSONUIDecoderBase {
     
     controlMap fPathInputTable;     // [path, ZoneParam]
     controlMap fPathOutputTable;    // [path, ZoneParam]
+    
+    bool startWith(const std::string& str, const std::string& prefix)
+    {
+        return (str.substr(0, prefix.size()) == prefix);
+    }
 
     bool isInput(const std::string& type)
     {
@@ -190,6 +195,13 @@ struct JSONUIDecoderReal : public JSONUIDecoderBase {
         
         if (meta_data2.find("library_list") != meta_data2.end()) {
             fLibraryList = meta_data2["library_list"];
+        } else {
+            // 'library_list' is coded as successive 'library_pathN' metadata
+            for (const auto& it : fMetadata) {
+                if (startWith(it.first, "library_path")) {
+                    fLibraryList.push_back(it.second);
+                }
+            }
         }
         if (meta_data2.find("include_pathnames") != meta_data2.end()) {
             fIncludePathnames = meta_data2["include_pathnames"];
