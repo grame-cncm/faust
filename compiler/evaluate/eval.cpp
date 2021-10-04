@@ -836,7 +836,7 @@ static string evalLabel(const char* src, Tree visited, Tree localValEnv)
 
         } else if (state == 1) {
             if (*src == 0) {
-                // fin et pas d'indentifiant, abandon
+                // end and no identifier, stops
                 dst += '%';
                 dst += format;
                 state = -1;
@@ -847,7 +847,7 @@ static string evalLabel(const char* src, Tree visited, Tree localValEnv)
                 ident += *src++;
                 state = 2;
             } else {
-                // caractere de ponctuation et pas d'indentifiant, abandon
+                // punctuation character and no identifier, stops
                 dst += '%';
                 dst += format;
                 state = 0;

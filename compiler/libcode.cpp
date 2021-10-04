@@ -64,7 +64,7 @@
 #include "simplify.hh"
 #include "sourcereader.hh"
 #include "timing.hh"
-
+#include "labels.hh"
 #include "xtended.hh"
 
 #ifdef C_BUILD
@@ -2265,42 +2265,42 @@ EXPORT Tree sigFVar(SType type, const string& name, const string& file)
 
 EXPORT Tree sigButton(const std::string& label)
 {
-    return sigButton(cons(tree(label), tree("root/")));
+    return sigButton(normalizePath(cons(tree(label), gGlobal->nil)));
 }
 
 EXPORT Tree sigCheckbox(const std::string& label)
 {
-    return sigCheckbox(cons(tree(label), tree("root/")));
+    return sigCheckbox(normalizePath(cons(tree(label), gGlobal->nil)));
 }
 
 EXPORT Tree sigVSlider(const std::string& label, Tree cur, Tree min, Tree max, Tree step)
 {
-    return sigVSlider(cons(tree(label), tree("root/")), cur, min, max, step);
+    return sigVSlider(normalizePath(cons(tree(label), gGlobal->nil)), cur, min, max, step);
 }
 
 EXPORT Tree sigHSlider(const std::string& label, Tree cur, Tree min, Tree max, Tree step)
 {
-    return sigHSlider(cons(tree(label), tree("root/")), cur, min, max, step);
+    return sigHSlider(normalizePath(cons(tree(label), gGlobal->nil)), cur, min, max, step);
 }
 
 EXPORT Tree sigNumEntry(const std::string& label, Tree cur, Tree min, Tree max, Tree step)
 {
-    return sigNumEntry(cons(tree(label), tree("root/")), cur, min, max, step);
+    return sigNumEntry(normalizePath(cons(tree(label), gGlobal->nil)), cur, min, max, step);
 }
 
 EXPORT Tree sigVBargraph(const std::string& label, Tree min, Tree max, Tree x)
 {
-    return sigVBargraph(cons(tree(label), tree("root/")), min, max, x);
+    return sigVBargraph(normalizePath(cons(tree(label), gGlobal->nil)), min, max, x);
 }
 
 EXPORT Tree sigHBargraph(const std::string& label, Tree min, Tree max, Tree x)
 {
-    return sigHBargraph(cons(tree(label), tree("root/")), min, max, x);
+    return sigHBargraph(normalizePath(cons(tree(label), gGlobal->nil)), min, max, x);
 }
 
 EXPORT Tree sigSoundfile(const std::string& label)
 {
-    return sigSoundfile(cons(tree(label), tree("root/")));
+    return sigSoundfile(normalizePath(cons(tree(label), gGlobal->nil)));
 }
 
 EXPORT Tree sigSelf()

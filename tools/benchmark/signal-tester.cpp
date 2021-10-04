@@ -257,6 +257,7 @@ static void test12()
     COMPILER
     (
         tvec waveform;
+        // Fill the waveform content vector
         for (int i = 0; i < 5; i++) {
             waveform.push_back(sigReal(100*i));
         }
@@ -395,14 +396,23 @@ static void test19()
 {
     COMPILER
     (
-        tvec signals;
-        Signal sf = sigSoundfile("sound[url:{'tango.wav'}]");
-        signals.push_back(sigSoundfileLength(sf, sigInt(0)));
-        signals.push_back(sigSoundfileRate(sf, sigInt(0)));
-        signals.push_back(sigSoundfileLength(sf, sigInt(0)));
-        signals.push_back(sigSoundfileBuffer(sf, sigInt(0), sigInt(0), sigInt(0)));
-    
-        compile("test19", signals);
+         tvec signals;
+         // Soundfile definition
+         Signal sf = sigSoundfile("sound[url:{'tango.wav'}]");
+         // Simple read index of 0
+         Signal rdx = sigInt(0);
+         // Part 0
+         Signal part = sigInt(0);
+         // Wrapped index to avoid reading outside the buffer
+         Signal wridx = sigIntCast(sigMax(sigInt(0), sigMin(rdx, sigSub(sigSoundfileLength(sf, sigInt(0)), sigInt(1)))));
+         // Accessing part 0
+         signals.push_back(sigSoundfileLength(sf, part));
+         // Accessing part 0
+         signals.push_back(sigSoundfileRate(sf, part));
+         // Accessing chan 0 and part 0, with a wrapped read index
+         signals.push_back(sigSoundfileBuffer(sf, sigInt(0), part, wridx));
+     
+         compile("test19", signals);
      )
 }
 
