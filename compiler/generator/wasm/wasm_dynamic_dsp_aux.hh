@@ -54,6 +54,10 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const std::string& name_
                                                         int argc, const char* argv[], std::string& error_msg,
                                                         bool internal_memory);
 
+EXPORT wasm_dsp_factory* createWasmDSPFactoryFromSignals(const std::string& name_app, tvec signals,
+                                                        int argc, const char* argv[], std::string& error_msg,
+                                                        bool internal_memory);
+
 EXPORT std::string generateWasmFromString(const std::string& name_app, const std::string& dsp_content,
                                           int argc, const char* argv[], std::string& error_msg,
                                           bool internal_memory);

@@ -107,7 +107,6 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
         argv1[argc1] = nullptr;  // NULL terminated argv
 
         dsp_factory_base* dsp_factory_aux = createFactory(name_app.c_str(), dsp_content.c_str(), argc1, argv1, error_msg, true);
-
         if (dsp_factory_aux) {
             dsp_factory_aux->setName(name_app);
             wasm_dsp_factory* factory = new wasm_dsp_factory(dsp_factory_aux);
@@ -118,6 +117,34 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
         } else {
             return nullptr;
         }
+    }
+}
+
+EXPORT wasm_dsp_factory* createWasmDSPFactoryFromSignals(const std::string& name_app, tvec signals,
+                                                         int argc, const char* argv[], std::string& error_msg,
+                                                         bool internal_memory)
+{
+    int         argc1 = 0;
+    const char* argv1[64];
+    argv1[argc1++] = "faust";
+    argv1[argc1++] = "-lang";
+    // argv1[argc1++] = (internal_memory) ? "wasm-i" : "wasm-e";
+    argv1[argc1++] = (internal_memory) ? "wasm-ib" : "wasm-eb";
+    argv1[argc1++] = "-o";
+    argv1[argc1++] = "binary";
+    for (int i = 0; i < argc; i++) {
+        argv1[argc1++] = argv[i];
+    }
+    argv1[argc1] = nullptr;  // NULL terminated argv
+    
+    dsp_factory_base* dsp_factory_aux = createFactory(name_app.c_str(), signals, argc1, argv1, error_msg);
+    if (dsp_factory_aux) {
+        dsp_factory_aux->setName(name_app);
+        wasm_dsp_factory* factory = new wasm_dsp_factory(dsp_factory_aux);
+        wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
+        return factory;
+    } else {
+        return nullptr;
     }
 }
 

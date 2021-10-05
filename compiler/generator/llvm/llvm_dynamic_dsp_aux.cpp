@@ -659,7 +659,6 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromSignals(const std::string& name_app
 {
     LOCK_API
     try {
-        llvm_dsp_factory* factory = nullptr;
         int         argc1 = 0;
         const char* argv1[64];
         argv1[argc1++] = "faust";
@@ -680,7 +679,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromSignals(const std::string& name_app
             factory_aux->setOptlevel(opt_level);
             factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
             factory_aux->setName(name_app);
-            factory = new llvm_dsp_factory(factory_aux);
+            llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
             llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
             return factory;
         } else {
