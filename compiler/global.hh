@@ -63,7 +63,7 @@ struct DeclareStructTypeInst;
 struct Typed;
 struct BasicTyped;
 
-class dsp_factory_base;
+struct dsp_factory_base;
 
 typedef long double quad;
 

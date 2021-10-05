@@ -202,6 +202,7 @@ llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app,
 
 /**
  * Create a Faust DSP factory from a vector of output signals.
+ * It has to be used with the signal API defined in libfaust-signal.h.
  *
  * @param name_app - the name of the Faust program
  * @param signals - the vector of output signals

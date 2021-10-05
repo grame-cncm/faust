@@ -41,9 +41,13 @@
  or by reading an already compiled dsp (in LLVM IR, Interpreter or WebAssembly bytecode).
  */
 
-class dsp_factory_base {
-   public:
+struct dsp_factory_base {
+ 
     virtual ~dsp_factory_base() {}
+    
+    virtual void write(std::ostream* out, bool binary = false, bool compact = false) = 0;
+    
+    virtual void writeHelper(std::ostream* out, bool binary = false, bool compact = false) {}  // Helper functions
 
     virtual std::string getName()                        = 0;
     virtual void        setName(const std::string& name) = 0;
@@ -65,11 +69,7 @@ class dsp_factory_base {
     virtual void  destroy(void* ptr)    = 0;
 
     virtual void metadata(Meta* meta) = 0;
-
-    virtual void write(std::ostream* out, bool binary = false, bool compact = false) = 0;
-
-    virtual void writeHelper(std::ostream* out, bool binary = false, bool compact = false) {}  // Helper functions
-
+   
     virtual std::string getBinaryCode() = 0;
 
     // Sub-classes will typically implement this method to create a factory from a stream

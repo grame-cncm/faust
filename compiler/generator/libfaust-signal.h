@@ -386,38 +386,11 @@ inline Signal getBufferSize()
 /**
  * Base class for factories.
  */
-
 struct dsp_factory_base {
-    
+
     virtual ~dsp_factory_base() {}
     
-    virtual std::string getName()                        = 0;
-    virtual void        setName(const std::string& name) = 0;
-    
-    virtual std::string getSHAKey()                           = 0;
-    virtual void        setSHAKey(const std::string& sha_key) = 0;
-    
-    virtual std::string getDSPCode()                        = 0;
-    virtual void        setDSPCode(const std::string& code) = 0;
-    
-    virtual std::string getCompileOptions() = 0;
-    
-    virtual dsp* createDSPInstance(dsp_factory* factory) = 0;
-    
-    virtual void                setMemoryManager(dsp_memory_manager* manager) = 0;
-    virtual dsp_memory_manager* getMemoryManager()                            = 0;
-    
-    virtual void* allocate(size_t size) = 0;
-    virtual void  destroy(void* ptr)    = 0;
-    
-    virtual void metadata(Meta* meta) = 0;
-    
-    virtual void write(std::ostream* out, bool binary = false, bool compact = false) = 0;
-    
-    virtual void writeHelper(std::ostream* out, bool binary = false, bool compact = false) {}  // Helper functions
-    
-    virtual std::string getBinaryCode() = 0;
-    
+    virtual void write(std::ostream* out, bool binary = false, bool compact = false) {}
 };
 
 /**

@@ -140,7 +140,7 @@ static void test6()
     signals.push_back(sigFixDelay(sigMul(in1, sigReal(1.5)), sigReal(3000)));
     
     // Vector compilation
-    compile("test6", signals, 3, (const char* []){ "-vec", "-lv", "1" });
+    compile("test6", signals, 4, (const char* []){ "-vec", "-lv", "1" , "-double"});
 
     destroyLibContext();
 }
@@ -456,6 +456,7 @@ static void test21()
  };
  */
 
+// Using the LLVM backend.
 static void test22(int argc, char* argv[])
 {
     createLibContext();
@@ -497,45 +498,48 @@ static void test22(int argc, char* argv[])
     destroyLibContext();
 }
 
+// Using the Interpreter backend.
 static void test23(int argc, char* argv[])
 {
+    interpreter_dsp_factory* factory = nullptr;
+    string error_msg;
+    
     createLibContext();
     {
         tvec signals;
         signals.push_back(osc(sigHSlider("v:Oscillator/Freq1", sigReal(300), sigReal(100), sigReal(2000), sigReal(0.01))));
         signals.push_back(osc(sigHSlider("v:Oscillator/Freq2", sigReal(500), sigReal(100), sigReal(2000), sigReal(0.01))));
-        
-        string error_msg;
-        interpreter_dsp_factory* factory = createInterpreterDSPFactoryFromSignals("FaustDSP", signals, 0, nullptr, error_msg);
-        
-        if (factory) {
-            dsp* dsp = factory->createDSPInstance();
-            assert(dsp);
-            
-            // Allocate audio driver
-            jackaudio audio;
-            audio.init("Test", dsp);
-            
-            // Create GUI
-            GUI* interface = new GTKUI("Test", &argc, &argv);
-            dsp->buildUserInterface(interface);
-            
-            // Start real-time processing
-            audio.start();
-            
-            // Start GUI
-            interface->run();
-            
-            // Cleanup
-            audio.stop();
-            delete dsp;
-            deleteInterpreterDSPFactory(factory);
-            
-        } else {
-            cerr << error_msg;
-        }
+        factory = createInterpreterDSPFactoryFromSignals("FaustDSP", signals, 0, nullptr, error_msg);
     }
     destroyLibContext();
+    
+    // Use factory outside of the createLibContext/destroyLibContext scope
+    if (factory) {
+        dsp* dsp = factory->createDSPInstance();
+        assert(dsp);
+        
+        // Allocate audio driver
+        jackaudio audio;
+        audio.init("Test", dsp);
+        
+        // Create GUI
+        GUI* interface = new GTKUI("Test", &argc, &argv);
+        dsp->buildUserInterface(interface);
+        
+        // Start real-time processing
+        audio.start();
+        
+        // Start GUI
+        interface->run();
+        
+        // Cleanup
+        audio.stop();
+        delete dsp;
+        deleteInterpreterDSPFactory(factory);
+        
+    } else {
+        cerr << error_msg;
+    }
 }
 
 list<GUI*> GUI::fGuiList;
