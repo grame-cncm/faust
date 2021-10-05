@@ -603,8 +603,6 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
     } else {
         
         dsp_factory_table<SDsp_factory>::factory_iterator it;
-        llvm_dsp_factory* factory = nullptr;
-        
         if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
             SDsp_factory sfactory = (*it).first;
             sfactory->addReference();
@@ -635,7 +633,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
                     factory_aux->setOptlevel(opt_level);
                     factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
                     factory_aux->setName(name_app);
-                    factory = new llvm_dsp_factory(factory_aux);
+                    llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
                     llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
                     factory->setSHAKey(sha_key);
                     factory->setDSPCode(expanded_dsp_content);

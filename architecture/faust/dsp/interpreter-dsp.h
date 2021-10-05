@@ -175,6 +175,23 @@ interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const std::string
                                                                const std::string& dsp_content,
                                                                int argc, const char* argv[],
                                                                std::string& error_msg);
+
+/**
+ * Create a Faust DSP factory from a vector of output signals.
+ *
+ * @param name_app - the name of the Faust program
+ * @param signals - the vector of output signals
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters
+ * @param error_msg - the error string to be filled
+ *
+ * @return a DSP factory on success, otherwise a null pointer.
+ */
+interpreter_dsp_factory* createInterpreterDSPFactoryFromSignals(const std::string& name_app,
+                                                                tvec signals,
+                                                                int argc, const char* argv[],
+                                                                std::string& error_msg);
+
 /**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possibly really deleting the internal pointer.
  * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted.

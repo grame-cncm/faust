@@ -24,13 +24,12 @@
 
 #include <libgen.h>
 #include <iostream>
-//#include <fstream>
-//#include <sstream>
 #include <string>
 #include <vector>
 
 #include "faust/dsp/libfaust-signal.h"
 #include "faust/dsp/llvm-dsp.h"
+#include "faust/dsp/interpreter-dsp.h"
 #include "faust/audio/jack-dsp.h"
 #include "faust/gui/GTKUI.h"
 #include "faust/misc.h"
@@ -494,7 +493,47 @@ static void test22(int argc, char* argv[])
         } else {
              cerr << error_msg;
         }
+    }
+    destroyLibContext();
+}
+
+static void test23(int argc, char* argv[])
+{
+    createLibContext();
+    {
+        tvec signals;
+        signals.push_back(osc(sigHSlider("v:Oscillator/Freq1", sigReal(300), sigReal(100), sigReal(2000), sigReal(0.01))));
+        signals.push_back(osc(sigHSlider("v:Oscillator/Freq2", sigReal(500), sigReal(100), sigReal(2000), sigReal(0.01))));
         
+        string error_msg;
+        interpreter_dsp_factory* factory = createInterpreterDSPFactoryFromSignals("FaustDSP", signals, 0, nullptr, error_msg);
+        
+        if (factory) {
+            dsp* dsp = factory->createDSPInstance();
+            assert(dsp);
+            
+            // Allocate audio driver
+            jackaudio audio;
+            audio.init("Test", dsp);
+            
+            // Create GUI
+            GUI* interface = new GTKUI("Test", &argc, &argv);
+            dsp->buildUserInterface(interface);
+            
+            // Start real-time processing
+            audio.start();
+            
+            // Start GUI
+            interface->run();
+            
+            // Cleanup
+            audio.stop();
+            delete dsp;
+            deleteInterpreterDSPFactory(factory);
+            
+        } else {
+            cerr << error_msg;
+        }
     }
     destroyLibContext();
 }
@@ -528,8 +567,11 @@ int main(int argc, char* argv[])
     test20();
     test21();
     
-    // Test with audio and GUI
+    // Test with audio and GUI and LLVM backend
     test22(argc, argv);
+    
+    // Test with audio and GUI and Interp backend
+    test23(argc, argv);
     
     return 0;
 }
