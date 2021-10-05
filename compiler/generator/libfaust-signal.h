@@ -421,9 +421,9 @@ struct dsp_factory_base {
 };
 
 /**
- * Create a Faust DSP factory from a vector of output signals.
+ * Create a C++ Faust DSP factory from a vector of output signals.
  *
- * @param name - the DSP name
+ * @param name_app - the name of the Faust program
  * @param signals - the vector of output signals
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
@@ -431,7 +431,7 @@ struct dsp_factory_base {
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
-dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name, tvec signals,
+dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name_app, tvec signals,
                                                  int argc, const char* argv[],
                                                  std::string& error_msg);
 

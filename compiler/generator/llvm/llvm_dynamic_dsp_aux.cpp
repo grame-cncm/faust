@@ -676,7 +676,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromSignals(const std::string& name_app
         argv1[argc1] = nullptr;  // NULL terminated argv
         
         llvm_dynamic_dsp_factory_aux* factory_aux
-            = static_cast<llvm_dynamic_dsp_factory_aux*>(createFactory(name_app, signals, argc1, argv1, error_msg));
+            = static_cast<llvm_dynamic_dsp_factory_aux*>(createFactory(name_app.c_str(), signals, argc1, argv1, error_msg));
         if (factory_aux && factory_aux->initJIT(error_msg)) {
             factory_aux->setTarget(target);
             factory_aux->setOptlevel(opt_level);

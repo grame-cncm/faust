@@ -2187,14 +2187,14 @@ dsp_factory_base* createFactory(const char* name, const char* dsp_content,
     return factory;
 }
 
-dsp_factory_base* createFactory(const std::string& name, tvec signals,
+dsp_factory_base* createFactory(const char* name, tvec signals,
                                 int argc, const char* argv[],
                                 std::string& error_msg)
 {
     dsp_factory_base* factory = nullptr;
     
     try {
-        createFactoryAux(name.c_str(), listConvert(signals), argc, argv, gGlobal->gMaxInputs, signals.size(), true);
+        createFactoryAux(name, listConvert(signals), argc, argv, gGlobal->gMaxInputs, signals.size(), true);
         error_msg = gGlobal->gErrorMsg;
         factory   = gGlobal->gDSPFactory;
     } catch (faustexception& e) {
@@ -2228,8 +2228,8 @@ string expandDSP(int argc, const char* argv[], const char* name, const char* dsp
 // ============
 
 EXPORT dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name, tvec signals,
-                                                     int argc, const char* argv[],
-                                                     std::string& error_msg)
+                                                        int argc, const char* argv[],
+                                                        std::string& error_msg)
 {
     dsp_factory_base* factory = nullptr;
     
@@ -2244,11 +2244,7 @@ EXPORT dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name,
         argv1[argc1++] = argv[i];
     }
     argv1[argc1] = nullptr;  // NULL terminated argv
-    /*
-    for (const auto& sig : signals) {
-        printSignal(sig, stderr);
-    }
-    */
+  
     try {
         createFactoryAux(name.c_str(), listConvert(signals), argc1, argv1, gGlobal->gMaxInputs, signals.size(), true);
         error_msg = gGlobal->gErrorMsg;

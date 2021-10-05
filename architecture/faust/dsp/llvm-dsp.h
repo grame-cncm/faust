@@ -203,7 +203,7 @@ llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app,
 /**
  * Create a Faust DSP factory from a vector of output signals.
  *
- * @param name - the DSP name
+ * @param name_app - the name of the Faust program
  * @param signals - the vector of output signals
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
@@ -216,7 +216,7 @@ llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app,
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
-llvm_dsp_factory* createDSPFactoryFromSignals(const std::string& name, tvec signals,
+llvm_dsp_factory* createDSPFactoryFromSignals(const std::string& name_app, tvec signals,
                                               int argc, const char* argv[],
                                               const std::string& target,
                                               std::string& error_msg,

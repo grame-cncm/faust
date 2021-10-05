@@ -24,12 +24,15 @@
 
 #include <libgen.h>
 #include <iostream>
-#include <fstream>
-#include <sstream>
+//#include <fstream>
+//#include <sstream>
 #include <string>
 #include <vector>
 
 #include "faust/dsp/libfaust-signal.h"
+#include "faust/dsp/llvm-dsp.h"
+#include "faust/audio/jack-dsp.h"
+#include "faust/gui/GTKUI.h"
 #include "faust/misc.h"
 
 using namespace std;
@@ -442,6 +445,63 @@ static void test21()
      )
 }
 
+/*
+ import("stdfaust.lib");
+ process = osc(f1), osc(f2)
+ with {
+    decimalpart(x) = x-int(x);
+    phasor(f) = f/ma.SR : (+ : decimalpart) ~ _;
+    osc(f) = sin(2 * ma.PI * phasor(f));
+    f1 = vslider("Freq1", 300, 100, 2000, 0.01);
+    f2 = vslider("Freq2", 500, 100, 2000, 0.01);
+ };
+ */
+
+static void test22(int argc, char* argv[])
+{
+    createLibContext();
+    {
+        tvec signals;
+        signals.push_back(osc(sigVSlider("h:Oscillator/Freq1", sigReal(300), sigReal(100), sigReal(2000), sigReal(0.01))));
+        signals.push_back(osc(sigVSlider("h:Oscillator/Freq2", sigReal(500), sigReal(100), sigReal(2000), sigReal(0.01))));
+     
+        string error_msg;
+        llvm_dsp_factory* factory = createDSPFactoryFromSignals("FaustDSP", signals, 0, nullptr, "", error_msg);
+    
+        if (factory) {
+            dsp* dsp = factory->createDSPInstance();
+            assert(dsp);
+            
+            // Allocate audio driver
+            jackaudio audio;
+            audio.init("Test", dsp);
+
+            // Create GUI
+            GUI* interface = new GTKUI("Test", &argc, &argv);
+            dsp->buildUserInterface(interface);
+            
+            // Start real-time processing
+            audio.start();
+            
+            // Start GUI
+            interface->run();
+            
+            // Cleanup
+            audio.stop();
+            delete dsp;
+            deleteDSPFactory(factory);
+            
+        } else {
+             cerr << error_msg;
+        }
+        
+    }
+    destroyLibContext();
+}
+
+list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
+
 int main(int argc, char* argv[])
 {
     test1();
@@ -467,6 +527,9 @@ int main(int argc, char* argv[])
     test19();
     test20();
     test21();
+    
+    // Test with audio and GUI
+    test22(argc, argv);
     
     return 0;
 }

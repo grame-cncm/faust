@@ -181,7 +181,7 @@ dsp_factory_base* createFactory(const char* name, const char* input,
                                 int argc, const char* argv[],
                                 std::string& error_msg, bool generate);
 
-dsp_factory_base* createFactory(const std::string& name, tvec signals,
+dsp_factory_base* createFactory(const char* name, tvec signals,
                                 int argc, const char* argv[],
                                 std::string& error_msg);
 

@@ -383,7 +383,7 @@ vector<string> SourceReader::listSrcFiles()
 vector<string> SourceReader::listLibraryFiles()
 {
     vector<string> tmp = fFilePathnames;
-    tmp.erase(tmp.begin());
+    if (tmp.size() > 0) tmp.erase(tmp.begin());
     return tmp;
 }
 
