@@ -286,7 +286,11 @@ Signal sigAtan(Signal x);
 Signal sigAtan2(Signal x, Signal y);
 Signal sigAsin(Signal x);
 
-// For recursive signals: sigSelf() has to be used in the sigRecursion(...) expression
+/**
+ * Create a recursive signal inside the sigRecursion expression.
+ *
+ * @return the recursive signal.
+ */
 Signal sigSelf();
 
 /**
@@ -295,7 +299,7 @@ Signal sigSelf();
  *
  * @param s1 - the signal to recurse on.
  *
- * @return the recursive signal.
+ * @return the signal with a recursion.
  */
 Signal sigRecursion(Signal s1);
 
