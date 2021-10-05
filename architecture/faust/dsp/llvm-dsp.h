@@ -33,6 +33,7 @@
 #include <vector>
 
 #include "faust/dsp/dsp.h"
+#include "faust/dsp/libfaust-signal.h"
 #include "faust/gui/meta.h"
 
 /*!
