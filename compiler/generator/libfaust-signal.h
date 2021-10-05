@@ -25,8 +25,6 @@
 #include <string>
 #include <vector>
 
-#include "faust/dsp/dsp.h"
-
 /**
  * Opaque types.
  */
@@ -74,7 +72,7 @@ Signal sigInput(int idx);
 /**
  * Create a delayed signal.
  *
- * @param del - the delay signal that doesn't have to be fixed but it must be bounded and cannot be negative
+ * @param del - the delay signal that doesn't have to be fixed but must be bounded and cannot be negative
  *
  * @return the delayed signal.
  */
@@ -132,10 +130,45 @@ Signal sigWriteReadTable(Signal n, Signal init, Signal widx, Signal wsig, Signal
 Signal sigWaveform(const tvec& wf);
 // Use: sigInt(wf.size()); to generate the waveform size signal
 
-// Soundfiles
+/**
+ * Create a soundfile block.
+ *
+ * @param label - of form "label[url:{'path1';'path2';'path3'}]" to describe a list of soundfiles
+ *
+ * @return the result signal of op(x,y).
+ */
 Signal sigSoundfile(const std::string& label);
+
+/**
+ * Create the length signal of a given soundfile in frames.
+ *
+ * @param sf - the soundfile
+ * @param part - in the [0..255] range to select a given sound number
+ *
+ * @return the length signal.
+ */
 Signal sigSoundfileLength(Signal sf, Signal part);
+
+/**
+ * Create the rate signal of a given soundfile in Hz.
+ *
+ * @param sf - the soundfile
+ * @param part - in the [0..255] range to select a given sound number
+ *
+ * @return the rate signal.
+ */
 Signal sigSoundfileRate(Signal sf, Signal part);
+
+/**
+ * Create the buffer signal of a given soundfile.
+ *
+ * @param sf - the soundfile
+ * @param chan - an integer to select a given channel
+ * @param part - in the [0..255] range to select a given sound number
+ * @param ridx - the read index (an integer between 0 and the selected sound length)
+ *
+ * @return the buffer signal.
+ */
 Signal sigSoundfileBuffer(Signal sf, Signal chan, Signal part, Signal ridx);
 
 /**
