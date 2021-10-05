@@ -44,7 +44,7 @@ using namespace std;
 static void compile(const string& name, tvec signals, int argc = 0, const char* argv[] = nullptr)
 {
     string error_msg;
-    dsp_factory_base* factory = compileDSPFactoryFromSignals(argc, argv, name, signals, error_msg);
+    dsp_factory_base* factory = createCPPDSPFactoryFromSignals(name, signals, argc, argv, error_msg);
     if (factory) {
         factory->write(&cout);
         delete(factory);

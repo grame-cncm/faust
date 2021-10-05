@@ -2014,8 +2014,7 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     return out.str();
 }
 
-static void compileFactoryAux(int argc, const char* argv[], const char* name, const char* dsp_content,
-                                   bool generate)
+static void createFactoryAux(const char* name, const char* dsp_content, int argc, const char* argv[], bool generate)
 {
     /****************************************************************
      1 - process command line
@@ -2145,7 +2144,7 @@ static void compileFactoryAux(int argc, const char* argv[], const char* name, co
     generateOutputFiles();
 }
 
-static void compileFactoryFromSignals(int argc, const char* argv[], const char* name, Tree signals, int numInputs, int numOutputs, bool generate)
+static void createFactoryAux(const char* name, Tree signals, int argc, const char* argv[], int numInputs, int numOutputs, bool generate)
 {
     /****************************************************************
      1 - process command line
@@ -2168,15 +2167,16 @@ static void compileFactoryFromSignals(int argc, const char* argv[], const char* 
 // Backend API
 // ============
 
-dsp_factory_base* compileFactory(int argc, const char* argv[], const char* name, const char* dsp_content,
-                                      string& error_msg, bool generate)
+dsp_factory_base* createFactory(const char* name, const char* dsp_content,
+                                int argc, const char* argv[],
+                                string& error_msg, bool generate)
 {
     gGlobal                   = nullptr;
     dsp_factory_base* factory = nullptr;
     
     try {
         global::allocate();
-        compileFactoryAux(argc, argv, name, dsp_content, generate);
+        createFactoryAux(name, dsp_content, argc, argv, generate);
         error_msg = gGlobal->gErrorMsg;
         factory   = gGlobal->gDSPFactory;
     } catch (faustexception& e) {
@@ -2184,6 +2184,23 @@ dsp_factory_base* compileFactory(int argc, const char* argv[], const char* name,
     }
     
     global::destroy();
+    return factory;
+}
+
+dsp_factory_base* createFactory(const std::string& name, tvec signals,
+                                int argc, const char* argv[],
+                                std::string& error_msg)
+{
+    dsp_factory_base* factory = nullptr;
+    
+    try {
+        createFactoryAux(name.c_str(), listConvert(signals), argc, argv, gGlobal->gMaxInputs, signals.size(), true);
+        error_msg = gGlobal->gErrorMsg;
+        factory   = gGlobal->gDSPFactory;
+    } catch (faustexception& e) {
+        error_msg = e.Message();
+    }
+    
     return factory;
 }
 
@@ -2210,10 +2227,9 @@ string expandDSP(int argc, const char* argv[], const char* name, const char* dsp
 // Signal API
 // ============
 
-EXPORT dsp_factory_base* compileDSPFactoryFromSignals(int argc, const char* argv[],
-                                                     const string& name,
-                                                     tvec signals,
-                                                     string& error_msg)
+EXPORT dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name, tvec signals,
+                                                     int argc, const char* argv[],
+                                                     std::string& error_msg)
 {
     dsp_factory_base* factory = nullptr;
     
@@ -2234,7 +2250,7 @@ EXPORT dsp_factory_base* compileDSPFactoryFromSignals(int argc, const char* argv
     }
     */
     try {
-        compileFactoryFromSignals(argc1, argv1, name.c_str(), listConvert(signals), gGlobal->gMaxInputs, signals.size(), true);
+        createFactoryAux(name.c_str(), listConvert(signals), argc1, argv1, gGlobal->gMaxInputs, signals.size(), true);
         error_msg = gGlobal->gErrorMsg;
         factory   = gGlobal->gDSPFactory;
     } catch (faustexception& e) {

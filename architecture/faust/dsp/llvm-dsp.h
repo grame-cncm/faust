@@ -201,6 +201,29 @@ llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app,
                                              int opt_level = -1);
 
 /**
+ * Create a Faust DSP factory from a vector of output signals.
+ *
+ * @param name - the DSP name
+ * @param signals - the vector of output signals
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters
+ * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
+ *                 using an empty string takes the current machine settings,
+ *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+ * @param error_msg - the error string to be filled
+ * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
+ * since the maximum value may change with new LLVM versions)
+ *
+ * @return a DSP factory on success, otherwise a null pointer.
+ */
+llvm_dsp_factory* createDSPFactoryFromSignals(const std::string& name, tvec signals,
+                                              int argc, const char* argv[],
+                                              const std::string& target,
+                                              std::string& error_msg,
+                                              int opt_level = -1);
+
+
+/**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possibly really deleting the internal pointer. 
  * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted with C++ delete.
  * Beware : all kept factories and DSP pointers (in local variables...) thus become invalid.

@@ -173,10 +173,20 @@ class text_dsp_factory_aux : public dsp_factory_imp {
 
 // Backend API implemented in libcode.cpp
 
-dsp_factory_base* compileFactory(int argc, const char* argv[], const char* name, const char* input,
-                                      std::string& error_msg, bool generate);
+class CTree;
+typedef CTree* Signal;
+typedef std::vector<Signal> tvec;
 
-std::string expandDSP(int argc, const char* argv[], const char* name, const char* input, std::string& sha_key,
+dsp_factory_base* createFactory(const char* name, const char* input,
+                                int argc, const char* argv[],
+                                std::string& error_msg, bool generate);
+
+dsp_factory_base* createFactory(const std::string& name, tvec signals,
+                                int argc, const char* argv[],
+                                std::string& error_msg);
+
+std::string expandDSP(int argc, const char* argv[], const char* name,
+                      const char* input, std::string& sha_key,
                       std::string& error_msg);
 
 #endif

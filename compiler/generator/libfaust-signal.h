@@ -110,7 +110,7 @@ Signal sigFloatCast(Signal s);
 Signal sigReadOnlyTable(Signal n, Signal init, Signal ridx);
 
 /**
- * Create a read-write table.
+ * Create a read/write table.
  *
  * @param n - the table size, a constant numerical expression (see [1])
  * @param init - the table content
@@ -423,18 +423,17 @@ struct dsp_factory_base {
 /**
  * Create a Faust DSP factory from a vector of output signals.
  *
- * @param argc - the number of parameters in argv array
- * @param argv - the array of parameters
  * @param name - the DSP name
  * @param signals - the vector of output signals
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
-dsp_factory_base* compileDSPFactoryFromSignals(int argc, const char* argv[],
-                                               const std::string& name,
-                                               tvec signals,
-                                               std::string& error_msg);
+dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name, tvec signals,
+                                                 int argc, const char* argv[],
+                                                 std::string& error_msg);
 
 /*
  [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions

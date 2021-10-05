@@ -106,8 +106,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
         }
         argv1[argc1] = nullptr;  // NULL terminated argv
 
-        dsp_factory_base* dsp_factory_aux =
-            compileFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, true);
+        dsp_factory_base* dsp_factory_aux = createFactory(name_app.c_str(), dsp_content.c_str(), argc1, argv1, error_msg, true);
 
         if (dsp_factory_aux) {
             dsp_factory_aux->setName(name_app);
@@ -138,7 +137,7 @@ EXPORT std::string generateWasmFromString(const string& name_app, const string& 
     }
     argv1[argc1] = nullptr;  // NULL terminated argv
     
-    dsp_factory_base* dsp_factory_aux = compileFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, true);
+    dsp_factory_base* dsp_factory_aux = createFactory(name_app.c_str(), dsp_content.c_str(), argc1, argv1, error_msg, true);
     return (dsp_factory_aux) ? dsp_factory_aux->getBinaryCode() : "";
 }
 
