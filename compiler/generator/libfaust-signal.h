@@ -27,36 +27,110 @@
 
 #include "faust/dsp/dsp.h"
 
-/*****************************************************************************
- Signal language
- *****************************************************************************/
-
-// Opaque types
+/**
+ * Opaque types.
+ */
 class CTree;
 typedef CTree* Signal;
 typedef std::vector<Signal> tvec;
 
-// Constant signals : for all t, x(t)=n
+/**
+ * Create global compilation context, has to be done first.
+ */
+void createLibContext();
+
+/**
+ * Destroy global compilation context, has to be done last.
+ */
+void destroyLibContext();
+
+/**
+ * Constant integer : for all t, x(t) = n
+ *
+ * @param n - the integer
+ *
+ * @return the integer value.
+ */
 Signal sigInt(int n);
+
+/**
+ * Constant real : for all t, x(t) = n
+ *
+ * @param n - the float/double value (depends of -single or -double compilation parameter)
+ *
+ * @return the float/double signal.
+ */
 Signal sigReal(double n);
 
-// Inputs
-Signal sigInput(int i);
+/**
+ * Create an input.
+ *
+ * @param idx - the input index
+ *
+ * @return the input signal.
+ */
+Signal sigInput(int idx);
 
-// Delay
-Signal sigFixDelay(Signal t0, Signal t1);
+/**
+ * Create a delayed signal.
+ *
+ * @param del - the delay signal that doesn't have to be fixed but it must be bounded and cannot be negative
+ *
+ * @return the delayed signal.
+ */
+Signal sigFixDelay(Signal t0, Signal del);
 
-// Int and Float/Double casting
-Signal sigIntCast(Signal t);
-Signal sigFloatCast(Signal t);
+/**
+ * Create a casted signal.
+ *
+ * @param s - the input signal to be casted in integer
+ *
+ * @return the casted signal.
+ */
+Signal sigIntCast(Signal s);
 
-// Tables
+/**
+ * Create a casted signal.
+ *
+ * @param s - the input signal to be casted as float/double value (depends of -single or -double compilation parameter)
+ *
+ * @return the casted signal.
+ */
+Signal sigFloatCast(Signal s);
+
+/**
+ * Create a read only table.
+ *
+ * @param n - the table size, a constant numerical expression (see [1])
+ * @param init - the table content
+ * @param ridx - the read index (an int between 0 and n-1)
+ *
+ * @return the table signal.
+ */
 Signal sigReadOnlyTable(Signal n, Signal init, Signal ridx);
+
+/**
+ * Create a read-write table.
+ *
+ * @param n - the table size, a constant numerical expression (see [1])
+ * @param init - the table content
+ * @param widx - the write index (an integer between 0 and n-1)
+ * @param wsig - the input of the table
+ * @param ridx - the read index (an integer between 0 and n-1)
+ *
+ * @return the table signal.
+ */
 Signal sigWriteReadTable(Signal n, Signal init, Signal widx, Signal wsig, Signal ridx);
 
-// Waveforms
+/**
+ * Create a waveform.
+ *
+ * @param wf - the content of the waveform as a vector of sigInt or sigDouble signals
+ *
+ * @return the waveform signal.
+ */
 Signal sigWaveform(const tvec& wf);
-// Use: sigInt(tvec.size()); to generate the waveform size signal
+// Use: sigInt(wf.size()); to generate the waveform size signal
 
 // Soundfiles
 Signal sigSoundfile(const std::string& label);
@@ -64,8 +138,27 @@ Signal sigSoundfileLength(Signal sf, Signal part);
 Signal sigSoundfileRate(Signal sf, Signal part);
 Signal sigSoundfileBuffer(Signal sf, Signal chan, Signal part, Signal ridx);
 
-// Selectors
+/**
+ * Create a selector between two signals.
+ *
+ * @param selector - when 0 at time t returns s1[t], otherwise returns s2[t]
+ * @param s1 - first signal to be selected
+ * @param s2 - second signal to be selected
+ *
+ * @return the selected signal depending of the selector value at each time t.
+ */
 Signal sigSelect2(Signal selector, Signal s1, Signal s2);
+
+/**
+ * Create a selector between two signals.
+ *
+ * @param selector - when 0 at time t returns s1[t], when 1 at time t returns s2[t], otherwise returns s3[t]
+ * @param s1 - first signal to be selected
+ * @param s2 - second signal to be selected
+ * @param s3 - third signal to be selected
+ *
+ * @return the selected signal depending of the selector value at each time t.
+ */
 Signal sigSelect3(Signal selector, Signal s1, Signal s2, Signal s3);
 
 // Foreign functions
@@ -73,19 +166,48 @@ Signal sigFFun(Signal ff, tvec largs);
 
 enum SType { kSInt, kSReal };
 
-// Foreign constants
+/**
+ * Create a foreign constant signal.
+ *
+ * @param type - the foreign constant type of SType
+ * @param name - the foreign constant name
+ * @param file - the include file where the foreign constant is defined
+ *
+ * @return the foreign constant signal.
+ */
 Signal sigFConst(SType type, const std::string& name, const std::string& file);
 
-// Foreign variables
+/**
+ * Create a foreign variable signal.
+ *
+ * @param type - the foreign variable type of SType
+ * @param name - the foreign variable name
+ * @param file - the include file where the foreign variable is defined
+ *
+ * @return the foreign variable signal.
+ */
 Signal sigFVar(SType type, const std::string& name, const std::string& file);
 
-// Math functions
-
-// Generic version
+/**
+ * Generic binary mathematical functions.
+ *
+ * @param op - the operator in SOperator set
+ * @param x - first signal
+ * @param y - second signal
+ *
+ * @return the result signal of op(x,y).
+ */
 enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
 Signal sigBinOp(SOperator op, Signal x, Signal y);
 
-// Specific versions
+/**
+ * Specific binary mathematical functions.
+ *
+ * @param x - first signal
+ * @param y - second signal
+ *
+ * @return the result signal of fun(x,y).
+ */
 Signal sigAdd(Signal x, Signal y);
 Signal sigSub(Signal x, Signal y);
 Signal sigMul(Signal x, Signal y);
@@ -106,7 +228,9 @@ Signal sigAND(Signal x, Signal y);
 Signal sigOR(Signal x, Signal y);
 Signal sigXOR(Signal x, Signal y);
 
-// Extended math functions
+/**
+ * Extended unary of binary mathematical functions.
+ */
 Signal sigAbs(Signal x);
 Signal sigAcos(Signal x);
 Signal sigTan(Signal x);
@@ -131,42 +255,137 @@ Signal sigAsin(Signal x);
 
 // For recursive signals: sigSelf() has to be used in the sigRecursion(...) expression
 Signal sigSelf();
-Signal sigRecursion(Signal s);
 
-/*****************************************************************************
- User Interface Elements
- *****************************************************************************/
+/**
+ * Create a recursive signal. Use sigSelf() to refer to the
+ * recursive signal inside the sigRecursion expression.
+ *
+ * @param s1 - the signal to recurse on.
+ *
+ * @return the recursive signal.
+ */
+Signal sigRecursion(Signal s1);
 
+/**
+ * Create a button signal.
+ *
+ * @param label - the label definition (see [2])
+ *
+ * @return the button signal.
+ */
 Signal sigButton(const std::string& label);
-Signal sigCheckbox(const std::string& label);
-Signal sigVSlider(const std::string& label, Signal cur, Signal min, Signal max, Signal step);
-Signal sigHSlider(const std::string& label, Signal cur, Signal min, Signal max, Signal step);
-Signal sigNumEntry(const std::string& label, Signal cur, Signal min, Signal max, Signal step);
 
-// Output elements
+/**
+ * Create a checkbox signal.
+ *
+ * @param label - the label definition (see [2])
+ *
+ * @return the checkbox signal.
+ */
+Signal sigCheckbox(const std::string& label);
+
+/**
+ * Create a vertical slider signal.
+ *
+ * @param label - the label definition (see [2])
+ * @param init - the init signal, a constant numerical expression (see [1])
+ * @param min - the max signal, a constant numerical expression (see [1])
+ * @param max - the min signal, a constant numerical expression (see [1])
+ * @param step - the step signal, a constant numerical expression (see [1])
+ *
+ * @return the vertical slider signal.
+ */
+Signal sigVSlider(const std::string& label, Signal init, Signal min, Signal max, Signal step);
+
+/**
+ * Create an horizontal slider signal.
+ *
+ * @param label - the label definition (see [2])
+ * @param init - the init signal, a constant numerical expression (see [1])
+ * @param min - the max signal, a constant numerical expression (see [1])
+ * @param max - the min signal, a constant numerical expression (see [1])
+ * @param step - the step signal, a constant numerical expression (see [1])
+ *
+ * @return the horizontal slider signal.
+ */
+Signal sigHSlider(const std::string& label, Signal init, Signal min, Signal max, Signal step);
+
+/**
+ * Create a num entry signal.
+ *
+ * @param label - the label definition (see [2])
+ * @param init - the init signal, a constant numerical expression (see [1])
+ * @param min - the max signal, a constant numerical expression (see [1])
+ * @param max - the min signal, a constant numerical expression (see [1])
+ * @param step - the step signal, a constant numerical expression (see [1])
+ *
+ * @return the num entry signal.
+ */
+Signal sigNumEntry(const std::string& label, Signal init, Signal min, Signal max, Signal step);
+
+/**
+ * Create a vertical bargraph signal.
+ *
+ * @param label - the label definition (see [2])
+ * @param min - the max signal, a constant numerical expression (see [1])
+ * @param max - the min signal, a constant numerical expression (see [1])
+ *
+ * @return the vertical bargraph signal.
+ */
 Signal sigVBargraph(const std::string& label, Signal min, Signal max, Signal x);
+
+/**
+ * Create an horizontal bargraph signal.
+ *
+ * @param label - the label definition (see [2])
+ * @param min - the max signal, a constant numerical expression (see [1])
+ * @param max - the min signal, a constant numerical expression (see [1])
+ *
+ * @return the horizontal bargraph signal.
+ */
 Signal sigHBargraph(const std::string& label, Signal min, Signal max, Signal x);
+
+/**
+ * Create an attach signal.
+ *
+ * The attach primitive takes two input signals and produces one output signal
+ * which is a copy of the first input. The role of attach is to force
+ * its second input signal to be compiled with the first one.
+ *
+ * @param x - the first signal
+ * @param y - the second signal
+ *
+ * @return the attach signal.
+ */
 Signal sigAttach(Signal x, Signal y);
 
-/**********************
- // Helpers functions
- **********************/
-
-// Reproduce the 'SR' definition in platform.lib: SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <dummy.h>)));
+/**
+ * Return the current runtime sample rate.
+ *
+ * Reproduce the 'SR' definition in platform.lib: SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <dummy.h>)));
+ *
+ * @return the current runtime sample rate.
+ */
 inline Signal getSampleRate()
 {
     return sigMin(sigReal(192000.0), sigMax(sigReal(1.0), sigFConst(SType::kSInt, "fSamplingFreq", "<dummy.h>")));
 }
 
-// Reproduce the 'BS' definition in platform.lib: BS = fvariable(int count, <dummy.h>);
+/**
+ * Return the current runtime buffer size.
+ *
+ * Reproduce the 'BS' definition in platform.lib: BS = fvariable(int count, <dummy.h>);
+ *
+ * @return the current runtime buffer size.
+ */
 inline Signal getBufferSize()
 {
     return sigFVar(SType::kSInt, "count", "<dummy.h>");
 }
 
-/*******************************
- // Base class for factories
- ********************************/
+/**
+ * Base class for factories.
+ */
 
 struct dsp_factory_base {
     
@@ -201,12 +420,6 @@ struct dsp_factory_base {
     
 };
 
-// Create global compilation context
-void createLibContext();
-
-// Destroy global compilation context
-void destroyLibContext();
-
 /**
  * Create a Faust DSP factory from a vector of output signals.
  *
@@ -218,9 +431,14 @@ void destroyLibContext();
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
-dsp_factory_base* compileDSPSignalFactory(int argc, const char* argv[],
-                                        const std::string& name,
-                                        tvec signals,
-                                        std::string& error_msg);
+dsp_factory_base* compileDSPFactoryFromSignals(int argc, const char* argv[],
+                                               const std::string& name,
+                                               tvec signals,
+                                               std::string& error_msg);
+
+/*
+ [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions
+ [2] Label definition : https://faustdoc.grame.fr/manual/syntax/#variable-parts-of-a-label
+ */
 
 #endif

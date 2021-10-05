@@ -60,7 +60,6 @@ interp-tracer: interp-tracer.cpp $(LIB)/libfaust.a
 signal-tester: signal-tester.cpp $(LIB)/libfaust.a
 	$(CXX) $(COMPILEOPT) signal-tester.cpp $(LIBS) -I $(INC) $(LLVM) $(STRIP) -lz -lncurses -lpthread -o $@
 
-
 layout-ui: layout-ui.cpp
 	$(CXX) $(COMPILEOPT) layout-ui.cpp -I $(INC) $(LIBS)  $(LLVM) -o $@
 

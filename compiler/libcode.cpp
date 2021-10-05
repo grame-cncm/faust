@@ -285,10 +285,10 @@ static bool processCmdline(int argc, const char* argv[])
 
     /*
     for (int i = 0; i < argc; i++) {
-        printf("processCmdline i = %d cmd = %s\n", i, argv[i]);
+        cout << "processCmdline i = " << i << " cmd = " << argv[i] << "\n";
     }
     */
-
+    
     while (i < argc) {
         if (isCmd(argv[i], "-h", "--help")) {
             gGlobal->gHelpSwitch = true;
@@ -1551,8 +1551,7 @@ static void compileWAST(Tree signals, int numInputs, int numOutputs, bool genera
         if (res) {
             helpers = unique_ptr<ostream>(new ofstream(outpath_js.c_str()));
         } else {
-            cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\""
-            << endl;
+            cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\"" << endl;
         }
     } else {
         helpers = unique_ptr<ostream>(new ostringstream());
@@ -1597,8 +1596,7 @@ static void compileWASM(Tree signals, int numInputs, int numOutputs, bool genera
         if (res) {
             helpers = unique_ptr<ostream>(new ofstream(outpath_js.c_str()));
         } else {
-            cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\""
-            << endl;
+            cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\"" << endl;
         }
     } else {
         helpers = unique_ptr<ostream>(new ostringstream());
@@ -1688,22 +1686,23 @@ void generateCode(Tree signals, int numInputs, int numOutputs, bool generate)
         }
     
         // New compiler
-        faustassert(container);
-        
-        if (gGlobal->gVectorSwitch) {
-            new_comp = new DAGInstructionsCompiler(container);
-        }
-#if defined(RUST_BUILD) || defined(JULIA_BUILD)
-        else if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia") {
-            new_comp = new InstructionsCompiler1(container);
-        }
-#endif
-        else {
-            new_comp = new InstructionsCompiler(container);
-        }
+        if (container) {
+            
+            if (gGlobal->gVectorSwitch) {
+                new_comp = new DAGInstructionsCompiler(container);
+            }
+    #if defined(RUST_BUILD) || defined(JULIA_BUILD)
+            else if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia") {
+                new_comp = new InstructionsCompiler1(container);
+            }
+    #endif
+            else {
+                new_comp = new InstructionsCompiler(container);
+            }
 
-        if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
-        new_comp->compileMultiSignal(signals);
+            if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
+            new_comp->compileMultiSignal(signals);
+        }
     }
 
     /****************************************************************
@@ -2146,13 +2145,14 @@ static void compileFactoryAux(int argc, const char* argv[], const char* name, co
     generateOutputFiles();
 }
 
-static void compileSignalFactoryAux(int argc, const char* argv[], const char* name, Tree signals, int numInputs, int numOutputs, bool generate)
+static void compileFactoryFromSignals(int argc, const char* argv[], const char* name, Tree signals, int numInputs, int numOutputs, bool generate)
 {
     /****************************************************************
      1 - process command line
      *****************************************************************/
     initFaustDirectories(argc, argv);
     processCmdline(argc, argv);
+    
     initDocumentNames();
     initFaustFloat();
     
@@ -2210,16 +2210,18 @@ string expandDSP(int argc, const char* argv[], const char* name, const char* dsp
 // Signal API
 // ============
 
-EXPORT dsp_factory_base* compileDSPSignalFactory(int argc, const char* argv[],
-                                                const string& name,
-                                                tvec signals,
-                                                string& error_msg)
+EXPORT dsp_factory_base* compileDSPFactoryFromSignals(int argc, const char* argv[],
+                                                     const string& name,
+                                                     tvec signals,
+                                                     string& error_msg)
 {
     dsp_factory_base* factory = nullptr;
     
     int         argc1 = 0;
     const char* argv1[64];
     argv1[argc1++] = "faust";
+    argv1[argc1++] = "-o";
+    argv1[argc1++] = "string";
     
     // Copy arguments
     for (int i = 0; i < argc; i++) {
@@ -2232,7 +2234,7 @@ EXPORT dsp_factory_base* compileDSPSignalFactory(int argc, const char* argv[],
     }
     */
     try {
-        compileSignalFactoryAux(argc1, argv1, name.c_str(), listConvert(signals), gGlobal->gMaxInputs, signals.size(), true);
+        compileFactoryFromSignals(argc1, argv1, name.c_str(), listConvert(signals), gGlobal->gMaxInputs, signals.size(), true);
         error_msg = gGlobal->gErrorMsg;
         factory   = gGlobal->gDSPFactory;
     } catch (faustexception& e) {

@@ -316,17 +316,17 @@ Tree sigCheckbox(Tree label);
 bool isSigCheckbox(Tree s);
 bool isSigCheckbox(Tree s, Tree& label);
 
-Tree sigVSlider(Tree label, Tree cur, Tree min, Tree max, Tree step);
+Tree sigVSlider(Tree label, Tree init, Tree min, Tree max, Tree step);
 bool isSigVSlider(Tree s);
-bool isSigVSlider(Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
+bool isSigVSlider(Tree s, Tree& label, Tree& init, Tree& min, Tree& max, Tree& step);
 
-Tree sigHSlider(Tree label, Tree cur, Tree min, Tree max, Tree step);
+Tree sigHSlider(Tree label, Tree init, Tree min, Tree max, Tree step);
 bool isSigHSlider(Tree s);
-bool isSigHSlider(Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
+bool isSigHSlider(Tree s, Tree& label, Tree& init, Tree& min, Tree& max, Tree& step);
 
-Tree sigNumEntry(Tree label, Tree cur, Tree min, Tree max, Tree step);
+Tree sigNumEntry(Tree label, Tree init, Tree min, Tree max, Tree step);
 bool isSigNumEntry(Tree s);
-bool isSigNumEntry(Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
+bool isSigNumEntry(Tree s, Tree& label, Tree& init, Tree& min, Tree& max, Tree& step);
 
 // Output elements
 Tree sigVBargraph(Tree label, Tree min, Tree max, Tree t0);

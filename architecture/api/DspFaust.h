@@ -123,8 +123,7 @@ class DspFaust
 
         //--------`long keyOn(int pitch, int velocity)`-----------
         // Instantiate a new polyphonic voice. This method can
-        // only be used if the `[style:poly]` metadata is used in
-        // the Faust code or if the `-nvoices` flag has been
+        // only be used if the `-nvoices` flag has been
         // provided before compilation.
         //
         // `keyOn` will return 0 if the Faust object is not
@@ -143,8 +142,7 @@ class DspFaust
 
         //----------------`int keyOff(int pitch)`-----------------
         // De-instantiate a polyphonic voice. This method can
-        // only be used if the `[style:poly]` metadata is used in
-        // the Faust code or if the `-nvoices` flag has been
+        // only be used if the `-nvoices` flag has been
         // provided before compilation.
         //
         // `keyOff` will return 0 if the object is not polyphonic
@@ -159,8 +157,7 @@ class DspFaust
 
         //-------------------`uintptr_t newVoice()`--------------------
         // Instantiate a new polyphonic voice. This method can
-        // only be used if the `[style:poly]` metadata is used in
-        // the Faust code or if `-nvoices` flag has been
+        // only be used if `-nvoices` flag has been
         // provided before compilation.
         //
         // `newVoice` will return 0 if the Faust object is not
@@ -174,8 +171,7 @@ class DspFaust
 
         //---------`int deleteVoice(uintptr_t voice)`------------------
         // De-instantiate a polyphonic voice. This method can
-        // only be used if the `[style:poly]` metadata is used in
-        // the Faust code or if `-nvoices` flag has been
+        // only be used if `-nvoices` flag has been
         // provided before compilation.
         //
         // `deleteVoice` will return 0 if the object is not polyphonic
@@ -197,9 +193,7 @@ class DspFaust
         // DSP object. This method can be used concurrently with
         // [`keyOn`](#keyOn) and [`keyOff`](#keyOff).
         //
-        // `propagateMidi` can
-        // only be used if the `[style:poly]` metadata is used in
-        // the Faust code or if `-nvoices` flag has been
+        // `propagateMidi` can only be used if `-nvoices` flag has been
         // provided before compilation.
         //
         // #### Arguments
@@ -270,8 +264,7 @@ class DspFaust
         float getParamValue(const char* address);
 
         //---------`float getParamValue(int id)`----------
-        // Returns the value of a parameter in function of its
-        // id.
+        // Returns the value of a parameter in function of its id.
         //
         // #### Arguments
         //
@@ -281,28 +274,24 @@ class DspFaust
 
         //----`void setVoiceParamValue(const char* address, uintptr_t voice, float value)`-----
         // Set the value of one of the parameters of the Faust
-        // object in function of its address (path) for a
-        // specific voice.
+        // object in function of its address (path) for a specific voice.
         //
         // #### Arguments
         //
         // * `address`: address (path) of the parameter
-        // * `voice`: address of the polyphonic voice (retrieved
-        // from `keyOn`
+        // * `voice`: address of the polyphonic voice (retrieved from `keyOn`)
         // * `value`: value of the parameter
         //--------------------------------------------------------
         void setVoiceParamValue(const char* address, uintptr_t voice, float value);
 
         //----`void setVoiceParamValue(int id, uintptr_t voice, float value)`-----
         // Set the value of one of the parameters of the Faust
-        // object in function of its id for a
-        // specific voice.
+        // object in function of its id for a specific voice.
         //
         // #### Arguments
         //
         // * `id`: id of the parameter
-        // * `voice`: address of the polyphonic voice (retrieved
-        // from `keyOn`
+        // * `voice`: address of the polyphonic voice (retrieved from `keyOn`)
         // * `value`: value of the parameter
         //--------------------------------------------------------
         void setVoiceParamValue(int id, uintptr_t voice, float value);
@@ -314,8 +303,7 @@ class DspFaust
         // #### Arguments
         //
         // * `address`: address (path) of the parameter
-        // * `voice`: address of the polyphonic voice (retrieved
-        // from `keyOn`)
+        // * `voice`: address of the polyphonic voice (retrieved from `keyOn`)
         //--------------------------------------------------------
         float getVoiceParamValue(const char* address, uintptr_t voice);
 
@@ -332,8 +320,7 @@ class DspFaust
         float getVoiceParamValue(int id, uintptr_t voice);
 
         //----`const char* getParamAddress(int id)`---------------
-        // Returns the address (path) of a parameter in function
-        // of its ID.
+        // Returns the address (path) of a parameter in function of its ID.
         //
         // #### Arguments
         //
@@ -342,14 +329,12 @@ class DspFaust
         const char* getParamAddress(int id);
 
         //----`const char* getVoiceParamAddress(int id, uintptr_t voice)`-----
-        // Returns the address (path) of a parameter in function
-        // of its ID.
+        // Returns the address (path) of a parameter in function of its ID.
         //
         // #### Arguments
         //
         // * `id`: id of the parameter
-        // * `voice`: address of the polyphonic voice (retrieved
-        // from `keyOn`)
+        // * `voice`: address of the polyphonic voice (retrieved from `keyOn`)
         //--------------------------------------------------------
         const char* getVoiceParamAddress(int id, uintptr_t voice);
 
@@ -442,7 +427,7 @@ class DspFaust
         // #### Arguments
         //
         // * `acc`: the accelerometer axis (**0**: x, **1**: y, **2**: z)
-        // * `v`: the RAW acceleromter value in m/s
+        // * `v`: the RAW accelerometer value in m/s
         //--------------------------------------------------------
         void propagateAcc(int acc, float v);
 
@@ -467,7 +452,7 @@ class DspFaust
         // #### Arguments
         //
         // * `gyr`: the gyroscope axis (**0**: x, **1**: y, **2**: z)
-        // * `v`: the RAW accelerometer value in m/s
+        // * `v`: the RAW gyroscope value in m/s
         //--------------------------------------------------------
         void propagateGyr(int gyr, float v);
 

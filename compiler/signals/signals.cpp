@@ -421,9 +421,9 @@ bool isSigWaveform(Tree s)
     return isTree(s, gGlobal->SIGWAVEFORM);
 }
 
-Tree sigHSlider(Tree lbl, Tree cur, Tree min, Tree max, Tree step)
+Tree sigHSlider(Tree lbl, Tree init, Tree min, Tree max, Tree step)
 {
-    return tree(gGlobal->SIGHSLIDER, lbl, list4(cur, min, max, step));
+    return tree(gGlobal->SIGHSLIDER, lbl, list4(init, min, max, step));
 }
 bool isSigHSlider(Tree s)
 {
@@ -431,11 +431,11 @@ bool isSigHSlider(Tree s)
     return isTree(s, gGlobal->SIGHSLIDER, lbl, params);
 }
 
-bool isSigHSlider(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)
+bool isSigHSlider(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& max, Tree& step)
 {
     Tree params;
     if (isTree(s, gGlobal->SIGHSLIDER, lbl, params)) {
-        cur  = nth(params, 0);
+        init  = nth(params, 0);
         min  = nth(params, 1);
         max  = nth(params, 2);
         step = nth(params, 3);
@@ -445,9 +445,9 @@ bool isSigHSlider(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step
     }
 }
 
-Tree sigVSlider(Tree lbl, Tree cur, Tree min, Tree max, Tree step)
+Tree sigVSlider(Tree lbl, Tree init, Tree min, Tree max, Tree step)
 {
-    return tree(gGlobal->SIGVSLIDER, lbl, list4(cur, min, max, step));
+    return tree(gGlobal->SIGVSLIDER, lbl, list4(init, min, max, step));
 }
 bool isSigVSlider(Tree s)
 {
@@ -455,11 +455,11 @@ bool isSigVSlider(Tree s)
     return isTree(s, gGlobal->SIGVSLIDER, lbl, params);
 }
 
-bool isSigVSlider(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)
+bool isSigVSlider(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& max, Tree& step)
 {
     Tree params;
     if (isTree(s, gGlobal->SIGVSLIDER, lbl, params)) {
-        cur  = nth(params, 0);
+        init  = nth(params, 0);
         min  = nth(params, 1);
         max  = nth(params, 2);
         step = nth(params, 3);
@@ -469,9 +469,9 @@ bool isSigVSlider(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step
     }
 }
 
-Tree sigNumEntry(Tree lbl, Tree cur, Tree min, Tree max, Tree step)
+Tree sigNumEntry(Tree lbl, Tree init, Tree min, Tree max, Tree step)
 {
-    return tree(gGlobal->SIGNUMENTRY, lbl, list4(cur, min, max, step));
+    return tree(gGlobal->SIGNUMENTRY, lbl, list4(init, min, max, step));
 }
 bool isSigNumEntry(Tree s)
 {
@@ -479,11 +479,11 @@ bool isSigNumEntry(Tree s)
     return isTree(s, gGlobal->SIGNUMENTRY, lbl, params);
 }
 
-bool isSigNumEntry(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)
+bool isSigNumEntry(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& max, Tree& step)
 {
     Tree params;
     if (isTree(s, gGlobal->SIGNUMENTRY, lbl, params)) {
-        cur  = nth(params, 0);
+        init  = nth(params, 0);
         min  = nth(params, 1);
         max  = nth(params, 2);
         step = nth(params, 3);

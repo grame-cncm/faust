@@ -623,6 +623,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
                     argv1[argc1++] = argv[i];
                 }
                 argv1[argc1] = nullptr;  // NULL terminated argv
+                
                 llvm_dynamic_dsp_factory_aux* factory_aux
                     = static_cast<llvm_dynamic_dsp_factory_aux*>(compileFactory(argc1, argv1,
                                                                                name_app.c_str(),
