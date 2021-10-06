@@ -194,9 +194,6 @@ Signal sigSelect2(Signal selector, Signal s1, Signal s2);
  */
 Signal sigSelect3(Signal selector, Signal s1, Signal s2, Signal s3);
 
-// Foreign functions
-Signal sigFFun(Signal ff, tvec largs);
-
 enum SType { kSInt, kSReal };
 
 /**
@@ -221,6 +218,8 @@ Signal sigFConst(SType type, const std::string& name, const std::string& file);
  */
 Signal sigFVar(SType type, const std::string& name, const std::string& file);
 
+enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
+
 /**
  * Generic binary mathematical functions.
  *
@@ -230,7 +229,6 @@ Signal sigFVar(SType type, const std::string& name, const std::string& file);
  *
  * @return the result signal of op(x,y).
  */
-enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
 Signal sigBinOp(SOperator op, Signal x, Signal y);
 
 /**
