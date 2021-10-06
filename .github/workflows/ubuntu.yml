@@ -16,5 +16,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Install libmicrohttpd
+      run: sudo apt-get install libmicrohttpd-dev
     - name: Build Faust
       run: make
