@@ -30,8 +30,10 @@
 #include "faust/dsp/libfaust-signal.h"
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/interpreter-dsp.h"
+#include "faust/dsp/poly-dsp.h"
 #include "faust/audio/jack-dsp.h"
 #include "faust/gui/GTKUI.h"
+#include "faust/gui/MidiUI.h"
 #include "faust/misc.h"
 
 using namespace std;
@@ -477,20 +479,19 @@ static void test22(int argc, char* argv[])
             audio.init("Test", dsp);
 
             // Create GUI
-            GUI* interface = new GTKUI("Test", &argc, &argv);
-            dsp->buildUserInterface(interface);
+            GTKUI gtk_ui = GTKUI("Organ", &argc, &argv);
+            dsp->buildUserInterface(&gtk_ui);
             
             // Start real-time processing
             audio.start();
             
             // Start GUI
-            interface->run();
+            gtk_ui.run();
             
             // Cleanup
             audio.stop();
             delete dsp;
             deleteDSPFactory(factory);
-            
         } else {
              cerr << error_msg;
         }
@@ -509,6 +510,7 @@ static void test23(int argc, char* argv[])
         tvec signals;
         signals.push_back(osc(sigHSlider("v:Oscillator/Freq1", sigReal(300), sigReal(100), sigReal(2000), sigReal(0.01))));
         signals.push_back(osc(sigHSlider("v:Oscillator/Freq2", sigReal(500), sigReal(100), sigReal(2000), sigReal(0.01))));
+    
         factory = createInterpreterDSPFactoryFromSignals("FaustDSP", signals, 0, nullptr, error_msg);
     }
     destroyLibContext();
@@ -523,20 +525,80 @@ static void test23(int argc, char* argv[])
         audio.init("Test", dsp);
         
         // Create GUI
-        GUI* interface = new GTKUI("Test", &argc, &argv);
-        dsp->buildUserInterface(interface);
+        GTKUI gtk_ui = GTKUI("Organ", &argc, &argv);
+        dsp->buildUserInterface(&gtk_ui);
         
         // Start real-time processing
         audio.start();
         
         // Start GUI
-        interface->run();
+        gtk_ui.run();
         
         // Cleanup
         audio.stop();
         delete dsp;
         deleteInterpreterDSPFactory(factory);
+    } else {
+        cerr << error_msg;
+    }
+}
+
+// Simple polyphonic DSP.
+static void test24(int argc, char* argv[])
+{
+    interpreter_dsp_factory* factory = nullptr;
+    string error_msg;
+    
+    createLibContext();
+    {
+        tvec signals;
+    
+        // Follow the freq/gate/gain convention, see: https://faustdoc.grame.fr/manual/midi/#standard-polyphony-parameters
+        Signal freq = sigNumEntry("freq", sigReal(100), sigReal(100), sigReal(3000), sigReal(0.01));
+        Signal gate = sigButton("gate");
+        Signal gain = sigNumEntry("gain", sigReal(0.5), sigReal(0), sigReal(1), sigReal(0.01));
+        Signal organ = sigMul(gate, sigAdd(sigMul(osc(freq), gain), sigMul(osc(sigMul(freq, sigInt(2))), gain)));
+        // Stereo
+        signals.push_back(organ);
+        signals.push_back(organ);
+    
+        factory = createInterpreterDSPFactoryFromSignals("FaustDSP", signals, 0, nullptr, error_msg);
+    }
+    destroyLibContext();
+    
+    // Use factory outside of the createLibContext/destroyLibContext scope
+    if (factory) {
+        dsp* dsp = factory->createDSPInstance();
+        assert(dsp);
         
+        // Allocate polyphonic DSP
+        dsp = new mydsp_poly(dsp, 8, true, true);
+        
+        // Allocate MIDI/audio driver
+        jackaudio_midi audio;
+        audio.init("Organ", dsp);
+        
+        // Create GUI
+        GTKUI gtk_ui = GTKUI("Organ", &argc, &argv);
+        dsp->buildUserInterface(&gtk_ui);
+        
+        // Create MIDI controller
+        MidiUI midi_ui = MidiUI(&audio);
+        dsp->buildUserInterface(&midi_ui);
+        
+        // Start real-time processing
+        audio.start();
+        
+        // Start MIDI
+        midi_ui.run();
+        
+        // Start GUI
+        gtk_ui.run();
+        
+        // Cleanup
+        audio.stop();
+        delete dsp;
+        deleteInterpreterDSPFactory(factory);
     } else {
         cerr << error_msg;
     }
@@ -571,11 +633,14 @@ int main(int argc, char* argv[])
     test20();
     test21();
     
-    // Test with audio and GUI and LLVM backend
+    // Test with audio, GUI and LLVM backend
     test22(argc, argv);
     
-    // Test with audio and GUI and Interp backend
+    // Test with audio, GUI and Interp backend
     test23(argc, argv);
+    
+    // Test with audio, GUI, MIDI and Interp backend
+    test24(argc, argv);
     
     return 0;
 }
