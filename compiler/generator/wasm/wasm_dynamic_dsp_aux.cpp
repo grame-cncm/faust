@@ -180,7 +180,7 @@ EXPORT void deleteAllWasmCDSPFactories()
 EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromFile2(const char* filename, int argc, const char* argv[],
                                                         char* error_msg, bool internal_memory)
 {
-    string            error_msg_aux;
+    string error_msg_aux;
     wasm_dsp_factory* factory = createWasmDSPFactoryFromFile(filename, argc, argv, error_msg_aux, internal_memory);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
@@ -189,9 +189,20 @@ EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromFile2(const char* filename, in
 EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromString2(const char* name_app, const char* dsp_content, int argc,
                                                           const char* argv[], char* error_msg, bool internal_memory)
 {
-    string            error_msg_aux;
+    string error_msg_aux;
     wasm_dsp_factory* factory =
         createWasmDSPFactoryFromString(name_app, dsp_content, argc, argv, error_msg_aux, internal_memory);
+    strncpy(error_msg, error_msg_aux.c_str(), 4096);
+    return factory;
+}
+    
+EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromSignals2(const char* name_app, tvec signals,
+                                                           int argc, const char* argv[], char* error_msg,
+                                                           bool internal_memory)
+{
+    string error_msg_aux;
+    wasm_dsp_factory* factory =
+        createWasmDSPFactoryFromSignals(name_app, signals, argc, argv, error_msg_aux, internal_memory);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
 }
