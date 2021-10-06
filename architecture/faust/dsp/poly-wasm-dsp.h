@@ -100,7 +100,7 @@ struct wasm_dsp_poly_factory : public dsp_poly_factory {
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
  * @param error_msg - the error string to be filled
- * @param internal_memory - whether to use an internallay allocated memory block for wasm module
+ * @param internal_memory - whether to use an internally allocated memory block for wasm module
  *
  * @return a Polyphonic DSP factory on success, otherwise a null pointer.
  */
@@ -124,7 +124,7 @@ static wasm_dsp_poly_factory* createWasmPolyDSPFactoryFromString(const std::stri
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
  * @param error_msg - the error string to be filled
- * @param internal_memory - whether to use an internallay allocated memory block for wasm module
+ * @param internal_memory - whether to use an internally allocated memory block for wasm module
  *
  * @return a Polyphonic DSP factory on success, otherwise a null pointer.
  */

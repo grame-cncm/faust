@@ -140,14 +140,14 @@ wasm_dsp_factory* getWasmDSPFactoryFromSHAKey(const std::string& sha_key);
  * Create a Faust DSP factory from a DSP source code as a file. Note that the library keeps an internal cache of all
  * allocated factories so that the compilation of same DSP code (that is same source code and
  * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer. You will
- * have to explicitly use deleteInterpreterDSPFactory to properly decrement reference counter when the factory is no
+ * have to explicitly use deleteWasmDSPFactory to properly decrement reference counter when the factory is no
  * more needed.
  *
  * @param filename - the DSP filename
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
- * @param internal_memory - whether to use an internallay allocated memory block for wasm module
+ * @param internal_memory - whether to use an internally allocated memory block for wasm module
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
@@ -165,7 +165,7 @@ wasm_dsp_factory* createWasmDSPFactoryFromFile(const std::string& filename, int 
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
- * @param internal_memory - whether to use an internallay allocated memory block for wasm module
+ * @param internal_memory - whether to use an internally allocated memory block for wasm module
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
@@ -181,7 +181,7 @@ wasm_dsp_factory* createWasmDSPFactoryFromString(const std::string& name_app, co
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
- * @param internal_memory - whether to use an internallay allocated memory block for wasm module
+ * @param internal_memory - whether to use an internally allocated memory block for wasm module
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
