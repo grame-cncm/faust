@@ -182,7 +182,7 @@ Tree aterm::normalizedTree() const
 }
 
 /**
- * print an aterm in a human readable format
+ * Print an aterm in a human readable format
  */
 ostream& aterm::print(ostream& dst) const
 {
@@ -200,7 +200,7 @@ ostream& aterm::print(ostream& dst) const
 }
 
 /**
- * Add in place an additive expression tree Go down t recursively looking
+ * Add in place an additive expression tree. Go down recursively looking
  * for additions and substractions
  */
 const aterm& aterm::operator+=(Tree t)
@@ -226,7 +226,7 @@ const aterm& aterm::operator+=(Tree t)
 }
 
 /**
- * Substract in place an additive expression tree Go down t recursively looking
+ * Substract in place an additive expression tree. Go down to recursively looking
  * for additions and substractions
  */
 const aterm& aterm::operator-=(Tree t)
@@ -316,7 +316,7 @@ mterm aterm::greatestDivisor() const
 }
 
 /**
- * reorganize the aterm by factorizing d
+ * Reorganize the aterm by factorizing d
  */
 aterm aterm::factorize(const mterm& d)
 {

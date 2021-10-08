@@ -46,7 +46,7 @@ mterm::mterm(const mterm& m) : fCoef(m.fCoef), fFactors(m.fFactors)
 }
 
 /**
- * create a mterm from a tree sexpression
+ * Create a mterm from a tree expression
  */
 mterm::mterm(Tree t) : fCoef(sigInt(1))
 {
@@ -76,7 +76,7 @@ bool mterm::isNegative() const
 }
 
 /**
- * print a mterm in a human readable format
+ * Print a mterm in a human readable format
  */
 ostream& mterm::print(ostream& dst) const
 {
@@ -109,7 +109,7 @@ int mterm::complexity() const
 }
 
 /**
- * match x^p with p:int
+ * Match x^p with p:int
  */
 static bool isSigPow(Tree sig, Tree& x, int& n)
 {
@@ -126,7 +126,7 @@ static bool isSigPow(Tree sig, Tree& x, int& n)
 }
 
 /**
- * produce x^p with p:int
+ * Produce x^p with p:int
  */
 static Tree sigPow(Tree x, int p)
 {
@@ -134,7 +134,7 @@ static Tree sigPow(Tree x, int p)
 }
 
 /**
- * Multiple a mterm by an expression tree t. Go down recursively looking
+ * Multiply a mterm by an expression tree. Go down recursively looking
  * for multiplications and divisions
  */
 const mterm& mterm::operator*=(Tree t)

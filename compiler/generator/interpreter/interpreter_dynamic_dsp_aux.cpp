@@ -49,7 +49,6 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
     LOCK_API
     string expanded_dsp_content, sha_key;
 
-    //if ((expanded_dsp_content = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
     if ((expanded_dsp_content = sha1FromDSP(name_app, dsp_content, argc, argv, sha_key)) == "") {
         return nullptr;
     } else {
@@ -97,7 +96,6 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromSignals(const std
                                                                        int argc, const char* argv[], std::string& error_msg)
 {
     try {
-        interpreter_dsp_factory* factory = nullptr;
         int         argc1 = 0;
         const char* argv1[64];
         argv1[argc1++] = "faust";
@@ -105,7 +103,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromSignals(const std
         argv1[argc1++] = "interp";
         argv1[argc1++] = "-o";
         argv1[argc1++] = "string";
-            // Copy arguments
+        // Copy arguments
         for (int i = 0; i < argc; i++) {
             argv1[argc1++] = argv[i];
         }
@@ -114,7 +112,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromSignals(const std
         dsp_factory_base* dsp_factory_aux = createFactory(name_app.c_str(), signals, argc1, argv1, error_msg);
         if (dsp_factory_aux) {
             dsp_factory_aux->setName(name_app);
-            factory = new interpreter_dsp_factory(dsp_factory_aux);
+            interpreter_dsp_factory* factory = new interpreter_dsp_factory(dsp_factory_aux);
             gInterpreterFactoryTable.setFactory(factory);
             return factory;
         } else {

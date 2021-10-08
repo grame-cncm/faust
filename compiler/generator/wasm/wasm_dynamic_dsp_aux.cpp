@@ -101,6 +101,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
         argv1[argc1++] = (internal_memory) ? "wasm-ib" : "wasm-eb";
         argv1[argc1++] = "-o";
         argv1[argc1++] = "binary";
+        // Copy argument
         for (int i = 0; i < argc; i++) {
             argv1[argc1++] = argv[i];
         }
@@ -132,6 +133,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromSignals(const std::string& name
     argv1[argc1++] = (internal_memory) ? "wasm-ib" : "wasm-eb";
     argv1[argc1++] = "-o";
     argv1[argc1++] = "binary";
+    // Copy argument
     for (int i = 0; i < argc; i++) {
         argv1[argc1++] = argv[i];
     }

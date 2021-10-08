@@ -166,7 +166,7 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigHBargraph(label, self(x), self(y), self(z));
     }
 
-    // Sounfile length, rate, channels, buffer
+    // Soundfile length, rate, channels, buffer
     else if (isSigSoundfile(sig, label)) {
         return sig;
     } else if (isSigSoundfileLength(sig, sf, x)) {

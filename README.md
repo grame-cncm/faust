@@ -60,6 +60,13 @@ Faust libraries are now in a [separated project](https://github.com/grame-cncm/f
     git commit -m "Faust updated to the latest version of the libraries and oboe."
     git push
 
+Or to synchronize the *libraries* folder only:
+
+    git submodule update --remote --merge libraries
+    git add libraries 
+    git commit -m "Faust updated to the latest version of libraries."
+    git push
+
 ## Compilation and Installation
 
 Since release 2.5.18, Faust compilation and installation is based on [CMake](https://cmake.org/). For details about compilation, you should look at the [Faust wiki pages](https://github.com/grame-cncm/faust/wiki) or go directly to the [simple tutorial](https://github.com/grame-cncm/faust/wiki/BuildingSimple) to compile and install.

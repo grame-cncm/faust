@@ -134,7 +134,7 @@ inline ostream& operator<<(ostream& s, const Node& n)
 }
 
 //-------------------------------------------------------------------------
-// Perdicates and pattern matching
+// Predicates and pattern matching
 //-------------------------------------------------------------------------
 
 // integers
