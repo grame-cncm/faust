@@ -406,8 +406,10 @@ struct FBCInstruction {
     }
 
     static bool isMath(Opcode opt) { return (opt >= kAddReal) && (opt <= kXORInt); }
-    static bool isExtendedUnaryMath(Opcode opt) { return (opt >= kAbs) && (opt <= kIsinff); }
-    static bool isExtendedBinaryMath(Opcode opt) { return (opt >= kAtan2f) && (opt <= kCopysignf); }
+    // 'isnan' and 'isinf' not optimized for now, so not included in this test
+    static bool isExtendedUnaryMath(Opcode opt) { return (opt >= kAbs) && (opt <= kTanhf); }
+    // 'copysign' not optimized for now, so not included in this test
+    static bool isExtendedBinaryMath(Opcode opt) { return (opt >= kAtan2f) && (opt <= kMinf); }
     static bool isChoice(Opcode opt) { return (opt == kIf) || (opt == kSelectReal) || (opt == kSelectInt); }
 };
 

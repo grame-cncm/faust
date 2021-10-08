@@ -143,7 +143,7 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
         stringstream l1reader(line1);
         stringstream l2reader(line2);
       
-        // Keep line_num and tgnore ":" tokens
+        // Keep line_num and ignore ":" tokens
         string line_num1, line_num2;
         l1reader >> line_num1; l1reader >> dummy;
         l2reader >> line_num2; l2reader >> dummy;
