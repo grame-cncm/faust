@@ -142,10 +142,11 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
         
         stringstream l1reader(line1);
         stringstream l2reader(line2);
-        
-        // Ignore "line_num" and ":" tokens
-        l1reader >> dummy; l1reader >> dummy;
-        l2reader >> dummy; l2reader >> dummy;
+      
+        // Keep line_num and tgnore ":" tokens
+        string line_num1, line_num2;
+        l1reader >> line_num1; l1reader >> dummy;
+        l2reader >> line_num2; l2reader >> dummy;
         
         double sample1, sample2;
         
@@ -156,7 +157,8 @@ static bool compareFiles(istream* in1, istream* in2, double tolerance, bool is_p
             double delta = fabs(sample1 - sample2);
             
             if (delta > tolerance) {
-                cerr << "line : " << i << " output : " << j << " sample1 : " << sample1 << " different from sample2 : " << sample2 << " delta : " << delta << endl;
+                
+                cerr << "Line : " << line_num1 << " output : " << j << " sample1 : " << sample1 << " different from sample2 : " << sample2 << " delta : " << delta << endl;
                 gResult = 1;
                 if (gError++ > 10) {
                     cerr << "Too much errors, stops..." << endl;

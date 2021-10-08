@@ -263,8 +263,7 @@ struct FBCInstruction {
         kTanhf,
         kIsnanf,
         kIsinff,
-        kCopysignf,
-
+       
         // Extended unary math (heap OP)
         kAbsHeap,
         kAbsfHeap,
@@ -297,6 +296,7 @@ struct FBCInstruction {
         kMaxf,
         kMin,
         kMinf,
+        kCopysignf,
 
         // Extended binary math (heap OP heap)
         kAtan2fHeap,
@@ -381,24 +381,33 @@ struct FBCInstruction {
 
                 || (opt == kSelectReal)
 
-                || (opt == kAddReal) || (opt == kSubReal) || (opt == kMultReal) || (opt == kDivReal) ||
-                (opt == kRemReal)
+                || (opt == kAddReal)
+                || (opt == kSubReal)
+                || (opt == kMultReal)
+                || (opt == kDivReal)
+                || (opt == kRemReal)
 
                 || (opt == kAbsf)
                 || (opt == kAcosf) || (opt == kAcoshf)
                 || (opt == kAsinf) || (opt == kAsinhf)
                 || (opt == kAtanf) || (opt == kAtanhf)
-                || (opt == kCeilf) ||
-                (opt == kCosf) || (opt == kCoshf) || (opt == kExpf) || (opt == kFloorf) || (opt == kLogf) ||
-                (opt == kLog10f) || (opt == kRintf) || (opt == kRoundf) || (opt == kSinf) || (opt == kSinhf) || (opt == kSqrtf) ||
-                (opt == kTanf) || (opt == kTanhf)
-
-                || (opt == kAtan2f) || (opt == kFmodf) || (opt == kPowf) || (opt == kMaxf) || (opt == kMinf));
+                || (opt == kCeilf) || (opt == kCosf)
+                || (opt == kCoshf) || (opt == kExpf)
+                || (opt == kFloorf) || (opt == kLogf)
+                || (opt == kLog10f) || (opt == kRintf)
+                || (opt == kRoundf) || (opt == kSinf)
+                || (opt == kSinhf) || (opt == kSqrtf)
+                || (opt == kTanf) || (opt == kTanhf)
+                || (opt == kIsnanf) || (opt == kIsinff)
+             
+                || (opt == kAtan2f) || (opt == kFmodf)
+                || (opt == kPowf) || (opt == kMaxf)
+                || (opt == kMinf) || (opt == kCopysignf));
     }
 
     static bool isMath(Opcode opt) { return (opt >= kAddReal) && (opt <= kXORInt); }
-    static bool isExtendedUnaryMath(Opcode opt) { return (opt >= kAbs) && (opt <= kTanhf); }
-    static bool isExtendedBinaryMath(Opcode opt) { return (opt >= kAtan2f) && (opt <= kMinf); }
+    static bool isExtendedUnaryMath(Opcode opt) { return (opt >= kAbs) && (opt <= kIsinff); }
+    static bool isExtendedBinaryMath(Opcode opt) { return (opt >= kAtan2f) && (opt <= kCopysignf); }
     static bool isChoice(Opcode opt) { return (opt == kIf) || (opt == kSelectReal) || (opt == kSelectInt); }
 };
 
@@ -454,16 +463,17 @@ static std::string gFBCInstructionTable[] = {
     "kLERealValueInvert",
 
     // Extended unary math
-    "kAbs", "kAbsf", "kAcosf", "kAcoshf", "kAsinf", "kAsinhf", "kAtanf", "kAtanhf", "kCeilf", "kCosf", "kCoshf", "kExpf", "kFloorf", "kLogf", "kLog10f",
-    "kRintf", "kRoundf", "kSinf", "kSinhf", "kSqrtf", "kTanf", "kTanhf", "kIsnanf", "kIsinff", "kCopysignf",
+    "kAbs", "kAbsf", "kAcosf", "kAcoshf", "kAsinf", "kAsinhf", "kAtanf", "kAtanhf", 
+    "kCeilf", "kCosf", "kCoshf", "kExpf", "kFloorf", "kLogf", "kLog10f",
+    "kRintf", "kRoundf", "kSinf", "kSinhf", "kSqrtf", "kTanf", "kTanhf", "kIsnanf", "kIsinff",
 
     // Extended unary math (heap OP heap)
-    "kAbsHeap", "kAbsfHeap", "kAcosfHeap", "kAcoshfHeap", "kAsinfHeap", "kAsinhfHeap", "kAtanfHeap", "kAtanhfHeap", "kCeilfHeap", "kCosfHeap", "kCoshfHeap",
-    "kExpfHeap", "kFloorfHeap", "kLogfHeap", "kLog10fHeap", "kRintfHeap", "kRoundfHeap", "kSinfHeap", "kSinhfHeap", "kSqrtfHeap",
-    "kTanfHeap", "kTanhfHeap",
+    "kAbsHeap", "kAbsfHeap", "kAcosfHeap", "kAcoshfHeap", "kAsinfHeap", "kAsinhfHeap", "kAtanfHeap", "kAtanhfHeap", "kCeilfHeap",
+    "kCosfHeap", "kCoshfHeap", "kExpfHeap", "kFloorfHeap", "kLogfHeap", "kLog10fHeap", "kRintfHeap", "kRoundfHeap", "kSinfHeap",
+    "kSinhfHeap", "kSqrtfHeap", "kTanfHeap", "kTanhfHeap",
 
     // Extended binary math
-    "kAtan2f", "kFmodf", "kPowf", "kMax", "kMaxf", "kMin", "kMinf",
+    "kAtan2f", "kFmodf", "kPowf", "kMax", "kMaxf", "kMin", "kMinf", "kCopysignf",
 
     // Extended binary math (heap version)
     "kAtan2fHeap", "kFmodfHeap", "kPowfHeap", "kMaxHeap", "kMaxfHeap", "kMinHeap", "kMinfHeap",
@@ -472,8 +482,8 @@ static std::string gFBCInstructionTable[] = {
     "kAtan2fStack", "kFmodfStack", "kPowfStack", "kMaxStack", "kMaxfStack", "kMinStack", "kMinfStack",
 
     // Extended binary math (Stack/Value version)
-    "kAtan2fStackValue", "kFmodfStackValue", "kPowfStackValue", "kMaxStackValue", "kMaxStackfValue", "kMinStackValue",
-    "kMinfStackValue",
+    "kAtan2fStackValue", "kFmodfStackValue", "kPowfStackValue", "kMaxStackValue",
+    "kMaxStackfValue", "kMinStackValue", "kMinfStackValue",
 
     // Extended binary math (Value version)
     "kAtan2fValue", "kFmodfValue", "kPowfValue", "kMaxValue", "kMaxfValue", "kMinValue", "kMinfValue",

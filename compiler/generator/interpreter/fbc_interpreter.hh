@@ -656,6 +656,11 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         Soundfile*    sound_stack[512];
         InstructionIT address_stack[64];
         
+        memset(real_stack, 0, sizeof(REAL)*512);
+        memset(int_stack, 0, sizeof(int)*512);
+        memset(sound_stack, 0, sizeof(Soundfile*)*512);
+        memset(address_stack, 0, sizeof(InstructionIT)*64);
+        
         if (TRACE > 0) {
             // Check block coherency
             block->check();
@@ -668,7 +673,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 #define dispatchNextScal()    \
     {                         \
         if (TRACE >= 4) {     \
-            traceInstruction(it, int_stack[int_stack_index], real_stack[int_stack_index]); \
+            traceInstruction(it, int_stack[int_stack_index], real_stack[real_stack_index]); \
         }                     \
         it++;                 \
         dispatchFirstScal()   \
@@ -2125,14 +2130,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     pushInt(std::isinf(v));
                     dispatchNextScal();
                 }
-                    
-                case FBCInstruction::kCopysignf : {
-                    REAL x = popReal(it);
-                    REAL y = popReal(it);
-                    pushReal(it, std::copysign(x, y));
-                    dispatchNextScal();
-                }
-                
+                 
                 //------------------------------------
                 // Extended unary math (heap version)
                 //------------------------------------
@@ -2297,6 +2295,13 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     REAL v1 = popReal(it);
                     REAL v2 = popReal(it);
                     pushReal(it, std::min(v1, v2));
+                    dispatchNextScal();
+                }
+                    
+                case FBCInstruction::kCopysignf : {
+                    REAL v1 = popReal(it);
+                    REAL v2 = popReal(it);
+                    pushReal(it, std::copysign(v1, v2));
                     dispatchNextScal();
                 }
                     
@@ -2652,7 +2657,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             &&do_kAbs, &&do_kAbsf, &&do_kAcosf, &&do_kAcoshf, &&do_kAsinf, &&do_kAsinhf, &&do_kAtanf, &&do_kAtanhf, &&do_kCeilf,
             &&do_kCosf, &&do_kCoshf,
             &&do_kExpf, &&do_kFloorf, &&do_kLogf, &&do_kLog10f, &&do_kRintf, &&do_kRoundf, &&do_kSinf, &&do_kSinhf, &&do_kSqrtf,
-            &&do_kTanf, &&do_kTanhf, &&do_kIsnanf, &&do_kIsinff, &&do_kCopysignf,
+            &&do_kTanf, &&do_kTanhf, &&do_kIsnanf, &&do_kIsinff,
 
             // Extended unary math (heap OP heap)
             &&do_kAbsHeap, &&do_kAbsfHeap, &&do_kAcosfHeap, &&do_kAcoshfHeap, &&do_kAsinfHeap, &&do_kAsinhfHeap, &&do_kAtanfHeap, &&do_kAtanhfHeap,
@@ -2661,7 +2666,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             &&do_kRintfHeap, &&do_kRoundfHeap, &&do_kSinfHeap, &&do_kSinhfHeap, &&do_kSqrtfHeap, &&do_kTanfHeap, &&do_kTanhfHeap,
 
             // Extended binary math
-            &&do_kAtan2f, &&do_kFmodf, &&do_kPowf, &&do_kMax, &&do_kMaxf, &&do_kMin, &&do_kMinf,
+            &&do_kAtan2f, &&do_kFmodf, &&do_kPowf, &&do_kMax, &&do_kMaxf, &&do_kMin, &&do_kMinf, &&do_kCopysignf,
 
             // Extended binary math (heap version)
             &&do_kAtan2fHeap, &&do_kFmodfHeap, &&do_kPowfHeap, &&do_kMaxHeap, &&do_kMaxfHeap, &&do_kMinHeap,
@@ -2699,6 +2704,11 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         int           int_stack[512];
         Soundfile*    sound_stack[512];
         InstructionIT address_stack[64];
+        
+        memset(real_stack, 0, sizeof(REAL)*512);
+        memset(int_stack, 0, sizeof(int)*512);
+        memset(sound_stack, 0, sizeof(Soundfile*)*512);
+        memset(address_stack, 0, sizeof(InstructionIT)*64);
 
 #define dispatchFirstScal()                   \
     {                                         \
@@ -2707,12 +2717,13 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 #define dispatchNextScal()                    \
     {                                         \
         if (TRACE >= 4) {     \
-            traceInstruction(it, int_stack[int_stack_index], real_stack[int_stack_index]); \
+            traceInstruction(it, int_stack[int_stack_index], real_stack[real_stack_index]); \
         }                                     \
         it++;                                 \
         dispatchFirstScal();                  \
     }
 
+        
 #define dispatchBranch1Scal()                        \
     {                                                \
         it = (*it)->fBranch1->fInstructions.begin(); \
@@ -4173,14 +4184,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         pushInt(std::isinf(v));
         dispatchNextScal();
     }
-    
-    do_kCopysignf : {
-        REAL x = popReal(it);
-        REAL y = popReal(it);
-        pushReal(it, std::copysign(x, y));
-        dispatchNextScal();
-    }
- 
+  
         //------------------------------------
         // Extended unary math (heap version)
         ///-----------------------------------
@@ -4347,7 +4351,14 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         pushReal(it, std::min(v1, v2));
         dispatchNextScal();
     }
-
+        
+    do_kCopysignf : {
+        REAL v1 = popReal(it);
+        REAL v2 = popReal(it);
+        pushReal(it, std::copysign(v1, v2));
+        dispatchNextScal();
+    }
+        
         //-------------------------------------
         // Extended binary math (heap version)
         //-------------------------------------

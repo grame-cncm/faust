@@ -145,7 +145,7 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
             function                  = LLVMAddFunction(fModule, name.c_str(), ret_type);
         }
         // Create the function call
-        LLVMValueRef fun_args[] = {popValue()};
+        LLVMValueRef fun_args[] = { popValue() };
         pushValue(LLVMBuildCall(fBuilder, function, fun_args, 1, ""));
     }
 
@@ -169,7 +169,7 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
             function                  = LLVMAddFunction(fModule, name.c_str(), ret_type);
         }
         // Create the function call
-        LLVMValueRef fun_args[] = {popValue(), popValue()};
+        LLVMValueRef fun_args[] = { popValue(), popValue() };
         pushValue(LLVMBuildCall(fBuilder, function, fun_args, 2, ""));
     }
 
