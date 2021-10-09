@@ -261,8 +261,8 @@ struct FBCInstruction {
         kSqrtf,
         kTanf,
         kTanhf,
-        kIsnanf,
-        kIsinff,
+        kIsnanf, // Not optimized for now, see isExtendedUnaryMath use in interpreter_optimizer.hh
+        kIsinff, // Not optimized for now, see isExtendedUnaryMath use in interpreter_optimizer.hh
        
         // Extended unary math (heap OP)
         kAbsHeap,
@@ -296,7 +296,7 @@ struct FBCInstruction {
         kMaxf,
         kMin,
         kMinf,
-        kCopysignf,
+        kCopysignf, // Not optimized for now, see isExtendedBinaryMath use in interpreter_optimizer.hh
 
         // Extended binary math (heap OP heap)
         kAtan2fHeap,
@@ -398,8 +398,7 @@ struct FBCInstruction {
                 || (opt == kRoundf) || (opt == kSinf)
                 || (opt == kSinhf) || (opt == kSqrtf)
                 || (opt == kTanf) || (opt == kTanhf)
-                || (opt == kIsnanf) || (opt == kIsinff)
-             
+               
                 || (opt == kAtan2f) || (opt == kFmodf)
                 || (opt == kPowf) || (opt == kMaxf)
                 || (opt == kMinf) || (opt == kCopysignf));
