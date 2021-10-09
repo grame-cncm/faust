@@ -35,15 +35,15 @@ closed source license or any other license if you decide so.
  ************************************************************************
  ************************************************************************/
 
+ma = library("maths.lib");
+si = library("signals.lib");
+
 declare name "High Order Ambisonics library";
 declare author "Pierre Guillot";
 declare author "Eliott Paris";
 declare author "Julien Colafrancesco";
 declare author "Wargreen";
 declare copyright "2012-2013 Guillot, Paris, Colafrancesco, CICM labex art H2H, U. Paris 8, 2019 Wargreen";
-
-ma = library("maths.lib");
-si = library("signals.lib");
 
 //============================Encoding/decoding Functions=================================
 //========================================================================================
@@ -696,15 +696,15 @@ FBcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,meter,N) =
     :(ro.interleave(N,2):par(i,N,meter*_))
   )~si.bus(N);
 
-//--------------------`(co.)FFFBcompressor_N_chan`-------------------
+//--------------------`(co.)FBFFcompressor_N_chan`-------------------
 // feed forward / feed back N channel dynamic range compressor.
 // the feedback part has a much higher strength, so they end up sounding similar
-// `FFFBcompressor_N_chan` is a standard Faust function.
+// `FBFFcompressor_N_chan` is a standard Faust function.
 //
 // #### Usage
 //
 // ```
-// si.bus(N) : FFFBcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N) : si.bus(N)
+// si.bus(N) : FBFFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N) : si.bus(N)
 // ```
 //
 // Where:
@@ -720,7 +720,7 @@ FBcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,meter,N) =
 // * `prePost`: places the level detector either at the input or after the gain computer;
 // this turns it from a linear return-to-zero detector into a log  domain return-to-threshold detector
 // * `link`: the amount of linkage between the channels. 0 = each channel is independent, 1 = all channels have the same amount of gain reduction
-// * `FFFB`: fade between feed forward (0) and feed back (1) compression.
+// * `FBFF`: fade between feed forward (0) and feed back (1) compression.
 // * `meter`: a gain reduction meter. It can be implemented like so:
 // meter = _<:(_, (ba.linear2db:max(maxGR):meter_group((hbargraph("[1][unit:dB][tooltip: gain reduction in dB]", maxGR, 0))))):attach;
 // * `N`: the number of channels of the compressor
@@ -864,15 +864,15 @@ RMS_compression_gain_N_chan(strength,thresh,att,rel,knee,prePost,link,N) =
   <:(si.bus(N),(ba.parallelMin(N)<:si.bus(N))):ro.interleave(N,2):par(i,N,(it.interpolate_linear(link)));
 
 
-//--------------------`(co.)RMS_FFFBcompressor_N_chan`-------------------
+//--------------------`(co.)RMS_FBFFcompressor_N_chan`-------------------
 // RMS feed forward / feed back N channel dynamic range compressor.
 // the feedback part has a much higher strength, so they end up sounding similar
-// `RMS_FFFBcompressor_N_chan` is a standard Faust function.
+// `RMS_FBFFcompressor_N_chan` is a standard Faust function.
 //
 // #### Usage
 //
 // ```
-// si.bus(N) : RMS_FFFBcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N) : si.bus(N)
+// si.bus(N) : RMS_FBFFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N) : si.bus(N)
 // ```
 //
 // Where:
@@ -888,7 +888,7 @@ RMS_compression_gain_N_chan(strength,thresh,att,rel,knee,prePost,link,N) =
 // * `prePost`: places the level detector either at the input or after the gain computer;
 // this turns it from a linear return-to-zero detector into a log  domain return-to-threshold detector
 // * `link`: the amount of linkage between the channels. 0 = each channel is independent, 1 = all channels have the same amount of gain reduction
-// * `FFFB`: fade between feed forward (0) and feed back (1) compression.
+// * `FBFF`: fade between feed forward (0) and feed back (1) compression.
 // * `meter`: a gain reduction meter. It can be implemented like so:
 // meter = _<:(_, (ba.linear2db:max(maxGR):meter_group((hbargraph("[1][unit:dB][tooltip: gain reduction in dB]", maxGR, 0))))):attach;
 // * `N`: the number of channels of the compressor
@@ -943,14 +943,14 @@ RMS_FBFFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N
 // #### Usage
 //
 // ```
-// si.bus(N) : RMS_FBcompressor_peak_limiter_N_chan(strength,thresh,threshLim,att,rel,knee,link,meter,N) : si.bus(N)
+// si.bus(N) : RMS_FBcompressor_peak_limiter_N_chan(strength,thresh,threshLim,att,rel,knee,link,meter,meterLim,N) : si.bus(N)
 // ```
 //
 // Where:
 //
 // * `strength`: strength of the compression (0 = no compression, 1 means hard limiting, >1 means over-compression)
 // * `thresh`: dB level threshold above which compression kicks in
-// * `threshLim`: dB level threshold above which the brick wall limiter kicks in
+// * `threshLim`: dB level threshold above which the brickwall limiter kicks in
 // * `att`: attack time = time constant (sec) when level & compression going up
 // this is also used as the release time of the limiter
 // * `rel`: release time = time constant (sec) coming out of compression
@@ -960,7 +960,9 @@ RMS_FBFFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N
 // and in between there is a gradual increase in gain reduction.
 // the limiter uses a knee half this size
 // * `link`: the amount of linkage between the channels. 0 = each channel is independent, 1 = all channels have the same amount of gain reduction
-// * `meter`: a gain reduction meter. It can be implemented like so:
+// * `meter`: compressor gain reduction meter. It can be implemented like so:
+// meter = _<:(_, (ba.linear2db:max(maxGR):meter_group((hbargraph("[1][unit:dB][tooltip: gain reduction in dB]", maxGR, 0))))):attach;
+// * `meterLim`: brickwall limiter gain reduction meter. It can be implemented like so:
 // meter = _<:(_, (ba.linear2db:max(maxGR):meter_group((hbargraph("[1][unit:dB][tooltip: gain reduction in dB]", maxGR, 0))))):attach;
 // * `N`: the number of channels of the compressor
 //
@@ -984,14 +986,14 @@ RMS_FBFFcompressor_N_chan(strength,thresh,att,rel,knee,prePost,link,FBFF,meter,N
 // Author: Bart Brouns
 // License: GPLv3
 
-RMS_FBcompressor_peak_limiter_N_chan(strength,thresh,threshLim,att,rel,knee,link,meter,N) =
+RMS_FBcompressor_peak_limiter_N_chan(strength,thresh,threshLim,att,rel,knee,link,meter,meterLim,N) =
   (
     (
       (
         (RMS_compression_gain_N_chan(strength,thresh,att,rel,knee,0,link,N))
         ,si.bus(N)
       ):(ro.interleave(N,2):par(i,N,meter*_))
-    ):FFcompressor_N_chan(1,threshLim,0,att:min(rel),knee*0.5,0,link,meter,N)
+    ):FFcompressor_N_chan(1,threshLim,0,att:min(rel),knee*0.5,0,link,meterLim,N)
   )~si.bus(N);
 
 
@@ -1456,7 +1458,7 @@ it = library("interpolators.lib");
 si = library("signals.lib");
 
 declare name "Faust Basic Element Library";
-declare version "0.1";
+declare version "0.2";
 
 //=============================Conversion Tools===========================================
 //========================================================================================
@@ -1526,7 +1528,7 @@ db2linear(l) = pow(10.0, l/20.0);
 //
 // * `g`: a linear gain
 //-----------------------------
-linear2db(g) = 20.0*log10(g);
+linear2db(g) = 20.0*log10(max(ma.MIN, g));
 
 
 //----------`(ba.)lin2LogGain`------------------
@@ -1594,7 +1596,7 @@ tau2pole(tau) = ba.if(clipCond, 0.0, exp(-1.0/(tauCenterClipped*float(ma.SR)))) 
 
 //-------`(ba.)pole2tau`----------
 // Returns the time-constant, in seconds, corresponding to the given real,
-// positive pole in (0,1).
+// positive pole in (0-1).
 // `pole2tau` is a standard Faust function.
 //
 // #### Usage
@@ -1607,7 +1609,7 @@ tau2pole(tau) = ba.if(clipCond, 0.0, exp(-1.0/(tauCenterClipped*float(ma.SR)))) 
 //
 // * `pole`: the pole
 //-----------------------------
-pole2tau(pole) = -1.0/(log(pole)*ma.SR);
+pole2tau(pole) = -1.0/(log(max(ma.MIN, pole))*ma.SR);
 
 
 //-------`(ba.)midikey2hz`----------
@@ -1840,7 +1842,7 @@ period(p) = %(int(p))~+(1');
 
 
 //-------`(ba.)pulse`----------
-// Pulses (10000) generated at period `p`.
+// Pulses (like 10000) generated at period `p`.
 //
 // #### Usage
 //
@@ -1857,7 +1859,7 @@ pulse(p) = period(p) : \(x).(x <= x');
 
 
 //-------`(ba.)pulsen`----------
-// Pulses (11110000) of length `n` generated at period `p`.
+// Pulses (like 11110000) of length `n` generated at period `p`.
 //
 // #### Usage
 //
@@ -1880,7 +1882,7 @@ pulsen(n,p) = period(p)<n;
 // #### Usage
 //
 // ```
-// _ : cycle(n) <:
+// _ : cycle(n) : si.bus(n)
 // ```
 //
 // Where:
@@ -2049,7 +2051,7 @@ count(xx) = 1;
 //-----------------------------------------------------------------------------
 take(1, (xs, xxs))  = xs;
 take(1, xs)         = xs;
-take(nn, (xs, xxs)) = take(nn-1, xxs);
+take(N, (xs, xxs)) = take(N-1, xxs);
 
 
 //----------------------------`(ba.)subseq`--------------------------------
@@ -2058,7 +2060,7 @@ take(nn, (xs, xxs)) = take(nn-1, xxs);
 // #### Usage
 //
 // ```
-// subseq(l, p, n)
+// subseq(l, P, N)
 // subseq((10,20,30,40,50,60), 1, 3) -> (20,30,40)
 // subseq((10,20,30,40,50,60), 4, 1) -> 50
 // ```
@@ -2066,8 +2068,8 @@ take(nn, (xs, xxs)) = take(nn-1, xxs);
 // Where:
 //
 // * `l`: list
-// * `p`: start point (0: begin of list)
-// * `n`: number of elements
+// * `P`: start point (int, known at compile time, 0: begin of list)
+// * `N`: number of elements (int, known at compile time)
 //
 // #### Note:
 //
@@ -2075,9 +2077,9 @@ take(nn, (xs, xxs)) = take(nn-1, xxs);
 // compositions and there is no empty list.
 //-----------------------------------------------------------------------------
 subseq((head, tail), 0, 1) = head;
-subseq((head, tail), 0, n) = head, subseq(tail, 0, n-1);
-subseq((head, tail), p, n) = subseq(tail, p-1, n);
-subseq(head, 0, n)         = head;
+subseq((head, tail), 0, N) = head, subseq(tail, 0, N-1);
+subseq((head, tail), P, N) = subseq(tail, P-1, N);
+subseq(head, 0, N)         = head;
 
 
 //============================Function tabulation=========================================
@@ -5143,7 +5145,6 @@ si = library("signals.lib");
 declare name "Faust Spatialization Library";
 declare version "0.0";
 
-
 //-----------------------`(sp.)panner`------------------------
 // A simple linear stereo panner.
 // `panner` is a standard Faust function.
@@ -5282,15 +5283,15 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
+ma = library("maths.lib");
+ba = library("basics.lib");
+si = library("signals.lib");
+
 declare name "Faust Envelope Library";
 declare version "0.1";
 declare author "GRAME";
 declare copyright "GRAME";
 declare license "LGPL with exception";
-
-ma = library("maths.lib");
-ba = library("basics.lib");
-si = library("signals.lib");
 
 //=============================Functions Reference========================================
 //========================================================================================
@@ -5648,13 +5649,13 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-declare name "Faust Oscillator Library";
-declare version "0.1";
-
 ma = library("maths.lib");
 ba = library("basics.lib");
 fi = library("filters.lib");
 si = library("signals.lib");
+
+declare name "Faust Oscillator Library";
+declare version "0.1";
 
 // This library contains platform specific constants 
 pl = library("platform.lib");
@@ -7180,7 +7181,6 @@ with {
 // Interfaces for Musical Expression (NIME-15) Conference, Baton Rouge, USA, 2015.
 //##############################################################################
 
-
 ma = library("maths.lib");
 ba = library("basics.lib");
 
@@ -8280,7 +8280,7 @@ echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0
 //------------------------------------------------------------
 version =   2, // MAJOR version when we make incompatible API changes,
             4, // MINOR version when we add functionality in a backwards compatible manner,
-            0; // PATCH version when we make backwards compatible bug fixes.
+            2; // PATCH version when we make backwards compatible bug fixes.
 
             
 //#################################### webaudio.lib ########################################
@@ -8322,14 +8322,14 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-declare name "WebAudio Filters Library";
+ma = library("maths.lib");
+fi = library("filters.lib");
+
+declare name "Faust WebAudio Filters Library";
 declare author "GRAME";
 declare copyright "GRAME";
 declare version "0.1";
 declare license "LGPL with exception";
-
-ma = library("maths.lib");
-fi = library("filters.lib");
 
 //---------------------------------------------------
 // biquad coeffs for various filters
@@ -11074,7 +11074,6 @@ ba = library("basics.lib");
 si = library("signals.lib");
 fi = library("filters.lib");
 
-
 declare name "Faust Delay Library";
 declare version "0.1";
 
@@ -11667,14 +11666,14 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-declare name "Faust Soundfile Library";
-declare version "0.7";
-
 ba = library("basics.lib");
 ma = library("maths.lib");
 si = library("signals.lib");
 ro = library("routes.lib");
 it = library("interpolators.lib");
+
+declare name "Faust Soundfile Library";
+declare version "0.7";
 
 //=======================================================================
 // Utility functions added in a 'super' environment (to test the idea...)
@@ -11889,14 +11888,14 @@ sample3.play_interp(440.0,
  **       };
  **/
 
-declare name      "Tonestack Emulation Library";
+ma = library("maths.lib");
+fi = library("filters.lib");
+
+declare name      "Faust Tonestack Emulation Library";
 declare author    "Guitarix project (<http://guitarix.sourceforge.net/>)";
 declare copyright "Guitarix project";
 declare version   "0.28";
 declare license   "LGPL";
-
-ma = library("maths.lib");
-fi = library("filters.lib");
 
 /****************************************************************
  **           Equalisation 3 bands
@@ -12327,18 +12326,14 @@ gibsen(T,M,L) = tonestack(t.C1,t.C2,t.C3,t.R1,t.R2,t.R3,t.R4,T,M,L)
 // * <https://www.dafx.de/paper-archive/2016/dafxpapers/20-DAFx-16_paper_41-PN.pdf>
 //########################################################################################
 
-declare name "Antialiased nonlinearities";
-declare version "0.1";
-
 ba = library("basics.lib");
 ma = library("maths.lib");
 
+declare name "Faust Antialiased Nonlinearities";
+declare version "0.2";
+
 //==============================Auxiliary Functions=======================================
 //========================================================================================
-
-// ---------- Constant --------------------------------------------------------
-MAX = ma.INFINITY;
-
 
 //-------`(aa.)clip`----------
 // Clipping function.
@@ -12361,7 +12356,7 @@ Rlog(x) = log(max(ma.EPSILON, x));
 //-------`(aa.)Rtan`----------
 // Real-valued tan().
 //-----------------------------
-Rtan(x) = tan(clip(-MAX, MAX, x));
+Rtan(x) = tan(clip(-ma.MAX, ma.MAX, x));
 
 
 //-------`(aa.)Racos`----------
@@ -12379,19 +12374,19 @@ Racos(x) = asin(clip(-1.0, 1.0, x));
 //-------`(aa.)Racosh`----------
 // Real-valued acosh()
 //-----------------------------
-Racos(x) = ma.acosh(clip(1.0, MAX, x));
+Racos(x) = ma.acosh(clip(1.0, ma.MAX, x));
 
 
 //-------`(aa.)Rcosh`----------
 // Real-valued cosh().
 //-----------------------------
-Rcosh(x) = min(MAX, ma.cosh(x));
+Rcosh(x) = min(ma.MAX, ma.cosh(x));
 
 
 //-------`(aa.)Rsinh`----------
 // Real-valued sinh().
 //------------------------------
-Rsinh(x) = clip(-MAX, MAX, ma.sinh(x));
+Rsinh(x) = clip(-ma.MAX, ma.MAX, ma.sinh(x));
 
 
 //-------`(aa.)Ratanh`----------
@@ -15460,7 +15455,6 @@ import("vaeffects.lib");
 import("version.lib");
 import("wdmodels.lib");
 import("webaudio.lib");
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // WARNING: Deprecated Library!!
 // Read the README file in /libraries for more information
@@ -22650,7 +22644,7 @@ fi = library("filters.lib");
 ef = library("misceffects.lib");
 
 declare name "Faust Virtual Analog Filter Effect Library";
-declare version "0.0";
+declare version "0.1";
 
 //########################################################################################
 /************************************************************************
@@ -23644,14 +23638,14 @@ to be LGPL or GPL. For example you are free to choose a commerci
 ************************************************************************
 ************************************************************************/
 
+ba = library("basics.lib");
+ma = library("maths.lib");
+
 declare name "MaxMSP compatibility Library";
 declare author "GRAME";
 declare copyright "GRAME";
 declare version "1.1";
 declare license "LGPL with exception";
-
-ba = library("basics.lib");
-ma = library("maths.lib");
 
 atodb = db2lin;
 
@@ -23886,8 +23880,12 @@ declare version "0.1";
 // Current sampling rate (between 1Hz and 192000Hz). Constant during
 // program execution.
 //-----------------------------------------------------------------------------
-SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <math.h>)));
+SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <dummy.h>)));
 
+//---------------------------------`(pl.)BS`---------------------------------------
+// Current block-size. Can change during the execution.
+//-----------------------------------------------------------------------------
+BS = fvariable(int count, <dummy.h>);
 
 //---------------------------------`(pl.)tablesize`----------------------------
 // Oscillator table size
@@ -23930,15 +23928,15 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-declare name "Faust Synthesizer Library";
-declare version "0.0";
-
 ma = library("maths.lib");
 ba = library("basics.lib");
 en = library("envelopes.lib");
 fi = library("filters.lib");
 os = library("oscillators.lib");
 no = library("noises.lib");
+
+declare name "Faust Synthesizer Library";
+declare version "0.0";
 
 //-----------------------------------`(sy.)popFilterPerc`--------------------------------------
 // A simple percussion instrument based on a "popped" resonant bandpass filter.
@@ -24718,13 +24716,13 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
+ba = library("basics.lib");
+
 declare name "Reduce Library";
 declare author "Yann Orlarey (orlarey at grame.fr)";
 declare copyright "Grame";
 declare version "0.1";
 declare license "LGPL with exception"; 
-
-ba = library("basics.lib");
 
 //---------------------------------------------------------------
 // Provides various operations on block of samples
@@ -24812,7 +24810,7 @@ os = library("oscillators.lib");
 pf = library("phaflangers.lib");
 
 declare name "Faust Phaser and Flanger Library";
-declare version "0.0";
+declare version "0.1";
 
 //########################################################################################
 /************************************************************************
@@ -27938,7 +27936,7 @@ ma = library("maths.lib");
 si = library("signals.lib");
 
 declare name "Faust Signal Routing Library";
-declare version "0.0";
+declare version "0.1";
 
 //=============================Functions Reference========================================
 //========================================================================================
@@ -28227,12 +28225,6 @@ with {
 };
 //instruments.lib - Faust function of various types useful for building physical model instruments
 
-declare name "Faust-STK Tools Library";
-declare author "Romain Michon (rmichon@ccrma.stanford.edu)";
-declare copyright "Romain Michon";
-declare version "1.0";
-declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
-
 no = library("noises.lib");
 en = library("envelopes.lib");
 ma = library("maths.lib");
@@ -28242,6 +28234,13 @@ si = library("signals.lib");
 fi = library("filters.lib");
 os = library("oscillators.lib");
 re = library("reverbs.lib");
+
+declare name "Faust-STK Tools Library";
+declare author "Romain Michon (rmichon@ccrma.stanford.edu)";
+declare copyright "Romain Michon";
+declare version "1.0";
+declare licence "STK-4.3"; // Synthesis Tool Kit 4.3 (MIT style license);
+
 
 //========================= ENVELOPE GENERATORS ===============================
 
@@ -28807,7 +28806,7 @@ os = library("oscillators.lib");
 no = library("noises.lib"); // for compatible copy/paste out of this file
 
 declare name "Faust Noise Generator Library";
-declare version "0.0";
+declare version "0.1";
 
 //=============================Functions Reference========================================
 //========================================================================================
@@ -29705,13 +29704,13 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-declare name "Faust Interpolator Library";
-declare version "0.3";
-
 ba = library("basics.lib");
 ro = library("routes.lib");
 ma = library("maths.lib");
 si = library("signals.lib");
+
+declare name "Faust Interpolator Library";
+declare version "0.3";
 
 reset(trig) = (trig-trig') <= 0;
  
@@ -30209,6 +30208,9 @@ ve = library("vaeffects.lib");
 pf = library("phaflangers.lib");
 re = library("reverbs.lib");
 en = library("envelopes.lib");
+
+declare name "Faust Demos Library";
+declare version "0.1";
 
 //########################################################################################
 /************************************************************************
@@ -31003,7 +31005,7 @@ with{
     eq2q = eq2_group(vslider("[3] Eq2 Q [style:knob] [tooltip: Q = centerFrequency/bandwidth
         of second-order peaking equalizer section 2]", 3, 0.1, 10, 0.1));
 
-    out_group(x)  = fdn_group(hgroup("[5] Output", x));
+    out_group(x) = fdn_group(hgroup("[5] Output", x));
 
     dry_wet(x,y) = *(wet) + dry*x, *(wet) + dry*y with {
         wet = 0.5*(drywet+1.0);
@@ -31085,21 +31087,21 @@ with {
     rev_group(x) = vgroup("[0] JPrev",x);
     
     mix_group(x) = rev_group(hgroup("[0] Mix",x));
-    early_diff = mix_group(hslider("[1]earlyDiff [style:knob]", 0.707, 0.0,  0.990, 0.0010));
-    size = mix_group(hslider("[2]size [style:knob]", 1.0, 0.5, 3.000, 0.0100));
-    t60 = mix_group(hslider("[3]t60 [style:knob]", 1.0, 0.1, 60.000, 0.1000));
-    damp = mix_group(hslider("[4]damp [style:knob]", 0.0, 0.0, 0.999, 0.0001));
+    early_diff = mix_group(hslider("[1]earlyDiff [style:knob]", 0.707, 0, 0.990, 0.001));
+    size = mix_group(hslider("[2]size [style:knob]", 1, 0.5, 3, 0.01));
+    t60 = mix_group(hslider("[3]t60 [style:knob]", 1, 0.1, 60, 0.1));
+    damp = mix_group(hslider("[4]damp [style:knob]", 0, 0, 0.999, 0.0001));
     
     eq_group(x) = rev_group(hgroup("[1] EQ",x));
-    low = eq_group(hslider("[07]lowX [style:knob]", 1.0, 0.0, 1.0, 0.010));
-    mid = eq_group(hslider("[08]midX [style:knob]", 1.0, 0.0, 1.0, 0.010));
-    high = eq_group(hslider("[09]highX [style:knob]", 1.0, 0.0,  1.0, 0.010));
-    low_cutoff = eq_group(hslider("[10]lowBand [style:knob]", 500, 100.0,  6000.0, 0.1));
-    high_cutoff = eq_group(hslider("[11]highBand [style:knob]", 2000, 1000.0, 10000.0, 0.1));
+    low = eq_group(hslider("[07]lowX [style:knob]", 1, 0, 1, 0.01));
+    mid = eq_group(hslider("[08]midX [style:knob]", 1, 0, 1, 0.01));
+    high = eq_group(hslider("[09]highX [style:knob]", 1, 0, 1, 0.01));
+    low_cutoff = eq_group(hslider("[10]lowBand [style:knob]", 500, 100, 6000, 0.1));
+    high_cutoff = eq_group(hslider("[11]highBand [style:knob]", 2000, 1000, 10000, 0.1));
     
     mod_group(x) = rev_group(hgroup("[2] Mod",x));
-    mod_depth = mod_group(hslider("[1]mDepth [style:knob]", 0.1, 0.0,  1.0, 0.001));
-    mod_freq = mod_group(hslider("[2]mFreq [style:knob]",  2.0, 0.0, 10.0, 0.010));  
+    mod_depth = mod_group(hslider("[1]mDepth [style:knob]", 0.1, 0, 1, 0.001));
+    mod_freq = mod_group(hslider("[2]mFreq [style:knob]", 2, 0, 10, 0.010));  
 };
 
 
@@ -31125,15 +31127,15 @@ with {
     rev_group(x) = vgroup("[0] Greyhole",x);
     
     mix_group(x) = rev_group(hgroup("[0] Mix",x));
-    dt = mix_group(hslider("[01]delayTime [style:knob]", 0.2, 0.001,  1.45, 0.0001));
-    damp = mix_group(hslider("[02]damping [style:knob]", 0.0, 0.000,  0.99, 0.0010));
-    size = mix_group(hslider("[03]size [style:knob]", 1.0, 0.500,  3.00, 0.0001));
-    early_diff = mix_group(hslider("[04]diffusion [style:knob]", 0.5, 0.000,  0.99, 0.0001));
-    feedback = mix_group(hslider("[05]feedback [style:knob]", 0.9, 0.000,  1.00, 0.0100));
+    dt = mix_group(hslider("[01]delayTime [style:knob]", 0.2, 0.001, 1.45, 0.0001));
+    damp = mix_group(hslider("[02]damping [style:knob]", 0, 0, 0.99, 0.001));
+    size = mix_group(hslider("[03]size [style:knob]", 1, 0.5, 3, 0.0001));
+    early_diff = mix_group(hslider("[04]diffusion [style:knob]", 0.5, 0, 0.99, 0.0001));
+    feedback = mix_group(hslider("[05]feedback [style:knob]", 0.9, 0, 1, 0.01));
     
     mod_group(x) = rev_group(hgroup("[1] Mod",x));
-    mod_depth = mod_group(hslider("[06]modDepth [style:knob]", 0.1, 0.000, 1.00, 0.0010));
-    mod_freq = mod_group(hslider("[07]modFreq [style:knob]", 2.0, 0.000, 10.00, 0.0100));
+    mod_depth = mod_group(hslider("[06]modDepth [style:knob]", 0.1, 0, 1, 0.001));
+    mod_freq = mod_group(hslider("[07]modFreq [style:knob]", 2, 0, 10, 0.01));
 };
 
 //====================================Generators==========================================
@@ -31613,7 +31615,7 @@ with{
 
     //Pre-distortion gain - selectable percentage of harmonics
     ph = ex_group(hslider("[1] Harmonics [unit:percent] [style:knob] [tooltip:
-        Percentage of harmonics generated]", 20, 0, 200, 1)) / 100;
+        Percentage of harmonics generated]", 20, ma.EPSILON, 200, 1)) / 100;
     pregain = * (ph);
 
     // TODO: same thing: why doesn't this use cubicnl?
@@ -31628,7 +31630,7 @@ with{
 
     //Balance - selectable dry/wet mix
     ml = ex_group(hslider("[2] Mix [style:knob] [tooltip: Dry/Wet mix of original signal
-        to excited signal]", 0.50, 0.00, 1.00, 0.01));
+        to excited signal]", 0.5, 0, 1, 0.01));
     balance = (_ * ml), (_ * (1.0 - ml)) :> _;
 };
 
@@ -32261,7 +32263,7 @@ jp_gh_rev = environment {
     greyhole(dt, damp, size, early_diff, feedback, mod_depth, mod_freq)
         = (si.bus(4) :> seq(i,3,diffuser_nested(4,ma.PI/2,(-1^i)*diff,10+19*i,size))
             : par(i,2,si.smooth(damp_interp)))
-        ~((de.fdelay4(512, 10+depth + depth*os.oscrc(freq)),de.fdelay4(512, 10 + depth + depth*os.oscrs(freq)))
+        ~((de.fdelay4(512, 10 + depth + depth*os.oscrc(freq)),de.fdelay4(512, 10 + depth + depth*os.oscrs(freq)))
             : (de.sdelay(65536,44100/2,floor(dt_constrained)),de.sdelay(65536,44100/2,floor(dt_constrained)))
             : par(i,2,*(fb)))
         with {
@@ -32395,6 +32397,9 @@ greyhole(dt, damp, size, early_diff, feedback, mod_depth, mod_freq)
 // Authors: Romain Michon, Pierre-Amaury Grumiaux, and Yann Orlarey
 
 import("stdfaust.lib");
+
+declare name "Faust Physical Models Library";
+declare version "0.1";
 
 /*
 TODO:
@@ -36368,15 +36373,15 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-declare name "Faust Math Library";
-declare version "2.4";
-declare author "GRAME";
-declare copyright "GRAME";
-declare license "LGPL with exception";
-
 // This library contains platform specific constants 
 pl = library("platform.lib");
 ma = library("maths.lib"); // for compatible copy/paste out of this file
+
+declare name "Faust Math Library";
+declare version "2.5";
+declare author "GRAME";
+declare copyright "GRAME";
+declare license "LGPL with exception";
 
 //=============================Functions Reference========================================
 //========================================================================================
@@ -36404,7 +36409,7 @@ SR = pl.SR;
 // BS : _
 // ```
 //-----------------------------------------------------------------------------
-BS = fvariable(int count, <math.h>);
+BS = pl.BS;
 
 
 //---------------------------------`(ma.)PI`---------------------------------------
@@ -36461,20 +36466,22 @@ quadprecision MIN = 2.2250738585072014e-308;
 fixedpointprecision MIN = 2.2250738585072014e-308;
 
 
-//---------------------------------`(ma.)INFINITY`------------------------------
-// Constant INFINITY in simple/double/quad precision (maximal positive value).
+//---------------------------------`(ma.)MAX`------------------------------
+// Constant MAX in simple/double/quad precision (maximal positive value).
 //
 // #### Usage
 //
 // ```
-// INFINITY : _
+// MAX : _
 // ```
 //-----------------------------------------------------------------------------
-singleprecision INFINITY = 3.402823466e+38;
-doubleprecision INFINITY = 1.7976931348623158e+308;
-quadprecision INFINITY = 1.7976931348623158e+308;
-fixedpointprecision INFINITY = 1.7976931348623158e+308;
+singleprecision MAX = 3.402823466e+38;
+doubleprecision MAX = 1.7976931348623158e+308;
+quadprecision MAX = 1.7976931348623158e+308;
+fixedpointprecision MAX = 1.7976931348623158e+308;
 
+// Obsolete, kept for compatibility reasons
+INFINITY = MAX; 
 
 //---------------------------------`(ma.)FTZ`---------------------------------------
 // Flush to zero: force samples under the "maximum subnormal number"
@@ -36520,6 +36527,12 @@ neg(x) = -x;
 
 //-------`(ma.)sub(x,y)`------------------
 // Subtract `x` and `y`.
+//
+// #### Usage
+//
+// ```
+// _,_ : sub : _
+// ```
 //------------------------------
 sub(x,y) = y-x;
 
