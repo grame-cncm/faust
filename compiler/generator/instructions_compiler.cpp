@@ -240,8 +240,8 @@ Tree InstructionsCompiler::prepare(Tree LS)
     endTiming("deBruijn2Sym");
 
     startTiming("L1 typeAnnotation");
-    typeAnnotation(L1, gGlobal->gLocalCausalityCheck);  // Annotate L1 with type information (needed by
-                                                        // castAndPromotion(), but don't check causality)
+    // Annotate L1 with type information (needed by castAndPromotion(), but don't check causality)
+    typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
     endTiming("L1 typeAnnotation");
 
     startTiming("Cast and Promotion");
@@ -308,7 +308,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
         V.mapself(L5);
     }
 
-    // Generate Elementary code if -elm option is set
+    // Experimental : generate Elementary code if -elm option is set
     if (gGlobal->gElementarySwitch) {
         Signal2Elementary V;
         ofstream js_file(subst("$0-el.js", gGlobal->makeDrawPath()).c_str());
@@ -543,7 +543,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
                     }
                 }
             } else if (gGlobal->gOneSample >= 0) {
-                // Nothing...
+            // Nothing...
             } else {
                 for (int index = 0; index < fContainer->inputs(); index++) {
                     string name = subst("input$0", T(index));
@@ -569,7 +569,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
                     pushDeclare(InstBuilder::genDecStructVar(name, InstBuilder::genArrayTyped(type, 0)));
                 }
             } else if (gGlobal->gOneSample >= 0) {
-                // Nothing...
+            // Nothing...
             } else {
                 for (int index = 0; index < fContainer->outputs(); index++) {
                     string name = subst("output$0", T(index));
@@ -949,17 +949,17 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     ValueInst* res;
     // HACK for Rust backend
     if (gGlobal->gOutputLang == "rust") {
-        res = InstBuilder::genCastFloatInst(
-            InstBuilder::genLoadStackVar(subst("*input$0", T(idx))));
+        res = InstBuilder::genLoadStackVar(subst("*input$0", T(idx)));
     } else if (gGlobal->gOneSampleControl) {
-        res = InstBuilder::genCastFloatInst(InstBuilder::genLoadStructVar(subst("input$0", T(idx))));
+        res = InstBuilder::genLoadStructVar(subst("input$0", T(idx)));
     } else if (gGlobal->gOneSample >= 0) {
-        res = InstBuilder::genCastFloatInst(
-            InstBuilder::genLoadArrayStackVar("inputs", InstBuilder::genInt32NumInst(idx)));
+        res = InstBuilder::genLoadArrayStackVar("inputs", InstBuilder::genInt32NumInst(idx));
     } else {
-        res = InstBuilder::genCastFloatInst(
-            InstBuilder::genLoadArrayStackVar(subst("input$0", T(idx)), getCurrentLoopIndex()));
+        res = InstBuilder::genLoadArrayStackVar(subst("input$0", T(idx)), getCurrentLoopIndex());
     }
+    
+    // Cast to internal float
+    res = InstBuilder::genCastFloatInst(res);
 
     if (gGlobal->gInPlace) {
         // inputs must be cached for in-place transformations

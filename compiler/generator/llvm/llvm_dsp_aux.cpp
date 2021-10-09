@@ -228,16 +228,16 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
     TargetMachine* tm = builder.selectTarget();
     fJIT              = builder.create(tm);
     if (!fJIT) {
-        error_msg = buider_error;
+        error_msg = "ERROR : " + buider_error;
         return false;
     }
 
     fJIT->setObjectCache(fObjectCache);
     fJIT->finalizeObject();
-    return initJITAux(error_msg);
+    return initJITAux();
 }
 
-bool llvm_dsp_factory_aux::initJITAux(string& error_msg)
+bool llvm_dsp_factory_aux::initJITAux()
 {
     // Run static constructors.
     fJIT->runStaticConstructorsDestructors(false);
@@ -498,7 +498,6 @@ llvm_dsp_factory* llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFF
                 factory->setSHAKey(sha_key);
                 return factory;
             } else {
-                error_msg = "ERROR : " + error_msg + "\n";
                 delete factory_aux;
                 return nullptr;
             }

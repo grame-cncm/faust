@@ -108,9 +108,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     EVALPROPERTY   = symbol("EvalProperty");
     PMPROPERTYNODE = symbol("PMPROPERTY");
 
-    gResult          = 0;
-    gResult2         = 0;
-    gExpandedDefList = 0;
+    gResult          = nullptr;
+    gResult2         = nullptr;
+    gExpandedDefList = nullptr;
 
     gDetailsSwitch    = false;
     gDrawSignals      = false;
@@ -157,9 +157,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gSuperClassName = "dsp";
     gProcessName    = "process";
 
-    gDSPFactory = 0;
+    gDSPFactory = nullptr;
 
-    gInputString = 0;
+    gInputString = nullptr;
 
     // Backend configuration : default values
     gAllowForeignFunction = true;
@@ -255,9 +255,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gLocalCausalityCheck = false;
     gCausality           = false;
 
-    gOccurrences = 0;
+    gOccurrences = nullptr;
     gFoldingFlag = false;
-    gDevSuffix   = 0;
+    gDevSuffix   = nullptr;
 
     gAbsPrim       = new AbsPrim();
     gAcosPrim      = new AcosPrim();

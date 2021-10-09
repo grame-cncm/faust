@@ -127,12 +127,7 @@ void old_OccMarkup::mark(Tree root)
 
 old_Occurences* old_OccMarkup::retrieve(Tree t)
 {
-    old_Occurences* p = getOcc(t);
-    if (p == 0) {
-        // cerr << "No Occurences info attached to : " << *t << endl;
-        // exit(1);
-    }
-    return p;
+    return getOcc(t);
 }
 
 //------------------------------------------------------------------------------

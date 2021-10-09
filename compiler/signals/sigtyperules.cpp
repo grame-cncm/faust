@@ -72,7 +72,6 @@ static interval arithmetic(int opcode, const interval& x, const interval& y);
           ;      \
     }
 
-
 /**
  * The empty type environment (also property key for closed term type)
  */

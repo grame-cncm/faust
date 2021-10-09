@@ -40,7 +40,7 @@ class Signal2VHDLVisitor : public TreeTraversal {
     private:
         old_OccMarkup* fOccMarkup;
         bool fVisitGen;
-        set<Tree> fVisited;           // avoid visiting a tree twice
+        set<Tree> fVisited;          // Avoid visiting a tree twice
         map<string, bool> fEntity;
         /** Fields used to accumulate strings for different parts of the .vhd file */
         string fInput;
@@ -82,7 +82,6 @@ class Signal2VHDLVisitor : public TreeTraversal {
         void component_delay_var(string& str);                                 // variable delay
         void component_sincos(string& str);                                    // cosinus & sinus
 
-
         /* Generate the process of the Faust module, it determine the behavioral modeling of the Faust IP */
         void faust_process();
 
@@ -110,7 +109,6 @@ class Signal2VHDLVisitor : public TreeTraversal {
         Signal2VHDLVisitor(old_OccMarkup* occ_markup) : TreeTraversal(), fOccMarkup(occ_markup), fVisitGen(false){};
 
         void self(Tree t);
-
         void sigToVHDL(Tree sig, ofstream& fout);
 
     protected:

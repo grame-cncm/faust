@@ -29,17 +29,16 @@
         - Several containers store LaTeX formulas by type of signals -
         - Formulas usually are signal definitions,
             except for input signals (only names). -
-
-
+ 
         Historique :
         -----------
-        17-10-2001 : (klass.hh) implementation initiale (yo)
-        18-10-2001 : (klass.hh) Ajout de getFreshID (yo)
-        02-11-2001 : (klass.hh) Ajout de sous classes (yo)
-        16-08-2009 : (lateq.hh) Création de lateq depuis klass.hh (kb)
-        08-09-2009 : (lateq.hh) Grand nettoyage par le vide (yo & kb)
-        23-09-2009 : (lateq.hh) Poursuite du nettoyage (kb)
-        2009-11-23 : (lateq.hh) End of cleaning (kb)
+        17-10-2001 : (klass.hh) initial implementation  (yo)
+        18-10-2001 : (klass.hh) add getFreshID (yo)
+        02-11-2001 : (klass.hh) add sub-classes (yo)
+        16-08-2009 : (lateq.hh) lateq creation from klass.cpp (kb)
+        08-09-2009 : (lateq.hh) big cleanup (yo & kb)
+        23-09-2009 : (lateq.hh) continue cleaning (kb)
+        2009-11-23 : (lateq.hh) end of cleaning (kb)
 
 ***********************************************************************/
 

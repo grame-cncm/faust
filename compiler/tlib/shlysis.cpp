@@ -124,7 +124,7 @@ Tree shlysis(Tree t)
  */
 static void annotate(Tree k, Tree t, barrier foo)
 {
-    cerr << "Annotate " << *t << endl;
+    // cerr << "Annotate " << *t << endl;
     int c = shcount(k, t);
     if (c == 0) {
         // First visit

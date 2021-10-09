@@ -314,7 +314,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         Tree sig;
         faustassert(lsig.size() == 0);
         if (!searchEnv(box, sig, slotenv)) {
-            // test YO simplification des diagrammes
+            // test YO : diagrams simplification 
             // fprintf(stderr, "propagate : internal error (slot undefined)\n");
             sig = sigInput(++gGlobal->gDummyInput);
         }

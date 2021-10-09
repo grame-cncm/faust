@@ -365,7 +365,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 
     fObjectCache = new FaustObjectCache();
     fJIT->setObjectCache(fObjectCache);
-    return initJITAux(error_msg);
+    return initJITAux();
 }
 
 // Bitcode <==> string
@@ -392,7 +392,6 @@ static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, cons
                 factory->setSHAKey(sha_key);
                 return factory;
             } else {
-                error_msg = "ERROR : " + error_msg;
                 delete factory_aux;
                 return nullptr;
             }
@@ -509,7 +508,6 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
                 factory->setSHAKey(sha_key);
                 return factory;
             } else {
-                error_msg = "ERROR : " + error_msg;
                 delete factory_aux;
                 return nullptr;
             }
@@ -638,7 +636,6 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
                     factory->setDSPCode(expanded_dsp_content);
                     return factory;
                 } else {
-                    error_msg = "ERROR : " + error_msg;
                     delete factory_aux;
                     return nullptr;
                 }
@@ -682,7 +679,6 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromSignals(const std::string& name_app
             llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
             return factory;
         } else {
-            error_msg = "ERROR : " + error_msg;
             delete factory_aux;
             return nullptr;
         }

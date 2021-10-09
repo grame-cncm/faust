@@ -276,34 +276,34 @@ routeSchema::routeSchema(unsigned int n, unsigned int m, const std::vector<int>&
  */
 void routeSchema::place(double ox, double oy, int orientation)
 {
-    std::cerr << "\nENTER route place of " << this << " at " << ox << 'x' << oy << endl;
+    // std::cerr << "\nENTER route place of " << this << " at " << ox << 'x' << oy << endl;
     double diy = (height() - inputs() * dWire + dWire) / 2.0;
     double doy = (height() - outputs() * dWire + dWire) / 2.0;
 
     beginPlace(ox, oy, orientation);
     if (orientation == kLeftRight) {
-        std::cerr << "orientation == kLeftRight" << endl;
+        // std::cerr << "orientation == kLeftRight" << endl;
         for (unsigned int i = 0; i < inputs(); i++) {
             fInputPoints[i] = point(ox, oy + diy + i * dWire);
-            std::cerr << "input point :" << fInputPoints[i].x << 'x' << fInputPoints[i].y << endl;
+            // std::cerr << "input point :" << fInputPoints[i].x << 'x' << fInputPoints[i].y << endl;
         }
         for (unsigned int i = 0; i < outputs(); i++) {
             fOutputPoints[i] = point(ox + width(), oy + doy + i * dWire);
-            std::cerr << "output point: " << fInputPoints[i].x << 'x' << fInputPoints[i].y << endl;
+            // std::cerr << "output point: " << fInputPoints[i].x << 'x' << fInputPoints[i].y << endl;
         }
     } else {
-        std::cerr << "orientation == kRightLeft" << endl;
+        // std::cerr << "orientation == kRightLeft" << endl;
         for (unsigned int i = 0; i < outputs(); i++) {
             fOutputPoints[i] = point(ox, oy + height() - doy - i * dWire);
-            std::cerr << "output point: " << fInputPoints[i].x << 'x' << fInputPoints[i].y << endl;
+            // std::cerr << "output point: " << fInputPoints[i].x << 'x' << fInputPoints[i].y << endl;
         }
         for (unsigned int i = 0; i < inputs(); i++) {
             fInputPoints[i] = point(ox + width(), oy + height() - diy - i * dWire);
-            std::cerr << "input point :" << fInputPoints[i].x << 'x' << fInputPoints[i].y << endl;
+            // std::cerr << "input point :" << fInputPoints[i].x << 'x' << fInputPoints[i].y << endl;
         }
     }
     endPlace();
-    std::cerr << "EXIT route place " << ox << 'x' << oy << "\n" << endl;
+    // std::cerr << "EXIT route place " << ox << 'x' << oy << "\n" << endl;
 }
 
 /**
@@ -323,7 +323,7 @@ void routeSchema::collectTraits(collector& c)
     faustassert(placed());
 
     // draw the connections between them
-    std::cerr << "fRoutes.size() = " << fRoutes.size() << endl;
+    // std::cerr << "fRoutes.size() = " << fRoutes.size() << endl;
     if (fRoutes.size() >= 2) {
         unsigned int m = fRoutes.size() - 1;
         for (unsigned int i = 0; i < m; i += 2) {

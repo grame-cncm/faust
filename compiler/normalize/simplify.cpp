@@ -102,7 +102,6 @@ static Tree simplification(Tree sig)
 
     } else if (isSigBinOp(sig, &opnum, t1, t2)) {
         BinOp* op = gBinOpTable[opnum];
-
         Node n1 = t1->node();
         Node n2 = t2->node();
 
@@ -261,17 +260,17 @@ static Tree sigMapRename(Tree key, Tree env, tfun f, Tree t)
     Tree p, id, body;
 
     if (getProperty(t, key, p)) {
-        return (isNil(p)) ? t : p;  // truc pour eviter les boucles
+        return (isNil(p)) ? t : p;  // trick to avoid loops
 
     } else if (isRec(t, id, body)) {
-        faustassert(isRef(t, id));  // controle temporaire
+        faustassert(isRef(t, id));  // temporary control
 
         Tree id2;
         if (searchEnv(id, id2, env)) {
-            // déjà en cours de visite de cette recursion
+            // already in the process of visiting this recursion
             return ref(id2);
         } else {
-            // premiere visite de cette recursion
+            // first visit of this recursion
             id2        = tree(Node(unique("renamed")));
             Tree body2 = sigMapRename(key, pushEnv(id, id2, env), f, body);
             return rec(id2, body2);
@@ -320,7 +319,7 @@ static void eraseProperties (Tree key, Tree t)
 	}
 }
 
-void eraseAllProperties(Tree t)
+static void eraseAllProperties(Tree t)
 {
     cerr << "begin eraseAllProperties" << endl;
 	eraseProperties(tree(Node(unique("erase_"))), t);

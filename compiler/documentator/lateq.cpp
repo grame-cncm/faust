@@ -27,12 +27,12 @@
 
        Historique :
        -----------
-       17-10-2001 : (klass.cpp) implementation initiale (yo)
-       18-10-2001 : (klass.cpp) Ajout de getFreshID (yo)
-       02-11-2001 : (klass.cpp) Ajout de sous classes (yo)
-       06-11-2001 : (klass.cpp) modif impression des classes (yo)
-       16-08-2009 : (lateq.cpp) Creation de lateq depuis klass.cpp (kb)
-       2009-11-21 : (lateq.cpp) Remodelage et documentation doxygen (kb)
+       17-10-2001 : (klass.cpp) initiale implementation  (yo)
+       18-10-2001 : (klass.cpp) add getFreshID (yo)
+       02-11-2001 : (klass.cpp) add sub-classes (yo)
+       06-11-2001 : (klass.cpp) printing classes modification (yo)
+       16-08-2009 : (lateq.cpp) lateq creation from klass.cpp (kb)
+       2009-11-21 : (lateq.cpp) rework and doxygen documentation (kb)
 
 ***********************************************************************/
 

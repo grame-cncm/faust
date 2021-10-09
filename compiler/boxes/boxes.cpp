@@ -348,7 +348,7 @@ Tree buildBoxAppl(Tree fun, Tree revarglist)
 Tree buildBoxAppl(Tree fun, Tree revarglist)
 {
     if (isNil(revarglist)) {
-        // a revoir !!!!!!
+        // TO CHECK !!!!!!
         throw faustexception("ERROR : buildBoxAppl called with null revarglist\n");
     }
     return boxAppl(fun, revarglist);
@@ -889,7 +889,7 @@ bool isBoxMetadata(Tree s, Tree& exp, Tree& mdlist)
 }
 
 /*****************************************************************************
-                             pattern lmatching case
+                             pattern matching case
 *****************************************************************************/
 
 /**
@@ -919,7 +919,7 @@ static Tree preparePattern(Tree box)
 
     xtended* xt = (xtended*)getUserData(box);
 
-    // primitive elements
+    // Primitive elements
     if (xt)
         return box;
     else if (isBoxIdent(box))
@@ -957,7 +957,7 @@ static Tree preparePattern(Tree box)
     else if (isBoxWithLocalDef(box, body, ldef))
         return boxWithLocalDef(preparePattern(body), ldef);
 
-    // foreign elements
+    // Foreign elements
     else if (isBoxFFun(box, ff))
         return box;
     else if (isBoxFConst(box, type, name, file))
@@ -965,7 +965,7 @@ static Tree preparePattern(Tree box)
     else if (isBoxFVar(box, type, name, file))
         return box;
 
-    // block diagram binary operator
+    // Block diagram binary operator
     else if (isBoxSeq(box, t1, t2))
         return boxSeq(preparePattern(t1), preparePattern(t2));
     else if (isBoxSplit(box, t1, t2))
@@ -977,7 +977,7 @@ static Tree preparePattern(Tree box)
     else if (isBoxRec(box, t1, t2))
         return boxRec(preparePattern(t1), preparePattern(t2));
 
-    // iterative block diagram construction
+    // Iterative block diagram construction
     else if (isBoxIPar(box, t1, t2, t3))
         return boxIPar(t1, t2, preparePattern(t3));
     else if (isBoxISeq(box, t1, t2, t3))
@@ -987,13 +987,13 @@ static Tree preparePattern(Tree box)
     else if (isBoxIProd(box, t1, t2, t3))
         return boxIProd(t1, t2, preparePattern(t3));
 
-    // static information
+    // Static information
     else if (isBoxInputs(box, t1))
         return boxInputs(preparePattern(t1));
     else if (isBoxOutputs(box, t1))
         return boxOutputs(preparePattern(t1));
 
-    // user interface
+    // User interface
     else if (isBoxButton(box, label))
         return box;
     else if (isBoxCheckbox(box, label))

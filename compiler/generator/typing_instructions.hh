@@ -155,7 +155,7 @@ struct TypingVisitor : public InstVisitor {
             fCurType = gGlobal->getVarType(inst->fName);
         } else {
             // Should never happen...
-            std::cerr << "TypingVisitor::visit(FunCallInst* inst) name " << inst->fName << std::endl;
+            cerr << "TypingVisitor::visit(FunCallInst* inst) name " << inst->fName << std::endl;
             faustassert(false);
         }
     }

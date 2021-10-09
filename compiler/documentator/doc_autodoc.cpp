@@ -31,8 +31,6 @@
 #include "global.hh"
 #include "tlib.hh"
 
-static void initDocAutodocKeySet();
-
 /*****************************************************************************
                         Public functions
  *****************************************************************************/
@@ -87,8 +85,8 @@ void declareAutoDoc()
     if (!gGlobal->gMetaDataSet.empty()) {
         autodoc = cons(docTxt("\\begin{tabular}{ll}\n"), autodoc);
         autodoc = cons(docTxt("\t\\hline\n"), autodoc);
-        for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-            string mtdkey           = tree2str(i->first);
+        for (const auto& it : gGlobal->gMetaDataSet) {
+            string mtdkey           = tree2str(it.first);
             string mtdTranslatedKey = gGlobal->gDocMetadatasStringMap[mtdkey];
             if (mtdTranslatedKey.empty()) {
                 mtdTranslatedKey = mtdkey;
@@ -140,36 +138,24 @@ void declareAutoDoc()
 }
 
 /**
- * Dispatch initialization of autodoc container.
+ * Initialize gGlobal->gDocAutodocKeySet, a set containing all the keywords.
  */
 void initDocAutodoc()
 {
-    initDocAutodocKeySet();
-}
-
-/*****************************************************************************
-                        Static functions
- *****************************************************************************/
-
-/**
- * Initialize gGlobal->gDocAutodocKeySet, a set containing all the keywords.
- */
-static void initDocAutodocKeySet()
-{
     gGlobal->gDocAutodocKeySet.insert("thisdoc");
-
+    
     gGlobal->gDocAutodocKeySet.insert("autoeqntitle");
     gGlobal->gDocAutodocKeySet.insert("autoeqntext");
-
+    
     gGlobal->gDocAutodocKeySet.insert("autodgmtitle");
     gGlobal->gDocAutodocKeySet.insert("autodgmtext");
-
+    
     gGlobal->gDocAutodocKeySet.insert("autontctitle");
     gGlobal->gDocAutodocKeySet.insert("autontctext");
-
+    
     gGlobal->gDocAutodocKeySet.insert("autolsttitle1");
     gGlobal->gDocAutodocKeySet.insert("autolsttext1");
-
+    
     gGlobal->gDocAutodocKeySet.insert("autolsttitle2");
     gGlobal->gDocAutodocKeySet.insert("autolsttext2");
 }

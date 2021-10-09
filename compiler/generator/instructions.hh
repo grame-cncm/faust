@@ -174,10 +174,12 @@ inline bool isBoolType(Typed::VarType type)
 
 inline bool isIntOrPtrType(Typed::VarType type)
 {
-    return (type == Typed::kInt32 || type == Typed::kInt64 || type == Typed::kInt32_ptr || type == Typed::kInt64_ptr ||
-            type == Typed::kFloat_ptr || type == Typed::kFloat_ptr_ptr || type == Typed::kFloatMacro_ptr ||
-            type == Typed::kFloatMacro_ptr_ptr || type == Typed::kDouble_ptr || type == Typed::kObj_ptr ||
-            type == Typed::kVoid_ptr || type == Typed::kSound_ptr);
+    return (isIntType(type)
+            || isIntPtrType(type)
+            || isRealPtrType(type)
+            || type == Typed::kVoid_ptr
+            || type == Typed::kObj_ptr
+            || type == Typed::kSound_ptr);
 }
 
 DeclareStructTypeInst* isStructType(const string& name);

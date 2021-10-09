@@ -210,7 +210,6 @@ ostream& ppsig::print(ostream& fout) const
     else if (isSigDelay1(sig, x)) {
         fout << ppsig(x, fEnv, 9) << "'";
     }
-    // else if ( isSigFixDelay(sig, x, y) ) 			{ printinfix(fout, "@", 8, x, y); 	}
     else if (isSigFixDelay(sig, x, y)) {
         printFixDelay(fout, x, y);
     } else if (isSigPrefix(sig, x, y)) {

@@ -29,9 +29,9 @@
 /**
  * boxPropagateSig : box listOfSignal-> listOfSignal'
  *
- * Propagate a list of signals into a block-diagram. Fo example to
+ * Propagate a list of signals into a block-diagram. For example to
  * compute the list of outputs of a block-diagram with n inputs, do:
- * Tree lsig =  boxPropagateSig(box, makeSigInputList(n));
+ * Tree lsig = boxPropagateSig(box, makeSigInputList(n));
  */
 ///////////////////////////////////////////////////////////////////////
 

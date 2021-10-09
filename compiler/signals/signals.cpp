@@ -224,7 +224,7 @@ bool isSigSelect2(Tree t, Tree& selector, Tree& s1, Tree& s2)
     return isTree(t, gGlobal->SIGSELECT2, selector, s1, s2);
 }
 
-//  "select3" expresses with "select2"
+//  "select3" expressed with "select2"
 Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
 {
     return sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(0)),
@@ -316,7 +316,7 @@ bool isSigFVar(Tree s, Tree& type, Tree& name, Tree& file)
     return isTree(s, gGlobal->SIGFVAR, type, name, file);
 }
 
-// nouvelle version utilisant rec et ref
+// New version using rec and ref
 
 Tree sigProj(int i, Tree rgroup)
 {

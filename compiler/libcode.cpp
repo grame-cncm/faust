@@ -1517,6 +1517,24 @@ static void compileSOUL(Tree signals, int numInputs, int numOutputs, bool genera
 #endif
 }
 
+static void createHelperFile(const string& outpath)
+{
+    // Additional file with JS code
+    if (gGlobal->gOutputFile == "binary") {
+    // Nothing
+    } else if (gGlobal->gOutputFile != "") {
+        string outpath_js;
+        bool   res = replaceExtension(outpath, ".js", outpath_js);
+        if (res) {
+            helpers = unique_ptr<ostream>(new ofstream(outpath_js.c_str()));
+        } else {
+            cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\"" << endl;
+        }
+    } else {
+        helpers = unique_ptr<ostream>(new ostringstream());
+    }
+}
+
 static void compileWAST(Tree signals, int numInputs, int numOutputs, bool generate, ostream* out, const string& outpath)
 {
 #ifdef WASM_BUILD
@@ -1541,21 +1559,7 @@ static void compileWAST(Tree signals, int numInputs, int numOutputs, bool genera
     
     container = WASTCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out,
                                                    ((gGlobal->gOutputLang == "wast") || (gGlobal->gOutputLang == "wast-i")));
-    
-    // Additional file with JS code
-    if (gGlobal->gOutputFile == "binary") {
-        // Nothing
-    } else if (gGlobal->gOutputFile != "") {
-        string outpath_js;
-        bool   res = replaceExtension(outpath, ".js", outpath_js);
-        if (res) {
-            helpers = unique_ptr<ostream>(new ofstream(outpath_js.c_str()));
-        } else {
-            cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\"" << endl;
-        }
-    } else {
-        helpers = unique_ptr<ostream>(new ostringstream());
-    }
+    createHelperFile(outpath);
 #else
     throw faustexception("ERROR : -lang wast not supported since WAST backend is not built\n");
 #endif
@@ -1584,24 +1588,11 @@ static void compileWASM(Tree signals, int numInputs, int numOutputs, bool genera
     // gGlobal->gComputeIOTA = true;     // Ensure IOTA base fixed delays are computed once
     
     container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out,
-                                                   ((gGlobal->gOutputLang == "wasm") || (gGlobal->gOutputLang == "wasm-i") ||
-                                                    (gGlobal->gOutputLang == "wasm-ib")));
-    
-    // Additional file with JS code
-    if (gGlobal->gOutputFile == "binary") {
-        // Nothing
-    } else if (gGlobal->gOutputFile != "") {
-        string outpath_js;
-        bool   res = replaceExtension(outpath, ".js", outpath_js);
-        if (res) {
-            helpers = unique_ptr<ostream>(new ofstream(outpath_js.c_str()));
-        } else {
-            cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\"" << endl;
-        }
-    } else {
-        helpers = unique_ptr<ostream>(new ostringstream());
-    }
-#else
+                                                   ((gGlobal->gOutputLang == "wasm")
+                                                    || (gGlobal->gOutputLang == "wasm-i")
+                                                    || (gGlobal->gOutputLang == "wasm-ib")));
+    createHelperFile(outpath);
+ #else
     throw faustexception("ERROR : -lang wasm not supported since WASM backend is not built\n");
 #endif
 }
@@ -1870,13 +1861,11 @@ static void printXML(Description* D, int inputs, int outputs)
     faustassert(D);
     ofstream xout(subst("$0.xml", gGlobal->makeDrawPath()).c_str());
     
-    const MetaDataSet&          mds = gGlobal->gMetaDataSet;
     MetaDataSet::const_iterator it1;
     set<Tree>::const_iterator   it2;
-    
-    for (it1 = mds.begin(); it1 != mds.end(); ++it1) {
-        const string key = tree2str(it1->first);
-        for (it2 = it1->second.begin(); it2 != it1->second.end(); ++it2) {
+    for (const auto& it1 : gGlobal->gMetaDataSet) {
+        const string key = tree2str(it1.first);
+        for (it2 = it1.second.begin(); it2 != it1.second.end(); ++it2) {
             const string value = tree2str(*it2);
             if (key == "name") {
                 D->name(value);
@@ -2305,6 +2294,8 @@ EXPORT Tree sigRecursion(Tree s)
     //return sigDelay0(sigProj(0, rec(cons(liftn(s, 0), gGlobal->nil))));
     return sigDelay0(sigProj(0, rec(cons(s, gGlobal->nil))));
 }
+
+// Global context
 
 EXPORT void createLibContext()
 {

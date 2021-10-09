@@ -65,5 +65,4 @@ void annotationStatistics();
  */
 double constSig2double(Tree sig);
 
-
 #endif

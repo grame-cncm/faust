@@ -1586,7 +1586,6 @@ static Tree insideBoxSimplification(Tree box)
 
     else if (isBoxSlot(box)) {
         return box;
-        ;
     }
 
     else if (isBoxSymbolic(box, slot, body)) {
@@ -1631,5 +1630,5 @@ static Tree insideBoxSimplification(Tree box)
     stringstream error;
     error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << *box << endl;
     throw faustexception(error.str());
-    return 0;
+    return nullptr;
 }

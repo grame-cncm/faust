@@ -139,7 +139,7 @@ enum WasmOp {
 
 };
 
-// Use in in static table so not Garbageable
+// No Garbageable since used in static table
 struct BinOp {
     const char* fName;
     const char* fNameVec;

@@ -61,22 +61,19 @@ struct interval : public virtual Garbageable {
     interval(double n) : valid(true), lo(n), hi(n)
     {
         if (std::isnan(n)) {
-            cerr << "ERROR1 : n is NAN in an Interval" << endl;
-            faustassert(false);
+            throw faustexception("ERROR1 : n is NaN in an Interval\n");
         }
     }
     interval(bool v, double n, double m) : valid(v), lo(n), hi(m)
     {
         if (std::isnan(n) || std::isnan(m)) {
-            cerr << "ERROR2 : n or m is NAN in an Interval" << endl;
-            faustassert(false);
+            throw faustexception("ERROR2 : n is NaN in an Interval\n");
         }
     }
     interval(double n, double m) : valid(true), lo(min(n, m)), hi(max(n, m))
     {
         if (std::isnan(n) || std::isnan(m)) {
-            cerr << "ERROR3 : n or m is NAN in an Interval" << endl;
-            faustassert(false);
+            throw faustexception("ERROR3 : n is NaN in an Interval\n");
         }
     }
 

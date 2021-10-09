@@ -29,27 +29,13 @@
 #include "doc_metadatas.hh"
 #include "global.hh"
 
-static void initDocMetadatasKeySet();
-
 /*****************************************************************************
                         Public functions
  *****************************************************************************/
 /**
- * Dispatch initialization of metadatas container.
- */
-void initDocMetadatas()
-{
-    initDocMetadatasKeySet();
-}
-
-/*****************************************************************************
-                            Static functions
- *****************************************************************************/
-
-/**
  * Initialize gGlobal->gDocMetadatasKeySet, a set containing all the keywords.
  */
-static void initDocMetadatasKeySet()
+void initDocMetadatas()
 {
     gGlobal->gDocMetadatasKeySet.insert("name");
     gGlobal->gDocMetadatasKeySet.insert("author");
@@ -57,17 +43,3 @@ static void initDocMetadatasKeySet()
     gGlobal->gDocMetadatasKeySet.insert("license");
     gGlobal->gDocMetadatasKeySet.insert("version");
 }
-
-///**
-// * Simple trace function.
-// */
-// static void printDocMetadatasStringMapContent() {
-//	bool trace = false;
-//	if(trace) {
-//		cout << "gGlobal->gDocMetadatasStringMap.size() = " << gGlobal->gDocMetadatasStringMap.size() << endl;
-//		map<string,string>::iterator it;
-//		int i = 1;
-//		for(it = gGlobal->gDocMetadatasStringMap.begin(); it!=gGlobal->gDocMetadatasStringMap.end(); ++it)
-//			cout << i++ << ".\tgGlobal->gDocNoticeStringMap[" << it->first << "] \t= '" << it->second << "'" << endl;
-//	}
-//}

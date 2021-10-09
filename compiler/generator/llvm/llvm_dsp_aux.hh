@@ -262,7 +262,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     std::vector<std::string> getIncludePathnames();
 
     virtual bool initJIT(std::string& error_msg);
-    bool         initJITAux(std::string& error_msg);
+    bool         initJITAux();
 
     static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const std::string& target,
                                                           std::string& error_msg);

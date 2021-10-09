@@ -143,31 +143,22 @@ Tree SignalPromotion::transformation(Tree sig)
 /*
 ## smartIntCast[S] : adds an intCast(S) only if needed
 
-    smartIntCast[S]     = intCast(S)    when type(S) = float
-    smartIntCast[S]     = S             otherwise
+    smartIntCast[S] = intCast(S) when type(S) = float
+    smartIntCast[S] = S          otherwise
 */
 
 Tree SignalPromotion::smartIntCast(Type t, Tree sig)
 {
-    if (t->nature() == kReal) {
-        return sigIntCast(sig);
-    } else {
-        return sig;
-    }
+    return (t->nature() == kReal) ? sigIntCast(sig) : sig;
 }
 
 /*
 ## smartFloatCast[S] : adds a floatCast(S) only if needed
 
-    smartFloatCast[S]   = floatCast(S)      when type(S) = int
-                        = S                 otherwise
-
+    smartFloatCast[S] = floatCast(S) when type(S) = int
+    smartFloatCast[S] = S            otherwise
 */
 Tree SignalPromotion::smartFloatCast(Type t, Tree sig)
 {
-    if (t->nature() == kInt) {
-        return sigFloatCast(sig);
-    } else {
-        return sig;
-    }
+    return (t->nature() == kInt) ? sigFloatCast(sig) : sig;
 }

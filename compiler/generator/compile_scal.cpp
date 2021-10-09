@@ -98,6 +98,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     endTiming("deBruijn2Sym");
 
     startTiming("L1 typeAnnotation");
+    // Annotate L1 with type information (needed by castAndPromotion(), but don't check causality)
     typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
     endTiming("L1 typeAnnotation");
 
@@ -108,7 +109,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     endTiming("Cast and Promotion");
 
     startTiming("second simplification");
-    Tree L2 = simplify(L1b);  // simplify by executing every computable operation
+    Tree L2 = simplify(L1b);  // Simplify by executing every computable operation
     endTiming("second simplification");
 
     startTiming("Constant propagation");
@@ -124,7 +125,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     startTiming("conditionAnnotation");
     conditionAnnotation(L3);
     endTiming("conditionAnnotation");
-    // conditionStatistics(L3);        // count condition occurrences
+    // conditionStatistics(L3); // Count condition occurrences
 
     // dump normal form
     if (gGlobal->gDumpNorm) {
@@ -137,26 +138,23 @@ Tree ScalarCompiler::prepare(Tree LS)
     endTiming("recursivnessAnnotation");
 
     startTiming("typeAnnotation");
-    typeAnnotation(L3, true);  // Annotate L3 with type information
+    typeAnnotation(L3, true);    // Annotate L3 with type information
     endTiming("typeAnnotation");
 
     startTiming("sharingAnalysis");
-    sharingAnalysis(L3);  // annotate L3 with sharing count
+    sharingAnalysis(L3);         // Annotate L3 with sharing count
     endTiming("sharingAnalysis");
 
     startTiming("occurrences analysis");
-    if (fOccMarkup != 0) {
-        delete fOccMarkup;
-    }
+    delete fOccMarkup;
     fOccMarkup = new old_OccMarkup(fConditionProperty);
-    fOccMarkup->mark(L3);  // annotate L3 with occurrences analysis
+    fOccMarkup->mark(L3);  // Annotate L3 with occurrences analysis
     endTiming("occurrences analysis");
 
     endTiming("ScalarCompiler::prepare");
 
     if (gGlobal->gDrawSignals) {
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
-        // SL : 28/09/17 : deactivated for now
         sigToGraph(L3, dotfile);
     }
 
