@@ -246,8 +246,6 @@ ostream& ppsig::print(ostream& fout) const
 
     else if (isSigSelect2(sig, sel, x, y)) {
         printfun(fout, "select2", sel, x, y);
-    } else if (isSigSelect3(sig, sel, x, y, z)) {
-        printfun(fout, "select3", sel, x, y, z);
     }
 
     else if (isSigIntCast(sig, x)) {

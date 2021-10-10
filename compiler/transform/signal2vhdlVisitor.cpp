@@ -250,18 +250,12 @@ void Signal2VHDLVisitor::visit(Tree sig)
         return;
     }
     
-    // Select2 and Select3
+    // Select2
     else if (isSigSelect2(sig, sel, x, y)) {
         select_op("SELECT2", sig, sel, x, y);
         self(sel);
         self(x);
         self(y);
-        return;
-    } else if (isSigSelect3(sig, sel, x, y, z)) {
-        self(sel);
-        self(x);
-        self(y);
-        self(z);
         return;
     }
     

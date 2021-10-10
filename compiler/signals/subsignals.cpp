@@ -135,12 +135,6 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
         vsigs.push_back(x);
         vsigs.push_back(y);
         return 3;
-    } else if (isSigSelect3(sig, sel, x, y, z)) {
-        vsigs.push_back(sel);
-        vsigs.push_back(x);
-        vsigs.push_back(y);
-        vsigs.push_back(z);
-        return 4;
     }
 
     else if (isSigGen(sig, x)) {

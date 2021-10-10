@@ -115,10 +115,8 @@ Tree SignalIdentity::transformation(Tree sig)
     // Select2 and Select3
     else if (isSigSelect2(sig, sel, x, y)) {
         return sigSelect2(self(sel), self(x), self(y));
-    } else if (isSigSelect3(sig, sel, x, y, z)) {
-        return sigSelect3(self(sel), self(x), self(y), self(z));
     }
-
+    
     // Table sigGen
     else if (isSigGen(sig, x)) {
         if (fVisitGen) {

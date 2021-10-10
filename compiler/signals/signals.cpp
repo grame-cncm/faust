@@ -45,7 +45,6 @@ Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
 ////////////////////////////////////////////////////////////////////////
 /**
  * Signals
- *
  */
 ///////////////////////////////////////////////////////////////////////
 
@@ -229,10 +228,6 @@ Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
 {
     return sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(0)),
                       sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(1)), s3, s2), s1);
-}
-bool isSigSelect3(Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)
-{
-    return isTree(t, gGlobal->SIGSELECT3, selector, s1, s2, s3);
 }
 
 Tree sigAssertBounds(Tree s1, Tree s2, Tree s3)

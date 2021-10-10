@@ -129,12 +129,6 @@ void SignalVisitor::visit(Tree sig)
         self(x);
         self(y);
         return;
-    } else if (isSigSelect3(sig, sel, x, y, z)) {
-        self(sel);
-        self(x);
-        self(y);
-        self(z);
-        return;
     }
 
     // Table sigGen

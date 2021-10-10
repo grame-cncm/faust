@@ -234,9 +234,6 @@ string DocCompiler::generateCode(Tree sig, int priority)
     else if (isSigSelect2(sig, sel, x, y)) {
         printGCCall(sig, "generateSelect2");
         return generateSelect2(sig, sel, x, y, priority);
-    } else if (isSigSelect3(sig, sel, x, y, z)) {
-        printGCCall(sig, "generateSelect3");
-        return generateSelect3(sig, sel, x, y, z, priority);
     }
 
     else if (isProj(sig, &i, x)) {

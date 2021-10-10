@@ -215,9 +215,6 @@ static int infereSigOrder(Tree sig)
     else if (isSigSelect2(sig, sel, s1, s2))
         return 3;
 
-    else if (isSigSelect3(sig, sel, s1, s2, s3))
-        return 3;
-
     else if (isList(sig)) {
         int r1 = 0;
         while (isList(sig)) {

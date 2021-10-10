@@ -151,9 +151,6 @@ void sigvisitor::visit(Tree sig)
     else if (isSigSelect2(sig, sel, s1, s2))
         visitSelect2(sig, sel, s1, s2);
 
-    else if (isSigSelect3(sig, sel, s1, s2, s3))
-        visitSelect3(sig, sel, s1, s2, s3);
-
     else if (isList(sig))
         visitList(sig);
 

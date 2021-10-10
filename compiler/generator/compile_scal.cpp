@@ -466,10 +466,8 @@ string ScalarCompiler::generateCode(Tree sig)
 
     else if (isSigSelect2(sig, sel, x, y)) {
         return generateSelect2(sig, sel, x, y);
-    } else if (isSigSelect3(sig, sel, x, y, z)) {
-        return generateSelect3(sig, sel, x, y, z);
     }
-
+    
     else if (isSigGen(sig, x)) {
         return generateSigGen(sig, x);
     }
@@ -1256,87 +1254,6 @@ string ScalarCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2)
 {
     return generateCacheCode(sig, subst("(($0)?$1:$2)", CS(sel), CS(s2), CS(s1)));
 }
-
-/**
- * Generate a select3 code (using if-then-else)
- * ((int n = sel==0)? s0 : ((sel==1)? s1 : s2))
- * int nn; ((nn=sel) ? ((nn==1)? s1 : s2) : s0);
- */
-string ScalarCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)
-{
-    return generateCacheCode(sig, subst("(($0==0)? $1 : (($0==1)?$2:$3) )", CS(sel), CS(s1), CS(s2), CS(s3)));
-}
-
-#if 0
-string ScalarCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)
-{
-    Type t = getCertifiedSigType(sig);
-    Type t1 = getCertifiedSigType(s1);
-    Type t2 = getCertifiedSigType(s2);
-    Type t3 = getCertifiedSigType(s3);
-    Type w = min(t1,min(t2,t3));
-
-    string type = old_cType(t);
-    string var = getFreshID("S");
-
-    switch (w->variability())
-    {
-        case kKonst:
-            fClass->addDeclCode(subst("$0 \t$1[3];", type, var));
-            break;
-        case kBlock:
-            //fClass->addLocalDecl(type, subst("$0[3]", var));
-            //fClass->addLocalVecDecl(type, var, 3);
-            fClass->addSharedDecl(var);
-            fClass->addZone1(subst("$0 \t$1[3];", type, var));
-            break;
-        case kSamp:
-            fClass->addExecCode(subst("$0 \t$1[3];", type, var));
-            break;
-    }
-
-    switch (t1->variability())
-    {
-        case kKonst:
-            fClass->addClearCode(subst("$0[0] = $1;", var, CS(s1)));
-            break;
-        case kBlock:
-            fClass->addZone2b(subst("$0[0] = $1;", var, CS(s1)));
-            break;
-        case kSamp:
-            fClass->addExecCode(subst("$0[0] = $1;", var, CS(s1)));
-            break;
-    }
-
-    switch (t2->variability())
-    {
-        case kKonst:
-            fClass->addClearCode(subst("$0[1] = $1;", var, CS(s2)));
-            break;
-        case kBlock:
-            fClass->addZone2b(subst("$0[1] = $1;", var, CS(s2)));
-            break;
-        case kSamp:
-            fClass->addExecCode(subst("$0[1] = $1;", var, CS(s2)));
-            break;
-    }
-
-    switch (t3->variability())
-    {
-        case kKonst:
-            fClass->addClearCode(subst("$0[2] = $1;", var, CS(s3)));
-            break;
-        case kBlock:
-            fClass->addZone2b(subst("$0[2] = $1;", var, CS(s3)));
-            break;
-        case kSamp:
-            fClass->addExecCode(subst("$0[2] = $1;", var, CS(s3)));
-            break;
-    }
-
-    return generateCacheCode(sig, subst("$0[$1]", var, CS(sel)));
-}
-#endif
 
 /*****************************************************************************
  EXTENDED

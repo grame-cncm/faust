@@ -286,7 +286,6 @@ ostream& boxpp::print(ostream &fout) const
             sep = ',';
         }
         fout << '}';
-
         /*
         size_t n = box->arity();
         if (n < 6) {
@@ -322,7 +321,7 @@ ostream& boxpp::print(ostream &fout) const
         fout << "\\(" << boxpp(slot) << ").(" << boxpp(body) << ")";
     }
 
-    // Pattern Matching Extensions
+    // pattern Matching Extensions
     else if (isBoxCase(box, rules)) {
         fout << "case {";
         while (!isNil(rules)) {

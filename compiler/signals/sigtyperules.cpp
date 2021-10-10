@@ -605,10 +605,6 @@ static Type infereSigType(Tree sig, Tree env)
                               st1->boolean() | st2->boolean(), reunion(st1->getInterval(), st2->getInterval()));
     }
 
-    else if (isSigSelect3(sig, sel, s1, s2, s3)) {
-        return T(sel, env) | T(s1, env) | T(s2, env) | T(s3, env);
-    }
-
     else if (isNil(sig)) {
         Type t = new TupletType(); /*sig->setType(t);*/
         return t;

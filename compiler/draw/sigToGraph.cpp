@@ -227,10 +227,8 @@ static string sigLabel(Tree sig)
 
     else if (isSigSelect2(sig, sel, x, y)) {
         fout << "select2";
-    } else if (isSigSelect3(sig, sel, x, y, z)) {
-        fout << "select3";
     }
-
+    
     else if (isSigGen(sig, x)) {
         fout << "generator";
     }

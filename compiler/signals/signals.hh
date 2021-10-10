@@ -117,7 +117,6 @@ Tree sigSelect2(Tree selector, Tree s1, Tree s2);
 Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3);
 
 bool isSigSelect2(Tree t, Tree& selector, Tree& s1, Tree& s2);
-bool isSigSelect3(Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3);
 
 // Interval annotation
 

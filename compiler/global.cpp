@@ -365,7 +365,6 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     SIGDOCWRITETBL     = symbol("SigDocWriteTbl");
     SIGDOCACCESSTBL    = symbol("SigDocAccessTbl");
     SIGSELECT2         = symbol("SigSelect2");
-    SIGSELECT3         = symbol("SigSelect3");
     SIGASSERTBOUNDS    = symbol("sigAssertBounds");
     SIGHIGHEST         = symbol("sigHighest");
     SIGLOWEST          = symbol("sigLowest");

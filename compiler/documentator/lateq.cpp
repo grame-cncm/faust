@@ -416,7 +416,7 @@ void Lateq::printHierarchy(const string& section, multimap<string, string>& fiel
 }
 
 /**
- * @brief Print formulas for select2, select3 and prefix signals.
+ * @brief Print formulas for select2 and prefix signals.
  *
  * @param[in]	section		The title to print for these formulas.
  * @param[in]	field		The list of LaTeX arrays (for braces with two lines).

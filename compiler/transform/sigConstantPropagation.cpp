@@ -114,23 +114,6 @@ Tree SignalConstantPropagation::transformation(Tree sig)
 
         return sigSelect2(v1, v2, v3);
 
-    } else if (isSigSelect3(sig, t1, t2, t3, t4)) {
-        Tree v1 = self(t1);
-        Tree v2 = self(t2);
-        Tree v3 = self(t3);
-        Tree v4 = self(t4);
-
-        Node n1 = v1->node();
-
-        if (isZero(n1)) return v2;
-        if (isOne(n1)) return v3;
-        if (isNum(n1)) return v4;
-
-        if (v2 == v3 && v3 == v4) return v2;
-        if (v3 == v4) return sigSelect2(v1, v2, v3);
-
-        return sigSelect3(v1, v2, v3, v4);
-
     } else if (isProj(sig, &i, x)) {
         Tree r = self(x);
         Tree id, le;

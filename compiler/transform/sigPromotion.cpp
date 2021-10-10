@@ -39,8 +39,8 @@
 
 Tree SignalPromotion::transformation(Tree sig)
 {
-    int  i;
-    Tree sel, x, y, z;
+    int  op;
+    Tree sel, x, y;
 
     if (isSigFixDelay(sig, x, y)) {
         return sigFixDelay(self(x), smartIntCast(getCertifiedSigType(y), self(y)));
@@ -48,11 +48,11 @@ Tree SignalPromotion::transformation(Tree sig)
 
     // Binary operations
     // kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
-    else if (isSigBinOp(sig, &i, x, y)) {
+    else if (isSigBinOp(sig, &op, x, y)) {
         Type tx = getCertifiedSigType(x);
         Type ty = getCertifiedSigType(y);
 
-        switch (i) {
+        switch (op) {
             case kAdd:
             case kSub:
             case kMul:
@@ -64,16 +64,16 @@ Tree SignalPromotion::transformation(Tree sig)
             case kNE:
                 if (tx->nature() == ty->nature()) {
                     // same nature => no promotion needed
-                    return sigBinOp(i, self(x), self(y));
+                    return sigBinOp(op, self(x), self(y));
                 } else {
                     // float promotion needed
-                    return sigBinOp(i, smartFloatCast(tx, self(x)), smartFloatCast(ty, self(y)));
+                    return sigBinOp(op, smartFloatCast(tx, self(x)), smartFloatCast(ty, self(y)));
                 }
 
             case kRem:
                 if (tx->nature() == kInt && ty->nature() == kInt) {
                     // int arguments => no promotion needed
-                    return sigBinOp(i, self(x), self(y));
+                    return sigBinOp(op, self(x), self(y));
                 } else {
                     // float promotion needed, rem (%) replaced by fmod
                     vector<Tree> lsig = {smartFloatCast(tx, self(x)), smartFloatCast(ty, self(y))};
@@ -82,7 +82,7 @@ Tree SignalPromotion::transformation(Tree sig)
 
             case kDiv:
                 // the result of a division is always a float
-                return sigBinOp(i, smartFloatCast(tx, self(x)), smartFloatCast(ty, self(y)));
+                return sigBinOp(op, smartFloatCast(tx, self(x)), smartFloatCast(ty, self(y)));
 
             case kAND:
             case kOR:
@@ -90,11 +90,11 @@ Tree SignalPromotion::transformation(Tree sig)
             case kLsh:
             case kARsh:
                 // these operations require integers
-                return sigBinOp(i, smartIntCast(tx, self(x)), smartIntCast(ty, self(y)));
+                return sigBinOp(op, smartIntCast(tx, self(x)), smartIntCast(ty, self(y)));
 
             default:
                 // TODO: no clear rules here
-                return sigBinOp(i, self(x), self(y));
+                return sigBinOp(op, self(x), self(y));
         }
     }
 
@@ -110,20 +110,6 @@ Tree SignalPromotion::transformation(Tree sig)
         } else {
             // float promotion needed
             return sigSelect2(smartIntCast(ts, self(sel)), smartFloatCast(tx, self(x)), smartFloatCast(ty, self(y)));
-        }
-    } else if (isSigSelect3(sig, sel, x, y, z)) {
-        Type ts = getCertifiedSigType(sel);
-        Type tx = getCertifiedSigType(x);
-        Type ty = getCertifiedSigType(y);
-        Type tz = getCertifiedSigType(z);
-
-        if ((tx->nature() == ty->nature()) && (tx->nature() == tz->nature())) {
-            // same nature => no promotion needed
-            return sigSelect3(smartIntCast(ts, self(sel)), self(x), self(y), self(z));
-        } else {
-            // float promotion needed
-            return sigSelect3(smartIntCast(ts, self(sel)), smartFloatCast(tx, self(x)), smartFloatCast(ty, self(y)),
-                              smartFloatCast(tz, self(z)));
         }
     }
 

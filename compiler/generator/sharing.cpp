@@ -97,8 +97,6 @@ void ScalarCompiler::sharingAnalysis(Tree t)
 //------------------------------------------------------------------------------
 void ScalarCompiler::sharingAnnotation(int vctxt, Tree sig)
 {
-    Tree c, x, y, z;
-
     // cerr << "START sharing annotation of " << *sig << endl;
     int count = getSharingCount(sig);
 
@@ -117,22 +115,11 @@ void ScalarCompiler::sharingAnnotation(int vctxt, Tree sig)
             setSharingCount(sig, 1);  // regular occurence
         }
 
-        if (isSigSelect3(sig, c, y, x, z)) {
-            // make a special case for select3 implemented with real if
-            // because the c expression will be used twice in the C++
-            // translation
-            sharingAnnotation(v, c);
-            sharingAnnotation(v, c);
-            sharingAnnotation(v, x);
-            sharingAnnotation(v, y);
-            sharingAnnotation(v, z);
-        } else {
-            // Annotate the sub signals
-            vector<Tree> subsig;
-            int          n = getSubSignals(sig, subsig);
-            if (n > 0 && !isSigGen(sig)) {
-                for (int i = 0; i < n; i++) sharingAnnotation(v, subsig[i]);
-            }
+        // Annotate the sub signals
+        vector<Tree> subsig;
+        int          n = getSubSignals(sig, subsig);
+        if (n > 0 && !isSigGen(sig)) {
+            for (int i = 0; i < n; i++) sharingAnnotation(v, subsig[i]);
         }
     }
     // cerr << "END sharing annotation of " << *sig << endl;

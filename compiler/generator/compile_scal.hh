@@ -123,8 +123,7 @@ class ScalarCompiler : public Compiler {
     string generateStaticSigGen(Tree sig, Tree content);
 
     string generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2);
-    string generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3);
-
+  
     string generateRecProj(Tree sig, Tree exp, int i);
     void   generateRec(Tree sig, Tree var, Tree le);
 

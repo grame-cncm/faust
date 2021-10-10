@@ -82,12 +82,11 @@ static Tree simplification(Tree sig)
 {
     faustassert(sig);
     int  opnum;
-    Tree t1, t2, t3, t4;
+    Tree t1, t2, t3;
 
     xtended* xt = (xtended*)getUserData(sig);
     // primitive elements
     if (xt) {
-        // return 3;
         vector<Tree> args;
         for (int i = 0; i < sig->arity(); i++) {
             args.push_back(sig->branch(i));
@@ -160,20 +159,6 @@ static Tree simplification(Tree sig)
 
         return sig;
 
-    } else if (isSigSelect3(sig, t1, t2, t3, t4)) {
-        Node n1 = t1->node();
-
-        if (isZero(n1)) return t2;
-        if (isOne(n1)) return t3;
-        if (isNum(n1)) return t4;
-
-        if (t3 == t4) return simplification(sigSelect2(t1, t2, t3));
-
-        return sig;
-
-        // Enable(t1, 0) => 0
-        // Enable(t1, 1) => t1
-        // otherwise sig
     } else if (isSigEnable(sig, t1, t2)) {
         Node n2 = t2->node();
 
