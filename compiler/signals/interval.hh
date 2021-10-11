@@ -78,7 +78,7 @@ struct interval : public virtual Garbageable {
     }
 
     bool isvalid() { return valid; }
-    bool isbounded() { return !(isinf(lo) || isinf(hi)); }
+    bool isbounded() { return !(std::isinf(lo) || std::isinf(hi)); }
     bool isempty() { return hi < lo; }
     bool isconst() { return valid && (lo == hi); }
     bool ispowerof2()

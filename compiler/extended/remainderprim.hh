@@ -37,6 +37,13 @@ class RemainderPrim : public xtended {
     virtual ::Type infereSigType(const vector<::Type>& args)
     {
         faustassert(args.size() == arity());
+    
+        interval i = args[0]->getInterval();
+        interval j = args[1]->getInterval();
+        if (j.valid && gGlobal->gMathExceptions && j.haszero()) {
+            cerr << "WARNING : potential division by zero in remainder(" << i << ", " << j << ")" << endl;
+        }
+    
         return castInterval(floatCast(args[0] | args[1]), interval());  // temporary rule !!!
     }
 
@@ -50,7 +57,11 @@ class RemainderPrim : public xtended {
     {
         num n, m;
         faustassert(args.size() == arity());
-        if (isNum(args[0], n) && isNum(args[1], m)) {
+        if (isZero(args[1])) {
+            stringstream error;
+            error << "ERROR : remainder by 0 in remainder(" << ppsig(args[0]) << ", " << ppsig(args[1]) << ")" << endl;
+            throw faustexception(error.str());
+        } else if (isNum(args[0], n) && isNum(args[1], m)) {
             return tree(remainder(double(n), double(m)));
         } else {
             if (gGlobal->gMathApprox) {

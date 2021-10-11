@@ -147,6 +147,8 @@ struct global {
                       // for JavaScript)
     bool   gClang;    // when compiled with clang/clang++, adds specific #pragma for auto-vectorization
     string gCheckTable;  // whether to check RDTable and RWTable index range
+    
+    bool   gMathExceptions;  // whether to check math functions domains
 
     string gClassName;       // name of the generated dsp class, by default 'mydsp'
     string gSuperClassName;  // name of the root class the generated dsp class inherits from, by default 'dsp'

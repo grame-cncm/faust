@@ -676,6 +676,10 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-cat", "--check-all-table")) {
             gGlobal->gCheckTable = "cat";
             i += 1;
+            
+        } else if (isCmd(argv[i], "-me", "--math-exceptions")) {
+            gGlobal->gMathExceptions = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-lm", "--local-machine") || isCmd(argv[i], "-rm", "--remote-machine") ||
                    isCmd(argv[i], "-poly", "--polyphonic-mode") || isCmd(argv[i], "-voices", "--polyphonic-voices") ||
@@ -1034,6 +1038,7 @@ static void printHelp()
     cout << tab << "-norm       --normalized-form           print signals in normalized form and exit." << endl;
     cout << tab << "-ct         --check-table               check table index range and exit at first failure." << endl;
     cout << tab << "-cat        --check-all-table           check all table index range." << endl;
+    cout << tab << "-me         --math-exceptions           check / for 0 as denominator and remainder, fmod, sqrt, log10, log, acos, asin functions domain." << endl;
 
     cout << endl << "Information options:" << line;
     cout << tab << "-h          --help                      print this help message." << endl;

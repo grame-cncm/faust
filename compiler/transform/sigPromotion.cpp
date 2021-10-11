@@ -80,10 +80,19 @@ Tree SignalPromotion::transformation(Tree sig)
                     return gGlobal->gFmodPrim->computeSigOutput(lsig);
                 }
 
-            case kDiv:
-                // the result of a division is always a float
-                return sigBinOp(op, smartFloatCast(tx, self(x)), smartFloatCast(ty, self(y)));
-
+            case kDiv: {
+                // Done here instead of 'simplify' to be sure the signals are correctly typed.
+                interval i1 = tx->getInterval();
+                interval j1 = ty->getInterval();
+                if (i1.valid & j1.valid && gGlobal->gMathExceptions && j1.haszero()) {
+                    //cerr << "WARNING : potential division by zero (" << i1 << "/" << j1 << ") in " << ppsig(sig) << endl;
+                    cerr << "WARNING : potential division by zero (" << i1 << "/" << j1 << ")" << endl;
+                } else {
+                    // the result of a division is always a float
+                    return sigBinOp(op, smartFloatCast(tx, self(x)), smartFloatCast(ty, self(y)));
+                }
+            }
+                
             case kAND:
             case kOR:
             case kXOR:

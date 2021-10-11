@@ -38,11 +38,14 @@ class SqrtPrim : public xtended {
         faustassert(args.size() == 1);
         Type     t = args[0];
         interval i = t->getInterval();
-        if (i.valid && i.lo >= 0) {
-            return castInterval(floatCast(t), interval(sqrt(i.lo), sqrt(i.hi)));
-        } else {
-            return castInterval(floatCast(t), interval());
+        if (i.valid) {
+            if (i.lo >= 0) {
+                return castInterval(floatCast(t), interval(sqrt(i.lo), sqrt(i.hi)));
+            } else if (gGlobal->gMathExceptions) {
+                cerr << "WARNING : potential out of domain in sqrt(" << i << ")" << endl;
+            }
         }
+        return castInterval(floatCast(t), interval());
     }
 
     virtual int infereSigOrder(const vector<int>& args) { return args[0]; }
@@ -52,7 +55,13 @@ class SqrtPrim : public xtended {
         // check simplifications
         num n;
         if (isNum(args[0], n)) {
-            return tree(sqrt(double(n)));
+            if (double(n) < 0) {
+                stringstream error;
+                error << "ERROR : out of domain sqrt(" << ppsig(args[0]) << ")" << endl;
+                throw faustexception(error.str());
+            } else {
+                return tree(sqrt(double(n)));
+            }
         } else {
             return tree(symbol(), args[0]);
         }

@@ -43,7 +43,6 @@ static const char* binopname[] = {"add", "sub", "mul", "div", "%", "<<", ">>", "
 
 void Signal2Elementary::sig2Elementary(Tree L, ofstream& fout)
 {
-    Tree output = hd(L);
     fOut << "[";
     while (!isNil(L)) {
         self(hd(L)); // comment

@@ -36,12 +36,11 @@ class FmodPrim : public xtended {
     virtual ::Type infereSigType(const vector<::Type>& args)
     {
         faustassert(args.size() == arity());
+    
         interval i = args[0]->getInterval();
         interval j = args[1]->getInterval();
-
-        if (j.haszero()) {
-            // potential division by zero
-            // std::cerr << "potential division by zero in fmod(" << i << ", " << j << ")" << std::endl;
+        if (j.valid && gGlobal->gMathExceptions && j.haszero()) {
+            cerr << "WARNING : potential division by zero in fmod(" << i << ", " << j << ")" << endl;
         }
 
         return castInterval(floatCast(args[0] | args[1]), fmod(i, j));
@@ -57,7 +56,11 @@ class FmodPrim : public xtended {
     {
         num n, m;
         faustassert(args.size() == arity());
-        if (isNum(args[0], n) && isNum(args[1], m)) {
+        if (isZero(args[1])) {
+            stringstream error;
+            error << "ERROR : % by 0 in " << ppsig(args[0]) << " % " << ppsig(args[1]) << endl;
+            throw faustexception(error.str());
+        } else if (isNum(args[0], n) && isNum(args[1], m)) {
             return tree(fmod(double(n), double(m)));
         } else {
             if (gGlobal->gMathApprox) {

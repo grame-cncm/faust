@@ -1,4 +1,4 @@
-% man(1) Version 2.36.3 (08-October-2021) | Faust man page
+% man(1) Version 2.37.0 (11-October-2021) | Faust man page
 
 NAME
 ====
@@ -189,6 +189,8 @@ Debug options:
   **-ct**         **--check-table**               check table index range and exit at first failure.
 
   **-cat**        **--check-all-table**           check all table index range.
+
+  **-me**         **--math-exceptions**           check / for 0 as denominator and remainder, fmod, sqrt, log10, log, acos, asin functions domain.
 
 
 Information options:

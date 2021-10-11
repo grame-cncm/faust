@@ -52,9 +52,12 @@ soul:
 
 trace:
 	$(MAKE) -f Make.lang interp-tracer 
-
+	
 jtrace:
 	$(MAKE) -f Make.lang julia-tracer 
+
+me:
+	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp FAUSTOPTIONS=" -me -a ./min.cpp"
 
 #########################################################################
 # interp lang has a special status since the corresponding backend may not
@@ -76,6 +79,7 @@ help:
 	@echo " 'web'        : compiles using the wast/wasm backends"
 	@echo " 'trace'      : compiles using the interp-tracer application"
 	@echo " 'jtrace'     : compiles using Julia minimal-control architecture"
+	@echo " 'wa'         : compiles using the C++ backend with -wa option"
 	@echo "Using a specific version of Faust libraries:"
 	@echo " 'make FAUSTLIBS=/path/to/libraries'"
  	

@@ -36,16 +36,27 @@ class AsinPrim : public xtended {
     virtual ::Type infereSigType(const vector<::Type>& args)
     {
         faustassert(args.size() == 1);
+        Type     t = args[0];
+        interval i = t->getInterval();
+        if (i.valid && gGlobal->gMathExceptions && (i.lo < -1 || i.hi > 1)) {
+            cerr << "WARNING : potential out of domain in asin(" << i << ")" << endl;
+        }
         return floatCast(args[0]);
-    }
-
+     }
+    
     virtual int infereSigOrder(const vector<int>& args) { return args[0]; }
-
+    
     virtual Tree computeSigOutput(const vector<Tree>& args)
     {
         num n;
         if (isNum(args[0], n)) {
-            return tree(asin(double(n)));
+            if ((double(n) < -1) || (double(n) > 1)) {
+                stringstream error;
+                error << "ERROR : out of domain  in asin(" << ppsig(args[0]) << ")" << endl;
+                throw faustexception(error.str());
+            } else {
+                return tree(asin(double(n)));
+            }
         } else {
             return tree(symbol(), args[0]);
         }

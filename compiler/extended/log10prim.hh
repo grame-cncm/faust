@@ -37,11 +37,15 @@ class Log10Prim : public xtended {
     {
         faustassert(args.size() == arity());
         interval i = args[0]->getInterval();
-        if (i.valid && (i.lo > 0)) {
-            return castInterval(floatCast(args[0]), interval(log10(i.lo), log10(i.hi)));
-        } else {
-            return floatCast(args[0]);
+        if (i.valid) {
+            // log10(0) gives -INF but is still in the function domain
+            if (i.lo >= 0) {
+                return castInterval(floatCast(args[0]), interval(log10(i.lo), log10(i.hi)));
+            } else if (gGlobal->gMathExceptions) {
+                cerr << "WARNING : potential out of domain in log10(" << i << ")" << endl;
+            }
         }
+        return floatCast(args[0]);
     }
 
     virtual int infereSigOrder(const vector<int>& args)
@@ -55,7 +59,13 @@ class Log10Prim : public xtended {
         num n;
         faustassert(args.size() == arity());
         if (isNum(args[0], n)) {
-            return tree(log10(double(n)));
+            if (double(n) < 0) {
+                stringstream error;
+                error << "ERROR : out of domain log10(" << ppsig(args[0]) << ")" << endl;
+                throw faustexception(error.str());
+            } else {
+                return tree(log10(double(n)));
+            }
         } else {
             return tree(symbol(), args[0]);
         }

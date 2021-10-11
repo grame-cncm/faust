@@ -31,6 +31,7 @@
 #include "sigtype.hh"
 #include "sigvisitor.hh"
 #include "tlib.hh"
+#include "ppsig.hh"
 
 class CodeContainer;
 
