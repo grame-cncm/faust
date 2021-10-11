@@ -49,7 +49,12 @@ class Exp10Prim : public xtended {
     {
         num n;
         faustassert(args.size() == arity());
-        if (isNum(args[0], n)) {
+    
+        // exp10(log10(sig)) ==> sig
+        xtended* xt = (xtended*)getUserData(args[0]);
+        if (xt == gGlobal->gLogPrim) {
+            return args[0]->branch(0);
+        } else if (isNum(args[0], n)) {
             return tree(exp(double(n)));
         } else {
             return tree(symbol(), args[0]);

@@ -58,7 +58,12 @@ class Log10Prim : public xtended {
     {
         num n;
         faustassert(args.size() == arity());
-        if (isNum(args[0], n)) {
+    
+        // log10(exp10(sig)) ==> sig
+        xtended* xt = (xtended*)getUserData(args[0]);
+        if (xt == gGlobal->gExp10Prim) {
+            return args[0]->branch(0);
+        } else if (isNum(args[0], n)) {
             if (double(n) < 0) {
                 stringstream error;
                 error << "ERROR : out of domain log10(" << ppsig(args[0]) << ")" << endl;

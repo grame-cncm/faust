@@ -59,7 +59,12 @@ class LogPrim : public xtended {
     {
         num n;
         faustassert(args.size() == arity());
-        if (isNum(args[0], n)) {
+    
+        // log(exp(sig)) ==> sig
+        xtended* xt = (xtended*)getUserData(args[0]);
+        if (xt == gGlobal->gExpPrim) {
+            return args[0]->branch(0);
+        } else if (isNum(args[0], n)) {
             if (double(n) < 0) {
                 stringstream error;
                 error << "ERROR : out of domain log(" << ppsig(args[0]) << ")" << endl;

@@ -50,13 +50,13 @@ class SinPrim : public xtended {
             if (comparable(x, 0)) {  // sin(0)
                 return tree(0.0);    // sin(0) = 0
             } else if (comparable(x, 2 * M_PI)) {
-                return tree(0.0);  // sin(2.PI) = 0
+                return tree(0.0);    // sin(2.PI) = 0
             } else if (comparable(x, M_PI)) {
-                return tree(0.0);  // sin(PI) = 0
+                return tree(0.0);    // sin(PI) = 0
             } else if (comparable(x, M_PI / 2)) {
-                return tree(1.0);  // sin(PI/2) = 1
+                return tree(1.0);    // sin(PI/2) = 1
             } else if (comparable(x, 3 * M_PI / 2)) {
-                return tree(-1.0);  // sin(3*PI/2) = -1
+                return tree(-1.0);   // sin(3*PI/2) = -1
             } else {
                 return tree(sin(x));  // sin(x)
             }

@@ -50,13 +50,13 @@ class CosPrim : public xtended {
             if (comparable(x, 0)) {  // cos(0)
                 return tree(1.0);    // cos(0) = 1
             } else if (comparable(x, 2 * M_PI)) {
-                return tree(1.0);  // cos(2.PI) = 1
+                return tree(1.0);    // cos(2.PI) = 1
             } else if (comparable(x, M_PI)) {
-                return tree(-1.0);  // cos(PI) = -1
+                return tree(-1.0);   // cos(PI) = -1
             } else if (comparable(x, M_PI / 2)) {
-                return tree(0.0);  // cos(PI/2) = 0
+                return tree(0.0);    // cos(PI/2) = 0
             } else if (comparable(x, 3 * M_PI / 2)) {
-                return tree(0.0);  // cos(3.PI/2) = 0
+                return tree(0.0);    // cos(3.PI/2) = 0
             } else {
                 return tree(cos(x));  // cos(x)
             }
