@@ -106,7 +106,6 @@ int main(int argc, char* argv[])
 {
     char name[256];
     char filename[256];
-    char* home = getenv("HOME");
     
     snprintf(name, 255, "%s", basename(argv[0]));
     snprintf(filename, 255, "%s", basename(argv[argc-1]));
@@ -249,7 +248,6 @@ int main(int argc, char* argv[])
                     cout << "Control: " << ctl.getParamAddress(ctl.fControlZone[index].first) << endl;
                     FAUSTFLOAT min = ctl.fControlZone[index].second.fMin;
                     FAUSTFLOAT max = ctl.fControlZone[index].second.fMax;
-                    FAUSTFLOAT init = ctl.fControlZone[index].second.fInit;
                     // Test max
                     cout << "Max: " << max << endl;
                     *ctl.fControlZone[index].first = max;
@@ -273,7 +271,6 @@ int main(int argc, char* argv[])
                     cout << "Control: " << ctl.getParamAddress(ctl.fControlZone[index].first) << endl;
                     FAUSTFLOAT min = ctl.fControlZone[index].second.fMin;
                     FAUSTFLOAT max = ctl.fControlZone[index].second.fMax;
-                    FAUSTFLOAT init = ctl.fControlZone[index].second.fInit;
                     // Test min
                     cout << "Min: " << min << endl;
                     *ctl.fControlZone[index].first = min;
@@ -295,7 +292,6 @@ int main(int argc, char* argv[])
                 for (int index = 0; index < ctl.fControlZone.size(); index++) {
                     FAUSTFLOAT min = ctl.fControlZone[index].second.fMin;
                     FAUSTFLOAT max = ctl.fControlZone[index].second.fMax;
-                    FAUSTFLOAT init = ctl.fControlZone[index].second.fInit;
                     if (min < 0 && max > 0) {
                         cout << "------------------------------" << endl;
                         cout << "Control: " << ctl.getParamAddress(ctl.fControlZone[index].first) << endl;

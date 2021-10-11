@@ -52,7 +52,6 @@ static string replaceChar(string str, char src, char dst)
 int main(int argc, char* argv[])
 {
     char name[256];
-    char filename[256];
     char rcfilename[256];
     char* home = getenv("HOME");
     

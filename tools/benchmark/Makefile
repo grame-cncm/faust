@@ -6,7 +6,7 @@ INC 	:= $(shell $(FAUST) -includedir)
 LIBS 	:= $(LIB)/libfaust.a
 FASTMATH = $(shell $(FAUST) -includedir)/faust/dsp/fastmath.cpp
 LLVM	:= `llvm-config --ldflags --libs all --system-libs`
-COMPILEOPT  := -std=c++11 -O3
+COMPILEOPT  := -std=c++11 -O3 -Wall
 COMMLIBS	:= $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a  -lmicrohttpd
 MACOSLIBS	:= -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation
 

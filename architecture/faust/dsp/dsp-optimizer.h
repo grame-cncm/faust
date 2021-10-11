@@ -230,7 +230,7 @@ class dsp_optimizer_real {
             }
             
             if (!fFactory) {
-                fprintf(stderr, "Cannot create factory : %d\n", fError.c_str());
+                fprintf(stderr, "Cannot create factory : %s\n", fError.c_str());
                 return false;
             }
             
