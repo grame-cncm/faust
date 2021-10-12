@@ -31,7 +31,7 @@
 #include "treeTraversal.hh"
 
 //-------------------------Signal2Elementary-------------------------------
-// Transforms signals to Elementary code
+// Transforms signals to Elementary code (see: https://www.elementary.audio)
 //----------------------------------------------------------------------
 
 class Signal2Elementary : public TreeTraversal {

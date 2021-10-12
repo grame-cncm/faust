@@ -33,7 +33,7 @@
 ************************************************************************
 ************************************************************************/
 
-#include "faust/dsp/llvm-c-dsp.h"
+#include "faust/dsp/llvm-dsp-c.h"
 
 llvm_dsp_factory* createCDSPFactoryFromFileAux(const char* filename,
                                                const char* argv,

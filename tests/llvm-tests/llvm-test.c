@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "faust/dsp/llvm-c-dsp.h"
+#include "faust/dsp/llvm-dsp-c.h"
 #include "faust/gui/PrintCUI.h"
 
 static bool isopt(char* argv[], const char* name)

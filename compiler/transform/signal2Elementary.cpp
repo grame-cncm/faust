@@ -39,7 +39,8 @@
 // that everything works, and as a pattern for real transformations.
 //----------------------------------------------------------------------
 
-static const char* binopname[] = {"add", "sub", "mul", "div", "%", "<<", ">>", ">", "<", ">=", "<=", "==", "!=", "&", "|", "^"};
+// TO COMPLETE
+static const char* binopname[] = {"add", "sub", "mul", "div", "%", "<<", ">>", "ge", "le", "geq", "leq", "==", "!=", "&", "|", "^"};
 
 void Signal2Elementary::sig2Elementary(Tree L, ofstream& fout)
 {
@@ -162,7 +163,7 @@ void Signal2Elementary::visit(Tree sig)
         }
     }
     
-    // recursive signals
+    // Recursive signals
     else if (isProj(sig, &i, x)) {
         self(x);
         return;

@@ -41,11 +41,9 @@ extern "C"
     
 #ifdef _MSC_VER
     typedef void llvm_dsp_factory;
-    
     typedef void llvm_dsp;
 #else
     typedef struct {} llvm_dsp_factory;
-    
     typedef struct {} llvm_dsp;
 #endif
     

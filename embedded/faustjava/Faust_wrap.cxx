@@ -230,7 +230,7 @@ static void SWIGUNUSED SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionC
 #define SWIG_contract_assert(nullreturn, expr, msg) if (!(expr)) {SWIG_JavaThrowException(jenv, SWIG_JavaIllegalArgumentException, msg); return nullreturn; } else
 
 
-#include "faust/dsp/llvm-c-dsp.h"
+#include "faust/dsp/llvm-dsp-c.h"
 #include "faust/dsp/libfaust-c.h"
 #include "libfaust_ext.h"
 
