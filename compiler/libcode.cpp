@@ -2193,9 +2193,9 @@ string expandDSP(int argc, const char* argv[], const char* name, const char* dsp
     return res;
 }
 
-// ============
-// Signal API
-// ============
+// ===============
+// Signal C++ API
+// ===============
 
 EXPORT dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name, tvec signals,
                                                         int argc, const char* argv[],
@@ -2300,15 +2300,324 @@ EXPORT Tree sigRecursion(Tree s)
     return sigDelay0(sigProj(0, rec(cons(s, gGlobal->nil))));
 }
 
-// Global context
+// Global context, to be used in C and C++ API
 
-EXPORT void createLibContext()
+extern "C" EXPORT void createLibContext()
 {
     gGlobal = nullptr;
     global::allocate();
 }
 
-EXPORT void destroyLibContext()
+extern "C" EXPORT void destroyLibContext()
 {
     global::destroy();
 }
+
+// =============
+// Signal C API
+// =============
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+    
+    EXPORT Tree CsigInt(int n)
+    {
+        return sigInt(n);
+    }
+    
+    EXPORT Tree CsigReal(double n)
+    {
+        return sigReal(n);
+    }
+    
+    EXPORT Tree CsigInput(int idx)
+    {
+        return sigInput(idx);
+    }
+    
+    EXPORT Tree CsigFixDelay(Tree t0, Tree del)
+    {
+        return sigFixDelay(t0, del);
+    }
+    
+    EXPORT Tree CsigIntCast(Tree s)
+    {
+        return sigIntCast(s);
+    }
+    
+    EXPORT Tree CsigFloatCast(Tree s)
+    {
+        return sigFloatCast(s);
+    }
+    
+    EXPORT Tree CsigReadOnlyTable(Tree n, Tree init, Tree ridx)
+    {
+        return sigReadOnlyTable(n, init, ridx);
+    }
+    
+    EXPORT Tree CsigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
+    {
+        return sigWriteReadTable(n, init, widx, wsig,ridx);
+    }
+    
+    EXPORT Tree CsigWaveform(Tree* wf_aux)
+    {
+        tvec wf;
+        int i = 0;
+        while (wf_aux[i]) { wf.push_back(wf_aux[i]); i++; }
+        return sigWaveform(wf);
+    }
+    
+    EXPORT Tree CsigSoundfile(const char* label)
+    {
+        return sigSoundfile(label);
+    }
+    
+    EXPORT Tree CsigSoundfileLength(Tree sf, Tree part)
+    {
+        return sigSoundfileLength(sf, part);
+    }
+    
+    EXPORT Tree CsigSoundfileRate(Tree sf, Tree part)
+    {
+        return sigSoundfileRate(sf, part);
+    }
+    
+    EXPORT Tree CsigSoundfileBuffer(Tree sf, Tree chan, Tree part, Tree ridx)
+    {
+        return sigSoundfileBuffer(sf, chan, part, ridx);
+    }
+    
+    EXPORT Tree CsigSelect2(Tree selector, Tree s1, Tree s2)
+    {
+        return sigSelect2(selector, s1, s2);
+    }
+    
+    EXPORT Tree CsigSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
+    {
+        return sigSelect3(selector, s1, s2, s3);
+    }
+    
+    EXPORT Tree CsigFConst(SType type, const char* name, const char* file)
+    {
+        return sigFConst(type, name, file);
+    }
+    
+    EXPORT Tree CsigFVar(SType type, const char* name, const char* file)
+    {
+        return sigFVar(type, name, file);
+    }
+ 
+    EXPORT Tree CsigBinOp(int op, Tree x, Tree y)
+    {
+        return sigBinOp(op, x, y);
+    }
+    
+    EXPORT Tree CsigAdd(Tree x, Tree y)
+    {
+        return sigAdd(x, y);
+    }
+    EXPORT Tree CsigSub(Tree x, Tree y)
+    {
+        return sigSub(x, y);
+    }
+    EXPORT Tree CsigMul(Tree x, Tree y)
+    {
+        return sigMul(x, y);
+    }
+    EXPORT Tree CsigDiv(Tree x, Tree y)
+    {
+        return sigDiv(x, y);
+    }
+    EXPORT Tree CsigRem(Tree x, Tree y)
+    {
+        return sigRem(x, y);
+    }
+    
+    EXPORT Tree CsigLeftShift(Tree x, Tree y)
+    {
+        return sigLeftShift(x, y);
+    }
+    EXPORT Tree CsigRightShift(Tree x, Tree y)
+    {
+        return sigRightShift(x, y);
+    }
+    
+    EXPORT Tree CsigGT(Tree x, Tree y)
+    {
+        return sigGT(x, y);
+    }
+    EXPORT Tree CsigLT(Tree x, Tree y)
+    {
+        return sigLT(x, y);
+    }
+    EXPORT Tree CsigGE(Tree x, Tree y)
+    {
+        return sigGE(x, y);
+    }
+    EXPORT Tree CsigLE(Tree x, Tree y)
+    {
+        return sigLE(x, y);
+    }
+    EXPORT Tree CsigEQ(Tree x, Tree y)
+    {
+        return sigEQ(x, y);
+    }
+    EXPORT Tree CsigNE(Tree x, Tree y)
+    {
+        return sigNE(x, y);
+    }
+    
+    EXPORT Tree CsigAND(Tree x, Tree y)
+    {
+        return sigAND(x, y);
+    }
+    EXPORT Tree CsigOR(Tree x, Tree y)
+    {
+        return sigOR(x, y);
+    }
+    EXPORT Tree CsigXOR(Tree x, Tree y)
+    {
+        return sigXOR(x, y);
+    }
+    
+    EXPORT Tree CsigAbs(Tree x)
+    {
+        return sigAbs(x);
+    }
+    EXPORT Tree CsigAcos(Tree x)
+    {
+        return sigAcos(x);
+    }
+    EXPORT Tree CsigTan(Tree x)
+    {
+        return sigTan(x);
+    }
+    EXPORT Tree CsigSqrt(Tree x)
+    {
+        return sigSqrt(x);
+    }
+    EXPORT Tree CsigSin(Tree x)
+    {
+        return sigSin(x);
+    }
+    EXPORT Tree CsigRint(Tree x)
+    {
+        return sigRint(x);
+    }
+    EXPORT Tree CsigRemainder(Tree x, Tree y)
+    {
+        return sigRemainder(x, y);
+    }
+    EXPORT Tree CsigPow(Tree x, Tree y)
+    {
+        return sigPow(x, y);
+    }
+    EXPORT Tree CsigMin(Tree x, Tree y)
+    {
+        return sigMin(x, y);
+    }
+    EXPORT Tree CsigMax(Tree x, Tree y)
+    {
+        return sigMax(x, y);
+    }
+    EXPORT Tree CsigLog(Tree x)
+    {
+        return sigLog(x);
+    }
+    EXPORT Tree CsigLog10(Tree x)
+    {
+        return sigLog10(x);
+    }
+    EXPORT Tree CsigFmod(Tree x, Tree y)
+    {
+        return sigFmod(x, y);
+    }
+    EXPORT Tree CsigFloor(Tree x)
+    {
+        return sigFloor(x);
+    }
+    EXPORT Tree CsigExp(Tree x)
+    {
+        return sigExp(x);
+    }
+    EXPORT Tree CsigExp10(Tree x)
+    {
+        return sigExp10(x);
+    }
+    EXPORT Tree CsigCos(Tree x)
+    {
+        return sigCos(x);
+    }
+    EXPORT Tree CsigCeil(Tree x)
+    {
+        return sigCeil(x);
+    }
+    EXPORT Tree CsigAtan(Tree x)
+    {
+        return sigAtan(x);
+    }
+    EXPORT Tree CsigAtan2(Tree x, Tree y)
+    {
+        return sigAtan2(x, y);
+    }
+    EXPORT Tree CsigAsin(Tree x)
+    {
+        return sigAsin(x);
+    }
+    
+    EXPORT Tree CsigSelf()
+    {
+        return sigSelf();
+    }
+    
+    EXPORT Tree CsigRecursion(Tree s1)
+    {
+        return sigRecursion(s1);
+    }
+    
+    EXPORT Tree CsigButton(const char* label)
+    {
+        return sigButton(label);
+    }
+    
+    EXPORT Tree CsigCheckbox(const char* label)
+    {
+        return sigCheckbox(label);
+    }
+    
+    EXPORT Tree CsigVSlider(const char* label, Tree init, Tree min, Tree max, Tree step)
+    {
+        return sigVSlider(label, init, min, max, step);
+    }
+    
+    EXPORT Tree CsigHSlider(const char* label, Tree init, Tree min, Tree max, Tree step)
+    {
+        return sigHSlider(label, init, min, max, step);
+    }
+    
+    EXPORT Tree CsigNumEntry(const char* label, Tree init, Tree min, Tree max, Tree step)
+    {
+        return sigNumEntry(label, init, min, max, step);
+    }
+    
+    EXPORT Tree CsigVBargraph(const char* label, Tree min, Tree max, Tree x)
+    {
+        return sigVBargraph(label, min, max, x);
+    }
+    
+    EXPORT Tree CsigHBargraph(const char* label, Tree min, Tree max, Tree x)
+    {
+        return sigHBargraph(label, min, max, x);
+    }
+    
+    EXPORT Tree CsigAttach(Tree x, Tree y)
+    {
+        return sigAttach(y, y);
+    }
+    
+#ifdef __cplusplus
+}
+#endif

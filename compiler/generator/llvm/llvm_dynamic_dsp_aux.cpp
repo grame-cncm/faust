@@ -780,6 +780,22 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
 }
+    
+EXPORT llvm_dsp_factory* createCDSPFactoryFromSignals(const char* name_app, Signal* signals_aux,
+                                                      int argc, const char* argv[],
+                                                      const char* target,
+                                                      char* error_msg,
+                                                      int opt_level)
+{
+    string error_msg_aux;
+    tvec signals;
+    int i = 0;
+    while (signals_aux[i]) { signals.push_back(signals_aux[i]); i++; }
+    llvm_dsp_factory* factory =
+        createDSPFactoryFromSignals(name_app, signals, argc, argv, target, error_msg_aux, opt_level);
+    strncpy(error_msg, error_msg_aux.c_str(), 4096);
+    return factory;
+}
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, char* error_msg,
                                                     int opt_level)

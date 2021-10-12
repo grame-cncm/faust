@@ -111,6 +111,12 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
                                                      const char* argv[], const char* target, char* error_msg,
                                                      int opt_level);
 
+EXPORT llvm_dsp_factory* createCDSPFactoryFromSignals(const char* name_app, Signal* signals,
+                                                      int argc, const char* argv[],
+                                                      const char* target,
+                                                      char* error_msg,
+                                                      int opt_level = -1);
+
 EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, char* error_msg,
                                                     int opt_level);
 

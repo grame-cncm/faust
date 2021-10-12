@@ -46,7 +46,7 @@ int main(int argc, const char** argv)
     argv1[argc1++] = "-vec";
     argv1[argc1] = 0;
     
-    char err[4096];
+    char error_msg[4096];
     const char* code =
         "import(\"stdfaust.lib\");\n"
         "\n"
@@ -58,9 +58,9 @@ int main(int argc, const char** argv)
         "\n"
         "process = inst, inst;\n";
     
-    llvm_dsp_factory* factory = createCDSPFactoryFromString("score", code, argc1, argv1, "", err, -1);
+    llvm_dsp_factory* factory = createCDSPFactoryFromString("score", code, argc1, argv1, "", error_msg, -1);
     if (!factory) {
-        printf("Cannot create factory : %s\n", err);
+        printf("Cannot create factory : %s\n", error_msg);
         exit(EXIT_FAILURE);
     } else {
         llvm_dsp* dsp = createCDSPInstance(factory);

@@ -233,7 +233,7 @@ Tree sigCos(Tree x);
 Tree sigCeil(Tree x);
 Tree sigAtan(Tree x);
 Tree sigAtan2(Tree x, Tree y);
-Tree sigASin(Tree x);
+Tree sigAsin(Tree x);
 
 // Pattern matching for old fonctions
 bool isSigAdd(Tree a, Tree& x, Tree& y);

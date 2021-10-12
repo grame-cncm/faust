@@ -42,7 +42,7 @@ Tree SignalConstantPropagation::transformation(Tree sig)
 {
     faustassert(sig);
     int  opnum, i;
-    Tree t1, t2, t3, t4, x, y;
+    Tree t1, t2, t3, x, y;
 
     xtended* xt = (xtended*)getUserData(sig);
     // primitive elements

@@ -604,7 +604,7 @@ Tree sigAtan2(Tree x, Tree y)
     return sigExtended2(gGlobal->gAtan2Prim->box(), x, y);
 }
 
-Tree sigASin(Tree x)
+Tree sigAsin(Tree x)
 {
     return sigExtended1(gGlobal->gAsinPrim->box(), x);
 }

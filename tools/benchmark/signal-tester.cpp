@@ -493,7 +493,7 @@ static void test22(int argc, char* argv[])
             delete dsp;
             deleteDSPFactory(factory);
         } else {
-             cerr << error_msg;
+            cerr << "Cannot create factory" << error_msg << endl;
         }
     }
     destroyLibContext();
@@ -539,7 +539,7 @@ static void test23(int argc, char* argv[])
         delete dsp;
         deleteInterpreterDSPFactory(factory);
     } else {
-        cerr << error_msg;
+        cerr << "Cannot create factory" << error_msg << endl;
     }
 }
 
@@ -600,7 +600,7 @@ static void test24(int argc, char* argv[])
         delete dsp;
         deleteInterpreterDSPFactory(factory);
     } else {
-        cerr << error_msg;
+        cerr << "Cannot create factory" << error_msg << endl;
     }
 }
 

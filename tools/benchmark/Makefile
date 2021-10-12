@@ -7,6 +7,7 @@ LIBS 	:= $(LIB)/libfaust.a
 FASTMATH = $(shell $(FAUST) -includedir)/faust/dsp/fastmath.cpp
 LLVM	:= `llvm-config --ldflags --libs all --system-libs`
 COMPILEOPT  := -std=c++11 -O3 -Wall
+COMPILEOPT1 := -O3 -Wall
 COMMLIBS	:= $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a  -lmicrohttpd
 MACOSLIBS	:= -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation
 
@@ -15,7 +16,7 @@ PREFIX ?= /usr/local
 
 prefix := $(DESTDIR)$(PREFIX)
 
-TARGETS ?= dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk dynamic-coreaudio-gtk dynamic-machine-jack-gtk interp-tracer faust-osc-controller signal-tester
+TARGETS ?= dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk dynamic-coreaudio-gtk dynamic-machine-jack-gtk interp-tracer faust-osc-controller signal-tester signal-tester-c
 system := $(shell uname -s)
 ifeq ($(system), Darwin)
 	STRIP = -dead_strip
@@ -59,6 +60,9 @@ interp-tracer: interp-tracer.cpp $(LIB)/libfaust.a
 
 signal-tester: signal-tester.cpp $(LIB)/libfaust.a
 	$(CXX) $(COMPILEOPT) signal-tester.cpp $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs jack gtk+-2.0` $(STRIP) -lz -lncurses -lpthread -o $@
+
+signal-tester-c: signal-tester.c $(LIB)/libfaust.a
+	$(CXX) $(COMPILEOPT1) signal-tester.c $(LIBS) -I $(INC) $(LLVM) $(STRIP) -lz -lncurses -lpthread -o signal-tester-c
 
 layout-ui: layout-ui.cpp
 	$(CXX) $(COMPILEOPT) layout-ui.cpp -I $(INC) $(LIBS)  $(LLVM) -o $@

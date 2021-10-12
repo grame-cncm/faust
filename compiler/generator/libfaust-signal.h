@@ -35,12 +35,12 @@ typedef std::vector<Signal> tvec;
 /**
  * Create global compilation context, has to be done first.
  */
-void createLibContext();
+extern "C" void createLibContext();
 
 /**
  * Destroy global compilation context, has to be done last.
  */
-void destroyLibContext();
+extern "C" void destroyLibContext();
 
 /**
  * Constant integer : for all t, x(t) = n
@@ -364,6 +364,7 @@ Signal sigNumEntry(const std::string& label, Signal init, Signal min, Signal max
  * @param label - the label definition (see [2])
  * @param min - the max signal, a constant numerical expression (see [1])
  * @param max - the min signal, a constant numerical expression (see [1])
+ * @param x - the input signal
  *
  * @return the vertical bargraph signal.
  */
@@ -375,6 +376,7 @@ Signal sigVBargraph(const std::string& label, Signal min, Signal max, Signal x);
  * @param label - the label definition (see [2])
  * @param min - the max signal, a constant numerical expression (see [1])
  * @param max - the min signal, a constant numerical expression (see [1])
+ * @param x - the input signal
  *
  * @return the horizontal bargraph signal.
  */
@@ -422,7 +424,7 @@ inline Signal getBufferSize()
  * Base class for factories.
  */
 struct dsp_factory_base {
-
+    
     virtual ~dsp_factory_base() {}
     
     virtual void write(std::ostream* out, bool binary = false, bool compact = false) {}
