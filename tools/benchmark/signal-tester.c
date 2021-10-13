@@ -208,7 +208,6 @@ static void test3()
     destroyLibContext();
 }
 
-
 int main(int argc, char* argv[])
 {
     test1();

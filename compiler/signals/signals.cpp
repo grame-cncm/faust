@@ -31,13 +31,14 @@
 #include "ppsig.hh"
 #include "signals.hh"
 #include "xtended.hh"
+#include "export.hh"
 
-Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
+EXPORT Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
 {
     return sigRDTbl(sigWRTbl(gGlobal->nil, sigTable(gGlobal->nil, n, sigGen(init)), widx, wsig), ridx);
 }
 
-Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
+EXPORT Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
 {
     return sigRDTbl(sigTable(gGlobal->nil, n, sigGen(init)), ridx);
 }
@@ -58,7 +59,7 @@ Tree sigRem(Tree x, Tree y)
     return sigBinOp(kRem, x, y);
 }
 
-Tree sigInt(int i)
+EXPORT Tree sigInt(int i)
 {
     return tree(i);
 }
@@ -67,7 +68,7 @@ bool isSigInt(Tree t, int* i)
     return isInt(t->node(), i);
 }
 
-Tree sigReal(double r)
+EXPORT Tree sigReal(double r)
 {
     return tree(r);
 }
@@ -76,7 +77,7 @@ bool isSigReal(Tree t, double* r)
     return isDouble(t->node(), r);
 }
 
-Tree sigInput(int i)
+EXPORT Tree sigInput(int i)
 {
     // Keep the max input number
     gGlobal->gMaxInputs = std::max(gGlobal->gMaxInputs, i+1);
@@ -112,7 +113,7 @@ bool isSigDelay1(Tree t, Tree& t0)
     return isTree(t, gGlobal->SIGDELAY1, t0);
 }
 
-Tree sigFixDelay(Tree t0, Tree t1)
+EXPORT Tree sigFixDelay(Tree t0, Tree t1)
 {
     return tree(gGlobal->SIGFIXDELAY, t0, sigIntCast(t1));
 }
@@ -214,7 +215,7 @@ bool isSigDocAccessTbl(Tree t, Tree& tbl, Tree& ridx)
 
 // Select on signal among severals
 
-Tree sigSelect2(Tree selector, Tree s1, Tree s2)
+EXPORT Tree sigSelect2(Tree selector, Tree s1, Tree s2)
 {
     return tree(gGlobal->SIGSELECT2, sigIntCast(selector), s1, s2);
 }
@@ -224,7 +225,7 @@ bool isSigSelect2(Tree t, Tree& selector, Tree& s1, Tree& s2)
 }
 
 //  "select3" expressed with "select2"
-Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
+EXPORT Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
 {
     return sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(0)),
                       sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(1)), s3, s2), s1);
@@ -262,7 +263,7 @@ bool isSigLowest(Tree t, Tree& s)
 
 // Arithmetical operations
 
-Tree sigBinOp(int op, Tree x, Tree y)
+EXPORT Tree sigBinOp(int op, Tree x, Tree y)
 {
     return tree(gGlobal->SIGBINOP, tree(op), x, y);
 }
@@ -283,7 +284,7 @@ bool isSigFFun(Tree s, Tree& ff, Tree& largs)
     return isTree(s, gGlobal->SIGFFUN, ff, largs);
 }
 
-Tree sigFConst(Tree type, Tree name, Tree file)
+EXPORT Tree sigFConst(Tree type, Tree name, Tree file)
 {
     return tree(gGlobal->SIGFCONST, type, name, file);
 }
@@ -297,7 +298,7 @@ bool isSigFConst(Tree s, Tree& type, Tree& name, Tree& file)
     return isTree(s, gGlobal->SIGFCONST, type, name, file);
 }
 
-Tree sigFVar(Tree type, Tree name, Tree file)
+EXPORT Tree sigFVar(Tree type, Tree name, Tree file)
 {
     return tree(gGlobal->SIGFVAR, type, name, file);
 }
@@ -325,7 +326,7 @@ bool isProj(Tree t, int* i, Tree& rgroup)
 
 // Int and Float casting
 
-Tree sigIntCast(Tree t)
+EXPORT Tree sigIntCast(Tree t)
 {
     Node n = t->node();
 
@@ -338,7 +339,7 @@ Tree sigIntCast(Tree t)
     return tree(gGlobal->SIGINTCAST, t);
 }
 
-Tree sigFloatCast(Tree t)
+EXPORT Tree sigFloatCast(Tree t)
 {
     // cerr << "sigFloatCast(" << ppsig(t) << ")" << endl;
     Node n = t->node();
@@ -379,7 +380,7 @@ bool isSigFloatCast(Tree t, Tree& x)
                              User Interface Elements
 *****************************************************************************/
 
-Tree sigButton(Tree lbl)
+EXPORT Tree sigButton(Tree lbl)
 {
     return tree(gGlobal->SIGBUTTON, lbl);
 }
@@ -393,7 +394,7 @@ bool isSigButton(Tree s, Tree& lbl)
     return isTree(s, gGlobal->SIGBUTTON, lbl);
 }
 
-Tree sigCheckbox(Tree lbl)
+EXPORT Tree sigCheckbox(Tree lbl)
 {
     return tree(gGlobal->SIGCHECKBOX, lbl);
 }
@@ -407,7 +408,7 @@ bool isSigCheckbox(Tree s, Tree& lbl)
     return isTree(s, gGlobal->SIGCHECKBOX, lbl);
 }
 
-Tree sigWaveform(const tvec& wf)
+EXPORT Tree sigWaveform(const tvec& wf)
 {
     return tree(gGlobal->SIGWAVEFORM, wf);
 }
@@ -416,7 +417,7 @@ bool isSigWaveform(Tree s)
     return isTree(s, gGlobal->SIGWAVEFORM);
 }
 
-Tree sigHSlider(Tree lbl, Tree init, Tree min, Tree max, Tree step)
+EXPORT Tree sigHSlider(Tree lbl, Tree init, Tree min, Tree max, Tree step)
 {
     return tree(gGlobal->SIGHSLIDER, lbl, list4(init, min, max, step));
 }
@@ -440,7 +441,7 @@ bool isSigHSlider(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& max, Tree& ste
     }
 }
 
-Tree sigVSlider(Tree lbl, Tree init, Tree min, Tree max, Tree step)
+EXPORT Tree sigVSlider(Tree lbl, Tree init, Tree min, Tree max, Tree step)
 {
     return tree(gGlobal->SIGVSLIDER, lbl, list4(init, min, max, step));
 }
@@ -464,7 +465,7 @@ bool isSigVSlider(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& max, Tree& ste
     }
 }
 
-Tree sigNumEntry(Tree lbl, Tree init, Tree min, Tree max, Tree step)
+EXPORT Tree sigNumEntry(Tree lbl, Tree init, Tree min, Tree max, Tree step)
 {
     return tree(gGlobal->SIGNUMENTRY, lbl, list4(init, min, max, step));
 }
@@ -488,129 +489,9 @@ bool isSigNumEntry(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& max, Tree& st
     }
 }
 
-// Extended math functions
-static Tree sigExtended1(Tree sig, Tree x)
-{
-    tvec args;
-    args.push_back(x);
-    return ((xtended*)getUserData(sig))->computeSigOutput(args);
-}
+// Output elements
 
-static Tree sigExtended2(Tree sig, Tree x, Tree y)
-{
-    tvec args;
-    args.push_back(x);
-    args.push_back(y);
-    return ((xtended*)getUserData(sig))->computeSigOutput(args);
-}
-
-Tree sigAbs(Tree x)
-{
-    return sigExtended1(gGlobal->gAbsPrim->box(), x);
-}
-
-Tree sigAcos(Tree x)
-{
-    return sigExtended1(gGlobal->gAcosPrim->box(), x);
-}
-
-Tree sigTan(Tree x)
-{
-    return sigExtended1(gGlobal->gTanPrim->box(), x);
-}
-
-Tree sigSqrt(Tree x)
-{
-    return sigExtended1(gGlobal->gSqrtPrim->box(), x);
-}
-
-Tree sigSin(Tree x)
-{
-    return sigExtended1(gGlobal->gSinPrim->box(), x);
-}
-
-Tree sigRint(Tree x)
-{
-    return sigExtended1(gGlobal->gRintPrim->box(), x);
-}
-
-Tree sigRemainder(Tree x, Tree y)
-{
-    return sigExtended2(gGlobal->gRemainderPrim->box(), x, y);
-}
-
-Tree sigPow(Tree x, Tree y)
-{
-    return sigExtended2(gGlobal->gPowPrim->box(), x, y);
-}
-
-Tree sigMin(Tree x, Tree y)
-{
-    return sigExtended2(gGlobal->gMinPrim->box(), x, y);
-}
-
-Tree sigMax(Tree x, Tree y)
-{
-    return sigExtended2(gGlobal->gMaxPrim->box(), x, y);
-}
-
-Tree sigLog(Tree x)
-{
-    return sigExtended1(gGlobal->gLogPrim->box(), x);
-}
-
-Tree sigLog10(Tree x)
-{
-    return sigExtended1(gGlobal->gLog10Prim->box(), x);
-}
-
-Tree sigFmod(Tree x, Tree y)
-{
-    return sigExtended2(gGlobal->gFmodPrim->box(), x, y);
-}
-
-Tree sigFloor(Tree x)
-{
-    return sigExtended1(gGlobal->gFloorPrim->box(), x);
-}
-
-Tree sigExp(Tree x)
-{
-    return sigExtended1(gGlobal->gExpPrim->box(), x);
-}
-
-Tree sigExp10(Tree x)
-{
-    return sigExtended1(gGlobal->gExp10Prim->box(), x);
-}
-
-Tree sigCos(Tree x)
-{
-    return sigExtended1(gGlobal->gCosPrim->box(), x);
-}
-
-Tree sigCeil(Tree x)
-{
-    return sigExtended1(gGlobal->gCeilPrim->box(), x);
-}
-
-Tree sigAtan(Tree x)
-{
-    return sigExtended1(gGlobal->gAtanPrim->box(), x);
-}
-
-Tree sigAtan2(Tree x, Tree y)
-{
-    return sigExtended2(gGlobal->gAtan2Prim->box(), x, y);
-}
-
-Tree sigAsin(Tree x)
-{
-    return sigExtended1(gGlobal->gAsinPrim->box(), x);
-}
-// output elements
-
-Tree sigHBargraph(Tree lbl, Tree min, Tree max, Tree x)
+EXPORT Tree sigHBargraph(Tree lbl, Tree min, Tree max, Tree x)
 {
     return tree(gGlobal->SIGHBARGRAPH, lbl, min, max, x);
 }
@@ -624,7 +505,7 @@ bool isSigHBargraph(Tree s, Tree& lbl, Tree& min, Tree& max, Tree& x)
     return isTree(s, gGlobal->SIGHBARGRAPH, lbl, min, max, x);
 }
 
-Tree sigVBargraph(Tree lbl, Tree min, Tree max, Tree x)
+EXPORT Tree sigVBargraph(Tree lbl, Tree min, Tree max, Tree x)
 {
     return tree(gGlobal->SIGVBARGRAPH, lbl, min, max, x);
 }
@@ -663,6 +544,128 @@ Tree sigControl(Tree t0, Tree t1)
 bool isSigControl(Tree t, Tree& t0, Tree& t1)
 {
     return isTree(t, gGlobal->SIGCONTROL, t0, t1);
+}
+
+
+// Extended math functions
+static Tree sigExtended1(Tree sig, Tree x)
+{
+    tvec args;
+    args.push_back(x);
+    return ((xtended*)getUserData(sig))->computeSigOutput(args);
+}
+
+static Tree sigExtended2(Tree sig, Tree x, Tree y)
+{
+    tvec args;
+    args.push_back(x);
+    args.push_back(y);
+    return ((xtended*)getUserData(sig))->computeSigOutput(args);
+}
+
+EXPORT Tree sigAbs(Tree x)
+{
+    return sigExtended1(gGlobal->gAbsPrim->box(), x);
+}
+
+EXPORT Tree sigAcos(Tree x)
+{
+    return sigExtended1(gGlobal->gAcosPrim->box(), x);
+}
+
+EXPORT Tree sigTan(Tree x)
+{
+    return sigExtended1(gGlobal->gTanPrim->box(), x);
+}
+
+EXPORT Tree sigSqrt(Tree x)
+{
+    return sigExtended1(gGlobal->gSqrtPrim->box(), x);
+}
+
+EXPORT Tree sigSin(Tree x)
+{
+    return sigExtended1(gGlobal->gSinPrim->box(), x);
+}
+
+EXPORT Tree sigRint(Tree x)
+{
+    return sigExtended1(gGlobal->gRintPrim->box(), x);
+}
+
+EXPORT Tree sigRemainder(Tree x, Tree y)
+{
+    return sigExtended2(gGlobal->gRemainderPrim->box(), x, y);
+}
+
+EXPORT Tree sigPow(Tree x, Tree y)
+{
+    return sigExtended2(gGlobal->gPowPrim->box(), x, y);
+}
+
+EXPORT Tree sigMin(Tree x, Tree y)
+{
+    return sigExtended2(gGlobal->gMinPrim->box(), x, y);
+}
+
+EXPORT Tree sigMax(Tree x, Tree y)
+{
+    return sigExtended2(gGlobal->gMaxPrim->box(), x, y);
+}
+
+EXPORT Tree sigLog(Tree x)
+{
+    return sigExtended1(gGlobal->gLogPrim->box(), x);
+}
+
+EXPORT Tree sigLog10(Tree x)
+{
+    return sigExtended1(gGlobal->gLog10Prim->box(), x);
+}
+
+EXPORT Tree sigFmod(Tree x, Tree y)
+{
+    return sigExtended2(gGlobal->gFmodPrim->box(), x, y);
+}
+
+EXPORT Tree sigFloor(Tree x)
+{
+    return sigExtended1(gGlobal->gFloorPrim->box(), x);
+}
+
+EXPORT Tree sigExp(Tree x)
+{
+    return sigExtended1(gGlobal->gExpPrim->box(), x);
+}
+
+EXPORT Tree sigExp10(Tree x)
+{
+    return sigExtended1(gGlobal->gExp10Prim->box(), x);
+}
+
+EXPORT Tree sigCos(Tree x)
+{
+    return sigExtended1(gGlobal->gCosPrim->box(), x);
+}
+
+EXPORT Tree sigCeil(Tree x)
+{
+    return sigExtended1(gGlobal->gCeilPrim->box(), x);
+}
+
+EXPORT Tree sigAtan(Tree x)
+{
+    return sigExtended1(gGlobal->gAtanPrim->box(), x);
+}
+
+EXPORT Tree sigAtan2(Tree x, Tree y)
+{
+    return sigExtended2(gGlobal->gAtan2Prim->box(), x, y);
+}
+
+EXPORT Tree sigAsin(Tree x)
+{
+    return sigExtended1(gGlobal->gAsinPrim->box(), x);
 }
 
 bool sameMagnitude(Tree a, Tree b)
@@ -753,19 +756,19 @@ bool isSigDiv(Tree a, Tree& x, Tree& y)
  1   sigSoundfileRate(label, part): the sampling rate encoded in the file (NK)
  2   sigSoundfileBuffer(label, c, part, ridx): the cth channel content (RK ou RS)
 */
-Tree sigSoundfile(Tree label)
+EXPORT Tree sigSoundfile(Tree label)
 {
     return tree(gGlobal->SIGSOUNDFILE, label);
 }
-Tree sigSoundfileLength(Tree sf, Tree part)
+EXPORT Tree sigSoundfileLength(Tree sf, Tree part)
 {
     return tree(gGlobal->SIGSOUNDFILELENGTH, sf, part);
 }
-Tree sigSoundfileRate(Tree sf, Tree part)
+EXPORT Tree sigSoundfileRate(Tree sf, Tree part)
 {
     return tree(gGlobal->SIGSOUNDFILERATE, sf, part);
 }
-Tree sigSoundfileBuffer(Tree sf, Tree chan, Tree part, Tree ridx)
+EXPORT Tree sigSoundfileBuffer(Tree sf, Tree chan, Tree part, Tree ridx)
 {
     return tree(gGlobal->SIGSOUNDFILEBUFFER, sf, chan, part, ridx);
 }
@@ -864,7 +867,7 @@ Tree sigFTZ(Tree s)
 /*****************************************************************************
  *                          sigList2vectInt
  *****************************************************************************/
-// convert a list of signals (representing numbers) into a vector of ints
+// Convert a list of signals (representing numbers) into a vector of ints
 // the result is true if the conversion was possible
 
 bool sigList2vecInt(Tree ls, vector<int>& v)
