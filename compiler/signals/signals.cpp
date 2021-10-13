@@ -31,7 +31,6 @@
 #include "ppsig.hh"
 #include "signals.hh"
 #include "xtended.hh"
-#include "export.hh"
 
 EXPORT Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
 {
@@ -376,6 +375,72 @@ bool isSigFloatCast(Tree t, Tree& x)
     return isTree(t, gGlobal->SIGFLOATCAST, x);
 }
 
+// Emulation of all fonctions
+EXPORT Tree sigAdd(Tree x, Tree y)
+{
+    return sigBinOp(kAdd, x, y);
+}
+EXPORT Tree sigSub(Tree x, Tree y)
+{
+    return sigBinOp(kSub, x, y);
+}
+EXPORT Tree sigMul(Tree x, Tree y)
+{
+    return sigBinOp(kMul, x, y);
+}
+EXPORT Tree sigDiv(Tree x, Tree y)
+{
+    return sigBinOp(kDiv, x, y);
+}
+Tree sigRem(Tree x, Tree y);
+
+EXPORT Tree sigAND(Tree x, Tree y)
+{
+    return sigBinOp(kAND, x, y);
+}
+EXPORT Tree sigOR(Tree x, Tree y)
+{
+    return sigBinOp(kOR, x, y);
+}
+EXPORT Tree sigXOR(Tree x, Tree y)
+{
+    return sigBinOp(kXOR, x, y);
+}
+
+EXPORT Tree sigLeftShift(Tree x, Tree y)
+{
+    return sigBinOp(kLsh, x, y);
+}
+EXPORT Tree sigRightShift(Tree x, Tree y)
+{
+    return sigBinOp(kARsh, x, y);
+}
+
+EXPORT Tree sigGT(Tree x, Tree y)
+{
+    return sigBinOp(kGT, x, y);
+}
+EXPORT Tree sigLT(Tree x, Tree y)
+{
+    return sigBinOp(kLT, x, y);
+}
+EXPORT Tree sigGE(Tree x, Tree y)
+{
+    return sigBinOp(kGE, x, y);
+}
+EXPORT Tree sigLE(Tree x, Tree y)
+{
+    return sigBinOp(kLE, x, y);
+}
+EXPORT Tree sigEQ(Tree x, Tree y)
+{
+    return sigBinOp(kEQ, x, y);
+}
+EXPORT Tree sigNE(Tree x, Tree y)
+{
+    return sigBinOp(kNE, x, y);
+}
+
 /*****************************************************************************
                              User Interface Elements
 *****************************************************************************/
@@ -545,7 +610,6 @@ bool isSigControl(Tree t, Tree& t0, Tree& t1)
 {
     return isTree(t, gGlobal->SIGCONTROL, t0, t1);
 }
-
 
 // Extended math functions
 static Tree sigExtended1(Tree sig, Tree x)
