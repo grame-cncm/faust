@@ -122,8 +122,8 @@ static Tree simplification(Tree sig)
     } else if (isSigDelay1(sig, t1)) {
         return normalizeDelay1Term(t1);
 
-    } else if (isSigFixDelay(sig, t1, t2)) {
-        return normalizeFixedDelayTerm(t1, t2);
+    } else if (isSigDelay(sig, t1, t2)) {
+        return normalizeDelayTerm(t1, t2);
 
     } else if (isSigIntCast(sig, t1)) {
         Tree   tx;

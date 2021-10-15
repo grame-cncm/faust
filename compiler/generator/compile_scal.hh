@@ -104,7 +104,7 @@ class ScalarCompiler : public Compiler {
     // code generation
 
     string         generateXtended(Tree sig);
-    virtual string generateFixDelay(Tree sig, Tree arg, Tree size);
+    virtual string generateDelay(Tree sig, Tree arg, Tree size);
     string         generatePrefix(Tree sig, Tree x, Tree e);
     string         generateIota(Tree sig, Tree arg);
     string         generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);

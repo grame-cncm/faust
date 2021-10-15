@@ -68,7 +68,7 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
         return 1;
     }
 
-    else if (isSigFixDelay(sig, x, y)) {
+    else if (isSigDelay(sig, x, y)) {
         vsigs.push_back(x);
         vsigs.push_back(y);
         return 2;

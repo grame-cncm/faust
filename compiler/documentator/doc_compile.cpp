@@ -193,9 +193,9 @@ string DocCompiler::generateCode(Tree sig, int priority)
         return generateOutput(sig, docT(i + 1), CS(x, priority));
     }
 
-    else if (isSigFixDelay(sig, x, y)) {
-        printGCCall(sig, "generateFixDelay");
-        return generateFixDelay(sig, x, y, priority);
+    else if (isSigDelay(sig, x, y)) {
+        printGCCall(sig, "generateDelay");
+        return generateDelay(sig, x, y, priority);
     } else if (isSigPrefix(sig, x, y)) {
         printGCCall(sig, "generatePrefix");
         return generatePrefix(sig, x, y, priority);
@@ -1142,7 +1142,7 @@ bool DocCompiler::getVectorNameProperty(Tree sig, string& vecname)
  * @todo Priorités à revoir pour le parenthésage (associativité de - et /),
  * avec gBinOpLateqTable dans binop.cpp.
  */
-string DocCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay, int priority)
+string DocCompiler::generateDelay(Tree sig, Tree exp, Tree delay, int priority)
 {
     int    d;
     string vecname;
@@ -1155,10 +1155,10 @@ string DocCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay, int priorit
     }
 
     if (isSigInt(delay, &d) && (d == 0)) {
-        // cerr << "@ generateFixDelay : d = " << d << endl;
+        // cerr << "@ generateDelay : d = " << d << endl;
         return subst("$0(t)", vecname);
     } else {
-        // cerr << "@ generateFixDelay : d = " << d << endl;
+        // cerr << "@ generateDelay : d = " << d << endl;
         return subst("$0(t\\!-\\!$1)", vecname, CS(delay, 7));
     }
 }

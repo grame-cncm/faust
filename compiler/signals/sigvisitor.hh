@@ -45,7 +45,7 @@ struct sigvisitor {
     // fixed size delays
     virtual void visitDelay1(Tree sig, Tree s)             = 0;
     virtual void visitPrefix(Tree sig, Tree s1, Tree s2)   = 0;
-    virtual void visitFixDelay(Tree sig, Tree s1, Tree s2) = 0;
+    virtual void visitDelay(Tree sig, Tree s1, Tree s2) = 0;
 
     // numerical operations
     virtual void visitBinOp(Tree sig, int opcode, Tree s1, Tree s2)     = 0;
@@ -110,7 +110,7 @@ struct fullvisitor : sigvisitor {
         visit(s1);
         visit(s2);
     }
-    virtual void visitFixDelay(Tree sig, Tree s1, Tree s2)
+    virtual void visitDelay(Tree sig, Tree s1, Tree s2)
     {
         visit(s1);
         visit(s2);

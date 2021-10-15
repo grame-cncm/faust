@@ -2337,9 +2337,9 @@ extern "C"
         return sigInput(idx);
     }
     
-    EXPORT Tree CsigFixDelay(Tree t0, Tree del)
+    EXPORT Tree CsigDelay(Tree t0, Tree del)
     {
-        return sigFixDelay(t0, del);
+        return sigDelay(t0, del);
     }
     
     EXPORT Tree CsigIntCast(Tree s)

@@ -438,8 +438,8 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateOutput(sig, T(i), CS(x));
     }
 
-    else if (isSigFixDelay(sig, x, y)) {
-        return generateFixDelay(sig, x, y);
+    else if (isSigDelay(sig, x, y)) {
+        return generateDelay(sig, x, y);
     } else if (isSigPrefix(sig, x, y)) {
         return generatePrefix(sig, x, y);
     } else if (isSigIota(sig, x)) {
@@ -1313,11 +1313,11 @@ int ScalarCompiler::pow2limit(int x)
  * the maximum delay attached to exp.
  */
 
-string ScalarCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
+string ScalarCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
 {
-    // cerr << "ScalarCompiler::generateFixDelay sig = " << *sig << endl;
-    // cerr << "ScalarCompiler::generateFixDelay exp = " << *exp << endl;
-    // cerr << "ScalarCompiler::generateFixDelay del = " << *delay << endl;
+    // cerr << "ScalarCompiler::generateDelay sig = " << *sig << endl;
+    // cerr << "ScalarCompiler::generateDelay exp = " << *exp << endl;
+    // cerr << "ScalarCompiler::generateDelay del = " << *delay << endl;
 
     string code = CS(exp);  // ensure exp is compiled to have a vector name
     int    mxd  = fOccMarkup->retrieve(exp)->getMaxDelay();

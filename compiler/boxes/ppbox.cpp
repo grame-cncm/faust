@@ -66,7 +66,7 @@ const char* prim2name(CTree *(*ptr)(CTree *, CTree *))
     if (ptr == sigEQ) return "==";
     if (ptr == sigNE) return "!=";
 
-    if (ptr == sigFixDelay) return "@";
+    if (ptr == sigDelay) return "@";
     if (ptr == sigPrefix) return "prefix";
     if (ptr == sigAttach) return "attach";
     if (ptr == sigEnable) return "enable";

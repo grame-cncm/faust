@@ -68,7 +68,7 @@ class ppsig : public virtual Garbageable {
     ostream& printui(ostream& fout, const string& funame, Tree label, Tree lo, Tree hi, Tree step) const;
     ostream& printui(ostream& fout, const string& funame, Tree label, Tree cur, Tree lo, Tree hi, Tree step) const;
     ostream& printlabel(ostream& fout, Tree pathname) const;
-    ostream& printFixDelay(ostream& fout, Tree exp, Tree delay) const;
+    ostream& printDelay(ostream& fout, Tree exp, Tree delay) const;
 };
 
 inline ostream& operator<<(ostream& file, const ppsig& pp)

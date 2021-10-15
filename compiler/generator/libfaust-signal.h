@@ -72,16 +72,17 @@ Signal sigInput(int idx);
 /**
  * Create a delayed signal.
  *
+ * @param s - the signal to be delayed
  * @param del - the delay signal that doesn't have to be fixed but must be bounded and cannot be negative
  *
  * @return the delayed signal.
  */
-Signal sigFixDelay(Signal t0, Signal del);
+Signal sigDelay(Signal s, Signal del);
 
 /**
  * Create a casted signal.
  *
- * @param s - the input signal to be casted in integer
+ * @param s - the signal to be casted in integer
  *
  * @return the casted signal.
  */
@@ -90,7 +91,7 @@ Signal sigIntCast(Signal s);
 /**
  * Create a casted signal.
  *
- * @param s - the input signal to be casted as float/double value (depends of -single or -double compilation parameter)
+ * @param s - the signal to be casted as float/double value (depends of -single or -double compilation parameter)
  *
  * @return the casted signal.
  */
@@ -143,7 +144,7 @@ Signal sigSoundfile(const std::string& label);
  * Create the length signal of a given soundfile in frames.
  *
  * @param sf - the soundfile
- * @param part - in the [0..255] range to select a given sound number
+ * @param part - in the [0..255] range to select a given sound number, a constant numerical expression (see [1])
  *
  * @return the length signal.
  */
@@ -153,7 +154,7 @@ Signal sigSoundfileLength(Signal sf, Signal part);
  * Create the rate signal of a given soundfile in Hz.
  *
  * @param sf - the soundfile
- * @param part - in the [0..255] range to select a given sound number
+ * @param part - in the [0..255] range to select a given sound number, a constant numerical expression (see [1])
  *
  * @return the rate signal.
  */
@@ -163,8 +164,8 @@ Signal sigSoundfileRate(Signal sf, Signal part);
  * Create the buffer signal of a given soundfile.
  *
  * @param sf - the soundfile
- * @param chan - an integer to select a given channel
- * @param part - in the [0..255] range to select a given sound number
+ * @param chan - an integer to select a given channel, a constant numerical expression (see [1])
+ * @param part - in the [0..255] range to select a given sound number, a constant numerical expression (see [1])
  * @param ridx - the read index (an integer between 0 and the selected sound length)
  *
  * @return the buffer signal.
@@ -295,11 +296,11 @@ Signal sigSelf();
  * Create a recursive signal. Use sigSelf() to refer to the
  * recursive signal inside the sigRecursion expression.
  *
- * @param s1 - the signal to recurse on.
+ * @param s - the signal to recurse on.
  *
  * @return the signal with a recursion.
  */
-Signal sigRecursion(Signal s1);
+Signal sigRecursion(Signal s);
 
 /**
  * Create a button signal.
@@ -364,11 +365,11 @@ Signal sigNumEntry(const std::string& label, Signal init, Signal min, Signal max
  * @param label - the label definition (see [2])
  * @param min - the max signal, a constant numerical expression (see [1])
  * @param max - the min signal, a constant numerical expression (see [1])
- * @param x - the input signal
+ * @param s - the input signal
  *
  * @return the vertical bargraph signal.
  */
-Signal sigVBargraph(const std::string& label, Signal min, Signal max, Signal x);
+Signal sigVBargraph(const std::string& label, Signal min, Signal max, Signal s);
 
 /**
  * Create an horizontal bargraph signal.
@@ -376,11 +377,11 @@ Signal sigVBargraph(const std::string& label, Signal min, Signal max, Signal x);
  * @param label - the label definition (see [2])
  * @param min - the max signal, a constant numerical expression (see [1])
  * @param max - the min signal, a constant numerical expression (see [1])
- * @param x - the input signal
+ * @param s - the input signal
  *
  * @return the horizontal bargraph signal.
  */
-Signal sigHBargraph(const std::string& label, Signal min, Signal max, Signal x);
+Signal sigHBargraph(const std::string& label, Signal min, Signal max, Signal s);
 
 /**
  * Create an attach signal.
@@ -389,12 +390,12 @@ Signal sigHBargraph(const std::string& label, Signal min, Signal max, Signal x);
  * which is a copy of the first input. The role of attach is to force
  * its second input signal to be compiled with the first one.
  *
- * @param x - the first signal
- * @param y - the second signal
+ * @param s1 - the first signal
+ * @param s2 - the second signal
  *
  * @return the attach signal.
  */
-Signal sigAttach(Signal x, Signal y);
+Signal sigAttach(Signal s1, Signal s2);
 
 /**
  * Return the current runtime sample rate.

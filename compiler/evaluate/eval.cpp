@@ -1183,8 +1183,6 @@ static Tree applyList(Tree fun, Tree larg)
 }
 
 /**
- * Eval a list of expression in reverse order
- *
  * Eval a list of expressions returning the list of results in reverse order.
  *
  * @param lexp list of expressions to evaluate
@@ -1403,7 +1401,7 @@ static Tree boxSimplification(Tree box)
     } else {
         simplified = numericBoxSimplification(box);
 
-        // transferts name property if any
+        // transfers name property if any
         Tree name;
         if (getDefNameProperty(box, name)) setDefNameProperty(simplified, name);
 

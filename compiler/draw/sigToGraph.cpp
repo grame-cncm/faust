@@ -201,7 +201,7 @@ static string sigLabel(Tree sig)
 
     else if (isSigDelay1(sig, x)) {
         fout << "mem";
-    } else if (isSigFixDelay(sig, x, y)) {
+    } else if (isSigDelay(sig, x, y)) {
         fout << "@";
     } else if (isSigPrefix(sig, x, y)) {
         fout << "prefix";

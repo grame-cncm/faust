@@ -52,7 +52,7 @@ class VectorCompiler : public ScalarCompiler {
     virtual void   generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
                                      const string& ccs);
     virtual string generateVariableStore(Tree sig, const string& exp);
-    virtual string generateFixDelay(Tree sig, Tree exp, Tree delay);
+    virtual string generateDelay(Tree sig, Tree exp, Tree delay);
     virtual string generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
     virtual void   generateVectorLoop(const string& tname, const string& dlname, const string& cexp, const string& ccs);
     virtual void   generateDlineLoop(const string& tname, const string& dlname, int delay, const string& cexp,

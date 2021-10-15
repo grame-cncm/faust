@@ -82,7 +82,7 @@ void Signal2Elementary::visit(Tree sig)
     } else if (isSigDelay1(sig, x)) {
         self(x);
         return;
-    } else if (isSigFixDelay(sig, x, y)) {
+    } else if (isSigDelay(sig, x, y)) {
         self(x);
         self(y);
         return;

@@ -49,7 +49,7 @@ class xtended : public virtual Garbageable {
     Tree box()
     {
         Tree b = tree(fSymbol);
-        faustassert(getUserData(b) != 0);
+        faustassert(getUserData(b) != nullptr);
         return b;
     }
 

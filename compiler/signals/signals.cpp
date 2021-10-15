@@ -100,7 +100,7 @@ bool isSigOutput(Tree t, int* i, Tree& t0)
 
 Tree sigDelay0(Tree t0)
 {
-    return sigFixDelay(t0, sigInt(0));
+    return sigDelay(t0, sigInt(0));
 }
 
 Tree sigDelay1(Tree t0)
@@ -112,13 +112,13 @@ bool isSigDelay1(Tree t, Tree& t0)
     return isTree(t, gGlobal->SIGDELAY1, t0);
 }
 
-EXPORT Tree sigFixDelay(Tree t0, Tree t1)
+EXPORT Tree sigDelay(Tree t0, Tree t1)
 {
-    return tree(gGlobal->SIGFIXDELAY, t0, sigIntCast(t1));
+    return tree(gGlobal->SIGDELAY, t0, sigIntCast(t1));
 }
-bool isSigFixDelay(Tree t, Tree& t0, Tree& t1)
+bool isSigDelay(Tree t, Tree& t0, Tree& t1)
 {
-    return isTree(t, gGlobal->SIGFIXDELAY, t0, t1);
+    return isTree(t, gGlobal->SIGDELAY, t0, t1);
 }
 
 Tree sigPrefix(Tree t0, Tree t1)

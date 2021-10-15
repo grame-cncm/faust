@@ -361,7 +361,7 @@ struct global {
     int gMaxInputs;  // Max input allocated with sigInput API
     Sym SIGOUTPUT;
     Sym SIGDELAY1;
-    Sym SIGFIXDELAY;
+    Sym SIGDELAY;
     Sym SIGPREFIX;
     Sym SIGIOTA;
     Sym SIGRDTBL;

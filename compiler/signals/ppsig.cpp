@@ -128,7 +128,7 @@ ostream& ppsig::printff(ostream& fout, Tree ff, Tree largs) const
     return fout;
 }
 
-ostream& ppsig::printFixDelay(ostream& fout, Tree exp, Tree delay) const
+ostream& ppsig::printDelay(ostream& fout, Tree exp, Tree delay) const
 {
     int d;
 
@@ -210,8 +210,8 @@ ostream& ppsig::print(ostream& fout) const
     else if (isSigDelay1(sig, x)) {
         fout << ppsig(x, fEnv, 9) << "'";
     }
-    else if (isSigFixDelay(sig, x, y)) {
-        printFixDelay(fout, x, y);
+    else if (isSigDelay(sig, x, y)) {
+        printDelay(fout, x, y);
     } else if (isSigPrefix(sig, x, y)) {
         printfun(fout, "prefix", x, y);
     } else if (isSigIota(sig, x)) {

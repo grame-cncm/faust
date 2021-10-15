@@ -79,16 +79,17 @@ extern "C"
     /**
      * Create a delayed signal.
      *
+     * @param s - the signal to be delayed
      * @param del - the delay signal that doesn't have to be fixed but must be bounded and cannot be negative
      *
      * @return the delayed signal.
      */
-    Signal CsigFixDelay(Signal t0, Signal del);
+    Signal CsigDelay(Signal s, Signal del);
     
     /**
      * Create a casted signal.
      *
-     * @param s - the input signal to be casted in integer
+     * @param s - the signal to be casted in integer
      *
      * @return the casted signal.
      */
@@ -97,7 +98,7 @@ extern "C"
     /**
      * Create a casted signal.
      *
-     * @param s - the input signal to be casted as float/double value (depends of -single or -double compilation parameter)
+     * @param s - the signal to be casted as float/double value (depends of -single or -double compilation parameter)
      *
      * @return the casted signal.
      */
@@ -150,7 +151,7 @@ extern "C"
      * Create the length signal of a given soundfile in frames.
      *
      * @param sf - the soundfile
-     * @param part - in the [0..255] range to select a given sound number
+     * @param part - in the [0..255] range to select a given sound number, a constant numerical expression (see [1])
      *
      * @return the length signal.
      */
@@ -160,7 +161,7 @@ extern "C"
      * Create the rate signal of a given soundfile in Hz.
      *
      * @param sf - the soundfile
-     * @param part - in the [0..255] range to select a given sound number
+     * @param part - in the [0..255] range to select a given sound number, a constant numerical expression (see [1])
      *
      * @return the rate signal.
      */
@@ -170,8 +171,8 @@ extern "C"
      * Create the buffer signal of a given soundfile.
      *
      * @param sf - the soundfile
-     * @param chan - an integer to select a given channel
-     * @param part - in the [0..255] range to select a given sound number
+     * @param chan - an integer to select a given channel, a constant numerical expression (see [1])
+     * @param part - in the [0..255] range to select a given sound number, a constant numerical expression (see [1])
      * @param ridx - the read index (an integer between 0 and the selected sound length)
      *
      * @return the buffer signal.
@@ -302,11 +303,11 @@ extern "C"
      * Create a recursive signal. Use sigSelf() to refer to the
      * recursive signal inside the sigRecursion expression.
      *
-     * @param s1 - the signal to recurse on.
+     * @param s - the signal to recurse on.
      *
      * @return the signal with a recursion.
      */
-    Signal CsigRecursion(Signal s1);
+    Signal CsigRecursion(Signal s);
     
     /**
      * Create a button signal.
@@ -371,11 +372,11 @@ extern "C"
      * @param label - the label definition (see [2])
      * @param min - the max signal, a constant numerical expression (see [1])
      * @param max - the min signal, a constant numerical expression (see [1])
-     * @param x - the input signal
+     * @param s - the input signal
      *
      * @return the vertical bargraph signal.
      */
-    Signal CsigVBargraph(const char* label, Signal min, Signal max, Signal x);
+    Signal CsigVBargraph(const char* label, Signal min, Signal max, Signal s);
     
     /**
      * Create an horizontal bargraph signal.
@@ -383,11 +384,11 @@ extern "C"
      * @param label - the label definition (see [2])
      * @param min - the max signal, a constant numerical expression (see [1])
      * @param max - the min signal, a constant numerical expression (see [1])
-     * @param x - the input signal
+     * @param s - the input signal
      *
      * @return the horizontal bargraph signal.
      */
-    Signal CsigHBargraph(const char* label, Signal min, Signal max, Signal x);
+    Signal CsigHBargraph(const char* label, Signal min, Signal max, Signal s);
     
     /**
      * Create an attach signal.
@@ -396,12 +397,12 @@ extern "C"
      * which is a copy of the first input. The role of attach is to force
      * its second input signal to be compiled with the first one.
      *
-     * @param x - the first signal
-     * @param y - the second signal
+     * @param s1 - the first signal
+     * @param s2 - the second signal
      *
      * @return the attach signal.
      */
-    Signal CsigAttach(Signal x, Signal y);
+    Signal CsigAttach(Signal s1, Signal s2);
     
     /**
      * Return the current runtime sample rate.

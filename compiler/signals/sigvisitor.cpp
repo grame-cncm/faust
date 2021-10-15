@@ -59,8 +59,8 @@ void sigvisitor::visit(Tree sig)
     else if (isSigPrefix(sig, s1, s2))
         visitPrefix(sig, s1, s2);
 
-    else if (isSigFixDelay(sig, s1, s2))
-        visitFixDelay(sig, s1, s2);
+    else if (isSigDelay(sig, s1, s2))
+        visitDelay(sig, s1, s2);
 
     else if (isSigBinOp(sig, &i, s1, s2))
         visitBinOp(sig, i, s1, s2);

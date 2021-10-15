@@ -68,7 +68,7 @@ Tree SignalConstantPropagation::transformation(Tree sig)
             return sigDelay1(v);
         }
 
-    } else if (isSigFixDelay(sig, x, y)) {
+    } else if (isSigDelay(sig, x, y)) {
         Tree v = self(x);
         Tree w = self(y);
         if (isZero(v)) {
@@ -76,7 +76,7 @@ Tree SignalConstantPropagation::transformation(Tree sig)
         } else if (isNum(v) && isZero(w)) {
             return v;
         } else {
-            return sigFixDelay(v, w);
+            return sigDelay(v, w);
         }
 
     } else if (isSigBinOp(sig, &opnum, t1, t2)) {

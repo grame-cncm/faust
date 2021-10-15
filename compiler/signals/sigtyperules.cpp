@@ -417,7 +417,7 @@ static Type infereSigType(Tree sig, Tree env)
         return castInterval(sampCast(t1 | t2), reunion(t1->getInterval(), t2->getInterval()));
     }
 
-    else if (isSigFixDelay(sig, s1, s2)) {
+    else if (isSigDelay(sig, s1, s2)) {
         Type     t1 = T(s1, env);
         Type     t2 = T(s2, env);
         interval i1  = t2->getInterval();

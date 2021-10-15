@@ -121,7 +121,7 @@ void printSignal(Tree sig, FILE* out, int prec)
         fputs(",", out);
         printSignal(y, out, 0);
         fputs(")", out);
-    } else if (isSigFixDelay(sig, x, y)) {
+    } else if (isSigDelay(sig, x, y)) {
         if (prec > 4) fputs("(", out);
         printSignal(x, out, 4);
         fputs("@", out);

@@ -86,7 +86,7 @@ Tree normalizeAddTerm(Tree t)
  */
 Tree normalizeDelay1Term(Tree s)
 {
-    return normalizeFixedDelayTerm(s, tree(1));
+    return normalizeDelayTerm(s, tree(1));
 }
 
 /**
@@ -105,14 +105,14 @@ Tree normalizeDelay1Term(Tree s)
  * \return the normalized term
  */
 
-Tree normalizeFixedDelayTerm(Tree s, Tree d)
+Tree normalizeDelayTerm(Tree s, Tree d)
 {
     Tree x, y, r;
     int  i;
 
     if (isZero(d)) {
         if (isProj(s, &i, r)) {
-            return sigFixDelay(s, d);
+            return sigDelay(s, d);
         } else {
             return s;
         }
@@ -122,29 +122,29 @@ Tree normalizeFixedDelayTerm(Tree s, Tree d)
 
     } else if (isSigMul(s, x, y)) {
         if (getSigOrder(x) < 2) {
-            return /*simplify*/ (sigMul(x, normalizeFixedDelayTerm(y, d)));
+            return /*simplify*/ (sigMul(x, normalizeDelayTerm(y, d)));
         } else if (getSigOrder(y) < 2) {
-            return /*simplify*/ (sigMul(y, normalizeFixedDelayTerm(x, d)));
+            return /*simplify*/ (sigMul(y, normalizeDelayTerm(x, d)));
         } else {
-            return sigFixDelay(s, d);
+            return sigDelay(s, d);
         }
 
     } else if (isSigDiv(s, x, y)) {
         if (getSigOrder(y) < 2) {
-            return /*simplify*/ (sigDiv(normalizeFixedDelayTerm(x, d), y));
+            return /*simplify*/ (sigDiv(normalizeDelayTerm(x, d), y));
         } else {
-            return sigFixDelay(s, d);
+            return sigDelay(s, d);
         }
 
-    } else if (isSigFixDelay(s, x, y)) {
+    } else if (isSigDelay(s, x, y)) {
         if (getSigOrder(y) < 2) {
             // (x@n)@m = x@(n+m) when n is constant
-            return normalizeFixedDelayTerm(x, simplify(sigAdd(d, y)));
+            return normalizeDelayTerm(x, simplify(sigAdd(d, y)));
         } else {
-            return sigFixDelay(s, d);
+            return sigDelay(s, d);
         }
 
     } else {
-        return sigFixDelay(s, d);
+        return sigDelay(s, d);
     }
 }

@@ -100,7 +100,7 @@ string defName2NickName(const string& defname)
 void setSigNickname(Tree t, const string& id)
 {
     Tree s, d;
-    if (isSigFixDelay(t, s, d) && isZero(d)) {
+    if (isSigDelay(t, s, d) && isZero(d)) {
         setProperty(s, gGlobal->NICKNAMEPROPERTY, tree(id));
     } else {
         setProperty(t, gGlobal->NICKNAMEPROPERTY, tree(id));

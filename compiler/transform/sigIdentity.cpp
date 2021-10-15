@@ -75,8 +75,8 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigOutput(i, self(x));
     } else if (isSigDelay1(sig, x)) {
         return sigDelay1(self(x));
-    } else if (isSigFixDelay(sig, x, y)) {
-        return sigFixDelay(self(x), self(y));
+    } else if (isSigDelay(sig, x, y)) {
+        return sigDelay(self(x), self(y));
     } else if (isSigPrefix(sig, x, y)) {
         return sigPrefix(self(x), self(y));
     } else if (isSigIota(sig, x)) {

@@ -116,7 +116,7 @@ static int infereSigOrder(Tree sig)
     else if (isSigPrefix(sig, s1, s2))
         return 3;
 
-    else if (isSigFixDelay(sig, s1, s2))
+    else if (isSigDelay(sig, s1, s2))
         return 3;
 
     else if (isSigBinOp(sig, &i, s1, s2))

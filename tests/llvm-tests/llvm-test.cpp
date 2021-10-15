@@ -42,14 +42,14 @@ static void printList(const vector<string>& list)
     }
 }
 
-struct testUI : public GenericUI {
+struct TestUI : public GenericUI {
     
     FAUSTFLOAT fInit;
     FAUSTFLOAT fMin;
     FAUSTFLOAT fMax;
     FAUSTFLOAT fStep;
     
-    testUI(FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    TestUI(FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         fInit = init;
         fMin = min;
@@ -173,7 +173,7 @@ int main(int argc, const char** argv)
             exit(EXIT_FAILURE);
         }
 
-        testUI test(0.5, 0, 1, 0.025);
+        TestUI test(0.5, 0, 1, 0.025);
         DSP->buildUserInterface(&test);
         
         delete DSP;

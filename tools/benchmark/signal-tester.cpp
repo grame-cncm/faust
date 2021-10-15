@@ -93,8 +93,8 @@ static void test3()
     (
         tvec signals;
         Signal in1 = sigInput(0);
-        signals.push_back(sigFixDelay(sigAdd(in1, sigReal(0.5)), sigReal(500)));
-        signals.push_back(sigFixDelay(sigMul(in1, sigReal(1.5)), sigReal(3000)));
+        signals.push_back(sigDelay(sigAdd(in1, sigReal(0.5)), sigReal(500)));
+        signals.push_back(sigDelay(sigMul(in1, sigReal(1.5)), sigReal(3000)));
          
         compile("test3", signals);
     )
@@ -108,8 +108,8 @@ static void test4()
     (
         tvec signals;
         Signal in1 = sigInput(0);
-        signals.push_back(sigAdd(sigFixDelay(in1, sigReal(500)), sigReal(0.5)));
-        signals.push_back(sigMul(sigFixDelay(in1, sigReal(3000)), sigReal(1.5)));
+        signals.push_back(sigAdd(sigDelay(in1, sigReal(500)), sigReal(0.5)));
+        signals.push_back(sigMul(sigDelay(in1, sigReal(3000)), sigReal(1.5)));
 
         compile("test4", signals);
     )
@@ -123,8 +123,8 @@ static void test5()
     (
         tvec signals;
         Signal in1 = sigInput(0);
-        signals.push_back(sigFixDelay(sigAdd(in1, sigReal(0.5)), sigReal(500)));
-        signals.push_back(sigSin(sigFixDelay(sigFixDelay(sigAdd(in1, sigReal(0.5)), sigReal(500)), sigReal(600))));
+        signals.push_back(sigDelay(sigAdd(in1, sigReal(0.5)), sigReal(500)));
+        signals.push_back(sigSin(sigDelay(sigDelay(sigAdd(in1, sigReal(0.5)), sigReal(500)), sigReal(600))));
         
         compile("test5", signals);
     )
@@ -138,8 +138,8 @@ static void test6()
     
     tvec signals;
     Signal in1 = sigInput(0);
-    signals.push_back(sigFixDelay(sigAdd(in1, sigReal(0.5)), sigReal(500)));
-    signals.push_back(sigFixDelay(sigMul(in1, sigReal(1.5)), sigReal(3000)));
+    signals.push_back(sigDelay(sigAdd(in1, sigReal(0.5)), sigReal(500)));
+    signals.push_back(sigDelay(sigMul(in1, sigReal(1.5)), sigReal(3000)));
     
     // Vector compilation
     compile("test6", signals, 4, (const char* []){ "-vec", "-lv", "1" , "-double"});
@@ -155,8 +155,8 @@ static void test7()
     (
         tvec signals;
         Signal in1 = sigInput(0);
-        signals.push_back(sigFixDelay(sigAdd(in1, sigReal(0.5)), sigReal(500)));
-        signals.push_back(sigAtan2(sigFixDelay(sigMul(in1, sigReal(1.5)), sigReal(3000)), sigReal(0.5)));
+        signals.push_back(sigDelay(sigAdd(in1, sigReal(0.5)), sigReal(500)));
+        signals.push_back(sigAtan2(sigDelay(sigMul(in1, sigReal(1.5)), sigReal(3000)), sigReal(0.5)));
 
         compile("test7", signals);
     )
@@ -168,7 +168,7 @@ static void equivalent1()
     COMPILER
     (
          tvec signals;
-         Signal s1 = sigAdd(sigFixDelay(sigInput(0), sigReal(500)), sigReal(0.5));
+         Signal s1 = sigAdd(sigDelay(sigInput(0), sigReal(500)), sigReal(0.5));
          signals.push_back(s1);
          signals.push_back(s1);
      
@@ -181,8 +181,8 @@ static void equivalent2()
     COMPILER
     (
          tvec signals;
-         signals.push_back(sigAdd(sigFixDelay(sigInput(0), sigReal(500)), sigReal(0.5)));
-         signals.push_back(sigAdd(sigFixDelay(sigInput(0), sigReal(500)), sigReal(0.5)));
+         signals.push_back(sigAdd(sigDelay(sigInput(0), sigReal(500)), sigReal(0.5)));
+         signals.push_back(sigAdd(sigDelay(sigInput(0), sigReal(500)), sigReal(0.5)));
      
          compile("equivalent2", signals);
     )
@@ -197,7 +197,7 @@ static void test8()
         tvec signals;
         Signal in1 = sigInput(0);
         Signal slider = sigVSlider("Vol", sigReal(0.5), sigReal(0.0), sigReal(1.0), sigReal(0.01));
-        signals.push_back(sigMul(slider, sigFixDelay(sigAdd(in1, sigReal(0.5)), sigReal(500))));
+        signals.push_back(sigMul(slider, sigDelay(sigAdd(in1, sigReal(0.5)), sigReal(500))));
         
         compile("test8", signals);
     )

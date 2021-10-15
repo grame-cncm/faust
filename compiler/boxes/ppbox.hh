@@ -25,11 +25,9 @@
 /**********************************************************************
         - ppbox.h : pretty print box expressions (projet FAUST) -
 
-
         Historique :
         -----------
         12-07-2002  first implementation  (yo)
-
 ***********************************************************************/
 
 #include <iostream>

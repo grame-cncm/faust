@@ -152,7 +152,7 @@ void old_OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
 
         // We mark the subtrees of t
         Tree x, y;
-        if (isSigFixDelay(t, x, y)) {
+        if (isSigDelay(t, x, y)) {
             Type g2 = getCertifiedSigType(y);
             int  d2 = checkDelayInterval(g2);
             faustassert(d2 >= 0);

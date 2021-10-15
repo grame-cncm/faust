@@ -696,8 +696,8 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         return generateInput(sig, i);
     }
 
-    else if (isSigFixDelay(sig, x, y)) {
-        return generateFixDelay(sig, x, y);
+    else if (isSigDelay(sig, x, y)) {
+        return generateDelay(sig, x, y);
     } else if (isSigPrefix(sig, x, y)) {
         return generatePrefix(sig, x, y);
     } else if (isSigIota(sig, x)) {
@@ -2005,7 +2005,7 @@ ValueInst* InstructionsCompiler::generateXtended(Tree sig)
  * Generate code for accessing a delayed signal. The generated code depend of
  * the maximum delay attached to exp.
  */
-ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
+ValueInst* InstructionsCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
 {
     ValueInst* code = CS(exp);  // Ensure exp is compiled to have a vector name
     int        mxd  = fOccMarkup->retrieve(exp)->getMaxDelay();

@@ -68,8 +68,8 @@ Tree sigDelay0(Tree t);
 Tree sigDelay1(Tree t);
 bool isSigDelay1(Tree t, Tree& t0);
 
-EXPORT Tree sigFixDelay(Tree t0, Tree t1);
-bool isSigFixDelay(Tree t, Tree& t0, Tree& t1);
+EXPORT Tree sigDelay(Tree t0, Tree t1);
+bool isSigDelay(Tree t, Tree& t0, Tree& t1);
 
 Tree sigPrefix(Tree t0, Tree t1);
 bool isSigPrefix(Tree t, Tree& t0, Tree& t1);
@@ -104,7 +104,6 @@ EXPORT Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx);
 
 // Tables for documentator
 // used to replace real tables for documentation purposes only
-
 Tree sigDocConstantTbl(Tree n, Tree init);
 Tree sigDocWriteTbl(Tree n, Tree init, Tree widx, Tree wsig);
 Tree sigDocAccessTbl(Tree doctbl, Tree ridx);
@@ -120,7 +119,6 @@ EXPORT Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3);
 bool isSigSelect2(Tree t, Tree& selector, Tree& s1, Tree& s2);
 
 // Interval annotation
-
 Tree sigAssertBounds(Tree s1, Tree s2, Tree s3);
 Tree sigLowest(Tree s);
 Tree sigHighest(Tree s);
@@ -309,7 +307,7 @@ bool isSigControl(Tree s, Tree& x, Tree& y);
 A boxSounfile(label,c) has 2 inputs and c+3 outputs:
     0   sigSoundfileLength(label, part):  the number of frames of the soundfile part (NK)
     1   sigSoundfileRate(label): the sampling rate encoded in the file (NK)
-    2.. sigSoundfileBuffer(label, c, part, ridx): the cth channel content (RK ou RS)
+    2.. sigSoundfileBuffer(label, c, part, ridx): the cth channel content (RK or RS)
 */
 
 EXPORT Tree sigSoundfile(Tree label);
@@ -347,7 +345,7 @@ Tree sigCartesianProd(Tree s1, Tree s2);
 Tree sigFTZ(Tree s);
 
 /*****************************************************************************
-                             access to sub signals of a signal
+                             Access to sub signals of a signal
 *****************************************************************************/
 
 int getSubSignals(Tree sig, tvec& vsigs, bool visitgen = true);

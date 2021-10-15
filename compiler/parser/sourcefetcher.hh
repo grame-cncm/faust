@@ -42,19 +42,12 @@
 #define PORT_NUMBER 			80
 #define HTTP_VERSION 			"HTTP/1.0"
 #define DEFAULT_USER_AGENT		"HTTP Fetcher"
-//#define DEFAULT_READ_TIMEOUT	30		// Seconds to wait before giving up when no data is arriving 
 #define DEFAULT_READ_TIMEOUT	5		// Seconds to wait before giving up when no data is arriving 
 	 
 #define REQUEST_BUF_SIZE 		1024
 #define HEADER_BUF_SIZE 		1024
 #define DEFAULT_PAGE_BUF_SIZE   (1024 * 200)    /* 200K should hold most things */
 #define DEFAULT_REDIRECTS       3               /* Number of HTTP redirects to follow */
-
-#ifdef _WIN32
-	#define	EXPORT __declspec(dllexport)
-#else
-	#define	EXPORT __attribute__ ((visibility("default")))
-#endif
 
 /******************************************************************************/
 /**************** Function declarations and descriptions **********************/
@@ -77,7 +70,7 @@
 	 *	# of bytes downloaded, or
 	 *	-1 on error
 	 */
-EXPORT int http_fetch(const char *url, char **fileBuf);
+int http_fetch(const char *url, char **fileBuf);
 
 	/*
 	 * Changes the User Agent (shown to the web server with each request)

@@ -39,3 +39,5 @@ const char* fileBasename(const char* name);         // returns a pointer on the 
 std::string fileDirname(const std::string& name);   // allocate a string containing the dirname of name
 
 std::string stripEnd(const std::string& name, const std::string& ext);
+
+std::string makeOutputFile(const std::string& fname);
