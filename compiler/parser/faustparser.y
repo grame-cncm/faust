@@ -58,7 +58,7 @@ Tree unquote(char* str)
     size_t j=0;
 
     if (str[0] == '"') {
-        //it is a quoted string, we remove the quotes
+        // it is a quoted string, we remove the quotes
         for (size_t i=1; j<size-1 && str[i];) {
             buf[j++] = replaceCR(str[i++]);
         }
@@ -461,7 +461,7 @@ infixexp		: infixexp ADD infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigAdd))
 				| infixexp XOR infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigXOR)); }
 
 				| infixexp LSH infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigLeftShift)); }
-				| infixexp RSH infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigRightShift)); }
+				| infixexp RSH infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigARightShift)); }
 
 				| infixexp LT infixexp  	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigLT)); }
 				| infixexp LE infixexp  	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigLE)); }
@@ -506,7 +506,7 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 				| XOR  							{ $$ = boxPrim2(sigXOR); }
 
 				| LSH							{ $$ = boxPrim2(sigLeftShift); }
-				| RSH 							{ $$ = boxPrim2(sigRightShift); }
+				| RSH 							{ $$ = boxPrim2(sigARightShift); }
 
 				| LT							{ $$ = boxPrim2(sigLT); }
 				| LE							{ $$ = boxPrim2(sigLE); }

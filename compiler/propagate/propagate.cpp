@@ -185,7 +185,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
  * @return the resulting list of output signals
  */
 
-static siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
+siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
 {
     Tree    args = tree(gGlobal->PROPAGATEPROPERTY, slotenv, path, box, listConvert(lsig));
     siglist result;

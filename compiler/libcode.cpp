@@ -2440,9 +2440,13 @@ extern "C"
     {
         return sigLeftShift(x, y);
     }
-    EXPORT Tree CsigRightShift(Tree x, Tree y)
+    EXPORT Tree CsigLRightShift(Tree x, Tree y)
     {
-        return sigRightShift(x, y);
+        return sigLRightShift(x, y);
+    }
+    EXPORT Tree CsigARightShift(Tree x, Tree y)
+    {
+        return sigARightShift(x, y);
     }
     
     EXPORT Tree CsigGT(Tree x, Tree y)
@@ -2621,3 +2625,300 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
+
+// ============
+// Box C++ API
+// ============
+
+// Can generate faustexception
+static tvec boxesToSignalsAux(Tree box)
+{
+    int numInputs, numOutputs;
+    bool res = getBoxType(box, &numInputs, &numOutputs);
+    faustassert(res);
+    return propagate(gGlobal->nil, gGlobal->nil, box, makeSigInputList(numInputs));
+}
+
+EXPORT tvec boxesToSignals(Tree box, std::string& error_msg)
+{
+    try {
+        return boxesToSignalsAux(box);
+    } catch (faustexception& e) {
+        error_msg = e.Message();
+        return {};
+    }
+}
+
+EXPORT dsp_factory_base* createCPPDSPFactoryFromBoxes(const std::string& name,
+                                                      Tree box,
+                                                      int argc, const char* argv[],
+                                                      std::string& error_msg)
+{
+    try {
+        tvec signals = boxesToSignalsAux(box);
+        return createCPPDSPFactoryFromSignals(name, signals, argc, argv, error_msg);
+    } catch (faustexception& e) {
+        error_msg = e.Message();
+        return nullptr;
+    }
+}
+
+EXPORT Tree boxDelay()
+{
+    return boxPrim2(sigDelay);
+}
+
+EXPORT Tree boxIntCast()
+{
+    return boxPrim1(sigIntCast);
+}
+
+EXPORT Tree boxFloatCast()
+{
+    return boxPrim1(sigFloatCast);
+}
+
+EXPORT Tree boxReadOnlyTable()
+{
+    return boxPrim3(sigReadOnlyTable);
+}
+
+EXPORT Tree boxWriteReadTable()
+{
+    return boxPrim5(sigWriteReadTable);
+}
+
+EXPORT Tree boxSoundfile(const std::string& label, Tree chan)
+{
+    return boxSoundfile(tree(label), chan);
+}
+
+EXPORT Tree boxSelect2(Tree selector, Tree s1, Tree s2)
+{
+    return boxPrim3(sigSelect2);
+}
+
+EXPORT Tree boxSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
+{
+    return boxPrim4(sigSelect3);
+}
+
+EXPORT Tree boxFConst(SType type, const std::string& name, const std::string& file)
+{
+    return boxFConst(tree(type), tree(name), tree(file));
+}
+
+EXPORT Tree boxFVar(SType type, const std::string& name, const std::string& file)
+{
+    return boxFVar(tree(type), tree(name), tree(file));
+}
+
+EXPORT Tree boxBinOp(int op)
+{
+    static sigFun fun [] = {
+        sigAdd, sigSub, sigMul, sigDiv, sigRem,
+        sigLeftShift, sigLRightShift, sigARightShift,
+        sigGT, sigLT, sigGE, sigLE, sigEQ, sigNE,
+        sigAND, sigOR, sigXOR
+    };
+    faustassert(op >= kAdd && op <= kXOR);
+    return boxPrim2(fun[op]);
+}
+
+// Specific binary mathematical functions
+
+EXPORT Tree boxAdd()
+{
+    return boxPrim2(sigAdd);
+}
+EXPORT Tree boxSub()
+{
+    return boxPrim2(sigSub);
+}
+EXPORT Tree boxMul()
+{
+    return boxPrim2(sigMul);
+}
+EXPORT Tree boxDiv()
+{
+    return boxPrim2(sigDiv);
+}
+EXPORT Tree boxRem()
+{
+    return boxPrim2(sigRem);
+}
+
+EXPORT Tree boxLeftShift()
+{
+    return boxPrim2(sigLeftShift);
+}
+EXPORT Tree boxLRightShift()
+{
+    return boxPrim2(sigLRightShift);
+}
+EXPORT Tree boxARightShift()
+{
+    return boxPrim2(sigARightShift);
+}
+
+EXPORT Tree boxGT()
+{
+    return boxPrim2(sigGT);
+}
+EXPORT Tree boxLT()
+{
+    return boxPrim2(sigLT);
+}
+EXPORT Tree boxGE()
+{
+    return boxPrim2(sigGE);
+}
+EXPORT Tree boxLE()
+{
+    return boxPrim2(sigLE);
+}
+EXPORT Tree boxEQ()
+{
+    return boxPrim2(sigEQ);
+}
+EXPORT Tree boxNE()
+{
+    return boxPrim2(sigNE);
+}
+
+EXPORT Tree boxAND()
+{
+    return boxPrim2(sigAND);
+}
+EXPORT Tree boxOR()
+{
+    return boxPrim2(sigOR);
+}
+EXPORT Tree boxXOR()
+{
+    return boxPrim2(sigXOR);
+}
+
+// Extended unary of binary mathematical functions
+
+EXPORT Tree boxAbs()
+{
+    return gGlobal->gAbsPrim->box();
+}
+EXPORT Tree boxAcos()
+{
+    return gGlobal->gAcosPrim->box();
+}
+EXPORT Tree boxTan()
+{
+    return gGlobal->gTanPrim->box();
+}
+EXPORT Tree boxSqrt()
+{
+    return gGlobal->gSqrtPrim->box();
+}
+EXPORT Tree boxSin()
+{
+    return gGlobal->gSinPrim->box();
+}
+EXPORT Tree boxRint()
+{
+    return gGlobal->gRintPrim->box();
+}
+EXPORT Tree boxRemainder()
+{
+    return gGlobal->gRemainderPrim->box();
+}
+EXPORT Tree boxPow()
+{
+    return gGlobal->gPowPrim->box();
+}
+EXPORT Tree boxMin()
+{
+    return gGlobal->gMinPrim->box();
+}
+EXPORT Tree boxMax()
+{
+    return gGlobal->gMaxPrim->box();
+}
+EXPORT Tree boxLog()
+{
+    return gGlobal->gLogPrim->box();
+}
+EXPORT Tree boxLog10()
+{
+    return gGlobal->gLog10Prim->box();
+}
+EXPORT Tree boxFmod()
+{
+    return gGlobal->gAbsPrim->box();
+}
+EXPORT Tree boxFloor()
+{
+    return gGlobal->gFloorPrim->box();
+}
+EXPORT Tree boxExp()
+{
+    return gGlobal->gExpPrim->box();
+}
+EXPORT Tree boxExp10()
+{
+    return gGlobal->gExp10Prim->box();
+}
+EXPORT Tree boxCos()
+{
+    return gGlobal->gAbsPrim->box();
+}
+EXPORT Tree boxCeil()
+{
+    return gGlobal->gCeilPrim->box();
+}
+EXPORT Tree boxAtan()
+{
+    return gGlobal->gAtanPrim->box();
+}
+EXPORT Tree boxAtan2()
+{
+    return gGlobal->gAtan2Prim->box();
+}
+EXPORT Tree boxAsin()
+{
+    return gGlobal->gAsinPrim->box();
+}
+
+// User Interface
+
+EXPORT Tree boxButton(const std::string& label)
+{
+    return boxButton(tree(label));
+}
+
+EXPORT Tree boxCheckbox(const std::string& label)
+{
+    return boxButton(tree(label));
+}
+
+EXPORT Tree boxVSlider(const std::string& label, Tree init, Tree min, Tree max, Tree step)
+{
+    return boxVSlider(tree(label), init, min, max, step);
+}
+
+EXPORT Tree boxHSlider(const std::string& label, Tree init, Tree min, Tree max, Tree step)
+{
+    return boxHSlider(tree(label), init, min, max, step);
+}
+
+EXPORT Tree boxNumEntry(const std::string& label, Tree init, Tree min, Tree max, Tree step)
+{
+    return boxNumEntry(tree(label), init, min, max, step);
+}
+
+EXPORT Tree boxVBargraph(const std::string& label, Tree min, Tree max)
+{
+    return boxVBargraph(tree(label), min, max);
+}
+
+EXPORT Tree boxHBargraph(const std::string& label, Tree min, Tree max)
+{
+    return boxHBargraph(tree(label), min, max);
+}

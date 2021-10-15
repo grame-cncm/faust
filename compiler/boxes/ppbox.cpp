@@ -57,7 +57,8 @@ const char* prim2name(CTree *(*ptr)(CTree *, CTree *))
     if (ptr == sigXOR) return "xor";
 
     if (ptr == sigLeftShift) return "<<";
-    if (ptr == sigRightShift) return ">>";
+    if (ptr == sigLRightShift) return ">>";
+    if (ptr == sigARightShift) return ">>>";
 
     if (ptr == sigLT) return "<";
     if (ptr == sigLE) return "<=";

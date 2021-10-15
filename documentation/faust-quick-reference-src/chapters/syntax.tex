@@ -25,8 +25,8 @@ Some statements (imports, definitions) can be preceded by a variantlist, compose
 
 \begin{lstlisting}
 
-singleprecision INFINITY = 3.402823466e+38;
-doubleprecision INFINITY = 1.7976931348623158e+308;
+singleprecision MAX = 3.402823466e+38;
+doubleprecision MAX = 1.7976931348623158e+308;
 
 \end{lstlisting}
 
@@ -96,7 +96,6 @@ declare version "1.00";
 declare license "BSD"; 
 \end{lstlisting}
 
-
 \subsection{Imports}
 
 File imports allow to import definitions from other source files.  
@@ -113,7 +112,6 @@ fileimport : "import" '(' filename ')' ';';
 \end{rail}
 
 For example \lstinline{import("maths.lib");} imports the definitions of the \lstinline{maths.lib} library, a set of additional mathematical functions provided as foreign functions.
-
 
 \subsection{Documentation}
 \label{sec:documentation}
@@ -141,7 +139,6 @@ A documentation statement starts with an opening \lstinline'<mdoc>' tag and ends
 \begin{rail}
 documentation : "<mdoc>" ((freetext|equation|diagram|metadata|notice|listing)+) "</mdoc>";
 \end{rail}
-
 
 Moreover, optional sub-tags can be inserted in the text content itself to require the generation, at the insertion point, of mathematical \textit{equations}, graphical \textit{block-diagrams}, \faust source code \textit{listing} and explanation \textit{notice}.
 
@@ -1153,9 +1150,9 @@ The  \lstinline'soundfile("label[url:\{'path1';'path2';'path3';\}]", n)' primiti
 A soundfile has:
 
 \begin{itemize} 
-\item two inputs: the sound number (as a integer between 0 and 255 checked at compilation time), and the read index in the sound (which will access the last sample of the sound if the read index is greater than the sound length)
+\item two inputs: the sound number (as a integer between 0 and 255 as a \textit{constant numerical expression}), and the read index in the sound (which will access the last sample of the sound if the read index is greater than the sound length)
 \item two fixed outputs: the first one is the currently accessed sound length in frames, the second one is the currently accessed sound nominal sample rate in frames
-\item several more outputs for the sound channels themselves
+\item  \lstinline'n' several more outputs for the sound channels themselves
 \end{itemize}
 
 If more outputs than the actual number of channels in the soundfile are used, the sound channels will be automatically duplicated up to the wanted number of outputs (so for instance if a stereo sound is used with four output channels, the same group of two channels will be duplicated).

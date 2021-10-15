@@ -411,9 +411,13 @@ EXPORT Tree sigLeftShift(Tree x, Tree y)
 {
     return sigBinOp(kLsh, x, y);
 }
-EXPORT Tree sigRightShift(Tree x, Tree y)
+EXPORT Tree sigARightShift(Tree x, Tree y)
 {
     return sigBinOp(kARsh, x, y);
+}
+EXPORT Tree sigLRightShift(Tree x, Tree y)
+{
+    return sigBinOp(kLRsh, x, y);
 }
 
 EXPORT Tree sigGT(Tree x, Tree y)

@@ -16,7 +16,7 @@ PREFIX ?= /usr/local
 
 prefix := $(DESTDIR)$(PREFIX)
 
-TARGETS ?= dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk dynamic-coreaudio-gtk dynamic-machine-jack-gtk interp-tracer faust-osc-controller signal-tester signal-tester-c
+TARGETS ?= dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk dynamic-coreaudio-gtk dynamic-machine-jack-gtk interp-tracer faust-osc-controller signal-tester signal-tester-c box-tester
 system := $(shell uname -s)
 ifeq ($(system), Darwin)
 	STRIP = -dead_strip
@@ -63,6 +63,9 @@ signal-tester: signal-tester.cpp $(LIB)/libfaust.a
 
 signal-tester-c: signal-tester.c $(LIB)/libfaust.a
 	$(CXX) $(COMPILEOPT1) signal-tester.c $(LIBS) -I $(INC) $(LLVM) $(STRIP) -lz -lncurses -lpthread -o signal-tester-c
+
+box-tester: box-tester.cpp $(LIB)/libfaust.a
+	$(CXX) $(COMPILEOPT) box-tester.cpp $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs jack gtk+-2.0` $(STRIP) -lz -lncurses -lpthread -o $@
 
 layout-ui: layout-ui.cpp
 	$(CXX) $(COMPILEOPT) layout-ui.cpp -I $(INC) $(LIBS)  $(LLVM) -o $@

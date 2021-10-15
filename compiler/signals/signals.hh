@@ -146,6 +146,8 @@ bool isSigFVar(Tree s);
 bool isSigFVar(Tree s, Tree& type, Tree& name, Tree& file);
 
 // Emulation of all fonctions
+typedef Tree (* sigFun)(Tree, Tree);
+
 EXPORT Tree sigAdd(Tree x, Tree y);
 EXPORT Tree sigSub(Tree x, Tree y);
 EXPORT Tree sigMul(Tree x, Tree y);
@@ -156,7 +158,8 @@ EXPORT Tree sigAND(Tree x, Tree y);
 EXPORT Tree sigOR(Tree x, Tree y);
 EXPORT Tree sigXOR(Tree x, Tree y);
 EXPORT Tree sigLeftShift(Tree x, Tree y);
-EXPORT Tree sigRightShift(Tree x, Tree y);
+EXPORT Tree sigLRightShift(Tree x, Tree y);
+EXPORT Tree sigARightShift(Tree x, Tree y);
 EXPORT Tree sigGT(Tree x, Tree y);
 EXPORT Tree sigLT(Tree x, Tree y);
 EXPORT Tree sigGE(Tree x, Tree y);

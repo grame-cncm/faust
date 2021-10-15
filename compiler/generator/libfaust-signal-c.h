@@ -50,7 +50,7 @@ extern "C"
     void destroyLibContext();
     
     /**
-     * Constant integer : for all t, x(t) = n
+     * Constant integer : for all t, x(t) = n.
      *
      * @param n - the integer
      *
@@ -59,7 +59,7 @@ extern "C"
     Signal CsigInt(int n);
     
     /**
-     * Constant real : for all t, x(t) = n
+     * Constant real : for all t, x(t) = n.
      *
      * @param n - the float/double value (depends of -single or -double compilation parameter)
      *
@@ -136,14 +136,14 @@ extern "C"
      * @return the waveform signal.
      */
     Signal CsigWaveform(Signal* wf);
-    // Use: sigCInt(size of wf); to generate the waveform size signal
+    // Use: CsigInt(size of wf); to generate the waveform size signal
     
     /**
      * Create a soundfile block.
      *
      * @param label - of form "label[url:{'path1';'path2';'path3'}]" to describe a list of soundfiles
      *
-     * @return the result signal of op(x,y).
+     * @return the soundfile block.
      */
     Signal CsigSoundfile(const char* label);
     
@@ -183,6 +183,7 @@ extern "C"
      * Create a selector between two signals.
      *
      * @param selector - when 0 at time t returns s1[t], otherwise returns s2[t]
+     * (selector is automatically wrapped with sigIntCast)
      * @param s1 - first signal to be selected
      * @param s2 - second signal to be selected
      *
@@ -191,9 +192,10 @@ extern "C"
     Signal CsigSelect2(Signal selector, Signal s1, Signal s2);
     
     /**
-     * Create a selector between two signals.
+     * Create a selector between three signals.
      *
      * @param selector - when 0 at time t returns s1[t], when 1 at time t returns s2[t], otherwise returns s3[t]
+     * (selector is automatically wrapped with sigIntCast)
      * @param s1 - first signal to be selected
      * @param s2 - second signal to be selected
      * @param s3 - third signal to be selected
@@ -254,7 +256,8 @@ extern "C"
     Signal CsigRem(Signal x, Signal y);
     
     Signal CsigLeftShift(Signal x, Signal y);
-    Signal CsigRightShift(Signal x, Signal y);
+    Signal CsigLRightShift(Signal x, Signal y);
+    Signal CsigARightShift(Signal x, Signal y);
     
     Signal CsigGT(Signal x, Signal y);
     Signal CsigLT(Signal x, Signal y);
@@ -268,7 +271,7 @@ extern "C"
     Signal CsigXOR(Signal x, Signal y);
     
     /**
-     * Extended unary of binary mathematical functions.
+     * Extended unary mathematical functions.
      */
     Signal CsigAbs(Signal x);
     Signal CsigAcos(Signal x);
@@ -276,21 +279,25 @@ extern "C"
     Signal CsigSqrt(Signal x);
     Signal CsigSin(Signal x);
     Signal CsigRint(Signal x);
-    Signal CsigRemainder(Signal x, Signal y);
-    Signal CsigPow(Signal x, Signal y);
-    Signal CsigMin(Signal x, Signal y);
-    Signal CsigMax(Signal x, Signal y);
     Signal CsigLog(Signal x);
     Signal CsigLog10(Signal x);
-    Signal CsigFmod(Signal x, Signal y);
     Signal CsigFloor(Signal x);
     Signal CsigExp(Signal x);
     Signal CsigExp10(Signal x);
     Signal CsigCos(Signal x);
     Signal CsigCeil(Signal x);
     Signal CsigAtan(Signal x);
-    Signal CsigAtan2(Signal x, Signal y);
     Signal CsigAsin(Signal x);
+    
+    /**
+     * Extended binary mathematical functions.
+     */
+    Signal CsigRemainder(Signal x, Signal y);
+    Signal CsigPow(Signal x, Signal y);
+    Signal CsigMin(Signal x, Signal y);
+    Signal CsigMax(Signal x, Signal y);
+    Signal CsigFmod(Signal x, Signal y);
+    Signal CsigAtan2(Signal x, Signal y);
     
     /**
      * Create a recursive signal inside the sigRecursion expression.
@@ -403,30 +410,6 @@ extern "C"
      * @return the attach signal.
      */
     Signal CsigAttach(Signal s1, Signal s2);
-    
-    /**
-     * Return the current runtime sample rate.
-     *
-     * Reproduce the 'SR' definition in platform.lib: SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <dummy.h>)));
-     *
-     * @return the current runtime sample rate.
-     */
-    inline Signal getSampleRate()
-    {
-        return CsigMin(CsigReal(192000.0), CsigMax(CsigReal(1.0), CsigFConst(kSInt, "fSamplingFreq", "<dummy.h>")));
-    }
-    
-    /**
-     * Return the current runtime buffer size.
-     *
-     * Reproduce the 'BS' definition in platform.lib: BS = fvariable(int count, <dummy.h>);
-     *
-     * @return the current runtime buffer size.
-     */
-    inline Signal getBufferSize()
-    {
-        return CsigFVar(kSInt, "count", "<dummy.h>");
-    }
     
     /*
      [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions

@@ -43,16 +43,16 @@ extern "C" void createLibContext();
 extern "C" void destroyLibContext();
 
 /**
- * Constant integer : for all t, x(t) = n
+ * Constant integer : for all t, x(t) = n.
  *
  * @param n - the integer
  *
- * @return the integer value.
+ * @return the integer signal.
  */
 Signal sigInt(int n);
 
 /**
- * Constant real : for all t, x(t) = n
+ * Constant real : for all t, x(t) = n.
  *
  * @param n - the float/double value (depends of -single or -double compilation parameter)
  *
@@ -136,7 +136,7 @@ Signal sigWaveform(const tvec& wf);
  *
  * @param label - of form "label[url:{'path1';'path2';'path3'}]" to describe a list of soundfiles
  *
- * @return the result signal of op(x,y).
+ * @return the soundfile block.
  */
 Signal sigSoundfile(const std::string& label);
 
@@ -146,7 +146,7 @@ Signal sigSoundfile(const std::string& label);
  * @param sf - the soundfile
  * @param part - in the [0..255] range to select a given sound number, a constant numerical expression (see [1])
  *
- * @return the length signal.
+ * @return the soundfile length signal.
  */
 Signal sigSoundfileLength(Signal sf, Signal part);
 
@@ -156,7 +156,7 @@ Signal sigSoundfileLength(Signal sf, Signal part);
  * @param sf - the soundfile
  * @param part - in the [0..255] range to select a given sound number, a constant numerical expression (see [1])
  *
- * @return the rate signal.
+ * @return the soundfile rate signal.
  */
 Signal sigSoundfileRate(Signal sf, Signal part);
 
@@ -168,7 +168,7 @@ Signal sigSoundfileRate(Signal sf, Signal part);
  * @param part - in the [0..255] range to select a given sound number, a constant numerical expression (see [1])
  * @param ridx - the read index (an integer between 0 and the selected sound length)
  *
- * @return the buffer signal.
+ * @return the soundfile buffer signal.
  */
 Signal sigSoundfileBuffer(Signal sf, Signal chan, Signal part, Signal ridx);
 
@@ -176,6 +176,7 @@ Signal sigSoundfileBuffer(Signal sf, Signal chan, Signal part, Signal ridx);
  * Create a selector between two signals.
  *
  * @param selector - when 0 at time t returns s1[t], otherwise returns s2[t]
+ * (selector is automatically wrapped with sigIntCast)
  * @param s1 - first signal to be selected
  * @param s2 - second signal to be selected
  *
@@ -184,9 +185,10 @@ Signal sigSoundfileBuffer(Signal sf, Signal chan, Signal part, Signal ridx);
 Signal sigSelect2(Signal selector, Signal s1, Signal s2);
 
 /**
- * Create a selector between two signals.
+ * Create a selector between three signals.
  *
  * @param selector - when 0 at time t returns s1[t], when 1 at time t returns s2[t], otherwise returns s3[t]
+ * (selector is automatically wrapped with sigIntCast)
  * @param s1 - first signal to be selected
  * @param s2 - second signal to be selected
  * @param s3 - third signal to be selected
@@ -247,7 +249,8 @@ Signal sigDiv(Signal x, Signal y);
 Signal sigRem(Signal x, Signal y);
 
 Signal sigLeftShift(Signal x, Signal y);
-Signal sigRightShift(Signal x, Signal y);
+Signal sigLRightShift(Signal x, Signal y);
+Signal sigARightShift(Signal x, Signal y);
 
 Signal sigGT(Signal x, Signal y);
 Signal sigLT(Signal x, Signal y);
@@ -261,7 +264,7 @@ Signal sigOR(Signal x, Signal y);
 Signal sigXOR(Signal x, Signal y);
 
 /**
- * Extended unary of binary mathematical functions.
+ * Extended unary mathematical functions.
  */
 Signal sigAbs(Signal x);
 Signal sigAcos(Signal x);
@@ -269,21 +272,25 @@ Signal sigTan(Signal x);
 Signal sigSqrt(Signal x);
 Signal sigSin(Signal x);
 Signal sigRint(Signal x);
-Signal sigRemainder(Signal x, Signal y);
-Signal sigPow(Signal x, Signal y);
-Signal sigMin(Signal x, Signal y);
-Signal sigMax(Signal x, Signal y);
 Signal sigLog(Signal x);
 Signal sigLog10(Signal x);
-Signal sigFmod(Signal x, Signal y);
 Signal sigFloor(Signal x);
 Signal sigExp(Signal x);
 Signal sigExp10(Signal x);
 Signal sigCos(Signal x);
 Signal sigCeil(Signal x);
 Signal sigAtan(Signal x);
-Signal sigAtan2(Signal x, Signal y);
 Signal sigAsin(Signal x);
+
+/**
+ * Extended binary mathematical functions.
+ */
+Signal sigRemainder(Signal x, Signal y);
+Signal sigPow(Signal x, Signal y);
+Signal sigMin(Signal x, Signal y);
+Signal sigMax(Signal x, Signal y);
+Signal sigFmod(Signal x, Signal y);
+Signal sigAtan2(Signal x, Signal y);
 
 /**
  * Create a recursive signal inside the sigRecursion expression.
@@ -396,30 +403,6 @@ Signal sigHBargraph(const std::string& label, Signal min, Signal max, Signal s);
  * @return the attach signal.
  */
 Signal sigAttach(Signal s1, Signal s2);
-
-/**
- * Return the current runtime sample rate.
- *
- * Reproduce the 'SR' definition in platform.lib: SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <dummy.h>)));
- *
- * @return the current runtime sample rate.
- */
-inline Signal getSampleRate()
-{
-    return sigMin(sigReal(192000.0), sigMax(sigReal(1.0), sigFConst(SType::kSInt, "fSamplingFreq", "<dummy.h>")));
-}
-
-/**
- * Return the current runtime buffer size.
- *
- * Reproduce the 'BS' definition in platform.lib: BS = fvariable(int count, <dummy.h>);
- *
- * @return the current runtime buffer size.
- */
-inline Signal getBufferSize()
-{
-    return sigFVar(SType::kSInt, "count", "<dummy.h>");
-}
 
 /**
  * Base class for factories.

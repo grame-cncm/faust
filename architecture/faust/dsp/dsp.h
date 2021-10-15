@@ -214,12 +214,12 @@ class ScopedNoDenormals
     
         intptr_t fpsr;
         
-        void setFpStatusRegister(intptr_t fpsr) noexcept
+        void setFpStatusRegister(intptr_t fpsr_aux) noexcept
         {
         #if defined (__arm64__) || defined (__aarch64__)
-           asm volatile("msr fpcr, %0" : : "ri" (fpsr));
+           asm volatile("msr fpcr, %0" : : "ri" (fpsr_aux));
         #elif defined (__SSE__)
-            _mm_setcsr(static_cast<uint32_t>(fpsr));
+            _mm_setcsr(static_cast<uint32_t>(fpsr_aux));
         #endif
         }
         

@@ -395,7 +395,7 @@ Tree unquote(char* str)
     size_t j=0;
 
     if (str[0] == '"') {
-        //it is a quoted string, we remove the quotes
+        // it is a quoted string, we remove the quotes
         for (size_t i=1; j<size-1 && str[i];) {
             buf[j++] = replaceCR(str[i++]);
         }
@@ -2546,7 +2546,7 @@ yyreduce:
 
   case 80:
 #line 464 "faustparser.y"
-    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigRightShift)); ;}
+    { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigARightShift)); ;}
     break;
 
   case 81:
@@ -2706,7 +2706,7 @@ yyreduce:
 
   case 112:
 #line 509 "faustparser.y"
-    { (yyval.exp) = boxPrim2(sigRightShift); ;}
+    { (yyval.exp) = boxPrim2(sigARightShift); ;}
     break;
 
   case 113:
