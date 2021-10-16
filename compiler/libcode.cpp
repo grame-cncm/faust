@@ -2693,12 +2693,12 @@ EXPORT Tree boxSoundfile(const std::string& label, Tree chan)
     return boxSoundfile(tree(label), chan);
 }
 
-EXPORT Tree boxSelect2(Tree selector, Tree s1, Tree s2)
+EXPORT Tree boxSelect2()
 {
     return boxPrim3(sigSelect2);
 }
 
-EXPORT Tree boxSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
+EXPORT Tree boxSelect3()
 {
     return boxPrim4(sigSelect3);
 }
@@ -2922,3 +2922,327 @@ EXPORT Tree boxHBargraph(const std::string& label, Tree min, Tree max)
 {
     return boxHBargraph(tree(label), min, max);
 }
+
+// ==========
+// Box C API
+// ==========
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+    
+    EXPORT Tree CboxInt(int n)
+    {
+        return boxInt(n);
+    }
+    
+    EXPORT Tree CboxDouble(double n)
+    {
+        return boxReal(n);
+    }
+    
+    EXPORT Tree CboxWire()
+    {
+        return boxWire();
+    }
+    
+    EXPORT Tree CboxCut()
+    {
+        return boxCut();
+    }
+    
+    EXPORT Tree CboxSeq(Tree x, Tree y)
+    {
+        return boxSeq(x, y);
+    }
+    
+    EXPORT Tree CboxPar(Tree x, Tree y)
+    {
+        return boxPar(x, y);
+    }
+    
+    EXPORT Tree CboxSplit(Tree x, Tree y)
+    {
+        return boxSplit(x, y);
+    }
+    
+    EXPORT Tree CboxMerge(Tree x, Tree y)
+    {
+        return boxMerge(x, y);
+    }
+    
+    EXPORT Tree CboxRec(Tree x, Tree y)
+    {
+        return boxRec(x, y);
+    }
+    
+    EXPORT Tree CboxRoute(Tree n, Tree m, Tree r)
+    {
+        return boxRoute(n, m, r);
+    }
+    
+    EXPORT Tree CboxDelay()
+    {
+        return boxDelay();
+    }
+    
+    EXPORT Tree CboxIntCast()
+    {
+        return boxIntCast();
+    }
+    
+    EXPORT Tree CboxFloatCast()
+    {
+        return boxFloatCast();
+    }
+    
+    EXPORT Tree CboxReadOnlyTable()
+    {
+        return boxReadOnlyTable();
+    }
+    
+    EXPORT Tree CboxWriteReadTable()
+    {
+        return boxWriteReadTable();
+    }
+    
+    EXPORT Tree CboxWaveform(Tree* wf_aux)
+    {
+        tvec wf;
+        int i = 0;
+        while (wf_aux[i]) { wf.push_back(wf_aux[i]); i++; }
+        return boxWaveform(wf);
+    }
+    
+    EXPORT Tree CboxSoundfile(const char* label, Tree chan)
+    {
+        return boxSoundfile(label, chan);
+    }
+    
+    EXPORT Tree CboxSelect2()
+    {
+        return boxSelect2();
+    }
+    
+    EXPORT Tree CboxSelect3()
+    {
+        return boxSelect3();
+    }
+    
+    EXPORT Tree CboxFConst(SType type, const char* name, const char* file)
+    {
+        return boxFConst(type, name, file);
+    }
+    
+    EXPORT Tree CboxFVar(SType type, const char* name, const char* file)
+    {
+        return boxFVar(type, name, file);
+    }
+    
+    EXPORT Tree CboxBinOp(int op)
+    {
+        return boxBinOp(op);
+    }
+    
+    // Specific binary mathematical functions
+    
+    EXPORT Tree CboxAdd()
+    {
+        return boxAdd();
+    }
+    EXPORT Tree CboxSub()
+    {
+        return boxSub();
+    }
+    EXPORT Tree CboxMul()
+    {
+        return boxMul();
+    }
+    EXPORT Tree CboxDiv()
+    {
+        return boxDiv();
+    }
+    EXPORT Tree CboxRem()
+    {
+        return boxRem();
+    }
+    
+    EXPORT Tree CboxLeftShift()
+    {
+        return boxLeftShift();
+    }
+    EXPORT Tree CboxLRightShift()
+    {
+        return boxLRightShift();
+    }
+    EXPORT Tree CboxARightShift()
+    {
+        return boxARightShift();
+    }
+    
+    EXPORT Tree CboxGT()
+    {
+        return boxGT();
+    }
+    EXPORT Tree CboxLT()
+    {
+        return boxLT();
+    }
+    EXPORT Tree CboxGE()
+    {
+        return boxGE();
+    }
+    EXPORT Tree CboxLE()
+    {
+        return boxLE();
+    }
+    EXPORT Tree CboxEQ()
+    {
+        return boxEQ();
+    }
+    EXPORT Tree CboxNE()
+    {
+        return boxNE();
+    }
+    
+    EXPORT Tree CboxAND()
+    {
+        return boxAND();
+    }
+    EXPORT Tree CboxOR()
+    {
+        return boxOR();
+    }
+    EXPORT Tree CboxXOR()
+    {
+        return boxXOR();
+    }
+    
+    // Extended unary of binary mathematical functions
+    
+    EXPORT Tree CboxAbs()
+    {
+        return boxAbs();
+    }
+    EXPORT Tree CboxAcos()
+    {
+        return boxAcos();
+    }
+    EXPORT Tree CboxTan()
+    {
+        return boxTan();
+    }
+    EXPORT Tree CboxSqrt()
+    {
+        return boxSqrt();
+    }
+    EXPORT Tree CboxSin()
+    {
+        return boxSin();
+    }
+    EXPORT Tree CboxRint()
+    {
+        return boxRint();
+    }
+    EXPORT Tree CboxRemainder()
+    {
+        return boxRemainder();
+    }
+    EXPORT Tree CboxPow()
+    {
+        return boxPow();
+    }
+    EXPORT Tree CboxMin()
+    {
+        return boxMin();
+    }
+    EXPORT Tree CboxMax()
+    {
+        return boxMax();
+    }
+    EXPORT Tree CboxLog()
+    {
+        return boxLog();
+    }
+    EXPORT Tree CboxLog10()
+    {
+        return boxLog10();
+    }
+    EXPORT Tree CboxFmod()
+    {
+        return boxFmod();
+    }
+    EXPORT Tree CboxFloor()
+    {
+        return boxFloor();
+    }
+    EXPORT Tree CboxExp()
+    {
+        return boxExp();
+    }
+    EXPORT Tree CboxExp10()
+    {
+        return boxExp10();
+    }
+    EXPORT Tree CboxCos()
+    {
+        return boxCos();
+    }
+    EXPORT Tree CboxCeil()
+    {
+        return boxCeil();
+    }
+    EXPORT Tree CboxAtan()
+    {
+        return boxAtan();
+    }
+    EXPORT Tree CboxAtan2()
+    {
+        return boxAtan2();
+    }
+    EXPORT Tree CboxAsin()
+    {
+        return boxAsin();
+    }
+    
+    // User Interface
+    
+    EXPORT Tree CboxButton(const char* label)
+    {
+        return boxButton(label);
+    }
+    
+    EXPORT Tree CboxCheckbox(const char* label)
+    {
+        return boxButton(label);
+    }
+    
+    EXPORT Tree CboxVSlider(const char* label, Tree init, Tree min, Tree max, Tree step)
+    {
+        return boxVSlider(label, init, min, max, step);
+    }
+    
+    EXPORT Tree CboxHSlider(const char* label, Tree init, Tree min, Tree max, Tree step)
+    {
+        return boxHSlider(label, init, min, max, step);
+    }
+    
+    EXPORT Tree CboxNumEntry(const char* label, Tree init, Tree min, Tree max, Tree step)
+    {
+        return boxNumEntry(label, init, min, max, step);
+    }
+    
+    EXPORT Tree CboxVBargraph(const char* label, Tree min, Tree max)
+    {
+        return boxVBargraph(label, min, max);
+    }
+    
+    EXPORT Tree CboxHBargraph(const char* label, Tree min, Tree max)
+    {
+        return boxHBargraph(label, min, max);
+    }
+
+#ifdef __cplusplus
+}
+#endif

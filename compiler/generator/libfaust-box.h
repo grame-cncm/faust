@@ -90,6 +90,21 @@ Box boxSeq(Box x, Box y);
  */
 Box boxPar(Box x, Box y);
 
+Box boxPar3(Box x, Box y, Box z)
+{
+    return boxPar(x, boxPar(y, z));
+}
+
+Box boxPar4(Box a, Box b, Box c, Box d)
+{
+    return boxPar(a, boxPar3(b, c, d));
+}
+
+Box boxPar5(Box a, Box b, Box c, Box d, Box e)
+{
+    return boxPar(a, boxPar4(b, c, d, e));
+}
+
 /**
  * The split composition (e.g., A<:B) operator is used to distribute
  * the outputs of A to the inputs of B.
@@ -129,7 +144,6 @@ Box boxRec(Box x, Box y);
 
  * @return the route box.
  */
-
 Box boxRoute(Box n, Box m, Box r);
 
 /**
@@ -138,6 +152,19 @@ Box boxRoute(Box n, Box m, Box r);
  * @return the delayed box.
  */
 Box boxDelay();
+
+/**
+ * Create a delayed box.
+ *
+ * @param s - the box to be delayed
+ * @param del - the delay box that doesn't have to be fixed but must be bounded and cannot be negative
+
+ * @return the delayed box.
+ */
+Box boxDelay(Box s, Box del)
+{
+    return boxSeq(boxPar(s, del), boxDelay());
+}
 
 /**
  * Create a casted box.
@@ -149,9 +176,34 @@ Box boxIntCast();
 /**
  * Create a casted box.
  *
+ * @param s - the box to be casted in integer
+ *
+ * @return the casted box.
+ */
+
+Box boxIntCast(Box s)
+{
+    return boxSeq(s, boxIntCast());
+}
+
+/**
+ * Create a casted box.
+ *
  * @return the casted box.
  */
 Box boxFloatCast();
+
+/**
+ * Create a casted box.
+ *
+ * @param s - the signal to be casted as float/double value (depends of -single or -double compilation parameter)
+ *
+ * @return the casted box.
+ */
+Box boxFloatCast(Box s)
+{
+    return boxSeq(s, boxFloatCast());
+}
 
 /**
  * Create a read only table.
@@ -161,11 +213,41 @@ Box boxFloatCast();
 Box boxReadOnlyTable();
 
 /**
+ * Create a read only table.
+ *
+ * @param n - the table size, a constant numerical expression (see [1])
+ * @param init - the table content
+ * @param ridx - the read index (an int between 0 and n-1)
+ *
+ * @return the table box.
+ */
+Box boxReadOnlyTable(Box n, Box init, Box ridx)
+{
+    return boxSeq(boxPar3(n, init, ridx), boxReadOnlyTable());
+}
+
+/**
  * Create a read/write table.
  *
  * @return the table box.
  */
 Box boxWriteReadTable();
+
+/**
+ * Create a read/write table.
+ *
+ * @param n - the table size, a constant numerical expression (see [1])
+ * @param init - the table content
+ * @param widx - the write index (an integer between 0 and n-1)
+ * @param wsig - the input of the table
+ * @param ridx - the read index (an integer between 0 and n-1)
+ *
+ * @return the table box.
+ */
+Box boxWriteReadTable(Box n, Box init, Box widx, Box wsig, Box ridx)
+{
+    return boxSeq(boxPar5(n, init, widx, wsig, ridx), boxWriteReadTable());
+}
 
 /**
  * Create a waveform.
@@ -180,11 +262,26 @@ Box boxWaveform(const tvec& wf);
  * Create a soundfile block.
  *
  * @param label - of form "label[url:{'path1';'path2';'path3'}]" to describe a list of soundfiles
- * @param chan - the number of outputs channels
+ * @param chan - the number of outputs channels, a constant numerical expression (see [1])
  *
  * @return the soundfile box.
  */
 Box boxSoundfile(const std::string& label, Box chan);
+
+/**
+ * Create a soundfile block.
+ *
+ * @param label - of form "label[url:{'path1';'path2';'path3'}]" to describe a list of soundfiles
+ * @param chan - the number of outputs channels, a constant numerical expression (see [1])
+ * @param part - in the [0..255] range to select a given sound number, a constant numerical expression (see [1])
+ * @param ridx - the read index (an integer between 0 and the selected sound length)
+ *
+ * @return the soundfile box.
+ */
+Box boxSoundfile(const std::string& label, Box chan, Box part, Box ridx)
+{
+    return boxSeq(boxPar(part, ridx), boxSoundfile(label, chan));
+}
 
 /**
  * Create a selector between two boxes.
@@ -194,11 +291,40 @@ Box boxSoundfile(const std::string& label, Box chan);
 Box boxSelect2();
 
 /**
+ * Create a selector between two boxes.
+ *
+ * @param selector - when 0 at time t returns s1[t], otherwise returns s2[t]
+ * @param s1 - first box to be selected
+ * @param s2 - second box to be selected
+ *
+ * @return the selected box depending of the selector value at each time t.
+ */
+Box boxSelect2(Box selector, Box s1, Box s2)
+{
+    return boxSeq(boxPar3(selector, s1, s2), boxSelect2());
+}
+
+/**
  * Create a selector between three boxes.
  *
  * @return the selected box depending of the selector value at each time t.
  */
 Box boxSelect3();
+
+/**
+ * Create a selector between three boxes.
+ *
+ * @param selector - when 0 at time t returns s1[t], when 1 at time t returns s2[t], otherwise returns s3[t]
+ * @param s1 - first box to be selected
+ * @param s2 - second box to be selected
+ * @param s3 - third signal to be selected
+ *
+ * @return the selected box depending of the selector value at each time t.
+ */
+Box boxSelect3(Box selector, Box s1, Box s2, Box s3)
+{
+    return boxSeq(boxPar4(selector, s1, s2, s3), boxSelect3());
+}
 
 enum SType { kSInt, kSReal };
 
@@ -235,62 +361,219 @@ enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE
  */
 Box boxBinOp(SOperator op);
 
+Box boxBinOp(SOperator op, Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxBinOp(op));
+}
+
 /**
  * Specific binary mathematical functions.
  *
  * @return the result box.
  */
 Box boxAdd();
+Box boxAdd(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxAdd());
+}
 Box boxSub();
+Box boxSub(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxSub());
+}
 Box boxMul();
+Box boxMul(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxMul());
+}
 Box boxDiv();
+Box boxDiv(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxDiv());
+}
 Box boxRem();
+Box boxRem(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxRem());
+}
 
 Box boxLeftShift();
+Box boxLeftShift(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxLeftShift());
+}
 Box boxLRightShift();
+Box boxLRightShift(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxLRightShift());
+}
 Box boxARightShift();
+Box boxARightShift(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxARightShift());
+}
 
 Box boxGT();
+Box boxGT(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxGT());
+}
 Box boxLT();
+Box boxLT(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxLT());
+}
 Box boxGE();
+Box boxGE(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxGE());
+}
 Box boxLE();
+Box boxLE(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxLE());
+}
 Box boxEQ();
+Box boxEQ(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxEQ());
+}
 Box boxNE();
+Box boxNE(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxNE());
+}
 
 Box boxAND();
+Box boxAND(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxAND());
+}
 Box boxOR();
+Box boxOR(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxOR());
+}
 Box boxXOR();
+Box boxXOR(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxXOR());
+}
 
 /**
  * Extended unary mathematical functions.
  */
 
 Box boxAbs();
+Box boxAbs(Box x)
+{
+    return boxSeq(x, boxAbs());
+}
 Box boxAcos();
+Box boxAcos(Box x)
+{
+    return boxSeq(x, boxAcos());
+}
 Box boxTan();
+Box boxTan(Box x)
+{
+    return boxSeq(x, boxTan());
+}
 Box boxSqrt();
+Box boxSqrt(Box x)
+{
+    return boxSeq(x, boxSqrt());
+}
 Box boxSin();
+Box boxSin(Box x)
+{
+    return boxSeq(x, boxSin());
+}
 Box boxRint();
+Box boxRint(Box x)
+{
+    return boxSeq(x, boxRint());
+}
 Box boxLog();
+Box boxLog(Box x)
+{
+    return boxSeq(x, boxLog());
+}
 Box boxLog10();
+Box boxLog10(Box x)
+{
+    return boxSeq(x, boxLog10());
+}
 Box boxFloor();
+Box boxFloor(Box x)
+{
+    return boxSeq(x, boxFloor());
+}
 Box boxExp();
+Box boxExp(Box x)
+{
+    return boxSeq(x, boxExp());
+}
 Box boxExp10();
+Box boxExp10(Box x)
+{
+    return boxSeq(x, boxExp10());
+}
 Box boxCos();
+Box boxCos(Box x)
+{
+    return boxSeq(x, boxCos());
+}
 Box boxCeil();
+Box boxCeil(Box x)
+{
+    return boxSeq(x, boxCeil());
+}
 Box boxAtan();
+Box boxAtan(Box x)
+{
+    return boxSeq(x, boxAtan());
+}
 Box boxAsin();
+Box boxAsin(Box x)
+{
+    return boxSeq(x, boxAsin());
+}
 
 /**
  * Extended binary mathematical functions.
  */
 
 Box boxRemainder();
+Box boxRemainder(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxRemainder());
+}
 Box boxPow();
+Box boxPow(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxPow());
+}
 Box boxMin();
+Box boxMin(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxMin());
+}
 Box boxMax();
+Box boxMax(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxMax());
+}
 Box boxFmod();
+Box boxFmod(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxFmod());
+}
 Box boxAtan2();
+Box boxAtan2(Box b1, Box b2)
+{
+    return boxSeq(boxPar(b1, b2), boxAtan2());
+}
 
 /**
  * Create a button box.
@@ -361,6 +644,21 @@ Box boxNumEntry(const std::string& label, Box init, Box min, Box max, Box step);
 Box boxVBargraph(const std::string& label, Box min, Box max);
 
 /**
+ * Create a vertical bargraph box.
+ *
+ * @param label - the label definition (see [2])
+ * @param min - the max box, a constant numerical expression (see [1])
+ * @param max - the min box, a constant numerical expression (see [1])
+ * @param s - the input box
+ *
+ * @return the vertical bargraph box.
+ */
+Box boxVBargraph(const std::string& label, Box min, Box max, Box x)
+{
+    return boxSeq( x, boxVBargraph(label, min, max));
+}
+
+/**
  * Create an horizontal bargraph box.
  *
  * @param label - the label definition (see [2])
@@ -372,15 +670,46 @@ Box boxVBargraph(const std::string& label, Box min, Box max);
 Box boxHBargraph(const std::string& label, Box min, Box max);
 
 /**
+ * Create a horizontal bargraph box.
+ *
+ * @param label - the label definition (see [2])
+ * @param min - the max box, a constant numerical expression (see [1])
+ * @param max - the min box, a constant numerical expression (see [1])
+ * @param s - the input box
+ *
+ * @return the vertical horizontal box.
+ */
+Box boxHBargraph(const std::string& label, Box min, Box max, Box x)
+{
+    return boxSeq(x, boxHBargraph(label, min, max));
+}
+/**
  * Create an attach box.
  *
- * The attach primitive takes two input boxes and produces one output boxes
+ * The attach primitive takes two input boxes and produces one output box
  * which is a copy of the first input. The role of attach is to force
  * its second input boxes to be compiled with the first one.
  *
  * @return the attach box.
  */
 Box boxAttach();
+
+/**
+ * Create an attach box.
+ *
+ * The attach primitive takes two input box and produces one output box
+ * which is a copy of the first input. The role of attach is to force
+ * its second input signal to be compiled with the first one.
+ *
+ * @param s1 - the first box
+ * @param s2 - the second box
+ *
+ * @return the attach signal.
+ */
+Box boxAttach(Box s1, Box s2)
+{
+    return boxSeq(boxPar(s1, s2), boxAttach());
+}
 
 /**
  * Base class for factories.

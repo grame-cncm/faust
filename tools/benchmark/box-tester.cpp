@@ -48,9 +48,7 @@ using namespace std;
 
 inline Box getSampleRate()
 {
-    return boxSeq(boxPar(boxReal(192000.0),
-                         boxSeq(boxPar(boxReal(1.0),
-                                       boxFConst(SType::kSInt, "fSamplingFreq", "<dummy.h>")), boxMax())), boxMin());
+    return boxMin(boxReal(192000.0), boxMax(boxReal(1.0), boxFConst(SType::kSInt, "fSamplingFreq", "<dummy.h>")));
 }
 
 /**
