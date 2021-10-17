@@ -123,3 +123,16 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromSignals(const std
         return nullptr;
     }
 }
+
+EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromBoxes(const std::string& name_app, Tree box,
+                                                                     int argc, const char* argv[],
+                                                                     std::string& error_msg)
+{
+    try {
+        tvec signals = boxesToSignalsAux(box);
+        return createInterpreterDSPFactoryFromSignals(name_app, signals, argc, argv, error_msg);
+    } catch (faustexception& e) {
+        error_msg = e.Message();
+        return nullptr;
+    }
+}

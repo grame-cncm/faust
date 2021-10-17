@@ -67,6 +67,9 @@ signal-tester-c: signal-tester.c $(LIB)/libfaust.a
 box-tester: box-tester.cpp $(LIB)/libfaust.a
 	$(CXX) $(COMPILEOPT) box-tester.cpp $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs jack gtk+-2.0` $(STRIP) -lz -lncurses -lpthread -o $@
 
+box-tester-c: box-tester.c $(LIB)/libfaust.a
+	$(CXX) $(COMPILEOPT1) box-tester.c $(LIBS) -I $(INC) $(LLVM) $(STRIP) -lz -lncurses -lpthread -o box-tester-c
+
 layout-ui: layout-ui.cpp
 	$(CXX) $(COMPILEOPT) layout-ui.cpp -I $(INC) $(LIBS)  $(LLVM) -o $@
 

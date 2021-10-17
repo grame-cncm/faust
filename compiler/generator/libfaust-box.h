@@ -19,6 +19,25 @@
  ************************************************************************
  ************************************************************************/
 
+#ifndef LIBFAUSTCOMMON_H
+#define LIBFAUSTCOMMON_H
+
+enum SType { kSInt, kSReal };
+
+enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
+
+/**
+ * Base class for factories.
+ */
+struct dsp_factory_base {
+    
+    virtual ~dsp_factory_base() {}
+    
+    virtual void write(std::ostream* out, bool binary = false, bool compact = false) {}
+};
+
+#endif
+
 #ifndef LIBFAUSTBOX_H
 #define LIBFAUSTBOX_H
 
@@ -326,8 +345,6 @@ Box boxSelect3(Box selector, Box s1, Box s2, Box s3)
     return boxSeq(boxPar4(selector, s1, s2, s3), boxSelect3());
 }
 
-enum SType { kSInt, kSReal };
-
 /**
  * Create a foreign constant box.
  *
@@ -349,8 +366,6 @@ Box boxFConst(SType type, const std::string& name, const std::string& file);
  * @return the foreign variable box.
  */
 Box boxFVar(SType type, const std::string& name, const std::string& file);
-
-enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
 
 /**
  * Generic binary mathematical functions.
@@ -712,17 +727,7 @@ Box boxAttach(Box s1, Box s2)
 }
 
 /**
- * Base class for factories.
- */
-struct dsp_factory_base {
-    
-    virtual ~dsp_factory_base() {}
-    
-    virtual void write(std::ostream* out, bool binary = false, bool compact = false) {}
-};
-
-/**
- * Compile a box expression in a list of signals
+ * Compile a box expression in a list of signals.
  *
  * @param box - the box expression
  * @param error_msg - the error string to be filled

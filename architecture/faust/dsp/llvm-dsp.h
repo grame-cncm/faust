@@ -34,6 +34,7 @@
 
 #include "faust/dsp/dsp.h"
 #include "faust/dsp/libfaust-signal.h"
+#include "faust/dsp/libfaust-box.h"
 #include "faust/gui/meta.h"
 
 /*!
@@ -224,6 +225,28 @@ llvm_dsp_factory* createDSPFactoryFromSignals(const std::string& name_app, tvec 
                                               std::string& error_msg,
                                               int opt_level = -1);
 
+/**
+ * Create a Faust DSP factory from a box expression.
+ * It has to be used with the signal API defined in libfaust-signal.h.
+ *
+ * @param name_app - the name of the Faust program
+ * @param box - the box expression
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters
+ * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
+ *                 using an empty string takes the current machine settings,
+ *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
+ * @param error_msg - the error string to be filled
+ * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
+ * since the maximum value may change with new LLVM versions)
+ *
+ * @return a DSP factory on success, otherwise a null pointer.
+ */
+llvm_dsp_factory* createDSPFactoryFromBoxes(const std::string& name_app, Box box,
+                                            int argc, const char* argv[],
+                                            const std::string& target,
+                                            std::string& error_msg,
+                                            int opt_level = -1);
 
 /**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possibly really deleting the internal pointer. 

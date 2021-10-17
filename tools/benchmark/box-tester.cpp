@@ -28,8 +28,8 @@
 #include <vector>
 
 #include "faust/dsp/libfaust-box.h"
-//#include "faust/dsp/llvm-dsp.h"
-//#include "faust/dsp/interpreter-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
+#include "faust/dsp/interpreter-dsp.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/audio/jack-dsp.h"
 #include "faust/gui/GTKUI.h"
@@ -45,7 +45,6 @@ using namespace std;
  *
  * @return the current runtime sample rate.
  */
-
 inline Box getSampleRate()
 {
     return boxMin(boxReal(192000.0), boxMax(boxReal(1.0), boxFConst(SType::kSInt, "fSamplingFreq", "<dummy.h>")));
@@ -115,48 +114,372 @@ static void test3()
     )
 }
 
-// process = _ : +;  ==> connection error
+// Alternate version with the binary 'boxAdd' version
+// process = _,_ : +;
 
 static void test4()
 {
     COMPILER
     (
-        Box box = boxSeq(boxWire(), boxMul());
+        Box box = boxAdd(boxWire(), boxWire());
         compile("test4", box);
     )
 }
 
-// process = _,7 : @;
+
+// Connection error
+// process = _ : +;
 
 static void test5()
 {
     COMPILER
     (
-        Box box = boxSeq(boxPar(boxWire(), boxInt(7)), boxDelay());
+        Box box = boxSeq(boxWire(), boxMul());
         compile("test5", box);
     )
 }
 
-// process = _,hslider("Freq [midi:ctrl 7][style:knob]", 100, 100, 2000, 1) : *;
+// process = _,7 : @;
 
 static void test6()
 {
     COMPILER
     (
-        Box box = boxSeq(boxPar(boxWire(), boxHSlider("Freq [midi:ctrl 7][style:knob]", boxReal(100), boxReal(100), boxReal(2000), boxReal(1))), boxMul());
+        Box box = boxSeq(boxPar(boxWire(), boxInt(7)), boxDelay());
         compile("test6", box);
+    )
+}
+
+// process = _,hslider("Freq [midi:ctrl 7][style:knob]", 100, 100, 2000, 1) : *;
+
+static void test7()
+{
+    COMPILER
+    (
+        Box box = boxMul(boxWire(), boxHSlider("Freq [midi:ctrl 7][style:knob]", boxReal(100), boxReal(100), boxReal(2000), boxReal(1)));
+        compile("test7", box);
+    )
+}
+
+/*
+ import("stdfaust.lib");
+ 
+ freq = vslider("h:Oscillator/freq", 440, 50, 1000, 0.1);
+ gain = vslider("h:Oscillator/gain", 0, 0, 1, 0.01);
+ 
+ process = freq * gain;
+ */
+
+static void test8()
+{
+    COMPILER
+    (
+        Box box = boxMul(boxVSlider("h:Oscillator/freq", boxReal(440), boxReal(50), boxReal(1000), boxReal(0.1)),
+                         boxVSlider("h:Oscillator/gain", boxReal(0), boxReal(0), boxReal(1), boxReal(0.01)));
+        compile("test8", box);
     )
 }
 
 // import("stdfaust.lib");
 // process = ma.SR, ma.BS;
-static void test7()
+
+static void test9()
 {
     COMPILER
     (
         Box box = boxPar(getSampleRate(), getBufferSize());
-        compile("test7", box);
+        compile("test9", box);
     )
+}
+
+// process = waveform { 0, 100, 200, 300, 400 };
+
+static void test10()
+{
+    COMPILER
+    (
+         tvec waveform;
+         // Fill the waveform content vector
+         for (int i = 0; i < 5; i++) {
+             waveform.push_back(boxReal(100*i));
+         }
+         Box box = boxWaveform(waveform);   // the waveform content
+         compile("test10", box);
+    )
+}
+
+// process = _ <: +;
+
+static void test11()
+{
+    COMPILER
+    (
+        Box box = boxSplit(boxWire(), boxAdd());
+        compile("test11", box);
+     )
+}
+
+// process = _,_ <: !,_,_,! :> _,_;
+
+static void test12()
+{
+    COMPILER
+    (
+        Box box = boxSplit(boxPar(boxWire(), boxWire()),
+                           boxMerge(boxPar4(boxCut(), boxWire(), boxWire(), boxCut()),
+                                    boxPar(boxWire(), boxWire())));
+        compile("test12", box);
+    )
+}
+
+// process = + ~ _;
+
+static void test13()
+{
+    COMPILER
+    (
+        Box box = boxRec(boxAdd(), boxWire());
+        compile("test13", box);
+    )
+}
+
+/*
+import("stdfaust.lib");
+process = phasor(440)
+with {
+    decimalpart = _,int(_) : -;
+    phasor(f) = f/ma.SR : (+ <: decimalpart) ~ _;
+};
+*/
+
+static Box decimalpart()
+{
+    return boxSub(boxWire(), boxIntCast(boxWire()));
+}
+
+static Box phasor(Box f)
+{
+    return boxSeq(boxDiv(f, getSampleRate()), boxRec(boxSplit(boxAdd(), decimalpart()), boxWire()));
+}
+
+static void test14()
+{
+    COMPILER
+    (
+        Box box = phasor(boxReal(440));
+        compile("test14", box);
+    )
+}
+
+/*
+ import("stdfaust.lib");
+ process = osc(440), osc(440)
+ with {
+    decimalpart(x) = x-int(x);
+    phasor(f) = f/ma.SR : (+ : decimalpart) ~ _;
+    osc(f) = sin(2 * ma.PI * phasor(f));
+ };
+ */
+
+static Box osc(Box f)
+{
+    return boxSin(boxMul(boxMul(boxReal(2.0), boxReal(3.141592653)), phasor(f)));
+}
+
+static void test15()
+{
+    COMPILER
+    (
+        Box box = boxPar(osc(boxReal(440)), osc(boxReal(440)));
+        compile("test15", box);
+    )
+}
+
+// process = 0,0 : soundfile("sound[url:{'tango.wav'}]", 2);
+
+static void test16()
+{
+    COMPILER
+    (
+        Box box = boxSoundfile("sound[url:{'tango.wav'}]", boxInt(2),  boxInt(0),  boxInt(0));
+        compile("test16", box);
+    )
+}
+
+// process = 10,1,int(_) : rdtable;
+
+static void test17()
+{
+    COMPILER
+    (
+        Box box = boxReadOnlyTable(boxInt(10), boxInt(1), boxIntCast(boxWire()));
+        compile("test17", box);
+    )
+}
+
+// process = 10,1,int(_),int(_),int(_) : rwtable;
+
+static void test18()
+{
+    COMPILER
+    (
+        Box box = boxWriteReadTable(boxInt(10), boxInt(1), boxIntCast(boxWire()), boxIntCast(boxWire()), boxIntCast(boxWire()));
+        compile("test18", box);
+    )
+}
+
+/*
+ import("stdfaust.lib");
+ process = osc(f1), osc(f2)
+ with {
+     decimalpart(x) = x-int(x);
+     phasor(f) = f/ma.SR : (+ : decimalpart) ~ _;
+     osc(f) = sin(2 * ma.PI * phasor(f));
+     f1 = vslider("Freq1", 300, 100, 2000, 0.01);
+     f2 = vslider("Freq2", 500, 100, 2000, 0.01);
+ };
+ */
+
+// Using the LLVM backend.
+static void test19(int argc, char* argv[])
+{
+    createLibContext();
+    {
+        Box sl1 = boxVSlider("h:Oscillator/Freq1", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
+        Box sl2 = boxVSlider("h:Oscillator/Freq2", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
+        Box box = boxPar(osc(sl1), osc(sl2));
+        
+        string error_msg;
+        llvm_dsp_factory* factory = createDSPFactoryFromBoxes("FaustDSP", box, 0, nullptr, "", error_msg);
+        
+        if (factory) {
+            dsp* dsp = factory->createDSPInstance();
+            assert(dsp);
+            
+            // Allocate audio driver
+            jackaudio audio;
+            audio.init("Test", dsp);
+            
+            // Create GUI
+            GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, &argv);
+            dsp->buildUserInterface(&gtk_ui);
+            
+            // Start real-time processing
+            audio.start();
+            
+            // Start GUI
+            gtk_ui.run();
+            
+            // Cleanup
+            audio.stop();
+            delete dsp;
+            deleteDSPFactory(factory);
+        } else {
+            cerr << "Cannot create factory" << error_msg << endl;
+        }
+    }
+    destroyLibContext();
+}
+
+// Using the Interpreter backend.
+static void test20(int argc, char* argv[])
+{
+    createLibContext();
+    {
+        Box sl1 = boxHSlider("v:Oscillator/Freq1", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
+        Box sl2 = boxHSlider("v:Oscillator/Freq2", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
+        Box box = boxPar(osc(sl1), osc(sl2));
+        
+        string error_msg;
+        interpreter_dsp_factory* factory = createInterpreterDSPFactoryFromBoxes("FaustDSP", box, 0, nullptr, error_msg);
+        
+        if (factory) {
+            dsp* dsp = factory->createDSPInstance();
+            assert(dsp);
+            
+            // Allocate audio driver
+            jackaudio audio;
+            audio.init("Test", dsp);
+            
+            // Create GUI
+            GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, &argv);
+            dsp->buildUserInterface(&gtk_ui);
+            
+            // Start real-time processing
+            audio.start();
+            
+            // Start GUI
+            gtk_ui.run();
+            
+            // Cleanup
+            audio.stop();
+            delete dsp;
+            deleteInterpreterDSPFactory(factory);
+        } else {
+            cerr << "Cannot create factory" << error_msg << endl;
+        }
+    }
+    destroyLibContext();
+}
+
+// Simple polyphonic DSP.
+static void test21(int argc, char* argv[])
+{
+    interpreter_dsp_factory* factory = nullptr;
+    string error_msg;
+    
+    createLibContext();
+    {
+        tvec signals;
+        
+        // Follow the freq/gate/gain convention, see: https://faustdoc.grame.fr/manual/midi/#standard-polyphony-parameters
+        Box freq = boxNumEntry("freq", boxReal(100), boxReal(100), boxReal(3000), boxReal(0.01));
+        Box gate = boxButton("gate");
+        Box gain = boxNumEntry("gain", boxReal(0.5), boxReal(0), boxReal(1), boxReal(0.01));
+        Box organ = boxMul(gate, boxAdd(boxMul(osc(freq), gain), boxMul(osc(boxMul(freq, boxInt(2))), gain)));
+        // Stereo
+        Box box = boxPar(organ, organ);
+        
+        factory = createInterpreterDSPFactoryFromBoxes("FaustDSP", box, 0, nullptr, error_msg);
+    }
+    destroyLibContext();
+        
+    // Use factory outside of the createLibContext/destroyLibContext scope
+    if (factory) {
+        dsp* dsp = factory->createDSPInstance();
+        assert(dsp);
+        
+        // Allocate polyphonic DSP
+        dsp = new mydsp_poly(dsp, 8, true, true);
+        
+        // Allocate MIDI/audio driver
+        jackaudio_midi audio;
+        audio.init("Organ", dsp);
+        
+        // Create GUI
+        GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, &argv);
+        dsp->buildUserInterface(&gtk_ui);
+        
+        // Create MIDI controller
+        MidiUI midi_ui = MidiUI(&audio);
+        dsp->buildUserInterface(&midi_ui);
+        
+        // Start real-time processing
+        audio.start();
+        
+        // Start MIDI
+        midi_ui.run();
+        
+        // Start GUI
+        gtk_ui.run();
+        
+        // Cleanup
+        audio.stop();
+        delete dsp;
+        deleteInterpreterDSPFactory(factory);
+    } else {
+        cerr << "Cannot create factory" << error_msg << endl;
+    }
 }
 
 list<GUI*> GUI::fGuiList;
@@ -171,6 +494,26 @@ int main(int argc, char* argv[])
     test5();
     test6();
     test7();
+    test8();
+    test9();
+    test10();
+    test11();
+    test12();
+    test13();
+    test14();
+    test15();
+    test16();
+    test17();
+    test18();
+    
+    // Test with audio, GUI and LLVM backend
+    test19(argc, argv);
+    
+    // Test with audio, GUI and Interp backend
+    test20(argc, argv);
+    
+    // Test with audio, GUI, MIDI and Interp backend
+    test21(argc, argv);
     
     return 0;
 }

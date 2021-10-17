@@ -189,6 +189,7 @@ static void test7()
 }
 
 // Equivalent signal expressions
+
 static void equivalent1()
 {
     COMPILER
@@ -420,7 +421,7 @@ static void test18()
     )
 }
 
-// process = 0,0 : soundfile("sound[url:{'tango.wav'}]", 1);
+// process = 0,0 : soundfile("sound[url:{'tango.wav'}]", 2);
 
 static void test19()
 {

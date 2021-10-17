@@ -1257,16 +1257,14 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
         throw faustexception(error.str());
     }
 
-    if (gGlobal->gDrawPSSwitch || gGlobal->gDrawSVGSwitch) {
-        string projname = gGlobal->makeDrawPathNoExt();
-        if (gGlobal->gDrawPSSwitch) {
-            drawSchema(process, subst("$0-ps", projname).c_str(), "ps");
-        }
-        if (gGlobal->gDrawSVGSwitch) {
-            drawSchema(process, subst("$0-svg", projname).c_str(), "svg");
-        }
+    if (gGlobal->gDrawPSSwitch) {
+        drawSchema(process, subst("$0-ps", gGlobal->makeDrawPathNoExt()).c_str(), "ps");
     }
-
+    
+    if (gGlobal->gDrawSVGSwitch) {
+        drawSchema(process, subst("$0-svg", gGlobal->makeDrawPathNoExt()).c_str(), "svg");
+    }
+ 
     if (gGlobal->gDetailsSwitch) {
         cout << "process has " << numInputs << " inputs, and " << numOutputs << " outputs" << endl;
     }
@@ -2197,7 +2195,7 @@ string expandDSP(int argc, const char* argv[], const char* name, const char* dsp
 // Signal C++ API
 // ===============
 
-EXPORT dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name, tvec signals,
+EXPORT dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name_app, tvec signals,
                                                         int argc, const char* argv[],
                                                         std::string& error_msg)
 {
@@ -2216,7 +2214,7 @@ EXPORT dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name,
     argv1[argc1] = nullptr;  // NULL terminated argv
   
     try {
-        createFactoryAux(name.c_str(), listConvert(signals), argc1, argv1, gGlobal->gMaxInputs, signals.size(), true);
+        createFactoryAux(name_app.c_str(), listConvert(signals), argc1, argv1, gGlobal->gMaxInputs, signals.size(), true);
         error_msg = gGlobal->gErrorMsg;
         factory   = gGlobal->gDSPFactory;
     } catch (faustexception& e) {
@@ -2631,11 +2629,16 @@ extern "C"
 // ============
 
 // Can generate faustexception
-static tvec boxesToSignalsAux(Tree box)
+tvec boxesToSignalsAux(Tree box)
 {
     int numInputs, numOutputs;
-    bool res = getBoxType(box, &numInputs, &numOutputs);
-    faustassert(res);
+  
+    if (!getBoxType(box, &numInputs, &numOutputs)) {
+        stringstream error;
+        error << "ERROR during the evaluation of process : " << boxpp(box) << endl;
+        throw faustexception(error.str());
+    }
+     
     return propagate(gGlobal->nil, gGlobal->nil, box, makeSigInputList(numInputs));
 }
 
@@ -2649,14 +2652,14 @@ EXPORT tvec boxesToSignals(Tree box, std::string& error_msg)
     }
 }
 
-EXPORT dsp_factory_base* createCPPDSPFactoryFromBoxes(const std::string& name,
+EXPORT dsp_factory_base* createCPPDSPFactoryFromBoxes(const std::string& name_app,
                                                       Tree box,
                                                       int argc, const char* argv[],
                                                       std::string& error_msg)
 {
     try {
         tvec signals = boxesToSignalsAux(box);
-        return createCPPDSPFactoryFromSignals(name, signals, argc, argv, error_msg);
+        return createCPPDSPFactoryFromSignals(name_app, signals, argc, argv, error_msg);
     } catch (faustexception& e) {
         error_msg = e.Message();
         return nullptr;
@@ -2932,12 +2935,28 @@ extern "C"
 {
 #endif
     
+    EXPORT Tree* CboxesToSignals(Tree box, char* error_msg)
+    {
+        string error_msg_aux;
+        tvec signals = boxesToSignals(box, error_msg_aux);
+        strncpy(error_msg, error_msg_aux.c_str(), 4096);
+        if (signals.size() > 0) {
+            Tree* res = (Tree*)malloc(sizeof(Tree) * (signals.size() + 1));
+            size_t i;
+            for (i = 0; i < signals.size(); i++) res[i] = signals[i];
+            res[i] = NULL;
+            return res;
+        } else {
+            return NULL;
+        }
+    }
+    
     EXPORT Tree CboxInt(int n)
     {
         return boxInt(n);
     }
     
-    EXPORT Tree CboxDouble(double n)
+    EXPORT Tree CboxReal(double n)
     {
         return boxReal(n);
     }

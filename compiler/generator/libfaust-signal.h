@@ -19,6 +19,25 @@
  ************************************************************************
  ************************************************************************/
 
+#ifndef LIBFAUSTCOMMON_H
+#define LIBFAUSTCOMMON_H
+
+enum SType { kSInt, kSReal };
+
+enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
+
+/**
+ * Base class for factories.
+ */
+struct dsp_factory_base {
+    
+    virtual ~dsp_factory_base() {}
+    
+    virtual void write(std::ostream* out, bool binary = false, bool compact = false) {}
+};
+
+#endif
+
 #ifndef LIBFAUSTSIGNAL_H
 #define LIBFAUSTSIGNAL_H
 
@@ -197,8 +216,6 @@ Signal sigSelect2(Signal selector, Signal s1, Signal s2);
  */
 Signal sigSelect3(Signal selector, Signal s1, Signal s2, Signal s3);
 
-enum SType { kSInt, kSReal };
-
 /**
  * Create a foreign constant signal.
  *
@@ -220,8 +237,6 @@ Signal sigFConst(SType type, const std::string& name, const std::string& file);
  * @return the foreign variable signal.
  */
 Signal sigFVar(SType type, const std::string& name, const std::string& file);
-
-enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
 
 /**
  * Generic binary mathematical functions.
@@ -403,16 +418,6 @@ Signal sigHBargraph(const std::string& label, Signal min, Signal max, Signal s);
  * @return the attach signal.
  */
 Signal sigAttach(Signal s1, Signal s2);
-
-/**
- * Base class for factories.
- */
-struct dsp_factory_base {
-    
-    virtual ~dsp_factory_base() {}
-    
-    virtual void write(std::ostream* out, bool binary = false, bool compact = false) {}
-};
 
 /**
  * Create a C++ Faust DSP factory from a vector of output signals.

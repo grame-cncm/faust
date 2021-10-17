@@ -687,6 +687,21 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromSignals(const std::string& name_app
         return nullptr;
     }
 }
+        
+EXPORT llvm_dsp_factory* createDSPFactoryFromBoxes(const std::string& name_app, Tree box,
+                                                   int argc, const char* argv[],
+                                                   const std::string& target,
+                                                   std::string& error_msg,
+                                                   int opt_level)
+{
+    try {
+        tvec signals = boxesToSignalsAux(box);
+        return createDSPFactoryFromSignals(name_app, signals, argc, argv, target, error_msg, opt_level);
+    } catch (faustexception& e) {
+        error_msg = e.Message();
+        return nullptr;
+    }
+}
 
 EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const string& bit_code, const string& target, string& error_msg,
                                                    int opt_level)
@@ -793,6 +808,20 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromSignals(const char* name_app, Sign
     while (signals_aux[i]) { signals.push_back(signals_aux[i]); i++; }
     llvm_dsp_factory* factory =
         createDSPFactoryFromSignals(name_app, signals, argc, argv, target, error_msg_aux, opt_level);
+    strncpy(error_msg, error_msg_aux.c_str(), 4096);
+    return factory;
+}
+
+EXPORT llvm_dsp_factory* createCDSPFactoryFromBoxes(const char* name_app,
+                                                    Tree box,
+                                                    int argc, const char* argv[],
+                                                    const char* target,
+                                                    char* error_msg,
+                                                    int opt_level)
+{
+    string error_msg_aux;
+    llvm_dsp_factory* factory =
+        createDSPFactoryFromBoxes(name_app, box, argc, argv, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
 }

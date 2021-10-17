@@ -19,6 +19,27 @@
  ************************************************************************
  ************************************************************************/
 
+#ifndef LIBFAUSTCOMMON_C_H
+#define LIBFAUSTCOMMON_C_H
+
+/**
+ * Opaque types.
+ */
+
+#ifdef _MSC_VER
+typedef void CTree;
+#else
+typedef struct {} CTree;
+#endif
+
+typedef CTree* Signal;
+
+enum SType { kSInt, kSReal };
+
+enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
+
+#endif
+
 #ifndef LIBFAUSTSIGNAL_C_H
 #define LIBFAUSTSIGNAL_C_H
 
@@ -27,17 +48,6 @@ extern "C"
 {
 #endif
     
-    /**
-     * Opaque types.
-     */
-    
-#ifdef _MSC_VER
-    typedef void CTree;
-#else
-    typedef struct {} CTree;
-#endif
-    
-    typedef CTree* Signal;
    
     /**
      * Create global compilation context, has to be done first.
@@ -203,9 +213,7 @@ extern "C"
      * @return the selected signal depending of the selector value at each time t.
      */
     Signal CsigSelect3(Signal selector, Signal s1, Signal s2, Signal s3);
-    
-    enum SType { kSInt, kSReal };
-    
+      
     /**
      * Create a foreign constant signal.
      *
@@ -227,8 +235,6 @@ extern "C"
      * @return the foreign variable signal.
      */
     Signal CsigFVar(enum SType type, const char* name, const char* file);
-    
-    enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
     
     /**
      * Generic binary mathematical functions.
