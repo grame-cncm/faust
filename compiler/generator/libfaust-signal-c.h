@@ -33,6 +33,7 @@ typedef struct {} CTree;
 #endif
 
 typedef CTree* Signal;
+typedef CTree* Box;
 
 enum SType { kSInt, kSReal };
 
@@ -48,7 +49,6 @@ extern "C"
 {
 #endif
     
-   
     /**
      * Create global compilation context, has to be done first.
      */

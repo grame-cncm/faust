@@ -32,8 +32,8 @@ typedef void CTree;
 typedef struct {} CTree;
 #endif
 
-typedef CTree* Box;
 typedef CTree* Signal;
+typedef CTree* Box;
 
 enum SType { kSInt, kSReal };
 
@@ -51,7 +51,6 @@ enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE
 extern "C"
 {
 #endif
-    
     
     /**
      * Create global compilation context, has to be done first.

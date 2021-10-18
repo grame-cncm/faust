@@ -22,6 +22,12 @@
 #ifndef LIBFAUSTCOMMON_H
 #define LIBFAUSTCOMMON_H
 
+/**
+ * Opaque types.
+ */
+class CTree;
+typedef std::vector<CTree*> tvec;
+
 enum SType { kSInt, kSReal };
 
 enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
@@ -47,9 +53,7 @@ struct dsp_factory_base {
 /**
  * Opaque types.
  */
-class CTree;
 typedef CTree* Signal;
-typedef std::vector<Signal> tvec;
 
 /**
  * Create global compilation context, has to be done first.
