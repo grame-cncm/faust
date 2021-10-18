@@ -173,21 +173,15 @@ struct StructInstVisitor : public DispatchVisitor {
         
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
+                fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++,
+                                                                 getStructSize(),
+                                                                 getStructIntSize(),
+                                                                 getStructRealSize(),
+                                                                 array_typed->fSize,
+                                                                 array_typed->fType->getType())));
                 if (array_typed->fType->getType() == Typed::kInt32) {
-                    fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++,
-                                                                     getStructSize(),
-                                                                     getStructIntSize(),
-                                                                     getStructRealSize(),
-                                                                     array_typed->fSize,
-                                                                     array_typed->fType->getType())));
                     fStructIntOffset += array_typed->getSize();
                 } else {
-                    fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++,
-                                                                     getStructSize(),
-                                                                     getStructIntSize(),
-                                                                     getStructRealSize(),
-                                                                     array_typed->fSize,
-                                                                     array_typed->fType->getType())));
                     fStructRealOffset += array_typed->getSize();
                 }
             } else {
@@ -196,19 +190,14 @@ struct StructInstVisitor : public DispatchVisitor {
             }
         } else {
             if (is_struct) {
+                fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++,
+                                                                 getStructSize(),
+                                                                 getStructIntSize(),
+                                                                 getStructRealSize(),
+                                                                 1, inst->fType->getType())));
                 if (inst->fType->getType() == Typed::kInt32) {
-                    fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++,
-                                                                     getStructSize(),
-                                                                     getStructIntSize(),
-                                                                     getStructRealSize(),
-                                                                     1, inst->fType->getType())));
                     fStructIntOffset += inst->fType->getSize();
                 } else {
-                    fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++,
-                                                                     getStructSize(),
-                                                                     getStructIntSize(),
-                                                                     getStructRealSize(),
-                                                                     1, inst->fType->getType())));
                     fStructRealOffset += inst->fType->getSize();
                 }
             } else {

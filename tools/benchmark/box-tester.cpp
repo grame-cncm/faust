@@ -81,51 +81,55 @@ static void compile(const string& name, Box box, int argc = 0, const char* argv[
     }
 }
 
-// process = 7, 3.14;
+// process = 7,3.14;
 
 static void test1()
 {
     COMPILER
     (
         Box box = boxPar(boxInt(7), boxReal(3.14));
+     
         compile("test1", box);
     )
 }
 
-// process = 7, 3.14 : +;
+// process = _,3.14 : +;
 
 static void test2()
 {
     COMPILER
     (
-        Box box = boxSeq(boxPar(boxInt(7), boxReal(3.14)), boxAdd());
+        Box box = boxSeq(boxPar(boxWire(), boxReal(3.14)), boxAdd());
+     
         compile("test2", box);
     )
 }
 
-// process = _,_ : +;
+// Alternate version with the binary 'boxAdd' version
+// process = +(_,3.14);
 
 static void test3()
 {
     COMPILER
     (
-        Box box = boxSeq(boxPar(boxWire(), boxWire()), boxAdd());
+        Box box = boxAdd(boxWire(), boxReal(3.14));
+     
         compile("test3", box);
     )
 }
 
-// Alternate version with the binary 'boxAdd' version
+
 // process = _,_ : +;
 
 static void test4()
 {
     COMPILER
     (
-        Box box = boxAdd(boxWire(), boxWire());
+        Box box = boxSeq(boxPar(boxWire(), boxWire()), boxAdd());
+     
         compile("test4", box);
     )
 }
-
 
 // Connection error
 // process = _ : +;
@@ -135,29 +139,43 @@ static void test5()
     COMPILER
     (
         Box box = boxSeq(boxWire(), boxMul());
+     
         compile("test5", box);
     )
 }
 
-// process = _,7 : @;
+// process = @(_,7);
 
 static void test6()
 {
     COMPILER
     (
-        Box box = boxSeq(boxPar(boxWire(), boxInt(7)), boxDelay());
+        Box box = boxDelay(boxWire(), boxInt(7));
+     
         compile("test6", box);
     )
 }
 
-// process = _,hslider("Freq [midi:ctrl 7][style:knob]", 100, 100, 2000, 1) : *;
+// process = @(_,7);
 
 static void test7()
+{
+    createLibContext();
+    Box box = boxDelay(boxWire(), boxInt(7));
+     
+    compile("test7", box, 3, (const char* []){ "-vec", "-lv", "1" });
+    destroyLibContext();
+}
+
+// process = _,hslider("Freq [midi:ctrl 7][style:knob]", 100, 100, 2000, 1) : *;
+
+static void test8()
 {
     COMPILER
     (
         Box box = boxMul(boxWire(), boxHSlider("Freq [midi:ctrl 7][style:knob]", boxReal(100), boxReal(100), boxReal(2000), boxReal(1)));
-        compile("test7", box);
+        
+        compile("test8", box);
     )
 }
 
@@ -170,31 +188,33 @@ static void test7()
  process = freq * gain;
  */
 
-static void test8()
+static void test9()
 {
     COMPILER
     (
         Box box = boxMul(boxVSlider("h:Oscillator/freq", boxReal(440), boxReal(50), boxReal(1000), boxReal(0.1)),
                          boxVSlider("h:Oscillator/gain", boxReal(0), boxReal(0), boxReal(1), boxReal(0.01)));
-        compile("test8", box);
+     
+        compile("test9", box);
     )
 }
 
 // import("stdfaust.lib");
 // process = ma.SR, ma.BS;
 
-static void test9()
+static void test10()
 {
     COMPILER
     (
         Box box = boxPar(getSampleRate(), getBufferSize());
-        compile("test9", box);
+     
+        compile("test10", box);
     )
 }
 
 // process = waveform { 0, 100, 200, 300, 400 };
 
-static void test10()
+static void test11()
 {
     COMPILER
     (
@@ -204,42 +224,46 @@ static void test10()
              waveform.push_back(boxReal(100*i));
          }
          Box box = boxWaveform(waveform);   // the waveform content
-         compile("test10", box);
+     
+         compile("test11", box);
     )
 }
 
 // process = _ <: +;
 
-static void test11()
+static void test12()
 {
     COMPILER
     (
         Box box = boxSplit(boxWire(), boxAdd());
-        compile("test11", box);
+     
+        compile("test12", box);
      )
 }
 
 // process = _,_ <: !,_,_,! :> _,_;
 
-static void test12()
+static void test13()
 {
     COMPILER
     (
         Box box = boxSplit(boxPar(boxWire(), boxWire()),
                            boxMerge(boxPar4(boxCut(), boxWire(), boxWire(), boxCut()),
                                     boxPar(boxWire(), boxWire())));
-        compile("test12", box);
+     
+        compile("test13", box);
     )
 }
 
 // process = + ~ _;
 
-static void test13()
+static void test14()
 {
     COMPILER
     (
         Box box = boxRec(boxAdd(), boxWire());
-        compile("test13", box);
+     
+        compile("test14", box);
     )
 }
 
@@ -262,12 +286,13 @@ static Box phasor(Box f)
     return boxSeq(boxDiv(f, getSampleRate()), boxRec(boxSplit(boxAdd(), decimalpart()), boxWire()));
 }
 
-static void test14()
+static void test15()
 {
     COMPILER
     (
         Box box = phasor(boxReal(440));
-        compile("test14", box);
+     
+        compile("test15", box);
     )
 }
 
@@ -286,45 +311,49 @@ static Box osc(Box f)
     return boxSin(boxMul(boxMul(boxReal(2.0), boxReal(3.141592653)), phasor(f)));
 }
 
-static void test15()
+static void test16()
 {
     COMPILER
     (
         Box box = boxPar(osc(boxReal(440)), osc(boxReal(440)));
-        compile("test15", box);
+     
+        compile("test16", box);
     )
 }
 
 // process = 0,0 : soundfile("sound[url:{'tango.wav'}]", 2);
 
-static void test16()
+static void test17()
 {
     COMPILER
     (
         Box box = boxSoundfile("sound[url:{'tango.wav'}]", boxInt(2),  boxInt(0),  boxInt(0));
-        compile("test16", box);
+     
+        compile("test17", box);
     )
 }
 
 // process = 10,1,int(_) : rdtable;
 
-static void test17()
+static void test18()
 {
     COMPILER
     (
         Box box = boxReadOnlyTable(boxInt(10), boxInt(1), boxIntCast(boxWire()));
-        compile("test17", box);
+     
+        compile("test18", box);
     )
 }
 
 // process = 10,1,int(_),int(_),int(_) : rwtable;
 
-static void test18()
+static void test19()
 {
     COMPILER
     (
         Box box = boxWriteReadTable(boxInt(10), boxInt(1), boxIntCast(boxWire()), boxIntCast(boxWire()), boxIntCast(boxWire()));
-        compile("test18", box);
+     
+        compile("test19", box);
     )
 }
 
@@ -341,7 +370,7 @@ static void test18()
  */
 
 // Using the LLVM backend.
-static void test19(int argc, char* argv[])
+static void test20(int argc, char* argv[])
 {
     createLibContext();
     {
@@ -382,7 +411,7 @@ static void test19(int argc, char* argv[])
 }
 
 // Using the Interpreter backend.
-static void test20(int argc, char* argv[])
+static void test21(int argc, char* argv[])
 {
     createLibContext();
     {
@@ -423,7 +452,7 @@ static void test20(int argc, char* argv[])
 }
 
 // Simple polyphonic DSP.
-static void test21(int argc, char* argv[])
+static void test22(int argc, char* argv[])
 {
     interpreter_dsp_factory* factory = nullptr;
     string error_msg;
@@ -505,15 +534,16 @@ int main(int argc, char* argv[])
     test16();
     test17();
     test18();
+    test19();
     
     // Test with audio, GUI and LLVM backend
-    test19(argc, argv);
-    
-    // Test with audio, GUI and Interp backend
     test20(argc, argv);
     
-    // Test with audio, GUI, MIDI and Interp backend
+    // Test with audio, GUI and Interp backend
     test21(argc, argv);
+    
+    // Test with audio, GUI, MIDI and Interp backend
+    test22(argc, argv);
     
     return 0;
 }

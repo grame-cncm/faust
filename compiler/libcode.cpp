@@ -1384,7 +1384,7 @@ static void compileInterp(Tree signals, int numInputs, int numOutputs, bool gene
     gGlobal->gAllowForeignFunction = false;  // No foreign functions
     gGlobal->gAllowForeignConstant = false;  // No foreign constant
     gGlobal->gAllowForeignVar      = false;  // No foreign variable
-                                             // gGlobal->gComputeIOTA          = true;   // Ensure IOTA base fixed delays are computed once
+    // gGlobal->gComputeIOTA       = true;   // Ensure IOTA base fixed delays are computed once
     
     // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;

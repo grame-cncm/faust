@@ -441,7 +441,7 @@ bool setup(BelaContext* context, void* userData)
         
 #ifdef MIDICTRL
         if (midi_sync) {
-            gDSP = new timed_dsp(DSP);
+            gDSP = new timed_dsp(gDSP);
         }
 #endif
     } else {
