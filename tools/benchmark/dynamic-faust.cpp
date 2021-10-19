@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
         }
         
         cout << "Compiled with optimal options : ";
-        for (int i = 0; i < optimal_options.size(); i++) {
+        for (size_t i = 0; i < optimal_options.size(); i++) {
             argv1[argc1++] = optimal_options[i].c_str();
             cout << optimal_options[i] << " ";
         }

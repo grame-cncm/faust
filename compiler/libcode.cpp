@@ -2408,7 +2408,7 @@ extern "C"
         return sigFVar(type, name, file);
     }
  
-    EXPORT Tree CsigBinOp(int op, Tree x, Tree y)
+    EXPORT Tree CsigBinOp(SOperator op, Tree x, Tree y)
     {
         return sigBinOp(op, x, y);
     }
@@ -2716,7 +2716,7 @@ EXPORT Tree boxFVar(SType type, const std::string& name, const std::string& file
     return boxFVar(tree(type), tree(name), tree(file));
 }
 
-EXPORT Tree boxBinOp(int op)
+EXPORT Tree boxBinOp(SOperator op)
 {
     static sigFun fun [] = {
         sigAdd, sigSub, sigMul, sigDiv, sigRem,
@@ -2926,6 +2926,11 @@ EXPORT Tree boxHBargraph(const std::string& label, Tree min, Tree max)
     return boxHBargraph(tree(label), min, max);
 }
 
+EXPORT Tree boxAttach()
+{
+    return boxPrim2(sigAttach);
+}
+
 // ==========
 // Box C API
 // ==========
@@ -3059,7 +3064,7 @@ extern "C"
         return boxFVar(type, name, file);
     }
     
-    EXPORT Tree CboxBinOp(int op)
+    EXPORT Tree CboxBinOp(SOperator op)
     {
         return boxBinOp(op);
     }
@@ -3260,6 +3265,11 @@ extern "C"
     EXPORT Tree CboxHBargraph(const char* label, Tree min, Tree max)
     {
         return boxHBargraph(label, min, max);
+    }
+    
+    EXPORT Tree CboxAttach()
+    {
+        return boxAttach();
     }
 
 #ifdef __cplusplus
