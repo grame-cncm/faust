@@ -269,32 +269,32 @@ bool isImportFile(Tree s, Tree& filename);
 *****************************************************************************/
 
 // GUI inputs
-Tree boxButton(Tree label);
+EXPORT Tree boxButton(Tree label);
 bool isBoxButton(Tree s);
 bool isBoxButton(Tree s, Tree& label);
 
-Tree boxCheckbox(Tree label);
+EXPORT Tree boxCheckbox(Tree label);
 bool isBoxCheckbox(Tree s);
 bool isBoxCheckbox(Tree s, Tree& label);
 
-Tree boxVSlider(Tree label, Tree cur, Tree min, Tree max, Tree step);
+EXPORT Tree boxVSlider(Tree label, Tree cur, Tree min, Tree max, Tree step);
 bool isBoxVSlider(Tree s);
 bool isBoxVSlider(Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
 
-Tree boxHSlider(Tree label, Tree cur, Tree min, Tree max, Tree step);
+EXPORT Tree boxHSlider(Tree label, Tree cur, Tree min, Tree max, Tree step);
 bool isBoxHSlider(Tree s);
 bool isBoxHSlider(Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
 
-Tree boxNumEntry(Tree label, Tree cur, Tree min, Tree max, Tree step);
+EXPORT Tree boxNumEntry(Tree label, Tree cur, Tree min, Tree max, Tree step);
 bool isBoxNumEntry(Tree s);
 bool isBoxNumEntry(Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
 
 // GUI outputs
-Tree boxVBargraph(Tree label, Tree min, Tree max);
+EXPORT Tree boxVBargraph(Tree label, Tree min, Tree max);
 bool isBoxVBargraph(Tree s);
 bool isBoxVBargraph(Tree s, Tree& label, Tree& min, Tree& max);
 
-Tree boxHBargraph(Tree label, Tree min, Tree max);
+EXPORT Tree boxHBargraph(Tree label, Tree min, Tree max);
 bool isBoxHBargraph(Tree s);
 bool isBoxHBargraph(Tree s, Tree& label, Tree& min, Tree& max);
 
@@ -311,7 +311,7 @@ Tree boxTGroup(Tree label, Tree x);
 bool isBoxTGroup(Tree s);
 bool isBoxTGroup(Tree s, Tree& label, Tree& x);
 
-Tree boxSoundfile(Tree label, Tree chan);
+EXPORT Tree boxSoundfile(Tree label, Tree chan);
 bool isBoxSoundfile(Tree s);
 bool isBoxSoundfile(Tree s, Tree& label, Tree& chan);
 
