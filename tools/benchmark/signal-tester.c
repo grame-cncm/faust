@@ -36,25 +36,25 @@
 /**
  * Return the current runtime sample rate.
  *
- * Reproduce the 'SR' definition in platform.lib: SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <dummy.h>)));
+ * Reproduce the 'SR' definition in platform.lib: SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <math.h>)));
  *
  * @return the current runtime sample rate.
  */
 inline Signal getSampleRate()
 {
-    return CsigMin(CsigReal(192000.0), CsigMax(CsigReal(1.0), CsigFConst(kSInt, "fSamplingFreq", "<dummy.h>")));
+    return CsigMin(CsigReal(192000.0), CsigMax(CsigReal(1.0), CsigFConst(kSInt, "fSamplingFreq", "<math.h>")));
 }
 
 /**
  * Return the current runtime buffer size.
  *
- * Reproduce the 'BS' definition in platform.lib: BS = fvariable(int count, <dummy.h>);
+ * Reproduce the 'BS' definition in platform.lib: BS = fvariable(int count, <math.h>);
  *
  * @return the current runtime buffer size.
  */
 inline Signal getBufferSize()
 {
-    return CsigFVar(kSInt, "count", "<dummy.h>");
+    return CsigFVar(kSInt, "count", "<math.h>");
 }
 
 static void render(llvm_dsp* dsp)

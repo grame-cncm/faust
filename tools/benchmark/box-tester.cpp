@@ -41,25 +41,25 @@ using namespace std;
 /**
  * Return the current runtime sample rate.
  *
- * Reproduce the 'SR' definition in platform.lib: SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <dummy.h>)));
+ * Reproduce the 'SR' definition in platform.lib: SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <math.h>)));
  *
  * @return the current runtime sample rate.
  */
 inline Box getSampleRate()
 {
-    return boxMin(boxReal(192000.0), boxMax(boxReal(1.0), boxFConst(SType::kSInt, "fSamplingFreq", "<dummy.h>")));
+    return boxMin(boxReal(192000.0), boxMax(boxReal(1.0), boxFConst(SType::kSInt, "fSamplingFreq", "<math.h>")));
 }
 
 /**
  * Return the current runtime buffer size.
  *
- * Reproduce the 'BS' definition in platform.lib: BS = fvariable(int count, <dummy.h>);
+ * Reproduce the 'BS' definition in platform.lib: BS = fvariable(int count, <math.h>);
  *
  * @return the current runtime buffer size.
  */
 inline Box getBufferSize()
 {
-    return boxFVar(SType::kSInt, "count", "<dummy.h>");
+    return boxFVar(SType::kSInt, "count", "<math.h>");
 }
 
 #define COMPILER(exp)    \

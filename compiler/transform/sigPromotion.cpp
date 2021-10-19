@@ -87,10 +87,9 @@ Tree SignalPromotion::transformation(Tree sig)
                 if (i1.valid & j1.valid && gGlobal->gMathExceptions && j1.haszero()) {
                     //cerr << "WARNING : potential division by zero (" << i1 << "/" << j1 << ") in " << ppsig(sig) << endl;
                     cerr << "WARNING : potential division by zero (" << i1 << "/" << j1 << ")" << endl;
-                } else {
-                    // the result of a division is always a float
-                    return sigBinOp(op, smartFloatCast(tx, self(x)), smartFloatCast(ty, self(y)));
                 }
+                // the result of a division is always a float
+                return sigBinOp(op, smartFloatCast(tx, self(x)), smartFloatCast(ty, self(y)));
             }
                 
             case kAND:

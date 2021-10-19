@@ -374,7 +374,7 @@ BelaOSCUI gOSCUI(OSC_IP_ADDRESS, OSC_IN_PORT, OSC_OUT_PORT);
 #endif
 
 #ifdef HTTPDGUI
-httpdUI* gHttpdInterface;
+httpdUI* gHttpdInterface = NULL;
 #endif
 
 #ifdef SOUNDFILE
