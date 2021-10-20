@@ -113,20 +113,11 @@ Box boxSeq(Box x, Box y);
  */
 Box boxPar(Box x, Box y);
 
-inline Box boxPar3(Box x, Box y, Box z)
-{
-    return boxPar(x, boxPar(y, z));
-}
+Box boxPar3(Box x, Box y, Box z);
 
-inline Box boxPar4(Box a, Box b, Box c, Box d)
-{
-    return boxPar(a, boxPar3(b, c, d));
-}
+Box boxPar4(Box a, Box b, Box c, Box d);
 
-inline Box boxPar5(Box a, Box b, Box c, Box d, Box e)
-{
-    return boxPar(a, boxPar4(b, c, d, e));
-}
+Box boxPar5(Box a, Box b, Box c, Box d, Box e);
 
 /**
  * The split composition (e.g., A<:B) operator is used to distribute
@@ -184,10 +175,7 @@ Box boxDelay();
 
  * @return the delayed box.
  */
-Box boxDelay(Box s, Box del)
-{
-    return boxSeq(boxPar(s, del), boxDelay());
-}
+Box boxDelay(Box s, Box del);
 
 /**
  * Create a casted box.
@@ -204,10 +192,7 @@ Box boxIntCast();
  * @return the casted box.
  */
 
-Box boxIntCast(Box s)
-{
-    return boxSeq(s, boxIntCast());
-}
+Box boxIntCast(Box s);
 
 /**
  * Create a casted box.
@@ -223,10 +208,7 @@ Box boxFloatCast();
  *
  * @return the casted box.
  */
-inline Box boxFloatCast(Box s)
-{
-    return boxSeq(s, boxFloatCast());
-}
+Box boxFloatCast(Box s);
 
 /**
  * Create a read only table.
@@ -244,10 +226,7 @@ Box boxReadOnlyTable();
  *
  * @return the table box.
  */
-inline Box boxReadOnlyTable(Box n, Box init, Box ridx)
-{
-    return boxSeq(boxPar3(n, init, ridx), boxReadOnlyTable());
-}
+Box boxReadOnlyTable(Box n, Box init, Box ridx);
 
 /**
  * Create a read/write table.
@@ -267,10 +246,7 @@ Box boxWriteReadTable();
  *
  * @return the table box.
  */
-inline Box boxWriteReadTable(Box n, Box init, Box widx, Box wsig, Box ridx)
-{
-    return boxSeq(boxPar5(n, init, widx, wsig, ridx), boxWriteReadTable());
-}
+Box boxWriteReadTable(Box n, Box init, Box widx, Box wsig, Box ridx);
 
 /**
  * Create a waveform.
@@ -301,10 +277,7 @@ Box boxSoundfile(const std::string& label, Box chan);
  *
  * @return the soundfile box.
  */
-inline Box boxSoundfile(const std::string& label, Box chan, Box part, Box ridx)
-{
-    return boxSeq(boxPar(part, ridx), boxSoundfile(label, chan));
-}
+Box boxSoundfile(const std::string& label, Box chan, Box part, Box ridx);
 
 /**
  * Create a selector between two boxes.
@@ -322,10 +295,7 @@ Box boxSelect2();
  *
  * @return the selected box depending of the selector value at each time t.
  */
-inline Box boxSelect2(Box selector, Box s1, Box s2)
-{
-    return boxSeq(boxPar3(selector, s1, s2), boxSelect2());
-}
+Box boxSelect2(Box selector, Box s1, Box s2);
 
 /**
  * Create a selector between three boxes.
@@ -344,10 +314,7 @@ Box boxSelect3();
  *
  * @return the selected box depending of the selector value at each time t.
  */
-inline Box boxSelect3(Box selector, Box s1, Box s2, Box s3)
-{
-    return boxSeq(boxPar4(selector, s1, s2, s3), boxSelect3());
-}
+Box boxSelect3(Box selector, Box s1, Box s2, Box s3);
 
 /**
  * Create a foreign constant box.
@@ -380,10 +347,7 @@ Box boxFVar(SType type, const std::string& name, const std::string& file);
  */
 Box boxBinOp(SOperator op);
 
-inline Box boxBinOp(SOperator op, Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxBinOp(op));
-}
+Box boxBinOp(SOperator op, Box b1, Box b2);
 
 /**
  * Specific binary mathematical functions.
@@ -391,208 +355,94 @@ inline Box boxBinOp(SOperator op, Box b1, Box b2)
  * @return the result box.
  */
 Box boxAdd();
-inline Box boxAdd(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxAdd());
-}
+Box boxAdd(Box b1, Box b2);
 Box boxSub();
-inline Box boxSub(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxSub());
-}
+Box boxSub(Box b1, Box b2);
 Box boxMul();
-inline Box boxMul(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxMul());
-}
+Box boxMul(Box b1, Box b2);
 Box boxDiv();
-inline Box boxDiv(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxDiv());
-}
+Box boxDiv(Box b1, Box b2);
 Box boxRem();
-inline Box boxRem(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxRem());
-}
+Box boxRem(Box b1, Box b2);
 
 Box boxLeftShift();
-inline Box boxLeftShift(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxLeftShift());
-}
+Box boxLeftShift(Box b1, Box b2);
 Box boxLRightShift();
-inline Box boxLRightShift(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxLRightShift());
-}
+Box boxLRightShift(Box b1, Box b2);
 Box boxARightShift();
-inline Box boxARightShift(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxARightShift());
-}
+Box boxARightShift(Box b1, Box b2);
 
 Box boxGT();
-inline Box boxGT(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxGT());
-}
+Box boxGT(Box b1, Box b2);
 Box boxLT();
-inline Box boxLT(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxLT());
-}
+Box boxLT(Box b1, Box b2);
 Box boxGE();
-inline Box boxGE(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxGE());
-}
+Box boxGE(Box b1, Box b2);
 Box boxLE();
-inline Box boxLE(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxLE());
-}
+Box boxLE(Box b1, Box b2);
 Box boxEQ();
-inline Box boxEQ(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxEQ());
-}
+Box boxEQ(Box b1, Box b2);
 Box boxNE();
-inline Box boxNE(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxNE());
-}
+Box boxNE(Box b1, Box b2);
 
 Box boxAND();
-inline Box boxAND(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxAND());
-}
+Box boxAND(Box b1, Box b2);
 Box boxOR();
-inline Box boxOR(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxOR());
-}
+Box boxOR(Box b1, Box b2);
 Box boxXOR();
-inline Box boxXOR(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxXOR());
-}
+Box boxXOR(Box b1, Box b2);
 
 /**
  * Extended unary mathematical functions.
  */
 
 Box boxAbs();
-inline Box boxAbs(Box x)
-{
-    return boxSeq(x, boxAbs());
-}
+Box boxAbs(Box x);
 Box boxAcos();
-inline Box boxAcos(Box x)
-{
-    return boxSeq(x, boxAcos());
-}
+Box boxAcos(Box x);
 Box boxTan();
-inline Box boxTan(Box x)
-{
-    return boxSeq(x, boxTan());
-}
+Box boxTan(Box x);
 Box boxSqrt();
-inline Box boxSqrt(Box x)
-{
-    return boxSeq(x, boxSqrt());
-}
+Box boxSqrt(Box x);
 Box boxSin();
-inline Box boxSin(Box x)
-{
-    return boxSeq(x, boxSin());
-}
+Box boxSin(Box x);
 Box boxRint();
-inline Box boxRint(Box x)
-{
-    return boxSeq(x, boxRint());
-}
+Box boxRint(Box x);
 Box boxLog();
-inline Box boxLog(Box x)
-{
-    return boxSeq(x, boxLog());
-}
+Box boxLog(Box x);
 Box boxLog10();
-inline Box boxLog10(Box x)
-{
-    return boxSeq(x, boxLog10());
-}
+Box boxLog10(Box x);
 Box boxFloor();
-inline Box boxFloor(Box x)
-{
-    return boxSeq(x, boxFloor());
-}
+Box boxFloor(Box x);
 Box boxExp();
-inline Box boxExp(Box x)
-{
-    return boxSeq(x, boxExp());
-}
+Box boxExp(Box x);
 Box boxExp10();
-inline Box boxExp10(Box x)
-{
-    return boxSeq(x, boxExp10());
-}
+Box boxExp10(Box x);
 Box boxCos();
-inline Box boxCos(Box x)
-{
-    return boxSeq(x, boxCos());
-}
+Box boxCos(Box x);
 Box boxCeil();
-inline Box boxCeil(Box x)
-{
-    return boxSeq(x, boxCeil());
-}
+Box boxCeil(Box x);
 Box boxAtan();
-inline Box boxAtan(Box x)
-{
-    return boxSeq(x, boxAtan());
-}
+Box boxAtan(Box x);
 Box boxAsin();
-inline Box boxAsin(Box x)
-{
-    return boxSeq(x, boxAsin());
-}
+Box boxAsin(Box x);
 
 /**
  * Extended binary mathematical functions.
  */
 
 Box boxRemainder();
-inline Box boxRemainder(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxRemainder());
-}
+Box boxRemainder(Box b1, Box b2);
 Box boxPow();
-inline Box boxPow(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxPow());
-}
+Box boxPow(Box b1, Box b2);
 Box boxMin();
-inline Box boxMin(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxMin());
-}
+Box boxMin(Box b1, Box b2);
 Box boxMax();
-inline Box boxMax(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxMax());
-}
+Box boxMax(Box b1, Box b2);
 Box boxFmod();
-inline Box boxFmod(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxFmod());
-}
+Box boxFmod(Box b1, Box b2);
 Box boxAtan2();
-inline Box boxAtan2(Box b1, Box b2)
-{
-    return boxSeq(boxPar(b1, b2), boxAtan2());
-}
+Box boxAtan2(Box b1, Box b2);
 
 /**
  * Create a button box.
@@ -672,10 +522,7 @@ Box boxVBargraph(const std::string& label, Box min, Box max);
  *
  * @return the vertical bargraph box.
  */
-inline Box boxVBargraph(const std::string& label, Box min, Box max, Box x)
-{
-    return boxSeq( x, boxVBargraph(label, min, max));
-}
+Box boxVBargraph(const std::string& label, Box min, Box max, Box x);
 
 /**
  * Create an horizontal bargraph box.
@@ -698,10 +545,8 @@ Box boxHBargraph(const std::string& label, Box min, Box max);
  *
  * @return the vertical horizontal box.
  */
-inline Box boxHBargraph(const std::string& label, Box min, Box max, Box x)
-{
-    return boxSeq(x, boxHBargraph(label, min, max));
-}
+Box boxHBargraph(const std::string& label, Box min, Box max, Box x);
+
 /**
  * Create an attach box.
  *
@@ -725,10 +570,7 @@ Box boxAttach();
  *
  * @return the attach signal.
  */
-inline Box boxAttach(Box s1, Box s2)
-{
-    return boxSeq(boxPar(s1, s2), boxAttach());
-}
+Box boxAttach(Box s1, Box s2);
 
 /**
  * Compile a box expression in a list of signals.

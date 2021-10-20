@@ -2931,6 +2931,273 @@ EXPORT Tree boxAttach()
     return boxPrim2(sigAttach);
 }
 
+// Helpers
+
+EXPORT Tree boxPar3(Tree x, Tree y, Tree z)
+{
+    return boxPar(x, boxPar(y, z));
+}
+
+EXPORT Tree boxPar4(Tree a, Tree b, Tree c, Tree d)
+{
+    return boxPar(a, boxPar3(b, c, d));
+}
+
+EXPORT Tree boxPar5(Tree a, Tree b, Tree c, Tree d, Tree e)
+{
+    return boxPar(a, boxPar4(b, c, d, e));
+}
+
+EXPORT Tree boxDelay(Tree s, Tree del)
+{
+    return boxSeq(boxPar(s, del), boxDelay());
+}
+
+EXPORT Tree boxIntCast(Tree s)
+{
+    return boxSeq(s, boxIntCast());
+}
+
+EXPORT Tree boxFloatCast(Tree s)
+{
+    return boxSeq(s, boxFloatCast());
+}
+
+EXPORT Tree boxReadOnlyTable(Tree n, Tree init, Tree ridx)
+{
+    return boxSeq(boxPar3(n, init, ridx), boxReadOnlyTable());
+}
+
+EXPORT Tree boxWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
+{
+    return boxSeq(boxPar5(n, init, widx, wsig, ridx), boxWriteReadTable());
+}
+
+EXPORT Tree boxSoundfile(const std::string& label, Tree chan, Tree part, Tree ridx)
+{
+    return boxSeq(boxPar(part, ridx), boxSoundfile(label, chan));
+}
+
+EXPORT Tree boxSelect2(Tree selector, Tree s1, Tree s2)
+{
+    return boxSeq(boxPar3(selector, s1, s2), boxSelect2());
+}
+
+EXPORT Tree boxSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
+{
+    return boxSeq(boxPar4(selector, s1, s2, s3), boxSelect3());
+}
+
+EXPORT Tree boxBinOp(SOperator op, Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxBinOp(op));
+}
+
+EXPORT Tree boxAdd(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxAdd());
+}
+
+EXPORT Tree boxSub(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxSub());
+}
+
+EXPORT Tree boxMul(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxMul());
+}
+
+EXPORT Tree boxDiv(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxDiv());
+}
+
+EXPORT Tree boxRem(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxRem());
+}
+
+EXPORT Tree boxLeftShift(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxLeftShift());
+}
+
+EXPORT Tree boxLRightShift(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxLRightShift());
+}
+
+EXPORT Tree boxARightShift(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxARightShift());
+}
+
+EXPORT Tree boxGT(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxGT());
+}
+
+EXPORT Tree boxLT(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxLT());
+}
+
+EXPORT Tree boxGE(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxGE());
+}
+
+EXPORT Tree boxLE(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxLE());
+}
+
+EXPORT Tree boxEQ(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxEQ());
+}
+
+EXPORT Tree boxNE(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxNE());
+}
+
+EXPORT Tree boxAND(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxAND());
+}
+
+EXPORT Tree boxOR(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxOR());
+}
+
+EXPORT Tree boxXOR(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxXOR());
+}
+
+EXPORT Tree boxAbs(Tree x)
+{
+    return boxSeq(x, boxAbs());
+}
+
+EXPORT Tree boxAcos(Tree x)
+{
+    return boxSeq(x, boxAcos());
+}
+
+EXPORT Tree boxTan(Tree x)
+{
+    return boxSeq(x, boxTan());
+}
+
+EXPORT Tree boxSqrt(Tree x)
+{
+    return boxSeq(x, boxSqrt());
+}
+
+EXPORT Tree boxSin(Tree x)
+{
+    return boxSeq(x, boxSin());
+}
+
+EXPORT Tree boxRint(Tree x)
+{
+    return boxSeq(x, boxRint());
+}
+
+EXPORT Tree boxLog(Tree x)
+{
+    return boxSeq(x, boxLog());
+}
+
+EXPORT Tree boxLog10(Tree x)
+{
+    return boxSeq(x, boxLog10());
+}
+
+EXPORT Tree boxFloor(Tree x)
+{
+    return boxSeq(x, boxFloor());
+}
+
+EXPORT Tree boxExp(Tree x)
+{
+    return boxSeq(x, boxExp());
+}
+
+EXPORT Tree boxExp10(Tree x)
+{
+    return boxSeq(x, boxExp10());
+}
+
+EXPORT Tree boxCos(Tree x)
+{
+    return boxSeq(x, boxCos());
+}
+
+EXPORT Tree boxCeil(Tree x)
+{
+    return boxSeq(x, boxCeil());
+}
+
+EXPORT Tree boxAtan(Tree x)
+{
+    return boxSeq(x, boxAtan());
+}
+
+EXPORT Tree boxAsin(Tree x)
+{
+    return boxSeq(x, boxAsin());
+}
+
+EXPORT Tree boxRemainder(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxRemainder());
+}
+
+EXPORT Tree boxPow(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxPow());
+}
+
+EXPORT Tree boxMin(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxMin());
+}
+
+EXPORT Tree boxMax(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxMax());
+}
+
+EXPORT Tree boxFmod(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxFmod());
+}
+
+EXPORT Tree boxAtan2(Tree b1, Tree b2)
+{
+    return boxSeq(boxPar(b1, b2), boxAtan2());
+}
+
+EXPORT Tree boxVBargraph(const std::string& label, Tree min, Tree max, Tree x)
+{
+    return boxSeq( x, boxVBargraph(label, min, max));
+}
+
+EXPORT Tree boxHBargraph(const std::string& label, Tree min, Tree max, Tree x)
+{
+    return boxSeq(x, boxHBargraph(label, min, max));
+}
+
+EXPORT Tree boxAttach(Tree s1, Tree s2)
+{
+    return boxSeq(boxPar(s1, s2), boxAttach());
+}
+
 // ==========
 // Box C API
 // ==========
@@ -3270,6 +3537,273 @@ extern "C"
     EXPORT Tree CboxAttach()
     {
         return boxAttach();
+    }
+    
+    // Helpers
+    
+    Tree CboxPar3(Tree x, Tree y, Tree z)
+    {
+        return CboxPar(x, CboxPar(y, z));
+    }
+    
+    Tree CboxPar4(Tree a, Tree b, Tree c, Tree d)
+    {
+        return CboxPar(a, CboxPar3(b, c, d));
+    }
+    
+    Tree CboxPar5(Tree a, Tree b, Tree c, Tree d, Tree e)
+    {
+        return CboxPar(a, CboxPar4(b, c, d, e));
+    }
+    
+    Tree CboxDelayAux(Tree s, Tree del)
+    {
+        return CboxSeq(CboxPar(s, del), CboxDelay());
+    }
+    
+    Tree CboxIntCastAux(Tree s)
+    {
+        return CboxSeq(s, CboxIntCast());
+    }
+    
+    Tree CboxFloatCastAux(Tree s)
+    {
+        return CboxSeq(s, CboxFloatCast());
+    }
+    
+    Tree CboxReadOnlyTableAux(Tree n, Tree init, Tree ridx)
+    {
+        return CboxSeq(CboxPar3(n, init, ridx), CboxReadOnlyTable());
+    }
+    
+    Tree CboxWriteReadTableAux(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
+    {
+        return CboxSeq(boxPar5(n, init, widx, wsig, ridx), CboxWriteReadTable());
+    }
+    
+    Tree CoxSoundfileAux(const char* label, Tree chan, Tree part, Tree ridx)
+    {
+        return CboxSeq(CboxPar(part, ridx), CboxSoundfile(label, chan));
+    }
+    
+    Tree CboxSelect2Aux(Tree selector, Tree s1, Tree s2)
+    {
+        return CboxSeq(CboxPar3(selector, s1, s2), CboxSelect2());
+    }
+    
+    Tree CboxSelect3Aux(Tree selector, Tree s1, Tree s2, Tree s3)
+    {
+        return CboxSeq(CboxPar4(selector, s1, s2, s3), CboxSelect3());
+    }
+    
+    Tree CboxBinOpAux(SOperator op, Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxBinOp(op));
+    }
+    
+    Tree CboxAddAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxAdd());
+    }
+    
+    Tree CboxSubAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxSub());
+    }
+    
+    Tree CboxMulAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxMul());
+    }
+    
+    Tree CboxDivAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxDiv());
+    }
+    
+    Tree CboxRemAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxRem());
+    }
+    
+    Tree CboxLeftShiftAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxLeftShift());
+    }
+    
+    Tree CboxLRightShiftAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxLRightShift());
+    }
+    
+    Tree CboxARightShiftAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxARightShift());
+    }
+    
+    Tree CboxGTAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxGT());
+    }
+    
+    Tree CboxLTAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxLT());
+    }
+    
+    Tree CboxGEAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxGE());
+    }
+    
+    Tree CboxLEAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxLE());
+    }
+    
+    Tree CboxEQAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxEQ());
+    }
+    
+    Tree CboxNEAux(Tree b1, Tree b2)
+    {
+    return CboxSeq(CboxPar(b1, b2), CboxNE());
+    }
+    
+    Tree CboxANDAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxAND());
+    }
+    
+    Tree CboxORAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxOR());
+    }
+    
+    Tree CboxXORAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxXOR());
+    }
+    
+    Tree CboxAbsAux(Tree x)
+    {
+        return CboxSeq(x, CboxAbs());
+    }
+    
+    Tree CboxAcosAux(Tree x)
+    {
+        return CboxSeq(x, CboxAcos());
+    }
+    
+    Tree CboxTanAux(Tree x)
+    {
+        return CboxSeq(x, CboxTan());
+    }
+    
+    Tree CboxSqrtAux(Tree x)
+    {
+        return CboxSeq(x, CboxSqrt());
+    }
+    
+    Tree CboxSinAux(Tree x)
+    {
+        return CboxSeq(x, CboxSin());
+    }
+    
+    Tree CboxRintAux(Tree x)
+    {
+        return CboxSeq(x, CboxRint());
+    }
+    
+    Tree CboxLogAux(Tree x)
+    {
+        return CboxSeq(x, CboxLog());
+    }
+    
+    Tree CboxLog10Aux(Tree x)
+    {
+        return CboxSeq(x, CboxLog10());
+    }
+    
+    Tree CboxFloorAux(Tree x)
+    {
+        return CboxSeq(x, CboxFloor());
+    }
+    
+    Tree CboxExpAux(Tree x)
+    {
+        return CboxSeq(x, CboxExp());
+    }
+    
+    Tree CboxExp10Aux(Tree x)
+    {
+        return CboxSeq(x, CboxExp10());
+    }
+    
+    Tree CboxCosAux(Tree x)
+    {
+        return CboxSeq(x, CboxCos());
+    }
+    
+    Tree CboxCeilAux(Tree x)
+    {
+        return CboxSeq(x, CboxCeil());
+    }
+    
+    Tree CboxAtanAux(Tree x)
+    {
+        return CboxSeq(x, CboxAtan());
+    }
+    
+    Tree CboxAsinAux(Tree x)
+    {
+        return CboxSeq(x, CboxAsin());
+    }
+    
+    Tree CboxRemainderAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxRemainder());
+    }
+    
+    Tree CboxPowAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxPow());
+    }
+    
+    Tree CboxMinAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxMin());
+    }
+    
+    Tree CboxMaxAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxMax());
+    }
+    
+    Tree CboxFmodAux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxFmod());
+    }
+    
+    Tree CboxAtan2Aux(Tree b1, Tree b2)
+    {
+        return CboxSeq(CboxPar(b1, b2), CboxAtan2());
+    }
+    
+    Tree CboxVBargraphAux(const char* label, Tree min, Tree max, Tree x)
+    {
+        return CboxSeq(x, CboxVBargraph(label, min, max));
+    }
+    
+    Tree CboxHBargraphAux(const char* label, Tree min, Tree max, Tree x)
+    {
+        return CboxSeq(x, CboxHBargraph(label, min, max));
+    }
+    
+    Tree CboxAttachAux(Tree s1, Tree s2)
+    {
+        return CboxSeq(CboxPar(s1, s2), CboxAttach());
     }
 
 #ifdef __cplusplus
