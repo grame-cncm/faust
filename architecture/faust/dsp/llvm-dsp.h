@@ -219,7 +219,7 @@ llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app,
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
-llvm_dsp_factory* createDSPFactoryFromSignals(const std::string& name_app, tvec signals,
+llvm_dsp_factory* createDSPFactoryFromSignals(const std::string& name_app, tvec signals_vec,
                                               int argc, const char* argv[],
                                               const std::string& target,
                                               std::string& error_msg,

@@ -434,7 +434,7 @@ Signal sigAttach(Signal s1, Signal s2);
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
-dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name_app, tvec signals,
+dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name_app, tvec signals_vec,
                                                  int argc, const char* argv[],
                                                  std::string& error_msg);
 
