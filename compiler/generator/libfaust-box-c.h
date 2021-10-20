@@ -108,17 +108,17 @@ extern "C"
      */
     Box CboxPar(Box x, Box y);
     
-    Box CboxPar3(Box x, Box y, Box z)
+    inline Box CboxPar3(Box x, Box y, Box z)
     {
         return CboxPar(x, CboxPar(y, z));
     }
     
-    Box CboxPar4(Box a, Box b, Box c, Box d)
+    inline Box CboxPar4(Box a, Box b, Box c, Box d)
     {
         return CboxPar(a, CboxPar3(b, c, d));
     }
     
-    Box boxPar5(Box a, Box b, Box c, Box d, Box e)
+    inline Box boxPar5(Box a, Box b, Box c, Box d, Box e)
     {
         return CboxPar(a, CboxPar4(b, c, d, e));
     }
@@ -179,7 +179,7 @@ extern "C"
      
      * @return the delayed box.
      */
-    Box CboxDelayAux(Box s, Box del)
+    inline Box CboxDelayAux(Box s, Box del)
     {
         return CboxSeq(CboxPar(s, del), CboxDelay());
     }
@@ -199,7 +199,7 @@ extern "C"
      * @return the casted box.
      */
     
-    Box CboxIntCastAux(Box s)
+    inline Box CboxIntCastAux(Box s)
     {
         return CboxSeq(s, CboxIntCast());
     }
@@ -218,7 +218,7 @@ extern "C"
      *
      * @return the casted box.
      */
-    Box CboxFloatCastAux(Box s)
+    inline Box CboxFloatCastAux(Box s)
     {
         return CboxSeq(s, CboxFloatCast());
     }
@@ -239,7 +239,7 @@ extern "C"
      *
      * @return the table box.
      */
-    Box CboxReadOnlyTableAux(Box n, Box init, Box ridx)
+    inline Box CboxReadOnlyTableAux(Box n, Box init, Box ridx)
     {
         return CboxSeq(CboxPar3(n, init, ridx), CboxReadOnlyTable());
     }
@@ -262,7 +262,7 @@ extern "C"
      *
      * @return the table box.
      */
-    Box CboxWriteReadTableAux(Box n, Box init, Box widx, Box wsig, Box ridx)
+    inline Box CboxWriteReadTableAux(Box n, Box init, Box widx, Box wsig, Box ridx)
     {
         return CboxSeq(boxPar5(n, init, widx, wsig, ridx), CboxWriteReadTable());
     }
@@ -296,7 +296,7 @@ extern "C"
      *
      * @return the soundfile box.
      */
-    Box CoxSoundfileAux(const char* label, Box chan, Box part, Box ridx)
+    inline Box CoxSoundfileAux(const char* label, Box chan, Box part, Box ridx)
     {
         return CboxSeq(CboxPar(part, ridx), CboxSoundfile(label, chan));
     }
@@ -317,7 +317,7 @@ extern "C"
      *
      * @return the selected box depending of the selector value at each time t.
      */
-    Box CboxSelect2Aux(Box selector, Box s1, Box s2)
+    inline Box CboxSelect2Aux(Box selector, Box s1, Box s2)
     {
         return CboxSeq(CboxPar3(selector, s1, s2), CboxSelect2());
     }
@@ -339,7 +339,7 @@ extern "C"
      *
      * @return the selected box depending of the selector value at each time t.
      */
-    Box CboxSelect3Aux(Box selector, Box s1, Box s2, Box s3)
+    inline Box CboxSelect3Aux(Box selector, Box s1, Box s2, Box s3)
     {
         return CboxSeq(CboxPar4(selector, s1, s2, s3), CboxSelect3());
     }
@@ -375,7 +375,7 @@ extern "C"
      */
     Box CboxBinOp(SOperator op);
     
-    Box CboxBinOpAux(SOperator op, Box b1, Box b2)
+    inline Box CboxBinOpAux(SOperator op, Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxBinOp(op));
     }
@@ -386,90 +386,90 @@ extern "C"
      * @return the result box.
      */
     Box CboxAdd();
-    Box CboxAddAux(Box b1, Box b2)
+    inline Box CboxAddAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxAdd());
     }
     Box CboxSub();
-    Box CboxSubAux(Box b1, Box b2)
+    inline Box CboxSubAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxSub());
     }
     Box CboxMul();
-    Box CboxMulAux(Box b1, Box b2)
+    inline Box CboxMulAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxMul());
     }
     Box CboxDiv();
-    Box CboxDivAux(Box b1, Box b2)
+    inline Box CboxDivAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxDiv());
     }
     Box CboxRem();
-    Box CboxRemAux(Box b1, Box b2)
+    inline Box CboxRemAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxRem());
     }
     
     Box CboxLeftShift();
-    Box CboxLeftShiftAux(Box b1, Box b2)
+    inline Box CboxLeftShiftAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxLeftShift());
     }
     Box CboxLRightShift();
-    Box CboxLRightShiftAux(Box b1, Box b2)
+    inline Box CboxLRightShiftAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxLRightShift());
     }
     Box CboxARightShift();
-    Box CboxARightShiftAux(Box b1, Box b2)
+    inline Box CboxARightShiftAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxARightShift());
     }
     
     Box CboxGT();
-    Box CboxGTAux(Box b1, Box b2)
+    inline Box CboxGTAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxGT());
     }
     Box CboxLT();
-    Box CboxLTAux(Box b1, Box b2)
+    inline Box CboxLTAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxLT());
     }
     Box CboxGE();
-    Box CboxGEAux(Box b1, Box b2)
+    inline Box CboxGEAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxGE());
     }
     Box CboxLE();
-    Box CboxLEAux(Box b1, Box b2)
+    inline Box CboxLEAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxLE());
     }
     Box CboxEQ();
-    Box CboxEQAux(Box b1, Box b2)
+    inline Box CboxEQAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxEQ());
     }
     Box CboxNE();
-    Box CboxNEAux(Box b1, Box b2)
+    inline Box CboxNEAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxNE());
     }
     
     Box CboxAND();
-    Box CboxANDAux(Box b1, Box b2)
+    inline Box CboxANDAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxAND());
     }
     Box CboxOR();
-    Box CboxORAux(Box b1, Box b2)
+    inline Box CboxORAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxOR());
     }
     Box CboxXOR();
-    Box CboxXORAux(Box b1, Box b2)
+    inline Box CboxXORAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxXOR());
     }
@@ -479,77 +479,77 @@ extern "C"
      */
     
     Box CboxAbs();
-    Box CboxAbsAux(Box x)
+    inline Box CboxAbsAux(Box x)
     {
         return CboxSeq(x, CboxAbs());
     }
     Box CboxAcos();
-    Box CboxAcosAux(Box x)
+    inline Box CboxAcosAux(Box x)
     {
         return CboxSeq(x, CboxAcos());
     }
     Box CboxTan();
-    Box CboxTanAux(Box x)
+    inline Box CboxTanAux(Box x)
     {
         return CboxSeq(x, CboxTan());
     }
     Box CboxSqrt();
-    Box CboxSqrtAux(Box x)
+    inline Box CboxSqrtAux(Box x)
     {
         return CboxSeq(x, CboxSqrt());
     }
     Box CboxSin();
-    Box CboxSinAux(Box x)
+    inline Box CboxSinAux(Box x)
     {
         return CboxSeq(x, CboxSin());
     }
     Box CboxRint();
-    Box CboxRintAux(Box x)
+    inline Box CboxRintAux(Box x)
     {
         return CboxSeq(x, CboxRint());
     }
     Box CboxLog();
-    Box CboxLogAux(Box x)
+    inline Box CboxLogAux(Box x)
     {
         return CboxSeq(x, CboxLog());
     }
     Box CboxLog10();
-    Box CboxLog10Aux(Box x)
+    inline Box CboxLog10Aux(Box x)
     {
         return CboxSeq(x, CboxLog10());
     }
     Box CboxFloor();
-    Box CboxFloorAux(Box x)
+    inline Box CboxFloorAux(Box x)
     {
         return CboxSeq(x, CboxFloor());
     }
     Box CboxExp();
-    Box CboxExpAux(Box x)
+    inline Box CboxExpAux(Box x)
     {
         return CboxSeq(x, CboxExp());
     }
     Box CboxExp10();
-    Box CboxExp10Aux(Box x)
+    inline Box CboxExp10Aux(Box x)
     {
         return CboxSeq(x, CboxExp10());
     }
     Box CboxCos();
-    Box CboxCosAux(Box x)
+    inline Box CboxCosAux(Box x)
     {
         return CboxSeq(x, CboxCos());
     }
     Box CboxCeil();
-    Box CboxCeilAux(Box x)
+    inline Box CboxCeilAux(Box x)
     {
         return CboxSeq(x, CboxCeil());
     }
     Box CboxAtan();
-    Box CboxAtanAux(Box x)
+    inline Box CboxAtanAux(Box x)
     {
         return CboxSeq(x, CboxAtan());
     }
     Box CboxAsin();
-    Box CboxAsinAux(Box x)
+    inline Box CboxAsinAux(Box x)
     {
         return CboxSeq(x, CboxAsin());
     }
@@ -559,32 +559,32 @@ extern "C"
      */
     
     Box CboxRemainder();
-    Box CboxRemainderAux(Box b1, Box b2)
+    inline Box CboxRemainderAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxRemainder());
     }
     Box CboxPow();
-    Box CboxPowAux(Box b1, Box b2)
+    inline Box CboxPowAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxPow());
     }
     Box CboxMin();
-    Box CboxMinAux(Box b1, Box b2)
+    inline Box CboxMinAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxMin());
     }
     Box CboxMax();
-    Box CboxMaxAux(Box b1, Box b2)
+    inline Box CboxMaxAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxMax());
     }
     Box CboxFmod();
-    Box CboxFmodAux(Box b1, Box b2)
+    inline Box CboxFmodAux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxFmod());
     }
     Box CboxAtan2();
-    Box CboxAtan2Aux(Box b1, Box b2)
+    inline Box CboxAtan2Aux(Box b1, Box b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxAtan2());
     }
@@ -667,7 +667,7 @@ extern "C"
      *
      * @return the vertical bargraph box.
      */
-    Box CboxVBargraphAux(const char* label, Box min, Box max, Box x)
+    inline Box CboxVBargraphAux(const char* label, Box min, Box max, Box x)
     {
         return CboxSeq(x, CboxVBargraph(label, min, max));
     }
@@ -693,7 +693,7 @@ extern "C"
      *
      * @return the vertical horizontal box.
      */
-    Box CboxHBargraphAux(const char* label, Box min, Box max, Box x)
+    inline Box CboxHBargraphAux(const char* label, Box min, Box max, Box x)
     {
         return CboxSeq(x, CboxHBargraph(label, min, max));
     }
@@ -720,7 +720,7 @@ extern "C"
      *
      * @return the attach signal.
      */
-    Box CboxAttachAux(Box s1, Box s2)
+    inline Box CboxAttachAux(Box s1, Box s2)
     {
         return CboxSeq(CboxPar(s1, s2), CboxAttach());
     }

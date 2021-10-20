@@ -113,17 +113,17 @@ Box boxSeq(Box x, Box y);
  */
 Box boxPar(Box x, Box y);
 
-Box boxPar3(Box x, Box y, Box z)
+inline Box boxPar3(Box x, Box y, Box z)
 {
     return boxPar(x, boxPar(y, z));
 }
 
-Box boxPar4(Box a, Box b, Box c, Box d)
+inline Box boxPar4(Box a, Box b, Box c, Box d)
 {
     return boxPar(a, boxPar3(b, c, d));
 }
 
-Box boxPar5(Box a, Box b, Box c, Box d, Box e)
+inline Box boxPar5(Box a, Box b, Box c, Box d, Box e)
 {
     return boxPar(a, boxPar4(b, c, d, e));
 }
@@ -223,7 +223,7 @@ Box boxFloatCast();
  *
  * @return the casted box.
  */
-Box boxFloatCast(Box s)
+inline Box boxFloatCast(Box s)
 {
     return boxSeq(s, boxFloatCast());
 }
@@ -244,7 +244,7 @@ Box boxReadOnlyTable();
  *
  * @return the table box.
  */
-Box boxReadOnlyTable(Box n, Box init, Box ridx)
+inline Box boxReadOnlyTable(Box n, Box init, Box ridx)
 {
     return boxSeq(boxPar3(n, init, ridx), boxReadOnlyTable());
 }
@@ -267,7 +267,7 @@ Box boxWriteReadTable();
  *
  * @return the table box.
  */
-Box boxWriteReadTable(Box n, Box init, Box widx, Box wsig, Box ridx)
+inline Box boxWriteReadTable(Box n, Box init, Box widx, Box wsig, Box ridx)
 {
     return boxSeq(boxPar5(n, init, widx, wsig, ridx), boxWriteReadTable());
 }
@@ -301,7 +301,7 @@ Box boxSoundfile(const std::string& label, Box chan);
  *
  * @return the soundfile box.
  */
-Box boxSoundfile(const std::string& label, Box chan, Box part, Box ridx)
+inline Box boxSoundfile(const std::string& label, Box chan, Box part, Box ridx)
 {
     return boxSeq(boxPar(part, ridx), boxSoundfile(label, chan));
 }
@@ -322,7 +322,7 @@ Box boxSelect2();
  *
  * @return the selected box depending of the selector value at each time t.
  */
-Box boxSelect2(Box selector, Box s1, Box s2)
+inline Box boxSelect2(Box selector, Box s1, Box s2)
 {
     return boxSeq(boxPar3(selector, s1, s2), boxSelect2());
 }
@@ -344,7 +344,7 @@ Box boxSelect3();
  *
  * @return the selected box depending of the selector value at each time t.
  */
-Box boxSelect3(Box selector, Box s1, Box s2, Box s3)
+inline Box boxSelect3(Box selector, Box s1, Box s2, Box s3)
 {
     return boxSeq(boxPar4(selector, s1, s2, s3), boxSelect3());
 }
@@ -380,7 +380,7 @@ Box boxFVar(SType type, const std::string& name, const std::string& file);
  */
 Box boxBinOp(SOperator op);
 
-Box boxBinOp(SOperator op, Box b1, Box b2)
+inline Box boxBinOp(SOperator op, Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxBinOp(op));
 }
@@ -391,90 +391,90 @@ Box boxBinOp(SOperator op, Box b1, Box b2)
  * @return the result box.
  */
 Box boxAdd();
-Box boxAdd(Box b1, Box b2)
+inline Box boxAdd(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxAdd());
 }
 Box boxSub();
-Box boxSub(Box b1, Box b2)
+inline Box boxSub(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxSub());
 }
 Box boxMul();
-Box boxMul(Box b1, Box b2)
+inline Box boxMul(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxMul());
 }
 Box boxDiv();
-Box boxDiv(Box b1, Box b2)
+inline Box boxDiv(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxDiv());
 }
 Box boxRem();
-Box boxRem(Box b1, Box b2)
+inline Box boxRem(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxRem());
 }
 
 Box boxLeftShift();
-Box boxLeftShift(Box b1, Box b2)
+inline Box boxLeftShift(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxLeftShift());
 }
 Box boxLRightShift();
-Box boxLRightShift(Box b1, Box b2)
+inline Box boxLRightShift(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxLRightShift());
 }
 Box boxARightShift();
-Box boxARightShift(Box b1, Box b2)
+inline Box boxARightShift(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxARightShift());
 }
 
 Box boxGT();
-Box boxGT(Box b1, Box b2)
+inline Box boxGT(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxGT());
 }
 Box boxLT();
-Box boxLT(Box b1, Box b2)
+inline Box boxLT(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxLT());
 }
 Box boxGE();
-Box boxGE(Box b1, Box b2)
+inline Box boxGE(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxGE());
 }
 Box boxLE();
-Box boxLE(Box b1, Box b2)
+inline Box boxLE(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxLE());
 }
 Box boxEQ();
-Box boxEQ(Box b1, Box b2)
+inline Box boxEQ(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxEQ());
 }
 Box boxNE();
-Box boxNE(Box b1, Box b2)
+inline Box boxNE(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxNE());
 }
 
 Box boxAND();
-Box boxAND(Box b1, Box b2)
+inline Box boxAND(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxAND());
 }
 Box boxOR();
-Box boxOR(Box b1, Box b2)
+inline Box boxOR(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxOR());
 }
 Box boxXOR();
-Box boxXOR(Box b1, Box b2)
+inline Box boxXOR(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxXOR());
 }
@@ -484,77 +484,77 @@ Box boxXOR(Box b1, Box b2)
  */
 
 Box boxAbs();
-Box boxAbs(Box x)
+inline Box boxAbs(Box x)
 {
     return boxSeq(x, boxAbs());
 }
 Box boxAcos();
-Box boxAcos(Box x)
+inline Box boxAcos(Box x)
 {
     return boxSeq(x, boxAcos());
 }
 Box boxTan();
-Box boxTan(Box x)
+inline Box boxTan(Box x)
 {
     return boxSeq(x, boxTan());
 }
 Box boxSqrt();
-Box boxSqrt(Box x)
+inline Box boxSqrt(Box x)
 {
     return boxSeq(x, boxSqrt());
 }
 Box boxSin();
-Box boxSin(Box x)
+inline Box boxSin(Box x)
 {
     return boxSeq(x, boxSin());
 }
 Box boxRint();
-Box boxRint(Box x)
+inline Box boxRint(Box x)
 {
     return boxSeq(x, boxRint());
 }
 Box boxLog();
-Box boxLog(Box x)
+inline Box boxLog(Box x)
 {
     return boxSeq(x, boxLog());
 }
 Box boxLog10();
-Box boxLog10(Box x)
+inline Box boxLog10(Box x)
 {
     return boxSeq(x, boxLog10());
 }
 Box boxFloor();
-Box boxFloor(Box x)
+inline Box boxFloor(Box x)
 {
     return boxSeq(x, boxFloor());
 }
 Box boxExp();
-Box boxExp(Box x)
+inline Box boxExp(Box x)
 {
     return boxSeq(x, boxExp());
 }
 Box boxExp10();
-Box boxExp10(Box x)
+inline Box boxExp10(Box x)
 {
     return boxSeq(x, boxExp10());
 }
 Box boxCos();
-Box boxCos(Box x)
+inline Box boxCos(Box x)
 {
     return boxSeq(x, boxCos());
 }
 Box boxCeil();
-Box boxCeil(Box x)
+inline Box boxCeil(Box x)
 {
     return boxSeq(x, boxCeil());
 }
 Box boxAtan();
-Box boxAtan(Box x)
+inline Box boxAtan(Box x)
 {
     return boxSeq(x, boxAtan());
 }
 Box boxAsin();
-Box boxAsin(Box x)
+inline Box boxAsin(Box x)
 {
     return boxSeq(x, boxAsin());
 }
@@ -564,32 +564,32 @@ Box boxAsin(Box x)
  */
 
 Box boxRemainder();
-Box boxRemainder(Box b1, Box b2)
+inline Box boxRemainder(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxRemainder());
 }
 Box boxPow();
-Box boxPow(Box b1, Box b2)
+inline Box boxPow(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxPow());
 }
 Box boxMin();
-Box boxMin(Box b1, Box b2)
+inline Box boxMin(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxMin());
 }
 Box boxMax();
-Box boxMax(Box b1, Box b2)
+inline Box boxMax(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxMax());
 }
 Box boxFmod();
-Box boxFmod(Box b1, Box b2)
+inline Box boxFmod(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxFmod());
 }
 Box boxAtan2();
-Box boxAtan2(Box b1, Box b2)
+inline Box boxAtan2(Box b1, Box b2)
 {
     return boxSeq(boxPar(b1, b2), boxAtan2());
 }
@@ -672,7 +672,7 @@ Box boxVBargraph(const std::string& label, Box min, Box max);
  *
  * @return the vertical bargraph box.
  */
-Box boxVBargraph(const std::string& label, Box min, Box max, Box x)
+inline Box boxVBargraph(const std::string& label, Box min, Box max, Box x)
 {
     return boxSeq( x, boxVBargraph(label, min, max));
 }
@@ -698,7 +698,7 @@ Box boxHBargraph(const std::string& label, Box min, Box max);
  *
  * @return the vertical horizontal box.
  */
-Box boxHBargraph(const std::string& label, Box min, Box max, Box x)
+inline Box boxHBargraph(const std::string& label, Box min, Box max, Box x)
 {
     return boxSeq(x, boxHBargraph(label, min, max));
 }
@@ -725,7 +725,7 @@ Box boxAttach();
  *
  * @return the attach signal.
  */
-Box boxAttach(Box s1, Box s2)
+inline Box boxAttach(Box s1, Box s2)
 {
     return boxSeq(boxPar(s1, s2), boxAttach());
 }
