@@ -1220,7 +1220,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     int v1 = popInt();
                     int v2 = popInt();
                     pushInt(v1 & v2);
-                     dispatchNextScal();
+                    dispatchNextScal();
                 }
                 
                 case FBCInstruction::kORInt : {

@@ -19,6 +19,9 @@
  ************************************************************************
  ************************************************************************/
 
+#include <string>
+#include <vector>
+
 #ifndef LIBFAUSTCOMMON_H
 #define LIBFAUSTCOMMON_H
 
@@ -46,9 +49,6 @@ struct dsp_factory_base {
 
 #ifndef LIBFAUSTBOX_H
 #define LIBFAUSTBOX_H
-
-#include <string>
-#include <vector>
 
 /**
  * Opaque types.
