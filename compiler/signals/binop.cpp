@@ -20,7 +20,7 @@
  ************************************************************************/
 
 #ifdef WIN32
-#pragma warning(disable : 4141 4146 4244 4267 4800)
+#pragma warning(disable : 4141 4146 4244 4267 4800 4291)
 #endif
 
 #include "binop.hh"
@@ -36,10 +36,6 @@ static bool noNtrl(const Node& n)
 {
     return falsePredicate(n);
 }
-
-#ifdef WIN32
-#pragma warning(disable : 4291)
-#endif
 
 #ifdef LLVM_BUILD
 #include <llvm/IR/Instructions.h>

@@ -64,9 +64,6 @@ class CodeContainer : public virtual Garbageable {
 
     string fKlassName;
 
-    vector<int> fInputRates;
-    vector<int> fOutputRates;
-
     // Declaration part
     BlockInst* fExtGlobalDeclarationInstructions;
     BlockInst* fGlobalDeclarationInstructions;
@@ -212,12 +209,6 @@ class CodeContainer : public virtual Garbageable {
     void setInputs(int inputs) { fNumInputs = inputs; }
     void setOutputs(int outputs) { fNumOutputs = outputs; }
 
-    void setInputRate(int channel, int rate) { faustassert(channel < int(fInputRates.size())); fInputRates[channel] = rate; }
-    void setOutputRate(int channel, int rate) { faustassert(channel < int(fOutputRates.size())); fOutputRates[channel] = rate; }
-
-    int getInputRate(int channel) { faustassert(channel < int(fInputRates.size())); return fInputRates[channel]; }
-    int getOutputRate(int channel) { faustassert(channel < int(fOutputRates.size())); return fOutputRates[channel]; }
-
     void addSubContainer(CodeContainer* container) { fSubContainers.push_back(container); }
 
     void addIncludeFile(const string& str) { fIncludeFileSet.insert(str); }
@@ -249,9 +240,7 @@ class CodeContainer : public virtual Garbageable {
 
     DeclareFunInst* generateGetIORate(const string& name, const string& obj, vector<int>& io, bool ismethod,
                                       bool isvirtual);
-    DeclareFunInst* generateGetInputRate(const string& name, const string& obj, bool ismethod, bool isvirtual);
-    DeclareFunInst* generateGetOutputRate(const string& name, const string& obj, bool ismethod, bool isvirtual);
-
+  
     virtual DeclareFunInst* generateClassInit(const string& name)
     {
         faustassert(false);

@@ -161,8 +161,8 @@ static void test2()
     createLibContext();
     {
         Signal signals[3];
-        signals[0] = osc(CsigReal(880.0));
-        signals[1] = osc(CsigReal(900.0));
+        signals[0] = osc(CsigReal(440.0));
+        signals[1] = osc(CsigReal(440.0));
         signals[2] = NULL; // Null terminated array
         
         char error_msg[4096];

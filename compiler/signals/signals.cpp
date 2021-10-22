@@ -78,7 +78,7 @@ bool isSigReal(Tree t, double* r)
 
 EXPORT Tree sigInput(int i)
 {
-    // Keep the max input number
+    // Keep the max input number (used with the signal API)
     gGlobal->gMaxInputs = std::max(gGlobal->gMaxInputs, i+1);
     return tree(gGlobal->SIGINPUT, tree(i));
 }

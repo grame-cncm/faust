@@ -87,10 +87,6 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             Tree   sig  = hd(L);
             string name = subst("output$0", T(index));
 
-            // 09/12/11 : HACK
-            // int rate = getSigRate(sig);
-            int rate = 1;
-            fContainer->setOutputRate(index, rate);
             fContainer->openLoop("i");
 
             // Cast to external float
@@ -106,10 +102,6 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             Tree   sig  = hd(L);
             string name = subst("output$0", T(index));
 
-            // 09/12/11 : HACK
-            // int rate = getSigRate(sig);
-            int rate = 1;
-            fContainer->setOutputRate(index, rate);
             fContainer->openLoop("i");
 
             // Cast to external float

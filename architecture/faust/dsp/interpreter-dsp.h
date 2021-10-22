@@ -197,7 +197,7 @@ interpreter_dsp_factory* createInterpreterDSPFactoryFromSignals(const std::strin
 
 /**
  * Create a Faust DSP factory from a box expression.
- * It has to be used with the signal API defined in libfaust-signal.h.
+ * It has to be used with the box API defined in libfaust-box.h.
  *
  * @param name_app - the name of the Faust program
  * @param box - the box expression

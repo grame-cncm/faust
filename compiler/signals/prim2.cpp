@@ -19,10 +19,10 @@
  ************************************************************************
  ************************************************************************/
 
+#include <stdlib.h>
+
 #include "prim2.hh"
 #include "global.hh"
-
-#include <stdlib.h>
 
 Tree ffunction(Tree signature, Tree incfile, Tree libfile)
 {

@@ -125,7 +125,7 @@ extern "C"
     
     /**
      * Create a Faust DSP factory from a null terminated array of output signals.
-     * It has to be used with the signal API defined in libfaust-signal.h.
+     * It has to be used with the signal API defined in libfaust-signal-c.h.
      *
      * @param name_app - the name of the Faust program
      * @param signals - the null terminated array of output signals
@@ -149,7 +149,7 @@ extern "C"
 
     /**
      * Create a Faust DSP factory from a box expression.
-     * It has to be used with the signal API defined in libfaust-signal.h.
+     * It has to be used with the box API defined in libfaust-box-c.h.
      *
      * @param name_app - the name of the Faust program
      * @param box - the box expression

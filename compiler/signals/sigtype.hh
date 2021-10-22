@@ -537,9 +537,6 @@ int checkDelayInterval(Type t);      ///< check if the interval of t is appropri
 //--------------------------------------------------
 // Type conversion
 
-// SL : 28/09/17
-string old_cType(Type t);
-
 Tree codeAudioType(AudioType* t);  ///< Code an audio type as a tree (memoization)
 
 #endif

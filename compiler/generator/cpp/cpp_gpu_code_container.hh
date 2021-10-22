@@ -278,8 +278,6 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
     {
         fNumInputs  = numInputs;
         fNumOutputs = numOutputs;
-        fInputRates.resize(numInputs);
-        fOutputRates.resize(numOutputs);
     }
 
     virtual ~CPPGPUCodeContainer() {}
@@ -366,7 +364,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
             /*
             if (inst->fAddress->getAccess() & Address::kGlobal) {
                 if (gGlobal->gSymbolGlobalsTable.find(inst->fAddress->getName()) == gGlobal->gSymbolGlobalsTable.end())
-            {
+                {
                     // If global is not defined
                     gGlobal->gSymbolGlobalsTable[inst->fAddress->getName()] = 1;
                 } else {
@@ -467,8 +465,6 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
         fKernelCodeProducer = new CUDAKernelInstVisitor(fGPUOut, 0);
         fNumInputs          = numInputs;
         fNumOutputs         = numOutputs;
-        fInputRates.resize(numInputs);
-        fOutputRates.resize(numOutputs);
     }
     virtual ~CPPCUDACodeContainer() { delete fGPUOut; }
 

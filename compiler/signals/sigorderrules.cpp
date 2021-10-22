@@ -87,7 +87,6 @@ static int infereSigOrder(Tree sig)
     xtended* xt = (xtended*)getUserData(sig);
     // primitive elements
     if (xt) {
-        // return 3;
         vector<int> args;
         for (int i1 = 0; i1 < sig->arity(); i1++) {
             args.push_back(O(sig->branch(i1)));

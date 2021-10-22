@@ -122,10 +122,11 @@ static int annotate(Tree env, Tree sig)
 static int position(Tree env, Tree t, int p)
 {
     if (isNil(env)) return 0;  // was not in the environment
-    if (hd(env) == t)
+    if (hd(env) == t) {
         return p;
-    else
+    } else {
         return position(tl(env), t, p + 1);
+    }
 }
 
 //-----------------------------------list recursive symbols-----------------------

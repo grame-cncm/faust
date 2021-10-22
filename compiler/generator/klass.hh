@@ -23,13 +23,14 @@
 #define _KLASS_H
 
 /**********************************************************************
-        - klass.h : class C++ a remplir (projet FAUST) -
+        - klass.h : class C++ to be filled (FAUST project) -
 
-        Historique :
-        -----------
-        17-10-2001 : implementation initiale (yo)
-        18-10-2001 : Ajout de getFreshID (yo)
-        02-11-2001 : Ajout de sous classes (yo)
+         History :
+         -----------
+         17-10-2001 : initial implementation  (yo)
+         18-10-2001 : add getFreshID (yo)
+         02-11-2001 : add sub-classes (yo)
+         06-11-2001 : change classers impression (yo)
 
 ***********************************************************************/
 

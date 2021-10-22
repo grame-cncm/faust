@@ -158,7 +158,7 @@ static void test2()
 {
     createLibContext();
     {
-        Box box = CboxPar(osc(CboxReal(880.0)), osc(CboxReal(4900.040)));
+        Box box = CboxPar(osc(CboxReal(440.0)), osc(CboxReal(440.0)));
        
         char error_msg[4096];
         llvm_dsp_factory* factory = createCDSPFactoryFromBoxes("test2", box, 0, NULL, "", error_msg, -1);

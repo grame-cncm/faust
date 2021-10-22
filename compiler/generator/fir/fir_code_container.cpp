@@ -102,11 +102,7 @@ void FIRCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* d
     *dst << endl;
     generateGetOutputs(subst("$0::getNumOutputs", fKlassName), "dsp", true, true)->accept(&firvisitor);
     *dst << endl;
-    generateGetInputRate(subst("$0::getInputRate", fKlassName), "dsp", true, true)->accept(&firvisitor);
-    *dst << endl;
-    generateGetOutputRate(subst("$0::getOutputRate", fKlassName), "dsp", true, true)->accept(&firvisitor);
-    *dst << endl;
-
+   
     if (fStaticInitInstructions->fCode.size() > 0) {
         *dst << "======= Static Init begin ==========" << endl << endl;
         fStaticInitInstructions->accept(&firvisitor);

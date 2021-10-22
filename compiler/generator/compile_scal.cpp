@@ -1001,6 +1001,7 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
     // definition du nom et du type de la table
     // A REVOIR !!!!!!!!!
     Type t = getCertifiedSigType(content);  //, tEnv);
+    
     if (t->nature() == kInt) {
         vname = getFreshID("itbl");
         ctype = "int";
@@ -1052,6 +1053,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
     // definition du nom et du type de la table
     // A REVOIR !!!!!!!!!
     Type t = getCertifiedSigType(content);  //, tEnv);
+    
     if (t->nature() == kInt) {
         vname = getFreshID("itbl");
         ctype = "int";
@@ -1206,7 +1208,7 @@ string ScalarCompiler::generatePrefix(Tree sig, Tree x, Tree e)
     string vperm = getFreshID("M");
     string vtemp = getFreshID("T");
 
-    string type = old_cType(te);
+    string type = (te->nature() == kInt) ? "int" : ifloat();
 
     fClass->addDeclCode(subst("$0 \t$1;", type, vperm));
     fClass->addInitCode(subst("$0 = $1;", vperm, CS(x)));

@@ -54,8 +54,6 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
         return int(vsigs.size());
     }
 
-    // else if (isSigWaveform(sig))                  { return 0; }
-
     else if (isSigInput(sig, &i)) {
         return 0;
     } else if (isSigOutput(sig, &i, x)) {

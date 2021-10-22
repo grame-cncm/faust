@@ -302,12 +302,6 @@ int checkDelayInterval(Type t)
     }
 }
 
-// Give the name of C type, corresponding to signal nature
-string old_cType(Type t)
-{
-    return (t->nature() == kInt) ? "int" : "float";
-}
-
 /*****************************************************************************
  *
  *      codeAudioType(Type) -> Tree

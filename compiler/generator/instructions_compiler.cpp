@@ -604,11 +604,6 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
                 pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
             }
         }
-
-        // 09/12/11 : HACK
-        // int rate = getSigRate(sig);
-        int rate = 1;
-        fContainer->setOutputRate(index, rate);
     }
 
     Tree ui = InstructionsCompiler::prepareUserInterfaceTree(fUIRoot);
@@ -771,25 +766,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
     else if (isSigAttach(sig, x, y)) {
         CS(y);
         return generateCacheCode(sig, CS(x));
-        /*
-        HACK : 09/12/11
-        else if (isSigVectorize(sig, x, y)) {
-        printf("vectorize not implemented\n");
-        exit(0);
-        }
-        else if (isSigSerialize(sig, x)) {
-        printf("serialize not implemented\n");
-        exit(0);
-        }
-        else if (isSigConcat(sig, x, y)) {
-        printf("concatenation not implemented\n");
-        exit(0);
-        }
-        else if (isSigVectorAt(sig, x, y)) {
-        printf("vector at not implemented\n");
-        exit(0);
-        }
-        */
+       
     } else if (isSigControl(sig, x, y)) {
         if (gGlobal->gVectorSwitch) {
             throw faustexception("ERROR : 'control/enable' can only be used in scalar mode\n");
@@ -925,11 +902,6 @@ ValueInst* InstructionsCompiler::generateFVar(Tree sig, Tree type, const string&
 
 ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
 {
-    // 09/12/11 : HACK
-    // int rate = getSigRate(sig);
-    int rate = 1;
-    fContainer->setInputRate(idx, rate);
-
     // Cast to internal float
     ValueInst* res;
     // HACK for Rust backend
