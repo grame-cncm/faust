@@ -7,6 +7,11 @@ http://www.grame.fr
 Copyright GRAME (c) 2012-2021
 
 ----------------------------------------------------
+Version 1.52 - 10/22/2021
+
+- use Faust 2.37.3 and LLVM 12.0.1 on macOS, LLVM 10.0 on Windows.
+
+----------------------------------------------------
 Version 1.51 - 05/13/2021
 
 - correct documentation URL.
