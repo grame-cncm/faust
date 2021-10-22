@@ -66,12 +66,14 @@ MIDI messages can be received on the left most inlet when [MIDI  control is acti
 ## How to compile
 
 ### Prerequisites
+
 - you must have [Faust](https://faust.grame.fr/) installed and the `faust` command available from the command line, and the compiled `libfaust` library.
 - you must have downloaded the [Max SDK](https://cycling74.com/downloads/sdk).
 - you must have [cmake](https://cmake.org/) installed.
 - [Windows] you must have [libsndfile](http://www.mega-nerd.com/libsndfile/) installed.
 
 ### Project generation
+
 **faustgen~** project is based on cmake. It is recommended to build **faustgen~** in a separate subfolder. It isolates the compilation process from the rest of the project. Creates this folder and generate your project using `cmake`.
 
 ~~~~
@@ -84,6 +86,10 @@ You must define the path to the Max SDK the first time you invoke `cmake`. Next 
 On Windows, cmake assumes that the libsndfile library is installed in C:/Program Files/Mega-Nerd/libsndfile. To override, you cand define the LIBSNDFILE variable to an alternate location (i.e. add -DLIBSNDFILE=/path/to/libsndfile on the command line).
 
 **Note:** on Windows, you should use the same runtime than the other libraries. Thus make sure everything is compiled with the same Visual Studio version (including LLVM). The current Faust version (2.13.14) makes use of the following cmake generator: "Visual Studio 14 2015 Win64". You must use the same for **faustgen~**.
+
+### Version number
+
+Manually raise the version number in `CMakeLists.txt`, `changelog.txt`, `faustgen~.maxhelp`, `Info.plist`and `../../build/MakeRelease.bat` files.
 
 ### Compiling
 
