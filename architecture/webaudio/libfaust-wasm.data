@@ -806,8 +806,7 @@ with {
     select3((level>(thresh-(knee/2)))+(level>(thresh+(knee/2))),
             0,
             ((level-thresh+(knee/2)):pow(2)/(2*knee)),
-            (level-thresh)
-           ) : max(0)*-strength;
+            (level-thresh)) : max(0)*-strength;
   	RMS(time) = ba.slidingRMS(s) with { s = ba.sec2samp(time):int:max(1); };
 };
 
@@ -8280,7 +8279,7 @@ echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0
 //------------------------------------------------------------
 version =   2, // MAJOR version when we make incompatible API changes,
             4, // MINOR version when we add functionality in a backwards compatible manner,
-            2; // PATCH version when we make backwards compatible bug fixes.
+            4; // PATCH version when we make backwards compatible bug fixes.
 
             
 //#################################### webaudio.lib ########################################
@@ -22644,7 +22643,7 @@ fi = library("filters.lib");
 ef = library("misceffects.lib");
 
 declare name "Faust Virtual Analog Filter Effect Library";
-declare version "0.1";
+declare version "0.2";
 
 //########################################################################################
 /************************************************************************
@@ -22764,13 +22763,14 @@ with {
 // 1st-order filters are cascaded in series. Feedback is then used, in part, to 
 // control the cut-off frequency and the resonance.
 //
-// This filter was implemented in Faust by Eric Tarr during the 
-// [2019 Embedded DSP With Faust Workshop](https://ccrma.stanford.edu/workshops/faust-embedded-19/).
-// 
 // #### References
 //
-// * <https://www.willpirkle.com/706-2/>
-// * <http://www.willpirkle.com/Downloads/AN-4VirtualAnalogFilters.pdf>
+// [Zavalishin 2012] (revision 2.1.2, February 2020): 
+//
+// * <https://www.native-instruments.com/fileadmin/ni_media/downloads/pdf/VAFilterDesign_2.1.2.pdf>
+//
+// This fix is based on Lorenzo Della Cioppa's correction to Pirkle's implementation; see this post: 
+// https://www.kvraudio.com/forum/viewtopic.php?f=33&t=571909
 //
 // #### Usage
 //
@@ -22781,29 +22781,35 @@ with {
 // Where:
 //
 // * `normFreq`: normalized frequency (0-1)
-// * `Q`: q
+// * `Q`: quality factor between .707 (0 feedback coefficient) to 25 (feedback = 4, which is the self-oscillating threshold).
 //---------------------------------------------------------------------
-declare moogLadder author "Eric Tarr";
+declare moogLadder author "Dario Sanfilippo";
 declare moogLadder license "MIT-style STK-4.3 license";
-moogLadder(normFreq,Q) = _<:(s1,s2,s3,s4,y) : !,!,!,!,_ 
-letrec{
-   's1 = -(s4*k):-(s3*g*k):-(s2*g*g*k):-(s1*g*g*g*k):*(A):-(s1):*(B*2):+(s1);
-   's2 = -(s4*k):-(s3*g*k):-(s2*g*g*k):-(s1*g*g*g*k):*(A):-(s1):*(B):+(s1):-(s2):*(B*2):+(s2);
-   's3 = -(s4*k):-(s3*g*k):-(s2*g*g*k):-(s1*g*g*g*k):*(A):-(s1):*(B):+(s1):-(s2):*(B):+(s2):-(s3):*(B*2):+(s3);
-   's4 = -(s4*k):-(s3*g*k):-(s2*g*g*k):-(s1*g*g*g*k):*(A):-(s1):*(B):+(s1):-(s2):*(B):+(s2):-(s3):*(B):+(s3):-(s4):*(B*2):+(s4);
-   'y = -(s4*k):-(s3*g*k):-(s2*g*g*k):-(s1*g*g*g*k):*(A):-(s1):*(B):+(s1):-(s2):*(B):+(s2):-(s3):*(B):+(s3):-(s4):*(B):+(s4);
-}
-with{
-    freq = 2*(10^(3*normFreq+1));
-    k = (3.9 - (normFreq^0.2)*0.9)*(Q - 0.707)/(25.0 - 0.707);
-    //k = 3.9*(Q - 0.707)/(25.0 - 0.707);
-    wd = 2*ma.PI*freq;
-    T = 1/ma.SR;
-    wa = (2/T)*tan(wd*T/2);
-    g = wa*T/2; 
-    G = g*g*g*g;
-    A = 1/(1+(k*G));
-    B = g/(1+g);
+moogLadder(normFreq, Q, x) = loop ~ si.bus(4) : (!,!,!,!,_)
+with {
+    loop(s1, s2, s3, s4) =  v1 + lp1 , // define s1
+                            v2 + lp2 , // define s2
+                            v3 + lp3 , // define s3
+                            v4 + lp4 , // define s4
+                            lp4 // system output
+        with {
+            T = 1.0 / ma.SR;
+            cf = normFreq * .5 * ma.SR;
+            k = 4.0 * (Q - 0.707) / (25.0 - 0.707);
+            omegaWarp = tan(ma.PI * cf * T);
+            g = omegaWarp / (1.0 + omegaWarp);
+            G = g * g * g * g; // ladder's G in generalised form y = G * xi + S
+            S = g * g * g * (s1 * (1 - g)) + g * g * (s2 * (1 - g)) + g * (s3 * (1 - g)) + (s4 * (1 - g)); // ladder's S in generalised form y = G * xi + S
+            u = (x - k * S) / (1.0 + k * G); // input to the first LP stage: u = (x - kS) / (1 + kG)
+            v1 = g * (u - s1); // v-signals in TPT integrator (Zavalishin, Figure 3.30)
+            v2 = g * (lp1 - s2); // second stage
+            v3 = g * (lp2 - s3); // third stage
+            v4 = g * (lp3 - s4); // fourth stage
+            lp1 = v1 + s1; // define outputs
+            lp2 = v2 + s2;
+            lp3 = v3 + s3;
+            lp4 = v4 + s4;
+        };
 };
 
 
@@ -23874,18 +23880,18 @@ closed source license or any other license if you decide so.
 ************************************************************************/
 
 declare name "Generic Platform Library";
-declare version "0.1";
+declare version "0.2";
 
 //---------------------------------`(pl.)SR`-----------------------------------
 // Current sampling rate (between 1Hz and 192000Hz). Constant during
 // program execution.
 //-----------------------------------------------------------------------------
-SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <dummy.h>)));
+SR = min(192000.0, max(1.0, fconstant(int fSamplingFreq, <math.h>)));
 
 //---------------------------------`(pl.)BS`---------------------------------------
 // Current block-size. Can change during the execution.
 //-----------------------------------------------------------------------------
-BS = fvariable(int count, <dummy.h>);
+BS = fvariable(int count, <math.h>);
 
 //---------------------------------`(pl.)tablesize`----------------------------
 // Oscillator table size
@@ -32157,7 +32163,7 @@ declare dattorro_rev license "MIT-style STK-4.3 license";
 dattorro_rev(pre_delay, bw, i_diff1, i_diff2, decay, d_diff1, d_diff2, damping) = 
     si.bus(2) : + : *(0.5) : predelay : bw_filter : diffusion_network <: ((si.bus(4) :> _,_) ~ (reverb_network : ro.cross(2)))
 with {
-    //allpass using delay with fixed size
+    // allpass using delay with fixed size
     allpass_f(t, a) = (+ <: @(t),*(a)) ~ *(-a) : mem,_ : +;
 
     // input pre-delay and diffusion
