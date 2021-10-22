@@ -346,6 +346,13 @@ DeclareFunInst* InstBuilder::genFunction6(const string& name, Typed::VarType res
     return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
+bool LoadVarInst::isSimpleValue() const
+{
+    NamedAddress* named = dynamic_cast<NamedAddress*>(fAddress);
+    IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(fAddress);
+    return named || (indexed && dynamic_cast<Int32NumInst*>(indexed->getIndex()));
+}
+
 void ScalVecDispatcherVisitor::Dispatch2Visitor(ValueInst* inst)
 {
     std::cout << "Dispatch2Visitor %d\n";

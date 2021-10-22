@@ -847,7 +847,8 @@ struct LoadVarInst : public ValueInst {
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
-    virtual bool isSimpleValue() const { return dynamic_cast<NamedAddress*>(fAddress); }
+    virtual bool isSimpleValue() const;
+
 };
 
 struct LoadVarAddressInst : public ValueInst {

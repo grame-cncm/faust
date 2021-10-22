@@ -79,7 +79,7 @@ help:
 	@echo " 'web'        : compiles using the wast/wasm backends"
 	@echo " 'trace'      : compiles using the interp-tracer application"
 	@echo " 'jtrace'     : compiles using Julia minimal-control architecture"
-	@echo " 'wa'         : compiles using the C++ backend with -wa option"
+	@echo " 'me'         : compiles using the C++ backend with -me option"
 	@echo "Using a specific version of Faust libraries:"
 	@echo " 'make FAUSTLIBS=/path/to/libraries'"
  	
