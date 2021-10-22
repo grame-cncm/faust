@@ -217,7 +217,7 @@ int main(int argc, char* argv[])
                 
                 cout << "------------------------------" << endl;
                 cout << "Check control min/max for " << ctl.fControlZone.size() << " controls" << endl;
-                for (int index = 0; index < ctl.fControlZone.size(); index++) {
+                for (size_t index = 0; index < ctl.fControlZone.size(); index++) {
                     cout << "------------------------------" << endl;
                     cout << "Control: " << ctl.getParamAddress(ctl.fControlZone[index].first) << endl;
                     FAUSTFLOAT min = ctl.fControlZone[index].second.fMin;
@@ -243,7 +243,7 @@ int main(int argc, char* argv[])
                 
                 cout << "------------------------------" << endl;
                 cout << "Check control min/max successively keeping min for " << ctl.fControlZone.size() << " controls" << endl;
-                for (int index = 0; index < ctl.fControlZone.size(); index++) {
+                for (size_t index = 0; index < ctl.fControlZone.size(); index++) {
                     cout << "------------------------------" << endl;
                     cout << "Control: " << ctl.getParamAddress(ctl.fControlZone[index].first) << endl;
                     FAUSTFLOAT min = ctl.fControlZone[index].second.fMin;
@@ -266,7 +266,7 @@ int main(int argc, char* argv[])
                 
                 cout << "------------------------------" << endl;
                 cout << "Check control min/max successively, keeping max for " << ctl.fControlZone.size() << " controls" << endl;
-                for (int index = 0; index < ctl.fControlZone.size(); index++) {
+                for (size_t index = 0; index < ctl.fControlZone.size(); index++) {
                     cout << "------------------------------" << endl;
                     cout << "Control: " << ctl.getParamAddress(ctl.fControlZone[index].first) << endl;
                     FAUSTFLOAT min = ctl.fControlZone[index].second.fMin;
@@ -289,7 +289,7 @@ int main(int argc, char* argv[])
                 
                 cout << "------------------------------" << endl;
                 cout << "Check control to zero if contained in the [min..max] range" << endl;
-                for (int index = 0; index < ctl.fControlZone.size(); index++) {
+                for (size_t index = 0; index < ctl.fControlZone.size(); index++) {
                     FAUSTFLOAT min = ctl.fControlZone[index].second.fMin;
                     FAUSTFLOAT max = ctl.fControlZone[index].second.fMax;
                     if (min < 0 && max > 0) {

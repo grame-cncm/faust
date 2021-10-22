@@ -35,7 +35,7 @@ static void bench(dsp_optimizer_real<REAL> optimizer, const string& in_filename,
 {
     pair<double, vector<string> > res = optimizer.findOptimizedParameters();
     if (is_trace) cout << "Best value for '" << in_filename << "' is : " << res.first << " MBytes/sec with ";
-    for (int i = 0; i < res.second.size(); i++) {
+    for (size_t i = 0; i < res.second.size(); i++) {
         cout << res.second[i] << " ";
     }
     cout << endl;

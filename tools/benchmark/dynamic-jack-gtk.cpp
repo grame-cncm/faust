@@ -65,7 +65,7 @@ static bool endWith(const string& str, const string& suffix)
 
 static void printList(const vector<string>& list)
 {
-    for (int i = 0; i < list.size(); i++) {
+    for (size_t i = 0; i < list.size(); i++) {
         cout << "item: " << list[i] << "\n";
     }
 }
