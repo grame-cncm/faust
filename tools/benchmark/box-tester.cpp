@@ -489,6 +489,58 @@ static void test22(int argc, char* argv[])
     destroyLibContext();
 }
 
+// Using the Interpreter backend.
+static void test23(int argc, char* argv[])
+{
+    interpreter_dsp_factory* factory = nullptr;
+    string error_msg;
+    
+    createLibContext();
+    {
+        Box sl1 = boxHSlider("v:Oscillator/Freq1", boxReal(300),
+                             boxReal(100), boxReal(2000), boxReal(0.01));
+        Box sl2 = boxHSlider("v:Oscillator/Freq2", boxReal(300),
+                             boxReal(100), boxReal(2000), boxReal(0.01));
+        Box box = boxPar(osc(sl1), osc(sl2));
+        
+        // Compile the 'bo'x to 'signals'
+        tvec signals = boxesToSignals(box, error_msg);
+        
+        // Then compile the 'signals' to a DSP factory
+        factory = createInterpreterDSPFactoryFromSignals("FaustDSP",
+                                                         signals, 0,
+                                                         nullptr, error_msg);
+    }
+    destroyLibContext();
+    
+    // Use factory outside of the createLibContext/destroyLibContext scope
+    if (factory) {
+        dsp* dsp = factory->createDSPInstance();
+        assert(dsp);
+        
+        // Allocate audio driver
+        jackaudio audio;
+        audio.init("Test", dsp);
+        
+        // Create GUI
+        GTKUI gtk_ui = GTKUI("Organ", &argc, &argv);
+        dsp->buildUserInterface(&gtk_ui);
+        
+        // Start real-time processing
+        audio.start();
+        
+        // Start GUI
+        gtk_ui.run();
+        
+        // Cleanup
+        audio.stop();
+        delete dsp;
+        deleteInterpreterDSPFactory(factory);
+    } else {
+        cerr << error_msg;
+    }
+}
+
 /*
  import("stdfaust.lib");
  process = organ, organ
@@ -504,7 +556,7 @@ static void test22(int argc, char* argv[])
  */
 
 // Simple polyphonic DSP.
-static void test23(int argc, char* argv[])
+static void test24(int argc, char* argv[])
 {
     interpreter_dsp_factory* factory = nullptr;
     string error_msg;
@@ -595,8 +647,11 @@ int main(int argc, char* argv[])
     // Test with audio, GUI and Interp backend
     test22(argc, argv);
     
-    // Test with audio, GUI, MIDI and Interp backend
+    // Test with audio, GUI and Interp backend and using 'boxesToSignals' function
     test23(argc, argv);
+    
+    // Test with audio, GUI, MIDI and Interp backend
+    test24(argc, argv);
     
     return 0;
 }
