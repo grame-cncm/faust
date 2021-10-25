@@ -505,7 +505,7 @@ class CPPInstVisitor1 : public CPPInstVisitor {
         {
             Typed::VarType type;
             if (fStructVisitor.hasField(named->fName, type)) {
-                    // Zone address zone[id][index] are rewritten as zone[id+index]
+                // Zone address zone[id][index] are rewritten as zone[id+index]
                 fZoneAddress = true;
                 if (type == Typed::kInt32) {
                     *fOut << "iZone[" << fStructVisitor.getFieldIntOffset(named->fName)/sizeof(int);
@@ -531,7 +531,7 @@ class CPPInstVisitor1 : public CPPInstVisitor {
                 Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
                 *fOut << "->" << struct_type->fType->getName(field_index->fNum);
             } else {
-                    // Zone address zone[id][index] are rewritten as zone[id+index]
+                // Zone address zone[id][index] are rewritten as zone[id+index]
                 if (fZoneAddress) { *fOut << "+"; } else { *fOut << "["; }
                 fIndexedAddress = false;
                 fZoneAddress = false;

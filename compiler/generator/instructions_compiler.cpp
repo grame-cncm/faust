@@ -2063,8 +2063,8 @@ ValueInst* InstructionsCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
 }
 
 /**
- * Generate code for the delay mecchanism. The generated code depend of the
- * maximum delay attached to exp and the "less temporaries" switch
+ * Generate code for the delay mechanism. The generated code depends of the
+ * maximum delay attached to exp and the "less temporaries" switch.
  */
 ValueInst* InstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname,
                                                   int mxd)
@@ -2396,7 +2396,6 @@ void InstructionsCompiler::generateUserInterfaceElements(Tree elements)
  * Generate buildUserInterface C++ lines of code corresponding
  * to user interface widget t
  */
-
 void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 {
     Tree                      path, c, x, y, z;
@@ -2510,7 +2509,6 @@ void InstructionsCompiler::generateMacroInterfaceElements(const string& pathname
  * Generate user interface macros corresponding
  * to a user interface widget
  */
-
 void InstructionsCompiler::generateWidgetMacro(const string& pathname, Tree fulllabel, Tree varname, Tree sig)
 {
     Tree                      path, c, x, y, z;
