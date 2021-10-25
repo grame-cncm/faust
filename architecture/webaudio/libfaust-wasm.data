@@ -2302,6 +2302,31 @@ with {
 };
 
 
+//-----------------------------`(ba.)selectoutn`---------------------------------
+// Route input to the output among N at run time.
+//
+// #### Usage
+//
+// ```
+// _ : selectoutn(N, i) : _,_,...N
+// ```
+//
+// Where:
+//
+// * `N`: number of outputs (int, known at compile time, N > 0)
+// * `i`: output number to route to (int, numbered from 0) (i.e. slider)
+//
+// #### Example
+//
+// ```
+// process = 1 : selectoutn(3, sel) : par(i, 3, vbargraph("v.bargraph %i", 0, 1));
+// sel = hslider("volume", 0, 0, 2, 1) : int;
+// ```
+//--------------------------------------------------------------------------
+// TODO: author "Vince"
+selectoutn(n, s) = _ <: par(i, n, *(s==i));
+
+
 //=====================================Other==============================================
 //========================================================================================
 
@@ -2661,31 +2686,6 @@ with {
     trig(x) = (x-x') == 1;
     loop(b) = + ~ (_ >= 1) * ((b : trig) == 0);
 };
-
-
-//-----------------------------`(ba.)selectoutn`---------------------------------
-// Route input to the output among N at run time.
-//
-// #### Usage
-//
-// ```
-// _ : selectoutn(N, i) : _,_,...N
-// ```
-//
-// Where:
-//
-// * `N`: number of outputs (int, known at compile time, N > 0)
-// * `i`: output number to route to (int, numbered from 0) (i.e. slider)
-//
-// #### Example
-//
-// ```
-// process = 1 : selectoutn(3, sel) : par(i, 3, vbargraph("v.bargraph %i", 0, 1));
-// sel = hslider("volume", 0, 0, 2, 1) : int;
-// ```
-//--------------------------------------------------------------------------
-// TODO: author "Vince"
-selectoutn(n, s) = _ <: par(i, n, *(s==i));
 
 
 //=================================Sliding Reduce=========================================
@@ -8268,7 +8268,7 @@ echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0
 
 
 //---------------------------`(vl.)version`---------------------------
-// Return the version number of the Faust standard libraries. 
+// Return the version number of the Faust standard libraries as a MAJOR, MINOR, PATCH versioning triplet.
 //
 // #### Usage
 //
@@ -8279,7 +8279,7 @@ echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0
 //------------------------------------------------------------
 version =   2, // MAJOR version when we make incompatible API changes,
             4, // MINOR version when we add functionality in a backwards compatible manner,
-            4; // PATCH version when we make backwards compatible bug fixes.
+            5; // PATCH version when we make backwards compatible bug fixes.
 
             
 //#################################### webaudio.lib ########################################
@@ -12329,7 +12329,7 @@ ba = library("basics.lib");
 ma = library("maths.lib");
 
 declare name "Faust Antialiased Nonlinearities";
-declare version "0.2";
+declare version "0.3";
 
 //==============================Auxiliary Functions=======================================
 //========================================================================================
@@ -12367,13 +12367,13 @@ Racos(x) = acos(clip(-1.0, 1.0, x));
 //-------`(aa.)Rasin`----------
 // Real-valued asin().
 //-----------------------------
-Racos(x) = asin(clip(-1.0, 1.0, x));
+Rasin(x) = asin(clip(-1.0, 1.0, x));
 
 
 //-------`(aa.)Racosh`----------
 // Real-valued acosh()
 //-----------------------------
-Racos(x) = ma.acosh(clip(1.0, ma.MAX, x));
+Racosh(x) = ma.acosh(clip(1.0, ma.MAX, x));
 
 
 //-------`(aa.)Rcosh`----------
@@ -28543,7 +28543,7 @@ qSmooth(x) = ba.tabulate(1,0.5*atan(_*20-10)/1.4711+0.5,TableSize,0,1,x).cub;
 
 
 //-------`(qu.)quantize`----------
-// Configurable frequency quantization tool. Outputs only the frenquencies that are part of the specified scale.
+// Configurable frequency quantization tool. Output only the frequencies that are part of the specified scale.
 //
 // Works for positive audio frequencies.
 //
@@ -28570,7 +28570,7 @@ with{
 
 
 //-------`(qu.)quantizeSmoothed`----------
-// Configurable frequency quantization tool. Outputs frenquencies that are closer to the frequencies of the notes of the specified scale.
+// Configurable frequency quantization tool. Output frequencies that are closer to the frequencies of the specified scale notes.
 //
 // Works for positive audio frequencies.
 //
@@ -30482,7 +30482,7 @@ with{
     displaygain(co.compressor_stereo(ratio,threshold,attack,release)) :
     *(makeupgain), *(makeupgain);
 
-    ctl_group(x)  = knob_group(hgroup("[3] Compression Control", x));
+    ctl_group(x) = knob_group(hgroup("[3] Compression Control", x));
 
     ratio = ctl_group(hslider("[0] Ratio [style:knob]
     [tooltip: A compression Ratio of N means that for each N dB increase in input
@@ -30494,7 +30494,7 @@ with{
     is compressed according to the Ratio]",
     -30, -100, 10, 0.1));
 
-    env_group(x)  = knob_group(hgroup("[4] Compression Response", x));
+    env_group(x) = knob_group(hgroup("[4] Compression Response", x));
 
     attack = env_group(hslider("[1] Attack [unit:ms] [style:knob] [scale:log]
     [tooltip: Time constant in ms (1/e smoothing time) for the compression gain
@@ -31335,7 +31335,7 @@ with{
 
 
 //--------------------------`(dm.)latch_demo`---------------------------
-// Illustrate latch operation
+// Illustrate latch operation.
 //
 // #### Usage
 //
@@ -31387,7 +31387,7 @@ with{
 };
 
 //-------------------`(dm.)fft_spectral_level_demo`------------------
-// Make a real-time spectrum analyzer using FFT from analyzers.lib
+// Make a real-time spectrum analyzer using FFT from analyzers.lib.
 //
 // #### Usage
 //
@@ -31419,7 +31419,7 @@ with{
 };
 
 //-----------------`(dm.)reverse_echo_demo(nChans)`----------------
-// Multichannel echo effect with reverse delays
+// Multichannel echo effect with reverse delays.
 //
 // #### Usage
 //
@@ -31574,8 +31574,8 @@ with{
         comp_group(x) = vgroup("COMPRESSOR  [tooltip: Reference:
             http://en.wikipedia.org/wiki/Dynamic_range_compression]", x);
 
-    meter_group(x)    = comp_group(hgroup("[0]", x));
-    knob_group(x)  = comp_group(hgroup("[1]", x));
+    meter_group(x) = comp_group(hgroup("[0]", x));
+    knob_group(x) = comp_group(hgroup("[1]", x));
 
     cbp = meter_group(checkbox("[0] Bypass  [tooltip: When this is checked,
         the compressor has no effect]"));
@@ -31588,7 +31588,7 @@ with{
 
     compressorMono = displaygain(co.compressor_mono(ratio,threshold,attack,release));
 
-    ctl_group(x)  = knob_group(hgroup("[3] Compression Control", x));
+    ctl_group(x) = knob_group(hgroup("[3] Compression Control", x));
 
     ratio = ctl_group(hslider("[0] Ratio [style:knob]  [tooltip: A compression Ratio
     of N means that for each N dB increase in input signal level above Threshold, the
@@ -31598,7 +31598,7 @@ with{
     When the signal level exceeds the Threshold (in dB), its level is compressed
     according to the Ratio]", -30, -100, 10, 0.1));
 
-    env_group(x)  = knob_group(hgroup("[4] Compression Response", x));
+    env_group(x) = knob_group(hgroup("[4] Compression Response", x));
 
     attack = env_group(hslider("[1] Attack [unit:ms] [style:knob]  [tooltip:
     Time constant in ms (1/e smoothing time) for the compression gain to approach
