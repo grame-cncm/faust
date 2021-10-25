@@ -28,17 +28,17 @@
 #include "faust/gui/CInterface.h"
 #include "faust/dsp/libfaust-signal-c.h"
 
+/*!
+ \addtogroup llvmc C interface for compiling Faust code with the LLVM backend. Note that the API is not thread safe : use 'startMTDSPFactories/stopMTDSPFactories' to use it in a multi-thread context.
+ @{
+ */
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
     
     /* Opaque types */
-	
-    /*!
-     \addtogroup llvm C interface for compiling Faust code. Note that the API is not thread safe : use 'startMTDSPFactories/stopMTDSPFactories' to use it in a multi-thread context.
-    @{
-     */
     
 #ifdef _MSC_VER
     typedef void llvm_dsp_factory;

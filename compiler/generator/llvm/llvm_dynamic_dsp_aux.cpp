@@ -694,6 +694,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromBoxes(const std::string& name_app, 
                                                    std::string& error_msg,
                                                    int opt_level)
 {
+    LOCK_API
     try {
         tvec signals = boxesToSignalsAux(box);
         return createDSPFactoryFromSignals(name_app, signals, argc, argv, target, error_msg, opt_level);

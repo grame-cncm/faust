@@ -22,6 +22,11 @@
 #ifndef LIBFAUSTCOMMON_C_H
 #define LIBFAUSTCOMMON_C_H
 
+/*!
+ \addtogroup boxc C interface for the Box API.
+ @{
+ */
+
 /**
  * Opaque types.
  */
@@ -587,6 +592,10 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
+
+/*!
+ @}
+ */
 
 #endif
 

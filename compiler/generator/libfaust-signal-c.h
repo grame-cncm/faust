@@ -22,6 +22,12 @@
 #ifndef LIBFAUSTCOMMON_C_H
 #define LIBFAUSTCOMMON_C_H
 
+/*!
+ \addtogroup signalc C interface for the Signal API.
+ @{
+ */
+
+
 /**
  * Opaque types.
  */
@@ -425,5 +431,9 @@ extern "C"
 #ifdef __cplusplus
 }
 #endif
+
+/*!
+ @}
+ */
 
 #endif

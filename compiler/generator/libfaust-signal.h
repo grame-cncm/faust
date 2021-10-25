@@ -25,6 +25,11 @@
 #ifndef LIBFAUSTCOMMON_H
 #define LIBFAUSTCOMMON_H
 
+/*!
+ \addtogroup signalcpp C++ interface for the Signal API.
+ @{
+ */
+
 /**
  * Opaque types.
  */
@@ -441,6 +446,10 @@ dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name_app, tv
 /*
  [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions
  [2] Label definition : https://faustdoc.grame.fr/manual/syntax/#variable-parts-of-a-label
+ */
+
+/*!
+ @}
  */
 
 #endif

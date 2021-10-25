@@ -95,6 +95,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
 EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromSignals(const std::string& name_app, tvec signals,
                                                                        int argc, const char* argv[], std::string& error_msg)
 {
+    LOCK_API
     try {
         int         argc1 = 0;
         const char* argv1[64];
@@ -128,6 +129,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromBoxes(const std::
                                                                      int argc, const char* argv[],
                                                                      std::string& error_msg)
 {
+    LOCK_API
     try {
         tvec signals = boxesToSignalsAux(box);
         return createInterpreterDSPFactoryFromSignals(name_app, signals, argc, argv, error_msg);

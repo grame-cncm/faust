@@ -25,6 +25,11 @@
 #include <string>
 #include <string.h>
 
+/*!
+ \addtogroup libfaustcpp C++ interface for the tools API.
+ @{
+ */
+
 #ifdef _WIN32
 #define LIBEXPORT __declspec(dllexport)
 #else
@@ -111,5 +116,9 @@ extern "C" void freeCMemory(void* ptr);
 #else
 extern "C" LIBEXPORT void freeCMemory(void* ptr);
 #endif
+
+/*!
+ @}
+ */
 
 #endif

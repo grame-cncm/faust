@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------
 DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = libfaust
-PROJECT_NUMBER         = 2.5.33
+PROJECT_NUMBER         = 2.37.3
 OUTPUT_DIRECTORY       = .
 CREATE_SUBDIRS         = NO
 OUTPUT_LANGUAGE        = English
@@ -92,7 +92,7 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = ../../architecture/faust/dsp/llvm-dsp.h ../../architecture/faust/dsp/llvm-c-dsp.h
+INPUT                  = ../../architecture/faust/dsp/llvm-dsp.h ../../architecture/faust/dsp/llvm-dsp-c.h ../../architecture/faust/dsp/interpreter-dsp.h ../../compiler/generator/libfaust.h ../../compiler/generator/libfaust-c.h ../../compiler/generator/libfaust-box.h ../../compiler/generator/libfaust-box-c.h ../../compiler/generator/libfaust-signal.h ../../compiler/generator/libfaust-signal-c.h
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          =  *.h
 RECURSIVE              = NO

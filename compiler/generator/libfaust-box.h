@@ -25,6 +25,11 @@
 #ifndef LIBFAUSTCOMMON_H
 #define LIBFAUSTCOMMON_H
 
+/*!
+ \addtogroup boxcpp C++ interface for the Box API.
+ @{
+ */
+
 /**
  * Opaque types.
  */
@@ -600,6 +605,10 @@ dsp_factory_base* createCPPDSPFactoryFromBoxes(const std::string& name_app, Box 
 /*
  [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions
  [2] Label definition : https://faustdoc.grame.fr/manual/syntax/#variable-parts-of-a-label
+ */
+
+/*!
+ @}
  */
 
 #endif

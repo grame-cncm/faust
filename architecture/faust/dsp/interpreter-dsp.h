@@ -38,7 +38,7 @@
 #include "faust/gui/meta.h"
 
 /*!
- \addtogroup interpretercpp C++ interface for compiling Faust code. Note that the API is not thread safe.
+ \addtogroup interpretercpp C++ interface for compiling Faust code with the Interpreter backend. Note that the API is not thread safe: use 'startMTDSPFactories/stopMTDSPFactories' to use it in a multi-thread context.
  @{
  */
 
