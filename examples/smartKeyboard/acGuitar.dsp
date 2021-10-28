@@ -32,56 +32,62 @@ declare interface "SmartKeyboard{
 	'Number of Keyboards':'7',
 	'Max Keyboard Polyphony':'0',
 	'Rounding Mode':'2',
-	'Keyboard 0 - Number of Keys':'14',
-  'Keyboard 1 - Number of Keys':'14',
-	'Keyboard 2 - Number of Keys':'14',
+	'Keyboard 0 - Number of Keys':'6',
+	'Keyboard 1 - Number of Keys':'14',
+    'Keyboard 2 - Number of Keys':'14',
 	'Keyboard 3 - Number of Keys':'14',
 	'Keyboard 4 - Number of Keys':'14',
 	'Keyboard 5 - Number of Keys':'14',
-	'Keyboard 6 - Number of Keys':'6',
-	'Keyboard 0 - Lowest Key':'52',
-	'Keyboard 1 - Lowest Key':'57',
-	'Keyboard 2 - Lowest Key':'62',
-	'Keyboard 3 - Lowest Key':'67',
-	'Keyboard 4 - Lowest Key':'71',
-	'Keyboard 5 - Lowest Key':'76',
-	'Keyboard 0 - Send Keyboard Freq':'1',
+	'Keyboard 6 - Number of Keys':'14',
+	'Keyboard 0 - Piano Keyboard':'0',
+	'Keyboard 0 - Send Key Status':'1',
+	'Keyboard 0 - Key 0 - Label':'S5',
+	'Keyboard 0 - Key 1 - Label':'S4',
+	'Keyboard 0 - Key 2 - Label':'S3',
+	'Keyboard 0 - Key 3 - Label':'S2',
+	'Keyboard 0 - Key 4 - Label':'S1',
+	'Keyboard 0 - Key 5 - Label':'S0'
+	'Keyboard 1 - Lowest Key':'52',
+	'Keyboard 2 - Lowest Key':'57',
+	'Keyboard 3 - Lowest Key':'62',
+	'Keyboard 4 - Lowest Key':'67',
+	'Keyboard 5 - Lowest Key':'71',
+	'Keyboard 6 - Lowest Key':'76',
 	'Keyboard 1 - Send Keyboard Freq':'1',
 	'Keyboard 2 - Send Keyboard Freq':'1',
 	'Keyboard 3 - Send Keyboard Freq':'1',
 	'Keyboard 4 - Send Keyboard Freq':'1',
 	'Keyboard 5 - Send Keyboard Freq':'1',
-	'Keyboard 6 - Piano Keyboard':'0',
-	'Keyboard 6 - Send Key Status':'1',
-	'Keyboard 6 - Key 0 - Label':'S0',
-	'Keyboard 6 - Key 1 - Label':'S1',
-	'Keyboard 6 - Key 2 - Label':'S2',
-	'Keyboard 6 - Key 3 - Label':'S3',
-	'Keyboard 6 - Key 4 - Label':'S4',
-	'Keyboard 6 - Key 5 - Label':'S5'
+	'Keyboard 6 - Send Keyboard Freq':'1',
+    'Keyboard 1 - Orientation':'1',
+    'Keyboard 2 - Orientation':'1',
+    'Keyboard 3 - Orientation':'1',
+    'Keyboard 4 - Orientation':'1',
+    'Keyboard 5 - Orientation':'1',
+    'Keyboard 6 - Orientation':'1',
 }";
 
 import("stdfaust.lib");
 
 // SMARTKEYBOARD PARAMS
-kbfreq(0) = hslider("kb0freq",164.8,20,10000,0.01);
-kbbend(0) = hslider("kb0bend",1,ma.EPSILON,10,0.01);
-kbfreq(1) = hslider("kb1freq",220,20,10000,0.01);
-kbbend(1) = hslider("kb1bend",1,ma.EPSILON,10,0.01);
-kbfreq(2) = hslider("kb2freq",293.7,20,10000,0.01);
-kbbend(2) = hslider("kb2bend",1,ma.EPSILON,10,0.01);
-kbfreq(3) = hslider("kb3freq",392,20,10000,0.01);
-kbbend(3) = hslider("kb3bend",1,ma.EPSILON,10,0.01);
-kbfreq(4) = hslider("kb4freq",493.9,20,10000,0.01);
-kbbend(4) = hslider("kb4bend",1,ma.EPSILON,10,0.01);
-kbfreq(5) = hslider("kb5freq",659.2,20,10000,0.01);
-kbbend(5) = hslider("kb5bend",1,ma.EPSILON,10,0.01);
-kb6kstatus(0) = hslider("kb6k0status",0,0,1,1) <: ==(1) | ==(4) : int;
-kb6kstatus(1) = hslider("kb6k1status",0,0,1,1) <: ==(1) | ==(4) : int;
-kb6kstatus(2) = hslider("kb6k2status",0,0,1,1) <: ==(1) | ==(4) : int;
-kb6kstatus(3) = hslider("kb6k3status",0,0,1,1) <: ==(1) | ==(4) : int;
-kb6kstatus(4) = hslider("kb6k4status",0,0,1,1) <: ==(1) | ==(4) : int;
-kb6kstatus(5) = hslider("kb6k5status",0,0,1,1) <: ==(1) | ==(4) : int;
+kbfreq(0) = hslider("kb1freq",164.8,20,10000,0.01);
+kbbend(0) = hslider("kb1bend",1,0,10,0.01);
+kbfreq(1) = hslider("kb2freq",220,20,10000,0.01);
+kbbend(1) = hslider("kb2bend",1,0,10,0.01);
+kbfreq(2) = hslider("kb3freq",293.7,20,10000,0.01);
+kbbend(2) = hslider("kb3bend",1,0,10,0.01);
+kbfreq(3) = hslider("kb4freq",392,20,10000,0.01);
+kbbend(3) = hslider("kb4bend",1,0,10,0.01);
+kbfreq(4) = hslider("kb5freq",493.9,20,10000,0.01);
+kbbend(4) = hslider("kb5bend",1,0,10,0.01);
+kbfreq(5) = hslider("kb6freq",659.2,20,10000,0.01);
+kbbend(5) = hslider("kb6bend",1,0,10,0.01);
+kb6kstatus(5) = hslider("kb0k0status",0,0,1,1) <: ==(1) | ==(4) : int;
+kb6kstatus(4) = hslider("kb0k1status",0,0,1,1) <: ==(1) | ==(4) : int;
+kb6kstatus(3) = hslider("kb0k2status",0,0,1,1) <: ==(1) | ==(4) : int;
+kb6kstatus(2) = hslider("kb0k3status",0,0,1,1) <: ==(1) | ==(4) : int;
+kb6kstatus(1) = hslider("kb0k4status",0,0,1,1) <: ==(1) | ==(4) : int;
+kb6kstatus(0) = hslider("kb0k5status",0,0,1,1) <: ==(1) | ==(4) : int;
 
 // MODEL PARAMETERS
 // strings length
