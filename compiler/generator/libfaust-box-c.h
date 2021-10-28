@@ -365,10 +365,7 @@ extern "C"
     Box CboxRemAux(Box b1, Box b2);
     
     Box CboxLeftShift();
-    Box CboxLeftShiftAux(Box b1, Box b2)
-    {
-        return CboxSeq(CboxPar(b1, b2), CboxLeftShift());
-    }
+    Box CboxLeftShiftAux(Box b1, Box b2);
     Box CboxLRightShift();
     Box CboxLRightShiftAux(Box b1, Box b2);
     Box CboxARightShift();
@@ -397,7 +394,6 @@ extern "C"
     /**
      * Extended unary mathematical functions.
      */
-    
     Box CboxAbs();
     Box CboxAbsAux(Box x);
     Box CboxAcos();
@@ -432,7 +428,6 @@ extern "C"
     /**
      * Extended binary mathematical functions.
      */
-    
     Box CboxRemainder();
     Box CboxRemainderAux(Box b1, Box b2);
     Box CboxPow();
