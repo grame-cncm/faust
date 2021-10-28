@@ -204,6 +204,34 @@ void FIRCodeContainer::dumpMemory(ostream* dst)
         *dst << "Heap size = " << heap_counter3.fSizeBytes + total_heap_size << " bytes" << endl;
         *dst << "Stack size in compute = " << stack_counter.fSizeBytes << " bytes"
              << "\n\n";
+        
+        *dst << "======= Variable access in compute control ==========" << endl << endl;
+        {
+            StructInstVisitor struct_visitor;
+            fDeclarationInstructions->accept(&struct_visitor);
+            fComputeBlockInstructions->accept(&struct_visitor);
+            
+            for (const auto& it : struct_visitor.getFieldTable()) {
+                *dst << "Field = " << it.first << " size = " << it.second.fSize;
+                *dst << " r_count = " << it.second.fRAccessCount;
+                *dst << " w_count = " << it.second.fWAccessCount << endl;
+            }
+        }
+        
+        *dst << endl << "======= Variable access in compute DSP ==========" << endl << endl;
+        {
+            StructInstVisitor struct_visitor;
+            fDeclarationInstructions->accept(&struct_visitor);
+            
+            ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
+            loop->accept(&struct_visitor);
+            
+            for (const auto& it : struct_visitor.getFieldTable()) {
+                *dst << "Field = " << it.first << " size = " << it.second.fSize;
+                *dst << " r_count = " << it.second.fRAccessCount;
+                *dst << " w_count = " << it.second.fWAccessCount << endl;
+            }
+        }
     }
 }
 

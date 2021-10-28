@@ -171,7 +171,7 @@ struct global {
     bool   gMathApprox;            // Simpler/faster versions of 'floor/fmod/remainder' functions
     bool   gNeedManualPow;         // If manual pow(x, y) generation when y is an integer is needed
     bool   gRemoveVarAddress;      // If used of variable addresses (like &foo or &foo[n]) have to be removed
-    int    gOneSample;              // Generate one sample computation:  (0 = separated control) (1 = separated control and DSP struct)
+    int    gOneSample;             // Generate one sample computation: (0 = separated control) (1 = separated control and DSP struct)
     bool   gOneSampleControl;      // Generate one sample computation control structure in DSP module
     bool   gComputeMix;            // Mix in outputs buffers
     string gFastMathLib;           // The fastmath code mapping file

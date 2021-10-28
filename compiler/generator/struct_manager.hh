@@ -34,17 +34,28 @@ struct MemoryDesc {
     int fOffset;        // Field offset in bytes in a mixed int/real zone
     int fIntOffset;     // Field offset in bytes in a separated int zone
     int fRealOffset;    // Field offset in bytes in a separated real zone
+    int fRAccessCount;  // Field read access counter
+    int fWAccessCount;  // Field write access counter
     int fSize;          // Field size in bytes
 
     Typed::VarType fType;
 
-    MemoryDesc() : fIndex(-1), fOffset(-1), fIntOffset(-1), fRealOffset(-1), fSize(-1), fType(Typed::kNoType) {}
+    MemoryDesc() : fIndex(-1), fOffset(-1),
+        fIntOffset(-1), fRealOffset(-1),
+        fRAccessCount(0), fWAccessCount(0),
+        fSize(-1), fType(Typed::kNoType) {}
 
     MemoryDesc(int index, int offset, int size, Typed::VarType type)
-    : fIndex(index), fOffset(offset), fIntOffset(-1), fRealOffset(-1), fSize(size), fType(type) {}
+    : fIndex(index), fOffset(offset),
+        fIntOffset(-1), fRealOffset(-1),
+        fRAccessCount(0), fWAccessCount(0),
+        fSize(size), fType(type) {}
  
     MemoryDesc(int index, int offset, int int_offset, int read_offset, int size, Typed::VarType type)
-    : fIndex(index), fOffset(offset), fIntOffset(int_offset), fRealOffset(read_offset), fSize(size), fType(type) {}
+    : fIndex(index), fOffset(offset),
+        fIntOffset(int_offset), fRealOffset(read_offset),
+        fRAccessCount(0), fWAccessCount(0),
+        fSize(size), fType(type) {}
     
     Typed* getTyped()
     {
@@ -134,8 +145,6 @@ struct StructInstVisitor : public DispatchVisitor {
         for (auto& field : fFieldTable) {
             if (field.first == name) return field.second;
         }
-        std::cerr << "ERROR in getMemoryDesc : " << name << std::endl;
-        faustassert(false);
         return fDefault;
     }
     
@@ -155,16 +164,14 @@ struct StructInstVisitor : public DispatchVisitor {
     {
         vector<NamedTyped*> dsp_type_fields;
         for (auto& field : fFieldTable) {
-            // std::cout << "getStructType " << field.first << std::endl;
             dsp_type_fields.push_back(InstBuilder::genNamedTyped(field.first, field.second.getTyped()));
         }
         return InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped(name, dsp_type_fields));
     }
     
     // Declarations
-    virtual void visit(DeclareVarInst* inst)
+    void visit(DeclareVarInst* inst)
     {
-        //dump2FIR(inst);
         string              name   = inst->fAddress->getName();
         Address::AccessType access = inst->fAddress->getAccess();
         
@@ -202,9 +209,23 @@ struct StructInstVisitor : public DispatchVisitor {
                 }
             } else {
                 // Local variables declared by [var_num, type] pairs
-                faustassert(inst->fValue == nullptr);
             }
         }
+    
+        if (inst->fValue) getMemoryDesc(inst->getName()).fWAccessCount++;
+        DispatchVisitor::visit(inst);
+    }
+       
+    void visit(LoadVarInst* inst)
+    {
+        getMemoryDesc(inst->getName()).fRAccessCount++;
+        DispatchVisitor::visit(inst);
+    }
+     
+    void visit(StoreVarInst* inst)
+    {
+        getMemoryDesc(inst->getName()).fWAccessCount++;
+        DispatchVisitor::visit(inst);
     }
     
 };
