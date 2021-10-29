@@ -257,7 +257,7 @@ struct Typed : public Printable {
 
     virtual VarType getType() const = 0;
 
-    virtual int getSize() const = 0;
+    virtual int getSizeBytes() const = 0;
 
     virtual void accept(InstVisitor* visitor) = 0;
 

@@ -671,7 +671,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
 
 void global::initTypeSizeMap()
 {
-    // Init type size table
+    // Init type size table (in bytes)
     gTypeSizeMap[Typed::kFloat]         = gMachineFloatSize;
     gTypeSizeMap[Typed::kFloat_ptr]     = gMachinePtrSize;
     gTypeSizeMap[Typed::kFloat_ptr_ptr] = gMachinePtrSize;

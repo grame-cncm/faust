@@ -56,6 +56,7 @@ help:
 	@echo " 'cpp'    : check float and double outputs with the cpp backend in scalar, vec, openmp and sched modes"
 	@echo " 'cpp1'   : check double outputs with the cpp backend in scalar one-sample mode (-os0)"
 	@echo " 'cpp2'   : check double outputs with the cpp backend in scalar one-sample mode (-os1)"
+	@echo " 'cpp3'   : check double outputs with the cpp backend in scalar one-sample mode (-os2)"
 	@echo " 'ocpp'   : check double outputs with the ocpp backend in scalar mode"
 	@echo " 'c'      : check float and double outputs with the c backend in scalar, vec, openmp and sched modes"
 	@echo " 'c1'     : check float and double outputs with the c backend in scalar one-sample mode (-os0)"
@@ -124,6 +125,14 @@ cpp1:
 
 cpp2:
 	$(MAKE) -f Make.gcc outdir=cpp2/double         lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os1"
+
+cpp3:
+	export FAUST_MAX_SIZE=1000
+	$(MAKE) -f Make.gcc outdir=cpp3_s1/double         lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os2"
+	export FAUST_MAX_SIZE=10000
+	$(MAKE) -f Make.gcc outdir=cpp3_s2/double         lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os2"
+	export FAUST_MAX_SIZE=50000
+	$(MAKE) -f Make.gcc outdir=cpp3_s3/double         lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os2"
 
 ocpp:
 	$(MAKE) -f Make.gcc outdir=ocpp/double         lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"

@@ -34,6 +34,7 @@ using namespace std;
         - subcontainers are merged in the main class
         - CScalarOneSampleCodeContainer1 (used in -os0) separates the DSP control state in iControl and fControl (possibly to be allocated elsewhere)
         - CScalarOneSampleCodeContainer2 (used in -os1) separates the DSP control state in iControl and fControl and the DSP state in iZone and fZone (possibly to be allocated elsewhere)
+        - CScalarOneSampleCodeContainer3 (used in -os2) separates the DSP control state in iControl and fControl and the DSP state in iZone and fZone (possibly to be allocated elsewhere). Short delay lines remain in DSP struct, long delay lines are moved in iZone/fZone
  */
 
 map<string, bool> CInstVisitor::gFunctionSymbolTable;
@@ -51,6 +52,8 @@ CodeContainer* CCodeContainer::createScalarContainer(const string& name, int sub
         return new CScalarOneSampleCodeContainer1(name, 0, 1, fOut, sub_container_type);
     } else if (gGlobal->gOneSample == 1) {
         return new CScalarOneSampleCodeContainer2(name, 0, 1, fOut, sub_container_type);
+    } else if (gGlobal->gOneSample == 2) {
+        return new CScalarOneSampleCodeContainer3(name, 0, 1, fOut, sub_container_type);
     } else {
         return new CScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
     }
@@ -79,6 +82,8 @@ CodeContainer* CCodeContainer::createContainer(const string& name, int numInputs
             container = new CScalarOneSampleCodeContainer1(name, numInputs, numOutputs, dst, kInt);
         } else if (gGlobal->gOneSample == 1) {
             container = new CScalarOneSampleCodeContainer2(name, numInputs, numOutputs, dst, kInt);
+        } else if (gGlobal->gOneSample == 2) {
+            container = new CScalarOneSampleCodeContainer3(name, numInputs, numOutputs, dst, kInt);
         } else {
             container = new CScalarCodeContainer(name, numInputs, numOutputs, dst, kInt);
         }
@@ -891,6 +896,12 @@ void CScalarOneSampleCodeContainer2::produceClass()
     *fOut << "#endif" << endl;
 }
 
+// Used with -os2 option
+void CScalarOneSampleCodeContainer3::produceClass()
+{
+
+}
+
 void CCodeContainer::produceMetadata(int tabs)
 {
     tab(tabs, *fOut);
@@ -1013,6 +1024,13 @@ void CScalarOneSampleCodeContainer2::generateComputeAux(int n)
     
     back(1, *fOut);
     *fOut << "}" << endl;
+}
+
+// Used with -os2 option
+void CScalarOneSampleCodeContainer3::generateComputeAux(int n)
+{
+
+    
 }
 
 // Vector

@@ -496,7 +496,7 @@ struct VariableSizeCounter : public DispatchVisitor {
         DispatchVisitor::visit(inst);
 
         if (((fType == Typed::kNoType) || (inst->fType->getType() == fType)) && inst->fAddress->getAccess() | fAccess) {
-            fSizeBytes += inst->fType->getSize();
+            fSizeBytes += inst->fType->getSizeBytes();
         }
     }
 };

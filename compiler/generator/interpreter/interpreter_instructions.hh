@@ -348,7 +348,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     fCurrentBlock->push(new FBCBasicInstruction<REAL>((tmp.fType == Typed::kInt32)
                                                                        ? FBCInstruction::kLoadIndexedInt
                                                                        : FBCInstruction::kLoadIndexedReal,
-                                                                       indexed->getName(), 0, 0, tmp.fOffset, tmp.fSize));
+                                                                       indexed->getName(), 0, 0, tmp.fOffset, tmp.fSizeBytes));
                 }
             }
         }
@@ -438,7 +438,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     fCurrentBlock->push(new FBCBasicInstruction<REAL>((tmp.fType == Typed::kInt32)
                                                                        ? FBCInstruction::kStoreIndexedInt
                                                                        : FBCInstruction::kStoreIndexedReal,
-                                                                       indexed->getName(), 0, 0, tmp.fOffset, tmp.fSize));
+                                                                       indexed->getName(), 0, 0, tmp.fOffset, tmp.fSizeBytes));
                 }
             }
         }

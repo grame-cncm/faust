@@ -144,25 +144,25 @@ BasicTyped* InstBuilder::genBasicTyped(Typed::VarType type)
     return gGlobal->genBasicTyped(type);
 }
 
-int BasicTyped::getSize() const
+int BasicTyped::getSizeBytes() const
 {
     faustassert(gGlobal->gTypeSizeMap.find(fType) != gGlobal->gTypeSizeMap.end());
     return gGlobal->gTypeSizeMap[fType];
 }
 
-int FunTyped::getSize() const
+int FunTyped::getSizeBytes() const
 {
     return gGlobal->gTypeSizeMap[Typed::kVoid_ptr];
 }
 
-int ArrayTyped::getSize() const
+int ArrayTyped::getSizeBytes() const
 {
     if (fSize == 0) {
         // Array of zero size are treated as pointer in the corresponding type
         faustassert(gGlobal->gTypeSizeMap.find(getType()) != gGlobal->gTypeSizeMap.end());
         return gGlobal->gTypeSizeMap[getType()];
     } else {
-        return fType->getSize() * fSize;
+        return fType->getSizeBytes() * fSize;
     }
 }
 

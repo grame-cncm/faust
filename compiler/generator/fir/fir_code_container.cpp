@@ -175,7 +175,6 @@ void FIRCodeContainer::dumpMemory(ostream* dst)
     // Compute memory footprint
     if (fTopLevel) {
         int total_heap_size = 0;
-
         for (const auto& it : fSubContainers) {
             VariableSizeCounter heap_counter(Address::AccessType(Address::kStruct | Address::kStaticStruct));
             it->generateDeclarations(&heap_counter);
@@ -201,7 +200,7 @@ void FIRCodeContainer::dumpMemory(ostream* dst)
         *dst << "Heap size int* = " << heap_counter2.fSizeBytes << " bytes" << endl;
         *dst << "Heap size real = " << heap_counter3.fSizeBytes - (heap_counter1.fSizeBytes + heap_counter2.fSizeBytes)
              << " bytes" << endl;
-        *dst << "Heap size = " << heap_counter3.fSizeBytes + total_heap_size << " bytes" << endl;
+        *dst << "Total heap size = " << heap_counter3.fSizeBytes + total_heap_size << " bytes" << endl;
         *dst << "Stack size in compute = " << stack_counter.fSizeBytes << " bytes"
              << "\n\n";
         
@@ -212,7 +211,7 @@ void FIRCodeContainer::dumpMemory(ostream* dst)
             fComputeBlockInstructions->accept(&struct_visitor);
             
             for (const auto& it : struct_visitor.getFieldTable()) {
-                *dst << "Field = " << it.first << " size = " << it.second.fSize;
+                *dst << "Field = " << it.first << " size = " << it.second.fSizeBytes;
                 *dst << " r_count = " << it.second.fRAccessCount;
                 *dst << " w_count = " << it.second.fWAccessCount << endl;
             }
@@ -227,7 +226,7 @@ void FIRCodeContainer::dumpMemory(ostream* dst)
             loop->accept(&struct_visitor);
             
             for (const auto& it : struct_visitor.getFieldTable()) {
-                *dst << "Field = " << it.first << " size = " << it.second.fSize;
+                *dst << "Field = " << it.first << " size = " << it.second.fSizeBytes;
                 *dst << " r_count = " << it.second.fRAccessCount;
                 *dst << " w_count = " << it.second.fWAccessCount << endl;
             }
@@ -363,7 +362,7 @@ void FIRWorkStealingCodeContainer::dumpMemory(ostream* dst)
         fComputeThreadBlockInstructions->accept(&stack_counter_compute_thread);
 
         *dst << "======= Object memory footprint ==========\n\n";
-        *dst << "Heap size = " << heap_counter.fSizeBytes + total_heap_size << " bytes" << endl;
+        *dst << "Total heap size = " << heap_counter.fSizeBytes + total_heap_size << " bytes" << endl;
         *dst << "Stack size in compute = " << stack_counter_compute.fSizeBytes << " bytes" << endl;
         *dst << "Stack size in computeThread = " << stack_counter_compute_thread.fSizeBytes << " bytes"
              << "\n\n";

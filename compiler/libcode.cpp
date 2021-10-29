@@ -576,6 +576,10 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-os1", "--one-sample1")) {
             gGlobal->gOneSample = 1;
             i += 1;
+            
+        } else if (isCmd(argv[i], "-os2", "--one-sample2")) {
+            gGlobal->gOneSample = 2;
+            i += 1;
 
         } else if (isCmd(argv[i], "-cm", "--compute-mix")) {
             gGlobal->gComputeMix = true;
@@ -917,6 +921,7 @@ static void printHelp()
     cout << tab << "-os         --one-sample                generate one sample computation (same as -os0)." << endl;
     cout << tab << "-os0        --one-sample0               generate one sample computation (0 = separated control)." << endl;
     cout << tab << "-os1        --one-sample1               generate one sample computation (1 = separated control and DSP struct)." << endl;
+    cout << tab << "-os2        --one-sample2               generate one sample computation (2 = separated control and DSP struct. Separation in short and long delay lines)." << endl;
     cout << tab << "-cm         --compute-mix               mix in outputs buffers." << endl;
     cout << tab
          << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp."
@@ -1712,12 +1717,12 @@ void generateCode(Tree signals, int numInputs, int numOutputs, bool generate)
             if ((enrobage = openArchStream(gGlobal->gArchFile.c_str())) != nullptr) {
                 if (gGlobal->gNameSpace != "" && gGlobal->gOutputLang == "cpp")
                     *dst.get() << "namespace " << gGlobal->gNameSpace << " {" << endl;
-#ifdef DLANG_BUILD
+            #ifdef DLANG_BUILD
                 else if (gGlobal->gOutputLang == "dlang") {
                     DLangCodeContainer::printDRecipeComment(*dst.get(), container->getClassName());
                     DLangCodeContainer::printDModuleStmt(*dst.get(), container->getClassName());
                 }
-#endif
+            #endif
 
                 // Possibly inject code
                 injectCode(enrobage, *dst.get());

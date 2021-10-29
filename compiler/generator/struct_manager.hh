@@ -30,37 +30,38 @@
 
 // Describe a field memory location in the DSP structure
 struct MemoryDesc {
-    int fIndex;         // Field index
-    int fOffset;        // Field offset in bytes in a mixed int/real zone
-    int fIntOffset;     // Field offset in bytes in a separated int zone
-    int fRealOffset;    // Field offset in bytes in a separated real zone
-    int fRAccessCount;  // Field read access counter
-    int fWAccessCount;  // Field write access counter
-    int fSize;          // Field size in bytes
-
-    Typed::VarType fType;
+    enum memType { kLocal, kExternal };
+    int fIndex;             // Index
+    int fOffset;            // Offset in bytes in a mixed int/real zone
+    int fIntOffset;         // Offset in bytes in a separated int zone
+    int fRealOffset;        // Offset in bytes in a separated real zone
+    int fRAccessCount;      // Read access counter
+    int fWAccessCount;      // Write access counter
+    int fSizeBytes;         // Size in bytes
+    Typed::VarType fType;   // FIR type
+    memType fMemType;       // Memory type
 
     MemoryDesc() : fIndex(-1), fOffset(-1),
         fIntOffset(-1), fRealOffset(-1),
         fRAccessCount(0), fWAccessCount(0),
-        fSize(-1), fType(Typed::kNoType) {}
+        fSizeBytes(-1), fType(Typed::kNoType), fMemType(kLocal) {}
 
-    MemoryDesc(int index, int offset, int size, Typed::VarType type)
+    MemoryDesc(int index, int offset, int size_bytes, Typed::VarType type)
     : fIndex(index), fOffset(offset),
         fIntOffset(-1), fRealOffset(-1),
         fRAccessCount(0), fWAccessCount(0),
-        fSize(size), fType(type) {}
+        fSizeBytes(size_bytes), fType(type), fMemType(kLocal) {}
  
-    MemoryDesc(int index, int offset, int int_offset, int read_offset, int size, Typed::VarType type)
+    MemoryDesc(int index, int offset, int int_offset, int read_offset, int size_bytes, Typed::VarType type, memType mem_type = kLocal)
     : fIndex(index), fOffset(offset),
         fIntOffset(int_offset), fRealOffset(read_offset),
         fRAccessCount(0), fWAccessCount(0),
-        fSize(size), fType(type) {}
+        fSizeBytes(size_bytes), fType(type), fMemType(mem_type) {}
     
     Typed* getTyped()
     {
-        if (fSize > 1) {
-            return InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(fType), fSize);
+        if (fSizeBytes > 1) {
+            return InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(fType), fSizeBytes);
         } else {
             return InstBuilder::genBasicTyped(fType);
         }
@@ -139,6 +140,17 @@ struct StructInstVisitor : public DispatchVisitor {
         return -1;
     }
     
+    // Return the memory type of a given field
+    MemoryDesc::memType getFieldMemoryType(const string& name)
+    {
+        for (const auto& field : fFieldTable) {
+            if (field.first == name) return field.second.fMemType;
+        }
+        std::cerr << "ERROR in getFieldMemoryType : " << name << std::endl;
+        faustassert(false);
+        return MemoryDesc::kLocal;
+    }
+    
     // Return the memory description of a given field
     MemoryDesc& getMemoryDesc(const string& name)
     {
@@ -187,9 +199,9 @@ struct StructInstVisitor : public DispatchVisitor {
                                                                  array_typed->fSize,
                                                                  array_typed->fType->getType())));
                 if (array_typed->fType->getType() == Typed::kInt32) {
-                    fStructIntOffset += array_typed->getSize();
+                    fStructIntOffset += array_typed->getSizeBytes();
                 } else {
-                    fStructRealOffset += array_typed->getSize();
+                    fStructRealOffset += array_typed->getSizeBytes();
                 }
             } else {
                 // Should never happen...
@@ -201,11 +213,12 @@ struct StructInstVisitor : public DispatchVisitor {
                                                                  getStructSize(),
                                                                  getStructIntSize(),
                                                                  getStructRealSize(),
-                                                                 1, inst->fType->getType())));
+                                                                 1,
+                                                                 inst->fType->getType())));
                 if (inst->fType->getType() == Typed::kInt32) {
-                    fStructIntOffset += inst->fType->getSize();
+                    fStructIntOffset += inst->fType->getSizeBytes();
                 } else {
-                    fStructRealOffset += inst->fType->getSize();
+                    fStructRealOffset += inst->fType->getSizeBytes();
                 }
             } else {
                 // Local variables declared by [var_num, type] pairs
@@ -225,6 +238,83 @@ struct StructInstVisitor : public DispatchVisitor {
     void visit(StoreVarInst* inst)
     {
         getMemoryDesc(inst->getName()).fWAccessCount++;
+        DispatchVisitor::visit(inst);
+    }
+    
+};
+
+
+// A version that separates some of the fields for the iZone/fZone model
+// and keep the others in the DSP struct.
+
+struct StructInstVisitor1 : public StructInstVisitor {
+
+    int fExternalMemory;
+    int fDLThreshold;
+    
+    // To be computed with dsp_struct_size and max_size_bytes
+    StructInstVisitor1(int external_memory, int dl_threshold = 2)
+    : StructInstVisitor(), fExternalMemory(external_memory), fDLThreshold(dl_threshold)
+    {}
+    
+    // Declarations
+    void visit(DeclareVarInst* inst)
+    {
+        string              name   = inst->fAddress->getName();
+        Address::AccessType access = inst->fAddress->getAccess();
+        
+        bool        is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
+        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        
+        if (array_typed && array_typed->fSize > 1) {
+            if (is_struct) {
+                // Array is allocated in iZone/fZone until fExternalMemory reaches 0
+                // kStaticStruct are always allocated in kExternal
+                if ((access & Address::kStaticStruct) || (fExternalMemory > 0 && array_typed->fSize > fDLThreshold)) {
+                    fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++,
+                                                                     getStructSize(),
+                                                                     getStructIntSize(),
+                                                                     getStructRealSize(),
+                                                                     array_typed->fSize,
+                                                                     array_typed->fType->getType(),
+                                                                     MemoryDesc::kExternal)));
+                    
+                    if (array_typed->fType->getType() == Typed::kInt32) {
+                        fStructIntOffset += array_typed->getSizeBytes();
+                    } else {
+                        fStructRealOffset += array_typed->getSizeBytes();
+                    }
+                    fExternalMemory -= array_typed->getSizeBytes();
+                } else {
+                    fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++,
+                                                                     getStructSize(),
+                                                                     getStructIntSize(),
+                                                                     getStructRealSize(),
+                                                                     array_typed->fSize,
+                                                                     array_typed->fType->getType(),
+                                                                     MemoryDesc::kLocal)));
+                    
+                }
+            } else {
+                // Should never happen...
+                faustassert(false);
+            }
+        } else {
+            if (is_struct) {
+                fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++,
+                                                                 getStructSize(),
+                                                                 getStructIntSize(),
+                                                                 getStructRealSize(),
+                                                                 1,
+                                                                 inst->fType->getType(),
+                                                                 MemoryDesc::kLocal)));
+                // Scalar variable always stay in local memory (TO CHECK)
+            } else {
+                // Local variables declared by [var_num, type] pairs
+            }
+        }
+    
+        if (inst->fValue) getMemoryDesc(inst->getName()).fWAccessCount++;
         DispatchVisitor::visit(inst);
     }
     

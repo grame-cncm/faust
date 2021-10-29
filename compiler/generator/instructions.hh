@@ -425,7 +425,7 @@ struct BasicTyped : public Typed {
 
     VarType getType() const { return fType; }
 
-    int getSize() const;  // moved in "instructions.cpp"
+    int getSizeBytes() const;  // moved in "instructions.cpp"
 
     virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -442,7 +442,7 @@ struct NamedTyped : public Typed {
 
     VarType getType() const { return fType->getType(); }
 
-    int getSize() const { return fType->getSize(); }
+    int getSizeBytes() const { return fType->getSizeBytes(); }
 
     virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -479,7 +479,7 @@ struct FunTyped : public Typed {
         return res;
     }
 
-    int getSize() const;  // moved in "instructions.cpp"
+    int getSizeBytes() const;  // moved in "instructions.cpp"
 
     virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -497,7 +497,7 @@ struct ArrayTyped : public Typed {
 
     VarType getType() const { return getPtrFromType(fType->getType()); }
 
-    int getSize() const;  // moved in "instructions.cpp"
+    int getSizeBytes() const;  // moved in "instructions.cpp"
 
     virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -515,11 +515,11 @@ struct StructTyped : public Typed {
     VarType getType() const { return kObj_ptr; }
     VarType getType(int index) { return fFields[index]->getType(); }
 
-    int getSize() const
+    int getSizeBytes() const
     {
         int size = 0;
         for (const auto& it : fFields) {
-            size += it->getSize();
+            size += it->getSizeBytes();
         }
         return size;
     }
@@ -528,7 +528,7 @@ struct StructTyped : public Typed {
     {
         int offset = 0;
         for (int i = 0; i < field; i++) {
-            offset += fFields[i]->getSize();
+            offset += fFields[i]->getSizeBytes();
         }
         return offset;
     }
@@ -550,7 +550,7 @@ struct VectorTyped : public Typed {
 
     VarType getType() const { return getVecFromType(fType->getType()); }
 
-    int getSize() const { return fType->getSize() * fSize; }
+    int getSizeBytes() const { return fType->getSizeBytes() * fSize; }
 
     virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 

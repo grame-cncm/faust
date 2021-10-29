@@ -35,6 +35,7 @@ using namespace std;
         - subcontainers are merged in the main class
         - CPPScalarOneSampleCodeContainer1 (used in -os0) separates the DSP control state in iControl and fControl (possibly to be allocated elsewhere)
         - CPPScalarOneSampleCodeContainer2 (used in -os1) separates the DSP control state in iControl and fControl and the DSP state in iZone and fZone (possibly to be allocated elsewhere)
+        - CPPScalarOneSampleCodeContainer3 (used in -os2) separates the DSP control state in iControl and fControl and the DSP state in iZone and fZone (possibly to be allocated elsewhere). Short delay lines remain in DSP struct, long delay lines are moved in iZone/fZone
  */
 
 map<string, bool> CPPInstVisitor::gFunctionSymbolTable;
@@ -51,7 +52,9 @@ CodeContainer* CPPCodeContainer::createScalarContainer(const string& name, int s
     if (gGlobal->gOneSample == 0) {
         return new CPPScalarOneSampleCodeContainer1(name, "", 0, 1, fOut, sub_container_type);
     } else if (gGlobal->gOneSample == 1) {
-        return new CPPScalarOneSampleCodeContainer1(name, "", 0, 1, fOut, sub_container_type);
+        return new CPPScalarOneSampleCodeContainer2(name, "", 0, 1, fOut, sub_container_type);
+    } else if (gGlobal->gOneSample == 2) {
+        return new CPPScalarOneSampleCodeContainer3(name, "", 0, 1, fOut, sub_container_type);
     } else {
         return new CPPScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
     }
@@ -91,6 +94,8 @@ CodeContainer* CPPCodeContainer::createContainer(const string& name, const strin
             container = new CPPScalarOneSampleCodeContainer1(name, super, numInputs, numOutputs, dst, kInt);
         } else if (gGlobal->gOneSample == 1) {
             container = new CPPScalarOneSampleCodeContainer2(name, super, numInputs, numOutputs, dst, kInt);
+        } else if (gGlobal->gOneSample == 2) {
+            container = new CPPScalarOneSampleCodeContainer3(name, super, numInputs, numOutputs, dst, kInt);
         } else {
             container = new CPPScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
         }
@@ -1081,6 +1086,19 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
         tab(n, *fOut);
         *fOut << "} // namespace " << gGlobal->gNameSpace << endl;
     }
+}
+
+// Used with -os2 option
+void CPPScalarOneSampleCodeContainer3::produceClass()
+{
+    VariableSizeCounter heap_counter(Address::kStruct);
+    generateDeclarations(&heap_counter);
+    
+    char* max_size_str = getenv("FAUST_MAX_SIZE");
+    int max_size = (max_size_str) ? atoi(max_size_str) : 0;
+    fCodeProducer = new CPPInstVisitor2(fOut, std::max(0, heap_counter.fSizeBytes - max_size));
+    
+    CPPScalarOneSampleCodeContainer2::produceClass();
 }
 
 void CPPScalarCodeContainer::generateCompute(int n)
