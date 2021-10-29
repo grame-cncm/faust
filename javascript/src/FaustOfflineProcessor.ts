@@ -39,6 +39,8 @@ namespace Faust {
 
         plot(size: number): Float32Array[] {
             const plotted = new Array(this.fDSPCode.getNumOutputs()).fill(null).map(() => new Float32Array(size));
+            // The node has to be started before rendering
+            this.fDSPCode.start();
             for (let frame = 0; frame < size; frame += this.fBufferSize) {
                 // Render one buffer
                 this.fDSPCode.compute(this.fInputs, this.fOutputs);
@@ -47,6 +49,8 @@ namespace Faust {
                     plotted[chan].set(size - frame > this.fBufferSize ? this.fOutputs[chan] : this.fOutputs[chan].subarray(0, size - frame), frame);
                 }
             }
+            // The node can be stopped after rendering
+            this.fDSPCode.stop();
             return plotted;
         }
     }

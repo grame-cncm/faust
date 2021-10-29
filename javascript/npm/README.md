@@ -44,8 +44,7 @@ It provides *classic* Faust compilation services, which output is a raw WebAssem
 
 ### Faust Wasm Instance <a name="wasm"></a>
 
-This level takes a WebAssembly module produced by the Faust compiler or a precompiled module loaded from a file, and builds an instance of this module with the proper Wasm memory layout, ready to run, but not yet connected to any audio node.  
-It is described in `FaustGenerator.d.ts`.   
+This level takes a WebAssembly module produced by the Faust compiler or a precompiled module loaded from a file, and builds an instance of this module with the proper Wasm memory layout, ready to run, but not yet connected to any audio node. It is described in `FaustGenerator.d.ts`.   
 
 
 ### Faust Audio Nodes Instances and Offline Processor <a name="audio"></a>
@@ -54,11 +53,11 @@ This level takes a Faust Wasm instance to build an audio node. [AudioWorklet](ht
 
 Note that ScriptProcessor is marked as [deprecated](https://developer.mozilla.org/en-US/docs/Web/API/ScriptProcessorNode) but it's the only audio architecture available on Safari. Both monophonic (generators, effects...) or polyphonic (instruments) nodes can be created.
 
-By default, and to save CPU, created audio nodes are not processing audio buffers. They have to be explicitely started with the `start`method (and possibly stopped if needed using the `stop`method).
+By default, and to save CPU, created audio nodes are not processing audio buffers. They have to be explicitely started with the `start` method (and possibly stopped if needed using the `stop`method).
 
 **Warning**: AudioWorklet is a recent technology and may not be supported by all the browsers. Check the [compatibility](https://developer.mozilla.org/fr/docs/Web/API/AudioWorklet) chart.
 
-An offline processor to render a DSP in a non real-time context and get the computed frames is available. It is described in `FaustWebAudio.d.ts`.   
+An offline processor to render a DSP in a non real-time context and get the computed frames is available. It is described in `FaustWebAudio.d.ts`. It will automatically use the `start` and `stop` methods internally to activate actual rendering in its `plot` method. 
 
 
 ### High-level API <a name="high"></a>
