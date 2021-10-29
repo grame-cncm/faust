@@ -392,11 +392,11 @@ class APIUI : public PathBuilder, public Meta, public UI
         {
             int index = getParamIndex(path);
             if (index >= 0) setParamValue(index, v);
-#ifdef DEBUG
+        #ifdef DEBUG
             if (index < 0) {
-              fprintf(stderr, ">>## Unknown parameter at path=%s\n",(path == nullptr ? "NULL" : path));
+                fprintf(stderr, ">>## Unknown parameter at path = %s\n", (path == nullptr ? "NULL" : path));
             }
-#endif
+        #endif
         }
 
         double getParamRatio(int p) { return fItems[uint(p)].fConversion->faust2ui(*fItems[uint(p)].fZone); }
