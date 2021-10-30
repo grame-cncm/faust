@@ -132,19 +132,6 @@
 
 using namespace std;
 
-// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
-// flags to avoid costly denormals
-#ifdef __SSE__
-#include <xmmintrin.h>
-#ifdef __SSE2__
-#define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
-#else
-#define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
-#endif
-#else
-#define AVOIDDENORMALS
-#endif
-
 struct Meta : std::map<const char*, const char*>
 {
     void declare(const char* key, const char* value) { (*this)[key] = value; }
@@ -158,10 +145,6 @@ struct Meta : std::map<const char*, const char*>
         }
     }
 };
-
-inline int lsr(int x, int n) { return int(((unsigned int)x) >> n); }
-
-inline int int2pow2(int x) { int r=0; while ((1<<r)<x) r++; return r; }
 
 /******************************************************************************
  *******************************************************************************
@@ -317,26 +300,16 @@ Faust::~Faust()
     
     for (int i = 0; i < m_dsp->getNumOutputs(); ++i) {
         free(m_tempOutputs[i]);
-        m_tempOutputs[i] = NULL;
     }
-    
     free(m_tempOutputs);
     
     for (unsigned int i = 0; i < MAX_POLYPHONY; ++i) {
-        if (NULL != m_voices[i]) {
-            delete m_voices[i];
-            m_voices[i] = NULL;
-        }
+        delete m_voices[i];
+        m_voices[i] = NULL;
     }
     
-    if (m_dspUI) {
-        delete m_dspUI;
-    }
-    
-    if (m_dsp) {
-        delete m_dsp;
-    }
-    
+    delete m_dspUI;
+    delete m_dsp;
 } // end of Faust destructor
 
 //-----------------------------------------------------------------------------
@@ -388,10 +361,9 @@ void Faust::getParameterLabel(VstInt32 index, char *label)
 //----------------------------------------------------------------------------
 void Faust::getParameterDisplay(VstInt32 index, char *text)
 {
-    if(index < numParams) {
+    if (index < numParams) {
         m_dspUI->GetDisplay(index,text); // get displayed float value as text
-    }
-    else {
+    } else {
         vst_strncpy(text, "IndexOutOfRange", kVstMaxParamStrLen);
     }
 }
@@ -399,7 +371,7 @@ void Faust::getParameterDisplay(VstInt32 index, char *text)
 //----------------------------------------------------------------------------
 void Faust::getParameterName(VstInt32 index, char *label)
 {
-    if(index < numParams) {
+    if (index < numParams) {
         m_dspUI->GetName(index,label); // parameter name, including units
     } else {
         vst_strncpy(label, "IndexOutOfRange", kVstMaxParamStrLen);
@@ -499,7 +471,7 @@ bool Faust::getProgramNameIndexed(VstInt32 category, VstInt32 index,
                                    char* text)
 {
     if (index < kNumPrograms) {
-        vst_strncpy (text, programName, kVstMaxProgNameLen);
+        vst_strncpy(text, programName, kVstMaxProgNameLen);
         return true;
     }
     return false;
@@ -517,7 +489,7 @@ const char* Faust::getMetadata(const char* key, const char* defaultString)
 bool Faust::getEffectName(char* name)
 {
     const char* effectName = getMetadata("name", "Effect Name goes here");
-    vst_strncpy (name, effectName, kVstMaxEffectNameLen);
+    vst_strncpy(name, effectName, kVstMaxEffectNameLen);
     return true;
 }
 
@@ -525,7 +497,7 @@ bool Faust::getEffectName(char* name)
 bool Faust::getVendorString(char* text)
 {
     const char* vendorString = getMetadata("author", "Vendor String goes here");
-    vst_strncpy (text, vendorString, kVstMaxVendorStrLen);
+    vst_strncpy(text, vendorString, kVstMaxVendorStrLen);
     return true;
 }
 
@@ -659,7 +631,8 @@ void Faust::processReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs, VstInt32
     }
 } // end of processReplacing
 
-inline float midiToFreq(int note) {
+inline float midiToFreq(int note)
+{
     return 440.0f*powf(2.0f,(((float)note)-69.0f)/12.0f);
 }
 
@@ -841,7 +814,7 @@ void Faust::compute(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 } // end of compute
 
 //-----------------------------------------------------------------------------
-VstInt32 Faust::processEvents (VstEvents* ev)
+VstInt32 Faust::processEvents(VstEvents* ev)
 {
     if (ev->numEvents > 0) {
         TRACE( fprintf(stderr,"=== Faust vsti: processEvents processing %d "
