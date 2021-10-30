@@ -979,7 +979,7 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     fContainer->addLibrary(fflibfile(ff));
     string funname = ffname(ff);
 
-    if (gGlobal->gAllowForeignFunction || gGlobal->hasMathForeignFunction(funname)) {
+    if (gGlobal->gAllowForeignFunction || gGlobal->hasForeignFunction(funname, ffincfile(ff))) {
 
         list<ValueInst*>  args_value;
         list<NamedTyped*> args_types;

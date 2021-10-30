@@ -717,6 +717,25 @@ int global::audioSampleSize()
     return int(pow(2.f, float(gFloatSize + 1)));
 }
 
+bool global::hasForeignFunction(const string& name, const string& inc_file)
+{
+    // LLVM backend can use 'standard' foreign linked functions
+    static vector<std::string> inc_file_list = { "<math.h>", "<cmath>", "<stdlib.h>" };
+    bool is_linkable = (gOutputLang == "llvm") && (find(begin(inc_file_list), end(inc_file_list), inc_file) != inc_file_list.end());
+    
+    bool has_internal_math_ff = ((gOutputLang == "llvm")
+                                 || startWith(gOutputLang, "wast")
+                                 || startWith(gOutputLang, "wasm")
+                                 || (gOutputLang == "interp")
+                                 || startWith(gOutputLang, "soul")
+                                 || (gOutputLang == "dlang")
+                                 || (gOutputLang == "csharp")
+                                 || (gOutputLang == "rust")
+                                 || (gOutputLang == "julia"));
+    
+    return (has_internal_math_ff && (gMathForeignFunctions.find(name) != gMathForeignFunctions.end())) || is_linkable;
+}
+
 BasicTyped* global::genBasicTyped(Typed::VarType type)
 {
     // Possibly force FAUSTFLOAT type (= kFloatMacro) to internal real

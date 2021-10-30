@@ -591,20 +591,8 @@ struct global {
     inline bool startWith(const string& str, const string& prefix) { return (str.substr(0, prefix.size()) == prefix); }
 
     // Some backends have an internal implementation of foreign functions like acos, asinh...
-    bool hasMathForeignFunction(const string& name)
-    {
-        bool has_internal_math_ff = ((gOutputLang == "llvm")
-                                     || startWith(gOutputLang, "wast")
-                                     || startWith(gOutputLang, "wasm")
-                                     || (gOutputLang == "interp")
-                                     || startWith(gOutputLang, "soul")
-                                     || (gOutputLang == "dlang")
-                                     || (gOutputLang == "csharp")
-                                     || (gOutputLang == "rust")
-                                     || (gOutputLang == "julia"));
-        return has_internal_math_ff && (gMathForeignFunctions.find(name) != gMathForeignFunctions.end());
-    }
-
+    bool hasForeignFunction(const string& name, const string& inc_file);
+   
     void printCompilationOptions(stringstream& dst, bool backend = true);
 
     void initTypeSizeMap();
