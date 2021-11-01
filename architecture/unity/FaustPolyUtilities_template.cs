@@ -615,8 +615,6 @@ namespace FaustUtilities_MODEL {
 							}
 						} while (parseChar(ref s , ','));
 						parseChar(ref s, '}');
-					} else {
-						return false;
 					}
 				} while (parseChar(ref s , ','));
 				return parseChar(ref s, ']');
