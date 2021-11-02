@@ -329,7 +329,7 @@ class Esp32ControlUI : public GenericUI
         void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
             if (strcmp(key, "switch") == 0 || strcmp(key, "knob") == 0) {
-                fprintf(stdout, "key %s val %s\n", min, max);
+                fprintf(stdout, "key %s val %s\n", key, val);
                 fKey = key;
                 fValue = val;
             }
