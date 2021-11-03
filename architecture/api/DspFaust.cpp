@@ -19,6 +19,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <string.h>
 #include <stdio.h>
 
 #include "faust/misc.h"
@@ -147,9 +148,19 @@ static void osc_compute_callback(void* arg)
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
+static bool hasCompileOption(char* options, const char* option)
+{
+    char* token;
+    const char* sep = " ";
+    for (token = strtok(options, sep); token; token = strtok(nullptr, sep)) {
+        if (strcmp(token, option) == 0) return true;
+    }
+    return false;
+}
+
 DspFaust::DspFaust(bool auto_connect)
 {
-    audio* driver = NULL;
+    audio* driver = nullptr;
 #if JACK_DRIVER
     // JACK has its own sample rate and buffer size
 #if MIDICTRL
@@ -164,12 +175,12 @@ DspFaust::DspFaust(bool auto_connect)
     printf("You are not setting 'sample_rate' and 'buffer_size', but the audio driver needs it !\n");
     throw std::bad_alloc();
 #endif
-    init(NULL, driver);
+    init(new mydsp(), driver);
 }
 
 DspFaust::DspFaust(int sample_rate, int buffer_size, bool auto_connect)
 {
-    init(NULL, createDriver(sample_rate, buffer_size, auto_connect));
+    init(new mydsp(), createDriver(sample_rate, buffer_size, auto_connect));
 }
 
 #if DYNAMIC_DSP
@@ -178,11 +189,11 @@ DspFaust::DspFaust(const string& dsp_content, int sample_rate, int buffer_size, 
     string error_msg;
 
     // Is dsp_content a filename ?
-    fFactory = createDSPFactoryFromFile(dsp_content, 0, NULL, "", error_msg, -1);
+    fFactory = createDSPFactoryFromFile(dsp_content, 0, nullptr, "", error_msg, -1);
     if (!fFactory) {
         fprintf(stderr, "ERROR : %s", error_msg.c_str());
         // Is dsp_content a string ?
-        fFactory = createDSPFactoryFromString("FaustDSP", dsp_content, 0, NULL, "", error_msg);
+        fFactory = createDSPFactoryFromString("FaustDSP", dsp_content, 0, nullptr, "", error_msg);
         if (!fFactory) {
             fprintf(stderr, "ERROR : %s", error_msg.c_str());
             throw bad_alloc();
@@ -288,15 +299,30 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
 #endif
     fPolyEngine->buildUserInterface(fOSCInterface);
 #endif
+    
+    // Retrieving DSP object 'compile_options'
+    struct MyMeta : public Meta
+    {
+        string fCompileOptions;
+        void declare(const char* key, const char* value)
+        {
+            if (strcmp(key, "compile_options") == 0) fCompileOptions = value;
+        }
+        MyMeta(){}
+    };
+    
+    MyMeta meta;
+    mono_dsp->metadata(&meta);
+    bool is_double = hasCompileOption((char*)meta.fCompileOptions.c_str(), "-double");
 
 #if SOUNDFILE
 #if JUCE_DRIVER
     auto file = File::getSpecialLocation(File::currentExecutableFile)
         .getParentDirectory().getParentDirectory().getChildFile("Resources");
-    fSoundInterface = new SoundUI(file.getFullPathName().toStdString(), -1, nullptr, IS_DOUBLE);
+    fSoundInterface = new SoundUI(file.getFullPathName().toStdString(), -1, nullptr, is_double);
 #else
     // Use bundle path
-    fSoundInterface = new SoundUI(SoundUI::getBinaryPath(), -1, nullptr, IS_DOUBLE);
+    fSoundInterface = new SoundUI(SoundUI::getBinaryPath(), -1, nullptr, is_double);
 #endif
     fPolyEngine->buildUserInterface(fSoundInterface);
 #endif
@@ -522,32 +548,32 @@ const char* DspFaust::getMetadata(int id, const char* key)
 
 void DspFaust::propagateAcc(int acc, float v)
 {
-	fPolyEngine->propagateAcc(acc, v);
+    fPolyEngine->propagateAcc(acc, v);
 }
 
 void DspFaust::setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
 {
-	fPolyEngine->setAccConverter(p, acc, curve, amin, amid, amax);
+    fPolyEngine->setAccConverter(p, acc, curve, amin, amid, amax);
 }
 
 void DspFaust::propagateGyr(int acc, float v)
 {
-	fPolyEngine->propagateGyr(acc, v);
+    fPolyEngine->propagateGyr(acc, v);
 }
 
 void DspFaust::setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax)
 {
-	fPolyEngine->setGyrConverter(p, gyr, curve, amin, amid, amax);
+    fPolyEngine->setGyrConverter(p, gyr, curve, amin, amid, amax);
 }
 
 float DspFaust::getCPULoad()
 {
-	return fPolyEngine->getCPULoad();
+    return fPolyEngine->getCPULoad();
 }
 
 int DspFaust::getScreenColor()
 {
-	return fPolyEngine->getScreenColor();
+    return fPolyEngine->getScreenColor();
 }
 
 #ifdef BUILD

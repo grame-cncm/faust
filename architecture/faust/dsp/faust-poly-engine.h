@@ -29,6 +29,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #include "faust/dsp/dsp.h"
 #include "faust/audio/audio.h"
@@ -139,7 +140,8 @@ class FaustPolyEngine {
     
         FaustPolyEngine(dsp* mono_dsp, audio* driver = nullptr, midi_handler* midi = nullptr):fMidiUI(&fMidiHandler)
         {
-            init(((mono_dsp) ? mono_dsp : new mydsp()), driver, midi);
+            assert(mono_dsp);
+            init(mono_dsp, driver, midi);
         }
     
         virtual ~FaustPolyEngine()
