@@ -79,6 +79,7 @@ class SoundUI : public SoundUIInterface
          * @param sound_directory - the base directory to look for files, which paths will be relative to this one
          * @param sample_rate - the audio driver SR which may be different from the file SR, to possibly resample files
          * @param reader - an alternative soundfile reader
+         * @param is_double - whether Faust code has been compiled in -double mode and soundfile buffers have to be in double
          *
          * @return the soundfile loader.
          */
@@ -97,6 +98,7 @@ class SoundUI : public SoundUIInterface
          * @param sound_directories - a vector of base directories to look for files, which paths will be relative to these ones
          * @param sample_rate - the audio driver SR which may be different from the file SR, to possibly resample files
          * @param reader - an alternative soundfile reader
+         * @param is_double - whether Faust code has been compiled in -double mode and soundfile buffers have to be in double
          *
          * @return the soundfile loader.
          */

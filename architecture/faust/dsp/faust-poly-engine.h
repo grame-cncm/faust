@@ -100,7 +100,7 @@ class FaustPolyEngine {
                 fJSONMeta = jsonui2M.JSON();
                 
             } else {
-                fPolyDSP = NULL;
+                fPolyDSP = nullptr;
                 fFinalDSP = mono_dsp;
             }
             
@@ -126,18 +126,18 @@ class FaustPolyEngine {
                 // If driver cannot be initialized, start will fail later on...
                 if (!driver->init(meta.fName.c_str(), fFinalDSP)) {
                     delete driver;
-                    fDriver = NULL;
+                    fDriver = nullptr;
                 } else {
                     fDriver = driver;
                 }
             } else {
-                fDriver = NULL;
+                fDriver = nullptr;
             }
         }
     
     public:
     
-        FaustPolyEngine(dsp* mono_dsp, audio* driver = NULL, midi_handler* midi = NULL):fMidiUI(&fMidiHandler)
+        FaustPolyEngine(dsp* mono_dsp, audio* driver = nullptr, midi_handler* midi = nullptr):fMidiUI(&fMidiHandler)
         {
             init(((mono_dsp) ? mono_dsp : new mydsp()), driver, midi);
         }

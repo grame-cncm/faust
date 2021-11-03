@@ -51,6 +51,8 @@ DUMMY_DRIVER="0"
 TEENSY_DRIVER="0"
 ESP32_DRIVER="0"
 
+IS_DOUBLE=false
+
 echoHelp ()
 {
     if [ $p != "-help" ] && [ $p != "-h" ]; then
@@ -124,6 +126,8 @@ createAPI ()
     if [ "$BUILD" = "1" ]; then
         echo "#define BUILD 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
     fi
+    
+    echo "#define IS_DOUBLE $IS_DOUBLE" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
 }
 
 # dispatch command arguments
@@ -194,6 +198,9 @@ do
 		NVOICES=$1
     elif [ $p = "-package" ]; then
         PACKAGENAME="-1"
+    elif [ $p = "-double" ]; then
+        OPTIONS="$OPTIONS $p"
+        IS_DOUBLE=true
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -342,7 +349,7 @@ if [ "$BUILD" = "1" ]; then
         echo "Compile the ${FILE%.dsp} binary"
         # compile c++ to binary
         (
-            #$CXX $CXXFLAGS $APIFOLDER/DspFaust.cpp -lOSCFaust `pkg-config --cflags --static --libs jack sndfile` -o ${FILE%.dsp}
+            #$CXX $CXXFLAGS $APIFOLDER/DspFaust.cpp -lOSCFaust -framework CoreServices `pkg-config --cflags --static --libs jack sndfile` -o ${FILE%.dsp}
             $CXX $CXXFLAGS $APIFOLDER/DspFaust.cpp -lOSCFaust `pkg-config --cflags --static --libs jack` -o ${FILE%.dsp}
         ) > /dev/null || exit 1
         exit 0
