@@ -561,7 +561,7 @@ class CPPInstVisitor2 : public CPPInstVisitor {
     public:
         
         CPPInstVisitor2(std::ostream* out, int external_memory, int tab = 0)
-        :CPPInstVisitor(out, tab), fStructVisitor(external_memory), fZoneAddress(false), fIndexedAddress(false)
+        :CPPInstVisitor(out, tab), fStructVisitor(external_memory, 4), fZoneAddress(false), fIndexedAddress(false)
         {}
         
         virtual void visit(AddSoundfileInst* inst)

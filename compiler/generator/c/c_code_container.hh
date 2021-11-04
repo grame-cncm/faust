@@ -184,6 +184,8 @@ class CScalarOneSampleCodeContainer2 : public CScalarCodeContainer {
     protected:
         virtual void produceClass();
     public:
+        CScalarOneSampleCodeContainer2()
+        {}
         CScalarOneSampleCodeContainer2(const std::string& name,
                                       int numInputs,
                                       int numOutputs,
@@ -217,8 +219,13 @@ class CScalarOneSampleCodeContainer2 : public CScalarCodeContainer {
         void generateComputeAux(int tab);
 };
 
+/*
+ Some of the DSP struct fields will be moved in the iZone/zZone (typically long delay lines).
+ The others will stay in the DSP structure.
+ */
+
 // Special version for -os2 generation mode with iZone and fZone
-class CScalarOneSampleCodeContainer3 : public CScalarCodeContainer {
+class CScalarOneSampleCodeContainer3 : public CScalarOneSampleCodeContainer2 {
     protected:
         virtual void produceClass();
     public:
@@ -246,13 +253,14 @@ class CScalarOneSampleCodeContainer3 : public CScalarCodeContainer {
             addIncludeFile("<stdint.h>");
             
             fSubContainerType = sub_container_type;
-            fCodeProducer = new CInstVisitor1(out, name);
+        
+            // Setup in produceClass
+            fCodeProducer = nullptr;
         }
         
         virtual ~CScalarOneSampleCodeContainer3()
         {}
-        
-        void generateComputeAux(int tab);
+
 };
 
 class CVectorCodeContainer : public VectorCodeContainer, public CCodeContainer {

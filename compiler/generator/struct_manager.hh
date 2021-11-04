@@ -243,7 +243,6 @@ struct StructInstVisitor : public DispatchVisitor {
     
 };
 
-
 // A version that separates some of the fields for the iZone/fZone model
 // and keep the others in the DSP struct.
 
@@ -253,7 +252,7 @@ struct StructInstVisitor1 : public StructInstVisitor {
     int fDLThreshold;
     
     // To be computed with dsp_struct_size and max_size_bytes
-    StructInstVisitor1(int external_memory, int dl_threshold = 2)
+    StructInstVisitor1(int external_memory, int dl_threshold = 4)
     : StructInstVisitor(), fExternalMemory(external_memory), fDLThreshold(dl_threshold)
     {}
     
@@ -286,6 +285,7 @@ struct StructInstVisitor1 : public StructInstVisitor {
                     }
                     fExternalMemory -= array_typed->getSizeBytes();
                 } else {
+                    // Keep arrays in local struct memory
                     fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++,
                                                                      getStructSize(),
                                                                      getStructIntSize(),
@@ -308,7 +308,7 @@ struct StructInstVisitor1 : public StructInstVisitor {
                                                                  1,
                                                                  inst->fType->getType(),
                                                                  MemoryDesc::kLocal)));
-                // Scalar variable always stay in local memory (TO CHECK)
+                // Scalar variable always stay in local struct memory (TO CHECK)
             } else {
                 // Local variables declared by [var_num, type] pairs
             }

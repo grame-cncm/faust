@@ -899,7 +899,14 @@ void CScalarOneSampleCodeContainer2::produceClass()
 // Used with -os2 option
 void CScalarOneSampleCodeContainer3::produceClass()
 {
-
+    VariableSizeCounter heap_counter(Address::kStruct);
+    generateDeclarations(&heap_counter);
+    
+    char* max_size_str = getenv("FAUST_MAX_SIZE");
+    int max_size = (max_size_str) ? atoi(max_size_str) : 0;
+    fCodeProducer = new CInstVisitor2(fOut, fKlassName, std::max(0, heap_counter.fSizeBytes - max_size));
+    
+    CScalarOneSampleCodeContainer2::produceClass();
 }
 
 void CCodeContainer::produceMetadata(int tabs)
@@ -1024,13 +1031,6 @@ void CScalarOneSampleCodeContainer2::generateComputeAux(int n)
     
     back(1, *fOut);
     *fOut << "}" << endl;
-}
-
-// Used with -os2 option
-void CScalarOneSampleCodeContainer3::generateComputeAux(int n)
-{
-
-    
 }
 
 // Vector

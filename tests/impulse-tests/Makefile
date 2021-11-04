@@ -128,11 +128,11 @@ cpp2:
 
 cpp3:
 	export FAUST_MAX_SIZE=1000
-	$(MAKE) -f Make.gcc outdir=cpp3_s1/double         lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os2"
+	$(MAKE) -f Make.gcc outdir=cpp3_s1/double      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os2"
 	export FAUST_MAX_SIZE=10000
-	$(MAKE) -f Make.gcc outdir=cpp3_s2/double         lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os2"
+	$(MAKE) -f Make.gcc outdir=cpp3_s2/double      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os2"
 	export FAUST_MAX_SIZE=50000
-	$(MAKE) -f Make.gcc outdir=cpp3_s3/double         lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os2"
+	$(MAKE) -f Make.gcc outdir=cpp3_s3/double      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os2"
 
 ocpp:
 	$(MAKE) -f Make.gcc outdir=ocpp/double         lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
@@ -172,6 +172,14 @@ c2:
 	$(MAKE) -f Make.gcc outdir=c2/double           lang=c arch=impulsearch2ter.cpp FAUSTOPTIONS="-I dsp -double -os1"
 	$(MAKE) -f Make.gcc outdir=c2/double/dlt0      lang=c arch=impulsearch2ter.cpp FAUSTOPTIONS="-I dsp -double -os1 -dlt 0"
 	$(MAKE) -f Make.gcc outdir=c2/double/dlt256    lang=c arch=impulsearch2ter.cpp FAUSTOPTIONS="-I dsp -double -os1 -dlt 256"
+
+c3:
+	export FAUST_MAX_SIZE=1000
+	$(MAKE) -f Make.gcc outdir=c3_s1/double        lang=c arch=impulsearch2ter.cpp FAUSTOPTIONS="-I dsp -double -os2"
+	export FAUST_MAX_SIZE=10000
+	$(MAKE) -f Make.gcc outdir=c3_s2/double        lang=c arch=impulsearch2ter.cpp FAUSTOPTIONS="-I dsp -double -os2"
+	export FAUST_MAX_SIZE=50000
+	$(MAKE) -f Make.gcc outdir=c3_s3/double        lang=c arch=impulsearch2ter.cpp FAUSTOPTIONS="-I dsp -double -os2"
 
 quad:
 	$(MAKE) -f Make.gcc outdir=cpp/quad         lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -quad"
