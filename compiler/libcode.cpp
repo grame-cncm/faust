@@ -1516,7 +1516,7 @@ static void compileSOUL(Tree signals, int numInputs, int numOutputs, bool genera
     
     container = SOULCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
 #else
-    throw faustexception("ERROR : -lang rust not supported since SOUL backend is not built\n");
+    throw faustexception("ERROR : -lang soul not supported since SOUL backend is not built\n");
 #endif
 }
 
