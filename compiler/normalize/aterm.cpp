@@ -23,17 +23,12 @@
 #include "ppsig.hh"
 #include "sigtype.hh"
 
-// static void collectMulTerms (Tree& coef, map<Tree,int>& M, Tree t, bool invflag=false);
-
-#undef TRACE
-
 using namespace std;
 
 typedef map<Tree, mterm> SM;
 
 aterm::aterm()
-{
-}
+{}
 
 /**
  * create a aterm from a tree expression
@@ -54,8 +49,8 @@ aterm::aterm(Tree t)
  */
 static Tree simplifyingAdd(Tree t1, Tree t2)
 {
-    faustassert(t1 != 0);
-    faustassert(t2 != 0);
+    faustassert(t1);
+    faustassert(t2);
 
     if (isNum(t1) && isNum(t2)) {
         return addNums(t1, t2);
@@ -139,8 +134,8 @@ Tree aterm::normalizedTree() const
     for (int order = 0; order < 4; order++) P[order] = N[order] = tree(0);
 
     // sum by order and sign
-    for (SM::const_iterator p = fSig2MTerms.begin(); p != fSig2MTerms.end(); p++) {
-        const mterm& m = p->second;
+    for (const auto& p : fSig2MTerms) {
+        const mterm& m = p.second;
         if (m.isNegative()) {
             Tree t          = m.normalizedTree(false, true);
             int  order      = getSigOrder(t);
@@ -190,8 +185,8 @@ ostream& aterm::print(ostream& dst) const
         dst << "AZERO";
     } else {
         const char* sep = "";
-        for (SM::const_iterator p = fSig2MTerms.begin(); p != fSig2MTerms.end(); p++) {
-            dst << sep << p->second;
+        for (const auto& p : fSig2MTerms) {
+            dst << sep << p.second;
             sep = " + ";
         }
     }
@@ -208,7 +203,7 @@ const aterm& aterm::operator+=(Tree t)
     int  op;
     Tree x, y;
 
-    faustassert(t != 0);
+    faustassert(t);
 
     if (isSigBinOp(t, &op, x, y) && (op == kAdd)) {
         *this += x;
@@ -234,7 +229,7 @@ const aterm& aterm::operator-=(Tree t)
     int  op;
     Tree x, y;
 
-    faustassert(t != 0);
+    faustassert(t);
 
     if (isSigBinOp(t, &op, x, y) && (op == kAdd)) {
         *this -= x;
@@ -325,8 +320,8 @@ aterm aterm::factorize(const mterm& d)
     aterm Q;
 
     // separate the multiple of m from the others
-    for (SM::const_iterator p1 = fSig2MTerms.begin(); p1 != fSig2MTerms.end(); p1++) {
-        mterm t = p1->second;
+    for (const auto& p1 : fSig2MTerms) {
+        mterm t = p1.second;
         if (t.hasDivisor(d)) {
             mterm q = t / d;
             // cerr << "q = " << q << endl;

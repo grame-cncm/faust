@@ -50,7 +50,7 @@ static int infereSigOrder(Tree sig);
 
 /**
  * Retrieve the order annotation (between 0 and 3) of a signal.
- * (compute the order the first time). Orders have the following meanings
+ * (compute the order the first time). Orders have the following meanings:
  *	0 : numbers
  *	1 : constants
  *	2 : user interface values
@@ -155,16 +155,16 @@ static int infereSigOrder(Tree sig)
         return 2;
 
     else if (isSigHBargraph(sig, l, x, y, s1))
-        return max(2, O(s1));  // at least a user interface
+        return std::max(2, O(s1));  // at least a user interface
 
     else if (isSigVBargraph(sig, l, x, y, s1))
-        return max(2, O(s1));  // at least a user interface
+        return std::max(2, O(s1));  // at least a user interface
 
     else if (isSigEnable(sig, s1, s2))
-        return max(O(s1), O(s2));  // O(s1);
+        return std::max(O(s1), O(s2));  // O(s1);
 
     else if (isSigControl(sig, s1, s2))
-        return max(O(s1), O(s2));  // O(s1);
+        return std::max(O(s1), O(s2));  // O(s1);
 
     else if (isSigSoundfile(sig, l))
         throw faustexception("ERROR inferring signal order : isSigSoundfile\n");  // not supposed to happen.;
@@ -179,7 +179,7 @@ static int infereSigOrder(Tree sig)
         return 3;
 
     else if (isSigAttach(sig, s1, s2))
-        return max(1, O(s1));  // at least a constant
+        return std::max(1, O(s1));  // at least a constant
 
     else if (isRec(sig, var, body))
         throw faustexception("ERROR inferring signal order : isRec\n");  // return 3;  // not supposed to happen.
@@ -217,8 +217,7 @@ static int infereSigOrder(Tree sig)
     else if (isList(sig)) {
         int r1 = 0;
         while (isList(sig)) {
-            int x1 = O(hd(sig));
-            if (x1 > r1) r1 = x1;
+            r1 = std::max(r1, O(hd(sig)));
             sig = tl(sig);
         }
         return r1;

@@ -26,8 +26,6 @@
 #include "signals.hh"
 #include "xtended.hh"
 
-#undef TRACE
-
 using namespace std;
 
 typedef map<Tree, int> MP;
@@ -40,7 +38,7 @@ mterm::mterm(int k) : fCoef(sigInt(k))
 }
 mterm::mterm(double k) : fCoef(sigReal(k))
 {
-}  // cerr << "DOUBLE " << endl; }
+}
 mterm::mterm(const mterm& m) : fCoef(m.fCoef), fFactors(m.fFactors)
 {
 }
@@ -86,9 +84,9 @@ ostream& mterm::print(ostream& dst) const
         sep = " * ";
     }
     // if (true) { dst << ppsig(fCoef); sep = " * "; }
-    for (MP::const_iterator p = fFactors.begin(); p != fFactors.end(); p++) {
-        dst << sep << ppsig(p->first);
-        if (p->second != 1) dst << "**" << p->second;
+    for (const auto& p : fFactors) {
+        dst << sep << ppsig(p.first);
+        if (p.second != 1) dst << "**" << p.second;
         sep = " * ";
     }
     return dst;
@@ -101,8 +99,8 @@ ostream& mterm::print(ostream& dst) const
 int mterm::complexity() const
 {
     int c = isOne(fCoef) ? 0 : (isMinusOne(fCoef) ? 0 : 1);
-    for (MP::const_iterator p = fFactors.begin(); p != fFactors.end(); ++p) {
-        c += (1 + getSigOrder(p->first)) * abs(p->second);
+    for (const auto& p : fFactors) {
+        c += (1 + getSigOrder(p.first)) * abs(p.second);
     }
     // cerr << __LINE__ << ":" << __FUNCTION__ << "(" << *this << ") --> " << c << endl;
     return c;
@@ -171,7 +169,7 @@ const mterm& mterm::operator*=(Tree t)
  */
 const mterm& mterm::operator/=(Tree t)
 {
-    // cerr << "division en place : " << *this << " / " << ppsig(t) << endl;
+    // cerr << "division in place : " << *this << " / " << ppsig(t) << endl;
     int  op, n;
     Tree x, y;
 
@@ -279,8 +277,8 @@ const mterm& mterm::operator-=(const mterm& m)
 const mterm& mterm::operator*=(const mterm& m)
 {
     fCoef = mulNums(fCoef, m.fCoef);
-    for (MP::const_iterator p = m.fFactors.begin(); p != m.fFactors.end(); p++) {
-        fFactors[p->first] += p->second;
+    for (const auto& p : m.fFactors) {
+        fFactors[p.first] += p.second;
     }
     cleanup();
     return *this;
@@ -298,8 +296,8 @@ const mterm& mterm::operator/=(const mterm& m)
         throw faustexception(error.str());
     }
     fCoef = divExtendedNums(fCoef, m.fCoef);
-    for (MP::const_iterator p = m.fFactors.begin(); p != m.fFactors.end(); p++) {
-        fFactors[p->first] -= p->second;
+    for (const auto& p : m.fFactors) {
+        fFactors[p.first] -= p.second;
     }
     cleanup();
     return *this;
@@ -331,9 +329,9 @@ mterm mterm::operator/(const mterm& m) const
 static int common(int a, int b)
 {
     if ((a > 0) & (b > 0)) {
-        return (int)min(a, b);
+        return std::min(a, b);
     } else if ((a < 0) & (b < 0)) {
-        return (int)max(a, b);
+        return std::max(a, b);
     } else {
         return 0;
     }
@@ -348,11 +346,11 @@ mterm gcd(const mterm& m1, const mterm& m2)
 
     Tree  c = (sameMagnitude(m1.fCoef, m2.fCoef)) ? m1.fCoef : tree(1);  // common coefficient (real gcd not needed)
     mterm R(c);
-    for (MP::const_iterator p1 = m1.fFactors.begin(); p1 != m1.fFactors.end(); p1++) {
-        Tree               t  = p1->first;
+    for (const auto& p1 : m1.fFactors) {
+        Tree               t  = p1.first;
         MP::const_iterator p2 = m2.fFactors.find(t);
         if (p2 != m2.fFactors.end()) {
-            int v1 = p1->second;
+            int v1 = p1.second;
             int v2 = p2->second;
             int c1  = common(v1, v2);
             if (c1 != 0) {
@@ -386,10 +384,10 @@ bool mterm::hasDivisor(const mterm& n) const
         // n is a pure number
         return sameMagnitude(fCoef, n.fCoef);
     }
-    for (MP::const_iterator p1 = n.fFactors.begin(); p1 != n.fFactors.end(); p1++) {
+    for (const auto& p1 : n.fFactors) {
         // for each factor f**q of m
-        Tree f = p1->first;
-        int  v = p1->second;
+        Tree f = p1.first;
+        int  v = p1.second;
 
         // check that f is also a factor of *this
         MP::const_iterator p2 = fFactors.find(f);
@@ -426,12 +424,13 @@ static Tree buildPowTerm(Tree f, int q)
  */
 static void combineMulLeft(Tree& R, Tree A)
 {
-    if (R && A)
+    if (R && A) {
         R = sigMul(R, A);
-    else if (A)
+    } else if (A) {
         R = A;
-    else
+    } else {
         throw faustexception("ERROR in combineMulLeft\n");
+    }
 }
 
 /**
@@ -439,12 +438,13 @@ static void combineMulLeft(Tree& R, Tree A)
  */
 static void combineDivLeft(Tree& R, Tree A)
 {
-    if (R && A)
+    if (R && A) {
         R = sigDiv(R, A);
-    else if (A)
+    } else if (A) {
         R = sigDiv(tree(1.0f), A);
-    else
+    } else {
         throw faustexception("ERROR in combineDivLeft\n");
+    }
 }
 
 /**
@@ -489,10 +489,11 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
     if (fFactors.empty() || isZero(fCoef)) {
         // it's a pure number
         if (signatureMode) return tree(1);
-        if (negativeMode)
+        if (negativeMode) {
             return minusNum(fCoef);
-        else
+        } else {
             return fCoef;
+        }
     } else {
         // it's not a pure number, it has factors
         Tree A[4], B[4];
@@ -501,7 +502,7 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
         for (int order = 0; order < 4; order++) {
             A[order] = 0;
             B[order] = 0;
-            for (auto p : fFactors) {
+            for (const auto& p : fFactors) {
                 Tree f = p.first;   // f = factor
                 int  q = p.second;  // q = power of f
                 if (f && q && getSigOrder(f) == order) {
@@ -512,12 +513,12 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
 #if 1
         if (A[0] != 0) cerr << "A[0] == " << *A[0] << endl;
         if (B[0] != 0) cerr << "B[0] == " << *B[0] << endl;
-        // en principe ici l'ordre zero est vide car il correspond au coef numerique
+        // in principle here zero order is empty because it corresponds to the numerical coef
         faustassert(A[0] == 0);
         faustassert(B[0] == 0);
 #endif
 
-        // we only use a coeficient if it differes from 1 and if we are not in signature mode
+        // we only use a coeficient if it differs from 1 and if we are not in signature mode
         if (!(signatureMode || isOne(fCoef))) {
             A[0] = (negativeMode) ? minusNum(fCoef) : fCoef;
         }
@@ -539,14 +540,15 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
         // combine each order separately : R[i] = A[i]/B[i]
         Tree RR = 0;
         for (int order = 0; order < 4; order++) {
-            if (A[order] && B[order])
+            if (A[order] && B[order]) {
                 combineMulLeft(RR, sigDiv(A[order], B[order]));
-            else if (A[order])
+            } else if (A[order]) {
                 combineMulLeft(RR, A[order]);
-            else if (B[order])
+            } else if (B[order]) {
                 combineDivLeft(RR, B[order]);
+            }
         }
-        if (RR == 0) RR = tree(1);  // a verifier *******************
+        if (RR == 0) RR = tree(1);  // to check *******************
 
         faustassert(RR);
 #ifdef TRACE

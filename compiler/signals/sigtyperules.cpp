@@ -195,7 +195,7 @@ void typeAnnotation(Tree sig, bool causality)
         updateRecTypes(vrec, vdef, vdefSizes, vtypeUp, true);
     }
     
-    for (auto ty : vtypeUp) {
+    for (const auto& ty : vtypeUp) {
         vUp.push_back(derefRecCert(ty));
     }
     

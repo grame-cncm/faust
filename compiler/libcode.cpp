@@ -838,9 +838,9 @@ static void printDspDir()
 static void printPaths()
 {
     cout << "FAUST dsp library paths:" << endl;
-    for (auto path : gGlobal->gImportDirList) cout << path << endl;
+    for (const auto& path : gGlobal->gImportDirList) cout << path << endl;
     cout << "\nFAUST architectures paths:" << endl;
-    for (auto path : gGlobal->gArchitectureDirList) cout << path << endl;
+    for (const auto& path : gGlobal->gArchitectureDirList) cout << path << endl;
     cout << endl;
 }
 
@@ -1192,7 +1192,7 @@ static void initFaustDirectories(int argc, const char* argv[])
 
     // for debugging purposes
     //    cerr << "gArchitectureDirList:\n";
-    //    for (auto d : gGlobal->gArchitectureDirList) {
+    //    for (const auto& d : gGlobal->gArchitectureDirList) {
     //        cerr << "\t" << d << "\n";
     //    }
     //    cerr << endl;

@@ -24,6 +24,16 @@
 
 #include "signals.hh"
 
+/**
+ * Retrieve the order annotation (between 0 and 3) of a signal.
+ * (compute the order the first time). Orders have the following meanings:
+ *    0 : numbers
+ *    1 : constants
+ *    2 : user interface values
+ *    3 : audio values
+ * @param sig the signal we want to know the order
+ * @return the order number
+ */
 int getSigOrder(Tree sig);
 
 #endif

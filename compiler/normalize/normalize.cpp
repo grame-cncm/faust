@@ -34,17 +34,6 @@
 #include "simplify.hh"
 #include "tlib.hh"
 
-#if 0
-static void countAddTerm(map<Tree,Tree>& M, Tree t, bool invflag);
-static void incTermCount(map<Tree,int>& M, Tree t, bool invflag);
-static Tree buildPowTerm(Tree f, int q);
-static Tree simplifyingReorganizingMul(Tree t1, Tree t2);
-static Tree reorganizingMul(Tree k, Tree t);
-static void factorizeAddTerm(map<Tree,Tree>& M);
-#endif
-
-#undef TRACE
-
 /**
  * Compute the Add-Normal form of a term t.
  * \param t the term to be normalized
@@ -90,7 +79,7 @@ Tree normalizeDelay1Term(Tree s)
 }
 
 /**
- * Compute the normal form of a fixed delay term (s@d).
+ * Compute the normal form of a delay term (s@d).
  * The normalisation rules are :
  *		s@0 -> s
  *     	0@d -> 0

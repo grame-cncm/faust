@@ -109,7 +109,7 @@ static Tree computePrivatisation(const Tree& k, const Tree& exp)
     } else if (isSigTable(exp, id, size, content)) {
         /*
          Nothing to privatize in a table (because size is supposed to
-         be an integer expression)
+         be an integer expression).
         */
         return exp;
 
@@ -128,7 +128,7 @@ static Tree computePrivatisation(const Tree& k, const Tree& exp)
 
     } else {
         /*
-         We go through the other trees by privatizing the branches
+         We go through the other trees by privatizing the branches.
          */
 
         tvec br;
