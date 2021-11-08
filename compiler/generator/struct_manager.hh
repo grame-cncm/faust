@@ -140,6 +140,17 @@ struct StructInstVisitor : public DispatchVisitor {
         return -1;
     }
     
+    // Return the FIR type of a given field
+    Typed::VarType getFieldType(const string& name)
+    {
+        for (const auto& field : fFieldTable) {
+            if (field.first == name) return field.second.fType;
+        }
+        std::cerr << "ERROR in getFieldType : " << name << std::endl;
+        faustassert(false);
+        return Typed::kNoType;
+    }
+    
     // Return the memory type of a given field
     MemoryDesc::memType getFieldMemoryType(const string& name)
     {
