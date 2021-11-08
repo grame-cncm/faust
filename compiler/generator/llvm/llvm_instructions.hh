@@ -361,66 +361,27 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         */
     #endif
         
-        // Integer version
-        fMathLibTable.push_back("abs");
-
-        // Float version
-        fMathLibTable.push_back("fabsf");
-        fMathLibTable.push_back("acosf");
-        fMathLibTable.push_back("asinf");
-        fMathLibTable.push_back("atanf");
-        fMathLibTable.push_back("atan2f");
-        fMathLibTable.push_back("ceilf");
-        fMathLibTable.push_back("cosf");
-        fMathLibTable.push_back("expf");
-        fMathLibTable.push_back("exp10f");
-        fMathLibTable.push_back("floorf");
-        fMathLibTable.push_back("fmodf");
-        fMathLibTable.push_back("logf");
-        fMathLibTable.push_back("log10f");
-        fMathLibTable.push_back("powf");
-        fMathLibTable.push_back("rintf");
-        fMathLibTable.push_back("roundf");
-        fMathLibTable.push_back("sinf");
-        fMathLibTable.push_back("sqrtf");
-        fMathLibTable.push_back("tanf");
-        
-        // Additional hyperbolic math functions
-        fMathLibTable.push_back("acoshf");
-        fMathLibTable.push_back("asinhf");
-        fMathLibTable.push_back("atanhf");
-        fMathLibTable.push_back("coshf");
-        fMathLibTable.push_back("sinhf");
-        fMathLibTable.push_back("tanhf");
-
-        // Double version
-        fMathLibTable.push_back("fabs");
-        fMathLibTable.push_back("acos");
-        fMathLibTable.push_back("asin");
-        fMathLibTable.push_back("atan");
-        fMathLibTable.push_back("atan2");
-        fMathLibTable.push_back("ceil");
-        fMathLibTable.push_back("cos");
-        fMathLibTable.push_back("exp");
-        fMathLibTable.push_back("exp10");
-        fMathLibTable.push_back("floor");
-        fMathLibTable.push_back("fmod");
-        fMathLibTable.push_back("log");
-        fMathLibTable.push_back("log10");
-        fMathLibTable.push_back("pow");
-        fMathLibTable.push_back("rint");
-        fMathLibTable.push_back("round");
-        fMathLibTable.push_back("sin");
-        fMathLibTable.push_back("sqrt");
-        fMathLibTable.push_back("tan");
-        
-        // Additional hyperbolic math functions
-        fMathLibTable.push_back("acosh");
-        fMathLibTable.push_back("asinh");
-        fMathLibTable.push_back("atanh");
-        fMathLibTable.push_back("cosh");
-        fMathLibTable.push_back("sinh");
-        fMathLibTable.push_back("tanh");
+        fMathLibTable = {
+            // Integer version
+            "abs",
+            
+            // Float version
+            "fabsf", "acosf", "asinf", "atanf",
+            "atan2f", "ceilf", "cosf", "expf",
+            "exp10f", "floorf", "fmodf", "logf",
+            "log10f", "powf", "rintf", "roundf",
+            "sinf", "sqrtf", "tanf", "acoshf", "asinhf",
+            "atanhf", "coshf", "sinhf", "tanhf",
+            
+            // Double version
+            "fabs", "acos","asin", "atan",
+            "atan2", "ceil", "cos", "exp",
+            "exp10", "floor", "fmod", "log",
+            "log10f", "pow", "rint", "round",
+            "sin", "sqrt", "tan", "acosh", "asinh",
+            "atanh", "cosh", "sinh", "tanh"
+        };
+    
     }
 
     virtual ~LLVMInstVisitor() { delete fAllocaBuilder; }
