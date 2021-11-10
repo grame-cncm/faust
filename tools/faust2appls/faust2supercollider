@@ -163,7 +163,7 @@ for p in $FILES; do
 
         cd "$TMP"
         faust2sc --prefix="$SC_FAUST_PREFIX" $SYNTHDEF "$f.xml" > "${f%.dsp}.sc" 2>$OUTDEV
-        BUILDFLAGS="-O3 $FAUSTTOOLSFLAGS $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP -DSC_FAUST_PREFIX=\"$SC_FAUST_PREFIX\""
+        BUILDFLAGS="$FAUSTTOOLSFLAGS $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP -DSC_FAUST_PREFIX=\"$SC_FAUST_PREFIX\""
 
         # build for build scsynth
         $CXX $BUILDFLAGS "-Dmydsp=${f%.dsp}" -o "${f%.dsp}.$EXT" "${f%.dsp}.cpp"
