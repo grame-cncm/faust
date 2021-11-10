@@ -19,6 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
+#include <climits>
+
 #include "cpp_code_container.hh"
 #include "Text.hh"
 #include "cpp_gpu_code_container.hh"
@@ -1095,7 +1097,7 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     generateDeclarations(&heap_counter);
     
     char* max_size_str = getenv("FAUST_MAX_SIZE");
-    int max_size = (max_size_str) ? atoi(max_size_str) : 0;
+    int max_size = (max_size_str) ? atoi(max_size_str) : INT_MAX;
     fCodeProducer = new CPPInstVisitor2(fOut, std::max(0, heap_counter.fSizeBytes - max_size));
     
     CPPScalarOneSampleCodeContainer2::produceClass();
