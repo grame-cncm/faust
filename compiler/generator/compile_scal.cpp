@@ -1212,9 +1212,8 @@ string ScalarCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 
     fClass->addDeclCode(subst("$0 \t$1;", type, vperm));
     fClass->addInitCode(subst("$0 = $1;", vperm, CS(x)));
-    fClass->addInitCode(subst("$0 \t$1;", type, vtemp));
-
-    fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", vtemp, vperm)));
+    
+    fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 \t$1 = $2;", type, vtemp, vperm)));
     fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", vperm, CS(e))));
     return vtemp;
 }

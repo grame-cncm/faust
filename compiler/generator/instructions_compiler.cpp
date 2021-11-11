@@ -1876,9 +1876,9 @@ ValueInst* InstructionsCompiler::generatePrefix(Tree sig, Tree x, Tree e)
     pushInitMethod(InstBuilder::genStoreStructVar(vperm, CS(x)));
 
     // Exec
-    pushComputeDSPMethod(
-        InstBuilder::genDecStructVar(vtemp, InstBuilder::genBasicTyped(type), InstBuilder::genLoadStructVar(vperm)));
-    pushComputeDSPMethod(InstBuilder::genStoreStructVar(vperm, CS(e)));
+    pushComputeDSPMethod(InstBuilder::genControlInst(getConditionCode(sig),
+        InstBuilder::genDecStackVar(vtemp, InstBuilder::genBasicTyped(type), InstBuilder::genLoadStructVar(vperm))));
+    pushComputeDSPMethod(InstBuilder::genControlInst(getConditionCode(sig),InstBuilder::genStoreStructVar(vperm, CS(e))));
 
     return InstBuilder::genLoadStackVar(vtemp);
 }
