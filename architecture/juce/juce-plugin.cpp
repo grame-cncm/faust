@@ -559,7 +559,7 @@ juce::AudioProcessor::BusesProperties FaustPlugInAudioProcessor::getBusesPropert
             .withOutput("Output", juce::AudioChannelSet::discreteChannels(std::min<int>(2, FAUST_OUTPUTS)), true);
         }
     } else {
-        if (FAUST_OUTPUTS == 0) {
+        if (FAUST_INPUTS == 0) {
             return BusesProperties().withOutput("Output", juce::AudioChannelSet::discreteChannels(FAUST_OUTPUTS), true);
         } else {
             return BusesProperties()
