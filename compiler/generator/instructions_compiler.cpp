@@ -1869,7 +1869,7 @@ ValueInst* InstructionsCompiler::generatePrefix(Tree sig, Tree x, Tree e)
     string         vtemp = gGlobal->getFreshID("T");
     Typed::VarType type  = ctType(getCertifiedSigType(sig));
 
-    // Table declaration
+    // Variable declaration
     pushDeclare(InstBuilder::genDecStructVar(vperm, InstBuilder::genBasicTyped(type)));
 
     // Init
@@ -1878,7 +1878,7 @@ ValueInst* InstructionsCompiler::generatePrefix(Tree sig, Tree x, Tree e)
     // Exec
     pushComputeDSPMethod(InstBuilder::genControlInst(getConditionCode(sig),
         InstBuilder::genDecStackVar(vtemp, InstBuilder::genBasicTyped(type), InstBuilder::genLoadStructVar(vperm))));
-    pushComputeDSPMethod(InstBuilder::genControlInst(getConditionCode(sig),InstBuilder::genStoreStructVar(vperm, CS(e))));
+    pushComputeDSPMethod(InstBuilder::genControlInst(getConditionCode(sig), InstBuilder::genStoreStructVar(vperm, CS(e))));
 
     return InstBuilder::genLoadStackVar(vtemp);
 }

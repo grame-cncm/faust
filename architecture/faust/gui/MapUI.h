@@ -34,8 +34,14 @@
 #include "faust/gui/PathBuilder.h"
 
 /*******************************************************************************
- * MapUI : Faust User Interface
- * This class creates a map of complete hierarchical path and zones for each UI items.
+ * MapUI : Faust User Interface.
+ *
+ * This class creates:
+ * - a map of 'labels' and zones for each UI item.
+ * - a map of complete hierarchical 'paths' and zones for each UI item.
+ *
+ * Simple 'labels' and complete 'paths' (to fully discriminate between possible same
+ * 'labels' at different location in the UI hierachy) can be used to access a given parameter.
  ******************************************************************************/
 
 class MapUI : public UI, public PathBuilder
@@ -205,7 +211,6 @@ class MapUI : public UI, public PathBuilder
             return (l1 >= l2) && (0 == str.compare(l1 - l2, l2, end));
         }
 };
-
 
 #endif // FAUST_MAPUI_H
 /**************************  END  MapUI.h **************************/

@@ -174,6 +174,13 @@ void CCodeContainer::produceClass()
     *fOut << "extern \"C\" {" << endl;
     *fOut << "#endif" << endl;
     tab(n, *fOut);
+ 
+    *fOut << "#if defined(_WIN32)" << endl;
+    *fOut << "#define RESTRICT __restrict" << endl;
+    *fOut << "#else" << endl;
+    *fOut << "#define RESTRICT __restrict__" << endl;
+    *fOut << "#endif" << endl;
+    tab(n, *fOut);
   
     // Libraries
     printLibrary(*fOut);
@@ -191,6 +198,7 @@ void CCodeContainer::produceClass()
     *fOut << "#ifndef FAUSTCLASS " << endl;
     *fOut << "#define FAUSTCLASS " << fKlassName << endl;
     *fOut << "#endif" << endl;
+    tab(n, *fOut);
 
     *fOut << "#ifdef __APPLE__ " << endl;
     *fOut << "#define exp10f __exp10f" << endl;
@@ -665,6 +673,7 @@ void CScalarOneSampleCodeContainer2::produceClass()
     *fOut << "#ifndef FAUSTCLASS " << endl;
     *fOut << "#define FAUSTCLASS " << fKlassName << endl;
     *fOut << "#endif" << endl;
+    tab(n, *fOut);
     
     *fOut << "#ifdef __APPLE__ " << endl;
     *fOut << "#define exp10f __exp10f" << endl;
@@ -954,8 +963,13 @@ void CScalarCodeContainer::generateComputeAux(int n)
 {
     // Generates declaration
     tab(n, *fOut);
-    *fOut << "void compute" << fKlassName << "(" << fKlassName
-          << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    if (gGlobal->gInPlace) {
+        *fOut << "void compute" << fKlassName << "(" << fKlassName
+              << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    } else {
+        *fOut << "void compute" << fKlassName << "(" << fKlassName
+              << subst("* dsp, int $0, $1** RESTRICT inputs, $1** RESTRICT outputs) {", fFullCount, xfloat());
+    }
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
 
@@ -983,10 +997,10 @@ void CScalarOneSampleCodeContainer1::generateComputeAux(int n)
     tab(n, *fOut);
     if (gGlobal->gInPlace) {
         *fOut << "void compute" << fKlassName << "(" << fKlassName
-        << subst("* dsp, $0* inputs, $0* outputs, int* RESTRICT iControl, $0* RESTRICT fControl) {", xfloat());
+              << subst("* dsp, $0* inputs, $0* outputs, int* RESTRICT iControl, $0* RESTRICT fControl) {", xfloat());
     } else {
         *fOut << "void compute" << fKlassName << "(" << fKlassName
-        << subst("* dsp, $0* RESTRICT inputs, $0* RESTRICT outputs, int* RESTRICT iControl, $0* RESTRICT fControl) {", xfloat());
+              << subst("* dsp, $0* RESTRICT inputs, $0* RESTRICT outputs, int* RESTRICT iControl, $0* RESTRICT fControl) {", xfloat());
     }
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
@@ -1045,8 +1059,13 @@ void CVectorCodeContainer::generateComputeAux(int n)
 {
     // Generates declaration
     tab(n, *fOut);
-    *fOut << "void compute" << fKlassName << "(" << fKlassName
-          << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    if (gGlobal->gInPlace) {
+        *fOut << "void compute" << fKlassName << "(" << fKlassName
+              << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    } else {
+        *fOut << "void compute" << fKlassName << "(" << fKlassName
+              << subst("* dsp, int $0, $1** RESTRICT inputs, $1** RESTRICT outputs) {", fFullCount, xfloat());
+    }
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
 
@@ -1070,8 +1089,13 @@ void COpenMPCodeContainer::generateComputeAux(int n)
 {
     // Compute declaration
     tab(n, *fOut);
-    *fOut << "void compute" << fKlassName << "(" << fKlassName
-          << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    if (gGlobal->gInPlace) {
+        *fOut << "void compute" << fKlassName << "(" << fKlassName
+        << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    } else {
+        *fOut << "void compute" << fKlassName << "(" << fKlassName
+        << subst("* dsp, int $0, $1** RESTRICT inputs, $1** RESTRICT outputs) {", fFullCount, xfloat());
+    }
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
 
@@ -1108,8 +1132,13 @@ void CWorkStealingCodeContainer::generateComputeAux(int n)
 
     // Compute "compute" declaration
     tab(n, *fOut);
-    *fOut << "void compute" << fKlassName << "(" << fKlassName
-          << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    if (gGlobal->gInPlace) {
+        *fOut << "void compute" << fKlassName << "(" << fKlassName
+        << subst("* dsp, int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    } else {
+        *fOut << "void compute" << fKlassName << "(" << fKlassName
+        << subst("* dsp, int $0, $1** RESTRICT inputs, $1** RESTRICT outputs) {", fFullCount, xfloat());
+    }
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
 

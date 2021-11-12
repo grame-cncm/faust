@@ -63,7 +63,6 @@ using namespace llvm;
 
 #define CreateFuncall(fun, args) fBuilder->CreateCall(fun, makeArrayRef(args))
 #define CreatePhi(type, name) fBuilder->CreatePHI(type, 0, name);
-
 #define GetIterator(it) &(*(it))
 
 #define dumpLLVM(val)                    \
@@ -705,10 +704,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     {
         // Compile instruction to be casted, result in fCurValue
         inst->fInst->accept(this);
-        visitCastAux(inst->fType->getType());
+        visitCast(inst->fType->getType());
     }
 
-    void visitCastAux(Typed::VarType type)
+    void visitCast(Typed::VarType type)
     {
         switch (type) {
                 
@@ -850,23 +849,20 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         }
     }
     
-    /*
+    // Strict select
     virtual void visit(Select2Inst* inst)
     {
-        if (inst->fThen->isSimpleValue() && inst->fElse->isSimpleValue()) {
-            visitSelect(inst);
-        } else {
-            visitIf(inst);
-        }
+        visitSelect(inst);
     }
-    */
     
-    // Actually faster...
+    /*
+    // Lazy select
     virtual void visit(Select2Inst* inst)
     {
         visitIf(inst);
     }
- 
+    */
+    
     // Select that computes both branches
     void visitSelect(Select2Inst* inst)
     {

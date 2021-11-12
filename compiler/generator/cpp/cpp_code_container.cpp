@@ -304,6 +304,13 @@ void CPPCodeContainer::produceClass()
     *fOut << "#define exp10f __exp10f" << endl;
     *fOut << "#define exp10 __exp10" << endl;
     *fOut << "#endif" << endl;
+    tab(n, *fOut);
+    
+    *fOut << "#if defined(_WIN32)" << endl;
+    *fOut << "#define RESTRICT __restrict" << endl;
+    *fOut << "#else" << endl;
+    *fOut << "#define RESTRICT __restrict__" << endl;
+    *fOut << "#endif" << endl;
     
     tab(n, *fOut);
     *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";
@@ -575,8 +582,8 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     *fOut << "#else" << endl;
     *fOut << "#define RESTRICT __restrict__" << endl;
     *fOut << "#endif" << endl;
-    tab(n, *fOut);
     
+    tab(n, *fOut);
     *fOut << "#define FAUST_INT_CONTROLS " << fInt32ControlNum  << endl;
     *fOut << "#define FAUST_REAL_CONTROLS " << fRealControlNum;
     tab(n, *fOut);
@@ -1108,7 +1115,11 @@ void CPPScalarCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
-    *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    if (gGlobal->gInPlace) {
+        *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    } else {
+        *fOut << subst("virtual void compute(int $0, $1** RESTRICT inputs, $1** RESTRICT outputs) {", fFullCount, xfloat());
+    }
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);
     
@@ -1201,7 +1212,11 @@ void CPPVectorCodeContainer::generateCompute(int n)
 
     // Generates declaration
     tab(n + 1, *fOut);
-    *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    if (gGlobal->gInPlace) {
+        *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    } else {
+        *fOut << subst("virtual void compute(int $0, $1** RESTRICT inputs, $1** RESTRICT outputs) {", fFullCount, xfloat());
+    }
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);
 
@@ -1231,7 +1246,11 @@ void CPPOpenMPCodeContainer::generateCompute(int n)
 
     // Generates declaration
     tab(n + 1, *fOut);
-    *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    if (gGlobal->gInPlace) {
+        *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    } else {
+        *fOut << subst("virtual void compute(int $0, $1** RESTRICT inputs, $1** RESTRICT outputs) {", fFullCount, xfloat());
+    }
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);
 
@@ -1276,7 +1295,11 @@ void CPPWorkStealingCodeContainer::generateCompute(int n)
 
     // Generates declaration
     tab(n + 1, *fOut);
-    *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    if (gGlobal->gInPlace) {
+        *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
+    } else {
+        *fOut << subst("virtual void compute(int $0, $1** RESTRICT inputs, $1** RESTRICT outputs) {", fFullCount, xfloat());
+    }
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);
 
