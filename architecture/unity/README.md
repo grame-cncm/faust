@@ -37,7 +37,7 @@ Unity packages have a specific organization in order to be correctly read by the
 
 ### Windows 32 bits and 64 bits
 
-The compiler used for Windows libraries is Mingw (http://www.mingw.org). `i686-w64-mingw32-gcc` (32bits) and `x86_64-w64-mingw32-gcc` (64bits) packages have to be installed. On macOS, they are available on [Macports](https://www.macports.org).
+The compiler used for Windows libraries is Mingw (https://www.mingw-w64.org). `i686-w64-mingw32-gcc` (32bits) and `x86_64-w64-mingw32-gcc` (64bits) packages have to be installed. On macOS, they are available on [Macports](https://www.macports.org).
 
 ### Android
 
