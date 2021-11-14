@@ -279,6 +279,22 @@ class CInstVisitor : public TextInstVisitor {
         generateFunDefArgs(inst);
         generateFunDefBody(inst);
     }
+    
+    virtual void generateFunDefArgs(DeclareFunInst* inst)
+    {
+        *fOut << "(";
+        
+        size_t size = inst->fType->fArgsTypes.size(), i = 0;
+        for (const auto& it : inst->fType->fArgsTypes) {
+            // Pointers are set with 'noalias' for non paired arguments, which are garantied to be unique
+            if (isPtrType(it->getType()) && !inst->fType->isPairedFunArg(it->fName)) {
+                *fOut << fTypeManager->generateType(it, NamedTyped::kNoalias);
+            } else {
+                *fOut << fTypeManager->generateType(it);
+            }
+            if (i++ < size - 1) *fOut << ", ";
+        }
+    }
 
     virtual void visit(NamedAddress* named)
     {

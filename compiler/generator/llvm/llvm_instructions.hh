@@ -443,7 +443,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         // No result in fCurValue
         fCurValue = nullptr;
     }
-
+   
     virtual void visit(DeclareFunInst* inst)
     {
         Function* function = fModule->getFunction(inst->fName);
@@ -479,11 +479,17 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
             function->setDoesNotThrow();
 
-            // Set name for function arguments
+            // Set name and 'noalias' (on pointers) for function arguments
             Function::arg_iterator args = function->arg_begin();
+            int arg_index = 0;
             for (const auto& it : inst->fType->fArgsTypes) {
                 LLVMValue arg = GetIterator(args++);
                 arg->setName(it->fName);
+                // Pointers are set with 'noalias' for non paired arguments, which are garantied to be unique
+                if (isPtrType(it->getType()) && !inst->fType->isPairedFunArg(it->fName)) {
+                    function->addParamAttr(arg_index, Attribute::NoAlias);
+                }
+                arg_index++;
             }
 
             // If there is a body, compile it

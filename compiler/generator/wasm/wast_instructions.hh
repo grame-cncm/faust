@@ -151,11 +151,10 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     virtual void generateFunDefArgs(DeclareFunInst* inst)
     {
-        list<NamedTyped*>::const_iterator it;
-        size_t                            size = inst->fType->fArgsTypes.size(), i = 0;
-        for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
-            *fOut << "(param $" << (*it)->fName << " " << type2String((*it)->getType()) << ")";
-            if (i < size - 1) *fOut << " ";
+        size_t size = inst->fType->fArgsTypes.size(), i = 0;
+        for (const auto& it : inst->fType->fArgsTypes) {
+            *fOut << "(param $" << it->fName << " " << type2String(it->getType()) << ")";
+            if (i++ < size - 1) *fOut << " ";
         }
         if (inst->fType->getType() != Typed::kVoid) {
             *fOut << " (result " << type2String(inst->getResType()) << ")";

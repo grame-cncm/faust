@@ -223,13 +223,10 @@ class TextInstVisitor : public InstVisitor {
     virtual void generateFunDefArgs(DeclareFunInst* inst)
     {
         *fOut << "(";
-        
-        list<NamedTyped*>::const_iterator it;
-        
         size_t size = inst->fType->fArgsTypes.size(), i = 0;
-        for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
-            *fOut << fTypeManager->generateType((*it));
-            if (i < size - 1) *fOut << ", ";
+        for (const auto& it : inst->fType->fArgsTypes) {
+            *fOut << fTypeManager->generateType(it);
+            if (i++ < size - 1) *fOut << ", ";
         }
     }
 

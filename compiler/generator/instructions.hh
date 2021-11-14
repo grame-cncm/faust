@@ -433,6 +433,10 @@ struct BasicTyped : public Typed {
 };
 
 struct NamedTyped : public Typed {
+    
+    enum Attribute { kDefault, kNoalias };
+    static vector <string> AttributeMap;
+    
     const string fName;
     Typed* fType;
 
@@ -441,7 +445,7 @@ struct NamedTyped : public Typed {
     virtual ~NamedTyped() {}
 
     VarType getType() const { return fType->getType(); }
-
+    
     int getSizeBytes() const { return fType->getSizeBytes(); }
 
     virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -477,6 +481,15 @@ struct FunTyped : public Typed {
             res = "void";
         }
         return res;
+    }
+    
+    // Check if 'name' is paired with another argument, like "fRec0" and "fRec0_tmp" when generating functions in -fun mode
+    bool isPairedFunArg(const string& name)
+    {
+        for (const auto& it : fArgsTypes) {
+            if ((name != it->fName) && (startWith(it->fName, name)|| startWith(name, it->fName))) return true;
+        }
+        return false;
     }
 
     int getSizeBytes() const;  // moved in "instructions.cpp"

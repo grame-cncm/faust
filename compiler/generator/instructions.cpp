@@ -30,6 +30,8 @@
 // Used when inlining functions
 std::stack<BlockInst*> BasicCloneVisitor::fBlockStack;
 
+vector <string> NamedTyped::AttributeMap = {" ", " RESTRICT "};
+
 DeclareStructTypeInst* isStructType(const string& name)
 {
     if (gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end()) {
