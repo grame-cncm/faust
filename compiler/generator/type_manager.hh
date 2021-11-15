@@ -57,6 +57,7 @@ class CStringTypeManager : public StringTypeManager {
         fPtrRef = ptr_ref;
 
         fTypeDirectTable[Typed::kInt32]     = "int";
+        fTypeDirectTable[Typed::kUInt32]    = "unsigned int";
         fTypeDirectTable[Typed::kInt32_ptr] = "int" + fPtrRef;
         fTypeDirectTable[Typed::kInt32_vec] = "vector<int>";
 

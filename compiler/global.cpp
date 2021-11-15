@@ -102,6 +102,9 @@ So we use a lower value here.
 
 global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
 {
+    // Check basic type implementation coherency
+    faustassert(Typed::gTypeString.size() == Typed::kNoType+1);
+    
     CTree::init();
     Symbol::init();
 
@@ -685,6 +688,7 @@ void global::initTypeSizeMap()
     gTypeSizeMap[Typed::kDouble_vec_ptr] = gMachinePtrSize;
 
     gTypeSizeMap[Typed::kInt32]         = gMachineInt32Size;
+    gTypeSizeMap[Typed::kUInt32]        = gMachineInt32Size;
     gTypeSizeMap[Typed::kInt32_ptr]     = gMachinePtrSize;
     gTypeSizeMap[Typed::kInt32_vec]     = gMachineInt32Size * gVecSize;
     gTypeSizeMap[Typed::kInt32_vec_ptr] = gMachinePtrSize;

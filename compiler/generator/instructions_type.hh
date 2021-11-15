@@ -23,6 +23,7 @@
 #define _INSTRUCTIONS_TYPE_H
 
 #include <string>
+#include <vector>
 
 #include "garbageable.hh"
 
@@ -47,6 +48,7 @@ struct CloneVisitor;
 struct Typed : public Printable {
     enum VarType {
         kInt32,
+        kUInt32,
         kInt32_ptr,
         kInt32_vec,
         kInt32_vec_ptr,
@@ -251,7 +253,7 @@ struct Typed : public Printable {
         }
     }
 
-    static std::string gTypeString[];
+    static std::vector<std::string> gTypeString;
 
     static void init();
 

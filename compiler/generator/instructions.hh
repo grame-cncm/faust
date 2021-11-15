@@ -2199,6 +2199,7 @@ struct InstBuilder {
     static BasicTyped* genBasicTyped(Typed::VarType type);  // moved in instructions.cpp
 
     static BasicTyped* genInt32Typed() { return genBasicTyped(Typed::kInt32); }
+    static BasicTyped* genUInt32Typed() { return genBasicTyped(Typed::kUInt32); }
     static BasicTyped* genInt64Typed() { return genBasicTyped(Typed::kInt64); }
     static BasicTyped* genVoidTyped() { return genBasicTyped(Typed::kVoid); }
     static BasicTyped* genFloatTyped() { return genBasicTyped(Typed::kFloat); }

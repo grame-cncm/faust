@@ -105,6 +105,7 @@ struct LLVMTypeHelper {
         fTypeMap[Typed::kDouble_vec_ptr] = getTyPtr(fTypeMap[Typed::kDouble_vec]);
     #endif
         fTypeMap[Typed::kInt32]         = getInt32Ty();
+        fTypeMap[Typed::kUInt32]        = getInt32Ty(); // No unsigned integer
         fTypeMap[Typed::kInt32_ptr]     = getTyPtr(fTypeMap[Typed::kInt32]);
     #if !defined(LLVM_120) && !defined(LLVM_130) && !defined(LLVM_140)
         fTypeMap[Typed::kInt32_vec]     = VectorType::get(fTypeMap[Typed::kInt32], gGlobal->gVecSize);
