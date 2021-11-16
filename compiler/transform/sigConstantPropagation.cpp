@@ -41,7 +41,7 @@ Tree SignalConstantPropagation::transformation(Tree sig)
 {
     faustassert(sig);
     int  opnum, i;
-    Tree t1, t2, t3, t4, x, y;
+    Tree t1, t2, t3, t4, x, y, label;
 
     auto* xt = (xtended*)getUserData(sig);
     // primitive elements
@@ -59,15 +59,15 @@ Tree SignalConstantPropagation::transformation(Tree sig)
         } else {
             return tree(sig->node(), newBranches);
         }
-    } else if (isSigDelay1(sig, x)) {
+    } else if (isSigDelay1(sig, label, x)) {
         Tree v = self(x);
         if (isZero(v)) {
             return v;
         } else {
-            return sigDelay1(v);
+            return sigDelay1(label, v);
         }
 
-    } else if (isSigFixDelay(sig, x, y)) {
+    } else if (isSigFixDelay(sig, label, x, y)) {
         Tree v = self(x);
         Tree w = self(y);
         if (isZero(v)) {
@@ -75,7 +75,7 @@ Tree SignalConstantPropagation::transformation(Tree sig)
         } else if (isNum(v) && isZero(w)) {
             return v;
         } else {
-            return sigFixDelay(v, w);
+            return sigFixDelay(label, v, w);
         }
 
     } else if (isSigBinOp(sig, &opnum, t1, t2)) {

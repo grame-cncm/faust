@@ -37,7 +37,7 @@ void sigvisitor::visit(Tree sig)
 {
     int    i;
     double r;
-    Tree   sel, s1, s2, s3, s4, ff, id, ls, l, var, body, type, name, file, cur, min, max, step;
+    Tree   sel, s1, s2, s3, s4, ff, id, ls, l, var, body, type, name, file, cur, min, max, step, label;
 
     faustassert(sig);
 
@@ -53,14 +53,14 @@ void sigvisitor::visit(Tree sig)
     else if (isSigOutput(sig, &i, s1))
         visitOutput(sig, i, s1);
 
-    else if (isSigDelay1(sig, s1))
-        visitDelay1(sig, s1);
+    else if (isSigDelay1(sig, label, s1))
+        visitDelay1(sig, label, s1);
 
     else if (isSigPrefix(sig, s1, s2))
         visitPrefix(sig, s1, s2);
 
-    else if (isSigFixDelay(sig, s1, s2))
-        visitFixDelay(sig, s1, s2);
+    else if (isSigFixDelay(sig, label, s1, s2))
+        visitFixDelay(sig, label, s1, s2);
 
     else if (isSigBinOp(sig, &i, s1, s2))
         visitBinOp(sig, i, s1, s2);

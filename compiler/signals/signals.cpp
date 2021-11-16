@@ -97,27 +97,27 @@ bool isSigOutput(Tree t, int* i, Tree& t0)
     return isTree(t, gGlobal->SIGOUTPUT, x, t0) && isInt(x->node(), i);
 }
 
-Tree sigDelay0(Tree t0)
+Tree sigDelay0(Tree label, Tree t0)
 {
-    return sigFixDelay(t0, sigInt(0));
+    return sigFixDelay(label, t0, sigInt(0));
 }
 
-Tree sigDelay1(Tree t0)
+Tree sigDelay1(Tree label, Tree t0)
 {
-    return tree(gGlobal->SIGDELAY1, t0);
+    return tree(gGlobal->SIGDELAY1, label, t0);
 }
-bool isSigDelay1(Tree t, Tree& t0)
+bool isSigDelay1(Tree t, Tree& label, Tree& t0)
 {
-    return isTree(t, gGlobal->SIGDELAY1, t0);
+    return isTree(t, gGlobal->SIGDELAY1, label, t0);
 }
 
-Tree sigFixDelay(Tree t0, Tree t1)
+Tree sigFixDelay(Tree label, Tree t0, Tree t1)
 {
-    return tree(gGlobal->SIGFIXDELAY, t0, sigIntCast(t1));
+    return tree(gGlobal->SIGFIXDELAY, label, t0, sigIntCast(t1));
 }
-bool isSigFixDelay(Tree t, Tree& t0, Tree& t1)
+bool isSigFixDelay(Tree t, Tree& label, Tree& t0, Tree& t1)
 {
-    return isTree(t, gGlobal->SIGFIXDELAY, t0, t1);
+    return isTree(t, gGlobal->SIGFIXDELAY, label, t0, t1);
 }
 
 Tree sigPrefix(Tree t0, Tree t1)
@@ -138,13 +138,13 @@ bool isSigIota(Tree t, Tree& t0)
     return isTree(t, gGlobal->SIGIOTA, t0);
 }
 
-Tree sigTime()
+Tree sigTime(Tree label)
 {
-    return tree(gGlobal->SIGTIME);
+    return tree(gGlobal->SIGTIME, label);
 }
-bool isSigTime(Tree t)
+bool isSigTime(Tree t, Tree& label)
 {
-    return isTree(t, gGlobal->SIGTIME);
+    return isTree(t, gGlobal->SIGTIME, label);
 }
 
 // Read only and read write tables
@@ -248,8 +248,8 @@ bool isSigSelect2(Tree t, Tree& selector, Tree& s1, Tree& s2)
 //  "select3" expresses with "select2"
 Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
 {
-    return sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(0)),
-                      sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(1)), s3, s2), s1);
+    return sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(0)), sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(1)), s3, s2),
+                      s1);
 }
 bool isSigSelect3(Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)
 {
@@ -842,8 +842,7 @@ Tree sigInstructionTableWrite(Tree id, Tree origin, int nature, int tblsize, Tre
  * @return true if s is a sigWriteTable
  * @return false otherwise
  */
-bool isSigInstructionTableWrite(Tree s, Tree& id, Tree& origin, int* nature, int* tblsize, Tree& init, Tree& idx,
-                                Tree& sig)
+bool isSigInstructionTableWrite(Tree s, Tree& id, Tree& origin, int* nature, int* tblsize, Tree& init, Tree& idx, Tree& sig)
 {
     Tree tnat, tsize;
     if (isTree(s, gGlobal->SIGINSTRUCTIONTABLEWRITE, id, origin, tnat, tsize, init, idx, sig)) {

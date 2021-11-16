@@ -84,9 +84,9 @@ Tree normalizeAddTerm(Tree t)
  * \param s the term to be delayed by 1 sample
  * \return the normalized term
  */
-Tree normalizeDelay1Term(Tree s)
+Tree normalizeDelay1Term(Tree label, Tree s)
 {
-    return normalizeFixedDelayTerm(s, tree(1));
+    return normalizeFixedDelayTerm(label, s, tree(1));
 }
 
 /**
@@ -105,14 +105,14 @@ Tree normalizeDelay1Term(Tree s)
  * \return the normalized term
  */
 
-Tree normalizeFixedDelayTerm(Tree s, Tree d)
+Tree normalizeFixedDelayTerm(Tree label, Tree s, Tree d)
 {
     Tree x, y, r;
     int  i;
 
     if (isZero(d)) {
         if (isProj(s, &i, r)) {
-            return sigFixDelay(s, d);
+            return sigFixDelay(label, s, d);
         } else {
             return s;
         }
@@ -122,29 +122,30 @@ Tree normalizeFixedDelayTerm(Tree s, Tree d)
 
     } else if (isSigMul(s, x, y)) {
         if (getSigOrder(x) < 2) {
-            return /*simplify*/ (sigMul(x, normalizeFixedDelayTerm(y, d)));
+            return /*simplify*/ (sigMul(x, normalizeFixedDelayTerm(label, y, d)));
         } else if (getSigOrder(y) < 2) {
-            return /*simplify*/ (sigMul(y, normalizeFixedDelayTerm(x, d)));
+            return /*simplify*/ (sigMul(y, normalizeFixedDelayTerm(label, x, d)));
         } else {
-            return sigFixDelay(s, d);
+            return sigFixDelay(label, s, d);
         }
 
     } else if (isSigDiv(s, x, y)) {
         if (getSigOrder(y) < 2) {
-            return /*simplify*/ (sigDiv(normalizeFixedDelayTerm(x, d), y));
+            return /*simplify*/ (sigDiv(normalizeFixedDelayTerm(label, x, d), y));
         } else {
-            return sigFixDelay(s, d);
+            return sigFixDelay(label, s, d);
         }
 
-    } else if (isSigFixDelay(s, x, y)) {
+    } else if (isSigFixDelay(s, label, x, y)) {
+        // TODO check same label !!!
         if (getSigOrder(y) < 2) {
             // (x@n)@m = x@(n+m) when n is constant
-            return normalizeFixedDelayTerm(x, simplify(sigAdd(d, y)));
+            return normalizeFixedDelayTerm(label, x, simplify(sigAdd(d, y)));
         } else {
-            return sigFixDelay(s, d);
+            return sigFixDelay(label, s, d);
         }
 
     } else {
-        return sigFixDelay(s, d);
+        return sigFixDelay(label, s, d);
     }
 }

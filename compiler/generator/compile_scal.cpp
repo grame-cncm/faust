@@ -198,8 +198,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     parallelScheduling("parallelScheduling.txt", INSTR);
 
     cerr << "Test tables" << endl;
-    Tree t1 = sigInstructionTableWrite(uniqueID("Table", gGlobal->nil), gGlobal->nil, kInt, 64, sigGen(sigInt(0)),
-                                       sigInt(22), sigInt(-1));
+    Tree t1 = sigInstructionTableWrite(uniqueID("Table", gGlobal->nil), gGlobal->nil, kInt, 64, sigGen(sigInt(0)), sigInt(22), sigInt(-1));
     cerr << "t1 = " << ppsig(t1) << endl;
     Tree t2 = sigInstructionTableRead(uniqueID("Table", gGlobal->nil), gGlobal->nil, kInt, 1, sigInt(7));
     cerr << "t2 = " << ppsig(t2) << endl;
@@ -414,8 +413,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
 
     for (int i = 0; isList(L); L = tl(L), i++) {
         Tree sig = hd(L);
-        fClass->addExecCode(
-            Statement("", subst("output$0[i] = $2$1;", T(i), generateCacheCode(sig, CS(sig)), xcast())));
+        fClass->addExecCode(Statement("", subst("output$0[i] = $2$1;", T(i), generateCacheCode(sig, CS(sig)), xcast())));
     }
 
     generateMetaData();
@@ -484,7 +482,7 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateOutput(sig, T(i), CS(x));
     }
 
-    else if (isSigFixDelay(sig, x, y)) {
+    else if (isSigFixDelay(sig, label, x, y)) {
         return generateFixDelay(sig, x, y);
     } else if (isSigPrefix(sig, x, y)) {
         return generatePrefix(sig, x, y);
@@ -555,8 +553,7 @@ string ScalarCompiler::generateCode(Tree sig)
     } else if (isSigSoundfileRate(sig, sf, x)) {
         return generateCacheCode(sig, subst("$0cache->fSR[$1]", CS(sf), CS(x)));
     } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
-        return generateCacheCode(sig,
-                                 subst("$0cache->fBuffers[$1][$0cache->fOffset[$2]+$3]", CS(sf), CS(x), CS(y), CS(z)));
+        return generateCacheCode(sig, subst("$0cache->fBuffers[$1][$0cache->fOffset[$2]+$3]", CS(sf), CS(x), CS(y), CS(z)));
     }
 
     else if (isSigAttach(sig, x, y)) {
@@ -666,17 +663,13 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
         }
 
         if (t1->nature() == kInt && t2->nature() == kInt) {
-            return generateCacheCode(
-                sig, subst("($3($0) $1 $3($2))", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+            return generateCacheCode(sig, subst("($3($0) $1 $3($2))", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
         } else if (t1->nature() == kInt && t2->nature() == kReal) {
-            return generateCacheCode(sig,
-                                     subst("($3($0) $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+            return generateCacheCode(sig, subst("($3($0) $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
         } else if (t1->nature() == kReal && t2->nature() == kInt) {
-            return generateCacheCode(sig,
-                                     subst("($0 $1 $3($2))", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+            return generateCacheCode(sig, subst("($0 $1 $3($2))", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
         } else {
-            return generateCacheCode(sig,
-                                     subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+            return generateCacheCode(sig, subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
         }
     } else {
         return generateCacheCode(sig, subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2)));
@@ -1085,8 +1078,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
     if (gGlobal->gMemoryManager) {
         fClass->addDeclCode(subst("static $0* \t$1;", ctype, vname));
         fClass->addStaticFields(subst("$0* \t$1::$2 = 0;", ctype, fClass->getClassName(), vname));
-        fClass->addStaticInitCode(
-            subst("$0 = static_cast<$1*>(fManager->allocate(sizeof($1) * $2));", vname, ctype, T(size)));
+        fClass->addStaticInitCode(subst("$0 = static_cast<$1*>(fManager->allocate(sizeof($1) * $2));", vname, ctype, T(size)));
         fClass->addStaticDestroyCode(subst("fManager->destroy($0);", vname));
     } else {
         fClass->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
@@ -1464,8 +1456,7 @@ string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const strin
  * Generate code for the delay mecchanism without using temporary variables
  */
 
-string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname,
-                                              int mxd)
+string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
 {
     faustassert(mxd > 0);
 
@@ -1512,8 +1503,7 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
  * Generate code for the delay mecchanism without using temporary variables
  */
 
-void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
-                                       const string& ccs)
+void ScalarCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp, const string& ccs)
 {
     // faustassert(mxd > 0);
     if (mxd == 0) {
@@ -1598,8 +1588,8 @@ void ScalarCompiler::declareWaveform(Tree sig, string& vname, int& size)
     fClass->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
     fClass->addDeclCode(subst("int \tidx$0;", vname));
     fClass->addInitCode(subst("idx$0 = 0;", vname));
-    fClass->getTopParentKlass()->addStaticFields(
-        subst("$0 \t$1::$2[$3] = ", ctype, fClass->getFullClassName(), vname, T(size)) + content.str() + ";");
+    fClass->getTopParentKlass()->addStaticFields(subst("$0 \t$1::$2[$3] = ", ctype, fClass->getFullClassName(), vname, T(size)) +
+                                                 content.str() + ";");
 }
 
 string ScalarCompiler::generateWaveform(Tree sig)

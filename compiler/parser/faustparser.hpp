@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.5.1.  */
+/* A Bison parser, made by GNU Bison 3.7.6.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -31,8 +31,9 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-/* Undocumented macros, especially those whose name start with YY_,
-   are private implementation details.  Do not rely on them.  */
+/* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
+   especially those whose name start with YY_ or yy_.  They are
+   private implementation details that can be changed or removed.  */
 
 #ifndef YY_YY_FAUSTPARSER_HPP_INCLUDED
 # define YY_YY_FAUSTPARSER_HPP_INCLUDED
@@ -44,139 +45,144 @@
 extern int yydebug;
 #endif
 
-/* Token type.  */
+/* Token kinds.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
   enum yytokentype
   {
-    WITH = 258,
-    LETREC = 259,
-    SPLIT = 260,
-    MIX = 261,
-    SEQ = 262,
-    PAR = 263,
-    REC = 264,
-    LT = 265,
-    LE = 266,
-    EQ = 267,
-    GT = 268,
-    GE = 269,
-    NE = 270,
-    ADD = 271,
-    SUB = 272,
-    OR = 273,
-    MUL = 274,
-    DIV = 275,
-    MOD = 276,
-    AND = 277,
-    XOR = 278,
-    LSH = 279,
-    RSH = 280,
-    POWOP = 281,
-    FDELAY = 282,
-    DELAY1 = 283,
-    APPL = 284,
-    DOT = 285,
-    MEM = 286,
-    PREFIX = 287,
-    INTCAST = 288,
-    FLOATCAST = 289,
-    FFUNCTION = 290,
-    FCONSTANT = 291,
-    FVARIABLE = 292,
-    BUTTON = 293,
-    CHECKBOX = 294,
-    VSLIDER = 295,
-    HSLIDER = 296,
-    NENTRY = 297,
-    VGROUP = 298,
-    HGROUP = 299,
-    TGROUP = 300,
-    HBARGRAPH = 301,
-    VBARGRAPH = 302,
-    SOUNDFILE = 303,
-    ATTACH = 304,
-    ACOS = 305,
-    ASIN = 306,
-    ATAN = 307,
-    ATAN2 = 308,
-    COS = 309,
-    SIN = 310,
-    TAN = 311,
-    EXP = 312,
-    LOG = 313,
-    LOG10 = 314,
-    POWFUN = 315,
-    SQRT = 316,
-    ABS = 317,
-    MIN = 318,
-    MAX = 319,
-    FMOD = 320,
-    REMAINDER = 321,
-    FLOOR = 322,
-    CEIL = 323,
-    RINT = 324,
-    RDTBL = 325,
-    RWTBL = 326,
-    SELECT2 = 327,
-    SELECT3 = 328,
-    INT = 329,
-    FLOAT = 330,
-    LAMBDA = 331,
-    WIRE = 332,
-    CUT = 333,
-    ENDDEF = 334,
-    VIRG = 335,
-    LPAR = 336,
-    RPAR = 337,
-    LBRAQ = 338,
-    RBRAQ = 339,
-    LCROC = 340,
-    RCROC = 341,
-    DEF = 342,
-    IMPORT = 343,
-    COMPONENT = 344,
-    LIBRARY = 345,
-    ENVIRONMENT = 346,
-    WAVEFORM = 347,
-    ROUTE = 348,
-    ENABLE = 349,
-    CONTROL = 350,
-    IPAR = 351,
-    ISEQ = 352,
-    ISUM = 353,
-    IPROD = 354,
-    INPUTS = 355,
-    OUTPUTS = 356,
-    ONDEMAND = 357,
-    STRING = 358,
-    FSTRING = 359,
-    IDENT = 360,
-    EXTRA = 361,
-    DECLARE = 362,
-    CASE = 363,
-    ARROW = 364,
-    BDOC = 365,
-    EDOC = 366,
-    BEQN = 367,
-    EEQN = 368,
-    BDGM = 369,
-    EDGM = 370,
-    BLST = 371,
-    ELST = 372,
-    BMETADATA = 373,
-    EMETADATA = 374,
-    DOCCHAR = 375,
-    NOTICE = 376,
-    LISTING = 377,
-    LSTTRUE = 378,
-    LSTFALSE = 379,
-    LSTDEPENDENCIES = 380,
-    LSTMDOCTAGS = 381,
-    LSTDISTRIBUTED = 382,
-    LSTEQ = 383,
-    LSTQ = 384
+    YYEMPTY = -2,
+    YYEOF = 0,                     /* "end of file"  */
+    YYerror = 256,                 /* error  */
+    YYUNDEF = 257,                 /* "invalid token"  */
+    SPLIT = 258,                   /* SPLIT  */
+    MIX = 259,                     /* MIX  */
+    SEQ = 260,                     /* SEQ  */
+    PAR = 261,                     /* PAR  */
+    REC = 262,                     /* REC  */
+    LT = 263,                      /* LT  */
+    LE = 264,                      /* LE  */
+    EQ = 265,                      /* EQ  */
+    GT = 266,                      /* GT  */
+    GE = 267,                      /* GE  */
+    NE = 268,                      /* NE  */
+    ADD = 269,                     /* ADD  */
+    SUB = 270,                     /* SUB  */
+    OR = 271,                      /* OR  */
+    MUL = 272,                     /* MUL  */
+    DIV = 273,                     /* DIV  */
+    MOD = 274,                     /* MOD  */
+    AND = 275,                     /* AND  */
+    XOR = 276,                     /* XOR  */
+    LSH = 277,                     /* LSH  */
+    RSH = 278,                     /* RSH  */
+    POWOP = 279,                   /* POWOP  */
+    FDELAY = 280,                  /* FDELAY  */
+    DELAY1 = 281,                  /* DELAY1  */
+    APPL = 282,                    /* APPL  */
+    MEM = 283,                     /* MEM  */
+    PREFIX = 284,                  /* PREFIX  */
+    INTCAST = 285,                 /* INTCAST  */
+    FLOATCAST = 286,               /* FLOATCAST  */
+    FFUNCTION = 287,               /* FFUNCTION  */
+    FCONSTANT = 288,               /* FCONSTANT  */
+    FVARIABLE = 289,               /* FVARIABLE  */
+    BUTTON = 290,                  /* BUTTON  */
+    CHECKBOX = 291,                /* CHECKBOX  */
+    VSLIDER = 292,                 /* VSLIDER  */
+    HSLIDER = 293,                 /* HSLIDER  */
+    NENTRY = 294,                  /* NENTRY  */
+    VGROUP = 295,                  /* VGROUP  */
+    HGROUP = 296,                  /* HGROUP  */
+    TGROUP = 297,                  /* TGROUP  */
+    HBARGRAPH = 298,               /* HBARGRAPH  */
+    VBARGRAPH = 299,               /* VBARGRAPH  */
+    SOUNDFILE = 300,               /* SOUNDFILE  */
+    ATTACH = 301,                  /* ATTACH  */
+    ACOS = 302,                    /* ACOS  */
+    ASIN = 303,                    /* ASIN  */
+    ATAN = 304,                    /* ATAN  */
+    ATAN2 = 305,                   /* ATAN2  */
+    COS = 306,                     /* COS  */
+    SIN = 307,                     /* SIN  */
+    TAN = 308,                     /* TAN  */
+    EXP = 309,                     /* EXP  */
+    LOG = 310,                     /* LOG  */
+    LOG10 = 311,                   /* LOG10  */
+    POWFUN = 312,                  /* POWFUN  */
+    SQRT = 313,                    /* SQRT  */
+    ABS = 314,                     /* ABS  */
+    MIN = 315,                     /* MIN  */
+    MAX = 316,                     /* MAX  */
+    FMOD = 317,                    /* FMOD  */
+    REMAINDER = 318,               /* REMAINDER  */
+    FLOOR = 319,                   /* FLOOR  */
+    CEIL = 320,                    /* CEIL  */
+    RINT = 321,                    /* RINT  */
+    RDTBL = 322,                   /* RDTBL  */
+    RWTBL = 323,                   /* RWTBL  */
+    SELECT2 = 324,                 /* SELECT2  */
+    SELECT3 = 325,                 /* SELECT3  */
+    INT = 326,                     /* INT  */
+    FLOAT = 327,                   /* FLOAT  */
+    LAMBDA = 328,                  /* LAMBDA  */
+    DOT = 329,                     /* DOT  */
+    WIRE = 330,                    /* WIRE  */
+    CUT = 331,                     /* CUT  */
+    ENDDEF = 332,                  /* ENDDEF  */
+    VIRG = 333,                    /* VIRG  */
+    LPAR = 334,                    /* LPAR  */
+    RPAR = 335,                    /* RPAR  */
+    LBRAQ = 336,                   /* LBRAQ  */
+    RBRAQ = 337,                   /* RBRAQ  */
+    LCROC = 338,                   /* LCROC  */
+    RCROC = 339,                   /* RCROC  */
+    WITH = 340,                    /* WITH  */
+    LETREC = 341,                  /* LETREC  */
+    DEF = 342,                     /* DEF  */
+    IMPORT = 343,                  /* IMPORT  */
+    COMPONENT = 344,               /* COMPONENT  */
+    LIBRARY = 345,                 /* LIBRARY  */
+    ENVIRONMENT = 346,             /* ENVIRONMENT  */
+    WAVEFORM = 347,                /* WAVEFORM  */
+    ROUTE = 348,                   /* ROUTE  */
+    ENABLE = 349,                  /* ENABLE  */
+    CONTROL = 350,                 /* CONTROL  */
+    IPAR = 351,                    /* IPAR  */
+    ISEQ = 352,                    /* ISEQ  */
+    ISUM = 353,                    /* ISUM  */
+    IPROD = 354,                   /* IPROD  */
+    INPUTS = 355,                  /* INPUTS  */
+    OUTPUTS = 356,                 /* OUTPUTS  */
+    ONDEMAND = 357,                /* ONDEMAND  */
+    STRING = 358,                  /* STRING  */
+    FSTRING = 359,                 /* FSTRING  */
+    IDENT = 360,                   /* IDENT  */
+    EXTRA = 361,                   /* EXTRA  */
+    DECLARE = 362,                 /* DECLARE  */
+    CASE = 363,                    /* CASE  */
+    ARROW = 364,                   /* ARROW  */
+    BDOC = 365,                    /* BDOC  */
+    EDOC = 366,                    /* EDOC  */
+    BEQN = 367,                    /* BEQN  */
+    EEQN = 368,                    /* EEQN  */
+    BDGM = 369,                    /* BDGM  */
+    EDGM = 370,                    /* EDGM  */
+    BLST = 371,                    /* BLST  */
+    ELST = 372,                    /* ELST  */
+    BMETADATA = 373,               /* BMETADATA  */
+    EMETADATA = 374,               /* EMETADATA  */
+    DOCCHAR = 375,                 /* DOCCHAR  */
+    NOTICE = 376,                  /* NOTICE  */
+    LISTING = 377,                 /* LISTING  */
+    LSTTRUE = 378,                 /* LSTTRUE  */
+    LSTFALSE = 379,                /* LSTFALSE  */
+    LSTDEPENDENCIES = 380,         /* LSTDEPENDENCIES  */
+    LSTMDOCTAGS = 381,             /* LSTMDOCTAGS  */
+    LSTDISTRIBUTED = 382,          /* LSTDISTRIBUTED  */
+    LSTEQ = 383,                   /* LSTEQ  */
+    LSTQ = 384                     /* LSTQ  */
   };
+  typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
@@ -190,7 +196,7 @@ union YYSTYPE
 	string* cppstr;
 	bool b;
 
-#line 194 "faustparser.hpp"
+#line 200 "faustparser.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

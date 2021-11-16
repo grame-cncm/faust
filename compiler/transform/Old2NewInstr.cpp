@@ -31,6 +31,7 @@
 #include "global.hh"
 #include "node.hh"
 #include "ppsig.hh"
+#include "prim2.hh"
 #include "property.hh"
 #include "schedule.hh"
 #include "signalDependencies.hh"
@@ -165,7 +166,15 @@ nlpl::Expr old2NewExpr(Tree sig)
         string    vname{tree2str(id)};
         nlpl::Mem V = nlpl::memory(nature2ctype(nature), vname, nlpl::kFinal);
         return nlpl::ReadVec(V, old2NewExpr(idx), dmin);
-    } else if (isSigInstructionSharedRead(sig, id, origin, &nature)) {  // x is used as an id, we don't go into it
+    } else if (isSigInstructionSharedRead(sig, id, origin, &nature)) {
+        string    vname{tree2str(id)};
+        nlpl::Mem M = nlpl::memory(nature2ctype(nature), vname, nlpl::kFinal);
+        return nlpl::ReadMem(M);
+    } else if (isSigInstructionShortDLineRead(sig, id, origin, &nature, &dmin)) {
+        string    vname{tree2str(id)};
+        nlpl::Mem M = nlpl::memory(nature2ctype(nature), vname, nlpl::kFinal);
+        return nlpl::ReadMem(M, dmin);  // TO DO
+    } else if (isSigInstructionBargraphRead(sig, id, origin, &nature)) {
         string    vname{tree2str(id)};
         nlpl::Mem M = nlpl::memory(nature2ctype(nature), vname, nlpl::kFinal);
         return nlpl::ReadMem(M);
@@ -175,7 +184,36 @@ nlpl::Expr old2NewExpr(Tree sig)
         int       lnature = tree2int(type);
         nlpl::Mem M       = nlpl::memory(nature2ctype(lnature), vname, nlpl::kFinal);
         return nlpl::ReadMem(M);
+    }  // Foreign functions
+    else if (isSigFFun(sig, ff, largs)) {
+        std::vector<nlpl::Expr> VE;
+        for (int i = 0; i < ffarity(ff); i++) {
+            VE.push_back(old2NewExpr(nth(largs, i)));
+        }
+        return nlpl::Fun(ffname(ff), VE);
+    } else if (isSigWaveform(sig)) {
+        int    size = sig->arity();
+        Type   t    = getCertifiedSigType(sig);
+        string ctype;
+        string vname;
+        if (t->nature() == kInt) {
+            ctype = "int";
+            vname = uniqueStringID("iWaveForm", sig);
+        } else {
+            ctype = "float";
+            vname = uniqueStringID("fWaveForm", sig);
+        }
+
+        nlpl::Mem M = nlpl::memory("int", "time", nlpl::kFinal);
+        nlpl::Mem V = nlpl::memory(ctype, vname, nlpl::kFinal);
+        return nlpl::ReadVec(V, nlpl::Mod(nlpl::ReadMem(M), nlpl::Integer(size)), 0);
     }
+    /*else if (isSigFConst(sig, type, name, file)) {
+        return;
+    } else if (isSigFVar(sig, type, name, file)) {
+        return;
+    }*/
+
     /*
 } else if (isSigWaveform(sig)) {
     return;
@@ -353,6 +391,10 @@ nlpl::Instr old2NewInstr(Tree sig)
         //     K->addFirstPrivateDecl(vname);
         //     K->addZone2(subst("$0 \t$1 = $2;", nature2ctype(nature), vname, CS(y)));
         // }
+
+    } else if (isSigInstructionShortDLineWrite(sig, id, origin, &nature, y)) {
+        string vname{tree2str(id)};
+        return nlpl::Write(nlpl::memory(nature2ctype(nature), vname, nlpl::kFinal), old2NewExpr(y));
 
     } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &dmax, init, idx, exp)) {
         if (idx != gGlobal->nil && exp != gGlobal->nil) {

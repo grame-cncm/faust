@@ -25,5 +25,5 @@
 
 Tree normalizeAddTerm(Tree t);
 
-Tree normalizeDelay1Term(Tree s);
-Tree normalizeFixedDelayTerm(Tree s, Tree d);
+Tree normalizeDelay1Term(Tree label, Tree s);
+Tree normalizeFixedDelayTerm(Tree label, Tree s, Tree d);

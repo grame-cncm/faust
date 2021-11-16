@@ -434,8 +434,8 @@ infixexp		: infixexp ADD infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigAdd))
 				| infixexp DIV infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigDiv)); }
                 | infixexp MOD infixexp     { $$ = boxSeq(boxPar($1,$3),boxPrim2(sigRem)); }
                 | infixexp POWOP infixexp   { $$ = boxSeq(boxPar($1,$3),gGlobal->gPowPrim->box()); }
-                | infixexp FDELAY infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigFixDelay)); }
-				| infixexp DELAY1  			{ $$ = boxSeq($1,boxPrim1(sigDelay1)); }
+                | infixexp FDELAY infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxDelay()); }
+				| infixexp DELAY1  			{ $$ = boxSeq($1,boxMem()); }
 				| infixexp DOT ident  		{ $$ = boxAccess($1,$3); }
 
 				| infixexp AND infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigAND)); }
@@ -470,7 +470,7 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 				| WIRE   						{ $$ = boxWire(); }
 				| CUT   						{ $$ = boxCut(); }
 
-				| MEM   						{ $$ = boxPrim1(sigDelay1); }
+				| MEM   						{ $$ = boxMem(); }
 				| PREFIX   						{ $$ = boxPrim2(sigPrefix); }
 
 				| INTCAST                       { $$ = boxPrim1(sigIntCast); }
@@ -481,7 +481,7 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 				| MUL  							{ $$ = boxPrim2(sigMul); }
 				| DIV							{ $$ = boxPrim2(sigDiv); }
 				| MOD							{ $$ = boxPrim2(sigRem); }
-				| FDELAY						{ $$ = boxPrim2(sigFixDelay); }
+				| FDELAY						{ $$ = boxDelay(); }
 
 				| AND							{ $$ = boxPrim2(sigAND); }
 				| OR 							{ $$ = boxPrim2(sigOR); }

@@ -95,8 +95,8 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 
             // Cast to external float
             ValueInst* res = InstBuilder::genCastFloatMacroInst(CS(sig));
-            pushComputeDSPMethod(InstBuilder::genStoreArrayFunArgsVar(
-                name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("vindex"), res));
+            pushComputeDSPMethod(
+                InstBuilder::genStoreArrayFunArgsVar(name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("vindex"), res));
 
             fContainer->closeLoop(sig);
         }
@@ -154,7 +154,7 @@ ValueInst* DAGInstructionsCompiler::CS(Tree sig)
         // therefore we must update the dependencies of
         // the current loop
         int       i;
-        Tree      x, d, r;
+        Tree      x, d, r, label;
         CodeLoop* ls;
         CodeLoop* tl = fContainer->getCurLoop();
 
@@ -163,11 +163,11 @@ ValueInst* DAGInstructionsCompiler::CS(Tree sig)
             // cerr << "CASE SH : fBackwardLoopDependencies.insert : " << tl << " --depend(A)son--> " << ls << endl;
             tl->addBackwardDependency(ls);
 
-        } else if (isSigFixDelay(sig, x, d) && fContainer->getLoopProperty(x, ls)) {
+        } else if (isSigFixDelay(sig, label, x, d) && fContainer->getLoopProperty(x, ls)) {
             // cerr << "CASE DL : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
             tl->addBackwardDependency(ls);
 
-        } else if (isSigFixDelay(sig, x, d) && isProj(x, &i, r) && fContainer->getLoopProperty(r, ls)) {
+        } else if (isSigFixDelay(sig, label, x, d) && isProj(x, &i, r) && fContainer->getLoopProperty(r, ls)) {
             // cerr << "CASE DR : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
             tl->addBackwardDependency(ls);
         }
@@ -331,15 +331,15 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
                     string vname_idx = vname + "_idx";
                     int    mask      = pow2limit(d + gGlobal->gVecSize) - 1;
                     // return subst("$0[($0_idx+i) & $1]", vname, mask);
-                    FIRIndex index1 = (getCurrentLoopIndex() + InstBuilder::genLoadStructVar(vname_idx)) &
-                                      InstBuilder::genInt32NumInst(mask);
+                    FIRIndex index1 =
+                        (getCurrentLoopIndex() + InstBuilder::genLoadStructVar(vname_idx)) & InstBuilder::genInt32NumInst(mask);
                     return InstBuilder::genLoadArrayStructVar(vname, index1);
                 }
             }
         } else {
             // not delayed
-            Tree x, y;
-            if (sharing > 1 && isSigFixDelay(sig, x, y) && verySimple(y)) {
+            Tree x, y, label;
+            if (sharing > 1 && isSigFixDelay(sig, label, x, y) && verySimple(y)) {
                 // cerr << "SPECIAL CASE NO CACHE NEEDED : " << ppsig(sig) << endl;
                 return exp;
             } else if (sharing > 1 && !verySimple(sig)) {
@@ -374,13 +374,13 @@ bool DAGInstructionsCompiler::needSeparateLoop(Tree sig)
     bool        b;
 
     int  i;
-    Tree x, y;
+    Tree x, y, label;
 
     if (o->getMaxDelay() > 0) {
         b = true;
     } else if (verySimple(sig) || t->variability() < kSamp) {
         b = false;  // non sample computation never require a loop
-    } else if (isSigFixDelay(sig, x, y)) {
+    } else if (isSigFixDelay(sig, label, x, y)) {
         b = false;
     } else if (isProj(sig, &i, x)) {
         b = true;
@@ -415,8 +415,7 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
     if (gGlobal->gOpenCLSwitch || gGlobal->gCUDASwitch) {  // HACK
         // "input" use as a name convention
         string     name = subst("input$0", T(idx));
-        ValueInst* res =
-            InstBuilder::genLoadArrayFunArgsVar(name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("vindex"));
+        ValueInst* res  = InstBuilder::genLoadArrayFunArgsVar(name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("vindex"));
         // Cast to internal float
         res = InstBuilder::genCastFloatInst(res);
         return generateCacheCode(sig, res);
@@ -476,8 +475,7 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
         if (isSigInt(delay, &d)) {
             if (d == 0) {
                 // return subst("$0[($0_idx+i)&$1]", vname, T(N-1));
-                FIRIndex index1 = (getCurrentLoopIndex() + InstBuilder::genLoadStructVar(vname_idx)) &
-                                  InstBuilder::genInt32NumInst(N - 1);
+                FIRIndex index1 = (getCurrentLoopIndex() + InstBuilder::genLoadStructVar(vname_idx)) & InstBuilder::genInt32NumInst(N - 1);
                 return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, index1));
             } else {
                 // return subst("$0[($0_idx+i-$2)&$1]", vname, T(N-1), T(d));
@@ -496,8 +494,7 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
     }
 }
 
-ValueInst* DAGInstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype,
-                                                     const string& vname, int mxd)
+ValueInst* DAGInstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd)
 {
     // it is a non-sample but used delayed
     // we need a delay line
@@ -513,8 +510,8 @@ ValueInst* DAGInstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, T
     }
 }
 
-ValueInst* DAGInstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname,
-                                                      int mxd, Address::AccessType& var_access)
+ValueInst* DAGInstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd,
+                                                      Address::AccessType& var_access)
 {
     if (mxd == 0) {
         generateVectorLoop(ctype, vname, exp, var_access);
@@ -525,12 +522,11 @@ ValueInst* DAGInstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::Var
     return exp;
 }
 
-void DAGInstructionsCompiler::generateVectorLoop(Typed::VarType ctype, const string& vname, ValueInst* exp,
-                                                 Address::AccessType& var_access)
+void DAGInstructionsCompiler::generateVectorLoop(Typed::VarType ctype, const string& vname, ValueInst* exp, Address::AccessType& var_access)
 {
     // "$0 $1[$2];"
-    DeclareVarInst* table_inst = InstBuilder::genDecStackVar(
-        vname, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), gGlobal->gVecSize));
+    DeclareVarInst* table_inst =
+        InstBuilder::genDecStackVar(vname, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), gGlobal->gVecSize));
     pushComputeBlockMethod(table_inst);
 
     // -- compute the new samples
@@ -561,13 +557,11 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         // compute method
 
         // -- declare a buffer and a "shifted" vector
-        DeclareVarInst* table_inst1 =
-            InstBuilder::genDecStackVar(buf, InstBuilder::genArrayTyped(typed, gGlobal->gVecSize + delay));
+        DeclareVarInst* table_inst1 = InstBuilder::genDecStackVar(buf, InstBuilder::genArrayTyped(typed, gGlobal->gVecSize + delay));
         pushComputeBlockMethod(table_inst1);
 
-        ValueInst* address_value = InstBuilder::genLoadArrayStackVarAddress(buf, InstBuilder::genInt32NumInst(delay));
-        DeclareVarInst* table_inst2 =
-            InstBuilder::genDecStackVar(vname, InstBuilder::genArrayTyped(typed, 0), address_value);
+        ValueInst*      address_value = InstBuilder::genLoadArrayStackVarAddress(buf, InstBuilder::genInt32NumInst(delay));
+        DeclareVarInst* table_inst2   = InstBuilder::genDecStackVar(vname, InstBuilder::genArrayTyped(typed, 0), address_value);
         pushComputeBlockMethod(table_inst2);
 
         // -- copy the stored samples to the delay line
@@ -619,16 +613,14 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
     }
 }
 
-StatementInst* DAGInstructionsCompiler::generateCopyBackArray(const string& vname_to, const string& vname_from,
-                                                              int size)
+StatementInst* DAGInstructionsCompiler::generateCopyBackArray(const string& vname_to, const string& vname_from, int size)
 {
     string index = gGlobal->getFreshID("j");
 
     // Generates init table loop
-    DeclareVarInst* loop_decl =
-        InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
-    ValueInst*    loop_end       = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genInt32NumInst(size));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
+    DeclareVarInst* loop_decl      = InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
+    ValueInst*      loop_end       = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genInt32NumInst(size));
+    StoreVarInst*   loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
 
@@ -646,11 +638,10 @@ ValueInst* DAGInstructionsCompiler::generateWaveform(Tree sig)
 
     declareWaveform(sig, vname, size);
 
-    string   idx    = subst("$0_idx", vname);
-    FIRIndex index1 = (FIRIndex(InstBuilder::genLoadStructVar(idx)) + InstBuilder::genLoadLoopVar("vsize")) %
-                      InstBuilder::genInt32NumInst(size);
+    string   idx = subst("$0_idx", vname);
+    FIRIndex index1 =
+        (FIRIndex(InstBuilder::genLoadStructVar(idx)) + InstBuilder::genLoadLoopVar("vsize")) % InstBuilder::genInt32NumInst(size);
     pushComputePostDSPMethod(InstBuilder::genStoreStructVar(idx, index1));
-    FIRIndex index2 =
-        (FIRIndex(InstBuilder::genLoadStructVar(idx)) + getCurrentLoopIndex()) % InstBuilder::genInt32NumInst(size);
+    FIRIndex index2 = (FIRIndex(InstBuilder::genLoadStructVar(idx)) + getCurrentLoopIndex()) % InstBuilder::genInt32NumInst(size);
     return generateCacheCode(sig, InstBuilder::genLoadArrayStaticStructVar(vname, index2));
 }

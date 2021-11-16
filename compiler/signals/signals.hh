@@ -60,12 +60,12 @@ bool isSigInput(Tree t, int* i);
 bool isSigOutput(Tree t, int* i, Tree& t0);
 
 // delay
-Tree sigDelay0(Tree t);
-Tree sigDelay1(Tree t);
-bool isSigDelay1(Tree t, Tree& t0);
+Tree sigDelay0(Tree label, Tree t);
+Tree sigDelay1(Tree label, Tree t);
+bool isSigDelay1(Tree t, Tree& label, Tree& t0);
 
-Tree sigFixDelay(Tree t0, Tree t1);
-bool isSigFixDelay(Tree t, Tree& t0, Tree& t1);
+Tree sigFixDelay(Tree label, Tree t0, Tree t1);
+bool isSigFixDelay(Tree t, Tree& label, Tree& t0, Tree& t1);
 
 Tree sigPrefix(Tree t0, Tree t1);
 bool isSigPrefix(Tree t, Tree& t0, Tree& t1);
@@ -73,8 +73,8 @@ bool isSigPrefix(Tree t, Tree& t0, Tree& t1);
 Tree sigIota(Tree t0);
 bool isSigIota(Tree t, Tree& t0);
 
-Tree sigTime();
-bool isSigTime(Tree t);
+Tree sigTime(Tree label);
+bool isSigTime(Tree t, Tree& label);
 
 // Int and Double casting
 Tree sigIntCast(Tree t);
@@ -372,8 +372,7 @@ bool isSigInstructionDelayLineRead(Tree s, Tree& id, Tree& origin, int* nature, 
 //
 
 Tree sigInstructionTableWrite(Tree id, Tree origin, int nature, int tblsize, Tree init, Tree idx, Tree sig);
-bool isSigInstructionTableWrite(Tree s, Tree& id, Tree& origin, int* nature, int* tblsize, Tree& init, Tree& idx,
-                                Tree& sig);
+bool isSigInstructionTableWrite(Tree s, Tree& id, Tree& origin, int* nature, int* tblsize, Tree& init, Tree& idx, Tree& sig);
 
 Tree sigInstructionTableAccessWrite(Tree id, Tree origin, int nature, int dmin, Tree tid, Tree idx);
 bool isSigInstructionTableAccessWrite(Tree s, Tree& id, Tree& origin, int* nature, int* dmin, Tree& tid, Tree& idx);

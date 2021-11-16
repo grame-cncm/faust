@@ -99,7 +99,7 @@ Tree SignalSplitter::transformation(Tree sig)
         fSplittedSignals.insert(sigOutput(n, r));
         return sigOutput(n, r);
 
-    } else if (isSigFixDelay(sig, x, y)) {
+    } else if (isSigFixDelay(sig, label, x, y)) {
         int      dmax = fOccMarkup->retrieve(x)->getMaxDelay();
         Type     ty   = getCertifiedSigType(y);
         interval i    = ty->getInterval();

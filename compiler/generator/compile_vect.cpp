@@ -82,7 +82,7 @@ string VectorCompiler::CS(Tree sig)
         // therefore we must update the dependencies of
         // the current loop
         int   i;
-        Tree  x, d, r;
+        Tree  x, d, r, label;
         Loop* ls;
         Loop* tl = fClass->topLoop();
 
@@ -91,11 +91,11 @@ string VectorCompiler::CS(Tree sig)
             // cerr << "CASE SH : fBackwardLoopDependencies.insert : " << tl << " --depend(A)son--> " << ls << endl;
             tl->fBackwardLoopDependencies.insert(ls);
 
-        } else if (isSigFixDelay(sig, x, d) && fClass->getLoopProperty(x, ls)) {
+        } else if (isSigFixDelay(sig, label, x, d) && fClass->getLoopProperty(x, ls)) {
             // cerr << "CASE DL : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
             tl->fBackwardLoopDependencies.insert(ls);
 
-        } else if (isSigFixDelay(sig, x, d) && isProj(x, &i, r) && fClass->getLoopProperty(r, ls)) {
+        } else if (isSigFixDelay(sig, label, x, d) && isProj(x, &i, r) && fClass->getLoopProperty(r, ls)) {
             // cerr << "CASE DR : fBackwardLoopDependencies.insert : " << tl << " --depend(B)son--> " << ls << endl;
             tl->fBackwardLoopDependencies.insert(ls);
 
@@ -272,8 +272,8 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
             }
         } else {
             // not delayed
-            Tree x, y;
-            if (sharing > 1 && isSigFixDelay(sig, x, y) && verySimple(y)) {
+            Tree x, y, label;
+            if (sharing > 1 && isSigFixDelay(sig, label, x, y) && verySimple(y)) {
                 // cerr << "SPECIAL CASE NO CACHE NEEDED : " << ppsig(sig) << endl;
                 return exp;
             } else if (sharing > 1 && !verySimple(sig)) {
@@ -304,14 +304,14 @@ bool VectorCompiler::needSeparateLoop(Tree sig)
     bool            b;
 
     int  i;
-    Tree x, y;
+    Tree x, y, label;
 
     if (o->getMaxDelay() > 0) {
         // cerr << "DLY "; // delayed expressions require a separate loop
         b = true;
     } else if (verySimple(sig) || t->variability() < kSamp) {
         b = false;  // non sample computation never require a loop
-    } else if (isSigFixDelay(sig, x, y)) {
+    } else if (isSigFixDelay(sig, label, x, y)) {
         b = false;  //
     } else if (isProj(sig, &i, x)) {
         // cerr << "REC "; // recursive expressions require a separate loop
@@ -418,8 +418,7 @@ string VectorCompiler::generateDelayVec(Tree sig, const string& exp, const strin
     }
 }
 
-void VectorCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
-                                       const string& ccs)
+void VectorCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp, const string& ccs)
 {
     if (mxd == 0) {
         generateVectorLoop(ctype, vname, exp, ccs);
@@ -446,8 +445,7 @@ static int pow2limit(int x)
  * @param delay the maximum delay
  * @param cexp the content of the signal as a C++ expression
  */
-void VectorCompiler::generateVectorLoop(const string& tname, const string& vecname, const string& cexp,
-                                        const string& ccs)
+void VectorCompiler::generateVectorLoop(const string& tname, const string& vecname, const string& cexp, const string& ccs)
 {
     // -- declare the vector
     fClass->addSharedDecl(vecname);
@@ -468,8 +466,7 @@ void VectorCompiler::generateVectorLoop(const string& tname, const string& vecna
  * @param delay the maximum delay
  * @param cexp the content of the signal as a C++ expression
  */
-void VectorCompiler::generateDlineLoop(const string& tname, const string& dlname, int delay, const string& cexp,
-                                       const string& ccs)
+void VectorCompiler::generateDlineLoop(const string& tname, const string& dlname, int delay, const string& cexp, const string& ccs)
 {
     if (delay < gGlobal->gMaxCopyDelay) {
         // Implementation of a copy based delayline

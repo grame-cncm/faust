@@ -275,7 +275,7 @@ static Type infereSigType(Tree sig, Tree env)
         /*sig->setType(t);*/ return t;
     }
 
-    else if (isSigTime(sig)) {
+    else if (isSigTime(sig, label)) {
         Type t = makeSimpleType(kInt, kSamp, kComp, kVect, kNum, interval(0, 1 << 30));
         return t;
     }
@@ -291,7 +291,7 @@ static Type infereSigType(Tree sig, Tree env)
     else if (isSigOutput(sig, &i, s1))
         return sampCast(T(s1, env));
 
-    else if (isSigDelay1(sig, s1)) {
+    else if (isSigDelay1(sig, label, s1)) {
         Type t = T(s1, env);
         return castInterval(sampCast(t), reunion(t->getInterval(), interval(0, 0)));
     }
@@ -303,7 +303,7 @@ static Type infereSigType(Tree sig, Tree env)
         return castInterval(sampCast(t1 | t2), reunion(t1->getInterval(), t2->getInterval()));
     }
 
-    else if (isSigFixDelay(sig, s1, s2)) {
+    else if (isSigFixDelay(sig, label, s1, s2)) {
         Type     t1 = T(s1, env);
         Type     t2 = T(s2, env);
         interval ii = t2->getInterval();

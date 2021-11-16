@@ -82,7 +82,7 @@ static int infereSigOrder(Tree sig)
 {
     int    i;
     double r;
-    Tree   sel, s1, s2, s3, s4, ff, id, ls, l, x, y, z, var, body, type, name, file, sf;
+    Tree   sel, s1, s2, s3, s4, ff, id, ls, l, x, y, z, var, body, type, name, file, sf, label;
 
     auto* xt = (xtended*)getUserData(sig);
     // primitive elements
@@ -110,13 +110,13 @@ static int infereSigOrder(Tree sig)
     else if (isSigOutput(sig, &i, s1))
         return 3;
 
-    else if (isSigDelay1(sig, s1))
+    else if (isSigDelay1(sig, label, s1))
         return 3;
 
     else if (isSigPrefix(sig, s1, s2))
         return 3;
 
-    else if (isSigFixDelay(sig, s1, s2))
+    else if (isSigFixDelay(sig, label, s1, s2))
         return 3;
 
     else if (isSigBinOp(sig, &i, s1, s2))

@@ -87,10 +87,10 @@ inline std::ostream& operator<<(std::ostream& file, const schedule<N>& S)
 
     file << "Schedule {";
     for (const N& n : S.elements()) {
-        file << sep << S.order(n) << ":" << n;
-        sep = ", ";
+        file << sep << n << " order[" << S.order(n) << "]";
+        //    sep = ", ";
     }
-    return file << "}";
+    return file << "\n}";
 }
 
 /**

@@ -82,7 +82,7 @@ static Tree simplification(Tree sig)
 {
     faustassert(sig);
     int  opnum;
-    Tree t1, t2, t3, t4;
+    Tree t1, t2, t3, t4, label;
 
     xtended* xt = (xtended*)getUserData(sig);
     // primitive elements
@@ -121,11 +121,11 @@ static Tree simplification(Tree sig)
         else
             return normalizeAddTerm(sig);
 
-    } else if (isSigDelay1(sig, t1)) {
-        return normalizeDelay1Term(t1);
+    } else if (isSigDelay1(sig, label, t1)) {
+        return normalizeDelay1Term(label, t1);
 
-    } else if (isSigFixDelay(sig, t1, t2)) {
-        return normalizeFixedDelayTerm(t1, t2);
+    } else if (isSigFixDelay(sig, label, t1, t2)) {
+        return normalizeFixedDelayTerm(label, t1, t2);
 
     } else if (isSigIntCast(sig, t1)) {
         Tree   tx;

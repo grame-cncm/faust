@@ -63,12 +63,12 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
         return 1;
     }
 
-    else if (isSigDelay1(sig, x)) {
+    else if (isSigDelay1(sig, label, x)) {
         vsigs.push_back(x);
         return 1;
     }
 
-    else if (isSigFixDelay(sig, x, y)) {
+    else if (isSigFixDelay(sig, label, x, y)) {
         vsigs.push_back(x);
         vsigs.push_back(y);
         return 2;
@@ -79,7 +79,7 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
     } else if (isSigIota(sig, x)) {
         vsigs.push_back(x);
         return 1;
-    } else if (isSigTime(sig)) {
+    } else if (isSigTime(sig, label)) {
         return 0;
     }
 

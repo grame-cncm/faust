@@ -586,6 +586,26 @@ bool isBoxPrim1(Tree s, prim1* p)
     return isTree(s, gGlobal->BOXPRIM1, t) && isPointer(t->node(), (void**)p);
 }
 
+Tree boxMem()
+{
+    return tree(gGlobal->BOXMEM);
+}
+bool isBoxMem(Tree s)
+{
+    Tree t;
+    return isTree(s, gGlobal->BOXMEM);
+}
+
+Tree boxDelay()
+{
+    return tree(gGlobal->BOXDELAY);
+}
+bool isBoxDelay(Tree s)
+{
+    Tree t;
+    return isTree(s, gGlobal->BOXDELAY);
+}
+
 Tree boxPrim2(prim2 foo)
 {
     return tree(gGlobal->BOXPRIM2, tree((void*)foo));

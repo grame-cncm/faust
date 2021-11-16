@@ -268,6 +268,8 @@ struct global {
     xtended* gAtan2Prim;
     xtended* gAsinPrim;
     xtended* gFtzPrim;
+    xtended* gDownsamplePrim;
+    xtended* gUpsamplePrim;
 
     Sym BOXIDENT;
     Sym BOXCUT;
@@ -297,6 +299,8 @@ struct global {
     Sym BOXLIBRARY;
     Sym IMPORTFILE;
     Sym BOXPRIM0;
+    Sym BOXMEM;
+    Sym BOXDELAY;
     Sym BOXPRIM1;
     Sym BOXPRIM2;
     Sym BOXPRIM3;
@@ -590,10 +594,7 @@ struct global {
 
     Typed::VarType getVarType(const string& name) { return gVarTypeTable[name]->getType(); }
 
-    bool isMathForeignFunction(const string& name)
-    {
-        return (gMathForeignFunctions.find(name) != gMathForeignFunctions.end());
-    }
+    bool isMathForeignFunction(const string& name) { return (gMathForeignFunctions.find(name) != gMathForeignFunctions.end()); }
 
     void printCompilationOptions(ostream& dst, bool backend = true);
 

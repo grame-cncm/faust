@@ -111,6 +111,12 @@ int computeBoxComplexity(Tree box)
     else if (isBoxWire(box))
         return 0;
 
+    else if (isBoxMem(box))
+        return 1;
+
+    else if (isBoxDelay(box))
+        return 1;
+
     else if (isBoxPrim0(box, &p0))
         return 1;
     else if (isBoxPrim1(box, &p1))
@@ -174,7 +180,9 @@ int computeBoxComplexity(Tree box)
         return BC(t1);
     else if (isBoxTGroup(box, label, t1))
         return BC(t1);
-
+    // ondemand
+    else if (isBoxOndemand(box, t1))
+        return 1 + BC(t1);
     // environment
     else if (isBoxEnvironment(box))
         return 0;

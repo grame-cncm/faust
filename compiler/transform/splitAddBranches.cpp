@@ -59,16 +59,15 @@ class SplitAddBranches : public SignalIdentity {
    protected:
     bool candidate(Tree sig)
     {
-        Tree   id, origin, dl, idx, left, right;
+        Tree   id, origin, dl, idx, left, right, label;
         int    nature, i, dmax, dmin;
         double r;
-        Tree   label, minv, maxv, val;
-        return /*!(isSigInput(sig, &i)) && */ !isSigAdd(sig, left, right) &&
-               !isSigInstructionControlRead(sig, id, origin, &nature) && !isSigTime(sig) &&
-               !isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl) &&
+        Tree   minv, maxv, val;
+        return /*!(isSigInput(sig, &i)) && */ !isSigAdd(sig, left, right) && !isSigInstructionControlRead(sig, id, origin, &nature) &&
+               !isSigTime(sig, label) && !isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl) &&
                !isSigInstructionTableRead(sig, id, origin, &nature, &dmin, idx) &&
-               !isSigInstructionShortDLineRead(sig, id, origin, &nature, &dmin) && !isSigGen(sig) &&
-               !isSigInt(sig, &i) && !isSigReal(sig, &r);
+               !isSigInstructionShortDLineRead(sig, id, origin, &nature, &dmin) && !isSigGen(sig) && !isSigInt(sig, &i) &&
+               !isSigReal(sig, &r);
     }
 
     Tree shareCandidate(Tree sig)

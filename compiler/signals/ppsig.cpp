@@ -58,14 +58,13 @@ ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tr
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree zz) const
 {
-    return fout << funame << '(' << ppsig(x, fEnv) << ',' << ppsig(y, fEnv) << ',' << ppsig(z, fEnv) << ','
-                << ppsig(zz, fEnv) << ')';
+    return fout << funame << '(' << ppsig(x, fEnv) << ',' << ppsig(y, fEnv) << ',' << ppsig(z, fEnv) << ',' << ppsig(zz, fEnv) << ')';
 }
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree z2, Tree z3) const
 {
-    return fout << funame << '(' << ppsig(x, fEnv) << ',' << ppsig(y, fEnv) << ',' << ppsig(z, fEnv) << ','
-                << ppsig(z2, fEnv) << ',' << ppsig(z3, fEnv) << ')';
+    return fout << funame << '(' << ppsig(x, fEnv) << ',' << ppsig(y, fEnv) << ',' << ppsig(z, fEnv) << ',' << ppsig(z2, fEnv) << ','
+                << ppsig(z3, fEnv) << ')';
 }
 
 ostream& ppsig::printui(ostream& fout, const string& funame, Tree label) const
@@ -86,8 +85,7 @@ ostream& ppsig::printui(ostream& fout, const string& funame, Tree label, Tree cu
 {
     fout << funame << '(';
     printlabel(fout, label);
-    return fout << ',' << ppsig(cur, fEnv) << ',' << ppsig(lo, fEnv) << ',' << ppsig(hi, fEnv) << ','
-                << ppsig(step, fEnv) << ')';
+    return fout << ',' << ppsig(cur, fEnv) << ',' << ppsig(lo, fEnv) << ',' << ppsig(hi, fEnv) << ',' << ppsig(step, fEnv) << ')';
 }
 
 ostream& ppsig::printout(ostream& fout, int i, Tree x) const
@@ -231,17 +229,17 @@ ostream& ppsig::print(ostream& fout) const
         printout(fout, i, x);
     }
 
-    else if (isSigDelay1(sig, x)) {
+    else if (isSigDelay1(sig, label, x)) {
         fout << ppsig(x, fEnv, 9) << "'";
     }
     // else if ( isSigFixDelay(sig, x, y) ) 			{ printinfix(fout, "@", 8, x, y); 	}
-    else if (isSigFixDelay(sig, x, y)) {
+    else if (isSigFixDelay(sig, label, x, y)) {
         printFixDelay(fout, x, y);
     } else if (isSigPrefix(sig, x, y)) {
         printfun(fout, "prefix", x, y);
     } else if (isSigIota(sig, x)) {
         printfun(fout, "iota", x);
-    } else if (isSigTime(sig)) {
+    } else if (isSigTime(sig, label)) {
         fout << "time";
     } else if (isSigBinOp(sig, &i, x, y)) {
         printinfix(fout, gBinOpTable[i]->fName, gBinOpTable[i]->fPriority, x, y);
@@ -334,8 +332,7 @@ ostream& ppsig::print(ostream& fout) const
                  << "NIL"
                  << "] := NIL;";
         } else {
-            fout << tname << "[" << tblsize << "](" << ppsig(init) << ") " << *id << "[" << ppsig(idx)
-                 << "] := " << ppsig(exp) << ";";
+            fout << tname << "[" << tblsize << "](" << ppsig(init) << ") " << *id << "[" << ppsig(idx) << "] := " << ppsig(exp) << ";";
         }
     } else if (isSigInstructionTableAccessWrite(sig, id, origin, &nat, &dmin, tid, idx)) {
         fout << *id << " = " << *tid << "[" << ppsig(idx) << "]";

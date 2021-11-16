@@ -72,15 +72,15 @@ Tree SignalIdentity::transformation(Tree sig)
         return sig;
     } else if (isSigOutput(sig, &i, x)) {
         return sigOutput(i, self(x));
-    } else if (isSigDelay1(sig, x)) {
-        return sigDelay1(self(x));
-    } else if (isSigFixDelay(sig, x, y)) {
-        return sigFixDelay(self(x), self(y));
+    } else if (isSigDelay1(sig, label, x)) {
+        return sigDelay1(label, self(x));
+    } else if (isSigFixDelay(sig, label, x, y)) {
+        return sigFixDelay(label, self(x), self(y));
     } else if (isSigPrefix(sig, x, y)) {
         return sigPrefix(self(x), self(y));
     } else if (isSigIota(sig, x)) {
         return sigIota(self(x));
-    } else if (isSigTime(sig)) {
+    } else if (isSigTime(sig, label)) {
         return sig;
     } else if (isSigBinOp(sig, &i, x, y)) {
         return sigBinOp(i, self(x), self(y));

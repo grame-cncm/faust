@@ -75,7 +75,7 @@ siglist split(const siglist& inputs, int nbus)
 siglist makeSigProjList(Tree t, int n)
 {
     siglist l(n);
-    for (int i = 0; i < n; i++) l[i] = sigDelay0(sigProj(i, t));
+    for (int i = 0; i < n; i++) l[i] = sigDelay0(gGlobal->nil, sigProj(i, t));
     return l;
 }
 
@@ -83,7 +83,7 @@ siglist makeSigProjList(Tree t, int n)
 siglist makeMemSigProjList(Tree t, int n)
 {
     siglist l(n);
-    for (int i = 0; i < n; i++) l[i] = sigDelay1(sigProj(i, t));
+    for (int i = 0; i < n; i++) l[i] = sigDelay1(gGlobal->nil, sigProj(i, t));
     return l;
 }
 
@@ -255,8 +255,7 @@ static bool isIntTree(Tree l, vector<int>& v)
 
     } else {
         stringstream error;
-        error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", not a valid list of numbers : " << boxpp(l)
-              << endl;
+        error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", not a valid list of numbers : " << boxpp(l) << endl;
         throw faustexception(error.str());
     }
 }
@@ -352,6 +351,16 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
     }
 
     // Primitives
+
+    else if (isBoxMem(box)) {
+        faustassert(lsig.size() == 1);
+        return makeList(sigDelay1(gGlobal->nil, lsig[0]));
+    }
+
+    else if (isBoxDelay(box)) {
+        faustassert(lsig.size() == 2);
+        return makeList(sigFixDelay(gGlobal->nil, lsig[0], lsig[1]));
+    }
 
     else if (isBoxPrim0(box, &p0)) {
         faustassert(lsig.size() == 0);
@@ -469,8 +478,8 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
         lsig2[1] = sigSoundfileRate(soundfile, part);
 
         // compute bound limited read index : int(max(0, min(ridx,length-1)))
-        Tree ridx = sigIntCast(tree(gGlobal->gMaxPrim->symbol(), sigInt(0),
-                                    tree(gGlobal->gMinPrim->symbol(), lsig[1], sigAdd(lsig2[0], sigInt(-1)))));
+        Tree ridx = sigIntCast(
+            tree(gGlobal->gMaxPrim->symbol(), sigInt(0), tree(gGlobal->gMinPrim->symbol(), lsig[1], sigAdd(lsig2[0], sigInt(-1)))));
         for (int i = 0; i < c; i++) {
             lsig2[i + 2] = sigSoundfileBuffer(soundfile, sigInt(i), part, ridx);
         }
@@ -507,8 +516,7 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
             return listConcat(propagate(slotenv, path, t2, listRange(lr, 0, in2)), listRange(lr, in2, out1));
         } else {
             return propagate(slotenv, path, t2,
-                             listConcat(propagate(slotenv, path, t1, listRange(lsig, 0, in1)),
-                                        listRange(lsig, in1, in1 + in2 - out1)));
+                             listConcat(propagate(slotenv, path, t1, listRange(lsig, 0, in1)), listRange(lsig, in1, in1 + in2 - out1)));
         }
     }
 
@@ -562,7 +570,7 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
         for (auto exp : l3) {
             if (exp->aperture() > 0) {
                 // it is a regular recursive expression branch
-                ol[p] = sigDelay0(sigProj(p, g));
+                ol[p] = sigDelay0(gGlobal->nil, sigProj(p, g));
             } else {
                 // this expression is a closed term,
                 // it don't need to be inside this recursion group.
@@ -606,14 +614,12 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
 
         } else {
             stringstream error;
-            error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", invalid route expression : " << boxpp(box)
-                  << endl;
+            error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", invalid route expression : " << boxpp(box) << endl;
             throw faustexception(error.str());
         }
     }
     stringstream error;
-    error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box)
-          << endl;
+    error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box) << endl;
     throw faustexception(error.str());
 
     return siglist();

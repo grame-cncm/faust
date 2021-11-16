@@ -188,15 +188,15 @@ static string sigLabel(Tree sig)
     }
     // else if ( isSigOutput(sig, &i, x) )             { fout << "OUTPUT_" << i; }
 
-    else if (isSigDelay1(sig, x)) {
+    else if (isSigDelay1(sig, label, x)) {
         fout << "mem";
-    } else if (isSigFixDelay(sig, x, y)) {
+    } else if (isSigFixDelay(sig, label, x, y)) {
         fout << "@";
     } else if (isSigPrefix(sig, x, y)) {
         fout << "prefix";
     } else if (isSigIota(sig, x)) {
         fout << "iota";
-    } else if (isSigTime(sig)) {
+    } else if (isSigTime(sig, label)) {
         fout << "time";
     } else if (isSigBinOp(sig, &i, x, y)) {
         fout << binopname[i];

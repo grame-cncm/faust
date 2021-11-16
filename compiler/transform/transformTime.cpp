@@ -58,8 +58,9 @@ class TransformTime : public SignalIdentity {
     Tree transformation(Tree sig) override
     {
         faustassert(sig);
+        Tree label;
 
-        if (isSigTime(sig)) {
+        if (isSigTime(sig, label)) {
             fHasTime = true;
             return sigInstructionTimeRead();
         } else {

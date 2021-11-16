@@ -1309,7 +1309,7 @@ string GraphVectorCompiler::generateCode(Tree sig)
 
     if (getUserData(sig)) {
         return generateXtended(sig);
-    } else if (isSigTime(sig)) {
+    } else if (isSigTime(sig, label)) {
         return "(time+i)";
     } else if (isSigInstructionTableRead(sig, id, origin, &nature, &dmin, idx)) {
         return subst("$0[$1]", tree2str(id), CS(idx));

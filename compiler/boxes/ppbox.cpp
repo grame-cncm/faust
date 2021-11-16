@@ -36,7 +36,6 @@ const char *prim0name(CTree *(*ptr)())
 
 const char *prim1name(CTree *(*ptr)(CTree *))
 {
-    if (ptr == sigDelay1) return "mem";
     if (ptr == sigIntCast) return "int";
     if (ptr == sigFloatCast) return "float";
     return "prim1???";
@@ -64,7 +63,6 @@ const char *prim2name(CTree *(*ptr)(CTree *, CTree *))
     if (ptr == sigEQ) return "==";
     if (ptr == sigNE) return "!=";
 
-    if (ptr == sigFixDelay) return "@";
     if (ptr == sigPrefix) return "prefix";
     if (ptr == sigAttach) return "attach";
     if (ptr == sigEnable) return "enable";
@@ -143,8 +141,8 @@ ostream &boxpp::print(ostream &fout) const
     prim4  p4;
     prim5  p5;
 
-    Tree t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg, body, fun, args, abstr, genv, vis, lenv,
-        ldef, slot, ident, rules, chan, ins, outs, lroutes;
+    Tree t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg, body, fun, args, abstr, genv, vis, lenv, ldef, slot, ident,
+        rules, chan, ins, outs, lroutes;
 
     const char *str;
 
@@ -163,6 +161,12 @@ ostream &boxpp::print(ostream &fout) const
         fout << '_';
     else if (isBoxIdent(box, &str))
         fout << str;
+    else if (isBoxMem(box))
+        fout << "mem";
+    else if (isBoxDelay(box))
+        fout << "@";
+    else if (isBoxPrim0(box, &p0))
+        fout << prim0name(p0);
     else if (isBoxPrim0(box, &p0))
         fout << prim0name(p0);
     else if (isBoxPrim1(box, &p1))
@@ -238,11 +242,11 @@ ostream &boxpp::print(ostream &fout) const
     else if (isBoxCheckbox(box, label))
         fout << "checkbox(" << tree2quotedstr(label) << ')';
     else if (isBoxVSlider(box, label, cur, min, max, step)) {
-        fout << "vslider(" << tree2quotedstr(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max)
-             << ", " << boxpp(step) << ')';
+        fout << "vslider(" << tree2quotedstr(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max) << ", " << boxpp(step)
+             << ')';
     } else if (isBoxHSlider(box, label, cur, min, max, step)) {
-        fout << "hslider(" << tree2quotedstr(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max)
-             << ", " << boxpp(step) << ')';
+        fout << "hslider(" << tree2quotedstr(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max) << ", " << boxpp(step)
+             << ')';
     } else if (isBoxVGroup(box, label, t1)) {
         fout << "vgroup(" << tree2quotedstr(label) << ", " << boxpp(t1, 0) << ')';
     } else if (isBoxHGroup(box, label, t1)) {
@@ -256,8 +260,8 @@ ostream &boxpp::print(ostream &fout) const
     } else if (isBoxVBargraph(box, label, min, max)) {
         fout << "vbargraph(" << tree2quotedstr(label) << ", " << boxpp(min) << ", " << boxpp(max) << ')';
     } else if (isBoxNumEntry(box, label, cur, min, max, step)) {
-        fout << "nentry(" << tree2quotedstr(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max)
-             << ", " << boxpp(step) << ')';
+        fout << "nentry(" << tree2quotedstr(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max) << ", " << boxpp(step)
+             << ')';
     } else if (isBoxSoundfile(box, label, chan)) {
         fout << "soundfile(" << tree2quotedstr(label) << ", " << boxpp(chan) << ')';
     }

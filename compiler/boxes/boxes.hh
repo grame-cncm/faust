@@ -194,6 +194,16 @@ Tree boxModifLocalDef(Tree body, Tree ldef);
 bool isBoxModifLocalDef(Tree t, Tree& body, Tree& ldef);
 
 /*****************************************************************************
+                             Delay Lines
+*****************************************************************************/
+
+Tree boxMem();
+bool isBoxMem(Tree t);
+
+Tree boxDelay();
+bool isBoxDelay(Tree t);
+
+/*****************************************************************************
                              Error Boxe
 *****************************************************************************/
 

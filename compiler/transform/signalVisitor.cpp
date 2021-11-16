@@ -72,10 +72,10 @@ void SignalVisitor::visit(Tree sig)
     } else if (isSigOutput(sig, &i, x)) {
         self(x);
         return;
-    } else if (isSigDelay1(sig, x)) {
+    } else if (isSigDelay1(sig, label, x)) {
         self(x);
         return;
-    } else if (isSigFixDelay(sig, x, y)) {
+    } else if (isSigFixDelay(sig, label, x, y)) {
         self(x);
         self(y);
         return;
@@ -86,7 +86,7 @@ void SignalVisitor::visit(Tree sig)
     } else if (isSigIota(sig, x)) {
         self(x);
         return;
-    } else if (isSigTime(sig)) {
+    } else if (isSigTime(sig, label)) {
         return;
     } else if (isSigBinOp(sig, &i, x, y)) {
         self(x);

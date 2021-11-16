@@ -92,8 +92,7 @@ static Tree boxSimplification(Tree box);
  */
 Tree evalprocess(Tree eqlist)
 {
-    Tree b = a2sb(eval(boxIdent(gGlobal->gProcessName.c_str()), gGlobal->nil,
-                       pushMultiClosureDefs(eqlist, gGlobal->nil, gGlobal->nil)));
+    Tree b = a2sb(eval(boxIdent(gGlobal->gProcessName.c_str()), gGlobal->nil, pushMultiClosureDefs(eqlist, gGlobal->nil, gGlobal->nil)));
 
     if (gGlobal->gSimplifyDiagrams) {
         b = boxSimplification(b);
@@ -330,9 +329,9 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
     // constants
     //-----------
 
-    if (xt || isBoxInt(exp) || isBoxReal(exp) || isBoxWire(exp) || isBoxCut(exp) || isBoxPrim0(exp) ||
-        isBoxPrim1(exp) || isBoxPrim2(exp) || isBoxPrim3(exp) || isBoxPrim4(exp) || isBoxPrim5(exp) || isBoxFFun(exp) ||
-        isBoxFConst(exp) || isBoxFVar(exp) || isBoxWaveform(exp)) {
+    if (xt || isBoxInt(exp) || isBoxReal(exp) || isBoxWire(exp) || isBoxCut(exp) || isBoxMem(exp) || isBoxDelay(exp) || isBoxPrim0(exp) ||
+        isBoxPrim1(exp) || isBoxPrim2(exp) || isBoxPrim3(exp) || isBoxPrim4(exp) || isBoxPrim5(exp) || isBoxFFun(exp) || isBoxFConst(exp) ||
+        isBoxFVar(exp) || isBoxWaveform(exp)) {
         return exp;
 
         // block-diagram constructors
@@ -406,8 +405,7 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
     } else if (isBoxComponent(exp, label)) {
         const char* fname = tree2str(label);
         Tree        eqlst = gGlobal->gReader.expandList(gGlobal->gReader.getList(fname));
-        Tree        res   = closure(boxIdent("process"), gGlobal->nil, gGlobal->nil,
-                           pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil));
+        Tree        res = closure(boxIdent("process"), gGlobal->nil, gGlobal->nil, pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil));
         setDefNameProperty(res, label);
         // cerr << "component is " << boxpp(res) << endl;
         return res;
@@ -415,8 +413,7 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
     } else if (isBoxLibrary(exp, label)) {
         const char* fname = tree2str(label);
         Tree        eqlst = gGlobal->gReader.expandList(gGlobal->gReader.getList(fname));
-        Tree        res   = closure(boxEnvironment(), gGlobal->nil, gGlobal->nil,
-                           pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil));
+        Tree        res   = closure(boxEnvironment(), gGlobal->nil, gGlobal->nil, pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil));
         setDefNameProperty(res, label);
         // cerr << "component is " << boxpp(res) << endl;
         return res;
@@ -439,23 +436,20 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
     } else if (isBoxVSlider(exp, label, cur, lo, hi, step)) {
         const char* l1 = tree2str(label);
         string      l2 = evalLabel(l1, visited, localValEnv);
-        return (boxVSlider(tree(l2.c_str()), tree(eval2double(cur, visited, localValEnv)),
-                           tree(eval2double(lo, visited, localValEnv)), tree(eval2double(hi, visited, localValEnv)),
-                           tree(eval2double(step, visited, localValEnv))));
+        return (boxVSlider(tree(l2.c_str()), tree(eval2double(cur, visited, localValEnv)), tree(eval2double(lo, visited, localValEnv)),
+                           tree(eval2double(hi, visited, localValEnv)), tree(eval2double(step, visited, localValEnv))));
 
     } else if (isBoxHSlider(exp, label, cur, lo, hi, step)) {
         const char* l1 = tree2str(label);
         string      l2 = evalLabel(l1, visited, localValEnv);
-        return (boxHSlider(tree(l2.c_str()), tree(eval2double(cur, visited, localValEnv)),
-                           tree(eval2double(lo, visited, localValEnv)), tree(eval2double(hi, visited, localValEnv)),
-                           tree(eval2double(step, visited, localValEnv))));
+        return (boxHSlider(tree(l2.c_str()), tree(eval2double(cur, visited, localValEnv)), tree(eval2double(lo, visited, localValEnv)),
+                           tree(eval2double(hi, visited, localValEnv)), tree(eval2double(step, visited, localValEnv))));
 
     } else if (isBoxNumEntry(exp, label, cur, lo, hi, step)) {
         const char* l1 = tree2str(label);
         string      l2 = evalLabel(l1, visited, localValEnv);
-        return (boxNumEntry(tree(l2.c_str()), tree(eval2double(cur, visited, localValEnv)),
-                            tree(eval2double(lo, visited, localValEnv)), tree(eval2double(hi, visited, localValEnv)),
-                            tree(eval2double(step, visited, localValEnv))));
+        return (boxNumEntry(tree(l2.c_str()), tree(eval2double(cur, visited, localValEnv)), tree(eval2double(lo, visited, localValEnv)),
+                            tree(eval2double(hi, visited, localValEnv)), tree(eval2double(step, visited, localValEnv))));
 
     } else if (isBoxSoundfile(exp, label, chan)) {
         const char* l1 = tree2str(label);
@@ -480,8 +474,7 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
     } else if (isBoxHBargraph(exp, label, lo, hi)) {
         const char* l1 = tree2str(label);
         string      l2 = evalLabel(l1, visited, localValEnv);
-        return boxHBargraph(tree(l2.c_str()), tree(eval2double(lo, visited, localValEnv)),
-                            tree(eval2double(hi, visited, localValEnv)));
+        return boxHBargraph(tree(l2.c_str()), tree(eval2double(lo, visited, localValEnv)), tree(eval2double(hi, visited, localValEnv)));
 
     } else if (isBoxMetadata(exp, e1, e2)) {
         gGlobal->gMetaDataSet[hd(e2)].insert(tl(e2));
@@ -490,8 +483,7 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
     } else if (isBoxVBargraph(exp, label, lo, hi)) {
         const char* l1 = tree2str(label);
         string      l2 = evalLabel(l1, visited, localValEnv);
-        return boxVBargraph(tree(l2.c_str()), tree(eval2double(lo, visited, localValEnv)),
-                            tree(eval2double(hi, visited, localValEnv)));
+        return boxVBargraph(tree(l2.c_str()), tree(eval2double(lo, visited, localValEnv)), tree(eval2double(hi, visited, localValEnv)));
 
         // lambda calculus
         //----------------
@@ -642,8 +634,7 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
 
 static inline bool isBoxPatternOp(Tree box, Node& n, Tree& t1, Tree& t2)
 {
-    if (isBoxPar(box, t1, t2) || isBoxSeq(box, t1, t2) || isBoxSplit(box, t1, t2) || isBoxMerge(box, t1, t2) ||
-        isBoxRec(box, t1, t2)) {
+    if (isBoxPar(box, t1, t2) || isBoxSeq(box, t1, t2) || isBoxSplit(box, t1, t2) || isBoxMerge(box, t1, t2) || isBoxRec(box, t1, t2)) {
         n = box->node();
         return true;
     } else {
@@ -1116,13 +1107,11 @@ static Tree applyList(Tree fun, Tree larg)
         // cerr << "state2 = " << state2 << "; result = " << *result << endl;
         if (state2 >= 0 && isNil(result)) {
             // we need to continue the pattern matching
-            return applyList(
-                boxPatternMatcher(automat, state2, vec2list(envVect), originalRules, cons(hd(larg), revParamList)),
-                tl(larg));
+            return applyList(boxPatternMatcher(automat, state2, vec2list(envVect), originalRules, cons(hd(larg), revParamList)), tl(larg));
         } else if (state2 < 0) {
             stringstream error;
-            error << "ERROR : pattern matching failed, no rule of " << boxpp(boxCase(originalRules))
-                  << " matches argument list " << boxpp(reverse(cons(hd(larg), revParamList))) << endl;
+            error << "ERROR : pattern matching failed, no rule of " << boxpp(boxCase(originalRules)) << " matches argument list "
+                  << boxpp(reverse(cons(hd(larg), revParamList))) << endl;
             throw faustexception(error.str());
         } else {
             // Pattern Matching was succesful
@@ -1165,7 +1154,7 @@ static Tree applyList(Tree fun, Tree larg)
             throw faustexception(error.str());
         }
 
-        if ((outs == 1) && ((isBoxPrim2(fun, &p2) && (p2 != sigPrefix)) ||
+        if ((outs == 1) && ((isBoxPrim2(fun, &p2) && (p2 != sigPrefix)) || isBoxDelay(fun) ||
                             (getUserData(fun) && ((xtended*)getUserData(fun))->isSpecialInfix()))) {
             // special case : /(3) ==> _,3 : /
             Tree larg2 = concat(nwires(ins - outs), larg);
@@ -1284,8 +1273,7 @@ static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
     if (isNil(lenv)) {
         if (hasDefProp(id)) {
             stringstream error;
-            error << "ERROR : " << *id << " is defined here : " << getDefFileProp(id) << ":" << getDefLineProp(id)
-                  << endl;
+            error << "ERROR : " << *id << " is defined here : " << getDefFileProp(id) << ":" << getDefLineProp(id) << endl;
             throw faustexception(error.str());
         } else {
             evalerror(getUseFileProp(id), getUseLineProp(id), "undefined symbol", id);

@@ -70,7 +70,7 @@ void printSignal(Tree sig, FILE* out, int prec)
 {
     int    i;
     double r;
-    Tree   x, y, z, u, le, id;
+    Tree   x, y, z, u, le, id, label;
 
     if (isSigInt(sig, &i)) {
         fprintf(out, "%d", i);
@@ -89,7 +89,7 @@ void printSignal(Tree sig, FILE* out, int prec)
         fputs(binopname[i], out);
         printSignal(y, out, binopprec[i]);
         if (prec > binopprec[i]) fputs(")", out);
-    } else if (isSigDelay1(sig, x)) {
+    } else if (isSigDelay1(sig, label, x)) {
         fputs("mem(", out);
         printSignal(x, out, 0);
         fputs(")", out);
@@ -117,7 +117,7 @@ void printSignal(Tree sig, FILE* out, int prec)
         fputs(",", out);
         printSignal(y, out, 0);
         fputs(")", out);
-    } else if (isSigFixDelay(sig, x, y)) {
+    } else if (isSigFixDelay(sig, label, x, y)) {
         if (prec > 4) fputs("(", out);
         printSignal(x, out, 4);
         fputs("@", out);
