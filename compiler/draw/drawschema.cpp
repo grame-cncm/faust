@@ -537,7 +537,6 @@ static schema* generateInsideSchema(Tree t)
         }
     } else if (isBoxOndemand(t, a)) {
         return makeOndemandSchema(generateDiagramSchema(a));
-        q
     } else {
         stringstream error;
         error << "ERROR in generateInsideSchema, box expression not recognized : ";
