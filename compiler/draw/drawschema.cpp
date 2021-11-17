@@ -535,6 +535,9 @@ static schema* generateInsideSchema(Tree t)
             error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", invalid route expression : " << boxpp(t) << endl;
             throw faustexception(error.str());
         }
+    } else if (isBoxOndemand(t, a)) {
+        return makeOndemandSchema(generateDiagramSchema(a));
+        q
     } else {
         stringstream error;
         error << "ERROR in generateInsideSchema, box expression not recognized : ";
