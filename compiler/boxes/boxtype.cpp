@@ -344,7 +344,7 @@ static bool infereBoxType(Tree t, int* inum, int* onum)
         return getBoxType(a, inum, onum);
 
     } else if (isBoxRoute(t, ins, outs, lroutes)) {
-        return isBoxInt(ins, inum) & isBoxInt(outs, onum);
+        return isBoxInt(ins, inum) && isBoxInt(outs, onum);
 
     } else {
         stringstream error;

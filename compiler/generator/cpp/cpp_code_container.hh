@@ -135,8 +135,9 @@ class CPPScalarOneSampleCodeContainer1 : public CPPScalarCodeContainer {
         } else {
             addIncludeFile("<cmath>");
             addIncludeFile("<algorithm>");
-                // For int64_t type
+            // For int64_t type
             addIncludeFile("<cstdint>");
+            addIncludeFile("<faust/dsp/one-sample-dsp.h>");
         }
         
         fCodeProducer = new CPPInstVisitor(out);
@@ -170,6 +171,7 @@ class CPPScalarOneSampleCodeContainer2 : public CPPScalarCodeContainer {
                 addIncludeFile("<algorithm>");
                 // For int64_t type
                 addIncludeFile("<cstdint>");
+                addIncludeFile("<faust/dsp/one-sample-dsp.h>");
             }
         
             fCodeProducer = new CPPInstVisitor1(out);
@@ -206,6 +208,7 @@ class CPPScalarOneSampleCodeContainer3 : public CPPScalarOneSampleCodeContainer2
                 addIncludeFile("<algorithm>");
                 // For int64_t type
                 addIncludeFile("<cstdint>");
+                addIncludeFile("<faust/dsp/one-sample-dsp.h>");
             }
         
             // Setup in produceClass

@@ -4,7 +4,7 @@ Several programs and tools are available to test the dynamic compilation chain, 
 
 ## dynamic-faust
 
-The **dynamic-faust** tool uses the dynamic compilation chain (based on the LLVM backend), and compiles a Faust DSP source to a LLVM IR (.ll), bicode (.bc), machine code (.mc) or object code (.o) output file.
+The **dynamic-faust** tool uses the dynamic compilation chain (based on the LLVM backend), and compiles a Faust DSP source to a LLVM IR (.ll), bicode (.bc), machine code (.mc) or object code (.o) output file. CPU cross-compilation can be done using the `-target` option. The best compilation options for the native CPU (at Faust compiler level) can be discovered using the `-opt` option. 
 
 `dynamic-faust [-target xxx] [-opt native|generic] [-o foo.ll|foo.bc|foo.mc|foo.o] [additional Faust options (-vec -vs 8...)] foo.dsp`
 
