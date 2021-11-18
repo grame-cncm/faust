@@ -1,0 +1,61 @@
+#!/bin/sh
+#
+
+function usage {
+	echo "usage: faust-config <OPTION>..."
+	echo
+	echo "Get various configuration information needed to compile programs which use"
+	echo "Faust.  Typically called from 'configure' scripts.  Examples:"
+  	echo "  faust-config --cflags"
+	echo
+	echo "Options:"
+	echo "  --version        Print Faust version."
+	echo "  --cflags         C compiler flags for files that include Faust headers."
+	echo "  --ldflags        Print Linker flags."
+	echo "  --system-libs    System Libraries needed to link against LLVM components."
+}
+
+function get {
+	case $1 in 
+		 --version)
+		 	faust --version
+		 	;;
+
+		--cflags)
+			OUT="$OUT -I$(faust --includedir)"
+			;;
+
+		--ldflags)
+			OUT="$OUT -L$(faust --libdir)"
+			;;
+
+		--system-libs)
+			OUT="$OUT $SYSTEMLIBS"
+			;;
+		*)
+			usage
+			;;
+	esac
+}
+
+SYSTEMLIBS=""
+
+if [ "$#" -eq 0 ]
+then
+	usage
+	exit 1
+fi
+
+
+while [ $1 ]
+do
+	get $1
+	shift
+done
+
+echo $OUT
+
+exit 0
+
+
+
