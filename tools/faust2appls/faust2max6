@@ -300,6 +300,6 @@ for p in $FILES; do
     
 done
 
-BINARIES="$BINARIES ui.js"
+BINARIES="$BINARIES ${f%.dsp}.maxpat ui.js"
 
 echo $BINARIES
