@@ -193,7 +193,10 @@ winpack:
 macpack: package/README.html
 	-[ -d $(PACK) ] && rm -rf $(PACK)
 	$(MAKE) cmake BACKENDs=all.cmake TARGETS=all.cmake  CMAKEOPT="-DDEPLOYMENT_TARGET=on"
+	$(MAKE) 
+	$(MAKE) -f Make.llvm.static
 	$(MAKE) install PREFIX=../$(PACK)/Faust-$(VERSION)
+	cp lib/libfaustwithllvm.a $(PACK)/Faust-$(VERSION)/lib
 	$(MAKE) mactools FAUSTDIR=../../build/$(PACK)/Faust-$(VERSION)
 	cp package/INSTALL.html $(PACK)
 	cp package/README.html $(PACK)

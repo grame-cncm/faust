@@ -1,0 +1,45 @@
+#
+# this makefile is intended to build a single static library embedding both faust 
+# and the corresponding llvm libraries
+#
+
+MAKE ?= make
+AR   ?= ar
+
+TMP 	?= __tmp_llvm_lib__
+OUTPUT 	?= lib/libfaustwithllvm.a
+INPUT 	:= $(shell llvm-config --libnames)
+LLVM 	:= $(shell llvm-config --libdir)
+SYSLIBS := $(shell llvm-config --system-libs)
+
+FOLDERS := $(INPUT:%.a=$(TMP)/%.dir) $(TMP)/libfaust.dir
+CONFIG  := ../tools/faust-config
+
+MAKEFILE := $(lastword $(MAKEFILE_LIST))
+
+.phony: $(OUTPUT)
+
+all: $(FOLDERS) $(OUTPUT)
+	$(MAKE) -f $(MAKEFILE) syslibs
+
+$(OUTPUT):
+	@-[ -f $@ ] && rm -f $@ 
+	$(AR) -csr $(OUTPUT) $(TMP)/*/*.o 
+	rm -rf $(TMP)
+
+syslibs:
+	sed -e "s/^SYSTEMLIBS..*/SYSTEMLIBS=\"$(SYSLIBS)\"/" $(CONFIG) > __tmp__
+	mv __tmp__ $(CONFIG)
+	chmod +x $(CONFIG)
+
+
+##########################################
+$(TMP)/%.dir: $(LLVM)/%.a
+	@-[ -d $@ ] && rm -rf $@ 
+	mkdir -p $@ && cd $@ && ar -x $<
+
+$(TMP)/libfaust.dir: lib/libfaust.a
+	@-[ -d $@ ] && rm -rf $@ 
+	mkdir -p $@ && cd $@ && ar -x ../../$<
+
+
