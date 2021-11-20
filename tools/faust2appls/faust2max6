@@ -300,6 +300,8 @@ for p in $FILES; do
     
 done
 
-BINARIES="$BINARIES ${f%.dsp}.maxpat ui.js"
+if [ "$NOPATCH" = "0" ]; then
+    BINARIES="$BINARIES ${f%.dsp}.maxpat ui.js"
+fi
 
 echo $BINARIES
