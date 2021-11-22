@@ -308,8 +308,13 @@ endif()
 ####################################
 # install the faust with llvm library
 if (INCLUDE_STATIC AND INCLUDE_LLVM)
+if (WIN32)
+	set (LFWITHLLVM  ${LIBDIR}/libfaustwithllvm.lib)
+else()
+	set (LFWITHLLVM  ${LIBDIR}/libfaustwithllvm.a)
+endif()
 install (
-    FILES  ${LIBDIR}/libfaustwithllvm.a DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
+    FILES  ${LFWITHLLVM} DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 endif()
