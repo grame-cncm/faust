@@ -1457,7 +1457,7 @@ it = library("interpolators.lib");
 si = library("signals.lib");
 
 declare name "Faust Basic Element Library";
-declare version "0.2";
+declare version "0.3";
 
 //=============================Conversion Tools===========================================
 //========================================================================================
@@ -1790,7 +1790,7 @@ time = (+(1)~_) - 1;
 
 
 //-------`(ba.)ramp`----------
-// An linear ramp of 'n' samples to reach the next value
+// A linear ramp with a slope of '(+/-)1/n' samples to reach the next value.
 //
 // #### Usage
 //
@@ -1799,11 +1799,35 @@ time = (+(1)~_) - 1;
 // ```
 // Where:
 //
-// * `n`: number of samples to reach the next value
+// * `n`: number of samples to reach the next value 
 //------------------------
 ramp = case {
 	(0) => _;
 	(n) => \(y,x).(if(y+1.0/n < x, y+1.0/n, if(y-1.0/n > x, y-1.0/n, x))) ~ _;
+};
+
+
+//-------`(ba.)line`----------
+// A linear ramp to reach a next value in 'n' samples. 
+// Note that the interpolation process is restarted every time 
+// the desired output value changes, the interpolation time is sampled only then.
+//
+// #### Usage
+//
+// ```
+// _ : line(n) : _
+// ```
+// Where:
+//
+// * `n`: number of samples to reach the next value
+//------------------------
+line(n, x) = state ~ (_,_) : !,_
+with {
+    state(t, c) = nt,nc 
+    with {
+        nt = ba.if(x != x', n, t-1);
+        nc = ba.if(nt <= 0, x, c + (x - c)/nt);
+    };
 };
 
 
@@ -8278,8 +8302,8 @@ echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0
 //
 //------------------------------------------------------------
 version =   2, // MAJOR version when we make incompatible API changes,
-            4, // MINOR version when we add functionality in a backwards compatible manner,
-            5; // PATCH version when we make backwards compatible bug fixes.
+            6, // MINOR version when we add functionality in a backwards compatible manner,
+            0; // PATCH version when we make backwards compatible bug fixes.
 
             
 //#################################### webaudio.lib ########################################
@@ -11281,7 +11305,7 @@ with {
 fdelayltv(N,n,d,x) = sum(i, N+1, delay(n,id+i,x) * h(N,fd,i))
 with {
   o = (N-1.00001)/2;  // ~center FIR interpolator
-  dmo = d - o; // assumed >=0 [d > (N-1)/2]
+  dmo = d - o; // assumed nonnegative [d > (N-1)/2]
   id = int(dmo);
   fd = o + ma.frac(dmo);
   h(N,d,n) = facs1(N,d,n) * facs2(N,d,n);
@@ -28812,7 +28836,7 @@ os = library("oscillators.lib");
 no = library("noises.lib"); // for compatible copy/paste out of this file
 
 declare name "Faust Noise Generator Library";
-declare version "0.1";
+declare version "0.2";
 
 //=============================Functions Reference========================================
 //========================================================================================
@@ -28853,6 +28877,29 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
+noise_env(seed) = environment {
+
+	RANDMAX	= 2147483647.0; // = 2^31-1 = MAX_SIGNED_INT in 32 bits
+	
+	noise = random / RANDMAX
+	with {
+		mask = 4294967295; // 2^32-1
+		random = +(seed) ~ *(1103515245) & mask; // "linear congruential"
+	};	
+	
+	multirandom(N) = randomize(N) ~_
+	with {
+		randomize(1) = +(seed) : *(1103515245);
+		randomize(N) = randomize(1) <: randomize(N-1),_;
+	};
+	
+	multinoise(N) = multirandom(N) : par(i, N, /(RANDMAX)) : par(i, N, float);
+	
+	noises(N,i) = multinoise(N) : ba.selector(i,N);
+
+};
+
+
 //-------`(no.)noise`----------
 // White noise generator (outputs random number between -1 and 1).
 // `Noise` is a standard Faust function.
@@ -28863,30 +28910,23 @@ closed source license or any other license if you decide so.
 // noise : _
 // ```
 //------------------------
-noise = random / RANDMAX
-with{
-	mask = 4294967295; // 2^32-1
-	random = +(12345) ~ *(1103515245) & mask; // "linear congruential"
-	RANDMAX	= 2147483647.0; // = 2^31-1 = MAX_SIGNED_INT in 32 bits
-};
+noise = noise_env(12345).noise;
+
 
 //---------------------`(no.)multirandom`--------------------------
 // Generates multiple decorrelated random numbers in parallel.
 //
 // #### Usage
 // ```
-// multirandom(n) : si.bus(n)
+// multirandom(N) : si.bus(N)
 // ```
 //
 // Where:
 //
-// * `n`: the number of decorrelated random numbers in parallel
+// * `N`: the number of decorrelated random numbers in parallel, a constant numerical expression
 //-------------------------------------------------------------
-multirandom(n) = randomize(n) ~_
-with {
-	randomize(1) = +(12345) : *(1103515245);
-	randomize(n) = randomize(1) <: randomize(n-1),_;
-};
+multirandom(N) = noise_env(12345).multirandom(N);
+
 
 //-----------------------`(no.)multinoise`------------------------
 // Generates multiple decorrelated noises in parallel.
@@ -28894,22 +28934,117 @@ with {
 // #### Usage
 //
 // ```
-// multinoise(n) : si.bus(n)
+// multinoise(N) : si.bus(N)
 // ```
 //
 // Where:
 //
-// * `n`: the number of decorrelated random numbers in parallel
+// * `N`: the number of decorrelated random numbers in parallel, a constant numerical expression
 //------------------------------------------------------------
-multinoise(n) = multirandom(n) : par(i,n,/(RANDMAX)) : par(i,n,float)
-with {
-	RANDMAX = 2147483647.0;
-};
+multinoise(N) = noise_env(12345).multinoise(N);
+
 
 //-----------------------`(no.)noises`------------------------
-// TODO.
+// A convenient wrapper around multinoise.
+//
+// #### Usage
+//
+// ```
+// noises(N,i) : _
+// ```
+//
+// Where:
+//
+// * `N`: the number of decorrelated random numbers in parallel, a constant numerical expression
+// * `i`: the selected random number (i in [0..N[)
 //----------------------------------------------------------
-noises(N,i) = multinoise(N) : ba.selector(i,N);
+noises(N,i) = noise_env(12345).noises(N,i);
+
+
+//-----------------------`(no.)randomseed`------------------------
+// A random seed based on the foreign function `arc4random`
+// (see man arc4random). Used in `rnoise`, `rmultirandom`, etc. to 
+// avoid having the same pseudo random sequence at each run.
+//
+// WARNING: using the foreign function `arc4random`, so only available in C/C++ and LLVM backends.
+//
+// #### Usage
+//
+// ```
+// randomseed : _
+// ```
+//
+//------------------------------------------------------------
+randomseed = ffunction(int arc4random(), <math.h>, ""), 12345 : select2(1');
+
+
+//-----------------------`(no.)rnoise`-----------------------
+// A randomized white noise generator (outputs random number between -1 and 1).
+//
+// WARNING: using the foreign function `arc4random`, so only available in C/C++ and LLVM backends.
+//
+// #### Usage
+//
+// ```
+// rnoise : _
+// ```
+//------------------------
+rnoise = noise_env(randomseed).noise;
+
+
+//---------------------`(no.)rmultirandom`--------------------------
+// Generates multiple decorrelated random numbers in parallel.
+//
+// WARNING: using the foreign function `arc4random`, so only available in C/C++ and LLVM backends.
+//
+// #### Usage
+// ```
+// rmultirandom(N) : _
+// ```
+//
+// Where:
+//
+// * `N`: the number of decorrelated random numbers in parallel, a constant numerical expression
+//-------------------------------------------------------------
+rmultirandom(N) = noise_env(randomseed).multirandom(N);
+
+
+//-----------------------`(no.)rmultinoise`------------------------
+// Generates multiple decorrelated noises in parallel.
+//
+// WARNING: using the foreign function `arc4random`, so only available in C/C++ and LLVM backends.
+//
+// #### Usage
+//
+// ```
+// rmultinoise(N) : _
+// ```
+//
+// Where:
+//
+// * `N`: the number of decorrelated random numbers in parallel, a constant numerical expression
+//------------------------------------------------------------
+rmultinoise(N) = noise_env(randomseed).multinoise(N);
+
+
+//-----------------------`(no.)rnoises`------------------------
+// A convenient wrapper around rmultinoise.
+//
+// WARNING: using the foreign function `arc4random`, so only available in C/C++ and LLVM backends.
+//
+// #### Usage
+//
+// ```
+// rnoises(N,i) : _
+// ```
+//
+// Where:
+//
+// * `N`: the number of decorrelated random numbers in parallel
+// * `i`: the selected random number (i in [0..N[)
+//----------------------------------------------------------
+rnoises(N,i) = noise_env(randomseed).noises(N,i);
+
 
 //########################################################################################
 /************************************************************************
@@ -28977,6 +29112,7 @@ pink_noise = noise : pink_filter;
 
 pink_noise_m = pink_noise * 12.5; // Equalizes loudness to that of no.noise (thanks Mykle Hansen) - beware of clipping
 
+
 //-------------------------`(no.)pink_noise_vm`-------------------
 // Multi pink noise generator.
 //
@@ -28998,8 +29134,9 @@ pink_noise_m = pink_noise * 12.5; // Equalizes loudness to that of no.noise (tha
 //------------------------------------------------------------
 pink_noise_vm(N) = noise <: _,par(i,N,ba.latch(clock(i))) :> _
 with {
-  clock(i) = (ba.time>>i)&1; // i'th latch clock signal
+	clock(i) = (ba.time>>i)&1; // i'th latch clock signal
 };
+
 
 //--------------------`(no.)lfnoise`, `(no.)lfnoise0` and `(no.)lfnoiseN`-----------------
 // Low-frequency noise generators (Butterworth-filtered downsampled white noise).
@@ -29027,6 +29164,7 @@ lfnoise0(freq) = noise : ba.latch(os.oscrs(freq));
 lfnoiseN(N,freq) = lfnoise0(freq) : fi.lowpass(N,freq); // Nth-order Butterworth lowpass
 lfnoise(freq) = lfnoise0(freq) : seq(i,5,fi.lowpass(1,freq)); // non-overshooting lowpass
 
+
 //-------------------------`(no.)sparse_noise_vm`-------------------
 // sparse noise generator.
 //
@@ -29049,14 +29187,15 @@ lfnoise(freq) = lfnoise0(freq) : seq(i,5,fi.lowpass(1,freq)); // non-overshootin
 //------------------------------------------------------------
 sparse_noise(f0) = sn
 with {
-  saw = os.lf_sawpos(f0);
-  sawdiff = saw - saw';
-  e = float(no.noise); // float() keeps 4.656613e-10f scaling here instead of later
-  eHeld = e : ba.latch(sawdiff);
-  eHeldPos = 0.5 + 0.5 * eHeld;
-  crossed = (saw >= eHeldPos) * (saw' < eHeldPos);
-  sn = e' * float(crossed);
+    saw = os.lf_sawpos(f0);
+    sawdiff = saw - saw';
+    e = float(no.noise); // float() keeps 4.656613e-10f scaling here instead of later
+    eHeld = e : ba.latch(sawdiff);
+    eHeldPos = 0.5 + 0.5 * eHeld;
+    crossed = (saw >= eHeldPos) * (saw' < eHeldPos);
+    sn = e' * float(crossed);
 };
+
 
 //-------------------------`(no.)velvet_noise_vm`-------------------
 // velvet noise generator.
@@ -29064,7 +29203,7 @@ with {
 // #### Usage
 //
 // ```
-// velvet_noise(amp,f0) : _
+// velvet_noise(amp, f0) : _
 // ```
 //
 // Where:
@@ -29080,11 +29219,12 @@ with {
 //   March 2007.
 //
 //------------------------------------------------------------
-velvet_noise(amp,f0) = vn
+velvet_noise(amp, f0) = vn
 with {
-  sn = no.sparse_noise(f0);
-  vn = amp * ma.signum(sn);
+    sn = no.sparse_noise(f0);
+    vn = amp * ma.signum(sn);
 };
+
 
 //----------------------------`(no.)gnoise`------------------------
 // approximate zero-mean, unit-variance Gaussian white noise generator.
@@ -29106,13 +29246,14 @@ with {
 //------------------------------------------------------------
 gnoise(N) = uvgwn
 with {
-  uwn = no.multinoise(N); // uniform white noise in [-1,1] on N channels
-  gwn = uwn :> _;         // sum of uniform approaches Gaussian by centeral limit thm
-  sigma = sqrt(N/3.0);    // rms of each uwn channel
-  uvgwn = gwn / sigma;	  // approaches zero-mean, unit-variance Gaussian white noise, for large N
+    uwn = no.multinoise(N); // uniform white noise in [-1,1] on N channels
+    gwn = uwn :> _;         // sum of uniform approaches Gaussian by centeral limit thm
+    sigma = sqrt(N/3.0);    // rms of each uwn channel
+    uvgwn = gwn / sigma;	// approaches zero-mean, unit-variance Gaussian white noise, for large N
 };
 
 gnoisem(N) = gnoise(N) * 0.625; // Equalizes loudness to that of no.noise (thanks Mykle Hansen)
+
 
 /*** END jos section ***/
 
