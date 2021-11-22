@@ -194,6 +194,13 @@ if (INCLUDE_STATIC)
 		POSITION_INDEPENDENT_CODE ON)
 	set (INSTALL_TARGETS ${INSTALL_TARGETS} staticlib)
 	scan_backends (staticlib STATIC)
+	if (INCLUDE_LLVM)
+		add_custom_command(TARGET staticlib POST_BUILD
+                   COMMAND make -f Make.llvm.static
+                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                   COMMENT "Embed LLVM static libraries with libfaust" )
+    endif()
+
 endif()
 
 
@@ -291,6 +298,18 @@ install ( TARGETS dynamiclib
     ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
 )
 endif()
+
+
+####################################
+# install the faust with llvm library
+if (INCLUDE_STATIC AND INCLUDE_LLVM)
+install (
+    FILES  ${LIBDIR}/libfaustwithllvm.a DESTINATION ${CMAKE_INSTALL_PREFIX}/${LIBSDIR}
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+endif()
+
+
 
 ####################################
 # install headers
