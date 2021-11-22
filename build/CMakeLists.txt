@@ -195,8 +195,13 @@ if (INCLUDE_STATIC)
 	set (INSTALL_TARGETS ${INSTALL_TARGETS} staticlib)
 	scan_backends (staticlib STATIC)
 	if (INCLUDE_LLVM)
+		if (WIN32)
+			set (MAKELIBCMD Make.llvm.static.bat) 
+		else()
+			set (MAKELIBCMD make -f Make.llvm.static) 
+		endif()
 		add_custom_command(TARGET staticlib POST_BUILD
-                   COMMAND make -f Make.llvm.static
+                   COMMAND ${MAKELIBCMD}
                    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                    COMMENT "Embed LLVM static libraries with libfaust" )
     endif()
