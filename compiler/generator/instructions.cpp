@@ -104,9 +104,9 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
         } else {
             // If array type, check their size and internal type
             ArrayTyped* array_t1 = dynamic_cast<ArrayTyped*>(gGlobal->gVarTypeTable[fAddress->getName()]);
-            ArrayTyped* arry_t2  = dynamic_cast<ArrayTyped*>(type);
-            if (array_t1 && arry_t2) {
-                faustassert(array_t1->fSize == arry_t2->fSize && array_t1->fType == arry_t2->fType);
+            ArrayTyped* array_t2  = dynamic_cast<ArrayTyped*>(type);
+            if (array_t1 && array_t2) {
+                faustassert(array_t1->fSize == array_t2->fSize && array_t1->fType == array_t2->fType);
             } else {
                 faustassert(false);
             }
