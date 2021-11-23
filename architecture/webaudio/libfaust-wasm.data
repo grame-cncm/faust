@@ -1,5 +1,8 @@
 //################################### hoa.lib ############################################
 // Faust library for high order ambisonic. Its official prefix is `ho`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/hoa.lib>
 //########################################################################################
 
 /************************************************************************
@@ -425,6 +428,9 @@ with {
 
 //#################################### compressors.lib ###################################
 // A library of compressor effects. Its official prefix is `co`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/compressors.lib>
 //########################################################################################
 
 /************************************************************************
@@ -1402,6 +1408,9 @@ with {
 };
 //#################################### basics.lib ########################################
 // A library of basic elements. Its official prefix is `ba`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/basics.lib>
 //########################################################################################
 // A library of basic elements for Faust organized in 5 sections:
 //
@@ -1635,14 +1644,14 @@ midikey2hz(mk) = 440.0*pow(2.0, (mk-69.0)/12.0);
 // #### Usage
 //
 // ```
-// hz2midikey(f) : _
+// hz2midikey(freq) : _
 // ```
 //
 // Where:
 //
-// * `f`: frequency in Hz
+// * `freq`: frequency in Hz
 //-----------------------------
-hz2midikey(f) = 12.0*ma.log2(f/440.0) + 69.0;
+hz2midikey(freq) = 12.0*ma.log2(freq/440.0) + 69.0;
 
 
 //-------`(ba.)semi2ratio`----------
@@ -1826,7 +1835,7 @@ with {
     state(t, c) = nt,nc 
     with {
         nt = ba.if(x != x', n, t-1);
-        nc = ba.if(nt <= 0, x, c + (x - c)/nt);
+        nc = ba.if(nt > 0, c + (x - c)/nt, x);
     };
 };
 
@@ -2694,7 +2703,7 @@ with {
 // #### Usage
 //
 // ```
-// _ , _ : on_and_off : _
+// _,_ : on_and_off : _
 // ```
 //
 // #### Example
@@ -3223,6 +3232,9 @@ time21s = hslider("time", 0, 0, 21000, 0.1)*millisec;
 time43s = hslider("time", 0, 0, 43000, 0.1)*millisec;
 //#################################### dx7.lib #########################################
 // Yamaha DX7 emulation library. Its official prefix is `dx`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/dx7.lib>
 //########################################################################################
 // Yamaha DX7 emulation library. The various functions available in this library
 // are used by the libraries generated from `.syx` DX7 preset files. This
@@ -4254,6 +4266,9 @@ with{
 };
 //################################ analyzers.lib ##########################################
 // Analyzers library. Its official prefix is `an`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/analyzers.lib>
 //########################################################################################
 
 ma = library("maths.lib");
@@ -5128,6 +5143,9 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 //#################################### spats.lib ##########################################
 // This library contains a collection of tools for sound spatialization.
 // Its official prefix is `sp`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/spats.lib>
 //########################################################################################
 
 /************************************************************************
@@ -5268,6 +5286,9 @@ with {
 	// gain8(g) = *(g),*(g),*(g),*(g),*(g),*(g),*(g),*(g);
 //################################ envelopes.lib ##########################################
 // This library contains a collection of envelope generators. Its official prefix is `en`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/envelopes.lib>
 //########################################################################################
 
 /************************************************************************
@@ -5634,6 +5655,9 @@ with {
 };
 //############################## oscillators.lib ######################################
 // This library contains a collection of sound generators. Its official prefix is `os`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/oscillators.lib>
 //########################################################################################
 
 /************************************************************************
@@ -5678,7 +5702,7 @@ fi = library("filters.lib");
 si = library("signals.lib");
 
 declare name "Faust Oscillator Library";
-declare version "0.1";
+declare version "0.3";
 
 // This library contains platform specific constants 
 pl = library("platform.lib");
@@ -5703,6 +5727,7 @@ pl = library("platform.lib");
 sinwaveform(tablesize) = 
     sin(float(ba.period(tablesize)) * (2.0 * ma.PI) / float(tablesize));
 
+
 //-----------------------`(os.)coswaveform`------------------------
 // Cosine waveform ready to use with a `rdtable`.
 //
@@ -5718,6 +5743,14 @@ sinwaveform(tablesize) =
 //------------------------------------------------------------
 coswaveform(tablesize) = 
     cos(float(ba.period(tablesize)) * (2.0 * ma.PI) / float(tablesize));
+    
+
+// Generic phasor with `reset` and `phase` parameters to be specialised in concrete use-cases.
+// The `reset` must be 1 on first sample for the `phase` to be properly initialized.
+phasor_imp(freq, reset, phase) = (select2(reset, +(freq/ma.SR), phase) : ma.decimal) ~ _;
+
+// Version to be used with tables
+phasor_table(tablesize, freq, reset, phase) = phasor_imp(freq, reset, phase) : *(float(tablesize));
 
 //-----------------------`(os.)phasor`------------------------
 // A simple phasor to be used with a `rdtable`.
@@ -5732,56 +5765,49 @@ coswaveform(tablesize) =
 // Where:
 //
 // * `tablesize`: the table size
-// * `freq`: the frequency of the phasor (Hz)
+// * `freq`: the frequency in Hz
 //------------------------------------------------------------
-phasor(tablesize,freq) = freq/float(ma.SR) : (+ : ma.decimal) ~ _ : *(float(tablesize));
+phasor(tablesize, freq) = phasor_table(tablesize, freq, 0, 0);
+
 
 //-----------------------`(os.)hs_phasor`------------------------
-// Hardsyncing phasor to be used with an `rdtable`.
+// Hardsyncing phasor to be used with a `rdtable`.
 //
 // #### Usage
 //
 // ```
-// hs_phasor(tablesize,freq,c) :  _
+// hs_phasor(tablesize,freq,reset) :  _
 // ```
 //
 // Where:
 //
 // * `tablesize`: the table size
-// * `freq`: the frequency of the phasor (Hz)
-// * `c`: a clock signal, `c>0` resets phase to 0
+// * `freq`: the frequency in Hz
+// * `reset`: a reset signal, reset phase to 0 when equal to 1
 //---------------------------------------------------------
-// Author: Mike Olsen
-hs_phasor(tablesize,freq,c) = inc : (+ : d)~(-(_<:(_,*(_,clk)))) : *(tablesize)
-with {
-	clk = c>0;
-	d   = ma.decimal;
-	inc = freq/float(ma.SR);
-};
+// Author: Mike Olsen, revised by Stéphane Letz
+hs_phasor(tablesize, freq, reset) = phasor_table(tablesize, freq, reset, 0);
+
 
 //-----------------------`(os.)hsp_phasor`------------------------
-// Hardsyncing phasor with selectable phase to be used with an `rdtable`.
+// Hardsyncing phasor with selectable phase to be used with a `rdtable`.
 //
 // #### Usage
 //
 // ```
-// hsp_phasor(tablesize,freq,p,c)
+// hsp_phasor(tablesize,freq,reset,phase)
 // ```
 //
 // Where:
 //
 // * `tablesize`: the table size
-// * `freq`: the frequency of the phasor (Hz)
-// * `p`: phase init (0 <= `p` <=1)
-// * `c`: a clock signal, `c>0` resets phase to 0
+// * `freq`: the frequency in Hz
+// * `reset`: reset the oscillator to phase when equal to 1
+// * `phase`: phase between 0 and 1
 //---------------------------------------------------------
-// Author: Christophe Lebreton
-hsp_phasor(tablesize,freq,p,c) = inc : (+ : d)~(-(_<:(_,*(_,clk))):+(clk*p)) : *(tablesize)
-with {
-    clk = c>0;
-    d   = ma.decimal;
-    inc = freq/float(ma.SR);
-};
+// Author: Christophe Lebreton, revised by Stéphane Letz
+hsp_phasor(tablesize, freq, reset, phase) = phasor_table(tablesize, freq, reset, phase);
+
 
 //-----------------------`(os.)oscsin`------------------------
 // Sine wave oscillator.
@@ -5795,12 +5821,13 @@ with {
 //
 // Where:
 //
-// * `freq`: the frequency of the wave (Hz)
+// * `freq`: the frequency in Hz
 //------------------------------------------------------------
 oscsin(freq) = rdtable(tablesize, sinwaveform(tablesize), int(phasor(tablesize,freq)))
 with {
-	tablesize = pl.tablesize;
+    tablesize = pl.tablesize;
 };
+
 
 //-----------------------`(os.)hs_oscsin`------------------------
 // Sin lookup table with hardsyncing phase.
@@ -5808,19 +5835,20 @@ with {
 // #### Usage
 //
 // ```
-// hs_oscsin(freq,c) : _
+// hs_oscsin(freq,reset) : _
 // ```
 //
 // Where:
 //
-// * `freq`: the fundamental frequency of the phasor
-// * `c`: a clock signal, `c>0` resets phase to 0
+// * `freq`: the frequency in Hz
+// * `reset`: reset the oscillator to 0 when equal to 1
 //---------------------------------------------------------
 // Author: Mike Olsen
-hs_oscsin(freq,c) = rdtable(tablesize, sinwaveform(tablesize), int(hs_phasor(tablesize,freq,c)))
+hs_oscsin(freq,reset) = rdtable(tablesize, sinwaveform(tablesize), int(hs_phasor(tablesize,freq,reset)))
 with {
-	tablesize = pl.tablesize;
+    tablesize = pl.tablesize;
 };
+
 
 //-----------------------`(os.)osccos`------------------------
 // Cosine wave oscillator.
@@ -5833,12 +5861,34 @@ with {
 //
 // Where:
 //
-// * `freq`: the frequency of the wave (Hz)
+// * `freq`: the frequency in Hz
 //------------------------------------------------------------
 osccos(freq) = rdtable(tablesize, coswaveform(tablesize), int(phasor(tablesize,freq)))
 with {
-	tablesize = pl.tablesize;
+    tablesize = pl.tablesize;
 };
+
+
+//-----------------------`(os.)hs_osccos`------------------------
+// Cos lookup table with hardsyncing phase.
+//
+// #### Usage
+//
+// ```
+// hs_osccos(freq,reset) : _
+// ```
+//
+// Where:
+//
+// * `freq`: the frequency in Hz
+// * `reset`: reset the oscillator to 0 when equal to 1
+//---------------------------------------------------------
+// Author: Stéphane Letz
+hs_osccos(freq,reset) = rdtable(tablesize, coswaveform(tablesize), int(hs_phasor(tablesize,freq,reset)))
+with {
+    tablesize = pl.tablesize;
+};
+
 
 //-----------------------`(os.)oscp`------------------------
 // A sine wave generator with controllable phase.
@@ -5851,10 +5901,11 @@ with {
 //
 // Where:
 //
-// * `freq`: the frequency of the wave (Hz)
+// * `freq`: the frequency in Hz
 // * `phase`: the phase in radian
 //------------------------------------------------------------
 oscp(freq,phase) = oscsin(freq) * cos(phase) + osccos(freq) * sin(phase);
+
 
 //-----------------------`(os.)osci`------------------------
 // Interpolated phase sine wave oscillator.
@@ -5867,16 +5918,34 @@ oscp(freq,phase) = oscsin(freq) * cos(phase) + osccos(freq) * sin(phase);
 //
 // Where:
 //
-// * `freq`: the frequency of the wave (Hz)
+// * `freq`: the frequency in Hz
 //------------------------------------------------------------
 osci(freq) = s1 + d * (s2 - s1)
 with {
-	tablesize = pl.tablesize;
-	i = int(phasor(tablesize,freq));
-	d = ma.decimal(phasor(tablesize,freq));
-	s1 = rdtable(tablesize+1,sinwaveform(tablesize),i);
-	s2 = rdtable(tablesize+1,sinwaveform(tablesize),i+1);
+    tablesize = pl.tablesize;
+    i = int(phasor(tablesize,freq));
+    d = ma.decimal(phasor(tablesize,freq));
+    s1 = rdtable(tablesize+1,sinwaveform(tablesize),i);
+    s2 = rdtable(tablesize+1,sinwaveform(tablesize),i+1);
 };
+
+
+//-----------------------`(os.)osc`------------------------
+// Default sine wave oscillator (same as [oscsin](#oscsin)).
+// `osc` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// osc(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: the frequency in Hz
+//------------------------------------------------------------
+osc = oscsin;
+
 
 // end GRAME section
 //########################################################################################
@@ -5915,6 +5984,7 @@ Michon and Julius O. Smith III, and are released under the
 //------------------------------------------------------------
 lf_imptrain(freq) = lf_sawpos(freq)<:-(mem)<0; // definition below
 
+
 //--------`(os.)lf_pulsetrainpos`----------
 // Unit-amplitude nonnegative LF pulse train, duty cycle between 0 and 1.
 //
@@ -5922,7 +5992,7 @@ lf_imptrain(freq) = lf_sawpos(freq)<:-(mem)<0; // definition below
 // #### Usage
 //
 // ```
-// lf_pulsetrainpos(freq,duty) : _
+// lf_pulsetrainpos(freq, duty) : _
 // ```
 //
 // Where:
@@ -5933,6 +6003,7 @@ lf_imptrain(freq) = lf_sawpos(freq)<:-(mem)<0; // definition below
 lf_pulsetrainpos(freq,duty) = float(lf_sawpos(freq) <= duty);
 
 //pulsetrainpos = lf_pulsetrainpos; // for backward compatibility
+
 
 //--------`(os.)lf_pulsetrain`----------
 // Unit-amplitude zero-mean LF pulse train, duty cycle between 0 and 1.
@@ -5949,6 +6020,7 @@ lf_pulsetrainpos(freq,duty) = float(lf_sawpos(freq) <= duty);
 // * `duty`: duty cycle between 0 and 1
 //------------------------------------------------------------
 lf_pulsetrain(freq,duty) = 2.0*lf_pulsetrainpos(freq,duty) - 1.0;
+
 
 //--------`(os.)lf_squarewavepos`----------
 // Positive LF square wave in [0,1]
@@ -5981,7 +6053,7 @@ lf_squarewavepos(freq) = lf_pulsetrainpos(freq,0.5);
 //
 // * `freq`: frequency in Hz
 //------------------------------------------------------------
-lf_squarewave(freq) = 2*lf_squarewavepos(freq) - 1;
+lf_squarewave(freq) = 2.0*lf_squarewavepos(freq) - 1.0;
 // squarewave = lf_squarewave; // for backward compatibility
 
 
@@ -5998,10 +6070,11 @@ lf_squarewave(freq) = 2*lf_squarewavepos(freq) - 1;
 //
 // * `freq`: frequency in Hz
 //------------------------------------------------------------
-lf_trianglepos(freq) = 1-abs(saw1(freq)); // saw1 defined below
+lf_trianglepos(freq) = 1.0-abs(saw1(freq)); // saw1 defined below
+
 
 //----------`(os.)lf_triangle`----------
-// Positive unit-amplitude LF triangle wave
+// Positive unit-amplitude LF triangle wave.
 // `lf_triangle` is a standard Faust function.
 //
 // #### Usage
@@ -6016,7 +6089,8 @@ lf_trianglepos(freq) = 1-abs(saw1(freq)); // saw1 defined below
 //------------------------------------------------------------
 // Author: Bart Brouns
 // License: STK-4.3
-lf_triangle(freq) = 2*lf_trianglepos(freq) - 1;
+lf_triangle(freq) = 2.0*lf_trianglepos(freq) - 1.0;
+
 
 //================== Low Frequency Sawtooths ====================
 // Sawtooth waveform oscillators for virtual analog synthesis et al.
@@ -6047,22 +6121,6 @@ lf_triangle(freq) = 2*lf_trianglepos(freq) - 1;
 //---------------------------------------------------------
 lf_rawsaw(periodsamps) = (_,periodsamps : fmod) ~ +(1.0);
 
-//-----------------`(os.)lf_sawpos_phase`--------------------
-// Simple sawtooth waveform oscillator between 0 and 1
-// with phase control.
-//
-// #### Usage
-//
-// ```
-// lf_sawpos_phase(phase,freq) : _
-// ```
-//
-// Where:
-//
-// * `phase`: phase
-// * `freq`: frequency
-//---------------------------------------------------------
-lf_sawpos_phase(phase,freq) = (+(phase-phase') : ma.frac) ~ +(freq/ma.SR);
 
 //-----------------`(os.)lf_sawpos`--------------------
 // Simple sawtooth waveform oscillator between 0 and 1.
@@ -6075,16 +6133,37 @@ lf_sawpos_phase(phase,freq) = (+(phase-phase') : ma.frac) ~ +(freq/ma.SR);
 //
 // Where:
 //
-// * `freq`: frequency
+// * `freq`: frequency in Hz
 //
 //---------------------------------------------------------
-// Author: Bart Brouns
+// Author: Bart Brouns, revised by Stéphane Letz
 // License: STK-4.3
-// MarkDown: Romain Michon
-lf_sawpos(freq) = ma.frac ~ +(freq/ma.SR);
+lf_sawpos(freq) = phasor_imp(freq, 0, 0);
+
+
+//-----------------`(os.)lf_sawpos_phase`--------------------
+// Simple sawtooth waveform oscillator between 0 and 1
+// with phase control.
+//
+// #### Usage
+//
+// ```
+// lf_sawpos_phase(freq, phase) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency in Hz
+// * `phase`: phase between 0 and 1
+//---------------------------------------------------------
+// Author: Bart Brouns, revised by Stéphane Letz
+// License: STK-4.3
+// Using an initial '1' to reset to `phase`
+lf_sawpos_phase(freq,phase) = phasor_imp(freq, (1-1'), phase);
+
 
 //-----------------`(os.)lf_sawpos_reset`--------------------
-// Simple sawtooth waveform oscillator between 0 and 1.
+// Simple sawtooth waveform oscillator between 0 and 1
 // with reset.
 //
 // #### Usage
@@ -6095,16 +6174,17 @@ lf_sawpos(freq) = ma.frac ~ +(freq/ma.SR);
 //
 // Where:
 //
-// * `freq`: frequency
-// * `reset`: reset the oscillator to 0
+// * `freq`: frequency in Hz
+// * `reset`: reset the oscillator to 0 when equal to 1
 //
 //---------------------------------------------------------
-// Author: Bart Brouns
+// Author: Bart Brouns, revised by Stéphane Letz
 // License: STK-4.3
-lf_sawpos_reset(freq,reset) = ma.frac * (reset == 0) ~ +(freq/ma.SR);
+lf_sawpos_reset(freq,reset) = phasor_imp(freq, reset, 0);
+
 
 //-----------------`(os.)lf_sawpos_phase_reset`--------------------
-// Simple sawtooth waveform oscillator between 0 and 1.
+// Simple sawtooth waveform oscillator between 0 and 1
 // with phase control and reset.
 //
 // #### Usage
@@ -6115,17 +6195,18 @@ lf_sawpos_reset(freq,reset) = ma.frac * (reset == 0) ~ +(freq/ma.SR);
 //
 // Where:
 //
-// * `freq`: frequency
+// * `freq`: frequency in Hz
 // * `phase`: phase between 0 and 1
-// * `reset`: reset the oscillator to 0
+// * `reset`: reset the oscillator to phase when equal to 1
 //
 //---------------------------------------------------------
-// Author: Bart Brouns
+// Author: Bart Brouns, revised by Stéphane Letz
 // License: STK-4.3
-lf_sawpos_phase_reset(freq,phase,reset) = lf_sawpos_reset(freq,reset) + phase : ma.frac;
+lf_sawpos_phase_reset(freq,phase,reset) = phasor_imp(freq, reset, phase);
+
 
 //-----------------`(os.)lf_saw`--------------------
-// Simple sawtooth waveform.
+// Simple sawtooth waveform oscillator between -1 and 1.
 // `lf_saw` is a standard Faust function.
 //
 // #### Usage
@@ -6136,7 +6217,7 @@ lf_sawpos_phase_reset(freq,phase,reset) = lf_sawpos_reset(freq,reset) + phase : 
 //
 // Where:
 //
-// * `freq`: frequency
+// * `freq`: frequency in Hz
 //---------------------------------------------------------
 // Author: Bart Brouns
 // License: STK-4.3
@@ -6158,8 +6239,8 @@ lf_saw(freq) = saw1(freq);
 // ##### References
 //
 // * Kleimola, J.; Valimaki, V., "Reducing Aliasing from Synthetic Audio
-// 	Signals Using Polynomial Transition Regions," in Signal Processing
-// 	Letters, IEEE , vol.19, no.2, pp.67-70, Feb. 2012
+//     Signals Using Polynomial Transition Regions," in Signal Processing
+//     Letters, IEEE , vol.19, no.2, pp.67-70, Feb. 2012
 // * <https://aaltodoc.aalto.fi/bitstream/handle/123456789/7747/publication6.pdf?sequence=9>
 // * <http://research.spa.aalto.fi/publications/papers/spl-ptr/>
 //
@@ -6198,9 +6279,9 @@ lf_saw(freq) = saw1(freq);
 //
 // Where:
 //
-// * `N`: polynomial order
+// * `N`: polynomial order, known at compile time
 // * `freq`: frequency in Hz
-// * `phase`: phase
+// * `phase`: phase between 0 and 1
 //===================================================================
 // --- sawN for N = 1 to 6 ---
 //We can do 6, but 5 and 6 have noise at low fundamentals: MAX_SAW_ORDER = 6; MAX_SAW_ORDER_NEXTPOW2 = 8;
@@ -6245,11 +6326,13 @@ saw2dpw(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*ma.SR/freq); // inferior to 
 //------------------`(os.)saw3`--------------------------------
 // TODO: MarkDown doc in comments
 //--------------------------------------------------------
-saw3 = sawN(3); saw4 = sawN(4); saw5 = sawN(5); saw6 = sawN(6);
+saw3 = sawN(3); 
+saw4 = sawN(4); 
+saw5 = sawN(5); 
+saw6 = sawN(6);
 
 //------------------`(os.)sawtooth`--------------------------------
-// Alias-free sawtooth wave. 2nd order interpolation (based
-// on `saw2`).
+// Alias-free sawtooth wave. 2nd order interpolation (based on `saw2`).
 // `sawtooth` is a standard Faust function.
 //
 // #### Usage
@@ -6260,7 +6343,7 @@ saw3 = sawN(3); saw4 = sawN(4); saw5 = sawN(5); saw6 = sawN(6);
 //
 // Where:
 //
-// * `freq`: frequency
+// * `freq`: frequency in Hz
 //--------------------------------------------------------
 saw2(freq) = y with { // newer PTR version (stateless - freq can vary at any speed)
   p0 = float(ma.SR)/float(max(ma.EPSILON,abs(freq))); // period in samples
@@ -6276,8 +6359,8 @@ sawtooth = saw2; // default choice for sawtooth signal - see also sawN
 
 //------------------`(os.)saw2f2`--------------------------------
 // TODO: MarkDown doc in comments
-//--------------------------------------------------------
-// --- Correction-filtered versions of saw2: saw2f2, saw2f4 ----
+//---------------------------------------------------------------
+// --- Correction-filtered versions of saw2: saw2f2, saw2f4 -----
 // The correction filter compensates "droop" near half the sampling rate.
 // See reference for sawN.
 saw2f2 = saw2 : cf2 with {
@@ -6287,7 +6370,7 @@ saw2f2 = saw2 : cf2 with {
 
 //------------------`(os.)saw2f4`--------------------------------
 // TODO: MarkDown doc in comments
-//--------------------------------------------------------
+//---------------------------------------------------------------
 saw2f4 = saw2 : cf4 with {
   cf4 = fi.iir((1.155727435125014, 2.285861038554662,
         1.430915027294021, 0.290713280893317, 0.008306401748854),
@@ -6296,7 +6379,7 @@ saw2f4 = saw2 : cf4 with {
 };
 
 //=========Bandlimited Pulse, Square, and Impulse Trains============
-// Bandlimited Pulse, Square, and Impulse Trains.
+// Bandlimited Pulse, Square and Impulse Trains.
 //
 // `pulsetrainN`, `pulsetrain`, `squareN`, `square`, `imptrain`, `imptrainN`,
 // `triangle`, `triangleN`
@@ -6354,7 +6437,7 @@ pulsetrainN(N,freq,duty) = diffdel(sawN(N,freqC),del) with {
 //
 // Where:
 //
-// * `freq`: frequency
+// * `freq`: frequency in Hz
 // * `duty`: duty cycle between 0 and 1
 //--------------------------------------------------------
 pulsetrain = pulsetrainN(2);
@@ -6376,7 +6459,7 @@ squareN(N,freq) = pulsetrainN(N,freq,0.5);
 //
 // Where:
 //
-// * `freq`: frequency
+// * `freq`: frequency in Hz
 //--------------------------------------------------------
 square = squareN(2);
 
@@ -6410,7 +6493,7 @@ imptrainN(N,freq) = impulse + 0.5*ma.diffn(sawN(N,freq));
 //
 // Where:
 //
-// * `freq`: frequency
+// * `freq`: frequency in Hz
 //--------------------------------------------------------
 imptrain = imptrainN(2); // default based on saw2
 
@@ -6434,7 +6517,7 @@ triangleN(N,freq) = squareN(N,freq) : fi.pole(p) : *(gain) with {
 //
 // Where:
 //
-// * `freq`: frequency
+// * `freq`: frequency in Hz
 //--------------------------------------------------------
 triangle = triangleN(2); // default based on saw2
 
@@ -6464,7 +6547,7 @@ triangle = triangleN(2); // default based on saw2
 //
 // Where:
 //
-// * `freq`: frequency
+// * `freq`: frequency in Hz
 //------------------------------------------------------------
 oscb(f) = impulse : fi.tf2(1,0,0,a1,1)
 with {
@@ -6485,7 +6568,7 @@ with {
 //
 // Where:
 //
-// * `freq`: frequency
+// * `freq`: frequency in Hz
 //
 // #### Reference
 //
@@ -6506,7 +6589,7 @@ oscrq(f) = impulse : fi.nlf2(f,1); // sine and cosine outputs
 //
 // Where:
 //
-// * `freq`: frequency
+// * `freq`: frequency in Hz
 //
 // #### Reference
 //
@@ -6527,7 +6610,7 @@ oscrs(f) = impulse : fi.nlf2(f,1) : _,!; // sine
 //
 // Where:
 //
-// * `freq`: frequency
+// * `freq`: frequency in Hz
 //
 // #### Reference
 //
@@ -6536,42 +6619,69 @@ oscrs(f) = impulse : fi.nlf2(f,1) : _,!; // sine
 oscrc(f) = impulse : fi.nlf2(f,1) : !,_; // cosine
 
 oscrp(f,p) = oscrq(f) : *(cos(p)), *(sin(p)) : + ; // p=0 for sine, p=PI/2 for cosine, etc.
+
 oscr = oscrs; // default = sine (starts without a pop)
 
 //--------------------------`(os.)oscs`--------------------------------
 // Sinusoidal oscillator based on the state variable filter
 // = undamped "modified-coupled-form" resonator
 // = "magic circle" algorithm used in graphics.
+//
+// #### Usage
+//
+// ```
+// oscs(freq) : _
+// ```
+//
+// Where:
+//
+// * `freq`: frequency in Hz
 //------------------------------------------------------------
 oscs(f) = (*(-1) : sint(wn) : sintp(wn,impulse)) ~ _
 with {
   wn = 2*ma.PI*f/ma.SR; // approximate
   // wn = 2*sin(PI*f/SR); // exact
   sint(x) = *(x) : + ~ _ ; // frequency-scaled integrator
-  sintp(x,y) = *(x) : +(y): + ~ _ ; // same + state input
+  sintp(x,y) = *(x) : +(y): + ~ _; // same + state input
 };
 
-//-----------------------`(os.)osc`------------------------
-// Default sine wave oscillator (same as [oscsin](#oscsin)).
-// `osc` is a standard Faust function.
+//-----------------`(os.)quadosc`--------------------
+// Sinusoidal oscillator based on QuadOsc by Martin Vicanek.
 //
 // #### Usage
 //
 // ```
-// osc(freq) : _
+// quadosc(freq) : _
 // ```
 //
-// Where:
+// where
 //
-// * `freq`: the frequency of the wave (Hz)
+// * `freq`: frequency in Hz
+//
+// #### Reference
+// * <https://vicanek.de/articles/QuadOsc.pdf>
 //------------------------------------------------------------
-osc	= oscsin;
+// Authors:
+// Dario Sanfilippo <sanfilippo.dario@gmail.com>
+// and Oleg Nesterov (jos ed.)
+quadosc(f) = tick ~ (_,_) 
+with {
+    k1 = tan(f * ma.PI / ma.SR);
+    k2 = 2 * k1 / (1 + k1 * k1);
+    tick(u_0,v_0) = u_1,v_1 
+    with {
+        tmp = u_0 - k1 * v_0;
+        v_1 = v_0 + k2 * tmp;
+        u_1 = tmp - k1 * v_1 : select2(1',1);
+    };
+};
+
 
 //================ Waveguide-Resonator-Based Oscillators ================
 // Sinusoidal oscillator based on the waveguide resonator `wgr`.
 //=======================================================================
 
-//-----------------`(os.)oscw`--------------------
+//-----------------`(os.)oscwc`--------------------
 // Sinusoidal oscillator based on the waveguide resonator `wgr`. Unit-amplitude
 // cosine oscillator.
 //
@@ -6583,7 +6693,7 @@ osc	= oscsin;
 //
 // Where:
 //
-// * `freq`: frequency
+// * `freq`: frequency in Hz
 //
 // #### Reference
 //
@@ -6603,7 +6713,7 @@ oscwc(fr) = impulse : fi.wgr(fr,1) : _,!; // cosine (cheapest at 1 mpy/sample)
 //
 // Where:
 //
-// * `freq`: frequency
+// * `freq`: frequency in Hz
 //
 // #### Reference
 //
@@ -6623,7 +6733,7 @@ oscws(fr) = impulse : fi.wgr(fr,1) : !,_; // sine (needs a 2nd scaling mpy)
 //
 // Where:
 //
-// * `freq`: frequency
+// * `freq`: frequency in Hz
 //
 // #### Reference
 //
@@ -6643,7 +6753,7 @@ oscq(fr) = impulse : fi.wgr(fr,1);       // phase quadrature outputs
 //
 // Where:
 //
-// * `freq`: frequency
+// * `freq`: frequency in Hz
 //
 // #### Reference
 //
@@ -6681,7 +6791,7 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 //=====================================================================
 
 //----------`(os.)CZsaw`----------
-// Oscillator that mimics the Casio CZ saw oscillator
+// Oscillator that mimics the Casio CZ saw oscillator.
 // `CZsaw` is a standard Faust function.
 //
 // #### Usage
@@ -6775,7 +6885,7 @@ CZsquare(fund, index) = CZ.squareChooseP(fund, index, 0);
 CZsquareP(fund, index) = CZ.squareChooseP(fund, index, 1);
 
 //----------`(os.)CZpulse`----------
-// Oscillator that mimics the Casio CZ pulse oscillator
+// Oscillator that mimics the Casio CZ pulse oscillator.
 // `CZpulse` is a standard Faust function.
 //
 // #### Usage
@@ -6822,7 +6932,7 @@ CZpulse(fund, index) = CZ.pulseChooseP(fund, index, 0);
 CZpulseP(fund, index) = CZ.pulseChooseP(fund, index, 1);
 
 //----------`(os.)CZsinePulse`----------
-// Oscillator that mimics the Casio CZ sine/pulse oscillator
+// Oscillator that mimics the Casio CZ sine/pulse oscillator.
 // `CZsinePulse` is a standard Faust function.
 //
 // #### Usage
@@ -6869,7 +6979,7 @@ CZsinePulse(fund, index) = CZ.sinePulseChooseP(fund, index, 0);
 CZsinePulseP(fund, index) = CZ.sinePulseChooseP(fund, index, 1);
 
 //----------`(os.)CZhalfSine`----------
-// Oscillator that mimics the Casio CZ half sine oscillator
+// Oscillator that mimics the Casio CZ half sine oscillator.
 // `CZhalfSine` is a standard Faust function.
 //
 // #### Usage
@@ -6916,7 +7026,7 @@ CZhalfSine(fund, index) = CZ.halfSineChooseP(fund, index, 0);
 CZhalfSineP(fund, index) = CZ.halfSineChooseP(fund, index, 1);
 
 //----------`(os.)CZresSaw`----------
-// Oscillator that mimics the Casio CZ resonant saw-tooth oscillator
+// Oscillator that mimics the Casio CZ resonant sawtooth oscillator.
 // `CZresSaw` is a standard Faust function.
 //
 // #### Usage
@@ -6939,7 +7049,7 @@ CZhalfSineP(fund, index) = CZ.halfSineChooseP(fund, index, 1);
 CZresSaw(fund,res) = CZ.resSaw(fund,res);
 
 //----------`(os.)CZresTriangle`----------
-// Oscillator that mimics the Casio CZ resonant triangle oscillator
+// Oscillator that mimics the Casio CZ resonant triangle oscillator.
 // `CZresTriangle` is a standard Faust function.
 //
 // #### Usage
@@ -7035,7 +7145,7 @@ CZ = environment {
     resSaw(fund,res) = (((-1*(1-fund))*((cos((ma.decimal((max(1,res)*fund)+1))*2*ma.PI)*-.5)+.5))*2)+1;
     resTriangle(fund,res) = select2(fund<.5, 2-(fund*2), fund*2)*INDEX*2-1
     with {
-	  INDEX = ((fund*(res:max(1)))+1:ma.decimal)*2*ma.PI:cos*.5+.5;
+      INDEX = ((fund*(res:max(1)))+1:ma.decimal)*2*ma.PI:cos*.5+.5;
     };
     resTrap(fund, res) = (((1-fund)*2):min(1)*sin(ma.decimal(fund*(res:max(1)))*2*ma.PI));
 };
@@ -7043,7 +7153,7 @@ CZ = environment {
 //===============================PolyBLEP-Based Oscillators=================================
 
 //----------`(os.)polyblep`----------
-// PolyBLEP residual function - used for smoothing steps in the audio signal.
+// PolyBLEP residual function, used for smoothing steps in the audio signal.
 //
 // #### Usage
 //
@@ -7059,9 +7169,9 @@ CZ = environment {
 // Author: Jacek Wieczorek
 polyblep(Q, phase) = (0, L(phase / Q), R((phase - 1) / Q)) : select3(sel) 
 with {
-	sel = (phase < Q) + 2*(phase > 1 - Q);
-	L(x) = 2*x - x*x - 1; // Used near the left end of the interval
-	R(x) = 2*x + x*x + 1; // Used near the right end of the interval
+    sel = (phase < Q) + 2*(phase > 1 - Q);
+    L(x) = 2*x - x*x - 1; // Used near the left end of the interval
+    R(x) = 2*x + x*x + 1; // Used near the right end of the interval
 };
 
 //----------`(os.)polyblep_saw`----------
@@ -7070,19 +7180,19 @@ with {
 // #### Usage
 //
 // ```
-// polyblep_saw(f) : _
+// polyblep_saw(freq) : _
 // ```
 //
 // Where:
 //
-// * `f`: frequency in Hz 
+// * `freq`: frequency in Hz 
 //------------------------------------------------------------
 // Author: Jacek Wieczorek
-polyblep_saw(f) = naive - polyblep(Q , phase)
+polyblep_saw(freq) = naive - polyblep(Q , phase)
 with {
-	phase = phasor(1, f);
-	naive = 2 * phase - 1;
-	Q = f / ma.SR;
+    phase = phasor(1, freq);
+    naive = 2 * phase - 1;
+    Q = freq / ma.SR;
 };
 
 //----------`(os.)polyblep_square`----------
@@ -7091,19 +7201,19 @@ with {
 // #### Usage
 //
 // ```
-// polyblep_square(f) : _
+// polyblep_square(freq) : _
 // ```
 //
 // Where:
 //
-// * `f`: frequency in Hz 
+// * `freq`: frequency in Hz 
 //------------------------------------------------------------
 // Author: Jacek Wieczorek
-polyblep_square(f) = naive - polyblep(Q, phase) + polyblep(Q, ma.modulo(phase + 0.5, 1))
+polyblep_square(freq) = naive - polyblep(Q, phase) + polyblep(Q, ma.modulo(phase + 0.5, 1))
 with {
-	phase = phasor(1, f);
-	naive = 2 * (phase * 2 : int) - 1;
-	Q = f / ma.SR;
+    phase = phasor(1, freq);
+    naive = 2 * (phase * 2 : int) - 1;
+    Q = freq / ma.SR;
 };
 
 //----------`(os.)polyblep_triangle`----------
@@ -7112,49 +7222,15 @@ with {
 // #### Usage
 //
 // ```
-// polyblep_triangle(f) : _
+// polyblep_triangle(freq) : _
 // ```
 //
 // Where:
 //
-// * `f`: frequency in Hz 
+// * `freq`: frequency in Hz 
 //------------------------------------------------------------
 // Author: Jacek Wieczorek
-polyblep_triangle(f) = polyblep_square(f) : fi.pole(0.999) : *(4 * f / ma.SR);
-
-
-//===============================Filter-Based Oscillators=================================
-
-//-----------------`(os.)quadosc`--------------------
-// Sinusoidal oscillator based on QuadOsc by Martin Vicanek.
-//
-// #### Usage
-//
-// ```
-// quadosc(freq) : _
-// ```
-//
-// where
-//
-// * `freq`: frequency in Hz
-//
-// #### Reference
-// * <https://vicanek.de/articles/QuadOsc.pdf>
-//------------------------------------------------------------
-// Authors:
-// Dario Sanfilippo <sanfilippo.dario@gmail.com>
-// and Oleg Nesterov (jos ed.)
-quadosc(f) = tick ~ (_,_) 
-with {
-    k1 = tan(f * ma.PI / ma.SR);
-    k2 = 2 * k1 / (1 + k1 * k1);
-    tick(u_0,v_0) = u_1,v_1 
-    with {
-        tmp = u_0 - k1 * v_0;
-        v_1 = v_0 + k2 * tmp;
-        u_1 = tmp - k1 * v_1 : select2(1',1);
-    };
-};
+polyblep_triangle(freq) = polyblep_square(freq) : fi.pole(0.999) : *(4 * freq / ma.SR);
 
 // end further contributions section
 //########################################################################################
@@ -7202,6 +7278,9 @@ with {
 // * James Leonard and Claude Cadoz. Physical Modelling Concepts for a Collection
 // of Multisensory Virtual Musical Instruments. In Proceedings of the New
 // Interfaces for Musical Expression (NIME-15) Conference, Baton Rouge, USA, 2015.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/mi.lib>
 //##############################################################################
 
 ma = library("maths.lib");
@@ -7704,6 +7783,9 @@ with{
 };
 //################################## misceffects.lib ##########################################
 // This library contains a collection of audio effects. Its official prefix is `ef`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/misceffects.lib>
 //########################################################################################
 
 /************************************************************************
@@ -7880,7 +7962,7 @@ gate_gain_mono(thresh,att,hold,rel,x) = x : extendedrawgate : an.amp_follower_ar
 //
 // Example based on measured Celestion G12 (12" speaker):
 //
-// `speakerbp` is a standard Faust function
+// `speakerbp` is a standard Faust function.
 //
 // #### Usage
 //
@@ -8006,9 +8088,9 @@ with {
 //
 // #### Signal Order In and Out
 //
-// The mesh is constructed recursively using 2x2 embeddings.  Thus,
+// The mesh is constructed recursively using 2x2 embeddings. Thus,
 // the top level of `mesh_square(M)` is a block 2x2 mesh, where each
-// block is a `mesh(M/2)`.  Let these blocks be numbered 1,2,3,4 in the
+// block is a `mesh(M/2)`. Let these blocks be numbered 1,2,3,4 in the
 // geometry NW,NE,SW,SE, i.e., as
 //         1 2
 //         3 4
@@ -8104,7 +8186,7 @@ with {
 };
 
 //--------------------`(ef.)reverseEchoN(nChans,delay)`-------------------
-// Reverse echo effect
+// Reverse echo effect.
 //
 // #### Usage
 //
@@ -8131,7 +8213,7 @@ with {
 reverseEchoN(N,delMax) = _<: par(i,N,ef.reverseDelayRamped(delMax,i/N));
 
 //-------------------`(ef.)reverseDelayRamped(delay,phase)`------------------
-// Reverse delay with amplitude ramp
+// Reverse delay with amplitude ramp.
 //
 // #### Usage
 //
@@ -8155,11 +8237,11 @@ reverseDelayRamped(delMax,phs) = rampGain * de.delay(delMax,del) with {
   rampGain = 4 * (del/delMax) * (1 - del/delMax); // suppress click when delay-line wraps around
   delOffset = int(floor(0.5 + delMax * max(0,min(0.999999,phs)))); // starting point in delay line
   startPulse = (1-1') * delOffset;
-  del = int(startPulse : +  ~ +(2)) & (delMax-1);
+  del = int(startPulse : + ~ +(2)) & (delMax-1);
 };
 
 //-------------------`(ef.)uniformPanToStereo(nChans)`------------------
-// Pan nChans channels to the stereo field, spread uniformly left to right
+// Pan nChans channels to the stereo field, spread uniformly left to right.
 //
 // #### Usage
 //
@@ -8288,8 +8370,10 @@ echo21s = vgroup("echo 21000", +~(de.delay(1048576, int(hslider("millisecond", 0
 echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0, 0, 43000, 1.00)*ba.millisec)-1) * (hslider("feedback", 0, 0, 100, 0.1)/100.0)));
 //################################ version.lib ##########################################
 // Semantic versioning for the Faust libraries. Its official prefix is `vl`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/version.lib>
 //########################################################################################
-
 
 //---------------------------`(vl.)version`---------------------------
 // Return the version number of the Faust standard libraries as a MAJOR, MINOR, PATCH versioning triplet.
@@ -8302,8 +8386,8 @@ echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0
 //
 //------------------------------------------------------------
 version =   2, // MAJOR version when we make incompatible API changes,
-            6, // MINOR version when we add functionality in a backwards compatible manner,
-            0; // PATCH version when we make backwards compatible bug fixes.
+            7, // MINOR version when we add functionality in a backwards compatible manner,
+            2; // PATCH version when we make backwards compatible bug fixes.
 
             
 //#################################### webaudio.lib ########################################
@@ -8311,6 +8395,9 @@ version =   2, // MAJOR version when we make incompatible API changes,
 //
 // This library implement WebAudio filters, using their C++ version as a starting point, 
 // taken from Mozilla Firefox implementation.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/webaudio.lib>
 //########################################################################################
 
 /************************************************************************
@@ -11058,6 +11145,9 @@ filterbanki(O,lfreqs) = _ <: bsplit(nb) with
 
 //#################################### delays.lib #########################################
 // This library contains a collection of delay functions. Its official prefix is `de`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/delays.lib>
 //########################################################################################
 
 /************************************************************************
@@ -11442,6 +11532,9 @@ fdelay21s(d) = fdelay(1048576,d);
 fdelay43s(d) = fdelay(2097152,d);
 //#################################### routes.lib ########################################
 // A library to handle signal routing in Faust. Its official prefix is `ro`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/routes.lib>
 //########################################################################################
 
 /************************************************************************
@@ -11655,6 +11748,9 @@ hadamard(n) = butterfly(n) : (hadamard(n/2) , hadamard(n/2));
 recursivize(p,q) = (_,_,_,_ :> sp.stereoize(p)) ~ sp.stereoize(q);
 //#################################### soundfiles.lib ########################################
 // A library to handle soundfiles in Faust. Its official prefix is `so`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/soundfiles.lib>
 //########################################################################################
 
 /************************************************************************
@@ -12345,7 +12441,7 @@ gibsen(T,M,L) = tonestack(t.C1,t.C2,t.C3,t.R1,t.R2,t.R3,t.R4,T,M,L)
 // the standard libraries in Faust, the functions below can be called as `aa.function_name`.
 // 
 // #### References
-//
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/aanl.lib>
 // * <https://www.dafx.de/paper-archive/2016/dafxpapers/20-DAFx-16_paper_41-PN.pdf>
 //########################################################################################
 
@@ -13365,6 +13461,9 @@ atanh2(x) = ADAA2(EPS, f, F1, F2, x)
 // Many thanks to Kurt Werner for helping me to understand wave digital filter models. Without his publications and consultations, the library would not exist. 
 // Thanks also to my advisors, Rob Owen and Eli Stine whose input was critical to the development of the library.
 // Finally, thanks to Romain Michon, Stephane Letz, and the Faust slack for contributing to testing, development, and inspiration when creating the library. 
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/wdmodels.lib>
 //################################################################################################################################
 
 ba = library("basics.lib");
@@ -22658,6 +22757,9 @@ with {
 };
 //#################################### vaeffects.lib ########################################
 // A library of virtual analog filter effects. Its official prefix is `ve`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/vaeffects.lib>
 //########################################################################################
 
 ma = library("maths.lib");
@@ -23861,12 +23963,15 @@ line(value, time) = state~(_,_):!,_
         state(t, c) = nt,nc 
         with {
             nt = ba.if(value != value', samples, t-1);
-            nc = ba.if(nt <= 0, value, c + (value - c)/nt);
+            nc = ba.if(nt > 0, c + (value - c)/nt, value);
             samples = time*ma.SR/1000.0;
         };
     };
 //#################################### platform.lib ########################################
 // A library to handle platform specific code in Faust. Its official prefix is `pl`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/platform.lib>
 //########################################################################################
 // It can be reimplemented to globally change the SR and the tablesize definitions
 
@@ -23922,8 +24027,10 @@ BS = fvariable(int count, <math.h>);
 //-----------------------------------------------------------------------------
 tablesize = 1 << 16;
 //################################### synths.lib ##########################################
-// This library contains a collection of synthesizers. Its official
-// prefix is `sy`.
+// This library contains a collection of synthesizers. Its official prefix is `sy`. 
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/synths.lib>
 //########################################################################################
 
 /************************************************************************
@@ -23966,7 +24073,7 @@ os = library("oscillators.lib");
 no = library("noises.lib");
 
 declare name "Faust Synthesizer Library";
-declare version "0.0";
+declare version "0.1";
 
 //-----------------------------------`(sy.)popFilterPerc`--------------------------------------
 // A simple percussion instrument based on a "popped" resonant bandpass filter.
@@ -24008,8 +24115,8 @@ popFilterDrum(freq,q,gate) = en.ar(0.001,0.001,gate)*no.noise : fi.resonbp(freq,
 // TODO: author RM
 dubDub(freq,ctFreq,q,gate) = os.sawtooth(freq)*gainEnvelope : fi.resonlp(ctFreq,q,1)
 with {
-	maxGain = 0.5;
-	gainEnvelope = en.smoothEnvelope(0.01,gate)*maxGain;
+    maxGain = 0.5;
+    gainEnvelope = en.smoothEnvelope(0.01,gate)*maxGain;
 };
 
 
@@ -24033,9 +24140,9 @@ with {
 // TODO: author RM
 sawTrombone(freq,gain,gate) = os.sawtooth(freq)*gainEnvelope : fi.lowpass(3,cutoff)
 with {
-	// controls both the gain of the instrument and the lowpass frequency
-	gainEnvelope = en.smoothEnvelope(0.01,gate)*gain;
-	cutoff = gainEnvelope*5000+50;
+    // controls both the gain of the instrument and the lowpass frequency
+    gainEnvelope = en.smoothEnvelope(0.01,gate)*gain;
+    cutoff = gainEnvelope*5000+50;
 };
 
 
@@ -24058,11 +24165,11 @@ with {
 // TODO: author RM
 combString(freq,res,gate) = excitation : fi.fb_fcomb(maxDel,N,b0,aN)
 with {
-	maxDel = 1024;
-	N = ma.SR/freq;
-	b0 = 1;
-	aN = ba.tau2pole(res*0.001)*-1;
-	excitation = no.noise*en.ar(0.001,0.001,gate);
+    maxDel = 1024;
+    N = ma.SR/freq;
+    b0 = 1;
+    aN = ba.tau2pole(res*0.001)*-1;
+    excitation = no.noise*en.ar(0.001,0.001,gate);
 };
 
 
@@ -24080,12 +24187,12 @@ with {
 //
 // * `freq`: the resonance frequency of the drum
 // * `freqRatio`: a list of ratio to choose the frequency of the mode in
-// 		function of `freq` e.g.(1 1.2 1.5 ...). The first element should always
-//		be one (fundamental).
+//                function of `freq` e.g.(1 1.2 1.5 ...). The first element should always
+//                be one (fundamental).
 // * `gain`: the gain of each mode as a list (1 0.9 0.8 ...). The first element
-//		is the gain of the fundamental.
+//           is the gain of the fundamental.
 // * `harmDec`: harmonic decay ratio (0-1): configure the speed at which
-//		higher modes decay compare to lower modes.
+//              higher modes decay compare to lower modes.
 // * `att`: attack duration in second
 // * `rel`: release duration in second
 // * `gate`: trigger signal (0 or 1)
@@ -24093,10 +24200,10 @@ with {
 // TODO: author RM
 additiveDrum(freq,freqRatio,gain,modeDec,att,rel,gate) = par(i,N,os.osc(modeFreq(i))*gainEnvelope(i)) :> _
 with {
-	N = ba.count(freqRatio);
-	modeFreq(i) = freq*ba.take(i+1,freqRatio);
-	modeGain(i) = ba.take(i+1,gain);
-	gainEnvelope(i) = modeGain(i)*en.ar(att,rel*(1-(modeDec*(i/N))),gate);
+    N = ba.count(freqRatio);
+    modeFreq(i) = freq*ba.take(i+1,freqRatio);
+    modeGain(i) = ba.take(i+1,gain);
+    gainEnvelope(i) = modeGain(i)*en.ar(att,rel*(1-(modeDec*(i/N))),gate);
 };
 
 
@@ -24115,17 +24222,125 @@ with {
 // Where:
 //
 // * `freqs`: a list of frequencies where the first one is the frequency of the carrier
-//		and the others, the frequency of the modulator(s)
+//            and the others, the frequency of the modulator(s)
 // * `indices`: the indices of modulation (Nfreqs-1)
 //----------------------------------------------------------------------------------------
 // TODO: author RM
 fm(freqs,indices) = seq(i,N,fmBlock(i))
 with {
-	N = ba.count(freqs);
-	freq(i) = ba.take(N-i,freqs);
-	gain(i) = ba.take(N-i,indices);
-	fmBlock(0) = freq(0) : os.osc;
-	fmBlock(i) = *(gain(i))+freq(i) : os.osc;
+    N = ba.count(freqs);
+    freq(i) = ba.take(N-i,freqs);
+    gain(i) = ba.take(N-i,indices);
+    fmBlock(0) = freq(0) : os.osc;
+    fmBlock(i) = *(gain(i))+freq(i) : os.osc;
+};
+
+
+//===============================Drum Synthesis===================================
+// Drum Synthesis ported in Faust from a version written in [Elementary](https://www.elementary.audio/) 
+// and JavaScript by Nick Thompson. 
+//
+// #### Reference
+//
+// <https://www.nickwritesablog.com/drum-synthesis-in-javascript/>
+//========================================================================================
+
+//-----------------------------------`(sy.)kick`---------------------------------------
+// Kick drum synthesis via a pitched sine sweep.
+// 
+// #### Usage 
+// 
+// ```
+// kick(pitch, click, attack, decay, drive, gate) : _
+// ```
+//
+// Where:
+//
+// * `pitch`: the base frequency of the kick drum in Hz
+// * `click`: the speed of the pitch envelope, tuned for [0.005s, 1s]
+// * `attack`: attack time in seconds, tuned for [0.005s, 0.4s]
+// * `decay`: decay time in seconds, tuned for [0.005s, 4.0s]
+// * `drive`: a gain multiplier going into the saturator. Tuned for [1, 10]
+// * `gate`: the gate which triggers the amp envelope
+// 
+// #### Reference
+//
+// <https://github.com/nick-thompson/drumsynth/blob/master/kick.js>
+//-------------------------------------------------------------------------------------
+kick(pitch, click, attack, decay, drive, gate) = out
+with {
+    env = en.adsr(attack, decay, 0.0, 0.1, gate);
+    pitchenv = en.adsr(0.005, click, 0.0, 0.1, gate);
+    clean = env * os.osc((1 + pitchenv * 4) * pitch);
+    out = ma.tanh(clean * drive);
+};
+
+
+//-----------------------------------`(sy.)clap`---------------------------------------
+// Clap synthesis via filtered white noise.
+// 
+// #### Usage 
+// 
+// ```
+// clap(tone, attack, decay, gate) : _
+// ```
+//
+// Where:
+//
+// * `tone`: bandpass filter cutoff frequency, tuned for [400Hz, 3500Hz]
+// * `attack`: attack time in seconds, tuned for [0s, 0.2s]
+// * `decay`: decay time in seconds, tuned for [0s, 4.0s]
+// * `gate`: the gate which triggers the amp envelope
+//
+// #### Reference
+//
+// <https://github.com/nick-thompson/drumsynth/blob/master/clap.js>
+//-------------------------------------------------------------------------------------
+clap(tone, attack, decay, gate) = out
+with {
+    e1 = en.adsr(0.035 + attack, 0.06 + decay, 0.0, 0.1, gate);
+    e2 = en.adsr(0.025 + attack, 0.05 + decay, 0.0, 0.1, gate);
+    e3 = en.adsr(0.015 + attack, 0.04 + decay, 0.0, 0.1, gate);
+    e4 = en.adsr(0.005 + attack, 0.02 + decay, 0.0, 0.1, gate);
+    out = ma.tanh(((e1 + e2 + e3 + e4) * no.noise) : fi.resonlp(tone, 1.214, 1));
+};
+
+
+//-----------------------------------`(sy.)hat`---------------------------------------
+// Hi hat drum synthesis via phase modulation.
+// 
+// #### Usage 
+// 
+// ```
+// hat(pitch, tone, attack, decay, gate): _
+// ```
+//
+// Where:
+//
+// * `pitch`: base frequency in the range [317Hz, 3170Hz]
+// * `tone`: bandpass filter cutoff frequency, tuned for [800Hz, 18kHz]
+// * `attack`: attack time in seconds, tuned for [0.005s, 0.2s]
+// * `decay`: decay time in seconds, tuned for [0.005s, 4.0s]
+// * `gate`: the gate which triggers the amp envelope
+//
+// #### Reference
+//
+// <https://github.com/nick-thompson/drumsynth/blob/master/hat.js>
+//-------------------------------------------------------------------------------------
+hat(pitch, tone, attack, decay, gate) = out
+with {
+    m2 = no.noise;
+    m1 = cycle(2 * pitch, 2 * m2);
+    m0 = cycle(pitch, 2 * m1);
+    f = m0 : fi.resonlp(tone, 1.214, 1);
+    env = en.adsr(attack, decay, 0.0, 0.1, gate);  
+    out = f * env;  
+    cycle(freq, offset) = sin(2 * ma.PI * p)
+    with {
+        t = phasor(freq) + offset;
+        p = t - floor(t);
+        phasor(f) = f/ma.SR : (+ : decimalpart) ~ _ with { decimalpart(x) = x-int(x); };
+    };
 };
 /* 
   sf.lib - aliases all prefixes to sf = all.lib, so that both old and new prefixes can be mixed.
@@ -24212,6 +24427,9 @@ wa = sf;
 
 // * X.-S. Yang and Y. Young, Cellular Automata, PDEs, and Pattern Formation.
 // Chapman & Hall/CRC, 092005, ch. 18, pp. 271–282.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/fds.lib>
 //#############################################################################
 
 ba = library("basics.lib");
@@ -24712,6 +24930,9 @@ with
 };
 //#################################### reducemaps.lib ########################################
 // A library to handle reduce/map kind of operation in Faust. Its official prefix is `rm`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/reducemaps.lib>
 //##############################################################################################
 
 /************************************************************************
@@ -24831,6 +25052,9 @@ RMS(n) = float : ^(2) : reducemap(+, (/(n):sqrt), n);
 
 //#################################### phaflangers.lib ########################################
 // A library of phasor and flanger effects. Its official prefix is `pf`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/phaflangers.lib>
 //########################################################################################
 
 ma = library("maths.lib");
@@ -25062,6 +25286,9 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 ************************************************************************/
 //##################################### filters.lib ########################################
 // Faust Filters library. Its official prefix is `fi`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/filters.lib>
 //
 // The Filters library is organized into 19 sections:
 //
@@ -25527,15 +25754,13 @@ declare iir license "MIT-style STK-4.3 license";
 iir(bv,av) = ma.sub ~ fir(av) : fir(bv);
 
 //-----------------------------`(fi.)fir`---------------------------------
-// FIR filter (convolution of FIR filter coefficients with a signal).
+// FIR filter (convolution of FIR filter coefficients with a signal). `fir` is standard Faust function.
 //
 // #### Usage
 //
 // ```
 // _ : fir(bv) : _
 // ```
-//
-// `fir` is standard Faust function.
 //
 // Where:
 //
@@ -26356,7 +26581,7 @@ with {
 };
 
 //-----------------------------`(fi.)tf1snp`-------------------------------
-// First-order special case of tf2snp above
+// First-order special case of tf2snp above.
 //
 // #### Usage
 //
@@ -26624,7 +26849,7 @@ with {
 //
 // Where:
 //
-// * `N`: filter order (number of poles) [nonnegative constant integer]
+// * `N`: filter order (number of poles) [nonnegative constant numerical expression]
 // * `fc`: desired cut-off frequency (-3dB frequency) in Hz
 //
 // #### References
@@ -26649,7 +26874,7 @@ lowpass(N,fc) = lowpass0_highpass1(0,N,fc);
 //
 // Where:
 //
-// * `N`: filter order (number of poles) [nonnegative constant integer]
+// * `N`: filter order (number of poles) [nonnegative constant numerical expression]
 // * `fc`: desired cut-off frequency (-3dB frequency) in Hz
 //
 // #### References
@@ -26696,6 +26921,7 @@ with {
   a11 = 1.618033988749895;
   w1 = 2*ma.PI*fc;
 };
+
 // Catch-all definitions for generality - even order is done:
 highpass_plus_lowpass(N,fc) = _ <: switch_odd_even(N%2,N,fc) with {
   switch_odd_even(0,N,fc) = highpass_plus_lowpass_even(N,fc);
@@ -26711,6 +26937,7 @@ with {
   a12 = 0.618033988749895;
   w1 = 2*ma.PI*fc;
 };
+
 // Catch-all definitions for generality - even order is done:
 highpass_minus_lowpass(N,fc) = _ <: switch_odd_even(N%2,N,fc) with {
   switch_odd_even(0,N,fc) = highpass_minus_lowpass_even(N,fc);
@@ -26845,7 +27072,7 @@ with {
 
 //-----------------------------`(fi.)highpass3e`-----------------------------
 // Third-order Elliptic (Cauer) highpass filter. Inversion of `lowpass3e` wrt unit
-// circle in s plane (s <- 1/s)
+// circle in s plane (s <- 1/s).
 //
 // #### Usage
 //
@@ -26874,7 +27101,7 @@ with {
 
 //-----------------------------`(fi.)highpass6e`-----------------------------
 // Sixth-order Elliptic/Cauer highpass filter. Inversion of lowpass3e wrt unit
-// circle in s plane (s <- 1/s)
+// circle in s plane (s <- 1/s).
 //
 // #### Usage
 //
@@ -27072,7 +27299,7 @@ with { // octave script output:
 };
 
 //------------------------`(fi.)pospass`---------------------------
-// Positive-Pass Filter (single-side-band filter)
+// Positive-Pass Filter (single-side-band filter).
 //
 // #### Usage
 //
@@ -27089,7 +27316,7 @@ with { // octave script output:
 // #### Example
 //
 // * See dm.pospass_demo
-// * Look at frequency response:
+// * Look at frequency response
 //
 // #### Method
 //
@@ -27164,7 +27391,7 @@ pospass0(lpf) = unmodulate : lpf, lpf : modulate with {
 // ```
 //
 // Where:
-// * `N`: filter order 1, 3, 5, ... (odd only). (default should be 3)
+// * `N`: filter order 1, 3, 5, ... (odd only, default should be 3, a constant numerical expression)
 // * `L0`: desired level (dB) between dc and fx (boost `L0>0` or cut `L0<0`)
 // * `fx`: -3dB frequency of lowpass band (`L0>0`) or upper band (`L0<0`)
 //       (see "SHELF SHAPE" below).
@@ -27237,7 +27464,7 @@ lowshelf_other_freq(N, L0, fx) = ba.db2linear(ba.linear2db(fx) + L0/N); // conve
 //
 // Where:
 //
-// * `N`: filter order 1, 3, 5, ... (odd only).
+// * `N`: filter order 1, 3, 5, ... (odd only, a constant numerical expression).
 // * `Lpi`: desired level (dB) between fx and SR/2 (boost Lpi>0 or cut Lpi<0)
 // * `fx`: -3dB frequency of highpass band (L0>0) or lower band (L0<0)
 //        (Use highshelf_other_freq() below to find the other one.)
@@ -27467,9 +27694,9 @@ with {
 //
 // Where:
 //
-// * `L`: desired level (in dB) at Nyquist limit (SR/2), e.g., -60
+// * `N`: Number of filters in series where L = L/N, a constant numerical expression
 // * `freq`: corner frequency (-3dB point) usually set to fundamental freq
-// * `N`: Number of filters in series where L = L/N
+// * `L`: desired level (in dB) at Nyquist limit (SR/2), e.g., -60
 //
 // #### Reference
 // <https://ccrma.stanford.edu/realsimple/faust_strings/Dynamic_Level_Lowpass_Filter.html>
@@ -27487,8 +27714,8 @@ levelfilterN(N,freq,L) = seq(i,N,levelfilter((L/N),freq));
 // The documentation of this library contains more details about the implementation.
 // The parameters are:
 //
-// * `M`: number of band-slices per octave (>1)
-// * `N`: total number of bands (>2)
+// * `M`: number of band-slices per octave (>1), a constant numerical expression
+// * `N`: total number of bands (>2), a constant numerical expression
 // * `ftop`: upper bandlimit of the Mth-octave bands (<SR/2)
 //
 // In addition to the Mth-octave output signals, there is a highpass signal
@@ -27547,10 +27774,10 @@ levelfilterN(N,freq,L) = seq(i,N,levelfilter((L/N),freq));
 //
 // Where:
 //
-// * `O`: order of filter used to split each frequency band into two
-// * `M`: number of band-slices per octave
+// * `O`: order of filter used to split each frequency band into two, a constant numerical expression
+// * `M`: number of band-slices per octave, a constant numerical expression
 // * `ftop`: highest band-split crossover frequency (e.g., 20 kHz)
-// * `N`: total number of bands (including dc and Nyquist)
+// * `N`: total number of bands (including dc and Nyquist), a constant numerical expression
 //------------------------------------------------------------
 declare mth_octave_filterbank author "Julius O. Smith III";
 declare mth_octave_filterbank copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
@@ -27563,9 +27790,9 @@ with {
    apchain(i) = seq(j,N-1-i,ap(j+1));
 };
 
-// dc-inverted version.  This reduces the delay-equalizer order for odd O.
-   // Negating the input signal makes the dc band noninverting
-//   and all higher bands sign-inverted (if preferred).
+// dc-inverted version. This reduces the delay-equalizer order for odd O.
+// Negating the input signal makes the dc band noninverting
+// and all higher bands sign-inverted (if preferred).
 declare mth_octave_filterbank_alt author "Julius O. Smith III";
 declare mth_octave_filterbank_alt copyright "Copyright (C) 2003-2019 by Julius O. Smith III <jos@ccrma.stanford.edu>";
 declare mth_octave_filterbank_alt license "MIT-style STK-4.3 license";
@@ -27615,7 +27842,7 @@ mth_octave_filterbank_default = mth_octave_filterbank5;
 // ```
 // Where:
 //
-// * `O`: band-split filter order (ODD integer required for filterbank[i])
+// * `O`: band-split filter order (odd integer required for filterbank[i], a constant numerical expression)
 // * `freqs`: (fc1,fc2,...,fcNs) [in numerically ascending order], where
 //           Ns=N-1 is the number of octave band-splits
 //           (total number of bands N=Ns+1).
@@ -27651,7 +27878,7 @@ with {
 //
 // Where:
 //
-// * `O`: band-split filter order (ODD integer required for `filterbank[i]`)
+// * `O`: band-split filter order (odd integer required for `filterbank[i]`, a constant numerical expression)
 // * `freqs`: (fc1,fc2,...,fcNs) [in numerically ascending order], where
 //           Ns=N-1 is the number of octave band-splits
 //           (total number of bands N=Ns+1).
@@ -27921,6 +28148,9 @@ with the GNU C Library; if not, write to the Free Software Foundation, Inc.,
 *******************************************************************************/
 //#################################### signals.lib ########################################
 // A library of basic elements to handle signals in Faust. Its official prefix is `si`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/signals.lib>
 //########################################################################################
 
 /************************************************************************
@@ -27972,7 +28202,7 @@ declare version "0.1";
 //========================================================================================
 
 //--------------------------------`(si.)bus`-------------------------------------
-// Put n cables in parallel.
+// Put N cables in parallel.
 // `bus` is a standard Faust function.
 //
 // #### Usage
@@ -27987,7 +28217,7 @@ declare version "0.1";
 // * `N`: is an integer known at compile time that indicates the number of parallel cables
 //-----------------------------------------------------------------------------
 bus(2) = _,_; // avoids a lot of "bus(1)" labels in block diagrams
-bus(n) = par(i, n, _);
+bus(N) = par(i, N, _);
 
 //--------------`(si.)block`--------------
 // Block - terminate N signals.
@@ -27996,14 +28226,14 @@ bus(n) = par(i, n, _);
 // #### Usage
 //
 // ```
-// _,_,... : block(n) : _,...
+// _,_,... : block(N) : _,...
 // ```
 //
 // Where:
 //
 // * `N`: the number of signals to be blocked known at compile time 
 //--------------------------------------
-block(n) = par(i, n, !);
+block(N) = par(i, N, !);
 
 //-----------------------------`(si.)interpolate`-------------------------------
 // Linear interpolation between two signals.
@@ -28146,14 +28376,31 @@ Michon and Julius O. Smith III, and are released under the
 // The exponential time-constant is approximately 1/(1-s) samples, when s is close to
 // (but less than) 1.
 //
-// #### Reference:
+// #### References:
 //
-// <https://ccrma.stanford.edu/~jos/mdft/Convolution_Example_2_ADSR.html>
+// * <https://ccrma.stanford.edu/~jos/mdft/Convolution_Example_2_ADSR.html>
+// * <https://ccrma.stanford.edu/~jos/aspf/Appendix_B_Inspecting_Assembly.html>
 //-------------------------------------------------------------
-smooth(s) = *(1.0 - s) : + ~ *(s);
+
+// See [grame-cncm/faustlibraries]: Minor improvement to si.smoo. (Discussion #106)
+
+smooth_imp = case { 
+  // y[n] = (1 - s) * x[n] + s * y[n - 1]
+  (0,s) => \(x).(fb ~ _ with { fb(y) = (1.0 - s) * x + s * y; });
+  
+  // y[n] = s * (y[n - 1] - x[n]) + x[n]
+  (1,s) => \(x).(fb ~ _ with { fb(y) = s * (y - x) + x; });
+  
+  // y[n] = y[n - 1] + (1 - s) * (x[n] - y[n - 1])
+  (2,s) => \(x).(fb ~ _ with { fb(y) = y + (1.0 - s) * (x - y); });
+};
+
+// The best compromise on modern CPUs where two independent multiplications can be done in parallel.
+// Other versions could possibly be faster on embedded devices. 
+smooth = smooth_imp(0);
 
 //--------------------------------`(si.)cbus`-------------------------------------
-// n parallel cables for complex signals.
+// N parallel cables for complex signals.
 // `cbus` is a standard Faust function.
 //
 // #### Usage
@@ -28165,11 +28412,11 @@ smooth(s) = *(1.0 - s) : + ~ *(s);
 //
 // Where:
 //
-// * `n`: is an integer known at compile time that indicates the number of parallel cables.
+// * `N`: is an integer known at compile time that indicates the number of parallel cables.
 // * each complex number is represented by two real signals as (real,imag)
 //-----------------------------------------------------------------------------
 cbus(1) = (_,_);
-cbus(n) = par(i, n, (_,_));
+cbus(N) = par(i, N, (_,_));
 
 //--------------------------------`(si.)cmul`-------------------------------------
 // multiply two complex signals pointwise.
@@ -28518,6 +28765,9 @@ re.zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax),_,_ <: _,!,_,!,!,_,!,_ : +,+
     };
 //##################################### quantizers.lib ########################################
 // Faust Frequency Quantization Library. Its official prefix is `qu`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/quantizers.lib>
 //########################################################################################
 
 ba = library("basics.lib");
@@ -28568,7 +28818,6 @@ qSmooth(x) = ba.tabulate(1,0.5*atan(_*20-10)/1.4711+0.5,TableSize,0,1,x).cub;
 
 //-------`(qu.)quantize`----------
 // Configurable frequency quantization tool. Output only the frequencies that are part of the specified scale.
-//
 // Works for positive audio frequencies.
 //
 // #### Usage
@@ -28578,8 +28827,8 @@ qSmooth(x) = ba.tabulate(1,0.5*atan(_*20-10)/1.4711+0.5,TableSize,0,1,x).cub;
 // ```
 // Where :
 //
-// * `rf` : frequency of the root note of the scale.
-// * `nl` : list of the ratio of the frequencies of each note in relation to the root frequency.
+// * `rf` : frequency of the root note of the scale
+// * `nl` : list of the ratio of the frequencies of each note in relation to the root frequency
 //------------------------
 quantize(rf,nl) = _<: octave,_ <: _,!,noteRatio(nN) : rf*_*_
 with{
@@ -28595,7 +28844,6 @@ with{
 
 //-------`(qu.)quantizeSmoothed`----------
 // Configurable frequency quantization tool. Output frequencies that are closer to the frequencies of the specified scale notes.
-//
 // Works for positive audio frequencies.
 //
 //
@@ -28607,8 +28855,8 @@ with{
 // ```
 // Where :
 //
-// * `rf` : frequency of the root note of the scale.
-// * `nl` : list of the ratio of the frequencies of each note in relation to the root frequency.
+// * `rf` : frequency of the root note of the scale
+// * `nl` : list of the ratio of the frequencies of each note in relation to the root frequency
 //------------------------
 quantizeSmoothed(rf,nl) = _<: octave,_ <: _,!,noteRatio(nN) : rf*_*_
 with{
@@ -28642,7 +28890,7 @@ with{
 //
 // Where:
 //
-// * `rf`: frequency of the root note of the scale.
+// * `rf`: frequency of the root note of the scale
 //-------------------------------------------------------------
 ionian = (1,pow(2,2/12),pow(2,4/12),pow(2,5/12),pow(2,7/12),pow(2,9/12),pow(2,11/12));
 
@@ -28657,7 +28905,7 @@ ionian = (1,pow(2,2/12),pow(2,4/12),pow(2,5/12),pow(2,7/12),pow(2,9/12),pow(2,11
 //
 // Where:
 //
-// * `rf`: frequency of the root note of the scale.
+// * `rf`: frequency of the root note of the scale
 //-------------------------------------------------------------
 dorian = (1,pow(2,2/12),pow(2,3/12),pow(2,5/12),pow(2,7/12),pow(2,8/12),pow(2,10/12));
 
@@ -28672,7 +28920,7 @@ dorian = (1,pow(2,2/12),pow(2,3/12),pow(2,5/12),pow(2,7/12),pow(2,8/12),pow(2,10
 //
 // Where:
 //
-// * `rf`: frequency of the root note of the scale.
+// * `rf`: frequency of the root note of the scale
 //-------------------------------------------------------------
 phrygian = (1,pow(2,1/12),pow(2,3/12),pow(2,5/12),pow(2,7/12),pow(2,8/12),pow(2,10/12));
 
@@ -28687,7 +28935,7 @@ phrygian = (1,pow(2,1/12),pow(2,3/12),pow(2,5/12),pow(2,7/12),pow(2,8/12),pow(2,
 //
 // Where:
 //
-// * `rf`: frequency of the root note of the scale.
+// * `rf`: frequency of the root note of the scale
 //-------------------------------------------------------------
 lydian = (1,pow(2,2/12),pow(2,4/12),pow(2,6/12),pow(2,7/12),pow(2,9/12),pow(2,11/12));
 
@@ -28702,7 +28950,7 @@ lydian = (1,pow(2,2/12),pow(2,4/12),pow(2,6/12),pow(2,7/12),pow(2,9/12),pow(2,11
 //
 // Where:
 //
-// * `rf`: frequency of the root note of the scale.
+// * `rf`: frequency of the root note of the scale
 //-------------------------------------------------------------
 mixo = (1,pow(2,2/12),pow(2,4/12),pow(2,5/12),pow(2,7/12),pow(2,9/12),pow(2,10/12));
 
@@ -28717,7 +28965,7 @@ mixo = (1,pow(2,2/12),pow(2,4/12),pow(2,5/12),pow(2,7/12),pow(2,9/12),pow(2,10/1
 //
 // Where:
 //
-// * `rf`: frequency of the root note of the scale.
+// * `rf`: frequency of the root note of the scale
 //-------------------------------------------------------------
 eolian = (1,pow(2,2/12),pow(2,3/12),pow(2,5/12),pow(2,7/12),pow(2,8/12),pow(2,10/12));
 
@@ -28732,7 +28980,7 @@ eolian = (1,pow(2,2/12),pow(2,3/12),pow(2,5/12),pow(2,7/12),pow(2,8/12),pow(2,10
 //
 // Where:
 //
-// * `rf`: frequency of the root note of the scale.
+// * `rf`: frequency of the root note of the scale
 //-------------------------------------------------------------
 locrian = (1,pow(2,1/12),pow(2,3/12),pow(2,5/12),pow(2,6/12),pow(2,8/12),pow(2,10/12));
 
@@ -28747,7 +28995,7 @@ locrian = (1,pow(2,1/12),pow(2,3/12),pow(2,5/12),pow(2,6/12),pow(2,8/12),pow(2,1
 //
 // Where:
 //
-// * `rf`: frequency of the root note of the scale.
+// * `rf`: frequency of the root note of the scale
 //-------------------------------------------------------------
 pentanat = (1,32/27,4/3,3/2,16/9);
 
@@ -28762,7 +29010,7 @@ pentanat = (1,32/27,4/3,3/2,16/9);
 //
 // Where:
 //
-// * `rf`: frequency of the root note of the scale.
+// * `rf`: frequency of the root note of the scale
 //-------------------------------------------------------------
 kumoi = (1,16/15,4/3,3/2,8/5);
 
@@ -28777,7 +29025,7 @@ kumoi = (1,16/15,4/3,3/2,8/5);
 //
 // Where:
 //
-// * `rf`: frequency of the root note of the scale.
+// * `rf`: frequency of the root note of the scale
 //-------------------------------------------------------------
 natural = (1,9/8,5/4,4/3,3/2,5/3,15/8);
 
@@ -28792,7 +29040,7 @@ natural = (1,9/8,5/4,4/3,3/2,5/3,15/8);
 //
 // Where:
 //
-// * `rf`: frequency of the root note of the scale.
+// * `rf`: frequency of the root note of the scale
 //-------------------------------------------------------------
 dodeca = (1,pow(2,1/12),pow(2,2/12),pow(2,3/12),pow(2,4/12),pow(2,5/12),pow(2,6/12),pow(2,7/12),pow(2,8/12),pow(2,9/12),pow(2,10/12),pow(2,11/12));
 
@@ -28807,7 +29055,7 @@ dodeca = (1,pow(2,1/12),pow(2,2/12),pow(2,3/12),pow(2,4/12),pow(2,5/12),pow(2,6/
 //
 // Where:
 //
-// * `rf`: frequency of the root note of the scale.
+// * `rf`: frequency of the root note of the scale
 //-------------------------------------------------------------
 dimin = (1,pow(2,1/12),pow(2,3/12),pow(2,4/12),pow(2,6/12),pow(2,7/12),pow(2,9/12),pow(2,10/12));
 
@@ -28822,11 +29070,14 @@ dimin = (1,pow(2,1/12),pow(2,3/12),pow(2,4/12),pow(2,6/12),pow(2,7/12),pow(2,9/1
 //
 // Where:
 //
-// * `rf`: frequency of the root note of the scale.
+// * `rf`: frequency of the root note of the scale
 //-------------------------------------------------------------
 penta = (1,pow(2,3/12),pow(2,5/12),pow(2,7/12),pow(2,10/12));
 //##################################### noises.lib ########################################
 // Faust Noise Generator Library. Its official prefix is `no`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/noises.lib>
 //########################################################################################
 
 ma = library("maths.lib");
@@ -28902,7 +29153,7 @@ noise_env(seed) = environment {
 
 //-------`(no.)noise`----------
 // White noise generator (outputs random number between -1 and 1).
-// `Noise` is a standard Faust function.
+// `noise` is a standard Faust function.
 //
 // #### Usage
 //
@@ -29817,6 +30068,9 @@ lfnoise(freq) = lfnoise0(freq) : seq(i,5,fl.lowpass(1,freq)); // non-overshootin
 //    index = (+(1)~_)-1;   /* starting from 0 */
 // };
 // ```
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/interpolators.lib>
 //########################################################################################
 
 /************************************************************************
@@ -30154,73 +30408,99 @@ with {
 //=========================Lagrange based interpolators====================================
 //========================================================================================
 
-//-------`(it.)lagrange_h(N)` ---------------------------------------------
+//-------`(it.)lagrangeCoeffs(N, xCoordsList)` ---------------------------------------------
 //
-// Function to generate N + 1 coefficients for an Nth-order Lagrange
-// interpolation filter for an index between 0 and N.
+// This is a function to generate N + 1 coefficients for an Nth-order Lagrange
+// basis polynomial with arbitrary spacing of the points.
 //
 // #### Usage
 //
 // ```
-// lagrange_h(N, idx) : si.bus(N)
+// lagrangeCoeffs(N, xCoordsList, x) : si.bus(N + 1)
 // ```
 //
 // Where:
 //
-// * `N`: order of the interpolation filter, known at compile-time
-// * `idx`: a fractional index between 0 and N
+// * `N`: order of the interpolation filter, known at compile-time;
+// * `xCoordsList`: a list of N + 1 elements determining the x-axis coordinates of N + 1 values, known at compile-time;
+// * `x`: a fractional position on the x-axis to obtain the interpolated y-value.
 //
 // #### Reference
 //
 // <https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html>
+// <https://en.wikipedia.org/wiki/Lagrange_polynomial>
 //------------------------------------------------------------
 
-declare lagrange_h author "Dario Sanfilippo";
-declare lagrange_h copyright "Copyright (C) 2021 Dario Sanfilippo
+declare lagrangeCoeffs author "Dario Sanfilippo";
+declare lagrangeCoeffs copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
-declare lagrange_h license "LGPL v3.0 license";
-lagrange_h(N, idx) = par(n, N + 1, prod(k, N + 1, f(n, k)))
+declare lagrangeCoeffs license "MIT license";
+lagrangeCoeffs(N, xCoords, x) = par(n, N + 1, prod(k, N + 1, f(n, k)))
     with {
-        f(n, k) = ((idx - k) * (n != k) + (n == k)) / ((n - k) + (n == k));
+        xVals(i) = ba.take(i + 1, xCoords);
+        f(n, k) =   ((x - xVals(k)) * (n != k) + (n == k)) / 
+                    ((xVals(n) - xVals(k)) + (n == k));
+    };
+// The following definition for uniformely-spaced points interpolation is kept for back-compatibility
+lagrange_h(N, x) = lagrangeCoeffs(N, xCoord, x)
+    with {
+        xCoord = par(i, N + 1, i);
     };
 
-
-//-------`(it.)lagrangeN(N)` ----------------------------------------------
+//-------`(it.)lagrangeInterpolation(N, xCoordsList)` --------------------------------------
 //
-// Nth-order Lagrange interpolator to interpolate between a set of N + 1 points.
+// Nth-order Lagrange interpolator to interpolate between a set of arbitrarily spaced N + 1 points.
 //
 // #### Usage
 //
 // ```
-// lagrangeN(N, idx, si.bus(N + 1)) : _
+// x , yCoords : lagrangeInterpolation(N, xCoordsList) : _
 // ```
 //
 // Where:
 //
-// * `N`: order of the interpolator, known at compile-time
-// * `idx`: a fractional index between 0 and N to interpolate between a set
-//      of N + 1 points being crossed at positions 0, 1, 2, ..., N
+// * `N`: order of the interpolator, known at compile-time;
+// * `xCoordsList`: a list of N + 1 elements determining the x-axis spacing of the points, known at compile-time;
+// * `x`: an x-axis position to interpolate between the y-values.
+// * `yCoords`: N + 1 elements determining the values of the interpolation points
 //
-// Example: find the centre position of a set of four points using an order-3
-// Lagrange function fitting the four points [2, 5, -1, 3]:
+// Example: find the centre position of a four-point set using an order-3
+// Lagrange function fitting the equally-spaced points [2, 5, -1, 3]:
 //
 // ```
 // N = 3;
-// process = it.lagrangeN(N, N / 2, 2, 5, -1, 3);
+// xCoordsList = (0, 1, 2, 3);
+// x = N / 2.0;
+// yCoords = 2 , 5 , -1 , 3;
+// process = x , yCoords : lagrangeInterpolation(N, xCoordsList);
 // ```
 //
 // which outputs ~1.938.
 //
+// Example: output the dashed curve showed on the Wikipedia page (top figure, https://en.wikipedia.org/wiki/Lagrange_polynomial):
+//
+// ```
+// N = 3;
+// xCoordsList = (-9, -4, -1, 7);
+// x = os.phasor(16, 1) - 9;
+// yCoords = 5 , 2 , -2 , 9;
+// process = x , yCoords : lagrangeInterpolation(N, xCoordsList);
+// ```
+//
 // #### Reference
+// 
 // <https://ccrma.stanford.edu/~jos/pasp/Lagrange_Interpolation.html>
+// Sanfilippo and Parker 2021, "Combining zeroth and first‐order analysis with Lagrange polynomials to reduce artefacts in live concatenative granular processing." Proceedings of the DAFx conference 2021, Vienna, Austria.
+// <https://dafx2020.mdw.ac.at/proceedings/papers/DAFx20in21_paper_38.pdf>
 //------------------------------------------------------------
 
-declare lagrangeN author "Dario Sanfilippo";
-declare lagrangeN copyright "Copyright (C) 2021 Dario Sanfilippo
+declare lagrangeInterpolation author "Dario Sanfilippo";
+declare lagrangeInterpolation copyright "Copyright (C) 2021 Dario Sanfilippo
     <sanfilippo.dario@gmail.com>";
-declare lagrangeN license "LGPL v3.0 license";
-lagrangeN(N, idx) = si.dot(N + 1, lagrange_h(N, idx));
-
+declare lagrangeInterpolation license "MIT license";
+lagrangeInterpolation(N, xCoords, x) = si.dot(N + 1, lagrangeCoeffs(N, xCoords, x));
+// The following definition for uniformely-spaced points interpolation is kept for back-compatibility
+lagrangeN(N, x) = si.dot(N + 1, lagrange_h(N, x));
 
 //-------`(it.)frdtable(N, S)` --------------------------------------------
 //
@@ -30287,6 +30567,19 @@ frdtable(N, S, init, idx) =
 // * `w_idx`: it should be an INT between 0 and S - 1
 // * `x`: input signal written on the w_idx positions
 // * `r_idx`: fractional index wrapped-around 0 and S
+//
+// Example: test the effectiveness of the 5th-order interpolation scheme by
+// creating a table look-up oscillator using only 16 points of a sinewave;
+// compare the result with a non-interpolated version:
+//
+// ```
+// N = 5;
+// S = 16;
+// rIdx = os.phasor(S, 300);
+// wIdx = ba.period(S);
+// process =   rwtable(S, os.sinwaveform(S), wIdx, os.sinwaveform(S), int(rIdx)) ,
+//             frwtable(N, S, os.sinwaveform(S), wIdx, os.sinwaveform(S), rIdx);
+// ```
 //------------------------------------------------------------
 
 declare frwtable author "Dario Sanfilippo";
@@ -30303,6 +30596,9 @@ frwtable(N, S, init, w_idx, x, r_idx) =
 //#################################### demos.lib ##########################################
 // This library contains a set of demo functions based on examples located in the
 // `/examples` folder. Its official prefix is `dm`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/demos.lib>
 //########################################################################################
 
 /************************************************************************
@@ -31813,6 +32109,9 @@ with{
 // end further contributions section
 //#################################### reverbs.lib ########################################
 // A library of reverb effects. Its official prefix is `re`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/reverbs.lib>
 //########################################################################################
 
 ma = library("maths.lib");
@@ -31857,7 +32156,7 @@ Michon and Julius O. Smith III, and are released under the
 // John Chowning thinks this might be the one that became the
 // well known and often copied JCREV.
 //
-// `jcrev` is a standard Faust function
+// `jcrev` is a standard Faust function.
 //
 // #### Usage
 //
@@ -32540,6 +32839,9 @@ greyhole(dt, damp, size, early_diff, feedback, mod_depth, mod_freq)
 // <https://ccrma.stanford.edu/~rmichon/pmFaust>. Tutorials on how to make
 // physical models of musical instruments using Faust can be found
 // [here](https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-physical-models-of-musical-instruments-with-faust) as well.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/physmodels.lib>
 //########################################################################################
 // Authors: Romain Michon, Pierre-Amaury Grumiaux, and Yann Orlarey
 
@@ -36474,6 +36776,9 @@ with{
 };
 //################################### maths.lib ##########################################
 //  Mathematic library for Faust. Its official prefix is `ma`.
+//
+// #### References
+// * <https://github.com/grame-cncm/faustlibraries/blob/master/maths.lib>
 //########################################################################################
 // Some functions are implemented as Faust foreign functions of `math.h` functions
 // that are not part of Faust's primitives. Defines also various constants and several
@@ -36546,6 +36851,17 @@ declare license "LGPL with exception";
 //-----------------------------------------------------------------------------
 SR = pl.SR;
 
+//---------------------------------`(ma.)T`---------------------------------------
+// Current sampling period. Constant during
+// program execution.
+//
+// #### Usage
+//
+// ```
+// T : _
+// ```
+//-----------------------------------------------------------------------------
+T = 1.0 / SR;
 
 //---------------------------------`(ma.)BS`---------------------------------------
 // Current block-size. Can change during the execution.
