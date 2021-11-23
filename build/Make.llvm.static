@@ -17,7 +17,7 @@ CONFIG  := ../tools/faust-config
 
 MAKEFILE := $(lastword $(MAKEFILE_LIST))
 
-.phony: $(OUTPUT)
+.PHONY: $(OUTPUT)
 
 all: $(FOLDERS) $(OUTPUT)
 	$(MAKE) -f $(MAKEFILE) syslibs
