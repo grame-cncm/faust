@@ -8,7 +8,7 @@ AR   ?= ar
 
 TMP 	?= __tmp_llvm_lib__
 OUTPUT 	?= lib/libfaustwithllvm.a
-INPUT 	:= $(shell llvm-config --libnames)
+INPUT 	:= $(shell llvm-config --libnames --link-static)
 LLVM 	:= $(shell llvm-config --libdir)
 SYSLIBS := $(shell llvm-config --system-libs)
 
