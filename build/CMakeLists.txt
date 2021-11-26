@@ -198,7 +198,7 @@ if (INCLUDE_STATIC)
 		if (WIN32)
 			set (MAKELIBCMD Make.llvm.static.bat) 
 		else()
-			set (MAKELIBCMD make -f Make.llvm.static) 
+			set (MAKELIBCMD make -f Make.llvm.static || true) 
 		endif()
 		add_custom_command(TARGET staticlib POST_BUILD
                    COMMAND ${MAKELIBCMD}
