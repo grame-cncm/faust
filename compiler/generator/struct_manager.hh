@@ -312,14 +312,21 @@ struct StructInstVisitor1 : public StructInstVisitor {
             }
         } else {
             if (is_struct) {
+                MemoryDesc::memType var_type = (startWith(name, "fConst") || startWith(name, "iConst")) ? MemoryDesc::kExternal : MemoryDesc::kLocal;
                 fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++,
                                                                  getStructSize(),
                                                                  getStructIntSize(),
                                                                  getStructRealSize(),
                                                                  1,
                                                                  inst->fType->getType(),
-                                                                 MemoryDesc::kLocal)));
-                // Scalar variable always stay in local struct memory (TO CHECK)
+                                                                 var_type)));
+                if (var_type == MemoryDesc::kExternal) {
+                    if (inst->fType->getType() == Typed::kInt32) {
+                        fStructIntOffset += inst->fType->getSizeBytes();
+                    } else {
+                        fStructRealOffset += inst->fType->getSizeBytes();
+                    }
+                }
             } else {
                 // Local variables declared by [var_num, type] pairs
             }

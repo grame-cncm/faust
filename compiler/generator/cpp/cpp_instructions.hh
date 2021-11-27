@@ -621,7 +621,10 @@ class CPPInstVisitor2 : public CPPInstVisitor {
                 } else {
                     *fOut << "fZone[" << fStructVisitor.getFieldRealOffset(named->fName)/ifloatsize();
                 }
-                if (!fIndexedAddress) { *fOut << "]"; }
+                // Const variables are always moved as MemoryDesc::kExternal, see StructInstVisitor1
+                if (startWith(named->getName(), "fConst") || startWith(named->getName(), "iConst") || !fIndexedAddress) {
+                    *fOut << "]";
+                }
             } else {
                 fZoneAddress = false;
                 *fOut << named->fName;
