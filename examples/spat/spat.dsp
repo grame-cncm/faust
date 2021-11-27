@@ -17,9 +17,9 @@ import("stdfaust.lib");
 // EXEMPLE : une entree mono spatialisee sur 8 sorties
 //------------------------------------------------------
 
-angle 			= hslider("angle",    0.0, 0, 1, 0.01);
-distance 		= hslider("distance", 0.5, 0, 1, 0.01);
+angle = hslider("angle", 0.0, 0, 1, 0.01);
+distance = hslider("distance", 0.5, 0, 1, 0.01);
 
-process 		= vgroup("Spatializer 1x8", sp.spat(8, angle, distance));
+process = vgroup("Spatializer 1x8", sp.spat(8, angle, distance));
 
 

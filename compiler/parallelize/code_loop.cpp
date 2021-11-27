@@ -160,7 +160,6 @@ bool CodeLoop::isEmpty()
  * returns true is this loop has recursive dependencies
  * and must be included in an enclosing loop
  */
-
 bool CodeLoop::hasRecDependencyIn(Tree S)
 {
     CodeLoop* l = this;

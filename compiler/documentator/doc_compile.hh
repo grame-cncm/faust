@@ -109,8 +109,7 @@ class DocCompiler : public virtual Garbageable {
     string generateDocAccessTbl(Tree sig, Tree tbl, Tree ridx);
 
     string generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2, int priority);
-    string generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3, int priority);
-
+   
     string generateRecProj(Tree sig, Tree exp, int i, int priority);
     void   generateRec(Tree sig, Tree var, Tree le, int priority);
 

@@ -10,6 +10,6 @@ declare copyright 	"(c)GRAME 2006";
 
 import("stdfaust.lib");
 
-gain		= vslider("[1]", 0, -70, +4, 0.1) : ba.db2linear : si.smoo;
+gain = vslider("[1]", 0, -70, +4, 0.1) : ba.db2linear : si.smoo;
 
-process		= *(gain);
+process = *(gain);

@@ -5,7 +5,6 @@ declare copyright "(c) 2017: Yann Orlarey, GRAME";
 
 import("stdfaust.lib");
 
-
 //---------------------------`bubble`--------------------------
 // bubble(f0, trig) : produces a water drop bubble sound
 //

@@ -123,7 +123,7 @@ void SignalVisitor::visit(Tree sig)
         return;
     }
 
-    // Select2 and Select3
+    // Select2 (and Select3 expressed with Select2)
     else if (isSigSelect2(sig, sel, x, y)) {
         self(sel);
         self(x);

@@ -3,9 +3,6 @@ declare description "Demonstrate competing variable-lowpass-filter effects on te
 
 declare name "vcfWahLab";
 
-// process = ol.sawtooth_demo : 
-//    el.crybaby_demo : el.moog_vcf_demo : el.wah4_demo : 
-//    fl.spectral_level_demo <: _,_;
 process = 
  vgroup("[1]", dm.sawtooth_demo) : 
  vgroup("[2]", dm.crybaby_demo) : 

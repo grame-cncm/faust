@@ -423,7 +423,6 @@ void Lateq::printHierarchy(const string& section, multimap<string, string>& fiel
  * @param[out]	docout		The LaTeX output file to print into.
  *
  * @see DocCompiler::generateSelect2
- * @see DocCompiler::generateSelect3
  * @see DocCompiler::generatePrefix
  */
 void Lateq::printMath(const string& section, list<string>& field, ostream& docout)

@@ -2756,7 +2756,7 @@ Value       := LoadVar (Address)
             | Cast (Type, Value)
             | Null ()
 
-Code rewritting :
+Code rewritting:
 
 For WSS:
 
@@ -2786,36 +2786,36 @@ Scalarisation (some ideas, possibly not correct or not complete...):
 4) rename loop variable into the Compute variable name
 5) extract code and put it in Compute, suppress Loop statements
 
-Vision des boucles (count, liste de vecteurs d'entrée, liste de vecteurs de sorties) différente du prototype externe
-compute(count, float**, float**) ou veut homogenéiser
-
-D'ou:
-
-DAG de boucles au format (count, liste de vecteurs d'entrée, liste de vecteurs de sorties)
-compute(count, float**, float**)
-
-1) générer le header qui prépare les tableaux d'entrée et de sortie séparés
-2) compiler les boucles
-
-Comment différencier les vecteurs sans retard (qu'on peut transformer en scalaire) des vecteurs avec retard ? Avec un
-nommage spécifique ?
-
-TODO : gestion des indices de boucles:
-
- - dans IndexedAddress, mettre un ValueInst à la place de fIndex, mettre à jour les visiteurs
-
- - dans InstructionsCompiler, générer des accès avec "LoadVar" (loop-index)
-
- - dans ForLoopInst, fName devient un "DeclareVarInst" (permet de nommer et d'initialiser l'indice), ajout d'une
-expression test, ajout de ValueInst fNext, calcul qui utilise fName.
-
- - nouveau type d'accès kLoop pour les variables de loop
-
- - lors des transformations sur les loops, Loop2FunctionBuider, SeqLoopBuilderVisitor, "désactiver" les statements qui
-manipulent les indices de la boucle ?? (pas besoin, ils n'apparaissent pas dans le corps de le boucle, par contre
-l'indice de la boucle est utilisé dans le corps de la boucle, il faut le faire correspondre au nouvel indice de boucle,
-renommage nécessaire ?)
-
- - utiliser le *même* nom d'index dans ForLoopInst et dans le code interne de la loop
-
+ Vision of the loops (count, list of input vectors, list of output vectors) different from the external prototype
+ compute(count, float**, float**) or want to homogenize.
+ 
+ Hence:
+ 
+ DAG of loops in the format (count, list of input vectors, list of output vectors)
+ compute(count, float**, float**)
+ 
+ 1) generate the header that prepares the separate input and output arrays
+ 2) compile the loops
+ 
+ How to differentiate vectors without delay (which can be transformed into a scalar) from vectors with delay? With a specific
+ specific naming?
+ 
+ TODO: management of loop indices
+ 
+ - in IndexedAddress, put a ValueInst instead of fIndex, update visitors
+ 
+ - in InstructionsCompiler, generate accesses with "LoadVar" (loop-index)
+ 
+ - in ForLoopInst, fName becomes a "DeclareVarInst" (allows to name and initialize the index), add a test expression,
+addition of ValueInst fNext, calculation using fName.
+ 
+ - new kLoop access type for loop variables
+ 
+ - when transforming loops, Loop2FunctionBuider, SeqLoopBuilderVisitor, "disable" statements that
+ manipulate the indices of the loop ? (no need, they don't appear in the loop body, but
+ the loop index is used in the loop body, it must be matched with the new loop index,
+ renaming necessary?)
+ 
+ - use the *same* index name in ForLoopInst and in the internal code of the loop
+ 
 */

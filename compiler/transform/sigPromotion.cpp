@@ -106,7 +106,7 @@ Tree SignalPromotion::transformation(Tree sig)
         }
     }
 
-    // Select2 and Select3
+    // Select2 (and Select3 expressed with Select2)
     else if (isSigSelect2(sig, sel, x, y)) {
         Type ts = getCertifiedSigType(sel);
         Type tx = getCertifiedSigType(x);

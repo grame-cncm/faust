@@ -36,22 +36,22 @@
 // Loop internal code
 
 /*
-
-On a des boucles indépendantes qui seront "connectées" avec des vecteurs
-
-On voudrait pouvoir connecter des boucles et supprimer les vecteurs intermédiaires.
-
-On part d'un DAG de loops, on veut pouvoir:
-
-- mettre ce DAG sur la forme d'une sequence de boucle (tri topologique)
-- "fusionner" toutes les boucles en une seule, donc en gros extraire le code des boucles et le fusionner
-
-Scalarisation d'une boucle:
-
-- identifier tous les vecteurs d'entrée et de sortie
-- transformer les vecteurs en scalaire
-- transformer les accès (Load/Store) en accès scalaire
-
+ 
+ We have independent loops that will be "connected" with vectors
+ 
+ We would like to be able to connect loops and remove the intermediate vectors.
+ 
+ We start from a DAG of loops, we want to be able to:
+ 
+ - put this DAG on the form of a sequence of loops (topological sorting)
+ - merge all the loops into one, so basically extract the loops code and merge it
+ 
+ Scalarization of a loop:
+ 
+ - identify all input and output vectors
+ - transform the vectors into scalars
+ - transform the accesses (Load/Store) into scalar accesses
+ 
 */
 
 class CodeLoop;

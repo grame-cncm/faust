@@ -18,23 +18,23 @@ import("stdfaust.lib");
 
 //------------------- low-frequency shelving cut (table 2.3) --------------------
 
-V0(g)			= pow(10,g/-20.0);
-K(fc) 			= tan(ma.PI*fc/ma.SR);
+V0(g)		= pow(10,g/-20.0);
+K(fc) 		= tan(ma.PI*fc/ma.SR);
 squ(x)		= x*x;
-denom(fc,g)		= 1 + sqrt(2*V0(g))*K(fc) + V0(g)*squ(K(fc));
+denom(fc,g)	= 1 + sqrt(2*V0(g))*K(fc) + V0(g)*squ(K(fc));
 
-lfcut(fc, g)	= fi.TF2((1 + sqrt(2)*K(fc) + squ(K(fc))) / denom(fc,g),
-						2 * (squ(K(fc)) - 1) / denom(fc,g),
-						(1 - sqrt(2)*K(fc) + squ(K(fc))) / denom(fc,g),
-						2 * (V0(g)*squ(K(fc)) - 1) / denom(fc,g),
-						(1 - sqrt(2*V0(g))*K(fc) + V0(g)*squ(K(fc))) / denom(fc,g));
+lfcut(fc, g) = fi.TF2((1 + sqrt(2)*K(fc) + squ(K(fc))) / denom(fc,g),
+					2 * (squ(K(fc)) - 1) / denom(fc,g),
+					(1 - sqrt(2)*K(fc) + squ(K(fc))) / denom(fc,g),
+					2 * (V0(g)*squ(K(fc)) - 1) / denom(fc,g),
+					(1 - sqrt(2*V0(g))*K(fc) + V0(g)*squ(K(fc))) / denom(fc,g));
 
 //------------------------------ User Interface -----------------------------------
 
-freq 			= hslider("freq [unit:Hz][style:knob]", 100, 20, 5000, 1);
-att				= hslider("attenuation [unit:dB][style:knob]", 0, -96, 10, 0.1);
+freq = hslider("freq [unit:Hz][style:knob]", 100, 20, 5000, 1);
+att	= hslider("attenuation [unit:dB][style:knob]", 0, -96, 10, 0.1);
 
 //----------------------------------- Process -------------------------------------
 
-process 		= vgroup("low-freq shelving cut", lfcut(freq,att));
+process = vgroup("low-freq shelving cut", lfcut(freq,att));
 

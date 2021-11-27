@@ -27,7 +27,6 @@ declare description "Generate chords using the quantizer functions";
 declare author "CesarChaussinand";
 declare license "MIT";
 
-
 import("stdfaust.lib");
 
 Nb = 3;

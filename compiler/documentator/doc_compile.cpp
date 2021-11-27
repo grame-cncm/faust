@@ -1005,7 +1005,7 @@ string DocCompiler::generateIota(Tree sig, Tree n)
     return subst(" t \\bmod{$0} ", docT(size));
 }
 
-// a revoir en utilisant la lecture de table et en partageant la construction de la paire de valeurs
+// to be reviewed using table reading and sharing the construction of the value pair
 
 /**
  * Generate a select2 code
@@ -1022,33 +1022,6 @@ string DocCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2, int pr
     ltqSelDef += "\\left\\{\\begin{array}{ll}\n";
     ltqSelDef += subst("$0 & \\mbox{if \\,} $1 = 0\\\\\n", exps1, expsel);
     ltqSelDef += subst("$0 & \\mbox{if \\,} $1 = 1\n", exps2, expsel);
-    ltqSelDef += "\\end{array}\\right.";
-
-    fLateq->addSelectSigFormula(ltqSelDef);
-    gGlobal->gDocNoticeFlagMap["selectionsigs"] = true;
-
-    // return generateCacheCode(sig, subst("$0(t)", var));
-    setVectorNameProperty(sig, var);
-    return subst("$0(t)", var);
-}
-
-/**
- * Generate a select3 code
- */
-string DocCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3, int priority)
-{
-    string var    = getFreshID("q");
-    string expsel = CS(sel, 0);
-    string exps1  = CS(s1, 0);
-    string exps2  = CS(s2, 0);
-    string exps3  = CS(s3, 0);
-
-    string ltqSelDef;
-    ltqSelDef += subst("$0(t) = \n", var);
-    ltqSelDef += "\\left\\{\\begin{array}{ll}\n";
-    ltqSelDef += subst("$0 & \\mbox{if \\,} $1 = 0\\\\\n", generateVariableStore(s1, exps1), expsel);
-    ltqSelDef += subst("$0 & \\mbox{if \\,} $1 = 1\\\\\n", generateVariableStore(s2, exps2), expsel);
-    ltqSelDef += subst("$0 & \\mbox{if \\,} $1 = 2\n", generateVariableStore(s3, exps3), expsel);
     ltqSelDef += "\\end{array}\\right.";
 
     fLateq->addSelectSigFormula(ltqSelDef);

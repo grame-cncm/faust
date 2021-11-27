@@ -84,7 +84,6 @@ struct sigvisitor {
 
     // Selectors
     virtual void visitSelect2(Tree sig, Tree sel, Tree s1, Tree s2)          = 0;
-    virtual void visitSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3) = 0;
 
     // Tuples
     virtual void visitTuple(Tree sig, int mod, Tree ls)        = 0;
@@ -172,13 +171,6 @@ struct fullvisitor : sigvisitor {
         visit(sel);
         visit(s1);
         visit(s2);
-    }
-    virtual void visitSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3)
-    {
-        visit(sel);
-        visit(s1);
-        visit(s2);
-        visit(s3);
     }
 
     // Tuples
