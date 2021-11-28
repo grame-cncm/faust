@@ -21,6 +21,7 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <algorithm>
 
 #include "global.hh"
 #include "old_occurences.hh"
