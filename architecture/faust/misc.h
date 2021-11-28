@@ -34,14 +34,6 @@
 
 #include "faust/gui/meta.h"
 
-using std::max;
-using std::min;
-
-struct XXXX_Meta : std::map<const char*, const char*>
-{
-    void declare(const char* key, const char* value) { (*this)[key] = value; }
-};
-
 struct MY_Meta : Meta, std::map<const char*, const char*>
 {
     void declare(const char* key, const char* value) { (*this)[key] = value; }

@@ -1,3 +1,25 @@
+/************************************************************************
+ ************************************************************************
+ FAUST Architecture File
+ Copyright (C) 2014-2016 Albert Graef <aggraef@gmail.com>
+ ---------------------------------------------------------------------
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as
+ published by the Free Software Foundation; either version 3 of the
+ License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public
+ License along with the GNU C Library; if not, write to the Free
+ Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+ 02111-1307 USA.
+ ************************************************************************
+ ************************************************************************/
+
 #ifndef FAUSTVSTQT_H
 #define FAUSTVSTQT_H
 
@@ -5,6 +27,7 @@
 #include <aeffeditor.h>
 #include <faust/gui/QTUI.h>
 
+class dsp;
 class VSTWrapper;
 #ifdef OSCCTRL
 class OSCUI;
@@ -18,7 +41,7 @@ class VSTQtGUI : public QObject, public AEffEditor {
 
   VSTWrapper* effect;
   QScrollArea* widget;
-  void *uidsp;
+  dsp* uidsp;
 #ifdef OSCCTRL
   OSCUI* oscinterface;
 #endif
@@ -43,9 +66,9 @@ public:
   // open(): opens the GUI
   virtual bool open(void *ptr);
   // getRect(): determines the size of the GUI
-  virtual bool getRect (ERect** rect);
+  virtual bool getRect(ERect** rect);
   // idle(): event processing is done here
-  virtual void idle ();
+  virtual void idle();
   // close(): closes the GUI
   virtual void close();
 

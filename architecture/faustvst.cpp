@@ -34,26 +34,29 @@
 #include <map>
 #include <set>
 
-// generic Faust dsp and UI classes
+// Generic Faust dsp and UI classes
 #include <faust/dsp/dsp.h>
 #include <faust/gui/UI.h>
+#include <faust/gui/MidiUI.h>
 
 using namespace std;
 
 typedef pair<const char*,const char*> strpair;
 
-struct Meta : std::map<const char*, const char*>
+struct MyMeta : Meta, std::map<const char*, const char*>
 {
     void declare(const char *key, const char *value)
     {
         (*this)[key] = value;
     }
+    
     const char* get(const char *key, const char *def)
     {
-        if (this->find(key) != this->end())
+        if (this->find(key) != this->end()) {
             return (*this)[key];
-        else
+        } else {
             return def;
+        }
     }
 };
 
@@ -538,26 +541,26 @@ static float ctrlval(const ui_elem_t &el, uint8_t v)
  more easily. */
 
 struct VSTPlugin {
-    const int maxvoices;	// maximum number of voices (zero if not an instrument)
-    const int ndsps;	// number of dsp instances (1 if maxvoices==0)
-    int nvoices;		// current number of voices (<= maxvoices)
-    bool active;		// activation status
-    bool modified;	// keep track of modified controls
-    int rate;		// sampling rate
-    mydsp **dsp;		// the dsps
-    VSTUI **ui;		// their Faust interface descriptions
-    int n_in, n_out;	// number of input and output control ports
-    int poly, tuning;	// polyphony and tuning ports
-    int *ctrls;		// Faust ui elements (indices into ui->elems)
-    float *ports;		// port data (plugin-side control values)
-    float *portvals;	// cached port data from the last run
-    float *midivals[16];	// per-channel midi data
-    int *inctrls, *outctrls;	// indices for active and passive controls
-    int freq, gain, gate;	// indices of voice controls
-    const char **units;	// unit names (control meta data)
-    unsigned n_samples;	// current block size
-    float **outbuf;	// audio buffers for mixing down the voices
-    float **inbuf;	// dummy input buffer used for retriggering notes
+    const int maxvoices;        // maximum number of voices (zero if not an instrument)
+    const int ndsps;            // number of dsp instances (1 if maxvoices==0)
+    int nvoices;                // current number of voices (<= maxvoices)
+    bool active;                // activation status
+    bool modified;              // keep track of modified controls
+    int rate;                   // sampling rate
+    mydsp **dsp;                // the dsps
+    VSTUI **ui;                 // their Faust interface descriptions
+    int n_in, n_out;            // number of input and output control ports
+    int poly, tuning;           // polyphony and tuning ports
+    int *ctrls;                 // Faust ui elements (indices into ui->elems)
+    float *ports;               // port data (plugin-side control values)
+    float *portvals;            // cached port data from the last run
+    float *midivals[16];        // per-channel midi data
+    int *inctrls, *outctrls;    // indices for active and passive controls
+    int freq, gain, gate;       // indices of voice controls
+    const char **units;         // unit names (control meta data)
+    unsigned n_samples;         // current block size
+    float **outbuf;             // audio buffers for mixing down the voices
+    float **inbuf;              // dummy input buffer used for retriggering notes
     std::map<uint8_t,int> ctrlmap; // MIDI controller map (control meta data)
     // Current RPN MSB and LSB numbers, as set with controllers 101 and 100.
     uint8_t rpn_msb[16], rpn_lsb[16];
@@ -570,10 +573,10 @@ struct VSTPlugin {
     // instantiating a plugin.
     
     // Global meta data (dsp name, author, etc.).
-    static Meta *meta;
+    static MyMeta *meta;
     static void init_meta()
     {
-        if (!meta && (meta = new Meta)) {
+        if (!meta && (meta = new MyMeta)) {
             // We allocate the temporary dsp object on the heap here, to prevent
             // large dsp objects from running out of stack in environments where
             // stack space is precious (e.g., Reaper). Note that if any of these
@@ -662,14 +665,12 @@ struct VSTPlugin {
     // becomes a simple audio effect instead.
     static int numVoices()
     {
-#ifdef NVOICES
-        return NVOICES;
-#else
-        const char *numVoices = meta_get("nvoices", "0");
-        int nvoices = atoi(numVoices);
-        if (nvoices < 0) nvoices = 0;
+        bool midi_sync = false;
+        int nvoices = 0;
+        mydsp* tmp_dsp = new mydsp();
+        MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
+        delete tmp_dsp;
         return nvoices;
-#endif
     }
     
     // The number of controls of the dsp. Some plugin interfaces need that
@@ -1639,7 +1640,7 @@ struct VSTPlugin {
     
 };
 
-Meta *VSTPlugin::meta = 0;
+MyMeta *VSTPlugin::meta = 0;
 int VSTPlugin::n_tunings = 0;
 #if FAUST_MTS
 MTSTunings *VSTPlugin::mts = 0;
@@ -1717,9 +1718,9 @@ public:
     // order than what we have in the Faust program. The mapping is computed in
     // the QTGUIWrapper class below, please see the comments there for details.
     
-    int n_params;		// number of param mapping entries
-    int *param_no;	// map Qt -> Faust control numbers
-    int *control_no;	// map Faust -> Qt control numbers
+    int n_params;      // number of param mapping entries
+    int *param_no;     // map Qt -> Faust control numbers
+    int *control_no;   // map Faust -> Qt control numbers
     
     int map_param(int i)
     {
@@ -3171,9 +3172,8 @@ void VSTQtGUI::close()
     qtinterface = NULL;
     delete widget;
     widget = NULL;
-    mydsp* dsp = (mydsp*)uidsp;
-    delete dsp;
-    dsp = NULL;
+    delete uidsp;
+    uidsp = NULL;
     controls.clear();
     passive_controls.clear();
     
