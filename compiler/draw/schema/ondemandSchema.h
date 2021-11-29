@@ -31,9 +31,11 @@
  */
 
 class ondemandSchema : public schema {
-    static const double fTopMargin;    // gap between the top and the top of the inside schema
-    static const double fHorMargin;    // left and right gap
-    static const double fBotMargin;    // gap between the bottom and the bottom of the inside schema
+    static const double fTopMargin;  // gap between the top and the top of the inside schema
+    static const double fHorMargin;  // left and right gap
+    static const double fBotMargin;  // gap between the bottom and the bottom of the inside schema
+    static const double fMinWidth;   // gap between the bottom and the bottom of the inside schema
+
     static const string fText;         // Test to display, tipically "ondemand"
     schema*             fSchema;       // the schema inside the on-demand box
     vector<point>       fInputPoint;   // input points
