@@ -29,7 +29,7 @@ using namespace std;
 const double ondemandSchema::fTopMargin(30);     // gap between the top and the top of the inside schema
 const double ondemandSchema::fHorMargin(10);     // left and right gap
 const double ondemandSchema::fBotMargin(10);     // gap between the bottom and the bottom of the inside schema
-const double ondemandSchema::fMinWidth(60);      // Minimal width of an ondemand block
+const double ondemandSchema::fMinWidth(50);      // Minimal width of an ondemand block
 const string ondemandSchema::fText("ondemand");  // Test to display, tipically "ondemand"
 
 /**
@@ -74,7 +74,7 @@ void ondemandSchema::place(double ox, double oy, int orientation)
 
         for (unsigned int i = 0; i < outputs(); i++) {
             point p         = fSchema->outputPoint(i);
-            fOutputPoint[i] = point(ox + width() - fHorMargin / 2, p.y);
+            fOutputPoint[i] = point(ox + width() + fHorMargin / 2, p.y);
         }
 
         endPlace();
@@ -167,11 +167,11 @@ void ondemandSchema::draw(device& dev)
 
     // draw clock label
     point p0 = fInputPoint[0];
-    // dev.label(p0.x - 32 - dx, p0.y, "CLOCK");  //
+    // dev.label(p0.x - 32 - dx, p0.y, "run");  //
     if (orientation() == kLeftRight) {
-        dev.label(p0.x + 2, p0.y, "clock");  //
+        dev.label(p0.x + 2, p0.y, "run");  //
     } else {
-        dev.label(p0.x - 22 - dx, p0.y, "clock");  //
+        dev.label(p0.x - 16 - dx, p0.y, "run");  //
     }
 }
 
