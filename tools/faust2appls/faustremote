@@ -3,7 +3,7 @@
 . usage.sh
 
 #USAGE : faustremote <servurl> ==> <targets>
-#USAGE : faustremote <servurl> <platform> <arch> <srcfile> ==> <binary.zip>
+#USAGE : faustremote [<servurl>] <platform> <arch> <srcfile> ==> <binary.zip>
 
 URL="34.76.156.75"
 

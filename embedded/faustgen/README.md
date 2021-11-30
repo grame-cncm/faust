@@ -61,7 +61,7 @@ When the object has bargraphs, their values are sent on the output messages outl
 
 #### MIDI messages
 
-MIDI messages can be received on the left most inlet when [MIDI  control is activated in the DSP code](https://faustdoc.grame.fr/manual/midi/) (so with the `[midi xxx]` metadata, or when polyphonic mode is used). 
+MIDI messages can be received on the left most inlet when [MIDI  control is activated in the DSP code](https://faustdoc.grame.fr/manual/midi/) (so with the `[midi xxx]` metadata, or when polyphonic mode is used) and will be sent on the right most outlet.
 
 ## How to compile
 
