@@ -5,7 +5,7 @@
 #                                                                   #
 #               Compiles Faust programs to Max6/7/8 externals       #
 #               using double precision samples                      #
-#               (c) Grame, 2012-2020                                #
+#               (c) Grame, 2012-2021                                #
 #                                                                   #
 #####################################################################
 
@@ -90,7 +90,7 @@ do
         echo "Compiles Faust programs to Max6 externals using double precision samples"
         option
         options -osc -midi -soundfile
-        option -soundfile-static "similar to -soundfile with resources in static mode."
+        option -soundfile-dynamic "similar to -soundfile, but using the installed libsndfile (so possibly using dynamic link)."
         option "-opt native|generic" "activates the best compilation options for the native or generic CPU."
         option "-nvoices <num>"
         option "-us <factor>"
@@ -124,11 +124,11 @@ do
     elif [ $p = "-universal" ]; then
         UNIVERSAL="-arch i386 -arch x86_64"
         echo "generate a 32/64 bits external"
-    elif [ $p = "-soundfile" ]; then
+    elif [ $p = "-soundfile-dynamic" ]; then
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE"
         SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
-    elif [ $p = "-soundfile-static" ]; then
+    elif [ $p = "-soundfile" ]; then
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE -I$FAUSTARCH/max-msp/sndfile"
         SFDIR=$FAUSTARCH/max-msp/sndfile

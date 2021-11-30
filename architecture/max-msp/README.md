@@ -54,8 +54,8 @@ Here are the available options:
   - `-universal` : to generate a 64/32 bits external
   - `-nopatch` : to deactivate patch generation
   - `-nopost` : to disable Faust messages to Max console
-  - `-soundfile` : when compiling DSP using 'soundfile' primitive, to add the needed resources (soundfiles) in the produced .mxo file 
-  - `-soundfile-static`: when compiling DSP using 'soundfile' primitive, to add the needed resources (soundfiles) in the produced .mxo file, and have the required libsndfile library statically linked
+  - `-soundfile`: when compiling DSP using 'soundfile' primitive, to add the needed resources (soundfiles) in the produced .mxo file, and have the required libsndfile library statically linked
+  - `-soundfile-dynamic` : when compiling DSP using 'soundfile' primitive, to add the needed resources (soundfiles) in the produced .mxo file, and use the installed libsndfile library (so possibly using dynamic link)
   - `-help or -h` : shows the different options 
  
 The *faust2msp* tools has to be used to create old Max5 compatible externals, the **faust2max6** tools has to be used starting with Max6. 
