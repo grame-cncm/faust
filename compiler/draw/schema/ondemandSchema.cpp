@@ -29,7 +29,7 @@ using namespace std;
 const double ondemandSchema::fTopMargin(30);     // gap between the top and the top of the inside schema
 const double ondemandSchema::fHorMargin(10);     // left and right gap
 const double ondemandSchema::fBotMargin(10);     // gap between the bottom and the bottom of the inside schema
-const double ondemandSchema::fMinWidth(60);      // gap between the bottom and the bottom of the inside schema
+const double ondemandSchema::fMinWidth(60);      // Minimal width of an ondemand block
 const string ondemandSchema::fText("ondemand");  // Test to display, tipically "ondemand"
 
 /**
@@ -59,12 +59,12 @@ ondemandSchema::ondemandSchema(schema* s)
  */
 void ondemandSchema::place(double ox, double oy, int orientation)
 {
+    double hmargin = (width() - fSchema->width()) / 2;
+
     if (orientation == kLeftRight) {
         beginPlace(ox, oy, orientation);
 
-        fSchema->place(ox + fHorMargin, oy + fTopMargin, orientation);
-
-        double m = fHorMargin;
+        fSchema->place(ox + hmargin, oy + fTopMargin, orientation);
 
         fInputPoint[0] = point(ox + fHorMargin / 2, oy + 2 * fTopMargin / 3);  // this is the clock entry
         for (unsigned int i = 1; i < inputs(); i++) {
@@ -74,17 +74,14 @@ void ondemandSchema::place(double ox, double oy, int orientation)
 
         for (unsigned int i = 0; i < outputs(); i++) {
             point p         = fSchema->outputPoint(i);
-            fOutputPoint[i] = point(p.x + m, p.y);
+            fOutputPoint[i] = point(ox + width() - fHorMargin / 2, p.y);
         }
 
         endPlace();
 
     } else {
         beginPlace(ox, oy, orientation);
-
-        fSchema->place(ox + width() - fHorMargin - fSchema->width(), oy + height() - fTopMargin - fSchema->height(), orientation);
-
-        double m = -fHorMargin;
+        fSchema->place(ox + hmargin, oy + fBotMargin, orientation);
 
         fInputPoint[0] = point(ox + width() - fHorMargin / 2, oy + height() - 2 * fTopMargin / 3);
         for (unsigned int i = 1; i < inputs(); i++) {
@@ -92,14 +89,9 @@ void ondemandSchema::place(double ox, double oy, int orientation)
             fInputPoint[i] = point(ox + width() - fHorMargin / 2, p.y);
         }
         for (unsigned int i = 0; i < outputs(); i++) {
-            point p = fSchema->outputPoint(i);
-            if (fSchema->width() < 10) {  // Adhoc !!
-                fOutputPoint[i] = point(p.x - width() + fHorMargin, p.y);
-            } else {
-                fOutputPoint[i] = point(p.x - fHorMargin - fHorMargin / 2, p.y);
-            }
+            point p         = fSchema->outputPoint(i);
+            fOutputPoint[i] = point(ox, p.y);
         }
-
         endPlace();
     }
 }
@@ -141,7 +133,7 @@ void ondemandSchema::draw(device& dev)
     double x1 = x() + width() - fHorMargin / 2;   // right
     double y1 = y() + height() - fHorMargin / 2;  // bottom
     // double tl = x0 + 2*dWire;					// left of text zone
-    double tl = x() + fHorMargin;  // left of text zone
+    // double tl = x() + fHorMargin;  // left of text zone
     // double tr = min(tl + tw, x1);  // right of text zone
 
     // draw the surronding frame
