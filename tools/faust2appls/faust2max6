@@ -25,6 +25,7 @@ EFFECT=""
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
+SOUNDFILEARCH="intel"
 OPT=""
 US="0"
 DS="0"
@@ -36,6 +37,11 @@ POST="-DPOST"
 # MAXSDK is declared in faustpath
 MAXINC=$MAXSDK/max-includes
 MSPINC=$MAXSDK/msp-includes
+
+# discover the machine architecture to select the appropriate libsndfile version 
+if [[ $(uname -p) == arm ]]; then
+    SOUNDFILEARCH="arm"
+fi
 
 JSFILE_PATH="ui.js"
 
@@ -132,7 +138,9 @@ do
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE -I$FAUSTARCH/max-msp/sndfile"
         SFDIR=$FAUSTARCH/max-msp/sndfile
-        SOUNDFILELIBS="$SFDIR/libFLAC.a $SFDIR/libogg.a $SFDIR/libsndfile.a $SFDIR/libvorbis.a $SFDIR/libvorbisenc.a"
+        #SOUNDFILELIBS="$SFDIR/libFLAC.a $SFDIR/libogg.a $SFDIR/libsndfile.a $SFDIR/libvorbis.a $SFDIR/libvorbisenc.a"
+        SOUNDFILELIBS="$SFDIR/$SOUNDFILEARCH/libsndfile.a"
+        echo "$SFDIR/$SOUNDFILEARCH/libsndfile.a"
     elif [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL"
         OSCLIBS="-lOSCFaust"
