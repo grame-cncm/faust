@@ -142,7 +142,7 @@ using namespace std;
 #define ASSIST_INLET 	1
 #define ASSIST_OUTLET 	2
 
-#define EXTERNAL_VERSION    "0.84"
+#define EXTERNAL_VERSION    "0.85"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -436,7 +436,7 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     if (bundle_path_str == "") {
         post("Bundle_path '%s' cannot be found!", meta3.fName.c_str());
     }
-    x->m_soundInterface = new SoundUI(bundle_path_str);
+    x->m_soundInterface = new SoundUI(bundle_path_str, -1, nullptr, sizeof(FAUSTFLOAT) == 8);
  #endif
     delete tmp_dsp;
     
