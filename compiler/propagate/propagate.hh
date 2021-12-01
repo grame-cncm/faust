@@ -41,4 +41,4 @@ using siglist = vector<Tree>;
 
 siglist makeSigInputList(int n);
 
-Tree boxPropagateSig(Tree path, Tree box, const siglist& lsig);
+Tree boxPropagateSig(Tree box, const siglist& lsig);

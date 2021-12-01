@@ -350,7 +350,7 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
             int n, m;
             getBoxType(re, &n, &m);
 
-            Tree lres = boxPropagateSig(gGlobal->nil, a2, lsig);
+            Tree lres = boxPropagateSig(a2, lsig);
             if (isList(lres) && isNil(tl(lres))) {
                 // cerr << "simplify 355" << endl;
                 Tree r = simplify(hd(lres));
@@ -597,9 +597,9 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
 
         if ((i1 == 0) & (o1 == 1) & (i2 == 0) & (o2 == 1) & (i3 == 0) & (o3 > 1) & ((o3 % 2) == 0)) {
             // we are in good shape
-            Tree ls1 = boxPropagateSig(gGlobal->nil, v1, makeSigInputList(0));
-            Tree ls2 = boxPropagateSig(gGlobal->nil, v2, makeSigInputList(0));
-            Tree lsr = boxPropagateSig(gGlobal->nil, vr, makeSigInputList(0));
+            Tree ls1 = boxPropagateSig(v1, makeSigInputList(0));
+            Tree ls2 = boxPropagateSig(v2, makeSigInputList(0));
+            Tree lsr = boxPropagateSig(vr, makeSigInputList(0));
 
             // all these lists should be list of constant numerical signals
             // that we need to convert back to box expressions
@@ -688,7 +688,7 @@ static bool isBoxNumeric(Tree in, Tree& out)
         v = a2sb(in);
         if (getBoxType(v, &numInputs, &numOutputs) && (numInputs == 0) && (numOutputs == 1)) {
             // potential numerical expression
-            Tree lsignals = boxPropagateSig(gGlobal->nil, v, makeSigInputList(numInputs));
+            Tree lsignals = boxPropagateSig(v, makeSigInputList(numInputs));
             // cerr << "simplify 658" << endl;
             Tree res = simplify(hd(lsignals));
             if (isSigReal(res, &x)) {
@@ -740,7 +740,7 @@ static double eval2double(Tree exp, Tree visited, Tree localValEnv)
         evalerror(yyfilename, yylineno, "not a constant expression of type : (0->1)", exp);
         return 1;
     } else {
-        Tree lsignals = boxPropagateSig(gGlobal->nil, diagram, makeSigInputList(numInputs));
+        Tree lsignals = boxPropagateSig(diagram, makeSigInputList(numInputs));
         // cerr << "simplify 710" << endl;
         Tree val = simplify(hd(lsignals));
         return tree2float(val);
@@ -769,7 +769,7 @@ static int eval2int(Tree exp, Tree visited, Tree localValEnv)
         evalerror(yyfilename, yylineno, "not a constant expression of type : (0->1)", exp);
         return 1;
     } else {
-        Tree lsignals = boxPropagateSig(gGlobal->nil, diagram, makeSigInputList(numInputs));
+        Tree lsignals = boxPropagateSig(diagram, makeSigInputList(numInputs));
         // cerr << "simplify 739" << endl;
         Tree val = simplify(hd(lsignals));
         return tree2int(val);
@@ -1462,7 +1462,7 @@ Tree numericBoxSimplification(Tree box)
             // propagate signals to discover if it simplifies to a number
             int    ii;
             double xx;
-            Tree   lsignals = boxPropagateSig(gGlobal->nil, box, makeSigInputList(0));
+            Tree   lsignals = boxPropagateSig(box, makeSigInputList(0));
             // cerr << "simplify 1389" << endl;
             Tree s = simplify(hd(lsignals));
 
