@@ -46,7 +46,7 @@ fi
 JSFILE_PATH="ui.js"
 
 createInfoPList() {
-	(
+    (
     echo '<?xml version="1.0" encoding="UTF-8"?>'
     echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
     echo '<plist version="1.0">'
@@ -54,7 +54,7 @@ createInfoPList() {
     echo '  <key>CFBundleDevelopmentRegion</key>'
     echo '  <string>English</string>'
     echo '  <key>CFBundleExecutable</key>'
-    echo "	<string>$1</string>"
+    echo "    <string>$1</string>"
     echo '  <key>CFBundleIconFile</key>'
     echo '  <string></string>'
     echo '  <key>CFBundleIdentifier</key>'
@@ -165,12 +165,12 @@ do
         CXXFLAGS="$CXXFLAGS -I $1"
         OPTIONS="$OPTIONS -A $1"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"       
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"       
+    fi
 
 shift
 
@@ -198,11 +198,11 @@ for p in $FILES; do
 
     CUR=$(pwd)
     f=$(basename "$p")
-	SRCDIR=$(dirname "$p")
+    SRCDIR=$(dirname "$p")
 
     # creates a temporary dir 
     TDR=$(mktemp -d faust.XXX)
-	TMP="$TDR/${f%.dsp}"
+    TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
 
     # discover best compilation options
@@ -234,7 +234,7 @@ for p in $FILES; do
         cd "$TMP"
         install -d "${f%.dsp}$EXT/Contents/MacOS"
         $CXX $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
-   	) > /dev/null || exit
+       ) > /dev/null || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
 

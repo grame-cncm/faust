@@ -28,21 +28,17 @@
 
 #ifdef WIN32
 #include <windows.h>
+#define kPSEP '\\'
 #else
 #include <libgen.h>
 #include <unistd.h>
 #define GetCurrentDir getcwd
+#define kPSEP '/'
 #endif
 
 #include "exepath.hh"
 
 using namespace std;
-
-#ifdef WIN32
-#define kPSEP '\\'
-#else
-#define kPSEP '/'
-#endif
 
 //-----------------------------------------------------------------
 // removes the exe name from a path (similar to dirname)
@@ -98,7 +94,7 @@ string exepath::resolvelink(const string& path)
 string exepath::get(const string& name)
 {
     char  buff[1024];
-    DWORD n = GetModuleFileNameA(0, buff, 1024);
+    DWORD n = GetModuleFileNameA(NULL, buff, 1024);
     return n ? dirup(buff) : "";
 }
 
