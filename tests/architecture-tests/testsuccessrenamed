@@ -4,7 +4,7 @@ PATH=../../build/bin:$PATH
 faust --version || exit $?
 echo location $(command -v faust)
 
-# detect the current system 
+# detect the current system
 system=$(uname -s)
 # normalizes MINGW versions
 system=$(echo $system | grep MINGW > /dev/null && echo MINGW || echo $system)
@@ -30,12 +30,12 @@ LINUXOSCHTTPD="faust2jaqt faust2netjackconsole faust2netjackqt faust2jackconsole
 
 ## test exclusion : notinlist "toto" "a b c d e"
 notinlist() {
-  for word in $2; do
-    if [ $word = $1 ]; then
-        return 1
-    fi
-  done
-  return 0
+    for word in $2; do
+        if [ $word = $1 ]; then
+            return 1
+        fi
+    done
+    return 0
 }
 
 echo "------------------------"
@@ -85,17 +85,17 @@ if [ "$system" = "Darwin" ]; then
             ($scriptname $RENAME -nvoices 8 -effect good.dsp -midi good.dsp >LOG 2>&1)&&(echo "OK: $scriptname $RENAME -nvoices 8 -effect good.dsp -midi succeeded !")||(echo "ERROR: $scriptname $RENAME -nvoices 8 -effect good.dsp -midi failed")
             rm -rf good
         done
-        
+
         for scriptname in $OSXSOUND; do
             ($scriptname $RENAME -soundfile -lang ocpp sound.dsp >LOG 2>&1)&&(echo "OK: $scriptname $RENAME -soundfile -lang ocpp succeeded !")||(echo "ERROR: $scriptname $RENAME -soundfile -lang ocpp failed")
             rm -rf good
         done
-        
+
         for scriptname in $OSXSOUND; do
             ($scriptname $RENAME -soundfile sound.dsp >LOG 2>&1)&&(echo "OK: $scriptname $RENAME -soundfile succeeded !")||(echo "ERROR: $scriptname $RENAME -soundfile failed")
             rm -rf good
         done
-        
+
         (faust2juce $RENAME -soundfile -standalone sound.dsp >LOG 2>&1)&&(echo "OK: faust2juce $RENAME -soundfile -standalone succeeded !")||(echo "ERROR: faust2juce $RENAME -soundfile -standalone failed")
         rm -rf good
 
@@ -171,9 +171,9 @@ elif [ "$system" = "Linux" ]; then
     ./waveform4 > waveform4.txt
     diff waveform4.txt waveform4_ref.txt && echo "OK: faust2dummymem waveform4.dsp succeeded !" || echo "ERROR: faust2dummy waveform4.dsp failed"
 
-	for scriptname in $LINUX; do
+    for scriptname in $LINUX; do
     	($scriptname good.dsp >LOG 2>&1)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
-	done
+    done
 
     for scriptname in $LINUXMIDI; do
         ($scriptname -midi good.dsp >LOG 2>&1)&&(echo "OK: $scriptname -midi succeeded !")||(echo "ERROR: $scriptname -midi failed")
@@ -202,16 +202,16 @@ elif [ "$system" = "Linux" ]; then
     (faust2api -android -nvoices 8 -effect effect.dsp -midi good.dsp >LOG 2>&1)&&(echo "OK: faust2api -android -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api -android -nvoices 8 -effect effect.dsp -midi failed")
 
 elif [ "$system" = "MINGW" ]; then
-	echo "not yet implemented"
+    echo "not yet implemented"
 
 else
-	echo
-	echo "Test all Faust2xxx to work"
-	echo
-	for S in ../../tools/faust2appls/faust2*; do
-		scriptname=`basename $S .in`
-		if notinlist  $S "$XLIST1"; then
-			($scriptname good.dsp >LOG 2>&1)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
-		fi
-	done
+    echo
+    echo "Test all Faust2xxx to work"
+    echo
+    for S in ../../tools/faust2appls/faust2*; do
+	scriptname=`basename $S .in`
+	if notinlist  $S "$XLIST1"; then
+	    ($scriptname good.dsp >LOG 2>&1)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
+	fi
+    done
 fi

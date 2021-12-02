@@ -43,4 +43,3 @@ done
 (faust2api -android -midi -nvoices 8 good.dsp >LOG 2>&1)&&(echo "OK: faust2api -android -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api -android -midi -nvoices 8 failed")
 
 (faust2api -android -nvoices 8 -effect effect.dsp -midi good.dsp >LOG 2>&1)&&(echo "OK: faust2api -android -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api -android -nvoices 8 -effect effect.dsp -midi failed")
-

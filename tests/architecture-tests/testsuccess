@@ -3,7 +3,7 @@
 faust --version || exit $?
 echo location $(command -v faust)
 
-# detect the current system 
+# detect the current system
 system=$(uname -s)
 # normalizes MINGW versions
 system=$(echo $system | grep MINGW > /dev/null && echo MINGW || echo $system)
@@ -31,12 +31,12 @@ LINUXOSCHTTPD="faust2jaqt faust2netjackconsole faust2netjackqt faust2jackconsole
 
 ## test exclusion : notinlist "toto" "a b c d e"
 notinlist() {
-  for word in $2; do
-    if [ $word = $1 ]; then
-        return 1
-    fi
-  done
-  return 0
+    for word in $2; do
+        if [ $word = $1 ]; then
+            return 1
+        fi
+    done
+    return 0
 }
 
 echo "------------------------"
@@ -55,7 +55,7 @@ if [ "$system" = "Darwin" ]; then
     echo "Test -osc $OSXOSC"
     echo "Test -osc -httpd $OSXOSCHTTPD"
     echo "Test -preset auto $OSXPRESET"
-  
+
     faust2dummy good.dsp > /dev/null
     ./good > good.txt
     diff good.txt good_ref.txt && echo "OK: faust2dummy good.dsp succeeded !" || echo "ERROR: faust2dummy good.dsp failed"
@@ -100,7 +100,7 @@ if [ "$system" = "Darwin" ]; then
         ($scriptname -nvoices 8 -effect good.dsp -midi good.dsp >LOG 2>&1) && (echo "OK: $scriptname -nvoices 8 -effect good.dsp -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -effect good.dsp -midi failed")
         rm -rf good
     done
-    
+
     for scriptname in $OSXSOUND; do
         ($scriptname -soundfile -lang ocpp sound.dsp >LOG 2>&1) && (echo "OK: $scriptname -soundfile -lang ocpp succeeded !")||(echo "ERROR: $scriptname -soundfile -lang ocpp failed")
         rm -rf good
@@ -108,20 +108,20 @@ if [ "$system" = "Darwin" ]; then
 
     # Remove sound folder
     rm -rf sound
-    
+
     for scriptname in $OSXSOUND; do
         ($scriptname -soundfile sound.dsp >LOG 2>&1) && (echo "OK: $scriptname -soundfile succeeded !")||(echo "ERROR: $scriptname -soundfile failed")
         rm -rf good
     done
-    
+
     # Remove sound folder
     rm -rf sound
-    
+
     for scriptname in $OSXSOUNDSR; do
         ($scriptname -soundfile -resample sound.dsp >LOG 2>&1) && (echo "OK: $scriptname -soundfile -resample succeeded !")||(echo "ERROR: $scriptname -soundfile -resample failed")
         rm -rf good
     done
-    
+
     (faust2juce -soundfile -standalone sound.dsp >LOG 2>&1) && (echo "OK: faust2juce -soundfile -standalone succeeded !")||(echo "ERROR: faust2juce -soundfile -standalone failed")
     rm -rf good
 
@@ -139,14 +139,14 @@ if [ "$system" = "Darwin" ]; then
         ($scriptname -osc -httpd good.dsp >LOG 2>&1) && (echo "OK: $scriptname -osc -httpd succeeded !")||(echo "ERROR: $scriptname -osc -httpd failed")
         rm -rf good
     done
-    
+
     for scriptname in $OSXPRESET; do
         ($scriptname -preset auto good.dsp >LOG 2>&1) && (echo "OK: $scriptname -preset auto succeeded !")||(echo "ERROR: $scriptname -preset auto failed")
         rm -rf good
     done
-    
+
     (faust2api -jack good.dsp >LOG 2>&1 && unzip dsp-faust.zip && cd dsp-faust && c++ -std=c++11 DspFaust.cpp -DBUILD -ljack -o DspFaust) && (echo "OK: faust2api -jack succeeded !")||(echo "ERROR: faust2api -jack failed")
-    
+
     (faust2api -jack -midi -nvoices 8 good.dsp >LOG 2>&1) && (echo "OK: faust2api -jack -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api -jack -midi -nvoices 8 failed")
 
     (faust2api -jack -nvoices 8 -effect effect.dsp -midi good.dsp >LOG 2>&1) && (echo "OK: faust2api -jack -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api -jack -nvoices 8 -effect effect.dsp -midi failed")
@@ -155,16 +155,16 @@ if [ "$system" = "Darwin" ]; then
 
     (faust2nodejs -coreaudio good.dsp >LOG 2>&1) && (echo "OK: faust2nodejs -coreaudio succeeded !")||(echo "ERROR: faust2nodejs -coreaudio failed")
     rm -rf good-faustnode
-    
+
     (faust2nodejs -coreaudio -midi good.dsp >LOG 2>&1) && (echo "OK: faust2nodejs -coreaudio -midi succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -midi failed")
     rm -rf good-faustnode
-    
+
     (faust2nodejs -coreaudio -midi -nvoices 8 good.dsp >LOG 2>&1) && (echo "OK: faust2nodejs -coreaudio -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -midi -nvoices 8 failed")
     rm -rf good-faustnode
-    
+
     (faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi good.dsp >LOG 2>&1) && (echo "OK: faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi failed")
     rm -rf good-faustnode
-    
+
     (faust2smartkeyb -android good.dsp >LOG 2>&1) && (echo "OK: faust2smartkeyb -android succeeded !")||(echo "ERROR: faust2smartkeyb -android failed")
 
     (faust2smartkeyb -android -nvoices 8 good.dsp >LOG 2>&1) && (echo "OK: faust2smartkeyb -android -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -android -midi -nvoices 8 failed")
