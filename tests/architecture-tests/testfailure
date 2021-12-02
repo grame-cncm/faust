@@ -15,7 +15,7 @@ notinlist() {
 }
 
 PATH=../../build/bin:$PATH
-faust --version
+faust --version || exit $?
 echo location $(command -v faust)
 
 ######################################################
