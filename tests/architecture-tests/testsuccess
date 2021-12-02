@@ -8,27 +8,38 @@ system=$(uname -s)
 # normalizes MINGW versions
 system=$(echo $system | grep MINGW > /dev/null && echo MINGW || echo $system)
 
+
+if echo "${VERBOSE}" | grep -iE "1|on|yes|true"; then
+    verbose=/dev/stdout
+else
+    verbose=/dev/null
+fi
+
+## manual exclusion list
+: ${TESTS_EXCLUDED:=}
 ## exclusion list for faust errors
-XLIST1="faust2md"
+: ${XLIST1:="faust2md"}
 
-OSXSOUND="faust2cagtk faust2android faust2caqt faust2jaqt faust2jack faust2ios faust2max6 faust2msp faust2jackconsole faust2juce faust2bela"
-OSXSOUNDSR="faust2cagtk faust2caqt faust2jaqt faust2jack"
-OSX="faust2soul faust2vcvrack faust2cagtk faust2android faust2au faust2caqt faust2csound faust2faustvst faust2jack faust2jaqt faust2w32max6 faust2w64max6 faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2w32vst faust2w64vst faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole faust2lv2 faust2sndfile faust2csvplot faust2plot"
-OSXMIDI="faust2soul faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole"
-OSXPOLY="faust2soul faust2vcvrack faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole faust2lv2"
-OSXPOLYMIDI="faust2soul faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole"
-OSXPOLY2MIDI="faust2soul faust2cagtk faust2caqt faust2ios faust2max6 faust2msp faust2juce faust2netjackconsole faust2netjackqt"
-OSXHTTPD="faust2cagtk faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole"
-OSXOSC="faust2cagtk faust2ios faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole faust2max6 faust2msp faust2android"
-OSXOSCHTTPD="faust2cagtk faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole"
-OSXPRESET="faust2cagtk faust2caqt faust2jack faust2jaqt"
 
-LINUX="faust2alqt faust2alsa faust2alsaconsole faust2android faust2asmjs faust2bela faust2csound faust2dssi faust2eps faust2faustvst faust2firefox faust2graph faust2graphviewer faust2jack faust2jackinternal faust2jackserver faust2jaqt faust2ladspa faust2lv2 faust2mathdoc  faust2md  faust2netjackconsole faust2netjackqt faust2octave faust2owl faust2paqt faust2pdf faust2plot faust2png faust2puredata faust2raqt faust2ros faust2rosgtk faust2rpialsaconsole faust2rpinetjackconsole faust2sig faust2sigviewer faust2supercollider faust2svg faust2w32max6 faust2w32msp faust2w32puredata faust2w32vst faust2w64vst faust2netjackconsole faust2netjackqt faust2jackconsole"
-LINUXMIDI="faust2jaqt faust2netjackconsole faust2netjackqt faust2jackconsole"
-LINUXPOLY="faust2jaqt faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole"
-LINUXPOLYMIDI="faust2jaqt faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole"
-LINUXOSCHTTPD="faust2jaqt faust2netjackconsole faust2netjackqt faust2jackconsole"
-
+if [ "$system" = "Darwin" ]; then
+    : ${TESTS:=faust2soul faust2vcvrack faust2cagtk faust2android faust2au faust2caqt faust2csound faust2faustvst faust2jack faust2jaqt faust2w32max6 faust2w64max6 faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2w32vst faust2w64vst faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole faust2lv2 faust2sndfile faust2csvplot faust2plot}
+    : ${TESTS_SOUND:=faust2cagtk faust2android faust2caqt faust2jaqt faust2jack faust2ios faust2max6 faust2msp faust2jackconsole faust2juce faust2bela}
+    : ${TESTS_SOUNDSR:=faust2cagtk faust2caqt faust2jaqt faust2jack}
+    : ${TESTS_MIDI:=faust2soul faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole}
+    : ${TESTS_POLY:=faust2soul faust2vcvrack faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole faust2lv2}
+    : ${TESTS_POLYMIDI:=faust2soul faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole}
+    : ${TESTS_POLY2MIDI:=faust2soul faust2cagtk faust2caqt faust2ios faust2max6 faust2msp faust2juce faust2netjackconsole faust2netjackqt}
+    : ${TESTS_HTTPD:=faust2cagtk faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole}
+    : ${TESTS_OSC:=faust2cagtk faust2ios faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole faust2max6 faust2msp faust2android}
+    : ${TESTS_OSCHTTPD:=faust2cagtk faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole}
+    : ${TESTS_PRESET:=faust2cagtk faust2caqt faust2jack faust2jaqt}
+elif [ "$system" = "Linux" ]; then
+    : ${TESTS:=faust2alqt faust2alsa faust2alsaconsole faust2android faust2asmjs faust2bela faust2csound faust2dssi faust2eps faust2faustvst faust2firefox faust2graph faust2graphviewer faust2jack faust2jackinternal faust2jackserver faust2jaqt faust2ladspa faust2lv2 faust2mathdoc  faust2md  faust2netjackconsole faust2netjackqt faust2octave faust2owl faust2paqt faust2pdf faust2plot faust2png faust2puredata faust2raqt faust2ros faust2rosgtk faust2rpialsaconsole faust2rpinetjackconsole faust2sig faust2sigviewer faust2supercollider faust2svg faust2w32max6 faust2w32msp faust2w32puredata faust2w32vst faust2w64vst faust2netjackconsole faust2netjackqt faust2jackconsole}
+    : ${TESTS_MIDI:=faust2jaqt faust2netjackconsole faust2netjackqt faust2jackconsole}
+    : ${TESTS_POLY:=faust2jaqt faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole}
+    : ${TESTS_POLYMIDI:=faust2jaqt faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole}
+    : ${TESTS_OSCHTTPD:=faust2jaqt faust2netjackconsole faust2netjackqt faust2jackconsole}
+fi
 ## test exclusion : notinlist "toto" "a b c d e"
 notinlist() {
     for word in $2; do
@@ -38,19 +49,26 @@ notinlist() {
     done
     return 0
 }
+## get all the items that are in list A but not in list B
+##  listexclude $A $B $B
+listexclude() {
+    for w in "$@"; do
+        echo $w
+    done | sort | uniq -u
+}
 runtest() {
     # usage: runtest <logfile> <cmd> <arg1> ...
     local logfile=$1
     shift
-    ("$@" >"${logfile}" 2>&1) && echo "OK: '$@' succeeded!" || echo "ERROR: '$@' failed"
-    rm -rf good good-faustnode
+    ("$@" >"${logfile}" 2>&1) && echo "OK: '$@' succeeded!" || (cat "${logfile}" >${verbose}; echo "ERROR: '$@' failed")
+    rm -rf good good-faustnode sound
 }
 runtestfail() {
     # usage: runtestfail <logfile> <cmd> <arg1> ...
     local logfile=$1
     shift
     ("$@" >"${logfile}" 2>&1) && echo "ERROR: '$@' shouldn't have succeeded!" || echo "OK: '$@' correctly failed"
-    rm -rf good good-faustnode
+    rm -rf good good-faustnode sound
 }
 runtestref() {
     # usage: runtestref <logfile> <name> <refbasename> <cmd> <arg1>...
@@ -62,168 +80,159 @@ runtestref() {
 
     if ("$@" >"${logfile}" 2>&1); then
         "./${name}" > "${resultfile}"
-        diff "${resultfile}" "${referencefile}" && echo "OK: '$@' succeeded!" || echo "ERROR: '$@' failed (mismatched output)"
+
+        diff "${resultfile}" "${referencefile}" >${verbose} && echo "OK: '$@' succeeded!" || (cat "${logfile}" >${verbose}; echo "ERROR: '$@' failed (mismatched output)")
     else
+        cat "${logfile}" >${verbose}
         echo "ERROR: '$@' failed"
     fi
     rm -f "${resultfile}"
     rm -rf "${name}"
 }
 
+if [ "$system" = "MINGW" ]; then
+    echo "not yet implemented"
+    exit 1
+fi
+
 echo "------------------------"
 echo Run tests for $system
 echo "------------------------"
 
-if [ "$system" = "Darwin" ]; then
-    echo "Test $OSX"
-    echo "Test -midi $OSXMIDI"
-    echo "Test -nvoices 8 $OSXPOLY"
-    echo "Test -nvoices 8 -midi $OSXPOLYMIDI"
-    echo "Test -nvoices 8 -effect <foo.dsp> -midi $OSXPOLY2MIDI"
-    echo "Test -soundfile $OSXSOUND"
-    echo "Test -soundfile -resample $OSXSOUNDSR"
-    echo "Test -httpd $OSXHTTPD"
-    echo "Test -osc $OSXOSC"
-    echo "Test -osc -httpd $OSXOSCHTTPD"
-    echo "Test -preset auto $OSXPRESET"
+if [ "x${TESTS}" != "x" ]; then
+    TESTS=$(listexclude ${TESTS} ${TESTS_EXCLUDED} ${TESTS_EXCLUDED})
+    TESTS_SOUND=$(listexclude ${TESTS_SOUND} ${TESTS_EXCLUDED} ${TESTS_EXCLUDED})
+    TESTS_SOUNDSR=$(listexclude ${TESTS_SOUNDSR} ${TESTS_EXCLUDED} ${TESTS_EXCLUDED})
+    TESTS_MIDI=$(listexclude ${TESTS_MIDI} ${TESTS_EXCLUDED} ${TESTS_EXCLUDED})
+    TESTS_POLY=$(listexclude ${TESTS_POLY} ${TESTS_EXCLUDED} ${TESTS_EXCLUDED})
+    TESTS_POLYMIDI=$(listexclude ${TESTS_POLYMIDI} ${TESTS_EXCLUDED} ${TESTS_EXCLUDED})
+    TESTS_POLY2MIDI=$(listexclude ${TESTS_POLY2MIDI} ${TESTS_EXCLUDED} ${TESTS_EXCLUDED})
+    TESTS_HTTPD=$(listexclude ${TESTS_HTTPD} ${TESTS_EXCLUDED} ${TESTS_EXCLUDED})
+    TESTS_OSC=$(listexclude ${TESTS_OSC} ${TESTS_EXCLUDED} ${TESTS_EXCLUDED})
+    TESTS_OSCHTTPD=$(listexclude ${TESTS_OSCHTTPD} ${TESTS_EXCLUDED} ${TESTS_EXCLUDED})
+    TESTS_PRESET=$(listexclude ${TESTS_PRESET} ${TESTS_EXCLUDED} ${TESTS_EXCLUDED})
 
-    runtestref LOG good good faust2dummy good.dsp
-    runtestref LOG good_midi good_midi faust2dummy -midi good.dsp
-    runtestref LOG organ organ_2voices faust2dummy -midi -nvoices 2 organ.dsp
-    runtestref LOG organ organ_8voices faust2dummy -midi organ.dsp > /dev/null
-    runtestref LOG waveform4 waveform4 faust2dummymem waveform4.dsp
+    echo "Test:" ${TESTS:---}
+    echo "Test '-midi':" ${TESTS_MIDI:---}
+    echo "Test '-nvoices 8':" ${TESTS_POLY:---}
+    echo "Test '-nvoices 8 -midi':" ${TESTS_POLYMIDI:---}
+    echo "Test '-nvoices 8 -effect <foo.dsp> -midi':" ${TESTS_POLY2MIDI:---}
+    echo "Test '-soundfile':" ${TESTS_SOUND:---}
+    echo "Test '-soundfile -resample':" ${TESTS_SOUNDSR:---}
+    echo "Test '-httpd':" ${TESTS_HTTPD:---}
+    echo "Test '-osc':" ${TESTS_OSC:---}
+    echo "Test '-osc -httpd':" ${TESTS_OSCHTTPD:---}
+    echo "Test '-preset auto':" ${TESTS_PRESET:---}
 
-    for scriptname in $OSX; do
+    if ! notinlist faust2dummy "${TESTS_EXCLUDED}"; then
+        runtestref LOG good good faust2dummy good.dsp
+        runtestref LOG good_midi good_midi faust2dummy -midi good.dsp
+        runtestref LOG organ organ_2voices faust2dummy -midi -nvoices 2 organ.dsp
+        runtestref LOG organ organ_8voices faust2dummy -midi organ.dsp
+    fi
+    if ! notinlist faust2dummymem "${TESTS_EXCLUDED}"; then
+        runtestref LOG waveform4 waveform4 faust2dummymem waveform4.dsp
+    fi
+
+    for scriptname in $TESTS; do
         runtest LOG "${scriptname}" good.dsp
     done
 
-    for scriptname in $OSXMIDI; do
+    for scriptname in $TESTS_MIDI; do
         runtest LOG "${scriptname}" -midi good.dsp
     done
 
-    for scriptname in $OSXPOLY; do
+    for scriptname in $TESTS_POLY; do
         runtest LOG "${scriptname}" -nvoices 8 good.dsp
     done
 
-    for scriptname in $OSXPOLYMIDI; do
+    for scriptname in $TESTS_POLYMIDI; do
         runtest LOG "${scriptname}" -nvoices 8 -midi good.dsp
     done
 
-    for scriptname in $OSXPOLY2MIDI; do
+    for scriptname in $TESTS_POLY2MIDI; do
         runtest LOG "${scriptname}" -nvoices 8 -effect good.dsp -midi good.dsp
     done
 
-    for scriptname in $OSXSOUND; do
+    for scriptname in $TESTS_SOUND; do
         runtest LOG "${scriptname}" -soundfile -lang ocpp sound.dsp
     done
 
-    # Remove sound folder
-    rm -rf sound
-
-    for scriptname in $OSXSOUND; do
+    for scriptname in $TESTS_SOUND; do
         runtest LOG "${scriptname}" -soundfile sound.dsp
     done
 
-    # Remove sound folder
-    rm -rf sound
-
-    for scriptname in $OSXSOUNDSR; do
+    for scriptname in $TESTS_SOUNDSR; do
         runtest LOG "${scriptname}" -soundfile -resample sound.dsp
     done
 
     runtest LOG faust2juce -soundfile -standalone sound.dsp
 
-    for scriptname in $OSXHTTPD; do
+    for scriptname in $TESTS_HTTPD; do
         runtest LOG "${scriptname}" -httpd good.dsp
     done
 
-    for scriptname in $OSXOSC; do
+    for scriptname in $TESTS_OSC; do
         runtest LOG "${scriptname}" -osc good.dsp
     done
 
-    for scriptname in $OSXOSCHTTPD; do
+    for scriptname in $TESTS_OSCHTTPD; do
         runtest LOG "${scriptname}" -osc -httpd good.dsp
     done
 
-    for scriptname in $OSXPRESET; do
+    for scriptname in $TESTS_PRESET; do
         runtest LOG "${scriptname}" -preset auto good.dsp
     done
 
-    (faust2api -jack good.dsp >LOG 2>&1 && unzip dsp-faust.zip && cd dsp-faust && c++ -std=c++11 DspFaust.cpp -DBUILD -ljack -o DspFaust) && (echo "OK: faust2api -jack succeeded !")||(echo "ERROR: faust2api -jack failed")
+    if ! notinlist faust2api "${TESTS_EXCLUDED}"; then
+        (faust2api -jack good.dsp >LOG 2>&1 && unzip dsp-faust.zip && cd dsp-faust && c++ -std=c++11 DspFaust.cpp -DBUILD -ljack -o DspFaust) && (echo "OK: faust2api -jack succeeded !")||(echo "ERROR: faust2api -jack failed")
+        runtest LOG faust2api -jack -midi -nvoices 8 good.dsp
+        runtest LOG faust2api -jack -nvoices 8 -effect effect.dsp -midi good.dsp
+        runtest LOG faust2api -jack -soundfile -lang ocpp sound.dsp
 
-    runtest LOG faust2api -jack -midi -nvoices 8 good.dsp
-    runtest LOG faust2api -jack -nvoices 8 -effect effect.dsp -midi good.dsp
-    runtest LOG faust2api -jack -soundfile -lang ocpp sound.dsp
+        # linux only?
+        if [ "$system" = "Linux" ]; then
+            runtest LOG faust2api -android good.dsp
+            runtest LOG faust2api -android -midi good.dsp
+            runtest LOG faust2api -android -midi -nvoices 8 good.dsp
+            runtest LOG faust2api -android -nvoices 8 -effect effect.dsp -midi good.dsp
+        fi
+    fi
+    if ! notinlist faustnodejs "${TESTS_EXCLUDED}"; then
+        if [ "$system" = "Darwin" ]; then
+            runtest LOG faust2nodejs -coreaudio good.dsp
+            runtest LOG faust2nodejs -coreaudio -midi good.dsp
+            runtest LOG faust2nodejs -coreaudio -midi -nvoices 8 good.dsp
+            runtest LOG faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi good.dsp
+        fi
+    fi
 
-    runtest LOG faust2nodejs -coreaudio good.dsp
-    runtest LOG faust2nodejs -coreaudio -midi good.dsp
-    runtest LOG faust2nodejs -coreaudio -midi -nvoices 8 good.dsp
-    runtest LOG faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi good.dsp
+    if ! notinlist faust2smartkeyb "${TESTS_EXCLUDED}"; then
+        if [ "$system" = "Darwin" ]; then
+            runtest LOG faust2smartkeyb -android good.dsp
+            runtest LOG faust2smartkeyb -android -nvoices 8 good.dsp
+            runtest LOG faust2smartkeyb -android -effect effect.dsp -nvoices 8 good.dsp
 
-    runtest LOG faust2smartkeyb -android good.dsp
-    runtest LOG faust2smartkeyb -android -nvoices 8 good.dsp
-    runtest LOG faust2smartkeyb -android -effect effect.dsp -nvoices 8 good.dsp
-    runtest LOG faust2smartkeyb -ios good.dsp
-    runtest LOG faust2smartkeyb -ios -osc good.dsp
-    runtest LOG faust2smartkeyb -ios -osc -nvoices 8 good.dsp
-    runtest LOG faust2smartkeyb -ios -effect effect.dsp -nvoices 8 good.dsp
+            runtest LOG faust2smartkeyb -ios good.dsp
+            runtest LOG faust2smartkeyb -ios -osc good.dsp
+            runtest LOG faust2smartkeyb -ios -osc -nvoices 8 good.dsp
+            runtest LOG faust2smartkeyb -ios -effect effect.dsp -nvoices 8 good.dsp
+        fi
+    fi
 
     # Test of -exp10
-    (faust2jack -exp10 exp10.dsp) &&(echo "OK: faust2jack -exp10 succeeded !")||(echo "ERROR: faust2jack -exp10 failed")
+    if ! notinlist faust2jack "${TESTS_EXCLUDED}"; then
+        runtest LOG faust2jack -exp10 exp10.dsp
+    fi
 
-    (faust2android -exp10 exp10.dsp) && (echo "WARNING: faust2android -exp10 succeeded ?")||(echo "OK: faust2android -exp10 correctly failed !")
-
-elif [ "$system" = "Linux" ]; then
-    echo "Test $LINUX"
-    echo "Test -midi $LINUXMIDI"
-    echo "Test -nvoices 8 $LINUXPOLY"
-    echo "Test -nvoices 8 -midi $LINUXPOLYMIDI"
-    echo "Test -osc -httpd $LINUXOSCHTTPD"
-
-    runtestref LOG good good faust2dummy good.dsp
-    runtestref LOG good good faust2dummy -midi good.dsp
-    runtestref LOG organ organ_2voices faust2dummy -midi -nvoices 2 organ.dsp
-    runtestref LOG organ organ_8voices faust2dummy -midi organ.dsp
-    runtestref LOG waveform4 waveform4 faust2dummymem waveform4.dsp
-
-    for scriptname in $LINUX; do
-        runtest LOG "${scriptname}" good.dsp
-    done
-
-    for scriptname in $LINUXMIDI; do
-        runtest LOG "${scriptname}" -midi good.dsp
-    done
-
-    for scriptname in $LINUXPOLY; do
-        runtest LOG "${scriptname}" -nvoices 8 good.dsp
-    done
-
-    for scriptname in $LINUXPOLYMIDI; do
-        runtest LOG "${scriptname}" -nvoices 8 -midi good.dsp
-    done
-
-    for scriptname in $LINUXOSCHTTPD; do
-        runtest LOG "${scriptname}" -osc -httpd good.dsp
-    done
-
-    (faust2api -jack good.dsp >LOG 2>&1 && unzip dsp-faust.zip && cd dsp-faust && c++ -std=c++11 DspFaust.cpp -DBUILD -ljack -o DspFaust) && (echo "OK: faust2api -jack succeeded !")||(echo "ERROR: faust2api -jack failed")
-
-    runtest LOG faust2api -android good.dsp
-    runtest LOG faust2api -android -midi good.dsp
-    runtest LOG faust2api -android -midi -nvoices 8 good.dsp
-    runtest LOG faust2api -android -nvoices 8 -effect effect.dsp -midi good.dsp
-
-elif [ "$system" = "MINGW" ]; then
-    echo "not yet implemented"
-
-else
+    if ! notinlist faust2android "${TESTS_EXCLUDED}"; then
+        runtestfail faust2android -exp10 exp10.dsp
+    fi
+else # TESTS is empty
     echo
     echo "Test all Faust2xxx to work"
     echo
-    for S in ../../tools/faust2appls/faust2*; do
-        scriptname=$(basename $S .in)
-        if notinlist  $S "$XLIST1"; then
-            runtest LOG "${scriptname}" good.dsp
-        fi
+    for scriptname in $(listexclude $(for S in ../../tools/faust2appls/faust2*; do echo $(basename "$S" .in); done) ${XLIST1} ${XLIST1} ${TESTS_EXCLUDED} ${TESTS_EXCLUDED}); do
+        runtest LOG "${scriptname}" good.dsp
     done
 fi
