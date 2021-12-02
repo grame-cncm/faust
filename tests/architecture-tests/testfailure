@@ -28,7 +28,7 @@ echo
 echo "Check Faust errors are correctly detected/reported"
 echo
 for S in ../../tools/faust2appls/faust2*; do
-    scriptname=`basename $S .in`
+    scriptname=$(basename $S .in)
     if notinlist $scriptname "$XLIST1"; then
 	    ($scriptname badfaust.dsp >LOG 2>&1)&&(echo "ERROR $scriptname shouldnt have succeeded !")||(echo "OK $scriptname correctly failed")
 	fi
@@ -38,7 +38,7 @@ echo
 echo "Check C++ errors are correctly detected/reported"
 echo
 for S in ../../tools/faust2appls/faust2*; do
-    scriptname=`basename $S .in`
+    scriptname=$(basename $S .in)
     if notinlist $scriptname "$XLIST2"; then
 	    ($scriptname badcpp.dsp >LOG 2>&1)&&(echo "ERROR $scriptname shouldnt have succeeded !")||(echo "OK $scriptname correctly failed")
 	fi
