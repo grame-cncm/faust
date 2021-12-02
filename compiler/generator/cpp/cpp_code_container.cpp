@@ -37,7 +37,7 @@ using namespace std;
         - subcontainers are merged in the main class
         - CPPScalarOneSampleCodeContainer1 (used in -os0) separates the DSP control state in iControl and fControl (possibly to be allocated elsewhere)
         - CPPScalarOneSampleCodeContainer2 (used in -os1) separates the DSP control state in iControl and fControl and the DSP state in iZone and fZone (possibly to be allocated elsewhere)
-        - CPPScalarOneSampleCodeContainer3 (used in -os2) separates the DSP control state in iControl and fControl and the DSP state in iZone and fZone (possibly to be allocated elsewhere). Short delay lines remain in DSP struct, long delay lines are moved in iZone/fZone. Const variables are always moved as MemoryDesc::kExternal, see StructInstVisitor1
+        - CPPScalarOneSampleCodeContainer3 (used in -os2) separates the DSP control state in iControl and fControl and the DSP state in iZone and fZone (possibly to be allocated elsewhere). Short delay lines remain in DSP struct, long delay lines are moved in iZone/fZone
  */
 
 map<string, bool> CPPInstVisitor::gFunctionSymbolTable;

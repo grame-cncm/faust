@@ -596,10 +596,7 @@ class CInstVisitor2 : public CInstVisitor {
                 } else {
                     *fOut << "fZone[" << fStructVisitor.getFieldRealOffset(named->fName)/ifloatsize();
                 }
-                // Const variables are always moved as MemoryDesc::kExternal, see StructInstVisitor1
-                if (startWith(named->getName(), "fConst") || startWith(named->getName(), "iConst") || !fIndexedAddress) {
-                    *fOut << "]";
-                }
+                if (!fIndexedAddress) { *fOut << "]"; }
             } else {
                 fZoneAddress = false;
                 if (named->getAccess() & Address::kStruct) {
