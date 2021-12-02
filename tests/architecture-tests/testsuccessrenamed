@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 PATH=../../build/bin:$PATH
 faust --version
@@ -55,26 +55,26 @@ if [ "$system" = "Darwin" ]; then
 
     for scriptname in $OSX; do
         for RENAME in "" "-cn Bidule" "-cn Bidule -scn Machin"; do
-            ($scriptname $RENAME good.dsp &> LOG)&&(echo "OK: $scriptname $RENAME succeeded !")||(echo "ERROR: $scriptname $RENAME failed")
+            ($scriptname $RENAME good.dsp >LOG 2>&1)&&(echo "OK: $scriptname $RENAME succeeded !")||(echo "ERROR: $scriptname $RENAME failed")
         done
     done
 
     for scriptname in $OSXMIDI; do
         for RENAME in "" "-cn Bidule" "-cn Bidule -scn Machin"; do
-            ($scriptname $RENAME -midi good.dsp &> LOG)&&(echo "OK: $scriptname $RENAME  -midi succeeded !")||(echo "ERROR: $scriptname $RENAME -midi failed")
+            ($scriptname $RENAME -midi good.dsp >LOG 2>&1)&&(echo "OK: $scriptname $RENAME  -midi succeeded !")||(echo "ERROR: $scriptname $RENAME -midi failed")
         done
     done
 
     for scriptname in $OSXPOLY; do
         for RENAME in "" "-cn Bidule" "-cn Bidule -scn Machin"; do
-            ($scriptname $RENAME -nvoices 8 good.dsp &> LOG)&&(echo "OK: $scriptname $RENAME -nvoices 8 succeeded !")||(echo "ERROR: $scriptname $RENAME -nvoices 8 failed")
+            ($scriptname $RENAME -nvoices 8 good.dsp >LOG 2>&1)&&(echo "OK: $scriptname $RENAME -nvoices 8 succeeded !")||(echo "ERROR: $scriptname $RENAME -nvoices 8 failed")
             rm -rf good
         done
     done
 
     for scriptname in $OSXPOLYMIDI; do
         for RENAME in "" "-cn Bidule" "-cn Bidule -scn Machin"; do
-            ($scriptname $RENAME -nvoices 8 -midi good.dsp &> LOG)&&(echo "OK: $scriptname $RENAME -nvoices 8 -midi succeeded !")||(echo "ERROR: $scriptname $RENAME -nvoices 8 -midi failed")
+            ($scriptname $RENAME -nvoices 8 -midi good.dsp >LOG 2>&1)&&(echo "OK: $scriptname $RENAME -nvoices 8 -midi succeeded !")||(echo "ERROR: $scriptname $RENAME -nvoices 8 -midi failed")
             rm -rf good
         done
     done
@@ -82,62 +82,62 @@ if [ "$system" = "Darwin" ]; then
     for RENAME in "" "-cn Bidule" "-cn Bidule -scn Machin"; do
 
         for scriptname in $OSXPOLY2MIDI; do
-            ($scriptname $RENAME -nvoices 8 -effect good.dsp -midi good.dsp &> LOG)&&(echo "OK: $scriptname $RENAME -nvoices 8 -effect good.dsp -midi succeeded !")||(echo "ERROR: $scriptname $RENAME -nvoices 8 -effect good.dsp -midi failed")
+            ($scriptname $RENAME -nvoices 8 -effect good.dsp -midi good.dsp >LOG 2>&1)&&(echo "OK: $scriptname $RENAME -nvoices 8 -effect good.dsp -midi succeeded !")||(echo "ERROR: $scriptname $RENAME -nvoices 8 -effect good.dsp -midi failed")
             rm -rf good
         done
         
         for scriptname in $OSXSOUND; do
-            ($scriptname $RENAME -soundfile -lang ocpp sound.dsp &> LOG)&&(echo "OK: $scriptname $RENAME -soundfile -lang ocpp succeeded !")||(echo "ERROR: $scriptname $RENAME -soundfile -lang ocpp failed")
+            ($scriptname $RENAME -soundfile -lang ocpp sound.dsp >LOG 2>&1)&&(echo "OK: $scriptname $RENAME -soundfile -lang ocpp succeeded !")||(echo "ERROR: $scriptname $RENAME -soundfile -lang ocpp failed")
             rm -rf good
         done
         
         for scriptname in $OSXSOUND; do
-            ($scriptname $RENAME -soundfile sound.dsp &> LOG)&&(echo "OK: $scriptname $RENAME -soundfile succeeded !")||(echo "ERROR: $scriptname $RENAME -soundfile failed")
+            ($scriptname $RENAME -soundfile sound.dsp >LOG 2>&1)&&(echo "OK: $scriptname $RENAME -soundfile succeeded !")||(echo "ERROR: $scriptname $RENAME -soundfile failed")
             rm -rf good
         done
         
-        (faust2juce $RENAME -soundfile -standalone sound.dsp &> LOG)&&(echo "OK: faust2juce $RENAME -soundfile -standalone succeeded !")||(echo "ERROR: faust2juce $RENAME -soundfile -standalone failed")
+        (faust2juce $RENAME -soundfile -standalone sound.dsp >LOG 2>&1)&&(echo "OK: faust2juce $RENAME -soundfile -standalone succeeded !")||(echo "ERROR: faust2juce $RENAME -soundfile -standalone failed")
         rm -rf good
 
         for scriptname in $OSXHTTPD; do
-            ($scriptname $RENAME -httpd good.dsp &> LOG)&&(echo "OK: $scriptname $RENAME -httpd succeeded !")||(echo "ERROR: $scriptname $RENAME -httpd failed")
+            ($scriptname $RENAME -httpd good.dsp >LOG 2>&1)&&(echo "OK: $scriptname $RENAME -httpd succeeded !")||(echo "ERROR: $scriptname $RENAME -httpd failed")
         done
 
         for scriptname in $OSXOSC; do
-            ($scriptname $RENAME -osc good.dsp &> LOG)&&(echo "OK: $scriptname $RENAME -osc succeeded !")||(echo "ERROR: $scriptname $RENAME -osc failed")
+            ($scriptname $RENAME -osc good.dsp >LOG 2>&1)&&(echo "OK: $scriptname $RENAME -osc succeeded !")||(echo "ERROR: $scriptname $RENAME -osc failed")
         done
 
         for scriptname in $OSXOSCHTTPD; do
-            ($scriptname $RENAME -osc -httpd good.dsp &> LOG)&&(echo "OK: $scriptname $RENAME -osc -httpd succeeded !")||(echo "ERROR: $scriptname $RENAME -osc -httpd failed")
+            ($scriptname $RENAME -osc -httpd good.dsp >LOG 2>&1)&&(echo "OK: $scriptname $RENAME -osc -httpd succeeded !")||(echo "ERROR: $scriptname $RENAME -osc -httpd failed")
         done
 
-        (faust2api -ios good.dsp &> LOG)&&(echo "OK: faust2api -ios succeeded !")||(echo "ERROR: faust2api -ios failed")
+        (faust2api -ios good.dsp >LOG 2>&1)&&(echo "OK: faust2api -ios succeeded !")||(echo "ERROR: faust2api -ios failed")
 
-        (faust2api $RENAME -ios -midi good.dsp &> LOG)&&(echo "OK: faust2api $RENAME -ios -midi succeeded !")||(echo "ERROR: faust2api $RENAME -ios -midi failed")
+        (faust2api $RENAME -ios -midi good.dsp >LOG 2>&1)&&(echo "OK: faust2api $RENAME -ios -midi succeeded !")||(echo "ERROR: faust2api $RENAME -ios -midi failed")
 
-        (faust2api $RENAME -ios -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2api $RENAME -ios -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api $RENAME -ios -midi -nvoices 8 failed")
+        (faust2api $RENAME -ios -midi -nvoices 8 good.dsp >LOG 2>&1)&&(echo "OK: faust2api $RENAME -ios -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api $RENAME -ios -midi -nvoices 8 failed")
 
-        (faust2api $RENAME -ios -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api $RENAME -ios -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api $RENAME -ios -nvoices 8 -effect effect.dsp -midi failed")
+        (faust2api $RENAME -ios -nvoices 8 -effect effect.dsp -midi good.dsp >LOG 2>&1)&&(echo "OK: faust2api $RENAME -ios -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api $RENAME -ios -nvoices 8 -effect effect.dsp -midi failed")
 
-        (faust2api $RENAME -ios -soundfile -lang ocpp sound.dsp &> LOG)&&(echo "OK: faust2api $RENAME -ios -soundfile -lang ocpp succeeded !")||(echo "ERROR: faust2api $RENAME -ios -soundfile -lang ocpp failed")
+        (faust2api $RENAME -ios -soundfile -lang ocpp sound.dsp >LOG 2>&1)&&(echo "OK: faust2api $RENAME -ios -soundfile -lang ocpp succeeded !")||(echo "ERROR: faust2api $RENAME -ios -soundfile -lang ocpp failed")
 
-        (faust2nodejs $RENAME -coreaudio good.dsp &> LOG)&&(echo "OK: faust2nodejs $RENAME -coreaudio succeeded !")||(echo "ERROR: faust2nodejs $RENAME -coreaudio failed")
+        (faust2nodejs $RENAME -coreaudio good.dsp >LOG 2>&1)&&(echo "OK: faust2nodejs $RENAME -coreaudio succeeded !")||(echo "ERROR: faust2nodejs $RENAME -coreaudio failed")
 
-        (faust2nodejs $RENAME -coreaudio -midi good.dsp &> LOG)&&(echo "OK: faust2nodejs $RENAME -coreaudio -midi succeeded !")||(echo "ERROR: faust2nodejs $RENAME -coreaudio -midi failed")
+        (faust2nodejs $RENAME -coreaudio -midi good.dsp >LOG 2>&1)&&(echo "OK: faust2nodejs $RENAME -coreaudio -midi succeeded !")||(echo "ERROR: faust2nodejs $RENAME -coreaudio -midi failed")
 
-        (faust2nodejs $RENAME -coreaudio -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2nodejs $RENAME -coreaudio -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2nodejs $RENAME -coreaudio -midi -nvoices 8 failed")
+        (faust2nodejs $RENAME -coreaudio -midi -nvoices 8 good.dsp >LOG 2>&1)&&(echo "OK: faust2nodejs $RENAME -coreaudio -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2nodejs $RENAME -coreaudio -midi -nvoices 8 failed")
 
-        #(faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi failed")
+        #(faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi good.dsp >LOG 2>&1)&&(echo "OK: faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi failed")
 
-        (faust2smartkeyb $RENAME -ios good.dsp &> LOG)&&(echo "OK: faust2smartkeyb $RENAME -ios succeeded !")||(echo "ERROR: faust2smartkeyb $RENAME -ios failed")
+        (faust2smartkeyb $RENAME -ios good.dsp >LOG 2>&1)&&(echo "OK: faust2smartkeyb $RENAME -ios succeeded !")||(echo "ERROR: faust2smartkeyb $RENAME -ios failed")
 
-        (faust2smartkeyb $RENAME -ios -osc good.dsp &> LOG)&&(echo "OK: faust2smartkeyb $RENAME -ios -osc succeeded !")||(echo "ERROR: faust2smartkeyb $RENAME -ios -osc failed")
+        (faust2smartkeyb $RENAME -ios -osc good.dsp >LOG 2>&1)&&(echo "OK: faust2smartkeyb $RENAME -ios -osc succeeded !")||(echo "ERROR: faust2smartkeyb $RENAME -ios -osc failed")
 
-        (faust2smartkeyb $RENAME -ios -osc -midi good.dsp &> LOG)&&(echo "OK: faust2smartkeyb $RENAME -ios -osc -midi succeeded !")||(echo "ERROR: faust2smartkeyb $RENAME -ios -osc -midi failed")
+        (faust2smartkeyb $RENAME -ios -osc -midi good.dsp >LOG 2>&1)&&(echo "OK: faust2smartkeyb $RENAME -ios -osc -midi succeeded !")||(echo "ERROR: faust2smartkeyb $RENAME -ios -osc -midi failed")
 
-        (faust2smartkeyb $RENAME -ios -osc -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb $RENAME -ios -osc -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb $RENAME -ios -osc -midi -nvoices 8 failed")
+        (faust2smartkeyb $RENAME -ios -osc -midi -nvoices 8 good.dsp >LOG 2>&1)&&(echo "OK: faust2smartkeyb $RENAME -ios -osc -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb $RENAME -ios -osc -midi -nvoices 8 failed")
 
-        (faust2smartkeyb $RENAME -ios -effect effect.dsp -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb $RENAME -ios -effect effect.dsp -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb $RENAME -ios -effect effect.dsp -nvoices 8 failed")
+        (faust2smartkeyb $RENAME -ios -effect effect.dsp -nvoices 8 good.dsp >LOG 2>&1)&&(echo "OK: faust2smartkeyb $RENAME -ios -effect effect.dsp -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb $RENAME -ios -effect effect.dsp -nvoices 8 failed")
 
         # Test of -exp10
         (faust2jack $RENAME -exp10 exp10.dsp) &&(echo "OK: faust2jack $RENAME -exp10 succeeded !")||(echo "ERROR: faust2jack $RENAME -exp10 failed")
@@ -172,34 +172,34 @@ elif [ "$system" = "Linux" ]; then
     diff waveform4.txt waveform4_ref.txt && echo "OK: faust2dummymem waveform4.dsp succeeded !" || echo "ERROR: faust2dummy waveform4.dsp failed"
 
 	for scriptname in $LINUX; do
-    	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
+    	($scriptname good.dsp >LOG 2>&1)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
 	done
 
     for scriptname in $LINUXMIDI; do
-        ($scriptname -midi good.dsp &> LOG)&&(echo "OK: $scriptname -midi succeeded !")||(echo "ERROR: $scriptname -midi failed")
+        ($scriptname -midi good.dsp >LOG 2>&1)&&(echo "OK: $scriptname -midi succeeded !")||(echo "ERROR: $scriptname -midi failed")
     done
 
     for scriptname in $LINUXPOLY; do
-        ($scriptname -nvoices 8 good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 succeeded !")||(echo "ERROR: $scriptname -nvoices 8 failed")
+        ($scriptname -nvoices 8 good.dsp >LOG 2>&1)&&(echo "OK: $scriptname -nvoices 8 succeeded !")||(echo "ERROR: $scriptname -nvoices 8 failed")
         rm -rf good
     done
 
     for scriptname in $LINUXPOLYMIDI; do
-        ($scriptname -nvoices 8 -midi good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -midi failed")
+        ($scriptname -nvoices 8 -midi good.dsp >LOG 2>&1)&&(echo "OK: $scriptname -nvoices 8 -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -midi failed")
         rm -rf good
     done
 
     for scriptname in $LINUXOSCHTTPD; do
-        ($scriptname -osc -httpd good.dsp &> LOG)&&(echo "OK: $scriptname -osc -httpd succeeded !")||(echo "ERROR: $scriptname -osc -httpd failed")
+        ($scriptname -osc -httpd good.dsp >LOG 2>&1)&&(echo "OK: $scriptname -osc -httpd succeeded !")||(echo "ERROR: $scriptname -osc -httpd failed")
     done
 
-    (faust2api -android good.dsp &> LOG)&&(echo "OK: faust2api -android succeeded !")||(echo "ERROR: faust2api -android failed")
+    (faust2api -android good.dsp >LOG 2>&1)&&(echo "OK: faust2api -android succeeded !")||(echo "ERROR: faust2api -android failed")
 
-    (faust2api -android -midi good.dsp &> LOG)&&(echo "OK: faust2api -android -midi succeeded !")||(echo "ERROR: faust2api -android -midi failed")
+    (faust2api -android -midi good.dsp >LOG 2>&1)&&(echo "OK: faust2api -android -midi succeeded !")||(echo "ERROR: faust2api -android -midi failed")
 
-    (faust2api -android -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2api -android -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api -android -midi -nvoices 8 failed")
+    (faust2api -android -midi -nvoices 8 good.dsp >LOG 2>&1)&&(echo "OK: faust2api -android -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api -android -midi -nvoices 8 failed")
 
-    (faust2api -android -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -android -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api -android -nvoices 8 -effect effect.dsp -midi failed")
+    (faust2api -android -nvoices 8 -effect effect.dsp -midi good.dsp >LOG 2>&1)&&(echo "OK: faust2api -android -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api -android -nvoices 8 -effect effect.dsp -midi failed")
 
 elif [ "$system" = "MINGW" ]; then
 	echo "not yet implemented"
@@ -211,7 +211,7 @@ else
 	for S in ../../tools/faust2appls/faust2*; do
 		scriptname=`basename $S .in`
 		if notinlist  $S "$XLIST1"; then
-			($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
+			($scriptname good.dsp >LOG 2>&1)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
 		fi
 	done
 fi

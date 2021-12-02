@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 ## exclusion list for faust and C++ errors
 XLIST1="faust2md faust2atomsnippets"
@@ -30,7 +30,7 @@ echo
 for S in ../../tools/faust2appls/faust2*; do
     scriptname=`basename $S .in`
     if notinlist $scriptname "$XLIST1"; then
-	    ($scriptname badfaust.dsp &> LOG)&&(echo "ERROR $scriptname shouldnt have succeeded !")||(echo "OK $scriptname correctly failed")
+	    ($scriptname badfaust.dsp >LOG 2>&1)&&(echo "ERROR $scriptname shouldnt have succeeded !")||(echo "OK $scriptname correctly failed")
 	fi
 done
 
@@ -40,7 +40,7 @@ echo
 for S in ../../tools/faust2appls/faust2*; do
     scriptname=`basename $S .in`
     if notinlist $scriptname "$XLIST2"; then
-	    ($scriptname badcpp.dsp &> LOG)&&(echo "ERROR $scriptname shouldnt have succeeded !")||(echo "OK $scriptname correctly failed")
+	    ($scriptname badcpp.dsp >LOG 2>&1)&&(echo "ERROR $scriptname shouldnt have succeeded !")||(echo "OK $scriptname correctly failed")
 	fi
 done
 
