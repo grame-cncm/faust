@@ -13,6 +13,37 @@ notinlist() {
     done
     return 0
 }
+runtest() {
+    # usage: runtest <logfile> <cmd> <arg1> ...
+    local logfile=$1
+    shift
+    ("$@" >"${logfile}" 2>&1) && echo "OK: '$@' succeeded!" || echo "ERROR: '$@' failed"
+    rm -rf good good-faustnode
+}
+runtestfail() {
+    # usage: runtestfail <logfile> <cmd> <arg1> ...
+    local logfile=$1
+    shift
+    ("$@" >"${logfile}" 2>&1) && echo "ERROR: '$@' shouldn't have succeeded!" || echo "OK: '$@' correctly failed"
+    rm -rf good good-faustnode
+}
+runtestref() {
+    # usage: runtestref <logfile> <name> <refbasename> <cmd> <arg1>...
+    local logfile=$1
+    local name=$2
+    local referencefile="${3}_ref.txt"
+    local resultfile="${3}.txt"
+    shift 3
+
+    if ("$@" >"${logfile}" 2>&1); then
+        "./${name}" > "${resultfile}"
+        diff "${resultfile}" "${referencefile}" && echo "OK: '$@' succeeded!" || echo "ERROR: '$@' failed (mismatched output)"
+    else
+        echo "ERROR: '$@' failed"
+    fi
+    rm -f "${resultfile}"
+    rm -rf "${name}"
+}
 
 PATH=../../build/bin:$PATH
 faust --version || exit $?
@@ -30,7 +61,7 @@ echo
 for S in ../../tools/faust2appls/faust2*; do
     scriptname=$(basename $S .in)
     if notinlist $scriptname "$XLIST1"; then
-	($scriptname badfaust.dsp >LOG 2>&1)&&(echo "ERROR $scriptname shouldnt have succeeded !")||(echo "OK $scriptname correctly failed")
+        runtestfail LOG "${scriptname}" badfaust.dsp
     fi
 done
 
@@ -40,6 +71,6 @@ echo
 for S in ../../tools/faust2appls/faust2*; do
     scriptname=$(basename $S .in)
     if notinlist $scriptname "$XLIST2"; then
-	($scriptname badcpp.dsp >LOG 2>&1)&&(echo "ERROR $scriptname shouldnt have succeeded !")||(echo "OK $scriptname correctly failed")
+        runtestfail LOG "${scriptname}" badcpp.dsp
     fi
 done
