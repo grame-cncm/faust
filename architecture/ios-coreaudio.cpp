@@ -40,6 +40,7 @@
 #include "faust/gui/APIUI.h"
 #include "faust/gui/SimpleParser.h"
 #include "faust/gui/JSONUI.h"
+#include "faust/gui/SaveUI.h"
 #include "faust/audio/coreaudio-ios-dsp.h"
 #include "faust/misc.h"
 

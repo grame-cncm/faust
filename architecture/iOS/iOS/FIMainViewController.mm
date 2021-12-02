@@ -57,6 +57,7 @@ ztimedmap GUI::gTimedZoneMap;
 audio* audio_device = NULL;
 CocoaUI* uiinterface = NULL;
 FUI* finterface = NULL;
+SaveLabelUI* saveinterface = NULL;
 
 #if SOUNDFILE
 SoundUI* soundinterface = NULL;
@@ -167,6 +168,8 @@ float uiBox::gDummy = 0;
     
     uiinterface = new CocoaUI([UIApplication sharedApplication].keyWindow, self, &metadata, DSP);
     finterface = new FUI();
+    saveinterface = new SaveLabelUI();
+    
 #if MIDICTRL
     midi_handler = new rt_midi(_name);
     midiinterface = new MidiUI(midi_handler);
@@ -193,6 +196,7 @@ float uiBox::gDummy = 0;
     
     DSP->buildUserInterface(uiinterface);
     DSP->buildUserInterface(finterface);
+    DSP->buildUserInterface(saveinterface);
     
 #if SOUNDFILE
     // Use bundle path
@@ -362,6 +366,7 @@ error:
     
     delete uiinterface;
     delete finterface;
+    delete saveinterface;
     
 #if SOUNDFILE
     delete soundinterface;
@@ -874,6 +879,9 @@ static inline const char* transmit_value(int num)
 - (void)setOSCParameters:(int)transmit output:(NSString*)outputIPText inputport:(NSString*)inputPortText outputport:(NSString*)outputPortText;
 {
 #if OSCCTRL
+    // Save current stare;
+    saveinterface->save();
+    
     delete oscinterface;
     const char* argv[9];
     argv[0] = (char*)_name;
@@ -885,14 +893,22 @@ static inline const char* transmit_value(int num)
     argv[6] = [inputPortText cStringUsingEncoding:[NSString defaultCStringEncoding]];
     argv[7] = "-outport";
     argv[8] = [outputPortText cStringUsingEncoding:[NSString defaultCStringEncoding]];
+    
     /*
     // Deactivated for now (sometimes crashing)
     argv[9] = "-bundle";
     argv[10] = "1";
     */
+    
+    // Start OSC interface
     oscinterface = new OSCUI(_name, 9, (char**)argv);
     DSP->buildUserInterface(oscinterface);
     audio_device->addControlCallback(osc_compute_callback, self);
+    
+    // Load current controller state
+    DSP->buildUserInterface(saveinterface);
+    
+    // Start OSC
     oscinterface->run();
 #endif
 }
