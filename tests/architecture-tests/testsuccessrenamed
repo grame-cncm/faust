@@ -2,7 +2,7 @@
 
 PATH=../../build/bin:$PATH
 faust --version
-echo location $(which faust)
+echo location $(command -v faust)
 
 # detect the current system 
 system=$(uname -s)

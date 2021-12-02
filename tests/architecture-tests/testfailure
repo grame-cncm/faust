@@ -16,7 +16,7 @@ notinlist() {
 
 PATH=../../build/bin:$PATH
 faust --version
-echo location $(which faust)
+echo location $(command -v faust)
 
 ######################################################
 ## Test all scripts for faust errors and c++ errors ##
