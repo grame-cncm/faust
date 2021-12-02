@@ -6,12 +6,12 @@ XLIST2="faust2md faust2atomsnippets faust2eps faust2firefox faust2graph faust2gr
 
 ## test exclusion : notinlist "toto" "a b c d e" -> true
 notinlist() {
-  for word in $2; do
-    if [ $word = $1 ]; then
-        return 1
-    fi
-  done
-  return 0
+    for word in $2; do
+        if [ $word = $1 ]; then
+            return 1
+        fi
+    done
+    return 0
 }
 
 PATH=../../build/bin:$PATH
@@ -21,7 +21,7 @@ echo location $(command -v faust)
 ######################################################
 ## Test all scripts for faust errors and c++ errors ##
 ######################################################
-# All scripts must correctly detect and report faust 
+# All scripts must correctly detect and report faust
 # errors and C++ errors.
 #
 echo
@@ -30,8 +30,8 @@ echo
 for S in ../../tools/faust2appls/faust2*; do
     scriptname=$(basename $S .in)
     if notinlist $scriptname "$XLIST1"; then
-	    ($scriptname badfaust.dsp >LOG 2>&1)&&(echo "ERROR $scriptname shouldnt have succeeded !")||(echo "OK $scriptname correctly failed")
-	fi
+	($scriptname badfaust.dsp >LOG 2>&1)&&(echo "ERROR $scriptname shouldnt have succeeded !")||(echo "OK $scriptname correctly failed")
+    fi
 done
 
 echo
@@ -40,8 +40,6 @@ echo
 for S in ../../tools/faust2appls/faust2*; do
     scriptname=$(basename $S .in)
     if notinlist $scriptname "$XLIST2"; then
-	    ($scriptname badcpp.dsp >LOG 2>&1)&&(echo "ERROR $scriptname shouldnt have succeeded !")||(echo "OK $scriptname correctly failed")
-	fi
+	($scriptname badcpp.dsp >LOG 2>&1)&&(echo "ERROR $scriptname shouldnt have succeeded !")||(echo "OK $scriptname correctly failed")
+    fi
 done
-
-
