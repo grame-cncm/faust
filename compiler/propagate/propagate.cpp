@@ -71,19 +71,11 @@ siglist split(const siglist& inputs, int nbus)
     return outputs;
 }
 
-//! Fabrique une liste de n projections d'un groupe récursif
-siglist makeSigProjList(Tree t, int n)
-{
-    siglist l(n);
-    for (int i = 0; i < n; i++) l[i] = sigDelay0(gGlobal->nil, sigProj(i, t));
-    return l;
-}
-
 //! Fabrique une liste de n mem projections d'un groupe récursif
-siglist makeMemSigProjList(Tree t, int n)
+siglist makeMemSigProjList(Tree clklist, Tree t, int n)
 {
     siglist l(n);
-    for (int i = 0; i < n; i++) l[i] = sigDelay1(gGlobal->nil, sigProj(i, t));
+    for (int i = 0; i < n; i++) l[i] = sigDelay1(clklist, sigProj(i, t));
     return l;
 }
 
@@ -272,8 +264,8 @@ static bool isIntTree(Tree l, vector<int>& v)
 
 siglist realPropagate(Tree clklist, Tree slotenv, Tree path, Tree box, const siglist& lsig)
 {
-    int    i;
-    double r;
+    int    inum;
+    double rnum;
     prim0  p0;
     prim1  p1;
     prim2  p2;
@@ -295,12 +287,12 @@ siglist realPropagate(Tree clklist, Tree slotenv, Tree path, Tree box, const sig
 
     // Numbers and Constants
 
-    else if (isBoxInt(box, &i)) {
+    else if (isBoxInt(box, &inum)) {
         faustassert(lsig.size() == 0);
-        return makeList(sigInt(i));
-    } else if (isBoxReal(box, &r)) {
+        return makeList(sigInt(inum));
+    } else if (isBoxReal(box, &rnum)) {
         faustassert(lsig.size() == 0);
-        return makeList(sigReal(r));
+        return makeList(sigReal(rnum));
     }
 
     // A Waveform has two outputs it size and a period signal representing its content
@@ -360,7 +352,7 @@ siglist realPropagate(Tree clklist, Tree slotenv, Tree path, Tree box, const sig
 
     else if (isBoxDelay(box)) {
         faustassert(lsig.size() == 2);
-        return makeList(sigFixDelay(gGlobal->nil, lsig[0], lsig[1]));
+        return makeList(sigFixDelay(clklist, lsig[0], lsig[1]));
     }
 
     else if (isBoxPrim0(box, &p0)) {
@@ -559,7 +551,7 @@ siglist realPropagate(Tree clklist, Tree slotenv, Tree path, Tree box, const sig
 
         Tree slotenv2 = lift(slotenv);  // the environment must also be lifted
 
-        siglist l0 = makeMemSigProjList(ref(1), in2);
+        siglist l0 = makeMemSigProjList(clklist, ref(1), in2);
         siglist l1 = propagate(clklist, slotenv2, path, t2, l0);
         siglist l2 = propagate(clklist, slotenv2, path, t1, listConcat(l1, listLift(lsig)));
         siglist l3 = (gGlobal->gFTZMode > 0) ? wrapWithFTZ(l2) : l2;
@@ -572,7 +564,7 @@ siglist realPropagate(Tree clklist, Tree slotenv, Tree path, Tree box, const sig
         for (auto exp : l3) {
             if (exp->aperture() > 0) {
                 // it is a regular recursive expression branch
-                ol[p] = sigDelay0(gGlobal->nil, sigProj(p, g));
+                ol[p] = sigDelay0(clklist, sigProj(p, g));
             } else {
                 // this expression is a closed term,
                 // it don't need to be inside this recursion group.
@@ -622,20 +614,21 @@ siglist realPropagate(Tree clklist, Tree slotenv, Tree path, Tree box, const sig
     } else if (isBoxOndemand(box, t1)) {
         int in1, out1;
         getBoxType(t1, &in1, &out1);
-        faustassert(lsig.size() == in1 + 1);
-        Tree clock = lsig[0];
+        faustassert(int(lsig.size()) == in1 + 1);
+        Tree clock    = lsig[0];
+        Tree clklist2 = cons(clock, clklist);
 
         std::vector<Tree> downsigs(in1);  // downsampled input signals
         std::vector<Tree> upsigs(out1);   // upsampled output signals
 
         for (int i = 0; i < in1; i++) {
-            downsigs[i] = gGlobal->gDownsamplePrim->computeSigOutput({lsig[i + 1], clock});
+            downsigs[i] = gGlobal->gDownsamplePrim->computeSigOutput({lsig[i + 1], clklist2});
         }
 
-        siglist l1 = propagate(clklist, slotenv, path, t1, downsigs);
+        siglist l1 = propagate(clklist2, slotenv, path, t1, downsigs);
 
         for (int i = 0; i < out1; i++) {
-            upsigs[i] = gGlobal->gUpsamplePrim->computeSigOutput({l1[i], clock});
+            upsigs[i] = gGlobal->gUpsamplePrim->computeSigOutput({l1[i], clklist2});
         }
 
         return upsigs;
