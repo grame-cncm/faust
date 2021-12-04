@@ -584,7 +584,10 @@ extern "C" {
 
     int getParamsCount(void* dsp) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamsCount(); }
     
-    void setParamValue(void* dsp, const char* address, float value) { reinterpret_cast<FaustPolyEngine*>(dsp)->setParamValue(address, value); }
+    void setParamValue(void* dsp, const char* address, float value)
+    {
+        reinterpret_cast<FaustPolyEngine*>(dsp)->setParamValue(address, value);
+    }
     float getParamValue(void* dsp, const char* address) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamValue(address); }
    
     void setParamIdValue(void* dsp, int id, float value) { reinterpret_cast<FaustPolyEngine*>(dsp)->setParamValue(id, value); }
@@ -594,7 +597,10 @@ extern "C" {
     {
         reinterpret_cast<FaustPolyEngine*>(dsp)->setVoiceParamValue(address, voice, value);
     }
-    float getVoiceParamValue(void* dsp, const char* address, uintptr_t voice) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getVoiceParamValue(address, voice); }
+    float getVoiceParamValue(void* dsp, const char* address, uintptr_t voice)
+    {
+        return reinterpret_cast<FaustPolyEngine*>(dsp)->getVoiceParamValue(address, voice);
+    }
     
     const char* getParamAddress(void* dsp, int id) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamAddress(id); }
 

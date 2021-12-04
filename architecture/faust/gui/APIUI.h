@@ -40,10 +40,6 @@ typedef unsigned int uint;
 
 class APIUI : public PathBuilder, public Meta, public UI
 {
-    public:
-
-        enum ItemType { kButton = 0, kCheckButton, kVSlider, kHSlider, kNumEntry, kHBargraph, kVBargraph };
-
     protected:
 
         enum Mapping { kLin = 0, kLog = 1, kExp = 2 };
@@ -240,6 +236,7 @@ class APIUI : public PathBuilder, public Meta, public UI
 
     public:
 
+        enum ItemType { kButton = 0, kCheckButton, kVSlider, kHSlider, kNumEntry, kHBargraph, kVBargraph };
         enum Type { kAcc = 0, kGyr = 1, kNoType };
 
         APIUI() : fHasScreenControl(false), fRedReader(nullptr), fGreenReader(nullptr), fBlueReader(nullptr), fCurrentScale(kLin)
@@ -406,7 +403,7 @@ class APIUI : public PathBuilder, public Meta, public UI
         double ratio2value(int p, double r)    { return fItems[uint(p)].fConversion->ui2faust(r); }
 
         /**
-         * Return the control type (kAcc, kGyr, or -1) for a given parameter
+         * Return the control type (kAcc, kGyr, or -1) for a given parameter.
          *
          * @param p - the UI parameter index
          *
@@ -429,7 +426,7 @@ class APIUI : public PathBuilder, public Meta, public UI
         }
 
         /**
-         * Return the Item type (kButton = 0, kCheckButton, kVSlider, kHSlider, kNumEntry, kHBargraph, kVBargraph) for a given parameter
+         * Return the Item type (kButton = 0, kCheckButton, kVSlider, kHSlider, kNumEntry, kHBargraph, kVBargraph) for a given parameter.
          *
          * @param p - the UI parameter index
          *
@@ -533,7 +530,7 @@ class APIUI : public PathBuilder, public Meta, public UI
         }
 
         /**
-         * Get the number of FAUSTFLOAT* zones controlled with the accelerometer
+         * Get the number of FAUSTFLOAT* zones controlled with the accelerometer.
          *
          * @param acc - 0 for X accelerometer, 1 for Y accelerometer, 2 for Z accelerometer
          * @return the number of zones
@@ -545,7 +542,7 @@ class APIUI : public PathBuilder, public Meta, public UI
         }
 
         /**
-         * Get the number of FAUSTFLOAT* zones controlled with the gyroscope
+         * Get the number of FAUSTFLOAT* zones controlled with the gyroscope.
          *
          * @param gyr - 0 for X gyroscope, 1 for Y gyroscope, 2 for Z gyroscope
          * @param the number of zones
