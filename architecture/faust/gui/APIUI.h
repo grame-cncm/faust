@@ -40,6 +40,10 @@ typedef unsigned int uint;
 
 class APIUI : public PathBuilder, public Meta, public UI
 {
+    public:
+        enum ItemType { kButton = 0, kCheckButton, kVSlider, kHSlider, kNumEntry, kHBargraph, kVBargraph };
+        enum Type { kAcc = 0, kGyr = 1, kNoType };
+
     protected:
 
         enum Mapping { kLin = 0, kLog = 1, kExp = 2 };
@@ -235,9 +239,6 @@ class APIUI : public PathBuilder, public Meta, public UI
         }
 
     public:
-
-        enum ItemType { kButton = 0, kCheckButton, kVSlider, kHSlider, kNumEntry, kHBargraph, kVBargraph };
-        enum Type { kAcc = 0, kGyr = 1, kNoType };
 
         APIUI() : fHasScreenControl(false), fRedReader(nullptr), fGreenReader(nullptr), fBlueReader(nullptr), fCurrentScale(kLin)
         {}
