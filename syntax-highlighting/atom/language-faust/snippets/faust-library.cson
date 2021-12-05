@@ -593,7 +593,7 @@
 		'body': 'ma.signum'
 	'cubicnl':
 		'prefix': 'cubicnl'
-		'body': 'ma.cubicnl'
+		'body': 'ef.cubicnl'
 	'gate_mono':
 		'prefix': 'gate_mono'
 		'body': 'ef.gate_mono'
