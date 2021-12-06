@@ -1,0 +1,18 @@
+[    // Don't auto-pair single quotes
+    { "keys": ["'"], "command": "insert_snippet", "args": {"contents": "'"}, "context":
+        [
+            { "key": "selector", "operator": "equal", "operand": "source.faust" },
+        ]
+    },
+    { "keys": ["backspace"], "command": "left_delete", "context":
+        [
+            { "key": "selector", "operator": "equal", "operand": "source.faust" },
+            { "key": "setting.auto_match_enabled", "operator": "equal", "operand": true },
+            { "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
+            { "key": "preceding_text", "operator": "regex_contains", "operand": "'$", "match_all": true },
+            { "key": "following_text", "operator": "regex_contains", "operand": "^'", "match_all": true },
+            { "key": "selector", "operator": "not_equal", "operand": "punctuation.definition.string.begin", "match_all": true },
+            { "key": "eol_selector", "operator": "not_equal", "operand": "string.quoted.single - punctuation.definition.string.end", "match_all": true },
+        ]
+    }
+]
