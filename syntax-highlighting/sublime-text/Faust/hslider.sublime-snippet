@@ -1,0 +1,6 @@
+<snippet>
+    <scope>source.faust</scope>
+    <tabTrigger>hslider</tabTrigger>
+    <content><![CDATA[hslider("${1:title}",${2:default},${3:min},${4:max},${5:step})$0]]></content>
+    <description>hslider</description>
+</snippet>

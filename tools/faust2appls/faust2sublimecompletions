@@ -1,0 +1,216 @@
+#!/usr/bin/env python3
+
+# ---------------------- faust2sublimecompletions -----------------------
+# Usage: `faust2sublimecompletions *.lib > faust.sublime-completions`
+#
+# Creates a ST4 completions file for each function in a library
+# Assumes the same format than faust2md.
+# This has been adapted from the faust2atomsnippets script, adding link to doc and Usage information by doing more parsing of the std lib
+#
+# The generated file has the following structure:
+#   {
+#   "scope": "source.faust",
+#    "completions": [
+#       {
+#            "annotation": "oscillators.lib",
+#            "contents": "os.osc",
+#            "details": "<code>osc(freq) : _</code> - <a href='https://faustlibraries.grame.fr/libs/oscillators/#ososc'>Docs</a>",
+#            "kind": "ambiguous",
+#            "trigger": "os.osc"
+#       },
+#       ...
+#   ]}
+#
+# The format of a title is :
+#       //############# Title Name #################
+#       //  markdown text....
+#       //  markdown text....
+#       //##########################################
+#
+# The format of a section is :
+#       //============== Section Name ==============
+#       //  markdown text....
+#       //  markdown text....
+#       //==========================================
+#
+# The format of a comment is :
+#       //-------------- foo(x,y) ------------------
+#       //  markdown text....
+#       //  markdown text....
+#       //------------------------------------------
+# everything else is considered faust code.
+# The translation is the following:
+#   ## foo(x,y)
+#       markdown text....
+#       markdown text....
+# --------------------------------------------------------
+
+import sys
+import re
+import getopt
+import os
+import json
+
+# Outdent a comment line by n characters in
+# order to remove the prefix "//   "
+def outdent(line, n):
+    if len(line) <= n:
+        return "\n"
+    else:
+        return line[n:]
+
+# Match the 2-characters prefix of a library.
+# We want to extract "no" from "...prefix is `no`..."
+def matchPrefixName(line):
+    return re.search(r'^.*prefix is .(..).*', line)
+
+# Match the first line of a title
+# of type "//#### Title ####
+# at least 3 * are needed
+def matchBeginTitle(line):
+    return re.search(r'^\s*//#{3,}\s*([^#]+)#{3,}', line)
+
+# Match the last line of a title
+# of type "//#######"
+# or a blank line
+def matchEndTitle(line):
+    return re.search(r'^\s*((//#{3,})|(\s*))$', line)
+
+
+# Match the first line of a section
+# of type "//==== Section ===="
+# at least 3 = are needed
+def matchBeginSection(line):
+    return re.search(r'^\s*//={3,}\s*([^=]+)={3,}', line)
+
+# Match the last line of a section
+# of type "//======="
+# or a blank line
+def matchEndSection(line):
+    return re.search(r'^\s*((//={3,})|(\s*))$', line)
+
+# Match the first line of a comment
+# of type "//--- foo(x,y) ----"
+# at least 3 - are needed
+def matchBeginComment(line):
+    return re.search(r'^\s*//-{3,}\s*`([^-`]+)`-{3,}', line)
+
+def matchBeginUsage(line):
+    return ("####" in line) & ("Usage" in line)
+
+# Match the last line of a comment
+# of type "//-----------------"
+# or a blank line
+def matchEndComment(line):
+    return re.search(r'^\s*((//-{3,})|(\s*))$', line)
+
+# Compute the indentation of a line,
+# that is the position of the first word character
+# after "//   "
+def indentation(line):
+    matchComment = re.search(r'(^\s*//\s*\w)', line)
+    if matchComment:
+        return len(matchComment.group(1))-1
+    else:
+        return 0
+
+# Indicates if a line is a comment
+def isComment(line):
+    matchComment = re.search(r'^\s*//', line)
+    if matchComment:
+        return 1
+    else:
+        return 0
+
+#
+# THE PROGRAM STARTS HERE
+#
+tabsize = 4             # tabsize used for expanding tabs
+mode = 0             # 0: in code; 1: in md-comment
+idt = 0             # indentation retained to outdent comment lines
+libprefix = "xx"  #
+
+# Analyze command line arguments
+try:
+    opts, args = getopt.getopt(sys.argv[1:], "st:cf")
+    if not args:
+        raise getopt.error("At least one file argument required")
+except getopt.error as e:
+    print(e.msg)
+    print("usage: %s [-s][-t tabsize] file ..." % (sys.argv[0],))
+    sys.exit(1)
+for optname, optvalue in opts:
+    if optname == '-t':
+        tabsize = int(optvalue)
+
+# Process all the files and print the documentation on the standard output
+
+inUsage = 0
+trigger = ""
+usage = ""
+
+completions = []
+
+for file in args:
+    with open(file) as f:
+        lines = f.readlines()
+        for num, text in enumerate(lines):
+            line = text.expandtabs(tabsize)
+            matchPrefix = matchPrefixName(line)
+            if matchPrefix:
+                libprefix = matchPrefix.group(1)
+            if isComment(line) == 0:
+                if mode == 1:
+                    # we are closing a md-comment
+                    mode = 0
+            else:
+                if mode == 0:     # we are in code
+                    matchComment = matchBeginComment(line)
+                    matchSection = matchBeginSection(line)
+                    matchTitle = matchBeginTitle(line)
+                    if matchComment:
+                        trigger = ""
+                        usage =  ""
+                        foo = matchComment.group(1)
+                        trigger = foo[1:4]+foo[5:]
+                    if matchComment or matchSection or matchTitle:
+                        mode = 1  # we just started a md-comment
+                        idt = 0  # we have to measure the indentation
+                else:
+                    # we are in a md-comment
+                    matchUsage = matchBeginUsage(line)
+                    if matchUsage:
+                        inUsage = 1
+                    if line.startswith("//") and "```" in line and inUsage:
+                        usage = lines[num+1][2:]
+                        if usage.startswith(' '):
+                            usage = usage[1:-1]
+                        inUsage = 0
+                    if idt == 0:
+                        # we have to measure the indentation
+                        idt = indentation(line)
+                    # check end of md-comment
+                    matchComment = matchEndComment(line)
+                    matchSection = matchEndSection(line)
+                    matchTitle = matchEndTitle(line)
+                    if matchComment or matchSection or matchTitle:
+                        if matchComment:
+                            libfile = os.path.basename(file)
+                            libname = libfile.split('.')[0]
+                            link = "<a href='https://faustlibraries.grame.fr/libs/{0}/#{1}'>Docs</a>".format(libname.lower(), ''.join(trigger.split('.')).lower())
+                            completion = {
+                                "trigger": trigger,
+                                "contents": trigger,
+                                "annotation": libfile,
+                                "kind": "ambiguous",
+                                "details": "<code>" + usage + "</code> - " + link if usage != "" else link
+                            }
+                            completions.append(completion)
+                        # end of md-comment switch back to mode O
+                        mode = 0
+
+final = {
+    "scope": "source.faust",
+    "completions": completions
+}
+print(json.dumps(final, sort_keys=True, indent=4))

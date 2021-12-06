@@ -1,0 +1,6 @@
+<snippet>
+    <scope>source.faust</scope>
+    <tabTrigger>def</tabTrigger>
+    <content><![CDATA[${1:name} = ${2:expression};$0]]></content>
+    <description>definition</description>
+</snippet>

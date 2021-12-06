@@ -1,0 +1,6 @@
+<snippet>
+    <scope>source.faust</scope>
+    <tabTrigger>library</tabTrigger>
+    <content><![CDATA[library("${1:name}.lib")$0]]></content>
+    <description>library</description>
+</snippet>

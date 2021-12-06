@@ -1,0 +1,6 @@
+<snippet>
+    <scope>source.faust</scope>
+    <tabTrigger>checkbox</tabTrigger>
+    <content><![CDATA[checkbox("${1:title}")$0]]></content>
+    <description>checkbox</description>
+</snippet>
