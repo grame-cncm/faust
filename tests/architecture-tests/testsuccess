@@ -8,7 +8,6 @@ system=$(uname -s)
 # normalizes MINGW versions
 system=$(echo $system | grep MINGW > /dev/null && echo MINGW || echo $system)
 
-
 if echo "${VERBOSE}" | grep -iE "1|on|yes|true"; then
     verbose=/dev/stdout
 else
@@ -19,7 +18,6 @@ fi
 : ${TESTS_EXCLUDED:=}
 ## exclusion list for faust errors
 : ${XLIST1:="faust2md"}
-
 
 if [ "$system" = "Darwin" ]; then
     : ${TESTS:=faust2soul faust2vcvrack faust2cagtk faust2android faust2au faust2caqt faust2csound faust2faustvst faust2jack faust2jaqt faust2w32max6 faust2w64max6 faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2w32vst faust2w64vst faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole faust2lv2 faust2sndfile faust2csvplot faust2plot}
@@ -39,7 +37,11 @@ elif [ "$system" = "Linux" ]; then
     : ${TESTS_POLY:=faust2jaqt faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole}
     : ${TESTS_POLYMIDI:=faust2jaqt faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole}
     : ${TESTS_OSCHTTPD:=faust2jaqt faust2netjackconsole faust2netjackqt faust2jackconsole}
+elif [ "$system" = "MINGW" ]; then
+    echo "not yet implemented"
+    exit 1
 fi
+
 ## test exclusion : notinlist "toto" "a b c d e"
 notinlist() {
     for word in $2; do
@@ -49,6 +51,7 @@ notinlist() {
     done
     return 0
 }
+
 ## get all the items that are in list A but not in list B
 ##  listexclude $A $B $B
 listexclude() {
@@ -56,6 +59,7 @@ listexclude() {
         echo $w
     done | sort | uniq -u
 }
+
 runtest() {
     # usage: runtest <logfile> <cmd> <arg1> ...
     local logfile=$1
@@ -63,6 +67,7 @@ runtest() {
     ("$@" >"${logfile}" 2>&1) && echo "OK: '$@' succeeded!" || (cat "${logfile}" >${verbose}; echo "ERROR: '$@' failed")
     rm -rf good good-faustnode sound
 }
+
 runtestfail() {
     # usage: runtestfail <logfile> <cmd> <arg1> ...
     local logfile=$1
@@ -70,6 +75,7 @@ runtestfail() {
     ("$@" >"${logfile}" 2>&1) && echo "ERROR: '$@' shouldn't have succeeded!" || echo "OK: '$@' correctly failed"
     rm -rf good good-faustnode sound
 }
+
 runtestref() {
     # usage: runtestref <logfile> <name> <refbasename> <cmd> <arg1>...
     local logfile=$1
@@ -77,10 +83,8 @@ runtestref() {
     local referencefile="${3}_ref.txt"
     local resultfile="${3}.txt"
     shift 3
-
     if ("$@" >"${logfile}" 2>&1); then
         "./${name}" > "${resultfile}"
-
         diff "${resultfile}" "${referencefile}" >${verbose} && echo "OK: '$@' succeeded!" || (cat "${logfile}" >${verbose}; echo "ERROR: '$@' failed (mismatched output)")
     else
         cat "${logfile}" >${verbose}
@@ -89,11 +93,6 @@ runtestref() {
     rm -f "${resultfile}"
     rm -rf "${name}"
 }
-
-if [ "$system" = "MINGW" ]; then
-    echo "not yet implemented"
-    exit 1
-fi
 
 echo "------------------------"
 echo Run tests for $system
@@ -190,7 +189,6 @@ if [ "x${TESTS}" != "x" ]; then
         runtest LOG faust2api -jack -midi -nvoices 8 good.dsp
         runtest LOG faust2api -jack -nvoices 8 -effect effect.dsp -midi good.dsp
         runtest LOG faust2api -jack -soundfile -lang ocpp sound.dsp
-
         # linux only?
         if [ "$system" = "Linux" ]; then
             runtest LOG faust2api -android good.dsp
@@ -213,7 +211,6 @@ if [ "x${TESTS}" != "x" ]; then
             runtest LOG faust2smartkeyb -android good.dsp
             runtest LOG faust2smartkeyb -android -nvoices 8 good.dsp
             runtest LOG faust2smartkeyb -android -effect effect.dsp -nvoices 8 good.dsp
-
             runtest LOG faust2smartkeyb -ios good.dsp
             runtest LOG faust2smartkeyb -ios -osc good.dsp
             runtest LOG faust2smartkeyb -ios -osc -nvoices 8 good.dsp

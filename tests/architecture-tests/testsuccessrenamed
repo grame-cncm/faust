@@ -24,9 +24,7 @@ if [ "$system" = "Darwin" ]; then
     TESTS_HTTPD="faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole"
     TESTS_OSC="faust2ios faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole"
     TESTS_OSCHTTPD="faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole"
-
     TESTS_APIS="-ios"
-
 elif [ "$system" = "Linux" ]; then
     TESTS="faust2alqt faust2alsa faust2alsaconsole faust2android faust2asmjs faust2bela faust2csound faust2dssi faust2eps faust2faustvst faust2firefox faust2graph faust2graphviewer faust2jack faust2jackinternal faust2jackserver faust2jaqt faust2ladspa faust2lv2 faust2mathdoc  faust2md  faust2netjackconsole faust2netjackqt faust2octave faust2owl faust2paqt faust2pdf faust2plot faust2png faust2puredata faust2raqt faust2ros faust2rosgtk faust2rpialsaconsole faust2rpinetjackconsole faust2sig faust2sigviewer faust2supercollider faust2svg faust2w32max6 faust2w32msp faust2w32puredata faust2w32vst faust2w64vst faust2netjackconsole faust2netjackqt faust2jackconsole"
     TESTS_MIDI="faust2jaqt faust2netjackconsole faust2netjackqt faust2jackconsole"
@@ -37,7 +35,6 @@ elif [ "$system" = "Linux" ]; then
     TESTS_HTTPD=""
     TESTS_OSC=""
     TESTS_OSCHTTPD="faust2jaqt faust2netjackconsole faust2netjackqt faust2jackconsole"
-
     TESTS_APIS="-android"
 fi
 
@@ -50,6 +47,7 @@ notinlist() {
     done
     return 0
 }
+
 ## get all the items that are in list A but not in list B
 ##  listexclude $A $B $B
 listexclude() {
@@ -57,6 +55,7 @@ listexclude() {
         echo $w
     done | sort | uniq -u
 }
+
 runtest() {
     # usage: runtest <logfile> <cmd> <arg1> ...
     local logfile=$1
@@ -64,6 +63,7 @@ runtest() {
     ("$@" >"${logfile}" 2>&1) && echo "OK: '$@' succeeded!" || echo "ERROR: '$@' failed"
     rm -rf good
 }
+
 runtestfail() {
     # usage: runtestfail <logfile> <cmd> <arg1> ...
     local logfile=$1
@@ -71,6 +71,7 @@ runtestfail() {
     ("$@" >"${logfile}" 2>&1) && echo "ERROR: '$@' shouldn't have succeeded!" || echo "OK: '$@' correctly failed"
     rm -rf good
 }
+
 runtestref() {
     # usage: runtestref <logfile> <name> <refbasename> <cmd> <arg1>...
     local logfile=$1
@@ -78,7 +79,6 @@ runtestref() {
     local referencefile="${3}_ref.txt"
     local resultfile="${3}.txt"
     shift 3
-
     if ("$@" >"${logfile}" 2>&1); then
         "./${name}" > "${resultfile}"
         diff "${resultfile}" "${referencefile}" && echo "OK: '$@' succeeded!" || echo "ERROR: '$@' failed (mismatched output)"
@@ -88,7 +88,6 @@ runtestref() {
     rm -f "${resultfile}"
     rm -rf "${name}"
 }
-
 
 if [ "x${TESTS}" != x ]; then
     # strip away any tests listed in TESTS_EXCLUDED
@@ -146,7 +145,6 @@ if [ "x${TESTS}" != x ]; then
             runtest LOG "${scriptname}" ${RENAME} -nvoices 8 -effect good.dsp -midi good.dsp
         done
 
-
         for scriptname in ${TESTS_SOUND}; do
             runtest LOG "${scriptname}" ${RENAME} -soundfile -lang ocpp sound.dsp
         done
@@ -170,7 +168,6 @@ if [ "x${TESTS}" != x ]; then
             runtest "${scriptname}" ${RENAME} -osc -httpd good.dsp
         done
 
-
         for api in ${TESTS_APIS}; do
             runtest LOG faust2api ${RENAME} "${api}" good.dsp
             runtest LOG faust2api ${RENAME} "${api}" -midi good.dsp
@@ -179,7 +176,6 @@ if [ "x${TESTS}" != x ]; then
 
             if [  "x${api}" = "x-ios" ]; then
                 runtest LOG faust2api ${RENAME} "${api}" -soundfile -lang ocpp sound.dsp
-
                 runtest LOG faust2smartkeyb ${RENAME} "${api}" good.dsp
                 runtest LOG faust2smartkeyb ${RENAME} "${api}" -osc good.dsp
                 runtest LOG faust2smartkeyb ${RENAME} "${api}" -osc -midi good.dsp
@@ -198,8 +194,6 @@ if [ "x${TESTS}" != x ]; then
         # Test of -exp10
         runtest LOG faust2jack ${RENAME} -exp10 exp10.dsp
         runtestfail LOG faust2android ${RENAME} -exp10 exp10.dsp
-
-
         runtestref LOG good good faust2dummy ${RENAME} good.dsp
         runtestref LOG good good faust2dummy ${RENAME} -midi good.dsp
         runtestref LOG organ organ_2voices faust2dummy ${RENAME} -midi -nvoices 2 organ.dsp
