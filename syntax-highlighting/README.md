@@ -11,6 +11,7 @@ This folder contains syntax highlighting files for various editors. The editors 
 * [GNU nano](https://www.nano-editor.org/)
 * [Atom](https://atom.io/)
 * [Visual Studio Code](https://code.visualstudio.com/)
+* [Sublime Text](https://www.sublimetext.com)
 
 ## KDE Kate/Kwrite
 
