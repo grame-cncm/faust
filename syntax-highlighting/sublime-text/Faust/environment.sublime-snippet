@@ -1,0 +1,6 @@
+<snippet>
+    <scope>source.faust</scope>
+    <tabTrigger>environment</tabTrigger>
+    <content><![CDATA[environment {${1:definitions};}$0]]></content>
+    <description>environment</description>
+</snippet>

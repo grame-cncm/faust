@@ -1,0 +1,6 @@
+<snippet>
+    <scope>source.faust</scope>
+    <tabTrigger>process</tabTrigger>
+    <content><![CDATA[process = ${1:expression};$0]]></content>
+    <description>process</description>
+</snippet>

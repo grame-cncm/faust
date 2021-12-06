@@ -1,0 +1,6 @@
+<snippet>
+    <scope>source.faust</scope>
+    <tabTrigger>all.lib</tabTrigger>
+    <content><![CDATA[import("all.lib");$0]]></content>
+    <description>import all.lib</description>
+</snippet>

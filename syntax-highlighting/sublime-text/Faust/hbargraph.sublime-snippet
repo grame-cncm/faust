@@ -1,0 +1,6 @@
+<snippet>
+    <scope>source.faust</scope>
+    <tabTrigger>hbargraph</tabTrigger>
+    <content><![CDATA[hbargraph("${1:title}",${2:min},${3:max})$0]]></content>
+    <description>hbargraph</description>
+</snippet>

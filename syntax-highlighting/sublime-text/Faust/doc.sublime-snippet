@@ -1,0 +1,17 @@
+<snippet>
+    <scope>source.faust</scope>
+    <description>doc</description>
+    <tabTrigger>doc</tabTrigger>
+    <content><![CDATA[
+    //--------------- ${1:func} ----------------
+    // ${2:presentation}
+    //
+    // ### Usage:
+    //    `${3:example}`
+    //
+    // #### Where:
+    // + ${4:arg1} = ${5:role and value}
+    //
+    //------------------------------------------
+    ]]></content>
+</snippet>

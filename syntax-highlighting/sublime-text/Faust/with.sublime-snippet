@@ -1,0 +1,10 @@
+<snippet>
+    <scope>source.faust</scope>
+    <description>with</description>
+    <tabTrigger>with</tabTrigger>
+    <content><![CDATA[
+    	with {
+    		${1:name} = ${2:definition};$0
+    	}
+    ]]></content>
+</snippet>

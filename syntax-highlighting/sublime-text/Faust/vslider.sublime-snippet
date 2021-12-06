@@ -1,0 +1,6 @@
+<snippet>
+    <scope>source.faust</scope>
+    <tabTrigger>vslider</tabTrigger>
+    <content><![CDATA[vslider("${1:title}",${2:default},${3:min},${4:max},${5:step})$0]]></content>
+    <description>vslider</description>
+</snippet>

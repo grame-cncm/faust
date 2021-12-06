@@ -80,3 +80,8 @@ Copy the directory `atom/language-faust` into `~/.atom/packages/` and follow the
 3. Click Install to automatically download and install the extension.
 
 NB: This is the latest version of [faust extension](https://marketplace.visualstudio.com/items?itemName=glen-anderson.vscode-faust) created by Glen Anderson, cf. https://github.com/hellbent/vscode-faust.
+
+## Sublime Text 4 completions and snippets
+
+Copy the folder [sublime-text/Faust](sublime-text/Faust) to your `Packages/User` directory. To find the right directory, use Preferences > Browse Packages...  
+More info in [sublime-text/Faust/README.md](sublime-text/Faust/README.md)

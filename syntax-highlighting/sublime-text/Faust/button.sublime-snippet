@@ -1,0 +1,6 @@
+<snippet>
+    <scope>source.faust</scope>
+    <tabTrigger>button</tabTrigger>
+    <content><![CDATA[button("${1:title}")$0]]></content>
+    <description>button</description>
+</snippet>
