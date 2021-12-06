@@ -123,14 +123,15 @@ if [ "x${TESTS}" != "x" ]; then
     echo "Test '-osc':" ${TESTS_OSC:---}
     echo "Test '-osc -httpd':" ${TESTS_OSCHTTPD:---}
     echo "Test '-preset auto':" ${TESTS_PRESET:---}
+    echo "eXcluded test:" ${TESTS_EXCLUDED}
 
-    if ! notinlist faust2dummy "${TESTS_EXCLUDED}"; then
+    if notinlist faust2dummy "${TESTS_EXCLUDED}"; then
         runtestref LOG good good faust2dummy good.dsp
         runtestref LOG good_midi good_midi faust2dummy -midi good.dsp
         runtestref LOG organ organ_2voices faust2dummy -midi -nvoices 2 organ.dsp
         runtestref LOG organ organ_8voices faust2dummy -midi organ.dsp
     fi
-    if ! notinlist faust2dummymem "${TESTS_EXCLUDED}"; then
+    if notinlist faust2dummymem "${TESTS_EXCLUDED}"; then
         runtestref LOG waveform4 waveform4 faust2dummymem waveform4.dsp
     fi
 
@@ -184,7 +185,7 @@ if [ "x${TESTS}" != "x" ]; then
         runtest LOG "${scriptname}" -preset auto good.dsp
     done
 
-    if ! notinlist faust2api "${TESTS_EXCLUDED}"; then
+    if notinlist faust2api "${TESTS_EXCLUDED}"; then
         (faust2api -jack good.dsp >LOG 2>&1 && unzip dsp-faust.zip && cd dsp-faust && c++ -std=c++11 DspFaust.cpp -DBUILD -ljack -o DspFaust) && (echo "OK: faust2api -jack succeeded !")||(echo "ERROR: faust2api -jack failed")
         runtest LOG faust2api -jack -midi -nvoices 8 good.dsp
         runtest LOG faust2api -jack -nvoices 8 -effect effect.dsp -midi good.dsp
@@ -198,7 +199,7 @@ if [ "x${TESTS}" != "x" ]; then
             runtest LOG faust2api -android -nvoices 8 -effect effect.dsp -midi good.dsp
         fi
     fi
-    if ! notinlist faustnodejs "${TESTS_EXCLUDED}"; then
+    if notinlist faustnodejs "${TESTS_EXCLUDED}"; then
         if [ "$system" = "Darwin" ]; then
             runtest LOG faust2nodejs -coreaudio good.dsp
             runtest LOG faust2nodejs -coreaudio -midi good.dsp
@@ -207,7 +208,7 @@ if [ "x${TESTS}" != "x" ]; then
         fi
     fi
 
-    if ! notinlist faust2smartkeyb "${TESTS_EXCLUDED}"; then
+    if notinlist faust2smartkeyb "${TESTS_EXCLUDED}"; then
         if [ "$system" = "Darwin" ]; then
             runtest LOG faust2smartkeyb -android good.dsp
             runtest LOG faust2smartkeyb -android -nvoices 8 good.dsp
@@ -221,11 +222,11 @@ if [ "x${TESTS}" != "x" ]; then
     fi
 
     # Test of -exp10
-    if ! notinlist faust2jack "${TESTS_EXCLUDED}"; then
+    if notinlist faust2jack "${TESTS_EXCLUDED}"; then
         runtest LOG faust2jack -exp10 exp10.dsp
     fi
 
-    if ! notinlist faust2android "${TESTS_EXCLUDED}"; then
+    if notinlist faust2android "${TESTS_EXCLUDED}"; then
         runtestfail faust2android -exp10 exp10.dsp
     fi
 else # TESTS is empty
