@@ -28,7 +28,7 @@ using namespace std;
 
 /**
  * Infere the type of a term according to its surrounding type environment
- * @param sig the signal to aanlyze
+ * @param sig the signal to analyse
  * @param env the type environment
  * @return the type of sig according to environment env
  */

@@ -643,6 +643,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
         dst << "-lang " << gOutputLang << " ";
 #endif
     }
+    if (gInlineArchSwitch) dst << "-i ";
     if (gInPlace) dst << "-inpl ";
     if (gOneSample >= 0) dst << "-os" << gOneSample << " ";
     if (gLightMode) dst << "-light ";

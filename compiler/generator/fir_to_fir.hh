@@ -624,4 +624,59 @@ struct ControlExpander : public BasicCloneVisitor {
     
 };
 
+// Analysis to copy constants from an external memory zone
+struct ConstantsCopyFromMemory : public BasicCloneVisitor {
+    
+    int fIntIndex = 0;
+    int fRealIndex = 0;
+    
+    StatementInst* visit(DeclareVarInst* inst)
+    {
+        return InstBuilder::genDropInst();
+    }
+    
+    StatementInst* visit(StoreVarInst* inst)
+    {
+        string name = inst->fAddress->getName();
+        if (startWith(name, "iConst")) {
+            ValueInst* zone = InstBuilder::genLoadArrayFunArgsVar("iZone", InstBuilder::genInt32NumInst(fIntIndex++));
+            return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
+        } else if (startWith(name, "fConst")) {
+            ValueInst* zone = InstBuilder::genLoadArrayFunArgsVar("fZone", InstBuilder::genInt32NumInst(fRealIndex++));
+            return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
+        } else {
+            return InstBuilder::genDropInst();
+        }
+    }
+    
+    BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
+};
+
+// Analysis to copy constants to an external memory zone
+struct ConstantsCopyToMemory : public BasicCloneVisitor {
+    
+    int fIntIndex = 0;
+    int fRealIndex = 0;
+    
+    StatementInst* visit(DeclareVarInst* inst)
+    {
+        return InstBuilder::genDropInst();
+    }
+    
+    StatementInst* visit(StoreVarInst* inst)
+    {
+        string name = inst->fAddress->getName();
+        if (startWith(name, "iConst")) {
+            return InstBuilder::genStoreArrayFunArgsVar("iZone", InstBuilder::genInt32NumInst(fIntIndex++), InstBuilder::genLoadStructVar(name));
+        } else if (startWith(name, "fConst")) {
+            return InstBuilder::genStoreArrayFunArgsVar("fZone", InstBuilder::genInt32NumInst(fRealIndex++), InstBuilder::genLoadStructVar(name));
+        } else {
+            return InstBuilder::genDropInst();
+        }
+    }
+    
+    BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
+};
+
+
 #endif
