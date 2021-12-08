@@ -78,7 +78,7 @@ class TanPrim : public xtended {
         return container->pushFunction(subst("tan$0", isuffix()), result_type, arg_types, casted_args);
     }
 
-    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<::Type>& types)
+    virtual string generateCode(Klass* klass, const vector<string>& args, const vector<::Type>& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

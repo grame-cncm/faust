@@ -61,7 +61,7 @@ class xtended : public virtual Garbageable {
 
     // SL : 28/09/17
     // Old CPP backend
-    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types) = 0;
+    virtual string generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types) = 0;
 
     virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types) = 0;
     virtual int    infereSigOrder(const vector<int>& args)                                               = 0;

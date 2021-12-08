@@ -36,8 +36,8 @@ using namespace std;
         - subcontainers are merged in the main class
         - CScalarOneSampleCodeContainer1 (used in -os0) separates the DSP control state in iControl and fControl (possibly to be allocated elsewhere)
         - CScalarOneSampleCodeContainer2 (used in -os1) separates the DSP control state in iControl and fControl and the DSP state in iZone and fZone (possibly to be allocated elsewhere)
-        - CScalarOneSampleCodeContainer3 (used in -os2) separates the DSP control state in iControl and fControl and the DSP state in iZone and fZone (possibly to be allocated elsewhere). Short delay lines remain in DSP struct, long delay lines are moved in iZone/fZone
-        Additional functions 'instanceConstantsFromMem' and 'instanceConstantsToMem' to copy iConst/fConst variables from/to memory are generated
+        - CScalarOneSampleCodeContainer3 (used in -os2) separates the DSP control state in iControl and fControl and the DSP state in iZone and fZone (possibly to be allocated elsewhere). Short delay lines remain in DSP struct, long delay lines are moved in iZone/fZone.
+        Additional functions 'instanceConstantsFromMem' and 'instanceConstantsToMem' to copy iConst/fConst variables from/to memory are generated.
  */
 
 map<string, bool> CInstVisitor::gFunctionSymbolTable;

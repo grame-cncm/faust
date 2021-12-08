@@ -1272,9 +1272,9 @@ string ScalarCompiler::generateXtended(Tree sig)
     }
 
     if (p->needCache()) {
-        return generateCacheCode(sig, p->old_generateCode(fClass, args, types));
+        return generateCacheCode(sig, p->generateCode(fClass, args, types));
     } else {
-        return p->old_generateCode(fClass, args, types);
+        return p->generateCode(fClass, args, types);
     }
 }
 
