@@ -1271,7 +1271,7 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     tab(n + 1, *fOut);
     
     tab(n + 1, *fOut);
-    *fOut << "virtual void instanceConstantsFromMem(" << subst("int* iZone, $0* fZone) {", ifloat());
+    *fOut << "virtual void instanceConstantsFromMem(int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     tab(n + 2, *fOut);
     ConstantsCopyFromMemory copy_from_mem;
     CPPInstVisitor visitor1(fOut, n + 2);
@@ -1281,7 +1281,7 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     tab(n + 1, *fOut);
     
     tab(n + 1, *fOut);
-    *fOut << "virtual void instanceConstantsToMem(" << subst("int* iZone, $0* fZone) {", ifloat());
+    *fOut << "virtual void instanceConstantsToMem(int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     tab(n + 2, *fOut);
     ConstantsCopyToMemory copy_to_mem;
     CPPInstVisitor visitor2(fOut, n + 2);

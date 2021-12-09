@@ -645,6 +645,8 @@ struct ConstantsCopyFromMemory : public BasicCloneVisitor {
         } else if (startWith(name, "fConst") && is_struct) {
             ValueInst* zone = InstBuilder::genLoadArrayFunArgsVar("fZone", InstBuilder::genInt32NumInst(fRealIndex++));
             return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
+        } else if (name == "fSampleRate") {
+            return BasicCloneVisitor::visit(inst);
         } else {
             return InstBuilder::genDropInst();
         }
@@ -672,6 +674,8 @@ struct ConstantsCopyToMemory : public BasicCloneVisitor {
             return InstBuilder::genStoreArrayFunArgsVar("iZone", InstBuilder::genInt32NumInst(fIntIndex++), InstBuilder::genLoadStructVar(name));
         } else if (startWith(name, "fConst") && is_struct) {
             return InstBuilder::genStoreArrayFunArgsVar("fZone", InstBuilder::genInt32NumInst(fRealIndex++), InstBuilder::genLoadStructVar(name));
+        } else if (name == "fSampleRate") {
+            return BasicCloneVisitor::visit(inst);
         } else {
             return InstBuilder::genDropInst();
         }

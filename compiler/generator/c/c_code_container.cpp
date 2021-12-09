@@ -1099,7 +1099,7 @@ void CScalarOneSampleCodeContainer3::produceClass()
     
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "void instanceConstantsFromMem" << fKlassName << "(" << fKlassName << "* dsp, " << subst("int* iZone, $0* fZone) {", ifloat());
+    *fOut << "void instanceConstantsFromMem" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
@@ -1112,7 +1112,7 @@ void CScalarOneSampleCodeContainer3::produceClass()
     
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "void instanceConstantsToMem" << fKlassName << "(" << fKlassName << "* dsp, " << subst("int* iZone, $0* fZone) {", ifloat());
+    *fOut << "void instanceConstantsToMem" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
