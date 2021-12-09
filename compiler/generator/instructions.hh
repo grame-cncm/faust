@@ -1467,13 +1467,14 @@ class BasicCloneVisitor : public CloneVisitor {
         for (const auto& it : inst->fArgs) {
             cloned_args.push_back(it->clone(this));
         }
-
         return new FunCallInst(inst->fName, cloned_args, inst->fMethod);
     }
+    
     virtual StatementInst* visit(RetInst* inst)
     {
         return new RetInst((inst->fResult) ? inst->fResult->clone(this) : nullptr);
     }
+    
     virtual StatementInst* visit(DropInst* inst)
     {
         return new DropInst((inst->fResult) ? inst->fResult->clone(this) : nullptr);
@@ -1598,6 +1599,10 @@ class BasicCloneVisitor : public CloneVisitor {
     {
         return new VectorTyped(static_cast<BasicTyped*>(typed->fType->clone(this)), typed->fSize);
     }
+    
+    // Return the cloned block, possibly refined in subclasses.
+    virtual BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
+    
 };
 
 // =======================

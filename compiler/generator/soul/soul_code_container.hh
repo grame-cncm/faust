@@ -73,7 +73,6 @@ struct TableSizeCloneVisitor : public BasicCloneVisitor {
         }
     }
 
-    BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
 };
 
 class SOULCodeContainer : public virtual CodeContainer {

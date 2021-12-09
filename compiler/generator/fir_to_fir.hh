@@ -159,7 +159,9 @@ struct RemoverCloneVisitor : public BasicCloneVisitor {
     }
 };
 
+// ========================================
 // Used in WebAssembly and Interp backends
+// ========================================
 
 /*
  For subcontainers table generation : rename 'sig' in 'dsp' and remove 'dsp' allocation.
@@ -188,7 +190,6 @@ struct DspRenamer : public BasicCloneVisitor {
         }
     }
 
-    BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
 };
 
 // Moves all variables declaration at the beginning of the block and rewrite them as 'declaration' followed by 'store'
@@ -436,11 +437,11 @@ struct LoopVariableRenamer : public BasicCloneVisitor {
         }
     }
     
-    BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
 };
 
-
+// ===============
 // Inlining tools
+// ===============
 
 // TODO: stack variables should be renamed since inlining the same function several times will create variables name clash
 
@@ -453,6 +454,7 @@ struct FunctionInliner {
 
 // Replace a function call with the actual inlined function code
 struct FunctionCallInliner : public BasicCloneVisitor {
+    
     DeclareFunInst* fFunction;
 
     FunctionCallInliner(DeclareFunInst* function) : fFunction(function) {}
@@ -475,11 +477,11 @@ struct FunctionCallInliner : public BasicCloneVisitor {
         }
     }
 
-    BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
 };
 
 // Compute the size in bytes of variables of a given type
 struct VariableSizeCounter : public DispatchVisitor {
+    
     int                 fSizeBytes;
     Typed::VarType      fType;
     Address::AccessType fAccess;
@@ -503,6 +505,7 @@ struct VariableSizeCounter : public DispatchVisitor {
 
 // Remove unneeded cast
 struct CastRemover : public BasicTypingCloneVisitor {
+    
     virtual ValueInst* visit(::CastInst* inst)
     {
         inst->fInst->accept(&fTypingVisitor);
@@ -538,7 +541,6 @@ struct CastRemover : public BasicTypingCloneVisitor {
         }
     }
 
-    BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
 };
 
 /*
@@ -547,6 +549,7 @@ struct CastRemover : public BasicTypingCloneVisitor {
   v1 = &foo[n];      ==> usage of v1[m] are replaced with foo[n+m]
  */
 struct VarAddressRemover : public BasicCloneVisitor {
+    
     std::map<string, LoadVarAddressInst*> fVariableMap;
 
     virtual StatementInst* visit(DeclareVarInst* inst)
@@ -587,7 +590,6 @@ struct VarAddressRemover : public BasicCloneVisitor {
         }
     }
 
-    BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
 };
 
 // Expand and rewrite ControlInst as 'IF (cond) {....}' instructions
@@ -616,11 +618,6 @@ struct ControlExpander : public BasicCloneVisitor {
     
     StatementInst* visit(ControlInst* inst);
     StatementInst* visit(BlockInst* inst);
-   
-    BlockInst* getCode(BlockInst* src)
-    {
-        return static_cast<BlockInst*>(src->clone(this));
-    }
     
 };
 
@@ -652,7 +649,6 @@ struct ConstantsCopyFromMemory : public BasicCloneVisitor {
         }
     }
     
-    BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
 };
 
 // Analysis to copy constants to an external memory zone
@@ -680,9 +676,7 @@ struct ConstantsCopyToMemory : public BasicCloneVisitor {
             return InstBuilder::genDropInst();
         }
     }
-    
-    BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
-};
 
+};
 
 #endif

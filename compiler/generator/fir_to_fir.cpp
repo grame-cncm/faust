@@ -110,12 +110,10 @@ BlockInst* FunctionInliner::ReplaceParameterByArg(BlockInst* code, NamedTyped* n
                         string tmp_in            = gGlobal->getFreshID("tmp_in");
                         fVarTable[fNamed->fName] = tmp_in;
                         if (gGlobal->gHasTeeLocal) {
-                            fBlockStack.top()->pushBackInst(
-                                                            InstBuilder::genDecStackVar(tmp_in, fNamed->fType->clone(&cloner)));
+                            fBlockStack.top()->pushBackInst(InstBuilder::genDecStackVar(tmp_in, fNamed->fType->clone(&cloner)));
                             return InstBuilder::genTeeVar(tmp_in, fArg->clone(&cloner));
                         } else {
-                            fBlockStack.top()->pushBackInst(InstBuilder::genDecStackVar(
-                                                                                        tmp_in, fNamed->fType->clone(&cloner), fArg->clone(&cloner)));
+                            fBlockStack.top()->pushBackInst(InstBuilder::genDecStackVar(tmp_in, fNamed->fType->clone(&cloner), fArg->clone(&cloner)));
                             return InstBuilder::genLoadStackVar(tmp_in);
                         }
                     } else {
@@ -139,7 +137,6 @@ BlockInst* FunctionInliner::ReplaceParameterByArg(BlockInst* code, NamedTyped* n
             }
         }
         
-        BlockInst* getCode(BlockInst* src) { return static_cast<BlockInst*>(src->clone(this)); }
     };
     
     // Count variable load occurences in a block
