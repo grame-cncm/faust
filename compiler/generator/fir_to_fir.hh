@@ -638,10 +638,11 @@ struct ConstantsCopyFromMemory : public BasicCloneVisitor {
     StatementInst* visit(StoreVarInst* inst)
     {
         string name = inst->fAddress->getName();
-        if (startWith(name, "iConst")) {
+        bool is_struct = inst->fAddress->getAccess() & Address::kStruct;
+        if (startWith(name, "iConst") && is_struct) {
             ValueInst* zone = InstBuilder::genLoadArrayFunArgsVar("iZone", InstBuilder::genInt32NumInst(fIntIndex++));
             return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
-        } else if (startWith(name, "fConst")) {
+        } else if (startWith(name, "fConst") && is_struct) {
             ValueInst* zone = InstBuilder::genLoadArrayFunArgsVar("fZone", InstBuilder::genInt32NumInst(fRealIndex++));
             return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
         } else {
@@ -666,9 +667,10 @@ struct ConstantsCopyToMemory : public BasicCloneVisitor {
     StatementInst* visit(StoreVarInst* inst)
     {
         string name = inst->fAddress->getName();
-        if (startWith(name, "iConst")) {
+        bool is_struct = inst->fAddress->getAccess() & Address::kStruct;
+        if (startWith(name, "iConst") && is_struct) {
             return InstBuilder::genStoreArrayFunArgsVar("iZone", InstBuilder::genInt32NumInst(fIntIndex++), InstBuilder::genLoadStructVar(name));
-        } else if (startWith(name, "fConst")) {
+        } else if (startWith(name, "fConst") && is_struct) {
             return InstBuilder::genStoreArrayFunArgsVar("fZone", InstBuilder::genInt32NumInst(fRealIndex++), InstBuilder::genLoadStructVar(name));
         } else {
             return InstBuilder::genDropInst();
