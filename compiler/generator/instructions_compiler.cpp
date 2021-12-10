@@ -59,10 +59,8 @@ InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
       fSharingKey(nullptr),
       fOccMarkup(nullptr),
       fUIRoot(uiFolder(cons(tree(0), tree("")))),
-      fDescription(0),
-      fHasIota(false)
-{
-}
+      fDescription(nullptr)
+{}
 
 // Taken from sharing.cpp
 
@@ -1899,8 +1897,7 @@ ValueInst* InstructionsCompiler::generateIota(Tree sig, Tree arg)
  */
 void InstructionsCompiler::ensureIotaCode()
 {
-     if (!fHasIota) {
-         fHasIota = true;
+     if (fCurrentIOTA == "") {
          fCurrentIOTA = gGlobal->getFreshID("IOTA");
          pushDeclare(InstBuilder::genDecStructVar(fCurrentIOTA, InstBuilder::genInt32Typed()));
          pushClearMethod(InstBuilder::genStoreStructVar(fCurrentIOTA, InstBuilder::genInt32NumInst(0)));

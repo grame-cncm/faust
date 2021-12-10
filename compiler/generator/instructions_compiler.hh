@@ -72,9 +72,7 @@ class InstructionsCompiler : public virtual Garbageable {
      'mask' delay-lines use the next power-of-two value size and a mask (faster but use more memory)
      'select' delay-line use N+1 and use select to wrap the read/write indexes (use less memory but slower)
     */
-    
-    bool fHasIota;
-
+  
     void getTypedNames(::Type t, const string& prefix, Typed::VarType& ctype, string& vname);
 
     bool     getCompiledExpression(Tree sig, InstType& cexp);
