@@ -134,8 +134,8 @@ help:
 	@echo
 	@echo "Utilities targets:"
 	@echo " 'cmake'      : regenerate the project using the current config"
-	@echo " 'universal'  : [MacOSX] set the universal binaries option ON."
-	@echo " 'native'     : [MacOSX] set the universal binaries option OFF."
+	@echo " 'universal'  : [macOS] set the universal binaries option ON (x86_64 and arm64)."
+	@echo " 'native'     : [macOS] set the universal binaries option OFF."
 	@echo " 'verbose'    : turn the verbose makefile option ON."
 	@echo " 'silent'     : turn the verbose makefile option OFF."
 	@echo " 'jsscripts'  : to rebuild javascript resources (from architecture/httpdlib)."
