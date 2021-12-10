@@ -286,21 +286,13 @@ void CPPCodeContainer::produceClass()
         tab(n, *fOut);
         *fOut << "namespace " << gGlobal->gNameSpace << " {" << endl;
     }
-
-    // Generate gub containers
-    generateSubContainers();
-
-    // Global declarations
-    tab(n, *fOut);
-    fCodeProducer->Tab(n);
-    generateGlobalDeclarations(fCodeProducer);
-
+ 
     tab(n, *fOut);
     *fOut << "#ifndef FAUSTCLASS " << endl;
     *fOut << "#define FAUSTCLASS " << fKlassName << endl;
     *fOut << "#endif" << endl;
     tab(n, *fOut);
-
+    
     *fOut << "#ifdef __APPLE__ " << endl;
     *fOut << "#define exp10f __exp10f" << endl;
     *fOut << "#define exp10 __exp10" << endl;
@@ -312,6 +304,14 @@ void CPPCodeContainer::produceClass()
     *fOut << "#else" << endl;
     *fOut << "#define RESTRICT __restrict__" << endl;
     *fOut << "#endif" << endl;
+
+    // Generate gub containers
+    generateSubContainers();
+    
+    // Global declarations
+    tab(n, *fOut);
+    fCodeProducer->Tab(n);
+    generateGlobalDeclarations(fCodeProducer);
     
     tab(n, *fOut);
     *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";

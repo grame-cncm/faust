@@ -487,7 +487,7 @@ struct FunTyped : public Typed {
     bool isPairedFunArg(const string& name)
     {
         for (const auto& it : fArgsTypes) {
-            if ((name != it->fName) && (startWith(it->fName, name)|| startWith(name, it->fName))) return true;
+            if (isPtrType(it->getType()) && (name != it->fName) && (startWith(it->fName, name) || startWith(name, it->fName))) return true;
         }
         return false;
     }

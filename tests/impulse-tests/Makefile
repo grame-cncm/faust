@@ -102,6 +102,7 @@ travis:
 # c++ and c backends
 cpp:
 	$(MAKE) -f Make.gcc outdir=cpp/double           lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
+	$(MAKE) -f Make.gcc outdir=cpp/double/mcd0          lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -mcd 0"
 	$(MAKE) -f Make.gcc outdir=cpp/double/mapp          lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -mapp"
 	$(MAKE) -f Make.gcc outdir=cpp/double/rui           lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -rui"
 	$(MAKE) -f Make.gcc outdir=cpp/double/dlt0      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -dlt 0"
@@ -123,17 +124,22 @@ cpp:
 
 cpp1:
 	$(MAKE) -f Make.gcc outdir=cpp1/double         lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os0"
+	$(MAKE) -f Make.gcc outdir=cpp1/double/mcd0    lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os0 -mcd 0"
 
 cpp2:
 	$(MAKE) -f Make.gcc outdir=cpp2/double         lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os1"
+	$(MAKE) -f Make.gcc outdir=cpp2/double/mcd0    lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os1 -mcd 0"
 
 cpp3:
 	export FAUST_MAX_SIZE=1000
 	$(MAKE) -f Make.gcc outdir=cpp3_s1/double      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os2"
+	$(MAKE) -f Make.gcc outdir=cpp3_s1/double      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os2 -mcd 0"
 	export FAUST_MAX_SIZE=10000
 	$(MAKE) -f Make.gcc outdir=cpp3_s2/double      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os2"
+	$(MAKE) -f Make.gcc outdir=cpp3_s2/double      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os2 -mcd 0"
 	export FAUST_MAX_SIZE=50000
 	$(MAKE) -f Make.gcc outdir=cpp3_s3/double      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os2"
+	$(MAKE) -f Make.gcc outdir=cpp3_s3/double/mcd0 lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os2 -mcd 0"
 
 ocpp:
 	$(MAKE) -f Make.gcc outdir=ocpp/double         lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
