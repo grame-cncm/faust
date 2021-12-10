@@ -656,12 +656,14 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     if (gHasExp10) dst << "-exp10 ";
     if (gSchedulerSwitch) dst << "-sch ";
     if (gOpenMPSwitch) dst << "-omp " << ((gOpenMPLoop) ? "-pl " : "");
+    dst << "-mcd " << gGlobal->gMaxCopyDelay << " ";
+    if (gGlobal->gUIMacroSwitch) dst << "-uim ";
     if (gVectorSwitch) {
         dst << "-vec "
             << "-lv " << gVectorLoopVariant << " "
             << "-vs " << gVecSize << " " << ((gFunTaskSwitch) ? "-fun " : "") << ((gGroupTaskSwitch) ? "-g " : "")
-            << ((gDeepFirstSwitch) ? "-dfs " : "") << printFloat() << "-ftz " << gFTZMode << " "
-            << "-mcd " << gGlobal->gMaxCopyDelay;
+            << ((gDeepFirstSwitch) ? "-dfs " : "") << printFloat() << "-ftz " << gFTZMode << " ";
+            
     } else {
         dst << printFloat() << "-ftz " << gFTZMode;
     }
