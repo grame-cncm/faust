@@ -1900,12 +1900,13 @@ ValueInst* InstructionsCompiler::generateIota(Tree sig, Tree arg)
 void InstructionsCompiler::ensureIotaCode()
 {
      if (!fHasIota) {
-        fHasIota = true;
-        pushDeclare(InstBuilder::genDecStructVar("IOTA", InstBuilder::genInt32Typed()));
-        pushClearMethod(InstBuilder::genStoreStructVar("IOTA", InstBuilder::genInt32NumInst(0)));
+         fHasIota = true;
+         fCurrentIOTA = gGlobal->getFreshID("IOTA");
+         pushDeclare(InstBuilder::genDecStructVar(fCurrentIOTA, InstBuilder::genInt32Typed()));
+         pushClearMethod(InstBuilder::genStoreStructVar(fCurrentIOTA, InstBuilder::genInt32NumInst(0)));
 
-        FIRIndex value = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) + 1;
-        pushPostComputeDSPMethod(InstBuilder::genStoreStructVar("IOTA", value));
+         FIRIndex value = FIRIndex(InstBuilder::genLoadStructVar(fCurrentIOTA)) + 1;
+         pushPostComputeDSPMethod(InstBuilder::genStoreStructVar(fCurrentIOTA, value));
     }
 }
 
@@ -2045,7 +2046,10 @@ ValueInst* InstructionsCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
 
         int N = pow2limit(mxd + 1);
         if (N <= gGlobal->gMaskDelayLineThreshold) {
-            FIRIndex value2 = (FIRIndex(InstBuilder::genLoadStructVar("IOTA")) - CS(delay)) & FIRIndex(N - 1);
+            
+            ensureIotaCode();
+            
+            FIRIndex value2 = (FIRIndex(InstBuilder::genLoadStructVar(fCurrentIOTA)) - CS(delay)) & FIRIndex(N - 1);
             return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, value2));
         } else {
             string ridx_name = gGlobal->getFreshID(vname + "_ridx_tmp");
@@ -2180,8 +2184,8 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
             // Generate table use
             if (gGlobal->gComputeIOTA) {  // Ensure IOTA base fixed delays are computed once
                 if (fIOTATable.find(N) == fIOTATable.end()) {
-                    string   iota_name = subst("i$0", gGlobal->getFreshID("IOTA_temp"));
-                    FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) & FIRIndex(N - 1);
+                    string   iota_name = subst("i$0", gGlobal->getFreshID(fCurrentIOTA + "_temp"));
+                    FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar(fCurrentIOTA)) & FIRIndex(N - 1);
 
                     pushPreComputeDSPMethod(InstBuilder::genDecStackVar(iota_name, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0)));
                     pushComputeDSPMethod(InstBuilder::genControlInst(ccs, InstBuilder::genStoreStackVar(iota_name, value2)));
@@ -2193,7 +2197,7 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
                     InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genLoadStackVar(fIOTATable[N]), exp)));
 
             } else {
-                FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar("IOTA")) & FIRIndex(N - 1);
+                FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar(fCurrentIOTA)) & FIRIndex(N - 1);
                 pushComputeDSPMethod(InstBuilder::genControlInst(ccs, InstBuilder::genStoreArrayStructVar(vname, value2, exp)));
             }
         } else {

@@ -59,7 +59,10 @@ class InstructionsCompiler : public virtual Garbageable {
     old_OccMarkup*                  fOccMarkup;
 
     // Ensure IOTA base fixed delays are computed once
-    std::map<int, std::string> fIOTATable;
+    map<int, string> fIOTATable;
+    
+    // Several 'IOTA' variables may be needed when subcontainers are inlined in the main module
+    string fCurrentIOTA;
 
     Tree         fUIRoot;
     Description* fDescription;
