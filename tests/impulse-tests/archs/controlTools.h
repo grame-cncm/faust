@@ -9,6 +9,7 @@
 #include "faust/gui/SoundUI.h"
 
 #include "faust/dsp/llvm-dsp.h"
+#include "faust/dsp/libfaust.h"
 #include "faust/dsp/one-sample-dsp.h"
 #include "faust/gui/GUI.h"
 #include "faust/dsp/poly-dsp.h"

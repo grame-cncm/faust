@@ -1,4 +1,4 @@
-% man(1) Version 2.38.11 (10-December-2021) | Faust man page
+% man(1) Version 2.38.12 (11-December-2021) | Faust man page
 
 NAME
 ====
@@ -27,7 +27,7 @@ Input options:
 
   **-A** \<dir>  **--architecture-dir** \<dir>      add the directory \<dir> to the architecture search path.
 
-  **-I** \<dir>  **--import-dir** \<dir>            add the directory \<dir> to the import search path.
+  **-I** \<dir>  **--import-dir** \<dir>            add the directory \<dir> to the libraries search path.
 
   **-L** \<file> **--library** \<file>              link with the LLVM module \<file>.
 

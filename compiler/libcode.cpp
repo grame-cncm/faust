@@ -1983,7 +1983,14 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     }
 
     printDeclareHeader(out);
-    out << "process = " << boxpp(gGlobal->gProcessTree) << ';' << endl;
+    
+    // Create a map of <ID, expression>
+    stringstream s;
+    s << boxppShared(gGlobal->gProcessTree);
+    // Print the <ID, expression> list
+    boxppShared::printIDs(out);
+    out << "process = " << s.str() << ';' << endl;
+    
     return out.str();
 }
 
@@ -2083,7 +2090,14 @@ static void createFactoryAux(const char* name, const char* dsp_content, int argc
         }
 
         printDeclareHeader(out);
-        out << "process = " << boxpp(process) << ";" << endl;
+        
+        // Create a map of <ID, expression>
+        stringstream s;
+        s << boxppShared(process);
+        // Print the <ID, expression> list
+        boxppShared::printIDs(out);
+        out << "process = " << s.str() << ';' << endl;
+        
         return;
     }
 

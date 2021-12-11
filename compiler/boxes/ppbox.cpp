@@ -29,6 +29,10 @@
 #include "signals.hh"
 #include "xtended.hh"
 
+using namespace std;
+
+map<Tree, string> boxppShared::fExpTable;
+
 const char* prim0name(CTree *(*ptr)())
 {
     return "prim0???";
@@ -57,9 +61,9 @@ const char* prim2name(CTree *(*ptr)(CTree *, CTree *))
     if (ptr == sigXOR) return "xor";
 
     if (ptr == sigLeftShift) return "<<";
-    if (ptr == sigLRightShift) return ">>";
-    if (ptr == sigARightShift) return ">>>";
-
+    if (ptr == sigARightShift) return ">>";
+    if (ptr == sigLRightShift) return ">>>";
+    
     if (ptr == sigLT) return "<";
     if (ptr == sigLE) return "<=";
     if (ptr == sigGT) return ">";
@@ -103,6 +107,13 @@ static void streambinop(ostream &fout, Tree t1, const char *op, Tree t2, int cur
     if (upPriority > curPriority) fout << ')';
 }
 
+static void streambinopShared(ostream &fout, Tree t1, const char *op, Tree t2, int curPriority, int upPriority)
+{
+    if (upPriority > curPriority) fout << '(';
+    fout << boxppShared(t1, curPriority) << op << boxppShared(t2, curPriority);
+    if (upPriority > curPriority) fout << ')';
+}
+
 static void printRule(ostream &fout, Tree rule)
 {
     Tree lhs = left(rule);
@@ -135,7 +146,7 @@ static string type2str(int type)
 }
 
 // If t has a node of type symbol, return its name, otherwise error
-ostream& boxpp::print(ostream &fout) const
+ostream& boxpp::print(ostream& fout) const
 {
     int    i, id;
     double r;
@@ -150,45 +161,44 @@ ostream& boxpp::print(ostream &fout) const
         ldef, slot, ident, rules, chan, ins, outs, lroutes;
 
     const char* str;
-
-    xtended* xt = (xtended*)getUserData(box);
+    xtended* xt = (xtended*)getUserData(fBox);
 
     // Primitive elements
     if (xt)
         fout << xt->name();
-    else if (isBoxInt(box, &i))
+    else if (isBoxInt(fBox, &i))
         fout << i;
-    else if (isBoxReal(box, &r))
+    else if (isBoxReal(fBox, &r))
         fout << T(r);
-    else if (isBoxCut(box))
+    else if (isBoxCut(fBox))
         fout << '!';
-    else if (isBoxWire(box))
+    else if (isBoxWire(fBox))
         fout << '_';
-    else if (isBoxIdent(box, &str))
+    else if (isBoxIdent(fBox, &str))
         fout << str;
-    else if (isBoxPrim0(box, &p0))
+    else if (isBoxPrim0(fBox, &p0))
         fout << prim0name(p0);
-    else if (isBoxPrim1(box, &p1))
+    else if (isBoxPrim1(fBox, &p1))
         fout << prim1name(p1);
-    else if (isBoxPrim2(box, &p2))
+    else if (isBoxPrim2(fBox, &p2))
         fout << prim2name(p2);
-    else if (isBoxPrim3(box, &p3))
+    else if (isBoxPrim3(fBox, &p3))
         fout << prim3name(p3);
-    else if (isBoxPrim4(box, &p4))
+    else if (isBoxPrim4(fBox, &p4))
         fout << prim4name(p4);
-    else if (isBoxPrim5(box, &p5))
+    else if (isBoxPrim5(fBox, &p5))
         fout << prim5name(p5);
 
-    else if (isBoxAbstr(box, arg, body))
+    else if (isBoxAbstr(fBox, arg, body))
         fout << "\\" << boxpp(arg) << ".(" << boxpp(body) << ")";
-    else if (isBoxAppl(box, fun, args))
+    else if (isBoxAppl(fBox, fun, args))
         fout << boxpp(fun) << boxpp(args);
 
-    else if (isBoxWithLocalDef(box, body, ldef))
+    else if (isBoxWithLocalDef(fBox, body, ldef))
         fout << boxpp(body) << " with { " << envpp(ldef) << " }";
 
     // Foreign elements
-    else if (isBoxFFun(box, ff)) {
+    else if (isBoxFFun(fBox, ff)) {
         fout << "ffunction(" << type2str(ffrestype(ff));
         Tree namelist = nth(ffsignature(ff), 1);
         char sep      = ' ';
@@ -203,72 +213,72 @@ ostream& boxpp::print(ostream &fout) const
         }
         fout << ')';
         fout << ',' << ffincfile(ff) << ',' << fflibfile(ff) << ')';
-    } else if (isBoxFConst(box, type, name, file))
+    } else if (isBoxFConst(fBox, type, name, file))
         fout << "fconstant(" << type2str(tree2int(type)) << ' ' << tree2str(name) << ", " << tree2str(file) << ')';
-    else if (isBoxFVar(box, type, name, file))
+    else if (isBoxFVar(fBox, type, name, file))
         fout << "fvariable(" << type2str(tree2int(type)) << ' ' << tree2str(name) << ", " << tree2str(file) << ')';
 
     // Block diagram binary operator
-    else if (isBoxSeq(box, t1, t2))
-        streambinop(fout, t1, " : ", t2, 1, priority);
-    else if (isBoxSplit(box, t1, t2))
-        streambinop(fout, t1, "<:", t2, 1, priority);
-    else if (isBoxMerge(box, t1, t2))
-        streambinop(fout, t1, ":>", t2, 1, priority);
-    else if (isBoxPar(box, t1, t2))
-        streambinop(fout, t1, ",", t2, 2, priority);
-    else if (isBoxRec(box, t1, t2))
-        streambinop(fout, t1, "~", t2, 4, priority);
+    else if (isBoxSeq(fBox, t1, t2))
+        streambinop(fout, t1, " : ", t2, 1, fPriority);
+    else if (isBoxSplit(fBox, t1, t2))
+        streambinop(fout, t1, "<:", t2, 1, fPriority);
+    else if (isBoxMerge(fBox, t1, t2))
+        streambinop(fout, t1, ":>", t2, 1, fPriority);
+    else if (isBoxPar(fBox, t1, t2))
+        streambinop(fout, t1, ",", t2, 2, fPriority);
+    else if (isBoxRec(fBox, t1, t2))
+        streambinop(fout, t1, "~", t2, 4, fPriority);
 
     // Iterative block diagram construction
-    else if (isBoxIPar(box, t1, t2, t3))
+    else if (isBoxIPar(fBox, t1, t2, t3))
         fout << "par(" << boxpp(t1) << ", " << boxpp(t2) << ") {" << boxpp(t3) << "}";
-    else if (isBoxISeq(box, t1, t2, t3))
+    else if (isBoxISeq(fBox, t1, t2, t3))
         fout << "seq(" << boxpp(t1) << ", " << boxpp(t2) << ") {" << boxpp(t3) << "}";
-    else if (isBoxISum(box, t1, t2, t3))
+    else if (isBoxISum(fBox, t1, t2, t3))
         fout << "sum(" << boxpp(t1) << ", " << boxpp(t2) << ") {" << boxpp(t3) << "}";
-    else if (isBoxIProd(box, t1, t2, t3))
+    else if (isBoxIProd(fBox, t1, t2, t3))
         fout << "prod(" << boxpp(t1) << ", " << boxpp(t2) << ") {" << boxpp(t3) << "}";
 
-    else if (isBoxInputs(box, t1))
+    else if (isBoxInputs(fBox, t1))
         fout << "inputs(" << boxpp(t1) << ")";
-    else if (isBoxOutputs(box, t1))
+    else if (isBoxOutputs(fBox, t1))
         fout << "outputs(" << boxpp(t1) << ")";
 
     // User interface
-    else if (isBoxButton(box, label))
+    else if (isBoxButton(fBox, label))
         fout << "button(" << tree2quotedstr(label) << ')';
-    else if (isBoxCheckbox(box, label))
+    else if (isBoxCheckbox(fBox, label))
         fout << "checkbox(" << tree2quotedstr(label) << ')';
-    else if (isBoxVSlider(box, label, cur, min, max, step)) {
+    else if (isBoxVSlider(fBox, label, cur, min, max, step)) {
         fout << "vslider(" << tree2quotedstr(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max)
              << ", " << boxpp(step) << ')';
-    } else if (isBoxHSlider(box, label, cur, min, max, step)) {
+    } else if (isBoxHSlider(fBox, label, cur, min, max, step)) {
         fout << "hslider(" << tree2quotedstr(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max)
              << ", " << boxpp(step) << ')';
-    } else if (isBoxVGroup(box, label, t1)) {
+    } else if (isBoxVGroup(fBox, label, t1)) {
         fout << "vgroup(" << tree2quotedstr(label) << ", " << boxpp(t1, 0) << ')';
-    } else if (isBoxHGroup(box, label, t1)) {
+    } else if (isBoxHGroup(fBox, label, t1)) {
         fout << "hgroup(" << tree2quotedstr(label) << ", " << boxpp(t1, 0) << ')';
-    } else if (isBoxTGroup(box, label, t1)) {
+    } else if (isBoxTGroup(fBox, label, t1)) {
         fout << "tgroup(" << tree2quotedstr(label) << ", " << boxpp(t1, 0) << ')';
-    } else if (isBoxHBargraph(box, label, min, max)) {
+    } else if (isBoxHBargraph(fBox, label, min, max)) {
         fout << "hbargraph(" << tree2quotedstr(label) << ", " << boxpp(min) << ", " << boxpp(max) << ')';
-    } else if (isBoxMetadata(box, t1, t2)) {
+    } else if (isBoxMetadata(fBox, t1, t2)) {
         fout << boxpp(t1, 0) << "/* md */";
-    } else if (isBoxVBargraph(box, label, min, max)) {
+    } else if (isBoxVBargraph(fBox, label, min, max)) {
         fout << "vbargraph(" << tree2quotedstr(label) << ", " << boxpp(min) << ", " << boxpp(max) << ')';
-    } else if (isBoxNumEntry(box, label, cur, min, max, step)) {
+    } else if (isBoxNumEntry(fBox, label, cur, min, max, step)) {
         fout << "nentry(" << tree2quotedstr(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max)
              << ", " << boxpp(step) << ')';
-    } else if (isBoxSoundfile(box, label, chan)) {
+    } else if (isBoxSoundfile(fBox, label, chan)) {
         fout << "soundfile(" << tree2quotedstr(label) << ", " << boxpp(chan) << ')';
     }
 
-    else if (isNil(box)) {
+    else if (isNil(fBox)) {
         fout << "()";
-    } else if (isList(box)) {
-        Tree l   = box;
+    } else if (isList(fBox)) {
+        Tree l   = fBox;
         char sep = '(';
 
         do {
@@ -279,51 +289,51 @@ ostream& boxpp::print(ostream &fout) const
 
         fout << ')';
 
-    } else if (isBoxWaveform(box)) {
+    } else if (isBoxWaveform(fBox)) {
         fout << "waveform";
         char sep = '{';
-        for (int i1 = 0; i1 < box->arity(); i1++) {
-            fout << sep << boxpp(box->branch(i1));
+        for (int i1 = 0; i1 < fBox->arity(); i1++) {
+            fout << sep << boxpp(fBox->branch(i1));
             sep = ',';
         }
         fout << '}';
         /*
-        size_t n = box->arity();
+        size_t n = fBox->arity();
         if (n < 6) {
             // small waveform, print all data
             fout << "waveform";
             char sep = '{';
             for (size_t i=0; i<n; i++) {
-                fout << sep << boxpp(box->branch(i));
+                fout << sep << boxpp(fBox->branch(i));
                 sep = ',';
             }
             fout << '}';
         } else {
             // large waveform print only first and last values
-            fout << "waveform{" << box->branch(0) << ", ..<" << n-2 << ">..," << box->branch(n-1) << "}";
+            fout << "waveform{" << fBox->branch(0) << ", ..<" << n-2 << ">..," << fBox->branch(n-1)   << "}";
         }
         */
 
-    } else if (isBoxEnvironment(box)) {
+    } else if (isBoxEnvironment(fBox)) {
         fout << "environment";
 
-    } else if (isClosure(box, abstr, genv, vis, lenv)) {
+    } else if (isClosure(fBox, abstr, genv, vis, lenv)) {
         fout << "closure[" << boxpp(abstr) << ", genv = " << envpp(genv) << ", lenv = " << envpp(lenv) << "]";
-    } else if (isBoxComponent(box, label)) {
+    } else if (isBoxComponent(fBox, label)) {
         fout << "component(" << tree2quotedstr(label) << ')';
-    } else if (isBoxAccess(box, t1, t2)) {
+    } else if (isBoxAccess(fBox, t1, t2)) {
         fout << boxpp(t1) << '.' << boxpp(t2);
-    } else if (isImportFile(box, label)) {
+    } else if (isImportFile(fBox, label)) {
         fout << "import(" << tree2quotedstr(label) << ')';
-    } else if (isBoxSlot(box, &id)) {
+    } else if (isBoxSlot(fBox, &id)) {
         // fout << "#" << id;
         fout << "x" << id;
-    } else if (isBoxSymbolic(box, slot, body)) {
+    } else if (isBoxSymbolic(fBox, slot, body)) {
         fout << "\\(" << boxpp(slot) << ").(" << boxpp(body) << ")";
     }
 
     // pattern Matching Extensions
-    else if (isBoxCase(box, rules)) {
+    else if (isBoxCase(fBox, rules)) {
         fout << "case {";
         while (!isNil(rules)) {
             printRule(fout, hd(rules));
@@ -333,25 +343,25 @@ ostream& boxpp::print(ostream &fout) const
     }
 #if 1
     // More useful for debugging output
-    else if (isBoxPatternVar(box, ident)) {
+    else if (isBoxPatternVar(fBox, ident)) {
         fout << "<" << boxpp(ident) << ">";
     }
 #else
     // Beautify messages involving lhs patterns
-    else if (isBoxPatternVar(box, ident)) {
+    else if (isBoxPatternVar(fBox, ident)) {
         fout << boxpp(ident);
     }
 #endif
 
-    else if (isBoxPatternMatcher(box)) {
-        fout << "PM[" << box << "]";
+    else if (isBoxPatternMatcher(fBox)) {
+        fout << "PM[" << fBox << "]";
     }
 
-    else if (isBoxRoute(box, ins, outs, lroutes)) {
+    else if (isBoxRoute(fBox, ins, outs, lroutes)) {
         fout << "route(" << boxpp(ins) << "," << boxpp(outs) << "," << boxpp(lroutes) << ")";
     }
 
-    else if (isBoxError(box)) {
+    else if (isBoxError(fBox)) {
         fout << "ERROR";
     }
 
@@ -363,11 +373,250 @@ ostream& boxpp::print(ostream &fout) const
     // None of the previous tests succeded, then it is not a valid box
     else {
         stringstream error;
-        error << "ERROR in box::print() : " << *box << " is not a valid box" << endl;
+        error << "ERROR in box::print() : " << *fBox << " is not a valid box" << endl;
         throw faustexception(error.str());
     }
 
     return fout;
+}
+
+#define INSERT_ID(exp)                             \
+    if (fExpTable.find(fBox) == fExpTable.end()) { \
+        stringstream s;                            \
+        (exp);                                     \
+        fExpTable[fBox] = s.str();                 \
+    }                                              \
+    fout << "ID_" << fBox;                         \
+
+ostream& boxppShared::print(ostream& fout) const
+{
+    int    i, id;
+    double r;
+    prim0  p0;
+    prim1  p1;
+    prim2  p2;
+    prim3  p3;
+    prim4  p4;
+    prim5  p5;
+    
+    Tree t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg, body, fun, args, abstr, genv, vis, lenv,
+        ldef, slot, ident, rules, chan, ins, outs, lroutes;
+    
+    const char* str;
+    xtended* xt = (xtended*)getUserData(fBox);
+    
+    // Primitive elements
+    if (xt)
+        fout << xt->name();
+    else if (isBoxInt(fBox, &i))
+        fout << i;
+    else if (isBoxReal(fBox, &r))
+        fout << T(r);
+    else if (isBoxCut(fBox))
+        fout << '!';
+    else if (isBoxWire(fBox))
+        fout << '_';
+    else if (isBoxIdent(fBox, &str))
+        fout << str;
+    else if (isBoxPrim0(fBox, &p0))
+        fout << prim0name(p0);
+    else if (isBoxPrim1(fBox, &p1))
+        fout << prim1name(p1);
+    else if (isBoxPrim2(fBox, &p2))
+        fout << prim2name(p2);
+    else if (isBoxPrim3(fBox, &p3))
+        fout << prim3name(p3);
+    else if (isBoxPrim4(fBox, &p4))
+        fout << prim4name(p4);
+    else if (isBoxPrim5(fBox, &p5))
+        fout << prim5name(p5);
+    
+    else if (isBoxAbstr(fBox, arg, body)) {
+        // BoxAbstr cannot be safely expanded with 'boxppShared' since 'arg' used in 'body' will be somewhat free
+        fout << "\\" << boxpp(arg) << ".(" << boxpp(body) << ")";
+    } else if (isBoxAppl(fBox, fun, args)) {
+        INSERT_ID(s << boxppShared(fun) << boxppShared(args));
+    } else if (isBoxWithLocalDef(fBox, body, ldef)) {
+        INSERT_ID(s << boxppShared(body) << " with { " << envpp(ldef) << " }");
+    // Foreign elements
+    } else if (isBoxFFun(fBox, ff)) {
+        if (fExpTable.find(fBox) == fExpTable.end()) {
+            stringstream s;
+                
+            s << "ffunction(" << type2str(ffrestype(ff));
+            Tree namelist = nth(ffsignature(ff), 1);
+            char sep      = ' ';
+            for (int i1 = 0; i1 < gGlobal->gFloatSize; i1++) {
+                s << sep << tree2str(nth(namelist, i1));
+                sep = '|';
+            }
+            sep = '(';
+            for (int i1 = 0; i1 < ffarity(ff); i1++) {
+                s << sep << type2str(ffargtype(ff, i1));
+                sep = ',';
+            }
+            s << ')';
+            s << ',' << ffincfile(ff) << ',' << fflibfile(ff) << ')';
+            
+            fExpTable[fBox] = s.str();
+        }
+        // Tree used a ID
+        fout << "ID_" << fBox;
+    } else if (isBoxFConst(fBox, type, name, file)) {
+        INSERT_ID(s << "fconstant(" << type2str(tree2int(type)) << ' ' << tree2str(name) << ", " << tree2str(file) << ')');
+    } else if (isBoxFVar(fBox, type, name, file)) {
+        INSERT_ID(s << "fvariable(" << type2str(tree2int(type)) << ' ' << tree2str(name) << ", " << tree2str(file) << ')');
+    // Block diagram binary operator
+    } else if (isBoxSeq(fBox, t1, t2)) {
+        INSERT_ID(streambinopShared(s, t1, " : ", t2, 1, fPriority));
+    } else if (isBoxSplit(fBox, t1, t2)) {
+        INSERT_ID(streambinopShared(s, t1, " <: ", t2, 1, fPriority));
+    } else if (isBoxMerge(fBox, t1, t2)) {
+        INSERT_ID(streambinopShared(s, t1, " :> ", t2, 1, fPriority));
+    } else if (isBoxPar(fBox, t1, t2)) {
+        INSERT_ID(streambinopShared(s, t1, ", ", t2, 2, fPriority));
+    } else if (isBoxRec(fBox, t1, t2)) {
+        INSERT_ID(streambinopShared(s, t1, " ~ ", t2, 4, fPriority));
+    // Iterative block diagram construction
+    } else if (isBoxIPar(fBox, t1, t2, t3)) {
+        INSERT_ID(s << "par(" << boxppShared(t1) << ", " << boxppShared(t2) << ") {" << boxppShared(t3) << "}");
+    } else if (isBoxISeq(fBox, t1, t2, t3)) {
+        INSERT_ID(s << "seq(" << boxppShared(t1) << ", " << boxppShared(t2) << ") {" << boxppShared(t3) << "}");
+     } else if (isBoxISum(fBox, t1, t2, t3)) {
+        INSERT_ID(s << "sum(" << boxppShared(t1) << ", " << boxppShared(t2) << ") {" << boxppShared(t3) << "}");
+    } else if (isBoxIProd(fBox, t1, t2, t3)) {
+        INSERT_ID(s << "prod(" << boxppShared(t1) << ", " << boxppShared(t2) << ") {" << boxppShared(t3) << "}");
+    } else if (isBoxInputs(fBox, t1)) {
+        INSERT_ID(s << "inputs(" << boxppShared(t1) << ")");
+    } else if (isBoxOutputs(fBox, t1)) {
+        INSERT_ID(s << "outputs(" << boxppShared(t1) << ")");
+    
+    // User interface
+    } else if (isBoxButton(fBox, label)) {
+        INSERT_ID(s  << "button(" << tree2quotedstr(label) << ')');
+    } else if (isBoxCheckbox(fBox, label)) {
+        INSERT_ID(s << "checkbox(" << tree2quotedstr(label) << ')');
+    } else if (isBoxVSlider(fBox, label, cur, min, max, step)) {
+        INSERT_ID(s << "vslider(" << tree2quotedstr(label) << ", " << boxppShared(cur) << ", " << boxppShared(min) << ", " << boxppShared(max) << ", " << boxppShared(step) << ')');
+    } else if (isBoxHSlider(fBox, label, cur, min, max, step)) {
+        INSERT_ID(s << "hslider(" << tree2quotedstr(label) << ", " << boxppShared(cur) << ", " << boxppShared(min) << ", " << boxppShared(max) << ", " << boxppShared(step) << ')');
+    } else if (isBoxVGroup(fBox, label, t1)) {
+        INSERT_ID(s << "vgroup(" << tree2quotedstr(label) << ", " << boxppShared(t1, 0) << ')');
+    } else if (isBoxHGroup(fBox, label, t1)) {
+        INSERT_ID(s << "hgroup(" << tree2quotedstr(label) << ", " << boxppShared(t1, 0) << ')');
+    } else if (isBoxTGroup(fBox, label, t1)) {
+        INSERT_ID(s << "tgroup(" << tree2quotedstr(label) << ", " << boxppShared(t1, 0) << ')');
+    } else if (isBoxHBargraph(fBox, label, min, max)) {
+        INSERT_ID(s << "hbargraph(" << tree2quotedstr(label) << ", " << boxppShared(min) << ", " << boxppShared(max) << ')');
+    } else if (isBoxMetadata(fBox, t1, t2)) {
+        INSERT_ID(s << boxppShared(t1, 0) << "/* md */");
+    } else if (isBoxVBargraph(fBox, label, min, max)) {
+        INSERT_ID(s << "vbargraph(" << tree2quotedstr(label) << ", " << boxppShared(min) << ", " << boxppShared(max) << ')');
+    } else if (isBoxNumEntry(fBox, label, cur, min, max, step)) {
+        INSERT_ID(s << "nentry(" << tree2quotedstr(label) << ", " << boxppShared(cur) << ", " << boxppShared(min) << ", " << boxppShared(max) << ", " << boxppShared(step) << ')');
+    } else if (isBoxSoundfile(fBox, label, chan)) {
+        INSERT_ID(s << "soundfile(" << tree2quotedstr(label) << ", " << boxppShared(chan) << ')');
+    }
+    
+    else if (isNil(fBox)) {
+        fout << "()";
+    } else if (isList(fBox)) {
+        if (fExpTable.find(fBox) == fExpTable.end()) {
+            stringstream s;
+            Tree l   = fBox;
+            char sep = '(';
+            
+            do {
+                s << sep << boxppShared(hd(l));
+                sep = ',';
+                l   = tl(l);
+            } while (isList(l));
+            
+            s << ')';
+            fExpTable[fBox] = s.str();
+        }
+        // Tree used a ID
+        fout << "ID_" << fBox;
+    } else if (isBoxWaveform(fBox)) {
+        if (fExpTable.find(fBox) == fExpTable.end()) {
+            stringstream s;
+            s << "waveform";
+            char sep = '{';
+            for (int i1 = 0; i1 < fBox->arity(); i1++) {
+                s << sep << boxpp(fBox->branch(i1));
+                sep = ',';
+            }
+            s << '}';
+            fExpTable[fBox] = s.str();
+        }
+        // Tree used a ID
+        fout << "ID_" << fBox;
+    } else if (isBoxEnvironment(fBox)) {
+        fout << "environment";
+    } else if (isClosure(fBox, abstr, genv, vis, lenv)) {
+        INSERT_ID(s << "closure[" << boxppShared(abstr) << ", genv = " << envpp(genv) << ", lenv = " << envpp(lenv) << "]");
+    } else if (isBoxComponent(fBox, label)) {
+        fout << "component(" << tree2quotedstr(label) << ')';
+    } else if (isBoxAccess(fBox, t1, t2)) {
+        fout << boxppShared(t1) << '.' << boxppShared(t2);
+    } else if (isImportFile(fBox, label)) {
+        fout << "import(" << tree2quotedstr(label) << ')';
+    } else if (isBoxSlot(fBox, &id)) {
+        // fout << "#" << id;
+        fout << "x" << id;
+    } else if (isBoxSymbolic(fBox, slot, body)) {
+        // BoxSymbolic cannot be safely expanded with 'boxppShared' since 'slot' used in 'body' will be somewhat free
+        fout << "\\(" << boxpp(slot) << ").(" << boxpp(body) << ")";
+    }
+    
+    // pattern Matching Extensions
+    else if (isBoxCase(fBox, rules)) {
+        fout << "case {";
+        while (!isNil(rules)) {
+            printRule(fout, hd(rules));
+            rules = tl(rules);
+        }
+        fout << "}";
+    }
+#if 1
+    // More useful for debugging output
+    else if (isBoxPatternVar(fBox, ident)) {
+        fout << "<" << boxppShared(ident) << ">";
+    }
+#else
+    // Beautify messages involving lhs patterns
+    else if (isBoxPatternVar(fBox, ident)) {
+        fout << boxppShared(ident);
+    }
+#endif
+    
+    else if (isBoxPatternMatcher(fBox)) {
+        fout << "PM[" << fBox << "]";
+    }
+    
+    else if (isBoxRoute(fBox, ins, outs, lroutes)) {
+        INSERT_ID(s << "route(" << boxppShared(ins) << "," << boxppShared(outs) << "," << boxppShared(lroutes) << ")");
+    }
+    
+    else if (isBoxError(fBox)) {
+        fout << "ERROR";
+    }
+
+    // None of the previous tests succeded, then it is not a valid box
+    else {
+        stringstream error;
+        error << "ERROR in boxppShared::print() : " << *fBox << " is not a valid box" << endl;
+        throw faustexception(error.str());
+    }
+    
+    return fout;
+}
+
+void boxppShared::printIDs(ostream& fout)
+{
+    for (const auto& it : fExpTable) {
+        fout << "ID_" << it.first << " = " << it.second << ';' << endl;
+    }
 }
 
 /*****************************************************************************

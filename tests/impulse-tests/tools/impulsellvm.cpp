@@ -27,8 +27,8 @@ int main(int argc, char* argv[])
     
     bool inpl = isopt(argv, "-inpl");
     
+    // Test factory generated from compilation
     {
-        // Test factory generated from compilation
         string error_msg;
         factory = createDSPFactoryFromFile(argv[1], argc1, argv1, "", error_msg, 3);
         
@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
         
         dsp* DSP = factory->createDSPInstance();
         if (!DSP) {
-            cerr << "ERROR : createDSPInstance " << endl;
+            cerr << "ERROR in createDSPInstance" << endl;
             exit(-1);
         }
         
@@ -71,9 +71,9 @@ int main(int argc, char* argv[])
         }
     }
     
+    // Test writeDSPFactoryToBitcodeFile/readDSPFactoryFromBitcodeFile
     {
         string error_msg;
-        // Test writeDSPFactoryToBitcodeFile/readDSPFactoryFromBitcodeFile
         stringstream str; str << "/var/tmp/llvm-factory" << factory << ".bc";
         if (!writeDSPFactoryToBitcodeFile(factory, str.str())) {
              cerr << "ERROR in writeDSPFactoryToBitcodeFile \n";
@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
         
         dsp* DSP = factory->createDSPInstance();
         if (!DSP) {
-            cerr << "ERROR : createDSPInstance " << endl;
+            cerr << "ERROR in createDSPInstance" << endl;
             exit(-1);
         }
         
@@ -101,9 +101,9 @@ int main(int argc, char* argv[])
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
     }
     
+    // Test writeDSPFactoryToBitcode/readDSPFactoryFromBitcode
     {
         string error_msg;
-        // Test writeDSPFactoryToBitcode/readDSPFactoryFromBitcode
         string factory_str = writeDSPFactoryToBitcode(factory);
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
         factory = readDSPFactoryFromBitcode(factory_str, "", error_msg);
@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
         
         dsp* DSP = factory->createDSPInstance();
         if (!DSP) {
-            cerr << "ERROR : createDSPInstance " << endl;
+            cerr << "ERROR in createDSPInstance" << endl;
             exit(-1);
         }
         
@@ -128,9 +128,9 @@ int main(int argc, char* argv[])
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
     }
    
+    // Test writeDSPFactoryToIRFile/readDSPFactoryFromIRFile
     {
         string error_msg;
-        // Test writeDSPFactoryToIRFile/readDSPFactoryFromIRFile
         stringstream str; str << "/var/tmp/llvm-factory" << factory << ".ll";
         if (!writeDSPFactoryToIRFile(factory, str.str())) {
             cerr << "ERROR in writeDSPFactoryToIRFile \n";
@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
         
         dsp* DSP = factory->createDSPInstance();
         if (!DSP) {
-            cerr << "ERROR : createDSPInstance " << endl;
+            cerr << "ERROR in createDSPInstance" << endl;
             exit(-1);
         }
         
@@ -158,9 +158,9 @@ int main(int argc, char* argv[])
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
     }
     
+    // Test writeDSPFactoryToIR/readDSPFactoryFromIR
     {
         string error_msg;
-        // Test writeDSPFactoryToIR/readDSPFactoryFromIR
         string factory_str = writeDSPFactoryToIR(factory);
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
         factory = readDSPFactoryFromIR(factory_str, "", error_msg);
@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
         
         dsp* DSP = factory->createDSPInstance();
         if (!DSP) {
-            cerr << "ERROR : createDSPInstance " << endl;
+            cerr << "ERROR in createDSPInstance" << endl;
             exit(-1);
         }
         
@@ -185,9 +185,9 @@ int main(int argc, char* argv[])
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
     }
     
+    // Test writeDSPFactoryToMachineFile/readDSPFactoryFromMachineFile
     {
         string error_msg;
-        // Test writeDSPFactoryToMachineFile/readDSPFactoryFromMachineFile
         string machine_file_name = "/var/tmp/" + string(argv[1]) + "-llvm-factory-machine";
         if (!writeDSPFactoryToMachineFile(factory, machine_file_name, "")) {
             cerr << "ERROR in writeDSPFactoryToMachineFile \n";
@@ -202,7 +202,7 @@ int main(int argc, char* argv[])
         
         dsp* DSP = factory->createDSPInstance();
         if (!DSP) {
-            cerr << "ERROR : createDSPInstance " << endl;
+            cerr << "ERROR in createDSPInstance" << endl;
             exit(-1);
         }
         
@@ -215,9 +215,9 @@ int main(int argc, char* argv[])
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
     }
     
+    // Test writeDSPFactoryToMachine/readDSPFactoryFromMachine
     {
         string error_msg;
-        // Test writeDSPFactoryToMachine/readDSPFactoryFromMachine
         string factory_str = writeDSPFactoryToMachine(factory, "");
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
         factory = readDSPFactoryFromMachine(factory_str, "", error_msg);
@@ -229,7 +229,34 @@ int main(int argc, char* argv[])
         
         dsp* DSP = factory->createDSPInstance();
         if (!DSP) {
-            cerr << "ERROR : createDSPInstance " << endl;
+            cerr << "ERROR in createDSPInstance" << endl;
+            exit(-1);
+        }
+        
+        // print general informations
+        printHeader(DSP, nbsamples);
+        
+        runDSP1(factory, argv[1], linenum, nbsamples/4);
+        runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
+        runPolyDSP1(factory, linenum, nbsamples/4, 4);
+        runPolyDSP1(factory, linenum, nbsamples/4, 1);
+    }
+    
+    // Test expandDSPFromFile
+    {
+        string sha_key;
+        string error_msg;
+        string expanded_dsp = expandDSPFromFile(argv[1], argc1, argv1, sha_key, error_msg);
+        factory = createDSPFactoryFromString("FausDSP", expanded_dsp, argc1, argv1, "", error_msg, 3);
+    
+        if (!factory) {
+            cerr << "ERROR in expandDSPFromFile " << error_msg;
+            exit(-1);
+        }
+        
+        dsp* DSP = factory->createDSPInstance();
+        if (!DSP) {
+            cerr << "ERROR in createDSPInstance" << endl;
             exit(-1);
         }
         
