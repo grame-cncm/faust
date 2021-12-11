@@ -612,7 +612,7 @@ void global::init()
     gMathForeignFunctions["copysignl"] = true;
 }
 
-static string printFloat()
+string global::printFloat()
 {
     switch (gGlobal->gFloatSize) {
         case 1:
@@ -651,6 +651,9 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     if (gComputeMix) dst << "-cm ";
     if (gRangeUI) dst << "-rui ";
     if (gMathApprox) dst << "-mapp ";
+    if (gClassName != "mydsp") dst << "-cn " << gClassName << " ";
+    if (gSuperClassName != "dsp") dst << "-scn " << gSuperClassName << " ";
+    if (gProcessName != "process") dst << "-pn " << gProcessName << " ";
     if (gMaskDelayLineThreshold != INT_MAX) dst << "-dtl " << gMaskDelayLineThreshold << " ";
     dst << "-es " << gEnableFlag << " ";
     if (gHasExp10) dst << "-exp10 ";
@@ -658,14 +661,12 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     if (gOpenMPSwitch) dst << "-omp " << ((gOpenMPLoop) ? "-pl " : "");
     dst << "-mcd " << gGlobal->gMaxCopyDelay << " ";
     if (gGlobal->gUIMacroSwitch) dst << "-uim ";
+    dst << printFloat() << "-ftz " << gFTZMode << " ";
     if (gVectorSwitch) {
         dst << "-vec "
             << "-lv " << gVectorLoopVariant << " "
             << "-vs " << gVecSize << " " << ((gFunTaskSwitch) ? "-fun " : "") << ((gGroupTaskSwitch) ? "-g " : "")
-            << ((gDeepFirstSwitch) ? "-dfs " : "") << printFloat() << "-ftz " << gFTZMode << " ";
-            
-    } else {
-        dst << printFloat() << "-ftz " << gFTZMode;
+            << ((gDeepFirstSwitch) ? "-dfs " : "");
     }
 
     // Add 'compile_options' metadata

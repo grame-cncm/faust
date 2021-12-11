@@ -875,7 +875,7 @@ static void printHelp()
     cout << tab << "-i        --inline-architecture-files   inline architecture files." << endl;
     cout << tab << "-A <dir>  --architecture-dir <dir>      add the directory <dir> to the architecture search path."
          << endl;
-    cout << tab << "-I <dir>  --import-dir <dir>            add the directory <dir> to the import search path." << endl;
+    cout << tab << "-I <dir>  --import-dir <dir>            add the directory <dir> to the libraries search path." << endl;
     cout << tab << "-L <file> --library <file>              link with the LLVM module <file>." << endl;
 
     cout << tab << "-t <sec>  --timeout <sec>               abort compilation after <sec> seconds (default 120)."

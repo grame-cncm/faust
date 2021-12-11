@@ -565,6 +565,8 @@ struct global {
 
     static void allocate();
     static void destroy();
+    
+    static string printFloat();
 
     string getFreshID(const string& prefix);
 
