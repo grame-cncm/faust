@@ -627,6 +627,9 @@ struct ConstantsCopyFromMemory : public BasicCloneVisitor {
     int fIntIndex = 0;
     int fRealIndex = 0;
     
+    ConstantsCopyFromMemory(int int_index, int float_index):fIntIndex(int_index), fRealIndex(float_index)
+    {}
+    
     StatementInst* visit(DeclareVarInst* inst)
     {
         return InstBuilder::genDropInst();
@@ -656,6 +659,9 @@ struct ConstantsCopyToMemory : public BasicCloneVisitor {
     
     int fIntIndex = 0;
     int fRealIndex = 0;
+    
+    ConstantsCopyToMemory(int int_index, int float_index):fIntIndex(int_index), fRealIndex(float_index)
+    {}
     
     StatementInst* visit(DeclareVarInst* inst)
     {

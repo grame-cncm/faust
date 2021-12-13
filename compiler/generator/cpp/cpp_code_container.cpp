@@ -1273,7 +1273,7 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     tab(n + 1, *fOut);
     *fOut << "virtual void instanceConstantsFromMem(int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     tab(n + 2, *fOut);
-    ConstantsCopyFromMemory copy_from_mem;
+    ConstantsCopyFromMemory copy_from_mem(int_zone_size, real_zone_size);
     CPPInstVisitor visitor1(fOut, n + 2);
     copy_from_mem.getCode(fInitInstructions)->accept(&visitor1);
     back(1, *fOut);
@@ -1283,7 +1283,7 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     tab(n + 1, *fOut);
     *fOut << "virtual void instanceConstantsToMem(int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     tab(n + 2, *fOut);
-    ConstantsCopyToMemory copy_to_mem;
+    ConstantsCopyToMemory copy_to_mem(int_zone_size, real_zone_size);
     CPPInstVisitor visitor2(fOut, n + 2);
     copy_to_mem.getCode(fInitInstructions)->accept(&visitor2);
     back(1, *fOut);
@@ -1329,6 +1329,8 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     *fOut << "staticInit(sample_rate, iZone, fZone);";
     tab(n + 2, *fOut);
     *fOut << "instanceConstants(sample_rate, iZone, fZone);";
+    tab(n + 2, *fOut);
+    *fOut << "instanceConstantsToMem(sample_rate, iZone, fZone);";
     tab(n + 2, *fOut);
     *fOut << "instanceResetUserInterface();";
     tab(n + 2, *fOut);
@@ -1392,15 +1394,11 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     *fOut << "#define FAUST_REAL_CONTROLS " << fRealControlNum << endl;
     
     tab(n, *fOut);
-    *fOut << "#define FAUST_INT_ZONE " << int_zone_size << endl;
-    *fOut << "#define FAUST_FLOAT_ZONE " << real_zone_size;
+    // copy_from_mem.fIntIndex and copy_from_mem.fRealIndex contains the size used for table, DL and iConst/fConst
+    *fOut << "#define FAUST_INT_ZONE " << copy_from_mem.fIntIndex << endl;
+    *fOut << "#define FAUST_FLOAT_ZONE " << copy_from_mem.fRealIndex;
     tab(n, *fOut);
-    
-    tab(n, *fOut);
-    *fOut << "#define FAUST_INT_CONST " << copy_from_mem.fIntIndex << endl;
-    *fOut << "#define FAUST_FLOAT_CONST " << copy_from_mem.fRealIndex;
-    tab(n, *fOut);
-    
+     
     // To improve (generalization for all backends...)
     if (gGlobal->gMemoryManager) {
         tab(n, *fOut);

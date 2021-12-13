@@ -1104,7 +1104,7 @@ void CScalarOneSampleCodeContainer3::produceClass()
     fCodeProducer->Tab(n + 1);
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
     BlockInst* block1 = inlineSubcontainersFunCalls(fInitInstructions);
-    ConstantsCopyFromMemory copy_from_mem;
+    ConstantsCopyFromMemory copy_from_mem(int_zone_size, real_zone_size);
     CInstVisitor visitor1(fOut, fKlassName, n + 1);
     copy_from_mem.getCode(block1)->accept(&visitor1);
     back(1, *fOut);
@@ -1117,7 +1117,7 @@ void CScalarOneSampleCodeContainer3::produceClass()
     fCodeProducer->Tab(n + 1);
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
     BlockInst* block2 = inlineSubcontainersFunCalls(fInitInstructions);
-    ConstantsCopyToMemory copy_to_mem;
+    ConstantsCopyToMemory copy_to_mem(int_zone_size, real_zone_size);
     CInstVisitor visitor(fOut, fKlassName, n + 1);
     copy_to_mem.getCode(block2)->accept(&visitor);
     back(1, *fOut);
@@ -1131,6 +1131,8 @@ void CScalarOneSampleCodeContainer3::produceClass()
     *fOut << "staticInit" << fKlassName << "(dsp, sample_rate, iZone, fZone);";
     tab(n + 1, *fOut);
     *fOut << "instanceConstants" << fKlassName << "(dsp, sample_rate, iZone, fZone);";
+    tab(n + 1, *fOut);
+    *fOut << "instanceConstantsToMem(dsp, sample_rate, iZone, fZone);";
     tab(n + 1, *fOut);
     *fOut << "instanceResetUserInterface" << fKlassName << "(dsp);";
     tab(n + 1, *fOut);
@@ -1193,13 +1195,9 @@ void CScalarOneSampleCodeContainer3::produceClass()
     *fOut << "#define FAUST_REAL_CONTROLS " << fRealControlNum << endl;
     
     tab(n, *fOut);
-    *fOut << "#define FAUST_INT_ZONE " << int_zone_size << endl;
-    *fOut << "#define FAUST_FLOAT_ZONE " << real_zone_size;
-    tab(n, *fOut);
-    
-    tab(n, *fOut);
-    *fOut << "#define FAUST_INT_CONST " << copy_from_mem.fIntIndex << endl;
-    *fOut << "#define FAUST_FLOAT_CONST " << copy_from_mem.fRealIndex;
+    // copy_from_mem.fIntIndex and copy_from_mem.fRealIndex contains the size used for table, DL and iConst/fConst
+    *fOut << "#define FAUST_INT_ZONE " << copy_from_mem.fIntIndex << endl;
+    *fOut << "#define FAUST_FLOAT_ZONE " << copy_from_mem.fRealIndex;
     tab(n, *fOut);
     
     tab(n, *fOut);
