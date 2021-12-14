@@ -58,9 +58,9 @@ class one_sample_dsp : public dsp {
         one_sample_dsp():fInputs(nullptr), fOutputs(nullptr), iControl(nullptr), fControl(nullptr), fDelete(true)
         {}
         
-        one_sample_dsp(int* icontrol, FAUSTFLOAT* fcontrol)
+        one_sample_dsp(int* iControl, FAUSTFLOAT* fControl)
         :fInputs(nullptr), fOutputs(nullptr),
-        iControl(icontrol), fControl(fcontrol), fDelete(false)
+        iControl(iControl), fControl(fControl), fDelete(false)
         {}
         
         virtual ~one_sample_dsp()
@@ -198,10 +198,10 @@ class one_sample_dsp_real : public dsp {
         iZone(nullptr), fZone(nullptr), fDelete(true)
         {}
     
-        one_sample_dsp_real(int* icontrol, FAUSTFLOAT* fcontrol, int* izone, REAL* fzone)
+        one_sample_dsp_real(int* iControl, FAUSTFLOAT* fControl, int* iZone, REAL* fZone)
         :fInputs(nullptr), fOutputs(nullptr),
-        iControl(icontrol), fControl(fcontrol),
-        iZone(izone), fZone(fzone), fDelete(false)
+        iControl(iControl), fControl(fControl),
+        iZone(iZone), fZone(fZone), fDelete(false)
         {}
         
         virtual ~one_sample_dsp_real()

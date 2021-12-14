@@ -1132,7 +1132,7 @@ void CScalarOneSampleCodeContainer3::produceClass()
     tab(n + 1, *fOut);
     *fOut << "instanceConstants" << fKlassName << "(dsp, sample_rate, iZone, fZone);";
     tab(n + 1, *fOut);
-    *fOut << "instanceConstantsToMem(dsp, sample_rate, iZone, fZone);";
+    *fOut << "instanceConstantsToMem" << fKlassName << "(dsp, sample_rate, iZone, fZone);";
     tab(n + 1, *fOut);
     *fOut << "instanceResetUserInterface" << fKlassName << "(dsp);";
     tab(n + 1, *fOut);
@@ -1195,7 +1195,7 @@ void CScalarOneSampleCodeContainer3::produceClass()
     *fOut << "#define FAUST_REAL_CONTROLS " << fRealControlNum << endl;
     
     tab(n, *fOut);
-    // copy_from_mem.fIntIndex and copy_from_mem.fRealIndex contains the size used for table, DL and iConst/fConst
+    // copy_from_mem.fIntIndex and copy_from_mem.fRealIndex contains the size used for tables, DLs and iConst/fConst variables
     *fOut << "#define FAUST_INT_ZONE " << copy_from_mem.fIntIndex << endl;
     *fOut << "#define FAUST_FLOAT_ZONE " << copy_from_mem.fRealIndex;
     tab(n, *fOut);

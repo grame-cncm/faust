@@ -664,8 +664,8 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     tab(n + 1, *fOut);
     *fOut << fKlassName << "() {}";
     tab(n + 1, *fOut);
-    *fOut << fKlassName << "(int* icontrol, FAUSTFLOAT* fcontrol)";
-    *fOut << ":one_sample_dsp(icontrol, fcontrol) {}";
+    *fOut << fKlassName << "(int* iControl, FAUSTFLOAT* fControl)";
+    *fOut << ":one_sample_dsp(iControl, fControl) {}";
     tab(n + 1, *fOut);
     
     tab(n + 1, *fOut);
@@ -931,8 +931,8 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
     tab(n + 1, *fOut);
     *fOut << fKlassName << "() {}";
     tab(n + 1, *fOut);
-    *fOut << fKlassName << "(int* icontrol, FAUSTFLOAT* fcontrol, int* izone, " << ifloat() << "* fzone)";
-    *fOut << ":one_sample_dsp_real(icontrol, fcontrol, izone, fzone) {}";
+    *fOut << fKlassName << "(int* iControl, FAUSTFLOAT* fControl, int* iZone, " << ifloat() << "* fZone)";
+    *fOut << ":one_sample_dsp_real(iControl, fControl, iZone, fZone) {}";
     tab(n + 1, *fOut);
     
     tab(n + 1, *fOut);
@@ -1224,8 +1224,8 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     tab(n + 1, *fOut);
     *fOut << fKlassName << "() {}";
     tab(n + 1, *fOut);
-    *fOut << fKlassName << "(int* icontrol, FAUSTFLOAT* fcontrol, int* izone, " << ifloat() << "* fzone)";
-    *fOut << ":one_sample_dsp_real(icontrol, fcontrol, izone, fzone) {}";
+    *fOut << fKlassName << "(int* iControl, FAUSTFLOAT* fControl, int* iZone, " << ifloat() << "* fZone)";
+    *fOut << ":one_sample_dsp_real(iControl, fControl, iZone, fZone) {}";
     tab(n + 1, *fOut);
     
     tab(n + 1, *fOut);
@@ -1394,7 +1394,7 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     *fOut << "#define FAUST_REAL_CONTROLS " << fRealControlNum << endl;
     
     tab(n, *fOut);
-    // copy_from_mem.fIntIndex and copy_from_mem.fRealIndex contains the size used for table, DL and iConst/fConst
+    // copy_from_mem.fIntIndex and copy_from_mem.fRealIndex contains the size used for tables, DLs and iConst/fConst variables
     *fOut << "#define FAUST_INT_ZONE " << copy_from_mem.fIntIndex << endl;
     *fOut << "#define FAUST_FLOAT_ZONE " << copy_from_mem.fRealIndex;
     tab(n, *fOut);
