@@ -915,7 +915,7 @@ void CScalarOneSampleCodeContainer3::produceClass()
     generateDeclarations(&heap_counter);
     
     char* max_size_str = getenv("FAUST_MAX_SIZE");
-    int max_size = (max_size_str) ? atoi(max_size_str) : INT_MAX;
+    int max_size = (max_size_str) ? atoi(max_size_str) : 10000;
     fCodeProducer = new CInstVisitor2(fOut, fKlassName, std::max(0, heap_counter.fSizeBytes - max_size));
      
     int n = 0;
