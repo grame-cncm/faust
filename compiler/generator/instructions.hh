@@ -2531,19 +2531,47 @@ struct InstBuilder {
     {
         return genStoreVarInst(genNamedAddress(vname, Address::kGlobal), exp);
     }
+    
+    static bool isZero(ValueInst* num_aux)
+    {
+        return (dynamic_cast<Int32NumInst*>(num_aux) && dynamic_cast<Int32NumInst*>(num_aux)->fNum == 0)
+            || (dynamic_cast<Int64NumInst*>(num_aux) && dynamic_cast<Int64NumInst*>(num_aux)->fNum == 0)
+            || (dynamic_cast<FloatNumInst*>(num_aux) && dynamic_cast<FloatNumInst*>(num_aux)->fNum == 0.f)
+            || (dynamic_cast<DoubleNumInst*>(num_aux) && dynamic_cast<DoubleNumInst*>(num_aux)->fNum == 0.);
+    }
+    
+    static bool isOne(ValueInst* num_aux)
+    {
+        return (dynamic_cast<Int32NumInst*>(num_aux) && dynamic_cast<Int32NumInst*>(num_aux)->fNum == 1)
+            || (dynamic_cast<Int64NumInst*>(num_aux) && dynamic_cast<Int64NumInst*>(num_aux)->fNum == 1)
+            || (dynamic_cast<FloatNumInst*>(num_aux) && dynamic_cast<FloatNumInst*>(num_aux)->fNum == 1.f)
+            || (dynamic_cast<DoubleNumInst*>(num_aux) && dynamic_cast<DoubleNumInst*>(num_aux)->fNum == 1.);
+    }
 
     // Binop operations
-    static BinopInst* genAdd(ValueInst* a1, ValueInst* a2) { return genBinopInst(kAdd, a1, a2); }
+    static ValueInst* genAdd(ValueInst* a1, ValueInst* a2)
+    {
+        return isZero(a1) ? a2 : (isZero(a2) ? a1 : genBinopInst(kAdd, a1, a2));
+    }
 
-    static BinopInst* genAdd(ValueInst* a1, int a2) { return genBinopInst(kAdd, a1, genInt32NumInst(a2)); }
+    static ValueInst* genAdd(ValueInst* a1, int a2) { return genAdd(a1, genInt32NumInst(a2)); }
 
-    static BinopInst* genSub(ValueInst* a1, ValueInst* a2) { return genBinopInst(kSub, a1, a2); }
+    static ValueInst* genSub(ValueInst* a1, ValueInst* a2)
+    {
+        return isZero(a2) ? a1 : genBinopInst(kSub, a1, a2);
+    }
 
-    static BinopInst* genSub(ValueInst* a1, int a2) { return genBinopInst(kSub, a1, genInt32NumInst(a2)); }
+    static ValueInst* genSub(ValueInst* a1, int a2) { return genSub(a1, genInt32NumInst(a2)); }
 
-    static BinopInst* genMul(ValueInst* a1, ValueInst* a2) { return genBinopInst(kMul, a1, a2); }
+    static ValueInst* genMul(ValueInst* a1, ValueInst* a2)
+    {
+        return isOne(a1) ? a2 : (isOne(a2) ? a1 : genBinopInst(kMul, a1, a2));
+    }
 
-    static BinopInst* genDiv(ValueInst* a1, ValueInst* a2) { return genBinopInst(kDiv, a1, a2); }
+    static ValueInst* genDiv(ValueInst* a1, ValueInst* a2)
+    {
+        return isOne(a2) ? a1 : genBinopInst(kDiv, a1, a2);
+    }
 
     static BinopInst* genRem(ValueInst* a1, ValueInst* a2) { return genBinopInst(kRem, a1, a2); }
 

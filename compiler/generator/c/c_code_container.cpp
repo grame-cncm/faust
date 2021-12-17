@@ -1181,11 +1181,11 @@ void CScalarOneSampleCodeContainer3::produceClass()
     
     tab(n, *fOut);
     *fOut << "int getiZoneSize" << fKlassName << "(" << fKlassName << "* dsp) { return "
-    << int_zone_size << "; }";
+    << copy_from_mem.fIntIndex << "; }";
     tab(n, *fOut);
     
     *fOut << "int getfZoneSize" << fKlassName << "(" << fKlassName << "* dsp) { return "
-    << real_zone_size << "; }";
+    << copy_from_mem.fRealIndex << "; }";
     
     // Compute
     generateCompute(n);

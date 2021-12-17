@@ -1378,10 +1378,10 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     tab(n + 1, *fOut);
     
     tab(n + 1, *fOut);
-    *fOut << "virtual int getiZoneSize() { return " << int_zone_size << "; }";
+    *fOut << "virtual int getiZoneSize() { return " << copy_from_mem.fIntIndex  << "; }";
     
     tab(n + 1, *fOut);
-    *fOut << "virtual int getfZoneSize() { return " << real_zone_size << "; }";
+    *fOut << "virtual int getfZoneSize() { return " << copy_from_mem.fRealIndex << "; }";
     
     // Compute
     generateCompute(n);
