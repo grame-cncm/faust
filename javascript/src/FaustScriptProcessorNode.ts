@@ -110,7 +110,7 @@ namespace Faust {
                 super.setupNode(faustnode);
                 return faustnode;
             } catch (e) {
-                console.log("Error in FaustMonoScriptProcessorNodeImp createScriptProcessor: " + e.message);
+                console.log("Error in FaustMonoScriptProcessorNodeImp createScriptProcessor: " + (e as Error).message);
                 return null;
             }
         }
@@ -137,7 +137,7 @@ namespace Faust {
                 }
                 return faustnode;
             } catch (e) {
-                console.log("Error in FaustPolyScriptProcessorNodeImp createScriptProcessor: " + e.message);
+                console.log("Error in FaustPolyScriptProcessorNodeImp createScriptProcessor: " + (e as Error).message);
                 return null;
             }
         }
