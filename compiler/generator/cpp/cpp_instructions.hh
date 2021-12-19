@@ -483,13 +483,11 @@ class CPPInstVisitor1 : public CPPInstVisitor {
     private:
         
         StructInstVisitor fStructVisitor;
-        bool fZoneAddress;      // If a zone address is currently written
-        bool fIndexedAddress;   // If an indexed address is currently written
         
     public:
         
         CPPInstVisitor1(std::ostream* out, int tab = 0)
-        :CPPInstVisitor(out, tab), fZoneAddress(false), fIndexedAddress(false)
+        :CPPInstVisitor(out, tab)
         {}
         
         virtual void visit(AddSoundfileInst* inst)
@@ -516,44 +514,40 @@ class CPPInstVisitor1 : public CPPInstVisitor {
                 CPPInstVisitor::visit(inst);
             }
         }
-        
+    
         virtual void visit(NamedAddress* named)
         {
             Typed::VarType type;
-            if (fStructVisitor.hasField(named->getName(), type)) {
-                // Zone address zone[id][index] are rewritten as zone[id+index]
-                fZoneAddress = true;
+            string name = named->getName();
+            
+            if (fStructVisitor.hasField(name, type)) {
                 if (type == Typed::kInt32) {
-                    *fOut << "iZone[" << fStructVisitor.getFieldIntOffset(named->fName)/sizeof(int);
+                    FIRIndex value = FIRIndex(fStructVisitor.getFieldIntOffset(name)/sizeof(int));
+                    InstBuilder::genLoadArrayVar("iZone", Address::kFunArgs, value)->accept(this);
                 } else {
-                    *fOut << "fZone[" << fStructVisitor.getFieldRealOffset(named->fName)/ifloatsize();
+                    FIRIndex value = FIRIndex(fStructVisitor.getFieldRealOffset(name)/ifloatsize());
+                    InstBuilder::genLoadArrayVar("fZone", Address::kFunArgs, value)->accept(this);
                 }
-                if (!fIndexedAddress) { *fOut << "]"; }
             } else {
-                fZoneAddress = false;
-                *fOut << named->fName;
+                TextInstVisitor::visit(named);
             }
         }
         
-        /*
-         Indexed address can actually be values in an array or fields in a struct type
-         */
         virtual void visit(IndexedAddress* indexed)
         {
-            fIndexedAddress = true;
-            indexed->fAddress->accept(this);
-            DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
-            if (struct_type) {
-                // Default code
-                Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
-                *fOut << "->" << struct_type->fType->getName(field_index->fNum);
+            Typed::VarType type;
+            string name = indexed->getName();
+            
+            if (fStructVisitor.hasField(name, type)) {
+                if (type == Typed::kInt32) {
+                    FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
+                    InstBuilder::genLoadArrayVar("iZone", Address::kFunArgs, value)->accept(this);
+                } else {
+                    FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
+                    InstBuilder::genLoadArrayVar("fZone", Address::kFunArgs, value)->accept(this);
+                }
             } else {
-                // Zone address zone[id][index] are rewritten as zone[id+index]
-                if (fZoneAddress) { *fOut << "+"; } else { *fOut << "["; }
-                fIndexedAddress = false;
-                fZoneAddress = false;
-                indexed->fIndex->accept(this);
-                *fOut << "]";
+                TextInstVisitor::visit(indexed);
             }
         }
         
@@ -614,10 +608,10 @@ class CPPInstVisitor2 : public CPPInstVisitor {
             if (fStructVisitor.hasField(name, type) && fStructVisitor.getFieldMemoryType(name) == MemoryDesc::kExternal) {
                 if (type == Typed::kInt32) {
                     FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
-                    InstBuilder::genIndexedAddress(InstBuilder::genNamedAddress("iZone", Address::kFunArgs), value)->accept(this);
+                    InstBuilder::genLoadArrayVar("iZone", Address::kFunArgs, value)->accept(this);
                 } else {
                     FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
-                    InstBuilder::genIndexedAddress(InstBuilder::genNamedAddress("fZone", Address::kFunArgs), value)->accept(this);
+                    InstBuilder::genLoadArrayVar("fZone", Address::kFunArgs, value)->accept(this);
                 }
             } else {
                 TextInstVisitor::visit(indexed);

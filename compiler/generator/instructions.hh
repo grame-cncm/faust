@@ -1872,6 +1872,11 @@ class CombinerVisitor : public DispatchVisitor {
 // Instruction generator
 // ======================
 
+#define castInt32(e) dynamic_cast<Int32NumInst*>(e)
+#define castInt64(e) dynamic_cast<Int64NumInst*>(e)
+#define castFloat(e) dynamic_cast<FloatNumInst*>(e)
+#define castDouble(e) dynamic_cast<DoubleNumInst*>(e)
+
 struct InstBuilder {
     // User interface
     static AddMetaDeclareInst* genAddMetaDeclareInst(const string& zone, const string& key, const string& value)
@@ -2059,9 +2064,9 @@ struct InstBuilder {
 
     static ValueInst* genCastInst(ValueInst* inst, Typed* typed_ext)
     {
-        Int32NumInst*  int_num    = dynamic_cast<Int32NumInst*>(inst);
-        FloatNumInst*  float_num  = dynamic_cast<FloatNumInst*>(inst);
-        DoubleNumInst* double_num = dynamic_cast<DoubleNumInst*>(inst);
+        Int32NumInst*  int_num    = castInt32(inst);
+        FloatNumInst*  float_num  = castFloat(inst);
+        DoubleNumInst* double_num = castDouble(inst);
         BasicTyped*    typed      = dynamic_cast<BasicTyped*>(typed_ext);
         CastInst*      cast       = dynamic_cast<CastInst*>(inst);
 
@@ -2185,8 +2190,8 @@ struct InstBuilder {
                                                    ValueInst* lowerBound = new Int32NumInst(0), bool reverse = false,
                                                    BlockInst* code = new BlockInst())
     {
-        faustassert(dynamic_cast<Int32NumInst*>(upperBound) || dynamic_cast<LoadVarInst*>(upperBound));
-        faustassert(dynamic_cast<Int32NumInst*>(lowerBound) || dynamic_cast<LoadVarInst*>(lowerBound));
+        faustassert(castInt32(upperBound) || dynamic_cast<LoadVarInst*>(upperBound));
+        faustassert(castInt32(lowerBound) || dynamic_cast<LoadVarInst*>(lowerBound));
         return new SimpleForLoopInst(name, upperBound, lowerBound, reverse, code);
     }
     static IteratorForLoopInst* genIteratorForLoopInst(const std::vector<NamedAddress*>& iterators, bool reverse = false,
@@ -2532,28 +2537,42 @@ struct InstBuilder {
         return genStoreVarInst(genNamedAddress(vname, Address::kGlobal), exp);
     }
     
-    static bool isZero(ValueInst* num_aux)
+    static bool isZero(ValueInst* val)
     {
-        return (dynamic_cast<Int32NumInst*>(num_aux) && dynamic_cast<Int32NumInst*>(num_aux)->fNum == 0)
-            || (dynamic_cast<Int64NumInst*>(num_aux) && dynamic_cast<Int64NumInst*>(num_aux)->fNum == 0)
-            || (dynamic_cast<FloatNumInst*>(num_aux) && dynamic_cast<FloatNumInst*>(num_aux)->fNum == 0.f)
-            || (dynamic_cast<DoubleNumInst*>(num_aux) && dynamic_cast<DoubleNumInst*>(num_aux)->fNum == 0.);
+        return (castInt32(val) && castInt32(val)->fNum == 0)
+            || (castInt64(val) && castInt64(val)->fNum == 0)
+            || (castFloat(val) && castFloat(val)->fNum == 0.f)
+            || (castDouble(val) && castDouble(val)->fNum == 0.);
     }
     
-    static bool isOne(ValueInst* num_aux)
+    static bool isOne(ValueInst* val)
     {
-        return (dynamic_cast<Int32NumInst*>(num_aux) && dynamic_cast<Int32NumInst*>(num_aux)->fNum == 1)
-            || (dynamic_cast<Int64NumInst*>(num_aux) && dynamic_cast<Int64NumInst*>(num_aux)->fNum == 1)
-            || (dynamic_cast<FloatNumInst*>(num_aux) && dynamic_cast<FloatNumInst*>(num_aux)->fNum == 1.f)
-            || (dynamic_cast<DoubleNumInst*>(num_aux) && dynamic_cast<DoubleNumInst*>(num_aux)->fNum == 1.);
+        return (castInt32(val) && castInt32(val)->fNum == 1)
+            || (castInt64(val) && castInt64(val)->fNum == 1)
+            || (castFloat(val) && castFloat(val)->fNum == 1.f)
+            || (castDouble(val) && castDouble(val)->fNum == 1.);
     }
 
     // Binop operations
     static ValueInst* genAdd(ValueInst* a1, ValueInst* a2)
     {
-        return isZero(a1) ? a2 : (isZero(a2) ? a1 : genBinopInst(kAdd, a1, a2));
+        if (isZero(a1)) {
+            return a2;
+        } else if (isZero(a2)) {
+            return a1;
+        } else if (castInt32(a1) && castInt32(a2)) {
+            return genInt32NumInst(castInt32(a1)->fNum + castInt32(a2)->fNum);
+        } else if (castInt64(a1) && castInt64(a2)) {
+            return genInt64NumInst(castInt64(a1)->fNum + castInt64(a2)->fNum);
+        } else if (castFloat(a1) && castFloat(a2)) {
+            return genFloatNumInst(castFloat(a1)->fNum + castFloat(a2)->fNum);
+        } else if (castDouble(a1) && castDouble(a2)) {
+            return genDoubleNumInst(castDouble(a1)->fNum + castDouble(a2)->fNum);
+        }  else {
+            return genBinopInst(kAdd, a1, a2);
+        }
     }
-
+                
     static ValueInst* genAdd(ValueInst* a1, int a2) { return genAdd(a1, genInt32NumInst(a2)); }
 
     static ValueInst* genSub(ValueInst* a1, ValueInst* a2)
