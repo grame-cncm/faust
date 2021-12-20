@@ -29,14 +29,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
     void prepareFIR(void);
 
    protected:
-    static bool isControl(string name)
-    {
-        return (name.find("fbutton") != string::npos || name.find("fcheckbox") != string::npos ||
-                name.find("fvbargraph") != string::npos || name.find("fhbargraph") != string::npos ||
-                name.find("fvslider") != string::npos || name.find("fhslider") != string::npos ||
-                name.find("fentry") != string::npos);
-    }
-
+   
     // To access control inside fControl field
     struct UIInstVisitor : public CPPInstVisitor {
         UIInstVisitor(std::ostream* out, int tab) : CPPInstVisitor(out, tab) {}

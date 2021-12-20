@@ -33,6 +33,19 @@
 #include "instructions.hh"
 #include "type_manager.hh"
 
+// To check all control fields in the DSP structure
+inline bool isControl(const string& name)
+{
+    return startWith(name, "fButton")
+        || startWith(name, "fCheckbox")
+        || startWith(name, "fVslider")
+        || startWith(name, "fHslider")
+        || startWith(name, "fEntry")
+        || startWith(name, "fVbargraph")
+        || startWith(name, "fHbargraph")
+        || name == "fSampleRate";
+}
+
 class TextInstVisitor : public InstVisitor {
    protected:
     int                fTab;

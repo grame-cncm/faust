@@ -500,15 +500,7 @@ class CPPInstVisitor1 : public CPPInstVisitor {
         {
             Address::AccessType access = inst->fAddress->getAccess();
             string name = inst->fAddress->getName();
-            bool is_control = startWith(name, "fButton")
-                || startWith(name, "fCheckbox")
-                || startWith(name, "fVslider")
-                || startWith(name, "fHslider")
-                || startWith(name, "fEntry")
-                || startWith(name, "fVbargraph")
-                || startWith(name, "fHbargraph")
-                || name == "fSampleRate";
-            if (((access & Address::kStruct) || (access & Address::kStaticStruct)) && !is_control) {
+            if (((access & Address::kStruct) || (access & Address::kStaticStruct)) && !isControl(name)) {
                 fStructVisitor.visit(inst);
             } else {
                 CPPInstVisitor::visit(inst);
@@ -581,15 +573,7 @@ class CPPInstVisitor2 : public CPPInstVisitor {
         {
             Address::AccessType access = inst->fAddress->getAccess();
             string name = inst->fAddress->getName();
-            bool is_control = startWith(name, "fButton")
-            || startWith(name, "fCheckbox")
-            || startWith(name, "fVslider")
-            || startWith(name, "fHslider")
-            || startWith(name, "fEntry")
-            || startWith(name, "fVbargraph")
-            || startWith(name, "fHbargraph")
-            || name == "fSampleRate";
-            if (((access & Address::kStruct) || (access & Address::kStaticStruct)) && !is_control) {
+            if (((access & Address::kStruct) || (access & Address::kStaticStruct)) && !isControl(name)) {
                 fStructVisitor.visit(inst);
                 // Local fields have to be generated
                 if (fStructVisitor.getFieldMemoryType(name) == MemoryDesc::kLocal) {
