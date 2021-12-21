@@ -259,13 +259,13 @@ int ifloatsize()
 {
     switch (gGlobal->gFloatSize) {
         case 1:
-            return 4;
+            return gGlobal->gMachineFloatSize;
         case 2:
-            return 8;
+            return gGlobal->gMachineDoubleSize;
         case 3:
-            return 16;
+            return gGlobal->gMachineQuadSize;
         case 4:
-            return 4;
+            return gGlobal->gMachineFixedPointSize;
         default:
             faustassert(false);
             return 0;

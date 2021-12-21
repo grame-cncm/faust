@@ -457,6 +457,8 @@ struct global {
     int gMachineInt32Size;
     int gMachineInt64Size;
     int gMachineDoubleSize;
+    int gMachineQuadSize;
+    int gMachineFixedPointSize;
     int gMachineBoolSize;
     int gMachinePtrSize;
 

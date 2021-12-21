@@ -74,9 +74,10 @@ class CStringTypeManager : public StringTypeManager {
         fTypeDirectTable[Typed::kDouble_ptr_ptr] = "double" + fPtrRef + fPtrRef;
         fTypeDirectTable[Typed::kDouble_vec]     = "vector<double>";
 
-        fTypeDirectTable[Typed::kQuad]     = "quad";
-        fTypeDirectTable[Typed::kQuad_ptr] = "quad" + fPtrRef;
-        fTypeDirectTable[Typed::kQuad_vec] = "vector<quad>";
+        fTypeDirectTable[Typed::kQuad]         = "quad";
+        fTypeDirectTable[Typed::kQuad_ptr]     = "quad" + fPtrRef;
+        fTypeDirectTable[Typed::kQuad_ptr_ptr] = "quad" + fPtrRef + fPtrRef;
+        fTypeDirectTable[Typed::kQuad_vec]     = "vector<quad>";
         
         fTypeDirectTable[Typed::kFixedPoint]     = "fixpoint_t";
         fTypeDirectTable[Typed::kFixedPoint_ptr] = "fixpoint_t" + fPtrRef;

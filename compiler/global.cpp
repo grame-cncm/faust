@@ -407,11 +407,13 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     SYMRECREF = symbol("SYMRECREF");
     SYMLIFTN  = symbol("LIFTN");
 
-    gMachineFloatSize  = sizeof(float);
-    gMachineInt32Size  = sizeof(int);
-    gMachineInt64Size  = sizeof(long int);
-    gMachineDoubleSize = sizeof(double);
-    gMachineBoolSize   = sizeof(bool);
+    gMachineFloatSize      = sizeof(float);
+    gMachineInt32Size      = sizeof(int);
+    gMachineInt64Size      = sizeof(long int);
+    gMachineDoubleSize     = sizeof(double);
+    gMachineQuadSize       = sizeof(long double);
+    gMachineFixedPointSize = gMachineFloatSize;
+    gMachineBoolSize       = sizeof(bool);
 
     // Assuming we are compiling for a 64 bits machine
     gMachinePtrSize = sizeof(nullptr);
@@ -622,7 +624,7 @@ string global::printFloat()
         case 3:
             return "-quad ";
         case 4:
-            return "-fp ";
+            return "-fx ";
         default:
             faustassert(false);
             return "";
@@ -687,6 +689,18 @@ void global::initTypeSizeMap()
     gTypeSizeMap[Typed::kDouble_ptr_ptr] = gMachinePtrSize;
     gTypeSizeMap[Typed::kDouble_vec]     = gMachineDoubleSize * gVecSize;
     gTypeSizeMap[Typed::kDouble_vec_ptr] = gMachinePtrSize;
+    
+    gTypeSizeMap[Typed::kQuad]         = gMachineQuadSize;
+    gTypeSizeMap[Typed::kQuad_ptr]     = gMachinePtrSize;
+    gTypeSizeMap[Typed::kQuad_ptr_ptr] = gMachinePtrSize;
+    gTypeSizeMap[Typed::kQuad_vec]     = gMachineQuadSize * gVecSize;
+    gTypeSizeMap[Typed::kQuad_vec_ptr] = gMachinePtrSize;
+    
+    gTypeSizeMap[Typed::kFixedPoint]         = gMachineFixedPointSize;
+    gTypeSizeMap[Typed::kFixedPoint_ptr]     = gMachinePtrSize;
+    gTypeSizeMap[Typed::kFixedPoint_ptr_ptr] = gMachinePtrSize;
+    gTypeSizeMap[Typed::kFixedPoint_vec]     = gMachineFixedPointSize * gVecSize;
+    gTypeSizeMap[Typed::kFixedPoint_vec_ptr] = gMachinePtrSize;
 
     gTypeSizeMap[Typed::kInt32]         = gMachineInt32Size;
     gTypeSizeMap[Typed::kInt32_ptr]     = gMachinePtrSize;
