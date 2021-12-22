@@ -515,10 +515,10 @@ class CPPInstVisitor1 : public CPPInstVisitor {
             if (fStructVisitor.hasField(name, type)) {
                 if (type == Typed::kInt32) {
                     FIRIndex value = FIRIndex(fStructVisitor.getFieldIntOffset(name)/sizeof(int));
-                    InstBuilder::genLoadArrayVar("iZone", Address::kFunArgs, value)->accept(this);
+                    InstBuilder::genLoadArrayFunArgsVar("iZone", value)->accept(this);
                 } else {
                     FIRIndex value = FIRIndex(fStructVisitor.getFieldRealOffset(name)/ifloatsize());
-                    InstBuilder::genLoadArrayVar("fZone", Address::kFunArgs, value)->accept(this);
+                    InstBuilder::genLoadArrayFunArgsVar("fZone", value)->accept(this);
                 }
             } else {
                 TextInstVisitor::visit(named);
@@ -533,10 +533,10 @@ class CPPInstVisitor1 : public CPPInstVisitor {
             if (fStructVisitor.hasField(name, type)) {
                 if (type == Typed::kInt32) {
                     FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
-                    InstBuilder::genLoadArrayVar("iZone", Address::kFunArgs, value)->accept(this);
+                    InstBuilder::genLoadArrayFunArgsVar("iZone", value)->accept(this);
                 } else {
                     FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
-                    InstBuilder::genLoadArrayVar("fZone", Address::kFunArgs, value)->accept(this);
+                    InstBuilder::genLoadArrayFunArgsVar("fZone", value)->accept(this);
                 }
             } else {
                 TextInstVisitor::visit(indexed);
@@ -592,10 +592,10 @@ class CPPInstVisitor2 : public CPPInstVisitor {
             if (fStructVisitor.hasField(name, type) && fStructVisitor.getFieldMemoryType(name) == MemoryDesc::kExternal) {
                 if (type == Typed::kInt32) {
                     FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
-                    InstBuilder::genLoadArrayVar("iZone", Address::kFunArgs, value)->accept(this);
+                    InstBuilder::genLoadArrayFunArgsVar("iZone", value)->accept(this);
                 } else {
                     FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
-                    InstBuilder::genLoadArrayVar("fZone", Address::kFunArgs, value)->accept(this);
+                    InstBuilder::genLoadArrayFunArgsVar("fZone", value)->accept(this);
                 }
             } else {
                 TextInstVisitor::visit(indexed);

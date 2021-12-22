@@ -29,7 +29,8 @@
 
 using namespace std;
 
-inline string makeNameSingular(const string& name) {
+inline string makeNameSingular(const string& name)
+{
     string result = name;
     result = std::regex_replace(result, std::regex("inputs"), "input");
     result = std::regex_replace(result, std::regex("outputs"), "output");

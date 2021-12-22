@@ -187,13 +187,13 @@ class CodeContainer : public virtual Garbageable {
     CodeContainer* getParentContainer() { return fParentContainer; }
     CodeContainer* getTopParentContainer()
     {
-        return (fParentContainer != 0) ? fParentContainer->getTopParentContainer() : this;
+        return (fParentContainer) ? fParentContainer->getTopParentContainer() : this;
     }
 
     // Returns the name of the class
     string getFullClassName()
     {
-        return (fParentContainer != 0) ? (fParentContainer->getFullClassName() + "::" + getClassName())
+        return (fParentContainer) ? (fParentContainer->getFullClassName() + "::" + getClassName())
                                        : getClassName();
     }
 

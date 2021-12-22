@@ -39,7 +39,7 @@ void CodeContainer::initialize(int numInputs, int numOutputs)
 }
 
 CodeContainer::CodeContainer()
-    : fParentContainer(0),
+    : fParentContainer(nullptr),
       fNumInputs(-1),
       fNumOutputs(-1),
       fNumActives(0),
@@ -366,11 +366,7 @@ void CodeContainer::processFIR(void)
     gGlobal->setVarType("count", Typed::kInt32);
     gGlobal->setVarType("inputs", Typed::kFloatMacro_ptr_ptr);
     gGlobal->setVarType("outputs", Typed::kFloatMacro_ptr_ptr);
-    
-    // Types used in 'compute' prototype in -os mode
-    gGlobal->setVarType("iControl", Typed::kInt32_ptr);
-    gGlobal->setVarType("fControl", Typed::kFloatMacro_ptr);
-    
+      
     // Possibly add "fSamplingRate" field
     generateSR();
 

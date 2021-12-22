@@ -361,10 +361,6 @@ void CPPCodeContainer::produceClass()
         *fOut << "static dsp_memory_manager* fManager;";
     }
 
-    // Print metadata declaration
-    tab(n + 1, *fOut);
-    produceMetadata(n + 1);
-
     if (fAllocateInstructions->fCode.size() > 0) {
         tab(n + 1, *fOut);
         *fOut << fKlassName << "() {";
@@ -382,6 +378,10 @@ void CPPCodeContainer::produceClass()
         tab(n + 1, *fOut);
         *fOut << "}" << endl;
     }
+ 
+    // Print metadata declaration
+    tab(n + 1, *fOut);
+    produceMetadata(n + 1);
 
     tab(n + 1, *fOut);
     // No class name for main class
@@ -638,10 +638,6 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
         *fOut << "static dsp_memory_manager* fManager;";
     }
     
-    // Print metadata declaration
-    tab(n + 1, *fOut);
-    produceMetadata(n + 1);
-    
     if (fAllocateInstructions->fCode.size() > 0) {
         tab(n + 1, *fOut);
         *fOut << fKlassName << "() {";
@@ -666,7 +662,10 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     tab(n + 1, *fOut);
     *fOut << fKlassName << "(int* iControl, FAUSTFLOAT* fControl)";
     *fOut << ":one_sample_dsp(iControl, fControl) {}";
+    
+    // Print metadata declaration
     tab(n + 1, *fOut);
+    produceMetadata(n + 1);
     
     tab(n + 1, *fOut);
     // No class name for main class
@@ -905,10 +904,6 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
         *fOut << "static dsp_memory_manager* fManager;";
     }
     
-    // Print metadata declaration
-    tab(n + 1, *fOut);
-    produceMetadata(n + 1);
-    
     if (fAllocateInstructions->fCode.size() > 0) {
         tab(n + 1, *fOut);
         *fOut << fKlassName << "() {";
@@ -933,7 +928,10 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
     tab(n + 1, *fOut);
     *fOut << fKlassName << "(int* iControl, FAUSTFLOAT* fControl, int* iZone, " << ifloat() << "* fZone)";
     *fOut << ":one_sample_dsp_real(iControl, fControl, iZone, fZone) {}";
+    
+    // Print metadata declaration
     tab(n + 1, *fOut);
+    produceMetadata(n + 1);
     
     tab(n + 1, *fOut);
     // No class name for main class
@@ -1198,10 +1196,6 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
         *fOut << "static dsp_memory_manager* fManager;";
     }
     
-    // Print metadata declaration
-    tab(n + 1, *fOut);
-    produceMetadata(n + 1);
-    
     if (fAllocateInstructions->fCode.size() > 0) {
         tab(n + 1, *fOut);
         *fOut << fKlassName << "() {";
@@ -1226,7 +1220,10 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     tab(n + 1, *fOut);
     *fOut << fKlassName << "(int* iControl, FAUSTFLOAT* fControl, int* iZone, " << ifloat() << "* fZone)";
     *fOut << ":one_sample_dsp_real(iControl, fControl, iZone, fZone) {}";
+   
+    // Print metadata declaration
     tab(n + 1, *fOut);
+    produceMetadata(n + 1);
     
     tab(n + 1, *fOut);
     // No class name for main class

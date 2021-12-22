@@ -952,9 +952,9 @@ struct ArrayNumInst : public ValueInst {
     ArrayNumInst(int size) : ValueInst() { fNumTable.resize(size); }
 
     void setValue(int index, TYPE num) { fNumTable[index] = num; }
-    void addValue(TYPE num) { fNumTable.push_back(num); }
     TYPE getValue(int index) { return fNumTable[index]; }
-
+    void addValue(TYPE num) { fNumTable.push_back(num); }
+    
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     virtual bool isSimpleValue() const { return true; }

@@ -1106,16 +1106,16 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
         case kBlock:
             if (gGlobal->gOneSample >= 0 || gGlobal->gOneSampleControl) {
                 if (t->nature() == kInt) {
-                    pushComputeBlockMethod(InstBuilder::genStoreArrayStackVar(
+                    pushComputeBlockMethod(InstBuilder::genStoreArrayFunArgsVar(
                         "iControl", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum), exp));
-                    ValueInst* res = InstBuilder::genLoadArrayStackVar(
+                    ValueInst* res = InstBuilder::genLoadArrayFunArgsVar(
                         "iControl", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum));
                     fContainer->fInt32ControlNum++;
                     return res;
                 } else {
-                    pushComputeBlockMethod(InstBuilder::genStoreArrayStackVar(
+                    pushComputeBlockMethod(InstBuilder::genStoreArrayFunArgsVar(
                         "fControl", InstBuilder::genInt32NumInst(fContainer->fRealControlNum), exp));
-                    ValueInst* res = InstBuilder::genLoadArrayStackVar(
+                    ValueInst* res = InstBuilder::genLoadArrayFunArgsVar(
                         "fControl", InstBuilder::genInt32NumInst(fContainer->fRealControlNum));
                     fContainer->fRealControlNum++;
                     return res;
