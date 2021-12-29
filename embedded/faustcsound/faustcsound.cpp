@@ -1,56 +1,55 @@
 /************************************************************************
  ************************************************************************
-    FAUST Architecture File
-	Copyright (C) 2013 V Lazzarini, NUI Maynooth
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-	as published by the Free Software Foundation; either version 3 of
-	the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-	along with this program; If not, see <http://www.gnu.org/licenses/>.
-
+ FAUST Architecture File
+ Copyright (C) 2013 V Lazzarini, NUI Maynooth
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
  ************************************************************************
  ************************************************************************/
 /**
  Faust Csound opcodes
-
+ 
  These four opcodes allow Faust to be embedded in Csound code:
-
+ 
  faustcompile: compiles a Faust program
  faustaudio: creates a DSP instance from a compiled Faust program
-             (any number of instances from a single compiled program are
-              allowed)
+ (any number of instances from a single compiled program are allowed)
  faustctl: sets the value of a given control of a Faust DSP instance
-
+ 
  faustgen: compiles and creates a single DSP instance from a Faust program
-           (convenient for one-off Faust programs)
-
+ (convenient for one-off Faust programs)
+ 
  BUILD INSTRUCTIONS:
- - requirements 
+ - requirements
  1) LLVM libraries, http://llvm.org
  2) Faust2 libfaust, http://faust.grame.org
  3) Csound 6 headers, http://sourceforge.net/projects/csound
-
+ 
  On OSX:
- g++ -O3 -dynamiclib -o libfaustcsound.dylib ../Opcodes/faustcsound.cpp -g 
+ g++ -O3 -dynamiclib -o libfaustcsound.dylib ../Opcodes/faustcsound.cpp -g
      -DFAUSTFLOAT=double -DUSE_DOUBLE -I<path_to_csound_headers>
-      -L/usr/local/lib -lfaust
-      `llvm-config --ldflags --libs all`
-
+     -L/usr/local/lib -lfaust
+     `llvm-config --ldflags --libs all`
+ 
  On Linux:
- g++ -O3 -shared -o libfaustcsound.so ../Opcodes/faustcsound.cpp -g 
+ g++ -O3 -shared -o libfaustcsound.so ../Opcodes/faustcsound.cpp -g
      -DFAUSTFLOAT=double -DUSE_DOUBLE -I<path_to_csound_headers>
-      -L/usr/local/lib -lfaust
-      `llvm-config --ldflags --libs all`
-
-*/
+     -L/usr/local/lib -lfaust
+     `llvm-config --ldflags --libs all`
+ 
+ */
 #include "csdl.h"
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/gui/UI.h"
@@ -66,7 +65,7 @@ class controls : public UI {
     MYFLT *zone;
     char label[64];
     MYFLT min, max;
-    ctl  *nxt;
+    ctl *nxt;
   } anchor;
 
   void addctl(const char* label, FAUSTFLOAT* zone,

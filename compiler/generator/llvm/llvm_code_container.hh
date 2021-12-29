@@ -50,8 +50,8 @@ class LLVMCodeContainer : public virtual CodeContainer {
 
     PointerType* generateDspStruct();
 
-    // To be implemented in each LLVMScalarCodeContainer, LLVMVectorCodeContainer and LLVMWorkStealingCodeContainer
-    // classes
+    // To be implemented in each LLVMScalarCodeContainer, LLVMVectorCodeContainer
+    // and LLVMWorkStealingCodeContainer classes
     virtual void generateCompute() = 0;
     
     template <typename REAL>

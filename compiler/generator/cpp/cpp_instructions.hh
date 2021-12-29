@@ -482,6 +482,7 @@ class CPPInstVisitor1 : public CPPInstVisitor {
     
     private:
         
+        // Fields are moved in iZone/fZone model
         StructInstVisitor fStructVisitor;
         
     public:
@@ -493,7 +494,7 @@ class CPPInstVisitor1 : public CPPInstVisitor {
         virtual void visit(AddSoundfileInst* inst)
         {
             // Not supported for now
-            throw faustexception("ERROR : AddSoundfileInst not supported for -os mode\n");
+            throw faustexception("ERROR : AddSoundfileInst not supported for -osX mode\n");
         }
         
         virtual void visit(DeclareVarInst* inst)
@@ -566,7 +567,7 @@ class CPPInstVisitor2 : public CPPInstVisitor {
         virtual void visit(AddSoundfileInst* inst)
         {
             // Not supported for now
-            throw faustexception("ERROR : AddSoundfileInst not supported for -os mode\n");
+            throw faustexception("ERROR : AddSoundfileInst not supported for -osX mode\n");
         }
         
         virtual void visit(DeclareVarInst* inst)

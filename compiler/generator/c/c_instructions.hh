@@ -450,11 +450,12 @@ class CInstVisitor : public TextInstVisitor {
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 
-// Used for -os mode (TODO : does not work with 'soundfile')
+// Used for -os1 mode (TODO : does not work with 'soundfile')
 class CInstVisitor1 : public CInstVisitor {
     
     private:
     
+        // Fields are moved in iZone/fZone model
         StructInstVisitor fStructVisitor;
     
     public:
@@ -466,7 +467,7 @@ class CInstVisitor1 : public CInstVisitor {
         virtual void visit(AddSoundfileInst* inst)
         {
             // Not supported for now
-            throw faustexception("ERROR : AddSoundfileInst not supported for -os mode\n");
+            throw faustexception("ERROR : AddSoundfileInst not supported for -osX mode\n");
         }
     
         virtual void visit(DeclareVarInst* inst)
@@ -539,7 +540,7 @@ class CInstVisitor2 : public CInstVisitor {
         virtual void visit(AddSoundfileInst* inst)
         {
             // Not supported for now
-            throw faustexception("ERROR : AddSoundfileInst not supported for -os mode\n");
+            throw faustexception("ERROR : AddSoundfileInst not supported for -osX mode\n");
         }
         
         virtual void visit(DeclareVarInst* inst)
