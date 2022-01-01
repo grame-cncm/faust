@@ -161,14 +161,7 @@ void CSharpCodeContainer::produceClass()
     // Libraries
     printLibrary(*fOut);
     tab(n, *fOut);
-    
-    if (gGlobal->gFloatSize == 1) {
-        *fOut << "public static bool IsInfinity(float d) { return Float.IsNegativeInfinity(float d) || Float.IsPositiveInfinity(float d); }";
-    } else if (gGlobal->gFloatSize == 2) {
-        *fOut << "public static bool IsInfinity(double d) { return Double.IsNegativeInfinity(double d) || Double.IsPositiveInfinity(double d); }";
-    }
-    tab(n, *fOut);
-    
+        
     tab(n, *fOut);
     *fOut << "public class " << fKlassName << " : " << fSuperKlassName << ", " << "IFaustDSP";
     tab(n, *fOut);
