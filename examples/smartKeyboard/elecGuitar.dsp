@@ -58,7 +58,7 @@ t = button("gate");
 
 // mapping params
 gate = t+s : min(1);
-freq = f*bend : max(60); // min freq is 60 Hz
+freq = f*bend : max(50); // min freq is 50 Hz
 
 stringLength = freq : pm.f2l;
 pluckPosition = 0.8;
