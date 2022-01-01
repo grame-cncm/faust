@@ -167,8 +167,6 @@ public interface IFaustDSP
 
     int GetNumInputs();
     int GetNumOutputs();
-    int GetInputRate(int channel);
-    int GetOutputRate(int channel);
     void ClassInit(int sample_rate);
     void InstanceConstants(int sample_rate);
     void InstanceResetUserInterface();
@@ -197,6 +195,16 @@ public class dsp
     public static float FModF(float val1, float val2)
     {
         return val1 % val2;
+    }
+
+    public static bool IsInfinity(double d)
+    {
+        return double.IsNegativeInfinity(d) || double.IsPositiveInfinity(d);
+    }
+
+    public static bool IsInfinityF(float d)
+    {
+        return float.IsNegativeInfinity(d) || float.IsPositiveInfinity(d);
     }
 }
 

@@ -95,7 +95,7 @@ class CSharpInstVisitor : public TextInstVisitor {
     
         gMathLibTable["isnanf"]     = "(float)Math.IsNan";
         // Manually implemented
-        gMathLibTable["isinff"]     = "IsInfinity";
+        gMathLibTable["isinff"]     = "IsInfinityF";
         gMathLibTable["copysignf"]  = "(float)Math.CopySign";
 
         // Double version
