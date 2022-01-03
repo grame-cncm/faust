@@ -32,7 +32,7 @@
  * \version 1.0
  * \date 2003
  * \brief A simple type system for block diagram expressions.
- *  The type of a block diagram is defined by a number of inputs and outputs.
+ * The type of a block diagram is defined by a number of inputs and outputs.
  */
 
 #include <stdio.h>
@@ -80,7 +80,7 @@ bool getBoxType(Tree box, int* inum, int* onum)
 
 /**
  * Produces "1 output" or "n outputs" according to n
- * \param n: the number of outputs
+ * \param n the number of outputs
  * \return the corresponding string
  */
 
@@ -93,7 +93,7 @@ static string outputs(int n)
 
 /**
  * Produces "1 input" or "n inputs" according to n
- * \param n: the number of inputs
+ * \param n the number of inputs
  * \return the corresponding string
  */
 
@@ -106,13 +106,13 @@ static string inputs(int n)
 
 /**
  * Compute a parametric type error message
- * \param a: the LHS expression
- * \param b: the RHS expression
- * \param o: the number of outputs of a
- * \param i: the number of inputs of b
- * \param opcode = the composition operation sign
- * \param opname = the full name of the composition operation
- * \param msg  = indication for the user (ie " must be equal to ")
+ * \param a the LHS expression
+ * \param b the RHS expression
+ * \param o the number of outputs of a
+ * \param i the number of inputs of b
+ * \param opcode the composition operation sign
+ * \param opname the full name of the composition operation
+ * \param msg indication for the user (ie " must be equal to ")
  * \return the error message as a string
  */
 
@@ -134,12 +134,12 @@ static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string
 
 /**
  * Compute a parametric type error message for recursions
- * \param a: the LHS expression
- * \param b: the RHS expression
- * \param u: the number of inputs of a
- * \param v: the number of outputs of a
- * \param x: the number of inputs of b
- * \param y: the number of outputs of b
+ * \param a the LHS expression
+ * \param b the RHS expression
+ * \param u the number of inputs of a
+ * \param v the number of outputs of a
+ * \param x the number of inputs of b
+ * \param y the number of outputs of b
  * \return the error message as a string
  */
 

@@ -37,7 +37,6 @@ box ::= i | f | p0 | p1 | p3
 ******************************************************************************
 *****************************************************************************/
 
-#include "signals.hh"
 #include "tlib.hh"
 #include "export.hh"
 
@@ -83,7 +82,7 @@ EXPORT Tree boxWaveform(const tvec& br);
 bool isBoxWaveform(Tree t);
 
 /*****************************************************************************
-                                    route
+                                    Route
     route (n, m,...(si,di),...)
     a n-inputs, m-outputs routing object
 *****************************************************************************/
@@ -316,7 +315,7 @@ bool isBoxSoundfile(Tree s);
 bool isBoxSoundfile(Tree s, Tree& label, Tree& chan);
 
 /*****************************************************************************
-                             case (pattern matching)
+                             Case (pattern matching)
 *****************************************************************************/
 Tree boxCase(Tree rules);
 bool isBoxCase(Tree s);
@@ -331,7 +330,7 @@ Tree boxPatternVar(Tree id);
 bool isBoxPatternVar(Tree s, Tree& id);
 
 /*****************************************************************************
-                             metadata (pattern matching)
+                             Metadata (pattern matching)
 *****************************************************************************/
 Tree boxMetadata(Tree exp, Tree mdlist);
 bool isBoxMetadata(Tree s, Tree& exp, Tree& mdlist);

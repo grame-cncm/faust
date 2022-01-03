@@ -23,6 +23,7 @@
 #define _PROPAGATE_
 
 #include <vector>
+#include "signals.hh"
 #include "boxes.hh"
 
 /**

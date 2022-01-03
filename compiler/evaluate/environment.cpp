@@ -27,7 +27,7 @@
 #include "names.hh"
 #include "ppbox.hh"
 
-//-----------------------new environment management----------------------------
+//----------------------- New environment management --------------------------
 //
 // The environment is made of layers. Each layer contains a set of definitions
 // stored as properties of the layer. Each definition can refers to other

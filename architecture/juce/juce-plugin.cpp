@@ -750,7 +750,7 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 //==============================================================================
 #ifndef PLUGIN_MAGIC
 FaustPlugInAudioProcessorEditor::FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor& p)
-: juce::AudioProcessorEditor (&p), processor (p), fJuceGUI(!p.fStateUI.fRestored)  // When no previous state was restored, setup GUI with default state of controllers
+: juce::AudioProcessorEditor (&p), processor (p)
 {
 #ifdef JUCE_POLY
     p.fSynth->buildUserInterface(&fJuceGUI);

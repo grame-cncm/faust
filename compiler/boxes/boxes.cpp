@@ -36,9 +36,9 @@
  *  parallel (,), split (<:), merge (:>), and recursive (~).
  */
 
-#include "boxes.hh"
 #include <stdio.h>
 #include <string.h>
+#include "boxes.hh"
 #include "exception.hh"
 #include "global.hh"
 #include "ppbox.hh"
@@ -396,7 +396,7 @@ bool isBoxWithLocalDef(Tree t, Tree& body, Tree& ldef)
 }
 
 /*****************************************************************************
- Boxes with recursive definitions
+                        Boxes with recursive definitions
  *****************************************************************************/
 
 // def2names transforms a liste of definition (name.expression) into a list of name
@@ -874,7 +874,7 @@ bool isBoxSoundfile(Tree s, Tree& label, Tree& chan)
 }
 
 /*****************************************************************************
-                             metadata (pattern matching)
+                             Metadata (pattern matching)
 *****************************************************************************/
 Tree boxMetadata(Tree exp, Tree mdlist)
 {
@@ -887,7 +887,7 @@ bool isBoxMetadata(Tree s, Tree& exp, Tree& mdlist)
 }
 
 /*****************************************************************************
-                             pattern matching case
+                             Pattern matching case
 *****************************************************************************/
 
 /**
