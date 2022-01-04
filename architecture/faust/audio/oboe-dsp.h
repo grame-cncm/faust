@@ -95,7 +95,20 @@ class oboeaudio : public audio, public oboe::AudioStreamCallback {
             clock_gettime(CLOCK_MONOTONIC, &now);
             return ((int64_t) now.tv_sec * 1000000000LL + now.tv_nsec)/1000;
         }
-    
+
+        bool onError(oboe::AudioStream* audioStream, oboe::Result error)
+        {
+            if (error == oboe::Result::ErrorDisconnected) {
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "AudioStream disconnected, restarting");
+                stop();
+                releaseAudioChannels();
+                oboeInit();
+                start();
+                return true;
+            }
+            return false;
+        }
+
         oboe::DataCallbackResult onAudioReady(oboe::AudioStream* audioStream, void* outbuffer, int32_t framesWrite)
         {
             fBufferSize = framesWrite;
@@ -138,8 +151,71 @@ class oboeaudio : public audio, public oboe::AudioStreamCallback {
             fCPUTable[(fCPUTableIndex++)&(CPU_TABLE_SIZE-1)] = t2 - t1;
             return oboe::DataCallbackResult::Continue;
         }
- 
-    public:
+
+   private:
+        void releaseAudioChannels()
+        {
+            delete fInputs;
+            delete fOutputs;
+        }
+
+        bool oboeInit()
+        {
+            oboe::AudioStreamBuilder builder;
+
+            // Possibly set SR
+            if (fSampleRate != -1) {
+                builder.setSampleRate(fSampleRate);
+            }
+
+            if (fDSP->getNumInputs() > 0) {
+                if (builder.setDirection(oboe::Direction::Input)
+                        ->setFormat(oboe::AudioFormat::Float)
+                        ->setChannelCount(fDSP->getNumInputs())
+                        ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
+                        ->setSharingMode(oboe::SharingMode::Exclusive)
+                        ->openManagedStream(fInputStream) != oboe::Result::OK)
+                    return false;
+                // Allocate the stream adapter
+                fInputs = new AudioChannels(4096, fDSP->getNumInputs());
+                // Keep the input SR
+                fSampleRate = fInputStream->getSampleRate();
+            } else {
+                fInputs = nullptr;
+            }
+
+            if (fDSP->getNumOutputs() > 0) {
+                // Common setup
+                builder.setDirection(oboe::Direction::Output)
+                    ->setCallback(this)
+                    ->setFormat(oboe::AudioFormat::Float)
+                    ->setChannelCount(fDSP->getNumOutputs())
+                    ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
+                    ->setSharingMode(oboe::SharingMode::Exclusive);
+
+                // If fSampleRate was given at initialisation time, or has been set when opening the input
+                if (fSampleRate != -1) {
+                    // Force output to use the same SR as input, and possibly setup resampler
+                    if (builder.setSampleRate(fSampleRate)
+                            ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::Fastest)
+                            ->openManagedStream(fOutputStream) != oboe::Result::OK)
+                        return false;
+                } else {
+                    // Open with the native SR
+                    if (builder.openManagedStream(fOutputStream) != oboe::Result::OK) return false;
+                }
+
+                // Allocate the stream adapter
+                fOutputs = new AudioChannels(4096, fDSP->getNumOutputs());
+                // Keep the output SR
+                fSampleRate = fOutputStream->getSampleRate();
+            } else {
+                fOutputs = nullptr;
+            }
+            return true;
+        }
+
+   public:
     
         oboeaudio(long srate):
         fDSP(NULL),
@@ -153,69 +229,22 @@ class oboeaudio : public audio, public oboe::AudioStreamCallback {
 
         virtual ~oboeaudio()
         {
-            delete fInputs;
-            delete fOutputs;
+            releaseAudioChannels();
         }
     
         virtual bool init(const char* name, dsp* DSP)
         {
             __android_log_print(ANDROID_LOG_ERROR, "Faust", "init");
             fDSP = DSP;
-            oboe::AudioStreamBuilder builder;
-            
-            // Possibly set SR
-            if (fSampleRate != -1) {
-                builder.setSampleRate(fSampleRate);
-            }
-            
-            if (fDSP->getNumInputs() > 0) {
-                if (builder.setDirection(oboe::Direction::Input)
-                    ->setFormat(oboe::AudioFormat::Float)
-                    ->setChannelCount(fDSP->getNumInputs())
-                    ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
-                    ->setSharingMode(oboe::SharingMode::Exclusive)
-                    ->openManagedStream(fInputStream) != oboe::Result::OK) return false;
-                // Allocate the stream adapter
-                fInputs = new AudioChannels(4096, fDSP->getNumInputs());
-                // Keep the input SR
-                fSampleRate = fInputStream->getSampleRate();
+            if (oboeInit()) {
+                // Init with the stream SR
+                fDSP->init(fSampleRate);
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "init fSampleRate %d", fSampleRate);
+                return true;
             } else {
-                fInputs = nullptr;
+                __android_log_print(ANDROID_LOG_ERROR, "Faust", "oboe init failed");
             }
-            
-            if (fDSP->getNumOutputs() > 0) {
-                
-                // Common setup
-                builder.setDirection(oboe::Direction::Output)
-                    ->setCallback(this)
-                    ->setFormat(oboe::AudioFormat::Float)
-                    ->setChannelCount(fDSP->getNumOutputs())
-                    ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
-                    ->setSharingMode(oboe::SharingMode::Exclusive);
-                
-                // If fSampleRate was given at initialisation time, or has been set when opening the input
-                if (fSampleRate != -1) {
-                    // Force output to use the same SR as input, and possibly setup resampler
-                    if (builder.setSampleRate(fSampleRate)
-                        ->setSampleRateConversionQuality(oboe::SampleRateConversionQuality::Fastest)
-                        ->openManagedStream(fOutputStream) != oboe::Result::OK) return false;
-                } else {
-                    // Open with the native SR
-                    if (builder.openManagedStream(fOutputStream) != oboe::Result::OK) return false;
-                }
-                
-                // Allocate the stream adapter
-                fOutputs = new AudioChannels(4096, fDSP->getNumOutputs());
-                // Keep the output SR
-                fSampleRate = fOutputStream->getSampleRate();
-            } else {
-                fOutputs = nullptr;
-            }
-            
-            // Init with the stream SR
-            fDSP->init(fSampleRate);
-            __android_log_print(ANDROID_LOG_ERROR, "Faust", "init fSampleRate %d", fSampleRate);
-            return true;
+            return false;
         }
     
         virtual bool start()
