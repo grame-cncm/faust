@@ -170,6 +170,8 @@ DspFaust::DspFaust(bool auto_connect)
 #elif JUCE_DRIVER
     // JUCE audio device has its own sample rate and buffer size
     driver = new juceaudio();
+#elif ANDROID_DRIVER
+    driver = new oboeaudio(-1);
 #else
     printf("You are not setting 'sample_rate' and 'buffer_size', but the audio driver needs it !\n");
     throw std::bad_alloc();
