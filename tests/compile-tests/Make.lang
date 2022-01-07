@@ -13,7 +13,8 @@ MAKE ?= make
 
 SAMPLESROOT := ../..
 REGRESSION := ..
-FAUSTLIBS ?= ../../libraries
+FAUSTLIBS1 ?= ../../libraries
+FAUSTLIBS2 ?= ../../libraries/old
 
 FAUSTOPTIONS ?= 
 outdir ?= cpp
@@ -75,8 +76,8 @@ $(version)/$(outdir):
 # generic rule rule for $(lang) output
 $(version)/$(outdir)/%.$(ext): $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang $(lang) -I $(FAUSTLIBS) $(FAUSTOPTIONS) $<  -o $@ 
+	$(FAUST) -lang $(lang) -I $(FAUSTLIBS1) -I $(FAUSTLIBS2) $(FAUSTOPTIONS) $<  -o $@ 
 	
 $(version)/$(outdir)/%.$(ext): $(REGRESSION)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang $(lang) -I $(FAUSTLIBS) $(FAUSTOPTIONS) $<  -o $@ 
+	$(FAUST) -lang $(lang) -I $(FAUSTLIBS1) -I $(FAUSTLIBS2) $(FAUSTOPTIONS) $<  -o $@ 
