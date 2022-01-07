@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <pwd.h>
 #include <limits.h>
+#include <algorithm>
 
 #include <alsa/asoundlib.h>
 #include "faust/audio/audio.h"
@@ -254,8 +255,8 @@ struct AudioInterface : public AudioParam
 
 		// allocation of floating point buffers needed by the dsp code
 
-		fChanInputs = max(fSoftInputs, fCardInputs);		assert (fChanInputs < 256);
-		fChanOutputs = max(fSoftOutputs, fCardOutputs);		assert (fChanOutputs < 256);
+		fChanInputs = std::max(fSoftInputs, fCardInputs);		assert (fChanInputs < 256);
+		fChanOutputs = std::max(fSoftOutputs, fCardOutputs);		assert (fChanOutputs < 256);
 
 		for (unsigned int i = 0; i < fChanInputs; i++) {
 			fInputSoftChannels[i] = (float*)calloc(fBuffering, sizeof(float));
@@ -409,7 +410,7 @@ struct AudioInterface : public AudioParam
 				for (unsigned int f = 0; f < fBuffering; f++) {
 					for (unsigned int c = 0; c < fCardOutputs; c++) {
 						float x = fOutputSoftChannels[c][f];
-						buffer16b[c + f*fCardOutputs] = short(max(min(x,1.0f),-1.0f) * float(SHRT_MAX)) ;
+						buffer16b[c + f*fCardOutputs] = short(std::max(std::min(x,1.0f),-1.0f) * float(SHRT_MAX)) ;
 					}
 				}
 
@@ -418,7 +419,7 @@ struct AudioInterface : public AudioParam
 				for (unsigned int f = 0; f < fBuffering; f++) {
 					for (unsigned int c = 0; c < fCardOutputs; c++) {
 						float x = fOutputSoftChannels[c][f];
-						buffer32b[c + f*fCardOutputs] = int(max(min(x,1.0f),-1.0f) * float(INT_MAX));
+						buffer32b[c + f*fCardOutputs] = int(std::max(std::min(x,1.0f),-1.0f) * float(INT_MAX));
 					}
 				}
 			} else {
@@ -443,7 +444,7 @@ struct AudioInterface : public AudioParam
 					short* chan16b = (short*)fOutputCardChannels[c];
 					for (unsigned int f = 0; f < fBuffering; f++) {
 						float x = fOutputSoftChannels[c][f];
-						chan16b[f] = short(max(min(x,1.0f),-1.0f) * float(SHRT_MAX));
+						chan16b[f] = short(std::max(std::min(x,1.0f),-1.0f) * float(SHRT_MAX));
 					}
 				}
 
@@ -453,7 +454,7 @@ struct AudioInterface : public AudioParam
 					int32* chan32b = (int32*)fOutputCardChannels[c];
 					for (unsigned int f = 0; f < fBuffering; f++) {
 						float x = fOutputSoftChannels[c][f];
-						chan32b[f] = int(max(min(x,1.0f),-1.0f) * float(INT_MAX));
+						chan32b[f] = int(std::max(std::min(x,1.0f),-1.0f) * float(INT_MAX));
 					}
 				}
 
