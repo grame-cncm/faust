@@ -197,8 +197,7 @@ class DaisyControlUI : public GenericUI
         // -- active widgets
         void addButton(const char* label, FAUSTFLOAT* zone)
         {
-            if (fKey == "switch")
-            {
+            if (fKey == "switch") {
                 std::unique_ptr<SwitchButton> button = std::make_unique<SwitchButton>(zone);
                 if (fValue == "1") {
                     button->Init(fSeed->GetPin(SW_1_PIN), fRate);
@@ -211,13 +210,12 @@ class DaisyControlUI : public GenericUI
                 }
                 fItems.push_back(std::move(button));
             }
-            fValue = fKey = "";
+            fValue = fKey = fScale = "";
         }
     
         void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
-            if (fKey == "switch")
-            {
+            if (fKey == "switch") {
                 std::unique_ptr<CheckButton> button = std::make_unique<CheckButton>(zone);
                 if (fValue == "1") {
                     button->Init(fSeed->GetPin(SW_1_PIN), fRate);
@@ -243,10 +241,8 @@ class DaisyControlUI : public GenericUI
         }
         void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            if (fKey == "knob")
-            {
-                if (fValue == "1")
-                {
+            if (fKey == "knob") {
+                if (fValue == "1") {
                     InitKnob(KNOB_1_PIN, 0, zone, min, max, fScale);
                 } else if (fValue == "2") {
                     InitKnob(KNOB_2_PIN, 1, zone, min, max, fScale);

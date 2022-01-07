@@ -708,7 +708,7 @@ void ext_main(void* r)
     faust_class = c;
     
     post((char*)"Faust DSP object v%s (sample = 32 bits code = 32 bits)", EXTERNAL_VERSION);
-    post((char*)"Copyright (c) 2012-2021 Grame");
+    post((char*)"Copyright (c) 2012-2022 Grame");
    
     Max_Meta1 meta1;
     tmp_dsp->metadata(&meta1);
