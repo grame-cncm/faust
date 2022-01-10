@@ -394,7 +394,7 @@ class CPPInstVisitor : public TextInstVisitor {
             inst->fInst1->accept(this);
             *fOut << ") >> ";
             inst->fInst2->accept(this);
-            *fOut << "))w";
+            *fOut << "))";
         } else {
             TextInstVisitor::visit(inst);
         }

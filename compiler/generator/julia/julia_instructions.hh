@@ -455,13 +455,7 @@ class JuliaInstVisitor : public TextInstVisitor {
              inst->fInst2->accept(this);
             *fOut << ")";
         } else {
-            *fOut << "(";
-            inst->fInst1->accept(this);
-            *fOut << " ";
-            *fOut << gBinOpTable[inst->fOpcode]->fName;
-            *fOut << " ";
-            inst->fInst2->accept(this);
-            *fOut << ")";
+            TextInstVisitor::visit(inst);
         }
     }
    
