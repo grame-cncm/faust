@@ -195,7 +195,7 @@ class GUI : public UI
     
         // -- widget's layouts
         
-        virtual void openTabBox(const char* label) {};
+        virtual void openTabBox(const char* label) {}
         virtual void openHorizontalBox(const char* label) {}
         virtual void openVerticalBox(const char* label) {}
         virtual void closeBox() {}

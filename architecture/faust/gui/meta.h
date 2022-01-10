@@ -30,7 +30,7 @@
  */
 struct Meta
 {
-    virtual ~Meta() {};
+    virtual ~Meta() {}
     virtual void declare(const char* key, const char* value) = 0;
 };
 

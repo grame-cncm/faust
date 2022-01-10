@@ -108,8 +108,8 @@ class qsynthDialVokiStyle : public QCommonStyle
 {
     
 public:
-    qsynthDialVokiStyle() {};
-    virtual ~qsynthDialVokiStyle() {};
+    qsynthDialVokiStyle() {}
+    virtual ~qsynthDialVokiStyle() {}
     
     virtual void drawComplexControl(ComplexControl cc, const QStyleOptionComplex* opt, QPainter* p, const QWidget* widget = NULL) const
     {
