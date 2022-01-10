@@ -138,11 +138,11 @@ Tree ScalarCompiler::prepare(Tree LS)
     endTiming("recursivnessAnnotation");
 
     startTiming("typeAnnotation");
-    typeAnnotation(L3, true);    // Annotate L3 with type information
+    typeAnnotation(L3, true);  // Annotate L3 with type information
     endTiming("typeAnnotation");
 
     startTiming("sharingAnalysis");
-    sharingAnalysis(L3);         // Annotate L3 with sharing count
+    sharingAnalysis(L3);  // Annotate L3 with sharing count
     endTiming("sharingAnalysis");
 
     startTiming("occurrences analysis");
@@ -161,7 +161,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     // Generate VHDL if --vhdl option is set
     if (gGlobal->gVHDLSwitch) {
         Signal2VHDLVisitor V(fOccMarkup);
-        ofstream dotfile(subst("faust.vhd", gGlobal->makeDrawPath()).c_str());
+        ofstream           dotfile(subst("faust.vhd", gGlobal->makeDrawPath()).c_str());
         V.sigToVHDL(L3, dotfile);
         V.trace(gGlobal->gVHDLTrace, "VHDL");  // activate with --trace option
         V.mapself(L3);
@@ -365,7 +365,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
     for (int i = 0; isList(L); L = tl(L), i++) {
         Tree sig = hd(L);
         fClass->addExecCode(
-            Statement("", subst("output$0[i] = $2$1;", T(i), generateCacheCode(sig, CS(sig)), xcast())));
+            Statement("", subst("output$0[i] = $2($1);", T(i), generateCacheCode(sig, CS(sig)), xcast())));
     }
 
     generateMetaData();
@@ -467,7 +467,7 @@ string ScalarCompiler::generateCode(Tree sig)
     else if (isSigSelect2(sig, sel, x, y)) {
         return generateSelect2(sig, sel, x, y);
     }
-    
+
     else if (isSigGen(sig, x)) {
         return generateSigGen(sig, x);
     }
@@ -475,7 +475,7 @@ string ScalarCompiler::generateCode(Tree sig)
     else if (isProj(sig, &i, x)) {
         return generateRecProj(sig, x, i);
     }
-    
+
     else if (isSigIntCast(sig, x)) {
         return generateIntCast(sig, x);
     } else if (isSigFloatCast(sig, x)) {
@@ -519,14 +519,14 @@ string ScalarCompiler::generateCode(Tree sig)
             throw faustexception("ERROR : 'control/enable' can only be used in scalar mode\n");
         }
         return generateControl(sig, x, y);
-	
+
     } else if (isSigAssertBounds(sig, x, y, z)) {
         /* no debug option for the moment */
         return generateCode(z);
     } else if (isSigLowest(sig, x) || isSigHighest(sig, x)) {
         throw faustexception("ERROR : annotations should have been deleted in Simplification process\n");
     }
-    
+
     /* we should not have any control at this stage*/
     else {
         stringstream error;
@@ -607,12 +607,31 @@ string ScalarCompiler::generateOutput(Tree sig, const string& idx, const string&
     return dst;
 }
 
+static int binoppriority(Tree sig)
+{
+    int  opcode;
+    Tree arg1;
+    Tree arg2;
+    if (isSigBinOp(sig, &opcode, arg1, arg2)) {
+        return gBinOpTable[opcode]->fPriority;
+    } else {
+        return 20;
+    }
+}
 /*****************************************************************************
  BINARY OPERATION
  *****************************************************************************/
 
 string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
 {
+    // check the priorities and add parentheses when needed
+    int p0 = gBinOpTable[opcode]->fPriority;
+    int p1 = binoppriority(arg1);
+    int p2 = binoppriority(arg2);
+
+    string c1 = CS(arg1);
+    string c2 = CS(arg2);
+
     if (opcode == kDiv) {
         // special handling for division, we always want a float division
         Type t1 = getCertifiedSigType(arg1);
@@ -628,20 +647,22 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
         }
 
         if (t1->nature() == kInt && t2->nature() == kInt) {
-            return generateCacheCode(
-                sig, subst("($3($0) $1 $3($2))", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+            return generateCacheCode(sig, subst("($3($0) $1 $3($2))", c1, gBinOpTable[opcode]->fName, c2, ifloat()));
         } else if (t1->nature() == kInt && t2->nature() == kReal) {
-            return generateCacheCode(sig,
-                                     subst("($3($0) $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+            if (p0 > p2) c2 = subst("($0)", c2);
+            return generateCacheCode(sig, subst("($3($0) $1 $2)", c1, gBinOpTable[opcode]->fName, c2, ifloat()));
         } else if (t1->nature() == kReal && t2->nature() == kInt) {
-            return generateCacheCode(sig,
-                                     subst("($0 $1 $3($2))", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+            if (p0 > p1) c1 = subst("($0)", c1);
+            return generateCacheCode(sig, subst("($0 $1 $3($2))", c1, gBinOpTable[opcode]->fName, c2, ifloat()));
         } else {
-            return generateCacheCode(sig,
-                                     subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
+            if (p0 > p1) c1 = subst("($0)", c1);
+            if (p0 > p2) c2 = subst("($0)", c2);
+            return generateCacheCode(sig, subst("($0 $1 $2)", c1, gBinOpTable[opcode]->fName, c2, ifloat()));
         }
     } else {
-        return generateCacheCode(sig, subst("($0 $1 $2)", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2)));
+        if (p0 > p1) c1 = subst("($0)", c1);
+        if (p0 > p2) c2 = subst("($0)", c2);
+        return generateCacheCode(sig, subst("$0 $1 $2", c1, gBinOpTable[opcode]->fName, c2));
     }
 }
 
@@ -1001,7 +1022,7 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
     // definition du nom et du type de la table
     // A REVOIR !!!!!!!!!
     Type t = getCertifiedSigType(content);  //, tEnv);
-    
+
     if (t->nature() == kInt) {
         vname = getFreshID("itbl");
         ctype = "int";
@@ -1053,7 +1074,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
     // definition du nom et du type de la table
     // A REVOIR !!!!!!!!!
     Type t = getCertifiedSigType(content);  //, tEnv);
-    
+
     if (t->nature() == kInt) {
         vname = getFreshID("itbl");
         ctype = "int";
@@ -1212,7 +1233,7 @@ string ScalarCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 
     fClass->addDeclCode(subst("$0 \t$1;", type, vperm));
     fClass->addInitCode(subst("$0 = $1;", vperm, CS(x)));
-    
+
     fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 \t$1 = $2;", type, vtemp, vperm)));
     fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", vperm, CS(e))));
     return vtemp;
