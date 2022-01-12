@@ -345,8 +345,9 @@ class CInstVisitor : public TextInstVisitor {
 
     virtual void visit(::CastInst* inst)
     {
-        *fOut << "(" << fTypeManager->generateType(inst->fType) << ")";
+        *fOut << "(" << fTypeManager->generateType(inst->fType) << ")(";
         inst->fInst->accept(this);
+        *fOut << ")";
     }
 
     // TODO : does not work, put this code in a function

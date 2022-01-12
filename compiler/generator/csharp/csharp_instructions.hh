@@ -349,10 +349,13 @@ class CSharpInstVisitor : public TextInstVisitor {
         inst->fInst2->accept(&fTypingVisitor);
         Typed::VarType type2 = fTypingVisitor.fCurType;
 
-        *fOut << "(";
+        bool cond1 = needParenthesis(inst, inst->fInst1);
+        bool cond2 = needParenthesis(inst, inst->fInst2);
 
         if (type1 != Typed::kBool) {
+            if (cond1) *fOut << "(";
             inst->fInst1->accept(this);
+            if (cond1) *fOut << ")";
         } else {
             *fOut << "(";
             inst->fInst1->accept(this);
@@ -364,14 +367,15 @@ class CSharpInstVisitor : public TextInstVisitor {
         *fOut << " ";
 
         if (type2 != Typed::kBool) {
+            if (cond2) *fOut << "(";
             inst->fInst2->accept(this);
+            if (cond2) *fOut << ")";
         } else {
             *fOut << "(";
             inst->fInst2->accept(this);
             *fOut << "?1:0)";
         }
 
-        *fOut << ")";
     }
 
     virtual void visit(Select2Inst* inst)

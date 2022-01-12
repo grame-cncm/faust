@@ -597,11 +597,13 @@ class SOULInstVisitor : public TextInstVisitor {
 
     virtual void visit(BinopInst* inst)
     {
+        bool cond1 = needParenthesis(inst, inst->fInst1);
+        bool cond2 = needParenthesis(inst, inst->fInst2);
+    
         bool int_as_bool = fIntAsBool;
         if (isBoolOpcode(inst->fOpcode) && !int_as_bool) {
             *fOut << "int (";
         }
-        *fOut << "(";
 
         // Hack to make it work again with 'soul' version 0.0.6
         if (isLogicalOpcode(inst->fOpcode)) {
@@ -616,7 +618,9 @@ class SOULInstVisitor : public TextInstVisitor {
             }
         }
 
+        if (cond1) *fOut << "(";
         inst->fInst1->accept(this);
+        if (cond1) *fOut << ")";
 
         // Hack to make it work again with 'soul' version 0.0.6
         if (isLogicalOpcode(inst->fOpcode)) {
@@ -640,14 +644,15 @@ class SOULInstVisitor : public TextInstVisitor {
             }
         }
 
+        if (cond2) *fOut << "(";
         inst->fInst2->accept(this);
+        if (cond2) *fOut << ")";
 
         // Hack to make it work again with 'soul' version 0.0.6
         if (isLogicalOpcode(inst->fOpcode)) {
             *fOut << ")";
         }
 
-        *fOut << ")";
         if (isBoolOpcode(inst->fOpcode) && !int_as_bool) {
             *fOut << ")";
         }

@@ -66,6 +66,9 @@ CodeContainer::CodeContainer()
       fRealControlNum(0)
 {
     fCurLoop = new CodeLoop(0, gGlobal->getFreshID("i"));
+    // Types used in 'compute' prototype in -os mode and -laner soul mode
+    gGlobal->setVarType("iControl", Typed::kInt32_ptr);
+    gGlobal->setVarType("fControl", Typed::kFloatMacro_ptr);
 }
 
 CodeContainer::~CodeContainer()

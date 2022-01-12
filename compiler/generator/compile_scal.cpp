@@ -607,16 +607,12 @@ string ScalarCompiler::generateOutput(Tree sig, const string& idx, const string&
     return dst;
 }
 
-static int binoppriority(Tree sig)
+static int binopPriority(Tree sig)
 {
     int  opcode;
     Tree arg1;
     Tree arg2;
-    if (isSigBinOp(sig, &opcode, arg1, arg2)) {
-        return gBinOpTable[opcode]->fPriority;
-    } else {
-        return 20;
-    }
+    return isSigBinOp(sig, &opcode, arg1, arg2) ? gBinOpTable[opcode]->fPriority : INT_MAX;
 }
 /*****************************************************************************
  BINARY OPERATION
@@ -626,8 +622,8 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
 {
     // check the priorities and add parentheses when needed
     int p0 = gBinOpTable[opcode]->fPriority;
-    int p1 = binoppriority(arg1);
-    int p2 = binoppriority(arg2);
+    int p1 = binopPriority(arg1);
+    int p2 = binopPriority(arg2);
 
     string c1 = CS(arg1);
     string c2 = CS(arg2);

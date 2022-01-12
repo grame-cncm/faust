@@ -455,7 +455,14 @@ class JuliaInstVisitor : public TextInstVisitor {
              inst->fInst2->accept(this);
             *fOut << ")";
         } else {
-            TextInstVisitor::visit(inst);
+            // Operator prededence is not like C/C++, so for simplicity, we keep the fully parenthezid version
+            *fOut << "(";
+            inst->fInst1->accept(this);
+            *fOut << " ";
+            *fOut << gBinOpTable[inst->fOpcode]->fName;
+            *fOut << " ";
+            inst->fInst2->accept(this);
+            *fOut << ")";
         }
     }
    

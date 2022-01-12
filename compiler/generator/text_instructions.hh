@@ -65,7 +65,9 @@ class TextInstVisitor : public InstVisitor {
     // To be adapted in subclasses
     virtual void visitCond(ValueInst* cond)
     {
+        *fOut << "(";
         cond->accept(this);
+        *fOut << ")";
     }
   
    public:
@@ -195,16 +197,29 @@ class TextInstVisitor : public InstVisitor {
         }
         *fOut << '}';
     }
+    
+    
+    bool needParenthesis(BinopInst* inst, ValueInst* arg)
+    {
+        int p0 = gBinOpTable[inst->fOpcode]->fPriority;
+        BinopInst* a = dynamic_cast<BinopInst*>(arg);
+        int p1 = a ? gBinOpTable[a->fOpcode]->fPriority : INT_MAX;
+        return (isLogicalOpcode(inst->fOpcode) || (p0 > p1)) && !arg->isSimpleValue();
+    }
 
     virtual void visit(BinopInst* inst)
     {
-        *fOut << "(";
+        bool cond1 = needParenthesis(inst, inst->fInst1);
+        bool cond2 = needParenthesis(inst, inst->fInst2);
+        if (cond1) *fOut << "(";
         inst->fInst1->accept(this);
+        if (cond1) *fOut << ")";
         *fOut << " ";
         *fOut << gBinOpTable[inst->fOpcode]->fName;
         *fOut << " ";
+        if (cond2) *fOut << "(";
         inst->fInst2->accept(this);
-        *fOut << ")";
+        if (cond2) *fOut << ")";
     }
 
     virtual void visit(::CastInst* inst) { faustassert(false); }
