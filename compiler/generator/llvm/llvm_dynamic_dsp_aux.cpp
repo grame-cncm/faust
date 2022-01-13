@@ -272,7 +272,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 
     string buider_error;
     builder.setErrorStr(&buider_error);
-
+  
     string triple, cpu;
     splitTarget(fTarget, triple, cpu);
     fModule->setTargetTriple(triple);
@@ -384,8 +384,8 @@ static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, cons
             LLVMContext* context = new LLVMContext();
             Module*      module  = ParseBitcodeFile(buffer, *context, error_msg);
             if (!module) return nullptr;
-            llvm_dynamic_dsp_factory_aux* factory_aux =
-                new llvm_dynamic_dsp_factory_aux(sha_key, module, context, target, opt_level);
+            llvm_dynamic_dsp_factory_aux* factory_aux
+                = new llvm_dynamic_dsp_factory_aux(sha_key, module, context, target, opt_level);
             if (factory_aux->initJIT(error_msg)) {
                 llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
                 llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
@@ -625,20 +625,21 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
                                                                                argc1, argv1,
                                                                                error_msg,
                                                                                true));
-                if (factory_aux && factory_aux->initJIT(error_msg)) {
+                if (factory_aux) {
                     factory_aux->setTarget(target);
                     factory_aux->setOptlevel(opt_level);
                     factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
                     factory_aux->setName(name_app);
-                    llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
-                    llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
-                    factory->setSHAKey(sha_key);
-                    factory->setDSPCode(expanded_dsp_content);
-                    return factory;
-                } else {
-                    delete factory_aux;
-                    return nullptr;
+                    if (factory_aux->initJIT(error_msg)) {
+                        llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
+                        llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
+                        factory->setSHAKey(sha_key);
+                        factory->setDSPCode(expanded_dsp_content);
+                        return factory;
+                    }
                 }
+                delete factory_aux;
+                return nullptr;
             } catch (faustexception& e) {
                 error_msg = e.what();
                 return nullptr;

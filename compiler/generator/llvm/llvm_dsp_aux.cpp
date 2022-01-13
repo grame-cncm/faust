@@ -140,10 +140,10 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& 
     : dsp_factory_imp("MachineDSP", sha_key, "")
 {
     startLLVMLibrary();
-
+    
     init("MachineDSP", "");
     fSHAKey = sha_key;
-    fTarget = (target == "") ? (sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
+    fTarget = (target == "") ? getDSPMachineTarget() : target;
 
     // Restoring the cache
     fObjectCache = new FaustObjectCache(machine_code);
@@ -159,10 +159,10 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, Module* module
     : dsp_factory_imp("BitcodeDSP", sha_key, "")
 {
     startLLVMLibrary();
-
+ 
     init("BitcodeDSP", "");
     fSHAKey = sha_key;
-    fTarget = (target == "") ? (sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
+    fTarget = (target == "") ? getDSPMachineTarget() : target;
     setOptlevel(opt_level);
     
     fObjectCache = nullptr;
