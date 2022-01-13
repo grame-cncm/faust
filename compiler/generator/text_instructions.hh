@@ -27,6 +27,7 @@
 #include <sstream>
 #include <string>
 #include <map>
+#include <climits>
 
 #include "Text.hh"
 #include "fir_to_fir.hh"

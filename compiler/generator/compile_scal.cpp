@@ -30,6 +30,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <climits>
 
 #include "compatibility.hh"
 #include "compile.hh"
