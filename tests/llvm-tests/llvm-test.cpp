@@ -84,6 +84,8 @@ int main(int argc, const char** argv)
     string error_msg;
     cout << "Libfaust version : " << getCLibFaustVersion () << endl;
     string dspFile = argv[1];
+    
+    std::cout << "getDSPMachineTarget " << getDSPMachineTarget() << std::endl;
    
     cout << "=============================\n";
     cout << "Test createDSPFactoryFromFile\n";

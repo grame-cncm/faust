@@ -58,6 +58,8 @@ int main(int argc, const char** argv)
         "\n"
         "process = inst, inst;\n";
     
+    printf("getDSPMachineTarget %s\n", getCDSPMachineTarget());
+    
     llvm_dsp_factory* factory = createCDSPFactoryFromString("score", code, argc1, argv1, "", error_msg, -1);
     if (!factory) {
         printf("Cannot create factory : %s\n", error_msg);
