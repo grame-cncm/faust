@@ -245,6 +245,11 @@ struct dsp_voice : public MapUI, public decorator_dsp {
             }
         }
     }
+    
+    void reset()
+    {
+        init(getSampleRate());
+    }
  
     void instanceClear()
     {
@@ -845,7 +850,9 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         {
             auto it = find(fVoiceTable.begin(), fVoiceTable.end(), reinterpret_cast<dsp_voice*>(voice));
             if (it != fVoiceTable.end()) {
-                (*it)->keyOff();
+                dsp_voice* voice = *it;
+                voice->keyOff();
+                voice->reset();
             } else {
                 fprintf(stderr, "Voice not found\n");
             }

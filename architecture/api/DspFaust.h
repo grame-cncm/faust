@@ -179,10 +179,10 @@ class DspFaust
         //
         // #### Arguments
         //
-        // * `voice`: the address of the voice given by `newVoice`
+        // * `voice`: the address of the voice given by `newVoice` or `keyOn`
         //--------------------------------------------------------
         int deleteVoice(uintptr_t voice);
-
+    
         //-----------------`void allNotesOff(bool hard = false)`----------------
         // Terminates all the active voices, gently (with release when hard = false or immediately when hard = true).
         //--------------------------------------------------------
