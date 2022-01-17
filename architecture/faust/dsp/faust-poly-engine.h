@@ -327,9 +327,13 @@ class FaustPolyEngine {
         void setParamValue(const char* address, float value)
         {
             int id = (address) ? fAPIUI.getParamIndex(address) : -1;
-            if (id >= 0) setParamValue(id, value);
+            if (id >= 0) {
+                setParamValue(id, value);
+            } else {
+                fprintf(stderr, "setParamValue : '%s' not found\n", (address == nullptr ? "NULL" : address));
+            }
         }
-
+        
         /*
          * getParamValue(address)
          * Takes the address of a parameter and returns its current
@@ -338,7 +342,12 @@ class FaustPolyEngine {
         float getParamValue(const char* address)
         {
             int id = (address) ? fAPIUI.getParamIndex(address) : -1;
-            return (id >= 0) ? fAPIUI.getParamValue(id) : 0.f;
+            if (id >= 0) {
+                return fAPIUI.getParamValue(id);
+            } else {
+                fprintf(stderr, "getParamValue : '%s' not found\n", (address == nullptr ? "NULL" : address));
+                return 0.f;
+            }
         }
     
         /*

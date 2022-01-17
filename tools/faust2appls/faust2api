@@ -51,6 +51,12 @@ DUMMY_DRIVER="0"
 TEENSY_DRIVER="0"
 ESP32_DRIVER="0"
 
+if [[ $(uname -s) == Darwin ]]; then
+	ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio -framework AudioUnit -framework CoreServices"
+else
+	ARCHLIB=""
+fi
+
 echoHelp ()
 {
     if [ $p != "-help" ] && [ $p != "-h" ]; then
@@ -335,16 +341,14 @@ if [ "$BUILD" = "1" ]; then
         echo "Compile as a binary named 'dynamic-api'"
         # compile c++ to binary liked with lbfaust/LLSM
         (
-            $CXX $CXXFLAGS $APIFOLDER/DspFaust.cpp /usr/local/lib/libfaust.a -lz -lncurses -lOSCFaust `llvm-config --ldflags --libs all --system-libs`  `pkg-config --cflags --static --libs jack sndfile` -o dynamic-api
+            $CXX $CXXFLAGS $APIFOLDER/DspFaust.cpp /usr/local/lib/libfaust.a -lz -lncurses -lOSCFaust $ARCHLIB `llvm-config --ldflags --libs all --system-libs`  `pkg-config --cflags --static --libs jack sndfile` -o dynamic-api
         ) > /dev/null || exit 1
         exit 0
    else
         echo "Compile the ${FILE%.dsp} binary"
         # compile c++ to binary
         (
-        	# For macOS
-            #$CXX $CXXFLAGS $APIFOLDER/DspFaust.cpp -lOSCFaust -framework CoreServices `pkg-config --cflags --static --libs jack sndfile` -o ${FILE%.dsp}
-            $CXX $CXXFLAGS $APIFOLDER/DspFaust.cpp -lOSCFaust `pkg-config --cflags --static --libs jack` -o ${FILE%.dsp}
+            $CXX $CXXFLAGS $APIFOLDER/DspFaust.cpp -lOSCFaust $ARCHLIB `pkg-config --cflags --static --libs jack` -o ${FILE%.dsp}
         ) > /dev/null || exit 1
         exit 0
     fi

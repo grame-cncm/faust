@@ -108,7 +108,7 @@ class APIUI : public PathBuilder, public Meta, public UI
             fCurrentScale = kLin;
 
             fItems.push_back({path, label, converter, zone, init, min, max, step, type });
-
+       
             if (fCurrentAcc.size() > 0 && fCurrentGyr.size() > 0) {
                 fprintf(stderr, "warning : 'acc' and 'gyr' metadata used for the same %s parameter !!\n", label);
             }
@@ -389,12 +389,11 @@ class APIUI : public PathBuilder, public Meta, public UI
         void setParamValue(const char* path, FAUSTFLOAT v)
         {
             int index = getParamIndex(path);
-            if (index >= 0) setParamValue(index, v);
-        #ifdef DEBUG
-            if (index < 0) {
-                fprintf(stderr, ">>## Unknown parameter at path = %s\n", (path == nullptr ? "NULL" : path));
+            if (index >= 0) {
+                setParamValue(index, v);
+            } else {
+                fprintf(stderr, "setParamValue : '%s' not found\n", (path == nullptr ? "NULL" : path));
             }
-        #endif
         }
 
         double getParamRatio(int p) { return fItems[uint(p)].fConversion->faust2ui(*fItems[uint(p)].fZone); }
