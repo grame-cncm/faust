@@ -351,8 +351,8 @@ extern "C"
      *
      * @param label - the label definition (see [2])
      * @param init - the init signal, a constant numerical expression (see [1])
-     * @param min - the max signal, a constant numerical expression (see [1])
-     * @param max - the min signal, a constant numerical expression (see [1])
+     * @param min - the min signal, a constant numerical expression (see [1])
+     * @param max - the max signal, a constant numerical expression (see [1])
      * @param step - the step signal, a constant numerical expression (see [1])
      *
      * @return the vertical slider signal.
@@ -364,8 +364,8 @@ extern "C"
      *
      * @param label - the label definition (see [2])
      * @param init - the init signal, a constant numerical expression (see [1])
-     * @param min - the max signal, a constant numerical expression (see [1])
-     * @param max - the min signal, a constant numerical expression (see [1])
+     * @param min - the min signal, a constant numerical expression (see [1])
+     * @param max - the max signal, a constant numerical expression (see [1])
      * @param step - the step signal, a constant numerical expression (see [1])
      *
      * @return the horizontal slider signal.
@@ -377,8 +377,8 @@ extern "C"
      *
      * @param label - the label definition (see [2])
      * @param init - the init signal, a constant numerical expression (see [1])
-     * @param min - the max signal, a constant numerical expression (see [1])
-     * @param max - the min signal, a constant numerical expression (see [1])
+     * @param min - the min signal, a constant numerical expression (see [1])
+     * @param max - the max signal, a constant numerical expression (see [1])
      * @param step - the step signal, a constant numerical expression (see [1])
      *
      * @return the num entry signal.
@@ -389,8 +389,8 @@ extern "C"
      * Create a vertical bargraph signal.
      *
      * @param label - the label definition (see [2])
-     * @param min - the max signal, a constant numerical expression (see [1])
-     * @param max - the min signal, a constant numerical expression (see [1])
+     * @param min - the min signal, a constant numerical expression (see [1])
+     * @param max - the max signal, a constant numerical expression (see [1])
      * @param s - the input signal
      *
      * @return the vertical bargraph signal.
@@ -401,8 +401,8 @@ extern "C"
      * Create an horizontal bargraph signal.
      *
      * @param label - the label definition (see [2])
-     * @param min - the max signal, a constant numerical expression (see [1])
-     * @param max - the min signal, a constant numerical expression (see [1])
+     * @param min - the min signal, a constant numerical expression (see [1])
+     * @param max - the max signal, a constant numerical expression (see [1])
      * @param s - the input signal
      *
      * @return the horizontal bargraph signal.

@@ -464,8 +464,8 @@ extern "C"
      *
      * @param label - the label definition (see [2])
      * @param init - the init box, a constant numerical expression (see [1])
-     * @param min - the max box, a constant numerical expression (see [1])
-     * @param max - the min box, a constant numerical expression (see [1])
+     * @param min - the min box, a constant numerical expression (see [1])
+     * @param max - the max box, a constant numerical expression (see [1])
      * @param step - the step box, a constant numerical expression (see [1])
      *
      * @return the vertical slider box.
@@ -477,8 +477,8 @@ extern "C"
      *
      * @param label - the label definition (see [2])
      * @param init - the init box, a constant numerical expression (see [1])
-     * @param min - the max box, a constant numerical expression (see [1])
-     * @param max - the min box, a constant numerical expression (see [1])
+     * @param min - the min box, a constant numerical expression (see [1])
+     * @param max - the max box, a constant numerical expression (see [1])
      * @param step - the step box, a constant numerical expression (see [1])
      *
      * @return the horizontal slider box.
@@ -490,8 +490,8 @@ extern "C"
      *
      * @param label - the label definition (see [2])
      * @param init - the init box, a constant numerical expression (see [1])
-     * @param min - the max box, a constant numerical expression (see [1])
-     * @param max - the min box, a constant numerical expression (see [1])
+     * @param min - the min box, a constant numerical expression (see [1])
+     * @param max - the max box, a constant numerical expression (see [1])
      * @param step - the step box, a constant numerical expression (see [1])
      *
      * @return the num entry box.
@@ -502,8 +502,8 @@ extern "C"
      * Create a vertical bargraph box.
      *
      * @param label - the label definition (see [2])
-     * @param min - the max box, a constant numerical expression (see [1])
-     * @param max - the min box, a constant numerical expression (see [1])
+     * @param min - the min box, a constant numerical expression (see [1])
+     * @param max - the max box, a constant numerical expression (see [1])
      *
      * @return the vertical bargraph box.
      */
@@ -513,9 +513,9 @@ extern "C"
      * Create a vertical bargraph box.
      *
      * @param label - the label definition (see [2])
-     * @param min - the max box, a constant numerical expression (see [1])
-     * @param max - the min box, a constant numerical expression (see [1])
-     * @param s - the input box
+     * @param min - the min box, a constant numerical expression (see [1])
+     * @param max - the max box, a constant numerical expression (see [1])
+     * @param x - the input box
      *
      * @return the vertical bargraph box.
      */
@@ -525,8 +525,8 @@ extern "C"
      * Create an horizontal bargraph box.
      *
      * @param label - the label definition (see [2])
-     * @param min - the max box, a constant numerical expression (see [1])
-     * @param max - the min box, a constant numerical expression (see [1])
+     * @param min - the min box, a constant numerical expression (see [1])
+     * @param max - the max box, a constant numerical expression (see [1])
      *
      * @return the horizontal bargraph box.
      */
@@ -536,9 +536,9 @@ extern "C"
      * Create a horizontal bargraph box.
      *
      * @param label - the label definition (see [2])
-     * @param min - the max box, a constant numerical expression (see [1])
-     * @param max - the min box, a constant numerical expression (see [1])
-     * @param s - the input box
+     * @param min - the min box, a constant numerical expression (see [1])
+     * @param max - the max box, a constant numerical expression (see [1])
+     * @param x - the input box
      *
      * @return the vertical horizontal box.
      */

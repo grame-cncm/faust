@@ -267,7 +267,7 @@ extern "C" void stopMTDSPFactories();
  * the same (reference counted) factory pointer. You will have to explicitly use deleteInterpreterDSPFactory to properly
  * decrement reference counter when the factory is no more needed.
  *
- * @param bitcode_code - the bitcode string
+ * @param bitcode - the bitcode string
  * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
@@ -289,7 +289,7 @@ std::string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* factory
  * the same (reference counted) factory pointer. You will have to explicitly use deleteInterpreterDSPFactory to properly
  * decrement reference counter when the factory is no more needed.
  *
- * @param bitcode_path - the bitcode file pathname
+ * @param bit_code_path - the bitcode file pathname
  * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
@@ -300,7 +300,7 @@ interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const std::str
  * Write a Faust DSP factory into a bitcode file.
  *
  * @param factory - the DSP factory
- * @param bitcode_path - the bitcode file pathname
+ * @param bit_code_path - the bitcode file pathname
  *
  * @return true if success, false otherwise.
  */

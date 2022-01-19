@@ -38,7 +38,7 @@ extern "C" {
  * Compute a SHA1 key from a string.
  *
  * @param data - the string to be converted in SHA1 key
- * @param key - a 64 characters buffer to be filled with the computed key
+ * @param sha_key - a 64 characters buffer to be filled with the computed key
  *
  */
 LIBEXPORT void generateCSHA1(const char* data, char* sha_key);
@@ -62,7 +62,8 @@ LIBEXPORT const char* expandCDSPFromFile(const char* filename, int argc, const c
 /**
  * Expand a DSP source code into a self-contained DSP where all library import have been inlined starting from a string.
  *
- * @param filename - the DSP filename
+ * @param name_app - the name of the Faust program
+ * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use
  * generateAuxFiles)
@@ -89,7 +90,8 @@ LIBEXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const c
 /**
  * Generate additional file (other backends, SVG, XML, JSON...) starting from a string.
  *
- * @param filename - the DSP filename
+ * @param name_app - the name of the Faust program
+ * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled, has to be 4096 characters long

@@ -103,6 +103,11 @@ echo " updating $COPYING"
 sed "s/FAUST compiler, Version[ 	]*[0-9].*/FAUST compiler, Version $VERSION/" $COPYING > TMP$$
 mv -f TMP$$ $COPYING
 
+DOXYFILE=$ROOT/documentation/libfaust/Doxyfile
+echo " updating $DOXYFILE"
+sed "s/PROJECT_NUMBER         = [ 	]*[0-9].*/PROJECT_NUMBER         = $VERSION/" $DOXYFILE > TMP$$
+mv -f TMP$$ $DOXYFILE
+
 make man
 
 echo $VERSION > version.txt

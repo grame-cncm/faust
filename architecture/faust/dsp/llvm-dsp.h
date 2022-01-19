@@ -207,7 +207,7 @@ llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app,
  * It has to be used with the signal API defined in libfaust-signal.h.
  *
  * @param name_app - the name of the Faust program
- * @param signals - the vector of output signals
+ * @param signals_vec - the vector of output signals
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
@@ -470,6 +470,7 @@ bool writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& 
  * Write a Faust DSP factory into an object code file.
  *
  * @param factory - the DSP factory
+ * @param object_code_path - the object code file pathname
  * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
  *                 using an empty string takes the current machine settings,
  *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor

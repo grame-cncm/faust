@@ -356,8 +356,8 @@ Signal sigCheckbox(const std::string& label);
  *
  * @param label - the label definition (see [2])
  * @param init - the init signal, a constant numerical expression (see [1])
- * @param min - the max signal, a constant numerical expression (see [1])
- * @param max - the min signal, a constant numerical expression (see [1])
+ * @param min - the min signal, a constant numerical expression (see [1])
+ * @param max - the max signal, a constant numerical expression (see [1])
  * @param step - the step signal, a constant numerical expression (see [1])
  *
  * @return the vertical slider signal.
@@ -369,8 +369,8 @@ Signal sigVSlider(const std::string& label, Signal init, Signal min, Signal max,
  *
  * @param label - the label definition (see [2])
  * @param init - the init signal, a constant numerical expression (see [1])
- * @param min - the max signal, a constant numerical expression (see [1])
- * @param max - the min signal, a constant numerical expression (see [1])
+ * @param min - the min signal, a constant numerical expression (see [1])
+ * @param max - the max signal, a constant numerical expression (see [1])
  * @param step - the step signal, a constant numerical expression (see [1])
  *
  * @return the horizontal slider signal.
@@ -382,8 +382,8 @@ Signal sigHSlider(const std::string& label, Signal init, Signal min, Signal max,
  *
  * @param label - the label definition (see [2])
  * @param init - the init signal, a constant numerical expression (see [1])
- * @param min - the max signal, a constant numerical expression (see [1])
- * @param max - the min signal, a constant numerical expression (see [1])
+ * @param min - the min signal, a constant numerical expression (see [1])
+ * @param max - the max signal, a constant numerical expression (see [1])
  * @param step - the step signal, a constant numerical expression (see [1])
  *
  * @return the num entry signal.
@@ -394,8 +394,8 @@ Signal sigNumEntry(const std::string& label, Signal init, Signal min, Signal max
  * Create a vertical bargraph signal.
  *
  * @param label - the label definition (see [2])
- * @param min - the max signal, a constant numerical expression (see [1])
- * @param max - the min signal, a constant numerical expression (see [1])
+ * @param min - the min signal, a constant numerical expression (see [1])
+ * @param max - the max signal, a constant numerical expression (see [1])
  * @param s - the input signal
  *
  * @return the vertical bargraph signal.
@@ -406,8 +406,8 @@ Signal sigVBargraph(const std::string& label, Signal min, Signal max, Signal s);
  * Create an horizontal bargraph signal.
  *
  * @param label - the label definition (see [2])
- * @param min - the max signal, a constant numerical expression (see [1])
- * @param max - the min signal, a constant numerical expression (see [1])
+ * @param min - the min signal, a constant numerical expression (see [1])
+ * @param max - the max signal, a constant numerical expression (see [1])
  * @param s - the input signal
  *
  * @return the horizontal bargraph signal.
@@ -432,7 +432,7 @@ Signal sigAttach(Signal s1, Signal s2);
  * Create a C++ Faust DSP factory from a vector of output signals.
  *
  * @param name_app - the name of the Faust program
- * @param signals - the vector of output signals
+ * @param signals_vec - the vector of output signals
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled

@@ -64,7 +64,8 @@ LIBEXPORT std::string expandDSPFromFile(const std::string& filename, int argc, c
 /**
  * Expand a DSP source code into a self-contained DSP where all library import have been inlined starting from a string.
  *
- * @param filename - the DSP filename
+ * @param name_app - the name of the Faust program
+ * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use
  * generateAuxFiles)
@@ -92,7 +93,8 @@ LIBEXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, c
 /**
  * Generate additional file (other backends, SVG, XML, JSON...) starting from a string.
  *
- * @param filename - the DSP filename
+ * @param name_app - the name of the Faust program
+ * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
