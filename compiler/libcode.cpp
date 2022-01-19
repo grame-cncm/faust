@@ -580,6 +580,10 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-os2", "--one-sample2")) {
             gGlobal->gOneSample = 2;
             i += 1;
+            
+        } else if (isCmd(argv[i], "-os3", "--one-sample3")) {
+            gGlobal->gOneSample = 3;
+            i += 1;
 
         } else if (isCmd(argv[i], "-cm", "--compute-mix")) {
             gGlobal->gComputeMix = true;
@@ -922,6 +926,8 @@ static void printHelp()
     cout << tab << "-os0        --one-sample0               generate one sample computation (0 = separated control)." << endl;
     cout << tab << "-os1        --one-sample1               generate one sample computation (1 = separated control and DSP struct)." << endl;
     cout << tab << "-os2        --one-sample2               generate one sample computation (2 = separated control and DSP struct. Separation in short and long delay lines)." << endl;
+    cout << tab << "-os3        --one-sample3               generate one sample computation (3 = like 2 but with external memory pointers kept in the DSP struct)." << endl;
+    
     cout << tab << "-cm         --compute-mix               mix in outputs buffers." << endl;
     cout << tab
          << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp."

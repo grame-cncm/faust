@@ -1105,20 +1105,39 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
   
         case kBlock:
             if (gGlobal->gOneSample >= 0 || gGlobal->gOneSampleControl) {
-                if (t->nature() == kInt) {
-                    pushComputeBlockMethod(InstBuilder::genStoreArrayFunArgsVar(
-                        "iControl", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum), exp));
-                    ValueInst* res = InstBuilder::genLoadArrayFunArgsVar(
-                        "iControl", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum));
-                    fContainer->fInt32ControlNum++;
-                    return res;
+                
+                if (gGlobal->gOneSample == 3) {
+                    if (t->nature() == kInt) {
+                        pushComputeBlockMethod(InstBuilder::genStoreArrayStructVar(
+                            "iControl", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum), exp));
+                        ValueInst* res = InstBuilder::genLoadArrayStructVar(
+                            "iControl", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum));
+                        fContainer->fInt32ControlNum++;
+                        return res;
+                    } else {
+                        pushComputeBlockMethod(InstBuilder::genStoreArrayStructVar(
+                            "fControl", InstBuilder::genInt32NumInst(fContainer->fRealControlNum), exp));
+                        ValueInst* res = InstBuilder::genLoadArrayStructVar(
+                            "fControl", InstBuilder::genInt32NumInst(fContainer->fRealControlNum));
+                        fContainer->fRealControlNum++;
+                        return res;
+                    }
                 } else {
-                    pushComputeBlockMethod(InstBuilder::genStoreArrayFunArgsVar(
-                        "fControl", InstBuilder::genInt32NumInst(fContainer->fRealControlNum), exp));
-                    ValueInst* res = InstBuilder::genLoadArrayFunArgsVar(
-                        "fControl", InstBuilder::genInt32NumInst(fContainer->fRealControlNum));
-                    fContainer->fRealControlNum++;
-                    return res;
+                    if (t->nature() == kInt) {
+                        pushComputeBlockMethod(InstBuilder::genStoreArrayFunArgsVar(
+                            "iControl", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum), exp));
+                        ValueInst* res = InstBuilder::genLoadArrayFunArgsVar(
+                            "iControl", InstBuilder::genInt32NumInst(fContainer->fInt32ControlNum));
+                        fContainer->fInt32ControlNum++;
+                        return res;
+                    } else {
+                        pushComputeBlockMethod(InstBuilder::genStoreArrayFunArgsVar(
+                            "fControl", InstBuilder::genInt32NumInst(fContainer->fRealControlNum), exp));
+                        ValueInst* res = InstBuilder::genLoadArrayFunArgsVar(
+                            "fControl", InstBuilder::genInt32NumInst(fContainer->fRealControlNum));
+                        fContainer->fRealControlNum++;
+                        return res;
+                    }
                 }
             } else {
                 getTypedNames(t, "Slow", ctype, vname);
@@ -1464,7 +1483,7 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
         bool b = fStaticInitProperty.get(g, kvnames);
         faustassert(b);
         list<ValueInst*> args;
-        if (gGlobal->gMemoryManager) {
+        if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
             args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
         }
         ValueInst* obj = InstBuilder::genFunCallInst("new" + kvnames.first, args);
@@ -1476,7 +1495,7 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
         if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia") {
             // Delete object
             list<ValueInst*> args3;
-            if (gGlobal->gMemoryManager) {
+            if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
                 args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
             }
             args3.push_back(generator);
@@ -1538,7 +1557,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
             bool b = fInstanceInitProperty.get(g, kvnames);
             faustassert(b);
             list<ValueInst*> args;
-            if (gGlobal->gMemoryManager) {
+            if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
                 args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
             }
             ValueInst* obj = InstBuilder::genFunCallInst("new" + kvnames.first, args);
@@ -1550,7 +1569,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
             if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia") {
                 // Delete object
                 list<ValueInst*> args3;
-                if (gGlobal->gMemoryManager) {
+                if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
                     args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
                 }
                 args3.push_back(cexp);
@@ -1567,7 +1586,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     vname += tablename;
 
     // Table declaration
-    if (gGlobal->gMemoryManager) {
+    if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
         pushGlobalDeclare(InstBuilder::genDecStaticStructVar(
             vname, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), 0), InstBuilder::genInt32NumInst(0)));
     } else {
@@ -1581,7 +1600,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     args1.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
     pushStaticInitMethod(InstBuilder::genVoidFunCallInst("instanceInit" + tablename, args1, true));
 
-    if (gGlobal->gMemoryManager) {
+    if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
         list<ValueInst*> alloc_args;
         alloc_args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
         alloc_args.push_back(InstBuilder::genInt32NumInst(size * gGlobal->gTypeSizeMap[ctype]));
@@ -1725,7 +1744,7 @@ ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
 
     // We must allocate an object of type "cname"
     list<ValueInst*> args;
-    if (gGlobal->gMemoryManager) {
+    if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
         args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
     }
     ValueInst* obj = InstBuilder::genFunCallInst("new" + cname, args);
@@ -1737,7 +1756,7 @@ ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
         // Delete object
         list<ValueInst*> args3;
         args3.push_back(InstBuilder::genLoadStackVar(signame));
-        if (gGlobal->gMemoryManager) {
+        if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
             args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
         }
         pushPostInitMethod(InstBuilder::genVoidFunCallInst("delete" + cname, args3));
@@ -1759,7 +1778,7 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
 
     // We must allocate an object of type "cname"
     list<ValueInst*> args;
-    if (gGlobal->gMemoryManager) {
+    if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
         args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
     }
     ValueInst* obj = InstBuilder::genFunCallInst("new" + cname, args);
@@ -1771,7 +1790,7 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
         // Delete object
         list<ValueInst*> args3;
         args3.push_back(InstBuilder::genLoadStackVar(signame));
-        if (gGlobal->gMemoryManager) {
+        if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
             args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
         }
         pushPostStaticInitMethod(InstBuilder::genVoidFunCallInst("delete" + cname, args3));

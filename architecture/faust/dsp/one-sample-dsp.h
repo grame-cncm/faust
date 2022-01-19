@@ -159,6 +159,8 @@ class one_sample_dsp : public dsp {
     
 };
 
+// To be used with -os1 and -os2 mode
+
 template <typename REAL>
 class one_sample_dsp_real : public dsp {
     
@@ -356,6 +358,118 @@ class one_sample_dsp_real : public dsp {
         int* getIZone() { return iZone; }
         REAL* getFZone() { return fZone; }
     
+};
+
+// To be used with -os3 mode
+
+template <typename REAL>
+class one_sample_dsp_real1 : public dsp {
+    
+    protected:
+        
+        FAUSTFLOAT* fInputs;
+        FAUSTFLOAT* fOutputs;
+            
+    public:
+        
+        one_sample_dsp_real1():fInputs(nullptr), fOutputs(nullptr)
+        {}
+        
+        virtual ~one_sample_dsp_real1()
+        {
+            delete [] fInputs;
+            delete [] fOutputs;
+        }
+        
+        /**
+         * Return the number of 'int' typed values necessary to compute the internal DSP state
+         *
+         * @return the number of 'int' typed values.
+         */
+        virtual int getNumIntControls() = 0;
+        
+        /**
+         * Return the number of 'float, double or quad' typed values necessary to compute the DSP control state
+         *
+         * @return the number of 'float, double or quad' typed values.
+         */
+        virtual int getNumRealControls() = 0;
+        
+        /**
+         * Return the size on 'float, double or quad' typed values necessary to compute the DSP state
+         *
+         * @return the number of 'float, double or quad' typed values.
+         */
+        virtual int getiZoneSize() = 0;
+        
+        /**
+         * Return the size on 'int' typed values necessary to compute the DSP state
+         *
+         * @return the number of 'int' typed values.
+         */
+        virtual int getfZoneSize() = 0;
+        
+        /**
+         * Update the DSP control state.
+         */
+        virtual void control() = 0;
+        
+        /**
+         * Compute one sample.
+         *
+         * @param inputs - the input audio buffers as an array of getNumInputs FAUSTFLOAT samples (either float, double or quad)
+         * @param outputs - the output audio buffers as an array of getNumOutputs FAUSTFLOAT samples (either float, double or quad)
+         */
+        virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs) = 0;
+        
+        // The standard 'compute' expressed using the control/compute (one sample) model
+        virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
+        {
+            // TODO : not RT safe
+            if (!fInputs) {
+                fInputs = new FAUSTFLOAT[getNumInputs() * 4096];
+                fOutputs = new FAUSTFLOAT[getNumOutputs() * 4096];
+            }
+            
+            // Control
+            control();
+            
+            // Compute
+            int num_inputs = getNumInputs();
+            int num_outputs = getNumOutputs();
+            
+            FAUSTFLOAT* inputs_ptr = &fInputs[0];
+            FAUSTFLOAT* outputs_ptr = &fOutputs[0];
+            
+            for (int frame = 0; frame < count; frame++) {
+                for (int chan = 0; chan < num_inputs; chan++) {
+                    inputs_ptr[chan] = inputs_aux[chan][frame];
+                }
+                inputs_ptr += num_inputs;
+            }
+            
+            inputs_ptr = &fInputs[0];
+            for (int frame = 0; frame < count; frame++) {
+                // One sample compute
+                compute(inputs_ptr, outputs_ptr);
+                inputs_ptr += num_inputs;
+                outputs_ptr += num_outputs;
+            }
+            
+            outputs_ptr = &fOutputs[0];
+            for (int frame = 0; frame < count; frame++) {
+                for (int chan = 0; chan < num_outputs; chan++) {
+                    outputs_aux[chan][frame] = outputs_ptr[chan];
+                }
+                outputs_ptr += num_outputs;
+            }
+        }
+        
+        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
+            compute(count, inputs, outputs);
+        }
+  
 };
 
 #endif

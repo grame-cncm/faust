@@ -94,6 +94,11 @@ class SOULCodeContainer : public virtual CodeContainer {
         if (!gGlobal->gTableSizeVisitor) {
             gGlobal->gTableSizeVisitor = new TableSizeVisitor();
         }
+    
+        // Control is separated in the 'control()' function and iControl/fControl arrays
+        // are used to compute control related state to be used in 'run'
+        gGlobal->setVarType("iControl", Typed::kInt32_ptr);
+        gGlobal->setVarType("fControl", Typed::kFloatMacro_ptr);
     }
    
     CodeContainer* createScalarContainer(const string& name, int sub_container_type);

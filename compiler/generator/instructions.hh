@@ -2648,7 +2648,7 @@ struct InstBuilder {
     // static Typed* mapFIRType(AudioType* type);
 };
 
-/* syntactic sugar for index computations
+/* Syntactic sugar for index computations
  *
  * wrapper for ValueInst* with support for basic arithmetics
  *

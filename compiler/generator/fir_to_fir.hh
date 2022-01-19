@@ -621,13 +621,13 @@ struct ControlExpander : public BasicCloneVisitor {
     
 };
 
-// Analysis to copy constants from an external memory zone
-struct ConstantsCopyFromMemory : public BasicCloneVisitor {
+// Base class for iConst/fConst memory copy in -osX modes
+struct ConstantsCopyMemory : public BasicCloneVisitor {
     
     int fIntIndex = 0;
     int fRealIndex = 0;
     
-    ConstantsCopyFromMemory(int int_index, int float_index):fIntIndex(int_index), fRealIndex(float_index)
+    ConstantsCopyMemory(int int_index, int float_index):fIntIndex(int_index), fRealIndex(float_index)
     {}
     
     StatementInst* visit(DeclareVarInst* inst)
@@ -635,15 +635,23 @@ struct ConstantsCopyFromMemory : public BasicCloneVisitor {
         return InstBuilder::genDropInst();
     }
     
+};
+
+// Analysis to copy constants from an external memory zone (FunArgs version)
+struct ConstantsCopyFromMemory : public ConstantsCopyMemory {
+    
+    ConstantsCopyFromMemory(int int_index, int float_index):ConstantsCopyMemory(int_index, float_index)
+    {}
+    
     StatementInst* visit(StoreVarInst* inst)
     {
         string name = inst->fAddress->getName();
         bool is_struct = inst->fAddress->getAccess() & Address::kStruct;
         if (startWith(name, "iConst") && is_struct) {
-            ValueInst* zone = InstBuilder::genLoadArrayFunArgsVar("iZone", InstBuilder::genInt32NumInst(fIntIndex++));
+            ValueInst* zone = InstBuilder::genLoadArrayFunArgsVar("iZone", FIRIndex(fIntIndex++));
             return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
         } else if (startWith(name, "fConst") && is_struct) {
-            ValueInst* zone = InstBuilder::genLoadArrayFunArgsVar("fZone", InstBuilder::genInt32NumInst(fRealIndex++));
+            ValueInst* zone = InstBuilder::genLoadArrayFunArgsVar("fZone", FIRIndex(fRealIndex++));
             return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
         } else if (name == "fSampleRate") {
             return BasicCloneVisitor::visit(inst);
@@ -654,28 +662,45 @@ struct ConstantsCopyFromMemory : public BasicCloneVisitor {
     
 };
 
-// Analysis to copy constants to an external memory zone
-struct ConstantsCopyToMemory : public BasicCloneVisitor {
+// Analysis to copy constants from an external memory zone (Struct version)
+struct ConstantsCopyFromMemory1 : public ConstantsCopyMemory {
     
-    int fIntIndex = 0;
-    int fRealIndex = 0;
-    
-    ConstantsCopyToMemory(int int_index, int float_index):fIntIndex(int_index), fRealIndex(float_index)
+    ConstantsCopyFromMemory1(int int_index, int float_index):ConstantsCopyMemory(int_index, float_index)
     {}
-    
-    StatementInst* visit(DeclareVarInst* inst)
-    {
-        return InstBuilder::genDropInst();
-    }
     
     StatementInst* visit(StoreVarInst* inst)
     {
         string name = inst->fAddress->getName();
         bool is_struct = inst->fAddress->getAccess() & Address::kStruct;
         if (startWith(name, "iConst") && is_struct) {
-            return InstBuilder::genStoreArrayFunArgsVar("iZone", InstBuilder::genInt32NumInst(fIntIndex++), InstBuilder::genLoadStructVar(name));
+            ValueInst* zone = InstBuilder::genLoadArrayStructVar("iZone", FIRIndex(fIntIndex++));
+            return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
         } else if (startWith(name, "fConst") && is_struct) {
-            return InstBuilder::genStoreArrayFunArgsVar("fZone", InstBuilder::genInt32NumInst(fRealIndex++), InstBuilder::genLoadStructVar(name));
+            ValueInst* zone = InstBuilder::genLoadArrayStructVar("fZone", FIRIndex(fRealIndex++));
+            return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), zone);
+        } else if (name == "fSampleRate") {
+            return BasicCloneVisitor::visit(inst);
+        } else {
+            return InstBuilder::genDropInst();
+        }
+    }
+    
+};
+
+// Analysis to copy constants to an external memory zone (FunArgs version)
+struct ConstantsCopyToMemory : public ConstantsCopyMemory {
+    
+    ConstantsCopyToMemory(int int_index, int float_index):ConstantsCopyMemory(int_index, float_index)
+    {}
+    
+    StatementInst* visit(StoreVarInst* inst)
+    {
+        string name = inst->fAddress->getName();
+        bool is_struct = inst->fAddress->getAccess() & Address::kStruct;
+        if (startWith(name, "iConst") && is_struct) {
+            return InstBuilder::genStoreArrayFunArgsVar("iZone", FIRIndex(fIntIndex++), InstBuilder::genLoadStructVar(name));
+        } else if (startWith(name, "fConst") && is_struct) {
+            return InstBuilder::genStoreArrayFunArgsVar("fZone", FIRIndex(fRealIndex++), InstBuilder::genLoadStructVar(name));
         } else if (name == "fSampleRate") {
             return BasicCloneVisitor::visit(inst);
         } else {
@@ -683,6 +708,29 @@ struct ConstantsCopyToMemory : public BasicCloneVisitor {
         }
     }
 
+};
+
+// Analysis to copy constants to an external memory zone (Struct version)
+struct ConstantsCopyToMemory1 : public ConstantsCopyMemory {
+    
+    ConstantsCopyToMemory1(int int_index, int float_index):ConstantsCopyMemory(int_index, float_index)
+    {}
+    
+    StatementInst* visit(StoreVarInst* inst)
+    {
+        string name = inst->fAddress->getName();
+        bool is_struct = inst->fAddress->getAccess() & Address::kStruct;
+        if (startWith(name, "iConst") && is_struct) {
+            return InstBuilder::genStoreArrayStructVar("iZone", FIRIndex(fIntIndex++), InstBuilder::genLoadStructVar(name));
+        } else if (startWith(name, "fConst") && is_struct) {
+            return InstBuilder::genStoreArrayStructVar("fZone", FIRIndex(fRealIndex++), InstBuilder::genLoadStructVar(name));
+        } else if (name == "fSampleRate") {
+            return BasicCloneVisitor::visit(inst);
+        } else {
+            return InstBuilder::genDropInst();
+        }
+    }
+    
 };
 
 #endif

@@ -128,7 +128,7 @@ class CPPScalarOneSampleCodeContainer1 : public CPPScalarCodeContainer {
         fKlassName = name;
         fOut = out;
         
-            // For mathematical functions
+        // For mathematical functions
         if (gGlobal->gFastMath) {
             addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
                            : ("\"" + gGlobal->gFastMathLib + "\""));
@@ -147,7 +147,7 @@ class CPPScalarOneSampleCodeContainer1 : public CPPScalarCodeContainer {
     void generateCompute(int tab);
 };
 
-// Special version for -os1 generation mode
+// Special version for -os1 generation mode with iZone and fZone
 class CPPScalarOneSampleCodeContainer2 : public CPPScalarCodeContainer {
     protected:
         virtual void produceClass();
@@ -181,11 +181,11 @@ class CPPScalarOneSampleCodeContainer2 : public CPPScalarCodeContainer {
 };
 
 /*
- Some of the DSP struct fields will be moved in the iZone/zZone (typically long delay lines).
+ Some of the DSP struct fields will be moved in the iZone/fZone (typically long delay lines).
  The others will stay in the DSP structure.
  */
 
-// Special version for -os2 generation mode
+// Special version for -os2 generation mode with iZone and fZone
 class CPPScalarOneSampleCodeContainer3 : public CPPScalarOneSampleCodeContainer2 {
     protected:
         virtual void produceClass();
@@ -214,6 +214,26 @@ class CPPScalarOneSampleCodeContainer3 : public CPPScalarOneSampleCodeContainer2
         virtual ~CPPScalarOneSampleCodeContainer3()
         {}
  
+};
+
+// Special version for -os3 generation mode with iZone and fZone in DSP struct
+class CPPScalarOneSampleCodeContainer4 : public CPPScalarOneSampleCodeContainer3 {
+
+    protected:
+        virtual void produceClass();
+    public:
+        CPPScalarOneSampleCodeContainer4(const string& name, const string& super,
+                                         int numInputs, int numOutputs,
+                                         std::ostream* out,
+                                         int sub_container_type)
+        :CPPScalarOneSampleCodeContainer3(name, super, numInputs, numOutputs, out, sub_container_type)
+        {}
+    
+    virtual ~CPPScalarOneSampleCodeContainer4()
+    {}
+    
+    void generateCompute(int tab);
+    
 };
 
 class CPPVectorCodeContainer : public VectorCodeContainer, public CPPCodeContainer {

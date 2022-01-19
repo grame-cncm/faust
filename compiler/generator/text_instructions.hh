@@ -44,6 +44,10 @@ inline bool isControl(const string& name)
         || startWith(name, "fEntry")
         || startWith(name, "fVbargraph")
         || startWith(name, "fHbargraph")
+        || name == "iControl"
+        || name == "fControl"
+        || name == "iZone"
+        || name == "fZone"
         || name == "fSampleRate";
 }
 

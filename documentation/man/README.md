@@ -1,4 +1,4 @@
-% man(1) Version 2.38.18 (17-January-2022) | Faust man page
+% man(1) Version 2.39.0 (19-January-2022) | Faust man page
 
 NAME
 ====
@@ -81,6 +81,8 @@ Code generation options:
   **-os1**        **--one-sample1**               generate one sample computation (1 = separated control and DSP struct).
 
   **-os2**        **--one-sample2**               generate one sample computation (2 = separated control and DSP struct. Separation in short and long delay lines).
+
+  **-os3**        **--one-sample3**               generate one sample computation (3 = like 2 but with external memory pointers kept in the DSP struct).
 
   **-cm**         **--compute-mix**               mix in outputs buffers.
 

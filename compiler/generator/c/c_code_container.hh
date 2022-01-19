@@ -220,7 +220,7 @@ class CScalarOneSampleCodeContainer2 : public CScalarCodeContainer {
 };
 
 /*
- Some of the DSP struct fields will be moved in the iZone/zZone (typically long delay lines).
+ Some of the DSP struct fields will be moved in the iZone/fZone (typically long delay lines).
  The others will stay in the DSP structure.
  */
 
@@ -260,7 +260,27 @@ class CScalarOneSampleCodeContainer3 : public CScalarOneSampleCodeContainer2 {
         
         virtual ~CScalarOneSampleCodeContainer3()
         {}
+    
+};
 
+// Special version for -os3 generation mode with iZone and fZone in DSP struct
+class CScalarOneSampleCodeContainer4 : public CScalarOneSampleCodeContainer3 {
+    protected:
+        virtual void produceClass();
+    public:
+        CScalarOneSampleCodeContainer4(const std::string& name,
+                                       int numInputs,
+                                       int numOutputs,
+                                       std::ostream* out,
+                                       int sub_container_type)
+        :CScalarOneSampleCodeContainer3(name, numInputs, numOutputs, out, sub_container_type)
+        {}
+        
+        virtual ~CScalarOneSampleCodeContainer4()
+        {}
+        
+        void generateComputeAux(int tab);
+    
 };
 
 class CVectorCodeContainer : public VectorCodeContainer, public CCodeContainer {
