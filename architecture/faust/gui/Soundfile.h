@@ -69,15 +69,17 @@ struct Soundfile {
     int* fSR;       // sample rate of each part (so fSR[P] contains the SR of part P)
     int* fOffset;   // offset of each part in the global buffer (so fOffset[P] contains the offset in frames of part P)
     int fChannels;  // max number of channels of all concatenated files
+    int fParts;     // the total number of loaded parts
     bool fIsDouble; // keep the sample format (float or double)
 
-    Soundfile(int cur_chan, int length, int max_chan, bool is_double)
+    Soundfile(int cur_chan, int length, int max_chan, int total_parts, bool is_double)
     {
         fLength   = new int[MAX_SOUNDFILE_PARTS];
         fSR       = new int[MAX_SOUNDFILE_PARTS];
         fOffset   = new int[MAX_SOUNDFILE_PARTS];
         fIsDouble = is_double;
         fChannels = cur_chan;
+        fParts    = total_parts;
         if (fIsDouble) {
             fBuffers = allocBufferReal<double>(cur_chan, length, max_chan);
         } else {
@@ -290,7 +292,7 @@ class SoundfileReader {
             total_length += (MAX_SOUNDFILE_PARTS - path_name_list.size()) * BUFFER_SIZE;
             
             // Create the soundfile
-            Soundfile* soundfile = new Soundfile(cur_chan, total_length, max_chan, is_double);
+            Soundfile* soundfile = new Soundfile(cur_chan, total_length, max_chan, path_name_list.size(), is_double);
             
             // Init offset
             int offset = 0;

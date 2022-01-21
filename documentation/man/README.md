@@ -1,4 +1,4 @@
-% man(1) Version 2.39.0 (20-January-2022) | Faust man page
+% man(1) Version 2.39.1 (21-January-2022) | Faust man page
 
 NAME
 ====
@@ -96,7 +96,7 @@ Code generation options:
 
   **-dlt** \<n>    **--delay-line-threshold** \<n>  threshold between 'mask' and 'select' ring buffer implementation (default INT_MAX samples).
 
-  **-mem**        **--memory**                    allocate static in global state using a custom memory manager.
+  **-mem**        **--memory-manager**            allocate static in global state using a custom memory manager.
 
   **-ftz** \<n>    **--flush-to-zero** \<n>         code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)].
 

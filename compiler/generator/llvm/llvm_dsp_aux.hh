@@ -79,7 +79,8 @@ struct Soundfile {
     int* fSR;          // sample rate of each part
     int* fOffset;      // offset of each part in the global buffer
     int fChannels;     // max number of channels of all concatenated files
-    bool fIsDouble;
+    int fParts;        // the total number of loaded parts
+    bool fIsDouble;    // keep the sample format (float or double)
  
     Soundfile(int max_chan)
     {
@@ -95,8 +96,10 @@ struct Soundfile {
         }
         
         // Allocate 1 channel
-        fChannels   = 1;
+        fChannels = 1;
+        fParts = 0;
         fBuffers[0] = new double[BUFFER_SIZE];
+        fIsDouble = true;
         faustassert(fBuffers[0]);
         memset(fBuffers[0], 0, BUFFER_SIZE * sizeof(double));
         
