@@ -947,7 +947,7 @@ static void printHelp()
             "samples)."
          << endl;
     cout << tab
-         << "-mem        --memory                    allocate static in global state using a custom memory manager."
+         << "-mem        --memory-manager            allocate static in global state using a custom memory manager."
          << endl;
     cout << tab
          << "-ftz <n>    --flush-to-zero <n>         code added to recursive signals [0:no (default), 1:fabs based, "

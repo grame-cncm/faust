@@ -51,8 +51,8 @@
 /*
  The soundfile structure to be used by the DSP code. Soundfile has a MAX_SOUNDFILE_PARTS parts 
  (even a single soundfile or an empty soundfile). 
- fLength, fOffset and fSR fields are filled accordingly by repeating
- the actual parts if needed.
+ The fLength, fOffset and fSR fields are filled accordingly by repeating the actual parts if needed.
+ The fBuffers contains MAX_CHAN non-interleaved arrays of samples.
  
  It has to be 'packed' to that the LLVM backend can correctly access it.
 
