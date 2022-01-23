@@ -42,7 +42,7 @@ do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2jaqtchain "[options] [Faust options] <file.dsp>"
         require Jack, Qt
-        echo "Compiles several Faust programs to JACK-QT"
+        echo "Compiles several Faust programs to JACK and QT"
         option
         options -httpd -osc
         option "Faust options"
@@ -50,22 +50,22 @@ do
     fi
 
     if [ "$p" = -icc ]; then
-    	ignore=" "
+        ignore=" "
     elif [ $p = "-deploy" ]; then
         DEPLOY="yes"
     elif [ $p = "-osc" ]; then
         OSCDEFS="DEFINES += OSCCTRL"
         OSCLIBS="-lOSCFaust"
-	elif [ "$p" = "-httpd" ]; then
-		HTTPDEFS="DEFINES += HTTPCTRL"
-		HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+    elif [ "$p" = "-httpd" ]; then
+        HTTPDEFS="DEFINES += HTTPCTRL"
+        HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
     else
-	    OPTIONS="$OPTIONS $p"        
-	fi
+        OPTIONS="$OPTIONS $p"        
+    fi
 
 shift
 
@@ -78,15 +78,15 @@ if [[ $(uname) == Darwin ]]; then
     ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio"
     HTTPLIBS="-L/opt/local/lib $HTTPLIBS"
     SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
-	if [ $SYS_VERSION -ge 13 ]
-	then
-	    SPEC="-spec macx-clang"
-	    CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
-	    CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
-	else
-	    SPEC="-spec macx-g++"
-	    CLANGOPT=""
-	fi
+    if [ $SYS_VERSION -ge 13 ]
+    then
+        SPEC="-spec macx-clang"
+        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
+        CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
+    else
+        SPEC="-spec macx-g++"
+        CLANGOPT=""
+    fi
     EXT=".app"
 fi
 
@@ -113,13 +113,13 @@ for p in $FILES; do
 
     CUR=$(pwd)
     f=$(basename "$p")
-	SRCDIR=$(dirname "$p")
+    SRCDIR=$(dirname "$p")
     name=$(basename "$f" .dsp)
 
     echo $f
 
     # compile faust to c++
- 	faust $OPTIONS "$SRCDIR/$f" -cn $name -o "$TMP/${f%.dsp}.cpp" || exit
+     faust $OPTIONS "$SRCDIR/$f" -cn $name -o "$TMP/${f%.dsp}.cpp" || exit
 
     # push DSP in the chain
     cat "$TMP/${f%.dsp}.cpp" >> "$TMP/combined.cpp"
@@ -152,5 +152,4 @@ rm -rf "$TDR"
 BINARIES="$BINARIES$SRCDIR/chain$EXT;"
 
 echo $BINARIES
-
 

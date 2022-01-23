@@ -16,7 +16,7 @@ CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 ARCHFILE=$FAUSTARCH/pa-qt.cpp
 
 if [[ $(uname -s) != Darwin ]]; then
-	LFLAGS+="-no-pie"
+    LFLAGS+="-no-pie"
 fi
 
 #-------------------------------------------------------------------------------
@@ -46,7 +46,7 @@ do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2paqt "[options] [Faust options] <file.dsp>"
         require PortAudio, Qt
-        echo "Compiles Faust programs to  PortAudio and Qt"
+        echo "Compiles Faust programs to PortAudio and QT"
         option
         options -httpd -osc -midi -qrcode
         option "-nvoices <num>"
@@ -71,22 +71,22 @@ do
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"
     elif [ $p = "-osc" ]; then
-		 OSCDEFS="DEFINES += OSCCTRL"
-		 OSCLIBS="-lOSCFaust"
+         OSCDEFS="DEFINES += OSCCTRL"
+         OSCLIBS="-lOSCFaust"
     elif [ "$p" = "-httpd" ]; then
-		HTTPDEFS="DEFINES += HTTPCTRL"
-		HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
-	elif [ $p = "-nodeploy" ]; then
-		DEPLOY="no"
-	elif [ "$p" = "-qrcode" ]; then # requires -httpd
-		QRDEFS="DEFINES += QRCODECTRL"
-	elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
+        HTTPDEFS="DEFINES += HTTPCTRL"
+        HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+    elif [ $p = "-nodeploy" ]; then
+        DEPLOY="no"
+    elif [ "$p" = "-qrcode" ]; then # requires -httpd
+        QRDEFS="DEFINES += QRCODECTRL"
+    elif [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
+    fi
 
 shift
 
@@ -98,9 +98,9 @@ done
 if [[ $(uname) == Darwin ]]; then
     SPEC="-spec macx-g++"
     EXT=".app"
-	ARCHLIB="-L/usr/local/lib -L/opt/local/lib -lportaudio -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
+    ARCHLIB="-L/usr/local/lib -L/opt/local/lib -lportaudio -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
 else
-	ARCHLIB="-L/usr/local/lib -L/opt/local/lib -lportaudio -lasound"
+    ARCHLIB="-L/usr/local/lib -L/opt/local/lib -lportaudio -lasound"
 fi
 
 #-------------------------------------------------------------------
@@ -110,11 +110,11 @@ for p in $FILES; do
 
     CUR=$(pwd)
     f=$(basename "$p")
-	SRCDIR=$(dirname "$p")
+    SRCDIR=$(dirname "$p")
 
     # creates a temporary dir 
     TDR=$(mktemp -d faust.XXXXXX)
-	TMP="$TDR/${f%.dsp}"
+    TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
 
     # compile faust to c++
@@ -141,9 +141,9 @@ EndOfCode
 
     # compile c++ to binary
     (
-	    cd "$TMP"
+        cd "$TMP"
         $QMAKE -project "QT += widgets printsupport" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "QMAKE_INFO_PLIST=$FAUSTARCH/Info.plist" "QMAKE_LFLAGS=$LFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+=$FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS"
-	    $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
+        $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
         make
     ) > /dev/null || exit
     

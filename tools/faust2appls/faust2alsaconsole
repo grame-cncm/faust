@@ -31,12 +31,12 @@ while [ $1 ]
 do
     p=$1
 
-	if [ $p = "-help" ] || [ $p = "-h" ]; then
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2alsaconsole "[options] <file.dsp>"
-  		platform Linux
-		require Alsa
-		echo "Compiles Faust programs to CLI alsa"
-		option
+        platform Linux
+        require Alsa
+        echo "Compiles Faust programs to CLI and ALSA"
+        option
         options -httpd -osc -midi 
         option "-nvoices <num>"
         option -arch32 "compiles a 32 bits binary"
@@ -54,21 +54,21 @@ do
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
     elif [ $p = "-osc" ]; then
-	 	OSCDEFS="-DOSCCTRL -lOSCFaust"
+         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
-		HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
     elif [ $p = "-arch32" ]; then
-		PROCARCH="-m32 -L/usr/lib32"
+        PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
-		PROCARCH="-m64"
+        PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"
-	fi
-	
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+    
 shift
 
 done
@@ -78,17 +78,17 @@ done
 #
 for f in $FILES; do
 
-	# compile faust to c++
-	faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+    # compile faust to c++
+    faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
-	# compile c++ to binary
-	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa` $PROCARCH $OSCDEFS $HTTPDEFS $POLYDEFS $MIDIDEFS -lpthread -o "${f%.dsp}"
-	) > /dev/null || exit
-	rm "$f.cpp"
+    # compile c++ to binary
+    (
+        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa` $PROCARCH $OSCDEFS $HTTPDEFS $POLYDEFS $MIDIDEFS -lpthread -o "${f%.dsp}"
+    ) > /dev/null || exit
+    rm "$f.cpp"
 
-	# collect binary file name for FaustWorks
-	BINARIES="$BINARIES${f%.dsp};"
+    # collect binary file name for FaustWorks
+    BINARIES="$BINARIES${f%.dsp};"
 done
 
 echo $BINARIES

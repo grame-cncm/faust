@@ -40,33 +40,33 @@ fi
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2csound "[options] [Faust options] <file.dsp>"
-		platform any
-		require CSound Dev Kit
-		echo "Compiles a Faust program into a csound opcode"
-		option
-		option -arch32 "generates a 32 bit architecture."
-		option -arch64 "generates a 64 bit architecture."
+        platform any
+        require CSound Dev Kit
+        echo "Compiles a Faust program into a Csound opcode"
+        option
+        option -arch32 "generates a 32 bit architecture."
+        option -arch64 "generates a 64 bit architecture."
         option "Faust options"
-    	exit
+        exit
     fi
     if [ $p = "-arch32" ]; then
-	PROCARCH="-m32 -L/usr/lib32"
+    PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
-	PROCARCH="-m64"
+    PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
+    fi
 done
 
 #-------------------------------------------------------------------
 # compile the *.dsp files
 #
 for SRC in $FILES; do
-	opname=`basename ${SRC%.dsp}`
+    opname=`basename ${SRC%.dsp}`
     faust -i -uim -double -a $ARCHFILE $OPTIONS "$SRC" -o "$SRC.cpp"  || exit
     ${CXX=g++} ${CXXFLAGS=-O3} $FAUSTTOOLSFLAGS  $OMP $LIB -DOPCODE_NAME=$opname "$SRC.cpp" -o "${SRC%.dsp}""$EXT" || exit
     rm "$SRC.cpp"

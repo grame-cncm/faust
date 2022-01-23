@@ -76,20 +76,20 @@ do
         shift
         EFFECT=$1
     elif [ $p = "-osc" ]; then
-		 OSCDEFS="DEFINES += OSCCTRL"
-		 OSCLIBS="-lOSCFaust"
-	elif [ "$p" = "-httpd" ]; then
-		HTTPDEFS="DEFINES += HTTPCTRL"
-		HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+         OSCDEFS="DEFINES += OSCCTRL"
+         OSCLIBS="-lOSCFaust"
+    elif [ "$p" = "-httpd" ]; then
+        HTTPDEFS="DEFINES += HTTPCTRL"
+        HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
+    fi
 
 shift
 
@@ -100,15 +100,15 @@ done
 #
 if [[ $(uname) == Darwin ]]; then
     SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
-	if [ $SYS_VERSION -gt 12 ]
-	then
-	    SPEC=""
-	    CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
-	    CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
-	else
-	    SPEC="-spec macx-g++"
-	    CLANGOPT=""
-	fi
+    if [ $SYS_VERSION -gt 12 ]
+    then
+        SPEC=""
+        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
+        CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
+    else
+        SPEC="-spec macx-g++"
+        CLANGOPT=""
+    fi
     EXT=".app"
 fi
 
@@ -119,11 +119,11 @@ for p in $FILES; do
 
     CUR=$(pwd)
     f=$(basename "$p")
-	SRCDIR=$(dirname "$p")
+    SRCDIR=$(dirname "$p")
 
     # creates a temporary dir 
     TDR=$(mktemp -d faust.XXX)
-	TMP="$TDR/${f%.dsp}"
+    TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
 
     # compile faust to c++
@@ -150,9 +150,9 @@ EndOfCode
 
     # compile c++ to binary
     (
-	    cd "$TMP"
-       	$QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc"  "$OSCDEFS" "$HTTPDEFS" "$MIDIDEFS" "$POLYDEFS"
-	    $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
+        cd "$TMP"
+           $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc"  "$OSCDEFS" "$HTTPDEFS" "$MIDIDEFS" "$POLYDEFS"
+        $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
         make
     ) > /dev/null || exit
 

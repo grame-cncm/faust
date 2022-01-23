@@ -30,8 +30,8 @@ MAXSDK=/usr/local/include/c74support
 EXT="~.mxe"
 
 if [ ! -d "${MAXSDK}" ]; then
- 	echo "Unable to locate Max/Msp SDK: MAXSDK=${MAXSDK}" 1>&2
- 	exit 1
+     echo "Unable to locate Max/Msp SDK: MAXSDK=${MAXSDK}" 1>&2
+     exit 1
 fi
 
 #------------------------------------------------------------------------------
@@ -69,14 +69,14 @@ for p in $@; do
     fi
 
     if [ "$p" = -icc ]; then
-    	ignore=" "
+        ignore=" "
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
 done
 
 BINARIES=""
@@ -86,32 +86,32 @@ for p in $FILES; do
 
     CUR=$(pwd)
     f=$(basename "$p")
-	SRCDIR=$(dirname "$p")
+    SRCDIR=$(dirname "$p")
 
     # creates a temporary dir
     TDR=$(mktemp -d faust.XXX)
-	TMP="$TDR/${f%.dsp}"
+    TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -double -cn ${f%.dsp} -uim -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    faust -i -double -cn ${f%.dsp} -uim -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
 
     # compile c++ to binary
     (
-		cd "$TMP"
-		echo "TMP=$TMP"
+        cd "$TMP"
+        echo "TMP=$TMP"
 
-		# we need to create the .def file needed to generate the .dll
-		echo "LIBRARY     ${f%.dsp}~" 						 > ${f%.dsp}.def
-		echo "DESCRIPTION 'Faust generated MAX plugin'" 	>> ${f%.dsp}.def
-		echo "EXPORTS     main" 							>> ${f%.dsp}.def
+        # we need to create the .def file needed to generate the .dll
+        echo "LIBRARY     ${f%.dsp}~"                          > ${f%.dsp}.def
+        echo "DESCRIPTION 'Faust generated MAX plugin'"     >> ${f%.dsp}.def
+        echo "EXPORTS     main"                             >> ${f%.dsp}.def
 
-		$CXX $CXXINCS $CXXFLAGS -c "${f%.dsp}.cpp" -o "${f%.dsp}.o"
-		$DLLWRAP --driver-name $CXX --def ${f%.dsp}.def *.o  $LIBS -static -o "${f%.dsp}$EXT"
-		$STRIP "${f%.dsp}$EXT"
+        $CXX $CXXINCS $CXXFLAGS -c "${f%.dsp}.cpp" -o "${f%.dsp}.o"
+        $DLLWRAP --driver-name $CXX --def ${f%.dsp}.def *.o  $LIBS -static -o "${f%.dsp}$EXT"
+        $STRIP "${f%.dsp}$EXT"
     ) > /dev/null || exit
 
-	cp "$TMP/${f%.dsp}$EXT" "$SRCDIR"
+    cp "$TMP/${f%.dsp}$EXT" "$SRCDIR"
 
     # remove temporary directory
     rm -rf "$TDR"
@@ -138,7 +138,5 @@ for p in $FILES; do
     fi
 
 done
-
-
 
 echo "$BINARIES"

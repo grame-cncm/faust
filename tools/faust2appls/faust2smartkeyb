@@ -30,25 +30,25 @@ INSTALL=0
 
 echoHelp ()
 {
-	echo "FAUST2SMARTKEYB - MUSICAL MOBILE APP GENERATOR"
-	echo ""
-	echo "faust2smartkeyb takes a Faust code as its main argument and convert it into a ready-to-use app for Android or iOS. The only two required arguments of faust2smartkeyb are a Faust file and the target platform (-android or -ios):"
-	echo ""
+    echo "FAUST2SMARTKEYB - MUSICAL MOBILE APP GENERATOR"
+    echo ""
+    echo "faust2smartkeyb takes a Faust code as its main argument and convert it into a ready-to-use app for Android or iOS. The only two required arguments of faust2smartkeyb are a Faust file and the target platform (-android or -ios):"
+    echo ""
 
-	usage faust2smartkeyb "[options] [Faust options] <file.dsp>"
-	platform iOS, Android
-	option
-	option -android "generates an Android app"
-	option -ios "generates an iOS app"
-	option -osc
-	option -debug "activate debug mode"
-	option -effect "allow to specify an effect Faust file (e.g., -effect myEffect.dsp)"
-	option -install "install the app on the connected device (Android only)"
-	option -nvoices "specify the max number of voices"
-	option -reuse  "reuse the same project source"
-	option -source "only generate the source (no compilation)"
-	option "Faust options"
-	echo "More information and tutorials at: https://ccrma.stanford.edu/~rmichon/smartKeyboard"
+    usage faust2smartkeyb "[options] [Faust options] <file.dsp>"
+    platform iOS, Android
+    option
+    option -android "generates an Android app"
+    option -ios "generates an iOS app"
+    option -osc
+    option -debug "activate debug mode"
+    option -effect "allow to specify an effect Faust file (e.g., -effect myEffect.dsp)"
+    option -install "install the app on the connected device (Android only)"
+    option -nvoices "specify the max number of voices"
+    option -reuse  "reuse the same project source"
+    option -source "only generate the source (no compilation)"
+    option "Faust options"
+    echo "More information and tutorials at: https://ccrma.stanford.edu/~rmichon/smartKeyboard"
 }
 
 ###########################
@@ -57,42 +57,42 @@ echoHelp ()
 
 while [ $1 ]
 do
-	p=$1
+    p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-		echoHelp
-		exit 0
+        echoHelp
+        exit 0
     elif [[ -f "$p" ]]; then
-		FILE="$p"
+        FILE="$p"
     elif [ $p = "-android" ]; then
-		ANDROID=1
+        ANDROID=1
     elif [ $p = "-ios" ]; then
-		IOS="1"
-	elif [ $p = "-reuse" ]; then
-		REUSE=1
-	elif [ $p = "-source" ]; then
-		SOURCE=1
-	elif [ $p = "-debug" ]; then
-		LOG="/dev/stdout"
-	elif [ $p = "-install" ]; then
-		INSTALL=1
-	elif [ $p = "-osc" ]; then
-		OSC="-osc"
+        IOS="1"
+    elif [ $p = "-reuse" ]; then
+        REUSE=1
+    elif [ $p = "-source" ]; then
+        SOURCE=1
+    elif [ $p = "-debug" ]; then
+        LOG="/dev/stdout"
+    elif [ $p = "-install" ]; then
+        INSTALL=1
+    elif [ $p = "-osc" ]; then
+        OSC="-osc"
     elif [ "$p" = "-effect" ]; then
         POLY2="1"
-		shift
-		if [[ -f "$1" ]]; then
-			EFFECT=$1
-		elif [ $1 = "auto" ]; then
-			EFFECT=$1
-		else
-			echo "No file specified after -effect"
-			echoHelp
-			exit 1
-		fi
+        shift
+        if [[ -f "$1" ]]; then
+            EFFECT=$1
+        elif [ $1 = "auto" ]; then
+            EFFECT=$1
+        else
+            echo "No file specified after -effect"
+            echoHelp
+            exit 1
+        fi
     elif [ $p = "-nvoices" ]; then
-		shift
-		NVOICES=$1
+        shift
+        NVOICES=$1
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
@@ -107,8 +107,8 @@ done
 
 # Options post processing
 #if [ -z "$OSC" ]; then
-#	echo "No osc"
-#	OSC=""
+#    echo "No osc"
+#    OSC=""
 #fi
 
 if [ -z $FILE ]; then
@@ -127,13 +127,13 @@ BUILDDIR="faustsmartkeyb.$APPNAME"
 
 # making sure that platform is set and generate corresponding global vars
 if [ $ANDROID -eq 1 ]; then
-	APPFOLDER="$BUILDDIR/app/src/main"
+    APPFOLDER="$BUILDDIR/app/src/main"
 elif [ $IOS -eq 1 ]; then
-	APPFOLDER="$BUILDDIR/Faust"
+    APPFOLDER="$BUILDDIR/Faust"
 else
-	echo "Please, specify a platform: -android or -ios"
-	echoHelp
-	exit 1
+    echo "Please, specify a platform: -android or -ios"
+    echoHelp
+    exit 1
 fi
 
 ###############################
@@ -142,57 +142,57 @@ fi
 PLATFORM=$(uname)
 
 if [ $REUSE -eq 0 ] || [ ! -d "$BUILDDIR" ]; then
-	if [ -d "$BUILDDIR" ]; then # if BUILDIR exists, then delete it
-		echo "Delete existing app project $BUILDDIR" > $LOG
-		rm -rf "$BUILDDIR"
-	fi
+    if [ -d "$BUILDDIR" ]; then # if BUILDIR exists, then delete it
+        echo "Delete existing app project $BUILDDIR" > $LOG
+        rm -rf "$BUILDDIR"
+    fi
 
-	# copying new template app if no reuse
-	if [ ! -d "$BUILDDIR" ]; then
-		mkdir -p "$BUILDDIR"
-		cp -r $FAUSTARCH/smartKeyboard/LICENCE.md "$BUILDDIR"
-		if [ $ANDROID -eq 1 ]; then
-			echo "Creating a new Android project in $BUILDDIR" > $LOG
-			cp -r $FAUSTARCH/smartKeyboard/android/* "$BUILDDIR"
+    # copying new template app if no reuse
+    if [ ! -d "$BUILDDIR" ]; then
+        mkdir -p "$BUILDDIR"
+        cp -r $FAUSTARCH/smartKeyboard/LICENCE.md "$BUILDDIR"
+        if [ $ANDROID -eq 1 ]; then
+            echo "Creating a new Android project in $BUILDDIR" > $LOG
+            cp -r $FAUSTARCH/smartKeyboard/android/* "$BUILDDIR"
 
-			# change 'faust' with real *APPNAME
+            # change 'faust' with real *APPNAME
 
-			if [ $PLATFORM = "Darwin" ]; then
-				sed -i '' 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $BUILDDIR/app/build.gradle
-				sed -i '' 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $APPFOLDER/java/com/ccrma/faust/*
-				sed -i '' 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml
-				sed -i '' 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $APPFOLDER/res/layout/activity_main.xml
-				sed -i '' 's,Faust,'$APPNAME',g' $APPFOLDER/res/values/strings.xml
-				if [[ $OSC == "-osc" ]]; then
-					sed -i '' 's,OSCCTRL=false,OSCCTRL=true,g' $BUILDDIR/app/build.gradle
-					sed -i '' 's,set(OSCCTRL\ false),set(OSCCTRL\ true),g' $BUILDDIR/app/CMakeLists.txt
-				fi
-			else
-				sed -i 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $BUILDDIR/app/build.gradle
-				sed -i 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $APPFOLDER/java/com/ccrma/faust/*
-				sed -i 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml
-				sed -i 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $APPFOLDER/res/layout/activity_main.xml
-				sed -i 's,Faust,'$APPNAME',g' $APPFOLDER/res/values/strings.xml
-				if [[ $OSC == "-osc" ]]; then
-					sed -i 's,OSCCTRL=false,OSCCTRL=true,g' $BUILDDIR/app/build.gradle
-					sed -i 's,set(OSCCTRL\ false),set(OSCCTRL\ true),g' $BUILDDIR/app/CMakeLists.txt
-				fi
-			fi
-			mv $APPFOLDER/java/com/ccrma/faust $APPFOLDER/java/com/ccrma/$APPNAME
-		elif [ $IOS -eq 1 ]; then
-			echo "Creating a new iOS project in $BUILDDIR" > $LOG
-			cp -r $FAUSTARCH/smartKeyboard/iOS/* "$BUILDDIR"
-			if [ $PLATFORM = "Darwin" ]; then
-				sed -i '' 's,$(TARGET_NAME),'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
-				sed -i '' 's,ccrma.Faust,ccrma.'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
-			else
-				sed -i 's,$(TARGET_NAME),'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
-				sed -i 's,ccrma.Faust,ccrma.'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
-			fi
+            if [ $PLATFORM = "Darwin" ]; then
+                sed -i '' 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $BUILDDIR/app/build.gradle
+                sed -i '' 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $APPFOLDER/java/com/ccrma/faust/*
+                sed -i '' 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml
+                sed -i '' 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $APPFOLDER/res/layout/activity_main.xml
+                sed -i '' 's,Faust,'$APPNAME',g' $APPFOLDER/res/values/strings.xml
+                if [[ $OSC == "-osc" ]]; then
+                    sed -i '' 's,OSCCTRL=false,OSCCTRL=true,g' $BUILDDIR/app/build.gradle
+                    sed -i '' 's,set(OSCCTRL\ false),set(OSCCTRL\ true),g' $BUILDDIR/app/CMakeLists.txt
+                fi
+            else
+                sed -i 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $BUILDDIR/app/build.gradle
+                sed -i 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $APPFOLDER/java/com/ccrma/faust/*
+                sed -i 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml
+                sed -i 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $APPFOLDER/res/layout/activity_main.xml
+                sed -i 's,Faust,'$APPNAME',g' $APPFOLDER/res/values/strings.xml
+                if [[ $OSC == "-osc" ]]; then
+                    sed -i 's,OSCCTRL=false,OSCCTRL=true,g' $BUILDDIR/app/build.gradle
+                    sed -i 's,set(OSCCTRL\ false),set(OSCCTRL\ true),g' $BUILDDIR/app/CMakeLists.txt
+                fi
+            fi
+            mv $APPFOLDER/java/com/ccrma/faust $APPFOLDER/java/com/ccrma/$APPNAME
+        elif [ $IOS -eq 1 ]; then
+            echo "Creating a new iOS project in $BUILDDIR" > $LOG
+            cp -r $FAUSTARCH/smartKeyboard/iOS/* "$BUILDDIR"
+            if [ $PLATFORM = "Darwin" ]; then
+                sed -i '' 's,$(TARGET_NAME),'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
+                sed -i '' 's,ccrma.Faust,ccrma.'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
+            else
+                sed -i 's,$(TARGET_NAME),'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
+                sed -i 's,ccrma.Faust,ccrma.'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
+            fi
             # Put OSC in project in all cases, even if not compiled
             # cp -r $FAUSTARCH/osclib "$BUILDDIR"/Faust
         fi
-	fi
+    fi
 fi
 
 ###########################
@@ -200,32 +200,32 @@ fi
 ###########################
 
 if [ $ANDROID -eq 1 ]; then
-	if [ -z "$EFFECT" ]; then # no effect
-		echo "Adding DSP with no effect chain to the app" > $LOG
-		faust2api -android $OSC -nvoices "$NVOICES" -nodoc $OPTIONS "$FILE" > $LOG
-	else
-		echo "Adding DSP with effect chain to the app" > $LOG
-		faust2api -android $OSC -nvoices "$NVOICES" -effect "$EFFECT" -nodoc $OPTIONS "$FILE" > $LOG
-	fi
-	unzip "dsp-faust.zip" > $LOG
-	mv "dsp-faust" "$BUILDDIR"
-	rm "dsp-faust.zip"
-	cp -r "$BUILDDIR/dsp-faust/cpp" "$APPFOLDER"
-	cp $BUILDDIR/dsp-faust/java/* "$APPFOLDER/java/com/DspFaust"
-	rm -r "$BUILDDIR/dsp-faust"
+    if [ -z "$EFFECT" ]; then # no effect
+        echo "Adding DSP with no effect chain to the app" > $LOG
+        faust2api -android $OSC -nvoices "$NVOICES" -nodoc $OPTIONS "$FILE" > $LOG
+    else
+        echo "Adding DSP with effect chain to the app" > $LOG
+        faust2api -android $OSC -nvoices "$NVOICES" -effect "$EFFECT" -nodoc $OPTIONS "$FILE" > $LOG
+    fi
+    unzip "dsp-faust.zip" > $LOG
+    mv "dsp-faust" "$BUILDDIR"
+    rm "dsp-faust.zip"
+    cp -r "$BUILDDIR/dsp-faust/cpp" "$APPFOLDER"
+    cp $BUILDDIR/dsp-faust/java/* "$APPFOLDER/java/com/DspFaust"
+    rm -r "$BUILDDIR/dsp-faust"
 elif [ $IOS -eq 1 ]; then
-	if [ -z "$EFFECT" ]; then # no effect
-		echo "Adding DSP with no effect chain to the app" > $LOG
-		faust2api -ios $OSC -midi -nvoices "$NVOICES" -nodoc $OPTIONS "$FILE" > $LOG
-	else
-		echo "Adding DSP with effect chain to the app" > $LOG
-		faust2api -ios $OSC -midi -nvoices "$NVOICES" -effect "$EFFECT" -nodoc $OPTIONS "$FILE" > $LOG
-	fi
-	unzip "dsp-faust.zip" > $LOG
-	mv "dsp-faust" "$BUILDDIR"
-	rm "dsp-faust.zip"
-	cp $BUILDDIR/dsp-faust/* "$APPFOLDER"
-	rm -r "$BUILDDIR/dsp-faust"
+    if [ -z "$EFFECT" ]; then # no effect
+        echo "Adding DSP with no effect chain to the app" > $LOG
+        faust2api -ios $OSC -midi -nvoices "$NVOICES" -nodoc $OPTIONS "$FILE" > $LOG
+    else
+        echo "Adding DSP with effect chain to the app" > $LOG
+        faust2api -ios $OSC -midi -nvoices "$NVOICES" -effect "$EFFECT" -nodoc $OPTIONS "$FILE" > $LOG
+    fi
+    unzip "dsp-faust.zip" > $LOG
+    mv "dsp-faust" "$BUILDDIR"
+    rm "dsp-faust.zip"
+    cp $BUILDDIR/dsp-faust/* "$APPFOLDER"
+    rm -r "$BUILDDIR/dsp-faust"
 fi
 
 ###########################
@@ -233,39 +233,39 @@ fi
 ###########################
 
 if [ $SOURCE -eq 0 ]; then
-	if [ $ANDROID -eq 1 ]; then
-		echo "Starting Android compilation" > $LOG
-		cd $BUILDDIR
+    if [ $ANDROID -eq 1 ]; then
+        echo "Starting Android compilation" > $LOG
+        cd $BUILDDIR
 
-		# Try to use installed gradle instead of local ./gradlew in order
-		# to avoid potential problems when compiling in a shared folder
-		# where execution rights may not be granted (i.e. on a google VM)
-		# In order to install gradle-4.6: 
-		#		wget https://services.gradle.org/distributions/gradle-4.6-bin.zip
-		#   unzip -d /opt/gradle gradle-4.6-bin.zip
+        # Try to use installed gradle instead of local ./gradlew in order
+        # to avoid potential problems when compiling in a shared folder
+        # where execution rights may not be granted (i.e. on a google VM)
+        # In order to install gradle-4.6: 
+        #        wget https://services.gradle.org/distributions/gradle-4.6-bin.zip
+        #   unzip -d /opt/gradle gradle-4.6-bin.zip
 
-		if [ -f /opt/gradle/gradle-4.10.1/bin/gradle ]; then
-			FAUSTGRADLE=${FAUSTGRADLE:=/opt/gradle/gradle-4.10.1/bin/gradle}
-		else
-			FAUSTGRADLE=${FAUSTGRADLE:=./gradlew}
-			chmod a+x ./gradlew
-		fi
-		echo "USED GRADLE=$FAUSTGRADLE" > $LOG
+        if [ -f /opt/gradle/gradle-4.10.1/bin/gradle ]; then
+            FAUSTGRADLE=${FAUSTGRADLE:=/opt/gradle/gradle-4.10.1/bin/gradle}
+        else
+            FAUSTGRADLE=${FAUSTGRADLE:=./gradlew}
+            chmod a+x ./gradlew
+        fi
+        echo "USED GRADLE=$FAUSTGRADLE" > $LOG
 
-		$FAUSTGRADLE assembleRelease > $LOG
-		cd ..
-		cp -r $BUILDDIR/app/build/outputs/apk/release/app-release.apk $APPNAME.apk > $LOG
-		echo "An Android app \"$APPNAME.apk\" was created in the current folder"
-	elif [ $IOS -eq 1 ]; then
-		echo "Starting iOS compilation" > $LOG
-		(
-			xcodebuild -project "$BUILDDIR/Faust.xcodeproj" -target Faust PRODUCT_NAME=$APPNAME
-			cd "$BUILDDIR" && xcodebuild -scheme Faust PRODUCT_NAME=$APPNAME
-		)  > $LOG || exit 1
-		rm -rf "$APPNAME.app"
-    	mv "$BUILDDIR/build/Release-iphoneos/$APPNAME.app" .
-		echo "An iOS app \"$APPNAME.app\" was created in the current folder"
-	fi
+        $FAUSTGRADLE assembleRelease > $LOG
+        cd ..
+        cp -r $BUILDDIR/app/build/outputs/apk/release/app-release.apk $APPNAME.apk > $LOG
+        echo "An Android app \"$APPNAME.apk\" was created in the current folder"
+    elif [ $IOS -eq 1 ]; then
+        echo "Starting iOS compilation" > $LOG
+        (
+            xcodebuild -project "$BUILDDIR/Faust.xcodeproj" -target Faust PRODUCT_NAME=$APPNAME
+            cd "$BUILDDIR" && xcodebuild -scheme Faust PRODUCT_NAME=$APPNAME
+        )  > $LOG || exit 1
+        rm -rf "$APPNAME.app"
+        mv "$BUILDDIR/build/Release-iphoneos/$APPNAME.app" .
+        echo "An iOS app \"$APPNAME.app\" was created in the current folder"
+    fi
 fi
 
 ###########################
@@ -273,12 +273,12 @@ fi
 ###########################
 
 if [ $INSTALL -eq 1 ]; then
-	if [ $ANDROID -eq 1 ]; then
-		echo "Installing the app" > $LOG
-		adb install -r $APPNAME.apk
-	elif [ $ANDROID -eq 1 ]; then
-		echo "Automatic installation is only possible on Android"
-	fi
+    if [ $ANDROID -eq 1 ]; then
+        echo "Installing the app" > $LOG
+        adb install -r $APPNAME.apk
+    elif [ $ANDROID -eq 1 ]; then
+        echo "Automatic installation is only possible on Android"
+    fi
 fi
 
 ###########################
@@ -286,8 +286,8 @@ fi
 ###########################
 
 if [ $REUSE -eq 0 ] && [ $SOURCE -eq 0 ]; then
-	echo "Delete app project $BUILDDIR" > $LOG
-	rm -rf $BUILDDIR
+    echo "Delete app project $BUILDDIR" > $LOG
+    rm -rf $BUILDDIR
 else
-	echo "An app project $BUILDDIR was created or updated in the current directory"
+    echo "An app project $BUILDDIR was created or updated in the current directory"
 fi

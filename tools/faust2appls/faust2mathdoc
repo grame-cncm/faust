@@ -19,11 +19,11 @@
 print_usage() 
 {
     usage faust2mathdoc "[options] <file.dsp>"
-	require svg2pdf pdflatex breqn
-	echo "Generate a full Faust documentation, in a '*-mdoc' top directory"
-	option
-	option "-l LANG" "LANG is usually a 2-lowercase-letters language name, like en, fr, or it."
-	option -utf8 "force file.dsp to be recoded in UTF-8 before being processed"
+    require svg2pdf pdflatex breqn
+    echo "Generate a full Faust documentation in a '*-mdoc' top directory"
+    option
+    option "-l LANG" "LANG is usually a 2-lowercase-letters language name, like en, fr, or it."
+    option -utf8 "force file.dsp to be recoded in UTF-8 before being processed"
 }
 
 # Visit each directory transmited as argument,
@@ -33,21 +33,21 @@ print_usage()
 convert_svgprocesses2pdf()
 {
     for DIR in $@ ; do
-	if [ -d $DIR ] ; then
-	    echo "cd " $DIR
-	    cd $DIR
-	    FILE="process.svg"
-	    for SRC in $FILE ; do
-		echo ' --> '$SRC
-		PDF=${SRC%.svg}'.pdf'
-		##svg2pdf "$SRC" "$PDF"
-		inkscape --without-gui --file="$SRC" --export-pdf="$PDF"
-		echo ' <-- '$PDF
-	    done
-	    cd -
-	else
-	    echo error : \'$DIR\' is not a directory.
-	fi
+    if [ -d $DIR ] ; then
+        echo "cd " $DIR
+        cd $DIR
+        FILE="process.svg"
+        for SRC in $FILE ; do
+        echo ' --> '$SRC
+        PDF=${SRC%.svg}'.pdf'
+        ##svg2pdf "$SRC" "$PDF"
+        inkscape --without-gui --file="$SRC" --export-pdf="$PDF"
+        echo ' <-- '$PDF
+        done
+        cd -
+    else
+        echo error : \'$DIR\' is not a directory.
+    fi
     done
 }
 
@@ -58,22 +58,22 @@ convert_svgprocesses2pdf()
 convert_svgdirs2pdf()
 {
     for DIR in $@ ; do
-	if [ -d $DIR ] ; then
-	    #echo "cd " $DIR
-	    cd $DIR
-	    FILES=`ls | grep -E "\.svg"`
-	    for SRC in $FILES ; do
-		#echo ' --> '$SRC
-		PDF=${SRC%.svg}'.pdf'
-		##svg2pdf "$SRC" "$PDF"
-		inkscape --without-gui --file="$SRC" --export-pdf="$PDF"
-		echo "svg2pdf $SRC $PDF"
-		#echo ' <-- '$PDF
-	    done
-	    cd ..
-	else
-	    echo error : \'$DIR\' is not a directory.
-	fi
+    if [ -d $DIR ] ; then
+        #echo "cd " $DIR
+        cd $DIR
+        FILES=`ls | grep -E "\.svg"`
+        for SRC in $FILES ; do
+        #echo ' --> '$SRC
+        PDF=${SRC%.svg}'.pdf'
+        ##svg2pdf "$SRC" "$PDF"
+        inkscape --without-gui --file="$SRC" --export-pdf="$PDF"
+        echo "svg2pdf $SRC $PDF"
+        #echo ' <-- '$PDF
+        done
+        cd ..
+    else
+        echo error : \'$DIR\' is not a directory.
+    fi
     done
 }
 
@@ -82,8 +82,8 @@ convert_svgdirs2pdf()
 # with a different character set.
 recode2utf8()
 {
-	charset=`file -0 --mime-encoding $1 | cut  -d' ' -f2`
-	recode $charset..utf-8 $1
+    charset=`file -0 --mime-encoding $1 | cut  -d' ' -f2`
+    recode $charset..utf-8 $1
 }
 
 MDLANGOPT=""
@@ -114,29 +114,29 @@ fi
 # 5. Copy some important files where needed.
 for FILEPATH in $@ ; do
     if [ -f $FILEPATH ] ; then
-	FILENAME=`basename $FILEPATH` &&
-	case $FILENAME in
-	    *.dsp )  
-	    if [ "$CONVERT" = "utf8" ] 
-	    then
-	    	recode2utf8 $FILENAME
-	    fi
-		faust $MDLANGOPT -o ${FILEPATH%.dsp}.cpp --mathdoc $FILEPATH  || exit
-		cd ${FILEPATH%.dsp}-mdoc/ && 
-		cd svg && convert_svgprocesses2pdf svg-* && cd .. &&
-		cd tex && pdflatex ${FILENAME%.dsp}.tex && pdflatex ${FILENAME%.dsp}.tex && cd .. &&
-		mkdir -p pdf && cp tex/${FILENAME%.dsp}.pdf pdf &&
-		mkdir -p cpp && mv ../${FILENAME%.dsp}.cpp cpp &&
-		cd ..
-		;;
-	    * )
-		echo error : \'$FILENAME\' does not have a \'.dsp\' extension.
-		exit 2
-		;;
-	esac	
+    FILENAME=`basename $FILEPATH` &&
+    case $FILENAME in
+        *.dsp )  
+        if [ "$CONVERT" = "utf8" ] 
+        then
+            recode2utf8 $FILENAME
+        fi
+        faust $MDLANGOPT -o ${FILEPATH%.dsp}.cpp --mathdoc $FILEPATH  || exit
+        cd ${FILEPATH%.dsp}-mdoc/ && 
+        cd svg && convert_svgprocesses2pdf svg-* && cd .. &&
+        cd tex && pdflatex ${FILENAME%.dsp}.tex && pdflatex ${FILENAME%.dsp}.tex && cd .. &&
+        mkdir -p pdf && cp tex/${FILENAME%.dsp}.pdf pdf &&
+        mkdir -p cpp && mv ../${FILENAME%.dsp}.cpp cpp &&
+        cd ..
+        ;;
+        * )
+        echo error : \'$FILENAME\' does not have a \'.dsp\' extension.
+        exit 2
+        ;;
+    esac    
     else
-	print_usage
-	exit 1
+    print_usage
+    exit 1
     fi
 done
 exit 0

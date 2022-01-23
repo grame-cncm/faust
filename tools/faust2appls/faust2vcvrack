@@ -27,6 +27,7 @@ SOUNDFILE=false
 echoHelp ()
 {
     echo "faust2vcvrack [-soundfile] [-source] [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+    echo "Compiles Faust programs to VCV Rack modules"
     options -soundfile
     option "-source"
     option "-nvoices <num>"

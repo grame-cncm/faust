@@ -35,18 +35,19 @@ do
  
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2minimal "[options] [Faust options] <file.dsp>"
+        echo "Compiles Faust programs to a minimal self-contained C++ file"
         exit
     fi
     
     echo "dispatch command arguments"
 
     if [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
+    fi
 
 shift
 
@@ -58,21 +59,21 @@ done
 
 for f in $FILES; do
 
-	# compile the DSP to c++ using the architecture file
-	echo "compile the DSP to c++ using the architecture file"
+    # compile the DSP to c++ using the architecture file
+    echo "compile the DSP to c++ using the architecture file"
     faust -i -a $ARCHFILE $OPTIONS "$f" -o "${f%.dsp}.cpp"|| exit
    
-	# compile c++ to binary
-	echo "compile c++ to binary"
-	(
-		$CXX $CXXFLAGS "${f%.dsp}.cpp" -o "${f%.dsp}"
-	) > /dev/null || exit
+    # compile c++ to binary
+    echo "compile c++ to binary"
+    (
+        $CXX $CXXFLAGS "${f%.dsp}.cpp" -o "${f%.dsp}"
+    ) > /dev/null || exit
 
     # remove tempory files
-	rm -f "${f%.dsp}.cpp"
+    rm -f "${f%.dsp}.cpp"
 
-	# collect binary file name for FaustWorks
-	BINARIES="$BINARIES${f%.dsp};"
+    # collect binary file name for FaustWorks
+    BINARIES="$BINARIES${f%.dsp};"
 done
 
 echo $BINARIES

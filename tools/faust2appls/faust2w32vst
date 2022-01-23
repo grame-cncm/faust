@@ -14,8 +14,8 @@
 VST=/usr/local/include/vstsdk2.4
 . faustpath
 if [ ! -d "${VST}" ]; then
-  	echo "unable to locate VST SDK: VST=${VST}" 1>&2
-  	exit 1
+      echo "unable to locate VST SDK: VST=${VST}" 1>&2
+      exit 1
 fi
 
 # these cpp files have to be compiled too
@@ -56,14 +56,14 @@ for p in $@; do
     fi
 
     if [ "$p" = -icc ]; then
-    	ignore=" "
+        ignore=" "
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
 done
 
 BINARIES=""
@@ -73,35 +73,35 @@ for p in $FILES; do
 
     CUR=$(pwd)
     f=$(basename "$p")
-	SRCDIR=$(dirname "$p")
+    SRCDIR=$(dirname "$p")
 
     # creates a temporary dir
     TDR=$(mktemp -d faust.XXX)
-	TMP="$TDR/${f%.dsp}"
+    TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -a vst.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    faust -i -a vst.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
 
     # compile c++ to binary
     (
-		cd "$TMP"
+        cd "$TMP"
 
-		# we need to create the .def file needed to generate the .dll
-		echo "LIBRARY     ${f%.dsp}" 						 > ${f%.dsp}.def
-		echo "DESCRIPTION 'Faust generated VST plugin'" 	>> ${f%.dsp}.def
-		echo "EXPORTS     VSTPluginMain" 					>> ${f%.dsp}.def
+        # we need to create the .def file needed to generate the .dll
+        echo "LIBRARY     ${f%.dsp}"                          > ${f%.dsp}.def
+        echo "DESCRIPTION 'Faust generated VST plugin'"     >> ${f%.dsp}.def
+        echo "EXPORTS     VSTPluginMain"                     >> ${f%.dsp}.def
 
-		$CXX $CXXINCS $CXXFLAGS -c "$VST/public.sdk/source/vst2.x/audioeffect.cpp" -o audioeffect.o
-		$CXX $CXXINCS $CXXFLAGS -c "$VST/public.sdk/source/vst2.x/audioeffectx.cpp" -o audioeffectx.o
-		$CXX $CXXINCS $CXXFLAGS -c "$VST/public.sdk/source/vst2.x/vstplugmain.cpp" -o vstplugmain.o
-		$CXX $CXXINCS $CXXFLAGS -c "${f%.dsp}.cpp" -o "${f%.dsp}.o"
+        $CXX $CXXINCS $CXXFLAGS -c "$VST/public.sdk/source/vst2.x/audioeffect.cpp" -o audioeffect.o
+        $CXX $CXXINCS $CXXFLAGS -c "$VST/public.sdk/source/vst2.x/audioeffectx.cpp" -o audioeffectx.o
+        $CXX $CXXINCS $CXXFLAGS -c "$VST/public.sdk/source/vst2.x/vstplugmain.cpp" -o vstplugmain.o
+        $CXX $CXXINCS $CXXFLAGS -c "${f%.dsp}.cpp" -o "${f%.dsp}.o"
 
-		$DLLWRAP --driver-name $CXX --def ${f%.dsp}.def *.o  $LIBS -static-libstdc++ -static-libgcc -o "${f%.dsp}$EXT"
-		$STRIP "${f%.dsp}$EXT"
+        $DLLWRAP --driver-name $CXX --def ${f%.dsp}.def *.o  $LIBS -static-libstdc++ -static-libgcc -o "${f%.dsp}$EXT"
+        $STRIP "${f%.dsp}$EXT"
     ) > /dev/null || exit
 
-	cp "$TMP/${f%.dsp}$EXT" "$SRCDIR"
+    cp "$TMP/${f%.dsp}$EXT" "$SRCDIR"
 
     # remove temporary directory
     rm -rf "$TDR"

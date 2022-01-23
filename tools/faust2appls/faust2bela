@@ -34,6 +34,7 @@ do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2bela "[options] [Faust options] <file.dsp>"
         platform Bela
+        echo "Compiles Faust programs to the BELA board"
         option
         options -osc -midi -soundfile
         option "-nvoices <num>"
@@ -41,7 +42,7 @@ do
         option -gui "activates a self-hosted GUI interface. Requires to have libmicrohttpd and libHTTPDFaust installed."
         option "-effect <effect.dsp>" "generates a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         option "-effect auto" "generates a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
-	    option -tobela "to send C++ file into bela, and to run it."
+        option -tobela "to send C++ file into bela, and to run it."
         exit
     fi
 
@@ -92,23 +93,23 @@ faust $FAUST_ARGS -i -a $ARCHFILE $OPTIONS "$INPUT_FILE" -o "$FAUST_MAIN_OUTPUT"
 
 EFFECT_OUTPUT=$TMP/effect.h
 if [[ "$POLY" == *POLY2* ]]; then
-	if [ $EFFECT = "auto" ]; then
-		# Creer un fichier .dsp simple
-		cat > $TMP/effect.dsp << EndOfCode
-		adapt(1,1) = _;
-		adapt(2,2) = _,_;
-		adapt(1,2) = _ <: _,_;
-		adapt(2,1) = _,_ :> _;
+    if [ $EFFECT = "auto" ]; then
+        # Creer un fichier .dsp simple
+        cat > $TMP/effect.dsp << EndOfCode
+        adapt(1,1) = _;
+        adapt(2,2) = _,_;
+        adapt(1,2) = _ <: _,_;
+        adapt(2,1) = _,_ :> _;
 
-		adaptor(F,G) = adapt(outputs(F),inputs(G));
+        adaptor(F,G) = adapt(outputs(F),inputs(G));
 
-		process = adaptor(library("$INPUT_FILE").process, library("$INPUT_FILE").effect) : library("$INPUT_FILE").effect;
+        process = adaptor(library("$INPUT_FILE").process, library("$INPUT_FILE").effect) : library("$INPUT_FILE").effect;
 EndOfCode
-		faust $FAUST_ARGS -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$EFFECT_OUTPUT"
+        faust $FAUST_ARGS -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$EFFECT_OUTPUT"
 
-	else
-		faust $FAUST_ARGS -i -cn effect -a minimal-effect.cpp "$EFFECT" -o "$EFFECT_OUTPUT"
-	fi
+    else
+        faust $FAUST_ARGS -i -cn effect -a minimal-effect.cpp "$EFFECT" -o "$EFFECT_OUTPUT"
+    fi
 fi
 
 #-------------------------------------------------------------------
@@ -117,24 +118,24 @@ fi
 
 echo '// Options :' > "$PROJECTDIR/tmp.txt"
 if [ $NVOICES -gt 0 ]; then
-	echo '#define NVOICES '$NVOICES >> "$PROJECTDIR/tmp.txt"
+    echo '#define NVOICES '$NVOICES >> "$PROJECTDIR/tmp.txt"
 fi
 
 if [[ "$MIDIDEFS" == *MIDI* ]]; then
-	echo '#define MIDICTRL' >> "$PROJECTDIR/tmp.txt"
+    echo '#define MIDICTRL' >> "$PROJECTDIR/tmp.txt"
 fi
 
 if [[ "$POLY" == *POLY2* ]]; then
-	echo '#define POLY2' >> "$PROJECTDIR/tmp.txt"
+    echo '#define POLY2' >> "$PROJECTDIR/tmp.txt"
 fi
 
 if [[ "$OSCDEFS" == *OSC* ]]; then
-	echo '#define OSCCTRL' >> "$PROJECTDIR/tmp.txt"
+    echo '#define OSCCTRL' >> "$PROJECTDIR/tmp.txt"
 fi
 
 if [[ "$GUIDEFS" == *GUI* ]]; then
-	echo '#define HTTPDGUI' >> "$PROJECTDIR/tmp.txt"
-	BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust"
+    echo '#define HTTPDGUI' >> "$PROJECTDIR/tmp.txt"
+    BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust"
 fi
 
 if [[ "$SOUNDFILEDEFS" == *SOUNDFILE* ]]; then
@@ -151,9 +152,9 @@ rm -rf "$PROJECTDIR/tmp"
 #-------------------------------------------------------------------
 
 if [[ "$SEND2BELA" == *OK* ]]; then
-	echo "Send to bela"
-	echo $PROJECTDIR
-	
+    echo "Send to bela"
+    echo $PROJECTDIR
+    
 #-------------------------------------------------------------------
 #From build_project.sh :
 #-------------------------------------------------------------------
@@ -164,22 +165,22 @@ BELA_DONT_RUN_FIRST=0
 
 # FUNCTIONS:+++++++++++++++++++++++++++++++
 check_rsync(){
-	if [ -z "`which rsync 2> /dev/null`" ]
-	then
-		return 1
-	else
-		return 0
-	fi
+    if [ -z "`which rsync 2> /dev/null`" ]
+    then
+        return 1
+    else
+        return 0
+    fi
 }
 
 check_board_alive_and_set_date(){
-	printf "Checking the board is up and running at $BBB_ADDRESS..."
-	# Clear the host if it is cached in ~/.ssh/known_hosts.
-	ssh-keygen -R $BBB_HOSTNAME &> /dev/null || true
-	ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 $BBB_ADDRESS "date -s \"`date '+%Y%m%d %T %z'`\" > /dev/null" && printf "done\n" || {
-		printf "\nERROR: the board does not respond at $BBB_ADDRESS, check that the address is correct and the board is connected.\n";
-		exit 1;
-	}
+    printf "Checking the board is up and running at $BBB_ADDRESS..."
+    # Clear the host if it is cached in ~/.ssh/known_hosts.
+    ssh-keygen -R $BBB_HOSTNAME &> /dev/null || true
+    ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 $BBB_ADDRESS "date -s \"`date '+%Y%m%d %T %z'`\" > /dev/null" && printf "done\n" || {
+        printf "\nERROR: the board does not respond at $BBB_ADDRESS, check that the address is correct and the board is connected.\n";
+        exit 1;
+    }
 }
 
 #+++++++++++++++++++++++++++++++++++++++++++
@@ -190,8 +191,8 @@ EXTENSIONS_TO_FIND='\.cpp\|\.c\|\.S\|\.pd\|\.scd'
 FOUND_FILES=$($FIND_STRING 2>/dev/null | grep "$EXTENSIONS_TO_FIND")
 if [ -z "$FOUND_FILES" ]
 then
-	printf "ERROR: Please provide a directory containing .c, .cpp, .S, .pd or .scd files.\n\n"
-	exit 1
+    printf "ERROR: Please provide a directory containing .c, .cpp, .S, .pd or .scd files.\n\n"
+    exit 1
 fi
 
 [ -z $BBB_PROJECT_NAME ] && BBB_PROJECT_NAME="$(basename $(cd "$PROJECTDIR" && pwd))"
@@ -213,43 +214,43 @@ ssh $BBB_ADDRESS make QUIET=true --no-print-directory -C $BBB_BELA_HOME stop
 check_rsync && RSYNC_AVAILABLE=1 || RSYNC_AVAILABLE=0
 
 uploadBuildRun(){
-	# Copy new source files to the board
-	echo "uploadBuildRun START"
-	printf "Copying new source files to BeagleBone..."
-	if [ "$RSYNC_AVAILABLE" -eq 0 ];
-	then
-		echo "Using scp..."
-		
-		echo "Cleaning the destination folder..."
-		#if rsync is not available, brutally clean the destination folder
-		ssh $BBB_ADDRESS "rm -rf \"$BBB_PROJECT_FOLDER\"; mkdir -p \"$BBB_PROJECT_FOLDER\""
-		echo "Copying the project files"
-		scp -r $PROJECTDIR/* "$BBB_NETWORK_TARGET_FOLDER"
-	else
-		#rsync 
-		# --delete makes sure it removes files that are not in the origin folder
-		# -c evaluates changes using md5 checksum instead of file date, so we don't care about time skews 
-		# --no-t makes sure file timestamps are not preserved, so that the Makefile will not think that targets are up to date when replacing files on the BBB
-		#  with older files from the host. This will solve 99% of the issues with Makefile thinking a target is up to date when it is not.
-		echo "Using rsync..."
-		
-		rsync -ac --out-format="   %n" --no-t --delete-after --exclude=$BBB_PROJECT_NAME --exclude=build --exclude=settings.json $PROJECTDIR"/" "$BBB_NETWORK_TARGET_FOLDER/" #trailing slashes used here make sure rsync does not create another folder inside the target folder
-	fi
+    # Copy new source files to the board
+    echo "uploadBuildRun START"
+    printf "Copying new source files to BeagleBone..."
+    if [ "$RSYNC_AVAILABLE" -eq 0 ];
+    then
+        echo "Using scp..."
+        
+        echo "Cleaning the destination folder..."
+        #if rsync is not available, brutally clean the destination folder
+        ssh $BBB_ADDRESS "rm -rf \"$BBB_PROJECT_FOLDER\"; mkdir -p \"$BBB_PROJECT_FOLDER\""
+        echo "Copying the project files"
+        scp -r $PROJECTDIR/* "$BBB_NETWORK_TARGET_FOLDER"
+    else
+        #rsync 
+        # --delete makes sure it removes files that are not in the origin folder
+        # -c evaluates changes using md5 checksum instead of file date, so we don't care about time skews 
+        # --no-t makes sure file timestamps are not preserved, so that the Makefile will not think that targets are up to date when replacing files on the BBB
+        #  with older files from the host. This will solve 99% of the issues with Makefile thinking a target is up to date when it is not.
+        echo "Using rsync..."
+        
+        rsync -ac --out-format="   %n" --no-t --delete-after --exclude=$BBB_PROJECT_NAME --exclude=build --exclude=settings.json $PROJECTDIR"/" "$BBB_NETWORK_TARGET_FOLDER/" #trailing slashes used here make sure rsync does not create another folder inside the target folder
+    fi
 
-	if [ $? -ne 0 ]
-	then
-		printf "\nError while copying files\n"
-		exit
-	fi
-	
-	# Make new Bela executable and run
-	MAKE_COMMAND="make --no-print-directory QUIET=true -C $BBB_BELA_HOME PROJECT='$BBB_PROJECT_NAME' CL='$COMMAND_ARGS' LDLIBS='$BELA_LDLIBS' CPPFLAGS='$BELA_CPPFLAGS' AT="
-	
-	ssh -t $BBB_ADDRESS "$MAKE_COMMAND run"
+    if [ $? -ne 0 ]
+    then
+        printf "\nError while copying files\n"
+        exit
+    fi
+    
+    # Make new Bela executable and run
+    MAKE_COMMAND="make --no-print-directory QUIET=true -C $BBB_BELA_HOME PROJECT='$BBB_PROJECT_NAME' CL='$COMMAND_ARGS' LDLIBS='$BELA_LDLIBS' CPPFLAGS='$BELA_CPPFLAGS' AT="
+    
+    ssh -t $BBB_ADDRESS "$MAKE_COMMAND run"
 }
 
 echo "Run bela now"
 uploadBuildRun
-	
+    
 fi
 echo "$PROJECTDIR/render.cpp;"

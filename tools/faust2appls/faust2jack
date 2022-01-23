@@ -25,7 +25,7 @@ PRESETDIR="auto"
 PRESETDEFS=""
 
 if [[ $(uname -s) != Darwin ]]; then
-	LFLAGS+="-no-pie"
+    LFLAGS+="-no-pie"
 fi
 
 #-------------------------------------------------------------------
@@ -46,7 +46,7 @@ do
         usage faust2jack "[options] [Faust options] <file.dsp>"
         platform Linux
         require Jack
-        echo "Compiles Faust programs to JACK-GTK"
+        echo "Compiles Faust programs to JACK and GTK"
         option
         options -httpd -osc -midi -soundfile
         option -resample "to resample soundfiles to the audio driver sample rate."
@@ -59,7 +59,7 @@ do
         exit
     fi
 
-	if [ $p = "-nvoices" ]; then
+    if [ $p = "-nvoices" ]; then
         POLYDEFS="-DPOLY"
         shift
         NVOICES=$1
@@ -88,7 +88,7 @@ do
         PRESETDEFS="-DPRESETUI"
         shift
         PRESETDIR=$1
-	elif [ $p = "-ocv" ]; then
+    elif [ $p = "-ocv" ]; then
         OCVDEFS="-DOCVCTRL -lpthread"
         OCVLIBS="opencv"
     elif [ $p = "-arch32" ]; then
@@ -96,12 +96,12 @@ do
     elif [ $p = "-arch64" ]; then
         PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
+    fi
 
 shift
 
@@ -144,19 +144,19 @@ EndOfCode
     cat "preset.cpp" "${f%.dsp}_tmp.cpp" > "${f%.dsp}.cpp"
     rm "preset.cpp" "${f%.dsp}_tmp.cpp"
 
-	# compile c++ to binary
-	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS "${f%.dsp}.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $SAMPLERATELIBS $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $SAMPLERATEDEFS $PRESETDEFS $ARCHLIB $LFLAGS -o "${f%.dsp}"
-		if [[ $(uname) == Darwin ]]; then
-		    codesign --sign - --deep --force "${f%.dsp}"
-		fi
-	) > /dev/null || exit
+    # compile c++ to binary
+    (
+        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS "${f%.dsp}.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $SAMPLERATELIBS $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $SAMPLERATEDEFS $PRESETDEFS $ARCHLIB $LFLAGS -o "${f%.dsp}"
+        if [[ $(uname) == Darwin ]]; then
+            codesign --sign - --deep --force "${f%.dsp}"
+        fi
+    ) > /dev/null || exit
 
     # remove tempory files
-	rm -f "${f%.dsp}.cpp" effect.h "$f.json"
+    rm -f "${f%.dsp}.cpp" effect.h "$f.json"
 
-	# collect binary file name for FaustWorks
-	BINARIES="$BINARIES${f%.dsp};"
+    # collect binary file name for FaustWorks
+    BINARIES="$BINARIES${f%.dsp};"
 done
 
 echo $BINARIES

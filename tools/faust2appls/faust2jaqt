@@ -16,7 +16,7 @@ CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 ARCHFILE=$FAUSTARCH/jack-qt.cpp
 
 if [[ $(uname -s) != Darwin ]]; then
-	LFLAGS+="-no-pie"
+    LFLAGS+="-no-pie"
 fi
 
 #-------------------------------------------------------------------
@@ -53,7 +53,7 @@ do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2jaqt "[options] [Faust options] <file.dsp>"
         require Jack, Qt
-        echo "Compiles Faust programs to JACK-QT"
+        echo "Compiles Faust programs to JACK and QT"
         option
         options -httpd -osc -midi -soundfile -qrcode
         option "-nvoices <num>"
@@ -75,7 +75,7 @@ do
     fi
   
     if [ "$p" = -icc ]; then
-    	ignore=" "
+        ignore=" "
     elif [ $p = "-deploy" ]; then
         DEPLOY="yes"
     elif [ $p = "-nvoices" ]; then
@@ -104,20 +104,20 @@ do
         OSCDEFS="DEFINES += OSCCTRL"
         OSCLIBS="-lOSCFaust"
     elif [ "$p" = "-httpd" ]; then
-	HTTPDEFS="DEFINES += HTTPCTRL"
-	HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+    HTTPDEFS="DEFINES += HTTPCTRL"
+    HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
     elif [ "$p" = "-preset" ]; then
         PRESETDEFS="DEFINES += PRESETUI"
         shift
         PRESETDIR=$1
     elif [ "$p" = "-qrcode" ]; then # requires -httpd
-    	QRDEFS="DEFINES += QRCODECTRL"
+        QRDEFS="DEFINES += QRCODECTRL"
     elif [ ${p:0:1} = "-" ]; then
-	OPTIONS="$OPTIONS $p"
+    OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-	OPTIONS="$OPTIONS $p"
+    OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -130,15 +130,15 @@ if [[ $(uname) == Darwin ]]; then
     ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio"
     HTTPLIBS="-L/opt/local/lib $HTTPLIBS"
     SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
-	if [ $SYS_VERSION -ge 13 ]
-	then
-	    SPEC="-spec macx-clang"
-	    CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
-	    CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
-	else
-	    SPEC="-spec macx-g++"
-	    CLANGOPT=""
-	fi
+    if [ $SYS_VERSION -ge 13 ]
+    then
+        SPEC="-spec macx-clang"
+        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
+        CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
+    else
+        SPEC="-spec macx-g++"
+        CLANGOPT=""
+    fi
     EXT=".app"
 fi
 

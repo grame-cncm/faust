@@ -27,20 +27,20 @@ print_usage()
 convert_svgdirs2pdf()
 {
     for DIR in $@ ; do
-	if [ -d $DIR ] ; then
-	    echo "cd " $DIR
-	    cd $DIR
-	    FILES=`ls | grep -E "\.svg"`
-	    for SRC in $FILES ; do
-		echo ' --> '$SRC
-		PDF=${SRC%.svg}'.pdf'
-		svg2pdf "$SRC" "$PDF"
-		echo ' <-- '$PDF
-	    done
-	    cd -
-	else
-	    echo error : \'$DIR\' is not a directory.
-	fi
+    if [ -d $DIR ] ; then
+        echo "cd " $DIR
+        cd $DIR
+        FILES=`ls | grep -E "\.svg"`
+        for SRC in $FILES ; do
+        echo ' --> '$SRC
+        PDF=${SRC%.svg}'.pdf'
+        svg2pdf "$SRC" "$PDF"
+        echo ' <-- '$PDF
+        done
+        cd -
+    else
+        echo error : \'$DIR\' is not a directory.
+    fi
     done
 }
 
@@ -53,33 +53,33 @@ convert_svgdirs2pdf()
 
 if [[ $(uname) == Darwin ]]; then
     OPEN=open
-	export PATH="/usr/texbin:$PATH"
+    export PATH="/usr/texbin:$PATH"
 else
-	OPEN=xdg-open
+    OPEN=xdg-open
 fi
 
 for FILEPATH in $@ ; do
     if [ -f $FILEPATH ] ; then
-	FILENAME=`basename $FILEPATH` &&
-	case $FILENAME in
-	    *.dsp )  
-		faust -o ${FILEPATH%.dsp}.cpp --mathdoc $FILEPATH || exit
-		cd ${FILEPATH%.dsp}-mdoc/ && 
-		cd svg && convert_svgdirs2pdf svg-* && cd .. &&
-		cd tex && pdflatex ${FILENAME%.dsp}.tex && pdflatex ${FILENAME%.dsp}.tex && cd .. &&
-		mkdir -p pdf && cp tex/${FILENAME%.dsp}.pdf pdf &&
-		mkdir -p cpp && mv ../${FILENAME%.dsp}.cpp cpp &&
-		${OPEN} tex/${FILENAME%.dsp}.pdf &&
-		cd ..
-		;;
-	    * )
-		echo error : \'$FILENAME\' does not have a \'.dsp\' extension.
-		exit 2
-		;;
-	esac	
+    FILENAME=`basename $FILEPATH` &&
+    case $FILENAME in
+        *.dsp )  
+        faust -o ${FILEPATH%.dsp}.cpp --mathdoc $FILEPATH || exit
+        cd ${FILEPATH%.dsp}-mdoc/ && 
+        cd svg && convert_svgdirs2pdf svg-* && cd .. &&
+        cd tex && pdflatex ${FILENAME%.dsp}.tex && pdflatex ${FILENAME%.dsp}.tex && cd .. &&
+        mkdir -p pdf && cp tex/${FILENAME%.dsp}.pdf pdf &&
+        mkdir -p cpp && mv ../${FILENAME%.dsp}.cpp cpp &&
+        ${OPEN} tex/${FILENAME%.dsp}.pdf &&
+        cd ..
+        ;;
+        * )
+        echo error : \'$FILENAME\' does not have a \'.dsp\' extension.
+        exit 2
+        ;;
+    esac    
     else
-	print_usage
-	exit 1
+    print_usage
+    exit 1
     fi
 done
 exit 0

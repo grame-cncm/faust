@@ -28,6 +28,7 @@ OPTIONS="-ftz 2"
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2webaudiowast "[options] <file.dsp>"
+        echo "Compiles Faust programs to self-contained HTML pages with WASM"
         option
         option -poly
         option -opt "optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
@@ -41,9 +42,9 @@ for p in $@; do
         SVG="-svg"
         LINKS="<div style=\"text-align:center;height:20px\"> 
                 <style>
-				a:link {font-family:Arial; font-size:12px; color:#3D3C3A; text-decoration:none}
-				a:visited {font-family:Arial; font-size:12px; color:#3D3C3A; text-decoration:none}
-				a:hover {font-family:Arial; font-size:12px; color:white; text-decoration:none}
+                a:link {font-family:Arial; font-size:12px; color:#3D3C3A; text-decoration:none}
+                a:visited {font-family:Arial; font-size:12px; color:#3D3C3A; text-decoration:none}
+                a:hover {font-family:Arial; font-size:12px; color:white; text-decoration:none}
                 </style>
             <a href=\"DSP.dsp\" target=\"_blank\">source</a> 
             <a href=\"DSP-svg/process.svg\" target=\"_blank\">diagram</a>
@@ -59,12 +60,12 @@ for p in $@; do
     elif [ $p = "-emcc" ]; then
         EMCC="true"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
+    fi
 done
 
 echo "Compiling with :" $OPTIONS

@@ -47,8 +47,8 @@ do
     fi
 
     if [ $p = "-nvoices" ]; then
-  		ARCHFILE=$FAUSTARCH/soul/poly-dsp.soul
-	    shift
+          ARCHFILE=$FAUSTARCH/soul/poly-dsp.soul
+        shift
         NVOICES=$1
     elif [ $p = "-effect" ]; then
         ARCHFILE=$FAUSTARCH/soul/poly-dsp-effect.soul
@@ -59,18 +59,18 @@ do
         MIDI="true"
         echo "MIDI will be used"
     elif [ $p = "-play" ]; then
-    	PLAY="true"
+        PLAY="true"
     elif [ $p = "-juce" ]; then
-    	JUCE="true"
+        JUCE="true"
     elif [ $p = "-dsp" ]; then
-    	SOUL_EXT="soul-dsp"
+        SOUL_EXT="soul-dsp"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
         OPTIONS="$OPTIONS $p"        
-	fi
+    fi
 
 shift
 
@@ -108,7 +108,7 @@ for p in $FILES; do
 
     CUR=$(pwd)
     f=$(basename "$p")
-	SRCDIR=$(dirname "$p")
+    SRCDIR=$(dirname "$p")
 
     # create a temporary dir
     dspName="${f%.dsp}"
@@ -137,10 +137,10 @@ EndOfCode
         sed -e "s/NVOICES/"$NVOICES"/g" "$TMP/${f%.dsp}_tmp1.soul" >> "$TMP/${f%.dsp}_tmp2.soul"
         cat "$TMP/${f%.dsp}_tmp2.soul" >> "$TMP/${f%.dsp}.soul"
     else
-    	if [ $NVOICES != -1 ]; then
-        	faust -lang soul-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
+        if [ $NVOICES != -1 ]; then
+            faust -lang soul-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
         else
-        	faust -lang $SOUL_EXT -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
+            faust -lang $SOUL_EXT -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
         fi
         sed -e "s/NVOICES/"$NVOICES"/g" "$TMP/${f%.dsp}_tmp1.soul" >> "$TMP/${f%.dsp}.soul"
     fi
@@ -159,15 +159,15 @@ EndOfCode
     mv "${f%.dsp}.soulpatch" "$SRCDIR/$dspName"
     
     if [ $PLAY = "true" ] ; then
-    	soul play "$SRCDIR/$dspName"
+        soul play "$SRCDIR/$dspName"
     fi
   
     # collect binary file name for FaustGIDE
     BINARIES="$SRCDIR/$dspName/${f%.dsp}.soul;$SRCDIR/$dspName/${f%.dsp}.soulpatch"
       
     if [ $JUCE = "true" ] ; then
-    	soul generate --juce "$SRCDIR/$dspName/${f%.dsp}.soulpatch" --output="$SRCDIR/$dspName/${f%.dsp}"
-    	BINARIES="$BINARIES;$SRCDIR/$dspName/${f%.dsp}"
+        soul generate --juce "$SRCDIR/$dspName/${f%.dsp}.soulpatch" --output="$SRCDIR/$dspName/${f%.dsp}"
+        BINARIES="$BINARIES;$SRCDIR/$dspName/${f%.dsp}"
     fi
 
 done

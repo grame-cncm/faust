@@ -33,7 +33,7 @@ for p in $@; do
         usage faust2alsa "[options] <file.dsp>"
  		platform Linux
 		require Alsa
-		echo "Compiles Faust programs to alsa-gtk"
+		echo "Compiles Faust programs to ALSA and GTK"
 		option
         options -httpd -osc -midi -qrcode -poly
         exit

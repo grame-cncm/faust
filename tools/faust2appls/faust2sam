@@ -32,14 +32,14 @@ EFFECT=""
 
 echoHelp ()
 {
-	usage faust2sam "[options] [Faust options] <file.dsp>"
-	platform "ADI SHARC Audio Module board"
-	echo  "Generates inline Faust objects for the ADI SHARC Audio Module board"
-	option
-	option -midi
+    usage faust2sam "[options] [Faust options] <file.dsp>"
+    platform "ADI SHARC Audio Module board"
+    echo "Generates inline Faust objects for the ADI SHARC Audio Module board"
+    option
+    option -midi
     option "-nvoices <num>"
     option "-effect <effect.dsp>"
-	option "Faust options"
+    option "Faust options"
 }
 
 createAPI ()
@@ -76,34 +76,34 @@ createAPI ()
     # fix things that won't compile on the sharc
     cat "$APIFOLDER/samFaustDSP.cpp"  | \
     sed     -e 's/\(std::cerr.*;\)/\/* \1 *\/ /' \
-	    -e 's/std::cout/\/\/std::cout/' \
-	    -e 's/getCPULoad(void/faustGetCPULoad(void/' \
-	    -e 's/std::stringstream/std::ostringstream/' \
-	    -e 's/dynamic_cast/static_cast/' \
-	    > temp && mv temp "$APIFOLDER/samFaustDSP.cpp"
+        -e 's/std::cout/\/\/std::cout/' \
+        -e 's/getCPULoad(void/faustGetCPULoad(void/' \
+        -e 's/std::stringstream/std::ostringstream/' \
+        -e 's/dynamic_cast/static_cast/' \
+        > temp && mv temp "$APIFOLDER/samFaustDSP.cpp"
 }
 
 # dispatch command arguments
 while [ $1 ]
 do
-	p=$1
+    p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echoHelp
         exit
     elif [ "$PACKAGENAME" = "-1" ]; then
-		PACKAGENAME="$p"
+        PACKAGENAME="$p"
     elif [[ -f "$p" ]]; then
-		FILE="$p"
+        FILE="$p"
     elif [ "$p" = "-effect" ]; then
         POLY2="1"
-		shift
-		EFFECT=$1
+        shift
+        EFFECT=$1
     elif [ "$p" = "-midi" ]; then
         MIDI="1"
     elif [ $p = "-nvoices" ]; then
-		shift
-		NVOICES=$1
+        shift
+        NVOICES=$1
     elif [ $p = "-package" ]; then
         PACKAGENAME="-1"
     elif [ ${p:0:1} = "-" ]; then
@@ -132,8 +132,8 @@ APIFOLDER="${FILE%.*}-sam"
 rm -r "$APIFOLDER" 2> /dev/null || true
 mkdir "$APIFOLDER"
 
-    echo "Your $APIFOLDER.zip package is being created"
-    createAPI
+echo "Your $APIFOLDER.zip package is being created"
+createAPI
 
 ###################################
 # POST PROCESSING

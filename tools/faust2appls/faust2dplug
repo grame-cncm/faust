@@ -28,7 +28,7 @@ do
     if [ $p = "--help" ] || [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2dplug "[options] [Faust options] <file.dsp>"
         require Dplug
-        echo "Compiles Faust programs to Dplug plugins."
+        echo "Compiles Faust programs to Dplug plugins"
         option
         options "-vendor <My Company Name>"
         options "-vendorid <FaUs>"
@@ -39,7 +39,7 @@ do
     fi
 
     if [ "$p" = -debug ]; then
-    	DEBUG=true
+        DEBUG=true
     elif [ $p = "-midi" ]; then
         IS_MIDI="1"
     elif [ $p = "-vendor" ]; then
@@ -57,10 +57,10 @@ do
     elif [ $p = "-effectType" ]; then
         shift
         EFFECTTYPE=$1
-	elif [[ -f "$p" ]]; then
-	    FILES="$FILES $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
     else
-	    OPTIONS="$OPTIONS $p"    
+        OPTIONS="$OPTIONS $p"    
     fi
 
 shift

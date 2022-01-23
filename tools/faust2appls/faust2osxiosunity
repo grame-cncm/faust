@@ -49,62 +49,62 @@ cat > "$2" << DELIM
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>BuildMachineOSBuild</key>
-	<string>16D32</string>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>English</string>
-	<key>CFBundleExecutable</key>
-	<string>$1</string>
-	<key>CFBundleIdentifier</key>
-	<string>com.yourcompany.$1</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>$1</string>
-	<key>CFBundlePackageType</key>
-	<string>BNDL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
-	<key>CFBundleSupportedPlatforms</key>
-	<array>
-		<string>MacOSX</string>
-	</array>
-	<key>CFBundleVersion</key>
-	<string>1</string>
-	<key>CFPlugInDynamicRegisterFunction</key>
-	<string></string>
-	<key>CFPlugInDynamicRegistration</key>
-	<string>NO</string>
-	<key>CFPlugInFactories</key>
-	<dict>
-		<key>00000000-0000-0000-0000-000000000000</key>
-		<string>MyFactoryFunction</string>
-	</dict>
-	<key>CFPlugInTypes</key>
-	<dict>
-		<key>00000000-0000-0000-0000-000000000000</key>
-		<array>
-			<string>00000000-0000-0000-0000-000000000000</string>
-		</array>
-	</dict>
-	<key>CFPlugInUnloadFunction</key>
-	<string></string>
-	<key>DTCompiler</key>
-	<string>com.apple.compilers.llvm.clang.1_0</string>
-	<key>DTPlatformBuild</key>
-	<string>8C1002</string>
-	<key>DTPlatformVersion</key>
-	<string>GM</string>
-	<key>DTSDKBuild</key>
-	<string>16C58</string>
-	<key>DTSDKName</key>
-	<string>macosx10.12</string>
-	<key>DTXcode</key>
-	<string>0821</string>
-	<key>DTXcodeBuild</key>
-	<string>8C1002</string>
+    <key>BuildMachineOSBuild</key>
+    <string>16D32</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>English</string>
+    <key>CFBundleExecutable</key>
+    <string>$1</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.yourcompany.$1</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>$1</string>
+    <key>CFBundlePackageType</key>
+    <string>BNDL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleSupportedPlatforms</key>
+    <array>
+        <string>MacOSX</string>
+    </array>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>CFPlugInDynamicRegisterFunction</key>
+    <string></string>
+    <key>CFPlugInDynamicRegistration</key>
+    <string>NO</string>
+    <key>CFPlugInFactories</key>
+    <dict>
+        <key>00000000-0000-0000-0000-000000000000</key>
+        <string>MyFactoryFunction</string>
+    </dict>
+    <key>CFPlugInTypes</key>
+    <dict>
+        <key>00000000-0000-0000-0000-000000000000</key>
+        <array>
+            <string>00000000-0000-0000-0000-000000000000</string>
+        </array>
+    </dict>
+    <key>CFPlugInUnloadFunction</key>
+    <string></string>
+    <key>DTCompiler</key>
+    <string>com.apple.compilers.llvm.clang.1_0</string>
+    <key>DTPlatformBuild</key>
+    <string>8C1002</string>
+    <key>DTPlatformVersion</key>
+    <string>GM</string>
+    <key>DTSDKBuild</key>
+    <string>16C58</string>
+    <key>DTSDKName</key>
+    <string>macosx10.12</string>
+    <key>DTXcode</key>
+    <string>0821</string>
+    <key>DTXcodeBuild</key>
+    <string>8C1002</string>
 </dict>
 </plist>
 DELIM
@@ -130,7 +130,7 @@ do
         option -ios "      create an iOS static library"
         option -universal "generate a 64/32 bits external"
         option "Faust options"
-		# echo "Use 'faust2unity -osx -ios' to also create the c# and JSON files"
+        # echo "Use 'faust2unity -osx -ios' to also create the c# and JSON files"
         echo "See architecture/unity/README.md for more info."
         exit
     fi
@@ -142,9 +142,9 @@ do
         shift
         NVOICES=$1
     elif [ $p = "-source" ]; then
-    	SOURCE=1
+        SOURCE=1
     elif [ $p = "-universal" ]; then
-    	ARCH="-arch i386 -arch x86_64"
+        ARCH="-arch i386 -arch x86_64"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
@@ -212,9 +212,9 @@ for p in $FILES; do
         faust -uim -i -a $FAUSTARCH/unity/unityplugin.cpp "$SRCDIR/$NAME.dsp" -o "$MOS/$NAME.cpp" || (echo "$FNAME : Faust to C++ compilation failed in faust2osxiosunity"; exit 1)
         
         if [ $NVOICES == -1 ]; then
-        	 $CXX $CXXFLAGS $ARCH $LDFLAGS -DAPPLE -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/lib$FNAME" || (echo "$FNAME : C++ to OSX library compilation failed in faust2osxiosunity"; exit 1)
+             $CXX $CXXFLAGS $ARCH $LDFLAGS -DAPPLE -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/lib$FNAME" || (echo "$FNAME : C++ to OSX library compilation failed in faust2osxiosunity"; exit 1)
         else
-        	 $CXX $CXXFLAGS $ARCH $LDFLAGS -DPOLY -DAPPLE -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/lib$FNAME" || (echo "$FNAME : C++ to OSX library compilation failed in faust2osxiosunity"; exit 1)
+             $CXX $CXXFLAGS $ARCH $LDFLAGS -DPOLY -DAPPLE -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/lib$FNAME" || (echo "$FNAME : C++ to OSX library compilation failed in faust2osxiosunity"; exit 1)
         fi
        
         rm "$MOS/$NAME.cpp"

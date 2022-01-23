@@ -38,8 +38,7 @@ echoHelp ()
 {
     usage faust2esp32 "[options] [Faust options] <file.dsp> <file.dsp>"
     echo "faust2esp32 can be used to fully program the ESP32 microncontroller and to generate DSP objects"
-    echo "that can be integrated into any ESP32 project. "
-    echo "Additional information about this tool can be found on the Faust website: https://faust.grame.fr."
+    echo "that can be integrated into any ESP32 project"
     option 
     option -gramophone "generates for GRAME Gramophone"
     option -multi "generate for GRAME Gramophone in multi DSP mode"
@@ -64,8 +63,8 @@ do
         exit 0
     # -nvoices:
     elif [ $p = "-nvoices" ]; then
-    	shift
-    	NVOICES=$1
+        shift
+        NVOICES=$1
     # -midi
     elif [ $p = "-midi" ]; then
         MIDIDEFS="MIDI"
@@ -80,22 +79,22 @@ do
         MAIN=1
     # Get dsp file
     elif [[ -f "$p" ]]; then
-    	FILE="$p"
+        FILE="$p"
     # -lib 
     elif [ $p = "-lib" ]; then
-    	LIB=1
+        LIB=1
     # -soundfile 
     elif [ $p = "-soundfile" ]; then
-    	SOUNDFILE=1
+        SOUNDFILE=1
     # -wm8978 (ttgo t-audio)
     elif [ $p = "-wm8978" ] || [ $p = "-WM8978" ]; then
-    	DRIVER="wm8978"
+        DRIVER="wm8978"
     # -ac101 (Ai-thinker a1s-board)
     elif [ $p = "-ac101" ] || [ $p = "-AC101" ]; then
-    	DRIVER="ac101"
+        DRIVER="ac101"
     # -es8388 (espressif LyraT)
     elif [ $p = "-es8388" ] || [ $p = "-ES8388" ]; then
-    	DRIVER="es8388"
+        DRIVER="es8388"
     # other compile options
     else
         OPTIONS="$OPTIONS $p"
@@ -124,7 +123,7 @@ MODULENAME="${BASENAME%.dsp}"
 if [[ "$LIB" == "1" || "$GRAMOPHONE" == "1" ]]; then
     mkdir -p $MODULENAME
     if [ $GRAMOPHONE -eq 1 ]; then
-    	if [ $MULTI -eq 1 ]; then
+        if [ $MULTI -eq 1 ]; then
             count=0;
             echo "" > $MODULENAME/tmp.cpp
             faust -pn mydsp1 -cn mydsp1 -i $OPTIONS $FILE -o "$MODULENAME/mydsp1.h" 2> /dev/null && echo "#define class_mydsp1" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
@@ -135,17 +134,17 @@ if [[ "$LIB" == "1" || "$GRAMOPHONE" == "1" ]]; then
             echo "static int gMydspCount = $count;" >> $MODULENAME/tmp.cpp 
             faust -pn mydsp1 -a $MODULENAME/tmp.cpp -inj $FAUSTARCH/esp32/gramophone-multi.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
             rm $MODULENAME/tmp.cpp
-    	else
+        else
             # Use the volume wrapper
             cp $FILE $MODULENAME/mono.dsp
             cp $FAUSTARCH/esp32/volume.dsp $MODULENAME
             faust -a $FAUSTARCH/esp32/gramophone.cpp -I $FAUSTARCH/embedded/ -i $OPTIONS $MODULENAME/volume.dsp -o $MODULENAME/$MODULENAME.cpp
             rm $MODULENAME/volume.dsp $MODULENAME/mono.dsp
-    	fi
-    	
-    	# Copy accelerometer/gyroscope code
-    	cp $FAUSTARCH/esp32/MPU9250.cpp $MODULENAME
-    	cp $FAUSTARCH/esp32/MPU9250.h $MODULENAME
+        fi
+        
+        # Copy accelerometer/gyroscope code
+        cp $FAUSTARCH/esp32/MPU9250.cpp $MODULENAME
+        cp $FAUSTARCH/esp32/MPU9250.h $MODULENAME
     else
         faust -a $FAUSTARCH/esp32/esp32.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
         cp $FAUSTARCH/esp32/esp32.h $MODULENAME/$MODULENAME.h
@@ -179,7 +178,7 @@ if [[ "$LIB" == "1" || "$GRAMOPHONE" == "1" ]]; then
     echo '// Options:' > "$MODULENAME/tmp.txt"
 
     if [ $NVOICES -gt 0 ]; then
-    	echo '#define NVOICES '$NVOICES >> "$MODULENAME/tmp.txt"
+        echo '#define NVOICES '$NVOICES >> "$MODULENAME/tmp.txt"
     fi
 
     if [ $MAIN -eq 1 ]; then
@@ -191,15 +190,15 @@ if [[ "$LIB" == "1" || "$GRAMOPHONE" == "1" ]]; then
     fi
 
     if [[ "$MIDIDEFS" == *MIDI* ]]; then
-    	echo '#define MIDICTRL' >> "$MODULENAME/tmp.txt"
+        echo '#define MIDICTRL' >> "$MODULENAME/tmp.txt"
     fi
 
     if [[ "$POLY" == *POLY2* ]]; then
-    	echo '#define POLY2' >> "$MODULENAME/tmp.txt"
+        echo '#define POLY2' >> "$MODULENAME/tmp.txt"
     fi
 
     if [[ "$DRIVER" == *ac101* ]]; then
-    	echo '#define A1S_BOARD true' >> "$MODULENAME/tmp.txt"
+        echo '#define A1S_BOARD true' >> "$MODULENAME/tmp.txt"
     fi
 
     if [[ "$DRIVER" == *es8388* ]]; then
@@ -211,13 +210,13 @@ if [[ "$LIB" == "1" || "$GRAMOPHONE" == "1" ]]; then
     #fi
 
     #if [[ "$GUIDEFS" == *GUI* ]]; then
-    	#echo '#define HTTPDGUI' >> "$PROJECTDIR/tmp.txt"
-    	#BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust"
+        #echo '#define HTTPDGUI' >> "$PROJECTDIR/tmp.txt"
+        #BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust"
     #fi
 
     #if [[ "$SOUNDFILEDEFS" == *SOUNDFILE* ]]; then
-    	#echo '#define SOUNDFILE' >> "$PROJECTDIR/tmp.txt"
-    	#BELA_LDLIBS="$BELA_LDLIBS -lsndfile"
+        #echo '#define SOUNDFILE' >> "$PROJECTDIR/tmp.txt"
+        #BELA_LDLIBS="$BELA_LDLIBS -lsndfile"
     #fi
 
     cat "$MODULENAME/$MODULENAME.cpp" >> "$MODULENAME/tmp.txt"
@@ -292,19 +291,19 @@ if [[ "$LIB" == "0" && "$GRAMOPHONE" == "0" ]]; then
 
     echo '// Options :' > "$MODULENAME/tmp.txt"
     if [ $NVOICES -gt 0 ]; then
-    	echo '#define NVOICES '$NVOICES >> "$MODULENAME/tmp.txt"
+        echo '#define NVOICES '$NVOICES >> "$MODULENAME/tmp.txt"
     fi
 
     if [[ "$MIDIDEFS" == *MIDI* ]]; then
-    	echo '#define MIDICTRL true' >> "$MODULENAME/tmp.txt"
+        echo '#define MIDICTRL true' >> "$MODULENAME/tmp.txt"
     fi
 
     if [[ "$POLY" == *POLY2* ]]; then
-    	echo '#define POLY2' >> "$MODULENAME/tmp.txt"
+        echo '#define POLY2' >> "$MODULENAME/tmp.txt"
     fi
 
     if [[ "$DRIVER" == *ac101* ]]; then
-    	echo '#define A1S_BOARD true' >> "$MODULENAME/tmp.txt"
+        echo '#define A1S_BOARD true' >> "$MODULENAME/tmp.txt"
     fi
 
     if [[ "$DRIVER" == *es8388* ]]; then
@@ -312,16 +311,16 @@ if [[ "$LIB" == "0" && "$GRAMOPHONE" == "0" ]]; then
     fi
 
     if [[ "$DRIVER" == *wm8978* ]]; then
-    	echo '#define TTGO_TAUDIO true' >> "$MODULENAME/tmp.txt"
+        echo '#define TTGO_TAUDIO true' >> "$MODULENAME/tmp.txt"
     fi
 
     #if [[ "$OSCDEFS" == *OSC* ]]; then
-		#echo '#define OSCCTRL' >> "$PROJECTDIR/tmp.txt"
+        #echo '#define OSCCTRL' >> "$PROJECTDIR/tmp.txt"
     #fi
 
     #if [[ "$GUIDEFS" == *GUI* ]]; then
-    	#echo '#define HTTPDGUI' >> "$PROJECTDIR/tmp.txt"
-    	#BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust"
+        #echo '#define HTTPDGUI' >> "$PROJECTDIR/tmp.txt"
+        #BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust"
     #fi
 
     #if [[ "$SOUNDFILEDEFS" == *SOUNDFILE* ]]; then

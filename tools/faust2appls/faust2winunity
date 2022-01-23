@@ -30,7 +30,7 @@ do
     
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2unitywin -32 -64 [additional Faust options (-vec -vs 8...)] <file1.dsp> [<file2.dsp>]"
-        echo "Create Microsoft 32/64bits library for faust unity plugin."
+        echo "Create Microsoft 32/64bits library for Faust Unity plugins"
         echo "Mingw crosscompiler should be installed ('mingw32' package on Ubuntu)"
         echo "Use 'faust2unity -w32 -w64' to also create the C# and JSON files"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"

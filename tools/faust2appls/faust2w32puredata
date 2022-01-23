@@ -47,7 +47,7 @@ for p in $@; do
     fi
   
     if [ "$p" = -icc ]; then
-    	ignore=" "
+        ignore=" "
     elif [ $p = "-poly" ]; then
         F2PDPOLY="-n 8"
     elif [ ${p:0:1} = "-" ]; then

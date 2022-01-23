@@ -40,27 +40,27 @@ for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2jackserver "[options] [Faust options] <file.dsp>"
         require Jack, Qt
-        echo "Compiles Faust programs to JACK-QT (server mode)"
+        echo "Compiles Faust programs to JACK and QT (server mode)"
         option
         options -httpd -osc -qrcode
         option "Faust options"
         exit
     fi
-   	if [ $p = "-osc" ]; then
-		 OSCDEFS="DEFINES += OSCCTRL"
-		 OSCLIBS="-lOSCFaust"
-	elif [ "$p" = "-httpd" ]; then
-		HTTPDEFS="DEFINES += HTTPCTRL"
-		HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
-	elif [ "$p" = "-qrcode" ]; then # requires -httpd
-		QRDEFS="DEFINES += QRCODECTRL"
+    if [ $p = "-osc" ]; then
+         OSCDEFS="DEFINES += OSCCTRL"
+         OSCLIBS="-lOSCFaust"
+    elif [ "$p" = "-httpd" ]; then
+        HTTPDEFS="DEFINES += HTTPCTRL"
+        HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+    elif [ "$p" = "-qrcode" ]; then # requires -httpd
+        QRDEFS="DEFINES += QRCODECTRL"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
+    fi
 done
 
 #-------------------------------------------------------------------
@@ -78,21 +78,21 @@ for p in $FILES; do
 
     CUR=$(pwd)
     f=$(basename "$p")
-	SRCDIR=$(dirname "$p")
+    SRCDIR=$(dirname "$p")
 
     # creates a temporary dir 
     TDR=$(mktemp -d faust.XXX)
-	TMP="$TDR/${f%.dsp}"
+    TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
 
     # compile faust to c++
-	faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
 
     # compile c++ to binary
     (
-	    cd "$TMP"
-	    $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"   
-	    $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
+        cd "$TMP"
+        $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"   
+        $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
         make
     ) > /dev/null || exit
 
@@ -105,5 +105,4 @@ for p in $FILES; do
 done
 
 echo $BINARIES
-
 

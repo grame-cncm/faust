@@ -35,7 +35,7 @@ do
         usage faust2cagtk "[options] [Faust options] <file.dsp>"
         platform Linux
         require Jack
-        echo "Compiles Faust programs to CoreAudio-GTK"
+        echo "Compiles Faust programs to CoreAudio and GTK"
         option
         options -httpd -osc -midi -soundfile
         option -resample "to resample soundfiles to the audio driver sample rate."
@@ -48,7 +48,7 @@ do
         exit
     fi
 
-	if [ $p = "-nvoices" ]; then
+    if [ $p = "-nvoices" ]; then
         POLYDEFS="-DPOLY"
         shift
         NVOICES=$1
@@ -78,12 +78,12 @@ do
         shift
         PRESETDIR=$1
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
+    fi
 
 shift
 
@@ -126,17 +126,17 @@ EndOfCode
     cat "preset.cpp" "${f%.dsp}_tmp.cpp" > "${f%.dsp}.cpp"
     rm "preset.cpp" "${f%.dsp}_tmp.cpp"
 
-	# compile c++ to binary
-	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS "${f%.dsp}.cpp" `pkg-config --cflags --libs $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $SAMPLERATELIBS $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $SAMPLERATEDEFS $PRESETDEFS $ARCHLIB $LFLAGS -o "${f%.dsp}"
-		codesign --sign - --deep --force "${f%.dsp}"
-	) > /dev/null || exit
+    # compile c++ to binary
+    (
+        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS "${f%.dsp}.cpp" `pkg-config --cflags --libs $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $SAMPLERATELIBS $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $SAMPLERATEDEFS $PRESETDEFS $ARCHLIB $LFLAGS -o "${f%.dsp}"
+        codesign --sign - --deep --force "${f%.dsp}"
+    ) > /dev/null || exit
 
     # remove tempory files
-	rm -f "${f%.dsp}.cpp" effect.h "$f.json"
+    rm -f "${f%.dsp}.cpp" effect.h "$f.json"
 
-	# collect binary file name for FaustWorks
-	BINARIES="$BINARIES${f%.dsp};"
+    # collect binary file name for FaustWorks
+    BINARIES="$BINARIES${f%.dsp};"
 done
 
 echo $BINARIES

@@ -77,7 +77,7 @@ do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2msp "[options] [Faust options] <file.dsp>"
-        require Max-MSP SDK
+        require Max/MSP SDK
         echo "Compiles Faust programs to Max6 externals using simple precision samples"
         option
         options -osc -midi -soundfile

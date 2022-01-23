@@ -2,7 +2,7 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to fausgen~ patch           #
+#               Compiles Faust programs to a fausgen~ patch         #
 #               (c) Grame, 2015                                     #
 #                                                                   #
 #####################################################################
@@ -23,8 +23,8 @@ do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2gen "[options] <file.dsp>"
-        require Max-MSP SDK
-        echo "Compiles Faust programs to fausgen~ patch"
+        require Max/MSP SDK
+        echo "Compiles Faust programs to a fausgen~ patch"
         option
         option '-nvoices <num>'
     	exit

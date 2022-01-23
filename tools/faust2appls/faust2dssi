@@ -27,28 +27,28 @@ OSCDEFS=""
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2dssi "[options] [Faust options] <file.dsp>"
-		echo  "Compiles Faust programs to dssi plugins"
-		option
-		option -osc
-		option -arch32 "generates a 32 bit architecture."
-		option -arch64 "generates a 64 bit architecture."
+        echo  "Compiles Faust programs to dssi plugins"
+        option
+        option -osc
+        option -arch32 "generates a 32 bit architecture."
+        option -arch64 "generates a 64 bit architecture."
         option "Faust options"
-    	exit
+        exit
     fi
-  	if [ $p = "-arch32" ]; then
-		PROCARCH="-m32 -L/usr/lib32"
+      if [ $p = "-arch32" ]; then
+        PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
-		PROCARCH="-m64"
+        PROCARCH="-m64"
     elif [ $p = "-osc" ]; then
-    	#option ignored for dssi plugins
-		 OSCDEFS="-DOSCCTRL -lOSCFaust"
+        #option ignored for dssi plugins
+         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
+    fi
 done
 
 #-------------------------------------------------------------------
@@ -57,27 +57,27 @@ done
 if [[ $(uname) == Darwin ]]; then
     SPEC="-bundle"
 else
-	SPEC="-shared"
+    SPEC="-shared"
 fi
-	
+    
 #-------------------------------------------------------------------
 # compile the *.dsp files as dssi plugins
 #
 for f in $FILES; do
 
-	dst="${f%.dsp}.so"
-	
-	# compile faust to c++
-	faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+    dst="${f%.dsp}.so"
+    
+    # compile faust to c++
+    faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
-	# compile c++ to binary
-	(
-		${CXX=g++} $FAUSTTOOLSFLAGS  -I. -Wall -O2 -fPIC -DPIC $PROCARCH $SPEC $CXXFLAGS "$f.cpp" -o $dst
-	) > /dev/null || exit
-	rm "$f.cpp"
+    # compile c++ to binary
+    (
+        ${CXX=g++} $FAUSTTOOLSFLAGS  -I. -Wall -O2 -fPIC -DPIC $PROCARCH $SPEC $CXXFLAGS "$f.cpp" -o $dst
+    ) > /dev/null || exit
+    rm "$f.cpp"
 
-	# collect binary file name for FaustGIDE
-	BINARIES="$BINARIES$dst;"
+    # collect binary file name for FaustGIDE
+    BINARIES="$BINARIES$dst;"
 done
 
 

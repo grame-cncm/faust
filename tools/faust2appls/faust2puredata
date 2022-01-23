@@ -26,7 +26,7 @@ ARCHFILE=$FAUSTARCH/puredata.cpp
 # dispatch command arguments
 for p in $@; do
 
-	if [ $p = "-help" ] || [ $p = "-h" ]; then
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2puredata "[options] [Faust options] <file.dsp>"
         platform Linux
         require PureData
@@ -40,20 +40,20 @@ for p in $@; do
     fi
     
     if [ $p = "-arch32" ]; then
-		PROCARCH="-m32 -L/usr/lib32"
+        PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-poly" ]; then
-		F2PDPOLY="-n 8"
+        F2PDPOLY="-n 8"
     elif [ $p = "-arch64" ]; then
-		PROCARCH="-m64"
+        PROCARCH="-m64"
     elif [ $p = "-tosource" ]; then
-		COMPILE=no
+        COMPILE=no
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
+    fi
 done
 
 #-------------------------------------------------------------------
@@ -84,7 +84,7 @@ for p in $FILES; do
     # case where a foreign C++ function is called in the Faust code (TODO: this is only a quick fix!)
     count=`ls -1 *.h 2>/dev/null | wc -l`
     if [ $count != 0 ]; then
-    	cp *.h $TMP
+        cp *.h $TMP
     fi
 
     # compile faust to c++ and xml
@@ -98,7 +98,7 @@ for p in $FILES; do
     then
         (
         cd "$TMP"
-	CXX_SOURCE=${f%.dsp}.cpp
+    CXX_SOURCE=${f%.dsp}.cpp
         if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
             # On Darwin we build 32-bits and 64-bits plugins combined with lipo
             $CXX -arch i386 $CXXFLAGS  $FAUSTTOOLSFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}.i386 $CXX_SOURCE || exit

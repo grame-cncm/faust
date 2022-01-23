@@ -2,7 +2,7 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to plotters					#
+#               Compiles Faust programs to plotters                 #
 #               (c) Grame, 2009                                     #
 #                                                                   #
 #####################################################################
@@ -23,37 +23,37 @@ ARCHFILE=$FAUSTARCH/matlabplot.cpp
 
 # dispatch command arguments
 for p in $@; do
-	if [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
+    if [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
+    fi
 done
 
 #-------------------------------------------------------------------
 # compile the *.dsp files 
 
 for f in $FILES; do
-	
-	# compile faust to c++
+    
+    # compile faust to c++
     faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
-	# compile c++ to binary
-	(
-		${CXX=g++} ${CXXFLAGS=-O3} $OMP "$f.cpp" -o "${f%.dsp}"
-	) > /dev/null || exit
+    # compile c++ to binary
+    (
+        ${CXX=g++} ${CXXFLAGS=-O3} $OMP "$f.cpp" -o "${f%.dsp}"
+    ) > /dev/null || exit
 
-	# run binary to generate data file
-	./"${f%.dsp}" -n 60000 > "${f%.dsp}.m"
+    # run binary to generate data file
+    ./"${f%.dsp}" -n 60000 > "${f%.dsp}.m"
 
-	# display data file
+    # display data file
     octave --persist ${f%.dsp}.m
-	rm "$f.cpp"
+    rm "$f.cpp"
 
-	# collect binary file name for FaustWorks
-	BINARIES="$BINARIES${f%.dsp};"
+    # collect binary file name for FaustWorks
+    BINARIES="$BINARIES${f%.dsp};"
 done
 
 echo $BINARIES

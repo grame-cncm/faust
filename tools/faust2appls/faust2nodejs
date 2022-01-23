@@ -42,14 +42,14 @@ echoHelp ()
         echo "$p wrong argument"
         echo ""
     fi
-	usage faust2nodejs "[driver] [options] <file.dsp>"
-    echo "Generate Faust-based nodejs native addons. The generated addons can embed most of the audio engines supported by Faust: alsa, JACK, CoreAudio, RtAudio, PortAudio, etc. Since faust2nodejs essentially acts as a wrapper to faust2api, it offers the same features than this system (MIDI and OSC suport, polyphony, separate effect file, etc.)."
-	echo
+    usage faust2nodejs "[driver] [options] <file.dsp>"
+    echo "Generate Faust-based nodejs native addons. The generated addons can embed most of the audio engines supported by Faust: ALSA, JACK, CoreAudio, RtAudio, PortAudio, etc. Since faust2nodejs essentially acts as a wrapper to faust2api, it offers the same features than this system (MIDI and OSC suport, polyphony, separate effect file, etc.)."
+    echo
     echo "The following drivers are available: -coreaudio // -alsa // -jack // -portaudio // -rtaudio // -dummy. For example, to create a native nodejs addon with a JACK audio engine, run: faust2nodjs -jack faustFile.dsp"
     echo
     echo "The following options are inherited directly from faust2api and can be used with faust2nodejs:"
-	option
-	options -osc -midi -soundfile
+    option
+    options -osc -midi -soundfile
     option "-nvoices <num>"
     option "-effect <effect.dsp>"
     option -source "generates the source of the addon without compiling it."
@@ -100,8 +100,8 @@ shift
 done
 
 if [ -z $FILE ]; then
-	echo "Please, provide a Faust file to process"
-	exit 1
+    echo "Please, provide a Faust file to process"
+    exit 1
 fi
 
 NODE_NAME="${FILE%.dsp}"
@@ -125,30 +125,30 @@ cp "$FAUSTARCH/nodejs/README.md" .
 # TODO: for now only ported compilation flags for alsa and JACK: missing
 # portaudio, rtaudio, and coreaudio
 if [ $DRIVER = "-jack" ]; then
-	if [ $PLATFORM = "Darwin" ]; then
-		sed -i "" "s/__CFLAGS__/$MYGCCFLAGS $FAUSTTOOLSFLAGS $OMP $OSC_CFLAGS/g" binding.gyp
-		sed -i "" "s/__LIBFLAGS__/$JACK_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
-	else
-		sed -i "s/__CFLAGS__/$MYGCCFLAGS $FAUSTTOOLSFLAGS $OMP $OSC_CFLAGS/g" binding.gyp
-		sed -i "s/__LIBFLAGS__/$JACK_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
-	fi
+    if [ $PLATFORM = "Darwin" ]; then
+        sed -i "" "s/__CFLAGS__/$MYGCCFLAGS $FAUSTTOOLSFLAGS $OMP $OSC_CFLAGS/g" binding.gyp
+        sed -i "" "s/__LIBFLAGS__/$JACK_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
+    else
+        sed -i "s/__CFLAGS__/$MYGCCFLAGS $FAUSTTOOLSFLAGS $OMP $OSC_CFLAGS/g" binding.gyp
+        sed -i "s/__LIBFLAGS__/$JACK_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
+    fi
 elif [ $DRIVER = "-alsa" ]; then
-	sed -i "s/__CFLAGS__/$MYGCCFLAGS $FAUSTTOOLSFLAGS $OMP $OSC_CFLAGS/g" binding.gyp
-	sed -i "s/__LIBFLAGS__/$JACK_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
+    sed -i "s/__CFLAGS__/$MYGCCFLAGS $FAUSTTOOLSFLAGS $OMP $OSC_CFLAGS/g" binding.gyp
+    sed -i "s/__LIBFLAGS__/$JACK_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
 elif [ $DRIVER = "-coreaudio" ]; then
-	sed -i "" "s/__CFLAGS__/$MYGCCFLAGS $FAUSTTOOLSFLAGS $OMP $OSC_CFLAGS/g" binding.gyp
-	sed -i "" "s/__LIBFLAGS__/$COREAUDIO_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
+    sed -i "" "s/__CFLAGS__/$MYGCCFLAGS $FAUSTTOOLSFLAGS $OMP $OSC_CFLAGS/g" binding.gyp
+    sed -i "" "s/__LIBFLAGS__/$COREAUDIO_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
 fi
 
 node-gyp $ELECTRON_VERSION configure &> $LOG || exit 1
 
 if [ $SOURCE = "0" ]; then
-	cd build
-	make &> $LOG || exit 1
-	cd ../..
-	cp $NODE_FOLDER/build/Release/faust.node $NODE_NAME.node
-	rm -rf $NODE_FOLDER
-	echo "A native nodejs node \"$NODE_NAME.node\" was generated in the current folder."
+    cd build
+    make &> $LOG || exit 1
+    cd ../..
+    cp $NODE_FOLDER/build/Release/faust.node $NODE_NAME.node
+    rm -rf $NODE_FOLDER
+    echo "A native nodejs node \"$NODE_NAME.node\" was generated in the current folder."
 else
-	echo "A $NODE_FOLDER folder containing the source of the native Faust node was generated in the current folder. Please refer to the README in it for compilation instructions."
+    echo "A $NODE_FOLDER folder containing the source of the native Faust node was generated in the current folder. Please refer to the README in it for compilation instructions."
 fi

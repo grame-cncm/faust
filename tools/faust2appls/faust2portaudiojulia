@@ -30,7 +30,7 @@ do
         option "-osc" "to activate OSC control on 5000 and 5001 ports"
         option "-play <num>" "to start the 'Julia' runtime with <num> threads and the generated file.jl"
         option "Faust options"
-    	exit
+        exit
     fi
 
     if [ $p = "-source" ]; then
@@ -38,8 +38,8 @@ do
     elif [[ $p = -osc* ]]; then
         OSC=$p
     elif [ $p = "-play" ]; then
-    	PLAY=true
-    	shift
+        PLAY=true
+        shift
         THREAD=$1
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
@@ -63,13 +63,13 @@ for p in $FILES; do
   
     # compile Faust DSP and put in the cargo folder
     faust -a $ARCHFILE -lang julia $OPTIONS "$f" -o "${f%.dsp}.jl"
-	
+    
 done
 
 if [ $PLAY = true ] ; then
-	if [[ $OSC != "" ]] ; then
- 		julia -t $THREAD "${f%.dsp}.jl" $OSC
-	else
-		julia -t $THREAD "${f%.dsp}.jl" -gtk
-	fi
+    if [[ $OSC != "" ]] ; then
+         julia -t $THREAD "${f%.dsp}.jl" $OSC
+    else
+        julia -t $THREAD "${f%.dsp}.jl" -gtk
+    fi
 fi

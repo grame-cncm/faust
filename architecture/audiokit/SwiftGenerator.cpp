@@ -78,7 +78,6 @@ struct SwiftFilePrinter : public GenericUI
     
     void printFooter()
     {
-
         fOutFile << "\t" << "// MARK: - Audio Unit" << endl;
         fOutFile << "\tpublic class InternalAU: AudioUnitBase {" << endl;
         fOutFile << "\t\t" << "/// Get an array of the parameter definitions" << endl;

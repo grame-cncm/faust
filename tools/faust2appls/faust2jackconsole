@@ -44,15 +44,15 @@ do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2jackconsole "[options] [Faust options] <file.dsp>"
         require Jack
-        echo "Compiles Faust programs to JACK-console."
+        echo "Compiles Faust programs to CLI and JACK"
         option
         options -httpd -osc -midi -soundfile
         option "-nvoices <num>"
         option "Faust options"
-    	exit
+        exit
     fi
   
-  	if [ $p = "-osc" ]; then
+      if [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
         HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
@@ -73,38 +73,38 @@ do
     elif [ $p = "-arch64" ]; then
         PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
-	
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
+    fi
+    
 shift
 
 done
-	
+    
 #-------------------------------------------------------------------
 # compile the *.dsp files using JACK and console
 #
 for f in $FILES; do
-	
-	# compile faust to c++
-	faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+    
+    # compile faust to c++
+    faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
-	# compile c++ to binary
-	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack` $PROCARCH $SOUNDFILELIBS $OSCDEFS $HTTPDEFS $MIDIDEFS $SOUNDFILEDEFS $ARCHLIB -lpthread -o "${f%.dsp}"
-		if [[ $(uname) == Darwin ]]; then
-		    codesign --sign - --deep --force "${f%.dsp}"
-		fi
-	) > /dev/null || exit
-	
-	# remove tempory files
-	rm -f "$f.cpp"
+    # compile c++ to binary
+    (
+        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack` $PROCARCH $SOUNDFILELIBS $OSCDEFS $HTTPDEFS $MIDIDEFS $SOUNDFILEDEFS $ARCHLIB -lpthread -o "${f%.dsp}"
+        if [[ $(uname) == Darwin ]]; then
+            codesign --sign - --deep --force "${f%.dsp}"
+        fi
+    ) > /dev/null || exit
+    
+    # remove tempory files
+    rm -f "$f.cpp"
 
-	# collect binary file name for FaustWorks
-	BINARIES="$BINARIES${f%.dsp};"
+    # collect binary file name for FaustWorks
+    BINARIES="$BINARIES${f%.dsp};"
 done
 
 echo $BINARIES

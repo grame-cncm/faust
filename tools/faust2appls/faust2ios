@@ -33,7 +33,7 @@ do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2ios "[options] [Faust options] <file.dsp>"
         platform iOS
-        echo "Compiles Faust programs to iOS applications."
+        echo "Compiles Faust programs to iOS applications"
         option
         options -midi -osc -soundfile
         option "-nvoices <num>"
@@ -44,7 +44,7 @@ do
         option -archive "to generate the archive for Apple Store"
         option -32bits "to compile 32 bits only binary"
         option -noagc "to deactivate audio automatic gain control"
-    	exit
+        exit
     fi
 
     if [ $p = "-osc" ]; then
@@ -72,7 +72,7 @@ do
         NOAGC="1"
     elif [ "$p" = "-archive" ]; then
         ARCHIVE="1"
-   	elif [ ${p:0:1} = "-" ]; then
+       elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
@@ -134,10 +134,10 @@ for p in $FILES; do
     XCODEPROJ="${F%.dsp}"
     SRCDIR=$(dirname "$p")
 
-	T=$(mktemp -d faust.XXX)
-	cp -r $FAUSTARCH/iOS/* $T
-	
-	if [ "$ALL" = "1" ]; then
+    T=$(mktemp -d faust.XXX)
+    cp -r $FAUSTARCH/iOS/* $T
+    
+    if [ "$ALL" = "1" ]; then
         echo "Compile with CoreAudio support in 64/32 bits"
         faust -i $OPTIONS -json -a $ARCHFILE "$p" -o "$T/ios-faust.h" || exit
         addOptions
@@ -190,7 +190,7 @@ EndOfCode
             exit
         fi
         (
-        	# Build the binary
+            # Build the binary
             xcodebuild -project "$T/iOS.xcodeproj" -target Template_CoreAudio_32bits PRODUCT_NAME=$P || exit
             # Build the archive
             if [ "$ARCHIVE" = "1" ]; then
@@ -199,7 +199,7 @@ EndOfCode
                 cd $P.xcarchive && cp Info.plist Info-tmp.plist && sed -e "s/Template_CoreAudio/"$P"/g" Info-tmp.plist > Info.plist && rm Info-tmp.plist
             fi
         ) > /dev/null || exit
- 	fi
+     fi
 
     # move generated app to source directory
     rm -rf "$S/$P.app"
@@ -259,7 +259,7 @@ EndOfCode
         rm $p-tmp.txt
     fi
 
-	# collect binary file name for FaustGIDE
+    # collect binary file name for FaustGIDE
     if [ "$ARCHIVE" = "1" ]; then
         BINARIES="$BINARIES$S/$P.app; $BINARIES$S/$P.xcarchive;"
     else

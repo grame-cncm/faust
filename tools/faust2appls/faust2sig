@@ -11,22 +11,22 @@ FORMAT="pdf"
 
 # Analyze command line
 for p in $@; do
-	if [ $p = "-help" ] || [ $p = "-h" ]; then
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2sig "[options] <file.dsp>" to display the graph of signals
         option "-svg" to display the SVG
         exit
     fi
     if [ "$p" = -svg ]; then
         FORMAT="svg"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    IGNORE="$IGNORE $p"
-	fi
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        IGNORE="$IGNORE $p"
+    fi
 done
 
 for f in $FILES; do
     faust -sg $f -o /dev/null || exit
-	dot -T$FORMAT $f-sig.dot -o $f.sig.$FORMAT
-	rm $f-sig.dot
+    dot -T$FORMAT $f-sig.dot -o $f.sig.$FORMAT
+    rm $f-sig.dot
 done
