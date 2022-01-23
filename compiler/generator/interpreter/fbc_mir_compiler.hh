@@ -33,11 +33,8 @@
 extern "C" {
 #endif
 
-//#include "mir.h"
-//#include "mir-gen.h"
-
-#include "/Users/letz/Developpements/JIT-compilation/mir/mir.h"
-#include "/Users/letz/Developpements/JIT-compilation/mir/mir-gen.h"
+#include <mir.h>
+#include <mir-gen.h>
     
 #ifdef __cplusplus
 }
@@ -614,18 +611,18 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                 }
 
                 case FBCInstruction::kBitcastInt: {
+                    // MIR_reg_t val = popValue();
+                    // it++;
                     // TODO
                     faustassert(false);
-                    MIR_reg_t val = popValue();
-                    it++;
                     break;
                 }
 
                 case FBCInstruction::kBitcastReal: {
+                    // MIR_reg_t val = popValue();
+                    // it++;
                     // TODO
                     faustassert(false);
-                    MIR_reg_t val = popValue();
-                    it++;
                     break;
                 }
 
@@ -1104,7 +1101,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         MIR_gen_init(fContext, 1);
     
         // Optimize the code (default = 2)
-        MIR_gen_set_optimize_level(fContext, 0, 0);
+        MIR_gen_set_optimize_level(fContext, 0, 2);
     
         fCompiledFun = (compiledFun)MIR_gen(fContext, 0, fCompute);
         MIR_gen_finish(fContext);

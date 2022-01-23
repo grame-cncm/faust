@@ -26,7 +26,6 @@
 #include "fir_to_fir.hh"
 #include "instructions_compiler.hh"
 #include "interpreter_dsp.hh"
-
 #include "interpreter_instructions.hh"
 #include "vec_code_container.hh"
 

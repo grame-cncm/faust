@@ -41,7 +41,7 @@ Interpreter backend description:
  - subcontainers code is 'inlined' : fields declarations (using the global visitor) and code 'classInit', and
 'instanceInit' of the main container
  - 'clone' method is implemented in the 'interpreter_dsp' wrapping code
- - soundfile: Soundfile* pointers are put in special Sound heap
+ - soundfile: Soundfile* pointers are put in special Sound heap (TODO)
 
  TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and destroy time (after
 global memory allocation is implemented)
