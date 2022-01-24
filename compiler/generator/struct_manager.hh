@@ -80,7 +80,7 @@ struct StructInstVisitor : public DispatchVisitor {
     // Vector is used so that field names are ordered in 'getStructType'
     typedef vector<pair<string, MemoryDesc> > field_table_type;
     
-    field_table_type fFieldTable;  // Table: field_name, { index, offset, size, type }
+    field_table_type fFieldTable;  // Table: field_name, MemoryDesc
     
     StructInstVisitor() : fStructIntOffset(0), fStructRealOffset(0), fFieldIndex(0) {}
     
@@ -308,7 +308,6 @@ struct StructInstVisitor1 : public StructInstVisitor {
                                                                      array_typed->fSize,
                                                                      type,
                                                                      MemoryDesc::kLocal)));
-                    
                 }
             } else {
                 // Should never happen...
