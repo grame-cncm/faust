@@ -45,7 +45,7 @@ enum {
 /**
  * DSP factory class.
  * Each received DSP source will be compiled as a 'DSP factory'. Depending of the kind of created factory
- * (local = client side) or (remote = server side), 'DSP instances' will be create locally or remotely.
+ * (local = client side) or (remote = server side), 'DSP instances' will be created locally or remotely.
  * Remote 'DSP instances' will be connected to the client side using NetJack master/slave connection
  * or possibly launched on server side.
  */

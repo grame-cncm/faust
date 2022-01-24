@@ -174,9 +174,11 @@ clean :
 	$(MAKE) -C tools/benchmark clean
 
 
-doc: $(wildcard compiler/*.cpp) $(wildcard compiler/*/*.cpp)  $(wildcard compiler/*/*.h) $(wildcard compiler/*/*.hh)
-	cd compiler && doxygen
-
+doc: $(wildcard compiler/*.cpp) $(wildcard compiler/*/*.cpp) $(wildcard compiler/*/*.h) $(wildcard compiler/*/*.hh)
+	cd documentation/libfaust && doxygen
+	cd documentation/libfaustremote && doxygen
+	cd documentation/compiler && doxygen
+	
 
 format :
 	find compiler -path compiler/parser -prune -o -iname '*.cpp' -execdir clang-format -i -style=file {} \;

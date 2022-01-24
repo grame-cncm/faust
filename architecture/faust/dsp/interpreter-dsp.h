@@ -216,7 +216,7 @@ interpreter_dsp_factory* createInterpreterDSPFactoryFromBoxes(const std::string&
 /**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possibly really deleting the internal pointer.
  * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted.
- * Beware : all kept factories and DSP pointers (in local variables...) thus become invalid.
+ * Beware: all kept factories and DSP pointers (in local variables...) thus become invalid.
  * 
  * @param factory - the DSP factory
  *
@@ -236,7 +236,7 @@ bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory);
 DEPRECATED(std::vector<std::string> getInterpreterDSPFactoryLibraryList(interpreter_dsp_factory* factory));
 
 /**
- * Delete all Faust DSP factories kept in the library cache. Beware : all kept factory and DSP pointers (in local variables...) thus become invalid.
+ * Delete all Faust DSP factories kept in the library cache. Beware: all kept factory and DSP pointers (in local variables...) thus become invalid.
  * 
  */                                 
 void deleteAllInterpreterDSPFactories();
