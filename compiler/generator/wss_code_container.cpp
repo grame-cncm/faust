@@ -106,8 +106,8 @@ void WSSCodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* gen_code,
     for (int l = int(dag.size()) - 1; l >= 0; l--) {
         for (const auto& p : dag[l]) {
             if (p->getBackwardLoopDependencies().size() > 1) {  // Only initialize tasks with more than 1 input,
-                                                                   // since tasks with one input are "directly"
-                                                                   // activated.
+                                                                // since tasks with one input are "directly"
+                                                                // activated.
                 list<ValueInst*> fun_args;
                 fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));
                 fun_args.push_back(InstBuilder::genInt32NumInst(p->getIndex()));

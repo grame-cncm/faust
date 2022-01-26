@@ -31,7 +31,8 @@
 
 using namespace std;
 
-map<Tree, string> boxppShared::fExpTable;
+std::map<Tree, std::pair<int, std::string>> boxppShared::fExpTable;
+int boxppShared::fExpCounter = 0;
 
 const char* prim0name(CTree *(*ptr)())
 {
@@ -383,10 +384,10 @@ ostream& boxpp::print(ostream& fout) const
 #define INSERT_ID(exp)                             \
     if (fExpTable.find(fBox) == fExpTable.end()) { \
         stringstream s;                            \
-        (exp);                                     \
-        fExpTable[fBox] = s.str();                 \
+        (exp);                                                     \
+        fExpTable[fBox] = std::make_pair(fExpCounter++, s.str());  \
     }                                              \
-    fout << "ID_" << fBox;                         \
+    fout << "ID_" << fExpTable[fBox].first;        \
 
 ostream& boxppShared::print(ostream& fout) const
 {
@@ -458,10 +459,10 @@ ostream& boxppShared::print(ostream& fout) const
             s << ')';
             s << ',' << ffincfile(ff) << ',' << fflibfile(ff) << ')';
             
-            fExpTable[fBox] = s.str();
+            fExpTable[fBox] = std::make_pair(fExpCounter++, s.str());
         }
-        // Tree used a ID
-        fout << "ID_" << fBox;
+        // fExpCounter used a ID
+        fout << "ID_" << fExpTable[fBox].first;
     } else if (isBoxFConst(fBox, type, name, file)) {
         INSERT_ID(s << "fconstant(" << type2str(tree2int(type)) << ' ' << tree2str(name) << ", " << tree2str(file) << ')');
     } else if (isBoxFVar(fBox, type, name, file)) {
@@ -533,10 +534,10 @@ ostream& boxppShared::print(ostream& fout) const
             } while (isList(l));
             
             s << ')';
-            fExpTable[fBox] = s.str();
+            fExpTable[fBox] = std::make_pair(fExpCounter++, s.str());
         }
-        // Tree used a ID
-        fout << "ID_" << fBox;
+        // fExpCounter used a ID
+        fout << "ID_" << fExpTable[fBox].first;
     } else if (isBoxWaveform(fBox)) {
         if (fExpTable.find(fBox) == fExpTable.end()) {
             stringstream s;
@@ -547,10 +548,10 @@ ostream& boxppShared::print(ostream& fout) const
                 sep = ',';
             }
             s << '}';
-            fExpTable[fBox] = s.str();
+            fExpTable[fBox] = std::make_pair(fExpCounter++, s.str());
         }
-        // Tree used a ID
-        fout << "ID_" << fBox;
+        // fExpCounter used a ID
+        fout << "ID_" << fExpTable[fBox].first;
     } else if (isBoxEnvironment(fBox)) {
         fout << "environment";
     } else if (isClosure(fBox, abstr, genv, vis, lenv)) {
@@ -615,7 +616,7 @@ ostream& boxppShared::print(ostream& fout) const
 void boxppShared::printIDs(ostream& fout)
 {
     for (const auto& it : fExpTable) {
-        fout << "ID_" << it.first << " = " << it.second << ';' << endl;
+        fout << "ID_" << it.second.first << " = " << it.second.second << ';' << endl;
     }
 }
 
