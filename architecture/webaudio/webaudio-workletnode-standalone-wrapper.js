@@ -448,7 +448,7 @@ class mydsp {
             let HEAPU8 = new Uint8Array(dspInstance.exports.memory.buffer);
             let json = this.heap2Str(HEAPU8);
             let json_object = JSON.parse(json);
-            let options = { wasm_module: dspModule, json: json };
+            let options = { wasm_buffer: dspBuffer, json: json };
 
             if (this.fWorkletProcessors.indexOf(name) === -1) {
                 try {
@@ -673,7 +673,8 @@ let mydspProcessorString = `
                     }
             };
             
-            this.mydsp_instance = new WebAssembly.Instance(options.processorOptions.wasm_module, importObject);
+            const wasmModule = new WebAssembly.Module(options.processorOptions.wasm_buffer);
+            this.mydsp_instance = new WebAssembly.Instance(wasmModule, importObject);
             this.json_object = JSON.parse(options.processorOptions.json);
          
             this.output_handler = function(path, value) { this.port.postMessage({ path: path, value: value }); };

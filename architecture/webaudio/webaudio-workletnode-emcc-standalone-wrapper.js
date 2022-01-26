@@ -405,7 +405,6 @@ class mydsp {
             let real_url = (this.baseURL === "") ? "mydsp.wasm" : (this.baseURL + "/mydsp.wasm");
             const wasm_file = await fetch(real_url);
             const wasm_buffer = await wasm_file.arrayBuffer();
-            const wasm_module = await WebAssembly.compile(wasm_buffer);
             const json = faust_module.wasm_dsp_factory.extractJSON(wasm_buffer);
 
             // Load soundfiles
@@ -414,7 +413,7 @@ class mydsp {
             return new Promise((resolve, reject) => {
 
                 let json_object = JSON.parse(json);
-                let options = { wasm_module: wasm_module, json: json, soundfiles: soundfiles };
+                let options = { wasm_buffer: wasm_buffer, json: json, soundfiles: soundfiles };
 
                 let re = /JSON_STR/g;
                 let mydspProcessorString1 = mydspProcessorString.replace(re, json);
@@ -663,7 +662,8 @@ let mydspProcessorString = `
                                                         AudioWorkletGlobalScope.faust_module.FS.close(stream);
                                                         });
             
-            this.wasm_instance = new WebAssembly.Instance(options.processorOptions.wasm_module, importObject);
+            const wasmModule = new WebAssembly.Module(options.processorOptions.wasm_buffer);
+            this.wasm_instance = new WebAssembly.Instance(wasmModule, importObject);
             AudioWorkletGlobalScope.faust_module.faust.wasm_instance.push(this.wasm_instance);
             this.json_object = JSON.parse(options.processorOptions.json);
             this.factory = AudioWorkletGlobalScope.faust_module.wasm_dsp_factory.createWasmDSPFactory(0, options.processorOptions.json);

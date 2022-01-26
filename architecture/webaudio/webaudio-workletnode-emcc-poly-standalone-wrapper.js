@@ -481,7 +481,7 @@ class mydspPoly {
 
             let json_object = JSON.parse(json);
 
-            let options = { wasm_module: wasm_module.module, json: json, wasm_effect_module: ((wasm_effect_module) ? wasm_effect_module.module : null), json_effect: json_effect, soundfiles: soundfiles, json_all: json_all, polyphony: this.polyphony };
+            let options = { wasm_buffer: wasm_buffer, json: json, wasm_effect_module: ((wasm_effect_module) ? wasm_effect_module.module : null), json_effect: json_effect, soundfiles: soundfiles, json_all: json_all, polyphony: this.polyphony };
 
             let re = /JSON_STR/g;
             let mydspPolyProcessorString1 = mydspPolyProcessorString.replace(re, json_all);
@@ -738,7 +738,8 @@ let mydspPolyProcessorString = `
                                                         AudioWorkletGlobalScope.faust_module.FS.close(stream);
                                                         });
             
-            this.wasm_instance = new WebAssembly.Instance(options.processorOptions.wasm_module, importObject);
+            const wasmModule = new WebAssembly.Module(options.processorOptions.wasm_buffer);
+            this.wasm_instance = new WebAssembly.Instance(wasmModule, importObject);
             AudioWorkletGlobalScope.faust_module.faust.wasm_instance.push(this.wasm_instance);
             this.factory = AudioWorkletGlobalScope.faust_module.wasm_dsp_factory.createWasmDSPFactory(0, options.processorOptions.json);
             
