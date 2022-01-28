@@ -32,12 +32,12 @@
 using namespace std;
 
 // Uncomment to activate type inferrence tracing
-#define TRACE(x) x
+//#define TRACE(x) x
 
-// #define TRACE(x) \
-//     {            \
-//         ;        \
-//     }
+#define TRACE(x) \
+    {            \
+        ;        \
+    }
 
 AudioType::AudioType(int n, int v, int c, int vec, int b, interval i, res r)
     : fNature(n), fVariability(v), fComputability(c), fVectorability(vec), fBoolean(b), fInterval(i), fRes(r), fCode(0)
@@ -413,7 +413,21 @@ AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i
  */
 static Tree codeTableType(TableType* tt)
 {
-    return tree(gGlobal->TABLETYPE, codeAudioType(tt->content()));
+    vector<Tree> elems;
+    elems.push_back(tree(tt->nature()));
+    elems.push_back(tree(tt->variability()));
+    elems.push_back(tree(tt->computability()));
+    elems.push_back(tree(tt->vectorability()));
+    elems.push_back(tree(tt->boolean()));
+
+    elems.push_back(tree(tt->getInterval().valid));
+    elems.push_back(tree(tt->getInterval().lo));
+    elems.push_back(tree(tt->getInterval().hi));
+
+    elems.push_back(tree(tt->getRes().valid));
+    elems.push_back(tree(tt->getRes().index));
+
+    return CTree::make(gGlobal->TABLETYPE, elems);
 }
 
 AudioType* makeTableType(const Type& ct)
