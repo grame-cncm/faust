@@ -31,6 +31,25 @@
 
 using namespace std;
 
+// Uncomment to activate type inferrence tracing
+#define TRACE(x) x
+
+// #define TRACE(x) \
+//     {            \
+//         ;        \
+//     }
+
+AudioType::AudioType(int n, int v, int c, int vec, int b, interval i, res r)
+    : fNature(n), fVariability(v), fComputability(c), fVectorability(vec), fBoolean(b), fInterval(i), fRes(r), fCode(0)
+{
+    TRACE(cerr << gGlobal->TABBER << "Building audioType : n="
+               << "NR"[n] << ", v="
+               << "KB?S"[v] << ", c="
+               << "CI?E"[c] << ", vec="
+               << "VS?TS"[vec] << ", b="
+               << "N?B"[b] << ", i=" << i << endl);
+}  ///< constructs an abstract audio type
+
 bool SimpleType::isMaximal() const  ///< true when type is maximal (and therefore can't change depending of hypothesis)
 {
     return (fNature == kReal) && (fVariability == kSamp) && (fComputability == kExec);
@@ -424,13 +443,13 @@ AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec, int b, co
         return tt;
     } else {
         gGlobal->gAllocationCount++;
-        tt = new TableType(prototype);
+        tt = new TableType(ct, n, v, c, vec, b, i);
         gGlobal->gMemoizedTypes->set(code, tt);
         tt->setCode(code);
         return tt;
     }
 }
-
+/*
 AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec)
 {
     TableType  prototype(ct, n, v, c, vec);
@@ -446,6 +465,7 @@ AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec)
         return tt;
     }
 }
+*/
 
 /**
  * Code a tuplet type as a tree in order to benefit of memoization

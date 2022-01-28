@@ -65,12 +65,12 @@ TupletType derefRecCert(Type t);
 static interval arithmetic(int opcode, const interval& x, const interval& y);
 
 // Uncomment to activate type inferrence tracing
-// #define TRACE(x) x
+#define TRACE(x) x
 
-#define TRACE(x) \
-    {            \
-        ;        \
-    }
+// #define TRACE(x) \
+//     {            \
+//         ;        \
+//     }
 
 /**
  * The empty type environment (also property key for closed term type)
@@ -689,13 +689,27 @@ static Type infereWriteTableType(Type tbl, Type wi, Type wd)
         error << "ERROR inferring write table type, wrong write index type : " << wi << endl;
         throw faustexception(error.str());
     }
+    TRACE(cerr << gGlobal->TABBER << "infering write table type : wi type = " << wi << endl);
+    TRACE(cerr << gGlobal->TABBER << "infering write table type : wd type = " << wd << endl);
 
-    int n   = tt->nature();
-    int v   = wi->variability() | wd->variability();
-    int c   = wi->computability() | wd->computability();
-    int vec = wi->vectorability() | wd->vectorability();
+    int      n   = wd->nature();
+    int      b   = wd->boolean();
+    int      v   = wi->variability() | wd->variability();
+    int      c   = wi->computability() | wd->computability();
+    int      vec = wi->vectorability() | wd->vectorability();
+    interval i   = wd->getInterval();
+    // return dst << "NR"[nature()] << "KB?S"[variability()] << "CI?E"[computability()] << "VS?TS"[vectorability()]
+    //            << "N?B"[boolean()] << " " << fInterval;
 
-    return makeTableType(tt->content(), n, v, c, vec);
+    TRACE(cerr << gGlobal->TABBER << "infering write table type : n="
+               << "NR"[n] << ", v="
+               << "KB?S"[v] << ", c="
+               << "CI?E"[c] << ", vec="
+               << "VS?TS"[vec] << ", b="
+               << "N?B"[b] << ", i=" << i << endl);
+    Type tbltype = makeTableType(tt->content(), n, v, c, vec, b, i);
+    TRACE(cerr << gGlobal->TABBER << "infering write table type : result=" << tbltype << endl);
+    return tbltype;
 }
 
 /**
