@@ -189,7 +189,10 @@ int main(int argc, char* argv[])
 #endif
     
     dummyaudio audio(44100, 128, 5, 128);
-    audio.init(name, DSP);
+    if (!audio.init(name, DSP)) {
+        cerr << "Unable to init audio" << endl;
+        exit(1);
+    }
     
 #ifdef MIDICTRL
     rt_midi midi_handler(name);
@@ -209,7 +212,10 @@ int main(int argc, char* argv[])
     }
     
     // Play notes once
-    audio.start();
+    if (!audio.start()) {
+        cerr << "Unable to start audio" << endl;
+        exit(1);
+    }
     
     cout << "ins " << audio.getNumInputs() << endl;
     cout << "outs " << audio.getNumOutputs() << endl;
@@ -229,7 +235,10 @@ int main(int argc, char* argv[])
     }
     
     // Play notes a second time
-    audio.start();
+    if (!audio.start()) {
+        cerr << "Unable to start audio" << endl;
+        exit(1);
+    }
     
     cout << "ins " << audio.getNumInputs() << endl;
     cout << "outs " << audio.getNumOutputs() << endl;
@@ -249,7 +258,10 @@ int main(int argc, char* argv[])
     }
     
     // Play notes a third time
-    audio.start();
+    if (!audio.start()) {
+        cerr << "Unable to start audio" << endl;
+        exit(1);
+    }
     
     cout << "ins " << audio.getNumInputs() << endl;
     cout << "outs " << audio.getNumOutputs() << endl;

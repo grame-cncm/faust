@@ -186,8 +186,8 @@ class CMDUI : public UI
         virtual bool run()
         {
             char c;
-            std::cout << "Type Ctrl-C to quit\n";
-            while (true) {
+            std::cout << "Type 'q' to quit\n";
+            while ((c = getchar()) && (c != 'q')) {
                 usleep(40 * 1000); // 25Hz
                 GUI::updateAllGuis();
             }
@@ -226,9 +226,7 @@ class CMDUI : public UI
             std::map<std::string, param>::iterator p;
             for (int i = 1; i < fArgc; i++) {
                 if (fArgv[i][0] == '-') {
-                    if ((strcmp(fArgv[i], "-help") == 0)
-                        || (strcmp(fArgv[i], "-h") == 0)
-                        || (strcmp(fArgv[i], "--help") == 0)) {
+                    if ((strcmp(fArgv[i], "-help") == 0) || (strcmp(fArgv[i], "-h") == 0)) {
                         printhelp_command(file_mode);
                     }
                     p = fKeyParam.find(fArgv[i]);

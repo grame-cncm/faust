@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
 
     snprintf(name, 256, "%s", basename(argv[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, name);
-
+  
     CMDUI interface(argc, argv, true);
     FUI finterface;
     
@@ -184,7 +184,8 @@ int main(int argc, char* argv[])
     DSP->buildUserInterface(&finterface);
     
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << argv[0] << " [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
+        cout << argv[0] << " [--nvoices <num>] [--control <0/1>] [--group <0/1>]\n";
+        interface.printhelp_init();
     }
  
 #ifdef HTTPCTRL
@@ -195,11 +196,13 @@ int main(int argc, char* argv[])
     
 #ifdef MIDICTRL
     jackaudio_midi audio;
-    audio.init(name, DSP);
 #else
     jackaudio audio;
-    audio.init(name, DSP);
 #endif
+    if (!audio.init(name, DSP)) {
+        cerr << "Unable to init audio" << endl;
+        exit(1);
+    }
     
 #ifdef OSCCTRL
     OSCUI oscinterface(name, argc, argv);

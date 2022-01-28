@@ -93,7 +93,7 @@ ztimedmap GUI::gTimedZoneMap;
 //-------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
-    char appname[256];
+    char name[256];
     char rcfilename[256];
     char* home = getenv("HOME");
     bool midi_sync = false;
@@ -110,8 +110,8 @@ int main(int argc, char* argv[])
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
     
-    snprintf(appname, 256, "%s", basename(argv[0]));
-    snprintf(rcfilename, 256, "%s/.%src", home, appname);
+    snprintf(name, 256, "%s", basename(argv[0]));
+    snprintf(rcfilename, 256, "%s/.%src", home, name);
     
     CMDUI interface(argc, argv, true);
     FUI finterface;
@@ -171,20 +171,21 @@ int main(int argc, char* argv[])
     
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
         cout << argv[0] << " [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
+        interface.printhelp_init();
     }
   
 #ifdef HTTPCTRL
-    httpdUI* httpdinterface = new httpdUI(appname, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
+    httpdUI* httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(httpdinterface);
 #endif
 
 #ifdef OSCCTRL
-    GUI* oscinterface = new OSCUI(appname, argc, argv);
+    GUI* oscinterface = new OSCUI(name, argc, argv);
     DSP->buildUserInterface(oscinterface);
 #endif
     
     netjackaudio_midicontrol audio(celt, master_ip, master_port, mtu, latency);
-    if (!audio.init(appname, DSP)) {
+    if (!audio.init(name, DSP)) {
         cerr << "Unable to init audio" << endl;
         exit(1);
     }

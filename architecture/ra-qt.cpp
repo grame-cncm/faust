@@ -189,8 +189,14 @@ int main(int argc, char* argv[])
 #endif
     
     rtaudio audio(srate, fpb);
-    audio.init(name, DSP);
-    audio.start();
+    if (!audio.init(name, DSP)) {
+        cerr << "Unable to init audio" << endl;
+        exit(1);
+    }
+    if (!audio.start()) {
+        cerr << "Unable to start audio" << endl;
+        exit(1);
+    }
     
     std::cout << "ins " << audio.getNumInputs() << std::endl;
     std::cout << "outs " << audio.getNumOutputs() << std::endl;

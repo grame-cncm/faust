@@ -197,11 +197,13 @@ int main(int argc, char* argv[])
     
 #ifdef MIDICTRL
     jackaudio_midi audio;
-    audio.init(name, DSP);
 #else
     jackaudio audio;
-    audio.init(name, DSP);
 #endif
+    if (!audio.init(name, DSP)) {
+        cerr << "Unable to init audio" << endl;
+        exit(1);
+    }
     
 // After audio init to get SR
 #ifdef SOUNDFILE
@@ -224,7 +226,10 @@ int main(int argc, char* argv[])
     cout << "MIDI is on" << endl;
 #endif
     
-    audio.start();
+    if (!audio.start()) {
+        cerr << "Unable to start audio" << endl;
+        exit(1);
+    }
     
     cout << "ins " << audio.getNumInputs() << endl;
     cout << "outs " << audio.getNumOutputs() << endl;

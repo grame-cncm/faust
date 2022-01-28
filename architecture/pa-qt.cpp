@@ -213,9 +213,15 @@ int main(int argc, char* argv[])
 #endif
 
     portaudio audio(srate, fpb);
-    audio.init(name, DSP);
+    if (!audio.init(name, DSP)) {
+        cerr << "Unable to init audio" << endl;
+        exit(1);
+    }
     finterface->recallState(rcfilename);
-    audio.start();
+    if (!audio.start()) {
+        cerr << "Unable to start audio" << endl;
+        exit(1);
+    }
 
     std::cout << "ins " << audio.getNumInputs() << std::endl;
     std::cout << "outs " << audio.getNumOutputs() << std::endl;
