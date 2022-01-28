@@ -82,7 +82,8 @@ ostream& SimpleType::print(ostream& dst) const
  */
 ostream& TableType::print(ostream& dst) const
 {
-    dst << "KB?S"[variability()] << "CI?E"[computability()] << " " << fInterval << ":Table(";
+    dst << "NR"[nature()] << "KB?S"[variability()] << "CI?E"[computability()] << "VS?TS"[vectorability()]
+        << "N?B"[boolean()] << " " << fInterval << ":Table(";
     fContent->print(dst);
     return dst << ')';
 }
@@ -366,7 +367,8 @@ static Tree codeSimpleType(SimpleType* st)
     return CTree::make(gGlobal->SIMPLETYPE, elems);
 }
 
-AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i){
+AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i)
+{
     return makeSimpleType(n, v, c, vec, b, i, gGlobal->RES);
 }
 
