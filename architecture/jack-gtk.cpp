@@ -204,7 +204,7 @@ int main(int argc, char* argv[])
     jackaudio_midi audio;
 #else
     jackaudio audio;
- endif
+#endif
     if (!audio.init(name, DSP)) {
         cerr << "Unable to init audio" << endl;
         exit(1);

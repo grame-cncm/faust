@@ -126,7 +126,7 @@ if [ "x${TESTS}" != "x" ]; then
 
     if notinlist faust2dummy "${TESTS_EXCLUDED}"; then
         runtestref LOG good good faust2dummy good.dsp
-        runtestref LOG good_midi good_midi faust2dummy -midi good.dsp
+        runtestref LOG good good_midi faust2dummy -midi good.dsp
         runtestref LOG organ organ_2voices faust2dummy -midi -nvoices 2 organ.dsp
         runtestref LOG organ organ_8voices faust2dummy -midi organ.dsp
     fi
