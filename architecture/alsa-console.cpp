@@ -120,11 +120,11 @@ static bool hasMIDISync()
 
 int main(int argc, char *argv[] )
 {
-    char* appname = basename (argv [0]);
+    char* name = basename (argv [0]);
     char rcfilename[256];
     char* home = getenv("HOME");
     int nvoices = 0;
-    snprintf(rcfilename, 256, "%s/.%src", home, appname);
+    snprintf(rcfilename, 256, "%s/.%src", home, name);
 
 #ifdef POLY2
     nvoices = lopt(argv, "--nvoices", nvoices);
@@ -179,27 +179,35 @@ int main(int argc, char *argv[] )
     DSP->buildUserInterface(finterface);
 
 #ifdef MIDICTRL
-    rt_midi midi_handler(appname);
+    rt_midi midi_handler(name);
     MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
     cout << "MIDI is on" << endl;
 #endif
 
 #ifdef HTTPCTRL
-    httpdUI* httpdinterface = new httpdUI(appname, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
+    httpdUI* httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(httpdinterface);
     cout << "HTTPD is on" << endl;
 #endif
 
 #ifdef OSCCTRL
-    GUI* oscinterface = new OSCUI(appname, argc, argv);
+    GUI* oscinterface = new OSCUI(name, argc, argv);
     DSP->buildUserInterface(oscinterface);
 #endif
 
     alsaaudio audio(argc, argv, DSP);
-    audio.init(appname, DSP);
+    if (!audio.init(name, DSP)) {
+        cerr << "Unable to init audio" << endl;
+        exit(1);
+    }
+    
     finterface->recallState(rcfilename);
-    audio.start();
+    
+    if (!audio.start()) {
+        cerr << "Unable to start audio" << endl;
+        exit(1);
+    }
 
 #ifdef HTTPCTRL
     httpdinterface->run();

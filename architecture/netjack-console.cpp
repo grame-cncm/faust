@@ -168,9 +168,9 @@ int main(int argc, char* argv[])
 
     DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);
-    
+
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << argv[0] << " [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
+        cout << argv[0] << " [--nvoices <num>] [--control <0/1>] [--group <0/1>]\n";
         interface.printhelp_init();
     }
   
