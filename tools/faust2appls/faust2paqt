@@ -98,7 +98,7 @@ done
 if [[ $(uname) == Darwin ]]; then
     SPEC="-spec macx-g++"
     EXT=".app"
-    ARCHLIB="-L/usr/local/lib -L/opt/local/lib -lportaudio -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
+    ARCHLIB="-L/usr/local/lib -L/opt/local/lib -lportaudio -framework CoreMIDI -framework CoreFoundation -framework CoreAudio -framework AudioUnit -framework CoreServices"
 else
     ARCHLIB="-L/usr/local/lib -L/opt/local/lib -lportaudio -lasound"
 fi

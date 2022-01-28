@@ -127,7 +127,7 @@ done
 # Check Darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
-    ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio"
+    ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio -framework AudioUnit -framework CoreServices"
     HTTPLIBS="-L/opt/local/lib $HTTPLIBS"
     SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
     if [ $SYS_VERSION -ge 13 ]

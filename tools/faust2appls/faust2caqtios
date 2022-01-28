@@ -14,7 +14,7 @@
 CXXFLAGS+=" $MYGCCFLAGS -DIOS"  # So that additional CXXFLAGS can be used
 
 ARCHFILE="ca-qt.cpp"
-ARCHLIB="-framework AudioToolbox -framework CoreMIDI -framework CoreFoundation "
+ARCHLIB=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio -framework AudioUnit -framework CoreServices"
 PATH=$PATH:/usr/local/bin
 
 function nqmakeios() {
