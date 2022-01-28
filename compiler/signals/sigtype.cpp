@@ -31,6 +31,25 @@
 
 using namespace std;
 
+// Uncomment to activate type inferrence tracing
+//#define TRACE(x) x
+
+#define TRACE(x) \
+    {            \
+        ;        \
+    }
+
+AudioType::AudioType(int n, int v, int c, int vec, int b, interval i, res r)
+    : fNature(n), fVariability(v), fComputability(c), fVectorability(vec), fBoolean(b), fInterval(i), fRes(r), fCode(0)
+{
+    TRACE(cerr << gGlobal->TABBER << "Building audioType : n="
+               << "NR"[n] << ", v="
+               << "KB?S"[v] << ", c="
+               << "CI?E"[c] << ", vec="
+               << "VS?TS"[vec] << ", b="
+               << "N?B"[b] << ", i=" << i << endl);
+}  ///< constructs an abstract audio type
+
 bool SimpleType::isMaximal() const  ///< true when type is maximal (and therefore can't change depending of hypothesis)
 {
     return (fNature == kReal) && (fVariability == kSamp) && (fComputability == kExec);
@@ -394,7 +413,21 @@ AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i
  */
 static Tree codeTableType(TableType* tt)
 {
-    return tree(gGlobal->TABLETYPE, codeAudioType(tt->content()));
+    vector<Tree> elems;
+    elems.push_back(tree(tt->nature()));
+    elems.push_back(tree(tt->variability()));
+    elems.push_back(tree(tt->computability()));
+    elems.push_back(tree(tt->vectorability()));
+    elems.push_back(tree(tt->boolean()));
+
+    elems.push_back(tree(tt->getInterval().valid));
+    elems.push_back(tree(tt->getInterval().lo));
+    elems.push_back(tree(tt->getInterval().hi));
+
+    elems.push_back(tree(tt->getRes().valid));
+    elems.push_back(tree(tt->getRes().index));
+
+    return CTree::make(gGlobal->TABLETYPE, elems);
 }
 
 AudioType* makeTableType(const Type& ct)
@@ -424,23 +457,7 @@ AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec, int b, co
         return tt;
     } else {
         gGlobal->gAllocationCount++;
-        tt = new TableType(prototype);
-        gGlobal->gMemoizedTypes->set(code, tt);
-        tt->setCode(code);
-        return tt;
-    }
-}
-
-AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec)
-{
-    TableType  prototype(ct, n, v, c, vec);
-    Tree       code = codeAudioType(&prototype);
-    AudioType* tt;
-    if (gGlobal->gMemoizedTypes->get(code, tt)) {
-        return tt;
-    } else {
-        gGlobal->gAllocationCount++;
-        tt = new TableType(prototype);
+        tt = new TableType(ct, n, v, c, vec, b, i);
         gGlobal->gMemoizedTypes->set(code, tt);
         tt->setCode(code);
         return tt;

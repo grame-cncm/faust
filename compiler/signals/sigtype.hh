@@ -87,21 +87,17 @@ typedef P<AudioType> Type;
 
 class AudioType : public virtual Garbageable {
    protected:
-    int fNature;         ///< the kind of data represented
-    int fVariability;    ///< how fast values change
-    int fComputability;  ///< when are values available
-    int fVectorability;  ///< when a signal can be vectorized
-    int fBoolean;        ///< when a signal stands for a boolean value
-
-    interval fInterval;  ///< Minimal and maximal values the signal can take
-    res      fRes;       ///< Resolution (fixed-point)
-    Tree     fCode;      ///< Tree representation (for memoization purposes)
+    int      fNature;         ///< the kind of data represented
+    int      fVariability;    ///< how fast values change
+    int      fComputability;  ///< when are values available
+    int      fVectorability;  ///< when a signal can be vectorized
+    int      fBoolean;        ///< when a signal stands for a boolean value
+    interval fInterval;       ///< Minimal and maximal values the signal can take
+    res      fRes;            ///< Resolution (fixed-point)
+    Tree     fCode;           ///< Tree representation (for memoization purposes)
 
    public:
-    AudioType(int n, int v, int c, int vec = kVect, int b = kNum, interval i = interval(), res r = res())
-        : fNature(n), fVariability(v), fComputability(c), fVectorability(vec), fBoolean(b), fInterval(i), fRes(r), fCode(0)
-    {
-    }                        ///< constructs an abstract audio type
+    AudioType(int n, int v, int c, int vec = kVect, int b = kNum, interval i = interval(), res r = res());
     virtual ~AudioType() {}  ///< not really useful here, but make compiler happier
 
     int nature() const { return fNature; }  ///< returns the kind of values (integre or floating point)
@@ -117,17 +113,17 @@ class AudioType : public virtual Garbageable {
     int boolean() const { return fBoolean; }              ///< returns when a signal stands for a boolean value
 
     interval getInterval() const { return fInterval; }  ///< returns the interval (min dn max values) of a signal
-    res getRes() const { return fRes; } ///< return the resolution of the signal (fixed)
-    
+    res      getRes() const { return fRes; }            ///< return the resolution of the signal (fixed)
+
     void setCode(Tree code) { fCode = code; }  ///< returns the interval (min dn max values) of a signal
     Tree getCode() { return fCode; }           ///< returns the interval (min dn max values) of a signal
 
-    virtual AudioType* promoteNature(int n)        = 0;  ///< promote the nature of a type
-    virtual AudioType* promoteVariability(int n)   = 0;  ///< promote the variability of a type
-    virtual AudioType* promoteComputability(int n) = 0;  ///< promote the computability of a type
-    virtual AudioType* promoteVectorability(int n) = 0;  ///< promote the vectorability of a type
-    virtual AudioType* promoteBoolean(int n)       = 0;  ///< promote the booleanity of a type
-    virtual AudioType* promoteInterval(const interval& i) = 0; ///< promote the interval of a type
+    virtual AudioType* promoteNature(int n)               = 0;  ///< promote the nature of a type
+    virtual AudioType* promoteVariability(int n)          = 0;  ///< promote the variability of a type
+    virtual AudioType* promoteComputability(int n)        = 0;  ///< promote the computability of a type
+    virtual AudioType* promoteVectorability(int n)        = 0;  ///< promote the vectorability of a type
+    virtual AudioType* promoteBoolean(int n)              = 0;  ///< promote the booleanity of a type
+    virtual AudioType* promoteInterval(const interval& i) = 0;  ///< promote the interval of a type
 
     virtual ostream& print(ostream& dst) const = 0;  ///< print nicely a type
     ///< true when type is maximal (and therefore can't change depending of hypothesis)
@@ -219,10 +215,9 @@ inline interval mergeinterval(const vector<Type>& v)
 
 AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i);
 AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i, const res& lsb);
-//didn't use a default arg, would have created a cyclic dependancy with global.hh
+// didn't use a default arg, would have created a cyclic dependancy with global.hh
 
 AudioType* makeTableType(const Type& ct);
-AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec);
 AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec, int b, const interval& i);
 
 AudioType* makeTupletType(const vector<Type>& vt);
@@ -236,7 +231,8 @@ AudioType* makeTupletType(const vector<Type>& vt, int n, int v, int c, int vec, 
  */
 class SimpleType : public AudioType {
    public:
-    SimpleType(int n, int v, int c, int vec, int b, const interval& i, const res& lsb) : AudioType(n, v, c, vec, b, i, lsb)
+    SimpleType(int n, int v, int c, int vec, int b, const interval& i, const res& lsb)
+        : AudioType(n, v, c, vec, b, i, lsb)
     {
         // cerr << "new simple type " << i << " -> " << *this << endl;
     }  ///< constructs a SimpleType from a nature a variability and a computability
@@ -267,13 +263,13 @@ class SimpleType : public AudioType {
     {
         // cerr << "promote to Interval " << i << endl;
         // cerr << "for type : " << *this << endl;
-        Type t = makeSimpleType(fNature, fVariability, fComputability, fVectorability, fBoolean, i);  ///< promote the interval of a type
-                                                                                                      // cerr << "gives type " << *t << endl;
+        Type t = makeSimpleType(fNature, fVariability, fComputability, fVectorability, fBoolean,
+                                i);  ///< promote the interval of a type
+                                     // cerr << "gives type " << *t << endl;
         return t;
     }
-    virtual bool isMaximal()
-            const;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
-    };
+    virtual bool isMaximal() const;  ///< true when type is maximal (and therefore can't change depending of hypothesis)
+};
 
 inline Type intCast(Type t)
 {
@@ -532,7 +528,7 @@ Type checkIntParam(Type t);  ///< check that t is a known at init time, constant
 
 Type checkWRTbl(Type tbl, Type wr);  ///< check that wr is compatible with tbl content
 
-int checkDelayInterval(Type t);      ///< check if the interval of t is appropriate for a delay
+int checkDelayInterval(Type t);  ///< check if the interval of t is appropriate for a delay
 
 //--------------------------------------------------
 // Type conversion
