@@ -53,6 +53,7 @@ do
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
         HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+        HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
     elif [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
@@ -83,7 +84,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS "$f.cpp" $OSCDEFS $HTTPDEFS $POLYDEFS $MIDIDEFS $ARCHLIB -o "${f%.dsp}"
+		$CXX $CXXFLAGS "$f.cpp" $OSCDEFS $HTTPDEFS $HTTPLIBS $POLYDEFS $MIDIDEFS $ARCHLIB -o "${f%.dsp}"
 		if [[ $(uname) == Darwin ]]; then
 		    codesign --sign - --deep --force "${f%.dsp}"
 		fi

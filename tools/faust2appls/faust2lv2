@@ -89,6 +89,7 @@ EOF
     elif [ $p = "-httpd" ]; then
 		HTTPDEFS="DEFINES += HTTPCTRL"
 		HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+		HTTPLIBS1=`pkg-config --cflags --libs libmicrohttpd`
     elif [ $p = "-qrcode" ]; then # requires -httpd
 		QRDEFS="DEFINES += QRCODECTRL"
     elif [ $p = "-nometa" ]; then
@@ -194,7 +195,7 @@ mkdir -p $uitmpdir
 faust -i -a  "$FAUSTLIB/$archui" -cn "$clsname" $OPTIONS "$dspname" -o "$uitmpdir/$uicppname" || exit 1
 (
     cd $uitmpdir
-    $QMAKE -project -t lib -o ${clsname}ui.pro "CONFIG += gui plugin no_plugin_name_prefix warn_off" "QT += widgets printsupport network" "INCLUDEPATH+=$ABSDIR" "INCLUDEPATH+=$CURDIR" "INCLUDEPATH+=$FAUSTLIB" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=-std=c++11 $(echo $CPPFLAGS|sed -e 's/"/\\\\\\"/g')" $STYLE_CXXFLAGS "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTLIB/lv2qtgui.h $FAUSTINC/gui/QTUI.h" $RESOURCES "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"
+    $QMAKE -project -t lib -o ${clsname}ui.pro "CONFIG += gui plugin no_plugin_name_prefix warn_off" "QT += widgets printsupport network" "INCLUDEPATH+=$ABSDIR" "INCLUDEPATH+=$CURDIR" "INCLUDEPATH+=$FAUSTLIB" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=-std=c++11 $(echo $CPPFLAGS|sed -e 's/"/\\\\\\"/g')" $STYLE_CXXFLAGS "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS $HTTPLIBS1" "HEADERS+=$FAUSTLIB/lv2qtgui.h $FAUSTINC/gui/QTUI.h" $RESOURCES "$OSCDEFS" "$HTTPDEFS" "$QRDEFS"
     $QMAKE *.pro
     make || exit 1
     mv $uisoname "$tmpdir/$lv2name"

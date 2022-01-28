@@ -57,6 +57,7 @@ do
          OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
         HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+        HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
     elif [ $p = "-arch32" ]; then
         PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
@@ -83,7 +84,7 @@ for f in $FILES; do
 
     # compile c++ to binary
     (
-        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa` $PROCARCH $OSCDEFS $HTTPDEFS $POLYDEFS $MIDIDEFS -lpthread -o "${f%.dsp}"
+        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa` $PROCARCH $OSCDEFS $HTTPDEFS $HTTPLIBS $POLYDEFS $MIDIDEFS -lpthread -o "${f%.dsp}"
     ) > /dev/null || exit
     rm "$f.cpp"
 

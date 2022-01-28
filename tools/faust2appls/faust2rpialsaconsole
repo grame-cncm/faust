@@ -60,6 +60,7 @@ for p in $@; do
 	 	OSCDEFS="-DOSCCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then
 	 	HTTPDEFS="-DHTTPCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib -lHTTPDFaust -lmicrohttpd"
+	 	HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
     elif [ $p = "-arch32" ]; then
 		PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
@@ -83,7 +84,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $OMP "$f.cpp" $INCLUDES_DIR $LD_LIBRARY_PATHS $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
+		$CXX $CXXFLAGS $OMP "$f.cpp" $INCLUDES_DIR $LD_LIBRARY_PATHS $PROCARCH $OSCDEFS $HTTPDEFS $HTTPLIBS -o "${f%.dsp}"
 	) > /dev/null || exit
 	rm "$f.cpp"
 

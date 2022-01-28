@@ -65,6 +65,7 @@ for p in $@; do
 	elif [ "$p" = "-httpd" ]; then
 		HTTPDEFS="DEFINES += HTTPCTRL"
 		HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+		HTTPLIBS1=`pkg-config --cflags --libs libmicrohttpd`
 	elif [ "$p" = "-qrcode" ]; then # requires -httpd
 		QRDEFS="DEFINES += QRCODECTRL"
     elif [ ${p:0:1} = "-" ]; then
@@ -118,7 +119,7 @@ for p in $FILES; do
 	RSRC=$IOSDIR/*.png
 	RFILES="RSRC.files=$(echo $RSRC)"
 
-	PRJ='$QMAKE -project "QT += widgets printsupport network sensors" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter   -I/usr/local/include/ $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$RFILES" "RSRC.path = ." "QMAKE_BUNDLE_DATA +=RSRC"'
+	PRJ='$QMAKE -project "QT += widgets printsupport network sensors" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter   -I/usr/local/include/ $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS $HTTPLIBS1" "HEADERS+=$FAUSTINC/faust/gui/QTUI.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$RFILES" "RSRC.path = ." "QMAKE_BUNDLE_DATA +=RSRC"'
 
 	BUILD='$QMAKE -spec macx-xcode && xcodebuild -jobs 8 -project ${f%.dsp}.xcodeproj -target ${f%.dsp} -configuration Release'
 

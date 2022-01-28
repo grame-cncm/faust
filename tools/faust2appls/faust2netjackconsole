@@ -60,6 +60,7 @@ do
          OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
          HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+         HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
     elif [ ${p:0:1} = "-" ]; then
@@ -111,7 +112,7 @@ EndOfCode
     fi
 
     # compile c++ to binary
-    $CXX $CXXFLAGS "$TMP/${f%.dsp}.cpp" $FAUSTTOOLSFLAGS $ARCHLIB $OSCDEFS $HTTPDEFS $MIDIDEFS $POLYDEFS -o "${f%.dsp}" || exit   
+    $CXX $CXXFLAGS "$TMP/${f%.dsp}.cpp" $FAUSTTOOLSFLAGS $ARCHLIB $OSCDEFS $HTTPDEFS $HTTPLIBS $MIDIDEFS $POLYDEFS -o "${f%.dsp}" || exit   
     if [[ $(uname) == Darwin ]]; then
         codesign --sign - --deep --force "${f%.dsp}"
     fi   

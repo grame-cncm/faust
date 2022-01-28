@@ -63,6 +63,7 @@ for p in $@; do
 	 	OSCDEFS="-DOSCCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then
 	 	HTTPDEFS="-DHTTPCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lHTTPDFaust -lmicrohttpd"
+	 	HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
@@ -77,7 +78,7 @@ done
 #
 for f in $FILES; do
     faust -i -a $ARCHFILE $OPTIONS $f -o $f.cpp || exit
-    $CXX $CXXFLAGS $OMP "$f.cpp" $LD_LIBRARY_PATHS $INCLUDES_DIR $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"  || exit
+    $CXX $CXXFLAGS $OMP "$f.cpp" $LD_LIBRARY_PATHS $INCLUDES_DIR $PROCARCH $OSCDEFS $HTTPDEFS $HTTPLIBS -o "${f%.dsp}"  || exit
     rm $f.cpp
 
     # collect binary file name for FaustGIDE
