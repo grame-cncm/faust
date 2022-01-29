@@ -167,7 +167,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     int fDate;                          // KeyOn date
     int fRelease;                       // Current number of samples used in release mode to detect end of note
     FAUSTFLOAT fLevel;                  // Last audio block level
-    double fTailLengthSec;              // Maximum tail length in seconds (estimated time to silence after note release)
+    double fReleaseLengthSec;           // Maximum release length in seconds (estimated time to silence after note release)
     std::vector<std::string> fGatePath; // Paths of 'gate' control
     std::vector<std::string> fGainPath; // Paths of 'gain/vel|velocity' control
     std::vector<std::string> fFreqPath; // Paths of 'freq/key' control
@@ -187,7 +187,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         fNextNote = fNextVel = -1;
         fLevel = FAUSTFLOAT(0);
         fDate = fRelease = 0;
-        fTailLengthSec   = 0.5;  // A half second is a reasonable default maximum tail length.
+        fReleaseLengthSec = 0.5;  // A half second is a reasonable default maximum release length.
         extractPaths(fGatePath, fFreqPath, fGainPath);
     }
     virtual ~dsp_voice()
@@ -301,15 +301,15 @@ struct dsp_voice : public MapUI, public decorator_dsp {
             fCurNote = kFreeVoice;
         } else {
             // Release voice
-            fRelease = fTailLengthSec * fDSP->getSampleRate();
+            fRelease = fReleaseLengthSec * fDSP->getSampleRate();
             fCurNote = kReleaseVoice;
         }
     }
  
     // Change the voice release
-    void setTailLength(double sec)
+    void setReleaseLength(double sec)
     {
-        fTailLengthSec = sec;
+        fReleaseLengthSec = sec;
     }
 
 };
@@ -510,7 +510,7 @@ class dsp_poly : public decorator_dsp, public midi, public JSONControl {
         }
     
         // Change the voice release
-        virtual void setTailLength(double seconds)
+        virtual void setReleaseLength(double seconds)
         {}
     
 };
@@ -902,10 +902,10 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         }
 
         // Change the voice release
-        void setTailLength(double seconds)
+        void setReleaseLength(double seconds)
         {
             for (size_t i = 0; i < fVoiceTable.size(); i++) {
-                fVoiceTable[i]->setTailLength(seconds);
+                fVoiceTable[i]->setReleaseLength(seconds);
             }
         }
 
@@ -967,9 +967,9 @@ class dsp_poly_effect : public dsp_poly {
         }
     
         // Change the voice release
-        void setTailLength(double sec)
+        void setReleaseLength(double sec)
         {
-            fPolyDSP->setTailLength(sec);
+            fPolyDSP->setReleaseLength(sec);
         }
     
 };
