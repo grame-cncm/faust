@@ -167,6 +167,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     int fDate;                          // KeyOn date
     int fRelease;                       // Current number of samples used in release mode to detect end of note
     FAUSTFLOAT fLevel;                  // Last audio block level
+    double fTailLengthSec;              // Maximum tail length in seconds (estimated time to silence after note release)
     std::vector<std::string> fGatePath; // Paths of 'gate' control
     std::vector<std::string> fGainPath; // Paths of 'gain/vel|velocity' control
     std::vector<std::string> fFreqPath; // Paths of 'freq/key' control
@@ -186,6 +187,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         fNextNote = fNextVel = -1;
         fLevel = FAUSTFLOAT(0);
         fDate = fRelease = 0;
+        fTailLengthSec   = 0.5;  // A half second is a reasonable default maximum tail length.
         extractPaths(fGatePath, fFreqPath, fGainPath);
     }
     virtual ~dsp_voice()
@@ -299,9 +301,15 @@ struct dsp_voice : public MapUI, public decorator_dsp {
             fCurNote = kFreeVoice;
         } else {
             // Release voice
-            fRelease = fDSP->getSampleRate()/2; // Half sec used in release mode to detect end of note
+            fRelease = fTailLengthSec * fDSP->getSampleRate();
             fCurNote = kReleaseVoice;
         }
+    }
+ 
+    // Change the voice release
+    void setTailLength(double sec)
+    {
+        fTailLengthSec = sec;
     }
 
 };
@@ -500,6 +508,10 @@ class dsp_poly : public decorator_dsp, public midi, public JSONControl {
         {
             midi::progChange(channel, pgm);
         }
+    
+        // Change the voice release
+        virtual void setTailLength(double seconds)
+        {}
     
 };
 
@@ -839,7 +851,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                 fVoiceTable[i]->keyOff(hard);
             }
         }
-
+ 
         // Additional polyphonic API
         MapUI* newVoice()
         {
@@ -889,6 +901,14 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
         }
 
+        // Change the voice release
+        void setTailLength(double seconds)
+        {
+            for (size_t i = 0; i < fVoiceTable.size(); i++) {
+                fVoiceTable[i]->setTailLength(seconds);
+            }
+        }
+
 };
 
 /**
@@ -911,7 +931,7 @@ class dsp_poly_effect : public dsp_poly {
         {
             // dsp_poly_effect is also a decorator_dsp, which will free fPolyDSP
         }
-        
+    
         // MIDI API
         MapUI* keyOn(int channel, int pitch, int velocity)
         {
@@ -944,6 +964,12 @@ class dsp_poly_effect : public dsp_poly {
         void progChange(int channel, int pgm)
         {
             fPolyDSP->progChange(channel, pgm);
+        }
+    
+        // Change the voice release
+        void setTailLength(double sec)
+        {
+            fPolyDSP->setTailLength(sec);
         }
     
 };
