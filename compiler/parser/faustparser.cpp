@@ -378,15 +378,31 @@ inline char replaceCR(char c)
 	return (c!='\n') ? c : ' ';
 }
 
+//----------------------------------------------------------
 // A definition is accepted if the prefixset is empty or if
 // the current float precision is member of the prefix set
-bool acceptdefinition(int prefixset)
+//----------------------------------------------------------
+inline bool acceptdefinition(int prefixset)
 {
 	int precisions[] = {0, 1, 2, 4, 8};
 	return (prefixset==0) || (prefixset & precisions[gGlobal->gFloatSize]);
 }
+    
+//----------------------------------------------------------
+// 'atoi' does not work correctly on Windows with MSVC on values
+// greater than 2^31 (= 2147483648)
+//----------------------------------------------------------
+inline int str2int(const char* str)
+{
+    int result = 0;
+    while (*str != 0) {
+        result = result * 10 + *str - '0';
+        str++;
+    }
+    return result;
+}
 
-Tree unquote(char* str)
+inline Tree unquote(char* str)
 {
     size_t size = strlen(str) + 1;
     
@@ -434,7 +450,7 @@ Tree unquote(char* str)
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 80 "faustparser.y"
+#line 96 "faustparser.y"
 {
 	CTree* 	exp;
 	char* str;
@@ -443,7 +459,7 @@ typedef union YYSTYPE
 	int numvariant;
 }
 /* Line 193 of yacc.c.  */
-#line 447 "faustparser.cpp"
+#line 463 "faustparser.cpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -456,7 +472,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 460 "faustparser.cpp"
+#line 476 "faustparser.cpp"
 
 #ifdef short
 # undef short
@@ -850,29 +866,29 @@ static const yytype_int16 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   328,   328,   331,   332,   335,   336,   339,   340,   343,
-     344,   345,   346,   349,   350,   357,   358,   361,   362,   363,
-     364,   365,   366,   369,   370,   371,   372,   373,   376,   377,
-     380,   381,   382,   383,   384,   385,   388,   389,   392,   395,
-     398,   401,   404,   405,   408,   409,   410,   413,   414,   417,
-     420,   421,   422,   425,   426,   429,   432,   435,   436,   439,
-     440,   441,   442,   443,   444,   445,   446,   449,   450,   451,
-     452,   453,   454,   455,   456,   457,   459,   460,   461,   463,
-     464,   466,   467,   468,   469,   470,   471,   473,   474,   476,
-     479,   480,   482,   483,   485,   486,   488,   489,   491,   492,
-     494,   495,   497,   498,   499,   500,   501,   502,   504,   505,
-     506,   508,   509,   511,   512,   513,   514,   515,   516,   518,
-     519,   520,   522,   523,   524,   525,   526,   527,   528,   530,
-     531,   532,   533,   534,   535,   537,   538,   539,   541,   542,
-     544,   545,   546,   548,   549,   551,   552,   554,   555,   556,
-     558,   559,   561,   562,   565,   567,   568,   569,   570,   571,
-     572,   573,   574,   575,   576,   577,   578,   579,   580,   581,
-     582,   583,   584,   585,   587,   588,   589,   590,   592,   593,
-     597,   600,   603,   604,   607,   608,   609,   610,   611,   614,
-     617,   620,   621,   626,   630,   634,   638,   642,   645,   650,
-     654,   658,   663,   666,   669,   672,   675,   678,   681,   684,
-     688,   691,   694,   701,   702,   703,   705,   706,   707,   710,
-     713,   714,   717,   718,   721,   725,   726
+       0,   344,   344,   347,   348,   351,   352,   355,   356,   359,
+     360,   361,   362,   365,   366,   373,   374,   377,   378,   379,
+     380,   381,   382,   385,   386,   387,   388,   389,   392,   393,
+     396,   397,   398,   399,   400,   401,   404,   405,   408,   411,
+     414,   417,   420,   421,   424,   425,   426,   429,   430,   433,
+     436,   437,   438,   441,   442,   445,   448,   451,   452,   455,
+     456,   457,   458,   459,   460,   461,   462,   465,   466,   467,
+     468,   469,   470,   471,   472,   473,   475,   476,   477,   479,
+     480,   482,   483,   484,   485,   486,   487,   489,   490,   492,
+     495,   496,   498,   499,   501,   502,   504,   505,   507,   508,
+     510,   511,   513,   514,   515,   516,   517,   518,   520,   521,
+     522,   524,   525,   527,   528,   529,   530,   531,   532,   534,
+     535,   536,   538,   539,   540,   541,   542,   543,   544,   546,
+     547,   548,   549,   550,   551,   553,   554,   555,   557,   558,
+     560,   561,   562,   564,   565,   567,   568,   570,   571,   572,
+     574,   575,   577,   578,   581,   583,   584,   585,   586,   587,
+     588,   589,   590,   591,   592,   593,   594,   595,   596,   597,
+     598,   599,   600,   601,   603,   604,   605,   606,   608,   609,
+     613,   616,   619,   620,   623,   624,   625,   626,   627,   630,
+     633,   636,   637,   642,   646,   650,   654,   658,   661,   666,
+     670,   674,   679,   682,   685,   688,   691,   694,   697,   700,
+     704,   707,   710,   717,   718,   719,   721,   722,   723,   726,
+     729,   730,   733,   734,   737,   741,   742
 };
 #endif
 
@@ -2155,1133 +2171,1133 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 328 "faustparser.y"
+#line 344 "faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); gGlobal->gResult = formatDefinitions((yyval.exp)); ;}
     break;
 
   case 3:
-#line 331 "faustparser.y"
+#line 347 "faustparser.y"
     { (yyval.exp) = gGlobal->nil; ;}
     break;
 
   case 4:
-#line 332 "faustparser.y"
+#line 348 "faustparser.y"
     { if (acceptdefinition((yyvsp[(2) - (3)].numvariant))) (yyval.exp) = cons ((yyvsp[(3) - (3)].exp),(yyvsp[(1) - (3)].exp)); else (yyval.exp)=(yyvsp[(1) - (3)].exp); ;}
     break;
 
   case 5:
-#line 335 "faustparser.y"
+#line 351 "faustparser.y"
     { (yyval.exp) = gGlobal->nil; ;}
     break;
 
   case 6:
-#line 336 "faustparser.y"
+#line 352 "faustparser.y"
     { if (acceptdefinition((yyvsp[(2) - (3)].numvariant))) (yyval.exp) = cons ((yyvsp[(3) - (3)].exp),(yyvsp[(1) - (3)].exp)); else (yyval.exp)=(yyvsp[(1) - (3)].exp);;}
     break;
 
   case 7:
-#line 339 "faustparser.y"
+#line 355 "faustparser.y"
     { (yyval.numvariant) = 0; ;}
     break;
 
   case 8:
-#line 340 "faustparser.y"
+#line 356 "faustparser.y"
     { (yyval.numvariant) = (yyvsp[(1) - (2)].numvariant) | (yyvsp[(2) - (2)].numvariant);;}
     break;
 
   case 9:
-#line 343 "faustparser.y"
+#line 359 "faustparser.y"
     { (yyval.numvariant) = 1;;}
     break;
 
   case 10:
-#line 344 "faustparser.y"
+#line 360 "faustparser.y"
     { (yyval.numvariant) = 2;;}
     break;
 
   case 11:
-#line 345 "faustparser.y"
+#line 361 "faustparser.y"
     { (yyval.numvariant) = 4;;}
     break;
 
   case 12:
-#line 346 "faustparser.y"
+#line 362 "faustparser.y"
     { (yyval.numvariant) = 8;;}
     break;
 
   case 13:
-#line 349 "faustparser.y"
+#line 365 "faustparser.y"
     { (yyval.exp) = gGlobal->nil; ;}
     break;
 
   case 14:
-#line 350 "faustparser.y"
+#line 366 "faustparser.y"
     { (yyval.exp) = cons ((yyvsp[(2) - (2)].exp),(yyvsp[(1) - (2)].exp)); ;}
     break;
 
   case 15:
-#line 357 "faustparser.y"
+#line 373 "faustparser.y"
     { gGlobal->gWaveForm.push_back((yyvsp[(1) - (1)].exp)); ;}
     break;
 
   case 16:
-#line 358 "faustparser.y"
+#line 374 "faustparser.y"
     { gGlobal->gWaveForm.push_back((yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 17:
-#line 361 "faustparser.y"
-    { (yyval.exp) = boxInt(atoi(yytext)); ;}
+#line 377 "faustparser.y"
+    { (yyval.exp) = boxInt(str2int(yytext)); ;}
     break;
 
   case 18:
-#line 362 "faustparser.y"
+#line 378 "faustparser.y"
     { (yyval.exp) = boxReal(atof(yytext)); ;}
     break;
 
   case 19:
-#line 363 "faustparser.y"
-    { (yyval.exp) = boxInt(atoi(yytext)); ;}
+#line 379 "faustparser.y"
+    { (yyval.exp) = boxInt(str2int(yytext)); ;}
     break;
 
   case 20:
-#line 364 "faustparser.y"
+#line 380 "faustparser.y"
     { (yyval.exp) = boxReal(atof(yytext)); ;}
     break;
 
   case 21:
-#line 365 "faustparser.y"
-    { (yyval.exp) = boxInt(-atoi(yytext)); ;}
+#line 381 "faustparser.y"
+    { (yyval.exp) = boxInt(-str2int(yytext)); ;}
     break;
 
   case 22:
-#line 366 "faustparser.y"
+#line 382 "faustparser.y"
     { (yyval.exp) = boxReal(-atof(yytext)); ;}
     break;
 
   case 23:
-#line 369 "faustparser.y"
+#line 385 "faustparser.y"
     { (yyval.exp) = importFile((yyvsp[(3) - (5)].exp)); ;}
     break;
 
   case 24:
-#line 370 "faustparser.y"
+#line 386 "faustparser.y"
     { declareMetadata((yyvsp[(2) - (4)].exp),(yyvsp[(3) - (4)].exp)); (yyval.exp) = gGlobal->nil; ;}
     break;
 
   case 25:
-#line 371 "faustparser.y"
+#line 387 "faustparser.y"
     { declareDefinitionMetadata((yyvsp[(2) - (5)].exp),(yyvsp[(3) - (5)].exp),(yyvsp[(4) - (5)].exp)); (yyval.exp) = gGlobal->nil; ;}
     break;
 
   case 26:
-#line 372 "faustparser.y"
+#line 388 "faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
   case 27:
-#line 373 "faustparser.y"
+#line 389 "faustparser.y"
     { declareDoc((yyvsp[(2) - (3)].exp)); (yyval.exp) = gGlobal->nil; /* cerr << "Yacc : doc : " << *$2 << endl; */ ;}
     break;
 
   case 28:
-#line 376 "faustparser.y"
+#line 392 "faustparser.y"
     { (yyval.exp) = gGlobal->nil; ;}
     break;
 
   case 29:
-#line 377 "faustparser.y"
+#line 393 "faustparser.y"
     { (yyval.exp) = cons ((yyvsp[(2) - (2)].exp),(yyvsp[(1) - (2)].exp)); ;}
     break;
 
   case 30:
-#line 380 "faustparser.y"
+#line 396 "faustparser.y"
     { (yyval.exp) = docTxt((yyvsp[(1) - (1)].cppstr)->c_str()); delete (yyvsp[(1) - (1)].cppstr); ;}
     break;
 
   case 31:
-#line 381 "faustparser.y"
+#line 397 "faustparser.y"
     { (yyval.exp) = docEqn((yyvsp[(1) - (1)].exp)); ;}
     break;
 
   case 32:
-#line 382 "faustparser.y"
+#line 398 "faustparser.y"
     { (yyval.exp) = docDgm((yyvsp[(1) - (1)].exp)); ;}
     break;
 
   case 33:
-#line 383 "faustparser.y"
+#line 399 "faustparser.y"
     { (yyval.exp) = docNtc(); ;}
     break;
 
   case 34:
-#line 384 "faustparser.y"
+#line 400 "faustparser.y"
     { (yyval.exp) = docLst(); ;}
     break;
 
   case 35:
-#line 385 "faustparser.y"
+#line 401 "faustparser.y"
     { (yyval.exp) = docMtd((yyvsp[(1) - (1)].exp)); ;}
     break;
 
   case 36:
-#line 388 "faustparser.y"
+#line 404 "faustparser.y"
     { (yyval.cppstr) = new string(); ;}
     break;
 
   case 37:
-#line 389 "faustparser.y"
+#line 405 "faustparser.y"
     { (yyval.cppstr) = &((yyvsp[(1) - (2)].cppstr)->append(yytext)); ;}
     break;
 
   case 38:
-#line 392 "faustparser.y"
+#line 408 "faustparser.y"
     { (yyval.exp) = (yyvsp[(2) - (3)].exp); ;}
     break;
 
   case 39:
-#line 395 "faustparser.y"
+#line 411 "faustparser.y"
     { (yyval.exp) = (yyvsp[(2) - (3)].exp); ;}
     break;
 
   case 40:
-#line 398 "faustparser.y"
+#line 414 "faustparser.y"
     { ;}
     break;
 
   case 41:
-#line 401 "faustparser.y"
+#line 417 "faustparser.y"
     { ;}
     break;
 
   case 42:
-#line 404 "faustparser.y"
+#line 420 "faustparser.y"
     { ;}
     break;
 
   case 43:
-#line 405 "faustparser.y"
+#line 421 "faustparser.y"
     { ;}
     break;
 
   case 44:
-#line 408 "faustparser.y"
+#line 424 "faustparser.y"
     { gGlobal->gLstDependenciesSwitch = (yyvsp[(4) - (5)].b); ;}
     break;
 
   case 45:
-#line 409 "faustparser.y"
+#line 425 "faustparser.y"
     { gGlobal->gStripDocSwitch = (yyvsp[(4) - (5)].b); gGlobal->gStripDocSwitch==true ? gGlobal->gStripDocSwitch=false : gGlobal->gStripDocSwitch=true; ;}
     break;
 
   case 46:
-#line 410 "faustparser.y"
+#line 426 "faustparser.y"
     { gGlobal->gLstDistributedSwitch = (yyvsp[(4) - (5)].b); ;}
     break;
 
   case 47:
-#line 413 "faustparser.y"
+#line 429 "faustparser.y"
     { (yyval.b) = true; ;}
     break;
 
   case 48:
-#line 414 "faustparser.y"
+#line 430 "faustparser.y"
     { (yyval.b) = false; ;}
     break;
 
   case 49:
-#line 417 "faustparser.y"
+#line 433 "faustparser.y"
     { (yyval.exp) = (yyvsp[(2) - (3)].exp); ;}
     break;
 
   case 50:
-#line 420 "faustparser.y"
+#line 436 "faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (7)].exp),cons((yyvsp[(3) - (7)].exp),(yyvsp[(6) - (7)].exp))); setDefProp((yyvsp[(1) - (7)].exp), yyfilename, yylineno); ;}
     break;
 
   case 51:
-#line 421 "faustparser.y"
+#line 437 "faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (4)].exp),cons(gGlobal->nil,(yyvsp[(3) - (4)].exp)));  setDefProp((yyvsp[(1) - (4)].exp), yyfilename, yylineno); ;}
     break;
 
   case 52:
-#line 422 "faustparser.y"
+#line 438 "faustparser.y"
     { (yyval.exp) = gGlobal->nil; yyerr++; ;}
     break;
 
   case 53:
-#line 425 "faustparser.y"
+#line 441 "faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (4)].exp),cons(gGlobal->nil,(yyvsp[(3) - (4)].exp))); setDefProp((yyvsp[(1) - (4)].exp), yyfilename, yylineno); ;}
     break;
 
   case 54:
-#line 426 "faustparser.y"
+#line 442 "faustparser.y"
     { (yyval.exp) = gGlobal->nil; yyerr++; ;}
     break;
 
   case 55:
-#line 429 "faustparser.y"
+#line 445 "faustparser.y"
     { (yyval.exp)=(yyvsp[(1) - (1)].exp); ;}
     break;
 
   case 56:
-#line 432 "faustparser.y"
+#line 448 "faustparser.y"
     { (yyval.exp)=(yyvsp[(2) - (2)].exp); ;}
     break;
 
   case 57:
-#line 435 "faustparser.y"
+#line 451 "faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (1)].exp),gGlobal->nil); ;}
     break;
 
   case 58:
-#line 436 "faustparser.y"
+#line 452 "faustparser.y"
     { (yyval.exp) = cons((yyvsp[(3) - (3)].exp),(yyvsp[(1) - (3)].exp)); ;}
     break;
 
   case 59:
-#line 439 "faustparser.y"
+#line 455 "faustparser.y"
     { (yyval.exp) = boxWithLocalDef((yyvsp[(1) - (5)].exp),formatDefinitions((yyvsp[(4) - (5)].exp))); ;}
     break;
 
   case 60:
-#line 440 "faustparser.y"
+#line 456 "faustparser.y"
     { (yyval.exp) = boxWithRecDef  ((yyvsp[(1) - (5)].exp),formatDefinitions((yyvsp[(4) - (5)].exp))); ;}
     break;
 
   case 61:
-#line 441 "faustparser.y"
+#line 457 "faustparser.y"
     { (yyval.exp) = boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 62:
-#line 442 "faustparser.y"
+#line 458 "faustparser.y"
     { (yyval.exp) = boxSeq((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 63:
-#line 443 "faustparser.y"
+#line 459 "faustparser.y"
     { (yyval.exp) = boxSplit((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 64:
-#line 444 "faustparser.y"
+#line 460 "faustparser.y"
     { (yyval.exp) = boxMerge((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 65:
-#line 445 "faustparser.y"
+#line 461 "faustparser.y"
     { (yyval.exp) = boxRec((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 66:
-#line 446 "faustparser.y"
+#line 462 "faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
   case 67:
-#line 449 "faustparser.y"
+#line 465 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigAdd)); ;}
     break;
 
   case 68:
-#line 450 "faustparser.y"
+#line 466 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigSub)); ;}
     break;
 
   case 69:
-#line 451 "faustparser.y"
+#line 467 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigMul)); ;}
     break;
 
   case 70:
-#line 452 "faustparser.y"
+#line 468 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigDiv)); ;}
     break;
 
   case 71:
-#line 453 "faustparser.y"
+#line 469 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigRem)); ;}
     break;
 
   case 72:
-#line 454 "faustparser.y"
+#line 470 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),gGlobal->gPowPrim->box()); ;}
     break;
 
   case 73:
-#line 455 "faustparser.y"
+#line 471 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigDelay)); ;}
     break;
 
   case 74:
-#line 456 "faustparser.y"
+#line 472 "faustparser.y"
     { (yyval.exp) = boxSeq((yyvsp[(1) - (2)].exp),boxPrim1(sigDelay1)); ;}
     break;
 
   case 75:
-#line 457 "faustparser.y"
+#line 473 "faustparser.y"
     { (yyval.exp) = boxAccess((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 76:
-#line 459 "faustparser.y"
+#line 475 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigAND)); ;}
     break;
 
   case 77:
-#line 460 "faustparser.y"
+#line 476 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigOR)); ;}
     break;
 
   case 78:
-#line 461 "faustparser.y"
+#line 477 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigXOR)); ;}
     break;
 
   case 79:
-#line 463 "faustparser.y"
+#line 479 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigLeftShift)); ;}
     break;
 
   case 80:
-#line 464 "faustparser.y"
+#line 480 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigARightShift)); ;}
     break;
 
   case 81:
-#line 466 "faustparser.y"
+#line 482 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigLT)); ;}
     break;
 
   case 82:
-#line 467 "faustparser.y"
+#line 483 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigLE)); ;}
     break;
 
   case 83:
-#line 468 "faustparser.y"
+#line 484 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigGT)); ;}
     break;
 
   case 84:
-#line 469 "faustparser.y"
+#line 485 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigGE)); ;}
     break;
 
   case 85:
-#line 470 "faustparser.y"
+#line 486 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigEQ)); ;}
     break;
 
   case 86:
-#line 471 "faustparser.y"
+#line 487 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)),boxPrim2(sigNE)); ;}
     break;
 
   case 87:
-#line 473 "faustparser.y"
+#line 489 "faustparser.y"
     { (yyval.exp) = buildBoxAppl((yyvsp[(1) - (4)].exp),(yyvsp[(3) - (4)].exp)); ;}
     break;
 
   case 88:
-#line 474 "faustparser.y"
+#line 490 "faustparser.y"
     { (yyval.exp) = boxModifLocalDef((yyvsp[(1) - (4)].exp),formatDefinitions((yyvsp[(3) - (4)].exp))); ;}
     break;
 
   case 89:
-#line 476 "faustparser.y"
+#line 492 "faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
   case 90:
-#line 479 "faustparser.y"
-    { (yyval.exp) = boxInt(atoi(yytext)); ;}
+#line 495 "faustparser.y"
+    { (yyval.exp) = boxInt(str2int(yytext)); ;}
     break;
 
   case 91:
-#line 480 "faustparser.y"
+#line 496 "faustparser.y"
     { (yyval.exp) = boxReal(atof(yytext)); ;}
     break;
 
   case 92:
-#line 482 "faustparser.y"
-    { (yyval.exp) = boxInt (atoi(yytext)); ;}
+#line 498 "faustparser.y"
+    { (yyval.exp) = boxInt (str2int(yytext)); ;}
     break;
 
   case 93:
-#line 483 "faustparser.y"
+#line 499 "faustparser.y"
     { (yyval.exp) = boxReal(atof(yytext)); ;}
     break;
 
   case 94:
-#line 485 "faustparser.y"
-    { (yyval.exp) = boxInt ( -atoi(yytext) ); ;}
+#line 501 "faustparser.y"
+    { (yyval.exp) = boxInt ( -str2int(yytext) ); ;}
     break;
 
   case 95:
-#line 486 "faustparser.y"
+#line 502 "faustparser.y"
     { (yyval.exp) = boxReal( -atof(yytext) ); ;}
     break;
 
   case 96:
-#line 488 "faustparser.y"
+#line 504 "faustparser.y"
     { (yyval.exp) = boxWire(); ;}
     break;
 
   case 97:
-#line 489 "faustparser.y"
+#line 505 "faustparser.y"
     { (yyval.exp) = boxCut(); ;}
     break;
 
   case 98:
-#line 491 "faustparser.y"
+#line 507 "faustparser.y"
     { (yyval.exp) = boxPrim1(sigDelay1); ;}
     break;
 
   case 99:
-#line 492 "faustparser.y"
+#line 508 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigPrefix); ;}
     break;
 
   case 100:
-#line 494 "faustparser.y"
+#line 510 "faustparser.y"
     { (yyval.exp) = boxPrim1(sigIntCast); ;}
     break;
 
   case 101:
-#line 495 "faustparser.y"
+#line 511 "faustparser.y"
     { (yyval.exp) = boxPrim1(sigFloatCast); ;}
     break;
 
   case 102:
-#line 497 "faustparser.y"
+#line 513 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigAdd); ;}
     break;
 
   case 103:
-#line 498 "faustparser.y"
+#line 514 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigSub); ;}
     break;
 
   case 104:
-#line 499 "faustparser.y"
+#line 515 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigMul); ;}
     break;
 
   case 105:
-#line 500 "faustparser.y"
+#line 516 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigDiv); ;}
     break;
 
   case 106:
-#line 501 "faustparser.y"
+#line 517 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigRem); ;}
     break;
 
   case 107:
-#line 502 "faustparser.y"
+#line 518 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigDelay); ;}
     break;
 
   case 108:
-#line 504 "faustparser.y"
+#line 520 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigAND); ;}
     break;
 
   case 109:
-#line 505 "faustparser.y"
+#line 521 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigOR); ;}
     break;
 
   case 110:
-#line 506 "faustparser.y"
+#line 522 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigXOR); ;}
     break;
 
   case 111:
-#line 508 "faustparser.y"
+#line 524 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigLeftShift); ;}
     break;
 
   case 112:
-#line 509 "faustparser.y"
+#line 525 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigARightShift); ;}
     break;
 
   case 113:
-#line 511 "faustparser.y"
+#line 527 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigLT); ;}
     break;
 
   case 114:
-#line 512 "faustparser.y"
+#line 528 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigLE); ;}
     break;
 
   case 115:
-#line 513 "faustparser.y"
+#line 529 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigGT); ;}
     break;
 
   case 116:
-#line 514 "faustparser.y"
+#line 530 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigGE); ;}
     break;
 
   case 117:
-#line 515 "faustparser.y"
+#line 531 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigEQ); ;}
     break;
 
   case 118:
-#line 516 "faustparser.y"
+#line 532 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigNE); ;}
     break;
 
   case 119:
-#line 518 "faustparser.y"
+#line 534 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigAttach); ;}
     break;
 
   case 120:
-#line 519 "faustparser.y"
+#line 535 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigEnable); ;}
     break;
 
   case 121:
-#line 520 "faustparser.y"
+#line 536 "faustparser.y"
     { (yyval.exp) = boxPrim2(sigControl); ;}
     break;
 
   case 122:
-#line 522 "faustparser.y"
+#line 538 "faustparser.y"
     { (yyval.exp) = gGlobal->gAcosPrim->box(); ;}
     break;
 
   case 123:
-#line 523 "faustparser.y"
+#line 539 "faustparser.y"
     { (yyval.exp) = gGlobal->gAsinPrim->box(); ;}
     break;
 
   case 124:
-#line 524 "faustparser.y"
+#line 540 "faustparser.y"
     { (yyval.exp) = gGlobal->gAtanPrim->box(); ;}
     break;
 
   case 125:
-#line 525 "faustparser.y"
+#line 541 "faustparser.y"
     { (yyval.exp) = gGlobal->gAtan2Prim->box(); ;}
     break;
 
   case 126:
-#line 526 "faustparser.y"
+#line 542 "faustparser.y"
     { (yyval.exp) = gGlobal->gCosPrim->box(); ;}
     break;
 
   case 127:
-#line 527 "faustparser.y"
+#line 543 "faustparser.y"
     { (yyval.exp) = gGlobal->gSinPrim->box(); ;}
     break;
 
   case 128:
-#line 528 "faustparser.y"
+#line 544 "faustparser.y"
     { (yyval.exp) = gGlobal->gTanPrim->box(); ;}
     break;
 
   case 129:
-#line 530 "faustparser.y"
+#line 546 "faustparser.y"
     { (yyval.exp) = gGlobal->gExpPrim->box(); ;}
     break;
 
   case 130:
-#line 531 "faustparser.y"
+#line 547 "faustparser.y"
     { (yyval.exp) = gGlobal->gLogPrim->box(); ;}
     break;
 
   case 131:
-#line 532 "faustparser.y"
+#line 548 "faustparser.y"
     { (yyval.exp) = gGlobal->gLog10Prim->box(); ;}
     break;
 
   case 132:
-#line 533 "faustparser.y"
+#line 549 "faustparser.y"
     { (yyval.exp) = gGlobal->gPowPrim->box(); ;}
     break;
 
   case 133:
-#line 534 "faustparser.y"
+#line 550 "faustparser.y"
     { (yyval.exp) = gGlobal->gPowPrim->box(); ;}
     break;
 
   case 134:
-#line 535 "faustparser.y"
+#line 551 "faustparser.y"
     { (yyval.exp) = gGlobal->gSqrtPrim->box(); ;}
     break;
 
   case 135:
-#line 537 "faustparser.y"
+#line 553 "faustparser.y"
     { (yyval.exp) = gGlobal->gAbsPrim->box(); ;}
     break;
 
   case 136:
-#line 538 "faustparser.y"
+#line 554 "faustparser.y"
     { (yyval.exp) = gGlobal->gMinPrim->box(); ;}
     break;
 
   case 137:
-#line 539 "faustparser.y"
+#line 555 "faustparser.y"
     { (yyval.exp) = gGlobal->gMaxPrim->box(); ;}
     break;
 
   case 138:
-#line 541 "faustparser.y"
+#line 557 "faustparser.y"
     { (yyval.exp) = gGlobal->gFmodPrim->box(); ;}
     break;
 
   case 139:
-#line 542 "faustparser.y"
+#line 558 "faustparser.y"
     { (yyval.exp) = gGlobal->gRemainderPrim->box(); ;}
     break;
 
   case 140:
-#line 544 "faustparser.y"
+#line 560 "faustparser.y"
     { (yyval.exp) = gGlobal->gFloorPrim->box(); ;}
     break;
 
   case 141:
-#line 545 "faustparser.y"
+#line 561 "faustparser.y"
     { (yyval.exp) = gGlobal->gCeilPrim->box(); ;}
     break;
 
   case 142:
-#line 546 "faustparser.y"
+#line 562 "faustparser.y"
     { (yyval.exp) = gGlobal->gRintPrim->box(); ;}
     break;
 
   case 143:
-#line 548 "faustparser.y"
+#line 564 "faustparser.y"
     { (yyval.exp) = boxPrim3(sigReadOnlyTable); ;}
     break;
 
   case 144:
-#line 549 "faustparser.y"
+#line 565 "faustparser.y"
     { (yyval.exp) = boxPrim5(sigWriteReadTable); ;}
     break;
 
   case 145:
-#line 551 "faustparser.y"
+#line 567 "faustparser.y"
     { (yyval.exp) = boxPrim3(sigSelect2); ;}
     break;
 
   case 146:
-#line 552 "faustparser.y"
+#line 568 "faustparser.y"
     { (yyval.exp) = boxPrim4(sigSelect3); ;}
     break;
 
   case 147:
-#line 554 "faustparser.y"
+#line 570 "faustparser.y"
     { (yyval.exp) = boxPrim3(sigAssertBounds);;}
     break;
 
   case 148:
-#line 555 "faustparser.y"
+#line 571 "faustparser.y"
     { (yyval.exp) = boxPrim1(sigLowest);;}
     break;
 
   case 149:
-#line 556 "faustparser.y"
+#line 572 "faustparser.y"
     { (yyval.exp) = boxPrim1(sigHighest);;}
     break;
 
   case 150:
-#line 558 "faustparser.y"
+#line 574 "faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp);  setUseProp((yyvsp[(1) - (1)].exp), yyfilename, yylineno);;}
     break;
 
   case 151:
-#line 559 "faustparser.y"
+#line 575 "faustparser.y"
     { (yyval.exp) = boxSeq(boxPar(boxInt(0),(yyvsp[(2) - (2)].exp)),boxPrim2(sigSub)); ;}
     break;
 
   case 152:
-#line 561 "faustparser.y"
+#line 577 "faustparser.y"
     { (yyval.exp) = (yyvsp[(2) - (3)].exp); ;}
     break;
 
   case 153:
-#line 563 "faustparser.y"
+#line 579 "faustparser.y"
     { (yyval.exp) = buildBoxAbstr((yyvsp[(3) - (8)].exp),(yyvsp[(7) - (8)].exp)); ;}
     break;
 
   case 154:
-#line 565 "faustparser.y"
+#line 581 "faustparser.y"
     { (yyval.exp) = boxCase(checkRulelist((yyvsp[(3) - (4)].exp))); ;}
     break;
 
   case 155:
-#line 567 "faustparser.y"
+#line 583 "faustparser.y"
     { (yyval.exp) = boxFFun((yyvsp[(1) - (1)].exp)); ;}
     break;
 
   case 156:
-#line 568 "faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
-    break;
-
-  case 157:
-#line 569 "faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
-    break;
-
-  case 158:
-#line 570 "faustparser.y"
-    { (yyval.exp) = boxComponent((yyvsp[(3) - (4)].exp)); ;}
-    break;
-
-  case 159:
-#line 571 "faustparser.y"
-    { (yyval.exp) = boxLibrary((yyvsp[(3) - (4)].exp)); ;}
-    break;
-
-  case 160:
-#line 572 "faustparser.y"
-    { (yyval.exp) = boxWithLocalDef(boxEnvironment(),formatDefinitions((yyvsp[(3) - (4)].exp))); ;}
-    break;
-
-  case 161:
-#line 573 "faustparser.y"
-    { (yyval.exp) = boxWaveform(gGlobal->gWaveForm); gGlobal->gWaveForm.clear(); ;}
-    break;
-
-  case 162:
-#line 574 "faustparser.y"
-    { (yyval.exp) = boxRoute((yyvsp[(3) - (8)].exp), (yyvsp[(5) - (8)].exp), (yyvsp[(7) - (8)].exp)); ;}
-    break;
-
-  case 163:
-#line 575 "faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
-    break;
-
-  case 164:
-#line 576 "faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
-    break;
-
-  case 165:
-#line 577 "faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
-    break;
-
-  case 166:
-#line 578 "faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
-    break;
-
-  case 167:
-#line 579 "faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
-    break;
-
-  case 168:
-#line 580 "faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
-    break;
-
-  case 169:
-#line 581 "faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
-    break;
-
-  case 170:
-#line 582 "faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
-    break;
-
-  case 171:
-#line 583 "faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
-    break;
-
-  case 172:
 #line 584 "faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
-  case 173:
+  case 157:
 #line 585 "faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
-  case 174:
+  case 158:
+#line 586 "faustparser.y"
+    { (yyval.exp) = boxComponent((yyvsp[(3) - (4)].exp)); ;}
+    break;
+
+  case 159:
 #line 587 "faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    { (yyval.exp) = boxLibrary((yyvsp[(3) - (4)].exp)); ;}
     break;
 
-  case 175:
+  case 160:
 #line 588 "faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    { (yyval.exp) = boxWithLocalDef(boxEnvironment(),formatDefinitions((yyvsp[(3) - (4)].exp))); ;}
     break;
 
-  case 176:
+  case 161:
 #line 589 "faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    { (yyval.exp) = boxWaveform(gGlobal->gWaveForm); gGlobal->gWaveForm.clear(); ;}
     break;
 
-  case 177:
+  case 162:
 #line 590 "faustparser.y"
+    { (yyval.exp) = boxRoute((yyvsp[(3) - (8)].exp), (yyvsp[(5) - (8)].exp), (yyvsp[(7) - (8)].exp)); ;}
+    break;
+
+  case 163:
+#line 591 "faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
-  case 178:
+  case 164:
 #line 592 "faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
-  case 179:
+  case 165:
 #line 593 "faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
-  case 180:
+  case 166:
+#line 594 "faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    break;
+
+  case 167:
+#line 595 "faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    break;
+
+  case 168:
+#line 596 "faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    break;
+
+  case 169:
 #line 597 "faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    break;
+
+  case 170:
+#line 598 "faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    break;
+
+  case 171:
+#line 599 "faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    break;
+
+  case 172:
+#line 600 "faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    break;
+
+  case 173:
+#line 601 "faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    break;
+
+  case 174:
+#line 603 "faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    break;
+
+  case 175:
+#line 604 "faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    break;
+
+  case 176:
+#line 605 "faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    break;
+
+  case 177:
+#line 606 "faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    break;
+
+  case 178:
+#line 608 "faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    break;
+
+  case 179:
+#line 609 "faustparser.y"
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
+    break;
+
+  case 180:
+#line 613 "faustparser.y"
     { (yyval.exp) = boxIdent(yytext); setUseProp((yyval.exp), yyfilename, yylineno);  ;}
     break;
 
   case 181:
-#line 600 "faustparser.y"
+#line 616 "faustparser.y"
     { (yyval.exp) = tree(yytext); setUseProp((yyval.exp), yyfilename, yylineno);  ;}
     break;
 
   case 182:
-#line 603 "faustparser.y"
+#line 619 "faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (1)].exp),gGlobal->nil); ;}
     break;
 
   case 183:
-#line 604 "faustparser.y"
+#line 620 "faustparser.y"
     { (yyval.exp) = cons((yyvsp[(3) - (3)].exp),(yyvsp[(1) - (3)].exp)); ;}
     break;
 
   case 184:
-#line 607 "faustparser.y"
+#line 623 "faustparser.y"
     { (yyval.exp) = boxSeq((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 185:
-#line 608 "faustparser.y"
+#line 624 "faustparser.y"
     { (yyval.exp) = boxSplit((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 186:
-#line 609 "faustparser.y"
+#line 625 "faustparser.y"
     { (yyval.exp) = boxMerge((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 187:
-#line 610 "faustparser.y"
+#line 626 "faustparser.y"
     { (yyval.exp) = boxRec((yyvsp[(1) - (3)].exp),(yyvsp[(3) - (3)].exp)); ;}
     break;
 
   case 188:
-#line 611 "faustparser.y"
+#line 627 "faustparser.y"
     { (yyval.exp) = (yyvsp[(1) - (1)].exp); ;}
     break;
 
   case 189:
-#line 614 "faustparser.y"
+#line 630 "faustparser.y"
     { (yyval.exp) = tree(yytext); ;}
     break;
 
   case 190:
-#line 617 "faustparser.y"
+#line 633 "faustparser.y"
     { (yyval.exp) = unquote(yytext); ;}
     break;
 
   case 191:
-#line 620 "faustparser.y"
+#line 636 "faustparser.y"
     { (yyval.exp) = tree(yytext); ;}
     break;
 
   case 192:
-#line 621 "faustparser.y"
+#line 637 "faustparser.y"
     { (yyval.exp) = tree(yytext); ;}
     break;
 
   case 193:
-#line 627 "faustparser.y"
+#line 643 "faustparser.y"
     { (yyval.exp) = boxIPar((yyvsp[(3) - (8)].exp),(yyvsp[(5) - (8)].exp),(yyvsp[(7) - (8)].exp)); ;}
     break;
 
   case 194:
-#line 631 "faustparser.y"
+#line 647 "faustparser.y"
     { (yyval.exp) = boxISeq((yyvsp[(3) - (8)].exp),(yyvsp[(5) - (8)].exp),(yyvsp[(7) - (8)].exp)); ;}
     break;
 
   case 195:
-#line 635 "faustparser.y"
+#line 651 "faustparser.y"
     { (yyval.exp) = boxISum((yyvsp[(3) - (8)].exp),(yyvsp[(5) - (8)].exp),(yyvsp[(7) - (8)].exp)); ;}
     break;
 
   case 196:
-#line 639 "faustparser.y"
+#line 655 "faustparser.y"
     { (yyval.exp) = boxIProd((yyvsp[(3) - (8)].exp),(yyvsp[(5) - (8)].exp),(yyvsp[(7) - (8)].exp)); ;}
     break;
 
   case 197:
-#line 642 "faustparser.y"
+#line 658 "faustparser.y"
     { (yyval.exp) = boxInputs((yyvsp[(3) - (4)].exp)); ;}
     break;
 
   case 198:
-#line 645 "faustparser.y"
+#line 661 "faustparser.y"
     { (yyval.exp) = boxOutputs((yyvsp[(3) - (4)].exp)); ;}
     break;
 
   case 199:
-#line 651 "faustparser.y"
+#line 667 "faustparser.y"
     { (yyval.exp) = ffunction((yyvsp[(3) - (8)].exp),(yyvsp[(5) - (8)].exp),(yyvsp[(7) - (8)].exp)); ;}
     break;
 
   case 200:
-#line 655 "faustparser.y"
+#line 671 "faustparser.y"
     { (yyval.exp) = boxFConst((yyvsp[(3) - (7)].exp),(yyvsp[(4) - (7)].exp),(yyvsp[(6) - (7)].exp)); ;}
     break;
 
   case 201:
-#line 659 "faustparser.y"
+#line 675 "faustparser.y"
     { (yyval.exp) = boxFVar((yyvsp[(3) - (7)].exp),(yyvsp[(4) - (7)].exp),(yyvsp[(6) - (7)].exp)); ;}
     break;
 
   case 202:
-#line 663 "faustparser.y"
+#line 679 "faustparser.y"
     { (yyval.exp) = boxButton((yyvsp[(3) - (4)].exp)); ;}
     break;
 
   case 203:
-#line 666 "faustparser.y"
+#line 682 "faustparser.y"
     { (yyval.exp) = boxCheckbox((yyvsp[(3) - (4)].exp)); ;}
     break;
 
   case 204:
-#line 670 "faustparser.y"
+#line 686 "faustparser.y"
     { (yyval.exp) = boxVSlider((yyvsp[(3) - (12)].exp),(yyvsp[(5) - (12)].exp),(yyvsp[(7) - (12)].exp),(yyvsp[(9) - (12)].exp),(yyvsp[(11) - (12)].exp)); ;}
     break;
 
   case 205:
-#line 673 "faustparser.y"
+#line 689 "faustparser.y"
     { (yyval.exp) = boxHSlider((yyvsp[(3) - (12)].exp),(yyvsp[(5) - (12)].exp),(yyvsp[(7) - (12)].exp),(yyvsp[(9) - (12)].exp),(yyvsp[(11) - (12)].exp)); ;}
     break;
 
   case 206:
-#line 676 "faustparser.y"
+#line 692 "faustparser.y"
     { (yyval.exp) = boxNumEntry((yyvsp[(3) - (12)].exp),(yyvsp[(5) - (12)].exp),(yyvsp[(7) - (12)].exp),(yyvsp[(9) - (12)].exp),(yyvsp[(11) - (12)].exp)); ;}
     break;
 
   case 207:
-#line 679 "faustparser.y"
+#line 695 "faustparser.y"
     { (yyval.exp) = boxVGroup((yyvsp[(3) - (6)].exp), (yyvsp[(5) - (6)].exp)); ;}
     break;
 
   case 208:
-#line 682 "faustparser.y"
+#line 698 "faustparser.y"
     { (yyval.exp) = boxHGroup((yyvsp[(3) - (6)].exp), (yyvsp[(5) - (6)].exp)); ;}
     break;
 
   case 209:
-#line 685 "faustparser.y"
+#line 701 "faustparser.y"
     { (yyval.exp) = boxTGroup((yyvsp[(3) - (6)].exp), (yyvsp[(5) - (6)].exp)); ;}
     break;
 
   case 210:
-#line 689 "faustparser.y"
+#line 705 "faustparser.y"
     { (yyval.exp) = boxVBargraph((yyvsp[(3) - (8)].exp),(yyvsp[(5) - (8)].exp),(yyvsp[(7) - (8)].exp)); ;}
     break;
 
   case 211:
-#line 692 "faustparser.y"
+#line 708 "faustparser.y"
     { (yyval.exp) = boxHBargraph((yyvsp[(3) - (8)].exp),(yyvsp[(5) - (8)].exp),(yyvsp[(7) - (8)].exp)); ;}
     break;
 
   case 212:
-#line 695 "faustparser.y"
+#line 711 "faustparser.y"
     { (yyval.exp) = boxSoundfile((yyvsp[(3) - (6)].exp),(yyvsp[(5) - (6)].exp)); ;}
     break;
 
   case 213:
-#line 701 "faustparser.y"
+#line 717 "faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (5)].exp), cons(cons((yyvsp[(2) - (5)].exp),cons((yyvsp[(2) - (5)].exp),cons((yyvsp[(2) - (5)].exp),gGlobal->nil))), (yyvsp[(4) - (5)].exp))); ;}
     break;
 
   case 214:
-#line 702 "faustparser.y"
+#line 718 "faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (7)].exp), cons(cons((yyvsp[(2) - (7)].exp),cons((yyvsp[(4) - (7)].exp),cons((yyvsp[(4) - (7)].exp),gGlobal->nil))), (yyvsp[(6) - (7)].exp))); ;}
     break;
 
   case 215:
-#line 703 "faustparser.y"
+#line 719 "faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (9)].exp), cons(cons((yyvsp[(2) - (9)].exp),cons((yyvsp[(4) - (9)].exp),cons((yyvsp[(6) - (9)].exp),gGlobal->nil))), (yyvsp[(8) - (9)].exp))); ;}
     break;
 
   case 216:
-#line 705 "faustparser.y"
+#line 721 "faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (4)].exp), cons(cons((yyvsp[(2) - (4)].exp),cons((yyvsp[(2) - (4)].exp),cons((yyvsp[(2) - (4)].exp),gGlobal->nil))), gGlobal->nil)); ;}
     break;
 
   case 217:
-#line 706 "faustparser.y"
+#line 722 "faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (6)].exp), cons(cons((yyvsp[(2) - (6)].exp),cons((yyvsp[(4) - (6)].exp),cons((yyvsp[(4) - (6)].exp),gGlobal->nil))), gGlobal->nil)); ;}
     break;
 
   case 218:
-#line 707 "faustparser.y"
+#line 723 "faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (8)].exp), cons(cons((yyvsp[(2) - (8)].exp),cons((yyvsp[(4) - (8)].exp),cons((yyvsp[(6) - (8)].exp),gGlobal->nil))), gGlobal->nil)); ;}
     break;
 
   case 219:
-#line 710 "faustparser.y"
+#line 726 "faustparser.y"
     { (yyval.exp) = tree(yytext); ;}
     break;
 
   case 220:
-#line 713 "faustparser.y"
+#line 729 "faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (1)].exp),gGlobal->nil); ;}
     break;
 
   case 221:
-#line 714 "faustparser.y"
+#line 730 "faustparser.y"
     { (yyval.exp) = cons((yyvsp[(3) - (3)].exp),(yyvsp[(1) - (3)].exp)); ;}
     break;
 
   case 222:
-#line 717 "faustparser.y"
+#line 733 "faustparser.y"
     { (yyval.exp) = cons((yyvsp[(1) - (1)].exp),gGlobal->nil); ;}
     break;
 
   case 223:
-#line 718 "faustparser.y"
+#line 734 "faustparser.y"
     { (yyval.exp) = cons((yyvsp[(2) - (2)].exp),(yyvsp[(1) - (2)].exp)); ;}
     break;
 
   case 224:
-#line 722 "faustparser.y"
+#line 738 "faustparser.y"
     { (yyval.exp) = cons((yyvsp[(2) - (6)].exp),(yyvsp[(5) - (6)].exp)); ;}
     break;
 
   case 225:
-#line 725 "faustparser.y"
+#line 741 "faustparser.y"
     { (yyval.exp) = tree(0); ;}
     break;
 
   case 226:
-#line 726 "faustparser.y"
+#line 742 "faustparser.y"
     { (yyval.exp) = tree(1); ;}
     break;
 
 
 /* Line 1267 of yacc.c.  */
-#line 3285 "faustparser.cpp"
+#line 3301 "faustparser.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -3495,6 +3511,6 @@ yyreturn:
 }
 
 
-#line 729 "faustparser.y"
+#line 745 "faustparser.y"
 
 

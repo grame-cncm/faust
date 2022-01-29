@@ -41,15 +41,31 @@ inline char replaceCR(char c)
 	return (c!='\n') ? c : ' ';
 }
 
+//----------------------------------------------------------
 // A definition is accepted if the prefixset is empty or if
 // the current float precision is member of the prefix set
-bool acceptdefinition(int prefixset)
+//----------------------------------------------------------
+inline bool acceptdefinition(int prefixset)
 {
 	int precisions[] = {0, 1, 2, 4, 8};
 	return (prefixset==0) || (prefixset & precisions[gGlobal->gFloatSize]);
 }
+    
+//----------------------------------------------------------
+// 'atoi' does not work correctly on Windows with MSVC on values
+// greater than 2^31 (= 2147483648)
+//----------------------------------------------------------
+inline int str2int(const char* str)
+{
+    int result = 0;
+    while (*str != 0) {
+        result = result * 10 + *str - '0';
+        str++;
+    }
+    return result;
+}
 
-Tree unquote(char* str)
+inline Tree unquote(char* str)
 {
     size_t size = strlen(str) + 1;
     
@@ -358,11 +374,11 @@ vallist         : number                              { gGlobal->gWaveForm.push_
                 | vallist PAR number                  { gGlobal->gWaveForm.push_back($3); }
                 ;
 
-number			: INT   						{ $$ = boxInt(atoi(yytext)); }
+number			: INT   						{ $$ = boxInt(str2int(yytext)); }
 				| FLOAT 						{ $$ = boxReal(atof(yytext)); }
-				| ADD INT   					{ $$ = boxInt(atoi(yytext)); }
+				| ADD INT   					{ $$ = boxInt(str2int(yytext)); }
 				| ADD FLOAT 					{ $$ = boxReal(atof(yytext)); }
-				| SUB INT   					{ $$ = boxInt(-atoi(yytext)); }
+				| SUB INT   					{ $$ = boxInt(-str2int(yytext)); }
 				| SUB FLOAT 					{ $$ = boxReal(-atof(yytext)); }				
 				;
 							
@@ -476,13 +492,13 @@ infixexp		: infixexp ADD infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigAdd))
 				| primitive						{ $$ = $1; }
 				;
 
-primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
+primitive		: INT   						{ $$ = boxInt(str2int(yytext)); }
 				| FLOAT 						{ $$ = boxReal(atof(yytext)); }
 
-				| ADD INT   					{ $$ = boxInt (atoi(yytext)); }
+				| ADD INT   					{ $$ = boxInt (str2int(yytext)); }
 				| ADD FLOAT 					{ $$ = boxReal(atof(yytext)); }
 
-				| SUB INT   					{ $$ = boxInt ( -atoi(yytext) ); }
+				| SUB INT   					{ $$ = boxInt ( -str2int(yytext) ); }
 				| SUB FLOAT 					{ $$ = boxReal( -atof(yytext) ); }
 
 				| WIRE   						{ $$ = boxWire(); }

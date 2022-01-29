@@ -312,7 +312,7 @@
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
-#line 80 "faustparser.y"
+#line 96 "faustparser.y"
 {
 	CTree* 	exp;
 	char* str;
