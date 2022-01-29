@@ -167,6 +167,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     int fDate;                          // KeyOn date
     int fRelease;                       // Current number of samples used in release mode to detect end of note
     FAUSTFLOAT fLevel;                  // Last audio block level
+    double fTailLengthSec;  // Maximum tail length in seconds (estimated time to silence after note release)
     std::vector<std::string> fGatePath; // Paths of 'gate' control
     std::vector<std::string> fGainPath; // Paths of 'gain/vel|velocity' control
     std::vector<std::string> fFreqPath; // Paths of 'freq/key' control
@@ -186,6 +187,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         fNextNote = fNextVel = -1;
         fLevel = FAUSTFLOAT(0);
         fDate = fRelease = 0;
+        fTailLengthSec   = 0.5;  // A half second is a reasonable default maximum tail length.
         extractPaths(fGatePath, fFreqPath, fGainPath);
     }
     virtual ~dsp_voice()
@@ -299,9 +301,14 @@ struct dsp_voice : public MapUI, public decorator_dsp {
             fCurNote = kFreeVoice;
         } else {
             // Release voice
-            fRelease = fDSP->getSampleRate()/2; // Half sec used in release mode to detect end of note
+            fRelease = fTailLengthSec * fDSP->getSampleRate();
             fCurNote = kReleaseVoice;
         }
+    }
+ 
+    void setTailLengthSeconds(double sec)
+    {
+        fTailLengthSec = sec;
     }
 
 };
@@ -839,6 +846,13 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                 fVoiceTable[i]->keyOff(hard);
             }
         }
+ 
+        void setTailLengthSeconds(double seconds)
+        {
+            for (size_t i = 0; i < fVoiceTable.size(); i++) {
+                fVoiceTable[i]->setTailLengthSeconds(seconds);
+            }
+        }
 
         // Additional polyphonic API
         MapUI* newVoice()
@@ -910,6 +924,13 @@ class dsp_poly_effect : public dsp_poly {
         virtual ~dsp_poly_effect()
         {
             // dsp_poly_effect is also a decorator_dsp, which will free fPolyDSP
+        }
+ 
+        void setTailLengthSeconds(double sec)
+        {
+            if (auto as_mydsp_poly = dynamic_cast<mydsp_poly*>(fPolyDSP)) {
+                as_mydsp_poly->setTailLengthSeconds(sec);
+            }
         }
         
         // MIDI API
