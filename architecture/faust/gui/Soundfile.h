@@ -64,7 +64,7 @@
 
 PRE_PACKED_STRUCTURE
 struct Soundfile {
-    void* fBuffers; // will be set with double** or float** chosen at runtime
+    void* fBuffers; // will correspond to a double** or float** pointer chosen at runtime
     int* fLength;   // length of each part (so fLength[P] contains the length in frames of part P)
     int* fSR;       // sample rate of each part (so fSR[P] contains the SR of part P)
     int* fOffset;   // offset of each part in the global buffer (so fOffset[P] contains the offset in frames of part P)
