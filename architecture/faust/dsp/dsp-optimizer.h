@@ -388,6 +388,12 @@ class dsp_optimizer_real {
             
             if (fTrace) fprintf(stdout, "Refined with -mcd\n");
             TOptionTable options_table;
+        
+            // Start from 0
+            TOption best2 = best1.second;
+            best2.push_back("-mcd");
+            best2.push_back("0");
+            options_table.push_back(best2);
             for (int size = 2; size <= 256; size *= 2) {
                 TOption best2 = best1.second;
                 best2.push_back("-mcd");
