@@ -16,7 +16,7 @@ PREFIX ?= /usr/local
 
 prefix := $(DESTDIR)$(PREFIX)
 
-TARGETS ?= dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk dynamic-coreaudio-gtk dynamic-machine-jack-gtk interp-tracer faust-osc-controller signal-tester signal-tester-c box-tester box-tester-c
+TARGETS ?= dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk dynamic-coreaudio-gtk interp-tracer faust-osc-controller signal-tester signal-tester-c box-tester box-tester-c
 system := $(shell uname -s)
 ifeq ($(system), Darwin)
 	STRIP = -dead_strip
@@ -35,7 +35,7 @@ faustbench-interp: faustbench-interp.cpp $(LIB)/libfaust.a
 	$(CXX) $(COMPILEOPT) faustbench-interp.cpp  $(LIBS) -I $(INC)  $(LLVM) $(STRIP) -lz -lncurses -lpthread -o $@
 
 faustbench-interp-comp: faustbench-interp-comp.cpp $(LIB)/libfaustmachine.a
-	$(CXX) $(COMPILEOPT) faustbench-interp-comp.cpp $(LIB)/libfaustmachine.a mir.o mir-gen.o -I $(INC) $(LLVM) $(STRIP) -lz -lncurses -lpthread -o $@
+	$(CXX) $(COMPILEOPT) faustbench-interp-comp.cpp $(LIB)/libfaustmachine.a /usr/local/lib/libmir.a -I $(INC) $(LLVM) $(STRIP) -lz -lncurses -lpthread -o $@
 
 dynamic-faust: dynamic-faust.cpp $(LIB)/libfaust.a
 	$(CXX) $(COMPILEOPT) dynamic-faust.cpp $(LIBS) -I $(INC) $(LLVM) $(STRIP) -lpthread -o $@
@@ -44,7 +44,7 @@ dynamic-jack-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
 	$(CXX) -DJACK $(COMPILEOPT) dynamic-jack-gtk.cpp  $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs sndfile samplerate jack gtk+-2.0` $(STRIP) $(COMMLIBS) -o $@
 
 dynamic-machine-jack-gtk: dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a
-	$(CXX) $(COMPILEOPT) dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a -I $(INC) $(LLVM) /usr/local/lib/libmir.a `pkg-config --cflags --libs jack gtk+-2.0` $(STRIP) $(COMMLIBS) -o $@
+	$(CXX) $(COMPILEOPT) dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a /usr/local/lib/libmir.a -I $(INC) $(LLVM) `pkg-config --cflags --libs jack gtk+-2.0` $(STRIP) $(COMMLIBS) -o $@
 
 dynamic-coreaudio-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
 	$(CXX) $(COMPILEOPT) dynamic-jack-gtk.cpp  $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs sndfile samplerate gtk+-2.0` $(STRIP) $(COMMLIBS) $(MACOSLIBS) -o $@
