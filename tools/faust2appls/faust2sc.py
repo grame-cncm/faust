@@ -356,6 +356,7 @@ def get_parameter_list(json_data, with_initialization):
         else:
             this_argument = param_name
 
+        this_argument = this_argument.replace(" ", "_")
         if counter != 0:
             out_string = out_string + ", " + this_argument
         else:
