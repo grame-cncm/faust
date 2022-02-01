@@ -531,7 +531,7 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--architecture", help="Use an alternative architecture file. If not set, it will use the default supercollider.cpp file that comes with faust.")
 
     parser.add_argument("-m", "--macosarch", help="Enforce a macOS architecture. Can be either arm64 or x86_64 (Rosetta on Mx sillicon)")
-    parser.add_argument("-t", "--targetfolder", help="Put the generated files in this folder. If not used, it will put the files in the current working directory.")
+    parser.add_argument("-o", "--outputfolder", help="Put the generated files in this folder. If not used, it will put the files in the current working directory.")
     parser.add_argument("-n", "--noprefix", help="1 == Do not prefix the SuperCollider class and object with Faust. 0 == prefix. It is 1 by default, ie not using the Faust prefix.", type=int, choices=[0,1])
     parser.add_argument("-s", "--supernova", help="Compile with supernova plugin", action="store_true")
     parser.add_argument("-c", "--cpp", help="Copy cpp file to target directory after compilation.", action="store_true")
@@ -554,7 +554,7 @@ if __name__ == "__main__":
 
     # Move files to target
     env = faustoptflags()
-    target = args.targetfolder or os.getcwd()
+    target = args.outputfolder or os.getcwd()
 
     # Move SuperCollider files
     shutil.copytree(path.join(tmp_folder.name, "Classes"), path.join(target, "Classes"), dirs_exist_ok=True)
