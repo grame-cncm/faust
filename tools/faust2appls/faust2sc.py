@@ -203,7 +203,7 @@ def compile(out_dir, cpp_file, class_name, compile_supernova, headerpath, macos_
 
         if compile_supernova:
             supernova_obj = path.join(out_dir, class_name + "_supernova." + env["EXT"])
-            supernova_compile_command = "%s %s -Dmydsp=\"%s\" -o %s %s" % (os.environ["CXX"], flags, class_name, supernova_obj, cpp_file)
+            supernova_compile_command = "%s %s -DSUPERNOVA -Dmydsp=\"%s\" -o %s %s" % (os.environ["CXX"], flags, class_name + "_supernova", supernova_obj, cpp_file)
 
             print("Compiling supernova object using command:\n%s" % supernova_compile_command)
             os.system(supernova_compile_command.replace("\n", ""))
