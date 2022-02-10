@@ -173,6 +173,7 @@ faustgen_factory::faustgen_factory(const string& name)
     fOptLevel = LLVM_OPTIMIZATION;
     fPolyphonic = false;
     fSoundUI = NULL;
+    fSampleFormat = kNone;
     
 #ifdef __APPLE__
     // OSX only : access to the fautgen~ bundle
@@ -342,12 +343,12 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
 
 ::dsp* faustgen_factory::create_dsp_instance(int nvoices)
 {
-    ::dsp* mono = fDSPfactory->createDSPInstance();
+    ::dsp* dsp = fDSPfactory->createDSPInstance();
     
     // Check 'nvoices' metadata
     if (nvoices == 0) {
         MyMeta meta;
-        mono->metadata(&meta);
+        dsp->metadata(&meta);
         std::string numVoices = meta.get("nvoices", "0");
         nvoices = atoi(numVoices.c_str());
         if (nvoices < 0) nvoices = 0;
@@ -355,11 +356,17 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     
     if (nvoices > 0) {
         fPolyphonic = true;
-        return new mydsp_poly(mono, nvoices, true);
+        dsp = new mydsp_poly(dsp, nvoices, true);
     } else {
         fPolyphonic = false;
-        return mono;
     }
+    
+    // Add the sample size if needed
+    if (fSampleFormat == kFloat) {
+        dsp = new dsp_sample_adapter<float, double>(dsp);
+    }
+    
+    return dsp;
 }
 
 ::dsp* faustgen_factory::create_dsp_aux()
@@ -461,11 +468,7 @@ void faustgen_factory::default_compile_options()
 {
     // Clear and set default value
     fCompileOptions.clear();
-    
-    // By default when double
-    if (sizeof(FAUSTFLOAT) == 8) {
-        add_compile_option("-double");
-    }
+    fSampleFormat = kNone;
     
     // Add -svg to current compile options
     add_compile_option("-svg");
@@ -486,11 +489,23 @@ void faustgen_factory::default_compile_options()
         if (*it == "-opt") {
             it++;
             fOptLevel = atoi((*it).c_str());
+        } else if (*it == "-single") {
+            fSampleFormat = kFloat;
+            add_compile_option(*it);
+        } else if (*it == "-double") {
+            fSampleFormat = kDouble;
+            add_compile_option(*it);
         } else {
             add_compile_option(*it);
         }
     }
     
+    // By defaut -double is used
+    if (fSampleFormat == kNone) {
+        fSampleFormat = kDouble;
+        add_compile_option("-double");
+    }
+  
     // Vector mode by default
     /*
      add_compile_option("-vec");

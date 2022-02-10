@@ -61,7 +61,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"stdfaust.lib\");\nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.53"
+#define FAUSTGEN_VERSION "1.54"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 #define FAUST_PDF_LIBRARY "library.pdf"
 
@@ -97,6 +97,8 @@ class faustgen_factory {
         friend class faustgen;
         
     private:
+    
+        enum sampleFormat { kFloat, kDouble, kNone };
         
         set<faustgen*> fInstances;      // Set of all DSP
         llvm_dsp_factory* fDSPfactory;  // Pointer to the LLVM Faust factory
@@ -125,6 +127,7 @@ class faustgen_factory {
         
         int fOptLevel;                  // LLVM optimization level
         bool fPolyphonic;               // Whether the created DSP is polyphonic
+        sampleFormat fSampleFormat;     // Sample format in the LLVM module
         
         short fDefaultPath;             // Default path to be saved in factory constructor (using path_getdefault)
                                         // and explicitly set in 'read' and 'write' (using path_setdefault)
