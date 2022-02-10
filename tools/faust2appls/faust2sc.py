@@ -537,10 +537,13 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--supernova", help="Compile with supernova plugin", action="store_true")
     parser.add_argument("-c", "--cpp", help="Copy cpp file to target directory after compilation.", action="store_true")
     parser.add_argument("-p", "--headerpath", default="./include", help="Path to SuperCollider headers. If no header path is supplied, the script will try to find the headers in common locations.")
-    parser.add_argument("-f", "--faustflags", help="Additional flags that should be passed to the faust command as a string. Run faust --help to see all options here.")
 
-    args = parser.parse_args()
-    faustflags = args.faustflags or ""
+    # args = parser.parse_args()
+    args, unknownargs = parser.parse_known_args()
+
+    # Flatten list of arguments to one string
+    unknownargs = " ".join(unknownargs)
+    faustflags = unknownargs or ""
 
     # Temporary folder for intermediary files
     tmp_folder = tempfile.TemporaryDirectory(prefix="faust.")
