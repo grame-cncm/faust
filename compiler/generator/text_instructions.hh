@@ -204,7 +204,7 @@ class TextInstVisitor : public InstVisitor {
     }
     
     
-    bool needParenthesis(BinopInst* inst, ValueInst* arg)
+    virtual bool needParenthesis(BinopInst* inst, ValueInst* arg)
     {
         int p0 = gBinOpTable[inst->fOpcode]->fPriority;
         BinopInst* a = dynamic_cast<BinopInst*>(arg);

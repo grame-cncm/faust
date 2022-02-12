@@ -378,6 +378,16 @@ class CPPInstVisitor : public TextInstVisitor {
         inst->fAddress->accept(this);
     }
     
+    virtual bool needParenthesis(BinopInst* inst, ValueInst* arg)
+    {
+        int p0 = gBinOpTable[inst->fOpcode]->fPriority;
+        BinopInst* a = dynamic_cast<BinopInst*>(arg);
+        int p1 = a ? gBinOpTable[a->fOpcode]->fPriority : INT_MAX;
+        return (isLogicalOpcode(inst->fOpcode) || (p0 > p1))
+            && !arg->isSimpleValue()
+            && !dynamic_cast<CastInst*>(arg);
+    }
+    
     virtual void visit(BinopInst* inst)
     {
         // Special case for 'logical right-shift'
