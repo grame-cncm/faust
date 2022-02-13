@@ -450,7 +450,7 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void generateFunCall(FunCallInst* inst, const std::string& fun_name)
     {
         if (inst->fMethod) {
-            list<ValueInst*>::const_iterator it = inst->fArgs.begin();
+            ListValuesIt it = inst->fArgs.begin();
             // Compile object arg
             (*it)->accept(this);
             // Compile parameters

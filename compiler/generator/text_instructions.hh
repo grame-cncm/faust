@@ -203,7 +203,6 @@ class TextInstVisitor : public InstVisitor {
         *fOut << '}';
     }
     
-    
     virtual bool needParenthesis(BinopInst* inst, ValueInst* arg)
     {
         int p0 = gBinOpTable[inst->fOpcode]->fPriority;
@@ -240,13 +239,10 @@ class TextInstVisitor : public InstVisitor {
         }
     }
 
-    virtual void generateFunCallArgs(list<ValueInst*>::const_iterator beg,
-                                     list<ValueInst*>::const_iterator end,
-                                     size_t size)
+    virtual void generateFunCallArgs(ListValuesIt beg, ListValuesIt end, size_t size)
     {
-        list<ValueInst*>::const_iterator it = beg;
-        size_t                           i  = 0;
-        for (it = beg; it != end; it++, i++) {
+        size_t i = 0;
+        for (ListValuesIt it = beg; it != end; it++, i++) {
             // Compile argument
             (*it)->accept(this);
             if (i < size - 1) *fOut << ", ";
@@ -283,7 +279,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void generateFunCall(FunCallInst* inst, const std::string& fun_name)
     {
         if (inst->fMethod) {
-            list<ValueInst*>::const_iterator it = inst->fArgs.begin();
+            ListValuesIt it = inst->fArgs.begin();
             // Compile object arg
             (*it)->accept(this);
             // Compile parameters

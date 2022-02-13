@@ -169,12 +169,10 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         fTab--;
     }
 
-    virtual void generateFunCallArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end,
-                                     int size)
+    virtual void generateFunCallArgs(ListValuesIt beg, ListValuesIt end, size_t size)
     {
-        list<ValueInst*>::const_iterator it = beg;
-        int                              i  = 0;
-        for (it = beg; it != end; it++, i++) {
+        size_t i = 0;
+        for (ListValuesIt it = beg; it != end; it++, i++) {
             // Compile argument
             (*it)->accept(this);
             if (i < size - 1) *fOut << " ";

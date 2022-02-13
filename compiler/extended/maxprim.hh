@@ -102,7 +102,7 @@ class MaxPrim : public xtended {
             } else {
                 faustassert(n1 == kInt);  // second argument is not float, cast it to float
                 // prepare args values
-                list<ValueInst*>::const_iterator it2 = args.begin();
+                ListValuesIt it2 = args.begin();
                 casted_args.push_back((*it2));
                 it2++;
                 casted_args.push_back(InstBuilder::genCastFloatInst(*it2));
@@ -116,7 +116,7 @@ class MaxPrim : public xtended {
             arg_types.push_back(itfloat());
 
             // prepare args values
-            list<ValueInst*>::const_iterator it2 = args.begin();
+            ListValuesIt it2 = args.begin();
             casted_args.push_back(InstBuilder::genCastFloatInst(*it2));
             it2++;
             casted_args.push_back((*it2));
@@ -138,7 +138,7 @@ class MaxPrim : public xtended {
                 } else {
                     faustassert(b1 == kBool);  // second is boolean, cast to int
                     // prepare args values
-                    list<ValueInst*>::const_iterator it2 = args.begin();
+                    ListValuesIt it2 = args.begin();
                     casted_args.push_back((*it2));
                     it2++;
                     casted_args.push_back(InstBuilder::genCastInt32Inst(*it2));
@@ -147,7 +147,7 @@ class MaxPrim : public xtended {
             } else if (b1 == kNum) {
                 faustassert(b0 == kBool);  // first is boolean, cast to int
                 // prepare args values
-                list<ValueInst*>::const_iterator it2 = args.begin();
+                ListValuesIt it2 = args.begin();
                 casted_args.push_back(InstBuilder::genCastInt32Inst(*it2));
                 it2++;
                 casted_args.push_back((*it2));
@@ -157,7 +157,7 @@ class MaxPrim : public xtended {
                 // '1' and 'false' is actually '0' (which is not the case if compiled in SSE mode)
                 faustassert(b0 == kBool);
                 faustassert(b1 == kBool);  // both are booleans, cast both
-                list<ValueInst*>::const_iterator it2 = args.begin();
+                ListValuesIt it2 = args.begin();
                 casted_args.push_back(InstBuilder::genCastInt32Inst(*it2));
                 it2++;
                 casted_args.push_back(InstBuilder::genCastInt32Inst(*it2));

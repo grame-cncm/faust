@@ -94,7 +94,7 @@ class PowPrim : public xtended {
         vector<Typed::VarType>          arg_types(2);
         Typed::VarType                  result_type = (result->nature() == kInt) ? Typed::kInt32 : itfloat();
 
-        list<ValueInst*>::const_iterator it = args.begin();
+        ListValuesIt it = args.begin();
         it++;
         Int32NumInst* arg1 = dynamic_cast<Int32NumInst*>(*it);
 
@@ -107,11 +107,11 @@ class PowPrim : public xtended {
             // Expand the pow depending of the exposant argument
             BlockInst* block = InstBuilder::genBlockInst();
             
-            list<ValueInst*>::const_iterator it1 = args.begin();
+            ListValuesIt it1 = args.begin();
             it1++;
             
-            Int32NumInst* arg2             = dynamic_cast<Int32NumInst*>(*it1);
-            string        faust_power_name = container->getFaustPowerName() + to_string(arg2->fNum) + ((result_type == Typed::kInt32) ? "_i" : "_f");
+            Int32NumInst* arg2 = dynamic_cast<Int32NumInst*>(*it1);
+            string faust_power_name = container->getFaustPowerName() + to_string(arg2->fNum) + ((result_type == Typed::kInt32) ? "_i" : "_f");
             
             list<NamedTyped*> named_args;
             named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(arg_types[0])));
@@ -140,7 +140,7 @@ class PowPrim : public xtended {
             arg_types[1] = itfloat();
 
             list<ValueInst*> casted_args;
-            list<ValueInst*>::const_iterator it2 = args.begin();
+            ListValuesIt it2 = args.begin();
             vector< ::Type>::const_iterator it1;
             
             for (it1 = types.begin(); it1 != types.end(); it1++, it2++) {

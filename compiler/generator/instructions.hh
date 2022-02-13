@@ -115,6 +115,8 @@ struct VectorTyped;
 struct NamedAddress;
 struct IndexedAddress;
 
+typedef list<ValueInst*>::const_iterator ListValuesIt;
+
 // Type checking
 
 inline bool isRealType(Typed::VarType type)

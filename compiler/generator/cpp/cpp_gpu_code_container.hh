@@ -224,16 +224,15 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
         virtual void visit(FunCallInst* inst)
         {
             if (inst->fMethod) {
-                list<ValueInst*>::const_iterator it = inst->fArgs.begin();
+                ListValuesIt it = inst->fArgs.begin();
                 // Compile object arg
                 (*it)->accept(this);
                 *fOut << "->"
                       << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName]
                                                                                      : inst->fName)
                       << "(";
-                list<ValueInst*>::const_iterator it1;
-                size_t                           size = inst->fArgs.size() - 1, i = 0;
-                for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
+                size_t size = inst->fArgs.size() - 1, i = 0;
+                for (ListValuesIt it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
                     // Compile argument
                     (*it1)->accept(this);
                     if (i < size - 1) *fOut << ", ";
@@ -243,9 +242,8 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                 *fOut << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName]
                                                                                      : inst->fName)
                       << "(";
-                list<ValueInst*>::const_iterator it;
-                size_t                           size = inst->fArgs.size(), i = 0;
-                for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
+                size_t size = inst->fArgs.size(), i = 0;
+                for (ListValuesIt it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
                     // Compile argument
                     (*it)->accept(this);
                     if (i < size - 1) *fOut << ", ";
