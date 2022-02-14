@@ -419,7 +419,8 @@ int llvm_dsp::getSampleRate()
 
 void llvm_dsp::buildUserInterface(UI* ui_interface)
 {
-    if (fDecoder->hasCompileOption("-double") && ui_interface->sizeOfFAUSTFLOAT() == 4) {
+    if ((fDecoder->hasCompileOption("-double") && ui_interface->sizeOfFAUSTFLOAT() == 4)
+        || (fDecoder->hasCompileOption("-single") && ui_interface->sizeOfFAUSTFLOAT() == 8)) {
         // Setup a DSP proxy
         fDecoder->setupDSPProxy(ui_interface, fDSP);
         fDecoder->buildUserInterface(ui_interface);

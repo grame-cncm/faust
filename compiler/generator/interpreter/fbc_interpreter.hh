@@ -512,7 +512,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<REAL>* block, UITemplate* glue)
     {
         // UI may have to be adapted if REAL and FAUSTFLOAT size do not match
-        bool need_proxy = (sizeof(REAL) == 8 && reinterpret_cast<UI*>(glue->fCPPInterface)->sizeOfFAUSTFLOAT() == 4);
+        bool need_proxy = sizeof(REAL) != reinterpret_cast<UI*>(glue->fCPPInterface)->sizeOfFAUSTFLOAT();
         ZoneParam* cur_param = nullptr;
         
         for (const auto& it : block->fInstructions) {

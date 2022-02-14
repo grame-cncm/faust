@@ -93,6 +93,7 @@ struct DynamicDSP {
     jackaudio_midi fAudio;
 #else
     coreaudio fAudio;
+    midi_handler* fMidiHandler = nullptr;
 #endif
     string fRCfilename;
     bool is_llvm = false;
@@ -279,8 +280,8 @@ struct DynamicDSP {
         #ifdef JACK
             fMIDIInterface = new MidiUI(&fAudio);
         #else
-            rt_midi midi_handler(name);
-            fMIDIInterface = new MidiUI(&midi_handler);
+            fMidiHandler = new rt_midi(name);
+            fMIDIInterface = new MidiUI(fMidiHandler);
         #endif
             fDSP->buildUserInterface(fMIDIInterface);
         }
@@ -331,6 +332,10 @@ struct DynamicDSP {
         } else {
             deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(fFactory));
         }
+    #ifdef JACK
+    #else
+        delete fMidiHandler;
+    #endif
     }
         
 };

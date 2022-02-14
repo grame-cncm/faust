@@ -50,8 +50,8 @@
 #define REAL_EXT_ADR(index)  reinterpret_cast<FAUSTFLOAT*>(&memory_block[index])
 #define SOUNDFILE_ADR(index) reinterpret_cast<Soundfile**>(&memory_block[index])
 
-typedef std::function<void(double)> ReflectFunction;
-typedef std::function<double()> ModifyFunction;
+typedef std::function<void(FAUSTFLOAT)> ReflectFunction;
+typedef std::function<FAUSTFLOAT()> ModifyFunction;
 
 struct ExtZoneParam {
 
@@ -114,7 +114,7 @@ struct JSONUIDecoderReal : public JSONUIDecoderBase {
         void reflectZone() { if (fReflect) fReflect(fZone); }
         void modifyZone() { if (fModify) fZone = fModify(); }
     #else
-        ZoneParam(ReflectFunction reflect = [](REAL value) {}, ModifyFunction modify = []() { return REAL(-1); })
+        ZoneParam(ReflectFunction reflect = [](FAUSTFLOAT value) {}, ModifyFunction modify = []() { return FAUSTFLOAT(-1); })
         :fReflect(reflect), fModify(modify)
         {}
         void reflectZone() { fReflect(fZone); }
@@ -294,9 +294,9 @@ struct JSONUIDecoderReal : public JSONUIDecoderBase {
                 std::string type = it.type;
                 int index = it.index;
                 if (isInput(type)) {
-                    fPathInputTable[countIn++]->setReflectZoneFun([=](REAL value) { *REAL_ADR(index) = value; });
+                    fPathInputTable[countIn++]->setReflectZoneFun([=](FAUSTFLOAT value) { *REAL_ADR(index) = REAL(value); });
                 } else if (isOutput(type)) {
-                    fPathOutputTable[countOut++]->setModifyZoneFun([=]() { return *REAL_ADR(index); });
+                    fPathOutputTable[countOut++]->setModifyZoneFun([=]() { return FAUSTFLOAT(*REAL_ADR(index)); });
                 }
             }
         }

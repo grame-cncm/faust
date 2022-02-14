@@ -354,16 +354,16 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
         if (nvoices < 0) nvoices = 0;
     }
     
+    // Add the sample size if needed
+    if (fSampleFormat == kFloat) {
+        dsp = new dsp_sample_adapter<float, double>(dsp);
+    }
+    
     if (nvoices > 0) {
         fPolyphonic = true;
         dsp = new mydsp_poly(dsp, nvoices, true);
     } else {
         fPolyphonic = false;
-    }
-    
-    // Add the sample size if needed
-    if (fSampleFormat == kFloat) {
-        dsp = new dsp_sample_adapter<float, double>(dsp);
     }
     
     return dsp;
@@ -535,6 +535,9 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     const char* faustgen_version;
     err = dictionary_getstring(d, gensym("version"), &faustgen_version);
     
+    // Read fSampleFormat version
+    err = dictionary_getlong(d, gensym("sample_format"), (t_atom_long*)&fSampleFormat);
+    
     if (err != MAX_ERR_NONE) {
         post("Cannot read \"version\" key, so ignore bitcode, force recompilation and use default compileoptions");
         goto read_sourcecode;
@@ -601,13 +604,16 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
 {
     post("Saving object version, library_path, sourcecode and bitcode...");
     
-    // Save machine serial number
+    // Write machine serial number
     dictionary_appendstring(d, gensym("serial_number"), getSerialNumber().c_str());
     
-    // Save faustgen~ version
+    // Write faustgen~ version
     dictionary_appendstring(d, gensym("version"), FAUSTGEN_VERSION);
     
-    // Save fLibraryPath
+    // Write fSampleFormat version
+    dictionary_appendlong(d, gensym("sample_format"), fSampleFormat);
+    
+    // Write fLibraryPath
     StringSetIt it;
     int i = 0;
     for (it = fLibraryPath.begin(); it != fLibraryPath.end(); it++) {
@@ -616,13 +622,13 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
         dictionary_appendstring(d, gensym(library_path), (*it).c_str());
     }
     
-    // Save source code
+    // Write source code
     if (fSourceCodeSize) {
         dictionary_appendlong(d, gensym("sourcecode_size"), fSourceCodeSize);
         dictionary_appendstring(d, gensym("sourcecode"), *fSourceCode);
     }
     
-    // Save bitcode
+    // Write bitcode
     if (fDSPfactory) {
         // Alternate model using machine code
         string machinecode = writeDSPFactoryToMachine(fDSPfactory, getTarget());
@@ -1552,7 +1558,7 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
     if (!fMute && fDSPfactory->try_lock_audio()) {
         // Has to be tested again when the lock has been taken...
         if (fDSP) {
-            fDSP->compute(vs, static_cast<FAUSTFLOAT**>(inputs), static_cast<FAUSTFLOAT**>(outputs));
+            fDSP->compute(vs, reinterpret_cast<FAUSTFLOAT**>(inputs), reinterpret_cast<FAUSTFLOAT**>(outputs));
             if (fOSCUI) fOSCUI->endBundle();
             //update_outputs();
             // Use the right outlet to output messages
