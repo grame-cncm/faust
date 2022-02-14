@@ -733,4 +733,19 @@ struct ConstantsCopyToMemory1 : public ConstantsCopyMemory {
     
 };
 
+// Rewrite DSP array fields as pointers
+struct ArrayToPointer : public BasicCloneVisitor {
+    
+    virtual StatementInst* visit(DeclareVarInst* inst)
+    {
+        ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        if (array_typed) {
+            return InstBuilder::genDecStructVar(inst->getName(), InstBuilder::genArrayTyped(array_typed->fType->clone(this), 0));
+        } else {
+            return BasicCloneVisitor::visit(inst);
+        }
+    }
+    
+};
+
 #endif

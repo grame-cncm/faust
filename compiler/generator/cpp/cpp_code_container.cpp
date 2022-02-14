@@ -51,20 +51,25 @@ dsp_factory_base* CPPCodeContainer::produceFactory()
         ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), "");
 }
 
-CodeContainer* CPPCodeContainer::createScalarContainer(const string& name, int sub_container_type)
+CodeContainer* CPPCodeContainer::createScalarContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, ostream* dst, int sub_container_type)
 {
     if (gGlobal->gOneSample == 0) {
-        return new CPPScalarOneSampleCodeContainer1(name, "", 0, 1, fOut, sub_container_type);
+        return new CPPScalarOneSampleCodeContainer1(name,super, numInputs, numOutputs, dst, sub_container_type);
     } else if (gGlobal->gOneSample == 1) {
-        return new CPPScalarOneSampleCodeContainer2(name, "", 0, 1, fOut, sub_container_type);
+        return new CPPScalarOneSampleCodeContainer2(name, super, numInputs, numOutputs, dst, sub_container_type);
     } else if (gGlobal->gOneSample == 2) {
-        return new CPPScalarOneSampleCodeContainer3(name, "", 0, 1, fOut, sub_container_type);
+        return new CPPScalarOneSampleCodeContainer3(name, super, numInputs, numOutputs, dst, sub_container_type);
     } else if (gGlobal->gOneSample == 3) {
-        return new CPPScalarOneSampleCodeContainer4(name, "", 0, 1, fOut, sub_container_type);
+        return new CPPScalarOneSampleCodeContainer4(name, super, numInputs, numOutputs, dst, sub_container_type);
     } else {
-        return new CPPScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
+        return new CPPScalarCodeContainer(name, super, numInputs, numOutputs, dst, sub_container_type);
     }
- }
+}
+
+CodeContainer* CPPCodeContainer::createScalarContainer(const string& name, int sub_container_type)
+{
+    return createScalarContainer(name, "", 0, 1, fOut, sub_container_type);
+}
 
 CodeContainer* CPPCodeContainer::createContainer(const string& name, const string& super, int numInputs, int numOutputs,
                                                  ostream* dst)
@@ -96,17 +101,7 @@ CodeContainer* CPPCodeContainer::createContainer(const string& name, const strin
     } else if (gGlobal->gVectorSwitch) {
         container = new CPPVectorCodeContainer(name, super, numInputs, numOutputs, dst);
     } else {
-        if (gGlobal->gOneSample == 0) {
-            container = new CPPScalarOneSampleCodeContainer1(name, super, numInputs, numOutputs, dst, kInt);
-        } else if (gGlobal->gOneSample == 1) {
-            container = new CPPScalarOneSampleCodeContainer2(name, super, numInputs, numOutputs, dst, kInt);
-        } else if (gGlobal->gOneSample == 2) {
-            container = new CPPScalarOneSampleCodeContainer3(name, super, numInputs, numOutputs, dst, kInt);
-        } else if (gGlobal->gOneSample == 3) {
-            container = new CPPScalarOneSampleCodeContainer4(name, super, numInputs, numOutputs, dst, kInt);
-        } else {
-            container = new CPPScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
-        }
+        container = createScalarContainer(name, super, numInputs, numOutputs, dst, kInt);
     }
 
     return container;
@@ -334,7 +329,14 @@ void CPPCodeContainer::produceClass()
     // Fields
     fCodeProducer->Tab(n + 1);
     tab(n + 1, *fOut);
-    generateDeclarations(fCodeProducer);
+    
+    // DSP fields as flat arrays are rewritten as pointers
+    if (gGlobal->gMemoryManager) {
+        ArrayToPointer array_pointer;
+        array_pointer.getCode(fDeclarationInstructions)->accept(fCodeProducer);
+    } else {
+        generateDeclarations(fCodeProducer);
+    }
 
     if (fAllocateInstructions->fCode.size() > 0) {
         tab(n + 1, *fOut);
@@ -511,7 +513,11 @@ void CPPCodeContainer::produceClass()
     tab(n + 1, *fOut);
     *fOut << "virtual " << fKlassName << "* clone() {";
     tab(n + 2, *fOut);
-    *fOut << "return new " << fKlassName << "();";
+    if (gGlobal->gMemoryManager) {
+        *fOut << "return create();";
+   } else {
+        *fOut << "return new " << fKlassName << "();";
+    }
     tab(n + 1, *fOut);
     *fOut << "}";
 
@@ -531,8 +537,189 @@ void CPPCodeContainer::produceClass()
 
     // Compute
     generateCompute(n);
-    tab(n, *fOut);
-    tab(n, *fOut);
+    
+    if (gGlobal->gMemoryManager) {
+        
+        // 'memoryInfo' method generation
+        tab(n + 1, *fOut);
+        tab(n + 1, *fOut);
+        
+        StructInstVisitor struct_visitor;
+        // DSP fields
+        fDeclarationInstructions->accept(&struct_visitor);
+        
+        *fOut << "static void memoryInfo() {";
+        tab(n + 2, *fOut);
+        *fOut << "fManager->begin(" << (fSubContainers.size() + gGlobal->gTablesSize.size() + 1 + struct_visitor.getArrayCount()) << ");";
+        tab(n + 2, *fOut);
+        
+        {
+            // Compute DSP struct arrays size and R/W access
+            StructInstVisitor struct_visitor;
+            // Add the global static tables
+            fGlobalDeclarationInstructions->accept(&struct_visitor);
+            
+            ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
+            loop->accept(&struct_visitor);
+        
+            // Subcontainers that are used in classInit
+            *fOut << "//=================================";
+            tab(n + 2, *fOut);
+            *fOut << "// Subcontainers used in classInit";
+            tab(n + 2, *fOut);
+            *fOut << "//=================================";
+            tab(n + 2, *fOut);
+            for (const auto& it : fSubContainers) {
+                // Check that the subcontainer name appears as a type name in fStaticInitInstructions
+                SearchSubcontainer search_class(it->getClassName());
+                fStaticInitInstructions->accept(&search_class);
+                if (search_class.fFound) {
+                    *fOut << "// Subcontainer " << it->getClassName();
+                    tab(n + 2, *fOut);
+                    *fOut << "fManager->info(sizeof(" << it->getClassName() << "), 0, 0);";
+                    tab(n + 2, *fOut);
+                    // Get the associated table size and access
+                    pair<string, int> field = gGlobal->gTablesSize[it->getClassName()];
+                    // Check the table name memory description
+                    MemoryDesc& decs = struct_visitor.getMemoryDesc(field.first);
+                    *fOut << "// Table name " << field.first;
+                    tab(n + 2, *fOut);
+                    *fOut << "fManager->info(" << field.second << ", ";
+                    *fOut << decs.fRAccessCount << ", 0);";
+                    tab(n + 2, *fOut);
+                }
+            }
+        }
+        
+        // To generate R/W access in the DSP loop
+        ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
+        loop->accept(&struct_visitor);
+        
+        *fOut << "//============";
+        tab(n + 2, *fOut);
+        *fOut << "// DSP object";
+        tab(n + 2, *fOut);
+        *fOut << "//============";
+        tab(n + 2, *fOut);
+        // Call fManager->info(...) on the DSP object itself
+        int read_access = 0;
+        int write_access = 0;
+        for (const auto& it : struct_visitor.getFieldTable()) {
+            if (it.second.fSize == 1) {
+                read_access += it.second.fRAccessCount;
+                write_access += it.second.fWAccessCount;
+            }
+        }
+        *fOut << "fManager->info(sizeof(" << fKlassName << "), ";
+        *fOut << read_access << ", " << write_access << ");";
+        tab(n + 2, *fOut);
+       
+        *fOut << "//==============================";
+        tab(n + 2, *fOut);
+        *fOut << "// Arrays inside the DSP object";
+        tab(n + 2, *fOut);
+        *fOut << "//==============================";
+        tab(n + 2, *fOut);
+        // Call fManager->info(...) for each array
+        for (const auto& it : struct_visitor.getFieldTable()) {
+            // Arrays have size > 1
+            if (it.second.fSize > 1) {
+                *fOut << "// Array " << it.first;
+                tab(n + 2, *fOut);
+                *fOut << "fManager->info(" << it.second.fSizeBytes << ", ";
+                *fOut << it.second.fRAccessCount << ", ";
+                *fOut << it.second.fWAccessCount << ");";
+                tab(n + 2, *fOut);
+            }
+        }
+        
+        // Subcontainers that are used in instanceConstants
+        *fOut << "//==========================================";
+        tab(n + 2, *fOut);
+        *fOut << "// Subcontainers used in instanceConstants";
+        tab(n + 2, *fOut);
+        *fOut << "//==========================================";
+        tab(n + 2, *fOut);
+        for (const auto& it : fSubContainers) {
+            // Check that the subcontainer name appears as a type name in fInitInstructions
+            SearchSubcontainer search_class(it->getClassName());
+            fInitInstructions->accept(&search_class);
+            if (search_class.fFound) {
+                *fOut << "fManager->info(sizeof(" << it->getClassName() << "), 0, 0);";
+                tab(n + 2, *fOut);
+            }
+        }
+        
+        *fOut << "fManager->end();";
+        tab(n + 2, *fOut);
+        back(1, *fOut);
+        *fOut << "}";
+        
+        // Constructor
+        tab(n + 1, *fOut);
+        tab(n + 1, *fOut);
+        *fOut << "void memoryCreate() {";
+        tab(n + 2, *fOut);
+        // Call fManager->allocate(...) for each array
+        for (const auto& it : struct_visitor.getFieldTable()) {
+            if (it.second.fSize > 1) {
+                if (it.second.fType == Typed::kInt32) {
+                    *fOut << it.first << " = static_cast<int*>(fManager->allocate(" << it.second.fSizeBytes << "));";
+                } else {
+                    *fOut << it.first << " = static_cast<" << ifloat() << "*>(fManager->allocate(" << it.second.fSizeBytes << "));";
+                }
+                tab(n + 2, *fOut);
+            }
+        }
+        back(1, *fOut);
+        *fOut << "}";
+        
+        // Destructor
+        tab(n + 1, *fOut);
+        tab(n + 1, *fOut);
+        *fOut << "void memoryDestroy() {";
+        tab(n + 2, *fOut);
+        // Call fManager->destroy(...) for each array
+        for (const auto& it : struct_visitor.getFieldTable()) {
+            if (it.second.fSize > 1) {
+                *fOut << "fManager->destroy(" << it.first << ");";
+                tab(n + 2, *fOut);
+            }
+        }
+        back(1, *fOut);
+        *fOut << "}";
+        tab(n, *fOut);
+        
+        // Constructor
+        tab(n + 1, *fOut);
+        *fOut << "static " << fKlassName << "* create() {";
+        tab(n + 2, *fOut);
+        *fOut << fKlassName << "* dsp = new (fManager->allocate(sizeof(" << fKlassName << "))) " << fKlassName << "();";
+        tab(n + 2, *fOut);
+        *fOut << "dsp->memoryCreate();";
+        tab(n + 2, *fOut);
+        *fOut << "return dsp;";
+        tab(n + 1, *fOut);
+        *fOut << "}";
+        
+        // Destructor
+        tab(n + 1, *fOut);
+        tab(n + 1, *fOut);
+        *fOut << "static void destroy(dsp* dsp) {";
+        tab(n + 2, *fOut);
+        *fOut << "static_cast<" << fKlassName << "*>(dsp)->memoryDestroy();";
+        tab(n + 2, *fOut);
+        *fOut << "fManager->destroy(dsp);";
+        tab(n + 1, *fOut);
+        *fOut << "}";
+    
+        tab(n, *fOut);
+        tab(n, *fOut);
+    } else {
+        tab(n, *fOut);
+        tab(n, *fOut);
+    }
+    
     *fOut << "};" << endl;
 
     // To improve (generalization for all backends...)
@@ -680,7 +867,7 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     // Dummy
     tab(n + 1, *fOut);
     *fOut << "static void classInit(int sample_rate) {}";
-    tab(n, *fOut);
+    tab(n + 1, *fOut);
     
     tab(n + 1, *fOut);
     *fOut << "void staticInit(int sample_rate) {";
@@ -1091,7 +1278,7 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
     // To improve (generalization for all backends...)
     if (gGlobal->gMemoryManager) {
         tab(n, *fOut);
-        *fOut << "dsp_memory_manager* " << fKlassName << "::fManager = 0;" << endl;
+        *fOut << "dsp_memory_manager* " << fKlassName << "::fManager = nullptr;" << endl;
     }
     
     // Generate user interface macros if needed
@@ -1406,7 +1593,7 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     // To improve (generalization for all backends...)
     if (gGlobal->gMemoryManager) {
         tab(n, *fOut);
-        *fOut << "dsp_memory_manager* " << fKlassName << "::fManager = 0;" << endl;
+        *fOut << "dsp_memory_manager* " << fKlassName << "::fManager = nullptr;" << endl;
     }
     
     // Generate user interface macros if needed

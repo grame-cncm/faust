@@ -462,7 +462,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
-                fFieldTable[name] = MemoryDesc(-1, fStructOffset, array_typed->fSize, array_typed->fType->getType());
+                fFieldTable[name] = MemoryDesc(-1, fStructOffset, array_typed->fSize, array_typed->getSizeBytes(), array_typed->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
                 fStructOffset += (array_typed->fSize * gGlobal->audioSampleSize());
             } else {
@@ -470,7 +470,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             }
         } else {
             if (is_struct) {
-                fFieldTable[name] = MemoryDesc(-1, fStructOffset, 1, inst->fType->getType());
+                fFieldTable[name] = MemoryDesc(-1, fStructOffset, 1, inst->fType->getSizeBytes(), inst->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
                 fStructOffset += gGlobal->audioSampleSize();
             } else {
@@ -828,7 +828,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
-                fFieldTable[name] = MemoryDesc(-1, fStructOffset, array_typed->fSize, array_typed->fType->getType());
+                fFieldTable[name] = MemoryDesc(-1, fStructOffset, array_typed->fSize, array_typed->getSizeBytes(), array_typed->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
                 fStructOffset += (array_typed->fSize * gGlobal->audioSampleSize());
             } else {
@@ -836,7 +836,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             }
         } else {
             if (is_struct) {
-                fFieldTable[name] = MemoryDesc(-1, fStructOffset, 1, inst->fType->getType());
+                fFieldTable[name] = MemoryDesc(-1, fStructOffset, 1, inst->fType->getSizeBytes(), inst->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
                 fStructOffset += gGlobal->audioSampleSize();
             } else {

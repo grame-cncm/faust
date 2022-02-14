@@ -50,19 +50,24 @@ dsp_factory_base* CCodeContainer::produceFactory()
         ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), "");
 }
 
-CodeContainer* CCodeContainer::createScalarContainer(const string& name, int sub_container_type)
+CodeContainer* CCodeContainer::createScalarContainer(const std::string& name, int numInputs, int numOutputs, ostream* dst, int sub_container_type)
 {
     if (gGlobal->gOneSample == 0) {
-        return new CScalarOneSampleCodeContainer1(name, 0, 1, fOut, sub_container_type);
+        return new CScalarOneSampleCodeContainer1(name, numInputs, numOutputs, dst, sub_container_type);
     } else if (gGlobal->gOneSample == 1) {
-        return new CScalarOneSampleCodeContainer2(name, 0, 1, fOut, sub_container_type);
+        return new CScalarOneSampleCodeContainer2(name, numInputs, numOutputs, dst, sub_container_type);
     } else if (gGlobal->gOneSample == 2) {
-        return new CScalarOneSampleCodeContainer3(name, 0, 1, fOut, sub_container_type);
+        return new CScalarOneSampleCodeContainer3(name, numInputs, numOutputs, dst, sub_container_type);
     } else if (gGlobal->gOneSample == 3) {
-        return new CScalarOneSampleCodeContainer4(name, 0, 1, fOut, sub_container_type);
+        return new CScalarOneSampleCodeContainer4(name, numInputs, numOutputs, dst, sub_container_type);
     } else {
-        return new CScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
+        return new CScalarCodeContainer(name, numInputs, numOutputs, dst, sub_container_type);
     }
+}
+
+CodeContainer* CCodeContainer::createScalarContainer(const string& name, int sub_container_type)
+{
+    return createScalarContainer(name, 0, 1, fOut, sub_container_type);
 }
 
 CodeContainer* CCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
@@ -84,17 +89,7 @@ CodeContainer* CCodeContainer::createContainer(const string& name, int numInputs
     } else if (gGlobal->gVectorSwitch) {
         container = new CVectorCodeContainer(name, numInputs, numOutputs, dst);
     } else {
-        if (gGlobal->gOneSample == 0) {
-            container = new CScalarOneSampleCodeContainer1(name, numInputs, numOutputs, dst, kInt);
-        } else if (gGlobal->gOneSample == 1) {
-            container = new CScalarOneSampleCodeContainer2(name, numInputs, numOutputs, dst, kInt);
-        } else if (gGlobal->gOneSample == 2) {
-            container = new CScalarOneSampleCodeContainer3(name, numInputs, numOutputs, dst, kInt);
-        } else if (gGlobal->gOneSample == 3) {
-            container = new CScalarOneSampleCodeContainer4(name, numInputs, numOutputs, dst, kInt);
-        } else {
-            container = new CScalarCodeContainer(name, numInputs, numOutputs, dst, kInt);
-        }
+        container = createScalarContainer(name, numInputs, numOutputs, dst, kInt);
     }
 
     return container;

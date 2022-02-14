@@ -1593,6 +1593,9 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
         pushGlobalDeclare(InstBuilder::genDecStaticStructVar(
             vname, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), size)));
     }
+    
+    // Keep table size in bytes
+    gGlobal->gTablesSize[tablename] = make_pair(vname, size * gGlobal->gTypeSizeMap[ctype]);
 
     // Init content generator
     list<ValueInst*> args1;
@@ -1704,7 +1707,6 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
             interval idx_i = getCertifiedSigType(idx)->getInterval();
             if (idx_i.lo < 0 || (idx_i.hi >= tree2int(size))) {
                 stringstream error;
-                
                 if (gGlobal->gCheckTable == "cat") {
                     error << "WARNING : RDTbl read index [" << idx_i.lo << ":" <<idx_i.hi
                           << "] is outside of table range (" << tree2int(size) << ") in "

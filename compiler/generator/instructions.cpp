@@ -106,7 +106,14 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
             ArrayTyped* array_t1 = dynamic_cast<ArrayTyped*>(gGlobal->gVarTypeTable[fAddress->getName()]);
             ArrayTyped* array_t2  = dynamic_cast<ArrayTyped*>(type);
             if (array_t1 && array_t2) {
-                faustassert(array_t1->fSize == array_t2->fSize && array_t1->fType == array_t2->fType);
+                // Arrays have the exact same size
+                bool same_size = array_t1->fSize == array_t2->fSize;
+                // Or not but one of them is actually a pointer
+                bool compatible_size = (array_t1->fSize != array_t2->fSize)
+                    && array_t1->fType == array_t2->fType
+                    && (array_t1->fSize == 0 || array_t2->fSize == 0);
+                bool same_type = array_t1->fType == array_t2->fType;
+                faustassert((same_size && same_type) || compatible_size);
             } else {
                 faustassert(false);
             }

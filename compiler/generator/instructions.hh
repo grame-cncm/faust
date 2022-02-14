@@ -448,6 +448,8 @@ struct NamedTyped : public Typed {
 
     VarType getType() const { return fType->getType(); }
     
+    string getName() const { return fName; }
+    
     int getSizeBytes() const { return fType->getSizeBytes(); }
 
     virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -503,10 +505,9 @@ struct FunTyped : public Typed {
 
 struct ArrayTyped : public Typed {
     Typed*     fType;
-    const int  fSize;
-    const bool fIsPtr;
-
-    ArrayTyped(Typed* type, int size, bool is_ptr = false) : fType(type), fSize(size), fIsPtr(is_ptr) {}
+    const int  fSize;   // Size of 0 is interpreted as a pointer on fType
+   
+    ArrayTyped(Typed* type, int size) : fType(type), fSize(size) {}
 
     virtual ~ArrayTyped() {}
 
@@ -1586,7 +1587,7 @@ class BasicCloneVisitor : public CloneVisitor {
     }
     virtual Typed* visit(ArrayTyped* typed)
     {
-        return new ArrayTyped(typed->fType->clone(this), typed->fSize, typed->fIsPtr);
+        return new ArrayTyped(typed->fType->clone(this), typed->fSize);
     }
     virtual Typed* visit(StructTyped* typed)
     {
@@ -1617,7 +1618,7 @@ struct DispatchVisitor : public InstVisitor {
     virtual void visit(DeclareVarInst* inst)
     {
         inst->fAddress->accept(this);
-        // No visitor on types
+        inst->fType->accept(this);
         if (inst->fValue) {
             inst->fValue->accept(this);
         }
@@ -2226,9 +2227,9 @@ struct InstBuilder {
         return new FunTyped(args, result, attribute);
     }
     static VectorTyped* genVectorTyped(BasicTyped* type, int size) { return new VectorTyped(type, size); }
-    static ArrayTyped*  genArrayTyped(Typed* type, int size, bool is_ptr = false)
+    static ArrayTyped*  genArrayTyped(Typed* type, int size)
     {
-        return new ArrayTyped(type, size, is_ptr);
+        return new ArrayTyped(type, size);
     }
     static StructTyped* genStructTyped(const string& name, const vector<NamedTyped*>& fields)
     {

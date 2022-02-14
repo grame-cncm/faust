@@ -52,9 +52,8 @@ CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int 
 LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs)
 {
     LLVMContext* context = new LLVMContext();
-    stringstream compile_options;
-    gGlobal->printCompilationOptions(compile_options);
-    Module* module = new Module(compile_options.str() + ", v" + string(FAUSTVERSION), *context);
+    stringstream options;
+    Module* module = new Module(gGlobal->printCompilationOptions1(options)  + ", v" + string(FAUSTVERSION), *context);
     
     init(name, numInputs, numOutputs, module, context);
 }

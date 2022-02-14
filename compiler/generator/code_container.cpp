@@ -470,6 +470,9 @@ void CodeContainer::printMacros(ostream& fout, int n)
             tab(n + 1, fout);
             fout << "#define FAUST_CLASS_NAME " << "\"" << fKlassName << "\"";
             tab(n + 1, fout);
+            stringstream options;
+            fout << "#define FAUST_COMPILATION_OPIONS \"" << gGlobal->printCompilationOptions1(options) << "\"";
+            tab(n + 1, fout);
             fout << "#define FAUST_INPUTS " << fNumInputs;
             tab(n + 1, fout);
             fout << "#define FAUST_OUTPUTS " << fNumOutputs;

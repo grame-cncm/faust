@@ -59,6 +59,7 @@ help:
 	@echo " 'cpp3'   : check double outputs with the cpp backend in scalar one-sample mode (-os2)"
 	@echo " 'cpp4'   : check double outputs with the cpp backend in scalar one-sample mode (-os3)"
 	@echo " 'cpp5'   : check double outputs with the cpp backend in scalar one-sample mode (-os3) and -mem"
+	@echo " 'cpp6'   : check double outputs with the cpp backend in scalar and -mem"
 	@echo " 'ocpp'   : check double outputs with the ocpp backend in scalar mode"
 	@echo " 'c'      : check float and double outputs with the c backend in scalar, vec, openmp and sched modes"
 	@echo " 'c1'     : check double outputs with the c backend in scalar one-sample mode (-os0)"
@@ -165,6 +166,10 @@ cpp5:
 	export FAUST_MAX_SIZE=50000
 	$(MAKE) -f Make.gcc outdir=cpp5_s3/double      lang=cpp arch=impulsearch5.cpp FAUSTOPTIONS="-I dsp -double -os3 -mem"
 	$(MAKE) -f Make.gcc outdir=cpp5_s3/double/mcd0 lang=cpp arch=impulsearch5.cpp FAUSTOPTIONS="-I dsp -double -os3 -mem -mcd 0"
+
+cpp6:
+	export FAUST_MAX_SIZE=1000
+	$(MAKE) -f Make.gcc outdir=cpp6_s1/double      lang=cpp arch=impulsearch6.cpp FAUSTOPTIONS="-I dsp -double -mem"
 
 ocpp:
 	$(MAKE) -f Make.gcc outdir=ocpp/double         lang=ocpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"

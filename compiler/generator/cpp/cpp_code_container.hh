@@ -44,7 +44,7 @@ class CPPCodeContainer : public virtual CodeContainer {
 
     void produceMetadata(int tabs);
     void produceInit(int tabs);
-
+ 
    public:
     CPPCodeContainer()
     {}
@@ -98,7 +98,8 @@ class CPPCodeContainer : public virtual CodeContainer {
     }
 
     CodeContainer* createScalarContainer(const string& name, int sub_container_type);
-
+    static CodeContainer* createScalarContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, ostream* dst, int sub_container_type);
+    
     static CodeContainer* createContainer(const string& name, const string& super, int numInputs, int numOutputs,
                                           ostream* dst = new stringstream());
 };

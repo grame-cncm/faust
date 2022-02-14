@@ -138,9 +138,9 @@ class CStringTypeManager : public StringTypeManager {
         } else if (named_typed) {
             return named_typed->fName + generateType(named_typed->fType) + " " + name;
         } else if (array_typed) {
-            return (array_typed->fSize == 0 || array_typed->fIsPtr)
-                       ? generateType(array_typed->fType) + fPtrRef + " " + name
-            : generateType(array_typed->fType) + " " + name + "[" + std::to_string(array_typed->fSize) + "]";
+            return (array_typed->fSize == 0)
+                    ? generateType(array_typed->fType) + fPtrRef + " " + name
+                    : generateType(array_typed->fType) + " " + name + "[" + std::to_string(array_typed->fSize) + "]";
         } else {
             faustassert(false);
             return "";
@@ -319,9 +319,9 @@ class SOULStringTypeManager : public StringTypeManager {
         } else if (named_typed) {
             return named_typed->fName + generateType(named_typed->fType) + " " + name;
         } else if (array_typed) {
-            return (array_typed->fSize == 0 || array_typed->fIsPtr)
-                       ? generateType(array_typed->fType) + fPtrRef + " " + name
-                       : generateType(array_typed->fType) + "[" + std::to_string(array_typed->fSize) + "] " + name;
+            return (array_typed->fSize == 0)
+                    ? generateType(array_typed->fType) + fPtrRef + " " + name
+                    : generateType(array_typed->fType) + "[" + std::to_string(array_typed->fSize) + "] " + name;
         } else {
             faustassert(false);
             return "";

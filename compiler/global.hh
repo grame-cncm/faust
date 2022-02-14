@@ -487,6 +487,7 @@ struct global {
     map<Typed::VarType, BasicTyped*> gTypeTable;     // To share a unique BasicTyped* object for a given type
     map<string, Typed*>              gVarTypeTable;  // Types of variables or functions
     map<Typed::VarType, int>         gTypeSizeMap;   // Size of types in bytes
+    map<string, pair<string, int>>   gTablesSize;    // Global tables size in bytes: class name, <table name, size>
 
     // colorize
     map<Tree, int> gColorMap;
@@ -598,6 +599,7 @@ struct global {
     bool hasForeignFunction(const string& name, const string& inc_file);
    
     void printCompilationOptions(stringstream& dst, bool backend = true);
+    string printCompilationOptions1(stringstream& dst, bool backend = true);
 
     void initTypeSizeMap();
 
