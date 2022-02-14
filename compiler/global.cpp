@@ -87,6 +87,10 @@
 #include "dlang_code_container.hh"
 #endif
 
+#ifdef JULIA_BUILD
+#include "julia_code_container.hh"
+#endif
+
 // Parser
 extern FILE*       yyin;
 extern const char* yyfilename;
@@ -803,7 +807,7 @@ global::~global()
 #ifdef JAVA_BUILD
     JAVAInstVisitor::cleanup();
 #endif
-#ifdef JULIS_BUILD
+#ifdef JULIA_BUILD
     JuliaInstVisitor::cleanup();
 #endif
 #ifdef RUST_BUILD
