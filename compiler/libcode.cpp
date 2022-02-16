@@ -1807,6 +1807,9 @@ void generateCode(Tree signals, int numInputs, int numOutputs, bool generate)
                 if (helpers != nullptr) gGlobal->gDSPFactory->writeHelper(&cout, false, false);
             }
         }
+        
+        // Possibly generate JSON
+        container->generateJSONFile();
 
         endTiming("generateCode");
 

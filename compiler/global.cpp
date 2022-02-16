@@ -676,12 +676,14 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
   
     // Add 'compile_options' metadata
-    gGlobal->gMetaDataSet[tree("compile_options")].insert(tree("\"" + dst.str() + "\""));
+    string res = dst.str();
+    gGlobal->gMetaDataSet[tree("compile_options")].insert(tree("\"" + res.substr(0, res.size()-1) + "\""));
 }
 
-string global::printCompilationOptions1(stringstream& dst, bool backend)
+string global::printCompilationOptions1()
 {
-    printCompilationOptions(dst, backend);
+    stringstream dst;
+    printCompilationOptions(dst, true);
     string res = dst.str();
     return res.substr(0, res.size()-1);
 }

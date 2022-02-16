@@ -157,9 +157,7 @@ class CodeContainer : public virtual Garbageable {
 
         dst << "Code generated with Faust " << FAUSTVERSION << " (https://faust.grame.fr)" << endl;
         dst << "Compilation options: ";
-        stringstream options;
-        gGlobal->printCompilationOptions(options);
-        dst << options.str();
+        dst << gGlobal->printCompilationOptions1();
         dst << "\n------------------------------------------------------------ */" << endl;
     }
 
@@ -330,13 +328,13 @@ class CodeContainer : public virtual Garbageable {
     template <typename REAL>
     void generateJSON(JSONInstVisitor<REAL>* visitor)
     {
-        // Prepare compilation options
-        stringstream compile_options;
-        gGlobal->printCompilationOptions(compile_options);
-        
         // "name", "filename" found in medata
-        visitor->init("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
-                      gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, -1, std::map<std::string, int>());
+        visitor->init("", "", fNumInputs, fNumOutputs, -1, "", "",
+                      FAUSTVERSION, gGlobal->printCompilationOptions1(),
+                      gGlobal->gReader.listLibraryFiles(),
+                      gGlobal->gImportDirList,
+                      -1, std::map<std::string, int>(),
+                      gGlobal->gMemoryLayout);
         
         generateUserInterface(visitor);
         generateMetaData(visitor);
@@ -617,6 +615,8 @@ class CodeContainer : public virtual Garbageable {
         faustassert(false);
         return nullptr;
     }
+    
+    void generateJSONFile();
 
     int fInt32ControlNum;  // number of 'int32' intermediate control values
     int fRealControlNum;   // number of 'real' intermediate control values

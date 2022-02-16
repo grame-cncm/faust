@@ -60,9 +60,10 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
                     const std::string& sha_key, const std::string& dsp_code, const std::string& version,
                     const std::string& compile_options, const std::vector<std::string>& library_list,
                     const std::vector<std::string>& include_pathnames, int size,
-                    const std::map<std::string, int>& path_table)
+                    const std::map<std::string, int>& path_table,
+                    MemoryLayoutType memory_layout)
         : JSONUIReal<REAL>(name, filename, inputs, outputs, sr_index, sha_key, dsp_code, version, compile_options, library_list,
-                 include_pathnames, size, path_table)
+                 include_pathnames, size, path_table, memory_layout)
     {
     }
 

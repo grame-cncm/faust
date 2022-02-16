@@ -62,10 +62,6 @@ class LLVMCodeContainer : public virtual CodeContainer {
         FunctionType* getJSON_type = FunctionType::get(string_ptr, makeArrayRef(getJSON_args), false);
         Function* getJSON = Function::Create(getJSON_type, GlobalValue::ExternalLinkage, "getJSON" + fKlassName, fModule);
 
-        // Prepare compilation options
-        stringstream compile_options;
-        gGlobal->printCompilationOptions(compile_options, false);
-
         // JSON generation
         JSONInstVisitor<REAL> json_visitor1;
         generateUserInterface(&json_visitor1);
@@ -79,8 +75,8 @@ class LLVMCodeContainer : public virtual CodeContainer {
         faustassert(fStructVisitor.getFieldOffset("fSampleRate") != -1);
 
         JSONInstVisitor<REAL> json_visitor2("", "", fNumInputs, fNumOutputs, fStructVisitor.getFieldOffset("fSampleRate"), "", "",
-        FAUSTVERSION, compile_options.str(), gGlobal->gReader.listLibraryFiles(),
-        gGlobal->gImportDirList, fStructVisitor.getStructSize(), path_index_table);
+                                            FAUSTVERSION, gGlobal->printCompilationOptions1(), gGlobal->gReader.listLibraryFiles(),
+                                            gGlobal->gImportDirList, fStructVisitor.getStructSize(), path_index_table, MemoryLayoutType());
         generateUserInterface(&json_visitor2);
         generateMetaData(&json_visitor2);
 

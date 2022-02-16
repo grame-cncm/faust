@@ -54,28 +54,24 @@ class WASTCodeContainer : public virtual CodeContainer {
     template <typename REAL>
     string generateJSON()
     {
-        // Prepare compilation options
-        stringstream compile_options;
-        gGlobal->printCompilationOptions(compile_options);
-        
         // JSON generation
         JSONInstVisitor<REAL> json_visitor1;
         generateUserInterface(&json_visitor1);
         
-        map<string, string>::iterator it;
-        std::map<std::string, int>    path_index_table;
-        map<string, MemoryDesc>&      fieldTable1 = gGlobal->gWASTVisitor->getFieldTable();
-        for (it = json_visitor1.fPathTable.begin(); it != json_visitor1.fPathTable.end(); it++) {
-            faustassert(path_index_table.find((*it).second) == path_index_table.end());
+        PathTableType path_index_table;
+        map<string, MemoryDesc>& fieldTable1 = gGlobal->gWASTVisitor->getFieldTable();
+        for (const auto& it : json_visitor1.fPathTable) {
+            faustassert(path_index_table.find(it.second) == path_index_table.end());
             // Get field index
-            MemoryDesc tmp                 = fieldTable1[(*it).first];
-            path_index_table[(*it).second] = tmp.fOffset;
+            MemoryDesc tmp              = fieldTable1[it.first];
+            path_index_table[it.second] = tmp.fOffset;
         }
         
         // "name", "filename" found in medata
-        JSONInstVisitor<REAL> json_visitor2("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
+        JSONInstVisitor<REAL> json_visitor2("", "", fNumInputs, fNumOutputs, -1,
+                                            "", "", FAUSTVERSION, gGlobal->printCompilationOptions1(),
                                             gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList,
-                                            gGlobal->gWASTVisitor->getStructSize(), path_index_table);
+                                            gGlobal->gWASTVisitor->getStructSize(), path_index_table, MemoryLayoutType());
         generateUserInterface(&json_visitor2);
         generateMetaData(&json_visitor2);
         

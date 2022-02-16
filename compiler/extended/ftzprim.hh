@@ -36,10 +36,14 @@ when it is not available on the CPU.
 *********************************************************************************************/
 
 const char* FTZPattern[4][3] = {
-    {"???", "???", "???"},                                                                                // not a float
-    {"$0", "((fabsf($0)> FLT_MIN) ? $0 : 0.0f)", "((*(int*)&$0) & 0x7F800000) ? $0 : 0.0f"},              // float  (1)
-    {"$0", "((fabs($0)> DBL_MIN) ? $0 : 0.0 )", "((*(long int*)&$0) & 0x7FF0000000000000) ? $0 : 0.0"},   // double (2)
-    {"$0", "((fabsl($0)> LDBL_MIN) ? $0 : 0.0L)", "((fabsl($0)>LDBL_MIN) ? $0 : 0.0L)"}                   // quad   (3)
+    // not a float
+    {"???", "???", "???"},
+    // float  (1)
+    {"$0", "((fabsf($0)> FLT_MIN) ? $0 : 0.0f)", "((*(int*)&$0) & 0x7F800000) ? $0 : 0.0f"},
+    // double (2)
+    {"$0", "((fabs($0)> DBL_MIN) ? $0 : 0.0 )", "((*(long int*)&$0) & 0x7FF0000000000000) ? $0 : 0.0"},
+    // quad   (3)
+    {"$0", "((fabsl($0)> LDBL_MIN) ? $0 : 0.0L)", "((fabsl($0)>LDBL_MIN) ? $0 : 0.0L)"}
 };
 
 class FtzPrim : public xtended {

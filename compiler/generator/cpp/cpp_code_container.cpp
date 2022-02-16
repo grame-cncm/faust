@@ -577,6 +577,10 @@ void CPPCodeContainer::produceClass()
                     *fOut << "// Subcontainer " << it->getClassName();
                     tab(n + 2, *fOut);
                     *fOut << "fManager->info(sizeof(" << it->getClassName() << "), 0, 0);";
+                    // Memory layout for JSON
+                    VariableSizeCounter struct_size(Address::kStruct);
+                    it->generateDeclarations(&struct_size);
+                    gGlobal->gMemoryLayout.push_back(make_tuple(struct_size.fSizeBytes, 0, 0));
                     tab(n + 2, *fOut);
                     // Get the associated table size and access
                     pair<string, int> field = gGlobal->gTablesSize[it->getClassName()];
@@ -586,6 +590,7 @@ void CPPCodeContainer::produceClass()
                     tab(n + 2, *fOut);
                     *fOut << "fManager->info(" << field.second << ", ";
                     *fOut << decs.fRAccessCount << ", 0);";
+                    gGlobal->gMemoryLayout.push_back(make_tuple(field.second, decs.fRAccessCount, 0));
                     tab(n + 2, *fOut);
                 }
             }
@@ -612,6 +617,11 @@ void CPPCodeContainer::produceClass()
         }
         *fOut << "fManager->info(sizeof(" << fKlassName << "), ";
         *fOut << read_access << ", " << write_access << ");";
+        // Memory layout for JSON, DSP struct with pointers instead of flat arrays
+        ArrayToPointer array_pointer;
+        VariableSizeCounter struct_size(Address::kStruct);
+        array_pointer.getCode(fDeclarationInstructions)->accept(&struct_size);
+        gGlobal->gMemoryLayout.push_back(make_tuple(struct_size.fSizeBytes, read_access, write_access));
         tab(n + 2, *fOut);
        
         *fOut << "//==============================";
@@ -629,6 +639,8 @@ void CPPCodeContainer::produceClass()
                 *fOut << "fManager->info(" << it.second.fSizeBytes << ", ";
                 *fOut << it.second.fRAccessCount << ", ";
                 *fOut << it.second.fWAccessCount << ");";
+                // Memory layout for JSON
+                gGlobal->gMemoryLayout.push_back(make_tuple(it.second.fSizeBytes, it.second.fRAccessCount, it.second.fWAccessCount));
                 tab(n + 2, *fOut);
             }
         }
@@ -646,6 +658,10 @@ void CPPCodeContainer::produceClass()
             fInitInstructions->accept(&search_class);
             if (search_class.fFound) {
                 *fOut << "fManager->info(sizeof(" << it->getClassName() << "), 0, 0);";
+                // Memory layout for JSON
+                VariableSizeCounter struct_size(Address::kStruct);
+                it->generateDeclarations(&struct_size);
+                gGlobal->gMemoryLayout.push_back(make_tuple(struct_size.fSizeBytes, 0, 0));
                 tab(n + 2, *fOut);
             }
         }

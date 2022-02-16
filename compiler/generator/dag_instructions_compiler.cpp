@@ -39,6 +39,8 @@ DAGInstructionsCompiler::DAGInstructionsCompiler(CodeContainer* container) : Ins
 
 void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 {
+    startTiming("compileMultiSignal");
+    
     // Has to be done *after* gMachinePtrSize is set by the actual backend
     gGlobal->initTypeSizeMap();
 
@@ -126,15 +128,8 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 
     // Apply FIR to FIR transformations
     fContainer->processFIR();
-
-    // Generate JSON
-    if (gGlobal->gPrintJSONSwitch) {
-        if (gGlobal->gFloatSize == 1) {
-            fContainer->generateJSONFile<float>();
-        } else {
-            fContainer->generateJSONFile<double>();
-        }
-    }
+    
+    endTiming("compileMultiSignal");
 }
 
 /**

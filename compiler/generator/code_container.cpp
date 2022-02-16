@@ -470,8 +470,7 @@ void CodeContainer::printMacros(ostream& fout, int n)
             tab(n + 1, fout);
             fout << "#define FAUST_CLASS_NAME " << "\"" << fKlassName << "\"";
             tab(n + 1, fout);
-            stringstream options;
-            fout << "#define FAUST_COMPILATION_OPIONS \"" << gGlobal->printCompilationOptions1(options) << "\"";
+            fout << "#define FAUST_COMPILATION_OPIONS \"" << gGlobal->printCompilationOptions1() << "\"";
             tab(n + 1, fout);
             fout << "#define FAUST_INPUTS " << fNumInputs;
             tab(n + 1, fout);
@@ -893,4 +892,20 @@ DeclareFunInst* CodeContainer::generateDeleteDsp(const string& name, const strin
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kLocal);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
+}
+
+void CodeContainer::generateJSONFile()
+{
+    // Generate JSON (which checks for non duplicated path)
+    if (gGlobal->gPrintJSONSwitch) {
+        if (gGlobal->gFloatSize == 1) {
+            generateJSONFile<float>();
+        } else {
+            generateJSONFile<double>();
+        }
+    } else {
+        // Checks for non duplicated path
+        JSONInstVisitor<float> path_checker;
+        generateUserInterface(&path_checker);
+    }
 }

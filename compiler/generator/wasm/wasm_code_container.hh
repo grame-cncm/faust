@@ -50,15 +50,11 @@ class WASMCodeContainer : public virtual CodeContainer {
     template <typename REAL>
     string generateJSON()
     {
-        // Prepare compilation options
-        stringstream compile_options;
-        gGlobal->printCompilationOptions(compile_options);
-
         // JSON generation
         JSONInstVisitor<REAL> json_visitor1;
         generateUserInterface(&json_visitor1);
 
-        std::map<std::string, int>    path_index_table;
+        PathTableType path_index_table;
         map<string, MemoryDesc>&      fieldTable1 = gGlobal->gWASMVisitor->getFieldTable();
         for (const auto& it : json_visitor1.fPathTable) {
             faustassert(path_index_table.find(it.second) == path_index_table.end());
@@ -68,9 +64,10 @@ class WASMCodeContainer : public virtual CodeContainer {
         }
 
         // "name", "filename" found in metadata
-        JSONInstVisitor<REAL> json_visitor2("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
-        gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList,
-        gGlobal->gWASMVisitor->getStructSize(), path_index_table);
+        JSONInstVisitor<REAL> json_visitor2("", "", fNumInputs, fNumOutputs,
+                                            -1, "", "", FAUSTVERSION, gGlobal->printCompilationOptions1(),
+                                            gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList,
+                                            gGlobal->gWASMVisitor->getStructSize(), path_index_table, MemoryLayoutType());
         generateUserInterface(&json_visitor2);
         generateMetaData(&json_visitor2);
 

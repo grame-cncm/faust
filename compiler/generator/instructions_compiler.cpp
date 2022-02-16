@@ -494,12 +494,12 @@ ValueInst* InstructionsCompiler::getConditionCode(Tree sig)
 
 void InstructionsCompiler::compileMultiSignal(Tree L)
 {
+    startTiming("compileMultiSignal");
+    
     // Has to be done *after* gMachinePtrSize is set by the actual backend
     gGlobal->initTypeSizeMap();
 
     L = prepare(L);  // Optimize, share and annotate expression
-
-    startTiming("compileMultiSignal");
 
 #ifdef LLVM_DEBUG
     // Add function declaration
@@ -613,19 +613,6 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
     // Apply FIR to FIR transformations
     fContainer->processFIR();
-
-    // Generate JSON (which checks for non duplicated path)
-    if (gGlobal->gPrintJSONSwitch) {
-        if (gGlobal->gFloatSize == 1) {
-            fContainer->generateJSONFile<float>();
-        } else {
-            fContainer->generateJSONFile<double>();
-        }
-    } else {
-        // Checks for non duplicated path
-        JSONInstVisitor<float> path_checker;
-        fContainer->generateUserInterface(&path_checker);
-    }
 
     endTiming("compileMultiSignal");
 }

@@ -67,6 +67,9 @@ struct dsp_factory_base;
 
 typedef long double quad;
 
+typedef vector<tuple<int, int, int>> MemoryLayoutType;
+typedef std::map<std::string, int> PathTableType;
+
 struct comp_str {
     bool operator()(Tree s1, Tree s2) const { return (strcmp(tree2str(s1), tree2str(s2)) < 0); }
 };
@@ -227,6 +230,7 @@ struct global {
     int gBoxSlotNumber;  ///< counter for unique slot number
 
     bool gMemoryManager;
+    MemoryLayoutType gMemoryLayout;
 
     bool gLocalCausalityCheck;  ///< when true trigs local causality errors (negative delay)
 
@@ -599,7 +603,7 @@ struct global {
     bool hasForeignFunction(const string& name, const string& inc_file);
    
     void printCompilationOptions(stringstream& dst, bool backend = true);
-    string printCompilationOptions1(stringstream& dst, bool backend = true);
+    string printCompilationOptions1();
 
     void initTypeSizeMap();
 
