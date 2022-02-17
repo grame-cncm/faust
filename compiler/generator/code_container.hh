@@ -48,6 +48,24 @@
 
 class TextInstVisitor;
 
+// Look for the name of a given subcontainer
+struct SearchSubcontainer : public DispatchVisitor {
+    
+    string fClassName;
+    bool fFound = false;
+    
+    SearchSubcontainer(const string& class_name):fClassName(class_name)
+    {}
+    
+    virtual void visit(NamedTyped* typed)
+    {
+        fFound |= (fClassName == typed->getName());
+    }
+};
+
+// DSP or field name, type, size, sizeBytes, reads, writes
+typedef vector<tuple<string, int, int, int, int, int>> MemoryLayoutType;
+
 class CodeContainer : public virtual Garbageable {
    protected:
     list<CodeContainer*> fSubContainers;
@@ -61,6 +79,8 @@ class CodeContainer : public virtual Garbageable {
 
     int  fSubContainerType;
     bool fGeneratedSR;
+
+    MemoryLayoutType fMemoryLayout;
 
     string fKlassName;
 
@@ -334,7 +354,7 @@ class CodeContainer : public virtual Garbageable {
                       gGlobal->gReader.listLibraryFiles(),
                       gGlobal->gImportDirList,
                       -1, std::map<std::string, int>(),
-                      gGlobal->gMemoryLayout);
+                      fMemoryLayout);
         
         generateUserInterface(visitor);
         generateMetaData(visitor);

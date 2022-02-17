@@ -29,6 +29,7 @@
 #include "recursivness.hh"
 #include "text_instructions.hh"
 #include "type_manager.hh"
+#include "struct_manager.hh"
 
 using namespace std;
 
@@ -376,7 +377,111 @@ void CodeContainer::processFIR(void)
         set<CodeLoop*> visited;
         CodeLoop::groupSeqLoops(fCurLoop, visited);
     }
-
+ 
+    /*
+        Create memory layout, to be used in C++ backend and JSON generation.
+        The description order follows what will be done at allocation time.
+     
+        // Create static tables
+        mydsp::classInit();
+     
+        // Create DSP
+        mydsp::create();
+     */
+    if (gGlobal->gMemoryManager) {
+        
+        {
+            // Compute DSP struct arrays size
+            StructInstVisitor struct_visitor;
+        
+            // Add the global static tables
+            fGlobalDeclarationInstructions->accept(&struct_visitor);
+        
+            // Compute R/W access for each subcontainer
+            ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
+            loop->accept(&struct_visitor);
+            
+            // Subcontainers used in classInit
+            for (const auto& it : fSubContainers) {
+                // Check that the subcontainer name appears as a type name in fStaticInitInstructions
+                SearchSubcontainer search_class(it->getClassName());
+                fStaticInitInstructions->accept(&search_class);
+                if (search_class.fFound) {
+                    // Subcontainer size
+                    VariableSizeCounter struct_size(Address::kStruct);
+                    it->generateDeclarations(&struct_size);
+                    fMemoryLayout.push_back(make_tuple(it->getClassName(), int(Typed::kNoType), 0, struct_size.fSizeBytes, 0, 0));
+                    
+                    // Get the associated table size and access
+                    pair<string, int> field = gGlobal->gTablesSize[it->getClassName()];
+                    
+                    // Check the table name memory description
+                    MemoryDesc& decs = struct_visitor.getMemoryDesc(field.first);
+                    fMemoryLayout.push_back(make_tuple(field.first, int(Typed::kNoType), 0, field.second, decs.fRAccessCount, 0));
+                }
+            }
+        }
+        
+        {
+            // Compute DSP struct arrays size and R/W access
+            StructInstVisitor struct_visitor;
+        
+            // Add the DSP fields
+            fDeclarationInstructions->accept(&struct_visitor);
+            
+            // To generate R/W access in the DSP loop
+            ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
+            loop->accept(&struct_visitor);
+            
+            // DSP object
+            int read_access = 0;
+            int write_access = 0;
+            for (const auto& it : struct_visitor.getFieldTable()) {
+                // Scalar types are kept in the DSP
+                if (it.second.fSize == 1) {
+                    read_access += it.second.fRAccessCount;
+                    write_access += it.second.fWAccessCount;
+                }
+            }
+            
+            // Array fields are transformed in pointers
+            ArrayToPointer array_pointer;
+            VariableSizeCounter struct_size(Address::kStruct);
+            array_pointer.getCode(fDeclarationInstructions)->accept(&struct_size);
+            fMemoryLayout.push_back(make_tuple(fKlassName,
+                                                int(Typed::kNoType),
+                                                0,
+                                                struct_size.fSizeBytes,
+                                                read_access,
+                                                write_access));
+            
+            // Arrays inside the DSP object
+            for (const auto& it : struct_visitor.getFieldTable()) {
+                // Arrays have size > 1
+                if (it.second.fSize > 1) {
+                    fMemoryLayout.push_back(make_tuple(it.first,
+                                                        int(it.second.fType),
+                                                        it.second.fSize,
+                                                        it.second.fSizeBytes,
+                                                        it.second.fRAccessCount,
+                                                        it.second.fWAccessCount));
+                }
+            }
+            
+            // Subcontainers used in instanceConstants
+            for (const auto& it : fSubContainers) {
+                // Check that the subcontainer name appears as a type name in fInitInstructions
+                SearchSubcontainer search_class(it->getClassName());
+                fInitInstructions->accept(&search_class);
+                if (search_class.fFound) {
+                    VariableSizeCounter struct_size(Address::kStruct);
+                    it->generateDeclarations(&struct_size);
+                    fMemoryLayout.push_back(make_tuple(it->getClassName(), int(Typed::kNoType), 0, struct_size.fSizeBytes, 0, 0));
+                }
+            }
+        }
+    }
+    
     // Sort struct fields by size and type
     // 05/16/17 : deactivated since it slows down the code...
     /*

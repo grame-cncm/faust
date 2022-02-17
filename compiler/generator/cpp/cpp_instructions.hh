@@ -642,22 +642,6 @@ class CPPInstVisitor3 : public CPPInstVisitor2 {
      
 };
 
-// Look for the name of a given subcontainer
-struct SearchSubcontainer : public DispatchVisitor {
-    
-    string fClassName;
-    bool fFound = false;
-    
-    SearchSubcontainer(const string& class_name):fClassName(class_name)
-    {}
-    
-    virtual void visit(NamedTyped* typed)
-    {
-        fFound |= (fClassName == typed->getName());
-    }
-};
-
-
 class CPPVecInstVisitor : public CPPInstVisitor {
    public:
     CPPVecInstVisitor(std::ostream* out, int tab = 0) : CPPInstVisitor(out, tab) {}

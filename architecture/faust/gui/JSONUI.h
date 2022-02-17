@@ -42,7 +42,7 @@
  * This class produce a complete JSON decription of the DSP instance.
  ******************************************************************************/
 
-typedef std::vector<std::tuple<int, int, int>> MemoryLayoutType;
+typedef std::vector<std::tuple<std::string, int, int, int, int, int>> MemoryLayoutType;
 typedef std::map<std::string, int> PathTableType;
 
 template <typename REAL>
@@ -428,11 +428,12 @@ class JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL>
                 tab(fTab, JSON);
                 JSON << "\"memory_layout\": [";
                 for (size_t i = 0; i < fMemoryLayout.size(); i++) {
-                    std::tuple<int, int, int> item = fMemoryLayout[i];
+                    // DSP or field name, type, size, sizeBytes, reads, writes
+                    std::tuple<std::string, int, int, int, int, int> item = fMemoryLayout[i];
                     tab(fTab + 1, JSON);
-                    JSON << "{\"size\": " << std::get<0>(item) << ", ";
-                    JSON << "\"reads\": " << std::get<1>(item) << ", ";
-                    JSON << "\"writes\": " << std::get<2>(item) << "}";
+                    JSON << "{\"size\": " << std::get<3>(item) << ", ";
+                    JSON << "\"reads\": " << std::get<4>(item) << ", ";
+                    JSON << "\"writes\": " << std::get<5>(item) << "}";
                     if (i < (fMemoryLayout.size() - 1)) JSON << ",";
                 }
                 tab(fTab, JSON);

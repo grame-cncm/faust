@@ -543,127 +543,19 @@ void CPPCodeContainer::produceClass()
         // 'memoryInfo' method generation
         tab(n + 1, *fOut);
         tab(n + 1, *fOut);
-        
-        StructInstVisitor struct_visitor;
-        // DSP fields
-        fDeclarationInstructions->accept(&struct_visitor);
-        
         *fOut << "static void memoryInfo() {";
         tab(n + 2, *fOut);
-        *fOut << "fManager->begin(" << (fSubContainers.size() + gGlobal->gTablesSize.size() + 1 + struct_visitor.getArrayCount()) << ");";
+        
+        *fOut << "fManager->begin(" << fMemoryLayout.size() << ");";
         tab(n + 2, *fOut);
         
-        {
-            // Compute DSP struct arrays size and R/W access
-            StructInstVisitor struct_visitor;
-            // Add the global static tables
-            fGlobalDeclarationInstructions->accept(&struct_visitor);
-            
-            ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
-            loop->accept(&struct_visitor);
-        
-            // Subcontainers that are used in classInit
-            *fOut << "//=================================";
+        for (size_t i = 0; i < fMemoryLayout.size(); i++) {
+            // DSP or field name, type, size, sizeBytes, reads, wri
+            tuple<string, int, int, int, int, int> item = fMemoryLayout[i];
+            *fOut << "// " << get<0>(item);
             tab(n + 2, *fOut);
-            *fOut << "// Subcontainers used in classInit";
+            *fOut << "fManager->info(" << get<3>(item) << ", " << get<4>(item) << ", " << get<5>(item) << ");";
             tab(n + 2, *fOut);
-            *fOut << "//=================================";
-            tab(n + 2, *fOut);
-            for (const auto& it : fSubContainers) {
-                // Check that the subcontainer name appears as a type name in fStaticInitInstructions
-                SearchSubcontainer search_class(it->getClassName());
-                fStaticInitInstructions->accept(&search_class);
-                if (search_class.fFound) {
-                    *fOut << "// Subcontainer " << it->getClassName();
-                    tab(n + 2, *fOut);
-                    *fOut << "fManager->info(sizeof(" << it->getClassName() << "), 0, 0);";
-                    // Memory layout for JSON
-                    VariableSizeCounter struct_size(Address::kStruct);
-                    it->generateDeclarations(&struct_size);
-                    gGlobal->gMemoryLayout.push_back(make_tuple(struct_size.fSizeBytes, 0, 0));
-                    tab(n + 2, *fOut);
-                    // Get the associated table size and access
-                    pair<string, int> field = gGlobal->gTablesSize[it->getClassName()];
-                    // Check the table name memory description
-                    MemoryDesc& decs = struct_visitor.getMemoryDesc(field.first);
-                    *fOut << "// Table name " << field.first;
-                    tab(n + 2, *fOut);
-                    *fOut << "fManager->info(" << field.second << ", ";
-                    *fOut << decs.fRAccessCount << ", 0);";
-                    gGlobal->gMemoryLayout.push_back(make_tuple(field.second, decs.fRAccessCount, 0));
-                    tab(n + 2, *fOut);
-                }
-            }
-        }
-        
-        // To generate R/W access in the DSP loop
-        ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
-        loop->accept(&struct_visitor);
-        
-        *fOut << "//============";
-        tab(n + 2, *fOut);
-        *fOut << "// DSP object";
-        tab(n + 2, *fOut);
-        *fOut << "//============";
-        tab(n + 2, *fOut);
-        // Call fManager->info(...) on the DSP object itself
-        int read_access = 0;
-        int write_access = 0;
-        for (const auto& it : struct_visitor.getFieldTable()) {
-            if (it.second.fSize == 1) {
-                read_access += it.second.fRAccessCount;
-                write_access += it.second.fWAccessCount;
-            }
-        }
-        *fOut << "fManager->info(sizeof(" << fKlassName << "), ";
-        *fOut << read_access << ", " << write_access << ");";
-        // Memory layout for JSON, DSP struct with pointers instead of flat arrays
-        ArrayToPointer array_pointer;
-        VariableSizeCounter struct_size(Address::kStruct);
-        array_pointer.getCode(fDeclarationInstructions)->accept(&struct_size);
-        gGlobal->gMemoryLayout.push_back(make_tuple(struct_size.fSizeBytes, read_access, write_access));
-        tab(n + 2, *fOut);
-       
-        *fOut << "//==============================";
-        tab(n + 2, *fOut);
-        *fOut << "// Arrays inside the DSP object";
-        tab(n + 2, *fOut);
-        *fOut << "//==============================";
-        tab(n + 2, *fOut);
-        // Call fManager->info(...) for each array
-        for (const auto& it : struct_visitor.getFieldTable()) {
-            // Arrays have size > 1
-            if (it.second.fSize > 1) {
-                *fOut << "// Array " << it.first;
-                tab(n + 2, *fOut);
-                *fOut << "fManager->info(" << it.second.fSizeBytes << ", ";
-                *fOut << it.second.fRAccessCount << ", ";
-                *fOut << it.second.fWAccessCount << ");";
-                // Memory layout for JSON
-                gGlobal->gMemoryLayout.push_back(make_tuple(it.second.fSizeBytes, it.second.fRAccessCount, it.second.fWAccessCount));
-                tab(n + 2, *fOut);
-            }
-        }
-        
-        // Subcontainers that are used in instanceConstants
-        *fOut << "//==========================================";
-        tab(n + 2, *fOut);
-        *fOut << "// Subcontainers used in instanceConstants";
-        tab(n + 2, *fOut);
-        *fOut << "//==========================================";
-        tab(n + 2, *fOut);
-        for (const auto& it : fSubContainers) {
-            // Check that the subcontainer name appears as a type name in fInitInstructions
-            SearchSubcontainer search_class(it->getClassName());
-            fInitInstructions->accept(&search_class);
-            if (search_class.fFound) {
-                *fOut << "fManager->info(sizeof(" << it->getClassName() << "), 0, 0);";
-                // Memory layout for JSON
-                VariableSizeCounter struct_size(Address::kStruct);
-                it->generateDeclarations(&struct_size);
-                gGlobal->gMemoryLayout.push_back(make_tuple(struct_size.fSizeBytes, 0, 0));
-                tab(n + 2, *fOut);
-            }
         }
         
         *fOut << "fManager->end();";
@@ -671,18 +563,19 @@ void CPPCodeContainer::produceClass()
         back(1, *fOut);
         *fOut << "}";
         
-        // Constructor
+        // memoryCreate
         tab(n + 1, *fOut);
         tab(n + 1, *fOut);
         *fOut << "void memoryCreate() {";
         tab(n + 2, *fOut);
-        // Call fManager->allocate(...) for each array
-        for (const auto& it : struct_visitor.getFieldTable()) {
-            if (it.second.fSize > 1) {
-                if (it.second.fType == Typed::kInt32) {
-                    *fOut << it.first << " = static_cast<int*>(fManager->allocate(" << it.second.fSizeBytes << "));";
+        for (size_t i = 0; i < fMemoryLayout.size(); i++) {
+            // DSP or field name, type, size, sizeBytes, reads, wri
+            tuple<string, int, int, int, int, int> item = fMemoryLayout[i];
+            if (get<2>(item) > 1) {
+                if (Typed::VarType(get<1>(item)) == Typed::kInt32) {
+                    *fOut << get<0>(item) << " = static_cast<int*>(fManager->allocate(" << get<3>(item) << "));";
                 } else {
-                    *fOut << it.first << " = static_cast<" << ifloat() << "*>(fManager->allocate(" << it.second.fSizeBytes << "));";
+                    *fOut << get<0>(item) << " = static_cast<" << ifloat() << "*>(fManager->allocate(" << get<3>(item) << "));";
                 }
                 tab(n + 2, *fOut);
             }
@@ -690,15 +583,16 @@ void CPPCodeContainer::produceClass()
         back(1, *fOut);
         *fOut << "}";
         
-        // Destructor
+        // memoryDestroy
         tab(n + 1, *fOut);
         tab(n + 1, *fOut);
         *fOut << "void memoryDestroy() {";
         tab(n + 2, *fOut);
-        // Call fManager->destroy(...) for each array
-        for (const auto& it : struct_visitor.getFieldTable()) {
-            if (it.second.fSize > 1) {
-                *fOut << "fManager->destroy(" << it.first << ");";
+        for (size_t i = 0; i < fMemoryLayout.size(); i++) {
+            // DSP or field name, type, size, sizeBytes, reads, wri
+            tuple<string, int, int, int, int, int> item = fMemoryLayout[i];
+            if (get<2>(item) > 1) {
+                *fOut << "fManager->destroy(" << get<0>(item) << ");";
                 tab(n + 2, *fOut);
             }
         }
@@ -706,7 +600,7 @@ void CPPCodeContainer::produceClass()
         *fOut << "}";
         tab(n, *fOut);
         
-        // Constructor
+        // Static constructor
         tab(n + 1, *fOut);
         *fOut << "static " << fKlassName << "* create() {";
         tab(n + 2, *fOut);
@@ -718,7 +612,7 @@ void CPPCodeContainer::produceClass()
         tab(n + 1, *fOut);
         *fOut << "}";
         
-        // Destructor
+        // Static destructor
         tab(n + 1, *fOut);
         tab(n + 1, *fOut);
         *fOut << "static void destroy(dsp* dsp) {";
@@ -2115,32 +2009,6 @@ void CPPScalarOneSampleCodeContainer4::generateCompute(int n)
     
     back(1, *fOut);
     *fOut << "}";
-    
-    // TODO
-    /*
-    // Generates declaration (standard version)
-    tab(n + 1, *fOut);
-    tab(n + 1, *fOut);
-    if (gGlobal->gInPlace) {
-        *fOut << subst("virtual void compute(int $0, $1** inputs, $1** outputs) {", fFullCount, xfloat());
-    } else {
-        *fOut << subst("virtual void compute(int $0, $1** RESTRICT inputs, $1** RESTRICT outputs) {", fFullCount, xfloat());
-    }
-    tab(n + 2, *fOut);
-    fCodeProducer->Tab(n + 2);
-    
-    // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-    loop->accept(fCodeProducer);
-    
-    // TODO : atomic switch
-    // Currently for soundfile management
-    
-    generatePostComputeBlock(fCodeProducer);
-    
-    back(1, *fOut);
-    *fOut << "}";
-    */
 }
 
 // Vector
