@@ -59,7 +59,7 @@ int yylex_destroy(void);
 void yyrestart(FILE* new_file);
 struct yy_buffer_state* yy_scan_string(const char *yy_str); // In principle YY_BUFFER_STATE
 
-extern int yyerr;
+int yyerr;
 extern int yydebug;
 extern FILE* yyin;
 extern int yylineno;
@@ -111,9 +111,9 @@ static string printRedefinitionError(Tree symbol, list<Tree>& variants)
     stringstream error;
 
     error << "ERROR (file " << yyfilename << ":" << yylineno << ") : multiple definitions of symbol " << boxpp(symbol) << endl;
-    for (list<Tree>::iterator p = variants.begin(); p != variants.end(); p++) {
-        Tree params = hd(*p);
-        Tree body = tl(*p);
+    for (const auto& p : variants) {
+        Tree params = hd(p);
+        Tree body = tl(p);
         if (isNil(params)) {
             error << boxpp(symbol) << " = " << boxpp(body) << ";" << endl;
         } else {
@@ -136,8 +136,8 @@ static Tree makeDefinition(Tree symbol, list<Tree>& variants)
 {
 	if (variants.size() == 1) {
 		Tree rhs = *(variants.begin());
-		Tree args= hd(rhs);
-		Tree body= tl(rhs);
+		Tree args = hd(rhs);
+		Tree body = tl(rhs);
 
 		if (isNil(args)) {
 			return body;
@@ -147,7 +147,6 @@ static Tree makeDefinition(Tree symbol, list<Tree>& variants)
 			return boxCase(cons(rhs,gGlobal->nil));
 		}
 	} else {
-		list<Tree>::iterator p;
 		Tree l = gGlobal->nil;
 		Tree prev = *variants.begin();
 		int npat = len(hd(prev));
@@ -156,13 +155,13 @@ static Tree makeDefinition(Tree symbol, list<Tree>& variants)
             throw faustexception(printRedefinitionError(symbol, variants));
         }
 
-		for (p = variants.begin(); p != variants.end(); p++) {
-			Tree cur = *p;
+		for (const auto& p : variants) {
+			Tree cur = p;
 			if ((npat == 0) || (npat != len(hd(cur)))) {
                 throw faustexception(printPatternError(symbol, hd(prev), tl(prev), hd(cur), tl(cur)));
 			}
 			prev = cur;
-			l = cons(*p,l);
+			l = cons(p,l);
 		}
 		return boxCase(l);
 	}
@@ -174,7 +173,7 @@ static Tree addFunctionMetadata(Tree ldef, FunMDSet& M)
     Tree lresult = gGlobal->nil; // the transformed list of definitions
 
     // for each definition def of ldef
-    for ( ;!isNil(ldef); ldef = tl(ldef)) {
+    for (; !isNil(ldef); ldef = tl(ldef)) {
         Tree def = hd(ldef);
         Tree fname;
         if (isNil(def)) {

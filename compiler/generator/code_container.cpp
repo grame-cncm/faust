@@ -386,7 +386,10 @@ void CodeContainer::processFIR(void)
         mydsp::classInit();
      
         // Create DSP
-        mydsp::create();
+        dsp* DSP = mydsp::create();
+     
+        // Init DSP
+        DSP->instanceInit(44100);
      */
     if (gGlobal->gMemoryManager) {
         
@@ -482,6 +485,9 @@ void CodeContainer::processFIR(void)
         }
     }
     
+    // Possibly generate JSON
+    generateJSONFile();
+
     // Sort struct fields by size and type
     // 05/16/17 : deactivated since it slows down the code...
     /*

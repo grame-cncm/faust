@@ -399,7 +399,7 @@ string fileDirname(const string& name)
 {
     const char*        base = fileBasename(name.c_str());
     const unsigned int size = base - name.c_str();
-    string             dirname;
+    string            dirname;
 
     if (size == 0) {
         dirname += '.';
