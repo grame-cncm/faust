@@ -67,7 +67,7 @@ MIDI messages can be received on the left most inlet when [MIDI  control is acti
 
 ### Prerequisites
 
-- you must have [Faust](https://faust.grame.fr/) installed and the `faust` command available from the command line, and the compiled `libfaust` library. **WARNING**: be sure to have `libfaust` compiled with `#define FAUSTFLOAT double` in architecture/faust/dsp/dsp.h and architecture/faust/gui/UI.h
+- you must have [Faust](https://faust.grame.fr/) installed and the `faust` command available from the command line, and the compiled `libfaust` library. **WARNING**: be sure to have `libfaust` compiled with `#define FAUSTFLOAT double` in [architecture/faust/dsp/dsp.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/dsp/dsp.h) and [architecture/faust/gui/UI.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/gui/UI.h)
 - you must have downloaded the [Max SDK](https://cycling74.com/downloads/sdk)
 - you must have [cmake](https://cmake.org/) installed
 - [Windows] you must have [libsndfile](http://www.mega-nerd.com/libsndfile/) installed
