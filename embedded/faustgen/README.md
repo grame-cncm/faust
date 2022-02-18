@@ -14,7 +14,7 @@ The DSP code can describe generator or effects, and can run in polyphonic mode, 
 
 ### Creating
 
-A new **faustgen~** object will be created with a default DSP program (a stereo in/out passthrough). Two diffrent ways of creating objects are available:
+A new **faustgen~** object will be created with a default DSP program (a stereo in/out passthrough). Two different ways of creating objects are available:
 
 - using **faustgen~** object without a specific name let's you define the DSP program only for this instance, with a default name factory ID
 - using **faustgen~ name** allows to specify a name for this instance, and share the *same Faust code with all objects with this name*. If you load another patch with a same faustgen~ name, you'll keep the current code. Be carefull, if you change the name you loose your previous code (so copy it before)
@@ -44,7 +44,7 @@ The **faustgen~** object can be controlled with the following messages:
 - `read <pathname>`: to read an external DSP file (pathname is optional)
 - `write <pathname>`: to write the DSP code in an external file (pathname is optional)
 - `librarypath <pathname>` to add the folder pathname of additional Faust libraries
-- `compileoptions <options>`: to add most of the Faust [compiler options]( https://faustdoc.grame.fr/manual/options/) (like `vec -lv 1 -vs 8 `...)
+- `compileoptions <options>`: to add most of the Faust [compiler options](https://faustdoc.grame.fr/manual/options/) (like `-vec -lv 1 -vs 8`...). The `-single` option can be used to run the DSP code with float samples (remember that Max7 and later use double samples by default, so does **faustgen~**).
 - `osc <IP inport outport xmit[0|1] bundle[0|1]>`: to activate OSC control in input and output mode, possibly generating messages when *xmit = 1*, and in bundle mode when *bundle = 1* 
 - `init`: to generate all inputs and outputs control messages as a message list *[path, init, min, max]* that will be sent on the output messages outlet
 - `dump`: to generate all inputs and outputs control messages as a message list *[path, cur, min, max]* that will be sent on the output messages outlet. 
@@ -53,7 +53,7 @@ The **faustgen~** object can be controlled with the following messages:
 
 #### Input controllers 
 
-All control messages are received in the left most inlet (the signal + message inlet) with the `<label|path> <number>` syntax. Their number and exact syntax obviously depend of the actual Faust DSP code.  `Label` is the simple name of the controller (like `freq` of `gain`), and `path` is the complete path following the OSC convention (like `osc/freq` of `osc/gain` kind of path), which is preferable to use to be sure all controllers are distincts.The `number` parameter is the actual float value for the controller. Use the *View DSP parameters* menu item to print all controller paths in the Max console with their label, path and range.
+All control messages are received in the left most inlet (the signal + message inlet) with the `<label|path> <number>` syntax. Their number and exact syntax obviously depend of the actual Faust DSP code. `Label` is the simple name of the controller (like `freq` of `gain`), and `path` is the complete path following the OSC convention (like `osc/freq` of `osc/gain` kind of path), which is preferable to use to be sure all controllers are distincts. The `number` parameter is the actual float value for the controller. Use the *View DSP parameters* menu item to print all controller paths in the Max console with their label, path and range.
 
 #### Output controllers
 
@@ -110,7 +110,7 @@ $ cmake --build . --config Release --target install
 
 On output, you should find a folder named **faustgen** in the package folder.
 
-**Note:** on Mac OS, this folder is also compressed to the **faustgen.dmg** image file.
+**Note:** on macOS, this folder is also compressed to the **faustgen.dmg** image file.
 
 ## Limitations and known bugs
 

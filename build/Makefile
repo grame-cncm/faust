@@ -151,7 +151,7 @@ help:
 	@echo
 	@echo "Packaging targets:"
 	@echo " 'package'    : build a Faust package for the current platform"
-	@echo " 'release'    : build a Faust release (MacOS only)"
+	@echo " 'release'    : build a Faust release (macOS only)"
 	@echo "                includes faust, faustgen and dist packages"
 
 	
