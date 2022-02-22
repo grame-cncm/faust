@@ -182,7 +182,6 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* generateXtended(Tree sig);
     virtual ValueInst* generateDelay(Tree sig, Tree arg, Tree size);
     virtual ValueInst* generatePrefix(Tree sig, Tree x, Tree e);
-    virtual ValueInst* generateIota(Tree sig, Tree arg);
     virtual ValueInst* generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);
 
     virtual ValueInst* generateFFun(Tree sig, Tree ff, Tree largs);

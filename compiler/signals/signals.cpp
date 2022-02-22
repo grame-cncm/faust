@@ -130,15 +130,6 @@ bool isSigPrefix(Tree t, Tree& t0, Tree& t1)
     return isTree(t, gGlobal->SIGPREFIX, t0, t1);
 }
 
-Tree sigIota(Tree t0)
-{
-    return tree(gGlobal->SIGIOTA, t0);
-}
-bool isSigIota(Tree t, Tree& t0)
-{
-    return isTree(t, gGlobal->SIGIOTA, t0);
-}
-
 // Read only and read write tables
 
 Tree sigRDTbl(Tree t, Tree i)

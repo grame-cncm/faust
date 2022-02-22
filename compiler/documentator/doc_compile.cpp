@@ -199,12 +199,7 @@ string DocCompiler::generateCode(Tree sig, int priority)
     } else if (isSigPrefix(sig, x, y)) {
         printGCCall(sig, "generatePrefix");
         return generatePrefix(sig, x, y, priority);
-    } else if (isSigIota(sig, x)) {
-        printGCCall(sig, "generateIota");
-        return generateIota(sig, x);
-    }
-
-    else if (isSigBinOp(sig, &i, x, y)) {
+    } else if (isSigBinOp(sig, &i, x, y)) {
         printGCCall(sig, "generateBinOp");
         return generateBinOp(sig, i, x, y, priority);
     } else if (isSigFFun(sig, ff, largs)) {
@@ -986,23 +981,6 @@ string DocCompiler::generatePrefix(Tree sig, Tree x, Tree e, int priority)
     gGlobal->gDocNoticeFlagMap["prefixsigs"] = true;
 
     return generateCacheCode(sig, subst("$0(t)", var));
-}
-
-/*****************************************************************************
-                               IOTA(n)
-*****************************************************************************/
-
-/**
- * Generate a "iota" time function, n-cyclical.
- */
-string DocCompiler::generateIota(Tree sig, Tree n)
-{
-    int size;
-    if (!isSigInt(n, &size)) {
-        throw faustexception("ERROR in generateIota\n");
-    }
-    // cout << "iota !" << endl;
-    return subst(" t \\bmod{$0} ", docT(size));
 }
 
 // to be reviewed using table reading and sharing the construction of the value pair

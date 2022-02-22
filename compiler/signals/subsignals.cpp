@@ -74,12 +74,7 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
         vsigs.push_back(x);
         vsigs.push_back(y);
         return 2;
-    } else if (isSigIota(sig, x)) {
-        vsigs.push_back(x);
-        return 1;
-    }
-
-    else if (isSigBinOp(sig, &i, x, y)) {
+    } else if (isSigBinOp(sig, &i, x, y)) {
         vsigs.push_back(x);
         vsigs.push_back(y);
         return 2;

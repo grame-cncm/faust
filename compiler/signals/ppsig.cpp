@@ -214,8 +214,6 @@ ostream& ppsig::print(ostream& fout) const
         printDelay(fout, x, y);
     } else if (isSigPrefix(sig, x, y)) {
         printfun(fout, "prefix", x, y);
-    } else if (isSigIota(sig, x)) {
-        printfun(fout, "iota", x);
     } else if (isSigBinOp(sig, &i, x, y)) {
         printinfix(fout, gBinOpTable[i]->fName, gBinOpTable[i]->fPriority, x, y);
     } else if (isSigFFun(sig, ff, largs)) {

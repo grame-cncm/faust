@@ -79,8 +79,6 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigDelay(self(x), self(y));
     } else if (isSigPrefix(sig, x, y)) {
         return sigPrefix(self(x), self(y));
-    } else if (isSigIota(sig, x)) {
-        return sigIota(self(x));
     } else if (isSigBinOp(sig, &i, x, y)) {
         return sigBinOp(i, self(x), self(y));
     }
@@ -164,7 +162,7 @@ Tree SignalIdentity::transformation(Tree sig)
         return sigHBargraph(label, self(x), self(y), self(z));
     }
 
-    // Soundfile length, rate, channels, buffer
+    // Soundfile length, rate, buffer
     else if (isSigSoundfile(sig, label)) {
         return sig;
     } else if (isSigSoundfileLength(sig, sf, x)) {

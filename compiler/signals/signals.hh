@@ -74,9 +74,6 @@ bool isSigDelay(Tree t, Tree& t0, Tree& t1);
 Tree sigPrefix(Tree t0, Tree t1);
 bool isSigPrefix(Tree t, Tree& t0, Tree& t1);
 
-Tree sigIota(Tree t0);
-bool isSigIota(Tree t, Tree& t0);
-
 // Int and Double casting
 EXPORT Tree sigIntCast(Tree t);
 EXPORT Tree sigFloatCast(Tree t);

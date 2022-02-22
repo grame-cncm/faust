@@ -763,8 +763,8 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     tab(n + 1, *fOut);
     *fOut << fKlassName << "() {}";
     tab(n + 1, *fOut);
-    *fOut << fKlassName << "(int* iControl, " << ifloat() <<"* fControl)";
-    *fOut << ":one_sample_dsp(iControl, fControl) {}";
+    *fOut << fKlassName << "(int* icontrol, " << ifloat() <<"* fcontrol)";
+    *fOut << ":one_sample_dsp(icontrol, fcontrol) {}";
     
     // Print metadata declaration
     tab(n + 1, *fOut);
@@ -1030,8 +1030,8 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
     tab(n + 1, *fOut);
     *fOut << fKlassName << "() {}";
     tab(n + 1, *fOut);
-    *fOut << fKlassName << "(int* iControl, " <<  ifloat() << "* fControl, int* iZone, " << ifloat() << "* fZone)";
-    *fOut << ":one_sample_dsp_real(iControl, fControl, iZone, fZone) {}";
+    *fOut << fKlassName << "(int* icontrol, " <<  ifloat() << "* fcontrol, int* izone, " << ifloat() << "* fzone)";
+    *fOut << ":one_sample_dsp_real(icontrol, fcontrol, izone, fzone) {}";
     
     // Print metadata declaration
     tab(n + 1, *fOut);
@@ -1322,8 +1322,8 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     tab(n + 1, *fOut);
     *fOut << fKlassName << "() {}";
     tab(n + 1, *fOut);
-    *fOut << fKlassName << "(int* iControl, " << ifloat() << "* fControl, int* iZone, " << ifloat() << "* fZone)";
-    *fOut << ":one_sample_dsp_real(iControl, fControl, iZone, fZone) {}";
+    *fOut << fKlassName << "(int* icontrol, " << ifloat() << "* fcontrol, int* izone, " << ifloat() << "* fzone)";
+    *fOut << ":one_sample_dsp_real(icontrol, fcontrol, izone, fzone) {}";
     
     // Print metadata declaration
     tab(n + 1, *fOut);

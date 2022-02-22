@@ -71,9 +71,6 @@ void SignalVisitor::visit(Tree sig)
         self(x);
         self(y);
         return;
-    } else if (isSigIota(sig, x)) {
-        self(x);
-        return;
     } else if (isSigBinOp(sig, &i, x, y)) {
         self(x);
         self(y);
@@ -181,7 +178,7 @@ void SignalVisitor::visit(Tree sig)
         return;
     }
 
-    // Soundfile length, rate, channels, buffer
+    // Soundfile length, rate, buffer
     else if (isSigSoundfile(sig, label)) {
         return;
     } else if (isSigSoundfileLength(sig, sf, x)) {

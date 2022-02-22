@@ -495,7 +495,6 @@ struct RackUI : public GenericUI
             fCV = "";
         } else {
             
-            
             if (fScale == "log") {
                 converter = new ConverterZoneControl(zone, new LogValueConverter(0., 1., min, max));
             } else if (fScale == "exp") {

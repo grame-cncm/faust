@@ -443,11 +443,7 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateDelay(sig, x, y);
     } else if (isSigPrefix(sig, x, y)) {
         return generatePrefix(sig, x, y);
-    } else if (isSigIota(sig, x)) {
-        return generateIota(sig, x);
-    }
-
-    else if (isSigBinOp(sig, &i, x, y)) {
+    } else if (isSigBinOp(sig, &i, x, y)) {
         return generateBinOp(sig, i, x, y);
     } else if (isSigFFun(sig, ff, largs)) {
         return generateFFun(sig, ff, largs);
@@ -1243,26 +1239,6 @@ string ScalarCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 static bool isPowerOf2(int n)
 {
     return !(n & (n - 1));
-}
-
-string ScalarCompiler::generateIota(Tree sig, Tree n)
-{
-    int size;
-    if (!isSigInt(n, &size)) {
-        throw faustexception("ERROR in generateIota\n");
-    }
-
-    string vperm = getFreshID("iota");
-
-    fClass->addDeclCode(subst("int \t$0;", vperm));
-    fClass->addClearCode(subst("$0 = 0;", vperm));
-
-    if (isPowerOf2(size)) {
-        fClass->addExecCode(Statement("", subst("$0 = ($0+1)&$1;", vperm, T(size - 1))));
-    } else {
-        fClass->addExecCode(Statement("", subst("if (++$0 == $1) $0=0;", vperm, T(size))));
-    }
-    return vperm;
 }
 
 /*****************************************************************************

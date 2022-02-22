@@ -680,11 +680,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         return generateDelay(sig, x, y);
     } else if (isSigPrefix(sig, x, y)) {
         return generatePrefix(sig, x, y);
-    } else if (isSigIota(sig, x)) {
-        return generateIota(sig, x);
-    }
-
-    else if (isSigBinOp(sig, &i, x, y)) {
+    } else if (isSigBinOp(sig, &i, x, y)) {
         return generateBinOp(sig, i, x, y);
     } else if (isSigFFun(sig, ff, largs)) {
         return generateFFun(sig, ff, largs);
@@ -1887,16 +1883,6 @@ ValueInst* InstructionsCompiler::generatePrefix(Tree sig, Tree x, Tree e)
     pushComputeDSPMethod(InstBuilder::genControlInst(getConditionCode(sig), InstBuilder::genStoreStructVar(vperm, CS(e))));
 
     return InstBuilder::genLoadStackVar(vtemp);
-}
-
-/*****************************************************************************
- IOTA(n)
- *****************************************************************************/
-
-ValueInst* InstructionsCompiler::generateIota(Tree sig, Tree arg)
-{
-    // Result not used
-    return InstBuilder::genNullValueInst();
 }
 
 /**
