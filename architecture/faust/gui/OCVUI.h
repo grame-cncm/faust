@@ -1,20 +1,20 @@
-/************************** BEGIN OCVUI.h **************************/
-/************************************************************************
+/************************** BEGIN OCVUI.h ******************************
  FAUST Architecture File
- Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2022 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
- This Architecture section is free software; you can redistribute it
- and/or modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 3 of
- the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
+ (at your option) any later version.
  
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU Lesser General Public License for more details.
  
- You should have received a copy of the GNU General Public License
- along with this program; If not, see <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  
  EXCEPTION : As a special exception, you may create a larger work
  that contains this FAUST architecture section and distribute
@@ -26,13 +26,9 @@
 #define _OCVUI_H
 
 /**
- * \file OCVUI.h
- * \brief OpenCV user interface
- * \author GRAME, Centre National de Création Musicale
- * \date 26/01/2015
- * 
+ *
  * This architecture file allows the user to use the OpenCV library in order to perform
- *	image processing and use the result to control audio parameters.
+ * image processing and use the result to control audio parameters.
  *								
  * To use this mode, just add the option -ocv with your faust2jack tool.
  * 				
