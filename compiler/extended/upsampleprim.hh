@@ -37,7 +37,8 @@ class UpsamplePrim : public xtended {
     ::Type infereSigType(const vector< ::Type>& args) override
     {
         faustassert(args.size() == arity());
-        return castInterval(floatCast(args[0] | args[1]), interval());  // temporary rule !!!
+        Type t = args[0];
+        return castInterval(sampCast(t), reunion(t->getInterval(), interval(0, 0)));
     }
 
     virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
