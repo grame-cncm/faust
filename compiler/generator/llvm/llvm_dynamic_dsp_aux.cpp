@@ -52,7 +52,6 @@
 #include <llvm/Support/ManagedStatic.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/SourceMgr.h>
-#include <llvm/Support/TargetRegistry.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Transforms/IPO.h>
@@ -65,7 +64,14 @@
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 
-#if defined(LLVM_100) || defined(LLVM_110) || defined(LLVM_120) || defined(LLVM_130) || defined(LLVM_140)
+// Disappears in LLVM 15
+#if LLVM_VERSION_MAJOR >= 15
+#include <llvm/MC/TargetRegistry.h>
+#else
+#include <llvm/Support/TargetRegistry.h>
+#endif
+
+#if LLVM_VERSION_MAJOR >= 10
 #include <llvm/InitializePasses.h>
 #include <llvm/Support/CodeGen.h>
 #endif
@@ -114,8 +120,7 @@ void llvm_dynamic_dsp_factory_aux::write(ostream* out, bool binary, bool small)
     string res;
     raw_string_ostream out_str(res);
     if (binary) {
-#if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110) || defined(LLVM_120) || \
-    defined(LLVM_130) || defined(LLVM_140)
+#if LLVM_VERSION_MAJOR >= 8
         WriteBitcodeToFile(*fModule, out_str);
 #else
         WriteBitcodeToFile(fModule, out_str);
@@ -131,8 +136,7 @@ string llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcode()
 {
     string res;
     raw_string_ostream out(res);
-#if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110) || defined(LLVM_120) || \
-    defined(LLVM_130) || defined(LLVM_140)
+#if LLVM_VERSION_MAJOR >= 8
     WriteBitcodeToFile(*fModule, out);
 #else
     WriteBitcodeToFile(fModule, out);
@@ -149,8 +153,7 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcodeFile(const string& bi
         cerr << "ERROR : writeDSPFactoryToBitcodeFile could not open file : " << err.message();
         return false;
     }
-#if defined(LLVM_80) || defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110) || defined(LLVM_120) || \
-    defined(LLVM_130) || defined(LLVM_140)
+#if LLVM_VERSION_MAJOR >= 8
     WriteBitcodeToFile(*fModule, out);
 #else
     WriteBitcodeToFile(fModule, out);
@@ -266,7 +269,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 
     builder.setOptLevel(CodeGenOpt::Aggressive);
     builder.setEngineKind(EngineKind::JIT);
-#if defined(LLVM_50)
+#if LLVM_VERSION_MAJOR == 5
     builder.setCodeModel(CodeModel::JITDefault);
 #endif
 
@@ -288,12 +291,11 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     targetOptions.GuaranteedTailCallOpt = true;
     targetOptions.NoTrappingFPMath      = true;
     
-#if defined(LLVM_90) || defined(LLVM_100) || defined(LLVM_110) || defined(LLVM_120) || defined(LLVM_130) || \
-    defined(LLVM_140)
+#if LLVM_VERSION_MAJOR >= 9
     targetOptions.NoSignedZerosFPMath   = true;
 #endif
     
-#if defined(LLVM_110) || defined(LLVM_120) || defined(LLVM_130) || defined(LLVM_140)
+#if LLVM_VERSION_MAJOR >= 11
     targetOptions.setFPDenormalMode(DenormalMode::getIEEE());
 #else
     targetOptions.FPDenormalMode = FPDenormal::IEEE;
@@ -303,7 +305,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     
     string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
     if ((debug_var != "") && (debug_var.find("FAUST_LLVM3") != string::npos)) {
-#if !defined(LLVM_120) && !defined(LLVM_130) && !defined(LLVM_140)
+#if LLVM_VERSION_MAJOR < 12
         targetOptions.PrintMachineCode = true;
 #endif
     }
@@ -338,7 +340,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         }
 
         if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
-    #if defined(LLVM_50)
+    #if LLVM_VERSION_MAJOR == 5
             TargetRegistry::printRegisteredTargetsForVersion();
     #endif
             dumpLLVM(fModule);
@@ -433,9 +435,9 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(const stri
     }
 
     legacy::PassManager pass;
-#if defined(LLVM_100) || defined(LLVM_110) || defined(LLVM_120) || defined(LLVM_130) || defined(LLVM_140)
+#if LLVM_VERSION_MAJOR >= 10
     if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, CGFT_ObjectFile)) {
-#elif defined(LLVM_80) || defined(LLVM_90)
+#elif LLVM_VERSION_MAJOR >= 8
     if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, TargetMachine::CGFT_ObjectFile)) {
 #else
     if (TheTargetMachine->addPassesToEmitFile(pass, dest, TargetMachine::CGFT_ObjectFile, true)) {

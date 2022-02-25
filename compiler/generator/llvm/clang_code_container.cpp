@@ -40,17 +40,16 @@
 #include <llvm/Support/raw_ostream.h>
 
 #include <llvm/Bitcode/ReaderWriter.h>
-#if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || \
-    defined(LLVM_39) || defined(LLVM_40)
+#if (LLVM_VERSION_MAJOR >= 4) || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR >= 4)
 #include <llvm/IR/Module.h>
 #else
 #include <llvm/Module.h>
 #endif
 
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
+#if (LLVM_VERSION_MAJOR >= 4) || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR >= 5)
 #include <llvm/Support/FileSystem.h>
 #define sysfs_binary_flag sys::fs::F_None
-#elif defined(LLVM_34)
+#elif (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR == 4)
 #define sysfs_binary_flag sys::fs::F_Binary
 #else
 #define sysfs_binary_flag raw_fd_ostream::F_Binary
@@ -111,8 +110,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     fCompiler->compileMultiSignal(signals);
     fContainer->produceClass();
 
-#if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || \
-    defined(LLVM_39) || defined(LLVM_40)
+#if (LLVM_VERSION_MAJOR >= 4) || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR >= 4)
     // Compile it with 'clang'
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts   = new DiagnosticOptions();
     TextDiagnosticPrinter*                DiagClient = new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts);
