@@ -865,7 +865,7 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
         fLLVMInputs   = LLVMGetParam(execute, 2);
         fLLVMOutputs  = LLVMGetParam(execute, 3);
 
-#if defined(LLVM_50) || defined(LLVM_60)
+#if (LLVM_VERSION_MAJOR == 5) || (LLVM_VERSION_MAJOR == 6)
         LLVMSetValueName(fLLVMIntHeap, "int_heap");
         LLVMSetValueName(fLLVMRealHeap, "real_heap");
         LLVMSetValueName(fLLVMInputs, "inputs");
