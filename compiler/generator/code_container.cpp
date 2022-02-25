@@ -454,7 +454,9 @@ void CodeContainer::processFIR(void)
             fMemoryLayout.push_back(make_tuple(fKlassName,
                                                 int(Typed::kNoType),
                                                 0,
-                                                struct_size.fSizeBytes,
+                                                // Upper value : add virtual method pointer (8 bytes in 64 bits)
+                                                // + 8 bytes for memory alignment
+                                                struct_size.fSizeBytes + 8 + 8,
                                                 read_access,
                                                 write_access));
             

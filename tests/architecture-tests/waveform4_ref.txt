@@ -5,6 +5,7 @@ malloc_manager: 28
 free_manager
 free_manager
 malloc_manager: 24
+malloc_manager: 8
 Render one buffer
 sample out 40.000000
 Render one buffer
@@ -15,6 +16,7 @@ Render one buffer
 sample out 60.000000
 Render one buffer
 sample out 20.000000
+free_manager
 free_manager
 free_manager
 free_manager

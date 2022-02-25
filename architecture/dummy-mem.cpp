@@ -96,7 +96,7 @@ static void test1()
     mydsp::classInit(SAMPLE_RATE);
     
     // 'placement' new used to allocate the DSP object
-    mydsp* DSP = new (manager.allocate(sizeof(mydsp))) mydsp();
+    mydsp* DSP = mydsp::create();
     
     /// Audio rendering
     dummyaudio audio(SAMPLE_RATE, 512, 5, 1, true);  // custom memory manager is used
@@ -106,10 +106,9 @@ static void test1()
     audio.stop();
     
     // DSP destructor called, then custom memory manager used to destroy the DSP object
-    DSP->~mydsp();
-    manager.destroy(DSP);
+    mydsp::destroy(DSP);
     
-    // DSP static data is destroyed using classDestroy.
+    // DSP static data is destroyed using classDestroy
     mydsp::classDestroy();
 }
 
@@ -125,8 +124,8 @@ static void test2()
     mydsp::classInit(SAMPLE_RATE);
     
     // 'placement' new used to allocate the DSP objects
-    mydsp* DSP1 = new (manager.allocate(sizeof(mydsp))) mydsp();
-    mydsp* DSP2 = new (manager.allocate(sizeof(mydsp))) mydsp();
+    mydsp* DSP1 = mydsp::create();
+    mydsp* DSP2 = mydsp::create();
     
     /// Audio rendering
     dummyaudio audio(SAMPLE_RATE, 512, 5, 1, true);  // custom memory manager is used
@@ -140,13 +139,10 @@ static void test2()
     audio.stop();
     
     // DSP destructor called, then custom memory manager used to destroy the DSP object
-    DSP1->~mydsp();
-    manager.destroy(DSP1);
+    mydsp::destroy(DSP1);
+    mydsp::destroy(DSP2);
     
-    DSP2->~mydsp();
-    manager.destroy(DSP2);
-    
-    // DSP static data is destroyed using classDestroy.
+    // DSP static data is destroyed using classDestroy
     mydsp::classDestroy();
 }
 
