@@ -42,6 +42,7 @@
 
 #include <cstddef>
 #include <string>
+#include <iostream>
 #include <math.h>
 #include <strings.h>
 #include <cstdlib>
@@ -419,7 +420,7 @@ bool setup(BelaContext* context, void* userData)
     // Polyphonic with effect
 #ifdef POLY2
     int group = 1;
-    std::cout << "Started with " << nvoices << " voices\n";
+    cout << "Started with " << nvoices << " voices" << endl;
     gDSP = new mydsp_poly(new mydsp(), nvoices, true, group);
     
 #ifdef MIDICTRL
@@ -436,7 +437,7 @@ bool setup(BelaContext* context, void* userData)
     int group = 1;
     
     if (nvoices > 0) {
-        std::cout << "Started with " << nvoices << " voices\n";
+        cout << "Started with " << nvoices << " voices" << endl;
         gDSP = new mydsp_poly(new mydsp(), nvoices, true, group);
         
 #ifdef MIDICTRL
@@ -458,7 +459,7 @@ bool setup(BelaContext* context, void* userData)
 #endif
     
     if (gDSP == 0) {
-        std::cerr << "Unable to allocate Faust DSP object" << std::endl;
+        cerr << "Unable to allocate Faust DSP object" << endl;
         return false;
     }
     
