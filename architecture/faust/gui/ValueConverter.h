@@ -507,10 +507,7 @@ class CurveZoneControl : public ZoneControl
         }
         virtual ~CurveZoneControl()
         {
-            std::vector<UpdatableValueConverter*>::iterator it;
-            for (it = fValueConverters.begin(); it != fValueConverters.end(); it++) {
-                delete(*it);
-            }
+            for (const auto& it : fValueConverters) { delete it; }
         }
         void update(double v) const { if (fValueConverters[fCurve]->getActive()) *fZone = FAUSTFLOAT(fValueConverters[fCurve]->ui2faust(v)); }
 
@@ -527,10 +524,7 @@ class CurveZoneControl : public ZoneControl
 
         void setActive(bool on_off)
         {
-            std::vector<UpdatableValueConverter*>::iterator it;
-            for (it = fValueConverters.begin(); it != fValueConverters.end(); it++) {
-                (*it)->setActive(on_off);
-            }
+            for (const auto& it : fValueConverters) { it->setActive(on_off); }
         }
 
         int getCurve() { return fCurve; }

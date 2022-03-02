@@ -73,17 +73,13 @@ class FUI : public UI, public PathBuilder
         virtual void saveState(const char* filename)
         {
             std::ofstream file(filename);
-            std::map<std::string, FAUSTFLOAT*>::iterator it;
-            
             if (file.is_open()) {
-                for (it = fName2Zone.begin(); it != fName2Zone.end(); ++it) {
-                    file << *(*it).second << ' ' << (*it).first << std::endl;
+                for (const auto& it : fName2Zone) {
+                    file << *it.second << ' ' << it.first << std::endl;
                 }
-
-                file << std::endl;
                 file.close();
             } else {
-                 std::cerr << "Error opening " << filename << " file\n";
+                std::cerr << "Error opening " << filename << " file\n";
             }
         }
 
