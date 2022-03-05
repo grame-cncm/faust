@@ -66,14 +66,20 @@ struct interval : public virtual Garbageable {
     }
     interval(bool v, double n, double m) : valid(v), lo(n), hi(m)
     {
-        if (std::isnan(n) || std::isnan(m)) {
+        if (std::isnan(n)) {
             throw faustexception("ERROR2 : n is NaN in an Interval\n");
+        }
+        if (std::isnan(m)) {
+            throw faustexception("ERROR2 : m is NaN in an Interval\n");
         }
     }
     interval(double n, double m) : valid(true), lo(min(n, m)), hi(max(n, m))
     {
-        if (std::isnan(n) || std::isnan(m)) {
+        if (std::isnan(n)) {
             throw faustexception("ERROR3 : n is NaN in an Interval\n");
+        }
+        if (std::isnan(m)) {
+            throw faustexception("ERROR3 : m is NaN in an Interval\n");
         }
     }
 
