@@ -108,6 +108,7 @@ struct MidiMeta : public Meta, public std::map<std::string, std::string> {
         for (int i = 0; i < map_ui.getParamsCount(); i++) {
             std::string path = map_ui.getParamAddress(i);
             has_freq |= MapUI::endsWith(path, "/freq");
+            has_freq |= MapUI::endsWith(path, "/key");
             has_gate |= MapUI::endsWith(path, "/gate");
             has_gain |= MapUI::endsWith(path, "/gain");
         }
