@@ -789,6 +789,16 @@ static bool processCmdline(int argc, const char* argv[])
         gGlobal->gOutputLang != "c") {
         throw faustexception("ERROR : -fx can ony be used with 'c', 'cpp' or 'ocpp' backends\n");
     }
+    
+    if (gGlobal->gClang && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "ocpp" &&
+        gGlobal->gOutputLang != "c") {
+        throw faustexception("ERROR : -clang can ony be used with 'c', 'cpp' or 'ocpp' backends\n");
+    }
+    
+    if (gGlobal->gNoVirtual && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "ocpp" &&
+        gGlobal->gOutputLang != "c") {
+        throw faustexception("ERROR : -nvi can ony be used with 'c', 'cpp' or 'ocpp' backends\n");
+    }
 
     if (gGlobal->gMemoryManager && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "ocpp") {
         throw faustexception("ERROR : -mem can ony be used with 'cpp' or 'ocpp' backends\n");
@@ -920,7 +930,7 @@ static void printHelp()
             "auto-vectorization."
          << endl;
     cout << tab
-         << "-nvi        --no-virtual                when compiled with the C++ backend, does not add the 'virtual' keyword" << endl;
+         << "-nvi        --no-virtual                when compiled with the C++ backend, does not add the 'virtual' keyword." << endl;
     cout << tab << "-exp10      --generate-exp10            pow(10,x) replaced by possibly faster exp10(x)." << endl;
     cout << tab << "-os         --one-sample                generate one sample computation (same as -os0)." << endl;
     cout << tab << "-os0        --one-sample0               generate one sample computation (0 = separated control)." << endl;

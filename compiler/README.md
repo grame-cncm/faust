@@ -72,7 +72,8 @@ Code generation options:
 
   **-clang**      **--clang**                     when compiled with clang/clang++, adds specific #pragma for auto-vectorization.
 
-  **-nvi**        **--no-virtual**                when compiled with the C++ backend, does not add the 'virtual' keyword
+  **-nvi**        **--no-virtual**                when compiled with the C++ backend, does not add the 'virtual' keyword.
+
   **-exp10**      **--generate-exp10**            pow(10,x) replaced by possibly faster exp10(x).
 
   **-os**         **--one-sample**                generate one sample computation (same as -os0).
