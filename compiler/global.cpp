@@ -155,6 +155,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gDSPStruct  = false;
     gLightMode  = false;
     gClang      = false;
+    gNoVirtual  = false;
     gCheckTable = "";
     
     gMathExceptions = false;
