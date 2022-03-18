@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "man" "1" "" "Version 2.39.10 (05-March-2022)" "Faust man page"
+.TH "man" "1" "" "Version 2.40.0 (18-March-2022)" "Faust man page"
 .hy
 .SH NAME
 .PP
@@ -95,8 +95,10 @@ DSP API.
 \f[B]-clang\f[R] \f[B]\[en]clang\f[R] when compiled with clang/clang++,
 adds specific #pragma for auto-vectorization.
 .PP
-\f[B]-exp10\f[R] \f[B]\[en]generate-exp10\f[R] pow(10,x) replaced by
-possibly faster exp10(x).
+\f[B]-nvi\f[R] \f[B]\[en]no-virtual\f[R] when compiled with the C++
+backend, does not add the `virtual' keyword \f[B]-exp10\f[R]
+\f[B]\[en]generate-exp10\f[R] pow(10,x) replaced by possibly faster
+exp10(x).
 .PP
 \f[B]-os\f[R] \f[B]\[en]one-sample\f[R] generate one sample computation
 (same as -os0).

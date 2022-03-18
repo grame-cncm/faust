@@ -34,21 +34,22 @@
 #pragma warning(disable : 4250)
 #endif
 
-using namespace std;
-
 class CPPCodeContainer : public virtual CodeContainer {
    protected:
     CPPInstVisitor* fCodeProducer;
     std::ostream*  fOut;
-    string         fSuperKlassName;
+    std::string    fSuperKlassName;
 
     void produceMetadata(int tabs);
     void produceInit(int tabs);
- 
+    
+    std::string genVirtual();
+    std::string genFinal();
+  
    public:
     CPPCodeContainer()
     {}
-    CPPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out) : fSuperKlassName(super)
+    CPPCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out) : fSuperKlassName(super)
     {
         initialize(numInputs, numOutputs);
         fKlassName = name;
@@ -97,11 +98,11 @@ class CPPCodeContainer : public virtual CodeContainer {
         *fOut << "#endif" << std::endl;
     }
 
-    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+    CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
     static CodeContainer* createScalarContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, ostream* dst, int sub_container_type);
     
-    static CodeContainer* createContainer(const string& name, const string& super, int numInputs, int numOutputs,
-                                          ostream* dst = new stringstream());
+    static CodeContainer* createContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs,
+                                          ostream* dst = new std::stringstream());
 };
 
 class CPPScalarCodeContainer : public CPPCodeContainer {
@@ -109,7 +110,7 @@ class CPPScalarCodeContainer : public CPPCodeContainer {
    public:
     CPPScalarCodeContainer()
     {}
-    CPPScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out,
+    CPPScalarCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out,
                            int sub_container_type);
     virtual ~CPPScalarCodeContainer()
     {}
@@ -122,7 +123,7 @@ class CPPScalarOneSampleCodeContainer1 : public CPPScalarCodeContainer {
    protected:
     virtual void produceClass();
    public:
-    CPPScalarOneSampleCodeContainer1(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out,
+    CPPScalarOneSampleCodeContainer1(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out,
                                     int sub_container_type)
     {
         initialize(numInputs, numOutputs);
@@ -155,7 +156,7 @@ class CPPScalarOneSampleCodeContainer2 : public CPPScalarCodeContainer {
     public:
         CPPScalarOneSampleCodeContainer2()
         {}
-        CPPScalarOneSampleCodeContainer2(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out,
+        CPPScalarOneSampleCodeContainer2(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out,
                                          int sub_container_type)
         {
             initialize(numInputs, numOutputs);
@@ -191,7 +192,7 @@ class CPPScalarOneSampleCodeContainer3 : public CPPScalarOneSampleCodeContainer2
     protected:
         virtual void produceClass();
     public:
-        CPPScalarOneSampleCodeContainer3(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out,
+        CPPScalarOneSampleCodeContainer3(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out,
                                          int sub_container_type)
         {
             initialize(numInputs, numOutputs);
@@ -223,7 +224,7 @@ class CPPScalarOneSampleCodeContainer4 : public CPPScalarOneSampleCodeContainer3
     protected:
         virtual void produceClass();
     public:
-        CPPScalarOneSampleCodeContainer4(const string& name, const string& super,
+        CPPScalarOneSampleCodeContainer4(const std::string& name, const std::string& super,
                                          int numInputs, int numOutputs,
                                          std::ostream* out,
                                          int sub_container_type)
@@ -240,7 +241,7 @@ class CPPScalarOneSampleCodeContainer4 : public CPPScalarOneSampleCodeContainer3
 class CPPVectorCodeContainer : public VectorCodeContainer, public CPPCodeContainer {
    protected:
    public:
-    CPPVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
+    CPPVectorCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out);
     virtual ~CPPVectorCodeContainer()
     {}
 
@@ -250,7 +251,7 @@ class CPPVectorCodeContainer : public VectorCodeContainer, public CPPCodeContain
 class CPPOpenMPCodeContainer : public OpenMPCodeContainer, public CPPCodeContainer {
    protected:
    public:
-    CPPOpenMPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
+    CPPOpenMPCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out);
     virtual ~CPPOpenMPCodeContainer()
     {}
 
@@ -260,7 +261,7 @@ class CPPOpenMPCodeContainer : public OpenMPCodeContainer, public CPPCodeContain
 class CPPWorkStealingCodeContainer : public WSSCodeContainer, public CPPCodeContainer {
    protected:
    public:
-    CPPWorkStealingCodeContainer(const string& name, const string& super, int numInputs, int numOutputs,
+    CPPWorkStealingCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs,
                                  std::ostream* out);
     virtual ~CPPWorkStealingCodeContainer()
     {}

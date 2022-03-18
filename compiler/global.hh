@@ -148,6 +148,7 @@ struct global {
     bool gLightMode;  // do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module
                       // for JavaScript)
     bool   gClang;    // when compiled with clang/clang++, adds specific #pragma for auto-vectorization
+    bool   gNoVirtual;   // when compiled with the C++ backend, does not add the 'virtual' keyword
     string gCheckTable;  // whether to check RDTable and RWTable index range
     
     bool   gMathExceptions;  // whether to check math functions domains

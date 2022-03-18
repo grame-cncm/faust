@@ -1,4 +1,4 @@
-% man(1) Version 2.39.10 (05-March-2022) | Faust man page
+% man(1) Version 2.40.0 (18-March-2022) | Faust man page
 
 NAME
 ====
@@ -72,6 +72,7 @@ Code generation options:
 
   **-clang**      **--clang**                     when compiled with clang/clang++, adds specific #pragma for auto-vectorization.
 
+  **-nvi**        **--no-virtual**                when compiled with the C++ backend, does not add the 'virtual' keyword
   **-exp10**      **--generate-exp10**            pow(10,x) replaced by possibly faster exp10(x).
 
   **-os**         **--one-sample**                generate one sample computation (same as -os0).

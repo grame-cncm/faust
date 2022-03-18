@@ -670,6 +670,10 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-clang", "--clang")) {
             gGlobal->gClang = true;
             i += 1;
+            
+        } else if (isCmd(argv[i], "-nvi", "--no-virtual")) {
+            gGlobal->gNoVirtual = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-ct", "--check-table")) {
             gGlobal->gCheckTable = "ct";
@@ -915,6 +919,8 @@ static void printHelp()
          << "-clang      --clang                     when compiled with clang/clang++, adds specific #pragma for "
             "auto-vectorization."
          << endl;
+    cout << tab
+         << "-nvi        --no-virtual                when compiled with the C++ backend, does not add the 'virtual' keyword" << endl;
     cout << tab << "-exp10      --generate-exp10            pow(10,x) replaced by possibly faster exp10(x)." << endl;
     cout << tab << "-os         --one-sample                generate one sample computation (same as -os0)." << endl;
     cout << tab << "-os0        --one-sample0               generate one sample computation (0 = separated control)." << endl;
