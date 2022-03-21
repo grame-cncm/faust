@@ -69,7 +69,7 @@ Note that using the `-inj foo.cpp` option allows to compile any C++ class contai
 
 ## dynamic-jack-gtk/dynamic-coreaudio-gtk
 
-The **dynamic-jack-gtk/dynamic-coreaudio-gtk** tools use the dynamic compilation chain, compile a Faust DSP source, and run it with the LLVM or Interpreter backend. They can also read a precompiled DSP factory, either in IR (.ll), bitcode (.bc), or machine code (.mc) when using the LLVM backend, or byte code (.fbc) when using the Interpreter backend. The `-edit` option can be used to start an *edit/compile/run loop* where the DSP can be edited with an external editor, and will be recompiled on the fly and executed. 
+The **dynamic-jack-gtk/dynamic-coreaudio-gtk** tools use the dynamic compilation chain, compile a Faust DSP source, and run it with the LLVM or Interpreter backend. They can also read a precompiled DSP factory, either in IR (.ll), bitcode (.bc), or machine code (.mc) when using the LLVM backend, or byte code (.fbc) when using the Interpreter backend. The `-edit` option can be used to start an *edit/compile/run loop* where the DSP can be edited with an external editor, will be recompiled on the fly each time it changes, and then executed. 
 
 `dynamic-jack-gtk|dynamic-coreaudio-gtk [-llvm|interp] [-edit] [-generic] [-nvoices <num>] [-all] [-midi] [-osc] [-httpd] [-resample] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.ll/foo.bc/foo.mc/foo.fbc`
 

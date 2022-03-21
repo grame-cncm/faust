@@ -339,10 +339,10 @@ class CodeContainer : public virtual Garbageable {
     template <typename REAL>
     void generateJSONFile()
     {
-        JSONInstVisitor<REAL> json_visitor;
-        generateJSON(&json_visitor);
+        JSONInstVisitor<REAL> visitor;
+        generateJSON(&visitor);
         ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
-        xout << json_visitor.JSON();
+        xout << visitor.JSON();
     }
     
     template <typename REAL>

@@ -372,7 +372,7 @@ static bool runDynamicDSP(int argc, char* argv[], bool is_dsp_only = false)
         // Allocate a new DynamicDSP and start it
         gDynamicDSP = new DynamicDSP(argc, argv, is_dsp_only);
         bool res = gDynamicDSP->start();
-        // 'start' returns either because the DSP file content has changed or the window was closed by the user
+        // blocking 'start' returns either because the DSP file content has changed or the window was closed by the user
         gMutex.lock();
         delete gDynamicDSP;
         gDynamicDSP = nullptr;

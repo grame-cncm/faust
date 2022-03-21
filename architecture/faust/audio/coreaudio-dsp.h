@@ -499,8 +499,8 @@ class TCoreAudioRenderer
             struct timezone tz;
             gettimeofday(&fTv1, &tz);
             
-            sprintf(buffer1, "com.grame.%d", fTv1.tv_sec + fTv1.tv_usec);
-            sprintf(buffer2, "%d", fTv1.tv_sec + fTv1.tv_usec);
+            sprintf(buffer1, "com.grame.%ld", fTv1.tv_sec + fTv1.tv_usec);
+            sprintf(buffer2, "%ld", fTv1.tv_sec + fTv1.tv_usec);
             
             CFStringRef AggregateDeviceNameRef = CFStringCreateWithCString(kCFAllocatorDefault, buffer1, CFStringGetSystemEncoding());
             CFStringRef AggregateDeviceUIDRef = CFStringCreateWithCString(kCFAllocatorDefault, buffer2, CFStringGetSystemEncoding());

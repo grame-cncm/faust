@@ -198,15 +198,12 @@ void CodeContainer::printLibrary(ostream& fout)
  */
 void CodeContainer::printIncludeFile(ostream& fout)
 {
-    set<string>           S;
-    set<string>::iterator f;
-
+    set<string> S;
     collectIncludeFile(S);
-    for (f = S.begin(); f != S.end(); f++) {
-        string inc = *f;
+    for (const auto& inc : S) {
         // Only print non-empty include (inc is actually quoted)
         if (inc.size() > 2) {
-            fout << "#include " << *f << "\n";
+            fout << "#include " << inc << "\n";
         }
     }
 }
@@ -392,7 +389,6 @@ void CodeContainer::processFIR(void)
         DSP->instanceInit(44100);
      */
     if (gGlobal->gMemoryManager) {
-        
         {
             // Compute DSP struct arrays size
             StructInstVisitor struct_visitor;
@@ -744,7 +740,7 @@ DeclareFunInst* CodeContainer::generateInstanceClear(const string& name, const s
 }
 
 DeclareFunInst* CodeContainer::generateInstanceConstants(const string& name, const string& obj, bool ismethod,
-                                                         bool isvirtual)
+                                                        bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {

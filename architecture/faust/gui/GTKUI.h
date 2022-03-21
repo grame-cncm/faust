@@ -76,7 +76,7 @@ namespace gtk_knob
         int last_quadrant;
         GtkKnob();
         ~GtkKnob();
-        GtkWidget* gtk_knob_new_with_adjustment(GtkAdjustment *_adjustment);
+        GtkWidget* gtk_knob_new_with_adjustment(GtkAdjustment* _adjustment);
         
     };
     
@@ -113,7 +113,7 @@ namespace gtk_knob
     
     const double scale_zero = 20 * (M_PI/180); // defines "dead zone" for knobs
     
-    static void knob_expose(GtkWidget* widget, int knob_x, int knob_y, GdkEventExpose *event, int arc_offset)
+    static void knob_expose(GtkWidget* widget, int knob_x, int knob_y, GdkEventExpose* event, int arc_offset)
     {
         /** check resize **/
         int grow;
@@ -125,7 +125,7 @@ namespace gtk_knob
         knob_x = grow-4;
         knob_y = grow-4;
         /** get values for the knob **/
-        GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(widget));
+        GtkAdjustment* adj = gtk_range_get_adjustment(GTK_RANGE(widget));
         int knobx = (widget->allocation.x+2 + (widget->allocation.width-4 - knob_x) * 0.5);
         int knoby = (widget->allocation.y+2 + (widget->allocation.height-4 - knob_y) * 0.5);
         int knobx1 = (widget->allocation.x+2 + (widget->allocation.width-4) * 0.5);
@@ -203,10 +203,10 @@ namespace gtk_knob
      */
     
     //----------- draw the Knob when moved
-    static gboolean gtk_knob_expose(GtkWidget* widget, GdkEventExpose *event)
+    static gboolean gtk_knob_expose(GtkWidget* widget, GdkEventExpose* event)
     {
         g_assert(GTK_IS_KNOB(widget));
-        GtkKnobClass *klass = GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
+        GtkKnobClass* klass = GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
         knob_expose(widget, klass->knob_x, klass->knob_y, event, 0);
         return true;
     }
@@ -218,7 +218,7 @@ namespace gtk_knob
     static void gtk_knob_size_request(GtkWidget* widget, GtkRequisition* requisition)
     {
         g_assert(GTK_IS_KNOB(widget));
-        GtkKnobClass *klass = GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
+        GtkKnobClass* klass = GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
         requisition->width = klass->knob_x;
         requisition->height = klass->knob_y;
     }
@@ -231,7 +231,7 @@ namespace gtk_knob
     {
         g_assert(GTK_IS_KNOB(widget));
         
-        GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(widget));
+        GtkAdjustment* adj = gtk_range_get_adjustment(GTK_RANGE(widget));
         
         int oldstep = (int)(0.5f + (adj->value - adj->lower) / adj->step_increment);
         int step;
@@ -250,11 +250,11 @@ namespace gtk_knob
      ** keyboard bindings
      */
     
-    static gboolean gtk_knob_key_press(GtkWidget* widget, GdkEventKey *event)
+    static gboolean gtk_knob_key_press(GtkWidget* widget, GdkEventKey* event)
     {
         g_assert(GTK_IS_KNOB(widget));
         
-        GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(widget));
+        GtkAdjustment* adj = gtk_range_get_adjustment(GTK_RANGE(widget));
         switch (event->keyval) {
             case GDK_Home:
                 gtk_range_set_value(GTK_RANGE(widget), adj->lower);
@@ -287,8 +287,8 @@ namespace gtk_knob
                                    bool drag, int state)
     {
         static double last_y = 2e20;
-        GtkKnob *knob = GTK_KNOB(widget);
-        GtkAdjustment *adj = gtk_range_get_adjustment(GTK_RANGE(widget));
+        GtkKnob* knob = GTK_KNOB(widget);
+        GtkAdjustment* adj = gtk_range_get_adjustment(GTK_RANGE(widget));
         double radius = std::min<double>(knob_x, knob_y) / 2;
         int knobx = (widget->allocation.width - knob_x) / 2;
         int knoby = (widget->allocation.height - knob_y) / 2;
@@ -344,11 +344,11 @@ namespace gtk_knob
      ** mouse button pressed set value
      */
     
-    static gboolean gtk_knob_button_press(GtkWidget* widget, GdkEventButton *event)
+    static gboolean gtk_knob_button_press(GtkWidget* widget, GdkEventButton* event)
     {
         g_assert(GTK_IS_KNOB(widget));
         
-        GtkKnobClass *klass =  GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
+        GtkKnobClass* klass = GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
         
         switch (event->button) {
             case 1:  // left button
@@ -375,7 +375,7 @@ namespace gtk_knob
      ** mouse button release
      */
     
-    static gboolean gtk_knob_button_release(GtkWidget* widget, GdkEventButton *event)
+    static gboolean gtk_knob_button_release(GtkWidget* widget, GdkEventButton* event)
     {
         g_assert(GTK_IS_KNOB(widget));
         GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget))->button_is = 0;
@@ -388,10 +388,10 @@ namespace gtk_knob
      ** set the value from mouse movement
      */
     
-    static gboolean gtk_knob_pointer_motion(GtkWidget* widget, GdkEventMotion *event)
+    static gboolean gtk_knob_pointer_motion(GtkWidget* widget, GdkEventMotion* event)
     {
         g_assert(GTK_IS_KNOB(widget));
-        GtkKnobClass *klass = GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
+        GtkKnobClass* klass = GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
         
         gdk_event_request_motions(event);
         
@@ -406,7 +406,7 @@ namespace gtk_knob
      ** set value from mouseweel
      */
     
-    static gboolean gtk_knob_scroll(GtkWidget* widget, GdkEventScroll *event)
+    static gboolean gtk_knob_scroll(GtkWidget* widget, GdkEventScroll* event)
     {
         usleep(5000);
         gtk_knob_set_value(widget, event->direction);
@@ -417,9 +417,9 @@ namespace gtk_knob
      ** init the GtkKnobClass
      */
     
-    static void gtk_knob_class_init(GtkKnobClass *klass)
+    static void gtk_knob_class_init(GtkKnobClass* klass)
     {
-        GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
+        GtkWidgetClass* widget_class = GTK_WIDGET_CLASS(klass);
         
         /** set here the sizes and steps for the used knob **/
         //--------- small knob size and steps
@@ -448,7 +448,7 @@ namespace gtk_knob
     static void gtk_knob_init(GtkKnob *knob)
     {
         GtkWidget* widget = GTK_WIDGET(knob);
-        GtkKnobClass *klass = GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
+        GtkKnobClass* klass = GTK_KNOB_CLASS(GTK_OBJECT_GET_CLASS(widget));
         
         GTK_WIDGET_SET_FLAGS(GTK_WIDGET(knob), GTK_CAN_FOCUS);
         GTK_WIDGET_SET_FLAGS(GTK_WIDGET(knob), GTK_CAN_DEFAULT);
@@ -463,7 +463,7 @@ namespace gtk_knob
     
     static gboolean gtk_knob_value_changed(gpointer obj)
     {
-        GtkWidget* widget = (GtkWidget* )obj;
+        GtkWidget* widget = (GtkWidget*)obj;
         gtk_widget_queue_draw(widget);
         return false;
     }
@@ -472,10 +472,10 @@ namespace gtk_knob
      ** create small knob
      */
     
-    GtkWidget* GtkKnob::gtk_knob_new_with_adjustment(GtkAdjustment *_adjustment)
+    GtkWidget* GtkKnob::gtk_knob_new_with_adjustment(GtkAdjustment* _adjustment)
     {
         GtkWidget* widget = GTK_WIDGET(g_object_new (GTK_TYPE_KNOB, NULL));
-        GtkKnob *knob = GTK_KNOB(widget);
+        GtkKnob* knob = GTK_KNOB(widget);
         knob->last_quadrant = 0;
         if (widget) {
             gtk_range_set_adjustment(GTK_RANGE(widget), _adjustment);
@@ -494,9 +494,9 @@ namespace gtk_knob
         static GType kn_type = 0;
         if (!kn_type) {
             static const GTypeInfo kn_info = {
-                sizeof(GtkKnobClass), NULL,  NULL, (GClassInitFunc)gtk_knob_class_init, NULL, NULL, sizeof(GtkKnob), 0, (GInstanceInitFunc)gtk_knob_init, NULL
+                sizeof(GtkKnobClass), NULL, NULL, (GClassInitFunc)gtk_knob_class_init, NULL, NULL, sizeof(GtkKnob), 0, (GInstanceInitFunc)gtk_knob_init, NULL
             };
-            kn_type = g_type_register_static(GTK_TYPE_RANGE,  "GtkKnob", &kn_info, (GTypeFlags)0);
+            kn_type = g_type_register_static(GTK_TYPE_RANGE, "GtkKnob", &kn_info, (GTypeFlags)0);
         }
         return kn_type;
     }
@@ -506,10 +506,6 @@ gtk_knob::GtkKnob myGtkKnob;
 
 class GTKUI : public GUI, public MetaDataUI
 {
-    
-    private:
-    
-        static bool fInitialized;
     
     protected:
     
@@ -527,6 +523,7 @@ class GTKUI : public GUI, public MetaDataUI
         static const gboolean expand = true;
         static const gboolean fill = true;
         static const gboolean homogene = false;
+        static gboolean gInitialized;
     
         GTKUI(char* name, int* pargc, char*** pargv);
     
@@ -593,23 +590,26 @@ class GTKUI : public GUI, public MetaDataUI
  *******************************************************************************/
 
 // global static fields
-bool GTKUI::fInitialized = false;
+gboolean GTKUI::gInitialized = false;
 
-static gint delete_event(GtkWidget* widget, GdkEvent *event, gpointer data)
+static gboolean delete_event(GtkWidget* widget, GdkEvent* event, gpointer data)
 {
-    return FALSE;
+    return false;
 }
 
 static void destroy_event(GtkWidget* widget, gpointer data)
 {
-    gtk_main_quit();
-}
+    if (GTKUI::gInitialized) {
+        gtk_main_quit();
+        GTKUI::gInitialized = false;
+    }
+ }
 
 GTKUI::GTKUI(char* name, int* pargc, char*** pargv)
 {
-    if (!fInitialized) {
+    if (!gInitialized) {
         gtk_init(pargc, pargv);
-        fInitialized = true;
+        gInitialized = true;
     }
     fWindow = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     //gtk_container_set_border_width (GTK_CONTAINER (fWindow), 10);
@@ -946,12 +946,12 @@ void GTKUI::openDialogBox(const char* label, FAUSTFLOAT* zone)
     // create toplevel window and set properties
     GtkWidget* dialog = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_decorated(GTK_WINDOW(dialog), true);
-    gtk_window_set_deletable(GTK_WINDOW(dialog), FALSE);
-    gtk_window_set_resizable(GTK_WINDOW(dialog), FALSE);
+    gtk_window_set_deletable(GTK_WINDOW(dialog), false);
+    gtk_window_set_resizable(GTK_WINDOW(dialog), false);
     gtk_window_set_gravity(GTK_WINDOW(dialog), GDK_GRAVITY_SOUTH);
     gtk_window_set_transient_for (GTK_WINDOW(dialog), GTK_WINDOW(fWindow));
     gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_MOUSE);
-    gtk_window_set_keep_below(GTK_WINDOW(dialog), FALSE);
+    gtk_window_set_keep_below(GTK_WINDOW(dialog), false);
     gtk_window_set_title(GTK_WINDOW (dialog), label);
     g_signal_connect(G_OBJECT(dialog), "delete_event", G_CALLBACK (deleteevent), NULL);
     gtk_window_set_destroy_with_parent(GTK_WINDOW(dialog), true);
@@ -1069,9 +1069,9 @@ void GTKUI::addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTF
     
     gtk_signal_connect(GTK_OBJECT(adj), "value-changed", GTK_SIGNAL_FUNC(uiAdjustment::changed), (gpointer) c);
     
-    GtkWidget* slider = gtk_vbox_new(FALSE, 0);
-    GtkWidget* fil = gtk_vbox_new(FALSE, 0);
-    GtkWidget* rei = gtk_vbox_new(FALSE, 0);
+    GtkWidget* slider = gtk_vbox_new(false, 0);
+    GtkWidget* fil = gtk_vbox_new(false, 0);
+    GtkWidget* rei = gtk_vbox_new(false, 0);
     GtkWidget* re = myGtkKnob.gtk_knob_new_with_adjustment(GTK_ADJUSTMENT(adj));
     GtkWidget* lw = gtk_label_new("");
     new uiValueDisplay(this, zone, GTK_LABEL(lw),precision(step));
@@ -1080,7 +1080,7 @@ void GTKUI::addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTF
         FAUSTFLOAT size = 30 * fGuiSize[zone];
         gtk_widget_set_size_request(rei, size, size);
         gtk_box_pack_start(GTK_BOX(slider), fil, true, true, 0);
-        gtk_box_pack_start(GTK_BOX(slider), rei, FALSE, FALSE, 0);
+        gtk_box_pack_start(GTK_BOX(slider), rei, false, false, 0);
     } else {
         gtk_container_add(GTK_CONTAINER(slider), fil);
         gtk_container_add(GTK_CONTAINER(slider), rei);
@@ -1112,7 +1112,6 @@ void GTKUI::addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT in
     GtkObject* adj = gtk_adjustment_new(init, min, max, step, 10*step, 0);
     
     uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
-    
     gtk_signal_connect(GTK_OBJECT(adj), "value-changed", GTK_SIGNAL_FUNC(uiAdjustment::changed), (gpointer) c);
     
     GtkWidget* slider = gtk_vscale_new(GTK_ADJUSTMENT(adj));
@@ -1122,7 +1121,6 @@ void GTKUI::addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT in
         size = 160 * fGuiSize[zone];
     }
     gtk_widget_set_size_request(slider, -1, size);
-    
     gtk_range_set_inverted(GTK_RANGE(slider), true);
     
     label = startWith(label, "0x") ? "" : label;
@@ -1302,11 +1300,11 @@ void GTKUI::addNumDisplay(const char* label, FAUSTFLOAT* zone, int precision)
 
 struct uiTextDisplay : public uiItem
 {
-    GtkLabel*     fLabel;
+    GtkLabel*    fLabel;
     const char**  fNames;
-    FAUSTFLOAT    fMin;
-    FAUSTFLOAT    fMax;
-    int           fNum;
+    FAUSTFLOAT   fMin;
+    FAUSTFLOAT   fMax;
+    int          fNum;
     
     uiTextDisplay(GUI* ui, FAUSTFLOAT* zone, GtkLabel* label, const char* names[], FAUSTFLOAT lo, FAUSTFLOAT hi)
     : uiItem(ui, zone), fLabel(label), fNames(names), fMin(lo), fMax(hi)
@@ -1336,7 +1334,6 @@ void GTKUI::addTextDisplay(const char* label, FAUSTFLOAT* zone, const char* name
     openFrameBox(label);
     addWidget(label, lw);
     closeBox();
-    
     checkForTooltip(zone, lw);
 }
 
@@ -1352,7 +1349,7 @@ static gboolean callUpdateAllGuis(gpointer)
 
 bool GTKUI::run()
 {
-    assert(fTop == 0);
+    assert(fTop == NULL);
     gtk_container_add(GTK_CONTAINER(fWindow), fBox[fTop]);
     
     gtk_widget_show_all(fWindow);
@@ -1368,7 +1365,7 @@ bool GTKUI::run()
     if (fWindow->allocation.width > rect.width || fWindow->allocation.height > rect.height) {
         g_object_ref(fBox[fTop]); // To avoid desallocation with 'gtk_container_remove'
         gtk_container_remove(GTK_CONTAINER(fWindow), fBox[fTop]);
-        fScrolledWindow = gtk_scrolled_window_new (NULL,NULL);
+        fScrolledWindow = gtk_scrolled_window_new (NULL, NULL);
         gtk_widget_set_size_request(fScrolledWindow, rect.width/2, rect.height/2);
         gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW (fScrolledWindow),
                                         GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
@@ -1388,8 +1385,11 @@ bool GTKUI::run()
 void GTKUI::stop()
 {
     GUI::stop();
-    gtk_main_quit();
-    gtk_signal_emit_by_name((GtkObject*)fWindow, "destroy");
+    if (gInitialized) {
+        gInitialized = false;
+        gtk_main_quit();
+        gtk_signal_emit_by_name((GtkObject*)fWindow, "destroy");
+    }
 }
 
 #endif
