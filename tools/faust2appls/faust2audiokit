@@ -81,7 +81,7 @@ for p in $FILE; do
     
     # compile faust to c++
     faust -uim -i -cn $dspName -a $ARCHFILE1 $OPTIONS $f -o "$SRCDIR/$dspName/FaustDSP.mm" || exit
-    faust -i -a $ARCHFILE2  $f -o "$SRCDIR/$dspName/faust2swift.cpp" || exit
+    faust -i -a $ARCHFILE2 $f -o "$SRCDIR/$dspName/faust2swift.cpp" || exit
     
     # for MIDI
     if [ $MIDI == true ]; then
