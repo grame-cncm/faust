@@ -217,7 +217,7 @@ package/README.html: ../README.md
 #===============================================================
 # release
 #===============================================================
-FAUSTLIVE ?=../../faustlive
+FAUSTLIVE ?=/Users/letz/Developpements/faustlive
 release: FAUSTGEN=../embedded/faustgen
 release: APATH=$(shell pwd)
 release:
