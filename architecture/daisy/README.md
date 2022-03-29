@@ -15,7 +15,7 @@ Here are the available options:
 
 The generated folder has to be moved in the *DaisyExamples/DaisySP/examples* folder and compiled from there. 
 
-Only programming the POD can been tested. The 2 *switches* and 2 *knobs* can be connected to UI controllers using metadata:
+The current **faust2daisy** tool can only be used to program the [POD](https://www.electro-smith.com/daisy/pod). On this board, the 2 *switches* and 2 *knobs* can be connected to UI controllers using metadata:
 
 - `[switch:N]` (with N from 1 to 2) has to be used in a `button` or `checkbox` item to connect it to the POD switch number N.
 - `[knob:N]` (with N from 1 to 2) has to be used in a `vslider`, `hslider` or `nentry` item to connect it to the POD knob number N. The knob [0..1] range will be mapped to the slider/nentry [min..max] range.
