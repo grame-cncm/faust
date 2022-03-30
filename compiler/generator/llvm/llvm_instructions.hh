@@ -57,7 +57,16 @@ using namespace llvm;
 
 #define MakeIdx(beg, end) llvm::ArrayRef<LLVMValue>(beg, end)
 #define MakeArgs(args) llvm::ArrayRef<lLLVMValue>(args)
+#if LLVM_VERSION_MAJOR >= 14
+#define GetType(ptr) ptr->getType()->getScalarType()->getPointerElementType()
+#define MakeStructGEP(v1, v2) fBuilder->CreateStructGEP(GetType(v1), v1, v2);
+#define MyCreateLoad(var, is_volatile) fBuilder->CreateLoad(GetType(var), var, is_volatile)
+#define MyCreateLoad1(var) fBuilder->CreateLoad(GetType(var), var)
+#else
 #define MakeStructGEP(v1, v2) fBuilder->CreateStructGEP(v1, v2);
+#define MyCreateLoad(var, is_volatile) fBuilder->CreateLoad(var, is_volatile)
+#define MyCreateLoad1(var) fBuilder->CreateLoad(var)
+#endif
 #define MakeConstGEP32(type_def, llvm_name) fBuilder->CreateConstGEP2_32(type_def, llvm_name, 0, 0);
 #define MakeIntPtrType() fModule->getDataLayout().getIntPtrType(fModule->getContext())
 
@@ -284,42 +293,32 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
     LLVMValue loadStructVarAddress(const string& name)
     {
-#if LLVM_VERSION_MAJOR >= 15
-#warning FIXME
-        faustassert(false);
-        return {};
-#else
         return MakeStructGEP(loadFunArg("dsp"), fStructVisitor->getFieldIndex(name));
-#endif
     }
 
     LLVMValue loadStructArrayVarAddress(const string& name)
     {
-#if LLVM_VERSION_MAJOR >= 15
-#warning FIXME
-        faustassert(false);
-        return {};
-#else
         int       field_index = fStructVisitor->getFieldIndex(name);
         LLVMValue idx[]       = {genInt32(0), genInt32(field_index)};
+    #if LLVM_VERSION_MAJOR >= 14
+        return fBuilder->CreateInBoundsGEP(GetType(loadFunArg("dsp")), loadFunArg("dsp"), MakeIdx(idx, idx + 2));
+    #else
         return fBuilder->CreateInBoundsGEP(loadFunArg("dsp"), MakeIdx(idx, idx + 2));
-#endif
+    #endif
     }
 
-    LLVMValue loadArrayAsPointer(LLVMValue variable, bool is_volatile = false)
+    LLVMValue loadArrayAsPointer(LLVMValue var, bool is_volatile = false)
     {
-#if LLVM_VERSION_MAJOR >= 15
-#warning FIXME
-        faustassert(false);
-        return {};
-#else
-        if (isa<ArrayType>(variable->getType()->getPointerElementType())) {
+        if (isa<ArrayType>(var->getType()->getPointerElementType())) {
             LLVMValue idx[] = {genInt32(0), genInt32(0)};
-            return fBuilder->CreateInBoundsGEP(variable, MakeIdx(idx, idx + 2));
+        #if LLVM_VERSION_MAJOR >= 14
+            return fBuilder->CreateInBoundsGEP(GetType(var), var, MakeIdx(idx, idx + 2));
+        #else
+            return fBuilder->CreateInBoundsGEP(var, MakeIdx(idx, idx + 2));
+        #endif
         } else {
-            return fBuilder->CreateLoad(variable, is_volatile);
+            return MyCreateLoad(var, is_volatile);
         }
-#endif
     }
 
     LLVMValue loadFunArg(const string& name)
@@ -583,19 +582,21 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             return nullptr;
         }
 
-#if LLVM_VERSION_MAJOR >= 15
-#warning FIXME
-        faustassert(false);
-        return {};
-#else
         // Indexed adresses can actually be values in an array or fields in a struct type
         if (isStructType(indexed_address->getName())) {
             LLVMValue idx[] = {genInt32(0), fCurValue};
+        #if LLVM_VERSION_MAJOR >= 14
+            return fBuilder->CreateInBoundsGEP(GetType(load_ptr), load_ptr, MakeIdx(idx, idx + 2));
+        #else
             return fBuilder->CreateInBoundsGEP(load_ptr, MakeIdx(idx, idx + 2));
+        #endif
         } else {
+        #if LLVM_VERSION_MAJOR >= 14
+            return fBuilder->CreateInBoundsGEP(GetType(load_ptr), load_ptr, fCurValue);
+        #else
             return fBuilder->CreateInBoundsGEP(load_ptr, fCurValue);
+        #endif
         }
-#endif
     }
     
     virtual LLVMValue visit(Address* address)
@@ -630,14 +631,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 fCurValue = loadArrayAsPointer(visit(inst->fAddress), named_address->fAccess & Address::kVolatile);
             }
         } else if (indexed_address) {
-
-#if LLVM_VERSION_MAJOR >= 15
-#warning FIXME
-        faustassert(false);
-        return;
-#else
-            fCurValue = fBuilder->CreateLoad(visit(inst->fAddress));
-#endif
+            Value* Ptr = visit(inst->fAddress);
+            fCurValue = MyCreateLoad1(Ptr);
         } else {
             faustassert(false);
         }
@@ -985,15 +980,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         // Emit merge block
         function->getBasicBlockList().push_back(merge_block);
         fBuilder->SetInsertPoint(merge_block);
-        
-#if LLVM_VERSION_MAJOR >= 15
-#warning FIXME
-        faustassert(false);
-        return;
-#else
-        // Load result in fCurValue
-        fCurValue = fBuilder->CreateLoad(typed_res);
-#endif
+        fCurValue = MyCreateLoad1(typed_res);
     }
     
     virtual void visit(IfInst* inst)

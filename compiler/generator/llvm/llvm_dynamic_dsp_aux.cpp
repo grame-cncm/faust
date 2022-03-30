@@ -65,7 +65,7 @@
 #include <llvm/Bitcode/BitcodeWriter.h>
 
 // Disappears in LLVM 15
-#if LLVM_VERSION_MAJOR >= 15
+#if LLVM_VERSION_MAJOR >= 14
 #include <llvm/MC/TargetRegistry.h>
 #else
 #include <llvm/Support/TargetRegistry.h>
