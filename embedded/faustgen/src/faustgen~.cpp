@@ -259,7 +259,7 @@ void faustgen_factory::free_dsp_factory()
             it->free_dsp();
         }
         
-        //deleteDSPFactory(fDSPfactory);
+        deleteDSPFactory(fDSPfactory);
         fDSPfactory = NULL;
     }
     unlock_ui();
@@ -705,7 +705,7 @@ void faustgen_factory::display_svg()
         
         // Force recompilation to produce it
         llvm_dsp_factory* factory = create_factory_from_sourcecode();
-        //deleteDSPFactory(factory);
+        deleteDSPFactory(factory);
         
         // Open the SVG diagram file inside a web browser
         open_svg();
