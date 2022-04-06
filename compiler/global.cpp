@@ -108,6 +108,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gDrawRouteFrame   = false;
     gShadowBlur       = false;  // note: svg2pdf doesn't like the blur filter
     gScaledSVG        = false;
+#ifdef EMCC
+	gXlinkSVG		  = false;
+#endif
     gStripDocSwitch   = false;  // Strip <mdoc> content from doc listings.
     gFoldThreshold    = 25;
     gFoldComplexity   = 2;

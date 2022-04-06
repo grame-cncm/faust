@@ -82,6 +82,9 @@ SVGDev::SVGDev(const char* ficName, double largeur, double hauteur):fOutStream(f
     
 #ifdef EMCC
     fCurrentPath = currentDir();
+    if (gGlobal->gXlinkSVG) {
+		fJSLink = false;
+	}
 #endif
     double gScale = 0.5;
   

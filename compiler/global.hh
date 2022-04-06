@@ -109,6 +109,9 @@ struct global {
     bool   gDrawRouteFrame;
     bool   gShadowBlur;      // note: svg2pdf doesn't like the blur filter
     bool   gScaledSVG;       // to draw scaled SVG files
+#ifdef EMCC
+    bool   gXlinkSVG;        // draw raw svg using xlink instead js link (default)
+#endif
     bool   gStripDocSwitch;  // Strip <mdoc> content from doc listings.
     int    gFoldThreshold;   // global complexity threshold before activating folding
     int    gFoldComplexity;  // individual complexity threshold before folding

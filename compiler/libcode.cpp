@@ -337,7 +337,11 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-sc", "--scaled-svg")) {
             gGlobal->gScaledSVG = true;
             i += 1;
-
+#ifdef EMCC
+        } else if (isCmd(argv[i], "-xlink")) {
+            gGlobal->gXlinkSVG = true;
+            i += 1;
+#endif
         } else if (isCmd(argv[i], "-svg", "--svg")) {
             gGlobal->gDrawSVGSwitch = true;
             i += 1;
