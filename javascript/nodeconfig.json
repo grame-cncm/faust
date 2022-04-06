@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "module": "commonjs",
+    "target": "ES2015",
+    "sourceMap": false,
+    "outDir": "node",
+    "noUnusedLocals": false,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedParameters": false,
+    "pretty": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowUnreachableCode": false,
+    "downlevelIteration": true,
+    "allowJs" : true,
+    "moduleResolution": "node"
+  },
+  "include": [
+	"src/libfaust.ts",
+	"src/FaustCompiler.ts",
+	"src/FaustUtilities.ts",
+	"src/FaustGenerator.ts"
+  ],
+  "exclude": [
+  	"npm",
+  	"tmp",
+  	"tests"
+  ]
+}
+
+
