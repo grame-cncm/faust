@@ -35,7 +35,7 @@ function play(node)   {
 }
 
 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-Faust.createPolyAudioNode(audioCtx, "marimba.wasm", "marimba.json", null, null, "../mixer32.wasm", 4).then(node => {
+createPolyAudioNode(audioCtx, "marimba.wasm", "marimba.json", null, null, "../mixer32.wasm", 4).then(node => {
     node.connect(audioCtx.destination);
     play(node);
 
@@ -57,7 +57,7 @@ Faust.createPolyAudioNode(audioCtx, "marimba.wasm", "marimba.json", null, null, 
     }
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     document.body.style.cursor = "wait";
-    Faust.createPolyAudioNode(audioCtx, "marimba.wasm", "marimba.json", null, null, "../mixer32.wasm", 4).then(node => {
+    createPolyAudioNode(audioCtx, "marimba.wasm", "marimba.json", null, null, "../mixer32.wasm", 4).then(node => {
         document.body.style.cursor = "initial";
         node.connect(audioCtx.destination);
         play(node);

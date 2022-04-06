@@ -55,14 +55,14 @@ process = vgroup("Oscillator", os.osc(freq) * vol);</pre>
     <h3>Javascript code</h3>
     <pre class=code>
 FaustModule().then ( module => { 
-    let libfaust = Faust.createLibFaust(module);
-    let svg1 = Faust.createSVGDiagrams(libfaust, "TestSVG1", getcode("dsp1"), "-I libraries");
+    let libfaust = createLibFaust(module);
+    let svg1 = createSVGDiagrams(libfaust, "TestSVG1", getcode("dsp1"), "-I libraries");
     if (!svg1.success()) log(svg1.error());
     else {
         svgdiv("svg1").innerHTML = svg1.getSVG();
         TestSVG1svg = (path) => { svgdiv("svg1").innerHTML = svg1.getSVG(path); }
     }
-    let svg2 = Faust.createSVGDiagrams(libfaust, "TestSVG2", getcode("dsp2"), "-I libraries");
+    let svg2 = createSVGDiagrams(createCompiler(libfaust), "TestSVG2", getcode("dsp2"), "-I libraries");
     if (!svg2.success())  log (svg2.error());
     else {
         svgdiv("svg2").innerHTML = svg2.getSVG();
@@ -79,14 +79,14 @@ FaustModule().then ( module => {
     function svgdiv(id) { return document.getElementById(id); }
 
     FaustModule().then(module => {
-        let libfaust = Faust.createLibFaust(module);
-        let svg1 = Faust.createSVGDiagrams(libfaust, "TestSVG1", getcode("dsp1"), "-I libraries");
+        let libfaust = createLibFaust(module);
+        let svg1 = createSVGDiagrams(createCompiler(libfaust), "TestSVG1", getcode("dsp1"), "-I libraries");
         if (!svg1.success()) log(svg1.error());
         else {
             svgdiv("svg1").innerHTML = svg1.getSVG();
             TestSVG1svg = (path) => { svgdiv("svg1").innerHTML = svg1.getSVG(path); }
         }
-        let svg2 = Faust.createSVGDiagrams(libfaust, "TestSVG2", getcode("dsp2"), "-I libraries");
+        let svg2 = createSVGDiagrams(libfaust, "TestSVG2", getcode("dsp2"), "-I libraries");
         if (!svg2.success()) log(svg2.error());
         else {
             svgdiv("svg2").innerHTML = svg2.getSVG();

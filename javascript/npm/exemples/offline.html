@@ -32,9 +32,9 @@ async function plot( code, size, compiler, anfactory) {
 }
 
 FaustModule().then ( module => { 
-    let compiler = Faust.createCompiler ( Faust.createLibFaust(module) );
+    let compiler = createCompiler ( createLibFaust(module) );
     log("Faust compiler version " + compiler.version());
-    plot(getcode(), 600, compiler, Faust.createAudioNodeFactory());
+    plot(getcode(), 600, compiler, createAudioNodeFactory());
 });</pre>
     <canvas id="plot" width="700" height="300" class=plot>
     </canvas>
@@ -69,9 +69,9 @@ FaustModule().then ( module => {
     }
 
     FaustModule().then(module => {
-        let compiler = Faust.createCompiler(Faust.createLibFaust(module));
+        let compiler = createCompiler(createLibFaust(module));
         log("Faust compiler version " + compiler.version());
-        plot(getcode(), 600, compiler, Faust.createMonoFactory());
+        plot(getcode(), 600, compiler, createMonoFactory());
     });
 </script>
 

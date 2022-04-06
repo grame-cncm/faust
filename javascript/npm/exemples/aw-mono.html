@@ -23,9 +23,9 @@ process = ba.pulsen(1, 10000) : pm.djembe(60, 0.3, 0.4, 1) <: dm.freeverb_demo;
     <pre class="code colored">
 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 FaustModule().then(module => { 
-    let compiler = Faust.createCompiler(Faust.createLibFaust(module));
+    let compiler = createCompiler(createLibFaust(module));
     log("Faust compiler version " + compiler.version());
-    let factory = Faust.createMonoFactory();
+    let factory = createMonoFactory();
     factory.compileNode(audioCtx, "Faust", compiler, getcode(), "-ftz 2", false, 128).then(node => {
         node.connect(audioCtx.destination);
     });
@@ -40,9 +40,9 @@ FaustModule().then(module => {
 
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     FaustModule().then(module => {
-        let compiler = Faust.createCompiler(Faust.createLibFaust(module));
+        let compiler = createCompiler(createLibFaust(module));
         log("Faust compiler version " + compiler.version());
-        let factory = Faust.createMonoFactory();
+        let factory = createMonoFactory();
         factory.compileNode(audioCtx, "Faust", compiler, getcode(), "-ftz 2", false, 128).then(node => {
             node.connect(audioCtx.destination);
             node.start();

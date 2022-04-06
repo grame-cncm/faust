@@ -32,7 +32,8 @@ import("stdfaust.lib");
 vol = hslider("volume [unit:dB]", 0, -96, 0, 0.1) : ba.db2linear : si.smoo ;
 freq = hslider("freq [unit:Hz]", 1000, 20, 24000, 1);
 
-process = vgroup("Oscillator", os.osci(freq) * vol);</pre>
+process = vgroup("Oscillator", os.osci(freq) * vol);
+    </pre>
     <p id=log> </p>
 
     <h3>Javascript code</h3>
@@ -55,7 +56,7 @@ FaustModule().then(module => {
     let freqCtrl = document.getElementById ("freq");
     let volCtrl = document.getElementById ("vol");
 
-    Faust.compileAudioNode(audioCtx, module, getcode(), null, 0).then(node => {
+    compileAudioNode(audioCtx, module, getcode(), null, 0).then(node => {
         node.start();
         sliderInit('freq', '/Oscillator/freq', 'fvalue', node);
         sliderInit('vol', '/Oscillator/volume', 'vvalue', node);
@@ -99,7 +100,7 @@ FaustModule().then(module => {
         let freqCtrl = document.getElementById("freq");
         let volCtrl = document.getElementById("vol");
 
-        Faust.compileAudioNode(audioCtx, module, getcode(), null, 0).then(node => {
+        compileAudioNode(audioCtx, module, getcode(), null, 0).then(node => {
             node.start();
             sliderInit('freq', '/Oscillator/freq', 'fvalue', node);
             sliderInit('vol', '/Oscillator/volume', 'vvalue', node);
