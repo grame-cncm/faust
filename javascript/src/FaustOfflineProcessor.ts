@@ -21,37 +21,34 @@
 
 ///<reference path="FaustWebAudioImp.ts"/>
 
-namespace Faust {
+class FaustOfflineProcessorImp implements FaustOfflineProcessor {
 
-    export class FaustOfflineProcessorImp implements FaustOfflineProcessor {
+    private fDSPCode: MonoDSP;
+    private fBufferSize: number;
+    private fInputs: Float32Array[];
+    private fOutputs: Float32Array[];
 
-        private fDSPCode: MonoDSP;
-        private fBufferSize: number;
-        private fInputs: Float32Array[];
-        private fOutputs: Float32Array[];
+    constructor(instance: MonoDSP, buffer_size: number) {
+        this.fDSPCode = instance;
+        this.fBufferSize = buffer_size;
+        this.fInputs = new Array(this.fDSPCode.getNumInputs()).fill(null).map(() => new Float32Array(buffer_size));
+        this.fOutputs = new Array(this.fDSPCode.getNumOutputs()).fill(null).map(() => new Float32Array(buffer_size));
+    }
 
-        constructor(instance: MonoDSP, buffer_size: number) {
-            this.fDSPCode = instance;
-            this.fBufferSize = buffer_size;
-            this.fInputs = new Array(this.fDSPCode.getNumInputs()).fill(null).map(() => new Float32Array(buffer_size));
-            this.fOutputs = new Array(this.fDSPCode.getNumOutputs()).fill(null).map(() => new Float32Array(buffer_size));
-        }
-
-        plot(size: number): Float32Array[] {
-            const plotted = new Array(this.fDSPCode.getNumOutputs()).fill(null).map(() => new Float32Array(size));
-            // The node has to be started before rendering
-            this.fDSPCode.start();
-            for (let frame = 0; frame < size; frame += this.fBufferSize) {
-                // Render one buffer
-                this.fDSPCode.compute(this.fInputs, this.fOutputs);
-                // Copy the buffer to the output array
-                for (let chan = 0; chan < plotted.length; chan++) {
-                    plotted[chan].set(size - frame > this.fBufferSize ? this.fOutputs[chan] : this.fOutputs[chan].subarray(0, size - frame), frame);
-                }
+    plot(size: number): Float32Array[] {
+        const plotted = new Array(this.fDSPCode.getNumOutputs()).fill(null).map(() => new Float32Array(size));
+        // The node has to be started before rendering
+        this.fDSPCode.start();
+        for (let frame = 0; frame < size; frame += this.fBufferSize) {
+            // Render one buffer
+            this.fDSPCode.compute(this.fInputs, this.fOutputs);
+            // Copy the buffer to the output array
+            for (let chan = 0; chan < plotted.length; chan++) {
+                plotted[chan].set(size - frame > this.fBufferSize ? this.fOutputs[chan] : this.fOutputs[chan].subarray(0, size - frame), frame);
             }
-            // The node can be stopped after rendering
-            this.fDSPCode.stop();
-            return plotted;
         }
+        // The node can be stopped after rendering
+        this.fDSPCode.stop();
+        return plotted;
     }
 }

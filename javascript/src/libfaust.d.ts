@@ -1,103 +1,94 @@
+type FaustModule = any;
 
-declare namespace Faust {
+interface IntVector { size(): number; get(i: number): number; }
 
-    type FaustModule = any;
-    interface FS {
-        readFile(path: string, opts: { encoding: 'binary'; flags?: string }): Uint8Array;
-        readFile(path: string, opts: { encoding: 'utf8'; flags?: string }): string;
-    }
+interface FaustWasm {
+    /* The C++ factory pointer as in integer */
+    cfactory: number;
+    /* The compiled wasm binary code */
+    data: IntVector;
+    /* The DSP JSON description */
+    json: string;
+}
 
-    interface IntVector { size(): number; get(i: number): number; }
+type TFaustInfoType = "help" | "version" | "libdir" | "includedir" | "archdir" | "dspdir" | "pathslist";
 
-    interface FaustWasm {
-        /* The C++ factory pointer as in integer */
-        cfactory: number;
-        /* The compiled wasm binary code */
-        data: IntVector;
-        /* The DSP JSON description */
-        json: string;
-    }
+/**
+ *   Low level interface to the Faust library.
+ *   Used for internal dev purpose only (not public).
+ */
 
-    type TFaustInfoType = "help" | "version" | "libdir" | "includedir" | "archdir" | "dspdir" | "pathslist";
+interface LibFaust {
 
     /**
-     *   Low level interface to the Faust library.
-     *   Used for internal dev purpose only (not public).
+     * Return the Faust compiler version.
+     * 
+     * @returns {string} the version
      */
+    version(): string;
 
-    interface LibFaust {
+    /**
+     * Create a dsp factory from Faust code.
+     *
+     * @param {string} name - an arbitrary name for the Faust module
+     * @param {string} dsp_code - Faust dsp code
+     * @param {string} args - the compiler options
+     * @param {boolean} internal_memory - tell the compiler to generate static embedded memory or not
+     * @returns {FaustWasm} an opaque reference to the factory
+     */
+    createDSPFactory(name: string, dsp_code: string, args: string, internal_memory: boolean): FaustWasm;
 
-        /**
-         * Return the Faust compiler version.
-         * 
-         * @returns {string} the version
-         */
-        version(): string;
+    /**
+     * Delete a dsp factory.
+     *
+     * @param {number} cfactory - the factory C++ internal pointer as a number
+     */
+    deleteDSPFactory(cfactory: number): void;
 
-        /**
-         * Create a dsp factory from Faust code.
-         *
-         * @param {string} name - an arbitrary name for the Faust module
-         * @param {string} dsp_code - Faust dsp code
-         * @param {string} args - the compiler options
-         * @param {boolean} internal_memory - tell the compiler to generate static embedded memory or not
-         * @returns {FaustWasm} an opaque reference to the factory
-         */
-        createDSPFactory(name: string, dsp_code: string, args: string, internal_memory: boolean): FaustWasm;
+    /**
+     * Expand Faust code i.e. linearize included libraries.
+     *
+     * @param {string} name - an arbitrary name for the Faust module
+     * @param {string} dsp_code - Faust dsp code
+     * @param {string} args - the compiler options
+     * @returns {string} return the expanded dsp code
+     */
+    expandDSP(name: string, dsp_code: string, args: string): string
 
-        /**
-         * Delete a dsp factory.
-         *
-         * @param {number} cfactory - the factory C++ internal pointer as a number
-         */
-        deleteDSPFactory(cfactory: number): void;
+    /**
+     * Generates auxiliary files from Faust code. The output depends on the compiler options.
+     *
+     * @param {string} name - an arbitrary name for the faust module
+     * @param {string} dsp_code - Faust dsp code
+     * @param {string} args - the compiler options
+     */
+    generateAuxFiles(name: string, dsp_code: string, args: string): boolean;
 
-        /**
-         * Expand Faust code i.e. linearize included libraries.
-         *
-         * @param {string} name - an arbitrary name for the Faust module
-         * @param {string} dsp_code - Faust dsp code
-         * @param {string} args - the compiler options
-         * @returns {string} return the expanded dsp code
-         */
-        expandDSP(name: string, dsp_code: string, args: string): string
+    /**
+     * Delete all existing dsp factories.
+     */
+    deleteAllDSPFactories(): void;
 
-        /**
-         * Generates auxiliary files from Faust code. The output depends on the compiler options.
-         *
-         * @param {string} name - an arbitrary name for the faust module
-         * @param {string} dsp_code - Faust dsp code
-         * @param {string} args - the compiler options
-         */
-        generateAuxFiles(name: string, dsp_code: string, args: string): boolean;
+    /**
+     * Exception management: gives an error string
+     */
+    getErrorAfterException(): string;
 
-        /**
-         * Delete all existing dsp factories.
-         */
-        deleteAllDSPFactories(): void;
+    /**
+     * Exception management: cleanup
+     * Should be called after each exception generated by the LibFaust methods.
+     */
+    cleanupAfterException(): void;
 
-        /**
-         * Exception management: gives an error string
-         */
-        getErrorAfterException(): string;
+    /**
+     * Get info about the embedded Faust engine
+     * @param {string} what - the requested info
+     */
+    getInfos(what: TFaustInfoType): string;
 
-        /**
-         * Exception management: cleanup
-         * Should be called after each exception generated by the LibFaust methods.
-         */
-        cleanupAfterException(): void;
+    module(): FaustModule;
 
-        /**
-         * Get info about the embedded Faust engine
-         * @param {string} what - the requested info
-         */
-        getInfos(what: TFaustInfoType): string;
-
-        module(): FaustModule;
-        fs(): FS;
-
-        toString(): string;
-    }
+    toString(): string;
 }
 
 // Moved at the end of the file to please Visual Studio code completion tools.

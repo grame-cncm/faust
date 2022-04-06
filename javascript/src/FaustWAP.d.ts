@@ -1,52 +1,49 @@
 
 ///<reference path="FaustWebAudio.d.ts"/>
 
-declare namespace Faust {
+/**
+ * WAP (Web Audio Plugins see https://github.com/micbuffa/WebAudioPlugins) API.   
+ */
+interface WAP {
 
-    /**
-     * WAP (Web Audio Plugins see https://github.com/micbuffa/WebAudioPlugins) API.   
-     */
-    interface WAP {
+    fBaseURL: string;
 
-        fBaseURL: string;
+    getMetadata(): Promise<string>;
 
-        getMetadata(): Promise<string>;
+    setParam(path: string, value: number): void;
+    getParam(path: string): number;
 
-        setParam(path: string, value: number): void;
-        getParam(path: string): number;
+    inputChannelCount(): number;
+    outputChannelCount(): number;
 
-        inputChannelCount(): number;
-        outputChannelCount(): number;
+    // TODO (proper typing)
+    getDescriptor(): any;
 
-        // TODO (proper typing)
-        getDescriptor(): any;
+    onMidi(data: number[] | Uint8Array): void;
+}
 
-        onMidi(data: number[] | Uint8Array): void;
-    }
+interface FaustMonoWAPNode extends FaustMonoNode, WAP { }
 
-    interface FaustMonoWAPNode extends FaustMonoNode, WAP { }
+interface MonoWAPFactory {
 
-    interface MonoWAPFactory {
+    load(wasm_path: string, json_path: string, sp: boolean)
+        : Promise<FaustMonoWAPNode | null>;
+}
 
-        load(wasm_path: string, json_path: string, sp: boolean)
-            : Promise<FaustMonoWAPNode | null>;
-    }
+interface FaustPolyWAPNode extends FaustPolyNode, WAP { }
 
-    interface FaustPolyWAPNode extends FaustPolyNode, WAP { }
+interface PolyWAPFactory {
 
-    interface PolyWAPFactory {
-
-        load(voice_path: string,
-            voice_json_path: string,
-            effect_path: string,
-            effect_json_path: string,
-            mixer32_path: string,
-            mixer64_path: string,
-            voices: number,
-            sp: boolean,
-            buffer_size?: number)
-            : Promise<FaustPolyWAPNode | null>;
-    }
+    load(voice_path: string,
+        voice_json_path: string,
+        effect_path: string,
+        effect_json_path: string,
+        mixer32_path: string,
+        mixer64_path: string,
+        voices: number,
+        sp: boolean,
+        buffer_size?: number)
+        : Promise<FaustPolyWAPNode | null>;
 }
 
 // Moved at the end of the file to please Visual Studio code completion tools.

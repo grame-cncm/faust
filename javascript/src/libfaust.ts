@@ -21,47 +21,47 @@
 
 ///<reference path="libfaust.d.ts"/>
 
-namespace Faust {
+var WFS: any;
 
-    export var FS: FS;
+class LibFaustImp implements LibFaust {
+    private fModule: FaustModule;
+    private fCompiler: LibFaust;
+    // private fFileSystem: FS;
 
-    class LibFaustImp implements LibFaust {
-        private fModule: FaustModule;
-        private fCompiler: LibFaust;
-        private fFileSystem: FS;
-
-        constructor(module: FaustModule) {
-            this.fModule = module;
-            this.fCompiler = new module.libFaustWasm();
-            this.fFileSystem = this.fModule.FS;
-            FS = this.fFileSystem;
-        }
-
-        version(): string { return this.fCompiler.version(); }
-
-        createDSPFactory(name: string, dsp_code: string, args: string, internal_memory: boolean): FaustWasm { return this.fCompiler.createDSPFactory(name, dsp_code, args, internal_memory); }
-
-        deleteDSPFactory(cfactory: number): void { this.fCompiler.deleteDSPFactory(cfactory); }
-
-        expandDSP(name: string, dsp_code: string, args: string): string { return this.fCompiler.expandDSP(name, dsp_code, args); }
-
-        generateAuxFiles(name: string, dsp_code: string, args: string): boolean { return this.fCompiler.generateAuxFiles(name, dsp_code, args); }
-
-        deleteAllDSPFactories() { this.fCompiler.deleteAllDSPFactories(); }
-
-        getErrorAfterException(): string { return this.fCompiler.getErrorAfterException(); }
-
-        cleanupAfterException() { this.fCompiler.cleanupAfterException(); }
-
-        module(): FaustModule { return this.fModule; }
-        fs(): FS { return this.fFileSystem; }
-
-        getInfos(what: TFaustInfoType) { return this.fCompiler.getInfos(what); }
-
-        toString() { return "LibFaust module: " + this.fModule + " compiler: " + this.fCompiler; }
+    constructor(module: FaustModule) {
+        this.fModule = module;
+        this.fCompiler = new module.libFaustWasm();
+        // this.fFileSystem = this.fModule.FS;
+        WFS = this.fModule.FS;
     }
 
-    export function createLibFaust(module: FaustModule): LibFaust | null {
-        return (!module || (typeof (module) == 'undefined')) ? null : new LibFaustImp(module);
-    }
+    version(): string { return this.fCompiler.version(); }
+
+    createDSPFactory(name: string, dsp_code: string, args: string, internal_memory: boolean): FaustWasm { return this.fCompiler.createDSPFactory(name, dsp_code, args, internal_memory); }
+
+    deleteDSPFactory(cfactory: number): void { this.fCompiler.deleteDSPFactory(cfactory); }
+
+    expandDSP(name: string, dsp_code: string, args: string): string { return this.fCompiler.expandDSP(name, dsp_code, args); }
+
+    generateAuxFiles(name: string, dsp_code: string, args: string): boolean { return this.fCompiler.generateAuxFiles(name, dsp_code, args); }
+
+    deleteAllDSPFactories() { this.fCompiler.deleteAllDSPFactories(); }
+
+    getErrorAfterException(): string { return this.fCompiler.getErrorAfterException(); }
+
+    cleanupAfterException() { this.fCompiler.cleanupAfterException(); }
+
+    module(): FaustModule   { return this.fModule; }
+
+    getInfos(what: TFaustInfoType) { return this.fCompiler.getInfos(what); }
+
+    toString() { return "LibFaust module: " + this.fModule + " compiler: " + this.fCompiler; }
+}
+
+function createLibFaust(module: FaustModule): LibFaust | null {
+    return (!module || (typeof (module) == 'undefined')) ? null : new LibFaustImp(module);
+}
+
+if (typeof module === 'object' && module.exports) {
+	module.exports = { createLibFaust };
 }
