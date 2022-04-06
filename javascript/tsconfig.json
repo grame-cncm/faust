@@ -23,6 +23,7 @@
     "node_modules/js-sha256/src/sha256.js"
   ],
   "exclude": [
+  	"node",
   	"npm",
   	"tmp",
   	"tests"

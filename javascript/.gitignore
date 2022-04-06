@@ -2,7 +2,11 @@
 npm/Faust*.d.ts
 npm/libfaust-wasm*
 npm/exemples/libfaust-wasm*
+npm/FaustNode.js
 
 FaustLibrary.js
 node_modules
 tests/libfaust-wasm.data
+
+node/Faust*.js
+node/libfaust.js
