@@ -12,32 +12,48 @@
  */
 interface FaustSVGLinkHandler { (path: string): void }
 
-declare namespace Faust {
-
-    interface SVGDiagrams {
-
-        /**
-         * Generates auxiliary files from Faust code. The output depends on the compiler options.
-         *
-         * @param {string} name - the svg file name (default to "process.svg")
-         * @returns {string} the svg diagram as a string
-        */
-        getSVG(name?: string): string;
-
-        /**
-         * Gives an error message in case success() returns false.
-         * @returns {string} the error message
-        */
-        error(): string;
-
-        /**
-         * Gives the status of the SVGDiagram object. 
-         * May fail to generate the diagrams if the dsp code is incorrect.
-         * @returns {boolean} the svg diagram as a string
-        */
-        success(): boolean;
-    }
+/**
+ * This interface describe the function used to get all diagrams
+ *
+ * @param {string} name - the svg diagram name
+ * @param {string} content - the corresponding svg content
+*/
+interface SVGCallback {
+    (name: string, content: string) : void;
 }
+
+interface SVGDiagrams {
+
+    /**
+     * Generates auxiliary files from Faust code. The output depends on the compiler options.
+     *
+     * @param {string} name - the svg file name (default to "process.svg")
+     * @returns {string} the svg diagram as a string
+    */
+    getSVG(name?: string): string;
+
+    /**
+     * Gives an error message in case success() returns false.
+     * @returns {string} the error message
+    */
+    error(): string;
+
+    /**
+     * Gives the status of the SVGDiagram object. 
+     * May fail to generate the diagrams if the dsp code is incorrect.
+     * @returns {boolean} the svg diagram as a string
+    */
+    success(): boolean;
+
+    /**
+     * Retrieve all SVG diagrams.
+     *
+     * @param {any} module - the Faust module
+     * @returns {SVGCallback} f - a function called for each diagram
+    */
+     getSVGs(module: any, f: SVGCallback) : void;
+}
+
 
 // Moved at the end of the file to please Visual Studio code completion tools.
 
