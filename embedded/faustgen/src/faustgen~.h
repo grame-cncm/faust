@@ -61,7 +61,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"stdfaust.lib\");\nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.56"
+#define FAUSTGEN_VERSION "1.57"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 #define FAUST_PDF_LIBRARY "library.pdf"
 
@@ -126,12 +126,11 @@ class faustgen_factory {
         vector<string> fCompileOptions; // Faust compiler options
         
         int fOptLevel;                  // LLVM optimization level
-        bool fPolyphonic;               // Whether the created DSP is polyphonic
         sampleFormat fSampleFormat;     // Sample format in the LLVM module
         
         short fDefaultPath;             // Default path to be saved in factory constructor (using path_getdefault)
                                         // and explicitly set in 'read' and 'write' (using path_setdefault)
-        
+    
         int m_siginlets;
         int m_sigoutlets;
         
@@ -143,6 +142,9 @@ class faustgen_factory {
         void add_compile_option(const string& value);
         void display_libraries_aux(const char* lib);
         void make_json(::dsp* dsp);
+    
+        bool is_new(t_filehandle file_handle, char* file_name);
+        void compile_file(t_filehandle file_handle, short path, char* file_name);
         
     public:
         
@@ -156,7 +158,7 @@ class faustgen_factory {
         void free_dsp_factory();
         void free_sourcecode();
         void free_bitcode();
-        
+    
         void default_compile_options();
         void print_compile_options();
         
@@ -165,9 +167,10 @@ class faustgen_factory {
         
         int get_number() { return fFaustNumber; }
         string get_name() { return fName; }
-        
+    
         void read(long inlet, t_symbol* s);
         void write(long inlet, t_symbol* s);
+    
         void librarypath(long inlet, t_symbol* s);
         
         char* get_sourcecode() { return *fSourceCode; }
