@@ -115,9 +115,19 @@ if [ "$CXXFLAGS" = "" ]; then
         fi
     else
         if [ $OPT = -1 ]; then
-            CXXFLAGS="-Ofast -march=native"
+            # -march=native does not work yet on M1
+            if [ $(uname) == Darwin ] && [ $(uname -p) == arm ]; then
+                CXXFLAGS="-Ofast"
+            else 
+                CXXFLAGS="-Ofast -march=native"
+            fi
         else
-            CXXFLAGS="-O$OPT -march=native"
+            # -march=native does not work yet on M1
+            if [ $(uname) == Darwin ] && [ $(uname -p) == arm ]; then
+                CXXFLAGS="-O$OPT"
+            else 
+                CXXFLAGS="-O$OPT -march=native"
+            fi
         fi
     fi
 fi
@@ -128,7 +138,7 @@ if [[ $(uname) == Darwin ]]; then
 fi
 
 if ! $NOTRACE ; then
-	echo "Selected compiler is $CXX with CXXFLAGS = $CXXFLAGS"
+    echo "Selected compiler is $CXX with CXXFLAGS = $CXXFLAGS"
 fi
 
 for p in $FILES; do
@@ -145,8 +155,8 @@ for p in $FILES; do
 
     # creates and compile multiple DSP bench tool
     if [ "$OPTIONS" != "" ]; then
-    	if ! $NOTRACE ; then
-        	echo "Compiled with additional options :$OPTIONS"
+        if ! $NOTRACE ; then
+            echo "Compiled with additional options :$OPTIONS"
         fi
     fi
 
@@ -248,7 +258,7 @@ for p in $FILES; do
     echo "#define FILTER_TYPE $FILTER" | cat -  "$FAUSTLIB/faustbench.cpp" > temp && mv temp "faustbench.cpp"
 
     # keep sources
-	if $SOURCE ; then 
+    if $SOURCE ; then 
         # create Makefile
         echo "$dspName:" > Makefile
         if [ $TESTS == "all" ]; then

@@ -80,19 +80,31 @@ class PowPrim : public xtended {
         } else if (isNum(args[0], n) && (double(n) == 10.) && gGlobal->gHasExp10) {
             // pow(10, x) ==> exp10(x)
             return tree(::symbol("exp10"), args[1]);
+        } else if (isNum(args[0], n) {
+            // pow(0.5, x) ==> sqrt(x)
+            return tree(::symbol("sqrt"), args[1]);
+        } else if (isNum(args[0], n) && (double(n) == 0.25)) {
+            // pow(0.25, x) ==> sqrt(sqrt(x))
+            return tree(::symbol("sqrt"), tree(::symbol("sqrt"), args[1]));
+        } else if (isNum(args[0], n) && (double(n) == 0.125)) {
+            // pow(0.125, x) ==> sqrt(sqrt(sqrt(x)))
+            return tree(::symbol("sqrt"), tree(::symbol("sqrt"), tree(::symbol("sqrt"), args[1])));
+        } else if (isNum(args[0], n) && (double(n) == 0.0625)) {
+            // pow(0.0625, x) ==> sqrt(sqrt(sqrt(sqrt(x))))
+            return tree(::symbol("sqrt"), tree(::symbol("sqrt"), tree(::symbol("sqrt"), tree(::symbol("sqrt"), args[1]))));
         } else {
             return tree(symbol(), args[0], args[1]);
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
+    virtual ValueInst* generateCode(CodeContainer* container, list<ValueInst*>& args, ::Type result,
                                     vector<::Type> const& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
-        vector<Typed::VarType>          arg_types(2);
-        Typed::VarType                  result_type = (result->nature() == kInt) ? Typed::kInt32 : itfloat();
+        vector<Typed::VarType> arg_types(2);
+        Typed::VarType         result_type = (result->nature() == kInt) ? Typed::kInt32 : itfloat();
 
         ListValuesIt it = args.begin();
         it++;

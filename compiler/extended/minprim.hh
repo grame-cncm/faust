@@ -78,11 +78,23 @@ class MinPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
+    virtual ValueInst* generateCode(CodeContainer* container, list<ValueInst*>& args, ::Type result,
                                     vector<::Type> const& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
+    
+        // Min of disjoint intervals returns one of them
+        interval i1 = types[0]->getInterval();
+        interval i2 = types[1]->getInterval();
+        
+        if (i1.valid && i2.valid) {
+            if (i1.hi <= i2.lo) {
+                return *args.begin();
+            } else if (i2.hi <= i1.lo) {
+                return *(std::next(args.begin(), 1));
+            }
+        }
 
         Typed::VarType         result_type = (result->nature() == kInt) ? Typed::kInt32 : itfloat();
         vector<Typed::VarType> arg_types;

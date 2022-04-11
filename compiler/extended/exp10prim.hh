@@ -61,7 +61,7 @@ class Exp10Prim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
+    virtual ValueInst* generateCode(CodeContainer* container, list<ValueInst*>& args, ::Type result,
                                     vector<::Type> const& types)
     {
         faustassert(args.size() == arity());

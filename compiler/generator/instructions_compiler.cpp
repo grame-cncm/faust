@@ -1931,8 +1931,8 @@ ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tr
     switch (getCertifiedSigType(sig)->variability()) {
             
         case kBlock:
-            // Local variable is only created if needed
-            // that is if the expression is not already a 'simple value', constant or variable
+            // Local variable is only created if needed that is if the expression
+            // is not already a 'simple value', constant or variable
             if (!v1->isSimpleValue()) {
                 pushComputeBlockMethod(InstBuilder::genDecStackVar(v_then, InstBuilder::genBasicTyped(t_then), v1));
                 v1 = InstBuilder::genLoadStackVar(v_then);
@@ -1944,8 +1944,8 @@ ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tr
             break;
             
         case kSamp:
-            // Local variable is only created if needed
-            // that is if the expression is not already a 'simple value', constant or variable
+            // Local variable is only created if needed that is if the expression
+            // is not already a 'simple value', constant or variable
             if (!v1->isSimpleValue()) {
                 pushComputeDSPMethod(InstBuilder::genDecStackVar(v_then, InstBuilder::genBasicTyped(t_then), v1));
                 v1 = InstBuilder::genLoadStackVar(v_then);
