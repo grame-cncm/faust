@@ -29,6 +29,7 @@
 #include "binop.hh"
 #include "ceilprim.hh"
 #include "cosprim.hh"
+#include "downsampleprim.hh"
 #include "exp10prim.hh"
 #include "expprim.hh"
 #include "floorprim.hh"
@@ -48,6 +49,7 @@
 #include "sqrtprim.hh"
 #include "tanprim.hh"
 #include "tree.hh"
+#include "upsampleprim.hh"
 
 #ifdef WIN32
 #pragma warning(disable : 4996)
@@ -242,28 +244,30 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gFoldingFlag = false;
     gDevSuffix   = nullptr;
 
-    gAbsPrim       = new AbsPrim();
-    gAcosPrim      = new AcosPrim();
-    gTanPrim       = new TanPrim();
-    gSqrtPrim      = new SqrtPrim();
-    gSinPrim       = new SinPrim();
-    gRintPrim      = new RintPrim();
-    gRemainderPrim = new RemainderPrim();
-    gPowPrim       = new PowPrim();
-    gMinPrim       = new MinPrim();
-    gMaxPrim       = new MaxPrim();
-    gLogPrim       = new LogPrim();
-    gLog10Prim     = new Log10Prim();
-    gFmodPrim      = new FmodPrim();
-    gFloorPrim     = new FloorPrim();
-    gExpPrim       = new ExpPrim();
-    gExp10Prim     = new Exp10Prim();
-    gCosPrim       = new CosPrim();
-    gCeilPrim      = new CeilPrim();
-    gAtanPrim      = new AtanPrim();
-    gAtan2Prim     = new Atan2Prim();
-    gAsinPrim      = new AsinPrim();
-    gFtzPrim       = new FtzPrim();
+    gAbsPrim        = new AbsPrim();
+    gAcosPrim       = new AcosPrim();
+    gTanPrim        = new TanPrim();
+    gSqrtPrim       = new SqrtPrim();
+    gSinPrim        = new SinPrim();
+    gRintPrim       = new RintPrim();
+    gRemainderPrim  = new RemainderPrim();
+    gPowPrim        = new PowPrim();
+    gMinPrim        = new MinPrim();
+    gMaxPrim        = new MaxPrim();
+    gLogPrim        = new LogPrim();
+    gLog10Prim      = new Log10Prim();
+    gFmodPrim       = new FmodPrim();
+    gFloorPrim      = new FloorPrim();
+    gExpPrim        = new ExpPrim();
+    gExp10Prim      = new Exp10Prim();
+    gCosPrim        = new CosPrim();
+    gCeilPrim       = new CeilPrim();
+    gAtanPrim       = new AtanPrim();
+    gAtan2Prim      = new Atan2Prim();
+    gAsinPrim       = new AsinPrim();
+    gFtzPrim        = new FtzPrim();
+    gDownsamplePrim = new DownsamplePrim();
+    gUpsamplePrim   = new UpsamplePrim();
 
     BOXIDENT         = symbol("BoxIdent");
     BOXCUT           = symbol("BoxCut");

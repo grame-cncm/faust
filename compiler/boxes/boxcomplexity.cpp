@@ -181,6 +181,9 @@ int computeBoxComplexity(Tree box)
     else if (isBoxMetadata(box, t1, t2))
         return BC(t1);
 
+    else if (isBoxOndemand(box, t1))
+        return 1 + BC(t1);
+
     else if (isBoxRoute(box, t1, t2, t3))
         return 0;
 

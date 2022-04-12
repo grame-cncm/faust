@@ -268,6 +268,8 @@ struct global {
     xtended* gAtan2Prim;
     xtended* gAsinPrim;
     xtended* gFtzPrim;
+    xtended* gDownsamplePrim;
+    xtended* gUpsamplePrim;
 
     Sym BOXIDENT;
     Sym BOXCUT;

@@ -607,7 +607,23 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
             error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", invalid route expression : " << boxpp(box) << endl;
             throw faustexception(error.str());
         }
+    } else if (isBoxOndemand(box, t1)) {
+        int in1, out1;
+        getBoxType(t1, &in1, &out1);
+        faustassert(int(lsig.size()) == in1 + 1);
+        Tree              clock = lsig[0];
+        std::vector<Tree> downsigs(in1);  // downsampled input signals
+        std::vector<Tree> upsigs(out1);   // upsampled output signals
+        for (int j = 0; j < in1; j++) {
+            downsigs[j] = gGlobal->gDownsamplePrim->computeSigOutput({lsig[j + 1], clock});
+        }
+        siglist l1 = propagate(slotenv, path, t1, downsigs);
+        for (int j = 0; j < out1; j++) {
+            upsigs[j] = gGlobal->gUpsamplePrim->computeSigOutput({l1[j], clock});
+        }
+        return upsigs;
     }
+
     stringstream error;
     error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box) << endl;
     throw faustexception(error.str());
