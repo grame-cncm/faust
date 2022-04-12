@@ -46,5 +46,8 @@ tests/impulse-tests/ir
 /*.lib
 /*.tex
 
+### ignore svg block diagrams
+*-svg/
+
 # ignore sourcetrail files
 *.srctrl*
