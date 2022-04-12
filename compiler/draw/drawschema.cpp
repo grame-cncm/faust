@@ -186,8 +186,7 @@ static bool isIntTree(Tree l, vector<int>& v)
 
     } else {
         stringstream error;
-        error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", not a valid list of numbers : " << boxpp(l)
-              << endl;
+        error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", not a valid list of numbers : " << boxpp(l) << endl;
         throw faustexception(error.str());
     }
 }
@@ -251,7 +250,7 @@ static void writeSchemaFile(Tree bd)
 
     // generate the label of the schema
     string link = gGlobal->gBackLink[bd];
-    ts = makeTopSchema(addSchemaOutputs(outs, addSchemaInputs(ins, generateInsideSchema(bd))), 20, tree2str(id), link);
+    ts          = makeTopSchema(addSchemaOutputs(outs, addSchemaInputs(ins, generateInsideSchema(bd))), 20, tree2str(id), link);
     // draw to the device defined by gDevSuffix
     if (strcmp(gGlobal->gDevSuffix, "svg") == 0) {
         SVGDev dev(res1.c_str(), ts->width(), ts->height());
@@ -340,8 +339,7 @@ static bool isPureRouting(Tree t)
     if (gGlobal->gPureRoutingProperty->get(t, r)) {
         return r;
     } else if (isBoxCut(t) || isBoxWire(t) || isInverter(t) || isBoxSlot(t, &ID) ||
-               (isBoxPar(t, x, y) && isPureRouting(x) && isPureRouting(y)) ||
-               (isBoxSeq(t, x, y) && isPureRouting(x) && isPureRouting(y)) ||
+               (isBoxPar(t, x, y) && isPureRouting(x) && isPureRouting(y)) || (isBoxSeq(t, x, y) && isPureRouting(x) && isPureRouting(y)) ||
                (isBoxSplit(t, x, y) && isPureRouting(x) && isPureRouting(y)) ||
                (isBoxMerge(t, x, y) && isPureRouting(x) && isPureRouting(y))) {
         gGlobal->gPureRoutingProperty->set(t, true);
@@ -528,8 +526,7 @@ static schema* generateInsideSchema(Tree t)
             return makeRouteSchema(ins, outs, route);
         } else {
             stringstream error;
-            error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", invalid route expression : " << boxpp(t)
-                  << endl;
+            error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", invalid route expression : " << boxpp(t) << endl;
             throw faustexception(error.str());
         }
     } else {
@@ -554,11 +551,11 @@ static string userInterfaceDescription(Tree box)
     else if (isBoxCheckbox(box, label))
         fout << "checkbox(" << extractName(label) << ')';
     else if (isBoxVSlider(box, label, cur, min, max, step)) {
-        fout << "vslider(" << extractName(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max)
-             << ", " << boxpp(step) << ')';
+        fout << "vslider(" << extractName(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max) << ", " << boxpp(step)
+             << ')';
     } else if (isBoxHSlider(box, label, cur, min, max, step)) {
-        fout << "hslider(" << extractName(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max)
-             << ", " << boxpp(step) << ')';
+        fout << "hslider(" << extractName(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max) << ", " << boxpp(step)
+             << ')';
     } else if (isBoxVGroup(box, label, t1)) {
         fout << "vgroup(" << extractName(label) << ", " << boxpp(t1, 0) << ')';
     } else if (isBoxHGroup(box, label, t1)) {
@@ -570,8 +567,8 @@ static string userInterfaceDescription(Tree box)
     } else if (isBoxVBargraph(box, label, min, max)) {
         fout << "vbargraph(" << extractName(label) << ", " << boxpp(min) << ", " << boxpp(max) << ')';
     } else if (isBoxNumEntry(box, label, cur, min, max, step)) {
-        fout << "nentry(" << extractName(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max)
-             << ", " << boxpp(step) << ')';
+        fout << "nentry(" << extractName(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max) << ", " << boxpp(step)
+             << ')';
     } else if (isBoxSoundfile(box, label, chan)) {
         fout << "soundfile(" << extractName(label) << ", " << boxpp(chan) << ')';
     } else {

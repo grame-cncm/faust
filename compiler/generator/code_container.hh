@@ -50,7 +50,7 @@ class TextInstVisitor;
 class CodeContainer : public virtual Garbageable {
    protected:
     list<CodeContainer*> fSubContainers;
-    CodeContainer* fParentContainer{0};  ///< Container in which this Container is embedded, null if toplevel Container
+    CodeContainer*       fParentContainer{0};  ///< Container in which this Container is embedded, null if toplevel Container
 
     int fNumInputs{-1};
     int fNumOutputs{-1};
@@ -131,8 +131,7 @@ class CodeContainer : public virtual Garbageable {
         merge(S, fLibrarySet);
     }
 
-    void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst* count, int loop_num,
-                            bool omp = false);
+    void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst* count, int loop_num, bool omp = false);
     void generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst* count, bool omp);
 
     void printHeader(ostream& dst)
@@ -171,8 +170,7 @@ class CodeContainer : public virtual Garbageable {
         if (!fGeneratedSR) {
             pushDeclare(InstBuilder::genDecStructVar("fSampleRate", InstBuilder::genInt32Typed()));
         }
-        pushFrontInitMethod(
-            InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
+        pushFrontInitMethod(InstBuilder::genStoreStructVar("fSampleRate", InstBuilder::genLoadFunArgsVar("sample_rate")));
     }
 
     BlockInst* inlineSubcontainersFunCalls(BlockInst* block);
@@ -186,16 +184,12 @@ class CodeContainer : public virtual Garbageable {
 
     void           setParentContainers(CodeContainer* parent) { fParentContainer = parent; }
     CodeContainer* getParentContainer() { return fParentContainer; }
-    CodeContainer* getTopParentContainer()
-    {
-        return (fParentContainer != nullptr) ? fParentContainer->getTopParentContainer() : this;
-    }
+    CodeContainer* getTopParentContainer() { return (fParentContainer != nullptr) ? fParentContainer->getTopParentContainer() : this; }
 
     // Returns the name of the class
     string getFullClassName()
     {
-        return (fParentContainer != nullptr) ? (fParentContainer->getFullClassName() + "::" + getClassName())
-                                             : getClassName();
+        return (fParentContainer != nullptr) ? (fParentContainer->getFullClassName() + "::" + getClassName()) : getClassName();
     }
 
     void setGeneratedSR() { fGeneratedSR = true; }
@@ -244,8 +238,7 @@ class CodeContainer : public virtual Garbageable {
     DeclareFunInst* generateGetInputs(const string& name, const string& obj, bool ismethod, bool isvirtual);
     DeclareFunInst* generateGetOutputs(const string& name, const string& obj, bool ismethod, bool isvirtual);
 
-    DeclareFunInst* generateGetIORate(const string& name, const string& obj, vector<int>& io, bool ismethod,
-                                      bool isvirtual);
+    DeclareFunInst* generateGetIORate(const string& name, const string& obj, vector<int>& io, bool ismethod, bool isvirtual);
     DeclareFunInst* generateGetInputRate(const string& name, const string& obj, bool ismethod, bool isvirtual);
     DeclareFunInst* generateGetOutputRate(const string& name, const string& obj, bool ismethod, bool isvirtual);
 
@@ -256,11 +249,9 @@ class CodeContainer : public virtual Garbageable {
     }
     virtual DeclareFunInst* generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual);
 
-    virtual DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod,
-                                                      bool isvirtual);
+    virtual DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual);
 
-    virtual DeclareFunInst* generateInstanceResetUserInterface(const string& name, const string& obj, bool ismethod,
-                                                               bool isvirtual)
+    virtual DeclareFunInst* generateInstanceResetUserInterface(const string& name, const string& obj, bool ismethod, bool isvirtual)
     {
         faustassert(false);
         return nullptr;
@@ -275,8 +266,7 @@ class CodeContainer : public virtual Garbageable {
     }
 
     virtual DeclareFunInst* generateStaticInitFun(const string& name, bool isstatic);
-    virtual DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
-                                                    bool isvirtual);
+    virtual DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual);
     virtual DeclareFunInst* generateFillFun(const string& name, const string& obj, bool ismethod, bool isvirtual);
 
     DeclareFunInst* generateInit(const string& name, const string& obj, bool ismethod, bool isvirtual);
@@ -323,8 +313,7 @@ class CodeContainer : public virtual Garbageable {
         return inst;
     }
 
-    ValueInst* pushFunction(const string& name, Typed::VarType result, vector<Typed::VarType>& types,
-                            const list<ValueInst*>& args);
+    ValueInst* pushFunction(const string& name, Typed::VarType result, vector<Typed::VarType>& types, const list<ValueInst*>& args);
 
     void generateExtGlobalDeclarations(InstVisitor* visitor)
     {

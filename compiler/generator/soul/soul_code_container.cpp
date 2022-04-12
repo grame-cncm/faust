@@ -39,8 +39,8 @@ using namespace std;
 
 dsp_factory_base* SOULCodeContainer::produceFactory()
 {
-    return new text_dsp_factory_aux(
-        fKlassName, "", "", ((static_cast<stringstream*>(fOut)) ? static_cast<stringstream*>(fOut)->str() : ""), "");
+    return new text_dsp_factory_aux(fKlassName, "", "", ((static_cast<stringstream*>(fOut)) ? static_cast<stringstream*>(fOut)->str() : ""),
+                                    "");
 }
 
 CodeContainer* SOULCodeContainer::createScalarContainer(const string& name, int sub_container_type)

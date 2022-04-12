@@ -150,14 +150,10 @@ class FBCCPPCompiler {
         fBlockList.addInst(array + "[" + index + "] = " + popValue() + ";");
     }
 
-    void pushLoadInput(int index)
-    {
-        pushValue(getRealTy() + "(inputs[" + std::to_string(index) + "][" + popValue() + "])");
-    }
+    void pushLoadInput(int index) { pushValue(getRealTy() + "(inputs[" + std::to_string(index) + "][" + popValue() + "])"); }
     void pushStoreOutput(int index)
     {
-        fBlockList.addInst("outputs[" + std::to_string(index) + "][" + popValue() + "] = FAUSTFLOAT(" + popValue() +
-                           ");");
+        fBlockList.addInst("outputs[" + std::to_string(index) + "][" + popValue() + "] = FAUSTFLOAT(" + popValue() + ");");
     }
 
     void CompileBlock(FBCBlockInstruction<T>* block)
@@ -595,8 +591,7 @@ class FBCCPPCompiler {
                     std::string id2 = fBlockList.getIndex();
 
                     // Branch to current block
-                    fBlockList.addPreviousInst("if " + cond + " { goto label" + id1 + "; } else { goto label" + id2 +
-                                               "; }");
+                    fBlockList.addPreviousInst("if " + cond + " { goto label" + id1 + "; } else { goto label" + id2 + "; }");
 
                     it++;
                     break;
@@ -728,8 +723,8 @@ class FBCCPPCompiler {
                     if (it->fOffset == -1) {
                         out << "ui_interface->declare(0, \"" << it->fKey << "\", \"" << it->fValue << "\");";
                     } else {
-                        out << "ui_interface->declare(&fRealHeap[" << it->fOffset << "], \"" << it->fKey << "\", \""
-                            << it->fValue << "\");";
+                        out << "ui_interface->declare(&fRealHeap[" << it->fOffset << "], \"" << it->fKey << "\", \"" << it->fValue
+                            << "\");";
                     }
                     break;
 
@@ -785,8 +780,7 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
 
     virtual ~FBCCPPGenerator() {}
 
-    void generateCode(std::ostream& out, FBCBlockInstruction<T>* control_block = nullptr,
-                      FBCBlockInstruction<T>* dsp_block = nullptr)
+    void generateCode(std::ostream& out, FBCBlockInstruction<T>* control_block = nullptr, FBCBlockInstruction<T>* dsp_block = nullptr)
     {
         int tabs = 0;
         tab(tabs, out);

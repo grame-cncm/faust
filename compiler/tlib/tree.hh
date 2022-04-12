@@ -130,7 +130,7 @@ class CTree : public virtual Garbageable {
 
     bool          equiv(const Node& n, const tvec& br) const;  ///< used to check if an equivalent tree already exists
     static size_t calcTreeHash(const Node& n,
-                               const tvec& br);  ///< compute the hash key of a tree according to its node and branches
+                               const tvec& br);                     ///< compute the hash key of a tree according to its node and branches
     static int    calcTreeAperture(const Node& n, const tvec& br);  ///< compute how open is a tree
 
    public:
@@ -146,8 +146,8 @@ class CTree : public virtual Garbageable {
     const tvec& branches() const { return fBranch; }           ///< return all branches (subtrees) of a tree
     size_t      hashkey() const { return fHashKey; }           ///< return the hashkey of the tree
     size_t      serial() const { return fSerial; }             ///< return the serial of the tree
-    int         aperture() const { return fAperture; }  ///< return how "open" is a tree in terms of free variables
-    void        setAperture(int a) { fAperture = a; }   ///< modify the aperture of a tree
+    int         aperture() const { return fAperture; }         ///< return how "open" is a tree in terms of free variables
+    void        setAperture(int a) { fAperture = a; }          ///< modify the aperture of a tree
 
     // Print a tree and the hash table (for debugging purposes)
     ostream&    print(ostream& fout) const;  ///< print recursively the content of a tree on a stream
@@ -220,15 +220,13 @@ inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, con
     return CTree::make(n, 5, br);
 }
 
-inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d, const Tree& e,
-                 const Tree& f)
+inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d, const Tree& e, const Tree& f)
 {
     Tree br[] = {a, b, c, d, e, f};
     return CTree::make(n, 6, br);
 }
 
-inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d, const Tree& e,
-                 const Tree& f, const Tree& g)
+inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d, const Tree& e, const Tree& f, const Tree& g)
 {
     Tree br[] = {a, b, c, d, e, f, g};
     return CTree::make(n, 7, br);

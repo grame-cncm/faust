@@ -44,8 +44,7 @@ class WASTCodeContainer : public virtual CodeContainer {
         block->accept(gGlobal->gWASTVisitor);
     }
 
-    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
-                                            bool isvirtual) override;
+    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual) override;
 
     void generateComputeAux1(int n);
     void generateComputeAux2(BlockInst* compute_block, int n);
@@ -63,15 +62,14 @@ class WASTCodeContainer : public virtual CodeContainer {
     CodeContainer* createScalarContainer(const string& name, int sub_container_type) override;
     CodeContainer* createScalarContainer(const string& name, int sub_container_type, bool internal_memory = true);
 
-    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, std::ostream* dst,
-                                          bool internal_memory);
+    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, std::ostream* dst, bool internal_memory);
 };
 
 class WASTScalarCodeContainer : public WASTCodeContainer {
    protected:
    public:
-    WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
-                            int sub_container_type, bool internal_memory);
+    WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type,
+                            bool internal_memory);
     ~WASTScalarCodeContainer() override = default;
 
     void generateCompute(int tab) override;

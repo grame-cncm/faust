@@ -42,11 +42,7 @@ schema* makeTopSchema(schema* s, double margin, const string& text, const string
  * made private to enforce the usage of makeTopSchema.
  */
 topSchema::topSchema(schema* s, double margin, const string& text, const string& link)
-    : schema(0, 0, s->width() + 2 * margin, s->height() + 2 * margin),
-      fSchema(s),
-      fMargin(margin),
-      fText(text),
-      fLink(link)
+    : schema(0, 0, s->width() + 2 * margin, s->height() + 2 * margin), fSchema(s), fMargin(margin), fText(text), fLink(link)
 {
 }
 

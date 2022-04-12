@@ -36,12 +36,11 @@ string subst(const string& m, const vector<string>& vargs);
 string subst(const string& m, const string& a0, const string& a1);
 string subst(const string& m, const string& a0, const string& a1, const string& a2);
 string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3);
-string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3,
-             const string& a4);
-string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3,
-             const string& a4, const string& a5);
-string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3,
-             const string& a4, const string& a5, const string& a6);
+string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4);
+string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4,
+             const string& a5);
+string subst(const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4,
+             const string& a5, const string& a6);
 
 string T(char* c);
 string T(int n);

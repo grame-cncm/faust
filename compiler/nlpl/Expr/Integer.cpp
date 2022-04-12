@@ -2,10 +2,8 @@
 #include <utility>
 
 #include "Expr.hh"
-namespace nlpl
-{
-class IntExpr : public Expression
-{
+namespace nlpl {
+class IntExpr : public Expression {
     int fInt;
 
    public:

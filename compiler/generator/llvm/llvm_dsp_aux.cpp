@@ -156,8 +156,7 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& 
     fDecoder = nullptr;
 }
 
-llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, Module* module, LLVMContext* context,
-                                           const string& target, int opt_level)
+llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, Module* module, LLVMContext* context, const string& target, int opt_level)
     : dsp_factory_imp("BitcodeDSP", sha_key, "")
 {
     startLLVMLibrary();
@@ -262,8 +261,7 @@ bool llvm_dsp_factory_aux::initJITAux(string& error_msg)
         fDecoder = createJSONUIDecoder(fGetJSON());
         endTiming("initJIT");
         return true;
-    } catch (
-        faustexception& e) {  // Module does not contain the Faust entry points, or external symbol was not found...
+    } catch (faustexception& e) {  // Module does not contain the Faust entry points, or external symbol was not found...
         error_msg = e.Message();
         endTiming("initJIT");
         return false;
@@ -505,8 +503,7 @@ bool llvm_dsp_factory_aux::writeDSPFactoryToMachineFile(const string& machine_co
     return true;
 }
 
-llvm_dsp_factory* llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const string& target,
-                                                                     string& error_msg)
+llvm_dsp_factory* llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const string& target, string& error_msg)
 {
     string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
 
@@ -536,13 +533,12 @@ llvm_dsp_factory* llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFF
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, const string& target, string& error_msg)
 {
     LOCK_API
-    return llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(
-        MEMORY_BUFFER_CREATE(StringRef(base64_decode(machine_code))), target, error_msg);
+    return llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(MEMORY_BUFFER_CREATE(StringRef(base64_decode(machine_code))), target,
+                                                              error_msg);
 }
 
 // machine <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_code_path, const string& target,
-                                                       string& error_msg)
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_code_path, const string& target, string& error_msg)
 {
     LOCK_API
 
@@ -566,15 +562,13 @@ EXPORT string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const string& 
     return factory->writeDSPFactoryToMachine(target);
 }
 
-EXPORT bool writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string& machine_code_path,
-                                         const string& target)
+EXPORT bool writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string& machine_code_path, const string& target)
 {
     LOCK_API
     return (factory) ? factory->writeDSPFactoryToMachineFile(machine_code_path, target) : false;
 }
 
-EXPORT bool writeDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const string& object_code_path,
-                                            const string& target)
+EXPORT bool writeDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const string& object_code_path, const string& target)
 {
     LOCK_API
     return (factory) ? factory->writeDSPFactoryToObjectcodeFile(object_code_path, target) : false;
@@ -743,8 +737,7 @@ EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* ta
     return (factory) ? strdup(writeDSPFactoryToMachine(factory, target).c_str()) : nullptr;
 }
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target,
-                                                        char* error_msg)
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target, char* error_msg)
 {
     string            error_msg_aux;
     llvm_dsp_factory* factory = readDSPFactoryFromMachineFile(machine_code_path, target, error_msg_aux);
@@ -757,8 +750,7 @@ EXPORT bool writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char*
     return (factory) ? writeDSPFactoryToMachineFile(factory, machine_code_path, target) : false;
 }
 
-EXPORT bool writeCDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const char* object_code_path,
-                                             const char* target)
+EXPORT bool writeCDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const char* object_code_path, const char* target)
 {
     return (factory) ? writeDSPFactoryToObjectcodeFile(factory, object_code_path, target) : false;
 }

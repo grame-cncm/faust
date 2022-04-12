@@ -418,8 +418,7 @@ string VectorCompiler::generateDelayVec(Tree sig, const string& exp, const strin
     }
 }
 
-void VectorCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
-                                       const string& ccs)
+void VectorCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp, const string& ccs)
 {
     if (mxd == 0) {
         generateVectorLoop(ctype, vname, exp, ccs);
@@ -446,8 +445,7 @@ static int pow2limit(int x)
  * @param delay the maximum delay
  * @param cexp the content of the signal as a C++ expression
  */
-void VectorCompiler::generateVectorLoop(const string& tname, const string& vecname, const string& cexp,
-                                        const string& ccs)
+void VectorCompiler::generateVectorLoop(const string& tname, const string& vecname, const string& cexp, const string& ccs)
 {
     // -- declare the vector
     fClass->addSharedDecl(vecname);
@@ -468,8 +466,7 @@ void VectorCompiler::generateVectorLoop(const string& tname, const string& vecna
  * @param delay the maximum delay
  * @param cexp the content of the signal as a C++ expression
  */
-void VectorCompiler::generateDlineLoop(const string& tname, const string& dlname, int delay, const string& cexp,
-                                       const string& ccs)
+void VectorCompiler::generateDlineLoop(const string& tname, const string& dlname, int delay, const string& cexp, const string& ccs)
 {
     if (delay < gGlobal->gMaxCopyDelay) {
         // Implementation of a copy based delayline

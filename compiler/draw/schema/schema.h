@@ -115,14 +115,7 @@ class schema : public virtual Garbageable {
 
    public:
     schema(unsigned int inputs, unsigned int outputs, double width, double height)
-        : fInputs(inputs),
-          fOutputs(outputs),
-          fWidth(width),
-          fHeight(height),
-          fPlaced(false),
-          fX(0),
-          fY(0),
-          fOrientation(0)
+        : fInputs(inputs), fOutputs(outputs), fWidth(width), fHeight(height), fPlaced(false), fX(0), fY(0), fOrientation(0)
     {
     }
     ~schema() override = default;
@@ -158,8 +151,7 @@ class schema : public virtual Garbageable {
 
 // various functions to create schemas
 
-schema* makeBlockSchema(unsigned int inputs, unsigned int outputs, const string& name, const string& color,
-                        const string& link);
+schema* makeBlockSchema(unsigned int inputs, unsigned int outputs, const string& name, const string& color, const string& link);
 schema* makeCableSchema(unsigned int n = 1);
 schema* makeInverterSchema(const string& color);
 schema* makeCutSchema();

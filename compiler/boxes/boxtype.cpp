@@ -116,8 +116,7 @@ static string inputs(int n)
  * \return the error message as a string
  */
 
-static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string& opcode, const string& opname,
-                                      const string& msg)
+static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string& opcode, const string& opname, const string& msg)
 {
     stringstream error;
     string       aStr("A"), bStr("B");
@@ -125,8 +124,7 @@ static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string
     if (getDefNameProperty(a, aID)) aStr = tree2str(aID);
     if (getDefNameProperty(b, bID)) bStr = tree2str(bID);
     error << "ERROR in " << opname << " " << aStr << opcode << bStr << endl
-          << "The number of outputs [" << o << "] of " << aStr << msg << "the number of inputs [" << i << "] of "
-          << bStr << endl
+          << "The number of outputs [" << o << "] of " << aStr << msg << "the number of inputs [" << i << "] of " << bStr << endl
           << endl
           << "Here  " << aStr << " = " << boxpp(a) << "; has " << outputs(o) << endl
           << "while " << bStr << " = " << boxpp(b) << "; has " << inputs(i) << endl;
@@ -155,11 +153,11 @@ static string computeTypeRecErrorMessage(Tree a, Tree b, int u, int v, int x, in
 
     msg << "ERROR in recursive composition " << aStr << '~' << bStr << endl;
     if (v < x)
-        msg << "The number of outputs [" << v << "] of " << aStr << " must be at least the number of inputs [" << x
-            << "] of " << bStr << ". ";
+        msg << "The number of outputs [" << v << "] of " << aStr << " must be at least the number of inputs [" << x << "] of " << bStr
+            << ". ";
     if (u < y)
-        msg << "The number of inputs [" << u << "] of " << aStr << " must be at least the number of outputs [" << y
-            << "] of " << bStr << ". ";
+        msg << "The number of inputs [" << u << "] of " << aStr << " must be at least the number of outputs [" << y << "] of " << bStr
+            << ". ";
 
     msg << endl
         << endl
@@ -291,8 +289,7 @@ static bool infereBoxType(Tree t, int* inum, int* onum)
         if (!getBoxType(b, &x, &y)) return false;
 
         if (v != x) {
-            throw faustexception(
-                computeTypeErrorMessage(a, b, v, x, ":", "sequential composition", " must be equals to "));
+            throw faustexception(computeTypeErrorMessage(a, b, v, x, ":", "sequential composition", " must be equals to "));
         } else {
             *inum = u;
             *onum = y;
@@ -312,8 +309,7 @@ static bool infereBoxType(Tree t, int* inum, int* onum)
         if (!getBoxType(b, &x, &y)) return false;
 
         if ((v == 0) || (x == 0) || (x % v != 0)) {
-            throw faustexception(
-                (computeTypeErrorMessage(a, b, v, x, "<:", "split composition", " must be a divisor of ")));
+            throw faustexception((computeTypeErrorMessage(a, b, v, x, "<:", "split composition", " must be a divisor of ")));
         }
 
         *inum = u;
@@ -325,8 +321,7 @@ static bool infereBoxType(Tree t, int* inum, int* onum)
         if (!getBoxType(b, &x, &y)) return false;
 
         if ((v == 0) || (x == 0) || (v % x != 0)) {
-            throw faustexception(
-                computeTypeErrorMessage(a, b, v, x, ":>", "merge composition", " must be a multiple of "));
+            throw faustexception(computeTypeErrorMessage(a, b, v, x, ":>", "merge composition", " must be a multiple of "));
         }
 
         *inum = u;

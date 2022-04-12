@@ -98,13 +98,7 @@ size_t       CTree::gSerialCounter = 0;
 
 // Constructor : add the tree to the hash table
 CTree::CTree(size_t hk, const Node& n, const tvec& br)
-    : fNode(n),
-      fType(nullptr),
-      fHashKey(hk),
-      fSerial(++gSerialCounter),
-      fAperture(calcTreeAperture(n, br)),
-      fVisitTime(0),
-      fBranch(br)
+    : fNode(n), fType(nullptr), fHashKey(hk), fSerial(++gSerialCounter), fAperture(calcTreeAperture(n, br)), fVisitTime(0), fBranch(br)
 {
     // link dans la hash table
     int j         = hk % kHashTableSize;

@@ -590,10 +590,7 @@ struct global {
 
     Typed::VarType getVarType(const string& name) { return gVarTypeTable[name]->getType(); }
 
-    bool isMathForeignFunction(const string& name)
-    {
-        return (gMathForeignFunctions.find(name) != gMathForeignFunctions.end());
-    }
+    bool isMathForeignFunction(const string& name) { return (gMathForeignFunctions.find(name) != gMathForeignFunctions.end()); }
 
     void printCompilationOptions(ostream& dst, bool backend = true);
 

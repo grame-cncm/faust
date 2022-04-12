@@ -242,8 +242,8 @@ LIBEXPORT std::string expandDSPFromFile(const std::string& filename, int argc, c
  *
  * @return the expanded DSP or a empty string in case of failure
  */
-LIBEXPORT std::string expandDSPFromString(const std::string& name_app, const std::string& dsp_content, int argc,
-                                          const char* argv[], std::string& sha_key, std::string& error_msg);
+LIBEXPORT std::string expandDSPFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[],
+                                          std::string& sha_key, std::string& error_msg);
 
 /**
  * Generate additional file (other backends, SVG, XML, JSON...) starting from a filename.
@@ -255,8 +255,7 @@ LIBEXPORT std::string expandDSPFromString(const std::string& name_app, const std
  *
  * @return the expanded DSP or an empty string in case of failure
  */
-LIBEXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, const char* argv[],
-                                        std::string& error_msg);
+LIBEXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, const char* argv[], std::string& error_msg);
 
 /**
  * Generate additional file (other backends, SVG, XML, JSON...) starting from a string.
@@ -268,8 +267,8 @@ LIBEXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, c
  *
  * @return the expanded DSP or a empty string in case of failure
  */
-LIBEXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc,
-                                          const char* argv[], std::string& error_msg);
+LIBEXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[],
+                                          std::string& error_msg);
 
 /**
  * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey,

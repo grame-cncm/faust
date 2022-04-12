@@ -455,8 +455,8 @@ void Klass::buildTasksList()
         for (auto p = G[l].begin(); p != G[l].end(); p++) {
             if ((*p)->fBackwardLoopDependencies.size() > 1) {  // Only initialize taks with more than 1 input, since
                                                                // taks with one input are "directly" activated.
-                addZone2c(subst("fGraph.InitTask($0,$1);", T(START_TASK_INDEX + gTaskCount++),
-                                T((int)(*p)->fBackwardLoopDependencies.size())));
+                addZone2c(
+                    subst("fGraph.InitTask($0,$1);", T(START_TASK_INDEX + gTaskCount++), T((int)(*p)->fBackwardLoopDependencies.size())));
             } else {
                 gTaskCount++;
             }
@@ -464,8 +464,7 @@ void Klass::buildTasksList()
     }
 
     addInitCode("fStaticNumThreads = get_max_cpu();");
-    addInitCode(
-        "fDynamicNumThreads = getenv(\"OMP_NUM_THREADS\") ? atoi(getenv(\"OMP_NUM_THREADS\")) : fStaticNumThreads;");
+    addInitCode("fDynamicNumThreads = getenv(\"OMP_NUM_THREADS\") ? atoi(getenv(\"OMP_NUM_THREADS\")) : fStaticNumThreads;");
     addInitCode("fThreadPool->StartAll(fStaticNumThreads - 1, false);");
 
     gTaskCount = 0;
@@ -570,11 +569,9 @@ void Klass::printGraphDotFormat(ostream& fout)
         // for each task in the level
         for (auto t = G[l].begin(); t != G[l].end(); t++) {
             // print task label "Lxxx : 0xffffff"
-            fout << '\t' << 'L' << (*t) << "[label=<<font face=\"verdana,bold\">L" << lnum++ << "</font> : " << (*t)
-                 << ">];" << endl;
+            fout << '\t' << 'L' << (*t) << "[label=<<font face=\"verdana,bold\">L" << lnum++ << "</font> : " << (*t) << ">];" << endl;
             // for each source of the task
-            for (auto src = (*t)->fBackwardLoopDependencies.begin(); src != (*t)->fBackwardLoopDependencies.end();
-                 src++) {
+            for (auto src = (*t)->fBackwardLoopDependencies.begin(); src != (*t)->fBackwardLoopDependencies.end(); src++) {
                 // print the connection Lxxx -> Lyyy;
                 fout << '\t' << 'L' << (*src) << "->" << 'L' << (*t) << ';' << endl;
             }

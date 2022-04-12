@@ -86,10 +86,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
    public:
     using TextInstVisitor::visit;
 
-    WASTInstVisitor(std::ostream* out, bool fast_memory, int tab = 0)
-        : TextInstVisitor(out, ".", tab), WASInst(fast_memory)
-    {
-    }
+    WASTInstVisitor(std::ostream* out, bool fast_memory, int tab = 0) : TextInstVisitor(out, ".", tab), WASInst(fast_memory) {}
 
     ~WASTInstVisitor() override = default;
 
@@ -159,8 +156,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         fTab--;
     }
 
-    virtual void generateFunCallArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end,
-                                     int size)
+    virtual void generateFunCallArgs(list<ValueInst*>::const_iterator beg, list<ValueInst*>::const_iterator end, int size)
     {
         auto it = beg;
         int  i  = 0;
@@ -271,8 +267,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         Typed::VarType      type   = fTypingVisitor.fCurType;
         Address::AccessType access = inst->fAddress->getAccess();
 
-        if (access & Address::kStruct || access & Address::kStaticStruct ||
-            dynamic_cast<IndexedAddress*>(inst->fAddress)) {
+        if (access & Address::kStruct || access & Address::kStaticStruct || dynamic_cast<IndexedAddress*>(inst->fAddress)) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 if (isRealType(type) || isRealPtrType(type)) {
@@ -358,8 +353,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                     if (fFastMemory) {
                         *fOut << "(i32.const " << (tmp.fOffset + (num->fNum << offStrNum)) << ")";
                     } else {
-                        *fOut << "(i32.add (local.get $dsp) (i32.const " << (tmp.fOffset + (num->fNum << offStrNum))
-                              << "))";
+                        *fOut << "(i32.add (local.get $dsp) (i32.const " << (tmp.fOffset + (num->fNum << offStrNum)) << "))";
                     }
                 } else {
                     // Otherwise generate index computation code

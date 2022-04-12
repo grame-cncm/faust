@@ -44,10 +44,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     map<string, bool> gFunctionSymbolTable;
 
    public:
-    FIRInstVisitor(std::ostream* out, int tab = 0)
-        : CStringTypeManager(FLOATMACRO, "*"), fTab(tab), fOut(out), fFinishLine(true)
-    {
-    }
+    FIRInstVisitor(std::ostream* out, int tab = 0) : CStringTypeManager(FLOATMACRO, "*"), fTab(tab), fOut(out), fFinishLine(true) {}
 
     ~FIRInstVisitor() override = default;
 
@@ -83,9 +80,8 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             std::string num_size     = std::to_string(array_typed->fSize);
             if (basic_typed1) {
                 faustassert(fTypeDirectTable.find(basic_typed1->fType) != fTypeDirectTable.end());
-                return (array_typed->fSize == 0)
-                           ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\""
-                           : "\"" + fTypeDirectTable[basic_typed1->fType] + "[" + num_size + "]" + "\"";
+                return (array_typed->fSize == 0) ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\""
+                                                 : "\"" + fTypeDirectTable[basic_typed1->fType] + "[" + num_size + "]" + "\"";
                 /*
                 return (array_typed->fSize == 0)
                     ? fTypeDirectTable[basic_typed1->fType]
@@ -102,9 +98,8 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         } else if (vector_typed) {
             std::string num_size = std::to_string(vector_typed->fSize);
             faustassert(fTypeDirectTable.find(vector_typed->fType->fType) != fTypeDirectTable.end());
-            return (vector_typed->fSize == 0)
-                       ? "Type<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
-                       : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_size + ")";
+            return (vector_typed->fSize == 0) ? "Type<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
+                                              : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_size + ")";
         } else if (struct_typed) {
             std::stringstream res;
             res << "StructType<\"" << struct_typed->fName << "\",";
@@ -142,9 +137,8 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             auto*       named_typed1 = dynamic_cast<NamedTyped*>(array_typed->fType);
             std::string num_size     = std::to_string(array_typed->fSize);
             if (basic_typed1) {
-                return (array_typed->fSize == 0)
-                           ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\", " + name
-                           : "\"" + fTypeDirectTable[basic_typed1->fType] + "\", " + name + "[" + num_size + "]";
+                return (array_typed->fSize == 0) ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\", " + name
+                                                 : "\"" + fTypeDirectTable[basic_typed1->fType] + "\", " + name + "[" + num_size + "]";
                 /*
                  ? fTypeDirectTable[basic_typed1->fType] + "*, " + name
                  : fTypeDirectTable[basic_typed1->fType] + ", " + name + "[" + num_str.str() + "]";
@@ -160,9 +154,8 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             }
         } else if (vector_typed) {
             std::string num_size = std::to_string(vector_typed->fSize);
-            return (vector_typed->fSize == 0)
-                       ? "Type<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
-                       : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_size + ")";
+            return (vector_typed->fSize == 0) ? "Type<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
+                                              : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_size + ")";
         } else if (struct_typed) {
             std::stringstream res;
             res << "StructType<\"" << struct_typed->fName << "\",";
@@ -179,8 +172,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     void visit(AddMetaDeclareInst* inst) override
     {
-        *fOut << "AddMetaDeclareInst(" << inst->fZone << ", " << quote(inst->fKey) << ", " << quote(inst->fValue)
-              << ")";
+        *fOut << "AddMetaDeclareInst(" << inst->fZone << ", " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
         EndLine();
     }
 
@@ -233,8 +225,8 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
                 name = "AddNumEntry";
                 break;
         }
-        *fOut << name << quote(inst->fLabel) << ", " << inst->fZone << ", " << checkReal(inst->fInit) << ", "
-              << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
+        *fOut << name << quote(inst->fLabel) << ", " << inst->fZone << ", " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin)
+              << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
         EndLine();
     }
 
@@ -249,8 +241,8 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
                 name = "AddVerticalBargraph(";
                 break;
         }
-        *fOut << name << quote(inst->fLabel) << ", " << inst->fZone << ", " << checkReal(inst->fMin) << ", "
-              << checkReal(inst->fMax) << ")";
+        *fOut << name << quote(inst->fLabel) << ", " << inst->fZone << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax)
+              << ")";
         EndLine();
     }
 
@@ -349,10 +341,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
     }
 
-    void visit(NamedAddress* named) override
-    {
-        *fOut << "Address(" << named->fName << " " << Address::dumpString(named->fAccess) << ")";
-    }
+    void visit(NamedAddress* named) override { *fOut << "Address(" << named->fName << " " << Address::dumpString(named->fAccess) << ")"; }
 
     void visit(IndexedAddress* indexed) override
     {

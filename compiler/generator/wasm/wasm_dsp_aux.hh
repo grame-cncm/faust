@@ -376,7 +376,6 @@ EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machin
 
 EXPORT std::string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory);
 
-EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path,
-                                                           std::string&       error_msg);
+EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path, std::string& error_msg);
 
 EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const std::string& machine_code_path);

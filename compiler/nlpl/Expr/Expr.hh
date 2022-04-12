@@ -8,12 +8,10 @@
 #include "HashTuple.hh"
 #include "Memory.hh"
 
-namespace nlpl
-{
+namespace nlpl {
 // Expressions
 
-class Expression
-{
+class Expression {
    public:
     virtual void getDependencies(std::set<Dependency>& dep) = 0;
     virtual void getSubExpr(std::set<Expression*>& subexpr) = 0;

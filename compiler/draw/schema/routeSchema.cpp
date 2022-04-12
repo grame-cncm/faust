@@ -48,8 +48,7 @@ schema* makeRouteSchema(unsigned int inputs, unsigned int outputs, const std::ve
  * The length of the text as well as th number of inputs and outputs
  * are used to compute the size of the routeSchema
  */
-routeSchema::routeSchema(unsigned int inputs, unsigned int outputs, double width, double height,
-                         const std::vector<int>& routes)
+routeSchema::routeSchema(unsigned int inputs, unsigned int outputs, double width, double height, const std::vector<int>& routes)
 
     : schema(inputs, outputs, width, height), fText(""), fColor("#EEEEAA"), fLink(""), fRoutes(routes)
 {

@@ -33,9 +33,8 @@ map<string, bool> CPPInstVisitor::gFunctionSymbolTable;
 
 dsp_factory_base* CPPCodeContainer::produceFactory()
 {
-    return new text_dsp_factory_aux(
-        fKlassName, "", "",
-        ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
+    return new text_dsp_factory_aux(fKlassName, "", "",
+                                    ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
 }
 
 CodeContainer* CPPCodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -43,8 +42,7 @@ CodeContainer* CPPCodeContainer::createScalarContainer(const string& name, int s
     return new CPPScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
 }
 
-CodeContainer* CPPCodeContainer::createContainer(const string& name, const string& super, int numInputs, int numOutputs,
-                                                 ostream* dst)
+CodeContainer* CPPCodeContainer::createContainer(const string& name, const string& super, int numInputs, int numOutputs, ostream* dst)
 {
     CodeContainer* container;
 
@@ -223,12 +221,11 @@ void CPPCodeContainer::produceInternal()
         tab(n, *fOut);
         *fOut << fKlassName << "* "
               << "new" << fKlassName << "(dsp_memory_manager* manager) {"
-              << " return (" << fKlassName << "*)new(manager->allocate(sizeof(" << fKlassName << "))) " << fKlassName
-              << "()"
+              << " return (" << fKlassName << "*)new(manager->allocate(sizeof(" << fKlassName << "))) " << fKlassName << "()"
               << "; }";
         tab(n, *fOut);
-        *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp, dsp_memory_manager* manager) { dsp->~"
-              << fKlassName << "(); manager->destroy(dsp); }";
+        *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp, dsp_memory_manager* manager) { dsp->~" << fKlassName
+              << "(); manager->destroy(dsp); }";
     } else {
         tab(n, *fOut);
         *fOut << fKlassName << "* "
@@ -506,8 +503,8 @@ void CPPCodeContainer::produceClass()
 }
 
 // Scalar
-CPPScalarCodeContainer::CPPScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs,
-                                               std::ostream* out, int sub_container_type)
+CPPScalarCodeContainer::CPPScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out,
+                                               int sub_container_type)
     : CPPCodeContainer(name, super, numInputs, numOutputs, out)
 {
     fSubContainerType = sub_container_type;
@@ -556,8 +553,7 @@ void CPPScalarCodeContainer::generateCompute(int n)
 }
 
 // Vector
-CPPVectorCodeContainer::CPPVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs,
-                                               std::ostream* out)
+CPPVectorCodeContainer::CPPVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
     : VectorCodeContainer(numInputs, numOutputs), CPPCodeContainer(name, super, numInputs, numOutputs, out)
 {
 }
@@ -590,8 +586,7 @@ void CPPVectorCodeContainer::generateCompute(int n)
 }
 
 // OpenMP
-CPPOpenMPCodeContainer::CPPOpenMPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs,
-                                               std::ostream* out)
+CPPOpenMPCodeContainer::CPPOpenMPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
     : OpenMPCodeContainer(numInputs, numOutputs), CPPCodeContainer(name, super, numInputs, numOutputs, out)
 {
 }
@@ -624,8 +619,8 @@ void CPPOpenMPCodeContainer::generateCompute(int n)
 }
 
 // Works stealing scheduler
-CPPWorkStealingCodeContainer::CPPWorkStealingCodeContainer(const string& name, const string& super, int numInputs,
-                                                           int numOutputs, std::ostream* out)
+CPPWorkStealingCodeContainer::CPPWorkStealingCodeContainer(const string& name, const string& super, int numInputs, int numOutputs,
+                                                           std::ostream* out)
     : WSSCodeContainer(numInputs, numOutputs, "this"), CPPCodeContainer(name, super, numInputs, numOutputs, out)
 {
 }

@@ -42,15 +42,14 @@ using namespace std;
 
 ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_in_bytes)
 {
-    DeclareVarInst* loop_decl =
-        InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
-    ValueInst*    loop_end;
-    StoreVarInst* loop_increment;
+    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
+    ValueInst*      loop_end;
+    StoreVarInst*   loop_increment;
 
     if (loop_var_in_bytes) {
-        loop_end = InstBuilder::genLessThan(
-            loop_decl->load(), InstBuilder::genMul(InstBuilder::genInt32NumInst((int)pow(2, gGlobal->gFloatSize + 1)),
-                                                   InstBuilder::genLoadFunArgsVar(counter)));
+        loop_end       = InstBuilder::genLessThan(loop_decl->load(),
+                                                  InstBuilder::genMul(InstBuilder::genInt32NumInst((int)pow(2, gGlobal->gFloatSize + 1)),
+                                                                      InstBuilder::genLoadFunArgsVar(counter)));
         loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), (int)pow(2, gGlobal->gFloatSize + 1)));
     } else {
         loop_end       = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
@@ -114,10 +113,9 @@ void CodeLoop::generateDAGScalarLoop(BlockInst* block, DeclareVarInst* count, bo
 
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
-        DeclareVarInst* loop_decl =
-            InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
-        ValueInst*    loop_end       = InstBuilder::genLessThan(loop_decl->load(), count->load());
-        StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
+        DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
+        ValueInst*      loop_end  = InstBuilder::genLessThan(loop_decl->load(), count->load());
+        StoreVarInst*   loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
         block->pushBackInst(InstBuilder::genLabelInst("/* Compute code */"));
         if (omp) {
@@ -147,8 +145,7 @@ void CodeLoop::generateDAGScalarLoop(BlockInst* block, DeclareVarInst* count, bo
  */
 bool CodeLoop::isEmpty()
 {
-    return fPreInst->fCode.empty() && fComputeInst->fCode.empty() && fPostInst->fCode.empty() &&
-           (fExtraLoops.begin() == fExtraLoops.end());
+    return fPreInst->fCode.empty() && fComputeInst->fCode.empty() && fPostInst->fCode.empty() && (fExtraLoops.begin() == fExtraLoops.end());
 }
 
 /**
@@ -225,8 +222,7 @@ void CodeLoop::resetOrder(CodeLoop* l, set<CodeLoop*>& visited)
     if (visited.find(l) == visited.end()) {
         visited.insert(l);
         l->fOrder = -1;
-        for (lclset::const_iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end();
-             p++) {
+        for (lclset::const_iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
             resetOrder(*p, visited);
         }
     }
@@ -294,8 +290,7 @@ void CodeLoop::groupSeqLoops(CodeLoop* l, set<CodeLoop*>& visited)
             }
             return;
         } else if (n > 1) {
-            for (lclset::iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end();
-                 p++) {
+            for (lclset::iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
                 groupSeqLoops(*p, visited);
             }
         }

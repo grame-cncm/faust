@@ -7,10 +7,8 @@
 
 #include "Expr.hh"
 #include "Instr.hh"
-namespace nlpl
-{
-class WriteVecInstr : public Instruction
-{
+namespace nlpl {
+class WriteVecInstr : public Instruction {
     Mem  fMem;
     int  fMode;
     Expr fIndex;
@@ -29,7 +27,7 @@ class WriteVecInstr : public Instruction
     }
     Instruction* schedule() override { return this; }
     Instruction* optimize() override { return this; }
-    void dispatch(std::map<Expr, Instr>&, std::map<Expr, Instr>&, std::set<Instr>& OMap) override { OMap.insert(this); }
+    void         dispatch(std::map<Expr, Instr>&, std::map<Expr, Instr>&, std::set<Instr>& OMap) override { OMap.insert(this); }
 };
 
 Instr WriteVec(Mem mem, int mode, Expr idx, Expr expr)

@@ -40,10 +40,7 @@ class loopDetector : public virtual Garbageable {
     int          fPhase;
 
    public:
-    loopDetector(int buffersize, int checkperiod)
-        : fBuffersize(buffersize), fCheckperiod(checkperiod), fBuffer(buffersize), fPhase(0)
-    {
-    }
+    loopDetector(int buffersize, int checkperiod) : fBuffersize(buffersize), fCheckperiod(checkperiod), fBuffer(buffersize), fPhase(0) {}
 
     bool detect(Tree t);
 };

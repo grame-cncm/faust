@@ -9,8 +9,7 @@
 #include <vector>
 #include "HashTuple.hh"
 
-namespace nlpl
-{
+namespace nlpl {
 /**
  * @brief Where should we declare a memory
  *
@@ -26,8 +25,7 @@ using Dependency = std::pair<Mem, int>;
  * @brief A MemoryZone is a place used to read and write expressions
  *
  */
-class MemoryZone
-{
+class MemoryZone {
    public:
     const std::string  fType;   // "int", "float"
     const std::string  fName;   // "myVar"

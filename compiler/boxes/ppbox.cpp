@@ -143,8 +143,8 @@ ostream &boxpp::print(ostream &fout) const
     prim4  p4;
     prim5  p5;
 
-    Tree t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg, body, fun, args, abstr, genv, vis, lenv,
-        ldef, slot, ident, rules, chan, ins, outs, lroutes;
+    Tree t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg, body, fun, args, abstr, genv, vis, lenv, ldef, slot, ident,
+        rules, chan, ins, outs, lroutes;
 
     const char *str;
 
@@ -238,11 +238,11 @@ ostream &boxpp::print(ostream &fout) const
     else if (isBoxCheckbox(box, label))
         fout << "checkbox(" << tree2quotedstr(label) << ')';
     else if (isBoxVSlider(box, label, cur, min, max, step)) {
-        fout << "vslider(" << tree2quotedstr(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max)
-             << ", " << boxpp(step) << ')';
+        fout << "vslider(" << tree2quotedstr(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max) << ", " << boxpp(step)
+             << ')';
     } else if (isBoxHSlider(box, label, cur, min, max, step)) {
-        fout << "hslider(" << tree2quotedstr(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max)
-             << ", " << boxpp(step) << ')';
+        fout << "hslider(" << tree2quotedstr(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max) << ", " << boxpp(step)
+             << ')';
     } else if (isBoxVGroup(box, label, t1)) {
         fout << "vgroup(" << tree2quotedstr(label) << ", " << boxpp(t1, 0) << ')';
     } else if (isBoxHGroup(box, label, t1)) {
@@ -256,8 +256,8 @@ ostream &boxpp::print(ostream &fout) const
     } else if (isBoxVBargraph(box, label, min, max)) {
         fout << "vbargraph(" << tree2quotedstr(label) << ", " << boxpp(min) << ", " << boxpp(max) << ')';
     } else if (isBoxNumEntry(box, label, cur, min, max, step)) {
-        fout << "nentry(" << tree2quotedstr(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max)
-             << ", " << boxpp(step) << ')';
+        fout << "nentry(" << tree2quotedstr(label) << ", " << boxpp(cur) << ", " << boxpp(min) << ", " << boxpp(max) << ", " << boxpp(step)
+             << ')';
     } else if (isBoxSoundfile(box, label, chan)) {
         fout << "soundfile(" << tree2quotedstr(label) << ", " << boxpp(chan) << ')';
     }

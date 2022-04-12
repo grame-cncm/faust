@@ -43,8 +43,7 @@ schema* makeEnlargedSchema(schema* s, double width)
  * Put additional space left and right of a schema so that the result has
  * a certain width. The wires are prolonged accordingly.
  */
-enlargedSchema::enlargedSchema(schema* s, double width)
-    : schema(s->inputs(), s->outputs(), width, s->height()), fSchema(s)
+enlargedSchema::enlargedSchema(schema* s, double width) : schema(s->inputs(), s->outputs(), width, s->height()), fSchema(s)
 {
     for (unsigned int i = 0; i < inputs(); i++) fInputPoint.push_back(point(0, 0));
     for (unsigned int i = 0; i < outputs(); i++) fOutputPoint.push_back(point(0, 0));

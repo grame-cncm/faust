@@ -294,7 +294,7 @@ Tree uniqueID(const char* prefix, Tree sig)
  */
 string uniqueStringID(const char* prefix, Tree sig)
 {
-    Tree ID = uniqueID(prefix,sig);
+    Tree ID = uniqueID(prefix, sig);
     return name(ID->node().getSym());
 }
 

@@ -10,10 +10,8 @@
 #include "Expr.hh"
 #include "Instr.hh"
 
-namespace nlpl
-{
-class IfThenElseInstr : public Instruction
-{
+namespace nlpl {
+class IfThenElseInstr : public Instruction {
     Expr  fCond;
     Instr fThen;
     Instr fElse;

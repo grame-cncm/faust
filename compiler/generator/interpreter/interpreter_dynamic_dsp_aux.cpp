@@ -28,23 +28,21 @@
 
 using namespace std;
 
-EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const string& filename, int argc,
-                                                                    const char* argv[], string& error_msg)
+EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const string& filename, int argc, const char* argv[], string& error_msg)
 {
     string base = basename((char*)filename.c_str());
     size_t pos  = filename.find(".dsp");
 
     if (pos != string::npos) {
-        return createInterpreterDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv,
-                                                     error_msg);
+        return createInterpreterDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv, error_msg);
     } else {
         error_msg = "File Extension is not the one expected (.dsp expected)\n";
         return nullptr;
     }
 }
 
-EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const string& name_app, const string& dsp_content,
-                                                                      int argc, const char* argv[], string& error_msg)
+EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc,
+                                                                      const char* argv[], string& error_msg)
 {
     LOCK_API
     string expanded_dsp_content, sha_key;
@@ -74,8 +72,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
             sfactory->addReference();
             return sfactory;
         } else {
-            dsp_factory_base* dsp_factory_aux =
-                compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, true);
+            dsp_factory_base* dsp_factory_aux = compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, true);
             if (dsp_factory_aux) {
                 dsp_factory_aux->setName(name_app);
                 factory = new interpreter_dsp_factory(dsp_factory_aux);

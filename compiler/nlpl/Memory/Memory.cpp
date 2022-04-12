@@ -2,8 +2,7 @@
 #include <utility>
 
 #include "Memory.hh"
-namespace nlpl
-{
+namespace nlpl {
 void MemoryZone::print(std::ostream& os)
 {
     if (fSize == 0) {

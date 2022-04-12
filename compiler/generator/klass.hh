@@ -119,7 +119,7 @@ class Klass  //: public Target
 
     void setParentKlass(Klass* parent)
     {
-        //std::cerr << this << " setParentKlass(" << parent << ")" << std::endl;
+        // std::cerr << this << " setParentKlass(" << parent << ")" << std::endl;
         fParentKlass = parent;
     }
     Klass* getParentKlass() { return fParentKlass; }

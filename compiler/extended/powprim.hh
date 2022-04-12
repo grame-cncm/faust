@@ -65,8 +65,7 @@ class PowPrim : public xtended {
         }
     }
 
-    ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
-                            vector< ::Type> const& types) override
+    ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const& types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -79,8 +78,8 @@ class PowPrim : public xtended {
         it++;
         auto* arg1 = dynamic_cast<Int32NumInst*>(*it);
 
-        if (arg1 && (types[1]->nature() == kInt) && (types[1]->variability() == kKonst) &&
-            (types[1]->computability() == kComp) && (gGlobal->gNeedManualPow)) {
+        if (arg1 && (types[1]->nature() == kInt) && (types[1]->variability() == kKonst) && (types[1]->computability() == kComp) &&
+            (gGlobal->gNeedManualPow)) {
             arg_types[0] = (types[0]->nature() == kInt) ? Typed::kInt32 : itfloat();
             arg_types[1] = Typed::kInt32;
             return container->pushFunction(container->getFaustPowerName(), result_type, arg_types, args);
@@ -97,8 +96,7 @@ class PowPrim : public xtended {
                 casted_args.push_back(promote2real((*it1)->nature(), (*it2)));
             }
 
-            return cast2int(result->nature(),
-                            container->pushFunction(subst("pow$0", isuffix()), itfloat(), arg_types, casted_args));
+            return cast2int(result->nature(), container->pushFunction(subst("pow$0", isuffix()), itfloat(), arg_types, casted_args));
         }
     }
 
@@ -107,8 +105,7 @@ class PowPrim : public xtended {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
-        if ((types[1]->nature() == kInt) && (types[1]->variability() == kKonst) &&
-            (types[1]->computability() == kComp)) {
+        if ((types[1]->nature() == kInt) && (types[1]->variability() == kKonst) && (types[1]->computability() == kComp)) {
             klass->rememberNeedPowerDef();
             return subst("faustpower<$1>($0)", args[0], args[1]);
         } else {

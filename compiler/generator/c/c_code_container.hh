@@ -40,16 +40,14 @@ class CCodeContainer : public virtual CodeContainer {
     void produceMetadata(int tabs);
 
    public:
-    CCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out)
-        : fCodeProducer(out, name), fOut(out)
+    CCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out) : fCodeProducer(out, name), fOut(out)
     {
         initialize(numInputs, numOutputs);
         fKlassName = name;
 
         // For mathematical functions
         if (gGlobal->gFastMath) {
-            addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                                                            : ("\"" + gGlobal->gFastMathLib + "\""));
+            addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\"" : ("\"" + gGlobal->gFastMathLib + "\""));
         } else {
             addIncludeFile("<math.h>");
         }
@@ -92,8 +90,7 @@ class CCodeContainer : public virtual CodeContainer {
 class CScalarCodeContainer : public CCodeContainer {
    protected:
    public:
-    CScalarCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out,
-                         int sub_container_type);
+    CScalarCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
     ~CScalarCodeContainer() override;
 
     void generateCompute(int tab) override;

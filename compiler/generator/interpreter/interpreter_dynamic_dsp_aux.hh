@@ -23,9 +23,8 @@
 
 #include "interpreter_dsp_aux.hh"
 
-EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const std::string& filename, int argc,
-                                                                    const char* argv[], std::string& error_msg);
+EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const std::string& filename, int argc, const char* argv[],
+                                                                    std::string& error_msg);
 
-EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const std::string& name_app,
-                                                                      const std::string& dsp_content, int argc,
+EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc,
                                                                       const char* argv[], std::string& error_msg);

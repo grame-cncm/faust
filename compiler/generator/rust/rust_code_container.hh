@@ -42,8 +42,7 @@ class RustCodeContainer : public virtual CodeContainer {
     void produceMetadata(int tabs);
 
    public:
-    RustCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
-        : fCodeProducer(out, name), fOut(out)
+    RustCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out) : fCodeProducer(out, name), fOut(out)
     {
         initialize(numInputs, numOutputs);
         fKlassName = name;
@@ -57,15 +56,13 @@ class RustCodeContainer : public virtual CodeContainer {
 
     CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
-    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs,
-                                          ostream* dst = new stringstream());
+    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, ostream* dst = new stringstream());
 };
 
 class RustScalarCodeContainer : public RustCodeContainer {
    protected:
    public:
-    RustScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
-                            int sub_container_type);
+    RustScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
     virtual ~RustScalarCodeContainer();
 
     void generateCompute(int tab);

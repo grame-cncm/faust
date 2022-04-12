@@ -9,10 +9,8 @@
 
 #include "Expr.hh"
 #include "Instr.hh"
-namespace nlpl
-{
-class SeqInstr : public Instruction
-{
+namespace nlpl {
+class SeqInstr : public Instruction {
     std::vector<Instr> fInstructions;
 
    public:

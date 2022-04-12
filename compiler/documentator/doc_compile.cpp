@@ -855,8 +855,7 @@ string DocCompiler::generateDocWriteTbl(Tree /*tbl*/, Tree size, Tree isig, Tree
     string ltqRWTableDef;
     ltqRWTableDef += subst("$0(t)[i] = \n", vname);
     ltqRWTableDef += "\\left\\{\\begin{array}{ll}\n";
-    ltqRWTableDef += subst("$0 & \\mbox{if \\,} t < 0 \\mbox{\\, and \\,}  i \\in [0,$1] \\\\\n",
-                           replaceTimeBy(init, 'i'), T(n - 1));
+    ltqRWTableDef += subst("$0 & \\mbox{if \\,} t < 0 \\mbox{\\, and \\,}  i \\in [0,$1] \\\\\n", replaceTimeBy(init, 'i'), T(n - 1));
     ltqRWTableDef += subst("$0 & \\mbox{if \\,} i = $1 \\\\\n", CS(wsig, 0), CS(widx, 0));
     ltqRWTableDef += subst("$0(t\\!-\\!1)[i] & \\mbox{otherwise} \\\\\n", vname);
     ltqRWTableDef += "\\end{array}\\right.";
@@ -1184,8 +1183,7 @@ string DocCompiler::generateDelayVec(Tree sig, const string& exp, const string& 
 /**
  * Generate code for the delay mecchanism without using temporary variables
  */
-string DocCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname,
-                                           int mxd)
+string DocCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
 {
     faustassert(mxd > 0);
     // cerr << "  entering generateDelayVecNoTemp" << endl;

@@ -228,8 +228,7 @@ LIBEXPORT inline void generateCSHA1(const char* data, char* sha_key)
  *
  * @return the expanded DSP or a NULL string in case of failure (to be deleted by the caller using freeCMemory)
  */
-LIBEXPORT const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key,
-                                         char* error_msg);
+LIBEXPORT const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key, char* error_msg);
 
 /**
  * Expand a DSP source code into a self-contained DSP where all library import have been inlined starting from a string.
@@ -243,8 +242,8 @@ LIBEXPORT const char* expandCDSPFromFile(const char* filename, int argc, const c
  *
  * @return the expanded DSP or a NULL string in case of failure (to be deleted by the caller using freeCMemory)
  */
-LIBEXPORT const char* expandCDSPFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
-                                           char* sha_key, char* error_msg);
+LIBEXPORT const char* expandCDSPFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* sha_key,
+                                           char* error_msg);
 
 /**
  * Generate additional file (other backends, SVG, XML, JSON...) starting from a filename.
@@ -268,8 +267,7 @@ LIBEXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const c
  *
  * @return the expanded DSP or a empty string in case of failure
  */
-LIBEXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
-                                           char* error_msg);
+LIBEXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
 
 /**
  * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey,

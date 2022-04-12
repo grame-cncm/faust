@@ -73,8 +73,8 @@ ostream& operator<<(ostream& dst, const TupletType& t)
  */
 ostream& SimpleType::print(ostream& dst) const
 {
-    return dst << "NR"[nature()] << "KB?S"[variability()] << "CI?E"[computability()] << "VS?TS"[vectorability()]
-               << "N?B"[boolean()] << " " << fInterval;
+    return dst << "NR"[nature()] << "KB?S"[variability()] << "CI?E"[computability()] << "VS?TS"[vectorability()] << "N?B"[boolean()] << " "
+               << fInterval;
 }
 
 /**
@@ -176,8 +176,7 @@ bool operator==(const Type& t1, const Type& t2)
         return (st1->nature() == st2->nature()) && (st1->variability() == st2->variability()) &&
                (st1->computability() == st2->computability()) && (st1->vectorability() == st2->vectorability()) &&
                (st1->boolean() == st2->boolean()) && (st1->getInterval().lo == st2->getInterval().lo) &&
-               (st1->getInterval().hi == st2->getInterval().hi) &&
-               (st1->getInterval().valid == st2->getInterval().valid);
+               (st1->getInterval().hi == st2->getInterval().hi) && (st1->getInterval().valid == st2->getInterval().valid);
     if ((tt1 = isTableType(t1)) && (tt2 = isTableType(t2))) return tt1->content() == tt2->content();
     if ((nt1 = isTupletType(t1)) && (nt2 = isTupletType(t2))) {
         int a1 = nt1->arity();

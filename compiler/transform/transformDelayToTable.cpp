@@ -86,8 +86,7 @@ class TransformDelayToTable : public SignalIdentity {
 
         if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, exp)) {
             int size = dmax2size(dmax);
-            tr = sigInstructionTableWrite(id, origin, nature, size, sigGen(sigInt(0)), sigAND(time, sigInt(size - 1)),
-                                          self(exp));
+            tr       = sigInstructionTableWrite(id, origin, nature, size, sigGen(sigInt(0)), sigAND(time, sigInt(size - 1)), self(exp));
             fInstr.insert(tr);
 
         } else if (isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl)) {

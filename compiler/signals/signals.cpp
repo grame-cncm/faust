@@ -248,8 +248,8 @@ bool isSigSelect2(Tree t, Tree& selector, Tree& s1, Tree& s2)
 //  "select3" expresses with "select2"
 Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
 {
-    return sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(0)),
-                      sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(1)), s3, s2), s1);
+    return sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(0)), sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(1)), s3, s2),
+                      s1);
 }
 bool isSigSelect3(Tree t, Tree& selector, Tree& s1, Tree& s2, Tree& s3)
 {
@@ -842,8 +842,7 @@ Tree sigInstructionTableWrite(Tree id, Tree origin, int nature, int tblsize, Tre
  * @return true if s is a sigWriteTable
  * @return false otherwise
  */
-bool isSigInstructionTableWrite(Tree s, Tree& id, Tree& origin, int* nature, int* tblsize, Tree& init, Tree& idx,
-                                Tree& sig)
+bool isSigInstructionTableWrite(Tree s, Tree& id, Tree& origin, int* nature, int* tblsize, Tree& init, Tree& idx, Tree& sig)
 {
     Tree tnat, tsize;
     if (isTree(s, gGlobal->SIGINSTRUCTIONTABLEWRITE, id, origin, tnat, tsize, init, idx, sig)) {

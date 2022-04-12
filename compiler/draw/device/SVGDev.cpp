@@ -146,9 +146,8 @@ void SVGDev::rect(double x, double y, double l, double h, const char* color, con
     }
 
     // draw the rectangle
-    fprintf(fic_repr,
-            "<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"stroke:none;fill:%s;\"/>\n",
-            x, y, l, h, color);
+    fprintf(fic_repr, "<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" rx=\"0\" ry=\"0\" style=\"stroke:none;fill:%s;\"/>\n", x, y, l, h,
+            color);
     if (link != 0 && link[0] != 0) {
         // close the optional link tag
         fprintf(fic_repr, "</a>\n");
@@ -178,10 +177,10 @@ void SVGDev::triangle(double x, double y, double l, double h, const char* color,
         x1 = (float)(x + 2 * r);
         x2 = (float)(x + r);
     }
-    fprintf(fic_repr, "<polygon fill=\"%s\" stroke=\"black\" stroke-width=\".25\" points=\"%f,%f %f,%f %f,%f\"/>\n",
-            color, x0, y, x1, y + h / 2.0, x0, y + h);
-    fprintf(fic_repr, "<circle  fill=\"%s\" stroke=\"black\" stroke-width=\".25\" cx=\"%f\" cy=\"%f\" r=\"%f\"/>\n",
-            color, x2, y + h / 2.0, r);
+    fprintf(fic_repr, "<polygon fill=\"%s\" stroke=\"black\" stroke-width=\".25\" points=\"%f,%f %f,%f %f,%f\"/>\n", color, x0, y, x1,
+            y + h / 2.0, x0, y + h);
+    fprintf(fic_repr, "<circle  fill=\"%s\" stroke=\"black\" stroke-width=\".25\" cx=\"%f\" cy=\"%f\" r=\"%f\"/>\n", color, x2, y + h / 2.0,
+            r);
 }
 
 void SVGDev::rond(double x, double y, double rayon)
@@ -218,10 +217,8 @@ void SVGDev::fleche(double x, double y, double rotation, int sens)
 
 void SVGDev::carre(double x, double y, double cote)
 {
-    fprintf(
-        fic_repr,
-        "<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" style=\"stroke: black;stroke-width:0.5;fill:none;\"/>\n",
-        x - 0.5 * cote, y - cote, cote, cote);
+    fprintf(fic_repr, "<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" style=\"stroke: black;stroke-width:0.5;fill:none;\"/>\n",
+            x - 0.5 * cote, y - cote, cote, cote);
 }
 
 void SVGDev::trait(double x1, double y1, double x2, double y2)
@@ -261,8 +258,7 @@ void SVGDev::text(double x, double y, const char* name, const char* link)
 void SVGDev::label(double x, double y, const char* name)
 {
     char name2[256];
-    fprintf(fic_repr, "<text x=\"%f\" y=\"%f\" font-family=\"Arial\" font-size=\"7\">%s</text>\n", x, y + 2,
-            xmlcode(name, name2));
+    fprintf(fic_repr, "<text x=\"%f\" y=\"%f\" font-family=\"Arial\" font-size=\"7\">%s</text>\n", x, y + 2, xmlcode(name, name2));
 }
 
 void SVGDev::markSens(double x, double y, int sens)

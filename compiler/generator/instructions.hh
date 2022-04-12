@@ -155,8 +155,8 @@ inline bool isIntOrPtrType(Typed::VarType type)
 {
     return (type == Typed::kInt32 || type == Typed::kInt64 || type == Typed::kInt32_ptr || type == Typed::kInt64_ptr ||
             type == Typed::kFloat_ptr || type == Typed::kFloat_ptr_ptr || type == Typed::kFloatMacro_ptr ||
-            type == Typed::kFloatMacro_ptr_ptr || type == Typed::kDouble_ptr || type == Typed::kObj_ptr ||
-            type == Typed::kVoid_ptr || type == Typed::kSound_ptr);
+            type == Typed::kFloatMacro_ptr_ptr || type == Typed::kDouble_ptr || type == Typed::kObj_ptr || type == Typed::kVoid_ptr ||
+            type == Typed::kSound_ptr);
 }
 
 DeclareStructTypeInst* isStructType(const string& name);
@@ -628,10 +628,7 @@ struct AddMetaDeclareInst : public StatementInst {
     string fKey;
     string fValue;
 
-    AddMetaDeclareInst(const string& zone, const string& key, const string& value)
-        : fZone(zone), fKey(key), fValue(value)
-    {
-    }
+    AddMetaDeclareInst(const string& zone, const string& key, const string& value) : fZone(zone), fKey(key), fValue(value) {}
 
     void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
@@ -682,8 +679,7 @@ struct AddSliderInst : public StatementInst {
     double     fStep;
     SliderType fType;
 
-    AddSliderInst(const string& label, const string& zone, double init, double min, double max, double step,
-                  SliderType type)
+    AddSliderInst(const string& label, const string& zone, double init, double min, double max, double step, SliderType type)
         : fLabel(label), fZone(zone), fInit(init), fMin(min), fMax(max), fStep(step), fType(type)
     {
     }
@@ -717,10 +713,7 @@ struct AddSoundfileInst : public StatementInst {
     string fURL;
     string fSFZone;
 
-    AddSoundfileInst(const string& label, const string& url, const string& sf_zone)
-        : fLabel(label), fURL(url), fSFZone(sf_zone)
-    {
-    }
+    AddSoundfileInst(const string& label, const string& url, const string& sf_zone) : fLabel(label), fURL(url), fSFZone(sf_zone) {}
 
     void accept(InstVisitor* visitor) override { visitor->visit(this); }
 
@@ -979,10 +972,7 @@ struct BinopInst : public ValueInst {
     ValueInst* fInst1;
     ValueInst* fInst2;
 
-    BinopInst(int opcode, ValueInst* inst1, ValueInst* inst2)
-        : ValueInst(), fOpcode(opcode), fInst1(inst1), fInst2(inst2)
-    {
-    }
+    BinopInst(int opcode, ValueInst* inst1, ValueInst* inst2) : ValueInst(), fOpcode(opcode), fInst1(inst1), fInst2(inst2) {}
 
     ~BinopInst() override = default;
 
@@ -1090,10 +1080,7 @@ struct IfInst : public StatementInst {
     BlockInst* fThen;
     BlockInst* fElse;
 
-    IfInst(ValueInst* cond_inst, BlockInst* then_inst, BlockInst* else_inst)
-        : fCond(cond_inst), fThen(then_inst), fElse(else_inst)
-    {
-    }
+    IfInst(ValueInst* cond_inst, BlockInst* then_inst, BlockInst* else_inst) : fCond(cond_inst), fThen(then_inst), fElse(else_inst) {}
 
     IfInst(ValueInst* cond_inst, BlockInst* then_inst) : fCond(cond_inst), fThen(then_inst), fElse(new BlockInst()) {}
 
@@ -1138,10 +1125,7 @@ struct FunCallInst : public ValueInst {
     list<ValueInst*> fArgs;  // List of arguments
     bool             fMethod;
 
-    FunCallInst(const string& name, const list<ValueInst*>& args, bool method)
-        : ValueInst(), fName(name), fArgs(args), fMethod(method)
-    {
-    }
+    FunCallInst(const string& name, const list<ValueInst*>& args, bool method) : ValueInst(), fName(name), fArgs(args), fMethod(method) {}
 
     ~FunCallInst() override = default;
 
@@ -1277,20 +1261,11 @@ class BasicCloneVisitor : public CloneVisitor {
     }
 
     // Memory
-    ValueInst* visit(LoadVarInst* inst) override { return new LoadVarInst(inst->fAddress->clone(this)); }
-    ValueInst* visit(LoadVarAddressInst* inst) override { return new LoadVarAddressInst(inst->fAddress->clone(this)); }
-    ValueInst* visit(TeeVarInst* inst) override
-    {
-        return new TeeVarInst(inst->fAddress->clone(this), inst->fValue->clone(this));
-    }
-    StatementInst* visit(StoreVarInst* inst) override
-    {
-        return new StoreVarInst(inst->fAddress->clone(this), inst->fValue->clone(this));
-    }
-    StatementInst* visit(ShiftArrayVarInst* inst) override
-    {
-        return new ShiftArrayVarInst(inst->fAddress->clone(this), inst->fDelay);
-    }
+    ValueInst*     visit(LoadVarInst* inst) override { return new LoadVarInst(inst->fAddress->clone(this)); }
+    ValueInst*     visit(LoadVarAddressInst* inst) override { return new LoadVarAddressInst(inst->fAddress->clone(this)); }
+    ValueInst*     visit(TeeVarInst* inst) override { return new TeeVarInst(inst->fAddress->clone(this), inst->fValue->clone(this)); }
+    StatementInst* visit(StoreVarInst* inst) override { return new StoreVarInst(inst->fAddress->clone(this), inst->fValue->clone(this)); }
+    StatementInst* visit(ShiftArrayVarInst* inst) override { return new ShiftArrayVarInst(inst->fAddress->clone(this), inst->fDelay); }
 
     // Addresses
     Address* visit(NamedAddress* address) override { return new NamedAddress(address->fName, address->fAccess); }
@@ -1316,15 +1291,9 @@ class BasicCloneVisitor : public CloneVisitor {
     }
 
     // Cast
-    ValueInst* visit(CastInst* inst) override
-    {
-        return new CastInst(inst->fInst->clone(this), inst->fType->clone(this));
-    }
+    ValueInst* visit(CastInst* inst) override { return new CastInst(inst->fInst->clone(this), inst->fType->clone(this)); }
 
-    ValueInst* visit(BitcastInst* inst) override
-    {
-        return new BitcastInst(inst->fInst->clone(this), inst->fType->clone(this));
-    }
+    ValueInst* visit(BitcastInst* inst) override { return new BitcastInst(inst->fInst->clone(this), inst->fType->clone(this)); }
 
     // Function call
     ValueInst* visit(FunCallInst* inst) override
@@ -1336,14 +1305,8 @@ class BasicCloneVisitor : public CloneVisitor {
 
         return new FunCallInst(inst->fName, cloned_args, inst->fMethod);
     }
-    StatementInst* visit(RetInst* inst) override
-    {
-        return new RetInst((inst->fResult) ? inst->fResult->clone(this) : nullptr);
-    }
-    StatementInst* visit(DropInst* inst) override
-    {
-        return new DropInst((inst->fResult) ? inst->fResult->clone(this) : nullptr);
-    }
+    StatementInst* visit(RetInst* inst) override { return new RetInst((inst->fResult) ? inst->fResult->clone(this) : nullptr); }
+    StatementInst* visit(DropInst* inst) override { return new DropInst((inst->fResult) ? inst->fResult->clone(this) : nullptr); }
 
     // Conditionnal
     ValueInst* visit(Select2Inst* inst) override
@@ -1377,8 +1340,8 @@ class BasicCloneVisitor : public CloneVisitor {
 
     StatementInst* visit(SimpleForLoopInst* inst) override
     {
-        return new SimpleForLoopInst(inst->fName, inst->fUpperBound->clone(this), inst->fLowerBound->clone(this),
-                                     inst->fReverse, static_cast<BlockInst*>(inst->fCode->clone(this)));
+        return new SimpleForLoopInst(inst->fName, inst->fUpperBound->clone(this), inst->fLowerBound->clone(this), inst->fReverse,
+                                     static_cast<BlockInst*>(inst->fCode->clone(this)));
     }
 
     StatementInst* visit(WhileLoopInst* inst) override
@@ -1400,29 +1363,19 @@ class BasicCloneVisitor : public CloneVisitor {
     }
 
     // User interface
-    StatementInst* visit(AddMetaDeclareInst* inst) override
-    {
-        return new AddMetaDeclareInst(inst->fZone, inst->fKey, inst->fValue);
-    }
+    StatementInst* visit(AddMetaDeclareInst* inst) override { return new AddMetaDeclareInst(inst->fZone, inst->fKey, inst->fValue); }
     StatementInst* visit(OpenboxInst* inst) override { return new OpenboxInst(inst->fOrient, inst->fName); }
     StatementInst* visit(CloseboxInst* inst) override { return new CloseboxInst(); }
-    StatementInst* visit(AddButtonInst* inst) override
-    {
-        return new AddButtonInst(inst->fLabel, inst->fZone, inst->fType);
-    }
+    StatementInst* visit(AddButtonInst* inst) override { return new AddButtonInst(inst->fLabel, inst->fZone, inst->fType); }
     StatementInst* visit(AddSliderInst* inst) override
     {
-        return new AddSliderInst(inst->fLabel, inst->fZone, inst->fInit, inst->fMin, inst->fMax, inst->fStep,
-                                 inst->fType);
+        return new AddSliderInst(inst->fLabel, inst->fZone, inst->fInit, inst->fMin, inst->fMax, inst->fStep, inst->fType);
     }
     StatementInst* visit(AddBargraphInst* inst) override
     {
         return new AddBargraphInst(inst->fLabel, inst->fZone, inst->fMin, inst->fMax, inst->fType);
     }
-    StatementInst* visit(AddSoundfileInst* inst) override
-    {
-        return new AddSoundfileInst(inst->fLabel, inst->fURL, inst->fSFZone);
-    }
+    StatementInst* visit(AddSoundfileInst* inst) override { return new AddSoundfileInst(inst->fLabel, inst->fURL, inst->fSFZone); }
     StatementInst* visit(LabelInst* inst) override { return new LabelInst(inst->fLabel); }
 
     // Typed
@@ -1436,10 +1389,7 @@ class BasicCloneVisitor : public CloneVisitor {
         }
         return new FunTyped(cloned, static_cast<BasicTyped*>(typed->fResult->clone(this)), typed->fAttribute);
     }
-    Typed* visit(ArrayTyped* typed) override
-    {
-        return new ArrayTyped(typed->fType->clone(this), typed->fSize, typed->fIsPtr);
-    }
+    Typed* visit(ArrayTyped* typed) override { return new ArrayTyped(typed->fType->clone(this), typed->fSize, typed->fIsPtr); }
     Typed* visit(StructTyped* typed) override
     {
         vector<NamedTyped*> cloned;
@@ -1449,10 +1399,7 @@ class BasicCloneVisitor : public CloneVisitor {
         return new StructTyped(typed->fName, cloned);
     }
 
-    Typed* visit(VectorTyped* typed) override
-    {
-        return new VectorTyped(static_cast<BasicTyped*>(typed->fType->clone(this)), typed->fSize);
-    }
+    Typed* visit(VectorTyped* typed) override { return new VectorTyped(static_cast<BasicTyped*>(typed->fType->clone(this)), typed->fSize); }
 };
 
 // =======================
@@ -1723,26 +1670,24 @@ struct InstBuilder {
         return new AddButtonInst(label, zone, AddButtonInst::kCheckButton);
     }
 
-    static AddSliderInst* genAddHorizontalSliderInst(const string& label, const string& zone, double init, double min,
-                                                     double max, double step)
+    static AddSliderInst* genAddHorizontalSliderInst(const string& label, const string& zone, double init, double min, double max,
+                                                     double step)
     {
         return new AddSliderInst(label, zone, init, min, max, step, AddSliderInst::kHorizontal);
     }
 
-    static AddSliderInst* genAddVerticalSliderInst(const string& label, const string& zone, double init, double min,
-                                                   double max, double step)
+    static AddSliderInst* genAddVerticalSliderInst(const string& label, const string& zone, double init, double min, double max,
+                                                   double step)
     {
         return new AddSliderInst(label, zone, init, min, max, step, AddSliderInst::kVertical);
     }
 
-    static AddSliderInst* genAddNumEntryInst(const string& label, const string& zone, double init, double min,
-                                             double max, double step)
+    static AddSliderInst* genAddNumEntryInst(const string& label, const string& zone, double init, double min, double max, double step)
     {
         return new AddSliderInst(label, zone, init, min, max, step, AddSliderInst::kNumEntry);
     }
 
-    static AddBargraphInst* genAddHorizontalBargraphInst(const string& label, const string& zone, double min,
-                                                         double max)
+    static AddBargraphInst* genAddHorizontalBargraphInst(const string& label, const string& zone, double min, double max)
     {
         return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kHorizontal);
     }
@@ -1773,15 +1718,9 @@ struct InstBuilder {
     {
         return new DeclareFunInst(name, typed, code);
     }
-    static DeclareFunInst* genDeclareFunInst(const string& name, FunTyped* typed)
-    {
-        return new DeclareFunInst(name, typed);
-    }
+    static DeclareFunInst* genDeclareFunInst(const string& name, FunTyped* typed) { return new DeclareFunInst(name, typed); }
 
-    static DeclareStructTypeInst* genDeclareStructTypeInst(StructTyped* type)
-    {
-        return new DeclareStructTypeInst(type);
-    }
+    static DeclareStructTypeInst* genDeclareStructTypeInst(StructTyped* type) { return new DeclareStructTypeInst(type); }
 
     // Memory
     static LoadVarInst*        genLoadVarInst(Address* address) { return new LoadVarInst(address); }
@@ -1790,14 +1729,8 @@ struct InstBuilder {
     {
         return new TeeVarInst(InstBuilder::genNamedAddress(vname, Address::kStack), value);
     }
-    static StoreVarInst* genStoreVarInst(Address* address, ValueInst* value)
-    {
-        return new StoreVarInst(address, value);
-    }
-    static ShiftArrayVarInst* genShiftArrayVarInst(Address* address, int delay)
-    {
-        return new ShiftArrayVarInst(address, delay);
-    }
+    static StoreVarInst*      genStoreVarInst(Address* address, ValueInst* value) { return new StoreVarInst(address, value); }
+    static ShiftArrayVarInst* genShiftArrayVarInst(Address* address, int delay) { return new ShiftArrayVarInst(address, delay); }
 
     // Numbers
     static FloatNumInst*       genFloatNumInst(float num) { return new FloatNumInst(num); }
@@ -1843,10 +1776,7 @@ struct InstBuilder {
     static BoolNumInst*  genBoolNumInst(bool num) { return new BoolNumInst(num); }
 
     // Numerical computation
-    static BinopInst* genBinopInst(int opcode, ValueInst* inst1, ValueInst* inst2)
-    {
-        return new BinopInst(opcode, inst1, inst2);
-    }
+    static BinopInst* genBinopInst(int opcode, ValueInst* inst1, ValueInst* inst2) { return new BinopInst(opcode, inst1, inst2); }
 
     static ValueInst* genCastInst(ValueInst* inst, Typed* typed_ext)
     {
@@ -1926,14 +1856,11 @@ struct InstBuilder {
     {
         return new IfInst(cond_inst, then_inst, else_inst);
     }
-    static IfInst* genIfInst(ValueInst* cond_inst, BlockInst* then_inst) { return new IfInst(cond_inst, then_inst); }
+    static IfInst*     genIfInst(ValueInst* cond_inst, BlockInst* then_inst) { return new IfInst(cond_inst, then_inst); }
     static SwitchInst* genSwitchInst(ValueInst* cond) { return new SwitchInst(cond); }
 
     // Function management
-    static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args)
-    {
-        return new FunCallInst(name, args, false);
-    }
+    static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args) { return new FunCallInst(name, args, false); }
     static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args, bool method)
     {
         return new FunCallInst(name, args, method);
@@ -1948,8 +1875,8 @@ struct InstBuilder {
     }
 
     // Loop
-    static ForLoopInst* genForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment,
-                                       BlockInst* code = new BlockInst(), bool is_recursive = false)
+    static ForLoopInst* genForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment, BlockInst* code = new BlockInst(),
+                                       bool is_recursive = false)
     {
         faustassert(dynamic_cast<DeclareVarInst*>(init) || dynamic_cast<StoreVarInst*>(init));
         return new ForLoopInst(init, end, increment, code, is_recursive);
@@ -1964,9 +1891,8 @@ struct InstBuilder {
         return genForLoopInst(dec, end, inc);
     }
 
-    static SimpleForLoopInst* genSimpleForLoopInst(const string& index, ValueInst* upperBound,
-                                                   ValueInst* lowerBound = new Int32NumInst(0), bool reverse = false,
-                                                   BlockInst* code = new BlockInst())
+    static SimpleForLoopInst* genSimpleForLoopInst(const string& index, ValueInst* upperBound, ValueInst* lowerBound = new Int32NumInst(0),
+                                                   bool reverse = false, BlockInst* code = new BlockInst())
     {
         faustassert(dynamic_cast<Int32NumInst*>(upperBound) || dynamic_cast<LoadVarInst*>(upperBound));
         faustassert(dynamic_cast<Int32NumInst*>(lowerBound) || dynamic_cast<LoadVarInst*>(lowerBound));
@@ -1989,30 +1915,17 @@ struct InstBuilder {
     static NamedTyped* genNamedTyped(const string& name, Typed* type);
     static NamedTyped* genNamedTyped(const string& name, Typed::VarType type);
 
-    static FunTyped* genFunTyped(const list<NamedTyped*>& args, BasicTyped* result,
-                                 FunTyped::FunAttribute attribute = FunTyped::kDefault)
+    static FunTyped* genFunTyped(const list<NamedTyped*>& args, BasicTyped* result, FunTyped::FunAttribute attribute = FunTyped::kDefault)
     {
         return new FunTyped(args, result, attribute);
     }
     static VectorTyped* genVectorTyped(BasicTyped* type, int size) { return new VectorTyped(type, size); }
-    static ArrayTyped*  genArrayTyped(Typed* type, int size, bool is_ptr = false)
-    {
-        return new ArrayTyped(type, size, is_ptr);
-    }
-    static StructTyped* genStructTyped(const string& name, const vector<NamedTyped*>& fields)
-    {
-        return new StructTyped(name, fields);
-    }
+    static ArrayTyped*  genArrayTyped(Typed* type, int size, bool is_ptr = false) { return new ArrayTyped(type, size, is_ptr); }
+    static StructTyped* genStructTyped(const string& name, const vector<NamedTyped*>& fields) { return new StructTyped(name, fields); }
 
     // Addresses
-    static NamedAddress* genNamedAddress(const string& name, Address::AccessType access)
-    {
-        return new NamedAddress(name, access);
-    }
-    static IndexedAddress* genIndexedAddress(Address* address, ValueInst* index)
-    {
-        return new IndexedAddress(address, index);
-    }
+    static NamedAddress*   genNamedAddress(const string& name, Address::AccessType access) { return new NamedAddress(name, access); }
+    static IndexedAddress* genIndexedAddress(Address* address, ValueInst* index) { return new IndexedAddress(address, index); }
 
     // Helper build methods
     static DeclareVarInst* genDecArrayVar(const string& vname, Address::AccessType var_access, Typed* type, int size)
@@ -2030,8 +1943,7 @@ struct InstBuilder {
         return genLoadArrayVar(vname, var_access, index);
     }
 
-    static StoreVarInst* genStoreArrayVar(const string& vname, Address::AccessType var_access, ValueInst* index,
-                                          ValueInst* exp)
+    static StoreVarInst* genStoreArrayVar(const string& vname, Address::AccessType var_access, ValueInst* index, ValueInst* exp)
     {
         return genStoreVarInst(genIndexedAddress(genNamedAddress(vname, var_access), index), exp);
     }
@@ -2044,8 +1956,7 @@ struct InstBuilder {
 
     static DeclareVarInst* genDecVolatileStructVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
-        return genDeclareVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct | Address::kVolatile)),
-                                 type, exp);
+        return genDeclareVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct | Address::kVolatile)), type, exp);
     }
 
     static DeclareVarInst* genDecArrayStructVar(const string& vname, Typed* type, int size)
@@ -2053,15 +1964,11 @@ struct InstBuilder {
         return genDecArrayVar(vname, Address::kStruct, type, size);
     }
 
-    static LoadVarInst* genLoadStructVar(const string& vname)
-    {
-        return genLoadVarInst(genNamedAddress(vname, Address::kStruct));
-    }
+    static LoadVarInst* genLoadStructVar(const string& vname) { return genLoadVarInst(genNamedAddress(vname, Address::kStruct)); }
 
     static LoadVarInst* genLoadMutRefStructVar(const string& vname)
     {
-        return genLoadVarInst(
-            genNamedAddress(vname, (Address::AccessType)(Address::kStruct | Address::kReference | Address::kMutable)));
+        return genLoadVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct | Address::kReference | Address::kMutable)));
     }
 
     static LoadVarInst* genVolatileLoadStructVar(const string& vname)
@@ -2091,10 +1998,7 @@ struct InstBuilder {
         return genLoadArrayStructVar(vname, indices.begin(), indices.end());
     }
 
-    static LoadVarInst* genLoadArrayStructVar(const string& vname)
-    {
-        return genLoadVarInst(genNamedAddress(vname, Address::kStruct));
-    }
+    static LoadVarInst* genLoadArrayStructVar(const string& vname) { return genLoadVarInst(genNamedAddress(vname, Address::kStruct)); }
 
     static LoadVarAddressInst* genLoadArrayStructVarAddress(const string& vname, ValueInst* index)
     {
@@ -2108,13 +2012,11 @@ struct InstBuilder {
 
     static StoreVarInst* genVolatileStoreStructVar(const string& vname, ValueInst* exp)
     {
-        return genStoreVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct | Address::kVolatile)),
-                               exp);
+        return genStoreVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct | Address::kVolatile)), exp);
     }
 
     template <typename Iterator>
-    static StoreVarInst* genStoreArrayStructVar(const string& vname, ValueInst* exp, Iterator indexBegin,
-                                                Iterator indexEnd)
+    static StoreVarInst* genStoreArrayStructVar(const string& vname, ValueInst* exp, Iterator indexBegin, Iterator indexEnd)
     {
         using Rit = reverse_iterator<Iterator>;
         Rit rbegin(indexEnd);
@@ -2148,8 +2050,7 @@ struct InstBuilder {
 
     static DeclareVarInst* genDecConstStaticStructVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
-        return genDeclareVarInst(
-            genNamedAddress(vname, (Address::AccessType)(Address::kStaticStruct | Address::kConst)), type, exp);
+        return genDeclareVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStaticStruct | Address::kConst)), type, exp);
     }
 
     static LoadVarInst* genLoadStaticStructVar(const string& vname)
@@ -2159,8 +2060,8 @@ struct InstBuilder {
 
     static LoadVarInst* genLoadStaticMutRefStructVar(const string& vname)
     {
-        return genLoadVarInst(genNamedAddress(
-            vname, (Address::AccessType)(Address::kStaticStruct | Address::kReference | Address::kMutable)));
+        return genLoadVarInst(
+            genNamedAddress(vname, (Address::AccessType)(Address::kStaticStruct | Address::kReference | Address::kMutable)));
     }
 
     static StoreVarInst* genStoreStaticStructVar(const string& vname, ValueInst* exp)
@@ -2191,8 +2092,7 @@ struct InstBuilder {
     }
 
     template <typename Iterator>
-    static StoreVarInst* genStoreArrayStaticStructVar(const string& vname, ValueInst* exp, Iterator indexBegin,
-                                                      Iterator indexEnd)
+    static StoreVarInst* genStoreArrayStaticStructVar(const string& vname, ValueInst* exp, Iterator indexBegin, Iterator indexEnd)
     {
         using Rit = reverse_iterator<Iterator>;
         Rit rbegin(indexEnd);
@@ -2224,10 +2124,7 @@ struct InstBuilder {
         return genDecArrayVar(vname, Address::kStack, type, size);
     }
 
-    static LoadVarInst* genLoadStackVar(const string& vname)
-    {
-        return genLoadVarInst(genNamedAddress(vname, Address::kStack));
-    }
+    static LoadVarInst* genLoadStackVar(const string& vname) { return genLoadVarInst(genNamedAddress(vname, Address::kStack)); }
 
     static LoadVarAddressInst* genLoadStackVarAddress(const string& vname)
     {
@@ -2260,10 +2157,7 @@ struct InstBuilder {
         return genDeclareVarInst(genNamedAddress(vname, Address::kLoop), type, exp);
     }
 
-    static LoadVarInst* genLoadLoopVar(const string& vname)
-    {
-        return genLoadVarInst(genNamedAddress(vname, Address::kLoop));
-    }
+    static LoadVarInst* genLoadLoopVar(const string& vname) { return genLoadVarInst(genNamedAddress(vname, Address::kLoop)); }
 
     static StoreVarInst* genStoreLoopVar(const string& vname, ValueInst* exp)
     {
@@ -2271,10 +2165,7 @@ struct InstBuilder {
     }
 
     // FunArgs variable
-    static LoadVarInst* genLoadFunArgsVar(const string& vname)
-    {
-        return genLoadVarInst(genNamedAddress(vname, Address::kFunArgs));
-    }
+    static LoadVarInst* genLoadFunArgsVar(const string& vname) { return genLoadVarInst(genNamedAddress(vname, Address::kFunArgs)); }
 
     static LoadVarInst* genLoadArrayFunArgsVar(const string& vname, ValueInst* index)
     {
@@ -2294,14 +2185,10 @@ struct InstBuilder {
 
     static DeclareVarInst* genDecConstGlobalVar(const string& vname, Typed* type, ValueInst* exp = nullptr)
     {
-        return genDeclareVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kGlobal | Address::kConst)),
-                                 type, exp);
+        return genDeclareVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kGlobal | Address::kConst)), type, exp);
     }
 
-    static LoadVarInst* genLoadGlobalVar(const string& vname)
-    {
-        return genLoadVarInst(genNamedAddress(vname, Address::kGlobal));
-    }
+    static LoadVarInst* genLoadGlobalVar(const string& vname) { return genLoadVarInst(genNamedAddress(vname, Address::kGlobal)); }
 
     static StoreVarInst* genStoreGlobalVar(const string& vname, ValueInst* exp)
     {
@@ -2343,30 +2230,25 @@ struct InstBuilder {
 
     // Functions
     static DeclareFunInst* genVoidFunction(const string& name, BlockInst* code = new BlockInst());
-    static DeclareFunInst* genVoidFunction(const string& name, list<NamedTyped*>& args, BlockInst* code,
-                                           bool isvirtual);
+    static DeclareFunInst* genVoidFunction(const string& name, list<NamedTyped*>& args, BlockInst* code, bool isvirtual);
     static DeclareFunInst* genFunction0(const string& name, Typed::VarType res, BlockInst* code = new BlockInst());
-    static DeclareFunInst* genFunction1(const string& name, Typed::VarType res, const string& arg1,
-                                        Typed::VarType arg1_ty, BlockInst* code = new BlockInst());
-    static DeclareFunInst* genFunction2(const string& name, Typed::VarType res, const string& arg1,
-                                        Typed::VarType arg1_ty, const string& arg2, Typed::VarType arg2_ty,
+    static DeclareFunInst* genFunction1(const string& name, Typed::VarType res, const string& arg1, Typed::VarType arg1_ty,
                                         BlockInst* code = new BlockInst());
-    static DeclareFunInst* genFunction3(const string& name, Typed::VarType res, const string& arg1,
-                                        Typed::VarType arg1_ty, const string& arg2, Typed::VarType arg2_ty,
-                                        const string& arg3, Typed::VarType arg3_ty, BlockInst* code = new BlockInst());
-    static DeclareFunInst* genFunction4(const string& name, Typed::VarType res, const string& arg1,
-                                        Typed::VarType arg1_ty, const string& arg2, Typed::VarType arg2_ty,
-                                        const string& arg3, Typed::VarType arg3_ty, const string& arg4,
-                                        Typed::VarType arg4_ty, BlockInst* code = new BlockInst());
-    static DeclareFunInst* genFunction5(const string& name, Typed::VarType res, const string& arg1,
-                                        Typed::VarType arg1_ty, const string& arg2, Typed::VarType arg2_ty,
-                                        const string& arg3, Typed::VarType arg3_ty, const string& arg4,
-                                        Typed::VarType arg4_ty, const string& arg5, Typed::VarType arg5_ty,
+    static DeclareFunInst* genFunction2(const string& name, Typed::VarType res, const string& arg1, Typed::VarType arg1_ty,
+                                        const string& arg2, Typed::VarType arg2_ty, BlockInst* code = new BlockInst());
+    static DeclareFunInst* genFunction3(const string& name, Typed::VarType res, const string& arg1, Typed::VarType arg1_ty,
+                                        const string& arg2, Typed::VarType arg2_ty, const string& arg3, Typed::VarType arg3_ty,
                                         BlockInst* code = new BlockInst());
-    static DeclareFunInst* genFunction6(const string& name, Typed::VarType res, const string& arg1,
-                                        Typed::VarType arg1_ty, const string& arg2, Typed::VarType arg2_ty,
-                                        const string& arg3, Typed::VarType arg3_ty, const string& arg4,
-                                        Typed::VarType arg4_ty, const string& arg5, Typed::VarType arg5_ty,
+    static DeclareFunInst* genFunction4(const string& name, Typed::VarType res, const string& arg1, Typed::VarType arg1_ty,
+                                        const string& arg2, Typed::VarType arg2_ty, const string& arg3, Typed::VarType arg3_ty,
+                                        const string& arg4, Typed::VarType arg4_ty, BlockInst* code = new BlockInst());
+    static DeclareFunInst* genFunction5(const string& name, Typed::VarType res, const string& arg1, Typed::VarType arg1_ty,
+                                        const string& arg2, Typed::VarType arg2_ty, const string& arg3, Typed::VarType arg3_ty,
+                                        const string& arg4, Typed::VarType arg4_ty, const string& arg5, Typed::VarType arg5_ty,
+                                        BlockInst* code = new BlockInst());
+    static DeclareFunInst* genFunction6(const string& name, Typed::VarType res, const string& arg1, Typed::VarType arg1_ty,
+                                        const string& arg2, Typed::VarType arg2_ty, const string& arg3, Typed::VarType arg3_ty,
+                                        const string& arg4, Typed::VarType arg4_ty, const string& arg5, Typed::VarType arg5_ty,
                                         const string& arg6, Typed::VarType arg6_ty, BlockInst* code = new BlockInst());
 
     // Convert a signal type in a Fir type by using an intermediate Tree based implementation to assure type creation
@@ -2391,79 +2273,43 @@ struct FIRIndex {
     FIRIndex(FIRIndex const& rhs) = default;
 
     /* implicitly convert to ValueInst* in order to simplify the usage */
-    operator ValueInst*(void)const { return fValue; }
+    operator ValueInst*(void) const { return fValue; }
 
-    friend FIRIndex operator+(FIRIndex const& lhs, ValueInst* rhs)
-    {
-        return FIRIndex(InstBuilder::genAdd(lhs.fValue, rhs));
-    }
+    friend FIRIndex operator+(FIRIndex const& lhs, ValueInst* rhs) { return FIRIndex(InstBuilder::genAdd(lhs.fValue, rhs)); }
 
     friend FIRIndex operator+(FIRIndex const& lhs, FIRIndex const& rhs) { return operator+(lhs, rhs.fValue); }
 
-    friend FIRIndex operator+(FIRIndex const& lhs, int rhs)
-    {
-        return operator+(lhs, InstBuilder::genInt32NumInst(rhs));
-    }
+    friend FIRIndex operator+(FIRIndex const& lhs, int rhs) { return operator+(lhs, InstBuilder::genInt32NumInst(rhs)); }
 
-    friend FIRIndex operator-(FIRIndex const& lhs, ValueInst* rhs)
-    {
-        return FIRIndex(InstBuilder::genSub(lhs.fValue, rhs));
-    }
+    friend FIRIndex operator-(FIRIndex const& lhs, ValueInst* rhs) { return FIRIndex(InstBuilder::genSub(lhs.fValue, rhs)); }
 
     friend FIRIndex operator-(FIRIndex const& lhs, FIRIndex const& rhs) { return operator-(lhs, rhs.fValue); }
 
-    friend FIRIndex operator-(FIRIndex const& lhs, int rhs)
-    {
-        return operator-(lhs, InstBuilder::genInt32NumInst(rhs));
-    }
+    friend FIRIndex operator-(FIRIndex const& lhs, int rhs) { return operator-(lhs, InstBuilder::genInt32NumInst(rhs)); }
 
-    friend FIRIndex operator*(FIRIndex const& lhs, ValueInst* rhs)
-    {
-        return FIRIndex(InstBuilder::genMul(lhs.fValue, rhs));
-    }
+    friend FIRIndex operator*(FIRIndex const& lhs, ValueInst* rhs) { return FIRIndex(InstBuilder::genMul(lhs.fValue, rhs)); }
 
     friend FIRIndex operator*(FIRIndex const& lhs, FIRIndex const& rhs) { return operator*(lhs, rhs.fValue); }
 
-    friend FIRIndex operator*(FIRIndex const& lhs, int rhs)
-    {
-        return operator*(lhs, InstBuilder::genInt32NumInst(rhs));
-    }
+    friend FIRIndex operator*(FIRIndex const& lhs, int rhs) { return operator*(lhs, InstBuilder::genInt32NumInst(rhs)); }
 
-    friend FIRIndex operator/(FIRIndex const& lhs, ValueInst* rhs)
-    {
-        return FIRIndex(InstBuilder::genDiv(lhs.fValue, rhs));
-    }
+    friend FIRIndex operator/(FIRIndex const& lhs, ValueInst* rhs) { return FIRIndex(InstBuilder::genDiv(lhs.fValue, rhs)); }
 
     friend FIRIndex operator/(FIRIndex const& lhs, FIRIndex const& rhs) { return operator/(lhs, rhs.fValue); }
 
-    friend FIRIndex operator/(FIRIndex const& lhs, int rhs)
-    {
-        return operator/(lhs, InstBuilder::genInt32NumInst(rhs));
-    }
+    friend FIRIndex operator/(FIRIndex const& lhs, int rhs) { return operator/(lhs, InstBuilder::genInt32NumInst(rhs)); }
 
-    friend FIRIndex operator&(FIRIndex const& lhs, ValueInst* rhs)
-    {
-        return FIRIndex(InstBuilder::genAnd(lhs.fValue, rhs));
-    }
+    friend FIRIndex operator&(FIRIndex const& lhs, ValueInst* rhs) { return FIRIndex(InstBuilder::genAnd(lhs.fValue, rhs)); }
 
     friend FIRIndex operator&(FIRIndex const& lhs, FIRIndex const& rhs) { return operator&(lhs, rhs.fValue); }
 
-    friend FIRIndex operator&(FIRIndex const& lhs, int rhs)
-    {
-        return operator&(lhs, InstBuilder::genInt32NumInst(rhs));
-    }
+    friend FIRIndex operator&(FIRIndex const& lhs, int rhs) { return operator&(lhs, InstBuilder::genInt32NumInst(rhs)); }
 
-    friend FIRIndex operator%(FIRIndex const& lhs, ValueInst* rhs)
-    {
-        return FIRIndex(InstBuilder::genRem(lhs.fValue, rhs));
-    }
+    friend FIRIndex operator%(FIRIndex const& lhs, ValueInst* rhs) { return FIRIndex(InstBuilder::genRem(lhs.fValue, rhs)); }
 
     friend FIRIndex operator%(FIRIndex const& lhs, FIRIndex const& rhs) { return operator%(lhs, rhs.fValue); }
 
-    friend FIRIndex operator%(FIRIndex const& lhs, int rhs)
-    {
-        return operator%(lhs, InstBuilder::genInt32NumInst(rhs));
-    }
+    friend FIRIndex operator%(FIRIndex const& lhs, int rhs) { return operator%(lhs, InstBuilder::genInt32NumInst(rhs)); }
 
    private:
     ValueInst* fValue;

@@ -93,8 +93,7 @@ static void printLatexHeader(istream& latexheader, const string& faustversion, o
 static void printFaustListings(ostream& docout);
 static void printFaustListing(string& path, ostream& docout);
 static void printLatexFooter(ostream& docout);
-static void printDocContent(const char* svgTopDir, const vector<Tree>& docVector, const string& faustversion,
-                            ostream& docout);
+static void printDocContent(const char* svgTopDir, const vector<Tree>& docVector, const string& faustversion, ostream& docout);
 static void printFaustdocStamp(const string& faustversion, ostream& docout);
 static void printDocEqn(Lateq* ltq, ostream& docout);
 static void printDocDgm(const Tree expr, const char* svgTopDir, ostream& docout, int i);
@@ -102,7 +101,7 @@ static void printDocMetadata(const Tree expr, ostream& docout);
 
 /* Primary sub-functions for <equation> handling */
 static void prepareDocEqns(const vector<Tree>& docBoxes, vector<Lateq*>& docCompiledEqnsVector);  ///< Caller function.
-static void collectDocEqns(const vector<Tree>& docBoxes, vector<Tree>& eqBoxes);  ///< step 0. Feed a vector.
+static void collectDocEqns(const vector<Tree>& docBoxes, vector<Tree>& eqBoxes);                  ///< step 0. Feed a vector.
 static void mapEvalDocEqn(const vector<Tree>& eqBoxes, const Tree& env,
                           vector<Tree>& evalEqBoxes);                                ///< step 1. Evaluate boxes.
 static void mapGetEqName(const vector<Tree>& evalEqBoxes, vector<string>& eqNames);  ///< step 2. Get boxes name.
@@ -116,8 +115,7 @@ static void collectEqSigs(const vector<Tree>& eqSigs,
                           Tree&               superEqList);                      ///< step 7. Collect all signals in a superlist.
 static void annotateSuperList(DocCompiler* DC, Tree superEqList);  ///< step 8. Annotate superlist.
 // static void	calcAndSetLtqNames( Tree superEqList );		///< step 9.
-static void mapCompileDocEqnSigs(const vector<Tree>& eqSigs, const vector<int>& eqInputs, const vector<int>& eqOutputs,
-                                 DocCompiler*    DC,
+static void mapCompileDocEqnSigs(const vector<Tree>& eqSigs, const vector<int>& eqInputs, const vector<int>& eqOutputs, DocCompiler* DC,
                                  vector<Lateq*>& docCompiledEqnsVector);  ///< step 10. Compile equations.
 
 /* Secondary sub-functions for <equation> handling */
@@ -430,8 +428,7 @@ static void printFaustdocStamp(const string& faustversion, ostream& docout)
  * @param[in]	faustversion	The current version of this Faust compiler.
  * @param[out]	docout			The output file to print into.
  **/
-static void printDocContent(const char* svgTopDir, const vector<Tree>& docVector, const string& faustversion,
-                            ostream& docout)
+static void printDocContent(const char* svgTopDir, const vector<Tree>& docVector, const string& faustversion, ostream& docout)
 {
     // cerr << endl << "Documentator : printdoccontent : " << docVector.size() << " <mdoc> tags read." << endl;
 
@@ -449,8 +446,7 @@ static void printDocContent(const char* svgTopDir, const vector<Tree>& docVector
     vector<string>::const_iterator code;
     code = docMasterCodeMap.begin();
 
-    if (doesFileBeginWithCode(gGlobal->gMasterDocument) && (!docMasterCodeMap.empty()) &&
-        gGlobal->gLstDistributedSwitch) {
+    if (doesFileBeginWithCode(gGlobal->gMasterDocument) && (!docMasterCodeMap.empty()) && gGlobal->gLstDistributedSwitch) {
         printdocCodeSlices(*code, docout);
         code++;
     }
@@ -646,8 +642,7 @@ static void calcEqnsNicknames(const vector<string>& eqNames, vector<string>& eqN
  * @param[in]	evalEqBoxes		Equations boxes to propagate as signals.
  * @param[out]	eqSigs			The place to store prepared signals.
  */
-static void mapPrepareEqSig(const vector<Tree>& evalEqBoxes, vector<int>& eqInputs, vector<int>& eqOutputs,
-                            vector<Tree>& eqSigs)
+static void mapPrepareEqSig(const vector<Tree>& evalEqBoxes, vector<int>& eqInputs, vector<int>& eqOutputs, vector<Tree>& eqSigs)
 {
     // cerr << "###\n# Documentator : mapPrepareEqSig" << endl;
 
@@ -678,8 +673,7 @@ static void mapPrepareEqSig(const vector<Tree>& evalEqBoxes, vector<int>& eqInpu
  * @param[in]	eqNicknames		Contains previously calculated nicknames.
  * @param[out]	eqSigs			The signals to tag with a NICKNAMEPROPERTY.
  */
-static void mapSetSigNickname(const vector<string>& eqNicknames, const vector<int>& eqInputs,
-                              const vector<Tree>& eqSigs)
+static void mapSetSigNickname(const vector<string>& eqNicknames, const vector<int>& eqInputs, const vector<Tree>& eqSigs)
 {
     // cerr << "###\n# Documentator : mapSetSigNickname" << endl;
 
@@ -738,8 +732,8 @@ static void annotateSuperList(DocCompiler* DC, Tree superEqList)
  * @param[in]	DC						The signals compiler.
  * @param[out]	docCompiledEqnsVector	The place to store each compiled Lateq* object.
  */
-static void mapCompileDocEqnSigs(const vector<Tree>& eqSigs, const vector<int>& eqInputs, const vector<int>& eqOutputs,
-                                 DocCompiler* DC, vector<Lateq*>& docCompiledEqnsVector)
+static void mapCompileDocEqnSigs(const vector<Tree>& eqSigs, const vector<int>& eqInputs, const vector<int>& eqOutputs, DocCompiler* DC,
+                                 vector<Lateq*>& docCompiledEqnsVector)
 {
     // cerr << "###\n# Documentator : mapCompileDocEqnSigs" << endl;
 
@@ -827,8 +821,7 @@ static void printDocDgm(const Tree expr, const char* svgTopDir, ostream& docout,
     Tree docdgm = evaldocexpr(expr, gGlobal->gExpandedDefList);
     if (gGlobal->gErrorCount > 0) {
         stringstream error;
-        error << "Total of " << gGlobal->gErrorCount
-              << " errors during evaluation of : diagram docdgm = " << boxpp(docdgm) << ";\n";
+        error << "Total of " << gGlobal->gErrorCount << " errors during evaluation of : diagram docdgm = " << boxpp(docdgm) << ";\n";
         throw faustexception(error.str());
     }
 

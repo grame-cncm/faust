@@ -211,9 +211,8 @@ class RustStringTypeManager : public StringTypeManager {
         } else if (array_typed) {
             std::ostringstream num_str;
             num_str << array_typed->fSize;
-            return (array_typed->fSize == 0)
-                       ? name + ": " + fPtrPosfix + generateType(array_typed->fType)
-                       : name + ": [" + generateType(array_typed->fType) + ";" + num_str.str() + "]";
+            return (array_typed->fSize == 0) ? name + ": " + fPtrPosfix + generateType(array_typed->fType)
+                                             : name + ": [" + generateType(array_typed->fType) + ";" + num_str.str() + "]";
         } else {
             faustassert(false);
             return "";
@@ -295,9 +294,8 @@ class SOULStringTypeManager : public StringTypeManager {
         } else if (array_typed) {
             std::ostringstream num_str;
             num_str << array_typed->fSize;
-            return (array_typed->fSize == 0 || array_typed->fIsPtr)
-                       ? generateType(array_typed->fType) + fPtrPosfix + " " + name
-                       : generateType(array_typed->fType) + "[" + num_str.str() + "] " + name;
+            return (array_typed->fSize == 0 || array_typed->fIsPtr) ? generateType(array_typed->fType) + fPtrPosfix + " " + name
+                                                                    : generateType(array_typed->fType) + "[" + num_str.str() + "] " + name;
         } else {
             faustassert(false);
             return "";

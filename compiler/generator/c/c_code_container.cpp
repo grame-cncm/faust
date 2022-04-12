@@ -32,9 +32,8 @@ map<string, bool> CInstVisitor::gFunctionSymbolTable;
 
 dsp_factory_base* CCodeContainer::produceFactory()
 {
-    return new text_dsp_factory_aux(
-        fKlassName, "", "",
-        ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
+    return new text_dsp_factory_aux(fKlassName, "", "",
+                                    ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
 }
 
 CodeContainer* CCodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -126,8 +125,7 @@ void CCodeContainer::produceInternal()
     string counter = "count";
     if (fSubContainerType == kInt) {
         tab(n, *fOut);
-        *fOut << "static void fill" << fKlassName << "(" << fKlassName
-              << subst("* dsp, int $0, int* " + fTableName + ") {", counter);
+        *fOut << "static void fill" << fKlassName << "(" << fKlassName << subst("* dsp, int $0, int* " + fTableName + ") {", counter);
     } else {
         tab(n, *fOut);
         *fOut << "static void fill" << fKlassName << "(" << fKlassName
@@ -362,11 +360,9 @@ void CCodeContainer::produceClass()
         *fOut << "};" << endl;
 
         tab(n, *fOut);
-        *fOut << "int getNumIntControls" << fKlassName << "(" << fKlassName << "* dsp) { return " << fInt32ControlNum
-              << "; }";
+        *fOut << "int getNumIntControls" << fKlassName << "(" << fKlassName << "* dsp) { return " << fInt32ControlNum << "; }";
         tab(n, *fOut);
-        *fOut << "int getNumRealControls" << fKlassName << "(" << fKlassName << "* dsp) { return " << fRealControlNum
-              << "; }";
+        *fOut << "int getNumRealControls" << fKlassName << "(" << fKlassName << "* dsp) { return " << fRealControlNum << "; }";
     }
 
     // Compute
@@ -414,8 +410,7 @@ void CCodeContainer::produceMetadata(int tabs)
 }
 
 // Scalar
-CScalarCodeContainer::CScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
-                                           int sub_container_type)
+CScalarCodeContainer::CScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type)
     : CCodeContainer(name, numInputs, numOutputs, out)
 {
     fSubContainerType = sub_container_type;
@@ -534,8 +529,7 @@ COpenMPCodeContainer::~COpenMPCodeContainer()
 }
 
 // Works stealing scheduler
-CWorkStealingCodeContainer::CWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs,
-                                                       std::ostream* out)
+CWorkStealingCodeContainer::CWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
     : WSSCodeContainer(numInputs, numOutputs, "dsp"), CCodeContainer(name, numInputs, numOutputs, out)
 {
 }

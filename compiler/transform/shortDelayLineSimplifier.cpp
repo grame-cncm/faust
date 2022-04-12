@@ -58,8 +58,7 @@ class removeFalseSDL : public SignalVisitor {
         Tree ID1, origin, dl1;
         int  nature, dmax1, dmin1;
 
-        if (isSigInstructionDelayLineRead(sig, ID1, origin, &nature, &dmax1, &dmin1, dl1) && (ID1 != fID) &&
-            (dmax1 == 1) && !isZero(dl1)) {
+        if (isSigInstructionDelayLineRead(sig, ID1, origin, &nature, &dmax1, &dmin1, dl1) && (ID1 != fID) && (dmax1 == 1) && !isZero(dl1)) {
             fCandidates.erase(ID1);
             // cerr << "ID removed from candidates (used delayed outside its definition): " << *ID1 << endl;
             self(dl1);

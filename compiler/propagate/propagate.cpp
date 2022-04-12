@@ -255,8 +255,7 @@ static bool isIntTree(Tree l, vector<int>& v)
 
     } else {
         stringstream error;
-        error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", not a valid list of numbers : " << boxpp(l)
-              << endl;
+        error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", not a valid list of numbers : " << boxpp(l) << endl;
         throw faustexception(error.str());
     }
 }
@@ -469,8 +468,8 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
         lsig2[1] = sigSoundfileRate(soundfile, part);
 
         // compute bound limited read index : int(max(0, min(ridx,length-1)))
-        Tree ridx = sigIntCast(tree(gGlobal->gMaxPrim->symbol(), sigInt(0),
-                                    tree(gGlobal->gMinPrim->symbol(), lsig[1], sigAdd(lsig2[0], sigInt(-1)))));
+        Tree ridx = sigIntCast(
+            tree(gGlobal->gMaxPrim->symbol(), sigInt(0), tree(gGlobal->gMinPrim->symbol(), lsig[1], sigAdd(lsig2[0], sigInt(-1)))));
         for (int i = 0; i < c; i++) {
             lsig2[i + 2] = sigSoundfileBuffer(soundfile, sigInt(i), part, ridx);
         }
@@ -507,8 +506,7 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
             return listConcat(propagate(slotenv, path, t2, listRange(lr, 0, in2)), listRange(lr, in2, out1));
         } else {
             return propagate(slotenv, path, t2,
-                             listConcat(propagate(slotenv, path, t1, listRange(lsig, 0, in1)),
-                                        listRange(lsig, in1, in1 + in2 - out1)));
+                             listConcat(propagate(slotenv, path, t1, listRange(lsig, 0, in1)), listRange(lsig, in1, in1 + in2 - out1)));
         }
     }
 
@@ -606,14 +604,12 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
 
         } else {
             stringstream error;
-            error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", invalid route expression : " << boxpp(box)
-                  << endl;
+            error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", invalid route expression : " << boxpp(box) << endl;
             throw faustexception(error.str());
         }
     }
     stringstream error;
-    error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box)
-          << endl;
+    error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box) << endl;
     throw faustexception(error.str());
 
     return siglist();

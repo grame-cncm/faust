@@ -444,8 +444,7 @@ digraph<N, A> subgraph(const digraph<N, A>& G, const std::set<N>& S)
 template <typename N, typename A>
 inline digraph<N, A> cut(const digraph<N, A>& G, int dm)
 {
-    return mapconnections<N, A>(
-        G, [dm](const N&, const N&, const A& a) -> bool { return arrow_traits<A>::mindist(a) < dm; });
+    return mapconnections<N, A>(G, [dm](const N&, const N&, const A& a) -> bool { return arrow_traits<A>::mindist(a) < dm; });
 }
 
 //===========================================================
@@ -557,8 +556,7 @@ inline std::ostream& dotfile(std::ostream& file, const digraph<N, A>& g, bool cl
             std::stringstream sm;
             sm << '"' << c.first << '"';
             hascnx = true;
-            file << "\t" << sn.str() << "->" << sm.str() << " [label=\"" << arrow_traits<A>::label(c.second) << "\"];"
-                 << std::endl;
+            file << "\t" << sn.str() << "->" << sm.str() << " [label=\"" << arrow_traits<A>::label(c.second) << "\"];" << std::endl;
         }
         if (!hascnx) {
             file << "\t" << sn.str() << ";" << std::endl;

@@ -50,8 +50,8 @@ void OpenMPCodeContainer::generateLocalInputs(BlockInst* loop_code, const string
     for (int i = 0; i < inputs(); i++) {
         string name1 = subst("input$0", T(i));
         string name2 = subst("input$0_ptr", T(i));
-        loop_code->pushBackInst(InstBuilder::genDecStackVar(
-            name1, type, InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
+        loop_code->pushBackInst(
+            InstBuilder::genDecStackVar(name1, type, InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
     }
 }
 
@@ -63,8 +63,8 @@ void OpenMPCodeContainer::generateLocalOutputs(BlockInst* loop_code, const strin
     for (int i = 0; i < outputs(); i++) {
         string name1 = subst("output$0", T(i));
         string name2 = subst("output$0_ptr", T(i));
-        loop_code->pushBackInst(InstBuilder::genDecStackVar(
-            name1, type, InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
+        loop_code->pushBackInst(
+            InstBuilder::genDecStackVar(name1, type, InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
     }
 }
 
@@ -153,10 +153,9 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
     }
 
     // Generates the DAG enclosing loop
-    DeclareVarInst* loop_decl =
-        InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
-    ValueInst*    loop_end       = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), gGlobal->gVecSize));
+    DeclareVarInst* loop_decl      = InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
+    ValueInst*      loop_end       = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
+    StoreVarInst*   loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), gGlobal->gVecSize));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, loop_code);
 

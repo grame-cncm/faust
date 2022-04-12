@@ -53,16 +53,7 @@ class InstComplexityVisitor : public DispatchVisitor {
     using DispatchVisitor::visit;
 
     InstComplexityVisitor()
-        : fLoad(0),
-          fStore(0),
-          fBinop(0),
-          fMathop(0),
-          fNumbers(0),
-          fDeclare(0),
-          fCast(0),
-          fSelect(0),
-          fLoop(0),
-          fFunCall(0)
+        : fLoad(0), fStore(0), fBinop(0), fMathop(0), fNumbers(0), fDeclare(0), fCast(0), fSelect(0), fLoop(0), fFunCall(0)
     {
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;
@@ -185,8 +176,7 @@ class InstComplexityVisitor : public DispatchVisitor {
         *dst << "Instructions complexity : ";
         *dst << "Load = " << fLoad << " Store = " << fStore << " Binop = " << fBinop;
         *dst << " Mathop = " << fMathop << " Numbers = " << fNumbers << " Declare = " << fDeclare;
-        *dst << " Cast = " << fCast << " Select = " << fSelect << " Loop = " << fLoop << " FunCall = " << fFunCall
-             << "\n";
+        *dst << " Cast = " << fCast << " Select = " << fSelect << " Loop = " << fLoop << " FunCall = " << fFunCall << "\n";
     }
 
     void operator+(const InstComplexityVisitor& visitor)

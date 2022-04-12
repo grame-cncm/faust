@@ -29,8 +29,8 @@ using namespace std;
 
 dsp_factory_base* FIRCodeContainer::produceFactory()
 {
-    return new text_dsp_factory_aux(
-        fKlassName, "", "", ((static_cast<stringstream*>(fOut)) ? static_cast<stringstream*>(fOut)->str() : ""), "");
+    return new text_dsp_factory_aux(fKlassName, "", "", ((static_cast<stringstream*>(fOut)) ? static_cast<stringstream*>(fOut)->str() : ""),
+                                    "");
 }
 
 CodeContainer* FIRCodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -38,8 +38,7 @@ CodeContainer* FIRCodeContainer::createScalarContainer(const string& name, int s
     return new FIRScalarCodeContainer(name, 0, 1, sub_container_type, fOut, false);
 }
 
-CodeContainer* FIRCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst,
-                                                 bool top_level)
+CodeContainer* FIRCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst, bool top_level)
 {
     CodeContainer* container;
 
@@ -197,12 +196,10 @@ void FIRCodeContainer::dumpMemory(ostream* dst)
             total_heap_size += heap_counter.fSizeBytes;
         }
 
-        VariableSizeCounter heap_counter1(Address::AccessType(Address::kStruct | Address::kStaticStruct),
-                                          Typed::kInt32);
+        VariableSizeCounter heap_counter1(Address::AccessType(Address::kStruct | Address::kStaticStruct), Typed::kInt32);
         generateDeclarations(&heap_counter1);
 
-        VariableSizeCounter heap_counter2(Address::AccessType(Address::kStruct | Address::kStaticStruct),
-                                          Typed::kInt32_ptr);
+        VariableSizeCounter heap_counter2(Address::AccessType(Address::kStruct | Address::kStaticStruct), Typed::kInt32_ptr);
         generateDeclarations(&heap_counter2);
 
         VariableSizeCounter heap_counter3(Address::AccessType(Address::kStruct | Address::kStaticStruct));
@@ -214,8 +211,7 @@ void FIRCodeContainer::dumpMemory(ostream* dst)
         *dst << "======= Object memory footprint ==========" << endl << endl;
         *dst << "Heap size int = " << heap_counter1.fSizeBytes << " bytes" << endl;
         *dst << "Heap size int* = " << heap_counter2.fSizeBytes << " bytes" << endl;
-        *dst << "Heap size real = " << heap_counter3.fSizeBytes - (heap_counter1.fSizeBytes + heap_counter2.fSizeBytes)
-             << " bytes" << endl;
+        *dst << "Heap size real = " << heap_counter3.fSizeBytes - (heap_counter1.fSizeBytes + heap_counter2.fSizeBytes) << " bytes" << endl;
         *dst << "Heap size = " << heap_counter3.fSizeBytes + total_heap_size << " bytes" << endl;
         *dst << "Stack size in compute = " << stack_counter.fSizeBytes << " bytes"
              << "\n\n";

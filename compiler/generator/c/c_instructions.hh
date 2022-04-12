@@ -119,11 +119,11 @@ class CInstVisitor : public TextInstVisitor {
     {
         // Special case
         if (inst->fZone == "0") {
-            *fOut << "ui_interface->declare(ui_interface->uiInterface, " << inst->fZone << ", " << quote(inst->fKey)
-                  << ", " << quote(inst->fValue) << ")";
+            *fOut << "ui_interface->declare(ui_interface->uiInterface, " << inst->fZone << ", " << quote(inst->fKey) << ", "
+                  << quote(inst->fValue) << ")";
         } else {
-            *fOut << "ui_interface->declare(ui_interface->uiInterface, &dsp->" << inst->fZone << ", "
-                  << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
+            *fOut << "ui_interface->declare(ui_interface->uiInterface, &dsp->" << inst->fZone << ", " << quote(inst->fKey) << ", "
+                  << quote(inst->fValue) << ")";
         }
         EndLine();
     }
@@ -177,9 +177,8 @@ class CInstVisitor : public TextInstVisitor {
                 name = "ui_interface->addNumEntry(";
                 break;
         }
-        *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) << ", &dsp->" << inst->fZone << ", "
-              << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", "
-              << checkReal(inst->fStep) << ")";
+        *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) << ", &dsp->" << inst->fZone << ", " << checkReal(inst->fInit)
+              << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
         EndLine();
     }
 
@@ -194,15 +193,15 @@ class CInstVisitor : public TextInstVisitor {
                 name = "ui_interface->addVerticalBargraph(";
                 break;
         }
-        *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) << ", &dsp->" << inst->fZone << ", "
-              << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
+        *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) << ", &dsp->" << inst->fZone << ", " << checkReal(inst->fMin)
+              << ", " << checkReal(inst->fMax) << ")";
         EndLine();
     }
 
     void visit(AddSoundfileInst* inst) override
     {
-        *fOut << "ui_interface->addSoundfile(ui_interface->uiInterface, " << quote(inst->fLabel) << ", "
-              << quote(inst->fURL) << ", &dsp->" << inst->fSFZone << ")";
+        *fOut << "ui_interface->addSoundfile(ui_interface->uiInterface, " << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", &dsp->"
+              << inst->fSFZone << ")";
         EndLine();
     }
 

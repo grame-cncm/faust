@@ -86,8 +86,7 @@ void SchedulerCompiler::vectorLoop(const string& tname, const string& vecname, c
  * @param delay the maximum delay
  * @param cexp the content of the signal as a C++ expression
  */
-void SchedulerCompiler::dlineLoop(const string& tname, const string& dlname, int delay, const string& cexp,
-                                  const string& ccs)
+void SchedulerCompiler::dlineLoop(const string& tname, const string& dlname, int delay, const string& cexp, const string& ccs)
 {
     if (delay < gGlobal->gMaxCopyDelay) {
         // Implementation of a copy based delayline

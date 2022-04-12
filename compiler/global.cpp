@@ -547,14 +547,12 @@ void global::init()
 
     // Create type declaration for external 'soundfile' type
     vector<NamedTyped*> sf_type_fields;
-    sf_type_fields.push_back(
-        InstBuilder::genNamedTyped("fBuffers", InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr)));
+    sf_type_fields.push_back(InstBuilder::genNamedTyped("fBuffers", InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped("fLength", InstBuilder::genBasicTyped(Typed::kInt32_ptr)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped("fSR", InstBuilder::genBasicTyped(Typed::kInt32_ptr)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped("fOffset", InstBuilder::genBasicTyped(Typed::kInt32_ptr)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped("fChannels", InstBuilder::genInt32Typed()));
-    gExternalStructTypes[Typed::kSound] =
-        InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
+    gExternalStructTypes[Typed::kSound] = InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
 
     // Foreign math functions supported by the Interp, SOUL, wasm/wast backends
 
@@ -601,22 +599,31 @@ void global::printCompilationOptions(ostream& dst, bool backend)
         dst << "-sch"
             << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "") << ((gGroupTaskSwitch) ? " -g" : "")
             << ((gDeepFirstSwitch) ? " -dfs" : "")
-            << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
-            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "") << " -cm " << gCodeMode;
+            << ((gFloatSize == 2)   ? " -double"
+                : (gFloatSize == 3) ? " -quad"
+                                    : "")
+            << " -ftz " << gFTZMode << " -mcd " << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "") << " -cm " << gCodeMode;
     } else if (gVectorSwitch) {
         dst << "-vec"
             << " -lv " << gVectorLoopVariant << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
             << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
-            << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
-            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "") << " -cm " << gCodeMode;
+            << ((gFloatSize == 2)   ? " -double"
+                : (gFloatSize == 3) ? " -quad"
+                                    : "")
+            << " -ftz " << gFTZMode << " -mcd " << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "") << " -cm " << gCodeMode;
     } else if (gOpenMPSwitch) {
         dst << "-omp"
-            << " -vs " << gVecSize << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
-            << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
-            << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
-            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "") << " -cm " << gCodeMode;
+            << " -vs " << gVecSize << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "") << ((gGroupTaskSwitch) ? " -g" : "")
+            << ((gDeepFirstSwitch) ? " -dfs" : "")
+            << ((gFloatSize == 2)   ? " -double"
+                : (gFloatSize == 3) ? " -quad"
+                                    : "")
+            << " -ftz " << gFTZMode << " -mcd " << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "") << " -cm " << gCodeMode;
     } else {
-        dst << ((gFloatSize == 1) ? "-scal" : ((gFloatSize == 2) ? "-double" : (gFloatSize == 3) ? "-quad" : ""))
+        dst << ((gFloatSize == 1) ? "-scal"
+                                  : ((gFloatSize == 2)   ? "-double"
+                                     : (gFloatSize == 3) ? "-quad"
+                                                         : ""))
             << " -ftz " << gFTZMode << ((gMemoryManager) ? " -mem" : "") << " -cm " << gCodeMode;
     }
 }

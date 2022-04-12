@@ -209,8 +209,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
 static void* threadEvaluateBlockDiagram(void* arg)
 {
     try {
-        gGlobal->gProcessTree =
-            evaluateBlockDiagram(gGlobal->gExpandedDefList, gGlobal->gNumInputs, gGlobal->gNumOutputs);
+        gGlobal->gProcessTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, gGlobal->gNumInputs, gGlobal->gNumOutputs);
     } catch (faustexception& e) {
         gGlobal->gErrorMessage = e.Message();
     }
@@ -220,8 +219,7 @@ static void* threadEvaluateBlockDiagram(void* arg)
 static void* threadBoxPropagateSig(void* arg)
 {
     try {
-        gGlobal->gLsignalsTree =
-            boxPropagateSig(gGlobal->nil, gGlobal->gProcessTree, makeSigInputList(gGlobal->gNumInputs));
+        gGlobal->gLsignalsTree = boxPropagateSig(gGlobal->nil, gGlobal->gProcessTree, makeSigInputList(gGlobal->gNumInputs));
     } catch (faustexception& e) {
         gGlobal->gErrorMessage = e.Message();
     }
@@ -668,8 +666,8 @@ static bool processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : 'ocpp' backend can only be used in scalar mode\n");
     }
 #endif
-    if (gGlobal->gOneSample && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "c" &&
-        startWith(gGlobal->gOutputLang, "soul") && gGlobal->gOutputLang != "fir") {
+    if (gGlobal->gOneSample && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "c" && startWith(gGlobal->gOutputLang, "soul") &&
+        gGlobal->gOutputLang != "fir") {
         throw faustexception("ERROR : '-os' option cannot only be used with 'cpp', 'c', 'fir' or 'soul' backends\n");
     }
 
@@ -770,19 +768,16 @@ static void printHelp()
     cout << endl << "Input options:" << line;
     cout << tab << "-a <file>                               wrapper architecture file." << endl;
     cout << tab << "-i        --inline-architecture-files   inline architecture files." << endl;
-    cout << tab << "-A <dir>  --architecture-dir <dir>      add the directory <dir> to the architecture search path."
-         << endl;
+    cout << tab << "-A <dir>  --architecture-dir <dir>      add the directory <dir> to the architecture search path." << endl;
     cout << tab << "-I <dir>  --import-dir <dir>            add the directory <dir> to the import search path." << endl;
     cout << tab << "-L <file> --library <file>              link with the LLVM module <file>." << endl;
 
-    cout << tab << "-t <sec>  --timeout <sec>               abort compilation after <sec> seconds (default 120)."
-         << endl;
+    cout << tab << "-t <sec>  --timeout <sec>               abort compilation after <sec> seconds (default 120)." << endl;
 
     cout << endl << "Output options:" << line;
     cout << tab << "-o <file>                               the output file." << endl;
     cout << tab << "-e        --export-dsp                  export expanded DSP (all included libraries)." << endl;
-    cout << tab << "-uim      --user-interface-macros       add user interface macro definitions to the output code."
-         << endl;
+    cout << tab << "-uim      --user-interface-macros       add user interface macro definitions to the output code." << endl;
     cout << tab << "-xml                                    generate an XML description file." << endl;
     cout << tab << "-json                                   generate a JSON description file." << endl;
     cout << tab
@@ -796,13 +791,9 @@ static void printHelp()
          << "                                        'lang' should be in c, ocpp, cpp (default), rust, java, "
             "llvm, cllvm, fir, wast/wasm, soul, interp."
          << endl;
-    cout << tab
-         << "-single     --single-precision-floats   use single precision floats for internal computations (default)."
-         << endl;
-    cout << tab << "-double     --double-precision-floats   use double precision floats for internal computations."
-         << endl;
-    cout << tab << "-quad       --quad-precision-floats     use quad precision floats for internal computations."
-         << endl;
+    cout << tab << "-single     --single-precision-floats   use single precision floats for internal computations (default)." << endl;
+    cout << tab << "-double     --double-precision-floats   use double precision floats for internal computations." << endl;
+    cout << tab << "-quad       --quad-precision-floats     use quad precision floats for internal computations." << endl;
     cout << tab
          << "-es 1|0     --enable-semantics 1|0      use enable semantics when 1 (default), and simple multiplication "
             "otherwise."
@@ -816,14 +807,9 @@ static void printHelp()
     cout << tab << "-flist      --file-list                 use file list used to eval process." << endl;
     cout << tab << "-exp10      --generate-exp10            function call instead of pow(10) function." << endl;
     cout << tab << "-os         --one-sample                generate one sample computation." << endl;
-    cout << tab
-         << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp."
-         << endl;
-    cout << tab
-         << "-scn <name> --super-class-name <name>   specify the name of the super class to be used instead of dsp."
-         << endl;
-    cout << tab << "-pn <name>  --process-name <name>       specify the name of the dsp entry-point instead of process."
-         << endl;
+    cout << tab << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp." << endl;
+    cout << tab << "-scn <name> --super-class-name <name>   specify the name of the super class to be used instead of dsp." << endl;
+    cout << tab << "-pn <name>  --process-name <name>       specify the name of the dsp entry-point instead of process." << endl;
     cout << tab << "-lb         --left-balanced             generate left balanced expressions." << endl;
     cout << tab << "-mb         --mid-balanced              generate mid balanced expressions (default)." << endl;
     cout << tab << "-rb         --right-balanced            generate right balanced expressions." << endl;
@@ -832,9 +818,7 @@ static void printHelp()
          << "-mcd <n>    --max-copy-delay <n>        threshold between copy and ring buffer implementation (default 16 "
             "samples)."
          << endl;
-    cout << tab
-         << "-mem        --memory                    allocate static in global state using a custom memory manager."
-         << endl;
+    cout << tab << "-mem        --memory                    allocate static in global state using a custom memory manager." << endl;
     cout << tab
          << "-ftz <n>    --flush-to-zero <n>         code added to recursive signals [0:no (default), 1:fabs based, "
             "2:mask based (fastest)]."
@@ -854,8 +838,7 @@ static void printHelp()
     cout << tab << "-vec       --vectorize                  generate easier to vectorize code." << endl;
     cout << tab << "-vs <n>    --vec-size <n>               size of the vector (default 32 samples)." << endl;
     cout << tab << "-lv <n>    --loop-variant <n>           [0:fastest (default), 1:simple]." << endl;
-    cout << tab << "-omp       --openmp                     generate OpenMP pragmas, activates --vectorize option."
-         << endl;
+    cout << tab << "-omp       --openmp                     generate OpenMP pragmas, activates --vectorize option." << endl;
     cout << tab << "-pl        --par-loop                   generate parallel loops in --openmp mode." << endl;
     cout << tab
          << "-sch       --scheduler                  generate tasks and use a Work Stealing scheduler, activates "
@@ -891,9 +874,7 @@ static void printHelp()
          << "-fc <n>    --fold-complexity <n>       complexity threshold to fold an expression in folding mode "
             "(default 2)"
          << endl;
-    cout << tab
-         << "-mns <n>   --max-name-size <n>          threshold during block-diagram generation (default 40 char)."
-         << endl;
+    cout << tab << "-mns <n>   --max-name-size <n>          threshold during block-diagram generation (default 40 char)." << endl;
     cout << tab
          << "-sn        --simple-names               use simple names (without arguments) during block-diagram "
             "generation."
@@ -906,8 +887,7 @@ static void printHelp()
             "a -mdoc folder."
          << endl;
     cout << tab << "-mdlang <l> --mathdoc-lang <l>          if translation file exists (<l> = en, fr, ...)." << endl;
-    cout << tab << "-stripmdoc  --strip-mdoc-tags           strip mdoc tags when printing Faust -mdoc listings."
-         << endl;
+    cout << tab << "-stripmdoc  --strip-mdoc-tags           strip mdoc tags when printing Faust -mdoc listings." << endl;
 
     cout << endl << "Debug options:" << line;
     cout << tab << "-dt         --debug-trace               print debug traces." << endl;
@@ -920,14 +900,11 @@ static void printHelp()
 
     cout << endl << "Information options:" << line;
     cout << tab << "-h          --help                      print this help message." << endl;
-    cout << tab << "-v          --version                   print version information and embedded backends list."
-         << endl;
+    cout << tab << "-v          --version                   print version information and embedded backends list." << endl;
     cout << tab << "-libdir     --libdir                    print directory containing the Faust libraries." << endl;
     cout << tab << "-includedir --includedir                print directory containing the Faust headers." << endl;
-    cout << tab << "-archdir    --archdir                   print directory containing the Faust architectures."
-         << endl;
-    cout << tab << "-dspdir     --dspdir                    print directory containing the Faust dsp libraries."
-         << endl;
+    cout << tab << "-archdir    --archdir                   print directory containing the Faust architectures." << endl;
+    cout << tab << "-dspdir     --dspdir                    print directory containing the Faust dsp libraries." << endl;
     cout << tab << "-pathslist  --pathslist                 print the architectures and dsp library paths." << endl;
 
     cout << endl << "Example:" << line;
@@ -1175,8 +1152,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
     Tree process = evalprocess(expandedDefList);
     if (gGlobal->gErrorCount > 0) {
         stringstream error;
-        error << "ERROR : total of " << gGlobal->gErrorCount << " errors during the compilation of "
-              << gGlobal->gMasterDocument << endl;
+        error << "ERROR : total of " << gGlobal->gErrorCount << " errors during the compilation of " << gGlobal->gMasterDocument << endl;
         throw faustexception(error.str());
     }
 
@@ -1264,8 +1240,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
     } else if (gGlobal->gOutputFile == "binary") {
         dst = new stringstream(stringstream::out | stringstream::binary);
     } else if (gGlobal->gOutputFile != "") {
-        outpath =
-            (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
+        outpath    = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
         auto* fdst = new ofstream(outpath.c_str());
         if (!fdst->is_open()) {
             stringstream error;
@@ -1388,8 +1363,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         } else if (gGlobal->gOutputLang == "cpp") {
 #ifdef CPP_BUILD
-            container = CPPCodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
-                                                          numOutputs, dst);
+            container = CPPCodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs, dst);
 #else
             throw faustexception("ERROR : -lang cpp not supported since CPP backend is not built\n");
 #endif
@@ -1399,8 +1373,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             if (gGlobal->gSchedulerSwitch)
                 old_comp = new SchedulerCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
             else if (gGlobal->gVectorSwitch)
-                old_comp =
-                    new GraphVectorCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
+                old_comp = new GraphVectorCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
             else
                 old_comp = new GraphCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
 
@@ -1415,7 +1388,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #ifdef RUST_BUILD
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gFAUSTFLOATToInternal = true;
-            container = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
+            container                      = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 #else
             throw faustexception("ERROR : -lang rust not supported since Rust backend is not built\n");
 #endif
@@ -1423,8 +1396,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (gGlobal->gOutputLang == "java") {
 #ifdef JAVA_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
-            container = JAVACodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
-                                                           numOutputs, dst);
+            container = JAVACodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs, dst);
 #else
             throw faustexception("ERROR : -lang java not supported since JAVA backend is not built\n");
 #endif
@@ -1460,9 +1432,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             // This speedup (freeverb for instance) ==> to be done at signal level
             // gGlobal->gComputeIOTA = true;         // Ensure IOTA base fixed delays are computed once
 
-            container = WASTCodeContainer::createContainer(
-                gGlobal->gClassName, numInputs, numOutputs, dst,
-                ((gGlobal->gOutputLang == "wast") || (gGlobal->gOutputLang == "wast-i")));
+            container = WASTCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst,
+                                                           ((gGlobal->gOutputLang == "wast") || (gGlobal->gOutputLang == "wast-i")));
 
             // Additional file with JS code
             if (gGlobal->gOutputFile == "binary") {
@@ -1473,8 +1444,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                 if (res) {
                     helpers = new ofstream(outpath_js.c_str());
                 } else {
-                    cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\""
-                         << endl;
+                    cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\"" << endl;
                 }
             } else {
                 helpers = &cout;
@@ -1502,8 +1472,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
             container = WASMCodeContainer::createContainer(
                 gGlobal->gClassName, numInputs, numOutputs, dst,
-                ((gGlobal->gOutputLang == "wasm") || (gGlobal->gOutputLang == "wasm-i") ||
-                 (gGlobal->gOutputLang == "wasm-ib")));
+                ((gGlobal->gOutputLang == "wasm") || (gGlobal->gOutputLang == "wasm-i") || (gGlobal->gOutputLang == "wasm-ib")));
 
             // Additional file with JS code
             if (gGlobal->gOutputFile == "binary") {
@@ -1514,8 +1483,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                 if (res) {
                     helpers = new ofstream(outpath_js.c_str());
                 } else {
-                    cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\""
-                         << endl;
+                    cerr << "WARNING : cannot generate helper JS file, outpath is incorrect : \"" << outpath << "\"" << endl;
                 }
             } else {
                 helpers = &cout;
@@ -1733,16 +1701,12 @@ static void generateOutputFiles()
             faustassert(D);
             ofstream xout(subst("$0.xml", gGlobal->makeDrawPath()).c_str());
 
-            if (gGlobal->gMetaDataSet.count(tree("name")) > 0)
-                D->name(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())));
-            if (gGlobal->gMetaDataSet.count(tree("author")) > 0)
-                D->author(tree2str(*(gGlobal->gMetaDataSet[tree("author")].begin())));
+            if (gGlobal->gMetaDataSet.count(tree("name")) > 0) D->name(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())));
+            if (gGlobal->gMetaDataSet.count(tree("author")) > 0) D->author(tree2str(*(gGlobal->gMetaDataSet[tree("author")].begin())));
             if (gGlobal->gMetaDataSet.count(tree("copyright")) > 0)
                 D->copyright(tree2str(*(gGlobal->gMetaDataSet[tree("copyright")].begin())));
-            if (gGlobal->gMetaDataSet.count(tree("license")) > 0)
-                D->license(tree2str(*(gGlobal->gMetaDataSet[tree("license")].begin())));
-            if (gGlobal->gMetaDataSet.count(tree("version")) > 0)
-                D->version(tree2str(*(gGlobal->gMetaDataSet[tree("version")].begin())));
+            if (gGlobal->gMetaDataSet.count(tree("license")) > 0) D->license(tree2str(*(gGlobal->gMetaDataSet[tree("license")].begin())));
+            if (gGlobal->gMetaDataSet.count(tree("version")) > 0) D->version(tree2str(*(gGlobal->gMetaDataSet[tree("version")].begin())));
 
             D->className(gGlobal->gClassName);
             D->inputs(old_comp->getClass()->inputs());
@@ -1828,8 +1792,7 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     return out.str();
 }
 
-static void compileFaustFactoryAux(int argc, const char* argv[], const char* name, const char* dsp_content,
-                                   bool generate)
+static void compileFaustFactoryAux(int argc, const char* argv[], const char* name, const char* dsp_content, bool generate)
 {
     gGlobal->gPrintFileListSwitch = false;
 
@@ -1879,8 +1842,7 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
         injcode->open(gGlobal->gInjectFile.c_str(), ifstream::in);
         if (!injcode->is_open()) {
             stringstream error;
-            error << "ERROR : can't inject \"" << gGlobal->gInjectFile << "\" external code file, file not found"
-                  << endl;
+            error << "ERROR : can't inject \"" << gGlobal->gInjectFile << "\" external code file, file not found" << endl;
             throw faustexception(error.str());
         }
     }
@@ -1910,9 +1872,8 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
     int  numOutputs = gGlobal->gNumOutputs;
 
     if (gGlobal->gExportDSP) {
-        string outpath =
-            (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
-        auto* out = new ofstream(outpath.c_str());
+        string outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
+        auto*  out     = new ofstream(outpath.c_str());
 
         // Encode compilation options as a 'declare' : has to be located first in the string
         *out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
@@ -1963,8 +1924,8 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
 
 // Backend API
 
-dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* name, const char* dsp_content,
-                                      string& error_msg, bool generate)
+dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* name, const char* dsp_content, string& error_msg,
+                                      bool generate)
 {
     gGlobal                   = nullptr;
     dsp_factory_base* factory = nullptr;
@@ -1982,8 +1943,7 @@ dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* 
     return factory;
 }
 
-string expandDSP(int argc, const char* argv[], const char* name, const char* dsp_content, string& sha_key,
-                 string& error_msg)
+string expandDSP(int argc, const char* argv[], const char* name, const char* dsp_content, string& sha_key, string& error_msg)
 {
     gGlobal    = nullptr;
     string res = "";

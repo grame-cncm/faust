@@ -107,14 +107,7 @@ struct FBCBasicInstruction : public FBCInstruction {
     }
 
     FBCBasicInstruction(Opcode opcode)
-        : fName(""),
-          fOpcode(opcode),
-          fIntValue(0),
-          fRealValue(0),
-          fOffset1(-1),
-          fOffset2(-1),
-          fBranch1(nullptr),
-          fBranch2(nullptr)
+        : fName(""), fOpcode(opcode), fIntValue(0), fRealValue(0), fOffset1(-1), fOffset2(-1), fBranch1(nullptr), fBranch2(nullptr)
     {
     }
 
@@ -141,8 +134,7 @@ struct FBCBasicInstruction : public FBCInstruction {
 
     int size()
     {
-        int branches =
-            std::max(((getBranch1()) ? getBranch1()->size() : 0), ((getBranch2()) ? getBranch2()->size() : 0));
+        int branches = std::max(((getBranch1()) ? getBranch1()->size() : 0), ((getBranch2()) ? getBranch2()->size() : 0));
         return (branches > 0) ? branches : 1;
     }
 
@@ -152,8 +144,8 @@ struct FBCBasicInstruction : public FBCInstruction {
             *out << "o " << fOpcode << " k "
                  << " i " << fIntValue << " r " << fRealValue << " o " << fOffset1 << " o " << fOffset2 << std::endl;
         } else {
-            *out << "opcode " << fOpcode << " " << gFBCInstructionTable[fOpcode] << " int " << fIntValue << " real "
-                 << fRealValue << " offset1 " << fOffset1 << " offset2 " << fOffset2;
+            *out << "opcode " << fOpcode << " " << gFBCInstructionTable[fOpcode] << " int " << fIntValue << " real " << fRealValue
+                 << " offset1 " << fOffset1 << " offset2 " << fOffset2;
             if (this->fName != "") {
                 *out << " name " << this->fName;
             }
@@ -180,8 +172,7 @@ template <class T>
 struct FIRBlockStoreRealInstruction : public FBCBasicInstruction<T> {
     std::vector<T> fNumTable;
 
-    FIRBlockStoreRealInstruction(FBCInstruction::Opcode opcode, int offset1, int offset2,
-                                 const std::vector<T>& numtable)
+    FIRBlockStoreRealInstruction(FBCInstruction::Opcode opcode, int offset1, int offset2, const std::vector<T>& numtable)
     {
         this->fOpcode    = opcode;
         this->fIntValue  = 0;
@@ -204,8 +195,8 @@ struct FIRBlockStoreRealInstruction : public FBCBasicInstruction<T> {
             *out << "o " << this->fOpcode << " k "
                  << " o " << this->fOffset1 << " o " << this->fOffset2 << " s " << this->fNumTable.size() << std::endl;
         } else {
-            *out << "opcode " << this->fOpcode << " " << gFBCInstructionTable[this->fOpcode] << " offset1 "
-                 << this->fOffset1 << " offset2 " << this->fOffset2 << " size " << this->fNumTable.size();
+            *out << "opcode " << this->fOpcode << " " << gFBCInstructionTable[this->fOpcode] << " offset1 " << this->fOffset1 << " offset2 "
+                 << this->fOffset2 << " size " << this->fNumTable.size();
             if (this->fName != "") {
                 *out << " name " << this->fName;
             }
@@ -222,8 +213,7 @@ template <class T>
 struct FIRBlockStoreIntInstruction : public FBCBasicInstruction<T> {
     std::vector<int> fNumTable;
 
-    FIRBlockStoreIntInstruction(FBCInstruction::Opcode opcode, int offset1, int offset2,
-                                const std::vector<int>& numtable)
+    FIRBlockStoreIntInstruction(FBCInstruction::Opcode opcode, int offset1, int offset2, const std::vector<int>& numtable)
     {
         this->fOpcode    = opcode;
         this->fIntValue  = 0;
@@ -246,8 +236,8 @@ struct FIRBlockStoreIntInstruction : public FBCBasicInstruction<T> {
             *out << "o " << this->fOpcode << " k "
                  << " o " << this->fOffset1 << " o " << this->fOffset2 << " s " << this->fNumTable.size() << std::endl;
         } else {
-            *out << "opcode " << this->fOpcode << " " << gFBCInstructionTable[this->fOpcode] << " offset1 "
-                 << this->fOffset1 << " offset2 " << this->fOffset2 << " size " << this->fNumTable.size();
+            *out << "opcode " << this->fOpcode << " " << gFBCInstructionTable[this->fOpcode] << " offset1 " << this->fOffset1 << " offset2 "
+                 << this->fOffset2 << " size " << this->fNumTable.size();
             if (this->fName != "") {
                 *out << " name " << this->fName;
             }
@@ -272,17 +262,9 @@ struct FIRUserInterfaceInstruction : public FBCInstruction {
     T           fMax;
     T           fStep;
 
-    FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& label, const std::string& key,
-                                const std::string& value, T init, T min, T max, T step)
-        : fOpcode(opcode),
-          fOffset(offset),
-          fLabel(label),
-          fKey(key),
-          fValue(value),
-          fInit(init),
-          fMin(min),
-          fMax(max),
-          fStep(step)
+    FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& label, const std::string& key, const std::string& value,
+                                T init, T min, T max, T step)
+        : fOpcode(opcode), fOffset(offset), fLabel(label), fKey(key), fValue(value), fInit(init), fMin(min), fMax(max), fStep(step)
     {
     }
 
@@ -307,15 +289,7 @@ struct FIRUserInterfaceInstruction : public FBCInstruction {
     }
 
     FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& label, T min, T max)
-        : fOpcode(opcode),
-          fOffset(offset),
-          fLabel(label),
-          fKey(""),
-          fValue(""),
-          fInit(0),
-          fMin(min),
-          fMax(max),
-          fStep(0)
+        : fOpcode(opcode), fOffset(offset), fLabel(label), fKey(""), fValue(""), fInit(0), fMin(min), fMax(max), fStep(0)
     {
     }
 
@@ -330,12 +304,12 @@ struct FIRUserInterfaceInstruction : public FBCInstruction {
     {
         if (small) {
             *out << "o " << fOpcode << " k "
-                 << " o " << fOffset << " l " << quote1(fLabel) << " k " << quote1(fKey) << " v " << quote1(fValue)
-                 << " i " << fInit << " m " << fMin << " m " << fMax << " s " << fStep << std::endl;
+                 << " o " << fOffset << " l " << quote1(fLabel) << " k " << quote1(fKey) << " v " << quote1(fValue) << " i " << fInit
+                 << " m " << fMin << " m " << fMax << " s " << fStep << std::endl;
         } else {
-            *out << "opcode " << fOpcode << " " << gFBCInstructionTable[fOpcode] << " offset " << fOffset << " label "
-                 << quote1(fLabel) << " key " << quote1(fKey) << " value " << quote1(fValue) << " init " << fInit
-                 << " min " << fMin << " max " << fMax << " step " << fStep << std::endl;
+            *out << "opcode " << fOpcode << " " << gFBCInstructionTable[fOpcode] << " offset " << fOffset << " label " << quote1(fLabel)
+                 << " key " << quote1(fKey) << " value " << quote1(fValue) << " init " << fInit << " min " << fMin << " max " << fMax
+                 << " step " << fStep << std::endl;
         }
     }
 };
@@ -434,8 +408,8 @@ struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
     {
         for (auto& it : fInstructions) {
             if (it->fOpcode == FBCInstruction::kAddButton || it->fOpcode == FBCInstruction::kAddCheckButton ||
-                it->fOpcode == FBCInstruction::kAddHorizontalSlider ||
-                it->fOpcode == FBCInstruction::kAddVerticalSlider || it->fOpcode == FBCInstruction::kAddNumEntry) {
+                it->fOpcode == FBCInstruction::kAddHorizontalSlider || it->fOpcode == FBCInstruction::kAddVerticalSlider ||
+                it->fOpcode == FBCInstruction::kAddNumEntry) {
                 real_map[it->fOffset] = it->fInit;
             }
         }

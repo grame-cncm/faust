@@ -26,8 +26,8 @@
 #include <set>
 #include <string>
 
-#include "signals.hh"
 #include "digraph.hh"
+#include "signals.hh"
 
 using namespace std;
 

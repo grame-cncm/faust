@@ -257,10 +257,9 @@ inline const Node mulNode(const Node& x, const Node& y)
 
 inline const Node divExtendedNode(const Node& x, const Node& y)
 {
-    return (isDouble(x) || isDouble(y))
-               ? Node(double(x) / double(y))
-               : (double(int(x) / int(y)) == double(x) / double(y)) ? Node(int(x) / int(y))
-                                                                    : Node(double(x) / double(y));
+    return (isDouble(x) || isDouble(y))                         ? Node(double(x) / double(y))
+           : (double(int(x) / int(y)) == double(x) / double(y)) ? Node(int(x) / int(y))
+                                                                : Node(double(x) / double(y));
 }
 
 inline const Node remNode(const Node& x, const Node& y)

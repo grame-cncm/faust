@@ -67,12 +67,11 @@ class CommonSubexpr : public SignalIdentity {
         double r;
 
         return /*!(isSigInput(sig, &i)) && */ !isSigInstructionSharedRead(sig, id, origin, &nature) &&
-               !isSigInstructionVectorRead(sig, id, origin, &nature) &&
-               !isSigInstructionControlRead(sig, id, origin, &nature) && !isSigTime(sig) &&
-               !isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl) &&
+               !isSigInstructionVectorRead(sig, id, origin, &nature) && !isSigInstructionControlRead(sig, id, origin, &nature) &&
+               !isSigTime(sig) && !isSigInstructionDelayLineRead(sig, id, origin, &nature, &dmax, &dmin, dl) &&
                !isSigInstructionTableRead(sig, id, origin, &nature, &dmin, idx) &&
-               !isSigInstructionShortDLineRead(sig, id, origin, &nature, &dmin) && !isSigGen(sig) &&
-               !isSigInt(sig, &i) && !isSigReal(sig, &r) && !isSigInstructionTimeRead(sig);
+               !isSigInstructionShortDLineRead(sig, id, origin, &nature, &dmin) && !isSigGen(sig) && !isSigInt(sig, &i) &&
+               !isSigReal(sig, &r) && !isSigInstructionTimeRead(sig);
     }
 
     Tree transformation(Tree sig) override

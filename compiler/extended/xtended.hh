@@ -68,14 +68,10 @@ class xtended : public virtual Garbageable {
     virtual Tree   computeSigOutput(const vector<Tree>& args)                                            = 0;
     virtual bool   needCache()                                                                           = 0;
 
-    virtual bool isSpecialInfix()
-    {
-        return false;
-    }  ///< generally false, but true for binary op # such that #(x) == _#x
+    virtual bool isSpecialInfix() { return false; }  ///< generally false, but true for binary op # such that #(x) == _#x
 
-    void prepareTypeArgsResult(::Type result, const list<ValueInst*>& args, vector< ::Type> const& types,
-                               Typed::VarType& result_type, vector<Typed::VarType>& arg_types,
-                               list<ValueInst*>& casted_args);
+    void prepareTypeArgsResult(::Type result, const list<ValueInst*>& args, vector< ::Type> const& types, Typed::VarType& result_type,
+                               vector<Typed::VarType>& arg_types, list<ValueInst*>& casted_args);
 };
 
 // True if two floating point numbers are close enough to be considered identical.

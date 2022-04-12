@@ -80,8 +80,7 @@ class MinPrim : public xtended {
         }
     }
 
-    ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
-                            vector< ::Type> const& types) override
+    ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const& types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

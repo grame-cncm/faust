@@ -66,8 +66,7 @@ class FIRCodeContainer : public virtual CodeContainer {
     bool fTopLevel;
 
    public:
-    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, ostream* dst,
-                                          bool top_level = false);
+    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, ostream* dst, bool top_level = false);
 };
 
 class FIRScalarCodeContainer : public FIRCodeContainer {
@@ -75,8 +74,7 @@ class FIRScalarCodeContainer : public FIRCodeContainer {
     virtual void dumpCompute(FIRInstVisitor& firvisitor, ostream* dst);
 
    public:
-    FIRScalarCodeContainer(const string& name, int numInputs, int numOutputs, int sub_container_type, ostream* dst,
-                           bool top_level)
+    FIRScalarCodeContainer(const string& name, int numInputs, int numOutputs, int sub_container_type, ostream* dst, bool top_level)
         : FIRCodeContainer(name, numInputs, numOutputs, dst, top_level)
     {
         fSubContainerType = sub_container_type;

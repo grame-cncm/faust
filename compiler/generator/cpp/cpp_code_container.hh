@@ -53,8 +53,7 @@ class CPPCodeContainer : public virtual CodeContainer {
 
         // For mathematical functions
         if (gGlobal->gFastMath) {
-            addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                                                            : ("\"" + gGlobal->gFastMathLib + "\""));
+            addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\"" : ("\"" + gGlobal->gFastMathLib + "\""));
         } else {
             addIncludeFile("<cmath>");
             addIncludeFile("<algorithm>");
@@ -124,8 +123,7 @@ class CPPOpenMPCodeContainer : public OpenMPCodeContainer, public CPPCodeContain
 class CPPWorkStealingCodeContainer : public WSSCodeContainer, public CPPCodeContainer {
    protected:
    public:
-    CPPWorkStealingCodeContainer(const string& name, const string& super, int numInputs, int numOutputs,
-                                 std::ostream* out);
+    CPPWorkStealingCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
     ~CPPWorkStealingCodeContainer() override;
 
     void produceClass() override;

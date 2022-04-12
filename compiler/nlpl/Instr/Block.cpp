@@ -14,8 +14,7 @@
 #include "digraphop.hh"
 #include "schedule.hh"
 #include "stdprinting.hh"
-namespace nlpl
-{
+namespace nlpl {
 static const std::vector<Instr> scheduleInstructions(const std::set<Instr>& I)
 {
     std::unordered_map<Mem, Instr> providedBy;  // Collect everything provided by I
@@ -44,8 +43,7 @@ static const std::vector<Instr> scheduleInstructions(const std::set<Instr>& I)
     return S.elements();
 }
 
-class BlockInstr : public Instruction
-{
+class BlockInstr : public Instruction {
     std::set<Instr> fInstructions;
 
    public:

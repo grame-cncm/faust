@@ -2,10 +2,8 @@
 #include <utility>
 
 #include "Expr.hh"
-namespace nlpl
-{
-class FloatExpr : public Expression
-{
+namespace nlpl {
+class FloatExpr : public Expression {
     double fFloat;
 
    public:

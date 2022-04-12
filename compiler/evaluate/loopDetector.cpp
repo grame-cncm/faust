@@ -42,8 +42,7 @@ bool loopDetector::detect(Tree t)
             faustassert(r != w);
             if (fBuffer[r] == t) {
                 stringstream error;
-                error << "ERROR : after " << fPhase
-                      << " evaluation steps, the compiler has detected an endless evaluation cycle of " << i
+                error << "ERROR : after " << fPhase << " evaluation steps, the compiler has detected an endless evaluation cycle of " << i
                       << " steps\n";
                 throw faustexception(error.str());
             }
