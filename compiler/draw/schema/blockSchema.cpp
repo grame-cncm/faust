@@ -38,8 +38,7 @@ static double quantize(int n)
  * Computes the size of the box according to the length of the text
  * and the maximum number of ports.
  */
-schema* makeBlockSchema(unsigned int inputs, unsigned int outputs, const string& text, const string& color,
-                        const string& link)
+schema* makeBlockSchema(unsigned int inputs, unsigned int outputs, const string& text, const string& color, const string& link)
 {
     // determine the optimal size of the box
     double minimal = 3 * dWire;
@@ -55,8 +54,8 @@ schema* makeBlockSchema(unsigned int inputs, unsigned int outputs, const string&
  * The length of the text as well as th number of inputs and outputs
  * are used to compute the size of the blockSchema
  */
-blockSchema::blockSchema(unsigned int inputs, unsigned int outputs, double width, double height, const string& text,
-                         const string& color, const string& link)
+blockSchema::blockSchema(unsigned int inputs, unsigned int outputs, double width, double height, const string& text, const string& color,
+                         const string& link)
 
     : schema(inputs, outputs, width, height), fText(text), fColor(color), fLink(link)
 {

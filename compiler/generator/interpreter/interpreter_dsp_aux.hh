@@ -82,12 +82,11 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     typename FBCCompiler<T>::CompiledBlocksType* fCompiledBlocks;
 #endif
 
-    interpreter_dsp_factory_aux(const std::string& name, const std::string& compile_options, const std::string& sha_key,
-                                int version_num, int inputs, int outputs, int int_heap_size, int real_heap_size,
-                                int sound_heap_size, int sr_offset, int count_offset, int iota_offset, int opt_level,
-                                FIRMetaBlockInstruction* meta, FIRUserInterfaceBlockInstruction<T>* firinterface,
-                                FBCBlockInstruction<T>* static_init, FBCBlockInstruction<T>* init,
-                                FBCBlockInstruction<T>* resetui, FBCBlockInstruction<T>* clear,
+    interpreter_dsp_factory_aux(const std::string& name, const std::string& compile_options, const std::string& sha_key, int version_num,
+                                int inputs, int outputs, int int_heap_size, int real_heap_size, int sound_heap_size, int sr_offset,
+                                int count_offset, int iota_offset, int opt_level, FIRMetaBlockInstruction* meta,
+                                FIRUserInterfaceBlockInstruction<T>* firinterface, FBCBlockInstruction<T>* static_init,
+                                FBCBlockInstruction<T>* init, FBCBlockInstruction<T>* resetui, FBCBlockInstruction<T>* clear,
                                 FBCBlockInstruction<T>* compute_control, FBCBlockInstruction<T>* compute_dsp)
         : dsp_factory_imp(name, sha_key, ""),
           fVersion(version_num),
@@ -176,8 +175,8 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
             *out << "o " << fOptLevel << std::endl;
             *out << "i " << fNumInputs << " o " << fNumOutputs << std::endl;
 
-            *out << "i " << fIntHeapSize << " r " << fRealHeapSize << " s " << fSoundHeapSize << " s " << fSROffset
-                 << " c " << fCountOffset << " i " << fIOTAOffset << std::endl;
+            *out << "i " << fIntHeapSize << " r " << fRealHeapSize << " s " << fSoundHeapSize << " s " << fSROffset << " c " << fCountOffset
+                 << " i " << fIOTAOffset << std::endl;
 
             *out << "m" << std::endl;
             fMetaBlock->write(out, small);
@@ -213,9 +212,8 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
             *out << "inputs " << fNumInputs << " outputs " << fNumOutputs << std::endl;
 
-            *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize << " sound_heap_size "
-                 << fSoundHeapSize << " sr_offset " << fSROffset << " count_offset " << fCountOffset << " iota_offset "
-                 << fIOTAOffset << std::endl;
+            *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize << " sound_heap_size " << fSoundHeapSize
+                 << " sr_offset " << fSROffset << " count_offset " << fCountOffset << " iota_offset " << fIOTAOffset << std::endl;
 
             *out << "meta_block" << std::endl;
             fMetaBlock->write(out, small);
@@ -259,8 +257,8 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
         if (INTERP_FILE_VERSION != file_num) {
             std::stringstream error;
-            error << "ERROR : interpreter file format version '" << file_num << "' different from compiled one '"
-                  << INTERP_FILE_VERSION << "'" << std::endl;
+            error << "ERROR : interpreter file format version '" << file_num << "' different from compiled one '" << INTERP_FILE_VERSION
+                  << "'" << std::endl;
             throw faustexception(error.str());
         }
 
@@ -367,10 +365,10 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         getline(*in, dummy);  // Read "dsp_block" line
         FBCBlockInstruction<T>* compute_dsp_block = readCodeBlock(in);
 
-        return new interpreter_dsp_factory_aux(
-            factory_name, compile_options, sha_key, file_num, inputs, outputs, int_heap_size, real_heap_size,
-            sound_heap_size, sr_offset, count_offset, iota_offset, opt_level, meta_block, ui_block, static_init_block,
-            init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
+        return new interpreter_dsp_factory_aux(factory_name, compile_options, sha_key, file_num, inputs, outputs, int_heap_size,
+                                               real_heap_size, sound_heap_size, sr_offset, count_offset, iota_offset, opt_level, meta_block,
+                                               ui_block, static_init_block, init_block, resetui_block, clear_block, compute_control_block,
+                                               compute_dsp_block);
     }
 
     static std::string parseStringToken(std::stringstream* inst)
@@ -480,8 +478,8 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         *inst >> dummy;  // Read "step" token
         *inst >> step;
 
-        return new FIRUserInterfaceInstruction<T>(FBCInstruction::Opcode(opcode), offset, unquote1(label),
-                                                  unquote1(key), unquote1(val), init, min, max, step);
+        return new FIRUserInterfaceInstruction<T>(FBCInstruction::Opcode(opcode), offset, unquote1(label), unquote1(key), unquote1(val),
+                                                  init, min, max, step);
     }
 
     static FBCBlockInstruction<T>* readCodeBlock(std::istream* in)
@@ -603,8 +601,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
                 branch2 = readCodeBlock(in);  // consume 'in'
             }
 
-            return new FBCBasicInstruction<T>(FBCInstruction::Opcode(opcode), name, val_int, val_real, offset1, offset2,
-                                              branch1, branch2);
+            return new FBCBasicInstruction<T>(FBCInstruction::Opcode(opcode), name, val_int, val_real, offset1, offset2, branch1, branch2);
         }
     }
 
@@ -653,10 +650,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
     FBCExecutor<T>*                        fFBCExecutor;
 
    public:
-    interpreter_dsp_aux()
-        : fInitialized(false), fTraceOutput(false), fCycle(0), fFactory(nullptr), fFBCExecutor(nullptr)
-    {
-    }
+    interpreter_dsp_aux() : fInitialized(false), fTraceOutput(false), fCycle(0), fFactory(nullptr), fFBCExecutor(nullptr) {}
 
     interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory)
     {
@@ -766,10 +760,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         */
     }
 
-    virtual void buildUserInterface(UITemplate* glue)
-    {
-        fFBCExecutor->ExecuteBuildUserInterface(fFactory->fUserInterfaceBlock, glue);
-    }
+    virtual void buildUserInterface(UITemplate* glue) { fFBCExecutor->ExecuteBuildUserInterface(fFactory->fUserInterfaceBlock, glue); }
 
     void ExecuteVecBlock(FBCBlockInstruction<T>* block, int vec_size)
     {
@@ -951,14 +942,10 @@ class interpreter_dsp_aux_pe : public interpreter_dsp_aux<T, TRACE> {
         this->instanceInit(sample_rate);
 
         // Propagate constant values stored in the code into the heap
-        this->fStaticInitBlock =
-            FBCInstructionOptimizer<T>::specialize2Heap(this->fFactory->fStaticInitBlock->copy(), fIntMap, fRealMap);
-        this->fInitBlock =
-            FBCInstructionOptimizer<T>::specialize2Heap(this->fFactory->fInitBlock->copy(), fIntMap, fRealMap);
-        this->fResetUIBlock =
-            FBCInstructionOptimizer<T>::specialize2Heap(this->fFactory->fResetUIBlock->copy(), fIntMap, fRealMap);
-        this->fClearBlock =
-            FBCInstructionOptimizer<T>::specialize2Heap(this->fFactory->fClearBlock->copy(), fIntMap, fRealMap);
+        this->fStaticInitBlock = FBCInstructionOptimizer<T>::specialize2Heap(this->fFactory->fStaticInitBlock->copy(), fIntMap, fRealMap);
+        this->fInitBlock       = FBCInstructionOptimizer<T>::specialize2Heap(this->fFactory->fInitBlock->copy(), fIntMap, fRealMap);
+        this->fResetUIBlock    = FBCInstructionOptimizer<T>::specialize2Heap(this->fFactory->fResetUIBlock->copy(), fIntMap, fRealMap);
+        this->fClearBlock      = FBCInstructionOptimizer<T>::specialize2Heap(this->fFactory->fClearBlock->copy(), fIntMap, fRealMap);
 
         // Suppress IOTA from fIntMap since we don't want specialization to use it
         if (fIntMap.find(this->fFactory->fIOTAOffset) != fIntMap.end()) {
@@ -980,13 +967,11 @@ class interpreter_dsp_aux_pe : public interpreter_dsp_aux<T, TRACE> {
         // this->fFactory->fUserInterfaceBlock->unFreezeValue(fRealMap, FBCInstruction::kAddButton);
 
         // Specialization by partial evaluation
-        this->fComputeBlock =
-            FBCInstructionOptimizer<T>::specialize(this->fFactory->fComputeBlock->copy(), fIntMap, fRealMap);
+        this->fComputeBlock = FBCInstructionOptimizer<T>::specialize(this->fFactory->fComputeBlock->copy(), fIntMap, fRealMap);
 
 #ifndef MACHINE
         // LLVM JIT only works on unoptimized FBC
-        this->fComputeDSPBlock =
-            FBCInstructionOptimizer<T>::optimizeBlock(this->fFactory->fComputeDSPBlock->copy(), 1, 4);
+        this->fComputeDSPBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fFactory->fComputeDSPBlock->copy(), 1, 4);
 #else
         this->fComputeDSPBlock = this->fFactory->fComputeDSPBlock->copy();
 #endif
@@ -1154,62 +1139,22 @@ class EXPORT interpreter_dsp : public dsp {
     interpreter_dsp_base*    fDSP;
 
    public:
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 0>* dsp) : fFactory(factory), fDSP(dsp)
-    {
-    }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 0>* dsp)
-        : fFactory(factory), fDSP(dsp)
-    {
-    }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 1>* dsp) : fFactory(factory), fDSP(dsp)
-    {
-    }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 1>* dsp)
-        : fFactory(factory), fDSP(dsp)
-    {
-    }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 2>* dsp) : fFactory(factory), fDSP(dsp)
-    {
-    }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 2>* dsp)
-        : fFactory(factory), fDSP(dsp)
-    {
-    }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 3>* dsp) : fFactory(factory), fDSP(dsp)
-    {
-    }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 3>* dsp)
-        : fFactory(factory), fDSP(dsp)
-    {
-    }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 4>* dsp) : fFactory(factory), fDSP(dsp)
-    {
-    }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 4>* dsp)
-        : fFactory(factory), fDSP(dsp)
-    {
-    }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 5>* dsp) : fFactory(factory), fDSP(dsp)
-    {
-    }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 5>* dsp)
-        : fFactory(factory), fDSP(dsp)
-    {
-    }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 6>* dsp) : fFactory(factory), fDSP(dsp)
-    {
-    }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 6>* dsp)
-        : fFactory(factory), fDSP(dsp)
-    {
-    }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 7>* dsp) : fFactory(factory), fDSP(dsp)
-    {
-    }
-    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 7>* dsp)
-        : fFactory(factory), fDSP(dsp)
-    {
-    }
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 0>* dsp) : fFactory(factory), fDSP(dsp) {}
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 0>* dsp) : fFactory(factory), fDSP(dsp) {}
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 1>* dsp) : fFactory(factory), fDSP(dsp) {}
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 1>* dsp) : fFactory(factory), fDSP(dsp) {}
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 2>* dsp) : fFactory(factory), fDSP(dsp) {}
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 2>* dsp) : fFactory(factory), fDSP(dsp) {}
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 3>* dsp) : fFactory(factory), fDSP(dsp) {}
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 3>* dsp) : fFactory(factory), fDSP(dsp) {}
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 4>* dsp) : fFactory(factory), fDSP(dsp) {}
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 4>* dsp) : fFactory(factory), fDSP(dsp) {}
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 5>* dsp) : fFactory(factory), fDSP(dsp) {}
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 5>* dsp) : fFactory(factory), fDSP(dsp) {}
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 6>* dsp) : fFactory(factory), fDSP(dsp) {}
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 6>* dsp) : fFactory(factory), fDSP(dsp) {}
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 7>* dsp) : fFactory(factory), fDSP(dsp) {}
+    interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 7>* dsp) : fFactory(factory), fDSP(dsp) {}
 
     virtual ~interpreter_dsp();
 
@@ -1280,9 +1225,8 @@ dsp* interpreter_dsp_factory_aux<T, TRACE>::createDSPInstance(dsp_factory* facto
     faustassert(tmp);
 
     if (tmp->getMemoryManager()) {
-        return new (tmp->getFactory()->allocate(sizeof(interpreter_dsp)))
-            interpreter_dsp(tmp, new (tmp->getFactory()->allocate(sizeof(interpreter_dsp_aux<T, TRACE>)))
-                                     interpreter_dsp_aux<T, TRACE>(this));
+        return new (tmp->getFactory()->allocate(sizeof(interpreter_dsp))) interpreter_dsp(
+            tmp, new (tmp->getFactory()->allocate(sizeof(interpreter_dsp_aux<T, TRACE>))) interpreter_dsp_aux<T, TRACE>(this));
     } else {
         const char* trace = getenv("FAUST_INTERP_PE");
         int         mode  = (trace) ? std::atoi(trace) : 0;
@@ -1303,13 +1247,11 @@ EXPORT std::vector<std::string> getInterpreterDSPFactoryLibraryList(interpreter_
 
 EXPORT std::vector<std::string> getAllInterpreterDSPFactories();
 
-EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const std::string& bitcode,
-                                                                     std::string&       error_msg);
+EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const std::string& bitcode, std::string& error_msg);
 
 EXPORT std::string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* factory);
 
-EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const std::string& bitcode_path,
-                                                                         std::string&       error_msg);
+EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const std::string& bitcode_path, std::string& error_msg);
 
 EXPORT void writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const std::string& bitcode_path);
 

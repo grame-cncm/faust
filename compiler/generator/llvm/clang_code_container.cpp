@@ -40,8 +40,7 @@
 #include <llvm/Support/raw_ostream.h>
 
 #include <llvm/Bitcode/ReaderWriter.h>
-#if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || \
-    defined(LLVM_39) || defined(LLVM_40)
+#if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
 #include <llvm/IR/Module.h>
 #else
 #include <llvm/Module.h>
@@ -111,8 +110,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     fCompiler->compileMultiSignal(signals);
     fContainer->produceClass();
 
-#if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || \
-    defined(LLVM_39) || defined(LLVM_40)
+#if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
     // Compile it with 'clang'
     IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts   = new DiagnosticOptions();
     TextDiagnosticPrinter*                DiagClient = new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts);

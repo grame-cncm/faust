@@ -136,11 +136,9 @@ class RustInstVisitor : public TextInstVisitor {
     {
         // Special case
         if (inst->fZone == "0") {
-            *fOut << "ui_interface.declare(&mut self.fDummy, " << quote(inst->fKey) << ", " << quote(inst->fValue)
-                  << ")";
+            *fOut << "ui_interface.declare(&mut self.fDummy, " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
         } else {
-            *fOut << "ui_interface.declare(&mut self." << inst->fZone << ", " << quote(inst->fKey) << ", "
-                  << quote(inst->fValue) << ")";
+            *fOut << "ui_interface.declare(&mut self." << inst->fZone << ", " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
         }
         EndLine();
     }
@@ -210,8 +208,8 @@ class RustInstVisitor : public TextInstVisitor {
                 name = "ui_interface.addVerticalBargraph";
                 break;
         }
-        *fOut << name << "(" << quote(inst->fLabel) << ", &mut self." << inst->fZone << ", " << checkReal(inst->fMin)
-              << ", " << checkReal(inst->fMax) << ")";
+        *fOut << name << "(" << quote(inst->fLabel) << ", &mut self." << inst->fZone << ", " << checkReal(inst->fMin) << ", "
+              << checkReal(inst->fMax) << ")";
         EndLine();
     }
 

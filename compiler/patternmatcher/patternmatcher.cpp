@@ -59,8 +59,8 @@ static inline bool isCons(Tree x, Tree& h, Tree& t)
 
 static inline bool isBoxPatternOp(Tree box, Node& n, Tree& t1, Tree& t2)
 {
-    if (isBoxPar(box, t1, t2) || isBoxSeq(box, t1, t2) || isBoxSplit(box, t1, t2) || isBoxMerge(box, t1, t2) ||
-        isBoxHGroup(box, t1, t2) || isBoxVGroup(box, t1, t2) || isBoxTGroup(box, t1, t2) || isBoxRec(box, t1, t2)) {
+    if (isBoxPar(box, t1, t2) || isBoxSeq(box, t1, t2) || isBoxSplit(box, t1, t2) || isBoxMerge(box, t1, t2) || isBoxHGroup(box, t1, t2) ||
+        isBoxVGroup(box, t1, t2) || isBoxTGroup(box, t1, t2) || isBoxRec(box, t1, t2)) {
         n = box->node();
         return true;
     } else {
@@ -146,9 +146,7 @@ struct Trans : public virtual Garbageable {
     bool operator==(const Trans& trans) const { return arity == trans.arity && x == trans.x && n == trans.n; }
     bool operator<(const Trans& trans) const
     {
-        return (arity < trans.arity)
-                   ? 1
-                   : (arity > trans.arity) ? 0 : (arity == 0) ? (x < trans.x) : (n.getSym() < trans.n.getSym());
+        return (arity < trans.arity) ? 1 : (arity > trans.arity) ? 0 : (arity == 0) ? (x < trans.x) : (n.getSym() < trans.n.getSym());
     }
 
 #ifdef DEBUG
@@ -570,10 +568,8 @@ Automaton* make_pattern_matcher(Tree R)
                            be shadowed. */
                         Tree lhs1, rhs1, lhs2, rhs2;
                         if (isCons(rules[ru->r], lhs1, rhs1) && isCons(rules[r], lhs2, rhs2)) {
-                            cerr << "WARNING : shadowed pattern-matching rule: " << boxpp(reverse(lhs2)) << " => "
-                                 << boxpp(rhs2) << ";"
-                                 << " previous rule was: " << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
-                                 << endl;
+                            cerr << "WARNING : shadowed pattern-matching rule: " << boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
+                                 << " previous rule was: " << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";" << endl;
                         } else {
                             stringstream error;
                             error << "ERROR : " << __FILE__ << ":" << __LINE__ << endl;

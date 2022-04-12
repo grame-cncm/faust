@@ -99,8 +99,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
             case Address::kLoop: {
                 string name = address->getName();
                 if (fLocalVarTable.find(name) == fLocalVarTable.end()) {
-                    if (find(fAddedVarTable.begin(), fAddedVarTable.end(), name) ==
-                        fAddedVarTable.end()) {  // First encounter
+                    if (find(fAddedVarTable.begin(), fAddedVarTable.end(), name) == fAddedVarTable.end()) {  // First encounter
 
                         // Be sure variable is defined
                         // cerr << "createParameter kStack " << name << endl;
@@ -108,8 +107,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
                         // Local in the enclosing context, becomes a fun parameter
                         BasicCloneVisitor cloner;
-                        fArgsTypeList.push_back(
-                            InstBuilder::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
+                        fArgsTypeList.push_back(InstBuilder::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
 
                         // It becomes a value in the fun-call argument list
                         fArgsValueList.push_back(InstBuilder::genLoadStackVar(name));
@@ -126,8 +124,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
             case Address::kFunArgs: {
                 string name = address->getName();
-                if (find(fAddedVarTable.begin(), fAddedVarTable.end(), name) ==
-                    fAddedVarTable.end()) {  // First encounter
+                if (find(fAddedVarTable.begin(), fAddedVarTable.end(), name) == fAddedVarTable.end()) {  // First encounter
 
                     // Be sure variable is defined
                     // cerr << "createParameter kFunArgs " << name << endl;
@@ -135,8 +132,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
                     // Parameter in the enclosing function, becomes a fun parameter
                     BasicCloneVisitor cloner;
-                    fArgsTypeList.push_back(
-                        InstBuilder::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
+                    fArgsTypeList.push_back(InstBuilder::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
 
                     // It becomes a value in the fun-call argument list : keep it's kFunArgs status
                     fArgsValueList.push_back(InstBuilder::genLoadFunArgsVar(name));

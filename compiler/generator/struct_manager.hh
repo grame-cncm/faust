@@ -37,10 +37,7 @@ struct MemoryDesc {
 
     MemoryDesc() = default;
 
-    MemoryDesc(int index, int offset, int size, Typed::VarType type)
-        : fIndex(index), fOffset(offset), fSize(size), fType(type)
-    {
-    }
+    MemoryDesc(int index, int offset, int size, Typed::VarType type) : fIndex(index), fOffset(offset), fSize(size), fType(type) {}
 
     Typed* getTyped()
     {
@@ -126,8 +123,8 @@ struct StructInstVisitor : public DispatchVisitor {
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
-                fFieldTable.push_back(make_pair(
-                    name, MemoryDesc(fFieldIndex++, fStructOffset, array_typed->fSize, array_typed->fType->getType())));
+                fFieldTable.push_back(
+                    make_pair(name, MemoryDesc(fFieldIndex++, fStructOffset, array_typed->fSize, array_typed->fType->getType())));
                 fStructOffset += array_typed->getSize();
             } else {
                 // Should never happen...
@@ -135,8 +132,7 @@ struct StructInstVisitor : public DispatchVisitor {
             }
         } else {
             if (is_struct) {
-                fFieldTable.push_back(
-                    make_pair(name, MemoryDesc(fFieldIndex++, fStructOffset, 1, inst->fType->getType())));
+                fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++, fStructOffset, 1, inst->fType->getType())));
                 fStructOffset += inst->fType->getSize();
             } else {
                 // Local variables declared by [var_num, type] pairs

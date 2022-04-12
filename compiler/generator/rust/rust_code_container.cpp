@@ -46,9 +46,8 @@ map<string, bool> RustInstVisitor::gFunctionSymbolTable;
 
 dsp_factory_base* RustCodeContainer::produceFactory()
 {
-    return new text_dsp_factory_aux(
-        fKlassName, "", "",
-        ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
+    return new text_dsp_factory_aux(fKlassName, "", "",
+                                    ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
 }
 
 CodeContainer* RustCodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -412,8 +411,7 @@ void RustScalarCodeContainer::generateCompute(int n)
     // Generates declaration
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "pub fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[$1]], outputs: &mut[&mut[$1]]) {", fFullCount, ifloat());
+    *fOut << "pub fn compute(" << subst("&mut self, $0: i32, inputs: &[&[$1]], outputs: &mut[&mut[$1]]) {", fFullCount, ifloat());
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -447,8 +445,7 @@ void RustVectorCodeContainer::generateCompute(int n)
 
     // Compute declaration
     tab(n, *fOut);
-    *fOut << "pub fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[$1]], outputs: &mut[&mut[$1]]) {", fFullCount, ifloat());
+    *fOut << "pub fn compute(" << subst("&mut self, $0: i32, inputs: &[&[$1]], outputs: &mut[&mut[$1]]) {", fFullCount, ifloat());
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -477,8 +474,7 @@ void RustOpenMPCodeContainer::generateCompute(int n)
 
     // Compute declaration
     tab(n, *fOut);
-    *fOut << "pub fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[$1]], outputs: &mut[&mut[$1]]) {", fFullCount, ifloat());
+    *fOut << "pub fn compute(" << subst("&mut self, $0: i32, inputs: &[&[$1]], outputs: &mut[&mut[$1]]) {", fFullCount, ifloat());
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 
@@ -497,8 +493,7 @@ RustOpenMPCodeContainer::~RustOpenMPCodeContainer()
 }
 
 // Works stealing scheduler
-RustWorkStealingCodeContainer::RustWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs,
-                                                             std::ostream* out)
+RustWorkStealingCodeContainer::RustWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
     : WSSCodeContainer(numInputs, numOutputs, "dsp"), RustCodeContainer(name, numInputs, numOutputs, out)
 {
 }
@@ -528,8 +523,7 @@ void RustWorkStealingCodeContainer::generateCompute(int n)
 
     // Compute "compute" declaration
     tab(n, *fOut);
-    *fOut << "pub fn compute("
-          << subst("&mut self, $0: i32, inputs: &[&[$1]], outputs: &mut[&mut[$1]]) {", fFullCount, ifloat());
+    *fOut << "pub fn compute(" << subst("&mut self, $0: i32, inputs: &[&[$1]], outputs: &mut[&mut[$1]]) {", fFullCount, ifloat());
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
 

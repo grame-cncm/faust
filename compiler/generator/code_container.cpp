@@ -41,8 +41,7 @@ void CodeContainer::initialize(int numInputs, int numOutputs)
 }
 
 CodeContainer::CodeContainer()
-    : 
-      fExtGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
+    : fExtGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
       fGlobalDeclarationInstructions(InstBuilder::genBlockInst()),
       fDeclarationInstructions(InstBuilder::genBlockInst()),
       fInitInstructions(InstBuilder::genBlockInst()),
@@ -58,13 +57,12 @@ CodeContainer::CodeContainer()
       fPostComputeBlockInstructions(InstBuilder::genBlockInst()),
       fComputeFunctions(InstBuilder::genBlockInst()),
       fUserInterfaceInstructions(InstBuilder::genBlockInst())
-      
+
 {
     fCurLoop = new CodeLoop(nullptr, "i");
 }
 
-CodeContainer::~CodeContainer()
-= default;
+CodeContainer::~CodeContainer() = default;
 
 void CodeContainer::transformDAG(DispatchVisitor* visitor)
 {
@@ -196,11 +194,9 @@ void CodeContainer::printGraphDotFormat(ostream& fout)
         // for each task in the level
         for (auto t = G[l].begin(); t != G[l].end(); t++) {
             // print task label "Lxxx : 0xffffff"
-            fout << '\t' << 'L' << (*t) << "[label=<<font face=\"verdana,bold\">L" << lnum++ << "</font> : " << (*t)
-                 << ">];" << endl;
+            fout << '\t' << 'L' << (*t) << "[label=<<font face=\"verdana,bold\">L" << lnum++ << "</font> : " << (*t) << ">];" << endl;
             // for each source of the task
-            for (auto src = (*t)->fBackwardLoopDependencies.begin();
-                 src != (*t)->fBackwardLoopDependencies.end(); src++) {
+            for (auto src = (*t)->fBackwardLoopDependencies.begin(); src != (*t)->fBackwardLoopDependencies.end(); src++) {
                 // print the connection Lxxx -> Lyyy;
                 fout << '\t' << 'L' << (*src) << "->" << 'L' << (*t) << ';' << endl;
             }
@@ -221,8 +217,7 @@ void CodeContainer::computeForwardDAG(lclgraph dag, int& loop_count, vector<int>
     for (int l = int(dag.size() - 1); l >= 0; l--) {
         for (auto p = dag[l].begin(); p != dag[l].end(); p++) {
             // Setup forward dependancy
-            for (auto p1 = (*p)->fBackwardLoopDependencies.begin();
-                 p1 != (*p)->fBackwardLoopDependencies.end(); p1++) {
+            for (auto p1 = (*p)->fBackwardLoopDependencies.begin(); p1 != (*p)->fBackwardLoopDependencies.end(); p1++) {
                 (*p1)->fForwardLoopDependencies.insert((*p));
             }
 
@@ -243,8 +238,8 @@ void CodeContainer::computeForwardDAG(lclgraph dag, int& loop_count, vector<int>
 ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result, vector<Typed::VarType>& types,
                                        const list<ValueInst*>& args)
 {
-    BasicTyped*                      result_type = InstBuilder::genBasicTyped(result);
-    auto it          = args.begin();
+    BasicTyped* result_type = InstBuilder::genBasicTyped(result);
+    auto        it          = args.begin();
 
     // Special case for "faustpower", generates sequence of multiplication
     if (name == getFaustPowerName()) {
@@ -252,8 +247,8 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
         BlockInst* block = InstBuilder::genBlockInst();
 
         it++;
-        auto* arg1             = dynamic_cast<Int32NumInst*>(*it);
-        string        faust_power_name = name + to_string(arg1->fNum) + ((result == Typed::kInt32) ? "_i" : "_f");
+        auto*  arg1             = dynamic_cast<Int32NumInst*>(*it);
+        string faust_power_name = name + to_string(arg1->fNum) + ((result == Typed::kInt32) ? "_i" : "_f");
 
         list<NamedTyped*> named_args;
         named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(types[0])));
@@ -268,8 +263,8 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
             block->pushBackInst(InstBuilder::genRetInst(res));
         }
 
-        pushGlobalDeclare(InstBuilder::genDeclareFunInst(
-            faust_power_name, InstBuilder::genFunTyped(named_args, result_type, FunTyped::kLocal), block));
+        pushGlobalDeclare(
+            InstBuilder::genDeclareFunInst(faust_power_name, InstBuilder::genFunTyped(named_args, result_type, FunTyped::kLocal), block));
 
         list<ValueInst*> truncated_args;
         truncated_args.push_back((*args.begin()));
@@ -278,8 +273,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
     } else {
         list<NamedTyped*> named_args;
         for (size_t i = 0; i < types.size(); i++) {
-            named_args.push_back(
-                InstBuilder::genNamedTyped("dummy" + to_string(i), InstBuilder::genBasicTyped(types[i])));
+            named_args.push_back(InstBuilder::genNamedTyped("dummy" + to_string(i), InstBuilder::genBasicTyped(types[i])));
         }
         pushGlobalDeclare(InstBuilder::genDeclareFunInst(name, InstBuilder::genFunTyped(named_args, result_type)));
         return InstBuilder::genFunCallInst(name, args);
@@ -295,8 +289,7 @@ void CodeContainer::sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<
     visited.insert(l);
 
     // Compute the dependencies loops (that need to be computed before this one)
-    for (auto p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end();
-         p++) {
+    for (auto p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
         sortDeepFirstDAG(*p, visited, result);
     }
 
@@ -307,8 +300,8 @@ void CodeContainer::sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<
 }
 
 // Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
-void CodeContainer::produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod,
-                                         bool isvirtual, TextInstVisitor* producer)
+void CodeContainer::produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod, bool isvirtual,
+                                         TextInstVisitor* producer)
 {
     // Input/Output method
     producer->Tab(tabs);
@@ -329,8 +322,7 @@ void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, De
     loop->generateDAGScalarLoop(block, count, omp);
 }
 
-void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst* count, int loop_num,
-                                       bool omp)
+void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst* count, int loop_num, bool omp)
 {
     if (gGlobal->gFunTaskSwitch) {
         BlockInst* block = InstBuilder::genBlockInst();
@@ -338,14 +330,12 @@ void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, Dec
         generateDAGLoopInternal(loop, block, count, omp);
         Loop2FunctionBuider builder(subst("fun$0" + getClassName(), T(loop_num)), block, gGlobal->gDSPStruct);
         pushOtherComputeMethod(builder.fFunctionDef);
-        loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive)
-                                                              ? subst("/* Recursive function $0 */", T(loop_num))
-                                                              : subst("/* Vectorizable function $0 */", T(loop_num))));
+        loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("/* Recursive function $0 */", T(loop_num))
+                                                                               : subst("/* Vectorizable function $0 */", T(loop_num))));
         loop_code->pushBackInst(builder.fFunctionCall);
     } else {
-        loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive)
-                                                              ? subst("/* Recursive loop $0 */", T(loop_num))
-                                                              : subst("/* Vectorizable loop $0 */", T(loop_num))));
+        loop_code->pushBackInst(InstBuilder::genLabelInst((loop->fIsRecursive) ? subst("/* Recursive loop $0 */", T(loop_num))
+                                                                               : subst("/* Vectorizable loop $0 */", T(loop_num))));
         // Generates scalar or vectorized loop
         generateDAGLoopInternal(loop, loop_code, count, omp);
     }
@@ -479,8 +469,8 @@ void CodeContainer::generateJSON(JSONInstVisitor* visitor)
     gGlobal->printCompilationOptions(compile_options);
 
     // "name", "filename" found in medata
-    visitor->init("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(),
-                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, "", std::map<std::string, int>());
+    visitor->init("", "", fNumInputs, fNumOutputs, -1, "", "", FAUSTVERSION, compile_options.str(), gGlobal->gReader.listLibraryFiles(),
+                  gGlobal->gImportDirList, "", std::map<std::string, int>());
 
     generateUserInterface(visitor);
     generateMetaData(visitor);
@@ -495,8 +485,7 @@ BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
     list<CodeContainer*>::const_iterator it;
     for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
         // Build the function to be inlined (prototype and code)
-        DeclareFunInst* inst_init_fun =
-            (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), "dsp", true, false);
+        DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), "dsp", true, false);
         // dump2FIR(inst_init_fun);
         block = FunctionCallInliner(inst_init_fun).getCode(block);
 
@@ -532,8 +521,7 @@ void CodeContainer::printMacros(ostream& fout, int n)
 
 // DSP API generation
 
-DeclareFunInst* CodeContainer::generateGetIO(const string& name, const string& obj, int io, bool ismethod,
-                                             bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetIO(const string& name, const string& obj, int io, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
@@ -543,8 +531,8 @@ DeclareFunInst* CodeContainer::generateGetIO(const string& name, const string& o
     block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genInt32NumInst(io)));
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(),
-                                                  (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
+    FunTyped* fun_type =
+        InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
@@ -592,8 +580,7 @@ DeclareFunInst* CodeContainer::generateDestroy(const string& name, const string&
     return InstBuilder::genVoidFunction(name, args, block, isvirtual);
 }
 
-DeclareFunInst* CodeContainer::generateGetIORate(const string& name, const string& obj, vector<int>& io, bool ismethod,
-                                                 bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetIORate(const string& name, const string& obj, vector<int>& io, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
@@ -626,25 +613,22 @@ DeclareFunInst* CodeContainer::generateGetIORate(const string& name, const strin
     block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genLoadStackVar("rate")));
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(),
-                                                  (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
+    FunTyped* fun_type =
+        InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
-DeclareFunInst* CodeContainer::generateGetInputRate(const string& name, const string& obj, bool ismethod,
-                                                    bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetInputRate(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
     return generateGetIORate(name, obj, fInputRates, ismethod, isvirtual);
 }
 
-DeclareFunInst* CodeContainer::generateGetOutputRate(const string& name, const string& obj, bool ismethod,
-                                                     bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetOutputRate(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
     return generateGetIORate(name, obj, fOutputRates, ismethod, isvirtual);
 }
 
-DeclareFunInst* CodeContainer::generateInstanceClear(const string& name, const string& obj, bool ismethod,
-                                                     bool isvirtual)
+DeclareFunInst* CodeContainer::generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
@@ -661,8 +645,7 @@ DeclareFunInst* CodeContainer::generateInstanceClear(const string& name, const s
     return InstBuilder::genVoidFunction(name, args, block, isvirtual);
 }
 
-DeclareFunInst* CodeContainer::generateInstanceConstants(const string& name, const string& obj, bool ismethod,
-                                                         bool isvirtual)
+DeclareFunInst* CodeContainer::generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
@@ -699,13 +682,11 @@ DeclareFunInst* CodeContainer::generateStaticInitFun(const string& name, bool is
     block->pushBackInst(InstBuilder::genRetInst());
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(),
-                                                  (isstatic) ? FunTyped::kStatic : FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), (isstatic) ? FunTyped::kStatic : FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
-DeclareFunInst* CodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
-                                                       bool isvirtual)
+DeclareFunInst* CodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
@@ -781,8 +762,7 @@ DeclareFunInst* CodeContainer::generateInit(const string& name, const string& ob
     return InstBuilder::genVoidFunction(name, args, block, isvirtual);
 }
 
-DeclareFunInst* CodeContainer::generateInstanceInit(const string& name, const string& obj, bool ismethod,
-                                                    bool isvirtual)
+DeclareFunInst* CodeContainer::generateInstanceInit(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
@@ -820,8 +800,7 @@ DeclareFunInst* CodeContainer::generateInstanceInit(const string& name, const st
     return InstBuilder::genVoidFunction(name, args, block, isvirtual);
 }
 
-DeclareFunInst* CodeContainer::generateGetSampleRate(const string& name, const string& obj, bool ismethod,
-                                                     bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetSampleRate(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
@@ -832,8 +811,8 @@ DeclareFunInst* CodeContainer::generateGetSampleRate(const string& name, const s
     block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genLoadStructVar("fSampleRate")));
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(),
-                                                  (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
+    FunTyped* fun_type =
+        InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
@@ -866,8 +845,7 @@ DeclareFunInst* CodeContainer::generateCalloc()
     args.push_back(InstBuilder::genNamedTyped("size", Typed::kInt64));
 
     // Creates function
-    FunTyped* fun_type =
-        InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid_ptr), FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid_ptr), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst("calloc", fun_type);
 }
 
@@ -890,8 +868,8 @@ DeclareFunInst* CodeContainer::generateNewDsp(const string& name, int size)
         list<ValueInst*> args;
         args.push_back(InstBuilder::genInt64NumInst(1));
         args.push_back(InstBuilder::genInt64NumInst(size));
-        block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genCastInst(
-            InstBuilder::genFunCallInst("calloc", args), InstBuilder::genBasicTyped(Typed::kObj_ptr))));
+        block->pushBackInst(InstBuilder::genRetInst(
+            InstBuilder::genCastInst(InstBuilder::genFunCallInst("calloc", args), InstBuilder::genBasicTyped(Typed::kObj_ptr))));
     }
 
     // Creates function
@@ -907,8 +885,7 @@ DeclareFunInst* CodeContainer::generateDeleteDsp(const string& name, const strin
     BlockInst* block = InstBuilder::genBlockInst();
     {
         list<ValueInst*> args;
-        args.push_back(InstBuilder::genCastInst(InstBuilder::genLoadFunArgsVar(obj),
-                                                InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
+        args.push_back(InstBuilder::genCastInst(InstBuilder::genLoadFunArgsVar(obj), InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
         block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("free", args)));
     }
 

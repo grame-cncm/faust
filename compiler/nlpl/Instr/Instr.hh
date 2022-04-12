@@ -12,8 +12,7 @@
 #include "HashTuple.hh"
 #include "Memory.hh"
 
-namespace nlpl
-{
+namespace nlpl {
 std::ostream& tab(std::ostream& fout, int n);
 
 /**
@@ -24,17 +23,16 @@ std::ostream& tab(std::ostream& fout, int n);
 class Instruction;
 using Instr = Instruction*;
 
-class Instruction
-{
+class Instruction {
    public:
-    virtual std::set<Instr> lift() = 0;  // lift an instruction into a set of instructions
+    virtual std::set<Instr> lift()                                     = 0;  // lift an instruction into a set of instructions
     virtual void            getDependencies(std::set<Dependency>& dep) = 0;  // dependencies needed by this instr.
     virtual void            getProvided(std::set<Mem>& prov)           = 0;  // what this instruction provides
     virtual void            getSubInstr(std::set<Instruction*>& expr)  = 0;
     virtual void            print(std::ostream& os, int indent)        = 0;
     virtual Instr           schedule()                                 = 0;  // Transform set of instr. into seq
     virtual Instr           optimize()                                 = 0;  // merge if and repeats
-    virtual void dispatch(std::map<Expr, Instr>& IMap, std::map<Expr, Instr>& RMap, std::set<Instr>& OMap) = 0;
+    virtual void            dispatch(std::map<Expr, Instr>& IMap, std::map<Expr, Instr>& RMap, std::set<Instr>& OMap) = 0;
 };
 
 // Printing an expression

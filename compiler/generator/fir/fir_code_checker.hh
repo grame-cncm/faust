@@ -60,7 +60,7 @@ struct FIRCodeChecker : public DispatchVisitor {
     VarScope               fCurVarScope;
     int                    fError{0};
 
-    FIRCodeChecker()  
+    FIRCodeChecker()
     {
         // cout << "CodeVerifier" << std::endl;
     }

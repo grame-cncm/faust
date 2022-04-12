@@ -152,8 +152,8 @@ class text_dsp_factory_aux : public dsp_factory_imp {
     std::string fHelpers;
 
    public:
-    text_dsp_factory_aux(const std::string& name, const std::string& sha_key, const std::string& dsp,
-                         const std::string& code, const std::string& helpers)
+    text_dsp_factory_aux(const std::string& name, const std::string& sha_key, const std::string& dsp, const std::string& code,
+                         const std::string& helpers)
         : dsp_factory_imp(name, sha_key, dsp), fCode(code), fHelpers(helpers)
     {
     }
@@ -167,8 +167,7 @@ class text_dsp_factory_aux : public dsp_factory_imp {
 
 // Backend API
 
-dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* name, const char* input,
-                                      std::string& error_msg, bool generate);
+dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg,
+                                      bool generate);
 
-std::string expandDSP(int argc, const char* argv[], const char* name, const char* input, std::string& sha_key,
-                      std::string& error_msg);
+std::string expandDSP(int argc, const char* argv[], const char* name, const char* input, std::string& sha_key, std::string& error_msg);

@@ -80,8 +80,7 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
 }
 
-LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs, Module* module,
-                                     LLVMContext* context)
+LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, LLVMContext* context)
 {
     initialize(numInputs, numOutputs);
     fKlassName = name;
@@ -152,7 +151,7 @@ void LLVMCodeContainer::generateGetJSON()
     PointerType*  string_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
     LLVMVecTypes  getJSON_args;
     FunctionType* getJSON_type = FunctionType::get(string_ptr, makeArrayRef(getJSON_args), false);
-    Function* getJSON = Function::Create(getJSON_type, GlobalValue::ExternalLinkage, "getJSON" + fKlassName, fModule);
+    Function*     getJSON      = Function::Create(getJSON_type, GlobalValue::ExternalLinkage, "getJSON" + fKlassName, fModule);
 
     // Prepare compilation options
     stringstream compile_options;
@@ -170,9 +169,9 @@ void LLVMCodeContainer::generateGetJSON()
 
     faustassert(fStructVisitor.getFieldOffset("fSampleRate") != -1);
 
-    JSONInstVisitor json_visitor("", "", fNumInputs, fNumOutputs, fStructVisitor.getFieldOffset("fSampleRate"), "", "",
-                                 FAUSTVERSION, compile_options.str(), gGlobal->gReader.listLibraryFiles(),
-                                 gGlobal->gImportDirList, to_string(fStructVisitor.getStructSize()), path_index_table);
+    JSONInstVisitor json_visitor("", "", fNumInputs, fNumOutputs, fStructVisitor.getFieldOffset("fSampleRate"), "", "", FAUSTVERSION,
+                                 compile_options.str(), gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList,
+                                 to_string(fStructVisitor.getStructSize()), path_index_table);
     generateUserInterface(&json_visitor);
     generateMetaData(&json_visitor);
 
@@ -318,8 +317,8 @@ LLVMScalarCodeContainer::LLVMScalarCodeContainer(const string& name, int numInpu
 {
 }
 
-LLVMScalarCodeContainer::LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs, Module* module,
-                                                 LLVMContext* context, int sub_container_type)
+LLVMScalarCodeContainer::LLVMScalarCodeContainer(const string& name, int numInputs, int numOutputs, Module* module, LLVMContext* context,
+                                                 int sub_container_type)
     : LLVMCodeContainer(name, numInputs, numOutputs, module, context)
 {
     fSubContainerType = sub_container_type;

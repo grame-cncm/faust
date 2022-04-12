@@ -42,10 +42,7 @@ schema* makeDecorateSchema(schema* s, double margin, const string& text)
  * makeDecorateSchema
  */
 decorateSchema::decorateSchema(schema* s, double margin, const string& text)
-    : schema(s->inputs(), s->outputs(), s->width() + 2 * margin, s->height() + 2 * margin),
-      fSchema(s),
-      fMargin(margin),
-      fText(text)
+    : schema(s->inputs(), s->outputs(), s->width() + 2 * margin, s->height() + 2 * margin), fSchema(s), fMargin(margin), fText(text)
 {
     for (unsigned int i = 0; i < inputs(); i++) fInputPoint.push_back(point(0, 0));
     for (unsigned int i = 0; i < outputs(); i++) fOutputPoint.push_back(point(0, 0));

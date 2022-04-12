@@ -47,9 +47,7 @@ schema* makeRecSchema(schema* s1, schema* s2)
  * are supposed to have the same width.
  */
 recSchema::recSchema(schema* s1, schema* s2, double width)
-    : schema(s1->inputs() - s2->outputs(), s1->outputs(), width, s1->height() + s2->height()),
-      fSchema1(s1),
-      fSchema2(s2)
+    : schema(s1->inputs() - s2->outputs(), s1->outputs(), width, s1->height() + s2->height()), fSchema1(s1), fSchema2(s2)
 {
     // this version only accepts legal expressions of same width
     faustassert(s1->inputs() >= s2->outputs());

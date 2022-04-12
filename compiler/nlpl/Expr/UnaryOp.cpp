@@ -3,18 +3,14 @@
 #include <utility>
 
 #include "Expr.hh"
-namespace nlpl
-{
-class UnaryExpr : public Expression
-{
+namespace nlpl {
+class UnaryExpr : public Expression {
     std::string fOpName;
     int         fPriority;
     Expr        fExp;
 
    public:
-    explicit UnaryExpr(std::string op, int priority, Expr exp) : fOpName(std::move(op)), fPriority(priority), fExp(exp)
-    {
-    }
+    explicit UnaryExpr(std::string op, int priority, Expr exp) : fOpName(std::move(op)), fPriority(priority), fExp(exp) {}
     void getDependencies(std::set<Dependency>& dep) override { fExp->getDependencies(dep); }
     void getSubExpr(std::set<Expression*>& subexpr) override { subexpr.insert(fExp); }
 

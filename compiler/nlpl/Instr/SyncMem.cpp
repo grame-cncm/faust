@@ -10,10 +10,8 @@
 #include "Instr.hh"
 #include "Memory.hh"
 
-namespace nlpl
-{
-class SyncMemInstr : public Instruction
-{
+namespace nlpl {
+class SyncMemInstr : public Instruction {
     Mem           fMem;
     std::set<Mem> fDep;
 
@@ -40,7 +38,7 @@ class SyncMemInstr : public Instruction
 
     Instruction* schedule() override { return this; }
     Instruction* optimize() override { return this; }
-    void dispatch(std::map<Expr, Instr>&, std::map<Expr, Instr>&, std::set<Instr>& OMap) override { OMap.insert(this); }
+    void         dispatch(std::map<Expr, Instr>&, std::map<Expr, Instr>&, std::set<Instr>& OMap) override { OMap.insert(this); }
 };
 
 Instr SyncMem(Mem mem, const std::set<Mem>& D)

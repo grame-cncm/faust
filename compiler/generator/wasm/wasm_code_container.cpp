@@ -57,13 +57,10 @@ using namespace std;
 dsp_factory_base* WASMCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
-        fKlassName, "", "",
-        ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), fHelper.str());
+        fKlassName, "", "", ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), fHelper.str());
 }
 
-WASMCodeContainer::WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
-                                     bool internal_memory)
-    : fOut(out)
+WASMCodeContainer::WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory) : fOut(out)
 {
     initialize(numInputs, numOutputs);
     fKlassName      = name;
@@ -80,14 +77,12 @@ CodeContainer* WASMCodeContainer::createScalarContainer(const string& name, int 
     return new WASMScalarCodeContainer(name, 0, 1, fOut, sub_container_type, true);
 }
 
-CodeContainer* WASMCodeContainer::createScalarContainer(const string& name, int sub_container_type,
-                                                        bool internal_memory)
+CodeContainer* WASMCodeContainer::createScalarContainer(const string& name, int sub_container_type, bool internal_memory)
 {
     return new WASMScalarCodeContainer(name, 0, 1, fOut, sub_container_type, internal_memory);
 }
 
-CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst,
-                                                  bool internal_memory)
+CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst, bool internal_memory)
 {
     CodeContainer* container;
 
@@ -137,8 +132,7 @@ DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name)
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
-DeclareFunInst* WASMCodeContainer::generateInstanceClear(const string& name, const string& obj, bool ismethod,
-                                                         bool isvirtual)
+DeclareFunInst* WASMCodeContainer::generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
@@ -154,8 +148,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceClear(const string& name, con
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
-DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name, const string& obj, bool ismethod,
-                                                             bool isvirtual)
+DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
@@ -171,8 +164,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name,
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
-DeclareFunInst* WASMCodeContainer::generateInstanceResetUserInterface(const string& name, const string& obj,
-                                                                      bool ismethod, bool isvirtual)
+DeclareFunInst* WASMCodeContainer::generateInstanceResetUserInterface(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
@@ -197,8 +189,7 @@ WASMScalarCodeContainer::WASMScalarCodeContainer(const string& name, int numInpu
 }
 
 // Special version that uses MoveVariablesInFront3 to inline waveforms...
-DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
-                                                           bool isvirtual)
+DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
@@ -216,8 +207,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, c
     init_block->pushBackInst(InstBuilder::genRetInst());
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(),
-                                                  (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst(name, fun_type, init_block);
 }
 
@@ -308,8 +298,7 @@ void WASMCodeContainer::produceClass()
     generateInstanceInit("instanceInit", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
 
     // 11) instanceResetUserInterface
-    generateInstanceResetUserInterface("instanceResetUserInterface", "dsp", false, false)
-        ->accept(gGlobal->gWASMVisitor);
+    generateInstanceResetUserInterface("instanceResetUserInterface", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
 
     // Always generated mathematical functions
 
@@ -362,8 +351,7 @@ void WASMCodeContainer::produceClass()
 
     // Memory size can now be written
     if (fInternalMemory) {
-        int memory_size =
-            genMemSize(gGlobal->gWASMVisitor->getStructSize(), fNumInputs + fNumOutputs, (int)json.size());
+        int memory_size = genMemSize(gGlobal->gWASMVisitor->getStructSize(), fNumInputs + fNumOutputs, (int)json.size());
         // Since JSON is written in data segment at offset 0, the memory size
         // must be computed taking account JSON size and DSP + audio buffer size
         fBinaryOut.writeAt(begin_memory, U32LEB(memory_size));
@@ -479,8 +467,7 @@ void WASMScalarCodeContainer::generateCompute()
 }
 
 // Vector
-WASMVectorCodeContainer::WASMVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
-                                                 bool internal_memory)
+WASMVectorCodeContainer::WASMVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory)
     : VectorCodeContainer(numInputs, numOutputs), WASMCodeContainer(name, numInputs, numOutputs, out, internal_memory)
 {
     // No array on stack, move all of them in struct

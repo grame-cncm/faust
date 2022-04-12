@@ -142,8 +142,7 @@ class JAVAInstVisitor : public TextInstVisitor {
 
     void visit(AddMetaDeclareInst* inst) override
     {
-        *fOut << "ui_interface.declare(\"" << inst->fZone << "\", \"" << inst->fKey << "\", \"" << inst->fValue
-              << "\")";
+        *fOut << "ui_interface.declare(\"" << inst->fZone << "\", \"" << inst->fKey << "\", \"" << inst->fValue << "\")";
         EndLine();
     }
 
@@ -197,9 +196,8 @@ class JAVAInstVisitor : public TextInstVisitor {
                 name = "ui_interface.addNumEntry(";
                 break;
         }
-        *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", " << checkReal(inst->fInit)
-              << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep)
-              << ")";
+        *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", " << checkReal(inst->fInit) << ", "
+              << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
         EndLine();
     }
 
@@ -214,8 +212,8 @@ class JAVAInstVisitor : public TextInstVisitor {
                 name = "ui_interface.addVerticalBargraph(";
                 break;
         }
-        *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", " << checkReal(inst->fMin)
-              << ", " << checkReal(inst->fMax) << ")";
+        *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) << ", " << checkReal(inst->fMin) << ", "
+              << checkReal(inst->fMax) << ")";
         EndLine();
     }
 
@@ -234,8 +232,7 @@ class JAVAInstVisitor : public TextInstVisitor {
                 *fOut << type << " " << inst->fAddress->getName() << "[] = ";
                 inst->fValue->accept(this);
             } else {
-                *fOut << type << " " << inst->fAddress->getName() << "[] = new " << type << "[" << array_typed->fSize
-                      << "]";
+                *fOut << type << " " << inst->fAddress->getName() << "[] = new " << type << "[" << array_typed->fSize << "]";
             }
         } else {
             *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
@@ -459,8 +456,7 @@ class JAVAInstVisitor : public TextInstVisitor {
 
     void visit(FunCallInst* inst) override
     {
-        string fun_name =
-            (gMathLibTable.find(inst->fName) != gMathLibTable.end()) ? gMathLibTable[inst->fName] : inst->fName;
+        string fun_name = (gMathLibTable.find(inst->fName) != gMathLibTable.end()) ? gMathLibTable[inst->fName] : inst->fName;
         generateFunCall(inst, fun_name);
     }
 

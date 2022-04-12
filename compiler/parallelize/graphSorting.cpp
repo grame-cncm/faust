@@ -57,8 +57,7 @@ static void resetOrder(Loop* l, set<Loop*>& visited)
     if (visited.find(l) == visited.end()) {
         visited.insert(l);
         l->fOrder = -1;
-        for (lset::const_iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end();
-             p++) {
+        for (lset::const_iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
             resetOrder(*p, visited);
         }
     }

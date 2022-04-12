@@ -39,10 +39,8 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
 
     ValueInst* generateWaveform(Tree sig) override;
 
-    void generateVectorLoop(Typed::VarType ctype, const string& vecname, ValueInst* exp,
-                            Address::AccessType& var_access);
-    void generateDlineLoop(Typed::VarType ctype, const string& vecname, int delay, ValueInst* exp,
-                           Address::AccessType& var_access);
+    void generateVectorLoop(Typed::VarType ctype, const string& vecname, ValueInst* exp, Address::AccessType& var_access);
+    void generateDlineLoop(Typed::VarType ctype, const string& vecname, int delay, ValueInst* exp, Address::AccessType& var_access);
 
     ValueInst* generateVariableStore(Tree sig, ValueInst* inst) override;
     ValueInst* generateCacheCode(Tree sig, ValueInst* inst) override;

@@ -54,9 +54,7 @@ class DocCompiler : public virtual Garbageable {
     int       fPriority;  ///< math priority context
 
    public:
-    DocCompiler(int numInputs, int numOutputs) : fLateq(new Lateq(numInputs, numOutputs)), fDescription(0), fPriority(0)
-    {
-    }
+    DocCompiler(int numInputs, int numOutputs) : fLateq(new Lateq(numInputs, numOutputs)), fDescription(0), fPriority(0) {}
 
     DocCompiler(Lateq* k, int priority) : fLateq(k), fDescription(0), fPriority(priority) {}
 

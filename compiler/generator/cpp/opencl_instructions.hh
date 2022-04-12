@@ -32,10 +32,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
    public:
     using TextInstVisitor::visit;
 
-    OpenCLInstVisitor(std::ostream* out, int tab = 0)
-        : TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*"), tab)
-    {
-    }
+    OpenCLInstVisitor(std::ostream* out, int tab = 0) : TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*"), tab) {}
 
     ~OpenCLInstVisitor() override = default;
 
@@ -110,8 +107,8 @@ class OpenCLInstVisitor : public TextInstVisitor {
         *fOut << name << "("
               << "\"" << inst->fLabel << "\""
               << ", "
-              << "&" << inst->fZone << ", " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", "
-              << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
+              << "&" << inst->fZone << ", " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax)
+              << ", " << checkReal(inst->fStep) << ")";
         EndLine();
     }
 

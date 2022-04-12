@@ -88,18 +88,15 @@ class FBCVecInterpreter : public FBCExecutor<T> {
                     break;
 
                 case FBCInstruction::kAddHorizontalSlider:
-                    glue->addHorizontalSlider(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fInit, it->fMin,
-                                              it->fMax, it->fStep);
+                    glue->addHorizontalSlider(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fInit, it->fMin, it->fMax, it->fStep);
                     break;
 
                 case FBCInstruction::kAddVerticalSlider:
-                    glue->addVerticalSlider(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fInit, it->fMin, it->fMax,
-                                            it->fStep);
+                    glue->addVerticalSlider(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fInit, it->fMin, it->fMax, it->fStep);
                     break;
 
                 case FBCInstruction::kAddNumEntry:
-                    glue->addNumEntry(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fInit, it->fMin, it->fMax,
-                                      it->fStep);
+                    glue->addNumEntry(it->fLabel.c_str(), &fRealHeap[it->fOffset], it->fInit, it->fMin, it->fMax, it->fStep);
                     break;
 
                 case FBCInstruction::kAddSoundfile:
@@ -138,87 +135,79 @@ class FBCVecInterpreter : public FBCExecutor<T> {
             &&do_kRealValue, &&do_kInt32Value,
 
             // Memory
-            &&do_kLoadReal, &&do_kLoadInt, &&do_kLoadSound, &&do_kLoadSoundField, &&do_kStoreReal, &&do_kStoreInt,
-            &&do_kStoreSound, &&do_kStoreRealValue, &&do_kStoreIntValue, &&do_kLoadIndexedReal, &&do_kLoadIndexedInt,
-            &&do_kStoreIndexedReal, &&do_kStoreIndexedInt, &&do_kBlockStoreReal, &&do_kBlockStoreInt, &&do_kMoveReal,
-            &&do_kMoveInt, &&do_kPairMoveReal, &&do_kPairMoveInt, &&do_kBlockPairMoveReal, &&do_kBlockPairMoveInt,
-            &&do_kBlockShiftReal, &&do_kBlockShiftInt, &&do_kLoadInput, &&do_kStoreOutput,
+            &&do_kLoadReal, &&do_kLoadInt, &&do_kLoadSound, &&do_kLoadSoundField, &&do_kStoreReal, &&do_kStoreInt, &&do_kStoreSound,
+            &&do_kStoreRealValue, &&do_kStoreIntValue, &&do_kLoadIndexedReal, &&do_kLoadIndexedInt, &&do_kStoreIndexedReal,
+            &&do_kStoreIndexedInt, &&do_kBlockStoreReal, &&do_kBlockStoreInt, &&do_kMoveReal, &&do_kMoveInt, &&do_kPairMoveReal,
+            &&do_kPairMoveInt, &&do_kBlockPairMoveReal, &&do_kBlockPairMoveInt, &&do_kBlockShiftReal, &&do_kBlockShiftInt, &&do_kLoadInput,
+            &&do_kStoreOutput,
 
             // Cast/bitcast
             &&do_kCastReal, &&do_kCastInt, &&do_kCastRealHeap, &&do_kCastIntHeap, &&do_kBitcastInt, &&do_kBitcastReal,
 
             // Standard math (stack OP stack)
-            &&do_kAddReal, &&do_kAddInt, &&do_kSubReal, &&do_kSubInt, &&do_kMultReal, &&do_kMultInt, &&do_kDivReal,
-            &&do_kDivInt, &&do_kRemReal, &&do_kRemInt, &&do_kLshInt, &&do_kRshInt, &&do_kGTInt, &&do_kLTInt,
-            &&do_kGEInt, &&do_kLEInt, &&do_kEQInt, &&do_kNEInt, &&do_kGTReal, &&do_kLTReal, &&do_kGEReal, &&do_kLEReal,
-            &&do_kEQReal, &&do_kNEReal, &&do_kANDInt, &&do_kORInt, &&do_kXORInt,
+            &&do_kAddReal, &&do_kAddInt, &&do_kSubReal, &&do_kSubInt, &&do_kMultReal, &&do_kMultInt, &&do_kDivReal, &&do_kDivInt,
+            &&do_kRemReal, &&do_kRemInt, &&do_kLshInt, &&do_kRshInt, &&do_kGTInt, &&do_kLTInt, &&do_kGEInt, &&do_kLEInt, &&do_kEQInt,
+            &&do_kNEInt, &&do_kGTReal, &&do_kLTReal, &&do_kGEReal, &&do_kLEReal, &&do_kEQReal, &&do_kNEReal, &&do_kANDInt, &&do_kORInt,
+            &&do_kXORInt,
 
             // Standard math (heap OP heap)
-            &&do_kAddRealHeap, &&do_kAddIntHeap, &&do_kSubRealHeap, &&do_kSubIntHeap, &&do_kMultRealHeap,
-            &&do_kMultIntHeap, &&do_kDivRealHeap, &&do_kDivIntHeap, &&do_kRemRealHeap, &&do_kRemIntHeap,
-            &&do_kLshIntHeap, &&do_kRshIntHeap, &&do_kGTIntHeap, &&do_kLTIntHeap, &&do_kGEIntHeap, &&do_kLEIntHeap,
-            &&do_kEQIntHeap, &&do_kNEIntHeap, &&do_kGTRealHeap, &&do_kLTRealHeap, &&do_kGERealHeap, &&do_kLERealHeap,
-            &&do_kEQRealHeap, &&do_kNERealHeap, &&do_kANDIntHeap, &&do_kORIntHeap, &&do_kXORIntHeap,
+            &&do_kAddRealHeap, &&do_kAddIntHeap, &&do_kSubRealHeap, &&do_kSubIntHeap, &&do_kMultRealHeap, &&do_kMultIntHeap,
+            &&do_kDivRealHeap, &&do_kDivIntHeap, &&do_kRemRealHeap, &&do_kRemIntHeap, &&do_kLshIntHeap, &&do_kRshIntHeap, &&do_kGTIntHeap,
+            &&do_kLTIntHeap, &&do_kGEIntHeap, &&do_kLEIntHeap, &&do_kEQIntHeap, &&do_kNEIntHeap, &&do_kGTRealHeap, &&do_kLTRealHeap,
+            &&do_kGERealHeap, &&do_kLERealHeap, &&do_kEQRealHeap, &&do_kNERealHeap, &&do_kANDIntHeap, &&do_kORIntHeap, &&do_kXORIntHeap,
 
             // Standard math (heap OP stack)
-            &&do_kAddRealStack, &&do_kAddIntStack, &&do_kSubRealStack, &&do_kSubIntStack, &&do_kMultRealStack,
-            &&do_kMultIntStack, &&do_kDivRealStack, &&do_kDivIntStack, &&do_kRemRealStack, &&do_kRemIntStack,
-            &&do_kLshIntStack, &&do_kRshIntStack, &&do_kGTIntStack, &&do_kLTIntStack, &&do_kGEIntStack,
-            &&do_kLEIntStack, &&do_kEQIntStack, &&do_kNEIntStack, &&do_kGTRealStack, &&do_kLTRealStack,
-            &&do_kGERealStack, &&do_kLERealStack, &&do_kEQRealStack, &&do_kNERealStack, &&do_kANDIntStack,
+            &&do_kAddRealStack, &&do_kAddIntStack, &&do_kSubRealStack, &&do_kSubIntStack, &&do_kMultRealStack, &&do_kMultIntStack,
+            &&do_kDivRealStack, &&do_kDivIntStack, &&do_kRemRealStack, &&do_kRemIntStack, &&do_kLshIntStack, &&do_kRshIntStack,
+            &&do_kGTIntStack, &&do_kLTIntStack, &&do_kGEIntStack, &&do_kLEIntStack, &&do_kEQIntStack, &&do_kNEIntStack, &&do_kGTRealStack,
+            &&do_kLTRealStack, &&do_kGERealStack, &&do_kLERealStack, &&do_kEQRealStack, &&do_kNERealStack, &&do_kANDIntStack,
             &&do_kORIntStack, &&do_kXORIntStack,
 
             // Standard math (value OP stack)
-            &&do_kAddRealStackValue, &&do_kAddIntStackValue, &&do_kSubRealStackValue, &&do_kSubIntStackValue,
-            &&do_kMultRealStackValue, &&do_kMultIntStackValue, &&do_kDivRealStackValue, &&do_kDivIntStackValue,
-            &&do_kRemRealStackValue, &&do_kRemIntStackValue, &&do_kLshIntStackValue, &&do_kRshIntStackValue,
-            &&do_kGTIntStackValue, &&do_kLTIntStackValue, &&do_kGEIntStackValue, &&do_kLEIntStackValue,
-            &&do_kEQIntStackValue, &&do_kNEIntStackValue, &&do_kGTRealStackValue, &&do_kLTRealStackValue,
-            &&do_kGERealStackValue, &&do_kLERealStackValue, &&do_kEQRealStackValue, &&do_kNERealStackValue,
-            &&do_kANDIntStackValue, &&do_kORIntStackValue, &&do_kXORIntStackValue,
+            &&do_kAddRealStackValue, &&do_kAddIntStackValue, &&do_kSubRealStackValue, &&do_kSubIntStackValue, &&do_kMultRealStackValue,
+            &&do_kMultIntStackValue, &&do_kDivRealStackValue, &&do_kDivIntStackValue, &&do_kRemRealStackValue, &&do_kRemIntStackValue,
+            &&do_kLshIntStackValue, &&do_kRshIntStackValue, &&do_kGTIntStackValue, &&do_kLTIntStackValue, &&do_kGEIntStackValue,
+            &&do_kLEIntStackValue, &&do_kEQIntStackValue, &&do_kNEIntStackValue, &&do_kGTRealStackValue, &&do_kLTRealStackValue,
+            &&do_kGERealStackValue, &&do_kLERealStackValue, &&do_kEQRealStackValue, &&do_kNERealStackValue, &&do_kANDIntStackValue,
+            &&do_kORIntStackValue, &&do_kXORIntStackValue,
 
             // Standard math (value OP heap)
-            &&do_kAddRealValue, &&do_kAddIntValue, &&do_kSubRealValue, &&do_kSubIntValue, &&do_kMultRealValue,
-            &&do_kMultIntValue, &&do_kDivRealValue, &&do_kDivIntValue, &&do_kRemRealValue, &&do_kRemIntValue,
-            &&do_kLshIntValue, &&do_kRshIntValue, &&do_kGTIntValue, &&do_kLTIntValue, &&do_kGEIntValue,
-            &&do_kLEIntValue, &&do_kEQIntValue, &&do_kNEIntValue, &&do_kGTRealValue, &&do_kLTRealValue,
-            &&do_kGERealValue, &&do_kLERealValue, &&do_kEQRealValue, &&do_kNERealValue, &&do_kANDIntValue,
+            &&do_kAddRealValue, &&do_kAddIntValue, &&do_kSubRealValue, &&do_kSubIntValue, &&do_kMultRealValue, &&do_kMultIntValue,
+            &&do_kDivRealValue, &&do_kDivIntValue, &&do_kRemRealValue, &&do_kRemIntValue, &&do_kLshIntValue, &&do_kRshIntValue,
+            &&do_kGTIntValue, &&do_kLTIntValue, &&do_kGEIntValue, &&do_kLEIntValue, &&do_kEQIntValue, &&do_kNEIntValue, &&do_kGTRealValue,
+            &&do_kLTRealValue, &&do_kGERealValue, &&do_kLERealValue, &&do_kEQRealValue, &&do_kNERealValue, &&do_kANDIntValue,
             &&do_kORIntValue, &&do_kXORIntValue,
 
             // Standard math (value OP heap) : non commutative operations
-            &&do_kSubRealValueInvert, &&do_kSubIntValueInvert, &&do_kDivRealValueInvert, &&do_kDivIntValueInvert,
-            &&do_kRemRealValueInvert, &&do_kRemIntValueInvert, &&do_kLshIntValueInvert, &&do_kRshIntValueInvert,
-            &&do_kGTIntValueInvert, &&do_kLTIntValueInvert, &&do_kGEIntValueInvert, &&do_kLEIntValueInvert,
-            &&do_kGTRealValueInvert, &&do_kLTRealValueInvert, &&do_kGERealValueInvert, &&do_kLERealValueInvert,
+            &&do_kSubRealValueInvert, &&do_kSubIntValueInvert, &&do_kDivRealValueInvert, &&do_kDivIntValueInvert, &&do_kRemRealValueInvert,
+            &&do_kRemIntValueInvert, &&do_kLshIntValueInvert, &&do_kRshIntValueInvert, &&do_kGTIntValueInvert, &&do_kLTIntValueInvert,
+            &&do_kGEIntValueInvert, &&do_kLEIntValueInvert, &&do_kGTRealValueInvert, &&do_kLTRealValueInvert, &&do_kGERealValueInvert,
+            &&do_kLERealValueInvert,
 
             // Extended unary math
-            &&do_kAbs, &&do_kAbsf, &&do_kAcosf, &&do_kAsinf, &&do_kAtanf, &&do_kCeilf, &&do_kCosf, &&do_kCoshf,
-            &&do_kExpf, &&do_kFloorf, &&do_kLogf, &&do_kLog10f, &&do_kRoundf, &&do_kSinf, &&do_kSinhf, &&do_kSqrtf,
-            &&do_kTanf, &&do_kTanhf,
+            &&do_kAbs, &&do_kAbsf, &&do_kAcosf, &&do_kAsinf, &&do_kAtanf, &&do_kCeilf, &&do_kCosf, &&do_kCoshf, &&do_kExpf, &&do_kFloorf,
+            &&do_kLogf, &&do_kLog10f, &&do_kRoundf, &&do_kSinf, &&do_kSinhf, &&do_kSqrtf, &&do_kTanf, &&do_kTanhf,
 
             // Extended unary math (heap OP heap)
-            &&do_kAbsHeap, &&do_kAbsfHeap, &&do_kAcosfHeap, &&do_kAsinfHeap, &&do_kAtanfHeap, &&do_kCeilfHeap,
-            &&do_kCosfHeap, &&do_kCoshfHeap, &&do_kExpfHeap, &&do_kFloorfHeap, &&do_kLogfHeap, &&do_kLog10fHeap,
-            &&do_kRoundfHeap, &&do_kSinfHeap, &&do_kSinhfHeap, &&do_kSqrtfHeap, &&do_kTanfHeap, &&do_kTanhfHeap,
+            &&do_kAbsHeap, &&do_kAbsfHeap, &&do_kAcosfHeap, &&do_kAsinfHeap, &&do_kAtanfHeap, &&do_kCeilfHeap, &&do_kCosfHeap,
+            &&do_kCoshfHeap, &&do_kExpfHeap, &&do_kFloorfHeap, &&do_kLogfHeap, &&do_kLog10fHeap, &&do_kRoundfHeap, &&do_kSinfHeap,
+            &&do_kSinhfHeap, &&do_kSqrtfHeap, &&do_kTanfHeap, &&do_kTanhfHeap,
 
             // Extended binary math
             &&do_kAtan2f, &&do_kFmodf, &&do_kPowf, &&do_kMax, &&do_kMaxf, &&do_kMin, &&do_kMinf,
 
             // Extended binary math (heap version)
-            &&do_kAtan2fHeap, &&do_kFmodfHeap, &&do_kPowfHeap, &&do_kMaxHeap, &&do_kMaxfHeap, &&do_kMinHeap,
-            &&do_kMinfHeap,
+            &&do_kAtan2fHeap, &&do_kFmodfHeap, &&do_kPowfHeap, &&do_kMaxHeap, &&do_kMaxfHeap, &&do_kMinHeap, &&do_kMinfHeap,
 
             // Extended binary math (stack version)
-            &&do_kAtan2fStack, &&do_kFmodfStack, &&do_kPowfStack, &&do_kMaxStack, &&do_kMaxfStack, &&do_kMinStack,
-            &&do_kMinfStack,
+            &&do_kAtan2fStack, &&do_kFmodfStack, &&do_kPowfStack, &&do_kMaxStack, &&do_kMaxfStack, &&do_kMinStack, &&do_kMinfStack,
 
             // Extended binary math (Stack/Value version)
-            &&do_kAtan2fStackValue, &&do_kFmodfStackValue, &&do_kPowfStackValue, &&do_kMaxStackValue,
-            &&do_kMaxfStackValue, &&do_kMinStackValue, &&do_kMinfStackValue,
+            &&do_kAtan2fStackValue, &&do_kFmodfStackValue, &&do_kPowfStackValue, &&do_kMaxStackValue, &&do_kMaxfStackValue,
+            &&do_kMinStackValue, &&do_kMinfStackValue,
 
             // Extended binary math (Value version)
-            &&do_kAtan2fValue, &&do_kFmodfValue, &&do_kPowfValue, &&do_kMaxValue, &&do_kMaxfValue, &&do_kMinValue,
-            &&do_kMinfValue,
+            &&do_kAtan2fValue, &&do_kFmodfValue, &&do_kPowfValue, &&do_kMaxValue, &&do_kMaxfValue, &&do_kMinValue, &&do_kMinfValue,
 
             // Extended binary math (Value version) : non commutative operations
             &&do_kAtan2fValueInvert, &&do_kFmodfValueInvert, &&do_kPowfValueInvert,
@@ -896,8 +885,7 @@ class FBCVecInterpreter : public FBCExecutor<T> {
         }
 
         do_kRemRealHeap : {
-            VEC_LOOP(PUSH_VEC_REAL(
-                std::remainder(READ_HEAP_VEC_REAL((*it)->fOffset1), READ_HEAP_VEC_REAL((*it)->fOffset2))));
+            VEC_LOOP(PUSH_VEC_REAL(std::remainder(READ_HEAP_VEC_REAL((*it)->fOffset1), READ_HEAP_VEC_REAL((*it)->fOffset2))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
@@ -2074,15 +2062,13 @@ class FBCVecInterpreter : public FBCExecutor<T> {
             //-------------------------------------
 
         do_kAtan2fHeap : {
-            VEC_LOOP(
-                PUSH_VEC_REAL(std::atan2(READ_HEAP_VEC_REAL((*it)->fOffset1), READ_HEAP_VEC_REAL((*it)->fOffset2))));
+            VEC_LOOP(PUSH_VEC_REAL(std::atan2(READ_HEAP_VEC_REAL((*it)->fOffset1), READ_HEAP_VEC_REAL((*it)->fOffset2))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
 
         do_kFmodfHeap : {
-            VEC_LOOP(
-                PUSH_VEC_REAL(std::fmod(READ_HEAP_VEC_REAL((*it)->fOffset1), READ_HEAP_VEC_REAL((*it)->fOffset2))));
+            VEC_LOOP(PUSH_VEC_REAL(std::fmod(READ_HEAP_VEC_REAL((*it)->fOffset1), READ_HEAP_VEC_REAL((*it)->fOffset2))));
             STACK_UP_REAL();
             dispatchNextVec();
         }
@@ -2344,7 +2330,8 @@ class FBCVecInterpreter : public FBCExecutor<T> {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             // Execute new block
-            VEC_LOOP(if (v1_int[j]) { dispatchBranch1Vec(); } else { dispatchBranch2Vec(); });
+            VEC_LOOP(
+                if (v1_int[j]) { dispatchBranch1Vec(); } else { dispatchBranch2Vec(); });
         }
 
         do_kSelectInt : {
@@ -2356,7 +2343,8 @@ class FBCVecInterpreter : public FBCExecutor<T> {
             VEC_LOOP(v1_int[j] = POP_VEC_INT());
             STACK_DOWN_INT();
             // Execute new block
-            VEC_LOOP(if (v1_int[j]) { dispatchBranch1Vec(); } else { dispatchBranch2Vec(); });
+            VEC_LOOP(
+                if (v1_int[j]) { dispatchBranch1Vec(); } else { dispatchBranch2Vec(); });
         }
 
         do_kCondBranch : {
@@ -2452,40 +2440,19 @@ class FBCVecInterpreter : public FBCExecutor<T> {
         memset(fIntHeap, 0, fFactory->fIntHeapSize * sizeof(int));
     }
 
-    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 1>* factory)
-        : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory)
-    {
-    }
+    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 1>* factory) : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory) {}
 
-    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 2>* factory)
-        : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory)
-    {
-    }
+    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 2>* factory) : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory) {}
 
-    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 3>* factory)
-        : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory)
-    {
-    }
+    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 3>* factory) : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory) {}
 
-    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 4>* factory)
-        : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory)
-    {
-    }
+    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 4>* factory) : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory) {}
 
-    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 5>* factory)
-        : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory)
-    {
-    }
+    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 5>* factory) : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory) {}
 
-    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 6>* factory)
-        : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory)
-    {
-    }
+    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 6>* factory) : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory) {}
 
-    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 7>* factory)
-        : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory)
-    {
-    }
+    FBCVecInterpreter(interpreter_dsp_factory_aux<T, 7>* factory) : FBCVecInterpreter((interpreter_dsp_factory_aux<T, 0>*)factory) {}
 
     virtual ~FBCVecInterpreter()
     {

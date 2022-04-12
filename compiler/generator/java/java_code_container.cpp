@@ -32,9 +32,8 @@ map<string, string> JAVAInstVisitor::gMathLibTable;
 
 dsp_factory_base* JAVACodeContainer::produceFactory()
 {
-    return new text_dsp_factory_aux(
-        fKlassName, "", "",
-        ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
+    return new text_dsp_factory_aux(fKlassName, "", "",
+                                    ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
 }
 
 CodeContainer* JAVACodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -42,8 +41,7 @@ CodeContainer* JAVACodeContainer::createScalarContainer(const string& name, int 
     return new JAVAScalarCodeContainer(name, "", 0, 1, fOut, sub_container_type);
 }
 
-CodeContainer* JAVACodeContainer::createContainer(const string& name, const string& super, int numInputs,
-                                                  int numOutputs, ostream* dst)
+CodeContainer* JAVACodeContainer::createContainer(const string& name, const string& super, int numInputs, int numOutputs, ostream* dst)
 {
     CodeContainer* container;
 
@@ -74,8 +72,8 @@ CodeContainer* JAVACodeContainer::createContainer(const string& name, const stri
 }
 
 // Scalar
-JAVAScalarCodeContainer::JAVAScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs,
-                                                 std::ostream* out, int sub_container_type)
+JAVAScalarCodeContainer::JAVAScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out,
+                                                 int sub_container_type)
     : JAVACodeContainer(name, super, numInputs, numOutputs, out)
 {
     fSubContainerType = sub_container_type;

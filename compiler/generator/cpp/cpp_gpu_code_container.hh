@@ -30,9 +30,8 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
    protected:
     static bool isControl(string name)
     {
-        return (name.find("fbutton") != string::npos || name.find("fcheckbox") != string::npos ||
-                name.find("fvbargraph") != string::npos || name.find("fhbargraph") != string::npos ||
-                name.find("fvslider") != string::npos || name.find("fhslider") != string::npos ||
+        return (name.find("fbutton") != string::npos || name.find("fcheckbox") != string::npos || name.find("fvbargraph") != string::npos ||
+                name.find("fhbargraph") != string::npos || name.find("fvslider") != string::npos || name.find("fhslider") != string::npos ||
                 name.find("fentry") != string::npos);
     }
 
@@ -85,8 +84,8 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             *fOut << name << "("
                   << "\"" << inst->fLabel << "\""
                   << ", "
-                  << "&fHostControl->" << inst->fZone << ", " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin)
-                  << ", " << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
+                  << "&fHostControl->" << inst->fZone << ", " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", "
+                  << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
             EndLine();
         }
 
@@ -104,8 +103,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             *fOut << name << "("
                   << "\"" << inst->fLabel << "\""
                   << ", "
-                  << "&fHostControl->" << inst->fZone << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax)
-                  << ")";
+                  << "&fHostControl->" << inst->fZone << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
             EndLine();
         }
     };
@@ -233,9 +231,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                 list<ValueInst*>::const_iterator it = inst->fArgs.begin();
                 // Compile object arg
                 (*it)->accept(this);
-                *fOut << "->"
-                      << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName]
-                                                                                     : inst->fName)
+                *fOut << "->" << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName] : inst->fName)
                       << "(";
                 list<ValueInst*>::const_iterator it1;
                 size_t                           size = inst->fArgs.size() - 1, i = 0;
@@ -246,9 +242,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                 }
                 *fOut << ")";
             } else {
-                *fOut << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName]
-                                                                                     : inst->fName)
-                      << "(";
+                *fOut << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName] : inst->fName) << "(";
                 list<ValueInst*>::const_iterator it;
                 size_t                           size = inst->fArgs.size(), i = 0;
                 for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
@@ -413,8 +407,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
 
 class CPPOpenCLVectorCodeContainer : public CPPOpenCLCodeContainer {
    public:
-    CPPOpenCLVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs,
-                                 std::ostream* out)
+    CPPOpenCLVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
         : CPPOpenCLCodeContainer(name, super, numInputs, numOutputs, out)
     {
     }
@@ -483,8 +476,7 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
 class CPPCUDAVectorCodeContainer : public CPPCUDACodeContainer {
    protected:
    public:
-    CPPCUDAVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs,
-                               std::ostream* out)
+    CPPCUDAVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
         : CPPCUDACodeContainer(name, super, numInputs, numOutputs, out)
     {
     }

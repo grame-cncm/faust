@@ -1,6 +1,5 @@
 #include "Instr.hh"
-namespace nlpl
-{
+namespace nlpl {
 /**
  * @brief classify dependencies in two sets, internal and external
  *

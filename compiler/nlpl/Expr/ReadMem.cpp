@@ -3,10 +3,8 @@
 
 #include "Expr.hh"
 #include "Memory.hh"
-namespace nlpl
-{
-class ReadMemExpr : public Expression
-{
+namespace nlpl {
+class ReadMemExpr : public Expression {
     Mem fMem;
     int fMinDelay;
 

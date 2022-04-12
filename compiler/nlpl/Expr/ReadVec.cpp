@@ -3,10 +3,8 @@
 #include <utility>
 
 #include "Expr.hh"
-namespace nlpl
-{
-class ReadVecExpr : public Expression
-{
+namespace nlpl {
+class ReadVecExpr : public Expression {
     Mem  fMem;
     Expr fIndex;
     int  fMinDelay;

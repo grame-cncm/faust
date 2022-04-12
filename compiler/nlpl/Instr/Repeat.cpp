@@ -8,10 +8,8 @@
 
 #include "Expr.hh"
 #include "Instr.hh"
-namespace nlpl
-{
-class RepeatInstr : public Instruction
-{
+namespace nlpl {
+class RepeatInstr : public Instruction {
     Expr  fCount;
     Instr fBody;
 

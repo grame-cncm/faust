@@ -103,8 +103,7 @@ static Tree computePrivatisation(const Tree& k, const Tree& exp)
             tables dans lesquelles on ecrit. Pour cela
             on leur donne un label unique
         */
-        return sigWRTbl(id, labelize(makePrivatisationLabel(exp), privatisation(k, tbl)), privatisation(k, idx),
-                        privatisation(k, wrt));
+        return sigWRTbl(id, labelize(makePrivatisationLabel(exp), privatisation(k, tbl)), privatisation(k, idx), privatisation(k, wrt));
 
     } else if (isSigTable(exp, id, size, content)) {
         /*	Rien à privatiser dans une table (car size est

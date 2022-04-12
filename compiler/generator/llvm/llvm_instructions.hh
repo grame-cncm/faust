@@ -184,9 +184,8 @@ struct LLVMTypeHelper {
             return (type) ? getTyPtr(type) : convertFIRType(named_typed->fType);
         } else if (array_typed) {
             // Arrays of 0 size are actually pointers on the type
-            return (array_typed->fSize == 0)
-                       ? fTypeMap[array_typed->getType()]
-                       : ArrayType::get(fTypeMap[Typed::getTypeFromPtr(array_typed->getType())], array_typed->fSize);
+            return (array_typed->fSize == 0) ? fTypeMap[array_typed->getType()]
+                                             : ArrayType::get(fTypeMap[Typed::getTypeFromPtr(array_typed->getType())], array_typed->fSize);
         } else if (vector_typed) {
             return VectorType::get(fTypeMap[vector_typed->fType->fType], vector_typed->fSize);
         } else if (struct_typed) {
@@ -227,10 +226,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
     LLVMType getCurType() { return fCurValue->getType(); }
 
-    BasicBlock* genBlock(const string& name, Function* fun = nullptr)
-    {
-        return BasicBlock::Create(fModule->getContext(), name, fun);
-    }
+    BasicBlock* genBlock(const string& name, Function* fun = nullptr) { return BasicBlock::Create(fModule->getContext(), name, fun); }
 
     GlobalVariable* addStringConstant(string arg, LLVMType& type_def)
     {
@@ -245,10 +241,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         return fStringTable[str];
     }
 
-    LLVMValue loadStructVarAddress(const string& name)
-    {
-        return MakeStructGEP(loadFunArg("dsp"), fStructVisitor->getFieldIndex(name));
-    }
+    LLVMValue loadStructVarAddress(const string& name) { return MakeStructGEP(loadFunArg("dsp"), fStructVisitor->getFieldIndex(name)); }
 
     LLVMValue loadStructArrayVarAddress(const string& name)
     {
@@ -435,12 +428,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Creates function
             FunctionType* fun_type = FunctionType::get(return_type, makeArrayRef(fun_args_type), false);
-            function               = Function::Create(
-                fun_type,
-                (inst->fType->fAttribute & FunTyped::kLocal || inst->fType->fAttribute & FunTyped::kStatic)
-                    ? GlobalValue::InternalLinkage
-                    : GlobalValue::ExternalLinkage,
-                inst->fName, fModule);
+            function               = Function::Create(fun_type,
+                                        (inst->fType->fAttribute & FunTyped::kLocal || inst->fType->fAttribute & FunTyped::kStatic)
+                                                          ? GlobalValue::InternalLinkage
+                                                          : GlobalValue::ExternalLinkage,
+                                                      inst->fName, fModule);
 
             // In order for auto-vectorization to correctly work with vectorizable math functions
             if (find(gMathLibTable.begin(), gMathLibTable.end(), inst->fName) != gMathLibTable.end()) {
@@ -796,8 +788,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         inst->fCond->accept(this);
 
         // Convert condition to a bool by comparing to 0
-        LLVMValue cond_value =
-            fBuilder->CreateICmpNE(fCurValue, (getCurType() == getInt64Ty()) ? genInt64(0) : genInt32(0), "ifcond");
+        LLVMValue cond_value = fBuilder->CreateICmpNE(fCurValue, (getCurType() == getInt64Ty()) ? genInt64(0) : genInt32(0), "ifcond");
 
         // Compile then branch, result in fCurValue
         inst->fThen->accept(this);
@@ -1112,14 +1103,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     LLVMValue generateBinOpReal(int opcode, LLVMValue arg1, LLVMValue arg2)
     {
         if (isBoolOpcode(opcode)) {
-            LLVMValue comp_value =
-                fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[opcode]->fLLVMFloatInst, arg1, arg2);
+            LLVMValue comp_value = fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[opcode]->fLLVMFloatInst, arg1, arg2);
             // Inst result for comparison
             return fBuilder->CreateSelect(comp_value, genInt32(1), genInt32(0));
         } else {
-            LLVMValue value =
-                fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLLVMFloatInst, arg1, arg2);
-            Instruction* inst = cast<Instruction>(value);
+            LLVMValue    value = fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLLVMFloatInst, arg1, arg2);
+            Instruction* inst  = cast<Instruction>(value);
             inst->setMetadata(LLVMContext::MD_fpmath, fBuilder->getDefaultFPMathTag());
             inst->setFastMathFlags(fBuilder->getFastMathFlags());
             return inst;
@@ -1129,8 +1118,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     LLVMValue generateBinOpInt(int opcode, LLVMValue arg1, LLVMValue arg2)
     {
         if (isBoolOpcode(opcode)) {
-            LLVMValue comp_value =
-                fBuilder->CreateICmp((CmpInst::Predicate)gBinOpTable[opcode]->fLLVMIntInst, arg1, arg2);
+            LLVMValue comp_value = fBuilder->CreateICmp((CmpInst::Predicate)gBinOpTable[opcode]->fLLVMIntInst, arg1, arg2);
             // Inst result for comparison
             return fBuilder->CreateSelect(comp_value, genInt32(1), genInt32(0));
         } else {
@@ -1143,12 +1131,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         faustassert(arg1->getType() == arg2->getType());
 
         if (arg1->getType() == getFloatTy() || arg1->getType() == getDoubleTy()) {
-            LLVMValue comp_value =
-                fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[comp]->fLLVMFloatInst, arg1, arg2);
+            LLVMValue comp_value = fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[comp]->fLLVMFloatInst, arg1, arg2);
             return fBuilder->CreateSelect(comp_value, arg1, arg2);
         } else if (arg1->getType() == getInt32Ty()) {
-            LLVMValue comp_value =
-                fBuilder->CreateICmp((CmpInst::Predicate)gBinOpTable[comp]->fLLVMIntInst, arg1, arg2);
+            LLVMValue comp_value = fBuilder->CreateICmp((CmpInst::Predicate)gBinOpTable[comp]->fLLVMIntInst, arg1, arg2);
             return fBuilder->CreateSelect(comp_value, arg1, arg2);
         } else {
             faustassert(false);

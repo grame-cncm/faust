@@ -81,9 +81,7 @@ inline string flatten_json(const string& src)
 inline int genMemSize(int struct_size, int channels, int json_len)
 {
     return std::max<int>(
-        (pow2limit(
-             std::max<int>(json_len, struct_size + channels * (audioPtrSize + (8192 * gGlobal->audioSampleSize())))) /
-         wasmBlockSize),
+        (pow2limit(std::max<int>(json_len, struct_size + channels * (audioPtrSize + (8192 * gGlobal->audioSampleSize())))) / wasmBlockSize),
         1);
 
     // Bigger memory block for soundfile test
@@ -161,11 +159,11 @@ struct WASInst {
         fMathLibTable["min_f"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "min", WasmOp::F32Min, Typed::kFloat, 2);
         fMathLibTable["powf"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "pow", Typed::kFloat, 2);
         fMathLibTable["remainderf"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "remainder", Typed::kFloat, 2);
-        fMathLibTable["rintf"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "rint", WasmOp::F32NearestInt, Typed::kFloat, 1);
-        fMathLibTable["roundf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", Typed::kFloat, 1);
-        fMathLibTable["sinf"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", Typed::kFloat, 1);
-        fMathLibTable["sqrtf"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", WasmOp::F32Sqrt, Typed::kFloat, 1);
-        fMathLibTable["tanf"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", Typed::kFloat, 1);
+        fMathLibTable["rintf"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "rint", WasmOp::F32NearestInt, Typed::kFloat, 1);
+        fMathLibTable["roundf"]     = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", Typed::kFloat, 1);
+        fMathLibTable["sinf"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", Typed::kFloat, 1);
+        fMathLibTable["sqrtf"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", WasmOp::F32Sqrt, Typed::kFloat, 1);
+        fMathLibTable["tanf"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", Typed::kFloat, 1);
 
         // Additional hyperbolic math functions
         fMathLibTable["acoshf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "acosh", Typed::kFloat, 1);
@@ -193,11 +191,11 @@ struct WASInst {
         fMathLibTable["min_"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "min", WasmOp::F64Min, Typed::kDouble, 2);
         fMathLibTable["pow"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "pow", Typed::kDouble, 2);
         fMathLibTable["remainder"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "remainder", Typed::kDouble, 2);
-        fMathLibTable["rint"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "rint", WasmOp::F32NearestInt, Typed::kDouble, 1);
-        fMathLibTable["round"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", Typed::kDouble, 1);
-        fMathLibTable["sin"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", Typed::kDouble, 1);
-        fMathLibTable["sqrt"]  = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", WasmOp::F64Sqrt, Typed::kDouble, 1);
-        fMathLibTable["tan"]   = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", Typed::kDouble, 1);
+        fMathLibTable["rint"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "rint", WasmOp::F32NearestInt, Typed::kDouble, 1);
+        fMathLibTable["round"]     = MathFunDesc(MathFunDesc::Gen::kExtMath, "round", Typed::kDouble, 1);
+        fMathLibTable["sin"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "sin", Typed::kDouble, 1);
+        fMathLibTable["sqrt"]      = MathFunDesc(MathFunDesc::Gen::kWAS, "sqrt", WasmOp::F64Sqrt, Typed::kDouble, 1);
+        fMathLibTable["tan"]       = MathFunDesc(MathFunDesc::Gen::kExtMath, "tan", Typed::kDouble, 1);
 
         // Additional hyperbolic math functions
         fMathLibTable["acosh"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "acosh", Typed::kDouble, 1);

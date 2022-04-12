@@ -9,10 +9,8 @@
 #include "Instr.hh"
 #include "Memory.hh"
 
-namespace nlpl
-{
-class WriteMemInstr : public Instruction
-{
+namespace nlpl {
+class WriteMemInstr : public Instruction {
     Mem  fMem;
     int  fMode;
     Expr fExpr;
@@ -24,14 +22,11 @@ class WriteMemInstr : public Instruction
     void            getDependencies(std::set<Dependency>& dep) override { fExpr->getDependencies(dep); }
     void            getProvided(std::set<Mem>& prov) override { prov.insert(fMem); }
     void            getSubInstr(std::set<Instruction*>&) override {}
-    void            print(std::ostream& os, int indent) override
-    {
-        tab(os, indent) << fMem << ' ' << WriteModeOp(fMode) << ' ' << fExpr << ';';
-    }
+    void print(std::ostream& os, int indent) override { tab(os, indent) << fMem << ' ' << WriteModeOp(fMode) << ' ' << fExpr << ';'; }
 
     Instruction* schedule() override { return this; }
     Instruction* optimize() override { return this; }
-    void dispatch(std::map<Expr, Instr>&, std::map<Expr, Instr>&, std::set<Instr>& OMap) override { OMap.insert(this); }
+    void         dispatch(std::map<Expr, Instr>&, std::map<Expr, Instr>&, std::set<Instr>& OMap) override { OMap.insert(this); }
 };
 
 Instr WriteMem(Mem mem, int mode, Expr expr)

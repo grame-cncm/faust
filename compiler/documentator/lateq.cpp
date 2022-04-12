@@ -77,21 +77,16 @@ void Lateq::println(ostream& docout)
     /* 1. Make titles of sub-sets of formulas. */
     string suchthat = gGlobal->gDocMathStringMap["suchthat"];
 
-    string sInputs =
-        makeItemTitle(fInputSigsFormulas.size(), "inputsigtitle") + makeSignamesList(fInputSigsFormulas, "");
-    string sOutputs =
-        makeItemTitle(fOutputSigsFormulas.size(), "outputsigtitle") + makeSignamesList(fOutputSigsFormulas, suchthat);
-    string sConstants =
-        makeItemTitle(fConstSigsFormulas.size(), "constsigtitle") + makeSignamesList(fConstSigsFormulas, suchthat);
+    string sInputs    = makeItemTitle(fInputSigsFormulas.size(), "inputsigtitle") + makeSignamesList(fInputSigsFormulas, "");
+    string sOutputs   = makeItemTitle(fOutputSigsFormulas.size(), "outputsigtitle") + makeSignamesList(fOutputSigsFormulas, suchthat);
+    string sConstants = makeItemTitle(fConstSigsFormulas.size(), "constsigtitle") + makeSignamesList(fConstSigsFormulas, suchthat);
 
     vector<list<string> > UISignamesVector = makeUISignamesVector(fUISigsFormulas);
-    string                sUIElements =
-        makeItemTitle(fUISigsFormulas.size(), "uisigtitle") + makeSignamesList(UISignamesVector, suchthat);
+    string                sUIElements = makeItemTitle(fUISigsFormulas.size(), "uisigtitle") + makeSignamesList(UISignamesVector, suchthat);
 
     unsigned int internalSigsCount =
-        (unsigned int)(fParamSigsFormulas.size() + fStoreSigsFormulas.size() + fRecurSigsFormulas.size() +
-                       fRDTblSigsFormulas.size() + fRWTblSigsFormulas.size() + fSelectSigsFormulas.size() +
-                       fPrefixSigsFormulas.size());
+        (unsigned int)(fParamSigsFormulas.size() + fStoreSigsFormulas.size() + fRecurSigsFormulas.size() + fRDTblSigsFormulas.size() +
+                       fRWTblSigsFormulas.size() + fSelectSigsFormulas.size() + fPrefixSigsFormulas.size());
 
     vector<list<string> > internalSigsFormulasList;
     if (!fParamSigsFormulas.empty()) internalSigsFormulasList.push_back(fParamSigsFormulas);
@@ -102,8 +97,7 @@ void Lateq::println(ostream& docout)
     if (!fSelectSigsFormulas.empty()) internalSigsFormulasList.push_back(fSelectSigsFormulas);
     if (!fPrefixSigsFormulas.empty()) internalSigsFormulasList.push_back(fPrefixSigsFormulas);
 
-    string sInternals =
-        makeItemTitle(internalSigsCount, "intermedsigtitle") + makeSignamesList(internalSigsFormulasList, suchthat);
+    string sInternals = makeItemTitle(internalSigsCount, "intermedsigtitle") + makeSignamesList(internalSigsFormulasList, suchthat);
 
     /* 2. Successively print each Lateq field containing LaTeX formulas, with a title. */
 
@@ -112,8 +106,8 @@ void Lateq::println(ostream& docout)
 
     printDGroup(sOutputs, fOutputSigsFormulas, docout);
     printOneLine(sInputs, docout);
-    const string outputsTitle = "\\item " + sOutputs + "\\ $y_i$\\ " + gGlobal->gDocMathStringMap["for"] +
-                                " $i \\in [1," + to_string(fOutputSigsFormulas.size()) + "]$: ";
+    const string outputsTitle = "\\item " + sOutputs + "\\ $y_i$\\ " + gGlobal->gDocMathStringMap["for"] + " $i \\in [1," +
+                                to_string(fOutputSigsFormulas.size()) + "]$: ";
     printHierarchy(sUIElements, fUISigsFormulas, docout);
 
     /* The "Internal signals" item gather several fields, like a "super-item"... */
@@ -143,8 +137,7 @@ string Lateq::makeItemTitle(size_t formulasListSize, const string& titleName)
     string item = "\\item ";
 
     /* Plural handling for titles of sub-sets of formulas. */
-    string title = formulasListSize > 1 ? gGlobal->gDocMathStringMap[titleName + "2"]
-                                        : gGlobal->gDocMathStringMap[titleName + "1"];
+    string title = formulasListSize > 1 ? gGlobal->gDocMathStringMap[titleName + "2"] : gGlobal->gDocMathStringMap[titleName + "1"];
 
     return item + title;
 }
@@ -159,8 +152,8 @@ string Lateq::makeSigDomain(const list<string>& formulasList)
         signame        = getSigName(firstEq);
 
         if (formulasList.size() > 1) {
-            sigDomain = " $" + signame + "_i$ " + gGlobal->gDocMathStringMap["for"] + " $i \\in [1," +
-                        to_string(formulasList.size()) + "]$";
+            sigDomain =
+                " $" + signame + "_i$ " + gGlobal->gDocMathStringMap["for"] + " $i \\in [1," + to_string(formulasList.size()) + "]$";
         } else {
             if (signame == "x" || signame == "y") {
                 sigDomain = " $" + signame + "$";  ///< No indices for single input neither single output.

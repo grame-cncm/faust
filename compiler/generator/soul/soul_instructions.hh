@@ -62,16 +62,14 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
     {
         if (gGlobal->gOutputLang == "soul-poly") {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
-            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
-                 << replaceCharList(inst->fLabel, rep, '_') << " [[ name: " << quote(inst->fLabel)
-                 << ", group: " << quote(buildPath(inst->fLabel)) << ", text: \"off|on\""
+            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_" << replaceCharList(inst->fLabel, rep, '_')
+                 << " [[ name: " << quote(inst->fLabel) << ", group: " << quote(buildPath(inst->fLabel)) << ", text: \"off|on\""
                  << ", boolean";
             addMeta();
             fOut << " ]];";
         } else {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone
-                 << " [[ name: " << quote(inst->fLabel) << ", group: " << quote(buildPath(inst->fLabel))
-                 << ", text: \"off|on\""
+                 << " [[ name: " << quote(inst->fLabel) << ", group: " << quote(buildPath(inst->fLabel)) << ", text: \"off|on\""
                  << ", boolean";
             addMeta();
             fOut << " ]];";
@@ -83,18 +81,17 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
     {
         if (gGlobal->gOutputLang == "soul-poly") {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
-            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_"
-                 << replaceCharList(inst->fLabel, rep, '_') << " [[ name: " << quote(inst->fLabel)
-                 << ", group: " << quote(buildPath(inst->fLabel)) << ", min: " << checkReal(inst->fMin)
-                 << ", max: " << checkReal(inst->fMax) << ", init: " << checkReal(inst->fInit)
+            fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event_" << replaceCharList(inst->fLabel, rep, '_')
+                 << " [[ name: " << quote(inst->fLabel) << ", group: " << quote(buildPath(inst->fLabel))
+                 << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax) << ", init: " << checkReal(inst->fInit)
                  << ", step: " << checkReal(inst->fStep);
             addMeta();
             fOut << " ]];";
         } else {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()] << " event" << inst->fZone
                  << " [[ name: " << quote(inst->fLabel) << ", group: " << quote(buildPath(inst->fLabel))
-                 << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax)
-                 << ", init: " << checkReal(inst->fInit) << ", step: " << checkReal(inst->fStep);
+                 << ", min: " << checkReal(inst->fMin) << ", max: " << checkReal(inst->fMax) << ", init: " << checkReal(inst->fInit)
+                 << ", step: " << checkReal(inst->fStep);
             addMeta();
             fOut << " ]];";
         }
@@ -153,8 +150,7 @@ class SOULInstVisitor : public TextInstVisitor {
     bool fIntAsBool;
 
    public:
-    SOULInstVisitor(std::ostream* out, int tab = 0)
-        : TextInstVisitor(out, ".", new SOULStringTypeManager(FLOATMACRO, ""), tab)
+    SOULInstVisitor(std::ostream* out, int tab = 0) : TextInstVisitor(out, ".", new SOULStringTypeManager(FLOATMACRO, ""), tab)
     {
         // Polymath mapping int version
         gPolyMathLibTable["abs"]   = "abs";
@@ -240,12 +236,11 @@ class SOULInstVisitor : public TextInstVisitor {
         EndLine(' ');
         if (gGlobal->gOutputLang == "soul-poly") {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
-            *fOut << "event event_" << replaceCharList(inst->fLabel, rep, '_') << " ("
-                  << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone
-                  << " = val; fUpdated = true; }";
+            *fOut << "event event_" << replaceCharList(inst->fLabel, rep, '_') << " (" << fTypeManager->fTypeDirectTable[itfloat()]
+                  << " val) { " << inst->fZone << " = val; fUpdated = true; }";
         } else {
-            *fOut << "event event" << inst->fZone << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
-                  << inst->fZone << " = val; fUpdated = true; }";
+            *fOut << "event event" << inst->fZone << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone
+                  << " = val; fUpdated = true; }";
         }
         EndLine(' ');
     }
@@ -257,20 +252,18 @@ class SOULInstVisitor : public TextInstVisitor {
         EndLine(' ');
         if (gGlobal->gOutputLang == "soul-poly") {
             vector<char> rep = {' ', '(', ')', '/', '\\', '.'};
-            *fOut << "event event_" << replaceCharList(inst->fLabel, rep, '_') << " ("
-                  << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone
-                  << " = val; fUpdated = true; }";
+            *fOut << "event event_" << replaceCharList(inst->fLabel, rep, '_') << " (" << fTypeManager->fTypeDirectTable[itfloat()]
+                  << " val) { " << inst->fZone << " = val; fUpdated = true; }";
         } else {
-            *fOut << "event event" << inst->fZone << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
-                  << inst->fZone << " = val; fUpdated = true; }";
+            *fOut << "event event" << inst->fZone << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone
+                  << " = val; fUpdated = true; }";
         }
         EndLine(' ');
     }
 
     void visit(AddBargraphInst* inst) override
     {
-        *fOut << "// " << inst->fLabel << " [min = " << checkReal(inst->fMin) << ", max = " << checkReal(inst->fMax)
-              << "]";
+        *fOut << "// " << inst->fLabel << " [min = " << checkReal(inst->fMin) << ", max = " << checkReal(inst->fMax) << "]";
         EndLine(' ');
     }
 
@@ -336,8 +329,7 @@ class SOULInstVisitor : public TextInstVisitor {
             inst->fValue->accept(this);
             EndLine();
             // special case for 'bargraph' considered as an 'output event'
-        } else if (startWith(inst->fAddress->getName(), "fHbargraph") ||
-                   startWith(inst->fAddress->getName(), "fVbargraph")) {
+        } else if (startWith(inst->fAddress->getName(), "fHbargraph") || startWith(inst->fAddress->getName(), "fVbargraph")) {
             // value is stored in the bargraph variable
             {
                 inst->fAddress->accept(this);

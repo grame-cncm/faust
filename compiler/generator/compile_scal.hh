@@ -145,9 +145,8 @@ class ScalarCompiler : public Compiler {
     string generateFVar(Tree sig, const string& file, const string& name);
 
     virtual string generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
-    string       generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
-    virtual void generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
-                                   const string& ccs);
+    string         generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
+    virtual void   generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp, const string& ccs);
 
     void getTypedNames(::Type t, const string& prefix, string& ctype, string& vname);
     void ensureIotaCode();

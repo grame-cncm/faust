@@ -63,7 +63,7 @@ class faust_smartable {
     }
 
    protected:
-    faust_smartable()  {}
+    faust_smartable() {}
     faust_smartable(const faust_smartable&) : refCount(0) {}
     //! destructor checks for non-zero refCount
     virtual ~faust_smartable() { faustassert(refCount == 0); }
@@ -179,7 +179,7 @@ template <class T>
 struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
     typedef typename std::map<T, std::list<dsp*> >::iterator factory_iterator;
 
-    dsp_factory_table() = default;
+    dsp_factory_table()          = default;
     virtual ~dsp_factory_table() = default;
 
     bool getFactory(const std::string& sha_key, factory_iterator& res)
@@ -297,16 +297,14 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
 extern "C" {
 #endif
 
-EXPORT const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key,
-                                      char* error_msg);
+EXPORT const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key, char* error_msg);
 
-EXPORT const char* expandCDSPFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
-                                        char* sha_key, char* error_msg);
+EXPORT const char* expandCDSPFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* sha_key,
+                                        char* error_msg);
 
 EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
 
-EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
-                                        char* error_msg);
+EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
 
 #ifdef __cplusplus
 }

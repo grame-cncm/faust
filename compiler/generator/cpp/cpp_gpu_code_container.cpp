@@ -683,11 +683,9 @@ void CPPOpenCLCodeContainer::produceClass()
     }
 
     tab(n + 2, *fOut);
-    *fOut << "err |= clSetKernelArg(fComputeKernel, " << (fNumInputs + fNumOutputs)
-          << "+1, sizeof(cl_mem), &fDeviceDSP);";
+    *fOut << "err |= clSetKernelArg(fComputeKernel, " << (fNumInputs + fNumOutputs) << "+1, sizeof(cl_mem), &fDeviceDSP);";
     tab(n + 2, *fOut);
-    *fOut << "err |= clSetKernelArg(fComputeKernel, " << (fNumInputs + fNumOutputs)
-          << "+2, sizeof(cl_mem), &fDeviceControl);";
+    *fOut << "err |= clSetKernelArg(fComputeKernel, " << (fNumInputs + fNumOutputs) << "+2, sizeof(cl_mem), &fDeviceControl);";
 
     tab(n + 2, *fOut);
     *fOut << "if (err != CL_SUCCESS) {";
@@ -1061,8 +1059,8 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     // Generates get_global_id access
     list<ValueInst*> args;
     args.push_back(InstBuilder::genInt32NumInst(0));
-    loop_code->pushBackInst(InstBuilder::genDecStackVar("tasknum", InstBuilder::genInt32Typed(),
-                                                        InstBuilder::genFunCallInst("get_global_id", args)));
+    loop_code->pushBackInst(
+        InstBuilder::genDecStackVar("tasknum", InstBuilder::genInt32Typed(), InstBuilder::genFunCallInst("get_global_id", args)));
 
     // Generate DAG
     for (int l = int(dag.size() - 1); l >= 0; l--) {
@@ -1088,10 +1086,9 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     }
 
     // Generates the DAG enclosing loop
-    DeclareVarInst* loop_init =
-        InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
-    ValueInst*    loop_end       = InstBuilder::genLessThan(loop_init->load(), InstBuilder::genLoadFunArgsVar(counter));
-    StoreVarInst* loop_increment = loop_init->store(InstBuilder::genAdd(loop_init->load(), gGlobal->gVecSize));
+    DeclareVarInst* loop_init      = InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
+    ValueInst*      loop_end       = InstBuilder::genLessThan(loop_init->load(), InstBuilder::genLoadFunArgsVar(counter));
+    StoreVarInst*   loop_increment = loop_init->store(InstBuilder::genAdd(loop_init->load(), gGlobal->gVecSize));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
 
@@ -2007,7 +2004,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
 
     // Generate DAG
     for (int l = (int)dag.size() - 1; l >= 0; l--) {
-        ValueInst* switch_cond = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack));
+        ValueInst*    switch_cond  = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack));
         ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
 
         if (dag[l].size() > 1) {
@@ -2029,11 +2026,10 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     }
 
     // Generates the DAG enclosing loop
-    DeclareVarInst* loop_decl =
-        InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
+    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
 
-    ValueInst* loop_end = InstBuilder::genLessThan(
-        loop_decl->load(), InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs)));
+    ValueInst* loop_end =
+        InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs)));
     StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), gGlobal->gVecSize));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, loop_code);

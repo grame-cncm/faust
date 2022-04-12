@@ -94,14 +94,7 @@ Loop::Loop(Tree recsymbol, Loop* encl, const string& size)
  * @param size the number of iterations of the loop
  */
 Loop::Loop(Loop* encl, const string& size)
-    : fIsRecursive(false),
-      fRecSymbolSet(gGlobal->nil),
-      fEnclosingLoop(encl),
-      fSize(size),
-      fOrder(-1),
-      fIndex(-1),
-      fUseCount(0),
-      fPrinted(0)
+    : fIsRecursive(false), fRecSymbolSet(gGlobal->nil), fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0), fPrinted(0)
 {
 }
 

@@ -159,14 +159,8 @@ class FBCLLVMCompiler {
         pushValue(LLVMBuildCall(fBuilder, function, fun_args, 1, ""));
     }
 
-    void pushUnaryIntCall(const std::string& name, bool rename = true)
-    {
-        return pushUnaryCall(name, getInt32Ty(), rename);
-    }
-    void pushUnaryRealCall(const std::string& name, bool rename = true)
-    {
-        return pushUnaryCall(name, getRealTy(), rename);
-    }
+    void pushUnaryIntCall(const std::string& name, bool rename = true) { return pushUnaryCall(name, getInt32Ty(), rename); }
+    void pushUnaryRealCall(const std::string& name, bool rename = true) { return pushUnaryCall(name, getRealTy(), rename); }
 
     void pushBinaryCall(const std::string& name_aux, LLVMTypeRef type)
     {
@@ -653,9 +647,8 @@ class FBCLLVMCompiler {
                     saveReturn();
 
                     // Prepare condition
-                    LLVMValueRef cond_value =
-                        LLVMBuildICmp(fBuilder, LLVMIntEQ, popValue(), genInt32(1), "select_cond");
-                    LLVMValueRef function = LLVMGetBasicBlockParent(LLVMGetInsertBlock(fBuilder));
+                    LLVMValueRef cond_value = LLVMBuildICmp(fBuilder, LLVMIntEQ, popValue(), genInt32(1), "select_cond");
+                    LLVMValueRef function   = LLVMGetBasicBlockParent(LLVMGetInsertBlock(fBuilder));
 
                     // Create blocks for the then and else cases. Insert the 'then' block at the end of the function
                     LLVMBasicBlockRef then_block  = LLVMAppendBasicBlock(function, "then_block");
@@ -682,8 +675,7 @@ class FBCLLVMCompiler {
                 case FBCInstruction::kSelectReal:
                 case FBCInstruction::kSelectInt: {
                     // Prepare condition
-                    LLVMValueRef cond_value =
-                        LLVMBuildICmp(fBuilder, LLVMIntNE, popValue(), genInt32(0), "select_cond");
+                    LLVMValueRef cond_value = LLVMBuildICmp(fBuilder, LLVMIntNE, popValue(), genInt32(0), "select_cond");
 
                     // Compile then branch (= branch1)
                     CompileBlock((*it)->fBranch1, code_block);
@@ -863,10 +855,7 @@ class FBCLLVMCompiler {
         LLVMShutdown();
     }
 
-    void Execute(int* int_heap, T* real_heap, T** inputs, T** outputs)
-    {
-        fCompiledFun(int_heap, real_heap, inputs, outputs);
-    }
+    void Execute(int* int_heap, T* real_heap, T** inputs, T** outputs) { fCompiledFun(int_heap, real_heap, inputs, outputs); }
 };
 
 // FBC compiler

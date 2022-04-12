@@ -62,10 +62,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
 
     virtual ~InterpreterInstVisitor() {}
 
-    int getFieldOffset(const std::string& name)
-    {
-        return (fFieldTable.find(name) != fFieldTable.end()) ? fFieldTable[name].fOffset : -1;
-    }
+    int getFieldOffset(const std::string& name) { return (fFieldTable.find(name) != fFieldTable.end()) ? fFieldTable[name].fOffset : -1; }
 
     void initMathTable()
     {
@@ -141,11 +138,9 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     {
         MemoryDesc tmp = fFieldTable[inst->fZone];
         if (inst->fZone == "0") {
-            fUserInterfaceBlock->push(
-                new FIRUserInterfaceInstruction<T>(FBCInstruction::kDeclare, -1, inst->fKey, inst->fValue));
+            fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(FBCInstruction::kDeclare, -1, inst->fKey, inst->fValue));
         } else {
-            fUserInterfaceBlock->push(
-                new FIRUserInterfaceInstruction<T>(FBCInstruction::kDeclare, tmp.fOffset, inst->fKey, inst->fValue));
+            fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(FBCInstruction::kDeclare, tmp.fOffset, inst->fKey, inst->fValue));
         }
     }
 
@@ -170,10 +165,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(opcode, inst->fName));
     }
 
-    virtual void visit(CloseboxInst* inst)
-    {
-        fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(FBCInstruction::kCloseBox));
-    }
+    virtual void visit(CloseboxInst* inst) { fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(FBCInstruction::kCloseBox)); }
 
     virtual void visit(AddButtonInst* inst)
     {
@@ -207,8 +199,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         }
 
         MemoryDesc tmp = fFieldTable[inst->fZone];
-        fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(opcode, tmp.fOffset, inst->fLabel, inst->fInit,
-                                                                     inst->fMin, inst->fMax, inst->fStep));
+        fUserInterfaceBlock->push(
+            new FIRUserInterfaceInstruction<T>(opcode, tmp.fOffset, inst->fLabel, inst->fInit, inst->fMin, inst->fMax, inst->fStep));
     }
 
     virtual void visit(AddBargraphInst* inst)
@@ -227,8 +219,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         }
 
         MemoryDesc tmp = fFieldTable[inst->fZone];
-        fUserInterfaceBlock->push(
-            new FIRUserInterfaceInstruction<T>(opcode, tmp.fOffset, inst->fLabel, inst->fMin, inst->fMax));
+        fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(opcode, tmp.fOffset, inst->fLabel, inst->fMin, inst->fMax));
     }
 
     virtual void visit(AddSoundfileInst* inst)
@@ -237,8 +228,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         throw faustexception("ERROR : AddSoundfileInst not supported for interp\n");
 
         MemoryDesc tmp = fFieldTable[inst->fSFZone];
-        fUserInterfaceBlock->push(
-            new FIRUserInterfaceInstruction<T>(FBCInstruction::kAddSoundfile, tmp.fOffset, inst->fLabel, inst->fURL));
+        fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(FBCInstruction::kAddSoundfile, tmp.fOffset, inst->fLabel, inst->fURL));
     }
 
     virtual void visit(LabelInst* inst) {}
@@ -256,12 +246,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
 
         if (array_typed && array_typed->fSize > 1) {
             if (array_typed->fType->getType() == Typed::kInt32) {
-                fFieldTable[inst->fAddress->getName()] =
-                    MemoryDesc(-1, fIntHeapOffset, array_typed->fSize, array_typed->fType->getType());
+                fFieldTable[inst->fAddress->getName()] = MemoryDesc(-1, fIntHeapOffset, array_typed->fSize, array_typed->fType->getType());
                 fIntHeapOffset += array_typed->fSize;
             } else {
-                fFieldTable[inst->fAddress->getName()] =
-                    MemoryDesc(-1, fRealHeapOffset, array_typed->fSize, array_typed->fType->getType());
+                fFieldTable[inst->fAddress->getName()] = MemoryDesc(-1, fRealHeapOffset, array_typed->fSize, array_typed->fType->getType());
                 fRealHeapOffset += array_typed->fSize;
             }
         } else {
@@ -301,16 +289,13 @@ struct InterpreterInstVisitor : public DispatchVisitor {
 
             switch (tmp.fType) {
                 case Typed::kInt32:
-                    fCurrentBlock->push(
-                        new FBCBasicInstruction<T>(FBCInstruction::kLoadInt, named->getName(), 0, 0, tmp.fOffset, 0));
+                    fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kLoadInt, named->getName(), 0, 0, tmp.fOffset, 0));
                     break;
                 case Typed::kSound_ptr:
-                    fCurrentBlock->push(
-                        new FBCBasicInstruction<T>(FBCInstruction::kLoadSound, named->getName(), 0, 0, tmp.fOffset, 0));
+                    fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kLoadSound, named->getName(), 0, 0, tmp.fOffset, 0));
                     break;
                 default:
-                    fCurrentBlock->push(
-                        new FBCBasicInstruction<T>(FBCInstruction::kLoadReal, named->getName(), 0, 0, tmp.fOffset, 0));
+                    fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kLoadReal, named->getName(), 0, 0, tmp.fOffset, 0));
                     break;
             }
 
@@ -321,21 +306,18 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             std::string num;
             // Special treatment for inputs
             if (startWithRes(indexed->getName(), "input", num)) {
-                fCurrentBlock->push(
-                    new FBCBasicInstruction<T>(FBCInstruction::kLoadInput, 0, 0, std::atoi(num.c_str()), 0));
+                fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kLoadInput, 0, 0, std::atoi(num.c_str()), 0));
             } else {
                 DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
                 if (struct_type) {
                     Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
-                    fCurrentBlock->push(
-                        new FBCBasicInstruction<T>(FBCInstruction::kLoadSoundField, 0, 0, field_index->fNum, 0));
+                    fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kLoadSoundField, 0, 0, field_index->fNum, 0));
                 } else {
                     MemoryDesc tmp = fFieldTable[indexed->getName()];
                     faustassert(tmp.fOffset >= 0);
-                    fCurrentBlock->push(new FBCBasicInstruction<T>((tmp.fType == Typed::kInt32)
-                                                                       ? FBCInstruction::kLoadIndexedInt
-                                                                       : FBCInstruction::kLoadIndexedReal,
-                                                                   indexed->getName(), 0, 0, tmp.fOffset, tmp.fSize));
+                    fCurrentBlock->push(new FBCBasicInstruction<T>(
+                        (tmp.fType == Typed::kInt32) ? FBCInstruction::kLoadIndexedInt : FBCInstruction::kLoadIndexedReal,
+                        indexed->getName(), 0, 0, tmp.fOffset, tmp.fSize));
                 }
             }
         }
@@ -359,8 +341,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(value);
                     faustassert(int_array);
                     fCurrentBlock->push(new FIRBlockStoreIntInstruction<T>(FBCInstruction::kBlockStoreInt, tmp.fOffset,
-                                                                           int(int_array->fNumTable.size()),
-                                                                           int_array->fNumTable));
+                                                                           int(int_array->fNumTable.size()), int_array->fNumTable));
                     break;
                 }
                 case Typed::kFloat: {
@@ -396,16 +377,14 @@ struct InterpreterInstVisitor : public DispatchVisitor {
 
                 switch (tmp.fType) {
                     case Typed::kInt32:
-                        fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kStoreInt, named->getName(), 0,
-                                                                       0, tmp.fOffset, 0));
+                        fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kStoreInt, named->getName(), 0, 0, tmp.fOffset, 0));
                         break;
                     case Typed::kSound_ptr:
-                        fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kStoreSound, named->getName(), 0,
-                                                                       0, tmp.fOffset, 0));
+                        fCurrentBlock->push(
+                            new FBCBasicInstruction<T>(FBCInstruction::kStoreSound, named->getName(), 0, 0, tmp.fOffset, 0));
                         break;
                     default:
-                        fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kStoreReal, named->getName(), 0,
-                                                                       0, tmp.fOffset, 0));
+                        fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kStoreReal, named->getName(), 0, 0, tmp.fOffset, 0));
                         break;
                 }
 
@@ -417,15 +396,13 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 std::string num;
                 // Special treatment for outputs
                 if (startWithRes(indexed->getName(), "output", num)) {
-                    fCurrentBlock->push(
-                        new FBCBasicInstruction<T>(FBCInstruction::kStoreOutput, 0, 0, std::atoi(num.c_str()), 0));
+                    fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kStoreOutput, 0, 0, std::atoi(num.c_str()), 0));
                 } else {
                     MemoryDesc tmp = fFieldTable[indexed->getName()];
                     faustassert(tmp.fOffset >= 0);
-                    fCurrentBlock->push(new FBCBasicInstruction<T>((tmp.fType == Typed::kInt32)
-                                                                       ? FBCInstruction::kStoreIndexedInt
-                                                                       : FBCInstruction::kStoreIndexedReal,
-                                                                   indexed->getName(), 0, 0, tmp.fOffset, tmp.fSize));
+                    fCurrentBlock->push(new FBCBasicInstruction<T>(
+                        (tmp.fType == Typed::kInt32) ? FBCInstruction::kStoreIndexedInt : FBCInstruction::kStoreIndexedReal,
+                        indexed->getName(), 0, 0, tmp.fOffset, tmp.fSize));
                 }
             }
         }
@@ -436,32 +413,23 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     virtual void visit(ShiftArrayVarInst* inst)
     {
         MemoryDesc tmp = fFieldTable[inst->fAddress->getName()];
-        fCurrentBlock->push(new FBCBasicInstruction<T>(
-            (tmp.fType == Typed::kInt32) ? FBCInstruction::kBlockShiftInt : FBCInstruction::kBlockShiftReal, 0, 0,
-            tmp.fOffset + inst->fDelay, tmp.fOffset));
+        fCurrentBlock->push(
+            new FBCBasicInstruction<T>((tmp.fType == Typed::kInt32) ? FBCInstruction::kBlockShiftInt : FBCInstruction::kBlockShiftReal, 0,
+                                       0, tmp.fOffset + inst->fDelay, tmp.fOffset));
     }
 
     // Primitives : numbers
-    virtual void visit(FloatNumInst* inst)
-    {
-        fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, inst->fNum));
-    }
+    virtual void visit(FloatNumInst* inst) { fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kRealValue, 0, inst->fNum)); }
 
     // For Waveform : done in DeclareVarInst and visitStore
     virtual void visit(FloatArrayNumInst* inst) {}
 
-    virtual void visit(Int32NumInst* inst)
-    {
-        fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst->fNum, 0));
-    }
+    virtual void visit(Int32NumInst* inst) { fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst->fNum, 0)); }
 
     // For Waveform : done in DeclareVarInst and visitStore
     virtual void visit(Int32ArrayNumInst* inst) {}
 
-    virtual void visit(BoolNumInst* inst)
-    {
-        fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst->fNum, 0));
-    }
+    virtual void visit(BoolNumInst* inst) { fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kInt32Value, inst->fNum, 0)); }
 
     virtual void visit(DoubleNumInst* inst)
     {
@@ -590,8 +558,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         else_block->push(new FBCBasicInstruction<T>(FBCInstruction::kReturn));
 
         // Compile 'select'
-        previous->push(new FBCBasicInstruction<T>((real_t1) ? FBCInstruction::kSelectReal : FBCInstruction::kSelectInt,
-                                                  "", 0, 0, 0, 0, then_block, else_block));
+        previous->push(new FBCBasicInstruction<T>((real_t1) ? FBCInstruction::kSelectReal : FBCInstruction::kSelectInt, "", 0, 0, 0, 0,
+                                                  then_block, else_block));
 
         // Restore current block
         fCurrentBlock = previous;
@@ -657,16 +625,14 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         inst->fEnd->accept(this);
 
         // Add branch that moves back on loop block itself
-        fCurrentBlock->push(
-            new FBCBasicInstruction<T>(FBCInstruction::kCondBranch, "", 0, 0, 0, 0, loop_body_block, 0));
+        fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kCondBranch, "", 0, 0, 0, 0, loop_body_block, 0));
 
         // Finally add 'return'
         fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kReturn));
 
         // Add the loop block in previous
-        previous->push(new FBCBasicInstruction<T>(FBCInstruction::kLoop, "",
-                                                  ((inst->fIsRecursive) ? 1 : gGlobal->gVecSize), 0, 0, 0, init_block,
-                                                  loop_body_block));
+        previous->push(new FBCBasicInstruction<T>(FBCInstruction::kLoop, "", ((inst->fIsRecursive) ? 1 : gGlobal->gVecSize), 0, 0, 0,
+                                                  init_block, loop_body_block));
 
         // Restore current block
         fCurrentBlock = previous;

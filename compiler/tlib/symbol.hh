@@ -52,8 +52,8 @@ using namespace std;
  */
 class Symbol : public virtual Garbageable {
    private:
-    static const int kHashTableSize = 511;          ///< Size of the hash table (a prime number is recommended)
-    static Symbol*   gSymbolTable[kHashTableSize];  ///< Hash table used to store the symbols
+    static const int                      kHashTableSize = 511;          ///< Size of the hash table (a prime number is recommended)
+    static Symbol*                        gSymbolTable[kHashTableSize];  ///< Hash table used to store the symbols
     static map<const char*, unsigned int> gPrefixCounters;
 
     // Fields

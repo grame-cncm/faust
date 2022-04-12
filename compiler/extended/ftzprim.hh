@@ -83,8 +83,7 @@ class FtzPrim : public xtended {
         }
     }
 
-    ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
-                            vector< ::Type> const& types) override
+    ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const& types) override
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -114,8 +113,7 @@ class FtzPrim : public xtended {
                     list<ValueInst*> args_value;
                     args_value.push_back(InstBuilder::genLoadStackVar(vname));
                     return InstBuilder::genSelect2Inst(
-                        InstBuilder::genGreaterThan(InstBuilder::genFunCallInst(subst("fabs$0", isuffix()), args_value),
-                                                    real_min),
+                        InstBuilder::genGreaterThan(InstBuilder::genFunCallInst(subst("fabs$0", isuffix()), args_value), real_min),
                         InstBuilder::genLoadStackVar(vname), InstBuilder::genTypedZero(itfloat()));
                 } break;
 
@@ -127,16 +125,15 @@ class FtzPrim : public xtended {
                     switch (gGlobal->gFloatSize) {
                         case 1:
                             return InstBuilder::genSelect2Inst(
-                                InstBuilder::genAnd(InstBuilder::genBitcastInst(InstBuilder::genLoadStackVar(vname),
-                                                                                InstBuilder::genInt32Typed()),
-                                                    InstBuilder::genInt32NumInst(0x7F800000)),
+                                InstBuilder::genAnd(
+                                    InstBuilder::genBitcastInst(InstBuilder::genLoadStackVar(vname), InstBuilder::genInt32Typed()),
+                                    InstBuilder::genInt32NumInst(0x7F800000)),
                                 InstBuilder::genLoadStackVar(vname), InstBuilder::genTypedZero(itfloat()));
                         case 2:
                             return InstBuilder::genSelect2Inst(
-                                InstBuilder::genAnd(
-                                    InstBuilder::genBitcastInst(InstBuilder::genLoadStackVar(vname),
-                                                                InstBuilder::genBasicTyped(Typed::kInt64)),
-                                    InstBuilder::genInt64NumInst(0x7FF0000000000000)),
+                                InstBuilder::genAnd(InstBuilder::genBitcastInst(InstBuilder::genLoadStackVar(vname),
+                                                                                InstBuilder::genBasicTyped(Typed::kInt64)),
+                                                    InstBuilder::genInt64NumInst(0x7FF0000000000000)),
                                 InstBuilder::genLoadStackVar(vname), InstBuilder::genTypedZero(itfloat()));
                         default:
                             faustassert(false);

@@ -369,13 +369,12 @@ struct FBCInstruction {
 
                 || (opt == kSelectReal)
 
-                || (opt == kAddReal) || (opt == kSubReal) || (opt == kMultReal) || (opt == kDivReal) ||
-                (opt == kRemReal)
+                || (opt == kAddReal) || (opt == kSubReal) || (opt == kMultReal) || (opt == kDivReal) || (opt == kRemReal)
 
-                || (opt == kAbsf) || (opt == kAcosf) || (opt == kAcoshf) || (opt == kAsinf) || (opt == kAsinhf) ||
-                (opt == kAtanf) || (opt == kAtanhf) || (opt == kCeilf) || (opt == kCosf) || (opt == kCoshf) ||
-                (opt == kExpf) || (opt == kFloorf) || (opt == kLogf) || (opt == kLog10f) || (opt == kRoundf) ||
-                (opt == kSinf) || (opt == kSinhf) || (opt == kSqrtf) || (opt == kTanf) || (opt == kTanhf)
+                || (opt == kAbsf) || (opt == kAcosf) || (opt == kAcoshf) || (opt == kAsinf) || (opt == kAsinhf) || (opt == kAtanf) ||
+                (opt == kAtanhf) || (opt == kCeilf) || (opt == kCosf) || (opt == kCoshf) || (opt == kExpf) || (opt == kFloorf) ||
+                (opt == kLogf) || (opt == kLog10f) || (opt == kRoundf) || (opt == kSinf) || (opt == kSinhf) || (opt == kSqrtf) ||
+                (opt == kTanf) || (opt == kTanhf)
 
                 || (opt == kAtan2f) || (opt == kFmodf) || (opt == kPowf) || (opt == kMaxf) || (opt == kMinf));
     }
@@ -392,59 +391,57 @@ static std::string gFBCInstructionTable[] = {
     "kRealValue", "kInt32Value",
 
     // Memory
-    "kLoadReal", "kLoadInt", "kLoadSound", "kLoadSoundField", "kStoreReal", "kStoreInt", "kStoreSound",
-    "kStoreRealValue", "kStoreIntValue", "kLoadIndexedReal", "kLoadIndexedInt", "kStoreIndexedReal", "kStoreIndexedInt",
-    "kBlockStoreReal", "kBlockStoreInt", "kMoveReal", "kMoveInt", "kPairMoveReal", "kPairMoveInt", "kBlockPairMoveReal",
-    "kBlockPairMoveInt", "kBlockShiftReal", "kBlockShiftInt", "kLoadInput", "kStoreOutput",
+    "kLoadReal", "kLoadInt", "kLoadSound", "kLoadSoundField", "kStoreReal", "kStoreInt", "kStoreSound", "kStoreRealValue", "kStoreIntValue",
+    "kLoadIndexedReal", "kLoadIndexedInt", "kStoreIndexedReal", "kStoreIndexedInt", "kBlockStoreReal", "kBlockStoreInt", "kMoveReal",
+    "kMoveInt", "kPairMoveReal", "kPairMoveInt", "kBlockPairMoveReal", "kBlockPairMoveInt", "kBlockShiftReal", "kBlockShiftInt",
+    "kLoadInput", "kStoreOutput",
 
     // Cast/Bitcast
     "kCastReal", "kCastInt", "kCastRealHeap", "kCastIntHeap", "kBitcastInt", "kBitcastReal",
 
     // Standard math (stack OP stack)
-    "kAddReal", "kAddInt", "kSubReal", "kSubInt", "kMultReal", "kMultInt", "kDivReal", "kDivInt", "kRemReal", "kRemInt",
-    "kLshInt", "kRshInt", "kGTInt", "kLTInt", "kGEInt", "kLEInt", "kEQInt", "kNEInt", "kGTReal", "kLTReal", "kGEReal",
-    "kLEReal", "kEQReal", "kNEReal", "kANDInt", "kORInt", "kXORInt",
+    "kAddReal", "kAddInt", "kSubReal", "kSubInt", "kMultReal", "kMultInt", "kDivReal", "kDivInt", "kRemReal", "kRemInt", "kLshInt",
+    "kRshInt", "kGTInt", "kLTInt", "kGEInt", "kLEInt", "kEQInt", "kNEInt", "kGTReal", "kLTReal", "kGEReal", "kLEReal", "kEQReal", "kNEReal",
+    "kANDInt", "kORInt", "kXORInt",
 
     // Standard math (heap OP heap)
-    "kAddRealHeap", "kAddIntHeap", "kSubRealHeap", "kSubIntHeap", "kMultRealHeap", "kMultIntHeap", "kDivRealHeap",
-    "kDivIntHeap", "kRemRealHeap", "kRemIntHeap", "kLshIntHeap", "kRshIntHeap", "kGTIntHeap", "kLTIntHeap",
-    "kGEIntHeap", "kLEIntHeap", "kEQIntHeap", "kNEIntHeap", "kGTRealHeap", "kLTRealHeap", "kGERealHeap", "kLERealHeap",
-    "kEQRealHeap", "kNERealHeap", "kANDIntHeap", "kORIntHeap", "kXORIntHeap",
+    "kAddRealHeap", "kAddIntHeap", "kSubRealHeap", "kSubIntHeap", "kMultRealHeap", "kMultIntHeap", "kDivRealHeap", "kDivIntHeap",
+    "kRemRealHeap", "kRemIntHeap", "kLshIntHeap", "kRshIntHeap", "kGTIntHeap", "kLTIntHeap", "kGEIntHeap", "kLEIntHeap", "kEQIntHeap",
+    "kNEIntHeap", "kGTRealHeap", "kLTRealHeap", "kGERealHeap", "kLERealHeap", "kEQRealHeap", "kNERealHeap", "kANDIntHeap", "kORIntHeap",
+    "kXORIntHeap",
 
     // Standard math (heap OP stack)
-    "kAddRealStack", "kAddIntStack", "kSubRealStack", "kSubIntStack", "kMultRealStack", "kMultIntStack",
-    "kDivRealStack", "kDivIntStack", "kRemRealStack", "kRemIntStack", "kLshIntStack", "kRshIntStack", "kGTIntStack",
-    "kLTIntStack", "kGEIntStack", "kLEIntStack", "kEQIntStack", "kNEIntStack", "kGTRealStack", "kLTRealStack",
-    "kGERealStack", "kLERealStack", "kEQRealStack", "kNERealStack", "kANDIntStack", "kORIntStack", "kXORIntStack",
+    "kAddRealStack", "kAddIntStack", "kSubRealStack", "kSubIntStack", "kMultRealStack", "kMultIntStack", "kDivRealStack", "kDivIntStack",
+    "kRemRealStack", "kRemIntStack", "kLshIntStack", "kRshIntStack", "kGTIntStack", "kLTIntStack", "kGEIntStack", "kLEIntStack",
+    "kEQIntStack", "kNEIntStack", "kGTRealStack", "kLTRealStack", "kGERealStack", "kLERealStack", "kEQRealStack", "kNERealStack",
+    "kANDIntStack", "kORIntStack", "kXORIntStack",
 
     // Standard math (value OP stack)
-    "kAddRealStackValue", "kAddIntStackValue", "kSubRealStackValue", "kSubIntStackValue", "kMultRealStackValue",
-    "kMultIntStackValue", "kDivRealStackValue", "kDivIntStackValue", "kRemRealStackValue", "kRemIntStackValue",
-    "kLshIntStackValue", "kRshIntStackValue", "kGTIntStackValue", "kLTIntStackValue", "kGEIntStackValue",
-    "kLEIntStackValue", "kEQIntStackValue", "kNEIntStackValue", "kGTRealStackValue", "kLTRealStackValue",
-    "kGERealStackValue", "kLERealStackValue", "kEQRealStackValue", "kNERealStackValue", "kANDIntStackValue",
-    "kORIntStackValue", "kXORIntStackValue",
+    "kAddRealStackValue", "kAddIntStackValue", "kSubRealStackValue", "kSubIntStackValue", "kMultRealStackValue", "kMultIntStackValue",
+    "kDivRealStackValue", "kDivIntStackValue", "kRemRealStackValue", "kRemIntStackValue", "kLshIntStackValue", "kRshIntStackValue",
+    "kGTIntStackValue", "kLTIntStackValue", "kGEIntStackValue", "kLEIntStackValue", "kEQIntStackValue", "kNEIntStackValue",
+    "kGTRealStackValue", "kLTRealStackValue", "kGERealStackValue", "kLERealStackValue", "kEQRealStackValue", "kNERealStackValue",
+    "kANDIntStackValue", "kORIntStackValue", "kXORIntStackValue",
 
     // Standard math (value OP heap)
-    "kAddRealValue", "kAddIntValue", "kSubRealValue", "kSubIntValue", "kMultRealValue", "kMultIntValue",
-    "kDivRealValue", "kDivIntValue", "kRemRealValue", "kRemIntValue", "kLshIntValue", "kRshIntValue", "kGTIntValue",
-    "kLTIntValue", "kGEIntValue", "kLEIntValue", "kEQIntValue", "kNEIntValue", "kGTRealValue", "kLTRealValue",
-    "kGERealValue", "kLERealValue", "kEQRealValue", "kNERealValue", "kANDIntValue", "kORIntValue", "kXORIntValue",
+    "kAddRealValue", "kAddIntValue", "kSubRealValue", "kSubIntValue", "kMultRealValue", "kMultIntValue", "kDivRealValue", "kDivIntValue",
+    "kRemRealValue", "kRemIntValue", "kLshIntValue", "kRshIntValue", "kGTIntValue", "kLTIntValue", "kGEIntValue", "kLEIntValue",
+    "kEQIntValue", "kNEIntValue", "kGTRealValue", "kLTRealValue", "kGERealValue", "kLERealValue", "kEQRealValue", "kNERealValue",
+    "kANDIntValue", "kORIntValue", "kXORIntValue",
 
     // Standard math (value OP heap) : non commutative operations
-    "kSubRealValueInvert", "kSubIntValueInvert", "kDivRealValueInvert", "kDivIntValueInvert", "kRemRealValueInvert",
-    "kRemIntValueInvert", "kLshIntValueInvert", "kRshIntValueInvert", "kGTIntValueInvert", "kLTIntValueInvert",
-    "kLTIntValueInvert", "kLEIntValueInvert", "kGTRealValueInvert", "kLTRealValueInvert", "kGERealValueInvert",
-    "kLERealValueInvert",
+    "kSubRealValueInvert", "kSubIntValueInvert", "kDivRealValueInvert", "kDivIntValueInvert", "kRemRealValueInvert", "kRemIntValueInvert",
+    "kLshIntValueInvert", "kRshIntValueInvert", "kGTIntValueInvert", "kLTIntValueInvert", "kLTIntValueInvert", "kLEIntValueInvert",
+    "kGTRealValueInvert", "kLTRealValueInvert", "kGERealValueInvert", "kLERealValueInvert",
 
     // Extended unary math
-    "kAbs", "kAbsf", "kAcosf", "kAcoshf", "kAsinf", "kAsinhf", "kAtanf", "kAtanhf", "kCeilf", "kCosf", "kCoshf",
-    "kExpf", "kFloorf", "kLogf", "kLog10f", "kRoundf", "kSinf", "kSinhf", "kSqrtf", "kTanf", "kTanhf",
+    "kAbs", "kAbsf", "kAcosf", "kAcoshf", "kAsinf", "kAsinhf", "kAtanf", "kAtanhf", "kCeilf", "kCosf", "kCoshf", "kExpf", "kFloorf",
+    "kLogf", "kLog10f", "kRoundf", "kSinf", "kSinhf", "kSqrtf", "kTanf", "kTanhf",
 
     // Extended unary math (heap OP heap)
-    "kAbsHeap", "kAbsfHeap", "kAcosfHeap", "kAcoshfHeap", "kAsinfHeap", "kAsinhfHeap", "kAtanfHeap", "kAtanhfHeap",
-    "kCeilfHeap", "kCosfHeap", "kCoshfHeap", "kExpfHeap", "kFloorfHeap", "kLogfHeap", "kLog10fHeap", "kRoundfHeap",
-    "kSinfHeap", "kSinhfHeap", "kSqrtfHeap", "kTanfHeap", "kTanhfHeap",
+    "kAbsHeap", "kAbsfHeap", "kAcosfHeap", "kAcoshfHeap", "kAsinfHeap", "kAsinhfHeap", "kAtanfHeap", "kAtanhfHeap", "kCeilfHeap",
+    "kCosfHeap", "kCoshfHeap", "kExpfHeap", "kFloorfHeap", "kLogfHeap", "kLog10fHeap", "kRoundfHeap", "kSinfHeap", "kSinhfHeap",
+    "kSqrtfHeap", "kTanfHeap", "kTanhfHeap",
 
     // Extended binary math
     "kAtan2f", "kFmodf", "kPowf", "kMax", "kMaxf", "kMin", "kMinf",
@@ -456,8 +453,7 @@ static std::string gFBCInstructionTable[] = {
     "kAtan2fStack", "kFmodfStack", "kPowfStack", "kMaxStack", "kMaxfStack", "kMinStack", "kMinfStack",
 
     // Extended binary math (Stack/Value version)
-    "kAtan2fStackValue", "kFmodfStackValue", "kPowfStackValue", "kMaxStackValue", "kMaxStackfValue", "kMinStackValue",
-    "kMinfStackValue",
+    "kAtan2fStackValue", "kFmodfStackValue", "kPowfStackValue", "kMaxStackValue", "kMaxStackfValue", "kMinStackValue", "kMinfStackValue",
 
     // Extended binary math (Value version)
     "kAtan2fValue", "kFmodfValue", "kPowfValue", "kMaxValue", "kMaxfValue", "kMinValue", "kMinfValue",
@@ -472,9 +468,8 @@ static std::string gFBCInstructionTable[] = {
     "kIf", "kSelectReal", "kSelectInt", "kCondBranch",
 
     // User Interface
-    "kOpenVerticalBox", "kOpenHorizontalBox", "kOpenTabBox", "kCloseBox", "kAddButton", "kAddChecButton",
-    "kAddHorizontalSlider", "kAddVerticalSlider", "kAddNumEntry", "kAddSoundfile", "kAddHorizontalBargraph",
-    "kAddVerticalBargraph", "kDeclare",
+    "kOpenVerticalBox", "kOpenHorizontalBox", "kOpenTabBox", "kCloseBox", "kAddButton", "kAddChecButton", "kAddHorizontalSlider",
+    "kAddVerticalSlider", "kAddNumEntry", "kAddSoundfile", "kAddHorizontalBargraph", "kAddVerticalBargraph", "kDeclare",
 
     "kNop"};
 

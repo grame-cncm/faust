@@ -40,8 +40,7 @@ class CPPInstVisitor : public TextInstVisitor {
    public:
     using TextInstVisitor::visit;
 
-    CPPInstVisitor(std::ostream* out, int tab = 0)
-        : TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*"), tab)
+    CPPInstVisitor(std::ostream* out, int tab = 0) : TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*"), tab)
     {
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;
@@ -202,11 +201,9 @@ class CPPInstVisitor : public TextInstVisitor {
     {
         // Special case
         if (inst->fZone == "0") {
-            *fOut << "ui_interface->declare(" << inst->fZone << ", " << quote(inst->fKey) << ", " << quote(inst->fValue)
-                  << ")";
+            *fOut << "ui_interface->declare(" << inst->fZone << ", " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
         } else {
-            *fOut << "ui_interface->declare(&" << inst->fZone << ", " << quote(inst->fKey) << ", "
-                  << quote(inst->fValue) << ")";
+            *fOut << "ui_interface->declare(&" << inst->fZone << ", " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
         }
         EndLine();
     }
@@ -260,8 +257,8 @@ class CPPInstVisitor : public TextInstVisitor {
                 break;
         }
         *fOut << name << "(" << quote(inst->fLabel) << ", "
-              << "&" << inst->fZone << ", " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", "
-              << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
+              << "&" << inst->fZone << ", " << checkReal(inst->fInit) << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax)
+              << ", " << checkReal(inst->fStep) << ")";
         EndLine();
     }
 
@@ -283,8 +280,7 @@ class CPPInstVisitor : public TextInstVisitor {
 
     void visit(AddSoundfileInst* inst) override
     {
-        *fOut << "ui_interface->addSoundfile(" << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", &"
-              << inst->fSFZone << ")";
+        *fOut << "ui_interface->addSoundfile(" << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", &" << inst->fSFZone << ")";
         EndLine();
     }
 
