@@ -599,6 +599,8 @@ struct Address : public Printable {
 
     virtual void                setAccess(Address::AccessType type) = 0;
     virtual Address::AccessType getAccess() const                   = 0;
+    bool isStack() { return getAccess() == kStack; }
+    bool isStruct() { return getAccess() == kStruct; }
 
     virtual void   setName(const string& name) = 0;
     virtual string getName() const             = 0;

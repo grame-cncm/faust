@@ -262,8 +262,8 @@ class dsp_optimizer_real {
             // fDSP is deallocated by bench calling measure_dsp
             
             deleteDSPFactory(fFactory);
-            fFactory = 0;
-            fDSP = 0;
+            fFactory = nullptr;
+            fDSP = nullptr;
             
             return true;
         }

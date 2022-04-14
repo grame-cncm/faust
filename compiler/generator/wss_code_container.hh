@@ -50,6 +50,12 @@ class WSSCodeContainer : public virtual CodeContainer {
    protected:
     BlockInst* fThreadLoopBlock;
     BlockInst* fComputeThreadBlockInstructions;
+    
+    StatementInst* pushComputeThread(StatementInst* inst)
+    {
+        fComputeThreadBlockInstructions->pushBackInst(inst);
+        return inst;
+    }
 
    public:
     WSSCodeContainer(int numInputs, int numOutputs, string const& objName)

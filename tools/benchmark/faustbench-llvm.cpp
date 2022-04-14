@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
     try {
         if (is_single) {
             string error_msg;
-            dsp_factory* factory = createDSPFactoryFromFile(in_filename, argc1, argv1, target, error_msg, opt);
+            llvm_dsp_factory* factory = createDSPFactoryFromFile(in_filename, argc1, argv1, target, error_msg, opt);
             if (!factory) {
                 cerr << error_msg;
                 exit(EXIT_FAILURE);
@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
             
             dsp* DSP = factory->createDSPInstance();
             if (!DSP) {
-                cerr << "Cannot create instance " << endl;
+                cerr << "Cannot create instance\n";
                 exit(EXIT_FAILURE);
             }
             
@@ -157,6 +157,8 @@ int main(int argc, char* argv[])
             } else {
                 bench_single<float>(in_filename, DSP, buffer_size, run, is_control, is_trace);
             }
+            
+            deleteDSPFactory(factory);
             
         } else {
             if (is_double) {

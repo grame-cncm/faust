@@ -32,18 +32,25 @@ using namespace std;
 
 void WSSCodeContainer::moveCompute2ComputeThread()
 {
-    // Move stack variable from "compute" to "computeThread"
+    // Move stack variables from "compute" to "computeThread"
     struct Compute2ComputeThread : public DispatchVisitor {
         WSSCodeContainer* fContainer;
-        string            fName;
+        vector<string>    fVariables;
+        
+        bool containVar(const string& name)
+        {
+            for (const auto& it : fVariables) {
+                if (name.find(it) != string::npos) return true;
+            }
+            return false;
+        }
 
         void visit(DeclareVarInst* inst)
         {
             BasicCloneVisitor cloner;
-            if (inst->fAddress->getAccess() == Address::kStack &&
-                inst->fAddress->getName().find(fName) != string::npos) {
+            if (inst->fAddress->isStack() && containVar(inst->fAddress->getName())) {
                 // For local thread access (in computeThread)
-                fContainer->fComputeThreadBlockInstructions->pushBackInst(inst->clone(&cloner));
+                fContainer->pushComputeThread(inst->clone(&cloner));
                 // Mark inst to be removed
                 inst->fAddress->setAccess(Address::kLink);
             }
@@ -52,7 +59,7 @@ void WSSCodeContainer::moveCompute2ComputeThread()
             DispatchVisitor::visit(inst);
         }
 
-        Compute2ComputeThread(WSSCodeContainer* container, const string& name) : fContainer(container), fName(name) {}
+        Compute2ComputeThread(WSSCodeContainer* container, vector<string> variables) : fContainer(container), fVariables(variables) {}
     };
 
     // Transform stack variables in struct variables
@@ -61,26 +68,10 @@ void WSSCodeContainer::moveCompute2ComputeThread()
     VariableMover::Move(this, "Zec");
     VariableMover::Move(this, "Yec");
 
-    // To move variable in "computeThread"
-    Compute2ComputeThread mover0(this, "fSoundfile");
-    fComputeBlockInstructions->accept(&mover0);
-
-    // To move variable in "computeThread"
-    Compute2ComputeThread mover1(this, "Slow");
-    fComputeBlockInstructions->accept(&mover1);
-
-    // To move variable in "computeThread"
-    Compute2ComputeThread mover2(this, "Vec");
-    fComputeBlockInstructions->accept(&mover2);
-
-    // To move variable in "computeThread"
-    Compute2ComputeThread mover3(this, "fInput");
-    fComputeBlockInstructions->accept(&mover3);
-
-    // To move variable in "computeThread"
-    Compute2ComputeThread mover4(this, "fOutput");
-    fComputeBlockInstructions->accept(&mover4);
-
+    // To move variables in "computeThread"
+    Compute2ComputeThread mover(this, { "fSoundfile", "Then", "Else", "Slow", "Vec", "fInput", "fOutput" });
+    fComputeBlockInstructions->accept(&mover);
+  
     // Remove marked variables from fComputeBlockInstructions
     RemoverCloneVisitor remover;
     fComputeBlockInstructions = static_cast<BlockInst*>(fComputeBlockInstructions->clone(&remover));
