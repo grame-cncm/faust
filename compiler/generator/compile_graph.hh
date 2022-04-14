@@ -44,7 +44,6 @@
 ///////////////////////////////////////////////////////////////////////
 
 class GraphCompiler : public Compiler {
-   protected:
     property<string>               fCompileProperty;
     property<string>               fSoundfileVariableProperty;  // variable associated to a soundfile
     property<pair<string, string>> fStaticInitProperty;         // property added to solve 20101208 kjetil bug
@@ -58,18 +57,18 @@ class GraphCompiler : public Compiler {
 
     map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
 
-    static map<string, int> fIDCounters;
-    Tree                    fSharingKey;
-    old_OccMarkup*          fOccMarkup;
-    bool                    fHasIota;
+    static map<string, int, std::less<>> fIDCounters;
+    Tree                                 fSharingKey;
+    old_OccMarkup*                       fOccMarkup;
+    bool                                 fHasIota;
 
    public:
     GraphCompiler(const string& name, const string& super, int numInputs, int numOutputs)
-        : Compiler(name, super, numInputs, numOutputs, false), fOccMarkup(nullptr), fHasIota(false)
+        : Compiler(name, super, numInputs, numOutputs, false)
     {
     }
 
-    GraphCompiler(Klass* k) : Compiler(k), fOccMarkup(nullptr), fHasIota(false) {}
+    explicit GraphCompiler(Klass* k) : Compiler(k) {}
 
     void compileMultiSignal(Tree lsig) override;
     void compileSingleSignal(Tree lsig) override;
@@ -85,15 +84,15 @@ class GraphCompiler : public Compiler {
     void SchedulingToMethod(const Scheduling& S, Klass* K);
     void compileSingleInstruction(Tree instr, Klass* K);
 
-    string getFreshID(const string& prefix);
+    string getFreshID(const string& prefix) const;
 
     void       compilePreparedSignalList(Tree lsig);
     Tree       prepare(Tree L0) override;
     Tree       prepare2(Tree L0) override;
     Tree       prepare3(Tree L0);
-    set<Tree>  ExpressionsListToInstructionsSet(Tree L3);
+    set<Tree>  ExpressionsListToInstructionsSet(Tree L3) const;
     set<Tree>  expression2Instructions(Tree L3);
-    Scheduling schedule(const set<Tree>& Instr);
+    Scheduling schedule(const set<Tree>& Instr) const;
     void       tableDependenciesGraph(const set<Tree>& I);
     void       generateTime();
     bool       getCompiledExpression(Tree sig, string& name);
@@ -103,7 +102,7 @@ class GraphCompiler : public Compiler {
     void      setSharingCount(Tree t, int count);
     void      sharingAnalysis(Tree t);
     void      sharingAnnotation(int vctxt, Tree t);
-    set<Tree> collectTableIDs(const set<Tree> I);
+    set<Tree> collectTableIDs(const set<Tree>& I);
 
     void   conditionAnnotation(Tree l);
     void   conditionAnnotation(Tree t, Tree nc);
@@ -161,7 +160,7 @@ class GraphCompiler : public Compiler {
     string generateFVar(Tree sig, const string& file, const string& name);
 
     void getTypedNames(::Type t, const string& prefix, string& ctype, string& vname);
-    int  pow2limit(int x);
+    int  pow2limit(int x) const;
 
     void declareWaveform(Tree sig, string& vname, int& size);
 

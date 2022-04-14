@@ -287,7 +287,7 @@ Tree GraphCompiler::prepare3(Tree L1)
  * @param L3 a list of expressions
  * @return set<Tree> the resulting set of instructions
  */
-set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3)
+set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3) const
 {
     // Each expression represent an output. We decorate them with
     // output informations
@@ -415,7 +415,7 @@ void GraphCompiler::InstructionsToMethod(const set<Tree>& I, Klass* K)
  * @param I the set of instructions to schedule
  * @return the sequential Scheduling
  */
-Scheduling GraphCompiler::schedule(const set<Tree>& I)
+Scheduling GraphCompiler::schedule(const set<Tree>& I) const
 {
     digraph<Tree, multidep> G;  // the signal graph
     Scheduling              S;
@@ -470,7 +470,7 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
     } else if (gGlobal->gCodeMode == 2) {
         // If we cut all connexions > 0 we should not have any cycles
         vector<vector<Tree>> P = parallelize(cut(E, 1));
-        for (auto l : P) {
+        for (auto const& l : P) {
             for (Tree i : l) S.fExecLevel.push_back(i);
         }
 
@@ -524,7 +524,7 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
 
         set<Tree> DONE;
         set<Tree> TODO = ListOutputs(I);
-        while (TODO.size() > 0) {
+        while (!TODO.empty()) {
             set<Tree> POSTPONE;
             for (Tree i : TODO) scheduleInstr(E, i, S.fExecLevel, DONE, POSTPONE);
             TODO = POSTPONE;
@@ -538,7 +538,7 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
         for (Tree o : ListOutputs(I)) {
             set<Tree> TODO;
             TODO.insert(o);
-            while (TODO.size() > 0) {
+            while (!TODO.empty()) {
                 set<Tree> POSTPONE;
                 for (Tree i : TODO) scheduleInstr(E, i, S.fExecLevel, DONE, POSTPONE);
                 TODO = POSTPONE;
@@ -554,7 +554,7 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
         // compute the output nodes
         set<digraph<Tree, multidep>> outputs;
         for (const auto& n : RG.nodes()) {
-            if (RG.connections(n).size() == 0) outputs.insert(n);
+            if (RG.connections(n).empty()) outputs.insert(n);
         }
 
         set<digraph<Tree, multidep>>    DONE;
@@ -563,7 +563,7 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
         for (const auto& o : outputs) {
             set<digraph<Tree, multidep>> TODO;
             TODO.insert(o);
-            while (TODO.size() > 0) {
+            while (!TODO.empty()) {
                 set<digraph<Tree, multidep>> POSTPONE;
                 for (const auto& i : TODO) {
                     if (DONE.find(i) == DONE.end()) {
@@ -572,9 +572,9 @@ Scheduling GraphCompiler::schedule(const set<Tree>& I)
                         SCHED.push_back(i);
 
                         // schedule its dependencies
-                        for (auto p : DG.connections(i)) {
-                            if (arrow_traits<multidep>::mindist(p.second) > 0) {
-                                POSTPONE.insert(p.first);
+                        for (const auto& [fst, snd] : DG.connections(i)) {
+                            if (arrow_traits<multidep>::mindist(snd) > 0) {
+                                POSTPONE.insert(fst);
                             } else {
                                 // TO FIX: scheduleInstr(G, p.first, SCHED, DONE, POSTPONE);
                             }
@@ -752,9 +752,9 @@ static bool isControl(Tree i)
  getFreshID
  *****************************************************************************/
 
-map<string, int> GraphCompiler::fIDCounters;
+map<string, int, std::less<>> GraphCompiler::fIDCounters;
 
-string GraphCompiler::getFreshID(const string& prefix)
+string GraphCompiler::getFreshID(const string& prefix) const
 {
     if (fIDCounters.find(prefix) == fIDCounters.end()) {
         fIDCounters[prefix] = 0;
@@ -783,7 +783,7 @@ set<Tree> GraphCompiler::expression2Instructions(Tree exp)
  * @param I
  * @return set<Tree>
  */
-set<Tree> GraphCompiler::collectTableIDs(const set<Tree> I)
+set<Tree> GraphCompiler::collectTableIDs(const set<Tree>& I)
 {
     set<Tree> IDs;
     for (Tree i : I) {
@@ -1280,11 +1280,11 @@ static void scheduleInstr(const digraph<Tree, multidep>& G, Tree i, vector<Tree>
         // mark i as done
         DONE.insert(i);
         // schedule its dependencies
-        for (auto p : G.connections(i)) {
-            if (arrow_traits<multidep>::mindist(p.second) > 0) {
-                POSTPONE.insert(p.first);
+        for (const auto& [fst, snd] : G.connections(i)) {
+            if (arrow_traits<multidep>::mindist(snd) > 0) {
+                POSTPONE.insert(fst);
             } else {
-                scheduleInstr(G, p.first, SCHED, DONE, POSTPONE);
+                scheduleInstr(G, fst, SCHED, DONE, POSTPONE);
             }
         }
         // schedule itself
@@ -1736,8 +1736,7 @@ string GraphCompiler::generateTable(Tree /*sig*/, Tree tsize, Tree content)
 
     // already compiled but check if we need to add declarations
     faustassert(isSigGen(content, g));
-    pair<string, string> kvnames;
-    if (!fInstanceInitProperty.get(g, kvnames)) {
+    if (pair<string, string> kvnames; !fInstanceInitProperty.get(g, kvnames)) {
         // not declared here, we add a declaration
         bool b = fStaticInitProperty.get(g, kvnames);
         faustassert(b);
@@ -1746,8 +1745,8 @@ string GraphCompiler::generateTable(Tree /*sig*/, Tree tsize, Tree content)
 
     // definition du nom et du type de la table
     // A REVOIR !!!!!!!!!
-    Type t = getCertifiedSigType(content);  //, tEnv);
-    if (t->nature() == kInt) {
+    //, tEnv);
+    if (getCertifiedSigType(content)->nature() == kInt) {
         vname = getFreshID("itbl");
         ctype = "int";
     } else {
@@ -1797,8 +1796,7 @@ string GraphCompiler::generateStaticTable(Tree /*sig*/, Tree tsize, Tree content
 
     // definition du nom et du type de la table
     // A REVOIR !!!!!!!!!
-    Type t = getCertifiedSigType(content);  //, tEnv);
-    if (t->nature() == kInt) {
+    if (getCertifiedSigType(content)->nature() == kInt) {
         vname = getFreshID("itbl");
         ctype = "int";
     } else {
@@ -2030,7 +2028,7 @@ string GraphCompiler::generateXtended(Tree sig)
  * Compute the minimal power of 2 greater than x
  */
 
-int GraphCompiler::pow2limit(int x)
+int GraphCompiler::pow2limit(int x) const
 {
     int n = 2;
     while (n < x) {
