@@ -175,14 +175,14 @@ int main(int argc, char *argv[])
 
     alsaaudio audio(argc, argv, DSP);
     if (!audio.init(name, DSP)) {
-        cerr << "Unable to init audio" << endl;
+        std::cerr << "Unable to init audio" << endl;
         exit(1);
     }
     
     finterface->recallState(rcfilename);
     
     if (!audio.start()) {
-        cerr << "Unable to start audio" << endl;
+        std::cerr << "Unable to start audio" << endl;
         exit(1);
     }
 
