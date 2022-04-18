@@ -19,10 +19,10 @@ MAKEFILE := $(lastword $(MAKEFILE_LIST))
 
 .PHONY: $(OUTPUT)
 
-all: $(FOLDERS) $(OUTPUT)
+all: $(OUTPUT)
 	$(MAKE) -f $(MAKEFILE) syslibs
 
-$(OUTPUT):
+$(OUTPUT): $(FOLDERS)
 	@-[ -f $@ ] && rm -f $@ 
 	$(AR) -csr $(OUTPUT) $(TMP)/*/*.o 
 	rm -rf $(TMP)
