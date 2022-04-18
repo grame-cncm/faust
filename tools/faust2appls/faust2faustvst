@@ -63,12 +63,12 @@ STYLE=""
 
 PROCARCH="-fPIC"
 dllext=".so"
-CXXFLAGS="-O3 -std=c++11 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
+CXXFLAGS="-Ofast -std=c++11 -march=native"
 
 # Darwin-specific
 #ARCH="-arch i386 -arch x86_64"
 if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
-    CXXFLAGS="-O3 -std=c++11 $ARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize -I/opt/local/include"
+    CXXFLAGS="-Ofast -std=c++11 -march=native $ARCH -I/opt/local/include"
     dllext=".vst"
 fi
 
@@ -145,7 +145,7 @@ EOF
     elif [ $p = "-arch64" ]; then
     PROCARCH="-m64 -fPIC"
     elif [ $p = "-osx" ]; then
-    CXXFLAGS="-O3 -std=c++11 $ARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize -I/opt/local/include"
+    CXXFLAGS="-Ofast -std=c++11 -march=native $ARCH -I/opt/local/include"
     dllext=".vst"
     elif [ $p = "-keep" ]; then
     KEEP="yes"
