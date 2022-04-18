@@ -334,7 +334,14 @@ class DLangInstVisitor : public TextInstVisitor {
             inst->fInst2->accept(this);
             *fOut << "))";
         } else {
-            TextInstVisitor::visit(inst);
+            // We keep the fully parenthesized version
+            *fOut << "(";
+            inst->fInst1->accept(this);
+            *fOut << " ";
+            *fOut << gBinOpTable[inst->fOpcode]->fName;
+            *fOut << " ";
+            inst->fInst2->accept(this);
+            *fOut << ")";
         }
     }
 

@@ -174,7 +174,7 @@ static string xmlize(const string& fullsrc)
     extractMetadata(fullsrc, src, metadata);
 
     for (size_t i = 0; i < src.size(); i++) {
-        if (src[i] == '"' && ((i == 0) | (i == src.size() - 1))) {
+        if (src[i] == '"' && ((i == 0) || (i == src.size() - 1))) {
             // nothing to do just skip the quotes
         } else {
             switch (src[i]) {
