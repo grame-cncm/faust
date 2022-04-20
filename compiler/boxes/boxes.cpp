@@ -1101,7 +1101,7 @@ bool isBoxPatternVar(Tree s, Tree& id)
     return isTree(s, gGlobal->BOXPATVAR, id);
 }
 
-Tree boxPatternMatcher(Automaton* a, int state, Tree env, Tree origRules, Tree revParamList)
+Tree boxPatternMatcher(PM::Automaton* a, int state, Tree env, Tree origRules, Tree revParamList)
 {
     return tree(gGlobal->BOXPATMATCHER, tree((void*)a), tree(state), env, origRules, revParamList);
 }
@@ -1112,11 +1112,11 @@ bool isBoxPatternMatcher(Tree s)
     return isTree(s, gGlobal->BOXPATMATCHER, ta, ts, env, orig, rpl);
 }
 
-bool isBoxPatternMatcher(Tree s, Automaton*& a, int& state, Tree& env, Tree& origRules, Tree& revParamList)
+bool isBoxPatternMatcher(Tree s, PM::Automaton*& a, int& state, Tree& env, Tree& origRules, Tree& revParamList)
 {
     Tree ta, ts;
     if (isTree(s, gGlobal->BOXPATMATCHER, ta, ts, env, origRules, revParamList)) {
-        a     = (Automaton*)tree2ptr(ta);
+        a     = (PM::Automaton*)tree2ptr(ta);
         state = tree2int(ts);
         return true;
     } else {

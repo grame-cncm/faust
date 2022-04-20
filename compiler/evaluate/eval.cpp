@@ -1056,7 +1056,7 @@ static Tree applyList(Tree fun, Tree larg)
     Tree id;
     Tree body;
 
-    Automaton* automat;
+    PM::Automaton* automat;
     int        state;
 
     prim2 p2;
@@ -1076,7 +1076,7 @@ static Tree applyList(Tree fun, Tree larg)
 
         list2vec(envList, envVect);
         // cerr << "applyList/apply_pattern_matcher(" << automat << "," << state << "," << *hd(larg) << ")" << endl;
-        state2 = apply_pattern_matcher(automat, state, hd(larg), result, envVect);
+        state2 = PM::apply_pattern_matcher(automat, state, hd(larg), result, envVect);
         // cerr << "state2 = " << state2 << "; result = " << *result << endl;
         if (state2 >= 0 && isNil(result)) {
             // we need to continue the pattern matching
@@ -1311,8 +1311,8 @@ static Tree evalCase(Tree rules, Tree env)
 {
     Tree pm;
     if (!getPMProperty(rules, env, pm)) {
-        Automaton* a = make_pattern_matcher(evalRuleList(rules, env));
-        pm           = boxPatternMatcher(a, 0, listn(len(rules), pushEnvBarrier(env)), rules, gGlobal->nil);
+        PM::Automaton* a = PM::make_pattern_matcher(evalRuleList(rules, env));
+        pm               = boxPatternMatcher(a, 0, listn(len(rules), pushEnvBarrier(env)), rules, gGlobal->nil);
         setPMProperty(rules, env, pm);
     }
     return pm;

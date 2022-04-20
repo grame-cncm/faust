@@ -47,6 +47,8 @@ using namespace std;
 
 /* Check for cons (nonempty list) nodes. */
 
+namespace PM {
+    
 static inline bool isCons(Tree x, Tree& h, Tree& t)
 {
     if (isList(x)) {
@@ -373,7 +375,7 @@ static State* make_var_state(int n, State* state)
         r->id = NULL;
         r->p  = Path();
     }
-    State *prefix = new State, *current = prefix;
+    State* prefix = new State, *current = prefix;
     while (n-- > 0) {
         current->rules = rules;
         Trans trans(NULL);
@@ -534,7 +536,7 @@ Automaton* make_pattern_matcher(Tree R)
             Tree         pat, rest;
             int          m = len(lhs), i = m;
             vector<Tree> pats(len(lhs), (Tree)NULL);
-            State *      state0 = new State, *state = state0;
+            State*      state0 = new State, *state = state0;
             A->rhs.push_back(rhs);
             while (isCons(lhs, pat, rest)) {
                 pats[--i] = pat;
@@ -683,10 +685,10 @@ static int apply_pattern_matcher_internal(Automaton* A, int s, Tree X, vector<Su
    will be set to nil if no final state has been reached yet. */
 
 int apply_pattern_matcher(Automaton*    A,  // automaton
-                          int           s,  // start state
-                          Tree          X,  // arg to be matched
-                          Tree&         C,  // output closure (if any)
-                          vector<Tree>& E)  // modified output environments
+                        int           s,  // start state
+                        Tree          X,  // arg to be matched
+                        Tree&         C,  // output closure (if any)
+                        vector<Tree>& E)  // modified output environments
 {
     int           n = A->n_rules();
     vector<Subst> subst(n, Subst());
@@ -747,4 +749,6 @@ int apply_pattern_matcher(Automaton*    A,  // automaton
     cerr << "state " << s << ", successful incomplete match" << endl;
 #endif
     return s;
+}
+
 }

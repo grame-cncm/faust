@@ -40,7 +40,7 @@ box ::= i | f | p0 | p1 | p3
 #include "tlib.hh"
 #include "export.hh"
 
-struct Automaton;
+namespace PM { struct Automaton; }
 
 /*****************************************************************************
 ******************************************************************************
@@ -321,9 +321,9 @@ Tree boxCase(Tree rules);
 bool isBoxCase(Tree s);
 bool isBoxCase(Tree s, Tree& rules);
 
-Tree boxPatternMatcher(Automaton* a, int state, Tree env, Tree origRules, Tree revParamList);
+Tree boxPatternMatcher(PM::Automaton* a, int state, Tree env, Tree origRules, Tree revParamList);
 bool isBoxPatternMatcher(Tree s);
-bool isBoxPatternMatcher(Tree s, Automaton*& a, int& state, Tree& env, Tree& origRules, Tree& revParamList);
+bool isBoxPatternMatcher(Tree s, PM::Automaton*& a, int& state, Tree& env, Tree& origRules, Tree& revParamList);
 
 // wrap an id into a pattern variable
 Tree boxPatternVar(Tree id);

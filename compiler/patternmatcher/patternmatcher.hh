@@ -25,6 +25,8 @@
 #include <vector>
 #include "tlib.hh"
 
+namespace PM {
+    
 struct Automaton;
 
 /* Create a pattern matching automaton from the given list of rules. */
@@ -42,5 +44,7 @@ int apply_pattern_matcher(Automaton*         A,   // automaton
                           Tree               X,   // arg to be matched
                           Tree&              C,   // output closure (if any)
                           std::vector<Tree>& E);  // modified output environments
+
+}
 
 #endif
