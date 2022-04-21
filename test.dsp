@@ -11,4 +11,4 @@
 //process = par(i,1, + ~ (@(1000):*(0.75)));
 //process = par(i,2, + ~ (@(1000):*(0.75)));
 
-process = +;
+process = button("play"), _, _ : ondemand(+);

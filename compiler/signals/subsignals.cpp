@@ -68,6 +68,16 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
         return 1;
     }
 
+    else if (isSigUpsampling(sig, x, y)) {
+        vsigs.push_back(x);
+        vsigs.push_back(y);
+        return 2;
+    } else if (isSigDownsampling(sig, x, y)) {
+        vsigs.push_back(x);
+        vsigs.push_back(y);
+        return 2;
+    }
+
     else if (isSigFixDelay(sig, x, y)) {
         vsigs.push_back(x);
         vsigs.push_back(y);

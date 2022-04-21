@@ -26,6 +26,9 @@ compiler : updatesubmodules
 	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=regular.cmake TARGETS=regular.cmake
 	$(MAKE) -C $(BUILDLOCATION)
 
+run : 
+	./build/bin/faust -lang ocpp -t 0 test.dsp
+
 most : updatesubmodules
 	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=most.cmake TARGETS=most.cmake
 	$(MAKE) -C $(BUILDLOCATION)

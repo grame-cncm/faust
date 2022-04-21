@@ -117,7 +117,7 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
     } else if (isSigBinOp(sig, &i, x, y)) {
         Tree m1    = self(cons(x, clklist));
         Tree m2    = self(cons(y, clklist));
-        Tree ident = scalID(t->nature(), sigwclklist);
+        Tree ident = scalID(nature, sigwclklist);
         fInstructions.insert(sigInstruction2SharedWrite(clklist, ident, nature, sigBinOp(i, m1, m2)));
         return sigInstruction2SharedRead(ident, nature);
     } else if (isSigOutput(sig, &i, x)) {
@@ -125,10 +125,43 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
         Tree instr = sigOutput(i, m1);
         fInstructions.insert(instr);
         return instr;
+    } else if (isSigUpsampling(sig, x, y)) {
+        Tree m2       = self(cons(y, clklist));  // we compile the clock signal
+        Tree clklist2 = cons(m2, clklist);
+        Tree m1       = self(cons(x, clklist2));  // we compile x in the new time reference
+        Tree ident    = scalID(nature, cons(m1, clklist2));
+        Tree instr    = sigInstruction2SharedWrite(clklist2, ident, nature, m1);
+        fInstructions.insert(instr);
+        return ident;
+    } else if (isSigDownsampling(sig, x, y)) {
+        // assert(isCons(clklist));
+        Tree clklist0 = tl(clklist);
+        Tree m1       = self(cons(x, clklist0));
+        Tree ident    = scalID(nature, cons(m1, clklist0));
+        Tree instr    = sigInstruction2SharedWrite(clklist0, ident, nature, m1);
+        fInstructions.insert(instr);
+        return ident;
+
+    }
+    // UI
+    else if (isSigButton(sig, label)) {
+        return sig;
+    } else if (isSigCheckbox(sig, label)) {
+        return sig;
     }
 #if 0
     // NOT YET
-     else if (isSigWaveform(sig)) {
+     else if (isSigVSlider(sig, label, c, x, y, z)) {
+        return sigVSlider(label, self(c), self(x), self(y), self(z));
+    } else if (isSigHSlider(sig, label, c, x, y, z)) {
+        return sigHSlider(label, self(c), self(x), self(y), self(z));
+    } else if (isSigNumEntry(sig, label, c, x, y, z)) {
+        return sigNumEntry(label, self(c), self(x), self(y), self(z));
+    } else if (isSigVBargraph(sig, label, x, y, z)) {
+        return sigVBargraph(label, self(x), self(y), self(z));
+    } else if (isSigHBargraph(sig, label, x, y, z)) {
+        return sigHBargraph(label, self(x), self(y), self(z));
+    } else if (isSigWaveform(sig)) {
         return sig;
     } else if (isSigFixDelay(sig, x, y)) {
         return sigFixDelay(self(cons(x, clklist)), self(cons(y, clklist)));
@@ -193,23 +226,6 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
         return sigIntCast(self(x));
     } else if (isSigFloatCast(sig, x)) {
         return sigFloatCast(self(x));
-    }
-
-    // UI
-    else if (isSigButton(sig, label)) {
-        return sig;
-    } else if (isSigCheckbox(sig, label)) {
-        return sig;
-    } else if (isSigVSlider(sig, label, c, x, y, z)) {
-        return sigVSlider(label, self(c), self(x), self(y), self(z));
-    } else if (isSigHSlider(sig, label, c, x, y, z)) {
-        return sigHSlider(label, self(c), self(x), self(y), self(z));
-    } else if (isSigNumEntry(sig, label, c, x, y, z)) {
-        return sigNumEntry(label, self(c), self(x), self(y), self(z));
-    } else if (isSigVBargraph(sig, label, x, y, z)) {
-        return sigVBargraph(label, self(x), self(y), self(z));
-    } else if (isSigHBargraph(sig, label, x, y, z)) {
-        return sigHBargraph(label, self(x), self(y), self(z));
     }
 
     // Soundfile length, rate, channels, buffer

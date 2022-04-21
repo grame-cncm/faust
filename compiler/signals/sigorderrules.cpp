@@ -119,6 +119,12 @@ static int infereSigOrder(Tree sig)
     else if (isSigFixDelay(sig, s1, s2))
         return 3;
 
+    else if (isSigUpsampling(sig, s1, s2))
+        return 3;
+
+    else if (isSigDownsampling(sig, s1, s2))
+        return 3;
+
     else if (isSigBinOp(sig, &i, s1, s2))
         return max(O(s1), O(s2));
 

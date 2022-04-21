@@ -330,6 +330,34 @@ static Type infereSigType(Tree sig, Tree env)
         return castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0, 0)));
     }
 
+    else if (isSigUpsampling(sig, s1, s2)) {
+        Type     t1     = T(s1, env);
+        Type     t2     = T(s2, env);
+        interval ii     = t2->getInterval();
+        bool     valid2 = (0 <= ii.lo) & (ii.hi <= 1);
+        if (!valid2) {
+            stringstream error;
+            error << "ERROR : invalid clock signal  : " << ppsig(s2) << endl
+                  << "        used in upsampling expression : " << ppsig(sig) << endl;
+            throw faustexception(error.str());
+        } else {
+            return castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0, 0)));
+        }
+    } else if (isSigDownsampling(sig, s1, s2)) {
+        Type     t1     = T(s1, env);
+        Type     t2     = T(s2, env);
+        interval ii     = t2->getInterval();
+        bool     valid2 = (0 <= ii.lo) & (ii.hi <= 1);
+        if (!valid2) {
+            stringstream error;
+            error << "ERROR : invalid clock signal  : " << ppsig(s2) << endl
+                  << "        used in downsampling expression : " << ppsig(sig) << endl;
+            throw faustexception(error.str());
+        } else {
+            return sampCast(t1);
+        }
+    }
+
     else if (isSigBinOp(sig, &i, s1, s2)) {
         // Type t = T(s1,env)|T(s2,env);
         Type t1 = T(s1, env);

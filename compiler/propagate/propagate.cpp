@@ -615,11 +615,12 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
         std::vector<Tree> downsigs(in1);  // downsampled input signals
         std::vector<Tree> upsigs(out1);   // upsampled output signals
         for (int j = 0; j < in1; j++) {
-            downsigs[j] = gGlobal->gDownsamplePrim->computeSigOutput({lsig[j + 1], clock});
+            downsigs[j] = sigDownsampling(lsig[j + 1], clock);
         }
         siglist l1 = propagate(slotenv, path, t1, downsigs);
         for (int j = 0; j < out1; j++) {
             upsigs[j] = gGlobal->gUpsamplePrim->computeSigOutput({l1[j], clock});
+            upsigs[j] = sigUpsampling(l1[j], clock);
         }
         return upsigs;
     }

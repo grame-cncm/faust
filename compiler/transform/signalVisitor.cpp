@@ -79,6 +79,14 @@ void SignalVisitor::visit(Tree sig)
         self(x);
         self(y);
         return;
+    } else if (isSigUpsampling(sig, x, y)) {
+        self(x);
+        self(y);
+        return;
+    } else if (isSigDownsampling(sig, x, y)) {
+        self(x);
+        self(y);
+        return;
     } else if (isSigPrefix(sig, x, y)) {
         self(x);
         self(y);

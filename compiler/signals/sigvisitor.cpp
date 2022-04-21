@@ -62,6 +62,12 @@ void sigvisitor::visit(Tree sig)
     else if (isSigFixDelay(sig, s1, s2))
         visitFixDelay(sig, s1, s2);
 
+    else if (isSigUpsampling(sig, s1, s2))
+        visitUpsampling(sig, s1, s2);
+
+    else if (isSigDownsampling(sig, s1, s2))
+        visitDownsampling(sig, s1, s2);
+
     else if (isSigBinOp(sig, &i, s1, s2))
         visitBinOp(sig, i, s1, s2);
 

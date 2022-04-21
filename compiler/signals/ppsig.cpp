@@ -233,6 +233,12 @@ ostream& ppsig::print(ostream& fout) const
         fout << ppsig(x, fEnv, 9) << "'";
     }
     // else if ( isSigFixDelay(sig, x, y) ) 			{ printinfix(fout, "@", 8, x, y); 	}
+    else if (isSigUpsampling(sig, x, y)) {
+        printfun(fout, "upsampling", x, y);
+    } else if (isSigDownsampling(sig, x, y)) {
+        printfun(fout, "downsampling", x, y);
+    }
+
     else if (isSigFixDelay(sig, x, y)) {
         printFixDelay(fout, x, y);
     } else if (isSigPrefix(sig, x, y)) {

@@ -311,7 +311,7 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3) const
     for (Tree instr : INSTRX) {
         cerr << ppsig(instr) << endl;
     }
-    cerr << ">>FIN EXPERIMENTALs\n" << endl;
+    cerr << "\n>>FIN EXPERIMENTALs\n" << endl;
 
     // cerr << ">>Transformation into Instructions\n" << endl;
     startTiming("Transformation into Instructions");

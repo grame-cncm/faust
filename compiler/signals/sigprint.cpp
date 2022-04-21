@@ -125,6 +125,20 @@ void printSignal(Tree sig, FILE* out, int prec)
         if (prec > 4) fputs(")", out);
     }
 
+    else if (isSigUpsampling(sig, x, y)) {
+        fputs("upsampling((", out);
+        printSignal(x, out, 0);
+        fputs(",", out);
+        printSignal(y, out, 0);
+        fputs(")", out);
+    } else if (isSigDownsampling(sig, x, y)) {
+        fputs("downsampling(", out);
+        printSignal(x, out, 0);
+        fputs(",", out);
+        printSignal(y, out, 0);
+        fputs(")", out);
+    }
+
     else if (isProj(sig, &i, x)) {
         printSignal(x, out, prec);
         fprintf(out, "#%d", i);

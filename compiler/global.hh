@@ -357,6 +357,8 @@ struct global {
     Sym SIGOUTPUT;
     Sym SIGDELAY1;
     Sym SIGFIXDELAY;
+    Sym SIGUPSAMPLING;
+    Sym SIGDOWNSAMPLING;
     Sym SIGPREFIX;
     Sym SIGIOTA;
     Sym SIGTIME;

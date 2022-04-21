@@ -342,6 +342,8 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     SIGOUTPUT                      = symbol("SigOutput");
     SIGDELAY1                      = symbol("SigDelay1");
     SIGFIXDELAY                    = symbol("SigFixDelay");
+    SIGUPSAMPLING                  = symbol("SigUpsampling");
+    SIGDOWNSAMPLING                = symbol("SigDownsampling");
     SIGPREFIX                      = symbol("SigPrefix");
     SIGIOTA                        = symbol("SigIota");
     SIGTIME                        = symbol("SigTime");

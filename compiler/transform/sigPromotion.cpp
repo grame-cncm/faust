@@ -45,6 +45,14 @@ Tree SignalPromotion::transformation(Tree sig)
         return sigFixDelay(self(x), smartIntCast(getCertifiedSigType(y), self(y)));
     }
 
+    else if (isSigUpsampling(sig, x, y)) {
+        return sigUpsampling(self(x), smartIntCast(getCertifiedSigType(y), self(y)));
+    }
+
+    else if (isSigDownsampling(sig, x, y)) {
+        return sigDownsampling(self(x), smartIntCast(getCertifiedSigType(y), self(y)));
+    }
+
     // Binary operations
     // kAdd, kSub, kMul, kDiv, kRem, kLsh, kRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
     else if (isSigBinOp(sig, &i, x, y)) {

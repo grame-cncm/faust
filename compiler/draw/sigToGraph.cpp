@@ -192,6 +192,10 @@ static string sigLabel(Tree sig)
         fout << "mem";
     } else if (isSigFixDelay(sig, x, y)) {
         fout << "@";
+    } else if (isSigUpsampling(sig, x, y)) {
+        fout << "Up";
+    } else if (isSigDownsampling(sig, x, y)) {
+        fout << "Down";
     } else if (isSigPrefix(sig, x, y)) {
         fout << "prefix";
     } else if (isSigIota(sig, x)) {

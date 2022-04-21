@@ -67,6 +67,12 @@ bool isSigDelay1(Tree t, Tree& t0);
 Tree sigFixDelay(Tree t0, Tree t1);
 bool isSigFixDelay(Tree t, Tree& t0, Tree& t1);
 
+Tree sigUpsampling(Tree t0, Tree t1);
+bool isSigUpsampling(Tree t, Tree& t0, Tree& t1);
+
+Tree sigDownsampling(Tree t0, Tree t1);
+bool isSigDownsampling(Tree t, Tree& t0, Tree& t1);
+
 Tree sigPrefix(Tree t0, Tree t1);
 bool isSigPrefix(Tree t, Tree& t0, Tree& t1);
 

@@ -46,6 +46,10 @@ struct sigvisitor {
     virtual void visitPrefix(Tree sig, Tree s1, Tree s2)   = 0;
     virtual void visitFixDelay(Tree sig, Tree s1, Tree s2) = 0;
 
+    // up and down sampling
+    virtual void visitUpsampling(Tree sig, Tree s1, Tree s2)   = 0;
+    virtual void visitDownsampling(Tree sig, Tree s1, Tree s2) = 0;
+
     // numerical operations
     virtual void visitBinOp(Tree sig, int opcode, Tree s1, Tree s2)     = 0;
     virtual void visitIntCast(Tree sig, Tree s)                         = 0;
