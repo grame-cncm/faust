@@ -49,6 +49,7 @@
 #include "sigToGraph.hh"
 #include "signalDependencies.hh"
 #include "signalGraph.hh"
+#include "signalOndemandCompiler.hh"
 #include "signalSplitter.hh"
 #include "signalVisitor.hh"
 #include "sigprint.hh"
@@ -103,6 +104,7 @@ void GraphCompiler::compileMultiSignal(Tree L)
     L               = prepare(L);  // optimize, share and annotate expressions
     set<Tree> INSTR = ExpressionsListToInstructionsSet(L);
 
+#if 0
     // experimental
     std::cout << "BEGIN EXPERIMENTAL" << std::endl;
     std::set<nlpl::Instr> SI;
@@ -118,6 +120,7 @@ void GraphCompiler::compileMultiSignal(Tree L)
 
     nlpl::graphOf(SI);
     std::cout << "END EXPERIMENTAL" << std::endl;
+#endif
 
     // lookForChains(INSTR);
     InstructionsToClass(INSTR, fClass);
@@ -302,6 +305,13 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3) const
     startTiming("typeAnnotation");
     typeAnnotation(L3d, true);  // Annotate L3 with type information
     endTiming("typeAnnotation");
+
+    cerr << ">>DEBUT EXPERIMENTALs\n" << endl;
+    set<Tree> INSTRX = ondemandCompileToInstr(L3d);
+    for (Tree instr : INSTRX) {
+        cerr << ppsig(instr) << endl;
+    }
+    cerr << ">>FIN EXPERIMENTALs\n" << endl;
 
     // cerr << ">>Transformation into Instructions\n" << endl;
     startTiming("Transformation into Instructions");

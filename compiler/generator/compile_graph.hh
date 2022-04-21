@@ -59,12 +59,12 @@ class GraphCompiler : public Compiler {
 
     static map<string, int, std::less<>> fIDCounters;
     Tree                                 fSharingKey;
-    old_OccMarkup*                       fOccMarkup;
+    old_OccMarkup*                       fOccMarkup = 0;
     bool                                 fHasIota;
 
    public:
     GraphCompiler(const string& name, const string& super, int numInputs, int numOutputs)
-        : Compiler(name, super, numInputs, numOutputs, false)
+        : Compiler(name, super, numInputs, numOutputs, false), fOccMarkup(nullptr)
     {
     }
 

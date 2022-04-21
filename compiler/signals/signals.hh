@@ -382,6 +382,14 @@ bool isSigInstructionTableRead(Tree s, Tree& id, Tree& origin, int* nature, int*
 
 //
 
+Tree sigInstruction2SharedWrite(Tree clklist, Tree id, int nature, Tree sig);
+bool isSigInstruction2SharedWrite(Tree s, Tree& clklist, Tree& id, int* nature, Tree& sig);
+
+Tree sigInstruction2SharedRead(Tree id, int nature);
+bool isSigInstruction2SharedRead(Tree s, Tree& id, int* nature);
+
+//
+
 Tree sigInstructionSharedWrite(Tree id, Tree origin, int nature, Tree sig);
 bool isSigInstructionSharedWrite(Tree s, Tree& id, Tree& origin, int* nature, Tree& sig);
 

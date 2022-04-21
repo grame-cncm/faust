@@ -936,6 +936,57 @@ bool isSigInstructionTableRead(Tree s, Tree& id, Tree& origin, int* nature, int*
 }
 
 /**
+ * @brief a shared write ondemand "instruction"
+ *
+ * @param clklist: list of ondemand clocks
+ * @param id: unique identifier of the shared signal
+ * @param nature: int or float code
+ * @param sig: the shared signal
+ * @return a shared write instruction
+ */
+Tree sigInstruction2SharedWrite(Tree clklist, Tree id, int nature, Tree sig)
+{
+    Tree instr = tree(gGlobal->SIGINSTRUCTION2SHAREDWRITE, clklist, id, tree(nature), sig);
+    setIDInstruction(id, instr);
+    return instr;
+}
+
+bool isSigInstruction2SharedWrite(Tree s, Tree& clklist, Tree& id, int* nature, Tree& sig)
+{
+    Tree tnat;
+    if (isTree(s, gGlobal->SIGINSTRUCTION2SHAREDWRITE, clklist, id, tnat, sig)) {
+        *nature = tree2int(tnat);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * @brief a shared read ondemand "instruction"
+ *
+ * @param clklist: list of ondemand clocks
+ * @param id: unique identifier of the shared signal
+ * @param nature: int or float code
+ * @return a shared read instruction
+ */
+Tree sigInstruction2SharedRead(Tree id, int nature)
+{
+    return tree(gGlobal->SIGINSTRUCTION2SHAREDREAD, id, tree(nature));
+}
+
+bool isSigInstruction2SharedRead(Tree s, Tree& id, int* nature)
+{
+    Tree tnat;
+    if (isTree(s, gGlobal->SIGINSTRUCTION2SHAREDREAD, id, tnat)) {
+        *nature = tree2int(tnat);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
  * @brief a shared write "instruction"
  *
  * @param id: unique identifier of the shared signal

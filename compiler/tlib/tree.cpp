@@ -411,8 +411,9 @@ bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tr
 
 void* getUserData(Tree t)
 {
-    Sym s;
-    if (isSym(t->node(), &s)) {
+    Sym  s;
+    bool b = isSym(t->node(), &s);
+    if (b) {
         return getUserData(s);
     } else {
         return nullptr;

@@ -195,7 +195,7 @@ ostream& ppsig::print(ostream& fout) const
     int    i, nat, dmax, dmin, tblsize;
     double r;
     Tree   c, sel, x, y, z, u, var, le, label, id, tid, ff, largs, type, name, file, sf;
-    Tree   origin, init, idx, exp;
+    Tree   origin, init, idx, exp, clklist;
 
     if (isList(sig)) {
         printlist(fout, sig);
@@ -344,6 +344,17 @@ ostream& ppsig::print(ostream& fout) const
         const char* tname = (nat == kInt) ? "int" : "float";
         fout << tname << " " << *x << " := " << ppsig(y) << ";";
     } else if (isSigInstructionSharedRead(sig, x, c, &nat)) {
+        fout << *x;
+    }
+
+    else if (isSigInstruction2SharedWrite(sig, clklist, x, &nat, exp)) {
+        const char* tname = (nat == kInt) ? "int" : "float";
+        if (isNil(clklist)) {
+            fout << tname << " " << *x << " := " << ppsig(exp) << ";";
+        } else {
+            fout << "when " << ppsig(clklist) << " then " << tname << " " << *x << " := " << ppsig(y) << ";";
+        }
+    } else if (isSigInstruction2SharedRead(sig, x, &nat)) {
         fout << *x;
     }
 

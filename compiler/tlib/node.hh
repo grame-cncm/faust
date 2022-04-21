@@ -212,6 +212,9 @@ inline bool isSym(const Node& n, Sym* x)
 {
     if (n.type() == kSymNode) {
         *x = n.getSym();
+        if (*x == nullptr) {
+            std::cerr << "PB !!!" << std::endl;
+        }
         return true;
     } else {
         return false;
