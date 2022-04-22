@@ -129,21 +129,32 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
         Tree m2       = self(cons(y, clklist));  // we compile the clock signal
         Tree clklist2 = cons(m2, clklist);
         Tree m1       = self(cons(x, clklist2));  // we compile x in the new time reference
-        Tree ident    = scalID(nature, cons(m1, clklist2));
-        Tree instr    = sigInstruction2SharedWrite(clklist2, ident, nature, m1);
-        fInstructions.insert(instr);
-        return ident;
+                                                  /*
+                                                  Tree ident    = scalID(nature, cons(m1, clklist2));
+                                                  Tree instr    = sigInstruction2SharedWrite(clklist2, ident, nature, m1);
+                                                  std::cerr << "Upsampling instr " << ppsig(instr) << std::endl;
+                                                  fInstructions.insert(instr);
+                                                  return sigInstruction2SharedRead(ident, nature);
+                                                  */
+        return m1;
     } else if (isSigDownsampling(sig, x, y)) {
         // assert(isCons(clklist));
         Tree clklist0 = tl(clklist);
         Tree m1       = self(cons(x, clklist0));
         Tree ident    = scalID(nature, cons(m1, clklist0));
         Tree instr    = sigInstruction2SharedWrite(clklist0, ident, nature, m1);
+        std::cerr << "Downsampling instr " << ppsig(instr) << std::endl;
         fInstructions.insert(instr);
-        return ident;
+        return sigInstruction2SharedRead(ident, nature);
 
+    } else if (isSigIntCast(sig, x)) {
+        // assert(isCons(clklist));
+        Tree m1 = self(cons(x, clklist));
+        return sigIntCast(m1);
     }
+
     // UI
+
     else if (isSigButton(sig, label)) {
         return sig;
     } else if (isSigCheckbox(sig, label)) {
