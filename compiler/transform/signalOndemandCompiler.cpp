@@ -73,6 +73,7 @@ static Tree outID(Tree sigwclklist)
 std::set<Tree> ondemandCompileToInstr(Tree lsig)
 {
     SignalOndemandCompiler C;
+    C.trace(true);
     // compile each output signal with an empty clock list
     while (!isNil(lsig)) {
         Tree sig         = hd(lsig);
@@ -129,21 +130,22 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
         Tree m2       = self(cons(y, clklist));  // we compile the clock signal
         Tree clklist2 = cons(m2, clklist);
         Tree m1       = self(cons(x, clklist2));  // we compile x in the new time reference
-                                                  /*
-                                                  Tree ident    = scalID(nature, cons(m1, clklist2));
-                                                  Tree instr    = sigInstruction2SharedWrite(clklist2, ident, nature, m1);
-                                                  std::cerr << "Upsampling instr " << ppsig(instr) << std::endl;
-                                                  fInstructions.insert(instr);
-                                                  return sigInstruction2SharedRead(ident, nature);
-                                                  */
+#if 1
+        Tree ident = scalID(nature, cons(m1, clklist2));
+        Tree instr = sigInstruction2SharedWrite(clklist2, ident, nature, m1);
+        // std::cerr << "Upsampling instr " << ppsig(instr) << std::endl;
+        fInstructions.insert(instr);
+        return sigInstruction2SharedRead(ident, nature);
+#else
         return m1;
+#endif
     } else if (isSigDownsampling(sig, x, y)) {
         // assert(isCons(clklist));
         Tree clklist0 = tl(clklist);
         Tree m1       = self(cons(x, clklist0));
         Tree ident    = scalID(nature, cons(m1, clklist0));
         Tree instr    = sigInstruction2SharedWrite(clklist0, ident, nature, m1);
-        std::cerr << "Downsampling instr " << ppsig(instr) << std::endl;
+        // std::cerr << "Downsampling instr " << ppsig(instr) << std::endl;
         fInstructions.insert(instr);
         return sigInstruction2SharedRead(ident, nature);
 
