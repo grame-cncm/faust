@@ -118,7 +118,7 @@ public:
 
   virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max);
   virtual void addVerticalBargraph(const char* label, float* zone, float min, float max);
-    
+
   virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
 
   virtual void openTabBox(const char* label);
@@ -1307,7 +1307,7 @@ struct LV2Plugin {
   // This processes just a single MIDI message, so to process an entire series
   // of MIDI events you'll have to loop over the event data in the plugin's
   // MIDI callback. XXXTODO: Sample-accurate processing of MIDI events.
-  
+
   void process_midi(unsigned char *data, int sz)
   {
 #if DEBUG_MIDI
@@ -1952,10 +1952,19 @@ int lv2_dyn_manifest_get_data(LV2_Dyn_Manifest_Handle handle,
             units:symbol \"%s\" ;\n\
             units:render \"%%f %s\"\n\
 	] ;\n", val, val, val);
-	if (strcmp(key, "lv2")) continue;
+	else if (!strcmp(key, "scale") && !strcmp(val, "log"))
+	  fprintf(fp, "\
+	lv2:portProperty epp:logarithmic ;\n");
+	else if (!strcmp(key, "tooltip"))
+	  fprintf(fp, "\
+	rdfs:comment \"%s\" ;\n", val);
+	else if (strcmp(key, "lv2")) continue;
 	if (!strcmp(val, "integer"))
 	  fprintf(fp, "\
 	lv2:portProperty lv2:integer ;\n");
+	else if (!strcmp(val, "enumeration"))
+	  fprintf(fp, "\
+	lv2:portProperty lv2:enumeration ;\n");
 	else if (!strcmp(val, "reportsLatency"))
 	  fprintf(fp, "\
 	lv2:portProperty lv2:reportsLatency ;\n\
