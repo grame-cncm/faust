@@ -11,4 +11,13 @@
 //process = par(i,1, + ~ (@(1000):*(0.75)));
 //process = par(i,2, + ~ (@(1000):*(0.75)));
 
-process = button("play"), _, _ : ondemand(+);
+// Nouveaux tests
+// ==============
+//
+//process = button("play"), _, _ : ondemand(+);
+
+//process = button("play") : ondemand(1);
+
+toto = button("play1"), _ : ondemand(_);
+titi = button("play2"), _ : ondemand(_);
+process = _ <: toto,titi :> _;
