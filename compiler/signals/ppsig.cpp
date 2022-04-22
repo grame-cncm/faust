@@ -358,7 +358,7 @@ ostream& ppsig::print(ostream& fout) const
         if (isNil(clklist)) {
             fout << tname << " " << *x << " := " << ppsig(exp) << ";";
         } else {
-            fout << "when " << ppsig(clklist) << " then " << tname << " " << *x << " := " << ppsig(y) << ";";
+            fout << "when " << *clklist << " then " << tname << " " << *x << " := " << ppsig(exp) << ";";
         }
     } else if (isSigInstruction2SharedRead(sig, x, &nat)) {
         fout << *x;
@@ -405,7 +405,7 @@ ostream& ppsig::print(ostream& fout) const
     }
 
     else {
-        cerr << "[[" << *sig << "]]";
+        cerr << "[[[" << *sig << "]]]";
     }
     return fout;
 }
