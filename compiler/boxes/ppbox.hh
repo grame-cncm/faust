@@ -66,10 +66,6 @@ class boxpp : public virtual Garbageable {
 
 class boxppShared : public boxpp {
     protected:
-        // Tree is used to identify the same nodes during tree traversal,
-        // but fExpCounter is then used to generate unique IDs
-        static std::map<Tree, std::pair<int, std::string>> fExpTable;
-        static int fExpCounter;
         
     public:
         boxppShared(Tree b, int p = 0) : boxpp(b, p) {}
