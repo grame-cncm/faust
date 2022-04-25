@@ -22,11 +22,11 @@
  architecture section is not modified.
  **************************************************************************/
 
-#include <string>
-#include <vector>
-
 #ifndef LIBFAUSTCOMMON_H
 #define LIBFAUSTCOMMON_H
+
+#include <string>
+#include <vector>
 
 /*!
  \addtogroup signalcpp C++ interface for the Signal API.

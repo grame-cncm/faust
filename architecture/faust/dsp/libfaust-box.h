@@ -22,11 +22,11 @@
  architecture section is not modified.
  ***************************************************************************/
 
-#include <string>
-#include <vector>
-
 #ifndef LIBFAUSTCOMMON_H
 #define LIBFAUSTCOMMON_H
+
+#include <string>
+#include <vector>
 
 /*!
  \addtogroup boxcpp C++ interface for the Box API.

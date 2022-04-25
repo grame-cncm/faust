@@ -84,18 +84,24 @@ class MinPrim : public xtended {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
     
-        // Min of disjoint intervals returns one of them
-        interval i1 = types[0]->getInterval();
-        interval i2 = types[1]->getInterval();
-        
-        if (i1.valid && i2.valid) {
-            if (i1.hi <= i2.lo) {
-                return *args.begin();
-            } else if (i2.hi <= i1.lo) {
-                return *(std::next(args.begin(), 1));
+        /*
+         04/25/22 : this optimisation cannot be done because interval computation is buggy: like no.noise interval [O..inf] !
+         */
+    
+        /*
+            // Min of disjoint intervals returns one of them
+            interval i1 = types[0]->getInterval();
+            interval i2 = types[1]->getInterval();
+            
+            if (i1.valid && i2.valid) {
+                if (i1.hi <= i2.lo) {
+                    return *args.begin();
+                } else if (i2.hi <= i1.lo) {
+                    return *(std::next(args.begin(), 1));
+                }
             }
-        }
-
+         */
+    
         Typed::VarType         result_type = (result->nature() == kInt) ? Typed::kInt32 : itfloat();
         vector<Typed::VarType> arg_types;
         list<ValueInst*>       casted_args;

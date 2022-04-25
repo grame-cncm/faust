@@ -77,21 +77,38 @@ class AbsPrim : public xtended {
 
         ::Type t = infereSigType(types);
         interval i = types[0]->getInterval();
+     
+        /*
+         04/25/22 : this optimisation cannot be done because interval computation is buggy: like no.noise interval [O..inf] !
+         */
     
-        if (i.valid && i.lo >= 0) {
-            return *args.begin();
-        } else {
-            // Only compute abs when arg is < 0
-            if (t->nature() == kReal) {
-                list<ValueInst*> casted_args;
-                prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
-                return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, casted_args);
+        /*
+            if (i.valid && i.lo >= 0) {
+                return *args.begin();
             } else {
-                // "Int" abs
-                result_type = Typed::kInt32;
-                arg_types.push_back(Typed::kInt32);
-                return container->pushFunction("abs", result_type, arg_types, args);
+                // Only compute abs when arg is < 0
+                if (t->nature() == kReal) {
+                    list<ValueInst*> casted_args;
+                    prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
+                    return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, casted_args);
+                } else {
+                    // "Int" abs
+                    result_type = Typed::kInt32;
+                    arg_types.push_back(Typed::kInt32);
+                    return container->pushFunction("abs", result_type, arg_types, args);
+                }
             }
+        */
+    
+        if (t->nature() == kReal) {
+            list<ValueInst*> casted_args;
+            prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
+            return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, casted_args);
+        } else {
+            // "Int" abs
+            result_type = Typed::kInt32;
+            arg_types.push_back(Typed::kInt32);
+            return container->pushFunction("abs", result_type, arg_types, args);
         }
     }
 
