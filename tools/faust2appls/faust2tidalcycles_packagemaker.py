@@ -286,6 +286,262 @@ It will automatically write the where it has to be.
                            nb_outputs=nb_outputs)
 
 
+def py_placeholder_filler(synth_name: str):
+    """ Creating the py file"""
+    template = '''    
+import shutil
+import os 
+import glob
+import pathlib
+
+
+def namesearcher(ext : str, dos : str):
+    
+    fileDir = r""+os.getcwd()+dos
+    fileExt = r"*"+ext
+    path= list(pathlib.Path(fileDir).glob(fileExt))
+    for path in pathlib.Path(fileDir).glob(fileExt) :
+            str(path)
+    return path
+
+def opener(path : str) :
+    
+    table = open(path)
+    textes = table.read()
+    return textes
+
+def glober(pattern:str):
+    targetPattern = r+pattern
+    return glob.glob(targetPattern)
+
+
+""" 
+ / \------------------, 
+ \_,|                 | 
+    |    Coresynths   | 
+    |  ,----------------
+    \_/_______________/     
+    
+""" 
+
+def cs_placeholder_filler(cs_filling : str):
+    """ Inserting text in placeholder SynthDef """
+    template = "{{cs_filling}}"
+    return template.format(cs_filling=cs_filling)
+
+def cs_find_last_occurence(filepath: str, pattern: str):
+    """ Find the last occurence of pattern in file and return line """
+    last_occurence = 0
+
+    with open(filepath, 'r') as file:
+        for index, line in enumerate(file.readlines()):
+            if pattern in line:
+                last_occurence = index
+
+    return last_occurence
+        
+
+def cs_inject_new_definition(text_content: str, filepath: str):
+    """ Inject new definition in core-synths.scd """
+    index = cs_find_last_occurence(filepath, pattern=".add;")
+
+    # Looking for the last .add in file, adding right after it
+
+    # Reading file into memory
+    with open(filepath, "r") as f:
+        contents = f.readlines()
+
+    # injecting new definition
+    contents.insert(index+1, text_content)
+
+    # Writing definition to file
+    with open(filepath, "w") as f:
+        contents = "".join(contents)
+        f.write(contents)
+
+    return True
+"""
+ / \------------------, 
+ \_,|                 | 
+    |    Coremodules  | 
+    |  ,----------------
+    \_/_______________/ 
+"""
+
+ 
+
+
+def cm_placeholder_filler(cm_filling : str):
+    """ Inserting text in placeholder SynthDef """
+    template = "{{cm_filling}}"
+    return template.format(cm_filling=cm_filling)
+
+def cm_find_penultimate_occurence(filepath: str, pattern: str):
+    """ Find the penultimate occurence of pattern in file and return line """
+    penultimate_occurence = 1
+
+    with open(filepath, 'r') as file:
+        for index, line in enumerate(file.readlines()):
+            if pattern in line:
+                penultimate_occurence = index
+
+    return penultimate_occurence
+        
+
+def cm_inject_new_definition(text_content: str, filepath: str):
+    """ Inject new definition in core-modules.scd """
+    index = cm_find_penultimate_occurence(filepath, pattern=");")
+
+    # Looking for the penultimate ); in file, adding right after it
+
+    # Reading file into memory
+    with open(filepath, "r") as f:
+        contents = f.readlines()
+
+    # injecting new definition
+    contents.insert(index-1, text_content)
+
+    # Writing definition to file
+    with open(filepath, "w") as f:
+        contents = "".join(contents)
+        f.write(contents)
+
+    return True
+
+"""
+ / \-----------------, 
+ \_,|                | 
+    |    BootTidal   | 
+    |  ,---------------
+    \_/______________/ 
+"""
+def bt_placeholder_filler(bt_filling : str):
+    """ Inserting text in placeholder SynthDef """
+    template = "{{bt_filling}}"
+    return template.format(bt_filling=bt_filling)
+
+def bt_find_penultimate_occurence(filepath: str, pattern: str):
+    """ Find the penultimate occurence of pattern in file and return line """
+    penultimate_occurence = 0
+
+    with open(filepath, 'r') as file:
+        for index, line in enumerate(file.readlines()):
+            if pattern in line:
+                penultimate_occurence = index
+
+    return penultimate_occurence
+        
+
+def bt_inject_new_definition(text_content: str, filepath: str):
+    """ Inject new definition in boottidal """
+    index = bt_find_penultimate_occurence(filepath, pattern=":}}")
+
+    # Looking for the penultimate ); in file, adding right after it
+
+    # Reading file into memory
+    with open(filepath, "r") as f:
+        contents = f.readlines()
+
+    # injecting new definition
+    contents.insert(index+1, text_content)
+
+    # Writing definition to file
+    with open(filepath, "w") as f:
+        contents = "".join(contents)
+        f.write(contents)
+
+    return True
+
+
+
+
+def find_file(file_name, directory_name):
+    files_found = []
+    for path, subdirs, files in os.walk(directory_name):
+        for name in files:
+            if(file_name == name):
+                file_path = os.path.join(path,name)
+                files_found.append(file_path)
+    return files_found
+
+
+
+
+
+if __name__ == "__main__":
+    
+    import argparse
+    import sys
+    import tempfile
+
+    parser = argparse.ArgumentParser(
+        description='Installer'
+    )
+    
+    parser.add_argument("boottidalloc", help="Your BootTidal.hs path, it's never where you think it is, be carefull")
+
+
+    # args = parser.parse_args()
+    args, unknownargs = parser.parse_known_args()
+
+    # Flatten list of arguments to one string
+    unknownargs = " ".join(unknownargs)
+    faustflags = unknownargs or ""
+
+    # Temporary folder for intermediary files
+    tmp_folder = tempfile.TemporaryDirectory(prefix="faust.")
+    
+    
+    
+    #my name
+    
+    my_name = namesearcher(".BootTidal","/files2add").stem
+    
+    #coresynth
+    
+    cs_FILEPATH = ''.join(find_file('core-synths.scd', os.environ['HOME']+'/.local/share/SuperCollider'))
+    print("the path to core-synths.scd : ")
+    print(cs_FILEPATH)
+    cs_filling=opener(namesearcher(".core-synth","/files2add"))
+    cs_find_last_occurence(filepath=cs_FILEPATH, pattern="add;")
+    new_def = cs_placeholder_filler(cs_filling=cs_filling)
+    cs_inject_new_definition(text_content=new_def, filepath=cs_FILEPATH)
+    
+    #coremodules
+
+    cm_FILEPATH = ''.join(find_file('core-modules.scd', os.environ['HOME']+'/.local/share/SuperCollider'))
+    print("the path to core-modules.scd : ")
+    print(cm_FILEPATH)
+    cm_filling=opener(namesearcher(".core-modules","/files2add"))
+    cm_find_penultimate_occurence(filepath=cm_FILEPATH, pattern=");")
+    new_def = cm_placeholder_filler(cm_filling=cm_filling)
+    cm_inject_new_definition(text_content=new_def, filepath=cm_FILEPATH)
+        
+    #boottidal 
+
+    #bt_FILEPATH = get_boottidal_filepath()
+    #bt_FILEPATH = ''.join(find_file('BootTidal.hs', args.boottidalloc))
+    bt_FILEPATH = args.boottidalloc
+    print("the path to BootTidal.hs : ")
+    print(bt_FILEPATH)
+    bt_filling=opener(namesearcher(".BootTidal","/files2add"))
+    bt_find_penultimate_occurence(filepath=bt_FILEPATH, pattern="add;")
+    new_def = bt_placeholder_filler(bt_filling=bt_filling)
+    bt_inject_new_definition(text_content=new_def, filepath=bt_FILEPATH)
+    
+    #move .sc .so
+    os.mkdir( os.environ['HOME']+"/.local/share/SuperCollider/Extensions/" + "Faust" + '_'+ my_name)
+    os.mkdir( os.environ['HOME']+"/.local/share/SuperCollider/Extensions/" + "Faust" + '_'+ my_name + "/Classes")
+    scpath=  os.environ['HOME']+"/.local/share/SuperCollider/Extensions/" + "Faust" + '_'+ my_name + "/Classes"
+    sopath= os.environ['HOME']+"/.local/share/SuperCollider/Extensions/" + "Faust" + '_'+ my_name
+    shutil.move(str(namesearcher(".sc",""")), str(scpath))
+    shutil.move(str(namesearcher(".so",""")), str(sopath))
+    
+    '''
+    
+    return template.format(synth_name=synth_name)
+
+
 
 
 
@@ -345,15 +601,15 @@ if __name__ == "__main__":
     print(param)
     
     
-    os.mkdir(my_name + '_'+ 'PACKAGE')
-    os.mkdir(my_name + '_'+ 'PACKAGE/files2add')
+
+    os.mkdir('files2add')
         
 #coresynth
     new_def = cs_placeholder_filler(synth_name =  my_name,
               c_synth_name = my_name.capitalize(),
               nb_inputs = my_inputs,                  
               argument_list = param)
-    filecreator(filename = my_name + '_'+ "PACKAGE/files2add/add2core-synth.scd",
+    filecreator(filename = "files2add/"+my_name+".core-synth",
                 cont=new_def)
 
 #coremodules
@@ -362,7 +618,7 @@ if __name__ == "__main__":
 
     new_def = cm_placeholder_filler(synth_name = my_name,
               argument_list = param)
-    filecreator(filename = my_name + '_'+ "PACKAGE/files2add/add2core-modules.scd",
+    filecreator(filename = "files2add/"+my_name+".core-modules",
                 cont=new_def)
 
 #boottidal 
@@ -371,7 +627,7 @@ if __name__ == "__main__":
 
     new_def = bt_placeholder_filler(synth_name = my_name,
               argument_list = param)
-    filecreator(filename = my_name + '_'+ "PACKAGE/files2add/add2BootTidal.hs",
+    filecreator(filename = "files2add/"+my_name+".BootTidal",
                 cont=new_def)
     #bt_inject_new_definition(text_content=new_def, filepath=bt_FILEPATH)
     
@@ -382,8 +638,15 @@ if __name__ == "__main__":
               c_synth_name = my_name.capitalize(),                        
               argument_list = param,
               nb_inputs = my_inputs,
-              nb_outputs = my_outputs,                       )
-    filecreator(filename = my_name + '_'+ "PACKAGE/Helpfile.txt",
+              nb_outputs = my_outputs)
+    filecreator(filename = my_name +".Helpfile.txt",
                 cont=new_def)
     
+#pyFile 
 
+
+    new_def = py_placeholder_filler(synth_name = my_name)
+    filecreator(filename = "faust2tidalcycles_installer.py",
+                cont=new_def)
+    
+    
