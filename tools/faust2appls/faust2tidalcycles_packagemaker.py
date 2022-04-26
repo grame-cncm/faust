@@ -534,8 +534,8 @@ if __name__ == "__main__":
     os.mkdir( os.environ['HOME']+"/.local/share/SuperCollider/Extensions/" + "Faust" + '_'+ my_name + "/Classes")
     scpath=  os.environ['HOME']+"/.local/share/SuperCollider/Extensions/" + "Faust" + '_'+ my_name + "/Classes"
     sopath= os.environ['HOME']+"/.local/share/SuperCollider/Extensions/" + "Faust" + '_'+ my_name
-    shutil.move(str(namesearcher(".sc",""")), str(scpath))
-    shutil.move(str(namesearcher(".so",""")), str(sopath))
+    shutil.move(str(namesearcher(".sc","")), str(scpath))
+    shutil.move(str(namesearcher(".so","")), str(sopath))
     
     '''
     
