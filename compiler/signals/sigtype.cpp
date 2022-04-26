@@ -317,7 +317,7 @@ int checkDelayInterval(Type t)
         return int(i.hi + 0.5);
     } else {
         stringstream error;
-        error << "ERROR : invalid delay parameter range: " << i << ". The range must be between 0 and MAX_INT" << endl;
+        error << "ERROR : invalid delay parameter range: " << i << ". The range must be between 0 and INT_MAX" << endl;
         throw faustexception(error.str());
     }
 }
