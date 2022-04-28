@@ -56,11 +56,11 @@ static string replaceChar(string str, char src, char dst)
     return str;
 }
 
-template <typename T>
-static vector<string> bench(dsp_optimizer_real<T> optimizer, const string& name)
+template <typename REAL>
+static vector<string> bench(dsp_optimizer_real<REAL> optimizer, const string& name)
 {
-    pair<double, vector<string> > res = optimizer.findOptimizedParameters();
-    return res.second;
+    tuple<double, double, TOption> res = optimizer.findOptimizedParameters();
+    return get<2>(res);
 }
 
 int main(int argc, char* argv[])
@@ -135,9 +135,9 @@ int main(int argc, char* argv[])
         int buffer_size = 512;
         try {
             if (is_double) {
-                optimal_options = bench(dsp_optimizer_real<double>(in_filename.c_str(), argc1, argv1, opt_target, buffer_size, 1, -1, false), in_filename);
+                optimal_options = bench(dsp_optimizer_real<double>(in_filename, argc1, argv1, opt_target, buffer_size, 1, -1, false), in_filename);
             } else {
-                optimal_options = bench(dsp_optimizer_real<float>(in_filename.c_str(), argc1, argv1, opt_target, buffer_size, 1, -1, false), in_filename);
+                optimal_options = bench(dsp_optimizer_real<float>(in_filename, argc1, argv1, opt_target, buffer_size, 1, -1, false), in_filename);
             }
         } catch (...) {
             cerr << "libfaust error...\n";

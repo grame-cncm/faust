@@ -63,6 +63,8 @@ int main(int argc, char* argv[])
         exit(1);
     }
     
+    cout << "DSP inputs = " << DSP1->getNumInputs() << " outputs = " << DSP1->getNumOutputs() << endl;
+    
     measure_dsp* measure1 = new measure_dsp(DSP1, 1024, 5.0);
     measure_dsp* measure2 = new measure_dsp(DSP2, 1024, 5.0);
     
