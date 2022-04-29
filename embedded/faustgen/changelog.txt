@@ -4,7 +4,12 @@
 GRAME - Centre national de creation musicale
 http://www.grame.fr
 ====================================================
-Copyright GRAME (c) 2012-2021
+Copyright GRAME (c) 2012-2022
+
+----------------------------------------------------
+Version 1.58 - 29/04/2022
+
+- add a "nc" option in 'compileoptions' to avoid DSP recompilation
 
 ----------------------------------------------------
 Version 1.57 - 08/04/2022

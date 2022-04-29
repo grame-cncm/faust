@@ -1041,16 +1041,14 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
     fOptions.clear();
     int i;
     t_atom* ap;
+    bool compilation = true;
     
     // Increment ap each time to get to the next atom
     for (i = 0, ap = argv; i < argc; i++, ap++) {
         switch (atom_gettype(ap)) {
                 
             case A_LONG: {
-                stringstream num;
-                num << atom_getlong(ap);
-                string res = num.str();
-                fOptions.push_back(res.c_str());
+                fOptions.push_back(to_string(atom_getlong(ap)).c_str());
                 break;
             }
                 
@@ -1059,8 +1057,13 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
                 break;
                 
             case A_SYM:
-                // Add options to default ones
-                fOptions.push_back(atom_getsym(ap)->s_name);
+                // Check compilation mode
+                if (strcmp(atom_getsym(ap)->s_name, "nc") == 0) {
+                    compilation = false;
+                } else {
+                    // Add options to default ones
+                    fOptions.push_back(atom_getsym(ap)->s_name);
+                }
                 break;
                 
             default:
@@ -1068,28 +1071,18 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
                 break;
         }
     }
-    
-    /*
-     if (optimize) {
-     post("Start looking for optimal compilation options...");
-     #ifdef __APPLE__
-     double best;
-     dsp_optimizer optimizer(string(*fSourceCode), (*fLibraryPath.begin()).c_str(), getTarget(), sys_getblksize());
-     fOptions = optimizer.findOptimizedParameters(best);
-     #endif
-     post("Optimal compilation options found");
-     }
-     */
-    
-    // Delete the existing Faust module
-    free_dsp_factory();
-    
-    // Free the memory allocated for fBitCode
-    free_bitcode();
-    
-    // Update all instances
-    for (const auto& it : fInstances) {
-        it->update_sourcecode();
+   
+    if (compilation) {
+        // Delete the existing Faust module
+        free_dsp_factory();
+        
+        // Free the memory allocated for fBitCode
+        free_bitcode();
+        
+        // Update all instances
+        for (const auto& it : fInstances) {
+            it->update_sourcecode();
+        }
     }
 }
 
@@ -1144,9 +1137,7 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     // Empty (= no name) faustgen~ will be internally separated as groups with different names
     if (!fDSPfactory) {
         string effect_name;
-        stringstream num;
-        num << faustgen_factory::gFaustCounter;
-        effect_name = "faustgen_factory-" + num.str();
+        effect_name = "faustgen_factory-" + to_string(faustgen_factory::gFaustCounter);
         res = allocate_factory(effect_name);
     }
     
