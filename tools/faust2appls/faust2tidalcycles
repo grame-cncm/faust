@@ -261,10 +261,10 @@ def cm_inject_new_definition(text_content: str, filepath: str):
 
 def bt_placeholder_filler(synth_name: str, argument_list: list):
     """ Inserting arguments in placeholder SynthDef """
-    template = '''\n:{{\nlet {parameters}
+    template = '''\n:{{\nlet\n     {parameters}
     \n:}}\n'''    
     
-    parameters = [" {x} = pF \"{x}\"  ".format(x=x) for x in argument_list]
+    parameters = ["{x} = pF \"{x}\"  ".format(x=x) for x in argument_list]
     # weird formatting to match default file
     parameters = "\n     ".join(parameters)
     parameters = parameters.replace('', '')
