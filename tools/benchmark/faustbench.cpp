@@ -105,8 +105,9 @@ using namespace std;
 
 ofstream* gFaustbenchLog = nullptr;
 
+
 template <typename REAL>
-static double bench(dsp* dsp, int dsp_size, const string& name, int run, int buffer_size, bool is_trace, bool is_control, int ds, int us, int filter)
+static pair<double, double> bench(dsp* dsp, int dsp_size, const string& name, int run, int buffer_size, bool is_trace, bool is_control, int ds, int us, int filter)
 {
     measure_dsp_real<REAL> mes(dsp, buffer_size, 5., is_trace, is_control, ds, us, filter);  // Buffer_size and duration in sec of measure
     for (int i = 0; i < run; i++) {
@@ -114,18 +115,26 @@ static double bench(dsp* dsp, int dsp_size, const string& name, int run, int buf
         if (is_trace) cout << name << " : " << mes.getStats() << " MBytes/sec (DSP CPU % : " << (mes.getCPULoad() * 100) << " at " << BENCH_SAMPLE_RATE << " Hz), DSP struct memory size in bytes : " << dsp_size << endl;
         FAUSTBENCH_LOG<double>(mes.getStats());
     }
-    return mes.getStats();
+    return make_pair(mes.getStats(), mes.getCPULoad());
+}
+
+static bool compareFun(pair<double, double> i, pair<double, double> j)
+{
+    return (i.first > j.first);
 }
 
 extern "C" int bench_all(const char* name, int run, int buffer_size, bool is_trace, bool is_control, int ds, int us, int filter)
 {
-    vector<double> measures;
+    vector<pair<double, double> > measures;
     vector<string> options;
     
     if (is_trace) {
         cout << "DSP bench of " << name << " compiled in C++ running with FAUSTFLOAT = " << ((sizeof(FAUSTFLOAT) == 4) ? "float" : "double") << endl;
         cout << "Running with 'compute' called with " << buffer_size << " samples" << endl;
     }
+    
+    dsp_scal dsp;
+    cout << "DSP inputs = " << dsp.getNumInputs() << " outputs = " << dsp.getNumOutputs() << endl;
     
 #if defined(ALL_TESTS)
     
@@ -258,14 +267,15 @@ extern "C" int bench_all(const char* name, int run, int buffer_size, bool is_tra
     
 #endif
     
-    vector<double> measures1 = measures;
-    sort(measures1.begin(), measures1.end());
+    vector<pair<double, double> > measures1 = measures;
+    sort(measures1.begin(), measures1.end(), compareFun);
     
-    vector <double>::iterator it = find(measures.begin(), measures.end(), measures1[measures1.size()-1]);
+    vector <pair<double, double> >::iterator it = find(measures.begin(), measures.end(), measures1[measures1.size()-1]);
     long int pos = distance(measures.begin(), it);
     
     if (is_trace) {
-        cout << "Best value is : " << measures1[measures1.size()-1] << " MBytes/sec with " << options[pos] << endl;
+        pair<double, double> res = measures1[measures1.size()-1];
+        cout << "Best value is : " << res.first << " MBytes/sec (DSP CPU % : " << (res.second * 100) << " at 44100 Hz) with " << options[pos] << endl;
     } else {
         cout << options[pos] << endl;
     }

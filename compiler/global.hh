@@ -222,6 +222,15 @@ struct global {
     list<string> gInputFiles;
 
     int gFileNum;
+    
+    // ------------
+    // boxppShared
+    // ------------
+    
+    // Tree is used to identify the same nodes during tree traversal,
+    // but gExpCounter is then used to generate unique IDs
+    std::map<Tree, std::pair<int, std::string>> gExpTable;
+    int gExpCounter;
 
     int gCountInferences;
     int gCountMaximal;

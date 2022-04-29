@@ -100,10 +100,11 @@ for p in $FILES; do
         cd "$TMP"
     CXX_SOURCE=${f%.dsp}.cpp
         if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
-            # On Darwin we build 32-bits and 64-bits plugins combined with lipo
-            $CXX -arch i386 $CXXFLAGS  $FAUSTTOOLSFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}.i386 $CXX_SOURCE || exit
+            # On Darwin we build 64-bits ARM and 64-bits x86_64 plugins combined with lipo
+            $CXX -arch arm64 $CXXFLAGS  $FAUSTTOOLSFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}.arm64 $CXX_SOURCE || exit
             $CXX -arch x86_64 $CXXFLAGS $FAUSTTOOLSFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}.x86_64 $CXX_SOURCE || exit
-            $LIPO -create "${f%.dsp}.i386" "${f%.dsp}.x86_64"  -output "${f%.dsp}$EXT" || exit
+            $LIPO -create "${f%.dsp}.arm64" "${f%.dsp}.x86_64" -output "${f%.dsp}$EXT" || exit
+            codesign --sign - --deep --force "${f%.dsp}$EXT" 
         else
             $CXX $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}$EXT $CXX_SOURCE || exit
         fi

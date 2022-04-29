@@ -202,12 +202,7 @@ void SOULCodeContainer::produceClass()
     fCodeProducer.Tab(n + 1);
     
     if (gGlobal->gOutputLang == "soul-dsp") {
-        string json;
-        if (gGlobal->gFloatSize == 1) {
-            json = generateJSON<float>();
-        } else {
-            json = generateJSON<double>();
-        }
+        string json = generateJSONAux();
         *fOut << "// Event used to call additional methods";
         tab(n + 1, *fOut);
         *fOut << "input event int eventbuildUserInterface [[json: \"" << flattenJSON(json) << "\"]];";

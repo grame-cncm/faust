@@ -72,7 +72,9 @@ class PathBuilder
         }
     
         void pushLabel(const std::string& label) { fControlsLevel.push_back(label); }
-        void popLabel() { fControlsLevel.pop_back(); }
+    
+        // Return true for the last level of groups
+        bool popLabel() { fControlsLevel.pop_back(); return fControlsLevel.size() == 0; }
     
 };
 

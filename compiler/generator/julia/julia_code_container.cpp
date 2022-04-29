@@ -248,12 +248,7 @@ void JuliaCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "function getJSON(dsp::" << fKlassName << "{T}) where {T}";
     {
-        string json;
-        if (gGlobal->gFloatSize == 1) {
-            json = generateJSON<float>();
-        } else {
-            json = generateJSON<double>();
-        }
+        string json = generateJSONAux();
         tab(n + 1, *fOut);
         *fOut << "return \"" << flattenJSON(json) << "\"" << endl;
         tab(n, *fOut);

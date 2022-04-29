@@ -44,12 +44,12 @@ The **faustgen~** object can be controlled with the following messages:
 - `read <pathname>`: to read an external DSP file (pathname is optional)
 - `write <pathname>`: to write the DSP code in an external file (pathname is optional)
 - `librarypath <pathname>` to add the folder pathname of additional Faust libraries
-- `compileoptions <options>`: to add most of the Faust [compiler options](https://faustdoc.grame.fr/manual/options/) (like `-vec -lv 1 -vs 8`...). The `-single` option can be used to run the DSP code with float samples (remember that Max7 and later use double samples by default, so does **faustgen~**).
+- `compileoptions <options>`: to add most of the Faust [compiler options](https://faustdoc.grame.fr/manual/options/) (like `-vec -lv 1 -vs 8`...). The `-single` option can be used to run the DSP code with float samples (remember that Max7 and later use double samples by default, so does **faustgen~**). Using an empty `compileoptions` message will simply clear the option list.
 - `osc <IP inport outport xmit[0|1] bundle[0|1]>`: to activate OSC control in input and output mode, possibly generating messages when *xmit = 1*, and in bundle mode when *bundle = 1* 
 - `init`: to generate all inputs and outputs control messages as a message list *[path, init, min, max]* that will be sent on the output messages outlet
 - `dump`: to generate all inputs and outputs control messages as a message list *[path, cur, min, max]* that will be sent on the output messages outlet. 
 - `mute`: to mute audio rendering
-- `polyphony <nvoices>` : to set the DSP in polyphonic mode with *nvoices* 
+- `polyphony <nvoices>`: to set the DSP in polyphonic mode with *nvoices* 
 
 #### Input controllers 
 

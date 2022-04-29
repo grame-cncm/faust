@@ -158,7 +158,6 @@ inline interval operator+(const interval& x, const interval& y)
 inline interval operator-(const interval& x, const interval& y)
 {
     return (x.valid & y.valid) ? interval(x.lo - y.hi, x.hi - y.lo) : interval();
-    ;
 }
 
 inline double specialmult(double a, double b)

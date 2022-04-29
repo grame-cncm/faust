@@ -250,6 +250,8 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gErrorCount = 0;
 
     gFileNum = 0;
+    
+    gExpCounter = 0;
 
     gCountInferences = 0;
     gCountMaximal    = 0;

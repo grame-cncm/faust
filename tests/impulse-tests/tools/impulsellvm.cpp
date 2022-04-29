@@ -246,9 +246,19 @@ int main(int argc, char* argv[])
     {
         string sha_key;
         string error_msg;
-        string expanded_dsp = expandDSPFromFile(argv[1], argc1, argv1, sha_key, error_msg);
-        factory = createDSPFactoryFromString("FausDSP", expanded_dsp, argc1, argv1, "", error_msg, 3);
+        
+        string expanded_dsp1 = expandDSPFromFile(argv[1], argc1, argv1, sha_key, error_msg);
+        factory = createDSPFactoryFromString("FausDSP", expanded_dsp1, argc1, argv1, "", error_msg, 3);
     
+        if (!factory) {
+            cerr << "ERROR in expandDSPFromFile " << error_msg;
+            exit(-1);
+        }
+        
+        // Second time to check [FIX] expand code related global variables moved in 'global' class. 
+        string expanded_dsp2 = expandDSPFromFile(argv[1], argc1, argv1, sha_key, error_msg);
+        factory = createDSPFactoryFromString("FausDSP", expanded_dsp2, argc1, argv1, "", error_msg, 3);
+        
         if (!factory) {
             cerr << "ERROR in expandDSPFromFile " << error_msg;
             exit(-1);

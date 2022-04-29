@@ -367,6 +367,15 @@ class CodeContainer : public virtual Garbageable {
         generateJSON(&visitor);
         return visitor.JSON(true);
     }
+    
+    string generateJSONAux()
+    {
+        if (gGlobal->gFloatSize == 1) {
+            return generateJSON<float>();
+        } else {
+            return generateJSON<double>();
+        }
+    }
 
     /* Can be overridden by subclasses to transform the FIR before the actual code generation */
     virtual void processFIR(void);
