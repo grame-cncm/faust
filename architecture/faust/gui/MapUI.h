@@ -49,11 +49,22 @@ class MapUI : public UI, public PathBuilder
     
     protected:
     
-        // Complete path map
-        std::map<std::string, FAUSTFLOAT*> fPathZoneMap;
-    
         // Label zone map
         std::map<std::string, FAUSTFLOAT*> fLabelZoneMap;
+    
+        // Shortname zone map
+        std::map<std::string, FAUSTFLOAT*> fShortnameZoneMap;
+    
+        // Fill path map
+        std::map<std::string, FAUSTFLOAT*> fFullpathZoneMap;
+    
+        void addZoneLabel(const std::string& label, FAUSTFLOAT* zone)
+        {
+            std::string path = buildPath(label);
+            fFullPaths.push_back(path);
+            fFullpathZoneMap[path] = zone;
+            fLabelZoneMap[label] = zone;
+        }
     
     public:
         
@@ -75,46 +86,42 @@ class MapUI : public UI, public PathBuilder
         }
         void closeBox()
         {
-            popLabel();
+            if (popLabel()) {
+                // Shortnames can be computed when all fullnames are known
+                computeShortNames();
+            }
         }
         
         // -- active widgets
         void addButton(const char* label, FAUSTFLOAT* zone)
         {
-            fPathZoneMap[buildPath(label)] = zone;
-            fLabelZoneMap[label] = zone;
+            addZoneLabel(label, zone);
         }
         void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
-            fPathZoneMap[buildPath(label)] = zone;
-            fLabelZoneMap[label] = zone;
+            addZoneLabel(label, zone);
         }
         void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
         {
-            fPathZoneMap[buildPath(label)] = zone;
-            fLabelZoneMap[label] = zone;
+            addZoneLabel(label, zone);
         }
         void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
         {
-            fPathZoneMap[buildPath(label)] = zone;
-            fLabelZoneMap[label] = zone;
+            addZoneLabel(label, zone);
         }
         void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT fmin, FAUSTFLOAT fmax, FAUSTFLOAT step)
         {
-            fPathZoneMap[buildPath(label)] = zone;
-            fLabelZoneMap[label] = zone;
+            addZoneLabel(label, zone);
         }
         
         // -- passive widgets
         void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
         {
-            fPathZoneMap[buildPath(label)] = zone;
-            fLabelZoneMap[label] = zone;
+            addZoneLabel(label, zone);
         }
         void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
         {
-            fPathZoneMap[buildPath(label)] = zone;
-            fLabelZoneMap[label] = zone;
+            addZoneLabel(label, zone);
         }
     
         // -- soundfiles
@@ -127,8 +134,10 @@ class MapUI : public UI, public PathBuilder
         // setParamValue/getParamValue
         void setParamValue(const std::string& path, FAUSTFLOAT value)
         {
-            if (fPathZoneMap.find(path) != fPathZoneMap.end()) {
-                *fPathZoneMap[path] = value;
+            if (fFullpathZoneMap.find(path) != fFullpathZoneMap.end()) {
+                *fFullpathZoneMap[path] = value;
+            } else if (fShortnameZoneMap.find(path) != fShortnameZoneMap.end()) {
+                *fShortnameZoneMap[path] = value;
             } else if (fLabelZoneMap.find(path) != fLabelZoneMap.end()) {
                 *fLabelZoneMap[path] = value;
             } else {
@@ -138,8 +147,10 @@ class MapUI : public UI, public PathBuilder
         
         FAUSTFLOAT getParamValue(const std::string& path)
         {
-            if (fPathZoneMap.find(path) != fPathZoneMap.end()) {
-                return *fPathZoneMap[path];
+            if (fFullpathZoneMap.find(path) != fFullpathZoneMap.end()) {
+                return *fFullpathZoneMap[path];
+            } else if (fShortnameZoneMap.find(path) != fShortnameZoneMap.end()) {
+                return *fShortnameZoneMap[path];
             } else if (fLabelZoneMap.find(path) != fLabelZoneMap.end()) {
                 return *fLabelZoneMap[path];
             } else {
@@ -149,35 +160,81 @@ class MapUI : public UI, public PathBuilder
         }
     
         // map access 
-        std::map<std::string, FAUSTFLOAT*>& getMap() { return fPathZoneMap; }
+        std::map<std::string, FAUSTFLOAT*>& getFullpathMap() { return fFullpathZoneMap; }
+        std::map<std::string, FAUSTFLOAT*>& getShortnameMap() { return fShortnameZoneMap; }
+        std::map<std::string, FAUSTFLOAT*>& getLabelMap() { return fLabelZoneMap; }
         
-        int getParamsCount() { return int(fPathZoneMap.size()); }
+        int getParamsCount() { return int(fFullpathZoneMap.size()); }
         
         std::string getParamAddress(int index)
         {
-            if (index < 0 || index > int(fPathZoneMap.size())) {
+            if (index < 0 || index > int(fFullpathZoneMap.size())) {
                 return "";
             } else {
-                auto it = fPathZoneMap.begin();
-                while (index-- > 0 && it++ != fPathZoneMap.end()) {}
+                auto it = fFullpathZoneMap.begin();
+                while (index-- > 0 && it++ != fFullpathZoneMap.end()) {}
                 return it->first;
             }
         }
         
         const char* getParamAddress1(int index)
         {
-            if (index < 0 || index > int(fPathZoneMap.size())) {
+            if (index < 0 || index > int(fFullpathZoneMap.size())) {
                 return nullptr;
             } else {
-                auto it = fPathZoneMap.begin();
-                while (index-- > 0 && it++ != fPathZoneMap.end()) {}
+                auto it = fFullpathZoneMap.begin();
+                while (index-- > 0 && it++ != fFullpathZoneMap.end()) {}
+                return it->first.c_str();
+            }
+        }
+    
+        std::string getParamShortname(int index)
+        {
+            if (index < 0 || index > int(fShortnameZoneMap.size())) {
+                return "";
+            } else {
+                auto it = fShortnameZoneMap.begin();
+                while (index-- > 0 && it++ != fShortnameZoneMap.end()) {}
+                return it->first;
+            }
+        }
+        
+        const char* getParamShortname1(int index)
+        {
+            if (index < 0 || index > int(fShortnameZoneMap.size())) {
+                return nullptr;
+            } else {
+                auto it = fShortnameZoneMap.begin();
+                while (index-- > 0 && it++ != fShortnameZoneMap.end()) {}
+                return it->first.c_str();
+            }
+        }
+    
+        std::string getParamLabel(int index)
+        {
+            if (index < 0 || index > int(fLabelZoneMap.size())) {
+                return "";
+            } else {
+                auto it = fLabelZoneMap.begin();
+                while (index-- > 0 && it++ != fLabelZoneMap.end()) {}
+                return it->first;
+            }
+        }
+        
+        const char* getParamLabel1(int index)
+        {
+            if (index < 0 || index > int(fLabelZoneMap.size())) {
+                return nullptr;
+            } else {
+                auto it = fLabelZoneMap.begin();
+                while (index-- > 0 && it++ != fLabelZoneMap.end()) {}
                 return it->first.c_str();
             }
         }
     
         std::string getParamAddress(FAUSTFLOAT* zone)
         {
-            for (const auto& it : fPathZoneMap) {
+            for (const auto& it : fFullpathZoneMap) {
                 if (it.second == zone) return it.first;
             }
             return "";
@@ -185,8 +242,10 @@ class MapUI : public UI, public PathBuilder
     
         FAUSTFLOAT* getParamZone(const std::string& str)
         {
-            if (fPathZoneMap.find(str) != fPathZoneMap.end()) {
-                return fPathZoneMap[str];
+            if (fFullpathZoneMap.find(str) != fFullpathZoneMap.end()) {
+                return fFullpathZoneMap[str];
+            } else if (fShortnameZoneMap.find(str) != fShortnameZoneMap.end()) {
+                return fShortnameZoneMap[str];
             } else if (fLabelZoneMap.find(str) != fLabelZoneMap.end()) {
                 return fLabelZoneMap[str];
             }
@@ -195,11 +254,11 @@ class MapUI : public UI, public PathBuilder
     
         FAUSTFLOAT* getParamZone(int index)
         {
-            if (index < 0 || index > int(fPathZoneMap.size())) {
+            if (index < 0 || index > int(fFullpathZoneMap.size())) {
                 return nullptr;
             } else {
-                auto it = fPathZoneMap.begin();
-                while (index-- > 0 && it++ != fPathZoneMap.end()) {}
+                auto it = fFullpathZoneMap.begin();
+                while (index-- > 0 && it++ != fFullpathZoneMap.end()) {}
                 return it->second;
             }
         }
@@ -210,6 +269,7 @@ class MapUI : public UI, public PathBuilder
             size_t l2 = end.length();
             return (l1 >= l2) && (0 == str.compare(l1 - l2, l2, end));
         }
+    
 };
 
 #endif // FAUST_MAPUI_H

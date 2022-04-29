@@ -72,6 +72,12 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
     JSONInstVisitor() : JSONUIReal<REAL>() {}
 
     virtual ~JSONInstVisitor() {}
+    
+    void clear()
+    {
+        fPathTable.clear();
+        fControlPathSet.clear();
+    }
 
     virtual void visit(AddMetaDeclareInst* inst) { this->declare(NULL, inst->fKey.c_str(), inst->fValue.c_str()); }
 

@@ -228,7 +228,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     void extractPaths(std::vector<std::string>& gate, std::vector<std::string>& freq, std::vector<std::string>& gain)
     {
         // Keep gain/vel|velocity, freq/key and gate labels
-        for (const auto& it : getMap()) {
+        for (const auto& it : getFullpathMap()) {
             std::string path = it.first;
             if (endsWith(path, "/gate")) {
                 gate.push_back(path);

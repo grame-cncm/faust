@@ -340,13 +340,13 @@ class CodeContainer : public virtual Garbageable {
     void generateJSONFile()
     {
         JSONInstVisitor<REAL> visitor;
-        generateJSON(&visitor);
+        generateJSON(&visitor, true);
         ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
         xout << visitor.JSON();
     }
     
     template <typename REAL>
-    void generateJSON(JSONInstVisitor<REAL>* visitor)
+    void generateJSON(JSONInstVisitor<REAL>* visitor, bool shortname = false)
     {
         // "name", "filename" found in medata
         visitor->init("", "", fNumInputs, fNumOutputs, -1, "", "",
@@ -357,6 +357,12 @@ class CodeContainer : public virtual Garbageable {
                       fMemoryLayout);
         
         generateUserInterface(visitor);
+        if (shortname) {
+            // so that inherited JSONUI class properly generates 'shortnames'
+            visitor->clear();
+            generateUserInterface(visitor);
+        }
+    
         generateMetaData(visitor);
     }
     

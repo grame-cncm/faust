@@ -214,7 +214,12 @@ class JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL>
     
         virtual void openGenericGroup(const char* label, const char* name)
         {
-            pushLabel(label);
+            // Init fUI in case buildUserInterface is called twice to have 'shortname' correctly filled
+            if (pushLabel(label)) {
+                fUI.str("");
+                fCloseUIPar = ' ';
+                tab(1, fUI); fUI << "\"ui\": [";
+            }
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             fTab += 1;
@@ -243,7 +248,10 @@ class JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL>
     
         virtual void closeBox()
         {
-            popLabel();
+            if (popLabel()) {
+                // Shortnames can be computed when all fullnames are known
+                computeShortNames();
+            }
             fTab -= 1;
             tab(fTab, fUI); fUI << "]";
             fTab -= 1;
@@ -256,12 +264,16 @@ class JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL>
         virtual void addGenericButton(const char* label, const char* name)
         {
             std::string path = buildPath(label);
+            fFullPaths.push_back(path);
             
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             fTab += 1;
             tab(fTab, fUI); fUI << "\"type\": \"" << name << "\",";
             tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
+            if (fFull2Short.size() > 0) {
+                tab(fTab, fUI); fUI << "\"shortname\": \"" << fFull2Short[path] << "\",";
+            }
             if (fPathTable.size() > 0) {
                 tab(fTab, fUI); fUI << "\"address\": \"" << path << "\",";
                 tab(fTab, fUI); fUI << "\"index\": " << getAddressIndex(path) << ((fMetaAux.size() > 0) ? "," : "");
@@ -287,12 +299,16 @@ class JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL>
         virtual void addGenericEntry(const char* label, const char* name, REAL init, REAL min, REAL max, REAL step)
         {
             std::string path = buildPath(label);
+            fFullPaths.push_back(path);
             
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             fTab += 1;
             tab(fTab, fUI); fUI << "\"type\": \"" << name << "\",";
             tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
+            if (fFull2Short.size() > 0) {
+                tab(fTab, fUI); fUI << "\"shortname\": \"" << fFull2Short[path] << "\",";
+            }
             tab(fTab, fUI); fUI << "\"address\": \"" << path << "\",";
             if (fPathTable.size() > 0) {
                 tab(fTab, fUI); fUI << "\"index\": " << getAddressIndex(path) << ",";
@@ -327,12 +343,16 @@ class JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL>
         virtual void addGenericBargraph(const char* label, const char* name, REAL min, REAL max) 
         {
             std::string path = buildPath(label);
+            fFullPaths.push_back(path);
             
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             fTab += 1;
             tab(fTab, fUI); fUI << "\"type\": \"" << name << "\",";
             tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
+            if (fFull2Short.size() > 0) {
+                tab(fTab, fUI); fUI << "\"shortname\": \"" << fFull2Short[path] << "\",";
+            }
             tab(fTab, fUI); fUI << "\"address\": \"" << path << "\",";
             if (fPathTable.size() > 0) {
                 tab(fTab, fUI); fUI << "\"index\": " << getAddressIndex(path) << ",";
