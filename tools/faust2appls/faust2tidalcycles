@@ -50,7 +50,7 @@ def item_list_processor(items_value: list):
             # Si on voit que le type correspond à un param, on gagne un param
             # If it match it append
             if items["type"] in PARAMETER:
-                    parameter_list.append(items["address"])
+                    parameter_list.append(items["shortname"])
             # Sinon, cela signifie que l'on doit 
             # continuer à descendre pour extraire
             # else keep searching through dicts
