@@ -32,8 +32,8 @@
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
 
-#define COMPILATION_OPTIONS_KEY "compilation_options"
-#define COMPILATION_OPTIONS "declare compilation_options    "
+#define COMPILATION_OPTIONS_KEY "compile_options"
+#define COMPILATION_OPTIONS "declare compile_options "
 
 /*
  In order to better separate compilation and execution for dynamic backends (LLVM, Interpreter, WebAssembly).
