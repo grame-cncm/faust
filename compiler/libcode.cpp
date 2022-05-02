@@ -1983,7 +1983,7 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
 
     // Encode compilation options as a 'declare' : has to be located first in the string
     stringstream out;
-    out << "declare faust_version \"" << FAUSTVERSION << "\";" << endl;
+    out << "declare version \"" << FAUSTVERSION << "\";" << endl;
     out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
 
     // Encode all libraries paths as 'declare'
@@ -2091,7 +2091,7 @@ static void createFactoryAux(const char* name, const char* dsp_content, int argc
         ofstream out(outpath.c_str());
    
         // Encode compilation options as a 'declare' : has to be located first in the string
-        out << "declare faust_version \"" << FAUSTVERSION << "\";" << endl;
+        out << "declare version \"" << FAUSTVERSION << "\";" << endl;
         out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
     
         // Encode all libraries paths as 'declare'

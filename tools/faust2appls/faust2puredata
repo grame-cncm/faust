@@ -98,7 +98,7 @@ for p in $FILES; do
     then
         (
         cd "$TMP"
-    CXX_SOURCE=${f%.dsp}.cpp
+        CXX_SOURCE=${f%.dsp}.cpp
         if [[ $(uname) == Darwin || $CROSSTARGET == Darwin ]]; then
             # On Darwin we build 64-bits ARM and 64-bits x86_64 plugins combined with lipo
             $CXX -arch arm64 $CXXFLAGS  $FAUSTTOOLSFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}.arm64 $CXX_SOURCE || exit
