@@ -1,10 +1,10 @@
 import("stdfaust.lib");
 
-// These are now in a separate file ./effects.dsp
-// echo = echog(component("echo.dsp")); // ./echo.dsp
-// flanger = flg(component("flanger.dsp")); // ./flanger.dsp
-// chorus = chg(component("chorus.dsp")); // ./chorus.dsp
-// reverb = rg(component("freeverb.dsp"));
+// These are now in separate upstairs directories:
+// echo = echog(component("echo.dsp"));     // ../echo/echo.dsp
+// flanger = flg(component("flanger.dsp")); // ../flanger/flanger.dsp
+// chorus = chg(component("chorus.dsp"));   // ../chorus/chorus.dsp
+// reverb = rg(component("freeverb.dsp"));  // ../freeverb/freeverb.dsp
 
 process = main <: _,_; // Now separate: : echo : flanger : chorus : reverb;
 main = (signal + attach(extInput,amp) : filters : *(ampScaling)) ~ _;
