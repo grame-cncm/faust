@@ -61,7 +61,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"stdfaust.lib\");\nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.59"
+#define FAUSTGEN_VERSION "1.60"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 #define FAUST_PDF_LIBRARY "library.pdf"
 
@@ -111,6 +111,7 @@ class faustgen_factory {
         char** fBitCode;                // Bitcode string
         
         set<string> fLibraryPath;       // Path towards the Faust libraries
+        string fResourcePath;           // Path of the resource folder
         string fDrawPath;               // Path where to put SVG files
         
         vector<string> fOptions;        // Options set in the 'compileoptions' message

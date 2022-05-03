@@ -29,6 +29,7 @@
 #define _mspUI_h
 
 #include <math.h>
+#include <assert.h>
 #include <string>
 #include <map>
 
@@ -223,8 +224,10 @@ class mspUI : public UI, public PathBuilder
     private:
         
         map<string, mspUIObject*> fInputLabelTable;      // Input table using labels
+        map<string, mspUIObject*> fInputShortnameTable;  // Input table using shortnames
         map<string, mspUIObject*> fInputPathTable;       // Input table using paths
         map<string, mspUIObject*> fOutputLabelTable;     // Table containing bargraph with labels
+        map<string, mspUIObject*> fOutputShortnameTable; // Table containing bargraph with shortnames
         map<string, mspUIObject*> fOutputPathTable;      // Table containing bargraph with paths
         
         map<const char*, const char*> fDeclareTable;
@@ -237,10 +240,9 @@ class mspUI : public UI, public PathBuilder
         {
             map<const char*, const char*>::reverse_iterator it;
             if (fDeclareTable.size() > 0) {
-                unsigned int i = 0;
                 string res = string(label);
                 char sep = '[';
-                for (it = fDeclareTable.rbegin(); it != fDeclareTable.rend(); it++, i++) {
+                for (it = fDeclareTable.rbegin(); it != fDeclareTable.rend(); it++) {
                     res = res + sep + (*it).first + ":" + (*it).second;
                     sep = ',';
                 }
@@ -256,7 +258,9 @@ class mspUI : public UI, public PathBuilder
         {
             mspUIObject* obj = new mspSlider(createLabel(label), zone, init, min, max, step);
             fInputLabelTable[string(label)] = obj;
-            fInputPathTable[buildPath(label)] = obj;
+            string path = buildPath(label);
+            fInputPathTable[path] = obj;
+            fFullPaths.push_back(path);
             fDeclareTable.clear();
         }
     
@@ -264,7 +268,9 @@ class mspUI : public UI, public PathBuilder
         {
             mspUIObject* obj = new mspBargraph(createLabel(label), zone, min, max);
             fOutputLabelTable[string(label)] = obj;
-            fOutputPathTable[buildPath(label)] = obj;
+            string path = buildPath(label);
+            fOutputPathTable[path] = obj;
+            fFullPaths.push_back(path);
             fDeclareTable.clear();
         }
     
@@ -289,14 +295,18 @@ class mspUI : public UI, public PathBuilder
         {
             mspUIObject* obj = new mspButton(createLabel(label), zone);
             fInputLabelTable[string(label)] = obj;
-            fInputPathTable[buildPath(label)] = obj;
+            string path = buildPath(label);
+            fInputPathTable[path] = obj;
+            fFullPaths.push_back(path);
         }
         
         void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
             mspUIObject* obj = new mspCheckButton(createLabel(label), zone);
             fInputLabelTable[string(label)] = obj;
-            fInputPathTable[buildPath(label)] = obj;
+            string path = buildPath(label);
+            fInputPathTable[path] = obj;
+            fFullPaths.push_back(path);
         }
         
         void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
@@ -329,7 +339,24 @@ class mspUI : public UI, public PathBuilder
         void openTabBox(const char* label) { pushLabel(label); fDeclareTable.clear(); }
         void openHorizontalBox(const char* label) { pushLabel(label); fDeclareTable.clear(); }
         void openVerticalBox(const char* label) { pushLabel(label); fDeclareTable.clear(); }
-        void closeBox() { popLabel(); fDeclareTable.clear(); }
+        void closeBox()
+        {
+            fDeclareTable.clear();
+            if (popLabel()) {
+                // Shortnames can be computed when all fullnames are known
+                computeShortNames();
+                // Fill 'shortname' map
+                for (const auto& path : fFullPaths) {
+                    if (fInputPathTable.count(path)) {
+                        fInputShortnameTable[fFull2Short[path]] = fInputPathTable[path];
+                    } else if (fOutputPathTable.count(path)) {
+                        fOutputShortnameTable[fFull2Short[path]] = fOutputPathTable[path];
+                    } else {
+                        assert(false);
+                    }
+                }
+             }
+        }
         
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
@@ -361,23 +388,26 @@ class mspUI : public UI, public PathBuilder
         
         bool isValue(const string& name)
         {
-            return (fInputLabelTable.count(name) || fInputPathTable.count(name));
-        }
-    
-        bool isOutputValue(const string& name)
-        {
-            return fOutputPathTable.count(name);
+            return (isOutputValue(name) || isInputValue(name));
         }
     
         bool isInputValue(const string& name)
         {
-            return fInputPathTable.count(name);
+            return fInputLabelTable.count(name) || fInputShortnameTable.count(name) || fInputPathTable.count(name);
+        }
+    
+        bool isOutputValue(const string& name)
+        {
+            return fOutputLabelTable.count(name) || fOutputShortnameTable.count(name) || fOutputPathTable.count(name);
         }
     
         bool setValue(const string& name, FAUSTFLOAT val)
         {
             if (fInputLabelTable.count(name)) {
                 fInputLabelTable[name]->setValue(val);
+                return true;
+            } else if (fInputShortnameTable.count(name)) {
+                fInputShortnameTable[name]->setValue(val);
                 return true;
             } else if (fInputPathTable.count(name)) {
                 fInputPathTable[name]->setValue(val);
@@ -413,26 +443,30 @@ class mspUI : public UI, public PathBuilder
                 delete it.second;
             }
             fInputLabelTable.clear();
+            fInputShortnameTable.clear();
             fInputPathTable.clear();
             
             for (const auto& it : fOutputLabelTable) {
                 delete it.second;
             }
             fOutputLabelTable.clear();
+            fOutputShortnameTable.clear();
             fOutputPathTable.clear();
         }
         
         void displayControls()
         {
-            post("------- Range and path ----------");
+            post("------- Range, shortname and path ----------");
             for (const auto& it : fInputPathTable) {
                 char param[STR_SIZE];
                 it.second->toString(param);
                 post(param);
+                string shortname = "Shortname: " + fFull2Short[it.first];
+                post(shortname.c_str());
                 string path = "Complete path: " + it.first;
                 post(path.c_str());
             }
-            post("---------------------------------");
+            post("---------------------------------------------");
         }
     
         static bool checkDigit(const string& name)

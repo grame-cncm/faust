@@ -92,7 +92,7 @@ faust.ui = function (json, patcher) {
             faust.theSliders[faust.numwidgets].message(parseFloat(item.init));  // Set initial value
 
             // Bargraph ScriptingName is set with the complete parameter path, so that faustgen~ can directly address them
-            faust.theSliders[faust.numwidgets].message('varname', item.address);
+            faust.theSliders[faust.numwidgets].message('varname', item.shortname);
 
             faust.thenumberBoxes[faust.numwidgets] = patcher.newobject("flonum", hBase + 258, 20 + widgHeight * faust.numwidgets, 80, 13);
             faust.thenumberBoxes[faust.numwidgets].message('min', parseFloat(item.min));
@@ -120,7 +120,7 @@ faust.ui = function (json, patcher) {
             faust.theSliders[faust.numwidgets].message('setstyle', 0);
             faust.theSliders[faust.numwidgets].message('setminmax', parseFloat(item.min), parseFloat(item.max));
             faust.theSliders[faust.numwidgets].message(parseFloat(item.init));  // Set initial value
-            faust.theSliders[faust.numwidgets].message('varname', item.address);
+            faust.theSliders[faust.numwidgets].message('varname', item.shortname);
 
             faust.thenumberBoxes[faust.numwidgets] = patcher.newobject("flonum", hBase + 258, 20 + widgHeight * faust.numwidgets, 80, 13);
             faust.thenumberBoxes[faust.numwidgets].message('min', parseFloat(item.min));
@@ -130,7 +130,7 @@ faust.ui = function (json, patcher) {
             patcher.hiddenconnect(faust.theSliders[faust.numwidgets], 0, faust.thenumberBoxes[faust.numwidgets], 0);
 
             faust.theMessages[faust.numwidgets] = patcher.newobject("message", hBase + 345, 23 + widgHeight * faust.numwidgets, 350, 9);
-            faust.theMessages[faust.numwidgets].message("set", item.address, "\$1");
+            faust.theMessages[faust.numwidgets].message("set", item.shortname, "\$1");
 
             patcher.hiddenconnect(faust.thenumberBoxes[faust.numwidgets], 0, faust.theMessages[faust.numwidgets], 0);
             patcher.hiddenconnect(faust.theMessages[faust.numwidgets], 0, target, 0);
@@ -153,7 +153,7 @@ faust.ui = function (json, patcher) {
             patcher.hiddenconnect(faust.theSliders[faust.numwidgets], 0, faust.thenumberBoxes[faust.numwidgets], 0);
 
             faust.theMessages[faust.numwidgets] = patcher.newobject("message", hBase + 345, 23 + widgHeight * faust.numwidgets, 350, 9);
-            faust.theMessages[faust.numwidgets].message("set", item.address, "\$1");
+            faust.theMessages[faust.numwidgets].message("set", item.shortname, "\$1");
 
             patcher.hiddenconnect(faust.thenumberBoxes[faust.numwidgets], 0, faust.theMessages[faust.numwidgets], 0);
             patcher.hiddenconnect(faust.theMessages[faust.numwidgets], 0, target, 0);
@@ -180,7 +180,7 @@ faust.ui = function (json, patcher) {
             faust.thenumberBoxes[faust.numwidgets].message(parseFloat(item.init));
 
             faust.theMessages[faust.numwidgets] = patcher.newobject("message", hBase + 345, 23 + widgHeight * faust.numwidgets, 350, 9);
-            faust.theMessages[faust.numwidgets].message("set", item.address, "\$1");
+            faust.theMessages[faust.numwidgets].message("set", item.shortname, "\$1");
 
             patcher.hiddenconnect(faust.thenumberBoxes[faust.numwidgets], 0, faust.theMessages[faust.numwidgets], 0);
             patcher.hiddenconnect(faust.theMessages[faust.numwidgets], 0, target, 0);

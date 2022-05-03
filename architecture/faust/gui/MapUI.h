@@ -38,9 +38,10 @@
  *
  * This class creates:
  * - a map of 'labels' and zones for each UI item.
- * - a map of complete hierarchical 'paths' and zones for each UI item.
+ * - a map of unique 'shortname' (built so that they never collide) and zones
+ * - a map of complete hierarchical 'paths' and zones for each UI item
  *
- * Simple 'labels' and complete 'paths' (to fully discriminate between possible same
+ * Simple 'labels', 'shortname' and complete 'paths' (to fully discriminate between possible same
  * 'labels' at different location in the UI hierachy) can be used to access a given parameter.
  ******************************************************************************/
 
@@ -89,6 +90,10 @@ class MapUI : public UI, public PathBuilder
             if (popLabel()) {
                 // Shortnames can be computed when all fullnames are known
                 computeShortNames();
+                // Fill 'shortname' map
+                for (const auto& it : fFullPaths) {
+                    fShortnameZoneMap[fFull2Short[it]] = fFullpathZoneMap[it];
+                }
             }
         }
         
