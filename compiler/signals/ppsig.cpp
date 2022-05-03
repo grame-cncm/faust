@@ -195,7 +195,7 @@ ostream& ppsig::print(ostream& fout) const
     int    i, nat, dmax, dmin, tblsize;
     double r;
     Tree   c, sel, x, y, z, u, var, le, label, id, tid, ff, largs, type, name, file, sf;
-    Tree   origin, init, idx, exp, clklist;
+    Tree   origin, init, idx, exp, clklist, time, content, delay;
 
     if (isList(sig)) {
         printlist(fout, sig);
@@ -353,15 +353,33 @@ ostream& ppsig::print(ostream& fout) const
         fout << *x;
     }
 
-    else if (isSigInstruction2SharedWrite(sig, clklist, x, &nat, exp)) {
+    else if (isSigInstruction2MemWrite(sig, clklist, x, &nat, exp)) {
         const char* tname = (nat == kInt) ? "int" : "float";
         if (isNil(clklist)) {
             fout << tname << " " << *x << " := " << ppsig(exp) << ";";
         } else {
             fout << "when " << *clklist << " then " << tname << " " << *x << " := " << ppsig(exp) << ";";
         }
-    } else if (isSigInstruction2SharedRead(sig, x, &nat)) {
+    } else if (isSigInstruction2MemRead(sig, x, &nat)) {
         fout << *x;
+    }
+
+    else if (isSigInstruction2IncWrite(sig, clklist, x, &nat)) {
+        const char* tname = (nat == kInt) ? "int" : "float";
+        if (isNil(clklist)) {
+            fout << tname << " " << *x << "++;";
+        } else {
+            fout << "when " << *clklist << " then " << tname << " " << *x << "++;";
+        }
+    } else if (isSigInstruction2DelayWrite(sig, clklist, x, &nat, time, content)) {
+        const char* tname = (nat == kInt) ? "int" : "float";
+        if (isNil(clklist)) {
+            fout << tname << " " << *x << "[" << ppsig(time) << "] := " << ppsig(content) << ";";
+        } else {
+            fout << "when " << *clklist << " then " << tname << " " << *x << "[" << ppsig(time) << "] := " << ppsig(content) << ";";
+        }
+    } else if (isSigInstruction2DelayRead(sig, x, &nat, time, delay)) {
+        fout << *x << "[" << ppsig(time) << "-" << ppsig(delay) << "]";
     }
 
     else if (isSigInstructionVectorWrite(sig, x, c, &nat, y)) {

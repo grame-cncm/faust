@@ -388,11 +388,20 @@ bool isSigInstructionTableRead(Tree s, Tree& id, Tree& origin, int* nature, int*
 
 //
 
-Tree sigInstruction2SharedWrite(Tree clklist, Tree id, int nature, Tree sig);
-bool isSigInstruction2SharedWrite(Tree s, Tree& clklist, Tree& id, int* nature, Tree& sig);
+Tree sigInstruction2MemWrite(Tree clklist, Tree id, int nature, Tree sig);
+bool isSigInstruction2MemWrite(Tree s, Tree& clklist, Tree& id, int* nature, Tree& sig);
 
-Tree sigInstruction2SharedRead(Tree id, int nature);
-bool isSigInstruction2SharedRead(Tree s, Tree& id, int* nature);
+Tree sigInstruction2MemRead(Tree id, int nature);
+bool isSigInstruction2MemRead(Tree s, Tree& id, int* nature);
+
+Tree sigInstruction2DelayWrite(Tree clklist, Tree id, int nature, Tree time, Tree content);
+bool isSigInstruction2DelayWrite(Tree sig, Tree& clklist, Tree& id, int* nature, Tree& time, Tree& content);
+
+Tree sigInstruction2DelayRead(Tree id, int nature, Tree time, Tree delay);
+bool isSigInstruction2DelayRead(Tree sig, Tree& id, int* nature, Tree& time, Tree& delay);
+
+Tree sigInstruction2IncWrite(Tree clklist, Tree id, int nature);
+bool isSigInstruction2IncWrite(Tree sig, Tree& clklist, Tree& id, int* nature);
 
 //
 

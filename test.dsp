@@ -20,4 +20,6 @@
 
 toto = button("play1"), _ : ondemand(_);
 titi = button("play2"), _ : ondemand(_);
-process = _ <: toto,titi :> _;
+tutu = button("play2"), _ : ondemand(mem);
+//process = _ <: toto,titi :> _;
+process = tutu;

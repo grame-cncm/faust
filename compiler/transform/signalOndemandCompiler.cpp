@@ -58,6 +58,12 @@ static Tree scalID(int nature, Tree sigwclklist)
     return ident;
 }
 
+static Tree timeID(Tree clklist)
+{
+    Tree ident = uniqueID("iTime", clklist);
+    return ident;
+}
+
 static Tree vecID(int nature, Tree sigwclklist)
 {
     Tree ident = (nature == kInt) ? uniqueID("iVec", sigwclklist) : uniqueID("fVec", sigwclklist);
@@ -82,7 +88,7 @@ std::set<Tree> ondemandCompileToInstr(Tree lsig)
         /*Tree expr        =*/C.self(sigwclklist);
         // std::cerr << " expr : " << ppsig(expr) << std::endl;
         //  Tree ident       = outID(sigwclklist);
-        //  Tree instr       = sigInstruction2SharedWrite(gGlobal->nil, ident, kReal, expr);
+        //  Tree instr       = sigInstruction2MemWrite(gGlobal->nil, ident, kReal, expr);
         //  C.insert(instr);
     }
     return C.instructions();
@@ -107,8 +113,8 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
         Tree ident = scalID(nature, sigwclklist);
         Tree expr  = tree(sig->node(), newBranches);
         std::cerr << "expr = " << *expr << std::endl;
-        fInstructions.insert(sigInstruction2SharedWrite(clklist, ident, nature, expr));
-        return sigInstruction2SharedRead(ident, nature);
+        fInstructions.insert(sigInstruction2MemWrite(clklist, ident, nature, expr));
+        return sigInstruction2MemRead(ident, nature);
     } else if (isSigInt(sig, &i)) {
         return sig;
     } else if (isSigReal(sig, &r)) {
@@ -119,8 +125,8 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
         Tree m1    = self(cons(x, clklist));
         Tree m2    = self(cons(y, clklist));
         Tree ident = scalID(nature, sigwclklist);
-        fInstructions.insert(sigInstruction2SharedWrite(clklist, ident, nature, sigBinOp(i, m1, m2)));
-        return sigInstruction2SharedRead(ident, nature);
+        fInstructions.insert(sigInstruction2MemWrite(clklist, ident, nature, sigBinOp(i, m1, m2)));
+        return sigInstruction2MemRead(ident, nature);
     } else if (isSigOutput(sig, &i, x)) {
         Tree m1    = self(cons(x, clklist));
         Tree instr = sigOutput(i, m1);
@@ -132,10 +138,10 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
         Tree m1       = self(cons(x, clklist2));  // we compile x in the new time reference
 #if 1
         Tree ident = scalID(nature, cons(m1, clklist2));
-        Tree instr = sigInstruction2SharedWrite(clklist2, ident, nature, m1);
+        Tree instr = sigInstruction2MemWrite(clklist2, ident, nature, m1);
         // std::cerr << "Upsampling instr " << ppsig(instr) << std::endl;
         fInstructions.insert(instr);
-        return sigInstruction2SharedRead(ident, nature);
+        return sigInstruction2MemRead(ident, nature);
 #else
         return m1;
 #endif
@@ -144,10 +150,33 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
         Tree clklist0 = tl(clklist);
         Tree m1       = self(cons(x, clklist0));
         Tree ident    = scalID(nature, cons(m1, clklist0));
-        Tree instr    = sigInstruction2SharedWrite(clklist0, ident, nature, m1);
+        Tree instr    = sigInstruction2MemWrite(clklist0, ident, nature, m1);
         // std::cerr << "Downsampling instr " << ppsig(instr) << std::endl;
         fInstructions.insert(instr);
-        return sigInstruction2SharedRead(ident, nature);
+        return sigInstruction2MemRead(ident, nature);
+
+    } else if (isSigFixDelay(sig, x, y)) {
+        /*
+            ### Retard
+
+            CS[S1.T] = M1 x {I}1
+            CS[S2.T] = M2 x {I}2
+            IV(M1.T) = v            // nom de ligne a retard pour M1 dans le référentiel T
+            IT(T) = t               // nom de la variable temps du référentiel T
+            ----------------------------------------------
+            CS[(S1@S2).T] = v[t,M2] x ({T:v[t]=M1; T:t=t+1;} u {I}1 u {I}2)
+        */
+        Tree m1     = self(cons(x, clklist));            // compile delayed signal
+        Tree m2     = self(cons(y, clklist));            // compile delay signal
+        Tree iv     = vecID(nature, cons(m1, clklist));  // allocate delayline ID
+        Tree it     = timeID(clklist);                   // allocate time ID
+        Tree mt     = sigInstruction2MemRead(it, kInt);
+        Tree instr  = sigInstruction2DelayWrite(clklist, iv, nature, mt, m1);
+        Tree instr2 = sigInstruction2IncWrite(clklist, it, kInt);
+        // instruction pour incrémenter le temps
+        fInstructions.insert(instr);
+        fInstructions.insert(instr2);
+        return sigInstruction2DelayRead(iv, nature, mt, m2);
 
     } else if (isSigIntCast(sig, x)) {
         // assert(isCons(clklist));
@@ -176,8 +205,6 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
         return sigHBargraph(label, self(x), self(y), self(z));
     } else if (isSigWaveform(sig)) {
         return sig;
-    } else if (isSigFixDelay(sig, x, y)) {
-        return sigFixDelay(self(cons(x, clklist)), self(cons(y, clklist)));
     }
     // Foreign functions
     else if (isSigFFun(sig, ff, largs)) {

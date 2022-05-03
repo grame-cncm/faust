@@ -962,17 +962,17 @@ bool isSigInstructionTableRead(Tree s, Tree& id, Tree& origin, int* nature, int*
  * @param sig: the shared signal
  * @return a shared write instruction
  */
-Tree sigInstruction2SharedWrite(Tree clklist, Tree id, int nature, Tree sig)
+Tree sigInstruction2MemWrite(Tree clklist, Tree id, int nature, Tree sig)
 {
-    Tree instr = tree(gGlobal->SIGINSTRUCTION2SHAREDWRITE, clklist, id, tree(nature), sig);
+    Tree instr = tree(gGlobal->SIGINSTRUCTION2MEMWRITE, clklist, id, tree(nature), sig);
     setIDInstruction(id, instr);
     return instr;
 }
 
-bool isSigInstruction2SharedWrite(Tree s, Tree& clklist, Tree& id, int* nature, Tree& sig)
+bool isSigInstruction2MemWrite(Tree s, Tree& clklist, Tree& id, int* nature, Tree& sig)
 {
     Tree tnat;
-    if (isTree(s, gGlobal->SIGINSTRUCTION2SHAREDWRITE, clklist, id, tnat, sig)) {
+    if (isTree(s, gGlobal->SIGINSTRUCTION2MEMWRITE, clklist, id, tnat, sig)) {
         *nature = tree2int(tnat);
         return true;
     } else {
@@ -988,21 +988,92 @@ bool isSigInstruction2SharedWrite(Tree s, Tree& clklist, Tree& id, int* nature, 
  * @param nature: int or float code
  * @return a shared read instruction
  */
-Tree sigInstruction2SharedRead(Tree id, int nature)
+Tree sigInstruction2MemRead(Tree id, int nature)
 {
-    return tree(gGlobal->SIGINSTRUCTION2SHAREDREAD, id, tree(nature));
+    return tree(gGlobal->SIGINSTRUCTION2MEMREAD, id, tree(nature));
 }
 
-bool isSigInstruction2SharedRead(Tree s, Tree& id, int* nature)
+bool isSigInstruction2MemRead(Tree s, Tree& id, int* nature)
 {
     Tree tnat;
-    if (isTree(s, gGlobal->SIGINSTRUCTION2SHAREDREAD, id, tnat)) {
+    if (isTree(s, gGlobal->SIGINSTRUCTION2MEMREAD, id, tnat)) {
         *nature = tree2int(tnat);
         return true;
     } else {
         return false;
     }
 }
+
+//========================================Instruction2Dline=====================================
+
+/**
+ * @brief Write into a delay line
+ *
+ * @param clklist: list of ondemand clocks
+ * @param id: unique identifier of the delayline
+ * @param nature: int or float
+ * @param time: were we write in time
+ * @param sig: what we write
+ * @return a delay write instruction
+ */
+Tree sigInstruction2DelayWrite(Tree clklist, Tree id, int nature, Tree time, Tree content)
+{
+    Tree instr = tree(gGlobal->SIGINSTRUCTION2DELAYWRITE, clklist, id, tree(nature), time, content);
+    setIDInstruction(id, instr);
+    return instr;
+}
+
+bool isSigInstruction2DelayWrite(Tree sig, Tree& clklist, Tree& id, int* nature, Tree& time, Tree& content)
+{
+    Tree tnat;
+    if (isTree(sig, gGlobal->SIGINSTRUCTION2DELAYWRITE, clklist, id, tnat, time, content)) {
+        *nature = tree2int(tnat);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+///////
+Tree sigInstruction2IncWrite(Tree clklist, Tree id, int nature)
+{
+    Tree instr = tree(gGlobal->SIGINSTRUCTION2INCWRITE, clklist, id, tree(nature));
+    setIDInstruction(id, instr);
+    return instr;
+}
+
+bool isSigInstruction2IncWrite(Tree sig, Tree& clklist, Tree& id, int* nature)
+{
+    Tree tnat;
+    if (isTree(sig, gGlobal->SIGINSTRUCTION2INCWRITE, clklist, id, tnat)) {
+        *nature = tree2int(tnat);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+//////
+
+Tree sigInstruction2DelayRead(Tree id, int nature, Tree time, Tree delay)
+{
+    Tree instr = tree(gGlobal->SIGINSTRUCTION2DELAYREAD, id, tree(nature), time, delay);
+    setIDInstruction(id, instr);
+    return instr;
+}
+
+bool isSigInstruction2DelayRead(Tree sig, Tree& id, int* nature, Tree& time, Tree& delay)
+{
+    Tree tnat;
+    if (isTree(sig, gGlobal->SIGINSTRUCTION2DELAYREAD, id, tnat, time, delay)) {
+        *nature = tree2int(tnat);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+//==============================================================================================
 
 /**
  * @brief a shared write "instruction"
