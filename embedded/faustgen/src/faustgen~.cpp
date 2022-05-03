@@ -306,10 +306,9 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     const char* argv[64];
     
     assert(fCompileOptions.size() < 64);
-    StringVectorIt it;
     int i = 0;
-    for (it = fCompileOptions.begin(); it != fCompileOptions.end(); it++) {
-        argv[i++] = (char*)(*it).c_str();
+    for (const auto& it : fCompileOptions) {
+        argv[i++] = (char*)it.c_str();
     }
     argv[fCompileOptions.size()] = 0;  // NULL terminated argv
     
@@ -456,9 +455,8 @@ void faustgen_factory::print_compile_options()
 {
     if (fCompileOptions.size() > 0) {
         post("-----------------------------");
-        StringVectorIt it;
-        for (it = fCompileOptions.begin(); it != fCompileOptions.end(); it++) {
-            post("Compile option = %s", (*it).c_str());
+        for (const auto& it : fCompileOptions) {
+            post("Compile option = %s", it.c_str());
         }
         post("-----------------------------");
     }
@@ -474,9 +472,8 @@ void faustgen_factory::default_compile_options()
     add_compile_option("-svg");
     
     // All library paths
-    StringSetIt it1;
-    for (it1 = fLibraryPath.begin(); it1 != fLibraryPath.end(); it1++) {
-        add_compile_option("-I", *it1);
+    for (const auto& it1 : fLibraryPath) {
+        add_compile_option("-I", it1);
     }
     
     // Draw path
@@ -614,12 +611,11 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
     dictionary_appendlong(d, gensym("sample_format"), fSampleFormat);
     
     // Write fLibraryPath
-    StringSetIt it;
     int i = 0;
-    for (it = fLibraryPath.begin(); it != fLibraryPath.end(); it++) {
+    for (const auto &it : fLibraryPath) {
         char library_path[32];
         snprintf(library_path, 32, "library_path%d", i++);
-        dictionary_appendstring(d, gensym(library_path), (*it).c_str());
+        dictionary_appendstring(d, gensym(library_path), it.c_str());
     }
     
     // Write source code
@@ -892,7 +888,9 @@ void faustgen_factory::update_sourcecode(int size, char* source_code)
 
 void faustgen_factory::librarypath(long inlet, t_symbol* s)
 {
-    if (s != gensym("")) {
+    if (s == gensym("")) {
+        fLibraryPath.clear();
+    } else {
         add_library_path(getFolderFromPath(s->s_name));
     }
 }

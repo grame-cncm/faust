@@ -7,6 +7,11 @@ http://www.grame.fr
 Copyright GRAME (c) 2012-2022
 
 ----------------------------------------------------
+Version 1.58 - 03/05/2022
+
+- 'librarypath' with an empty path now clear the librarypath list
+
+----------------------------------------------------
 Version 1.58 - 29/04/2022
 
 - add a "nc" option in 'compileoptions' to avoid DSP recompilation
