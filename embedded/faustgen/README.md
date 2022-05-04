@@ -53,7 +53,7 @@ The **faustgen~** object can be controlled with the following messages:
 
 #### Input controllers 
 
-All control messages are received in the left most inlet (the signal + message inlet) with the `<label|shortname|path> <number>` syntax. Their number and exact syntax obviously depend of the actual Faust DSP code. `Label` is the simple name of the controller (like `freq` of `gain`), the `shortname` is the smallest unique name that can be used, and `path` is the complete path following the OSC convention (like `osc/freq` of `osc/gain` kind of path).  The `shortname`  or `path` are better to use to be sure all controllers are distincts. The `number` parameter is the actual float value for the controller. Use the *View DSP parameters* menu item to print all controller paths in the Max console with their label, shortname, path and range.
+All control messages are received in the left most inlet (the signal + message inlet) with the `<label|shortname|path> <number>` syntax. Their number and exact syntax obviously depend of the actual Faust DSP code. `Label` is the simple name of the controller (like `freq` of `gain`), the `shortname` is the smallest unique name that can be used, and `path` is the complete path following the OSC convention (like `osc/freq` of `osc/gain` kind of path). The `shortname` or `path` syntax has to be used to be sure all controllers are distincts. The `number` parameter is the actual float value for the controller. Use the *View DSP parameters* menu item to print all controller paths in the Max console with their label, shortname, path and range.
 
 #### Output controllers
 

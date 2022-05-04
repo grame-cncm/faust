@@ -44,4 +44,5 @@ if [ "$CC" = "" ]; then
     CC=cc
 fi
 
+# For universal binaries creation on maxOS
 LIPO=lipo
