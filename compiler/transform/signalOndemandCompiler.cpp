@@ -170,8 +170,8 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
         Tree mt     = sigInstruction2MemRead(it, kInt);  // instruction to read the currenttime
         Tree instr2 = sigInstruction2IncWrite(clklist, it, kInt);
         fInstructions.insert(instr2);
-
-        if (isProj(x, &i, var)) {
+        Tree recdef;
+        if (isProj(x, &i, recdef)) {
             // delay of a recursive signal
             Tree iv = vecID(nature, cons(x, clklist));  // allocate delayline ID
 
@@ -204,9 +204,10 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
                 */
                 mark(cons(x, clklist));
                 // get the definition of the projection
-                Tree body;
-                isRec(var, body);
-                Tree def = nth(body, i);
+                Tree ldef;
+                assert(isRec(recdef, var, ldef));
+                Tree def = nth(ldef, i);
+                assert(def != 0);
 
                 Tree m1    = self(cons(def, clklist));  // compile delayed signal
                 Tree m2    = self(cons(y, clklist));    // compile delay signal
