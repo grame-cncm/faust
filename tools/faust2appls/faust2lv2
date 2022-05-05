@@ -56,7 +56,6 @@ for ((i=1; i<$#+1; i++)); do
         require Qt
         echo  "Compiles Faust programs to lv2 plugins"
         option
-        options -osc -httpd
         option -dyn-manifest "use dynamic manifests (requires LV2 host support)."
         option -gui "build the plugin GUI (requires LV2 UI host support)."
         option -keep "retain the build directory."
@@ -84,9 +83,11 @@ EOF
         CXX=icpc
         CXXFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
     elif [ $p = "-osc" ]; then
+        # not implemented for now
         OSCDEFS="DEFINES += OSCCTRL"
         OSCLIBS="-lOSCFaust"
     elif [ $p = "-httpd" ]; then
+        # not implemented for now
         HTTPDEFS="DEFINES += HTTPCTRL"
         HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
         HTTPLIBS1=`pkg-config --cflags --libs libmicrohttpd`

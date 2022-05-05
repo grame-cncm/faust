@@ -80,7 +80,6 @@ for ((i=1;i<$#+1;i++)); do
         require VST SDK
         echo  "Compiles Faust programs to VST plugins"
         option
-        options -osc -httpd
         option -gui "build the plugin GUI."
         option -keep "retain the build directory."
         option -nometa "ignore metadata (author information etc.) from the Faust source"
@@ -110,9 +109,11 @@ EOF
         CXX=icpc
         CXXFLAGS="-O3 -std=c++11 -xHost -ftz -fno-alias -fp-model fast=2"
     elif [ $p = "-osc" ]; then
+        # not implemented for now
         OSCDEFS="DEFINES += OSCCTRL"
         OSCLIBS="-lOSCFaust"
     elif [ $p = "-httpd" ]; then
+        # not implemented for now
         HTTPDEFS="DEFINES += HTTPCTRL"
         HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
         HTTPLIBS1=`pkg-config --cflags --libs libmicrohttpd`
