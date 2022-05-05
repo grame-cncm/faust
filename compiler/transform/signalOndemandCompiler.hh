@@ -37,6 +37,7 @@
 
 class SignalOndemandCompiler : public TreeTransform {
     bool           fVisitGen{false};
+    std::set<Tree> fVisitedRecursions;  // set of visited recursive projections
     std::set<Tree> fInstructions;
 
    public:
@@ -46,6 +47,8 @@ class SignalOndemandCompiler : public TreeTransform {
 
    protected:
     Tree transformation(Tree t) override;
+    void mark(Tree t);
+    bool isMarked(Tree t);
     void traceEnter(Tree t) override;
     void traceExit(Tree t, Tree r) override;
 };

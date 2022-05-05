@@ -76,6 +76,16 @@ static Tree outID(Tree sigwclklist)
     return ident;
 }
 
+void SignalOndemandCompiler::mark(Tree t)
+{
+    fVisitedRecursions.insert(t);
+}
+
+bool SignalOndemandCompiler::isMarked(Tree t)
+{
+    return fVisitedRecursions.cend() != fVisitedRecursions.find(t);
+}
+
 std::set<Tree> ondemandCompileToInstr(Tree lsig)
 {
     SignalOndemandCompiler C;
@@ -156,27 +166,73 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
         return sigInstruction2MemRead(ident, nature);
 
     } else if (isSigFixDelay(sig, x, y)) {
-        /*
-            ### Retard
-
-            CS[S1.T] = M1 x {I}1
-            CS[S2.T] = M2 x {I}2
-            IV(M1.T) = v            // nom de ligne a retard pour M1 dans le référentiel T
-            IT(T) = t               // nom de la variable temps du référentiel T
-            ----------------------------------------------
-            CS[(S1@S2).T] = v[t,M2] x ({T:v[t]=M1; T:t=t+1;} u {I}1 u {I}2)
-        */
-        Tree m1     = self(cons(x, clklist));            // compile delayed signal
-        Tree m2     = self(cons(y, clklist));            // compile delay signal
-        Tree iv     = vecID(nature, cons(m1, clklist));  // allocate delayline ID
         Tree it     = timeID(clklist);                   // allocate time ID
-        Tree mt     = sigInstruction2MemRead(it, kInt);
-        Tree instr  = sigInstruction2DelayWrite(clklist, iv, nature, mt, m1);
+        Tree mt     = sigInstruction2MemRead(it, kInt);  // instruction to read the currenttime
         Tree instr2 = sigInstruction2IncWrite(clklist, it, kInt);
-        // instruction pour incrémenter le temps
-        fInstructions.insert(instr);
         fInstructions.insert(instr2);
-        return sigInstruction2DelayRead(iv, nature, mt, m2);
+
+        if (isProj(x, &i, var)) {
+            // delay of a recursive signal
+            Tree iv = vecID(nature, cons(x, clklist));  // allocate delayline ID
+
+            if (isMarked(cons(x, clklist))) {
+                // we are or have already visited this projection in this context
+                /*
+                    MARK(Xi.T) = true       // déjà ou encours de visite
+                    IV(Xi.T) = v            // nom de ligne a retard pour Xi dans le référentiel T
+                    CS[D.T]  = Md x {I}d    // on compile le retard
+                    IT(T) = t               // nom de la variable temps du référentiel T
+                    ----------------------------------------------
+                    CS[(Xi@D).T] = v[t,Md] x {I}d
+                */
+                Tree m2 = self(cons(y, clklist));  // compile delay signal
+                return sigInstruction2DelayRead(iv, nature, mt, m2);
+
+            } else {
+                // it is our first visit
+                /*
+                    MARK(Xi.T) = 0          // non encore marqué
+                    IV(Xi.T) = v            // nom de ligne a retard pour Xi dans le référentiel T
+                    MARK(Xi.T) := v         // on marque avant la compilation de la définition
+
+                    D(X)= (...,Si,...)      // on récupère la définition
+                    CS[Si.T] = Mi x {I}i    // on compile la définition du signal récursif
+                    CS[D.T]  = Md x {I}d    // on compile le signal qui indique le retard
+                    IT(T) = t               // nom de la variable temps du référentiel T
+                    ----------------------------------------------
+                    CS[(Xi@D).T] = v[t,Md] x ({T:v[t]=Mi; T:t=t+1;} u {I}i u {I}d)
+                */
+                mark(cons(x, clklist));
+                // get the definition of the projection
+                Tree body;
+                isRec(var, body);
+                Tree def = nth(body, i);
+
+                Tree m1    = self(cons(def, clklist));  // compile delayed signal
+                Tree m2    = self(cons(y, clklist));    // compile delay signal
+                Tree instr = sigInstruction2DelayWrite(clklist, iv, nature, mt, m1);
+                fInstructions.insert(instr);
+                return sigInstruction2DelayRead(iv, nature, mt, m2);
+            }
+        } else {
+            // normal delay
+            /*
+                ### Retard
+
+                CS[S1.T] = M1 x {I}1
+                CS[S2.T] = M2 x {I}2
+                IV(M1.T) = v            // nom de ligne a retard pour M1 dans le référentiel T
+                IT(T) = t               // nom de la variable temps du référentiel T
+                ----------------------------------------------
+                CS[(S1@S2).T] = v[t,M2] x ({T:v[t]=M1; T:t=t+1;} u {I}1 u {I}2)
+            */
+            Tree m1    = self(cons(x, clklist));            // compile delayed signal
+            Tree m2    = self(cons(y, clklist));            // compile delay signal
+            Tree iv    = vecID(nature, cons(m1, clklist));  // allocate delayline ID
+            Tree instr = sigInstruction2DelayWrite(clklist, iv, nature, mt, m1);
+            fInstructions.insert(instr);
+            return sigInstruction2DelayRead(iv, nature, mt, m2);
+        }
 
     } else if (isSigIntCast(sig, x)) {
         // assert(isCons(clklist));
@@ -184,6 +240,12 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
         return sigIntCast(m1);
     }
 
+    /*
+     else if (isProj(sig, &i, x)) {
+            return sigProj(i, self(x));
+        } else if (isRec(sig, var, le)) {
+
+    */
     // UI
 
     else if (isSigButton(sig, label)) {
