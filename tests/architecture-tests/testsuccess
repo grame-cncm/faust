@@ -5,6 +5,7 @@ echo location $(command -v faust)
 
 # detect the current system
 system=$(uname -s)
+
 # normalizes MINGW versions
 system=$(echo $system | grep MINGW > /dev/null && echo MINGW || echo $system)
 
@@ -16,6 +17,7 @@ fi
 
 ## manual exclusion list
 : ${TESTS_EXCLUDED:=}
+
 ## exclusion list for faust errors
 : ${XLIST1:="faust2md"}
 
@@ -24,7 +26,7 @@ if [ "$system" = "Darwin" ]; then
     : ${TESTS_SOUND:=faust2cagtk faust2android faust2caqt faust2jaqt faust2jack faust2ios faust2max6 faust2msp faust2jackconsole faust2juce faust2bela}
     : ${TESTS_SOUNDSR:=faust2cagtk faust2caqt faust2jaqt faust2jack}
     : ${TESTS_MIDI:=faust2soul faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole}
-    : ${TESTS_POLY:=faust2soul faust2vcvrack faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole faust2lv2}
+    : ${TESTS_POLY:=faust2unity faust2soul faust2vcvrack faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole faust2lv2}
     : ${TESTS_POLYMIDI:=faust2soul faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole}
     : ${TESTS_POLY2MIDI:=faust2soul faust2cagtk faust2caqt faust2ios faust2max6 faust2msp faust2juce faust2netjackconsole faust2netjackqt}
     : ${TESTS_HTTPD:=faust2cagtk faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole}
