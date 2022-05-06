@@ -315,7 +315,7 @@ struct RandomControlUI : public MapUI {
     
     void display()
     {
-        fprintf(stdout, "--------- RandomControlUI ---------\n");
+        if (fControls.size()) fprintf(stdout, "--------- RandomControlUI ---------\n");
         for (const auto& it : fControls) {
             fprintf(stdout, "Path: \"%s\" min: %f max: %f cur: %f\n", getParamAddress(it.fZone).c_str(), it.fMin, it.fMax, *it.fZone);
         }
