@@ -358,7 +358,7 @@ ostream& ppsig::print(ostream& fout) const
         if (isNil(clklist)) {
             fout << tname << " " << *x << " := " << ppsig(exp) << ";";
         } else {
-            fout << "when " << *clklist << " then " << tname << " " << *x << " := " << ppsig(exp) << ";";
+            fout << "when " << ppsig(clklist) << " then " << tname << " " << *x << " := " << ppsig(exp) << ";";
         }
     } else if (isSigInstruction2MemRead(sig, x, &nat)) {
         fout << *x;
@@ -369,14 +369,14 @@ ostream& ppsig::print(ostream& fout) const
         if (isNil(clklist)) {
             fout << tname << " " << *x << "++;";
         } else {
-            fout << "when " << *clklist << " then " << tname << " " << *x << "++;";
+            fout << "when " << ppsig(clklist) << " then " << tname << " " << *x << "++;";
         }
     } else if (isSigInstruction2DelayWrite(sig, clklist, x, &nat, time, content)) {
         const char* tname = (nat == kInt) ? "int" : "float";
         if (isNil(clklist)) {
             fout << tname << " " << *x << "[" << ppsig(time) << "] := " << ppsig(content) << ";";
         } else {
-            fout << "when " << *clklist << " then " << tname << " " << *x << "[" << ppsig(time) << "] := " << ppsig(content) << ";";
+            fout << "when " << ppsig(clklist) << " then " << tname << " " << *x << "[" << ppsig(time) << "] := " << ppsig(content) << ";";
         }
     } else if (isSigInstruction2DelayRead(sig, x, &nat, time, delay)) {
         fout << *x << "[" << ppsig(time) << "-" << ppsig(delay) << "]";

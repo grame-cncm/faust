@@ -89,7 +89,7 @@ bool SignalOndemandCompiler::isMarked(Tree t)
 std::set<Tree> ondemandCompileToInstr(Tree lsig)
 {
     SignalOndemandCompiler C;
-    C.trace(true);
+    C.trace(false);
     // compile each output signal with an empty clock list
     while (!isNil(lsig)) {
         Tree sig         = hd(lsig);
@@ -122,7 +122,7 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
         }
         Tree ident = scalID(nature, sigwclklist);
         Tree expr  = tree(sig->node(), newBranches);
-        std::cerr << "expr = " << *expr << std::endl;
+        // std::cerr << "expr = " << *expr << std::endl;
         fInstructions.insert(sigInstruction2MemWrite(clklist, ident, nature, expr));
         return sigInstruction2MemRead(ident, nature);
     } else if (isSigInt(sig, &i)) {
@@ -134,8 +134,9 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
     } else if (isSigBinOp(sig, &i, x, y)) {
         Tree m1    = self(cons(x, clklist));
         Tree m2    = self(cons(y, clklist));
-        Tree ident = scalID(nature, sigwclklist);
-        fInstructions.insert(sigInstruction2MemWrite(clklist, ident, nature, sigBinOp(i, m1, m2)));
+        Tree re    = sigBinOp(i, m1, m2);
+        Tree ident = scalID(nature, cons(re, clklist));
+        fInstructions.insert(sigInstruction2MemWrite(clklist, ident, nature, re));
         return sigInstruction2MemRead(ident, nature);
     } else if (isSigOutput(sig, &i, x)) {
         Tree m1    = self(cons(x, clklist));
@@ -235,41 +236,41 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
             return sigInstruction2DelayRead(iv, nature, mt, m2);
         }
 
-    } else if (isSigIntCast(sig, x)) {
+    }
+
+    // Catsing
+
+    else if (isSigIntCast(sig, x)) {
         // assert(isCons(clklist));
         Tree m1 = self(cons(x, clklist));
         return sigIntCast(m1);
+    } else if (isSigFloatCast(sig, x)) {
+        // assert(isCons(clklist));
+        Tree m1 = self(cons(x, clklist));
+        return sigFloatCast(m1);
     }
 
-    /*
-     else if (isProj(sig, &i, x)) {
-            return sigProj(i, self(x));
-        } else if (isRec(sig, var, le)) {
-
-    */
     // UI
 
     else if (isSigButton(sig, label)) {
         return sig;
     } else if (isSigCheckbox(sig, label)) {
         return sig;
-    }
-#if 0
-    // NOT YET
-     else if (isSigVSlider(sig, label, c, x, y, z)) {
-        return sigVSlider(label, self(c), self(x), self(y), self(z));
+    } else if (isSigVSlider(sig, label, c, x, y, z)) {
+        return sigVSlider(label, self(cons(c, clklist)), self(cons(x, clklist)), self(cons(y, clklist)), self(cons(z, clklist)));
     } else if (isSigHSlider(sig, label, c, x, y, z)) {
-        return sigHSlider(label, self(c), self(x), self(y), self(z));
+        return sigHSlider(label, self(cons(c, clklist)), self(cons(x, clklist)), self(cons(y, clklist)), self(cons(z, clklist)));
     } else if (isSigNumEntry(sig, label, c, x, y, z)) {
-        return sigNumEntry(label, self(c), self(x), self(y), self(z));
+        return sigNumEntry(label, self(cons(c, clklist)), self(cons(x, clklist)), self(cons(y, clklist)), self(cons(z, clklist)));
     } else if (isSigVBargraph(sig, label, x, y, z)) {
-        return sigVBargraph(label, self(x), self(y), self(z));
+        return sigVBargraph(label, self(cons(x, clklist)), self(cons(y, clklist)), self(cons(z, clklist)));
     } else if (isSigHBargraph(sig, label, x, y, z)) {
-        return sigHBargraph(label, self(x), self(y), self(z));
+        return sigHBargraph(label, self(cons(x, clklist)), self(cons(y, clklist)), self(cons(z, clklist)));
     } else if (isSigWaveform(sig)) {
         return sig;
     }
-    // Foreign functions
+#if 0
+   // Foreign functions
     else if (isSigFFun(sig, ff, largs)) {
         return sigFFun(ff, mapself(largs));
     } else if (isSigFConst(sig, type, name, file)) {
@@ -313,15 +314,6 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
         } else {
             return sig;
         }
-    }
-
-    // recursive signals
-    else if (isProj(sig, &i, x)) {
-        return sigProj(i, self(x));
-    } else if (isRec(sig, var, le)) {
-        Tree var2 = tree(Node(unique("trec")));
-        fResult.set(sig, rec(var2, gGlobal->nil));
-        return rec(var2, mapself(le));
     }
 
     // Int and Float Cast
