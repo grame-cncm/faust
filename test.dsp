@@ -33,6 +33,6 @@ fifi = button("play2") : ondemand(1);
 fofo = button("play"),_ :ondemand(*(2));
 fufu = button("play"),_ :ondemand(*(+(1)~_));
 fefe = button("play"),_ :ondemand(*(+(0.5)~_));
-fyfy = button("play"),_, +(0.5)~_:ondemand(*);
+fyfy = button("play"),_, +(0.5)~_:ondemand(_,int:*);
 
 process = fyfy;
