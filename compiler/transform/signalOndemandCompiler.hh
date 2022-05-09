@@ -49,6 +49,9 @@ class SignalOndemandCompiler : public TreeTransform {
     Tree transformation(Tree t) override;
     void mark(Tree t);
     bool isMarked(Tree t);
+    Tree selfclk(Tree t, Tree clklist);
+    Tree mapselfclk(Tree lt, Tree clklist);
+
     void traceEnter(Tree t) override;
     void traceExit(Tree t, Tree r) override;
 };

@@ -39,6 +39,19 @@
 // context (a list of clocks). What is visited is not just a signal S, but a
 // list : (S . clocklist)
 //----------------------------------------------------------------------
+Tree SignalOndemandCompiler::selfclk(Tree sig, Tree clklist)
+{
+    return self(cons(sig, clklist));
+}
+
+Tree SignalOndemandCompiler::mapselfclk(Tree lt, Tree clklist)
+{
+    if (isNil(lt)) {
+        return lt;
+    } else {
+        return cons(selfclk(hd(lt), clklist), mapselfclk(tl(lt), clklist));
+    }
+}
 
 void SignalOndemandCompiler::traceEnter(Tree t)
 {
@@ -118,7 +131,7 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
     if (getUserData(sig)) {
         vector<Tree> newBranches;
         for (Tree b : sig->branches()) {
-            newBranches.push_back(self(cons(b, clklist)));
+            newBranches.push_back(selfclk(b, clklist));
         }
         Tree ident = scalID(nature, sigwclklist);
         Tree expr  = tree(sig->node(), newBranches);
@@ -132,21 +145,21 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
     } else if (isSigInput(sig, &i)) {
         return sig;
     } else if (isSigBinOp(sig, &i, x, y)) {
-        Tree m1    = self(cons(x, clklist));
-        Tree m2    = self(cons(y, clklist));
+        Tree m1    = selfclk(x, clklist);
+        Tree m2    = selfclk(y, clklist);
         Tree re    = sigBinOp(i, m1, m2);
         Tree ident = scalID(nature, cons(re, clklist));
         fInstructions.insert(sigInstruction2MemWrite(clklist, ident, nature, re));
         return sigInstruction2MemRead(ident, nature);
     } else if (isSigOutput(sig, &i, x)) {
-        Tree m1    = self(cons(x, clklist));
+        Tree m1    = selfclk(x, clklist);
         Tree instr = sigOutput(i, m1);
         fInstructions.insert(instr);
         return instr;
     } else if (isSigUpsampling(sig, x, y)) {
-        Tree m2       = self(cons(y, clklist));  // we compile the clock signal
+        Tree m2       = selfclk(y, clklist);  // we compile the clock signal
         Tree clklist2 = cons(m2, clklist);
-        Tree m1       = self(cons(x, clklist2));  // we compile x in the new time reference
+        Tree m1       = selfclk(x, clklist2);  // we compile x in the new time reference
 #if 1
         Tree ident = scalID(nature, cons(m1, clklist2));
         Tree instr = sigInstruction2MemWrite(clklist2, ident, nature, m1);
@@ -159,7 +172,7 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
     } else if (isSigDownsampling(sig, x, y)) {
         // assert(isCons(clklist));
         Tree clklist0 = tl(clklist);
-        Tree m1       = self(cons(x, clklist0));
+        Tree m1       = selfclk(x, clklist0);
         Tree ident    = scalID(nature, cons(m1, clklist0));
         Tree instr    = sigInstruction2MemWrite(clklist0, ident, nature, m1);
         // std::cerr << "Downsampling instr " << ppsig(instr) << std::endl;
@@ -186,7 +199,7 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
                     ----------------------------------------------
                     CS[(Xi@D).T] = v[t,Md] x {I}d
                 */
-                Tree m2 = self(cons(y, clklist));  // compile delay signal
+                Tree m2 = selfclk(y, clklist);  // compile delay signal
                 return sigInstruction2DelayRead(iv, nature, mt, m2);
 
             } else {
@@ -210,8 +223,8 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
                 Tree def = nth(ldef, i);
                 assert(def != 0);
 
-                Tree m1    = self(cons(def, clklist));  // compile delayed signal
-                Tree m2    = self(cons(y, clklist));    // compile delay signal
+                Tree m1    = selfclk(def, clklist);  // compile delayed signal
+                Tree m2    = selfclk(y, clklist);    // compile delay signal
                 Tree instr = sigInstruction2DelayWrite(clklist, iv, nature, mt, m1);
                 fInstructions.insert(instr);
                 return sigInstruction2DelayRead(iv, nature, mt, m2);
@@ -228,8 +241,8 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
                 ----------------------------------------------
                 CS[(S1@S2).T] = v[t,M2] x ({T:v[t]=M1; T:t=t+1;} u {I}1 u {I}2)
             */
-            Tree m1    = self(cons(x, clklist));            // compile delayed signal
-            Tree m2    = self(cons(y, clklist));            // compile delay signal
+            Tree m1    = selfclk(x, clklist);               // compile delayed signal
+            Tree m2    = selfclk(y, clklist);               // compile delay signal
             Tree iv    = vecID(nature, cons(m1, clklist));  // allocate delayline ID
             Tree instr = sigInstruction2DelayWrite(clklist, iv, nature, mt, m1);
             fInstructions.insert(instr);
@@ -240,14 +253,28 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
 
     // Catsing
 
+    /*
+        // Typical implementation
+        if (isSigFoo(sig, x, y, z,...)) {
+            Tree exp = sigFoo(self(x,clklist), self(y, clklist), self(z, clklist), ...);
+            Tree sid = scalID(nature, cons(re, clklist));
+            fInstructions.insert(sigInstruction2MemWrite(clklist, sid, nature, exp));
+            return sigInstruction2MemRead(sid, nature);
+        }
+
+
+    */
     else if (isSigIntCast(sig, x)) {
-        // assert(isCons(clklist));
-        Tree m1 = self(cons(x, clklist));
-        return sigIntCast(m1);
+        Tree exp = sigIntCast(selfclk(x, clklist));
+        Tree sid = scalID(nature, cons(exp, clklist));
+        fInstructions.insert(sigInstruction2MemWrite(clklist, sid, nature, exp));
+        return sigInstruction2MemRead(sid, nature);
+
     } else if (isSigFloatCast(sig, x)) {
-        // assert(isCons(clklist));
-        Tree m1 = self(cons(x, clklist));
-        return sigFloatCast(m1);
+        Tree mx = sigFloatCast(selfclk(x, clklist));
+        Tree ix = scalID(nature, cons(mx, clklist));
+        fInstructions.insert(sigInstruction2MemWrite(clklist, ix, nature, mx));
+        return sigInstruction2MemRead(ix, nature);
     }
 
     // UI
@@ -257,17 +284,24 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
     } else if (isSigCheckbox(sig, label)) {
         return sig;
     } else if (isSigVSlider(sig, label, c, x, y, z)) {
-        return sigVSlider(label, self(cons(c, clklist)), self(cons(x, clklist)), self(cons(y, clklist)), self(cons(z, clklist)));
+        return sigVSlider(label, selfclk(c, clklist), selfclk(x, clklist), selfclk(y, clklist), selfclk(z, clklist));
     } else if (isSigHSlider(sig, label, c, x, y, z)) {
-        return sigHSlider(label, self(cons(c, clklist)), self(cons(x, clklist)), self(cons(y, clklist)), self(cons(z, clklist)));
+        return sigHSlider(label, selfclk(c, clklist), selfclk(x, clklist), selfclk(y, clklist), selfclk(z, clklist));
     } else if (isSigNumEntry(sig, label, c, x, y, z)) {
-        return sigNumEntry(label, self(cons(c, clklist)), self(cons(x, clklist)), self(cons(y, clklist)), self(cons(z, clklist)));
+        return sigNumEntry(label, selfclk(c, clklist), selfclk(x, clklist), selfclk(y, clklist), selfclk(z, clklist));
     } else if (isSigVBargraph(sig, label, x, y, z)) {
-        return sigVBargraph(label, self(cons(x, clklist)), self(cons(y, clklist)), self(cons(z, clklist)));
+        return sigVBargraph(label, selfclk(x, clklist), selfclk(y, clklist), selfclk(z, clklist));
     } else if (isSigHBargraph(sig, label, x, y, z)) {
-        return sigHBargraph(label, self(cons(x, clklist)), self(cons(y, clklist)), self(cons(z, clklist)));
+        return sigHBargraph(label, selfclk(x, clklist), selfclk(y, clklist), selfclk(z, clklist));
     } else if (isSigWaveform(sig)) {
         return sig;
+    }
+
+    // Select2 and Select3
+    else if (isSigSelect2(sig, sel, x, y)) {
+        return sigSelect2(selfclk(sel, clklist), selfclk(x, clklist), selfclk(y, clklist));
+    } else if (isSigSelect3(sig, sel, x, y, z)) {
+        return sigSelect3(selfclk(sel, clklist), selfclk(x, clklist), selfclk(y, clklist), selfclk(z, clklist));
     }
 #if 0
    // Foreign functions
@@ -314,13 +348,6 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
         } else {
             return sig;
         }
-    }
-
-    // Int and Float Cast
-    else if (isSigIntCast(sig, x)) {
-        return sigIntCast(self(x));
-    } else if (isSigFloatCast(sig, x)) {
-        return sigFloatCast(self(x));
     }
 
     // Soundfile length, rate, channels, buffer
