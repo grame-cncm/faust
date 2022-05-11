@@ -50,8 +50,7 @@ typedef std::vector<std::tuple<std::string, int, int, int, int, int>> MemoryLayo
 typedef std::map<std::string, int> PathTableType;
 
 template <typename REAL>
-class JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL>
-{
+class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL> {
 
     protected:
     
@@ -516,8 +515,7 @@ class JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL>
 
 // Externally available class using FAUSTFLOAT
 
-struct JSONUI : public JSONUIReal<FAUSTFLOAT>, public UI
-{
+struct FAUST_API JSONUI : public JSONUIReal<FAUSTFLOAT>, public UI {
     
     JSONUI(const std::string& name,
            const std::string& filename,

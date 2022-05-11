@@ -25,6 +25,8 @@
 #ifndef __UI_H__
 #define __UI_H__
 
+#include "faust/export.h"
+
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif
@@ -39,8 +41,8 @@
 struct Soundfile;
 
 template <typename REAL>
-struct UIReal
-{
+struct FAUST_API UIReal {
+    
     UIReal() {}
     virtual ~UIReal() {}
     
@@ -76,8 +78,7 @@ struct UIReal
     virtual int sizeOfFAUSTFLOAT() { return sizeof(FAUSTFLOAT); }
 };
 
-struct UI : public UIReal<FAUSTFLOAT>
-{
+struct FAUST_API UI : public UIReal<FAUSTFLOAT> {
     UI() {}
     virtual ~UI() {}
 };

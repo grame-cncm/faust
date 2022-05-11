@@ -24,7 +24,7 @@
 // Global API access lock
 TLockAble* gDSPFactoriesLock = nullptr;
 
-extern "C" EXPORT bool startMTDSPFactories()
+extern "C" LIBFAUST_API bool startMTDSPFactories()
 {
     try {
         if (!gDSPFactoriesLock) {
@@ -36,7 +36,7 @@ extern "C" EXPORT bool startMTDSPFactories()
     }
 }
 
-extern "C" EXPORT void stopMTDSPFactories()
+extern "C" LIBFAUST_API void stopMTDSPFactories()
 {
     delete gDSPFactoriesLock;
     gDSPFactoriesLock = nullptr;

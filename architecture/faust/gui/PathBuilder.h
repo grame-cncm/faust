@@ -22,8 +22,8 @@
  architecture section is not modified.
  ************************************************************************/
 
-#ifndef FAUST_PATHBUILDER_H
-#define FAUST_PATHBUILDER_H
+#ifndef __PathBuilder__
+#define __PathBuilder__
 
 #include <vector>
 #include <set>
@@ -36,8 +36,7 @@
  * Helper class to build complete hierarchical path for UI items.
  ******************************************************************************/
 
-class PathBuilder
-{
+class FAUST_API PathBuilder {
 
     protected:
     
@@ -101,13 +100,13 @@ class PathBuilder
         std::string cut(const std::string& src, int n) const
         {
             std::string rdst;
-            for (int i = src.length()-1; i >= 0; i--) {
+            for (int i = int(src.length())-1; i >= 0; i--) {
                 char c = src[i];
                 if (c != '/') {
                     rdst.push_back(c);
                 } else if (n == 1) {
                     std::string dst;
-                    for (int j = rdst.length()-1; j >= 0; j--) {
+                    for (int j = int(rdst.length())-1; j >= 0; j--) {
                         dst.push_back(rdst[j]);
                     }
                     return dst;
@@ -210,5 +209,5 @@ class PathBuilder
     
 };
 
-#endif  // FAUST_PATHBUILDER_H
+#endif  // __PathBuilder__
 /**************************  END  PathBuilder.h **************************/

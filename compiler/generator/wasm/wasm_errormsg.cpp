@@ -22,9 +22,10 @@
 #include <iostream>
 #include <sstream>
 
-#include "exception.hh"
-#include "export.hh"
+#include "faust/export.h"
 #include "faust/gui/GUI.h"
+
+#include "exception.hh"
 
 using namespace std;
 

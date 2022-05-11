@@ -19,10 +19,11 @@
  ************************************************************************
  ************************************************************************/
 
+#include "faust/export.h"
+
 #include "errormsg.hh"
 #include "boxes.hh"
 #include "exception.hh"
-#include "export.hh"
 #include "global.hh"
 #include "ppbox.hh"
 

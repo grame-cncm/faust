@@ -41,8 +41,8 @@
  Presets are saved in separated text files using the FUI model.
 */
 
-class PresetUI : public DecoratorUI
-{
+class PresetUI : public DecoratorUI {
+    
     private:
     
         struct LoaderUI : public GUI

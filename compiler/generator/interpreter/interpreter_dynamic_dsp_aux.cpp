@@ -28,7 +28,7 @@
 
 using namespace std;
 
-EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const string& filename, int argc,
+LIBFAUST_API interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const string& filename, int argc,
                                                                     const char* argv[], string& error_msg)
 {
     string base = basename((char*)filename.c_str());
@@ -43,7 +43,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const string
     }
 }
 
-EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const string& name_app, const string& dsp_content,
+LIBFAUST_API interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const string& name_app, const string& dsp_content,
                                                                       int argc, const char* argv[], string& error_msg)
 {
     LOCK_API
@@ -92,7 +92,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
     }
 }
 
-EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromSignals(const std::string& name_app, tvec signals,
+LIBFAUST_API interpreter_dsp_factory* createInterpreterDSPFactoryFromSignals(const std::string& name_app, tvec signals,
                                                                        int argc, const char* argv[], std::string& error_msg)
 {
     LOCK_API
@@ -125,7 +125,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromSignals(const std
     }
 }
 
-EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromBoxes(const std::string& name_app, Tree box,
+LIBFAUST_API interpreter_dsp_factory* createInterpreterDSPFactoryFromBoxes(const std::string& name_app, Tree box,
                                                                      int argc, const char* argv[],
                                                                      std::string& error_msg)
 {

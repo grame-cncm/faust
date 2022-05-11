@@ -27,7 +27,7 @@ architecture section is not modified.
  
 #include "faust/midi/midi.h"
 
-class MapUI;
+class FAUST_API MapUI;
 
 /**
  *  MIDI input/output handling using JUCE framework: https://juce.com

@@ -45,7 +45,7 @@
  * 'labels' at different location in the UI hierachy) can be used to access a given parameter.
  ******************************************************************************/
 
-class MapUI : public UI, public PathBuilder
+class FAUST_API MapUI : public UI, public PathBuilder
 {
     
     protected:

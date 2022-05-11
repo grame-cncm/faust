@@ -25,17 +25,12 @@ architecture section is not modified.
 #ifndef LLVM_MACHINE_DSP_H
 #define LLVM_MACHINE_DSP_H
 
-#ifdef _WIN32
-#define DEPRECATED(fun) __declspec(deprecated) fun
-#else
-#define DEPRECATED(fun) fun __attribute__ ((deprecated));
-#endif
-
 #include <vector>
 #include <string>
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
+#include "faust/export.h"
 
 /*!
  \addtogroup llvmcpp C++ interface for reading LLVM machine code.
@@ -47,12 +42,12 @@ architecture section is not modified.
  * 
  * @return the library version as a static string.
  */
-extern "C" const char* getCLibFaustVersion();
+extern "C" LIBFAUST_API const char* getCLibFaustVersion();
 
 /**
  * DSP instance class with methods.
  */
-class llvm_dsp : public dsp {
+class LIBFAUST_API llvm_dsp : public dsp {
     
     private:
     
@@ -91,7 +86,7 @@ class llvm_dsp : public dsp {
  * DSP factory class.
  */
 
-class llvm_dsp_factory : public dsp_factory {
+class LIBFAUST_API llvm_dsp_factory : public dsp_factory {
 
      public:
     
@@ -139,7 +134,7 @@ class llvm_dsp_factory : public dsp_factory {
  *
  * @return the target as a string.
  */
-std::string getDSPMachineTarget();
+LIBFAUST_API std::string getDSPMachineTarget();
 
 /**
  * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
@@ -150,7 +145,7 @@ std::string getDSPMachineTarget();
  *
  * @return a DSP factory if one is associated with the SHA key, otherwise a null pointer.
  */
-llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
+LIBFAUST_API llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
 
 /**
 /**
@@ -162,20 +157,20 @@ llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
  *
  * @return true if the factory internal pointer was really deleted, and false if only 'decremented'.
  */                                 
-bool deleteDSPFactory(llvm_dsp_factory* factory);
+LIBFAUST_API bool deleteDSPFactory(llvm_dsp_factory* factory);
 
 /**
  * Delete all Faust DSP factories kept in the library cache. Beware: all kept factory and DSP pointers (in local variables...) thus become invalid.
  * 
  */                                 
-void deleteAllDSPFactories();
+LIBFAUST_API void deleteAllDSPFactories();
 
 /**
  * Return Faust DSP factories of the library cache as a vector of their SHA keys.
  * 
  * @return the Faust DSP factories.
  */                                 
-std::vector<std::string> getAllDSPFactories();
+LIBFAUST_API std::vector<std::string> getAllDSPFactories();
 
 /**
  * Create a Faust DSP factory from a base64 encoded machine code string. Note that the library keeps an internal cache of all
@@ -191,7 +186,7 @@ std::vector<std::string> getAllDSPFactories();
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, const std::string& target, std::string& error_msg);
+LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, const std::string& target, std::string& error_msg);
 
 /**
  * Create a Faust DSP factory from a machine code file. Note that the library keeps an internal cache of all
@@ -207,7 +202,7 @@ llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, con
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target, std::string& error_msg);
+LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target, std::string& error_msg);
 
 /*!
  @}

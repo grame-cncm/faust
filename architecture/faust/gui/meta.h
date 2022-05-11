@@ -25,11 +25,12 @@
 #ifndef __meta__
 #define __meta__
 
+#include "faust/export.h"
+
 /**
  The base class of Meta handler to be used in dsp::metadata(Meta* m) method to retrieve (key, value) metadata.
  */
-struct Meta
-{
+struct FAUST_API Meta {
     virtual ~Meta() {}
     virtual void declare(const char* key, const char* value) = 0;
 };

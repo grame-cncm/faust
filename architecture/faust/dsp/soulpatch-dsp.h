@@ -536,7 +536,7 @@ bool deleteSOULDSPFactory(soul_dsp_factory* factory)
  * Faust/SOUL hybrid file parser
  */
 
-class faust_soul_parser  {
+class faust_soul_parser {
     
     private:
         

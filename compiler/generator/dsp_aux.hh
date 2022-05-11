@@ -33,9 +33,10 @@
 #pragma warning(disable : 4800)
 #endif
 
-#include "exception.hh"
-#include "export.hh"
+#include "faust/export.h"
 #include "faust/dsp/dsp.h"
+
+#include "exception.hh"
 
 /*!
     \brief the base class for smart pointers implementation
@@ -291,7 +292,7 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
     }
 };
 
-// Compute SHA1 key from name_app, dsp_content and compialtions arguments, and returns the dsp_content
+// Compute SHA1 key from name_app, dsp_content and compilations arguments, and returns the dsp_content
 std::string sha1FromDSP(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& sha_key);
 
 class CTree;
@@ -304,15 +305,15 @@ tvec boxesToSignalsAux(Tree box);
 extern "C" {
 #endif
 
-EXPORT const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key,
+LIBFAUST_API const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key,
                                       char* error_msg);
 
-EXPORT const char* expandCDSPFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
+LIBFAUST_API const char* expandCDSPFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
                                         char* sha_key, char* error_msg);
 
-EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
+LIBFAUST_API bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
 
-EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
+LIBFAUST_API bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
                                         char* error_msg);
 
 #ifdef __cplusplus

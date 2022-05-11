@@ -30,7 +30,9 @@ architecture section is not modified.
 #include <algorithm>
 #include <assert.h>
 
-class MapUI;
+#include "faust/export.h"
+
+class FAUST_API MapUI;
 
 /**
  * A timestamped short MIDI message used with SOUL.

@@ -58,7 +58,7 @@ Soundfile* dynamic_defaultsound = new Soundfile(64);
 void faustassert(bool)
 {
 }
-extern "C" EXPORT const char* getCLibFaustVersion()
+extern "C" LIBFAUST_API const char* getCLibFaustVersion()
 {
     return FAUSTVERSION;
 }
@@ -66,22 +66,22 @@ extern "C" EXPORT const char* getCLibFaustVersion()
 #endif
 
 // Debug tools
-extern "C" EXPORT void printInt32(int val)
+extern "C" LIBFAUST_API void printInt32(int val)
 {
     cout << "printInt32 : " << val << endl;
 }
 
-extern "C" EXPORT void printFloat(float val)
+extern "C" LIBFAUST_API void printFloat(float val)
 {
     cout << "printFloat : " << val << endl;
 }
 
-extern "C" EXPORT void printDouble(double val)
+extern "C" LIBFAUST_API void printDouble(double val)
 {
     cout << "printDouble : " << val << endl;
 }
 
-extern "C" EXPORT void printPtr(void* val)
+extern "C" LIBFAUST_API void printPtr(void* val)
 {
     cout << "printPtr : " << val << endl;
 }
@@ -521,43 +521,43 @@ string llvm_dsp_factory_aux::getTarget()
 
 // Public C++ API
 
-EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const string& sha_key)
+LIBFAUST_API llvm_dsp_factory* getDSPFactoryFromSHAKey(const string& sha_key)
 {
     LOCK_API
     return static_cast<llvm_dsp_factory*>(llvm_dsp_factory_aux::gLLVMFactoryTable.getDSPFactoryFromSHAKey(sha_key));
 }
 
-EXPORT vector<string> getAllDSPFactories()
+LIBFAUST_API vector<string> getAllDSPFactories()
 {
     LOCK_API
     return llvm_dsp_factory_aux::gLLVMFactoryTable.getAllDSPFactories();
 }
 
-EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory)
+LIBFAUST_API bool deleteDSPFactory(llvm_dsp_factory* factory)
 {
     LOCK_API
     return (factory) ? llvm_dsp_factory_aux::gLLVMFactoryTable.deleteDSPFactory(factory) : false;
 }
 
-EXPORT string getDSPMachineTarget()
+LIBFAUST_API string getDSPMachineTarget()
 {
     return (sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME);
 }
 
-EXPORT vector<string> getLibraryList(llvm_dsp_factory* factory)
+LIBFAUST_API vector<string> getLibraryList(llvm_dsp_factory* factory)
 {
     LOCK_API
     return factory->getLibraryList();
 }
 
-EXPORT void deleteAllDSPFactories()
+LIBFAUST_API void deleteAllDSPFactories()
 {
     LOCK_API
     llvm_dsp_factory_aux::gLLVMFactoryTable.deleteAllDSPFactories();
 }
 
 // machine <==> string
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, const string& target, string& error_msg)
+LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, const string& target, string& error_msg)
 {
     LOCK_API
     return llvm_dsp_factory_aux::readDSPFactoryFromMachineAux(
@@ -565,8 +565,8 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, c
 }
 
 // machine <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_code_path, const string& target,
-                                                       string& error_msg)
+LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_code_path, const string& target,
+                                                        string& error_msg)
 {
     LOCK_API
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(machine_code_path);
@@ -578,20 +578,20 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_cod
     }
 }
 
-EXPORT string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const string& target)
+LIBFAUST_API string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const string& target)
 {
     LOCK_API
     return factory->writeDSPFactoryToMachine(target);
 }
 
-EXPORT bool writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string& machine_code_path,
+LIBFAUST_API bool writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string& machine_code_path,
                                          const string& target)
 {
     LOCK_API
     return (factory) ? factory->writeDSPFactoryToMachineFile(machine_code_path, target) : false;
 }
 
-EXPORT bool writeDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const string& object_code_path,
+LIBFAUST_API bool writeDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const string& object_code_path,
                                             const string& target)
 {
     LOCK_API
@@ -599,7 +599,7 @@ EXPORT bool writeDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const str
 }
 
 // Instance
-EXPORT llvm_dsp* llvm_dsp_factory::createDSPInstance()
+LIBFAUST_API llvm_dsp* llvm_dsp_factory::createDSPInstance()
 {
     LOCK_API
     dsp* dsp = fFactory->createDSPInstance(this);
@@ -608,7 +608,7 @@ EXPORT llvm_dsp* llvm_dsp_factory::createDSPInstance()
 }
 
 // Use the memory manager if needed
-EXPORT void llvm_dsp::operator delete(void* ptr)
+LIBFAUST_API void llvm_dsp::operator delete(void* ptr)
 {
     dsp_memory_manager* manager = static_cast<llvm_dsp*>(ptr)->fFactory->getMemoryManager();
     if (manager) {
@@ -624,12 +624,12 @@ EXPORT void llvm_dsp::operator delete(void* ptr)
 extern "C" {
 #endif
 
-EXPORT llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key)
+LIBFAUST_API llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key)
 {
     return getDSPFactoryFromSHAKey(sha_key);
 }
 
-EXPORT const char** getAllCDSPFactories()
+LIBFAUST_API const char** getAllCDSPFactories()
 {
     vector<string> sha_key_list1 = getAllDSPFactories();
     const char**   sha_key_list2 = (const char**)malloc(sizeof(char*) * (sha_key_list1.size() + 1));
@@ -644,12 +644,12 @@ EXPORT const char** getAllCDSPFactories()
     return sha_key_list2;
 }
 
-EXPORT bool deleteCDSPFactory(llvm_dsp_factory* factory)
+LIBFAUST_API bool deleteCDSPFactory(llvm_dsp_factory* factory)
 {
     return deleteDSPFactory(factory);
 }
 
-EXPORT char* getCName(llvm_dsp_factory* factory)
+LIBFAUST_API char* getCName(llvm_dsp_factory* factory)
 {
     if (factory) {
         string name = factory->getName();
@@ -659,7 +659,7 @@ EXPORT char* getCName(llvm_dsp_factory* factory)
     }
 }
 
-EXPORT char* getCSHAKey(llvm_dsp_factory* factory)
+LIBFAUST_API char* getCSHAKey(llvm_dsp_factory* factory)
 {
     if (factory) {
         string shakey = factory->getSHAKey();
@@ -669,7 +669,7 @@ EXPORT char* getCSHAKey(llvm_dsp_factory* factory)
     }
 }
 
-EXPORT char* getCTarget(llvm_dsp_factory* factory)
+LIBFAUST_API char* getCTarget(llvm_dsp_factory* factory)
 {
     if (factory) {
         string target = factory->getTarget();
@@ -679,7 +679,7 @@ EXPORT char* getCTarget(llvm_dsp_factory* factory)
     }
 }
 
-EXPORT char* getCDSPCode(llvm_dsp_factory* factory)
+LIBFAUST_API char* getCDSPCode(llvm_dsp_factory* factory)
 {
     if (factory) {
         string dspcode = factory->getDSPCode();
@@ -689,13 +689,13 @@ EXPORT char* getCDSPCode(llvm_dsp_factory* factory)
     }
 }
 
-EXPORT char* getCDSPMachineTarget()
+LIBFAUST_API char* getCDSPMachineTarget()
 {
     string dspmachinetarget = getDSPMachineTarget();
     return strdup(dspmachinetarget.c_str());
 }
 
-EXPORT const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory)
+LIBFAUST_API const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory)
 {
     if (factory) {
         vector<string> library_list1 = factory->getLibraryList();
@@ -714,7 +714,7 @@ EXPORT const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory)
     }
 }
 
-EXPORT const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory)
+LIBFAUST_API const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory)
 {
     if (factory) {
         vector<string> include_list1 = factory->getIncludePathnames();
@@ -733,7 +733,7 @@ EXPORT const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory)
     }
 }
 
-EXPORT char* getCDSPFactoryCompileOptions(llvm_dsp_factory* factory)
+LIBFAUST_API char* getCDSPFactoryCompileOptions(llvm_dsp_factory* factory)
 {
     if (factory) {
         string options = factory->getCompileOptions();
@@ -743,12 +743,12 @@ EXPORT char* getCDSPFactoryCompileOptions(llvm_dsp_factory* factory)
     }
 }
 
-EXPORT void deleteAllCDSPFactories()
+LIBFAUST_API void deleteAllCDSPFactories()
 {
     deleteAllDSPFactories();
 }
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target, char* error_msg)
+LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target, char* error_msg)
 {
     string            error_msg_aux;
     llvm_dsp_factory* factory = readDSPFactoryFromMachine(machine_code, target, error_msg_aux);
@@ -756,12 +756,12 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, co
     return factory;
 }
 
-EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target)
+LIBFAUST_API char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target)
 {
     return (factory) ? strdup(writeDSPFactoryToMachine(factory, target).c_str()) : nullptr;
 }
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target,
+LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target,
                                                         char* error_msg)
 {
     string            error_msg_aux;
@@ -770,106 +770,106 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code
     return factory;
 }
 
-EXPORT bool writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target)
+LIBFAUST_API bool writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target)
 {
     return (factory) ? writeDSPFactoryToMachineFile(factory, machine_code_path, target) : false;
 }
 
-EXPORT bool writeCDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const char* object_code_path,
+LIBFAUST_API bool writeCDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const char* object_code_path,
                                              const char* target)
 {
     return (factory) ? writeDSPFactoryToObjectcodeFile(factory, object_code_path, target) : false;
 }
 
-EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* glue)
+LIBFAUST_API void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* glue)
 {
     if (dsp) {
         dsp->metadata(glue);
     }
 }
 
-EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp)
+LIBFAUST_API int getNumInputsCDSPInstance(llvm_dsp* dsp)
 {
     return (dsp) ? dsp->getNumInputs() : -1;
 }
 
-EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp)
+LIBFAUST_API int getNumOutputsCDSPInstance(llvm_dsp* dsp)
 {
     return (dsp) ? dsp->getNumOutputs() : -1;
 }
 
-EXPORT void initCDSPInstance(llvm_dsp* dsp, int sample_rate)
+LIBFAUST_API void initCDSPInstance(llvm_dsp* dsp, int sample_rate)
 {
     if (dsp) {
         dsp->init(sample_rate);
     }
 }
 
-EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int sample_rate)
+LIBFAUST_API void instanceInitCDSPInstance(llvm_dsp* dsp, int sample_rate)
 {
     if (dsp) {
         dsp->instanceInit(sample_rate);
     }
 }
 
-EXPORT void instanceConstantsCDSPInstance(llvm_dsp* dsp, int sample_rate)
+LIBFAUST_API void instanceConstantsCDSPInstance(llvm_dsp* dsp, int sample_rate)
 {
     if (dsp) {
         dsp->instanceConstants(sample_rate);
     }
 }
 
-EXPORT void instanceResetUserInterfaceCDSPInstance(llvm_dsp* dsp)
+LIBFAUST_API void instanceResetUserInterfaceCDSPInstance(llvm_dsp* dsp)
 {
     if (dsp) {
         dsp->instanceResetUserInterface();
     }
 }
 
-EXPORT void instanceClearCDSPInstance(llvm_dsp* dsp)
+LIBFAUST_API void instanceClearCDSPInstance(llvm_dsp* dsp)
 {
     if (dsp) {
         dsp->instanceClear();
     }
 }
 
-EXPORT int getSampleRateCDSPInstance(llvm_dsp* dsp)
+LIBFAUST_API int getSampleRateCDSPInstance(llvm_dsp* dsp)
 {
     return (dsp) ? dsp->getSampleRate() : 0;
 }
 
-EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* glue)
+LIBFAUST_API void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* glue)
 {
     if (dsp) {
         dsp->buildUserInterface(glue);
     }
 }
 
-EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+LIBFAUST_API void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     if (dsp) {
         dsp->compute(count, input, output);
     }
 }
 
-EXPORT llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp)
+LIBFAUST_API llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp)
 {
     return (dsp) ? dsp->clone() : nullptr;
 }
 
-EXPORT void setCMemoryManager(llvm_dsp_factory* factory, MemoryManagerGlue* manager)
+LIBFAUST_API void setCMemoryManager(llvm_dsp_factory* factory, MemoryManagerGlue* manager)
 {
     if (factory) {
         factory->setMemoryManager(manager);
     }
 }
 
-EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
+LIBFAUST_API llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
 {
     return (factory) ? factory->createDSPInstance() : nullptr;
 }
 
-EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
+LIBFAUST_API void deleteCDSPInstance(llvm_dsp* dsp)
 {
     delete dsp;
 }

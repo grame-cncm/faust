@@ -75,8 +75,7 @@ inline double GetCurrentTimeInUsec(void)
  * ZoneUI : this class collect zones in a set.
  */
 
-struct ZoneUI : public GenericUI
-{
+struct ZoneUI : public GenericUI {
     
     std::set<FAUSTFLOAT*> fZoneSet;
     

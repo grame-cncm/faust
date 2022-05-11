@@ -3,7 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.40.8)
+set (VERSION 2.40.9)
 macro (get_major_minor_patch version)
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\1"  VERSION_MAJOR ${version} )
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\2"  VERSION_MINOR ${version} )
@@ -153,8 +153,8 @@ if (MSVC)
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DMSVisualStudio)
 else()
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLIBDIR="${LIBSDIR}")
-	set(CMAKE_CXX_FLAGS_DEBUG   "-g  -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
-	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual")
+	set(CMAKE_CXX_FLAGS_DEBUG   "-g  -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual")
 endif()
 
 
@@ -167,8 +167,8 @@ if (INCLUDE_EXECUTABLE)
 	target_include_directories (faust PRIVATE ${FAUST_INC} ${LLVM_INC})
 	target_link_libraries (faust PRIVATE ${FAUST_LIBS})
 	scan_backends (faust COMPILER)
-	set_target_properties(faust  PROPERTIES
-		RUNTIME_OUTPUT_DIRECTORY ${BINDIR})
+	set_target_properties(faust PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BINDIR})
+	set_target_properties(faust PROPERTIES COMPILE_FLAGS -DFAUST_EXE)
 	set (INSTALL_TARGETS faust)
 endif()
 
@@ -184,11 +184,11 @@ if (INCLUDE_STATIC)
 		ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
 		LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
 	if (MSVC)
-		set_target_properties(staticlib  PROPERTIES OUTPUT_NAME libfaust)
+		set_target_properties(staticlib PROPERTIES OUTPUT_NAME libfaust)
 	elseif (IOS)
 		set_target_properties(staticlib PROPERTIES OUTPUT_NAME faust.ios)
 	else()
-		set_target_properties(staticlib  PROPERTIES OUTPUT_NAME faust)
+		set_target_properties(staticlib PROPERTIES OUTPUT_NAME faust)
 	endif()
 	set_target_properties(staticlib PROPERTIES COMPILE_FLAGS -DFAUST_LIB
 		POSITION_INDEPENDENT_CODE ON)
@@ -208,7 +208,6 @@ if (INCLUDE_STATIC)
 
 endif()
 
-
 # dynamic faust library
 if (INCLUDE_DYNAMIC)
 	add_library(dynamiclib SHARED ${SRC} ${HH})
@@ -218,8 +217,8 @@ if (INCLUDE_DYNAMIC)
 	if (WIN32 OR MSYS)
 		enable_language(RC)
 		set_target_properties(dynamiclib PROPERTIES
-			ARCHIVE_OUTPUT_DIRECTORY  ${LIBDIR}
-			RUNTIME_OUTPUT_DIRECTORY  ${LIBDIR})
+			ARCHIVE_OUTPUT_DIRECTORY ${LIBDIR}
+			RUNTIME_OUTPUT_DIRECTORY ${LIBDIR})
 		set_target_properties(dynamiclib PROPERTIES OUTPUT_NAME faust)
 		target_sources (faust PRIVATE ${ROOT}/windows/faust.rc)
 		target_sources (dynamiclib PRIVATE ${ROOT}/windows/faustdll.rc)
@@ -333,7 +332,7 @@ install (
     PATTERN "*.o" EXCLUDE
 )
 install (
-    FILES     ${ARCHINC}/misc.h ${ARCHINC}/sound-file.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust
+    FILES     ${ARCHINC}/misc.h ${ARCHINC}/sound-file.h ${ARCHINC}/export.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 install (

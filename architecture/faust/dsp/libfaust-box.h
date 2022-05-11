@@ -28,6 +28,8 @@
 #include <string>
 #include <vector>
 
+#include "faust/export.h"
+
 /*!
  \addtogroup boxcpp C++ interface for the Box API.
  @{
@@ -36,7 +38,7 @@
 /**
  * Opaque types.
  */
-class CTree;
+class LIBFAUST_API CTree;
 typedef std::vector<CTree*> tvec;
 
 enum SType { kSInt, kSReal };
@@ -46,7 +48,7 @@ enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE
 /**
  * Base class for factories.
  */
-struct dsp_factory_base {
+struct LIBFAUST_API dsp_factory_base {
     
     virtual ~dsp_factory_base() {}
     
@@ -66,12 +68,12 @@ typedef CTree* Box;
 /**
  * Create global compilation context, has to be done first.
  */
-extern "C" void createLibContext();
+extern "C" LIBFAUST_API void createLibContext();
 
 /**
  * Destroy global compilation context, has to be done last.
  */
-extern "C" void destroyLibContext();
+extern "C" LIBFAUST_API void destroyLibContext();
 
 /**
  * Constant integer : for all t, x(t) = n.
@@ -81,7 +83,7 @@ extern "C" void destroyLibContext();
  * @return the integer box.
  */
 
-Box boxInt(int n);
+LIBFAUST_API Box boxInt(int n);
 
 /**
  * Constant real : for all t, x(t) = n.
@@ -90,28 +92,28 @@ Box boxInt(int n);
  *
  * @return the float/double box.
  */
-Box boxReal(double n);
+LIBFAUST_API Box boxReal(double n);
 
 /**
  * The identity box, copy its input to its output.
  *
  * @return the identity box.
  */
-Box boxWire();
+LIBFAUST_API Box boxWire();
 
 /**
 * The cut box, to "stop"/terminate a signal.
 *
 * @return the cut box.
 */
-Box boxCut();
+LIBFAUST_API Box boxCut();
 
 /**
  * The sequential composition of two blocks (e.g., A:B) expects: outputs(A)=inputs(B)
  *
  * @return the seq box.
  */
-Box boxSeq(Box x, Box y);
+LIBFAUST_API Box boxSeq(Box x, Box y);
 
 /**
  * The parallel composition of two blocks (e.g., A,B).
@@ -119,13 +121,13 @@ Box boxSeq(Box x, Box y);
  *
  * @return the par box.
  */
-Box boxPar(Box x, Box y);
+LIBFAUST_API Box boxPar(Box x, Box y);
 
-Box boxPar3(Box x, Box y, Box z);
+LIBFAUST_API Box boxPar3(Box x, Box y, Box z);
 
-Box boxPar4(Box a, Box b, Box c, Box d);
+LIBFAUST_API Box boxPar4(Box a, Box b, Box c, Box d);
 
-Box boxPar5(Box a, Box b, Box c, Box d, Box e);
+LIBFAUST_API Box boxPar5(Box a, Box b, Box c, Box d, Box e);
 
 /**
  * The split composition (e.g., A<:B) operator is used to distribute
@@ -136,7 +138,7 @@ Box boxPar5(Box a, Box b, Box c, Box d, Box e);
  *
  * @return the split box.
  */
-Box boxSplit(Box x, Box y);
+LIBFAUST_API Box boxSplit(Box x, Box y);
 
 /**
  * The merge composition (e.g., A:>B) is the dual of the split composition.
@@ -145,7 +147,7 @@ Box boxSplit(Box x, Box y);
  *
  * @return the merge box.
  */
-Box boxMerge(Box x, Box y);
+LIBFAUST_API Box boxMerge(Box x, Box y);
 
 /**
  * The recursive composition (e.g., A~B) is used to create cycles in the block-diagram
@@ -154,7 +156,7 @@ Box boxMerge(Box x, Box y);
  *
  * @return the rec box.
  */
-Box boxRec(Box x, Box y);
+LIBFAUST_API Box boxRec(Box x, Box y);
 
 /**
  * The route primitive facilitates the routing of signals in Faust.
@@ -166,14 +168,14 @@ Box boxRec(Box x, Box y);
 
  * @return the route box.
  */
-Box boxRoute(Box n, Box m, Box r);
+LIBFAUST_API Box boxRoute(Box n, Box m, Box r);
 
 /**
  * Create a delayed box.
  *
  * @return the delayed box.
  */
-Box boxDelay();
+LIBFAUST_API Box boxDelay();
 
 /**
  * Create a delayed box.
@@ -183,14 +185,14 @@ Box boxDelay();
 
  * @return the delayed box.
  */
-Box boxDelay(Box s, Box del);
+LIBFAUST_API Box boxDelay(Box s, Box del);
 
 /**
  * Create a casted box.
  *
  * @return the casted box.
  */
-Box boxIntCast();
+LIBFAUST_API Box boxIntCast();
 
 /**
  * Create a casted box.
@@ -199,15 +201,14 @@ Box boxIntCast();
  *
  * @return the casted box.
  */
-
-Box boxIntCast(Box s);
+LIBFAUST_API Box boxIntCast(Box s);
 
 /**
  * Create a casted box.
  *
  * @return the casted box.
  */
-Box boxFloatCast();
+LIBFAUST_API Box boxFloatCast();
 
 /**
  * Create a casted box.
@@ -216,14 +217,14 @@ Box boxFloatCast();
  *
  * @return the casted box.
  */
-Box boxFloatCast(Box s);
+LIBFAUST_API Box boxFloatCast(Box s);
 
 /**
  * Create a read only table.
  *
  * @return the table box.
  */
-Box boxReadOnlyTable();
+LIBFAUST_API Box boxReadOnlyTable();
 
 /**
  * Create a read only table.
@@ -234,14 +235,14 @@ Box boxReadOnlyTable();
  *
  * @return the table box.
  */
-Box boxReadOnlyTable(Box n, Box init, Box ridx);
+LIBFAUST_API Box boxReadOnlyTable(Box n, Box init, Box ridx);
 
 /**
  * Create a read/write table.
  *
  * @return the table box.
  */
-Box boxWriteReadTable();
+LIBFAUST_API Box boxWriteReadTable();
 
 /**
  * Create a read/write table.
@@ -254,7 +255,7 @@ Box boxWriteReadTable();
  *
  * @return the table box.
  */
-Box boxWriteReadTable(Box n, Box init, Box widx, Box wsig, Box ridx);
+LIBFAUST_API Box boxWriteReadTable(Box n, Box init, Box widx, Box wsig, Box ridx);
 
 /**
  * Create a waveform.
@@ -263,7 +264,7 @@ Box boxWriteReadTable(Box n, Box init, Box widx, Box wsig, Box ridx);
  *
  * @return the waveform box.
  */
-Box boxWaveform(const tvec& wf);
+LIBFAUST_API Box boxWaveform(const tvec& wf);
 
 /**
  * Create a soundfile block.
@@ -273,7 +274,7 @@ Box boxWaveform(const tvec& wf);
  *
  * @return the soundfile box.
  */
-Box boxSoundfile(const std::string& label, Box chan);
+LIBFAUST_API Box boxSoundfile(const std::string& label, Box chan);
 
 /**
  * Create a soundfile block.
@@ -285,14 +286,14 @@ Box boxSoundfile(const std::string& label, Box chan);
  *
  * @return the soundfile box.
  */
-Box boxSoundfile(const std::string& label, Box chan, Box part, Box ridx);
+LIBFAUST_API Box boxSoundfile(const std::string& label, Box chan, Box part, Box ridx);
 
 /**
  * Create a selector between two boxes.
  *
  * @return the selected box depending of the selector value at each time t.
  */
-Box boxSelect2();
+LIBFAUST_API Box boxSelect2();
 
 /**
  * Create a selector between two boxes.
@@ -303,14 +304,14 @@ Box boxSelect2();
  *
  * @return the selected box depending of the selector value at each time t.
  */
-Box boxSelect2(Box selector, Box s1, Box s2);
+LIBFAUST_API Box boxSelect2(Box selector, Box s1, Box s2);
 
 /**
  * Create a selector between three boxes.
  *
  * @return the selected box depending of the selector value at each time t.
  */
-Box boxSelect3();
+LIBFAUST_API Box boxSelect3();
 
 /**
  * Create a selector between three boxes.
@@ -322,7 +323,7 @@ Box boxSelect3();
  *
  * @return the selected box depending of the selector value at each time t.
  */
-Box boxSelect3(Box selector, Box s1, Box s2, Box s3);
+LIBFAUST_API Box boxSelect3(Box selector, Box s1, Box s2, Box s3);
 
 /**
  * Create a foreign constant box.
@@ -333,7 +334,7 @@ Box boxSelect3(Box selector, Box s1, Box s2, Box s3);
  *
  * @return the foreign constant box.
  */
-Box boxFConst(SType type, const std::string& name, const std::string& file);
+LIBFAUST_API Box boxFConst(SType type, const std::string& name, const std::string& file);
 
 /**
  * Create a foreign variable box.
@@ -344,7 +345,7 @@ Box boxFConst(SType type, const std::string& name, const std::string& file);
  *
  * @return the foreign variable box.
  */
-Box boxFVar(SType type, const std::string& name, const std::string& file);
+LIBFAUST_API Box boxFVar(SType type, const std::string& name, const std::string& file);
 
 /**
  * Generic binary mathematical functions.
@@ -353,104 +354,104 @@ Box boxFVar(SType type, const std::string& name, const std::string& file);
  *
  * @return the result box of op(x,y).
  */
-Box boxBinOp(SOperator op);
+LIBFAUST_API Box boxBinOp(SOperator op);
 
-Box boxBinOp(SOperator op, Box b1, Box b2);
+LIBFAUST_API Box boxBinOp(SOperator op, Box b1, Box b2);
 
 /**
  * Specific binary mathematical functions.
  *
  * @return the result box.
  */
-Box boxAdd();
-Box boxAdd(Box b1, Box b2);
-Box boxSub();
-Box boxSub(Box b1, Box b2);
-Box boxMul();
-Box boxMul(Box b1, Box b2);
-Box boxDiv();
-Box boxDiv(Box b1, Box b2);
-Box boxRem();
-Box boxRem(Box b1, Box b2);
+LIBFAUST_API Box boxAdd();
+LIBFAUST_API Box boxAdd(Box b1, Box b2);
+LIBFAUST_API Box boxSub();
+LIBFAUST_API Box boxSub(Box b1, Box b2);
+LIBFAUST_API Box boxMul();
+LIBFAUST_API Box boxMul(Box b1, Box b2);
+LIBFAUST_API Box boxDiv();
+LIBFAUST_API Box boxDiv(Box b1, Box b2);
+LIBFAUST_API Box boxRem();
+LIBFAUST_API Box boxRem(Box b1, Box b2);
 
-Box boxLeftShift();
-Box boxLeftShift(Box b1, Box b2);
-Box boxLRightShift();
-Box boxLRightShift(Box b1, Box b2);
-Box boxARightShift();
-Box boxARightShift(Box b1, Box b2);
+LIBFAUST_API Box boxLeftShift();
+LIBFAUST_API Box boxLeftShift(Box b1, Box b2);
+LIBFAUST_API Box boxLRightShift();
+LIBFAUST_API Box boxLRightShift(Box b1, Box b2);
+LIBFAUST_API Box boxARightShift();
+LIBFAUST_API Box boxARightShift(Box b1, Box b2);
 
-Box boxGT();
-Box boxGT(Box b1, Box b2);
-Box boxLT();
-Box boxLT(Box b1, Box b2);
-Box boxGE();
-Box boxGE(Box b1, Box b2);
-Box boxLE();
-Box boxLE(Box b1, Box b2);
-Box boxEQ();
-Box boxEQ(Box b1, Box b2);
-Box boxNE();
-Box boxNE(Box b1, Box b2);
+LIBFAUST_API Box boxGT();
+LIBFAUST_API Box boxGT(Box b1, Box b2);
+LIBFAUST_API Box boxLT();
+LIBFAUST_API Box boxLT(Box b1, Box b2);
+LIBFAUST_API Box boxGE();
+LIBFAUST_API Box boxGE(Box b1, Box b2);
+LIBFAUST_API Box boxLE();
+LIBFAUST_API Box boxLE(Box b1, Box b2);
+LIBFAUST_API Box boxEQ();
+LIBFAUST_API Box boxEQ(Box b1, Box b2);
+LIBFAUST_API Box boxNE();
+LIBFAUST_API Box boxNE(Box b1, Box b2);
 
-Box boxAND();
-Box boxAND(Box b1, Box b2);
-Box boxOR();
-Box boxOR(Box b1, Box b2);
-Box boxXOR();
-Box boxXOR(Box b1, Box b2);
+LIBFAUST_API Box boxAND();
+LIBFAUST_API Box boxAND(Box b1, Box b2);
+LIBFAUST_API Box boxOR();
+LIBFAUST_API Box boxOR(Box b1, Box b2);
+LIBFAUST_API Box boxXOR();
+LIBFAUST_API Box boxXOR(Box b1, Box b2);
 
 /**
  * Extended unary mathematical functions.
  */
 
-Box boxAbs();
-Box boxAbs(Box x);
-Box boxAcos();
-Box boxAcos(Box x);
-Box boxTan();
-Box boxTan(Box x);
-Box boxSqrt();
-Box boxSqrt(Box x);
-Box boxSin();
-Box boxSin(Box x);
-Box boxRint();
-Box boxRint(Box x);
-Box boxLog();
-Box boxLog(Box x);
-Box boxLog10();
-Box boxLog10(Box x);
-Box boxFloor();
-Box boxFloor(Box x);
-Box boxExp();
-Box boxExp(Box x);
-Box boxExp10();
-Box boxExp10(Box x);
-Box boxCos();
-Box boxCos(Box x);
-Box boxCeil();
-Box boxCeil(Box x);
-Box boxAtan();
-Box boxAtan(Box x);
-Box boxAsin();
-Box boxAsin(Box x);
+LIBFAUST_API Box boxAbs();
+LIBFAUST_API Box boxAbs(Box x);
+LIBFAUST_API Box boxAcos();
+LIBFAUST_API Box boxAcos(Box x);
+LIBFAUST_API Box boxTan();
+LIBFAUST_API Box boxTan(Box x);
+LIBFAUST_API Box boxSqrt();
+LIBFAUST_API Box boxSqrt(Box x);
+LIBFAUST_API Box boxSin();
+LIBFAUST_API Box boxSin(Box x);
+LIBFAUST_API Box boxRint();
+LIBFAUST_API Box boxRint(Box x);
+LIBFAUST_API Box boxLog();
+LIBFAUST_API Box boxLog(Box x);
+LIBFAUST_API Box boxLog10();
+LIBFAUST_API Box boxLog10(Box x);
+LIBFAUST_API Box boxFloor();
+LIBFAUST_API Box boxFloor(Box x);
+LIBFAUST_API Box boxExp();
+LIBFAUST_API Box boxExp(Box x);
+LIBFAUST_API Box boxExp10();
+LIBFAUST_API Box boxExp10(Box x);
+LIBFAUST_API Box boxCos();
+LIBFAUST_API Box boxCos(Box x);
+LIBFAUST_API Box boxCeil();
+LIBFAUST_API Box boxCeil(Box x);
+LIBFAUST_API Box boxAtan();
+LIBFAUST_API Box boxAtan(Box x);
+LIBFAUST_API Box boxAsin();
+LIBFAUST_API Box boxAsin(Box x);
 
 /**
  * Extended binary mathematical functions.
  */
 
-Box boxRemainder();
-Box boxRemainder(Box b1, Box b2);
-Box boxPow();
-Box boxPow(Box b1, Box b2);
-Box boxMin();
-Box boxMin(Box b1, Box b2);
-Box boxMax();
-Box boxMax(Box b1, Box b2);
-Box boxFmod();
-Box boxFmod(Box b1, Box b2);
-Box boxAtan2();
-Box boxAtan2(Box b1, Box b2);
+LIBFAUST_API Box boxRemainder();
+LIBFAUST_API Box boxRemainder(Box b1, Box b2);
+LIBFAUST_API Box boxPow();
+LIBFAUST_API Box boxPow(Box b1, Box b2);
+LIBFAUST_API Box boxMin();
+LIBFAUST_API Box boxMin(Box b1, Box b2);
+LIBFAUST_API Box boxMax();
+LIBFAUST_API Box boxMax(Box b1, Box b2);
+LIBFAUST_API Box boxFmod();
+LIBFAUST_API Box boxFmod(Box b1, Box b2);
+LIBFAUST_API Box boxAtan2();
+LIBFAUST_API Box boxAtan2(Box b1, Box b2);
 
 /**
  * Create a button box.
@@ -459,7 +460,7 @@ Box boxAtan2(Box b1, Box b2);
  *
  * @return the button box.
  */
-Box boxButton(const std::string& label);
+LIBFAUST_API Box boxButton(const std::string& label);
 
 /**
  * Create a checkbox box.
@@ -468,7 +469,7 @@ Box boxButton(const std::string& label);
  *
  * @return the checkbox box.
  */
-Box boxCheckbox(const std::string& label);
+LIBFAUST_API Box boxCheckbox(const std::string& label);
 
 /**
  * Create a vertical slider box.
@@ -481,7 +482,7 @@ Box boxCheckbox(const std::string& label);
  *
  * @return the vertical slider box.
  */
-Box boxVSlider(const std::string& label, Box init, Box min, Box max, Box step);
+LIBFAUST_API Box boxVSlider(const std::string& label, Box init, Box min, Box max, Box step);
 
 /**
  * Create an horizontal slider box.
@@ -494,7 +495,7 @@ Box boxVSlider(const std::string& label, Box init, Box min, Box max, Box step);
  *
  * @return the horizontal slider box.
  */
-Box boxHSlider(const std::string& label, Box init, Box min, Box max, Box step);
+LIBFAUST_API Box boxHSlider(const std::string& label, Box init, Box min, Box max, Box step);
 
 /**
  * Create a num entry box.
@@ -507,7 +508,7 @@ Box boxHSlider(const std::string& label, Box init, Box min, Box max, Box step);
  *
  * @return the num entry box.
  */
-Box boxNumEntry(const std::string& label, Box init, Box min, Box max, Box step);
+LIBFAUST_API Box boxNumEntry(const std::string& label, Box init, Box min, Box max, Box step);
 
 /**
  * Create a vertical bargraph box.
@@ -518,7 +519,7 @@ Box boxNumEntry(const std::string& label, Box init, Box min, Box max, Box step);
  *
  * @return the vertical bargraph box.
  */
-Box boxVBargraph(const std::string& label, Box min, Box max);
+LIBFAUST_API Box boxVBargraph(const std::string& label, Box min, Box max);
 
 /**
  * Create a vertical bargraph box.
@@ -530,7 +531,7 @@ Box boxVBargraph(const std::string& label, Box min, Box max);
  *
  * @return the vertical bargraph box.
  */
-Box boxVBargraph(const std::string& label, Box min, Box max, Box x);
+LIBFAUST_API Box boxVBargraph(const std::string& label, Box min, Box max, Box x);
 
 /**
  * Create an horizontal bargraph box.
@@ -541,7 +542,7 @@ Box boxVBargraph(const std::string& label, Box min, Box max, Box x);
  *
  * @return the horizontal bargraph box.
  */
-Box boxHBargraph(const std::string& label, Box min, Box max);
+LIBFAUST_API Box boxHBargraph(const std::string& label, Box min, Box max);
 
 /**
  * Create a horizontal bargraph box.
@@ -553,7 +554,7 @@ Box boxHBargraph(const std::string& label, Box min, Box max);
  *
  * @return the vertical horizontal box.
  */
-Box boxHBargraph(const std::string& label, Box min, Box max, Box x);
+LIBFAUST_API Box boxHBargraph(const std::string& label, Box min, Box max, Box x);
 
 /**
  * Create an attach box.
@@ -564,7 +565,7 @@ Box boxHBargraph(const std::string& label, Box min, Box max, Box x);
  *
  * @return the attach box.
  */
-Box boxAttach();
+LIBFAUST_API Box boxAttach();
 
 /**
  * Create an attach box.
@@ -578,7 +579,7 @@ Box boxAttach();
  *
  * @return the attach signal.
  */
-Box boxAttach(Box s1, Box s2);
+LIBFAUST_API Box boxAttach(Box s1, Box s2);
 
 /**
  * Compile a box expression in a list of signals.
@@ -588,7 +589,7 @@ Box boxAttach(Box s1, Box s2);
  *
  * @return a list of signals on success, otherwise an empty list.
  */
-tvec boxesToSignals(Box box, std::string& error_msg);
+LIBFAUST_API tvec boxesToSignals(Box box, std::string& error_msg);
 
 /**
  * Create a C++ Faust DSP factory from a box expression.
@@ -601,9 +602,9 @@ tvec boxesToSignals(Box box, std::string& error_msg);
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
-dsp_factory_base* createCPPDSPFactoryFromBoxes(const std::string& name_app, Box box,
-                                               int argc, const char* argv[],
-                                               std::string& error_msg);
+LIBFAUST_API  dsp_factory_base* createCPPDSPFactoryFromBoxes(const std::string& name_app, Box box,
+                                                             int argc, const char* argv[],
+                                                             std::string& error_msg);
 
 /*
  [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions

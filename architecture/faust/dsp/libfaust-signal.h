@@ -28,6 +28,8 @@
 #include <string>
 #include <vector>
 
+#include "faust/export.h"
+
 /*!
  \addtogroup signalcpp C++ interface for the Signal API.
  @{
@@ -36,7 +38,7 @@
 /**
  * Opaque types.
  */
-class CTree;
+class LIBFAUST_API CTree;
 typedef std::vector<CTree*> tvec;
 
 enum SType { kSInt, kSReal };
@@ -46,7 +48,7 @@ enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE
 /**
  * Base class for factories.
  */
-struct dsp_factory_base {
+struct LIBFAUST_API dsp_factory_base {
     
     virtual ~dsp_factory_base() {}
     
@@ -66,12 +68,12 @@ typedef CTree* Signal;
 /**
  * Create global compilation context, has to be done first.
  */
-extern "C" void createLibContext();
+extern "C" LIBFAUST_API void createLibContext();
 
 /**
  * Destroy global compilation context, has to be done last.
  */
-extern "C" void destroyLibContext();
+extern "C" LIBFAUST_API void destroyLibContext();
 
 /**
  * Constant integer : for all t, x(t) = n.
@@ -80,7 +82,7 @@ extern "C" void destroyLibContext();
  *
  * @return the integer signal.
  */
-Signal sigInt(int n);
+LIBFAUST_API Signal sigInt(int n);
 
 /**
  * Constant real : for all t, x(t) = n.
@@ -89,7 +91,7 @@ Signal sigInt(int n);
  *
  * @return the float/double signal.
  */
-Signal sigReal(double n);
+LIBFAUST_API Signal sigReal(double n);
 
 /**
  * Create an input.
@@ -98,7 +100,7 @@ Signal sigReal(double n);
  *
  * @return the input signal.
  */
-Signal sigInput(int idx);
+LIBFAUST_API Signal sigInput(int idx);
 
 /**
  * Create a delayed signal.
@@ -108,7 +110,7 @@ Signal sigInput(int idx);
  *
  * @return the delayed signal.
  */
-Signal sigDelay(Signal s, Signal del);
+LIBFAUST_API Signal sigDelay(Signal s, Signal del);
 
 /**
  * Create a casted signal.
@@ -117,7 +119,7 @@ Signal sigDelay(Signal s, Signal del);
  *
  * @return the casted signal.
  */
-Signal sigIntCast(Signal s);
+LIBFAUST_API Signal sigIntCast(Signal s);
 
 /**
  * Create a casted signal.
@@ -126,7 +128,7 @@ Signal sigIntCast(Signal s);
  *
  * @return the casted signal.
  */
-Signal sigFloatCast(Signal s);
+LIBFAUST_API Signal sigFloatCast(Signal s);
 
 /**
  * Create a read only table.
@@ -137,7 +139,7 @@ Signal sigFloatCast(Signal s);
  *
  * @return the table signal.
  */
-Signal sigReadOnlyTable(Signal n, Signal init, Signal ridx);
+LIBFAUST_API Signal sigReadOnlyTable(Signal n, Signal init, Signal ridx);
 
 /**
  * Create a read/write table.
@@ -150,7 +152,7 @@ Signal sigReadOnlyTable(Signal n, Signal init, Signal ridx);
  *
  * @return the table signal.
  */
-Signal sigWriteReadTable(Signal n, Signal init, Signal widx, Signal wsig, Signal ridx);
+LIBFAUST_API Signal sigWriteReadTable(Signal n, Signal init, Signal widx, Signal wsig, Signal ridx);
 
 /**
  * Create a waveform.
@@ -159,7 +161,7 @@ Signal sigWriteReadTable(Signal n, Signal init, Signal widx, Signal wsig, Signal
  *
  * @return the waveform signal.
  */
-Signal sigWaveform(const tvec& wf);
+LIBFAUST_API Signal sigWaveform(const tvec& wf);
 // Use: sigInt(wf.size()); to generate the waveform size signal
 
 /**
@@ -169,7 +171,7 @@ Signal sigWaveform(const tvec& wf);
  *
  * @return the soundfile block.
  */
-Signal sigSoundfile(const std::string& label);
+LIBFAUST_API Signal sigSoundfile(const std::string& label);
 
 /**
  * Create the length signal of a given soundfile in frames.
@@ -179,7 +181,7 @@ Signal sigSoundfile(const std::string& label);
  *
  * @return the soundfile length signal.
  */
-Signal sigSoundfileLength(Signal sf, Signal part);
+LIBFAUST_API Signal sigSoundfileLength(Signal sf, Signal part);
 
 /**
  * Create the rate signal of a given soundfile in Hz.
@@ -189,7 +191,7 @@ Signal sigSoundfileLength(Signal sf, Signal part);
  *
  * @return the soundfile rate signal.
  */
-Signal sigSoundfileRate(Signal sf, Signal part);
+LIBFAUST_API Signal sigSoundfileRate(Signal sf, Signal part);
 
 /**
  * Create the buffer signal of a given soundfile.
@@ -201,7 +203,7 @@ Signal sigSoundfileRate(Signal sf, Signal part);
  *
  * @return the soundfile buffer signal.
  */
-Signal sigSoundfileBuffer(Signal sf, Signal chan, Signal part, Signal ridx);
+LIBFAUST_API Signal sigSoundfileBuffer(Signal sf, Signal chan, Signal part, Signal ridx);
 
 /**
  * Create a selector between two signals.
@@ -213,7 +215,7 @@ Signal sigSoundfileBuffer(Signal sf, Signal chan, Signal part, Signal ridx);
  *
  * @return the selected signal depending of the selector value at each time t.
  */
-Signal sigSelect2(Signal selector, Signal s1, Signal s2);
+LIBFAUST_API Signal sigSelect2(Signal selector, Signal s1, Signal s2);
 
 /**
  * Create a selector between three signals.
@@ -226,7 +228,7 @@ Signal sigSelect2(Signal selector, Signal s1, Signal s2);
  *
  * @return the selected signal depending of the selector value at each time t.
  */
-Signal sigSelect3(Signal selector, Signal s1, Signal s2, Signal s3);
+LIBFAUST_API Signal sigSelect3(Signal selector, Signal s1, Signal s2, Signal s3);
 
 /**
  * Create a foreign constant signal.
@@ -237,7 +239,7 @@ Signal sigSelect3(Signal selector, Signal s1, Signal s2, Signal s3);
  *
  * @return the foreign constant signal.
  */
-Signal sigFConst(SType type, const std::string& name, const std::string& file);
+LIBFAUST_API Signal sigFConst(SType type, const std::string& name, const std::string& file);
 
 /**
  * Create a foreign variable signal.
@@ -248,7 +250,7 @@ Signal sigFConst(SType type, const std::string& name, const std::string& file);
  *
  * @return the foreign variable signal.
  */
-Signal sigFVar(SType type, const std::string& name, const std::string& file);
+LIBFAUST_API Signal sigFVar(SType type, const std::string& name, const std::string& file);
 
 /**
  * Generic binary mathematical functions.
@@ -259,7 +261,7 @@ Signal sigFVar(SType type, const std::string& name, const std::string& file);
  *
  * @return the result signal of op(x,y).
  */
-Signal sigBinOp(SOperator op, Signal x, Signal y);
+LIBFAUST_API Signal sigBinOp(SOperator op, Signal x, Signal y);
 
 /**
  * Specific binary mathematical functions.
@@ -269,62 +271,62 @@ Signal sigBinOp(SOperator op, Signal x, Signal y);
  *
  * @return the result signal of fun(x,y).
  */
-Signal sigAdd(Signal x, Signal y);
-Signal sigSub(Signal x, Signal y);
-Signal sigMul(Signal x, Signal y);
-Signal sigDiv(Signal x, Signal y);
-Signal sigRem(Signal x, Signal y);
+LIBFAUST_API Signal sigAdd(Signal x, Signal y);
+LIBFAUST_API Signal sigSub(Signal x, Signal y);
+LIBFAUST_API Signal sigMul(Signal x, Signal y);
+LIBFAUST_API Signal sigDiv(Signal x, Signal y);
+LIBFAUST_API Signal sigRem(Signal x, Signal y);
 
-Signal sigLeftShift(Signal x, Signal y);
-Signal sigLRightShift(Signal x, Signal y);
-Signal sigARightShift(Signal x, Signal y);
+LIBFAUST_API Signal sigLeftShift(Signal x, Signal y);
+LIBFAUST_API Signal sigLRightShift(Signal x, Signal y);
+LIBFAUST_API Signal sigARightShift(Signal x, Signal y);
 
-Signal sigGT(Signal x, Signal y);
-Signal sigLT(Signal x, Signal y);
-Signal sigGE(Signal x, Signal y);
-Signal sigLE(Signal x, Signal y);
-Signal sigEQ(Signal x, Signal y);
-Signal sigNE(Signal x, Signal y);
+LIBFAUST_API Signal sigGT(Signal x, Signal y);
+LIBFAUST_API Signal sigLT(Signal x, Signal y);
+LIBFAUST_API Signal sigGE(Signal x, Signal y);
+LIBFAUST_API Signal sigLE(Signal x, Signal y);
+LIBFAUST_API Signal sigEQ(Signal x, Signal y);
+LIBFAUST_API Signal sigNE(Signal x, Signal y);
 
-Signal sigAND(Signal x, Signal y);
-Signal sigOR(Signal x, Signal y);
-Signal sigXOR(Signal x, Signal y);
+LIBFAUST_API Signal sigAND(Signal x, Signal y);
+LIBFAUST_API Signal sigOR(Signal x, Signal y);
+LIBFAUST_API Signal sigXOR(Signal x, Signal y);
 
 /**
  * Extended unary mathematical functions.
  */
-Signal sigAbs(Signal x);
-Signal sigAcos(Signal x);
-Signal sigTan(Signal x);
-Signal sigSqrt(Signal x);
-Signal sigSin(Signal x);
-Signal sigRint(Signal x);
-Signal sigLog(Signal x);
-Signal sigLog10(Signal x);
-Signal sigFloor(Signal x);
-Signal sigExp(Signal x);
-Signal sigExp10(Signal x);
-Signal sigCos(Signal x);
-Signal sigCeil(Signal x);
-Signal sigAtan(Signal x);
-Signal sigAsin(Signal x);
+LIBFAUST_API Signal sigAbs(Signal x);
+LIBFAUST_API Signal sigAcos(Signal x);
+LIBFAUST_API Signal sigTan(Signal x);
+LIBFAUST_API Signal sigSqrt(Signal x);
+LIBFAUST_API Signal sigSin(Signal x);
+LIBFAUST_API Signal sigRint(Signal x);
+LIBFAUST_API Signal sigLog(Signal x);
+LIBFAUST_API Signal sigLog10(Signal x);
+LIBFAUST_API Signal sigFloor(Signal x);
+LIBFAUST_API Signal sigExp(Signal x);
+LIBFAUST_API Signal sigExp10(Signal x);
+LIBFAUST_API Signal sigCos(Signal x);
+LIBFAUST_API Signal sigCeil(Signal x);
+LIBFAUST_API Signal sigAtan(Signal x);
+LIBFAUST_API Signal sigAsin(Signal x);
 
 /**
  * Extended binary mathematical functions.
  */
-Signal sigRemainder(Signal x, Signal y);
-Signal sigPow(Signal x, Signal y);
-Signal sigMin(Signal x, Signal y);
-Signal sigMax(Signal x, Signal y);
-Signal sigFmod(Signal x, Signal y);
-Signal sigAtan2(Signal x, Signal y);
+LIBFAUST_API Signal sigRemainder(Signal x, Signal y);
+LIBFAUST_API Signal sigPow(Signal x, Signal y);
+LIBFAUST_API Signal sigMin(Signal x, Signal y);
+LIBFAUST_API Signal sigMax(Signal x, Signal y);
+LIBFAUST_API Signal sigFmod(Signal x, Signal y);
+LIBFAUST_API Signal sigAtan2(Signal x, Signal y);
 
 /**
  * Create a recursive signal inside the sigRecursion expression.
  *
  * @return the recursive signal.
  */
-Signal sigSelf();
+LIBFAUST_API Signal sigSelf();
 
 /**
  * Create a recursive signal. Use sigSelf() to refer to the
@@ -334,7 +336,7 @@ Signal sigSelf();
  *
  * @return the signal with a recursion.
  */
-Signal sigRecursion(Signal s);
+LIBFAUST_API Signal sigRecursion(Signal s);
 
 /**
  * Create a button signal.
@@ -343,7 +345,7 @@ Signal sigRecursion(Signal s);
  *
  * @return the button signal.
  */
-Signal sigButton(const std::string& label);
+LIBFAUST_API Signal sigButton(const std::string& label);
 
 /**
  * Create a checkbox signal.
@@ -352,7 +354,7 @@ Signal sigButton(const std::string& label);
  *
  * @return the checkbox signal.
  */
-Signal sigCheckbox(const std::string& label);
+LIBFAUST_API Signal sigCheckbox(const std::string& label);
 
 /**
  * Create a vertical slider signal.
@@ -365,7 +367,7 @@ Signal sigCheckbox(const std::string& label);
  *
  * @return the vertical slider signal.
  */
-Signal sigVSlider(const std::string& label, Signal init, Signal min, Signal max, Signal step);
+LIBFAUST_API Signal sigVSlider(const std::string& label, Signal init, Signal min, Signal max, Signal step);
 
 /**
  * Create an horizontal slider signal.
@@ -378,7 +380,7 @@ Signal sigVSlider(const std::string& label, Signal init, Signal min, Signal max,
  *
  * @return the horizontal slider signal.
  */
-Signal sigHSlider(const std::string& label, Signal init, Signal min, Signal max, Signal step);
+LIBFAUST_API Signal sigHSlider(const std::string& label, Signal init, Signal min, Signal max, Signal step);
 
 /**
  * Create a num entry signal.
@@ -391,7 +393,7 @@ Signal sigHSlider(const std::string& label, Signal init, Signal min, Signal max,
  *
  * @return the num entry signal.
  */
-Signal sigNumEntry(const std::string& label, Signal init, Signal min, Signal max, Signal step);
+LIBFAUST_API Signal sigNumEntry(const std::string& label, Signal init, Signal min, Signal max, Signal step);
 
 /**
  * Create a vertical bargraph signal.
@@ -403,7 +405,7 @@ Signal sigNumEntry(const std::string& label, Signal init, Signal min, Signal max
  *
  * @return the vertical bargraph signal.
  */
-Signal sigVBargraph(const std::string& label, Signal min, Signal max, Signal s);
+LIBFAUST_API Signal sigVBargraph(const std::string& label, Signal min, Signal max, Signal s);
 
 /**
  * Create an horizontal bargraph signal.
@@ -415,7 +417,7 @@ Signal sigVBargraph(const std::string& label, Signal min, Signal max, Signal s);
  *
  * @return the horizontal bargraph signal.
  */
-Signal sigHBargraph(const std::string& label, Signal min, Signal max, Signal s);
+LIBFAUST_API Signal sigHBargraph(const std::string& label, Signal min, Signal max, Signal s);
 
 /**
  * Create an attach signal.
@@ -429,7 +431,7 @@ Signal sigHBargraph(const std::string& label, Signal min, Signal max, Signal s);
  *
  * @return the attach signal.
  */
-Signal sigAttach(Signal s1, Signal s2);
+LIBFAUST_API Signal sigAttach(Signal s1, Signal s2);
 
 /**
  * Create a C++ Faust DSP factory from a vector of output signals.
@@ -442,9 +444,9 @@ Signal sigAttach(Signal s1, Signal s2);
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
-dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name_app, tvec signals_vec,
-                                                 int argc, const char* argv[],
-                                                 std::string& error_msg);
+LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name_app, tvec signals_vec,
+                                                              int argc, const char* argv[],
+                                                              std::string& error_msg);
 
 /*
  [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions

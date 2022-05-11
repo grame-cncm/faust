@@ -27,11 +27,7 @@
 
 #include <string.h>
 
-#ifdef _WIN32
-#define LIBEXPORT __declspec(dllexport)
-#else
-#define LIBEXPORT
-#endif
+#include "faust/export.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,7 +40,7 @@ extern "C" {
  * @param sha_key - a 64 characters buffer to be filled with the computed key
  *
  */
-LIBEXPORT void generateCSHA1(const char* data, char* sha_key);
+LIBFAUST_API void generateCSHA1(const char* data, char* sha_key);
 
 /**
  * Expand a DSP source code into a self-contained DSP where all library import have been inlined starting from a
@@ -59,8 +55,8 @@ LIBEXPORT void generateCSHA1(const char* data, char* sha_key);
  *
  * @return the expanded DSP or a NULL string in case of failure (to be deleted by the caller using freeCMemory)
  */
-LIBEXPORT const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key,
-                                         char* error_msg);
+LIBFAUST_API const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key,
+                                            char* error_msg);
 
 /**
  * Expand a DSP source code into a self-contained DSP where all library import have been inlined starting from a string.
@@ -75,7 +71,7 @@ LIBEXPORT const char* expandCDSPFromFile(const char* filename, int argc, const c
  *
  * @return the expanded DSP or a NULL string in case of failure (to be deleted by the caller using freeCMemory)
  */
-LIBEXPORT const char* expandCDSPFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
+LIBFAUST_API const char* expandCDSPFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
                                            char* sha_key, char* error_msg);
 
 /**
@@ -88,7 +84,7 @@ LIBEXPORT const char* expandCDSPFromString(const char* name_app, const char* dsp
  *
  * @return the expanded DSP or a empty string in case of failure
  */
-LIBEXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
+LIBFAUST_API bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
 
 /**
  * Generate additional file (other backends, SVG, XML, JSON...) starting from a string.
@@ -101,7 +97,7 @@ LIBEXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const c
  *
  * @return the expanded DSP or a empty string in case of failure
  */
-LIBEXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
+LIBFAUST_API bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
                                            char* error_msg);
 
 /**
@@ -113,7 +109,7 @@ LIBEXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp
  *
  * @param ptr - the pointer to be deleted.
  */
-LIBEXPORT void freeCMemory(void* ptr);
+LIBFAUST_API void freeCMemory(void* ptr);
 
 #ifdef __cplusplus
 }

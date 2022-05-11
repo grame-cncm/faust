@@ -575,7 +575,7 @@ Module* linkAllModules(LLVMContext* context, Module* dst, string& error)
         
 // Public C++ API
 
-EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename, int argc, const char* argv[],
+LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromFile(const string& filename, int argc, const char* argv[],
                                                   const string& target, string& error_msg, int opt_level)
 {
     string base = basename((char*)filename.c_str());
@@ -590,9 +590,9 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename, int ar
     }
 }
 
-EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc,
-                                                    const char* argv[], const string& target, string& error_msg,
-                                                    int opt_level)
+LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc,
+                                                       const char* argv[], const string& target, string& error_msg,
+                                                       int opt_level)
 {
     LOCK_API
     string expanded_dsp_content, sha_key;
@@ -650,11 +650,11 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
     }
 }
         
-EXPORT llvm_dsp_factory* createDSPFactoryFromSignals(const std::string& name_app, tvec signals,
-                                                    int argc, const char* argv[],
-                                                    const std::string& target,
-                                                    std::string& error_msg,
-                                                    int opt_level)
+LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromSignals(const std::string& name_app, tvec signals,
+                                                        int argc, const char* argv[],
+                                                        const std::string& target,
+                                                        std::string& error_msg,
+                                                        int opt_level)
 {
     LOCK_API
     try {
@@ -691,11 +691,11 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromSignals(const std::string& name_app
     }
 }
         
-EXPORT llvm_dsp_factory* createDSPFactoryFromBoxes(const std::string& name_app, Tree box,
-                                                   int argc, const char* argv[],
-                                                   const std::string& target,
-                                                   std::string& error_msg,
-                                                   int opt_level)
+LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromBoxes(const std::string& name_app, Tree box,
+                                                      int argc, const char* argv[],
+                                                      const std::string& target,
+                                                      std::string& error_msg,
+                                                      int opt_level)
 {
     LOCK_API
     try {
@@ -707,23 +707,23 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromBoxes(const std::string& name_app, 
     }
 }
 
-EXPORT llvm_dsp_factory* readDSPFactoryFromBitcode(const string& bit_code, const string& target, string& error_msg,
-                                                   int opt_level)
+LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromBitcode(const string& bit_code, const string& target, string& error_msg,
+                                                      int opt_level)
 {
     LOCK_API
     return readDSPFactoryFromBitcodeAux(MEMORY_BUFFER_CREATE(StringRef(base64_decode(bit_code))), target, error_msg,
                                         opt_level);
 }
 
-EXPORT string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
+LIBFAUST_API string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
 {
     LOCK_API
     return (factory) ? factory->writeDSPFactoryToBitcode() : "";
 }
 
 // Bitcode <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_path, const string& target,
-                                                       string& error_msg, int opt_level)
+LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_path, const string& target,
+                                                          string& error_msg, int opt_level)
 {
     LOCK_API
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(bit_code_path);
@@ -735,28 +735,28 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_pa
     }
 }
 
-EXPORT bool writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const string& bit_code_path)
+LIBFAUST_API bool writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const string& bit_code_path)
 {
     LOCK_API
     return (factory) ? factory->writeDSPFactoryToBitcodeFile(bit_code_path) : false;
 }
 
-EXPORT llvm_dsp_factory* readDSPFactoryFromIR(const string& ir_code, const string& target, string& error_msg,
+LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromIR(const string& ir_code, const string& target, string& error_msg,
                                               int opt_level)
 {
     LOCK_API
     return readDSPFactoryFromIRAux(MEMORY_BUFFER_CREATE(StringRef(ir_code)), target, error_msg, opt_level);
 }
 
-EXPORT string writeDSPFactoryToIR(llvm_dsp_factory* factory)
+LIBFAUST_API string writeDSPFactoryToIR(llvm_dsp_factory* factory)
 {
     LOCK_API
     return (factory) ? factory->writeDSPFactoryToIR() : "";
 }
 
 // IR <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, const string& target, string& error_msg,
-                                                  int opt_level)
+LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, const string& target, string& error_msg,
+                                                     int opt_level)
 {
     LOCK_API
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(ir_code_path);
@@ -768,7 +768,7 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, co
     }
 }
 
-EXPORT bool writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_code_path)
+LIBFAUST_API bool writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_code_path)
 {
     LOCK_API
     return (factory) ? factory->writeDSPFactoryToIRFile(ir_code_path) : false;
@@ -780,8 +780,8 @@ EXPORT bool writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_
 extern "C" {
 #endif
 
-EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char* argv[],
-                                                   const char* target, char* error_msg, int opt_level)
+LIBFAUST_API llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char* argv[],
+                                                      const char* target, char* error_msg, int opt_level)
 {
     string error_msg_aux;
     llvm_dsp_factory* factory = createDSPFactoryFromFile(filename, argc, argv, target, error_msg_aux, opt_level);
@@ -789,9 +789,9 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int arg
     return factory;
 }
 
-EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc,
-                                                     const char* argv[], const char* target, char* error_msg,
-                                                     int opt_level)
+LIBFAUST_API llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc,
+                                                        const char* argv[], const char* target, char* error_msg,
+                                                        int opt_level)
 {
     string error_msg_aux;
     llvm_dsp_factory* factory =
@@ -800,11 +800,11 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
     return factory;
 }
     
-EXPORT llvm_dsp_factory* createCDSPFactoryFromSignals(const char* name_app, Signal* signals_aux,
-                                                      int argc, const char* argv[],
-                                                      const char* target,
-                                                      char* error_msg,
-                                                      int opt_level)
+LIBFAUST_API llvm_dsp_factory* createCDSPFactoryFromSignals(const char* name_app, Signal* signals_aux,
+                                                         int argc, const char* argv[],
+                                                         const char* target,
+                                                         char* error_msg,
+                                                         int opt_level)
 {
     string error_msg_aux;
     tvec signals;
@@ -816,12 +816,12 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromSignals(const char* name_app, Sign
     return factory;
 }
 
-EXPORT llvm_dsp_factory* createCDSPFactoryFromBoxes(const char* name_app,
-                                                    Tree box,
-                                                    int argc, const char* argv[],
-                                                    const char* target,
-                                                    char* error_msg,
-                                                    int opt_level)
+LIBFAUST_API llvm_dsp_factory* createCDSPFactoryFromBoxes(const char* name_app,
+                                                       Tree box,
+                                                       int argc, const char* argv[],
+                                                       const char* target,
+                                                       char* error_msg,
+                                                       int opt_level)
 {
     string error_msg_aux;
     llvm_dsp_factory* factory =
@@ -830,8 +830,8 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromBoxes(const char* name_app,
     return factory;
 }
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, char* error_msg,
-                                                    int opt_level)
+LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, char* error_msg,
+                                                       int opt_level)
 {
     string error_msg_aux;
     llvm_dsp_factory* factory = readDSPFactoryFromBitcode(bit_code, target, error_msg_aux, opt_level);
@@ -839,13 +839,13 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const 
     return factory;
 }
 
-EXPORT char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory)
+LIBFAUST_API char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory)
 {
     return (factory) ? strdup(writeDSPFactoryToBitcode(factory).c_str()) : nullptr;
 }
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, char* error_msg,
-                                                        int opt_level)
+LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, char* error_msg,
+                                                           int opt_level)
 {
     string error_msg_aux;
     llvm_dsp_factory* factory = readDSPFactoryFromBitcodeFile(bit_code_path, target, error_msg_aux, opt_level);
@@ -853,12 +853,12 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_pat
     return factory;
 }
 
-EXPORT bool writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char* bit_code_path)
+LIBFAUST_API bool writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char* bit_code_path)
 {
     return writeDSPFactoryToBitcodeFile(factory, bit_code_path);
 }
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* target, char* error_msg, int opt_level)
+LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* target, char* error_msg, int opt_level)
 {
     string error_msg_aux;
     llvm_dsp_factory* factory = readDSPFactoryFromIR(ir_code, target, error_msg_aux, opt_level);
@@ -866,12 +866,12 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* 
     return factory;
 }
 
-EXPORT char* writeCDSPFactoryToIR(llvm_dsp_factory* factory)
+LIBFAUST_API char* writeCDSPFactoryToIR(llvm_dsp_factory* factory)
 {
     return (factory) ? strdup(writeDSPFactoryToIR(factory).c_str()) : nullptr;
 }
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, char* error_msg,
+LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, char* error_msg,
                                                    int opt_level)
 {
     string            error_msg_aux;
@@ -880,7 +880,7 @@ EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, con
     return factory;
 }
 
-EXPORT bool writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path)
+LIBFAUST_API bool writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path)
 {
     return writeDSPFactoryToIRFile(factory, ir_code_path);
 }

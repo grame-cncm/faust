@@ -73,11 +73,11 @@ bool isBoxIdent(Tree t0, const char** str)
                                     Numbers
 *****************************************************************************/
 
-EXPORT Tree boxInt(int n)
+LIBFAUST_API Tree boxInt(int n)
 {
     return tree(n);
 }
-EXPORT Tree boxReal(double n)
+LIBFAUST_API Tree boxReal(double n)
 {
     return tree(n);
 }
@@ -104,7 +104,7 @@ bool isBoxReal(Tree t, double* r)
                              Waveform
 *****************************************************************************/
 
-EXPORT Tree boxWaveform(const tvec& br)
+LIBFAUST_API Tree boxWaveform(const tvec& br)
 {
     return tree(gGlobal->BOXWAVEFORM, br);
 }
@@ -118,7 +118,7 @@ bool isBoxWaveform(Tree s)
                              Route
 *****************************************************************************/
 
-EXPORT Tree boxRoute(Tree n, Tree m, Tree r)
+LIBFAUST_API Tree boxRoute(Tree n, Tree m, Tree r)
 {
     return tree(gGlobal->BOXROUTE, n, m, r);
 }
@@ -132,7 +132,7 @@ bool isBoxRoute(Tree s, Tree& n, Tree& m, Tree& r)
                                 Wire and Cut
 *****************************************************************************/
 
-EXPORT Tree boxCut()
+LIBFAUST_API Tree boxCut()
 {
     return tree(gGlobal->BOXCUT);
 }
@@ -141,7 +141,7 @@ bool isBoxCut(Tree t)
     return isTree(t, gGlobal->BOXCUT);
 }
 
-EXPORT Tree boxWire()
+LIBFAUST_API Tree boxWire()
 {
     return tree(gGlobal->BOXWIRE);
 }
@@ -187,7 +187,7 @@ bool isBoxSymbolic(Tree t, Tree& slot, Tree& body)
                               Composition of Boxes
 *****************************************************************************/
 
-EXPORT Tree boxSeq(Tree x, Tree y)
+LIBFAUST_API Tree boxSeq(Tree x, Tree y)
 {
     return tree(gGlobal->BOXSEQ, x, y);
 }
@@ -196,7 +196,7 @@ bool isBoxSeq(Tree t, Tree& x, Tree& y)
     return isTree(t, gGlobal->BOXSEQ, x, y);
 }
 
-EXPORT Tree boxPar(Tree x, Tree y)
+LIBFAUST_API Tree boxPar(Tree x, Tree y)
 {
     return tree(gGlobal->BOXPAR, x, y);
 }
@@ -205,7 +205,7 @@ bool isBoxPar(Tree t, Tree& x, Tree& y)
     return isTree(t, gGlobal->BOXPAR, x, y);
 }
 
-EXPORT Tree boxRec(Tree x, Tree y)
+LIBFAUST_API Tree boxRec(Tree x, Tree y)
 {
     return tree(gGlobal->BOXREC, x, y);
 }
@@ -214,7 +214,7 @@ bool isBoxRec(Tree t, Tree& x, Tree& y)
     return isTree(t, gGlobal->BOXREC, x, y);
 }
 
-EXPORT Tree boxSplit(Tree x, Tree y)
+LIBFAUST_API Tree boxSplit(Tree x, Tree y)
 {
     return tree(gGlobal->BOXSPLIT, x, y);
 }
@@ -223,7 +223,7 @@ bool isBoxSplit(Tree t, Tree& x, Tree& y)
     return isTree(t, gGlobal->BOXSPLIT, x, y);
 }
 
-EXPORT Tree boxMerge(Tree x, Tree y)
+LIBFAUST_API Tree boxMerge(Tree x, Tree y)
 {
     return tree(gGlobal->BOXMERGE, x, y);
 }
@@ -640,7 +640,7 @@ bool isBoxPrim5(Tree s, prim5* p)
                              Foreign Functions
 *****************************************************************************/
 
-EXPORT Tree boxFFun(Tree ff)
+LIBFAUST_API Tree boxFFun(Tree ff)
 {
     return tree(gGlobal->BOXFFUN, ff);
 }
@@ -654,7 +654,7 @@ bool isBoxFFun(Tree s, Tree& ff)
     return isTree(s, gGlobal->BOXFFUN, ff);
 }
 
-EXPORT Tree boxFConst(Tree type, Tree name, Tree file)
+LIBFAUST_API Tree boxFConst(Tree type, Tree name, Tree file)
 {
     return tree(gGlobal->BOXFCONST, type, name, file);
 }
@@ -668,7 +668,7 @@ bool isBoxFConst(Tree s, Tree& type, Tree& name, Tree& file)
     return isTree(s, gGlobal->BOXFCONST, type, name, file);
 }
 
-EXPORT Tree boxFVar(Tree type, Tree name, Tree file)
+LIBFAUST_API Tree boxFVar(Tree type, Tree name, Tree file)
 {
     return tree(gGlobal->BOXFVAR, type, name, file);
 }
@@ -686,7 +686,7 @@ bool isBoxFVar(Tree s, Tree& type, Tree& name, Tree& file)
                              User Interface Elements
 *****************************************************************************/
 
-EXPORT Tree boxButton(Tree lbl)
+LIBFAUST_API Tree boxButton(Tree lbl)
 {
     return tree(gGlobal->BOXBUTTON, lbl);
 }
@@ -700,7 +700,7 @@ bool isBoxButton(Tree s, Tree& lbl)
     return isTree(s, gGlobal->BOXBUTTON, lbl);
 }
 
-EXPORT Tree boxCheckbox(Tree lbl)
+LIBFAUST_API Tree boxCheckbox(Tree lbl)
 {
     return tree(gGlobal->BOXCHECKBOX, lbl);
 }
@@ -714,7 +714,7 @@ bool isBoxCheckbox(Tree s, Tree& lbl)
     return isTree(s, gGlobal->BOXCHECKBOX, lbl);
 }
 
-EXPORT Tree boxHSlider(Tree lbl, Tree cur, Tree min, Tree max, Tree step)
+LIBFAUST_API Tree boxHSlider(Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 {
     return tree(gGlobal->BOXHSLIDER, lbl, list4(cur, min, max, step));
 }
@@ -738,7 +738,7 @@ bool isBoxHSlider(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step
     }
 }
 
-EXPORT Tree boxVSlider(Tree lbl, Tree cur, Tree min, Tree max, Tree step)
+LIBFAUST_API Tree boxVSlider(Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 {
     return tree(gGlobal->BOXVSLIDER, lbl, list4(cur, min, max, step));
 }
@@ -762,7 +762,7 @@ bool isBoxVSlider(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step
     }
 }
 
-EXPORT Tree boxNumEntry(Tree lbl, Tree cur, Tree min, Tree max, Tree step)
+LIBFAUST_API Tree boxNumEntry(Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 {
     return tree(gGlobal->BOXNUMENTRY, lbl, list4(cur, min, max, step));
 }
@@ -828,7 +828,7 @@ bool isBoxTGroup(Tree s, Tree& lbl, Tree& x)
     return isTree(s, gGlobal->BOXTGROUP, lbl, x);
 }
 
-EXPORT Tree boxHBargraph(Tree lbl, Tree min, Tree max)
+LIBFAUST_API Tree boxHBargraph(Tree lbl, Tree min, Tree max)
 {
     return tree(gGlobal->BOXHBARGRAPH, lbl, min, max);
 }
@@ -842,7 +842,7 @@ bool isBoxHBargraph(Tree s, Tree& lbl, Tree& min, Tree& max)
     return isTree(s, gGlobal->BOXHBARGRAPH, lbl, min, max);
 }
 
-EXPORT Tree boxVBargraph(Tree lbl, Tree min, Tree max)
+LIBFAUST_API Tree boxVBargraph(Tree lbl, Tree min, Tree max)
 {
     return tree(gGlobal->BOXVBARGRAPH, lbl, min, max);
 }
@@ -856,7 +856,7 @@ bool isBoxVBargraph(Tree s, Tree& lbl, Tree& min, Tree& max)
     return isTree(s, gGlobal->BOXVBARGRAPH, lbl, min, max);
 }
 
-EXPORT Tree boxSoundfile(Tree lbl, Tree chan)
+LIBFAUST_API Tree boxSoundfile(Tree lbl, Tree chan)
 {
     return tree(gGlobal->BOXSOUNDFILE, lbl, chan);
 }

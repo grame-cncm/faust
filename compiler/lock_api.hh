@@ -20,11 +20,11 @@
  ************************************************************************/
 
 #include "TMutex.h"
-#include "export.hh"
+#include "faust/export.h"
 
 extern TLockAble* gDSPFactoriesLock;
 
 #define LOCK_API TLock lock(gDSPFactoriesLock);
 
-extern "C" EXPORT bool startMTDSPFactories();
-extern "C" EXPORT void stopMTDSPFactories();
+extern "C" LIBFAUST_API bool startMTDSPFactories();
+extern "C" LIBFAUST_API void stopMTDSPFactories();

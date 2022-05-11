@@ -78,7 +78,7 @@ echo " updating $MAKERELEASE"
 sed "s/^SET VERSION=[0-9].*/SET VERSION=$VERSION/" $MAKERELEASE > TMP$$
 mv TMP$$ $MAKERELEASE
 
-FAUST=$ROOT/compiler/generator/export.hh
+FAUST=$ROOT/architecture/faust/export.h
 echo " updating $FAUST"
 sed "s/FAUSTVERSION[ 	]\".*\"/FAUSTVERSION \"$VERSION\"/" $FAUST > TMP$$
 mv -f TMP$$ $FAUST

@@ -19,12 +19,13 @@
  ************************************************************************
  ************************************************************************/
 
-#include "export.hh"
 #include <string>
+
+#include "faust/export.h"
 
 // External libfaust API
 
-extern "C" EXPORT const char* getCLibFaustVersion()
+extern "C" LIBFAUST_API const char* getCLibFaustVersion()
 {
 #ifdef LLVM_BUILD
     static std::string version = std::string(FAUSTVERSION) + " (LLVM " + std::string(LLVM_VERSION) + ")";
@@ -54,7 +55,7 @@ extern "C" EXPORT const char* getCLibFaustVersion()
 
 const char* faustexception::gJSExceptionMsg = nullptr;
 
-extern "C" EXPORT const char* getErrorAfterException()
+extern "C" LIBFAUST_API const char* getErrorAfterException()
 {
     return faustexception::gJSExceptionMsg;
 }
@@ -63,7 +64,7 @@ extern "C" EXPORT const char* getErrorAfterException()
 #if defined(EMCC) && defined(FAUST_LIB)
 #include "global.hh"
 
-extern "C" EXPORT void cleanupAfterException()
+extern "C" LIBFAUST_API void cleanupAfterException()
 {
     global::destroy();
 }

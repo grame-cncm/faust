@@ -32,12 +32,12 @@
 #include "signals.hh"
 #include "xtended.hh"
 
-EXPORT Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
+LIBFAUST_API Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
 {
     return sigRDTbl(sigWRTbl(gGlobal->nil, sigTable(gGlobal->nil, n, sigGen(init)), widx, wsig), ridx);
 }
 
-EXPORT Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
+LIBFAUST_API Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
 {
     return sigRDTbl(sigTable(gGlobal->nil, n, sigGen(init)), ridx);
 }
@@ -58,7 +58,7 @@ Tree sigRem(Tree x, Tree y)
     return sigBinOp(kRem, x, y);
 }
 
-EXPORT Tree sigInt(int i)
+LIBFAUST_API Tree sigInt(int i)
 {
     return tree(i);
 }
@@ -67,7 +67,7 @@ bool isSigInt(Tree t, int* i)
     return isInt(t->node(), i);
 }
 
-EXPORT Tree sigReal(double r)
+LIBFAUST_API Tree sigReal(double r)
 {
     return tree(r);
 }
@@ -76,7 +76,7 @@ bool isSigReal(Tree t, double* r)
     return isDouble(t->node(), r);
 }
 
-EXPORT Tree sigInput(int i)
+LIBFAUST_API Tree sigInput(int i)
 {
     // Keep the max input number (used with the signal API)
     gGlobal->gMaxInputs = std::max(gGlobal->gMaxInputs, i+1);
@@ -112,7 +112,7 @@ bool isSigDelay1(Tree t, Tree& t0)
     return isTree(t, gGlobal->SIGDELAY1, t0);
 }
 
-EXPORT Tree sigDelay(Tree t0, Tree t1)
+LIBFAUST_API Tree sigDelay(Tree t0, Tree t1)
 {
     return tree(gGlobal->SIGDELAY, t0, sigIntCast(t1));
 }
@@ -205,7 +205,7 @@ bool isSigDocAccessTbl(Tree t, Tree& tbl, Tree& ridx)
 
 // Select on signal among severals
 
-EXPORT Tree sigSelect2(Tree selector, Tree s1, Tree s2)
+LIBFAUST_API Tree sigSelect2(Tree selector, Tree s1, Tree s2)
 {
     return tree(gGlobal->SIGSELECT2, sigIntCast(selector), s1, s2);
 }
@@ -215,7 +215,7 @@ bool isSigSelect2(Tree t, Tree& selector, Tree& s1, Tree& s2)
 }
 
 //  "select3" expressed with "select2"
-EXPORT Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
+LIBFAUST_API Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
 {
     return sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(0)),
                       sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(1)), s3, s2), s1);
@@ -253,7 +253,7 @@ bool isSigLowest(Tree t, Tree& s)
 
 // Arithmetical operations
 
-EXPORT Tree sigBinOp(int op, Tree x, Tree y)
+LIBFAUST_API Tree sigBinOp(int op, Tree x, Tree y)
 {
     return tree(gGlobal->SIGBINOP, tree(op), x, y);
 }
@@ -274,7 +274,7 @@ bool isSigFFun(Tree s, Tree& ff, Tree& largs)
     return isTree(s, gGlobal->SIGFFUN, ff, largs);
 }
 
-EXPORT Tree sigFConst(Tree type, Tree name, Tree file)
+LIBFAUST_API Tree sigFConst(Tree type, Tree name, Tree file)
 {
     return tree(gGlobal->SIGFCONST, type, name, file);
 }
@@ -288,7 +288,7 @@ bool isSigFConst(Tree s, Tree& type, Tree& name, Tree& file)
     return isTree(s, gGlobal->SIGFCONST, type, name, file);
 }
 
-EXPORT Tree sigFVar(Tree type, Tree name, Tree file)
+LIBFAUST_API Tree sigFVar(Tree type, Tree name, Tree file)
 {
     return tree(gGlobal->SIGFVAR, type, name, file);
 }
@@ -316,7 +316,7 @@ bool isProj(Tree t, int* i, Tree& rgroup)
 
 // Int and Float casting
 
-EXPORT Tree sigIntCast(Tree t)
+LIBFAUST_API Tree sigIntCast(Tree t)
 {
     Node n = t->node();
 
@@ -329,7 +329,7 @@ EXPORT Tree sigIntCast(Tree t)
     return tree(gGlobal->SIGINTCAST, t);
 }
 
-EXPORT Tree sigFloatCast(Tree t)
+LIBFAUST_API Tree sigFloatCast(Tree t)
 {
     // cerr << "sigFloatCast(" << ppsig(t) << ")" << endl;
     Node n = t->node();
@@ -367,71 +367,71 @@ bool isSigFloatCast(Tree t, Tree& x)
 }
 
 // Emulation of all fonctions
-EXPORT Tree sigAdd(Tree x, Tree y)
+LIBFAUST_API Tree sigAdd(Tree x, Tree y)
 {
     return sigBinOp(kAdd, x, y);
 }
-EXPORT Tree sigSub(Tree x, Tree y)
+LIBFAUST_API Tree sigSub(Tree x, Tree y)
 {
     return sigBinOp(kSub, x, y);
 }
-EXPORT Tree sigMul(Tree x, Tree y)
+LIBFAUST_API Tree sigMul(Tree x, Tree y)
 {
     return sigBinOp(kMul, x, y);
 }
-EXPORT Tree sigDiv(Tree x, Tree y)
+LIBFAUST_API Tree sigDiv(Tree x, Tree y)
 {
     return sigBinOp(kDiv, x, y);
 }
 Tree sigRem(Tree x, Tree y);
 
-EXPORT Tree sigAND(Tree x, Tree y)
+LIBFAUST_API Tree sigAND(Tree x, Tree y)
 {
     return sigBinOp(kAND, x, y);
 }
-EXPORT Tree sigOR(Tree x, Tree y)
+LIBFAUST_API Tree sigOR(Tree x, Tree y)
 {
     return sigBinOp(kOR, x, y);
 }
-EXPORT Tree sigXOR(Tree x, Tree y)
+LIBFAUST_API Tree sigXOR(Tree x, Tree y)
 {
     return sigBinOp(kXOR, x, y);
 }
 
-EXPORT Tree sigLeftShift(Tree x, Tree y)
+LIBFAUST_API Tree sigLeftShift(Tree x, Tree y)
 {
     return sigBinOp(kLsh, x, y);
 }
-EXPORT Tree sigARightShift(Tree x, Tree y)
+LIBFAUST_API Tree sigARightShift(Tree x, Tree y)
 {
     return sigBinOp(kARsh, x, y);
 }
-EXPORT Tree sigLRightShift(Tree x, Tree y)
+LIBFAUST_API Tree sigLRightShift(Tree x, Tree y)
 {
     return sigBinOp(kLRsh, x, y);
 }
 
-EXPORT Tree sigGT(Tree x, Tree y)
+LIBFAUST_API Tree sigGT(Tree x, Tree y)
 {
     return sigBinOp(kGT, x, y);
 }
-EXPORT Tree sigLT(Tree x, Tree y)
+LIBFAUST_API Tree sigLT(Tree x, Tree y)
 {
     return sigBinOp(kLT, x, y);
 }
-EXPORT Tree sigGE(Tree x, Tree y)
+LIBFAUST_API Tree sigGE(Tree x, Tree y)
 {
     return sigBinOp(kGE, x, y);
 }
-EXPORT Tree sigLE(Tree x, Tree y)
+LIBFAUST_API Tree sigLE(Tree x, Tree y)
 {
     return sigBinOp(kLE, x, y);
 }
-EXPORT Tree sigEQ(Tree x, Tree y)
+LIBFAUST_API Tree sigEQ(Tree x, Tree y)
 {
     return sigBinOp(kEQ, x, y);
 }
-EXPORT Tree sigNE(Tree x, Tree y)
+LIBFAUST_API Tree sigNE(Tree x, Tree y)
 {
     return sigBinOp(kNE, x, y);
 }
@@ -440,7 +440,7 @@ EXPORT Tree sigNE(Tree x, Tree y)
                              User Interface Elements
 *****************************************************************************/
 
-EXPORT Tree sigButton(Tree lbl)
+LIBFAUST_API Tree sigButton(Tree lbl)
 {
     return tree(gGlobal->SIGBUTTON, lbl);
 }
@@ -454,7 +454,7 @@ bool isSigButton(Tree s, Tree& lbl)
     return isTree(s, gGlobal->SIGBUTTON, lbl);
 }
 
-EXPORT Tree sigCheckbox(Tree lbl)
+LIBFAUST_API Tree sigCheckbox(Tree lbl)
 {
     return tree(gGlobal->SIGCHECKBOX, lbl);
 }
@@ -468,7 +468,7 @@ bool isSigCheckbox(Tree s, Tree& lbl)
     return isTree(s, gGlobal->SIGCHECKBOX, lbl);
 }
 
-EXPORT Tree sigWaveform(const tvec& wf)
+LIBFAUST_API Tree sigWaveform(const tvec& wf)
 {
     return tree(gGlobal->SIGWAVEFORM, wf);
 }
@@ -477,7 +477,7 @@ bool isSigWaveform(Tree s)
     return isTree(s, gGlobal->SIGWAVEFORM);
 }
 
-EXPORT Tree sigHSlider(Tree lbl, Tree init, Tree min, Tree max, Tree step)
+LIBFAUST_API Tree sigHSlider(Tree lbl, Tree init, Tree min, Tree max, Tree step)
 {
     return tree(gGlobal->SIGHSLIDER, lbl, list4(init, min, max, step));
 }
@@ -501,7 +501,7 @@ bool isSigHSlider(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& max, Tree& ste
     }
 }
 
-EXPORT Tree sigVSlider(Tree lbl, Tree init, Tree min, Tree max, Tree step)
+LIBFAUST_API Tree sigVSlider(Tree lbl, Tree init, Tree min, Tree max, Tree step)
 {
     return tree(gGlobal->SIGVSLIDER, lbl, list4(init, min, max, step));
 }
@@ -525,7 +525,7 @@ bool isSigVSlider(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& max, Tree& ste
     }
 }
 
-EXPORT Tree sigNumEntry(Tree lbl, Tree init, Tree min, Tree max, Tree step)
+LIBFAUST_API Tree sigNumEntry(Tree lbl, Tree init, Tree min, Tree max, Tree step)
 {
     return tree(gGlobal->SIGNUMENTRY, lbl, list4(init, min, max, step));
 }
@@ -551,7 +551,7 @@ bool isSigNumEntry(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& max, Tree& st
 
 // Output elements
 
-EXPORT Tree sigHBargraph(Tree lbl, Tree min, Tree max, Tree x)
+LIBFAUST_API Tree sigHBargraph(Tree lbl, Tree min, Tree max, Tree x)
 {
     return tree(gGlobal->SIGHBARGRAPH, lbl, min, max, x);
 }
@@ -565,7 +565,7 @@ bool isSigHBargraph(Tree s, Tree& lbl, Tree& min, Tree& max, Tree& x)
     return isTree(s, gGlobal->SIGHBARGRAPH, lbl, min, max, x);
 }
 
-EXPORT Tree sigVBargraph(Tree lbl, Tree min, Tree max, Tree x)
+LIBFAUST_API Tree sigVBargraph(Tree lbl, Tree min, Tree max, Tree x)
 {
     return tree(gGlobal->SIGVBARGRAPH, lbl, min, max, x);
 }
@@ -622,107 +622,107 @@ static Tree sigExtended2(Tree sig, Tree x, Tree y)
     return ((xtended*)getUserData(sig))->computeSigOutput(args);
 }
 
-EXPORT Tree sigAbs(Tree x)
+LIBFAUST_API Tree sigAbs(Tree x)
 {
     return sigExtended1(gGlobal->gAbsPrim->box(), x);
 }
 
-EXPORT Tree sigAcos(Tree x)
+LIBFAUST_API Tree sigAcos(Tree x)
 {
     return sigExtended1(gGlobal->gAcosPrim->box(), x);
 }
 
-EXPORT Tree sigTan(Tree x)
+LIBFAUST_API Tree sigTan(Tree x)
 {
     return sigExtended1(gGlobal->gTanPrim->box(), x);
 }
 
-EXPORT Tree sigSqrt(Tree x)
+LIBFAUST_API Tree sigSqrt(Tree x)
 {
     return sigExtended1(gGlobal->gSqrtPrim->box(), x);
 }
 
-EXPORT Tree sigSin(Tree x)
+LIBFAUST_API Tree sigSin(Tree x)
 {
     return sigExtended1(gGlobal->gSinPrim->box(), x);
 }
 
-EXPORT Tree sigRint(Tree x)
+LIBFAUST_API Tree sigRint(Tree x)
 {
     return sigExtended1(gGlobal->gRintPrim->box(), x);
 }
 
-EXPORT Tree sigRemainder(Tree x, Tree y)
+LIBFAUST_API Tree sigRemainder(Tree x, Tree y)
 {
     return sigExtended2(gGlobal->gRemainderPrim->box(), x, y);
 }
 
-EXPORT Tree sigPow(Tree x, Tree y)
+LIBFAUST_API Tree sigPow(Tree x, Tree y)
 {
     return sigExtended2(gGlobal->gPowPrim->box(), x, y);
 }
 
-EXPORT Tree sigMin(Tree x, Tree y)
+LIBFAUST_API Tree sigMin(Tree x, Tree y)
 {
     return sigExtended2(gGlobal->gMinPrim->box(), x, y);
 }
 
-EXPORT Tree sigMax(Tree x, Tree y)
+LIBFAUST_API Tree sigMax(Tree x, Tree y)
 {
     return sigExtended2(gGlobal->gMaxPrim->box(), x, y);
 }
 
-EXPORT Tree sigLog(Tree x)
+LIBFAUST_API Tree sigLog(Tree x)
 {
     return sigExtended1(gGlobal->gLogPrim->box(), x);
 }
 
-EXPORT Tree sigLog10(Tree x)
+LIBFAUST_API Tree sigLog10(Tree x)
 {
     return sigExtended1(gGlobal->gLog10Prim->box(), x);
 }
 
-EXPORT Tree sigFmod(Tree x, Tree y)
+LIBFAUST_API Tree sigFmod(Tree x, Tree y)
 {
     return sigExtended2(gGlobal->gFmodPrim->box(), x, y);
 }
 
-EXPORT Tree sigFloor(Tree x)
+LIBFAUST_API Tree sigFloor(Tree x)
 {
     return sigExtended1(gGlobal->gFloorPrim->box(), x);
 }
 
-EXPORT Tree sigExp(Tree x)
+LIBFAUST_API Tree sigExp(Tree x)
 {
     return sigExtended1(gGlobal->gExpPrim->box(), x);
 }
 
-EXPORT Tree sigExp10(Tree x)
+LIBFAUST_API Tree sigExp10(Tree x)
 {
     return sigExtended1(gGlobal->gExp10Prim->box(), x);
 }
 
-EXPORT Tree sigCos(Tree x)
+LIBFAUST_API Tree sigCos(Tree x)
 {
     return sigExtended1(gGlobal->gCosPrim->box(), x);
 }
 
-EXPORT Tree sigCeil(Tree x)
+LIBFAUST_API Tree sigCeil(Tree x)
 {
     return sigExtended1(gGlobal->gCeilPrim->box(), x);
 }
 
-EXPORT Tree sigAtan(Tree x)
+LIBFAUST_API Tree sigAtan(Tree x)
 {
     return sigExtended1(gGlobal->gAtanPrim->box(), x);
 }
 
-EXPORT Tree sigAtan2(Tree x, Tree y)
+LIBFAUST_API Tree sigAtan2(Tree x, Tree y)
 {
     return sigExtended2(gGlobal->gAtan2Prim->box(), x, y);
 }
 
-EXPORT Tree sigAsin(Tree x)
+LIBFAUST_API Tree sigAsin(Tree x)
 {
     return sigExtended1(gGlobal->gAsinPrim->box(), x);
 }
@@ -815,19 +815,19 @@ bool isSigDiv(Tree a, Tree& x, Tree& y)
  1   sigSoundfileRate(label, part): the sampling rate encoded in the file (NK)
  2   sigSoundfileBuffer(label, c, part, ridx): the cth channel content (RK ou RS)
 */
-EXPORT Tree sigSoundfile(Tree label)
+LIBFAUST_API Tree sigSoundfile(Tree label)
 {
     return tree(gGlobal->SIGSOUNDFILE, label);
 }
-EXPORT Tree sigSoundfileLength(Tree sf, Tree part)
+LIBFAUST_API Tree sigSoundfileLength(Tree sf, Tree part)
 {
     return tree(gGlobal->SIGSOUNDFILELENGTH, sf, part);
 }
-EXPORT Tree sigSoundfileRate(Tree sf, Tree part)
+LIBFAUST_API Tree sigSoundfileRate(Tree sf, Tree part)
 {
     return tree(gGlobal->SIGSOUNDFILERATE, sf, part);
 }
-EXPORT Tree sigSoundfileBuffer(Tree sf, Tree chan, Tree part, Tree ridx)
+LIBFAUST_API Tree sigSoundfileBuffer(Tree sf, Tree chan, Tree part, Tree ridx)
 {
     return tree(gGlobal->SIGSOUNDFILEBUFFER, sf, chan, part, ridx);
 }

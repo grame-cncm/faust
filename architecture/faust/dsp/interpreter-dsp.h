@@ -49,12 +49,12 @@ architecture section is not modified.
  *
  * @return the library version as a static string.
  */
-extern "C" const char* getCLibFaustVersion();
+extern "C" LIBFAUST_API const char* getCLibFaustVersion();
 
 /**
  * DSP instance class with methods.
  */
-class interpreter_dsp : public dsp {
+class LIBFAUST_API interpreter_dsp : public dsp {
     
     private:
     
@@ -92,8 +92,7 @@ class interpreter_dsp : public dsp {
 /**
 * Interpreter DSP factory class.
 */
-
-class interpreter_dsp_factory : public dsp_factory {
+class LIBFAUST_API interpreter_dsp_factory : public dsp_factory {
 
      public:
     
@@ -142,7 +141,7 @@ class interpreter_dsp_factory : public dsp_factory {
  *
  * @return a DSP factory if one is associated with the SHA key, otherwise a null pointer.
  */
-interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& sha_key);
+LIBFAUST_API interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& sha_key);
 
 /**
  * Create a Faust DSP factory from a DSP source code as a file. Note that the library keeps an internal cache of all 
@@ -157,9 +156,9 @@ interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& s
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
-interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const std::string& filename,
-                                                             int argc, const char* argv[],
-                                                             std::string& error_msg);
+LIBFAUST_API interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const std::string& filename,
+                                                                          int argc, const char* argv[],
+                                                                          std::string& error_msg);
 
 /**
  * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all 
@@ -175,10 +174,10 @@ interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const std::string& 
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */ 
-interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const std::string& name_app,
-                                                               const std::string& dsp_content,
-                                                               int argc, const char* argv[],
-                                                               std::string& error_msg);
+LIBFAUST_API interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const std::string& name_app,
+                                                                            const std::string& dsp_content,
+                                                                            int argc, const char* argv[],
+                                                                            std::string& error_msg);
 
 /**
  * Create a Faust DSP factory from a vector of output signals.
@@ -192,10 +191,10 @@ interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const std::string
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
-interpreter_dsp_factory* createInterpreterDSPFactoryFromSignals(const std::string& name_app,
-                                                                tvec signals,
-                                                                int argc, const char* argv[],
-                                                                std::string& error_msg);
+LIBFAUST_API interpreter_dsp_factory* createInterpreterDSPFactoryFromSignals(const std::string& name_app,
+                                                                             tvec signals,
+                                                                             int argc, const char* argv[],
+                                                                             std::string& error_msg);
 
 /**
  * Create a Faust DSP factory from a box expression.
@@ -210,10 +209,10 @@ interpreter_dsp_factory* createInterpreterDSPFactoryFromSignals(const std::strin
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
-interpreter_dsp_factory* createInterpreterDSPFactoryFromBoxes(const std::string& name_app,
-                                                              Box box,
-                                                              int argc, const char* argv[],
-                                                              std::string& error_msg);
+LIBFAUST_API interpreter_dsp_factory* createInterpreterDSPFactoryFromBoxes(const std::string& name_app,
+                                                                           Box box,
+                                                                           int argc, const char* argv[],
+                                                                           std::string& error_msg);
 
 /**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possibly really deleting the internal pointer.
@@ -224,7 +223,7 @@ interpreter_dsp_factory* createInterpreterDSPFactoryFromBoxes(const std::string&
  *
  * @return true if the factory internal pointer was really deleted, and false if only 'decremented'.
  */                                 
-bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory);
+LIBFAUST_API bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory);
 
 /**
  * Get the list of library dependancies of the Faust DSP factory.
@@ -241,27 +240,27 @@ DEPRECATED(std::vector<std::string> getInterpreterDSPFactoryLibraryList(interpre
  * Delete all Faust DSP factories kept in the library cache. Beware: all kept factory and DSP pointers (in local variables...) thus become invalid.
  * 
  */                                 
-void deleteAllInterpreterDSPFactories();
+LIBFAUST_API void deleteAllInterpreterDSPFactories();
 
 /**
  * Return Faust DSP factories of the library cache as a vector of their SHA keys.
  * 
  * @return the Faust DSP factories.
  */                                 
-std::vector<std::string> getAllInterpreterDSPFactories();
+LIBFAUST_API std::vector<std::string> getAllInterpreterDSPFactories();
 
 /**
  * Start multi-thread access mode (since by default the library is not 'multi-thread' safe).
  *
  * @return true if 'multi-thread' safe access is started.
  */
-extern "C" bool startMTDSPFactories();
+extern "C" LIBFAUST_API bool startMTDSPFactories();
 
 /**
  * Stop multi-thread access mode.
  *
  */
-extern "C" void stopMTDSPFactories();
+extern "C" LIBFAUST_API void stopMTDSPFactories();
 
 /**
  * Create a Faust DSP factory from a bitcode string. Note that the library keeps an internal cache of all
@@ -274,7 +273,7 @@ extern "C" void stopMTDSPFactories();
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const std::string& bitcode, std::string& error_msg);
+LIBFAUST_API interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const std::string& bitcode, std::string& error_msg);
 
 /**
  * Write a Faust DSP factory into a bitcode string.
@@ -283,7 +282,7 @@ interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const std::string&
  *
  * @return the bitcode as a string.
  */
-std::string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* factory);
+LIBFAUST_API std::string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* factory);
 
 /**
  * Create a Faust DSP factory from a bitcode file. Note that the library keeps an internal cache of all
@@ -296,7 +295,7 @@ std::string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* factory
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const std::string& bit_code_path, std::string& error_msg);
+LIBFAUST_API interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const std::string& bit_code_path, std::string& error_msg);
 
 /**
  * Write a Faust DSP factory into a bitcode file.
@@ -306,7 +305,7 @@ interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const std::str
  *
  * @return true if success, false otherwise.
  */
-bool writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const std::string& bit_code_path);
+LIBFAUST_API bool writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const std::string& bit_code_path);
 
 /*!
  @}

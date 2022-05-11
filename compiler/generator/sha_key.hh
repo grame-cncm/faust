@@ -22,8 +22,9 @@
 #ifndef SHA_KEY_H
 #define SHA_KEY_H
 
-#include "export.hh"
-#include "stdint.h"
+#include <stdint.h>
+
+#include "faust/export.h"
 
 /*
  SHA-1 in C (see: https://github.com/clibs/sha1/blob/master/sha1.h)
@@ -274,7 +275,7 @@ inline void SHA1(char* hash_out, const char* str, unsigned int len)
 
 // External C++ libfaust API
 
-EXPORT std::string generateSHA1(const std::string& data)
+LIBFAUST_API std::string generateSHA1(const std::string& data)
 {
     SHA1_CTX ctx;
     unsigned char obuf[20] = {0};
@@ -297,7 +298,7 @@ EXPORT std::string generateSHA1(const std::string& data)
 
 // External C libfaust API
 
-extern "C" EXPORT void generateCSHA1(const char* data, char* sha_key)
+extern "C" FAUST_API void generateCSHA1(const char* data, char* sha_key)
 {
     SHA1_CTX ctx;
     unsigned char obuf[20] = {0};

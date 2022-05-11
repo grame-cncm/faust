@@ -22,7 +22,6 @@
  architecture section is not modified.
  *************************************************************************/
 
-
 #ifndef CINTERFACE_H
 #define CINTERFACE_H
 

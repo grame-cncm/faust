@@ -31,7 +31,7 @@ architecture section is not modified.
 #include <libraries/Midi/Midi.h>
 #include "faust/midi/midi.h"
 
-class MapUI;
+class FAUST_API MapUI;
 
 /**
  * MIDI handler for the Bela board: https://bela.io

@@ -53,7 +53,7 @@ dsp_factory_table<SDsp_factory> wasm_dsp_factory::gWasmFactoryTable;
 
 //#include "faust/gui/SoundUI.h"
 
-wasm_dsp_factory::wasm_dsp_factory(int instance, const std::string& json)
+LIBFAUST_API wasm_dsp_factory::wasm_dsp_factory(int instance, const std::string& json)
 {
     fFactory = nullptr;
     fInstance = instance;
@@ -61,7 +61,7 @@ wasm_dsp_factory::wasm_dsp_factory(int instance, const std::string& json)
     //fSoundUI = new SoundUI();
 }
 
-wasm_dsp_factory::~wasm_dsp_factory()
+LIBFAUST_API wasm_dsp_factory::~wasm_dsp_factory()
 {
     // Empty the JS structures so that the instance can be GCed
 #ifdef AUDIO_WORKLET
@@ -74,7 +74,7 @@ wasm_dsp_factory::~wasm_dsp_factory()
     //delete fSoundUI;
 }
 
-wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactory(int instance, const std::string& json)
+LIBFAUST_API wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactory(int instance, const std::string& json)
 {
     wasm_dsp_factory* factory = new wasm_dsp_factory(instance, json);
     wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
@@ -96,7 +96,7 @@ EM_JS(void, connectMemory, (),
 });
 #endif
 
-string wasm_dsp_factory::extractJSON(const string& code)
+LIBFAUST_API string wasm_dsp_factory::extractJSON(const string& code)
 {
     connectMemory();
     if (code != "") {
@@ -108,19 +108,19 @@ string wasm_dsp_factory::extractJSON(const string& code)
     }
 }
 
-EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const string& machine_code, string& error_msg)
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachine(const string& machine_code, string& error_msg)
 {
     wasm_dsp_factory* factory = new wasm_dsp_factory(new text_dsp_factory_aux("MachineDSP", "", "", machine_code, ""));
     wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
     return factory;
 }
 
-EXPORT string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory)
+LIBFAUST_API string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory)
 {
     return factory->getBinaryCode();
 }
 
-EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const string& machine_code_path, string& error_msg)
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const string& machine_code_path, string& error_msg)
 {
     ifstream infile;
     infile.open(machine_code_path, ifstream::in | ifstream::binary);
@@ -149,7 +149,7 @@ EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const string& machine
     }
 }
 
-EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const string& machine_code_path)
+LIBFAUST_API void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const string& machine_code_path)
 {
     ofstream outfile;
     outfile.open(machine_code_path, ofstream::out | ofstream::binary);
@@ -161,7 +161,7 @@ EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const st
     }
 }
 
-wasm_dsp::wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory)
+LIBFAUST_API wasm_dsp::wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory)
 {
 #ifdef AUDIO_WORKLET
     fDSP = EM_ASM_INT({ return AudioWorkletGlobalScope.faust_module._malloc($0); }, fFactory->getDecoder()->getDSPSize());
@@ -175,7 +175,7 @@ wasm_dsp::wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory)
     //buildUserInterface(factory->fSoundUI);
 }
 
-wasm_dsp::~wasm_dsp()
+LIBFAUST_API wasm_dsp::~wasm_dsp()
 {
     // Free the DSP memory
 #ifdef AUDIO_WORKLET
@@ -186,7 +186,7 @@ wasm_dsp::~wasm_dsp()
     wasm_dsp_factory::gWasmFactoryTable.removeDSP(fFactory, this);
 }
 
-int wasm_dsp::getNumInputs()
+LIBFAUST_API int wasm_dsp::getNumInputs()
 {
 #ifdef AUDIO_WORKLET
     return EM_ASM_INT({ return AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.getNumInputs($1); }, fFactory->fInstance, fDSP);
@@ -195,7 +195,7 @@ int wasm_dsp::getNumInputs()
 #endif
 }
 
-int wasm_dsp::getNumOutputs()
+LIBFAUST_API int wasm_dsp::getNumOutputs()
 {
 #ifdef AUDIO_WORKLET
     return EM_ASM_INT({ return AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.getNumOutputs($1); }, fFactory->fInstance, fDSP);
@@ -204,12 +204,12 @@ int wasm_dsp::getNumOutputs()
 #endif
 }
 
-void wasm_dsp::buildUserInterface(UI* ui_interface)
+LIBFAUST_API void wasm_dsp::buildUserInterface(UI* ui_interface)
 {
     fFactory->getDecoder()->buildUserInterface(ui_interface, reinterpret_cast<char*>(fDSP));
 }
 
-int wasm_dsp::getSampleRate()
+LIBFAUST_API int wasm_dsp::getSampleRate()
 {
 #ifdef AUDIO_WORKLET
     return EM_ASM_INT({ return AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.getSampleRate($1); }, fFactory->fInstance, fDSP);
@@ -218,7 +218,7 @@ int wasm_dsp::getSampleRate()
 #endif
 }
 
-void wasm_dsp::init(int sample_rate)
+LIBFAUST_API void wasm_dsp::init(int sample_rate)
 {
 #ifdef AUDIO_WORKLET
     EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.init($1, $2); }, fFactory->fInstance, fDSP, sample_rate);
@@ -227,7 +227,7 @@ void wasm_dsp::init(int sample_rate)
 #endif
 }
 
-void wasm_dsp::instanceInit(int sample_rate)
+LIBFAUST_API void wasm_dsp::instanceInit(int sample_rate)
 {
 #ifdef AUDIO_WORKLET
     EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.instanceInit($1, $2); }, fFactory->fInstance, fDSP, sample_rate);
@@ -236,7 +236,7 @@ void wasm_dsp::instanceInit(int sample_rate)
 #endif
 }
 
-void wasm_dsp::instanceConstants(int sample_rate)
+LIBFAUST_API void wasm_dsp::instanceConstants(int sample_rate)
 {
 #ifdef AUDIO_WORKLET
     EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.instanceConstants($1, $2); }, fFactory->fInstance, fDSP, sample_rate);
@@ -245,7 +245,7 @@ void wasm_dsp::instanceConstants(int sample_rate)
 #endif
 }
 
-void wasm_dsp::instanceResetUserInterface()
+LIBFAUST_API void wasm_dsp::instanceResetUserInterface()
 {
 #ifdef AUDIO_WORKLET
     EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.instanceResetUserInterface($1); }, fFactory->fInstance, fDSP);
@@ -254,7 +254,7 @@ void wasm_dsp::instanceResetUserInterface()
 #endif
 }
 
-void wasm_dsp::instanceClear()
+LIBFAUST_API void wasm_dsp::instanceClear()
 {
 #ifdef AUDIO_WORKLET
     EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.instanceClear($1); }, fFactory->fInstance, fDSP);
@@ -263,17 +263,17 @@ void wasm_dsp::instanceClear()
 #endif
 }
 
-wasm_dsp* wasm_dsp::clone()
+LIBFAUST_API wasm_dsp* wasm_dsp::clone()
 {
     return fFactory->createDSPInstance();
 }
 
-void wasm_dsp::metadata(Meta* m)
+LIBFAUST_API void wasm_dsp::metadata(Meta* m)
 {
     fFactory->getDecoder()->metadata(m);
 }
 
-void wasm_dsp::computeJS(int count, uintptr_t inputs, uintptr_t outputs)
+LIBFAUST_API void wasm_dsp::computeJS(int count, uintptr_t inputs, uintptr_t outputs)
 {
 #ifdef AUDIO_WORKLET
     EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); },
@@ -284,7 +284,7 @@ void wasm_dsp::computeJS(int count, uintptr_t inputs, uintptr_t outputs)
 #endif
 }
 
-void wasm_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+LIBFAUST_API void wasm_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
 {
 #ifdef AUDIO_WORKLET
     EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); }, fFactory->fInstance, fDSP, count,
@@ -295,12 +295,12 @@ void wasm_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
 #endif
 }
 
-void wasm_dsp::setParamValue(const std::string& path, FAUSTFLOAT value)
+LIBFAUST_API void wasm_dsp::setParamValue(const std::string& path, FAUSTFLOAT value)
 {
     fFactory->fMapUI.setParamValue(path, value);
 }
 
-FAUSTFLOAT wasm_dsp::getParamValue(const std::string& path)
+LIBFAUST_API FAUSTFLOAT wasm_dsp::getParamValue(const std::string& path)
 {
     return fFactory->fMapUI.getParamValue(path);
 }
@@ -343,197 +343,197 @@ EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp)
 
 #else
 
-wasm_dsp_factory::wasm_dsp_factory(int instance, const std::string& json)
+LIBFAUST_API wasm_dsp_factory::wasm_dsp_factory(int instance, const std::string& json)
 {
     fFactory = nullptr;
     fInstance = instance;
     fDecoder = createJSONUIDecoder(json);
 }
 
-wasm_dsp_factory::~wasm_dsp_factory()
+LIBFAUST_API wasm_dsp_factory::~wasm_dsp_factory()
 {
     delete fFactory;
     delete fDecoder;
 }
 
-wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactory(int instance, const std::string& json)
+LIBFAUST_API wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactory(int instance, const std::string& json)
 {
     return nullptr;
 }
 
-string wasm_dsp_factory::extractJSON(const string& code)
+LIBFAUST_API string wasm_dsp_factory::extractJSON(const string& code)
 {
     return "";
 }
 
-EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const string& machine_code, string& error_msg)
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachine(const string& machine_code, string& error_msg)
 {
     return nullptr;
 }
 
-EXPORT string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory)
+LIBFAUST_API string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory)
 {
     return "";
 }
 
-EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const string& machine_code_path, string& error_msg)
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const string& machine_code_path, string& error_msg)
 {
     return nullptr;
 }
 
-EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const string& machine_code_path)
+LIBFAUST_API void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const string& machine_code_path)
 {
 }
 
-wasm_dsp::wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory), fDSP(-1)
+LIBFAUST_API wasm_dsp::wasm_dsp(wasm_dsp_factory* factory) : fFactory(factory), fDSP(-1)
 {
 }
 
-wasm_dsp::~wasm_dsp()
+LIBFAUST_API wasm_dsp::~wasm_dsp()
 {
     wasm_dsp_factory::gWasmFactoryTable.removeDSP(fFactory, this);
 }
 
-int wasm_dsp::getNumInputs()
+LIBFAUST_API int wasm_dsp::getNumInputs()
 {
     return -1;
 }
 
-int wasm_dsp::getNumOutputs()
+LIBFAUST_API int wasm_dsp::getNumOutputs()
 {
     return -1;
 }
 
-void wasm_dsp::buildUserInterface(UI* ui_interface)
+LIBFAUST_API void wasm_dsp::buildUserInterface(UI* ui_interface)
 {
 }
 
-int wasm_dsp::getSampleRate()
+LIBFAUST_API int wasm_dsp::getSampleRate()
 {
     return -1;
 }
 
-void wasm_dsp::init(int sample_rate)
+LIBFAUST_API void wasm_dsp::init(int sample_rate)
 {
 }
 
-void wasm_dsp::instanceInit(int sample_rate)
+LIBFAUST_API void wasm_dsp::instanceInit(int sample_rate)
 {
 }
 
-void wasm_dsp::instanceConstants(int sample_rate)
+LIBFAUST_API void wasm_dsp::instanceConstants(int sample_rate)
 {
 }
 
-void wasm_dsp::instanceResetUserInterface()
+LIBFAUST_API void wasm_dsp::instanceResetUserInterface()
 {
 }
 
-void wasm_dsp::instanceClear()
+LIBFAUST_API void wasm_dsp::instanceClear()
 {
 }
 
-wasm_dsp* wasm_dsp::clone()
+LIBFAUST_API wasm_dsp* wasm_dsp::clone()
 {
     return nullptr;
 }
 
-void wasm_dsp::metadata(Meta* m)
+LIBFAUST_API void wasm_dsp::metadata(Meta* m)
 {
 }
 
-void wasm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+LIBFAUST_API void wasm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
 }
 
-void wasm_dsp::computeJS(int count, uintptr_t input, uintptr_t output)
+LIBFAUST_API void wasm_dsp::computeJS(int count, uintptr_t input, uintptr_t output)
 {
 }
 
-void wasm_dsp::setParamValue(const std::string& path, FAUSTFLOAT value)
+LIBFAUST_API void wasm_dsp::setParamValue(const std::string& path, FAUSTFLOAT value)
 {
 }
 
-FAUSTFLOAT wasm_dsp::getParamValue(const std::string& path)
+LIBFAUST_API FAUSTFLOAT wasm_dsp::getParamValue(const std::string& path)
 {
     return -1;
 }
 
 #endif
 
-wasm_dsp_factory::wasm_dsp_factory(dsp_factory_base* factory)
+LIBFAUST_API wasm_dsp_factory::wasm_dsp_factory(dsp_factory_base* factory)
 {
     fFactory = factory;
     fDecoder = nullptr;
 }
 
-string wasm_dsp_factory::getName()
+LIBFAUST_API string wasm_dsp_factory::getName()
 {
     return fFactory->getName();
 }
 
-string wasm_dsp_factory::getSHAKey()
+LIBFAUST_API string wasm_dsp_factory::getSHAKey()
 {
     return fFactory->getSHAKey();
 }
-void wasm_dsp_factory::setSHAKey(const string& sha_key)
+LIBFAUST_API void wasm_dsp_factory::setSHAKey(const string& sha_key)
 {
     fFactory->setSHAKey(sha_key);
 }
 
-string wasm_dsp_factory::getDSPCode()
+LIBFAUST_API string wasm_dsp_factory::getDSPCode()
 {
     return fFactory->getDSPCode();
 }
-void wasm_dsp_factory::setDSPCode(const string& code)
+LIBFAUST_API void wasm_dsp_factory::setDSPCode(const string& code)
 {
     fFactory->setDSPCode(code);
 }
 
-string wasm_dsp_factory::getCompileOptions()
+LIBFAUST_API string wasm_dsp_factory::getCompileOptions()
 {
     return fDecoder->getCompileOptions();
 }
-vector<string> wasm_dsp_factory::getLibraryList()
+LIBFAUST_API vector<string> wasm_dsp_factory::getLibraryList()
 {
     return fDecoder->getLibraryList();
 }
-vector<string> wasm_dsp_factory::getIncludePathnames()
+LIBFAUST_API vector<string> wasm_dsp_factory::getIncludePathnames()
 {
     return fDecoder->getIncludePathnames();
 }
 
-void wasm_dsp_factory::setMemoryManager(dsp_memory_manager* manager)
+LIBFAUST_API void wasm_dsp_factory::setMemoryManager(dsp_memory_manager* manager)
 {
 }
 
-dsp_memory_manager* wasm_dsp_factory::getMemoryManager()
+LIBFAUST_API dsp_memory_manager* wasm_dsp_factory::getMemoryManager()
 {
     return nullptr;
 }
 
-void wasm_dsp_factory::write(ostream* out, bool binary, bool small)
+LIBFAUST_API void wasm_dsp_factory::write(ostream* out, bool binary, bool small)
 {
     fFactory->write(out, binary, small);
 }
-void wasm_dsp_factory::writeHelper(ostream* out, bool binary, bool small)
+LIBFAUST_API void wasm_dsp_factory::writeHelper(ostream* out, bool binary, bool small)
 {
     fFactory->writeHelper(out, binary, small);
 }
 
-string wasm_dsp_factory::getBinaryCode()
+LIBFAUST_API string wasm_dsp_factory::getBinaryCode()
 {
     return fFactory->getBinaryCode();
 }
 
-wasm_dsp* wasm_dsp_factory::createDSPInstance()
+LIBFAUST_API wasm_dsp* wasm_dsp_factory::createDSPInstance()
 {
     wasm_dsp* dsp = new wasm_dsp(this);
     wasm_dsp_factory::gWasmFactoryTable.addDSP(this, dsp);
     return dsp;
 }
 
-void wasm_dsp_factory::deleteDSPInstance(wasm_dsp* dsp)
+LIBFAUST_API void wasm_dsp_factory::deleteDSPInstance(wasm_dsp* dsp)
 {
     delete dsp;
 }
@@ -542,34 +542,34 @@ void wasm_dsp_factory::deleteDSPInstance(wasm_dsp* dsp)
 
 string wasm_dsp_factory::gErrorMessage = "";
 
-const string& wasm_dsp_factory::getErrorMessage()
+LIBFAUST_API const string& wasm_dsp_factory::getErrorMessage()
 {
     return wasm_dsp_factory::gErrorMessage;
 }
 
-wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2(const string& machine_code_path)
+LIBFAUST_API wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2(const string& machine_code_path)
 {
     return readWasmDSPFactoryFromMachineFile(machine_code_path, wasm_dsp_factory::gErrorMessage);
 }
 
-wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachine2(const string& machine_code)
+LIBFAUST_API wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachine2(const string& machine_code)
 {
     return readWasmDSPFactoryFromMachine(machine_code, wasm_dsp_factory::gErrorMessage);
 }
 
-bool wasm_dsp_factory::deleteWasmDSPFactory2(wasm_dsp_factory* factory)
+LIBFAUST_API bool wasm_dsp_factory::deleteWasmDSPFactory2(wasm_dsp_factory* factory)
 {
     return (factory) ? wasm_dsp_factory::gWasmFactoryTable.deleteDSPFactory(factory) : false;
 }
 
 // C++ API
 
-EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory)
+LIBFAUST_API bool deleteWasmDSPFactory(wasm_dsp_factory* factory)
 {
     return (factory) ? wasm_dsp_factory::gWasmFactoryTable.deleteDSPFactory(factory) : false;
 }
 
-EXPORT void deleteAllWasmDSPFactories()
+LIBFAUST_API void deleteAllWasmDSPFactories()
 {
     wasm_dsp_factory::gWasmFactoryTable.deleteAllDSPFactories();
 }

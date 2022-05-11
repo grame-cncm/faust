@@ -22,12 +22,31 @@
 #ifndef __export__
 #define __export__
 
-#define FAUSTVERSION "2.40.8"
+#define FAUSTVERSION "2.40.9"
+
+// Use FAUST_API for code that is part of the external API but is also compiled in faust and libfaust
+// Use LIBFAUST_API for code that is compiled in faust and libfaust
 
 #ifdef _WIN32
-#define EXPORT __declspec(dllexport)
+    #pragma warning (disable: 4251)
+    #ifdef FAUST_EXE
+        #define FAUST_API
+        #define LIBFAUST_API
+    #elif FAUST_LIB
+        #define FAUST_API __declspec(dllexport)
+        #define LIBFAUST_API __declspec(dllexport)
+    #else
+        #define FAUST_API
+        #define LIBFAUST_API 
+    #endif
 #else
-#define EXPORT __attribute__((visibility("default")))
+    #ifdef FAUST_EXE
+        #define FAUST_API
+        #define LIBFAUST_API
+    #else
+        #define FAUST_API __attribute__((visibility("default")))
+        #define LIBFAUST_API __attribute__((visibility("default")))
+    #endif
 #endif
 
 #endif

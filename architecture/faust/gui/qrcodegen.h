@@ -47,7 +47,6 @@ enum qrcodegen_Ecc {
 	qrcodegen_Ecc_HIGH,
 };
 
-
 /* 
  * The mask pattern used in a QR Code symbol.
  */
@@ -66,7 +65,6 @@ enum qrcodegen_Mask {
 	qrcodegen_Mask_7,
 };
 
-
 /* 
  * The mode field of a segment.
  */
@@ -77,7 +75,6 @@ enum qrcodegen_Mode {
 	qrcodegen_Mode_KANJI,
 	qrcodegen_Mode_ECI,
 };
-
 
 /* 
  * A segment of user/application data that a QR Code symbol can convey.
@@ -103,8 +100,6 @@ struct qrcodegen_Segment {
 	// 0 <= bitLength <= 32767, and bitLength <= (capacity of data array) * 8.
 	int bitLength;
 };
-
-
 
 /*---- Macro constants and functions ----*/
 
@@ -151,7 +146,6 @@ extern "C" {
 static bool qrcodegen_encodeText(const char *text, uint8_t tempBuffer[], uint8_t qrcode[],
 	enum qrcodegen_Ecc ecl, int minVersion, int maxVersion, enum qrcodegen_Mask mask, bool boostEcl);
 
-
 /* 
  * Encodes the given binary data to a QR Code symbol, returning true if encoding succeeded.
  * If the data is too long to fit in any version in the given range
@@ -173,18 +167,15 @@ static bool qrcodegen_encodeText(const char *text, uint8_t tempBuffer[], uint8_t
 static bool qrcodegen_encodeBinary(uint8_t dataAndTemp[], size_t dataLen, uint8_t qrcode[],
 	enum qrcodegen_Ecc ecl, int minVersion, int maxVersion, enum qrcodegen_Mask mask, bool boostEcl);
 
-
 /* 
  * Tests whether the given string can be encoded as a segment in alphanumeric mode.
  */
-static bool qrcodegen_isAlphanumeric(const char *text);
-
+static bool qrcodegen_isAlphanumeric(const char* text);
 
 /* 
  * Tests whether the given string can be encoded as a segment in numeric mode.
  */
-static bool qrcodegen_isNumeric(const char *text);
-
+static bool qrcodegen_isNumeric(const char* text);
 
 /* 
  * Returns the number of bytes (uint8_t) needed for the data buffer of a segment
@@ -199,18 +190,15 @@ static bool qrcodegen_isNumeric(const char *text);
  */
 static size_t qrcodegen_calcSegmentBufferSize(enum qrcodegen_Mode mode, size_t numChars);
 
-
 /* 
  * Returns a segment representing the given binary data encoded in byte mode.
  */
 static struct qrcodegen_Segment qrcodegen_makeBytes(const uint8_t data[], size_t len, uint8_t buf[]);
 
-
 /* 
  * Returns a segment representing the given string of decimal digits encoded in numeric mode.
  */
 static struct qrcodegen_Segment qrcodegen_makeNumeric(const char *digits, uint8_t buf[]);
-
 
 /* 
  * Returns a segment representing the given text string encoded in alphanumeric mode.
@@ -219,13 +207,11 @@ static struct qrcodegen_Segment qrcodegen_makeNumeric(const char *digits, uint8_
  */
 static struct qrcodegen_Segment qrcodegen_makeAlphanumeric(const char *text, uint8_t buf[]);
 
-
 /* 
  * Returns a segment representing an Extended Channel Interpretation
  * (ECI) designator with the given assignment value.
  */
 static struct qrcodegen_Segment qrcodegen_makeEci(long assignVal, uint8_t buf[]);
-
 
 /* 
  * Renders a QR Code symbol representing the given data segments at the given error correction
@@ -241,7 +227,6 @@ static struct qrcodegen_Segment qrcodegen_makeEci(long assignVal, uint8_t buf[])
 static bool qrcodegen_encodeSegments(const struct qrcodegen_Segment segs[], size_t len,
 	enum qrcodegen_Ecc ecl, uint8_t tempBuffer[], uint8_t qrcode[]);
 
-
 /* 
  * Renders a QR Code symbol representing the given data segments with the given encoding parameters.
  * Returns true if QR Code creation succeeded, or false if the data is too long to fit in the range of versions.
@@ -256,7 +241,6 @@ static bool qrcodegen_encodeSegments(const struct qrcodegen_Segment segs[], size
 static bool qrcodegen_encodeSegmentsAdvanced(const struct qrcodegen_Segment segs[], size_t len, enum qrcodegen_Ecc ecl,
 	int minVersion, int maxVersion, int mask, bool boostEcl, uint8_t tempBuffer[], uint8_t qrcode[]);
 
-
 /*---- Functions to extract raw data from QR Codes ----*/
 
 /* 
@@ -266,7 +250,6 @@ static bool qrcodegen_encodeSegmentsAdvanced(const struct qrcodegen_Segment segs
  * qrcodegen_BUFFER_LEN_FOR_VERSION(version), which equals ceil(size^2 / 8 + 1).
  */
 static int qrcodegen_getSize(const uint8_t qrcode[]);
-
 
 /* 
  * Returns the color of the module (pixel) at the given coordinates, which is either

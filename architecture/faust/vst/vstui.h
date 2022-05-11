@@ -241,8 +241,7 @@ class vstSlider : public vstUIObject {
 };
 
 /*--------------------------------------------------------------------------*/
-class vstUI : public UI
-{
+class vstUI : public UI {
     
     private:
         

@@ -30,9 +30,10 @@
 #include <sstream>
 #include <string>
 
+#include "faust/export.h"
+
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
-#include "export.hh"
 #include "interpreter_bytecode.hh"
 #include "fbc_interpreter.hh"
 
@@ -749,7 +750,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
 // Public C++ interface
 
-class EXPORT interpreter_dsp : public dsp {
+class LIBFAUST_API interpreter_dsp : public dsp {
    private:
     interpreter_dsp_factory* fFactory;
     interpreter_dsp_base*    fDSP;
@@ -841,7 +842,7 @@ class EXPORT interpreter_dsp : public dsp {
     void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 };
 
-class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartable {
+class LIBFAUST_API interpreter_dsp_factory : public dsp_factory, public faust_smartable {
    protected:
     dsp_factory_base* fFactory;
 
@@ -874,24 +875,24 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
     void write(std::ostream* out, bool binary = false, bool small = false) { fFactory->write(out, binary, small); }
 };
 
-EXPORT interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& sha_key);
+LIBFAUST_API interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& sha_key);
 
-EXPORT bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory);
+LIBFAUST_API bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory);
 
-EXPORT std::vector<std::string> getInterpreterDSPFactoryLibraryList(interpreter_dsp_factory* factory);
+LIBFAUST_API std::vector<std::string> getInterpreterDSPFactoryLibraryList(interpreter_dsp_factory* factory);
 
-EXPORT std::vector<std::string> getAllInterpreterDSPFactories();
+LIBFAUST_API std::vector<std::string> getAllInterpreterDSPFactories();
 
-EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const std::string& bitcode,
-                                                                     std::string&       error_msg);
+LIBFAUST_API interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const std::string& bitcode,
+                                                                           std::string&       error_msg);
 
-EXPORT std::string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* factory);
+LIBFAUST_API std::string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* factory);
 
-EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const std::string& bitcode_path,
-                                                                         std::string&       error_msg);
+LIBFAUST_API interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const std::string& bitcode_path,
+                                                                               std::string&       error_msg);
 
-EXPORT bool writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const std::string& bitcode_path);
+LIBFAUST_API bool writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const std::string& bitcode_path);
 
-EXPORT void deleteAllInterpreterDSPFactories();
+LIBFAUST_API void deleteAllInterpreterDSPFactories();
 
 #endif

@@ -121,7 +121,7 @@ struct auToggleButton: public auUIObject {
 };
 
 /**********************************************************************************/
-struct auCheckButton: public auUIObject {
+struct auCheckButton : public auUIObject {
     
     auCheckButton(const char* label, FAUSTFLOAT* zone) :
     auUIObject(label, zone)
@@ -257,10 +257,9 @@ struct auBox: public auUIObject {
 /**********************************************************************************/
 //eunum Direction {HORIZONTAL, VERTICAL}; //TODO
 
-struct auUI: public UI, public MetaDataUI {
+struct auUI : public UI, public MetaDataUI {
     
 	vector<auUIObject*> fUITable;
-    
     auBox* currentBox = NULL;
     auBox* boundingBox = NULL;
     

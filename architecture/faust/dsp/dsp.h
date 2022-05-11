@@ -28,18 +28,20 @@
 #include <string>
 #include <vector>
 
+#include "faust/export.h"
+
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif
 
-struct UI;
-struct Meta;
+struct FAUST_API UI;
+struct FAUST_API Meta;
 
 /**
  * DSP memory manager.
  */
 
-struct dsp_memory_manager {
+struct FAUST_API dsp_memory_manager {
     
     virtual ~dsp_memory_manager() {}
     
@@ -81,7 +83,7 @@ struct dsp_memory_manager {
 * Signal processor definition.
 */
 
-class dsp {
+class FAUST_API dsp {
 
     public:
 
@@ -175,7 +177,7 @@ class dsp {
  * Generic DSP decorator.
  */
 
-class decorator_dsp : public dsp {
+class FAUST_API decorator_dsp : public dsp {
 
     protected:
 
@@ -208,7 +210,7 @@ class decorator_dsp : public dsp {
  * to create DSP instances from a compiled DSP program.
  */
 
-class dsp_factory {
+class FAUST_API dsp_factory {
     
     protected:
     
@@ -237,8 +239,8 @@ class dsp_factory {
 #include <xmmintrin.h>
 #endif
 
-class ScopedNoDenormals
-{
+class FAUST_API ScopedNoDenormals {
+    
     private:
     
         intptr_t fpsr;

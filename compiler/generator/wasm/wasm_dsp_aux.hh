@@ -28,9 +28,10 @@
 
 #include "faust/gui/MapUI.h"
 #include "faust/gui/JSONControl.h"
+#include "faust/export.h"
+
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
-#include "export.hh"
 #include "wasm_binary.hh"
 
 class wasm_dsp_factory;
@@ -266,7 +267,7 @@ struct WasmBinaryReader {
 class SoundUI;
 class MidiUI;
 
-class EXPORT wasm_dsp : public dsp, public JSONControl {
+class LIBFAUST_API wasm_dsp : public dsp, public JSONControl {
    private:
     wasm_dsp_factory* fFactory;
     int               fDSP;       // Index of wasm DSP memory
@@ -310,7 +311,7 @@ class EXPORT wasm_dsp : public dsp, public JSONControl {
 
 typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;
 
-class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
+class LIBFAUST_API wasm_dsp_factory : public dsp_factory, public faust_smartable {
     friend class wasm_dsp;
    protected:
     dsp_factory_base*   fFactory;
@@ -373,16 +374,16 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     static dsp_factory_table<SDsp_factory> gWasmFactoryTable;
 };
 
-EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory);
+LIBFAUST_API bool deleteWasmDSPFactory(wasm_dsp_factory* factory);
 
-EXPORT void deleteAllWasmDSPFactories();
+LIBFAUST_API void deleteAllWasmDSPFactories();
 
-EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code, std::string& error_msg);
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code, std::string& error_msg);
 
-EXPORT std::string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory);
+LIBFAUST_API std::string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory);
 
-EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path, std::string& error_msg);
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path, std::string& error_msg);
 
-EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const std::string& machine_code_path);
+LIBFAUST_API void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const std::string& machine_code_path);
 
 #endif

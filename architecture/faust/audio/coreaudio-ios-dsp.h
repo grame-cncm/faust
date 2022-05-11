@@ -53,8 +53,7 @@ using namespace std;
 #define OPEN_ERR -1
 #define NO_ERR 0
 
-class TiPhoneCoreAudioRenderer
-{
+class TiPhoneCoreAudioRenderer {
 
     protected:
 

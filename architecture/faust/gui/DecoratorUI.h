@@ -31,7 +31,7 @@ architecture section is not modified.
 //  Generic UI empty implementation
 //----------------------------------------------------------------
 
-class GenericUI : public UI
+class FAUST_API GenericUI : public UI
 {
     
     public:
@@ -67,7 +67,7 @@ class GenericUI : public UI
 //  Generic UI decorator
 //----------------------------------------------------------------
 
-class DecoratorUI : public UI
+class FAUST_API DecoratorUI : public UI
 {
     
     protected:
@@ -109,7 +109,7 @@ class DecoratorUI : public UI
 };
 
 // Defined here to simplify header #include inclusion 
-class SoundUIInterface : public GenericUI {};
+class FAUST_API SoundUIInterface : public GenericUI {};
 
 #endif
 /**************************  END  DecoratorUI.h **************************/

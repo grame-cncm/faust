@@ -46,19 +46,19 @@ dsp_factory_table<SDsp_factory> gInterpreterFactoryTable;
 
 // External API
 
-EXPORT interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const string& sha_key)
+LIBFAUST_API interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const string& sha_key)
 {
     LOCK_API
     return static_cast<interpreter_dsp_factory*>(gInterpreterFactoryTable.getDSPFactoryFromSHAKey(sha_key));
 }
 
-EXPORT bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory)
+LIBFAUST_API bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory)
 {
     LOCK_API
     return (factory) ? gInterpreterFactoryTable.deleteDSPFactory(factory) : false;
  }
 
-EXPORT vector<string> getInterpreterDSPFactoryLibraryList(interpreter_dsp_factory* factory)
+LIBFAUST_API vector<string> getInterpreterDSPFactoryLibraryList(interpreter_dsp_factory* factory)
 {
     // TODO
     LOCK_API
@@ -66,19 +66,19 @@ EXPORT vector<string> getInterpreterDSPFactoryLibraryList(interpreter_dsp_factor
     return res;
 }
 
-EXPORT vector<string> getAllInterpreterDSPFactories()
+LIBFAUST_API vector<string> getAllInterpreterDSPFactories()
 {
     LOCK_API
     return gInterpreterFactoryTable.getAllDSPFactories();
 }
 
-EXPORT void deleteAllInterpreterDSPFactories()
+LIBFAUST_API void deleteAllInterpreterDSPFactories()
 {
     LOCK_API
     gInterpreterFactoryTable.deleteAllDSPFactories();
 }
 
-EXPORT interpreter_dsp::~interpreter_dsp()
+LIBFAUST_API interpreter_dsp::~interpreter_dsp()
 {
     LOCK_API
     gInterpreterFactoryTable.removeDSP(fFactory, this);
@@ -91,7 +91,7 @@ EXPORT interpreter_dsp::~interpreter_dsp()
     }
 }
 
-EXPORT interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
+LIBFAUST_API interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
 {
     LOCK_API
     dsp* dsp = fFactory->createDSPInstance(this);
@@ -100,7 +100,7 @@ EXPORT interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
 }
 
 // Use the memory manager if needed
-EXPORT void interpreter_dsp::operator delete(void* ptr)
+LIBFAUST_API void interpreter_dsp::operator delete(void* ptr)
 {
     if (ptr) {
         dsp_memory_manager* manager = static_cast<interpreter_dsp*>(ptr)->fFactory->getMemoryManager();
@@ -163,13 +163,13 @@ static interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeAux(const st
     }
 }
 
-EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const string& bitcode, string& error_msg)
+LIBFAUST_API interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const string& bitcode, string& error_msg)
 {
     LOCK_API
     return readInterpreterDSPFactoryFromBitcodeAux(bitcode, error_msg);
 }
 
-EXPORT string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* factory)
+LIBFAUST_API string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* factory)
 {
     LOCK_API
     stringstream writer;
@@ -177,7 +177,7 @@ EXPORT string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* facto
     return writer.str();
 }
 
-EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const string& bitcode_path, string& error_msg)
+LIBFAUST_API interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const string& bitcode_path, string& error_msg)
 {
     LOCK_API
     string base = basename((char*)bitcode_path.c_str());
@@ -198,7 +198,7 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const s
     }
 }
 
-EXPORT bool writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const string& bitcode_path)
+LIBFAUST_API bool writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const string& bitcode_path)
 {
     LOCK_API
     ofstream writer(bitcode_path.c_str());
@@ -210,63 +210,63 @@ EXPORT bool writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* fac
     }
 }
 
-EXPORT void interpreter_dsp::metadata(Meta* meta)
+LIBFAUST_API void interpreter_dsp::metadata(Meta* meta)
 {
     fDSP->metadata(meta);
 }
 
-EXPORT interpreter_dsp* interpreter_dsp::clone()
+LIBFAUST_API interpreter_dsp* interpreter_dsp::clone()
 {
     return fFactory->createDSPInstance();
 }
 
-EXPORT int interpreter_dsp::getSampleRate()
+LIBFAUST_API int interpreter_dsp::getSampleRate()
 {
     return fDSP->getSampleRate();
 }
 
-EXPORT int interpreter_dsp::getNumInputs()
+LIBFAUST_API int interpreter_dsp::getNumInputs()
 {
     return fDSP->getNumInputs();
 }
 
-int EXPORT interpreter_dsp::getNumOutputs()
+LIBFAUST_API int interpreter_dsp::getNumOutputs()
 {
     return fDSP->getNumOutputs();
 }
 
-EXPORT void interpreter_dsp::init(int sample_rate)
+LIBFAUST_API void interpreter_dsp::init(int sample_rate)
 {
     fDSP->init(sample_rate);
 }
 
-EXPORT void interpreter_dsp::instanceInit(int sample_rate)
+LIBFAUST_API void interpreter_dsp::instanceInit(int sample_rate)
 {
     fDSP->instanceInit(sample_rate);
 }
 
-EXPORT void interpreter_dsp::instanceConstants(int sample_rate)
+LIBFAUST_API void interpreter_dsp::instanceConstants(int sample_rate)
 {
     fDSP->instanceConstants(sample_rate);
 }
 
-EXPORT void interpreter_dsp::instanceResetUserInterface()
+LIBFAUST_API void interpreter_dsp::instanceResetUserInterface()
 {
     fDSP->instanceResetUserInterface();
 }
 
-EXPORT void interpreter_dsp::instanceClear()
+LIBFAUST_API void interpreter_dsp::instanceClear()
 {
     fDSP->instanceClear();
 }
 
-EXPORT void interpreter_dsp::buildUserInterface(UI* ui_interface)
+LIBFAUST_API void interpreter_dsp::buildUserInterface(UI* ui_interface)
 {
     UITemplate glue(ui_interface);
     fDSP->buildUserInterface(&glue);
 }
 
-EXPORT void interpreter_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+LIBFAUST_API void interpreter_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     fDSP->compute(count, input, output);
 }

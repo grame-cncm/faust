@@ -69,14 +69,14 @@ namespace gtk_knob
     
     class GtkKnob
     {
-    private:
-        
-    public:
-        GtkRange parent;
-        int last_quadrant;
-        GtkKnob();
-        ~GtkKnob();
-        GtkWidget* gtk_knob_new_with_adjustment(GtkAdjustment* _adjustment);
+        private:
+            
+        public:
+            GtkRange parent;
+            int last_quadrant;
+            GtkKnob();
+            ~GtkKnob();
+            GtkWidget* gtk_knob_new_with_adjustment(GtkAdjustment* _adjustment);
         
     };
     

@@ -37,8 +37,9 @@ box ::= i | f | p0 | p1 | p3
 ******************************************************************************
 *****************************************************************************/
 
+#include "faust/export.h"
+
 #include "tlib.hh"
-#include "export.hh"
 
 namespace PM { struct Automaton; }
 
@@ -62,8 +63,8 @@ bool isBoxIdent(Tree t, const char** name);
                                     Numbers
 *****************************************************************************/
 
-EXPORT Tree boxInt(int n);
-EXPORT Tree boxReal(double n);
+LIBFAUST_API Tree boxInt(int n);
+LIBFAUST_API Tree boxReal(double n);
 
 bool isBoxInt(Tree t);
 bool isBoxReal(Tree t);
@@ -78,7 +79,7 @@ bool isBoxReal(Tree t, double* r);
     A Waveform is int if all its values are int. It is float otherwise.
 *****************************************************************************/
 
-EXPORT Tree boxWaveform(const tvec& br);
+LIBFAUST_API Tree boxWaveform(const tvec& br);
 bool isBoxWaveform(Tree t);
 
 /*****************************************************************************
@@ -87,15 +88,15 @@ bool isBoxWaveform(Tree t);
     a n-inputs, m-outputs routing object
 *****************************************************************************/
 
-EXPORT Tree boxRoute(Tree n, Tree m, Tree r);
+LIBFAUST_API Tree boxRoute(Tree n, Tree m, Tree r);
 bool isBoxRoute(Tree s, Tree& n, Tree& m, Tree& r);
 
 /*****************************************************************************
                                 Wire and Cut
 *****************************************************************************/
 
-EXPORT Tree boxWire();
-EXPORT Tree boxCut();
+LIBFAUST_API Tree boxWire();
+LIBFAUST_API Tree boxCut();
 
 bool isBoxWire(Tree t);
 bool isBoxCut(Tree t);
@@ -117,11 +118,11 @@ bool isBoxSymbolic(Tree t, Tree& slot, Tree& body);
                               Composition of Boxes
 *****************************************************************************/
 
-EXPORT Tree boxSeq(Tree x, Tree y);
-EXPORT Tree boxPar(Tree x, Tree y);
-EXPORT Tree boxRec(Tree x, Tree y);
-EXPORT Tree boxSplit(Tree x, Tree y);
-EXPORT Tree boxMerge(Tree x, Tree y);
+LIBFAUST_API Tree boxSeq(Tree x, Tree y);
+LIBFAUST_API Tree boxPar(Tree x, Tree y);
+LIBFAUST_API Tree boxRec(Tree x, Tree y);
+LIBFAUST_API Tree boxSplit(Tree x, Tree y);
+LIBFAUST_API Tree boxMerge(Tree x, Tree y);
 
 bool isBoxSeq(Tree t, Tree& x, Tree& y);
 bool isBoxPar(Tree t, Tree& x, Tree& y);
@@ -235,15 +236,15 @@ bool isBoxPrim5(Tree s, prim5* p);
                              Foreign Functions
 *****************************************************************************/
 
-EXPORT Tree boxFFun(Tree ff);
+LIBFAUST_API Tree boxFFun(Tree ff);
 bool isBoxFFun(Tree s);
 bool isBoxFFun(Tree s, Tree& ff);
 
-EXPORT Tree boxFConst(Tree type, Tree name, Tree file);
+LIBFAUST_API Tree boxFConst(Tree type, Tree name, Tree file);
 bool isBoxFConst(Tree s);
 bool isBoxFConst(Tree s, Tree& type, Tree& name, Tree& file);
 
-EXPORT Tree boxFVar(Tree type, Tree name, Tree file);
+LIBFAUST_API Tree boxFVar(Tree type, Tree name, Tree file);
 bool isBoxFVar(Tree s);
 bool isBoxFVar(Tree s, Tree& type, Tree& name, Tree& file);
 
@@ -268,32 +269,32 @@ bool isImportFile(Tree s, Tree& filename);
 *****************************************************************************/
 
 // GUI inputs
-EXPORT Tree boxButton(Tree label);
+LIBFAUST_API Tree boxButton(Tree label);
 bool isBoxButton(Tree s);
 bool isBoxButton(Tree s, Tree& label);
 
-EXPORT Tree boxCheckbox(Tree label);
+LIBFAUST_API Tree boxCheckbox(Tree label);
 bool isBoxCheckbox(Tree s);
 bool isBoxCheckbox(Tree s, Tree& label);
 
-EXPORT Tree boxVSlider(Tree label, Tree cur, Tree min, Tree max, Tree step);
+LIBFAUST_API Tree boxVSlider(Tree label, Tree cur, Tree min, Tree max, Tree step);
 bool isBoxVSlider(Tree s);
 bool isBoxVSlider(Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
 
-EXPORT Tree boxHSlider(Tree label, Tree cur, Tree min, Tree max, Tree step);
+LIBFAUST_API Tree boxHSlider(Tree label, Tree cur, Tree min, Tree max, Tree step);
 bool isBoxHSlider(Tree s);
 bool isBoxHSlider(Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
 
-EXPORT Tree boxNumEntry(Tree label, Tree cur, Tree min, Tree max, Tree step);
+LIBFAUST_API Tree boxNumEntry(Tree label, Tree cur, Tree min, Tree max, Tree step);
 bool isBoxNumEntry(Tree s);
 bool isBoxNumEntry(Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
 
 // GUI outputs
-EXPORT Tree boxVBargraph(Tree label, Tree min, Tree max);
+LIBFAUST_API Tree boxVBargraph(Tree label, Tree min, Tree max);
 bool isBoxVBargraph(Tree s);
 bool isBoxVBargraph(Tree s, Tree& label, Tree& min, Tree& max);
 
-EXPORT Tree boxHBargraph(Tree label, Tree min, Tree max);
+LIBFAUST_API Tree boxHBargraph(Tree label, Tree min, Tree max);
 bool isBoxHBargraph(Tree s);
 bool isBoxHBargraph(Tree s, Tree& label, Tree& min, Tree& max);
 
@@ -310,7 +311,7 @@ Tree boxTGroup(Tree label, Tree x);
 bool isBoxTGroup(Tree s);
 bool isBoxTGroup(Tree s, Tree& label, Tree& x);
 
-EXPORT Tree boxSoundfile(Tree label, Tree chan);
+LIBFAUST_API Tree boxSoundfile(Tree label, Tree chan);
 bool isBoxSoundfile(Tree s);
 bool isBoxSoundfile(Tree s, Tree& label, Tree& chan);
 

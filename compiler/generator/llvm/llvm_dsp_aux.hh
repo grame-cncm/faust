@@ -31,10 +31,10 @@
 #include "faust/gui/CInterface.h"
 #include "faust/gui/JSONUIDecoder.h"
 #include "faust/gui/meta.h"
+#include "faust/export.h"
 
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
-#include "export.hh"
 #include "smartpointer.h"
 #include "timing.hh"
 
@@ -136,7 +136,7 @@ class llvm_dsp_factory;
 
 // Public C++ interface
 
-class EXPORT llvm_dsp : public dsp {
+class LIBFAUST_API llvm_dsp : public dsp {
    private:
     llvm_dsp_factory* fFactory;
     JSONUIDecoderBase* fDecoder;
@@ -315,7 +315,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
 
 // Public C++ interface
 
-class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
+class LIBFAUST_API llvm_dsp_factory : public dsp_factory, public faust_smartable {
    private:
     llvm_dsp_factory_aux* fFactory;
 
@@ -384,30 +384,30 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
     llvm_dsp_factory_aux* getFactory() { return fFactory; }
 };
 
-EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
+LIBFAUST_API llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
 
-EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory);
+LIBFAUST_API bool deleteDSPFactory(llvm_dsp_factory* factory);
 
-EXPORT std::string getDSPMachineTarget();
+LIBFAUST_API std::string getDSPMachineTarget();
 
-EXPORT std::vector<std::string> getLibraryList(llvm_dsp_factory* factory);
+LIBFAUST_API std::vector<std::string> getLibraryList(llvm_dsp_factory* factory);
 
-EXPORT std::vector<std::string> getAllDSPFactories();
+LIBFAUST_API std::vector<std::string> getAllDSPFactories();
 
-EXPORT void deleteAllDSPFactories();
+LIBFAUST_API void deleteAllDSPFactories();
 
 // machine <==> string
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, const std::string& target,
-                                                   std::string& error_msg);
+LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_code, const std::string& target,
+                                                         std::string& error_msg);
 
 // machine <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target,
-                                                       std::string& error_msg);
+LIBFAUST_API llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target,
+                                                             std::string& error_msg);
 
-EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const std::string& target);
+LIBFAUST_API std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const std::string& target);
 
-EXPORT bool writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path,
-                                         const std::string& target);
+LIBFAUST_API bool writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path,
+                                               const std::string& target);
 
 #ifdef __cplusplus
 extern "C" {
@@ -415,77 +415,77 @@ extern "C" {
 
 // Public C interface
 
-EXPORT llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key);
+LIBFAUST_API llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key);
 
-EXPORT bool deleteCDSPFactory(llvm_dsp_factory* factory);
+LIBFAUST_API bool deleteCDSPFactory(llvm_dsp_factory* factory);
 
-EXPORT char* getCName(llvm_dsp_factory* factory);
+LIBFAUST_API char* getCName(llvm_dsp_factory* factory);
 
-EXPORT char* getCSHAKey(llvm_dsp_factory* factory);
+LIBFAUST_API char* getCSHAKey(llvm_dsp_factory* factory);
 
-EXPORT char* getCTarget(llvm_dsp_factory* factory);
+LIBFAUST_API char* getCTarget(llvm_dsp_factory* factory);
 
-EXPORT char* getCDSPCode(llvm_dsp_factory* factory);
+LIBFAUST_API char* getCDSPCode(llvm_dsp_factory* factory);
 
-EXPORT char* getCDSPMachineTarget();
+LIBFAUST_API char* getCDSPMachineTarget();
 
-EXPORT const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory);
+LIBFAUST_API const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory);
 
-EXPORT const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory);
+LIBFAUST_API const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory);
 
-EXPORT char* getCDSPFactoryCompileOptions(llvm_dsp_factory* factory);
+LIBFAUST_API char* getCDSPFactoryCompileOptions(llvm_dsp_factory* factory);
 
-EXPORT void deleteAllCDSPFactories();
+LIBFAUST_API void deleteAllCDSPFactories();
 
-EXPORT const char** getAllCDSPFactories();
+LIBFAUST_API const char** getAllCDSPFactories();
 
-EXPORT bool startMTCDSPFactories();
+LIBFAUST_API bool startMTCDSPFactories();
 
-EXPORT void stopMTCDSPFactories();
+LIBFAUST_API void stopMTCDSPFactories();
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target, char* error_msg);
+LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target, char* error_msg);
 
-EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target);
+LIBFAUST_API char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target);
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target,
+LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target,
                                                         char* error_msg);
 
-EXPORT bool writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
+LIBFAUST_API bool writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
 
-EXPORT bool writeCDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const char* object_code_path,
+LIBFAUST_API bool writeCDSPFactoryToObjectcodeFile(llvm_dsp_factory* factory, const char* object_code_path,
                                              const char* target);
 
-EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
+LIBFAUST_API void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
 
-EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp);
+LIBFAUST_API int getNumInputsCDSPInstance(llvm_dsp* dsp);
 
-EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp);
+LIBFAUST_API int getNumOutputsCDSPInstance(llvm_dsp* dsp);
 
-EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* ui_interface);
+LIBFAUST_API void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* ui_interface);
 
-EXPORT int getSampleRateCDSPInstance(llvm_dsp* dsp);
+LIBFAUST_API int getSampleRateCDSPInstance(llvm_dsp* dsp);
 
-EXPORT void initCDSPInstance(llvm_dsp* dsp, int sample_rate);
+LIBFAUST_API void initCDSPInstance(llvm_dsp* dsp, int sample_rate);
 
-EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int sample_rate);
+LIBFAUST_API void instanceInitCDSPInstance(llvm_dsp* dsp, int sample_rate);
 
-EXPORT void instanceConstantsCDSPInstance(llvm_dsp* dsp, int sample_rate);
+LIBFAUST_API void instanceConstantsCDSPInstance(llvm_dsp* dsp, int sample_rate);
 
-EXPORT void instanceResetUserInterfaceCDSPInstance(llvm_dsp* dsp);
+LIBFAUST_API void instanceResetUserInterfaceCDSPInstance(llvm_dsp* dsp);
 
-EXPORT void instanceClearCDSPInstance(llvm_dsp* dsp);
+LIBFAUST_API void instanceClearCDSPInstance(llvm_dsp* dsp);
 
-EXPORT llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp);
+LIBFAUST_API llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp);
 
-EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+LIBFAUST_API void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
 
-EXPORT void setCMemoryManager(llvm_dsp_factory* factory, MemoryManagerGlue* manager);
+LIBFAUST_API void setCMemoryManager(llvm_dsp_factory* factory, MemoryManagerGlue* manager);
 
-EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
+LIBFAUST_API llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 
-EXPORT void deleteCDSPInstance(llvm_dsp* dsp);
+LIBFAUST_API void deleteCDSPInstance(llvm_dsp* dsp);
 
-EXPORT void generateCSHA1(const char* data, char* key);
+LIBFAUST_API void generateCSHA1(const char* data, char* key);
 
 #ifdef __cplusplus
 }

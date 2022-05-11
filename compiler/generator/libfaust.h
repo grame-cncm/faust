@@ -25,16 +25,12 @@
 #include <string>
 #include <string.h>
 
+#include "faust/export.h"
+
 /*!
  \addtogroup libfaustcpp C++ interface for the tools API.
  @{
  */
-
-#ifdef _WIN32
-#define LIBEXPORT __declspec(dllexport)
-#else
-#define LIBEXPORT
-#endif
 
 /**
  * Generate SHA1 key from a string.
@@ -43,7 +39,7 @@
  *
  * @return the SHA key.
  */
-LIBEXPORT std::string generateSHA1(const std::string& data);
+LIBFAUST_API std::string generateSHA1(const std::string& data);
 
 /**
  * Expand a DSP source code into a self-contained DSP where all library import have been inlined starting from a
@@ -58,7 +54,7 @@ LIBEXPORT std::string generateSHA1(const std::string& data);
  *
  * @return the expanded DSP or an empty string in case of failure.
  */
-LIBEXPORT std::string expandDSPFromFile(const std::string& filename, int argc, const char* argv[], std::string& sha_key,
+LIBFAUST_API std::string expandDSPFromFile(const std::string& filename, int argc, const char* argv[], std::string& sha_key,
                                         std::string& error_msg);
 
 /**
@@ -74,8 +70,8 @@ LIBEXPORT std::string expandDSPFromFile(const std::string& filename, int argc, c
  *
  * @return the expanded DSP or a empty string in case of failure.
  */
-LIBEXPORT std::string expandDSPFromString(const std::string& name_app, const std::string& dsp_content, int argc,
-                                          const char* argv[], std::string& sha_key, std::string& error_msg);
+LIBFAUST_API std::string expandDSPFromString(const std::string& name_app, const std::string& dsp_content, int argc,
+                                             const char* argv[], std::string& sha_key, std::string& error_msg);
 
 /**
  * Generate additional file (other backends, SVG, XML, JSON...) starting from a filename.
@@ -87,8 +83,8 @@ LIBEXPORT std::string expandDSPFromString(const std::string& name_app, const std
  *
  * @return the expanded DSP or an empty string in case of failure.
  */
-LIBEXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, const char* argv[],
-                                        std::string& error_msg);
+LIBFAUST_API bool generateAuxFilesFromFile(const std::string& filename, int argc, const char* argv[],
+                                           std::string& error_msg);
 
 /**
  * Generate additional file (other backends, SVG, XML, JSON...) starting from a string.
@@ -101,8 +97,8 @@ LIBEXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, c
  *
  * @return the expanded DSP or a empty string in case of failure.
  */
-LIBEXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc,
-                                          const char* argv[], std::string& error_msg);
+LIBFAUST_API bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc,
+                                             const char* argv[], std::string& error_msg);
 
 /**
  * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey,
@@ -116,7 +112,7 @@ LIBEXPORT bool generateAuxFilesFromString(const std::string& name_app, const std
 #ifdef EMCC
 extern "C" void freeCMemory(void* ptr);
 #else
-extern "C" LIBEXPORT void freeCMemory(void* ptr);
+extern "C" LIBFAUST_API void freeCMemory(void* ptr);
 #endif
 
 /*!

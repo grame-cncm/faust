@@ -28,7 +28,7 @@
 
 #include "wasm_dsp_aux.hh"
 
-class EXPORT wasm_dynamic_dsp_factory : public wasm_dsp_factory {
+class LIBFAUST_API wasm_dynamic_dsp_factory : public wasm_dsp_factory {
    protected:
    public:
     wasm_dynamic_dsp_factory() {}
@@ -47,18 +47,18 @@ class EXPORT wasm_dynamic_dsp_factory : public wasm_dsp_factory {
                                                 bool internal_memory);
 };
 
-EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const std::string& filename, int argc, const char* argv[],
+LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromFile(const std::string& filename, int argc, const char* argv[],
                                                       std::string& error_msg, bool internal_memory);
 
-EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content,
+LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content,
                                                         int argc, const char* argv[], std::string& error_msg,
                                                         bool internal_memory);
 
-EXPORT wasm_dsp_factory* createWasmDSPFactoryFromSignals(const std::string& name_app, tvec signals,
+LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromSignals(const std::string& name_app, tvec signals,
                                                         int argc, const char* argv[], std::string& error_msg,
                                                         bool internal_memory);
 
-EXPORT std::string generateWasmFromString(const std::string& name_app, const std::string& dsp_content,
+LIBFAUST_API std::string generateWasmFromString(const std::string& name_app, const std::string& dsp_content,
                                           int argc, const char* argv[], std::string& error_msg,
                                           bool internal_memory);
 
@@ -66,26 +66,26 @@ EXPORT std::string generateWasmFromString(const std::string& name_app, const std
 extern "C" {
 #endif
 
-EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromFile2(const char* filename, int argc, const char* argv[],
+LIBFAUST_API wasm_dsp_factory* createWasmCDSPFactoryFromFile2(const char* filename, int argc, const char* argv[],
                                                         char* error_msg, bool internal_memory);
 
-EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromString2(const char* name_app, const char* dsp_content, int argc,
+LIBFAUST_API wasm_dsp_factory* createWasmCDSPFactoryFromString2(const char* name_app, const char* dsp_content, int argc,
                                                           const char* argv[], char* error_msg, bool internal_memory);
 
-EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromSignals2(const char* name_app, tvec signals,
+LIBFAUST_API wasm_dsp_factory* createWasmCDSPFactoryFromSignals2(const char* name_app, tvec signals,
                                                            int argc, const char* argv[],
                                                            char* error_msg,
                                                            bool internal_memory);
 
-EXPORT bool deleteWasmCDSPFactory(wasm_dsp_factory* factory);
+LIBFAUST_API bool deleteWasmCDSPFactory(wasm_dsp_factory* factory);
 
-EXPORT wasm_dsp_factory* readWasmCDSPFactoryFromMachine(const char* wasm_code, char* error_msg);
+LIBFAUST_API wasm_dsp_factory* readWasmCDSPFactoryFromMachine(const char* wasm_code, char* error_msg);
 
-EXPORT char* writeWasmCDSPFactoryToMachine(wasm_dsp_factory* factory);
+LIBFAUST_API char* writeWasmCDSPFactoryToMachine(wasm_dsp_factory* factory);
 
-EXPORT wasm_dsp_factory* readWasmCDSPFactoryFromMachineFile(const char* wasm_code_path, char* error_msg);
+LIBFAUST_API wasm_dsp_factory* readWasmCDSPFactoryFromMachineFile(const char* wasm_code_path, char* error_msg);
 
-EXPORT void writeWasmCDSPFactoryToMachineFile(wasm_dsp_factory* factory, const char* wasm_code_path);
+LIBFAUST_API void writeWasmCDSPFactoryToMachineFile(wasm_dsp_factory* factory, const char* wasm_code_path);
 
 /*
  Contains WASM code to be exchanged with the JS side.
@@ -109,7 +109,7 @@ typedef struct {
  * @return a valid WebAssembly module and additional helper functions as a WasmRes struct on success (to be deleted by
  * the caller), otherwise a null pointer.
  */
-EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg,
+LIBFAUST_API WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg,
                                                  bool internal_memory);
 
 /**
@@ -126,7 +126,7 @@ EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc,
  * @return a valid WebAssembly module and additional helper functions as a WasmRes struct on success (to be deleted by
  * the caller), otherwise a null pointer.
  */
-EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc,
+LIBFAUST_API WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc,
                                                    const char* argv[], char* error_msg, bool internal_memory);
 
 /**
@@ -136,7 +136,7 @@ EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const c
  *
  * @return the WebAssembly module as an array of bytes.
  */
-EXPORT const char* getWasmCModule(WasmModule* module);
+LIBFAUST_API const char* getWasmCModule(WasmModule* module);
 
 /**
  * Get the WebAssembly module size.
@@ -145,7 +145,7 @@ EXPORT const char* getWasmCModule(WasmModule* module);
  *
  * @return the WebAssembly module size.
  */
-EXPORT int getWasmCModuleSize(WasmModule* module);
+LIBFAUST_API int getWasmCModuleSize(WasmModule* module);
 
 /**
  * Get the additional helper functions module from the WasmRes structure.
@@ -154,7 +154,7 @@ EXPORT int getWasmCModuleSize(WasmModule* module);
  *
  * @return the additional helper functions as a string.
  */
-EXPORT const char* getWasmCHelpers(WasmModule* module);
+LIBFAUST_API const char* getWasmCHelpers(WasmModule* module);
 
 /**
  * The free function to be used on memory returned by createWasmCDSPFactoryFromString.
@@ -163,20 +163,20 @@ EXPORT const char* getWasmCHelpers(WasmModule* module);
  *
  * @param ptr - the WasmRes structure to be deleted.
  */
-EXPORT void freeWasmCModule(WasmModule* module);
+LIBFAUST_API void freeWasmCModule(WasmModule* module);
 
 /**
  * Get the error message after an exception occured.
  *
  * @return the error as a static string.
  */
-EXPORT const char* getErrorAfterException();
+LIBFAUST_API const char* getErrorAfterException();
 
 /**
  *  Cleanup library global context after an exception occured.
  *
  */
-EXPORT void cleanupAfterException();
+LIBFAUST_API void cleanupAfterException();
 
 #ifdef __cplusplus
 }
