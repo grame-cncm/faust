@@ -1,3 +1,5 @@
+import("stdfaust.lib");
+
 //process = *,_:+ : abs ;
 //process = +,_:* : abs ;
 //process = +,_:+ : abs ;
@@ -35,4 +37,10 @@ fufu = button("play"),_ :ondemand(*(+(1)~_));
 fefe = button("play"),_ :ondemand(*(+(0.5)~_));
 fyfy = button("play"),_, +(0.5)~_:ondemand(_,int:*);
 
-process = fyfy;
+wawa = fi.lowpass(3,1000);
+wywy = button("play"),_ :ondemand(+~*(0.5));
+//process = fi.lowpass(3, 1000 );
+//process = wawa;
+
+//process = +~*(0.5);
+process = wywy;
