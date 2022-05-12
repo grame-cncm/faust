@@ -54,7 +54,7 @@ void SignalVisitor::visit(Tree sig)
 {
     int    i, nature, dmax, dmin;
     double r;
-    Tree   c, sel, x, y, z, u, v, var, le, label, id, tid, ff, largs, type, name, file, sf, origin, init, idx, exp;
+    Tree   c, sel, x, y, z, u, v, var, le, label, id, tid, ff, largs, type, name, file, sf, origin, init, idx, exp, clklist, time;
 
     if (getUserData(sig)) {
         for (Tree b : sig->branches()) {
@@ -305,6 +305,26 @@ void SignalVisitor::visit(Tree sig)
         return;
     } else if (isSigInstructionBargraphWrite(sig, id, origin, &nature, y)) {
         self(y);
+        return;
+    }
+
+    else if (isSigInstruction2IncWrite(sig, clklist, id, &nature)) {
+        mapself(clklist);
+        return;
+    } else if (isSigInstruction2DelayWrite(sig, clklist, id, &nature, time, exp)) {
+        mapself(clklist);
+        self(time);
+        self(exp);
+        return;
+    } else if (isSigInstruction2MemWrite(sig, clklist, id, &nature, exp)) {
+        mapself(clklist);
+        self(exp);
+        return;
+    } else if (isSigInstruction2DelayRead(sig, id, &nature, time, exp)) {
+        self(time);
+        self(exp);
+        return;
+    } else if (isSigInstruction2MemRead(sig, id, &nature)) {
         return;
     }
 

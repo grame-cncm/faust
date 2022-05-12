@@ -46,7 +46,7 @@ class TreeTransform {
 
    public:
     TreeTransform() : fMessage("TreeTransform") {}
-    TreeTransform(bool typeFlag) : fTypeFlag(typeFlag), fMessage("TreeTransformWithTypes") {}
+    explicit TreeTransform(bool typeFlag) : fTypeFlag(typeFlag), fMessage("TreeTransformWithTypes") {}
 
     virtual ~TreeTransform() = default;
 
