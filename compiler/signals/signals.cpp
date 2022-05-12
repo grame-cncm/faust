@@ -755,7 +755,7 @@ static void setIDInstruction(Tree id, Tree instr)
  * @param id
  * @return Tree
  */
-Tree getIDInstruction(Tree id)
+Tree getInstructionFromID(Tree id)
 {
     int  i;
     Tree exp;
@@ -1058,7 +1058,7 @@ bool isSigInstruction2IncWrite(Tree sig, Tree& clklist, Tree& id, int* nature)
 Tree sigInstruction2DelayRead(Tree id, int nature, Tree time, Tree delay)
 {
     Tree instr = tree(gGlobal->SIGINSTRUCTION2DELAYREAD, id, tree(nature), time, delay);
-    setIDInstruction(id, instr);
+    //    setIDInstruction(id, instr);
     return instr;
 }
 

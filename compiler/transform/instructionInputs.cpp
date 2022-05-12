@@ -18,9 +18,9 @@ class CollectInputs : public SignalVisitor {
     set<Tree> fInputs;  // Its graph of dependencies
 
    public:
-    CollectInputs(Tree sig)
+    explicit CollectInputs(Tree sig)
     {
-        Tree id, tid, origin, content, init, idx, exp;
+        Tree id, tid, origin, content, init, idx, exp, time, clklist;
         int  i, nature, dmax, dmin, tblsize;
         // Analyzed signals are supposed to be only "instructions": DelayLines, Shared, Controls or Outputs.
         // It is an error otherwise
@@ -47,24 +47,38 @@ class CollectInputs : public SignalVisitor {
         } else if (isSigInstructionTimeWrite(sig)) {
             // NOTHING (but have to check)
 
-        } else {
-            std::cerr << "ERROR, not an instruction: " << ppsig(sig) << endl;
+        }
+
+        // new instruction2 cases
+
+        else if (isSigInstruction2DelayWrite(sig, clklist, id, &nature, time, content)) {
+            self(clklist);
+            self(time);
+            self(content);
+        } else if (isSigInstruction2IncWrite(sig, clklist, id, &nature)) {
+            self(clklist);
+        } else if (isSigInstruction2MemWrite(sig, clklist, id, &nature, exp)) {
+            self(clklist);
+            self(exp);
+        }
+
+        else {
+            std::cerr << "ERROR, not an instruction1: " << ppsig(sig) << endl;
             faustassert(false);
         }
     }
+
     const set<Tree>& inputs() const { return fInputs; }
 
    protected:
     void visit(Tree t) override
     {
-        Tree id, origin, dl;
+        Tree id, origin, dl, time, delay;
         int  nature, dmax, dmin;
 
         // the dependencies are DelayLines, shared expressions or Control signals
-        if (isSigInstructionDelayLineRead(t, id, origin, &nature, &dmax, &dmin, dl)) {
-            fInputs.insert(t);
-            self(dl);
-        } else if (isSigInstructionTableRead(t, id, origin, &nature, &dmin, dl)) {
+        if (isSigInstructionDelayLineRead(t, id, origin, &nature, &dmax, &dmin, dl) ||
+            isSigInstructionTableRead(t, id, origin, &nature, &dmin, dl)) {
             fInputs.insert(t);
             self(dl);
         } else if (isSigInstructionSharedRead(t, id, origin, &nature)) {
@@ -79,7 +93,19 @@ class CollectInputs : public SignalVisitor {
             fInputs.insert(t);
         } else if (isSigInstructionBargraphRead(t, id, origin, &nature)) {
             fInputs.insert(t);
-        } else {
+        }
+
+        // new sig instruction2
+
+        else if (isSigInstruction2DelayRead(t, id, &nature, time, delay)) {
+            fInputs.insert(id);
+            self(time);
+            self(delay);
+        } else if (isSigInstruction2MemRead(t, id, &nature)) {
+            fInputs.insert(id);
+        }
+
+        else {
             SignalVisitor::visit(t);
         }
     }

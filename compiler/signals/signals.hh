@@ -367,7 +367,7 @@ Tree sigCartesianProd(Tree s1, Tree s2);
 //*****************************************************************************
 // Instructions (signals read and write into memory)
 //*****************************************************************************
-Tree getIDInstruction(Tree id);
+Tree getInstructionFromID(Tree id);
 
 Tree sigInstructionDelayLineWrite(Tree id, Tree origin, int nature, int dmax, Tree sig);
 bool isSigInstructionDelayLineWrite(Tree s, Tree& id, Tree& origin, int* nature, int* dmax, Tree& sig);

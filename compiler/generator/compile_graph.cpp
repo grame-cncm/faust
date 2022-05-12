@@ -307,10 +307,22 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3) const
     endTiming("typeAnnotation");
 
     cerr << ">>DEBUT EXPERIMENTALs\n" << endl;
+    cerr << ">>UNORDERED SET OF INSTRUCTIONS" << endl;
     set<Tree> INSTRX = ondemandCompileToInstr(L3d);
     for (Tree instr : INSTRX) {
-        cerr << ppsig(instr) << endl;
+        cerr << instr << "@" << ppsig(instr) << endl;
     }
+
+    // we compute the corresponding graph
+    digraph<Tree, multidep> G;  // the signal graph
+    for (auto i : INSTRX) {
+        G.add(dependencyGraph(i));
+    }
+
+    // So that we can compute a sequential scheduling
+    Scheduling sched = schedule(INSTRX);
+    cerr << "\n>>SCHEDULING: \n" << sched << endl;
+
     cerr << "\n>>FIN EXPERIMENTALs\n" << endl;
 
     // cerr << ">>Transformation into Instructions\n" << endl;

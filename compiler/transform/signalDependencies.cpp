@@ -62,31 +62,16 @@ class SignalDependencies : public SignalVisitor {
    public:
     SignalDependencies(Tree sig)
     {
-        Tree id, tid, origin, content, init, idx, exp;
+        Tree id, tid, origin, content, init, idx, exp, clklist, time;
         int  i, nature, dmax, dmin, tblsize;
         // Analyzed signals are supposed to be "instructions": DelayLines, Shared, Controls or Outputs.
         // It is an error otherwise
-        if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, content)) {
-            fRoot = sig;
-            fGraph.add(fRoot);
-            self(content);
-        } else if (isSigInstructionSharedWrite(sig, id, origin, &nature, content)) {
-            fRoot = sig;
-            fGraph.add(fRoot);
-            self(content);
-        } else if (isSigInstructionVectorWrite(sig, id, origin, &nature, content)) {
-            fRoot = sig;
-            fGraph.add(fRoot);
-            self(content);
-        } else if (isSigInstructionShortDLineWrite(sig, id, origin, &nature, content)) {
-            fRoot = sig;
-            fGraph.add(fRoot);
-            self(content);
-        } else if (isSigInstructionControlWrite(sig, id, origin, &nature, content)) {
-            fRoot = sig;
-            fGraph.add(fRoot);
-            self(content);
-        } else if (isSigInstructionBargraphWrite(sig, id, origin, &nature, content)) {
+        if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, content) ||
+            isSigInstructionSharedWrite(sig, id, origin, &nature, content) ||
+            isSigInstructionVectorWrite(sig, id, origin, &nature, content) ||
+            isSigInstructionShortDLineWrite(sig, id, origin, &nature, content) ||
+            isSigInstructionControlWrite(sig, id, origin, &nature, content) ||
+            isSigInstructionBargraphWrite(sig, id, origin, &nature, content) || isSigOutput(sig, &i, content)) {
             fRoot = sig;
             fGraph.add(fRoot);
             self(content);
@@ -98,18 +83,29 @@ class SignalDependencies : public SignalVisitor {
             self(exp);
         } else if (isSigInstructionTableAccessWrite(sig, id, origin, &nature, &dmin, tid, idx)) {
             fRoot   = sig;
-            Tree tw = getIDInstruction(tid);
+            Tree tw = getInstructionFromID(tid);
             fGraph.add(fRoot, tw, mdep(/*std::string("8-") + */ tree2str(tid), dmin));
             self(idx);
-        } else if (isSigOutput(sig, &i, content)) {
-            fRoot = sig;
-            fGraph.add(fRoot);
-            self(content);
         } else if (isSigInstructionTimeWrite(sig)) {
             fRoot = sig;
             fGraph.add(fRoot);
+        } else if (isSigInstruction2DelayWrite(sig, clklist, id, &nature, time, exp)) {
+            fRoot = sig;
+            fGraph.add(fRoot);
+            mapself(clklist);
+            self(time);
+            self(exp);
+        } else if (isSigInstruction2IncWrite(sig, clklist, id, &nature)) {
+            fRoot = sig;
+            fGraph.add(fRoot);
+            mapself(clklist);
+        } else if (isSigInstruction2MemWrite(sig, clklist, id, &nature, exp)) {
+            fRoot = sig;
+            fGraph.add(fRoot);
+            mapself(clklist);
+            self(exp);
         } else {
-            std::cerr << "ERROR, not an instruction: " << ppsig(sig) << endl;
+            std::cerr << "ERROR, not an instruction2: " << ppsig(sig) << endl;
             faustassert(false);
         }
     }
@@ -122,28 +118,37 @@ class SignalDependencies : public SignalVisitor {
    protected:
     void visit(Tree t) override
     {
-        Tree id, origin, dl;
+        Tree id, origin, dl, time;
         int  nature, dmax, dmin;
 
         // the dependencies are DelayLines, shared expressions or Control signals
         if (isSigInstructionDelayLineRead(t, id, origin, &nature, &dmax, &dmin, dl)) {
-            fGraph.add(fRoot, getIDInstruction(id), mdep(/*std::string("1-") + */ tree2str(id), dmin));
+            fGraph.add(fRoot, getInstructionFromID(id), mdep(/*std::string("1-") + */ tree2str(id), dmin));
             self(dl);
         } else if (isSigInstructionTableRead(t, id, origin, &nature, &dmin, dl)) {
-            fGraph.add(fRoot, getIDInstruction(id), mdep(/*std::string("2-") + */ tree2str(id), dmin));
+            fGraph.add(fRoot, getInstructionFromID(id), mdep(/*std::string("2-") + */ tree2str(id), dmin));
             self(dl);
         } else if (isSigInstructionSharedRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, getIDInstruction(id), mdep(/*std::string("3-") + */ tree2str(id), 0));
+            fGraph.add(fRoot, getInstructionFromID(id), mdep(/*std::string("3-") + */ tree2str(id), 0));
         } else if (isSigInstructionVectorRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, getIDInstruction(id), mdep(/*std::string("4-") + */ tree2str(id), 0));
+            fGraph.add(fRoot, getInstructionFromID(id), mdep(/*std::string("4-") + */ tree2str(id), 0));
         } else if (isSigInstructionShortDLineRead(t, id, origin, &nature, &dmin)) {
-            fGraph.add(fRoot, getIDInstruction(id), mdep(/*std::string("5-") + */ tree2str(id), dmin));
+            fGraph.add(fRoot, getInstructionFromID(id), mdep(/*std::string("5-") + */ tree2str(id), dmin));
         } else if (isSigInstructionTimeRead(t)) {
             fGraph.add(fRoot, sigInstructionTimeWrite(), mdep("time", 0));  // TODO : a verifier (YO)
         } else if (isSigInstructionControlRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, getIDInstruction(id), mdep(/*std::string("6-") + */ tree2str(id), 0));
+            fGraph.add(fRoot, getInstructionFromID(id), mdep(/*std::string("6-") + */ tree2str(id), 0));
         } else if (isSigInstructionBargraphRead(t, id, origin, &nature)) {
-            fGraph.add(fRoot, getIDInstruction(id), mdep(/*std::string("7-") + */ tree2str(id), 0));
+            fGraph.add(fRoot, getInstructionFromID(id), mdep(/*std::string("7-") + */ tree2str(id), 0));
+        } else if (isSigInstruction2MemRead(t, id, &nature)) {
+            fGraph.add(fRoot, getInstructionFromID(id), mdep(tree2str(id), 0));
+        } else if (isSigInstruction2DelayRead(t, id, &nature, time, dl)) {
+            // A faire: this is an inacurate approximation
+            if (isSigInt(dl, &dmin)) {
+                fGraph.add(fRoot, getInstructionFromID(id), mdep(tree2str(id), dmin));
+            } else {
+                fGraph.add(fRoot, getInstructionFromID(id), mdep(tree2str(id), 1));
+            }
         } else {
             SignalVisitor::visit(t);
         }
@@ -160,7 +165,6 @@ digraph<Tree, multidep> dependencyGraph(Tree sig)
 {
     SignalDependencies D(sig);
     D.trace(gGlobal->gDebugSwitch, "SignalDependencies");
-    // cerr << "Dependencies of " << ppsig(sig) << " are " << D.graph() << endl;
     return D.graph();
 }
 
@@ -314,34 +318,35 @@ class MemoryDependencies : public SignalVisitor {
         // It is an error otherwise
         if (isSigInstructionDelayLineWrite(sig, id, origin, &nature, &dmax, content)) {
             self(content);
-            MD.push_back(std::make_pair("write1", tree2str(id)));
+            MD.emplace_back("write1", tree2str(id));
         } else if (isSigInstructionSharedWrite(sig, id, origin, &nature, content)) {
             self(content);
             // MD.push_back(std::make_pair("write2", tree2str(id)));
         } else if (isSigInstructionVectorWrite(sig, id, origin, &nature, content)) {
             self(content);
-            MD.push_back(std::make_pair("write3", tree2str(id)));
+            MD.emplace_back("write3", tree2str(id));
         } else if (isSigInstructionShortDLineWrite(sig, id, origin, &nature, content)) {
             self(content);
-            MD.push_back(std::make_pair("write4", tree2str(id)));
+            MD.emplace_back("write4", tree2str(id));
         } else if (isSigInstructionControlWrite(sig, id, origin, &nature, content)) {
             self(content);
-            MD.push_back(std::make_pair("write5", tree2str(id)));
+            MD.emplace_back("write5", tree2str(id));
         } else if (isSigInstructionBargraphWrite(sig, id, origin, &nature, content)) {
             self(content);
-            MD.push_back(std::make_pair("write6", tree2str(id)));
+            MD.emplace_back("write6", tree2str(id));
         } else if (isSigInstructionTableWrite(sig, id, origin, &nature, &tblsize, init, idx, exp)) {
             self(idx);
             self(exp);
-            MD.push_back(std::make_pair("write7", tree2str(id)));
+            MD.emplace_back("write7", tree2str(id));
         } else if (isSigInstructionTableAccessWrite(sig, id, origin, &nature, &dmin, tid, idx)) {
             self(idx);
-            MD.push_back(std::make_pair("read0", tree2str(tid)));
+            MD.emplace_back("read0", tree2str(tid));
         } else if (isSigOutput(sig, &i, content)) {
             self(content);
         } else if (isSigInstructionTimeWrite(sig)) {
+            // vide: rien à faire
         } else {
-            std::cerr << "ERROR, not an instruction: " << ppsig(sig) << endl;
+            std::cerr << "ERROR, not an instruction3: " << ppsig(sig) << endl;
             faustassert(false);
         }
     }
@@ -360,19 +365,22 @@ class MemoryDependencies : public SignalVisitor {
         // the dependencies are DelayLines, shared expressions or Control signals
         if (isSigInstructionDelayLineRead(t, id, origin, &nature, &dmax, &dmin, dl)) {
             self(dl);
-            MD.push_back(std::make_pair("read1", tree2str(id)));
+            MD.emplace_back("read1", tree2str(id));
         } else if (isSigInstructionTableRead(t, id, origin, &nature, &dmin, dl)) {
             self(dl);
-            MD.push_back(std::make_pair("read2", tree2str(id)));
+            MD.emplace_back("read2", tree2str(id));
         } else if (isSigInstructionSharedRead(t, id, origin, &nature)) {
             // MD.push_back(std::make_pair("read3", tree2str(id)));
         } else if (isSigInstructionVectorRead(t, id, origin, &nature)) {
-            MD.push_back(std::make_pair("read4", tree2str(id)));
+            MD.emplace_back("read4", tree2str(id));
         } else if (isSigInstructionShortDLineRead(t, id, origin, &nature, &dmin)) {
-            MD.push_back(std::make_pair("read5", tree2str(id)));
+            MD.emplace_back("read5", tree2str(id));
         } else if (isSigInstructionTimeRead(t)) {
+            // vide: rien à faire
         } else if (isSigInstructionControlRead(t, id, origin, &nature)) {
+            // vide, rien à faire
         } else if (isSigInstructionBargraphRead(t, id, origin, &nature)) {
+            // vide, rien a faire
         } else {
             SignalVisitor::visit(t);
         }

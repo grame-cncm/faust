@@ -303,17 +303,17 @@ Tree SignalOndemandCompiler::transformation(Tree sigwclklist)
     } else if (isSigSelect3(sig, sel, x, y, z)) {
         return sigSelect3(selfclk(sel, clklist), selfclk(x, clklist), selfclk(y, clklist), selfclk(z, clklist));
     }
-#if 0
-   // Foreign functions
+
+    // Foreign functions
     else if (isSigFFun(sig, ff, largs)) {
-        return sigFFun(ff, mapself(largs));
+        return sigFFun(ff, mapselfclk(largs, clklist));
     } else if (isSigFConst(sig, type, name, file)) {
         return sig;
     } else if (isSigFVar(sig, type, name, file)) {
         return sig;
     }
-
-    // Tables
+#if 0
+  // Tables
     else if (isSigTable(sig, id, x, y)) {
         return sigTable(id, self(x), self(y));
     } else if (isSigWRTbl(sig, id, x, y, z)) {
