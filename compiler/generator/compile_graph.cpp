@@ -323,6 +323,9 @@ set<Tree> GraphCompiler::ExpressionsListToInstructionsSet(Tree L3) const
     Scheduling sched = schedule(INSTRX);
     cerr << "\n>>SCHEDULING: \n" << sched << endl;
 
+    cerr << "\nGenerate dot file instruction graph..." << endl;
+    graph2dot(gGlobal->gMasterName + ".dot", G);
+
     cerr << "\n>>FIN EXPERIMENTALs\n" << endl;
 
     // cerr << ">>Transformation into Instructions\n" << endl;
