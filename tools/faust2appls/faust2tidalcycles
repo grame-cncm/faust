@@ -16,16 +16,6 @@ GROUP = ["vgroup", "hgroup", "tgroup"]
 TIDALCONTROL = ["gain", "sound", "s", "delay", "setcps", "midinote", "note", "n","octave","begin","end","sustain","legato","loop","unit","length","fadeTime","fadeInTime","speed","endSpeed","gain","overgain","channel","lag","offset","sound","array","midichan","control","ccn","ccv","polyTouch","midibend","miditouch","ctlNum","frameRate","frames","hours","midicmd","minutes","progNum","seconds","songPtr","uid","val","timescale","timescalewin", "toArg", "from", "to", "accelerate", "amp", "attack", "bandf", "bandq", "begin", "legato", "clhatdecay", "crush", "coarse", "channel", "cut", "cutoff", "cutoffegint", "decay", "delay", "delayfeedback", "delaytime", "detune", "djf", "dry", "end", "fadeTime", "fadeInTime", "freq", "gain", "gate", "hatgrain", "hcutoff", "hold", "hresonance", "lagogo", "lclap", "lclaves", "lclhat", "lcrash", "leslie", "lrate", "lsize", "lfo", "lfocutoffint", "lfodelay", "lfoint", "lfopitchint", "lfoshape", "lfosync", "lhitom", "lkick", "llotom", "lock", "loop", "lophat", "lsnare","n", "note", "degree", "mtranspose", "ctranspose", "harmonic", "stepsPerOctave", "octaveR", "nudge", "octave", "offset", "ophatdecay", "orbit", "overgain", "overshape", "pan", "panspan", "pansplay", "panwidth", "panorient", "pitch1", "pitch2", "pitch3", "portamento", "rate", "release", "resonance", "room",  "sagogo", "sclap", "sclaves", "scrash", "semitone", "shape", "size", "slide", "speed",  "squiz", "stutterdepth", "stuttertime", "sustain",  "timescale", "timescalewin", "tomdecay","unit",  "velocity","vcfegint", "vcoegint",  "voice",  "vowel",  "waveloss", "dur",  "modwheel", "expression",  "sustainpedal", "tremolodepth","tremolorate", "phaserdepth", "phaserrate", "fshift", "fshiftnote","fshiftphase", "triode", "krush",  "kcutoff", "octer", "octersub", "octersubsub","ring","ringf", "ringdf", "distort", "freeze", "xsdelay", "tsdelay",  "real",  "imag", "enhance", "partials","comb","smear", "scram", "binshift", "hbrick","lbrick","midichan", "control","ccn","ccv","polyTouch","midibend", "miditouch","ctlNum", "frameRate", "frames", "hours", "midicmd", "minutes", "progNum","seconds","songPtr", "uid", "val","cps", "up", "att", "bpf", "bpq", "chdecay", "ctf", "ctfg", "delayfb", "dfb", "delayt", "dt", "det", "fadeOutTime", "gat", "hg", "hpf", "hpq","lag","ldb","lch", "lcl", "lcp", "lcr", "lfoc", "lfoi", "lfop", "lht", "llt", "loh", "lpf", "lpq", "lsn", "ohdecay", "phasdp", "phasr","pit1","pit2", "pit3", "por", "rel", "sag", "scl","scp","scr", "sz", "sld", "std", "stt", "sus", "tdecay", "tremdp", "tremr", "vcf", "vco", "voi"]
 
 
-######################################
-#######▄▄▄#▄▄▄▄▄▄▄#▄▄▄▄▄▄▄#▄▄####▄#### 
-######█   █       █       █  █##█ █###
-######█   █  ▄▄▄▄▄█   ▄   █   █▄█ █###
-###▄##█   █ █▄▄▄▄▄█  █#█  █       █###
-##█ █▄█   █▄▄▄▄▄  █  █▄█  █  ▄    █###
-##█       █▄▄▄▄▄█ █       █ █#█   █###
-##█▄▄▄▄▄▄▄█▄▄▄▄▄▄▄█▄▄▄▄▄▄▄█▄█##█▄▄█###
-######################################
-
 def flatten(container):
     """ Helper function to flatten arbitrarily nested lists """
     for i in container:
@@ -316,12 +306,6 @@ def bt_inject_new_definition(text_content: str, filepath: str):
 def help_placeholder_filler(synth_name: str, c_synth_name: str, argument_list: list, nb_inputs : int, nb_outputs : int):
     """ Creating the help file template """
     template = '''    
-
-░░▓░░▓░▓▓▓▓░▓░░░░▓▓▓▓░▓▓▓▓░▓░▓░░░░▓▓▓▓░
-░░▓░░▓░▓░░░░▓░░░░▓░░▓░▓░░░░▓░▓░░░░▓░░░░
-░░▓▓▓▓░▓▓▓░░▓░░░░▓▓▓▓░▓▓░░░▓░▓░░░░▓▓▓░░    
-░░▓░░▓░▓░░░░▓░░░░▓░░░░▓░░░░▓░▓░░░░▓░░░░
-░░▓░░▓░▓▓▓▓░▓▓▓▓░▓░░░░▓░░░░▓░▓▓▓▓░▓▓▓▓░
 
 
 faust2tidalcycles is a python program, created to
