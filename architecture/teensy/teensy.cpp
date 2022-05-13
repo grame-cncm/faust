@@ -100,8 +100,8 @@ AudioFaust::AudioFaust() : AudioStream(FAUST_INPUTS, new audio_block_t*[FAUST_IN
 {
 #ifdef NVOICES
     int nvoices = NVOICES;
-    fDSP =  new mydsp_poly(new mydsp(), nvoices, true, true);
- #else
+    fDSP = new mydsp_poly(new mydsp(), nvoices, true, true);
+#else
     fDSP = new mydsp();
 #endif
     

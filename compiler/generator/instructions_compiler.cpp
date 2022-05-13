@@ -1632,12 +1632,12 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
                 stringstream error;
                 if (gGlobal->gCheckTable == "cat") {
                     error << "WARNING : WRTbl write index [" << idx_i.lo << ":" <<idx_i.hi
-                          << "] is outside of table range (" << tree2int(size) << ") in "
+                          << "] is outside of table size (" << tree2int(size) << ") in "
                           << *sig << endl;
                     cerr << error.str();
                 } else {
                     error << "ERROR : WRTbl write index [" << idx_i.lo << ":" <<idx_i.hi
-                          << "] is outside of table range (" << tree2int(size) << ") in "
+                          << "] is outside of table size (" << tree2int(size) << ") in "
                           << *sig << endl;
                     throw faustexception(error.str());
                 }
@@ -1692,12 +1692,12 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
                 stringstream error;
                 if (gGlobal->gCheckTable == "cat") {
                     error << "WARNING : RDTbl read index [" << idx_i.lo << ":" <<idx_i.hi
-                          << "] is outside of table range (" << tree2int(size) << ") in "
+                          << "] is outside of table size (" << tree2int(size) << ") in "
                           << *sig << endl;
                     cerr << error.str();
                 } else {
                     error << "ERROR : RDTbl read index [" << idx_i.lo << ":" <<idx_i.hi
-                          << "] is outside of table range (" << tree2int(size) << ") in "
+                          << "] is outside of table size (" << tree2int(size) << ") in "
                           << *sig << endl;
                     throw faustexception(error.str());
                 }

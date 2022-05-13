@@ -105,7 +105,6 @@ using namespace std;
 
 ofstream* gFaustbenchLog = nullptr;
 
-
 template <typename REAL>
 static pair<double, double> bench(dsp* dsp, int dsp_size, const string& name, int run, int buffer_size, bool is_trace, bool is_control, int ds, int us, int filter)
 {
