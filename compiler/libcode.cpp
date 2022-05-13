@@ -3573,267 +3573,267 @@ extern "C"
     
     // Helpers
     
-    Tree CboxPar3(Tree x, Tree y, Tree z)
+    LIBFAUST_API Tree CboxPar3(Tree x, Tree y, Tree z)
     {
         return CboxPar(x, CboxPar(y, z));
     }
     
-    Tree CboxPar4(Tree a, Tree b, Tree c, Tree d)
+    LIBFAUST_API Tree CboxPar4(Tree a, Tree b, Tree c, Tree d)
     {
         return CboxPar(a, CboxPar3(b, c, d));
     }
     
-    Tree CboxPar5(Tree a, Tree b, Tree c, Tree d, Tree e)
+    LIBFAUST_API Tree CboxPar5(Tree a, Tree b, Tree c, Tree d, Tree e)
     {
         return CboxPar(a, CboxPar4(b, c, d, e));
     }
     
-    Tree CboxDelayAux(Tree s, Tree del)
+    LIBFAUST_API Tree CboxDelayAux(Tree s, Tree del)
     {
         return CboxSeq(CboxPar(s, del), CboxDelay());
     }
     
-    Tree CboxIntCastAux(Tree s)
+    LIBFAUST_API Tree CboxIntCastAux(Tree s)
     {
         return CboxSeq(s, CboxIntCast());
     }
     
-    Tree CboxFloatCastAux(Tree s)
+    LIBFAUST_API Tree CboxFloatCastAux(Tree s)
     {
         return CboxSeq(s, CboxFloatCast());
     }
     
-    Tree CboxReadOnlyTableAux(Tree n, Tree init, Tree ridx)
+    LIBFAUST_API Tree CboxReadOnlyTableAux(Tree n, Tree init, Tree ridx)
     {
         return CboxSeq(CboxPar3(n, init, ridx), CboxReadOnlyTable());
     }
     
-    Tree CboxWriteReadTableAux(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
+    LIBFAUST_API Tree CboxWriteReadTableAux(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
     {
         return CboxSeq(boxPar5(n, init, widx, wsig, ridx), CboxWriteReadTable());
     }
     
-    Tree CoxSoundfileAux(const char* label, Tree chan, Tree part, Tree ridx)
+    LIBFAUST_API Tree CoxSoundfileAux(const char* label, Tree chan, Tree part, Tree ridx)
     {
         return CboxSeq(CboxPar(part, ridx), CboxSoundfile(label, chan));
     }
     
-    Tree CboxSelect2Aux(Tree selector, Tree s1, Tree s2)
+    LIBFAUST_API Tree CboxSelect2Aux(Tree selector, Tree s1, Tree s2)
     {
         return CboxSeq(CboxPar3(selector, s1, s2), CboxSelect2());
     }
     
-    Tree CboxSelect3Aux(Tree selector, Tree s1, Tree s2, Tree s3)
+    LIBFAUST_API Tree CboxSelect3Aux(Tree selector, Tree s1, Tree s2, Tree s3)
     {
         return CboxSeq(CboxPar4(selector, s1, s2, s3), CboxSelect3());
     }
     
-    Tree CboxBinOpAux(SOperator op, Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxBinOpAux(SOperator op, Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxBinOp(op));
     }
     
-    Tree CboxAddAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxAddAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxAdd());
     }
     
-    Tree CboxSubAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxSubAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxSub());
     }
     
-    Tree CboxMulAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxMulAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxMul());
     }
     
-    Tree CboxDivAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxDivAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxDiv());
     }
     
-    Tree CboxRemAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxRemAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxRem());
     }
     
-    Tree CboxLeftShiftAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxLeftShiftAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxLeftShift());
     }
     
-    Tree CboxLRightShiftAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxLRightShiftAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxLRightShift());
     }
     
-    Tree CboxARightShiftAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxARightShiftAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxARightShift());
     }
     
-    Tree CboxGTAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxGTAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxGT());
     }
     
-    Tree CboxLTAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxLTAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxLT());
     }
     
-    Tree CboxGEAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxGEAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxGE());
     }
     
-    Tree CboxLEAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxLEAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxLE());
     }
     
-    Tree CboxEQAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxEQAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxEQ());
     }
     
-    Tree CboxNEAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxNEAux(Tree b1, Tree b2)
     {
     return CboxSeq(CboxPar(b1, b2), CboxNE());
     }
     
-    Tree CboxANDAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxANDAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxAND());
     }
     
-    Tree CboxORAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxORAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxOR());
     }
     
-    Tree CboxXORAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxXORAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxXOR());
     }
     
-    Tree CboxAbsAux(Tree x)
+    LIBFAUST_API Tree CboxAbsAux(Tree x)
     {
         return CboxSeq(x, CboxAbs());
     }
     
-    Tree CboxAcosAux(Tree x)
+    LIBFAUST_API Tree CboxAcosAux(Tree x)
     {
         return CboxSeq(x, CboxAcos());
     }
     
-    Tree CboxTanAux(Tree x)
+    LIBFAUST_API Tree CboxTanAux(Tree x)
     {
         return CboxSeq(x, CboxTan());
     }
     
-    Tree CboxSqrtAux(Tree x)
+    LIBFAUST_API Tree CboxSqrtAux(Tree x)
     {
         return CboxSeq(x, CboxSqrt());
     }
     
-    Tree CboxSinAux(Tree x)
+    LIBFAUST_API Tree CboxSinAux(Tree x)
     {
         return CboxSeq(x, CboxSin());
     }
     
-    Tree CboxRintAux(Tree x)
+    LIBFAUST_API Tree CboxRintAux(Tree x)
     {
         return CboxSeq(x, CboxRint());
     }
     
-    Tree CboxLogAux(Tree x)
+    LIBFAUST_API Tree CboxLogAux(Tree x)
     {
         return CboxSeq(x, CboxLog());
     }
     
-    Tree CboxLog10Aux(Tree x)
+    LIBFAUST_API Tree CboxLog10Aux(Tree x)
     {
         return CboxSeq(x, CboxLog10());
     }
     
-    Tree CboxFloorAux(Tree x)
+    LIBFAUST_API Tree CboxFloorAux(Tree x)
     {
         return CboxSeq(x, CboxFloor());
     }
     
-    Tree CboxExpAux(Tree x)
+    LIBFAUST_API Tree CboxExpAux(Tree x)
     {
         return CboxSeq(x, CboxExp());
     }
     
-    Tree CboxExp10Aux(Tree x)
+    LIBFAUST_API Tree CboxExp10Aux(Tree x)
     {
         return CboxSeq(x, CboxExp10());
     }
     
-    Tree CboxCosAux(Tree x)
+    LIBFAUST_API Tree CboxCosAux(Tree x)
     {
         return CboxSeq(x, CboxCos());
     }
     
-    Tree CboxCeilAux(Tree x)
+    LIBFAUST_API Tree CboxCeilAux(Tree x)
     {
         return CboxSeq(x, CboxCeil());
     }
     
-    Tree CboxAtanAux(Tree x)
+    LIBFAUST_API Tree CboxAtanAux(Tree x)
     {
         return CboxSeq(x, CboxAtan());
     }
     
-    Tree CboxAsinAux(Tree x)
+    LIBFAUST_API Tree CboxAsinAux(Tree x)
     {
         return CboxSeq(x, CboxAsin());
     }
     
-    Tree CboxRemainderAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxRemainderAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxRemainder());
     }
     
-    Tree CboxPowAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxPowAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxPow());
     }
     
-    Tree CboxMinAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxMinAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxMin());
     }
     
-    Tree CboxMaxAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxMaxAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxMax());
     }
     
-    Tree CboxFmodAux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxFmodAux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxFmod());
     }
     
-    Tree CboxAtan2Aux(Tree b1, Tree b2)
+    LIBFAUST_API Tree CboxAtan2Aux(Tree b1, Tree b2)
     {
         return CboxSeq(CboxPar(b1, b2), CboxAtan2());
     }
     
-    Tree CboxVBargraphAux(const char* label, Tree min, Tree max, Tree x)
+    LIBFAUST_API Tree CboxVBargraphAux(const char* label, Tree min, Tree max, Tree x)
     {
         return CboxSeq(x, CboxVBargraph(label, min, max));
     }
     
-    Tree CboxHBargraphAux(const char* label, Tree min, Tree max, Tree x)
+    LIBFAUST_API Tree CboxHBargraphAux(const char* label, Tree min, Tree max, Tree x)
     {
         return CboxSeq(x, CboxHBargraph(label, min, max));
     }
     
-    Tree CboxAttachAux(Tree s1, Tree s2)
+    LIBFAUST_API Tree CboxAttachAux(Tree s1, Tree s2)
     {
         return CboxSeq(CboxPar(s1, s2), CboxAttach());
     }

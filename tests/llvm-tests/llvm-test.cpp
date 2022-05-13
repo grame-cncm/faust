@@ -80,7 +80,7 @@ struct TestUI : public GenericUI {
     
 };
 
-int main(int argc, const char** argv)
+int main(int argc, char* argv[])
 {
     if (isopt((char**)argv, "-h") || isopt((char**)argv, "-help") || argc < 2) {
         cout << "llvm-test foo.dsp" << endl;
@@ -96,7 +96,7 @@ int main(int argc, const char** argv)
     cout << "=============================\n";
     cout << "Test createDSPFactoryFromFile\n";
     {
-        dsp_factory* factory = createDSPFactoryFromFile(dspFile, 0, NULL, JIT_TARGET, error_msg, -1);
+        llvm_dsp_factory* factory = createDSPFactoryFromFile(dspFile, 0, NULL, JIT_TARGET, error_msg, -1);
         
         if (!factory) {
             cerr << "Cannot create factory : " << error_msg;
@@ -129,13 +129,13 @@ int main(int argc, const char** argv)
         audio.stop();
         
         delete DSP;
-        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+        deleteDSPFactory(factory);
     }
     
     cout << "=============================\n";
     cout << "Test createDSPFactoryFromString\n";
     {
-        dsp_factory* factory = createDSPFactoryFromString("FaustDSP", "process = +;", 0, NULL, JIT_TARGET, error_msg, -1);
+        llvm_dsp_factory* factory = createDSPFactoryFromString("FaustDSP", "process = +;", 0, NULL, JIT_TARGET, error_msg, -1);
         if (!factory) {
             cerr << "Cannot create factory : " << error_msg;
             exit(EXIT_FAILURE);
@@ -163,13 +163,13 @@ int main(int argc, const char** argv)
         audio.stop();
         
         delete DSP;
-        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+        deleteDSPFactory(factory);
     }
     
     cout << "=============================\n";
     cout << "Test of UI element encoding\n";
     {
-        dsp_factory* factory = createDSPFactoryFromString("FaustDSP", "process = vslider(\"Volume\", 0.5, 0, 1, 0.025);", 0, NULL, JIT_TARGET, error_msg, -1);
+        llvm_dsp_factory* factory = createDSPFactoryFromString("FaustDSP", "process = vslider(\"Volume\", 0.5, 0, 1, 0.025);", 0, NULL, JIT_TARGET, error_msg, -1);
         if (!factory) {
             cerr << "Cannot create factory : " << error_msg;
             exit(EXIT_FAILURE);
@@ -185,7 +185,7 @@ int main(int argc, const char** argv)
         DSP->buildUserInterface(&test);
         
         delete DSP;
-        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+        deleteDSPFactory(factory);
     }
     
     // Test generateAuxFilesFromFile/generateAuxFilesFromString

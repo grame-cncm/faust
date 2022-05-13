@@ -198,11 +198,11 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filen
  * @return a DSP factory on success, otherwise a null pointer.
  */ 
 LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app,
-                                                          const std::string& dsp_content,
-                                                          int argc, const char* argv[],
-                                                          const std::string& target,
-                                                          std::string& error_msg,
-                                                          int opt_level = -1);
+                                                        const std::string& dsp_content,
+                                                        int argc, const char* argv[],
+                                                        const std::string& target,
+                                                        std::string& error_msg,
+                                                        int opt_level = -1);
 
 /**
  * Create a Faust DSP factory from a vector of output signals.
@@ -222,10 +222,10 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromString(const std::string& nam
  * @return a DSP factory on success, otherwise a null pointer.
  */
 LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromSignals(const std::string& name_app, tvec signals_vec,
-                                                           int argc, const char* argv[],
-                                                           const std::string& target,
-                                                           std::string& error_msg,
-                                                           int opt_level = -1);
+                                                        int argc, const char* argv[],
+                                                        const std::string& target,
+                                                        std::string& error_msg,
+                                                        int opt_level = -1);
 
 /**
  * Create a Faust DSP factory from a box expression.
@@ -245,10 +245,10 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromSignals(const std::string& na
  * @return a DSP factory on success, otherwise a null pointer.
  */
 LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromBoxes(const std::string& name_app, Box box,
-                                                         int argc, const char* argv[],
-                                                         const std::string& target,
-                                                         std::string& error_msg,
-                                                         int opt_level = -1);
+                                                        int argc, const char* argv[],
+                                                        const std::string& target,
+                                                        std::string& error_msg,
+                                                        int opt_level = -1);
 
 /**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possibly really deleting the internal pointer. 

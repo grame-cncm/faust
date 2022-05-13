@@ -28,7 +28,7 @@ architecture section is not modified.
 #include <assert.h>
 #include "faust/dsp/dsp.h"
 
-class one_sample_dsp : public dsp {
+class FAUST_API one_sample_dsp : public dsp {
   
     protected:
         
@@ -162,7 +162,7 @@ class one_sample_dsp : public dsp {
 // To be used with -os1 and -os2 mode
 
 template <typename REAL>
-class one_sample_dsp_real : public dsp {
+class FAUST_API one_sample_dsp_real : public dsp {
     
     protected:
     
@@ -363,7 +363,7 @@ class one_sample_dsp_real : public dsp {
 // To be used with -os3 mode
 
 template <typename REAL>
-class one_sample_dsp_real1 : public dsp {
+class FAUST_API one_sample_dsp_real1 : public dsp {
     
     protected:
         

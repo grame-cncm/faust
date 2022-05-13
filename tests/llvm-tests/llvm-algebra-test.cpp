@@ -37,6 +37,8 @@ using namespace std;
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
+static llvm_dsp_factory* gFactory = nullptr;
+
 #define printError(dsp, error_msg) if (!dsp) cout << error_msg;
 
 static void testDSP(dsp* dsp)
@@ -90,12 +92,12 @@ static void testDSP(dsp* dsp)
 static dsp* createDSP(const string& code)
 {
     string error_msg;
-    dsp_factory* factory = createDSPFactoryFromString("FaustDSP", code, 0, nullptr, "", error_msg);
-    if (!factory) {
+    gFactory = createDSPFactoryFromString("FaustDSP", code, 0, nullptr, "", error_msg);
+    if (!gFactory) {
         cout << error_msg;
     }
-    assert(factory);
-    return factory->createDSPInstance();
+    assert(gFactory);
+    return gFactory->createDSPInstance();
 }
 
 static void benchDSP(const string& title, const string& code, dsp* combined)
@@ -105,22 +107,25 @@ static void benchDSP(const string& title, const string& code, dsp* combined)
     dsp* dsp = createDSP(code);
     assert(dsp);
   
-    measure_dsp mes1(dsp, 512, 5.);       // Buffer_size and duration in sec of measure
-    mes1.measure();
-    double res1 = mes1.getStats() ;
-    cout << res1 << " " << "(DSP CPU % : " << (mes1.getCPULoad() * 100) << ")" << endl;
+    measure_dsp* mes1 = new measure_dsp(dsp, 512, 5.);       // Buffer_size and duration in sec of measure
+    mes1->measure();
+    double res1 = mes1->getStats();
+    cout << res1 << " " << "(DSP CPU % : " << (mes1->getCPULoad() * 100) << ")" << endl;
     
-    measure_dsp mes2(combined, 512, 5.);  // Buffer_size and duration in sec of measure
-    mes2.measure();
-    double res2 = mes2.getStats() ;
-    cout << res2 << " " << "(DSP CPU % : " << (mes2.getCPULoad() * 100) << ")" << endl;
+    measure_dsp* mes2 = new measure_dsp(combined, 512, 5.);  // Buffer_size and duration in sec of measure
+    mes2->measure();
+    double res2 = mes2->getStats();
+    cout << res2 << " " << "(DSP CPU % : " << (mes2->getCPULoad() * 100) << ")" << endl;
     
     cout << "Ratio = " << (res1/res2) << endl;
+    
+    delete mes1;
+    delete mes2;
+    deleteDSPFactory(gFactory);
 }
 
 int main(int argc, char* argv[])
 {
-    dsp_factory* factory1, *factory2, *factory3;
     dsp* dsp1, *dsp2, *dsp3, *combined1, *combined2;
     string error_msg;
       

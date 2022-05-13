@@ -25,6 +25,8 @@
 #ifndef LIBFAUSTCOMMON_C_H
 #define LIBFAUSTCOMMON_C_H
 
+#include "faust/export.h"
+
 /*!
  \addtogroup boxc C interface for the Box API.
  @{
@@ -61,12 +63,12 @@ extern "C"
     /**
      * Create global compilation context, has to be done first.
      */
-    extern "C" void createLibContext();
+    LIBFAUST_API void createLibContext();
     
     /**
      * Destroy global compilation context, has to be done last.
      */
-    extern "C" void destroyLibContext();
+    LIBFAUST_API void destroyLibContext();
     
     /**
      * Constant integer : for all t, x(t) = n.
@@ -76,7 +78,7 @@ extern "C"
      * @return the integer box.
      */
     
-    Box CboxInt(int n);
+    LIBFAUST_API Box CboxInt(int n);
     
     /**
      * Constant real : for all t, x(t) = n.
@@ -85,28 +87,28 @@ extern "C"
      *
      * @return the float/double box.
      */
-    Box CboxReal(double n);
+    LIBFAUST_API Box CboxReal(double n);
     
     /**
      * The identity box, copy its input to its output.
      *
      * @return the identity box.
      */
-    Box CboxWire();
+    LIBFAUST_API Box CboxWire();
     
     /**
      * The cut box, to "stop"/terminate a signal.
      *
      * @return the cut box.
      */
-    Box CboxCut();
+    LIBFAUST_API Box CboxCut();
     
     /**
      * The sequential composition of two blocks (e.g., A:B) expects: outputs(A)=inputs(B)
      *
      * @return the seq box.
      */
-    Box CboxSeq(Box x, Box y);
+    LIBFAUST_API Box CboxSeq(Box x, Box y);
     
     /**
      * The parallel composition of two blocks (e.g., A,B).
@@ -114,13 +116,13 @@ extern "C"
      *
      * @return the par box.
      */
-    Box CboxPar(Box x, Box y);
+    LIBFAUST_API Box CboxPar(Box x, Box y);
     
-    Box CboxPar3(Box x, Box y, Box z);
+    LIBFAUST_API Box CboxPar3(Box x, Box y, Box z);
     
-    Box CboxPar4(Box a, Box b, Box c, Box d);
+    LIBFAUST_API Box CboxPar4(Box a, Box b, Box c, Box d);
     
-    Box CboxPar5(Box a, Box b, Box c, Box d, Box e);
+    LIBFAUST_API Box CboxPar5(Box a, Box b, Box c, Box d, Box e);
     
     /**
      * The split composition (e.g., A<:B) operator is used to distribute
@@ -131,7 +133,7 @@ extern "C"
      *
      * @return the split box.
      */
-    Box CboxSplit(Box x, Box y);
+    LIBFAUST_API Box CboxSplit(Box x, Box y);
     
     /**
      * The merge composition (e.g., A:>B) is the dual of the split composition.
@@ -140,7 +142,7 @@ extern "C"
      *
      * @return the merge box.
      */
-    Box CboxMerge(Box x, Box y);
+    LIBFAUST_API Box CboxMerge(Box x, Box y);
     
     /**
      * The recursive composition (e.g., A~B) is used to create cycles in the block-diagram
@@ -149,7 +151,7 @@ extern "C"
      *
      * @return the rec box.
      */
-    Box CboxRec(Box x, Box y);
+    LIBFAUST_API Box CboxRec(Box x, Box y);
     
     /**
      * The route primitive facilitates the routing of signals in Faust.
@@ -161,14 +163,14 @@ extern "C"
      
      * @return the route box.
      */
-    Box CboxRoute(Box n, Box m, Box r);
+    LIBFAUST_API Box CboxRoute(Box n, Box m, Box r);
     
     /**
      * Create a delayed box.
      *
      * @return the delayed box.
      */
-    Box CboxDelay();
+    LIBFAUST_API Box CboxDelay();
     
     /**
      * Create a delayed box.
@@ -178,14 +180,14 @@ extern "C"
      
      * @return the delayed box.
      */
-    Box CboxDelayAux(Box s, Box del);
+    LIBFAUST_API Box CboxDelayAux(Box s, Box del);
     
     /**
      * Create a casted box.
      *
      * @return the casted box.
      */
-    Box CboxIntCast();
+    LIBFAUST_API Box CboxIntCast();
     
     /**
      * Create a casted box.
@@ -194,14 +196,14 @@ extern "C"
      *
      * @return the casted box.
      */
-    Box CboxIntCastAux(Box s);
+    LIBFAUST_API Box CboxIntCastAux(Box s);
     
     /**
      * Create a casted box.
      *
      * @return the casted box.
      */
-    Box CboxFloatCast();
+    LIBFAUST_API Box CboxFloatCast();
     
     /**
      * Create a casted box.
@@ -210,14 +212,14 @@ extern "C"
      *
      * @return the casted box.
      */
-    Box CboxFloatCastAux(Box s);
+    LIBFAUST_API Box CboxFloatCastAux(Box s);
     
     /**
      * Create a read only table.
      *
      * @return the table box.
      */
-    Box CboxReadOnlyTable();
+    LIBFAUST_API Box CboxReadOnlyTable();
     
     /**
      * Create a read only table.
@@ -228,14 +230,14 @@ extern "C"
      *
      * @return the table box.
      */
-    Box CboxReadOnlyTableAux(Box n, Box init, Box ridx);
+    LIBFAUST_API Box CboxReadOnlyTableAux(Box n, Box init, Box ridx);
     
     /**
      * Create a read/write table.
      *
      * @return the table box.
      */
-    Box CboxWriteReadTable();
+    LIBFAUST_API Box CboxWriteReadTable();
     
     /**
      * Create a read/write table.
@@ -248,7 +250,7 @@ extern "C"
      *
      * @return the table box.
      */
-    Box CboxWriteReadTableAux(Box n, Box init, Box widx, Box wsig, Box ridx);
+    LIBFAUST_API Box CboxWriteReadTableAux(Box n, Box init, Box widx, Box wsig, Box ridx);
     
     /**
      * Create a waveform.
@@ -257,7 +259,7 @@ extern "C"
      *
      * @return the waveform box.
      */
-    Box CboxWaveform(Box* wf);
+    LIBFAUST_API Box CboxWaveform(Box* wf);
     
     /**
      * Create a soundfile block.
@@ -267,7 +269,7 @@ extern "C"
      *
      * @return the soundfile box.
      */
-    Box CboxSoundfile(const char* label, Box chan);
+    LIBFAUST_API Box CboxSoundfile(const char* label, Box chan);
     
     /**
      * Create a soundfile block.
@@ -286,7 +288,7 @@ extern "C"
      *
      * @return the selected box depending of the selector value at each time t.
      */
-    Box CboxSelect2();
+    LIBFAUST_API Box CboxSelect2();
     
     /**
      * Create a selector between two boxes.
@@ -297,14 +299,14 @@ extern "C"
      *
      * @return the selected box depending of the selector value at each time t.
      */
-    Box CboxSelect2Aux(Box selector, Box s1, Box s2);
+    LIBFAUST_API Box CboxSelect2Aux(Box selector, Box s1, Box s2);
     
     /**
      * Create a selector between three boxes.
      *
      * @return the selected box depending of the selector value at each time t.
      */
-    Box CboxSelect3();
+    LIBFAUST_API Box CboxSelect3();
     
     /**
      * Create a selector between three boxes.
@@ -316,7 +318,7 @@ extern "C"
      *
      * @return the selected box depending of the selector value at each time t.
      */
-    Box CboxSelect3Aux(Box selector, Box s1, Box s2, Box s3);
+    LIBFAUST_API Box CboxSelect3Aux(Box selector, Box s1, Box s2, Box s3);
     
     /**
      * Create a foreign constant box.
@@ -327,7 +329,7 @@ extern "C"
      *
      * @return the foreign constant box.
      */
-    Box CboxFConst(SType type, const char* name, const char* file);
+    LIBFAUST_API Box CboxFConst(SType type, const char* name, const char* file);
     
     /**
      * Create a foreign variable box.
@@ -338,7 +340,7 @@ extern "C"
      *
      * @return the foreign variable box.
      */
-    Box CboxFVar(SType type, const char* name, const char* file);
+    LIBFAUST_API Box CboxFVar(SType type, const char* name, const char* file);
     
     /**
      * Generic binary mathematical functions.
@@ -347,102 +349,102 @@ extern "C"
      *
      * @return the result box of op(x,y).
      */
-    Box CboxBinOp(SOperator op);
+    LIBFAUST_API Box CboxBinOp(SOperator op);
     
-    Box CboxBinOpAux(SOperator op, Box b1, Box b2);
+    LIBFAUST_API Box CboxBinOpAux(SOperator op, Box b1, Box b2);
     
     /**
      * Specific binary mathematical functions.
      *
      * @return the result box.
      */
-    Box CboxAdd();
-    Box CboxAddAux(Box b1, Box b2);
-    Box CboxSub();
-    Box CboxSubAux(Box b1, Box b2);
-    Box CboxMul();
-    Box CboxMulAux(Box b1, Box b2);
-    Box CboxDiv();
-    Box CboxDivAux(Box b1, Box b2);
-    Box CboxRem();
-    Box CboxRemAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxAdd();
+    LIBFAUST_API Box CboxAddAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxSub();
+    LIBFAUST_API Box CboxSubAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxMul();
+    LIBFAUST_API Box CboxMulAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxDiv();
+    LIBFAUST_API Box CboxDivAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxRem();
+    LIBFAUST_API Box CboxRemAux(Box b1, Box b2);
     
-    Box CboxLeftShift();
-    Box CboxLeftShiftAux(Box b1, Box b2);
-    Box CboxLRightShift();
-    Box CboxLRightShiftAux(Box b1, Box b2);
-    Box CboxARightShift();
-    Box CboxARightShiftAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxLeftShift();
+    LIBFAUST_API Box CboxLeftShiftAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxLRightShift();
+    LIBFAUST_API Box CboxLRightShiftAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxARightShift();
+    LIBFAUST_API Box CboxARightShiftAux(Box b1, Box b2);
     
-    Box CboxGT();
-    Box CboxGTAux(Box b1, Box b2);
-    Box CboxLT();
-    Box CboxLTAux(Box b1, Box b2);
-    Box CboxGE();
-    Box CboxGEAux(Box b1, Box b2);
-    Box CboxLE();
-    Box CboxLEAux(Box b1, Box b2);
-    Box CboxEQ();
-    Box CboxEQAux(Box b1, Box b2);
-    Box CboxNE();
-    Box CboxNEAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxGT();
+    LIBFAUST_API Box CboxGTAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxLT();
+    LIBFAUST_API Box CboxLTAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxGE();
+    LIBFAUST_API Box CboxGEAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxLE();
+    LIBFAUST_API Box CboxLEAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxEQ();
+    LIBFAUST_API Box CboxEQAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxNE();
+    LIBFAUST_API Box CboxNEAux(Box b1, Box b2);
     
-    Box CboxAND();
-    Box CboxANDAux(Box b1, Box b2);
-    Box CboxOR();
-    Box CboxORAux(Box b1, Box b2);
-    Box CboxXOR();
-    Box CboxXORAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxAND();
+    LIBFAUST_API Box CboxANDAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxOR();
+    LIBFAUST_API Box CboxORAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxXOR();
+    LIBFAUST_API Box CboxXORAux(Box b1, Box b2);
     
     /**
      * Extended unary mathematical functions.
      */
-    Box CboxAbs();
-    Box CboxAbsAux(Box x);
-    Box CboxAcos();
-    Box CboxAcosAux(Box x);
-    Box CboxTan();
-    Box CboxTanAux(Box x);
-    Box CboxSqrt();
-    Box CboxSqrtAux(Box x);
-    Box CboxSin();
-    Box CboxSinAux(Box x);
-    Box CboxRint();
-    Box CboxRintAux(Box x);
-    Box CboxLog();
-    Box CboxLogAux(Box x);
-    Box CboxLog10();
-    Box CboxLog10Aux(Box x);
-    Box CboxFloor();
-    Box CboxFloorAux(Box x);
-    Box CboxExp();
-    Box CboxExpAux(Box x);
-    Box CboxExp10();
-    Box CboxExp10Aux(Box x);
-    Box CboxCos();
-    Box CboxCosAux(Box x);
-    Box CboxCeil();
-    Box CboxCeilAux(Box x);
-    Box CboxAtan();
-    Box CboxAtanAux(Box x);
-    Box CboxAsin();
-    Box CboxAsinAux(Box x);
+    LIBFAUST_API Box CboxAbs();
+    LIBFAUST_API Box CboxAbsAux(Box x);
+    LIBFAUST_API Box CboxAcos();
+    LIBFAUST_API Box CboxAcosAux(Box x);
+    LIBFAUST_API Box CboxTan();
+    LIBFAUST_API Box CboxTanAux(Box x);
+    LIBFAUST_API Box CboxSqrt();
+    LIBFAUST_API Box CboxSqrtAux(Box x);
+    LIBFAUST_API Box CboxSin();
+    LIBFAUST_API Box CboxSinAux(Box x);
+    LIBFAUST_API Box CboxRint();
+    LIBFAUST_API Box CboxRintAux(Box x);
+    LIBFAUST_API Box CboxLog();
+    LIBFAUST_API Box CboxLogAux(Box x);
+    LIBFAUST_API Box CboxLog10();
+    LIBFAUST_API Box CboxLog10Aux(Box x);
+    LIBFAUST_API Box CboxFloor();
+    LIBFAUST_API Box CboxFloorAux(Box x);
+    LIBFAUST_API Box CboxExp();
+    LIBFAUST_API Box CboxExpAux(Box x);
+    LIBFAUST_API Box CboxExp10();
+    LIBFAUST_API Box CboxExp10Aux(Box x);
+    LIBFAUST_API Box CboxCos();
+    LIBFAUST_API Box CboxCosAux(Box x);
+    LIBFAUST_API Box CboxCeil();
+    LIBFAUST_API Box CboxCeilAux(Box x);
+    LIBFAUST_API Box CboxAtan();
+    LIBFAUST_API Box CboxAtanAux(Box x);
+    LIBFAUST_API Box CboxAsin();
+    LIBFAUST_API Box CboxAsinAux(Box x);
     
     /**
      * Extended binary mathematical functions.
      */
-    Box CboxRemainder();
-    Box CboxRemainderAux(Box b1, Box b2);
-    Box CboxPow();
-    Box CboxPowAux(Box b1, Box b2);
-    Box CboxMin();
-    Box CboxMinAux(Box b1, Box b2);
-    Box CboxMax();
-    Box CboxMaxAux(Box b1, Box b2);
-    Box CboxFmod();
-    Box CboxFmodAux(Box b1, Box b2);
-    Box CboxAtan2();
-    Box CboxAtan2Aux(Box b1, Box b2);
+    LIBFAUST_API Box CboxRemainder();
+    LIBFAUST_API Box CboxRemainderAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxPow();
+    LIBFAUST_API Box CboxPowAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxMin();
+    LIBFAUST_API Box CboxMinAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxMax();
+    LIBFAUST_API Box CboxMaxAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxFmod();
+    LIBFAUST_API Box CboxFmodAux(Box b1, Box b2);
+    LIBFAUST_API Box CboxAtan2();
+    LIBFAUST_API Box CboxAtan2Aux(Box b1, Box b2);
     
     /**
      * Create a button box.
@@ -451,7 +453,7 @@ extern "C"
      *
      * @return the button box.
      */
-    Box CboxButton(const char* label);
+    LIBFAUST_API Box CboxButton(const char* label);
     
     /**
      * Create a checkbox box.
@@ -460,7 +462,7 @@ extern "C"
      *
      * @return the checkbox box.
      */
-    Box CboxCheckbox(const char* label);
+    LIBFAUST_API Box CboxCheckbox(const char* label);
     
     /**
      * Create a vertical slider box.
@@ -473,7 +475,7 @@ extern "C"
      *
      * @return the vertical slider box.
      */
-    Box CboxVSlider(const char* label, Box init, Box min, Box max, Box step);
+    LIBFAUST_API Box CboxVSlider(const char* label, Box init, Box min, Box max, Box step);
     
     /**
      * Create an horizontal slider box.
@@ -486,7 +488,7 @@ extern "C"
      *
      * @return the horizontal slider box.
      */
-    Box CboxHSlider(const char* label, Box init, Box min, Box max, Box step);
+    LIBFAUST_API Box CboxHSlider(const char* label, Box init, Box min, Box max, Box step);
     
     /**
      * Create a num entry box.
@@ -499,7 +501,7 @@ extern "C"
      *
      * @return the num entry box.
      */
-    Box CboxNumEntry(const char* label, Box init, Box min, Box max, Box step);
+    LIBFAUST_API Box CboxNumEntry(const char* label, Box init, Box min, Box max, Box step);
     
     /**
      * Create a vertical bargraph box.
@@ -510,7 +512,7 @@ extern "C"
      *
      * @return the vertical bargraph box.
      */
-    Box CboxVBargraph(const char* label, Box min, Box max);
+    LIBFAUST_API Box CboxVBargraph(const char* label, Box min, Box max);
     
     /**
      * Create a vertical bargraph box.
@@ -522,7 +524,7 @@ extern "C"
      *
      * @return the vertical bargraph box.
      */
-    Box CboxVBargraphAux(const char* label, Box min, Box max, Box x);
+    LIBFAUST_API Box CboxVBargraphAux(const char* label, Box min, Box max, Box x);
     
     /**
      * Create an horizontal bargraph box.
@@ -533,7 +535,7 @@ extern "C"
      *
      * @return the horizontal bargraph box.
      */
-    Box CboxHBargraph(const char* label, Box min, Box max);
+    LIBFAUST_API Box CboxHBargraph(const char* label, Box min, Box max);
     
     /**
      * Create a horizontal bargraph box.
@@ -545,7 +547,7 @@ extern "C"
      *
      * @return the vertical horizontal box.
      */
-    Box CboxHBargraphAux(const char* label, Box min, Box max, Box x);
+    LIBFAUST_API Box CboxHBargraphAux(const char* label, Box min, Box max, Box x);
     
     /**
      * Create an attach box.
@@ -556,7 +558,7 @@ extern "C"
      *
      * @return the attach box.
      */
-    Box CboxAttach();
+    LIBFAUST_API Box CboxAttach();
     
     /**
      * Create an attach box.
@@ -570,7 +572,7 @@ extern "C"
      *
      * @return the attach signal.
      */
-    Box CboxAttachAux(Box s1, Box s2);
+    LIBFAUST_API Box CboxAttachAux(Box s1, Box s2);
     
     /**
      * Compile a box expression in a null terminated array of signals.
