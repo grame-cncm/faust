@@ -153,7 +153,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         {
             (*it)->write(&fMessage, false, false, false);  // Last param = false means no recursion in branches
             push(fMessage.str());
-            push("Stack [Int: " + std::to_string(int_value) + " ] [REAL: " + std::to_string(real_value) + " ]\n");
+            push("Stack [Int: " + std::to_string(int_value) + "] [REAL: " + std::to_string(real_value) + "]\n");
             fMessage.str("");
         }
     };
