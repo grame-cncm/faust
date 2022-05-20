@@ -49,8 +49,9 @@ class APIUI : public PathBuilder, public Meta, public UI
         enum Mapping { kLin = 0, kLog = 1, kExp = 2 };
 
         struct Item {
-            std::string fPath;
             std::string fLabel;
+            std::string fShortname;
+            std::string fPath;
             ValueConverter* fConversion;
             FAUSTFLOAT* fZone;
             FAUSTFLOAT fInit;
@@ -58,6 +59,20 @@ class APIUI : public PathBuilder, public Meta, public UI
             FAUSTFLOAT fMax;
             FAUSTFLOAT fStep;
             ItemType fItemType;
+            
+            Item(const std::string& label,
+                 const std::string& short_name,
+                 const std::string& path,
+                 ValueConverter* conversion,
+                 FAUSTFLOAT* zone,
+                 FAUSTFLOAT init,
+                 FAUSTFLOAT min,
+                 FAUSTFLOAT max,
+                 FAUSTFLOAT step,
+                 ItemType item_type)
+            :fLabel(label), fShortname(short_name), fPath(path), fConversion(conversion),
+            fZone(zone), fInit(init), fMin(min), fMax(max), fStep(step), fItemType(item_type)
+            {}
         };
         std::vector<Item> fItems;
 
@@ -91,6 +106,7 @@ class APIUI : public PathBuilder, public Meta, public UI
                                   ItemType type)
         {
             std::string path = buildPath(label);
+            fFullPaths.push_back(path);
 
             // handle scale metadata
             ValueConverter* converter = nullptr;
@@ -107,7 +123,7 @@ class APIUI : public PathBuilder, public Meta, public UI
             }
             fCurrentScale = kLin;
 
-            fItems.push_back({path, label, converter, zone, init, min, max, step, type });
+            fItems.push_back(Item(label, "", path, converter, zone, init, min, max, step, type));
        
             if (fCurrentAcc.size() > 0 && fCurrentGyr.size() > 0) {
                 fprintf(stderr, "warning : 'acc' and 'gyr' metadata used for the same %s parameter !!\n", label);
@@ -260,7 +276,18 @@ class APIUI : public PathBuilder, public Meta, public UI
         virtual void openTabBox(const char* label) { pushLabel(label); }
         virtual void openHorizontalBox(const char* label) { pushLabel(label); }
         virtual void openVerticalBox(const char* label) { pushLabel(label); }
-        virtual void closeBox() { popLabel(); }
+        virtual void closeBox()
+        {
+            if (popLabel()) {
+                // Shortnames can be computed when all fullnames are known
+                computeShortNames();
+                // Fill 'shortname' field for each item
+                for (const auto& it : fFull2Short) {
+                    int index = getParamIndex(it.first.c_str());
+                    fItems[index].fShortname = it.second;
+                }
+            }
+        }
 
         // -- active widgets
 
@@ -341,19 +368,12 @@ class APIUI : public PathBuilder, public Meta, public UI
         //-------------------------------------------------------------------------------
         int getParamsCount() { return int(fItems.size()); }
 
-        int getParamIndex(const char* path)
+        int getParamIndex(const char* path_aux)
         {
-            auto it1 = find_if(fItems.begin(), fItems.end(), [=](const Item& it) { return it.fPath == std::string(path); });
-            if (it1 != fItems.end()) {
-                return int(it1 - fItems.begin());
-            }
-
-            auto it2 = find_if(fItems.begin(), fItems.end(), [=](const Item& it) { return it.fLabel == std::string(path); });
-            if (it2 != fItems.end()) {
-                return int(it2 - fItems.begin());
-            }
-
-            return -1;
+            std::string path = std::string(path_aux);
+            auto it = find_if(fItems.begin(), fItems.end(),
+                              [=](const Item& it) { return (it.fLabel == path) || (it.fShortname == path) || (it.fPath == path); });
+            return (it != fItems.end()) ? int(it - fItems.begin()) : -1;
         }
         const char* getParamAddress(int p) { return fItems[uint(p)].fPath.c_str(); }
         const char* getParamLabel(int p) { return fItems[uint(p)].fLabel.c_str(); }

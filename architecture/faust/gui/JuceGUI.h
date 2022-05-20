@@ -315,7 +315,7 @@ struct CustomLookAndFeel : public juce::LookAndFeel_V3
             cursorShadow.addRectangle(rectX-1, rectY-1, rectWidth+2, rectHeight+2);
 
             juce::AffineTransform t = juce::AffineTransform::translation(-rectWidth + 2, rectHeight/2);
-            t = t.rotated((angle - juce::float_Pi/2), centreX, centreY);
+            t = t.rotated((angle - MathConstants<float>::pi/2), centreX, centreY);
 
             cursor.applyTransform(t);
             cursorShadow.applyTransform(t);
