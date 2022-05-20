@@ -41,6 +41,8 @@
 #include "faust/misc.h"
 #include "faust/audio/dummy-audio.h"
 
+// faust -mem -a dummy-mem.cpp noise.dsp -o noise.cpp && c++ -std=c++11 noise.cpp -o noise && ./noise
+
 /******************************************************************************
  *******************************************************************************
  
@@ -69,16 +71,31 @@ using namespace std;
 
 struct malloc_memory_manager : public dsp_memory_manager {
     
+    virtual void begin(size_t count)
+    {
+        cout << "malloc_memory_manager::begin count = " << count << endl;
+    }
+    
+    virtual void info(size_t size, size_t reads, size_t writes)
+    {
+        cout << "malloc_memory_manager::info size = " << size << " reads = " << reads << " writes = " << writes << endl;
+    }
+    
+    virtual void end()
+    {
+        cout << "malloc_memory_manager::end" << endl;
+    }
+    
     virtual void* allocate(size_t size)
     {
         void* res = malloc(size);
-        cout << "malloc_manager: " << size << endl;
+        cout << "malloc_manager::allocate " << size << endl;
         return res;
     }
     
     virtual void destroy(void* ptr)
     {
-        cout << "free_manager" << endl;
+        cout << "malloc_memory_manager::destroy" << endl;
         free(ptr);
     }
     
@@ -92,16 +109,23 @@ static void test1()
     // Setup manager for the class
     mydsp::fManager = &manager;
     
+    // Make the memory manager get information on all subcontainers,
+    // static tables, DSP and arrays and prepare memory allocation
+    mydsp::memoryInfo();
+    
     // Static class allocation with custom memory manager called once
     mydsp::classInit(SAMPLE_RATE);
     
     // 'placement' new used to allocate the DSP object
     mydsp* DSP = mydsp::create();
     
-    /// Audio rendering
+    // Init the DSP instance
+    DSP->instanceInit(SAMPLE_RATE);
+    
+    // Audio rendering
     dummyaudio audio(SAMPLE_RATE, 512, 5, 1, true);  // custom memory manager is used
     
-    audio.init("Dummy", DSP);   // 'instanceInit' only will be called on the DSP
+    audio.init("Dummy", DSP);
     audio.start();
     audio.stop();
     
@@ -127,14 +151,18 @@ static void test2()
     mydsp* DSP1 = mydsp::create();
     mydsp* DSP2 = mydsp::create();
     
+    // Init the DSP instance1
+    DSP1->instanceInit(SAMPLE_RATE);
+    DSP2->instanceInit(SAMPLE_RATE);
+    
     /// Audio rendering
     dummyaudio audio(SAMPLE_RATE, 512, 5, 1, true);  // custom memory manager is used
     
-    audio.init("Dummy", DSP1);   // 'instanceInit' only will be called on the DSP
+    audio.init("Dummy", DSP1);
     audio.start();
     audio.stop();
     
-    audio.init("Dummy", DSP2);   // 'instanceInit' only will be called on the DSP
+    audio.init("Dummy", DSP2);
     audio.start();
     audio.stop();
     
