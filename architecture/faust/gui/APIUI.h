@@ -375,8 +375,11 @@ class APIUI : public PathBuilder, public Meta, public UI
                               [=](const Item& it) { return (it.fLabel == path) || (it.fShortname == path) || (it.fPath == path); });
             return (it != fItems.end()) ? int(it - fItems.begin()) : -1;
         }
-        const char* getParamAddress(int p) { return fItems[uint(p)].fPath.c_str(); }
+    
         const char* getParamLabel(int p) { return fItems[uint(p)].fLabel.c_str(); }
+        const char* getParamShortname(int p) { return fItems[uint(p)].fShortname.c_str(); }
+        const char* getParamAddress(int p) { return fItems[uint(p)].fPath.c_str(); }
+    
         std::map<const char*, const char*> getMetadata(int p)
         {
             std::map<const char*, const char*> res;
@@ -402,7 +405,12 @@ class APIUI : public PathBuilder, public Meta, public UI
         FAUSTFLOAT getParamValue(const char* path)
         {
             int index = getParamIndex(path);
-            return (index >= 0) ? getParamValue(index) : FAUSTFLOAT(0);
+            if (index >= 0) {
+                return getParamValue(index);
+            } else {
+                fprintf(stderr, "getParamValue : '%s' not found\n", (path == nullptr ? "NULL" : path));
+                return FAUSTFLOAT(0);
+            }
         }
 
         void setParamValue(int p, FAUSTFLOAT v) { *fItems[uint(p)].fZone = v; }
@@ -491,7 +499,7 @@ class APIUI : public PathBuilder, public Meta, public UI
          * Used to edit gyroscope curves and mapping. Set curve and related mapping for a given UI parameter.
          *
          * @param p - the UI parameter index
-         * @param acc - 0 for X gyroscope, 1 for Y gyroscope, 2 for Z gyroscope (-1 means "no mapping")
+         * @param gyr - 0 for X gyroscope, 1 for Y gyroscope, 2 for Z gyroscope (-1 means "no mapping")
          * @param curve - between 0 and 3
          * @param amin - mapping 'min' point
          * @param amid - mapping 'middle' point
