@@ -1936,9 +1936,13 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
     if (new_comp) {
         generateCodeAux1(dst);
-    } else if (old_comp) {
+    }
+#ifdef OCPP_BUILD
+    else if (old_comp) {
         generateCodeAux2(dst);
-    } else {
+    }
+#endif
+    else {
         faustassert(false);
     }
     
@@ -1987,9 +1991,13 @@ static void generateOutputFiles()
     if (gGlobal->gPrintXMLSwitch) {
         if (new_comp) {
             printXML(new_comp->getDescription(), container->inputs(), container->outputs());
-        } else if (old_comp) {
+        }
+#ifdef OCPP_BUILD
+        else if (old_comp) {
             printXML(old_comp->getDescription(), old_comp->getClass()->inputs(), old_comp->getClass()->outputs());
-        } else {
+        }
+#endif
+        else {
             faustassert(false);
         }
     }
@@ -2010,9 +2018,13 @@ static void generateOutputFiles()
         ofstream dotfile(subst("$0.dot", gGlobal->makeDrawPath()).c_str());
         if (new_comp) {
             container->printGraphDotFormat(dotfile);
-        } else if (old_comp) {
+        }
+#ifdef OCPP_BUILD
+        else if (old_comp) {
             old_comp->getClass()->printGraphDotFormat(dotfile);
-        } else {
+        }
+#endif
+        else {
             faustassert(false);
         }
     }
