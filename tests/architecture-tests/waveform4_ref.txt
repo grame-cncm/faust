@@ -1,11 +1,19 @@
-malloc_manager: 4
-malloc_manager: 28
-malloc_manager: 4
-malloc_manager: 28
-free_manager
-free_manager
-malloc_manager: 24
-malloc_manager: 8
+malloc_memory_manager::begin count = 6
+malloc_memory_manager::info size = 4 reads = 0 writes = 0
+malloc_memory_manager::info size = 28 reads = 1 writes = 0
+malloc_memory_manager::info size = 4 reads = 0 writes = 0
+malloc_memory_manager::info size = 28 reads = 1 writes = 0
+malloc_memory_manager::info size = 28 reads = 0 writes = 0
+malloc_memory_manager::info size = 8 reads = 4 writes = 2
+malloc_memory_manager::end
+malloc_manager::allocate 4
+malloc_manager::allocate 28
+malloc_manager::allocate 4
+malloc_manager::allocate 28
+malloc_memory_manager::destroy
+malloc_memory_manager::destroy
+malloc_manager::allocate 24
+malloc_manager::allocate 8
 Render one buffer
 sample out 40.000000
 Render one buffer
@@ -16,7 +24,7 @@ Render one buffer
 sample out 60.000000
 Render one buffer
 sample out 20.000000
-free_manager
-free_manager
-free_manager
-free_manager
+malloc_memory_manager::destroy
+malloc_memory_manager::destroy
+malloc_memory_manager::destroy
+malloc_memory_manager::destroy
