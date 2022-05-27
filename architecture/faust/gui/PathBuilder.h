@@ -128,7 +128,7 @@ class FAUST_API PathBuilder {
         {
             std::vector<std::string>           uniquePaths;  // all full paths transformed but made unique with a prefix
             std::map<std::string, std::string> unique2full;  // all full paths transformed but made unique with a prefix
-            char num_buffer[8];
+            char num_buffer[16];
             int pnum = 0;
         
             for (const auto& s : fFullPaths) {
