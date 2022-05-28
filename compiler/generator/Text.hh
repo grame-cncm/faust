@@ -73,7 +73,7 @@ string checkReal(double val);
 
 string indent(string const& str, int tabs);
 string replaceChar(string str, char ch1, char ch2);
-string replaceCharList(string str, const vector<char>& ch1, char ch2);
+string replaceCharList(const string& str, const vector<char>& ch1, char ch2);
 
 inline bool checkMin(const string& str)
 {

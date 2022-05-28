@@ -1084,8 +1084,8 @@ static void printDeclareHeader(ostream& dst)
             dst << "declare ";
             stringstream key;
             key << *(i.first);
-            vector<char> to_replace{'.', ':', '/'};
-            dst << replaceCharList(key.str(), to_replace, '_');
+            vector<char> rep{'.', ':', '/'};
+            dst << replaceCharList(key.str(), rep, '_');
             dst << " " << **(i.second.begin()) << ";" << endl;
         } else {
             for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); ++j) {

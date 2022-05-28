@@ -326,16 +326,15 @@ string replaceChar(string str, char src, char dst)
     return str;
 }
 
-string replaceCharList(string str, const vector<char>& ch1, char ch2)
+string replaceCharList(const string& str, const vector<char>& ch1, char ch2)
 {
-    vector<char>::const_iterator beg = ch1.begin();
-    vector<char>::const_iterator end = ch1.end();
+    auto beg = ch1.begin();
+    auto end = ch1.end();
+    string res = str;
     for (size_t i = 0; i < str.length(); ++i) {
-        if (find(beg, end, str[i]) != end) {
-            str[i] = ch2;
-        }
+        if (std::find(beg, end, str[i]) != end) res[i] = ch2;
     }
-    return str;
+    return res;
 }
 
 vector<string> tokenizeString(const string& str, char sep)

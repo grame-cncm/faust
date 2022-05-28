@@ -173,16 +173,15 @@ class FAUST_API PathBuilder {
             }
         }
     
-        std::string replaceCharList(std::string str, const std::vector<char>& ch1, char ch2)
+        std::string replaceCharList(const std::string& str, const std::vector<char>& ch1, char ch2)
         {
-            std::vector<char>::const_iterator beg = ch1.begin();
-            std::vector<char>::const_iterator end = ch1.end();
+            auto beg = ch1.begin();
+            auto end = ch1.end();
+            std::string res = str;
             for (size_t i = 0; i < str.length(); ++i) {
-                if (std::find(beg, end, str[i]) != end) {
-                    str[i] = ch2;
-                }
+                if (std::find(beg, end, str[i]) != end) res[i] = ch2;
             }
-            return str;
+            return res;
         }
      
     public:
@@ -200,12 +199,10 @@ class FAUST_API PathBuilder {
         {
             std::string res = "/";
             for (size_t i = 0; i < fControlsLevel.size(); i++) {
-                res += fControlsLevel[i];
-                res += "/";
+                res = res + fControlsLevel[i] + "/";
             }
             res += label;
-            replaceCharList(res, {' ', '#', '*', ',', '/', '?', '[', ']', '{', '}', '(', ')'}, '_');
-            return res;
+            return replaceCharList(res, {' ', '#', '*', ',', '?', '[', ']', '{', '}', '(', ')'}, '_');
         }
     
 };
