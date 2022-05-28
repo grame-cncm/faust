@@ -636,7 +636,7 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
 #ifdef JUCE_POLY
     fSynth->setCurrentPlaybackSampleRate (sampleRate);
 #else
-   
+    
     // Setting the DSP control values has already been done
     // by 'buildUserInterface(&fStateUI)', using the saved values or the default ones.
     // What has to be done to finish the DSP initialization is done now.
@@ -676,6 +676,15 @@ void FaustPlugInAudioProcessor::process (juce::AudioBuffer<FloatType>& buffer, j
 {
     juce::ScopedNoDenormals noDenormals;
     
+    /*
+        prepareToPlay is possibly called several times with different values for sampleRate
+        and isUsingDoublePrecision() state (this has been seen in particular with VTS3),
+        making proper sample format (float/double) and the inputs/outputs layout adaptation
+        more complex at this stage.
+        
+        So adapting the sample format (float/double) and the inputs/outputs layout is done
+        once at first process call even if this possibly allocates memory, which is not RT safe.
+    */
     if (fFirstcall) {
         fFirstcall = false;
         
