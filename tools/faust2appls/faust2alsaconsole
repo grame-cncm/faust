@@ -32,7 +32,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2alsaconsole "[options] <file.dsp>"
+        usage faust2alsaconsole "[options] [Faust options] <file.dsp>"
         platform Linux
         require Alsa
         echo "Compiles Faust programs to CLI and ALSA"
@@ -41,6 +41,7 @@ do
         option "-nvoices <num>"
         option -arch32 "compiles a 32 bits binary"
         option -arch64 "compiles a 64 bits binary"
+        option "Faust options"
         exit
     fi
     

@@ -30,12 +30,13 @@ fi
 # dispatch command arguments
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2alsa "[options] <file.dsp>"
+        usage faust2alsa "[options] [Faust options] <file.dsp>"
         platform Linux
         require Alsa
         echo "Compiles Faust programs to ALSA and GTK"
         option
         options -httpd -osc -midi -qrcode -poly
+        option "Faust options"
         exit
     fi
   

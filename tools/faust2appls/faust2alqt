@@ -40,12 +40,13 @@ OSCLIB=""
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2alqt "[options] <file.dsp>"
+        usage faust2alqt "[options] [Faust options] <file.dsp>"
         platform Linux
         require Alsa, Qt
         echo "Compiles Faust programs to ALSA and QT"
         option
         options -httpd -osc -midi -qrcode -poly
+        option "Faust options"
         exit
     fi
   

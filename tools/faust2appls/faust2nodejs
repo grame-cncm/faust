@@ -42,7 +42,7 @@ echoHelp ()
         echo "$p wrong argument"
         echo ""
     fi
-    usage faust2nodejs "[driver] [options] <file.dsp>"
+    usage faust2nodejs "[driver] [Faust options] <file.dsp>"
     echo "Generate Faust-based nodejs native addons. The generated addons can embed most of the audio engines supported by Faust: ALSA, JACK, CoreAudio, RtAudio, PortAudio, etc. Since faust2nodejs essentially acts as a wrapper to faust2api, it offers the same features than this system (MIDI and OSC suport, polyphony, separate effect file, etc.)."
     echo
     echo "The following drivers are available: -coreaudio // -alsa // -jack // -portaudio // -rtaudio // -dummy. For example, to create a native nodejs addon with a JACK audio engine, run: faust2nodjs -jack faustFile.dsp"
@@ -52,9 +52,10 @@ echoHelp ()
     options -osc -midi -soundfile
     option "-nvoices <num>"
     option "-effect <effect.dsp>"
-    option -source "generates the source of the addon without compiling it."
-    option "-electronv <VERSION>" "allows to specify the current version of electron if generating an addon for this framework."
-    option -debug "prints compilation output."
+    option -source "generates the source of the addon without compiling it"
+    option "-electronv <VERSION>" "allows to specify the current version of electron if generating an addon for this framework"
+    option -debug "prints compilation output"
+    option "Faust options"
 }
 
 # dispatch command arguments

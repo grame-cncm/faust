@@ -47,13 +47,14 @@ MANUFACTURER="Grame"
 for p in $@; do
 
 	 if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2au "[options] <file.dsp>"
+        usage faust2au "[options] [Faust options] <file.dsp>"
   		platform MacOS
   		echo "Compiles Faust programs to Audio Unit"
 		option
         options -httpd -osc 
         option -install
         option -debug "print all the build steps and keep intermediate build folder" 
+        option "Faust options"
         exit
     fi
     

@@ -36,6 +36,7 @@ do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2minimal "[options] [Faust options] <file.dsp>"
         echo "Compiles Faust programs to a minimal executable"
+        option "Faust options"
         exit
     fi
     

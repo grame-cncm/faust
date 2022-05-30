@@ -35,6 +35,7 @@ do
         options "-pluginid <PlUg>"
         options "-homepage <https://faust.grame.fr/>"
         options "-effectType <effectDynamics>"
+        option "Faust options"
         exit
     fi
 

@@ -54,6 +54,7 @@ do
         option "-nvoices <num>"
         option -source "generates the source files (uncompressed folder)"
         option -unpacked "generates an unpacked folder with files organized like the Unity Asset hierarchy. Use this options to add specific files in the unity package (in the Assets folder, then use 'encoderunitypackage <folder>' to compress and pack it."
+        option "Faust options"
         echo "See architecture/unity/README.md for more info."
         exit
     fi

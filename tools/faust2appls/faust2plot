@@ -32,7 +32,6 @@ for p in $@; do
         option "-s <n>" "start at the sample number <n> (default is 0)"
         option "-n <n>" "render <n> samples (default is 16)"
         option "-r <rate>" "change the sample rate (default is 44100 Hz)"
-        option
         option "Faust options"
         exit
     fi

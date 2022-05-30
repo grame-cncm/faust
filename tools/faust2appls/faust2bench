@@ -36,6 +36,7 @@ do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2bench "[Faust options] <file.dsp>"
         echo "Compiles Faust programs to a benchmark executable"
+        option "Faust options"
         exit
     fi
   

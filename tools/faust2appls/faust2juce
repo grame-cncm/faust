@@ -58,6 +58,7 @@ do
         option -jsynth "to use JUCE polyphonic Synthesizer instead of Faust polyphonic code"
         option -llvm "to use the LLVM compilation chain (OSX and Linux for now)"
         option -magic "to generate a project using the PluginGuiMagic GUI builder"
+        option "Faust options"
         exit
     fi
 

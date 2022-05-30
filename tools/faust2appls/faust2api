@@ -81,27 +81,27 @@ echoHelp ()
     option -esp32 "generates a ESP32 API" 
     echo 
     echo "Global options:"
-    option "-opt native|generic" "activates the best compilation options for the native or generic CPU."
-    option "-nvoices <num>" "creates a polyphonic object with <num> voices."
-    option "-effect <effect.dsp>" "adds an effect to the polyphonic synth (ignored if -nvoices is not specified)."
-    option "-effect auto" "adds an effect (extracted automatically from the dsp file) to the polyphonic synth (ignored if -nvoices is not specified)."
-    option -nodoc "prevents documentation from being generated."
-    option -nozip "prevents generated files to be put in a zip file."
+    option "-opt native|generic" "activates the best compilation options for the native or generic CPU"
+    option "-nvoices <num>" "creates a polyphonic object with <num> voices"
+    option "-effect <effect.dsp>" "adds an effect to the polyphonic synth (ignored if -nvoices is not specified)"
+    option "-effect auto" "adds an effect (extracted automatically from the dsp file) to the polyphonic synth (ignored if -nvoices is not specified)"
+    option -nodoc "prevents documentation from being generated"
+    option -nozip "prevents generated files to be put in a zip file"
     option "-target <target>" "sets a name of the target folder or the zip file. Defaults to \"dsp-faust\""
     option "Faust options"
     echo 
     echo "Android specific options:"
     option -package "set the JAVA package name (e.g. '-package mypackage' will change the JAVA package name to 'mypackage.DspFaust'). The default package name is 'com.DspFaust.'"
-    option -soundfile "add built-in Soundfile support to the API."
+    option -soundfile "add built-in Soundfile support to the API"
     echo 
     echo "Options supported by iOS, CoreAudio, ALSA, JACK, PortAudio, openFrameworks and JUCE"
-    option -midi "add built-in RtMidi support to the API."
-    option -osc "add built-in OSC support to the API."
-    option -soundfile "add built-in Soundfile support to the API."
+    option -midi "add built-in RtMidi support to the API"
+    option -osc "add built-in OSC support to the API"
+    option -soundfile "add built-in Soundfile support to the API"
     echo 
     echo "JACK specific options"
-    option -build "build a ready to test binary."
-    option -dynamic "add libfaust/LLVM dynamic DSP compilation mode."
+    option -build "build a ready to test binary"
+    option -dynamic "add libfaust/LLVM dynamic DSP compilation mode"
 }
 
 createAPI ()

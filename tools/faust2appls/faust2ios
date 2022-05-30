@@ -44,6 +44,7 @@ do
         option -archive "to generate the archive for Apple Store"
         option -32bits "to compile 32 bits only binary"
         option -noagc "to deactivate audio automatic gain control"
+        option "Faust options"
         exit
     fi
 

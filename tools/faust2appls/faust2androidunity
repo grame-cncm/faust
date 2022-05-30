@@ -45,6 +45,7 @@ do
 		option
         option "-nvoices <num>"
         option -android "creates also the c# and JSON files"
+        option "Faust options"
         exit
     fi
     
