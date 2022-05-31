@@ -35,6 +35,7 @@
 #include "faust/gui/GUI.h"
 #include "faust/misc.h"
 
+
 #ifndef _WIN32
 #include <unistd.h>
 #include <pthread.h>
@@ -48,7 +49,7 @@
 *******************************************************************************
 *******************************************************************************/
 
-class httpdUIAux
+class FAUST_API httpdUIAux
 {
     public:
     
@@ -77,7 +78,7 @@ with '-' (hyphen).
 Space or tabulation are replaced with '_' (underscore)
 */
 
-class httpdServerUI : public UI, public httpdUIAux
+class FAUST_API httpdServerUI : public UI, public httpdUIAux
 {
     private:
 
@@ -156,14 +157,14 @@ class httpdServerUI : public UI, public httpdUIAux
 };
 
 // API from sourcefetcher.hh and compiled in libHTTPDFaust library.
-int http_fetch(const char *url, char **fileBuf);
+FAUST_API int http_fetch(const char* url, char** fileBuf);
 
 /*
 Use to control a running Faust DSP wrapped with "httpdServerUI".
 */
 
 #ifndef _WIN32
-class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
+class FAUST_API httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
 {
 
     private:
@@ -343,7 +344,7 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
 Creates a httpdServerUI or httpdClientUI depending of the presence of '-server URL' parameter.
 */
 
-class httpdUI : public DecoratorUI
+class FAUST_API httpdUI : public DecoratorUI
 {
 
     public:

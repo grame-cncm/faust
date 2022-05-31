@@ -32,6 +32,8 @@
 #include <algorithm>
 #include <regex>
 
+#include "faust/export.h"
+
 /*******************************************************************************
  * PathBuilder : Faust User Interface
  * Helper class to build complete hierarchical path for UI items.

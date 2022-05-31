@@ -92,7 +92,7 @@ char convertedError[128];
  * necessary space is allocated for fileBuf. Returns size of download on
  * success, -1 on error is set.
  */
-int http_fetch(const char* url_tmp, char** fileBuf)
+LIBFAUST_API int http_fetch(const char* url_tmp, char** fileBuf)
 {
 	fd_set rfds;
 	struct timeval tv;

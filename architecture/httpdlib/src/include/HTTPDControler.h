@@ -29,6 +29,8 @@
 #include <string>
 #include <map>
 
+#include "faust/export.h"
+
 namespace httpdfaust
 {
 
@@ -45,7 +47,7 @@ class htmlfactory;
 	The HTTPDControler is essentially a glue between the memory representation (in charge of the FaustFactory), 
 	and the network services (in charge of HTTPDSetup).
 */
-class HTTPDControler
+class LIBFAUST_API HTTPDControler
 {
 	int fTCPPort;				// the tcp port number
 	FaustFactory*	fFactory;	// a factory to build the memory representation
