@@ -99,8 +99,8 @@ struct Soundfile {
         fChannels = 1;
         fParts = 0;
         fBuffers[0] = new double[BUFFER_SIZE];
-        fIsDouble = true;
         faustassert(fBuffers[0]);
+        fIsDouble = true;
         memset(fBuffers[0], 0, BUFFER_SIZE * sizeof(double));
         
         // Share the same buffer for all other channels so that we have max_chan channels available
