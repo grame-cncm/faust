@@ -25,7 +25,6 @@ EFFECT=""
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
-SOUNDFILEARCH="intel"
 OPT=""
 US="0"
 DS="0"
@@ -37,11 +36,6 @@ POST="-DPOST"
 # MAXSDK is declared in faustpath
 MAXINC=$MAXSDK/max-includes
 MSPINC=$MAXSDK/msp-includes
-
-# discover the machine architecture to select the appropriate libsndfile version 
-if [[ $(uname -p) == arm ]]; then
-    SOUNDFILEARCH="arm"
-fi
 
 JSFILE_PATH="ui.js"
 
@@ -138,7 +132,8 @@ do
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE -I$FAUSTARCH/max-msp/sndfile"
         SFDIR=$FAUSTARCH/max-msp/sndfile
-        SOUNDFILELIBS="$SFDIR/$SOUNDFILEARCH/libsndfile.a"
+        SOUNDFILELIBS_ARM="$SFDIR/arm/libsndfile.a"
+        SOUNDFILELIBS_INTEL="$SFDIR/intel/libsndfile.a"
     elif [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL"
         OSCLIBS="-lOSCFaust"
@@ -235,11 +230,11 @@ for p in $FILES; do
         install -d "${f%.dsp}$EXT/Contents/MacOS"
         # universal binaries produced on M1
         if [ $(uname -p) == arm ]; then
-            $CXX $CXXFLAGS -arch arm64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64"
-            $CXX $CXXFLAGS -arch x86_64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64"
+            $CXX $CXXFLAGS -arch arm64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $SOUNDFILELIBS_ARM $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64"
+            $CXX $CXXFLAGS -arch x86_64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64"
             $LIPO -create "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64" "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64" -output "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~" || exit
         else
-           $CXX $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+           $CXX $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
         fi
         codesign --sign - --deep --force "${f%.dsp}$EXT"
        ) > /dev/null || exit
