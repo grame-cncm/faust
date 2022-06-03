@@ -22,6 +22,7 @@ POLY=""
 NOPATCH="0"
 NVOICES=-1
 EFFECT=""
+UNIVERSAL_BINARY="0"
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
@@ -99,6 +100,7 @@ do
         option "-effect <effect.dsp>"
         option -native "to compile for the native CPU (otherwise the 'generic' mode is used by default)"
         option -universal "to generate a 64/32 bits external"
+        option -ub "to generate a arm/intel external"
         option -nopatch "to deactivate patch generation"
         option -nopost "to disable Faust messages to Max console"
         option "Faust options"
@@ -124,6 +126,9 @@ do
     elif [ $p = "-universal" ]; then
         UNIVERSAL="-arch i386 -arch x86_64"
         echo "generate a 32/64 bits external"
+    elif [ $p = "-ub" ]; then
+        UNIVERSAL_BINARY="1"
+        echo "generate a arm/intel external"
     elif [ $p = "-soundfile-dynamic" ]; then
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE"
@@ -229,7 +234,7 @@ for p in $FILES; do
         cd "$TMP"
         install -d "${f%.dsp}$EXT/Contents/MacOS"
         # universal binaries produced on M1
-        if [ $(uname -p) == arm ]; then
+        if [[ $(uname -p) == arm  || "$UNIVERSAL_BINARY" = "1" ]]; then
             $CXX $CXXFLAGS -arch arm64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $SOUNDFILELIBS_ARM $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64"
             $CXX $CXXFLAGS -arch x86_64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64"
             $LIPO -create "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64" "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64" -output "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~" || exit
