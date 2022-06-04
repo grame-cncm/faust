@@ -1,8 +1,8 @@
 declare name "spectralTilt";
-declare description "Demonstrate the Spectral Tilt effect on the input signal";
+declare description "Demonstrate the Spectral Tilt effect on test signals";
 
 import("stdfaust.lib");
 
-M = 3; // bands per octave
+O = 2; // filter order
 
-process = dm.spectral_tilt_demo(M);
+process = dm.spectral_tilt_demo(2);
