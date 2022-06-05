@@ -76,7 +76,7 @@ string Typed::gTypeString[] = {"kInt32",          "kInt32_ptr",      "kInt32_vec
                                "kDouble",         "kDouble_ptr",     "kDouble_ptr_ptr",     "kDouble_vec",       "kDouble_vec_ptr",
                                "kQuad",           "kQuad_ptr",       "kQuad_ptr_ptr",       "kQuad_vec",         "kQuad_vec_ptr",
                                "kFixedPoint",     "kFixedPoint_ptr", "kFixedPoint_ptr_ptr", "kFixedPoint_vec",   "kFixedPoint_vec_ptr",
-                               "kVoid",           "kVoid_ptr",       "kVoid_ptr_ptr",
+                               "kVoid",           "kVoid_ptr",       
                                "kObj",            "kObj_ptr",        "kSound",
                                "kSound_ptr",      "kUint_ptr",       "kNoType"};
 

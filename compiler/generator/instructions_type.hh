@@ -83,7 +83,6 @@ struct Typed : public Printable {
         kFixedPoint_vec_ptr,
         kVoid,
         kVoid_ptr,
-        kVoid_ptr_ptr,
         kObj,
         kObj_ptr,
         kSound,
@@ -137,8 +136,6 @@ struct Typed : public Printable {
                 return kBool_vec_ptr;
             case kVoid:
                 return kVoid_ptr;
-            case kVoid_ptr:
-                return kVoid_ptr_ptr;
             case kSound:
                 return kSound_ptr;
             default:
@@ -215,8 +212,6 @@ struct Typed : public Printable {
                 return kBool_vec;
             case kVoid_ptr:
                 return kVoid;
-            case kVoid_ptr_ptr:
-                return kVoid_ptr;
             case kSound_ptr:
                 return kSound;
             default:

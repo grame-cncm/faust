@@ -140,8 +140,7 @@ struct LLVMTypeHelper {
 
         // void* must be defined as i8* type
         fTypeMap[Typed::kVoid_ptr]     = getInt8TyPtr();
-        fTypeMap[Typed::kVoid_ptr_ptr] = getTyPtr(fTypeMap[Typed::kVoid_ptr]);
-
+      
         // External structured type definition
         for (const auto& it : gGlobal->gExternalStructTypes) {
             LLVMType new_type                         = convertFIRType((it.second)->fType);
