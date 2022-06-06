@@ -24,6 +24,11 @@
 
 #include "boxes.hh"
 
+/**
+ *The entry point to generate from a block diagram as a set of
+ *svg files stored in the directory "<projname>-svg/" or
+ *"<projname>-ps/" depending of <dev>.
+ */
 void drawSchema(Tree bd, const char* projname, const char* dev);
 
 #endif

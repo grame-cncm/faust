@@ -492,6 +492,7 @@ struct global {
     set<Tree>         gDrawnExp;        // Expressions drawn or scheduled so far
     const char*       gDevSuffix;       // .svg or .ps used to choose output device
     string            gSchemaFileName;  // name of schema file beeing generated
+    Tree              gInverter[6];
     map<Tree, string> gBackLink;        // link to enclosing file for sub schema
 
     // FIR

@@ -144,7 +144,7 @@ static schema* addSchemaOutputs(int outs, schema* x);
  */
 void drawSchema(Tree bd, const char* projname, const char* dev)
 {
-    gGlobal->gDevSuffix   = dev;
+    gGlobal->gDevSuffix   = dev; // .svg or .ps used to choose output device
     gGlobal->gFoldingFlag = boxComplexity(bd) > gGlobal->gFoldThreshold;
 
     mkchDir(projname);      // create a directory to store files
@@ -166,7 +166,7 @@ void drawSchema(Tree bd, const char* projname, const char* dev)
  ************************************************************************/
 
 // Collect the leaf numbers of tree l into vector v.
-// return true if l a number or a parallel tree of numbers
+// return true if l a number or a parallel tree of numbers.
 static bool isIntTree(Tree l, vector<int>& v)
 {
     int    n;
@@ -207,7 +207,7 @@ static void scheduleDrawing(Tree t)
 }
 
 /**
- * Retrieve next block diagram that must be drawn
+ * Retrieve next block diagram that must be drawn.
  */
 static bool pendingDrawing(Tree& t)
 {
@@ -222,7 +222,7 @@ static bool pendingDrawing(Tree& t)
 /**
  * Write a top level diagram. A top level diagram
  * is decorated with its definition name property
- * and is drawn in an individual file
+ * and is drawn in an individual file.
  */
 static void writeSchemaFile(Tree bd)
 {
@@ -304,23 +304,11 @@ static char* legalFileName(Tree t, int n, char* dst)
  * isInverter(t) returns true if t == '*(-1)'. This test is used
  * to simplify diagram by using a special symbol for inverters.
  */
-Tree gInverter[6];
-
 static bool isInverter(Tree t)
 {
-    // init gInverted table. For some reason doesn't work if done outside
-    if (gInverter[0] == 0) {
-        gInverter[0] = boxSeq(boxPar(boxWire(), boxInt(-1)), boxPrim2(sigMul));
-        gInverter[1] = boxSeq(boxPar(boxInt(-1), boxWire()), boxPrim2(sigMul));
-        gInverter[2] = boxSeq(boxPar(boxWire(), boxReal(-1.0)), boxPrim2(sigMul));
-        gInverter[3] = boxSeq(boxPar(boxReal(-1.0), boxWire()), boxPrim2(sigMul));
-        gInverter[4] = boxSeq(boxPar(boxInt(0), boxWire()), boxPrim2(sigSub));
-        gInverter[5] = boxSeq(boxPar(boxReal(0.0), boxWire()), boxPrim2(sigSub));
-    };
-
     // cerr << "isInverter " << t << '$' << boxpp(t) << endl;
     for (int i = 0; i < 6; i++) {
-        if (t == gInverter[i]) return true;
+        if (t == gGlobal->gInverter[i]) return true;
     }
     return false;
 }
@@ -354,7 +342,7 @@ static bool isPureRouting(Tree t)
 
 /**
  * Generate an appropriate schema according to
- * the type of block diagram. When folding is requiered,
+ * the type of block diagram. When folding is required,
  * instead of going down block-diagrams with a name,
  * schedule them for an individual file.
  */
@@ -393,7 +381,7 @@ static schema* generateDiagramSchema(Tree t)
 
 /**
  * Generate the inside schema of a block diagram
- * according to its type
+ * according to its type.
  */
 static schema* generateInsideSchema(Tree t)
 {
@@ -581,7 +569,7 @@ static string userInterfaceDescription(Tree box)
 }
 
 /**
- * Generate a 0->1 block schema for a user interface element
+ * Generate a 0->1 block schema for a user interface element.
  */
 static schema* generateUserInterfaceSchema(Tree t)
 {
@@ -589,7 +577,7 @@ static schema* generateUserInterfaceSchema(Tree t)
 }
 
 /**
- * Generate a 1->1 block schema for a user interface bargraph
+ * Generate a 1->1 block schema for a user interface bargraph.
  */
 static schema* generateBargraphSchema(Tree t)
 {
@@ -597,7 +585,7 @@ static schema* generateBargraphSchema(Tree t)
 }
 
 /**
- * Generate a 2->3+c block schema for soundfile("toto",c)
+ * Generate a 2->3+c block schema for soundfile("toto",c).
  */
 static schema* generateSoundfileSchema(Tree t)
 {
@@ -611,7 +599,7 @@ static schema* generateSoundfileSchema(Tree t)
 }
 
 /**
- * Generate a 1->0 block schema for an input slot
+ * Generate a 1->0 block schema for an input slot.
  */
 static schema* generateInputSlotSchema(Tree a)
 {
@@ -621,7 +609,7 @@ static schema* generateInputSlotSchema(Tree a)
 }
 
 /**
- * Generate a 0->1 block schema for an output slot
+ * Generate a 0->1 block schema for an output slot.
  */
 static schema* generateOutputSlotSchema(Tree a)
 {
@@ -632,7 +620,7 @@ static schema* generateOutputSlotSchema(Tree a)
 
 /**
  * Generate an abstraction schema by placing in sequence
- * the input slots and the body
+ * the input slots and the body.
  */
 static schema* generateAbstractionSchema(schema* x, Tree t)
 {
