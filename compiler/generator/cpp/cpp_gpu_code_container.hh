@@ -224,7 +224,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
         virtual void visit(FunCallInst* inst)
         {
             if (inst->fMethod) {
-                ListValuesIt it = inst->fArgs.begin();
+                ValuesIt it = inst->fArgs.begin();
                 // Compile object arg
                 (*it)->accept(this);
                 *fOut << "->"
@@ -232,7 +232,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                                                                                      : inst->fName)
                       << "(";
                 size_t size = inst->fArgs.size() - 1, i = 0;
-                for (ListValuesIt it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
+                for (ValuesIt it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
                     // Compile argument
                     (*it1)->accept(this);
                     if (i < size - 1) *fOut << ", ";
@@ -243,7 +243,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                                                                                      : inst->fName)
                       << "(";
                 size_t size = inst->fArgs.size(), i = 0;
-                for (ListValuesIt it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
+                for (ValuesIt it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
                     // Compile argument
                     (*it)->accept(this);
                     if (i < size - 1) *fOut << ", ";

@@ -162,11 +162,10 @@ BlockInst* FunctionInliner::ReplaceParameterByArg(BlockInst* code, NamedTyped* n
     return inliner.getCode(code);
 }
 
-BlockInst* FunctionInliner::ReplaceParametersByArgs(BlockInst* code, list<NamedTyped*> args_type, list<ValueInst*> args,
-                                                    bool ismethod)
+BlockInst* FunctionInliner::ReplaceParametersByArgs(BlockInst* code, Names args_type, Values args, bool ismethod)
 {
-    list<NamedTyped*>::iterator it1 = args_type.begin();
-    list<ValueInst*>::iterator  it2 = args.begin();
+    NamesIt it1 = args_type.begin();
+    ValuesIt  it2 = args.begin();
     if (ismethod) { it2++; }
     
     for (; it1 != args_type.end(); it1++, it2++) {

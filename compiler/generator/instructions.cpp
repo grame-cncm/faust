@@ -256,12 +256,12 @@ bool ControlInst::hasCondition(ValueInst* cond)
 // Function calls
 DeclareFunInst* InstBuilder::genVoidFunction(const string& name, BlockInst* code)
 {
-    list<NamedTyped*> args;
+    Names args;
     FunTyped*         fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped());
     return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
-DeclareFunInst* InstBuilder::genVoidFunction(const string& name, list<NamedTyped*>& args, BlockInst* code,
+DeclareFunInst* InstBuilder::genVoidFunction(const string& name, Names& args, BlockInst* code,
                                              bool isvirtual)
 {
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(),
@@ -271,7 +271,7 @@ DeclareFunInst* InstBuilder::genVoidFunction(const string& name, list<NamedTyped
 
 DeclareFunInst* InstBuilder::genFunction0(const string& name, Typed::VarType res, BlockInst* code)
 {
-    list<NamedTyped*> args;
+    Names args;
     FunTyped*         fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
     return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
@@ -279,7 +279,7 @@ DeclareFunInst* InstBuilder::genFunction0(const string& name, Typed::VarType res
 DeclareFunInst* InstBuilder::genFunction1(const string& name, Typed::VarType res, const string& arg1,
                                           Typed::VarType arg1_ty, BlockInst* code)
 {
-    list<NamedTyped*> args;
+    Names args;
     args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
     return InstBuilder::genDeclareFunInst(name, fun_type, code);
@@ -289,7 +289,7 @@ DeclareFunInst* InstBuilder::genFunction2(const string& name, Typed::VarType res
                                           Typed::VarType arg1_ty, const string& arg2, Typed::VarType arg2_ty,
                                           BlockInst* code)
 {
-    list<NamedTyped*> args;
+    Names args;
     args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
     args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
@@ -300,7 +300,7 @@ DeclareFunInst* InstBuilder::genFunction3(const string& name, Typed::VarType res
                                           Typed::VarType arg1_ty, const string& arg2, Typed::VarType arg2_ty,
                                           const string& arg3, Typed::VarType arg3_ty, BlockInst* code)
 {
-    list<NamedTyped*> args;
+    Names args;
     args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
     args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
     args.push_back(InstBuilder::genNamedTyped(arg3, arg3_ty));
@@ -313,7 +313,7 @@ DeclareFunInst* InstBuilder::genFunction4(const string& name, Typed::VarType res
                                           const string& arg3, Typed::VarType arg3_ty, const string& arg4,
                                           Typed::VarType arg4_ty, BlockInst* code)
 {
-    list<NamedTyped*> args;
+    Names args;
     args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
     args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
     args.push_back(InstBuilder::genNamedTyped(arg3, arg3_ty));
@@ -328,7 +328,7 @@ DeclareFunInst* InstBuilder::genFunction5(const string& name, Typed::VarType res
                                           Typed::VarType arg4_ty, const string& arg5, Typed::VarType arg5_ty,
                                           BlockInst* code)
 {
-    list<NamedTyped*> args;
+    Names args;
     args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
     args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
     args.push_back(InstBuilder::genNamedTyped(arg3, arg3_ty));
@@ -344,7 +344,7 @@ DeclareFunInst* InstBuilder::genFunction6(const string& name, Typed::VarType res
                                           Typed::VarType arg4_ty, const string& arg5, Typed::VarType arg5_ty,
                                           const string& arg6, Typed::VarType arg6_ty, BlockInst* code)
 {
-    list<NamedTyped*> args;
+    Names args;
     args.push_back(InstBuilder::genNamedTyped(arg1, arg1_ty));
     args.push_back(InstBuilder::genNamedTyped(arg2, arg2_ty));
     args.push_back(InstBuilder::genNamedTyped(arg3, arg3_ty));

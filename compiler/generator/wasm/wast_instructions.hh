@@ -169,10 +169,10 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         fTab--;
     }
 
-    virtual void generateFunCallArgs(ListValuesIt beg, ListValuesIt end, size_t size)
+    virtual void generateFunCallArgs(ValuesIt beg, ValuesIt end, size_t size)
     {
         size_t i = 0;
-        for (ListValuesIt it = beg; it != end; it++, i++) {
+        for (ValuesIt it = beg; it != end; it++, i++) {
             // Compile argument
             (*it)->accept(this);
             if (i < size - 1) *fOut << " ";
@@ -602,9 +602,9 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     }
 
     // Special case for min/max
-    void generateMinMax(const list<ValueInst*>& args, const string& fun)
+    void generateMinMax(const Values& args, const string& fun)
     {
-        list<ValueInst*>::iterator it;
+        Values::iterator it;
         ValueInst*                 arg1 = *(args.begin());
         arg1->accept(&fTypingVisitor);
         if (isIntType(fTypingVisitor.fCurType)) {

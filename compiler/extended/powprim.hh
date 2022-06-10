@@ -97,7 +97,7 @@ class PowPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, list<ValueInst*>& args, ::Type result,
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
                                     vector<::Type> const& types)
     {
         faustassert(args.size() == arity());
@@ -106,7 +106,7 @@ class PowPrim : public xtended {
         vector<Typed::VarType> arg_types(2);
         Typed::VarType         result_type = (result->nature() == kInt) ? Typed::kInt32 : itfloat();
 
-        ListValuesIt it = args.begin();
+        ValuesIt it = args.begin();
         it++;
         Int32NumInst* arg1 = dynamic_cast<Int32NumInst*>(*it);
 
@@ -119,13 +119,13 @@ class PowPrim : public xtended {
             // Expand the pow depending of the exposant argument
             BlockInst* block = InstBuilder::genBlockInst();
             
-            ListValuesIt it1 = args.begin();
+            ValuesIt it1 = args.begin();
             it1++;
             
             Int32NumInst* arg2 = dynamic_cast<Int32NumInst*>(*it1);
             string faust_power_name = container->getFaustPowerName() + to_string(arg2->fNum) + ((result_type == Typed::kInt32) ? "_i" : "_f");
             
-            list<NamedTyped*> named_args;
+            Names named_args;
             named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(arg_types[0])));
             
             if (arg2->fNum == 0) {
@@ -142,7 +142,7 @@ class PowPrim : public xtended {
                                                                         InstBuilder::genFunTyped(named_args, InstBuilder::genBasicTyped(result_type),
                                                                                                  FunTyped::kLocal), block));
             
-            list<ValueInst*> truncated_args;
+            Values truncated_args;
             truncated_args.push_back((*args.begin()));
             return InstBuilder::genFunCallInst(faust_power_name, truncated_args);
       
@@ -151,8 +151,8 @@ class PowPrim : public xtended {
             arg_types[0] = itfloat();
             arg_types[1] = itfloat();
 
-            list<ValueInst*> casted_args;
-            ListValuesIt it2 = args.begin();
+            Values casted_args;
+            ValuesIt it2 = args.begin();
             vector< ::Type>::const_iterator it1;
             
             for (it1 = types.begin(); it1 != types.end(); it1++, it2++) {

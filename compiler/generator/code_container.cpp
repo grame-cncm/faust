@@ -270,9 +270,9 @@ void CodeContainer::computeForwardDAG(lclgraph dag, int& loop_count, vector<int>
 }
 
 ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result, vector<Typed::VarType>& types,
-                                       const list<ValueInst*>& args)
+                                       const Values& args)
 {
-    list<NamedTyped*> named_args;
+    Names named_args;
     for (size_t i = 0; i < types.size(); i++) {
         named_args.push_back(InstBuilder::genNamedTyped("dummy" + to_string(i), InstBuilder::genBasicTyped(types[i])));
     }
@@ -625,7 +625,7 @@ void CodeContainer::printMacros(ostream& fout, int n)
 DeclareFunInst* CodeContainer::generateGetIO(const string& name, const string& obj, int io, bool ismethod,
                                              bool isvirtual)
 {
-    list<NamedTyped*> args;
+    Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
@@ -650,7 +650,7 @@ DeclareFunInst* CodeContainer::generateGetOutputs(const string& name, const stri
 
 DeclareFunInst* CodeContainer::generateAllocate(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
-    list<NamedTyped*> args;
+    Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
@@ -667,7 +667,7 @@ DeclareFunInst* CodeContainer::generateAllocate(const string& name, const string
 
 DeclareFunInst* CodeContainer::generateDestroy(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
-    list<NamedTyped*> args;
+    Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
@@ -685,7 +685,7 @@ DeclareFunInst* CodeContainer::generateDestroy(const string& name, const string&
 DeclareFunInst* CodeContainer::generateGetIORate(const string& name, const string& obj, vector<int>& io, bool ismethod,
                                                  bool isvirtual)
 {
-    list<NamedTyped*> args;
+    Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
@@ -724,7 +724,7 @@ DeclareFunInst* CodeContainer::generateGetIORate(const string& name, const strin
 DeclareFunInst* CodeContainer::generateInstanceClear(const string& name, const string& obj, bool ismethod,
                                                      bool isvirtual)
 {
-    list<NamedTyped*> args;
+    Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
@@ -742,7 +742,7 @@ DeclareFunInst* CodeContainer::generateInstanceClear(const string& name, const s
 DeclareFunInst* CodeContainer::generateInstanceConstants(const string& name, const string& obj, bool ismethod,
                                                         bool isvirtual)
 {
-    list<NamedTyped*> args;
+    Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
@@ -760,7 +760,7 @@ DeclareFunInst* CodeContainer::generateInstanceConstants(const string& name, con
 
 DeclareFunInst* CodeContainer::generateStaticInitFun(const string& name, bool isstatic)
 {
-    list<NamedTyped*> args;
+    Names args;
     args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
 
     BlockInst* block = InstBuilder::genBlockInst();
@@ -785,7 +785,7 @@ DeclareFunInst* CodeContainer::generateStaticInitFun(const string& name, bool is
 DeclareFunInst* CodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
                                                        bool isvirtual)
 {
-    list<NamedTyped*> args;
+    Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
@@ -806,7 +806,7 @@ DeclareFunInst* CodeContainer::generateInstanceInitFun(const string& name, const
 
 DeclareFunInst* CodeContainer::generateFillFun(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
-    list<NamedTyped*> args;
+    Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
@@ -835,7 +835,7 @@ DeclareFunInst* CodeContainer::generateFillFun(const string& name, const string&
 
 DeclareFunInst* CodeContainer::generateInit(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
-    list<NamedTyped*> args;
+    Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
@@ -843,7 +843,7 @@ DeclareFunInst* CodeContainer::generateInit(const string& name, const string& ob
 
     BlockInst* block = InstBuilder::genBlockInst();
     {
-        list<ValueInst*> args1;
+        Values args1;
         if (!ismethod) {
             args1.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
@@ -852,7 +852,7 @@ DeclareFunInst* CodeContainer::generateInit(const string& name, const string& ob
     }
 
     {
-        list<ValueInst*> args1;
+        Values args1;
         if (!ismethod) {
             args1.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
@@ -867,7 +867,7 @@ DeclareFunInst* CodeContainer::generateInit(const string& name, const string& ob
 DeclareFunInst* CodeContainer::generateInstanceInit(const string& name, const string& obj, bool ismethod,
                                                     bool isvirtual)
 {
-    list<NamedTyped*> args;
+    Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
@@ -875,7 +875,7 @@ DeclareFunInst* CodeContainer::generateInstanceInit(const string& name, const st
 
     BlockInst* block = InstBuilder::genBlockInst();
     {
-        list<ValueInst*> args1;
+        Values args1;
         if (!ismethod) {
             args1.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
@@ -884,7 +884,7 @@ DeclareFunInst* CodeContainer::generateInstanceInit(const string& name, const st
     }
 
     {
-        list<ValueInst*> args1;
+        Values args1;
         if (!ismethod) {
             args1.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
@@ -892,7 +892,7 @@ DeclareFunInst* CodeContainer::generateInstanceInit(const string& name, const st
     }
 
     {
-        list<ValueInst*> args1;
+        Values args1;
         if (!ismethod) {
             args1.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
@@ -906,7 +906,7 @@ DeclareFunInst* CodeContainer::generateInstanceInit(const string& name, const st
 DeclareFunInst* CodeContainer::generateGetSampleRate(const string& name, const string& obj, bool ismethod,
                                                      bool isvirtual)
 {
-    list<NamedTyped*> args;
+    Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
@@ -922,7 +922,7 @@ DeclareFunInst* CodeContainer::generateGetSampleRate(const string& name, const s
 
 DeclareFunInst* CodeContainer::generateComputeFun(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
-    list<NamedTyped*> args;
+    Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
@@ -944,7 +944,7 @@ DeclareFunInst* CodeContainer::generateComputeFun(const string& name, const stri
 
 DeclareFunInst* CodeContainer::generateCalloc()
 {
-    list<NamedTyped*> args;
+    Names args;
     args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt64));
     args.push_back(InstBuilder::genNamedTyped("size", Typed::kInt64));
 
@@ -956,7 +956,7 @@ DeclareFunInst* CodeContainer::generateCalloc()
 
 DeclareFunInst* CodeContainer::generateFree()
 {
-    list<NamedTyped*> args;
+    Names args;
     args.push_back(InstBuilder::genNamedTyped("ptr", Typed::kVoid_ptr));
 
     // Creates function
@@ -966,11 +966,11 @@ DeclareFunInst* CodeContainer::generateFree()
 
 DeclareFunInst* CodeContainer::generateNewDsp(const string& name, int size)
 {
-    list<NamedTyped*> args;
+    Names args;
 
     BlockInst* block = InstBuilder::genBlockInst();
     {
-        list<ValueInst*> args1;
+        Values args1;
         args1.push_back(InstBuilder::genInt64NumInst(1));
         args1.push_back(InstBuilder::genInt64NumInst(size));
         block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genCastInst(
@@ -984,12 +984,12 @@ DeclareFunInst* CodeContainer::generateNewDsp(const string& name, int size)
 
 DeclareFunInst* CodeContainer::generateDeleteDsp(const string& name, const string& obj)
 {
-    list<NamedTyped*> args;
+    Names args;
     args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
 
     BlockInst* block = InstBuilder::genBlockInst();
     {
-        list<ValueInst*> args1;
+        Values args1;
         args1.push_back(InstBuilder::genCastInst(InstBuilder::genLoadFunArgsVar(obj),
                                                 InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
         block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("free", args1)));

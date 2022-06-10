@@ -239,10 +239,10 @@ class TextInstVisitor : public InstVisitor {
         }
     }
 
-    virtual void generateFunCallArgs(ListValuesIt beg, ListValuesIt end, size_t size)
+    virtual void generateFunCallArgs(ValuesIt beg, ValuesIt end, size_t size)
     {
         size_t i = 0;
-        for (ListValuesIt it = beg; it != end; it++, i++) {
+        for (ValuesIt it = beg; it != end; it++, i++) {
             // Compile argument
             (*it)->accept(this);
             if (i < size - 1) *fOut << ", ";
@@ -279,7 +279,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void generateFunCall(FunCallInst* inst, const std::string& fun_name)
     {
         if (inst->fMethod) {
-            ListValuesIt it = inst->fArgs.begin();
+            ValuesIt it = inst->fArgs.begin();
             // Compile object arg
             (*it)->accept(this);
             // Compile parameters

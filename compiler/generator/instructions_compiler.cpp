@@ -962,8 +962,8 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 
     if (gGlobal->gAllowForeignFunction || gGlobal->hasForeignFunction(funname, ffincfile(ff))) {
 
-        list<ValueInst*>  args_value;
-        list<NamedTyped*> args_types;
+        Values args_value;
+        Names args_types;
 
         for (int i = 0; i < ffarity(ff); i++) {
             Tree parameter = nth(largs, i);
@@ -1465,7 +1465,7 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
         // not declared here, we add a declaration
         bool b = fStaticInitProperty.get(g, kvnames);
         faustassert(b);
-        list<ValueInst*> args;
+        Values args;
         if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
             args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
         }
@@ -1477,7 +1477,7 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
         // HACK for Rust and Julia backends
         if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia") {
             // Delete object
-            list<ValueInst*> args3;
+            Values args3;
             if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
                 args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
             }
@@ -1497,13 +1497,13 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
     getTableNameProperty(content, tablename);
 
     // Init content generator
-    list<ValueInst*> args1;
+    Values args1;
     args1.push_back(generator);
     args1.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
     pushInitMethod(InstBuilder::genVoidFunCallInst("instanceInit" + tablename, args1, true));
 
     // Fill the table
-    list<ValueInst*> args2;
+    Values args2;
     args2.push_back(generator);
     args2.push_back(InstBuilder::genInt32NumInst(size));
     // HACK for Rust backend
@@ -1539,7 +1539,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
             // not declared here, we add a declaration
             bool b = fInstanceInitProperty.get(g, kvnames);
             faustassert(b);
-            list<ValueInst*> args;
+            Values args;
             if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
                 args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
             }
@@ -1551,7 +1551,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
             // HACK for Rust and Julia backends
             if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia") {
                 // Delete object
-                list<ValueInst*> args3;
+                Values args3;
                 if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
                     args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
                 }
@@ -1581,27 +1581,27 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     gGlobal->gTablesSize[tablename] = make_pair(vname, size * gGlobal->gTypeSizeMap[ctype]);
 
     // Init content generator
-    list<ValueInst*> args1;
+    Values args1;
     args1.push_back(cexp);
     args1.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
     pushStaticInitMethod(InstBuilder::genVoidFunCallInst("instanceInit" + tablename, args1, true));
 
     if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
-        list<ValueInst*> alloc_args;
+        Values alloc_args;
         alloc_args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
         alloc_args.push_back(InstBuilder::genInt32NumInst(size * gGlobal->gTypeSizeMap[ctype]));
         pushStaticInitMethod(InstBuilder::genStoreStaticStructVar(
             vname, InstBuilder::genCastInst(InstBuilder::genFunCallInst("allocate", alloc_args, true),
                                             InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), 0))));
 
-        list<ValueInst*> destroy_args;
+        Values destroy_args;
         destroy_args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
         destroy_args.push_back(InstBuilder::genLoadStaticStructVar(vname));
         pushStaticDestroyMethod(InstBuilder::genVoidFunCallInst("destroy", destroy_args, true));
     }
 
     // Fill the table
-    list<ValueInst*> args2;
+    Values args2;
     args2.push_back(cexp);
     args2.push_back(InstBuilder::genInt32NumInst(size));
     // HACK for Rust backend
@@ -1728,7 +1728,7 @@ ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
     fContainer->addSubContainer(subcontainer);
 
     // We must allocate an object of type "cname"
-    list<ValueInst*> args;
+    Values args;
     if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
         args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
     }
@@ -1739,7 +1739,7 @@ ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
     // HACK for Rust an Julia backends
     if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia") {
         // Delete object
-        list<ValueInst*> args3;
+        Values args3;
         args3.push_back(InstBuilder::genLoadStackVar(signame));
         if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
             args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
@@ -1762,7 +1762,7 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
     fContainer->addSubContainer(subcontainer);
 
     // We must allocate an object of type "cname"
-    list<ValueInst*> args;
+    Values args;
     if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
         args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
     }
@@ -1773,7 +1773,7 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
     // HACK for Rust and Julia backends
     if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia") {
         // Delete object
-        list<ValueInst*> args3;
+        Values args3;
         args3.push_back(InstBuilder::genLoadStackVar(signame));
         if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
             args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
@@ -1967,7 +1967,7 @@ ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tr
 ValueInst* InstructionsCompiler::generateXtended(Tree sig)
 {
     xtended*         p = (xtended*)getUserData(sig);
-    list<ValueInst*> args;
+    Values args;
     vector< ::Type>  arg_types;
 
     for (int i = 0; i < sig->arity(); i++) {

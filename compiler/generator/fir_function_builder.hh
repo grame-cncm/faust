@@ -86,11 +86,11 @@ struct Loop2FunctionBuider : public DispatchVisitor {
     list<string>                     fAddedVarTable;
 
     // Function definition creation
-    list<NamedTyped*> fArgsTypeList;
+    Names fArgsTypeList;
     DeclareFunInst*   fFunctionDef;
 
     // Function call creation
-    list<ValueInst*> fArgsValueList;
+    Values fArgsValueList;
     DropInst*        fFunctionCall;
 
     void createParameter(Address* address)
@@ -295,7 +295,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
 
     virtual ValueInst* visit(FunCallInst* inst)
     {
-        list<ValueInst*> cloned;
+        Values cloned;
         for (const auto& it : inst->fArgs) {
             cloned.push_back(it->clone(this));
         }

@@ -56,7 +56,7 @@ class xtended : public virtual Garbageable {
     // virtual method to be implemented by subclasses
     virtual unsigned int arity() = 0;
 
-    virtual ValueInst* generateCode(CodeContainer* container, list<ValueInst*>& args, ::Type result_type,
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result_type,
                                     vector<::Type> const& types) = 0;
 
     // SL : 28/09/17
@@ -74,9 +74,9 @@ class xtended : public virtual Garbageable {
         return false;
     }  ///< generally false, but true for binary op # such that #(x) == _#x
 
-    void prepareTypeArgsResult(::Type result, const list<ValueInst*>& args, vector<::Type> const& types,
+    void prepareTypeArgsResult(::Type result, const Values& args, vector<::Type> const& types,
                                Typed::VarType& result_type, vector<Typed::VarType>& arg_types,
-                               list<ValueInst*>& casted_args);
+                               Values& casted_args);
 };
 
 // True if two floating point numbers are close enough to be considered identical.

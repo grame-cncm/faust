@@ -449,7 +449,7 @@ struct FunctionInliner {
     map<string, string> fVarTable;
 
     BlockInst* ReplaceParameterByArg(BlockInst* code, NamedTyped* named, ValueInst* arg);
-    BlockInst* ReplaceParametersByArgs(BlockInst* code, list<NamedTyped*> args_type, list<ValueInst*> args, bool ismethod);
+    BlockInst* ReplaceParametersByArgs(BlockInst* code, Names args_type, Values args, bool ismethod);
 };
 
 // Replace a function call with the actual inlined function code

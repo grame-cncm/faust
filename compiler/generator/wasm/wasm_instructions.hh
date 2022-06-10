@@ -370,7 +370,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
     {
         // Additional functions defined in the module
         {
-            list<NamedTyped*> args;
+            Names args;
             args.push_back(InstBuilder::genNamedTyped("arg1", Typed::kInt32));
             args.push_back(InstBuilder::genNamedTyped("arg2", Typed::kInt32));
             FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
@@ -382,7 +382,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
 
         // getNumInputs/getNumOutputs
         {
-            list<NamedTyped*> args;
+            Names args;
             args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
             FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
             fFunTypes["getNumInputs"]  = fun_type;
@@ -391,7 +391,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
 
         // getSampleRate
         {
-            list<NamedTyped*> args;
+            Names args;
             args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
             FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), FunTyped::kDefault);
             fFunTypes["getSampleRate"] = fun_type;
@@ -399,7 +399,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
 
         // init/instanceConstants/instanceInit
         {
-            list<NamedTyped*> args;
+            Names args;
             args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
             args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
             FunTyped* fun_type     = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
@@ -411,7 +411,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
 
         // instanceClear/instanceResetUserInterface
         {
-            list<NamedTyped*> args;
+            Names args;
             args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
             FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped(), FunTyped::kDefault);
             fFunTypes["instanceClear"]              = fun_type;
@@ -420,7 +420,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
 
         // setParamValue
         {
-            list<NamedTyped*> args;
+            Names args;
             args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
             args.push_back(InstBuilder::genNamedTyped("index", Typed::kInt32));
             args.push_back(InstBuilder::genNamedTyped("value", itfloat()));
@@ -430,7 +430,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
 
         // getParamValue
         {
-            list<NamedTyped*> args;
+            Names args;
             args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
             args.push_back(InstBuilder::genNamedTyped("index", Typed::kInt32));
             FunTyped* fun_type =
@@ -440,7 +440,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
 
         // compute
         {
-            list<NamedTyped*> args;
+            Names args;
             args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
             args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt32));
             args.push_back(
@@ -497,7 +497,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
                 
                 // Build function type (args type same as return type)
-                list<NamedTyped*> args;
+                Names args;
                 if (desc.fArgs == 1) {
                     args.push_back(InstBuilder::genNamedTyped(gGlobal->getFreshID("v1"), desc.fTypeIn));
                 } else if (desc.fArgs == 2) {
@@ -1265,9 +1265,9 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     }
 
     // Special case for min/max
-    void generateMinMax(const list<ValueInst*>& args, const string& name)
+    void generateMinMax(const Values& args, const string& name)
     {
-        list<ValueInst*>::iterator it;
+        Values::iterator it;
         ValueInst*                 arg1 = *(args.begin());
         arg1->accept(&fTypingVisitor);
         if (isIntType(fTypingVisitor.fCurType)) {

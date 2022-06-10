@@ -233,7 +233,7 @@ struct FIRCodeChecker : public DispatchVisitor {
         fFunctionTable[inst->fName] = inst->fType;
 
         // Function arguments pushed in the variable table
-        list<NamedTyped*>::const_iterator it1;
+        Names::const_iterator it1;
         for (it1 = inst->fType->fArgsTypes.begin(); it1 != inst->fType->fArgsTypes.end(); it1++) {
             fCurVarScope[(*it1)->fName].first = Address::kFunArgs;
         }

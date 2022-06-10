@@ -39,7 +39,7 @@ struct TableSizeVisitor : public DispatchVisitor {
     virtual void visit(FunCallInst* inst)
     {
         if (startWith(inst->fName, "fill")) {
-            ListValuesIt it = inst->fArgs.begin();
+            ValuesIt it = inst->fArgs.begin();
             it++;
             Int32NumInst* size = dynamic_cast<Int32NumInst*>(*it);
             faustassert(size);
@@ -56,14 +56,14 @@ struct TableSizeCloneVisitor : public BasicCloneVisitor {
     virtual ValueInst* visit(FunCallInst* inst)
     {
         if (startWith(inst->fName, "fill")) {
-            ListValuesIt it = inst->fArgs.begin();
+            ValuesIt it = inst->fArgs.begin();
             it++;
             Int32NumInst* size = dynamic_cast<Int32NumInst*>(*it);
             faustassert(size);
             it++;
             LoadVarInst* table = dynamic_cast<LoadVarInst*>(*it);
             faustassert(table);
-            list<ValueInst*> cloned_args;
+            Values cloned_args;
             for (const auto& it1 : inst->fArgs) {
                 cloned_args.push_back(it1->clone(this));
             }

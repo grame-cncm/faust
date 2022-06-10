@@ -1051,7 +1051,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     // Generate : int count = min(32, (fullcount - index))
     ValueInst*       init1 = InstBuilder::genLoadFunArgsVar(counter);
     ValueInst*       init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
-    list<ValueInst*> min_fun_args;
+    Values min_fun_args;
     min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
     ValueInst*      init3     = InstBuilder::genFunCallInst("min", min_fun_args);
@@ -1059,7 +1059,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     loop_code->pushBackInst(count_dec);
 
     // Generates get_global_id access
-    list<ValueInst*> args;
+    Values args;
     args.push_back(InstBuilder::genInt32NumInst(0));
     loop_code->pushBackInst(InstBuilder::genDecStackVar("tasknum", InstBuilder::genInt32Typed(),
                                                         InstBuilder::genFunCallInst("get_global_id", args)));
@@ -1986,7 +1986,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     // Generate : int count = min(32, (fullcount - index))
     ValueInst*       init1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs));
     ValueInst*       init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
-    list<ValueInst*> min_fun_args;
+    Values min_fun_args;
     min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
     ValueInst*      init3     = InstBuilder::genFunCallInst("min", min_fun_args);
@@ -1994,7 +1994,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     loop_code->pushBackInst(count_dec);
 
     // Generates get_global_id access
-    list<ValueInst*> args;
+    Values args;
     args.push_back(InstBuilder::genInt32NumInst(0));
 
     /*

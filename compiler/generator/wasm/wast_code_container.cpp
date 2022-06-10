@@ -126,7 +126,7 @@ WASTScalarCodeContainer::WASTScalarCodeContainer(const string& name, int numInpu
 DeclareFunInst* WASTCodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
                                                            bool isvirtual)
 {
-    list<NamedTyped*> args;
+    Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
@@ -372,7 +372,7 @@ DeclareFunInst* WASInst::generateIntMin()
     string v1 = gGlobal->getFreshID("v1");
     string v2 = gGlobal->getFreshID("v2");
 
-    list<NamedTyped*> args;
+    Names args;
     args.push_back(InstBuilder::genNamedTyped(v1, Typed::kInt32));
     args.push_back(InstBuilder::genNamedTyped(v2, Typed::kInt32));
 
@@ -390,7 +390,7 @@ DeclareFunInst* WASInst::generateIntMax()
     string v1 = gGlobal->getFreshID("v1");
     string v2 = gGlobal->getFreshID("v2");
 
-    list<NamedTyped*> args;
+    Names args;
     args.push_back(InstBuilder::genNamedTyped(v1, Typed::kInt32));
     args.push_back(InstBuilder::genNamedTyped(v2, Typed::kInt32));
 

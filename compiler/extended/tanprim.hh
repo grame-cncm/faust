@@ -64,7 +64,7 @@ class TanPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, list<ValueInst*>& args, ::Type result,
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
                                     vector< ::Type> const& types)
     {
         faustassert(args.size() == arity());
@@ -72,7 +72,7 @@ class TanPrim : public xtended {
 
         Typed::VarType         result_type;
         vector<Typed::VarType> arg_types;
-        list<ValueInst*>       casted_args;
+        Values       casted_args;
         prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
 
         return container->pushFunction(subst("tan$0", isuffix()), result_type, arg_types, casted_args);

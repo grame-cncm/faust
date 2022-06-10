@@ -401,7 +401,7 @@ class CodeContainer : public virtual Garbageable {
     }
 
     ValueInst* pushFunction(const string& name, Typed::VarType result, vector<Typed::VarType>& types,
-                            const list<ValueInst*>& args);
+                            const Values& args);
 
     void generateExtGlobalDeclarations(InstVisitor* visitor)
     {

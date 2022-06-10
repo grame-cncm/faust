@@ -66,7 +66,7 @@ class AbsPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, list<ValueInst*>& args, ::Type result,
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
                                     vector<::Type> const& types)
     {
         faustassert(args.size() == arity());
@@ -88,7 +88,7 @@ class AbsPrim : public xtended {
             } else {
                 // Only compute abs when arg is < 0
                 if (t->nature() == kReal) {
-                    list<ValueInst*> casted_args;
+                    Values casted_args;
                     prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
                     return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, casted_args);
                 } else {
@@ -101,7 +101,7 @@ class AbsPrim : public xtended {
         */
     
         if (t->nature() == kReal) {
-            list<ValueInst*> casted_args;
+            Values casted_args;
             prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
             return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, casted_args);
         } else {

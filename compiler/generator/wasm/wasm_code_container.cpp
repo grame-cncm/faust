@@ -121,7 +121,7 @@ CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInp
 
 DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name)
 {
-    list<NamedTyped*> args;
+    Names args;
     args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
     args.push_back(InstBuilder::genNamedTyped("sample_rate", Typed::kInt32));
 
@@ -136,7 +136,7 @@ DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name)
 DeclareFunInst* WASMCodeContainer::generateInstanceClear(const string& name, const string& obj, bool ismethod,
                                                          bool isvirtual)
 {
-    list<NamedTyped*> args;
+    Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
@@ -153,7 +153,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceClear(const string& name, con
 DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name, const string& obj, bool ismethod,
                                                              bool isvirtual)
 {
-    list<NamedTyped*> args;
+    Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
@@ -170,7 +170,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name,
 DeclareFunInst* WASMCodeContainer::generateInstanceResetUserInterface(const string& name, const string& obj,
                                                                       bool ismethod, bool isvirtual)
 {
-    list<NamedTyped*> args;
+    Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
@@ -196,7 +196,7 @@ WASMScalarCodeContainer::WASMScalarCodeContainer(const string& name, int numInpu
 DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
                                                            bool isvirtual)
 {
-    list<NamedTyped*> args;
+    Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
@@ -431,7 +431,7 @@ void WASMCodeContainer::generateComputeAux(BlockInst* compute_block)
     block = CastRemover().getCode(block);
     
     // Creates function and visit it
-    list<NamedTyped*> args;
+    Names args;
     args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
     args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt32));
     args.push_back(InstBuilder::genNamedTyped("inputs", Typed::kVoid_ptr));

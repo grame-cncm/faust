@@ -115,7 +115,10 @@ struct VectorTyped;
 struct NamedAddress;
 struct IndexedAddress;
 
-typedef list<ValueInst*>::const_iterator ListValuesIt;
+typedef list<ValueInst*> Values;
+typedef list<ValueInst*>::const_iterator ValuesIt;
+typedef list<NamedTyped*> Names;
+typedef list<NamedTyped*>::const_iterator NamesIt;
 
 // Type checking
 
@@ -460,11 +463,11 @@ struct NamedTyped : public Typed {
 struct FunTyped : public Typed {
     enum FunAttribute { kDefault = 0x1, kLocal = 0x2, kVirtual = 0x4, kStatic = 0x8, kInline = 0x10 };
 
-    list<NamedTyped*> fArgsTypes;
-    BasicTyped*       fResult;
-    FunAttribute      fAttribute;
+    Names         fArgsTypes;
+    BasicTyped*   fResult;
+    FunAttribute  fAttribute;
 
-    FunTyped(const list<NamedTyped*>& args, BasicTyped* result, FunAttribute attribute = kDefault)
+    FunTyped(const Names& args, BasicTyped* result, FunAttribute attribute = kDefault)
         : fArgsTypes(args), fResult(result), fAttribute(attribute)
     {
     }
@@ -1246,10 +1249,10 @@ struct RetInst : public StatementInst {
 
 struct FunCallInst : public ValueInst {
     const string     fName;
-    list<ValueInst*> fArgs;  // List of arguments
+    Values fArgs;  // List of arguments
     const bool       fMethod;
 
-    FunCallInst(const string& name, const list<ValueInst*>& args, bool method)
+    FunCallInst(const string& name, const Values& args, bool method)
         : ValueInst(), fName(name), fArgs(args), fMethod(method)
     {
     }
@@ -1468,7 +1471,7 @@ class BasicCloneVisitor : public CloneVisitor {
     // Function call
     virtual ValueInst* visit(FunCallInst* inst)
     {
-        list<ValueInst*> cloned_args;
+        Values cloned_args;
         for (const auto& it : inst->fArgs) {
             cloned_args.push_back(it->clone(this));
         }
@@ -1581,7 +1584,7 @@ class BasicCloneVisitor : public CloneVisitor {
     virtual Typed* visit(NamedTyped* typed) { return new NamedTyped(typed->fName, typed->fType); }
     virtual Typed* visit(FunTyped* typed)
     {
-        list<NamedTyped*> cloned;
+        Names cloned;
         for (const auto& it : typed->fArgsTypes) {
             cloned.push_back(static_cast<NamedTyped*>(it->clone(this)));
         }
@@ -2156,19 +2159,19 @@ struct InstBuilder {
     static SwitchInst* genSwitchInst(ValueInst* cond) { return new SwitchInst(cond); }
 
     // Function management
-    static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args)
+    static FunCallInst* genFunCallInst(const string& name, const Values& args)
     {
         return new FunCallInst(name, args, false);
     }
-    static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args, bool method)
+    static FunCallInst* genFunCallInst(const string& name, const Values& args, bool method)
     {
         return new FunCallInst(name, args, method);
     }
-    static DropInst* genVoidFunCallInst(const string& name, const list<ValueInst*>& args)
+    static DropInst* genVoidFunCallInst(const string& name, const Values& args)
     {
         return new DropInst(new FunCallInst(name, args, false));
     }
-    static DropInst* genVoidFunCallInst(const string& name, const list<ValueInst*>& args, bool method)
+    static DropInst* genVoidFunCallInst(const string& name, const Values& args, bool method)
     {
         return new DropInst(new FunCallInst(name, args, method));
     }
@@ -2223,7 +2226,7 @@ struct InstBuilder {
     static NamedTyped* genNamedTyped(const string& name, Typed* type);
     static NamedTyped* genNamedTyped(const string& name, Typed::VarType type);
 
-    static FunTyped* genFunTyped(const list<NamedTyped*>& args, BasicTyped* result,
+    static FunTyped* genFunTyped(const Names& args, BasicTyped* result,
                                  FunTyped::FunAttribute attribute = FunTyped::kDefault)
     {
         return new FunTyped(args, result, attribute);
@@ -2619,7 +2622,7 @@ struct InstBuilder {
 
     // Functions
     static DeclareFunInst* genVoidFunction(const string& name, BlockInst* code = new BlockInst());
-    static DeclareFunInst* genVoidFunction(const string& name, list<NamedTyped*>& args, BlockInst* code,
+    static DeclareFunInst* genVoidFunction(const string& name, Names& args, BlockInst* code,
                                            bool isvirtual = false);
     static DeclareFunInst* genFunction0(const string& name, Typed::VarType res, BlockInst* code = new BlockInst());
     static DeclareFunInst* genFunction1(const string& name, Typed::VarType res, const string& arg1,
