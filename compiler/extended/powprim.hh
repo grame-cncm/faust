@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #include <math.h>
+#include <cmath>
 
 #include "Text.hh"
 #include "floats.hh"
@@ -108,8 +109,8 @@ class PowPrim : public xtended {
             DoubleNumInst* double_val = dynamic_cast<DoubleNumInst*>(val_aux);
             if (float_val) {
                 pow_arg = int(float_val->fNum);
-                float intpart;
-                return (std::modff(float_val->fNum, &intpart) == 0.f) && (pow_arg >= 0) && (pow_arg <= 32);
+                double intpart;
+                return (std::modf(float_val->fNum, &intpart) == 0.) && (pow_arg >= 0) && (pow_arg <= 32);
             } else if (double_val) {
                 pow_arg = int(double_val->fNum);
                 double intpart;
