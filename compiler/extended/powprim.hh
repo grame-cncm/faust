@@ -77,23 +77,46 @@ class PowPrim : public xtended {
             } else {
                 return tree(pow(double(n), double(m)));
             }
-        } else if (isNum(args[0], n) && (double(n) == 10.) && gGlobal->gHasExp10) {
-            // pow(10, x) ==> exp10(x)
-            return tree(::symbol("exp10"), args[1]);
-        } else if (isNum(args[0], n) && (double(n) == 0.5)) {
-            // pow(0.5, x) ==> sqrt(x)
-            return tree(::symbol("sqrt"), args[1]);
-        } else if (isNum(args[0], n) && (double(n) == 0.25)) {
-            // pow(0.25, x) ==> sqrt(sqrt(x))
-            return tree(::symbol("sqrt"), tree(::symbol("sqrt"), args[1]));
-        } else if (isNum(args[0], n) && (double(n) == 0.125)) {
-            // pow(0.125, x) ==> sqrt(sqrt(sqrt(x)))
-            return tree(::symbol("sqrt"), tree(::symbol("sqrt"), tree(::symbol("sqrt"), args[1])));
-        } else if (isNum(args[0], n) && (double(n) == 0.0625)) {
-            // pow(0.0625, x) ==> sqrt(sqrt(sqrt(sqrt(x))))
-            return tree(::symbol("sqrt"), tree(::symbol("sqrt"), tree(::symbol("sqrt"), tree(::symbol("sqrt"), args[1]))));
+        } else if (isNum(args[1], m)) {
+            if ((double(m) == 10.) && gGlobal->gHasExp10) {
+                // pow(x, 10) ==> exp10(x)
+                return tree(::symbol("exp10"), args[0]);
+            } else if (double(m) == 0.5) {
+                // pow(x, 0.5) ==> sqrt(x)
+                return tree(::symbol("sqrt"), args[0]);
+            } else if (double(m) == 0.25) {
+                // pow(x, 0.25) ==> sqrt(sqrt(x))
+                return tree(::symbol("sqrt"), tree(::symbol("sqrt"), args[0]));
+            }
+        }
+        return tree(symbol(), args[0], args[1]);
+    }
+    
+    // Check that power argument is an integer or possibly represents an integer, up to 32
+    bool isIntPowArg(::Type ty, ValueInst* val_aux, int& pow_arg)
+    {
+        if (ty->nature() == kInt) {
+            Int32NumInst* int_val = dynamic_cast<Int32NumInst*>(val_aux);
+            if (int_val) {
+                pow_arg = int_val->fNum;
+                return (pow_arg <= 32);
+            } else {
+                return false;
+            }
         } else {
-            return tree(symbol(), args[0], args[1]);
+            FloatNumInst* float_val = dynamic_cast<FloatNumInst*>(val_aux);
+            DoubleNumInst* double_val = dynamic_cast<DoubleNumInst*>(val_aux);
+            if (float_val) {
+                pow_arg = int(float_val->fNum);
+                float intpart;
+                return (std::modff(float_val->fNum, &intpart) == 0.f) && (pow_arg >= 0) && (pow_arg <= 32);
+            } else if (double_val) {
+                pow_arg = int(double_val->fNum);
+                double intpart;
+                return (std::modf(double_val->fNum, &intpart) == 0.) && (pow_arg >= 0) && (pow_arg <= 32);
+            } else {
+                return false;
+            }
         }
     }
 
