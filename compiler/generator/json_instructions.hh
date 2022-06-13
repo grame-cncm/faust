@@ -46,9 +46,9 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
  
     using DispatchVisitor::visit;
     
-    const string& checkPath(set<string>& table, const string& path)
+    const string& insertPath(set<string>& table, const string& path, bool check = true)
     {
-        if (table.find(path) != table.end()) {
+        if (check && table.find(path) != table.end()) {
             throw faustexception("ERROR : path '" + path + "' is already used\n");
         } else {
             table.insert(path);
@@ -106,7 +106,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
                 break;
         }
         faustassert(fPathTable.find(inst->fZone) == fPathTable.end());
-        fPathTable[inst->fZone] = checkPath(fControlPathSet, this->buildPath(inst->fLabel));
+        fPathTable[inst->fZone] = insertPath(fControlPathSet, this->buildPath(inst->fLabel));
     }
 
     virtual void visit(AddSliderInst* inst)
@@ -126,7 +126,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
                 break;
         }
         faustassert(fPathTable.find(inst->fZone) == fPathTable.end());
-        fPathTable[inst->fZone] = checkPath(fControlPathSet, this->buildPath(inst->fLabel));
+        fPathTable[inst->fZone] = insertPath(fControlPathSet, this->buildPath(inst->fLabel));
     }
 
     virtual void visit(AddBargraphInst* inst)
@@ -143,14 +143,14 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
                 break;
         }
         faustassert(fPathTable.find(inst->fZone) == fPathTable.end());
-        fPathTable[inst->fZone] = checkPath(fControlPathSet, this->buildPath(inst->fLabel));
+        fPathTable[inst->fZone] = insertPath(fControlPathSet, this->buildPath(inst->fLabel), false);
     }
 
     virtual void visit(AddSoundfileInst* inst)
     {
         this->addSoundfile(inst->fLabel.c_str(), inst->fURL.c_str(), nullptr);
         faustassert(fPathTable.find(inst->fSFZone) == fPathTable.end());
-        fPathTable[inst->fSFZone] = checkPath(fControlPathSet, this->buildPath(inst->fLabel));
+        fPathTable[inst->fSFZone] = insertPath(fControlPathSet, this->buildPath(inst->fLabel));
     }
 
     void setInputs(int input) { this->fInputs = input; }
