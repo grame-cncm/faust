@@ -39,4 +39,29 @@ LIBFAUST_API interpreter_dsp_factory* createInterpreterDSPFactoryFromBoxes(const
                                                                            int argc, const char* argv[],
                                                                            std::string& error_msg);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// Public C interface
+
+LIBFAUST_API interpreter_dsp_factory* createCInterpreterDSPFactoryFromFile(const char* filename, int argc,
+                                                                        const char* argv[], char* error_msg);
+
+LIBFAUST_API interpreter_dsp_factory* createCInterpreterDSPFactoryFromString(const char* name_app,
+                                                                         const char* dsp_content, int argc,
+                                                                         const char* argv[], char* error_msg);
+
+LIBFAUST_API interpreter_dsp_factory* createCInterpreterDSPFactoryFromSignals(const char* name_app, Signal* signals,
+                                                                          int argc, const char* argv[],
+                                                                          char* error_msg);
+
+LIBFAUST_API interpreter_dsp_factory* createCInterpreterDSPFactoryFromBoxes(const char* name_app, Tree box,
+                                                                         int argc, const char* argv[],
+                                                                         char* error_msg);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

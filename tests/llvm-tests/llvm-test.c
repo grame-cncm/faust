@@ -46,6 +46,8 @@ int main(int argc, const char** argv)
     argv1[argc1++] = "-vec";
     argv1[argc1] = 0;
     
+    printf("Libfaust version : %s\n", getCLibFaustVersion());
+    
     char error_msg[4096];
     const char* code =
         "import(\"stdfaust.lib\");\n"

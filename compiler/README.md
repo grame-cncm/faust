@@ -1,4 +1,4 @@
-% man(1) Version 2.41.0 (16-June-2022) | Faust man page
+% man(1) Version 2.41.1 (16-June-2022) | Faust man page
 
 NAME
 ====
@@ -142,7 +142,7 @@ Code generation options:
 
   **-vhdl**-trace **--vhdl-trace**                activate trace.
 
-  **-vhdl**-format 0|1 **--vhdl-format** 0|1      sample format 0 = sfixed (default), 1 = float.
+  **-vhdl**-type 0|1 **--vhdl-format** 0|1        sample format 0 = sfixed (default), 1 = float.
 
   **-vhdl**-msb \<n>                           MSB number of bits.
 

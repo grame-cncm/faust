@@ -58,7 +58,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
 #define pushAddr(addr) (address_stack[addr_stack_index++] = addr)
 #define popAddr() (address_stack[--addr_stack_index])
 
-    virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue)
+    virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UIInterface* glue)
     {
         for (const auto& it : block->fInstructions) {
             // it->write(&std::cout);

@@ -139,7 +139,7 @@ class LIBFAUST_API interpreter_dsp_factory : public dsp_factory {
  *
  * @param sha_key - the SHA key for an already created factory, kept in the factory cache
  *
- * @return a DSP factory if one is associated with the SHA key, otherwise a null pointer.
+ * @return a valid DSP factory if one is associated with the SHA key, otherwise a null pointer.
  */
 LIBFAUST_API interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& sha_key);
 
@@ -205,7 +205,6 @@ LIBFAUST_API interpreter_dsp_factory* createInterpreterDSPFactoryFromSignals(con
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
- * since the maximum value may change with new LLVM versions)
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */

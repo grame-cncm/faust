@@ -33,7 +33,7 @@ struct FBCExecutor {
     
     virtual ~FBCExecutor() {}
     
-    virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<REAL>* block, UITemplate* glue) {};
+    virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<REAL>* block, UIInterface* glue) {};
     virtual void ExecuteBlock(FBCBlockInstruction<REAL>* block, bool compile = false) {};
 
     virtual void setIntValue(int offset, int value) {}
