@@ -50,13 +50,13 @@ class Signal2VHDLVisitor : public TreeTraversal {
         string fDeclCompnt;          // Declaration of components
         string fFaustProcess;        // Implement the Faust process
         string fMapCompnt;           // Instantiating blocks
-
+   
         string addr_to_str(Tree t);
         string val_to_str(Tree t);
 
         void entity_header(string& str);
         void generic_decl(string& str);
-        void port_decl(int input, string& str);
+        void port_decl(int input, int nature, string& str);
 
         /** Functions generating different Faust blocks, each block is treated as an entity with declaration of inputs and outputs:
           *  - Each design must have at least one entity and one corresponding architecture
@@ -64,23 +64,25 @@ class Signal2VHDLVisitor : public TreeTraversal {
           *  - Each entity has a name assigned to it and a port list
           *  - Each port list has a direction (in/out/inout) and a type
           */
-        void entity_bin_op(const string& name, const char* op, string& str);   // arithmetic and modulo operation
-        void entity_bin_op_concat(const string& name, const char* op, string& str);   // arithmetic and modulo operation
-        void entity_cmp_op(const string& name, const char* op, string& str);   // compare operation
-        void entity_delay(string& str);                                        // delay
-        void entity_delay_var_reg(string& str);                                // variable delay (Using Registers)
-        void entity_delay_var_ram(string& str);                                // variable delay (Using Blocks RAM)
-        void entity_bypass(const string& name, string& str);                   // bypass module
-        void entity_select2(const string& name, string& str);                  // select module
-        void entity_faust();                                                    // main module
+        void entity_bin_op(const string& name, const char* op, int nature,  string& str);   // arithmetic and modulo operation
+        void entity_bin_op_concat(const string& name, const char* op, int nature, string& str);   // arithmetic and modulo operation
+        void entity_cmp_op(const string& name, const char* op, int nature, string& str);   // compare operation
+        void entity_delay(int nature, string& str);                                       // delay
+        void entity_delay_var_reg(int nature, string& str);                                // variable delay (Using Registers)
+        void entity_delay_var_ram(int nature, string& str);                                // variable delay (Using Blocks RAM)
+        void entity_bypass(const string& name, int nature, string& str);                   // bypass module
+        void entity_cast(const string& name,int nature_in, int nature_out, string& str);   // bypass module
+        void entity_select2(const string& name, int nature, string& str);                  // select module
+        void entity_faust();                                                              // main module
 
         /** Functions declaring the design entity interface for blocks that will be used
           * later to form a hierarchical design
           */
-        void component_standard(const string& name, int input, string& str);   // arith, mod, bypass, compare, select
-        void component_delay(string& str);                                     // delay
-        void component_delay_var(string& str);                                 // variable delay
-        void component_sincos(string& str);                                    // cosinus & sinus
+        void component_standard(const string& name, int input, int nature, string& str);   // arith, mod, bypass, compare, select
+        void component_cast(const string& name, int input,int nature_in, int nature_out, string& str); //cast
+        void component_delay(int nature, string& str);                                     // delay
+        void component_delay_var(int nature, string& str);                                 // variable delay
+        void component_sincos(int nature, string& str);                                    // cosinus & sinus
 
         /* Generate the process of the Faust module, it determine the behavioral modeling of the Faust IP */
         void faust_process();
@@ -92,18 +94,21 @@ class Signal2VHDLVisitor : public TreeTraversal {
         void inst_bin_op(const string& name, Tree sig, Tree x, Tree y, string& str); // arith, mod, compare
         void inst_delay(Tree sig, Tree x, Tree y, string& str);                      // delay
         void inst_delay_var(Tree sig, Tree x, Tree y, string& str, int mxd);         // variable delay
-        void inst_sincos(const string& name, Tree sig, Tree x, string& str);         // cosinus & sinus
+        void inst_sincos(const string& name, Tree sig, Tree x, int nature, string& str);         // cosinus & sinus
         void inst_bypass(const string& name, Tree sig, Tree x, string& str);         // bypass
         void inst_select2(const string& name, Tree sig, Tree sel, Tree x, Tree y, string& str);  // select
 
-        void decl_sig(Tree x, int msb, int lsb); // Declare the internal signals of the IP block with a type (and an initial value)
-        void input_affectation(Tree sig);
+        void decl_sig(Tree x, int msb, int lsb, int nature); // Declare the internal signals of the IP block with a type (and an initial value)
+        void input_affectation(Tree sig,int i);
 
         void bin_op(const string& name, const char* op, Tree sig, Tree x, Tree y);
         void select_op(const string& name, Tree sig, Tree sel, Tree x, Tree y);
         void cmp_op(const string& name, const char* op, Tree sig, Tree x, Tree y);
-        void sincos_op(const string& name, Tree sig, Tree x);
+        void sincos_op(const string& name, Tree sig, Tree x, int nature);
         void bypass(const string& name, Tree sig, Tree x);
+        void cast(const string& name, Tree sig, Tree x);
+    
+        string getSuffix(int nature) { return (nature == kReal) ? "_float" : "_int"; }
 
     public:
         Signal2VHDLVisitor(old_OccMarkup* occ_markup) : TreeTraversal(), fOccMarkup(occ_markup), fVisitGen(false){};

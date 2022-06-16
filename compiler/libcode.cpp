@@ -381,9 +381,21 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gVHDLSwitch = true;
             i += 1;
 
-        } else if (isCmd(argv[i], "-trace", "--trace")) {
+        } else if (isCmd(argv[i], "-vhdl-trace", "--vhdl-trace")) {
             gGlobal->gVHDLTrace = true;
             i += 1;
+            
+        } else if (isCmd(argv[i], "-vhdl-type", "--vhdl-type") && (i + 1 < argc)) {
+            gGlobal->gVHDLFloatType = std::atoi(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-vhdl-msb", "--vhdl-msb") && (i + 1 < argc)) {
+            gGlobal->gVHDLFloatMSB = std::atoi(argv[i + 1]);
+            i += 2;
+            
+        } else if (isCmd(argv[i], "-vhdl-lsb", "--vhdl-lsb") && (i + 1 < argc)) {
+            gGlobal->gVHDLFloatLSB = std::atoi(argv[i + 1]);
+            i += 2;
             
         } else if (isCmd(argv[i], "-elm", "--elementary")) {
             gGlobal->gElementarySwitch = true;
@@ -972,50 +984,54 @@ static void printHelp()
         << "-inj <f>    --inject <f>                inject source file <f> into architecture file instead of compiling "
            "a dsp file."
         << endl;
-    cout << tab << "-scal      --scalar                     generate non-vectorized code." << endl;
+    cout << tab << "-scal       --scalar                    generate non-vectorized code." << endl;
     cout << tab
-         << "-inpl      --in-place                   generates code working when input and output buffers are the same "
+         << "-inpl       --in-place                  generates code working when input and output buffers are the same "
             "(scalar mode only)."
          << endl;
-    cout << tab << "-vec       --vectorize                  generate easier to vectorize code." << endl;
-    cout << tab << "-vs <n>    --vec-size <n>               size of the vector (default 32 samples)." << endl;
-    cout << tab << "-lv <n>    --loop-variant <n>           [0:fastest (default), 1:simple]." << endl;
-    cout << tab << "-omp       --openmp                     generate OpenMP pragmas, activates --vectorize option."
+    cout << tab << "-vec        --vectorize                 generate easier to vectorize code." << endl;
+    cout << tab << "-vs <n>     --vec-size <n>              size of the vector (default 32 samples)." << endl;
+    cout << tab << "-lv <n>     --loop-variant <n>          [0:fastest (default), 1:simple]." << endl;
+    cout << tab << "-omp        --openmp                    generate OpenMP pragmas, activates --vectorize option."
          << endl;
-    cout << tab << "-pl        --par-loop                   generate parallel loops in --openmp mode." << endl;
+    cout << tab << "-pl         --par-loop                  generate parallel loops in --openmp mode." << endl;
     cout << tab
-         << "-sch       --scheduler                  generate tasks and use a Work Stealing scheduler, activates "
+         << "-sch        --scheduler                 generate tasks and use a Work Stealing scheduler, activates "
             "--vectorize option."
          << endl;
-    cout << tab << "-ocl       --opencl                     generate tasks with OpenCL (experimental)." << endl;
-    cout << tab << "-cuda      --cuda                       generate tasks with CUDA (experimental)." << endl;
-    cout << tab << "-dfs       --deep-first-scheduling      schedule vector loops in deep first order." << endl;
+    cout << tab << "-ocl        --opencl                    generate tasks with OpenCL (experimental)." << endl;
+    cout << tab << "-cuda       --cuda                      generate tasks with CUDA (experimental)." << endl;
+    cout << tab << "-dfs        --deep-first-scheduling     schedule vector loops in deep first order." << endl;
     cout << tab
-         << "-g         --group-tasks                group single-threaded sequential tasks together when -omp or -sch "
+         << "-g          --group-tasks               group single-threaded sequential tasks together when -omp or -sch "
             "is used."
          << endl;
     cout << tab
-         << "-fun       --fun-tasks                  separate tasks code as separated functions (in -vec, -sch, or "
+         << "-fun        --fun-tasks                 separate tasks code as separated functions (in -vec, -sch, or "
             "-omp mode)."
          << endl;
     cout << tab
-         << "-fm <file> --fast-math <file>           use optimized versions of mathematical functions implemented in "
+         << "-fm <file>  --fast-math <file>          use optimized versions of mathematical functions implemented in "
             "<file>, use 'faust/dsp/fastmath.cpp' when file is 'def'."
          << endl;
     cout << tab
 
-         << "-mapp      --math-approximation         simpler/faster versions of 'floor/ceil/fmod/remainder' functions." << endl;
+         << "-mapp       --math-approximation        simpler/faster versions of 'floor/ceil/fmod/remainder' functions." << endl;
     cout << tab
-         << "-ns <name> --namespace <name>           generate C++ or D code in a namespace <name>." << endl;
+         << "-ns <name>  --namespace <name>          generate C++ or D code in a namespace <name>." << endl;
 
-    cout << tab << "-vhdl      --vhdl                       output vhdl file." << endl;
-    
+    cout << tab << "-vhdl       --vhdl                      output vhdl file." << endl;
+    cout << tab << "-vhdl-trace --vhdl-trace                activate trace." << endl;
+    cout << tab << "-vhdl-type 0|1 --vhdl-format 0|1        sample format 0 = sfixed (default), 1 = float." << endl;
+    cout << tab << "-vhdl-msb <n>                           MSB number of bits." << endl;
+    cout << tab << "-vhdl-lsm <n>                           LSB number of bits." << endl;
+        
     cout << tab
-         << "-wi <n>    --widening-iterations <n>    number of iterations before widening in signal bounding."
+         << "-wi <n>     --widening-iterations <n>   number of iterations before widening in signal bounding."
          << endl;
 
     cout << tab
-         << "-ni <n>    --narrowing-iterations <n>   number of iterations before stopping narrowing in signal bounding."
+         << "-ni <n>     --narrowing-iterations <n>  number of iterations before stopping narrowing in signal bounding."
          << endl;
 
     cout << endl << "Block diagram options:" << line;

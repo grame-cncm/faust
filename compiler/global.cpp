@@ -460,6 +460,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gDrawSVGSwitch    = false;
     gVHDLSwitch       = false;
     gVHDLTrace        = false;
+    gVHDLFloatType    = 0; //sfixed
+    gVHDLFloatMSB     = 8;
+    gVHDLFloatLSB     = -23;
     gElementarySwitch = false;
     gPrintXMLSwitch   = false;
     gPrintJSONSwitch  = false;

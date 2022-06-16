@@ -1,4 +1,4 @@
-% man(1) Version 2.40.14 (13-June-2022) | Faust man page
+% man(1) Version 2.41.0 (16-June-2022) | Faust man page
 
 NAME
 ====
@@ -106,43 +106,51 @@ Code generation options:
 
   **-inj** \<f>    **--inject** \<f>                inject source file \<f> into architecture file instead of compiling a dsp file.
 
-  **-scal**      **--scalar**                     generate non-vectorized code.
+  **-scal**       **--scalar**                    generate non-vectorized code.
 
-  **-inpl**      **--in-place**                   generates code working when input and output buffers are the same (scalar mode only).
+  **-inpl**       **--in-place**                  generates code working when input and output buffers are the same (scalar mode only).
 
-  **-vec**       **--vectorize**                  generate easier to vectorize code.
+  **-vec**        **--vectorize**                 generate easier to vectorize code.
 
-  **-vs** \<n>    **--vec-size** \<n>               size of the vector (default 32 samples).
+  **-vs** \<n>     **--vec-size** \<n>              size of the vector (default 32 samples).
 
-  **-lv** \<n>    **--loop-variant** \<n>           [0:fastest (default), 1:simple].
+  **-lv** \<n>     **--loop-variant** \<n>          [0:fastest (default), 1:simple].
 
-  **-omp**       **--openmp**                     generate OpenMP pragmas, activates --vectorize option.
+  **-omp**        **--openmp**                    generate OpenMP pragmas, activates --vectorize option.
 
-  **-pl**        **--par-loop**                   generate parallel loops in --openmp mode.
+  **-pl**         **--par-loop**                  generate parallel loops in --openmp mode.
 
-  **-sch**       **--scheduler**                  generate tasks and use a Work Stealing scheduler, activates --vectorize option.
+  **-sch**        **--scheduler**                 generate tasks and use a Work Stealing scheduler, activates --vectorize option.
 
-  **-ocl**       **--opencl**                     generate tasks with OpenCL (experimental).
+  **-ocl**        **--opencl**                    generate tasks with OpenCL (experimental).
 
-  **-cuda**      **--cuda**                       generate tasks with CUDA (experimental).
+  **-cuda**       **--cuda**                      generate tasks with CUDA (experimental).
 
-  **-dfs**       **--deep-first-scheduling**      schedule vector loops in deep first order.
+  **-dfs**        **--deep-first-scheduling**     schedule vector loops in deep first order.
 
-  **-g**         **--group-tasks**                group single-threaded sequential tasks together when -omp or -sch is used.
+  **-g**          **--group-tasks**               group single-threaded sequential tasks together when -omp or -sch is used.
 
-  **-fun**       **--fun-tasks**                  separate tasks code as separated functions (in -vec, -sch, or -omp mode).
+  **-fun**        **--fun-tasks**                 separate tasks code as separated functions (in -vec, -sch, or -omp mode).
 
-  **-fm** \<file> **--fast-math** \<file>           use optimized versions of mathematical functions implemented in \<file>, use 'faust/dsp/fastmath.cpp' when file is 'def'.
+  **-fm** \<file>  **--fast-math** \<file>          use optimized versions of mathematical functions implemented in \<file>, use 'faust/dsp/fastmath.cpp' when file is 'def'.
 
-  **-mapp**      **--math-approximation**         simpler/faster versions of 'floor/ceil/fmod/remainder' functions.
+  **-mapp**       **--math-approximation**        simpler/faster versions of 'floor/ceil/fmod/remainder' functions.
 
-  **-ns** \<name> **--namespace** \<name>           generate C++ or D code in a namespace \<name>.
+  **-ns** \<name>  **--namespace** \<name>          generate C++ or D code in a namespace \<name>.
 
-  **-vhdl**      **--vhdl**                       output vhdl file.
+  **-vhdl**       **--vhdl**                      output vhdl file.
 
-  **-wi** \<n>    **--widening-iterations** \<n>    number of iterations before widening in signal bounding.
+  **-vhdl**-trace **--vhdl-trace**                activate trace.
 
-  **-ni** \<n>    **--narrowing-iterations** \<n>   number of iterations before stopping narrowing in signal bounding.
+  **-vhdl**-format 0|1 **--vhdl-format** 0|1      sample format 0 = sfixed (default), 1 = float.
+
+  **-vhdl**-msb \<n>                           MSB number of bits.
+
+  **-vhdl**-lsm \<n>                           LSB number of bits.
+
+  **-wi** \<n>     **--widening-iterations** \<n>   number of iterations before widening in signal bounding.
+
+  **-ni** \<n>     **--narrowing-iterations** \<n>  number of iterations before stopping narrowing in signal bounding.
 
 
 Block diagram options:

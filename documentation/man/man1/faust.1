@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "man" "1" "" "Version 2.40.14 (13-June-2022)" "Faust man page"
+.TH "man" "1" "" "Version 2.41.0 (16-June-2022)" "Faust man page"
 .hy
 .SH NAME
 .PP
@@ -198,6 +198,15 @@ versions of `floor/ceil/fmod/remainder' functions.
 code in a namespace <name>.
 .PP
 \f[B]-vhdl\f[R] \f[B]\[en]vhdl\f[R] output vhdl file.
+.PP
+\f[B]-vhdl\f[R]-trace \f[B]\[en]vhdl-trace\f[R] activate trace.
+.PP
+\f[B]-vhdl\f[R]-format 0|1 \f[B]\[en]vhdl-format\f[R] 0|1 sample format
+0 = sfixed (default), 1 = float.
+.PP
+\f[B]-vhdl\f[R]-msb <n> MSB number of bits.
+.PP
+\f[B]-vhdl\f[R]-lsm <n> LSB number of bits.
 .PP
 \f[B]-wi\f[R] <n> \f[B]\[en]widening-iterations\f[R] <n> number of
 iterations before widening in signal bounding.
