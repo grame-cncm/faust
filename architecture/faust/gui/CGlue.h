@@ -529,7 +529,6 @@ struct UIGlueTemplate : public UIInterface
         fGlue->closeBox(fGlue->uiInterface);
     }
 
-
     // float version
     
     // -- active widgets
@@ -618,6 +617,7 @@ struct UIGlueTemplate : public UIInterface
     {
         fGlue->declare(fGlue->uiInterface, reinterpret_cast<FAUSTFLOAT*>(zone), key, val);
     }
+    
 };
 
 /*******************************************************************************

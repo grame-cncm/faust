@@ -70,6 +70,16 @@ static const char* getCodeSize()
 #include <CoreFoundation/CoreFoundation.h>
 #include <IOKit/IOKitLib.h>
 
+#if TARGET_CPU_ARM64
+// Content of commonsyms.c, adding this code solves missing symbols issue.
+t_common_symbols_table *_common_symbols = NULL;
+
+void common_symbols_init(void)
+{
+    _common_symbols = common_symbols_gettable();
+}
+#endif
+
 static string getTarget()
 {
     int tmp;
@@ -1826,6 +1836,8 @@ extern "C" void ext_main(void* r)
     if (done) return;
     done = true;
 #endif
+    
+    common_symbols_init();
     
     // Creates an instance of Faustgen
     t_class * mclass = faustgen::makeMaxClass("faustgen~");

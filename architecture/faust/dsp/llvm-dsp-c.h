@@ -252,7 +252,6 @@ extern "C"
     
     /**
      * Delete all Faust DSP factories kept in the library cache. Beware: all kept factory pointers (in local variables...) thus become invalid.
-     * 
      */                                 
     LIBFAUST_API void deleteAllCDSPFactories();
     
@@ -272,7 +271,6 @@ extern "C"
 
     /**
      * Stop multi-thread access mode.
-     * 
      */ 
     LIBFAUST_API void stopMTDSPFactories();
   

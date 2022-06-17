@@ -237,7 +237,6 @@ DEPRECATED(std::vector<std::string> getInterpreterDSPFactoryLibraryList(interpre
 
 /**
  * Delete all Faust DSP factories kept in the library cache. Beware: all kept factory and DSP pointers (in local variables...) thus become invalid.
- * 
  */                                 
 LIBFAUST_API void deleteAllInterpreterDSPFactories();
 
@@ -257,7 +256,6 @@ extern "C" LIBFAUST_API bool startMTDSPFactories();
 
 /**
  * Stop multi-thread access mode.
- *
  */
 extern "C" LIBFAUST_API void stopMTDSPFactories();
 
