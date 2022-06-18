@@ -578,7 +578,7 @@ extern "C"
      * Compile a box expression in a null terminated array of signals.
      *
      * @param box - the box expression
-     * @param error_msg - the error string to be filled
+     * @param error_msg - the error string to be filled, has to be 4096 characters long
      *
      * @return a null terminated array of signals on success (to be deleted by the caller using freeCMemory), otherwise a nullptr.
      */

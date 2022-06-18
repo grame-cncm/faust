@@ -92,7 +92,7 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = ../../architecture/faust/dsp/llvm-dsp.h ../../architecture/faust/dsp/llvm-dsp-c.h ../../architecture/faust/dsp/interpreter-dsp.h ../../compiler/generator/libfaust.h ../../architecture/faust/dsp/libfaust-c.h ../../architecture/faust/dsp/libfaust-box.h ../../architecture/faust/dsp/libfaust-box-c.h ../../architecture/faust/dsp/libfaust-signal.h ../../architecture/faust/dsp/libfaust-signal-c.h
+INPUT                  = ../../architecture/faust/dsp/llvm-dsp.h ../../architecture/faust/dsp/llvm-dsp-c.h ../../architecture/faust/dsp/interpreter-dsp.h ../../architecture/faust/dsp/interpreter-dsp-c.h ../../compiler/generator/libfaust.h ../../architecture/faust/dsp/libfaust-c.h ../../architecture/faust/dsp/libfaust-box.h ../../architecture/faust/dsp/libfaust-box-c.h ../../architecture/faust/dsp/libfaust-signal.h ../../architecture/faust/dsp/libfaust-signal-c.h
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          =  *.h
 RECURSIVE              = NO
