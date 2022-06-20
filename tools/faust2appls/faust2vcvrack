@@ -76,7 +76,7 @@ createPluginJSON()
     echo '{'
     echo -e "\t\"slug\": \"$1\","
     echo -e "\t\"name\": \"$1\","
-    echo -e '\t"version": "1.0.0",'
+    echo -e '\t"version": "2.0.0",'
     echo -e '\t"license": "MIT",'
     echo -e '\t"brand": "Faust",'
     echo -e '\t"author": "GRAME",'
