@@ -35,6 +35,11 @@
 //----------------------------------------------------------------------
 using namespace std;
 
+#define HIGH 8  //  gGlobal->gVHDLFloatMSB
+#define LOW -23 //  gGlobal->gVHDLFloatLSB
+
+#define FLOAT (gGlobal->gVHDLFloatType ? "float" : "sfixed")
+
 class Signal2VHDLVisitor : public TreeTraversal {
 
     private:
@@ -109,7 +114,47 @@ class Signal2VHDLVisitor : public TreeTraversal {
         void cast(const string& name, Tree sig, Tree x);
     
         string getSuffix(int nature) { return (nature == kReal) ? "_float" : "_int"; }
-
+    
+        string getFloatCoding(int nature)
+        {
+            return (nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? "float" : "sfixed") : "sfixed";
+        }
+    
+        string getCoding(int nature)
+        {
+            return (nature == kReal) ? "float" : "sfixed";
+        }
+    
+        string getMSB(int nature)
+        {
+            return (nature == kReal) ? " msb " : to_string(31);
+        }
+    
+        string getFloatMSB(int nature)
+        {
+            return (nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? "" : " msb ") : to_string(31);
+        }
+        
+        string getLSB(int nature)
+        {
+            return (nature == kReal) ? " lsb " : to_string(0);
+        }
+    
+        string getFloatLSB(int nature)
+        {
+            return (nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? "" : " lsb ") : to_string(0);
+        }
+    
+        int getHigh(int nature)
+        {
+            return (nature == kReal) ? HIGH : 31;
+        }
+    
+        int getLow(int nature)
+        {
+            return (nature == kReal) ? LOW : 0;
+        }
+   
     public:
         Signal2VHDLVisitor(old_OccMarkup* occ_markup) : TreeTraversal(), fOccMarkup(occ_markup), fVisitGen(false){};
 

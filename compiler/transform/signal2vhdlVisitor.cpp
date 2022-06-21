@@ -42,18 +42,12 @@
 // systematic 32 bit size for sfixed
 //--------------------------------------------------------------------------
 
-#define HIGH 8  //  gGlobal->gVHDLFloatMSB
-#define LOW -23 //  gGlobal->gVHDLFloatLSB
-#define FLOAT_CODING gGlobal->gVHDLFloatType
-#define FLOAT FLOAT_CODING ? "float" : "sfixed"
-
 static const char* binopname[] = {"+", "-", "*", "/", "%", "<<", ">>", ">", "<", ">=", "<=", "=", "!=", "&", "|", "^"};
 
 void Signal2VHDLVisitor::sigToVHDL(Tree L, ofstream& fout)
 {
     Tree output[2];
     int i = 0;
-    string float_coding = FLOAT;
     
     while (!isNil(L)) {
         output[i] = hd(L);
@@ -428,22 +422,20 @@ void Signal2VHDLVisitor::generic_decl(string& str)
 
 void Signal2VHDLVisitor::port_decl(int input, int nature, string& str)
 {
-    string float_coding = FLOAT;
-    string range = "(" + ((nature == kReal) ? "msb" : to_string(31)) + " downto " + ((nature == kReal) ? "lsb" : to_string(0)) + ")";
+    string range = "(" + getMSB(nature) + " downto " + getLSB(nature) + ")";
     
     str += "port (\n"
     "   clk     : in std_logic;\n"
     "   rst     : in std_logic;\n";
     for (int i = 0; i < input; i++) {
-        str += "   input" + to_string(i) + "  : in  " + ((nature == kReal) ? float_coding : "sfixed") + range + ";\n";
+        str += "   input" + to_string(i) + "  : in  " + getFloatCoding(nature) + range + ";\n";
     }
-    str += "   output0 : out " + ((nature == kReal) ? float_coding : "sfixed") + range + ");\n";
+    str += "   output0 : out " + getFloatCoding(nature) + range + ");\n";
 }
 
 void Signal2VHDLVisitor::entity_bin_op(const string& name, const char* op, int nature, string& str)
 {
-    string float_coding = FLOAT;
-    string range = ((nature == kReal) ? " msb" : to_string(31)) + ", " + ((nature == kReal) ? "lsb" : to_string(0));
+    string range = getMSB(nature) + ", " + getLSB(nature);
     
     entity_header(str);
     str += "entity " + name + " is\n";
@@ -451,7 +443,7 @@ void Signal2VHDLVisitor::entity_bin_op(const string& name, const char* op, int n
     port_decl(2,nature,str);
     str += "end " + name + ";\n"
     "architecture behavioral of " + name + " is\n"
-    "  signal temp : " + ((nature == kReal) ? float_coding : "sfixed") + "(msb downto lsb);\n"
+    "  signal temp : " + getFloatCoding(nature) + "(msb downto lsb);\n"
     "begin\n";
     if (gGlobal->gVHDLFloatType == 0) {
         //sfixed
@@ -467,9 +459,8 @@ void Signal2VHDLVisitor::entity_bin_op(const string& name, const char* op, int n
 
 void Signal2VHDLVisitor::entity_bin_op_concat(const string& name, const char* op, int nature, string& str)
 {
-    string float_coding = FLOAT;
-    int high = (nature == kReal) ? 8 : 31;
-    int low = (nature == kReal) ? -23 : 0;
+    int high = (nature == kReal) ? 8 : 31;  // Use getHigh ?
+    int low = (nature == kReal) ? -23 : 0;  // Use getLow ?
     
     entity_header(str);
     str += "entity " + name + " is\n";
@@ -477,7 +468,7 @@ void Signal2VHDLVisitor::entity_bin_op_concat(const string& name, const char* op
     port_decl(2, nature, str);
     str += "end " + name + ";\n"
     "architecture behavioral of " + name + " is\n"
-    "signal inter : " + ((nature == kReal) ? float_coding : "sfixed") + "(63 downto 0);\n"
+    "signal inter : " + getFloatCoding(nature) + "(63 downto 0);\n"
     "begin\n"
     "inter  <=  resize(input0 " + op + " input1,63,0);\n"
     "output0 <= inter("+ to_string(high) +" downto " + to_string(low) + " );\n"  //?????
@@ -486,8 +477,7 @@ void Signal2VHDLVisitor::entity_bin_op_concat(const string& name, const char* op
 
 void Signal2VHDLVisitor::entity_cmp_op(const string& name, const char* op, int nature, string& str)
 {
-    string float_coding = FLOAT;
-    string range = ((nature == kReal) ? " msb" : to_string(31)) + ", " + ((nature == kReal) ? "lsb" : to_string(0));
+    string range = getMSB(nature) + ", " + getLSB(nature);
     
     entity_header(str);
     str += "entity " + name + " is\n";
@@ -499,9 +489,9 @@ void Signal2VHDLVisitor::entity_cmp_op(const string& name, const char* op, int n
     "process(input0, input1)\n"
     "begin\n"
     " if (input0 " + op + " input1) then\n"
-    "   output0 <= to_" + (string)((nature == kReal) ? float_coding : "sfixed") + "(1," + range + ");\n"
+    "   output0 <= to_" + getFloatCoding(nature) + "(1," + range + ");\n"
     " else\n"
-    "   output0 <= to_" + (string)((nature == kReal) ? "float" : "sfixed") + "(0," + range + ");\n"
+    "   output0 <= to_" + getCoding(nature) + "(0," + range + ");\n"
     " end if; \n"
     "end process;\n"
     "end behavioral;\n\n";
@@ -509,15 +499,13 @@ void Signal2VHDLVisitor::entity_cmp_op(const string& name, const char* op, int n
 
 void Signal2VHDLVisitor::entity_delay(int nature, string& str)
 {
-    string float_coding = FLOAT;
-    string nature_string = (string)((nature == kReal) ? "float" : "sfixed");
-    string nature_coding = (string)((nature == kReal) ? float_coding : "sfixed");
-    string range_init = ((nature == kReal) ? ((gGlobal->gVHDLFloatType==1) ? "" : " msb ") : to_string(31)) +
-    ((gGlobal->gVHDLFloatType==1) ? ((nature == kReal) ? " input0 " : ",") : ",") +
-    ((nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? "" : " lsb ") : to_string(0));
-    string range = "(" + ((nature == kReal) ? " msb" : to_string(31)) + " downto " + ((nature == kReal) ? "lsb" : to_string(0)) + ")";
+    string nature_string = getCoding(nature);
+    string nature_coding = getFloatCoding(nature);
+    string range_init = getFloatMSB(nature) +
+        ((gGlobal->gVHDLFloatType == 1) ? ((nature == kReal) ? " input0 " : ",") : ",") + getFloatLSB(nature);
+    string range = "(" + getMSB(nature) + " downto " + getLSB(nature) + ")";
     entity_header(str);
-    str += "entity DELAY_" +  nature_string + " is\n"
+    str += "entity DELAY_" + nature_string + " is\n"
     "generic (\n"
     "    delay_value   : integer;\n"
     "    msb     : integer;\n"
@@ -537,7 +525,7 @@ void Signal2VHDLVisitor::entity_delay(int nature, string& str)
     "    begin\n"
     "        if rst = '0' then\n"
     "           for i in 0 to delay_value-1 loop\n"
-    "               ligne(i) <= to_" + ((nature == kReal) ? float_coding : "sfixed") + "(0," + range_init + ");\n"
+    "               ligne(i) <= to_" + getFloatCoding(nature) + "(0," + range_init + ");\n"
     "           end loop;\n"
     "        else\n"
     "           if rising_edge(ws) then\n"
@@ -554,7 +542,7 @@ void Signal2VHDLVisitor::entity_delay(int nature, string& str)
 void Signal2VHDLVisitor::entity_delay_var_reg(int nature, string& str)
 {
     string float_coding = FLOAT;
-    string range = "(" + ((nature == kReal) ? " msb" : to_string(31)) + " downto " + ((nature == kReal) ? "lsb" : to_string(0)) + ")";
+    string range = "(" + getMSB(nature) + " downto " + getLSB(nature) + ")";
     
     entity_header(str);
     str += "entity DELAYVAR is\n"
@@ -594,9 +582,9 @@ void Signal2VHDLVisitor::entity_delay_var_ram(int nature, string& str)
 {
     string float_coding = FLOAT;
     string range = "(" + ((nature == kReal) ? " msb":to_string(31)) + " downto " + ((nature == kReal) ? "lsb" : to_string(0)) + ")";
-    string range_init= ((nature == kReal) ? ((gGlobal->gVHDLFloatType==1) ? " msb ":" msb ") : to_string(31)) +
-    ((gGlobal->gVHDLFloatType==1) ? ((nature == kReal) ? " input0 " : ",") : ",") +
-    ((nature == kReal) ? ((gGlobal->gVHDLFloatType==1) ? " lsb " : " lsb ") : to_string(0));
+    string range_init = ((nature == kReal) ? ((gGlobal->gVHDLFloatType==1) ? " msb ":" msb ") : to_string(31)) +
+    ((gGlobal->gVHDLFloatType == 1) ? ((nature == kReal) ? " input0 " : ",") : ",") +
+    ((nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? " lsb " : " lsb ") : to_string(0));
     
     entity_header(str);
     str += "entity DELAYVAR is\n"
@@ -645,10 +633,8 @@ void Signal2VHDLVisitor::entity_delay_var_ram(int nature, string& str)
 
 void Signal2VHDLVisitor::entity_bypass(const string& name, int nature, string& str)
 {
-    string float_coding = FLOAT;
-    
     // signal initialization is a bit tricky
-    string range = "(" + ((nature == kReal) ? " msb " : to_string(31)) + " downto " + ((nature == kReal) ? " lsb " : to_string(0)) + ")";
+    string range = "(" + getMSB(nature) + " downto " + getLSB(nature) + ")";
     string range_init = ((nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? "" : " msb ") : to_string(31)) +
             ((gGlobal->gVHDLFloatType == 1) ? ((nature == kReal) ? " input0 " : ",") : ",")  +
             ((nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? "" : " lsb ") : to_string(0));
@@ -663,7 +649,7 @@ void Signal2VHDLVisitor::entity_bypass(const string& name, int nature, string& s
     "process (clk,rst)\n"
     "begin\n"
     "  if rst = '0' then\n"
-    "    output0 <= to_" + ((nature == kReal) ? float_coding:"sfixed") + "(0," + range_init + ");\n"
+    "    output0 <= to_" + getFloatCoding(nature) + "(0," + range_init + ");\n"
     "  else\n"
     "    output0 <= input0;\n"
     "  end if;\n"
@@ -674,11 +660,10 @@ void Signal2VHDLVisitor::entity_bypass(const string& name, int nature, string& s
 void Signal2VHDLVisitor::entity_cast(const string& name, int nature_in, int nature_out, string& str)
 {
     string float_coding = FLOAT;
-    string range_in = "(" + ((nature_in == kReal) ? " msb" : to_string(31)) + " downto " + ((nature_in == kReal) ? "lsb" : to_string(0)) + ")";
-    string range_out = "(" + ((nature_out == kReal) ? " msb" : to_string(31)) + " downto " + ((nature_out == kReal) ? "lsb" : to_string(0)) + ")";
-    string range_init= ((nature_out == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? "" : " msb ") : to_string(31)) +
-        ((gGlobal->gVHDLFloatType==1) ? ((nature_out == kReal) ? " temp ": ",") : ",")  +
-        ((nature_out == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? "" : " lsb ") : to_string(0));
+    string range_in = "(" + getMSB(nature_in) + " downto " + getLSB(nature_in) + ")";
+    string range_out = "(" + getMSB(nature_out) + " downto " + getLSB(nature_out) + ")";
+    string range_init = getFloatMSB(nature_out) +
+        ((gGlobal->gVHDLFloatType == 1) ? ((nature_out == kReal) ? " temp ": ",") : ",") + getFloatLSB(nature_out);
     
     entity_header(str);
     str += "entity " + name + " is\n";
@@ -696,29 +681,26 @@ void Signal2VHDLVisitor::entity_cast(const string& name, int nature_in, int natu
     "process (clk,rst)\n"
     "begin\n"
     "  if rst = '0' then\n"
-    "    temp <=  to_" + ((nature_out == kReal) ? float_coding:"sfixed") + "(0," + range_init + ");\n"
+    "    temp <= to_" + getFloatCoding(nature_out) + "(0," + range_init + ");\n"
     "  else\n";
     if (gGlobal->gVHDLFloatType == 0) {
         //sfixed
-        str += "    temp <= resize(input0,msb,lsb);\n";
+        str += "  temp <= resize(input0,msb,lsb);\n";
     } else {
         //float
-        str +="  temp  <=  to_float(input0,temp);\n";
+        str += "  temp  <= to_float(input0,temp);\n";
     }
     str += "  end if;\n"
     "end process;\n"
     "end behavioral;\n\n";
 }
 
-
 void Signal2VHDLVisitor::entity_select2(const string& name, int nature, string& str)
 {
-    string float_coding = FLOAT;
-    
     entity_header(str);
     str += "entity " + name + " is\n";
     generic_decl(str);
-    port_decl(3,nature,str);
+    port_decl(3, nature, str);
     str += "end " + name + ";\n"
     "architecture behavioral of " + name + " is\n"
     "begin\n"
@@ -735,7 +717,6 @@ void Signal2VHDLVisitor::entity_select2(const string& name, int nature, string& 
 
 void Signal2VHDLVisitor::entity_faust()
 {
-    string float_coding = FLOAT;
     string separator = gGlobal->gVHDLFloatType ? " downto " : ",";
     string sig_float_coding = "float_coding";
     
@@ -758,23 +739,23 @@ void Signal2VHDLVisitor::entity_faust()
     "  out_right_V : out std_logic_vector (23 downto 0));\n"
     "end FAUST;\n"
     "architecture logic of FAUST is\n\n"
-    "signal    in_left_V_buf   : std_logic_vector (23 downto 0);\n"
-    "signal    in_left_fixed   : sfixed(23 downto 0);\n"
+    "signal    in_left_V_buf  : std_logic_vector (23 downto 0);\n"
+    "signal    in_left_fixed  : sfixed(23 downto 0);\n"
     "signal    in_left_fixed_24bits : sfixed(0 downto -23);\n"
-    "signal    in_right_V_buf  :  std_logic_vector (23 downto 0);\n"
-    "signal    in_right_fixed   : sfixed(23 downto 0);\n"
+    "signal    in_right_V_buf : std_logic_vector (23 downto 0);\n"
+    "signal    in_right_fixed : sfixed(23 downto 0);\n"
     "signal    in_right_fixed_24bits : sfixed(0 downto -23);\n"
-    "signal    out_left_V_int  : std_logic_vector (23 downto 0);\n"
-    "signal    out_right_V_int :  std_logic_vector (23 downto 0);\n"
+    "signal    out_left_V_int : std_logic_vector (23 downto 0);\n"
+    "signal    out_right_V_int : std_logic_vector (23 downto 0);\n"
     "signal    step_cnt  : integer;\n"
     "signal    left_sigoutput : sfixed(8 downto -23);\n"
-    "signal    left_out_fixed_32bits :  sfixed(31 downto 0);\n"
-    "signal    left_out_slv_32bits :  std_logic_vector (31 downto 0);\n"
-    "signal    left_out_slv_24bits :  std_logic_vector (24 downto 0);\n"
+    "signal    left_out_fixed_32bits : sfixed(31 downto 0);\n"
+    "signal    left_out_slv_32bits : std_logic_vector (31 downto 0);\n"
+    "signal    left_out_slv_24bits : std_logic_vector (24 downto 0);\n"
     "signal    right_sigoutput : sfixed(8 downto -23);\n"
-    "signal    right_out_fixed_32bits :  sfixed(31 downto 0);\n"
-    "signal    right_out_slv_32bits :  std_logic_vector (31 downto 0);\n"
-    "signal    right_out_slv_24bits :  std_logic_vector (24 downto 0);\n";
+    "signal    right_out_fixed_32bits : sfixed(31 downto 0);\n"
+    "signal    right_out_slv_32bits : std_logic_vector (31 downto 0);\n"
+    "signal    right_out_slv_24bits : std_logic_vector (24 downto 0);\n";
     
     if (gGlobal->gVHDLFloatType == 1) { //float vhdl option
         fDeclEntity += "\n"
@@ -784,22 +765,20 @@ void Signal2VHDLVisitor::entity_faust()
 
 void Signal2VHDLVisitor::component_standard(const string& name, int input, int nature, string& str)
 {
-    string float_coding = FLOAT;
     string nature_coding = getSuffix(nature);
-    
     str += "component " + name + " is\n";
     generic_decl(str);
-    port_decl(input,nature,str);
+    port_decl(input, nature, str);
     str += "end component;\n\n";
 }
 
 void Signal2VHDLVisitor::component_cast(const string& name, int input, int nature_in, int nature_out, string& str)
 {
     string float_coding = FLOAT;
-    int high_in = (nature_in == kReal) ? HIGH : 31;
-    int low_in = (nature_in == kReal) ? LOW : 0;
-    int high_out = (nature_out == kReal) ? HIGH : 31;
-    int low_out = (nature_out == kReal) ? LOW : 0;
+    int high_in = getHigh(nature_in);
+    int low_in = getLow(nature_in);
+    int high_out = getHigh(nature_out);
+    int low_out = getLow(nature_out);
     
     str += "component " + name + " is\n";
     generic_decl(str);
@@ -813,11 +792,10 @@ void Signal2VHDLVisitor::component_cast(const string& name, int input, int natur
 
 void Signal2VHDLVisitor::component_delay(int nature, string& str)
 {
-    string float_coding = FLOAT;
-    int high = (nature == kReal) ? HIGH : 31;
-    int low = (nature == kReal) ? LOW : 0;
+    int high = getHigh(nature);
+    int low = getLow(nature);
     
-    str += "component DELAY_" + (string)((nature == kReal) ? "float" : "sfixed") + " is\n"
+    str += "component DELAY_" + getCoding(nature) + " is\n"
     "generic (\n"
     "    delay_value    : integer;\n"
     "    msb      : integer;\n"
@@ -825,16 +803,16 @@ void Signal2VHDLVisitor::component_delay(int nature, string& str)
     "port (\n"
     "    ws      : in std_logic;\n"
     "    rst     : in std_logic;\n"
-    "    input0  : in  " + (string)((nature == kReal) ? float_coding:"sfixed") + "(" + to_string(high) + " downto " + to_string(low) + ");\n"
-    "    output0 : out " + (string)((nature == kReal) ? float_coding:"sfixed") + "(" + to_string(high) + " downto " + to_string(low) + "));\n"
+    "    input0  : in  " + getFloatCoding(nature) + "(" + to_string(high) + " downto " + to_string(low) + ");\n"
+    "    output0 : out " + getFloatCoding(nature) + "(" + to_string(high) + " downto " + to_string(low) + "));\n"
     "end component;\n\n";
 }
 
 void Signal2VHDLVisitor::component_delay_var(int nature, string& str)
 {
     string float_coding = FLOAT;
-    int high = (nature == kReal) ? HIGH : 31;
-    int low = (nature == kReal) ? LOW : 0;
+    int high = getHigh(nature);
+    int low = getLow(nature);
     
     str += "component DELAYVAR is\n"
     "generic (\n"
@@ -936,8 +914,8 @@ void Signal2VHDLVisitor::inst_delay(Tree sig, Tree x, Tree y, string& str)
 {
     // test type of output
     int nature = getCertifiedSigType(sig)->nature();
-    int high = (nature == kReal) ? HIGH : 31;
-    int low = (nature == kReal) ? LOW : 0;
+    int high = getHigh(nature);
+    int low = getLow(nature);
     string suffixe = getSuffix(nature);
     
     str += "DELAY" + suffixe + addr_to_str(sig) + " : DELAY" + suffixe + "\n"
@@ -956,28 +934,28 @@ void Signal2VHDLVisitor::inst_delay_var(Tree sig, Tree x, Tree y, string& str, i
 {
     // test type of second input
     int nature = getCertifiedSigType(sig)->nature();
-    int high = (nature == kReal) ? HIGH : 31;
-    int low = (nature == kReal) ? LOW : 0;
+    int high = getHigh(nature);
+    int low = getLow(nature);
     
     str += "DELAYVAR_" + addr_to_str(sig) + " : DELAYVAR\n"
     "generic map (\n"
-    "    mxd => "+ to_string(mxd) +",\n"
+    "    mxd => " + to_string(mxd) + ",\n"
     "    msb => " + to_string(high) + ",\n"
-    "    lsb => " + to_string(low) +" )\n"
+    "    lsb => " + to_string(low) + " )\n"
     "port map (\n"
     "    ws => ws,\n"
     "    rst_n => ap_rst_n,\n"
-    "    delay_var => sig"+ addr_to_str(y) +",\n"
-    "    input0  => sig"+ addr_to_str(x) +",\n"
-    "    output0 => sig"+ addr_to_str(sig) +");\n\n";
+    "    delay_var => sig" + addr_to_str(y) + ",\n"
+    "    input0  => sig" + addr_to_str(x) + ",\n"
+    "    output0 => sig" + addr_to_str(sig) + ");\n\n";
 }
 
 void Signal2VHDLVisitor::inst_sincos(const string& name, Tree sig, Tree x, int nature, string& str)
 {
     str += name + "_" + addr_to_str(sig) + " : SinCos8_23\n"
     "port map (\n"
-    "    input8_23  => sig"+ addr_to_str(x) +",\n"
-    "    " + name + "8_23   => sig"+ addr_to_str(sig) + ");\n\n";
+    "    input8_23  => sig" + addr_to_str(x) + ",\n"
+    "    " + name + "8_23   => sig" + addr_to_str(sig) + ");\n\n";
 }
 
 void Signal2VHDLVisitor::inst_bypass(const string& name, Tree sig, Tree x, string& str)
@@ -985,7 +963,7 @@ void Signal2VHDLVisitor::inst_bypass(const string& name, Tree sig, Tree x, strin
     int high, low;
     // test type of  input
     int nature = getCertifiedSigType(sig)->nature();
-    string nature_coding = (string)((nature == kReal) ? "float" : "sfixed");
+    string nature_coding = getCoding(nature);
     
     if (nature == kReal) {
         high = HIGH;
@@ -1045,7 +1023,7 @@ void Signal2VHDLVisitor::decl_sig(Tree sig, int msb, int lsb, int nature)
     if (nature == kReal) {
         // float type: " + float_coding + "(msb,lsb)
         if (isSigInt(sig, &i) || isSigReal(sig, &r)) {// with initialization
-            fDeclSig += "signal    sig" + addr_to_str(sig) + " : " + float_coding + "(" + to_string(msb) + " downto " + to_string(lsb) + ") := to_" + ((nature == kReal) ? float_coding : "sfixed") + (gGlobal->gVHDLFloatType ? val_init_float : val_init_sfixed) + ";\n";
+            fDeclSig += "signal    sig" + addr_to_str(sig) + " : " + float_coding + "(" + to_string(msb) + " downto " + to_string(lsb) + ") := to_" + getFloatCoding(nature) + (gGlobal->gVHDLFloatType ? val_init_float : val_init_sfixed) + ";\n";
         } else {
             // without initialization
             fDeclSig += "signal    sig" + addr_to_str(sig) + " : " + float_coding + "(" + to_string(msb) + " downto " + to_string(lsb) + ");\n";
@@ -1142,7 +1120,7 @@ void Signal2VHDLVisitor::bypass(const string& name, Tree sig, Tree x)
 {
     int nature = getCertifiedSigType(sig)->nature();
     string real_name = name + getSuffix(nature);
-    
+
     if (fEntity.count(real_name) == 0) {
         entity_bypass(name, nature, fDeclEntity);
         component_standard(name, 1, nature, fDeclCompnt);
@@ -1157,8 +1135,8 @@ void Signal2VHDLVisitor::cast(const string& name, Tree sig, Tree x)
     int nature_in = getCertifiedSigType(x)->nature();
     int nature_out = getCertifiedSigType(sig)->nature();
     string real_name = name + getSuffix(nature_out);
-    int high_out = (nature_out == kReal) ? HIGH : 31;
-    int low_out = (nature_out == kReal) ? LOW : 0;
+    int high_out = getHigh(nature_out);
+    int low_out = getLow(nature_out);
     
     if (fEntity.count(real_name) == 0) {
         entity_cast(real_name, nature_in, nature_out, fDeclEntity);
