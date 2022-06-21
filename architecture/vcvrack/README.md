@@ -9,6 +9,7 @@ Here are the available options:
 - `-soundfile when compiling a DSP using the 'soundfile' primitive, add required resources`
 - `-source to only create the source folder`
 - `-nvoices <num> to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI`
+- `-version <1|2> : to set the plugin version, 1 by default`
 
 Faust DSP code classically produces audio signals in the [-1..1] range. Since VCV expect audio signals in the [-5v..5v] range, they are **automatically converted in the architecture file**. CV control in the [0v..10v] range will be mapped to the controllers [min..max] range.
 

@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #                    faust2vcvrack generator                        #
-#                       (c) Grame, 2020                             #
+#                       (c) Grame, 2020-2022                        #
 #                                                                   #
 #####################################################################
 
@@ -23,6 +23,7 @@ NVOICES=1
 POLY=""
 SOURCE=false
 SOUNDFILE=false
+VERSION="1.0.0"
 
 echoHelp ()
 {
@@ -31,6 +32,7 @@ echoHelp ()
     options -soundfile
     option "-source"
     option "-nvoices <num>"
+    option "-version <1|2>" "to set the plugin version, 1 by default"
     option "Faust options"
     echo ""
 }
@@ -54,6 +56,9 @@ do
         SOUNDFILE=true
     elif [ $p = "-source" ]; then
         SOURCE=true
+     elif [ $p = "-version" ]; then
+        shift
+        VERSION=$1.0.0
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILE="$p"
     # other compile options
@@ -76,7 +81,7 @@ createPluginJSON()
     echo '{'
     echo -e "\t\"slug\": \"$1\","
     echo -e "\t\"name\": \"$1\","
-    echo -e '\t"version": "1.0.0",'
+    echo -e "\t\"version\": \"$VERSION\","
     echo -e '\t"license": "MIT",'
     echo -e '\t"brand": "Faust",'
     echo -e '\t"author": "GRAME",'
