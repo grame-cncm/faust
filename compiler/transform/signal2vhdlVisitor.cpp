@@ -88,8 +88,8 @@ void Signal2VHDLVisitor::sigToVHDL(Tree L, ofstream& fout)
     
     fout << "right_out_fixed_32bits <= right_sigoutput;"  << endl;
     fout << "right_out_slv_32bits <= to_slv(right_out_fixed_32bits);" << endl;
-    fout <<  "out_right_V_int(22 downto 0) <= right_out_slv_32bits(22 downto 0);" << endl;
-    fout <<  "out_right_V_int(23) <= right_out_slv_32bits(31);" << endl;
+    fout << "out_right_V_int(22 downto 0) <= right_out_slv_32bits(22 downto 0);" << endl;
+    fout << "out_right_V_int(23) <= right_out_slv_32bits(31);" << endl;
     fout << "end logic;" << endl;
 }
 
@@ -581,10 +581,10 @@ void Signal2VHDLVisitor::entity_delay_var_reg(int nature, string& str)
 void Signal2VHDLVisitor::entity_delay_var_ram(int nature, string& str)
 {
     string float_coding = FLOAT;
-    string range = "(" + ((nature == kReal) ? " msb":to_string(31)) + " downto " + ((nature == kReal) ? "lsb" : to_string(0)) + ")";
-    string range_init = ((nature == kReal) ? ((gGlobal->gVHDLFloatType==1) ? " msb ":" msb ") : to_string(31)) +
-    ((gGlobal->gVHDLFloatType == 1) ? ((nature == kReal) ? " input0 " : ",") : ",") +
-    ((nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? " lsb " : " lsb ") : to_string(0));
+    string range = "(" + getMSB(nature) + " downto " + getLSB(nature) + ")";
+    string range_init = ((nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? " msb " : " msb ") : to_string(31)) +
+        ((gGlobal->gVHDLFloatType == 1) ? ((nature == kReal) ? " input0 " : ",") : ",") +
+        ((nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? " lsb " : " lsb ") : to_string(0));
     
     entity_header(str);
     str += "entity DELAYVAR is\n"
@@ -635,14 +635,14 @@ void Signal2VHDLVisitor::entity_bypass(const string& name, int nature, string& s
 {
     // signal initialization is a bit tricky
     string range = "(" + getMSB(nature) + " downto " + getLSB(nature) + ")";
-    string range_init = ((nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? "" : " msb ") : to_string(31)) +
+    string range_init = getFloatMSB(nature) +
             ((gGlobal->gVHDLFloatType == 1) ? ((nature == kReal) ? " input0 " : ",") : ",")  +
-            ((nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? "" : " lsb ") : to_string(0));
+            getFloatLSB(nature);
     
     entity_header(str);
     str += "entity " + name + " is\n";
     generic_decl(str);
-    port_decl(1,nature,str);
+    port_decl(1, nature, str);
     str += "end " + name + ";\n"
     "architecture behavioral of " + name + " is\n"
     "begin\n"
@@ -663,7 +663,7 @@ void Signal2VHDLVisitor::entity_cast(const string& name, int nature_in, int natu
     string range_in = "(" + getMSB(nature_in) + " downto " + getLSB(nature_in) + ")";
     string range_out = "(" + getMSB(nature_out) + " downto " + getLSB(nature_out) + ")";
     string range_init = getFloatMSB(nature_out) +
-        ((gGlobal->gVHDLFloatType == 1) ? ((nature_out == kReal) ? " temp ": ",") : ",") + getFloatLSB(nature_out);
+        ((gGlobal->gVHDLFloatType == 1) ? ((nature_out == kReal) ? " temp " : ",") : ",") + getFloatLSB(nature_out);
     
     entity_header(str);
     str += "entity " + name + " is\n";
@@ -688,7 +688,7 @@ void Signal2VHDLVisitor::entity_cast(const string& name, int nature_in, int natu
         str += "  temp <= resize(input0,msb,lsb);\n";
     } else {
         //float
-        str += "  temp  <= to_float(input0,temp);\n";
+        str += "  temp <= to_float(input0,temp);\n";
     }
     str += "  end if;\n"
     "end process;\n"
@@ -1000,14 +1000,14 @@ void Signal2VHDLVisitor::inst_select2(const string& name, Tree sig, Tree sel, Tr
     str += name + "_" + addr_to_str(sig) + " : " + name + "\n"
     "generic map (\n"
     "    msb => " + to_string(high) + ",\n"
-    "    lsb => " + to_string(low) +" )\n"
+    "    lsb => " + to_string(low) + " )\n"
     "port map (\n"
     "    clk => ap_clk,\n"
     "    rst => ap_rst_n,\n"
-    "    input0  => sig"+ addr_to_str(sel) +",\n"
-    "    input1  => sig"+ addr_to_str(x) +",\n"
-    "    input2  => sig"+ addr_to_str(y) +",\n"
-    "    output0 => sig"+ addr_to_str(sig) +");\n\n";
+    "    input0  => sig"+ addr_to_str(sel) + ",\n"
+    "    input1  => sig"+ addr_to_str(x) + ",\n"
+    "    input2  => sig"+ addr_to_str(y) + ",\n"
+    "    output0 => sig"+ addr_to_str(sig) + ");\n\n";
 }
 
 void Signal2VHDLVisitor::decl_sig(Tree sig, int msb, int lsb, int nature)
@@ -1022,7 +1022,7 @@ void Signal2VHDLVisitor::decl_sig(Tree sig, int msb, int lsb, int nature)
     
     if (nature == kReal) {
         // float type: " + float_coding + "(msb,lsb)
-        if (isSigInt(sig, &i) || isSigReal(sig, &r)) {// with initialization
+        if (isSigInt(sig, &i) || isSigReal(sig, &r)) { // with initialization
             fDeclSig += "signal    sig" + addr_to_str(sig) + " : " + float_coding + "(" + to_string(msb) + " downto " + to_string(lsb) + ") := to_" + getFloatCoding(nature) + (gGlobal->gVHDLFloatType ? val_init_float : val_init_sfixed) + ";\n";
         } else {
             // without initialization
@@ -1030,7 +1030,7 @@ void Signal2VHDLVisitor::decl_sig(Tree sig, int msb, int lsb, int nature)
         }
     } else {
         // int type: " sfixed(31,0)
-        if (isSigInt(sig, &i) || isSigReal(sig, &r)) {// with initialization
+        if (isSigInt(sig, &i) || isSigReal(sig, &r)) { // with initialization
             fDeclSig += "signal    sig" + addr_to_str(sig) + " : sfixed(" + to_string(31) + " downto " + to_string(0) + ") := to_sfixed(" + val_to_str(sig) + "," + to_string(31) + "," + to_string(0) + ");\n";
         } else {
             // without initialization

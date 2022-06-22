@@ -1022,9 +1022,9 @@ static void printHelp()
 
     cout << tab << "-vhdl       --vhdl                      output vhdl file." << endl;
     cout << tab << "-vhdl-trace --vhdl-trace                activate trace." << endl;
-    cout << tab << "-vhdl-type 0|1 --vhdl-format 0|1        sample format 0 = sfixed (default), 1 = float." << endl;
+    cout << tab << "-vhdl-type 0|1 --vhdl-type 0|1          sample format 0 = sfixed (default), 1 = float." << endl;
     cout << tab << "-vhdl-msb <n>                           MSB number of bits." << endl;
-    cout << tab << "-vhdl-lsm <n>                           LSB number of bits." << endl;
+    cout << tab << "-vhdl-lsb <n>                           LSB number of bits." << endl;
         
     cout << tab
          << "-wi <n>     --widening-iterations <n>   number of iterations before widening in signal bounding."
@@ -1293,7 +1293,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
 static void includeFile(const string& file, ostream& dst)
 {
     unique_ptr<ifstream> file_include = openArchStream(file.c_str());
-    if (file_include != nullptr) {
+    if (file_include) {
         streamCopyUntilEnd(*file_include.get(), dst);
     }
 }
@@ -1674,7 +1674,7 @@ static void compileWASM(Tree signals, int numInputs, int numOutputs, ostream* ou
 
     if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
     new_comp->compileMultiSignal(signals);
- #else
+#else
     throw faustexception("ERROR : -lang wasm not supported since WASM backend is not built\n");
 #endif
 }
@@ -1701,7 +1701,7 @@ static void generateCodeAux1(unique_ptr<ostream>& dst)
 {
     if (gGlobal->gArchFile != "") {
         
-        if ((enrobage = openArchStream(gGlobal->gArchFile.c_str())) != nullptr) {
+        if ((enrobage = openArchStream(gGlobal->gArchFile.c_str()))) {
             
             if (gGlobal->gNameSpace != "" && gGlobal->gOutputLang == "cpp")
                 *dst.get() << "namespace " << gGlobal->gNameSpace << " {" << endl;
@@ -1770,17 +1770,17 @@ static void generateCodeAux1(unique_ptr<ostream>& dst)
         
         if (gGlobal->gOutputFile == "string") {
             gGlobal->gDSPFactory->write(dst.get(), false, false);
-            if (helpers != nullptr) gGlobal->gDSPFactory->writeHelper(helpers.get(), false, false);
+            if (helpers) gGlobal->gDSPFactory->writeHelper(helpers.get(), false, false);
         } else if (gGlobal->gOutputFile == "binary") {
             gGlobal->gDSPFactory->write(dst.get(), true, false);
-            if (helpers != nullptr) gGlobal->gDSPFactory->writeHelper(helpers.get(), true, false);
+            if (helpers) gGlobal->gDSPFactory->writeHelper(helpers.get(), true, false);
         } else if (gGlobal->gOutputFile != "") {
             // Binary mode for LLVM backend if output different of 'cout'
             gGlobal->gDSPFactory->write(dst.get(), true, false);
-            if (helpers != nullptr) gGlobal->gDSPFactory->writeHelper(helpers.get(), false, false);
+            if (helpers) gGlobal->gDSPFactory->writeHelper(helpers.get(), false, false);
         } else {
             gGlobal->gDSPFactory->write(&cout, false, false);
-            if (helpers != nullptr) gGlobal->gDSPFactory->writeHelper(&cout, false, false);
+            if (helpers) gGlobal->gDSPFactory->writeHelper(&cout, false, false);
         }
     }
 }
