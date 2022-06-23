@@ -38,8 +38,6 @@ using namespace std;
 #define HIGH 8  //  gGlobal->gVHDLFloatMSB
 #define LOW -23 //  gGlobal->gVHDLFloatLSB
 
-#define FLOAT (gGlobal->gVHDLFloatType ? "float" : "sfixed")
-
 class Signal2VHDLVisitor : public TreeTraversal {
 
     private:
@@ -55,7 +53,7 @@ class Signal2VHDLVisitor : public TreeTraversal {
         string fDeclCompnt;          // Declaration of components
         string fFaustProcess;        // Implement the Faust process
         string fMapCompnt;           // Instantiating blocks
-   
+
         string addr_to_str(Tree t);
         string val_to_str(Tree t);
 
@@ -112,49 +110,62 @@ class Signal2VHDLVisitor : public TreeTraversal {
         void sincos_op(const string& name, Tree sig, Tree x, int nature);
         void bypass(const string& name, Tree sig, Tree x);
         void cast(const string& name, Tree sig, Tree x);
-    
-        string getSuffix(int nature) { return (nature == kReal) ? "_float" : "_int"; }
-    
-        string getFloatCoding(int nature)
-        {
-            return (nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? "float" : "sfixed") : "sfixed";
+
+
+        bool globalCodingFloat() {
+            return gGlobal->gVHDLFloatType == 1;
         }
-    
-        string getCoding(int nature)
-        {
-            return (nature == kReal) ? "float" : "sfixed";
+
+        bool globalCodingSfixed() {
+            return gGlobal->gVHDLFloatType == 0;
         }
-    
+
+        string getSuffix(int nature)
+        {
+            if (nature == kReal) {
+                return getRealCoding();
+            }   else return "int";
+        }
+
+        string getRealCoding() {
+            return globalCodingFloat() ? "float" : "sfixed";
+        }
+
         string getMSB(int nature)
         {
             return (nature == kReal) ? " msb " : to_string(31);
         }
-    
+
         string getFloatMSB(int nature)
         {
             return (nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? "" : " msb ") : to_string(31);
         }
-        
+
         string getLSB(int nature)
         {
             return (nature == kReal) ? " lsb " : to_string(0);
         }
-    
+
+        string getRange(int nature)
+        {
+            return "(" + getMSB(nature) + " downto " + getLSB(nature) + ")";
+        }
+
         string getFloatLSB(int nature)
         {
             return (nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? "" : " lsb ") : to_string(0);
         }
-    
+
         int getHigh(int nature)
         {
             return (nature == kReal) ? HIGH : 31;
         }
-    
+
         int getLow(int nature)
         {
             return (nature == kReal) ? LOW : 0;
         }
-   
+
     public:
         Signal2VHDLVisitor(old_OccMarkup* occ_markup) : TreeTraversal(), fOccMarkup(occ_markup), fVisitGen(false){};
 
