@@ -257,7 +257,7 @@ bool ControlInst::hasCondition(ValueInst* cond)
 DeclareFunInst* InstBuilder::genVoidFunction(const string& name, BlockInst* code)
 {
     Names args;
-    FunTyped*         fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped());
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genVoidTyped());
     return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
