@@ -120,11 +120,18 @@ class Signal2VHDLVisitor : public TreeTraversal {
             return gGlobal->gVHDLFloatType == 0;
         }
 
-        string getSuffix(int nature)
+        string getObjectSuffix(int nature)
+        {
+            if (nature == kReal) {
+                return "_" + getRealCoding();
+            }   else return "_int";
+        }
+
+        string getSignalType(int nature)
         {
             if (nature == kReal) {
                 return getRealCoding();
-            }   else return "int";
+            }   else return "sfixed";
         }
 
         string getRealCoding() {
