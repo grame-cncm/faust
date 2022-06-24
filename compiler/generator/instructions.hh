@@ -576,8 +576,8 @@ struct VectorTyped : public Typed {
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct NumValueInst {
-};
+// Base class for number values
+struct NumValueInst {};
 
 // ===========
 //  Addresses
@@ -2261,6 +2261,7 @@ struct InstBuilder {
     {
         return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, var_access), index));
     }
+    
     // Actually same as genLoadArrayVar
     static LoadVarInst* genLoadStructPtrVar(const string& vname, Address::AccessType var_access, ValueInst* index)
     {
@@ -2305,26 +2306,32 @@ struct InstBuilder {
     {
         return genLoadVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct | Address::kVolatile)));
     }
+    
+    template <typename Iterator>
+    static LoadVarInst* genLoadArrayVar(const string& vname, Address::AccessType access, Iterator indexBegin, Iterator indexEnd)
+    {
+        typedef reverse_iterator<Iterator> Rit;
+        
+        Rit rbegin(indexEnd);
+        Rit rend(indexBegin);
+        
+        Address* address = genNamedAddress(vname, access);
+        for (Rit it = rbegin; it != rend; ++it) {
+            address = genIndexedAddress(address, *it);
+        }
+        
+        return genLoadVarInst(address);
+    }
 
     template <typename Iterator>
     static LoadVarInst* genLoadArrayStructVar(const string& vname, Iterator indexBegin, Iterator indexEnd)
     {
-        typedef reverse_iterator<Iterator> Rit;
-        Rit                                rbegin(indexEnd);
-        Rit                                rend(indexBegin);
-
-        Address* address = genNamedAddress(vname, Address::kStruct);
-        for (Rit it = rbegin; it != rend; ++it) {
-            address = genIndexedAddress(address, *it);
-        }
-
-        return genLoadVarInst(address);
+        return genLoadArrayVar(vname, Address::kStruct, indexBegin, indexEnd);
     }
 
     static LoadVarInst* genLoadArrayStructVar(const string& vname, ValueInst* index)
     {
-        vector<ValueInst*> indices;
-        indices.push_back(index);
+        vector<ValueInst*> indices = {index};
         return genLoadArrayStructVar(vname, indices.begin(), indices.end());
     }
 
@@ -2349,26 +2356,39 @@ struct InstBuilder {
                                exp);
     }
 
+    
     template <typename Iterator>
-    static StoreVarInst* genStoreArrayStructVar(const string& vname, ValueInst* exp, Iterator indexBegin,
-                                                Iterator indexEnd)
+    static StoreVarInst* genStoreArrayVar(const string& vname,
+                                          ValueInst* exp,
+                                          Address::AccessType access,
+                                          Iterator indexBegin,
+                                          Iterator indexEnd)
     {
         typedef reverse_iterator<Iterator> Rit;
-        Rit                                rbegin(indexEnd);
-        Rit                                rend(indexBegin);
-
-        Address* address = genNamedAddress(vname, Address::kStruct);
+        
+        Rit rbegin(indexEnd);
+        Rit rend(indexBegin);
+        
+        Address* address = genNamedAddress(vname, access);
         for (Rit it = rbegin; it != rend; ++it) {
             address = genIndexedAddress(address, *it);
         }
-
+        
         return genStoreVarInst(address, exp);
+    }
+
+    template <typename Iterator>
+    static StoreVarInst* genStoreArrayStructVar(const string& vname,
+                                                ValueInst* exp,
+                                                Iterator indexBegin,
+                                                Iterator indexEnd)
+    {
+        return genStoreArrayVar(vname, exp, Address::kStruct, indexBegin, indexEnd);
     }
 
     static StoreVarInst* genStoreArrayStructVar(const string& vname, ValueInst* index, ValueInst* exp)
     {
-        vector<ValueInst*> indices;
-        indices.push_back(index);
+        vector<ValueInst*> indices = {index};
         return genStoreArrayStructVar(vname, exp, indices.begin(), indices.end());
     }
 
@@ -2408,22 +2428,12 @@ struct InstBuilder {
     template <typename Iterator>
     static LoadVarInst* genLoadArrayStaticStructVar(const string& vname, Iterator indexBegin, Iterator indexEnd)
     {
-        typedef reverse_iterator<Iterator> Rit;
-        Rit                                rbegin(indexEnd);
-        Rit                                rend(indexBegin);
-
-        Address* address = genNamedAddress(vname, Address::kStaticStruct);
-        for (Rit it = rbegin; it != rend; ++it) {
-            address = genIndexedAddress(address, *it);
-        }
-
-        return genLoadVarInst(address);
+        return genLoadArrayVar(vname, Address::kStaticStruct, indexBegin, indexEnd);
     }
 
     static LoadVarInst* genLoadArrayStaticStructVar(const string& vname, ValueInst* index)
     {
-        vector<ValueInst*> indices;
-        indices.push_back(index);
+        vector<ValueInst*> indices = {index};
         return genLoadArrayStaticStructVar(vname, indices.begin(), indices.end());
     }
 
@@ -2431,22 +2441,12 @@ struct InstBuilder {
     static StoreVarInst* genStoreArrayStaticStructVar(const string& vname, ValueInst* exp, Iterator indexBegin,
                                                       Iterator indexEnd)
     {
-        typedef reverse_iterator<Iterator> Rit;
-        Rit                                rbegin(indexEnd);
-        Rit                                rend(indexBegin);
-
-        Address* address = genNamedAddress(vname, Address::kStaticStruct);
-        for (Rit it = rbegin; it != rend; ++it) {
-            address = genIndexedAddress(address, *it);
-        }
-
-        return genStoreVarInst(address, exp);
+        return genStoreArrayVar(vname, exp, Address::kStaticStruct, indexBegin, indexEnd);
     }
 
     static StoreVarInst* genStoreArrayStaticStructVar(const string& vname, ValueInst* index, ValueInst* exp)
     {
-        vector<ValueInst*> indices;
-        indices.push_back(index);
+        vector<ValueInst*> indices = {index};
         return genStoreArrayStructVar(vname, exp, indices.begin(), indices.end());
     }
 

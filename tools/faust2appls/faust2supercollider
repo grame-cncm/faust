@@ -45,7 +45,7 @@ elif [ -d $SC4 ]; then
 elif [ -d $SC5 ]; then
     SC=$SC5
 else 
-    echo "Can't find SuperCollider headers"
+    echo "Can't find SuperCollider headers, try to set the $SUPERCOLLIDER_HEADERS variable with the appropriate path"
     exit 1
 fi 
 
