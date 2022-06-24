@@ -504,10 +504,14 @@ void Signal2VHDLVisitor::entity_delay(int nature, string& str)
 {
     string nature_string = getObjectSuffix(nature);
     string stype = getSignalType(nature);
-    string range_init = getFloatMSB(nature) +
-        ((gGlobal->gVHDLFloatType == 1) ? ((nature == kReal) ? " input0 " : ",") : ",") + getFloatLSB(nature);
-    string range = "(" + getMSB(nature) + " downto " + getLSB(nature) + ")";
+    string range = getRange(nature);
+    string range_init = getFloatMSB(nature);
+    if (globalCodingFloat() && nature == kReal)
+         range_init.append("input0 ");
+    else range_init.append(",");
+    range_init.append(getFloatLSB(nature));
     entity_header(str);
+
     str += "entity DELAY" + nature_string + " is\n"
     "generic (\n"
     "    delay_value   : integer;\n"
@@ -546,8 +550,8 @@ void Signal2VHDLVisitor::entity_delay_var_reg(int nature, string& str)
 {
     string stype  = getSignalType(nature);
     string range  = getRange(nature);
-
     entity_header(str);
+
     str += "entity DELAYVAR is\n"
     "generic(\n"
     "    mxd       : integer;\n"
@@ -584,12 +588,14 @@ void Signal2VHDLVisitor::entity_delay_var_reg(int nature, string& str)
 void Signal2VHDLVisitor::entity_delay_var_ram(int nature, string& str)
 {
     string stype = getSignalType(nature);
-    string range = "(" + ((nature == kReal) ? " msb":to_string(31)) + " downto " + ((nature == kReal) ? "lsb" : to_string(0)) + ")";
-    string range_init = ((nature == kReal) ? ((gGlobal->gVHDLFloatType==1) ? " msb ":" msb ") : to_string(31)) +
-    ((gGlobal->gVHDLFloatType == 1) ? ((nature == kReal) ? " input0 " : ",") : ",") +
-    ((nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? " lsb " : " lsb ") : to_string(0));
-
+    string range = getRange(nature);
+    string range_init = getFloatMSB(nature);
+    if (globalCodingFloat() && nature == kReal)
+         range_init.append("input0 ");
+    else range_init.append(",");
+    range_init.append(getFloatLSB(nature));
     entity_header(str);
+
     str += "entity DELAYVAR is\n"
     "TODO"
     "generic(\n"
@@ -639,9 +645,11 @@ void Signal2VHDLVisitor::entity_bypass(const string& name, int nature, string& s
     // signal initialization is a bit tricky
     string range = getRange(nature);
     string stype = getSignalType(nature);
-    string range_init = ((nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? "" : " msb ") : to_string(31)) +
-            ((gGlobal->gVHDLFloatType == 1) ? ((nature == kReal) ? " input0 " : ",") : ",")  +
-            ((nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? "" : " lsb ") : to_string(0));
+    string range_init = getFloatMSB(nature);
+    if (globalCodingFloat() && nature == kReal)
+         range_init.append("input0 ");
+    else range_init.append(",");
+    range_init.append(getFloatLSB(nature));
 
     entity_header(str);
     str += "entity " + name + " is\n";
@@ -668,8 +676,13 @@ void Signal2VHDLVisitor::entity_cast(const string& name, int nature_in, int natu
     string stype_out  = getSignalType(nature_out);
     string range_in   = getRange(nature_in);
     string range_out  = getRange(nature_out);
-    string range_init = getFloatMSB(nature_out) +
-        ((gGlobal->gVHDLFloatType == 1) ? ((nature_out == kReal) ? " temp ": ",") : ",") + getFloatLSB(nature_out);
+    string range_init = getFloatMSB(nature_out);
+//        ((gGlobal->gVHDLFloatType == 1) ? ((nature_out == kReal) ? " temp ": ",") : ",") + getFloatLSB(nature_out);
+//    string range_init_ = getFloatMSB(nature_out);
+    if (globalCodingFloat() && nature_out == kReal)
+         range_init.append(" temp ");
+    else range_init.append(",");
+    range_init += getFloatLSB(nature_out);
 
     entity_header(str);
     str += "entity " + name + " is\n";
