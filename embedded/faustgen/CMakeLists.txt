@@ -172,6 +172,8 @@ endif()
 # post install processing
 if (APPLE)
 install (
+    # not sure this is the right place, but it works...
+    CODE  "execute_process (COMMAND codesign --sign - --deep --force ${PACKDIR}/${DST}/faustgen/externals/msp/faustgen\~.mxo)"
     CODE  "execute_process (COMMAND hdiutil create ${PACKDIR}/${DST}-macosx.dmg -fs HFS+ -srcfolder ${PACKDIR}/${DST} -format UDBZ -ov)"
 )
 endif()
