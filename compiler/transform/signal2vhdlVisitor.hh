@@ -120,11 +120,18 @@ class Signal2VHDLVisitor : public TreeTraversal {
             return gGlobal->gVHDLFloatType == 0;
         }
 
-        string getSuffix(int nature)
+        string getObjectSuffix(int nature)
+        {
+            if (nature == kReal) {
+                return "_" + getRealCoding();
+            }   else return "_int";
+        }
+
+        string getSignalType(int nature)
         {
             if (nature == kReal) {
                 return getRealCoding();
-            }   else return "int";
+            }   else return "sfixed";
         }
 
         string getRealCoding() {
@@ -138,7 +145,12 @@ class Signal2VHDLVisitor : public TreeTraversal {
 
         string getFloatMSB(int nature)
         {
-            return (nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? "" : " msb ") : to_string(31);
+            return (nature == kReal) ? ((globalCodingFloat()) ? "" : " msb ") : to_string(31);
+        }
+
+        string getFloatLSB(int nature)
+        {
+            return (nature == kReal) ? ((globalCodingFloat()) ? "" : " lsb ") : to_string(0);
         }
 
         string getLSB(int nature)
@@ -149,11 +161,6 @@ class Signal2VHDLVisitor : public TreeTraversal {
         string getRange(int nature)
         {
             return "(" + getMSB(nature) + " downto " + getLSB(nature) + ")";
-        }
-
-        string getFloatLSB(int nature)
-        {
-            return (nature == kReal) ? ((gGlobal->gVHDLFloatType == 1) ? "" : " lsb ") : to_string(0);
         }
 
         int getHigh(int nature)
