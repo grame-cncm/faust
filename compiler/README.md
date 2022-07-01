@@ -1,4 +1,4 @@
-% man(1) Version 2.41.1 (16-June-2022) | Faust man page
+% man(1) Version 2.41.1 (01-July-2022) | Faust man page
 
 NAME
 ====
@@ -142,11 +142,11 @@ Code generation options:
 
   **-vhdl**-trace **--vhdl-trace**                activate trace.
 
-  **-vhdl**-type 0|1 **--vhdl-format** 0|1        sample format 0 = sfixed (default), 1 = float.
+  **-vhdl**-type 0|1 **--vhdl-type** 0|1          sample format 0 = sfixed (default), 1 = float.
 
   **-vhdl**-msb \<n>                           MSB number of bits.
 
-  **-vhdl**-lsm \<n>                           LSB number of bits.
+  **-vhdl**-lsb \<n>                           LSB number of bits.
 
   **-wi** \<n>     **--widening-iterations** \<n>   number of iterations before widening in signal bounding.
 

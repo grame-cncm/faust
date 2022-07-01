@@ -253,14 +253,16 @@ bool isSigLowest(Tree t, Tree& s)
 
 // Arithmetical operations
 
-LIBFAUST_API Tree sigBinOp(SOperator op, Tree x, Tree y) {
+LIBFAUST_API Tree sigBinOp(SOperator op, Tree x, Tree y)
+{
     return sigBinOp(int(op), x, y);
 }
 
-LIBFAUST_API Tree sigBinOp(int op, Tree x, Tree y)
+Tree sigBinOp(int op, Tree x, Tree y)
 {
     return tree(gGlobal->SIGBINOP, tree(op), x, y);
 }
+
 bool isSigBinOp(Tree s, int* op, Tree& x, Tree& y)
 {
     Tree t;

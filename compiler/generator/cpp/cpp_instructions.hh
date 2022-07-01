@@ -28,6 +28,10 @@ using namespace std;
 #include "type_manager.hh"
 #include "struct_manager.hh"
 
+/**
+ * Implement C++ FIR visitor.
+ */
+
 class CPPInstVisitor : public TextInstVisitor {
    private:
     /*
@@ -487,7 +491,10 @@ class CPPInstVisitor : public TextInstVisitor {
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 
-// Used for -os1 mode (TODO : does not work with 'soundfile')
+/**
+ Implement C++ FIR visitor: used for -os1 mode (TODO : does not work with 'soundfile').
+*/
+
 class CPPInstVisitor1 : public CPPInstVisitor {
     
     private:
@@ -560,7 +567,10 @@ class CPPInstVisitor1 : public CPPInstVisitor {
     
 };
 
-// Used for -os2 mode, accessing iZone/fZone as function args (TODO : does not work with 'soundfile')
+/**
+ Implement C++ FIR visitor: Used for -os2 mode, accessing iZone/fZone as function args (TODO : does not work with 'soundfile').
+ */
+
 class CPPInstVisitor2 : public CPPInstVisitor {
     
     protected:
@@ -613,7 +623,10 @@ class CPPInstVisitor2 : public CPPInstVisitor {
     
 };
 
-// Used for -os3 mode, accessing iZone/fZone in DSP struct (TODO : does not work with 'soundfile')
+/**
+ Implement C++ FIR visitor: used for -os3 mode, accessing iZone/fZone in DSP struct (TODO : does not work with 'soundfile').
+ */
+
 class CPPInstVisitor3 : public CPPInstVisitor2 {
     
     public:

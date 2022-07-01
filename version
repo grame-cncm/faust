@@ -118,6 +118,11 @@ echo " updating $DOXYFILE3"
 sed "s/PROJECT_NUMBER         = [ 	]*[0-9].*/PROJECT_NUMBER         = $VERSION/" $DOXYFILE3 > TMP$$
 mv -f TMP$$ $DOXYFILE3
 
+DOXYFILE4=$ROOT/documentation/compiler/Doxyfile
+echo " updating $DOXYFILE4"
+sed "s/PROJECT_NUMBER         = [ 	]*[0-9].*/PROJECT_NUMBER         = $VERSION/" $DOXYFILE4 > TMP$$
+mv -f TMP$$ $DOXYFILE4
+
 make man
 
 echo $VERSION > version.txt

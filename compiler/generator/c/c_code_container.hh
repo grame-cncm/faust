@@ -33,6 +33,10 @@
 #pragma warning(disable : 4250)
 #endif
 
+/**
+ * Implement C FIR base container.
+ */
+
 class CCodeContainer : public virtual CodeContainer {
    protected:
     CInstVisitor* fCodeProducer;
@@ -125,6 +129,10 @@ class CCodeContainer : public virtual CodeContainer {
                                           std::ostream* dst = new std::stringstream());
 };
 
+/**
+ * Implement C FIR scalar container.
+ */
+
 class CScalarCodeContainer : public CCodeContainer {
    protected:
    
@@ -142,7 +150,10 @@ class CScalarCodeContainer : public CCodeContainer {
     void generateComputeAux(int tab);
 };
 
-// Special version for -os0 generation mode
+/**
+ * Implement C FIR scalar container (special version for -os0 generation mode)
+ */
+
 class CScalarOneSampleCodeContainer1 : public CScalarCodeContainer {
    protected:
     virtual void produceClass();
@@ -180,7 +191,10 @@ class CScalarOneSampleCodeContainer1 : public CScalarCodeContainer {
     void generateComputeAux(int tab);
 };
 
-// Special version for -os1 generation mode with iZone and fZone
+/**
+ * Implement C FIR scalar container (special version for -os1 generation mode with iZone and fZone).
+ */
+
 class CScalarOneSampleCodeContainer2 : public CScalarCodeContainer {
     protected:
         virtual void produceClass();
@@ -220,12 +234,10 @@ class CScalarOneSampleCodeContainer2 : public CScalarCodeContainer {
         void generateComputeAux(int tab);
 };
 
-/*
- Some of the DSP struct fields will be moved in the iZone/fZone (typically long delay lines).
- The others will stay in the DSP structure.
+/**
+ Implement C FIR scalar container (special version for -os2 generation mode with iZone and fZone). Some of the DSP struct fields will be moved in the iZone/fZone (typically long delay lines). The others will stay in the DSP structure.
  */
 
-// Special version for -os2 generation mode with iZone and fZone
 class CScalarOneSampleCodeContainer3 : public CScalarOneSampleCodeContainer2 {
     protected:
         virtual void produceClass();
@@ -264,7 +276,10 @@ class CScalarOneSampleCodeContainer3 : public CScalarOneSampleCodeContainer2 {
     
 };
 
-// Special version for -os3 generation mode with iZone and fZone in DSP struct
+/**
+ Implement C FIR scalar container (special version for -os3 generation mode with iZone and fZone in DSP struct).
+ */
+
 class CScalarOneSampleCodeContainer4 : public CScalarOneSampleCodeContainer3 {
     protected:
         virtual void produceClass();
@@ -284,6 +299,10 @@ class CScalarOneSampleCodeContainer4 : public CScalarOneSampleCodeContainer3 {
     
 };
 
+/**
+ Implement C FIR vector container.
+ */
+
 class CVectorCodeContainer : public VectorCodeContainer, public CCodeContainer {
    protected:
    public:
@@ -294,6 +313,10 @@ class CVectorCodeContainer : public VectorCodeContainer, public CCodeContainer {
     void generateComputeAux(int n);
 };
 
+/**
+ Implement C FIR OpenMP container.
+ */
+
 class COpenMPCodeContainer : public OpenMPCodeContainer, public CCodeContainer {
    protected:
    public:
@@ -303,6 +326,10 @@ class COpenMPCodeContainer : public OpenMPCodeContainer, public CCodeContainer {
 
     void generateComputeAux(int tab);
 };
+
+/**
+ Implement C FIR Work Stealing container.
+ */
 
 class CWorkStealingCodeContainer : public WSSCodeContainer, public CCodeContainer {
    protected:

@@ -244,5 +244,6 @@ static void writePolyDSPFactoryToMachineFile(dsp_poly_factory* factory, const st
     writeDSPFactoryToMachineFile(static_cast<llvm_dsp_factory*>(factory->fProcessFactory), process_path, target);
 }
 
-#endif // __poly_llvm_dsp_tools__
+#endif
+
 /************************** END poly-llvm-dsp.h **************************/

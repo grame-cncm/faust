@@ -29,6 +29,10 @@
 
 using namespace std;
 
+/**
+ * Implement C FIR visitor.
+ */
+
 class CInstVisitor : public TextInstVisitor {
    private:
     /*
@@ -451,7 +455,10 @@ class CInstVisitor : public TextInstVisitor {
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 
-// Used for -os1 mode (TODO : does not work with 'soundfile')
+/**
+ Implement C FIR visitor: used for -os1 mode (TODO : does not work with 'soundfile').
+ */
+
 class CInstVisitor1 : public CInstVisitor {
     
     private:
@@ -524,7 +531,10 @@ class CInstVisitor1 : public CInstVisitor {
    
 };
 
-// Used for -os2 mode, accessing iZone/fZone as function args (TODO : does not work with 'soundfile')
+/**
+ Implement C FIR visitor: used for -os2 mode, accessing iZone/fZone as function args (TODO : does not work with 'soundfile').
+ */
+
 class CInstVisitor2 : public CInstVisitor {
     
     protected:
@@ -577,7 +587,10 @@ class CInstVisitor2 : public CInstVisitor {
     
 };
 
-// Used for -os3 mode, accessing iZone/fZone in DSP struct (TODO : does not work with 'soundfile')
+/**
+ Implement C FIR visitor: used for -os3 mode, accessing iZone/fZone in DSP struct (TODO : does not work with 'soundfile').
+ */
+
 class CInstVisitor3 : public CInstVisitor2 {
     
     public:
