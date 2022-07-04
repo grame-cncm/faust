@@ -48,7 +48,7 @@ LIBFAUST_API Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
  */
 ///////////////////////////////////////////////////////////////////////
 
-Tree sigRem(Tree x, Tree y)
+LIBFAUST_API Tree sigRem(Tree x, Tree y)
 {
     if (isZero(y)) {
         stringstream error;
@@ -253,6 +253,10 @@ bool isSigLowest(Tree t, Tree& s)
 
 // Arithmetical operations
 
+LIBFAUST_API Tree sigBinOp(SOperator op, Tree x, Tree y) {
+    return sigBinOp(int(op), x, y);
+}
+
 LIBFAUST_API Tree sigBinOp(int op, Tree x, Tree y)
 {
     return tree(gGlobal->SIGBINOP, tree(op), x, y);
@@ -383,7 +387,6 @@ LIBFAUST_API Tree sigDiv(Tree x, Tree y)
 {
     return sigBinOp(kDiv, x, y);
 }
-Tree sigRem(Tree x, Tree y);
 
 LIBFAUST_API Tree sigAND(Tree x, Tree y)
 {
