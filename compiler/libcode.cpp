@@ -2100,6 +2100,48 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     return out.str();
 }
 
+LIBFAUST_API Tree DSPToBoxes(const std::string& dsp_content, int& inputs, int& outputs, std::string& error_msg)
+{
+    int argc = 0;
+    const char* argv[16];
+    argv[argc++] = "faust";
+    argv[argc] = nullptr;  // NULL terminated argv
+    
+    /****************************************************************
+     1 - process command line
+     *****************************************************************/
+    initFaustDirectories(argc, argv);
+    processCmdline(argc, argv);
+    
+    faust_alarm(gGlobal->gTimeout);
+    
+    /****************************************************************
+     2 - parse source files
+     *****************************************************************/
+    if (dsp_content.c_str()) {
+        gGlobal->gInputString = dsp_content.c_str();
+        gGlobal->gInputFiles.push_back("dummy");
+    }
+    initDocumentNames();
+    initFaustFloat();
+    
+    parseSourceFiles();
+    
+    /****************************************************************
+     3 - evaluate 'process' definition
+     *****************************************************************/
+    
+    callFun(threadEvaluateBlockDiagram);  // In a thread with more stack size...
+    if (gGlobal->gProcessTree) {
+        inputs  = gGlobal->gNumInputs;
+        outputs = gGlobal->gNumOutputs;
+        return gGlobal->gProcessTree;
+    } else {
+        error_msg = gGlobal->gErrorMessage;
+        return nullptr;
+    }
+}
+
 static void createFactoryAux(const char* name, const char* dsp_content, int argc, const char* argv[], bool generate)
 {
     /****************************************************************
@@ -2763,7 +2805,6 @@ tvec boxesToSignalsAux(Tree box)
         error << "ERROR during the evaluation of process : " << boxpp(box) << endl;
         throw faustexception(error.str());
     }
-     
     return propagate(gGlobal->nil, gGlobal->nil, box, makeSigInputList(numInputs));
 }
 
@@ -2778,9 +2819,9 @@ LIBFAUST_API tvec boxesToSignals(Tree box, std::string& error_msg)
 }
 
 LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromBoxes(const std::string& name_app,
-                                                      Tree box,
-                                                      int argc, const char* argv[],
-                                                      std::string& error_msg)
+                                                        Tree box,
+                                                        int argc, const char* argv[],
+                                                        std::string& error_msg)
 {
     try {
         tvec signals = boxesToSignalsAux(box);

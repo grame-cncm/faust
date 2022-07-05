@@ -613,11 +613,42 @@ static void test24(int argc, char* argv[])
     }
 }
 
+static void test25(int argc, char* argv[])
+{
+    createLibContext();
+    {
+        int inputs = 0;
+        int outputs = 0;
+        string error_msg;
+    
+        //Box filter = DSPToBoxes("import(\"stdfaust.lib\"); process = si.smooth;", inputs, outputs, error_msg);
+        Box filter = DSPToBoxes("import(\"stdfaust.lib\"); process = fi.lowpass3e(1);", inputs, outputs, error_msg);
+        //Box filter = DSPToBoxes("import(\"stdfaust.lib\"); process = _,_;", inputs, outputs, error_msg);
+    
+        cout << "inputs " << inputs << endl;
+        cout << "outputs " << outputs << endl;
+    
+        Box cutoff = boxHSlider("cutoff", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
+        Box cutoffAndInput = boxPar(cutoff, boxWire());
+        Box filteredInput = boxSeq(cutoffAndInput, filter);
+        //dsp_factory_base* factory = createCPPDSPFactoryFromBoxes("FaustDSP", filteredInput, argc, (const char**)argv, error_msg);
+        dsp_factory_base* factory = createCPPDSPFactoryFromBoxes("FaustDSP", filter, argc, (const char**)argv, error_msg);
+        if (factory) {
+            factory->write(&cout);
+            delete(factory);
+        } else {
+            cerr << error_msg;
+        }
+    }
+    destroyLibContext();
+}
+
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
 int main(int argc, char* argv[])
 {
+    /*
     test1();
     test2();
     test3();
@@ -652,6 +683,9 @@ int main(int argc, char* argv[])
     
     // Test with audio, GUI, MIDI and Interp backend
     test24(argc, argv);
+    */
+    
+    test25(argc, argv);
     
     return 0;
 }

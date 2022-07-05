@@ -314,7 +314,7 @@ extern "C"
      * @param selector - when 0 at time t returns s1[t], when 1 at time t returns s2[t], otherwise returns s3[t]
      * @param s1 - first box to be selected
      * @param s2 - second box to be selected
-     * @param s3 - third signal to be selected
+     * @param s3 - third box to be selected
      *
      * @return the selected box depending of the selector value at each time t.
      */
@@ -565,12 +565,12 @@ extern "C"
      *
      * The attach primitive takes two input box and produces one output box
      * which is a copy of the first input. The role of attach is to force
-     * its second input signal to be compiled with the first one.
+     * its second input box to be compiled with the first one.
      *
      * @param s1 - the first box
      * @param s2 - the second box
      *
-     * @return the attach signal.
+     * @return the attach box.
      */
     LIBFAUST_API Box CboxAttachAux(Box s1, Box s2);
     

@@ -319,7 +319,7 @@ LIBFAUST_API Box boxSelect3();
  * @param selector - when 0 at time t returns s1[t], when 1 at time t returns s2[t], otherwise returns s3[t]
  * @param s1 - first box to be selected
  * @param s2 - second box to be selected
- * @param s3 - third signal to be selected
+ * @param s3 - third box to be selected
  *
  * @return the selected box depending of the selector value at each time t.
  */
@@ -572,14 +572,26 @@ LIBFAUST_API Box boxAttach();
  *
  * The attach primitive takes two input box and produces one output box
  * which is a copy of the first input. The role of attach is to force
- * its second input signal to be compiled with the first one.
+ * its second input box to be compiled with the first one.
  *
  * @param s1 - the first box
  * @param s2 - the second box
  *
- * @return the attach signal.
+ * @return the attach box.
  */
 LIBFAUST_API Box boxAttach(Box s1, Box s2);
+
+/**
+ * Compile a DSP source code as a string in a flattened box
+ *
+ * @param dsp_content - the Faust program as a string
+ * @param inputs - the resulting box number of inputs
+ * @param outputs - the resulting box number of outputs
+ * @param error_msg - the error string to be filled
+ *
+ * @return a compiled box on success, otherwise a null pointer.
+ */
+LIBFAUST_API Box DSPToBoxes(const std::string& dsp_content, int& inputs, int& outputs, std::string& error_msg);
 
 /**
  * Compile a box expression in a list of signals.
