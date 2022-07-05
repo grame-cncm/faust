@@ -150,7 +150,7 @@ LIBFAUST_API Tree sigAdd(Tree x, Tree y);
 LIBFAUST_API Tree sigSub(Tree x, Tree y);
 LIBFAUST_API Tree sigMul(Tree x, Tree y);
 LIBFAUST_API Tree sigDiv(Tree x, Tree y);
-Tree sigRem(Tree x, Tree y);
+LIBFAUST_API Tree sigRem(Tree x, Tree y);
 
 LIBFAUST_API Tree sigAND(Tree x, Tree y);
 LIBFAUST_API Tree sigOR(Tree x, Tree y);
