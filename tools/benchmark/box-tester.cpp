@@ -622,7 +622,8 @@ static void test25(int argc, char* argv[])
         string error_msg;
     
         //Box filter = DSPToBoxes("import(\"stdfaust.lib\"); process = si.smooth;", inputs, outputs, error_msg);
-        Box filter = DSPToBoxes("import(\"stdfaust.lib\"); process = fi.lowpass3e(1);", inputs, outputs, error_msg);
+        //Box filter = DSPToBoxes("import(\"stdfaust.lib\"); process = fi.lowpass3e(1);", inputs, outputs, error_msg);
+        Box filter = DSPToBoxes("import(\"stdfaust.lib\"); process = fi.lowpass(5);", inputs, outputs, error_msg);
         //Box filter = DSPToBoxes("import(\"stdfaust.lib\"); process = _,_;", inputs, outputs, error_msg);
     
         cout << "inputs " << inputs << endl;
@@ -631,8 +632,8 @@ static void test25(int argc, char* argv[])
         Box cutoff = boxHSlider("cutoff", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
         Box cutoffAndInput = boxPar(cutoff, boxWire());
         Box filteredInput = boxSeq(cutoffAndInput, filter);
-        //dsp_factory_base* factory = createCPPDSPFactoryFromBoxes("FaustDSP", filteredInput, argc, (const char**)argv, error_msg);
-        dsp_factory_base* factory = createCPPDSPFactoryFromBoxes("FaustDSP", filter, argc, (const char**)argv, error_msg);
+        dsp_factory_base* factory = createCPPDSPFactoryFromBoxes("FaustDSP", filteredInput, argc, (const char**)argv, error_msg);
+        //dsp_factory_base* factory = createCPPDSPFactoryFromBoxes("FaustDSP", filter, argc, (const char**)argv, error_msg);
         if (factory) {
             factory->write(&cout);
             delete(factory);

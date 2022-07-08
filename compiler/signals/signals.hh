@@ -58,7 +58,8 @@ LIBFAUST_API Tree sigWaveform(const tvec& wf);
 bool isSigWaveform(Tree s);
 
 // Inputs and outputs
-LIBFAUST_API Tree sigInput(int i, bool keep_max = true);
+LIBFAUST_API Tree sigInput(int i);
+Tree sigInputAux(int i, bool keep_max);
 Tree sigOutput(int i, Tree t);
 
 bool isSigInput(Tree t, int* i);
