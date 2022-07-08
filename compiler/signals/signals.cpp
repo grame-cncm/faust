@@ -78,7 +78,7 @@ bool isSigReal(Tree t, double* r)
 
 LIBFAUST_API Tree sigInput(int i)
 {
-    sigInputAux(i, true);
+    return sigInputAux(i, true);
 }
 
 Tree sigInputAux(int i, bool keep_max)
