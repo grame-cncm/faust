@@ -76,10 +76,10 @@ bool isSigReal(Tree t, double* r)
     return isDouble(t->node(), r);
 }
 
-LIBFAUST_API Tree sigInput(int i)
+LIBFAUST_API Tree sigInput(int i, bool keep_max)
 {
     // Keep the max input number (used with the signal API)
-    gGlobal->gMaxInputs = std::max(gGlobal->gMaxInputs, i+1);
+    if (keep_max) gGlobal->gMaxInputs = std::max(gGlobal->gMaxInputs, i+1);
     return tree(gGlobal->SIGINPUT, tree(i));
 }
 bool isSigInput(Tree t, int* i)

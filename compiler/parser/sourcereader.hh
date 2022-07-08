@@ -55,6 +55,11 @@ class SourceReader
         
     public:
     
+        void init()
+        {
+            fFileCache.clear();
+            fFilePathnames.clear();
+        }
         Tree getList(const char* fname);
         Tree expandList(Tree ldef);
         vector<string> listSrcFiles();

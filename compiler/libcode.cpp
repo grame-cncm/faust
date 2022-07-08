@@ -1224,7 +1224,8 @@ static void parseSourceFiles()
 
     list<string>::iterator s;
     gGlobal->gResult2 = gGlobal->nil;
-
+    gGlobal->gReader.init();
+    
     if (!gGlobal->gInjectFlag && gGlobal->gInputFiles.begin() == gGlobal->gInputFiles.end()) {
         throw faustexception("ERROR : no files specified; for help type \"faust --help\"\n");
     }
@@ -1236,7 +1237,7 @@ static void parseSourceFiles()
     }
 
     gGlobal->gExpandedDefList = gGlobal->gReader.expandList(gGlobal->gResult2);
-
+  
     endTiming("parser");
 }
 
