@@ -19,10 +19,11 @@
  ************************************************************************
  ************************************************************************/
 
-#include "signal2vhdlVisitor.hh"
 #include <cstdlib>
 #include <map>
 #include <string>
+
+#include "signal2vhdlVisitor.hh"
 #include "Text.hh"
 #include "global.hh"
 #include "ppsig.hh"

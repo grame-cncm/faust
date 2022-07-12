@@ -360,7 +360,6 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     FFUN        = symbol("ForeignFunction");
 
     SIGINPUT           = symbol("SigInput");
-    gMaxInputs         = 0;
     SIGOUTPUT          = symbol("SigOutput");
     SIGDELAY1          = symbol("SigDelay1");
     SIGDELAY           = symbol("SigDelay");

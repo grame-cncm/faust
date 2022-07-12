@@ -66,6 +66,7 @@
 #include "timing.hh"
 #include "labels.hh"
 #include "xtended.hh"
+#include "signalVisitor.hh"
 
 #ifdef C_BUILD
 #include "c_code_container.hh"
@@ -2304,6 +2305,31 @@ static void createFactoryAux(const char* name, Tree signals, int argc, const cha
 // Backend API
 // ============
 
+// Count input signals in a signal tree
+struct InputsCounter : public SignalVisitor {
+    
+    int fInputs = 0;
+    
+    InputsCounter(Tree L)
+    {
+        L = deBruijn2Sym(L);
+        while (!isNil(L)) {
+            self(hd(L));
+            L = tl(L);
+        }
+    }
+    
+    void visit(Tree sig)
+    {
+        int i;
+        if (isSigInput(sig, &i)) {
+            fInputs++;
+        } else {
+            SignalVisitor::visit(sig);
+        }
+    }
+};
+
 dsp_factory_base* createFactory(const char* name, const char* dsp_content,
                                 int argc, const char* argv[],
                                 string& error_msg, bool generate)
@@ -2331,7 +2357,9 @@ dsp_factory_base* createFactory(const char* name, tvec signals,
     dsp_factory_base* factory = nullptr;
     
     try {
-        createFactoryAux(name, listConvert(signals), argc, argv, gGlobal->gMaxInputs, signals.size(), true);
+        Tree outs = listConvert(signals);
+        InputsCounter counter(outs);
+        createFactoryAux(name, outs, argc, argv, counter.fInputs, signals.size(), true);
         error_msg = gGlobal->gErrorMsg;
         factory   = gGlobal->gDSPFactory;
     } catch (faustexception& e) {
@@ -2383,7 +2411,9 @@ LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string&
     argv1[argc1] = nullptr;  // NULL terminated argv
   
     try {
-        createFactoryAux(name_app.c_str(), listConvert(signals), argc1, argv1, gGlobal->gMaxInputs, signals.size(), true);
+        Tree outs = listConvert(signals);
+        InputsCounter counter(outs);
+        createFactoryAux(name_app.c_str(), outs, argc1, argv1, counter.fInputs, signals.size(), true);
         error_msg = gGlobal->gErrorMsg;
         factory   = gGlobal->gDSPFactory;
     } catch (faustexception& e) {

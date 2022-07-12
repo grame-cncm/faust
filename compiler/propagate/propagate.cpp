@@ -316,7 +316,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         if (!searchEnv(box, sig, slotenv)) {
             // test YO : diagrams simplification 
             // fprintf(stderr, "propagate : internal error (slot undefined)\n");
-            sig = sigInputAux(++gGlobal->gDummyInput, false);
+            sig = sigInput(++gGlobal->gDummyInput);
         }
         return makeList(sig);
     }

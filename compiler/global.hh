@@ -370,7 +370,6 @@ struct global {
     property<Tree>* gSymListProp;
 
     Sym SIGINPUT;
-    int gMaxInputs;  // Max input allocated with sigInput API
     Sym SIGOUTPUT;
     Sym SIGDELAY1;
     Sym SIGDELAY;
