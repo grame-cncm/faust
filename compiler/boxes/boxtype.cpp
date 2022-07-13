@@ -55,7 +55,7 @@ static bool infereBoxType(Tree box, int* inum, int* onum);
  * \return true if type is defined, false if undefined
  */
 
-bool getBoxType(Tree box, int* inum, int* onum)
+LIBFAUST_API bool getBoxType(Tree box, int* inum, int* onum)
 {
     Tree t;
     if (getProperty(box, gGlobal->BOXTYPEPROP, t)) {

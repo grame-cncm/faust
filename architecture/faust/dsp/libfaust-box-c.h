@@ -575,6 +575,29 @@ extern "C"
     LIBFAUST_API Box CboxAttachAux(Box s1, Box s2);
     
     /**
+     * Compile a DSP source code as a string in a flattened box
+     *
+     * @param dsp_content - the Faust program as a string
+     * @param inputs - the place to return the number of inputs of the resulting box
+     * @param outputs - the place to return the number of outputs of the resulting box
+     * @param error_msg - the error string to be filled
+     *
+     * @return a compiled box on success, otherwise a null pointer.
+     */
+    LIBFAUST_API Box CDSPToBoxes(const char* dsp_content, int* inputs, int* outputs, char* error_msg);
+    
+    /**
+     * Return the number of inputs and outputs of a box
+     *
+     * @param box - the box we want to know the number of inputs and outputs
+     * @param inputs - the place to return the number of inputs
+     * @param outputs - the place to return the number of outputs
+     *
+     * @return true if type is defined, false if undefined.
+     */
+    LIBFAUST_API bool getCBoxType(Box box, int* inputs, int* outputs);
+
+    /**
      * Compile a box expression in a null terminated array of signals.
      *
      * @param box - the box expression

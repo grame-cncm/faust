@@ -225,11 +225,56 @@ static void test3()
     destroyLibContext();
 }
 
+// Compile a complete DSP program to a box expression, then use the result in another expression
+static void test4()
+{
+    createLibContext();
+    {
+        int inputs = 0;
+        int outputs = 0;
+        char error_msg[4096];
+        
+        // Create the filter without parameter
+        Box filter = CDSPToBoxes("import(\"stdfaust.lib\"); process = fi.lowpass(5);", &inputs, &outputs, error_msg);
+        
+        // Create the filter parameters and connect
+        Box cutoff = CboxHSlider("cutoff", CboxReal(300), CboxReal(100), CboxReal(2000), CboxReal(0.01));
+        Box cutoffAndInput = CboxPar(cutoff, CboxWire());
+        Box filteredInput = CboxSeq(cutoffAndInput, filter);
+        
+        bool res = getCBoxType(filteredInput, &inputs, &outputs);
+        printf("getCBoxType inputs: %d outputs: %d\n", inputs, outputs);
+        
+        llvm_dsp_factory* factory = createCDSPFactoryFromBoxes("test4", filteredInput, 0, NULL, "", error_msg, -1);
+        if (factory) {
+            
+            llvm_dsp* dsp = createCDSPInstance(factory);
+            assert(dsp);
+            
+            printf("=================UI=================\n");
+            
+                // Defined in PrintCUI.h
+            metadataCDSPInstance(dsp, &mglue);
+            
+            buildUserInterfaceCDSPInstance(dsp, &uglue);
+            
+                // Cleanup
+            deleteCDSPInstance(dsp);
+            deleteCDSPFactory(factory);
+            
+        } else {
+            printf("Cannot create factory : %s\n", error_msg);
+        }
+    }
+    destroyLibContext();
+}
+
 int main(int argc, char* argv[])
 {
     test1();
     test2();
     test3();
+    test4();
     
     return 0;
 }

@@ -345,6 +345,6 @@ bool isBoxMetadata(Tree s, Tree& exp, Tree& mdlist);
 *****************************************************************************/
 
 // Return the number of inputs and outputs
-bool getBoxType(Tree box, int* inum, int* onum);
+LIBFAUST_API bool getBoxType(Tree box, int* inum, int* onum);
 
 #endif

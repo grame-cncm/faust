@@ -2102,7 +2102,7 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     return out.str();
 }
 
-LIBFAUST_API Tree DSPToBoxes(const std::string& dsp_content, int& inputs, int& outputs, std::string& error_msg)
+LIBFAUST_API Tree DSPToBoxes(const std::string& dsp_content, int* inputs, int* outputs, std::string& error_msg)
 {
     int argc = 0;
     const char* argv[16];
@@ -2135,8 +2135,8 @@ LIBFAUST_API Tree DSPToBoxes(const std::string& dsp_content, int& inputs, int& o
     
     callFun(threadEvaluateBlockDiagram);  // In a thread with more stack size...
     if (gGlobal->gProcessTree) {
-        inputs  = gGlobal->gNumInputs;
-        outputs = gGlobal->gNumOutputs;
+        *inputs  = gGlobal->gNumInputs;
+        *outputs = gGlobal->gNumOutputs;
         return gGlobal->gProcessTree;
     } else {
         error_msg = gGlobal->gErrorMessage;
@@ -3403,6 +3403,19 @@ LIBFAUST_API Tree boxAttach(Tree s1, Tree s2)
 extern "C"
 {
 #endif
+    
+    LIBFAUST_API Tree CDSPToBoxes(const char* dsp_content, int* inputs, int* outputs, char* error_msg)
+    {
+        string error_msg_aux;
+        Tree box = DSPToBoxes(dsp_content, inputs, outputs, error_msg_aux);
+        strncpy(error_msg, error_msg_aux.c_str(), 4096);
+        return box;
+    }
+    
+    LIBFAUST_API bool getCBoxType(Tree box, int* inputs, int* outputs)
+    {
+        return getBoxType(box, inputs, outputs);
+    }
     
     LIBFAUST_API Tree* CboxesToSignals(Tree box, char* error_msg)
     {
