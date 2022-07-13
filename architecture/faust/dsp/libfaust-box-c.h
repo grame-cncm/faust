@@ -545,7 +545,7 @@ extern "C"
      * @param max - the max box, a constant numerical expression (see [1])
      * @param x - the input box
      *
-     * @return the vertical horizontal box.
+     * @return the horizontal bargraph box.
      */
     LIBFAUST_API Box CboxHBargraphAux(const char* label, Box min, Box max, Box x);
     
@@ -582,7 +582,7 @@ extern "C"
      *
      * @return a null terminated array of signals on success (to be deleted by the caller using freeCMemory), otherwise a nullptr.
      */
-    Signal* CboxesToSignals(Box box, char* error_msg);
+    LIBFAUST_API Signal* CboxesToSignals(Box box, char* error_msg);
     
     /*
      [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions

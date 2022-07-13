@@ -552,7 +552,7 @@ LIBFAUST_API Box boxHBargraph(const std::string& label, Box min, Box max);
  * @param max - the max box, a constant numerical expression (see [1])
  * @param x - the input box
  *
- * @return the vertical horizontal box.
+ * @return the horizontal bargraph box.
  */
 LIBFAUST_API Box boxHBargraph(const std::string& label, Box min, Box max, Box x);
 
