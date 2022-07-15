@@ -581,8 +581,13 @@ class APIUI : public PathBuilder, public Meta, public UI
             return (gyr >= 0 && gyr < 3) ? int(fGyr[gyr].size()) : 0;
         }
 
-        // getScreenColor() : -1 means no screen color control (no screencolor metadata found)
-        // otherwise return 0x00RRGGBB a ready to use color
+        /**
+         * Get the requested screen color.
+         *
+         * -1 means no screen color control (no screencolor metadata found)
+         * otherwise return 0x00RRGGBB a ready to use color
+         *
+         */
         int getScreenColor()
         {
             if (fHasScreenControl) {

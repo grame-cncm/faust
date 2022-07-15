@@ -4,13 +4,13 @@
  Copyright (C) 2016 GRAME, Romain Michon, CCRMA - Stanford University
  Copyright (C) 2014-2017 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
-
+ 
  This is sample code. This file is provided as an example of minimal
  FAUST architecture file. Redistribution and use in source and binary
  forms, with or without modification, in part or in full are permitted.
  In particular you can create a derived work of this FAUST architecture
  and distribute that work under terms of your choice.
-
+ 
  This sample code is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -82,29 +82,29 @@
 //**************************************************************
 
 #if COREAUDIO_DRIVER
-    #include "faust/audio/coreaudio-dsp.h"
+#include "faust/audio/coreaudio-dsp.h"
 #elif IOS_DRIVER
-    #include "faust/audio/coreaudio-ios-dsp.h"
+#include "faust/audio/coreaudio-ios-dsp.h"
 #elif ANDROID_DRIVER
-    #include "faust/audio/oboe-dsp.h"
+#include "faust/audio/oboe-dsp.h"
 #elif ALSA_DRIVER
-    #include "faust/audio/alsa-dsp.h"
+#include "faust/audio/alsa-dsp.h"
 #elif JACK_DRIVER
-    #include "faust/audio/jack-dsp.h"
+#include "faust/audio/jack-dsp.h"
 #elif PORTAUDIO_DRIVER
-    #include "faust/audio/portaudio-dsp.h"
+#include "faust/audio/portaudio-dsp.h"
 #elif RTAUDIO_DRIVER
-    #include "faust/audio/rtaudio-dsp.h"
+#include "faust/audio/rtaudio-dsp.h"
 #elif OPEN_FRAMEWORK_DRIVER
-    #include "faust/audio/ofaudio-dsp.h"
+#include "faust/audio/ofaudio-dsp.h"
 #elif JUCE_DRIVER
-    #include "faust/audio/juce-dsp.h"
+#include "faust/audio/juce-dsp.h"
 #elif DUMMY_DRIVER
-    #include "faust/audio/dummy-audio.h"
+#include "faust/audio/dummy-audio.h"
 #elif TEENSY_DRIVER
-    #include "faust/audio/teensy-dsp.h"
+#include "faust/audio/teensy-dsp.h"
 #elif ESP32_DRIVER
-    #include "faust/audio/esp32-dsp.h"
+#include "faust/audio/esp32-dsp.h"
 #endif
 
 //**************************************************************
@@ -113,24 +113,24 @@
 
 #if MIDICTRL
 #if JACK_DRIVER
-    // Nothing to add since jack-dsp.h contains MIDI
+// Nothing to add since jack-dsp.h contains MIDI
 #elif JUCE_DRIVER
-    #include "faust/midi/juce-midi.h"
+#include "faust/midi/juce-midi.h"
 #elif TEENSY_DRIVER
-    #include "faust/midi/teensy-midi.h"
+#include "faust/midi/teensy-midi.h"
 #elif ESP32_DRIVER
-    #include "faust/midi/esp32-midi.h"
+#include "faust/midi/esp32-midi.h"
 #else
-    #include "faust/midi/rt-midi.h"
-    #include "faust/midi/RtMidi.cpp"
+#include "faust/midi/rt-midi.h"
+#include "faust/midi/RtMidi.cpp"
 #endif
 #endif
 
 #if OSCCTRL
 #if JUCE_DRIVER
-    #include "faust/gui/JuceOSCUI.h"
+#include "faust/gui/JuceOSCUI.h"
 #else
-    #include "faust/gui/OSCUI.h"
+#include "faust/gui/OSCUI.h"
 #endif
 static void osc_compute_callback(void* arg)
 {
@@ -139,7 +139,7 @@ static void osc_compute_callback(void* arg)
 #endif
 
 #if DYNAMIC_DSP
-    #include "faust/dsp/llvm-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 #endif
 
 #include "DspFaust.h"
@@ -188,7 +188,7 @@ DspFaust::DspFaust(int sample_rate, int buffer_size, bool auto_connect)
 DspFaust::DspFaust(const string& dsp_content, int sample_rate, int buffer_size, bool auto_connect)
 {
     string error_msg;
-
+    
     // Is dsp_content a filename ?
     fFactory = createDSPFactoryFromFile(dsp_content, 0, nullptr, "", error_msg, -1);
     if (!fFactory) {
@@ -200,7 +200,7 @@ DspFaust::DspFaust(const string& dsp_content, int sample_rate, int buffer_size, 
             throw bad_alloc();
         }
     }
-
+    
     dsp* dsp = fFactory->createDSPInstance();
     if (!dsp) {
         fprintf(stderr, "Cannot allocate DSP instance\n");
@@ -275,7 +275,7 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
 #else
     fPolyEngine = new FaustPolyEngine(mono_dsp, driver);
 #endif
-
+    
 #if OSCCTRL
 #if JUCE_DRIVER
     fOSCInterface = new JuceOSCUI(OSC_IP_ADDRESS, atoi(OSC_IN_PORT), atoi(OSC_OUT_PORT));
@@ -291,10 +291,10 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
     argv[7] = "-outport";
     argv[8] = OSC_OUT_PORT;     // TODO same
     /*
-    // Deactivated for now (sometimes crashing)
-    argv[9] = "-bundle";
-    argv[10] = "1";             // TODO same
-    */
+     Deactivated for now (sometimes crashing)
+     argv[9] = "-bundle";
+     argv[10] = "1";             // TODO same
+     */
     fOSCInterface = new OSCUI("Faust", 9, (char**)argv); // TODO fix name
     driver->addControlCallback(osc_compute_callback, fOSCInterface);
 #endif
@@ -315,7 +315,7 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
     MyMeta meta;
     mono_dsp->metadata(&meta);
     bool is_double = hasCompileOption((char*)meta.fCompileOptions.c_str(), "-double");
-
+    
 #if SOUNDFILE
 #if JUCE_DRIVER
     auto file = File::getSpecialLocation(File::currentExecutableFile)
@@ -356,7 +356,7 @@ bool DspFaust::start()
         fprintf(stderr, "MIDI run error...\n");
     }
 #endif
-	return fPolyEngine->start();
+    return fPolyEngine->start();
 }
 
 void DspFaust::stop()
@@ -367,7 +367,7 @@ void DspFaust::stop()
 #if MIDICTRL
     fMidiInterface->stop();
 #endif
-	fPolyEngine->stop();
+    fPolyEngine->stop();
 }
 
 bool DspFaust::configureOSC(int xmit, int inport, int outport, int errport, const char* address)
@@ -396,7 +396,7 @@ bool DspFaust::configureOSC(int xmit, int inport, int outport, int errport, cons
 bool DspFaust::isOSCOn()
 {
 #if OSCCTRL
-	return true;
+    return true;
 #else
     return false;
 #endif
@@ -404,27 +404,27 @@ bool DspFaust::isOSCOn()
 
 bool DspFaust::isRunning()
 {
-	return fPolyEngine->isRunning();
+    return fPolyEngine->isRunning();
 }
 
 uintptr_t DspFaust::keyOn(int pitch, int velocity)
 {
-	return (uintptr_t)fPolyEngine->keyOn(pitch, velocity);
+    return (uintptr_t)fPolyEngine->keyOn(pitch, velocity);
 }
 
 int DspFaust::keyOff(int pitch)
 {
-	return fPolyEngine->keyOff(pitch);
+    return fPolyEngine->keyOff(pitch);
 }
 
 uintptr_t DspFaust::newVoice()
 {
-	return (uintptr_t)fPolyEngine->newVoice();
+    return (uintptr_t)fPolyEngine->newVoice();
 }
 
 int DspFaust::deleteVoice(uintptr_t voice)
 {
-	return fPolyEngine->deleteVoice(voice);
+    return fPolyEngine->deleteVoice(voice);
 }
 
 void DspFaust::allNotesOff(bool hard)
@@ -439,12 +439,12 @@ void DspFaust::propagateMidi(int count, double time, int type, int channel, int 
 
 const char* DspFaust::getJSONUI()
 {
-	return fPolyEngine->getJSONUI();
+    return fPolyEngine->getJSONUI();
 }
 
 const char* DspFaust::getJSONMeta()
 {
-	return fPolyEngine->getJSONMeta();
+    return fPolyEngine->getJSONMeta();
 }
 
 void DspFaust::buildUserInterface(UI* ui_interface)
@@ -454,57 +454,57 @@ void DspFaust::buildUserInterface(UI* ui_interface)
 
 int DspFaust::getParamsCount()
 {
-	return fPolyEngine->getParamsCount();
+    return fPolyEngine->getParamsCount();
 }
 
 void DspFaust::setParamValue(const char* address, float value)
 {
-	fPolyEngine->setParamValue(address, value);
+    fPolyEngine->setParamValue(address, value);
 }
 
 void DspFaust::setParamValue(int id, float value)
 {
-	fPolyEngine->setParamValue(id, value);
+    fPolyEngine->setParamValue(id, value);
 }
 
 float DspFaust::getParamValue(const char* address)
 {
-	return fPolyEngine->getParamValue(address);
+    return fPolyEngine->getParamValue(address);
 }
 
 float DspFaust::getParamValue(int id)
 {
-	return fPolyEngine->getParamValue(id);
+    return fPolyEngine->getParamValue(id);
 }
 
 void DspFaust::setVoiceParamValue(const char* address, uintptr_t voice, float value)
 {
-	fPolyEngine->setVoiceParamValue(address, voice, value);
+    fPolyEngine->setVoiceParamValue(address, voice, value);
 }
 
 void DspFaust::setVoiceParamValue(int id, uintptr_t voice, float value)
 {
-	fPolyEngine->setVoiceParamValue(id, voice, value);
+    fPolyEngine->setVoiceParamValue(id, voice, value);
 }
 
 float DspFaust::getVoiceParamValue(const char* address, uintptr_t voice)
 {
-	return fPolyEngine->getVoiceParamValue(address, voice);
+    return fPolyEngine->getVoiceParamValue(address, voice);
 }
 
 float DspFaust::getVoiceParamValue(int id, uintptr_t voice)
 {
-	return fPolyEngine->getVoiceParamValue(id, voice);
+    return fPolyEngine->getVoiceParamValue(id, voice);
 }
 
 const char* DspFaust::getParamAddress(int id)
 {
-	return fPolyEngine->getParamAddress(id);
+    return fPolyEngine->getParamAddress(id);
 }
 
 const char* DspFaust::getVoiceParamAddress(int id, uintptr_t voice)
 {
-	return fPolyEngine->getVoiceParamAddress(id, voice);
+    return fPolyEngine->getVoiceParamAddress(id, voice);
 }
 
 float DspFaust::getParamMin(const char* address)

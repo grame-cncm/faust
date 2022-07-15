@@ -558,10 +558,10 @@ class FaustPolyEngine {
         float getCPULoad() { return (fDriver) ? fDriver->getCPULoad() : 0.f; }
 
         /*
-         * getScreenColor() -> c:int
-         * Get the requested screen color c :
-         * c < 0 : no screen color requested (keep regular UI)
-         * c >= 0 : requested color (no UI but a colored screen)
+         * getScreenColor()
+         * Get the requested screen color.
+         * -1 means no screen color control (no screencolor metadata found)
+         * otherwise return 0x00RRGGBB a ready to use color
          */
         int getScreenColor()
         {

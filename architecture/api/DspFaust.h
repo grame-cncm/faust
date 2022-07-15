@@ -72,7 +72,7 @@ class DspFaust
         //
         // #### Arguments
         //
-        // * `auto_connect`: whether to automatically connect audio outpus to the hardware (usable with JACK)
+        // * `auto_connect`: whether to automatically connect audio outputs to the hardware (usable with JACK)
         //----
         DspFaust(bool auto_connect = true);
 
@@ -121,7 +121,7 @@ class DspFaust
         //--------------------------------------------------------
         bool isRunning();
 
-        //--------`long keyOn(int pitch, int velocity)`-----------
+        //--------`uintptr_t keyOn(int pitch, int velocity)`-----------
         // Instantiate a new polyphonic voice. This method can
         // only be used if the `-nvoices` flag has been
         // provided before compilation.
@@ -233,11 +233,11 @@ class DspFaust
 
         //----`void setParamValue(const char* address, float value)`------
         // Set the value of one of the parameters of the Faust
-        // object in function of its address (path).
+        // object in function of its address (label/shortname/path).
         //
         // #### Arguments
         //
-        // * `address`: address (path) of the parameter
+        // * `address`: address (label/shortname/path) of the parameter
         // * `value`: value of the parameter
         //--------------------------------------------------------
         void setParamValue(const char* address, float value);
@@ -255,11 +255,11 @@ class DspFaust
 
         //----`float getParamValue(const char* address)`----------
         // Returns the value of a parameter in function of its
-        // address (path).
+        // address (label/shortname/path).
         //
         // #### Arguments
         //
-        // * `address`: address (path) of the parameter
+        // * `address`: address (label/shortname/path) of the parameter
         //--------------------------------------------------------
         float getParamValue(const char* address);
 
@@ -274,11 +274,11 @@ class DspFaust
 
         //----`void setVoiceParamValue(const char* address, uintptr_t voice, float value)`-----
         // Set the value of one of the parameters of the Faust
-        // object in function of its address (path) for a specific voice.
+        // object in function of its address (label/shortname/path) for a specific voice.
         //
         // #### Arguments
         //
-        // * `address`: address (path) of the parameter
+        // * `address`: address (label/shortname/path) of the parameter
         // * `voice`: address of the polyphonic voice (retrieved from `keyOn`)
         // * `value`: value of the parameter
         //--------------------------------------------------------
@@ -298,11 +298,11 @@ class DspFaust
 
         //----`float getVoiceParamValue(const char* address, uintptr_t voice)`----
         // Returns the value of a parameter in function of its
-        // address (path) for a specific voice.
+        // address (label/shortname/path) for a specific voice.
         //
         // #### Arguments
         //
-        // * `address`: address (path) of the parameter
+        // * `address`: address (label/shortname/path) of the parameter
         // * `voice`: address of the polyphonic voice (retrieved from `keyOn`)
         //--------------------------------------------------------
         float getVoiceParamValue(const char* address, uintptr_t voice);
@@ -314,13 +314,12 @@ class DspFaust
         // #### Arguments
         //
         // * `id`: id of the parameter
-        // * `voice`: address of the polyphonic voice (retrieved
-        // from `keyOn`)
+        // * `voice`: address of the polyphonic voice (retrieved from `keyOn`)
         //--------------------------------------------------------
         float getVoiceParamValue(int id, uintptr_t voice);
 
         //----`const char* getParamAddress(int id)`---------------
-        // Returns the address (path) of a parameter in function of its ID.
+        // Returns the address (label/shortname/path) of a parameter in function of its ID.
         //
         // #### Arguments
         //
@@ -329,7 +328,7 @@ class DspFaust
         const char* getParamAddress(int id);
 
         //----`const char* getVoiceParamAddress(int id, uintptr_t voice)`-----
-        // Returns the address (path) of a parameter in function of its ID.
+        // Returns the address (label/shortname/path) of a parameter in function of its ID.
         //
         // #### Arguments
         //
@@ -340,11 +339,11 @@ class DspFaust
 
         //-------`float getParamMin(const char* address)`---------
         // Returns the minimum value of a parameter in function of
-        // its address (path).
+        // its address (label/shortname/path).
         //
         // #### Arguments
         //
-        // * `address`: address (path) of the parameter
+        // * `address`: address (label/shortname/path) of the parameter
         //--------------------------------------------------------
         float getParamMin(const char* address);
 
@@ -360,11 +359,11 @@ class DspFaust
 
         //-------`float getParamMax(const char* address)`---------
         // Returns the maximum value of a parameter in function of
-        // its address (path).
+        // its address (label/shortname/path).
         //
         // #### Arguments
         //
-        // * `address`: address (path) of the parameter
+        // * `address`: address (label/shortname/path) of the parameter
         //--------------------------------------------------------
         float getParamMax(const char* address);
 
@@ -380,11 +379,11 @@ class DspFaust
 
         //-------`float getParamInit(const char* address)`---------
         // Returns the default value of a parameter in function of
-        // its address (path).
+        // its address (label/shortname/path).
         //
         // #### Arguments
         //
-        // * `address`: address (path) of the parameter
+        // * `address`: address (label/shortname/path) of the parameter
         //--------------------------------------------------------
         float getParamInit(const char* address);
 
@@ -400,11 +399,11 @@ class DspFaust
 
         //-----`const char* getMetadata(const char* address, const char* key)`-----
         // Returns the metadataof a parameter in function of
-        // its address (path) and the metadata key.
+        // its address (label/shortname/path) and the metadata key.
         //
         // #### Arguments
         //
-        // * `address`: address (path) of the parameter
+        // * `address`: address (label/shortname/path) of the parameter
         // * `key`: the metadata key
         //--------------------------------------------------------
         const char* getMetadata(const char* address, const char* key);
@@ -431,7 +430,7 @@ class DspFaust
         //--------------------------------------------------------
         void propagateAcc(int acc, float v);
 
-        //----`void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)`-----
+        //----`void setAccConverter(int id, int acc, int curve, float amin, float amid, float amax)`-----
         // Set the conversion curve for the accelerometer.
         //
         // #### Arguments
@@ -456,7 +455,7 @@ class DspFaust
         //--------------------------------------------------------
         void propagateGyr(int gyr, float v);
 
-        //----`void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax)`-----
+        //----`void setGyrConverter(int id, int gyr, int curve, float amin, float amid, float amax)`-----
         // Set the conversion curve for the gyroscope.
         //
         // #### Arguments
@@ -493,6 +492,11 @@ class DspFaust
         //-----------------------------------------
         bool isOSCOn();
     
+        //----------`int getScreenColor()`---------------
+        // Get the requested screen color.
+        // -1 means no screen color control (no screencolor metadata found)
+        // otherwise return 0x00RRGGBB a ready to use color
+        //-----------------------------------------
         int getScreenColor();
 };
 
