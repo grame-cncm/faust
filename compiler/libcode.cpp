@@ -2827,7 +2827,7 @@ extern "C"
 // Box C++ API
 // ============
 
-// Can generate faustexception
+// Can generate faustexception, used in createDSPFactoryFromBoxes and createInterpreterDSPFactoryFromBoxes
 tvec boxesToSignalsAux(Tree box)
 {
     int numInputs, numOutputs;

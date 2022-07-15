@@ -419,8 +419,6 @@ struct NullStatementInst : public StatementInst {
 
 // Base type is defined in instructions_type.h
 
-Typed::VarType ctType(Type t);
-
 struct BasicTyped : public Typed {
     const VarType fType;
 

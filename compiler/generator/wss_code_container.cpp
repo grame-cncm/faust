@@ -69,7 +69,7 @@ void WSSCodeContainer::moveCompute2ComputeThread()
     VariableMover::Move(this, "Yec");
 
     // To move variables in "computeThread"
-    Compute2ComputeThread mover(this, { "fSoundfile", "Then", "Else", "Slow", "Vec", "fInput", "fOutput" });
+    Compute2ComputeThread mover(this, { "fSoundfile", "Then", "Else", "Slow", "Vec", "fInput", "fOutput", "pfPerm", "pfTemp" });
     fComputeBlockInstructions->accept(&mover);
   
     // Remove marked variables from fComputeBlockInstructions

@@ -1069,7 +1069,7 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
     string         vname, vname_perm;
     Typed::VarType ctype;
     ::Type         t = getCertifiedSigType(sig);
-    old_Occurences*    o = fOccMarkup->retrieve(sig);
+    old_Occurences* o = fOccMarkup->retrieve(sig);
     faustassert(o);
 
     switch (t->variability()) {
@@ -1867,21 +1867,35 @@ ValueInst* InstructionsCompiler::generateControl(Tree sig, Tree x, Tree y)
 
 ValueInst* InstructionsCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 {
-    string         vperm = gGlobal->getFreshID("M");
-    string         vtemp = gGlobal->getFreshID("T");
-    Typed::VarType type  = ctType(getCertifiedSigType(sig));
+    string         vperm = gGlobal->getFreshID("pfPerm");
+    string         vtemp = gGlobal->getFreshID("pfTemp");
+    Typed::VarType type  = (getCertifiedSigType(sig)->nature() == kInt) ? Typed::kInt32 : itfloat();
 
     // Variable declaration
     pushDeclare(InstBuilder::genDecStructVar(vperm, InstBuilder::genBasicTyped(type)));
 
     // Init
     pushInitMethod(InstBuilder::genStoreStructVar(vperm, CS(x)));
-
+    
     // Exec
+    pushComputeBlockMethod(InstBuilder::genControlInst(getConditionCode(sig),
+                                                       InstBuilder::genDecStackVar(vtemp,
+                                                                                   InstBuilder::genBasicTyped(type),
+                                                                                   InstBuilder::genTypedZero(type))));
     pushComputeDSPMethod(InstBuilder::genControlInst(getConditionCode(sig),
-        InstBuilder::genDecStackVar(vtemp, InstBuilder::genBasicTyped(type), InstBuilder::genLoadStructVar(vperm))));
+                                                     InstBuilder::genStoreStackVar(vtemp, InstBuilder::genLoadStructVar(vperm))));
+    
+    /*
+    ValueInst* res = CS(e);
+    string vname;
+    if (getVectorNameProperty(e, vname)) {
+        setVectorNameProperty(sig, vname);
+    } else {
+        faustassert(false);
+    }
+    */
+    
     pushComputeDSPMethod(InstBuilder::genControlInst(getConditionCode(sig), InstBuilder::genStoreStructVar(vperm, CS(e))));
-
     return InstBuilder::genLoadStackVar(vtemp);
 }
 

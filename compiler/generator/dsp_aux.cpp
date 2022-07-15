@@ -234,9 +234,9 @@ LIBFAUST_API string expandDSPFromString(const string& name_app, const string& ds
 {
     LOCK_API
     if (dsp_content == "") {
-        error_msg = "Unable to read file";
-        return "";
         // Already expanded version ?
+        error_msg = "ERROR : unable to read file";
+        return "";
     } else if (startWith(dsp_content, COMPILATION_OPTIONS)) {
         if (extractCompilationOptions(dsp_content) == reorganizeCompilationOptions(argc, argv)) {
             // Same compilation options as the ones kept in the expanded version
@@ -276,7 +276,8 @@ LIBFAUST_API bool generateAuxFilesFromString(const string& name_app, const strin
 {
     LOCK_API
     if (dsp_content == "") {
-        error_msg = "Unable to read file";
+        // Already expanded version ?
+        error_msg = "ERROR : unable to read file";
         return false;
     } else {
         int         argc1 = 0;
