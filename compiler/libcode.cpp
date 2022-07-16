@@ -800,27 +800,31 @@ static bool processCmdline(int argc, const char* argv[])
 
     if (gGlobal->gFloatSize == 4 && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "ocpp" &&
         gGlobal->gOutputLang != "c") {
-        throw faustexception("ERROR : -fx can ony be used with 'c', 'cpp' or 'ocpp' backends\n");
+        throw faustexception("ERROR : -fx can only be used with 'c', 'cpp' or 'ocpp' backends\n");
     }
     
     if (gGlobal->gClang && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "ocpp" &&
         gGlobal->gOutputLang != "c") {
-        throw faustexception("ERROR : -clang can ony be used with 'c', 'cpp' or 'ocpp' backends\n");
+        throw faustexception("ERROR : -clang can only be used with 'c', 'cpp' or 'ocpp' backends\n");
     }
     
     if (gGlobal->gNoVirtual && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "ocpp" &&
         gGlobal->gOutputLang != "c") {
-        throw faustexception("ERROR : -nvi can ony be used with 'c', 'cpp' or 'ocpp' backends\n");
+        throw faustexception("ERROR : -nvi can only be used with 'c', 'cpp' or 'ocpp' backends\n");
     }
 
     if (gGlobal->gMemoryManager && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "ocpp") {
-        throw faustexception("ERROR : -mem can ony be used with 'cpp' or 'ocpp' backends\n");
+        throw faustexception("ERROR : -mem can only be used with 'cpp' or 'ocpp' backends\n");
     }
 
     if (gGlobal->gArchFile != "" &&
         ((gGlobal->gOutputLang == "wast") || (gGlobal->gOutputLang == "wasm") || (gGlobal->gOutputLang == "interp") ||
          (gGlobal->gOutputLang == "llvm") || (gGlobal->gOutputLang == "fir"))) {
         throw faustexception("ERROR : -a can only be used with 'c', 'cpp', 'ocpp', 'rust' and 'soul' backends\n");
+    }
+    
+    if (gGlobal->gClassName == "") {
+        throw faustexception("ERROR : -cn used with empty string \n");
     }
 
     if (err != 0) {
