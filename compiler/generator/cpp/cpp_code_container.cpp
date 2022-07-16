@@ -324,7 +324,11 @@ void CPPCodeContainer::produceClass()
     generateGlobalDeclarations(fCodeProducer);
     
     tab(n, *fOut);
-    *fOut << "class " << fKlassName << genFinal() << " : public " << fSuperKlassName << " {";
+    if (fSuperKlassName != "") {
+        *fOut << "class " << fKlassName << genFinal() << " : public " << fSuperKlassName << " {";
+    } else {
+        *fOut << "class " << fKlassName << genFinal() << " {";
+    }
     tab(n + 1, *fOut);
 
     if (gGlobal->gUIMacroSwitch) {
