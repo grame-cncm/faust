@@ -2309,12 +2309,12 @@ static void createFactoryAux(const char* name, Tree signals, int argc, const cha
 // Backend API
 // ============
 
-// Count input signals in a signal tree
-struct InputsCounter : public SignalVisitor {
+// Keep the maximum index of inputs signals
+struct MaxInputsCounter : public SignalVisitor {
     
-    int fInputs = 0;
+    int fMaxInputs = 0;
     
-    InputsCounter(Tree L)
+    MaxInputsCounter(Tree L)
     {
         L = deBruijn2Sym(L);
         while (!isNil(L)) {
@@ -2325,9 +2325,9 @@ struct InputsCounter : public SignalVisitor {
     
     void visit(Tree sig)
     {
-        int i;
-        if (isSigInput(sig, &i)) {
-            fInputs++;
+        int input;
+        if (isSigInput(sig, &input)) {
+            fMaxInputs = std::max(fMaxInputs, input+1);
         } else {
             SignalVisitor::visit(sig);
         }
@@ -2362,8 +2362,8 @@ dsp_factory_base* createFactory(const char* name, tvec signals,
     
     try {
         Tree outs = listConvert(signals);
-        InputsCounter counter(outs);
-        createFactoryAux(name, outs, argc, argv, counter.fInputs, signals.size(), true);
+        MaxInputsCounter counter(outs);
+        createFactoryAux(name, outs, argc, argv, counter.fMaxInputs, signals.size(), true);
         error_msg = gGlobal->gErrorMsg;
         factory   = gGlobal->gDSPFactory;
     } catch (faustexception& e) {
@@ -2416,8 +2416,8 @@ LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string&
   
     try {
         Tree outs = listConvert(signals);
-        InputsCounter counter(outs);
-        createFactoryAux(name_app.c_str(), outs, argc1, argv1, counter.fInputs, signals.size(), true);
+        MaxInputsCounter counter(outs);
+        createFactoryAux(name_app.c_str(), outs, argc1, argv1, counter.fMaxInputs, signals.size(), true);
         error_msg = gGlobal->gErrorMsg;
         factory   = gGlobal->gDSPFactory;
     } catch (faustexception& e) {
