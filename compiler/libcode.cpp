@@ -2400,9 +2400,7 @@ LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string&
                                                         int argc, const char* argv[],
                                                         std::string& error_msg)
 {
-    dsp_factory_base* factory = nullptr;
-    
-    int         argc1 = 0;
+    int argc1 = 0;
     const char* argv1[64];
     argv1[argc1++] = "faust";
     argv1[argc1++] = "-o";
@@ -2413,18 +2411,8 @@ LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string&
         argv1[argc1++] = argv[i];
     }
     argv1[argc1] = nullptr;  // NULL terminated argv
-  
-    try {
-        Tree outs = listConvert(signals);
-        MaxInputsCounter counter(outs);
-        createFactoryAux(name_app.c_str(), outs, argc1, argv1, counter.fMaxInputs, signals.size(), true);
-        error_msg = gGlobal->gErrorMsg;
-        factory   = gGlobal->gDSPFactory;
-    } catch (faustexception& e) {
-        error_msg = e.Message();
-    }
     
-    return factory;
+    return createFactory(name_app.c_str(), signals, argc1, argv1, error_msg);
 }
 
 // Foreign

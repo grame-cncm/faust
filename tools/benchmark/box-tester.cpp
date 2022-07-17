@@ -654,7 +654,7 @@ static void test26(int argc, char* argv[])
         Box cutoffAndInput = boxPar(cutoff, boxWire());
         Box filteredInput = boxSeq(cutoffAndInput, filter);
     
-        bool res = getBoxType(filteredInput, &inputs, &outputs);
+        getBoxType(filteredInput, &inputs, &outputs);
         std::cout << "getBoxType inputs: " << inputs << " outputs: " << outputs << std::endl;
     
         dsp_factory_base* factory = createCPPDSPFactoryFromBoxes("FaustDSP", filteredInput, argc, (const char**)argv, error_msg);
