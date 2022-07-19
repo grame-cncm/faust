@@ -485,8 +485,8 @@ static Tree buildRecursiveBodyDef(int n, Tree lnames, Tree lexp, Tree ldef2)
 // outside.
 //
 // process = x * y letrec {
-//    'x = foo(x,y);
-//	  'y = foo(y,x);
+//  'x = foo(x,y);
+//  'y = foo(y,x);
 //  where
 //    foo(u, v) = u - v;
 //  };
