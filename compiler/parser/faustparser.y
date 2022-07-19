@@ -199,6 +199,7 @@ inline Tree unquote(char* str)
 %token RCROC
 %token WITH
 %token LETREC
+%token WHERE
 %token DEF
 
 %token IMPORT
@@ -453,7 +454,8 @@ params			: ident					   				{ $$ = cons($1,gGlobal->nil); }
                 ;
 
 expression		: expression WITH LBRAQ deflist RBRAQ	{ $$ = boxWithLocalDef($1,formatDefinitions($4)); }
-                | expression LETREC LBRAQ reclist RBRAQ	{ $$ = boxWithRecDef  ($1,formatDefinitions($4)); }
+                | expression LETREC LBRAQ reclist RBRAQ	{ $$ = boxWithRecDef($1,formatDefinitions($4), gGlobal->nil); }
+                | expression LETREC LBRAQ reclist WHERE deflist RBRAQ	{ $$ = boxWithRecDef($1,formatDefinitions($4),formatDefinitions($6)); }
                 | expression PAR expression  			{ $$ = boxPar($1,$3); }
 				| expression SEQ expression  			{ $$ = boxSeq($1,$3); }
 				| expression SPLIT  expression 		    { $$ = boxSplit($1,$3); }

@@ -41,7 +41,9 @@ box ::= i | f | p0 | p1 | p3
 
 #include "tlib.hh"
 
-namespace PM { struct Automaton; }
+namespace PM {
+struct Automaton;
+}
 
 /*****************************************************************************
 ******************************************************************************
@@ -80,7 +82,7 @@ bool isBoxReal(Tree t, double* r);
 *****************************************************************************/
 
 LIBFAUST_API Tree boxWaveform(const tvec& br);
-bool isBoxWaveform(Tree t);
+bool              isBoxWaveform(Tree t);
 
 /*****************************************************************************
                                     Route
@@ -89,7 +91,7 @@ bool isBoxWaveform(Tree t);
 *****************************************************************************/
 
 LIBFAUST_API Tree boxRoute(Tree n, Tree m, Tree r);
-bool isBoxRoute(Tree s, Tree& n, Tree& m, Tree& r);
+bool              isBoxRoute(Tree s, Tree& n, Tree& m, Tree& r);
 
 /*****************************************************************************
                                 Wire and Cut
@@ -184,7 +186,7 @@ bool isBoxAccess(Tree t, Tree& exp, Tree& id);
 
 Tree boxWithLocalDef(Tree body, Tree ldef);
 bool isBoxWithLocalDef(Tree t, Tree& body, Tree& ldef);
-Tree boxWithRecDef(Tree body, Tree ldef);
+Tree boxWithRecDef(Tree body, Tree ldef, Tree ldef2);
 
 /*****************************************************************************
                         Modification of local definitions
@@ -237,16 +239,16 @@ bool isBoxPrim5(Tree s, prim5* p);
 *****************************************************************************/
 
 LIBFAUST_API Tree boxFFun(Tree ff);
-bool isBoxFFun(Tree s);
-bool isBoxFFun(Tree s, Tree& ff);
+bool              isBoxFFun(Tree s);
+bool              isBoxFFun(Tree s, Tree& ff);
 
 LIBFAUST_API Tree boxFConst(Tree type, Tree name, Tree file);
-bool isBoxFConst(Tree s);
-bool isBoxFConst(Tree s, Tree& type, Tree& name, Tree& file);
+bool              isBoxFConst(Tree s);
+bool              isBoxFConst(Tree s, Tree& type, Tree& name, Tree& file);
 
 LIBFAUST_API Tree boxFVar(Tree type, Tree name, Tree file);
-bool isBoxFVar(Tree s);
-bool isBoxFVar(Tree s, Tree& type, Tree& name, Tree& file);
+bool              isBoxFVar(Tree s);
+bool              isBoxFVar(Tree s, Tree& type, Tree& name, Tree& file);
 
 /*****************************************************************************
                              Modules
@@ -270,33 +272,33 @@ bool isImportFile(Tree s, Tree& filename);
 
 // GUI inputs
 LIBFAUST_API Tree boxButton(Tree label);
-bool isBoxButton(Tree s);
-bool isBoxButton(Tree s, Tree& label);
+bool              isBoxButton(Tree s);
+bool              isBoxButton(Tree s, Tree& label);
 
 LIBFAUST_API Tree boxCheckbox(Tree label);
-bool isBoxCheckbox(Tree s);
-bool isBoxCheckbox(Tree s, Tree& label);
+bool              isBoxCheckbox(Tree s);
+bool              isBoxCheckbox(Tree s, Tree& label);
 
 LIBFAUST_API Tree boxVSlider(Tree label, Tree cur, Tree min, Tree max, Tree step);
-bool isBoxVSlider(Tree s);
-bool isBoxVSlider(Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
+bool              isBoxVSlider(Tree s);
+bool              isBoxVSlider(Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
 
 LIBFAUST_API Tree boxHSlider(Tree label, Tree cur, Tree min, Tree max, Tree step);
-bool isBoxHSlider(Tree s);
-bool isBoxHSlider(Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
+bool              isBoxHSlider(Tree s);
+bool              isBoxHSlider(Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
 
 LIBFAUST_API Tree boxNumEntry(Tree label, Tree cur, Tree min, Tree max, Tree step);
-bool isBoxNumEntry(Tree s);
-bool isBoxNumEntry(Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
+bool              isBoxNumEntry(Tree s);
+bool              isBoxNumEntry(Tree s, Tree& label, Tree& cur, Tree& min, Tree& max, Tree& step);
 
 // GUI outputs
 LIBFAUST_API Tree boxVBargraph(Tree label, Tree min, Tree max);
-bool isBoxVBargraph(Tree s);
-bool isBoxVBargraph(Tree s, Tree& label, Tree& min, Tree& max);
+bool              isBoxVBargraph(Tree s);
+bool              isBoxVBargraph(Tree s, Tree& label, Tree& min, Tree& max);
 
 LIBFAUST_API Tree boxHBargraph(Tree label, Tree min, Tree max);
-bool isBoxHBargraph(Tree s);
-bool isBoxHBargraph(Tree s, Tree& label, Tree& min, Tree& max);
+bool              isBoxHBargraph(Tree s);
+bool              isBoxHBargraph(Tree s, Tree& label, Tree& min, Tree& max);
 
 // Groups
 Tree boxVGroup(Tree label, Tree x);
@@ -312,8 +314,8 @@ bool isBoxTGroup(Tree s);
 bool isBoxTGroup(Tree s, Tree& label, Tree& x);
 
 LIBFAUST_API Tree boxSoundfile(Tree label, Tree chan);
-bool isBoxSoundfile(Tree s);
-bool isBoxSoundfile(Tree s, Tree& label, Tree& chan);
+bool              isBoxSoundfile(Tree s);
+bool              isBoxSoundfile(Tree s, Tree& label, Tree& chan);
 
 /*****************************************************************************
                              Case (pattern matching)

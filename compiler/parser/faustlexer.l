@@ -135,6 +135,7 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "."			return DOT;
 "with"		return WITH;
 "letrec"	return LETREC;
+"where"		return WHERE;
 
 "mem"		return MEM;
 "prefix"	return PREFIX;
