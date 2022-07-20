@@ -24,7 +24,7 @@ options() {
 }
 
 option() {
-    if [ $# -ne 0 ] 
+    if [ $# -ne 0 ]
     then
         option=$1
         shift
