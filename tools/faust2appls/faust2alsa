@@ -39,7 +39,7 @@ for p in $@; do
         option "Faust options"
         exit
     fi
-  
+
     if [ $p = "-poly" ]; then
         POLYDEFS="-DPOLY"
     elif [ $p = "-midi" ]; then
@@ -60,7 +60,7 @@ for p in $@; do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 done
 
@@ -68,7 +68,7 @@ done
 # compile the *.dsp files using ALSA and GTK on linux
 #
 for f in $FILES; do
-    
+
     # compile faust to c++
     faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 

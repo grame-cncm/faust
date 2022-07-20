@@ -67,12 +67,12 @@ createAPI ()
     echo "#include \"./samFaustDSPCore.h\"" | cat - "$APIFOLDER/samFaustDSP.h" > temp && mv temp "$APIFOLDER/samFaustDSP.h"
     echo "#include \"common/audio_system_config.h\"" | cat - "$APIFOLDER/samFaustDSP.h" > temp && mv temp "$APIFOLDER/samFaustDSP.h"
     echo "#endif" >> "$APIFOLDER/samFaustDSP.h"
-    
+
     echo "#if USE_FAUST_ALGORITHM" | cat - "$APIFOLDER/fast_pow2.h" > temp && mv temp "$APIFOLDER/fast_pow2.h"
     echo "#include \"./samFaustDSPCore.h\"" | cat - "$APIFOLDER/fast_pow2.h" > temp && mv temp "$APIFOLDER/fast_pow2.h"
     echo "#include \"common/audio_system_config.h\"" | cat - "$APIFOLDER/fast_pow2.h" > temp && mv temp "$APIFOLDER/fast_pow2.h"
     echo "#endif" >> "$APIFOLDER/fast_pow2.h"
-    
+
     # fix things that won't compile on the sharc
     cat "$APIFOLDER/samFaustDSP.cpp"  | \
     sed     -e 's/\(std::cerr.*;\)/\/* \1 *\/ /' \

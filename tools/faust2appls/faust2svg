@@ -4,18 +4,18 @@
 
 for p in $@; do
 
-	if [ $p = "-help" ] || [ $p = "-h" ]; then
-    	usage faust2svg "<file.dsp>"
-    	echo "Compiles Faust programs to SVG"
-    	exit
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        usage faust2svg "<file.dsp>"
+        echo "Compiles Faust programs to SVG"
+        exit
     fi
-    
+
     if [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
-    
+
 done
 
 for f in $FILES; do

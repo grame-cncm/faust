@@ -39,7 +39,7 @@ echoHelp ()
     usage faust2esp32 "[options] [Faust options] <file.dsp> <file.dsp>"
     echo "faust2esp32 can be used to fully program the ESP32 microncontroller and to generate DSP objects"
     echo "that can be integrated into any ESP32 project"
-    option 
+    option
     option -gramophone "generates for GRAME Gramophone"
     option -multi "generate for GRAME Gramophone in multi DSP mode"
     option -lib "generates a package containing an object compatible with any ESP32 project"
@@ -80,10 +80,10 @@ do
     # Get dsp file
     elif [[ -f "$p" ]]; then
         FILE="$p"
-    # -lib 
+    # -lib
     elif [ $p = "-lib" ]; then
         LIB=1
-    # -soundfile 
+    # -soundfile
     elif [ $p = "-soundfile" ]; then
         SOUNDFILE=1
     # -wm8978 (ttgo t-audio)
@@ -126,12 +126,12 @@ if [[ "$LIB" == "1" || "$GRAMOPHONE" == "1" ]]; then
         if [ $MULTI -eq 1 ]; then
             count=0;
             echo "" > $MODULENAME/tmp.cpp
-            faust -pn mydsp1 -cn mydsp1 -i $OPTIONS $FILE -o "$MODULENAME/mydsp1.h" 2> /dev/null && echo "#define class_mydsp1" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
-            faust -pn mydsp2 -cn mydsp2 -i $OPTIONS $FILE -o "$MODULENAME/mydsp2.h" 2> /dev/null && echo "#define class_mydsp2" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
-            faust -pn mydsp3 -cn mydsp3 -i $OPTIONS $FILE -o "$MODULENAME/mydsp3.h" 2> /dev/null && echo "#define class_mydsp3" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
-            faust -pn mydsp4 -cn mydsp4 -i $OPTIONS $FILE -o "$MODULENAME/mydsp4.h" 2> /dev/null && echo "#define class_mydsp4" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
-            faust -pn mydsp5 -cn mydsp5 -i $OPTIONS $FILE -o "$MODULENAME/mydsp5.h" 2> /dev/null && echo "#define class_mydsp5" >> $MODULENAME/tmp.cpp && count=$((count+1)) 
-            echo "static int gMydspCount = $count;" >> $MODULENAME/tmp.cpp 
+            faust -pn mydsp1 -cn mydsp1 -i $OPTIONS $FILE -o "$MODULENAME/mydsp1.h" 2> /dev/null && echo "#define class_mydsp1" >> $MODULENAME/tmp.cpp && count=$((count+1))
+            faust -pn mydsp2 -cn mydsp2 -i $OPTIONS $FILE -o "$MODULENAME/mydsp2.h" 2> /dev/null && echo "#define class_mydsp2" >> $MODULENAME/tmp.cpp && count=$((count+1))
+            faust -pn mydsp3 -cn mydsp3 -i $OPTIONS $FILE -o "$MODULENAME/mydsp3.h" 2> /dev/null && echo "#define class_mydsp3" >> $MODULENAME/tmp.cpp && count=$((count+1))
+            faust -pn mydsp4 -cn mydsp4 -i $OPTIONS $FILE -o "$MODULENAME/mydsp4.h" 2> /dev/null && echo "#define class_mydsp4" >> $MODULENAME/tmp.cpp && count=$((count+1))
+            faust -pn mydsp5 -cn mydsp5 -i $OPTIONS $FILE -o "$MODULENAME/mydsp5.h" 2> /dev/null && echo "#define class_mydsp5" >> $MODULENAME/tmp.cpp && count=$((count+1))
+            echo "static int gMydspCount = $count;" >> $MODULENAME/tmp.cpp
             faust -pn mydsp1 -a $MODULENAME/tmp.cpp -inj $FAUSTARCH/esp32/gramophone-multi.cpp -i $OPTIONS $FILE -o $MODULENAME/$MODULENAME.cpp
             rm $MODULENAME/tmp.cpp
         else
@@ -141,7 +141,7 @@ if [[ "$LIB" == "1" || "$GRAMOPHONE" == "1" ]]; then
             faust -a $FAUSTARCH/esp32/gramophone.cpp -I $FAUSTARCH/embedded/ -i $OPTIONS $MODULENAME/volume.dsp -o $MODULENAME/$MODULENAME.cpp
             rm $MODULENAME/volume.dsp $MODULENAME/mono.dsp
         fi
-        
+
         # Copy accelerometer/gyroscope code
         cp $FAUSTARCH/esp32/MPU9250.cpp $MODULENAME
         cp $FAUSTARCH/esp32/MPU9250.h $MODULENAME
@@ -158,7 +158,7 @@ if [[ "$LIB" == "1" || "$GRAMOPHONE" == "1" ]]; then
         TMP=$(awk -v modName="faust_$MODULENAME" '{gsub(/faust_esp32/,modName)}1' $MODULENAME/$MODULENAME.h)
         echo "$TMP" > $MODULENAME/$MODULENAME.h
     fi
-    
+
     # Copy audio codec code
     if [[ $DRIVER = "wm8978" ]]; then
         cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
@@ -174,7 +174,7 @@ if [[ "$LIB" == "1" || "$GRAMOPHONE" == "1" ]]; then
         cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.cpp $MODULENAME
         cp $FAUSTARCH/esp32/drivers/wm8978/WM8978.h $MODULENAME
     fi
-    
+
     echo '// Options:' > "$MODULENAME/tmp.txt"
 
     if [ $NVOICES -gt 0 ]; then
@@ -184,7 +184,7 @@ if [[ "$LIB" == "1" || "$GRAMOPHONE" == "1" ]]; then
     if [ $MAIN -eq 1 ]; then
         echo '#define HAS_MAIN' >> "$MODULENAME/tmp.txt"
     fi
-    
+
     if [ $SOUNDFILE -eq 1 ]; then
         echo '#define SOUNDFILE' >> "$MODULENAME/tmp.txt"
     fi
@@ -221,7 +221,7 @@ if [[ "$LIB" == "1" || "$GRAMOPHONE" == "1" ]]; then
 
     cat "$MODULENAME/$MODULENAME.cpp" >> "$MODULENAME/tmp.txt"
     mv "$MODULENAME/tmp.txt" "$MODULENAME/$MODULENAME.cpp" #"$MODULENAME/render.cpp"
-    
+
     if [ $LIB -eq 0  ]; then
       mv $MODULENAME/$MODULENAME.cpp $MODULENAME/Gramophone.cpp
       mkdir tmp

@@ -56,7 +56,7 @@ do
         option "Faust options"
         exit
     fi
-    
+
     if [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
@@ -86,7 +86,7 @@ do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -113,7 +113,7 @@ for p in $FILES; do
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
 
-    # creates a temporary dir 
+    # creates a temporary dir
     TDR=$(mktemp -d faust.XXXXXX)
     TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
@@ -147,7 +147,7 @@ EndOfCode
         $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
         make
     ) > /dev/null || exit
-    
+
     # on Mac add the QT libraries to the bundle
     if [[ $(uname) == Darwin ]]; then
         if [ "$DEPLOY" = "yes" ]; then

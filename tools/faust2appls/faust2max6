@@ -137,7 +137,7 @@ do
         OSCDEFS="-DOSCCTRL"
         OSCLIBS="-lOSCFaust"
     elif [ $p = "-nopost" ]; then
-        POST="" 
+        POST=""
     elif [ $p = "-nopatch" ]; then
         NOPATCH="1"
     elif [ $p = "-native" ]; then
@@ -153,7 +153,7 @@ do
     elif [ $p = "-filter" ]; then
         shift
         FILTER=$1
-    # '-A path' also added as '-I path' in the C++ command 
+    # '-A path' also added as '-I path' in the C++ command
     elif [ $p = "-A" ]; then
         shift
         CXXFLAGS="$CXXFLAGS -I $1"
@@ -163,7 +163,7 @@ do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"       
+        OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -194,7 +194,7 @@ for p in $FILES; do
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
 
-    # creates a temporary dir 
+    # creates a temporary dir
     TDR=$(mktemp -d faust.XXX)
     TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
@@ -209,7 +209,7 @@ for p in $FILES; do
         OPTIONS="$OPTIONS $(faustbench-llvm -notrace $OPTIONS $f)"
         echo $OPTIONS
     fi
-    
+
     # -double is used by default
     if [ "$FAUSTFLOAT" = "double" ]; then
         OPTIONS="$OPTIONS -double"
@@ -222,7 +222,7 @@ for p in $FILES; do
         faust -i -cn ${f%.dsp} -uim -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
         faust -i -cn effect -a $FAUSTARCH/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
     fi
-       
+
     # compile c++ to binary
     (
         cd "$TMP"
@@ -241,7 +241,7 @@ for p in $FILES; do
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
 
     # Keep .dsp and .cpp files in the plug-in
-    cp "$TMP/${f%.dsp}.cpp" "$TMP/${f%.dsp}$EXT"   
+    cp "$TMP/${f%.dsp}.cpp" "$TMP/${f%.dsp}$EXT"
     cp "$SRCDIR/$f" "$TMP/${f%.dsp}$EXT"
     # Create Info.plist
     createInfoPList "${f%.dsp}~" "$TMP/${f%.dsp}$EXT/Contents/Info.plist"
@@ -268,7 +268,7 @@ for p in $FILES; do
                 else
                     #create destination path and possibly create directory
                     sfpath="$TMP/${f%.dsp}$EXT/$(dirname $snd)/"
-                    if ! [ -d $sfpath ]; then 
+                    if ! [ -d $sfpath ]; then
                         echo "Create $sfpath"
                         mkdir $sfpath
                     fi
@@ -301,11 +301,11 @@ for p in $FILES; do
 
         # copy JavaScript UI file
         cp $FAUSTARCH/max-msp/ui.js .
-        
+
         rm ${f%.dsp}-temp1.maxpat
         rm ${f%.dsp}-temp2.maxpat
     fi
-    
+
 done
 
 if [ "$NOPATCH" = "0" ]; then

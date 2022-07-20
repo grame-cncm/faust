@@ -90,7 +90,7 @@ do
         option "Faust options"
         exit
     fi
-    
+
     if [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
@@ -126,7 +126,7 @@ do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -157,7 +157,7 @@ for p in $FILES; do
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
 
-    # creates a temporary dir 
+    # creates a temporary dir
     TDR=$(mktemp -d faust.XXXXXX)
     TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
@@ -180,7 +180,7 @@ for p in $FILES; do
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
 
     # Keep .dsp and .cpp files in the plug-in
-    cp "$TMP/${f%.dsp}.cpp" "$TMP/${f%.dsp}$EXT"   
+    cp "$TMP/${f%.dsp}.cpp" "$TMP/${f%.dsp}$EXT"
     cp "$SRCDIR/$f" "$TMP/${f%.dsp}$EXT"
     # Create Info.plist
     createInfoPList "${f%.dsp}~" "$TMP/${f%.dsp}$EXT/Contents/Info.plist"
@@ -202,12 +202,12 @@ for p in $FILES; do
         # copy found soundfiles in the final binary
         for snd in $(cat $p-tmp.txt); do
             if [ -f $snd ]; then
-                if [ ${snd:0:1} = "/" ]; then 
+                if [ ${snd:0:1} = "/" ]; then
                     echo "Warning: soundfile with absolute path is not copied !"
                 else
                     #create destination path and possibly create directory
                     sfpath="$TMP/${f%.dsp}$EXT/$(dirname $snd)/"
-                    if ! [ -d $sfpath ]; then 
+                    if ! [ -d $sfpath ]; then
                         echo "Create $sfpath"
                         mkdir $sfpath
                     fi

@@ -66,7 +66,7 @@ for ((i=1; i<$#+1; i++)); do
         option "-nvoices N" "number of synth voices (instruments only; arg must be an integer)"
         option -osx "-osx to compile on OSX"
         option "-qt4, -qt5" "select the GUI toolkit (requires Qt4/5; implies -gui)"
-        option "-style S" "select the stylesheet (arg must be Default, Blue, Grey or Salmon)."    
+        option "-style S" "select the stylesheet (arg must be Default, Blue, Grey or Salmon)."
         cat <<EOF
 Environment variables:
   FAUSTINC: specify the location of the Faust include directory

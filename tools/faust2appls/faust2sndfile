@@ -33,7 +33,7 @@ do
         option "Faust options"
         exit
     fi
-    
+
     if [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
@@ -81,10 +81,10 @@ for f in $FILES; do
 
     # remove c++ file
     rm "$f.cpp"
-    
+
     # collect binary file name for FaustGIDE
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}"
- 
+
 done
 
 echo $BINARIES

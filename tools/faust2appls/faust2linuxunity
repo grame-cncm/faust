@@ -25,10 +25,10 @@ NVOICES=-1
 #-------------------------------------------------------------------
 # Dispatch command arguments
 
-while [ $1 ] 
+while [ $1 ]
 do
     p=$1
-    
+
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2linuxunity "[options] [Faust options] <file.dsp>"
         platform Linux
@@ -48,9 +48,9 @@ do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
-    
+
 shift
 done
 
@@ -81,7 +81,7 @@ for p in $FILES; do
     SRCDIR=$(dirname "$p")
     FIN=$FNAME/Linux
 
-    # creates a temporary dir 
+    # creates a temporary dir
     TDR=$(mktemp -d faust.XXXXXX)
     TMP=$TDR/${f%.dsp}
     mkdir "$TMP"

@@ -35,10 +35,10 @@ UNPCK="0"
 NVOICES=-1
 FAUST_UTILITY=FaustUtilities_template.cs
 
-while [ $1 ] 
+while [ $1 ]
 do
     p=$1
-    
+
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2unity "[options] [Faust options] <file.dsp>"
         platform Android, Linux, MacOSX, iOS, Windows
@@ -58,7 +58,7 @@ do
         echo "See architecture/unity/README.md for more info."
         exit
     fi
-     
+
     if [ $p = "-w32" ]; then
         W32="1"
         ALL="0"
@@ -93,7 +93,7 @@ do
     else
         OPTIONS="$OPTIONS $p"
     fi
-    
+
 shift
 done
 
@@ -149,12 +149,12 @@ for p in $FILES; do
     if [ $W64 = "1" ] || [ $ALL = "1" ]; then
         WINBITS="$WINBITS -64"
     fi
-    
+
     # w32
     if [ $W32 = "1" ] || [ $ALL = "1" ]; then
         WINBITS="$WINBITS -32"
     fi
-    
+
     # win
     if [ -n "$WINBITS" ]; then
         faust2winunity -nvoices $NVOICES $WINBITS $f || exit

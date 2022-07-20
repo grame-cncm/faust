@@ -44,16 +44,16 @@ do
         option -emcc "use the EMCC generated glue (mandatory when using 'soundfiles' in the DSP code) [experimental]"
         exit
     fi
-     
+
     if [ $p = "-links" ]; then
         SVG="-svg"
-        LINKS="<div style=\"text-align:center;height:20px\"> 
+        LINKS="<div style=\"text-align:center;height:20px\">
                 <style>
                 a:link {font-family:Arial; font-size:12px; color:#3D3C3A; text-decoration:none}
                 a:visited {font-family:Arial; font-size:12px; color:#3D3C3A; text-decoration:none}
                 a:hover {font-family:Arial; font-size:12px; color:white; text-decoration:none}
                 </style>
-            <a href=\"DSP.dsp\" target=\"_blank\">source</a> 
+            <a href=\"DSP.dsp\" target=\"_blank\">source</a>
             <a href=\"DSP-svg/process.svg\" target=\"_blank\">diagram</a>
             </div>"
         EXPORT_FOOTER=export-wrapper.html
@@ -74,7 +74,7 @@ do
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -155,7 +155,7 @@ BINARIES=""
 
 for f in $FILES; do
     name=$(basename "$f" .dsp)
-    
+
     faust -lang $WASM $SVG $OPTIONS -cn $name $f -o $name.wasm || exit
 
     # possibly compile effect
@@ -168,7 +168,7 @@ for f in $FILES; do
         adaptor(F,G) = adapt(outputs(F),inputs(G));
         process = adaptor(library("$f").process, library("$f").effect) : library("$f").effect;
 EndOfCode
-        faust -lang $WASM $OPTIONS -cn effect $name"_effect".dsp -o $name"_effect".wasm || exit 
+        faust -lang $WASM $OPTIONS -cn effect $name"_effect".dsp -o $name"_effect".wasm || exit
         rm $name"_effect".dsp
     elif [ "$EFFECT" != "" ]; then
         faust -lang $WASM $OPTIONS -cn effect $EFFECT -o $name"_effect".wasm || exit
@@ -228,7 +228,7 @@ EndOfCode
     else
         sed -e "s/DSP/"$name"/g" $name-temp2.html > $name.html
     fi
-   
+
     # collect binary file name
     if [ $WORKLET = "true" ]; then
         if [ $EMCC = "true" ]; then

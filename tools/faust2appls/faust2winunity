@@ -25,10 +25,10 @@ NVOICES=-1
 #-----------------------------------------------------------------------
 # Dispatch command arguments
 
-while [ $1 ] 
+while [ $1 ]
 do
     p=$1
-    
+
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2unitywin -32 -64 [Faust options] <file1.dsp> [<file2.dsp>]"
         echo "Create Microsoft 32/64bits library for Faust Unity plugins"
@@ -54,7 +54,7 @@ do
     else
         OPTIONS="$OPTIONS $p"
     fi
-    
+
 shift
 done
 
@@ -113,15 +113,15 @@ for p in $FILES; do
         (which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found. See -help for more info"; exit 1)
 
         # compile c++ to binary
-       	(
+        (
             cd "$TMP"
             if [ $NVOICES == -1 ]; then
-            	$CXX $CXXFLAGS $PROCARCH $LIB $OMP -static-libstdc++ -static-libgcc -Dmydsp=$NAME -o $LIBNAME $NAME.cpp
+                $CXX $CXXFLAGS $PROCARCH $LIB $OMP -static-libstdc++ -static-libgcc -Dmydsp=$NAME -o $LIBNAME $NAME.cpp
             else
-            	$CXX $CXXFLAGS $PROCARCH $LIB $OMP -static-libstdc++ -static-libgcc -DPOLY -Dmydsp=$NAME -o $LIBNAME $NAME.cpp
+                $CXX $CXXFLAGS $PROCARCH $LIB $OMP -static-libstdc++ -static-libgcc -DPOLY -Dmydsp=$NAME -o $LIBNAME $NAME.cpp
             fi
         ) > /dev/null || (echo "$f : C++ to win$BIT library compilation failed in faust2unitywin"; exit 1)
-		 
+
         # moves binary to final dir
         mv "$TMP/$LIBNAME" "$FIN/$LIBNAME"
         echo "$f : w$BIT compilation completed"

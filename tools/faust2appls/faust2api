@@ -52,9 +52,9 @@ TEENSY_DRIVER="0"
 ESP32_DRIVER="0"
 
 if [[ $(uname -s) == Darwin ]]; then
-	ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio -framework AudioUnit -framework CoreServices"
+    ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio -framework AudioUnit -framework CoreServices"
 else
-	ARCHLIB=""
+    ARCHLIB=""
 fi
 
 echoHelp ()
@@ -65,21 +65,21 @@ echoHelp ()
     fi
     usage faust2api "[options] [Faust options] <file.dsp>"
     echo "faust2api can be used to generate Faust based dsp objects for various platforms:"
-    echo 
+    echo
     echo "Output options:"
     option -ios "generates an iOS API"
     option -android "generates an Android API"
-    option -coreaudio "generates an OSX CoreAudio API" 
+    option -coreaudio "generates an OSX CoreAudio API"
     option -alsa "generates an ALSA API"
     option -jack "generates a JACK API"
-    option -portaudio "generates a PortAudio API" 
+    option -portaudio "generates a PortAudio API"
     option -rtaudio "generates an RTAudio API"
     option -of "generates an openFrameworks API"
     option -juce "generates a JUCE API"
-    option -dummy "generates a dummy audio API" 
-    option -teensy "generates a Teensy API" 
-    option -esp32 "generates a ESP32 API" 
-    echo 
+    option -dummy "generates a dummy audio API"
+    option -teensy "generates a Teensy API"
+    option -esp32 "generates a ESP32 API"
+    echo
     echo "Global options:"
     option "-opt native|generic" "activates the best compilation options for the native or generic CPU"
     option "-nvoices <num>" "creates a polyphonic object with <num> voices"
@@ -89,16 +89,16 @@ echoHelp ()
     option -nozip "prevents generated files to be put in a zip file"
     option "-target <target>" "sets a name of the target folder or the zip file. Defaults to \"dsp-faust\""
     option "Faust options"
-    echo 
+    echo
     echo "Android specific options:"
     option -package "set the JAVA package name (e.g. '-package mypackage' will change the JAVA package name to 'mypackage.DspFaust'). The default package name is 'com.DspFaust.'"
     option -soundfile "add built-in Soundfile support to the API"
-    echo 
+    echo
     echo "Options supported by iOS, CoreAudio, ALSA, JACK, PortAudio, openFrameworks and JUCE"
     option -midi "add built-in RtMidi support to the API"
     option -osc "add built-in OSC support to the API"
     option -soundfile "add built-in Soundfile support to the API"
-    echo 
+    echo
     echo "JACK specific options"
     option -build "build a ready to test binary"
     option -dynamic "add libfaust/LLVM dynamic DSP compilation mode"
@@ -135,7 +135,7 @@ createAPI ()
 # dispatch command arguments
 while [ $1 ]
 do
-	p=$1
+    p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echoHelp
@@ -144,13 +144,13 @@ do
         shift
         OPT=$1
     elif [ "$PACKAGENAME" = "-1" ]; then
-		PACKAGENAME="$p"
+        PACKAGENAME="$p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-		FILE="$p"
+        FILE="$p"
     elif [ $p = "-android" ]; then
-		ANDROID_DRIVER=1
+        ANDROID_DRIVER=1
     elif [ $p = "-ios" ]; then
-		IOS_DRIVER="1"
+        IOS_DRIVER="1"
     elif [ $p = "-coreaudio" ]; then
         COREAUDIO_DRIVER=1
     elif [ $p = "-alsa" ]; then
@@ -175,8 +175,8 @@ do
         MISC_OPT="-uim"
     elif [ "$p" = "-effect" ]; then
         POLY2="1"
-		shift
-		EFFECT=$1
+        shift
+        EFFECT=$1
     elif [ "$p" = "-midi" ]; then
         MIDI="1"
     elif [ "$p" = "-soundfile" ]; then
@@ -196,8 +196,8 @@ do
     elif [ "$p" = "-dynamic" ]; then
         DYNAMIC_DSP="1"
     elif [ $p = "-nvoices" ]; then
-		shift
-		NVOICES=$1
+        shift
+        NVOICES=$1
     elif [ $p = "-package" ]; then
         PACKAGENAME="-1"
     elif [ ${p:0:1} = "-" ]; then
@@ -371,15 +371,15 @@ if [ $NODOC -eq 0 ]; then
         DOCHEADERFILE="$FAUSTARCH/api/doc/Generic.md"
     fi
 
-	PPFILE=pPrinter.cpp
-	PPBINARY=pp
-	READMEFILE="$APIFOLDER/README.md"
+    PPFILE=pPrinter.cpp
+    PPBINARY=pp
+    READMEFILE="$APIFOLDER/README.md"
 
-	faust $OPTIONS $MISC_OPT -i -a path-printer.cpp "$FILE" -o "$PPFILE" || exit 1
-	if [ "$POLY2" = "1" ]; then
-		faust $OPTIONS -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$PPFILE" > temp && mv temp "$PPFILE" || exit 1
-		echo "#define POLY2 1" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
-	fi
+    faust $OPTIONS $MISC_OPT -i -a path-printer.cpp "$FILE" -o "$PPFILE" || exit 1
+    if [ "$POLY2" = "1" ]; then
+        faust $OPTIONS -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$PPFILE" > temp && mv temp "$PPFILE" || exit 1
+        echo "#define POLY2 1" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
+    fi
     if [ "$NVOICES" -gt "0" ]; then
         echo "#define NVOICES $NVOICES" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
     fi
@@ -387,21 +387,21 @@ if [ $NODOC -eq 0 ]; then
         echo "#define SOUNDFILE 1" | cat - "$PPFILE"  > temp && mv temp "$PPFILE"
     fi
 
-	# compile c++ to binary
-	(
-		if [ "$NVOICES" -gt "0" ]; then
-		    $CXX $CXXFLAGS -DPOLY_VOICES "$PPFILE" `pkg-config --cflags --static --libs sndfile` -lpthread -o "$PPBINARY"
-		else
-		    $CXX $CXXFLAGS "$PPFILE" `pkg-config --cflags --static --libs sndfile` -lpthread -o "$PPBINARY"
-		fi
-	) > /dev/null || exit 1
-	rm "$PPFILE" || exit 1
+    # compile c++ to binary
+    (
+        if [ "$NVOICES" -gt "0" ]; then
+            $CXX $CXXFLAGS -DPOLY_VOICES "$PPFILE" `pkg-config --cflags --static --libs sndfile` -lpthread -o "$PPBINARY"
+        else
+            $CXX $CXXFLAGS "$PPFILE" `pkg-config --cflags --static --libs sndfile` -lpthread -o "$PPBINARY"
+        fi
+    ) > /dev/null || exit 1
+    rm "$PPFILE" || exit 1
 
-	cp "$DOCHEADERFILE"  "$READMEFILE" || exit 1
-	./"$PPBINARY" | cat "$READMEFILE" - > temp && mv temp "$READMEFILE" || exit 1
-	rm "$PPBINARY" || exit 1
+    cp "$DOCHEADERFILE"  "$READMEFILE" || exit 1
+    ./"$PPBINARY" | cat "$READMEFILE" - > temp && mv temp "$READMEFILE" || exit 1
+    rm "$PPBINARY" || exit 1
 
-	faust2md "$APIHEADERFILE" | cat "$READMEFILE" - > temp && mv temp "$READMEFILE" || exit 1
+    faust2md "$APIHEADERFILE" | cat "$READMEFILE" - > temp && mv temp "$READMEFILE" || exit 1
 fi
 
 ###################################

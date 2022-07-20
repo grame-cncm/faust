@@ -38,7 +38,7 @@ for p in $@; do
         option "Faust options"
         exit
     fi
-    
+
     if [ $p = "-arch32" ]; then
         PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-poly" ]; then
@@ -52,7 +52,7 @@ for p in $@; do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 done
 
@@ -76,11 +76,11 @@ for p in $FILES; do
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
 
-    # creates a temporary dir 
+    # creates a temporary dir
     TDR=$(mktemp -d faust.XXXXXX)
     TMP=$TDR/${f%.dsp}
     mkdir "$TMP"
-    
+
     # case where a foreign C++ function is called in the Faust code (TODO: this is only a quick fix!)
     count=`ls -1 *.h 2>/dev/null | wc -l`
     if [ $count != 0 ]; then
@@ -106,9 +106,9 @@ for p in $FILES; do
                 $CXX -arch x86_64 $CXXFLAGS $FAUSTTOOLSFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}.x86_64 $CXX_SOURCE || exit
                 $LIPO -create "${f%.dsp}.arm64" "${f%.dsp}.x86_64" -output "${f%.dsp}$EXT" || exit
             else
-                $CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o "${f%.dsp}$EXT" $CXX_SOURCE || exit   
+                $CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP $LIB -Dmydsp=${f%.dsp} -o "${f%.dsp}$EXT" $CXX_SOURCE || exit
             fi
-            codesign --sign - --deep --force "${f%.dsp}$EXT" 
+            codesign --sign - --deep --force "${f%.dsp}$EXT"
         else
             $CXX $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $OMP $LIB -Dmydsp=${f%.dsp} -o ${f%.dsp}$EXT $CXX_SOURCE || exit
         fi

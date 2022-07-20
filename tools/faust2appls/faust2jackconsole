@@ -51,7 +51,7 @@ do
         option "Faust options"
         exit
     fi
-  
+
       if [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
@@ -78,18 +78,18 @@ do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
-    
+
 shift
 
 done
-    
+
 #-------------------------------------------------------------------
 # compile the *.dsp files using JACK and console
 #
 for f in $FILES; do
-    
+
     # compile faust to c++
     faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
@@ -100,7 +100,7 @@ for f in $FILES; do
             codesign --sign - --deep --force "${f%.dsp}"
         fi
     ) > /dev/null || exit
-    
+
     # remove temporary files
     rm -f "$f.cpp"
 

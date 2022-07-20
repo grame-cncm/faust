@@ -35,13 +35,13 @@ for p in $@; do
 		SWIG=1
 	fi
 	if [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILE="$p"
+		FILE="$p"
 	elif [ $p = "-install" ]; then
 		INSTALL=1
 	elif [ $p = "-soundfile" ]; then
-    	SOUNDFILE="1"
+		SOUNDFILE="1"
 	elif [ $p = "-osc" ]; then
-	    OSCCTRL="1"
+		OSCCTRL="1"
 	elif [ $p = "-source" ]; then
 		SOURCE=1
 	elif [ $p = "-faust" ]; then
@@ -52,28 +52,28 @@ for p in $@; do
 		KEYBOARD=1
 	elif [ $p = "-debug" ]; then
 		LOG="/dev/stdout"
-    elif [ "$p" = "-noagc" ]; then
-        NOAGC="1"
+	elif [ "$p" = "-noagc" ]; then
+		NOAGC="1"
 	elif [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2android "[options] [Faust options] <file.dsp>"
- 		platform Android
+		usage faust2android "[options] [Faust options] <file.dsp>"
+		platform Android
 		require Android SDK
 		echo "Compile a Faust program to an Android app"
 		option
-        option -osc
-        option -source "creates an eclipse project of the app in the current directory."
-        option -swig "regenerates the C++ and the JAVA interface for the native portion of the app."
-        option -faust "only carries out the Faust compilation and install the generated C++ file in the JNI folder."
-        option -reuse "preserves build directory and reuse it to speedup compilation."
-        option -soundfile
-        option -install "once compilation is over, installs the generated apk on the Android device connected to the computer"
-        option -debug "activates verbose output"
-        option "Faust options"
+		option -osc
+		option -source "creates an eclipse project of the app in the current directory."
+		option -swig "regenerates the C++ and the JAVA interface for the native portion of the app."
+		option -faust "only carries out the Faust compilation and install the generated C++ file in the JNI folder."
+		option -reuse "preserves build directory and reuse it to speedup compilation."
+		option -soundfile
+		option -install "once compilation is over, installs the generated apk on the Android device connected to the computer"
+		option -debug "activates verbose output"
+		option "Faust options"
 		exit
-    elif [ ${p:0:1} = "-" ]; then
-        OPTIONS="$OPTIONS $p"
+	elif [ ${p:0:1} = "-" ]; then
+		OPTIONS="$OPTIONS $p"
 	else
-	    OPTIONS="$OPTIONS $p"
+		OPTIONS="$OPTIONS $p"
 	fi
 done
 
@@ -100,9 +100,9 @@ if [ $REUSE -eq 0 ]; then
 fi
 
 if [ ! -d "$BUILDDIR" ]; then
-  	echo "Creating new Android project $BUILDDIR"  > $LOG
+	echo "Creating new Android project $BUILDDIR"  > $LOG
 
-  	mkdir -p "$BUILDDIR"
+	mkdir -p "$BUILDDIR"
 	cp -r $FAUSTARCH/android/*  "$BUILDDIR"
 	install -d $JNIFOLDER
 	# Copy include files *.h if any (ignore any error here)
@@ -113,11 +113,11 @@ if [ ! -d "$BUILDDIR" ]; then
 
 	if [ $PLATFORM = "Darwin" ]; then
 		sed -i '' 's,com.faust,com.'$APPNAME',g' $BUILDDIR/app/build.gradle
-        if [ "$NOAGC" = "1" ]; then
-            sed -i '' 's,-DDISABLE_AGC,'-DDISABLE_AGC',g' $BUILDDIR/app/build.gradle
-        else
-            sed -i '' 's,-DDISABLE_AGC,'',g' $BUILDDIR/app/build.gradle
-        fi
+	if [ "$NOAGC" = "1" ]; then
+		sed -i '' 's,-DDISABLE_AGC,'-DDISABLE_AGC',g' $BUILDDIR/app/build.gradle
+	else
+		sed -i '' 's,-DDISABLE_AGC,'',g' $BUILDDIR/app/build.gradle
+	fi
 		sed -i '' 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/faust/*
 		sed -i '' 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/triggertrap/seekarc/*
 		sed -i '' 's,com.faust,com.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml
@@ -125,11 +125,11 @@ if [ ! -d "$BUILDDIR" ]; then
 		sed -i '' 's,1,'$APPNAME',g' $APPFOLDER/res/values/strings.xml
 	else
 		sed -i 's,com.faust,com.'$APPNAME',g' $BUILDDIR/app/build.gradle
-        if [ "$NOAGC" = "1" ]; then
-            sed -i 's,-DDISABLE_AGC,'-DDISABLE_AGC',g' $BUILDDIR/app/build.gradle
-        else
-            sed -i 's,-DDISABLE_AGC,'',g' $BUILDDIR/app/build.gradle
-        fi
+	if [ "$NOAGC" = "1" ]; then
+		sed -i 's,-DDISABLE_AGC,'-DDISABLE_AGC',g' $BUILDDIR/app/build.gradle
+	else
+		sed -i 's,-DDISABLE_AGC,'',g' $BUILDDIR/app/build.gradle
+	fi
 		sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/faust/*
 		sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/java/com/triggertrap/seekarc/*
 		sed -i 's,com.faust,com.'$APPNAME',g' $APPFOLDER/AndroidManifest.xml

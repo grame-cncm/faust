@@ -26,7 +26,7 @@ OPTIONS=""
 #-------------------------------------------------------------------
 #PHASE 1 : dispatch command arguments
 #-------------------------------------------------------------------
-while [ $1 ] 
+while [ $1 ]
 do
     p=$1
 
@@ -68,7 +68,7 @@ do
     elif [ $p = "-tobela" ]; then
         SEND2BELA="OK"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -83,7 +83,7 @@ f=$(basename "$p")
 SRCDIR=$(dirname "$p")
 INPUT_FILE="$SRCDIR/$f"
 
-# creates a dir 
+# creates a dir
 TMP="${f%.dsp}"
 mkdir -p "$TMP/tmp"
 
@@ -155,7 +155,7 @@ rm -rf "$PROJECTDIR/tmp"
 if [[ "$SEND2BELA" == *OK* ]]; then
     echo "Send to bela"
     echo $PROJECTDIR
-    
+
 #-------------------------------------------------------------------
 #From build_project.sh :
 #-------------------------------------------------------------------
@@ -221,20 +221,20 @@ uploadBuildRun(){
     if [ "$RSYNC_AVAILABLE" -eq 0 ];
     then
         echo "Using scp..."
-        
+
         echo "Cleaning the destination folder..."
         #if rsync is not available, brutally clean the destination folder
         ssh $BBB_ADDRESS "rm -rf \"$BBB_PROJECT_FOLDER\"; mkdir -p \"$BBB_PROJECT_FOLDER\""
         echo "Copying the project files"
         scp -r $PROJECTDIR/* "$BBB_NETWORK_TARGET_FOLDER"
     else
-        #rsync 
+        #rsync
         # --delete makes sure it removes files that are not in the origin folder
-        # -c evaluates changes using md5 checksum instead of file date, so we don't care about time skews 
+        # -c evaluates changes using md5 checksum instead of file date, so we don't care about time skews
         # --no-t makes sure file timestamps are not preserved, so that the Makefile will not think that targets are up to date when replacing files on the BBB
         #  with older files from the host. This will solve 99% of the issues with Makefile thinking a target is up to date when it is not.
         echo "Using rsync..."
-        
+
         rsync -ac --out-format="   %n" --no-t --delete-after --exclude=$BBB_PROJECT_NAME --exclude=build --exclude=settings.json $PROJECTDIR"/" "$BBB_NETWORK_TARGET_FOLDER/" #trailing slashes used here make sure rsync does not create another folder inside the target folder
     fi
 
@@ -243,15 +243,15 @@ uploadBuildRun(){
         printf "\nError while copying files\n"
         exit
     fi
-    
+
     # Make new Bela executable and run
     MAKE_COMMAND="make --no-print-directory QUIET=true -C $BBB_BELA_HOME PROJECT='$BBB_PROJECT_NAME' CL='$COMMAND_ARGS' LDLIBS='$BELA_LDLIBS' CPPFLAGS='$BELA_CPPFLAGS' AT="
-    
+
     ssh -t $BBB_ADDRESS "$MAKE_COMMAND run"
 }
 
 echo "Run bela now"
 uploadBuildRun
-    
+
 fi
 echo "$PROJECTDIR/render.cpp;"
