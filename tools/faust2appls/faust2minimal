@@ -17,6 +17,7 @@
 . usage.sh
 
 CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
+LIBADD+=" -lpthread"
 
 # The architecture file name
 ARCHFILE=$FAUSTARCH/minimal.cpp
@@ -67,7 +68,7 @@ for f in $FILES; do
     # compile c++ to binary
     echo "compile c++ to binary"
     (
-        $CXX $CXXFLAGS "${f%.dsp}.cpp" -o "${f%.dsp}"
+        $CXX $CXXFLAGS "${f%.dsp}.cpp" -o "${f%.dsp}" ${LIBADD}
     ) > /dev/null || exit
 
     # remove temporary files
