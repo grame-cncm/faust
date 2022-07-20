@@ -13,10 +13,10 @@
 #-------------------------------------------------------------------
 # Default compilation flags for gcc and icc :
 #
-if [ $(uname -m) = armv6l ]; then        # for Raspberry PI
+if [ "$(uname -m)" = armv6l ]; then        # for Raspberry PI
     MYGCCFLAGS="-std=c++11 -O3 -march=armv6zk -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -ffast-math -ftree-vectorize"
-elif [ $(uname -s) = Darwin ]; then      # for macOS
-    if [ $(uname -m) = arm64 ]; then
+elif [ "$(uname -s)" = Darwin ]; then      # for macOS
+    if [ "$(uname -m)" = arm64 ]; then
         # Silicon MX
         MYGCCFLAGS="-std=c++11 -Ofast"
     else
@@ -35,14 +35,10 @@ MYICCFLAGS="-std=c++11 -O3 -xHost -ftz -fno-alias -fp-model fast=2"
 # Default compilers
 
 # Set default value for CXX
-if [ "$CXX" = "" ]; then
-    CXX=c++
-fi
+: ${CXX:=c++}
 
 # Set default value for CC
-if [ "$CC" = "" ]; then
-    CC=cc
-fi
+: ${CC:=cc}
 
 # For universal binaries creation on maxOS
 LIPO=lipo

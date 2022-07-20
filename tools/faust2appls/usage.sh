@@ -18,7 +18,7 @@ require() {
 options() {
     while [ "$1" ]
     do
-        option $1
+        option "$1"
         shift
     done
 }
@@ -26,7 +26,7 @@ options() {
 option() {
     if [ $# -ne 0 ]
     then
-        option=$1
+        option="$1"
         shift
         doc=$*
         if [ -z "$doc" ]
