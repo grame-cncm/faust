@@ -11,16 +11,16 @@
 
 #-------------------------------------------------------------------------------
 # Search where Faust is installed. Store '.../share/faust/' in $FAUSTLIB
-# and '.../include/(faust)' in $FAUSTINC 
+# and '.../include/(faust)' in $FAUSTINC
 #
 # USAGE :
 # add line << . faustpath >> to your script
 # and use -L$FAUSTLIB and -I$FAUSTINC where needed
 
-FAUSTLDDIR=$(faust -libdir); 
-FAUSTLIB=$(faust -dspdir); 
-FAUSTINC=$(faust -includedir); 
-[ -n "$FAUSTARCH" ] || FAUSTARCH=$(faust -archdir); 
+FAUSTLDDIR=$(faust -libdir);
+FAUSTLIB=$(faust -dspdir);
+FAUSTINC=$(faust -includedir);
+[ -n "$FAUSTARCH" ] || FAUSTARCH=$(faust -archdir);
 
 [ -n "$MAXSDK" ] || MAXSDK=/usr/local/include/c74support/
 CSOUND_MACSDK=/Library/Frameworks/CsoundLib64.framework
@@ -31,7 +31,7 @@ VSTSDK=""
 [ -n "$SUPERCOLLIDER_HEADERS" ] || SUPERCOLLIDER_HEADERS=/usr/local/include/SuperCollider/
 
 FPATH="$FAUST_INSTALL /usr/local /usr /opt /opt/local"; # <- where to search
-if [ -z "$FAUSTLIB" -o -z "$FAUSTINC" ]; then 
+if [ -z "$FAUSTLIB" -o -z "$FAUSTINC" ]; then
 for f in $FPATH; do
 	if [ -e $f/share/faust ]; then FAUSTLIB=$f/share/faust;	fi
 	if [ -e $f/include/faust ];	then FAUSTINC=$f/include/; fi
@@ -49,7 +49,7 @@ if [ -e ${HOME}/.faust/faustpath ]; then
  . ${HOME}/.faust/faustpath
 fi
 
-if [ -z "$FAUSTLIB" -o -z "$FAUSTINC" ]; then 
-	echo "ERROR : $0 cannot find Faust directories (normally /usr/local/include/faust and /usr/local/share/faust)"; 
+if [ -z "$FAUSTLIB" -o -z "$FAUSTINC" ]; then
+	echo "ERROR : $0 cannot find Faust directories (normally /usr/local/include/faust and /usr/local/share/faust)";
 	exit 1;
 fi
