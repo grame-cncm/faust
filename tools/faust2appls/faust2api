@@ -66,7 +66,7 @@ echoHelp ()
     usage faust2api "[options] [Faust options] <file.dsp>"
     echo "faust2api can be used to generate Faust based dsp objects for various platforms:"
     echo 
-    echo "Ouput options:"
+    echo "Output options:"
     option -ios "generates an iOS API"
     option -android "generates an Android API"
     option -coreaudio "generates an OSX CoreAudio API" 

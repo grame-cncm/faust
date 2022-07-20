@@ -147,7 +147,7 @@ def cs_placeholder_filler(synth_name: str, c_synth_name:str, nb_inputs : int, ar
                            in_list=in_list)
 
 def cs_find_last_occurence(filepath: str, pattern: str):
-    """ Find the last occurence of pattern in file and return line """
+    """ Find the last occurrence of pattern in file and return line """
     last_occurence = 0
 
     with open(filepath, 'r') as file:
@@ -209,7 +209,7 @@ def cm_placeholder_filler(synth_name: str, argument_list: list):
            subparameters=subparameters)
 
 def cm_find_penultimate_occurence(filepath: str, pattern: str):
-    """ Find the penultimate occurence of pattern in file and return line """
+    """ Find the penultimate occurrence of pattern in file and return line """
     penultimate_occurence = 1
 
     with open(filepath, 'r') as file:
@@ -262,7 +262,7 @@ def bt_placeholder_filler(synth_name: str, argument_list: list):
             parameters=parameters)
 
 def bt_find_penultimate_occurence(filepath: str, pattern: str):
-    """ Find the penultimate occurence of pattern in file and return line """
+    """ Find the penultimate occurrence of pattern in file and return line """
     penultimate_occurence = 0
 
     with open(filepath, 'r') as file:
@@ -336,7 +336,7 @@ inputdsp : path to your DSP
 
 It will automatically write the where it has to be. 
 
-Exemple : faust2tidalcycles -i /home/yourusername/.cabal/share/x86_64-linux-ghc-8.6.5/tidal-1.7.10/BootTidal.hs /myFaustDSPdir/MyEffect.dsp
+Example : faust2tidalcycles -i /home/yourusername/.cabal/share/x86_64-linux-ghc-8.6.5/tidal-1.7.10/BootTidal.hs /myFaustDSPdir/MyEffect.dsp
 
 /package_installation\
 
@@ -346,7 +346,7 @@ a directory named yourDSP.files2add with the different code extract for core-syn
 The class file and the .so file to put in Supercollider Extensions  
 And this HelpFile to verify name, inputs, outputs and parameters list. 
 
-Exemple : faust2tidalcycles -p 1 /myFaustDSPdir/MyEffect.dsp
+Example : faust2tidalcycles -p 1 /myFaustDSPdir/MyEffect.dsp
 
 faust2tidalcycles create package files in your DSP location
 
@@ -406,7 +406,7 @@ def cs_placeholder_filler(cs_filling : str):
     return template.format(cs_filling=cs_filling)
 
 def cs_find_last_occurence(filepath: str, pattern: str):
-    """ Find the last occurence of pattern in file and return line """
+    """ Find the last occurrence of pattern in file and return line """
     last_occurence = 0
 
     with open(filepath, 'r') as file:
@@ -453,7 +453,7 @@ def cm_placeholder_filler(cm_filling : str):
     return template.format(cm_filling=cm_filling)
 
 def cm_find_penultimate_occurence(filepath: str, pattern: str):
-    """ Find the penultimate occurence of pattern in file and return line """
+    """ Find the penultimate occurrence of pattern in file and return line """
     penultimate_occurence = 1
 
     with open(filepath, 'r') as file:
@@ -497,7 +497,7 @@ def bt_placeholder_filler(bt_filling : str):
     return template.format(bt_filling=bt_filling)
 
 def bt_find_penultimate_occurence(filepath: str, pattern: str):
-    """ Find the penultimate occurence of pattern in file and return line """
+    """ Find the penultimate occurrence of pattern in file and return line """
     penultimate_occurence = 0
 
     with open(filepath, 'r') as file:
@@ -549,7 +549,7 @@ if __name__ == "__main__":
         description='Installer'
     )
     
-    parser.add_argument("boottidalloc", help="Your BootTidal.hs path, it's never where you think it is, be carefull")
+    parser.add_argument("boottidalloc", help="Your BootTidal.hs path, it's never where you think it is, be careful")
 
 
     args, unknownargs = parser.parse_known_args()

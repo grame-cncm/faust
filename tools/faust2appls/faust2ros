@@ -77,7 +77,7 @@ OPTIONS :
 		faust2ros -o mynewname ~/path/to/mydsp.dsp
 		Output : mynewname.zip
 	
-For more options and informations, type faust -h or faust --help
+For more options and information, type faust -h or faust --help
 
 ####################################################################################################
 "
@@ -227,7 +227,7 @@ To run your new application :
 		b) type 'source devel/setup.bash'
 	3) run with 'rosrun myapp myapp'
 
-For more informations, check the documentation :
+For more information, check the documentation :
 https://sourceforge.net/p/faudiostream/code/ci/master/tree/documentation" > README.txt
 ############ END README #############################
 	  		cd $CURRENT_DIR/$temp_dir/src
@@ -252,7 +252,7 @@ To run your new application :
 		b) type 'source devel/setup.bash'
 	3) run with 'rosrun myapp myapp'
 
-For more informations, check the documentation :
+For more information, check the documentation :
 https://sourceforge.net/p/faudiostream/code/ci/master/tree/documentation" > README.txt
 ############ END README #############################	    
 	    		catkin_make > /dev/null || exit

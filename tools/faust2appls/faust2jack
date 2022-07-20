@@ -153,7 +153,7 @@ EndOfCode
         fi
     ) > /dev/null || exit
 
-    # remove tempory files
+    # remove temporary files
     rm -f "${f%.dsp}.cpp" effect.h "$f.json"
 
     # collect binary file name for FaustWorks

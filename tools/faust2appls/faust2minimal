@@ -70,7 +70,7 @@ for f in $FILES; do
         $CXX $CXXFLAGS "${f%.dsp}.cpp" -o "${f%.dsp}"
     ) > /dev/null || exit
 
-    # remove tempory files
+    # remove temporary files
     rm -f "${f%.dsp}.cpp"
 
     # collect binary file name for FaustWorks
