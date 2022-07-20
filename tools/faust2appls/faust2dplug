@@ -13,7 +13,7 @@
 
 DEBUG=false
 
-# MIDI not yet supported in this file.  Needs to be connected in minimal-dplug.d architecture file
+# MIDI not yet supported in this file.  Needs to be connected in dplug.d architecture file
 IS_MIDI="0"
 VENDOR="Faust"
 VENDORID="FaUs"
@@ -197,6 +197,6 @@ _bundleExit
 
 EndOfFile
 
-    faust -i -lang dlang -a $FAUSTARCH/minimal-dplug.d $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/source/main.d"
+    faust -i -lang dlang -a $FAUSTARCH/dplug.d $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/source/main.d"
 
 done
