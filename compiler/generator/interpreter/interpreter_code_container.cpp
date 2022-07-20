@@ -204,7 +204,7 @@ dsp_factory_base* InterpreterCodeContainer<REAL>::produceFactory()
             return new interpreter_dsp_factory_aux<REAL, 1>(
                 name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs,
                 getInterpreterVisitor<REAL>()->fIntHeapOffset, getInterpreterVisitor<REAL>()->fRealHeapOffset,
-                getInterpreterVisitor<REAL>()->fSoundHeapOffset, getInterpreterVisitor<REAL>()->getFieldOffset("fSampleRate"),
+                getInterpreterVisitor<REAL>()->getFieldOffset("fSampleRate"),
                 getInterpreterVisitor<REAL>()->getFieldOffset("count"), getInterpreterVisitor<REAL>()->getFieldOffset("IOTA"),
                 INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<REAL>()->fUserInterfaceBlock, init_static_block,
                 init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
@@ -213,7 +213,7 @@ dsp_factory_base* InterpreterCodeContainer<REAL>::produceFactory()
             return new interpreter_dsp_factory_aux<REAL, 2>(
                 name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs,
                 getInterpreterVisitor<REAL>()->fIntHeapOffset, getInterpreterVisitor<REAL>()->fRealHeapOffset,
-                getInterpreterVisitor<REAL>()->fSoundHeapOffset, getInterpreterVisitor<REAL>()->getFieldOffset("fSampleRate"),
+                getInterpreterVisitor<REAL>()->getFieldOffset("fSampleRate"),
                 getInterpreterVisitor<REAL>()->getFieldOffset("count"), getInterpreterVisitor<REAL>()->getFieldOffset("IOTA"),
                 INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<REAL>()->fUserInterfaceBlock, init_static_block,
                 init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
@@ -222,7 +222,7 @@ dsp_factory_base* InterpreterCodeContainer<REAL>::produceFactory()
             return new interpreter_dsp_factory_aux<REAL, 3>(
                 name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs,
                 getInterpreterVisitor<REAL>()->fIntHeapOffset, getInterpreterVisitor<REAL>()->fRealHeapOffset,
-                getInterpreterVisitor<REAL>()->fSoundHeapOffset, getInterpreterVisitor<REAL>()->getFieldOffset("fSampleRate"),
+                getInterpreterVisitor<REAL>()->getFieldOffset("fSampleRate"),
                 getInterpreterVisitor<REAL>()->getFieldOffset("count"), getInterpreterVisitor<REAL>()->getFieldOffset("IOTA"),
                 INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<REAL>()->fUserInterfaceBlock, init_static_block,
                 init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
@@ -231,7 +231,7 @@ dsp_factory_base* InterpreterCodeContainer<REAL>::produceFactory()
             return new interpreter_dsp_factory_aux<REAL, 4>(
                 name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs,
                 getInterpreterVisitor<REAL>()->fIntHeapOffset, getInterpreterVisitor<REAL>()->fRealHeapOffset,
-                getInterpreterVisitor<REAL>()->fSoundHeapOffset, getInterpreterVisitor<REAL>()->getFieldOffset("fSampleRate"),
+                getInterpreterVisitor<REAL>()->getFieldOffset("fSampleRate"),
                 getInterpreterVisitor<REAL>()->getFieldOffset("count"), getInterpreterVisitor<REAL>()->getFieldOffset("IOTA"),
                 INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<REAL>()->fUserInterfaceBlock, init_static_block,
                 init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
@@ -240,7 +240,7 @@ dsp_factory_base* InterpreterCodeContainer<REAL>::produceFactory()
             return new interpreter_dsp_factory_aux<REAL, 5>(
                 name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs,
                 getInterpreterVisitor<REAL>()->fIntHeapOffset, getInterpreterVisitor<REAL>()->fRealHeapOffset,
-                getInterpreterVisitor<REAL>()->fSoundHeapOffset, getInterpreterVisitor<REAL>()->getFieldOffset("fSampleRate"),
+                getInterpreterVisitor<REAL>()->getFieldOffset("fSampleRate"),
                 getInterpreterVisitor<REAL>()->getFieldOffset("count"), getInterpreterVisitor<REAL>()->getFieldOffset("IOTA"),
                 INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<REAL>()->fUserInterfaceBlock, init_static_block,
                 init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
@@ -249,7 +249,7 @@ dsp_factory_base* InterpreterCodeContainer<REAL>::produceFactory()
             return new interpreter_dsp_factory_aux<REAL, 6>(
                 name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs,
                 getInterpreterVisitor<REAL>()->fIntHeapOffset, getInterpreterVisitor<REAL>()->fRealHeapOffset,
-                getInterpreterVisitor<REAL>()->fSoundHeapOffset, getInterpreterVisitor<REAL>()->getFieldOffset("fSampleRate"),
+                getInterpreterVisitor<REAL>()->getFieldOffset("fSampleRate"),
                 getInterpreterVisitor<REAL>()->getFieldOffset("count"), getInterpreterVisitor<REAL>()->getFieldOffset("IOTA"),
                 INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<REAL>()->fUserInterfaceBlock, init_static_block,
                 init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
@@ -258,7 +258,7 @@ dsp_factory_base* InterpreterCodeContainer<REAL>::produceFactory()
             return new interpreter_dsp_factory_aux<REAL, 7>(
                 name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs,
                 getInterpreterVisitor<REAL>()->fIntHeapOffset, getInterpreterVisitor<REAL>()->fRealHeapOffset,
-                getInterpreterVisitor<REAL>()->fSoundHeapOffset, getInterpreterVisitor<REAL>()->getFieldOffset("fSampleRate"),
+                getInterpreterVisitor<REAL>()->getFieldOffset("fSampleRate"),
                 getInterpreterVisitor<REAL>()->getFieldOffset("count"), getInterpreterVisitor<REAL>()->getFieldOffset("IOTA"),
                 INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<REAL>()->fUserInterfaceBlock, init_static_block,
                 init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
@@ -268,7 +268,7 @@ dsp_factory_base* InterpreterCodeContainer<REAL>::produceFactory()
             return new interpreter_dsp_factory_aux<REAL, 0>(
                 name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs,
                 getInterpreterVisitor<REAL>()->fIntHeapOffset, getInterpreterVisitor<REAL>()->fRealHeapOffset,
-                getInterpreterVisitor<REAL>()->fSoundHeapOffset, getInterpreterVisitor<REAL>()->getFieldOffset("fSampleRate"),
+                getInterpreterVisitor<REAL>()->getFieldOffset("fSampleRate"),
                 getInterpreterVisitor<REAL>()->getFieldOffset("count"), getInterpreterVisitor<REAL>()->getFieldOffset("IOTA"),
                 INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<REAL>()->fUserInterfaceBlock, init_static_block,
                 init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
@@ -330,3 +330,4 @@ FIRMetaBlockInstruction* InterpreterCodeContainer<REAL>::produceMetadata(string&
 
     return block;
 }
+

@@ -341,8 +341,8 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
         // HACK : completely adhoc code for inputs/outputs...
         if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
-            // Since indexed->fIndex is always a known constant value, offset can be directly generated
-            Int32NumInst* num = dynamic_cast<Int32NumInst*>(indexed->fIndex);
+            // Since indexed->getIndex() is always a known constant value, offset can be directly generated
+            Int32NumInst* num = dynamic_cast<Int32NumInst*>(indexed->getIndex());
             faustassert(num);
             *fOut << "(i32.add (local.get $" << indexed->getName() << ") (i32.const " << (num->fNum << 2) << "))";
             // HACK : completely adhoc code for input/output...
@@ -350,11 +350,11 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             // If 'i' loop variable moves in bytes, save index code generation of input/output
             if (gGlobal->gLoopVarInBytes) {
                 *fOut << "(i32.add (local.get $" << indexed->getName() << ") ";
-                indexed->fIndex->accept(this);
+                indexed->getIndex()->accept(this);
                 *fOut << ")";
             } else {
                 *fOut << "(i32.add (local.get $" << indexed->getName() << ") (i32.shl ";
-                indexed->fIndex->accept(this);
+                indexed->getIndex()->accept(this);
                 // Force "output" access to be coherent with fSubContainerType (integer or real)
                 if (fSubContainerType == kInt) {
                     *fOut << " (i32.const 2)))";
@@ -370,7 +370,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             if (fFieldTable.find(indexed->getName()) != fFieldTable.end()) {
                 MemoryDesc    tmp = fFieldTable[indexed->getName()];
                 Int32NumInst* num;
-                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->getIndex()))) {
                     // Index can be computed at compile time
                     if (fFastMemory) {
                         *fOut << "(i32.const " << (tmp.fOffset + (num->fNum << offStrNum)) << ")";
@@ -384,22 +384,22 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                         // Micro optimization if the field is actually the first one in the structure
                         if (tmp.fOffset == 0) {
                             *fOut << "(i32.shl ";
-                            indexed->fIndex->accept(this);
+                            indexed->getIndex()->accept(this);
                             *fOut << " (i32.const " << offStr << "))";
                         } else {
                             *fOut << "(i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
-                            indexed->fIndex->accept(this);
+                            indexed->getIndex()->accept(this);
                             *fOut << " (i32.const " << offStr << ")))";
                         }
                     } else {
                         // Micro optimization if the field is actually the first one in the structure
                         if (tmp.fOffset == 0) {
                             *fOut << "(i32.add (local.get $dsp) (i32.shl ";
-                            indexed->fIndex->accept(this);
+                            indexed->getIndex()->accept(this);
                             *fOut << " (i32.const " << offStr << ")))";
                         } else {
                             *fOut << "(i32.add (local.get $dsp) (i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
-                            indexed->fIndex->accept(this);
+                            indexed->getIndex()->accept(this);
                             *fOut << " (i32.const " << offStr << "))))";
                         }
                     }
@@ -407,7 +407,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             } else {
                 // Local variable
                 Int32NumInst* num;
-                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->getIndex()))) {
                     // Hack for 'soundfile'
                     DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
                     *fOut << "(i32.add (local.get " << indexed->getName();
@@ -419,7 +419,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                     *fOut << "))";
                 } else {
                     *fOut << "(i32.add (local.get " << indexed->getName() << ") (i32.shl ";
-                    indexed->fIndex->accept(this);
+                    indexed->getIndex()->accept(this);
                     *fOut << " (i32.const " << offStr << ")))";
                 }
             }

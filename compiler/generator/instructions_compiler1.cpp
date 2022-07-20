@@ -21,10 +21,6 @@
 
 #include "instructions_compiler1.hh"
 
-InstructionsCompiler1::InstructionsCompiler1(CodeContainer* container) : InstructionsCompiler(container)
-{
-}
-
 StatementInst* InstructionsCompiler1::generateInitArray(const string& vname, Typed::VarType ctype, int delay)
 {
     ValueInst*  init  = InstBuilder::genTypedZero(ctype);

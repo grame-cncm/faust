@@ -560,16 +560,16 @@ class JuliaInstVisitor : public TextInstVisitor {
         indexed->fAddress->accept(this);
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
-            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
+            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->getIndex());
             *fOut << "." << struct_type->fType->getName(field_index->fNum);
         } else {
             *fOut << "[";
-            Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->fIndex);
+            Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->getIndex());
             // Julia arrays start at 1
             if (field_index) {
                 *fOut << (field_index->fNum + 1) << "]";
             } else {
-                indexed->fIndex->accept(this);
+                indexed->getIndex()->accept(this);
                 *fOut << "+1]";
             }
         }

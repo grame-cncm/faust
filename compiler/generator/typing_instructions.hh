@@ -47,7 +47,7 @@ struct TypingVisitor : public InstVisitor {
                 // IndexedAddress is also used for struct type
                 DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
                 if (struct_type) {
-                    Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
+                    Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->getIndex());
                     fCurType                  = struct_type->fType->getType(field_index->fNum);
                 } else {
                     fCurType = Typed::getTypeFromPtr(fCurType);

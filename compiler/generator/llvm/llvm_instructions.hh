@@ -564,7 +564,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         faustassert(named_address);  // One level indexation for now
 
         // Compute index, result is in fCurValue
-        indexed_address->fIndex->accept(this);
+        indexed_address->getIndex()->accept(this);
         Address::AccessType access = named_address->fAccess;
         string              name   = named_address->fName;
         LLVMValue           load_ptr;

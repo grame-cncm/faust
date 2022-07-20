@@ -160,7 +160,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                 } else {
                     *fOut << indexed->getName() << "[";
                 }
-                indexed->fIndex->accept(this);
+                indexed->getIndex()->accept(this);
                 *fOut << "]";
             }
         }
@@ -187,7 +187,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                 } else {
                     *fOut << "&" << indexed->getName() << "[";
                 }
-                indexed->fIndex->accept(this);
+                indexed->getIndex()->accept(this);
                 *fOut << "]";
             }
         }
@@ -214,7 +214,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                 } else {
                     *fOut << indexed->getName() << "[";
                 }
-                indexed->fIndex->accept(this);
+                indexed->getIndex()->accept(this);
                 *fOut << "] = ";
             }
             inst->fValue->accept(this);

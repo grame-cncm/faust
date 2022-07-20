@@ -35,14 +35,14 @@ struct interpreter_comp_dsp_factory_aux : public interpreter_dsp_factory_aux<REA
 
     interpreter_comp_dsp_factory_aux(const std::string& name, const std::string& compile_options, const std::string& sha_key,
                                 int version_num, int inputs, int outputs, int int_heap_size, int real_heap_size,
-                                int sound_heap_size, int sr_offset, int count_offset, int iota_offset, int opt_level,
+                                int sr_offset, int count_offset, int iota_offset, int opt_level,
                                 FIRMetaBlockInstruction* meta, FIRUserInterfaceBlockInstruction<REAL>* firinterface,
                                 FBCBlockInstruction<REAL>* static_init, FBCBlockInstruction<REAL>* init,
                                 FBCBlockInstruction<REAL>* resetui, FBCBlockInstruction<REAL>* clear,
                                 FBCBlockInstruction<REAL>* compute_control, FBCBlockInstruction<REAL>* compute_dsp)
     : interpreter_dsp_factory_aux<REAL,TRACE>(name, compile_options, sha_key,
                                   version_num, inputs, outputs, int_heap_size, real_heap_size,
-                                  sound_heap_size, sr_offset, count_offset,iota_offset, opt_level,
+                                  sr_offset, count_offset, iota_offset, opt_level,
                                   meta, firinterface,
                                   static_init, init,
                                   resetui, clear,

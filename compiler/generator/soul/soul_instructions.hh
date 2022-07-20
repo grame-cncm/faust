@@ -445,17 +445,17 @@ class SOULInstVisitor : public TextInstVisitor {
         indexed->fAddress->accept(this);
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
-            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
+            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->getIndex());
             *fOut << "." << struct_type->fType->getName(field_index->fNum);
         } else {
-            if (dynamic_cast<Int32NumInst*>(indexed->fIndex)) {
+            if (dynamic_cast<Int32NumInst*>(indexed->getIndex())) {
                 *fOut << "[";
-                indexed->fIndex->accept(this);
+                indexed->getIndex()->accept(this);
                 *fOut << "]";
             } else {
                 // wrap code is automatically added by the SOUL compiler (and the same if [idex] syntax is used)
                 *fOut << ".at (";
-                indexed->fIndex->accept(this);
+                indexed->getIndex()->accept(this);
                 *fOut << ")";
             }
         }

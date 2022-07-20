@@ -28,7 +28,8 @@
 
 class InstructionsCompiler1 : public InstructionsCompiler {
    public:
-    InstructionsCompiler1(CodeContainer* container);
+    InstructionsCompiler1(CodeContainer* container): InstructionsCompiler(container)
+    {}
 
    private:
     StatementInst* generateInitArray(const string& vname, Typed::VarType ctype, int delay);

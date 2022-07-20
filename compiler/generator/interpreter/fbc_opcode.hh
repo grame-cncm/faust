@@ -37,11 +37,10 @@ struct FBCInstruction {
         // Memory
         kLoadReal,
         kLoadInt,
-        kLoadSound,
-        kLoadSoundField,
+        kLoadSoundFieldInt,
+        kLoadSoundFieldReal,
         kStoreReal,
         kStoreInt,
-        kStoreSound,
         kStoreRealValue,
         kStoreIntValue,
         kLoadIndexedReal,
@@ -375,7 +374,7 @@ struct FBCInstruction {
     {
         return ((opt == kRealValue)
 
-                || (opt == kLoadReal) || (opt == kLoadIndexedReal) || (opt == kLoadInput)
+                || (opt == kLoadReal) || (opt == kLoadIndexedReal) || (opt == kLoadSoundFieldReal) || (opt == kLoadInput)
 
                 || (opt == kCastReal) || (opt == kBitcastReal)
 
@@ -418,7 +417,7 @@ static std::string gFBCInstructionTable[] = {
     "kRealValue", "kInt32Value",
 
     // Memory
-    "kLoadReal", "kLoadInt", "kLoadSound", "kLoadSoundField", "kStoreReal", "kStoreInt", "kStoreSound",
+    "kLoadReal", "kLoadInt", "kLoadSoundFieldInt", "kLoadSoundFieldReal", "kStoreReal", "kStoreInt",
     "kStoreRealValue", "kStoreIntValue", "kLoadIndexedReal", "kLoadIndexedInt", "kStoreIndexedReal", "kStoreIndexedInt",
     "kBlockStoreReal", "kBlockStoreInt", "kMoveReal", "kMoveInt", "kPairMoveReal", "kPairMoveInt", "kBlockPairMoveReal",
     "kBlockPairMoveInt", "kBlockShiftReal", "kBlockShiftInt", "kLoadInput", "kStoreOutput",

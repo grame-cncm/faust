@@ -339,14 +339,14 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(IndexedAddress* indexed)
     {
         indexed->fAddress->accept(this);
-        if (dynamic_cast<Int32NumInst*>(indexed->fIndex)) {
+        if (dynamic_cast<Int32NumInst*>(indexed->getIndex())) {
             *fOut << "[";
-            indexed->fIndex->accept(this);
+            indexed->getIndex()->accept(this);
             *fOut << "]";
         } else {
             // Array index expression casted to 'usize' type
             *fOut << "[(";
-            indexed->fIndex->accept(this);
+            indexed->getIndex()->accept(this);
             *fOut << ") as usize]";
         }
     }

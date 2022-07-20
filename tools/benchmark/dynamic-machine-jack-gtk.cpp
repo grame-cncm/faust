@@ -36,6 +36,7 @@
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/httpdUI.h"
 #include "faust/gui/OSCUI.h"
+#include "faust/gui/SoundUI.h"
 #include "faust/misc.h"
 
 using namespace std;
@@ -74,6 +75,7 @@ int main(int argc, char* argv[])
     MidiUI* midiinterface = nullptr;
     httpdUI* httpdinterface = nullptr;
     GUI* oscinterface = nullptr;
+    SoundUI* fSoundinterface = nullptr;
     jackaudio_midi audio;
     string error_msg;
     
@@ -117,6 +119,10 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
     
+    // After audio init to get SR
+    fSoundinterface = new SoundUI("", -1, nullptr);
+    DSP->buildUserInterface(fSoundinterface);
+    
     if (is_httpd) {
         httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
         DSP->buildUserInterface(httpdinterface);
@@ -159,6 +165,7 @@ int main(int argc, char* argv[])
     delete finterface;
     delete midiinterface;
     delete httpdinterface;
+    delete fSoundinterface;
     delete oscinterface;
     deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
     

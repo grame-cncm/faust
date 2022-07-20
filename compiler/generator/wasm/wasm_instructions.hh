@@ -1002,8 +1002,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
         // HACK : completely adhoc code for inputs/outputs...
         if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
-            // Since indexed->fIndex is always a known constant value, offset can be directly generated
-            Int32NumInst* num = dynamic_cast<Int32NumInst*>(indexed->fIndex);
+            // Since indexed->getIndex() is always a known constant value, offset can be directly generated
+            Int32NumInst* num = dynamic_cast<Int32NumInst*>(indexed->getIndex());
             faustassert(num);
             // "inputs" is 'compute' method third parameter, so with index 2
             // "outputs" is 'compute' method fourth parameter, so with index 3
@@ -1016,7 +1016,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             faustassert(fLocalVarTable.find(indexed->getName()) != fLocalVarTable.end());
             LocalVarDesc local = fLocalVarTable[indexed->getName()];
             *fOut << int8_t(BinaryConsts::LocalGet) << U32LEB(local.fIndex);
-            indexed->fIndex->accept(this);
+            indexed->getIndex()->accept(this);
             // If 'i' loop variable moves in bytes, save index code generation of input/output
             if (gGlobal->gLoopVarInBytes) {
                 *fOut << int8_t(WasmOp::I32Add);
@@ -1033,7 +1033,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             if (fFieldTable.find(indexed->getName()) != fFieldTable.end()) {
                 MemoryDesc    tmp = fFieldTable[indexed->getName()];
                 Int32NumInst* num;
-                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->getIndex()))) {
                     // Index can be computed at compile time
                     if (fFastMemory) {
                         *fOut << int8_t(BinaryConsts::I32Const) << S32LEB((tmp.fOffset + (num->fNum << offStrNum)));
@@ -1048,12 +1048,12 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                     if (fFastMemory) {
                         // Micro optimization if the field is actually the first one in the structure
                         if (tmp.fOffset == 0) {
-                            indexed->fIndex->accept(this);
+                            indexed->getIndex()->accept(this);
                             *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
                             *fOut << int8_t(WasmOp::I32Shl);
                         } else {
                             *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
-                            indexed->fIndex->accept(this);
+                            indexed->getIndex()->accept(this);
                             *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
                             *fOut << int8_t(WasmOp::I32Shl);
                             *fOut << int8_t(WasmOp::I32Add);
@@ -1063,7 +1063,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                         if (tmp.fOffset == 0) {
                             *fOut << int8_t(BinaryConsts::LocalGet)
                                   << U32LEB(0);  // Assuming $dsp is at 0 local variable index
-                            indexed->fIndex->accept(this);
+                            indexed->getIndex()->accept(this);
                             *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
                             *fOut << int8_t(WasmOp::I32Shl);
                             *fOut << int8_t(WasmOp::I32Add);
@@ -1071,7 +1071,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                             *fOut << int8_t(BinaryConsts::LocalGet)
                                   << U32LEB(0);  // Assuming $dsp is at 0 local variable index
                             *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
-                            indexed->fIndex->accept(this);
+                            indexed->getIndex()->accept(this);
                             *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
                             *fOut << int8_t(WasmOp::I32Shl);
                             *fOut << int8_t(WasmOp::I32Add);
@@ -1083,7 +1083,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 // Local variable
                 LocalVarDesc  local = fLocalVarTable[indexed->getName()];
                 Int32NumInst* num;
-                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->getIndex()))) {
                     // Hack for 'soundfile'
                     DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
                     *fOut << int8_t(BinaryConsts::LocalGet) << U32LEB(local.fIndex);
@@ -1095,7 +1095,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                     *fOut << int8_t(WasmOp::I32Add);
                 } else {
                     *fOut << int8_t(BinaryConsts::LocalGet) << U32LEB(local.fIndex);
-                    indexed->fIndex->accept(this);
+                    indexed->getIndex()->accept(this);
                     *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
                     *fOut << int8_t(WasmOp::I32Shl);
                     *fOut << int8_t(WasmOp::I32Add);

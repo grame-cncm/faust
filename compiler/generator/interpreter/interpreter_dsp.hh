@@ -113,7 +113,7 @@ interpreter_dsp_factory_aux<REAL, TRACE>* interpreter_dsp_factory_aux<REAL, TRAC
     
     // Read int/real heap size and sr offset
     std::string heap_size;
-    int         int_heap_size, real_heap_size, sound_heap_size, sr_offset, count_offset, iota_offset;
+    int         int_heap_size, real_heap_size, sr_offset, count_offset, iota_offset;
     getline(*in, heap_size);
     
     std::stringstream heap_size_reader(heap_size);
@@ -125,11 +125,7 @@ interpreter_dsp_factory_aux<REAL, TRACE>* interpreter_dsp_factory_aux<REAL, TRAC
     heap_size_reader >> dummy;  // Read "real_heap_size" token
     checkToken(dummy, "real_heap_size");
     heap_size_reader >> real_heap_size;
-    
-    heap_size_reader >> dummy;  // Read "sound_heap_size" token
-    checkToken(dummy, "sound_heap_size");
-    heap_size_reader >> sound_heap_size;
-    
+     
     heap_size_reader >> dummy;  // Read "sr_offet" token
     checkToken(dummy, "sr_offset");
     heap_size_reader >> sr_offset;
@@ -174,13 +170,21 @@ interpreter_dsp_factory_aux<REAL, TRACE>* interpreter_dsp_factory_aux<REAL, TRAC
     getline(*in, dummy);  // Read "dsp_block" line
     FBCBlockInstruction<REAL>* compute_dsp_block = readCodeBlock(in);
 #ifdef MACHINE
-    return new interpreter_comp_dsp_factory_aux<REAL,TRACE>(factory_name, compile_options, sha_key, file_num, inputs, outputs, int_heap_size, real_heap_size,
-                                                         sound_heap_size, sr_offset, count_offset, iota_offset, opt_level, meta_block, ui_block, static_init_block,
-                                                         init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
+    return new interpreter_comp_dsp_factory_aux<REAL,TRACE>(factory_name, compile_options, sha_key,
+                                                            file_num, inputs, outputs, int_heap_size,
+                                                            real_heap_size, sr_offset, count_offset,
+                                                            iota_offset, opt_level, meta_block,
+                                                            ui_block, static_init_block,
+                                                            init_block, resetui_block, clear_block,
+                                                            compute_control_block, compute_dsp_block);
 #else
-    return new interpreter_dsp_factory_aux<REAL,TRACE>(factory_name, compile_options, sha_key, file_num, inputs, outputs, int_heap_size, real_heap_size,
-                                                    sound_heap_size, sr_offset, count_offset, iota_offset, opt_level, meta_block, ui_block, static_init_block,
-                                                    init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
+    return new interpreter_dsp_factory_aux<REAL,TRACE>(factory_name, compile_options, sha_key,
+                                                       file_num, inputs, outputs, int_heap_size,
+                                                       real_heap_size, sr_offset, count_offset,
+                                                       iota_offset, opt_level, meta_block,
+                                                       ui_block, static_init_block,
+                                                       init_block, resetui_block, clear_block,
+                                                       compute_control_block, compute_dsp_block);
 #endif
 }
 

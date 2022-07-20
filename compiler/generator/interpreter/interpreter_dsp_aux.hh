@@ -58,7 +58,6 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
     int fIntHeapSize;
     int fRealHeapSize;
-    int fSoundHeapSize;
     int fSROffset;
     int fCountOffset;
     int fIOTAOffset;
@@ -78,7 +77,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
     interpreter_dsp_factory_aux(const std::string& name, const std::string& compile_options, const std::string& sha_key,
                                 int version_num, int inputs, int outputs, int int_heap_size, int real_heap_size,
-                                int sound_heap_size, int sr_offset, int count_offset, int iota_offset, int opt_level,
+                                int sr_offset, int count_offset, int iota_offset, int opt_level,
                                 FIRMetaBlockInstruction* meta, FIRUserInterfaceBlockInstruction<REAL>* firinterface,
                                 FBCBlockInstruction<REAL>* static_init, FBCBlockInstruction<REAL>* init,
                                 FBCBlockInstruction<REAL>* resetui, FBCBlockInstruction<REAL>* clear,
@@ -89,7 +88,6 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
           fNumOutputs(outputs),
           fIntHeapSize(int_heap_size),
           fRealHeapSize(real_heap_size),
-          fSoundHeapSize(sound_heap_size),
           fSROffset(sr_offset),
           fCountOffset(count_offset),
           fIOTAOffset(iota_offset),
@@ -140,7 +138,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
             *out << "o " << fOptLevel << std::endl;
             *out << "i " << fNumInputs << " o " << fNumOutputs << std::endl;
 
-            *out << "i " << fIntHeapSize << " r " << fRealHeapSize << " s " << fSoundHeapSize << " s " << fSROffset
+            *out << "i " << fIntHeapSize << " r " << fRealHeapSize << " s " << fSROffset
                  << " c " << fCountOffset << " i " << fIOTAOffset << std::endl;
 
             *out << "m" << std::endl;
@@ -177,8 +175,8 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
             *out << "inputs " << fNumInputs << " outputs " << fNumOutputs << std::endl;
 
-            *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize << " sound_heap_size "
-                 << fSoundHeapSize << " sr_offset " << fSROffset << " count_offset " << fCountOffset << " iota_offset "
+            *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize << " sr_offset "
+                 << fSROffset << " count_offset " << fCountOffset << " iota_offset "
                  << fIOTAOffset << std::endl;
 
             *out << "meta_block" << std::endl;

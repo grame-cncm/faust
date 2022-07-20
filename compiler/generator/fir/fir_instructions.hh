@@ -356,18 +356,28 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     {
         *fOut << "Address(" << named->fName << ", " << Address::dumpString(named->fAccess) << ")";
     }
+    
+    void visitIndices(const std::vector<ValueInst*>& indices, int start)
+    {
+        if (indices.size() > 0) {
+            for (size_t i = start; i < indices.size(); i++) {
+                *fOut << "[";
+                indices[i]->accept(this);
+                *fOut << "]";
+            }
+        }
+    }
 
     virtual void visit(IndexedAddress* indexed)
     {
         indexed->fAddress->accept(this);
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
-            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
+            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->getIndex());
             *fOut << "->" << struct_type->fType->getName(field_index->fNum);
+            visitIndices(indexed->getIndices(), 1);
         } else {
-            *fOut << "[";
-            indexed->fIndex->accept(this);
-            *fOut << "]";
+            visitIndices(indexed->getIndices(), 0);
         }
     }
     

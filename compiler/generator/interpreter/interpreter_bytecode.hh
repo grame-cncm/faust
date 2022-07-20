@@ -60,7 +60,7 @@ struct FBCBasicInstruction : public FBCInstruction {
 
     FBCBasicInstruction(Opcode opcode, const std::string& name, int val_int, REAL val_real, int off1, int off2,
                         FBCBlockInstruction<REAL>* branch1, FBCBlockInstruction<REAL>* branch2)
-        : fName(""),
+        : fName(name),
           fOpcode(opcode),
           fIntValue(val_int),
           fRealValue(val_real),
@@ -106,7 +106,19 @@ struct FBCBasicInstruction : public FBCInstruction {
           fBranch2(nullptr)
     {
     }
-
+    
+    FBCBasicInstruction(Opcode opcode, const std::string& name)
+        : fName(name),
+        fOpcode(opcode),
+        fIntValue(0),
+        fRealValue(0),
+        fOffset1(-1),
+        fOffset2(-1),
+        fBranch1(nullptr),
+        fBranch2(nullptr)
+    {
+    }
+    
     FBCBasicInstruction(Opcode opcode)
         : fName(""),
           fOpcode(opcode),
@@ -151,12 +163,16 @@ struct FBCBasicInstruction : public FBCInstruction {
     {
         if (small) {
             *out << "o " << fOpcode << " k "
-                 << " i " << fIntValue << " r " << fRealValue << " o " << fOffset1 << " o " << fOffset2 << std::endl;
+                 << " i " << fIntValue << " r " << fRealValue << " o " << fOffset1 << " o " << fOffset2;
+            if (fName != "") {
+                *out << " n " << fName;
+            }
+            *out << std::endl;
         } else {
             *out << "opcode " << fOpcode << " " << gFBCInstructionTable[fOpcode] << " int " << fIntValue << " real "
                  << fRealValue << " offset1 " << fOffset1 << " offset2 " << fOffset2;
-            if (this->fName != "") {
-                *out << " name " << this->fName;
+            if (fName != "") {
+                *out << " name " << fName;
             }
             *out << std::endl;
         }
@@ -322,6 +338,11 @@ struct FIRUserInterfaceInstruction : public FBCInstruction {
 
     FIRUserInterfaceInstruction(Opcode opcode, int offset, const std::string& key, const std::string& value)
         : fOpcode(opcode), fOffset(offset), fLabel(""), fKey(key), fValue(value), fInit(0), fMin(0), fMax(0), fStep(0)
+    {
+    }
+    
+    FIRUserInterfaceInstruction(Opcode opcode, const std::string& label, const std::string& key, const std::string& value)
+    : fOpcode(opcode), fOffset(-1), fLabel(label), fKey(key), fValue(value), fInit(0), fMin(0), fMax(0), fStep(0)
     {
     }
 

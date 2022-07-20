@@ -71,13 +71,13 @@ SimpleForLoopInst* CodeLoop::generateSimpleScalarLoop(const string& counter)
 
 IteratorForLoopInst* CodeLoop::generateSimpleScalarLoop(const std::vector<string>& iterators)
 {
-    std::vector<NamedAddress*> iterators_value_inst;
-    for (const auto& iterator : iterators) {
-        iterators_value_inst.push_back(InstBuilder::genNamedAddress(iterator, Address::kStack));
+    std::vector<NamedAddress*> iterators1;
+    for (const auto& it : iterators) {
+        iterators1.push_back(InstBuilder::genNamedAddress(it, Address::kStack));
     }
 
     BlockInst* block = generateOneSample();
-    IteratorForLoopInst* loop = InstBuilder::genIteratorForLoopInst(iterators_value_inst, false, block);
+    IteratorForLoopInst* loop = InstBuilder::genIteratorForLoopInst(iterators1, false, block);
 
     BasicCloneVisitor cloner;
     return static_cast<IteratorForLoopInst*>(loop->clone(&cloner));

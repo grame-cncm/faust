@@ -221,7 +221,7 @@ struct WASInst {
                 return tmp.fOffset;
             } else if (indexed) {
                 Int32NumInst* num;
-                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->getIndex()))) {
                     return tmp.fOffset + (num->fNum << offStrNum);
                 }
             }

@@ -16,7 +16,7 @@ PREFIX ?= /usr/local
 
 prefix := $(DESTDIR)$(PREFIX)
 
-TARGETS ?= dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk dynamic-coreaudio-gtk interp-tracer faust-osc-controller signal-tester signal-tester-c box-tester box-tester-c
+TARGETS ?= dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk dynamic-machine-jack-gtk dynamic-coreaudio-gtk interp-tracer faust-osc-controller signal-tester signal-tester-c box-tester box-tester-c
 system := $(shell uname -s)
 ifeq ($(system), Darwin)
 	STRIP = -dead_strip
@@ -44,7 +44,7 @@ dynamic-jack-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
 	$(CXX) -DJACK $(COMPILEOPT) dynamic-jack-gtk.cpp  $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs sndfile samplerate jack gtk+-2.0` $(STRIP) $(COMMLIBS) -o $@
 
 dynamic-machine-jack-gtk: dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a
-	$(CXX) $(COMPILEOPT) dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a /usr/local/lib/libmir.a -I $(INC) $(LLVM) `pkg-config --cflags --libs jack gtk+-2.0` $(STRIP) $(COMMLIBS) -o $@
+	$(CXX) $(COMPILEOPT) dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a /usr/local/lib/libmir.a -I $(INC) $(LLVM) `pkg-config --cflags --libs sndfile samplerate jack gtk+-2.0` $(STRIP) $(COMMLIBS) -o $@
 
 dynamic-coreaudio-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
 	$(CXX) $(COMPILEOPT) dynamic-jack-gtk.cpp  $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs sndfile samplerate gtk+-2.0` $(STRIP) $(COMMLIBS) $(MACOSLIBS) -o $@

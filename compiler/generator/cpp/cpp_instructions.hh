@@ -550,10 +550,10 @@ class CPPInstVisitor1 : public CPPInstVisitor {
             
             if (fStructVisitor.hasField(name, type)) {
                 if (type == Typed::kInt32) {
-                    FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
+                    FIRIndex value = FIRIndex(indexed->getIndex()) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
                     InstBuilder::genLoadArrayFunArgsVar("iZone", value)->accept(this);
                 } else {
-                    FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
+                    FIRIndex value = FIRIndex(indexed->getIndex()) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
                     InstBuilder::genLoadArrayFunArgsVar("fZone", value)->accept(this);
                 }
             } else {
@@ -606,10 +606,10 @@ class CPPInstVisitor2 : public CPPInstVisitor {
             
             if (fStructVisitor.hasField(name, type) && fStructVisitor.getFieldMemoryType(name) == MemoryDesc::kExternal) {
                 if (type == Typed::kInt32) {
-                    FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
+                    FIRIndex value = FIRIndex(indexed->getIndex()) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
                     InstBuilder::genLoadArrayFunArgsVar("iZone", value)->accept(this);
                 } else {
-                    FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
+                    FIRIndex value = FIRIndex(indexed->getIndex()) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
                     InstBuilder::genLoadArrayFunArgsVar("fZone", value)->accept(this);
                 }
             } else {
@@ -642,10 +642,10 @@ class CPPInstVisitor3 : public CPPInstVisitor2 {
             
             if (fStructVisitor.hasField(name, type) && fStructVisitor.getFieldMemoryType(name) == MemoryDesc::kExternal) {
                 if (type == Typed::kInt32) {
-                    FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
+                    FIRIndex value = FIRIndex(indexed->getIndex()) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
                     InstBuilder::genLoadArrayStructVar("iZone", value)->accept(this);
                 } else {
-                    FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
+                    FIRIndex value = FIRIndex(indexed->getIndex()) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
                     InstBuilder::genLoadArrayStructVar("fZone", value)->accept(this);
                 }
             } else {
