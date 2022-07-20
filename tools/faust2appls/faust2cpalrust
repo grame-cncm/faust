@@ -12,7 +12,7 @@
 . usage.sh
 
 SRC="0"
-ARCHFILE=$FAUSTARCH/minimal-cpal.rs
+ARCHFILE=$FAUSTARCH/cpal.rs
 
 #PHASE 2 : dispatch command arguments
 while [ $1 ]
