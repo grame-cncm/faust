@@ -27,7 +27,7 @@ JUCE="false"
 MIDI="false"
 SOUL_EXT="soul";
 
-while [ $1 ] 
+while [ $1 ]
 do
     p=$1
 
@@ -69,7 +69,7 @@ do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -147,24 +147,24 @@ EndOfCode
 
     # create patch
     createSOULPatch "${f%.dsp}" "${f%.dsp}.soulpatch"
-    
+
     rm -f $p.json "$TMP/${f%.dsp}_tmp1.soul" "$TMP/${f%.dsp}_tmp2.soul" "$TMP/effect.dsp"
     cp -r  "$TMP/${f%.dsp}.soul" "$SRCDIR/${f%.dsp}.soul"
     rm -rf "$TDR"
-    
+
     #  create final folder
     rm -rf "$SRCDIR/$dspName"
     mkdir "$SRCDIR/$dspName"
     mv "$SRCDIR/${f%.dsp}.soul" "$SRCDIR/$dspName"
     mv "${f%.dsp}.soulpatch" "$SRCDIR/$dspName"
-    
+
     if [ $PLAY = "true" ] ; then
         soul play "$SRCDIR/$dspName"
     fi
-  
+
     # collect binary file name for FaustGIDE
     BINARIES="$SRCDIR/$dspName/${f%.dsp}.soul;$SRCDIR/$dspName/${f%.dsp}.soulpatch"
-      
+
     if [ $JUCE = "true" ] ; then
         soul generate --juce "$SRCDIR/$dspName/${f%.dsp}.soulpatch" --output="$SRCDIR/$dspName/${f%.dsp}"
         BINARIES="$BINARIES;$SRCDIR/$dspName/${f%.dsp}"

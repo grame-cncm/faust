@@ -74,16 +74,16 @@ for p in $FILE; do
     CUR=$(pwd)
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
-    
-    # creates the dir 
+
+    # creates the dir
     dspName="${f%.dsp}"
     rm -rf "$SRCDIR/$dspName"
     mkdir "$SRCDIR/$dspName"
-    
+
     # compile faust to c++
     faust -uim -i -cn $dspName -a $ARCHFILE1 $OPTIONS $f -o "$SRCDIR/$dspName/FaustDSP.mm" || exit
     faust -i -a $ARCHFILE2 $f -o "$SRCDIR/$dspName/faust2swift.cpp" || exit
-    
+
     # for MIDI
     if [ $MIDI == true ]; then
         echo "#define MIDICTRL" | cat - "$SRCDIR/$dspName/FaustDSP.mm" > temp && mv temp "$SRCDIR/$dspName/FaustDSP.mm"
@@ -94,12 +94,12 @@ for p in $FILE; do
         echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/FaustDSP.mm" > temp && mv temp "$SRCDIR/$dspName/FaustDSP.mm"
     fi
 
- 	# create Swift wrapper
+    # create Swift wrapper
     (
-    	cd "$SRCDIR/$dspName" && c++ -std=c++11 -O3 faust2swift.cpp -o faust2swift && ./faust2swift && rm faust2swift faust2swift.cpp
+        cd "$SRCDIR/$dspName" && c++ -std=c++11 -O3 faust2swift.cpp -o faust2swift && ./faust2swift && rm faust2swift faust2swift.cpp
     ) > /dev/null || exit
 
     # create the source folder
     echo "Create the $SRCDIR/$dspName folder"
-    
+
 done

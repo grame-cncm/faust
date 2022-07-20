@@ -61,7 +61,7 @@ do
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"    
+        OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -75,13 +75,13 @@ fi
 
 DUBFILE="dub.json"
 PLUGFILE="plugin.json"
-    
+
 for p in $FILES; do
     CUR=$(pwd)
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
 
-    # creates the dir 
+    # creates the dir
     dspName="${f%.dsp}"
     SUB_TYPE=$(shasum $p)
     SUB_TYPE=${SUB_TYPE:0:4}

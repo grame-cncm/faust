@@ -44,7 +44,7 @@ for p in $@; do
         option "Faust options"
         exit
     fi
- 
+
      if [ $p = "-arch32" ]; then
         PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
@@ -54,7 +54,7 @@ for p in $@; do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 done
 
@@ -74,7 +74,7 @@ for f in $FILES; do
 
     dst="${f%.dsp}.so"
     module=`basename $f .dsp`
-    
+
     # compile faust to c++
     faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 

@@ -2,8 +2,8 @@
 
 #####################################################################
 #                                                                   #
-#               Crosscompiles Faust programs to RaspberryPi 		#
-#				netjack-console architecture     					#
+#               Crosscompiles Faust programs to RaspberryPi         #
+#               netjack-console architecture                        #
 #               Author : Pilar de la Cruz                           #
 #               (c) Grame, 2009-2013                                #
 #                                                                   #
@@ -53,24 +53,24 @@ for p in $@; do
         usage faust2rpialsaconsole "[options] [Faust options] <file.dsp>"
         platform RaspberryPi
         require NetJack
-		echo "Compiles Faust programs to RaspberryPi - netjack-console architecture"
-		option
-		options -osc -httpd
+        echo "Compiles Faust programs to RaspberryPi - netjack-console architecture"
+        option
+        options -osc -httpd
         option "Faust options"
-    	exit
+        exit
     fi
     if [ $p = "-osc" ]; then
-	 	OSCDEFS="-DOSCCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lOSCFaust -loscpack"
+         OSCDEFS="-DOSCCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then
-	 	HTTPDEFS="-DHTTPCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lHTTPDFaust -lmicrohttpd"
-	 	HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
+         HTTPDEFS="-DHTTPCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lHTTPDFaust -lmicrohttpd"
+         HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
 done
 
 #-------------------------------------------------------------------

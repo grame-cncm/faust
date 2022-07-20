@@ -32,14 +32,14 @@ FILES=""
 while [ $1 ]
 do
     p=$1
- 
+
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2minimal "[options] [Faust options] <file.dsp>"
         echo "Compiles Faust programs to a minimal executable"
         option "Faust options"
         exit
     fi
-    
+
     echo "dispatch command arguments"
 
     if [ ${p:0:1} = "-" ]; then
@@ -47,7 +47,7 @@ do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -55,7 +55,7 @@ shift
 done
 
 #-------------------------------------------------------------------
-# compile the *.dsp files 
+# compile the *.dsp files
 #-------------------------------------------------------------------
 
 for f in $FILES; do
@@ -63,7 +63,7 @@ for f in $FILES; do
     # compile the DSP to c++ using the architecture file
     echo "compile the DSP to c++ using the architecture file"
     faust -i -a $ARCHFILE $OPTIONS "$f" -o "${f%.dsp}.cpp"|| exit
-   
+
     # compile c++ to binary
     echo "compile c++ to binary"
     (

@@ -37,18 +37,18 @@ fi
 while [ $1 ]
 do
     p=$1
-    
+
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2dummy "[options] [Faust options] <file.dsp>"
-		platform MacOS
-		echo "Compiles Faust programs to dummy audio driver"
-		option
+        platform MacOS
+        echo "Compiles Faust programs to dummy audio driver"
+        option
         options -httpd -osc -midi
         option "-nvoices <num>"
         option "Faust options"
         exit
     fi
-    
+
     if [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
@@ -63,12 +63,12 @@ do
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
 
 shift
 
@@ -78,22 +78,21 @@ done
 # compile the *.dsp files using dummy
 #
 for f in $FILES; do
-	
-	# compile faust to c++
-	faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
+    # compile faust to c++
+    faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
-	# compile c++ to binary
-	(
-		$CXX $CXXFLAGS "$f.cpp" $OSCDEFS $HTTPDEFS $HTTPLIBS $POLYDEFS $MIDIDEFS $ARCHLIB -o "${f%.dsp}"
-		if [[ $(uname) == Darwin ]]; then
-		    codesign --sign - --deep --force "${f%.dsp}"
-		fi
-	) > /dev/null || exit
-	
-	rm "$f.cpp"
+    # compile c++ to binary
+    (
+        $CXX $CXXFLAGS "$f.cpp" $OSCDEFS $HTTPDEFS $HTTPLIBS $POLYDEFS $MIDIDEFS $ARCHLIB -o "${f%.dsp}"
+        if [[ $(uname) == Darwin ]]; then
+            codesign --sign - --deep --force "${f%.dsp}"
+        fi
+    ) > /dev/null || exit
 
-	# collect binary file name for FaustWorks
-	BINARIES="$BINARIES${f%.dsp};"
+    rm "$f.cpp"
+
+    # collect binary file name for FaustWorks
+    BINARIES="$BINARIES${f%.dsp};"
 done
 
 echo $BINARIES

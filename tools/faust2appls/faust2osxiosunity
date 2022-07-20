@@ -116,7 +116,7 @@ DELIM
 CUR=$(pwd)
 SOURCE=0
 
-while [ $1 ] 
+while [ $1 ]
 do
     p=$1
 
@@ -210,13 +210,13 @@ for p in $FILES; do
 
         # compile Faust DSP to c++
         faust -uim -i -a $FAUSTARCH/unity/unityplugin.cpp "$SRCDIR/$NAME.dsp" -o "$MOS/$NAME.cpp" || (echo "$FNAME : Faust to C++ compilation failed in faust2osxiosunity"; exit 1)
-        
+
         if [ $NVOICES == -1 ]; then
              $CXX $CXXFLAGS $ARCH $LDFLAGS -DAPPLE -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/lib$FNAME" || (echo "$FNAME : C++ to OSX library compilation failed in faust2osxiosunity"; exit 1)
         else
              $CXX $CXXFLAGS $ARCH $LDFLAGS -DPOLY -DAPPLE -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/lib$FNAME" || (echo "$FNAME : C++ to OSX library compilation failed in faust2osxiosunity"; exit 1)
         fi
-       
+
         rm "$MOS/$NAME.cpp"
         createInfoPList "lib$FNAME" "$BNDL/Contents/Info.plist" || (echo "$FNAME : Info.plist gerenation failed in faust2osxiosunity"; exit 1)
 

@@ -44,10 +44,10 @@ elif [ -d $SC4 ]; then
     SC=$SC4
 elif [ -d $SC5 ]; then
     SC=$SC5
-else 
+else
     echo "Can't find SuperCollider headers, try to set the $SUPERCOLLIDER_HEADERS variable with the appropriate path"
     exit 1
-fi 
+fi
 
 # Echo Using SC Headers in $SC
 
@@ -153,7 +153,7 @@ for p in $FILES; do
     # compile the .dsp file to c++ and xml
     faust -i -a $ARCHFILE -xml $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     mv "$SRCDIR/$f.xml" "$TMP/"
-    
+
     # compile c++ to binary; --prefix should be same as in ../../examples/Makefile.sccompile
     (
         SC_FAUST_PREFIX="Faust"
@@ -197,7 +197,7 @@ for p in $FILES; do
     if [ $F2SC_DEBUG = 1 ]; then
         echo "Retaining intermediate products directory '$TDR'"
         OUTDEV=/dev/tty
-    else       
+    else
         rm -rf "$TDR"
     fi
 

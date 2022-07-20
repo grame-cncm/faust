@@ -116,12 +116,12 @@ for p in $FILE; do
     CUR=$(pwd)
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
-    
-    # creates the dir 
+
+    # creates the dir
     dspName="${f%.dsp}"
     rm -rf "$SRCDIR/$dspName"
     mkdir "$SRCDIR/$dspName"
-    
+
     # compile faust to c++
     cp -r $FAUSTARCH/vcvrack/template/* "$SRCDIR/$dspName/"
     faust -json -os -cn $dspName -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/src/FaustModule.cpp" || exit
@@ -137,7 +137,7 @@ for p in $FILE; do
         # needed for SoundUI.h to compile
         echo "#define __VCVRACK__" | cat - "$SRCDIR/$dspName/src/FaustModule.cpp" > temp && mv temp "$SRCDIR/$dspName/src/FaustModule.cpp"
         echo "#define SOUNDFILE" | cat - "$SRCDIR/$dspName/src/FaustModule.cpp" > temp && mv temp "$SRCDIR/$dspName/src/FaustModule.cpp"
- 
+
         echo $p.json
         # get all soundfiles from the JSON file
         cat $p.json | awk '
@@ -155,12 +155,12 @@ for p in $FILE; do
         # copy found soundfiles in the final binary
         for snd in $(cat $p-tmp.txt); do
             if [ -f $snd ]; then
-                if [ ${snd:0:1} = "/" ]; then 
+                if [ ${snd:0:1} = "/" ]; then
                     echo "Warning: soundfile with absolute path is not copied !"
                 else
                     # create destination path and possibly create directory
                     sfpath="$SRCDIR/$dspName/res/$(dirname $snd)/"
-                    if ! [ -d $sfpath ]; then 
+                    if ! [ -d $sfpath ]; then
                         echo "Create $sfpath"
                         mkdir $sfpath
                     fi
@@ -176,9 +176,9 @@ for p in $FILE; do
 
     # compile and install plugin or keep the source folder
     if [ $SOURCE == false ]; then
-    	( cd "$SRCDIR/$dspName" && make && make install ) > /dev/null || exit
-    	rm -rf "$SRCDIR/$dspName"
+        ( cd "$SRCDIR/$dspName" && make && make install ) > /dev/null || exit
+        rm -rf "$SRCDIR/$dspName"
     else
-    	echo "Create the $SRCDIR/$dspName folder"
-    fi 
+        echo "Create the $SRCDIR/$dspName folder"
+    fi
 done

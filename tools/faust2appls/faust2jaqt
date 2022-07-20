@@ -65,7 +65,7 @@ do
         option "Faust options"
         exit
     fi
-    
+
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then
             OMP="-openmp"
@@ -73,7 +73,7 @@ do
             OMP="-fopenmp"
         fi
     fi
-  
+
     if [ "$p" = -icc ]; then
         ignore=" "
     elif [ $p = "-deploy" ]; then
@@ -133,7 +133,7 @@ if [[ $(uname) == Darwin ]]; then
     if [ $SYS_VERSION -ge 13 ]
     then
         SPEC="-spec macx-clang"
-        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
+        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"
         CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
     else
         SPEC="-spec macx-g++"
@@ -158,7 +158,7 @@ for p in $FILES; do
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
 
-    # creates a temporary dir 
+    # creates a temporary dir
     TDR=$(mktemp -d faust.XXXXXX)
     TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
@@ -184,7 +184,7 @@ EndOfCode
     else
         faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
     fi
-    
+
     # add preset management
     if [ $PRESETDIR = "auto" ]; then
         echo "#define PRESETDIR \"/var/tmp/\"" > "$TMP/preset.cpp"
@@ -221,7 +221,7 @@ EndOfCode
             # copy found soundfiles in the final binary
             for snd in $(cat $p-tmp.txt); do
                 if [ -f $snd ]; then
-                    if [ ${snd:0:1} = "/" ]; then 
+                    if [ ${snd:0:1} = "/" ]; then
                         echo "Warning: soundfile with absolute path is not copied !"
                     else
                         # create destination path and possibly create directory

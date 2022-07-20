@@ -240,7 +240,7 @@ if [ $SOURCE -eq 0 ]; then
         # Try to use installed gradle instead of local ./gradlew in order
         # to avoid potential problems when compiling in a shared folder
         # where execution rights may not be granted (i.e. on a google VM)
-        # In order to install gradle-4.6: 
+        # In order to install gradle-4.6:
         #        wget https://services.gradle.org/distributions/gradle-4.6-bin.zip
         #   unzip -d /opt/gradle gradle-4.6-bin.zip
 

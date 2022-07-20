@@ -46,18 +46,18 @@ MANUFACTURER="Grame"
 
 for p in $@; do
 
-	 if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2au "[options] [Faust options] <file.dsp>"
-  		platform MacOS
-  		echo "Compiles Faust programs to Audio Unit"
+	if [ $p = "-help" ] || [ $p = "-h" ]; then
+		usage faust2au "[options] [Faust options] <file.dsp>"
+		platform MacOS
+		echo "Compiles Faust programs to Audio Unit"
 		option
-        options -httpd -osc 
-        option -install
-        option -debug "print all the build steps and keep intermediate build folder" 
-        option "Faust options"
-        exit
-    fi
-    
+		options -httpd -osc
+		option -install
+		option -debug "print all the build steps and keep intermediate build folder"
+		option "Faust options"
+		exit
+	fi
+
 	if [ "$p" = -omp ]; then
 		if [[ $CXX == "icpc" ]]; then
 			OMP="-openmp"
@@ -104,8 +104,8 @@ for f in $FILES; do
 	# could use FILES for handling multiple dap files, while other AU args like manufacturer and subtype should be handled in a way
 
 	# Get the number of inputs of the Faust code:
-    LINPUTS=$(faust -uim "$f" | grep FAUST_INPUTS)
-    NINPUTS=${LINPUTS//[^0-9]/}
+	LINPUTS=$(faust -uim "$f" | grep FAUST_INPUTS)
+	NINPUTS=${LINPUTS//[^0-9]/}
 	# echo "Number of Faust module inputs = $NINPUTS"
 
 	if [ $NINPUTS -gt 0 ]; then
@@ -138,7 +138,7 @@ for f in $FILES; do
 	cp $f $TEMP_DIR
 	cp *.dsp $TEMP_DIR >& $PRINTDEV
 	cp *.lib $TEMP_DIR >& $PRINTDEV
-	
+
 	cd $TEMP_DIR
 	mkdir Source >& $PRINTDEV
 
@@ -152,7 +152,7 @@ for f in $FILES; do
 	perl -pi -e 's/FaustAU_CustomViewFactory/'FaustAU_"$FILE_NAME"CustomViewFactory'/g' au-arch-temp.cpp
 	perl -pi -e 's/FaustAU_CustomViewFactory/'FaustAU_"$FILE_NAME"CustomViewFactory'/g' FaustAUCustomView.plist
 
-    faust $OPTIONS -a au-arch-temp.cpp $f -o Source/au-output.cpp || exit 1
+	faust $OPTIONS -a au-arch-temp.cpp $f -o Source/au-output.cpp || exit 1
 
 	rm au-arch-temp.cpp
 
@@ -231,20 +231,20 @@ for f in $FILES; do
 	mv Source/CocoaUI/FaustAU_Slider.h Source/CocoaUI/FaustAU_"$FILE_NAME"Slider.h
 	mv Source/CocoaUI/FaustAU_Slider.m Source/CocoaUI/FaustAU_"$FILE_NAME"Slider.m
 
-    xcodebuild ARCHS="x86_64" HEADER_SEARCH_PATHS=$FINC CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components > $PRINTDEV > ./build_errors.log || exit 1
+	xcodebuild ARCHS="x86_64" HEADER_SEARCH_PATHS=$FINC CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components > $PRINTDEV > ./build_errors.log || exit 1
 
 	if [ ! -d $AU_DIR/FaustAU.component/ ]; then
-	echo Unable to generate Audio Unit
+		echo Unable to generate Audio Unit
 		cd ..
 		if [ $DEBUG -eq 0 ]; then
-		  rm -r $TEMP_DIR
+			rm -r $TEMP_DIR
 		fi
-	    exit 1
+		exit 1
 	fi
 
 	if [ -d $AU_DIR/"$FILE_NAME".component/ ]; then
 		if [ $DEBUG -eq 0 ]; then
-            rm -r  $AU_DIR/"$FILE_NAME".component/
+			rm -r  $AU_DIR/"$FILE_NAME".component/
 		fi
 	fi
 
@@ -256,7 +256,7 @@ for f in $FILES; do
 
 	cd ..
 	if [ $DEBUG -eq 0 ]; then
-        rm -r $TEMP_DIR
+		rm -r $TEMP_DIR
 	fi
 
 	echo "'$NAME'" Audio Unit generated and installed successfully
@@ -268,7 +268,7 @@ for f in $FILES; do
 	if [ $INSTALLAU -eq 0 ]; then
 		mv $AU_DIR/"$FILE_NAME".component .
 		echo ./"$FILE_NAME".component";"
-	else 
+	else
 		echo $AU_DIR/"$FILE_NAME".component";"
 	fi
 done

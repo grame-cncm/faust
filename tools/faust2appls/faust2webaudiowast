@@ -37,16 +37,16 @@ for p in $@; do
         option -emcc "compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
         exit
     fi
-    
+
     if [ $p = "-links" ]; then
         SVG="-svg"
-        LINKS="<div style=\"text-align:center;height:20px\"> 
+        LINKS="<div style=\"text-align:center;height:20px\">
                 <style>
                 a:link {font-family:Arial; font-size:12px; color:#3D3C3A; text-decoration:none}
                 a:visited {font-family:Arial; font-size:12px; color:#3D3C3A; text-decoration:none}
                 a:hover {font-family:Arial; font-size:12px; color:white; text-decoration:none}
                 </style>
-            <a href=\"DSP.dsp\" target=\"_blank\">source</a> 
+            <a href=\"DSP.dsp\" target=\"_blank\">source</a>
             <a href=\"DSP-svg/process.svg\" target=\"_blank\">diagram</a>
             </div>"
         EXPORT_FOOTER=export-wrapper.html
@@ -64,7 +64,7 @@ for p in $@; do
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 done
 
@@ -121,7 +121,7 @@ BINARIES=""
 
 for f in $FILES; do
     name=$(basename "$f" .dsp)
-    
+
     # compile the Faust DSP to C++ or wasm code
     if [ $EMCC = "true" ]; then
         faust $SVG -a $FAUSTARCH/webaudio/$CODE_WRAPPER1 -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
@@ -148,13 +148,13 @@ for f in $FILES; do
         fi
         # compile the C++ code to wasm
         emcc -O3 --memory-init-file 0 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 $name.cpp --post-js $FAUSTARCH/webaudio/$JS_WRAPPER -o $name.js -s EXPORTED_FUNCTIONS=$EXPORTED || exit
- 
+
         # remove intermediate C++ file
         rm $name.cpp
     fi
-    
+
     #java -jar /usr/local/bin/yuicompressor-2.4.8.jar $name-temp1.js -o $name-temp1.js --charset utf-8
-          
+
     # compose the self-contained HTML page
     echo "<html>" > $name-temp2.html
     echo "<head>" >> $name-temp2.html
@@ -185,9 +185,9 @@ for f in $FILES; do
     echo "</body>" >> $name-temp2.html
     echo "</html>" >> $name-temp2.html
     sed -e "s/DSP/"$name"/g" $name-temp2.html > $name.html
-    
+
     rm -f $name.js $name.wast $name-tmp.wasm $name-temp2.html
- 
+
     # collect binary file name
     if [ $WORKLET = "true" ]; then
         BINARIES="$BINARIES$name.html;$name.js;"

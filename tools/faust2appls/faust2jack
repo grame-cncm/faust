@@ -101,7 +101,7 @@ do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -134,7 +134,7 @@ EndOfCode
     else
         faust -i -a $ARCHFILE $OPTIONS "$f" -o "${f%.dsp}_tmp.cpp"|| exit
     fi
-    
+
     # add preset management
     if [ $PRESETDIR = "auto" ]; then
         echo "#define PRESETDIR \"/var/tmp/\"" > "preset.cpp"

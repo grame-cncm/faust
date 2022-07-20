@@ -27,7 +27,7 @@ OSCDEFS=""
 #
 
 # dispatch command arguments
-while [ $1 ] 
+while [ $1 ]
 do
     p=$1
 
@@ -37,14 +37,14 @@ do
         require Alsa
         echo "Compiles Faust programs to CLI and ALSA"
         option
-        options -httpd -osc -midi 
+        options -httpd -osc -midi
         option "-nvoices <num>"
         option -arch32 "compiles a 32 bits binary"
         option -arch64 "compiles a 64 bits binary"
         option "Faust options"
         exit
     fi
-    
+
     if [ $p = "-nvoices" ]; then
         POLYDEFS="DEFINES += POLY"
         shift
@@ -70,7 +70,7 @@ do
     else
         OPTIONS="$OPTIONS $p"
     fi
-    
+
 shift
 
 done

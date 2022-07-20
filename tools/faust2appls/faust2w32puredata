@@ -45,7 +45,7 @@ for p in $@; do
     if [ "$p" = -omp ]; then
         OMP="-fopenmp"
     fi
-  
+
     if [ "$p" = -icc ]; then
         ignore=" "
     elif [ $p = "-poly" ]; then
@@ -55,7 +55,7 @@ for p in $@; do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 done
 
@@ -68,11 +68,11 @@ for p in $FILES; do
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
 
-    # creates a temporary dir 
+    # creates a temporary dir
     TDR=$(mktemp -d faust.XXXXXX)
     TMP=$TDR/${f%.dsp}
     mkdir "$TMP"
-    
+
     # case where a foreign C++ function is called in the Faust code (TODO: this is only a quick fix!)
     count=`ls -1 *.h 2>/dev/null | wc -l`
     if [ $count != 0 ]; then
@@ -96,7 +96,7 @@ for p in $FILES; do
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
     cp "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
-    
+
     # collects all the files produced
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
     if [ $(which faust2pd)  ]; then

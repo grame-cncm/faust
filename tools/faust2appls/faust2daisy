@@ -38,7 +38,7 @@ echoHelp ()
     option "-nvoices <num>"
     option "-sr <num>"
     option "-bs <num>"
-    option -source 
+    option -source
     option "Faust options"
     echo ""
 }
@@ -99,12 +99,12 @@ for p in $FILE; do
     CUR=$(pwd)
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
-    
-    # creates the dir 
+
+    # creates the dir
     dspName="${f%.dsp}"
     rm -rf "$SRCDIR/$dspName"
     mkdir "$SRCDIR/$dspName"
-    
+
     # compile faust to c++
     cp -r $FAUSTARCH/daisy/Makefile "$SRCDIR/$dspName/"
     faust -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
@@ -113,18 +113,18 @@ for p in $FILE; do
     if [ $PATCH == true ]; then
         echo "#define PATCH" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
-    
+
     # for MIDI
     if [ $MIDI == true ]; then
         echo "#define MIDICTRL" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
-    
-    # for Sample Rate 
+
+    # for Sample Rate
     echo "#define MY_SAMPLE_RATE $SR" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
-    
+
     # for Buffer Size
     echo "#define MY_BUFFER_SIZE $BS" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
-    
+
     # for POLY
     if [ "$NVOICES" -gt "0" ]; then
         echo "#define POLY" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
@@ -139,6 +139,6 @@ for p in $FILE; do
         echo "Success !"
     else
         echo "Create the $SRCDIR/$dspName folder"
-    fi 
-    
+    fi
+
 done

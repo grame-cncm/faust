@@ -16,9 +16,9 @@ cat $TEMPFILE | sed -e "s/FaustPatch/$PATCHNAME/g" > $PATCHFILE
 rm $TEMPFILE
 
 #(faust -i -inpl -a owl.cpp -cn $CLASSNAME $FILENAME | sed -e "s/FaustPatch/$PATCHNAME/g" > $PATCHFILE) || exit
-echo ""         
+echo ""
 echo "           Instructions to add $PATCHFILE to your owl pedal"
-echo ""         
+echo ""
 echo ""
 echo "Copy file [[ $PATCHFILE ]] to OwlWare/Libraries/OwlPatches directory"
 echo ""

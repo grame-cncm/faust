@@ -27,11 +27,11 @@ do
         echo "Compiles Faust programs to a fausgen~ patch"
         option
         option '-nvoices <num>'
-    	exit
+        exit
     fi
-    
+
     if [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
+        FILES="$FILES $p"
     elif [ $p = "-nvoices" ]; then
         POLY="POLY1"
         shift
@@ -39,9 +39,9 @@ do
         if [ $NVOICES -ge 0 ]; then
             CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
         fi
-	else
-	    OPTIONS="$OPTIONS $p"
-	fi
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
 
 shift
 
@@ -76,7 +76,7 @@ for p in $FILES; do
 
     rm ${f%.dsp}-temp1.maxpat
     rm ${f%.dsp}-temp2.maxpat
-    
+
 done
 
 BINARIES="$BINARIES ui.js"

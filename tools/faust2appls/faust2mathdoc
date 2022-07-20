@@ -16,7 +16,7 @@
 # - faust ;-)
 
 # Usage.
-print_usage() 
+print_usage()
 {
     usage faust2mathdoc "[options] <file.dsp>"
     require svg2pdf pdflatex breqn
@@ -101,7 +101,7 @@ then
 fi
 
 if [ $# -eq 0 ]
-then 
+then
     print_usage
     exit 1
 fi
@@ -116,13 +116,13 @@ for FILEPATH in $@ ; do
     if [ -f $FILEPATH ] ; then
     FILENAME=`basename $FILEPATH` &&
     case $FILENAME in
-        *.dsp )  
-        if [ "$CONVERT" = "utf8" ] 
+        *.dsp )
+        if [ "$CONVERT" = "utf8" ]
         then
             recode2utf8 $FILENAME
         fi
         faust $MDLANGOPT -o ${FILEPATH%.dsp}.cpp --mathdoc $FILEPATH  || exit
-        cd ${FILEPATH%.dsp}-mdoc/ && 
+        cd ${FILEPATH%.dsp}-mdoc/ &&
         cd svg && convert_svgprocesses2pdf svg-* && cd .. &&
         cd tex && pdflatex ${FILENAME%.dsp}.tex && pdflatex ${FILENAME%.dsp}.tex && cd .. &&
         mkdir -p pdf && cp tex/${FILENAME%.dsp}.pdf pdf &&
@@ -133,7 +133,7 @@ for FILEPATH in $@ ; do
         echo error : \'$FILENAME\' does not have a \'.dsp\' extension.
         exit 2
         ;;
-    esac    
+    esac
     else
     print_usage
     exit 1

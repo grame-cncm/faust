@@ -19,7 +19,7 @@ ARCHLIB="-L/usr/local/lib -lrtaudio"
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
 
-QMAKE=$(which qmake-qt4 || echo qmake) 
+QMAKE=$(which qmake-qt4 || echo qmake)
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -44,7 +44,7 @@ for p in $@; do
         option "Faust options"
         exit
     fi
-    
+
     if [ $p = "-poly" ]; then
         POLYDEFS="DEFINES += POLY"
     elif [ $p = "-midi" ]; then
@@ -65,7 +65,7 @@ for p in $@; do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 done
 
@@ -79,7 +79,7 @@ if [[ $(uname) == Darwin ]]; then
     if [ $SYS_VERSION -gt 12 ]
     then
         SPEC=""
-        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
+        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"
         CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
     else
         SPEC="-spec macx-g++"
@@ -104,14 +104,14 @@ for p in $FILES; do
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
 
-    # creates a temporary dir 
+    # creates a temporary dir
     TDR=$(mktemp -d faust.XXX)
     TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
 
     # compile faust to c++
      faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
-  
+
     # compile c++ to binary
     (
         cd "$TMP"
@@ -119,7 +119,7 @@ for p in $FILES; do
         $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
         make
     ) > /dev/null || exit
-     
+
     # on Mac add the QT libraries to the bundle
     if [[ $(uname) == Darwin ]]; then
         if [ "$DEPLOY" = "yes" ]; then

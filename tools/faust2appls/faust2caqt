@@ -41,16 +41,16 @@ SAMPLERATEDEFS=""
 SAMPLERATELIBS=""
 OPT=""
 
-while [ $1 ] 
+while [ $1 ]
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2caqt "[options] [Faust options] <file.dsp>"
-	platform MacOS
-	require Qt
-	echo "Compiles Faust programs to CoreAudio and QT"
-	option
+        platform MacOS
+        require Qt
+        echo "Compiles Faust programs to CoreAudio and QT"
+        option
         options -httpd -osc -midi -qrcode -soundfile
         option "-opt native' to activate the best compilation options for the native CPU"
         option "-opt generic' to activate the best compilation options for a generic CPU"
@@ -132,14 +132,14 @@ done
 if [[ $(uname) == Darwin ]]; then
     SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
     if [ $SYS_VERSION -ge 13 ]
-	then
-	    SPEC="-spec macx-clang"
-	    CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
-	    CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
-	else
-	    SPEC="-spec macx-g++"
-	    CLANGOPT=""
-	fi
+    then
+        SPEC="-spec macx-clang"
+        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"
+        CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
+    else
+        SPEC="-spec macx-g++"
+        CLANGOPT=""
+    fi
     EXT=".app"
 fi
 
@@ -153,7 +153,7 @@ for p in $FILES; do
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
 
-    # creates a temporary dir 
+    # creates a temporary dir
     TDR=$(mktemp -d faust.XXXXXX)
     TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
@@ -190,7 +190,7 @@ EndOfCode
     else
         faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
     fi
-    
+
     # add preset management
     if [ $PRESETDIR = "auto" ]; then
         echo "#define PRESETDIR \"/var/tmp/\"" > "$TMP/preset.cpp"
@@ -227,12 +227,12 @@ EndOfCode
         # copy found soundfiles in the final binary
         for snd in $(cat $p-tmp.txt); do
             if [ -f $snd ]; then
-                if [ ${snd:0:1} = "/" ]; then 
+                if [ ${snd:0:1} = "/" ]; then
                     echo "Warning: soundfile with absolute path is not copied !"
                 else
                     # create destination path and possibly create directory
                     sfpath="$TMP/${f%.dsp}$EXT/Contents/Resources/$(dirname $snd)/"
-                    if ! [ -d $sfpath ]; then 
+                    if ! [ -d $sfpath ]; then
                         echo "Create $sfpath"
                         mkdir $sfpath
                     fi
@@ -264,7 +264,7 @@ EndOfCode
         echo "====> delete temporary folder $TDR ? [Y/n]"
         read DEL
         [ $DEL == "n" ] && RMTMP=false
-    fi	
+    fi
     [ $RMTMP == true ] && rm -rf "$TDR"
 
     # collect binary file name for FaustGIDE

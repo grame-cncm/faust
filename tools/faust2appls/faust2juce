@@ -44,7 +44,7 @@ do
 
     if [ $p = "--help" ] || [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2juce "[options] [Faust options] <file.dsp>"
-        require Juce 
+        require Juce
         echo "Compiles Faust programs to JUCE standalones or plugins"
         option
         options -osc -midi -soundfile
@@ -109,7 +109,7 @@ do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -174,12 +174,12 @@ for p in $FILES; do
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
 
-    # creates the dir 
+    # creates the dir
     dspName="${f%.dsp}"
     SUB_TYPE=$(shasum $p)
     SUB_TYPE=${SUB_TYPE:0:4}
     rm -rf "$SRCDIR/$dspName"
- 
+
     if [ $STANDALONE = "0" ]; then
         cp -r "$FAUSTARCH/juce/plugin" "$SRCDIR/$dspName/"
         # setting plugin name to match the dsp
@@ -232,10 +232,10 @@ for p in $FILES; do
     else
         rm "$SRCDIR/$dspName/standalone-llvm.jucer" "$SRCDIR/$dspName/standalone.jucer"
     fi
-  
-    rm "$SRCDIR/$dspName/$dspName-temp.jucer"  "$SRCDIR/$dspName/$dspName-temp0.jucer" 
+
+    rm "$SRCDIR/$dspName/$dspName-temp.jucer"  "$SRCDIR/$dspName/$dspName-temp0.jucer"
     rm "$SRCDIR/$dspName/$dspName-temp1.jucer" "$SRCDIR/$dspName/$dspName-temp2.jucer"
-    rm "$SRCDIR/$dspName/$dspName-temp3.jucer" "$SRCDIR/$dspName/$dspName-temp4.jucer" 
+    rm "$SRCDIR/$dspName/$dspName-temp3.jucer" "$SRCDIR/$dspName/$dspName-temp4.jucer"
     rm "$SRCDIR/$dspName/$dspName-temp5.jucer" "$SRCDIR/$dspName/$dspName-temp6.jucer"
     rm "$SRCDIR/$dspName/$dspName-temp7.jucer" "$SRCDIR/$dspName/$dspName-temp8.jucer"
     rm "$SRCDIR/$dspName/$dspName-temp9.jucer" "$SRCDIR/$dspName/$dspName-temp10.jucer"

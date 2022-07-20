@@ -43,7 +43,7 @@ do
         option "Faust options"
         exit
     fi
-    
+
     if [ $p = "-nvoices" ]; then
         POLYDEFS="-DPOLY"
         shift
@@ -112,10 +112,10 @@ EndOfCode
     fi
 
     # compile c++ to binary
-    $CXX $CXXFLAGS "$TMP/${f%.dsp}.cpp" $FAUSTTOOLSFLAGS $ARCHLIB $OSCDEFS $HTTPDEFS $HTTPLIBS $MIDIDEFS $POLYDEFS -o "${f%.dsp}" || exit   
+    $CXX $CXXFLAGS "$TMP/${f%.dsp}.cpp" $FAUSTTOOLSFLAGS $ARCHLIB $OSCDEFS $HTTPDEFS $HTTPLIBS $MIDIDEFS $POLYDEFS -o "${f%.dsp}" || exit
     if [[ $(uname) == Darwin ]]; then
         codesign --sign - --deep --force "${f%.dsp}"
-    fi   
+    fi
     rm -rf "$TDR"
 
     # collect binary file name for FaustGIDE
