@@ -1,21 +1,21 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-function usage() {
+usage() {
     name=$1
     shift
     args=$*
     echo "Usage: $name $args"
 }
 
-function platform() {
+platform() {
     echo "Target platform: $*"
 }
 
-function require() {
+require() {
     echo "Require: $*"
 }
 
-function options() {
+options() {
     while [ "$1" ]
     do
         option $1
@@ -23,7 +23,7 @@ function options() {
     done
 }
 
-function option() {
+option() {
     if [ $# -ne 0 ] 
     then
         option=$1
