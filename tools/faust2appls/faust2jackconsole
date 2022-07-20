@@ -101,7 +101,7 @@ for f in $FILES; do
         fi
     ) > /dev/null || exit
     
-    # remove tempory files
+    # remove temporary files
     rm -f "$f.cpp"
 
     # collect binary file name for FaustWorks

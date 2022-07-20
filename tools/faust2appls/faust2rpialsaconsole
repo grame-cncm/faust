@@ -38,7 +38,7 @@ LINUX_KERNEL_INSTALL_DIR="$BASE_DIR/x-tools/arm-unknown-linux-gnueabi/arm-unknow
 
 CXX=$BASE_DIR"/x-tools/arm-unknown-linux-gnueabi/bin/arm-unknown-linux-gnueabi-c++"
 
-# Librairies and includes directories for Rapsberry Pi
+# Libraries and includes directories for Rapsberry Pi
 LD_LIBRARY_PATHS="-L$LINUX_KERNEL_INSTALL_DIR/lib -lasound"
 INCLUDES_DIR="-L$LINUX_KERNEL_INSTALL_DIR_INCLUDE/include/"
 
