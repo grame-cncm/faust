@@ -48,7 +48,7 @@ class FBCCompiler : public FBCInterpreter<REAL,0> {
         fCompiledBlocks = map;
 
         // FBC blocks compilation
-        //CompileBlock(factory->fComputeBlock);
+        CompileBlock(factory->fComputeBlock);
         CompileBlock(factory->fComputeDSPBlock);
     }
 
@@ -76,12 +76,12 @@ class FBCCompiler : public FBCInterpreter<REAL,0> {
         if (fCompiledBlocks->find(block) == fCompiledBlocks->end()) {
         #ifdef MIR_BUILD
             // Run with interp/MIR compiler
-            (*fCompiledBlocks)[block] = new FBCMIRCompiler<REAL>(block);
+            (*fCompiledBlocks)[block] = new FBCMIRCompiler<REAL>(block, this->fSoundTable);
         #elif LLVM_BUILD
             // Run with interp/LLVM compiler
-            (*fCompiledBlocks)[block] = new FBCLLVMCompiler<REAL>(block);
+            (*fCompiledBlocks)[block] = new FBCLLVMCompiler<REAL>(block, this->fSoundTable);
         #elif TEMPLATE_BUILD
-            (*fCompiledBlocks)[block] = new FBCTemplateCompiler<REAL>(block);
+            (*fCompiledBlocks)[block] = new FBCTemplateCompiler<REAL>(block, this->fSoundTable);
         #endif
         } else {
             // std::cout << "FBCCompiler: reuse compiled block" << std::endl;

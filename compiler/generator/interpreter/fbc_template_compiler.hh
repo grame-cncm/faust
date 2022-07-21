@@ -37,7 +37,7 @@ template <class REAL>
 class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
 
    protected:
-    
+      
     // Compile the FBC code used in 'compute'
     void CompileBlock(FBCBlockInstruction<REAL>* block)
     {
@@ -66,7 +66,7 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
                 case FBCInstruction::kLoadInt:
                     it++;
                     break;
-
+                    
                 case FBCInstruction::kStoreReal:
                     it++;
                     break;
@@ -84,6 +84,14 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
                     it++;
                     break;
              
+                case FBCInstruction::kLoadSoundFieldInt:
+                    it++;
+                    break;
+                    
+                case FBCInstruction::kLoadSoundFieldReal:
+                    it++;
+                    break;
+            
                 case FBCInstruction::kStoreIndexedReal:
                     it++;
                     break;
@@ -399,7 +407,8 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
     }
     
    public:
-    FBCTemplateCompiler(FBCBlockInstruction<REAL>* fbc_block)
+    FBCTemplateCompiler(FBCBlockInstruction<REAL>* fbc_block, soundTable& sound_table)
+    :FBCExecuteFun<REAL>(fbc_block, sound_table)
     {
         // Compile the 'compute' function once.
         CompileBlock(fbc_block);

@@ -474,7 +474,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
             //MIR_output(fContext, stderr);
 
             switch ((*it)->fOpcode) {
-                    // Numbers
+                // Numbers
                 case FBCInstruction::kRealValue: {
                     MIR_reg_t var_real = createVar(getRealTy(), "var_real");
                     MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext,
@@ -497,7 +497,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                     break;
                 }
 
-                    // Memory load/store
+                // Memory load/store
                 case FBCInstruction::kLoadReal:
                     pushLoadRealArray((*it)->fOffset1);
                     it++;
@@ -507,7 +507,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                     pushLoadIntArray((*it)->fOffset1);
                     it++;
                     break;
-
+               
                 case FBCInstruction::kStoreReal:
                     pushStoreRealArray((*it)->fOffset1);
                     it++;
@@ -518,7 +518,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                     it++;
                     break;
 
-                    // Indexed memory load/store: constant values are added at generation time by CreateBinOp...
+                // Indexed memory load/store: constant values are added at generation time by CreateBinOp...
                 case FBCInstruction::kLoadIndexedReal: {
                     pushLoadRealArrayImp(createAddOffsetReg((*it)->fOffset1));
                     it++;
@@ -530,6 +530,16 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                     it++;
                     break;
                 }
+                    
+                case FBCInstruction::kLoadSoundFieldInt:
+                    throw faustexception("ERROR : kLoadSoundFieldInt not yet supported in FBCMIRCompiler\n");
+                    it++;
+                    break;
+                    
+                case FBCInstruction::kLoadSoundFieldReal:
+                    throw faustexception("ERROR : kLoadSoundFieldReal not yet supported in FBCMIRCompiler\n");
+                    it++;
+                    break;
 
                 case FBCInstruction::kStoreIndexedReal: {
                     pushStoreRealArrayImp(createAddOffsetReg((*it)->fOffset1));
@@ -543,7 +553,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                     break;
                 }
 
-                    // Memory shift
+                // Memory shift
                 case FBCInstruction::kBlockShiftReal: {
                     for (int i = (*it)->fOffset1; i > (*it)->fOffset2; i -= 1) {
                         pushLoadRealArray(i - 1);
@@ -562,7 +572,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                     break;
                 }
 
-                    // Input/output
+                // Input/output
                 case FBCInstruction::kLoadInput:
                     pushLoadInput((*it)->fOffset1);
                     it++;
@@ -573,7 +583,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                     it++;
                     break;
 
-                    // Cast
+                // Cast
                 case FBCInstruction::kCastReal: {
                     MIR_reg_t ext32 = createVar(MIR_T_I64, "ext32");
                     // Take lower 32 bits
@@ -626,7 +636,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                     break;
                 }
 
-                    // Binary math
+                // Binary math
                 case FBCInstruction::kAddReal:
                     pushBinop(typedReal(MIR_FADD, MIR_DADD), getRealTy());
                     it++;
@@ -931,7 +941,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                     break;
                 }
 
-                    // Control
+                // Control
                 case FBCInstruction::kReturn:
                     end = true;
                     break;
@@ -990,7 +1000,8 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
     }
     
    public:
-    FBCMIRCompiler(FBCBlockInstruction<REAL>* fbc_block)
+    FBCMIRCompiler(FBCBlockInstruction<REAL>* fbc_block, soundTable& sound_table)
+    :FBCExecuteFun<REAL>(fbc_block, sound_table)
     {
         // Integer version
         gMathLib["mir_abs"] = (void*)mir_abs;

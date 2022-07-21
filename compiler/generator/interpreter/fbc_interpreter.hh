@@ -102,8 +102,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     int*        fIntHeap;
     REAL*       fRealHeap;
-    std::map<std::string, Soundfile*> fSoundTable;
-
+   
     REAL** fInputs;
     REAL** fOutputs;
 
@@ -580,7 +579,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
                 case FBCInstruction::kAddSoundfile:
                     // fKey use for label, fValue used for URL, fLabel for SF field name
-                    glue->addSoundfile(it->fKey.c_str(), it->fValue.c_str(), &fSoundTable[it->fLabel]);
+                    glue->addSoundfile(it->fKey.c_str(), it->fValue.c_str(), &this->fSoundTable[it->fLabel]);
                     break;
 
                 case FBCInstruction::kAddHorizontalBargraph:
@@ -634,12 +633,10 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         
         REAL          real_stack[512];
         int           int_stack[512];
-        Soundfile*    sound_stack[512];
         InstructionIT address_stack[64];
         
         memset(real_stack, 0, sizeof(REAL)*512);
         memset(int_stack, 0, sizeof(int)*512);
-        memset(sound_stack, 0, sizeof(Soundfile*)*512);
         memset(address_stack, 0, sizeof(InstructionIT)*64);
         
         if (TRACE > 0) {
@@ -728,8 +725,8 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                 }
                     
                 case FBCInstruction::kLoadSoundFieldInt : {
-                    faustassert(fSoundTable.find((*it)->fName) != fSoundTable.end());
-                    Soundfile* sf = fSoundTable[(*it)->fName];
+                    faustassert(this->fSoundTable.find((*it)->fName) != this->fSoundTable.end());
+                    Soundfile* sf = this->fSoundTable[(*it)->fName];
                     int field_index = popInt();
                     int part = popInt();
                     int* field;
@@ -752,8 +749,8 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                 }
                     
                 case FBCInstruction::kLoadSoundFieldReal : {
-                    faustassert(fSoundTable.find((*it)->fName) != fSoundTable.end());
-                    Soundfile* sf = fSoundTable[(*it)->fName];
+                    faustassert(this->fSoundTable.find((*it)->fName) != this->fSoundTable.end());
+                    Soundfile* sf = this->fSoundTable[(*it)->fName];
                     // field_index (unused)
                     popInt();
                     int chan = popInt();
@@ -2795,8 +2792,8 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     }
 
     do_kLoadSoundFieldInt : {
-        faustassert(fSoundTable.find((*it)->fName) != fSoundTable.end());
-        Soundfile* sf = fSoundTable[(*it)->fName];
+        faustassert(this->fSoundTable.find((*it)->fName) != this->fSoundTable.end());
+        Soundfile* sf = this->fSoundTable[(*it)->fName];
         int field_index = popInt();
         int part = popInt();
         int* field;
@@ -2819,8 +2816,8 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     }
     
     do_kLoadSoundFieldReal : {
-        faustassert(fSoundTable.find((*it)->fName) != fSoundTable.end());
-        Soundfile* sf = fSoundTable[(*it)->fName];
+        faustassert(this->fSoundTable.find((*it)->fName) != this->fSoundTable.end());
+        Soundfile* sf = this->fSoundTable[(*it)->fName];
         // field_index (unused)
         popInt();
         int chan = popInt();

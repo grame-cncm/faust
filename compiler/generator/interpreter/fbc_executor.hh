@@ -24,51 +24,66 @@
 
 #include "faust/gui/CGlue.h"
 #include "interpreter_bytecode.hh"
+#include "dsp_aux.hh"
 
 /*
  * The base class for Interpreter and mixed Interpreter/Compiler.
  */
 template <class REAL>
-struct FBCExecutor {
+class FBCExecutor {
     
-    virtual ~FBCExecutor() {}
+    protected:
+        
+        soundTable fSoundTable;
+
+    public:
     
-    virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<REAL>* block, UIInterface* glue) {};
-    virtual void ExecuteBlock(FBCBlockInstruction<REAL>* block, bool compile = false) {};
+        virtual ~FBCExecutor() {}
+        
+        virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<REAL>* block, UIInterface* glue) {};
+        virtual void ExecuteBlock(FBCBlockInstruction<REAL>* block, bool compile = false) {};
 
-    virtual void setIntValue(int offset, int value) {}
-    virtual int  getIntValue(int offset) { return -1; }
+        virtual void setIntValue(int offset, int value) {}
+        virtual int  getIntValue(int offset) { return -1; }
 
-    virtual void setInput(int offset, REAL* buffer) {}
-    virtual void setOutput(int offset, REAL* buffer) {}
+        virtual void setInput(int offset, REAL* buffer) {}
+        virtual void setOutput(int offset, REAL* buffer) {}
 
-    virtual void updateInputControls() {}
-    virtual void updateOutputControls() {}
+        virtual void updateInputControls() {}
+        virtual void updateOutputControls() {}
 
-    virtual void dumpMemory(FBCBlockInstruction<REAL>* block, const std::string& name, const std::string& filename) {}
-    
+        virtual void dumpMemory(FBCBlockInstruction<REAL>* block, const std::string& name, const std::string& filename) {}
+ 
 };
 
 /*
  * The base class for a Compiler to compile the hot 'compute' function.
  */
 template <class REAL>
-struct FBCExecuteFun {
-
-    FBCExecuteFun() {}
-    // The FBC block used in the'compute' function.
-    FBCExecuteFun(FBCBlockInstruction<REAL>* fbc_block) {}
-    virtual ~FBCExecuteFun() {}
-   
-    /*
-     * The function to be executed each cycle.
-     *
-     * @param int_heap - the integer heap
-     * @param real_heap - the REAL heap
-     * @param inputs - the audio inputs
-     * @param outputs - the audio outputs
-     */
-    virtual void Execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs) {}
+class FBCExecuteFun {
+    
+    protected:
+    
+        soundTable& fSoundTable;
+    
+    public:
+    
+        FBCExecuteFun() {}
+        // The FBC block used in the 'compute' function.
+        FBCExecuteFun(FBCBlockInstruction<REAL>* fbc_block, soundTable& sound_table)
+        :fSoundTable(sound_table)
+        {}
+        virtual ~FBCExecuteFun() {}
+       
+        /*
+         * The function to be executed each cycle.
+         *
+         * @param int_heap - the integer heap
+         * @param real_heap - the REAL heap
+         * @param inputs - the audio inputs
+         * @param outputs - the audio outputs
+         */
+        virtual void Execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs) {}
     
 };
 

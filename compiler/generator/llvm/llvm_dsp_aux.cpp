@@ -49,7 +49,7 @@ using namespace llvm;
 using namespace std;
 
 // Used by LLVM backend (for now)
-Soundfile* dynamic_defaultsound = new Soundfile(64);
+Soundfile* dynamic_defaultsound = new Soundfile(MAX_CHAN);
 
 #define LLVM_BACKEND_NAME "Faust LLVM backend"
 
