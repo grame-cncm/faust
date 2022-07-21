@@ -14,7 +14,9 @@
 CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 ARCHFILE=$FAUSTARCH/ra-qt.cpp
-ARCHLIB="-L/usr/local/lib -lrtaudio"
+ARCHLIB="$(pkg-config --libs rtaudio || echo -L/usr/local/lib -lrtaudio)"
+CXXFLAGS+=" $(pkg-config --cflags rtaudio || true)"
+
 
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
