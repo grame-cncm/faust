@@ -85,13 +85,13 @@ int main(int argc, char* argv[])
     // Allocate the audio driver to render 5 buffers of 512 frames
     dummyaudio audio(1);
     if (!audio.init("Test", &DSP)) {
-        cerr << "Unable to init audio" << endl;
+        std::cerr << "Unable to init audio" << std::endl;
         exit(1);
     }
     
     // Render buffers...
     if (!audio.start()) {
-        cerr << "Unable to start audio" << endl;
+        std::cerr << "Unable to start audio" << std::endl;
         exit(1);
     }
     audio.stop();
