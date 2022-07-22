@@ -48,7 +48,7 @@ struct MIDIMessage
 #pragma pack (pop)
 
 /**
- * For timestamped MIDI messages.
+ * For timestamped MIDI messages (in usec).
  */
 struct DatedMessage {
     

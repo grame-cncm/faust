@@ -95,7 +95,7 @@
 extern FILE*       yyin;
 extern const char* yyfilename;
 
-// CG globals
+// Garbageable globals
 list<Garbageable*> global::gObjectTable;
 bool               global::gHeapCleanup = false;
 
@@ -440,11 +440,11 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 #endif
 
 #ifdef JULIA_BUILD
-    gJuliaVisitor = nullptr;  // Will be (possibly) allocated in Julia backend
+    gJuliaVisitor = nullptr;        // Will be (possibly) allocated in Julia backend
 #endif
 
 #ifdef SOUL_BUILD
-    gTableSizeVisitor = nullptr;  // Will be (possibly) allocated in SOUL backend
+    gTableSizeVisitor = nullptr;    // Will be (possibly) allocated in SOUL backend
 #endif
 
     gHelpSwitch       = false;

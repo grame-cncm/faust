@@ -118,6 +118,8 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
         return InstBuilder::genLoadStructVar(varname);
     }
     
+    // Soundfile struct access are fully generated, instead of using intermediate local stack variables as in InstructionsCompiler
+    
     // x = part
     ValueInst* generateSoundfileLength(Tree sig, ValueInst* sf, ValueInst* x) override
     {

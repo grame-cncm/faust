@@ -126,7 +126,7 @@ struct ZoneUI : public GenericUI {
 /**
  * Timed signal processor that allows to handle the decorated DSP by 'slices'
  * that is, calling the 'compute' method several times and changing control
- * parameters between slices.
+ * parameters between slices. Timestamps are in usec.
  */
 
 class timed_dsp : public decorator_dsp {

@@ -68,7 +68,7 @@ class DspFaust
     public:
 
         //--------------`DspFaust(bool auto_connect = true)`----------------
-        // Default constructor, to be used wih audio drivers that impose their sample rate and buffer size (like JACK and JUCE).
+        // Default constructor for the static model, to be used wih audio drivers that impose their sample rate and buffer size (like JACK and JUCE).
         //
         // #### Arguments
         //
@@ -77,7 +77,7 @@ class DspFaust
         DspFaust(bool auto_connect = true);
 
         //--------------`DspFaust(int SR, int BS, bool auto_connect = true)`----------------
-        // Constructor.
+        // Constructor for the static model.
         //
         // #### Arguments
         //
@@ -88,7 +88,7 @@ class DspFaust
         DspFaust(int SR, int BS, bool auto_connect = true);
 
         //--------------`DspFaust(const string& dsp_content, int SR, int BS, bool auto_connect = true)`----------------
-        // Constructor.
+        // Constructor for the dynamic model, using LLVM + JIT compilation.
         //
         // #### Arguments
         //
@@ -199,7 +199,7 @@ class DspFaust
         // #### Arguments
         //
         // * `count`: size of the message (1-3)
-        // * `time`: time stamp
+        // * `time`: time stamp in usec
         // * `type`: message type (byte)
         // * `channel`: channel number
         // * `data1`: first data byte (should be `null` if `count<2`)
@@ -437,7 +437,7 @@ class DspFaust
         //
         // * `id`: the UI parameter id
         // * `acc`: the accelerometer axis (**0**: x, **1**: y, **2**: z)
-        // * `curve`: the curve (**0**: up, **1**: down, **2**: up and down)
+        // * `curve`: the curve (**0**: up, **1**: down, **2**: up and down, **2**: down and up)
         // * `amin`: mapping min point
         // * `amid`: mapping middle point
         // * `amax`: mapping max point
@@ -462,7 +462,7 @@ class DspFaust
         //
         // * `id`: the UI parameter id
         // * `gyr`: the gyroscope axis (**0**: x, **1**: y, **2**: z)
-        // * `curve`: the curve (**0**: up, **1**: down, **2**: up and down)
+        // * `curve`: the curve (**0**: up, **1**: down, **2**: up and down, **2**: down and up)
         // * `amin`: mapping min point
         // * `amid`: mapping middle point
         // * `amax`: mapping max point

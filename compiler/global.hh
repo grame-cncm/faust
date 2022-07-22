@@ -548,7 +548,7 @@ struct global {
     bool   gDrawSVGSwitch;
     bool   gVHDLSwitch;
     bool   gVHDLTrace;
-    int    gVHDLFloatType; //sfixed(msb downto lsb) or float(msb downto lsb)
+    int    gVHDLFloatType; // 0: sfixed(msb downto lsb) or 1: float(msb downto lsb)
     int    gVHDLFloatMSB;
     int    gVHDLFloatLSB;
     bool   gElementarySwitch;
