@@ -2828,7 +2828,11 @@ tvec boxesToSignalsAux(Tree box)
         error << "ERROR during the evaluation of process : " << boxpp(box) << endl;
         throw faustexception(error.str());
     }
-    return propagate(gGlobal->nil, gGlobal->nil, box, makeSigInputList(numInputs));
+    siglist outputs;
+    for (const auto& it : propagate(gGlobal->nil, gGlobal->nil, box, makeSigInputList(numInputs))) {
+        outputs.push_back(deBruijn2Sym(it));
+    }
+    return outputs;
 }
 
 LIBFAUST_API tvec boxesToSignals(Tree box, std::string& error_msg)
