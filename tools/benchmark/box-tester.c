@@ -253,12 +253,12 @@ static void test4()
             
             printf("=================UI=================\n");
             
-                // Defined in PrintCUI.h
+            // Defined in PrintCUI.h
             metadataCDSPInstance(dsp, &mglue);
             
             buildUserInterfaceCDSPInstance(dsp, &uglue);
             
-                // Cleanup
+            // Cleanup
             deleteCDSPInstance(dsp);
             deleteCDSPFactory(factory);
             
