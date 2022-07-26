@@ -144,7 +144,7 @@ inline Tree tl(Tree l)
 }
 
 // predicates
-bool isNil(Tree l);
+LIBFAUST_API bool isNil(Tree l);
 bool isList(Tree l);
 
 // predicates

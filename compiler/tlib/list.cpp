@@ -117,7 +117,7 @@ Tree list0()
     return gGlobal->nil;
 }
 
-bool isNil(Tree l)
+LIBFAUST_API bool isNil(Tree l)
 {
     return (l->node() == Node(gGlobal->NIL)) && (l->arity() == 0);
 }

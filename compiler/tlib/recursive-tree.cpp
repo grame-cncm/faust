@@ -26,6 +26,7 @@
 #include "exception.hh"
 #include "global.hh"
 #include "tlib.hh"
+#include "faust/export.h"
 
 // Declaration of implementation
 static Tree calcDeBruijn2Sym(Tree t);
@@ -80,7 +81,7 @@ Tree rec(Tree var, Tree body)
     return t;
 }
 
-bool isRec(Tree t, Tree& var, Tree& body)
+bool LIBFAUST_API isRec(Tree t, Tree& var, Tree& body)
 {
     if (isTree(t, gGlobal->SYMREC, var)) {
         body = t->getProperty(gGlobal->RECDEF);
