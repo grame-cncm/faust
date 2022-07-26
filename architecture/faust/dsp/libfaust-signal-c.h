@@ -427,6 +427,64 @@ extern "C"
      */
     LIBFAUST_API Signal CsigAttach(Signal s1, Signal s2);
     
+    /**
+     * Test each signal and fill additional signal specific parameters.
+     *
+     * @return true and fill the specific parameters if the signal is of a given type, false otherwise
+     */
+    LIBFAUST_API bool CisSigInt(Signal t, int* i);
+    LIBFAUST_API bool CisSigReal(Signal t, double* r);
+    LIBFAUST_API bool CisSigInput(Signal t, int* i);
+    LIBFAUST_API bool CisSigOutput(Signal t, int* i, Signal* t0);
+    LIBFAUST_API bool CisSigDelay1(Signal t, Signal* t0);
+    LIBFAUST_API bool CisSigDelay(Signal t, Signal* t0, Signal* t1);
+    LIBFAUST_API bool CisSigPrefix(Signal t, Signal* t0, Signal* t1);
+    LIBFAUST_API bool CisSigRDTbl(Signal s, Signal* t, Signal* i);
+    LIBFAUST_API bool CisSigWRTbl(Signal u, Signal* id, Signal* t, Signal* i, Signal* s);
+    LIBFAUST_API bool CisSigTable(Signal t, Signal* id, Signal* n, Signal* sig);
+    LIBFAUST_API bool CisSigGen(Signal t, Signal* x);
+    LIBFAUST_API bool CisSigGen1(Signal t);
+    LIBFAUST_API bool CisSigDocConstantTbl(Signal t, Signal* n, Signal* sig);
+    LIBFAUST_API bool CisSigDocWriteTbl(Signal t, Signal* n, Signal* sig, Signal* widx, Signal* wsig);
+    LIBFAUST_API bool CisSigDocAccessTbl(Signal t, Signal* tbl, Signal* ridx);
+    LIBFAUST_API bool CisSigSelect2(Signal t, Signal* selector, Signal* s1, Signal* s2);
+    LIBFAUST_API bool CisSigAssertBounds(Signal t, Signal* s1, Signal* s2, Signal* s3);
+    LIBFAUST_API bool CisSigHighest(Signal t, Signal* s);
+    LIBFAUST_API bool CisSigLowest(Signal t, Signal* s);
+    
+    LIBFAUST_API bool CisSigBinOp(Signal s, int* op, Signal* x, Signal* y);
+    LIBFAUST_API bool CisSigFFun(Signal s, Signal* ff, Signal* largs);
+    LIBFAUST_API bool CisSigFConst(Signal s, Signal* type, Signal* name, Signal* file);
+    LIBFAUST_API bool CisSigFVar(Signal s, Signal* type, Signal* name, Signal* file);
+    
+    LIBFAUST_API bool CisProj(Signal s, int* i, Signal* rgroup);
+    LIBFAUST_API bool CisRec(Signal s, Signal* var, Signal* body);
+    
+    LIBFAUST_API bool CisSigIntCast(Signal s, Signal* x);
+    LIBFAUST_API bool CisSigFloatCast(Signal s, Signal* x);
+    
+    LIBFAUST_API bool CisSigButton(Signal s, Signal* lbl);
+    LIBFAUST_API bool CisSigCheckbox(Signal s, Signal* lbl);
+    
+    LIBFAUST_API bool CisSigWaveform(Signal s);
+    
+    LIBFAUST_API bool CisSigHSlider(Signal s, Signal* lbl, Signal* init, Signal* min, Signal* max, Signal* step);
+    LIBFAUST_API bool CisSigVSlider(Signal s, Signal* lbl, Signal* init, Signal* min, Signal* max, Signal* step);
+    LIBFAUST_API bool CisSigNumEntry(Signal s, Signal* lbl, Signal* init, Signal* min, Signal* max, Signal* step);
+    
+    LIBFAUST_API bool CisSigHBargraph(Signal s, Signal* lbl, Signal* min, Signal* max, Signal* x);
+    LIBFAUST_API bool CisSigVBargraph(Signal s, Signal* lbl, Signal* min, Signal* max, Signal* x);
+    
+    LIBFAUST_API bool CisSigAttach(Signal s, Signal* s0, Signal* s1);
+    
+    LIBFAUST_API bool CisSigEnable(Signal s, Signal* s0, Signal* s1);
+    LIBFAUST_API bool CisSigControl(Signal s, Signal* s0, Signal* s1);
+    
+    LIBFAUST_API bool CisSigSoundfile(Signal s, Signal* label);
+    LIBFAUST_API bool CisSigSoundfileLength(Signal s, Signal* sf, Signal* part);
+    LIBFAUST_API bool CisSigSoundfileRate(Signal s, Signal* sf, Signal* part);
+    LIBFAUST_API bool CisSigSoundfileBuffer(Signal s, Signal* sf, Signal* chan, Signal* part, Signal* ridx);
+    
     /*
      [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions
      [2] Label definition : https://faustdoc.grame.fr/manual/syntax/#variable-parts-of-a-label

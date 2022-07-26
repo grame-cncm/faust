@@ -216,6 +216,16 @@ class FBCCPPCompiler {
                     it++;
                     break;
                 }
+                    
+                case FBCInstruction::kLoadSoundFieldInt:
+                    // TODO
+                    it++;
+                    break;
+                    
+                case FBCInstruction::kLoadSoundFieldReal:
+                    // TODO
+                    it++;
+                    break;
 
                 case FBCInstruction::kStoreIndexedReal: {
                     std::string offset = genInt32((*it)->fOffset1) + "+" + popValue();

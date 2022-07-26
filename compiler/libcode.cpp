@@ -2811,6 +2811,455 @@ extern "C"
         return sigAttach(y, y);
     }
     
+    // Signal test API
+    LIBFAUST_API bool CisSigInt(Tree t, int* i)
+    {
+        return isSigInt(t, i);
+    }
+    LIBFAUST_API bool CisSigReal(Tree t, double* r)
+    {
+        return isSigReal(t, r);
+    }
+    LIBFAUST_API bool CisSigInput(Tree t, int* i)
+    {
+        return isSigInput(t, i);
+    }
+    LIBFAUST_API bool CisSigOutput(Tree t, int* i, Tree* t0_aux)
+    {
+        Tree t0;
+        if (isSigOutput(t, i, t0)) {
+            *t0_aux = t0;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigDelay1(Tree t, Tree* t0_aux)
+    {
+        Tree t0;
+        if (isSigDelay1(t, t0)) {
+            *t0_aux = t0;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigDelay(Tree t, Tree* t0_aux, Tree* t1_aux)
+    {
+        Tree t0, t1;
+        if (isSigDelay(t, t0, t1)) {
+            *t0_aux = t0;
+            *t1_aux = t1;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigPrefix(Tree t, Tree* t0_aux, Tree* t1_aux)
+    {
+        Tree t0, t1;
+        if (isSigPrefix(t, t0, t1)) {
+            *t0_aux = t0;
+            *t1_aux = t1;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigRDTbl(Tree s, Tree* t_aux, Tree* i_aux)
+    {
+        Tree t, i;
+        if (isSigRDTbl(s, t, i)) {
+            *t_aux = t;
+            *i_aux = i;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigWRTbl(Tree u, Tree* id_aux, Tree* t_aux, Tree* i_aux, Tree* s_aux)
+    {
+        Tree id, t, i, s;
+        if (isSigWRTbl(u, id, t, i, s)) {
+            *id_aux = id;
+            *t_aux = t;
+            *i_aux = i;
+            *s_aux = s;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigTable(Tree t, Tree* id_aux, Tree* n_aux, Tree* sig_aux)
+    {
+        Tree id, n, sig;
+        if (isSigTable(t, id, n, sig)) {
+            *id_aux = id;
+            *n_aux = n;
+            *sig_aux = sig;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigGen(Tree t, Tree* x_aux)
+    {
+        Tree x;
+        if (isSigGen(t, x)) {
+            *x_aux = x;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigDocConstantTbl(Tree t, Tree* n_aux, Tree* sig_aux)
+    {
+        Tree n, sig;
+        if (isSigDocConstantTbl(t, n, sig)) {
+            *n_aux = n;
+            *sig_aux = sig;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigDocWriteTbl(Tree t, Tree* n_aux, Tree* sig_aux, Tree* widx_aux, Tree* wsig_aux)
+    {
+        Tree n, sig, widx, wsig;
+        if (isSigDocWriteTbl(t, n, sig, widx, wsig)) {
+            *n_aux = n;
+            *sig_aux = sig;
+            *widx_aux = widx;
+            *wsig_aux = wsig;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigDocAccessTbl(Tree t, Tree* tbl_aux, Tree* ridx_aux)
+    {
+        Tree tbl, ridx;
+        if (isSigDocAccessTbl(t, tbl, ridx)) {
+            *tbl_aux = tbl;
+            *ridx_aux = ridx;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigSelect2(Tree t, Tree* selector_aux, Tree* s1_aux, Tree* s2_aux)
+    {
+        Tree selector, s1, s2;
+        if (isSigSelect2(t, selector, s1, s2)) {
+            *selector_aux = selector;
+            *s1_aux = s1;
+            *s2_aux = s2;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigAssertBounds(Tree t, Tree* s1_aux, Tree* s2_aux, Tree* s3_aux)
+    {
+        Tree s1, s2, s3;
+        if (isSigAssertBounds(t, s1, s2, s3)) {
+            *s1_aux = s1;
+            *s2_aux = s2;
+            *s2_aux = s2;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigHighest(Tree t, Tree* s_aux)
+    {
+        Tree s;
+        if (isSigHighest(t, s)) {
+            *s_aux = s;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigLowest(Tree t, Tree* s_aux)
+    {
+        Tree s;
+        if (isSigLowest(t, s)) {
+            *s_aux = s;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    LIBFAUST_API bool CisSigBinOp(Tree s, int* op, Tree* x_aux, Tree* y_aux)
+    {
+        Tree x, y;
+        if (isSigBinOp(s, op, x, y)) {
+            *x_aux = x;
+            *y_aux = y;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigFFun(Tree s, Tree* ff_aux, Tree* largs_aux)
+    {
+        Tree ff, largs;
+        if (isSigFFun(s, ff, largs)) {
+            *ff_aux = ff;
+            *largs_aux = largs;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    LIBFAUST_API bool CisSigFConst(Tree s, Tree* type_aux, Tree* name_aux, Tree* file_aux)
+    {
+        Tree type, name, file;
+        if (isSigFConst(s, type, name, file)) {
+            *type_aux = type;
+            *name_aux = name;
+            *file_aux = file;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigFVar(Tree s, Tree* type_aux, Tree* name_aux, Tree* file_aux)
+    {
+        Tree type, name, file;
+        if (isSigFVar(s, type, name, file)) {
+            *type_aux = type;
+            *name_aux = name;
+            *file_aux = file;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    LIBFAUST_API bool CisProj(Tree s, int* i, Tree* rgroup_aux)
+    {
+        Tree rgroup;
+        if (isProj(s, i, rgroup)) {
+            *rgroup_aux = rgroup;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisRec(Tree s, Tree* var_aux, Tree* body_aux)
+    {
+        Tree var, body;
+        if (isRec(s, var, body)) {
+            *var_aux = var;
+            *body_aux = body;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    LIBFAUST_API bool CisSigIntCast(Tree s, Tree* x_aux)
+    {
+        Tree x;
+        if (isSigIntCast(s, x)) {
+            *x_aux = x;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigFloatCast(Tree s, Tree* x_aux)
+    {
+        Tree x;
+        if (isSigFloatCast(s, x)) {
+            *x_aux = x;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    LIBFAUST_API bool CisSigButton(Tree s, Tree* lbl_aux)
+    {
+        Tree lbl;
+        if (isSigButton(s, lbl)) {
+            *lbl_aux = lbl;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigCheckbox(Tree s, Tree* lbl_aux)
+    {
+        Tree lbl;
+        if (isSigCheckbox(s, lbl)) {
+            *lbl_aux = lbl;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    LIBFAUST_API bool CisSigWaveform(Tree s)
+    {
+        return isSigWaveform(s);
+    }
+    
+    LIBFAUST_API bool CisSigHSlider(Tree s, Tree* lbl_aux, Tree* init_aux, Tree* min_aux, Tree* max_aux, Tree* step_aux)
+    {
+        Tree lbl, init, min, max, step;
+        if (isSigHSlider(s, lbl, init, min, max, step)) {
+            *lbl_aux = lbl;
+            *init_aux = init;
+            *min_aux = min;
+            *max_aux = max;
+            *step_aux = step;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigVSlider(Tree s, Tree* lbl_aux, Tree* init_aux, Tree* min_aux, Tree* max_aux, Tree* step_aux)
+    {
+        Tree lbl, init, min, max, step;
+        if (isSigVSlider(s, lbl, init, min, max, step)) {
+            *lbl_aux = lbl;
+            *init_aux = init;
+            *min_aux = min;
+            *max_aux = max;
+            *step_aux = step;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigNumEntry(Tree s, Tree* lbl_aux, Tree* init_aux, Tree* min_aux, Tree* max_aux, Tree* step_aux)
+    {
+        Tree lbl, init, min, max, step;
+        if (isSigNumEntry(s, lbl, init, min, max, step)) {
+            *lbl_aux = lbl;
+            *init_aux = init;
+            *min_aux = min;
+            *max_aux = max;
+            *step_aux = step;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    LIBFAUST_API bool CisSigHBargraph(Tree s, Tree* lbl_aux, Tree* min_aux, Tree* max_aux, Tree* x_aux)
+    {
+        Tree lbl, min, max, x0;
+        if (isSigHBargraph(s, lbl, min, max, x0)) {
+            *lbl_aux = lbl;
+            *min_aux = min;
+            *max_aux = max;
+            *x_aux = x0;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigVBargraph(Tree s, Tree* lbl_aux, Tree* min_aux, Tree* max_aux, Tree* x_aux)
+    {
+        Tree lbl, min, max, x0;
+        if (isSigVBargraph(s, lbl, min, max, x0)) {
+            *lbl_aux = lbl;
+            *min_aux = min;
+            *max_aux = max;
+            *x_aux = x0;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    LIBFAUST_API bool CisSigAttach(Tree s, Tree* s0_aux, Tree* s1_aux)
+    {
+        Tree s0, s1;
+        if (isSigAttach(s, s0, s1)) {
+            *s0_aux = s0;
+            *s1_aux = s1;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    LIBFAUST_API bool CisSigEnable(Tree s, Tree* s0_aux, Tree* s1_aux)
+    {
+        Tree s0, s1;
+        if (isSigEnable(s, s0, s1)) {
+            *s0_aux = s0;
+            *s1_aux = s1;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigControl(Tree s, Tree* s0_aux, Tree* s1_aux)
+    {
+        Tree s0, s1;
+        if (isSigControl(s, s0, s1)) {
+            *s0_aux = s0;
+            *s1_aux = s1;
+            return true;
+        } else {
+            return false;
+        }
+    }
+     
+    LIBFAUST_API bool CisSigSoundfile(Tree s, Tree* label_aux)
+    {
+        Tree label;
+        if (isSigSoundfile(s, label)) {
+            *label_aux = label;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigSoundfileLength(Tree s, Tree* sf_aux, Tree* part_aux)
+    {
+        Tree sf, part;
+        if (isSigSoundfileLength(s, sf, part)) {
+            *sf_aux = sf;
+            *part_aux = part;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigSoundfileRate(Tree s, Tree* sf_aux, Tree* part_aux)
+    {
+        Tree sf, part;
+        if (isSigSoundfileRate(s, sf, part)) {
+            *sf_aux = sf;
+            *part_aux = part;
+            return true;
+        } else {
+            return false;
+        }
+    }
+    LIBFAUST_API bool CisSigSoundfileBuffer(Tree s, Tree* sf_aux, Tree* chan_aux, Tree* part_aux, Tree* ridx_aux)
+    {
+        Tree sf, chan, part, ridx;
+        if (isSigSoundfileBuffer(s, sf, chan, part, ridx)) {
+            *sf_aux = sf;
+            *chan_aux = chan;
+            *part_aux = part;
+            *ridx_aux = ridx;
+            return true;
+        } else {
+            return false;
+        }
+    }
+     
 #ifdef __cplusplus
 }
 #endif

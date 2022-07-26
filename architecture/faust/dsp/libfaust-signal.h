@@ -452,6 +452,63 @@ LIBFAUST_API Signal sigHBargraph(const std::string& label, Signal min, Signal ma
 LIBFAUST_API Signal sigAttach(Signal s1, Signal s2);
 
 /**
+ * Test each signal and fill additional signal specific parameters.
+ *
+ * @return true and fill the specific parameters if the signal is of a given type, false otherwise
+ */
+LIBFAUST_API bool isSigInt(Signal t, int* i);
+LIBFAUST_API bool isSigReal(Signal t, double* r);
+LIBFAUST_API bool isSigInput(Signal t, int* i);
+LIBFAUST_API bool isSigOutput(Signal t, int* i, Signal& t0);
+LIBFAUST_API bool isSigDelay1(Signal t, Signal& t0);
+LIBFAUST_API bool isSigDelay(Signal t, Signal& t0, Signal& t1);
+LIBFAUST_API bool isSigPrefix(Signal t, Signal& t0, Signal& t1);
+LIBFAUST_API bool isSigRDTbl(Signal s, Signal& t, Signal& i);
+LIBFAUST_API bool isSigWRTbl(Signal u, Signal& id, Signal& t, Signal& i, Signal& s);
+LIBFAUST_API bool isSigTable(Signal t, Signal& id, Signal& n, Signal& sig);
+LIBFAUST_API bool isSigGen(Signal t, Signal& x);
+LIBFAUST_API bool isSigDocConstantTbl(Signal t, Signal& n, Signal& sig);
+LIBFAUST_API bool isSigDocWriteTbl(Signal t, Signal& n, Signal& sig, Signal& widx, Signal& wsig);
+LIBFAUST_API bool isSigDocAccessTbl(Signal t, Signal& tbl, Signal& ridx);
+LIBFAUST_API bool isSigSelect2(Signal t, Signal& selector, Signal& s1, Signal& s2);
+LIBFAUST_API bool isSigAssertBounds(Signal t, Signal& s1, Signal& s2, Signal& s3);
+LIBFAUST_API bool isSigHighest(Signal t, Signal& s);
+LIBFAUST_API bool isSigLowest(Signal t, Signal& s);
+
+LIBFAUST_API bool isSigBinOp(Signal s, int* op, Signal& x, Signal& y);
+LIBFAUST_API bool isSigFFun(Signal s, Signal& ff, Signal& largs);
+LIBFAUST_API bool isSigFConst(Signal s, Signal& type, Signal& name, Signal& file);
+LIBFAUST_API bool isSigFVar(Signal s, Signal& type, Signal& name, Signal& file);
+
+LIBFAUST_API bool isProj(Signal s, int* i, Signal& rgroup);
+LIBFAUST_API bool isRec(Signal s, Signal& var, Signal& body);
+
+LIBFAUST_API bool isSigIntCast(Signal s, Signal& x);
+LIBFAUST_API bool isSigFloatCast(Signal s, Signal& x);
+
+LIBFAUST_API bool isSigButton(Signal s, Signal& lbl);
+LIBFAUST_API bool isSigCheckbox(Signal s, Signal& lbl);
+
+LIBFAUST_API bool isSigWaveform(Signal s);
+
+LIBFAUST_API bool isSigHSlider(Signal s, Signal& lbl, Signal& init, Signal& min, Signal& max, Signal& step);
+LIBFAUST_API bool isSigVSlider(Signal s, Signal& lbl, Signal& init, Signal& min, Signal& max, Signal& step);
+LIBFAUST_API bool isSigNumEntry(Signal s, Signal& lbl, Signal& init, Signal& min, Signal& max, Signal& step);
+
+LIBFAUST_API bool isSigHBargraph(Signal s, Signal& lbl, Signal& min, Signal& max, Signal& x);
+LIBFAUST_API bool isSigVBargraph(Signal s, Signal& lbl, Signal& min, Signal& max, Signal& x);
+
+LIBFAUST_API bool isSigAttach(Signal s, Signal& s0, Signal& s1);
+
+LIBFAUST_API bool isSigEnable(Signal s, Signal& s0, Signal& s1);
+LIBFAUST_API bool isSigControl(Signal s, Signal& s0, Signal& s1);
+
+LIBFAUST_API bool isSigSoundfile(Signal s, Signal& label);
+LIBFAUST_API bool isSigSoundfileLength(Signal s, Signal& sf, Signal& part);
+LIBFAUST_API bool isSigSoundfileRate(Signal s, Signal& sf, Signal& part);
+LIBFAUST_API bool isSigSoundfileBuffer(Signal s, Signal& sf, Signal& chan, Signal& part, Signal& ridx);
+
+/**
  * Create a C++ Faust DSP factory from a vector of output signals.
  *
  * @param name_app - the name of the Faust program
@@ -466,6 +523,7 @@ LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string&
                                                               int argc, const char* argv[],
                                                               std::string& error_msg);
 
+
 /*
  [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions
  [2] Label definition : https://faustdoc.grame.fr/manual/syntax/#variable-parts-of-a-label
@@ -474,77 +532,5 @@ LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string&
 /*!
  @}
  */
-
-LIBFAUST_API bool isSigInt(Signal t, int* i);
-LIBFAUST_API bool isSigReal(Signal t, double* r);
-LIBFAUST_API bool isSigInput(Signal t, int* i);
-LIBFAUST_API bool isSigOutput(Signal t, int* i, Signal& t0);
-LIBFAUST_API bool isSigDelay1(Signal t, Signal& t0);
-LIBFAUST_API bool isSigDelay(Signal t, Signal& t0, Signal& t1);
-LIBFAUST_API bool isSigPrefix(Signal t, Signal& t0, Signal& t1);
-LIBFAUST_API bool isSigRDTbl(Signal s, Signal& t, Signal& i);
-LIBFAUST_API bool isSigWRTbl(Signal u, Signal& id, Signal& t, Signal& i, Signal& s);
-LIBFAUST_API bool isSigTable(Signal t, Signal& id, Signal& n, Signal& sig);
-LIBFAUST_API bool isSigGen(Signal t, Signal& x);
-LIBFAUST_API bool isSigGen(Signal t);
-LIBFAUST_API bool isSigDocConstantTbl(Signal t, Signal& n, Signal& sig);
-LIBFAUST_API bool isSigDocWriteTbl(Signal t, Signal& n, Signal& sig, Signal& widx, Signal& wsig);
-LIBFAUST_API bool isSigDocAccessTbl(Signal t, Signal& tbl, Signal& ridx);
-LIBFAUST_API bool isSigSelect2(Signal t, Signal& selector, Signal& s1, Signal& s2);
-LIBFAUST_API bool isSigAssertBounds(Signal t, Signal& s1, Signal& s2, Signal& s3);
-LIBFAUST_API bool isSigHighest(Signal t, Signal& s);
-LIBFAUST_API bool isSigLowest(Signal t, Signal& s);
-
-LIBFAUST_API bool isSigBinOp(Signal s, int* op, Signal& x, Signal& y);
-LIBFAUST_API bool isSigFFun(Signal s, Signal& ff, Signal& largs);
-LIBFAUST_API bool isSigFConst(Signal s);
-LIBFAUST_API bool isSigFConst(Signal s, Signal& type, Signal& name, Signal& file);
-LIBFAUST_API bool isSigFVar(Signal s);
-LIBFAUST_API bool isSigFVar(Signal s, Signal& type, Signal& name, Signal& file);
-
-LIBFAUST_API bool isProj(Signal s, int* i, Signal& rgroup);
-LIBFAUST_API bool isRec(Signal s, Signal& var, Signal& body);
-
-LIBFAUST_API bool isSigIntCast(Signal s);
-LIBFAUST_API bool isSigIntCast(Signal s, Signal& x);
-LIBFAUST_API bool isSigFloatCast(Signal s);
-LIBFAUST_API bool isSigFloatCast(Signal s, Signal& x);
-
-LIBFAUST_API bool isSigButton(Signal s);
-LIBFAUST_API bool isSigButton(Signal s, Signal& lbl);
-LIBFAUST_API bool isSigCheckbox(Signal s);
-LIBFAUST_API bool isSigCheckbox(Signal s, Signal& lbl);
-
-LIBFAUST_API bool isSigWaveform(Signal s);
-
-LIBFAUST_API bool isSigHSlider(Signal s);
-LIBFAUST_API bool isSigHSlider(Signal s, Signal& lbl, Signal& init, Signal& min, Signal& max, Signal& step);
-LIBFAUST_API bool isSigVSlider(Signal s);
-LIBFAUST_API bool isSigVSlider(Signal s, Signal& lbl, Signal& init, Signal& min, Signal& max, Signal& step);
-LIBFAUST_API bool isSigNumEntry(Signal s);
-LIBFAUST_API bool isSigNumEntry(Signal s, Signal& lbl, Signal& init, Signal& min, Signal& max, Signal& step);
-
-LIBFAUST_API bool isSigHBargraph(Signal s);
-LIBFAUST_API bool isSigHBargraph(Signal s, Signal& lbl, Signal& min, Signal& max, Signal& x);
-LIBFAUST_API bool isSigVBargraph(Signal s);
-LIBFAUST_API bool isSigVBargraph(Signal s, Signal& lbl, Signal& min, Signal& max, Signal& x);
-
-LIBFAUST_API bool isSigAttach(Signal s, Signal& s0, Signal& s1);
-
-LIBFAUST_API bool isSigEnable(Signal s, Signal& s0, Signal& s1);
-LIBFAUST_API bool isSigControl(Signal s, Signal& s0, Signal& s1);
-
-LIBFAUST_API bool isSigAdd(Signal a, Signal& x, Signal& y);
-LIBFAUST_API bool isSigMul(Signal a, Signal& x, Signal& y);
-LIBFAUST_API bool isSigSub(Signal a, Signal& x, Signal& y);
-LIBFAUST_API bool isSigDiv(Signal a, Signal& x, Signal& y);
-
-LIBFAUST_API bool isSigSoundfile(Signal s, Signal& label);
-LIBFAUST_API bool isSigSoundfileLength(Signal s, Signal& sf, Signal& part);
-LIBFAUST_API bool isSigSoundfileRate(Signal s, Signal& sf, Signal& part);
-LIBFAUST_API bool isSigSoundfileBuffer(Signal s, Signal& sf, Signal& chan, Signal& part, Signal& ridx);
-
-LIBFAUST_API bool isSigTuple(Signal s, int* mode, Signal& ls);
-LIBFAUST_API bool isSigTupleAccess(Signal s, Signal& ts, Signal& idx);
 
 #endif
