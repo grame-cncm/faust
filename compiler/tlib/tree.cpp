@@ -280,7 +280,7 @@ double tree2double(Tree t)
 }
 
 // if t has a node of type symbol, return its name otherwise error
-const char* tree2str(Tree t)
+LIBFAUST_API const char* tree2str(Tree t)
 {
     Sym s;
     if (!isSym(t->node(), &s)) {

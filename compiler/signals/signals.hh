@@ -50,30 +50,30 @@ typedef std::vector<Tree> siglist;
 LIBFAUST_API Tree sigInt(int n);
 LIBFAUST_API Tree sigReal(double n);
 
-bool isSigInt(Tree t, int* i);
-bool isSigReal(Tree t, double* r);
+LIBFAUST_API bool isSigInt(Tree t, int* i);
+LIBFAUST_API bool isSigReal(Tree t, double* r);
 
 // Waveforms
 LIBFAUST_API Tree sigWaveform(const tvec& wf);
-bool isSigWaveform(Tree s);
+LIBFAUST_API bool isSigWaveform(Tree s);
 
 // Inputs and outputs
 LIBFAUST_API Tree sigInput(int i);
 Tree sigOutput(int i, Tree t);
 
-bool isSigInput(Tree t, int* i);
-bool isSigOutput(Tree t, int* i, Tree& t0);
+LIBFAUST_API bool isSigInput(Tree t, int* i);
+LIBFAUST_API bool isSigOutput(Tree t, int* i, Tree& t0);
 
 // Delay
 Tree sigDelay0(Tree t);
 Tree sigDelay1(Tree t);
-bool isSigDelay1(Tree t, Tree& t0);
+LIBFAUST_API bool isSigDelay1(Tree t, Tree& t0);
 
 LIBFAUST_API Tree sigDelay(Tree t0, Tree t1);
-bool isSigDelay(Tree t, Tree& t0, Tree& t1);
+LIBFAUST_API bool isSigDelay(Tree t, Tree& t0, Tree& t1);
 
 Tree sigPrefix(Tree t0, Tree t1);
-bool isSigPrefix(Tree t, Tree& t0, Tree& t1);
+LIBFAUST_API bool isSigPrefix(Tree t, Tree& t0, Tree& t1);
 
 // Int and Double casting
 LIBFAUST_API Tree sigIntCast(Tree t);
@@ -82,8 +82,8 @@ LIBFAUST_API Tree sigFloatCast(Tree t);
 bool isSigIntCast(Tree t);
 bool isSigFloatCast(Tree t);
 
-bool isSigIntCast(Tree t, Tree& x);
-bool isSigFloatCast(Tree t, Tree& x);
+LIBFAUST_API bool  isSigIntCast(Tree t, Tree& x);
+LIBFAUST_API bool isSigFloatCast(Tree t, Tree& x);
 
 // Tables
 Tree sigRDTbl(Tree t, Tree i);
@@ -91,11 +91,11 @@ Tree sigWRTbl(Tree id, Tree t, Tree i, Tree s);
 Tree sigTable(Tree id, Tree n, Tree sig);
 Tree sigGen(Tree content);
 
-bool isSigRDTbl(Tree s, Tree& t, Tree& i);
-bool isSigWRTbl(Tree u, Tree& id, Tree& t, Tree& i, Tree& s);
-bool isSigTable(Tree t, Tree& id, Tree& n, Tree& sig);
-bool isSigGen(Tree t, Tree& content);
-bool isSigGen(Tree t);
+LIBFAUST_API bool isSigRDTbl(Tree s, Tree& t, Tree& i);
+LIBFAUST_API bool isSigWRTbl(Tree u, Tree& id, Tree& t, Tree& i, Tree& s);
+LIBFAUST_API bool isSigTable(Tree t, Tree& id, Tree& n, Tree& sig);
+LIBFAUST_API bool isSigGen(Tree t, Tree& content);
+LIBFAUST_API bool isSigGen(Tree t);
 
 LIBFAUST_API Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx);
 LIBFAUST_API Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx);
@@ -106,42 +106,43 @@ Tree sigDocConstantTbl(Tree n, Tree init);
 Tree sigDocWriteTbl(Tree n, Tree init, Tree widx, Tree wsig);
 Tree sigDocAccessTbl(Tree doctbl, Tree ridx);
 
-bool isSigDocConstantTbl(Tree s, Tree& n, Tree& init);
-bool isSigDocWriteTbl(Tree s, Tree& n, Tree& init, Tree& widx, Tree& wsig);
-bool isSigDocAccessTbl(Tree s, Tree& doctbl, Tree& ridx);
+LIBFAUST_API bool isSigDocConstantTbl(Tree s, Tree& n, Tree& init);
+LIBFAUST_API bool isSigDocWriteTbl(Tree s, Tree& n, Tree& init, Tree& widx, Tree& wsig);
+LIBFAUST_API bool isSigDocAccessTbl(Tree s, Tree& doctbl, Tree& ridx);
 
 // Selectors
 LIBFAUST_API Tree sigSelect2(Tree selector, Tree s1, Tree s2);
 LIBFAUST_API Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3);
 
-bool isSigSelect2(Tree t, Tree& selector, Tree& s1, Tree& s2);
+LIBFAUST_API bool isSigSelect2(Tree t, Tree& selector, Tree& s1, Tree& s2);
 
 // Interval annotation
 Tree sigAssertBounds(Tree s1, Tree s2, Tree s3);
 Tree sigLowest(Tree s);
 Tree sigHighest(Tree s);
 
-bool isSigAssertBounds(Tree t, Tree& s1, Tree& s2, Tree& s3);
-bool isSigLowest(Tree t, Tree& s);
-bool isSigHighest(Tree t, Tree& s);
+LIBFAUST_API bool isSigAssertBounds(Tree t, Tree& s1, Tree& s2, Tree& s3);
+LIBFAUST_API bool isSigLowest(Tree t, Tree& s);
+LIBFAUST_API bool isSigHighest(Tree t, Tree& s);
 
 // Arithmetical operations
+LIBFAUST_API Tree sigBinOp(SOperator op, Tree x, Tree y);
 LIBFAUST_API Tree sigBinOp(int op, Tree x, Tree y);
-bool isSigBinOp(Tree s, int* op, Tree& x, Tree& y);
+LIBFAUST_API bool isSigBinOp(Tree s, int* op, Tree& x, Tree& y);
 
 // Foreign functions
 Tree sigFFun(Tree ff, Tree largs);
-bool isSigFFun(Tree s, Tree& ff, Tree& largs);
+LIBFAUST_API bool isSigFFun(Tree s, Tree& ff, Tree& largs);
 
 // Foreign constants
 LIBFAUST_API Tree sigFConst(Tree type, Tree name, Tree file);
-bool isSigFConst(Tree s);
-bool isSigFConst(Tree s, Tree& type, Tree& name, Tree& file);
+LIBFAUST_API bool isSigFConst(Tree s);
+LIBFAUST_API bool isSigFConst(Tree s, Tree& type, Tree& name, Tree& file);
 
 // Foreign variables
 LIBFAUST_API Tree sigFVar(Tree type, Tree name, Tree file);
-bool isSigFVar(Tree s);
-bool isSigFVar(Tree s, Tree& type, Tree& name, Tree& file);
+LIBFAUST_API bool isSigFVar(Tree s);
+LIBFAUST_API bool isSigFVar(Tree s, Tree& type, Tree& name, Tree& file);
 
 // Emulation of all fonctions
 typedef Tree (* sigFun)(Tree, Tree);
@@ -189,10 +190,10 @@ LIBFAUST_API Tree sigAtan2(Tree x, Tree y);
 LIBFAUST_API Tree sigAsin(Tree x);
 
 // Pattern matching for old fonctions
-bool isSigAdd(Tree a, Tree& x, Tree& y);
-bool isSigMul(Tree a, Tree& x, Tree& y);
-bool isSigSub(Tree a, Tree& x, Tree& y);
-bool isSigDiv(Tree a, Tree& x, Tree& y);
+LIBFAUST_API bool isSigAdd(Tree a, Tree& x, Tree& y);
+LIBFAUST_API bool isSigMul(Tree a, Tree& x, Tree& y);
+LIBFAUST_API bool isSigSub(Tree a, Tree& x, Tree& y);
+LIBFAUST_API bool isSigDiv(Tree a, Tree& x, Tree& y);
 
 // Operations on tree representing numbers
 bool sameMagnitude(Tree a, Tree b);
@@ -238,7 +239,7 @@ inline bool isMinusOne(Tree a)
 
 // Projection for recursive groups
 Tree sigProj(int i, Tree rgroup);
-bool isProj(Tree t, int* i, Tree& rgroup);
+LIBFAUST_API bool isProj(Tree t, int* i, Tree& rgroup);
 
 inline bool isNum(const Tree& t, num& n)
 {
@@ -261,45 +262,45 @@ inline bool isNum(const Tree& t, num& n)
 *****************************************************************************/
 
 LIBFAUST_API Tree sigButton(Tree label);
-bool isSigButton(Tree s);
-bool isSigButton(Tree s, Tree& label);
+LIBFAUST_API bool isSigButton(Tree s);
+LIBFAUST_API bool isSigButton(Tree s, Tree& label);
 
 LIBFAUST_API Tree sigCheckbox(Tree label);
 bool isSigCheckbox(Tree s);
-bool isSigCheckbox(Tree s, Tree& label);
+LIBFAUST_API bool isSigCheckbox(Tree s, Tree& label);
 
 LIBFAUST_API Tree sigVSlider(Tree label, Tree init, Tree min, Tree max, Tree step);
-bool isSigVSlider(Tree s);
-bool isSigVSlider(Tree s, Tree& label, Tree& init, Tree& min, Tree& max, Tree& step);
+LIBFAUST_API bool isSigVSlider(Tree s);
+LIBFAUST_API bool isSigVSlider(Tree s, Tree& label, Tree& init, Tree& min, Tree& max, Tree& step);
 
 LIBFAUST_API Tree sigHSlider(Tree label, Tree init, Tree min, Tree max, Tree step);
-bool isSigHSlider(Tree s);
-bool isSigHSlider(Tree s, Tree& label, Tree& init, Tree& min, Tree& max, Tree& step);
+LIBFAUST_API bool isSigHSlider(Tree s);
+LIBFAUST_API bool isSigHSlider(Tree s, Tree& label, Tree& init, Tree& min, Tree& max, Tree& step);
 
 LIBFAUST_API Tree sigNumEntry(Tree label, Tree init, Tree min, Tree max, Tree step);
-bool isSigNumEntry(Tree s);
-bool isSigNumEntry(Tree s, Tree& label, Tree& init, Tree& min, Tree& max, Tree& step);
+LIBFAUST_API bool isSigNumEntry(Tree s);
+LIBFAUST_API bool isSigNumEntry(Tree s, Tree& label, Tree& init, Tree& min, Tree& max, Tree& step);
 
 // Output elements
 LIBFAUST_API Tree sigVBargraph(Tree label, Tree min, Tree max, Tree t0);
-bool isSigVBargraph(Tree s);
-bool isSigVBargraph(Tree s, Tree& label, Tree& min, Tree& max, Tree& t0);
+LIBFAUST_API bool isSigVBargraph(Tree s);
+LIBFAUST_API bool isSigVBargraph(Tree s, Tree& label, Tree& min, Tree& max, Tree& t0);
 
 LIBFAUST_API Tree sigHBargraph(Tree label, Tree min, Tree max, Tree t0);
-bool isSigHBargraph(Tree s);
-bool isSigHBargraph(Tree s, Tree& label, Tree& min, Tree& max, Tree& t0);
+LIBFAUST_API bool isSigHBargraph(Tree s);
+LIBFAUST_API bool isSigHBargraph(Tree s, Tree& label, Tree& min, Tree& max, Tree& t0);
 
 LIBFAUST_API Tree sigAttach(Tree x, Tree y);
-bool isSigAttach(Tree s);
-bool isSigAttach(Tree s, Tree& x, Tree& y);
+//LIBFAUST_API bool isSigAttach(Tree s);
+LIBFAUST_API bool isSigAttach(Tree s, Tree& x, Tree& y);
 
 Tree sigEnable(Tree x, Tree y);
-bool isSigEnable(Tree s);
-bool isSigEnable(Tree s, Tree& x, Tree& y);
+//LIBFAUST_API bool isSigEnable(Tree s);
+LIBFAUST_API bool isSigEnable(Tree s, Tree& x, Tree& y);
 
 Tree sigControl(Tree x, Tree y);
-bool isSigControl(Tree s);
-bool isSigControl(Tree s, Tree& x, Tree& y);
+//LIBFAUST_API bool isSigControl(Tree s);
+LIBFAUST_API bool isSigControl(Tree s, Tree& x, Tree& y);
 
 /*****************************************************************************
                              Sounfiles (also UI elements)
@@ -316,10 +317,10 @@ LIBFAUST_API Tree sigSoundfileLength(Tree sf, Tree part);
 LIBFAUST_API Tree sigSoundfileRate(Tree sf, Tree part);
 LIBFAUST_API Tree sigSoundfileBuffer(Tree sf, Tree chan, Tree part, Tree ridx);
 
-bool isSigSoundfile(Tree s, Tree& label);
-bool isSigSoundfileLength(Tree s, Tree& sf, Tree& part);
-bool isSigSoundfileRate(Tree s, Tree& sf, Tree& part);
-bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& part, Tree& ridx);
+LIBFAUST_API bool isSigSoundfile(Tree s, Tree& label);
+LIBFAUST_API bool isSigSoundfileLength(Tree s, Tree& sf, Tree& part);
+LIBFAUST_API bool isSigSoundfileRate(Tree s, Tree& sf, Tree& part);
+LIBFAUST_API bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& part, Tree& ridx);
 
 /*****************************************************************************
                              matrix extension
@@ -328,12 +329,12 @@ bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& part, Tree& ridx);
 // A tuple of signals is basically a list of signals.
 // mode = 0 means normal, mode = 1 means blocked
 Tree sigTuple(int mode, Tree ls);
-bool isSigTuple(Tree s, int* mode, Tree& ls);
+LIBFAUST_API bool isSigTuple(Tree s, int* mode, Tree& ls);
 
 // Access the components of a tuple.
 // ts is tuple of signals, idx is a scalar signal between 0..n
 Tree sigTupleAccess(Tree ts, Tree idx);
-bool isSigTupleAccess(Tree s, Tree& ts, Tree& idx);
+LIBFAUST_API bool isSigTupleAccess(Tree s, Tree& ts, Tree& idx);
 
 // Create a tuple of signals
 Tree sigCartesianProd(Tree s1, Tree s2);

@@ -105,7 +105,7 @@ typedef vector<Tree>    tvec;
  * WARNING : in the current implementation CTrees are allocated but never deleted
  **/
 
-class CTree : public virtual Garbageable {
+class LIBFAUST_API CTree : public virtual Garbageable {
    private:
     static const int kHashTableSize = 400009;     ///< size of the hash table (prime number)
     static size_t    gSerialCounter;              ///< the serial number counter
@@ -229,7 +229,7 @@ inline Tree tree(const Node& n, const tvec& br)
 int         tree2int(Tree t);     ///< if t has a node of type int, return it otherwise error
 double      tree2float(Tree t);   ///< if t has a node of type float, return it otherwise error
 double      tree2double(Tree t);  ///< if t has a node of type float, return it otherwise error
-const char* tree2str(Tree t);     ///< if t has a node of type symbol, return its name otherwise error
+LIBFAUST_API const char* tree2str(Tree t);     ///< if t has a node of type symbol, return its name otherwise error
 string      tree2quotedstr(Tree t);
 void*       tree2ptr(Tree t);     ///< if t has a node of type ptr, return it otherwise error
 void*       getUserData(Tree t);  ///< if t has a node of type symbol, return the associated user data
@@ -258,7 +258,7 @@ Tree rec(Tree body);           ///< create a de Bruijn recursive tree
 Tree rec(Tree id, Tree body);  ///< create a symbolic recursive tree
 
 bool isRec(Tree t, Tree& body);            ///< is t a de Bruijn recursive tree
-bool isRec(Tree t, Tree& id, Tree& body);  ///< is t a symbolic recursive tree
+LIBFAUST_API bool isRec(Tree t, Tree& id, Tree& body);  ///< is t a symbolic recursive tree
 
 // creation of recursive references
 

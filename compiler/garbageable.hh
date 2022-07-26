@@ -26,10 +26,11 @@
 #include <new>
 
 #include "exception.hh"
+#include "faust/export.h"
 
 // To be inherited by all garbageable classes
 
-class Garbageable {
+class LIBFAUST_API Garbageable {
    public:
     Garbageable()
     {}
