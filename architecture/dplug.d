@@ -32,7 +32,7 @@
  ************************************************************************
  ************************************************************************/
 
-// faust -a minimal.d -lang dlang noise.dsp -o noise.d
+// faust -a dplug.d -lang dlang noise.dsp -o noise.d
 
 import dplug.core.vec;
 import dplug.client;
