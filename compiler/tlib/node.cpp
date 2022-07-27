@@ -41,8 +41,7 @@ ostream& Node::print(ostream& fout) const  ///< print a node on a stream
 
 //-----------------------------------------------------------------------------
 // sameMagnitude(a,b) : true if the two nodes a and b represent numbers of same
-//  absolute value. Int promoted to double if needed.
-//
+// absolute value. Int promoted to double if needed.
 
 bool sameMagnitude(const Node& a, const Node& b)
 {

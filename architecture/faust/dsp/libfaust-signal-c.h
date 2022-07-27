@@ -70,6 +70,24 @@ extern "C"
     LIBFAUST_API void destroyLibContext();
     
     /**
+     * Check if a signal is nil.
+     *
+     * @param s - the signal
+     *
+     * @return true if the signal is nil, otherwise false.
+     */
+    LIBFAUST_API bool CisNil(Signal s);
+    
+    /**
+     * Convert a signal (such as the label of a UI) to a string.
+     *
+     * @param s - the signal to convert
+     *
+     * @return a string representation of a signal.
+     */
+    LIBFAUST_API const char* Ctree2str(Signal s);
+    
+    /**
      * Constant integer : for all t, x(t) = n.
      *
      * @param n - the integer

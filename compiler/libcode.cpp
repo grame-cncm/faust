@@ -2511,6 +2511,16 @@ extern "C"
 {
 #endif
     
+    LIBFAUST_API bool CisNil(Tree s)
+    {
+        return isNil(s);
+    }
+    
+    LIBFAUST_API const char* Ctree2str(Tree s)
+    {
+        return tree2str(s);
+    }
+    
     LIBFAUST_API Tree CsigInt(int n)
     {
         return sigInt(n);

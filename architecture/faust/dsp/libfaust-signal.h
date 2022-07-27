@@ -89,9 +89,9 @@ LIBFAUST_API bool isNil(Signal s);
  *
  * @param s - the signal to convert
  *
- * @return a string representation of a string.
+ * @return a string representation of a signal.
  */
-LIBFAUST_API const char* tree2str(Signal t);
+LIBFAUST_API const char* tree2str(Signal s);
 
 /**
  * Constant integer : for all t, x(t) = n.

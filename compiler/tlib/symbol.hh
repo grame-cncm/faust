@@ -26,7 +26,7 @@
  *
  *   - Sym q = symbol("abcd");     <i>returns the symbol of name "abcd"</i>
  *   - const char* s = name(q);    <i>returns the name of symbol q</i>
- *   - Sym q = unique("TOTO");	   <i>returns a new unique symbol of name "TOTOnnn"</i>
+ *   - Sym q = unique("TOTO");	 <i>returns a new unique symbol of name "TOTOnnn"</i>
  *
  *  <b>Properties:</b>
  *
@@ -67,7 +67,7 @@ class Symbol : public virtual Garbageable {
 
     // Others
     bool                equiv(unsigned int hash,
-                              const char*  str) const;  ///< Check if the name of the symbol is equal to string \p str
+                              const char* str) const;  ///< Check if the name of the symbol is equal to string \p str
     static unsigned int calcHashKey(const char* str);  ///< Compute the 32-bits hash key of string \p str
 
     // Static methods
