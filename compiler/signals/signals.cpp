@@ -113,7 +113,7 @@ LIBFAUST_API bool isSigDelay1(Tree t, Tree& t0)
 
 LIBFAUST_API Tree sigDelay(Tree t0, Tree t1)
 {
-    return tree(gGlobal->SIGDELAY, t0, sigIntCast(t1));
+    return tree(gGlobal->SIGDELAY, t0, t1);
 }
 LIBFAUST_API bool isSigDelay(Tree t, Tree& t0, Tree& t1)
 {
@@ -206,7 +206,7 @@ LIBFAUST_API bool isSigDocAccessTbl(Tree t, Tree& tbl, Tree& ridx)
 
 LIBFAUST_API Tree sigSelect2(Tree selector, Tree s1, Tree s2)
 {
-    return tree(gGlobal->SIGSELECT2, sigIntCast(selector), s1, s2);
+    return tree(gGlobal->SIGSELECT2, selector, s1, s2);
 }
 LIBFAUST_API bool isSigSelect2(Tree t, Tree& selector, Tree& s1, Tree& s2)
 {
@@ -216,8 +216,9 @@ LIBFAUST_API bool isSigSelect2(Tree t, Tree& selector, Tree& s1, Tree& s2)
 //  "select3" expressed with "select2"
 LIBFAUST_API Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
 {
-    return sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(0)),
-                      sigSelect2(sigBinOp(kEQ, sigIntCast(selector), sigInt(1)), s3, s2), s1);
+    return sigSelect2(sigBinOp(kEQ, selector, sigInt(0)),
+                      sigSelect2(sigBinOp(kEQ, selector, sigInt(1)), s3, s2), s1);
+
 }
 
 Tree sigAssertBounds(Tree s1, Tree s2, Tree s3)
@@ -324,27 +325,23 @@ LIBFAUST_API bool isProj(Tree t, int* i, Tree& rgroup)
 LIBFAUST_API Tree sigIntCast(Tree t)
 {
     Node n = t->node();
-
     int i;
-    if (isInt(n, &i)) return t;
     double x;
+    
+    if (isInt(n, &i)) return t;
     if (isDouble(n, &x)) return tree(int(x));
-    if (isSigIntCast(t)) return t;
 
     return tree(gGlobal->SIGINTCAST, t);
 }
 
 LIBFAUST_API Tree sigFloatCast(Tree t)
 {
-    // cerr << "sigFloatCast(" << ppsig(t) << ")" << endl;
     Node n = t->node();
-
     int i;
-    if (isInt(n, &i)) return tree(double(i));
     double x;
+    
+    if (isInt(n, &i)) return tree(double(i));
     if (isDouble(n, &x)) return t;
-    if (isSigFloatCast(t)) return t;
-    if (isSigInput(t, &i)) return t;
 
     return tree(gGlobal->SIGFLOATCAST, t);
 }

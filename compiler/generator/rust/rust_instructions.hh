@@ -423,7 +423,14 @@ class RustInstVisitor : public TextInstVisitor {
             } else {
                 faustassert(false);
             }
+        } else if (isBoolOpcode(inst->fOpcode)) {
+            // Force cast to Int32
+            *fOut << "((";
+            TextInstVisitor::visit(inst);
+            *fOut << ") as " << fTypeManager->generateType(InstBuilder::genInt32Typed());
+            *fOut << ")";
         } else {
+            
             TextInstVisitor::visit(inst);
         }
     }
@@ -446,6 +453,15 @@ class RustInstVisitor : public TextInstVisitor {
             generateFunCall(inst, inst->fName);
         }
     }
+    
+    // Function returning 'bool', to be casted to 'iin
+    bool isBoolFun(const string& name)
+    {
+        return (name == "F32::is_nan")
+            || (name == "F64::is_nan")
+            || (name == "F32::is_infinite")
+            || (name == "F64::is_infinite");
+    }
 
     virtual void generateFunCall(FunCallInst* inst, const std::string& fun_name)
     {
@@ -462,7 +478,11 @@ class RustInstVisitor : public TextInstVisitor {
                 *fOut << fun_name << "(";
             }
             generateFunCallArgs(++it, inst->fArgs.end(), int(inst->fArgs.size()) - 1);
+            *fOut << ")";
         } else {
+            if (isBoolFun(fun_name)) {
+                *fOut << "(";
+            }
             *fOut << fun_name << "(";
             // Compile parameters
             generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), int(inst->fArgs.size()));
@@ -472,8 +492,11 @@ class RustInstVisitor : public TextInstVisitor {
             } else if (fun_name == "F64::log") {
                 *fOut << ", std::f64::consts::E";
             }
+            *fOut << ")";
+            if (isBoolFun(fun_name)) {
+                *fOut << " as i32)";
+            }
         }
-        *fOut << ")";
     }
 
     virtual void visit(Select2Inst* inst)

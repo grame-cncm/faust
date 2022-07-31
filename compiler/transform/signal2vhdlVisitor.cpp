@@ -319,12 +319,12 @@ void Signal2VHDLVisitor::visit(Tree sig)
     // Int and Float Cast
     else if (isSigIntCast(sig, x)) {
         //bypass("IntCast", sig, x);
-        cast("IntCast",sig,x);
+        cast("IntCast", sig, x);
         self(x);
         return;
     } else if (isSigFloatCast(sig, x)) {
         //bypass("FloatCast", sig, x);
-        cast("FloatCast",sig,x);
+        cast("FloatCast", sig, x);
         self(x);
         return;
     }

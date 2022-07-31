@@ -453,9 +453,11 @@ static Type infereSigType(Tree sig, Tree env)
         // cerr <<"type rule for : " << ppsig(sig) << " -> " << *t3 << endl;
 
         if (i == kDiv) {
-            return floatCast(t3);  // division always result in a float even with int arguments
+            return floatCast(t3);   // division always result in a float even with int arguments
         } else if ((i >= kGT) && (i <= kNE)) {
-            return boolCast(t3);  // comparison always result in a boolean int
+            return boolCast(t3);    // comparison always result in a boolean int
+        } else if (((i >= kLsh) && (i <= kLRsh)) || ((i >= kAND) && (i <= kXOR))) {
+            return intCast(t3);     // boolean and logical operators always result in an int
         } else {
             return t3;  //  otherwise most general of t1 and t2
         }

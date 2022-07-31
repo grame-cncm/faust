@@ -102,9 +102,9 @@ bool isRef(Tree t, Tree& v)
 }
 
 //-----------------------------------------------------------------------------------------
-// L'aperture d'un arbre est la plus profonde reference de Bruijn qu'il contienne.
-// Les references symboliques compte pour zero ce qui veut dire qu'un arbre d'aperture
-// 0 ne compte aucun reference de bruijn libres.
+// The aperture of a tree is the deepest deBruijn reference it contains.
+// Symbolic references count as zero which means that a tree with aperture
+// 0 has no free de bruijn references.
 
 int CTree::calcTreeAperture(const Node& n, const tvec& br)
 {
@@ -141,7 +141,7 @@ Tree lift(Tree t)
 
 void printSignal(Tree sig, FILE* out, int prec = 0);
 
-// lift (t) : increase free references by 1
+// lift(t) : increase free references by 1
 
 #if 0
 static Tree _liftn(Tree t, int threshold);
@@ -263,7 +263,7 @@ static Tree calcsubstitute(Tree t, int level, Tree id)
     Tree body;
 
     if (t->aperture() < level) {
-        //		fprintf(stderr, "aperture %d < level %d !!\n", t->aperture(), level);
+        // fprintf(stderr, "aperture %d < level %d !!\n", t->aperture(), level);
         return t;
     }
     if (isRef(t, l)) return (l == level) ? id : t;

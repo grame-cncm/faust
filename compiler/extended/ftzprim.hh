@@ -86,7 +86,7 @@ class FtzPrim : public xtended {
     }
 
     virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
-                                    vector<::Type> const& types)
+                                    ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -157,7 +157,7 @@ class FtzPrim : public xtended {
         }
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, const vector<::Type>& types)
+    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -165,10 +165,9 @@ class FtzPrim : public xtended {
         Type t = infereSigType(types);
         if ((t->nature() == kReal) && (gGlobal->gFTZMode > 0)) {
             // we need to create a temporary variable to store the expression
-            string ctype = ifloat();
             string vname = subst("fTempFTZ$0", T(++freshnum));
             klass->addIncludeFile("<float.h>");
-            klass->addExecCode(Statement("", subst("$0 $1 = $2;", ctype, vname, args[0])));
+            klass->addExecCode(Statement("", subst("$0 $1 = $2;", ifloat(), vname, args[0])));
             return subst(FTZPattern[gGlobal->gFloatSize][gGlobal->gFTZMode], vname);
         } else {
             // No ftz code for integer signals
@@ -176,7 +175,7 @@ class FtzPrim : public xtended {
         }
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<::Type>& types)
+    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

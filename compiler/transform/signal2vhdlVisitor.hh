@@ -174,7 +174,7 @@ class Signal2VHDLVisitor : public TreeTraversal {
         }
 
     public:
-        Signal2VHDLVisitor(old_OccMarkup* occ_markup) : TreeTraversal(), fOccMarkup(occ_markup), fVisitGen(false){};
+        Signal2VHDLVisitor(old_OccMarkup* occ_markup) : TreeTraversal(), fOccMarkup(occ_markup), fVisitGen(false) {};
 
         void self(Tree t);
         void sigToVHDL(Tree sig, ofstream& fout);

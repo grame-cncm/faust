@@ -33,7 +33,7 @@ class Exp10Prim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual ::Type infereSigType(const vector<::Type>& args)
+    virtual ::Type infereSigType(ConstTypes args)
     {
         faustassert(args.size() == arity());
         return floatCast(args[0]);
@@ -62,20 +62,15 @@ class Exp10Prim : public xtended {
     }
 
     virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
-                                    vector<::Type> const& types)
+                                    ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
-        Typed::VarType         result_type;
-        vector<Typed::VarType> arg_types;
-        Values       casted_args;
-        prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
-
-        return container->pushFunction(subst("exp10$0", isuffix()), result_type, arg_types, casted_args);
+        return generateFun(container, subst("exp10$0", isuffix()), args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, const vector<::Type>& types)
+    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -83,7 +78,7 @@ class Exp10Prim : public xtended {
         return subst("exp10$1($0)", args[0], isuffix());
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<::Type>& types)
+    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

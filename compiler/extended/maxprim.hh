@@ -34,12 +34,12 @@ class MaxPrim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual ::Type infereSigType(const vector<::Type>& types)
+    virtual ::Type infereSigType(ConstTypes args)
     {
-        faustassert(types.size() == arity());
-        interval i = types[0]->getInterval();
-        interval j = types[1]->getInterval();
-        return castInterval(types[0] | types[1], max(i, j));
+        faustassert(args.size() == arity());
+        interval i = args[0]->getInterval();
+        interval j = args[1]->getInterval();
+        return castInterval(args[0] | args[1], max(i, j));
     }
 
     virtual int infereSigOrder(const vector<int>& args)
@@ -79,7 +79,7 @@ class MaxPrim : public xtended {
     }
 
     virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
-                                    vector<::Type> const& types)
+                                    ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -101,90 +101,12 @@ class MaxPrim : public xtended {
                 }
             }
         */
-
-        Typed::VarType         result_type = (result->nature() == kInt) ? Typed::kInt32 : itfloat();
-        vector<Typed::VarType> arg_types;
-        Values       casted_args;
     
-        // generates code compatible with overloaded max
-        int n0 = types[0]->nature();
-        int n1 = types[1]->nature();
-        if (n0 == kReal) {
-            // prepare args types
-            arg_types.push_back(itfloat());
-            arg_types.push_back(itfloat());
-
-            if (n1 == kReal) {
-                // both are floats, no need to cast
-                return container->pushFunction(subst("max_$0", isuffix()), result_type, arg_types, args);
-            } else {
-                faustassert(n1 == kInt);  // second argument is not float, cast it to float
-                // prepare args values
-                ValuesIt it2 = args.begin();
-                casted_args.push_back((*it2));
-                it2++;
-                casted_args.push_back(InstBuilder::genCastFloatInst(*it2));
-                return container->pushFunction(subst("max_$0", isuffix()), result_type, arg_types, casted_args);
-            }
-        } else if (n1 == kReal) {
-            faustassert(n0 == kInt);  // first not float but second is, cast first to float
-
-            // prepare args types
-            arg_types.push_back(itfloat());
-            arg_types.push_back(itfloat());
-
-            // prepare args values
-            ValuesIt it2 = args.begin();
-            casted_args.push_back(InstBuilder::genCastFloatInst(*it2));
-            it2++;
-            casted_args.push_back((*it2));
-            return container->pushFunction(subst("max_$0", isuffix()), result_type, arg_types, casted_args);
-        } else {
-            faustassert(n0 == kInt);
-            faustassert(n1 == kInt);  // both are integers, check for booleans
-            int b0 = types[0]->boolean();
-            int b1 = types[1]->boolean();
-
-            // prepare args types
-            arg_types.push_back(Typed::kInt32);
-            arg_types.push_back(Typed::kInt32);
-
-            if (b0 == kNum) {
-                if (b1 == kNum) {
-                    // both are integers, no need to cast
-                    return container->pushFunction("max_i", result_type, arg_types, args);
-                } else {
-                    faustassert(b1 == kBool);  // second is boolean, cast to int
-                    // prepare args values
-                    ValuesIt it2 = args.begin();
-                    casted_args.push_back((*it2));
-                    it2++;
-                    casted_args.push_back(InstBuilder::genCastInt32Inst(*it2));
-                    return container->pushFunction("max_i", result_type, arg_types, casted_args);
-                }
-            } else if (b1 == kNum) {
-                faustassert(b0 == kBool);  // first is boolean, cast to int
-                // prepare args values
-                ValuesIt it2 = args.begin();
-                casted_args.push_back(InstBuilder::genCastInt32Inst(*it2));
-                it2++;
-                casted_args.push_back((*it2));
-                return container->pushFunction("max_i", result_type, arg_types, casted_args);
-            } else {
-                // both are booleans, theoretically no need to cast, but we still do it to be sure 'true' is actually
-                // '1' and 'false' is actually '0' (which is not the case if compiled in SSE mode)
-                faustassert(b0 == kBool);
-                faustassert(b1 == kBool);  // both are booleans, cast both
-                ValuesIt it2 = args.begin();
-                casted_args.push_back(InstBuilder::genCastInt32Inst(*it2));
-                it2++;
-                casted_args.push_back(InstBuilder::genCastInt32Inst(*it2));
-                return container->pushFunction("max_i", result_type, arg_types, casted_args);
-            }
-        }
+        string fun_name = (result->nature() == kInt) ? "max_i" : subst("max_$0", isuffix());
+        return generateFun(container, fun_name, args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, const vector<::Type>& types)
+    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -229,7 +151,7 @@ class MaxPrim : public xtended {
         }
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<::Type>& types)
+    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

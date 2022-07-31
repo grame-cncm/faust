@@ -90,85 +90,92 @@ string ScalarCompiler::getFreshID(const string& prefix)
 
 Tree ScalarCompiler::prepare(Tree LS)
 {
-    startTiming("ScalarCompiler::prepare");
-    //  startTiming("first simplification");
-    //  LS = simplify(LS);
-    //  endTiming("first simplification");
+    startTiming("prepare");
+    
+    // Convert deBruijn recursion into symbolic recursion
     startTiming("deBruijn2Sym");
-    Tree L1 = deBruijn2Sym(LS);  // convert debruijn recursion into symbolic recursion
+    Tree L1 = deBruijn2Sym(LS);
     endTiming("deBruijn2Sym");
-
+    
+    // Annotate L1 with type information, but don't check causality)
     startTiming("L1 typeAnnotation");
-    // Annotate L1 with type information (needed by castAndPromotion(), but don't check causality)
     typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
     endTiming("L1 typeAnnotation");
-
+     
+    startTiming("L1 Cast and Promotion");
+    Tree L2 = castPromote(L1);
+    endTiming("L1 Cast and Promotion");
+    
+    // Simplify by executing every computable operation
+    startTiming("L2 simplification");
+    Tree L3 = simplify(L2);
+    endTiming("L2 simplification");
+    
+    // Annotate L3 with type information (needed by SignalPromotion)
+    startTiming("L3 typeAnnotation");
+    typeAnnotation(L3, gGlobal->gLocalCausalityCheck);
+    endTiming("L3 typeAnnotation");
+    
     startTiming("Cast and Promotion");
-    SignalPromotion SP;
-    // SP.trace(true, "Cast");
-    Tree L1b = SP.mapself(L1);
+    Tree L4 = castPromote(L3);
     endTiming("Cast and Promotion");
-
-    startTiming("second simplification");
-    Tree L2 = simplify(L1b);  // Simplify by executing every computable operation
-    endTiming("second simplification");
-
+    
     startTiming("Constant propagation");
-    SignalConstantPropagation SK;
-    // SK.trace(true, "ConstProp2");
-    Tree L2b = SK.mapself(L2);
+    Tree L5 = constantPropagation(L4);
     endTiming("Constant propagation");
-
+    
     startTiming("privatise");
-    Tree L3 = privatise(L2b);  // Un-share tables with multiple writers
+    Tree L6 = privatise(L5);  // Un-share tables with multiple writers
     endTiming("privatise");
-
+    
     startTiming("conditionAnnotation");
-    conditionAnnotation(L3);
+    conditionAnnotation(L6);
     endTiming("conditionAnnotation");
-    // conditionStatistics(L3); // Count condition occurrences
-
+    
     // dump normal form
     if (gGlobal->gDumpNorm) {
-        cout << ppsig(L3) << endl;
+        cout << ppsig(L6) << endl;
         throw faustexception("Dump normal form finished...\n");
     }
-
+    
     startTiming("recursivnessAnnotation");
-    recursivnessAnnotation(L3);  // Annotate L3 with recursivness information
+    recursivnessAnnotation(L6);  // Annotate L5 with recursivness information
     endTiming("recursivnessAnnotation");
-
-    startTiming("typeAnnotation");
-    typeAnnotation(L3, true);  // Annotate L3 with type information
-    endTiming("typeAnnotation");
-
+    
+    startTiming("L6 typeAnnotation");
+    typeAnnotation(L6, true);     // Annotate L5 with type information and check causality
+    endTiming("L6 typeAnnotation");
+    
+    // Check possible still incorrect cast (after typeAnnotation)
+    SignalCastChecker checker(L6);
+    
     startTiming("sharingAnalysis");
-    sharingAnalysis(L3);  // Annotate L3 with sharing count
+    sharingAnalysis(L6);         // Annotate L5 with sharing count
     endTiming("sharingAnalysis");
-
+    
     startTiming("occurrences analysis");
     delete fOccMarkup;
     fOccMarkup = new old_OccMarkup(fConditionProperty);
-    fOccMarkup->mark(L3);  // Annotate L3 with occurrences analysis
+    fOccMarkup->mark(L6);        // Annotate L5 with occurrences analysis
     endTiming("occurrences analysis");
-
-    endTiming("ScalarCompiler::prepare");
-
+    
+    endTiming("prepare");
+    
     if (gGlobal->gDrawSignals) {
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
-        sigToGraph(L3, dotfile);
+        sigToGraph(L6, dotfile);
     }
-
-    // Generate VHDL if --vhdl option is set
+    
+    // Generate VHDL if -vhdl option is set
     if (gGlobal->gVHDLSwitch) {
         Signal2VHDLVisitor V(fOccMarkup);
-        ofstream           dotfile(subst("faust.vhd", gGlobal->makeDrawPath()).c_str());
-        V.sigToVHDL(L3, dotfile);
+        ofstream vhdl_file(subst("faust.vhd", gGlobal->makeDrawPath()).c_str());
+        V.sigToVHDL(L6, vhdl_file);
         V.trace(gGlobal->gVHDLTrace, "VHDL");  // activate with --trace option
-        V.mapself(L3);
+        V.mapself(L6);
     }
-
-    return L3;
+    
+    return L6;
 }
 
 Tree ScalarCompiler::prepare2(Tree L0)
@@ -621,6 +628,9 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
     int p0 = gBinOpTable[opcode]->fPriority;
     int p1 = binopPriority(arg1);
     int p2 = binopPriority(arg2);
+    
+    bool np1 = (p0 > p1) || isLogicalOpcode(opcode);
+    bool np2 = (p0 > p2) || isLogicalOpcode(opcode);
 
     string c1 = CS(arg1);
     string c2 = CS(arg2);
@@ -642,20 +652,20 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
         if (t1->nature() == kInt && t2->nature() == kInt) {
             return generateCacheCode(sig, subst("($3($0) $1 $3($2))", c1, gBinOpTable[opcode]->fName, c2, ifloat()));
         } else if (t1->nature() == kInt && t2->nature() == kReal) {
-            if (p0 > p2) c2 = subst("($0)", c2);
+            if (np2) c2 = subst("($0)", c2);
             return generateCacheCode(sig, subst("($3($0) $1 $2)", c1, gBinOpTable[opcode]->fName, c2, ifloat()));
         } else if (t1->nature() == kReal && t2->nature() == kInt) {
-            if (p0 > p1) c1 = subst("($0)", c1);
+            if (np1) c1 = subst("($0)", c1);
             return generateCacheCode(sig, subst("($0 $1 $3($2))", c1, gBinOpTable[opcode]->fName, c2, ifloat()));
         } else {
-            if (p0 > p1) c1 = subst("($0)", c1);
-            if (p0 > p2) c2 = subst("($0)", c2);
+            if (np1) c1 = subst("($0)", c1);
+            if (np2) c2 = subst("($0)", c2);
             return generateCacheCode(sig, subst("($0 $1 $2)", c1, gBinOpTable[opcode]->fName, c2, ifloat()));
         }
     } else {
-        if (p0 > p1) c1 = subst("($0)", c1);
-        if (p0 > p2) c2 = subst("($0)", c2);
-        return generateCacheCode(sig, subst("$0 $1 $2", c1, gBinOpTable[opcode]->fName, c2));
+        if (np1) c1 = subst("($0)", c1);
+        if (np2) c2 = subst("($0)", c2);
+        return generateCacheCode(sig, subst("($0 $1 $2)", c1, gBinOpTable[opcode]->fName, c2));
     }
 }
 

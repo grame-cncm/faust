@@ -56,8 +56,7 @@ class xtended : public virtual Garbageable {
     // virtual method to be implemented by subclasses
     virtual unsigned int arity() = 0;
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result_type,
-                                    vector<::Type> const& types) = 0;
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type rtype, ConstTypes types) = 0;
 
     // SL : 28/09/17
     // Old CPP backend
@@ -73,10 +72,12 @@ class xtended : public virtual Garbageable {
     {
         return false;
     }  ///< generally false, but true for binary op # such that #(x) == _#x
-
-    void prepareTypeArgsResult(::Type result, const Values& args, vector<::Type> const& types,
-                               Typed::VarType& result_type, vector<Typed::VarType>& arg_types,
-                               Values& casted_args);
+  
+    ValueInst* generateFun(CodeContainer* container,
+                           const string& fun_name,
+                           const Values& args,
+                           ::Type rtype,
+                           ConstTypes types);
 };
 
 // True if two floating point numbers are close enough to be considered identical.
@@ -88,7 +89,7 @@ inline bool comparable(double x, double y)
 
 inline ValueInst* promote2real(int type, ValueInst* val)
 {
-    return (type == kReal) ? val : InstBuilder::genCastFloatInst(val);
+    return (type == kReal) ? val : InstBuilder::genCastRealInst(val);
 }
 inline ValueInst* promote2int(int type, ValueInst* val)
 {
@@ -97,7 +98,7 @@ inline ValueInst* promote2int(int type, ValueInst* val)
 
 inline ValueInst* cast2real(int type, ValueInst* val)
 {
-    return (type == kReal) ? InstBuilder::genCastFloatInst(val) : val;
+    return (type == kReal) ? InstBuilder::genCastRealInst(val) : val;
 }
 inline ValueInst* cast2int(int type, ValueInst* val)
 {

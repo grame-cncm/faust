@@ -52,7 +52,7 @@ ValueInst* InstBuilder::genTypedZero(Typed::VarType type)
     } else if (type == Typed::kInt64) {
         return genInt64NumInst(0);
     } else if (isRealType(type)) {
-        return genRealNumInst(type, 0.);
+        return genRealNumInst(type, 0.0);
     } else {
         // Pointer type
         if (gGlobal->gMachinePtrSize == 4) {
@@ -61,6 +61,20 @@ ValueInst* InstBuilder::genTypedZero(Typed::VarType type)
             return genInt64NumInst(0);
         }
     }
+}
+
+ValueInst* InstBuilder::genTypedNum(Typed::VarType type, double num)
+{
+    if (type == Typed::kInt32) {
+        return genInt32NumInst(int(num));
+    } else if (type == Typed::kInt64) {
+        return genInt64NumInst(int64_t(num));
+    } else if (isRealType(type)) {
+        return genRealNumInst(type, num);
+    } else {
+        faustassert(false);
+    }
+    return nullptr;
 }
 
 string Typed::gTypeString[] = {"kInt32",          "kInt32_ptr",      "kInt32_vec",          "kInt32_vec_ptr",
@@ -143,6 +157,8 @@ DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* co
     }
 }
 
+Typed::VarType convert2FIRType(int type) { return (type == kInt) ? Typed::kInt32 : itfloat(); }
+
 BasicTyped* InstBuilder::genBasicTyped(Typed::VarType type)
 {
     return gGlobal->genBasicTyped(type);
@@ -186,9 +202,13 @@ NamedTyped* InstBuilder::genNamedTyped(const string& name, Typed::VarType type)
     return genNamedTyped(name, genBasicTyped(type));
 }
 
-ValueInst* InstBuilder::genCastFloatInst(ValueInst* inst)
+ValueInst* InstBuilder::genCastRealInst(ValueInst* inst, bool check)
 {
-    return InstBuilder::genCastInst(inst, InstBuilder::genBasicTyped(itfloat()));
+    if (check && gGlobal->gFAUSTFLOAT2Internal) {
+        return inst;
+    } else {
+        return InstBuilder::genCastInst(inst, InstBuilder::genBasicTyped(itfloat()));
+    }
 }
 
 ValueInst* InstBuilder::genCastFloatMacroInst(ValueInst* inst)

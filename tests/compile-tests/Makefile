@@ -32,6 +32,7 @@ all:
 	$(MAKE) -f Make.lang outdir=wasm lang=wasm ext=wasm FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=wast lang=wast ext=wast FAUSTOPTIONS=""
 	#$(MAKE) -f Make.lang outdir=java lang=java ext=java FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=llvm lang=llvm ext=llvm  FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=fir lang=fir ext=fir FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=rust lang=rust ext=rust FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=llvm lang=llvm ext=llvm FAUSTOPTIONS=""
@@ -47,6 +48,9 @@ c:
 	$(MAKE) -f Make.lang outdir=ocpp lang=ocpp ext=o.cpp FAUSTOPTIONS=" -a ./min.cpp"
 	$(MAKE) -f Make.lang outdir=c lang=c ext=c FAUSTOPTIONS=" -a ./min.c"
 
+llvm:
+	$(MAKE) -f Make.lang outdir=llvm lang=llvm ext=llvm FAUSTOPTIONS=""
+	
 soul:
 	$(MAKE) -f Make.lang outdir=soul lang=soul ext=soul FAUSTOPTIONS=""
 
@@ -75,6 +79,7 @@ help:
 	@echo "Specific targets:"
 	@echo " 'gcc'        : compiles the C and C++ output of the 'cpp', 'ocpp' and 'c' backends"
 	@echo " 'soul'       : compiles using the SOUL backend"
+	@echo " 'llvm'       : compiles using the LLVM backend"
 	@echo " 'interp'     : compiles using the interpreter backend"
 	@echo " 'web'        : compiles using the wast/wasm backends"
 	@echo " 'trace'      : compiles using the interp-tracer application"

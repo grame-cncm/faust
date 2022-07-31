@@ -35,10 +35,10 @@ class AbsPrim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual ::Type infereSigType(const vector<::Type>& types)
+    virtual ::Type infereSigType(ConstTypes args)
     {
-        faustassert(types.size() == arity());
-        Type t = types[0];
+        faustassert(args.size() == arity());
+        Type t = args[0];
         return castInterval(t, abs(t->getInterval()));
         return t;
     }
@@ -72,17 +72,11 @@ class AbsPrim : public xtended {
     }
 
     virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
-                                    vector<::Type> const& types)
+                                    ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
-
-        Typed::VarType         result_type;
-        vector<Typed::VarType> arg_types;
-
-        ::Type t = infereSigType(types);
-        interval i = types[0]->getInterval();
-     
+  
         /*
          04/25/22 : this optimisation cannot be done because interval computation is buggy: like no.noise interval [O..inf] !
          */
@@ -93,31 +87,23 @@ class AbsPrim : public xtended {
             } else {
                 // Only compute abs when arg is < 0
                 if (t->nature() == kReal) {
-                    Values casted_args;
-                    prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
-                    return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, casted_args);
+                    Values cargs;
+                    prepareTypeArgsResult(result, args, types, rtype, atypes, cargs);
+                    return container->pushFunction(subst("fabs$0", isuffix()), rtype, atypes, cargs);
                 } else {
                     // "Int" abs
-                    result_type = Typed::kInt32;
-                    arg_types.push_back(Typed::kInt32);
-                    return container->pushFunction("abs", result_type, arg_types, args);
+                    rtype = Typed::kInt32;
+                    atypes.push_back(Typed::kInt32);
+                    return container->pushFunction("abs", rtype, atypes, args);
                 }
             }
         */
     
-        if (t->nature() == kReal) {
-            Values casted_args;
-            prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
-            return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, casted_args);
-        } else {
-            // "Int" abs
-            result_type = Typed::kInt32;
-            arg_types.push_back(Typed::kInt32);
-            return container->pushFunction("abs", result_type, arg_types, args);
-        }
+        string fun_name = (result->nature() == kInt) ? "abs" : subst("fabs$0", isuffix());
+        return generateFun(container, fun_name, args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, const vector<::Type>& types)
+    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -130,7 +116,7 @@ class AbsPrim : public xtended {
         }
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<::Type>& types)
+    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

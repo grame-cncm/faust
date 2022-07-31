@@ -24,13 +24,16 @@
 
 #include "sigIdentity.hh"
 
-// Make explicit automatic promotion to float
-class SignalConstantPropagation : public SignalIdentity {
+// Constant progagation
+class SignalConstantPropagation final : public SignalIdentity {
    public:
     SignalConstantPropagation() {}
 
    protected:
-    virtual Tree transformation(Tree sig);
+    Tree transformation(Tree sig);
 };
+
+// Public API
+Tree constantPropagation(Tree sig, bool trace = false);
 
 #endif

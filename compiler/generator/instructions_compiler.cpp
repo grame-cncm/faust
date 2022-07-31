@@ -51,7 +51,7 @@ ostream* Printable::fOut = &cout;
 
 static inline BasicTyped* genBasicFIRTyped(int sig_type)
 {
-    return InstBuilder::genBasicTyped((sig_type == kInt) ? Typed::kInt32 : itfloat());
+    return InstBuilder::genBasicTyped(convert2FIRType(sig_type));
 }
 
 InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
@@ -219,89 +219,91 @@ void InstructionsCompiler::conditionAnnotation(Tree t, Tree nc)
 Tree InstructionsCompiler::prepare(Tree LS)
 {
     startTiming("prepare");
-
+  
+    // Convert deBruijn recursion into symbolic recursion
     startTiming("deBruijn2Sym");
-    Tree L1 = deBruijn2Sym(LS);  // Convert deBruijn recursion into symbolic recursion
+    Tree L1 = deBruijn2Sym(LS);
     endTiming("deBruijn2Sym");
-
+    
+    // Annotate L1 with type information, but don't check causality)
     startTiming("L1 typeAnnotation");
-    // Annotate L1 with type information (needed by castAndPromotion(), but don't check causality)
     typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
     endTiming("L1 typeAnnotation");
+    
+    startTiming("L1 Cast and Promotion");
+    Tree L2 = castPromote(L1);
+    endTiming("L1 Cast and Promotion");
 
+    // Simplify by executing every computable operation
+    startTiming("L2 simplification");
+    Tree L3 = simplify(L2);
+    endTiming("L2 simplification");
+    
+    // Annotate L3 with type information (needed by SignalPromotion)
+    startTiming("L3 typeAnnotation");
+    typeAnnotation(L3, gGlobal->gLocalCausalityCheck);
+    endTiming("L3 typeAnnotation");
+    
     startTiming("Cast and Promotion");
-    SignalPromotion SP;
-    // SP.trace(true, "Cast");
-    Tree L2 = SP.mapself(L1);
+    Tree L4 = castPromote(L3);
     endTiming("Cast and Promotion");
-
-    startTiming("second simplification");
-    Tree L3 = simplify(L2);  // Simplify by executing every computable operation
-    endTiming("second simplification");
-
+   
     startTiming("Constant propagation");
-    SignalConstantPropagation SK;
-    // SK.trace(true, "ConstProp2");
-    Tree L4 = SK.mapself(L3);
+    Tree L5 = constantPropagation(L4);
     endTiming("Constant propagation");
 
     startTiming("privatise");
-    Tree L5 = privatise(L4);  // Un-share tables with multiple writers
+    Tree L6 = privatise(L5);  // Un-share tables with multiple writers
     endTiming("privatise");
 
     startTiming("conditionAnnotation");
-    conditionAnnotation(L5);
+    conditionAnnotation(L6);
     endTiming("conditionAnnotation");
 
     // dump normal form
     if (gGlobal->gDumpNorm) {
-        cout << ppsig(L5) << endl;
+        cout << ppsig(L6) << endl;
         throw faustexception("Dump normal form finished...\n");
     }
 
     startTiming("recursivnessAnnotation");
-    recursivnessAnnotation(L5);  // Annotate L5 with recursivness information
+    recursivnessAnnotation(L6);  // Annotate L5 with recursivness information
     endTiming("recursivnessAnnotation");
 
-    startTiming("L5 typeAnnotation");
-    typeAnnotation(L5, true);    // Annotate L5 with type information and check causality
-    endTiming("L5 typeAnnotation");
-
+    startTiming("L6 typeAnnotation");
+    typeAnnotation(L6, true);     // Annotate L5 with type information and check causality
+    endTiming("L6 typeAnnotation");
+ 
+    // Check possible still incorrect cast (after typeAnnotation)
+    SignalCastChecker checker(L6);
+    
     startTiming("sharingAnalysis");
-    sharingAnalysis(L5);         // Annotate L5 with sharing count
+    sharingAnalysis(L6);         // Annotate L5 with sharing count
     endTiming("sharingAnalysis");
-
+    
     startTiming("occurrences analysis");
     delete fOccMarkup;
     fOccMarkup = new old_OccMarkup(fConditionProperty);
-    fOccMarkup->mark(L5);        // Annotate L5 with occurrences analysis
+    fOccMarkup->mark(L6);        // Annotate L5 with occurrences analysis
     endTiming("occurrences analysis");
-    // annotationStatistics();
+  
     endTiming("prepare");
 
     if (gGlobal->gDrawSignals) {
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
-        sigToGraph(L5, dotfile);
+        sigToGraph(L6, dotfile);
     }
 
     // Generate VHDL if -vhdl option is set
     if (gGlobal->gVHDLSwitch) {
         Signal2VHDLVisitor V(fOccMarkup);
         ofstream vhdl_file(subst("faust.vhd", gGlobal->makeDrawPath()).c_str());
-        V.sigToVHDL(L5, vhdl_file);
+        V.sigToVHDL(L6, vhdl_file);
         V.trace(gGlobal->gVHDLTrace, "VHDL");  // activate with --trace option
-        V.mapself(L5);
+        V.mapself(L6);
     }
-
-    // Experimental : generate Elementary code if -elm option is set
-    if (gGlobal->gElementarySwitch) {
-        Signal2Elementary V;
-        ofstream js_file(subst("$0-el.js", gGlobal->makeDrawPath()).c_str());
-        V.sig2Elementary(L5, js_file);
-        V.mapself(L5);
-    }
-    
-    return L5;
+ 
+    return L6;
 }
 
 Tree InstructionsCompiler::prepare2(Tree L0)
@@ -311,7 +313,7 @@ Tree InstructionsCompiler::prepare2(Tree L0)
     recursivnessAnnotation(L0);  // Annotate L0 with recursivness information
     typeAnnotation(L0, true);    // Annotate L0 with type information
     sharingAnalysis(L0);         // Annotate L0 with sharing count
-
+   
     delete fOccMarkup;
     fOccMarkup = new old_OccMarkup();
     fOccMarkup->mark(L0);        // Annotate L0 with occurrences analysis
@@ -569,8 +571,9 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     for (int index = 0; isList(L); L = tl(L), index++) {
         Tree sig = hd(L);
 
-        // Cast to external float
-        ValueInst* res = InstBuilder::genCastFloatMacroInst(CS(sig));
+        // Possibly cast to external float
+        bool do_cast = (getCertifiedSigType(sig)->nature() == kInt) || !gGlobal->gFAUSTFLOAT2Internal;
+        ValueInst* res = (do_cast) ? InstBuilder::genCastFloatMacroInst(CS(sig)) : CS(sig);
 
         // HACK for Rust backend
         string name;
@@ -897,7 +900,7 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     }
     
     // Cast to internal float
-    res = InstBuilder::genCastFloatInst(res);
+    res = InstBuilder::genCastRealInst(res, true);
 
     if (gGlobal->gInPlace) {
         // inputs must be cached for in-place transformations
@@ -913,41 +916,7 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
 
 ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tree a2)
 {
-    int t1 = getCertifiedSigType(a1)->nature();
-    int t2 = getCertifiedSigType(a2)->nature();
-    int t3 = getCertifiedSigType(sig)->nature();
-
-    ValueInst* res;
-    ValueInst* v1 = CS(a1);
-    ValueInst* v2 = CS(a2);
-
-    // Logical and shift operations work on kInt32, so cast both operands here
-    if (isLogicalOpcode(opcode) || isShiftOpcode(opcode)) {
-        res = InstBuilder::genBinopInst(opcode, promote2int(t1, v1), promote2int(t2, v2));
-        res = cast2real(t3, res);
-        // Boolean operations work on kInt32 or kReal, result is kInt32
-    } else if (isBoolOpcode(opcode)) {
-        if ((t1 == kReal) || (t2 == kReal)) {
-            res = InstBuilder::genBinopInst(opcode, promote2real(t1, v1), promote2real(t2, v2));
-        } else {
-            res = InstBuilder::genBinopInst(opcode, v1, v2);
-        }
-        // HACK for Rust backend
-        if (gGlobal->gOutputLang == "rust") {
-            res = InstBuilder::genCastInt32Inst(res);
-        }
-        // One of a1 or a2 is kReal, operation is done on kReal
-    } else if ((t1 == kReal) || (t2 == kReal)) {
-        res = cast2int(t3, InstBuilder::genBinopInst(opcode, promote2real(t1, v1), promote2real(t2, v2)));
-        // Otherwise kInt32 operation
-    } else if (opcode == kDiv) {
-        // special handling for division, we always want a float division
-        res = cast2int(t3, InstBuilder::genBinopInst(opcode, promote2real(t1, v1), promote2real(t2, v2)));
-    } else {
-        res = cast2real(t3, InstBuilder::genBinopInst(opcode, v1, v2));
-    }
-
-    return generateCacheCode(sig, res);
+    return generateCacheCode(sig, InstBuilder::genBinopInst(opcode, CS(a1), CS(a2)));
 }
 
 /*****************************************************************************
@@ -965,21 +934,19 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
         Values args_value;
         Names args_types;
 
+        int len = ffarity(ff) - 1;
         for (int i = 0; i < ffarity(ff); i++) {
-            Tree parameter = nth(largs, i);
             // Reversed...
-            int         sig_argtype = ffargtype(ff, (ffarity(ff) - 1) - i);
+            int         sig_argtype = ffargtype(ff, len - i);
             BasicTyped* argtype     = genBasicFIRTyped(sig_argtype);
             args_types.push_back(InstBuilder::genNamedTyped("dummy" + to_string(i), argtype));
-            args_value.push_back(InstBuilder::genCastInst(CS(parameter), argtype));
+            args_value.push_back(CS(nth(largs, i)));
         }
 
         // Add function declaration
         FunTyped* fun_type = InstBuilder::genFunTyped(args_types, genBasicFIRTyped(ffrestype(ff)));
         pushExtGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
-
-        return generateCacheCode(sig, InstBuilder::genCastInst(InstBuilder::genFunCallInst(funname, args_value),
-                                                               genBasicFIRTyped(ffrestype(ff))));
+        return generateCacheCode(sig, InstBuilder::genFunCallInst(funname, args_value));
     } else {
         stringstream error;
         error << "ERROR : calling foreign function '" << funname << "'"
@@ -1180,15 +1147,13 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
 // Generate cast only when really necessary...
 ValueInst* InstructionsCompiler::generateIntCast(Tree sig, Tree x)
 {
-    return generateCacheCode(sig,
-                             (getCertifiedSigType(x)->nature() != kInt) ? InstBuilder::genCastInt32Inst(CS(x)) : CS(x));
+    return generateCacheCode(sig, InstBuilder::genCastInt32Inst(CS(x)));
 }
 
 // Generate cast only when really necessary...
 ValueInst* InstructionsCompiler::generateFloatCast(Tree sig, Tree x)
 {
-    return generateCacheCode(
-        sig, (getCertifiedSigType(x)->nature() != kReal) ? InstBuilder::genCastFloatInst(CS(x)) : CS(x));
+    return generateCacheCode(sig, InstBuilder::genCastRealInst(CS(x)));
 }
 
 /*****************************************************************************
@@ -1206,7 +1171,7 @@ ValueInst* InstructionsCompiler::generateButtonAux(Tree sig, Tree path, const st
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     // Cast to internal float
-    return generateCacheCode(sig, InstBuilder::genCastFloatInst(InstBuilder::genLoadStructVar(varname)));
+    return generateCacheCode(sig, InstBuilder::genCastRealInst(InstBuilder::genLoadStructVar(varname), true));
 }
 
 ValueInst* InstructionsCompiler::generateButton(Tree sig, Tree path)
@@ -1231,7 +1196,7 @@ ValueInst* InstructionsCompiler::generateSliderAux(Tree sig, Tree path, Tree cur
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     // Cast to internal float
-    return generateCacheCode(sig, InstBuilder::genCastFloatInst(InstBuilder::genLoadStructVar(varname)));
+    return generateCacheCode(sig, InstBuilder::genCastRealInst(InstBuilder::genLoadStructVar(varname), true));
 }
 
 ValueInst* InstructionsCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
@@ -1258,7 +1223,8 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, Tree m
     ::Type t = getCertifiedSigType(sig);
 
     // Cast to external float
-    StoreVarInst* res = InstBuilder::genStoreStructVar(varname, InstBuilder::genCastFloatMacroInst(exp));
+    ValueInst* val = (gGlobal->gFAUSTFLOAT2Internal) ? exp : InstBuilder::genCastFloatMacroInst(exp);
+    StoreVarInst* res = InstBuilder::genStoreStructVar(varname, val);
 
     switch (t->variability()) {
         case kKonst:
@@ -1274,9 +1240,7 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, Tree m
             break;
     }
 
-    return generateCacheCode(sig, (t->nature() == kInt)
-                                      ? InstBuilder::genCastInt32Inst(InstBuilder::genLoadStructVar(varname))
-                                      : InstBuilder::genLoadStructVar(varname));
+    return generateCacheCode(sig, InstBuilder::genLoadStructVar(varname));
 }
 
 ValueInst* InstructionsCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp)
@@ -1406,7 +1370,8 @@ ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf
             InstBuilder::genLoadStructPtrVar(SFcache, Address::kStruct, InstBuilder::genInt32NumInst(0));
 
         pushDeclare(InstBuilder::genDecStructVar(SFcache_buffer, type1));
-        pushComputeBlockMethod(InstBuilder::genStoreStructVar(SFcache_buffer,InstBuilder::genCastInst(load1, type1)));
+        // SFcache_buffer type is void* and has to be casted in the runtime buffer type
+        pushComputeBlockMethod(InstBuilder::genStoreStructVar(SFcache_buffer, InstBuilder::genCastInst(load1, type1)));
 
         pushDeclare(InstBuilder::genDecStructVar(SFcache_buffer_chan, InstBuilder::genArrayTyped(type2, 0)));
         pushComputeBlockMethod(InstBuilder::genStoreStructVar(
@@ -1426,6 +1391,7 @@ ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf
         LoadVarInst* load1 =
             InstBuilder::genLoadStructPtrVar(SFcache, Address::kStack, InstBuilder::genInt32NumInst(0));
 
+        // SFcache_buffer type is void* and has to be casted in the runtime buffer type
         pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_buffer, type1, InstBuilder::genCastInst(load1, type1)));
         pushComputeBlockMethod(
             InstBuilder::genDecStackVar(SFcache_buffer_chan, InstBuilder::genArrayTyped(type2, 0),
@@ -1645,10 +1611,7 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
         }
     }
 
-    // Check types and possibly cast written value
-    int table_type = getCertifiedSigType(tbl)->nature();
-    int data_type  = getCertifiedSigType(data)->nature();
-    ValueInst* cdata = (table_type != data_type) ? InstBuilder::genCastInst(CS(data), genBasicFIRTyped(table_type)) : CS(data);
+    ValueInst* cdata = CS(data);
     string vname = load_value->fAddress->getName();
 
     Type t2 = getCertifiedSigType(idx);
@@ -1869,7 +1832,7 @@ ValueInst* InstructionsCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 {
     string         vperm = gGlobal->getFreshID("pfPerm");
     string         vtemp = gGlobal->getFreshID("pfTemp");
-    Typed::VarType type  = (getCertifiedSigType(sig)->nature() == kInt) ? Typed::kInt32 : itfloat();
+    Typed::VarType type  = convert2FIRType(getCertifiedSigType(sig)->nature());
 
     // Variable declaration
     pushDeclare(InstBuilder::genDecStructVar(vperm, InstBuilder::genBasicTyped(type)));
@@ -1927,14 +1890,6 @@ ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tr
     
     ::Type ct1 = getCertifiedSigType(s1);
     ::Type ct2 = getCertifiedSigType(s2);
-    int t1 = ct1->nature();
-    int t2 = ct2->nature();
-    
-    // Type promotion
-    if ((t1 == kReal) || (t2 == kReal)) {
-        v1 = promote2real(t1, v1);
-        v2 = promote2real(t2, v2);
-    }
     
     string v_then, v_else;
     Typed::VarType t_then, t_else;
@@ -1980,19 +1935,20 @@ ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tr
 
 ValueInst* InstructionsCompiler::generateXtended(Tree sig)
 {
-    xtended*         p = (xtended*)getUserData(sig);
+    xtended* p = (xtended*)getUserData(sig);
     Values args;
-    vector< ::Type>  arg_types;
+    vector<::Type> types;
 
     for (int i = 0; i < sig->arity(); i++) {
         args.push_back(CS(sig->branch(i)));
-        arg_types.push_back(getCertifiedSigType(sig->branch(i)));
+        types.push_back(getCertifiedSigType(sig->branch(i)));
     }
-
+    
+    ValueInst* res = p->generateCode(fContainer, args, getCertifiedSigType(sig), types);
     if (p->needCache()) {
-        return generateCacheCode(sig, p->generateCode(fContainer, args, getCertifiedSigType(sig), arg_types));
+        return generateCacheCode(sig, res);
     } else {
-        return p->generateCode(fContainer, args, getCertifiedSigType(sig), arg_types);
+        return res;
     }
 }
 

@@ -52,20 +52,15 @@ class AtanPrim : public xtended {
     }
 
     virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
-                                    vector<::Type> const& types)
+                                    ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
-
-        Typed::VarType         result_type;
-        vector<Typed::VarType> arg_types;
-        Values       casted_args;
-        prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
-
-        return container->pushFunction(subst("atan$0", isuffix()), result_type, arg_types, casted_args);
+      
+        return generateFun(container, subst("atan$0", isuffix()), args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, const vector<::Type>& types)
+    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -73,7 +68,7 @@ class AtanPrim : public xtended {
         return subst("atan$1($0)", args[0], isuffix());
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<::Type>& types)
+    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

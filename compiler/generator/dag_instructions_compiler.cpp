@@ -414,7 +414,7 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
         ValueInst* res =
             InstBuilder::genLoadArrayFunArgsVar(name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("vindex"));
         // Cast to internal float
-        res = InstBuilder::genCastFloatInst(res);
+        res = InstBuilder::genCastRealInst(res);
         return generateCacheCode(sig, res);
 
     } else {
@@ -422,7 +422,7 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
         string     name = subst("input$0", T(idx));
         ValueInst* res  = InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex());
         // Cast to internal float
-        res = InstBuilder::genCastFloatInst(res);
+        res = InstBuilder::genCastRealInst(res);
         return generateCacheCode(sig, res);
     }
 }

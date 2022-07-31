@@ -33,7 +33,7 @@ class SqrtPrim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual ::Type infereSigType(const vector<::Type>& args)
+    virtual ::Type infereSigType(ConstTypes args)
     {
         faustassert(args.size() == 1);
         Type     t = args[0];
@@ -73,15 +73,10 @@ class SqrtPrim : public xtended {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
-        Typed::VarType         result_type;
-        vector<Typed::VarType> arg_types;
-        Values       casted_args;
-        prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
-
-        return container->pushFunction(subst("sqrt$0", isuffix()), result_type, arg_types, casted_args);
+        return generateFun(container, subst("sqrt$0", isuffix()), args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, const vector<::Type>& types)
+    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -89,7 +84,7 @@ class SqrtPrim : public xtended {
         return subst("sqrt$1($0)", args[0], isuffix());
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<::Type>& types)
+    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

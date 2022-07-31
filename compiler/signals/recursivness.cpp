@@ -137,7 +137,7 @@ static int position(Tree env, Tree t, int p)
  * @return the set of symbols
  */
 
-Tree symlistVisit(Tree sig, set<Tree>& visited)
+static Tree symlistVisit(Tree sig, set<Tree>& visited)
 {
     Tree S;
 
@@ -156,7 +156,7 @@ Tree symlistVisit(Tree sig, set<Tree>& visited)
             return U;
         } else {
             vector<Tree> subsigs;
-            int          n = getSubSignals(sig, subsigs, true);  // il faut visiter aussi les tables
+            int          n = getSubSignals(sig, subsigs, true);  // tables have to be visited also
             Tree         U = gGlobal->nil;
             for (int i = 0; i < n; i++) {
                 U = setUnion(U, symlistVisit(subsigs[i], visited));

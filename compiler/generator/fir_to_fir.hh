@@ -513,8 +513,8 @@ struct CastRemover : public BasicTypingCloneVisitor {
 
         if (inst->fType->getType() == Typed::kInt32) {
             if (type == Typed::kInt32) {
-                // std::cout << "CastInst : cast to int, but arg already int !" << std::endl;
-                // dump2FIR(inst);
+                //std::cerr << "CastInst : cast to int, but arg already int !" << std::endl;
+                //dump2FIR(inst);
                 return inst->fInst->clone(this);
             } else {
                 /*
@@ -532,8 +532,8 @@ struct CastRemover : public BasicTypingCloneVisitor {
             }
         } else {
             if (isRealType(type)) {
-                // std::cout << "CastInst : cast to real, but arg already real !" << std::endl;
-                // dump2FIR(inst);
+                //std::cerr << "CastInst : cast to real, but arg already real !" << std::endl;
+                //dump2FIR(inst);
                 return inst->fInst->clone(this);
             } else {
                 return BasicTypingCloneVisitor::visit(inst);

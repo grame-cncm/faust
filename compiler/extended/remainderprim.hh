@@ -34,7 +34,7 @@ class RemainderPrim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual ::Type infereSigType(const vector<::Type>& args)
+    virtual ::Type infereSigType(ConstTypes args)
     {
         faustassert(args.size() == arity());
     
@@ -78,16 +78,11 @@ class RemainderPrim : public xtended {
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
-
-        Typed::VarType         result_type;
-        vector<Typed::VarType> arg_types;
-        Values       casted_args;
-        prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
-
-        return container->pushFunction(subst("remainder$0", isuffix()), result_type, arg_types, casted_args);
+        
+        return generateFun(container, subst("remainder$0", isuffix()), args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, const vector<::Type>& types)
+    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -95,7 +90,7 @@ class RemainderPrim : public xtended {
         return subst("remainder$2($0,$1)", args[0], args[1], isuffix());
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<::Type>& types)
+    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

@@ -82,7 +82,7 @@ LIBFAUST_API Tree sigFloatCast(Tree t);
 bool isSigIntCast(Tree t);
 bool isSigFloatCast(Tree t);
 
-LIBFAUST_API bool  isSigIntCast(Tree t, Tree& x);
+LIBFAUST_API bool isSigIntCast(Tree t, Tree& x);
 LIBFAUST_API bool isSigFloatCast(Tree t, Tree& x);
 
 // Tables

@@ -22,21 +22,79 @@
 #ifndef __SIGPROMOTION__
 #define __SIGPROMOTION__
 
+#include <vector>
+#include <string>
+#include <sstream>
 #include "sigIdentity.hh"
+#include "signalVisitor.hh"
+
+// Check a signal for proper SigIntCast and SigFloatCast use.
+// To be used on a type annotated signal.
+class SignalCastChecker final : public SignalVisitor {
+    
+    public:
+        SignalCastChecker(Tree L)
+        {
+            while (!isNil(L)) {
+                self(hd(L));
+                L = tl(L);
+            }
+        }
+        
+    protected:
+        void visit(Tree sig) override;
+};
+
+// Check if signal can still be simplified.
+// To be used on a type annotated signal.
+class SignalSimplifyChecker final : public SignalVisitor {
+    
+    public:
+        SignalSimplifyChecker(Tree L)
+        {
+            while (!isNil(L)) {
+                self(hd(L));
+                L = tl(L);
+            }
+        }
+        
+    protected:
+        void visit(Tree sig);
+};
+
+// Public API
+Tree signalSorter(Tree sig, bool trace = false);
 
 //-------------------------SignalPromotion-------------------------------
 // Adds explicit int or float cast when needed. This is needed prior
-// to any optimisations to avoid to scramble int and float expressions
+// to any optimisations to avoid to scramble int and float expressions.
+// To be used on a type annotated signal.
 //----------------------------------------------------------------------
 
-class SignalPromotion : public SignalIdentity {
+class SignalPromotion final : public SignalIdentity {
    public:
-    SignalPromotion() {}
+    SignalPromotion()
+    {
+        // Go inside tables
+        fVisitGen = true;
+    }
 
    protected:
-    virtual Tree transformation(Tree sig);
+    Tree transformation(Tree sig);
+    
+    // Cast a sig to t1 if t1 != t2
+    Tree         smartCast(Type t1, Type t2, Tree sig);
+    Tree         smartCast(int t1, int t2, Tree sig);
+    // Cast a sig to t
+    Tree         cast(Type t, Tree sig);
+    Tree         cast(int t, Tree sig);
+    // Adds an intCast only if needed
     Tree         smartIntCast(Type t, Tree sig);
+    // Adds a floatCast only if needed
     Tree         smartFloatCast(Type t, Tree sig);
 };
+
+// Public API
+Tree castPromote(Tree sig, bool trace = false);
 
 #endif

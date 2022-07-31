@@ -428,9 +428,6 @@ void WASTCodeContainer::generateComputeAux2(BlockInst* compute_block, int n)
 
     // Put local variables at the begining
     BlockInst* block = MoveVariablesInFront2().getCode(fComputeBlockInstructions, true);
-    
-    // Remove unecessary cast
-    block = CastRemover().getCode(block);
 
     block->accept(gGlobal->gWASTVisitor);
     back(1, fOutAux);

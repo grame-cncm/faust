@@ -119,6 +119,7 @@ typedef list<ValueInst*> Values;
 typedef list<ValueInst*>::const_iterator ValuesIt;
 typedef list<NamedTyped*> Names;
 typedef list<NamedTyped*>::const_iterator NamesIt;
+typedef const vector<::Type>& ConstTypes;
 
 // Type checking
 
@@ -477,13 +478,15 @@ struct FunTyped : public Typed {
     // Arguments type encoded as a string
     string getPrototype()
     {
-        string res;
+        string res, sep = "[";
         if (fArgsTypes.size() > 0) {
             for (const auto& it : fArgsTypes) {
-                res += gTypeString[it->getType()];
+                res += sep + gTypeString[it->getType()];
+                sep =  ":";
             }
+            res += "]";
         } else {
-            res = "void";
+            res = "[void]";
         }
         return res;
     }
@@ -2039,6 +2042,7 @@ struct InstBuilder {
     static FixedPointArrayNumInst*  genFixedPointArrayNumInst(int size) { return new FixedPointArrayNumInst(size); }
     static DoubleNumInst*      genQuadNumInst(double num) { return new DoubleNumInst(num); }  // Use DoubleNumInst
 
+    static ValueInst* genTypedNum(Typed::VarType type, double num);
     static ValueInst* genTypedZero(Typed::VarType type);
 
     static ValueInst* genRealNumInst(Typed::VarType ctype, double num)
@@ -2087,69 +2091,15 @@ struct InstBuilder {
 
     static ValueInst* genCastInst(ValueInst* inst, Typed* typed_ext)
     {
-        Int32NumInst*  int_num    = castInt32(inst);
-        FloatNumInst*  float_num  = castFloat(inst);
-        DoubleNumInst* double_num = castDouble(inst);
-        BasicTyped*    typed      = dynamic_cast<BasicTyped*>(typed_ext);
-        CastInst*      cast       = dynamic_cast<CastInst*>(inst);
-
-        if (!typed) {
-            // Default case
-            return new CastInst(inst, typed_ext);
-        } else if (cast && (cast->fType == typed_ext)) {
-            // Casting an already casted value with the same type
-            return inst;
-        } else if (typed->getType() == Typed::kFloat) {
-            if (int_num) {
-                // Simple float cast of integer
-                return genFloatNumInst(float(int_num->fNum));
-            } else if (float_num) {
-                // No cast needed
-                return inst;
-            } else if (double_num) {
-                return genFloatNumInst(float(double_num->fNum));
-            } else {
-                // Default case
-                return new CastInst(inst, typed);
-            }
-        } else if (typed->getType() == Typed::kDouble || typed->getType() == Typed::kQuad) {
-            if (int_num) {
-                // Simple double cast of integer
-                return genDoubleNumInst(double(int_num->fNum));
-            } else if (float_num) {
-                return genDoubleNumInst(double(float_num->fNum));
-            } else if (double_num) {
-                // No cast needed
-                return inst;
-            } else {
-                // Default case
-                return new CastInst(inst, typed);
-            }
-        } else if (typed->getType() == Typed::kInt32) {
-            if (int_num) {
-                // No cast needed
-                return inst;
-            } else if (float_num) {
-                // Simple int cast of float
-                return genInt32NumInst(int(float_num->fNum));
-            } else if (double_num) {
-                // Simple int cast of double
-                return genInt32NumInst(int(double_num->fNum));
-            } else {
-                // Default case
-                return new CastInst(inst, typed);
-            }
-        } else {
-            // Default case
-            return new CastInst(inst, typed);
-        }
+        return new CastInst(inst, typed_ext);
     }
 
     static ValueInst* genBitcastInst(ValueInst* inst, Typed* typed) { return new BitcastInst(inst, typed); }
-    static ValueInst* genCastFloatInst(ValueInst* inst);
+    // Cast float/double/quad
+    static ValueInst* genCastRealInst(ValueInst* inst, bool check = false);
     static ValueInst* genCastFloatMacroInst(ValueInst* inst);
     static ValueInst* genCastInt32Inst(ValueInst* inst);
-
+    
     // Control flow
     static RetInst*  genRetInst(ValueInst* result = nullptr) { return new RetInst(result); }
     static DropInst* genDropInst(ValueInst* result = nullptr) { return new DropInst(result); }
@@ -2798,6 +2748,8 @@ struct FIRIndex {
    private:
     ValueInst* fValue;
 };
+
+Typed::VarType convert2FIRType(int type);
 
 #endif
 

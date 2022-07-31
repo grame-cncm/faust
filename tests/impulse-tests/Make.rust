@@ -30,14 +30,18 @@ all: filesCompare
 # all: $(allirfiles)
 
 all: ir/rust/APF.ir
-all: ir/rust/bandfilter.ir
 all: ir/rust/BPF.ir
+all: ir/rust/HPF.ir
+all: ir/rust/LPF.ir
+all: ir/rust/UITester.ir
+all: ir/rust/bandfilter.ir
 all: ir/rust/bs.ir
 all: ir/rust/capture.ir
 all: ir/rust/carre_volterra.ir
 all: ir/rust/comb_bug_exp.ir
 all: ir/rust/comb_delay1.ir
 all: ir/rust/comb_delay2.ir
+all: ir/rust/constant.ir
 all: ir/rust/cubic_distortion.ir
 all: ir/rust/dbmeter.ir
 all: ir/rust/delays.ir
@@ -47,7 +51,6 @@ all: ir/rust/freeverb.ir
 all: ir/rust/gate_compressor.ir
 all: ir/rust/harpe.ir
 all: ir/rust/highShelf.ir
-all: ir/rust/HPF.ir
 all: ir/rust/karplus.ir
 all: ir/rust/karplus32.ir
 all: ir/rust/lfboost.ir
@@ -55,7 +58,6 @@ all: ir/rust/logical.ir
 all: ir/rust/lowboost.ir
 all: ir/rust/lowcut.ir
 all: ir/rust/lowShelf.ir
-all: ir/rust/LPF.ir
 all: ir/rust/math.ir
 all: ir/rust/matrix.ir
 all: ir/rust/midi_tester.ir
@@ -63,6 +65,7 @@ all: ir/rust/mixer.ir
 all: ir/rust/modulations.ir
 all: ir/rust/multibandfilter.ir
 all: ir/rust/noise.ir
+all: ir/rust/noiseabs.ir
 all: ir/rust/noisemetadata.ir
 all: ir/rust/notch.ir
 all: ir/rust/osc.ir
@@ -73,7 +76,9 @@ all: ir/rust/peakingEQ.ir
 all: ir/rust/peakNotch.ir
 all: ir/rust/phaser_flanger.ir
 all: ir/rust/pitch_shifter.ir
+all: ir/rust/pow.ir
 all: ir/rust/precision.ir
+#all: ir/rust/prefix.ir
 all: ir/rust/quadecho.ir
 all: ir/rust/reverb_designer.ir
 all: ir/rust/reverb_tester.ir
@@ -85,6 +90,7 @@ all: ir/rust/spectral_tilt.ir
 all: ir/rust/stereoecho.ir
 all: ir/rust/switcher.ir
 all: ir/rust/table.ir
+all: ir/rust/table1.ir
 all: ir/rust/tapiir.ir
 all: ir/rust/tester.ir
 all: ir/rust/tester2.ir

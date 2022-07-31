@@ -162,15 +162,15 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
         pushValue(LLVMBuildSelect(fBuilder, cond_value, v1, v2, ""));
     }
 
-    void pushUnaryCall(const std::string& name_aux, LLVMTypeRef res_type, LLVMTypeRef arg_type, bool rename)
+    void pushUnaryCall(const std::string& name_aux, LLVMTypeRef res_type, LLVMTypeRef atype, bool rename)
     {
         std::string  name     = (rename) ? getMathName(name_aux) : name_aux;
         LLVMValueRef function = LLVMGetNamedFunction(fModule, name.c_str());
         if (!function) {
             // Define it
-            LLVMTypeRef param_types[] = { arg_type };
-            LLVMTypeRef ret_type      = LLVMFunctionType(res_type, param_types, 1, false);
-            function                  = LLVMAddFunction(fModule, name.c_str(), ret_type);
+            LLVMTypeRef args_types[] = { atype };
+            LLVMTypeRef rtype      = LLVMFunctionType(res_type, args_types, 1, false);
+            function               = LLVMAddFunction(fModule, name.c_str(), rtype);
         }
         // Create the function call
         LLVMValueRef fun_args[] = { popValue() };
@@ -192,9 +192,9 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
         LLVMValueRef function = LLVMGetNamedFunction(fModule, name.c_str());
         if (!function) {
             // Define it
-            LLVMTypeRef param_types[] = { arg1_type, arg2_type };
-            LLVMTypeRef ret_type      = LLVMFunctionType(res_type, param_types, 2, false);
-            function                  = LLVMAddFunction(fModule, name.c_str(), ret_type);
+            LLVMTypeRef args_types[] = { arg1_type, arg2_type };
+            LLVMTypeRef rtype      = LLVMFunctionType(res_type, args_types, 2, false);
+            function               = LLVMAddFunction(fModule, name.c_str(), rtype);
         }
         // Create the function call
         LLVMValueRef fun_args[] = { popValue(), popValue() };
@@ -925,11 +925,11 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
         fLLVMSoundTable = LLVMAddGlobal(fModule, genSoundFileMapTy(), "sound_table");
         
         // Compile compute function
-        LLVMTypeRef param_types[] = {LLVMPointerType(getInt32Ty(), 0), LLVMPointerType(getRealTy(), 0),
+        LLVMTypeRef args_types[] = {LLVMPointerType(getInt32Ty(), 0), LLVMPointerType(getRealTy(), 0),
                                      LLVMPointerType(LLVMPointerType(getRealTy(), 0), 0),
                                      LLVMPointerType(LLVMPointerType(getRealTy(), 0), 0)};
 
-        LLVMTypeRef  execute_type = LLVMFunctionType(LLVMVoidType(), param_types, 4, false);
+        LLVMTypeRef  execute_type = LLVMFunctionType(LLVMVoidType(), args_types, 4, false);
         LLVMValueRef execute      = LLVMAddFunction(fModule, "execute", execute_type);
         
         LLVMBasicBlockRef alloca_block = LLVMAppendBasicBlock(execute, "alloca_block");

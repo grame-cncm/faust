@@ -154,7 +154,7 @@ void Klass::closeLoop(Tree sig)
 /**
  * Print a list of elements (e1, e2,...)
  */
-void printdecllist(int n, const string& decl, list<string>& content, ostream& fout)
+static void printdecllist(int n, const string& decl, list<string>& content, ostream& fout)
 {
     if (!content.empty()) {
         fout << "\\";
@@ -1220,7 +1220,7 @@ void Klass::printComputeMethodOpenMP(int n, ostream& fout)
 }
 
 /*
-void Klass::printComputeMethodScheduler (int n, ostream& fout)
+void Klass::printComputeMethodScheduler(int n, ostream& fout)
 {
     tab(n+1,fout); fout << subst("virtual void compute (int fullcount, $0** input, $0** output) {", xfloat());
         printlines(n+2, fZone1Code, fout);

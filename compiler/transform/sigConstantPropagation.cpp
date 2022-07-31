@@ -134,3 +134,11 @@ Tree SignalConstantPropagation::transformation(Tree sig)
         return SignalIdentity::transformation(sig);
     }
 }
+
+// Public API
+Tree constantPropagation(Tree sig, bool trace)
+{
+    SignalConstantPropagation SK;
+    if (trace) SK.trace(true, "ConstProp");
+    return SK.mapself(sig);
+}

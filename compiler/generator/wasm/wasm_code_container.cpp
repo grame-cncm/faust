@@ -427,9 +427,6 @@ void WASMCodeContainer::generateComputeAux(BlockInst* compute_block)
     // Put local variables at the begining
     BlockInst* block = MoveVariablesInFront2().getCode(fComputeBlockInstructions, true);
     
-    // Remove unecessary cast
-    block = CastRemover().getCode(block);
-    
     // Creates function and visit it
     Names args;
     args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
