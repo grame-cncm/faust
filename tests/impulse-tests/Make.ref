@@ -47,7 +47,6 @@ help:
 test:
 	@echo $(call listintermediate, $(refdir))
 
-
 #########################################################################
 # output directories
 $(refdir)/vec:
@@ -55,12 +54,10 @@ $(refdir)/vec:
 $(refdir)/sched:
 	mkdir -p $(refdir)/sched
 
-
 #########################################################################
 # tools
 filesCompare: $(SRCDIR)/filesCompare.cpp
 	$(MAKE) filesCompare
-
 
 #########################################################################
 # rules for reference
