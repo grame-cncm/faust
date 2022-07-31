@@ -108,12 +108,16 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         bool                is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
         ArrayTyped*         array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         string              name        = inst->fAddress->getName();
-
+  
         // fSampleRate may appear several time (in subcontainers and in main DSP)
         if (name != "fSampleRate") {
+            // When inlined in classInit and instanceConstants, kStaticStruct may appear seveal times
+            if (fFieldTable.find(name) != fFieldTable.end() && (access & Address::kStaticStruct)) {
+                return;
+            }
             faustassert(fFieldTable.find(name) == fFieldTable.end());
         }
-
+      
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
                 fFieldTable[name] = MemoryDesc(-1, fStructOffset, array_typed->fSize, array_typed->getSizeBytes(), array_typed->fType->getType());
