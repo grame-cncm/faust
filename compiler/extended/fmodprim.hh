@@ -65,7 +65,7 @@ class FmodPrim : public xtended {
         } else {
             if (gGlobal->gMathApprox) {
                 // res = x - (y * T(int(x / y)))
-                return sigBinOp(kSub, args[0], sigBinOp(kMul, args[1], sigIntCast(sigBinOp(kDiv, args[0], args[1]))));
+                return sigSub(args[0], sigMul(args[1], sigFloatCast(sigIntCast(sigDiv(args[0], args[1])))));
             } else {
                 return tree(symbol(), args[0], args[1]);
             }

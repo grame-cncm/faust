@@ -823,7 +823,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         // fSampleRate may appear several time (in subcontainers and in main DSP)
         if (name != "fSampleRate") {
             if (fFieldTable.find(name) != fFieldTable.end() && (access & Address::kStaticStruct)) {
-                // When inlined in classInit and instanceConstants, kStaticStruct may appear seveal times
+                // When inlined in classInit and instanceConstants, kStaticStruct may appear several times
                 return;
             }
             faustassert(fFieldTable.find(name) == fFieldTable.end());

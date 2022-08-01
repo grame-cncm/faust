@@ -55,7 +55,12 @@ class AbsPrim : public xtended {
         int    i;
         faustassert(args.size() == arity());
     
-        if (isDouble(args[0]->node(), &f)) {
+        // abs(abs(sig)) ==> abs(sig)
+        xtended* xt = (xtended*)getUserData(args[0]);
+        if (xt == gGlobal->gAbsPrim) {
+            return args[0];
+            
+        } else if (isDouble(args[0]->node(), &f)) {
             return tree(fabs(f));
 
         } else if (isInt(args[0]->node(), &i)) {

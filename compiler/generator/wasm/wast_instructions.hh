@@ -111,7 +111,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
   
         // fSampleRate may appear several time (in subcontainers and in main DSP)
         if (name != "fSampleRate") {
-            // When inlined in classInit and instanceConstants, kStaticStruct may appear seveal times
+            // When inlined in classInit and instanceConstants, kStaticStruct may appear several times
             if (fFieldTable.find(name) != fFieldTable.end() && (access & Address::kStaticStruct)) {
                 return;
             }

@@ -66,7 +66,7 @@ class RemainderPrim : public xtended {
         } else {
             if (gGlobal->gMathApprox) {
                 // res = x - (y * T(int(0.5f + x / y)));
-                return sigBinOp(kSub, args[0], sigBinOp(kMul, args[1], sigFloatCast(sigIntCast(sigBinOp(kAdd, sigReal(0.5), sigBinOp(kDiv, args[0], args[1]))))));
+                return sigSub(args[0], sigBinOp(kMul, args[1], sigFloatCast(sigIntCast(sigAdd( sigReal(0.5), sigDiv(args[0], args[1]))))));
             } else {
                 return tree(symbol(), args[0], args[1]);
             }

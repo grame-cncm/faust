@@ -79,13 +79,20 @@ class PowPrim : public xtended {
                 return tree(pow(double(n), double(m)));
             }
         } else if (isNum(args[1], m)) {
-            if ((double(m) == 10.) && gGlobal->gHasExp10) {
+            double exponent = double(m);
+            if (exponent == 0.0) {
+                // pow(x, 0) ==> 1
+                return tree(1.0);
+            } else if (exponent == 1.0) {
+                // pow(x, 1) ==> x
+                return args[0];
+            } else if ((exponent == 10.) && gGlobal->gHasExp10) {
                 // pow(x, 10) ==> exp10(x)
                 return tree(::symbol("exp10"), args[0]);
-            } else if (double(m) == 0.5) {
+            } else if (exponent == 0.5) {
                 // pow(x, 0.5) ==> sqrt(x)
                 return tree(::symbol("sqrt"), args[0]);
-            } else if (double(m) == 0.25) {
+            } else if (exponent == 0.25) {
                 // pow(x, 0.25) ==> sqrt(sqrt(x))
                 return tree(::symbol("sqrt"), tree(::symbol("sqrt"), args[0]));
             }
