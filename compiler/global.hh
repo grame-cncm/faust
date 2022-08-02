@@ -135,7 +135,7 @@ struct global {
     bool gFunTaskSwitch;
 
     bool gUIMacroSwitch;
-    bool gDumpNorm;
+    int gDumpNorm;
     int  gFTZMode;
     bool gRangeUI;  // whether to generate code to limit vslider/hslider/nentry values in [min..max] range
 
@@ -227,10 +227,15 @@ struct global {
     // boxppShared
     // ------------
     
-    // Tree is used to identify the same nodes during tree traversal,
-    // but gExpCounter is then used to generate unique IDs
-    std::map<Tree, std::pair<int, std::string>> gExpTable;
-    int gExpCounter;
+    // Tree is used to identify the same nodes during Box tree traversal,
+    // but gBoxExpCounter is then used to generate unique IDs
+    std::map<Tree, std::pair<int, std::string>> gBoxExpTable;
+    int gBoxExpCounter;
+    
+    // Tree is used to identify the same nodes during Signal tree traversal,
+    // but gSignalExpCounter is then used to generate unique IDs
+    std::map<Tree, std::pair<int, std::string>> gSignalExpTable;
+    int gSignalExpCounter;
 
     int gCountInferences;
     int gCountMaximal;

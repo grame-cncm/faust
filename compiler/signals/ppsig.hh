@@ -42,38 +42,80 @@ using namespace std;
 // usage : out << ppsig(aSignalExp);
 
 class ppsig : public virtual Garbageable {
-    Tree sig;
+   public:
+    ppsig(Tree s);
+    ppsig(Tree s, Tree env, int priority = 0) : fSig(s), fEnv(env), fPriority(priority), fHideRecursion(false) {}
+    virtual ostream& print(ostream& fout) const;
+
+   protected:
+    virtual ostream& printinfix(ostream& fout, const string& opname, int priority, Tree x, Tree y) const;
+    virtual ostream& printfun(ostream& fout, const string& funame, Tree x) const;
+    virtual ostream& printfun(ostream& fout, const string& funame, Tree x, Tree y) const;
+    virtual ostream& printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z) const;
+    virtual ostream& printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree zz) const;
+    virtual ostream& printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree z2, Tree z3) const;
+    virtual ostream& printout(ostream& fout, int i, Tree x) const;
+    virtual ostream& printlist(ostream& fout, Tree largs) const;
+    virtual ostream& printff(ostream& fout, Tree ff, Tree largs) const;
+    virtual ostream& printrec(ostream& fout, Tree var, Tree lexp, bool hide) const;
+    virtual ostream& printrec(ostream& fout, Tree lexp, bool hide) const;
+    virtual ostream& printextended(ostream& fout, Tree sig1) const;
+    virtual ostream& printui(ostream& fout, const string& funame, Tree label) const;
+    virtual ostream& printui(ostream& fout, const string& funame, Tree label, Tree lo, Tree hi, Tree step) const;
+    virtual ostream& printui(ostream& fout, const string& funame, Tree label, Tree cur, Tree lo, Tree hi, Tree step) const;
+    virtual ostream& printlabel(ostream& fout, Tree pathname) const;
+    virtual ostream& printDelay(ostream& fout, Tree exp, Tree delay) const;
+    
+    Tree fSig;
     Tree fEnv;            ///< recursive environment stack
     int  fPriority;       ///< priority context
     bool fHideRecursion;  ///<
-   public:
-    ppsig(Tree s);
-    ostream& print(ostream& fout) const;
-
-   private:
-    ppsig(Tree s, Tree env, int priority = 0) : sig(s), fEnv(env), fPriority(priority), fHideRecursion(false) {}
-    ostream& printinfix(ostream& fout, const string& opname, int priority, Tree x, Tree y) const;
-    ostream& printfun(ostream& fout, const string& funame, Tree x) const;
-    ostream& printfun(ostream& fout, const string& funame, Tree x, Tree y) const;
-    ostream& printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z) const;
-    ostream& printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree zz) const;
-    ostream& printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree z2, Tree z3) const;
-    ostream& printout(ostream& fout, int i, Tree x) const;
-    ostream& printlist(ostream& fout, Tree largs) const;
-    ostream& printff(ostream& fout, Tree ff, Tree largs) const;
-    ostream& printrec(ostream& fout, Tree var, Tree lexp, bool hide) const;
-    ostream& printrec(ostream& fout, Tree lexp, bool hide) const;
-    ostream& printextended(ostream& fout, Tree sig1) const;
-    ostream& printui(ostream& fout, const string& funame, Tree label) const;
-    ostream& printui(ostream& fout, const string& funame, Tree label, Tree lo, Tree hi, Tree step) const;
-    ostream& printui(ostream& fout, const string& funame, Tree label, Tree cur, Tree lo, Tree hi, Tree step) const;
-    ostream& printlabel(ostream& fout, Tree pathname) const;
-    ostream& printDelay(ostream& fout, Tree exp, Tree delay) const;
+    
 };
 
 inline ostream& operator<<(ostream& file, const ppsig& pp)
 {
     return pp.print(file);
 }
+
+// A version that cache already printed subsignals in variables
+class ppsigShared final : public ppsig {
+    
+    private:
+        map<Tree, string> fSigMap;
+    
+        ostream& printinfix(ostream& fout, const string& opname, int priority, Tree x, Tree y) const;
+        ostream& printfun(ostream& fout, const string& funame, Tree x) const;
+        ostream& printfun(ostream& fout, const string& funame, Tree x, Tree y) const;
+        ostream& printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z) const;
+        ostream& printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree zz) const;
+        ostream& printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree z2, Tree z3) const;
+        ostream& printout(ostream& fout, int i, Tree x) const;
+        ostream& printlist(ostream& fout, Tree largs) const;
+        ostream& printff(ostream& fout, Tree ff, Tree largs) const;
+        ostream& printrec(ostream& fout, Tree var, Tree lexp, bool hide) const;
+        ostream& printrec(ostream& fout, Tree lexp, bool hide) const;
+        ostream& printextended(ostream& fout, Tree sig1) const;
+        ostream& printui(ostream& fout, const string& funame, Tree label) const;
+        ostream& printui(ostream& fout, const string& funame, Tree label, Tree lo, Tree hi, Tree step) const;
+        ostream& printui(ostream& fout, const string& funame, Tree label, Tree cur, Tree lo, Tree hi, Tree step) const;
+        ostream& printlabel(ostream& fout, Tree pathname) const;
+        ostream& printDelay(ostream& fout, Tree exp, Tree delay) const;
+    
+    public:
+        ppsigShared(Tree s):ppsig(s) {}
+        ppsigShared(Tree L, ostream& fout):ppsig(L)
+        {
+            // Create a map of <ID, expression>
+            stringstream s; s << ppsigShared(L);
+            // Print the <ID, expression> list
+            ppsigShared::printIDs(fout);
+            fout << "process = " << s.str() << ";" << endl;
+        }
+        ppsigShared(Tree s, Tree env, int priority = 0) : ppsig(s, env, priority) {}
+        ostream& print(ostream& fout) const;
+    
+        static void printIDs(ostream& fout);
+};
 
 #endif

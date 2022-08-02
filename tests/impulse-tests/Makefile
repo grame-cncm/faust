@@ -84,6 +84,7 @@ help:
 	@echo " 'travis'    : tests subset for travis"
 	@echo " 'web'       : call the wast/wasm targets"
 	@echo " 'reference' : builds the reference files"
+	@echo " 'reference-signal' : builds the reference signal files"
 	@echo " 'tools'     : builds binary tools used by the tests"
 	@echo
 	@echo "Experimental targets:"
@@ -368,6 +369,9 @@ ir/mute:
 # building reference files
 reference:
 	$(MAKE) -f Make.ref
+
+reference-signal:
+	$(MAKE) -f Make.ref reference-signal
 
 tools: filesCompare impulsellvm impulseinterp impulseinterp1
 

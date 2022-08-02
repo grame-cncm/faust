@@ -65,8 +65,7 @@ class boxpp : public virtual Garbageable {
 // printIDs allow to print the <ID, expression> list before 'process = exp;' final line.
 
 class boxppShared : public boxpp {
-    protected:
-        
+  
     public:
         boxppShared(Tree b, int p = 0) : boxpp(b, p) {}
         virtual ~boxppShared() {}

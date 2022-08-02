@@ -23,6 +23,7 @@ FAUSTOPTIONS := -lang $(lang) -double -i -a $(arch)
 
 dspfiles := $(wildcard dsp/*.dsp)
 reffiles := $(patsubst dsp/%.dsp, $(refdir)/%.ir, $(dspfiles))
+sigfiles := $(patsubst dsp/%.dsp, $(refdir)/%.sg, $(dspfiles))
 
 listintermediate = $(dspfiles:dsp/%.dsp=$1/%) $(dspfiles:dsp/%.dsp=$1/%.cpp) $(dspfiles:dsp/%.dsp=$1/vec/%) $(dspfiles:dsp/%.dsp=$1/vec/%.cpp) $(dspfiles:dsp/%.dsp=$1/sched/%) $(dspfiles:dsp/%.dsp=$1/sched/%.cpp) 
 
@@ -35,6 +36,8 @@ SRCDIR := tools
 #########################################################################
 # building reference files
 reference: filesCompare $(refdir)/vec $(refdir)/sched $(reffiles) 
+
+reference-signal: $(sigfiles) 
 
 help:
 	@echo "-------- FAUST impulse tests --------"
@@ -61,6 +64,9 @@ filesCompare: $(SRCDIR)/filesCompare.cpp
 
 #########################################################################
 # rules for reference
+$(refdir)/%.sg: dsp/%.dsp
+	$(FAUST) -norm1 $<  > $@ ; echo $<
+
 $(refdir)/%.ir: dsp/% $(refdir)/vec/%.ir $(refdir)/sched/%.ir dsp/%.dsp dsp/%.cpp 
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$< -n 60000 > $@

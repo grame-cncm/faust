@@ -548,7 +548,11 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-norm", "--normalized-form")) {
-            gGlobal->gDumpNorm = true;
+            gGlobal->gDumpNorm = 0;
+            i += 1;
+            
+        } else if (isCmd(argv[i], "-norm1", "--normalized-form1")) {
+            gGlobal->gDumpNorm = 1;
             i += 1;
 
         } else if (isCmd(argv[i], "-cn", "--class-name") && (i + 1 < argc)) {
@@ -2101,7 +2105,7 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     s << boxppShared(gGlobal->gProcessTree);
     // Print the <ID, expression> list
     boxppShared::printIDs(out);
-    out << "process = " << s.str() << ';' << endl;
+    out << "process = " << s.str() << ";" << endl;
     
     return out.str();
 }

@@ -45,10 +45,10 @@ int main(int argc, const char* argv[])
     dsp_factory_base* factory = createFactory("FaustDSP", 0, argc, argv, error_msg, true);
     delete factory;
     if (error_msg == "") {
-        return 0;
+        return EXIT_SUCCESS;
     } else {
         cerr << error_msg;
-        return 1;
+        return EXIT_FAILURE;
     }
 }
 

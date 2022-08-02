@@ -261,9 +261,12 @@ Tree InstructionsCompiler::prepare(Tree LS)
     endTiming("conditionAnnotation");
 
     // dump normal form
-    if (gGlobal->gDumpNorm) {
+    if (gGlobal->gDumpNorm == 0) {
         cout << ppsig(L6) << endl;
         throw faustexception("Dump normal form finished...\n");
+    } else if (gGlobal->gDumpNorm == 1) {
+        ppsigShared(L6, cout);
+        throw faustexception("Dump shared normal form finished...\n");
     }
 
     startTiming("recursivnessAnnotation");

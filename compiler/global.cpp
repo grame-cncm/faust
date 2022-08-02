@@ -143,7 +143,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gFunTaskSwitch   = false;
 
     gUIMacroSwitch = false;
-    gDumpNorm      = false;
+    gDumpNorm      = -1;
     gFTZMode       = 0;
     gRangeUI       = false;
 
@@ -251,7 +251,8 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 
     gFileNum = 0;
     
-    gExpCounter = 0;
+    gBoxExpCounter = 0;
+    gSignalExpCounter = 0;
 
     gCountInferences = 0;
     gCountMaximal    = 0;
