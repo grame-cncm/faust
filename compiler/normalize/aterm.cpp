@@ -166,8 +166,9 @@ Tree aterm::normalizedTree() const
 
     if (!signe) {
         AudioType* ty   = (AudioType*)SUM->getType();
-        Tree       zero = (ty && ty->nature() == kReal) ? sigReal(0.0) : sigInt(0);
-
+        // 08/04/22 : 'ty' is actually null and zero is created with the wrong type.
+        // An additional 'sigPromotion' pass has to be used later on.
+        Tree zero = (ty && ty->nature() == kReal) ? sigReal(0.0) : sigInt(0);
         SUM = sigSub(zero, SUM);
     }
 #ifdef TRACE

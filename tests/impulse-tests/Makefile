@@ -81,12 +81,15 @@ help:
 	@echo "Warning: you must have at least 10G available on your hard disk to run all the tests"
 	@echo
 	@echo "Specific targets:"
-	@echo " 'travis'    : tests subset for travis"
-	@echo " 'web'       : call the wast/wasm targets"
-	@echo " 'reference' : builds the reference files"
-	@echo " 'reference-signal' : builds the reference signal files"
-	@echo " 'reference-box' : builds the reference box files"
-	@echo " 'tools'     : builds binary tools used by the tests"
+	@echo " 'travis'            : tests subset for travis"
+	@echo " 'web'               : call the wast/wasm targets"
+	@echo " 'reference'         : builds the reference files"
+	@echo " 'reference-signal'  : builds the reference signal files"
+	@echo " 'reference-box'     : builds the reference box files"
+	@echo " 'tools'             : builds binary tools used by the tests"
+	@echo " 'test-box'          : test Box creation intermediate step"
+	@echo " 'test-signal'       : test Signal creation intermediate step"
+	
 	@echo
 	@echo "Experimental targets:"
 	@echo " 'quad'    : check quad output with the cpp and c backends in scalar, vec, openmp and sched modes"
@@ -373,6 +376,7 @@ reference:
 
 reference-box:
 	$(MAKE) -f Make.ref reference-box         FAUSTOPTIONS="-I dsp"
+	
 
 reference-signal:
 	$(MAKE) -f Make.ref reference-signal      FAUSTOPTIONS="-I dsp"
@@ -381,6 +385,15 @@ tools: filesCompare impulsellvm impulseinterp impulseinterp1
 
 clean:
 	rm -f filesCompare impulsellvm impulseinterp impulseinterp1
+
+#########################################################################
+# Testing Box and Signal creation intermediate steps
+
+test-box:
+	cd dsp && ./box-script *.dsp
+
+test-signal:
+	cd dsp && ./sig-script *.dsp
 
 #########################################################################
 # tools

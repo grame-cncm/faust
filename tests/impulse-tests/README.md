@@ -22,6 +22,10 @@ Type `make help` for details about the available targets.
 
 There is no target `clean`: simply delete the `ir` folder or one of its subfolders to regenerate the impulse responses.
 
+### Testing the Box and Signal creation intermediate steps
+- the Box tree (created by the `-e`option) can be generated as a textual file. A set of references files can be created using `make reference-box`, then tested using `make test-box`.
+- the Signal tree (created by the `-norm1`option) can be generated as a textual file. A set of references files can be created using `make reference-signal`, then tested using `make test-signal`.
+
 **Note**:
 
 When using the make option `-j`, I suggest to also add a `-i` option (`--ignore-errors : Ignore errors from commands`), especially with the 'cpp' and 'c' targets. Indeed, make should first _1)_ build all the C++ and/or C output, _2)_ compile these output and _3)_ finally run the Faust program and check the result.

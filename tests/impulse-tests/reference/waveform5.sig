@@ -1,0 +1,10 @@
+ID_0 = waveform{...};
+ID_1 = TABLE(5,ID_0);
+ID_2 = hslider("value",0.0f,0.0f,1.0f,0.01f);
+ID_3 = 4.0f*ID_2;
+ID_4 = int(ID_3);
+ID_5 = read(ID_1,ID_4);
+ID_6 = float(ID_5);
+ID_7 = sin(ID_6);
+ID_8 = IN[0]*ID_7;
+process = (ID_8, ID_5);

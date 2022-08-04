@@ -1,0 +1,15 @@
+ID_0 = waveform{...};
+ID_1 = TABLE(8,ID_0);
+ID_2 = W0;
+ID_3 = proj0(ID_2);
+ID_4 = ID_3';
+ID_5 = ID_4+1;
+ID_6 = letrec(W0 = (ID_5));
+ID_7 = proj0(ID_6);
+ID_8 = (ID_7@0);
+ID_9 = ID_8%8;
+ID_10 = read(ID_1,ID_9);
+ID_11 = TABLE(8,ID_0);
+ID_12 = write(ID_11,ID_9,waveform{...});
+ID_13 = read(ID_12,ID_9);
+process = (ID_10, ID_13);
