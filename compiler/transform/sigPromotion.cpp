@@ -32,55 +32,47 @@
 #include "xtended.hh"
 #include "prim2.hh"
 
-void SignalCastChecker::visit(Tree sig)
+void SignalTreeChecker::visit(Tree sig)
 {
     SignalVisitor::visit(sig);
   
-    Tree x;
-    if (isSigIntCast(sig, x)) {
+    int opnum;
+    Tree x, y;
+    
+    // Extended
+    xtended* p = (xtended*)getUserData(sig);
+    if (p && strcmp(p->name(), "pow") != 0) { // 'pow' can have args of both int and real types
+        vector<Type> vt;
+        for (Tree b : sig->branches()) {
+            vt.push_back(getCertifiedSigType(b));
+        }
+        Type tx = p->infereSigType(vt);
+        
+        for (Tree b : sig->branches()) {
+            if (tx->nature() != getCertifiedSigType(b)->nature()) {
+                cerr << "ERROR : xtended wih args of incorrect types : " << *sig << endl;
+                faustassert(false);
+            }
+        }
+    } else if (isSigBinOp(sig, &opnum, x, y)) {
+        Type tx = getCertifiedSigType(x);
+        Type ty = getCertifiedSigType(y);
+        
+        if (tx->nature() != ty->nature()) {
+            cerr << "ERROR : isSigBinOp of args with different types : " << *sig << endl;
+            faustassert(false);
+        }
+        
+    } else if (isSigIntCast(sig, x)) {
         if (getCertifiedSigType(x)->nature() == kInt) {
             cerr << "ERROR : isSigIntCast of a kInt signal : " << *sig << endl;
             faustassert(false);
         }
-        self(x);
-        return;
+        
     } else if (isSigFloatCast(sig, x)) {
         if (getCertifiedSigType(x)->nature() == kReal) {
             cerr << "ERROR : isSigFloatCast of a kReal signal : " << *sig << endl;
             faustassert(false);
-        }
-        self(x);
-        return;
-    }
-}
-
-void SignalSimplifyChecker::visit(Tree sig)
-{
-    SignalVisitor::visit(sig);
-    
-    Tree t1, t2;
-    int opnum;
-    
-    xtended* xt = (xtended*)getUserData(sig);
-    // primitive elements
-    if (xt) {
-        bool allNums = true;
-        for (Tree b : sig->branches()) {
-            allNums &= isNum(b);
-        }
-        if (allNums) {
-            stringstream error;
-            error << "ERROR : xtended with all numbers : " << *sig << endl;
-            throw faustexception(error.str());
-        }
-    } else if (isSigBinOp(sig, &opnum, t1, t2)) {
-        Node n1 = t1->node();
-        Node n2 = t2->node();
-        
-        if (isNum(n1) && isNum(n2)) {
-            stringstream error;
-            error << "ERROR : isSigBinOp of two numbers : " << *sig << endl;
-            throw faustexception(error.str());
         }
     }
 }

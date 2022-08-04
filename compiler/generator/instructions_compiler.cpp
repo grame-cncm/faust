@@ -225,21 +225,22 @@ Tree InstructionsCompiler::prepare(Tree LS)
     Tree L1 = deBruijn2Sym(LS);
     endTiming("deBruijn2Sym");
     
-    // Annotate L1 with type information, but don't check causality
+    // Annotate L1 with type information (needed by castPromote)
     startTiming("L1 typeAnnotation");
     typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
     endTiming("L1 typeAnnotation");
     
-    startTiming("L1 Cast and Promotion");
+    // Needed before 'simplify' (see sigPromotion.hh)
+    startTiming("Cast and Promotion");
     Tree L2 = castPromote(L1);
-    endTiming("L1 Cast and Promotion");
-
+    endTiming("Cast and Promotion");
+    
     // Simplify by executing every computable operation
     startTiming("L2 simplification");
     Tree L3 = simplify(L2);
     endTiming("L2 simplification");
     
-    // Annotate L3 with type information (needed by SignalPromotion)
+    // Annotate L3 with type information (needed by castPromote)
     startTiming("L3 typeAnnotation");
     typeAnnotation(L3, gGlobal->gLocalCausalityCheck);
     endTiming("L3 typeAnnotation");
@@ -247,11 +248,11 @@ Tree InstructionsCompiler::prepare(Tree LS)
     startTiming("Cast and Promotion");
     Tree L4 = castPromote(L3);
     endTiming("Cast and Promotion");
-   
+    
     startTiming("Constant propagation");
     Tree L5 = constantPropagation(L4);
     endTiming("Constant propagation");
-
+    
     startTiming("privatise");
     Tree L6 = privatise(L5);  // Un-share tables with multiple writers
     endTiming("privatise");
@@ -277,12 +278,12 @@ Tree InstructionsCompiler::prepare(Tree LS)
     typeAnnotation(L6, true);     // Annotate L5 with type information and check causality
     endTiming("L6 typeAnnotation");
  
-    // Check possible still incorrect cast (after typeAnnotation)
-    SignalCastChecker checker(L6);
-    
     startTiming("sharingAnalysis");
     sharingAnalysis(L6);         // Annotate L5 with sharing count
     endTiming("sharingAnalysis");
+    
+    // Check signal tree
+    SignalTreeChecker checker1(L6);
     
     startTiming("occurrences analysis");
     delete fOccMarkup;

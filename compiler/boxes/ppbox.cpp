@@ -459,7 +459,7 @@ ostream& boxppShared::print(ostream& fout) const
             s << ',' << ffincfile(ff) << ',' << fflibfile(ff) << ')';
             
             gGlobal->gBoxTable[fBox] = make_pair(gGlobal->gBoxCounter, s.str());
-            gGlobal->gBoxTrace.push_back("ID_" + std::to_string(gGlobal->gBoxCounter) + " = " + s.str() + "\n");
+            gGlobal->gBoxTrace.push_back("ID_" + std::to_string(gGlobal->gBoxCounter) + " = " + s.str() + ";\n");
             gGlobal->gBoxCounter++;
         }
         // gGlobal->gBoxCounter used a ID
@@ -536,7 +536,7 @@ ostream& boxppShared::print(ostream& fout) const
             
             s << ')';
             gGlobal->gBoxTable[fBox] = make_pair(gGlobal->gBoxCounter, s.str());
-            gGlobal->gBoxTrace.push_back("ID_" + std::to_string(gGlobal->gBoxCounter) + " = " + s.str() + "\n");
+            gGlobal->gBoxTrace.push_back("ID_" + std::to_string(gGlobal->gBoxCounter) + " = " + s.str() + ";\n");
             gGlobal->gBoxCounter++;
         }
         // gGlobal->gBoxCounter used a ID
@@ -552,7 +552,7 @@ ostream& boxppShared::print(ostream& fout) const
             }
             s << '}';
             gGlobal->gBoxTable[fBox] = make_pair(gGlobal->gBoxCounter, s.str());
-            gGlobal->gBoxTrace.push_back("ID_" + std::to_string(gGlobal->gBoxCounter) + " = " + s.str() + "\n");
+            gGlobal->gBoxTrace.push_back("ID_" + std::to_string(gGlobal->gBoxCounter) + " = " + s.str() + ";\n");
             gGlobal->gBoxCounter++;
         }
         // gGlobal->gBoxCounter used a ID

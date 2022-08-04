@@ -97,21 +97,22 @@ Tree ScalarCompiler::prepare(Tree LS)
     Tree L1 = deBruijn2Sym(LS);
     endTiming("deBruijn2Sym");
     
-    // Annotate L1 with type information, but don't check causality)
+    // Annotate L1 with type information (needed by castPromote)
     startTiming("L1 typeAnnotation");
     typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
     endTiming("L1 typeAnnotation");
-     
-    startTiming("L1 Cast and Promotion");
+    
+    // Needed before 'simplify' (see sigPromotion.hh)
+    startTiming("Cast and Promotion");
     Tree L2 = castPromote(L1);
-    endTiming("L1 Cast and Promotion");
+    endTiming("Cast and Promotion");
     
     // Simplify by executing every computable operation
     startTiming("L2 simplification");
     Tree L3 = simplify(L2);
     endTiming("L2 simplification");
     
-    // Annotate L3 with type information (needed by SignalPromotion)
+    // Annotate L3 with type information (needed by castPromote)
     startTiming("L3 typeAnnotation");
     typeAnnotation(L3, gGlobal->gLocalCausalityCheck);
     endTiming("L3 typeAnnotation");
@@ -133,9 +134,12 @@ Tree ScalarCompiler::prepare(Tree LS)
     endTiming("conditionAnnotation");
     
     // dump normal form
-    if (gGlobal->gDumpNorm) {
+    if (gGlobal->gDumpNorm == 0) {
         cout << ppsig(L6) << endl;
         throw faustexception("Dump normal form finished...\n");
+    } else if (gGlobal->gDumpNorm == 1) {
+        ppsigShared(L6, cout);
+        throw faustexception("Dump shared normal form finished...\n");
     }
     
     startTiming("recursivnessAnnotation");
@@ -146,8 +150,8 @@ Tree ScalarCompiler::prepare(Tree LS)
     typeAnnotation(L6, true);     // Annotate L5 with type information and check causality
     endTiming("L6 typeAnnotation");
     
-    // Check possible still incorrect cast (after typeAnnotation)
-    SignalCastChecker checker(L6);
+    // Check signal tree
+    SignalTreeChecker checker(L6);
     
     startTiming("sharingAnalysis");
     sharingAnalysis(L6);         // Annotate L5 with sharing count

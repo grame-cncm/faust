@@ -28,12 +28,17 @@
 #include "sigIdentity.hh"
 #include "signalVisitor.hh"
 
-// Check a signal for proper SigIntCast and SigFloatCast use.
-// To be used on a type annotated signal.
-class SignalCastChecker final : public SignalVisitor {
+/* Check a signal:
+- for correct extended typing
+- for correct SinBinOp args typing
+- for proper SigIntCast and SigFloatCast use.
+To be used on a type annotated signal.
+*/
+ 
+class SignalTreeChecker final : public SignalVisitor {
     
     public:
-        SignalCastChecker(Tree L)
+    SignalTreeChecker(Tree L)
         {
             while (!isNil(L)) {
                 self(hd(L));
@@ -45,25 +50,6 @@ class SignalCastChecker final : public SignalVisitor {
         void visit(Tree sig) override;
 };
 
-// Check if signal can still be simplified.
-// To be used on a type annotated signal.
-class SignalSimplifyChecker final : public SignalVisitor {
-    
-    public:
-        SignalSimplifyChecker(Tree L)
-        {
-            while (!isNil(L)) {
-                self(hd(L));
-                L = tl(L);
-            }
-        }
-        
-    protected:
-        void visit(Tree sig);
-};
-
-// Public API
-Tree signalSorter(Tree sig, bool trace = false);
 
 //-------------------------SignalPromotion-------------------------------
 // Adds explicit int or float cast when needed. This is needed prior
