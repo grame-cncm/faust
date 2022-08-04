@@ -82,8 +82,7 @@ inline ostream& operator<<(ostream& file, const ppsig& pp)
 class ppsigShared final : public ppsig {
     
     private:
-        map<Tree, string> fSigMap;
-    
+     
         ostream& printinfix(ostream& fout, const string& opname, int priority, Tree x, Tree y) const;
         ostream& printfun(ostream& fout, const string& funame, Tree x) const;
         ostream& printfun(ostream& fout, const string& funame, Tree x, Tree y) const;
@@ -109,7 +108,7 @@ class ppsigShared final : public ppsig {
             // Create a map of <ID, expression>
             stringstream s; s << ppsigShared(L);
             // Print the <ID, expression> list
-            ppsigShared::printIDs(fout);
+            printIDs(fout);
             fout << "process = " << s.str() << ";" << endl;
         }
         ppsigShared(Tree s, Tree env, int priority = 0) : ppsig(s, env, priority) {}

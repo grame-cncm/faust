@@ -294,12 +294,14 @@ ostream& ppsig::print(ostream& fout) const
 }
 
 #define SIG_INSERT_ID(exp) \
-    if (gGlobal->gSignalExpTable.find(fSig) == gGlobal->gSignalExpTable.end()) { \
+    if (gGlobal->gSignalTable.find(fSig) == gGlobal->gSignalTable.end()) { \
         stringstream s; \
         (exp); \
-        gGlobal->gSignalExpTable[fSig] = make_pair(gGlobal->gSignalExpCounter++, s.str()); \
+        gGlobal->gSignalTable[fSig] = make_pair(gGlobal->gSignalCounter, s.str()); \
+        gGlobal->gSignalTrace.push_back("ID_" + std::to_string(gGlobal->gSignalCounter) + " = " + s.str() + ";\n"); \
+        gGlobal->gSignalCounter++;\
     } \
-    fout << "ID_" << gGlobal->gSignalExpTable[fSig].first; \
+    fout << "ID_" << gGlobal->gSignalTable[fSig].first; \
 
 ostream& ppsigShared::printinfix(ostream& fout, const string& opname, int priority, Tree x, Tree y) const
 {
@@ -563,19 +565,7 @@ ostream& ppsigShared::print(ostream& fout) const
 
 void ppsigShared::printIDs(ostream& fout)
 {
-    typedef std::pair<int, std::string> ID_sig;
-    
-    // Put the [ID, sig] pairs in a vector, sort them by ID, then print them
-    struct {
-        bool operator()(ID_sig& a, ID_sig& b) const { return a.first < b.first; }
-    } comp;
-    
-    std::vector<ID_sig> pairs;
-    for (const auto& it : gGlobal->gSignalExpTable) {
-        pairs.push_back(it.second);
-    }
-    std::sort(pairs.begin(), pairs.end(), comp);
-    for (const auto& it : pairs) {
-        fout << "ID_" << it.first << " = " << it.second << ';' << endl;
+    for (const auto& it : gGlobal->gSignalTrace) {
+        fout << it;
     }
 }

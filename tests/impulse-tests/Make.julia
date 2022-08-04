@@ -18,7 +18,7 @@ outdir ?= julia/double
 lang ?= cpp
 ext  ?= o
 arch ?= impulsejulia.jl
-precision ?=		# filesCompare precision (empty by default)
+precision ?=        # filesCompare precision (empty by default)
 FAUSTOPTIONS ?= 
 
 .PHONY: test 
@@ -40,7 +40,7 @@ help:
 	@echo " 'julia' (default): check the double output using the Julia backend"
 	@echo
 	@echo "Options:"
-	@echo " 'outdir' 	   : define the output directory (default to 'soul')"
+	@echo " 'outdir'       : define the output directory (default to 'soul')"
 	@echo " 'FAUSTOPTIONS' : define additional faust options (empty by default)"
     @echo " 'precision'    : define filesCompare expected precision (empty by default)"
 

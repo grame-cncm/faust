@@ -225,7 +225,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     Tree L1 = deBruijn2Sym(LS);
     endTiming("deBruijn2Sym");
     
-    // Annotate L1 with type information, but don't check causality)
+    // Annotate L1 with type information, but don't check causality
     startTiming("L1 typeAnnotation");
     typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
     endTiming("L1 typeAnnotation");

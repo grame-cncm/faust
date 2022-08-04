@@ -228,15 +228,22 @@ struct global {
     // ------------
     
     // Tree is used to identify the same nodes during Box tree traversal,
-    // but gBoxExpCounter is then used to generate unique IDs
-    std::map<Tree, std::pair<int, std::string>> gBoxExpTable;
-    int gBoxExpCounter;
+    // but gBoxCounter is then used to generate unique IDs
+    std::map<Tree, std::pair<int, std::string>> gBoxTable;
+    int gBoxCounter;
+    // To keep the box tree traversing trace
+    std::vector<std::string> gBoxTrace;
     
+    // ------------
+    // ppsigShared
+    // ------------
     // Tree is used to identify the same nodes during Signal tree traversal,
-    // but gSignalExpCounter is then used to generate unique IDs
-    std::map<Tree, std::pair<int, std::string>> gSignalExpTable;
-    int gSignalExpCounter;
-
+    // but gSignalCounter is then used to generate unique IDs
+    std::map<Tree, std::pair<int, std::string>> gSignalTable;
+    int gSignalCounter;
+    // To keep the signal tree traversing trace
+    std::vector<std::string> gSignalTrace;
+   
     int gCountInferences;
     int gCountMaximal;
     int gDummyInput;

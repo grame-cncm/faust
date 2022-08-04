@@ -317,7 +317,7 @@ bool isTree (const Tree& t, const Node& n)
 }
 */
 
-// Si ca ne pose pas de problemes, c'est plus pratique
+// If it's not a problem, it's more practical
 bool isTree(const Tree& t, const Node& n)
 {
     return (t->node() == n);

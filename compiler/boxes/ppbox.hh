@@ -61,6 +61,11 @@ class boxpp : public virtual Garbageable {
         virtual ostream &print(ostream &fout) const;
 };
 
+inline ostream &operator<<(ostream &file, const boxpp &bpp)
+{
+    return bpp.print(file);
+}
+
 // Use a map <ID, expression> to reuse already written expressions.
 // printIDs allow to print the <ID, expression> list before 'process = exp;' final line.
 
@@ -68,16 +73,20 @@ class boxppShared : public boxpp {
   
     public:
         boxppShared(Tree b, int p = 0) : boxpp(b, p) {}
+        boxppShared(Tree L, ostream& fout):boxpp(L)
+        {
+            // Create a map of <ID, expression>
+            stringstream s; s << boxppShared(L);
+            // Print the <ID, expression> list
+            printIDs(fout);
+            fout << "process = " << s.str() << ";" << endl;
+        }
+    
         virtual ~boxppShared() {}
         virtual ostream &print(ostream &fout) const;
     
         static void printIDs(ostream& fout);
 };
-
-inline ostream &operator<<(ostream &file, const boxpp &bpp)
-{
-    return bpp.print(file);
-}
 
 // environment pretty printer.
 // usage : out << envpp(aEnvExp);

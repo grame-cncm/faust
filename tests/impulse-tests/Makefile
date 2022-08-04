@@ -85,6 +85,7 @@ help:
 	@echo " 'web'       : call the wast/wasm targets"
 	@echo " 'reference' : builds the reference files"
 	@echo " 'reference-signal' : builds the reference signal files"
+	@echo " 'reference-box' : builds the reference box files"
 	@echo " 'tools'     : builds binary tools used by the tests"
 	@echo
 	@echo "Experimental targets:"
@@ -370,8 +371,11 @@ ir/mute:
 reference:
 	$(MAKE) -f Make.ref
 
+reference-box:
+	$(MAKE) -f Make.ref reference-box         FAUSTOPTIONS="-I dsp"
+
 reference-signal:
-	$(MAKE) -f Make.ref reference-signal
+	$(MAKE) -f Make.ref reference-signal      FAUSTOPTIONS="-I dsp"
 
 tools: filesCompare impulsellvm impulseinterp impulseinterp1
 

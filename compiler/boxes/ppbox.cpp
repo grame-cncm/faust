@@ -379,12 +379,14 @@ ostream& boxpp::print(ostream& fout) const
 }
 
 #define BOX_INSERT_ID(exp) \
-    if (gGlobal->gBoxExpTable.find(fBox) == gGlobal->gBoxExpTable.end()) { \
+    if (gGlobal->gBoxTable.find(fBox) == gGlobal->gBoxTable.end()) { \
         stringstream s; \
         (exp); \
-        gGlobal->gBoxExpTable[fBox] = make_pair(gGlobal->gBoxExpCounter++, s.str()); \
+        gGlobal->gBoxTable[fBox] = make_pair(gGlobal->gBoxCounter, s.str()); \
+        gGlobal->gBoxTrace.push_back("ID_" + std::to_string(gGlobal->gBoxCounter) + " = " + s.str() + ";\n"); \
+        gGlobal->gBoxCounter++;\
     } \
-    fout << "ID_" << gGlobal->gBoxExpTable[fBox].first; \
+    fout << "ID_" << gGlobal->gBoxTable[fBox].first; \
 
 ostream& boxppShared::print(ostream& fout) const
 {
@@ -438,7 +440,7 @@ ostream& boxppShared::print(ostream& fout) const
         BOX_INSERT_ID(s << boxppShared(body) << " with { " << envpp(ldef) << " }");
     // Foreign elements
     } else if (isBoxFFun(fBox, ff)) {
-        if (gGlobal->gBoxExpTable.find(fBox) == gGlobal->gBoxExpTable.end()) {
+        if (gGlobal->gBoxTable.find(fBox) == gGlobal->gBoxTable.end()) {
             stringstream s;
                 
             s << "ffunction(" << type2str(ffrestype(ff));
@@ -456,10 +458,12 @@ ostream& boxppShared::print(ostream& fout) const
             s << ')';
             s << ',' << ffincfile(ff) << ',' << fflibfile(ff) << ')';
             
-            gGlobal->gBoxExpTable[fBox] = make_pair(gGlobal->gBoxExpCounter++, s.str());
+            gGlobal->gBoxTable[fBox] = make_pair(gGlobal->gBoxCounter, s.str());
+            gGlobal->gBoxTrace.push_back("ID_" + std::to_string(gGlobal->gBoxCounter) + " = " + s.str() + "\n");
+            gGlobal->gBoxCounter++;
         }
-        // gGlobal->gBoxExpCounter used a ID
-        fout << "ID_" << gGlobal->gBoxExpTable[fBox].first;
+        // gGlobal->gBoxCounter used a ID
+        fout << "ID_" << gGlobal->gBoxTable[fBox].first;
     } else if (isBoxFConst(fBox, type, name, file)) {
         BOX_INSERT_ID(s << "fconstant(" << type2str(tree2int(type)) << ' ' << tree2str(name) << ", " << tree2str(file) << ')');
     } else if (isBoxFVar(fBox, type, name, file)) {
@@ -519,7 +523,7 @@ ostream& boxppShared::print(ostream& fout) const
     else if (isNil(fBox)) {
         fout << "()";
     } else if (isList(fBox)) {
-        if (gGlobal->gBoxExpTable.find(fBox) == gGlobal->gBoxExpTable.end()) {
+        if (gGlobal->gBoxTable.find(fBox) == gGlobal->gBoxTable.end()) {
             stringstream s;
             Tree l   = fBox;
             char sep = '(';
@@ -531,12 +535,14 @@ ostream& boxppShared::print(ostream& fout) const
             } while (isList(l));
             
             s << ')';
-            gGlobal->gBoxExpTable[fBox] = make_pair(gGlobal->gBoxExpCounter++, s.str());
+            gGlobal->gBoxTable[fBox] = make_pair(gGlobal->gBoxCounter, s.str());
+            gGlobal->gBoxTrace.push_back("ID_" + std::to_string(gGlobal->gBoxCounter) + " = " + s.str() + "\n");
+            gGlobal->gBoxCounter++;
         }
-        // gGlobal->gBoxExpCounter used a ID
-        fout << "ID_" << gGlobal->gBoxExpTable[fBox].first;
+        // gGlobal->gBoxCounter used a ID
+        fout << "ID_" << gGlobal->gBoxTable[fBox].first;
     } else if (isBoxWaveform(fBox)) {
-        if (gGlobal->gBoxExpTable.find(fBox) == gGlobal->gBoxExpTable.end()) {
+        if (gGlobal->gBoxTable.find(fBox) == gGlobal->gBoxTable.end()) {
             stringstream s;
             s << "waveform";
             char sep = '{';
@@ -545,10 +551,12 @@ ostream& boxppShared::print(ostream& fout) const
                 sep = ',';
             }
             s << '}';
-            gGlobal->gBoxExpTable[fBox] = make_pair(gGlobal->gBoxExpCounter++, s.str());
+            gGlobal->gBoxTable[fBox] = make_pair(gGlobal->gBoxCounter, s.str());
+            gGlobal->gBoxTrace.push_back("ID_" + std::to_string(gGlobal->gBoxCounter) + " = " + s.str() + "\n");
+            gGlobal->gBoxCounter++;
         }
-        // gGlobal->gBoxExpCounter used a ID
-        fout << "ID_" << gGlobal->gBoxExpTable[fBox].first;
+        // gGlobal->gBoxCounter used a ID
+        fout << "ID_" << gGlobal->gBoxTable[fBox].first;
     } else if (isBoxEnvironment(fBox)) {
         fout << "environment";
     } else if (isClosure(fBox, abstr, genv, vis, lenv)) {
@@ -612,8 +620,8 @@ ostream& boxppShared::print(ostream& fout) const
 
 void boxppShared::printIDs(ostream& fout)
 {
-    for (const auto& it : gGlobal->gBoxExpTable) {
-        fout << "ID_" << it.second.first << " = " << it.second.second << ';' << endl;
+    for (const auto& it : gGlobal->gBoxTrace) {
+        fout << it;
     }
 }
 

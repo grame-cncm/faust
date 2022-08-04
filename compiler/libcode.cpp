@@ -2099,13 +2099,7 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     }
 
     printDeclareHeader(out);
-    
-    // Create a map of <ID, expression>
-    stringstream s;
-    s << boxppShared(gGlobal->gProcessTree);
-    // Print the <ID, expression> list
-    boxppShared::printIDs(out);
-    out << "process = " << s.str() << ";" << endl;
+    boxppShared(gGlobal->gProcessTree, out);
     
     return out.str();
 }
