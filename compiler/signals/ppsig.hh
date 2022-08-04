@@ -98,7 +98,6 @@ class ppsigShared final : public ppsig {
         ostream& printui(ostream& fout, const string& funame, Tree label) const;
         ostream& printui(ostream& fout, const string& funame, Tree label, Tree lo, Tree hi, Tree step) const;
         ostream& printui(ostream& fout, const string& funame, Tree label, Tree cur, Tree lo, Tree hi, Tree step) const;
-        ostream& printlabel(ostream& fout, Tree pathname) const;
         ostream& printDelay(ostream& fout, Tree exp, Tree delay) const;
     
     public:

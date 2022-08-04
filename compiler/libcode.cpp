@@ -2056,6 +2056,25 @@ static void generateOutputFiles()
     }
 }
 
+static void expandDSPInternalAux(int argc, const char* argv[], ostream& out)
+{
+    // Encode compilation options as a 'declare' : has to be located first in the string
+    out << "declare version \"" << FAUSTVERSION << "\";" << endl;
+    out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
+    
+    // Encode all libraries paths as 'declare'
+    vector<string> pathnames = gGlobal->gReader.listSrcFiles();
+    // Remove DSP filename
+    pathnames.erase(pathnames.begin());
+    int i = 0;
+    for (const auto& it : pathnames) {
+        out << "declare library_path" << to_string(i++) << " \"" << it << "\";" << endl;
+    }
+    
+    printDeclareHeader(out);
+    boxppShared(gGlobal->gProcessTree, out);
+}
+
 static string expandDSPInternal(int argc, const char* argv[], const char* name, const char* dsp_content)
 {
     /****************************************************************
@@ -2083,24 +2102,9 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     if (!gGlobal->gProcessTree) {
         throw faustexception(gGlobal->gErrorMessage);
     }
-
-    // Encode compilation options as a 'declare' : has to be located first in the string
-    stringstream out;
-    out << "declare version \"" << FAUSTVERSION << "\";" << endl;
-    out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
-
-    // Encode all libraries paths as 'declare'
-    vector<string> pathnames = gGlobal->gReader.listSrcFiles();
-    // Remove DSP filename
-    pathnames.erase(pathnames.begin());
-    int i = 0;
-    for (const auto& it : pathnames) {
-        out << "declare library_path" << to_string(i++) << " \"" << it << "\";" << endl;
-    }
-
-    printDeclareHeader(out);
-    boxppShared(gGlobal->gProcessTree, out);
     
+    stringstream out;
+    expandDSPInternalAux(argc, argv, out);
     return out.str();
 }
 
@@ -2225,37 +2229,13 @@ static void createFactoryAux(const char* name, const char* dsp_content, int argc
     if (!gGlobal->gProcessTree) {
         throw faustexception(gGlobal->gErrorMessage);
     }
-    Tree process    = gGlobal->gProcessTree;
-    int  numInputs  = gGlobal->gNumInputs;
-    int  numOutputs = gGlobal->gNumOutputs;
-
-    if (gGlobal->gExportDSP) {
-        string outpath =
-            (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
-        ofstream out(outpath.c_str());
    
-        // Encode compilation options as a 'declare' : has to be located first in the string
-        out << "declare version \"" << FAUSTVERSION << "\";" << endl;
-        out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
-    
-        // Encode all libraries paths as 'declare'
-        vector<string> pathnames = gGlobal->gReader.listSrcFiles();
-        // Remove DSP filename
-        pathnames.erase(pathnames.begin());
-        int i = 0;
-        for (const auto& it : pathnames) {
-            out << "declare library_path" << to_string(i++) << " \"" << it << "\";" << endl;
-        }
-
-        printDeclareHeader(out);
-        
-        // Create a map of <ID, expression>
-        stringstream s;
-        s << boxppShared(process);
-        // Print the <ID, expression> list
-        boxppShared::printIDs(out);
-        out << "process = " << s.str() << ';' << endl;
-        
+    if (gGlobal->gExportDSP) {
+        string outpath = (gGlobal->gOutputDir != "")
+            ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile)
+            : gGlobal->gOutputFile;
+        ofstream out(outpath.c_str());
+        expandDSPInternalAux(argc, argv, out);
         return;
     }
 
@@ -2281,6 +2261,8 @@ static void createFactoryAux(const char* name, const char* dsp_content, int argc
     /*************************************************************************
     5 - preparation of the signal tree and translate output signals
     **************************************************************************/
+    int numInputs  = gGlobal->gNumInputs;
+    int numOutputs = gGlobal->gNumOutputs;
     generateCode(lsignals, numInputs, numOutputs, generate);
 
     /****************************************************************

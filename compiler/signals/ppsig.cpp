@@ -100,12 +100,13 @@ ostream& ppsig::printout(ostream& fout, int i, Tree x) const
 
 ostream& ppsig::printlabel(ostream& fout, Tree pathname) const
 {
-    fout << *hd(pathname);
+    fout << '"' << *hd(pathname);
     pathname = tl(pathname);
     while (!isNil(pathname)) {
         fout << '/' << *tl(hd(pathname));
         pathname = tl(pathname);
     }
+    fout << '"';
     return fout;
 }
 
@@ -365,17 +366,6 @@ ostream& ppsigShared::printout(ostream& fout, int i, Tree x) const
     if (fPriority > 0) fout << "(";
     fout << "OUT" << i << " = " << ppsigShared(x, fEnv, 0);
     if (fPriority > 0) fout << ")";
-    return fout;
-}
-
-ostream& ppsigShared::printlabel(ostream& fout, Tree pathname) const
-{
-    fout << *hd(pathname);
-    pathname = tl(pathname);
-    while (!isNil(pathname)) {
-        fout << '/' << *tl(hd(pathname));
-        pathname = tl(pathname);
-    }
     return fout;
 }
 
