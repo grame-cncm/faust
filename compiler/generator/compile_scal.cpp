@@ -121,65 +121,61 @@ Tree ScalarCompiler::prepare(Tree LS)
     Tree L4 = castPromote(L3);
     endTiming("Cast and Promotion");
     
-    startTiming("Constant propagation");
-    Tree L5 = constantPropagation(L4);
-    endTiming("Constant propagation");
-    
     startTiming("privatise");
-    Tree L6 = privatise(L5);  // Un-share tables with multiple writers
+    Tree L5 = privatise(L4);  // Un-share tables with multiple writers
     endTiming("privatise");
     
     startTiming("conditionAnnotation");
-    conditionAnnotation(L6);
+    conditionAnnotation(L5);
     endTiming("conditionAnnotation");
     
     // dump normal form
     if (gGlobal->gDumpNorm == 0) {
-        cout << ppsig(L6) << endl;
+        cout << ppsig(L5) << endl;
         throw faustexception("Dump normal form finished...\n");
     } else if (gGlobal->gDumpNorm == 1) {
-        ppsigShared(L6, cout);
+        ppsigShared(L5, cout);
         throw faustexception("Dump shared normal form finished...\n");
     }
     
     startTiming("recursivnessAnnotation");
-    recursivnessAnnotation(L6);  // Annotate L5 with recursivness information
+    recursivnessAnnotation(L5);  // Annotate L5 with recursivness information
     endTiming("recursivnessAnnotation");
     
-    startTiming("L6 typeAnnotation");
-    typeAnnotation(L6, true);     // Annotate L5 with type information and check causality
-    endTiming("L6 typeAnnotation");
-    
-    // Check signal tree
-    SignalTreeChecker checker(L6);
+    startTiming("L5 typeAnnotation");
+    typeAnnotation(L5, true);     // Annotate L5 with type information and check causality
+    endTiming("L5 typeAnnotation");
     
     startTiming("sharingAnalysis");
-    sharingAnalysis(L6);         // Annotate L5 with sharing count
+    sharingAnalysis(L5);         // Annotate L5 with sharing count
     endTiming("sharingAnalysis");
+    
+    // Check signal tree
+    SignalTreeChecker checker(L5);
     
     startTiming("occurrences analysis");
     delete fOccMarkup;
     fOccMarkup = new old_OccMarkup(fConditionProperty);
-    fOccMarkup->mark(L6);        // Annotate L5 with occurrences analysis
+    fOccMarkup->mark(L5);        // Annotate L5 with occurrences analysis
     endTiming("occurrences analysis");
     
     endTiming("prepare");
     
     if (gGlobal->gDrawSignals) {
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
-        sigToGraph(L6, dotfile);
+        sigToGraph(L5, dotfile);
     }
     
     // Generate VHDL if -vhdl option is set
     if (gGlobal->gVHDLSwitch) {
         Signal2VHDLVisitor V(fOccMarkup);
         ofstream vhdl_file(subst("faust.vhd", gGlobal->makeDrawPath()).c_str());
-        V.sigToVHDL(L6, vhdl_file);
+        V.sigToVHDL(L5, vhdl_file);
         V.trace(gGlobal->gVHDLTrace, "VHDL");  // activate with --trace option
-        V.mapself(L6);
+        V.mapself(L5);
     }
     
-    return L6;
+    return L5;
 }
 
 Tree ScalarCompiler::prepare2(Tree L0)
@@ -643,15 +639,6 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
         // special handling for division, we always want a float division
         Type t1 = getCertifiedSigType(arg1);
         Type t2 = getCertifiedSigType(arg2);
-
-        interval j = t2->getInterval();
-
-        if (j.haszero()) {
-            // potential division by zero
-            // interval    i = t1->getInterval();
-            // std::cerr << "WARNING : potential division by zero (" << i << "/" << j << ") in " << ppsig(sig) <<
-            // std::endl;
-        }
 
         if (t1->nature() == kInt && t2->nature() == kInt) {
             return generateCacheCode(sig, subst("($3($0) $1 $3($2))", c1, gBinOpTable[opcode]->fName, c2, ifloat()));

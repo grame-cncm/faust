@@ -37,7 +37,7 @@ void SignalTreeChecker::visit(Tree sig)
     SignalVisitor::visit(sig);
   
     int opnum;
-    Tree x, y;
+    Tree x, y, sel, sf, chan, part, ridx;
     
     // Extended
     xtended* p = (xtended*)getUserData(sig);
@@ -62,6 +62,17 @@ void SignalTreeChecker::visit(Tree sig)
             cerr << "ERROR : isSigBinOp of args with different types : " << *sig << endl;
             faustassert(false);
         }
+    } else if (isSigSelect2(sig, sel, x, y )) {
+        if (getCertifiedSigType(sel)->nature() != kInt) {
+            cerr << "ERROR : isSigSelect2 with wrong typed selector : " << *sig << endl;
+            faustassert(false);
+        }
+    
+    } else if (isSigDelay(sig, x, y)) {
+        if (getCertifiedSigType(y)->nature() != kInt) {
+            cerr << "ERROR : isSigDelay with a wrong typed delay : " << *sig << endl;
+            faustassert(false);
+        }
         
     } else if (isSigIntCast(sig, x)) {
         if (getCertifiedSigType(x)->nature() == kInt) {
@@ -72,6 +83,28 @@ void SignalTreeChecker::visit(Tree sig)
     } else if (isSigFloatCast(sig, x)) {
         if (getCertifiedSigType(x)->nature() == kReal) {
             cerr << "ERROR : isSigFloatCast of a kReal signal : " << *sig << endl;
+            faustassert(false);
+        }
+        
+    } else if (isSigSoundfileLength(sig, sf, part)) {
+        if (getCertifiedSigType(part)->nature() != kInt) {
+            cerr << "ERROR : isSigSoundfileLength with a wrong typed part : " << *sig << endl;
+            faustassert(false);
+        }
+        
+    } else if (isSigSoundfileRate(sig, sf, part)) {
+        if (getCertifiedSigType(part)->nature() != kInt) {
+            cerr << "ERROR : isSigSoundfileRate with a wrong typed part : " << *sig << endl;
+            faustassert(false);
+        }
+        
+    } else if (isSigSoundfileBuffer(sig, sf, chan, part, ridx)) {
+        if (getCertifiedSigType(part)->nature() != kInt) {
+            cerr << "ERROR : isSigSoundfileBuffer with a wrong typed part : " << *sig << endl;
+            faustassert(false);
+        }
+        if (getCertifiedSigType(ridx)->nature() != kInt) {
+            cerr << "ERROR : isSigSoundfileBuffer with a wrong typed ridx : " << *sig << endl;
             faustassert(false);
         }
     }

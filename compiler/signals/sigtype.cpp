@@ -476,7 +476,7 @@ static Tree codeTupletType(TupletType* nt)
     return CTree::make(gGlobal->TUPLETTYPE, elems);
 }
 
-AudioType* makeTupletType(const vector<Type>& vt)
+AudioType* makeTupletType(ConstTypes vt)
 {
     TupletType prototype(vt);
     Tree       code = codeAudioType(&prototype);
@@ -493,7 +493,7 @@ AudioType* makeTupletType(const vector<Type>& vt)
     }
 }
 
-AudioType* makeTupletType(const vector<Type>& vt, int n, int v, int c, int vec, int b, const interval& i)
+AudioType* makeTupletType(ConstTypes vt, int n, int v, int c, int vec, int b, const interval& i)
 {
     TupletType prototype(vt, n, v, c, vec, b, i);
     Tree       code = codeAudioType(&prototype);

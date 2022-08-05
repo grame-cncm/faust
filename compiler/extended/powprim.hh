@@ -42,7 +42,7 @@ class PowPrim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual Type infereSigType(const vector<Type>& args)
+    virtual Type infereSigType(ConstTypes args)
     {
         faustassert(args.size() == arity());
 
@@ -135,8 +135,7 @@ class PowPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
-                                    ConstTypes types)
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

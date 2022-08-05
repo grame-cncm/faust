@@ -61,8 +61,7 @@ class ExpPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
-                                    vector< ::Type> const& types)
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

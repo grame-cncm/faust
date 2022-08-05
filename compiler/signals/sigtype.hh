@@ -77,6 +77,7 @@ using namespace std;
 class AudioType;
 
 typedef P<AudioType> Type;
+typedef const vector<Type>& ConstTypes;
 
 /**
  * The Root class for all audio data types.
@@ -142,7 +143,7 @@ inline ostream& operator<<(ostream& s, const AudioType& n)
 /**
  * Return the nature of a vector of types.
  */
-inline int mergenature(const vector<Type>& v)
+inline int mergenature(ConstTypes v)
 {
     int r = 0;
     for (unsigned int i = 0; i < v.size(); i++) r |= v[i]->nature();
@@ -152,7 +153,7 @@ inline int mergenature(const vector<Type>& v)
 /**
  * Return the variability of a vector of types.
  */
-inline int mergevariability(const vector<Type>& v)
+inline int mergevariability(ConstTypes v)
 {
     int r = 0;
     for (unsigned int i = 0; i < v.size(); i++) r |= v[i]->variability();
@@ -162,7 +163,7 @@ inline int mergevariability(const vector<Type>& v)
 /**
  * Return the computability of a vector of types.
  */
-inline int mergecomputability(const vector<Type>& v)
+inline int mergecomputability(ConstTypes v)
 {
     int r = 0;
     for (unsigned int i = 0; i < v.size(); i++) r |= v[i]->computability();
@@ -172,7 +173,7 @@ inline int mergecomputability(const vector<Type>& v)
 /**
  * Return the vectorability of a vector of types.
  */
-inline int mergevectorability(const vector<Type>& v)
+inline int mergevectorability(ConstTypes v)
 {
     int r = 0;
     for (unsigned int i = 0; i < v.size(); i++) r |= v[i]->vectorability();
@@ -182,7 +183,7 @@ inline int mergevectorability(const vector<Type>& v)
 /**
  * Return the booleanity of a vector of types.
  */
-inline int mergeboolean(const vector<Type>& v)
+inline int mergeboolean(ConstTypes v)
 {
     int r = 0;
     for (unsigned int i = 0; i < v.size(); i++) r |= v[i]->boolean();
@@ -192,7 +193,7 @@ inline int mergeboolean(const vector<Type>& v)
 /**
  * Return the interval of a vector of types.
  */
-inline interval mergeinterval(const vector<Type>& v)
+inline interval mergeinterval(ConstTypes v)
 {
     if (v.size() == 0) {
         return interval();
@@ -220,8 +221,8 @@ AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i
 AudioType* makeTableType(const Type& ct);
 AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec, int b, const interval& i);
 
-AudioType* makeTupletType(const vector<Type>& vt);
-AudioType* makeTupletType(const vector<Type>& vt, int n, int v, int c, int vec, int b, const interval& i);
+AudioType* makeTupletType(ConstTypes vt);
+AudioType* makeTupletType(ConstTypes vt, int n, int v, int c, int vec, int b, const interval& i);
 
 /**
  * The type of a simple numeric audio signal.
@@ -395,14 +396,14 @@ class TupletType : public AudioType {
    public:
     TupletType() : AudioType(0, 0, 0) {}
 
-    TupletType(const vector<Type>& vt)
+    TupletType(ConstTypes vt)
         : AudioType(mergenature(vt), mergevariability(vt), mergecomputability(vt), mergevectorability(vt),
                     mergeboolean(vt), mergeinterval(vt)),
           fComponents(vt)
     {
     }
 
-    TupletType(const vector<Type>& vt, int n, int v, int c, int vec, int b, const interval& i)
+    TupletType(ConstTypes vt, int n, int v, int c, int vec, int b, const interval& i)
         : AudioType(n | mergenature(vt), v | mergevariability(vt), c | mergecomputability(vt),
                     vec | mergevectorability(vt), b | mergeboolean(vt), i),
           fComponents(vt)

@@ -200,7 +200,7 @@ void VectorCodeContainer::processFIR(void)
 
     /*
      Possibly remove LoadVarAddress. The remover has to be shared between
-     fComputeBlockInstructions and fDAGBlock, so a *unique* one is defined.
+     fComputeBlockInstructions and fDAGBlock, so a *unique* one is defined here.
     */
     VarAddressRemover remover;
     if (gGlobal->gRemoveVarAddress) {
@@ -237,7 +237,7 @@ void VectorCodeContainer::processFIR(void)
     global_block->accept(&verifier);
 
     if (verifier.fError) {
-        //throw faustexception("Incorrect FIR code\n");
+        throw faustexception("Incorrect FIR code\n");
     }
     */
 }

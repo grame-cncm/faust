@@ -626,9 +626,9 @@ LIBFAUST_API tvec boxesToSignals(Box box, std::string& error_msg);
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
-LIBFAUST_API  dsp_factory_base* createCPPDSPFactoryFromBoxes(const std::string& name_app, Box box,
-                                                             int argc, const char* argv[],
-                                                             std::string& error_msg);
+LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromBoxes(const std::string& name_app, Box box,
+                                                            int argc, const char* argv[],
+                                                            std::string& error_msg);
 
 /*
  [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions

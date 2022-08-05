@@ -119,7 +119,6 @@ typedef list<ValueInst*> Values;
 typedef list<ValueInst*>::const_iterator ValuesIt;
 typedef list<NamedTyped*> Names;
 typedef list<NamedTyped*>::const_iterator NamesIt;
-typedef const vector<::Type>& ConstTypes;
 
 // Type checking
 

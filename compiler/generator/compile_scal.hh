@@ -94,13 +94,6 @@ class ScalarCompiler : public Compiler {
     void   conditionStatistics(Tree l);
     string getConditionCode(Tree t);
 
-    // signal drawing
-    /*
-    SL : 28/09/17 : deactivated for now
-    void sigToGraph(Tree sig, ofstream& fout);
-    void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout);
-    */
-
     // code generation
 
     string         generateXtended(Tree sig);

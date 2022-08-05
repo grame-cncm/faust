@@ -35,6 +35,13 @@
 
 class CodeContainer;
 
+/*
+ Base class for math primitives:
+ - most of them have same args and result type, except 'pow' which can have different value and exponent types
+ - max/min, abs/fabs have polymorphic kInt/kReal versions
+ - some of them have optimized versions for specific arguments (like 'pow') or with gMathApprox (experimental)
+ */
+
 class xtended : public virtual Garbageable {
    private:
     Symbol* fSymbol;  ///< the symbol the xtended is attached to
@@ -46,6 +53,7 @@ class xtended : public virtual Garbageable {
     Sym         symbol() { return fSymbol; }
     const char* name() { return ::name(fSymbol); }
 
+    // Create the box
     Tree box()
     {
         Tree b = tree(fSymbol);
@@ -56,17 +64,16 @@ class xtended : public virtual Garbageable {
     // virtual method to be implemented by subclasses
     virtual unsigned int arity() = 0;
 
+    // FIR backends
     virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type rtype, ConstTypes types) = 0;
-
-    // SL : 28/09/17
     // Old CPP backend
-    virtual string generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types) = 0;
+    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types) = 0;
 
     virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types) = 0;
     virtual int    infereSigOrder(const vector<int>& args)                                               = 0;
-    virtual ::Type infereSigType(const vector< ::Type>& args)                                            = 0;
+    virtual ::Type infereSigType(ConstTypes args)                                                       = 0;
     virtual Tree   computeSigOutput(const vector<Tree>& args)                                            = 0;
-    virtual bool   needCache()                                                                           = 0;
+    virtual bool   needCache()                                                                          = 0;
 
     virtual bool isSpecialInfix()
     {
@@ -87,6 +94,7 @@ inline bool comparable(double x, double y)
     return fabs(x - y) < 0.00001;
 }
 
+// Casting operations
 inline ValueInst* promote2real(int type, ValueInst* val)
 {
     return (type == kReal) ? val : InstBuilder::genCastRealInst(val);

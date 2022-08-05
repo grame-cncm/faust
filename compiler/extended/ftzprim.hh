@@ -57,7 +57,7 @@ class FtzPrim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual Type infereSigType(const vector<Type>& types)
+    virtual Type infereSigType(ConstTypes types)
     {
         faustassert(types.size() == arity());
         return types[0];
@@ -85,8 +85,7 @@ class FtzPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
-                                    ConstTypes types)
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

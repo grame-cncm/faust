@@ -52,8 +52,7 @@ class Atan2Prim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result,
-                                    ConstTypes types)
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -61,7 +60,7 @@ class Atan2Prim : public xtended {
         return generateFun(container, subst("atan2$0", isuffix()), args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
+    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

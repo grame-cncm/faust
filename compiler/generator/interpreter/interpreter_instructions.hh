@@ -240,7 +240,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
 
     virtual void visit(AddSoundfileInst* inst)
     {
-        MemoryDesc tmp = fFieldTable[inst->fSFZone];
         fUserInterfaceBlock->push(
             new FIRUserInterfaceInstruction<REAL>(FBCInstruction::kAddSoundfile, inst->fSFZone, inst->fLabel, inst->fURL));
     }
