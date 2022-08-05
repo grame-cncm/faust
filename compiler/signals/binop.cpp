@@ -237,3 +237,11 @@ bool isShiftOpcode(int o)
 {
     return (o >= kLsh && o <= kARsh);
 }
+
+const char* BinOp::getString(int op)
+{
+    static const char* table[] = { "kAdd", "kSub", "kMul", "kDiv", "kRem", "kLsh", "kARsh", "kLRsh", "kGT", "kLT", "kGE", "kLE", "kEQ", "kNE", "kAND", "kOR", "kXOR" };
+    
+    faustassert(op >= kAdd && op <= kXOR);
+    return table[op];
+}

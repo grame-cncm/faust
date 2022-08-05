@@ -208,6 +208,9 @@ struct BinOp {
     bool isLeftNeutral(const Node& a) { return fLeftNeutral(a); }
     bool isLeftAbsorbing(const Node& a) { return fLeftAbsorbing(a); }
     bool isRightAbsorbing(const Node& a) { return fRightAbsorbing(a); }
+    
+    static const char* getString(int op);
+
 };
 
 extern BinOp* gBinOpTable[];
@@ -219,5 +222,6 @@ bool isBoolOpcode(int o);
 bool isLogicalOpcode(int o);
 bool isShiftOpcode(int o);
 bool isCommutativeOpcode(int o);
+
 
 #endif

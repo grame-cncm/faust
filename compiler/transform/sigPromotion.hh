@@ -40,6 +40,9 @@ class SignalTreeChecker final : public SignalVisitor {
     public:
     SignalTreeChecker(Tree L)
         {
+            // Check that the root tree is properly type annotated
+            getCertifiedSigType(L);
+    
             while (!isNil(L)) {
                 self(hd(L));
                 L = tl(L);

@@ -22,6 +22,12 @@
 #ifndef _SIMPLIFY_
 #define _SIMPLIFY_
 
+/*
+ * Simplify a signal.
+ *
+ * Note that the resulting tree will possibly contain incorrectly
+ * promoted subtrees that have to be processed using castPromote.
+ */
 Tree simplify(Tree sig);
 
 Tree docTableConvertion(Tree sig);

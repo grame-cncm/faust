@@ -109,13 +109,19 @@ static Tree simplification(Tree sig)
 
         else if (opnum == kSub && isZero(n1))
             return sigBinOp(kMul, sigInt(-1), t2);
-     
+       
         else if (op->isLeftNeutral(n1))
             return t2;
-
+        
+        else if (op->isLeftAbsorbing(n1)) 
+            return t1;
+     
         else if (op->isRightNeutral(n2))
             return t1;
-
+        
+        else if (op->isRightAbsorbing(n2))
+            return t2;
+      
         else
             return normalizeAddTerm(sig);
 

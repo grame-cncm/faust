@@ -283,7 +283,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     endTiming("sharingAnalysis");
     
     // Check signal tree
-    SignalTreeChecker checker1(L6);
+    SignalTreeChecker checker(L6);
     
     startTiming("occurrences analysis");
     delete fOccMarkup;
