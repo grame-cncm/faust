@@ -84,11 +84,11 @@ help:
 	@echo " 'travis'            : tests subset for travis"
 	@echo " 'web'               : call the wast/wasm targets"
 	@echo " 'reference'         : builds the reference files"
-	@echo " 'reference-signal'  : builds the reference signal files"
 	@echo " 'reference-box'     : builds the reference box files"
+	@echo " 'reference-signal'  : builds the reference signal files"
+	@echo " 'test-box'          : test box creation intermediate step"
+	@echo " 'test-signal'       : test signal creation intermediate step"
 	@echo " 'tools'             : builds binary tools used by the tests"
-	@echo " 'test-box'          : test Box creation intermediate step"
-	@echo " 'test-signal'       : test Signal creation intermediate step"
 	
 	@echo
 	@echo "Experimental targets:"

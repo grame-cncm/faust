@@ -15,7 +15,7 @@ declare music_lib_license "LGPL with exception";
 declare music_lib_name "Music Library";
 declare music_lib_version "1.0";
 declare name "osc_enable";
-ID_0 = waveform{1,0.5f,0,0,0,0,-0.5f,-1,-0.5f,0,0,0,0}
+ID_0 = waveform{1,0.5f,0,0,0,0,-0.5f,-1,-0.5f,0,0,0,0};
 ID_1 = !, _;
 ID_2 = (ID_0 : ID_1);
 ID_3 = _, 1;

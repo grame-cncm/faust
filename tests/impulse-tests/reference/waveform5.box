@@ -2,7 +2,7 @@ declare version "2.44.4";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/waveform5.dsp -o reference/waveform5.box";
 declare filename "waveform5.dsp";
 declare name "waveform5";
-ID_0 = waveform{10,20,30,40,50}
+ID_0 = waveform{10,20,30,40,50};
 ID_1 = hslider("value", 0.0f, 0.0f, 1.0f, 0.01f);
 ID_2 = 4, ID_1;
 ID_3 = ID_2 : *;

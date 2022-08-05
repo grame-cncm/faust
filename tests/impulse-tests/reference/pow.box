@@ -2,7 +2,7 @@ declare version "2.44.4";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/pow.dsp -o reference/pow.box";
 declare filename "pow.dsp";
 declare name "pow";
-ID_0 = waveform{0.10000000000000001f,0.56000000000000005f,1.3f,8.9000000000000004f}
+ID_0 = waveform{0.10000000000000001f,0.56000000000000005f,1.3f,8.9000000000000004f};
 ID_1 = !, _;
 ID_2 = (ID_0 : ID_1);
 ID_3 = ID_2, 3;

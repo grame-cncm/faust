@@ -2,7 +2,7 @@ declare version "2.44.4";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/waveform2.dsp -o reference/waveform2.box";
 declare filename "waveform2.dsp";
 declare name "waveform2";
-ID_0 = waveform{10,20,30,40,50,60,70}
+ID_0 = waveform{10,20,30,40,50,60,70};
 ID_1 = _, 7;
 ID_2 = (ID_1 : %);
 ID_3 = _, 3;
