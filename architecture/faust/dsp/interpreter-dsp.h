@@ -185,7 +185,7 @@ LIBFAUST_API interpreter_dsp_factory* createInterpreterDSPFactoryFromString(cons
  * It has to be used with the signal API defined in libfaust-signal.h.
  *
  * @param name_app - the name of the Faust program
- * @param signals - the vector of output signals
+ * @param signals - the vector of output signals (that will internally be converted in normal form, see simplifyToNormalForm in libfaust-signal.h)
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled

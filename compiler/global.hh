@@ -270,6 +270,7 @@ struct global {
     Tree NULLTYPEENV;
     Tree RECDEF;
     Tree DEBRUIJN2SYM;
+    Tree NORMALFORM;
     Tree DEFNAMEPROPERTY;
     Tree NICKNAMEPROPERTY;
     Tree BCOMPLEXITY;  // Node used for memoization purposes

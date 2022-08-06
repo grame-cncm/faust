@@ -960,3 +960,16 @@ Tree listConvert(const siglist& a)
     while (n--) t = cons(a[n], t);
     return t;
 }
+
+/*
+* Convert a Tree in stl vector of signals
+*/
+siglist treeConvert(Tree t)
+{
+    siglist res;
+    while (!isNil(t)) {
+        res.push_back(hd(t));
+        t = tl(t);
+    }
+    return res;
+}

@@ -512,6 +512,19 @@ extern "C"
     LIBFAUST_API bool CisSigSoundfileRate(Signal s, Signal* sf, Signal* part);
     LIBFAUST_API bool CisSigSoundfileBuffer(Signal s, Signal* sf, Signal* chan, Signal* part, Signal* ridx);
     
+    /**
+     *  Simplify a signal to its normal form, where:
+     *  - all possible optimisations, simplications, and compile time computations have been done
+     *  - the mathematical functions (primitives and binary functions), delay, select2, sounfile primitive...
+     *  are properly typed (arguments and result)
+     *  - signal cast are properly done when needed
+     *
+     * @param s - the signal to be processed
+     *
+     * @return the signal in normal form.
+     */
+    LIBFAUST_API Signal CsimplifyToNormalForm(Signal s);
+
     /*
      [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions
      [2] Label definition : https://faustdoc.grame.fr/manual/syntax/#variable-parts-of-a-label

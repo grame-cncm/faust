@@ -364,4 +364,9 @@ bool sigList2vecInt(Tree ls, vector<int>& v);
  */
 Tree listConvert(const siglist& a);
 
+/**
+ * Convert a Tree in stl vector of signals
+ */
+siglist treeConvert(Tree t);
+
 #endif

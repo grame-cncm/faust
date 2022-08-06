@@ -40,14 +40,11 @@
 #include "prim2.hh"
 #include "privatise.hh"
 #include "recursivness.hh"
-#include "sigConstantPropagation.hh"
-#include "sigPromotion.hh"
 #include "sigToGraph.hh"
 #include "signal2vhdlVisitor.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
-#include "sigtyperules.hh"
-#include "simplify.hh"
+#include "normalform.hh"
 #include "timing.hh"
 #include "xtended.hh"
 
@@ -91,91 +88,60 @@ string ScalarCompiler::getFreshID(const string& prefix)
 Tree ScalarCompiler::prepare(Tree LS)
 {
     startTiming("prepare");
-    
-    // Convert deBruijn recursion into symbolic recursion
-    startTiming("deBruijn2Sym");
-    Tree L1 = deBruijn2Sym(LS);
-    endTiming("deBruijn2Sym");
-    
-    // Annotate L1 with type information (needed by castPromote)
-    startTiming("L1 typeAnnotation");
-    typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
-    endTiming("L1 typeAnnotation");
-    
-    // Needed before 'simplify' (see sigPromotion.hh)
-    startTiming("Cast and Promotion");
-    Tree L2 = castPromote(L1);
-    endTiming("Cast and Promotion");
-    
-    // Simplify by executing every computable operation
-    startTiming("L2 simplification");
-    Tree L3 = simplify(L2);
-    endTiming("L2 simplification");
-    
-    // Annotate L3 with type information (needed by castPromote)
-    startTiming("L3 typeAnnotation");
-    typeAnnotation(L3, gGlobal->gLocalCausalityCheck);
-    endTiming("L3 typeAnnotation");
-    
-    startTiming("Cast and Promotion");
-    Tree L4 = castPromote(L3);
-    endTiming("Cast and Promotion");
-    
-    startTiming("privatise");
-    Tree L5 = privatise(L4);  // Un-share tables with multiple writers
-    endTiming("privatise");
-    
-    startTiming("conditionAnnotation");
-    conditionAnnotation(L5);
-    endTiming("conditionAnnotation");
+    Tree L1 = simplifyToNormalForm(LS);
     
     // dump normal form
     if (gGlobal->gDumpNorm == 0) {
-        cout << ppsig(L5) << endl;
+        cout << ppsig(L1) << endl;
         throw faustexception("Dump normal form finished...\n");
     } else if (gGlobal->gDumpNorm == 1) {
-        ppsigShared(L5, cout);
+        ppsigShared(L1, cout);
         throw faustexception("Dump shared normal form finished...\n");
     }
     
+    startTiming("privatise");
+    Tree L2 = privatise(L1);  // Un-share tables with multiple writers
+    endTiming("privatise");
+    
+    startTiming("conditionAnnotation");
+    conditionAnnotation(L2);
+    endTiming("conditionAnnotation");
+    
     startTiming("recursivnessAnnotation");
-    recursivnessAnnotation(L5);  // Annotate L5 with recursivness information
+    recursivnessAnnotation(L2);  // Annotate L2 with recursivness information
     endTiming("recursivnessAnnotation");
     
-    startTiming("L5 typeAnnotation");
-    typeAnnotation(L5, true);     // Annotate L5 with type information and check causality
-    endTiming("L5 typeAnnotation");
+    startTiming("L2 typeAnnotation");
+    typeAnnotation(L2, true);     // Annotate L2 with type information and check causality
+    endTiming("L2 typeAnnotation");
     
     startTiming("sharingAnalysis");
-    sharingAnalysis(L5);         // Annotate L5 with sharing count
+    sharingAnalysis(L2);         // Annotate L2 with sharing count
     endTiming("sharingAnalysis");
-    
-    // Check signal tree
-    SignalTreeChecker checker(L5);
     
     startTiming("occurrences analysis");
     delete fOccMarkup;
     fOccMarkup = new old_OccMarkup(fConditionProperty);
-    fOccMarkup->mark(L5);        // Annotate L5 with occurrences analysis
+    fOccMarkup->mark(L2);        // Annotate L2 with occurrences analysis
     endTiming("occurrences analysis");
     
     endTiming("prepare");
     
     if (gGlobal->gDrawSignals) {
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
-        sigToGraph(L5, dotfile);
+        sigToGraph(L2, dotfile);
     }
     
     // Generate VHDL if -vhdl option is set
     if (gGlobal->gVHDLSwitch) {
         Signal2VHDLVisitor V(fOccMarkup);
         ofstream vhdl_file(subst("faust.vhd", gGlobal->makeDrawPath()).c_str());
-        V.sigToVHDL(L5, vhdl_file);
+        V.sigToVHDL(L2, vhdl_file);
         V.trace(gGlobal->gVHDLTrace, "VHDL");  // activate with --trace option
-        V.mapself(L5);
+        V.mapself(L2);
     }
     
-    return L5;
+    return L2;
 }
 
 Tree ScalarCompiler::prepare2(Tree L0)

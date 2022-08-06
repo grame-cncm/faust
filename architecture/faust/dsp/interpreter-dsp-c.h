@@ -111,7 +111,7 @@ extern "C"
      * It has to be used with the signal API defined in libfaust-signal-c.h.
      *
      * @param name_app - the name of the Faust program
-     * @param signals - the vector of output signals
+     * @param signals - the vector of output signals (that will internally be converted in normal form, see CsimplifyToNormalForm in libfaust-signal-c.h)
      * @param argc - the number of parameters in argv array
      * @param argv - the array of parameters
      * @param error_msg - the error string to be filled, has to be 4096 characters long

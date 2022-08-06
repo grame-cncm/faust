@@ -606,12 +606,13 @@ LIBFAUST_API Box DSPToBoxes(const std::string& name_app, const std::string& dsp_
 LIBFAUST_API bool getBoxType(Box box, int* inputs, int* outputs);
 
 /**
- * Compile a box expression in a list of signals.
+ * Compile a box expression in a list of signals in normal form
+ * (see simplifyToNormalForm in libfauust-signal.h)
  *
  * @param box - the box expression
  * @param error_msg - the error string to be filled
  *
- * @return a list of signals on success, otherwise an empty list.
+ * @return a list of signals in normal form on success, otherwise an empty list.
  */
 LIBFAUST_API tvec boxesToSignals(Box box, std::string& error_msg);
 

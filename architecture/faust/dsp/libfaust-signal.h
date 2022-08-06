@@ -518,17 +518,30 @@ LIBFAUST_API bool isSigSoundfileRate(Signal s, Signal& sf, Signal& part);
 LIBFAUST_API bool isSigSoundfileBuffer(Signal s, Signal& sf, Signal& chan, Signal& part, Signal& ridx);
 
 /**
+ *  Simplify a signal to its normal form, where:
+ *  - all possible optimisations, simplications, and compile time computations have been done
+ *  - the mathematical functions (primitives and binary functions), delay, select2, sounfile primitive...
+ *  are properly typed (arguments and result)
+ *  - signal cast are properly done when needed
+ *
+ * @param sig - the signal to be processed
+ *
+ * @return the signal in normal form.
+ */
+LIBFAUST_API Signal simplifyToNormalForm(Signal s);
+
+/**
  * Create a C++ Faust DSP factory from a vector of output signals.
  *
  * @param name_app - the name of the Faust program
- * @param signals_vec - the vector of output signals
+ * @param signals - the vector of output signals (that will internally be concerted in normal form, see simplifyToNormalForm)
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
-LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name_app, tvec signals_vec,
+LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name_app, tvec signals,
                                                               int argc, const char* argv[],
                                                               std::string& error_msg);
 

@@ -60,8 +60,7 @@
 #include "signals.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
-#include "sigtyperules.hh"
-#include "simplify.hh"
+#include "normalform.hh"
 #include "sourcereader.hh"
 #include "timing.hh"
 #include "labels.hh"
@@ -2301,7 +2300,7 @@ struct MaxInputsCounter : public SignalVisitor {
     
     MaxInputsCounter(Tree L)
     {
-        L = deBruijn2Sym(L);
+        // L is in normal form
         while (!isNil(L)) {
             self(hd(L));
             L = tl(L);
@@ -2346,9 +2345,10 @@ dsp_factory_base* createFactory(const char* name, tvec signals,
     dsp_factory_base* factory = nullptr;
     
     try {
-        Tree outs = listConvert(signals);
-        MaxInputsCounter counter(outs);
-        createFactoryAux(name, outs, argc, argv, counter.fMaxInputs, signals.size(), true);
+        Tree outputs = listConvert(signals);
+        Tree outputs_nf = simplifyToNormalForm(outputs);
+        MaxInputsCounter counter(outputs_nf);
+        createFactoryAux(name, outputs_nf, argc, argv, counter.fMaxInputs, signals.size(), true);
         error_msg = gGlobal->gErrorMsg;
         factory   = gGlobal->gDSPFactory;
     } catch (faustexception& e) {
@@ -3277,11 +3277,10 @@ tvec boxesToSignalsAux(Tree box)
         error << "ERROR during the evaluation of process : " << boxpp(box) << endl;
         throw faustexception(error.str());
     }
-    siglist outputs;
-    for (const auto& it : propagate(gGlobal->nil, gGlobal->nil, box, makeSigInputList(numInputs))) {
-        outputs.push_back(deBruijn2Sym(it));
-    }
-    return outputs;
+     
+    Tree outputs = boxPropagateSig(gGlobal->nil, box, makeSigInputList(numInputs));
+    Tree ouputs_nf = simplifyToNormalForm(outputs);
+    return treeConvert(ouputs_nf);
 }
 
 LIBFAUST_API tvec boxesToSignals(Tree box, std::string& error_msg)
@@ -3857,7 +3856,7 @@ extern "C"
         return box;
     }
     
-    LIBFAUST_API bool getCBoxType(Tree box, int* inputs, int* outputs)
+    LIBFAUST_API bool CgetBoxType(Tree box, int* inputs, int* outputs)
     {
         return getBoxType(box, inputs, outputs);
     }
@@ -3876,6 +3875,11 @@ extern "C"
         } else {
             return NULL;
         }
+    }
+    
+    LIBFAUST_API Tree CsimplifyToNormalForm(Tree s)
+    {
+        return simplifyToNormalForm(s);
     }
     
     LIBFAUST_API Tree CboxInt(int n)

@@ -242,8 +242,8 @@ static void test4()
         Box cutoffAndInput = CboxPar(cutoff, CboxWire());
         Box filteredInput = CboxSeq(cutoffAndInput, filter);
         
-        bool res = getCBoxType(filteredInput, &inputs, &outputs);
-        printf("getCBoxType inputs: %d outputs: %d\n", inputs, outputs);
+        bool res = CgetBoxType(filteredInput, &inputs, &outputs);
+        printf("CgetBoxType inputs: %d outputs: %d\n", inputs, outputs);
         
         llvm_dsp_factory* factory = createCDSPFactoryFromBoxes("test4", filteredInput, 0, NULL, "", error_msg, -1);
         if (factory) {

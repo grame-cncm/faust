@@ -596,10 +596,11 @@ extern "C"
      *
      * @return true if type is defined, false if undefined.
      */
-    LIBFAUST_API bool getCBoxType(Box box, int* inputs, int* outputs);
+    LIBFAUST_API bool CgetBoxType(Box box, int* inputs, int* outputs);
 
     /**
-     * Compile a box expression in a null terminated array of signals.
+     * Compile a box expression in a null terminated array of signals in normal form
+     * (see CsimplifyToNormalForm in libfauust-signal-c.h)
      *
      * @param box - the box expression
      * @param error_msg - the error string to be filled, has to be 4096 characters long
