@@ -385,7 +385,7 @@ bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tr
 
 // July 2005, support for symbol user data
 
-void* getUserData(Tree t)
+LIBFAUST_API void* getUserData(Tree t)
 {
     Sym s;
     if (isSym(t->node(), &s)) {

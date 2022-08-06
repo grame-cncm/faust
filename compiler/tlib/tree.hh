@@ -232,7 +232,7 @@ double      tree2double(Tree t);  ///< if t has a node of type float, return it 
 LIBFAUST_API const char* tree2str(Tree t);     ///< if t has a node of type symbol, return its name otherwise error
 string      tree2quotedstr(Tree t);
 void*       tree2ptr(Tree t);     ///< if t has a node of type ptr, return it otherwise error
-void*       getUserData(Tree t);  ///< if t has a node of type symbol, return the associated user data
+LIBFAUST_API void* getUserData(Tree t);  ///< if t has a node of type symbol, return the associated user data
 
 // pattern matching
 bool isTree(const Tree& t, const Node& n);
