@@ -86,6 +86,15 @@ extern "C"
      * @return a string representation of a signal.
      */
     LIBFAUST_API const char* Ctree2str(Signal s);
+
+    /**
+     * Return the xtended type of a signal.
+     *
+     * @param s - the signal whose xtended type to return
+     *
+     * @return a pointer to xtended type if it exists, otherwise nullptr.
+     */
+    LIBFAUST_API void* CgetUserData(Signal s);
     
     /**
      * Constant integer : for all t, x(t) = n.

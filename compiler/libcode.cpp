@@ -2520,6 +2520,11 @@ extern "C"
     {
         return tree2str(s);
     }
+
+    LIBFAUST_API void* CgetUserData(Tree s)
+    {
+        return getUserData(s);
+    }
     
     LIBFAUST_API Tree CsigInt(int n)
     {
