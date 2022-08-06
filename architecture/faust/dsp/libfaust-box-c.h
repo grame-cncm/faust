@@ -54,7 +54,6 @@ enum SOperator { kAdd, kSub, kMul, kDiv, kRem, kLsh, kARsh, kLRsh, kGT, kLT, kGE
 #ifndef LIBFAUSTBOX_C_H
 #define LIBFAUSTBOX_C_H
 
-
 #ifdef __cplusplus
 extern "C"
 {

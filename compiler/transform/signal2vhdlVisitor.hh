@@ -182,3 +182,6 @@ class Signal2VHDLVisitor : public TreeTraversal {
     protected:
         void visit(Tree sig) override;
 };
+
+// Public API
+void sigVHDLFile(old_OccMarkup* markup, Tree L);

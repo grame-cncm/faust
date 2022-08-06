@@ -134,11 +134,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     
     // Generate VHDL if -vhdl option is set
     if (gGlobal->gVHDLSwitch) {
-        Signal2VHDLVisitor V(fOccMarkup);
-        ofstream vhdl_file(subst("faust.vhd", gGlobal->makeDrawPath()).c_str());
-        V.sigToVHDL(L2, vhdl_file);
-        V.trace(gGlobal->gVHDLTrace, "VHDL");  // activate with --trace option
-        V.mapself(L2);
+        sigVHDLFile(fOccMarkup, L2);
     }
     
     return L2;

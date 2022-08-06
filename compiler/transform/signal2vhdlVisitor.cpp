@@ -1139,3 +1139,13 @@ void Signal2VHDLVisitor::cast(const string& name, Tree sig, Tree x)
     decl_sig(sig, high_out, low_out, nature_out);
     inst_bypass(real_name, sig, x, fMapCompnt);
 }
+
+// Public API
+void sigVHDLFile(old_OccMarkup* markup, Tree L)
+{
+    Signal2VHDLVisitor V(markup);
+    ofstream vhdl_file(subst("faust.vhd", gGlobal->makeDrawPath()).c_str());
+    V.sigToVHDL(L, vhdl_file);
+    V.trace(gGlobal->gVHDLTrace, "VHDL");  // activate with --trace option
+    V.mapself(L);
+}
