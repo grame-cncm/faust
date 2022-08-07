@@ -30,4 +30,4 @@ ID_28 = log10(ID_27);
 ID_29 = 20.0f*ID_28;
 ID_30 = hbargraph("[2][unit:dB]",-70.0f,5.0f,ID_29);
 ID_31 = attach(IN[1],ID_30);
-process = (ID_17, ID_31);
+SIG = (ID_17, ID_31);

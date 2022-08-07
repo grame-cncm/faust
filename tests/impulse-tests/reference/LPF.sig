@@ -36,4 +36,4 @@ ID_34 = ID_31+ID_33;
 ID_35 = 0.5f*ID_24;
 ID_36 = (ID_34+ID_35);
 ID_37 = ID_15*ID_36;
-process = (ID_37);
+SIG = (ID_37);

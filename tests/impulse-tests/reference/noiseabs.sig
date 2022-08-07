@@ -9,4 +9,4 @@ ID_7 = ID_6@0;
 ID_8 = float(ID_7);
 ID_9 = 4.6566128752457969e-10f*ID_8;
 ID_10 = abs(ID_9);
-process = (ID_10);
+SIG = (ID_10);

@@ -49,4 +49,4 @@ ID_47 = ID_42@ID_46;
 ID_48 = letrec(W0 = (ID_47));
 ID_49 = proj0(ID_48);
 ID_50 = ID_49@0;
-process = (ID_50);
+SIG = (ID_50);

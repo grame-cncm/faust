@@ -3,4 +3,4 @@ ID_1 = prefix(0.31f,IN[0]);
 ID_2 = prefix(0.32000000000000001f,IN[1]);
 ID_3 = prefix(0.69999999999999996f,ID_2);
 ID_4 = prefix(0.34999999999999998f,0.90000000000000002f);
-process = (ID_0, ID_1, ID_3, ID_4, ID_4);
+SIG = (ID_0, ID_1, ID_3, ID_4, ID_4);

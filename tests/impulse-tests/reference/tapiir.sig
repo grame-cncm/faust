@@ -252,4 +252,4 @@ ID_250 = vslider("input 1/output 1/outputs/Tapiir",1.0f,0.0f,1.0f,0.100000000000
 ID_251 = ID_250*IN[1];
 ID_252 = (ID_249+ID_251);
 ID_253 = ID_229*ID_252;
-process = (ID_228, ID_253);
+SIG = (ID_228, ID_253);

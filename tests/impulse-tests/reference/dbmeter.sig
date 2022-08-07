@@ -130,4 +130,4 @@ ID_128 = ID_127@0;
 ID_129 = vbargraph("[unit:dB]/7/8 channels dB meter",-70.0f,10.0f,ID_128);
 ID_130 = attach(IN[7],ID_129);
 ID_131 = attach(0,ID_130);
-process = (ID_19, ID_35, ID_51, ID_67, ID_83, ID_99, ID_115, ID_131);
+SIG = (ID_19, ID_35, ID_51, ID_67, ID_83, ID_99, ID_115, ID_131);

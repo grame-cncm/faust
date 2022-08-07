@@ -1,1 +1,1 @@
-process = (31, waveform{...});
+SIG = (31, waveform{...});

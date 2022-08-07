@@ -44,4 +44,4 @@ ID_42 = ID_5+ID_41;
 ID_43 = ID_3+ID_42;
 ID_44 = ID_1+ID_43;
 ID_45 = attach(0.0f,ID_44);
-process = (ID_45);
+SIG = (ID_45);

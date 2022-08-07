@@ -119,8 +119,8 @@ static void test3()
     (
         tvec signals;
         Signal in1 = sigInput(0);
-        signals.push_back(sigDelay(sigAdd(in1, sigReal(0.5)), sigReal(500)));
-        signals.push_back(sigDelay(sigMul(in1, sigReal(1.5)), sigReal(3000)));
+        signals.push_back(sigDelay(sigAdd(in1, sigReal(0.5)), sigInt(500)));
+        signals.push_back(sigDelay(sigMul(in1, sigReal(1.5)), sigInt(3000)));
          
         compile("test3", signals);
     )
@@ -134,8 +134,8 @@ static void test4()
     (
         tvec signals;
         Signal in1 = sigInput(0);
-        signals.push_back(sigAdd(sigDelay(in1, sigReal(500)), sigReal(0.5)));
-        signals.push_back(sigMul(sigDelay(in1, sigReal(3000)), sigReal(1.5)));
+        signals.push_back(sigAdd(sigDelay(in1, sigInt(500)), sigReal(0.5)));
+        signals.push_back(sigMul(sigDelay(in1, sigInt(3000)), sigReal(1.5)));
 
         compile("test4", signals);
     )
@@ -149,8 +149,8 @@ static void test5()
     (
         tvec signals;
         Signal in1 = sigInput(0);
-        signals.push_back(sigDelay(sigAdd(in1, sigReal(0.5)), sigReal(500)));
-        signals.push_back(sigSin(sigDelay(sigDelay(sigAdd(in1, sigReal(0.5)), sigReal(500)), sigReal(600))));
+        signals.push_back(sigDelay(sigAdd(in1, sigReal(0.5)), sigInt(500)));
+        signals.push_back(sigSin(sigDelay(sigDelay(sigAdd(in1, sigReal(0.5)), sigInt(500)), sigInt(600))));
         
         compile("test5", signals);
     )
@@ -164,8 +164,8 @@ static void test6()
     
     tvec signals;
     Signal in1 = sigInput(0);
-    signals.push_back(sigDelay(sigAdd(in1, sigReal(0.5)), sigReal(500)));
-    signals.push_back(sigDelay(sigMul(in1, sigReal(1.5)), sigReal(3000)));
+    signals.push_back(sigDelay(sigAdd(in1, sigReal(0.5)), sigInt(500)));
+    signals.push_back(sigDelay(sigMul(in1, sigReal(1.5)), sigInt(3000)));
     
     // Vector compilation
     compile("test6", signals, 4, (const char* []){ "-vec", "-lv", "1" , "-double"});
@@ -181,8 +181,8 @@ static void test7()
     (
         tvec signals;
         Signal in1 = sigInput(0);
-        signals.push_back(sigDelay(sigAdd(in1, sigReal(0.5)), sigReal(500)));
-        signals.push_back(sigAtan2(sigDelay(sigMul(in1, sigReal(1.5)), sigReal(3000)), sigReal(0.5)));
+        signals.push_back(sigDelay(sigAdd(in1, sigReal(0.5)), sigInt(500)));
+        signals.push_back(sigAtan2(sigDelay(sigMul(in1, sigReal(1.5)), sigInt(3000)), sigReal(0.5)));
 
         compile("test7", signals);
     )
@@ -195,11 +195,17 @@ static void equivalent1()
     COMPILER
     (
          tvec signals;
-         Signal s1 = sigAdd(sigDelay(sigInput(0), sigReal(500)), sigReal(0.5));
+         Signal s1 = sigAdd(sigDelay(sigInput(0), sigInt(500)), sigReal(0.5));
          signals.push_back(s1);
          signals.push_back(s1);
-     
+         
          compile("equivalent1", signals);
+     
+         // Print the signals
+         cout << "\nPrint the signals\n";
+         for (size_t i = 0; i < signals.size(); i++) {
+             printSignal(signals[i], cout, false);
+         }
      )
 }
 
@@ -208,11 +214,55 @@ static void equivalent2()
     COMPILER
     (
          tvec signals;
-         signals.push_back(sigAdd(sigDelay(sigInput(0), sigReal(500)), sigReal(0.5)));
-         signals.push_back(sigAdd(sigDelay(sigInput(0), sigReal(500)), sigReal(0.5)));
+         signals.push_back(sigAdd(sigDelay(sigInput(0), sigInt(500)), sigReal(0.5)));
+         signals.push_back(sigAdd(sigDelay(sigInput(0), sigInt(500)), sigReal(0.5)));
      
          compile("equivalent2", signals);
+     
+         // Print the signals
+         cout << "\nPrint the signals\n";
+         for (size_t i = 0; i < signals.size(); i++) {
+             printSignal(signals[i], cout, false);
+         }
     )
+}
+
+// Signals in normal form
+
+static void normalform()
+{
+    COMPILER
+    (
+        tvec signals;
+        signals.push_back(sigAdd(sigAdd(sigDelay(sigDelay(sigInput(0), sigReal(500)), sigReal(200)), sigReal(0.5)), sigReal(3)));
+        signals.push_back(sigMul(sigMul(sigDelay(sigInput(0), sigInt(500)), sigReal(0.5)), sigReal(4)));
+
+        compile("normalform", signals);
+
+        // Print the signals
+        cout << "\nPrint the signals\n";
+        for (size_t i = 0; i < signals.size(); i++) {
+            printSignal(signals[i], cout, false);
+        }
+
+        cout << "\nPrint the signals in shared form\n";
+        for (size_t i = 0; i < signals.size(); i++) {
+            printSignal(signals[i], cout, true);
+        }
+
+        // Compute normal form
+        tvec nf = simplifyToNormalForm2(signals);
+     
+        cout << "\nPrint the signals in normal form\n";
+        for (size_t i = 0; i < nf.size(); i++) {
+            printSignal(nf[i], cout, false);
+        }
+     
+         cout << "\nPrint the signals in normal form in shared mode\n";
+         for (size_t i = 0; i < nf.size(); i++) {
+             printSignal(nf[i], cout, true);
+         }
+     )
 }
 
 // process = @(+(0.5), 500) * vslider("Vol", 0.5, 0, 1, 0.01);
@@ -224,7 +274,7 @@ static void test8()
         tvec signals;
         Signal in1 = sigInput(0);
         Signal slider = sigVSlider("Vol", sigReal(0.5), sigReal(0.0), sigReal(1.0), sigReal(0.01));
-        signals.push_back(sigMul(slider, sigDelay(sigAdd(in1, sigReal(0.5)), sigReal(500))));
+        signals.push_back(sigMul(slider, sigDelay(sigAdd(in1, sigReal(0.5)), sigInt(500))));
         
         compile("test8", signals);
     )
@@ -490,6 +540,7 @@ static void test21()
 // Using the LLVM backend.
 static void test22(int argc, char* argv[])
 {
+    cout << "test22\n";
     createLibContext();
     {
         tvec signals;
@@ -531,6 +582,7 @@ static void test22(int argc, char* argv[])
 // Using the Interpreter backend.
 static void test23(int argc, char* argv[])
 {
+    cout << "test23\n";
     interpreter_dsp_factory* factory = nullptr;
     string error_msg;
     
@@ -589,6 +641,7 @@ with {
 // Simple polyphonic DSP.
 static void test24(int argc, char* argv[])
 {
+    cout << "test24\n";
     interpreter_dsp_factory* factory = nullptr;
     string error_msg;
     
@@ -661,6 +714,7 @@ int main(int argc, char* argv[])
     test7();
     equivalent1();
     equivalent2();
+    normalform();
     test8();
     test9();
     test10();

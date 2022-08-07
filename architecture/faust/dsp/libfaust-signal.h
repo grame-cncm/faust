@@ -27,6 +27,7 @@
 
 #include <string>
 #include <vector>
+#include <ostream>
 
 #include "faust/export.h"
 
@@ -40,6 +41,9 @@
  */
 class LIBFAUST_API CTree;
 typedef std::vector<CTree*> tvec;
+
+typedef CTree* Signal;
+typedef CTree* Box;
 
 enum SType { kSInt, kSReal };
 
@@ -55,15 +59,19 @@ struct LIBFAUST_API dsp_factory_base {
     virtual void write(std::ostream* out, bool binary = false, bool compact = false) {}
 };
 
+/**
+ *  Print the signal.
+ *
+ * @param sig - the signal to be printed
+ * @param out - the output stream
+ * @param sig - whether the identical subsignals are printed as indentifiers
+ */
+LIBFAUST_API void printSignal(Signal sig, std::ostream& out, bool shared);
+
 #endif
 
 #ifndef LIBFAUSTSIGNAL_H
 #define LIBFAUSTSIGNAL_H
-
-/**
- * Opaque types.
- */
-typedef CTree* Signal;
 
 /**
  * Create global compilation context, has to be done first.
@@ -529,6 +537,19 @@ LIBFAUST_API bool isSigSoundfileBuffer(Signal s, Signal& sf, Signal& chan, Signa
  * @return the signal in normal form.
  */
 LIBFAUST_API Signal simplifyToNormalForm(Signal s);
+
+/**
+ *  Simplify a signal vector to its normal form, where:
+ *  - all possible optimisations, simplications, and compile time computations have been done
+ *  - the mathematical functions (primitives and binary functions), delay, select2, sounfile primitive...
+ *  are properly typed (arguments and result)
+ *  - signal cast are properly done when needed
+ *
+ * @param siglist - the signal vector to be processed
+ *
+ * @return the signal vector in normal form.
+ */
+LIBFAUST_API tvec simplifyToNormalForm2(tvec siglist);
 
 /**
  * Create a C++ Faust DSP factory from a vector of output signals.

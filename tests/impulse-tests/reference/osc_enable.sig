@@ -24,4 +24,4 @@ ID_22 = control(ID_21,ID_19);
 ID_23 = control(waveform{...},ID_19);
 ID_24 = pow(waveform{...}, 2.0f);
 ID_25 = control(ID_24,ID_19);
-process = (waveform{...}, ID_20, ID_22, ID_23, ID_25);
+SIG = (waveform{...}, ID_20, ID_22, ID_23, ID_25);

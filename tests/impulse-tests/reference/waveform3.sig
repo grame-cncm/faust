@@ -9,4 +9,4 @@ ID_7 = letrec(W0 = (ID_6));
 ID_8 = proj0(ID_7);
 ID_9 = ID_8@0;
 ID_10 = read(ID_1,ID_9);
-process = (ID_10);
+SIG = (ID_10);

@@ -18,4 +18,4 @@ ID_16 = IN[0]+ID_15;
 ID_17 = letrec(W0 = (ID_16));
 ID_18 = proj0(ID_17);
 ID_19 = ID_18@0;
-process = (ID_19);
+SIG = (ID_19);

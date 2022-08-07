@@ -14,4 +14,4 @@ ID_12 = ID_10-ID_11;
 ID_13 = letrec(W0 = (ID_12));
 ID_14 = proj0(ID_13);
 ID_15 = ID_14@0;
-process = (ID_15, waveform{...}, waveform{...});
+SIG = (ID_15, waveform{...}, waveform{...});

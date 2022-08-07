@@ -80,4 +80,4 @@ ID_78 = ID_75+ID_77;
 ID_79 = letrec(W2 = (ID_78));
 ID_80 = proj0(ID_79);
 ID_81 = ID_80@0;
-process = (ID_68, ID_81);
+SIG = (ID_68, ID_81);

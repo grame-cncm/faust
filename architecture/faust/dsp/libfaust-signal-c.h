@@ -524,6 +524,19 @@ extern "C"
      * @return the signal in normal form.
      */
     LIBFAUST_API Signal CsimplifyToNormalForm(Signal s);
+    
+    /**
+     *  Simplify a null terminated array of signals to its normal form, where:
+     *  - all possible optimisations, simplications, and compile time computations have been done
+     *  - the mathematical functions (primitives and binary functions), delay, select2, sounfile primitive...
+     *  are properly typed (arguments and result)
+     *  - signal cast are properly done when needed
+     *
+     * @param siglist - the null terminated array of signals to be processed
+     *
+     * @return the null terminated array of signals in normal form (to be deleted by the caller using freeCMemory).
+     */
+    LIBFAUST_API Signal* CsimplifyToNormalForm2(Signal* siglist);
 
     /*
      [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions

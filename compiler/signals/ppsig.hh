@@ -108,7 +108,7 @@ class ppsigShared final : public ppsig {
             stringstream s; s << ppsigShared(L);
             // Print the <ID, expression> list
             printIDs(fout);
-            fout << "process = " << s.str() << ";" << endl;
+            fout << "SIG = " << s.str() << ";" << endl;
         }
         ppsigShared(Tree s, Tree env, int priority = 0) : ppsig(s, env, priority) {}
         ostream& print(ostream& fout) const;

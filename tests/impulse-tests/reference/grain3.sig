@@ -89,4 +89,4 @@ ID_87 = sin(ID_81);
 ID_88 = ID_86*ID_87;
 ID_89 = (ID_83+ID_88);
 ID_90 = ID_67*ID_89;
-process = (ID_90);
+SIG = (ID_90);

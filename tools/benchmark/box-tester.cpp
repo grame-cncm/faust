@@ -410,6 +410,7 @@ static void test20()
 // Using the LLVM backend.
 static void test21(int argc, char* argv[])
 {
+    cout << "test21\n";
     createLibContext();
     {
         Box sl1 = boxVSlider("h:Oscillator/Freq1", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
@@ -451,6 +452,7 @@ static void test21(int argc, char* argv[])
 // Using the Interpreter backend.
 static void test22(int argc, char* argv[])
 {
+    cout << "test22\n";
     createLibContext();
     {
         Box sl1 = boxHSlider("v:Oscillator/Freq1", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
@@ -492,6 +494,7 @@ static void test22(int argc, char* argv[])
 // Using the Interpreter backend.
 static void test23(int argc, char* argv[])
 {
+    cout << "test23\n";
     interpreter_dsp_factory* factory = nullptr;
     string error_msg;
     
@@ -505,6 +508,19 @@ static void test23(int argc, char* argv[])
         
         // Compile the 'bo'x to 'signals'
         tvec signals = boxesToSignals(box, error_msg);
+    
+        // Print the signals
+        cout << "Print the signals\n";
+        for (size_t i = 0; i < signals.size(); i++) {
+            printSignal(signals[i], cout, false);
+            cout << endl;
+        }
+        // Print the signals in shared mode
+        cout << "Print the signals in shared mode\n";
+        for (size_t i = 0; i < signals.size(); i++) {
+            printSignal(signals[i], cout, true);
+            cout << endl;
+        }
         
         // Then compile the 'signals' to a DSP factory
         factory = createInterpreterDSPFactoryFromSignals("FaustDSP",
@@ -558,6 +574,7 @@ static void test23(int argc, char* argv[])
 // Simple polyphonic DSP.
 static void test24(int argc, char* argv[])
 {
+    cout << "test24\n";
     interpreter_dsp_factory* factory = nullptr;
     string error_msg;
     
@@ -640,6 +657,7 @@ static void test25(int argc, char* argv[])
 // Compile a complete DSP program to a box expression, then use the result in another expression
 static void test26(int argc, char* argv[])
 {
+    cout << "test26\n";
     createLibContext();
     {
         int inputs = 0;

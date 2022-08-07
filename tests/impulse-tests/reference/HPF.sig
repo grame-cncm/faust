@@ -38,4 +38,4 @@ ID_36 = ID_31+ID_35;
 ID_37 = ID_33*ID_23;
 ID_38 = (ID_36+ID_37);
 ID_39 = ID_13*ID_38;
-process = (ID_39);
+SIG = (ID_39);

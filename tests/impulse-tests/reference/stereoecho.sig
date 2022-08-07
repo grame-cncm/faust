@@ -26,4 +26,4 @@ ID_24 = IN[1]+ID_23;
 ID_25 = letrec(W1 = (ID_24));
 ID_26 = proj0(ID_25);
 ID_27 = ID_26@0;
-process = (ID_19, ID_27);
+SIG = (ID_19, ID_27);

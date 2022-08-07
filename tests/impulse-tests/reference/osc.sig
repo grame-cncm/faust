@@ -32,4 +32,4 @@ ID_30 = 65536.0f*ID_29;
 ID_31 = int(ID_30);
 ID_32 = read(ID_13,ID_31);
 ID_33 = ID_11*ID_32;
-process = (ID_33);
+SIG = (ID_33);

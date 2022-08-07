@@ -14,4 +14,4 @@ ID_12 = buffer(ID_0,0,0,ID_11);
 ID_13 = buffer(ID_0,1,0,ID_11);
 ID_14 = buffer(ID_0,2,0,ID_11);
 ID_15 = buffer(ID_0,3,0,ID_11);
-process = (ID_12, ID_13, ID_14, ID_15);
+SIG = (ID_12, ID_13, ID_14, ID_15);

@@ -30,4 +30,4 @@ ID_28 = ID_25@ID_27;
 ID_29 = select2(ID_23,0.0f,ID_28);
 ID_30 = (ID_19+ID_29);
 ID_31 = ID_3*ID_30;
-process = (ID_31);
+SIG = (ID_31);

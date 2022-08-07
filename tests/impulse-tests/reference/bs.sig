@@ -12,4 +12,4 @@ ID_10 = select2(ID_6,ID_9,ID_5);
 ID_11 = letrec(W0 = (ID_10));
 ID_12 = proj0(ID_11);
 ID_13 = ID_12@0;
-process = (ID_13);
+SIG = (ID_13);

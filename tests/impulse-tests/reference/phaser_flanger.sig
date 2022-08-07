@@ -3473,4 +3473,4 @@ ID_3471 = vbargraph("[ 0] [unit:dB]       [tooltip: Spectral Band Level in dB]/[
 ID_3472 = ID_3366+ID_3471;
 ID_3473 = attach(ID_592,ID_3472);
 ID_3474 = attach(ID_470,ID_3473);
-process = (ID_3474, ID_591);
+SIG = (ID_3474, ID_591);

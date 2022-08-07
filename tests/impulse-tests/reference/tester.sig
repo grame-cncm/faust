@@ -99,4 +99,4 @@ ID_97 = ID_96*ID_78;
 ID_98 = ID_0==7.0f;
 ID_99 = float(ID_98);
 ID_100 = ID_99*ID_78;
-process = (ID_79, ID_82, ID_85, ID_88, ID_91, ID_94, ID_97, ID_100);
+SIG = (ID_79, ID_82, ID_85, ID_88, ID_91, ID_94, ID_97, ID_100);

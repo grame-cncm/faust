@@ -24,6 +24,7 @@
 
 #include "global.hh"
 #include "tree.hh"
+#include "ppsig.hh"
 #include "simplify.hh"
 #include "sigPromotion.hh"
 #include "sigtyperules.hh"
@@ -71,16 +72,33 @@ static Tree simplifyToNormalFormAux(Tree LS)
     return L4;
 }
 
-
 // Public API
 LIBFAUST_API Tree simplifyToNormalForm(Tree t)
 {
-    Tree t2 = t->getProperty(gGlobal->NORMALFORM);
-    
-    if (!t2) {
-        t2 = simplifyToNormalFormAux(t);
-        t->setProperty(gGlobal->NORMALFORM, t2);
+    if (isList(t)) {
+        Tree t2 = t->getProperty(gGlobal->NORMALFORM);
+        if (!t2) {
+            t2 = simplifyToNormalFormAux(t);
+            t->setProperty(gGlobal->NORMALFORM, t2);
+        }
+        return t2;
+    } else {
+        return simplifyToNormalForm(cons(t, gGlobal->nil));
     }
-    return t2;
 }
 
+LIBFAUST_API tvec simplifyToNormalForm2(tvec siglist)
+{
+    return treeConvert(simplifyToNormalForm(listConvert(siglist)));
+}
+
+LIBFAUST_API void printSignal(Tree sig, ostream& out, bool shared)
+{
+    // Clear print state
+    gGlobal->clear();
+    if (shared){
+        ppsigShared(sig, out);
+    } else {
+        out << ppsig(sig) << endl;
+    }
+}

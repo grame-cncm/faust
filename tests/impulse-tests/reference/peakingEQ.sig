@@ -44,4 +44,4 @@ ID_42 = (1.0f-ID_37);
 ID_43 = ID_42*ID_26;
 ID_44 = (ID_41+ID_43);
 ID_45 = ID_17*ID_44;
-process = (ID_45);
+SIG = (ID_45);

@@ -7,4 +7,4 @@ ID_5 = read(ID_1,ID_4);
 ID_6 = float(ID_5);
 ID_7 = sin(ID_6);
 ID_8 = IN[0]*ID_7;
-process = (ID_8, ID_5);
+SIG = (ID_8, ID_5);

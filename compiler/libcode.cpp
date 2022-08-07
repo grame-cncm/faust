@@ -3259,6 +3259,29 @@ extern "C"
             return false;
         }
     }
+    
+    
+    LIBFAUST_API Tree CsimplifyToNormalForm(Tree s)
+    {
+        return simplifyToNormalForm(s);
+    }
+    
+    LIBFAUST_API Tree* CsimplifyToNormalForm2(Tree* s)
+    {
+        tvec inputs;
+        int in = 0;
+        while (s[in]) { inputs.push_back(s[in]); in++; }
+        tvec outputs = simplifyToNormalForm2(inputs);
+        if (outputs.size() > 0) {
+            Tree* res = (Tree*)malloc(sizeof(Tree) * (outputs.size() + 1));
+            size_t i;
+            for (i = 0; i < outputs.size(); i++) res[i] = outputs[i];
+            res[i] = nullptr;
+            return res;
+        } else {
+            return nullptr;
+        }
+    }
      
 #ifdef __cplusplus
 }
@@ -3870,16 +3893,11 @@ extern "C"
             Tree* res = (Tree*)malloc(sizeof(Tree) * (signals.size() + 1));
             size_t i;
             for (i = 0; i < signals.size(); i++) res[i] = signals[i];
-            res[i] = NULL;
+            res[i] = nullptr;
             return res;
         } else {
-            return NULL;
+            return nullptr;
         }
-    }
-    
-    LIBFAUST_API Tree CsimplifyToNormalForm(Tree s)
-    {
-        return simplifyToNormalForm(s);
     }
     
     LIBFAUST_API Tree CboxInt(int n)

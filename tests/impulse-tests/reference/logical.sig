@@ -31,4 +31,4 @@ ID_29 = 67895.0f*IN[11];
 ID_30 = int(ID_29);
 ID_31 = ID_28^ID_30;
 ID_32 = select2(ID_31,1,2);
-process = (ID_4, ID_9, ID_14, ID_20, ID_26, ID_32);
+SIG = (ID_4, ID_9, ID_14, ID_20, ID_26, ID_32);

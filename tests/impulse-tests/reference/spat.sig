@@ -161,4 +161,4 @@ ID_159 = letrec(W7 = (ID_158));
 ID_160 = proj0(ID_159);
 ID_161 = (ID_160@0);
 ID_162 = IN[0]*ID_161;
-process = (ID_22, ID_42, ID_62, ID_82, ID_102, ID_122, ID_142, ID_162);
+SIG = (ID_22, ID_42, ID_62, ID_82, ID_102, ID_122, ID_142, ID_162);

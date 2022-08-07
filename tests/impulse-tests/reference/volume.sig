@@ -11,4 +11,4 @@ ID_9 = letrec(W0 = (ID_8));
 ID_10 = proj0(ID_9);
 ID_11 = (ID_10@0);
 ID_12 = IN[0]*ID_11;
-process = (ID_12);
+SIG = (ID_12);

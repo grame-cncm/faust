@@ -32,4 +32,4 @@ ID_30 = ID_28@0;
 ID_31 = ID_30+ID_20;
 ID_32 = (ID_29+ID_31);
 ID_33 = ID_13*ID_32;
-process = (ID_33);
+SIG = (ID_33);

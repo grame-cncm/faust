@@ -12,4 +12,4 @@ ID_10 = read(ID_1,ID_9);
 ID_11 = waveform{...};
 ID_12 = TABLE(7,ID_11);
 ID_13 = read(ID_12,ID_9);
-process = (ID_10, ID_13);
+SIG = (ID_10, ID_13);

@@ -912,6 +912,17 @@ void Garbageable::cleanup()
     global::gHeapCleanup = false;
 }
 
+void global::clear()
+{
+    gBoxCounter = 0;
+    gBoxTable.clear();
+    gBoxTrace.clear();
+    
+    gSignalCounter = 0;
+    gSignalTable.clear();
+    gSignalTrace.clear();
+}
+
 void* Garbageable::operator new(size_t size)
 {
     // HACK : add 16 bytes to avoid unsolved memory smashing bug...

@@ -3520,4 +3520,4 @@ ID_3518 = ID_641+ID_3517;
 ID_3519 = vbargraph("[ 0] [unit:dB]       [tooltip: Spectral Band Level in dB]/[0] CONSTANT-Q SPECTRUM ANALYZER (6E), 15 bands spanning LP, 9 octaves below 16000 Hz, HP      [tooltip: See Faust's filter.lib for documentation and references]/[4] Spectrum Analyzer [tooltip: See Faust's filter.lib for spectral_level_demo]",-50.0f,10.0f,ID_3518);
 ID_3520 = ID_3414+ID_3519;
 ID_3521 = attach(ID_640,ID_3520);
-process = (ID_3521);
+SIG = (ID_3521);

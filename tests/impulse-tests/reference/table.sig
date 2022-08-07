@@ -19,4 +19,4 @@ ID_17 = (ID_16@0);
 ID_18 = 65536.0f*ID_17;
 ID_19 = int(ID_18);
 ID_20 = read(ID_1,ID_19);
-process = (ID_20, ID_20);
+SIG = (ID_20, ID_20);

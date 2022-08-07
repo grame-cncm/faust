@@ -16,4 +16,4 @@ ID_14 = pow(ID_13, 2.0001000000000002f);
 ID_15 = pow(ID_13, 2.0000000999999998f);
 ID_16 = 8.0f*waveform{...};
 ID_17 = 9.0f*waveform{...};
-process = (ID_1, ID_2, ID_4, ID_5, ID_7, ID_7, ID_10, ID_12, ID_14, ID_15, 1.0f, ID_16, 1.0f, ID_17);
+SIG = (ID_1, ID_2, ID_4, ID_5, ID_7, ID_7, ID_10, ID_12, ID_14, ID_15, 1.0f, ID_16, 1.0f, ID_17);

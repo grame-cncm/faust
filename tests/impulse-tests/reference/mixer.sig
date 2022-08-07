@@ -370,4 +370,4 @@ ID_368 = log10(ID_367);
 ID_369 = 20.0f*ID_368;
 ID_370 = vbargraph("[2][unit:dB]/R/stereo out/mixer",-70.0f,5.0f,ID_369);
 ID_371 = attach(ID_357,ID_370);
-process = (ID_325, ID_371);
+SIG = (ID_325, ID_371);

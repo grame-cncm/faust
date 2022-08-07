@@ -22,6 +22,12 @@
 #ifndef _SIMPLIFY_TO_NF_
 #define _SIMPLIFY_TO_NF_
 
+#include "tree.hh"
+
 LIBFAUST_API Tree simplifyToNormalForm(Tree sig);
+
+LIBFAUST_API tvec simplifyToNormalForm2(tvec sig);
+
+LIBFAUST_API void printSignal(Tree sig, ostream& out, bool shared);
 
 #endif

@@ -329,8 +329,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 if (struct_type) {
                     std::vector<ValueInst*> indices = indexed->getIndices();
                     // Field_index is last in the indices vector
-                    Int32NumInst* num = static_cast<Int32NumInst*>(indices.back());
-                    FBCInstruction::Opcode op = (num->fNum == Soundfile::kBuffers)
+                    Int32NumInst* num_val = static_cast<Int32NumInst*>(indices.back());
+                    FBCInstruction::Opcode op = (num_val->fNum == Soundfile::kBuffers)
                         ? FBCInstruction::kLoadSoundFieldReal
                         : FBCInstruction::kLoadSoundFieldInt;
                     fCurrentBlock->push(new FBCBasicInstruction<REAL>(op, indexed->getName()));

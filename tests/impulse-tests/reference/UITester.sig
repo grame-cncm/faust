@@ -32,4 +32,4 @@ ID_30 = hslider("hslider/hmisc/grp 1",60.0f,0.0f,127.0f,0.10000000000000001f);
 ID_31 = nentry("num [unit:f]/hmisc/grp 1",60.0f,0.0f,127.0f,0.10000000000000001f);
 ID_32 = vbargraph("vbar/hmisc/grp 1",0.0f,127.0f,IN[4]);
 ID_33 = hbargraph("hbar/hmisc/grp 1",0.0f,127.0f,IN[5]);
-process = (ID_0, ID_1, ID_2, ID_3, ID_4, ID_5, ID_6, ID_7, ID_8, ID_9, ID_10, ID_11, ID_12, ID_13, ID_14, ID_15, ID_16, ID_17, ID_18, ID_19, ID_20, ID_21, ID_22, ID_23, ID_24, ID_25, ID_26, ID_27, ID_28, ID_29, ID_30, ID_31, ID_32, ID_33);
+SIG = (ID_0, ID_1, ID_2, ID_3, ID_4, ID_5, ID_6, ID_7, ID_8, ID_9, ID_10, ID_11, ID_12, ID_13, ID_14, ID_15, ID_16, ID_17, ID_18, ID_19, ID_20, ID_21, ID_22, ID_23, ID_24, ID_25, ID_26, ID_27, ID_28, ID_29, ID_30, ID_31, ID_32, ID_33);

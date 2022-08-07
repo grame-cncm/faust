@@ -10,4 +10,4 @@ ID_8 = proj0(ID_7);
 ID_9 = ID_8@0;
 ID_10 = float(ID_9);
 ID_11 = ID_1*ID_10;
-process = (ID_11);
+SIG = (ID_11);

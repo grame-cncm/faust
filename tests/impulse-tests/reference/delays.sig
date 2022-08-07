@@ -34,4 +34,4 @@ ID_32 = ID_27+ID_31;
 ID_33 = letrec(W2 = (ID_32));
 ID_34 = proj0(ID_33);
 ID_35 = ID_34@0;
-process = (ID_11, ID_23, ID_35);
+SIG = (ID_11, ID_23, ID_35);

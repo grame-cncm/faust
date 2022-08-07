@@ -11,4 +11,4 @@ ID_9 = ID_8@0;
 ID_10 = max(0, ID_9);
 ID_11 = min(6, ID_10);
 ID_12 = read(ID_1,ID_11);
-process = (ID_12);
+SIG = (ID_12);

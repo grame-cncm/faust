@@ -59,4 +59,4 @@ ID_57 = ID_2*ID_56;
 ID_58 = ID_57*ID_32;
 ID_59 = (ID_54+ID_58);
 ID_60 = ID_22*ID_59;
-process = (ID_60);
+SIG = (ID_60);

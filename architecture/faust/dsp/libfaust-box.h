@@ -27,6 +27,7 @@
 
 #include <string>
 #include <vector>
+#include <ostream>
 
 #include "faust/export.h"
 
@@ -40,6 +41,9 @@
  */
 class LIBFAUST_API CTree;
 typedef std::vector<CTree*> tvec;
+
+typedef CTree* Signal;
+typedef CTree* Box;
 
 enum SType { kSInt, kSReal };
 
@@ -55,15 +59,19 @@ struct LIBFAUST_API dsp_factory_base {
     virtual void write(std::ostream* out, bool binary = false, bool compact = false) {}
 };
 
+/**
+ *  Print the signal.
+ *
+ * @param sig - the signal to be printed
+ * @param out - the output stream
+ * @param sig - whether the identical subsignals are printed as indentifier
+ */
+LIBFAUST_API void printSignal(Signal sig, std::ostream& out, bool shared);
+
 #endif
 
 #ifndef LIBFAUSTBOX_H
 #define LIBFAUSTBOX_H
-
-/**
- * Opaque types.
- */
-typedef CTree* Box;
 
 /**
  * Create global compilation context, has to be done first.

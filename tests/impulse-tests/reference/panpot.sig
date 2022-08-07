@@ -7,4 +7,4 @@ ID_5 = ID_4*IN[0];
 ID_6 = ID_2+1.0f;
 ID_7 = sqrt(ID_6);
 ID_8 = ID_7*IN[0];
-process = (ID_5, ID_8);
+SIG = (ID_5, ID_8);

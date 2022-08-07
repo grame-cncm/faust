@@ -592,6 +592,8 @@ struct global {
     ~global();
 
     void init();
+    
+    void clear();
 
     static void allocate();
     static void destroy();
