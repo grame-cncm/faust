@@ -506,7 +506,7 @@ static void test23(int argc, char* argv[])
                              boxReal(100), boxReal(2000), boxReal(0.01));
         Box box = boxPar(osc(sl1), osc(sl2));
         
-        // Compile the 'bo'x to 'signals'
+        // Compile the 'box' to 'signals'
         tvec signals = boxesToSignals(box, error_msg);
     
         // Print the signals

@@ -598,7 +598,7 @@ LIBFAUST_API Box boxAttach(Box s1, Box s2);
  * @param outputs - the place to return the number of outputs of the resulting box
  * @param error_msg - the error string to be filled
  *
- * @return a compiled box on success, otherwise a null pointer.
+ * @return a flattened box on success, otherwise a null pointer.
  */
 LIBFAUST_API Box DSPToBoxes(const std::string& name_app, const std::string& dsp_content, int* inputs, int* outputs, std::string& error_msg);
 
@@ -615,7 +615,7 @@ LIBFAUST_API bool getBoxType(Box box, int* inputs, int* outputs);
 
 /**
  * Compile a box expression in a list of signals in normal form
- * (see simplifyToNormalForm in libfauust-signal.h)
+ * (see simplifyToNormalForm in libfaust-signal.h)
  *
  * @param box - the box expression
  * @param error_msg - the error string to be filled

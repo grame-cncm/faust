@@ -582,7 +582,7 @@ extern "C"
      * @param outputs - the place to return the number of outputs of the resulting box
      * @param error_msg - the error string to be filled
      *
-     * @return a compiled box on success, otherwise a null pointer.
+     * @return a flattened box on success, otherwise a null pointer.
      */
     LIBFAUST_API Box CDSPToBoxes(const char* name_appp, const char* dsp_content, int* inputs, int* outputs, char* error_msg);
     
@@ -599,7 +599,7 @@ extern "C"
 
     /**
      * Compile a box expression in a null terminated array of signals in normal form
-     * (see CsimplifyToNormalForm in libfauust-signal-c.h)
+     * (see CsimplifyToNormalForm in libfaust-signal-c.h)
      *
      * @param box - the box expression
      * @param error_msg - the error string to be filled, has to be 4096 characters long
