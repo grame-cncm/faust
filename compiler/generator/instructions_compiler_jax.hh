@@ -31,6 +31,7 @@ class InstructionsCompilerJAX : public InstructionsCompiler {
     InstructionsCompilerJAX(CodeContainer* container): InstructionsCompiler(container)
     {}
 
+    ValueInst* generateDelay(Tree sig, Tree exp, Tree delay) override;
     ValueInst* generateRecProj(Tree sig, Tree r, int i) override;
     ValueInst* generateRec(Tree sig, Tree var, Tree le, int index) override;
     ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd,

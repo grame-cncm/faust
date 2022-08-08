@@ -21,7 +21,64 @@
 
 #include "instructions_compiler_jax.hh"
 #include "ensure.hh"
+#include "ppsig.hh"
 #include "sigtyperules.hh"
+
+
+/**
+ * Generate code for accessing a delayed signal. The generated code depend of
+ * the maximum delay attached to exp.
+ */
+ValueInst* InstructionsCompilerJAX::generateDelay(Tree sig, Tree exp, Tree delay)
+{
+    ValueInst* code = CS(exp);  // Ensure exp is compiled to have a vector name
+    int        mxd  = fOccMarkup->retrieve(exp)->getMaxDelay();
+    string     vname;
+
+    if (!getVectorNameProperty(exp, vname)) {
+        if (mxd == 0) {
+            // cerr << "it is a pure zero delay : " << code << endl;
+            return code;
+        } else {
+            stringstream error;
+            error << "ERROR : no vector name for : " << ppsig(exp) << endl;
+            throw faustexception(error.str());
+        }
+    }
+
+    if (mxd == 0) {
+        // not a real vector name but a scalar name
+        return InstBuilder::genLoadStackVar(vname);
+
+    } else if (mxd < gGlobal->gMaxCopyDelay) {
+        int d;
+        if (isSigInt(delay, &d)) {
+            return InstBuilder::genLoadArrayStructVar(vname, CS(delay));
+        } else {
+            return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, CS(delay)));
+        }
+    } else {
+        int N = pow2limit(mxd + 1);
+        if (N <= gGlobal->gMaskDelayLineThreshold) {
+            ensureIotaCode();
+
+            FIRIndex value2 = (FIRIndex(InstBuilder::genLoadStructVar(fCurrentIOTA)) - CS(delay)) & FIRIndex(N - 1);
+            return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, value2));
+        } else {
+            string ridx_name = gGlobal->getFreshID(vname + "_ridx_tmp");
+
+            // int ridx = widx - delay;
+            FIRIndex widx1 = FIRIndex(InstBuilder::genLoadStructVar(vname + "_widx"));
+            pushComputeDSPMethod(
+                InstBuilder::genDecStackVar(ridx_name, InstBuilder::genBasicTyped(Typed::kInt32), widx1 - CS(delay)));
+
+            // dline[((ridx < 0) ? ridx + delay : ridx)];
+            FIRIndex ridx1 = FIRIndex(InstBuilder::genLoadStackVar(ridx_name));
+            FIRIndex ridx2 = FIRIndex(InstBuilder::genSelect2Inst(ridx1 < 0, ridx1 + FIRIndex(mxd + 1), ridx1));
+            return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, ridx2));
+        }
+    }
+}
 
 
 /**
