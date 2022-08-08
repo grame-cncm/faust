@@ -28,6 +28,8 @@
 #include "instructions.hh"
 #include "instructions_compiler.hh"
 #include "instructions_compiler1.hh"
+#include "instructions_compiler_jax.hh"
+#include "ppsig.hh"
 #include "prim2.hh"
 #include "privatise.hh"
 #include "recursivness.hh"
@@ -389,6 +391,9 @@ CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree s
     
     if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia") {
         InstructionsCompiler1 C(container);
+        C.compileSingleSignal(sig);
+    } else if (gGlobal->gOutputLang == "jax") {
+        InstructionsCompilerJAX C(container);
         C.compileSingleSignal(sig);
     } else {
         InstructionsCompiler C(container);

@@ -51,6 +51,7 @@
 #include "instructions_compiler.hh"
 #include "instructions_compiler1.hh"
 #include "labels.hh"
+#include "instructions_compiler_jax.hh"
 #include "libfaust.h"
 #include "normalform.hh"
 #include "ppbox.hh"
@@ -1595,7 +1596,7 @@ static void compileJAX(Tree signals, int numInputs, int numOutputs, ostream* out
     if (gGlobal->gVectorSwitch) {
         new_comp = new DAGInstructionsCompiler(container);
     } else {
-        new_comp = new InstructionsCompiler1(container);
+        new_comp = new InstructionsCompilerJAX(container);
     }
 
     if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
