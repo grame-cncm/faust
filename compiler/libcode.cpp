@@ -96,6 +96,10 @@
 #include "java_code_container.hh"
 #endif
 
+#ifdef JAX_BUILD
+#include "jax_code_container.hh"
+#endif
+
 #ifdef JULIA_BUILD
 #include "julia_code_container.hh"
 #endif
@@ -182,6 +186,10 @@ static void enumBackends(ostream& out)
     out << dspto << "Java" << endl;
 #endif
 
+#ifdef JAX_BUILD
+    out << dspto << "JAX" << endl;
+#endif
+    
 #ifdef JULIA_BUILD
     out << dspto << "Julia" << endl;
 #endif
@@ -399,6 +407,10 @@ static bool processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-elm", "--elementary")) {
             gGlobal->gElementarySwitch = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-jax", "--jax")) {
+            gGlobal->gJAXSwitch = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-f", "--fold") && (i + 1 < argc)) {
@@ -930,7 +942,7 @@ static void printHelp()
     cout << tab << "-lang <lang> --language                 select output language," << endl;
     cout << tab
          << "                                        'lang' should be c, cpp (default), csharp, dlang, fir, interp, "
-            "java, julia, llvm, "
+            "java, jax, julia, llvm, "
             "ocpp, rust, soul or wast/wasm."
          << endl;
     cout << tab
@@ -1574,6 +1586,25 @@ static void compileJulia(Tree signals, int numInputs, int numOutputs, ostream* o
 #endif
 }
 
+static void compileJAX(Tree signals, int numInputs, int numOutputs, ostream* out)
+{
+#ifdef JAX_BUILD
+    gGlobal->gAllowForeignFunction = false;  // No foreign functions
+    container = JAXCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+    
+    if (gGlobal->gVectorSwitch) {
+        new_comp = new DAGInstructionsCompiler(container);
+    } else {
+        new_comp = new InstructionsCompiler1(container);
+    }
+
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
+    new_comp->compileMultiSignal(signals);
+#else
+    throw faustexception("ERROR : -lang jax not supported since JAX backend is not built\n");
+#endif
+}
+
 static void compileCSharp(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
 #ifdef CSHARP_BUILD
@@ -1969,6 +2000,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         compileRust(signals, numInputs, numOutputs, dst.get());
     } else if (gGlobal->gOutputLang == "java") {
         compileJava(signals, numInputs, numOutputs, dst.get());
+    } else if (gGlobal->gOutputLang == "jax") {
+        compileJAX(signals, numInputs, numOutputs, dst.get());
     } else if (gGlobal->gOutputLang == "julia") {
         compileJulia(signals, numInputs, numOutputs, dst.get());
     } else if (gGlobal->gOutputLang == "csharp") {

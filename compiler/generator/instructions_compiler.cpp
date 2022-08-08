@@ -546,6 +546,10 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         }
     }
 
+    // these two vars are only used for jax
+    std::string return_string = "jax.stack(";
+    std::string sep = "[";
+
     for (int index = 0; isList(L); L = tl(L), index++) {
         Tree sig = hd(L);
 
@@ -557,6 +561,13 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         if (gGlobal->gOutputLang == "rust") {
             name = subst("*output$0", T(index));
             pushComputeDSPMethod(InstBuilder::genStoreStackVar(name, res));
+        } else if (gGlobal->gOutputLang == "jax") {
+            // todo:
+            res = CS(sig);
+            auto result_var = "_result" + to_string(index);
+            return_string = return_string + sep + result_var;
+            sep = ",";
+            pushComputeDSPMethod(InstBuilder::genStoreStackVar(result_var, res));
         } else if (gGlobal->gOneSampleControl) {
             name = subst("output$0", T(index));
             if (gGlobal->gComputeMix) {
@@ -582,6 +593,11 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
                 pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
             }
         }
+    }
+
+    if (gGlobal->gOutputLang == "jax") {
+        return_string = return_string + "], axis=1)";
+        pushComputeDSPMethod(InstBuilder::genRetInst(InstBuilder::genLoadStackVar(return_string)));
     }
 
     Tree ui = InstructionsCompiler::prepareUserInterfaceTree(fUIRoot);
@@ -877,6 +893,9 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     // HACK for Rust backend
     if (gGlobal->gOutputLang == "rust") {
         res = InstBuilder::genLoadStackVar(subst("*input$0", T(idx)));
+    } else if (gGlobal->gOutputLang == "jax") {
+        //res = InstBuilder::genLoadGlobalVar("inputs");  // todo: ?
+        res = InstBuilder::genLoadArrayStackVar("inputs", InstBuilder::genInt32NumInst(idx));
     } else if (gGlobal->gOneSampleControl) {
         res = InstBuilder::genLoadStructVar(subst("input$0", T(idx)));
     } else if (gGlobal->gOneSample >= 0) {
