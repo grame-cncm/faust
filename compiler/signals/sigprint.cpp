@@ -66,10 +66,6 @@ void printSigType(int n, int v, int c)
     putchar("CI X"[c]);
 }
 
-static const char* binopname[] = {"+", "-", "*", "/", "%", "<<", ">>", ">", "<", ">=", "<=", "==", "!=", "&", "|", "^"};
-
-static int binopprec[] = {2, 2, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-
 void printSignal(Tree sig, FILE* out, int prec)
 {
     int    i;
@@ -88,11 +84,12 @@ void printSignal(Tree sig, FILE* out, int prec)
     }
 
     else if (isSigBinOp(sig, &i, x, y)) {
-        if (prec > binopprec[i]) fputs("(", out);
-        printSignal(x, out, binopprec[i]);
-        fputs(binopname[i], out);
-        printSignal(y, out, binopprec[i]);
-        if (prec > binopprec[i]) fputs(")", out);
+        int pri = gBinOpTable[i]->fPriority;
+        if (prec > pri) fputs("(", out);
+        printSignal(x, out, pri);
+        fputs(gBinOpTable[i]->fName, out);
+        printSignal(y, out, pri);
+        if (prec > pri) fputs(")", out);
     } else if (isSigDelay1(sig, x)) {
         fputs("mem(", out);
         printSignal(x, out, 0);

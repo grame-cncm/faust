@@ -389,7 +389,7 @@ class CPPInstVisitor : public TextInstVisitor {
         int p1 = a ? gBinOpTable[a->fOpcode]->fPriority : INT_MAX;
         return (isLogicalOpcode(inst->fOpcode) || (p0 > p1))
             && !arg->isSimpleValue()
-            && !dynamic_cast<CastInst*>(arg);
+            && !dynamic_cast<CastInst*>(arg); // C++ cast add a parenthesis
     }
     
     virtual void visit(BinopInst* inst)

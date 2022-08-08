@@ -2252,6 +2252,7 @@ static void createFactoryAux(const char* name, const char* dsp_content, int argc
     if (gGlobal->gDetailsSwitch) {
         cout << "output signals are : " << endl;
         printSignal(lsignals, stdout);
+        cout << std::endl << ppsig(lsignals) << std::endl;
         cout << "\n\n";
     }
 
