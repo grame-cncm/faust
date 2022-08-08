@@ -56,6 +56,7 @@ class Garbageable;
 struct DispatchVisitor;
 class WASTInstVisitor;
 class WASMInstVisitor;
+class JAXInstVisitor;
 class JuliaInstVisitor;
 struct TableSizeVisitor;
 struct DeclareStructTypeInst;
@@ -549,6 +550,10 @@ struct global {
     TableSizeVisitor* gTableSizeVisitor;
 #endif
 
+#ifdef JAX_BUILD
+    JAXInstVisitor* gJAXVisitor;
+#endif
+
     bool gHelpSwitch;
     bool gVersionSwitch;
     bool gLibDirSwitch;
@@ -566,6 +571,7 @@ struct global {
     int    gVHDLFloatMSB;
     int    gVHDLFloatLSB;
     bool   gElementarySwitch;
+    bool   gJAXSwitch;
     bool   gPrintXMLSwitch;
     bool   gPrintJSONSwitch;
     bool   gPrintDocSwitch;

@@ -129,6 +129,44 @@ void initFaustFloat()
         floatmin[2] = DBL_MIN;
         floatmin[3] = LDBL_MIN;
         floatmin[4] = FLT_MIN;
+
+    // Specific for JAX backend
+    } else  if (gGlobal->gOutputLang == "jax") {
+        numsuffix[0] = "";
+        numsuffix[1] = "";
+        numsuffix[2] = "";
+        numsuffix[3] = "";
+        numsuffix[4] = "";
+
+        floatname[0] = FLOATMACRO;
+        floatname[1] = "jnp.float32";
+        floatname[2] = "jnp.float64";
+        floatname[3] = "dummy";
+        floatname[4] = "dummy";
+
+        floatptrname[0] = FLOATMACROPTR;
+        floatptrname[1] = "jnp.float32*";
+        floatptrname[2] = "jnp.float64*";
+        floatptrname[3] = "dummy*";
+        floatptrname[4] = "dummy*";
+
+        floatptrptrname[0] = FLOATMACROPTRPTR;
+        floatptrptrname[1] = "jnp.float32**";
+        floatptrptrname[2] = "jnp.float64**";
+        floatptrptrname[3] = "dummy**";
+        floatptrptrname[4] = "dummy**";
+
+        castname[0] = FLOATCASTER;
+        castname[1] = "(jnp.float32)";
+        castname[2] = "(jnp.float64)";
+        castname[3] = "(dummy)";
+        castname[4] = "(dummy)";
+
+        floatmin[0] = 0;
+        floatmin[1] = FLT_MIN;
+        floatmin[2] = DBL_MIN;
+        floatmin[3] = LDBL_MIN;
+        floatmin[4] = FLT_MIN;
             
     // Specific for D backend
     } else if (gGlobal->gOutputLang == "dlang") {

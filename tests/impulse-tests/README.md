@@ -42,6 +42,13 @@ The generated impulse responses are not preserved by the shell scripts. Intermed
 
 You should run `make tools` before first run of `tests.sh`.
 
+### JAX tests
+
+#### Prerequisites
+- `faust` must be available from the `../../build/bin` folder. It must be compiled with the JAX backend.
+- Install the python requirements: `pip install -r requirements.txt`
+- Install [JAX](https://jax.readthedocs.io/en/latest/) and [Flax](https://flax.readthedocs.io/en/latest/). These are harder to install, so they're left out of `requirements.txt`
+
 ### To do
 - add precision arg to `filesCompare` (for float and fastmath outputs)
 - check that all `test.sh` subscripts are based on the current development branch and don't require any installation

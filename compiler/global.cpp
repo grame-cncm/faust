@@ -95,6 +95,10 @@
 #include "julia_code_container.hh"
 #endif
 
+#ifdef JAX_BUILD
+#include "jax_code_container.hh"
+#endif
+
 // Parser
 extern FILE*       yyin;
 extern const char* yyfilename;
@@ -453,6 +457,10 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gTableSizeVisitor = nullptr;  // Will be (possibly) allocated in SOUL backend
 #endif
 
+#ifdef JAX_BUILD
+    gJAXVisitor = nullptr;    // Will be (possibly) allocated in JAX backend
+#endif
+
     gHelpSwitch       = false;
     gVersionSwitch    = false;
     gLibDirSwitch     = false;
@@ -783,7 +791,8 @@ bool global::hasForeignFunction(const string& name, const string& inc_file)
     bool internal_math_ff =
         ((gOutputLang == "llvm") || startWith(gOutputLang, "wast") || startWith(gOutputLang, "wasm") ||
          (gOutputLang == "interp") || startWith(gOutputLang, "soul") || (gOutputLang == "dlang") ||
-         (gOutputLang == "csharp") || (gOutputLang == "rust") || (gOutputLang == "julia"));
+         (gOutputLang == "csharp") || (gOutputLang == "rust") || (gOutputLang == "julia") ||
+         (gOutputLang == "jax"));
 
     return (internal_math_ff && (gMathForeignFunctions.find(name) != gMathForeignFunctions.end())) || is_linkable;
 }
@@ -839,6 +848,9 @@ global::~global()
 #endif
 #ifdef JULIA_BUILD
     JuliaInstVisitor::cleanup();
+#endif
+#ifdef JAX_BUILD
+    JAXInstVisitor::cleanup();
 #endif
 #ifdef RUST_BUILD
     RustInstVisitor::cleanup();

@@ -1,3 +1,9 @@
 filesCompare
 impulseinterp
 impulsellvm
+
+# jax-related:
+tmp*
+output
+__pycache__
+*.pyc

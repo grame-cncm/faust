@@ -146,7 +146,8 @@ class PowPrim : public xtended {
         if (isIntPowArg(types[1], *it, pow_arg)
             && (types[1]->variability() == kKonst)
             && (types[1]->computability() == kComp)
-            && (gGlobal->gNeedManualPow)) {
+            && (gGlobal->gNeedManualPow)
+            && (gGlobal->gOutputLang != "jax")) {
             
             Typed::VarType t0 = convert2FIRType(types[0]->nature());
             vector<Typed::VarType> atypes = { t0, Typed::kInt32};
@@ -154,8 +155,9 @@ class PowPrim : public xtended {
             
             // Expand the pow depending of the exposant argument
             BlockInst* block = InstBuilder::genBlockInst();
-            string faust_power_name = container->getFaustPowerName() + to_string(pow_arg) + ((rtype == Typed::kInt32) ? "_i" : "_f");
             
+            string faust_power_name = container->getFaustPowerName() + to_string(pow_arg) + ((rtype == Typed::kInt32) ? "_i" : "_f");
+
             Names named_args;
             named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(t0)));
             

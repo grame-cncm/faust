@@ -1,0 +1,486 @@
+/************************************************************************
+ ************************************************************************
+    FAUST compiler
+    Copyright (C) 2021 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+
+#include "jax_code_container.hh"
+#include "Text.hh"
+#include "exception.hh"
+#include "fir_function_builder.hh"
+#include "floats.hh"
+#include "global.hh"
+
+using namespace std;
+
+map<string, bool> JAXInstVisitor::gFunctionSymbolTable;
+
+dsp_factory_base* JAXCodeContainer::produceFactory()
+{
+    return new text_dsp_factory_aux(
+        fKlassName, "", "",
+        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), "");
+}
+
+JAXCodeContainer::JAXCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out)
+{
+    // Mandatory
+    initialize(numInputs, numOutputs);
+    fKlassName = name;
+    fOut = out;
+    
+    // Allocate one static visitor
+    if (!gGlobal->gJAXVisitor) {
+        gGlobal->gJAXVisitor = new JAXInstVisitor(out, name);
+    }
+}
+
+CodeContainer* JAXCodeContainer::createScalarContainer(const string& name, int sub_container_type)
+{
+    return new JAXScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
+}
+
+CodeContainer* JAXCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
+{
+    gGlobal->gDSPStruct = true;
+    CodeContainer* container;
+
+    if (gGlobal->gOpenCLSwitch) {
+        throw faustexception("ERROR : OpenCL not supported for JAX\n");
+    }
+    if (gGlobal->gCUDASwitch) {
+        throw faustexception("ERROR : CUDA not supported for JAX\n");
+    }
+
+    if (gGlobal->gOpenMPSwitch) {
+        throw faustexception("ERROR : OpenMP not supported for JAX\n");
+    } else if (gGlobal->gSchedulerSwitch) {
+        throw faustexception("ERROR : Scheduler not supported for JAX\n");
+    } else if (gGlobal->gVectorSwitch) {
+        throw faustexception("ERROR : Vector not supported for JAX\n");
+    } else {
+        container = new JAXScalarCodeContainer(name, numInputs, numOutputs, dst, kInt);
+    }
+
+    return container;
+}
+
+inline string flattenJSONforPython(const string& src)
+{
+    string dst;
+    for (size_t i = 0; i < src.size(); i++) {
+        switch (src[i]) {
+            case '"':
+                dst += "\\\"";
+                break;
+            case '\\':
+                dst += "/";
+                break;
+            case '\'':
+                dst += "'";
+                break;
+            default:
+                dst += src[i];
+                break;
+        }
+    }
+    return dst;
+}
+
+void JAXCodeContainer::produceClass()
+{
+    int n = 0;
+    
+    // Print header
+    *fOut << "\"\"\"" << endl
+          << "Code generated with Faust version " << FAUSTVERSION << endl;
+    *fOut << "Compilation options: ";
+    stringstream stream;
+    gGlobal->printCompilationOptions(stream);
+    *fOut << stream.str();
+    tab(n, *fOut);
+    *fOut << "\"\"\"";
+    tab(n, *fOut);
+    
+    tab(n, *fOut);
+    *fOut << "import math";
+    tab(n, *fOut);
+    *fOut << "import jax";
+    tab(n, *fOut);
+    *fOut << "import jax.numpy as jnp";
+    tab(n, *fOut);
+    *fOut << "from flax import linen as nn";
+    tab(n, *fOut);
+    *fOut << "import numpy as np";
+    tab(n, *fOut);
+    *fOut << "import librosa";
+    tab(n, *fOut);
+    *fOut << "import json";
+    tab(n, *fOut);
+    *fOut << "import re";
+    tab(n, *fOut);
+
+    if (std::string(ifloat()) == "jnp.float64") {
+        tab(n, *fOut);
+        *fOut << "# enable double precision: https://jax.readthedocs.io/en/latest/notebooks/Common_Gotchas_in_JAX.html#double-64bit-precision";
+        tab(n, *fOut);
+        *fOut << "from jax.config import config";
+        tab(n, *fOut);
+        *fOut << "config.update(\"jax_enable_x64\", True)";
+        tab(n, *fOut);
+    }
+
+    tab(n, *fOut);
+    *fOut << "def FAUSTFLOAT(x):";
+    tab(n+1, *fOut);
+    *fOut << "return x";
+    tab(n, *fOut);
+
+    tab(n, *fOut);
+    *fOut << "def remainder(x, y):";
+    tab(n+1, *fOut);
+    *fOut << "a = jnp.remainder(x, y)";
+    tab(n+1, *fOut);  
+    *fOut << "return a - y*((a > y/2).astype(jnp.int32))";
+    tab(n, *fOut);  
+
+    // Merge sub containers
+    mergeSubContainers();
+
+    // Functions
+    tab(n, *fOut);
+    gGlobal->gJAXVisitor->Tab(n);
+       
+    tab(n, *fOut);
+    *fOut << "class " << fKlassName << "(nn.Module):";
+    tab(n + 1, *fOut);
+
+    // Fields
+    gGlobal->gJAXVisitor->Tab(n + 1);
+
+    tab(n + 1, *fOut);
+    *fOut << "sample_rate: int";
+
+    tab(n + 1, *fOut);
+    gGlobal->gJAXVisitor->Tab(n);
+
+    tab(n + 1, *fOut);
+    produceInfoFunctions(n + 1, "", "self", false, FunTyped::kDefault, gGlobal->gJAXVisitor);
+    
+    *fOut << "def classInit(self, sample_rate, x, T):";
+    {
+        tab(n + 2, *fOut);
+        *fOut << "state = {}";
+        tab(n + 2, *fOut);
+        tab(n + 2, *fOut);
+        *fOut << "# global declarations:";
+        JAXInitFieldsVisitor initializer(fOut, n + 2);
+        generateDeclarations(&initializer);
+        // Generate global variables initialisation
+        for (const auto& it : fGlobalDeclarationInstructions->fCode) {
+            if (dynamic_cast<DeclareVarInst*>(it)) {
+                it->accept(&initializer);
+            }
+        }
+        tab(n + 2, *fOut);
+        tab(n + 2, *fOut);
+        *fOut << "# init constants";
+        tab(n + 2, *fOut);
+        gGlobal->gJAXVisitor->Tab(n + 2);
+        inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gJAXVisitor);
+        tab(n + 2, *fOut);
+        *fOut << "# inline subcontainers:";
+        tab(n + 2, *fOut);
+        gGlobal->gJAXVisitor->Tab(n + 2);
+        inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gJAXVisitor);
+        tab(n + 2, *fOut);
+        *fOut << "# instance clear:";
+        tab(n + 2, *fOut);
+        generateClear(gGlobal->gJAXVisitor);
+        tab(n + 2, *fOut);
+        *fOut << "# build user interface parameters";
+        tab(n + 2, *fOut);
+        *fOut << "state = self.build_interface(state, x, T)";
+        tab(n + 2, *fOut);
+        tab(n + 2, *fOut);
+        *fOut << "# convert numpy array to jax numpy array";
+        tab(n + 2, *fOut);
+        *fOut << "state = jax.tree_map(jnp.array, state)";
+        tab(n + 2, *fOut);
+        tab(n + 2, *fOut);
+        *fOut << "return state";
+        tab(n + 1, *fOut);
+    }
+
+    back(1, *fOut);
+
+    tab(n+1, *fOut);
+    
+    // JSON generation
+    tab(n+1, *fOut);
+    *fOut << "def getJSON(self):";
+    {
+        string json;
+        if (gGlobal->gFloatSize == 1) {
+            json = generateJSON<float>();
+        } else {
+            json = generateJSON<double>();
+        }
+        tab(n + 2, *fOut);
+        *fOut << "json_str = \"\"\"" << flattenJSONforPython(json) << "\"\"\"";
+        tab(n + 2, *fOut);
+        *fOut << "return json.loads(json_str)";
+        tab(n + 1, *fOut);
+    }
+
+    tab(n + 1, *fOut);
+    *fOut << "def load_soundfile(self, filepath):";
+    tab(n + 2, *fOut);
+    *fOut << "try:";
+    tab(n + 3, *fOut);
+    *fOut << "audio, sr = librosa.load(filepath, mono=False, sr=None)";
+    tab(n + 2, *fOut);
+    *fOut << "except FileNotFoundError:";
+    tab(n + 3, *fOut);
+    *fOut << "return np.zeros((1,1024)), 44100";
+    tab(n + 2, *fOut);
+    *fOut << "if audio.ndim == 1:";
+    tab(n + 3, *fOut);
+    *fOut << "audio = np.expand_dims(audio, 0)";
+    tab(n + 2, *fOut);
+    *fOut << "return audio, sr";
+    tab(n + 1, *fOut);
+
+    tab(n + 1, *fOut);
+    *fOut << "def add_soundfile(self, state, x, label: str, url: str, key: str):";
+    tab(n + 2, *fOut);
+    *fOut << "# todo: better parsing";
+    tab(n + 2, *fOut);
+    *fOut << "filepaths = url[2:-2].split(\"\';\'\")";
+    tab(n + 2, *fOut);
+    *fOut << "fLength, fOffset, fSR, offset = [], [], [], 0";
+    tab(n + 2, *fOut);
+    *fOut << "audio_data = [self.load_soundfile(filepath) for filepath in filepaths]";
+    tab(n + 2, *fOut);
+    *fOut << "num_chans = max([y.shape[0] for y, _ in audio_data])";
+    tab(n + 2, *fOut);
+    *fOut << "total_length = sum([y.shape[1] for y, _ in audio_data])";
+    tab(n + 2, *fOut);
+    *fOut << "fBuffers = jnp.zeros((num_chans, total_length))";
+    tab(n + 2, *fOut);
+    *fOut << "for y, sr in audio_data:";
+    tab(n + 3, *fOut);
+    *fOut << "fSR.append(sr)";
+    tab(n + 3, *fOut);
+    *fOut << "assert y.ndim == 2";
+    tab(n + 3, *fOut);
+    *fOut << "y = jnp.array(y)";
+    tab(n + 3, *fOut);
+    *fOut << "fLength.append(y.shape[1])";
+    tab(n + 3, *fOut);
+    *fOut << "fOffset.append(offset)";
+    tab(n + 3, *fOut);
+    *fOut << "fBuffers = fBuffers.at[:y.shape[0],offset:offset+y.shape[1]].set(y)";
+    tab(n + 3, *fOut);
+    *fOut << "offset += y.shape[1]";
+    tab(n + 2, *fOut);
+    *fOut << "if label.startswith('param:'):";
+    tab(n + 3, *fOut);
+    *fOut << "label = label[6:]  # remove param:";
+	tab(n + 3, *fOut);
+    *fOut << "fBuffers = self.param(\"_\"+label, (lambda key, shape: fBuffers), None)";
+    tab(n + 2, *fOut);
+    *fOut << "self.sow('intermediates', label, fBuffers)";
+    tab(n + 2, *fOut);
+    *fOut << "state[key] = {'fLength': fLength, 'fOffset': fOffset, 'fBuffers': fBuffers, 'fSR': fSR}";
+    tab(n + 2, *fOut);
+    *fOut << "return state";
+    tab(n + 1, *fOut);
+
+    tab(n + 1, *fOut);
+    *fOut << "def add_nentry(self, zone: str, label: str, init: float, a_min: float, a_max: float, step_size: float, scale_mode='linear'):";
+    tab(n + 2, *fOut);
+    *fOut << "num_steps = int(jnp.round((a_max-a_min)/step_size))+1";
+    tab(n + 2, *fOut);
+    *fOut << "init_unit = int(jnp.round(init-a_min)/step_size)";
+    tab(n + 2, *fOut);
+    *fOut << "param = jnp.ones((num_steps,))";
+    tab(n + 2, *fOut);
+    *fOut << "param = param.at[init_unit].set(2)";
+    tab(n + 2, *fOut);
+    *fOut << "param = nn.softmax(param)";
+    tab(n + 2, *fOut);
+    *fOut << "param = self.param(zone+\"_\"+label, (lambda key, shape: param), None)";
+    tab(n + 2, *fOut);
+    *fOut << "param = jnp.argmax(param, axis=-1)*step_size+a_min";
+    tab(n + 2, *fOut);
+    *fOut << "self.sow('intermediates', label, param)";
+    tab(n + 2, *fOut);
+    *fOut << "return param";
+    tab(n + 1, *fOut);
+
+    tab(n + 1, *fOut);
+    *fOut << "def add_button(self, zone: str, label: str):";
+    tab(n + 2, *fOut);
+    *fOut << "param = self.param(zone+ \"_\"+label, nn.initializers.constant(0.), ())";
+    tab(n + 2, *fOut);
+    *fOut << "param = jnp.where(param>0., 1., 0.)";
+    tab(n + 2, *fOut);
+    *fOut << "self.sow('intermediates', label, param)";
+    tab(n + 2, *fOut);
+    *fOut << "return param";
+    tab(n + 1, *fOut);
+
+    tab(n + 1, *fOut);
+    *fOut << "def add_slider(self, zone: str, label: str, init: float, a_min: float, a_max: float, scale_mode='linear'):";
+    tab(n + 2, *fOut);
+    *fOut << "init, a_min, a_max = float(init), float(a_min), float(a_max)";
+    tab(n + 2, *fOut);
+    *fOut << "if scale_mode == 'linear':";
+    tab(n + 3, *fOut);
+    *fOut << "init = jnp.interp(init, jnp.array([a_min, a_max]), jnp.array([-1.,1.]))";
+    tab(n + 3, *fOut);
+    *fOut << "param = self.param(zone+\"_\"+label, nn.initializers.constant(init), ())";
+    tab(n + 3, *fOut);
+    *fOut << "param = jnp.clip(param, -1., 1.)";
+    tab(n + 3, *fOut);
+    *fOut << "param = jnp.interp(param, jnp.array([-1., 1.]), jnp.array([a_min, a_max]))";
+    tab(n + 2, *fOut);
+    *fOut << "elif scale_mode == 'exp':";
+    tab(n + 3, *fOut);
+    *fOut << "init = jnp.interp(init, jnp.array([a_min, a_max]), jnp.array([1., jnp.e]))";
+    tab(n + 3, *fOut);
+    *fOut << "init = jnp.log(init)";
+    tab(n + 3, *fOut);
+    *fOut << "init = jnp.interp(init, jnp.array([0., 1.]), jnp.array([-1.,1.]))";
+    tab(n + 3, *fOut);
+    *fOut << "param = self.param(zone+\"_\"+label, nn.initializers.constant(init), ())";
+    tab(n + 3, *fOut);
+    *fOut << "param = jnp.clip(param, -1., 1.)";
+    tab(n + 3, *fOut);
+    *fOut << "param = jnp.interp(param, jnp.array([-1., 1.]), jnp.array([0., 1.]))";
+    tab(n + 3, *fOut);
+    *fOut << "param = jnp.interp(jnp.exp(param), jnp.array([1., jnp.e]), jnp.array([a_min, a_max]))";
+    tab(n + 2, *fOut);
+    *fOut << "elif scale_mode == 'log':";
+    tab(n + 3, *fOut);
+    *fOut << "init = jnp.interp(init, jnp.array([a_min, a_max]), jnp.array([-4., 0.]))";
+    tab(n + 3, *fOut);
+    *fOut << "init = jnp.power(10., init)";
+    tab(n + 3, *fOut);
+    *fOut << "init = jnp.interp(init, jnp.array([10.**-4., 1.]), jnp.array([-1.,1.]))";
+    tab(n + 3, *fOut);
+    *fOut << "param = self.param(zone+\"_\"+label, nn.initializers.constant(init), ())";
+    tab(n + 3, *fOut);
+    *fOut << "param = jnp.clip(param, -1., 1.)";
+    tab(n + 3, *fOut);
+    *fOut << "param = jnp.interp(param, jnp.array([-1., 1.]), jnp.array([10.**-4., 1.]))";
+    tab(n + 3, *fOut);
+    *fOut << "param = jnp.interp(jnp.log10(param), jnp.array([-4., 0.]), jnp.array([a_min, a_max]))";
+    tab(n + 2, *fOut);
+    *fOut << "else:";
+    tab(n + 3, *fOut);
+    *fOut << "raise ValueError(f\" Unknown scale '{scale_mode}'.\")";
+    tab(n + 2, *fOut);
+    *fOut << "self.sow('intermediates', label, param)";
+    tab(n + 2, *fOut);
+    *fOut << "return param";
+    tab(n + 1, *fOut);
+
+    // User interface
+    tab(n + 1, *fOut);
+    *fOut << "def build_interface(self, state, x, T: int):";
+    tab(n + 2, *fOut);
+    gGlobal->gJAXVisitor->Tab(n + 2);
+    generateUserInterface(gGlobal->gJAXVisitor);
+    tab(n + 2, *fOut);
+    *fOut << "return state";
+    
+    //// Compute
+    tab(n + 1, *fOut);
+    generateCompute(n+1);
+
+    tab(n + 1, *fOut);
+}
+
+void JAXCodeContainer::generateCompute(int n)
+{
+    // Generates declaration
+    tab(n, *fOut);
+    *fOut << "@staticmethod";
+    tab(n, *fOut);
+    *fOut << "def tick(state: dict, inputs: jnp.array):";
+    tab(n + 1, *fOut);
+
+    tab(n + 1, *fOut);
+    gGlobal->gJAXVisitor->Tab(n + 1);
+
+    // Generates local variables declaration and setup
+    gGlobal->gJAXVisitor->use_numpy = false;
+    generateComputeBlock(gGlobal->gJAXVisitor);
+
+    auto loop = fCurLoop->generateOneSample();
+    loop->accept(gGlobal->gJAXVisitor);
+
+    generatePostComputeBlock(gGlobal->gJAXVisitor);
+    gGlobal->gJAXVisitor->use_numpy = true;
+
+    tab(n, *fOut);
+    *fOut << "@nn.compact";
+    tab(n, *fOut);
+    *fOut << "def __call__(self, x, T: int) -> jnp.array:";
+    tab(n + 1, *fOut);
+    *fOut << "state = self.classInit(self.sample_rate, x, T)";
+    tab(n + 1, *fOut);
+    *fOut << "return jnp.transpose(jax.lax.scan(self.tick, state, jnp.transpose(x, axes=(1, 0)))[1], axes=(1,0))";
+    tab(n, *fOut);
+}
+
+BlockInst* JAXCodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
+{
+    // Rename 'sig' in 'dsp' and remove 'dsp' allocation
+    block = DspRenamer().getCode(block);
+    // dump2FIR(block);
+
+    // Inline subcontainers 'instanceInit' and 'fill' function call
+    for (const auto& it : fSubContainers) {
+        // Build the function to be inlined (prototype and code)
+        DeclareFunInst* inst_init_fun =
+            it->generateInstanceInitFun("instanceInit" + it->getClassName(), "dsp", true, false);
+        // dump2FIR(inst_init_fun);
+        block = FunctionCallInliner(inst_init_fun).getCode(block);
+        // dump2FIR(block);
+
+        // Build the function to be inlined (prototype and code)
+        DeclareFunInst* fill_fun = it->generateFillFun("fill" + it->getClassName(), "dsp", true, false);
+        // dump2FIR(fill_fun);
+        block = FunctionCallInliner(fill_fun).getCode(block);
+        // dump2FIR(block);
+    }
+    // dump2FIR(block);
+
+    return block;
+}
+
+// Scalar
+JAXScalarCodeContainer::JAXScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+                                                   int sub_container_type)
+    : JAXCodeContainer(name, numInputs, numOutputs, out)
+{
+    fSubContainerType = sub_container_type;
+}

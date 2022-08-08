@@ -1,0 +1,4 @@
+librosa
+pytest
+scipy
+numpy
