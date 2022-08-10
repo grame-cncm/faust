@@ -2130,9 +2130,14 @@ LIBFAUST_API Tree DSPToBoxes(const std::string& dsp_content, int* inputs, int* o
     }
     initDocumentNames();
     initFaustFloat();
-    
-    parseSourceFiles();
-    
+
+    try{
+        parseSourceFiles();
+    } catch (faustexception& e) {
+        error_msg = e.what();
+        return nullptr;
+    }
+
     /****************************************************************
      3 - evaluate 'process' definition
      *****************************************************************/
