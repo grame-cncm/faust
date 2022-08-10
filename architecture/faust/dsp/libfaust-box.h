@@ -584,6 +584,7 @@ LIBFAUST_API Box boxAttach(Box s1, Box s2);
 /**
  * Compile a DSP source code as a string in a flattened box
  *
+ * @param name_app - the name of the Faust program
  * @param dsp_content - the Faust program as a string
  * @param inputs - the place to return the number of inputs of the resulting box
  * @param outputs - the place to return the number of outputs of the resulting box
@@ -591,7 +592,7 @@ LIBFAUST_API Box boxAttach(Box s1, Box s2);
  *
  * @return a compiled box on success, otherwise a null pointer.
  */
-LIBFAUST_API Box DSPToBoxes(const std::string& dsp_content, int* inputs, int* outputs, std::string& error_msg);
+LIBFAUST_API Box DSPToBoxes(const std::string& name_app, const std::string& dsp_content, int* inputs, int* outputs, std::string& error_msg);
 
 /**
  * Return the number of inputs and outputs of a box

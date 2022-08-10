@@ -623,7 +623,7 @@ static void test25(int argc, char* argv[])
         string error_msg;
     
         // Create the oscillator
-        Box osc = DSPToBoxes("import(\"stdfaust.lib\"); process = os.osc(440);", &inputs, &outputs, error_msg);
+        Box osc = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", &inputs, &outputs, error_msg);
         
         // Compile it
         dsp_factory_base* factory = createCPPDSPFactoryFromBoxes("FaustDSP", osc, argc, (const char**)argv, error_msg);
@@ -647,7 +647,7 @@ static void test26(int argc, char* argv[])
         string error_msg;
         
         // Create the filter without parameter
-        Box filter = DSPToBoxes("import(\"stdfaust.lib\"); process = fi.lowpass(5);", &inputs, &outputs, error_msg);
+        Box filter = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = fi.lowpass(5);", &inputs, &outputs, error_msg);
         
         // Create the filter parameters and connect
         Box cutoff = boxHSlider("cutoff", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));

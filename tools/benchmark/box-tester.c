@@ -235,7 +235,7 @@ static void test4()
         char error_msg[4096];
         
         // Create the filter without parameter
-        Box filter = CDSPToBoxes("import(\"stdfaust.lib\"); process = fi.lowpass(5);", &inputs, &outputs, error_msg);
+        Box filter = CDSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = fi.lowpass(5);", &inputs, &outputs, error_msg);
         
         // Create the filter parameters and connect
         Box cutoff = CboxHSlider("cutoff", CboxReal(300), CboxReal(100), CboxReal(2000), CboxReal(0.01));

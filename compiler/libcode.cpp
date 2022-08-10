@@ -2106,7 +2106,7 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     return out.str();
 }
 
-LIBFAUST_API Tree DSPToBoxes(const std::string& dsp_content, int* inputs, int* outputs, std::string& error_msg)
+LIBFAUST_API Tree DSPToBoxes(const std::string& name_app, const std::string& dsp_content, int* inputs, int* outputs, std::string& error_msg)
 {
     int argc = 0;
     const char* argv[16];
@@ -2126,12 +2126,17 @@ LIBFAUST_API Tree DSPToBoxes(const std::string& dsp_content, int* inputs, int* o
      *****************************************************************/
     if (dsp_content.c_str()) {
         gGlobal->gInputString = dsp_content.c_str();
-        gGlobal->gInputFiles.push_back("dummy");
+        gGlobal->gInputFiles.push_back(name_app.c_str());
     }
     initDocumentNames();
     initFaustFloat();
     
-    parseSourceFiles();
+    try {
+        parseSourceFiles();
+    } catch (faustexception& e) {
+        error_msg = e.what();
+        return nullptr;
+    }
     
     /****************************************************************
      3 - evaluate 'process' definition
@@ -3864,10 +3869,10 @@ extern "C"
 {
 #endif
     
-    LIBFAUST_API Tree CDSPToBoxes(const char* dsp_content, int* inputs, int* outputs, char* error_msg)
+    LIBFAUST_API Tree CDSPToBoxes(const char* name_app, const char* dsp_content, int* inputs, int* outputs, char* error_msg)
     {
         string error_msg_aux;
-        Tree box = DSPToBoxes(dsp_content, inputs, outputs, error_msg_aux);
+        Tree box = DSPToBoxes(name_app, dsp_content, inputs, outputs, error_msg_aux);
         strncpy(error_msg, error_msg_aux.c_str(), 4096);
         return box;
     }
