@@ -37,25 +37,25 @@
 // (or `mapself(lt)` for a list).
 //------------------------------------------------------------------------------
 
-class TreeTransform {
+class TreeTransform : public Garbageable {
    protected:
     property<Tree> fResult;  // cache previously computed transformations
     // used when tracing
-    bool   fTraceFlag;  // trace transformations when true
+    bool   fTrace;      // trace transformations when true
     int    fIndent;     // current indentation during trace
     string fMessage;    // trace message
 
    public:
-    TreeTransform() : fTraceFlag(false), fIndent(0), fMessage("TreeTransform") {}
+    TreeTransform() : fTrace(false), fIndent(0), fMessage("TreeTransform") {}
 
     Tree self(Tree t);
     Tree mapself(Tree lt);
 
-    void trace(bool b) { fTraceFlag = b; }
+    void trace(bool b) { fTrace = b; }
     void trace(bool b, const string& m)
     {
-        fTraceFlag = b;
-        fMessage   = m;
+        fTrace = b;
+        fMessage = m;
     }
 
    protected:

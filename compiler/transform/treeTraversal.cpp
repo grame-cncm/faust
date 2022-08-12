@@ -43,15 +43,17 @@
 
 void TreeTraversal::self(Tree t)
 {
-    if (fTraceFlag) traceEnter(t);
+    if (fTrace) traceEnter(t);
     fIndent++;
-
+    // First visit
     if (!fVisited.count(t)) {
-        fVisited.insert(t);
+        fVisited[t] = 0;
         visit(t);
     }
+    // Keep visit counter
+    fVisited[t]++;
     fIndent--;
-    if (fTraceFlag) traceExit(t);
+    if (fTrace) traceExit(t);
 }
 
 void TreeTraversal::traceEnter(Tree t)
@@ -63,7 +65,7 @@ void TreeTraversal::traceEnter(Tree t)
 void TreeTraversal::traceExit(Tree t)
 {
     tab(fIndent, cerr);
-    cerr << fMessage << "  Exit: " << *t << endl;
+    cerr << fMessage << " Exit: " << *t << endl;
 }
 
 void TreeTraversal::mapself(Tree lt)

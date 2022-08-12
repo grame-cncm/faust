@@ -34,8 +34,6 @@
 
 void SignalTreeChecker::visit(Tree sig)
 {
-    SignalVisitor::visit(sig);
-  
     int opnum;
     Tree x, y, sel, sf, chan, part, ridx;
     
@@ -107,6 +105,9 @@ void SignalTreeChecker::visit(Tree sig)
             cerr << "ERROR : isSigSoundfileBuffer with a wrong typed ridx : " << *sig << endl;
             faustassert(false);
         }
+    } else {
+        // Default case
+        SignalVisitor::visit(sig);
     }
 }
 

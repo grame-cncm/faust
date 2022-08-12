@@ -262,7 +262,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     
     // Generate VHDL if -vhdl option is set
     if (gGlobal->gVHDLSwitch) {
-        sigVHDLFile(fOccMarkup, L2);
+        sigVHDLFile(fOccMarkup, L2, gGlobal->gVHDLTrace);
     }
     
     return L2;

@@ -38,15 +38,11 @@ To be used on a type annotated signal.
 class SignalTreeChecker final : public SignalVisitor {
     
     public:
-    SignalTreeChecker(Tree L)
+        SignalTreeChecker(Tree L)
         {
             // Check that the root tree is properly type annotated
             getCertifiedSigType(L);
-    
-            while (!isNil(L)) {
-                self(hd(L));
-                L = tl(L);
-            }
+            visitRoot(L);
         }
         
     protected:

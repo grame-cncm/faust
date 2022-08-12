@@ -22,6 +22,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <map>
 #include "property.hh"
 #include "sigtyperules.hh"
 #include "tree.hh"
@@ -33,12 +34,25 @@
 //----------------------------------------------------------------------
 
 class SignalVisitor : public TreeTraversal {
-   protected:
-    bool fVisitGen{false};
-
+  
    public:
     SignalVisitor() = default;
+    SignalVisitor(Tree L)
+    {
+        visitRoot(L);
+    }
+    
+    void visitRoot(Tree L)
+    {
+        while (!isNil(L)) {
+            self(hd(L));
+            L = tl(L);
+        }
+    }
 
    protected:
-    void visit(Tree t) override;
+    
+    bool fVisitGen{false};
+    virtual void visit(Tree t) override;
+   
 };

@@ -28,23 +28,22 @@
 #include "property.hh"
 #include "sigtyperules.hh"
 #include "tree.hh"
-#include "treeTraversal.hh"
+#include "signalVisitor.hh"
 
 //-------------------------Signal2Elementary-------------------------------
 // Transforms signals to Elementary code (see: https://www.elementary.audio)
 //----------------------------------------------------------------------
 
-class Signal2Elementary : public TreeTraversal {
-    bool fVisitGen;
-    std::stringstream fOut;
+class Signal2Elementary : public SignalVisitor {
 
    public:
-    Signal2Elementary() : fVisitGen(false) {}
+    Signal2Elementary() {}
     
     void sig2Elementary(Tree L, ofstream& fout);
 
    protected:
     void visit(Tree);
+    std::stringstream fOut;
 };
 
 #endif

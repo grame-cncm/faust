@@ -38,12 +38,10 @@ using namespace std;
 #define HIGH 8  //  gGlobal->gVHDLFloatMSB
 #define LOW -23 //  gGlobal->gVHDLFloatLSB
 
-class Signal2VHDLVisitor : public TreeTraversal {
+class Signal2VHDLVisitor : public SignalVisitor {
 
     private:
         old_OccMarkup* fOccMarkup;
-        bool fVisitGen;
-        set<Tree> fVisited;          // Avoid visiting a tree twice
         map<string, bool> fEntity;
         /** Fields used to accumulate strings for different parts of the .vhd file */
         string fInput;
@@ -174,14 +172,13 @@ class Signal2VHDLVisitor : public TreeTraversal {
         }
 
     public:
-        Signal2VHDLVisitor(old_OccMarkup* occ_markup) : TreeTraversal(), fOccMarkup(occ_markup), fVisitGen(false) {};
+        Signal2VHDLVisitor(old_OccMarkup* occ_markup) : SignalVisitor(), fOccMarkup(occ_markup) {};
 
-        void self(Tree t);
-        void sigToVHDL(Tree sig, ofstream& fout);
+        void sigToVHDL(Tree sig, ostream& fout);
 
     protected:
         void visit(Tree sig) override;
 };
 
 // Public API
-void sigVHDLFile(old_OccMarkup* markup, Tree L);
+void sigVHDLFile(old_OccMarkup* markup, Tree L, bool trace);

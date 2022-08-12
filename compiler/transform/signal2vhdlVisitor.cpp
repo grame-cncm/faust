@@ -50,7 +50,7 @@ static const char* binopname[] = {
     "&", "|", "^"
 };
 
-void Signal2VHDLVisitor::sigToVHDL(Tree L, ofstream& fout)
+void Signal2VHDLVisitor::sigToVHDL(Tree L, ostream& fout)
 {
     Tree output[2];
     int i = 0;
@@ -98,16 +98,6 @@ void Signal2VHDLVisitor::sigToVHDL(Tree L, ofstream& fout)
     fout <<  "out_right_V_int(22 downto 0) <= right_out_slv_32bits(22 downto 0);" << endl;
     fout <<  "out_right_V_int(23) <= right_out_slv_32bits(31);" << endl;
     fout << "end logic;" << endl;
-}
-
-// comment
-void Signal2VHDLVisitor::self(Tree t)
-{
-    // Display function
-    if (!fVisited.count(t)) {
-        fVisited.insert(t);
-        visit(t);
-    }
 }
 
 void Signal2VHDLVisitor::visit(Tree sig)
@@ -1141,11 +1131,11 @@ void Signal2VHDLVisitor::cast(const string& name, Tree sig, Tree x)
 }
 
 // Public API
-void sigVHDLFile(old_OccMarkup* markup, Tree L)
+void sigVHDLFile(old_OccMarkup* markup, Tree L, bool trace)
 {
     Signal2VHDLVisitor V(markup);
-    ofstream vhdl_file(subst("faust.vhd", gGlobal->makeDrawPath()).c_str());
-    V.sigToVHDL(L, vhdl_file);
-    V.trace(gGlobal->gVHDLTrace, "VHDL");  // activate with --trace option
+    ofstream file("faust.vhd");
+    V.sigToVHDL(L, file);
+    V.trace(trace, "VHDL");  // activate with --trace option
     V.mapself(L);
 }

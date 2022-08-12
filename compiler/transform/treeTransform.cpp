@@ -43,7 +43,7 @@
 
 Tree TreeTransform::self(Tree t)
 {
-    if (fTraceFlag) traceEnter(t);
+    if (fTrace) traceEnter(t);
     fIndent++;
     Tree r;
     if (!fResult.get(t, r)) {
@@ -51,7 +51,7 @@ Tree TreeTransform::self(Tree t)
         fResult.set(t, r);
     }
     fIndent--;
-    if (fTraceFlag) traceExit(t, r);
+    if (fTrace) traceExit(t, r);
     return r;
 }
 
