@@ -116,8 +116,8 @@ void JAXCodeContainer::produceClass()
     *fOut << "import jax.numpy as jnp";
     tab(n, *fOut);
     *fOut << "from flax import linen as nn";
-    tab(n, *fOut);
-    *fOut << "FAUSTFLOAT = float";
+    //tab(n, *fOut);
+    //*fOut << "FAUSTFLOAT = float";
     // tab(n, *fOut);
     // *fOut << "dtype = " << ifloat();  // jnp.float32
     tab(n, *fOut);
@@ -130,50 +130,43 @@ void JAXCodeContainer::produceClass()
     gGlobal->gJAXVisitor->Tab(n);
     
     // Only generate globals functions
-    for (const auto& it : fGlobalDeclarationInstructions->fCode) {
-        if (dynamic_cast<DeclareFunInst*>(it)) {
-            it->accept(gGlobal->gJAXVisitor);
-        }
-    }
+    //for (const auto& it : fGlobalDeclarationInstructions->fCode) {
+    //    if (dynamic_cast<DeclareFunInst*>(it)) {
+    //        it->accept(gGlobal->gJAXVisitor);
+    //    }
+    //}
    
     tab(n, *fOut);
     *fOut << "class " << fKlassName << "(nn.Module):";
     tab(n + 1, *fOut);
 
-    //// Fields
-    //gGlobal->gJAXVisitor->Tab(n + 1);
+    // Fields
+    gGlobal->gJAXVisitor->Tab(n + 1);
     //generateDeclarations(gGlobal->gJAXVisitor);
-    //// Generate global variables definition
-    //for (const auto& it : fGlobalDeclarationInstructions->fCode) {
-    //    if (dynamic_cast<DeclareVarInst*>(it)) {
-    //        it->accept(gGlobal->gJAXVisitor);
-    //    }
-    //}
-    tab(n + 1, *fOut);
-    *fOut << "def __init__(self, sample_rate: int):";
-    tab(n + 2, *fOut);
-    *fOut << "super(" << fKlassName << ", self).__init__()";
-    tab(n + 2, *fOut);
-    JAXInitFieldsVisitor initializer(fOut, n + 2);
-    generateDeclarations(&initializer);
-    // Generate global variables initialisation
+    // Generate global variables definition
     for (const auto& it : fGlobalDeclarationInstructions->fCode) {
         if (dynamic_cast<DeclareVarInst*>(it)) {
-            it->accept(&initializer);
+            it->accept(gGlobal->gJAXVisitor);
         }
     }
+    tab(n + 1, *fOut);
+    *fOut << "sample_rate: int";
+    //*fOut << "def __init__(self, sample_rate: int):";
+    //tab(n + 2, *fOut);
+    //*fOut << "super(" << fKlassName << ", self).__init__()";
     tab(n + 2, *fOut);
-    *fOut << "self.classInit(sample_rate)";
-    tab(n + 2, *fOut);
-    *fOut << "self.instanceConstants(sample_rate)";
-    tab(n + 2, *fOut);
+    //tab(n + 2, *fOut);
+    //*fOut << "self.classInit(sample_rate)";
+    //tab(n + 2, *fOut);
+    //*fOut << "self.init_constants(sample_rate)";
+    //tab(n + 2, *fOut);
     // *fOut << "self.instanceClear()";
     // tab(n + 2, *fOut);
-    *fOut << "self.instanceResetUserInterface()";
-    tab(n + 2, *fOut);
-    
+    //*fOut << "self.instanceResetUserInterface()";
+    //tab(n + 2, *fOut);
+    //
     // Print metadata declaration
-    produceMetadata(n+1);
+    //produceMetadata(n+1);
 
     // Get sample rate method
     tab(n, *fOut);
@@ -185,7 +178,7 @@ void JAXCodeContainer::produceClass()
     tab(n+1, *fOut);
     produceInfoFunctions(n+1, "", "self", false, false, gGlobal->gJAXVisitor);
     
-    tab(n+1, *fOut);
+    //tab(n+1, *fOut);
     *fOut << "def classInit(self, sample_rate: int):";
     {
         tab(n + 2, *fOut);
@@ -197,15 +190,15 @@ void JAXCodeContainer::produceClass()
     back(1, *fOut);
 
     tab(n + 1, *fOut);
-    *fOut << "def instanceResetUserInterface(self):";
-    {
-        tab(n + 2, *fOut);
-        *fOut << "pass";
-        tab(n + 2, *fOut);
-        gGlobal->gJAXVisitor->is_resetting_ui = true;
-        generateResetUserInterface(gGlobal->gJAXVisitor);
-        gGlobal->gJAXVisitor->is_resetting_ui = false;
-    }
+    //*fOut << "def instanceResetUserInterface(self):";
+    //{
+    //    tab(n + 2, *fOut);
+    //    *fOut << "state = {}";
+    //    tab(n + 2, *fOut);
+    //    generateResetUserInterface(gGlobal->gJAXVisitor);
+    //    *fOut << "return state";
+    //    tab(n + 2, *fOut);
+    //}
     back(1, *fOut);
 
     // tab(n + 1, *fOut);
@@ -217,18 +210,20 @@ void JAXCodeContainer::produceClass()
     // back(1, *fOut);
 
     tab(n + 1, *fOut);
-    *fOut << "def instanceConstants(self, sample_rate: int):";
+    *fOut << "def init_constants(self, state, sample_rate):";
     {
         tab(n + 2, *fOut);
         inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gJAXVisitor);
+        tab(n + 2, *fOut);
+        *fOut << "return state";
     }
     tab(n+1, *fOut);
    
-    //tab(n, *fOut);
+    tab(n, *fOut);
     //tab(n + 1, *fOut);
     //*fOut << "def instanceInit(self, sample_rate: int):";
     //tab(n + 2, *fOut);
-    //*fOut << "instanceConstants(dsp, sample_rate):";
+    //*fOut << "init_constants(dsp, sample_rate):";
     //tab(n + 2, *fOut);
     //*fOut << "instanceResetUserInterface(dsp):";
     //tab(n + 2, *fOut);
@@ -245,26 +240,38 @@ void JAXCodeContainer::produceClass()
     //tab(n, *fOut);
     
     // JSON generation
-    tab(n+1, *fOut);
-    *fOut << "def getJSON(self):";
-    {
-        string json;
-        if (gGlobal->gFloatSize == 1) {
-            json = generateJSON<float>();
-        } else {
-            json = generateJSON<double>();
-        }
-        tab(n + 2, *fOut);
-        *fOut << "return \"\"\"" << flattenJSON(json) << "\"\"\"" << endl;
-        tab(n + 1, *fOut);
-    }
+    //tab(n+1, *fOut);
+    //*fOut << "def getJSON(self):";
+    //{
+    //    string json;
+    //    if (gGlobal->gFloatSize == 1) {
+    //        json = generateJSON<float>();
+    //    } else {
+    //        json = generateJSON<double>();
+    //    }
+    //    tab(n + 2, *fOut);
+    //    *fOut << "return \"\"\"" << flattenJSON(json) << "\"\"\"" << endl;
+    //    tab(n + 1, *fOut);
+    //}
 
     // User interface
     tab(n + 1, *fOut);
-    *fOut << "def setup(self):";
+    *fOut << "def build_interface(self, state, T: int):";
     tab(n + 2, *fOut);
     gGlobal->gJAXVisitor->Tab(n + 2);
     generateUserInterface(gGlobal->gJAXVisitor);
+
+
+    JAXInitFieldsVisitor initializer(fOut, n + 2);
+    generateDeclarations(&initializer);
+    // Generate global variables initialisation
+    for (const auto& it : fGlobalDeclarationInstructions->fCode) {
+        if (dynamic_cast<DeclareVarInst*>(it)) {
+            it->accept(&initializer);
+        }
+    }
+    tab(n + 2, *fOut);
+    *fOut << "return state";
     
     //// Compute
     tab(n + 1, *fOut);
@@ -278,7 +285,13 @@ void JAXCodeContainer::generateCompute(int n)
     // fFullCount is the number of samples
     // xfloat() is FAUSTFLOAT
     // *fOut << "def forward(self, " << fFullCount << subst(": int, inputs::Matrix{$0}, outputs::Matrix{$0}):", xfloat());
-    *fOut << "def __call__(self, inputs: jnp.array) -> jnp.array:";
+    *fOut << "@staticmethod";
+    tab(n, *fOut);
+
+	*fOut << "def tick(state: dict, inputs: jnp.array):";
+    tab(n + 1, *fOut);
+	//*fOut << "params, state = carry";
+
     //tab(n + 1, *fOut);
     //*fOut << "# todo: use jax.vmap to allow batch sizes greater than 1";
     //tab(n + 1, *fOut);
@@ -302,6 +315,21 @@ void JAXCodeContainer::generateCompute(int n)
     generatePostComputeBlock(gGlobal->gJAXVisitor);
 
     tab(n, *fOut);
+    tab(n, *fOut);
+    *fOut << "@nn.compact";
+    tab(n, *fOut);
+    *fOut << "def __call__(self, x, T: int) -> jnp.array:";
+    tab(n + 1, *fOut);
+    *fOut << "state = {}";
+    tab(n + 1, *fOut);
+    *fOut << "state = self.init_constants(state, self.sample_rate)";
+    tab(n + 1, *fOut);
+    *fOut << "state = self.build_interface(state, T)";
+    tab(n + 1, *fOut);
+    //*fOut << "return vscan(self.tick, state, inputs)";
+    //*fOut << "return jax.lax.scan(self.tick, state, inputs)";
+    *fOut << "return jnp.transpose(jax.lax.scan(self.tick, state, jnp.transpose(x, axes=(1, 0)))[1], axes=(1,0))";
+	tab(n, *fOut);
 }
 
 void JAXCodeContainer::produceMetadata(int tabs)

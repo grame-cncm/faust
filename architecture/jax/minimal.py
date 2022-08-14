@@ -25,7 +25,7 @@ SAMPLERATE = 44100
 def test():
 
     # Init DSP
-    my_dsp = mydsp(SAMPLERATE)
+    my_dsp = mydsp(sample_rate=SAMPLERATE)
     print("getNumInputs: ", my_dsp.getNumInputs())
     print("getNumOutputs: ", my_dsp.getNumOutputs())
 
@@ -52,7 +52,7 @@ def test():
 
     duration = 1.
 
-    inputs = torch.zeros(my_dsp.getNumInputs(), int(SAMPLERATE*duration), dtype=dtype, device=device)
+    inputs = torch.zeros(my_dsp.getNumInputs(), int(SAMPLERATE*duration))
     output = my_dsp(inputs)
 
     assert output.ndim == 2

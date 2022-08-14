@@ -500,6 +500,8 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         } else if (gGlobal->gOutputLang == "julia") {
             // special handling Julia backend
             pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("input", "inputs", fContainer->inputs(), ptr_type, false));
+        } else if (gGlobal->gOutputLang == "jax") {
+            // do nothing
         } else {
             // "input" and "inputs" used as a name convention
             if (gGlobal->gOneSampleControl) {
@@ -531,7 +533,8 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         } else if (gGlobal->gOutputLang == "julia") {
             // special handling for Julia backend
             pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("output", "outputs", fContainer->outputs(), ptr_type, true));
-                
+        } else if (gGlobal->gOutputLang == "jax") {
+            // do nothing
         } else {
             // "output" and "outputs" used as a name convention
             if (gGlobal->gOneSampleControl) {
@@ -552,7 +555,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     }
 
     // these two vars are only used for jax
-    std::string return_string = "jax.stack(";
+    std::string return_string = "state, jnp.concatenate(";
     std::string sep = "[";
 
     for (int index = 0; isList(L); L = tl(L), index++) {
@@ -601,8 +604,8 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     }
 
     if (gGlobal->gOutputLang == "jax") {
-        return_string = return_string + "], axis=1)";
-        pushComputeDSPMethod(InstBuilder::genRetInst(InstBuilder::genLoadStackVar(return_string)));
+        return_string = return_string + "])";
+        pushPostComputeDSPMethod(InstBuilder::genRetInst(InstBuilder::genLoadStackVar(return_string)));
     }
 
     Tree ui = InstructionsCompiler::prepareUserInterfaceTree(fUIRoot);

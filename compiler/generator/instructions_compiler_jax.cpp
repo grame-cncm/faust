@@ -133,7 +133,7 @@ ValueInst* InstructionsCompilerJAX::generateRec(Tree sig, Tree var, Tree le, int
     for (int i = 0; i < N; i++) {
         if (used[i]) {
             Address::AccessType var_access;
-            ValueInst* ccs = getConditionCode(nth(le, i));
+            ValueInst*          ccs = getConditionCode(nth(le, i));
             if (index == i) {
                 res = generateDelayLine(CS(nth(le, i)), ctype[i], vname[i], delay[i], var_access, ccs);
             } else {
@@ -145,42 +145,65 @@ ValueInst* InstructionsCompilerJAX::generateRec(Tree sig, Tree var, Tree le, int
     return res;
 }
 
+StoreVarInst* InstructionsCompilerJAX::genStoreArrayStructVar(const string& vname, int index, ValueInst* exp)
+{
+    //auto at = InstBuilder::genIndexedAddress(InstBuilder::genLoadArrayStructVar(vname, index));
+    //auto at = InstBuilder::genLoadArrayStructVar(vname, index);
+    auto state_val = InstBuilder::genNamedAddress(vname, Address::kStruct);
+
+    Values args;
+    args.push_back(exp);
+
+	InstBuilder::genLoadStackVar("state[\"" + vname + "\"].at");
+
+    auto right = InstBuilder::genFunCallInst("state[\"" + vname + "\"].at[" + std::to_string(index) + ":" + std::to_string(index+1)+"].set", args);
+
+    return InstBuilder::genStoreArrayStructVar(vname, right);
+}
+
+StatementInst* InstructionsCompilerJAX::generateCopyArray(const string& vname, int index_from, int index_to)
+{
+    ValueInst* inst1 = InstBuilder::genLoadArrayStructVar(vname, InstBuilder::genInt32NumInst(index_from));
+    return InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genInt32NumInst(index_to), inst1);
+}
+
+StatementInst* InstructionsCompilerJAX::generateShiftArray(const string& vname, int delay)
+{
+    Values truncated_args;
+    truncated_args.push_back(InstBuilder::genLoadArrayStructVar(vname));
+    truncated_args.push_back(InstBuilder::genLoadStackVar("1"));
+    return InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genFunCallInst(string("jnp.roll"), truncated_args));
+}
+
 ValueInst* InstructionsCompilerJAX::generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd,
                                                    Address::AccessType& var_access, ValueInst* ccs)
 {
     if (mxd == 0) {
-
         // Generate scalar use
         if (dynamic_cast<NullValueInst*>(ccs)) {
             pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype), exp));
         } else {
-            pushPreComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype), InstBuilder::genTypedZero(ctype)));
+            pushPreComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype),
+                                                                InstBuilder::genTypedZero(ctype)));
             pushComputeDSPMethod(InstBuilder::genControlInst(ccs, InstBuilder::genStoreStackVar(vname, exp)));
         }
 
     } else if (mxd < gGlobal->gMaxCopyDelay) {
-
         // Generates table init
         pushClearMethod(generateInitArray(vname, ctype, mxd + 1));
 
         // Generate table use
-        pushComputeDSPMethod(InstBuilder::genControlInst(ccs, InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genInt32NumInst(0), exp)));
+        //pushComputeDSPMethod(InstBuilder::genControlInst(
+        //    ccs, InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genInt32NumInst(0), exp)));
+        pushComputeDSPMethod(InstBuilder::genControlInst(
+            ccs, this->genStoreArrayStructVar(vname, 0, exp)));
 
         // Generates post processing copy code to update delay values
-        //if (mxd == 1) {
-        //    pushPostComputeDSPMethod(InstBuilder::genControlInst(ccs, generateCopyArray(vname, 0, 1)));
-        //} else if (mxd == 2) {
-        //    pushPostComputeDSPMethod(InstBuilder::genControlInst(ccs, generateCopyArray(vname, 1, 2)));
-        //    pushPostComputeDSPMethod(InstBuilder::genControlInst(ccs, generateCopyArray(vname, 0, 1)));
-        //} else {
-        //    pushPostComputeDSPMethod(InstBuilder::genControlInst(ccs, generateShiftArray(vname, mxd)));
-        //}
+        pushPostComputeDSPMethod(InstBuilder::genControlInst(ccs, generateShiftArray(vname, mxd)));
 
     } else {
-
         int N = pow2limit(mxd + 1);
         if (N <= gGlobal->gMaskDelayLineThreshold) {
-
             ensureIotaCode();
 
             // Generates table init
@@ -190,26 +213,28 @@ ValueInst* InstructionsCompilerJAX::generateDelayLine(ValueInst* exp, Typed::Var
             if (gGlobal->gComputeIOTA) {  // Ensure IOTA base fixed delays are computed once
                 if (fIOTATable.find(N) == fIOTATable.end()) {
                     string   iota_name = subst("i$0", gGlobal->getFreshID(fCurrentIOTA + "_temp"));
-                    FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar(fCurrentIOTA)) & FIRIndex(N - 1);
+                    FIRIndex value2    = FIRIndex(InstBuilder::genLoadStructVar(fCurrentIOTA)) & FIRIndex(N - 1);
 
-                    pushPreComputeDSPMethod(InstBuilder::genDecStackVar(iota_name, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0)));
-                    pushComputeDSPMethod(InstBuilder::genControlInst(ccs, InstBuilder::genStoreStackVar(iota_name, value2)));
+                    pushPreComputeDSPMethod(InstBuilder::genDecStackVar(iota_name, InstBuilder::genInt32Typed(),
+                                                                        InstBuilder::genInt32NumInst(0)));
+                    pushComputeDSPMethod(
+                        InstBuilder::genControlInst(ccs, InstBuilder::genStoreStackVar(iota_name, value2)));
 
                     fIOTATable[N] = iota_name;
                 }
 
-                pushComputeDSPMethod(InstBuilder::genControlInst(ccs,
-                    InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genLoadStackVar(fIOTATable[N]), exp)));
+                pushComputeDSPMethod(InstBuilder::genControlInst(
+                    ccs, InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genLoadStackVar(fIOTATable[N]), exp)));
 
             } else {
                 FIRIndex value2 = FIRIndex(InstBuilder::genLoadStructVar(fCurrentIOTA)) & FIRIndex(N - 1);
-                pushComputeDSPMethod(InstBuilder::genControlInst(ccs, InstBuilder::genStoreArrayStructVar(vname, value2, exp)));
+                pushComputeDSPMethod(
+                    InstBuilder::genControlInst(ccs, InstBuilder::genStoreArrayStructVar(vname, value2, exp)));
             }
         } else {
-
             // 'select' based delay
             string widx_tmp_name = vname + "_widx_tmp";
-            string widx_name = vname + "_widx";
+            string widx_name     = vname + "_widx";
 
             // Generates table write index
             pushDeclare(InstBuilder::genDecStructVar(widx_name, InstBuilder::genInt32Typed()));
@@ -219,25 +244,48 @@ ValueInst* InstructionsCompilerJAX::generateDelayLine(ValueInst* exp, Typed::Var
             pushClearMethod(generateInitArray(vname, ctype, mxd + 1));
 
             // int w = widx;
-            pushComputeDSPMethod(InstBuilder::genControlInst(ccs, InstBuilder::genDecStackVar(widx_tmp_name, InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genLoadStructVar(widx_name))));
+            pushComputeDSPMethod(InstBuilder::genControlInst(
+                ccs, InstBuilder::genDecStackVar(widx_tmp_name, InstBuilder::genBasicTyped(Typed::kInt32),
+                                                 InstBuilder::genLoadStructVar(widx_name))));
 
             // dline[w] = v;
-            pushComputeDSPMethod(InstBuilder::genControlInst(ccs, InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genLoadStackVar(widx_tmp_name), exp)));
+            pushComputeDSPMethod(InstBuilder::genControlInst(
+                ccs, InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genLoadStackVar(widx_tmp_name), exp)));
 
             // w = w + 1;
             FIRIndex widx_tmp1 = FIRIndex(InstBuilder::genLoadStackVar(widx_tmp_name));
-            pushPostComputeDSPMethod(InstBuilder::genControlInst(ccs, InstBuilder::genStoreStackVar(widx_tmp_name, widx_tmp1 + 1)));
+            pushPostComputeDSPMethod(
+                InstBuilder::genControlInst(ccs, InstBuilder::genStoreStackVar(widx_tmp_name, widx_tmp1 + 1)));
 
             // w = ((w == delay) ? 0 : w);
             FIRIndex widx_tmp2 = FIRIndex(InstBuilder::genLoadStackVar(widx_tmp_name));
-            pushPostComputeDSPMethod(InstBuilder::genControlInst(ccs, InstBuilder::genStoreStackVar(widx_tmp_name,
-                                                                   InstBuilder::genSelect2Inst(widx_tmp2 == FIRIndex(mxd + 1),
-                                                                                               FIRIndex(0),
-                                                                                               widx_tmp2))));
+            pushPostComputeDSPMethod(InstBuilder::genControlInst(
+                ccs,
+                InstBuilder::genStoreStackVar(widx_tmp_name, InstBuilder::genSelect2Inst(widx_tmp2 == FIRIndex(mxd + 1),
+                                                                                         FIRIndex(0), widx_tmp2))));
             // *widx = w
-            pushPostComputeDSPMethod(InstBuilder::genControlInst(ccs, InstBuilder::genStoreStructVar(widx_name, InstBuilder::genLoadStackVar(widx_tmp_name))));
+            pushPostComputeDSPMethod(InstBuilder::genControlInst(
+                ccs, InstBuilder::genStoreStructVar(widx_name, InstBuilder::genLoadStackVar(widx_tmp_name))));
         }
     }
 
     return exp;
+}
+
+
+/**
+ * Generate code for a unique IOTA variable increased at each sample
+ * and used to index ring buffers.
+ */
+void InstructionsCompilerJAX::ensureIotaCode()
+{
+    if (fCurrentIOTA == "") {
+        fCurrentIOTA = gGlobal->getFreshID("IOTA");
+        pushDeclare(InstBuilder::genDecStructVar(fCurrentIOTA, InstBuilder::genInt32Typed()));
+        //pushClearMethod(InstBuilder::genStoreStructVar(fCurrentIOTA, InstBuilder::genInt32NumInst(0)));
+		pushUserInterfaceMethod(InstBuilder::genStoreStructVar(fCurrentIOTA, InstBuilder::genInt32NumInst(0))); // todo: this is a hack
+
+        FIRIndex value = FIRIndex(InstBuilder::genLoadStructVar(fCurrentIOTA)) + 1;
+        pushPostComputeDSPMethod(InstBuilder::genStoreStructVar(fCurrentIOTA, value));
+    }
 }

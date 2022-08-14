@@ -55,9 +55,12 @@ struct JAXInitFieldsVisitor : public DispatchVisitor {
     {
         // kStaticStruct are actually merged in the main DSP
         if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
-            *fOut << "self.";
+            *fOut << "state[\"";
         }
         *fOut << named->fName;
+        if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
+            *fOut << "\"]";
+        }
     }
     
     static void ZeroInitializer(std::ostream* fOut, Typed* typed)
@@ -65,11 +68,11 @@ struct JAXInitFieldsVisitor : public DispatchVisitor {
         ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(typed);
         faustassert(array_type);
         if (isIntPtrType(typed->getType())) {
-            *fOut << "jnp.zeros(" << array_type->fSize << ", dtype=jnp.int32)";
+            *fOut << "jnp.zeros((" << array_type->fSize << ",), dtype=jnp.int32)";
         } else if (isFloatType(typed->getType())) {
-            *fOut << "jnp.zeros(" << array_type->fSize << ", dtype=jnp.float32)";
+            *fOut << "jnp.zeros((" << array_type->fSize << ",), dtype=jnp.float32)";
         } else {
-            *fOut << "jnp.zeros(" << array_type->fSize << ", dtype=jnp.float64)";
+            *fOut << "jnp.zeros((" << array_type->fSize << ",), dtype=jnp.float32)";  // todo: maybe should be jnp.float64
         }
     }
     
@@ -128,8 +131,6 @@ class JAXInstVisitor : public TextInstVisitor {
     
    public:
     using TextInstVisitor::visit;
-
-    bool is_resetting_ui = false;
 
     JAXInstVisitor(std::ostream* out, const string& struct_name, int tab = 0, bool mutate_fun = false)
         : TextInstVisitor(out, ".", new JAXStringTypeManager(xfloat(), "*", struct_name), tab), fMutateFun(mutate_fun)
@@ -241,12 +242,12 @@ class JAXInstVisitor : public TextInstVisitor {
    
         // Polymath mapping int version
         gPolyMathLibTable["abs"]   = "jnp.abs";
-        gPolyMathLibTable["max_i"] = "jnp.max";
-        gPolyMathLibTable["min_i"] = "jnp.min";
+        gPolyMathLibTable["max_i"] = "jnp.maximum";
+        gPolyMathLibTable["min_i"] = "jnp.minimum";
 
         // Polymath mapping float version
-        gPolyMathLibTable["max_f"] = "jnp.max";
-        gPolyMathLibTable["min_f"] = "jnp.min";
+        gPolyMathLibTable["max_f"] = "jnp.maximum";
+        gPolyMathLibTable["min_f"] = "jnp.minimum";
 
         gPolyMathLibTable["fabsf"]      = "jnp.abs";
         gPolyMathLibTable["acosf"]      = "jnp.acos";
@@ -327,46 +328,48 @@ class JAXInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddMetaDeclareInst* inst)
     {
-        // Special case
-        if (inst->fZone == "0") {
-            *fOut << "self.declare(ui_interface, dummy, " << quote(inst->fKey)
-            << ", " << quote(inst->fValue) << ")";
-        } else {
-            *fOut << "self.declare(ui_interface, self." << inst->fZone << ", "
-            << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
-        }
-        EndLine(' ');
+        //// Special case
+        //if (inst->fZone == "0") {
+        //    *fOut << "self.declare(ui_interface, dummy, " << quote(inst->fKey)
+        //    << ", " << quote(inst->fValue) << ")";
+        //} else {
+        //    *fOut << "self.declare(ui_interface, self." << inst->fZone << ", "
+        //    << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
+        //}
+        //EndLine(' ');
     }
 
     virtual void visit(OpenboxInst* inst)
     {
-        switch (inst->fOrient) {
-            case OpenboxInst::kVerticalBox:
-                *fOut << "ui_interface.openVerticalBox(";
-                break;
-            case OpenboxInst::kHorizontalBox:
-                *fOut << "ui_interface.openHorizontalBox(";
-                break;
-            case OpenboxInst::kTabBox:
-                *fOut << "ui_interface.openTabBox(";
-                break;
-        }
-        *fOut << quote(inst->fName) << ")";
-        EndLine(' ');
+        //switch (inst->fOrient) {
+        //    case OpenboxInst::kVerticalBox:
+        //        *fOut << "ui_interface.openVerticalBox(";
+        //        break;
+        //    case OpenboxInst::kHorizontalBox:
+        //        *fOut << "ui_interface.openHorizontalBox(";
+        //        break;
+        //    case OpenboxInst::kTabBox:
+        //        *fOut << "ui_interface.openTabBox(";
+        //        break;
+        //}
+        //*fOut << quote(inst->fName) << ")";
+        //EndLine(' ');
     }
 
     virtual void visit(CloseboxInst* inst)
     {
-        *fOut << "ui_interface.closeBox()";
-        tab(fTab, *fOut);
+        //*fOut << "ui_interface.closeBox()";
+        //tab(fTab, *fOut);
     }
     
     virtual void visit(AddButtonInst* inst)
     {
         if (inst->fType == AddButtonInst::kDefaultButton) {
-            *fOut << "ui_interface.addButton(";
+            *fOut << "self.param(" << quote(inst->fLabel) << ", nn.initializers.constant(" << 0.
+                  << "), (1,))";
         } else {
-            *fOut << "ui_interface.addCheckButton(";
+            *fOut << "self.param(" << quote(inst->fLabel) << ", nn.initializers.constant(" << 0.
+                  << "), (1,))";
         }
         // todo:
         *fOut << quote(inst->fLabel) << ", self." << inst->fZone << ")";
@@ -375,23 +378,26 @@ class JAXInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSliderInst* inst)
     {
+        *fOut << "state[\"" << inst->fZone << "\"] = ";
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
-                *fOut << "ui_interface.addHorizontalSlider(";
+                *fOut << "self.param(" << quote(inst->fLabel) << ", nn.initializers.constant("
+                      << checkReal(inst->fInit) << "), (1,))";
                 break;
             case AddSliderInst::kVertical:
-                *fOut << "ui_interface.addVerticalSlider(";
+                *fOut << "self.param(" << quote(inst->fLabel) << ", nn.initializers.constant("
+                      << checkReal(inst->fInit) << "), (1,))";
                 break;
             case AddSliderInst::kNumEntry:
-                *fOut << "ui_interface.addNumEntry(";
+                *fOut << "pass # todo: kNumEntry";
                 break;
         }
         // todo: fix this
-        *fOut << quote(inst->fLabel) << ", self." << inst->fZone << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fInit)) << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fMin)) << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fMax)) << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fStep)) << ")";
+        //*fOut << quote(inst->fLabel) << ", self." << inst->fZone << ", "
+        //      << cast2FAUSTFLOAT(checkReal(inst->fInit)) << ", "
+        //      << cast2FAUSTFLOAT(checkReal(inst->fMin)) << ", "
+        //      << cast2FAUSTFLOAT(checkReal(inst->fMax)) << ", "
+        //      << cast2FAUSTFLOAT(checkReal(inst->fStep)) << ")";
         EndLine(' ');
     }
 
@@ -575,11 +581,27 @@ class JAXInstVisitor : public TextInstVisitor {
 
     virtual void visit(NamedAddress* named)
     {
+		//kStruct      1 // self.fHslider, self.fVec0
+		//kStaticStruct = 0x2,  // Static shared variable between all DSPs
+		//kFunArgs = 0x4,  self.sample_rate, self.inputs
+		//kStack = 0x8,  fSlow0, fTemp0
+		//kGlobal = 0x10,
+		//kLink = 0x20,
+		//kLoop = 0x40,
+		//kVolatile = 0x80,
+		//kReference   = 0x100,  // Access by reference (for Rust backend)
+		//kMutable = 0x200,  // Mutable access (for Rust backend)
+		//kConst   = 0x400   // Const access
+
+        // kStaticStruct are actually merged in the main DSP
         // kStaticStruct are actually merged in the main DSP
         if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
-            *fOut << "self.";
+            *fOut << "state[\"";
         }
         *fOut << named->fName;
+        if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
+            *fOut << "\"]";
+        }
     }
     
     /*
@@ -593,13 +615,16 @@ class JAXInstVisitor : public TextInstVisitor {
             Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->getIndex());
             *fOut << "." << struct_type->fType->getName(field_index->fNum);
         } else {
-            *fOut << "[";
+            
             Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->getIndex());
             if (field_index) {
-                *fOut << field_index->fNum << ",:]";
+                *fOut << "[";
+                *fOut << field_index->fNum << ":" << field_index->fNum+1
+                      << "]";
             } else {
+                *fOut << ".at[";
                 indexed->getIndex()->accept(this);
-                *fOut << ",:]";
+                *fOut << "]";
             }
         }
     }
@@ -614,15 +639,15 @@ class JAXInstVisitor : public TextInstVisitor {
         inst->fAddress->accept(this);
         *fOut << " = ";
 
-        if (is_resetting_ui) {
-            *fOut << "jnp.nn.Parameter(jnp.array(";
-        }
+        //if (is_resetting_ui) {
+        //    *fOut << "jnp.nn.Parameter(jnp.array(";
+        //}
 
         inst->fValue->accept(this);
 
-        if (is_resetting_ui) {
-            *fOut << "))";
-        }
+        //if (is_resetting_ui) {
+        //    *fOut << "))";
+        //}
 
         EndLine(' ');
     }
@@ -633,7 +658,7 @@ class JAXInstVisitor : public TextInstVisitor {
             // todo: better casting?
             // fTypeManager->generateType(inst->fType) might be jnp.int32
             // *fOut << fTypeManager->generateType(inst->fType) << "(math.floor(";
-            *fOut << "int(math.floor(";
+            *fOut << "jnp.int32(jnp.floor(";
             inst->fInst->accept(this);
             *fOut << "))";
         } else {

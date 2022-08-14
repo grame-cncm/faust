@@ -36,6 +36,13 @@ class InstructionsCompilerJAX : public InstructionsCompiler {
     ValueInst* generateRec(Tree sig, Tree var, Tree le, int index) override;
     ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd,
                                                    Address::AccessType& var_access, ValueInst* ccs) override;
+
+	StatementInst* generateShiftArray(const string& vname, int delay) override;
+    StatementInst* generateCopyArray(const string& vname, int index_from, int index_to);
+
+	StoreVarInst* genStoreArrayStructVar(const string& vname, int index, ValueInst* exp);
+
+    void ensureIotaCode();
 };
 
 #endif
