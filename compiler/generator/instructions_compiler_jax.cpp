@@ -156,7 +156,7 @@ StoreVarInst* InstructionsCompilerJAX::genStoreArrayStructVar(const string& vnam
 
 	InstBuilder::genLoadStackVar("state[\"" + vname + "\"].at");
 
-    auto right = InstBuilder::genFunCallInst("state[\"" + vname + "\"].at[" + std::to_string(index) + ":" + std::to_string(index+1)+"].set", args);
+    auto right = InstBuilder::genFunCallInst("state[\"" + vname + "\"].at[" + std::to_string(index) + "].set", args);
 
     return InstBuilder::genStoreArrayStructVar(vname, right);
 }

@@ -555,7 +555,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     }
 
     // these two vars are only used for jax
-    std::string return_string = "state, jnp.concatenate(";
+    std::string return_string = "state, jnp.stack(";
     std::string sep = "[";
 
     for (int index = 0; isList(L); L = tl(L), index++) {
