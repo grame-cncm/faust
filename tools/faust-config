@@ -38,7 +38,7 @@ function get {
 	esac
 }
 
-SYSTEMLIBS="-lm -lz -lcurses -lxml2"
+SYSTEMLIBS="-lz -lcurses -lm -lxml2"
 
 if [ "$#" -eq 0 ]
 then
