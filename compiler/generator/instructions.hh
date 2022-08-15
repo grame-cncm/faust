@@ -2043,25 +2043,8 @@ struct InstBuilder {
 
     static ValueInst* genTypedNum(Typed::VarType type, double num);
     static ValueInst* genTypedZero(Typed::VarType type);
-
-    static ValueInst* genRealNumInst(Typed::VarType ctype, double num)
-    {
-        if (ctype == Typed::kFloat) {
-            return new FloatNumInst(float(num));
-        } else if (ctype == Typed::kFloatMacro) {
-            return genCastInst(new DoubleNumInst(num), genBasicTyped(Typed::kFloatMacro));
-        } else if (ctype == Typed::kDouble) {
-            return new DoubleNumInst(num);
-        } else if (ctype == Typed::kQuad) {
-            return new DoubleNumInst(num);
-        } else if (ctype == Typed::kFixedPoint) {
-            return new FixedPointNumInst(num);
-        } else {
-            faustassert(false);
-        }
-        return nullptr;
-    }
-
+    static ValueInst* genRealNumInst(Typed::VarType ctype, double num);
+   
     static ValueInst* genArrayNumInst(Typed::VarType ctype, int size)
     {
         if (ctype == Typed::kInt32) {

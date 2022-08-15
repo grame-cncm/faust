@@ -531,8 +531,8 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         switch (inst->fType->getType()) {
             case Typed::kInt32:
                 if (isInt32Type(type)) {
-                    // std::cout << "CastInst : cast to int, but arg already int !" << std::endl;
-                    inst->fInst->accept(this);
+                    // Should not happen with properly casted FIR
+                    faustassert(false);
                 } else if (isInt64Type(type)) {
                     *fOut << "(i32.wrap_i64 ";
                     inst->fInst->accept(this);
@@ -551,8 +551,8 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             case Typed::kFloat:
             case Typed::kDouble:
                 if (isRealType(type)) {
-                    // std::cout << "CastInst : cast to real, but arg already real !" << std::endl;
-                    inst->fInst->accept(this);
+                    // Should not happen with properly casted FIR
+                    faustassert(false);
                 } else if (isInt64Type(type)) {
                     *fOut << "(" << realStr << ".convert_i64_s ";
                     inst->fInst->accept(this);

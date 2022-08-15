@@ -1200,8 +1200,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         switch (inst->fType->getType()) {
             case Typed::kInt32:
                 if (isInt32Type(type)) {
-                    // std::cout << "CastInst : cast to int, but arg already int !" << std::endl;
-                    inst->fInst->accept(this);
+                    // Should not happen with properly casted FIR
+                    faustassert(false);
                 } else if (isInt64Type(type)) {
                     inst->fInst->accept(this);
                     *fOut << int8_t(BinaryConsts::I32WrapI64);
@@ -1219,8 +1219,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             case Typed::kFloat:
             case Typed::kDouble:
                 if (isRealType(type)) {
-                    // std::cout << "CastInst : cast to real, but arg already real !" << std::endl;
-                    inst->fInst->accept(this);
+                    // Should not happen with properly casted FIR
+                    faustassert(false);
                 } else if (isInt64Type(type)) {
                     inst->fInst->accept(this);
                     *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32SConvertI64)

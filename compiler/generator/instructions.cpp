@@ -63,6 +63,28 @@ ValueInst* InstBuilder::genTypedZero(Typed::VarType type)
     }
 }
 
+ValueInst* InstBuilder::genRealNumInst(Typed::VarType ctype, double num)
+{
+    if (ctype == Typed::kFloat) {
+        return new FloatNumInst(float(num));
+    } else if (ctype == Typed::kFloatMacro) {
+        if (gGlobal->gFAUSTFLOAT2Internal) {
+            return genRealNumInst(itfloat(), num);
+        } else {
+            return genCastInst(new DoubleNumInst(num), genBasicTyped(Typed::kFloatMacro));
+        }
+    } else if (ctype == Typed::kDouble) {
+        return new DoubleNumInst(num);
+    } else if (ctype == Typed::kQuad) {
+        return new DoubleNumInst(num);
+    } else if (ctype == Typed::kFixedPoint) {
+        return new FixedPointNumInst(num);
+    } else {
+        faustassert(false);
+    }
+    return nullptr;
+}
+
 ValueInst* InstBuilder::genTypedNum(Typed::VarType type, double num)
 {
     if (type == Typed::kInt32) {
