@@ -79,6 +79,8 @@ all: ir/rust/pitch_shifter.ir
 all: ir/rust/pow.ir
 all: ir/rust/precision.ir
 #all: ir/rust/prefix.ir
+all: ir/rust/priority.ir
+all: ir/rust/priority1.ir
 all: ir/rust/quadecho.ir
 all: ir/rust/reverb_designer.ir
 all: ir/rust/reverb_tester.ir
