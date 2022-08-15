@@ -289,3 +289,36 @@ void InstructionsCompilerJAX::ensureIotaCode()
         pushPostComputeDSPMethod(InstBuilder::genStoreStructVar(fCurrentIOTA, value));
     }
 }
+
+ValueInst* InstructionsCompilerJAX::generateSoundfile(Tree sig, Tree path)
+{
+    string varname = gGlobal->getFreshID("fSoundfile");
+    string SFcache = varname + "ca";
+
+    addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+
+    pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
+
+    if (gGlobal->gUseDefaultSound) {
+        BlockInst* block = InstBuilder::genBlockInst();
+        block->pushBackInst(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadGlobalVar("defaultsound")));
+
+        pushResetUIInstructions(InstBuilder::genIfInst(
+            InstBuilder::genEqual(InstBuilder::genCastInst(InstBuilder::genLoadStructVar(varname),
+                                                           InstBuilder::genBasicTyped(Typed::kUint_ptr)),
+                                  InstBuilder::genTypedZero(Typed::kSound_ptr)),
+            block, InstBuilder::genBlockInst()));
+    }
+
+    if (gGlobal->gOneSample >= 0) {
+        pushDeclare(InstBuilder::genDecStructVar(SFcache, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
+        pushComputeBlockMethod(InstBuilder::genStoreStructVar(SFcache, InstBuilder::genLoadStructVar(varname)));
+        pushPostComputeBlockMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadStructVar(SFcache)));
+    } else {
+        pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache, InstBuilder::genBasicTyped(Typed::kSound_ptr),
+                                                           InstBuilder::genLoadStructVar(varname)));
+        // pushPostComputeBlockMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadStackVar(SFcache)));
+    }
+
+    return InstBuilder::genLoadStructVar(varname);
+}

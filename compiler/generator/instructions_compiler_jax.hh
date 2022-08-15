@@ -43,6 +43,8 @@ class InstructionsCompilerJAX : public InstructionsCompiler {
 	StoreVarInst* genStoreArrayStructVar(const string& vname, int index, ValueInst* exp);
 
     void ensureIotaCode();
+
+	ValueInst* generateSoundfile(Tree sig, Tree path);
 };
 
 #endif

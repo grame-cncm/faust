@@ -422,8 +422,9 @@ class JAXInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSoundfileInst* inst)
     {
-        // Not supported for now
-        throw faustexception("ERROR : 'soundfile' primitive not yet supported for JAX\n");
+        *fOut << "self.add_soundfile(state, " << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", " << quote(inst->fSFZone)
+              << ")";
+        EndLine(' ');
     }
     
     // virtual void visit(Int32NumInst* inst) { *fOut << "jnp.array([" << inst->fNum << "], dtype=jnp.int32)"; }
@@ -615,7 +616,7 @@ class JAXInstVisitor : public TextInstVisitor {
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
             Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->getIndex());
-            *fOut << "." << struct_type->fType->getName(field_index->fNum);
+            *fOut << "[\"" << struct_type->fType->getName(field_index->fNum) << "\"]";
         } else {
 
 			if (is_storing_lhs) {

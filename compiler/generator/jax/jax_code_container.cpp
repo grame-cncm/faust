@@ -144,11 +144,11 @@ void JAXCodeContainer::produceClass()
     gGlobal->gJAXVisitor->Tab(n + 1);
     //generateDeclarations(gGlobal->gJAXVisitor);
     // Generate global variables definition
-    for (const auto& it : fGlobalDeclarationInstructions->fCode) {
-        if (dynamic_cast<DeclareVarInst*>(it)) {
-            it->accept(gGlobal->gJAXVisitor);
-        }
-    }
+    //for (const auto& it : fGlobalDeclarationInstructions->fCode) {  // todo: remove?
+    //    if (dynamic_cast<DeclareVarInst*>(it)) {
+    //        it->accept(gGlobal->gJAXVisitor);
+    //    }
+    //}
     tab(n + 1, *fOut);
     *fOut << "sample_rate: int";
     //*fOut << "def __init__(self, sample_rate: int):";
@@ -179,13 +179,27 @@ void JAXCodeContainer::produceClass()
     produceInfoFunctions(n+1, "", "self", false, false, gGlobal->gJAXVisitor);
     
     //tab(n+1, *fOut);
-    *fOut << "def classInit(self, sample_rate: int):";
+    *fOut << "def classInit(self, state):";
     {
         tab(n + 2, *fOut);
-        *fOut << "pass";
+        *fOut << "# global declarations:";
+        JAXInitFieldsVisitor initializer(fOut, n + 2);
+        generateDeclarations(&initializer);
+        // Generate global variables initialisation
+        for (const auto& it : fGlobalDeclarationInstructions->fCode) {
+            if (dynamic_cast<DeclareVarInst*>(it)) {
+                it->accept(&initializer);
+            }
+        }
+        tab(n + 2, *fOut);
+        *fOut << "# inline subcontainers:";
         tab(n + 2, *fOut);
         gGlobal->gJAXVisitor->Tab(n + 2);
         inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gJAXVisitor);
+        tab(n + 2, *fOut);
+        *fOut << "return state";
+        tab(n + 2, *fOut);
+
     }
     back(1, *fOut);
 
@@ -253,6 +267,46 @@ void JAXCodeContainer::produceClass()
     //    *fOut << "return \"\"\"" << flattenJSON(json) << "\"\"\"" << endl;
     //    tab(n + 1, *fOut);
     //}
+    tab(n + 1, *fOut);
+    *fOut << "def add_soundfile(self, state, label: str, url: str, key: str):";
+    tab(n + 2, *fOut);
+    *fOut << "filepaths = re.findall(r\"((?:\\'[\\w\\.]+\\')+),?\", url)";
+    tab(n + 2, *fOut);
+    *fOut << "fLength, fOffset, offset = [], [], 0";
+    tab(n + 2, *fOut);
+    *fOut << "# [1:-1] will remove the apostrophe escapes. # todo: better";
+    tab(n + 2, *fOut);
+    *fOut
+        << "audio_data = [librosa.load(filepath[1:-1], mono=False, sr=self.sample_rate)[0] for filepath in filepaths]";
+    tab(n + 2, *fOut);
+    *fOut << "num_chans = max([y.shape[0] for y in audio_data])";
+    tab(n + 2, *fOut);
+    *fOut << "total_length = sum([y.shape[1] for y in audio_data])";
+    tab(n + 2, *fOut);
+    *fOut << "fBuffers = jnp.zeros((num_chans, total_length))";
+    tab(n + 2, *fOut);
+    *fOut << "for y in audio_data:";
+    tab(n + 3, *fOut);
+    *fOut << "y = jnp.array(y)";
+    tab(n + 3, *fOut);
+    *fOut << "assert y.ndim == 2";
+    tab(n + 3, *fOut);
+    *fOut << "fLength.append(y.shape[1])";
+    tab(n + 3, *fOut);
+    *fOut << "fOffset.append(offset)";
+    tab(n + 3, *fOut);
+    *fOut << "fBuffers = fBuffers.at[:y.shape[0],offset:offset+y.shape[1]].set(y)";
+    tab(n + 3, *fOut);
+    *fOut << "offset += y.shape[1]";
+    tab(n + 2, *fOut);
+    *fOut << "if label.startswith('param:'):";
+    tab(n + 3, *fOut);
+    *fOut << "fBuffers = self.param(label, (lambda key, shape: fBuffers), None)";
+    tab(n + 2, *fOut);
+    *fOut << "state[key] = {'fLength': fLength, 'fOffset': fOffset, 'fBuffers': fBuffers}";
+    tab(n + 2, *fOut);
+    *fOut << "return state";
+    tab(n + 2, *fOut);
 
     // User interface
     tab(n + 1, *fOut);
@@ -261,15 +315,6 @@ void JAXCodeContainer::produceClass()
     gGlobal->gJAXVisitor->Tab(n + 2);
     generateUserInterface(gGlobal->gJAXVisitor);
 
-
-    JAXInitFieldsVisitor initializer(fOut, n + 2);
-    generateDeclarations(&initializer);
-    // Generate global variables initialisation
-    for (const auto& it : fGlobalDeclarationInstructions->fCode) {
-        if (dynamic_cast<DeclareVarInst*>(it)) {
-            it->accept(&initializer);
-        }
-    }
     tab(n + 2, *fOut);
     *fOut << "return state";
     
@@ -325,6 +370,8 @@ void JAXCodeContainer::generateCompute(int n)
     *fOut << "state = self.init_constants(state, self.sample_rate)";
     tab(n + 1, *fOut);
     *fOut << "state = self.build_interface(state, T)";
+    tab(n + 1, *fOut);
+    *fOut << "state = self.classInit(state)";
     tab(n + 1, *fOut);
     //*fOut << "return vscan(self.tick, state, inputs)";
     //*fOut << "return jax.lax.scan(self.tick, state, inputs)";
