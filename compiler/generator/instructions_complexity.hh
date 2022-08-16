@@ -90,11 +90,9 @@ class InstComplexityVisitor : public DispatchVisitor {
     virtual void visit(BinopInst* inst)
     {
         fBinop++;
-        TypingVisitor typing1;
-        inst->fInst1->accept(&typing1);
-        TypingVisitor typing2;
-        inst->fInst2->accept(&typing2);
-        if (isRealType(typing1.fCurType) || isRealType(typing1.fCurType)) {
+        Typed::VarType type1 = TypingVisitor::getType(inst->fInst1);
+        Typed::VarType type2 = TypingVisitor::getType(inst->fInst2);
+        if (isRealType(type1) || isRealType(type2)) {
             gBinopSymbolTable["Real(" + string(gBinOpTable[inst->fOpcode]->fName) + ")"]++;
         } else {
             gBinopSymbolTable["Int(" + string(gBinOpTable[inst->fOpcode]->fName) + ")"]++;

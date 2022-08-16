@@ -259,16 +259,12 @@ class CSharpInstVisitor : public TextInstVisitor {
                 *fOut << " = ";
 
                 if (dynamic_cast<BinopInst*>(inst->fValue)) {
-                    TypingVisitor typing;
-                    inst->fValue->accept(&typing);
-
-                    if (typing.fCurType == Typed::kBool) {
+                    Typed::VarType type = TypingVisitor::getType(inst->fValue);
+                    if (type == Typed::kBool) {
                         *fOut << "(";
                     }
-
                     inst->fValue->accept(this);
-
-                    if (typing.fCurType == Typed::kBool) {
+                    if (type == Typed::kBool) {
                         *fOut << "?1:0)";
                     }
                 } else {
@@ -341,13 +337,8 @@ class CSharpInstVisitor : public TextInstVisitor {
 
     virtual void visit(BinopInst* inst)
     {
-        TypingVisitor typing;
-
-        inst->fInst1->accept(&typing);
-        Typed::VarType type1 = typing.fCurType;
-
-        inst->fInst2->accept(&typing);
-        Typed::VarType type2 = typing.fCurType;
+        Typed::VarType type1 = TypingVisitor::getType(inst->fInst1);
+        Typed::VarType type2 = TypingVisitor::getType(inst->fInst2);
 
         bool cond1 = needParenthesis(inst, inst->fInst1);
         bool cond2 = needParenthesis(inst, inst->fInst2);
@@ -380,14 +371,8 @@ class CSharpInstVisitor : public TextInstVisitor {
 
     virtual void visit(Select2Inst* inst)
     {
-        TypingVisitor typing;
-
-        inst->fThen->accept(&typing);
-        Typed::VarType type1 = typing.fCurType;
-
-        inst->fElse->accept(&typing);
-        Typed::VarType type2 = typing.fCurType;
-
+        Typed::VarType type1 = TypingVisitor::getType(inst->fThen);
+        Typed::VarType type2 = TypingVisitor::getType(inst->fElse);
         bool forceInt = (type1 != Typed::kBool) || (type2 != Typed::kBool);
 
         *fOut << "(";
@@ -401,6 +386,7 @@ class CSharpInstVisitor : public TextInstVisitor {
         } else {
             inst->fThen->accept(this);
         }
+     
         *fOut << " : ";
 
         if (forceInt && (type2 == Typed::kBool)) {
@@ -419,11 +405,9 @@ class CSharpInstVisitor : public TextInstVisitor {
         *fOut << "(";
 
         cond->accept(this);
+        Typed::VarType type = TypingVisitor::getType(cond);
 
-        TypingVisitor typing;
-        cond->accept(&typing);
-
-        if (typing.fCurType != Typed::kBool)
+        if (type != Typed::kBool)
             *fOut << "!=0";
         
         *fOut << ")";        
@@ -431,10 +415,9 @@ class CSharpInstVisitor : public TextInstVisitor {
 
     virtual void visit(::CastInst* inst)
     {
-        TypingVisitor typing;
-        inst->fInst->accept(&typing);
+        Typed::VarType cast_type = TypingVisitor::getType(inst->fInst);
 
-        if (typing.fCurType == Typed::kBool) {
+        if (cast_type == Typed::kBool) {
             if (fTypeManager->generateType(inst->fType) != "bool") {
                 *fOut << "((";
                 inst->fInst->accept(this);

@@ -97,7 +97,6 @@ struct WASInst {
         int            fArgs;
     };
 
-    TypingVisitor            fTypingVisitor;
     map<string, bool>        fFunctionSymbolTable;  // Already generated functions
     map<string, MathFunDesc> fMathLibTable;         // Table : field_name, math description
     map<string, MemoryDesc>  fFieldTable;           // Table : field_name, { offset, size, type }

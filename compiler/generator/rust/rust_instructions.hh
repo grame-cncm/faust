@@ -402,13 +402,12 @@ class RustInstVisitor : public TextInstVisitor {
     {
         // Special case for 'logical right-shift'
         if (strcmp(gBinOpTable[inst->fOpcode]->fName, ">>>") == 0) {
-            TypingVisitor typing;
-            inst->fInst1->accept(&typing);
+            Typed::VarType type = TypingVisitor::getType(inst->fInst1);
             *fOut << "(((";
             inst->fInst1->accept(this);
-            if (isInt64Type(typing.fCurType)) {
+            if (isInt64Type(type)) {
                 *fOut << " as u64)";
-            } else if (isInt32Type(typing.fCurType)) {
+            } else if (isInt32Type(type)) {
                 *fOut << " as u32)";
             } else {
                 faustassert(false);
@@ -416,9 +415,9 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << " >> ";
             inst->fInst2->accept(this);
             *fOut << ")";
-            if (isInt64Type(typing.fCurType)) {
+            if (isInt64Type(type)) {
                 *fOut << " as i64)";
-            } else if (isInt32Type(typing.fCurType)) {
+            } else if (isInt32Type(type)) {
                 *fOut << " as i32)";
             } else {
                 faustassert(false);

@@ -504,12 +504,11 @@ struct VariableSizeCounter : public DispatchVisitor {
 };
 
 // Remove unneeded cast
-struct CastRemover : public BasicTypingCloneVisitor {
+struct CastRemover : public BasicCloneVisitor {
     
     virtual ValueInst* visit(::CastInst* inst)
     {
-        inst->fInst->accept(&fTypingVisitor);
-        Typed::VarType type = fTypingVisitor.fCurType;
+        Typed::VarType type = TypingVisitor::getType(inst->fInst);
 
         if (inst->fType->getType() == Typed::kInt32) {
             if (type == Typed::kInt32) {
@@ -528,7 +527,7 @@ struct CastRemover : public BasicTypingCloneVisitor {
                                                                                InstBuilder::genInt32NumInst(std::numeric_limits<int>::min()),
                                                                                BasicTypingCloneVisitor::visit(inst)));
                 */
-                return BasicTypingCloneVisitor::visit(inst);
+                return BasicCloneVisitor::visit(inst);
             }
         } else {
             if (isRealType(type)) {
@@ -536,7 +535,7 @@ struct CastRemover : public BasicTypingCloneVisitor {
                 //dump2FIR(inst);
                 return inst->fInst->clone(this);
             } else {
-                return BasicTypingCloneVisitor::visit(inst);
+                return BasicCloneVisitor::visit(inst);
             }
         }
     }

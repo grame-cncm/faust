@@ -223,8 +223,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     virtual void visit(LoadVarInst* inst)
     {
-        fTypingVisitor.visit(inst);
-        Typed::VarType        type = fTypingVisitor.fCurType;
+        Typed::VarType type = TypingVisitor::getType(inst);
         Address::AccessType access = inst->fAddress->getAccess();
         string                name = inst->fAddress->getName();
         IndexedAddress*    indexed =  dynamic_cast<IndexedAddress*>(inst->fAddress);
@@ -280,8 +279,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     virtual void visit(StoreVarInst* inst)
     {
-        inst->fValue->accept(&fTypingVisitor);
-        Typed::VarType      type   = fTypingVisitor.fCurType;
+        Typed::VarType type = TypingVisitor::getType(inst->fValue);
         Address::AccessType access = inst->fAddress->getAccess();
   
         if (access & Address::kStruct || access & Address::kStaticStruct ||
@@ -438,13 +436,11 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     virtual void visit(FloatNumInst* inst)
     {
-        fTypingVisitor.visit(inst);
         *fOut << "(f32.const " << checkReal<float>(inst->fNum) << ")";
     }
 
     virtual void visit(DoubleNumInst* inst)
     {
-        fTypingVisitor.visit(inst);
         *fOut << "(f64.const " << checkReal<double>(inst->fNum) << ")";
     }
 
@@ -452,13 +448,11 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     virtual void visit(Int32NumInst* inst)
     {
-        fTypingVisitor.visit(inst);
         *fOut << "(i32.const " << inst->fNum << ")";
     }
 
     virtual void visit(Int64NumInst* inst)
     {
-        fTypingVisitor.visit(inst);
         *fOut << "(i64.const " << inst->fNum << ")";
     }
 
@@ -499,15 +493,13 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     virtual void visit(BinopInst* inst)
     {
-        inst->fInst1->accept(&fTypingVisitor);
-        Typed::VarType type1 = fTypingVisitor.fCurType;
+        Typed::VarType type1 = TypingVisitor::getType(inst->fInst1);
 
         if (isRealType(type1)) {
             visitAuxReal(inst, type1);
         } else {
             // type1 is kInt
-            inst->fInst2->accept(&fTypingVisitor);
-            Typed::VarType type2 = fTypingVisitor.fCurType;
+            Typed::VarType type2 = TypingVisitor::getType(inst->fInst2);
             if (isRealType(type2)) {
                 visitAuxReal(inst, type2);
             } else if (isIntType(type1) || isIntType(type2)) {
@@ -519,14 +511,11 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 faustassert(false);
             }
         }
-
-        fTypingVisitor.visit(inst);
     }
 
     virtual void visit(::CastInst* inst)
     {
-        inst->fInst->accept(&fTypingVisitor);
-        Typed::VarType type = fTypingVisitor.fCurType;
+        Typed::VarType type = TypingVisitor::getType(inst->fInst);
      
         switch (inst->fType->getType()) {
             case Typed::kInt32:
@@ -570,8 +559,6 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 faustassert(false);
                 break;
         }
-
-        fTypingVisitor.visit(inst);
     }
 
     virtual void visit(BitcastInst* inst)
@@ -601,17 +588,15 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 faustassert(false);
                 break;
         }
-
-        fTypingVisitor.visit(inst);
     }
 
     // Special case for min/max
     void generateMinMax(const Values& args, const string& fun)
     {
         Values::iterator it;
-        ValueInst*                 arg1 = *(args.begin());
-        arg1->accept(&fTypingVisitor);
-        if (isIntType(fTypingVisitor.fCurType)) {
+        ValueInst* arg1 = *(args.begin());
+        Typed::VarType type = TypingVisitor::getType(arg1);
+        if (isIntType(type)) {
             // Using manually generated min/max
             *fOut << "(call $" << fun << " ";
         } else {
@@ -651,9 +636,9 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         inst->fElse->accept(this);
         *fOut << " ";
         // Condition is last item
-        inst->fCond->accept(&fTypingVisitor);
+        Typed::VarType type = TypingVisitor::getType(inst->fCond);
         // Possibly convert i64 to i32
-        if (isInt64Type(fTypingVisitor.fCurType)) {
+        if (isInt64Type(type)) {
             // Compare to 0
             *fOut << "(i64.ne ";
             inst->fCond->accept(this);
@@ -662,8 +647,6 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             inst->fCond->accept(this);
         }
         *fOut << ")";
-        
-        fTypingVisitor.visit(inst);
     }
     */
 
@@ -672,13 +655,13 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     {
         *fOut << "(if ";
         // Result type
-        inst->fThen->accept(&fTypingVisitor);
-        *fOut << "(result " << type2String(fTypingVisitor.fCurType) << ") ";
+        Typed::VarType then = TypingVisitor::getType(inst->fThen);
+        *fOut << "(result " << type2String(then) << ") ";
         
         // Compile 'cond'
-        inst->fCond->accept(&fTypingVisitor);
+        Typed::VarType cond = TypingVisitor::getType(inst->fCond);
         // Possibly convert i64 to i32
-        if (isInt64Type(fTypingVisitor.fCurType)) {
+        if (isInt64Type(cond)) {
             // Compare to 0
             *fOut << "(i64.ne ";
             inst->fCond->accept(this);
@@ -693,17 +676,15 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         *fOut << " ";
         inst->fElse->accept(this);
         *fOut << ")";
-        
-        fTypingVisitor.visit(inst);
     }
  
     // Conditional : if
     virtual void visit(IfInst* inst)
     {
         *fOut << "(if ";
-        inst->fCond->accept(&fTypingVisitor);
+        Typed::VarType cond = TypingVisitor::getType(inst->fCond);
         // Possibly convert i64 to i32
-        if (isInt64Type(fTypingVisitor.fCurType)) {
+        if (isInt64Type(cond)) {
             // Compare to 0
             *fOut << "(i64.ne ";
             inst->fCond->accept(this);
@@ -726,9 +707,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         tab(fTab, *fOut);
         *fOut << ")";
         tab(fTab, *fOut);
-
-        fTypingVisitor.visit(inst);
-    }
+   }
 
     // Loop : beware: compiled loop don't work with an index of 0
     virtual void visit(ForLoopInst* inst)

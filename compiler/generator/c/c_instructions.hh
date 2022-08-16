@@ -318,11 +318,10 @@ class CInstVisitor : public TextInstVisitor {
     {
         // Special case for 'logical right-shift'
         if (strcmp(gBinOpTable[inst->fOpcode]->fName, ">>>") == 0) {
-            TypingVisitor typing;
-            inst->fInst1->accept(&typing);
-            if (isInt64Type(typing.fCurType)) {
+            Typed::VarType type = TypingVisitor::getType(inst->fInst1);
+            if (isInt64Type(type)) {
                 *fOut << "((int64_t)((uint64_t)";
-            } else if (isInt32Type(typing.fCurType)) {
+            } else if (isInt32Type(type)) {
                 *fOut << "((int32_t)(uint32_t)";
             } else {
                 faustassert(false);

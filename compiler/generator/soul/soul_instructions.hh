@@ -599,11 +599,10 @@ class SOULInstVisitor : public TextInstVisitor {
 
         // Hack to make it work again with 'soul' version 0.0.6
         if (isLogicalOpcode(inst->fOpcode)) {
-            TypingVisitor typing;
-            inst->fInst1->accept(&typing);
-            if (isInt64Type(typing.fCurType)) {
+            Typed::VarType type = TypingVisitor::getType(inst->fInst1);
+            if (isInt64Type(type)) {
                 *fOut << "int64 (";
-            } else if (isInt32Type(typing.fCurType) || isBoolType(typing.fCurType)) {
+            } else if (isInt32Type(type) || isBoolType(type)) {
                 *fOut << "int32 (";
             } else {
                 faustassert(false);
@@ -625,11 +624,10 @@ class SOULInstVisitor : public TextInstVisitor {
 
         // Hack to make it work again with 'soul' version 0.0.6
         if (isLogicalOpcode(inst->fOpcode)) {
-            TypingVisitor typing;
-            inst->fInst2->accept(&typing);
-            if (isInt64Type(typing.fCurType)) {
+            Typed::VarType type = TypingVisitor::getType(inst->fInst2);
+            if (isInt64Type(type)) {
                 *fOut << "int64 (";
-            } else if (isInt32Type(typing.fCurType) || isBoolType(typing.fCurType)) {
+            } else if (isInt32Type(type) || isBoolType(type)) {
                 *fOut << "int32 (";
             } else {
                 faustassert(false);

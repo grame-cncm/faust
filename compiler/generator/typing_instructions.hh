@@ -159,83 +159,12 @@ struct TypingVisitor : public InstVisitor {
             faustassert(false);
         }
     }
-};
-
-struct BasicTypingCloneVisitor : public BasicCloneVisitor {
-    TypingVisitor fTypingVisitor;
-
-    BasicTypingCloneVisitor() {}
-
-    // Memory
-    virtual ValueInst* visit(LoadVarInst* inst)
+    
+    static Typed::VarType getType(ValueInst* value)
     {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-
-    // Numbers
-    virtual ValueInst* visit(FloatNumInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-    virtual ValueInst* visit(Int32NumInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-    virtual ValueInst* visit(Int64NumInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-    virtual ValueInst* visit(BoolNumInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-    virtual ValueInst* visit(DoubleNumInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-
-    // Numerical computation
-    virtual ValueInst* visit(BinopInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-
-    // Cast
-    virtual ValueInst* visit(::CastInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-    virtual ValueInst* visit(BitcastInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-
-    // Function call
-    virtual ValueInst* visit(FunCallInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-
-    // Conditionnal
-    virtual ValueInst* visit(Select2Inst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-    virtual StatementInst* visit(IfInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
+        TypingVisitor typing;
+        value->accept(&typing);
+        return typing.fCurType;
     }
 };
 

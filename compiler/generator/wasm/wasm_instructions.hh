@@ -888,8 +888,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
     virtual void visit(LoadVarInst* inst)
     {
-        fTypingVisitor.visit(inst);
-        Typed::VarType        type = fTypingVisitor.fCurType;
+        Typed::VarType type = TypingVisitor::getType(inst);
         Address::AccessType access = inst->fAddress->getAccess();
         string                name = inst->fAddress->getName();
         IndexedAddress*    indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
@@ -944,8 +943,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
     virtual void visit(StoreVarInst* inst)
     {
-        inst->fValue->accept(&fTypingVisitor);
-        Typed::VarType type = fTypingVisitor.fCurType;
+        Typed::VarType type = TypingVisitor::getType(inst->fValue);
         string         name = inst->fAddress->getName();
 
         if (inst->fAddress->getAccess() & Address::kStruct || inst->fAddress->getAccess() & Address::kStaticStruct ||
@@ -1115,13 +1113,11 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
     virtual void visit(FloatNumInst* inst)
     {
-        fTypingVisitor.visit(inst);
         *fOut << int8_t(BinaryConsts::F32Const) << inst->fNum;
     }
 
     virtual void visit(DoubleNumInst* inst)
     {
-        fTypingVisitor.visit(inst);
         *fOut << int8_t(BinaryConsts::F64Const) << inst->fNum;
     }
 
@@ -1129,13 +1125,11 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
     virtual void visit(Int32NumInst* inst)
     {
-        fTypingVisitor.visit(inst);
         *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(inst->fNum);
     }
 
     virtual void visit(Int64NumInst* inst)
     {
-        fTypingVisitor.visit(inst);
         *fOut << int8_t(BinaryConsts::I64Const) << S64LEB(inst->fNum);
     }
 
@@ -1168,15 +1162,13 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
     virtual void visit(BinopInst* inst)
     {
-        inst->fInst1->accept(&fTypingVisitor);
-        Typed::VarType type1 = fTypingVisitor.fCurType;
-
+        Typed::VarType type1 = TypingVisitor::getType(inst->fInst1);
+    
         if (isRealType(type1)) {
             visitAuxReal(inst, type1);
         } else {
             // type1 is kInt
-            inst->fInst2->accept(&fTypingVisitor);
-            Typed::VarType type2 = fTypingVisitor.fCurType;
+            Typed::VarType type2 = TypingVisitor::getType(inst->fInst2);
             if (isRealType(type2)) {
                 visitAuxReal(inst, type2);
             } else if (isIntType(type1) || isIntType(type2)) {
@@ -1188,15 +1180,12 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 faustassert(false);
             }
         }
-
-        fTypingVisitor.visit(inst);
-    }
+   }
 
     virtual void visit(::CastInst* inst)
     {
-        inst->fInst->accept(&fTypingVisitor);
-        Typed::VarType type = fTypingVisitor.fCurType;
-   
+        Typed::VarType type = TypingVisitor::getType(inst->fInst);
+    
         switch (inst->fType->getType()) {
             case Typed::kInt32:
                 if (isInt32Type(type)) {
@@ -1238,8 +1227,6 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 faustassert(false);
                 break;
         }
-
-        fTypingVisitor.visit(inst);
     }
 
     virtual void visit(BitcastInst* inst)
@@ -1263,20 +1250,17 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 faustassert(false);
                 break;
         }
-
-        fTypingVisitor.visit(inst);
     }
 
     // Special case for min/max
     void generateMinMax(const Values& args, const string& name)
     {
         Values::iterator it;
-        ValueInst*                 arg1 = *(args.begin());
-        arg1->accept(&fTypingVisitor);
-        if (isIntType(fTypingVisitor.fCurType)) {
+        ValueInst* arg1 = *(args.begin());
+        Typed::VarType type = TypingVisitor::getType(arg1);
+        if (isIntType(type)) {
             // Using manually generated min/max
             *fOut << int8_t(BinaryConsts::CallFunction) << U32LEB(fFunAndTypeCounter.getFunctionIndex(name));
-
         } else {
             faustassert(fMathLibTable.find(name) != fMathLibTable.end());
             MathFunDesc desc = fMathLibTable[name];
@@ -1319,16 +1303,14 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         // Condition is last item
         inst->fCond->accept(this);
         // Possibly convert i64 to i32
-        inst->fCond->accept(&fTypingVisitor);
-        if (isInt64Type(fTypingVisitor.fCurType)) {
+        Typed::VarType type = TypingVisitor::getType(inst->fCond);
+        if (isInt64Type(type)) {
             // Compare to 0
             *fOut << int8_t(BinaryConsts::I64Const) << S32LEB(0);
             *fOut << int8_t(WasmOp::I64Ne);
         }
         *fOut << int8_t(BinaryConsts::Select);
-
-        fTypingVisitor.visit(inst);
-    }
+     }
     */
     
     // Select that only computes one branch
@@ -1337,15 +1319,15 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         // Condition is first item
         inst->fCond->accept(this);
         // Possibly convert i64 to i32
-        inst->fCond->accept(&fTypingVisitor);
-        if (isInt64Type(fTypingVisitor.fCurType)) {
+        Typed::VarType cond = TypingVisitor::getType(inst->fCond);
+        if (isInt64Type(cond)) {
             // Compare to 0
             *fOut << int8_t(BinaryConsts::I64Const) << S32LEB(0);
             *fOut << int8_t(WasmOp::I64Ne);
         }
         // Result type
-        inst->fThen->accept(&fTypingVisitor);
-        *fOut << int8_t(BinaryConsts::If) << S32LEB(type2Binary(fTypingVisitor.fCurType));
+        Typed::VarType then = TypingVisitor::getType(inst->fThen);
+        *fOut << int8_t(BinaryConsts::If) << S32LEB(type2Binary(then));
         // Compile 'then'
         inst->fThen->accept(this);
         // Compile 'else'
@@ -1353,8 +1335,6 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         inst->fElse->accept(this);
         // End of if
         *fOut << int8_t(BinaryConsts::End);
-        
-        fTypingVisitor.visit(inst);
     }
   
     // Conditional : if (TO CHECK : utilise drop ?)
@@ -1362,8 +1342,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     {
         inst->fCond->accept(this);
         // Possibly convert i64 to i32
-        inst->fCond->accept(&fTypingVisitor);
-        if (isInt64Type(fTypingVisitor.fCurType)) {
+        Typed::VarType type = TypingVisitor::getType(inst->fCond);
+        if (isInt64Type(type)) {
             // Compare to 0
             *fOut << int8_t(BinaryConsts::I64Const) << S32LEB(0);
             *fOut << int8_t(WasmOp::I64Ne);
@@ -1376,8 +1356,6 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         }
         // End of if
         *fOut << int8_t(BinaryConsts::End);
-
-        fTypingVisitor.visit(inst);
     }
 
     // Loop : beware: compiled loop don't work with an index of 0
