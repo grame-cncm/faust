@@ -378,6 +378,7 @@ class CodeContainer : public virtual Garbageable {
     /* Can be overridden by subclasses to transform the FIR before the actual code generation */
     virtual void processFIR(void);
 
+    /* Create a single block containing all FIR */
     virtual BlockInst* flattenFIR(void);
 
     // Fill code for each method

@@ -492,6 +492,10 @@ void CodeContainer::processFIR(void)
      fDeclarationInstructions->fCode.sort(sortArrayDeclarations);
      fDeclarationInstructions->fCode.sort(sortTypeDeclarations);
      */
+   
+    // Cast checking of all FIR code
+    CastChecker checker;
+    flattenFIR()->accept(&checker);
 }
 
 BlockInst* CodeContainer::flattenFIR(void)

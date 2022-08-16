@@ -63,6 +63,7 @@ ValueInst* InstBuilder::genTypedZero(Typed::VarType type)
     }
 }
 
+// Handle all possible cast at compile time, and use genCastInst only with the 'unknown at compile time' kFloatMacro
 ValueInst* InstBuilder::genRealNumInst(Typed::VarType ctype, double num)
 {
     if (ctype == Typed::kFloat) {
@@ -148,6 +149,22 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
             } else {
                 faustassert(false);
             }
+        }
+    }
+}
+
+// A list of channels variables
+DeclareBufferIterators::DeclareBufferIterators(const std::string& name1,
+                                            const std::string& name2,
+                                            int channels,
+                                            Typed* type,
+                                            bool mut)
+    : fBufferName1(name1), fBufferName2(name2), fChannels(channels), fType(type), fMutable(mut)
+{
+    for (int i = 0; i < channels; i++) {
+        string chan_name = name1 + std::to_string(i);
+        if (gGlobal->gVarTypeTable.find(chan_name) == gGlobal->gVarTypeTable.end()) {
+            gGlobal->gVarTypeTable[chan_name] = type;
         }
     }
 }

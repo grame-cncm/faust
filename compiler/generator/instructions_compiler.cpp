@@ -474,19 +474,20 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 #endif
 
     Typed* type = InstBuilder::genFloatMacroTyped();
+    Typed* buffer_type = InstBuilder::genArrayTyped(type, 0);
 
     if (!gGlobal->gOpenCLSwitch && !gGlobal->gCUDASwitch) {  // HACK
 
         // Input declarations
         if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia") {
             // special handling for Rust and Julia backends
-            pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("input", "inputs", fContainer->inputs(), false));
+            pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("input", "inputs", fContainer->inputs(), buffer_type, false));
         } else {
             // "input" and "inputs" used as a name convention
             if (gGlobal->gOneSampleControl) {
                 for (int index = 0; index < fContainer->inputs(); index++) {
                     string name = subst("input$0", T(index));
-                    pushDeclare(InstBuilder::genDecStructVar(name, InstBuilder::genArrayTyped(type, 0)));
+                    pushDeclare(InstBuilder::genDecStructVar(name, buffer_type));
                     if (gGlobal->gInPlace) {
                         CS(sigInput(index));
                     }
@@ -496,8 +497,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
             } else {
                 for (int index = 0; index < fContainer->inputs(); index++) {
                     string name = subst("input$0", T(index));
-                    pushComputeBlockMethod(InstBuilder::genDecStackVar(
-                        name, InstBuilder::genArrayTyped(type, 0),
+                    pushComputeBlockMethod(InstBuilder::genDecStackVar(name, buffer_type,
                         InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genInt32NumInst(index))));
                     if (gGlobal->gInPlace) {
                         CS(sigInput(index));
@@ -509,21 +509,20 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         // Output declarations
         if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia") {
             // special handling for Rust and Julia backends
-            pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("output", "outputs", fContainer->outputs(), true));
+            pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("output", "outputs", fContainer->outputs(), buffer_type, true));
         } else {
             // "output" and "outputs" used as a name convention
             if (gGlobal->gOneSampleControl) {
                 for (int index = 0; index < fContainer->outputs(); index++) {
                     string name = subst("output$0", T(index));
-                    pushDeclare(InstBuilder::genDecStructVar(name, InstBuilder::genArrayTyped(type, 0)));
+                    pushDeclare(InstBuilder::genDecStructVar(name, buffer_type));
                 }
             } else if (gGlobal->gOneSample >= 0) {
             // Nothing...
             } else {
                 for (int index = 0; index < fContainer->outputs(); index++) {
                     string name = subst("output$0", T(index));
-                    pushComputeBlockMethod(InstBuilder::genDecStackVar(
-                        name, InstBuilder::genArrayTyped(type, 0),
+                    pushComputeBlockMethod(InstBuilder::genDecStackVar(name, buffer_type,
                         InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genInt32NumInst(index))));
                 }
             }
@@ -576,7 +575,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         fDescription->ui(ui);
     }
 
-    // Apply FIR to FIR transformations
+    // Apply FIR to FIR transformations and posssibly check the FIR code
     fContainer->processFIR();
 
     endTiming("compileMultiSignal");

@@ -213,27 +213,27 @@ class RustInstVisitor : public TextInstVisitor {
         */
         
         // Don't generate if no channels
-        if (inst->fNumChannels == 0) return;
+        if (inst->fChannels == 0) return;
         
         std::string name = inst->fBufferName2;
 
         // Build pattern matching + if let line
         *fOut << "let (";
-        for (int i = 0; i < inst->fNumChannels; ++i) {
+        for (int i = 0; i < inst->fChannels; ++i) {
             if (i > 0) {
                 *fOut << ", ";
             }
             *fOut << name << i;
         }
         *fOut << ") = if let [";
-        for (int i = 0; i < inst->fNumChannels; ++i) {
+        for (int i = 0; i < inst->fChannels; ++i) {
             *fOut << name << i << ", ";
         }
         *fOut << "..] = " << name << " {";
 
         // Build fixed size iterator variables
         fTab++;
-        for (int i = 0; i < inst->fNumChannels; ++i) {
+        for (int i = 0; i < inst->fChannels; ++i) {
             tab(fTab, *fOut);
             *fOut << "let " << name << i << " = " << name << i << "[..count as usize]";
             if (inst->fMutable) {
@@ -246,7 +246,7 @@ class RustInstVisitor : public TextInstVisitor {
         // Build return tuple
         tab(fTab, *fOut);
         *fOut << "(";
-        for (int i = 0; i < inst->fNumChannels; ++i) {
+        for (int i = 0; i < inst->fChannels; ++i) {
             if (i > 0) {
                 *fOut << ", ";
             }

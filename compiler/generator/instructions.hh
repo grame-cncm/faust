@@ -162,6 +162,11 @@ inline bool isDoubleType(Typed::VarType type)
     return (type == Typed::kDouble);
 }
 
+inline bool isFloatMacroType(Typed::VarType type)
+{
+    return (type == Typed::kFloatMacro);
+}
+
 inline bool isIntPtrType(Typed::VarType type)
 {
     return (type == Typed::kInt32_ptr || type == Typed::kInt64_ptr);
@@ -831,13 +836,12 @@ struct DeclareVarInst : public StatementInst {
 struct DeclareBufferIterators : public StatementInst {
     std::string fBufferName1;
     std::string fBufferName2;
-    int         fNumChannels;
+    int         fChannels;
+    Typed*      fType;
     bool        fMutable;
 
-    DeclareBufferIterators(const std::string& name1, const std::string& name2, int num_channels, bool mut) :
-        fBufferName1(name1), fBufferName2(name2), fNumChannels(num_channels), fMutable(mut)
-        {};
-
+    DeclareBufferIterators(const std::string& name1, const std::string& name2, int channels, Typed* type, bool mut);
+    
     virtual ~DeclareBufferIterators() {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -1420,7 +1424,7 @@ class BasicCloneVisitor : public CloneVisitor {
     }
     virtual StatementInst* visit(DeclareBufferIterators* inst)
     {
-        return new DeclareBufferIterators(inst->fBufferName1, inst->fBufferName2, inst->fNumChannels, inst->fMutable);
+        return new DeclareBufferIterators(inst->fBufferName1, inst->fBufferName2, inst->fChannels, inst->fType, inst->fMutable);
     }
 
     // Memory
@@ -2011,9 +2015,9 @@ struct InstBuilder {
         return new DeclareStructTypeInst(type);
     }
 
-    static DeclareBufferIterators* genDeclareBufferIterators(const std::string& name1, const std::string& name2, int num_channels, bool mut)
+    static DeclareBufferIterators* genDeclareBufferIterators(const std::string& name1, const std::string& name2, int channels, Typed* type, bool mut)
     {
-        return new DeclareBufferIterators(name1, name2, num_channels, mut);
+        return new DeclareBufferIterators(name1, name2, channels, type, mut);
     }
 
     // Memory

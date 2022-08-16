@@ -508,10 +508,11 @@ struct CastRemover : public BasicCloneVisitor {
     
     virtual ValueInst* visit(::CastInst* inst)
     {
-        Typed::VarType type = TypingVisitor::getType(inst->fInst);
+        Typed::VarType value_type = TypingVisitor::getType(inst->fInst);
+        Typed::VarType cast_type = inst->fType->getType();
 
-        if (inst->fType->getType() == Typed::kInt32) {
-            if (type == Typed::kInt32) {
+        if (isInt32Type(cast_type)) {
+            if (isInt32Type(value_type)) {
                 //std::cerr << "CastInst : cast to int, but arg already int !" << std::endl;
                 //dump2FIR(inst);
                 return inst->fInst->clone(this);
@@ -529,20 +530,53 @@ struct CastRemover : public BasicCloneVisitor {
                 */
                 return BasicCloneVisitor::visit(inst);
             }
-        } else {
-            if (isRealType(type)) {
+        } else if (isRealType(cast_type)) {
+            if (isRealType(value_type)) {
                 //std::cerr << "CastInst : cast to real, but arg already real !" << std::endl;
                 //dump2FIR(inst);
                 return inst->fInst->clone(this);
             } else {
                 return BasicCloneVisitor::visit(inst);
             }
+        } else {
+            return BasicCloneVisitor::visit(inst);
         }
     }
 
 };
 
+// Check unneeded cast
+struct CastChecker : public DispatchVisitor {
+    
+    virtual void visit(::CastInst* inst)
+    {
+        Typed::VarType value_type = TypingVisitor::getType(inst->fInst);
+        Typed::VarType cast_type = inst->fType->getType();
+
+        if (isInt32Type(cast_type)) {
+            if (isInt32Type(value_type)) {
+                dump2FIR(inst);
+                cerr << "ERROR : CastChecker Int\n";
+                faustassert(false);
+            }
+        } else if (isFloatType(cast_type)) {
+            if (isFloatType(value_type)) {
+                dump2FIR(inst);
+                cerr << "ERROR : CastChecker Float\n";
+                faustassert(false);
+            }
+        } else if (isDoubleType(cast_type)) {
+            if (isDoubleType(value_type)) {
+                dump2FIR(inst);
+                cerr << "ERROR : CastChecker Double\n";
+                faustassert(false);
+            }
+        }
+    }
+};
+
 /*
+ 
   Remove usage of var address:
   int* v1 = &foo[n]; ==> v1 definition is removed, usage of v1[m] are replaced with foo[n+m]
   v1 = &foo[n];      ==> usage of v1[m] are replaced with foo[n+m]

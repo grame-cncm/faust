@@ -1190,6 +1190,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             case Typed::kInt32:
                 if (isInt32Type(type)) {
                     // Should not happen with properly casted FIR
+                    dump2FIR(inst);
                     faustassert(false);
                 } else if (isInt64Type(type)) {
                     inst->fInst->accept(this);
@@ -1209,6 +1210,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             case Typed::kDouble:
                 if (isRealType(type)) {
                     // Should not happen with properly casted FIR
+                    dump2FIR(inst);
                     faustassert(false);
                 } else if (isInt64Type(type)) {
                     inst->fInst->accept(this);
