@@ -30,7 +30,9 @@
 // Used when inlining functions
 std::stack<BlockInst*> BasicCloneVisitor::fBlockStack;
 
-vector <string> NamedTyped::AttributeMap = {" ", " RESTRICT "};
+vector<string> NamedTyped::AttributeMap = {" ", " RESTRICT "};
+
+BasicTyped* InstBuilder::genItFloatTyped() { return genBasicTyped(itfloat()); }
 
 DeclareStructTypeInst* isStructType(const string& name)
 {
@@ -153,7 +155,7 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
     }
 }
 
-// A list of channels variables
+// A list of channels variables also kept in the global name <===> type table (use in Rust and Julia backends)
 DeclareBufferIterators::DeclareBufferIterators(const std::string& name1,
                                             const std::string& name2,
                                             int channels,
@@ -165,7 +167,39 @@ DeclareBufferIterators::DeclareBufferIterators(const std::string& name1,
         string chan_name = name1 + std::to_string(i);
         if (gGlobal->gVarTypeTable.find(chan_name) == gGlobal->gVarTypeTable.end()) {
             gGlobal->gVarTypeTable[chan_name] = type;
+        } else {
+            faustassert(false);
         }
+    }
+}
+
+// Tools for types
+Typed::VarType convert2FIRType(int type) { return (type == kInt) ? Typed::kInt32 : itfloat(); }
+
+BasicTyped* InstBuilder::genBasicTyped(Typed::VarType type)
+{
+    return gGlobal->genBasicTyped(type);
+}
+
+int BasicTyped::getSizeBytes() const
+{
+    faustassert(gGlobal->gTypeSizeMap.find(fType) != gGlobal->gTypeSizeMap.end());
+    return gGlobal->gTypeSizeMap[fType];
+}
+
+int FunTyped::getSizeBytes() const
+{
+    return gGlobal->gTypeSizeMap[Typed::kVoid_ptr];
+}
+
+int ArrayTyped::getSizeBytes() const
+{
+    if (fSize == 0) {
+        // Array of zero size are treated as pointer in the corresponding type
+        faustassert(gGlobal->gTypeSizeMap.find(getType()) != gGlobal->gTypeSizeMap.end());
+        return gGlobal->gTypeSizeMap[getType()];
+    } else {
+        return fType->getSizeBytes() * fSize;
     }
 }
 
@@ -196,35 +230,6 @@ DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* co
     }
 }
 
-Typed::VarType convert2FIRType(int type) { return (type == kInt) ? Typed::kInt32 : itfloat(); }
-
-BasicTyped* InstBuilder::genBasicTyped(Typed::VarType type)
-{
-    return gGlobal->genBasicTyped(type);
-}
-
-int BasicTyped::getSizeBytes() const
-{
-    faustassert(gGlobal->gTypeSizeMap.find(fType) != gGlobal->gTypeSizeMap.end());
-    return gGlobal->gTypeSizeMap[fType];
-}
-
-int FunTyped::getSizeBytes() const
-{
-    return gGlobal->gTypeSizeMap[Typed::kVoid_ptr];
-}
-
-int ArrayTyped::getSizeBytes() const
-{
-    if (fSize == 0) {
-        // Array of zero size are treated as pointer in the corresponding type
-        faustassert(gGlobal->gTypeSizeMap.find(getType()) != gGlobal->gTypeSizeMap.end());
-        return gGlobal->gTypeSizeMap[getType()];
-    } else {
-        return fType->getSizeBytes() * fSize;
-    }
-}
-
 // Function argument variable types are kept in the global num <===> type table
 NamedTyped* InstBuilder::genNamedTyped(const string& name, Typed* type)
 {
@@ -241,9 +246,10 @@ NamedTyped* InstBuilder::genNamedTyped(const string& name, Typed::VarType type)
     return genNamedTyped(name, genBasicTyped(type));
 }
 
+// Casting
 ValueInst* InstBuilder::genCastRealInst(ValueInst* inst)
 {
-    return InstBuilder::genCastInst(inst, InstBuilder::genBasicTyped(itfloat()));
+    return InstBuilder::genCastInst(inst, InstBuilder::genItFloatTyped());
 }
 
 ValueInst* InstBuilder::genCastFloatMacroInst(ValueInst* inst)
@@ -298,8 +304,8 @@ bool ControlInst::hasCondition(ValueInst* cond)
     // Compare string representation of both conditions
     stringstream res1;
     stringstream res2;
-    dump2FIR(fCond, &res1, false);
-    dump2FIR(cond, &res2, false);
+    dump2FIR(fCond, res1, false);
+    dump2FIR(cond, res2, false);
     return (res1.str() == res2.str());
 }
 
@@ -432,17 +438,17 @@ void ScalVecDispatcherVisitor::Dispatch2Visitor(ValueInst* inst)
 
 // // 09/12/11 : HACK
 /*
-static Sym TYPEINT = symbol ("TypeInt");
-Tree  typeInt()                    { return tree(TYPEINT);         }
-bool  isTypeInt(Tree t)            { return isTree(t, TYPEINT);    }
+static Sym TYPEINT = symbol("TypeInt");
+Tree  typeInt() { return tree(TYPEINT); }
+bool  isTypeInt(Tree t) { return isTree(t, TYPEINT); }
 
 static Sym TYPEFLOAT = symbol ("TypeFloat");
-Tree  typeFloat()                { return tree(TYPEFLOAT);         }
-bool  isTypeFloat(Tree t)        { return isTree(t, TYPEFLOAT);    }
+Tree  typeFloat() { return tree(TYPEFLOAT); }
+bool  isTypeFloat(Tree t) { return isTree(t, TYPEFLOAT); }
 
-static Sym TYPEARRAY = symbol ("TypeArray");
-Tree  typeArray(int n, Tree t)                    { return tree(TYPEARRAY, tree(n), t);         }
-bool  isTypeArray(Tree t, int* n, Tree& u)        { Tree x; return isTree(t, TYPEARRAY, x, u) && isInt(x->node(), n); }
+static Sym TYPEARRAY = symbol("TypeArray");
+Tree  typeArray(int n, Tree t) { return tree(TYPEARRAY, tree(n), t); }
+bool  isTypeArray(Tree t, int* n, Tree& u) { Tree x; return isTree(t, TYPEARRAY, x, u) && isInt(x->node(), n); }
 
 static property<DeclareTypeInst* > gFirTypeProperty;
 
@@ -486,8 +492,11 @@ DeclareTypeInst* InstBuilder::genType(AudioType* type)
         } else if (FaustVectorType* vec = isVectorType(type)) {
             printf("FaustVectorType size %d\n", vec->size());
             DeclareTypeInst* sub_type = genType(vec->dereferenceType());
-            dec_type = genDeclareTypeInst(genStructTyped(getFreshID("vecType"),
-InstBuilder::genArrayTyped(sub_type->fType, vec->size()))); } else { faustassert(false);
+            dec_type = genDeclareTypeInst(
+                    genStructTyped(getFreshID("vecType"),
+                    InstBuilder::genArrayTyped(sub_type->fType, vec->size())));
+        } else {
+            faustassert(false);
         }
     }
 

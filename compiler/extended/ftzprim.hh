@@ -96,15 +96,15 @@ class FtzPrim : public xtended {
                 case 1: {
                     // "fabs" function has to be declared
                     Names args_types;
-                    args_types.push_back(InstBuilder::genNamedTyped("dummy", InstBuilder::genBasicTyped(itfloat())));
-                    FunTyped* fun_type = InstBuilder::genFunTyped(args_types, InstBuilder::genBasicTyped(itfloat()));
+                    args_types.push_back(InstBuilder::genNamedTyped("dummy", InstBuilder::genItFloatTyped()));
+                    FunTyped* fun_type = InstBuilder::genFunTyped(args_types, InstBuilder::genItFloatTyped());
                     container->pushGlobalDeclare(InstBuilder::genDeclareFunInst(subst("fabs$0", isuffix()), fun_type));
 
                     // we need to create a temporary variable to store the expression
                     string vname = gGlobal->getFreshID("fTempFTZ");
                     container->addIncludeFile("<float.h>");
                     container->pushComputeDSPMethod(
-                        InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()), *args.begin()));
+                        InstBuilder::genDecStackVar(vname, InstBuilder::genItFloatTyped(), *args.begin()));
                     ValueInst* real_min;
                     if (gGlobal->gFloatSize == 1) {
                         real_min = InstBuilder::genFloatNumInst(inummin());
@@ -124,7 +124,7 @@ class FtzPrim : public xtended {
                     // Bitcast based solution
                     string vname = gGlobal->getFreshID("fTempFTZ");
                     container->pushComputeDSPMethod(
-                        InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()), *args.begin()));
+                        InstBuilder::genDecStackVar(vname, InstBuilder::genItFloatTyped(), *args.begin()));
                     switch (gGlobal->gFloatSize) {
                         case 1:
                             return InstBuilder::genSelect2Inst(

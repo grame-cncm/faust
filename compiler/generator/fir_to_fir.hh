@@ -30,44 +30,44 @@
 #include "typing_instructions.hh"
 
 // Tools to dump FIR
-inline void dump2FIR(StatementInst* inst, std::ostream* out = &cerr, bool complete = true)
+inline void dump2FIR(StatementInst* inst, std::ostream& out = cerr, bool complete = true)
 {
     std::stringstream str;
     if (complete) str << "========== dump2FIR " << inst << " statement begin ========== " << std::endl;
     FIRInstVisitor fir_visitor(&str);
     inst->accept(&fir_visitor);
     if (complete) str << "========== dump2FIR statement end ==========" << std::endl;
-    *out << str.str();
+    out << str.str();
 }
 
-inline void dump2FIR(ValueInst* value, std::ostream* out = &cerr, bool complete = true)
+inline void dump2FIR(ValueInst* value, std::ostream& out = cerr, bool complete = true)
 {
     std::stringstream str;
     if (complete) str << "========== dump2FIR " << value << " value begin ========== " << std::endl;
     FIRInstVisitor fir_visitor(&str);
     value->accept(&fir_visitor);
     if (complete) str << "\n========== dump2FIR value end ==========" << std::endl;
-    *out << str.str();
+    out << str.str();
 }
 
-inline void dump2FIR(Address* address, std::ostream* out = &cerr, bool complete = true)
+inline void dump2FIR(Address* address, std::ostream& out = cerr, bool complete = true)
 {
     std::stringstream str;
     if (complete) str << "========== dump2FIR " << address << " address begin ========== " << std::endl;
     FIRInstVisitor fir_visitor(&str);
     address->accept(&fir_visitor);
     if (complete) str << "\n========== dump2FIR address end ==========" << std::endl;
-    *out << str.str();
+    out << str.str();
 }
 
-inline void dump2FIR(Typed* type, std::ostream* out = &cerr, bool complete = true)
+inline void dump2FIR(Typed* type, std::ostream& out = cerr, bool complete = true)
 {
     std::stringstream str;
     if (complete) str << "========== dump2FIR " << type << " type begin ========== " << std::endl;
     FIRInstVisitor fir_visitor(&str);
     str << fir_visitor.generateType(type);
     if (complete) str << "\n========== dump2FIR type end ==========" << std::endl;
-    *out << str.str();
+    out << str.str();
 }
 
 bool sortArrayDeclarations(StatementInst* a, StatementInst* b);

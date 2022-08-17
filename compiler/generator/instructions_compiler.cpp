@@ -51,14 +51,6 @@ static inline BasicTyped* genBasicFIRTyped(int sig_type)
     return InstBuilder::genBasicTyped(convert2FIRType(sig_type));
 }
 
-InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
-    : fContainer(container),
-      fSharingKey(nullptr),
-      fOccMarkup(nullptr),
-      fUIRoot(uiFolder(cons(tree(0), tree("")))),
-      fDescription(nullptr)
-{}
-
 ValueInst* InstructionsCompiler::genCastedOutput(int type, ValueInst* value)
 {
     bool need_cast = (type == kInt) || !gGlobal->gFAUSTFLOAT2Internal;
@@ -67,8 +59,18 @@ ValueInst* InstructionsCompiler::genCastedOutput(int type, ValueInst* value)
 
 ValueInst* InstructionsCompiler::genCastedInput(ValueInst* value)
 {
-    return (gGlobal->gFAUSTFLOAT2Internal) ? value : InstBuilder::genCastInst(value, InstBuilder::genBasicTyped(itfloat()));
+    return (gGlobal->gFAUSTFLOAT2Internal)
+        ? value
+        : InstBuilder::genCastInst(value, InstBuilder::genItFloatTyped());
 }
+
+InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
+    : fContainer(container),
+      fSharingKey(nullptr),
+      fOccMarkup(nullptr),
+      fUIRoot(uiFolder(cons(tree(0), tree("")))),
+      fDescription(nullptr)
+{}
 
 // Taken from sharing.cpp
 
@@ -585,7 +587,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         fDescription->ui(ui);
     }
 
-    // Apply FIR to FIR transformations and posssibly check the FIR code
+    // Apply FIR to FIR transformations
     fContainer->processFIR();
     
     // Cast checking of all FIR code
@@ -1324,7 +1326,7 @@ ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf
     faustassert(load);
 
     Typed* type1 = InstBuilder::genBasicTyped(itfloatptrptr());
-    Typed* type2 = InstBuilder::genBasicTyped(itfloat());
+    Typed* type2 = InstBuilder::genItFloatTyped();
     Typed* type3 = InstBuilder::genBasicTyped(Typed::kInt32_ptr);
 
     string SFcache             = load->fAddress->getName() + "ca";

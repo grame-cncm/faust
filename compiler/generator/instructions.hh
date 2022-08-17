@@ -43,26 +43,36 @@
 #include "garbageable.hh"
 #include "instructions_type.hh"
 #include "property.hh"
-#include "sigtype.hh"
-
-// ============================
-// Generic instruction visitor
-// ============================
 
 struct Printable;
-struct NullValueInst;
-struct NullStatementInst;
-struct DeclareVarInst;
-struct DeclareBufferIterators;
-struct DeclareFunInst;
-struct DeclareStructTypeInst;
+
+// ===============
+// User Interface
+// ===============
+struct AddMetaDeclareInst;
+struct OpenboxInst;
+struct CloseboxInst;
+struct AddButtonInst;
+struct AddSliderInst;
+struct AddBargraphInst;
+struct AddSoundfileInst;
+struct LabelInst;
+
+// =======
+// Values
+// =======
+struct ValueInst;
+
+// Memory load
 struct LoadVarInst;
 struct LoadVarAddressInst;
 struct TeeVarInst;
-struct StoreVarInst;
-struct ShiftArrayVarInst;
+
+// Base class for array of numbers
 template <class TYPE>
 struct ArrayNumInst;
+
+// Numbers
 struct FloatNumInst;
 struct FloatArrayNumInst;
 struct Int32NumInst;
@@ -73,37 +83,59 @@ struct DoubleNumInst;
 struct DoubleArrayNumInst;
 struct FixedPointNumInst;
 struct FixedPointArrayNumInst;
+
+// Math Binop
 struct BinopInst;
+
+// Cast
 struct CastInst;
 struct BitcastInst;
-struct RetInst;
-struct DropInst;
 
-struct FunCallInst;
+// Selector
 struct Select2Inst;
+
+struct NullValueInst;
+
+// ===========
+// Statements
+// ===========
+struct StatementInst;
+
+// Declarations
+struct DeclareVarInst;
+struct DeclareBufferIterators;
+struct DeclareFunInst;
+struct DeclareStructTypeInst;
+
+// Memory store
+struct StoreVarInst;
+struct ShiftArrayVarInst;
+
+// Function call
+struct FunCallInst;
+struct RetInst;
 struct ControlInst;
+
+// Control flow
 struct IfInst;
+struct SwitchInst;
+
+// Loops
 struct ForLoopInst;
 struct SimpleForLoopInst;
 struct IteratorForLoopInst;
 struct WhileLoopInst;
+
+// Block of statements
 struct BlockInst;
-struct SwitchInst;
 
-// User interface
-struct AddMetaDeclareInst;
-struct OpenboxInst;
-struct CloseboxInst;
-struct AddButtonInst;
-struct AddSliderInst;
-struct AddBargraphInst;
-struct AddSoundfileInst;
-struct LabelInst;
+struct DropInst;
+struct NullStatementInst;
 
+// ======
+// Types
+// ======
 struct Typed;
-struct Address;
-struct ValueInst;
-struct StatementInst;
 
 struct BasicTyped;
 struct NamedTyped;
@@ -112,15 +144,24 @@ struct ArrayTyped;
 struct StructTyped;
 struct VectorTyped;
 
+// =========
+// Adresses
+// =========
+struct Address;
 struct NamedAddress;
 struct IndexedAddress;
 
+// =============
+// Naming tools
+// =============
 typedef list<ValueInst*> Values;
 typedef list<ValueInst*>::const_iterator ValuesIt;
 typedef list<NamedTyped*> Names;
 typedef list<NamedTyped*>::const_iterator NamesIt;
 
+// ==============
 // Type checking
+// ==============
 
 inline bool isRealType(Typed::VarType type)
 {
@@ -230,10 +271,6 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(StoreVarInst* inst) {}
     virtual void visit(ShiftArrayVarInst* inst) {}
 
-    // Addresses
-    virtual void visit(NamedAddress* address) {}
-    virtual void visit(IndexedAddress* address) {}
-
     // Numbers
     virtual void visit(FloatNumInst* inst) {}
     virtual void visit(FloatArrayNumInst* inst) {}
@@ -272,8 +309,12 @@ struct InstVisitor : public virtual Garbageable {
 
     // Block
     virtual void visit(BlockInst* inst) {}
+ 
+    // Addresses
+    virtual void visit(NamedAddress* address) {}
+    virtual void visit(IndexedAddress* address) {}
 
-    // Typed
+    // Types
     virtual void visit(BasicTyped* typed) {}
     virtual void visit(NamedTyped* typed) {}
     virtual void visit(FunTyped* typed) {}
@@ -304,10 +345,6 @@ struct CloneVisitor : public virtual Garbageable {
     virtual StatementInst* visit(StoreVarInst* inst)       = 0;
     virtual StatementInst* visit(ShiftArrayVarInst* inst)  = 0;
 
-    // Addresses
-    virtual Address* visit(NamedAddress* address)   = 0;
-    virtual Address* visit(IndexedAddress* address) = 0;
-
     // Numbers
     virtual ValueInst* visit(FloatNumInst* inst)       = 0;
     virtual ValueInst* visit(FloatArrayNumInst* inst)  = 0;
@@ -320,7 +357,7 @@ struct CloneVisitor : public virtual Garbageable {
     virtual ValueInst* visit(FixedPointNumInst* inst)      = 0;
     virtual ValueInst* visit(FixedPointArrayNumInst* inst) = 0;
 
-    // Numerical computation
+    // Math Binop
     virtual ValueInst* visit(BinopInst* inst) = 0;
 
     // Cast
@@ -356,6 +393,10 @@ struct CloneVisitor : public virtual Garbageable {
     virtual StatementInst* visit(AddBargraphInst* inst)    = 0;
     virtual StatementInst* visit(AddSoundfileInst* inst)   = 0;
     virtual StatementInst* visit(LabelInst* inst)          = 0;
+ 
+    // Addresses
+    virtual Address* visit(NamedAddress* address)   = 0;
+    virtual Address* visit(IndexedAddress* address) = 0;
 
     // Types
     virtual Typed* visit(BasicTyped* type)  = 0;
@@ -372,7 +413,7 @@ struct CloneVisitor : public virtual Garbageable {
 
 // Printable is defined in instructions_type.h
 
-// Added in compilation environment
+// Statement added in the compilation block
 struct StatementInst : public Printable {
     virtual void accept(InstVisitor* visitor) = 0;
 
@@ -418,9 +459,9 @@ struct NullStatementInst : public StatementInst {
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-// ==========================
-//  Instruction with a type
-// ==========================
+// =======
+//  Types
+// =======
 
 // Base type is defined in instructions_type.h
 
@@ -804,6 +845,44 @@ struct LabelInst : public StatementInst {
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+// ====================
+// Block of statements
+// ====================
+
+struct BlockInst : public StatementInst {
+    list<StatementInst*> fCode;
+    bool                 fIndent;
+    
+    BlockInst(list<StatementInst*> code) : fCode(code), fIndent(false) {}
+    
+    BlockInst() : fIndent(false) {}
+    
+    virtual ~BlockInst() {}
+    
+    void setIndent(bool indent) { fIndent = indent; }
+    bool getIndent() { return fIndent; }
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    void pushFrontInst(StatementInst* inst) { faustassert(inst); fCode.push_front(inst); }
+    
+    void pushBackInst(StatementInst* inst) { faustassert(inst); fCode.push_back(inst); }
+    
+    void merge(BlockInst* inst)
+    {
+        for (const auto& it : inst->fCode) {
+            fCode.push_back(it);
+        }
+    }
+    
+    int size() const { return int(fCode.size()); }
+    
+    bool hasReturn() const;
+    ValueInst* getReturnValue();
+};
+
 // =============
 // Declarations
 // =============
@@ -849,21 +928,37 @@ struct DeclareBufferIterators : public StatementInst {
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+struct DeclareFunInst : public StatementInst {
+    const string fName;
+    FunTyped*    fType;  // Describes type of all arguments and function result
+    BlockInst*   fCode;  // Code is a list of StatementInst*
+    
+    DeclareFunInst(const string& name, FunTyped* type, BlockInst* code = new BlockInst());
+    
+    virtual ~DeclareFunInst() {}
+    
+    Typed::VarType getResType() { return fType->fResult->getType(); }
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct DeclareStructTypeInst : public StatementInst {
+    StructTyped* fType;
+    
+    DeclareStructTypeInst(StructTyped* type) : fType(type) {}
+    
+    virtual ~DeclareStructTypeInst() {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
 // ==============
 // Memory access
 // ==============
-
-struct DropInst : public StatementInst {
-    ValueInst* fResult;
-
-    DropInst(ValueInst* result = nullptr) : fResult(result) {}
-
-    virtual ~DropInst() {}
-
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
-
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
-};
 
 struct LoadVarInst : public ValueInst {
     Address* fAddress;
@@ -946,9 +1041,38 @@ struct ShiftArrayVarInst : public StatementInst {
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+struct DropInst : public StatementInst {
+    ValueInst* fResult;
+    
+    DropInst(ValueInst* result = nullptr) : fResult(result) {}
+    
+    virtual ~DropInst() {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
 // ========
 // Numbers
 // ========
+
+template <class TYPE>
+struct ArrayNumInst : public ValueInst {
+    std::vector<TYPE> fNumTable;
+    
+    ArrayNumInst(const std::vector<TYPE>& nums) : ValueInst(), fNumTable(nums) {}
+    
+    ArrayNumInst(int size) : ValueInst() { fNumTable.resize(size); }
+    
+    void setValue(int index, TYPE num) { fNumTable[index] = num; }
+    TYPE getValue(int index) { return fNumTable[index]; }
+    void addValue(TYPE num) { fNumTable.push_back(num); }
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    virtual bool isSimpleValue() const { return true; }
+};
 
 struct FloatNumInst : public ValueInst, public NumValueInst {
     const float fNum;
@@ -958,23 +1082,6 @@ struct FloatNumInst : public ValueInst, public NumValueInst {
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
-
-    virtual bool isSimpleValue() const { return true; }
-};
-
-template <class TYPE>
-struct ArrayNumInst : public ValueInst {
-    std::vector<TYPE> fNumTable;
-
-    ArrayNumInst(const std::vector<TYPE>& nums) : ValueInst(), fNumTable(nums) {}
-
-    ArrayNumInst(int size) : ValueInst() { fNumTable.resize(size); }
-
-    void setValue(int index, TYPE num) { fNumTable[index] = num; }
-    TYPE getValue(int index) { return fNumTable[index]; }
-    void addValue(TYPE num) { fNumTable.push_back(num); }
-    
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     virtual bool isSimpleValue() const { return true; }
 };
@@ -1042,6 +1149,15 @@ struct Int32NumInst : public ValueInst, public NumValueInst {
     virtual bool isSimpleValue() const { return true; }
 };
 
+struct Int32ArrayNumInst : public ArrayNumInst<int> {
+    Int32ArrayNumInst(const std::vector<int>& nums) : ArrayNumInst<int>(nums) {}
+    Int32ArrayNumInst(int size) : ArrayNumInst<int>(size) {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
 struct Int64NumInst : public ValueInst, public NumValueInst {
     const int64_t fNum;
 
@@ -1052,15 +1168,6 @@ struct Int64NumInst : public ValueInst, public NumValueInst {
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
     virtual bool isSimpleValue() const { return true; }
-};
-
-struct Int32ArrayNumInst : public ArrayNumInst<int> {
-    Int32ArrayNumInst(const std::vector<int>& nums) : ArrayNumInst<int>(nums) {}
-    Int32ArrayNumInst(int size) : ArrayNumInst<int>(size) {}
-
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
-
-    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
 struct BoolNumInst : public ValueInst, public NumValueInst {
@@ -1075,9 +1182,9 @@ struct BoolNumInst : public ValueInst, public NumValueInst {
     virtual bool isSimpleValue() const { return true; }
 };
 
-// ======================
-// Numerical computation
-// ======================
+// ===========
+// Math Binop
+// ===========
 
 struct BinopInst : public ValueInst {
     const int  fOpcode;
@@ -1135,40 +1242,6 @@ struct BitcastInst : public ValueInst {
 // =============
 // Control flow
 // =============
-
-struct BlockInst : public StatementInst {
-    list<StatementInst*> fCode;
-    bool                 fIndent;
-
-    BlockInst(list<StatementInst*> code) : fCode(code), fIndent(false) {}
-
-    BlockInst() : fIndent(false) {}
-
-    virtual ~BlockInst() {}
-
-    void setIndent(bool indent) { fIndent = indent; }
-    bool getIndent() { return fIndent; }
-
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
-
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
-
-    void pushFrontInst(StatementInst* inst) { faustassert(inst); fCode.push_front(inst); }
-
-    void pushBackInst(StatementInst* inst) { faustassert(inst); fCode.push_back(inst); }
-
-    void merge(BlockInst* inst)
-    {
-        for (const auto& it : inst->fCode) {
-            fCode.push_back(it);
-        }
-    }
-
-    int size() const { return int(fCode.size()); }
-
-    bool hasReturn() const;
-    ValueInst* getReturnValue();
-};
 
 struct Select2Inst : public ValueInst {
     ValueInst* fCond;
@@ -1246,18 +1319,6 @@ struct SwitchInst : public StatementInst {
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct RetInst : public StatementInst {
-    ValueInst* fResult;
-
-    RetInst(ValueInst* result = nullptr) : fResult(result) {}
-
-    virtual ~RetInst() {}
-
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
-
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
-};
-
 struct FunCallInst : public ValueInst {
     const string     fName;
     Values fArgs;  // List of arguments
@@ -1275,31 +1336,15 @@ struct FunCallInst : public ValueInst {
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct DeclareFunInst : public StatementInst {
-    const string fName;
-    FunTyped*    fType;  // Describes type of all arguments and function result
-    BlockInst*   fCode;  // Code is a list of StatementInst*
-
-    DeclareFunInst(const string& name, FunTyped* type, BlockInst* code = new BlockInst());
-
-    virtual ~DeclareFunInst() {}
-
-    Typed::VarType getResType() { return fType->fResult->getType(); }
-
+struct RetInst : public StatementInst {
+    ValueInst* fResult;
+    
+    RetInst(ValueInst* result = nullptr) : fResult(result) {}
+    
+    virtual ~RetInst() {}
+    
     void accept(InstVisitor* visitor) { visitor->visit(this); }
-
-    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
-};
-
-struct DeclareStructTypeInst : public StatementInst {
-    StructTyped* fType;
-
-    DeclareStructTypeInst(StructTyped* type) : fType(type) {}
-
-    virtual ~DeclareStructTypeInst() {}
-
-    void accept(InstVisitor* visitor) { visitor->visit(this); }
-
+    
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
@@ -1332,7 +1377,7 @@ struct ForLoopInst : public StatementInst {
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-// To be used for the 'rust' backend
+// To be used for the Rust backend
 struct SimpleForLoopInst : public StatementInst {
     ValueInst*   fUpperBound;
     ValueInst*   fLowerBound;
@@ -2172,7 +2217,9 @@ struct InstBuilder {
     static BasicTyped* genVoidTyped() { return genBasicTyped(Typed::kVoid); }
     static BasicTyped* genFloatTyped() { return genBasicTyped(Typed::kFloat); }
     static BasicTyped* genDoubleTyped() { return genBasicTyped(Typed::kDouble); }
+    
     static BasicTyped* genFloatMacroTyped() { return genBasicTyped(Typed::kFloatMacro); }
+    static BasicTyped* genItFloatTyped();
 
     static NamedTyped* genNamedTyped(const string& name, Typed* type);
     static NamedTyped* genNamedTyped(const string& name, Typed::VarType type);
@@ -2183,7 +2230,7 @@ struct InstBuilder {
         return new FunTyped(args, result, attribute);
     }
     static VectorTyped* genVectorTyped(BasicTyped* type, int size) { return new VectorTyped(type, size); }
-    static ArrayTyped*  genArrayTyped(Typed* type, int size)
+    static ArrayTyped* genArrayTyped(Typed* type, int size)
     {
         return new ArrayTyped(type, size);
     }
@@ -2602,21 +2649,15 @@ struct InstBuilder {
                                         const string& arg3, Typed::VarType arg3_ty, const string& arg4,
                                         Typed::VarType arg4_ty, const string& arg5, Typed::VarType arg5_ty,
                                         const string& arg6, Typed::VarType arg6_ty, BlockInst* code = new BlockInst());
-
-    // Convert a signal type in a Fir type by using an intermediate Tree based implementation to assure type creation
-    // unicity. HACK : 09/12/11
-    // static DeclareTypeInst* genType(AudioType* type);
-
-    // HACK : 09/12/11
-    // static Typed* mapFIRType(AudioType* type);
 };
 
-/* Syntactic sugar for index computations
+/* Syntactic sugar for index computations.
  *
  * wrapper for ValueInst* with support for basic arithmetics
  *
  */
 struct FIRIndex {
+    
     /* explicit constructors in order to avoid the generation of implicit conversions */
     explicit FIRIndex(ValueInst* inst) : fValue(inst) {}
 
@@ -2781,7 +2822,7 @@ For WSS:
 
 Loop to function rewritting (faster compilation ?):
 
-2 methods
+Two methods:
 
 I)
 

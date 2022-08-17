@@ -434,7 +434,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
             args.push_back(InstBuilder::genNamedTyped("index", Typed::kInt32));
             FunTyped* fun_type =
-                InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(itfloat()), FunTyped::kDefault);
+                InstBuilder::genFunTyped(args, InstBuilder::genItFloatTyped(), FunTyped::kDefault);
             fFunTypes["getParamValue"] = fun_type;
         }
 
