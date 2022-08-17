@@ -25,10 +25,10 @@ version := $(shell $(FAUST) --version | grep Version | sed -e 's/^..*Version //'
 
 dspfiles  = $(shell find $(SAMPLESROOT)/examples -name "*.dsp" | grep -v "TODO\|old\|faust-stk\|SAM" )
 rawregressionfiles = $(shell find $(REGRESSION)/codegen-tests -name "*.dsp" | grep -v BUG)
-regressionfiles = $(shell ./filter  $(lang) $(rawregressionfiles))
+regressionfiles = $(shell ./filter $(lang) $(rawregressionfiles))
 
-examplesout 	:= $(dspfiles:$(SAMPLESROOT)/%.dsp=$(version)/$(lang)/%.$(ext))
-regressionout 	:= $(regressionfiles:$(REGRESSION)/%.dsp=$(version)/$(lang)/%.$(ext))
+examplesout 	:= $(dspfiles:$(SAMPLESROOT)/%.dsp=$(version)/$(outdir)/%.$(ext))
+regressionout 	:= $(regressionfiles:$(REGRESSION)/%.dsp=$(version)/$(outdir)/%.$(ext))
 
 
 all: $(version)/$(outdir) $(examplesout) $(regressionout)

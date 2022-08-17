@@ -161,7 +161,10 @@ class InstructionsCompiler : public virtual Garbageable {
     ValueInst* and2code(Tree oc);
     
     ValueInst* getConditionCode(Tree sig);
-
+    
+    ValueInst* genCastedOutput(int type, ValueInst* value);
+    ValueInst* genCastedInput(ValueInst* value);
+ 
    public:
     InstructionsCompiler(CodeContainer* container);
 

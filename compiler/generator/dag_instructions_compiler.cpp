@@ -92,8 +92,9 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 
             fContainer->openLoop("i");
 
-            // Cast to external float
-            ValueInst* res = InstBuilder::genCastFloatMacroInst(CS(sig));
+            // Possibly cast to external float
+            ValueInst* res = genCastedOutput(getCertifiedSigType(sig)->nature(), CS(sig));
+
             pushComputeDSPMethod(InstBuilder::genStoreArrayFunArgsVar(
                 name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("vindex"), res));
 
@@ -107,9 +108,9 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 
             fContainer->openLoop("i");
 
-            // Cast to external float
-            ValueInst* res = InstBuilder::genCastFloatMacroInst(CS(sig));
-            
+            // Possibly cast to external float
+            ValueInst* res = genCastedOutput(getCertifiedSigType(sig)->nature(), CS(sig));
+   
             if (gGlobal->gComputeMix) {
                 ValueInst* res1 = InstBuilder::genAdd(res, InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex()));
                 pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res1));
@@ -418,17 +419,15 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
         string     name = subst("input$0", T(idx));
         ValueInst* res =
             InstBuilder::genLoadArrayFunArgsVar(name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("vindex"));
-        // Cast to internal float
-        res = InstBuilder::genCastRealInst(res);
-        return generateCacheCode(sig, res);
+        // Possibly cast to internal float
+        return generateCacheCode(sig, genCastedInput(res));
 
     } else {
         // "fInput" use as a name convention
         string     name = subst("input$0", T(idx));
         ValueInst* res  = InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex());
-        // Cast to internal float
-        res = InstBuilder::genCastRealInst(res);
-        return generateCacheCode(sig, res);
+        // Possibly cast to internal float
+        return generateCacheCode(sig, genCastedInput(res));
     }
 }
 

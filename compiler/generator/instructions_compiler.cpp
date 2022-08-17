@@ -59,6 +59,17 @@ InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
       fDescription(nullptr)
 {}
 
+ValueInst* InstructionsCompiler::genCastedOutput(int type, ValueInst* value)
+{
+    bool need_cast = (type == kInt) || !gGlobal->gFAUSTFLOAT2Internal;
+    return (need_cast) ? InstBuilder::genCastFloatMacroInst(value) : value;
+}
+
+ValueInst* InstructionsCompiler::genCastedInput(ValueInst* value)
+{
+    return (gGlobal->gFAUSTFLOAT2Internal) ? value : InstBuilder::genCastInst(value, InstBuilder::genBasicTyped(itfloat()));
+}
+
 // Taken from sharing.cpp
 
 int InstructionsCompiler::getSharingCount(Tree sig)
@@ -533,8 +544,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         Tree sig = hd(L);
 
         // Possibly cast to external float
-        bool do_cast = (getCertifiedSigType(sig)->nature() == kInt) || !gGlobal->gFAUSTFLOAT2Internal;
-        ValueInst* res = (do_cast) ? InstBuilder::genCastFloatMacroInst(CS(sig)) : CS(sig);
+        ValueInst* res = genCastedOutput(getCertifiedSigType(sig)->nature(), CS(sig));
 
         // HACK for Rust backend
         string name;
@@ -865,7 +875,7 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     }
     
     // Cast to internal float
-    res = InstBuilder::genCastRealInst(res, true);
+    res = genCastedInput(res);
 
     if (gGlobal->gInPlace) {
         // inputs must be cached for in-place transformations
@@ -1136,7 +1146,7 @@ ValueInst* InstructionsCompiler::generateButtonAux(Tree sig, Tree path, const st
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     // Cast to internal float
-    return generateCacheCode(sig, InstBuilder::genCastRealInst(InstBuilder::genLoadStructVar(varname), true));
+    return generateCacheCode(sig, genCastedInput(InstBuilder::genLoadStructVar(varname)));
 }
 
 ValueInst* InstructionsCompiler::generateButton(Tree sig, Tree path)
@@ -1161,7 +1171,7 @@ ValueInst* InstructionsCompiler::generateSliderAux(Tree sig, Tree path, Tree cur
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     // Cast to internal float
-    return generateCacheCode(sig, InstBuilder::genCastRealInst(InstBuilder::genLoadStructVar(varname), true));
+    return generateCacheCode(sig, genCastedInput(InstBuilder::genLoadStructVar(varname)));
 }
 
 ValueInst* InstructionsCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)

@@ -2082,7 +2082,7 @@ struct InstBuilder {
 
     static ValueInst* genBitcastInst(ValueInst* inst, Typed* typed) { return new BitcastInst(inst, typed); }
     // Cast float/double/quad
-    static ValueInst* genCastRealInst(ValueInst* inst, bool check = false);
+    static ValueInst* genCastRealInst(ValueInst* inst);
     static ValueInst* genCastFloatMacroInst(ValueInst* inst);
     static ValueInst* genCastInt32Inst(ValueInst* inst);
     

@@ -241,13 +241,9 @@ NamedTyped* InstBuilder::genNamedTyped(const string& name, Typed::VarType type)
     return genNamedTyped(name, genBasicTyped(type));
 }
 
-ValueInst* InstBuilder::genCastRealInst(ValueInst* inst, bool check)
+ValueInst* InstBuilder::genCastRealInst(ValueInst* inst)
 {
-    if (check && gGlobal->gFAUSTFLOAT2Internal) {
-        return inst;
-    } else {
-        return InstBuilder::genCastInst(inst, InstBuilder::genBasicTyped(itfloat()));
-    }
+    return InstBuilder::genCastInst(inst, InstBuilder::genBasicTyped(itfloat()));
 }
 
 ValueInst* InstBuilder::genCastFloatMacroInst(ValueInst* inst)

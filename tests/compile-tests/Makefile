@@ -50,6 +50,7 @@ c:
 
 llvm:
 	$(MAKE) -f Make.lang outdir=llvm lang=llvm ext=llvm FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=llvm/vec lang=llvm ext=llvm FAUSTOPTIONS=" -vec -lv 1"
 	
 soul:
 	$(MAKE) -f Make.lang outdir=soul lang=soul ext=soul FAUSTOPTIONS=""
@@ -68,6 +69,7 @@ me:
 # be available due to gcc specific extensions
 interp:
 	$(MAKE) -f Make.lang outdir=interp lang=interp ext=fbc FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=interp/vec lang=interp ext=fbc FAUSTOPTIONS=" -vec -lv 1"
 
 help:
 	@echo "-------- FAUST compilation tests --------"
