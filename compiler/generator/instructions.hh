@@ -1153,9 +1153,9 @@ struct BlockInst : public StatementInst {
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
-    void pushFrontInst(StatementInst* inst) { fCode.push_front(inst); }
+    void pushFrontInst(StatementInst* inst) { faustassert(inst); fCode.push_front(inst); }
 
-    void pushBackInst(StatementInst* inst) { fCode.push_back(inst); }
+    void pushBackInst(StatementInst* inst) { faustassert(inst); fCode.push_back(inst); }
 
     void merge(BlockInst* inst)
     {
@@ -1321,9 +1321,9 @@ struct ForLoopInst : public StatementInst {
 
     virtual ~ForLoopInst() {}
 
-    void pushFrontInst(StatementInst* inst) { fCode->pushFrontInst(inst); }
+    void pushFrontInst(StatementInst* inst) { faustassert(inst); fCode->pushFrontInst(inst); }
 
-    void pushBackInst(StatementInst* inst) { fCode->pushBackInst(inst); }
+    void pushBackInst(StatementInst* inst) { faustassert(inst); fCode->pushBackInst(inst); }
 
     string getName() const { return fInit->getName(); }
 
@@ -1349,9 +1349,9 @@ struct SimpleForLoopInst : public StatementInst {
 
     virtual ~SimpleForLoopInst() {}
 
-    void pushFrontInst(StatementInst* inst) { fCode->pushFrontInst(inst); }
+    void pushFrontInst(StatementInst* inst) { faustassert(inst); fCode->pushFrontInst(inst); }
 
-    void pushBackInst(StatementInst* inst) { fCode->pushBackInst(inst); }
+    void pushBackInst(StatementInst* inst) { faustassert(inst); fCode->pushBackInst(inst); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1370,9 +1370,9 @@ struct IteratorForLoopInst : public StatementInst {
 
     virtual ~IteratorForLoopInst() {}
 
-    void pushFrontInst(StatementInst* inst) { fCode->pushFrontInst(inst); }
+    void pushFrontInst(StatementInst* inst) { faustassert(inst); fCode->pushFrontInst(inst); }
 
-    void pushBackInst(StatementInst* inst) { fCode->pushBackInst(inst); }
+    void pushBackInst(StatementInst* inst) { faustassert(inst); fCode->pushBackInst(inst); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 

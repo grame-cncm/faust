@@ -384,6 +384,7 @@ class CodeContainer : public virtual Garbageable {
     // Fill code for each method
     StatementInst* pushDeclare(StatementInst* inst)
     {
+        faustassert(inst);
         fDeclarationInstructions->pushBackInst(inst);
         // TODO : add inter-loop vectors in current loop
         return inst;
@@ -391,12 +392,14 @@ class CodeContainer : public virtual Garbageable {
 
     StatementInst* pushGlobalDeclare(StatementInst* inst)
     {
+        faustassert(inst);
         fGlobalDeclarationInstructions->pushBackInst(inst);
         return inst;
     }
 
     StatementInst* pushExtGlobalDeclare(StatementInst* inst)
     {
+        faustassert(inst);
         fExtGlobalDeclarationInstructions->pushBackInst(inst);
         return inst;
     }
@@ -512,83 +515,97 @@ class CodeContainer : public virtual Garbageable {
 
     StatementInst* pushInitMethod(StatementInst* inst)
     {
+        faustassert(inst);
         fInitInstructions->pushBackInst(inst);
         return inst;
     }
     StatementInst* pushClearMethod(StatementInst* inst)
     {
+        faustassert(inst);
         fClearInstructions->pushBackInst(inst);
         return inst;
     }
     StatementInst* pushResetUIInstructions(StatementInst* inst)
     {
+        faustassert(inst);
         fResetUserInterfaceInstructions->pushBackInst(inst);
         return inst;
     }
     StatementInst* pushPostInitMethod(StatementInst* inst)
     {
+        faustassert(inst);
         fPostInitInstructions->pushBackInst(inst);
         return inst;
     }
     StatementInst* pushPreInitMethod(StatementInst* inst)
     {
+        faustassert(inst);
         fInitInstructions->pushFrontInst(inst);
         return inst;
     }
 
     StatementInst* pushUserInterfaceMethod(StatementInst* inst)
     {
+        faustassert(inst);
         fUserInterfaceInstructions->pushBackInst(inst);
         return inst;
     }
 
     StatementInst* pushAllocateMethod(StatementInst* inst)
     {
+        faustassert(inst);
         fAllocateInstructions->pushBackInst(inst);
         return inst;
     }
     StatementInst* pushDestroyMethod(StatementInst* inst)
     {
+        faustassert(inst);
         fDestroyInstructions->pushBackInst(inst);
         return inst;
     }
 
     StatementInst* pushStaticInitMethod(StatementInst* inst)
     {
+        faustassert(inst);
         fStaticInitInstructions->pushBackInst(inst);
         return inst;
     }
     StatementInst* pushStaticDestroyMethod(StatementInst* inst)
     {
+        faustassert(inst);
         fStaticDestroyInstructions->pushBackInst(inst);
         return inst;
     }
     StatementInst* pushPostStaticInitMethod(StatementInst* inst)
     {
+        faustassert(inst);
         fPostStaticInitInstructions->pushBackInst(inst);
         return inst;
     }
 
     StatementInst* pushComputeBlockMethod(StatementInst* inst)
     {
+        faustassert(inst);
         fComputeBlockInstructions->pushBackInst(inst);
         return inst;
     }
     StatementInst* pushPostComputeBlockMethod(StatementInst* inst)
     {
+        faustassert(inst);
         fPostComputeBlockInstructions->pushBackInst(inst);
         return inst;
     }
 
     StatementInst* pushOtherComputeMethod(StatementInst* inst)
     {
+        faustassert(inst);
         fComputeFunctions->pushBackInst(inst);
         return inst;
     }
 
-    StatementInst* pushPreComputeDSPMethod(StatementInst* inst) { return fCurLoop->pushPreComputeDSPMethod(inst); }
-    StatementInst* pushComputeDSPMethod(StatementInst* inst) { return fCurLoop->pushComputeDSPMethod(inst); }
-    StatementInst* pushPostComputeDSPMethod(StatementInst* inst) { return fCurLoop->pushPostComputeDSPMethod(inst); }
+    StatementInst* pushPreComputeDSPMethod(StatementInst* inst) { faustassert(inst); return fCurLoop->pushPreComputeDSPMethod(inst); }
+    StatementInst* pushComputeDSPMethod(StatementInst* inst) { faustassert(inst); return fCurLoop->pushComputeDSPMethod(inst); }
+    StatementInst* pushPostComputeDSPMethod(StatementInst* inst) { faustassert(inst); return fCurLoop->pushPostComputeDSPMethod(inst); }
 
     void generateSubContainers()
     {

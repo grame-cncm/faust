@@ -577,6 +577,10 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
     // Apply FIR to FIR transformations and posssibly check the FIR code
     fContainer->processFIR();
+    
+    // Cast checking of all FIR code
+    CastChecker checker;
+    fContainer->flattenFIR()->accept(&checker);
 
     endTiming("compileMultiSignal");
 }

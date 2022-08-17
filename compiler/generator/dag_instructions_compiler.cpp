@@ -32,6 +32,7 @@
 #include "simplify.hh"
 #include "timing.hh"
 #include "xtended.hh"
+#include "fir_to_fir.hh"
 
 DAGInstructionsCompiler::DAGInstructionsCompiler(CodeContainer* container) : InstructionsCompiler(container)
 {
@@ -129,6 +130,10 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
     // Apply FIR to FIR transformations
     fContainer->processFIR();
     
+    // Cast checking of all FIR code
+    CastChecker checker;
+    fContainer->flattenFIR()->accept(&checker);
+  
     endTiming("compileMultiSignal");
 }
 
