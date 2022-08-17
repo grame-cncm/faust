@@ -364,6 +364,21 @@ void CodeContainer::processFIR(void)
     gGlobal->setVarType("count", Typed::kInt32);
     gGlobal->setVarType("inputs", Typed::kFloatMacro_ptr_ptr);
     gGlobal->setVarType("outputs", Typed::kFloatMacro_ptr_ptr);
+    
+    // Type used in several methods using 'sample_rate' parameter
+    gGlobal->setVarType("sample_rate", Typed::kInt32);
+    
+    /*
+        Used in SOUL backend and -os mode (C/C++)
+        18/08/22 : gGlobal->gOneSample == 3 fails because of typing
+        issues with iControl/fControl, so deactivated for now
+    */
+    if ((gGlobal->gOneSample >= 0 && gGlobal->gOneSample < 3) || gGlobal->gOneSampleControl) {
+        // Control is separated in the 'control()' function and iControl/fControl arrays
+        // are used to compute control related state to be used in 'run'
+        gGlobal->setVarType("iControl", Typed::kInt32_ptr);
+        gGlobal->setVarType("fControl", itfloatptr());
+    }
       
     // Possibly add "fSamplingRate" field
     generateSR();

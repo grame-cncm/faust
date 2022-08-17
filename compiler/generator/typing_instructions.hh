@@ -53,12 +53,10 @@ struct TypingVisitor : public InstVisitor {
                     fCurType = Typed::getTypeFromPtr(fCurType);
                 }
             }
-            // Specific cases for FunArgs
-        } else if (startWith(inst->getName(), "count") || startWith(inst->getName(), "sample_rate")) {
-            fCurType = Typed::kInt32;
         } else {
             fCurType = Typed::kNoType;
-            throw faustexception("ERROR in TypingVisitor : variable '" + inst->getName() + "' has Typed::kNoType\n");
+            cerr << "ERROR in TypingVisitor : variable '" << inst->getName() << "' has Typed::kNoType" << endl;
+            faustassert(false);
         }
     }
 
@@ -68,6 +66,8 @@ struct TypingVisitor : public InstVisitor {
             fCurType = gGlobal->getVarType(inst->getName());
         } else {
             fCurType = Typed::kNoType;
+            cerr << "ERROR in TypingVisitor : variable '" << inst->getName() << "' has Typed::kNoType" << endl;
+            faustassert(false);
         }
     }
 
@@ -109,6 +109,8 @@ struct TypingVisitor : public InstVisitor {
                     fCurType = Typed::kInt32;
                 } else {
                     // Should never happen...
+                    cerr << "ERROR in TypingVisitor : BinopInst a1 = ";
+                    cerr << Typed::gTypeString[type1] << " a2 = " << Typed::gTypeString[type2] << endl;
                     faustassert(false);
                 }
             }
@@ -121,31 +123,7 @@ struct TypingVisitor : public InstVisitor {
 
     virtual void visit(Select2Inst* inst)
     {
-        inst->fThen->accept(this);
-        Typed::VarType type1 = fCurType;
-        if (isRealType(type1)) {
-            fCurType = type1;
-        } else {
-            inst->fElse->accept(this);
-            Typed::VarType type2 = fCurType;
-            if (isRealType(type2)) {
-                fCurType = type2;
-            } else if (isInt32Type(type1) || isInt32Type(type2)) {
-                fCurType = Typed::kInt32;
-            } else if (isInt64Type(type1) || isInt64Type(type2)) {
-                fCurType = Typed::kInt64;
-            } else if (isBoolType(type1) && isBoolType(type2)) {
-                fCurType = Typed::kBool;
-            } else {
-                // Should never happen...
-                faustassert(false);
-            }
-        }
-    }
-
-    virtual void visit(IfInst* inst)
-    {
-        // Type in the one of 'then' or 'else'
+        // Type is the one of 'then' or 'else'
         inst->fThen->accept(this);
     }
 

@@ -580,6 +580,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << "SimpleForLoopInst ";
         fTab++;
         tab(fTab, *fOut);
+        inst->fInit->accept(this);
         inst->fLowerBound->accept(this);
         tab(fTab, *fOut);
         inst->fUpperBound->accept(this);

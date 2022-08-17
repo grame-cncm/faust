@@ -487,20 +487,23 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 #endif
 
     Typed* type = InstBuilder::genFloatMacroTyped();
-    Typed* buffer_type = InstBuilder::genArrayTyped(type, 0);
+    Typed* ptr_type = InstBuilder::genArrayTyped(type, 0);
 
     if (!gGlobal->gOpenCLSwitch && !gGlobal->gCUDASwitch) {  // HACK
 
         // Input declarations
-        if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia") {
-            // special handling for Rust and Julia backends
-            pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("input", "inputs", fContainer->inputs(), buffer_type, false));
+        if (gGlobal->gOutputLang == "rust") {
+            // special handling for Rust backend
+            pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("*input", "inputs", fContainer->inputs(), type, false));
+        } else if (gGlobal->gOutputLang == "julia") {
+            // special handling Julia backend
+            pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("input", "inputs", fContainer->inputs(), ptr_type, false));
         } else {
             // "input" and "inputs" used as a name convention
             if (gGlobal->gOneSampleControl) {
                 for (int index = 0; index < fContainer->inputs(); index++) {
                     string name = subst("input$0", T(index));
-                    pushDeclare(InstBuilder::genDecStructVar(name, buffer_type));
+                    pushDeclare(InstBuilder::genDecStructVar(name, type));
                     if (gGlobal->gInPlace) {
                         CS(sigInput(index));
                     }
@@ -510,7 +513,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
             } else {
                 for (int index = 0; index < fContainer->inputs(); index++) {
                     string name = subst("input$0", T(index));
-                    pushComputeBlockMethod(InstBuilder::genDecStackVar(name, buffer_type,
+                    pushComputeBlockMethod(InstBuilder::genDecStackVar(name, ptr_type,
                         InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genInt32NumInst(index))));
                     if (gGlobal->gInPlace) {
                         CS(sigInput(index));
@@ -520,22 +523,26 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         }
 
         // Output declarations
-        if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia") {
-            // special handling for Rust and Julia backends
-            pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("output", "outputs", fContainer->outputs(), buffer_type, true));
+        if (gGlobal->gOutputLang == "rust") {
+            // special handling for Rust backend
+            pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("*output", "outputs", fContainer->outputs(), type, true));
+        } else if (gGlobal->gOutputLang == "julia") {
+            // special handling for Julia backend
+            pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("output", "outputs", fContainer->outputs(), ptr_type, true));
+                
         } else {
             // "output" and "outputs" used as a name convention
             if (gGlobal->gOneSampleControl) {
                 for (int index = 0; index < fContainer->outputs(); index++) {
                     string name = subst("output$0", T(index));
-                    pushDeclare(InstBuilder::genDecStructVar(name, buffer_type));
+                    pushDeclare(InstBuilder::genDecStructVar(name, type));
                 }
             } else if (gGlobal->gOneSample >= 0) {
             // Nothing...
             } else {
                 for (int index = 0; index < fContainer->outputs(); index++) {
                     string name = subst("output$0", T(index));
-                    pushComputeBlockMethod(InstBuilder::genDecStackVar(name, buffer_type,
+                    pushComputeBlockMethod(InstBuilder::genDecStackVar(name, ptr_type,
                         InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genInt32NumInst(index))));
                 }
             }
@@ -590,9 +597,13 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     // Apply FIR to FIR transformations
     fContainer->processFIR();
     
-    // Cast checking of all FIR code
-    CastChecker checker;
-    fContainer->flattenFIR()->accept(&checker);
+    // Check FIR code
+    if (global::isDebug("FIR_CHECKER")) {
+        startTiming("FIR checker");
+        FIRChecker fir_checker;
+        fContainer->flattenFIR()->accept(&fir_checker);
+        endTiming("FIR checker");
+    }
 
     endTiming("compileMultiSignal");
 }

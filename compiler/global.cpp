@@ -902,6 +902,12 @@ string global::getFreshID(const string& prefix)
     return subst("$0$1", prefix, T(n));
 }
 
+bool global::isDebug(const string& debug_val)
+{
+    string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
+    return debug_var == debug_val;
+}
+
 void Garbageable::cleanup()
 {
     std::list<Garbageable*>::iterator it;

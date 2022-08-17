@@ -1271,6 +1271,7 @@ void CScalarOneSampleCodeContainer4::produceClass()
     
     // Fields
     fCodeProducer->Tab(n + 1);
+    
     // Additional fields
     pushDeclare(InstBuilder::genDecStructVar("iControl", InstBuilder::genArrayTyped(InstBuilder::genInt32Typed(), 0)));
     pushDeclare(InstBuilder::genDecStructVar("fControl", InstBuilder::genArrayTyped(InstBuilder::genItFloatTyped(), 0)));

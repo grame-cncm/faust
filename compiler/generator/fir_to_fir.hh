@@ -545,30 +545,66 @@ struct CastRemover : public BasicCloneVisitor {
 
 };
 
-// Check unneeded cast
-struct CastChecker : public DispatchVisitor {
+// FIR checker
+struct FIRChecker : public DispatchVisitor {
+    
+    virtual void visit(BinopInst* inst)
+    {
+        Typed::VarType a1_type = TypingVisitor::getType(inst->fInst1);
+        Typed::VarType a2_type = TypingVisitor::getType(inst->fInst2);
+        if (a1_type == a2_type) {
+            return;
+        } else {
+            bool v1 = isIntType(a1_type) && isBoolType(a2_type);
+            bool v2 = isBoolType(a1_type) && isIntType(a2_type);
+            if (v1 || v2) return;
+        }
+        // Fail
+        dump2FIR(inst);
+        cerr << "ERROR : FIRChecker in BinopInst";
+        cerr << " a1_type = " << Typed::gTypeString[a1_type];
+        cerr << " a2_type = " << Typed::gTypeString[a2_type] << endl;
+        //faustassert(false);
+    }
+    
+    virtual void visit(Select2Inst* inst)
+    {
+        Typed::VarType cond_type = TypingVisitor::getType(inst->fCond);
+        if (!(isIntType(cond_type) || isBoolType(cond_type))) {
+            dump2FIR(inst);
+            cerr << "ERROR : FIRChecker in Select2Inst";
+            cerr << " cond_type = " << Typed::gTypeString[cond_type] << endl;
+            faustassert(false);
+        }
+    }
     
     virtual void visit(::CastInst* inst)
     {
-        Typed::VarType value_type = TypingVisitor::getType(inst->fInst);
+        Typed::VarType val_type = TypingVisitor::getType(inst->fInst);
         Typed::VarType cast_type = inst->fType->getType();
 
         if (isInt32Type(cast_type)) {
-            if (isInt32Type(value_type)) {
+            if (isInt32Type(val_type)) {
                 dump2FIR(inst);
-                cerr << "ERROR : CastChecker Int\n";
+                cerr << "ERROR : FIRChecker in CastInst Int";
+                cerr << " value_type = " << Typed::gTypeString[val_type];
+                cerr << " cast_type = " << Typed::gTypeString[cast_type] << endl;
                 faustassert(false);
             }
         } else if (isFloatType(cast_type)) {
-            if (isFloatType(value_type)) {
+            if (isFloatType(val_type)) {
                 dump2FIR(inst);
-                cerr << "ERROR : CastChecker Float\n";
+                cerr << "ERROR : FIRChecker in CastInst Float";
+                cerr << " val_type = " << Typed::gTypeString[val_type];
+                cerr << " cast_type = " << Typed::gTypeString[cast_type] << endl;
                 faustassert(false);
             }
         } else if (isDoubleType(cast_type)) {
-            if (isDoubleType(value_type)) {
+            if (isDoubleType(val_type)) {
                 dump2FIR(inst);
-                cerr << "ERROR : CastChecker Double\n";
+                cerr << "ERROR : FIRChecker in CastInst Double";
+                cerr << " val_type = " << Typed::gTypeString[val_type];
+                cerr << " cast_type = " << Typed::gTypeString[cast_type] << endl;
                 faustassert(false);
             }
         }

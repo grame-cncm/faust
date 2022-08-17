@@ -149,6 +149,8 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
                 bool same_type = array_t1->fType == array_t2->fType;
                 faustassert((same_size && same_type) || compatible_size);
             } else {
+                dump2FIR(address);
+                dump2FIR(type);
                 faustassert(false);
             }
         }
@@ -309,6 +311,13 @@ bool ControlInst::hasCondition(ValueInst* cond)
     return (res1.str() == res2.str());
 }
 
+SimpleForLoopInst::SimpleForLoopInst(const string& name, ValueInst* upperBound, ValueInst* lowerBound, bool reverse, BlockInst* code)
+: fUpperBound(upperBound), fLowerBound(lowerBound), fName(name), fReverse(reverse), fCode(code)
+{
+    // Define the loop variable in order to have it correctly typed when checking in FIRChecker
+    fInit = InstBuilder::genDecLoopVar(name, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(0));
+}
+
 // Function calls
 DeclareFunInst* InstBuilder::genVoidFunction(const string& name, BlockInst* code)
 {
@@ -328,7 +337,7 @@ DeclareFunInst* InstBuilder::genVoidFunction(const string& name, Names& args, Bl
 DeclareFunInst* InstBuilder::genFunction0(const string& name, Typed::VarType res, BlockInst* code)
 {
     Names args;
-    FunTyped*         fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(res));
     return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
@@ -432,9 +441,9 @@ void ScalVecDispatcherVisitor::Dispatch2Visitor(ValueInst* inst)
     */
 }
 
-//--------------------------
+//-----------------------
 // Coding Types as trees
-//--------------------------
+//-----------------------
 
 // // 09/12/11 : HACK
 /*

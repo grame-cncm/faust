@@ -1379,17 +1379,15 @@ struct ForLoopInst : public StatementInst {
 
 // To be used for the Rust backend
 struct SimpleForLoopInst : public StatementInst {
+    StatementInst* fInit;
     ValueInst*   fUpperBound;
     ValueInst*   fLowerBound;
     const string fName;
     const bool   fReverse;
     BlockInst* fCode;
 
-    SimpleForLoopInst(const string& name, ValueInst* upperBound, ValueInst* lowerBound, bool reverse, BlockInst* code)
-        : fUpperBound(upperBound), fLowerBound(lowerBound), fName(name), fReverse(reverse), fCode(code)
-    {
-    }
-
+    SimpleForLoopInst(const string& name, ValueInst* upperBound, ValueInst* lowerBound, bool reverse, BlockInst* code);
+   
     string getName() const { return fName; }
 
     virtual ~SimpleForLoopInst() {}
@@ -1784,6 +1782,7 @@ struct DispatchVisitor : public InstVisitor {
 
     virtual void visit(SimpleForLoopInst* inst)
     {
+        inst->fInit->accept(this);
         inst->fUpperBound->accept(this);
         inst->fLowerBound->accept(this);
         inst->fCode->accept(this);

@@ -183,7 +183,7 @@ class RustInstVisitor : public TextInstVisitor {
         }
 
         // If type is kNoType, only generate the name, otherwise a typed expression
-        if (inst->fType->getType() == Typed::VarType::kNoType) {
+        if (inst->fType->getType() == Typed::kNoType) {
             *fOut << inst->fAddress->getName();
         } else {
             *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
