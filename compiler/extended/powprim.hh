@@ -154,8 +154,17 @@ class PowPrim : public xtended {
             
             // Expand the pow depending of the exposant argument
             BlockInst* block = InstBuilder::genBlockInst();
-            string faust_power_name = container->getFaustPowerName() + to_string(pow_arg) + ((rtype == Typed::kInt32) ? "_i" : "_f");
             
+			string faust_power_name;
+			if (gGlobal->gOutputLang == "jax") {
+                faust_power_name = "jnp.square";
+            } else {
+                ValuesIt it1 = args.begin();
+                it1++;
+                Int32NumInst* arg2 = dynamic_cast<Int32NumInst*>(*it1);
+                faust_power_name = container->getFaustPowerName() + to_string(arg2->fNum) + ((result_type == Typed::kInt32) ? "_i" : "_f");
+			}
+
             Names named_args;
             named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(t0)));
             

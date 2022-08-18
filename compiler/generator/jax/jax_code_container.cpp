@@ -111,7 +111,8 @@ void JAXCodeContainer::produceClass()
     *fOut << "\"\"\"";
     tab(n, *fOut);
     
-    // dtype
+    tab(n, *fOut);
+    *fOut << "import jax";
     tab(n, *fOut);
     *fOut << "import jax.numpy as jnp";
     tab(n, *fOut);
@@ -321,6 +322,12 @@ void JAXCodeContainer::produceClass()
     //// Compute
     tab(n + 1, *fOut);
     generateCompute(n+1);
+
+	tab(n + 1, *fOut);
+    tab(n, *fOut);
+    *fOut << fKlassName << " = nn.vmap(" << fKlassName
+          << ", in_axes=(0, None), variable_axes={'params': None}, split_rngs={'params' : False})";
+    tab(n, *fOut);
 }
 
 void JAXCodeContainer::generateCompute(int n)
