@@ -80,9 +80,10 @@ struct TestUI : public GenericUI {
     
 };
 
-static float ForeignLLVM(float val)
+// The foreign function has to be exported with C linkage and should be made public
+FAUST_API extern "C" float ForeignLLVM(float val)
 {
-    return val * 0.5f;
+    return val + 0.12345;
 }
 
 int main(int argc, char* argv[])

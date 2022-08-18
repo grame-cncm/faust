@@ -620,6 +620,12 @@ LIBFAUST_API void llvm_dsp::operator delete(void* ptr)
     }
 }
 
+LIBFAUST_API void registerForeignFunction(const std::string& name)
+{
+    LOCK_API
+    llvm_dsp_factory_aux::gForeignFunctions.insert(name);
+}
+
 // Public C interface : lock management is done by called C++ API
 
 #ifdef __cplusplus
@@ -875,13 +881,13 @@ LIBFAUST_API void deleteCDSPInstance(llvm_dsp* dsp)
 {
     delete dsp;
 }
+    
+LIBFAUST_API void registerCForeignFunction(const char* name)
+{
+    registerForeignFunction(name);
+}
 
 #ifdef __cplusplus
 }
 #endif
 
-LIBFAUST_API void registerForeignFunction(const std::string& name)
-{
-    LOCK_API
-    llvm_dsp_factory_aux::gForeignFunctions.insert(name);
-}

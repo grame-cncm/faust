@@ -514,6 +514,7 @@ DEPRECATED(void deleteDSPInstance(llvm_dsp* dsp));
  * @param function_name - the function name to be available
  */
 LIBFAUST_API void registerForeignFunction(const std::string& function_name);
+
 /*!
  @}
  */

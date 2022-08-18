@@ -492,6 +492,13 @@ extern "C"
      */ 
     LIBFAUST_API void deleteCDSPInstance(llvm_dsp* dsp);
     
+    /**
+     * Register a custom foreign function that will be exported by the host binary running the DSP code.
+     *
+     * @param function_name - the function name to be available
+     */
+    LIBFAUST_API void registerCForeignFunction(const char* function_name);
+    
 #ifdef __cplusplus
 }
 #endif
