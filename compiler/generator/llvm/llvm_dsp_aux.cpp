@@ -91,6 +91,8 @@ int llvm_dsp_factory_aux::gInstance = 0;
 
 dsp_factory_table<SDsp_factory> llvm_dsp_factory_aux::gLLVMFactoryTable;
 
+std::set<std::string> llvm_dsp_factory_aux::gForeignFunctions;
+
 uint64_t llvm_dsp_factory_aux::loadOptimize(const string& function)
 {
     uint64_t fun = fJIT->getFunctionAddress(function);
@@ -877,3 +879,9 @@ LIBFAUST_API void deleteCDSPInstance(llvm_dsp* dsp)
 #ifdef __cplusplus
 }
 #endif
+
+LIBFAUST_API void registerForeignFunction(const std::string& name)
+{
+    LOCK_API
+    llvm_dsp_factory_aux::gForeignFunctions.insert(name);
+}

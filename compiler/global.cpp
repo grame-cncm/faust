@@ -67,6 +67,10 @@
 #include "fir_code_container.hh"
 #endif
 
+#ifdef LLVM_BUILD
+#include "llvm_dsp_aux.hh"
+#endif
+
 #ifdef INTERP_BUILD
 #include "interpreter_instructions.hh"
 #endif
@@ -765,21 +769,28 @@ int global::audioSampleSize()
 
 bool global::hasForeignFunction(const string& name, const string& inc_file)
 {
+#ifdef LLVM_BUILD
     // LLVM backend can use 'standard' foreign linked functions
-    static vector<std::string> inc_file_list = { "<math.h>", "<cmath>", "<stdlib.h>" };
-    bool is_linkable = (gOutputLang == "llvm") && (find(begin(inc_file_list), end(inc_file_list), inc_file) != inc_file_list.end());
+    static vector<std::string> inc_list = { "<math.h>", "<cmath>", "<stdlib.h>" };
+    bool is_inc = find(begin(inc_list), end(inc_list), inc_file) != inc_list.end();
+    // or custom added ones
+    bool is_ff = llvm_dsp_factory_aux::gForeignFunctions.count(name) > 0;
+    bool is_linkable = (gOutputLang == "llvm") && (is_inc || is_ff);
+#else
+    bool is_linkable = false;
+#endif
+ 
+    bool internal_math_ff = ((gOutputLang == "llvm")
+                             || startWith(gOutputLang, "wast")
+                             || startWith(gOutputLang, "wasm")
+                             || (gOutputLang == "interp")
+                             || startWith(gOutputLang, "soul")
+                             || (gOutputLang == "dlang")
+                             || (gOutputLang == "csharp")
+                             || (gOutputLang == "rust")
+                             || (gOutputLang == "julia"));
     
-    bool has_internal_math_ff = ((gOutputLang == "llvm")
-                                 || startWith(gOutputLang, "wast")
-                                 || startWith(gOutputLang, "wasm")
-                                 || (gOutputLang == "interp")
-                                 || startWith(gOutputLang, "soul")
-                                 || (gOutputLang == "dlang")
-                                 || (gOutputLang == "csharp")
-                                 || (gOutputLang == "rust")
-                                 || (gOutputLang == "julia"));
-    
-    return (has_internal_math_ff && (gMathForeignFunctions.find(name) != gMathForeignFunctions.end())) || is_linkable;
+    return (internal_math_ff && (gMathForeignFunctions.find(name) != gMathForeignFunctions.end())) || is_linkable;
 }
 
 BasicTyped* global::genBasicTyped(Typed::VarType type)

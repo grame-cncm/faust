@@ -508,6 +508,12 @@ DEPRECATED(llvm_dsp* createDSPInstance(llvm_dsp_factory* factory));
  */ 
 DEPRECATED(void deleteDSPInstance(llvm_dsp* dsp));
 
+/**
+ * Register a custom foreign function that will be exported by the host binary running the DSP code.
+ *
+ * @param function_name - the function name to be available
+ */
+LIBFAUST_API void registerForeignFunction(const std::string& function_name);
 /*!
  @}
  */
