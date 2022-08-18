@@ -57,7 +57,7 @@ dsp_factory_base* WASTCodeContainer::produceFactory()
         ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), fHelper.str());
 }
 
-WASTCodeContainer::WASTCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+WASTCodeContainer::WASTCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out,
                                      bool internal_memory)
     : fOut(out)
 {
@@ -115,7 +115,7 @@ CodeContainer* WASTCodeContainer::createContainer(const string& name, int numInp
 }
 
 // Scalar
-WASTScalarCodeContainer::WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+WASTScalarCodeContainer::WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out,
                                                  int sub_container_type, bool internal_memory)
     : WASTCodeContainer(name, numInputs, numOutputs, out, internal_memory)
 {
@@ -449,7 +449,7 @@ void WASTScalarCodeContainer::generateCompute(int n)
 }
 
 // Vector
-WASTVectorCodeContainer::WASTVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+WASTVectorCodeContainer::WASTVectorCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out,
                                                  bool internal_memory)
     : VectorCodeContainer(numInputs, numOutputs), WASTCodeContainer(name, numInputs, numOutputs, out, internal_memory)
 {

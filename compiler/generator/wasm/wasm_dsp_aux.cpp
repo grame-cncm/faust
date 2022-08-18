@@ -53,7 +53,7 @@ dsp_factory_table<SDsp_factory> wasm_dsp_factory::gWasmFactoryTable;
 
 //#include "faust/gui/SoundUI.h"
 
-LIBFAUST_API wasm_dsp_factory::wasm_dsp_factory(int instance, const std::string& json)
+LIBFAUST_API wasm_dsp_factory::wasm_dsp_factory(int instance, const string& json)
 {
     fFactory = nullptr;
     fInstance = instance;
@@ -74,7 +74,7 @@ LIBFAUST_API wasm_dsp_factory::~wasm_dsp_factory()
     //delete fSoundUI;
 }
 
-LIBFAUST_API wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactory(int instance, const std::string& json)
+LIBFAUST_API wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactory(int instance, const string& json)
 {
     wasm_dsp_factory* factory = new wasm_dsp_factory(instance, json);
     wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
@@ -295,12 +295,12 @@ LIBFAUST_API void wasm_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT**
 #endif
 }
 
-LIBFAUST_API void wasm_dsp::setParamValue(const std::string& path, FAUSTFLOAT value)
+LIBFAUST_API void wasm_dsp::setParamValue(const string& path, FAUSTFLOAT value)
 {
     fFactory->fMapUI.setParamValue(path, value);
 }
 
-LIBFAUST_API FAUSTFLOAT wasm_dsp::getParamValue(const std::string& path)
+LIBFAUST_API FAUSTFLOAT wasm_dsp::getParamValue(const string& path)
 {
     return fFactory->fMapUI.getParamValue(path);
 }
@@ -343,7 +343,7 @@ EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp)
 
 #else
 
-LIBFAUST_API wasm_dsp_factory::wasm_dsp_factory(int instance, const std::string& json)
+LIBFAUST_API wasm_dsp_factory::wasm_dsp_factory(int instance, const string& json)
 {
     fFactory = nullptr;
     fInstance = instance;
@@ -356,7 +356,7 @@ LIBFAUST_API wasm_dsp_factory::~wasm_dsp_factory()
     delete fDecoder;
 }
 
-LIBFAUST_API wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactory(int instance, const std::string& json)
+LIBFAUST_API wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactory(int instance, const string& json)
 {
     return nullptr;
 }
@@ -450,11 +450,11 @@ LIBFAUST_API void wasm_dsp::computeJS(int count, uintptr_t input, uintptr_t outp
 {
 }
 
-LIBFAUST_API void wasm_dsp::setParamValue(const std::string& path, FAUSTFLOAT value)
+LIBFAUST_API void wasm_dsp::setParamValue(const string& path, FAUSTFLOAT value)
 {
 }
 
-LIBFAUST_API FAUSTFLOAT wasm_dsp::getParamValue(const std::string& path)
+LIBFAUST_API FAUSTFLOAT wasm_dsp::getParamValue(const string& path)
 {
     return -1;
 }

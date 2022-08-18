@@ -33,9 +33,7 @@ class InstructionsCompiler1 : public InstructionsCompiler {
 
    private:
     StatementInst* generateInitArray(const string& vname, Typed::VarType ctype, int delay);
-
     StatementInst* generateShiftArray(const string& vname, int delay);
-
     StatementInst* generateCopyArray(const string& vname_to, const string& vname_from, int size);
 };
 

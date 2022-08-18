@@ -52,10 +52,10 @@ class Exp10Prim : public xtended {
     
         // exp10(log10(sig)) ==> sig
         xtended* xt = (xtended*)getUserData(args[0]);
-        if (xt == gGlobal->gLogPrim) {
+        if (xt == gGlobal->gLog10Prim) {
             return args[0]->branch(0);
         } else if (isNum(args[0], n)) {
-            return tree(exp(double(n)));
+            return tree(pow(10, double(n)));
         } else {
             return tree(symbol(), args[0]);
         }

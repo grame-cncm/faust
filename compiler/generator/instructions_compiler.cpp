@@ -307,7 +307,7 @@ Tree InstructionsCompiler::prepare2(Tree L0)
  * @param name the string representing the compiled expression.
  * @return true is already compiled
  */
-bool InstructionsCompiler::getCompiledExpression(Tree sig, InstType& cexp)
+bool InstructionsCompiler::getCompiledExpression(Tree sig, ValueType& cexp)
 {
     return fCompileProperty.get(sig, cexp);
 }
@@ -318,9 +318,9 @@ bool InstructionsCompiler::getCompiledExpression(Tree sig, InstType& cexp)
  * @param cexp the string representing the compiled expression.
  * @return the cexp (for commodity)
  */
-InstType InstructionsCompiler::setCompiledExpression(Tree sig, const InstType& cexp)
+ValueType InstructionsCompiler::setCompiledExpression(Tree sig, const ValueType& cexp)
 {
-    InstType old;
+    ValueType old;
     if (fCompileProperty.get(sig, old) && (old != cexp)) {
         // stringstream error;
         // error << "ERROR already a compiled expression attached : " << old << " replaced by " << cexp << endl;

@@ -119,7 +119,7 @@ static pair<double, double> bench(dsp* dsp, int dsp_size, const string& name, in
 
 static bool compareFun(pair<double, double> i, pair<double, double> j)
 {
-    return (i.first > j.first);
+    return (i.first < j.first);
 }
 
 extern "C" int bench_all(const char* name, int run, int buffer_size, bool is_trace, bool is_control, int ds, int us, int filter)

@@ -326,8 +326,9 @@ struct LocalVariableCounter : public DispatchVisitor {
 
     void generateStackMap(BufferWithRandomAccess* out)
     {
-        // Update stack variable index depending of 1) number of stack variables of different type 2) funarg variables
-        // number
+        // Update stack variable index depending of:
+        // - number of stack variables of different type
+        // - funarg variables number
         for (auto& var : fLocalVarTable) {
             if (var.second.fAccess != Address::kFunArgs) {
                 if (isIntOrPtrType(var.second.fType)) {
@@ -600,7 +601,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             *out << "env";
             *out << "memory";
             *out << U32LEB(int32_t(ExternalKind::Memory));  // Memory kind
-            *out << U32LEB(0);                              // Memory flags
+            *out << U32LEB(0);                            // Memory flags
             *out << U32LEB(1);  // Memory size set by JS code, so use a minimum value that contains the data segment
                                 // size (shoud be OK for any JSON)
         }
@@ -1339,7 +1340,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         *fOut << int8_t(BinaryConsts::End);
     }
   
-    // Conditional : if (TO CHECK : utilise drop ?)
+    // Conditional : if (TO CHECK : use drop ?)
     virtual void visit(IfInst* inst)
     {
         inst->fCond->accept(this);
@@ -1360,7 +1361,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         *fOut << int8_t(BinaryConsts::End);
     }
 
-    // Loop : beware: compiled loop don't work with an index of 0
+    // Loop : beware, compiled loop does not work with an index of 0
     virtual void visit(ForLoopInst* inst)
     {
         // Don't generate empty loops...

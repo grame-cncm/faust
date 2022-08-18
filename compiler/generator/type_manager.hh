@@ -30,6 +30,8 @@
 #include "exception.hh"
 #include "instructions.hh"
 
+// Base class for type manager
+
 struct StringTypeManager {
     std::map<Typed::VarType, std::string> fTypeDirectTable;
     std::string                           fPtrRef;

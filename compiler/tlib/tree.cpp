@@ -33,37 +33,37 @@ storage of trees.
 
  API:
  ----
- tree (n) 				: tree of node n with no branch
- tree (n, t1) 			: tree of node n with a branch t
- tree (n, t1,...,tm)	: tree of node n with m branches t1,...,tm
+ tree (n)            : tree of node n with no branch
+ tree (n, t1)        : tree of node n with a branch t
+ tree (n, t1,...,tm) : tree of node n with m branches t1,...,tm
 
  Pattern matching :
 
- if (isTree (t, n)) 		... : t has node n and no branches;
- if (isTree (t, n, &t1)		... : t has node n and 1 branch, t1 is set accordingly;
- if (isTree (t, n, &t1...&tm)...: t has node n and m branches, ti's are set accordingly;
+ if (isTree (t, n))           : t has node n and no branches;
+ if (isTree (t, n, &t1)       : t has node n and 1 branch, t1 is set accordingly;
+ if (isTree (t, n, &t1...&tm) : t has node n and m branches, ti's are set accordingly;
 
  Accessors :
 
- t->node()			: the node of t		{ return fNode; }
- t->arity() 		: the number of branches of t return fArity; }
- t->branch(i) 		: the ith branch of t
+ t->node()    : the node of t { return fNode; }
+ t->arity()   : the number of branches of t { return fArity; }
+ t->branch(i) : the ith branch of t
 
  Attributs :
 
- t->attribut() 		: return the attribut (also a tree) of t
- t->attribut(t')	: set the attribut of t to t'
+ t->attribut()   : return the attribute (also a tree) of t
+ t->attribut(t') : set the attribute of t to t'
 
  Warning :
  ---------
  Since reference counters are used for garbage collecting, one must be careful not to
- create cycles in trees The only possible source of cycles is by setting the attribut
+ create cycles in trees. The only possible source of cycles is by setting the attribute
  of a tree t to a tree t' that contains t as a subtree.
 
  Properties:
  -----------
-    If p and q are two CTree pointers  :
-        p != q  <=>  *p != *q
+    If p and q are two CTree pointers :
+        p != q <=> *p != *q
 
  History :
  ---------
@@ -219,6 +219,9 @@ void CTree::control()
 
 void CTree::init()
 {
+    gSerialCounter = 0;
+    gVisitTime = 0;
+    gDetails = false;
     memset(gHashTable, 0, sizeof(Tree) * kHashTableSize);
 }
 

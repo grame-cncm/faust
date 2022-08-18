@@ -39,9 +39,10 @@ struct TypingVisitor : public InstVisitor {
 
     virtual void visit(LoadVarInst* inst)
     {
+        string name = inst->getName();
         // Stack or struct variables
-        if (gGlobal->hasVarType(inst->getName())) {
-            fCurType                = gGlobal->getVarType(inst->getName());
+        if (gGlobal->hasVarType(name)) {
+            fCurType                = gGlobal->getVarType(name);
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
             if (indexed) {
                 // IndexedAddress is also used for struct type
@@ -55,18 +56,19 @@ struct TypingVisitor : public InstVisitor {
             }
         } else {
             fCurType = Typed::kNoType;
-            cerr << "ERROR in TypingVisitor : variable '" << inst->getName() << "' has Typed::kNoType" << endl;
+            cerr << "ERROR in TypingVisitor : variable '" << name << "' has Typed::kNoType" << endl;
             faustassert(false);
         }
     }
 
     virtual void visit(TeeVarInst* inst)
     {
-        if (gGlobal->hasVarType(inst->getName())) {
-            fCurType = gGlobal->getVarType(inst->getName());
+        string name = inst->getName();
+        if (gGlobal->hasVarType(name)) {
+            fCurType = gGlobal->getVarType(name);
         } else {
             fCurType = Typed::kNoType;
-            cerr << "ERROR in TypingVisitor : variable '" << inst->getName() << "' has Typed::kNoType" << endl;
+            cerr << "ERROR in TypingVisitor : variable '" << name << "' has Typed::kNoType" << endl;
             faustassert(false);
         }
     }
@@ -144,6 +146,7 @@ struct TypingVisitor : public InstVisitor {
         value->accept(&typing);
         return typing.fCurType;
     }
+    
 };
 
 #endif

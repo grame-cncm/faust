@@ -41,8 +41,6 @@
 
 using namespace std;
 
-typedef ValueInst* InstType;
-
 class InstructionsCompiler : public virtual Garbageable {
    protected:
     CodeContainer* fContainer;
@@ -75,15 +73,15 @@ class InstructionsCompiler : public virtual Garbageable {
   
     void getTypedNames(::Type t, const string& prefix, Typed::VarType& ctype, string& vname);
 
-    bool     getCompiledExpression(Tree sig, InstType& cexp);
-    InstType setCompiledExpression(Tree sig, const InstType& cexp);
+    bool getCompiledExpression(Tree sig, ValueType& cexp);
+    ValueType setCompiledExpression(Tree sig, const ValueType& cexp);
 
-    void setVectorNameProperty(Tree sig, const string& vecname);
     bool getVectorNameProperty(Tree sig, string& vecname);
-
-    void setTableNameProperty(Tree sig, const string& vecname);
+    void setVectorNameProperty(Tree sig, const string& vecname);
+    
     bool getTableNameProperty(Tree sig, string& vecname);
-
+    void setTableNameProperty(Tree sig, const string& vecname);
+  
     // Redefined by RustInstructionsCompiler
     virtual StatementInst* generateInitArray(const string& vname, Typed::VarType ctype, int delay);
     virtual StatementInst* generateCopyArray(const string& vname, int index_from, int index_to);
@@ -96,7 +94,7 @@ class InstructionsCompiler : public virtual Garbageable {
     ValueInst* generateSliderAux(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step, const string& name);
     ValueInst* generateBargraphAux(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp, const string& name);
 
-    // wrapper functions to access code container
+    // Wrapper functions to access code container
     StatementInst* pushInitMethod(StatementInst* inst) { return fContainer->pushInitMethod(inst); }
     StatementInst* pushResetUIInstructions(StatementInst* inst) { return fContainer->pushResetUIInstructions(inst); }
     StatementInst* pushClearMethod(StatementInst* inst) { return fContainer->pushClearMethod(inst); }
@@ -243,7 +241,7 @@ class InstructionsCompiler : public virtual Garbageable {
     void generateMacroInterfaceElements(const string& pathname, Tree elements);
     void generateWidgetMacro(const string& pathname, Tree fulllabel, Tree varname, Tree sig);
 
-    void         setDescription(Description* descr) { fDescription = descr; }
+    void setDescription(Description* descr) { fDescription = descr; }
     Description* getDescription() { return fDescription; }
     
     Tree prepare(Tree LS);

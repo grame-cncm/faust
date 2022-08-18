@@ -91,7 +91,7 @@ int llvm_dsp_factory_aux::gInstance = 0;
 
 dsp_factory_table<SDsp_factory> llvm_dsp_factory_aux::gLLVMFactoryTable;
 
-std::set<std::string> llvm_dsp_factory_aux::gForeignFunctions;
+set<string> llvm_dsp_factory_aux::gForeignFunctions;
 
 uint64_t llvm_dsp_factory_aux::loadOptimize(const string& function)
 {
@@ -620,7 +620,7 @@ LIBFAUST_API void llvm_dsp::operator delete(void* ptr)
     }
 }
 
-LIBFAUST_API void registerForeignFunction(const std::string& name)
+LIBFAUST_API void registerForeignFunction(const string& name)
 {
     LOCK_API
     llvm_dsp_factory_aux::gForeignFunctions.insert(name);

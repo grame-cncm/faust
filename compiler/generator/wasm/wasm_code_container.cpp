@@ -60,7 +60,7 @@ dsp_factory_base* WASMCodeContainer::produceFactory()
         ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), fHelper.str());
 }
 
-WASMCodeContainer::WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+WASMCodeContainer::WASMCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out,
                                      bool internal_memory)
     : fOut(out)
 {
@@ -185,7 +185,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceResetUserInterface(const stri
 }
 
 // Scalar
-WASMScalarCodeContainer::WASMScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+WASMScalarCodeContainer::WASMScalarCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out,
                                                  int sub_container_type, bool internal_memory)
     : WASMCodeContainer(name, numInputs, numOutputs, out, internal_memory)
 {
@@ -451,7 +451,7 @@ void WASMScalarCodeContainer::generateCompute()
 }
 
 // Vector
-WASMVectorCodeContainer::WASMVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+WASMVectorCodeContainer::WASMVectorCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out,
                                                  bool internal_memory)
     : VectorCodeContainer(numInputs, numOutputs), WASMCodeContainer(name, numInputs, numOutputs, out, internal_memory)
 {

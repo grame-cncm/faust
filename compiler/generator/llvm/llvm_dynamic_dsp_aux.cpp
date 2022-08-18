@@ -650,10 +650,10 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromString(const string& name_app
     }
 }
         
-LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromSignals(const std::string& name_app, tvec signals,
+LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromSignals(const string& name_app, tvec signals,
                                                         int argc, const char* argv[],
-                                                        const std::string& target,
-                                                        std::string& error_msg,
+                                                        const string& target,
+                                                        string& error_msg,
                                                         int opt_level)
 {
     LOCK_API
@@ -691,10 +691,10 @@ LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromSignals(const std::string& na
     }
 }
         
-LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromBoxes(const std::string& name_app, Tree box,
+LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromBoxes(const string& name_app, Tree box,
                                                       int argc, const char* argv[],
-                                                      const std::string& target,
-                                                      std::string& error_msg,
+                                                      const string& target,
+                                                      string& error_msg,
                                                       int opt_level)
 {
     LOCK_API

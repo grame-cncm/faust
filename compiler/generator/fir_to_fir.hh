@@ -564,7 +564,7 @@ struct FIRChecker : public DispatchVisitor {
         cerr << "ERROR : FIRChecker in BinopInst";
         cerr << " a1_type = " << Typed::gTypeString[a1_type];
         cerr << " a2_type = " << Typed::gTypeString[a2_type] << endl;
-        //faustassert(false);
+        faustassert(false);
     }
     
     virtual void visit(Select2Inst* inst)
@@ -706,7 +706,7 @@ struct ConstantsCopyMemory : public BasicCloneVisitor {
     
 };
 
-// Analysis to copy constants from an external memory zone (FunArgs version)
+// Analysis to copy constants from an external memory zone (FunArgs version) used in -os2 and -os3 modes
 struct ConstantsCopyFromMemory : public ConstantsCopyMemory {
     
     ConstantsCopyFromMemory(int int_index, int float_index):ConstantsCopyMemory(int_index, float_index)
@@ -731,7 +731,7 @@ struct ConstantsCopyFromMemory : public ConstantsCopyMemory {
     
 };
 
-// Analysis to copy constants from an external memory zone (Struct version)
+// Analysis to copy constants from an external memory zone (Struct version) used in -os2 and -os3 modes
 struct ConstantsCopyFromMemory1 : public ConstantsCopyMemory {
     
     ConstantsCopyFromMemory1(int int_index, int float_index):ConstantsCopyMemory(int_index, float_index)
@@ -756,7 +756,7 @@ struct ConstantsCopyFromMemory1 : public ConstantsCopyMemory {
     
 };
 
-// Analysis to copy constants to an external memory zone (FunArgs version)
+// Analysis to copy constants to an external memory zone (FunArgs version) used in -os2 and -os3 modes
 struct ConstantsCopyToMemory : public ConstantsCopyMemory {
     
     ConstantsCopyToMemory(int int_index, int float_index):ConstantsCopyMemory(int_index, float_index)
@@ -779,7 +779,7 @@ struct ConstantsCopyToMemory : public ConstantsCopyMemory {
 
 };
 
-// Analysis to copy constants to an external memory zone (Struct version)
+// Analysis to copy constants to an external memory zone (Struct version) used in -os2 and -os3 modes
 struct ConstantsCopyToMemory1 : public ConstantsCopyMemory {
     
     ConstantsCopyToMemory1(int int_index, int float_index):ConstantsCopyMemory(int_index, float_index)

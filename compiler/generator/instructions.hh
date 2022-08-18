@@ -154,6 +154,7 @@ struct IndexedAddress;
 // =============
 // Naming tools
 // =============
+typedef ValueInst* ValueType;
 typedef list<ValueInst*> Values;
 typedef list<ValueInst*>::const_iterator ValuesIt;
 typedef list<NamedTyped*> Names;
@@ -570,7 +571,7 @@ struct ArrayTyped : public Typed {
 };
 
 struct StructTyped : public Typed {
-    const string        fName;
+    const string fName;
     std::vector<NamedTyped*> fFields;
 
     StructTyped(const string& name, const std::vector<NamedTyped*>& fields) : fName(name), fFields(fields) {}
@@ -2655,7 +2656,9 @@ struct InstBuilder {
  * wrapper for ValueInst* with support for basic arithmetics
  *
  */
-struct FIRIndex {
+class FIRIndex {
+    
+  public:
     
     /* explicit constructors in order to avoid the generation of implicit conversions */
     explicit FIRIndex(ValueInst* inst) : fValue(inst) {}

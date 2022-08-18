@@ -51,6 +51,8 @@ inline bool isControl(const string& name)
         || name == "fSampleRate";
 }
 
+// Base class to textual visitor: C, C++, CSharp, Dlang, Julia, SOUL, Rust, wast
+
 class TextInstVisitor : public InstVisitor {
    protected:
     int                fTab;
@@ -426,8 +428,8 @@ class TextInstVisitor : public InstVisitor {
     
 };
 
-// Mathematical functions are declared as variables, they have to be generated before any other function (like
-// 'faustpower')
+// Mathematical functions are declared as variables, they have to be generated
+// before any other function (like 'faustpower')
 struct sortDeclareFunctions {
     std::map<std::string, std::string> fMathLibTable;
 

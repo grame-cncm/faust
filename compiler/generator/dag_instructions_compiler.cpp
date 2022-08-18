@@ -289,7 +289,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
     Typed::VarType ctype;
     int            sharing = getSharingCount(sig);
     ::Type         t       = getCertifiedSigType(sig);
-    old_Occurences*    o   = fOccMarkup->retrieve(sig);
+    old_Occurences* o      = fOccMarkup->retrieve(sig);
     int            d       = o->getMaxDelay();
 
     if (t->variability() < kSamp) {

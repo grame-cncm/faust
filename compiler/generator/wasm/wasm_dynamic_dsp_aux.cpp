@@ -37,10 +37,10 @@
 using namespace emscripten;
 #endif
 
-wasm_dsp_factory* wasm_dynamic_dsp_factory::createWasmDSPFactoryFromString2(const string&         name_app,
-                                                                            const string&         dsp_content,
-                                                                            const vector<string>& argv,
-                                                                            bool                  internal_memory)
+wasm_dsp_factory* wasm_dynamic_dsp_factory::createWasmDSPFactoryFromString2(const string& name_app,
+                                                                        const string& dsp_content,
+                                                                        const vector<string>& argv,
+                                                                        bool internal_memory)
 {
     int         argc1 = 0;
     const char* argv1[64];
@@ -53,10 +53,10 @@ wasm_dsp_factory* wasm_dynamic_dsp_factory::createWasmDSPFactoryFromString2(cons
                                                                wasm_dsp_factory::gErrorMessage, internal_memory);
 }
 
-std::string wasm_dynamic_dsp_factory::generateWasmFromString2(const std::string&           name_app,
-                                                            const std::string&              dsp_content,
-                                                            const std::vector<std::string>& argv,
-                                                            bool                            internal_memory)
+string wasm_dynamic_dsp_factory::generateWasmFromString2(const string& name_app,
+                                                     const string& dsp_content,
+                                                     const vector<string>& argv,
+                                                     bool internal_memory)
 {
     int         argc1 = 0;
     const char* argv1[64];
@@ -86,7 +86,7 @@ LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromFile(const string& filena
 }
 
 LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc,
-                                                        const char* argv[], string& error_msg, bool internal_memory)
+                                                            const char* argv[], string& error_msg, bool internal_memory)
 {
     string expanded_dsp_content, sha_key;
 
@@ -121,9 +121,9 @@ LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name
     }
 }
 
-LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromSignals(const std::string& name_app, tvec signals,
-                                                         int argc, const char* argv[], std::string& error_msg,
-                                                         bool internal_memory)
+LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromSignals(const string& name_app, tvec signals,
+                                                            int argc, const char* argv[], string& error_msg,
+                                                            bool internal_memory)
 {
     int         argc1 = 0;
     const char* argv1[64];
@@ -150,7 +150,7 @@ LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromSignals(const std::string
     }
 }
 
-LIBFAUST_API std::string generateWasmFromString(const string& name_app, const string& dsp_content, int argc,
+LIBFAUST_API string generateWasmFromString(const string& name_app, const string& dsp_content, int argc,
                                          const char* argv[], string& error_msg, bool internal_memory)
 {
     int         argc1 = 0;
