@@ -67,6 +67,10 @@
 #include "fir_code_container.hh"
 #endif
 
+#ifdef LLVM_BUILD
+#include "llvm_dsp_aux.hh"
+#endif
+
 #ifdef INTERP_BUILD
 #include "interpreter_instructions.hh"
 #endif
@@ -767,9 +771,12 @@ bool global::hasForeignFunction(const string& name, const string& inc_file)
 {
     // LLVM backend can use 'standard' foreign linked functions
     static vector<std::string> inc_file_list = { "<math.h>", "<cmath>", "<stdlib.h>" };
-    bool is_linkable = (gOutputLang == "llvm") && (find(begin(inc_file_list), end(inc_file_list), inc_file) != inc_file_list.end());
-    
-    bool has_internal_math_ff = ((gOutputLang == "llvm")
+    const bool is_llvm = (gOutputLang == "llvm");
+    bool is_linkable = is_llvm && (find(begin(inc_file_list), end(inc_file_list), inc_file) != inc_file_list.end());
+    if(is_linkable)
+        return true;
+
+    bool has_internal_math_ff = (is_llvm
                                  || startWith(gOutputLang, "wast")
                                  || startWith(gOutputLang, "wasm")
                                  || (gOutputLang == "interp")
@@ -778,8 +785,16 @@ bool global::hasForeignFunction(const string& name, const string& inc_file)
                                  || (gOutputLang == "csharp")
                                  || (gOutputLang == "rust")
                                  || (gOutputLang == "julia"));
-    
-    return (has_internal_math_ff && (gMathForeignFunctions.find(name) != gMathForeignFunctions.end())) || is_linkable;
+
+    if(has_internal_math_ff && (gMathForeignFunctions.find(name) != gMathForeignFunctions.end()))
+        return true;
+
+#ifdef LLVM_BUILD
+    bool has_custom_ff = is_llvm;
+    if(has_custom_ff && llvm_dsp_factory_aux::gCustomForeignFunctions.find(name) != llvm_dsp_factory_aux::gCustomForeignFunctions.end())
+        return true;
+#endif
+    return false;
 }
 
 BasicTyped* global::genBasicTyped(Typed::VarType type)

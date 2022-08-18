@@ -23,6 +23,7 @@
 #define LLVM_DSP_AUX_H
 
 #include <map>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -245,6 +246,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     static int gInstance;
 
     static dsp_factory_table<SDsp_factory> gLLVMFactoryTable;
+    static std::set<std::string>           gCustomForeignFunctions; // Map of custom foreign functions
 };
 
 // Public C++ interface
