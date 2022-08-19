@@ -778,11 +778,6 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     dispatchNextScal();
                 }
                     
-                case FBCInstruction::kStoreSound : {
-                    // TODO
-                    dispatchNextScal();
-                }
-                    
                 // Directly store a value
                 case FBCInstruction::kStoreRealValue : {
                     if (TRACE > 0) {

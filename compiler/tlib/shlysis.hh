@@ -23,7 +23,7 @@
 #define __SHLYSIS__
 /*****************************************************************************
 ******************************************************************************
-                                Tree Sharing Analysis
+                          Tree Sharing Analysis
                         Y. Orlarey, (c) Grame 2002
 ------------------------------------------------------------------------------
 The sharing analysis of tree t is the annotation of all its subtrees t'
@@ -34,9 +34,9 @@ unique to each sharing analysis must be generated.
  API:
  ----
 
-    shprkey(t) -> k		= unique sharing property key of t
-    shcount(k,t') -> n	= returns the number of occurences of t' in t (where k = shprkey(t))
-    shlysis(t)	-> k	= annotated the subtrees of t with prop (key sharing-count)
+    shprkey(t) -> k     = unique sharing property key of t
+    shcount(k,t') -> n  = returns the number of occurences of t' in t (where k = shprkey(t))
+    shlysis(t)    -> k  = annotated the subtrees of t with prop (key sharing-count)
                           (0 if t' is not a subtree of t)
 
  History :

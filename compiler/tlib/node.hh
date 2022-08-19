@@ -28,19 +28,19 @@
  *
  * <b>API:</b>
  *
- * 	Node(symbol("abcd")); 	: node with symbol content
- * 	Node(10);				: node with int content
- * 	Node(3.14159);			: node with double content
+ * Node(symbol("abcd")); : node with symbol content
+ * Node(10);             : node with int content
+ * Node(3.14159);        : node with double content
  *
- * 	n->type();				: kIntNode or kDoubleNode or kSymNode
+ * n->type();            : kIntNode or kDoubleNode or kSymNode
  *
- * 	n->getInt();			: int content of n
- * 	n->getDouble();			: double content of n
- * 	n->getSym();			: symbol content of n
+ * n->getInt();          : int content of n
+ * n->getDouble();       : double content of n
+ * n->getSym();          : symbol content of n
  *
- * 	if (isInt(n, &i))	... : int i = int content of n
- * 	if (isDouble(n, &f))	... : double f = double content of n
- * 	if (isSym(n, &s))	... : Sym s = Sym content of n
+ * if (isInt(n, &i))     : int i = int content of n
+ * if (isDouble(n, &f))  : double f = double content of n
+ * if (isSym(n, &s))     : Sym s = Sym content of n
  *
  */
 

@@ -43,8 +43,8 @@ This file contains several extensions to the tree library :
     nth(l,i)			= ith element of l (or nil)
     replace(l,i,e)		= a copy of l where the ith element is e
     len(l)				= number of elements of l
-    isNil(nil) 			= true 		(false otherwise)
-    isList(cons(x,l)) 	= true 		(false otherwise)
+    isNil(nil) 			= true (false otherwise)
+    isList(cons(x,l)) 	= true (false otherwise)
     list(a,b,..)		= cons(a, list(b,...))
 
     lmap(f, cons(x,l))	= cons(f(x), lmap(f,l))
@@ -72,7 +72,7 @@ This file contains several extensions to the tree library :
     pushEnv (key, val, env) -> env' create a new environment
     searchEnv (key,&v,env) -> bool  search for key in env and set v accordingly
 
-    search(k1,&v, push(k2,x,env)) 	= true and v is set to x if k1==k2
+    search(k1,&v, push(k2,x,env)) 	= true and v is set to x if k1 == k2
                                     = search(k1,&v,env) if k1 != k2
     Property list :
     ---------------

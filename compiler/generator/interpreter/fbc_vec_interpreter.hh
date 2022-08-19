@@ -48,7 +48,6 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
 
     int*        fIntHeap;
     REAL*       fRealHeap;
-    Soundfile** fSoundHeap;
 
     REAL** fInputs;
     REAL** fOutputs;
@@ -104,7 +103,8 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
                     break;
 
                 case FBCInstruction::kAddSoundfile:
-                    glue->addSoundfile(it->fLabel.c_str(), it->fKey.c_str(), &fSoundHeap[it->fOffset]);
+                    // fKey use for label, fValue used for URL, fLabel for SF field name
+                    glue->addSoundfile(it->fKey.c_str(), it->fValue.c_str(), &this->fSoundTable[it->fLabel]);
                     break;
 
                 case FBCInstruction::kAddHorizontalBargraph:
@@ -139,8 +139,8 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             &&do_kRealValue, &&do_kInt32Value,
 
             // Memory
-            &&do_kLoadReal, &&do_kLoadInt, &&do_kLoadSound, &&do_kLoadSoundField, &&do_kStoreReal, &&do_kStoreInt,
-            &&do_kStoreSound, &&do_kStoreRealValue, &&do_kStoreIntValue, &&do_kLoadIndexedReal, &&do_kLoadIndexedInt,
+            &&do_kLoadReal, &&do_kLoadInt, &&do_kLoadSoundFieldInt, &&do_kLoadSoundFieldReal, &&do_kStoreReal, &&do_kStoreInt,
+            &&do_kStoreRealValue, &&do_kStoreIntValue, &&do_kLoadIndexedReal, &&do_kLoadIndexedInt,
             &&do_kStoreIndexedReal, &&do_kStoreIndexedInt, &&do_kBlockStoreReal, &&do_kBlockStoreInt, &&do_kMoveReal,
             &&do_kMoveInt, &&do_kPairMoveReal, &&do_kPairMoveInt, &&do_kBlockPairMoveReal, &&do_kBlockPairMoveInt,
             &&do_kBlockShiftReal, &&do_kBlockShiftInt, &&do_kLoadInput, &&do_kStoreOutput,
@@ -239,7 +239,6 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
 
         REAL          real_stack[512];
         int           int_stack[512];
-        Soundfile*    sound_stack[512];
         InstructionIT address_stack[64];
 
 #define dispatchFirstVec()                    \
@@ -283,10 +282,7 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
     }
 #define emptyReturnVec() (addr_stack_index == 0)
 
-#define pushSound(val) (sound_stack[sound_stack_index++] = val)
-#define popSound() (sound_stack[--sound_stack_index])
-
-        // #pragma clang loop vectorize(enable) interleave(enable)
+// #pragma clang loop vectorize(enable) interleave(enable)
 
 #define VEC_LOOP(code)                  \
     {                                   \
@@ -367,20 +363,12 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
             dispatchNextVec();
         }
 
-        do_kLoadSound : {
-            pushSound(fSoundHeap[(*it)->fOffset1]);
-            dispatchNextVec();
+        do_kLoadSoundFieldInt : {
+            // TODO
         }
-
-        do_kLoadSoundField : {
-            /*
-             if (TRACE) {
-                push_sound(fSoundHeap[assert_sound_heap(it, (*it)->fOffset1)]);
-             } else {
-                push_sound(fSoundHeap[(*it)->fOffset1]);
-             }
-                dispatch_next();
-             */
+            
+        do_kLoadSoundFieldReal : {
+            // TODO
         }
 
         do_kStoreReal : {
@@ -392,11 +380,6 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         do_kStoreInt : {
             VEC_LOOP(WRITE_HEAP_VEC_INT((*it)->fOffset1, POP_VEC_INT()));
             STACK_DOWN_INT();
-            dispatchNextVec();
-        }
-
-        do_kStoreSound : {
-            // fSoundHeap[(*it)->fOffset1] = popSound();
             dispatchNextVec();
         }
 
@@ -2447,13 +2430,11 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         if (fFactory->getMemoryManager()) {
             fRealHeap  = static_cast<T*>(fFactory->allocate(sizeof(T) * fFactory->fRealHeapSize));
             fIntHeap   = static_cast<int*>(fFactory->allocate(sizeof(T) * fFactory->fIntHeapSize));
-            fSoundHeap = static_cast<Soundfile**>(fFactory->allocate(sizeof(Soundfile*) * fFactory->fSoundHeapSize));
             fInputs    = static_cast<T**>(fFactory->allocate(sizeof(T*) * fFactory->fNumInputs));
             fOutputs   = static_cast<T**>(fFactory->allocate(sizeof(T*) * fFactory->fNumOutputs));
         } else {
             fRealHeap  = new T[fFactory->fRealHeapSize];
             fIntHeap   = new int[fFactory->fIntHeapSize];
-            fSoundHeap = new Soundfile*[fFactory->fSoundHeapSize];
             fInputs    = new T*[fFactory->fNumInputs];
             fOutputs   = new T*[fFactory->fNumOutputs];
         }
@@ -2507,13 +2488,11 @@ class FBCVecInterpreter : public FBCExecutor<REAL> {
         if (fFactory->getMemoryManager()) {
             fFactory->destroy(fRealHeap);
             fFactory->destroy(fIntHeap);
-            fFactory->destroy(fSoundHeap);
             fFactory->destroy(fInputs);
             fFactory->destroy(fOutputs);
         } else {
             delete[] fRealHeap;
             delete[] fIntHeap;
-            delete[] fSoundHeap;
             delete[] fInputs;
             delete[] fOutputs;
         }
