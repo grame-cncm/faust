@@ -29,7 +29,7 @@ listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir)
 SRCDIR := tools
 
 #########################################################################
-soul:  impulsesoul ir/$(outdir) $(call listfiles,$(outdir))
+soul: ir/$(outdir) $(call listfiles,$(outdir))
 
 test:
 	@echo $(call listfiles,$(outdir))
