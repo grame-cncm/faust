@@ -121,7 +121,7 @@ Tree SignalConstantPropagation::transformation(Tree sig)
         } else {
             cerr << "ERROR : SignalConstantPropagation::transformation : " << *sig << endl;
             faustassert(false);
-            return nullptr;
+            return gGlobal->nil;  // Fake return to silence warnings
         }
 
     } else {

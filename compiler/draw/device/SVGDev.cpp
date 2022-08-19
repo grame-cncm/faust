@@ -35,7 +35,7 @@ static char* xmlcode(const char* name, char* name2)
 {
     int i, j;
 
-    // SUBSTITUTION DES CARACTeRES INTERDITS EN XML
+    // Substitution of prohibited characters in XML
 
     for (i = 0, j = 0; (name[i] != 0) && (j < 250); i++) {
         switch (name[i]) {

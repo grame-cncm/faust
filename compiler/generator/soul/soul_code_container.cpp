@@ -70,7 +70,7 @@ CodeContainer* SOULCodeContainer::createContainer(const string& name, int numInp
 
 void SOULCodeContainer::produceInternal()
 {
-    int                         n = 0;
+    int n = 0;
     SOULSubContainerInstVisitor struct_visitor(fOut);
 
     // Global declarations

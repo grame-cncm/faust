@@ -38,6 +38,7 @@
 
 //--------------------------------------------------------------------------
 // prototypes
+//--------------------------------------------------------------------------
 
 static void        setSigType(Tree sig, Type t);
 static Type        getSigType(Tree sig);
@@ -60,9 +61,91 @@ static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig);
 static Type infereDocAccessTblType(Type tbl, Type ridx);
 static Type infereWaveformType(Tree lv, Tree env);
 
-TupletType derefRecCert(Type t);
+/**
+ * convert a constant signal into a double using its bounds (not very safe)
+ * @param sig the signal to be converted
+ * @return the mean of its biggest and smallest value
+ */
+static double constSig2double(Tree sig)
+{
+    Type ty = getSigType(sig);
+    if (ty->variability() != kKonst) {
+        throw faustexception(
+            "ERROR : constSig2double, the parameter must be a constant value"
+            " known at compile time\n");
+    }
+    interval bds = ty->getInterval();
+    if (bds.lo != bds.hi) {
+        throw faustexception(
+            "ERROR : constSig2double, constant value with non-singleton interval, don't know what"
+            " to do, please report");
+    }
+    return bds.lo;
+}
 
-static interval arithmetic(int opcode, const interval& x, const interval& y);
+/**
+ * dereference a Type to AudioType and promote its type to TupletType
+ * if the AudioType is not a TupletType, then fails
+ * @param t the type to promote
+ * @return the *t as a TupletType
+ */
+static ::TupletType derefRecCert(Type t)
+{
+    TupletType* p = isTupletType(t);
+    faustassert(p);
+    return *p;
+}
+
+/**
+ * Compute the resulting interval of an arithmetic operation
+ * @param op code of the operation
+ * @param s1 interval of the left operand
+ * @param s2 interval of the right operand
+ * @return the resulting interval
+ */
+static interval arithmetic(int opcode, const interval& x, const interval& y)
+{
+    switch (opcode) {
+        case kAdd:
+            return x + y;
+        case kSub:
+            return x - y;
+        case kMul:
+            return x * y;
+        case kDiv:
+            return x / y;
+        case kRem:
+            return x % y;
+        case kLsh:
+            return x << y;
+        case kARsh:
+            return x >> y;
+        case kGT:
+            return x > y;
+        case kLT:
+            return x < y;
+        case kGE:
+            return x >= y;
+        case kLE:
+            return x <= y;
+        case kEQ:
+            return x == y;
+        case kNE:
+            return x != y;
+        case kAND:
+            return x & y;
+        case kOR:
+            return x | y;
+        case kXOR:
+            return x ^ y;
+        default:
+            cerr << "ERROR : unrecognized opcode : " << opcode << endl;
+            faustassert(false);
+            return {};
+    }
+
+    return interval();
+}
 
 // Uncomment to activate type inferrence tracing
 //#define TRACE(x) x
@@ -251,7 +334,7 @@ void typeAnnotation(Tree sig, bool causality)
 /**
  * Print annotation statistics.
  */
-void annotationStatistics()
+static void annotationStatistics()
 {
     cerr << gGlobal->TABBER << "COUNT INFERENCE  " << gGlobal->gCountInferences << " AT TIME "
          << clock() / CLOCKS_PER_SEC << 's' << endl;
@@ -304,19 +387,6 @@ static Type getSigType(Tree sig)
     return ty;
 }
 
-/**
- * dereference a Type to AudioType and promote its type to TupletType
- * if the AudioType is not a TupletType, then fails
- * @param t the type to promote
- * @return the *t as a TupletType
- */
-::TupletType derefRecCert(Type t)
-{
-    TupletType* p = isTupletType(t);
-    faustassert(p);
-    return *p;
-}
-
 /**************************************************************************
 
                         Type Inference System
@@ -363,28 +433,6 @@ static void CheckPartInterval(Tree s, Type t)
               << MAX_SOUNDFILE_PARTS - 1 << ")) in expression : " << ppsig(s) << endl;
         throw faustexception(error.str());
     }
-}
-
-/**
- * convert a constant signal into a double using its bounds (not very safe)
- * @param sig the signal to be converted
- * @return the mean of its biggest and smallest value
- */
-static double constSig2double(Tree sig)
-{
-    Type ty = getSigType(sig);
-    if (ty->variability() != kKonst) {
-        throw faustexception(
-            "ERROR : constSig2double, the parameter must be a constant value"
-            " known at compile time\n");
-    }
-    interval bds = ty->getInterval();
-    if (bds.lo != bds.hi) {
-        throw faustexception(
-            "ERROR : constSig2double, constant value with non-singleton interval, don't know what"
-            " to do, please report");
-    }
-    return bds.lo;
 }
 
 /**
@@ -910,55 +958,4 @@ static Type infereXType(Tree sig, Tree env)
 
     for (int i = 0; i < sig->arity(); i++) vt.push_back(T(sig->branch(i), env));
     return p->infereSigType(vt);
-}
-
-/**
- * Compute the resulting interval of an arithmetic operation
- * @param op code of the operation
- * @param s1 interval of the left operand
- * @param s2 interval of the right operand
- * @return the resulting interval
- */
-static interval arithmetic(int opcode, const interval& x, const interval& y)
-{
-    switch (opcode) {
-        case kAdd:
-            return x + y;
-        case kSub:
-            return x - y;
-        case kMul:
-            return x * y;
-        case kDiv:
-            return x / y;
-        case kRem:
-            return x % y;
-        case kLsh:
-            return x << y;
-        case kARsh:
-            return x >> y;
-        case kGT:
-            return x > y;
-        case kLT:
-            return x < y;
-        case kGE:
-            return x >= y;
-        case kLE:
-            return x <= y;
-        case kEQ:
-            return x == y;
-        case kNE:
-            return x != y;
-        case kAND:
-            return x & y;
-        case kOR:
-            return x | y;
-        case kXOR:
-            return x ^ y;
-        default:
-            cerr << "ERROR : unrecognized opcode : " << opcode << endl;
-            faustassert(false);
-            return {};
-    }
-
-    return interval();
 }

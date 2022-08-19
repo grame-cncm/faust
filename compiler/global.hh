@@ -136,7 +136,7 @@ struct global {
     bool gFunTaskSwitch;
 
     bool gUIMacroSwitch;
-    int gDumpNorm;
+    int  gDumpNorm;
     int  gFTZMode;
     bool gRangeUI;  // whether to generate code to limit vslider/hslider/nentry values in [min..max] range
 
@@ -146,13 +146,13 @@ struct global {
     bool gInlineArchSwitch;
 
     bool gDSPStruct;
-    bool gLightMode;  // do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module
-                      // for JavaScript)
-    bool   gClang;    // when compiled with clang/clang++, adds specific #pragma for auto-vectorization
-    bool   gNoVirtual;   // when compiled with the C++ backend, does not add the 'virtual' keyword
+    bool gLightMode;    // do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module
+                        // for JavaScript)
+    bool   gClang;      // when compiled with clang/clang++, adds specific #pragma for auto-vectorization
+    bool   gNoVirtual;  // when compiled with the C++ backend, does not add the 'virtual' keyword
     string gCheckTable;  // whether to check RDTable and RWTable index range
-    
-    bool   gMathExceptions;  // whether to check math functions domains
+
+    bool gMathExceptions;  // whether to check math functions domains
 
     string gClassName;       // name of the generated dsp class, by default 'mydsp'
     string gSuperClassName;  // name of the root class the generated dsp class inherits from, by default 'dsp'
@@ -180,9 +180,10 @@ struct global {
     bool   gComputeMix;            // Mix in outputs buffers
     string gFastMathLib;           // The fastmath code mapping file
     string gNameSpace;             // Wrapping namespace used with the C++ backend
+    bool   gFullParentheses;       // Generate less parenthesis in comde textuel backends : C/C++, Dlang, rust, SOUL
 
-    int gWideningLimit;     // Max number of iterations before interval widening
-    int gNarrowingLimit;    // Max number of iterations to compute interval widener
+    int gWideningLimit;   // Max number of iterations before interval widening
+    int gNarrowingLimit;  // Max number of iterations to compute interval widener
 
     map<string, string> gFastMathLibTable;      // Mapping table for fastmath functions
     map<string, bool>   gMathForeignFunctions;  // Map of math foreign functions
@@ -223,28 +224,28 @@ struct global {
     list<string> gInputFiles;
 
     int gFileNum;
-    
+
     // ------------
     // boxppShared
     // ------------
-    
+
     // Tree is used to identify the same nodes during Box tree traversal,
     // but gBoxCounter is then used to generate unique IDs
     std::map<Tree, std::pair<int, std::string>> gBoxTable;
-    int gBoxCounter;
+    int                                         gBoxCounter;
     // To keep the box tree traversing trace
     std::vector<std::string> gBoxTrace;
-    
+
     // ------------
     // ppsigShared
     // ------------
     // Tree is used to identify the same nodes during Signal tree traversal,
     // but gSignalCounter is then used to generate unique IDs
     std::map<Tree, std::pair<int, std::string>> gSignalTable;
-    int gSignalCounter;
+    int                                         gSignalCounter;
     // To keep the signal tree traversing trace
     std::vector<std::string> gSignalTrace;
-   
+
     int gCountInferences;
     int gCountMaximal;
     int gDummyInput;
@@ -252,7 +253,7 @@ struct global {
     int gBoxSlotNumber;  ///< counter for unique slot number
 
     bool gMemoryManager;
-   
+
     bool gLocalCausalityCheck;  ///< when true trigs local causality errors (negative delay)
 
     bool gCausality;  ///< (FIXME: global used as a parameter of typeAnnotation) when true trigs causality errors
@@ -506,7 +507,7 @@ struct global {
     const char*       gDevSuffix;       // .svg or .ps used to choose output device
     string            gSchemaFileName;  // name of schema file beeing generated
     Tree              gInverter[6];
-    map<Tree, string> gBackLink;        // link to enclosing file for sub schema
+    map<Tree, string> gBackLink;  // link to enclosing file for sub schema
 
     // FIR
     map<Typed::VarType, BasicTyped*> gTypeTable;     // To share a unique BasicTyped* object for a given type
@@ -539,7 +540,7 @@ struct global {
     // One single global visitor Interpreter backend, so that sub-containers and the global container use the same heap
     DispatchVisitor* gInterpreterVisitor;
 #endif
-    
+
 #ifdef JULIA_BUILD
     // One single global visitor Julia backend, so that sub-containers and the global container use the same heap
     JuliaInstVisitor* gJuliaVisitor;
@@ -566,7 +567,7 @@ struct global {
     bool   gDrawSVGSwitch;
     bool   gVHDLSwitch;
     bool   gVHDLTrace;
-    int    gVHDLFloatType; // 0: sfixed(msb downto lsb) or 1: float(msb downto lsb)
+    int    gVHDLFloatType;  // 0: sfixed(msb downto lsb) or 1: float(msb downto lsb)
     int    gVHDLFloatMSB;
     int    gVHDLFloatLSB;
     bool   gElementarySwitch;
@@ -598,12 +599,12 @@ struct global {
     ~global();
 
     void init();
-    
+
     void clear();
 
     static void allocate();
     static void destroy();
-    
+
     static string printFloat();
 
     string getFreshID(const string& prefix);
@@ -620,7 +621,10 @@ struct global {
         }
     }
 
-    bool hasVarType(const string& name) { return gVarTypeTable.find(name) != gVarTypeTable.end(); }
+    bool hasVarType(const string& name)
+    {
+        return gVarTypeTable.find(name) != gVarTypeTable.end();
+    }
 
     BasicTyped* genBasicTyped(Typed::VarType type);
 
@@ -628,21 +632,23 @@ struct global {
 
     void setVarType(const string& name, Typed::VarType type);
 
-    inline bool startWith(const string& str, const string& prefix) { return (str.substr(0, prefix.size()) == prefix); }
+    inline bool startWith(const string& str, const string& prefix)
+    {
+        return (str.substr(0, prefix.size()) == prefix);
+    }
 
     // Some backends have an internal implementation of foreign functions like acos, asinh...
     bool hasForeignFunction(const string& name, const string& inc_file);
-   
-    void printCompilationOptions(stringstream& dst, bool backend = true);
+
+    void   printCompilationOptions(stringstream& dst, bool backend = true);
     string printCompilationOptions1();
 
     void initTypeSizeMap();
 
     int audioSampleSize();
-    
+
     // Allows to test if a given debug variable is set
     static bool isDebug(const string& debug_val);
-    
 };
 
 // Unique shared global pointer

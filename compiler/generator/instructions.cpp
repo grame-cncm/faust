@@ -102,17 +102,21 @@ ValueInst* InstBuilder::genTypedNum(Typed::VarType type, double num)
     return nullptr;
 }
 
-string Typed::gTypeString[] = {"kInt32",          "kInt32_ptr",      "kInt32_vec",          "kInt32_vec_ptr",
-                               "kInt64",          "kInt64_ptr",      "kInt64_vec",          "kInt64_vec_ptr",
-                               "kBool",           "kBool_ptr",       "kBool_vec",           "kBool_vec_ptr",
-                               "kFloat",          "kFloat_ptr",      "kFloat_ptr_ptr",      "kFloat_vec",
-                               "kFloat_vec_ptr",  "kFloatMacro",     "kFloatMacro_ptr",     "kFloatMacro_ptr_ptr",
-                               "kDouble",         "kDouble_ptr",     "kDouble_ptr_ptr",     "kDouble_vec",       "kDouble_vec_ptr",
-                               "kQuad",           "kQuad_ptr",       "kQuad_ptr_ptr",       "kQuad_vec",         "kQuad_vec_ptr",
-                               "kFixedPoint",     "kFixedPoint_ptr", "kFixedPoint_ptr_ptr", "kFixedPoint_vec",   "kFixedPoint_vec_ptr",
-                               "kVoid",           "kVoid_ptr",       
-                               "kObj",            "kObj_ptr",        "kSound",
-                               "kSound_ptr",      "kUint_ptr",       "kNoType"};
+string Typed::gTypeString[] =
+{
+    "kInt32",         "kInt32_ptr",      "kInt32_vec",          "kInt32_vec_ptr",
+    "kInt64",         "kInt64_ptr",      "kInt64_vec",          "kInt64_vec_ptr",
+    "kBool",          "kBool_ptr",       "kBool_vec",           "kBool_vec_ptr",
+    "kFloat",         "kFloat_ptr",      "kFloat_ptr_ptr",      "kFloat_vec",
+    "kFloat_vec_ptr", "kFloatMacro",     "kFloatMacro_ptr",     "kFloatMacro_ptr_ptr",
+    "kDouble",        "kDouble_ptr",     "kDouble_ptr_ptr",     "kDouble_vec",     "kDouble_vec_ptr",
+    "kQuad",          "kQuad_ptr",       "kQuad_ptr_ptr",       "kQuad_vec",       "kQuad_vec_ptr",
+    "kFixedPoint",    "kFixedPoint_ptr", "kFixedPoint_ptr_ptr", "kFixedPoint_vec", "kFixedPoint_vec_ptr",
+    "kVoid",          "kVoid_ptr",
+    "kObj",           "kObj_ptr",
+    "kSound",         "kSound_ptr",
+    "kUint_ptr",      "kNoType"
+};
 
 void BasicTyped::cleanup()
 {
@@ -138,7 +142,7 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
         } else {
             // If array type, check their size and internal type
             ArrayTyped* array_t1 = dynamic_cast<ArrayTyped*>(gGlobal->gVarTypeTable[fAddress->getName()]);
-            ArrayTyped* array_t2  = dynamic_cast<ArrayTyped*>(type);
+            ArrayTyped* array_t2 = dynamic_cast<ArrayTyped*>(type);
             if (array_t1 && array_t2) {
                 // Arrays have the exact same size
                 bool same_size = array_t1->fSize == array_t2->fSize;

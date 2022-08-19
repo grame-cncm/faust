@@ -340,8 +340,8 @@ class CSharpInstVisitor : public TextInstVisitor {
         Typed::VarType type1 = TypingVisitor::getType(inst->fInst1);
         Typed::VarType type2 = TypingVisitor::getType(inst->fInst2);
 
-        bool cond1 = needParenthesis(inst, inst->fInst1);
-        bool cond2 = needParenthesis(inst, inst->fInst2);
+        bool cond1 = leftArgNeedsParentheses(inst, inst->fInst1);
+        bool cond2 = rightArgNeedsParentheses(inst, inst->fInst2);
 
         if (type1 != Typed::kBool) {
             if (cond1) *fOut << "(";
