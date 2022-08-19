@@ -589,8 +589,8 @@ class SOULInstVisitor : public TextInstVisitor {
 
     virtual void visit(BinopInst* inst)
     {
-        bool cond1 = needParenthesis(inst, inst->fInst1);
-        bool cond2 = needParenthesis(inst, inst->fInst2);
+        bool cond1 = leftArgNeedsParentheses(inst, inst->fInst1);
+        bool cond2 = rightArgNeedsParentheses(inst, inst->fInst2);
     
         bool int_as_bool = fIntAsBool;
         if (isBoolOpcode(inst->fOpcode) && !int_as_bool) {

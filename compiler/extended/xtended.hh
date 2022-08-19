@@ -29,7 +29,6 @@
 #include "klass.hh"
 #include "lateq.hh"
 #include "sigtype.hh"
-#include "sigvisitor.hh"
 #include "tlib.hh"
 #include "ppsig.hh"
 

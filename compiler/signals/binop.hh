@@ -164,17 +164,19 @@ struct BinOp {
     FBCInstruction::Opcode fInterpFloatInst;
 
     comp fCompute;
+    int  fPriority;
+    bool fAssociativity;
+    
     pred fLeftNeutral;
     pred fRightNeutral;
     pred fLeftAbsorbing;
     pred fRightAbsorbing;
-    int  fPriority;
-
+   
     BinOp(const char* name, const char* name_vec, const char* name_scal, const char* name_llvm_int,
           const char* name_llvm_float, unsigned int llvm_int, unsigned int llvm_float, const char* name_wasm_int32,
           const char* name_wasm_int64, const char* name_wasm_float, const char* name_wasm_double, WasmOp wasm_int32,
           WasmOp wasm_int64, WasmOp wasm_float, WasmOp wasm_double, FBCInstruction::Opcode interp_int32,
-          FBCInstruction::Opcode interp_float, comp fun, pred ln, pred rn, int priority, pred la = falsePredicate,
+          FBCInstruction::Opcode interp_float, int priority, bool associativity, comp fun, pred ln, pred rn, pred la = falsePredicate,
           pred ra = falsePredicate)
         : fName(name),
           fNameVec(name_vec),
@@ -194,11 +196,12 @@ struct BinOp {
           fInterpIntInst32(interp_int32),
           fInterpFloatInst(interp_float),
           fCompute(fun),
+          fPriority(priority),
+          fAssociativity(associativity),
           fLeftNeutral(ln),
           fRightNeutral(rn),
           fLeftAbsorbing(la),
-          fRightAbsorbing(ra),
-          fPriority(priority)
+          fRightAbsorbing(ra)
     {
     }
 
@@ -222,6 +225,5 @@ bool isBoolOpcode(int o);
 bool isLogicalOpcode(int o);
 bool isShiftOpcode(int o);
 bool isCommutativeOpcode(int o);
-
 
 #endif

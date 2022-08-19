@@ -25,8 +25,6 @@
 #include "signals.hh"
 #include "sigtype.hh"
 
-extern bool gVectorSwitch;
-
 /** \file sigtyperules.hh
  * API to the typing system of signals
  *

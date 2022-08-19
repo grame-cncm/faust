@@ -611,17 +611,6 @@ class JuliaInstVisitor : public TextInstVisitor {
         *fOut << " != 0)";
     }
     
-    virtual void visit(Select2Inst* inst)
-    {
-        *fOut << "(";
-        visitCond(inst->fCond);
-        *fOut << " ? ";
-        inst->fThen->accept(this);
-        *fOut << " : ";
-        inst->fElse->accept(this);
-        *fOut << ")";
-    }
-
     // Generate standard funcall (not 'method' like funcall...)
     virtual void visit(FunCallInst* inst)
     {

@@ -31,11 +31,11 @@ using namespace std;
 //-----------------------------------------------
 // float size coding :
 //-----------------------------------------------
-//          0: external float (macro name)
-//          1: single precision float
-//          2: double precision float
-//          3: long double precision float
-//          4: fixed-point
+//   0: external float (macro name)
+//   1: single precision float
+//   2: double precision float
+//   3: long double precision float
+//   4: fixed-point float
 
 static const char* mathsuffix[5];       // suffix for math functions
 static const char* numsuffix[5];        // suffix for numeric constants

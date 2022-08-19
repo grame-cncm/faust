@@ -333,22 +333,15 @@ class DLangInstVisitor : public TextInstVisitor {
             inst->fInst2->accept(this);
             *fOut << "))";
         } else {
-            // We keep the fully parenthesized version
-            *fOut << "(";
-            inst->fInst1->accept(this);
-            *fOut << " ";
-            *fOut << gBinOpTable[inst->fOpcode]->fName;
-            *fOut << " ";
-            inst->fInst2->accept(this);
-            *fOut << ")";
+            TextInstVisitor::visit(inst);
         }
     }
 
     virtual void visit(::CastInst* inst)
     {
-        string type = fTypeManager->generateType(inst->fType);
-        *fOut << "cast(" << type << ")";
+        *fOut << "cast(" << fTypeManager->generateType(inst->fType) << ")(";
         inst->fInst->accept(this);
+        *fOut << ")";
     }
 
     /*

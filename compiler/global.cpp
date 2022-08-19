@@ -161,7 +161,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gClang      = false;
     gNoVirtual  = false;
     gCheckTable = "";
-    
+
     gMathExceptions = false;
 
     gClassName      = "mydsp";
@@ -193,9 +193,10 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gComputeMix           = false;
     gFastMathLib          = "default";
     gNameSpace            = "";
+    gFullParentheses      = false;
 
     gNarrowingLimit = 0;
-    gWideningLimit = 0;
+    gWideningLimit  = 0;
 
     // Fastmath mapping float version
     gFastMathLibTable["fabsf"]      = "fast_fabsf";
@@ -254,8 +255,8 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gErrorCount = 0;
 
     gFileNum = 0;
-    
-    gBoxCounter = 0;
+
+    gBoxCounter    = 0;
     gSignalCounter = 0;
 
     gCountInferences = 0;
@@ -272,7 +273,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gOccurrences = nullptr;
     gFoldingFlag = false;
     gDevSuffix   = nullptr;
-   
+
     gAbsPrim       = new AbsPrim();
     gAcosPrim      = new AcosPrim();
     gTanPrim       = new TanPrim();
@@ -445,11 +446,11 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 #endif
 
 #ifdef JULIA_BUILD
-    gJuliaVisitor = nullptr;        // Will be (possibly) allocated in Julia backend
+    gJuliaVisitor = nullptr;  // Will be (possibly) allocated in Julia backend
 #endif
 
 #ifdef SOUL_BUILD
-    gTableSizeVisitor = nullptr;    // Will be (possibly) allocated in SOUL backend
+    gTableSizeVisitor = nullptr;  // Will be (possibly) allocated in SOUL backend
 #endif
 
     gHelpSwitch       = false;
@@ -464,7 +465,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gDrawSVGSwitch    = false;
     gVHDLSwitch       = false;
     gVHDLTrace        = false;
-    gVHDLFloatType    = 0; //sfixed
+    gVHDLFloatType    = 0;  // sfixed
     gVHDLFloatMSB     = 8;
     gVHDLFloatLSB     = -23;
     gElementarySwitch = false;
@@ -523,7 +524,7 @@ void global::init()
 
     TREC = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(0, 0));
     // !!! TRECMAX Maximal only in the last component of the type lattice
-    TRECMAX = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(-HUGE_VAL,HUGE_VAL));
+    TRECMAX = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(-HUGE_VAL, HUGE_VAL));
 
     // empty Predefined bit depth
     RES = res();
@@ -580,8 +581,7 @@ void global::init()
 
     // Create type declaration for external 'soundfile' type
     vector<NamedTyped*> sf_type_fields;
-    sf_type_fields.push_back(
-        InstBuilder::genNamedTyped("fBuffers", InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
+    sf_type_fields.push_back(InstBuilder::genNamedTyped("fBuffers", InstBuilder::genBasicTyped(Typed::kVoid_ptr)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped("fLength", InstBuilder::genBasicTyped(Typed::kInt32_ptr)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped("fSR", InstBuilder::genBasicTyped(Typed::kInt32_ptr)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped("fOffset", InstBuilder::genBasicTyped(Typed::kInt32_ptr)));
@@ -624,11 +624,11 @@ void global::init()
     gMathForeignFunctions["isinff"] = true;
     gMathForeignFunctions["isinf"]  = true;
     gMathForeignFunctions["isinfl"] = true;
-    
+
     gMathForeignFunctions["copysignf"] = true;
     gMathForeignFunctions["copysign"]  = true;
     gMathForeignFunctions["copysignl"] = true;
-    
+
     // internal state during drawing
     gInverter[0] = boxSeq(boxPar(boxWire(), boxInt(-1)), boxPrim2(sigMul));
     gInverter[1] = boxSeq(boxPar(boxInt(-1), boxWire()), boxPrim2(sigMul));
@@ -694,10 +694,10 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
             << "-vs " << gVecSize << " " << ((gFunTaskSwitch) ? "-fun " : "") << ((gGroupTaskSwitch) ? "-g " : "")
             << ((gDeepFirstSwitch) ? "-dfs " : "");
     }
-  
+
     // Add 'compile_options' metadata
     string res = dst.str();
-    gGlobal->gMetaDataSet[tree("compile_options")].insert(tree("\"" + res.substr(0, res.size()-1) + "\""));
+    gGlobal->gMetaDataSet[tree("compile_options")].insert(tree("\"" + res.substr(0, res.size() - 1) + "\""));
 }
 
 string global::printCompilationOptions1()
@@ -705,7 +705,7 @@ string global::printCompilationOptions1()
     stringstream dst;
     printCompilationOptions(dst, true);
     string res = dst.str();
-    return res.substr(0, res.size()-1);
+    return res.substr(0, res.size() - 1);
 }
 
 void global::initTypeSizeMap()
@@ -722,13 +722,13 @@ void global::initTypeSizeMap()
     gTypeSizeMap[Typed::kDouble_ptr_ptr] = gMachinePtrSize;
     gTypeSizeMap[Typed::kDouble_vec]     = gMachineDoubleSize * gVecSize;
     gTypeSizeMap[Typed::kDouble_vec_ptr] = gMachinePtrSize;
-    
+
     gTypeSizeMap[Typed::kQuad]         = gMachineQuadSize;
     gTypeSizeMap[Typed::kQuad_ptr]     = gMachinePtrSize;
     gTypeSizeMap[Typed::kQuad_ptr_ptr] = gMachinePtrSize;
     gTypeSizeMap[Typed::kQuad_vec]     = gMachineQuadSize * gVecSize;
     gTypeSizeMap[Typed::kQuad_vec_ptr] = gMachinePtrSize;
-    
+
     gTypeSizeMap[Typed::kFixedPoint]         = gMachineFixedPointSize;
     gTypeSizeMap[Typed::kFixedPoint_ptr]     = gMachinePtrSize;
     gTypeSizeMap[Typed::kFixedPoint_ptr_ptr] = gMachinePtrSize;
@@ -755,8 +755,8 @@ void global::initTypeSizeMap()
     gTypeSizeMap[Typed::kFloatMacro_ptr]     = gMachinePtrSize;
     gTypeSizeMap[Typed::kFloatMacro_ptr_ptr] = gMachinePtrSize;
 
-    gTypeSizeMap[Typed::kVoid_ptr]     = gMachinePtrSize;
-  
+    gTypeSizeMap[Typed::kVoid_ptr] = gMachinePtrSize;
+
     gTypeSizeMap[Typed::kObj_ptr]   = gMachinePtrSize;
     gTypeSizeMap[Typed::kSound_ptr] = gMachinePtrSize;
     gTypeSizeMap[Typed::kUint_ptr]  = gMachinePtrSize;
@@ -771,25 +771,20 @@ bool global::hasForeignFunction(const string& name, const string& inc_file)
 {
 #ifdef LLVM_BUILD
     // LLVM backend can use 'standard' foreign linked functions
-    static vector<std::string> inc_list = { "<math.h>", "<cmath>", "<stdlib.h>" };
-    bool is_inc = find(begin(inc_list), end(inc_list), inc_file) != inc_list.end();
+    static vector<std::string> inc_list = {"<math.h>", "<cmath>", "<stdlib.h>"};
+    bool                       is_inc   = find(begin(inc_list), end(inc_list), inc_file) != inc_list.end();
     // or custom added ones
-    bool is_ff = llvm_dsp_factory_aux::gForeignFunctions.count(name) > 0;
+    bool is_ff       = llvm_dsp_factory_aux::gForeignFunctions.count(name) > 0;
     bool is_linkable = (gOutputLang == "llvm") && (is_inc || is_ff);
 #else
     bool is_linkable = false;
 #endif
- 
-    bool internal_math_ff = ((gOutputLang == "llvm")
-                             || startWith(gOutputLang, "wast")
-                             || startWith(gOutputLang, "wasm")
-                             || (gOutputLang == "interp")
-                             || startWith(gOutputLang, "soul")
-                             || (gOutputLang == "dlang")
-                             || (gOutputLang == "csharp")
-                             || (gOutputLang == "rust")
-                             || (gOutputLang == "julia"));
-    
+
+    bool internal_math_ff =
+        ((gOutputLang == "llvm") || startWith(gOutputLang, "wast") || startWith(gOutputLang, "wasm") ||
+         (gOutputLang == "interp") || startWith(gOutputLang, "soul") || (gOutputLang == "dlang") ||
+         (gOutputLang == "csharp") || (gOutputLang == "rust") || (gOutputLang == "julia"));
+
     return (internal_math_ff && (gMathForeignFunctions.find(name) != gMathForeignFunctions.end())) || is_linkable;
 }
 
@@ -934,7 +929,7 @@ void global::clear()
     gBoxCounter = 0;
     gBoxTable.clear();
     gBoxTrace.clear();
-    
+
     gSignalCounter = 0;
     gSignalTable.clear();
     gSignalTrace.clear();

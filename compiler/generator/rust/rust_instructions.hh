@@ -429,7 +429,6 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << ") as " << fTypeManager->generateType(InstBuilder::genInt32Typed());
             *fOut << ")";
         } else {
-            
             TextInstVisitor::visit(inst);
         }
     }
