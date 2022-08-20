@@ -133,10 +133,10 @@ int main(int argc, char* argv[])
     
     CMDUI* interface = new CMDUI(argc, argv);
     DSP.buildUserInterface(interface);
+    interface->addOption("-s", &start_at_sample, 0, 0.0, 100000000.0);
     interface->addOption("-n", &nb_samples, 4096.0, 0.0, 100000000.0);
     interface->addOption("-r", &sample_rate, 44100.0, 0.0, 192000.0);
     interface->addOption("-bs", &buffer_size, kFrames, 0.0, kFrames * 16);
-    interface->addOption("-s", &start_at_sample, 0, 0.0, 100000000.0);
     
     if (DSP.getNumInputs() > 0) {
         cerr << "no inputs allowed " << endl;

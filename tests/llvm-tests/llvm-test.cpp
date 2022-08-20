@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
     cout << "=============================\n";
     cout << "Test createDSPFactoryFromFile\n";
     {
-        llvm_dsp_factory* factory = createDSPFactoryFromFile(dspFile, 0, NULL, JIT_TARGET, error_msg, -1);
+        llvm_dsp_factory* factory = createDSPFactoryFromFile(dspFile, 0, nullptr, JIT_TARGET, error_msg, -1);
         
         if (!factory) {
             cerr << "Cannot create factory : " << error_msg;

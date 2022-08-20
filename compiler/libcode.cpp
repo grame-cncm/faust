@@ -2198,12 +2198,10 @@ static void createFactoryAux(const char* name, const char* dsp_content, int argc
     *****************************************************************/
     // Check for injected code (before checking for architectures)
     if (gGlobal->gInjectFlag) {
-        injcode = unique_ptr<ifstream>(new ifstream());
-        injcode->open(gGlobal->gInjectFile.c_str(), ifstream::in);
-        if (!injcode->is_open()) {
+        injcode = openArchStream(gGlobal->gInjectFile.c_str());
+        if (!injcode) {
             stringstream error;
-            error << "ERROR : can't inject \"" << gGlobal->gInjectFile << "\" external code file, file not found"
-                  << endl;
+            error << "ERROR : can't inject \"" << gGlobal->gInjectFile << "\" external code file, file not found\n";
             throw faustexception(error.str());
         }
     }
@@ -2229,6 +2227,10 @@ static void createFactoryAux(const char* name, const char* dsp_content, int argc
         throw faustexception(gGlobal->gErrorMessage);
     }
    
+    /****************************************************************
+     3.1 - possibly expand the DSP and return
+     *****************************************************************/
+
     if (gGlobal->gExportDSP) {
         string outpath = (gGlobal->gOutputDir != "")
             ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile)

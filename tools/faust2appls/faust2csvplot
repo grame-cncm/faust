@@ -28,7 +28,7 @@ SOUNDFILELIBS=""
 for p in $@; do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2csvplot "[options]  [Faust options] <file.dsp>"
+        usage faust2csvplot "[options] [Faust options] <file.dsp>"
         echo "Compiles Faust programs to plotters, the following 4 options are given at runtime:"
         option "-s <n>" "start at the sample number <n> (default is 0)"
         option "-n <n>" "render <n> samples (default is 16)"
@@ -72,7 +72,7 @@ for f in $FILES; do
 
     # compile c++ to binary
     (
-        ${CXX=g++} $CXXFLAGS $PROCARCH $SOUNDFILELIBS $OMP -DFAUSTFLOAT=$FAUSTFLOAT "$f.cpp" -o "${f%.dsp}"
+        ${CXX=g++} $CXXFLAGS $PROCARCH $LLVM_LIBS $SOUNDFILELIBS $OMP -DFAUSTFLOAT=$FAUSTFLOAT "$f.cpp" -o "${f%.dsp}"
     ) > /dev/null || exit
     rm "$f.cpp"
 

@@ -42,3 +42,12 @@ MYICCFLAGS="-std=c++11 -O3 -xHost -ftz -fno-alias -fp-model fast=2"
 
 # For universal binaries creation on maxOS
 LIPO=lipo
+
+# For use with template-llvm.cpp
+if [[ $(uname) == Darwin ]]; then
+    STRIP=-dead_strip
+else
+    STRIP=-strip
+fi
+LLVM_LIBS="$STRIP $FAUSTLDDIR/libfaust.a `llvm-config --ldflags --libs all --system-libs`"
+

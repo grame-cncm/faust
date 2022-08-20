@@ -63,7 +63,7 @@ for f in $FILES; do
 
     # compile c++ to binary
     (
-        $CXX $CXXFLAGS $PROCARCH $OMP -DFAUSTFLOAT=$FAUSTFLOAT "$f.cpp" -o "${f%.dsp}"
+        $CXX $CXXFLAGS $PROCARCH $OMP $LLVM_LIBS -DFAUSTFLOAT=$FAUSTFLOAT "$f.cpp" -o "${f%.dsp}"
     ) > /dev/null || exit
     rm "$f.cpp"
 
