@@ -41,7 +41,7 @@ do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2jaqtchain "[options] [Faust options] <file.dsp>"
-        require Jack, Qt
+        require Jack, QT
         echo "Compiles several Faust programs to JACK and QT"
         option
         options -httpd -osc

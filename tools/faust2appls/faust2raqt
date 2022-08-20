@@ -39,7 +39,7 @@ DEPLOY="yes"
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2raqt "[options] [Faust options] <file.dsp>"
-        require Qt
+        require QT
         echo "Compiles Faust programs to RtAudio and QT"
         option
         options -httpd -osc -midi -qrcode -poly -nodeploy

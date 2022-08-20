@@ -48,7 +48,7 @@ do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2caqt "[options] [Faust options] <file.dsp>"
         platform MacOS
-        require Qt
+        require QT
         echo "Compiles Faust programs to CoreAudio and QT"
         option
         options -httpd -osc -midi -qrcode -soundfile

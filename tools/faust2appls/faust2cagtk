@@ -34,7 +34,7 @@ do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2cagtk "[options] [Faust options] <file.dsp>"
         platform MacOS
-        require Jack
+        require GTK
         echo "Compiles Faust programs to CoreAudio and GTK"
         option
         options -httpd -osc -midi -soundfile

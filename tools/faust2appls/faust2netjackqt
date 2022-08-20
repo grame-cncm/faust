@@ -52,7 +52,7 @@ do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2netjackqt "[options] [Faust options] <file.dsp>"
-        require Jack, Qt
+        require Jack, QT
         echo "Compiles Faust programs to NetJack and QT"
         option
         options -httpd -osc -midi
