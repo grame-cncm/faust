@@ -19,7 +19,7 @@ PATH=$PATH:/usr/local/bin
 
 function nqmakeios() {
 	echo "#### qmake-ios is not available"
-	echo "#### you must create an alias named 'qmake-ios' that points to the appropriate qmake in your Qt ios dist"
+	echo "#### you must create an alias named 'qmake-ios' that points to the appropriate qmake in your QT ios dist"
 	exit 1
 }
 QMAKE=qmake-ios
@@ -43,7 +43,7 @@ for p in $@; do
 	if [ $p = "-help" ] || [ $p = "-h" ]; then
 		usage faust2caqtios "[options] [Faust options] <file.dsp>"
 		platform iOS
-		require Qt
+		require QT
 		echo "Compiles Faust programs to CoreAudio and QT for iOS"
 		option
 		options -httpd -osc -midi -qrcode -poly

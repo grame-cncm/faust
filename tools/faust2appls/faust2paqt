@@ -45,7 +45,7 @@ do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2paqt "[options] [Faust options] <file.dsp>"
-        require PortAudio, Qt
+        require PortAudio, QT
         echo "Compiles Faust programs to PortAudio and QT"
         option
         options -httpd -osc -midi -qrcode

@@ -2,7 +2,7 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to JACK-QT  (server mode)   #
+#               Compiles Faust programs to JACK-QT (server mode)    #
 #               (c) Grame, 2014                                     #
 #                                                                   #
 #####################################################################
@@ -39,7 +39,7 @@ OSCLIB=""
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2jackserver "[options] [Faust options] <file.dsp>"
-        require Jack, Qt
+        require Jack, QT
         echo "Compiles Faust programs to JACK and QT (server mode)"
         option
         options -httpd -osc -qrcode

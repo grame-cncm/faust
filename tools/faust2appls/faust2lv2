@@ -53,7 +53,7 @@ for ((i=1; i<$#+1; i++)); do
     p=${!i}
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2lv2 "[options ...] <file.dsp>"
-        require Qt
+        require QT
         echo  "Compiles Faust programs to lv2 plugins"
         option
         option -dyn-manifest "use dynamic manifests (requires LV2 host support)."
