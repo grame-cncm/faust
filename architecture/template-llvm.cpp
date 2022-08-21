@@ -70,13 +70,13 @@ So ./faust2cagtk-llvm --nvoices 16 starts the program with 16 voices.
 */
 
 class mydsp final : public dsp {
-	
+    
  private:
-	
+    
     llvm_dsp_factory* fFactory;
     llvm_dsp* fDSP;
     static string gFileName;
-	
+    
  public:
     
     // May be called several times (for instance with the polyphonic architecture),
@@ -116,65 +116,65 @@ class mydsp final : public dsp {
         // All kept DSP are finally deallocated by the factory
         deleteDSPFactory(fFactory);
     }
-	
-	void metadata(Meta* m)
+    
+    void metadata(Meta* m)
     {
         fDSP->metadata(m);
-	}
+    }
 
-	int getNumInputs()
+    int getNumInputs()
     {
-		return fDSP->getNumInputs();
-	}
-	int getNumOutputs()
+        return fDSP->getNumInputs();
+    }
+    int getNumOutputs()
     {
-		return fDSP->getNumOutputs();
-	}
-		
-	void instanceConstants(int sample_rate)
+        return fDSP->getNumOutputs();
+    }
+        
+    void instanceConstants(int sample_rate)
     {
         fDSP->instanceConstants(sample_rate);
-	}
-	
-	void instanceResetUserInterface()
+    }
+    
+    void instanceResetUserInterface()
     {
         fDSP->instanceResetUserInterface();
-	}
-	
-	void instanceClear()
+    }
+    
+    void instanceClear()
     {
         fDSP->instanceClear();
-	}
-	
-	void init(int sample_rate)
+    }
+    
+    void init(int sample_rate)
     {
         fDSP->init(sample_rate);
-	}
+    }
     
-	void instanceInit(int sample_rate)
+    void instanceInit(int sample_rate)
     {
         fDSP->instanceInit(sample_rate);
-	}
-	
-	mydsp* clone()
+    }
+    
+    mydsp* clone()
     {
-		return new mydsp(fDSP->clone());
-	}
-	
-	int getSampleRate()
+        return new mydsp(fDSP->clone());
+    }
+    
+    int getSampleRate()
     {
-		return fDSP->getSampleRate();
-	}
-	
-	void buildUserInterface(UI* ui_interface)
+        return fDSP->getSampleRate();
+    }
+    
+    void buildUserInterface(UI* ui_interface)
     {
         fDSP->buildUserInterface(ui_interface);
-	}
-	
-	void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs)
+    }
+    
+    void compute(int count, FAUSTFLOAT** RESTRICT inputs, FAUSTFLOAT** RESTRICT outputs)
     {
         fDSP->compute(count, inputs, outputs);
-	}
+    }
 
 };
 
