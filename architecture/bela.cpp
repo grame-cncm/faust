@@ -127,44 +127,60 @@ const char* const pinNamesStrings[] =
     "ANALOG_OUT_8",
 	"BAR_POS_0",
     "BAR_LVL_0",
+	"BAR_TOUCH_0",
 	"BAR_POS_1",
     "BAR_LVL_1",
+	"BAR_TOUCH_1",
 	"BAR_POS_2",
     "BAR_LVL_2",
+	"BAR_TOUCH_2",
 	"BAR_POS_3",
     "BAR_LVL_3",
+	"BAR_TOUCH_3",
 	"BAR_POS_4",
     "BAR_LVL_4",
+	"BAR_TOUCH_4",
 	"BAR_POS_5",
     "BAR_LVL_5",
+	"BAR_TOUCH_5",
 	"BAR_POS_6",
     "BAR_LVL_6",
+	"BAR_TOUCH_6",
 	"BAR_POS_7",
     "BAR_LVL_7",
+	"BAR_TOUCH_7",
 	"SQUARE_XPOS_0",
 	"SQUARE_YPOS_0",
 	"SQUARE_LVL_0",
+	"SQUARE_TOUCH_0",
 	"SQUARE_XPOS_1",
 	"SQUARE_YPOS_1",
 	"SQUARE_LVL_1",
+	"SQUARE_TOUCH_1",
 	"SQUARE_XPOS_2",
 	"SQUARE_YPOS_2",	
 	"SQUARE_LVL_2",
+	"SQUARE_TOUCH_2",
 	"SQUARE_XPOS_3",
 	"SQUARE_YPOS_3",
 	"SQUARE_LVL_3",
+	"SQUARE_TOUCH_3",
 	"SQUARE_XPOS_4",
 	"SQUARE_YPOS_4",	
 	"SQUARE_LVL_4",
+	"SQUARE_TOUCH_4",
 	"SQUARE_XPOS_5",
 	"SQUARE_YPOS_5",
 	"SQUARE_LVL_5",
+	"SQUARE_TOUCH_5",
 	"SQUARE_XPOS_6",
 	"SQUARE_YPOS_6",	
 	"SQUARE_LVL_6",
+	"SQUARE_TOUCH_6",
 	"SQUARE_XPOS_7",
 	"SQUARE_YPOS_7",
-	"SQUARE_LVL_7"
+	"SQUARE_LVL_7",
+	"SQUARE_TOUCH_7"
 };
 
 enum EInOutPin
@@ -206,44 +222,60 @@ enum EInOutPin
     kANALOG_OUT_8,
 	kBAR_POS_0,
     kBAR_LVL_0,
+	kBAR_TOUCH_0,
 	kBAR_POS_1,
     kBAR_LVL_1,
+	kBAR_TOUCH_1,
 	kBAR_POS_2,
     kBAR_LVL_2,
+	kBAR_TOUCH_2,
 	kBAR_POS_3,
     kBAR_LVL_3,
+	kBAR_TOUCH_3,
 	kBAR_POS_4,
     kBAR_LVL_4,
+	kBAR_TOUCH_4,
 	kBAR_POS_5,
     kBAR_LVL_5,
+	kBAR_TOUCH_5,
 	kBAR_POS_6,
     kBAR_LVL_6,
+	kBAR_TOUCH_6,
 	kBAR_POS_7,
     kBAR_LVL_7,
+	kBAR_TOUCH_7,
 	kSQUARE_XPOS_0,
 	kSQUARE_YPOS_0,
 	kSQUARE_LVL_0,
+	kSQUARE_TOUCH_0,
 	kSQUARE_XPOS_1,
 	kSQUARE_YPOS_1,
 	kSQUARE_LVL_1,
+	kSQUARE_TOUCH_1,
 	kSQUARE_XPOS_2,
 	kSQUARE_YPOS_2,
 	kSQUARE_LVL_2,	
+	kSQUARE_TOUCH_2,
 	kSQUARE_XPOS_3,
 	kSQUARE_YPOS_3,
 	kSQUARE_LVL_3,
+	kSQUARE_TOUCH_3,
 	kSQUARE_XPOS_4,
 	kSQUARE_YPOS_4,
 	kSQUARE_LVL_4,	
+	kSQUARE_TOUCH_4,
 	kSQUARE_XPOS_5,
 	kSQUARE_YPOS_5,
 	kSQUARE_LVL_5,
+	kSQUARE_TOUCH_5,
 	kSQUARE_XPOS_6,
 	kSQUARE_YPOS_6,
 	kSQUARE_LVL_6,	
+	kSQUARE_TOUCH_6,
 	kSQUARE_XPOS_7,
 	kSQUARE_YPOS_7,
 	kSQUARE_LVL_7,
+	kSQUARE_TOUCH_7,
     kNumInputPins
 };
 
@@ -395,6 +427,7 @@ class TrillWidget : public BelaWidget
 
 	virtual void update(BelaContext* context)
 	{
+		float val=0;
 		switch(fBelaPin) {
                 case kBAR_POS_0:
 				case kBAR_POS_1:
@@ -404,14 +437,9 @@ class TrillWidget : public BelaWidget
 				case kBAR_POS_5:
 				case kBAR_POS_6:
 				case kBAR_POS_7:
-				//case kBAR_POS_8:
-					if(sensor)
-					{
-						float val=0;
-						if(sensor && sensor->getNumTouches()>0)
-							val=sensor->compoundTouchLocation();
-						*fZone = fMin + fRange * val;
-					}
+					if(sensor && sensor->getNumTouches()>0)
+						val=sensor->compoundTouchLocation();
+					*fZone = fMin + fRange * val;
 					break;
 				
 				case kBAR_LVL_0:
@@ -422,14 +450,22 @@ class TrillWidget : public BelaWidget
 				case kBAR_LVL_5:
 				case kBAR_LVL_6:
 				case kBAR_LVL_7:
-				//case kBAR_LVL_8:
+					if(sensor && sensor->getNumTouches()>0)
+						val=sensor->compoundTouchSize();
+					*fZone = fMin + fRange * val;
+					break;
+					
+				case kBAR_TOUCH_0:
+				case kBAR_TOUCH_1:
+				case kBAR_TOUCH_2:
+				case kBAR_TOUCH_3:
+				case kBAR_TOUCH_4:
+				case kBAR_TOUCH_5:
+				case kBAR_TOUCH_6:
+				case kBAR_TOUCH_7:
 					if(sensor)
-					{
-						float val=0;
-						if(sensor && sensor->getNumTouches()>0)
-							val=sensor->compoundTouchSize();
-						*fZone = fMin + fRange * val;
-					}
+						val=sensor->getNumTouches();
+					*fZone = max(fRange,val);
 					break;
 					
 				case kSQUARE_XPOS_0:
@@ -440,14 +476,9 @@ class TrillWidget : public BelaWidget
 				case kSQUARE_XPOS_5:
 				case kSQUARE_XPOS_6:
 				case kSQUARE_XPOS_7:
-				//case kSQUARE_XPOS_8:
-					if(sensor)
-					{
-						float val=0;
-						if(sensor)
-							val=sensor->compoundTouchHorizontalLocation();
-						*fZone = fMin + fRange * val;
-					}	
+					if(sensor && sensor->getNumTouches()>0)
+						val=sensor->compoundTouchHorizontalLocation();
+					*fZone = fMin + fRange * val;	
 					break;
 				
 				case kSQUARE_YPOS_0:
@@ -458,14 +489,9 @@ class TrillWidget : public BelaWidget
 				case kSQUARE_YPOS_5:
 				case kSQUARE_YPOS_6:
 				case kSQUARE_YPOS_7:
-				//case kSQUARE_YPOS_8:
-					if(sensor)
-					{
-						float val=0;
-						if(sensor)
-							val=sensor->compoundTouchLocation();
-						*fZone = fMin + fRange * val;
-					}	
+					if(sensor && sensor->getNumTouches()>0)
+						val=sensor->compoundTouchLocation();
+					*fZone = fMin + fRange * val;
 					break;
 				
 				case kSQUARE_LVL_0:
@@ -476,17 +502,24 @@ class TrillWidget : public BelaWidget
 				case kSQUARE_LVL_5:
 				case kSQUARE_LVL_6:
 				case kSQUARE_LVL_7:
-				//case kSQUARE_LVL_8:
-					if(sensor)
-					{
-						float val=0;
-						if(sensor)
-							val=sensor->compoundTouchSize();
-						*fZone = fMin + fRange * val;
-					}
+					if(sensor && sensor->getNumTouches()>0)
+						val=sensor->compoundTouchSize();
+					*fZone = fMin + fRange * val;
 					break;
 				
-				
+				case kSQUARE_TOUCH_0:
+				case kSQUARE_TOUCH_1:
+				case kSQUARE_TOUCH_2:
+				case kSQUARE_TOUCH_3:
+				case kSQUARE_TOUCH_4:
+				case kSQUARE_TOUCH_5:
+				case kSQUARE_TOUCH_6:
+				case kSQUARE_TOUCH_7:
+					if(sensor)
+						val=sensor->getNumTouches();
+					*fZone = max(fRange,val);
+					break;
+					
 				default:
                     break;
             };
@@ -628,19 +661,19 @@ class BelaUI : public GenericUI
 			EInOutPin CurTrill;
 			switch(device) {
                 case Trill::BAR:
-					CurTrill=(EInOutPin) (kBAR_POS_0+idx*2);
+					CurTrill=(EInOutPin) (kBAR_POS_0+idx*3);
 					for(int i=0;i<fTrillIndex;i++)
 					{
-						if((fTrillTable[i].getBelaPin()==CurTrill || fTrillTable[i].getBelaPin()==(CurTrill+1)) && fTrillTable[i].getType()==device)
+						if((fTrillTable[i].getBelaPin()==CurTrill || fTrillTable[i].getBelaPin()==(CurTrill+1) || fTrillTable[i].getBelaPin()==(CurTrill+2)) && fTrillTable[i].getType()==device)
 							fTrillTable[i].setSensor(sensor);
 					}
 					break;
 				
 				case Trill::SQUARE:
-					CurTrill=(EInOutPin) (kSQUARE_XPOS_0+idx*3);
+					CurTrill=(EInOutPin) (kSQUARE_XPOS_0+idx*4);
 					for(int i=0;i<fTrillIndex;i++)
 					{
-						if((fTrillTable[i].getBelaPin()==CurTrill || fTrillTable[i].getBelaPin()==(CurTrill+1) || fTrillTable[i].getBelaPin()==(CurTrill+2)) && fTrillTable[i].getType()==device)
+						if((fTrillTable[i].getBelaPin()==CurTrill || fTrillTable[i].getBelaPin()==(CurTrill+1) || fTrillTable[i].getBelaPin()==(CurTrill+2) || fTrillTable[i].getBelaPin()==(CurTrill+3)) && fTrillTable[i].getType()==device)
 							fTrillTable[i].setSensor(sensor);
 					}
 					break;
