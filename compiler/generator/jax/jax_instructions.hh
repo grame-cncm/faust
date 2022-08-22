@@ -252,32 +252,32 @@ class JAXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["min_f"] = "jnp.minimum";
 
         gPolyMathLibTable["fabsf"]      = "jnp.abs";
-        gPolyMathLibTable["acosf"]      = "jnp.acos";
-        gPolyMathLibTable["asinf"]      = "jnp.asin";
-        gPolyMathLibTable["atanf"]      = "jnp.atan";
-        gPolyMathLibTable["atan2f"]     = "jnp.atan";
+        gPolyMathLibTable["acosf"]      = "jnp.arccos";
+        gPolyMathLibTable["asinf"]      = "jnp.arcsin";
+        gPolyMathLibTable["atanf"]      = "jnp.arctan";
+        gPolyMathLibTable["atan2f"]     = "jnp.arctan2";
         gPolyMathLibTable["ceilf"]      = "jnp.ceil";
         gPolyMathLibTable["cosf"]       = "jnp.cos";
         gPolyMathLibTable["expf"]       = "jnp.exp";
         gPolyMathLibTable["exp2f"]      = "jnp.exp2";
-        gPolyMathLibTable["exp10f"]     = "jnp.exp10f";
+        gPolyMathLibTable["exp10f"]     = "jnp.exp10f";  // todo:
         gPolyMathLibTable["floorf"]     = "jnp.floor";
-        gPolyMathLibTable["fmodf"]      = "mod";
+        gPolyMathLibTable["fmodf"]      = "jnp.mod";
         gPolyMathLibTable["logf"]       = "jnp.log";
         gPolyMathLibTable["log2f"]      = "jnp.log2";
         gPolyMathLibTable["log10f"]     = "jnp.log10";
-        gPolyMathLibTable["powf"]       = "jnp.pow";
+        gPolyMathLibTable["powf"]       = "jnp.power";
         gPolyMathLibTable["remainderf"] = "jnp.remainder";
-        gPolyMathLibTable["rintf"]      = "rint";
-        gPolyMathLibTable["roundf"]     = "round";
+        gPolyMathLibTable["rintf"]      = "jnp.rint";
+        gPolyMathLibTable["roundf"]     = "jnp.round";
         gPolyMathLibTable["sinf"]       = "jnp.sin";
         gPolyMathLibTable["sqrtf"]      = "jnp.sqrt";
         gPolyMathLibTable["tanf"]       = "jnp.tan";
                              
         // Hyperbolic
-        gPolyMathLibTable["acoshf"]     = "jnp.acosh";
-        gPolyMathLibTable["asinhf"]     = "jnp.asinh";
-        gPolyMathLibTable["atanhf"]     = "jnp.atanh";
+        gPolyMathLibTable["acoshf"]     = "jnp.arccosh";
+        gPolyMathLibTable["asinhf"]     = "jnp.arcsinh";
+        gPolyMathLibTable["atanhf"]     = "jnp.arctanh";
         gPolyMathLibTable["coshf"]      = "jnp.cosh";
         gPolyMathLibTable["sinhf"]      = "jnp.sinh";
         gPolyMathLibTable["tanhf"]      = "jnp.tanh";
@@ -287,36 +287,36 @@ class JAXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["copysignf"]  = "jnp.copysign";
         
         // Polymath mapping double version
-        gPolyMathLibTable["max_"] = "max";
-        gPolyMathLibTable["min_"] = "min";
+        gPolyMathLibTable["max_"] = "jnp.maximum";
+        gPolyMathLibTable["min_"] = "jnp.minimum";
 
         gPolyMathLibTable["fabs"]      = "jnp.abs";
-        gPolyMathLibTable["acos"]      = "jnp.acos";
-        gPolyMathLibTable["asin"]      = "jnp.asin";
-        gPolyMathLibTable["atan"]      = "jnp.atan";
-        gPolyMathLibTable["atan2"]     = "jnp.atan";
+        gPolyMathLibTable["acos"]      = "jnp.arccos";
+        gPolyMathLibTable["asin"]      = "jnp.arcsin";
+        gPolyMathLibTable["atan"]      = "jnp.arctan";
+        gPolyMathLibTable["atan2"]     = "jnp.arctan";
         gPolyMathLibTable["ceil"]      = "jnp.ceil";
         gPolyMathLibTable["cos"]       = "jnp.cos";
         gPolyMathLibTable["exp"]       = "jnp.exp";
         gPolyMathLibTable["exp2"]      = "jnp.exp2";
-        gPolyMathLibTable["exp10"]     = "jnp.exp10";
+        gPolyMathLibTable["exp10"]     = "jnp.exp10";  // todo:
         gPolyMathLibTable["floor"]     = "jnp.floor";
-        gPolyMathLibTable["fmod"]      = "mod";
+        gPolyMathLibTable["fmod"]      = "jnp.mod";
         gPolyMathLibTable["log"]       = "jnp.log";
         gPolyMathLibTable["log2"]      = "jnp.log2";
         gPolyMathLibTable["log10"]     = "jnp.log10";
-        gPolyMathLibTable["pow"]       = "jnp.pow";
-        gPolyMathLibTable["remainder"] = "remainder";
-        gPolyMathLibTable["rint"]      = "rint";
+        gPolyMathLibTable["pow"]       = "jnp.power";
+        gPolyMathLibTable["remainder"] = "jnp.remainder";
+        gPolyMathLibTable["rint"]      = "jnp.rint";
         gPolyMathLibTable["round"]     = "jnp.round";
         gPolyMathLibTable["sin"]       = "jnp.sin";
         gPolyMathLibTable["sqrt"]      = "jnp.sqrt";
         gPolyMathLibTable["tan"]       = "jnp.tan";
     
         // Hyperbolic
-        gPolyMathLibTable["acosh"]     = "jnp.acosh";
-        gPolyMathLibTable["asinh"]     = "jnp.asinh";
-        gPolyMathLibTable["atanh"]     = "jnp.atanh";
+        gPolyMathLibTable["acosh"]     = "jnp.arccosh";
+        gPolyMathLibTable["asinh"]     = "jnp.arcsinh";
+        gPolyMathLibTable["atanh"]     = "jnp.arctanh";
         gPolyMathLibTable["cosh"]      = "jnp.cosh";
         gPolyMathLibTable["sinh"]      = "jnp.sinh";
         gPolyMathLibTable["tanh"]      = "jnp.tanh";
@@ -383,23 +383,29 @@ class JAXInstVisitor : public TextInstVisitor {
         *fOut << "state[\"" << inst->fZone << "\"] = ";
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
-                *fOut << "self.param(" << quote(inst->fLabel) << ", nn.initializers.constant("
-                      << checkReal(inst->fInit) << "), ())";
-                break;
             case AddSliderInst::kVertical:
-                *fOut << "self.param(" << quote(inst->fLabel) << ", nn.initializers.constant("
-                      << checkReal(inst->fInit) << "), ())";
+				// clang-format off
+                *fOut << "self.add_slider(" 
+					//<< quote(inst->fZone) << ", "
+					<< quote(inst->fLabel) << ", "
+					<< checkReal(inst->fInit) << ", "
+					<< checkReal(inst->fMin) << ", "
+					<< checkReal(inst->fMax) << ", "
+					<< "\"linear\"" << ")";
                 break;
+				// clang-format on
             case AddSliderInst::kNumEntry:
-                *fOut << "pass # todo: kNumEntry";
+                // clang-format off
+                *fOut << "self.add_nentry(" 
+					//<< quote(inst->fZone) << ", "
+					<< quote(inst->fLabel) << ", "
+					<< checkReal(inst->fInit) << ", "
+					<< checkReal(inst->fMin) << ", "
+					<< checkReal(inst->fMax) << ", "
+					<< checkReal(inst->fStep) << ")";
                 break;
+                // clang-format on
         }
-        // todo: fix this
-        //*fOut << quote(inst->fLabel) << ", self." << inst->fZone << ", "
-        //      << cast2FAUSTFLOAT(checkReal(inst->fInit)) << ", "
-        //      << cast2FAUSTFLOAT(checkReal(inst->fMin)) << ", "
-        //      << cast2FAUSTFLOAT(checkReal(inst->fMax)) << ", "
-        //      << cast2FAUSTFLOAT(checkReal(inst->fStep)) << ")";
         EndLine(' ');
     }
 
@@ -415,8 +421,8 @@ class JAXInstVisitor : public TextInstVisitor {
         }
         // todo: fix this
         *fOut << quote(inst->fLabel) << ", self." << inst->fZone << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fMin)) << ", "
-              << cast2FAUSTFLOAT(checkReal(inst->fMax)) << ")";
+              << checkReal(inst->fMin) << ", "
+              << checkReal(inst->fMax) << ")";
         EndLine(' ');
     }
 
@@ -485,6 +491,11 @@ class JAXInstVisitor : public TextInstVisitor {
             *fOut << " ";
             inst->fInst2->accept(this);
             *fOut << ")";
+
+			if (inst->fOpcode > 7) {
+                // these opcodes (>,>=,<,<= etc.) result in bools which should be re-cast to integers
+                *fOut << ".astype(jnp.int32)";
+			}
         }
     }
    
@@ -698,12 +709,12 @@ class JAXInstVisitor : public TextInstVisitor {
     
     virtual void visit(Select2Inst* inst)
     {
-        *fOut << "(";
-        inst->fThen->accept(this);
-        *fOut << " if ";
+		*fOut << "jnp.where(";
         visitCond(inst->fCond);
-        *fOut << " else ";
-        inst->fElse->accept(this);
+        *fOut << ", ";
+        inst->fThen->accept(this);
+        *fOut << ", ";
+         inst->fElse->accept(this);
         *fOut << ")";
     }
 

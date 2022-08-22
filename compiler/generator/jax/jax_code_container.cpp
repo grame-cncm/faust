@@ -309,6 +309,40 @@ void JAXCodeContainer::produceClass()
     *fOut << "return state";
     tab(n + 2, *fOut);
 
+	tab(n + 1, *fOut);
+    *fOut << "def add_nentry(self, label: str, init: float, a_min: float, a_max: float, step_size: float, scale_mode='linear'):";
+    tab(n + 2, *fOut);
+    *fOut << "num_steps = int(jnp.round((a_max-a_min)/step_size))";
+    tab(n + 2, *fOut);
+    *fOut << "init_unit = int(jnp.round(init-a_min)/step_size)";
+    tab(n + 2, *fOut);
+    *fOut << "param = self.param(\"_\"+label, nn.initializers.normal(.05), (num_steps,))";
+    tab(n + 2, *fOut);
+    *fOut << "param = jnp.argmax(param, axis=-1)*step_size+a_min";
+    tab(n + 2, *fOut);
+    *fOut << "self.sow('intermediates', label, param)";
+    tab(n + 2, *fOut);
+    *fOut << "return param";
+    tab(n + 2, *fOut);
+
+	tab(n + 1, *fOut);
+    *fOut << "def add_slider(self, label: str, init: float, a_min: float, a_max: float, scale_mode='linear'):";
+    tab(n + 2, *fOut);
+    *fOut << "init_unit = -1. + 2.*(init-a_min)/(a_max-a_min)  # map to [-1,1]";
+    tab(n + 2, *fOut);
+    *fOut << "param = self.param(\"_\"+label, nn.initializers.constant(init_unit), ())";
+    tab(n + 2, *fOut);
+    *fOut << "# remap from [-1, 1] to [a_min, a_max]";
+    tab(n + 2, *fOut);
+    *fOut << "param = a_min + (a_max-a_min)*(param+1.)*.5";
+    tab(n + 2, *fOut);
+    *fOut << "param = jnp.clip(param, a_min, a_max)";
+    tab(n + 2, *fOut);
+    *fOut << "self.sow('intermediates', label, param)";
+    tab(n + 2, *fOut);
+    *fOut << "return param";
+    tab(n + 2, *fOut);
+
     // User interface
     tab(n + 1, *fOut);
     *fOut << "def build_interface(self, state, T: int):";
@@ -324,10 +358,6 @@ void JAXCodeContainer::produceClass()
     generateCompute(n+1);
 
 	tab(n + 1, *fOut);
-    tab(n, *fOut);
-    *fOut << fKlassName << " = nn.vmap(" << fKlassName
-          << ", in_axes=(0, None), variable_axes={'params': None}, split_rngs={'params' : False})";
-    tab(n, *fOut);
 }
 
 void JAXCodeContainer::generateCompute(int n)
