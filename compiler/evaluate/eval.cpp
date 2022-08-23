@@ -32,9 +32,9 @@
 #include <cstdlib>
 
 #include "compatibility.hh"
+#include "environment.hh"
 #include "errormsg.hh"
 #include "eval.hh"
-#include "environment.hh"
 #include "exception.hh"
 #include "global.hh"
 #include "names.hh"
@@ -429,7 +429,7 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
         const char* fname = tree2str(label);
         Tree        eqlst = gGlobal->gReader.expandList(gGlobal->gReader.getList(fname));
         Tree        res   = closure(boxIdent("process"), gGlobal->nil, gGlobal->nil,
-                           pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil));
+                                    pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil));
         setDefNameProperty(res, label);
         // cerr << "component is " << boxpp(res) << endl;
         return res;
@@ -438,7 +438,7 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
         const char* fname = tree2str(label);
         Tree        eqlst = gGlobal->gReader.expandList(gGlobal->gReader.getList(fname));
         Tree        res   = closure(boxEnvironment(), gGlobal->nil, gGlobal->nil,
-                           pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil));
+                                    pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil));
         setDefNameProperty(res, label);
         // cerr << "component is " << boxpp(res) << endl;
         return res;
@@ -846,6 +846,9 @@ static string evalLabel(const char* src, Tree visited, Tree localValEnv)
             } else if (isIdentChar(*src)) {
                 ident += *src++;
                 state = 2;
+            } else if (*src == '{') {
+                src++;
+                state = 3;
             } else {
                 // punctuation character and no identifier, stops
                 dst += '%';
@@ -860,6 +863,21 @@ static string evalLabel(const char* src, Tree visited, Tree localValEnv)
             } else {
                 writeIdentValue(dst, format, ident, visited, localValEnv);
                 state = 0;
+            }
+
+        } else if (state == 3) {
+            if (isIdentChar(*src)) {
+                ident += *src++;
+                state = 3;
+            } else if (*src == '}') {
+                writeIdentValue(dst, format, ident, visited, localValEnv);
+                src++;
+                state = 0;
+            } else {
+                // end and no identifier, stops
+                dst += '%';
+                dst += format;
+                state = -1;
             }
 
         } else {
@@ -1057,7 +1075,7 @@ static Tree applyList(Tree fun, Tree larg)
     Tree body;
 
     PM::Automaton* automat;
-    int        state;
+    int            state;
 
     prim2 p2;
 
