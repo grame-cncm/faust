@@ -128,6 +128,9 @@ class JAXInstVisitor : public TextInstVisitor {
     bool fMutateFun;
     bool is_storing_lhs = false;
     bool will_set_array = false;
+
+    std::set<std::string> fLogSet;  // set of widget zone having a log UI scale
+    std::set<std::string> fExpSet;  // set of widget zone having an exp UI scale
     
     string cast2FAUSTFLOAT(const string& str) { return "FAUSTFLOAT(" + str + ")"; }
     
@@ -330,39 +333,20 @@ class JAXInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddMetaDeclareInst* inst)
     {
-        //// Special case
-        //if (inst->fZone == "0") {
-        //    *fOut << "self.declare(ui_interface, dummy, " << quote(inst->fKey)
-        //    << ", " << quote(inst->fValue) << ")";
-        //} else {
-        //    *fOut << "self.declare(ui_interface, self." << inst->fZone << ", "
-        //    << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
-        //}
-        //EndLine(' ');
+        if (inst->fKey == "scale") {
+            if (inst->fValue == "exp") {
+                fExpSet.emplace(inst->fZone);
+            } else if (inst->fValue == "log") {
+                fLogSet.emplace(inst->fZone);
+            } else {
+				// it's linear by default
+			}
+		}
     }
 
-    virtual void visit(OpenboxInst* inst)
-    {
-        //switch (inst->fOrient) {
-        //    case OpenboxInst::kVerticalBox:
-        //        *fOut << "ui_interface.openVerticalBox(";
-        //        break;
-        //    case OpenboxInst::kHorizontalBox:
-        //        *fOut << "ui_interface.openHorizontalBox(";
-        //        break;
-        //    case OpenboxInst::kTabBox:
-        //        *fOut << "ui_interface.openTabBox(";
-        //        break;
-        //}
-        //*fOut << quote(inst->fName) << ")";
-        //EndLine(' ');
-    }
+    virtual void visit(OpenboxInst* inst) {}
 
-    virtual void visit(CloseboxInst* inst)
-    {
-        //*fOut << "ui_interface.closeBox()";
-        //tab(fTab, *fOut);
-    }
+    virtual void visit(CloseboxInst* inst) {}
     
     virtual void visit(AddButtonInst* inst)
     {
@@ -380,6 +364,15 @@ class JAXInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSliderInst* inst)
     {
+        std::string scaleMode = "";
+        if (fExpSet.count(inst->fZone)) {
+            scaleMode = "\"exp\"";
+        } else if (fLogSet.count(inst->fZone)) {
+            scaleMode = "\"log\"";
+        } else {
+            scaleMode = "\"linear\"";
+		}
+
         *fOut << "state[\"" << inst->fZone << "\"] = ";
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
@@ -391,7 +384,7 @@ class JAXInstVisitor : public TextInstVisitor {
 					<< checkReal(inst->fInit) << ", "
 					<< checkReal(inst->fMin) << ", "
 					<< checkReal(inst->fMax) << ", "
-					<< "\"linear\"" << ")";
+					<< scaleMode << ")";
                 break;
 				// clang-format on
             case AddSliderInst::kNumEntry:
@@ -663,10 +656,6 @@ class JAXInstVisitor : public TextInstVisitor {
         inst->fAddress->accept(this);
         is_storing_lhs = false;
         *fOut << " = ";
-
-        //if (is_resetting_ui) {
-        //    *fOut << "jnp.nn.Parameter(jnp.array(";
-        //}
 
 		if (will_set_array) {
             inst->fAddress->accept(this);
