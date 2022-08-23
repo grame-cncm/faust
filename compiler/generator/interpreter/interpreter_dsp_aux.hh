@@ -126,8 +126,6 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
  
     void write(std::ostream* out, bool binary = false, bool small = false)
     {
-        *out << std::setprecision(std::numeric_limits<REAL>::max_digits10);
-
         if (small) {
             *out << "i " << ((sizeof(REAL) == sizeof(double)) ? "double" : "float") << std::endl;
             *out << "f " << INTERP_FILE_VERSION << std::endl;
@@ -746,10 +744,9 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
             }
 
             if (fTraceOutput) {
-                std::cout << std::setprecision(std::numeric_limits<REAL>::max_digits10);
                 for (int chan = 0; chan < fFactory->fNumOutputs; chan++) {
                     for (int frame = 0; frame < count; frame++) {
-                        std::cout << "Index : " << ((fCycle * count) + frame) << " chan: " << chan << " sample: " << outputs[chan][frame] << std::endl;
+                        std::cout << "Index : " << ((fCycle * count) + frame) << " chan: " << chan << " sample: " << T(outputs[chan][frame]) << std::endl;
                     }
                 }
             }

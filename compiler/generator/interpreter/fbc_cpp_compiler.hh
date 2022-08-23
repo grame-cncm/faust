@@ -30,6 +30,7 @@
 
 #include "fbc_interpreter.hh"
 #include "interpreter_bytecode.hh"
+#include "Text.hh"
 
 using namespace std;
 
@@ -115,15 +116,11 @@ class FBCCPPCompiler {
 
     std::string genFloat(float num)
     {
-        std::stringstream str;
-        str << std::setprecision(std::numeric_limits<T>::max_digits10) << num;
-        return str.str();
+        return T(num);
     }
     std::string genDouble(double num)
     {
-        std::stringstream str;
-        str << std::setprecision(std::numeric_limits<T>::max_digits10) << num;
-        return str.str();
+        return T(num);
     }
     std::string genReal(double num) { return (sizeof(T) == sizeof(double)) ? genDouble(num) : genFloat(num); }
     std::string genInt32(int num) { return std::to_string(num); }

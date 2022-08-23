@@ -80,9 +80,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         if (std::isinf(val)) {
             return "inf";
         } else {
-            std::stringstream num;
-            num << setprecision(numeric_limits<T>::max_digits10) << val;
-            return ensureFloat(num.str());
+            return TAux(val);
         }
     }
 
