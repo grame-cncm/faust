@@ -735,8 +735,8 @@ class BelaUI : public GenericUI
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-static list<GUI*> GUI::fGuiList;
-static ztimedmap GUI::gTimedZoneMap;
+list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 /**************************************************************************************
   Bela render.cpp that calls FAUST generated code
