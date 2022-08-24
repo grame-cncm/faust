@@ -556,9 +556,9 @@ class JAXInstVisitor : public TextInstVisitor {
     virtual void visit(DeclareBufferIterators* inst)
     {
         // Don't generate if no channels
-        if (inst->fNumChannels == 0) return;
+        if (inst->fChannels == 0) return;
     
-        for (int i = 0; i < inst->fNumChannels; ++i) {
+        for (int i = 0; i < inst->fChannels; ++i) {
             *fOut << inst->fBufferName1 << i << " = " << inst->fBufferName2 << "[ " << i << ":" << i+1 << ",:]";
             tab(fTab, *fOut);
         }
