@@ -750,10 +750,11 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         return generateCode(z);
     } else if (isSigLowest(sig, x) || isSigHighest(sig, x)) {
         throw faustexception("ERROR : annotations should have been deleted in Simplification process\n");
+        
+    /* we should not have any control at this stage*/
     } else {
-        stringstream error;
-        error << "ERROR when compiling, unrecognized signal : " << ppsig(sig) << endl;
-        throw faustexception(error.str());
+        cerr << "ERROR : when compiling, unrecognized signal : " << ppsig(sig) << endl;
+        faustassert(false);
     }
     return InstBuilder::genNullValueInst();
 }
@@ -989,9 +990,9 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
         return exp;
 
     } else {
-        stringstream error;
-        error << "ERROR in sharing count (" << sharing << ") for " << *sig << endl;
-        throw faustexception(error.str());
+        cerr << "ERROR : in sharing count (" << sharing << ") for " << *sig << endl;
+        faustassert(false);
+        return {};
     }
 }
 
@@ -1403,7 +1404,7 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
     int size;
     if (!isSigInt(tsize, &size)) {
         stringstream error;
-        error << "ERROR in generateTable : " << *tsize << " is not an integer expression " << endl;
+        error << "ERROR : generateTable : " << *tsize << " is not an integer expression " << endl;
         throw faustexception(error.str());
     }
 
@@ -1473,7 +1474,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     int size;
     if (!isSigInt(tsize, &size)) {
         stringstream error;
-        error << "ERROR in generateStaticTable : " << *tsize << " is not an integer expression " << endl;
+        error << "ERROR : generateStaticTable : " << *tsize << " is not an integer expression " << endl;
         throw faustexception(error.str());
     }
 
@@ -1973,9 +1974,8 @@ ValueInst* InstructionsCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
             // cerr << "it is a pure zero delay : " << code << endl;
             return code;
         } else {
-            stringstream error;
-            error << "ERROR : no vector name for : " << ppsig(exp) << endl;
-            throw faustexception(error.str());
+            cerr << "ERROR : no vector name for : " << ppsig(exp) << endl;
+            faustassert(false);
         }
     }
 
@@ -2330,7 +2330,8 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t, bool root)
     } else if (isUiWidget(t, label, varname, sig)) {
         generateWidgetCode(label, varname, sig);
     } else {
-        throw faustexception("ERROR in user interface generation\n");
+        cerr << "ERROR : user interface generation\n";
+        faustassert(false);
     }
 }
 
@@ -2421,7 +2422,8 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
             checkNullLabel(varname, label, true), ((url == "") ? prepareURL(label) : url), tree2str(varname)));
 
     } else {
-        throw faustexception("ERROR in generating widget code\n");
+        cerr << "ERROR : generating widget code\n";
+        faustassert(false);
     }
 }
 
@@ -2443,7 +2445,8 @@ void InstructionsCompiler::generateMacroInterfaceTree(const string& pathname, Tr
     } else if (isUiWidget(t, label, varname, sig)) {
         generateWidgetMacro(pathname, label, varname, sig);
     } else {
-        throw faustexception("ERROR in user interface macro generation\n");
+        cerr << "ERROR : user interface macro generation\n";
+        faustassert(false);
     }
 }
 
@@ -2520,6 +2523,7 @@ void InstructionsCompiler::generateWidgetMacro(const string& pathname, Tree full
         fContainer->addUIMacro(subst("FAUST_ADDSOUNDFILE(\"$0\", $1);", pathlabel, tree2str(varname)));
 
     } else {
-        throw faustexception("ERROR in generating widget code\n");
+        cerr << "ERROR : generating widget code\n";
+        faustassert(false);
     }
 }

@@ -649,9 +649,8 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
         }
 
     } else {
-        stringstream error;
-        error << "ERROR : eval doesn't intercept : " << *exp << endl;
-        throw faustexception(error.str());
+        cerr << "ERROR : eval doesn't intercept : " << *exp << endl;
+        faustassert(false);
     }
 
     return nullptr;
@@ -881,9 +880,8 @@ static string evalLabel(const char* src, Tree visited, Tree localValEnv)
             }
 
         } else {
-            stringstream error;
-            error << "ERROR in evallabel : undefined state " << state << std::endl;
-            throw faustexception(error.str());
+            cerr << "ERROR : evallabel, undefined state " << state << std::endl;
+            faustassert(false);
         }
     }
 
@@ -1442,7 +1440,7 @@ static Tree numericBoxSimplification(Tree box)
 
     if (!getBoxType(box, &ins, &outs)) {
         stringstream error;
-        error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", can't compute the box type of : ";
+        error << "ERROR : file " << __FILE__ << ':' << __LINE__ << ", can't compute the box type of : ";
         error << *box << endl;
         throw faustexception(error.str());
     }
@@ -1643,8 +1641,7 @@ static Tree insideBoxSimplification(Tree box)
         return boxMetadata(s1, t2);
     }
 
-    stringstream error;
-    error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << *box << endl;
-    throw faustexception(error.str());
+    cerr << "ERROR : in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << *box << endl;
+    faustassert(false);
     return nullptr;
 }

@@ -225,7 +225,7 @@ void CTree::init()
     memset(gHashTable, 0, sizeof(Tree) * kHashTableSize);
 }
 
-// if t has a node of type int, return it otherwise error
+// if t has a node of type int, return it, or float, return casted to int, otherwise error
 int tree2int(Tree t)
 {
     double x;
@@ -244,7 +244,7 @@ int tree2int(Tree t)
     return i;
 }
 
-// if t has a node of type float, return it otherwise error
+// if t has a node of type int, return casted to float, or float, return it, otherwise error
 double tree2float(Tree t)
 {
     double x;

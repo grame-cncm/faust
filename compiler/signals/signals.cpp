@@ -131,22 +131,22 @@ LIBFAUST_API bool isSigPrefix(Tree t, Tree& t0, Tree& t1)
 
 // Read only and read write tables
 
-Tree sigRDTbl(Tree t, Tree i)
+Tree sigRDTbl(Tree tb, Tree ri)
 {
-    return tree(gGlobal->SIGRDTBL, t, i);
+    return tree(gGlobal->SIGRDTBL, tb, ri);
 }
-LIBFAUST_API bool isSigRDTbl(Tree s, Tree& t, Tree& i)
+LIBFAUST_API bool isSigRDTbl(Tree s, Tree& tb, Tree& ri)
 {
-    return isTree(s, gGlobal->SIGRDTBL, t, i);
+    return isTree(s, gGlobal->SIGRDTBL, tb, ri);
 }
 
-Tree sigWRTbl(Tree id, Tree t, Tree i, Tree s)
+Tree sigWRTbl(Tree id, Tree tb, Tree wi, Tree ws)
 {
-    return tree(gGlobal->SIGWRTBL, id, t, i, s);
+    return tree(gGlobal->SIGWRTBL, id, tb, wi, ws);
 }
-LIBFAUST_API bool isSigWRTbl(Tree u, Tree& id, Tree& t, Tree& i, Tree& s)
+LIBFAUST_API bool isSigWRTbl(Tree u, Tree& id, Tree& tb, Tree& wi, Tree& ws)
 {
-    return isTree(u, gGlobal->SIGWRTBL, id, t, i, s);
+    return isTree(u, gGlobal->SIGWRTBL, id, tb, wi, ws);
 }
 
 Tree sigTable(Tree id, Tree n, Tree sig)
@@ -345,8 +345,6 @@ LIBFAUST_API Tree sigFloatCast(Tree t)
 
     return tree(gGlobal->SIGFLOATCAST, t);
 }
-
-// Tree sigFloatCast(Tree t) { return isSigFloatCast(t)? t : tree(gGlobal->SIGFLOATCAST, t); }
 
 bool isSigIntCast(Tree t)
 {

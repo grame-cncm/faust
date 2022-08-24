@@ -86,13 +86,13 @@ LIBFAUST_API bool isSigIntCast(Tree t, Tree& x);
 LIBFAUST_API bool isSigFloatCast(Tree t, Tree& x);
 
 // Tables
-Tree sigRDTbl(Tree t, Tree i);
-Tree sigWRTbl(Tree id, Tree t, Tree i, Tree s);
+Tree sigRDTbl(Tree tb, Tree ri);
+Tree sigWRTbl(Tree id, Tree tb, Tree wi, Tree ws);
 Tree sigTable(Tree id, Tree n, Tree sig);
 Tree sigGen(Tree content);
 
-LIBFAUST_API bool isSigRDTbl(Tree s, Tree& t, Tree& i);
-LIBFAUST_API bool isSigWRTbl(Tree u, Tree& id, Tree& t, Tree& i, Tree& s);
+LIBFAUST_API bool isSigRDTbl(Tree s, Tree& tb, Tree& ri);
+LIBFAUST_API bool isSigWRTbl(Tree u, Tree& id, Tree& tb, Tree& wi, Tree& ws);
 LIBFAUST_API bool isSigTable(Tree t, Tree& id, Tree& n, Tree& sig);
 LIBFAUST_API bool isSigGen(Tree t, Tree& content);
 bool isSigGen(Tree t);

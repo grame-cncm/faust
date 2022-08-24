@@ -120,7 +120,7 @@ void SignalTreeChecker::visit(Tree sig)
 Tree SignalPromotion::transformation(Tree sig)
 {
     int  op;
-    Tree id, sel, x, y, ff, largs, sf, chan, part, tbl, idx, ridx, data;
+    Tree id, sel, x, y, ff, largs, sf, chan, part, tb, idx, ws;
     
     // Extended
     xtended* p = (xtended*)getUserData(sig);
@@ -237,10 +237,11 @@ Tree SignalPromotion::transformation(Tree sig)
     }
     
     // Tables
-    else if (isSigWRTbl(sig, id, tbl, idx, data)) {
-        Type t1 = getCertifiedSigType(tbl);
-        Type t2 = getCertifiedSigType(data);
-        return sigWRTbl(id, self(tbl), self(idx), smartCast(t1, t2, self(data)));
+    
+    else if (isSigWRTbl(sig, id, tb, idx, ws)) {
+        Type t1 = getCertifiedSigType(tb);
+        Type t2 = getCertifiedSigType(ws);
+        return sigWRTbl(id, self(tb), self(idx), smartCast(t1, t2, self(ws)));
     }
     
     // Soundfiles
@@ -250,10 +251,10 @@ Tree SignalPromotion::transformation(Tree sig)
     else if (isSigSoundfileRate(sig, sf, part)) {
         return sigSoundfileRate(self(sf), smartIntCast(getCertifiedSigType(part), self(part)));
     }
-    else if (isSigSoundfileBuffer(sig, sf, chan, part, ridx)) {
+    else if (isSigSoundfileBuffer(sig, sf, chan, part, idx)) {
         return sigSoundfileBuffer(self(sf), self(chan),
                                   smartIntCast(getCertifiedSigType(part), self(part)),
-                                  smartIntCast(getCertifiedSigType(ridx), self(ridx)));
+                                  smartIntCast(getCertifiedSigType(idx), self(idx)));
     }
     // Other cases => identity transformation
     else {

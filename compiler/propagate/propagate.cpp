@@ -230,7 +230,7 @@ static bool isIntTree(Tree l, vector<int>& v)
 
     } else {
         stringstream error;
-        error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", not a valid list of numbers : " << boxpp(l)
+        error << "ERROR : file " << __FILE__ << ':' << __LINE__ << ", not a valid list of numbers : " << boxpp(l)
               << endl;
         throw faustexception(error.str());
     }
@@ -315,7 +315,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         faustassert(lsig.size() == 0);
         if (!searchEnv(box, sig, slotenv)) {
             // test YO : diagrams simplification 
-            // fprintf(stderr, "propagate : internal error (slot undefined)\n");
+            // cerr << "propagate : internal error (slot undefined)\n");
             sig = sigInput(++gGlobal->gDummyInput);
         }
         return makeList(sig);
@@ -344,7 +344,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
     }
 
     else if (isBoxPrim2(box, &p2)) {
-        //		printf("prim2 recoit : "); print(lsig); printf("\n");
+        // cerr << "prim2 receive : " << ppsig(lsig) << endl;
         faustassert(lsig.size() == 2);
         if (p2 == &sigEnable) {
             if (gGlobal->gEnableFlag) {
@@ -574,6 +574,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         vector<int> route;
         siglist     outsigs;
         // cerr << "TRACE propagate into a route " << boxpp(box) << endl;
+        // ins, outs, route are casted to int in realeval
         if (isBoxInt(t1, &ins) && isBoxInt(t2, &outs) && isIntTree(t3, route)) {
             // initialize output signals
             for (int i1 = 0; i1 < outs; i1++) outsigs.push_back(sigInt(0));
@@ -596,15 +597,14 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
         } else {
             stringstream error;
-            error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", invalid route expression : " << boxpp(box)
+            error << "ERROR : file " << __FILE__ << ':' << __LINE__ << ", invalid route expression : " << boxpp(box)
                   << endl;
             throw faustexception(error.str());
         }
     }
-    stringstream error;
-    error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box)
-          << endl;
-    throw faustexception(error.str());
+    cerr << "ERROR : file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box)
+         << endl;
+    faustassert(false);
 
     return siglist();
 }

@@ -259,7 +259,7 @@ Type checkInt(Type t)
 {
     // check that t is an integer
     SimpleType* st = isSimpleType(t);
-    if (st == 0 || st->nature() > kInt) {
+    if (st == nullptr || st->nature() > kInt) {
         stringstream error;
         error << "ERROR : checkInt failed for type " << t << endl;
         throw faustexception(error.str());

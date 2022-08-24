@@ -495,9 +495,8 @@ string ScalarCompiler::generateCode(Tree sig)
 
     /* we should not have any control at this stage*/
     else {
-        stringstream error;
-        error << "ERROR when compiling, ScalarCompiler::generateCode unrecognized signal : " << ppsig(sig) << endl;
-        throw faustexception(error.str());
+        cerr << "ERROR : when compiling, unrecognized signal : " << ppsig(sig) << endl;
+        faustassert(false);
     }
     return "error in generated code";
 }
@@ -688,12 +687,10 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
         return exp;
 
     } else {
-        stringstream error;
-        error << "ERROR in sharing count (" << sharing << ") for " << *sig << endl;
-        throw faustexception(error.str());
+        cerr << "ERROR : sharing count (" << sharing << ") for " << *sig << endl;
+        faustassert(false);
+        return {};
     }
-
-    return "Error in generateCacheCode";
 }
 
 // like generateCacheCode but we force caching like if sharing was always > 1
@@ -956,7 +953,7 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
     int size;
     if (!isSigInt(tsize, &size)) {
         stringstream error;
-        error << "ERROR in generateTable : " << *tsize << " is not an integer expression " << endl;
+        error << "ERROR : generateTable : " << *tsize << " is not an integer expression " << endl;
         throw faustexception(error.str());
     }
 
@@ -1004,7 +1001,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
     int size;
     if (!isSigInt(tsize, &size)) {
         stringstream error;
-        error << "ERROR in generateStaticTable : " << *tsize << " is not an integer expression " << endl;
+        error << "ERROR : generateStaticTable : " << *tsize << " is not an integer expression " << endl;
         throw faustexception(error.str());
     }
 
@@ -1294,9 +1291,8 @@ string ScalarCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
             // cerr << "it is a pure zero delay : " << code << endl;
             return code;
         } else {
-            stringstream error;
-            error << "ERROR : no vector name for : " << ppsig(exp) << endl;
-            throw faustexception(error.str());
+            cerr << "ERROR : no vector name for : " << ppsig(exp) << endl;
+            faustassert(false);
         }
     }
 
