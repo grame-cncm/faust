@@ -34,10 +34,29 @@
  that work under terms of your choice, so long as this FAUST
  architecture section is not modified.
  
- evolution : Trill Sensors support (Pascal Faivre-Cubizolles)
+
  
  ************************************************************************
- ************************************************************************/
+ ************************************************************************/ 
+ 
+ /************************************************************************
+    Evolution (2022): Trill Sensors support 
+	
+	type supported : 
+		BAR : Position, Pressure, Touched. Multitouch not supported
+		SQUARE : Position X & Y, Pressure, Touched. Multitouch not supported
+	usage : addin Meta data in UI widget of the Faust Code
+		TRILL:BAR_POS_n
+		TRILL:BAR_LVL_n
+		TRILL:BAR_TOUCH_n
+		TRILL:SQUARE_XPOS_n
+		TRILL:SQUARE_YPOS_n
+		TRILL:SQUARE_LVL_n
+		TRILL:SQUARE_TOUCH_n
+	where n is the sensors index. index suported are 0 to 7 for each type of sensor
+	2 array (TrillBarAdress and TrillSquareAdress) allow to route the i2c addresses of the sensors
+	
+ ************************************************************************/ 
 
 #ifndef __FaustBela_H__
 #define __FaustBela_H__
@@ -125,7 +144,7 @@ const char* const pinNamesStrings[] =
     "ANALOG_OUT_6",
     "ANALOG_OUT_7",
     "ANALOG_OUT_8",
-	"BAR_POS_0",
+	"BAR_POS_0", //Trill sensors
     "BAR_LVL_0",
 	"BAR_TOUCH_0",
 	"BAR_POS_1",
@@ -379,6 +398,13 @@ class BelaWidget
 		}
 			
 };
+
+/**************************************************************************************
+ 
+ BelaWidget : object used by BelaUI to ensures the connection between a Trill sensors values
+ and a Faust widget
+ 
+ ***************************************************************************************/
 
 
 class TrillWidget : public BelaWidget
