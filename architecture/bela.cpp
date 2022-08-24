@@ -41,21 +41,21 @@
  
  /************************************************************************
     Evolution (2022): Trill Sensors support 
-	
-	type of sensors supported : 
-		BAR : Position, Pressure, Touched. (Multitouch not supported)
-		SQUARE : Position X & Y, Pressure, Touched. (Multitouch not supported)
-	usage : addin Meta data in UI widget of the Faust Code
-		TRILL:BAR_POS_n
-		TRILL:BAR_LVL_n
-		TRILL:BAR_TOUCH_n
-		TRILL:SQUARE_XPOS_n
-		TRILL:SQUARE_YPOS_n
-		TRILL:SQUARE_LVL_n
-		TRILL:SQUARE_TOUCH_n
-	where n is the sensors index. index suported are 0 to 7 for each type of sensor
-	2 array (TrillBarAdress and TrillSquareAdress) allow to route the i2c addresses of the sensors
-	
+    
+    type of sensors supported : 
+        BAR : Position, Pressure, Touched. (Multitouch not supported)
+        SQUARE : Position X & Y, Pressure, Touched. (Multitouch not supported)
+    usage : addin Meta data in UI widget of the Faust Code
+        TRILL:BAR_POS_n
+        TRILL:BAR_LVL_n
+        TRILL:BAR_TOUCH_n
+        TRILL:SQUARE_XPOS_n
+        TRILL:SQUARE_YPOS_n
+        TRILL:SQUARE_LVL_n
+        TRILL:SQUARE_TOUCH_n
+    where n is the sensors index. index suported are 0 to 7 for each type of sensor
+    2 array (TrillBarAdress and TrillSquareAdress) allow to route the i2c addresses of the sensors
+    
  ************************************************************************/ 
 
 #ifndef __FaustBela_H__
@@ -144,62 +144,62 @@ const char* const pinNamesStrings[] =
     "ANALOG_OUT_6",
     "ANALOG_OUT_7",
     "ANALOG_OUT_8",
-	"BAR_POS_0", //Trill sensors
+    "BAR_POS_0", //Trill sensors
     "BAR_LVL_0",
-	"BAR_TOUCH_0",
-	"BAR_POS_1",
+    "BAR_TOUCH_0",
+    "BAR_POS_1",
     "BAR_LVL_1",
-	"BAR_TOUCH_1",
-	"BAR_POS_2",
+    "BAR_TOUCH_1",
+    "BAR_POS_2",
     "BAR_LVL_2",
-	"BAR_TOUCH_2",
-	"BAR_POS_3",
+    "BAR_TOUCH_2",
+    "BAR_POS_3",
     "BAR_LVL_3",
-	"BAR_TOUCH_3",
-	"BAR_POS_4",
+    "BAR_TOUCH_3",
+    "BAR_POS_4",
     "BAR_LVL_4",
-	"BAR_TOUCH_4",
-	"BAR_POS_5",
+    "BAR_TOUCH_4",
+    "BAR_POS_5",
     "BAR_LVL_5",
-	"BAR_TOUCH_5",
-	"BAR_POS_6",
+    "BAR_TOUCH_5",
+    "BAR_POS_6",
     "BAR_LVL_6",
-	"BAR_TOUCH_6",
-	"BAR_POS_7",
+    "BAR_TOUCH_6",
+    "BAR_POS_7",
     "BAR_LVL_7",
-	"BAR_TOUCH_7",
-	"SQUARE_XPOS_0",
-	"SQUARE_YPOS_0",
-	"SQUARE_LVL_0",
-	"SQUARE_TOUCH_0",
-	"SQUARE_XPOS_1",
-	"SQUARE_YPOS_1",
-	"SQUARE_LVL_1",
-	"SQUARE_TOUCH_1",
-	"SQUARE_XPOS_2",
-	"SQUARE_YPOS_2",	
-	"SQUARE_LVL_2",
-	"SQUARE_TOUCH_2",
-	"SQUARE_XPOS_3",
-	"SQUARE_YPOS_3",
-	"SQUARE_LVL_3",
-	"SQUARE_TOUCH_3",
-	"SQUARE_XPOS_4",
-	"SQUARE_YPOS_4",	
-	"SQUARE_LVL_4",
-	"SQUARE_TOUCH_4",
-	"SQUARE_XPOS_5",
-	"SQUARE_YPOS_5",
-	"SQUARE_LVL_5",
-	"SQUARE_TOUCH_5",
-	"SQUARE_XPOS_6",
-	"SQUARE_YPOS_6",	
-	"SQUARE_LVL_6",
-	"SQUARE_TOUCH_6",
-	"SQUARE_XPOS_7",
-	"SQUARE_YPOS_7",
-	"SQUARE_LVL_7",
-	"SQUARE_TOUCH_7"
+    "BAR_TOUCH_7",
+    "SQUARE_XPOS_0",
+    "SQUARE_YPOS_0",
+    "SQUARE_LVL_0",
+    "SQUARE_TOUCH_0",
+    "SQUARE_XPOS_1",
+    "SQUARE_YPOS_1",
+    "SQUARE_LVL_1",
+    "SQUARE_TOUCH_1",
+    "SQUARE_XPOS_2",
+    "SQUARE_YPOS_2",    
+    "SQUARE_LVL_2",
+    "SQUARE_TOUCH_2",
+    "SQUARE_XPOS_3",
+    "SQUARE_YPOS_3",
+    "SQUARE_LVL_3",
+    "SQUARE_TOUCH_3",
+    "SQUARE_XPOS_4",
+    "SQUARE_YPOS_4",    
+    "SQUARE_LVL_4",
+    "SQUARE_TOUCH_4",
+    "SQUARE_XPOS_5",
+    "SQUARE_YPOS_5",
+    "SQUARE_LVL_5",
+    "SQUARE_TOUCH_5",
+    "SQUARE_XPOS_6",
+    "SQUARE_YPOS_6",    
+    "SQUARE_LVL_6",
+    "SQUARE_TOUCH_6",
+    "SQUARE_XPOS_7",
+    "SQUARE_YPOS_7",
+    "SQUARE_LVL_7",
+    "SQUARE_TOUCH_7"
 };
 
 enum EInOutPin
@@ -239,62 +239,62 @@ enum EInOutPin
     kANALOG_OUT_6,
     kANALOG_OUT_7,
     kANALOG_OUT_8,
-	kBAR_POS_0,
+    kBAR_POS_0,
     kBAR_LVL_0,
-	kBAR_TOUCH_0,
-	kBAR_POS_1,
+    kBAR_TOUCH_0,
+    kBAR_POS_1,
     kBAR_LVL_1,
-	kBAR_TOUCH_1,
-	kBAR_POS_2,
+    kBAR_TOUCH_1,
+    kBAR_POS_2,
     kBAR_LVL_2,
-	kBAR_TOUCH_2,
-	kBAR_POS_3,
+    kBAR_TOUCH_2,
+    kBAR_POS_3,
     kBAR_LVL_3,
-	kBAR_TOUCH_3,
-	kBAR_POS_4,
+    kBAR_TOUCH_3,
+    kBAR_POS_4,
     kBAR_LVL_4,
-	kBAR_TOUCH_4,
-	kBAR_POS_5,
+    kBAR_TOUCH_4,
+    kBAR_POS_5,
     kBAR_LVL_5,
-	kBAR_TOUCH_5,
-	kBAR_POS_6,
+    kBAR_TOUCH_5,
+    kBAR_POS_6,
     kBAR_LVL_6,
-	kBAR_TOUCH_6,
-	kBAR_POS_7,
+    kBAR_TOUCH_6,
+    kBAR_POS_7,
     kBAR_LVL_7,
-	kBAR_TOUCH_7,
-	kSQUARE_XPOS_0,
-	kSQUARE_YPOS_0,
-	kSQUARE_LVL_0,
-	kSQUARE_TOUCH_0,
-	kSQUARE_XPOS_1,
-	kSQUARE_YPOS_1,
-	kSQUARE_LVL_1,
-	kSQUARE_TOUCH_1,
-	kSQUARE_XPOS_2,
-	kSQUARE_YPOS_2,
-	kSQUARE_LVL_2,	
-	kSQUARE_TOUCH_2,
-	kSQUARE_XPOS_3,
-	kSQUARE_YPOS_3,
-	kSQUARE_LVL_3,
-	kSQUARE_TOUCH_3,
-	kSQUARE_XPOS_4,
-	kSQUARE_YPOS_4,
-	kSQUARE_LVL_4,	
-	kSQUARE_TOUCH_4,
-	kSQUARE_XPOS_5,
-	kSQUARE_YPOS_5,
-	kSQUARE_LVL_5,
-	kSQUARE_TOUCH_5,
-	kSQUARE_XPOS_6,
-	kSQUARE_YPOS_6,
-	kSQUARE_LVL_6,	
-	kSQUARE_TOUCH_6,
-	kSQUARE_XPOS_7,
-	kSQUARE_YPOS_7,
-	kSQUARE_LVL_7,
-	kSQUARE_TOUCH_7,
+    kBAR_TOUCH_7,
+    kSQUARE_XPOS_0,
+    kSQUARE_YPOS_0,
+    kSQUARE_LVL_0,
+    kSQUARE_TOUCH_0,
+    kSQUARE_XPOS_1,
+    kSQUARE_YPOS_1,
+    kSQUARE_LVL_1,
+    kSQUARE_TOUCH_1,
+    kSQUARE_XPOS_2,
+    kSQUARE_YPOS_2,
+    kSQUARE_LVL_2,    
+    kSQUARE_TOUCH_2,
+    kSQUARE_XPOS_3,
+    kSQUARE_YPOS_3,
+    kSQUARE_LVL_3,
+    kSQUARE_TOUCH_3,
+    kSQUARE_XPOS_4,
+    kSQUARE_YPOS_4,
+    kSQUARE_LVL_4,    
+    kSQUARE_TOUCH_4,
+    kSQUARE_XPOS_5,
+    kSQUARE_YPOS_5,
+    kSQUARE_LVL_5,
+    kSQUARE_TOUCH_5,
+    kSQUARE_XPOS_6,
+    kSQUARE_YPOS_6,
+    kSQUARE_LVL_6,    
+    kSQUARE_TOUCH_6,
+    kSQUARE_XPOS_7,
+    kSQUARE_YPOS_7,
+    kSQUARE_LVL_7,
+    kSQUARE_TOUCH_7,
     kNumInputPins
 };
 
@@ -392,11 +392,11 @@ class BelaWidget
                     break;
             };
         }
-		
-		virtual EInOutPin getBelaPin() {
-			return  fBelaPin;
-		}
-			
+        
+        virtual EInOutPin getBelaPin() {
+            return  fBelaPin;
+        }
+            
 };
 
 /**************************************************************************************
@@ -409,149 +409,149 @@ class BelaWidget
 
 class TrillWidget : public BelaWidget
 {
-	protected:
-	   
-		Trill* sensor;
-		Trill::Device type;
-	public:
-	 
-	TrillWidget() 
-	{ 
-		BelaWidget(); 
-		sensor=NULL;
-		type=Trill::NONE;
-	}
+    protected:
+       
+        Trill* sensor;
+        Trill::Device type;
+    public:
+     
+    TrillWidget() 
+    { 
+        BelaWidget(); 
+        sensor=NULL;
+        type=Trill::NONE;
+    }
 
-	TrillWidget(const TrillWidget& w) 
-	{ 
-		BelaWidget((BelaWidget) w); 
-		sensor=NULL;
-		type=Trill::NONE;
-	}
+    TrillWidget(const TrillWidget& w) 
+    { 
+        BelaWidget((BelaWidget) w); 
+        sensor=NULL;
+        type=Trill::NONE;
+    }
 
-	TrillWidget(EInOutPin pin, FAUSTFLOAT* z, const char* l, FAUSTFLOAT lo, FAUSTFLOAT hi)
-	{  
-		fBelaPin=pin;
+    TrillWidget(EInOutPin pin, FAUSTFLOAT* z, const char* l, FAUSTFLOAT lo, FAUSTFLOAT hi)
+    {  
+        fBelaPin=pin;
         fZone=z;  // zone
         fLabel=l; // label
         fMin=lo;    // minimal value
         fRange=hi;
-		sensor=NULL;
-		if(strstr(pinNamesStrings[fBelaPin],"BAR"))
-			type=Trill::BAR;
-		else if(strstr(pinNamesStrings[fBelaPin],"SQUARE"))
-			type=Trill::SQUARE;
-		else 
-			type=Trill::NONE;
-	}
-	
-	void setSensor(Trill* nSensor)
-	{
-		if(nSensor)
-			sensor=nSensor;
-	}
+        sensor=NULL;
+        if(strstr(pinNamesStrings[fBelaPin],"BAR"))
+            type=Trill::BAR;
+        else if(strstr(pinNamesStrings[fBelaPin],"SQUARE"))
+            type=Trill::SQUARE;
+        else 
+            type=Trill::NONE;
+    }
+    
+    void setSensor(Trill* nSensor)
+    {
+        if(nSensor)
+            sensor=nSensor;
+    }
 
-	virtual void update(BelaContext* context)
-	{
-		float val=0;
-		switch(fBelaPin) {
+    virtual void update(BelaContext* context)
+    {
+        float val=0;
+        switch(fBelaPin) {
                 case kBAR_POS_0:
-				case kBAR_POS_1:
-				case kBAR_POS_2:
-				case kBAR_POS_3:
-				case kBAR_POS_4:
-				case kBAR_POS_5:
-				case kBAR_POS_6:
-				case kBAR_POS_7:
-					if(sensor && sensor->getNumTouches()>0)
-						val=sensor->compoundTouchLocation();
-					*fZone = fMin + fRange * val;
-					break;
-				
-				case kBAR_LVL_0:
-				case kBAR_LVL_1:
-				case kBAR_LVL_2:
-				case kBAR_LVL_3:
-				case kBAR_LVL_4:
-				case kBAR_LVL_5:
-				case kBAR_LVL_6:
-				case kBAR_LVL_7:
-					if(sensor && sensor->getNumTouches()>0)
-						val=sensor->compoundTouchSize();
-					*fZone = fMin + fRange * val;
-					break;
-					
-				case kBAR_TOUCH_0:
-				case kBAR_TOUCH_1:
-				case kBAR_TOUCH_2:
-				case kBAR_TOUCH_3:
-				case kBAR_TOUCH_4:
-				case kBAR_TOUCH_5:
-				case kBAR_TOUCH_6:
-				case kBAR_TOUCH_7:
-					if(sensor)
-						val=sensor->getNumTouches();
-					*fZone = max(fRange,val);
-					break;
-					
-				case kSQUARE_XPOS_0:
-				case kSQUARE_XPOS_1:
-				case kSQUARE_XPOS_2:
-				case kSQUARE_XPOS_3:
-				case kSQUARE_XPOS_4:
-				case kSQUARE_XPOS_5:
-				case kSQUARE_XPOS_6:
-				case kSQUARE_XPOS_7:
-					if(sensor && sensor->getNumTouches()>0)
-						val=sensor->compoundTouchHorizontalLocation();
-					*fZone = fMin + fRange * val;	
-					break;
-				
-				case kSQUARE_YPOS_0:
-				case kSQUARE_YPOS_1:
-				case kSQUARE_YPOS_2:
-				case kSQUARE_YPOS_3:
-				case kSQUARE_YPOS_4:
-				case kSQUARE_YPOS_5:
-				case kSQUARE_YPOS_6:
-				case kSQUARE_YPOS_7:
-					if(sensor && sensor->getNumTouches()>0)
-						val=sensor->compoundTouchLocation();
-					*fZone = fMin + fRange * val;
-					break;
-				
-				case kSQUARE_LVL_0:
-				case kSQUARE_LVL_1:
-				case kSQUARE_LVL_2:
-				case kSQUARE_LVL_3:
-				case kSQUARE_LVL_4:
-				case kSQUARE_LVL_5:
-				case kSQUARE_LVL_6:
-				case kSQUARE_LVL_7:
-					if(sensor && sensor->getNumTouches()>0)
-						val=sensor->compoundTouchSize();
-					*fZone = fMin + fRange * val;
-					break;
-				
-				case kSQUARE_TOUCH_0:
-				case kSQUARE_TOUCH_1:
-				case kSQUARE_TOUCH_2:
-				case kSQUARE_TOUCH_3:
-				case kSQUARE_TOUCH_4:
-				case kSQUARE_TOUCH_5:
-				case kSQUARE_TOUCH_6:
-				case kSQUARE_TOUCH_7:
-					if(sensor)
-						val=sensor->getNumTouches();
-					*fZone = max(fRange,val);
-					break;
-					
-				default:
+                case kBAR_POS_1:
+                case kBAR_POS_2:
+                case kBAR_POS_3:
+                case kBAR_POS_4:
+                case kBAR_POS_5:
+                case kBAR_POS_6:
+                case kBAR_POS_7:
+                    if(sensor && sensor->getNumTouches()>0)
+                        val=sensor->compoundTouchLocation();
+                    *fZone = fMin + fRange * val;
+                    break;
+                
+                case kBAR_LVL_0:
+                case kBAR_LVL_1:
+                case kBAR_LVL_2:
+                case kBAR_LVL_3:
+                case kBAR_LVL_4:
+                case kBAR_LVL_5:
+                case kBAR_LVL_6:
+                case kBAR_LVL_7:
+                    if(sensor && sensor->getNumTouches()>0)
+                        val=sensor->compoundTouchSize();
+                    *fZone = fMin + fRange * val;
+                    break;
+                    
+                case kBAR_TOUCH_0:
+                case kBAR_TOUCH_1:
+                case kBAR_TOUCH_2:
+                case kBAR_TOUCH_3:
+                case kBAR_TOUCH_4:
+                case kBAR_TOUCH_5:
+                case kBAR_TOUCH_6:
+                case kBAR_TOUCH_7:
+                    if(sensor)
+                        val=sensor->getNumTouches();
+                    *fZone = max(fRange,val);
+                    break;
+                    
+                case kSQUARE_XPOS_0:
+                case kSQUARE_XPOS_1:
+                case kSQUARE_XPOS_2:
+                case kSQUARE_XPOS_3:
+                case kSQUARE_XPOS_4:
+                case kSQUARE_XPOS_5:
+                case kSQUARE_XPOS_6:
+                case kSQUARE_XPOS_7:
+                    if(sensor && sensor->getNumTouches()>0)
+                        val=sensor->compoundTouchHorizontalLocation();
+                    *fZone = fMin + fRange * val;    
+                    break;
+                
+                case kSQUARE_YPOS_0:
+                case kSQUARE_YPOS_1:
+                case kSQUARE_YPOS_2:
+                case kSQUARE_YPOS_3:
+                case kSQUARE_YPOS_4:
+                case kSQUARE_YPOS_5:
+                case kSQUARE_YPOS_6:
+                case kSQUARE_YPOS_7:
+                    if(sensor && sensor->getNumTouches()>0)
+                        val=sensor->compoundTouchLocation();
+                    *fZone = fMin + fRange * val;
+                    break;
+                
+                case kSQUARE_LVL_0:
+                case kSQUARE_LVL_1:
+                case kSQUARE_LVL_2:
+                case kSQUARE_LVL_3:
+                case kSQUARE_LVL_4:
+                case kSQUARE_LVL_5:
+                case kSQUARE_LVL_6:
+                case kSQUARE_LVL_7:
+                    if(sensor && sensor->getNumTouches()>0)
+                        val=sensor->compoundTouchSize();
+                    *fZone = fMin + fRange * val;
+                    break;
+                
+                case kSQUARE_TOUCH_0:
+                case kSQUARE_TOUCH_1:
+                case kSQUARE_TOUCH_2:
+                case kSQUARE_TOUCH_3:
+                case kSQUARE_TOUCH_4:
+                case kSQUARE_TOUCH_5:
+                case kSQUARE_TOUCH_6:
+                case kSQUARE_TOUCH_7:
+                    if(sensor)
+                        val=sensor->getNumTouches();
+                    *fZone = max(fRange,val);
+                    break;
+                    
+                default:
                     break;
             };
-	}
-	
-	Trill::Device getType() { return type;}
+    }
+    
+    Trill::Device getType() { return type;}
 
 };
 
@@ -581,11 +581,11 @@ class BelaUI : public GenericUI
         int fIndex;                           // number of BelaWidgets collected so far
         EInOutPin fBelaPin;                   // current pin id
         BelaWidget fTable[MAXBELAWIDGETS];    // kind of static list of BelaWidgets
-		
-		int fTrillIndex;
-		EInOutPin fTrillPin;
-		TrillWidget fTrillTable[MAXTRILLWIDGETS];
-		
+        
+        int fTrillIndex;
+        EInOutPin fTrillPin;
+        TrillWidget fTrillTable[MAXTRILLWIDGETS];
+        
         
         // check if the widget is linked to a Bela parameter and, if so, add the corresponding BelaWidget
         void addBelaWidget(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi)
@@ -596,7 +596,7 @@ class BelaUI : public GenericUI
             }
             fBelaPin = kNoPin;
         }
-		void addTrillWidget(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi)
+        void addTrillWidget(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi)
         {
             if (fTrillPin != kNoPin && (fTrillIndex < MAXTRILLWIDGETS)) {
                 fTrillTable[fTrillIndex] = TrillWidget(fTrillPin, zone, label, lo, hi);
@@ -610,8 +610,8 @@ class BelaUI : public GenericUI
         BelaUI()
         : fIndex(0)
         , fBelaPin(kNoPin)
-		, fTrillIndex(0)
-		, fTrillPin(kNoPin)
+        , fTrillIndex(0)
+        , fTrillPin(kNoPin)
         {}
         
         virtual ~BelaUI() {}
@@ -622,42 +622,42 @@ class BelaUI : public GenericUI
             for (int i = 0; i < fIndex; i++) {
                 fTable[i].update(context);
             }
-			for (int i = 0; i < fTrillIndex; i++) {
+            for (int i = 0; i < fTrillIndex; i++) {
                 fTrillTable[i].update(context);
             }
         }
         
         // -- active widgets
         virtual void addButton(const char* label, FAUSTFLOAT* zone) {
-			if(fBelaPin!=kNoPin)
-				addBelaWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1)); 
-			else
-				addTrillWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1)); 
-		}
+            if(fBelaPin!=kNoPin)
+                addBelaWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1)); 
+            else
+                addTrillWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1)); 
+        }
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) {
-			if(fBelaPin!=kNoPin)
-				addBelaWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1)); 
-			else
-				addTrillWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1));  
-		}
+            if(fBelaPin!=kNoPin)
+                addBelaWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1)); 
+            else
+                addTrillWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1));  
+        }
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) {
-			if(fBelaPin!=kNoPin)
-				addBelaWidget(label, zone, lo, hi); 
-			else
-				addTrillWidget(label, zone, lo, hi); 
-		}
+            if(fBelaPin!=kNoPin)
+                addBelaWidget(label, zone, lo, hi); 
+            else
+                addTrillWidget(label, zone, lo, hi); 
+        }
         virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) {
-			if(fBelaPin!=kNoPin)
-				addBelaWidget(label, zone, lo, hi); 
-			else
-				addTrillWidget(label, zone, lo, hi); 
-		}
+            if(fBelaPin!=kNoPin)
+                addBelaWidget(label, zone, lo, hi); 
+            else
+                addTrillWidget(label, zone, lo, hi); 
+        }
         virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) {
-			if(fBelaPin!=kNoPin)
-				addBelaWidget(label, zone, lo, hi); 
-			else
-				addTrillWidget(label, zone, lo, hi); 
-		}
+            if(fBelaPin!=kNoPin)
+                addBelaWidget(label, zone, lo, hi); 
+            else
+                addTrillWidget(label, zone, lo, hi); 
+        }
         
         // -- passive widgets
         virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) { addBelaWidget(label, zone, lo, hi); }
@@ -667,15 +667,15 @@ class BelaUI : public GenericUI
         virtual void declare(FAUSTFLOAT* z, const char* k, const char* id)
         {
             if (strcasecmp(k,"BELA") == 0) {
-				
+                
                 for (int i = 0; i < kNumInputPins; i++) {
                     if (strcasecmp(id, pinNamesStrings[i]) == 0) {
                         fBelaPin = (EInOutPin)i;
                     }
                 }
             }
-			else if (strcasecmp(k,"TRILL") == 0) {
-				
+            else if (strcasecmp(k,"TRILL") == 0) {
+                
                 for (int i = 0; i < kNumInputPins; i++) {
                     if (strcasecmp(id, pinNamesStrings[i]) == 0) {
                         fTrillPin = (EInOutPin)i;
@@ -683,34 +683,34 @@ class BelaUI : public GenericUI
                 }
             }
         }
-		
-		void setTrill(Trill::Device device,Trill* sensor,int idx)
-		{
-			EInOutPin CurTrill;
-			switch(device) {
+        
+        void setTrill(Trill::Device device,Trill* sensor,int idx)
+        {
+            EInOutPin CurTrill;
+            switch(device) {
                 case Trill::BAR:
-					CurTrill=(EInOutPin) (kBAR_POS_0+idx*3);
-					for(int i=0;i<fTrillIndex;i++)
-					{
-						if((fTrillTable[i].getBelaPin()==CurTrill || fTrillTable[i].getBelaPin()==(CurTrill+1) || fTrillTable[i].getBelaPin()==(CurTrill+2)) && fTrillTable[i].getType()==device)
-							fTrillTable[i].setSensor(sensor);
-					}
-					break;
-				
-				case Trill::SQUARE:
-					CurTrill=(EInOutPin) (kSQUARE_XPOS_0+idx*4);
-					for(int i=0;i<fTrillIndex;i++)
-					{
-						if((fTrillTable[i].getBelaPin()==CurTrill || fTrillTable[i].getBelaPin()==(CurTrill+1) || fTrillTable[i].getBelaPin()==(CurTrill+2) || fTrillTable[i].getBelaPin()==(CurTrill+3)) && fTrillTable[i].getType()==device)
-							fTrillTable[i].setSensor(sensor);
-					}
-					break;
-					
-				default:
-					break;
-			};
-			
-		}
+                    CurTrill=(EInOutPin) (kBAR_POS_0+idx*3);
+                    for(int i=0;i<fTrillIndex;i++)
+                    {
+                        if((fTrillTable[i].getBelaPin()==CurTrill || fTrillTable[i].getBelaPin()==(CurTrill+1) || fTrillTable[i].getBelaPin()==(CurTrill+2)) && fTrillTable[i].getType()==device)
+                            fTrillTable[i].setSensor(sensor);
+                    }
+                    break;
+                
+                case Trill::SQUARE:
+                    CurTrill=(EInOutPin) (kSQUARE_XPOS_0+idx*4);
+                    for(int i=0;i<fTrillIndex;i++)
+                    {
+                        if((fTrillTable[i].getBelaPin()==CurTrill || fTrillTable[i].getBelaPin()==(CurTrill+1) || fTrillTable[i].getBelaPin()==(CurTrill+2) || fTrillTable[i].getBelaPin()==(CurTrill+3)) && fTrillTable[i].getType()==device)
+                            fTrillTable[i].setSensor(sensor);
+                    }
+                    break;
+                    
+                default:
+                    break;
+            };
+            
+        }
     
 };
 
@@ -780,38 +780,38 @@ const uint8_t TrillSquareAdress[] = {0x28,0x29,0x2A,0x2B,0x2C,0x2D,0x2E,0x2F};
 
 //return the sensor index corresponding to the i2c address in input
 int trillAdress2index(uint8_t i2cadress) {
-	int cnt=sizeof(TrillBarAdress);
-	for(int i=0;i<cnt;i++)
-	{
-		if(TrillBarAdress[i]==i2cadress)
-				return i;
-	}
-	cnt=sizeof(TrillSquareAdress);
-	for(int i=0;i<cnt;i++)
-	{
-		if(TrillSquareAdress[i]==i2cadress)
-				return i;
-	}
-	return -1;
+    int cnt=sizeof(TrillBarAdress);
+    for(int i=0;i<cnt;i++)
+    {
+        if(TrillBarAdress[i]==i2cadress)
+                return i;
+    }
+    cnt=sizeof(TrillSquareAdress);
+    for(int i=0;i<cnt;i++)
+    {
+        if(TrillSquareAdress[i]==i2cadress)
+                return i;
+    }
+    return -1;
 }
 
 std::vector<Trill*> gTouchSensors;
 
 
 void trillLoop(void*) {
-	// This is the auxilary task function which will read our Trill sensors
-	// loop
-	while(!Bela_stopRequested())
-	{
-		//read all Trill sensors
-		for(unsigned int n = 0; n < gTouchSensors.size(); ++n)
-		{
-			Trill* t = gTouchSensors[n];
-			t->readI2C();
-		}
-		// Put the process to sleep when finished*/
-		usleep(12000);
-	}
+    // This is the auxilary task function which will read our Trill sensors
+    // loop
+    while(!Bela_stopRequested())
+    {
+        //read all Trill sensors
+        for(unsigned int n = 0; n < gTouchSensors.size(); ++n)
+        {
+            Trill* t = gTouchSensors[n];
+            t->readI2C();
+        }
+        // Put the process to sleep when finished*/
+        usleep(12000);
+    }
 }
 
 //*******************************************************************************
@@ -916,26 +916,26 @@ bool setup(BelaContext* context, void* userData)
     gDSP->buildUserInterface(&gSoundInterface);
 #endif
     
-	
-	//Trill sensors initilization
-	unsigned int i2cBus = 1;
-	for(uint8_t addr = 0x20; addr <= 0x50; ++addr)
-	{
-		Trill::Device device = Trill::probe(i2cBus, addr);
-		if(Trill::NONE != device && Trill::CRAFT != device)
-		{
-			Trill* newsensor=new Trill(i2cBus, device, addr);
-			gTouchSensors.push_back(newsensor);
-			//gTouchSensors.back()->printDetails();
-			int trillidx=trillAdress2index(addr);
-			gControlUI.setTrill(device,newsensor,trillidx);
-		}
-	}
-	
-	
-	Bela_runAuxiliaryTask(trillLoop);
-	
-	
+    
+    //Trill sensors initilization
+    unsigned int i2cBus = 1;
+    for(uint8_t addr = 0x20; addr <= 0x50; ++addr)
+    {
+        Trill::Device device = Trill::probe(i2cBus, addr);
+        if(Trill::NONE != device && Trill::CRAFT != device)
+        {
+            Trill* newsensor=new Trill(i2cBus, device, addr);
+            gTouchSensors.push_back(newsensor);
+            //gTouchSensors.back()->printDetails();
+            int trillidx=trillAdress2index(addr);
+            gControlUI.setTrill(device,newsensor,trillidx);
+        }
+    }
+    
+    
+    Bela_runAuxiliaryTask(trillLoop);
+    
+    
     return true;
 }
 
@@ -961,8 +961,8 @@ void cleanup(BelaContext* context, void* userData)
     delete gMidiInterface;
 #endif
 
-	for(auto t : gTouchSensors)
-		delete t;
+    for(auto t : gTouchSensors)
+        delete t;
 }
 
 /******************** END bela.cpp ****************/
