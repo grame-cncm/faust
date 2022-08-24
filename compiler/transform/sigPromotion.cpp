@@ -313,7 +313,7 @@ Tree SignalPromotion::smartFloatCast(Type t, Tree sig)
 }
 
 // Public API
-Tree castPromote(Tree sig, bool trace)
+Tree sigPromote(Tree sig, bool trace)
 {
     // Check that the root tree is properly type annotated
     getCertifiedSigType(sig);
