@@ -42,9 +42,9 @@
  /************************************************************************
     Evolution (2022): Trill Sensors support 
 	
-	type supported : 
-		BAR : Position, Pressure, Touched. Multitouch not supported
-		SQUARE : Position X & Y, Pressure, Touched. Multitouch not supported
+	type of sensors supported : 
+		BAR : Position, Pressure, Touched. (Multitouch not supported)
+		SQUARE : Position X & Y, Pressure, Touched. (Multitouch not supported)
 	usage : addin Meta data in UI widget of the Faust Code
 		TRILL:BAR_POS_n
 		TRILL:BAR_LVL_n
@@ -569,7 +569,9 @@ class TrillWidget : public BelaWidget
 // To be modified: We can have 8 inputs, 8 outputs, and 16 digital In or Out.
 #define MAXBELAWIDGETS 16
 
-#define MAXTRILLWIDGETS 16
+//Max number of trill sensors parameters mapped 
+// max of 8 BAR sensors with 3 parameters (Position,Pressure,Touch) et 8 SQUARE sensors with 4 parameters (Position X, Position Y, Pressure, Touch)
+#define MAXTRILLWIDGETS 56
 
 class BelaUI : public GenericUI
 {
@@ -775,6 +777,8 @@ dsp* gDSP = NULL;
 //trill adress routing
 const uint8_t TrillBarAdress[] = {0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27};
 const uint8_t TrillSquareAdress[] = {0x28,0x29,0x2A,0x2B,0x2C,0x2D,0x2E,0x2F};
+
+//return the sensor index corresponding to the i2c address in input
 int trillAdress2index(uint8_t i2cadress) {
 	int cnt=sizeof(TrillBarAdress);
 	for(int i=0;i<cnt;i++)
@@ -790,6 +794,7 @@ int trillAdress2index(uint8_t i2cadress) {
 	}
 	return -1;
 }
+
 std::vector<Trill*> gTouchSensors;
 
 
