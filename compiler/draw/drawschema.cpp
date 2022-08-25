@@ -186,7 +186,7 @@ static bool isIntTree(Tree l, vector<int>& v)
 
     } else {
         stringstream error;
-        error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", not a valid list of numbers : " << boxpp(l)
+        error << "ERROR : file " << __FILE__ << ':' << __LINE__ << ", not a valid list of numbers : " << boxpp(l)
               << endl;
         throw faustexception(error.str());
     }
@@ -516,7 +516,7 @@ static schema* generateInsideSchema(Tree t)
             return makeRouteSchema(ins, outs, route);
         } else {
             stringstream error;
-            error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", invalid route expression : " << boxpp(t)
+            error << "ERROR : file " << __FILE__ << ':' << __LINE__ << ", invalid route expression : " << boxpp(t)
                   << endl;
             throw faustexception(error.str());
         }

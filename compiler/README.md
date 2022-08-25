@@ -1,4 +1,4 @@
-% man(1) Version 2.45.0 (18-August-2022) | Faust man page
+% man(1) Version 2.46.1 (23-August-2022) | Faust man page
 
 NAME
 ====
@@ -138,15 +138,15 @@ Code generation options:
 
   **-ns** \<name>  **--namespace** \<name>          generate C++ or D code in a namespace \<name>.
 
-  **-vhdl**       **--vhdl**                      output vhdl file.
+  **-vhdl**          **--vhdl**                   output vhdl file.
 
-  **-vhdl**-trace **--vhdl-trace**                activate trace.
+  **-vhdl**-trace    **--vhdl-trace**             activate trace.
 
   **-vhdl**-type 0|1 **--vhdl-type** 0|1          sample format 0 = sfixed (default), 1 = float.
 
-  **-vhdl**-msb \<n>                           MSB number of bits.
+  **-vhdl**-msb \<n>  **--vhdl-msb** \<n>           MSB number of bits.
 
-  **-vhdl**-lsb \<n>                           LSB number of bits.
+  **-vhdl**-lsb \<n>  **--vhdl-lsb** \<n>           LSB number of bits.
 
   **-wi** \<n>     **--widening-iterations** \<n>   number of iterations before widening in signal bounding.
 

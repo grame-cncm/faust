@@ -55,7 +55,6 @@ int boxComplexity(Tree box)
 
     if (prop) {
         return tree2int(prop);
-
     } else {
         int v = computeBoxComplexity(box);
         box->setProperty(gGlobal->BCOMPLEXITY, tree(v));
@@ -185,11 +184,11 @@ int computeBoxComplexity(Tree box)
 
     // to complete
     else {
-        // fout << tree2str(box);
         stringstream error;
         error << "ERROR in boxComplexity : not an evaluated box [[ " << *box << " ]]\n";
         throw faustexception(error.str());
     }
 
+    // Never reached
     return -1;
 }
