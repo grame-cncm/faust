@@ -80,6 +80,6 @@ class SignalPromotion final : public SignalIdentity {
 };
 
 // Public API
-Tree castPromote(Tree sig, bool trace = false);
+Tree sigPromote(Tree sig, bool trace = false);
 
 #endif

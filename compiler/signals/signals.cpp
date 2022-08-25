@@ -34,12 +34,23 @@
 
 LIBFAUST_API Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
 {
-    return sigRDTbl(sigWRTbl(gGlobal->nil, sigTable(gGlobal->nil, n, sigGen(init)), widx, wsig), ridx);
+    /*
+     rwtable are parsed as boxPrim5, so do not have a special treatment in eval/propagate. So we do here:
+     - the size argument is supposed to be known at compile time, so is casted at compilation time to int
+     - the widx argument is casted to int, the added sigIntCast will be removed in sigPromote if not necessary
+     - the ridx argument is casted to int, the added sigIntCast will be removed in sigPromote if not necessary
+     */
+    return sigRDTbl(sigWRTbl(gGlobal->nil, sigTable(gGlobal->nil, sigInt(tree2int(n)), sigGen(init)), sigIntCast(widx), wsig), sigIntCast(ridx));
 }
 
 LIBFAUST_API Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
 {
-    return sigRDTbl(sigTable(gGlobal->nil, n, sigGen(init)), ridx);
+    /*
+     rtable are parsed as boxPrim3, so do not have a special treatment in eval/propagate. So we do here:
+     - the size argument is supposed to be known at compile time, so is casted at compilation time to int
+     - the ridx argument is casted to int, the added sigIntCast will be removed in sigPromote if not necessary
+     */
+    return sigRDTbl(sigTable(gGlobal->nil, sigInt(tree2int(n)), sigGen(init)), sigIntCast(ridx));
 }
 
 ////////////////////////////////////////////////////////////////////////
