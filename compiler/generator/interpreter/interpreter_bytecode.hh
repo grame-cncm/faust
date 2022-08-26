@@ -30,7 +30,6 @@
 #include "exception.hh"
 #include "faust/gui/PathBuilder.h"
 #include "fbc_opcode.hh"
-#include "Text.hh"
 
 static inline std::string quote1(std::string str)
 {
@@ -164,14 +163,14 @@ struct FBCBasicInstruction : public FBCInstruction {
     {
         if (small) {
             *out << "o " << fOpcode << " k "
-                 << " i " << fIntValue << " r " << T(fRealValue) << " o " << fOffset1 << " o " << fOffset2;
+                 << " i " << fIntValue << " r " << fRealValue << " o " << fOffset1 << " o " << fOffset2;
             if (fName != "") {
                 *out << " n " << fName;
             }
             *out << std::endl;
         } else {
             *out << "opcode " << fOpcode << " " << gFBCInstructionTable[fOpcode] << " int " << fIntValue << " real "
-                 << T(fRealValue) << " offset1 " << fOffset1 << " offset2 " << fOffset2;
+                 << fRealValue << " offset1 " << fOffset1 << " offset2 " << fOffset2;
             if (fName != "") {
                 *out << " name " << fName;
             }
@@ -230,7 +229,7 @@ struct FIRBlockStoreRealInstruction : public FBCBasicInstruction<REAL> {
             *out << std::endl;
         }
         for (size_t i = 0; i < fNumTable.size(); i++) {
-            *out << T(this->fNumTable[i]) << " ";
+            *out << this->fNumTable[i] << " ";
         }
         *out << std::endl;
     }
@@ -354,11 +353,11 @@ struct FIRUserInterfaceInstruction : public FBCInstruction {
         if (small) {
             *out << "o " << fOpcode << " k "
                  << " o " << fOffset << " l " << quote1(fLabel) << " k " << quote1(fKey) << " v " << quote1(fValue)
-                 << " i " << T(fInit) << " m " << T(fMin) << " m " << T(fMax) << " s " << T(fStep) << std::endl;
+                 << " i " << fInit << " m " << fMin << " m " << fMax << " s " << fStep << std::endl;
         } else {
             *out << "opcode " << fOpcode << " " << gFBCInstructionTable[fOpcode] << " offset " << fOffset << " label "
-                 << quote1(fLabel) << " key " << quote1(fKey) << " value " << quote1(fValue) << " init " << T(fInit)
-                 << " min " << T(fMin) << " max " << T(fMax) << " step " << T(fStep) << std::endl;
+                 << quote1(fLabel) << " key " << quote1(fKey) << " value " << quote1(fValue) << " init " << fInit
+                 << " min " << fMin << " max " << fMax << " step " << fStep << std::endl;
         }
     }
 };

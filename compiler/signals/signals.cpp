@@ -37,10 +37,9 @@ LIBFAUST_API Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tre
     /*
      rwtable are parsed as boxPrim5, so do not have a special treatment in eval/propagate. So we do here:
      - the size argument is supposed to be known at compile time, so is casted at compilation time to int
-     - the widx argument is casted to int, the added sigIntCast will be removed in sigPromote if not necessary
-     - the ridx argument is casted to int, the added sigIntCast will be removed in sigPromote if not necessary
      */
-    return sigRDTbl(sigWRTbl(gGlobal->nil, sigTable(gGlobal->nil, sigInt(tree2int(n)), sigGen(init)), sigIntCast(widx), wsig), sigIntCast(ridx));
+    return sigRDTbl(sigWRTbl(gGlobal->nil, sigTable(gGlobal->nil, sigInt(tree2int(n)), sigGen(init)), widx, wsig),
+                    ridx);
 }
 
 LIBFAUST_API Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
@@ -48,9 +47,8 @@ LIBFAUST_API Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
     /*
      rtable are parsed as boxPrim3, so do not have a special treatment in eval/propagate. So we do here:
      - the size argument is supposed to be known at compile time, so is casted at compilation time to int
-     - the ridx argument is casted to int, the added sigIntCast will be removed in sigPromote if not necessary
      */
-    return sigRDTbl(sigTable(gGlobal->nil, sigInt(tree2int(n)), sigGen(init)), sigIntCast(ridx));
+    return sigRDTbl(sigTable(gGlobal->nil, sigInt(tree2int(n)), sigGen(init)), ridx);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -227,9 +225,7 @@ LIBFAUST_API bool isSigSelect2(Tree t, Tree& selector, Tree& s1, Tree& s2)
 //  "select3" expressed with "select2"
 LIBFAUST_API Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
 {
-    return sigSelect2(sigBinOp(kEQ, selector, sigInt(0)),
-                      sigSelect2(sigBinOp(kEQ, selector, sigInt(1)), s3, s2), s1);
-
+    return sigSelect2(sigBinOp(kEQ, selector, sigInt(0)), sigSelect2(sigBinOp(kEQ, selector, sigInt(1)), s3, s2), s1);
 }
 
 Tree sigAssertBounds(Tree s1, Tree s2, Tree s3)
@@ -335,10 +331,10 @@ LIBFAUST_API bool isProj(Tree t, int* i, Tree& rgroup)
 
 LIBFAUST_API Tree sigIntCast(Tree t)
 {
-    Node n = t->node();
-    int i;
+    Node   n = t->node();
+    int    i;
     double x;
-    
+
     if (isInt(n, &i)) return t;
     if (isDouble(n, &x)) return tree(int(x));
 
@@ -347,10 +343,10 @@ LIBFAUST_API Tree sigIntCast(Tree t)
 
 LIBFAUST_API Tree sigFloatCast(Tree t)
 {
-    Node n = t->node();
-    int i;
+    Node   n = t->node();
+    int    i;
     double x;
-    
+
     if (isInt(n, &i)) return tree(double(i));
     if (isDouble(n, &x)) return t;
 
@@ -501,7 +497,7 @@ LIBFAUST_API bool isSigHSlider(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& m
 {
     Tree params;
     if (isTree(s, gGlobal->SIGHSLIDER, lbl, params)) {
-        init  = nth(params, 0);
+        init = nth(params, 0);
         min  = nth(params, 1);
         max  = nth(params, 2);
         step = nth(params, 3);
@@ -525,7 +521,7 @@ LIBFAUST_API bool isSigVSlider(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& m
 {
     Tree params;
     if (isTree(s, gGlobal->SIGVSLIDER, lbl, params)) {
-        init  = nth(params, 0);
+        init = nth(params, 0);
         min  = nth(params, 1);
         max  = nth(params, 2);
         step = nth(params, 3);
@@ -549,7 +545,7 @@ LIBFAUST_API bool isSigNumEntry(Tree s, Tree& lbl, Tree& init, Tree& min, Tree& 
 {
     Tree params;
     if (isTree(s, gGlobal->SIGNUMENTRY, lbl, params)) {
-        init  = nth(params, 0);
+        init = nth(params, 0);
         min  = nth(params, 1);
         max  = nth(params, 2);
         step = nth(params, 3);
@@ -965,14 +961,14 @@ Tree listConvert(const siglist& a)
 {
     int  n = (int)a.size();
     Tree t = gGlobal->nil;
-    
+
     while (n--) t = cons(a[n], t);
     return t;
 }
 
 /*
-* Convert a Tree in stl vector of signals
-*/
+ * Convert a Tree in stl vector of signals
+ */
 siglist treeConvert(Tree t)
 {
     siglist res;

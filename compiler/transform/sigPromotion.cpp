@@ -24,87 +24,124 @@
 #include <cstdlib>
 #include <map>
 #include "global.hh"
+#include "prim2.hh"
 #include "property.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"
 #include "tlib.hh"
 #include "tree.hh"
 #include "xtended.hh"
-#include "prim2.hh"
 
 void SignalTreeChecker::visit(Tree sig)
 {
-    int opnum;
-    Tree x, y, sel, sf, chan, part, ridx;
-    
+    int  opnum;
+    Tree id, x, y, sel, sf, ff, args, chan, part, idx, tb, ws;
+
     // Extended
     xtended* p = (xtended*)getUserData(sig);
-    if (p && strcmp(p->name(), "pow") != 0) { // 'pow' can have args of both int and real types
+    if (p) {
         vector<Type> vt;
         for (Tree b : sig->branches()) {
             vt.push_back(getCertifiedSigType(b));
         }
         Type tx = p->infereSigType(vt);
-        
         for (Tree b : sig->branches()) {
             if (tx->nature() != getCertifiedSigType(b)->nature()) {
                 cerr << "ERROR : xtended wih args of incorrect types : " << *sig << endl;
                 faustassert(false);
             }
         }
+        
+    // Binary operations
     } else if (isSigBinOp(sig, &opnum, x, y)) {
         Type tx = getCertifiedSigType(x);
         Type ty = getCertifiedSigType(y);
-        
         if (tx->nature() != ty->nature()) {
             cerr << "ERROR : isSigBinOp of args with different types : " << *sig << endl;
             faustassert(false);
         }
-    } else if (isSigSelect2(sig, sel, x, y )) {
+        
+    // Foreign functions
+    } else if (isSigFFun(sig, ff, args)) {
+        int len = ffarity(ff) - 1;
+        for (int i = 0; i < ffarity(ff); i++) {
+            if (getCertifiedSigType(nth(args, i))->nature() != ffargtype(ff, len - i)) {
+                cerr << "ERROR : isSigFFun of args with incoherent types : " << *sig << endl;
+                faustassert(false);
+            }
+        }
+        if (ffrestype(ff) != getCertifiedSigType(sig)->nature()) {
+            cerr << "ERROR : isSigFFun of res with incoherent type : " << *sig << endl;
+            faustassert(false);
+        }
+        
+    // Select2 (and Select3 expressed with Select2)
+    } else if (isSigSelect2(sig, sel, x, y)) {
         if (getCertifiedSigType(sel)->nature() != kInt) {
             cerr << "ERROR : isSigSelect2 with wrong typed selector : " << *sig << endl;
             faustassert(false);
         }
-    
+
+    // Delay
     } else if (isSigDelay(sig, x, y)) {
         if (getCertifiedSigType(y)->nature() != kInt) {
             cerr << "ERROR : isSigDelay with a wrong typed delay : " << *sig << endl;
             faustassert(false);
         }
-        
+
+    // Int and Float Cast
     } else if (isSigIntCast(sig, x)) {
         if (getCertifiedSigType(x)->nature() == kInt) {
             cerr << "ERROR : isSigIntCast of a kInt signal : " << *sig << endl;
             faustassert(false);
         }
-        
+
     } else if (isSigFloatCast(sig, x)) {
         if (getCertifiedSigType(x)->nature() == kReal) {
             cerr << "ERROR : isSigFloatCast of a kReal signal : " << *sig << endl;
             faustassert(false);
         }
         
+    // Tables
+    } else if (isSigRDTbl(sig, tb, idx)) {
+        if (getCertifiedSigType(idx)->nature() != kInt) {
+            cerr << "ERROR : isSigRDTbl with a wrong typed rdx : " << *sig << endl;
+            faustassert(false);
+        }
+        
+    } else if (isSigWRTbl(sig, id, tb, idx, ws)) {
+        if (getCertifiedSigType(idx)->nature() != kInt) {
+            cerr << "ERROR : isSigWRTbl with a wrong typed wdx : " << *sig << endl;
+            faustassert(false);
+        }
+        if (getCertifiedSigType(tb)->nature() != getCertifiedSigType(ws)->nature()) {
+            cerr << "ERROR : isSigWRTbl with non matching tb and ws types : " << *sig << endl;
+            faustassert(false);
+        }
+ 
+    // Soundfiles
     } else if (isSigSoundfileLength(sig, sf, part)) {
         if (getCertifiedSigType(part)->nature() != kInt) {
             cerr << "ERROR : isSigSoundfileLength with a wrong typed part : " << *sig << endl;
             faustassert(false);
         }
-        
+
     } else if (isSigSoundfileRate(sig, sf, part)) {
         if (getCertifiedSigType(part)->nature() != kInt) {
             cerr << "ERROR : isSigSoundfileRate with a wrong typed part : " << *sig << endl;
             faustassert(false);
         }
-        
-    } else if (isSigSoundfileBuffer(sig, sf, chan, part, ridx)) {
+
+    } else if (isSigSoundfileBuffer(sig, sf, chan, part, idx)) {
         if (getCertifiedSigType(part)->nature() != kInt) {
             cerr << "ERROR : isSigSoundfileBuffer with a wrong typed part : " << *sig << endl;
             faustassert(false);
         }
-        if (getCertifiedSigType(ridx)->nature() != kInt) {
+        if (getCertifiedSigType(idx)->nature() != kInt) {
             cerr << "ERROR : isSigSoundfileBuffer with a wrong typed ridx : " << *sig << endl;
             faustassert(false);
         }
+        
     } else {
         // Default case
         SignalVisitor::visit(sig);
@@ -121,7 +158,7 @@ Tree SignalPromotion::transformation(Tree sig)
 {
     int  op;
     Tree id, sel, x, y, ff, largs, sf, chan, part, tb, idx, ws;
-    
+
     // Extended
     xtended* p = (xtended*)getUserData(sig);
     if (p) {
@@ -129,16 +166,16 @@ Tree SignalPromotion::transformation(Tree sig)
         for (Tree b : sig->branches()) {
             vt.push_back(getCertifiedSigType(b));
         }
-        Type tx = p->infereSigType(vt);
-        
+        Type tr = p->infereSigType(vt);
+
         vector<Tree> new_branches;
         for (Tree b : sig->branches()) {
-            new_branches.push_back(smartCast(tx, getCertifiedSigType(b), self(b)));
+            new_branches.push_back(smartCast(tr, getCertifiedSigType(b), self(b)));
         }
-        
         return tree(sig->node(), new_branches);
     }
-    
+
+    // Delay
     else if (isSigDelay(sig, x, y)) {
         return sigDelay(self(x), smartIntCast(getCertifiedSigType(y), self(y)));
     }
@@ -187,7 +224,7 @@ Tree SignalPromotion::transformation(Tree sig)
                 // the result of a division is always a float
                 return sigBinOp(op, smartFloatCast(tx, self(x)), smartFloatCast(ty, self(y)));
             }
-                
+
             case kAND:
             case kOR:
             case kXOR:
@@ -196,30 +233,30 @@ Tree SignalPromotion::transformation(Tree sig)
             case kLRsh:
                 // These operations require integers
                 return sigBinOp(op, smartIntCast(tx, self(x)), smartIntCast(ty, self(y)));
-             
+
             default:
                 return sigBinOp(op, self(x), self(y));
         }
     }
-    
+
     // Foreign functions
     else if (isSigFFun(sig, ff, largs)) {
         siglist clargs;
-        int len = ffarity(ff) - 1;
+        int     len = ffarity(ff) - 1;
         for (int i = 0; i < ffarity(ff); i++) {
             Tree arg = nth(largs, i);
-            Type ta = getCertifiedSigType(arg);
+            Type ta  = getCertifiedSigType(arg);
             clargs.push_back(smartCast(ffargtype(ff, len - i), ta->nature(), self(arg)));
         }
         return sigFFun(ff, listConvert(clargs));
     }
-    
+
     // Select2 (and Select3 expressed with Select2)
     else if (isSigSelect2(sig, sel, x, y)) {
         Type ts = getCertifiedSigType(sel);
         Type tx = getCertifiedSigType(x);
         Type ty = getCertifiedSigType(y);
-   
+
         if (tx->nature() == ty->nature()) {
             // same nature => no promotion needed
             return sigSelect2(smartIntCast(ts, self(sel)), self(x), self(y));
@@ -235,25 +272,27 @@ Tree SignalPromotion::transformation(Tree sig)
     } else if (isSigFloatCast(sig, x)) {
         return smartFloatCast(getCertifiedSigType(x), self(x));
     }
-    
+
     // Tables
-    
+    else if (isSigRDTbl(sig, tb, idx)) {
+        Type tx = getCertifiedSigType(idx);
+        return sigRDTbl(self(tb), smartIntCast(tx, self(idx)));
+    }
+
     else if (isSigWRTbl(sig, id, tb, idx, ws)) {
+        Type tx = getCertifiedSigType(idx);
         Type t1 = getCertifiedSigType(tb);
         Type t2 = getCertifiedSigType(ws);
-        return sigWRTbl(id, self(tb), self(idx), smartCast(t1, t2, self(ws)));
+        return sigWRTbl(id, self(tb), smartIntCast(tx, self(idx)), smartCast(t1, t2, self(ws)));
     }
-    
+
     // Soundfiles
     else if (isSigSoundfileLength(sig, sf, part)) {
         return sigSoundfileLength(self(sf), smartIntCast(getCertifiedSigType(part), self(part)));
-    }
-    else if (isSigSoundfileRate(sig, sf, part)) {
+    } else if (isSigSoundfileRate(sig, sf, part)) {
         return sigSoundfileRate(self(sf), smartIntCast(getCertifiedSigType(part), self(part)));
-    }
-    else if (isSigSoundfileBuffer(sig, sf, chan, part, idx)) {
-        return sigSoundfileBuffer(self(sf), self(chan),
-                                  smartIntCast(getCertifiedSigType(part), self(part)),
+    } else if (isSigSoundfileBuffer(sig, sf, chan, part, idx)) {
+        return sigSoundfileBuffer(self(sf), self(chan), smartIntCast(getCertifiedSigType(part), self(part)),
                                   smartIntCast(getCertifiedSigType(idx), self(idx)));
     }
     // Other cases => identity transformation
@@ -261,7 +300,7 @@ Tree SignalPromotion::transformation(Tree sig)
         return SignalIdentity::transformation(sig);
     }
 }
-           
+
 Tree SignalPromotion::smartCast(Type t1, Type t2, Tree sig)
 {
     return smartCast(t1->nature(), t2->nature(), sig);
@@ -317,7 +356,7 @@ Tree sigPromote(Tree sig, bool trace)
 {
     // Check that the root tree is properly type annotated
     getCertifiedSigType(sig);
-    
+
     SignalPromotion SP;
     if (trace) SP.trace(true, "Cast");
     return SP.mapself(sig);

@@ -72,7 +72,7 @@ for f in $FILES; do
 
     # compile c++ to binary
     (
-        ${CXX=g++} $CXXFLAGS $PROCARCH $LLVM_LIBS $SOUNDFILELIBS $OMP -DFAUSTFLOAT=$FAUSTFLOAT "$f.cpp" -o "${f%.dsp}"
+        $CXX $CXXFLAGS "$f.cpp" $PROCARCH $LLVM_LIBS $SOUNDFILELIBS $OMP -DFAUSTFLOAT=$FAUSTFLOAT -o "${f%.dsp}"
     ) > /dev/null || exit
     rm "$f.cpp"
 

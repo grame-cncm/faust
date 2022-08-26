@@ -47,7 +47,8 @@ LIPO=lipo
 if [[ $(uname) == Darwin ]]; then
     STRIP=-dead_strip
 else
-    STRIP=-strip
+    #STRIP=-strip (does not seem to work...)
+    STRIP=
 fi
 LLVM_LIBS="$STRIP $FAUSTLDDIR/libfaust.a `llvm-config --ldflags --libs all --system-libs`"
 

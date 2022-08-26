@@ -249,8 +249,8 @@ void typeAnnotation(Tree sig, bool causality)
 }
 
 /**
-* Print annotation statistics.
-*/
+ * Print annotation statistics.
+ */
 void annotationStatistics()
 {
     cerr << gGlobal->TABBER << "COUNT INFERENCE  " << gGlobal->gCountInferences << " AT TIME "
@@ -375,14 +375,14 @@ static double constSig2double(Tree sig)
     Type ty = getSigType(sig);
     if (ty->variability() != kKonst) {
         throw faustexception(
-                             "ERROR : constSig2double, the parameter must be a constant value"
-                             " known at compile time\n");
+            "ERROR : constSig2double, the parameter must be a constant value"
+            " known at compile time\n");
     }
     interval bds = ty->getInterval();
     if (bds.lo != bds.hi) {
         throw faustexception(
-                             "ERROR : constSig2double, constant value with non-singleton interval, don't know what"
-                             " to do, please report");
+            "ERROR : constSig2double, constant value with non-singleton interval, don't know what"
+            " to do, please report");
     }
     return bds.lo;
 }
@@ -473,11 +473,11 @@ static Type infereSigType(Tree sig, Tree env)
         // cerr <<"type rule for : " << ppsig(sig) << " -> " << *t3 << endl;
 
         if (i == kDiv) {
-            return floatCast(t3);   // division always result in a float even with int arguments
+            return floatCast(t3);  // division always result in a float even with int arguments
         } else if ((i >= kGT) && (i <= kNE)) {
-            return boolCast(t3);    // comparison always result in a boolean int
+            return boolCast(t3);  // comparison always result in a boolean int
         } else if (((i >= kLsh) && (i <= kLRsh)) || ((i >= kAND) && (i <= kXOR))) {
-            return intCast(t3);     // boolean and logical operators always result in an int
+            return intCast(t3);  // boolean and logical operators always result in an int
         } else {
             return t3;  //  otherwise most general of t1 and t2
         }
@@ -706,7 +706,7 @@ static Type infereWriteTableType(Type tbl, Type wi, Type ws)
         throw faustexception(error.str());
     }
     SimpleType* st = isSimpleType(wi);
-    if (st == nullptr || st->nature() > kInt) {
+    if (st == nullptr) {
         stringstream error;
         error << "ERROR : inferring write table type, wrong write index type : " << wi << endl;
         throw faustexception(error.str());
@@ -742,13 +742,13 @@ static Type infereReadTableType(Type tbl, Type ri)
     TableType* tt = isTableType(tbl);
     if (tt == nullptr) {
         stringstream error;
-        error << "ERROR : inferring read table type, wrong table type : " << tbl << endl;
+        error << "ERROR : inferring read table type, no table type : " << tbl << endl;
         throw faustexception(error.str());
     }
     SimpleType* st = isSimpleType(ri);
-    if (st == nullptr || st->nature() > kInt) {
+    if (st == nullptr) {
         stringstream error;
-        error << "ERROR : inferring read table type, wrong read index type : " << ri << endl;
+        error << "ERROR : inferring read table type, no read index type : " << ri << endl;
         throw faustexception(error.str());
     }
     // Type temp = makeSimpleType(tbl->nature(), ri->variability(), kInit | ri->computability(), ri->vectorability(),
@@ -763,7 +763,7 @@ static Type infereReadTableType(Type tbl, Type ri)
 static Type infereDocConstantTblType(Type size, Type init)
 {
     checkKonst(checkInt(checkInit(size)));
-    
+
     return init;
 }
 
@@ -875,10 +875,10 @@ static Type infereFVarType(Tree type)
  */
 static Type infereWaveformType(Tree wfsig, Tree env)
 {
-    bool   iflag   = isInt(wfsig->branch(0)->node());
-    int    n       = wfsig->arity();
+    bool   iflag = isInt(wfsig->branch(0)->node());
+    int    n     = wfsig->arity();
     double lo, hi;
-    
+
     lo = hi = tree2float(wfsig->branch(0));
     T(wfsig->branch(0), env);
 
