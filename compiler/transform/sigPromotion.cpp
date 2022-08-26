@@ -45,18 +45,17 @@ void SignalTreeChecker::visit(Tree sig)
             vt.push_back(getCertifiedSigType(b));
         }
         Type tx = p->infereSigType(vt);
-
         for (Tree b : sig->branches()) {
             if (tx->nature() != getCertifiedSigType(b)->nature()) {
                 cerr << "ERROR : xtended wih args of incorrect types : " << *sig << endl;
                 faustassert(false);
             }
         }
+        
     // Binary operations
     } else if (isSigBinOp(sig, &opnum, x, y)) {
         Type tx = getCertifiedSigType(x);
         Type ty = getCertifiedSigType(y);
-
         if (tx->nature() != ty->nature()) {
             cerr << "ERROR : isSigBinOp of args with different types : " << *sig << endl;
             faustassert(false);
@@ -70,6 +69,10 @@ void SignalTreeChecker::visit(Tree sig)
                 cerr << "ERROR : isSigFFun of args with incoherent types : " << *sig << endl;
                 faustassert(false);
             }
+        }
+        if (ffrestype(ff) != getCertifiedSigType(sig)->nature()) {
+            cerr << "ERROR : isSigFFun of res with incoherent type : " << *sig << endl;
+            faustassert(false);
         }
         
     // Select2 (and Select3 expressed with Select2)
@@ -102,17 +105,17 @@ void SignalTreeChecker::visit(Tree sig)
     // Tables
     } else if (isSigRDTbl(sig, tb, idx)) {
         if (getCertifiedSigType(idx)->nature() != kInt) {
-            cerr << "ERROR : isSigRDTbl with a wrong typed part rdx : " << *sig << endl;
+            cerr << "ERROR : isSigRDTbl with a wrong typed rdx : " << *sig << endl;
             faustassert(false);
         }
         
     } else if (isSigWRTbl(sig, id, tb, idx, ws)) {
         if (getCertifiedSigType(idx)->nature() != kInt) {
-            cerr << "ERROR : isSigWRTbl with a wrong typed part wdx : " << *sig << endl;
+            cerr << "ERROR : isSigWRTbl with a wrong typed wdx : " << *sig << endl;
             faustassert(false);
         }
         if (getCertifiedSigType(tb)->nature() != getCertifiedSigType(ws)->nature()) {
-            cerr << "ERROR : isSigWRTbl with non matching tb and ws : " << *sig << endl;
+            cerr << "ERROR : isSigWRTbl with non matching tb and ws types : " << *sig << endl;
             faustassert(false);
         }
  
