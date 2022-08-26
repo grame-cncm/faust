@@ -48,7 +48,7 @@
 //--------------------------------------------------
 // simple types quality
 
-enum { kInt = 0, kReal = 1 };  ///< nature : integer or floating point values
+enum { kInt = 0, kReal = 1, kAny = 2 };  ///< nature : integer or floating point values
 enum {
     kNum  = 0,
     kBool = 1

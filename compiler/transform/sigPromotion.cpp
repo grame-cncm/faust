@@ -65,7 +65,8 @@ void SignalTreeChecker::visit(Tree sig)
     } else if (isSigFFun(sig, ff, args)) {
         int len = ffarity(ff) - 1;
         for (int i = 0; i < ffarity(ff); i++) {
-            if (getCertifiedSigType(nth(args, i))->nature() != ffargtype(ff, len - i)) {
+            int type = ffargtype(ff, len - i);
+            if (getCertifiedSigType(nth(args, i))->nature() != type && type != kAny) {
                 cerr << "ERROR : isSigFFun of args with incoherent types : " << *sig << endl;
                 faustassert(false);
             }
@@ -322,6 +323,8 @@ Tree SignalPromotion::cast(int t, Tree sig)
         return sigFloatCast(sig);
     } else if (t == kInt) {
         return sigIntCast(sig);
+    } else if (t == kAny) {
+        return sig;
     } else {
         faustassert(false);
         return nullptr;
