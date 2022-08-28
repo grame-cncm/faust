@@ -131,6 +131,7 @@ inline Tree unquote(char* str)
 
 %token INTCAST
 %token FLOATCAST
+%token NOTYPECAST
 %token FFUNCTION
 %token FCONSTANT
 %token FVARIABLE
@@ -297,6 +298,7 @@ inline Tree unquote(char* str)
 %type <exp> fstring
 %type <exp> type
 %type <exp> typelist
+%type <exp> argtype
 %type <exp> fun
 
 %type <exp> fpar
@@ -728,8 +730,8 @@ signature		: type fun LPAR typelist RPAR               { $$ = cons($1, cons(cons
 fun				: IDENT							{ $$ = tree(yytext); }
 				;
 
-typelist		: type							{ $$ = cons($1,gGlobal->nil); }
-				| typelist PAR type				{ $$ = cons($3,$1); }
+typelist		: argtype						{ $$ = cons($1,gGlobal->nil); }
+				| typelist PAR argtype			{ $$ = cons($3,$1); }
                 ;
 
 rulelist		: rule							{ $$ = cons($1,gGlobal->nil); }
@@ -742,6 +744,11 @@ rule			: LPAR arglist RPAR ARROW expression ENDDEF
 
 type			: INTCAST                       { $$ = tree(0); }
 				| FLOATCAST						{ $$ = tree(1); }
+				;
+
+argtype			: INTCAST                       { $$ = tree(0); }
+				| FLOATCAST						{ $$ = tree(1); }
+				| NOTYPECAST					{ $$ = tree(2); }
 				;
 
 %%

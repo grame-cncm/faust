@@ -142,6 +142,7 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 
 "int"		return INTCAST;
 "float"		return FLOATCAST;
+"any"		return NOTYPECAST;
 
 "rdtable"	return RDTBL;
 "rwtable"	return RWTBL;
