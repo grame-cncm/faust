@@ -212,7 +212,9 @@ void Compiler::generateUserInterfaceTree(Tree t, bool root)
                 fJSON.openTabBox(group.c_str());
                 break;
             default:
-                throw faustexception("ERROR in user interface generation 1\n");
+                cerr << "ERROR : user interface generation 1\n";
+                faustassert(false);
+                break;
         }
 
         fClass->addUICode(subst(model, group));
@@ -223,7 +225,8 @@ void Compiler::generateUserInterfaceTree(Tree t, bool root)
     } else if (isUiWidget(t, label, varname, sig)) {
         generateWidgetCode(label, varname, sig);
     } else {
-        throw faustexception("ERROR in user interface generation 2\n");
+        cerr << "ERROR : user interface generation 2\n";
+        faustassert(false);
     }
 }
 
@@ -335,7 +338,8 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
         fJSON.addSoundfile(checkNullLabel(varname, label).c_str(),
                            ((url == "") ? prepareURL(label).c_str() : url.c_str()), NULL);
     } else {
-        throw faustexception("ERROR in generating widget code 3\n");
+        cerr << "ERROR : generating widget code 3\n";
+        faustassert(false);
     }
 }
 
@@ -358,7 +362,8 @@ void Compiler::generateMacroInterfaceTree(const string& pathname, Tree t)
     } else if (isUiWidget(t, label, varname, sig)) {
         generateWidgetMacro(pathname, label, varname, sig);
     } else {
-        throw faustexception("ERROR in user interface macro generation 2\n");
+        cerr << "ERROR : user interface macro generation 2\n";
+        faustassert(false);
     }
 }
 
@@ -416,6 +421,7 @@ void Compiler::generateWidgetMacro(const string& pathname, Tree fulllabel, Tree 
         fClass->addUIMacro(subst("FAUST_ADDSOUNDFILE(\"$0\", $1);", pathlabel, tree2str(varname)));
 
     } else {
-        throw faustexception("ERROR in generating widget macro\n");
+        cerr << "ERROR in generating widget macro\n";
+        faustassert(false);
     }
 }

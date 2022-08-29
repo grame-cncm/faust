@@ -278,12 +278,12 @@ string DocCompiler::generateCode(Tree sig, int priority)
     }
 
     else {
-        stringstream error;
-        error << "ERROR in d signal, unrecognized signal : " << *sig << endl;
-        throw faustexception(error.str());
+        cerr << "ERROR : unrecognized signal : " << *sig << endl;
+        faustassert(false);
     }
-    faustassert(0);
-    return "error in generate code";
+    faustassert(false);
+    // Never reached
+    return "ERROR : in generate code";
 }
 
 /**

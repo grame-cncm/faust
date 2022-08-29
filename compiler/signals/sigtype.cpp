@@ -357,7 +357,7 @@ Tree codeAudioType(AudioType* t)
         r = codeTupletType(nt);
     } else {
         stringstream error;
-        error << "ERROR in codeAudioType() : invalid pointer " << t << endl;
+        error << "ERROR : codeAudioType(), invalid pointer " << t << endl;
         throw faustexception(error.str());
     }
 

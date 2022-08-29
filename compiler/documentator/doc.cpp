@@ -784,7 +784,7 @@ static void getBoxInputsAndOutputs(const Tree t, int& numInputs, int& numOutputs
 {
     if (!getBoxType(t, &numInputs, &numOutputs)) {
         stringstream error;
-        error << "ERROR during the evaluation of t : " << boxpp(t) << endl;
+        error << "ERROR : during the evaluation of t : " << boxpp(t) << endl;
         throw faustexception(error.str());
     }
     // cerr << "Documentator : " << numInputs <<" inputs and " << numOutputs <<" outputs for box : " << boxpp(t) <<
@@ -825,7 +825,7 @@ static void printDocDgm(const Tree expr, const char* svgTopDir, ostream& docout,
     Tree docdgm = evaldocexpr(expr, gGlobal->gExpandedDefList);
     if (gGlobal->gErrorCount > 0) {
         stringstream error;
-        error << "Total of " << gGlobal->gErrorCount
+        error << "ERROR : total of " << gGlobal->gErrorCount
               << " errors during evaluation of : diagram docdgm = " << boxpp(docdgm) << ";\n";
         throw faustexception(error.str());
     }

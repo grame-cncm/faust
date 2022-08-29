@@ -371,7 +371,7 @@ ostream& boxpp::print(ostream& fout) const
     // None of the previous tests succeded, then it is not a valid box
     else {
         stringstream error;
-        error << "ERROR in box::print() : " << *fBox << " is not a valid box" << endl;
+        error << "ERROR : box::print() : " << *fBox << " is not a valid box" << endl;
         throw faustexception(error.str());
     }
 
@@ -611,7 +611,7 @@ ostream& boxppShared::print(ostream& fout) const
     // None of the previous tests succeded, then it is not a valid box
     else {
         stringstream error;
-        error << "ERROR in boxppShared::print() : " << *fBox << " is not a valid box" << endl;
+        error << "ERROR : boxppShared::print() : " << *fBox << " is not a valid box" << endl;
         throw faustexception(error.str());
     }
     

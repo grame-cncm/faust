@@ -223,9 +223,8 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
     }
     
     else {
-        stringstream error;
-        error << "ERROR : getSubSignals unrecognized signal : " << *sig << endl;
-        throw faustexception(error.str());
+        cerr << "ERROR : getSubSignals unrecognized signal : " << *sig << endl;
+        faustassert(false);
     }
     return 0;
 }

@@ -23,11 +23,11 @@
 #define _LOOP_H
 
 /**********************************************************************
-        - loop.hh : loop C++ à remplir (projet FAUST) -
+        - loop.hh : loop C++ to be filled (projet FAUST) -
 
         Historique :
         -----------
-        21-01-2008 : implementation initiale (yo)
+        21-01-2008 : initial implementation (YO)
 
 ***********************************************************************/
 

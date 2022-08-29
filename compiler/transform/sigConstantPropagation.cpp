@@ -125,9 +125,8 @@ Tree SignalConstantPropagation::transformation(Tree sig)
                 return sigProj(i, r);
             }
         } else {
-            stringstream error;
-            error << "ERROR : internal : " << *sig << endl;
-            throw faustexception(error.str());
+            cerr << "ERROR : internal : " << *sig << endl;
+            faustassert(false);
         }
 
     } else {

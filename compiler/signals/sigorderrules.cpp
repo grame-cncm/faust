@@ -166,10 +166,12 @@ static int infereSigOrder(Tree sig)
     else if (isSigControl(sig, s1, s2))
         return std::max(O(s1), O(s2));  // O(s1);
 
-    else if (isSigSoundfile(sig, l))
-        throw faustexception("ERROR inferring signal order : isSigSoundfile\n");  // not supposed to happen.;
+    else if (isSigSoundfile(sig, l)) {
+        cerr << "ERROR : inferring signal order : isSigSoundfile\n";  // not supposed to happen
+        faustassert(false);
+        return -1;
 
-    else if (isSigSoundfileLength(sig, sf, x))
+    } else if (isSigSoundfileLength(sig, sf, x))
         return 2;
 
     else if (isSigSoundfileRate(sig, sf, x))
@@ -181,13 +183,17 @@ static int infereSigOrder(Tree sig)
     else if (isSigAttach(sig, s1, s2))
         return std::max(1, O(s1));  // at least a constant
 
-    else if (isRec(sig, var, body))
-        throw faustexception("ERROR inferring signal order : isRec\n");  // return 3;  // not supposed to happen.
+    else if (isRec(sig, var, body)) {
+        cerr << "ERROR : inferring signal order : isRec\n";  // not supposed to happen
+        faustassert(false);
+        return -1;
 
-    else if (isRef(sig, var))
-        throw faustexception("ERROR inferring signal order : isRef\n");  // return 3;  // not supposed to happen.
-
-    else if (isProj(sig, &i, s1))
+    } else if (isRef(sig, var)) {
+        cerr << "ERROR : inferring signal order : isRef\n";  // not supposed to happen.
+        faustassert(false);
+        return -1;
+        
+    } else if (isProj(sig, &i, s1))
         return 3;
 
     else if (isSigTable(sig, id, s1, s2))
@@ -223,6 +229,8 @@ static int infereSigOrder(Tree sig)
         return r1;
     }
 
-    // unrecognized signal here
-    throw faustexception("ERROR inferring signal order : unrecognized signal\n");
+    // Unrecognized signal here
+    cerr << "ERROR : inferring signal order : unrecognized signal\n";
+    faustassert(false);
+    return -1;
 }

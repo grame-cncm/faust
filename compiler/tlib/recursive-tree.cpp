@@ -229,7 +229,8 @@ static Tree calcDeBruijn2Sym(Tree t)
         return t;
 
     } else if (isRef(t, i)) {
-        throw faustexception("ERROR : one Bruijn reference found !\n");
+        cerr << "ERROR : one Bruijn reference found !\n";
+        faustassert(false);
         return t;
 
     } else {

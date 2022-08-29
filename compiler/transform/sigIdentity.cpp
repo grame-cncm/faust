@@ -196,9 +196,8 @@ Tree SignalIdentity::transformation(Tree sig)
     }
     	
     else {
-        stringstream error;
-        error << "ERROR : unrecognized signal : " << *sig << endl;
-        throw faustexception(error.str());
+       cerr << "ERROR : unrecognized signal : " << *sig << endl;
+        faustassert(false);
     }
     return 0;
 }
