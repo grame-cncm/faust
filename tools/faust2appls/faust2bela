@@ -136,7 +136,7 @@ fi
 
 if [[ "$GUIDEFS" == *GUI* ]]; then
     echo '#define HTTPDGUI' >> "$PROJECTDIR/tmp.txt"
-    BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust"
+    BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust -lmicrohttpd"
 fi
 
 if [[ "$SOUNDFILEDEFS" == *SOUNDFILE* ]]; then
