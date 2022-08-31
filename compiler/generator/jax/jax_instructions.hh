@@ -350,15 +350,8 @@ class JAXInstVisitor : public TextInstVisitor {
     
     virtual void visit(AddButtonInst* inst)
     {
-        if (inst->fType == AddButtonInst::kDefaultButton) {
-            *fOut << "self.param(" << quote(inst->fLabel) << ", nn.initializers.constant(" << 0.
-                  << "), ())";
-        } else {
-            *fOut << "self.param(" << quote(inst->fLabel) << ", nn.initializers.constant(" << 0.
-                  << "), ())";
-        }
-        // todo:
-        *fOut << quote(inst->fLabel) << ", self." << inst->fZone << ")";
+        *fOut << "state[\"" << inst->fZone << "\"] = ";
+        *fOut << "self.add_button(" << quote(inst->fLabel) << ")";
         EndLine(' ');
     }
 
@@ -421,7 +414,7 @@ class JAXInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSoundfileInst* inst)
     {
-        *fOut << "self.add_soundfile(state, " << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", " << quote(inst->fSFZone)
+        *fOut << "self.add_soundfile(state, x, " << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", " << quote(inst->fSFZone)
               << ")";
         EndLine(' ');
     }

@@ -271,7 +271,7 @@ void JAXCodeContainer::produceClass()
     //    tab(n + 1, *fOut);
     //}
     tab(n + 1, *fOut);
-    *fOut << "def add_soundfile(self, state, label: str, url: str, key: str):";
+    *fOut << "def add_soundfile(self, state, x, label: str, url: str, key: str):";
     tab(n + 2, *fOut);
     *fOut << "filepaths = re.findall(r\"((?:\\'[\\w\\.]+\\')+),?\", url)";
     tab(n + 2, *fOut);
@@ -304,7 +304,9 @@ void JAXCodeContainer::produceClass()
     tab(n + 2, *fOut);
     *fOut << "if label.startswith('param:'):";
     tab(n + 3, *fOut);
-    *fOut << "fBuffers = self.param(label, (lambda key, shape: fBuffers), None)";
+    *fOut << "fBuffers = self.param(\"_\"+label, (lambda key, shape: fBuffers), None)";
+    tab(n + 2, *fOut);
+    *fOut << "self.sow('intermediates', label, fBuffers)";
     tab(n + 2, *fOut);
     *fOut << "state[key] = {'fLength': fLength, 'fOffset': fOffset, 'fBuffers': fBuffers}";
     tab(n + 2, *fOut);
@@ -325,9 +327,21 @@ void JAXCodeContainer::produceClass()
     *fOut << "self.sow('intermediates', label, param)";
     tab(n + 2, *fOut);
     *fOut << "return param";
-    tab(n + 2, *fOut);
 
 	tab(n + 1, *fOut);
+    tab(n + 1, *fOut);
+    *fOut << "def add_button(self, label: str):";
+    tab(n + 2, *fOut);
+    *fOut << "param = self.param(\"_\"+label, nn.initializers.constant(0.), ())";
+    tab(n + 2, *fOut);
+    *fOut << "param = jax.nn.softmax(param)";
+    tab(n + 2, *fOut);
+    *fOut << "self.sow('intermediates', label, jnp.argmax(param))";
+    tab(n + 2, *fOut);
+    *fOut << "return param";
+
+	tab(n + 1, *fOut);
+    tab(n + 1, *fOut);
     *fOut << "def add_slider(self, label: str, init: float, a_min: float, a_max: float, scale_mode='linear'):";
     tab(n + 2, *fOut);
     *fOut << "if scale_mode == 'linear':";
@@ -383,7 +397,7 @@ void JAXCodeContainer::produceClass()
 
     // User interface
     tab(n + 1, *fOut);
-    *fOut << "def build_interface(self, state, T: int):";
+    *fOut << "def build_interface(self, state, x, T: int):";
     tab(n + 2, *fOut);
     gGlobal->gJAXVisitor->Tab(n + 2);
     generateUserInterface(gGlobal->gJAXVisitor);
@@ -444,7 +458,7 @@ void JAXCodeContainer::generateCompute(int n)
     tab(n + 1, *fOut);
     *fOut << "state = self.init_constants(state, self.sample_rate)";
     tab(n + 1, *fOut);
-    *fOut << "state = self.build_interface(state, T)";
+    *fOut << "state = self.build_interface(state, x, T)";
     tab(n + 1, *fOut);
     *fOut << "state = self.classInit(state)";
     tab(n + 1, *fOut);
