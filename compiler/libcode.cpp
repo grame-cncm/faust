@@ -1590,7 +1590,7 @@ static void compileJulia(Tree signals, int numInputs, int numOutputs, ostream* o
 static void compileJAX(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
 #ifdef JAX_BUILD
-    gGlobal->gAllowForeignFunction = false;  // No foreign functions
+    gGlobal->gAllowForeignFunction = true;  // foreign functions are supported (we use jax.random.PRNG for example)
     container = JAXCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
     
     if (gGlobal->gVectorSwitch) {
