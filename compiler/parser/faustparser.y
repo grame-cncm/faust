@@ -591,6 +591,7 @@ primitive		: INT   						{ $$ = boxInt(str2int(yytext)); }
                 | LIBRARY LPAR uqstring RPAR    { $$ = boxLibrary($3); }
                 | ENVIRONMENT LBRAQ stmtlist RBRAQ { $$ = boxWithLocalDef(boxEnvironment(),formatDefinitions($3)); }
                 | WAVEFORM LBRAQ vallist RBRAQ  { $$ = boxWaveform(gGlobal->gWaveForm); gGlobal->gWaveForm.clear(); }
+				| ROUTE LPAR argument PAR argument RPAR   	{ $$ = boxRoute($3, $5, boxPar(boxInt(0),boxInt(0))); } // fake route
 				| ROUTE LPAR argument PAR argument PAR expression RPAR   	{ $$ = boxRoute($3, $5, $7); }
 				| button						{ $$ = $1; }
 				| checkbox						{ $$ = $1; }
