@@ -96,6 +96,28 @@ CodeContainer* JAXCodeContainer::createContainer(const string& name, int numInpu
     return container;
 }
 
+inline string flattenJSONforPython(const string& src)
+{
+    string dst;
+    for (size_t i = 0; i < src.size(); i++) {
+        switch (src[i]) {
+            case '"':
+                dst += "\\\"";
+                break;
+            case '\\':
+                dst += "/";
+                break;
+            case '\'':
+                dst += "'";
+                break;
+            default:
+                dst += src[i];
+                break;
+        }
+    }
+    return dst;
+}
+
 void JAXCodeContainer::produceClass()
 {
     int n = 0;
@@ -119,6 +141,10 @@ void JAXCodeContainer::produceClass()
     *fOut << "from flax import linen as nn";
     tab(n, *fOut);
     *fOut << "import librosa";
+    tab(n, *fOut);
+    *fOut << "import json";
+    tab(n, *fOut);
+    *fOut << "import re";
     //tab(n, *fOut);
     //*fOut << "FAUSTFLOAT = float";
     // tab(n, *fOut);
@@ -201,12 +227,10 @@ void JAXCodeContainer::produceClass()
         inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gJAXVisitor);
         tab(n + 2, *fOut);
         *fOut << "return state";
-        tab(n + 2, *fOut);
-
+        tab(n + 1, *fOut);
     }
-    back(1, *fOut);
 
-    tab(n + 1, *fOut);
+    //tab(n + 1, *fOut);
     //*fOut << "def instanceResetUserInterface(self):";
     //{
     //    tab(n + 2, *fOut);
@@ -236,7 +260,6 @@ void JAXCodeContainer::produceClass()
     }
     tab(n+1, *fOut);
    
-    tab(n, *fOut);
     //tab(n + 1, *fOut);
     //*fOut << "def instanceInit(self, sample_rate: int):";
     //tab(n + 2, *fOut);
@@ -257,19 +280,28 @@ void JAXCodeContainer::produceClass()
     //tab(n, *fOut);
     
     // JSON generation
-    //tab(n+1, *fOut);
-    //*fOut << "def getJSON(self):";
-    //{
-    //    string json;
-    //    if (gGlobal->gFloatSize == 1) {
-    //        json = generateJSON<float>();
-    //    } else {
-    //        json = generateJSON<double>();
-    //    }
-    //    tab(n + 2, *fOut);
-    //    *fOut << "return \"\"\"" << flattenJSON(json) << "\"\"\"" << endl;
-    //    tab(n + 1, *fOut);
-    //}
+    tab(n+1, *fOut);
+    *fOut << "def getJSON(self):";
+    {
+        string json;
+        if (gGlobal->gFloatSize == 1) {
+            json = generateJSON<float>();
+        } else {
+            json = generateJSON<double>();
+        }
+        tab(n + 2, *fOut);
+        *fOut << "json_str = \"\"\"" << flattenJSONforPython(json) << "\"\"\"";
+        tab(n + 2, *fOut);
+        *fOut << "return json.loads(json_str)";
+        tab(n + 1, *fOut);
+    }
+
+    tab(n + 1, *fOut);
+    *fOut << "def load_soundfile(self, filepath):";
+    tab(n + 2, *fOut);
+    *fOut << "return librosa.load(filepath, mono=False, sr=self.sample_rate)[0]";
+    tab(n + 1, *fOut);
+
     tab(n + 1, *fOut);
     *fOut << "def add_soundfile(self, state, x, label: str, url: str, key: str):";
     tab(n + 2, *fOut);
@@ -277,10 +309,9 @@ void JAXCodeContainer::produceClass()
     tab(n + 2, *fOut);
     *fOut << "fLength, fOffset, offset = [], [], 0";
     tab(n + 2, *fOut);
-    *fOut << "# [1:-1] will remove the apostrophe escapes. # todo: better";
+    *fOut << "# [1:-1] will remove the apostrophe escapes.  # todo: better regex before this";
     tab(n + 2, *fOut);
-    *fOut
-        << "audio_data = [librosa.load(filepath[1:-1], mono=False, sr=self.sample_rate)[0] for filepath in filepaths]";
+    *fOut << "audio_data = [self.load_soundfile(filepath[1:-1]) for filepath in filepaths]";
     tab(n + 2, *fOut);
     *fOut << "num_chans = max([y.shape[0] for y in audio_data])";
     tab(n + 2, *fOut);
@@ -311,9 +342,9 @@ void JAXCodeContainer::produceClass()
     *fOut << "state[key] = {'fLength': fLength, 'fOffset': fOffset, 'fBuffers': fBuffers}";
     tab(n + 2, *fOut);
     *fOut << "return state";
-    tab(n + 2, *fOut);
+    tab(n + 1, *fOut);
 
-	tab(n + 1, *fOut);
+    tab(n + 1, *fOut);
     *fOut << "def add_nentry(self, label: str, init: float, a_min: float, a_max: float, step_size: float, scale_mode='linear'):";
     tab(n + 2, *fOut);
     *fOut << "num_steps = int(jnp.round((a_max-a_min)/step_size))";
@@ -327,8 +358,8 @@ void JAXCodeContainer::produceClass()
     *fOut << "self.sow('intermediates', label, param)";
     tab(n + 2, *fOut);
     *fOut << "return param";
+    tab(n + 1, *fOut);
 
-	tab(n + 1, *fOut);
     tab(n + 1, *fOut);
     *fOut << "def add_button(self, label: str):";
     tab(n + 2, *fOut);
@@ -339,8 +370,8 @@ void JAXCodeContainer::produceClass()
     *fOut << "self.sow('intermediates', label, jnp.argmax(param))";
     tab(n + 2, *fOut);
     *fOut << "return param";
+    tab(n + 1, *fOut);
 
-	tab(n + 1, *fOut);
     tab(n + 1, *fOut);
     *fOut << "def add_slider(self, label: str, init: float, a_min: float, a_max: float, scale_mode='linear'):";
     tab(n + 2, *fOut);
@@ -349,13 +380,13 @@ void JAXCodeContainer::produceClass()
     *fOut << "init = jnp.interp(init, jnp.array([a_min, a_max]), jnp.array([-1.,1.]))";
     tab(n + 3, *fOut);
     *fOut << "param = self.param(\"_\"+label, nn.initializers.constant(init), ())";
-	tab(n + 3, *fOut);
+    tab(n + 3, *fOut);
     *fOut << "param = jnp.clip(param, -1., 1.)";
-	tab(n + 3, *fOut);
+    tab(n + 3, *fOut);
     *fOut << "param = jnp.interp(param, jnp.array([-1., 1.]), jnp.array([a_min, a_max]))";
-	tab(n + 2, *fOut);
+    tab(n + 2, *fOut);
     *fOut << "elif scale_mode == 'exp':";
-	tab(n + 3, *fOut);
+    tab(n + 3, *fOut);
     *fOut << "init = jnp.interp(init, jnp.array([a_min, a_max]), jnp.array([1., jnp.e]))";
     tab(n + 3, *fOut);
     *fOut << "init = jnp.log(init)";
@@ -393,7 +424,7 @@ void JAXCodeContainer::produceClass()
     *fOut << "self.sow('intermediates', label, param)";
     tab(n + 2, *fOut);
     *fOut << "return param";
-    tab(n + 2, *fOut);
+    tab(n + 1, *fOut);
 
     // User interface
     tab(n + 1, *fOut);
@@ -409,7 +440,7 @@ void JAXCodeContainer::produceClass()
     tab(n + 1, *fOut);
     generateCompute(n+1);
 
-	tab(n + 1, *fOut);
+    tab(n + 1, *fOut);
 }
 
 void JAXCodeContainer::generateCompute(int n)
@@ -422,9 +453,9 @@ void JAXCodeContainer::generateCompute(int n)
     *fOut << "@staticmethod";
     tab(n, *fOut);
 
-	*fOut << "def tick(state: dict, inputs: jnp.array):";
+    *fOut << "def tick(state: dict, inputs: jnp.array):";
     tab(n + 1, *fOut);
-	//*fOut << "params, state = carry";
+    //*fOut << "params, state = carry";
 
     //tab(n + 1, *fOut);
     //*fOut << "# todo: use jax.vmap to allow batch sizes greater than 1";
@@ -465,7 +496,7 @@ void JAXCodeContainer::generateCompute(int n)
     //*fOut << "return vscan(self.tick, state, inputs)";
     //*fOut << "return jax.lax.scan(self.tick, state, inputs)";
     *fOut << "return jnp.transpose(jax.lax.scan(self.tick, state, jnp.transpose(x, axes=(1, 0)))[1], axes=(1,0))";
-	tab(n, *fOut);
+    tab(n, *fOut);
 }
 
 void JAXCodeContainer::produceMetadata(int tabs)
@@ -505,7 +536,6 @@ void JAXCodeContainer::produceInfoFunctions(int tabs, const string& classname, c
     // Input/Output method
     producer->Tab(tabs);
     generateGetInputs("getNumInputs", obj, ismethod, isvirtual)->accept(producer);
-    tab(tabs, *fOut);
     generateGetOutputs("getNumOutputs", obj, ismethod, isvirtual)->accept(producer);
 }
 

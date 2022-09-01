@@ -28,9 +28,7 @@ def test(args):
     print("NUM INPUT CHANNELS: ", model.getNumInputs())
     print("NUM OUTPUT CHANNELS: ", model.getNumOutputs())
 
-    # import json
-    # json_str = model.getJSON()
-    # json_obj = json.loads(json_str)
+    json_obj = model.getJSON()
     # print('json_obj: ', json_obj)
 
     key = random.PRNGKey(0)
