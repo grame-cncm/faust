@@ -36,12 +36,9 @@ class AcosPrim : public xtended {
     virtual ::Type infereSigType(ConstTypes args)
     {
         faustassert(args.size() == 1);
-        Type     t = args[0];
-        interval i = t->getInterval();
-        if (i.valid && gGlobal->gMathExceptions && (i.lo < -1 || i.hi > 1)) {
-            cerr << "WARNING : potential out of domain in acos(" << i << ")" << endl;
-        }
-        return floatCast(args[0]);
+        Type t = args[0];
+        Type w = t->promoteNature(kReal)->promoteInterval(gAlgebra.Acos(t->getInterval()));
+        return w;
     }
 
     virtual int infereSigOrder(const vector<int>& args) { return args[0]; }

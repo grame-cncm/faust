@@ -76,7 +76,7 @@ using namespace std;
 
 class AudioType;
 
-typedef P<AudioType> Type;
+typedef P<AudioType>        Type;
 typedef const vector<Type>& ConstTypes;
 
 /**
@@ -198,19 +198,11 @@ inline interval mergeinterval(ConstTypes v)
     if (v.size() == 0) {
         return interval();
     } else {
-        double lo = 0, hi = 0;
-        for (unsigned int i = 0; i < v.size(); i++) {
-            interval r = v[i]->getInterval();
-            if (!r.valid) return r;
-            if (i == 0) {
-                lo = r.lo;
-                hi = r.hi;
-            } else {
-                lo = min(lo, r.lo);
-                hi = max(hi, r.hi);
-            }
+        interval r = v[0]->getInterval();
+        for (unsigned int i = 1; i < v.size(); i++) {
+            r = itv::reunion(r, v[i]->getInterval());
         }
-        return interval(lo, hi);
+        return r;
     }
 }
 
@@ -352,8 +344,11 @@ class TableType : public AudioType {
     }  ///< construct a TableType with a content of a type t, promoting nature, variability, computability and
        ///< vectorability
 
-    Type             content() const { return fContent; }  ///< return the type of data store in the table
-    virtual ostream& print(ostream& dst) const;            ///< print a TableType
+    Type content() const
+    {
+        return fContent;
+    }                                            ///< return the type of data store in the table
+    virtual ostream& print(ostream& dst) const;  ///< print a TableType
 
     virtual AudioType* promoteNature(int n)
     {

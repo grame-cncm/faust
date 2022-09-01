@@ -82,9 +82,19 @@ class interval {
         return isconst() && ((n & (-n)) == n);
     }
 
-    double lo() const { return fLo; }
-    double hi() const { return fHi; }
-    double size() const { return fHi - fLo; }
+    double      lo() const { return fLo; }
+    double      hi() const { return fHi; }
+    double      size() const { return fHi - fLo; }
+    std::string toString() const
+    {
+        if (isEmpty()) {
+            return "[]";
+        } else if (isconst()) {
+            return std::to_string(fLo);
+        } else {
+            return "[" + std::to_string(fLo) + "," + std::to_string(fHi) + "]";
+        }
+    }
 };
 
 //-------------------------------------------------------------------------

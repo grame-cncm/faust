@@ -48,8 +48,8 @@ void SignalTreeChecker::visit(Tree sig)
                 faustassert(false);
             }
         }
-        
-    // Binary operations
+
+        // Binary operations
     } else if (isSigBinOp(sig, &opnum, x, y)) {
         Type tx = getCertifiedSigType(x);
         Type ty = getCertifiedSigType(y);
@@ -57,8 +57,8 @@ void SignalTreeChecker::visit(Tree sig)
             cerr << "ERROR : isSigBinOp of args with different types : " << *sig << endl;
             faustassert(false);
         }
-        
-    // Foreign functions
+
+        // Foreign functions
     } else if (isSigFFun(sig, ff, args)) {
         int len = ffarity(ff) - 1;
         for (int i = 0; i < ffarity(ff); i++) {
@@ -72,22 +72,22 @@ void SignalTreeChecker::visit(Tree sig)
             cerr << "ERROR : isSigFFun of res with incoherent type : " << *sig << endl;
             faustassert(false);
         }
-        
-    // Select2 (and Select3 expressed with Select2)
+
+        // Select2 (and Select3 expressed with Select2)
     } else if (isSigSelect2(sig, sel, x, y)) {
         if (getCertifiedSigType(sel)->nature() != kInt) {
             cerr << "ERROR : isSigSelect2 with wrong typed selector : " << *sig << endl;
             faustassert(false);
         }
 
-    // Delay
+        // Delay
     } else if (isSigDelay(sig, x, y)) {
         if (getCertifiedSigType(y)->nature() != kInt) {
             cerr << "ERROR : isSigDelay with a wrong typed delay : " << *sig << endl;
             faustassert(false);
         }
 
-    // Int and Float Cast
+        // Int and Float Cast
     } else if (isSigIntCast(sig, x)) {
         if (getCertifiedSigType(x)->nature() == kInt) {
             cerr << "ERROR : isSigIntCast of a kInt signal : " << *sig << endl;
@@ -99,14 +99,14 @@ void SignalTreeChecker::visit(Tree sig)
             cerr << "ERROR : isSigFloatCast of a kReal signal : " << *sig << endl;
             faustassert(false);
         }
-        
-    // Tables
+
+        // Tables
     } else if (isSigRDTbl(sig, tb, idx)) {
         if (getCertifiedSigType(idx)->nature() != kInt) {
             cerr << "ERROR : isSigRDTbl with a wrong typed rdx : " << *sig << endl;
             faustassert(false);
         }
-        
+
     } else if (isSigWRTbl(sig, id, tb, idx, ws)) {
         if (getCertifiedSigType(idx)->nature() != kInt) {
             cerr << "ERROR : isSigWRTbl with a wrong typed wdx : " << *sig << endl;
@@ -116,8 +116,8 @@ void SignalTreeChecker::visit(Tree sig)
             cerr << "ERROR : isSigWRTbl with non matching tb and ws types : " << *sig << endl;
             faustassert(false);
         }
- 
-    // Soundfiles
+
+        // Soundfiles
     } else if (isSigSoundfileLength(sig, sf, part)) {
         if (getCertifiedSigType(part)->nature() != kInt) {
             cerr << "ERROR : isSigSoundfileLength with a wrong typed part : " << *sig << endl;
@@ -229,7 +229,7 @@ Tree SignalPromotion::transformation(Tree sig)
                 // Done here instead of 'simplify' to be sure the signals are correctly typed.
                 interval i1 = tx->getInterval();
                 interval j1 = ty->getInterval();
-                if (i1.valid & j1.valid && gGlobal->gMathExceptions && j1.haszero()) {
+                if (i1.valid & j1.valid && gGlobal->gMathExceptions && j1.hasZero()) {
                     cerr << "WARNING : potential division by zero (" << i1 << "/" << j1 << ")" << endl;
                 }
                 // the result of a division is always a float

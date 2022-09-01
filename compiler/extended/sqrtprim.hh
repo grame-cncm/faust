@@ -38,14 +38,12 @@ class SqrtPrim : public xtended {
         faustassert(args.size() == 1);
         Type     t = args[0];
         interval i = t->getInterval();
-        if (i.valid) {
-            if (i.lo >= 0) {
-                return castInterval(floatCast(t), interval(sqrt(i.lo), sqrt(i.hi)));
-            } else if (gGlobal->gMathExceptions) {
-                cerr << "WARNING : potential out of domain in sqrt(" << i << ")" << endl;
-            }
+        if (i.lo() >= 0) {
+            return castInterval(floatCast(t), gAlgebra.Sqrt(i));
+        } else if (gGlobal->gMathExceptions) {
+            cerr << "WARNING : potential out of domain in sqrt(" << i << ")" << endl;
+            return castInterval(floatCast(t), interval());
         }
-        return castInterval(floatCast(t), interval());
     }
 
     virtual int infereSigOrder(const vector<int>& args) { return args[0]; }
