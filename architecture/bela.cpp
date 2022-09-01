@@ -43,6 +43,7 @@
     type of sensors supported : 
         BAR : Position, Pressure, Touched. (Multitouch not supported)
         SQUARE : Position X & Y, Pressure, Touched. (Multitouch not supported)
+		CRAFT : Pressure or index of (first or last) active pin (depend on mode)
     usage : addin Meta data in UI widget of the Faust Code
         TRILL:BAR_POS_n
         TRILL:BAR_LVL_n
@@ -51,8 +52,11 @@
         TRILL:SQUARE_YPOS_n
         TRILL:SQUARE_LVL_n
         TRILL:SQUARE_TOUCH_n
+		TRILL:CRAFT_n PIN no_pin
+		TRILL:CRAFT_n UP lo_pin-hi_pin (return the index of the higher pin active in the array of pin defined or -1 if no pin active)
+		TRILL:CRAFT_n DOWN lo_pin-hi_pin (return the index of the lower pin active in the array of pin defined or -1 if no pin active)
     where n is the sensors index. index suported are 0 to 7 for each type of sensor
-    2 array (TrillBarAdress and TrillSquareAdress) allow to route the i2c addresses of the sensors
+    3 array (TrillBarAdress, TrillSquareAdress and TrillCraftAdress) allow to route the i2c addresses of the sensors
     
  ************************************************************************/ 
 
@@ -197,7 +201,15 @@ const char* const pinNamesStrings[] =
     "SQUARE_XPOS_7",
     "SQUARE_YPOS_7",
     "SQUARE_LVL_7",
-    "SQUARE_TOUCH_7"
+    "SQUARE_TOUCH_7",
+	"CRAFT_0",
+	"CRAFT_1",
+	"CRAFT_2",
+	"CRAFT_3",
+	"CRAFT_4",
+	"CRAFT_5",
+	"CRAFT_6",
+	"CRAFT_7"
 };
 
 enum EInOutPin
@@ -293,6 +305,14 @@ enum EInOutPin
     kSQUARE_YPOS_7,
     kSQUARE_LVL_7,
     kSQUARE_TOUCH_7,
+	kCRAFT_0,
+	kCRAFT_1,
+	kCRAFT_2,
+	kCRAFT_3,
+	kCRAFT_4,
+	kCRAFT_5,
+	kCRAFT_6,
+	kCRAFT_7,
     kNumInputPins
 };
 
@@ -308,7 +328,7 @@ class BelaWidget
         
         EInOutPin fBelaPin;
         FAUSTFLOAT* fZone;  // zone
-        const char* fLabel; // label
+        const char* fLabel;  // label
         FAUSTFLOAT fMin;    // minimal value
         FAUSTFLOAT fRange;  // value range (max-min)
         
@@ -338,6 +358,13 @@ class BelaWidget
         ,fRange(hi-lo)
         {}
         
+		virtual ~BelaWidget() {}
+		
+		virtual bool setParameters(const char* Parameters)
+		{
+			return true;
+		}
+		
         virtual void update(BelaContext* context)
         {
             switch(fBelaPin) {
@@ -395,8 +422,8 @@ class BelaWidget
 
 /**************************************************************************************
  
- BelaWidget : object used by BelaUI to ensures the connection between a Trill sensors values
- and a Faust widget
+ TrillWidget : object used by BelaUI to ensures the connection between a Trill sensors values
+ and a Faust widget.
  
  ***************************************************************************************/
 
@@ -431,19 +458,27 @@ class TrillWidget : public BelaWidget
             fMin = lo;    // minimal value
             fRange = hi;
             sensor = NULL;
-            if (strstr(pinNamesStrings[fBelaPin], "BAR"))
+            if (strstr(pinNamesStrings[fBelaPin], "BAR")) {
                 type = Trill::BAR;
-            else if (strstr(pinNamesStrings[fBelaPin], "SQUARE"))
+            } else if (strstr(pinNamesStrings[fBelaPin], "SQUARE")) {
                 type = Trill::SQUARE;
-            else
+            } else {
                 type = Trill::NONE;
+            }
         }
+		
+		virtual ~TrillWidget()
+        {}
         
         void setSensor(Trill* nSensor)
         {
-            if (nSensor)
-                sensor = nSensor;
+            if (nSensor) sensor = nSensor;
         }
+		
+		virtual bool setParameters(const char* Parameters)
+		{
+			return true;
+		}
 
         virtual void update(BelaContext* context)
         {
@@ -551,6 +586,132 @@ class TrillWidget : public BelaWidget
 
 /**************************************************************************************
  
+ TrillCraftWidget : object used by BelaUI to ensures the connection between a Trill Craft sensors values
+ and a Faust widget.
+ 
+ ***************************************************************************************/
+
+class TrillCraftWidget : public TrillWidget
+{
+	 protected:
+		int lopin;
+		int hipin;
+		std::string mode;
+
+     public:
+     
+        TrillCraftWidget()
+        {
+            TrillWidget();
+            sensor = NULL;
+            type = Trill::CRAFT;
+			lopin = -1;
+			hipin = -1;
+			mode = "PIN";
+        }
+
+        TrillCraftWidget(const TrillCraftWidget& w)
+        {
+            TrillWidget((TrillWidget) w);
+            sensor = NULL;
+            type = Trill::CRAFT;
+			lopin = -1;
+			hipin = -1;
+			mode = "PIN";
+        }
+
+        TrillCraftWidget(EInOutPin pin, FAUSTFLOAT* z, const char* l, FAUSTFLOAT lo, FAUSTFLOAT hi)
+        {
+            fBelaPin = pin;
+            fZone = z;  // zone
+            fLabel = l; // label
+            fMin = lo;    // minimal value
+            fRange = hi;
+            sensor = NULL;
+            type = Trill::CRAFT;
+			lopin = -1;
+			hipin = -1;
+			mode = "PIN";
+        }
+		
+        virtual ~TrillCraftWidget()
+        {}
+		
+		virtual bool setParameters(const char* Parameters)
+		{
+			// take the parameters
+			if (Parameters)
+			{
+                if (parseWord(Parameters, "PIN")) {
+                    mode = "PIN";
+                } else if (parseWord(Parameters, "UP")) {
+                    mode = "UP";
+                } else if (parseWord(Parameters, "DOWN")) {
+                    mode = "DOWN";
+                }
+			}
+			double tmpval = 0.;
+            if (Parameters && parseDouble(Parameters,tmpval)) {
+                lopin = (int)tmpval;
+            } else {
+                lopin = -1;
+            }
+            if (Parameters && parseChar(Parameters,'-') && parseDouble(Parameters,tmpval)) {
+                hipin = (int)tmpval;
+            } else {
+                hipin = -1;
+            }
+			return true;
+		}
+		
+		virtual void update(BelaContext* context)
+        {
+			if (sensor && lopin >= 0)
+			{
+			    float val = -1;
+				if (mode == "PIN")
+				{
+					val = sensor->rawData[lopin];
+					*fZone = fMin + fRange * val;
+				}
+				else if(mode == "UP")
+				{
+					float sval = 0;
+					for (int i = hipin; i >= lopin; i--)
+					{
+						sval = sensor->rawData[i];
+						if (sval > 0)
+						{	
+							val = i-lopin;
+							break;
+						}
+					}			
+					*fZone = val;
+				}
+				else if (mode == "DOWN")
+				{
+					float sval = 0;
+					for (int i = lopin; i <= hipin; i++)
+					{
+						sval = sensor->rawData[i];
+						if (sval > 0)
+						{
+							val = i-lopin;
+							break;
+						}
+					}
+					*fZone = val;
+				}
+			}
+		}
+		
+		void setMode(std::string mo) { mode = mo; }
+		void setLopin(int pin) { lopin = pin; }
+		void setHipin(int pin) { hipin = pin; }
+};
+
+/**************************************************************************************
+ 
  BelaUI : Faust User Interface builder. Passed to buildUserInterface BelaUI allows
  the mapping between BELA pins and Faust widgets. It relies on specific
  metadata "...[BELA:DIGITAL_0]..." in the widget's label for that. For example any
@@ -564,8 +725,8 @@ class TrillWidget : public BelaWidget
 #define MAXBELAWIDGETS 16
 
 // Max number of trill sensors parameters mapped.
-// max of 8 BAR sensors with 3 parameters (Position,Pressure,Touch) et 8 SQUARE sensors with 4 parameters (Position X, Position Y, Pressure, Touch)
-#define MAXTRILLWIDGETS 56
+// max of 8 BAR sensors with 3 parameters (Position,Pressure,Touch), 8 SQUARE sensors with 4 parameters (Position X, Position Y, Pressure, Touch), 8 CRAFT sensors with 1 parameter
+#define MAXTRILLWIDGETS 64
 
 class BelaUI : public GenericUI
 {
@@ -576,9 +737,10 @@ class BelaUI : public GenericUI
         EInOutPin fBelaPin;                         // current pin id
         BelaWidget fTable[MAXBELAWIDGETS];          // list of BelaWidgets
         
-        int fTrillIndex;                            // number of TrillWidget collected so far
+       
         EInOutPin fTrillPin;                        // current trill pin id
-        TrillWidget fTrillTable[MAXTRILLWIDGETS];   // list of TrillWidget
+        vector<TrillWidget*> fTrillTable;           // list of TrillWidget
+		const char* fTrillParams;
         
         
         // check if the widget is linked to a Bela parameter and, if so, add the corresponding BelaWidget
@@ -592,11 +754,24 @@ class BelaUI : public GenericUI
         }
         void addTrillWidget(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi)
         {
-            if (fTrillPin != kNoPin && (fTrillIndex < MAXTRILLWIDGETS)) {
-                fTrillTable[fTrillIndex] = TrillWidget(fTrillPin, zone, label, lo, hi);
-                fTrillIndex++;
+            if (fTrillPin != kNoPin && (fTrillTable.size() < MAXTRILLWIDGETS)) {
+			
+				if (strstr(pinNamesStrings[fTrillPin], "CRAFT"))
+				{
+					TrillCraftWidget* newcraft = new TrillCraftWidget(fTrillPin, zone, label, lo, hi);
+					newcraft->setParameters(fTrillParams);	
+					fTrillTable.push_back(newcraft);
+				}
+				else
+				{
+					TrillWidget* newtrill = new TrillWidget(fTrillPin, zone, label, lo, hi);
+					newtrill->setParameters(fTrillParams);	
+					fTrillTable.push_back(newtrill);
+				}
+                
             }
             fTrillPin = kNoPin;
+			fTrillParams=NULL;
         }
         
     public:
@@ -604,11 +779,15 @@ class BelaUI : public GenericUI
         BelaUI()
         : fIndex(0)
         , fBelaPin(kNoPin)
-        , fTrillIndex(0)
         , fTrillPin(kNoPin)
+		, fTrillParams(NULL)
         {}
         
-        virtual ~BelaUI() {}
+        virtual ~BelaUI()
+        {
+			for (auto t : fTrillTable)
+				delete t;
+		}
         
         // should be called before compute() to update widget's zones registered as Bela parameters
         void update(BelaContext* context)
@@ -616,8 +795,8 @@ class BelaUI : public GenericUI
             for (int i = 0; i < fIndex; i++) {
                 fTable[i].update(context);
             }
-            for (int i = 0; i < fTrillIndex; i++) {
-                fTrillTable[i].update(context);
+            for (int i = 0; i < fTrillTable.size(); i++) {
+                fTrillTable[i]->update(context);
             }
         }
         
@@ -676,11 +855,15 @@ class BelaUI : public GenericUI
             }
             else if (strcasecmp(k, "TRILL") == 0) {
                 for (int i = 0; i < kNumInputPins; i++) {
-                    if (strcasecmp(id, pinNamesStrings[i]) == 0) {
+                    if (strstr(id, pinNamesStrings[i])) {
                         fTrillPin = (EInOutPin)i;
+						const char* tmp = id;
+						if (parseWord(tmp, pinNamesStrings[i]))
+							fTrillParams = tmp;
                     }
                 }
             }
+			
         }
         
         void setTrill(Trill::Device device,Trill* sensor,int idx)
@@ -689,22 +872,34 @@ class BelaUI : public GenericUI
             switch(device) {
                 case Trill::BAR:
                     CurTrill = (EInOutPin) (kBAR_POS_0+idx*3);
-                    for (int i = 0; i < fTrillIndex; i++)
+                    for (int i = 0; i < fTrillTable.size(); i++)
                     {
-                        if ((fTrillTable[i].getBelaPin() == CurTrill || fTrillTable[i].getBelaPin() == (CurTrill+1) || fTrillTable[i].getBelaPin() == (CurTrill+2)) && fTrillTable[i].getType() == device)
-                            fTrillTable[i].setSensor(sensor);
+                        if ((fTrillTable[i]->getBelaPin() == CurTrill
+                             || fTrillTable[i]->getBelaPin() == (CurTrill+1)
+                             || fTrillTable[i]->getBelaPin() == (CurTrill+2)) && fTrillTable[i]->getType() == device)
+                            fTrillTable[i]->setSensor(sensor);
                     }
                     break;
                 
                 case Trill::SQUARE:
                     CurTrill = (EInOutPin) (kSQUARE_XPOS_0+idx*4);
-                    for (int i = 0; i < fTrillIndex; i++)
+                    for (int i = 0; i < fTrillTable.size(); i++)
                     {
-                        if ((fTrillTable[i].getBelaPin() == CurTrill || fTrillTable[i].getBelaPin() == (CurTrill+1) || fTrillTable[i].getBelaPin() == (CurTrill+2) || fTrillTable[i].getBelaPin() == (CurTrill+3)) && fTrillTable[i].getType() == device)
-                            fTrillTable[i].setSensor(sensor);
+                        if ((fTrillTable[i]->getBelaPin() == CurTrill
+                             || fTrillTable[i]->getBelaPin() == (CurTrill+1)
+                             || fTrillTable[i]->getBelaPin() == (CurTrill+2)
+                             || fTrillTable[i]->getBelaPin() == (CurTrill+3)) && fTrillTable[i]->getType() == device)
+                            fTrillTable[i]->setSensor(sensor);
                     }
                     break;
-                    
+                case Trill::CRAFT:
+					CurTrill = (EInOutPin) (kCRAFT_0+idx);
+					for (int i = 0; i < fTrillTable.size(); i++)
+                    {
+                        if (fTrillTable[i]->getBelaPin() == CurTrill && fTrillTable[i]->getType() == device)
+                            fTrillTable[i]->setSensor(sensor);
+                    }
+					break;
                 default:
                     break;
             };
@@ -775,8 +970,11 @@ static dsp* gDSP = NULL;
 // Trill adress routing
 const uint8_t TrillBarAdress[] = {0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27};
 const uint8_t TrillSquareAdress[] = {0x28,0x29,0x2A,0x2B,0x2C,0x2D,0x2E,0x2F};
+const uint8_t TrillCraftAdress[] = {0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37};
 
 static vector<Trill*> gTouchSensors;
+
+const int DELAYTRILLLOOP = 5000;
 
 // Return the sensor index corresponding to the i2c address in input
 static int trillAdress2index(uint8_t i2cadress)
@@ -791,6 +989,12 @@ static int trillAdress2index(uint8_t i2cadress)
     for (int i = 0; i < cnt;i++)
     {
         if (TrillSquareAdress[i] == i2cadress)
+            return i;
+    }
+	cnt = sizeof(TrillCraftAdress);
+    for (int i = 0; i < cnt;i++)
+    {
+        if (TrillCraftAdress[i] == i2cadress)
             return i;
     }
     return -1;
@@ -809,7 +1013,7 @@ static void trillLoop(void*)
             t->readI2C();
         }
         // Put the process to sleep when finished
-        usleep(12000);
+        usleep(DELAYTRILLLOOP);
     }
 }
 
@@ -919,16 +1123,21 @@ bool setup(BelaContext* context, void* userData)
     for(uint8_t addr = 0x20; addr <= 0x50; ++addr)
     {
         Trill::Device device = Trill::probe(i2cBus, addr);
-        if (Trill::NONE != device && Trill::CRAFT != device)
+        if (Trill::NONE != device /*&& Trill::CRAFT != device*/)
         {
             Trill* newsensor = new Trill(i2cBus, device, addr);
             gTouchSensors.push_back(newsensor);
             //gTouchSensors.back()->printDetails();
             int trillidx = trillAdress2index(addr);
             gControlUI.setTrill(device, newsensor, trillidx);
+			
+			// config of craft (must move in another place)
+			if (device == Trill::CRAFT) {
+				newsensor->setPrescaler(4);
+				newsensor->setNoiseThreshold(0.12);
+			}
         }
     }
-    
     
     Bela_runAuxiliaryTask(trillLoop);
     return true;
