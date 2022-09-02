@@ -213,13 +213,18 @@ void routeSchema::drawInputArrows(device& dev)
  * Draw horizontal arrows from the input points to the
  * routeSchema rectangle
  */
+bool routeSchema::isValidRoute(int src, int dst) const
+{
+    return (src > 0) && (src <= (int)inputs()) && (dst > 0) && (dst <= (int)outputs());
+}
+
 void routeSchema::collectTraits(collector& c)
 {
     collectInputWires(c);
     collectOutputWires(c);
     // additional routing traits
     for (unsigned int i = 0; i < fRoutes.size() - 1; i += 2) {
-        if ((fRoutes[i] > 0) && (fRoutes[i] <= inputs()) && (fRoutes[i + 1] > 0) && (fRoutes[i + 1] <= outputs())) {
+        if (isValidRoute(fRoutes[i], fRoutes[i + 1])) {
             int   src = fRoutes[i] - 1;
             int   dst = fRoutes[i + 1] - 1;
             point p1  = fInputPoint[src];

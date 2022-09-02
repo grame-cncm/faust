@@ -904,15 +904,43 @@ static string evalLabel(const char* src, Tree visited, Tree localValEnv)
 static Tree iteratePar(Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
     if (num == 0) {
-        evalerror(yyfilename, -1, "iteratePar called with 0 iteration", id);
+        // zero iteration: return neutral circuit (0->0) for parallel composition
+        return boxRoute(boxInt(0), boxInt(0), boxPar(boxInt(0), boxInt(0)));
+    } else {
+        Tree res = eval(body, visited, pushValueDef(id, tree(num - 1), localValEnv));
+        for (int i = num - 2; i >= 0; i--) {
+            res = boxPar(eval(body, visited, pushValueDef(id, tree(i), localValEnv)), res);
+        }
+        return res;
     }
+}
 
-    Tree res = eval(body, visited, pushValueDef(id, tree(num - 1), localValEnv));
-    for (int i = num - 2; i >= 0; i--) {
-        res = boxPar(eval(body, visited, pushValueDef(id, tree(i), localValEnv)), res);
+/**
+ * @brief Compute the neutral element for sequential composition modeled after body
+ *
+ * @param id
+ * @param body
+ * @param visited
+ * @param localValEnv
+ * @return a bus: _,...,_
+ */
+static Tree neutralExpSeq(Tree id, Tree body, Tree visited, Tree localValEnv)
+{
+    // We need to find the number of inputs and outputs of body
+    // We eval body with binding id to 0
+    Tree res = eval(body, visited, pushValueDef(id, tree(0), localValEnv));
+
+    int ins, outs;
+    getBoxType(res, &ins, &outs);
+    if (outs > 0) {
+        Tree bus = boxWire();
+        for (int j = 1; j < outs; j++) {
+            bus = boxPar(bus, boxWire());
+        }
+        return bus;
+    } else {
+        return boxRoute(boxInt(0), boxInt(0), boxPar(boxInt(0), boxInt(0)));
     }
-
-    return res;
 }
 
 /**
@@ -925,20 +953,20 @@ static Tree iteratePar(Tree id, int num, Tree body, Tree visited, Tree localValE
  * @param body the body expression of the iteration
  * @param globalDefEnv the global environment
  * @param visited list of visited definition to detect recursive definitions
+ * @param localValEnv the local environment
  * @return a block diagram in normal form
  */
 static Tree iterateSeq(Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
     if (num == 0) {
-        evalerror(yyfilename, -1, "iterateSeq called with 0 iteration", id);
+        return neutralExpSeq(id, body, visited, localValEnv);
+    } else {
+        Tree res = eval(body, visited, pushValueDef(id, tree(num - 1), localValEnv));
+        for (int i = num - 2; i >= 0; i--) {
+            res = boxSeq(eval(body, visited, pushValueDef(id, tree(i), localValEnv)), res);
+        }
+        return res;
     }
-
-    Tree res = eval(body, visited, pushValueDef(id, tree(num - 1), localValEnv));
-    for (int i = num - 2; i >= 0; i--) {
-        res = boxSeq(eval(body, visited, pushValueDef(id, tree(i), localValEnv)), res);
-    }
-
-    return res;
 }
 
 /**
@@ -957,15 +985,14 @@ static Tree iterateSeq(Tree id, int num, Tree body, Tree visited, Tree localValE
 static Tree iterateSum(Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
     if (num == 0) {
-        evalerror(yyfilename, -1, "iterateSum called with 0 iterations", id);
+        return boxRoute(boxInt(0), boxInt(0), boxPar(boxInt(0), boxInt(0)));
+    } else {
+        Tree res = eval(body, visited, pushValueDef(id, tree(0), localValEnv));
+        for (int i = 1; i < num; i++) {
+            res = boxSeq(boxPar(res, eval(body, visited, pushValueDef(id, tree(i), localValEnv))), boxPrim2(sigAdd));
+        }
+        return res;
     }
-
-    Tree res = eval(body, visited, pushValueDef(id, tree(0), localValEnv));
-    for (int i = 1; i < num; i++) {
-        res = boxSeq(boxPar(res, eval(body, visited, pushValueDef(id, tree(i), localValEnv))), boxPrim2(sigAdd));
-    }
-
-    return res;
 }
 
 /**
@@ -984,15 +1011,14 @@ static Tree iterateSum(Tree id, int num, Tree body, Tree visited, Tree localValE
 static Tree iterateProd(Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
     if (num == 0) {
-        evalerror(yyfilename, -1, "iterateProd called with 0 iterations", id);
+        return boxRoute(boxInt(0), boxInt(0), boxPar(boxInt(0), boxInt(0)));
+    } else {
+        Tree res = eval(body, visited, pushValueDef(id, tree(0), localValEnv));
+        for (int i = 1; i < num; i++) {
+            res = boxSeq(boxPar(res, eval(body, visited, pushValueDef(id, tree(i), localValEnv))), boxPrim2(sigMul));
+        }
+        return res;
     }
-
-    Tree res = eval(body, visited, pushValueDef(id, tree(0), localValEnv));
-    for (int i = 1; i < num; i++) {
-        res = boxSeq(boxPar(res, eval(body, visited, pushValueDef(id, tree(i), localValEnv))), boxPrim2(sigMul));
-    }
-
-    return res;
 }
 
 /**

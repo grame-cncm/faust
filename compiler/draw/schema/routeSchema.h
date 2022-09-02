@@ -67,6 +67,8 @@ class routeSchema : public schema {
 
     void collectInputWires(collector& c);
     void collectOutputWires(collector& c);
+
+    bool isValidRoute(int src, int dst) const;
 };
 
 #endif
