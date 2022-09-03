@@ -928,11 +928,17 @@ static Tree neutralExpSeq(Tree id, Tree body, Tree visited, Tree localValEnv)
 {
     // We need to find the number of inputs and outputs of body
     // We eval body with binding id to 0
-    Tree res = eval(body, visited, pushValueDef(id, tree(0), localValEnv));
+    Tree res = a2sb(eval(body, visited, pushValueDef(id, tree(0), localValEnv)));
 
     int ins, outs;
     getBoxType(res, &ins, &outs);
-    if (outs > 0) {
+    if (ins != outs) {
+        stringstream error;
+        error << "ERROR in seq() expressions. The iterated function must have the same number of inputs and outputs. "
+                 "Here "
+              << boxpp(res) << " has " << ins << " inputs and " << outs << " outputs" << endl;
+        throw faustexception(error.str());
+    } else if (outs > 0) {
         Tree bus = boxWire();
         for (int j = 1; j < outs; j++) {
             bus = boxPar(bus, boxWire());
@@ -958,8 +964,11 @@ static Tree neutralExpSeq(Tree id, Tree body, Tree visited, Tree localValEnv)
  */
 static Tree iterateSeq(Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
+    // compute the neural element anyway, at least to check that the body is well typed
+    Tree neutral = neutralExpSeq(id, body, visited, localValEnv);
+
     if (num == 0) {
-        return neutralExpSeq(id, body, visited, localValEnv);
+        return neutral;
     } else {
         Tree res = eval(body, visited, pushValueDef(id, tree(num - 1), localValEnv));
         for (int i = num - 2; i >= 0; i--) {
