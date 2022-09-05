@@ -38,12 +38,12 @@
  ************************************************************************/ 
  
  /************************************************************************
-    Evolution (2022): Trill Sensors support 
-    
-    type of sensors supported : 
+    Evolution (2022): Trill Sensors support
+
+    type of sensors supported :
         BAR : Position, Pressure, Touched. (Multitouch not supported)
         SQUARE : Position X & Y, Pressure, Touched. (Multitouch not supported)
-		CRAFT : Pressure or index of (first or last) active pin (depend on mode)
+        CRAFT : Pressure or index of (first or last) active pin (depend on mode)
     usage : addin Meta data in UI widget of the Faust Code
         TRILL:BAR_POS_n
         TRILL:BAR_LVL_n
@@ -52,12 +52,11 @@
         TRILL:SQUARE_YPOS_n
         TRILL:SQUARE_LVL_n
         TRILL:SQUARE_TOUCH_n
-		TRILL:CRAFT_n PIN no_pin
-		TRILL:CRAFT_n UP lo_pin-hi_pin (return the index of the higher pin active in the array of pin defined or -1 if no pin active)
-		TRILL:CRAFT_n DOWN lo_pin-hi_pin (return the index of the lower pin active in the array of pin defined or -1 if no pin active)
-    where n is the sensors index. index suported are 0 to 7 for each type of sensor
-    3 array (TrillBarAdress, TrillSquareAdress and TrillCraftAdress) allow to route the i2c addresses of the sensors
-    
+        TRILL:CRAFT_n PIN no_pin
+        TRILL:CRAFT_n UP lo_pin-hi_pin (return the index of the higher pin active in the array of pin defined or -1 if no pin active)
+        TRILL:CRAFT_n DOWN lo_pin-hi_pin (return the index of the lower pin active in the array of pin defined or -1 if no pin active)
+    where n is the sensors index. index suported are 0 to 7 for each type of sensor.
+    3 arrays (TrillBarAdress, TrillSquareAdress and TrillCraftAdress) allow to route the i2c addresses of the sensors.
  ************************************************************************/ 
 
 #ifndef __FaustBela_H__
@@ -436,16 +435,14 @@ class TrillWidget : public BelaWidget
     
     public:
      
-        TrillWidget()
+        TrillWidget():BelaWidget()
         {
-            BelaWidget();
             sensor = NULL;
             type = Trill::NONE;
         }
 
-        TrillWidget(const TrillWidget& w)
+        TrillWidget(const TrillWidget& w):BelaWidget((BelaWidget)w)
         {
-            BelaWidget((BelaWidget) w);
             sensor = NULL;
             type = Trill::NONE;
         }
@@ -482,102 +479,102 @@ class TrillWidget : public BelaWidget
 
         virtual void update(BelaContext* context)
         {
-            float val = 0;
+            float val = 0.f;
             switch (fBelaPin) {
-                    case kBAR_POS_0:
-                    case kBAR_POS_1:
-                    case kBAR_POS_2:
-                    case kBAR_POS_3:
-                    case kBAR_POS_4:
-                    case kBAR_POS_5:
-                    case kBAR_POS_6:
-                    case kBAR_POS_7:
-                        if (sensor && sensor->getNumTouches() > 0)
-                            val = sensor->compoundTouchLocation();
-                        *fZone = fMin + fRange * val;
-                        break;
+                case kBAR_POS_0:
+                case kBAR_POS_1:
+                case kBAR_POS_2:
+                case kBAR_POS_3:
+                case kBAR_POS_4:
+                case kBAR_POS_5:
+                case kBAR_POS_6:
+                case kBAR_POS_7:
+                    if (sensor && sensor->getNumTouches() > 0)
+                        val = sensor->compoundTouchLocation();
+                    *fZone = fMin + fRange * val;
+                    break;
+                
+                case kBAR_LVL_0:
+                case kBAR_LVL_1:
+                case kBAR_LVL_2:
+                case kBAR_LVL_3:
+                case kBAR_LVL_4:
+                case kBAR_LVL_5:
+                case kBAR_LVL_6:
+                case kBAR_LVL_7:
+                    if (sensor && sensor->getNumTouches() > 0)
+                        val = sensor->compoundTouchSize();
+                    *fZone = fMin + fRange * val;
+                    break;
                     
-                    case kBAR_LVL_0:
-                    case kBAR_LVL_1:
-                    case kBAR_LVL_2:
-                    case kBAR_LVL_3:
-                    case kBAR_LVL_4:
-                    case kBAR_LVL_5:
-                    case kBAR_LVL_6:
-                    case kBAR_LVL_7:
-                        if (sensor && sensor->getNumTouches() > 0)
-                            val = sensor->compoundTouchSize();
-                        *fZone = fMin + fRange * val;
-                        break;
-                        
-                    case kBAR_TOUCH_0:
-                    case kBAR_TOUCH_1:
-                    case kBAR_TOUCH_2:
-                    case kBAR_TOUCH_3:
-                    case kBAR_TOUCH_4:
-                    case kBAR_TOUCH_5:
-                    case kBAR_TOUCH_6:
-                    case kBAR_TOUCH_7:
-                        if (sensor)
-                            val = sensor->getNumTouches();
-                        *fZone = max(fRange,val);
-                        break;
-                        
-                    case kSQUARE_XPOS_0:
-                    case kSQUARE_XPOS_1:
-                    case kSQUARE_XPOS_2:
-                    case kSQUARE_XPOS_3:
-                    case kSQUARE_XPOS_4:
-                    case kSQUARE_XPOS_5:
-                    case kSQUARE_XPOS_6:
-                    case kSQUARE_XPOS_7:
-                        if (sensor && sensor->getNumTouches() > 0)
-                            val = sensor->compoundTouchHorizontalLocation();
-                        *fZone = fMin + fRange * val;
-                        break;
+                case kBAR_TOUCH_0:
+                case kBAR_TOUCH_1:
+                case kBAR_TOUCH_2:
+                case kBAR_TOUCH_3:
+                case kBAR_TOUCH_4:
+                case kBAR_TOUCH_5:
+                case kBAR_TOUCH_6:
+                case kBAR_TOUCH_7:
+                    if (sensor)
+                        val = sensor->getNumTouches();
+                    *fZone = max(fRange,val);
+                    break;
                     
-                    case kSQUARE_YPOS_0:
-                    case kSQUARE_YPOS_1:
-                    case kSQUARE_YPOS_2:
-                    case kSQUARE_YPOS_3:
-                    case kSQUARE_YPOS_4:
-                    case kSQUARE_YPOS_5:
-                    case kSQUARE_YPOS_6:
-                    case kSQUARE_YPOS_7:
-                        if (sensor && sensor->getNumTouches() > 0)
-                            val = sensor->compoundTouchLocation();
-                        *fZone = fMin + fRange * val;
-                        break;
+                case kSQUARE_XPOS_0:
+                case kSQUARE_XPOS_1:
+                case kSQUARE_XPOS_2:
+                case kSQUARE_XPOS_3:
+                case kSQUARE_XPOS_4:
+                case kSQUARE_XPOS_5:
+                case kSQUARE_XPOS_6:
+                case kSQUARE_XPOS_7:
+                    if (sensor && sensor->getNumTouches() > 0)
+                        val = sensor->compoundTouchHorizontalLocation();
+                    *fZone = fMin + fRange * val;
+                    break;
+                
+                case kSQUARE_YPOS_0:
+                case kSQUARE_YPOS_1:
+                case kSQUARE_YPOS_2:
+                case kSQUARE_YPOS_3:
+                case kSQUARE_YPOS_4:
+                case kSQUARE_YPOS_5:
+                case kSQUARE_YPOS_6:
+                case kSQUARE_YPOS_7:
+                    if (sensor && sensor->getNumTouches() > 0)
+                        val = sensor->compoundTouchLocation();
+                    *fZone = fMin + fRange * val;
+                    break;
+                
+                case kSQUARE_LVL_0:
+                case kSQUARE_LVL_1:
+                case kSQUARE_LVL_2:
+                case kSQUARE_LVL_3:
+                case kSQUARE_LVL_4:
+                case kSQUARE_LVL_5:
+                case kSQUARE_LVL_6:
+                case kSQUARE_LVL_7:
+                    if (sensor && sensor->getNumTouches() > 0)
+                        val = sensor->compoundTouchSize();
+                    *fZone = fMin + fRange * val;
+                    break;
+                
+                case kSQUARE_TOUCH_0:
+                case kSQUARE_TOUCH_1:
+                case kSQUARE_TOUCH_2:
+                case kSQUARE_TOUCH_3:
+                case kSQUARE_TOUCH_4:
+                case kSQUARE_TOUCH_5:
+                case kSQUARE_TOUCH_6:
+                case kSQUARE_TOUCH_7:
+                    if (sensor)
+                        val = sensor->getNumTouches();
+                    *fZone = max(fRange,val);
+                    break;
                     
-                    case kSQUARE_LVL_0:
-                    case kSQUARE_LVL_1:
-                    case kSQUARE_LVL_2:
-                    case kSQUARE_LVL_3:
-                    case kSQUARE_LVL_4:
-                    case kSQUARE_LVL_5:
-                    case kSQUARE_LVL_6:
-                    case kSQUARE_LVL_7:
-                        if (sensor && sensor->getNumTouches() > 0)
-                            val = sensor->compoundTouchSize();
-                        *fZone = fMin + fRange * val;
-                        break;
-                    
-                    case kSQUARE_TOUCH_0:
-                    case kSQUARE_TOUCH_1:
-                    case kSQUARE_TOUCH_2:
-                    case kSQUARE_TOUCH_3:
-                    case kSQUARE_TOUCH_4:
-                    case kSQUARE_TOUCH_5:
-                    case kSQUARE_TOUCH_6:
-                    case kSQUARE_TOUCH_7:
-                        if (sensor)
-                            val = sensor->getNumTouches();
-                        *fZone = max(fRange,val);
-                        break;
-                        
-                    default:
-                        break;
-                };
+                default:
+                    break;
+            };
         }
         
         Trill::Device getType() { return type; }
@@ -594,15 +591,15 @@ class TrillWidget : public BelaWidget
 class TrillCraftWidget : public TrillWidget
 {
 	 protected:
+    
 		int lopin;
 		int hipin;
-		std::string mode;
+		string mode;
 
      public:
      
-        TrillCraftWidget()
+        TrillCraftWidget():TrillWidget()
         {
-            TrillWidget();
             sensor = NULL;
             type = Trill::CRAFT;
 			lopin = -1;
@@ -610,9 +607,8 @@ class TrillCraftWidget : public TrillWidget
 			mode = "PIN";
         }
 
-        TrillCraftWidget(const TrillCraftWidget& w)
+        TrillCraftWidget(const TrillCraftWidget& w):TrillWidget((TrillWidget)w)
         {
-            TrillWidget((TrillWidget) w);
             sensor = NULL;
             type = Trill::CRAFT;
 			lopin = -1;
@@ -625,7 +621,7 @@ class TrillCraftWidget : public TrillWidget
             fBelaPin = pin;
             fZone = z;  // zone
             fLabel = l; // label
-            fMin = lo;    // minimal value
+            fMin = lo;  // minimal value
             fRange = hi;
             sensor = NULL;
             type = Trill::CRAFT;
@@ -668,19 +664,19 @@ class TrillCraftWidget : public TrillWidget
         {
 			if (sensor && lopin >= 0)
 			{
-			    float val = -1;
+			    float val = -1.f;
 				if (mode == "PIN")
 				{
 					val = sensor->rawData[lopin];
 					*fZone = fMin + fRange * val;
 				}
-				else if(mode == "UP")
+				else if (mode == "UP")
 				{
-					float sval = 0;
+					float sval = 0.f;
 					for (int i = hipin; i >= lopin; i--)
 					{
 						sval = sensor->rawData[i];
-						if (sval > 0)
+						if (sval > 0.f)
 						{	
 							val = i-lopin;
 							break;
@@ -690,11 +686,11 @@ class TrillCraftWidget : public TrillWidget
 				}
 				else if (mode == "DOWN")
 				{
-					float sval = 0;
+					float sval = 0.f;
 					for (int i = lopin; i <= hipin; i++)
 					{
 						sval = sensor->rawData[i];
-						if (sval > 0)
+						if (sval > 0.f)
 						{
 							val = i-lopin;
 							break;
@@ -705,7 +701,7 @@ class TrillCraftWidget : public TrillWidget
 			}
 		}
 		
-		void setMode(std::string mo) { mode = mo; }
+		void setMode(const string& mo) { mode = mo; }
 		void setLopin(int pin) { lopin = pin; }
 		void setHipin(int pin) { hipin = pin; }
 };
@@ -785,8 +781,9 @@ class BelaUI : public GenericUI
         
         virtual ~BelaUI()
         {
-			for (auto t : fTrillTable)
-				delete t;
+            for (auto t : fTrillTable) {
+                delete t;
+            }
 		}
         
         // should be called before compute() to update widget's zones registered as Bela parameters
@@ -795,7 +792,7 @@ class BelaUI : public GenericUI
             for (int i = 0; i < fIndex; i++) {
                 fTable[i].update(context);
             }
-            for (int i = 0; i < fTrillTable.size(); i++) {
+            for (size_t i = 0; i < fTrillTable.size(); i++) {
                 fTrillTable[i]->update(context);
             }
         }
@@ -872,7 +869,7 @@ class BelaUI : public GenericUI
             switch(device) {
                 case Trill::BAR:
                     CurTrill = (EInOutPin) (kBAR_POS_0+idx*3);
-                    for (int i = 0; i < fTrillTable.size(); i++)
+                    for (size_t i = 0; i < fTrillTable.size(); i++)
                     {
                         if ((fTrillTable[i]->getBelaPin() == CurTrill
                              || fTrillTable[i]->getBelaPin() == (CurTrill+1)
@@ -883,7 +880,7 @@ class BelaUI : public GenericUI
                 
                 case Trill::SQUARE:
                     CurTrill = (EInOutPin) (kSQUARE_XPOS_0+idx*4);
-                    for (int i = 0; i < fTrillTable.size(); i++)
+                    for (size_t i = 0; i < fTrillTable.size(); i++)
                     {
                         if ((fTrillTable[i]->getBelaPin() == CurTrill
                              || fTrillTable[i]->getBelaPin() == (CurTrill+1)
@@ -894,7 +891,7 @@ class BelaUI : public GenericUI
                     break;
                 case Trill::CRAFT:
 					CurTrill = (EInOutPin) (kCRAFT_0+idx);
-					for (int i = 0; i < fTrillTable.size(); i++)
+					for (size_t i = 0; i < fTrillTable.size(); i++)
                     {
                         if (fTrillTable[i]->getBelaPin() == CurTrill && fTrillTable[i]->getType() == device)
                             fTrillTable[i]->setSensor(sensor);
@@ -1000,14 +997,13 @@ static int trillAdress2index(uint8_t i2cadress)
     return -1;
 }
 
+// This is the auxilary task function which will read our Trill sensors loop
 static void trillLoop(void*)
 {
-    // This is the auxilary task function which will read our Trill sensors
-    // loop
     while (!Bela_stopRequested())
     {
         // Read all Trill sensors
-        for (unsigned int n = 0; n < gTouchSensors.size(); ++n)
+        for (size_t n = 0; n < gTouchSensors.size(); ++n)
         {
             Trill* t = gTouchSensors[n];
             t->readI2C();
@@ -1088,7 +1084,7 @@ bool setup(BelaContext* context, void* userData)
     }
 #endif
     
-    if (gDSP == 0) {
+    if (gDSP == NULL) {
         cerr << "Unable to allocate Faust DSP object" << endl;
         return false;
     }
@@ -1120,10 +1116,10 @@ bool setup(BelaContext* context, void* userData)
     
     // Trill sensors initialisation
     unsigned int i2cBus = 1;
-    for(uint8_t addr = 0x20; addr <= 0x50; ++addr)
+    for (uint8_t addr = 0x20; addr <= 0x50; ++addr)
     {
         Trill::Device device = Trill::probe(i2cBus, addr);
-        if (Trill::NONE != device /*&& Trill::CRAFT != device*/)
+        if (device != Trill::NONE /*&& Trill::CRAFT != device*/)
         {
             Trill* newsensor = new Trill(i2cBus, device, addr);
             gTouchSensors.push_back(newsensor);
@@ -1139,7 +1135,10 @@ bool setup(BelaContext* context, void* userData)
         }
     }
     
-    Bela_runAuxiliaryTask(trillLoop);
+    // Setup the loop only if needed
+    if (gTouchSensors.size() > 0) {
+        Bela_runAuxiliaryTask(trillLoop);
+    }
     return true;
 }
 
@@ -1165,8 +1164,9 @@ void cleanup(BelaContext* context, void* userData)
     delete gMidiInterface;
 #endif
 
-    for (auto t : gTouchSensors)
+    for (auto t : gTouchSensors) {
         delete t;
+    }
 }
 
 /******************** END bela.cpp ****************/
