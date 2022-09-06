@@ -175,7 +175,7 @@ void Compiler::generateUserInterfaceTree(Tree t, bool root)
         // Empty labels will be renamed with a 0xABCD (address) kind of name that is ignored and not displayed by UI
         // architectures
         const char* str = tree2str(right(label));
-        const char* model;
+        const char* model = nullptr;
 
         // extract metadata from group label str resulting in a simplifiedLabel
         // and metadata declarations for fictive zone at address 0

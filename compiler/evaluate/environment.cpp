@@ -56,7 +56,6 @@ static Tree pushNewLayer(Tree lenv)
  * @param lenv the old environment
  * @return the new environment
  */
-
 Tree pushEnvBarrier(Tree lenv)
 {
     return tree(gGlobal->BARRIER, lenv);

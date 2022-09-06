@@ -40,21 +40,10 @@
  * @param eqlist the global environment (a list of definitions)
  * @return the 'process' block diagram in normal form
  **/
-
 Tree evalprocess(Tree eqlist);
 
 /* Eval a documentation expression. */
-
 Tree evaldocexpr(Tree docexpr, Tree eqlist);
-
-/**
- * Push a new layer and add a single definition.
- * @param id the symbol id to be defined
- * @param def the definition to be binded to the symbol id
- * @param lenv the environment where to push the layer and add the definition
- * @return the new environment
- */
-Tree pushValueDef(Tree id, Tree def, Tree lenv);
 
 /* Numeric simplification of pattern arguments */
 Tree simplifyPattern(Tree pattern);
