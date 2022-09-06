@@ -53,11 +53,11 @@ Tree boxIdent(const char* name)
 {
     return tree(gGlobal->BOXIDENT, tree(symbol(name)));
 }
-bool isBoxIdent(Tree t)
+LIBFAUST_API bool isBoxIdent(Tree t)
 {
     return t->node() == Node(gGlobal->BOXIDENT);
 }
-bool isBoxIdent(Tree t0, const char** str)
+LIBFAUST_API bool isBoxIdent(Tree t0, const char** str)
 {
     Tree t1;
     Sym  s;
@@ -82,20 +82,20 @@ LIBFAUST_API Tree boxReal(double n)
     return tree(n);
 }
 
-bool isBoxInt(Tree t)
+LIBFAUST_API bool isBoxInt(Tree t)
 {
     return isInt(t->node());
 }
-bool isBoxReal(Tree t)
+LIBFAUST_API bool isBoxReal(Tree t)
 {
     return isDouble(t->node());
 }
 
-bool isBoxInt(Tree t, int* i)
+LIBFAUST_API bool isBoxInt(Tree t, int* i)
 {
     return isInt(t->node(), i);
 }
-bool isBoxReal(Tree t, double* r)
+LIBFAUST_API bool isBoxReal(Tree t, double* r)
 {
     return isDouble(t->node(), r);
 }
@@ -109,7 +109,7 @@ LIBFAUST_API Tree boxWaveform(const tvec& br)
     return tree(gGlobal->BOXWAVEFORM, br);
 }
 
-bool isBoxWaveform(Tree s)
+LIBFAUST_API bool isBoxWaveform(Tree s)
 {
     return isTree(s, gGlobal->BOXWAVEFORM);
 }
@@ -123,7 +123,7 @@ LIBFAUST_API Tree boxRoute(Tree n, Tree m, Tree r)
     return tree(gGlobal->BOXROUTE, n, m, r);
 }
 
-bool isBoxRoute(Tree s, Tree& n, Tree& m, Tree& r)
+LIBFAUST_API bool isBoxRoute(Tree s, Tree& n, Tree& m, Tree& r)
 {
     return isTree(s, gGlobal->BOXROUTE, n, m, r);
 }
@@ -136,7 +136,7 @@ LIBFAUST_API Tree boxCut()
 {
     return tree(gGlobal->BOXCUT);
 }
-bool isBoxCut(Tree t)
+LIBFAUST_API bool isBoxCut(Tree t)
 {
     return isTree(t, gGlobal->BOXCUT);
 }
@@ -145,7 +145,7 @@ LIBFAUST_API Tree boxWire()
 {
     return tree(gGlobal->BOXWIRE);
 }
-bool isBoxWire(Tree t)
+LIBFAUST_API bool isBoxWire(Tree t)
 {
     return isTree(t, gGlobal->BOXWIRE);
 }
@@ -158,12 +158,12 @@ Tree boxSlot(int id)
 {
     return tree(gGlobal->BOXSLOT, tree(id));
 }
-bool isBoxSlot(Tree t)
+LIBFAUST_API bool isBoxSlot(Tree t)
 {
     Tree w;
     return isTree(t, gGlobal->BOXSLOT, w);
 }
-bool isBoxSlot(Tree t, int* id)
+LIBFAUST_API bool isBoxSlot(Tree t, int* id)
 {
     Tree w;
     return isTree(t, gGlobal->BOXSLOT, w) && isInt(w->node(), id);
@@ -173,12 +173,12 @@ Tree boxSymbolic(Tree slot, Tree body)
 {
     return tree(gGlobal->BOXSYMBOLIC, slot, body);
 }
-bool isBoxSymbolic(Tree t)
+LIBFAUST_API bool isBoxSymbolic(Tree t)
 {
     Tree slot, body;
     return isTree(t, gGlobal->BOXSYMBOLIC, slot, body);
 }
-bool isBoxSymbolic(Tree t, Tree& slot, Tree& body)
+LIBFAUST_API bool isBoxSymbolic(Tree t, Tree& slot, Tree& body)
 {
     return isTree(t, gGlobal->BOXSYMBOLIC, slot, body);
 }
@@ -191,7 +191,7 @@ LIBFAUST_API Tree boxSeq(Tree x, Tree y)
 {
     return tree(gGlobal->BOXSEQ, x, y);
 }
-bool isBoxSeq(Tree t, Tree& x, Tree& y)
+LIBFAUST_API bool isBoxSeq(Tree t, Tree& x, Tree& y)
 {
     return isTree(t, gGlobal->BOXSEQ, x, y);
 }
@@ -200,7 +200,7 @@ LIBFAUST_API Tree boxPar(Tree x, Tree y)
 {
     return tree(gGlobal->BOXPAR, x, y);
 }
-bool isBoxPar(Tree t, Tree& x, Tree& y)
+LIBFAUST_API bool isBoxPar(Tree t, Tree& x, Tree& y)
 {
     return isTree(t, gGlobal->BOXPAR, x, y);
 }
@@ -209,7 +209,7 @@ LIBFAUST_API Tree boxRec(Tree x, Tree y)
 {
     return tree(gGlobal->BOXREC, x, y);
 }
-bool isBoxRec(Tree t, Tree& x, Tree& y)
+LIBFAUST_API bool isBoxRec(Tree t, Tree& x, Tree& y)
 {
     return isTree(t, gGlobal->BOXREC, x, y);
 }
@@ -218,7 +218,7 @@ LIBFAUST_API Tree boxSplit(Tree x, Tree y)
 {
     return tree(gGlobal->BOXSPLIT, x, y);
 }
-bool isBoxSplit(Tree t, Tree& x, Tree& y)
+LIBFAUST_API bool isBoxSplit(Tree t, Tree& x, Tree& y)
 {
     return isTree(t, gGlobal->BOXSPLIT, x, y);
 }
@@ -227,7 +227,7 @@ LIBFAUST_API Tree boxMerge(Tree x, Tree y)
 {
     return tree(gGlobal->BOXMERGE, x, y);
 }
-bool isBoxMerge(Tree t, Tree& x, Tree& y)
+LIBFAUST_API bool isBoxMerge(Tree t, Tree& x, Tree& y)
 {
     return isTree(t, gGlobal->BOXMERGE, x, y);
 }
@@ -253,19 +253,19 @@ Tree boxIProd(Tree x, Tree y, Tree z)
     return tree(gGlobal->BOXIPROD, x, y, z);
 }
 
-bool isBoxIPar(Tree t, Tree& x, Tree& y, Tree& z)
+LIBFAUST_API bool isBoxIPar(Tree t, Tree& x, Tree& y, Tree& z)
 {
     return isTree(t, gGlobal->BOXIPAR, x, y, z);
 }
-bool isBoxISeq(Tree t, Tree& x, Tree& y, Tree& z)
+LIBFAUST_API bool isBoxISeq(Tree t, Tree& x, Tree& y, Tree& z)
 {
     return isTree(t, gGlobal->BOXISEQ, x, y, z);
 }
-bool isBoxISum(Tree t, Tree& x, Tree& y, Tree& z)
+LIBFAUST_API bool isBoxISum(Tree t, Tree& x, Tree& y, Tree& z)
 {
     return isTree(t, gGlobal->BOXISUM, x, y, z);
 }
-bool isBoxIProd(Tree t, Tree& x, Tree& y, Tree& z)
+LIBFAUST_API bool isBoxIProd(Tree t, Tree& x, Tree& y, Tree& z)
 {
     return isTree(t, gGlobal->BOXIPROD, x, y, z);
 }
@@ -283,11 +283,11 @@ Tree boxOutputs(Tree x)
     return tree(gGlobal->BOXOUTPUTS, x);
 }
 
-bool isBoxInputs(Tree t, Tree& x)
+LIBFAUST_API bool isBoxInputs(Tree t, Tree& x)
 {
     return isTree(t, gGlobal->BOXINPUTS, x);
 }
-bool isBoxOutputs(Tree t, Tree& x)
+LIBFAUST_API bool isBoxOutputs(Tree t, Tree& x)
 {
     return isTree(t, gGlobal->BOXOUTPUTS, x);
 }
@@ -305,20 +305,20 @@ Tree boxAppl(Tree x, Tree y)
     return tree(gGlobal->BOXAPPL, x, y);
 }
 
-bool isBoxAbstr(Tree t)
+LIBFAUST_API bool isBoxAbstr(Tree t)
 {
     return t->node() == Node(gGlobal->BOXABSTR);
 }
-bool isBoxAppl(Tree t)
+LIBFAUST_API bool isBoxAppl(Tree t)
 {
     return t->node() == Node(gGlobal->BOXAPPL);
 }
 
-bool isBoxAbstr(Tree t, Tree& x, Tree& y)
+LIBFAUST_API bool isBoxAbstr(Tree t, Tree& x, Tree& y)
 {
     return isTree(t, gGlobal->BOXABSTR, x, y);
 }
-bool isBoxAppl(Tree t, Tree& x, Tree& y)
+LIBFAUST_API bool isBoxAppl(Tree t, Tree& x, Tree& y)
 {
     return isTree(t, gGlobal->BOXAPPL, x, y);
 }
@@ -368,7 +368,7 @@ Tree boxError()
     return tree(gGlobal->BOXERROR);
 }
 
-bool isBoxError(Tree t)
+LIBFAUST_API bool isBoxError(Tree t)
 {
     return isTree(t, gGlobal->BOXERROR);
 }
@@ -377,7 +377,7 @@ Tree boxAccess(Tree exp, Tree id)
 {
     return tree(gGlobal->BOXACCESS, exp, id);
 }
-bool isBoxAccess(Tree t, Tree& exp, Tree& id)
+LIBFAUST_API bool isBoxAccess(Tree t, Tree& exp, Tree& id)
 {
     return isTree(t, gGlobal->BOXACCESS, exp, id);
 }
@@ -390,7 +390,7 @@ Tree boxWithLocalDef(Tree body, Tree ldef)
 {
     return tree(gGlobal->BOXWITHLOCALDEF, body, ldef);
 }
-bool isBoxWithLocalDef(Tree t, Tree& body, Tree& ldef)
+LIBFAUST_API bool isBoxWithLocalDef(Tree t, Tree& body, Tree& ldef)
 {
     return isTree(t, gGlobal->BOXWITHLOCALDEF, body, ldef);
 }
@@ -513,7 +513,7 @@ Tree boxModifLocalDef(Tree body, Tree ldef)
 {
     return tree(gGlobal->BOXMODIFLOCALDEF, body, ldef);
 }
-bool isBoxModifLocalDef(Tree t, Tree& body, Tree& ldef)
+LIBFAUST_API bool isBoxModifLocalDef(Tree t, Tree& body, Tree& ldef)
 {
     return isTree(t, gGlobal->BOXMODIFLOCALDEF, body, ldef);
 }
@@ -526,7 +526,7 @@ Tree boxEnvironment()
 {
     return tree(gGlobal->BOXENVIRONMENT);
 }
-bool isBoxEnvironment(Tree s)
+LIBFAUST_API bool isBoxEnvironment(Tree s)
 {
     return isTree(s, gGlobal->BOXENVIRONMENT);
 }
@@ -535,7 +535,7 @@ Tree boxComponent(Tree filename)
 {
     return tree(gGlobal->BOXCOMPONENT, filename);
 }
-bool isBoxComponent(Tree s, Tree& filename)
+LIBFAUST_API bool isBoxComponent(Tree s, Tree& filename)
 {
     return isTree(s, gGlobal->BOXCOMPONENT, filename);
 }
@@ -544,7 +544,7 @@ Tree boxLibrary(Tree filename)
 {
     return tree(gGlobal->BOXLIBRARY, filename);
 }
-bool isBoxLibrary(Tree s, Tree& filename)
+LIBFAUST_API bool isBoxLibrary(Tree s, Tree& filename)
 {
     return isTree(s, gGlobal->BOXLIBRARY, filename);
 }
@@ -562,91 +562,91 @@ bool isImportFile(Tree s, Tree& filename)
                             External Primitive Boxes (n -> 1)
 *****************************************************************************/
 
-Tree boxPrim0(prim0 foo)
+LIBFAUST_API Tree boxPrim0(prim0 foo)
 {
     return tree(gGlobal->BOXPRIM0, tree((void*)foo));
 }
-bool isBoxPrim0(Tree s)
+LIBFAUST_API bool isBoxPrim0(Tree s)
 {
     Tree t;
     return isTree(s, gGlobal->BOXPRIM0, t);
 }
-bool isBoxPrim0(Tree s, prim0* p)
+LIBFAUST_API bool isBoxPrim0(Tree s, prim0* p)
 {
     Tree t;
     return isTree(s, gGlobal->BOXPRIM0, t) && isPointer(t->node(), (void**)p);
 }
 
-Tree boxPrim1(prim1 foo)
+LIBFAUST_API Tree boxPrim1(prim1 foo)
 {
     return tree(gGlobal->BOXPRIM1, tree((void*)foo));
 }
-bool isBoxPrim1(Tree s)
+LIBFAUST_API bool isBoxPrim1(Tree s)
 {
     Tree t;
     return isTree(s, gGlobal->BOXPRIM1, t);
 }
-bool isBoxPrim1(Tree s, prim1* p)
+LIBFAUST_API bool isBoxPrim1(Tree s, prim1* p)
 {
     Tree t;
     return isTree(s, gGlobal->BOXPRIM1, t) && isPointer(t->node(), (void**)p);
 }
 
-Tree boxPrim2(prim2 foo)
+LIBFAUST_API Tree boxPrim2(prim2 foo)
 {
     return tree(gGlobal->BOXPRIM2, tree((void*)foo));
 }
-bool isBoxPrim2(Tree s)
+LIBFAUST_API bool isBoxPrim2(Tree s)
 {
     Tree t;
     return isTree(s, gGlobal->BOXPRIM2, t);
 }
-bool isBoxPrim2(Tree s, prim2* p)
+LIBFAUST_API bool isBoxPrim2(Tree s, prim2* p)
 {
     Tree t;
     return isTree(s, gGlobal->BOXPRIM2, t) && isPointer(t->node(), (void**)p);
 }
 
-Tree boxPrim3(prim3 foo)
+LIBFAUST_API Tree boxPrim3(prim3 foo)
 {
     return tree(gGlobal->BOXPRIM3, tree((void*)foo));
 }
-bool isBoxPrim3(Tree s)
+LIBFAUST_API bool isBoxPrim3(Tree s)
 {
     Tree t;
     return isTree(s, gGlobal->BOXPRIM3, t);
 }
-bool isBoxPrim3(Tree s, prim3* p)
+LIBFAUST_API bool isBoxPrim3(Tree s, prim3* p)
 {
     Tree t;
     return isTree(s, gGlobal->BOXPRIM3, t) && isPointer(t->node(), (void**)p);
 }
 
-Tree boxPrim4(prim4 foo)
+LIBFAUST_API Tree boxPrim4(prim4 foo)
 {
     return tree(gGlobal->BOXPRIM4, tree((void*)foo));
 }
-bool isBoxPrim4(Tree s)
+LIBFAUST_API bool isBoxPrim4(Tree s)
 {
     Tree t;
     return isTree(s, gGlobal->BOXPRIM4, t);
 }
-bool isBoxPrim4(Tree s, prim4* p)
+LIBFAUST_API bool isBoxPrim4(Tree s, prim4* p)
 {
     Tree t;
     return isTree(s, gGlobal->BOXPRIM4, t) && isPointer(t->node(), (void**)p);
 }
 
-Tree boxPrim5(prim5 foo)
+LIBFAUST_API Tree boxPrim5(prim5 foo)
 {
     return tree(gGlobal->BOXPRIM5, tree((void*)foo));
 }
-bool isBoxPrim5(Tree s)
+LIBFAUST_API bool isBoxPrim5(Tree s)
 {
     Tree t;
     return isTree(s, gGlobal->BOXPRIM5, t);
 }
-bool isBoxPrim5(Tree s, prim5* p)
+LIBFAUST_API bool isBoxPrim5(Tree s, prim5* p)
 {
     Tree t;
     return isTree(s, gGlobal->BOXPRIM5, t) && isPointer(t->node(), (void**)p);
@@ -660,12 +660,12 @@ LIBFAUST_API Tree boxFFun(Tree ff)
 {
     return tree(gGlobal->BOXFFUN, ff);
 }
-bool isBoxFFun(Tree s)
+LIBFAUST_API bool isBoxFFun(Tree s)
 {
     Tree ff;
     return isTree(s, gGlobal->BOXFFUN, ff);
 }
-bool isBoxFFun(Tree s, Tree& ff)
+LIBFAUST_API bool isBoxFFun(Tree s, Tree& ff)
 {
     return isTree(s, gGlobal->BOXFFUN, ff);
 }
@@ -674,12 +674,12 @@ LIBFAUST_API Tree boxFConst(Tree type, Tree name, Tree file)
 {
     return tree(gGlobal->BOXFCONST, type, name, file);
 }
-bool isBoxFConst(Tree s)
+LIBFAUST_API bool isBoxFConst(Tree s)
 {
     Tree t, n, f;
     return isTree(s, gGlobal->BOXFCONST, t, n, f);
 }
-bool isBoxFConst(Tree s, Tree& type, Tree& name, Tree& file)
+LIBFAUST_API bool isBoxFConst(Tree s, Tree& type, Tree& name, Tree& file)
 {
     return isTree(s, gGlobal->BOXFCONST, type, name, file);
 }
@@ -688,12 +688,12 @@ LIBFAUST_API Tree boxFVar(Tree type, Tree name, Tree file)
 {
     return tree(gGlobal->BOXFVAR, type, name, file);
 }
-bool isBoxFVar(Tree s)
+LIBFAUST_API bool isBoxFVar(Tree s)
 {
     Tree t, n, f;
     return isTree(s, gGlobal->BOXFVAR, t, n, f);
 }
-bool isBoxFVar(Tree s, Tree& type, Tree& name, Tree& file)
+LIBFAUST_API bool isBoxFVar(Tree s, Tree& type, Tree& name, Tree& file)
 {
     return isTree(s, gGlobal->BOXFVAR, type, name, file);
 }
@@ -706,12 +706,12 @@ LIBFAUST_API Tree boxButton(Tree lbl)
 {
     return tree(gGlobal->BOXBUTTON, lbl);
 }
-bool isBoxButton(Tree s)
+LIBFAUST_API bool isBoxButton(Tree s)
 {
     Tree lbl;
     return isTree(s, gGlobal->BOXBUTTON, lbl);
 }
-bool isBoxButton(Tree s, Tree& lbl)
+LIBFAUST_API bool isBoxButton(Tree s, Tree& lbl)
 {
     return isTree(s, gGlobal->BOXBUTTON, lbl);
 }
@@ -720,12 +720,12 @@ LIBFAUST_API Tree boxCheckbox(Tree lbl)
 {
     return tree(gGlobal->BOXCHECKBOX, lbl);
 }
-bool isBoxCheckbox(Tree s)
+LIBFAUST_API bool isBoxCheckbox(Tree s)
 {
     Tree lbl;
     return isTree(s, gGlobal->BOXCHECKBOX, lbl);
 }
-bool isBoxCheckbox(Tree s, Tree& lbl)
+LIBFAUST_API bool isBoxCheckbox(Tree s, Tree& lbl)
 {
     return isTree(s, gGlobal->BOXCHECKBOX, lbl);
 }
@@ -734,13 +734,13 @@ LIBFAUST_API Tree boxHSlider(Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 {
     return tree(gGlobal->BOXHSLIDER, lbl, list4(cur, min, max, step));
 }
-bool isBoxHSlider(Tree s)
+LIBFAUST_API bool isBoxHSlider(Tree s)
 {
     Tree lbl, params;
     return isTree(s, gGlobal->BOXHSLIDER, lbl, params);
 }
 
-bool isBoxHSlider(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)
+LIBFAUST_API bool isBoxHSlider(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)
 {
     Tree params;
     if (isTree(s, gGlobal->BOXHSLIDER, lbl, params)) {
@@ -758,13 +758,13 @@ LIBFAUST_API Tree boxVSlider(Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 {
     return tree(gGlobal->BOXVSLIDER, lbl, list4(cur, min, max, step));
 }
-bool isBoxVSlider(Tree s)
+LIBFAUST_API bool isBoxVSlider(Tree s)
 {
     Tree lbl, params;
     return isTree(s, gGlobal->BOXVSLIDER, lbl, params);
 }
 
-bool isBoxVSlider(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)
+LIBFAUST_API bool isBoxVSlider(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)
 {
     Tree params;
     if (isTree(s, gGlobal->BOXVSLIDER, lbl, params)) {
@@ -782,13 +782,13 @@ LIBFAUST_API Tree boxNumEntry(Tree lbl, Tree cur, Tree min, Tree max, Tree step)
 {
     return tree(gGlobal->BOXNUMENTRY, lbl, list4(cur, min, max, step));
 }
-bool isBoxNumEntry(Tree s)
+LIBFAUST_API bool isBoxNumEntry(Tree s)
 {
     Tree lbl, params;
     return isTree(s, gGlobal->BOXNUMENTRY, lbl, params);
 }
 
-bool isBoxNumEntry(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)
+LIBFAUST_API bool isBoxNumEntry(Tree s, Tree& lbl, Tree& cur, Tree& min, Tree& max, Tree& step)
 {
     Tree params;
     if (isTree(s, gGlobal->BOXNUMENTRY, lbl, params)) {
@@ -806,12 +806,12 @@ Tree boxHGroup(Tree lbl, Tree x)
 {
     return tree(gGlobal->BOXHGROUP, lbl, x);
 }
-bool isBoxHGroup(Tree s)
+LIBFAUST_API bool isBoxHGroup(Tree s)
 {
     Tree lbl, x;
     return isTree(s, gGlobal->BOXHGROUP, lbl, x);
 }
-bool isBoxHGroup(Tree s, Tree& lbl, Tree& x)
+LIBFAUST_API bool isBoxHGroup(Tree s, Tree& lbl, Tree& x)
 {
     return isTree(s, gGlobal->BOXHGROUP, lbl, x);
 }
@@ -820,12 +820,12 @@ Tree boxVGroup(Tree lbl, Tree x)
 {
     return tree(gGlobal->BOXVGROUP, lbl, x);
 }
-bool isBoxVGroup(Tree s)
+LIBFAUST_API bool isBoxVGroup(Tree s)
 {
     Tree lbl, x;
     return isTree(s, gGlobal->BOXVGROUP, lbl, x);
 }
-bool isBoxVGroup(Tree s, Tree& lbl, Tree& x)
+LIBFAUST_API bool isBoxVGroup(Tree s, Tree& lbl, Tree& x)
 {
     return isTree(s, gGlobal->BOXVGROUP, lbl, x);
 }
@@ -834,12 +834,12 @@ Tree boxTGroup(Tree lbl, Tree x)
 {
     return tree(gGlobal->BOXTGROUP, lbl, x);
 }
-bool isBoxTGroup(Tree s)
+LIBFAUST_API bool isBoxTGroup(Tree s)
 {
     Tree lbl, x;
     return isTree(s, gGlobal->BOXTGROUP, lbl, x);
 }
-bool isBoxTGroup(Tree s, Tree& lbl, Tree& x)
+LIBFAUST_API bool isBoxTGroup(Tree s, Tree& lbl, Tree& x)
 {
     return isTree(s, gGlobal->BOXTGROUP, lbl, x);
 }
@@ -848,12 +848,12 @@ LIBFAUST_API Tree boxHBargraph(Tree lbl, Tree min, Tree max)
 {
     return tree(gGlobal->BOXHBARGRAPH, lbl, min, max);
 }
-bool isBoxHBargraph(Tree s)
+LIBFAUST_API bool isBoxHBargraph(Tree s)
 {
     Tree lbl, min, max;
     return isTree(s, gGlobal->BOXHBARGRAPH, lbl, min, max);
 }
-bool isBoxHBargraph(Tree s, Tree& lbl, Tree& min, Tree& max)
+LIBFAUST_API bool isBoxHBargraph(Tree s, Tree& lbl, Tree& min, Tree& max)
 {
     return isTree(s, gGlobal->BOXHBARGRAPH, lbl, min, max);
 }
@@ -862,12 +862,12 @@ LIBFAUST_API Tree boxVBargraph(Tree lbl, Tree min, Tree max)
 {
     return tree(gGlobal->BOXVBARGRAPH, lbl, min, max);
 }
-bool isBoxVBargraph(Tree s)
+LIBFAUST_API bool isBoxVBargraph(Tree s)
 {
     Tree lbl, min, max;
     return isTree(s, gGlobal->BOXVBARGRAPH, lbl, min, max);
 }
-bool isBoxVBargraph(Tree s, Tree& lbl, Tree& min, Tree& max)
+LIBFAUST_API bool isBoxVBargraph(Tree s, Tree& lbl, Tree& min, Tree& max)
 {
     return isTree(s, gGlobal->BOXVBARGRAPH, lbl, min, max);
 }
@@ -877,14 +877,14 @@ LIBFAUST_API Tree boxSoundfile(Tree lbl, Tree chan)
     return tree(gGlobal->BOXSOUNDFILE, lbl, chan);
 }
 
-bool isBoxSoundfile(Tree s)
+LIBFAUST_API bool isBoxSoundfile(Tree s)
 {
     Tree label;
     Tree chan;
     return isTree(s, gGlobal->BOXSOUNDFILE, label, chan);
 }
 
-bool isBoxSoundfile(Tree s, Tree& label, Tree& chan)
+LIBFAUST_API bool isBoxSoundfile(Tree s, Tree& label, Tree& chan)
 {
     return isTree(s, gGlobal->BOXSOUNDFILE, label, chan);
 }
@@ -897,7 +897,7 @@ Tree boxMetadata(Tree exp, Tree mdlist)
     return tree(gGlobal->BOXMETADATA, exp, mdlist);
 }
 
-bool isBoxMetadata(Tree s, Tree& exp, Tree& mdlist)
+LIBFAUST_API bool isBoxMetadata(Tree s, Tree& exp, Tree& mdlist)
 {
     return isTree(s, gGlobal->BOXMETADATA, exp, mdlist);
 }
@@ -1098,12 +1098,12 @@ Tree boxCase(Tree rules)
     return boxCaseInternal(prepareRules(rules));
 }
 
-bool isBoxCase(Tree s)
+LIBFAUST_API bool isBoxCase(Tree s)
 {
     Tree rules;
     return isTree(s, gGlobal->BOXCASE, rules);
 }
-bool isBoxCase(Tree s, Tree& rules)
+LIBFAUST_API bool isBoxCase(Tree s, Tree& rules)
 {
     return isTree(s, gGlobal->BOXCASE, rules);
 }
@@ -1112,7 +1112,7 @@ Tree boxPatternVar(Tree id)
 {
     return tree(gGlobal->BOXPATVAR, id);
 }
-bool isBoxPatternVar(Tree s, Tree& id)
+LIBFAUST_API bool isBoxPatternVar(Tree s, Tree& id)
 {
     return isTree(s, gGlobal->BOXPATVAR, id);
 }
@@ -1122,7 +1122,7 @@ Tree boxPatternMatcher(PM::Automaton* a, int state, Tree env, Tree origRules, Tr
     return tree(gGlobal->BOXPATMATCHER, tree((void*)a), tree(state), env, origRules, revParamList);
 }
 
-bool isBoxPatternMatcher(Tree s)
+LIBFAUST_API bool isBoxPatternMatcher(Tree s)
 {
     Tree ta, ts, env, orig, rpl;
     return isTree(s, gGlobal->BOXPATMATCHER, ta, ts, env, orig, rpl);

@@ -32,8 +32,8 @@ Tree ffunction(Tree signature, Tree incfile, Tree libfile);
 bool isffunction(Tree t);
 
 Tree        ffsignature(Tree t);
-const char* ffname(Tree t);
-int         ffarity(Tree t);
+LIBFAUST_API const char* ffname(Tree t);
+LIBFAUST_API int ffarity(Tree t);
 int         ffrestype(Tree t);
 int         ffargtype(Tree t, int i);
 const char* ffincfile(Tree t);
