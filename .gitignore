@@ -36,3 +36,5 @@ user.mk
 tests/impulse-tests/ir
 ### ESLint
 .eslintrc.json
+*-mdoc
+*-svg
