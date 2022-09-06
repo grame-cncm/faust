@@ -964,10 +964,8 @@ static Tree neutralExpSeq(Tree id, Tree body, Tree visited, Tree localValEnv)
  */
 static Tree iterateSeq(Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
-    // compute the neural element anyway, at least to check that the body is well typed
-    Tree neutral = neutralExpSeq(id, body, visited, localValEnv);
-
     if (num == 0) {
+        Tree neutral = neutralExpSeq(id, body, visited, localValEnv);
         return neutral;
     } else {
         Tree res = eval(body, visited, pushValueDef(id, tree(num - 1), localValEnv));
