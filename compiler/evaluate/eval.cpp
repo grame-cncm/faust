@@ -95,6 +95,8 @@ static bool getNumericProperty(Tree t, Tree& num);
  */
 Tree evalprocess(Tree eqlist)
 {
+    // Init stack overflow detector
+    gGlobal->gStackOverflowDetector = stackOverflowDetector(MAX_STACK_SIZE);
     Tree b = a2sb(eval(boxIdent(gGlobal->gProcessName.c_str()), gGlobal->nil,
                        pushMultiClosureDefs(eqlist, gGlobal->nil, gGlobal->nil)));
 
@@ -109,6 +111,8 @@ Tree evalprocess(Tree eqlist)
 
 Tree evaldocexpr(Tree docexpr, Tree eqlist)
 {
+    // Init stack overflow detector 
+    gGlobal->gStackOverflowDetector = stackOverflowDetector(MAX_STACK_SIZE);
     return a2sb(eval(docexpr, gGlobal->nil, pushMultiClosureDefs(eqlist, gGlobal->nil, gGlobal->nil)));
 }
 
