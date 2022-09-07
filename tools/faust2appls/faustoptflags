@@ -51,7 +51,9 @@ else
     STRIP=
 fi
 
-if command -v llvm-config &>/dev/null; then
-    LLVM_LIBS="$STRIP $FAUSTLDDIR/libfaust.a `llvm-config --ldflags --libs all --system-libs`"
+if command -v llvm-config &>/dev/null; then 
+    if test -f $FAUSTLDDIR/libfaust.a; then
+        LLVM_LIBS="$STRIP $FAUSTLDDIR/libfaust.a `llvm-config --ldflags --libs all --system-libs`"
+    fi
 fi
 
