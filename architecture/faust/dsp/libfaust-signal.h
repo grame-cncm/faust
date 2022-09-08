@@ -555,14 +555,14 @@ LIBFAUST_API tvec simplifyToNormalForm2(tvec siglist);
  * Create a C++ Faust DSP factory from a vector of output signals.
  *
  * @param name_app - the name of the Faust program
- * @param signals - the vector of output signals (that will internally be concerted in normal form, see simplifyToNormalForm)
+ * @param osigs - the vector of output signals (that will internally be concerted in normal form, see simplifyToNormalForm)
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
-LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name_app, tvec signals,
+LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name_app, tvec osigs,
                                                               int argc, const char* argv[],
                                                               std::string& error_msg);
 
