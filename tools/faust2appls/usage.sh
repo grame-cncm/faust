@@ -32,6 +32,7 @@ option() {
         if [ -z "$doc" ]
         then
             case $option in
+            	"-dyn") doc="create libfaust + LLVM backend dynamic version";;
                 "-httpd") doc="activates HTTP control";;
                 "-osc") doc="activates OSC control";;
                 "-midi") doc="activates MIDI control";;

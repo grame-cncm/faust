@@ -48,7 +48,7 @@ do
         require Jack
         echo "Compiles Faust programs to JACK and GTK"
         option
-        options -httpd -osc -midi -soundfile
+        options -httpd -osc -midi -soundfile -dyn
         option -resample "to resample soundfiles to the audio driver sample rate."
         option "-nvoices <num>"
         option "-effect <effect.dsp>"
@@ -73,6 +73,8 @@ do
         EFFECT=$1
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
+    elif [ $p = "-dyn" ]; then
+        OPTIONS="$OPTIONS -inj template-llvm.cpp"
     elif [ $p = "-soundfile" ]; then
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE"

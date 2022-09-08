@@ -29,6 +29,7 @@ for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         usage faust2plot "[options] [Faust options] <file.dsp>"
         echo "Compiles Faust programs to plotters, the following 3 options are given at runtime:"
+        options -dyn
         option "-s <n>" "start at the sample number <n> (default is 0)"
         option "-n <n>" "render <n> samples (default is 16)"
         option "-r <rate>" "change the sample rate (default is 44100 Hz)"
@@ -43,6 +44,8 @@ for p in $@; do
     elif [ $p = "-double" ]; then
         OPTIONS="$OPTIONS $p"
         FAUSTFLOAT="double"
+    elif [ $p = "-dyn" ]; then
+        OPTIONS="$OPTIONS -inj template-llvm.cpp"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
