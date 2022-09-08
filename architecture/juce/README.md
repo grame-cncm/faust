@@ -75,3 +75,10 @@ To use either of these options, either enter the option into the JUCER exporter 
 
 As usual with faust2xx tools, other Faust compiler specific options can be given to **faust2juce**, like `-vec -lv 1` to compile in vector mode.etc.
 
+## Latency setting
+
+Some plugins add latency in the signal path. A special global metadata can be used in the DSP code to define it, so that the C++ architecture file can extract it and use the JUCE `AudioProcessor::setLatencySamples()` method to have the plugin inform the host about its added latency. The following syntax can be used:
+
+- `declare latency_frames "7000"; (or alternatively `declare latency_samples "7000";`) to express the latency in samples/frames
+
+- `declare latency_sec "0.5";` to express the latency in seconds, to be converted internally in samples/frames using the host sample rate 

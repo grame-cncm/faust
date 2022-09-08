@@ -644,6 +644,30 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     fDSP->instanceConstants(int(sampleRate));
     fDSP->instanceClear();
     
+    // Get latency metadata
+    struct LatencyMeta : public Meta {
+        
+        float fLatencyFrames = -1.f;
+        float fLatencySec = -1.f;
+        
+        void declare(const char* key, const char* value)
+        {
+            if (std::string(key) == "latency_frames" || std::string(key) == "latency_samples") {
+                fLatencyFrames = std::atof(value);
+            } else if (std::string(key) == "latency_sec") {
+                fLatencySec = std::atof(value);
+            }
+        }
+    };
+    
+    LatencyMeta meta;
+    fDSP->metadata(&meta);
+    if (meta.fLatencyFrames > 0) {
+        setLatencySamples(meta.fLatencyFrames);
+    } else if (meta.fLatencySec > 0) {
+        setLatencySamples(meta.fLatencySec * sampleRate);
+    }
+    
 #endif
 #ifdef MAGIC_LEVEL_SOURCE
     magicState.prepareToPlay(sampleRate, samplesPerBlock);
