@@ -363,7 +363,7 @@ LIBFAUST_API Box boxSelect2();
  *
  * @return the selected box depending of the selector value at each time t.
  */
-LIBFAUST_API Box boxSelect2(Box belector, Box b1, Box b2);
+LIBFAUST_API Box boxSelect2(Box selector, Box b1, Box b2);
 
 /**
  * Create a selector between three boxes.
