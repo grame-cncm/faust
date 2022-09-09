@@ -4538,18 +4538,6 @@ LIBFAUST_API bool CisBoxMetadata(Tree t, Tree* exp_aux, Tree* mdlist_aux)
     }
 }
 
-LIBFAUST_API bool CisBoxModifLocalDef(Tree t, Tree* body_aux, Tree* ldef_aux)
-{
-    Tree body, ldef;
-    if (isBoxModifLocalDef(t, body, ldef)) {
-        *body_aux = body;
-        *ldef_aux = ldef;
-        return true;
-    } else {
-        return false;
-    }
-}
-
 LIBFAUST_API bool CisBoxNumEntry(Tree t, Tree* lbl_aux, Tree* cur_aux, Tree* min_aux, Tree* max_aux, Tree* step_aux)
 {
     Tree lbl, cur, min, max, step;
@@ -4582,22 +4570,6 @@ LIBFAUST_API bool CisBoxPar(Tree t, Tree* x_aux, Tree* y_aux)
     if (isBoxPar(t, x, y)) {
         *x_aux = x;
         *y_aux = y;
-        return true;
-    } else {
-        return false;
-    }
-}
-
-LIBFAUST_API bool CisBoxPatternMatcher(Tree t)
-{
-    return isBoxPatternMatcher(t);
-}
-
-LIBFAUST_API bool CisBoxPatternVar(Tree t, Tree* id_aux)
-{
-    Tree id;
-    if (isBoxPatternVar(t, id)) {
-        *id_aux = id;
         return true;
     } else {
         return false;

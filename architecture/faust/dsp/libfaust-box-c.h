@@ -635,7 +635,6 @@ extern "C"
     LIBFAUST_API bool CisBoxLibrary(Box b, Box* filename);
     LIBFAUST_API bool CisBoxMerge(Box t, Box* x, Box* y);
     LIBFAUST_API bool CisBoxMetadata(Box b, Box* exp, Box* mdlist);
-    LIBFAUST_API bool CisBoxModifLocalDef(Box t, Box* body, Box* ldef);
     LIBFAUST_API bool CisBoxNumEntry(Box b, Box* lbl, Box* cur, Box* min, Box* max, Box* step);
     LIBFAUST_API bool CisBoxOutputs(Box t, Box* x);
     LIBFAUST_API bool CisBoxPar(Box t, Box* x, Box* y);

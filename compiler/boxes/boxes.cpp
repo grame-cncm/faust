@@ -513,7 +513,7 @@ Tree boxModifLocalDef(Tree body, Tree ldef)
 {
     return tree(gGlobal->BOXMODIFLOCALDEF, body, ldef);
 }
-LIBFAUST_API bool isBoxModifLocalDef(Tree t, Tree& body, Tree& ldef)
+bool isBoxModifLocalDef(Tree t, Tree& body, Tree& ldef)
 {
     return isTree(t, gGlobal->BOXMODIFLOCALDEF, body, ldef);
 }
@@ -1112,7 +1112,7 @@ Tree boxPatternVar(Tree id)
 {
     return tree(gGlobal->BOXPATVAR, id);
 }
-LIBFAUST_API bool isBoxPatternVar(Tree s, Tree& id)
+bool isBoxPatternVar(Tree s, Tree& id)
 {
     return isTree(s, gGlobal->BOXPATVAR, id);
 }
@@ -1122,7 +1122,7 @@ Tree boxPatternMatcher(PM::Automaton* a, int state, Tree env, Tree origRules, Tr
     return tree(gGlobal->BOXPATMATCHER, tree((void*)a), tree(state), env, origRules, revParamList);
 }
 
-LIBFAUST_API bool isBoxPatternMatcher(Tree s)
+bool isBoxPatternMatcher(Tree s)
 {
     Tree ta, ts, env, orig, rpl;
     return isTree(s, gGlobal->BOXPATMATCHER, ta, ts, env, orig, rpl);
