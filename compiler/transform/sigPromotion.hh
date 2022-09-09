@@ -27,6 +27,7 @@
 #include <sstream>
 #include "sigIdentity.hh"
 #include "signalVisitor.hh"
+#include "sigtyperules.hh"
 
 /* Check a signal:
 - for correct extended typing

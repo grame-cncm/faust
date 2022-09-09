@@ -25,7 +25,6 @@
 #include <stdlib.h>
 #include <cstdlib>
 #include "property.hh"
-#include "sigtyperules.hh"
 #include "tree.hh"
 
 //------------------------------------------------------------------------------

@@ -22,11 +22,8 @@
 #pragma once
 
 #include <cstdlib>
-#include "property.hh"
 #include "signalVisitor.hh"
-#include "sigtyperules.hh"
-#include "tree.hh"
-#include "treeTraversal.hh"
+#include "global.hh"
 #include "xtended.hh"
 #include "old_occurences.hh"
 

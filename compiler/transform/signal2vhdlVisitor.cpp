@@ -20,21 +20,11 @@
  ************************************************************************/
 
 #include <cstdlib>
-#include <map>
 #include <string>
+#include <typeinfo>
 
 #include "signal2vhdlVisitor.hh"
-#include "Text.hh"
-#include "global.hh"
-#include "ppsig.hh"
-#include "property.hh"
-#include "signals.hh"
-#include "interval.hh"
-#include "sigprint.hh"
 #include "sigtyperules.hh"
-#include "tlib.hh"
-#include "tree.hh"
-#include <typeinfo>
 
 //-------------------------Signal2VHDLVisitor-------------------------------
 // An identity transformation on signals. Can be used to test

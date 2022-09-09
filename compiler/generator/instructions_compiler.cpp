@@ -23,14 +23,11 @@
 
 #include "Text.hh"
 #include "ensure.hh"
-#include "exception.hh"
 #include "fir_to_fir.hh"
 #include "floats.hh"
-#include "global.hh"
 #include "instructions.hh"
 #include "instructions_compiler.hh"
 #include "instructions_compiler1.hh"
-#include "ppsig.hh"
 #include "prim2.hh"
 #include "privatise.hh"
 #include "recursivness.hh"
@@ -40,7 +37,7 @@
 #include "sigprint.hh"
 #include "normalform.hh"
 #include "timing.hh"
-#include "xtended.hh"
+#include "sigtyperules.hh"
 
 using namespace std;
 

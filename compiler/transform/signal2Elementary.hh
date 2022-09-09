@@ -25,9 +25,6 @@
 #include <stdlib.h>
 #include <cstdlib>
 #include <sstream>
-#include "property.hh"
-#include "sigtyperules.hh"
-#include "tree.hh"
 #include "signalVisitor.hh"
 
 //-------------------------Signal2Elementary-------------------------------

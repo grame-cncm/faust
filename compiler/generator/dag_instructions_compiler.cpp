@@ -21,17 +21,10 @@
 
 #include <fstream>
 
-#include "Text.hh"
 #include "dag_instructions_compiler.hh"
-#include "exception.hh"
 #include "ppsig.hh"
-#include "prim2.hh"
-#include "privatise.hh"
-#include "recursivness.hh"
 #include "sigtyperules.hh"
-#include "simplify.hh"
 #include "timing.hh"
-#include "xtended.hh"
 #include "fir_to_fir.hh"
 
 DAGInstructionsCompiler::DAGInstructionsCompiler(CodeContainer* container) : InstructionsCompiler(container)

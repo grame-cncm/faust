@@ -22,15 +22,12 @@
 #include "sigPromotion.hh"
 #include <stdlib.h>
 #include <cstdlib>
-#include <map>
-#include "global.hh"
-#include "prim2.hh"
-#include "property.hh"
+
 #include "signals.hh"
-#include "sigtyperules.hh"
-#include "tlib.hh"
-#include "tree.hh"
+#include "prim2.hh"
+#include "global.hh"
 #include "xtended.hh"
+#include "sigtyperules.hh"
 
 void SignalTreeChecker::visit(Tree sig)
 {

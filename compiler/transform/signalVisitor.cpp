@@ -22,7 +22,6 @@
 #include "signalVisitor.hh"
 
 #include <cstdlib>
-#include <map>
 #include "Text.hh"
 #include "global.hh"
 #include "ppsig.hh"

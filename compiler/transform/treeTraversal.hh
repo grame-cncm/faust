@@ -22,10 +22,8 @@
 #pragma once
 
 #include <cstdlib>
-#include <map>
 #include <string>
 #include "property.hh"
-#include "sigtyperules.hh"
 #include "tree.hh"
 
 //------------------------------------------------------------------------------

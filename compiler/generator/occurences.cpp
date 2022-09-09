@@ -27,7 +27,6 @@
 #include "global.hh"
 #include "occurences.hh"
 #include "recursivness.hh"
-#include "sigtype.hh"
 #include "sigtyperules.hh"
 
 using namespace std;

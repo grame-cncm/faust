@@ -22,10 +22,7 @@
 #pragma once
 
 #include <cstdlib>
-#include <map>
-#include "property.hh"
-#include "sigtyperules.hh"
-#include "tree.hh"
+#include "signals.hh"
 #include "treeTraversal.hh"
 
 //-------------------------SignalVisitor-------------------------------

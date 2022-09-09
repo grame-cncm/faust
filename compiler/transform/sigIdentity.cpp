@@ -23,16 +23,11 @@
 
 #include <stdlib.h>
 #include <cstdlib>
-#include <map>
-#include "Text.hh"
+
+#include "signals.hh"
 #include "global.hh"
 #include "ppsig.hh"
-#include "property.hh"
-#include "signals.hh"
-#include "sigtyperules.hh"
-#include "tlib.hh"
-#include "tree.hh"
-#include "treeTransform.hh"
+#include "Text.hh"
 
 //-------------------------SignalIdentity-------------------------------
 // An identity transformation on signals. Can be used to test
