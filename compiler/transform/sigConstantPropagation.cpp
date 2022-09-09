@@ -125,8 +125,9 @@ Tree SignalConstantPropagation::transformation(Tree sig)
                 return sigProj(i, r);
             }
         } else {
-            cerr << "ERROR : internal : " << *sig << endl;
+            cerr << "ERROR : SignalConstantPropagation::transformation : " << *sig << endl;
             faustassert(false);
+            return nullptr;
         }
 
     } else {
