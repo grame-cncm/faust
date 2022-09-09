@@ -44,6 +44,24 @@ typedef std::vector<CTree*> tvec;
 
 typedef CTree* Signal;
 typedef CTree* Box;
+typedef CTree* Tree;
+
+typedef Tree (*prim0)();
+typedef Tree (*prim1)(Tree x);
+typedef Tree (*prim2)(Tree x, Tree y);
+typedef Tree (*prim3)(Tree x, Tree y, Tree z);
+typedef Tree (*prim4)(Tree w, Tree x, Tree y, Tree z);
+typedef Tree (*prim5)(Tree v, Tree w, Tree x, Tree y, Tree z);
+
+LIBFAUST_API const char *prim0name(prim0);
+LIBFAUST_API const char *prim1name(prim1);
+LIBFAUST_API const char *prim2name(prim2);
+LIBFAUST_API const char *prim3name(prim3);
+LIBFAUST_API const char *prim4name(prim4);
+LIBFAUST_API const char *prim5name(prim5);
+
+LIBFAUST_API const char* ffname(Tree t);
+LIBFAUST_API int ffarity(Tree t);
 
 enum SType { kSInt, kSReal };
 
@@ -640,6 +658,7 @@ LIBFAUST_API Box boxAttach();
  */
 LIBFAUST_API Box boxAttach(Box b1, Box b2);
 
+LIBFAUST_API Box boxPrim2(prim2 foo);
 /**
  * Compile a DSP source code as a string in a flattened box
  *
@@ -748,6 +767,12 @@ LIBFAUST_API bool isBoxPrim2(Box b);
 LIBFAUST_API bool isBoxPrim3(Box b);
 LIBFAUST_API bool isBoxPrim4(Box b);
 LIBFAUST_API bool isBoxPrim5(Box b);
+LIBFAUST_API bool isBoxPrim0(Box b, prim0* p);
+LIBFAUST_API bool isBoxPrim1(Box b, prim1* p);
+LIBFAUST_API bool isBoxPrim2(Box b, prim2* p);
+LIBFAUST_API bool isBoxPrim3(Box b, prim3* p);
+LIBFAUST_API bool isBoxPrim4(Box b, prim4* p);
+LIBFAUST_API bool isBoxPrim5(Box b, prim5* p);
 LIBFAUST_API bool isBoxReal(Box t);
 LIBFAUST_API bool isBoxReal(Box t, double* r);
 LIBFAUST_API bool isBoxRec(Box t, Box& x, Box& y);

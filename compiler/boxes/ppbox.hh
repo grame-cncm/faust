@@ -50,7 +50,7 @@ LIBFAUST_API const char *prim5name(CTree *(*ptr)(CTree *, CTree *, CTree *, CTre
 // box pretty printer.
 // usage : out << boxpp(aBoxExp);
 
-class LIBFAUST_API boxpp : public virtual Garbageable {
+class boxpp : public virtual Garbageable {
     protected:
         Tree fBox;
         int  fPriority;

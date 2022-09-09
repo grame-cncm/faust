@@ -44,6 +44,24 @@ typedef std::vector<CTree*> tvec;
 
 typedef CTree* Signal;
 typedef CTree* Box;
+typedef CTree* Tree;
+
+typedef Tree (*prim0)();
+typedef Tree (*prim1)(Tree x);
+typedef Tree (*prim2)(Tree x, Tree y);
+typedef Tree (*prim3)(Tree x, Tree y, Tree z);
+typedef Tree (*prim4)(Tree w, Tree x, Tree y, Tree z);
+typedef Tree (*prim5)(Tree v, Tree w, Tree x, Tree y, Tree z);
+
+LIBFAUST_API const char *prim0name(prim0);
+LIBFAUST_API const char *prim1name(prim1);
+LIBFAUST_API const char *prim2name(prim2);
+LIBFAUST_API const char *prim3name(prim3);
+LIBFAUST_API const char *prim4name(prim4);
+LIBFAUST_API const char *prim5name(prim5);
+
+LIBFAUST_API const char* ffname(Tree t);
+LIBFAUST_API int ffarity(Tree t);
 
 enum SType { kSInt, kSReal };
 
