@@ -505,6 +505,14 @@ static void test23(int argc, char* argv[])
         Box sl2 = boxHSlider("v:Oscillator/Freq2", boxReal(300),
                              boxReal(100), boxReal(2000), boxReal(0.01));
         Box box = boxPar(osc(sl1), osc(sl2));
+    
+        // Print the box
+        cout << "Print the box\n";
+        printBox(box, cout, false);
+    
+        // Print the box in shared mode
+        cout << "Print the box with shared identifiers\n";
+        printBox(box, cout, true);
         
         // Compile the 'box' to 'signals'
         tvec signals = boxesToSignals(box, error_msg);

@@ -60,11 +60,20 @@ struct LIBFAUST_API dsp_factory_base {
 };
 
 /**
+ *  Print the box.
+ *
+ * @param box - the box to be printed
+ * @param out - the output stream
+ * @param shared - whether the identical sub boxes are printed as indentifier
+ */
+LIBFAUST_API void printBox(Box box, std::ostream& out, bool shared);
+
+/**
  *  Print the signal.
  *
  * @param sig - the signal to be printed
  * @param out - the output stream
- * @param sig - whether the identical subsignals are printed as indentifier
+ * @param shared - whether the identical sub signals are printed as indentifier
  */
 LIBFAUST_API void printSignal(Signal sig, std::ostream& out, bool shared);
 

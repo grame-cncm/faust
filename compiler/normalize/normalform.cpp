@@ -25,6 +25,7 @@
 #include "global.hh"
 #include "tree.hh"
 #include "ppsig.hh"
+#include "ppbox.hh"
 #include "simplify.hh"
 #include "sigPromotion.hh"
 #include "sigtyperules.hh"
@@ -96,9 +97,20 @@ LIBFAUST_API void printSignal(Tree sig, ostream& out, bool shared)
 {
     // Clear print state
     gGlobal->clear();
-    if (shared){
+    if (shared) {
         ppsigShared(sig, out);
     } else {
         out << ppsig(sig) << endl;
+    }
+}
+
+LIBFAUST_API void printBox(Tree box, ostream& out, bool shared)
+{
+    // Clear print state
+    gGlobal->clear();
+    if (shared) {
+        boxppShared(box, out);
+    } else {
+        out << boxpp(box) << endl;
     }
 }
