@@ -223,7 +223,7 @@ inline Tree tree(const Node& n, const tvec& br)
 }
 
 // useful conversions
-int         tree2int(Tree t);     ///< if t has a node of type int, return it otherwise error
+LIBFAUST_API int tree2int(Tree t); ///< if t has a node of type int, return it otherwise error
 double      tree2float(Tree t);   ///< if t has a node of type float, return it otherwise error
 double      tree2double(Tree t);  ///< if t has a node of type float, return it otherwise error
 LIBFAUST_API const char* tree2str(Tree t);     ///< if t has a node of type symbol, return its name otherwise error

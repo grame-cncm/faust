@@ -31,9 +31,24 @@ Tree ffunction(Tree signature, Tree incfile, Tree libfile);
 
 bool isffunction(Tree t);
 
-Tree        ffsignature(Tree t);
-const char* ffname(Tree t);
-int         ffarity(Tree t);
+Tree ffsignature(Tree t);
+
+/**
+ *  Return the name parameter of a foreign function.
+ *
+ * @param  t - the signal
+ * @return the name
+ */
+LIBFAUST_API const char* ffname(Tree t);
+
+/**
+ *  Return the arity of a foreign function
+ *
+ * @param  s - the signal
+ * @return the name
+ */
+LIBFAUST_API int ffarity(Tree t);
+
 int         ffrestype(Tree t);
 int         ffargtype(Tree t, int i);
 const char* ffincfile(Tree t);

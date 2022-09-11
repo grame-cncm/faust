@@ -44,6 +44,37 @@ typedef std::vector<CTree*> tvec;
 
 typedef CTree* Signal;
 typedef CTree* Box;
+typedef CTree* Tree;
+
+typedef Tree (*prim0)();
+typedef Tree (*prim1)(Tree x);
+typedef Tree (*prim2)(Tree x, Tree y);
+typedef Tree (*prim3)(Tree x, Tree y, Tree z);
+typedef Tree (*prim4)(Tree w, Tree x, Tree y, Tree z);
+typedef Tree (*prim5)(Tree v, Tree w, Tree x, Tree y, Tree z);
+
+LIBFAUST_API const char* prim0name(prim0);
+LIBFAUST_API const char* prim1name(prim1);
+LIBFAUST_API const char* prim2name(prim2);
+LIBFAUST_API const char* prim3name(prim3);
+LIBFAUST_API const char* prim4name(prim4);
+LIBFAUST_API const char* prim5name(prim5);
+
+/**
+ *  Return the name parameter of a foreign function.
+ *
+ * @param  s - the signal
+ * @return the name
+ */
+LIBFAUST_API const char* ffname(Signal s);
+
+/**
+ *  Return the arity of a foreign function.
+ *
+ * @param  s - the signal
+ * @return the name
+ */
+LIBFAUST_API int ffarity(Signal s);
 
 enum SType { kSInt, kSReal };
 
@@ -478,6 +509,48 @@ LIBFAUST_API Signal sigHBargraph(const std::string& label, Signal min, Signal ma
 LIBFAUST_API Signal sigAttach(Signal s1, Signal s2);
 
 /**
+ *  Simplify a signal to its normal form, where:
+ *  - all possible optimisations, simplications, and compile time computations have been done
+ *  - the mathematical functions (primitives and binary functions), delay, select2, sounfile primitive...
+ *  are properly typed (arguments and result)
+ *  - signal cast are properly done when needed
+ *
+ * @param sig - the signal to be processed
+ *
+ * @return the signal in normal form.
+ */
+LIBFAUST_API Signal simplifyToNormalForm(Signal s);
+
+/**
+ *  Simplify a signal vector to its normal form, where:
+ *  - all possible optimisations, simplications, and compile time computations have been done
+ *  - the mathematical functions (primitives and binary functions), delay, select2, sounfile primitive...
+ *  are properly typed (arguments and result)
+ *  - signal cast are properly done when needed
+ *
+ * @param siglist - the signal vector to be processed
+ *
+ * @return the signal vector in normal form.
+ */
+LIBFAUST_API tvec simplifyToNormalForm2(tvec siglist);
+
+/**
+ * Create a C++ Faust DSP factory from a vector of output signals.
+ *
+ * @param name_app - the name of the Faust program
+ * @param osigs - the vector of output signals (that will internally be concerted in normal form, see simplifyToNormalForm)
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters
+ * @param error_msg - the error string to be filled
+ *
+ * @return a DSP factory on success, otherwise a null pointer.
+ */
+LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name_app, tvec osigs,
+                                                              int argc, const char* argv[],
+                                                              std::string& error_msg);
+
+
+/**
  * Test each signal and fill additional signal specific parameters.
  *
  * @return true and fill the specific parameters if the signal is of a given type, false otherwise
@@ -533,48 +606,6 @@ LIBFAUST_API bool isSigSoundfile(Signal s, Signal& label);
 LIBFAUST_API bool isSigSoundfileLength(Signal s, Signal& sf, Signal& part);
 LIBFAUST_API bool isSigSoundfileRate(Signal s, Signal& sf, Signal& part);
 LIBFAUST_API bool isSigSoundfileBuffer(Signal s, Signal& sf, Signal& chan, Signal& part, Signal& ridx);
-
-/**
- *  Simplify a signal to its normal form, where:
- *  - all possible optimisations, simplications, and compile time computations have been done
- *  - the mathematical functions (primitives and binary functions), delay, select2, sounfile primitive...
- *  are properly typed (arguments and result)
- *  - signal cast are properly done when needed
- *
- * @param sig - the signal to be processed
- *
- * @return the signal in normal form.
- */
-LIBFAUST_API Signal simplifyToNormalForm(Signal s);
-
-/**
- *  Simplify a signal vector to its normal form, where:
- *  - all possible optimisations, simplications, and compile time computations have been done
- *  - the mathematical functions (primitives and binary functions), delay, select2, sounfile primitive...
- *  are properly typed (arguments and result)
- *  - signal cast are properly done when needed
- *
- * @param siglist - the signal vector to be processed
- *
- * @return the signal vector in normal form.
- */
-LIBFAUST_API tvec simplifyToNormalForm2(tvec siglist);
-
-/**
- * Create a C++ Faust DSP factory from a vector of output signals.
- *
- * @param name_app - the name of the Faust program
- * @param osigs - the vector of output signals (that will internally be concerted in normal form, see simplifyToNormalForm)
- * @param argc - the number of parameters in argv array
- * @param argv - the array of parameters
- * @param error_msg - the error string to be filled
- *
- * @return a DSP factory on success, otherwise a null pointer.
- */
-LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name_app, tvec osigs,
-                                                              int argc, const char* argv[],
-                                                              std::string& error_msg);
-
 
 /*
  [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions

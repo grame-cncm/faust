@@ -1139,6 +1139,20 @@ static void printDeclareHeader(ostream& dst)
     }
 }
 
+LIBFAUST_API const char* xtendedName(Tree tree)
+{
+    void* userData = getUserData(tree);
+    faustassert(userData != nullptr);
+    return ((xtended*)userData)->name();
+}
+
+LIBFAUST_API unsigned int xtendedArity(Tree tree)
+{
+    void* userData = getUserData(tree);
+    faustassert(userData != nullptr);
+    return ((xtended*)userData)->arity();
+}
+
 /****************************************************************
                                 MAIN
 *****************************************************************/
@@ -2524,6 +2538,11 @@ LIBFAUST_API bool CisNil(Tree s)
 LIBFAUST_API const char* Ctree2str(Tree s)
 {
     return tree2str(s);
+}
+
+LIBFAUST_API int Ctree2int(Tree s)
+{
+    return tree2int(s);
 }
 
 LIBFAUST_API void* CgetUserData(Tree s)
@@ -4235,6 +4254,513 @@ LIBFAUST_API Tree CboxHBargraph(const char* label, Tree min, Tree max)
 LIBFAUST_API Tree CboxAttach()
 {
     return boxAttach();
+}
+
+// Box test API
+
+LIBFAUST_API bool CisBoxAbstr(Tree t, Tree* x_aux, Tree* y_aux)
+{
+    Tree x, y;
+    if (isBoxAbstr(t, x, y)) {
+        *x_aux = x;
+        *y_aux = y;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxAccess(Tree t, Tree* exp_aux, Tree* id_aux)
+{
+    Tree exp, id;
+    if (isBoxAccess(t, exp, id)) {
+        *exp_aux = exp;
+        *id_aux = id;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxAppl(Tree t, Tree* x_aux, Tree* y_aux)
+{
+    Tree x, y;
+    if (isBoxAppl(t, x, y)) {
+        *x_aux = x;
+        *y_aux = y;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxButton(Tree t, Tree* lbl_aux)
+{
+    Tree lbl;
+    if (isBoxButton(t, lbl)) {
+        *lbl_aux = lbl;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxCase(Tree t, Tree* rules_aux)
+{
+    Tree rules;
+    if (isBoxCase(t, rules)) {
+        *rules_aux = rules;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxCheckbox(Tree t, Tree* lbl_aux)
+{
+    Tree lbl;
+    if (isBoxCheckbox(t, lbl)) {
+        *lbl_aux = lbl;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxComponent(Tree t, Tree* filename_aux)
+{
+    Tree filename;
+    if (isBoxComponent(t, filename)) {
+        *filename_aux = filename;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxCut(Tree t)
+{
+    return isBoxCut(t);
+}
+
+LIBFAUST_API bool CisBoxEnvironment(Tree t)
+{
+    return isBoxEnvironment(t);
+}
+
+LIBFAUST_API bool CisBoxError(Tree t)
+{
+    return isBoxError(t);
+}
+
+LIBFAUST_API bool CisBoxFConst(Tree t, Tree* type_aux, Tree* name_aux, Tree* file_aux)
+{
+    Tree type, name, file;
+    if (isBoxFConst(t, type, name, file)) {
+        *type_aux = type;
+        *name_aux = name;
+        *file_aux = file;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxFFun(Tree t, Tree* ff_aux)
+{
+    Tree ff;
+    if (isBoxFFun(t, ff)) {
+        *ff_aux = ff;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxFVar(Tree t, Tree* type_aux, Tree* name_aux, Tree* file_aux)
+{
+    Tree type, name, file;
+    if (isBoxFVar(t, type, name, file)) {
+        *type_aux = type;
+        *name_aux = name;
+        *file_aux = file;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxHBargraph(Tree t, Tree* lbl_aux, Tree* min_aux, Tree* max_aux)
+{
+    Tree lbl, min, max;
+    if (isBoxHBargraph(t, lbl, min, max)) {
+        *lbl_aux = lbl;
+        *min_aux = min;
+        *max_aux = max;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxHGroup(Tree t, Tree* lbl_aux, Tree* x_aux)
+{
+    Tree lbl, x;
+    if (isBoxHGroup(t, lbl, x)) {
+        *lbl_aux = lbl;
+        *x_aux = x;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxHSlider(Tree t, Tree* lbl_aux, Tree* cur_aux, Tree* min_aux, Tree* max_aux, Tree* step_aux)
+{
+    Tree lbl, cur, min, max, step;
+    if (isBoxHSlider(t, lbl, cur, min, max, step)) {
+        *lbl_aux = lbl;
+        *cur_aux = cur;
+        *min_aux = min;
+        *max_aux = max;
+        *step_aux = step;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxIdent(Tree t, const char** str)
+{
+    return isBoxIdent(t, str);
+}
+
+LIBFAUST_API bool CisBoxInputs(Tree t, Tree* x_aux)
+{
+    Tree x;
+    if (isBoxInputs(t, x)) {
+        *x_aux = x;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxInt(Tree t, int* i)
+{
+    return isBoxInt(t, i);
+}
+
+LIBFAUST_API bool CisBoxIPar(Tree t, Tree* x_aux, Tree* y_aux, Tree* z_aux)
+{
+    Tree x, y, z;
+    if (isBoxIPar(t, x, y, z)) {
+        *x_aux = x;
+        *y_aux = y;
+        *z_aux = z;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxIProd(Tree t, Tree* x_aux, Tree* y_aux, Tree* z_aux)
+{
+    Tree x, y, z;
+    if (isBoxIProd(t, x, y, z)) {
+        *x_aux = x;
+        *y_aux = y;
+        *z_aux = z;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxISeq(Tree t, Tree* x_aux, Tree* y_aux, Tree* z_aux)
+{
+    Tree x, y, z;
+    if (isBoxISeq(t, x, y, z)) {
+        *x_aux = x;
+        *y_aux = y;
+        *z_aux = z;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxISum(Tree t, Tree* x_aux, Tree* y_aux, Tree* z_aux)
+{
+    Tree x, y, z;
+    if (isBoxISum(t, x, y, z)) {
+        *x_aux = x;
+        *y_aux = y;
+        *z_aux = z;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxLibrary(Tree t, Tree* filename_aux)
+{
+    Tree filename;
+    if (isBoxLibrary(t, filename)) {
+        *filename_aux = filename;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxMerge(Tree t, Tree* x_aux, Tree* y_aux)
+{
+    Tree x, y;
+    if (isBoxMerge(t, x, y)) {
+        *x_aux = x;
+        *y_aux = y;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxMetadata(Tree t, Tree* exp_aux, Tree* mdlist_aux)
+{
+    Tree exp, mdlist;
+    if (isBoxMetadata(t, exp, mdlist)) {
+        *exp_aux = exp;
+        *mdlist_aux = mdlist;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxNumEntry(Tree t, Tree* lbl_aux, Tree* cur_aux, Tree* min_aux, Tree* max_aux, Tree* step_aux)
+{
+    Tree lbl, cur, min, max, step;
+    if (isBoxNumEntry(t, lbl, cur, min, max, step)) {
+        *lbl_aux = lbl;
+        *cur_aux = cur;
+        *min_aux = min;
+        *max_aux = max;
+        *step_aux = step;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxOutputs(Tree t, Tree* x_aux)
+{
+    Tree x;
+    if (isBoxOutputs(t, x)) {
+        *x_aux = x;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxPar(Tree t, Tree* x_aux, Tree* y_aux)
+{
+    Tree x, y;
+    if (isBoxPar(t, x, y)) {
+        *x_aux = x;
+        *y_aux = y;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxPrim0(Tree t)
+{
+    return isBoxPrim0(t);
+}
+
+LIBFAUST_API bool CisBoxPrim1(Tree t)
+{
+    return isBoxPrim1(t);
+}
+
+LIBFAUST_API bool CisBoxPrim2(Tree t)
+{
+    return isBoxPrim2(t);
+}
+
+LIBFAUST_API bool CisBoxPrim3(Tree t)
+{
+    return isBoxPrim3(t);
+}
+
+LIBFAUST_API bool CisBoxPrim4(Tree t)
+{
+    return isBoxPrim4(t);
+}
+
+LIBFAUST_API bool CisBoxPrim5(Tree t)
+{
+    return isBoxPrim5(t);
+}
+
+LIBFAUST_API bool CisBoxReal(Tree t, double* r)
+{
+    return isBoxReal(t, r);
+}
+
+LIBFAUST_API bool CisBoxRec(Tree t, Tree* x_aux, Tree* y_aux)
+{
+    Tree x, y;
+    if (isBoxRec(t, x, y)) {
+        *x_aux = x;
+        *y_aux = y;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxRoute(Tree t, Tree* n_aux, Tree* m_aux, Tree* r_aux)
+{
+    Tree n, m, r;
+    if (isBoxRoute(t, n, m, r)) {
+        *n_aux = n;
+        *m_aux = m;
+        *r_aux = r;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxSeq(Tree t, Tree* x_aux, Tree* y_aux)
+{
+    Tree x, y;
+    if (isBoxSeq(t, x, y)) {
+        *x_aux = x;
+        *y_aux = y;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxSlot(Tree t, int* id)
+{
+    return isBoxSlot(t, id);
+}
+
+LIBFAUST_API bool CisBoxSoundfile(Tree t, Tree* label_aux, Tree* chan_aux)
+{
+    Tree label, chan;
+    if (isBoxSoundfile(t, label, chan)) {
+        *label_aux = label;
+        *chan_aux = chan;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxSplit(Tree t, Tree* x_aux, Tree* y_aux)
+{
+    Tree x, y;
+    if (isBoxSplit(t, x, y)) {
+        *x_aux = x;
+        *y_aux = y;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxSymbolic(Tree t, Tree* slot_aux, Tree* body_aux)
+{
+    Tree slot, body;
+    if (isBoxSymbolic(t, slot, body)) {
+        *slot_aux = slot;
+        *body_aux = body;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxTGroup(Tree t, Tree* lbl_aux, Tree* x_aux)
+{
+    Tree lbl, x;
+    if (isBoxTGroup(t, lbl, x)) {
+        *lbl_aux = lbl;
+        *x_aux = x;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxVBargraph(Tree t, Tree* lbl_aux, Tree* min_aux, Tree* max_aux)
+{
+    Tree lbl, min, max;
+    if (isBoxVBargraph(t, lbl, min, max)) {
+        *lbl_aux = lbl;
+        *min_aux = min;
+        *max_aux = max;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxVGroup(Tree t, Tree* lbl_aux, Tree* x_aux)
+{
+    Tree lbl, x;
+    if (isBoxVGroup(t, lbl, x)) {
+        *lbl_aux = lbl;
+        *x_aux = x;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxVSlider(Tree t, Tree* lbl_aux, Tree* cur_aux, Tree* min_aux, Tree* max_aux, Tree* step_aux)
+{
+    Tree lbl, cur, min, max, step;
+    if (isBoxVSlider(t, lbl, cur, min, max, step)) {
+        *lbl_aux = lbl;
+        *cur_aux = cur;
+        *min_aux = min;
+        *max_aux = max;
+        *step_aux = step;
+        return true;
+    } else {
+        return false;
+    }
+}
+
+LIBFAUST_API bool CisBoxWaveform(Tree t)
+{
+    return isBoxWaveform(t);
+}
+
+LIBFAUST_API bool CisBoxWire(Tree t)
+{
+    return isBoxWire(t);
+}
+
+LIBFAUST_API bool CisBoxWithLocalDef(Tree t, Tree* body_aux, Tree* ldef_aux)
+{
+    Tree body, ldef;
+    if (isBoxWithLocalDef(t, body, ldef)) {
+        *body_aux = body;
+        *ldef_aux = ldef;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 // Helpers

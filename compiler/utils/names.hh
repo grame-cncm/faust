@@ -41,8 +41,7 @@ using namespace std;
  * @param id reference to the identifier
  * @return true if the expression t was a definition of id
  **/
-
-bool getDefNameProperty(Tree t, Tree& id);
+LIBFAUST_API bool getDefNameProperty(Tree t, Tree& id);
 
 void setDefNameProperty(Tree t, Tree id);
 void setDefNameProperty(Tree t, const string& name);

@@ -38,8 +38,9 @@
 
 using namespace std;
 
-void   extractMetadata(const string& fulllabel, string& label, map<string, set<string> >& metadata);
-string extractName(Tree fulllabel);
+void extractMetadata(const string& fulllabel, string& label, map<string, set<string> >& metadata);
+
+LIBFAUST_API string extractName(Tree full_label);
 
 class Description : public virtual Garbageable {
     string                    fName;

@@ -57,7 +57,6 @@ int ffrestype(Tree t)
 const char* ffname(Tree t)
 {
     Tree namelist = nth(ffsignature(t), 1);
-    // cerr << "ffname " << tree2str(nth(namelist,gFloatSize-1)) << endl;
     return tree2str(nth(namelist, gGlobal->gFloatSize - 1));
 }
 

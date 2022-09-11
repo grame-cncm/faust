@@ -226,7 +226,7 @@ void CTree::init()
 }
 
 // if t has a node of type int, return it, or float, return casted to int, otherwise error
-int tree2int(Tree t)
+LIBFAUST_API int tree2int(Tree t)
 {
     double x;
     int    i;
@@ -386,8 +386,7 @@ bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tr
     }
 }
 
-// July 2005, support for symbol user data
-
+// Support for symbol user data
 LIBFAUST_API void* getUserData(Tree t)
 {
     Sym s;
@@ -402,7 +401,6 @@ LIBFAUST_API void* getUserData(Tree t)
  * export the properties of a CTree as two vectors, one for the keys
  * and one for the associated values
  */
-
 void CTree::exportProperties(vector<Tree>& keys, vector<Tree>& values)
 {
     for (plist::const_iterator p = fProperties.begin(); p != fProperties.end(); p++) {

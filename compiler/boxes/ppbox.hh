@@ -40,12 +40,12 @@
 
 using namespace std;
 
-const char *prim0name(CTree *(*ptr)());
-const char *prim1name(CTree *(*ptr)(CTree *));
-const char *prim2name(CTree *(*ptr)(CTree *, CTree *));
-const char *prim3name(CTree *(*ptr)(CTree *, CTree *, CTree *));
-const char *prim4name(CTree *(*ptr)(CTree *, CTree *, CTree *, CTree *));
-const char *prim5name(CTree *(*ptr)(CTree *, CTree *, CTree *, CTree *, CTree *));
+LIBFAUST_API const char *prim0name(CTree *(*ptr)());
+LIBFAUST_API const char *prim1name(CTree *(*ptr)(CTree *));
+LIBFAUST_API const char *prim2name(CTree *(*ptr)(CTree *, CTree *));
+LIBFAUST_API const char *prim3name(CTree *(*ptr)(CTree *, CTree *, CTree *));
+LIBFAUST_API const char *prim4name(CTree *(*ptr)(CTree *, CTree *, CTree *, CTree *));
+LIBFAUST_API const char *prim5name(CTree *(*ptr)(CTree *, CTree *, CTree *, CTree *, CTree *));
 
 // box pretty printer.
 // usage : out << boxpp(aBoxExp);

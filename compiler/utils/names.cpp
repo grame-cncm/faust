@@ -78,7 +78,7 @@ void setDefNameProperty(Tree t, const string& name)
     }
 }
 
-bool getDefNameProperty(Tree t, Tree& id)
+LIBFAUST_API bool getDefNameProperty(Tree t, Tree& id)
 {
     // cerr << "getDefNameProperty of : " << t << endl;
     return getProperty(t, gGlobal->DEFNAMEPROPERTY, id);

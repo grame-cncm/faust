@@ -36,7 +36,7 @@
 using namespace std;
 
 /**
- * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata
+ * Extracts metadata from a label : 'vol [unit: dB]' -> 'vol' + metadata
  */
 void extractMetadata(const string& fulllabel, string& label, map<string, set<string>>& metadata)
 {
@@ -153,12 +153,12 @@ void extractMetadata(const string& fulllabel, string& label, map<string, set<str
 
 //------------------------ specific schema -------------------------
 
-string extractName(Tree fulllabel)
+string extractName(Tree full_label)
 {
     string                   name;
     map<string, set<string>> metadata;
 
-    extractMetadata(tree2str(fulllabel), name, metadata);
+    extractMetadata(tree2str(full_label), name, metadata);
     return name;
 }
 
