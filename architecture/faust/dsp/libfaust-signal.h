@@ -558,16 +558,18 @@ LIBFAUST_API tvec simplifyToNormalForm2(tvec siglist);
  * Create source code in a target language from a vector of output signals.
  *
  * @param name_app - the name of the Faust program
- * @param osigs - the vector of output signals (that will internally be concerted in normal form,
+ * @param osigs - the vector of output signals (that will internally be converted in normal form,
  * see simplifyToNormalForm)
- * @param lang - the target source code's language
+ * @param lang - the target source code's language which can be one of "c",
+ * "cpp", "csharp", "dlang", "fir", "java", "julia", "ocpp", "rust", "soul" or "wast"
+ * (depending of which of the corresponding backends are compiled in libfaust)
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
  *
  * @return a string of source code on success, setting error_msg on error.
  */
-LIBFAUST_API std::string createSourceFromSignals(const std::string& name_app, tvec signals,
+LIBFAUST_API std::string createSourceFromSignals(const std::string& name_app, tvec osigs,
                                                 const std::string& lang,
                                                 int argc, const char* argv[],
                                                 std::string& error_msg);
