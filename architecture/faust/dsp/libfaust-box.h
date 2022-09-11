@@ -722,19 +722,21 @@ LIBFAUST_API bool getBoxType(Box box, int* inputs, int* outputs);
 LIBFAUST_API tvec boxesToSignals(Box box, std::string& error_msg);
 
 /**
- * Create a C++ Faust DSP factory from a box expression.
+ * Create source code in a target language from a box expression.
  *
  * @param name_app - the name of the Faust program
  * @param box - the box expression
+ * @param lang - the target source code's language
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
  *
- * @return a DSP factory on success, otherwise a null pointer.
+ * @return a string of source code on success, setting error_msg on error.
  */
-LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromBoxes(const std::string& name_app, Box box,
-                                                            int argc, const char* argv[],
-                                                            std::string& error_msg);
+LIBFAUST_API std::string createSourceFromBoxes(const std::string& name_app, Box box,
+                                               const std::string& lang,
+                                               int argc, const char* argv[],
+                                               std::string& error_msg);
 
 /**
  * Test each box and fill additional boxe specific parameters.

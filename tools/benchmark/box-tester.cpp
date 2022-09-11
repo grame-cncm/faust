@@ -69,13 +69,11 @@ inline Box getBufferSize()
     destroyLibContext(); \
 }                        \
     
-static void compile(const string& name, Box box, int argc = 0, const char* argv[] = nullptr)
+static void compile(const string& name_app, Box box, int argc = 0, const char* argv[] = nullptr)
 {
-    string error_msg;
-    dsp_factory_base* factory = createCPPDSPFactoryFromBoxes(name, box, argc, argv, error_msg);
-    if (factory) {
-        factory->write(&cout);
-        delete(factory);
+    string error_msg, source = createSourceFromBoxes(name_app, box, "cpp", argc, argv, error_msg);
+    if (source != "") {
+        cout << source;
     } else {
         cerr << error_msg;
     }
@@ -651,10 +649,9 @@ static void test25(int argc, char* argv[])
         Box osc = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", &inputs, &outputs, error_msg);
         
         // Compile it
-        dsp_factory_base* factory = createCPPDSPFactoryFromBoxes("FaustDSP", osc, argc, (const char**)argv, error_msg);
-        if (factory) {
-            factory->write(&cout);
-            delete(factory);
+        string source = createSourceFromBoxes("FaustDSP", osc, "cpp", argc, (const char**)argv, error_msg);
+        if (source != "") {
+            cout << source;
         } else {
             cerr << error_msg;
         }
@@ -683,10 +680,10 @@ static void test26(int argc, char* argv[])
         getBoxType(filteredInput, &inputs, &outputs);
         std::cout << "getBoxType inputs: " << inputs << " outputs: " << outputs << std::endl;
     
-        dsp_factory_base* factory = createCPPDSPFactoryFromBoxes("FaustDSP", filteredInput, argc, (const char**)argv, error_msg);
-        if (factory) {
-            factory->write(&cout);
-            delete(factory);
+        // Compile it
+        string source = createSourceFromBoxes("FaustDSP", filteredInput, "cpp", argc, (const char**)argv, error_msg);
+        if (source != "") {
+            cout << source;
         } else {
             cerr << error_msg;
         }

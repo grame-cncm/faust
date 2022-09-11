@@ -2417,22 +2417,49 @@ string expandDSP(int argc, const char* argv[], const char* name, const char* dsp
 // Signal C++ API
 // ===============
 
-LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name_app, tvec signals, int argc,
-                                                              const char* argv[], std::string& error_msg)
+LIBFAUST_API std::string createSourceFromSignals(const std::string& name_app, tvec signals,
+                                                 const std::string& lang,
+                                                 int argc, const char* argv[],
+                                                 std::string& error_msg)
 {
     int         argc1 = 0;
     const char* argv1[64];
     argv1[argc1++] = "faust";
+    argv1[argc1++] = "-lang";
+    argv1[argc1++] = lang.c_str();
     argv1[argc1++] = "-o";
     argv1[argc1++] = "string";
-
+    
     // Copy arguments
     for (int i = 0; i < argc; i++) {
         argv1[argc1++] = argv[i];
     }
     argv1[argc1] = nullptr;  // NULL terminated argv
+    
+    dsp_factory_base* factory = createFactory(name_app.c_str(), signals, argc1, argv1, error_msg);
+    if (factory) {
+        // Print the textual class
+        stringstream str;
+        factory->write(&str);
+        delete factory;
+        return str.str();
+    } else {
+        // the caller of this function should check that error_msg is blank.
+        return "";
+    }
+}
 
-    return createFactory(name_app.c_str(), signals, argc1, argv1, error_msg);
+LIBFAUST_API std::string createSourceFromBoxes(const std::string& name_app, Tree box,
+                                               const std::string& lang,
+                                               int argc, const char* argv[],
+                                               std::string& error_msg)
+{
+    try {
+        tvec signals = boxesToSignalsAux(box);
+        return createSourceFromSignals(name_app, signals, lang, argc, argv, error_msg);
+    } catch (faustexception& e) {
+        return e.Message();
+    }
 }
 
 // Foreign
@@ -3357,18 +3384,6 @@ LIBFAUST_API tvec boxesToSignals(Tree box, std::string& error_msg)
     } catch (faustexception& e) {
         error_msg = e.Message();
         return {};
-    }
-}
-
-LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromBoxes(const std::string& name_app, Tree box, int argc,
-                                                            const char* argv[], std::string& error_msg)
-{
-    try {
-        tvec signals = boxesToSignalsAux(box);
-        return createCPPDSPFactoryFromSignals(name_app, signals, argc, argv, error_msg);
-    } catch (faustexception& e) {
-        error_msg = e.Message();
-        return nullptr;
     }
 }
 

@@ -535,19 +535,22 @@ LIBFAUST_API Signal simplifyToNormalForm(Signal s);
 LIBFAUST_API tvec simplifyToNormalForm2(tvec siglist);
 
 /**
- * Create a C++ Faust DSP factory from a vector of output signals.
+ * Create source code in a target language from a vector of output signals.
  *
  * @param name_app - the name of the Faust program
- * @param osigs - the vector of output signals (that will internally be concerted in normal form, see simplifyToNormalForm)
+ * @param osigs - the vector of output signals (that will internally be concerted in normal form,
+ * see simplifyToNormalForm)
+ * @param lang - the target source code's language
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
  *
- * @return a DSP factory on success, otherwise a null pointer.
+ * @return a string of source code on success, setting error_msg on error.
  */
-LIBFAUST_API dsp_factory_base* createCPPDSPFactoryFromSignals(const std::string& name_app, tvec osigs,
-                                                              int argc, const char* argv[],
-                                                              std::string& error_msg);
+LIBFAUST_API std::string createSourceFromSignals(const std::string& name_app, tvec signals,
+                                                const std::string& lang,
+                                                int argc, const char* argv[],
+                                                std::string& error_msg);
 
 
 /**
