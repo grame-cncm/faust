@@ -2449,19 +2449,6 @@ LIBFAUST_API std::string createSourceFromSignals(const std::string& name_app, tv
     }
 }
 
-LIBFAUST_API std::string createSourceFromBoxes(const std::string& name_app, Tree box,
-                                               const std::string& lang,
-                                               int argc, const char* argv[],
-                                               std::string& error_msg)
-{
-    try {
-        tvec signals = boxesToSignalsAux(box);
-        return createSourceFromSignals(name_app, signals, lang, argc, argv, error_msg);
-    } catch (faustexception& e) {
-        return e.Message();
-    }
-}
-
 // Foreign
 
 LIBFAUST_API Tree sigFFun(Tree ff, tvec largs)
@@ -3384,6 +3371,19 @@ LIBFAUST_API tvec boxesToSignals(Tree box, std::string& error_msg)
     } catch (faustexception& e) {
         error_msg = e.Message();
         return {};
+    }
+}
+
+LIBFAUST_API std::string createSourceFromBoxes(const std::string& name_app, Tree box,
+                                               const std::string& lang,
+                                               int argc, const char* argv[],
+                                               std::string& error_msg)
+{
+    try {
+        tvec signals = boxesToSignalsAux(box);
+        return createSourceFromSignals(name_app, signals, lang, argc, argv, error_msg);
+    } catch (faustexception& e) {
+        return e.Message();
     }
 }
 
