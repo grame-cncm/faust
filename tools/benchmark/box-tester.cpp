@@ -506,11 +506,11 @@ static void test23(int argc, char* argv[])
     
         // Print the box
         cout << "Print the box\n";
-        printBox(box, cout, false);
+        cout << printBox(box, false);
     
         // Print the box in shared mode
         cout << "Print the box with shared identifiers\n";
-        printBox(box, cout, true);
+        cout << printBox(box, true);
         
         // Compile the 'box' to 'signals'
         tvec signals = boxesToSignals(box, error_msg);
@@ -518,14 +518,12 @@ static void test23(int argc, char* argv[])
         // Print the signals
         cout << "Print the signals\n";
         for (size_t i = 0; i < signals.size(); i++) {
-            printSignal(signals[i], cout, false);
-            cout << endl;
+            cout << printSignal(signals[i], false) << endl;
         }
         // Print the signals in shared mode
         cout << "Print the signals in shared mode\n";
         for (size_t i = 0; i < signals.size(); i++) {
-            printSignal(signals[i], cout, true);
-            cout << endl;
+            cout << printSignal(signals[i], true) << endl;
         }
         
         // Then compile the 'signals' to a DSP factory

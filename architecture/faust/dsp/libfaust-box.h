@@ -94,19 +94,21 @@ struct LIBFAUST_API dsp_factory_base {
  *  Print the box.
  *
  * @param box - the box to be printed
- * @param out - the output stream
  * @param shared - whether the identical sub boxes are printed as indentifier
+ *
+ * @return the printed box as a string
  */
-LIBFAUST_API void printBox(Box box, std::ostream& out, bool shared);
+LIBFAUST_API std::string printBox(Box box, bool shared);
 
 /**
  *  Print the signal.
  *
  * @param sig - the signal to be printed
- * @param out - the output stream
  * @param shared - whether the identical sub signals are printed as indentifier
+ *
+ * @return the printed signal as a string
  */
-LIBFAUST_API void printSignal(Signal sig, std::ostream& out, bool shared);
+LIBFAUST_API std::string printSignal(Signal sig, bool shared);
 
 #endif
 
@@ -118,6 +120,7 @@ LIBFAUST_API void printSignal(Signal sig, std::ostream& out, bool shared);
  *
  * @param b the expression
  * @param id reference to the identifier
+ *
  * @return true if the expression b was a definition of id
  **/
 LIBFAUST_API bool getDefNameProperty(Box b, Box& id);
@@ -125,13 +128,11 @@ LIBFAUST_API bool getDefNameProperty(Box b, Box& id);
 /**
  * Extract the name from a label.
  *
- * @paramf full_label the label to be analyzed
+ * @param full_label the label to be analyzed
+ *
  * @return the extracted name
  **/
 LIBFAUST_API std::string extractName(Box full_label);
-
-LIBFAUST_API unsigned int xtendedArity(Box b);
-LIBFAUST_API const char* xtendedName(Box b);
 
 /**
  * Create global compilation context, has to be done first.

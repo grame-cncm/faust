@@ -93,24 +93,28 @@ LIBFAUST_API tvec simplifyToNormalForm2(tvec siglist)
     return treeConvert(simplifyToNormalForm(listConvert(siglist)));
 }
 
-LIBFAUST_API void printSignal(Tree sig, ostream& out, bool shared)
+LIBFAUST_API string printSignal(Tree sig, bool shared)
 {
     // Clear print state
     gGlobal->clear();
+    stringstream str;
     if (shared) {
-        ppsigShared(sig, out);
+        ppsigShared(sig, str);
     } else {
-        out << ppsig(sig) << endl;
+        str << ppsig(sig) << endl;
     }
+    return str.str();
 }
 
-LIBFAUST_API void printBox(Tree box, ostream& out, bool shared)
+LIBFAUST_API string printBox(Tree box, bool shared)
 {
     // Clear print state
     gGlobal->clear();
+    stringstream str;
     if (shared) {
-        boxppShared(box, out);
+        boxppShared(box, str);
     } else {
-        out << boxpp(box) << endl;
+        str << boxpp(box) << endl;
     }
+    return str.str();
 }

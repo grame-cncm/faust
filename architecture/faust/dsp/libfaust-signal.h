@@ -94,19 +94,21 @@ struct LIBFAUST_API dsp_factory_base {
  *  Print the box.
  *
  * @param box - the box to be printed
- * @param out - the output stream
  * @param shared - whether the identical sub boxes are printed as indentifier
+ *
+ * @return the printed box as a string
  */
-LIBFAUST_API void printBox(Box box, std::ostream& out, bool shared);
+LIBFAUST_API std::string printBox(Box box, bool shared);
 
 /**
  *  Print the signal.
  *
  * @param sig - the signal to be printed
- * @param out - the output stream
  * @param shared - whether the identical sub signals are printed as indentifier
+ *
+ * @return the printed signal as a string
  */
-LIBFAUST_API void printSignal(Signal sig, std::ostream& out, bool shared);
+LIBFAUST_API std::string printSignal(Signal sig, bool shared);
 
 #endif
 
@@ -149,6 +151,24 @@ LIBFAUST_API const char* tree2str(Signal s);
  * @return a pointer to xtended type if it exists, otherwise nullptr.
  */
 LIBFAUST_API void* getUserData(Signal s);
+
+/**
+ * Return the arity of the xtended signal.
+ *
+ * @param s - the xtended signal
+ *
+ * @return the arity of the xtended signal.
+ */
+LIBFAUST_API unsigned int xtendedArity(Signal s);
+
+/**
+ * Return the name of the xtended signal.
+ *
+ * @param s - the xtended signal
+ *
+ * @return the name of the xtended signal.
+ */
+LIBFAUST_API const char* xtendedName(Signal s);
 
 /**
  * Constant integer : for all t, x(t) = n.
