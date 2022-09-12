@@ -180,7 +180,7 @@ struct global {
     bool   gComputeMix;            // Mix in outputs buffers
     string gFastMathLib;           // The fastmath code mapping file
     string gNameSpace;             // Wrapping namespace used with the C++ backend
-    bool   gFullParentheses;       // Generate less parenthesis in comde textuel backends : C/C++, Dlang, rust, SOUL
+    bool   gFullParentheses;       // Generate less parenthesis in some textual backends: C/C++, Dlang, rust, SOUL
 
     int gWideningLimit;   // Max number of iterations before interval widening
     int gNarrowingLimit;  // Max number of iterations to compute interval widener
