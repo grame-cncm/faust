@@ -1,4 +1,4 @@
-% man(1) Version 2.48.5 (08-September-2022) | Faust man page
+% man(1) Version 2.49.0 (12-September-2022) | Faust man page
 
 NAME
 ====
@@ -74,6 +74,7 @@ Code generation options:
 
   **-nvi**        **--no-virtual**                when compiled with the C++ backend, does not add the 'virtual' keyword.
 
+  **-fp**         **--full-parentheses**          always add parentheses around binops 
   **-exp10**      **--generate-exp10**            pow(10,x) replaced by possibly faster exp10(x).
 
   **-os**         **--one-sample**                generate one sample computation (same as -os0).
