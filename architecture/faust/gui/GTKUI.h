@@ -1364,7 +1364,7 @@ static gboolean callUpdateAllGuis(gpointer)
 
 bool GTKUI::run()
 {
-    assert(fTop == nullptr);
+    assert(fTop == 0);
     gtk_container_add(GTK_CONTAINER(fWindow), fBox[fTop]);
 
     gtk_widget_show_all(fWindow);
