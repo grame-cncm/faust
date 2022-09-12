@@ -64,6 +64,7 @@ do
         MIDIDEFS="-DMIDICTRL"
     elif [ $p = "-dyn" ]; then
         OPTIONS="$OPTIONS -inj template-llvm.cpp"
+        LLVM_LIBS="$STRIP $FAUSTLDDIR/libfaust.a `llvm-config --ldflags --libs all --system-libs`"
     elif [ $p = "-soundfile" ]; then
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE"
