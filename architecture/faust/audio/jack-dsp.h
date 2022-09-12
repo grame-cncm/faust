@@ -168,7 +168,7 @@ class jackaudio : public audio {
     #endif
         
         // JACK callbacks
-        virtual int	process(jack_nframes_t nframes)
+        virtual int process(jack_nframes_t nframes)
         {
             AVOIDDENORMALS;
             

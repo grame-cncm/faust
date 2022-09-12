@@ -51,6 +51,3 @@ else
     STRIP=
 fi
 
-# Used of -dyn option
-LLVM_LIBS="$STRIP $FAUSTLDDIR/libfaust.a `llvm-config --ldflags --libs all --system-libs`"
-

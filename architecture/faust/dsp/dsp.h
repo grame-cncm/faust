@@ -248,7 +248,7 @@ class FAUST_API ScopedNoDenormals {
         void setFpStatusRegister(intptr_t fpsr_aux) noexcept
         {
         #if defined (__arm64__) || defined (__aarch64__)
-           asm volatile("msr fpcr, %0" : : "ri" (fpsr_aux));
+            asm volatile("msr fpcr, %0" : : "ri" (fpsr_aux));
         #elif defined (__SSE__)
             _mm_setcsr(static_cast<uint32_t>(fpsr_aux));
         #endif

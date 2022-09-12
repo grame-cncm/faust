@@ -46,6 +46,7 @@ for p in $@; do
         FAUSTFLOAT="double"
     elif [ $p = "-dyn" ]; then
         OPTIONS="$OPTIONS -inj template-llvm.cpp"
+        LLVM_LIBS="$STRIP $FAUSTLDDIR/libfaust.a `llvm-config --ldflags --libs all --system-libs`"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
