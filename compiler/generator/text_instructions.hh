@@ -206,9 +206,8 @@ class TextInstVisitor : public InstVisitor {
      */
     bool special(const string& name)
     {
-        return (name == "==") || (name == "!=") || (name == "<") ||
-               (name == ">") || (name == "<=") || (name == ">=") ||
-               (name == ">>") || (name == "<<");
+        return (name == "==") || (name == "!=") || (name == "<") || (name == ">") || (name == "<=") || (name == ">=") ||
+               (name == ">>") || (name == "<<") || (name == "&") || (name == "|");
     }
 
     /**
