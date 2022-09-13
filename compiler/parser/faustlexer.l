@@ -27,7 +27,7 @@
 %}
 
 DIGIT    [0-9]
-ID       [a-zA-Z][_a-zA-Z0-9]*
+ID       _*[a-zA-Z][_a-zA-Z0-9]*
 LETTER   [a-zA-Z]
 NUMBER   ({DIGIT}+"."{DIGIT}*|"."{DIGIT}+|{DIGIT}+)
 WSPACE   [ \t\n]
@@ -230,7 +230,6 @@ NSID	 {ID}("::"{ID})*
 
 
 "::"{NSID}   	return IDENT;
-_{NSID}   		return IDENT;
 {NSID}   		return IDENT;
 
 "\""[^\"]*"\""	return STRING;
