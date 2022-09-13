@@ -16,11 +16,11 @@ PREFIX ?= /usr/local
 
 prefix := $(DESTDIR)$(PREFIX)
 
-TARGETS ?= dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk dynamic-machine-jack-gtk dynamic-coreaudio-gtk interp-tracer faust-osc-controller signal-tester signal-tester-c box-tester box-tester-c
+TARGETS ?= dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk interp-tracer faust-osc-controller signal-tester signal-tester-c box-tester box-tester-c
 system := $(shell uname -s)
 ifeq ($(system), Darwin)
 	STRIP = -dead_strip
-	TARGETS := $(TARGETS) dynamic-coreaudio-gtk poly-dynamic-jack-gtk
+	TARGETS := $(TARGETS) dynamic-coreaudio-gtk poly-dynamic-jack-gtk dynamic-machine-jack-gtk 
 endif
 
 all: $(TARGETS)
