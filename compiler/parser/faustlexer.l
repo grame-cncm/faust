@@ -32,6 +32,7 @@ LETTER   [a-zA-Z]
 NUMBER   ({DIGIT}+"."{DIGIT}*|"."{DIGIT}+|{DIGIT}+)
 WSPACE   [ \t\n]
 TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
+NSID	 {ID}("::"{ID})*
 
 %option yylineno
 %option nounput
@@ -228,8 +229,9 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "fixedpointprecision"    return FIXEDPOINTMODE;
 
 
-_{ID}   	return IDENT;
-{ID}   		return IDENT;
+"::"{NSID}   	return IDENT;
+_{NSID}   		return IDENT;
+{NSID}   		return IDENT;
 
 "\""[^\"]*"\""	return STRING;
 
