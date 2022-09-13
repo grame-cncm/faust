@@ -406,7 +406,7 @@ static void test20()
  */
 
 // Using the LLVM backend.
-static void test21(int argc, char* argv[])
+static void test21(int argc, const char* argv[])
 {
     cout << "test21\n";
     createLibContext();
@@ -427,7 +427,7 @@ static void test21(int argc, char* argv[])
             audio.init("Test", dsp);
             
             // Create GUI
-            GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, &argv);
+            GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, (char***)&argv);
             dsp->buildUserInterface(&gtk_ui);
             
             // Start real-time processing
@@ -448,7 +448,7 @@ static void test21(int argc, char* argv[])
 }
 
 // Using the Interpreter backend.
-static void test22(int argc, char* argv[])
+static void test22(int argc, const char* argv[])
 {
     cout << "test22\n";
     createLibContext();
@@ -469,7 +469,7 @@ static void test22(int argc, char* argv[])
             audio.init("Test", dsp);
             
             // Create GUI
-            GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, &argv);
+            GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, (char***)&argv);
             dsp->buildUserInterface(&gtk_ui);
             
             // Start real-time processing
@@ -490,7 +490,7 @@ static void test22(int argc, char* argv[])
 }
 
 // Using the Interpreter backend.
-static void test23(int argc, char* argv[])
+static void test23(int argc, const char* argv[])
 {
     cout << "test23\n";
     interpreter_dsp_factory* factory = nullptr;
@@ -543,7 +543,7 @@ static void test23(int argc, char* argv[])
         audio.init("Test", dsp);
         
         // Create GUI
-        GTKUI gtk_ui = GTKUI("Organ", &argc, &argv);
+        GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, (char***)&argv);
         dsp->buildUserInterface(&gtk_ui);
         
         // Start real-time processing
@@ -576,7 +576,7 @@ static void test23(int argc, char* argv[])
  */
 
 // Simple polyphonic DSP.
-static void test24(int argc, char* argv[])
+static void test24(int argc, const char* argv[])
 {
     cout << "test24\n";
     interpreter_dsp_factory* factory = nullptr;
@@ -609,7 +609,7 @@ static void test24(int argc, char* argv[])
         audio.init("Organ", dsp);
         
         // Create GUI
-        GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, &argv);
+        GTKUI gtk_ui = GTKUI((char*)"Organ", &argc, (char***)&argv);
         dsp->buildUserInterface(&gtk_ui);
         
         // Create MIDI controller
@@ -635,7 +635,7 @@ static void test24(int argc, char* argv[])
 }
 
 // Compile a complete DSP program to a box expression
-static void test25(int argc, char* argv[])
+static void test25(int argc, const char* argv[])
 {
     createLibContext();
     {
@@ -644,7 +644,7 @@ static void test25(int argc, char* argv[])
         string error_msg;
     
         // Create the oscillator
-        Box osc = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", &inputs, &outputs, error_msg);
+        Box osc = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", argc, argv, &inputs, &outputs, error_msg);
         
         // Compile it
         string source = createSourceFromBoxes("FaustDSP", osc, "cpp", argc, (const char**)argv, error_msg);
@@ -658,7 +658,7 @@ static void test25(int argc, char* argv[])
 }
 
 // Compile a complete DSP program to a box expression, then use the result in another expression
-static void test26(int argc, char* argv[])
+static void test26(int argc, const char* argv[])
 {
     cout << "test26\n";
     createLibContext();
@@ -668,7 +668,7 @@ static void test26(int argc, char* argv[])
         string error_msg;
         
         // Create the filter without parameter
-        Box filter = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = fi.lowpass(5);", &inputs, &outputs, error_msg);
+        Box filter = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = fi.lowpass(5);", argc, argv, &inputs, &outputs, error_msg);
         
         // Create the filter parameters and connect
         Box cutoff = boxHSlider("cutoff", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
@@ -692,7 +692,7 @@ static void test26(int argc, char* argv[])
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
-int main(int argc, char* argv[])
+int main(int argc, const char* argv[])
 {
     test1();
     test2();

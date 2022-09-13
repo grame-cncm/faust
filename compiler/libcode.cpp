@@ -2145,19 +2145,23 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     return out.str();
 }
 
-LIBFAUST_API Tree DSPToBoxes(const std::string& name_app, const std::string& dsp_content, int* inputs, int* outputs,
-                             std::string& error_msg)
+LIBFAUST_API Tree DSPToBoxes(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], int* inputs, int* outputs, std::string& error_msg)
 {
-    int         argc = 0;
-    const char* argv[16];
-    argv[argc++] = "faust";
-    argv[argc]   = nullptr;  // NULL terminated argv
-
+    int argc1 = 0;
+    const char* argv1[64];
+    argv1[argc1++] = "faust";
+    
+    // Copy arguments
+    for (int i = 0; i < argc; i++) {
+        argv1[argc1++] = argv[i];
+    }
+    argv1[argc1] = nullptr;  // NULL terminated argv
+    
     /****************************************************************
      1 - process command line
      *****************************************************************/
-    initFaustDirectories(argc, argv);
-    processCmdline(argc, argv);
+    initFaustDirectories(argc1, argv1);
+    processCmdline(argc1, argv1);
 
     faust_alarm(gGlobal->gTimeout);
 
@@ -3928,10 +3932,10 @@ LIBFAUST_API Tree boxAttach(Tree s1, Tree s2)
 extern "C" {
 #endif
 
-LIBFAUST_API Tree CDSPToBoxes(const char* name_app, const char* dsp_content, int* inputs, int* outputs, char* error_msg)
+LIBFAUST_API Tree CDSPToBoxes(const char* name_app, const char* dsp_content, int argc, const char* argv[], int* inputs, int* outputs, char* error_msg)
 {
     string error_msg_aux;
-    Tree   box = DSPToBoxes(name_app, dsp_content, inputs, outputs, error_msg_aux);
+    Tree   box = DSPToBoxes(name_app, dsp_content, argc, argv, inputs, outputs, error_msg_aux);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return box;
 }

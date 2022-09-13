@@ -667,13 +667,15 @@ extern "C"
      *
      * @param name_app - the name of the Faust program
      * @param dsp_content - the Faust program as a string
+     * @param argc - the number of parameters in argv array
+     * @param argv - the array of parameters
      * @param inputs - the place to return the number of inputs of the resulting box
      * @param outputs - the place to return the number of outputs of the resulting box
      * @param error_msg - the error string to be filled
      *
      * @return a flattened box on success, otherwise a null pointer.
      */
-    LIBFAUST_API Box CDSPToBoxes(const char* name_appp, const char* dsp_content, int* inputs, int* outputs, char* error_msg);
+    LIBFAUST_API Box CDSPToBoxes(const char* name_appp, const char* dsp_content, int argc, const char* argv[], int* inputs, int* outputs, char* error_msg);
     
     /**
      * Return the number of inputs and outputs of a box

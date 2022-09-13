@@ -226,7 +226,7 @@ static void test3()
 }
 
 // Compile a complete DSP program to a box expression, then use the result in another expression
-static void test4()
+static void test4(int argc, const char* argv[])
 {
     createLibContext();
     {
@@ -235,14 +235,14 @@ static void test4()
         char error_msg[4096];
         
         // Create the filter without parameter
-        Box filter = CDSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = fi.lowpass(5);", &inputs, &outputs, error_msg);
+        Box filter = CDSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = fi.lowpass(5);", argc, argv, &inputs, &outputs, error_msg);
         
         // Create the filter parameters and connect
         Box cutoff = CboxHSlider("cutoff", CboxReal(300), CboxReal(100), CboxReal(2000), CboxReal(0.01));
         Box cutoffAndInput = CboxPar(cutoff, CboxWire());
         Box filteredInput = CboxSeq(cutoffAndInput, filter);
         
-        bool res = CgetBoxType(filteredInput, &inputs, &outputs);
+        CgetBoxType(filteredInput, &inputs, &outputs);
         printf("CgetBoxType inputs: %d outputs: %d\n", inputs, outputs);
         
         llvm_dsp_factory* factory = createCDSPFactoryFromBoxes("test4", filteredInput, 0, NULL, "", error_msg, -1);
@@ -269,12 +269,12 @@ static void test4()
     destroyLibContext();
 }
 
-int main(int argc, char* argv[])
+int main(int argc, const char* argv[])
 {
     test1();
     test2();
     test3();
-    test4();
+    test4(argc, argv);
     
     return 0;
 }
