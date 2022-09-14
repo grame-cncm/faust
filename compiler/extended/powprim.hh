@@ -162,7 +162,8 @@ class PowPrim : public xtended {
                 ValuesIt it1 = args.begin();
                 it1++;
                 Int32NumInst* arg2 = dynamic_cast<Int32NumInst*>(*it1);
-                faust_power_name = container->getFaustPowerName() + to_string(arg2->fNum) + ((result_type == Typed::kInt32) ? "_i" : "_f");
+                faust_power_name =
+                    container->getFaustPowerName() + to_string(arg2->fNum) + ((rtype == Typed::kInt32) ? "_i" : "_f");
 			}
 
             Names named_args;
