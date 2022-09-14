@@ -154,9 +154,9 @@ class PowPrim : public xtended {
             
             // Expand the pow depending of the exposant argument
             BlockInst* block = InstBuilder::genBlockInst();
-            
-			string faust_power_name;
-			if (gGlobal->gOutputLang == "jax") {
+
+            string faust_power_name;
+            if (gGlobal->gOutputLang == "jax") {
                 faust_power_name = "jnp.square";
             } else {
                 ValuesIt it1 = args.begin();

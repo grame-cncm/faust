@@ -902,7 +902,6 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     if (gGlobal->gOutputLang == "rust") {
         res = InstBuilder::genLoadStackVar(subst("*input$0", T(idx)));
     } else if (gGlobal->gOutputLang == "jax") {
-        //res = InstBuilder::genLoadGlobalVar("inputs");  // todo: ?
         res = InstBuilder::genLoadArrayStackVar("inputs", InstBuilder::genInt32NumInst(idx));
     } else if (gGlobal->gOneSampleControl) {
         res = InstBuilder::genLoadStructVar(subst("input$0", T(idx)));
