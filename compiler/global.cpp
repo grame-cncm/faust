@@ -453,12 +453,12 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gJuliaVisitor = nullptr;  // Will be (possibly) allocated in Julia backend
 #endif
 
-#ifdef SOUL_BUILD
-    gTableSizeVisitor = nullptr;  // Will be (possibly) allocated in SOUL backend
-#endif
-
 #ifdef JAX_BUILD
     gJAXVisitor = nullptr;    // Will be (possibly) allocated in JAX backend
+#endif
+
+#ifdef SOUL_BUILD
+    gTableSizeVisitor = nullptr;  // Will be (possibly) allocated in SOUL backend
 #endif
 
     gHelpSwitch       = false;
