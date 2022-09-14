@@ -147,10 +147,6 @@ ValueInst* InstructionsCompilerJAX::generateRec(Tree sig, Tree var, Tree le, int
 
 StoreVarInst* InstructionsCompilerJAX::genStoreArrayStructVar(const string& vname, int index, ValueInst* exp)
 {
-    //auto at = InstBuilder::genIndexedAddress(InstBuilder::genLoadArrayStructVar(vname, index));
-    //auto at = InstBuilder::genLoadArrayStructVar(vname, index);
-    auto state_val = InstBuilder::genNamedAddress(vname, Address::kStruct);
-
     Values args;
     args.push_back(exp);
 
