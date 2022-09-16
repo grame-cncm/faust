@@ -69,9 +69,9 @@
         
         'start_pin' and 'end_pin' are the limits of the array of pin used for a craft sensor.
         'start_note' is note of the first keyboard's pin in the forme : { 'Note' : octave }.
-        'gamme' optional argument. if not present the gamme of the keyboard is chromatic. the gamme is defined by the values of spaces betwen the note. the resolution is the semi-tone. ex of gamme : { 1 ; 1 ; 1.5 ; 1 ; 1.5 }
+        'gamme' is an optional argument. if not present the gamme of the keyboard is chromatic. the gamme is defined by the values of spaces betwen the note. the resolution is the semi-tone. ex of gamme : { 1 ; 1 ; 1.5 ; 1 ; 1.5 }
         
-        the trill_keyboard update the sliders defined as freq, gain and gate (via the mydsp_poly object if instantiated)
+        the trill_keyboard update the sliders defined as freq, gain and gate (via the mydsp_poly key_On and key_Off functions)
     
         
  ************************************************************************/ 
@@ -588,8 +588,7 @@ class TrillWidget : public BelaWidget
        
         Trill* sensor;
         Trill::Device type;
-        
-        
+      
     public:
      
         TrillWidget():BelaWidget()
@@ -627,9 +626,8 @@ class TrillWidget : public BelaWidget
         {
             if (nSensor) sensor = nSensor;
         }
-        /*
-         truc : { machin : 12 ; bidule : {...}}
-        */
+        
+        /* set the parameters defined in the declare directive or in the widget's metadata */
         virtual bool setParameters(const char* parameters)
         {
             const char* saved = parameters; // to restore position if we fail
@@ -790,12 +788,11 @@ class TrillCraftWidget : public TrillWidget
         int prescaler;
         double threshold;
         
-        
-        vector<TrillNote*> Keyboard; //liste of keys in the trillkeyboard (polyphonie mode)
+        vector<TrillNote*> Keyboard;                    // liste of keys in the trillkeyboard (polyphonie mode)
         int start_note;
-        vector<int> Gamme; //in semitone
+        vector<int> Gamme;                              // in semitone
 
-        int noteToMidiNumber(string note,int octave) // return the midi number of the note at the octave defined
+        int noteToMidiNumber(string note,int octave)    // return the midi number of the note at the octave defined
         {
             if(octave >= 0) {
                int deltaoct = octave*12;
@@ -876,14 +873,6 @@ class TrillCraftWidget : public TrillWidget
         virtual bool setParameters(const char* parameters)
         {
           
-           /*vector<string> names;
-            vector<double> values;
-            if(parseMenuList(parameters,names,values)) {
-                for(int i=0 ; i<names.size() ; i++) {
-                   setParameter(names[i],values[i]); 
-                }
-                
-            } else if (parameters) {*/
             if(parameters && !TrillWidget::setParameters(parameters)) {
                 if (parseWord(parameters, "PIN")) {
                     mode = "PIN"; 
@@ -1135,8 +1124,7 @@ class BelaUI : public GenericUI, public Meta
         // should be called in auxiliary loop to read de sensor's values
         void updateSensors()
         {
-            for (size_t n = 0; n < gTouchSensors.size(); ++n)
-            {
+            for (size_t n = 0; n < gTouchSensors.size(); ++n) {
                 Trill* t = gTouchSensors[n];
                 t->readI2C();
             }  
@@ -1222,7 +1210,9 @@ class BelaUI : public GenericUI, public Meta
                         for (int j = 0; j < kNumInputPins; j++) {
                             if (strcasecmp(names[i].c_str(),pinNamesStrings[j] ) == 0) {
                                 TrillWidget* curwidget=findTrillbyid(j);                        //find the right widget
-                                if(curwidget) { curwidget->setParameters(values[i].c_str()); }
+                                if(curwidget) { 
+                                    curwidget->setParameters(values[i].c_str()); 
+                                }
                             }
                         }
                     }
