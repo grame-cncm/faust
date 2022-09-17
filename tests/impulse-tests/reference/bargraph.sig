@@ -1,0 +1,11 @@
+ID_0 = vbargraph("foo0",0.0f,1e+01f,0.0f);
+ID_1 = vbargraph("foo1",0.0f,1e+01f,1e+01f);
+ID_2 = vbargraph("foo2",0.0f,1e+01f,2e+01f);
+ID_3 = vbargraph("foo3",0.0f,1e+01f,3e+01f);
+ID_4 = vbargraph("foo4",0.0f,1e+01f,4e+01f);
+ID_5 = vbargraph("bar0",0.0f,1e+01f,0.0f);
+ID_6 = vbargraph("bar1",0.0f,1e+01f,10.5f);
+ID_7 = vbargraph("bar2",0.0f,1e+01f,21.0f);
+ID_8 = vbargraph("bar3",0.0f,1e+01f,31.5f);
+ID_9 = vbargraph("bar4",0.0f,1e+01f,42.0f);
+SIG = (ID_0, ID_1, ID_2, ID_3, ID_4, ID_5, ID_6, ID_7, ID_8, ID_9);
