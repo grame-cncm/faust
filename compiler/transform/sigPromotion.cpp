@@ -32,7 +32,7 @@
 void SignalTreeChecker::visit(Tree sig)
 {
     int  opnum;
-    Tree id, x, y, sel, sf, ff, args, chan, part, idx, tb, ws;
+    Tree id, x, y, sel, sf, ff, args, chan, part, idx, tb, ws, label, min, max, t0;
 
     // Extended
     xtended* p = (xtended*)getUserData(sig);
@@ -140,6 +140,19 @@ void SignalTreeChecker::visit(Tree sig)
             faustassert(false);
         }
         
+    // Bargraph
+    } else if (isSigHBargraph(sig, label, min, max, t0)) {
+        if (getCertifiedSigType(t0)->nature() == kInt) {
+            cerr << "ERROR : isSigHBargraph of a kInt signal : " << *sig << endl;
+            faustassert(false);
+        }
+        
+    } else if (isSigVBargraph(sig, label, min, max, t0)) {
+        if (getCertifiedSigType(t0)->nature() == kInt) {
+            cerr << "ERROR : isSigVBargraph of a kInt signal : " << *sig << endl;
+            faustassert(false);
+        }
+ 
     } else {
         // Default case
         SignalVisitor::visit(sig);
@@ -155,7 +168,7 @@ void SignalTreeChecker::visit(Tree sig)
 Tree SignalPromotion::transformation(Tree sig)
 {
     int  op;
-    Tree id, sel, x, y, ff, largs, sf, chan, part, tb, idx, ws;
+    Tree id, sel, x, y, ff, largs, sf, chan, part, tb, idx, ws, min, max, label, t0;
 
     // Extended
     xtended* p = (xtended*)getUserData(sig);
@@ -293,6 +306,18 @@ Tree SignalPromotion::transformation(Tree sig)
         return sigSoundfileBuffer(self(sf), self(chan), smartIntCast(getCertifiedSigType(part), self(part)),
                                   smartIntCast(getCertifiedSigType(idx), self(idx)));
     }
+    
+    // Bargraph
+    else if (isSigHBargraph(sig, label, min, max, t0)) {
+        Type tx0 = getCertifiedSigType(t0);
+        return sigHBargraph(label, self(min), self(max), smartFloatCast(tx0, self(t0)));
+    }
+    
+    else if (isSigVBargraph(sig, label, min, max, t0)) {
+        Type tx0 = getCertifiedSigType(t0);
+        return sigVBargraph(label, self(min), self(max), smartFloatCast(tx0, self(t0)));
+    }
+    
     // Other cases => identity transformation
     else {
         return SignalIdentity::transformation(sig);

@@ -35,6 +35,7 @@ all: ir/rust/HPF.ir
 all: ir/rust/LPF.ir
 all: ir/rust/UITester.ir
 all: ir/rust/bandfilter.ir
+all: ir/rust/bargraph.ir
 all: ir/rust/bs.ir
 all: ir/rust/capture.ir
 all: ir/rust/carre_volterra.ir
