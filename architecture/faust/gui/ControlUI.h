@@ -32,13 +32,20 @@
 
 #include "faust/gui/DecoratorUI.h"
 
-class ControlUI : public DecoratorUI {
+class ControlUI : public UI {
 
     protected:
     
         std::vector<FAUSTFLOAT*> fControlIn;
         std::vector<FAUSTFLOAT*> fControlOut;
-     
+    
+        // -- widget's layouts
+    
+        void openTabBox(const char* label) {}
+        void openHorizontalBox(const char* label) {}
+        void openVerticalBox(const char* label) {}
+        void closeBox() {}
+
         // -- active widgets
 
         void addButton(const char* label, FAUSTFLOAT* zone) { fControlIn.push_back(zone); }
@@ -51,6 +58,10 @@ class ControlUI : public DecoratorUI {
 
         void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) { fControlOut.push_back(zone); };
         void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) { fControlOut.push_back(zone); };
+    
+        // No used
+        void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
+        void declare(FAUSTFLOAT* zone, const char* key, const char* val) {}
     
     public:
     
