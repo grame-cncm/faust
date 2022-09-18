@@ -65,11 +65,11 @@
         declare trill_mappings "{'BAR' : {'0' : 0x20 ; '1' : 0x21 ...} ; 'SQUARE' : {'0' : 0x28 ; '1' : 0x29 ...} ; 'CRAFT' : '{'0' : 0x30 ...}' }"
         
     keyboard for polyphonie :
-        declare trill_keyboard "{CRAFT_n : {'start_pin' : 0 ; 'end_pin' : 29 ; 'start_note' : {'C' : 4} ; 'gamme' : {1 ; 0.5 ; 1 ; 1 ; 1 ; 1 ; 0.5 }  }; CRAFT_m : {'start_pin' : 0 ; 'end_pin' : 12 ...} ...}"
+        declare trill_keyboard "{CRAFT_n : {'start_pin' : 0 ; 'end_pin' : 29 ; 'start_note' : {'C' : 4} ; 'scale' : {1 ; 0.5 ; 1 ; 1 ; 1 ; 1 ; 0.5 }  }; CRAFT_m : {'start_pin' : 0 ; 'end_pin' : 12 ...} ...}"
         
         'start_pin' and 'end_pin' are the limits of the array of pin used for a craft sensor.
         'start_note' is note of the first keyboard's pin in the forme : { 'Note' : octave }.
-        'gamme' is an optional argument. if not present the gamme of the keyboard is chromatic. the gamme is defined by the values of spaces betwen the note. the resolution is the semi-tone. ex of gamme : { 1 ; 1 ; 1.5 ; 1 ; 1.5 }
+        'scale' is an optional argument. if not present the scale of the keyboard is chromatic. the scale is defined by the values of spaces betwen the note. the resolution is the semi-tone. ex of scale : { 1 ; 1 ; 1.5 ; 1 ; 1.5 }
         
         the trill_keyboard update the sliders defined as freq, gain and gate (via the mydsp_poly key_On and key_Off functions)
     
@@ -790,9 +790,9 @@ class TrillCraftWidget : public TrillWidget
         
         vector<TrillNote*> Keyboard;                    // liste of keys in the trillkeyboard (polyphonie mode)
         int start_note;
-        vector<int> Gamme;                              // in semitone
+        vector<int> Scale;                              // in semitone
 
-        int noteToMidiNumber(string note,int octave)    // return the midi number of the note at the octave defined
+        int noteToMidiNumber(string& note,int octave)    // return the midi number of the note at the octave defined
         {
             if(octave >= 0) {
                int deltaoct = octave*12;
@@ -901,15 +901,12 @@ class TrillCraftWidget : public TrillWidget
             TrillWidget::setParameter(name,value);
             if(name == "prescaler") prescaler = (int) value;
             else if(name == "threshold") threshold = (int) value;
-#ifdef NVOICES
             else if(name == "start_pin") lopin = (int) value;
             else if(name == "end_pin") hipin = (int) value;
-#endif  
         }
 
         virtual void setParameter(const string name, const string value)
         {
-#ifdef NVOICES     
             const char* tmpval=value.c_str();
             if(name == "start_note") {
                 vector<string> names;
@@ -917,15 +914,14 @@ class TrillCraftWidget : public TrillWidget
                 if(parseMenuList(tmpval,names,values) && names.size() > 0) {
                     start_note=noteToMidiNumber(names[0],(int) values[0]);
                 }
-            } else if(name == "gamme") {
+            } else if(name == "scale") {
                 vector<double> values;
                 if(parseListDouble(tmpval,values) && values.size() > 0) {
                    for(int i = 0 ; i<values.size() ; i++) {
-                      Gamme.push_back( (int) (values[i]*2));
+                      Scale.push_back( (int) (values[i]*2));
                    }                       
                 }
-            }
-#endif            
+            }         
         }
             
         
@@ -964,9 +960,7 @@ class TrillCraftWidget : public TrillWidget
                         }
                     }
                     *fZone = val;
-                }
-#ifdef NVOICES 
-                else if (mode == "KEYBOARD") {
+                } else if (mode == "KEYBOARD") {
                     mydsp_poly* TmpDsp = (mydsp_poly*) gDSP;
                     for( int i = lopin ; i <= hipin ; i++) {
                         TrillNote* CurKey = Keyboard[i-lopin];
@@ -982,34 +976,31 @@ class TrillCraftWidget : public TrillWidget
                     }
                     
                 }
-#endif              
             }
         }
         
         void setMode(const string& mo) 
         { 
-            mode = mo; 
-#ifdef NVOICES            
+            mode = mo;             
             if(mode=="KEYBOARD" && lopin>=0 && hipin>=lopin && start_note>0) {   // create the array of trill keyboard
            
                 double curnote = start_note;
-                int gammecounter=0;
+                int scalecounter=0;
                 for(int i = lopin ; i <= hipin ; i++) {
                     TrillNote* newkey = new TrillNote;
                     newkey->note = curnote;
                     newkey->state = 0;
                     Keyboard.push_back(newkey);
-                    if(Gamme.size()>0) {                        //configure the custom gamme
-                        if(gammecounter >= Gamme.size())
-                            gammecounter=0;
-                        curnote = curnote + Gamme[gammecounter];
-                        gammecounter++;
+                    if(Scale.size()>0) {                        //configure the custom scale
+                        if(scalecounter >= Scale.size())
+                            scalecounter=0;
+                        curnote = curnote + Scale[scalecounter];
+                        scalecounter++;
                     }
                     else
-                        curnote = curnote + 1;                  // configure default gamme (chromatic)
+                        curnote = curnote + 1;                  // configure default scale (chromatic)
                 }
             }
-#endif
         }
         
         void setLopin(int pin) { lopin = pin; }
@@ -1048,7 +1039,7 @@ class BelaUI : public GenericUI, public Meta
         vector<TrillWidget*> fTrillTable;           // list of TrillWidget
         const char* fTrillParams;
         
-        vector<Trill*> gTouchSensors;        // List of Trill sensors
+        vector<Trill*> fTouchSensors;        // List of Trill sensors
 
         // check if the widget is linked to a Bela parameter and, if so, add the corresponding BelaWidget
         void addBelaWidget(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi)
@@ -1105,7 +1096,7 @@ class BelaUI : public GenericUI, public Meta
             for (auto t : fTrillTable) {
                 delete t;
             }
-            for (auto t : gTouchSensors) {
+            for (auto t : fTouchSensors) {
                 delete t;
             }
         }
@@ -1124,8 +1115,8 @@ class BelaUI : public GenericUI, public Meta
         // should be called in auxiliary loop to read de sensor's values
         void updateSensors()
         {
-            for (size_t n = 0; n < gTouchSensors.size(); ++n) {
-                Trill* t = gTouchSensors[n];
+            for (size_t n = 0; n < fTouchSensors.size(); ++n) {
+                Trill* t = fTouchSensors[n];
                 t->readI2C();
             }  
         }
@@ -1277,7 +1268,7 @@ class BelaUI : public GenericUI, public Meta
                             }
                         }
                         if (affected) {
-                            gTouchSensors.push_back(curSensor);                             // preserve the sensor affected to the widget(s)
+                            fTouchSensors.push_back(curSensor);                             // preserve the sensor affected to the widget(s)
                         }
                         else if (curSensor) {                                               // delete if not affected
                             delete curSensor;
