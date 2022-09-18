@@ -60,9 +60,9 @@ struct RustInitFieldsVisitor : public DispatchVisitor {
 
         if (array_type) {
             if (isIntPtrType(type)) {
-                *fOut << "[0;" << array_type->fSize << "]";
+                *fOut << "vec![0;" << array_type->fSize << "]";
             } else if (isRealPtrType(type)) {
-                *fOut << "[0.0;" << array_type->fSize << "]";
+                *fOut << "vec![0.0;" << array_type->fSize << "]";
             }
         } else {
             if (isIntType(type)) {

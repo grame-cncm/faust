@@ -232,9 +232,13 @@ class RustStringTypeManager : public StringTypeManager {
             string ty_str = named_typed->fName + generateType(named_typed->fType);
             return name + ((ty_str != "") ? (": " + ty_str) : "");
         } else if (array_typed) {
+            // Allocate arrays on the heap with std::vec::Vec
+            // Until the rust feature box_syntax is stabilized, this is necessary
+            // to avoid data to be allocated first on the stack, then moved to the heap.
+            // See: https://github.com/rust-lang/rust/issues/53827
             return (array_typed->fSize == 0)
                        ? name + ": " + fPtrRef + generateType(array_typed->fType)
-                       : name + ": [" + generateType(array_typed->fType) + ";" + std::to_string(array_typed->fSize) + "]";
+                       : name + ": std::vec::Vec<" + generateType(array_typed->fType) + ">";
         } else {
             faustassert(false);
             return "";
