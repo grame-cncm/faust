@@ -1,4 +1,4 @@
-declare version "2.44.4";
+declare version "2.50.2";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/dbmeter.dsp -o reference/dbmeter.box";
 declare library_path0 "/Users/letz/Developpements/faust/tests/impulse-tests/dsp/music.lib";
 declare library_path1 "/Users/letz/Developpements/faust/tests/impulse-tests/dsp/math.lib";
@@ -19,7 +19,7 @@ declare music_lib_name "Music Library";
 declare music_lib_version "1.0";
 declare name "dbmeter";
 declare version "1.0";
-ID_0 = \(x1).(x1,(x1 : abs : (10,-3.5f : pow),_ : max : \(x2).(20,(x2 : log10) : *) : 10,_ : min : max~(_,(80.0f,(192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min) : /) : -) : vbargraph("[unit:dB]", -70.0f, 10.0f)) : attach) : \(x3).(0,x3 : attach);
+ID_0 = \(x1).(x1,(x1 : abs : (10,-3.5f : pow),_ : max : \(x2).(20,(x2 : log10) : *) : 10,_ : min : max~(_,(8e+01f,(1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min) : /) : -) : vbargraph("[unit:dB]", -7e+01f, 1e+01f)) : attach) : \(x3).(0,x3 : attach);
 ID_1 = vgroup("0", ID_0);
 ID_2 = vgroup("1", ID_0);
 ID_3 = vgroup("2", ID_0);

@@ -6,7 +6,7 @@ ID_4 = ID_3';
 ID_5 = ID_4+1;
 ID_6 = letrec(W0 = (ID_5));
 ID_7 = proj0(ID_6);
-ID_8 = (ID_7@0);
+ID_8 = ID_7@0;
 ID_9 = ID_8%8;
 ID_10 = read(ID_1,ID_9);
 ID_11 = write(ID_1,ID_9,waveform{...});

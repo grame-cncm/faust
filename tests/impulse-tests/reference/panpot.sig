@@ -1,6 +1,6 @@
-ID_0 = nentry("[1]pan[style:knob]",0.0f,-90.0f,90.0f,1.0f);
-ID_1 = (ID_0+-90.0f);
-ID_2 = 0.0055555555555555558f*ID_1;
+ID_0 = nentry("[1]pan[style:knob]",0.0f,-9e+01f,9e+01f,1.0f);
+ID_1 = (ID_0+-9e+01f);
+ID_2 = 0.0055555557f*ID_1;
 ID_3 = 0.0f-ID_2;
 ID_4 = sqrt(ID_3);
 ID_5 = ID_4*IN[0];

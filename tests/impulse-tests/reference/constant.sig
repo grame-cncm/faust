@@ -1,6 +1,6 @@
 ID_0 = float(fSamplingFreq);
 ID_1 = max(1.0f, ID_0);
-ID_2 = min(192000.0f, ID_1);
+ID_2 = min(1.92e+05f, ID_1);
 ID_3 = 1.0f/ID_2;
 ID_4 = ID_2==0.0f;
 ID_5 = 1&ID_4;

@@ -1,4 +1,4 @@
-declare version "2.44.4";
+declare version "2.50.2";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/constant.dsp -o reference/constant.box";
 declare basics_lib_name "Faust Basic Element Library";
 declare basics_lib_version "0.1";
@@ -16,8 +16,8 @@ declare platform_lib_version "0.1";
 ID_0 = fconstant(int fSamplingFreq, <math.h>);
 ID_1 = 1.0f, ID_0;
 ID_2 = (ID_1 : max);
-ID_3 = 192000.0f, ID_2;
+ID_3 = 1.92e+05f, ID_2;
 ID_4 = (ID_3 : min);
-ID_5 = \(x1).((x1,0 : @ : _<:(1,((192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),0 : ==) : &),((((192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),1 : / : floor : int),2 : %),0,_ : select2),_ : select2),((x1,(x1,1 : @) : +),(1,(((192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),1 : / : floor : int),2 : %) : *:>_) : @ : _<:(0,((192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),0 : ==) : &),((((192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),2 : / : floor : int),2 : %),0,_ : select2),_ : select2),(((x1,(x1,1 : @) : +),((x1,(x1,1 : @) : +),2 : @) : +),((1,(((192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),1 : / : floor : int),2 : %) : *),(2,(((192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),2 : / : floor : int),2 : %) : *):>_) : @ : _<:(0,((192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),0 : ==) : &),((((192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),4 : / : floor : int),2 : %),0,_ : select2),_ : select2) : +,_ : +), ID_4;
+ID_5 = \(x1).((x1,0 : @ : _<:(1,((1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),0 : ==) : &),((((1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),1 : / : floor : int),2 : %),0,_ : select2),_ : select2),((x1,(x1,1 : @) : +),(1,(((1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),1 : / : floor : int),2 : %) : *:>_) : @ : _<:(0,((1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),0 : ==) : &),((((1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),2 : / : floor : int),2 : %),0,_ : select2),_ : select2),(((x1,(x1,1 : @) : +),((x1,(x1,1 : @) : +),2 : @) : +),((1,(((1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),1 : / : floor : int),2 : %) : *),(2,(((1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),2 : / : floor : int),2 : %) : *):>_) : @ : _<:(0,((1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),0 : ==) : &),((((1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min),4 : / : floor : int),2 : %),0,_ : select2),_ : select2) : +,_ : +), ID_4;
 ID_6 = ID_5 : /;
 process = ID_6;

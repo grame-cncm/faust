@@ -1,4 +1,4 @@
-declare version "2.44.4";
+declare version "2.50.2";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/echo_bug.dsp -o reference/echo_bug.box";
 declare analyzers_lib_name "Faust Analyzer Library";
 declare analyzers_lib_version "0.0";
@@ -49,7 +49,7 @@ declare synths_lib_name "Faust Synthesizer Library";
 declare synths_lib_version "0.0";
 declare vaeffects_lib_name "Faust Virtual Analog Filter Effect Library";
 declare vaeffects_lib_version "0.0";
-ID_0 = _, 0.0050000000000000044f;
+ID_0 = _, 0.005f;
 ID_1 = _, 0.995f;
 ID_2 = (ID_1 : *);
 ID_3 = + ~ ID_2;

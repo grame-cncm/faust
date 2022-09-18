@@ -1,4 +1,4 @@
-declare version "2.44.4";
+declare version "2.50.2";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/vumeter.dsp -o reference/vumeter.box";
 declare library_path0 "/Users/letz/Developpements/faust/tests/impulse-tests/dsp/music.lib";
 declare library_path1 "/Users/letz/Developpements/faust/tests/impulse-tests/dsp/math.lib";
@@ -19,5 +19,5 @@ declare music_lib_name "Music Library";
 declare music_lib_version "1.0";
 declare name "vumeter";
 declare version "1.0";
-ID_0 = \(x1).(x1,(x1 : abs : max~(_,(1.0f,(192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min) : /) : -) : (10,-3.5f : pow),_ : max : \(x2).(20,(x2 : log10) : *) : hbargraph("[2][unit:dB]", -70.0f, 5.0f)) : attach), \(x1).(x1,(x1 : abs : max~(_,(1.0f,(192000.0f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min) : /) : -) : (10,-3.5f : pow),_ : max : \(x2).(20,(x2 : log10) : *) : hbargraph("[2][unit:dB]", -70.0f, 5.0f)) : attach);
+ID_0 = \(x1).(x1,(x1 : abs : max~(_,(1.0f,(1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min) : /) : -) : (10,-3.5f : pow),_ : max : \(x2).(20,(x2 : log10) : *) : hbargraph("[2][unit:dB]", -7e+01f, 5.0f)) : attach), \(x1).(x1,(x1 : abs : max~(_,(1.0f,(1.92e+05f,(1.0f,fconstant(int fSamplingFreq, <math.h>) : max) : min) : /) : -) : (10,-3.5f : pow),_ : max : \(x2).(20,(x2 : log10) : *) : hbargraph("[2][unit:dB]", -7e+01f, 5.0f)) : attach);
 process = ID_0;

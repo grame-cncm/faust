@@ -1,5 +1,5 @@
-    ID_0 = vslider("Volume[style:knob]",0.069699999999999998f,0.0f,1.0f,0.10000000000000001f);
-ID_1 = 4.6566128752457969e-10f*ID_0;
+    ID_0 = vslider("Volume[style:knob]",0.0697f,0.0f,1.0f,0.1f);
+ID_1 = 4.656613e-10f*ID_0;
 ID_2 = W0;
 ID_3 = proj0(ID_2);
 ID_4 = ID_3';

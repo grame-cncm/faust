@@ -1,4 +1,4 @@
-declare version "2.44.4";
+declare version "2.50.2";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/spat.dsp -o reference/spat.box";
 declare author "Grame";
 declare copyright "(c)GRAME 2006";
@@ -35,9 +35,9 @@ ID_25 = ID_24, 0.5f;
 ID_26 = (ID_25 : +);
 ID_27 = ID_22, ID_26;
 ID_28 = ID_27 : *;
-ID_29 = _, 9.9999999999988987e-05f;
+ID_29 = _, 0.0001f;
 ID_30 = ID_29 : *;
-ID_31 = _, 0.99990000000000001f;
+ID_31 = _, 0.9999f;
 ID_32 = (ID_31 : *);
 ID_33 = + ~ ID_32;
 ID_34 = ID_30 : ID_33;

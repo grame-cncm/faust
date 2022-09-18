@@ -386,7 +386,6 @@ static bool parseBracketString(const char*& p, string& s)
     return false;
 }
 
-
 /**
  * @brief parseMenuItemStr, parse a menu item ...'low':{...}...
  * @param p the string to parse, then the remaining string
@@ -813,7 +812,7 @@ class TrillCraftWidget : public TrillWidget
             mode = "PIN";
             prescaler = 2;
             threshold = 0.10;
-            start_note=0;
+            start_note = 0;
         }
 
         TrillCraftWidget(const TrillCraftWidget& w):TrillWidget((TrillWidget)w)
@@ -825,7 +824,7 @@ class TrillCraftWidget : public TrillWidget
             mode = "PIN";
             prescaler = 2;
             threshold = 0.10;
-            start_note=0;
+            start_note = 0;
         }
 
         TrillCraftWidget(EInOutPin pin, FAUSTFLOAT* z, const char* l, FAUSTFLOAT lo, FAUSTFLOAT hi)
@@ -842,7 +841,7 @@ class TrillCraftWidget : public TrillWidget
             mode = "PIN";
             prescaler = 2;
             threshold = 0.10;
-            start_note=0;
+            start_note = 0;
         }
         
         virtual ~TrillCraftWidget() 
@@ -901,12 +900,12 @@ class TrillCraftWidget : public TrillWidget
             if (name == "start_note") {
                 vector<string> names;
                 vector<double> values;
-                if (parseMenuList(tmpval,names,values) && names.size() > 0) {
+                if (parseMenuList(tmpval, names, values) && names.size() > 0) {
                     start_note = noteToMidiNumber(names[0], (int)values[0]);
                 }
-            } else if(name == "scale") {
+            } else if (name == "scale") {
                 vector<double> values;
-                if (parseListDouble(tmpval,values) && values.size() > 0) {
+                if (parseListDouble(tmpval, values) && values.size() > 0) {
                     for (int i = 0; i < values.size(); i++) {
                         Scale.push_back((int)(values[i]*2));
                     }
@@ -1183,7 +1182,7 @@ class BelaUI : public GenericUI, public Meta
             if (strcasecmp(k, "trill_settings") == 0) {
                 vector<string> names;
                 vector<string> values;
-                if (parseMenuListMenu(id,names,values)) {
+                if (parseMenuListMenu(id, names, values)) {
                     for (int i = 0; i < names.size(); i++) {
                         for (int j = 0; j < kNumInputPins; j++) {
                             if (strcasecmp(names[i].c_str(),pinNamesStrings[j] ) == 0) {
@@ -1198,7 +1197,7 @@ class BelaUI : public GenericUI, public Meta
             } else if (strcasecmp(k, "trill_mappings") == 0) {
                 vector<string> names;
                 vector<string> values;
-                if (parseMenuListMenu(id,names,values)) {
+                if (parseMenuListMenu(id, names, values)) {
                    for (int i = 0; i<names.size();i++) {
                        if (names[i] == "BAR") {
                            initSensorWidgets(Trill::BAR, values[i]);
@@ -1213,7 +1212,7 @@ class BelaUI : public GenericUI, public Meta
             } else if (strcasecmp(k, "trill_keyboard") == 0) {
                 vector<string> names;
                 vector<string> values;
-                if (parseMenuListMenu(id,names,values)) {
+                if (parseMenuListMenu(id, names, values)) {
                     for (int i = 0; i<names.size(); i++) {
                         EInOutPin FoundPin = kNoPin;
                         for (int j = 0; j < kNumInputPins; j++) {
