@@ -792,7 +792,7 @@ class TrillCraftWidget : public TrillWidget
         int start_note;
         vector<int> Scale;                              // in semitone
 
-        int noteToMidiNumber(string& note,int octave)    // return the midi number of the note at the octave defined
+        int noteToMidiNumber(const string& note,int octave)    // return the midi number of the note at the octave defined
         {
             if(octave >= 0) {
                int deltaoct = octave*12;
@@ -1375,6 +1375,8 @@ bool setup(BelaContext* context, void* userData)
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
+    
+    freopen ("stderr_file.txt","w",stderr); //routing the stderr stream to a file (some code part in the mydsp_poly are too talkative and generate mode switch during the execution)
     
     // Access deinterleaded inputs
     gInputs = new FAUSTFLOAT*[context->audioInChannels];
