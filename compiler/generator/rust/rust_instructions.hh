@@ -82,6 +82,7 @@ class RustInstVisitor : public TextInstVisitor {
      */
     static map<string, bool> gFunctionSymbolTable;
     map<string, string>      fMathLibTable;
+    map<int, string>         fWrappingOpTable;
 
    public:
     using TextInstVisitor::visit;
@@ -168,6 +169,11 @@ class RustInstVisitor : public TextInstVisitor {
         fMathLibTable["isnan"]     = "F64::is_nan";
         fMathLibTable["isinf"]     = "F64::is_infinite";
         fMathLibTable["copysign"]  = "F64::copysign";
+
+        // Operations with a wrapping overflow behavior
+        fWrappingOpTable[kAdd] = "wrapping_add";
+        fWrappingOpTable[kSub] = "wrapping_sub";
+        fWrappingOpTable[kMul] = "wrapping_mul";
     }
 
     virtual ~RustInstVisitor() {}
@@ -427,6 +433,24 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << "((";
             TextInstVisitor::visit(inst);
             *fOut << ") as " << fTypeManager->generateType(InstBuilder::genInt32Typed());
+            *fOut << ")";
+        } else if (isIntType(TypingVisitor::getType(inst->fInst1)) && fWrappingOpTable.find(inst->fOpcode) != fWrappingOpTable.end()) {
+            // Special case for integer add, sub and mul:
+            // Overflowing is an error by default in Rust, but should wrap in Faust
+            // Use their wrapping equivalent instead
+            Typed::VarType type = TypingVisitor::getType(inst->fInst1);
+            if (isInt32Type(type)) {
+                *fOut << "i32::";
+            } else if (isInt32Type(type)) {
+                *fOut << "i64::";
+            } else {
+                faustassert(false);
+            }
+            *fOut << fWrappingOpTable[inst->fOpcode];
+            *fOut << "(";
+            inst->fInst1->accept(this);
+            *fOut << ",";
+            inst->fInst2->accept(this);
             *fOut << ")";
         } else {
             TextInstVisitor::visit(inst);
