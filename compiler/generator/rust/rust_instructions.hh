@@ -441,7 +441,7 @@ class RustInstVisitor : public TextInstVisitor {
             Typed::VarType type = TypingVisitor::getType(inst->fInst1);
             if (isInt32Type(type)) {
                 *fOut << "i32::";
-            } else if (isInt32Type(type)) {
+            } else if (isInt64Type(type)) {
                 *fOut << "i64::";
             } else {
                 faustassert(false);
