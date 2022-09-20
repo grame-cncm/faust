@@ -781,7 +781,7 @@ class TrillCraftWidget : public TrillWidget
         int prescaler;
         double threshold;
         
-        vector<TrillNote*> Keyboard;                    // liste of keys in the trillkeyboard (polyphonie mode)
+        vector<TrillNote*> Keyboard;                    // list of keys in the trillkeyboard (polyphony mode)
         int start_note;
         vector<int> Scale;                              // in semitone
 
@@ -1177,7 +1177,7 @@ class BelaUI : public GenericUI, public Meta
             }
         }
         
-        virtual void declare(const char* k, const char* id)     // it assume of ui metadata are allready parsed
+        virtual void declare(const char* k, const char* id)     // assumes that ui metadata are already parsed
         {		
             if (strcasecmp(k, "trill_settings") == 0) {
                 vector<string> names;
@@ -1186,7 +1186,7 @@ class BelaUI : public GenericUI, public Meta
                     for (int i = 0; i < names.size(); i++) {
                         for (int j = 0; j < kNumInputPins; j++) {
                             if (strcasecmp(names[i].c_str(),pinNamesStrings[j] ) == 0) {
-                                TrillWidget* curwidget=findTrillbyid(j);                        //find the right widget
+                                TrillWidget* curwidget = findTrillbyid(j);      // find the right widget
                                 if (curwidget) {
                                     curwidget->setParameters(values[i].c_str()); 
                                 }
@@ -1246,7 +1246,7 @@ class BelaUI : public GenericUI, public Meta
                     Trill::Device typedevice = Trill::probe(i2cBus, (uint8_t)values[i]);
                     if (typedevice == device) {                                             // is the right sensor type
                         curSensor = new Trill(i2cBus, device, (uint8_t)values[i]);
-                        for (int j = 0; j < fTrillTable.size(); j++) {                         // find the right widgets
+                        for (int j = 0; j < fTrillTable.size(); j++) {                       // find the right widgets
                             TrillWidget* CurWidget = fTrillTable[j];
                             if (CurWidget && device == CurWidget->getType() && strstr(pinNamesStrings[CurWidget->getBelaPin()], names[i].c_str())) {
                                 affected = true;
@@ -1256,7 +1256,7 @@ class BelaUI : public GenericUI, public Meta
                         if (affected) {
                             fTouchSensors.push_back(curSensor);                             // preserve the sensor affected to the widget(s)
                         }
-                        else if (curSensor) {                                               // delete if not affected
+                        else if (curSensor) {                                                // delete if not affected
                             delete curSensor;
                         }
                     }

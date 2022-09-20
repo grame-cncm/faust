@@ -48,7 +48,7 @@ for p in $@; do
         OSCDEFS="-DOSCCTRL -lOSCFaust"
         YPATH="-L/usr/local/lib"
     elif [ $p = "-httpd" ]; then
-        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust"
         HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
         YPATH="-L/usr/local/lib"
     elif [ $p = "-arch32" ]; then

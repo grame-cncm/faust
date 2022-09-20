@@ -59,7 +59,7 @@ for p in $@; do
     if [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then
-        HTTPDEFS="-DHTTPCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib -lHTTPDFaust -lmicrohttpd"
+        HTTPDEFS="-DHTTPCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib -lHTTPDFaust"
         HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
     elif [ $p = "-arch32" ]; then
         PROCARCH="-m32 -L/usr/lib32"

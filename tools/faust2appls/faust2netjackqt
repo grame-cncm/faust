@@ -80,7 +80,7 @@ do
          OSCLIBS="-lOSCFaust"
     elif [ "$p" = "-httpd" ]; then
         HTTPDEFS="DEFINES += HTTPCTRL"
-        HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+        HTTPLIBS="-lHTTPDFaust"
         HTTPLIBS1=`pkg-config --cflags --libs libmicrohttpd`
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"

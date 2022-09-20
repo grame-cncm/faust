@@ -52,7 +52,7 @@ do
     if [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
-        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust"
         HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
     elif [ $p = "-nvoices" ]; then
         shift

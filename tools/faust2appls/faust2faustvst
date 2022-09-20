@@ -115,7 +115,7 @@ EOF
     elif [ $p = "-httpd" ]; then
         # not implemented for now
         HTTPDEFS="DEFINES += HTTPCTRL"
-        HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+        HTTPLIBS="-lHTTPDFaust"
         HTTPLIBS1=`pkg-config --cflags --libs libmicrohttpd`
     elif [ $p = "-qrcode" ]; then # requires -httpd
         QRDEFS="DEFINES += QRCODECTRL"
