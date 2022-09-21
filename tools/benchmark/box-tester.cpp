@@ -161,10 +161,11 @@ static void test7()
     createLibContext();
     Box box = boxDelay(boxWire(), boxInt(7));
      
-    compile("test7", box, 3, (const char* []){ "-vec", "-lv", "1" });
+    // Vector compilation
+    const char* argv[] = { "-vec", "-lv", "1" };
+    compile("test7", box, 3, argv);
     destroyLibContext();
 }
-
 
 // process = _ <: @(500) + 0.5, @(3000) * 1.5;
 
