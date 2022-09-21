@@ -64,6 +64,7 @@
     mapping of the sensors i2c adresses (required) :
         declare trill_mappings "{'BAR' : {'0' : 0x20 ; '1' : 0x21 ...} ; 'SQUARE' : {'0' : 0x28 ; '1' : 0x29 ...} ; 'CRAFT' : '{'0' : 0x30 ...}' }"
         
+
     keyboard for polyphony :
         declare trill_keyboard "{CRAFT_n : {'start_pin' : 0 ; 'end_pin' : 29 ; 'start_note' : {'C' : 4} ; 'scale' : {1 ; 0.5 ; 1 ; 1 ; 1 ; 1 ; 0.5 } }; CRAFT_m : {'start_pin' : 0 ; 'end_pin' : 12 ...} ...}"
         
@@ -386,6 +387,7 @@ static bool parseBracketString(const char*& p, string& s)
     return false;
 }
 
+
 /**
  * @brief parseMenuItemStr, parse a menu item ...'low':{...}...
  * @param p the string to parse, then the remaining string
@@ -393,6 +395,7 @@ static bool parseBracketString(const char*& p, string& s)
  * @param value the value found as String
  * @return true if a nemu item was found
  */
+
 static bool parseMenuItemStr(const char*& p, string& name, string& value)
 {
     const char* saved = p;  // to restore position if we fail
@@ -455,7 +458,6 @@ static bool parseListDouble(const char*& p, vector<double>& items)
             }
             items.push_back(item);
         } while (tryChar(p, ';'));
-    
         return parseChar(p, '}');
     }
     return false;
@@ -478,6 +480,9 @@ class BelaWidget
         const char* fLabel;  // label
         FAUSTFLOAT fMin;    // minimal value
         FAUSTFLOAT fRange;  // value range (max-min)
+        bool fbuffered;
+        double fbuffer;
+        double old_state;
         
     public:
         
@@ -487,6 +492,9 @@ class BelaWidget
         ,fLabel("")
         ,fMin(0)
         ,fRange(1)
+        ,fbuffered(false)
+        ,fbuffer(0)
+        ,old_state(0)
         {}
         
         BelaWidget(const BelaWidget& w)
@@ -495,6 +503,9 @@ class BelaWidget
         ,fLabel(w.fLabel)
         ,fMin(w.fMin)
         ,fRange(w.fRange)
+        ,fbuffered(w.fbuffered)
+        ,fbuffer(0)
+        ,old_state(0)
         {}
         
         BelaWidget(EInOutPin pin, FAUSTFLOAT* z, const char* l, FAUSTFLOAT lo, FAUSTFLOAT hi)
@@ -503,6 +514,9 @@ class BelaWidget
         ,fLabel(l)
         ,fMin(lo)
         ,fRange(hi-lo)
+        ,fbuffered(false)
+        ,fbuffer(0)
+        ,old_state(0)
         {}
         
         virtual ~BelaWidget() {}
@@ -514,6 +528,7 @@ class BelaWidget
         
         virtual void update(BelaContext* context)
         {
+            float curval;
             switch(fBelaPin) {
                 case kANALOG_0:
                 case kANALOG_1:
@@ -542,7 +557,25 @@ class BelaWidget
                 case kDIGITAL_13:
                 case kDIGITAL_14:
                 case kDIGITAL_15:
-                    *fZone = digitalRead(context, 0, ((int)fBelaPin - kDIGITAL_0)) == 0 ? fMin : fMin+fRange;
+                    curval = digitalRead(context, 0, ((int)fBelaPin - kDIGITAL_0)) == 0 ? fMin : fMin+fRange;
+                    if(!fbuffered) {
+                        *fZone=curval;
+                    } else {
+                        if(old_state == 0 && curval > 0) {
+                            if(fbuffer>0) {
+                                fbuffer = 0;
+                                *fZone = 0;
+                            } else {
+                                fbuffer = curval;
+                                *fZone = curval;
+                            }
+                            
+                            
+                        } else if(old_state > 0 && curval == 0) {
+                            
+                        }                    
+                        old_state=curval;
+                    }
                     break;
                     
                 case kANALOG_OUT_0:
@@ -564,6 +597,11 @@ class BelaWidget
         virtual EInOutPin getBelaPin()
         {
             return  fBelaPin;
+        }
+        
+        void setBuffered(bool buffered)
+        {
+            fbuffered=buffered;
         }
             
 };
@@ -766,6 +804,7 @@ class TrillWidget : public BelaWidget
  and a Faust widget.
  
  ***************************************************************************************/
+
 typedef struct {
     int note;
     double state;
@@ -884,34 +923,34 @@ class TrillCraftWidget : public TrillWidget
             }
             return true;
         }
-        
-        virtual void setParameter(const string& name, double value)
+            
+        virtual void setParameter(const string& name, const double value)
         {
-            TrillWidget::setParameter(name, value);
-            if (name == "prescaler") prescaler = (int)value;
-            else if (name == "threshold") threshold = (int)value;
-            else if (name == "start_pin") lopin = (int)value;
-            else if (name == "end_pin") hipin = (int)value;
+            TrillWidget::setParameter(name,value);
+            if(name == "prescaler") prescaler = (int) value;
+            else if(name == "threshold") threshold = (int) value;
+            else if(name == "start_pin") lopin = (int) value;
+            else if(name == "end_pin") hipin = (int) value;
         }
 
         virtual void setParameter(const string& name, const string& value)
         {
-            const char* tmpval = value.c_str();
-            if (name == "start_note") {
+            const char* tmpval=value.c_str();
+            if(name == "start_note") {
                 vector<string> names;
                 vector<double> values;
-                if (parseMenuList(tmpval, names, values) && names.size() > 0) {
-                    start_note = noteToMidiNumber(names[0], (int)values[0]);
+                if(parseMenuList(tmpval,names,values) && names.size() > 0) {
+                    start_note=noteToMidiNumber(names[0],(int) values[0]);
                 }
-            } else if (name == "scale") {
+            } else if(name == "scale") {
                 vector<double> values;
-                if (parseListDouble(tmpval, values) && values.size() > 0) {
-                    for (int i = 0; i < values.size(); i++) {
-                        Scale.push_back((int)(values[i]*2));
-                    }
+                if(parseListDouble(tmpval,values) && values.size() > 0) {
+                   for(int i = 0 ; i<values.size() ; i++) {
+                      Scale.push_back( (int) (values[i]*2));
+                   }                       
                 }
-            }
-        }
+            }         
+        }                  
         
         virtual void update(BelaContext* context)
         {
@@ -920,7 +959,25 @@ class TrillCraftWidget : public TrillWidget
                 float val = -1.f;
                 if (mode == "PIN") {
                     val = sensor->rawData[lopin];
-                    *fZone = fMin + fRange * val;
+                    double curval = fMin + fRange * val;
+                    if(!fbuffered) {
+                        *fZone=curval;
+                    } else {
+                        if(old_state == 0 && curval > 0) {
+                            if (fbuffer > 0) {
+                                fbuffer = 0;
+                                *fZone = 0;
+                            } else {
+                                fbuffer = curval;
+                                *fZone = curval;
+                            }
+                            
+                            
+                        } else if (old_state > 0 && curval == 0) {
+                            
+                        }                    
+                        old_state=curval;
+                    }
                 }
                 else if (mode == "UP") {
                     float sval = 0.f;
@@ -948,18 +1005,23 @@ class TrillCraftWidget : public TrillWidget
                     }
                     *fZone = val;
                 } else if (mode == "KEYBOARD") {
-                    mydsp_poly* TmpDsp = (mydsp_poly*)gDSP;
-                    for (int i = lopin; i <= hipin; i++) {
+                    mydsp_poly* TmpDsp = (mydsp_poly*) gDSP;
+                    for (int i = lopin ; i <= hipin ; i++) {                    //Call all keyOff
                         TrillNote* CurKey = Keyboard[i-lopin];
                         double sval = sensor->rawData[i];
                         if (sval == 0 && CurKey->state > 0) {
                             TmpDsp->keyOff(0,CurKey->note);
-                            CurKey->state = 0;
-                        } else if (sval > 0 && CurKey->state == 0) {
-                            TmpDsp->keyOn(0,CurKey->note, (int) (sval*127));
-                            CurKey->state = sval;
+                            CurKey->state=0;
                         }
                     }
+                    for (int i = lopin ; i <= hipin ; i++) {                    //Call all keyOn
+                        TrillNote* CurKey = Keyboard[i-lopin];
+                        double sval = sensor->rawData[i];
+                        if (sval > 0 && CurKey->state == 0) {
+                            TmpDsp->keyOn(0,CurKey->note, (int) (sval*127));
+                            CurKey->state=sval;
+                        }
+                    }                    
                 }
             }
         }
@@ -1008,6 +1070,7 @@ class TrillCraftWidget : public TrillWidget
 #define MAXBELAWIDGETS 16
 
 // Max number of trill sensors parameters mapped.
+
 // max of 8 BAR sensors with 3 parameters (Position,Pressure,Touch), 8 SQUARE sensors with 4 parameters
 // (Position X, Position Y, Pressure, Touch), 8 CRAFT sensors with 1 parameter
 #define MAXTRILLWIDGETS 64
@@ -1028,29 +1091,32 @@ class BelaUI : public GenericUI, public Meta
         vector<Trill*> fTouchSensors;               // list of Trill sensors
 
         // Check if the widget is linked to a Bela parameter and, if so, add the corresponding BelaWidget
-        void addBelaWidget(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi)
+        void addBelaWidget(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi, bool buffered = false)
         {
             if (fBelaPin != kNoPin && (fIndex < MAXBELAWIDGETS)) {
                 fTable[fIndex] = BelaWidget(fBelaPin, zone, label, lo, hi);
+                fTable[fIndex].setBuffered(buffered);
                 fIndex++;
             }
             fBelaPin = kNoPin;
         }
         
-        void addTrillWidget(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi)
+        void addTrillWidget(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi, bool buffered = false)
         {
-            if (fTrillPin != kNoPin && (fTrillTable.size() < MAXTRILLWIDGETS)) {
+            if (fTrillPin != kNoPin) {
             
                 if (strstr(pinNamesStrings[fTrillPin], "CRAFT"))
                 {
                     TrillCraftWidget* newcraft = new TrillCraftWidget(fTrillPin, zone, label, lo, hi);
-                    newcraft->setParameters(fTrillParams);    
+                    newcraft->setParameters(fTrillParams); 
+                    newcraft->setBuffered(buffered);
                     fTrillTable.push_back(newcraft);
                 }
                 else
                 {
                     TrillWidget* newtrill = new TrillWidget(fTrillPin, zone, label, lo, hi);
                     newtrill->setParameters(fTrillParams);    
+                    newtrill->setBuffered(buffered);
                     fTrillTable.push_back(newtrill);
                 }
                 
@@ -1119,9 +1185,9 @@ class BelaUI : public GenericUI, public Meta
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
             if (fBelaPin != kNoPin)
-                addBelaWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1)); 
+                addBelaWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1), true); 
             else
-                addTrillWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1));  
+                addTrillWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1), true);  
         }
         
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
