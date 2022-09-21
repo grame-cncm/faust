@@ -166,7 +166,8 @@ static void test6()
     signals.push_back(sigDelay(sigMul(in1, sigReal(1.5)), sigInt(3000)));
     
     // Vector compilation
-    compile("test6", signals, 4, (const char* []){ "-vec", "-lv", "1" , "-double"});
+    const char* argv[] = { "-vec", "-lv", "1" , "-double" };
+    compile("test6", signals, 4, argv);
 
     destroyLibContext();
 }
