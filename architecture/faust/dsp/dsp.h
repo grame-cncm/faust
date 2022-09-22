@@ -250,7 +250,7 @@ class FAUST_API ScopedNoDenormals {
         #if defined (__arm64__) || defined (__aarch64__)
             asm volatile("msr fpcr, %0" : : "ri" (fpsr_aux));
         #elif defined (__SSE__)
-            // the volatile keyword here is needed to workaround a bug in AppleClang 13.0
+            // The volatile keyword here is needed to workaround a bug in AppleClang 13.0
             // which aggressively optimises away the variable otherwise
             volatile uint32_t fpsr_w = static_cast<uint32_t>(fpsr_aux);
             _mm_setcsr(fpsr_w);
@@ -278,6 +278,8 @@ class FAUST_API ScopedNoDenormals {
         #else
             intptr_t mask = 0x8000;
         #endif
+        #else
+            intptr_t mask = 0x0000;
         #endif
             getFpStatusRegister();
             setFpStatusRegister(fpsr | mask);
@@ -290,7 +292,7 @@ class FAUST_API ScopedNoDenormals {
 
 };
 
-#define AVOIDDENORMALS ScopedNoDenormals();
+#define AVOIDDENORMALS ScopedNoDenormals ftz_scope;
 
 #endif
 
