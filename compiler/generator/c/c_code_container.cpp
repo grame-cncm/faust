@@ -128,7 +128,7 @@ void CCodeContainer::produceInternal()
         tab(n, *fOut);
         tab(n, *fOut);
     }
-    produceInfoFunctions(n, fKlassName, "dsp", false, false, fCodeProducer);
+    produceInfoFunctions(n, fKlassName, "dsp", false, FunTyped::kDefault, fCodeProducer);
 
     // Init
     // TODO
@@ -282,7 +282,7 @@ void CCodeContainer::produceClass()
     generateGetSampleRate("getSampleRate" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
   
     tab(n, *fOut);
-    produceInfoFunctions(n, fKlassName, "dsp", false, false, fCodeProducer);
+    produceInfoFunctions(n, fKlassName, "dsp", false, FunTyped::kDefault, fCodeProducer);
 
     // Inits
 
@@ -517,7 +517,7 @@ void CScalarOneSampleCodeContainer1::produceClass()
     generateGetSampleRate("getSampleRate" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
     
     tab(n, *fOut);
-    produceInfoFunctions(n, fKlassName, "dsp", false, false, fCodeProducer);
+    produceInfoFunctions(n, fKlassName, "dsp", false, FunTyped::kDefault, fCodeProducer);
     
     // Inits
     
@@ -766,7 +766,7 @@ void CScalarOneSampleCodeContainer2::produceClass()
     generateGetSampleRate("getSampleRate" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
     
     tab(n, *fOut);
-    produceInfoFunctions(n, fKlassName, "dsp", false, false, fCodeProducer);
+    produceInfoFunctions(n, fKlassName, "dsp", false, FunTyped::kDefault, fCodeProducer);
     
     // Inits
     
@@ -1039,7 +1039,7 @@ void CScalarOneSampleCodeContainer3::produceClass()
     generateGetSampleRate("getSampleRate" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
     
     tab(n, *fOut);
-    produceInfoFunctions(n, fKlassName, "dsp", false, false, fCodeProducer);
+    produceInfoFunctions(n, fKlassName, "dsp", false, FunTyped::kDefault, fCodeProducer);
     
     // Inits
     
@@ -1372,7 +1372,7 @@ void CScalarOneSampleCodeContainer4::produceClass()
     generateGetSampleRate("getSampleRate" + fKlassName, "dsp", false, false)->accept(fCodeProducer);
     
     tab(n, *fOut);
-    produceInfoFunctions(n, fKlassName, "dsp", false, false, fCodeProducer);
+    produceInfoFunctions(n, fKlassName, "dsp", false, FunTyped::kDefault, fCodeProducer);
     
     // Inits
     

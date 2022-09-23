@@ -107,7 +107,7 @@ void CSharpCodeContainer::produceInternal()
 
     tab(n + 1, *fOut);
     // fKlassName used in method naming for subclasses
-    produceInfoFunctions(n + 1, fKlassName, "dsp", true, false, &fCodeProducer);
+    produceInfoFunctions(n + 1, fKlassName, "dsp", true, FunTyped::kDefault, &fCodeProducer);
 
     // TODO
     // generateInstanceInitFun("instanceInit" + fKlassName, true, false)->accept(&fCodeProducer);
@@ -215,7 +215,7 @@ void CSharpCodeContainer::produceClass()
     tab(n + 1, *fOut);
 
     tab(n + 1, *fOut);
-    produceInfoFunctions(n + 1, "", "dsp", true, true, &fCodeProducer);
+    produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kVirtual, &fCodeProducer);
 
     // Print metadata declaration
     tab(n + 1, *fOut);
@@ -348,12 +348,12 @@ void CSharpCodeContainer::produceClass()
 }
 
 void CSharpCodeContainer::produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod,
-                                         bool isvirtual, TextInstVisitor* producer)
+                                            FunTyped::FunAttribute funtype, TextInstVisitor* producer)
 {
     // Input/Output method
     producer->Tab(tabs);
-    generateGetInputs(subst("GetNumInputs$0", classname), obj, ismethod, isvirtual)->accept(producer);
-    generateGetOutputs(subst("GetNumOutputs$0", classname), obj, ismethod, isvirtual)->accept(producer);
+    generateGetInputs(subst("GetNumInputs$0", classname), obj, ismethod, funtype)->accept(producer);
+    generateGetOutputs(subst("GetNumOutputs$0", classname), obj, ismethod, funtype)->accept(producer);
 }
 
 void CSharpScalarCodeContainer::generateCompute(int n)

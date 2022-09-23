@@ -301,12 +301,12 @@ void CodeContainer::sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<
 
 // Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
 void CodeContainer::produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod,
-                                         bool isvirtual, TextInstVisitor* producer)
+                                         FunTyped::FunAttribute funtype, TextInstVisitor* producer)
 {
     // Input/Output method
     producer->Tab(tabs);
-    generateGetInputs(subst("getNumInputs$0", classname), obj, ismethod, isvirtual)->accept(producer);
-    generateGetOutputs(subst("getNumOutputs$0", classname), obj, ismethod, isvirtual)->accept(producer);
+    generateGetInputs(subst("getNumInputs$0", classname), obj, ismethod, funtype)->accept(producer);
+    generateGetOutputs(subst("getNumOutputs$0", classname), obj, ismethod, funtype)->accept(producer);
 }
 
 void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst* count, bool omp)
@@ -638,7 +638,7 @@ void CodeContainer::printMacros(ostream& fout, int n)
 // DSP API generation
 
 DeclareFunInst* CodeContainer::generateGetIO(const string& name, const string& obj, int io, bool ismethod,
-                                             bool isvirtual)
+                                             FunTyped::FunAttribute funtype)
 {
     Names args;
     if (!ismethod) {
@@ -648,19 +648,18 @@ DeclareFunInst* CodeContainer::generateGetIO(const string& name, const string& o
     block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genInt32NumInst(io)));
 
     // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(),
-                                                  (isvirtual) ? FunTyped::kVirtual : FunTyped::kDefault);
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genInt32Typed(), funtype);
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
-DeclareFunInst* CodeContainer::generateGetInputs(const string& name, const string& obj, bool ismethod, bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetInputs(const string& name, const string& obj, bool ismethod, FunTyped::FunAttribute funtype)
 {
-    return generateGetIO(name, obj, fNumInputs, ismethod, isvirtual);
+    return generateGetIO(name, obj, fNumInputs, ismethod, funtype);
 }
 
-DeclareFunInst* CodeContainer::generateGetOutputs(const string& name, const string& obj, bool ismethod, bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetOutputs(const string& name, const string& obj, bool ismethod, FunTyped::FunAttribute funtype)
 {
-    return generateGetIO(name, obj, fNumOutputs, ismethod, isvirtual);
+    return generateGetIO(name, obj, fNumOutputs, ismethod, funtype);
 }
 
 DeclareFunInst* CodeContainer::generateAllocate(const string& name, const string& obj, bool ismethod, bool isvirtual)

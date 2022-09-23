@@ -206,8 +206,8 @@ void WASTCodeContainer::produceClass()
     WASInst::generateIntMax()->accept(gGlobal->gWASTVisitor);
     
     // getNumInputs/getNumOutputs
-    generateGetInputs("getNumInputs", "dsp", false, false)->accept(gGlobal->gWASTVisitor);
-    generateGetOutputs("getNumOutputs", "dsp", false, false)->accept(gGlobal->gWASTVisitor);
+    generateGetInputs("getNumInputs", "dsp", false, FunTyped::kDefault)->accept(gGlobal->gWASTVisitor);
+    generateGetOutputs("getNumOutputs", "dsp", false, FunTyped::kDefault)->accept(gGlobal->gWASTVisitor);
 
     // Inits
     tab(n + 1, fOutAux);

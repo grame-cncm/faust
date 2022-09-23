@@ -251,9 +251,9 @@ class CodeContainer : public virtual Garbageable {
     virtual DeclareFunInst* generateAllocate(const string& name, const string& obj, bool ismethod, bool isvirtual);
     virtual DeclareFunInst* generateDestroy(const string& name, const string& obj, bool ismethod, bool isvirtual);
 
-    DeclareFunInst* generateGetIO(const string& name, const string& obj, int io, bool ismethod, bool isvirtual);
-    DeclareFunInst* generateGetInputs(const string& name, const string& obj, bool ismethod, bool isvirtual);
-    DeclareFunInst* generateGetOutputs(const string& name, const string& obj, bool ismethod, bool isvirtual);
+    DeclareFunInst* generateGetIO(const string& name, const string& obj, int io, bool ismethod, FunTyped::FunAttribute funtype);
+    DeclareFunInst* generateGetInputs(const string& name, const string& obj, bool ismethod, FunTyped::FunAttribute funtype);
+    DeclareFunInst* generateGetOutputs(const string& name, const string& obj, bool ismethod, FunTyped::FunAttribute funtype);
 
     DeclareFunInst* generateGetIORate(const string& name, const string& obj, vector<int>& io, bool ismethod,
                                       bool isvirtual);
@@ -298,7 +298,7 @@ class CodeContainer : public virtual Garbageable {
     DeclareFunInst* generateNewDsp(const string& name, int size);
     DeclareFunInst* generateDeleteDsp(const string& name, const string& obj);
 
-    void produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod, bool isvirtual,
+    void produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod, FunTyped::FunAttribute funtype,
                               TextInstVisitor* producer);
 
     void generateDAGLoop(BlockInst* loop_code, DeclareVarInst* count);

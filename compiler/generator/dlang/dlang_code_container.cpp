@@ -189,7 +189,7 @@ void DLangCodeContainer::produceInternal()
     tab(n + 1, *fOut);
 
     // fKlassName used in method naming for subclasses
-    produceInfoFunctions(n + 1, fKlassName, "dsp", true, false, &fCodeProducer);
+    produceInfoFunctions(n + 1, fKlassName, "dsp", true, FunTyped::kDefault, &fCodeProducer);
 
     // TODO
     // generateInstanceInitFun("instanceInit" + fKlassName, true, false)->accept(&fCodeProducer);
@@ -328,7 +328,7 @@ void DLangCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     // No class name for main class
-    produceInfoFunctions(n + 1, "", "dsp", true, true, &fCodeProducer);  // Inits
+    produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kVirtual, &fCodeProducer);  // Inits
 
     tab(n + 1, *fOut);
     *fOut << "static void classInit(int sample_rate) nothrow @nogc {";
@@ -548,7 +548,7 @@ void DLangScalarOneSampleCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     // No class name for main class
-    produceInfoFunctions(n + 1, "", "dsp", true, true, &fCodeProducer);  // Inits
+    produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kVirtual, &fCodeProducer);  // Inits
 
     tab(n + 1, *fOut);
     *fOut << "static void classInit(int sample_rate) nothrow @nogc {";

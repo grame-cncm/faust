@@ -55,7 +55,7 @@ class RustCodeContainer : public virtual CodeContainer {
     virtual void              generateCompute(int tab) = 0;
     void                      produceInternal();
     virtual dsp_factory_base* produceFactory();
-    virtual void              produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod, bool isvirtual,TextInstVisitor* producer);
+    virtual void              produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod, FunTyped::FunAttribute funtype,TextInstVisitor* producer);
     virtual void              produceParameterGetterSetter(int tabs, map<string, int> parameterLookup);
 
     CodeContainer* createScalarContainer(const string& name, int sub_container_type);

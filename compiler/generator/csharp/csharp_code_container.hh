@@ -45,7 +45,7 @@ class CSharpCodeContainer : public virtual CodeContainer {
     virtual ~CSharpCodeContainer() {}
 
     virtual void produceClass();
-    virtual void produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod, bool isvirtual,
+    virtual void produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod, FunTyped::FunAttribute funtype,
                               TextInstVisitor* producer);
     virtual void generateCompute(int tab) = 0;
     void         produceInternal();

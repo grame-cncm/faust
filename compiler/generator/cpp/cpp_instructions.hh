@@ -351,6 +351,10 @@ class CPPInstVisitor : public TextInstVisitor {
         if (inst->fType->fAttribute & FunTyped::kLocal || inst->fType->fAttribute & FunTyped::kStatic) {
             *fOut << "static ";
         }
+    
+        if (inst->fType->fAttribute & FunTyped::kStaticConstExpr) {
+            *fOut << "static constexpr ";
+        }
 
         // Prototype
         *fOut << fTypeManager->generateType(inst->fType->fResult, generateFunName(inst->fName));

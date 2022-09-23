@@ -98,9 +98,9 @@ void FIRCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* d
         *dst << endl << "======= DSP struct end ==========" << endl << endl;
     }
 
-    generateGetInputs(subst("$0::getNumInputs", fKlassName), "dsp", true, true)->accept(&firvisitor);
+    generateGetInputs(subst("$0::getNumInputs", fKlassName), "dsp", true, FunTyped::kDefault)->accept(&firvisitor);
     *dst << endl;
-    generateGetOutputs(subst("$0::getNumOutputs", fKlassName), "dsp", true, true)->accept(&firvisitor);
+    generateGetOutputs(subst("$0::getNumOutputs", fKlassName), "dsp", true, FunTyped::kDefault)->accept(&firvisitor);
     *dst << endl;
    
     if (fStaticInitInstructions->fCode.size() > 0) {

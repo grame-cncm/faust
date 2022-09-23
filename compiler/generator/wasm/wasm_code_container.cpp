@@ -274,10 +274,10 @@ void WASMCodeContainer::produceClass()
     generateCompute();
 
     // 3) getNumInputs
-    generateGetInputs("getNumInputs", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
+    generateGetInputs("getNumInputs", "dsp", false, FunTyped::kDefault)->accept(gGlobal->gWASMVisitor);
 
     // 4) getNumOutputs
-    generateGetOutputs("getNumOutputs", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
+    generateGetOutputs("getNumOutputs", "dsp", false, FunTyped::kDefault)->accept(gGlobal->gWASMVisitor);
 
     // 5) getParamValue (adhoc generation for now since currently FIR cannot be generated to handle this case)
     gGlobal->gWASMVisitor->generateGetParamValue();

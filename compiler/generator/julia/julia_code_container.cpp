@@ -179,7 +179,7 @@ void JuliaCodeContainer::produceClass()
     generateGetSampleRate("getSampleRate", "dsp", false, false)->accept(gGlobal->gJuliaVisitor);
 
     tab(n, *fOut);
-    produceInfoFunctions(n, "", "dsp", false, false, gGlobal->gJuliaVisitor);
+    produceInfoFunctions(n, "", "dsp", false, FunTyped::kDefault, gGlobal->gJuliaVisitor);
     
     tab(n, *fOut);
     *fOut << "function classInit!(dsp::" << fKlassName << "{T}, sample_rate::Int32) where {T}";

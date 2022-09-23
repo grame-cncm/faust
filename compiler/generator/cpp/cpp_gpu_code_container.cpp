@@ -73,7 +73,7 @@ void CPPOpenCLCodeContainer::produceInternal()
     // Input method
     tab(n + 1, *fOut);
     // TO CHECK
-    produceInfoFunctions(n + 1, fKlassName, "dsp", false, false, fCodeProducer);
+    produceInfoFunctions(n + 1, fKlassName, "dsp", false, FunTyped::kDefault, fCodeProducer);
 
     // Inits
     tab(n + 1, *fOut);
@@ -845,7 +845,7 @@ void CPPOpenCLCodeContainer::produceClass()
     tab(n + 1, *fOut);
 
     // TO CHECK
-    produceInfoFunctions(n + 1, fKlassName, "dsp", false, true, fCodeProducer);
+    produceInfoFunctions(n + 1, fKlassName, "dsp", false, FunTyped::kVirtual, fCodeProducer);
 
     // Inits
     tab(n + 1, *fOut);
@@ -1140,7 +1140,7 @@ void CPPCUDACodeContainer::produceInternal()
 
     tab(n + 1, *fOut);
     // TO CHECK
-    produceInfoFunctions(n + 1, fKlassName, "dsp", false, false, fCodeProducer);
+    produceInfoFunctions(n + 1, fKlassName, "dsp", false, FunTyped::kDefault, fCodeProducer);
 
     // Inits
     tab(n + 1, *fOut);
@@ -1793,7 +1793,7 @@ void CPPCUDACodeContainer::produceClass()
     tab(n + 1, *fOut);
 
     // TO CHECK
-    produceInfoFunctions(n + 1, fKlassName, "dsp", false, true, fCodeProducer);
+    produceInfoFunctions(n + 1, fKlassName, "dsp", false, FunTyped::kVirtual, fCodeProducer);
 
     // Inits
     tab(n + 1, *fOut);

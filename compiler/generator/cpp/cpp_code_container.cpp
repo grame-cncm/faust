@@ -219,7 +219,7 @@ void CPPCodeContainer::produceInternal()
     tab(n + 1, *fOut);
 
     // fKlassName used in method naming for subclasses
-    produceInfoFunctions(n + 1, fKlassName, "dsp", true, false, fCodeProducer);
+    produceInfoFunctions(n + 1, fKlassName, "dsp", true, FunTyped::kDefault, fCodeProducer);
     
     // TODO
     // generateInstanceInitFun("instanceInit" + fKlassName, true, false)->accept(fCodeProducer);
@@ -406,7 +406,7 @@ void CPPCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     // No class name for main class
-    produceInfoFunctions(n + 1, "", "dsp", true, !gGlobal->gNoVirtual, fCodeProducer);  // Inits
+    produceInfoFunctions(n + 1, "", "dsp", true, ((gGlobal->gNoVirtual) ? FunTyped::kStaticConstExpr : FunTyped::kVirtual), fCodeProducer);  // Inits
 
     // TODO
     /*
@@ -786,7 +786,7 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     
     tab(n + 1, *fOut);
     // No class name for main class
-    produceInfoFunctions(n + 1, "", "dsp", true, !gGlobal->gNoVirtual, fCodeProducer);  // Inits
+    produceInfoFunctions(n + 1, "", "dsp", true, ((gGlobal->gNoVirtual) ? FunTyped::kStaticConstExpr : FunTyped::kVirtual), fCodeProducer);  // Inits
     
     // Dummy
     tab(n + 1, *fOut);
@@ -1053,7 +1053,7 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
     
     tab(n + 1, *fOut);
     // No class name for main class
-    produceInfoFunctions(n + 1, "", "dsp", true, !gGlobal->gNoVirtual, fCodeProducer);  // Inits
+    produceInfoFunctions(n + 1, "", "dsp", true, ((gGlobal->gNoVirtual) ? FunTyped::kStaticConstExpr : FunTyped::kVirtual), fCodeProducer);  // Inits
     
     // Dummy
     tab(n + 1, *fOut);
@@ -1345,7 +1345,7 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     
     tab(n + 1, *fOut);
     // No class name for main class
-    produceInfoFunctions(n + 1, "", "dsp", true, !gGlobal->gNoVirtual, fCodeProducer);  // Inits
+    produceInfoFunctions(n + 1, "", "dsp", true, ((gGlobal->gNoVirtual) ? FunTyped::kStaticConstExpr : FunTyped::kVirtual), fCodeProducer);  // Inits
     
     // Dummy
     tab(n + 1, *fOut);
@@ -1659,7 +1659,7 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
     
     tab(n + 1, *fOut);
     // No class name for main class
-    produceInfoFunctions(n + 1, "", "dsp", true, !gGlobal->gNoVirtual, fCodeProducer);  // Inits
+    produceInfoFunctions(n + 1, "", "dsp", true, ((gGlobal->gNoVirtual) ? FunTyped::kStaticConstExpr : FunTyped::kVirtual), fCodeProducer);  // Inits
     
     // Dummy
     tab(n + 1, *fOut);

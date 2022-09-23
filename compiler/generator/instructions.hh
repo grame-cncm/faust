@@ -506,7 +506,7 @@ struct NamedTyped : public Typed {
 };
 
 struct FunTyped : public Typed {
-    enum FunAttribute { kDefault = 0x1, kLocal = 0x2, kVirtual = 0x4, kStatic = 0x8, kInline = 0x10 };
+    enum FunAttribute { kDefault = 0x1, kLocal = 0x2, kVirtual = 0x4, kStatic = 0x8, kStaticConstExpr = 0x10, kInline = 0x20 };
 
     Names         fArgsTypes;
     BasicTyped*   fResult;
