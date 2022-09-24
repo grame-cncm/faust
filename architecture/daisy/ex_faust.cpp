@@ -97,7 +97,7 @@ static void AudioCallback(daisy::AudioHandle::InputBuffer in, daisy::AudioHandle
     control_UI->update();
     
     // DSP processing
-    DSP->compute(count, static_cast<float**>(in), out);
+    DSP->compute(count, const_cast<float**>(in), out);
 }
 
 int main(void)
