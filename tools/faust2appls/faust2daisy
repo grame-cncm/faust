@@ -24,6 +24,7 @@ NVOICES=0
 MIDI=false
 POLY=""
 PATCH=false
+POD=false
 SR=44100
 BS=16
 SOURCE=false
@@ -33,7 +34,8 @@ echoHelp ()
     echo "faust2daisy [-patch] [-midi] [-nvoices <num>] [-sr <num>] [-bs <num>] [-source] [Faust options (-vec -vs 8...)] <file.dsp>"
     echo "Compiles Faust programs to Daisy boards"
     option
-    option -patch "to compile for 4 ins/outs Patch"
+    option -patch "to compile for 4 ins/outs Patch (knob[1,2,3,4])"
+    option -pod "to compile for 2 ins/outs Pod (knob[1,3])"
     options -midi
     option "-nvoices <num>"
     option "-sr <num>"
@@ -64,6 +66,8 @@ do
     #patch
     elif [ $p = "-patch" ]; then
         PATCH=true
+    elif [ $p = "-pod" ]; then
+        POD=true
     # -sr
     elif [ $p = "-sr" ]; then
         shift
@@ -112,6 +116,10 @@ for p in $FILE; do
     # for PATCH support
     if [ $PATCH == true ]; then
         echo "#define PATCH" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    fi
+    # for POD support
+    if [ $POD == true ]; then
+        echo "#define POD" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
 
     # for MIDI
