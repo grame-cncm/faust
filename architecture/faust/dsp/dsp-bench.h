@@ -66,6 +66,8 @@ void FAUSTBENCH_LOG(VAL_TYPE val)
 template <typename REAL>
 class time_bench_real {
     
+    typedef std::vector<uint64_t>::const_iterator vtype;
+    
     protected:
     
         int fMeasure;
@@ -146,12 +148,27 @@ class time_bench_real {
         /**
          * Compute the mean value of a vector of measures
          */
-        uint64_t meanValue(std::vector<uint64_t>::const_iterator a, std::vector<uint64_t>::const_iterator b)
+        uint64_t meanValue(vtype a, vtype b)
         {
             uint64_t r = 0;
             unsigned int n = 0;
             while (a != b) { r += *a++; n++; }
             return (n > 0) ? r/n : 0;
+        }
+    
+        /**
+         * Compute the relative standard deviation of a vector of measures
+         */
+        double standardDeviation(vtype a, vtype b)
+        {
+            double mean = meanValue(a, b);
+            double sum_sd = 0;
+            unsigned int n = 0;
+            while (a != b) {
+                sum_sd += std::pow(mean - double(*a++), 2.0);
+                n++;
+            }
+            return (n > 0) ? ((std::sqrt(sum_sd/double(n)) * 100)/mean) : 0;
         }
   
     public:
@@ -200,20 +217,19 @@ class time_bench_real {
         /**
          *  Returns best estimation
          */
-        double getStats(int bsize, int ichans, int ochans)
+        std::pair<double, double> getStats(int bsize, int ichans, int ochans)
         {
             assert(fMeasure > fCount);
             std::vector<uint64_t> V(fCount);
-            
             for (int i = 0; i < fCount; i++) {
                 V[i] = fStops[i] - fStarts[i];
             }
-            
             sort(V.begin(), V.end());
             
-            // Mean of 10 best values (gives relatively stable results)
-            uint64_t meavalx = meanValue(V.begin(), V.begin() + 10);
-            return megapersec(bsize, ichans + ochans, meavalx);
+            // Mean and standard deviation of 50 best values (gives relatively stable results)
+            uint64_t meavalx = meanValue(V.begin(), V.begin() + 50);
+            double sd = standardDeviation(V.begin(), V.begin() + 50);
+            return std::make_pair(megapersec(bsize, ichans + ochans, meavalx), sd);
         }
 
         /**
@@ -223,17 +239,15 @@ class time_bench_real {
         {
             assert(fMeasure > fCount);
             std::vector<uint64_t> V(fCount);
-            
             for (int i = 0; i < fCount; i++) {
                 V[i] = fStops[i] - fStarts[i];
             }
-            
             sort(V.begin(), V.end());
             
             // Mean of 10 best values (gives relatively stable results)
-            uint64_t meaval00 = meanValue(V.begin(), V.begin()+ 5);
-            uint64_t meaval25 = meanValue(V.begin() + fCount / 4 - 2, V.begin()+fCount / 4 + 3);
-            uint64_t meaval50 = meanValue(V.begin() + fCount / 2 - 2, V.begin()+fCount / 2 + 3);
+            uint64_t meaval00 = meanValue(V.begin(), V.begin() + 5);
+            uint64_t meaval25 = meanValue(V.begin() + fCount / 4 - 2, V.begin() + fCount / 4 + 3);
+            uint64_t meaval50 = meanValue(V.begin() + fCount / 2 - 2, V.begin() + fCount / 2 + 3);
             uint64_t meaval75 = meanValue(V.begin() + 3 * fCount / 4 - 2, V.begin() + 3 * fCount / 4 + 3);
             uint64_t meaval100 = meanValue(V.end() - 5, V.end());
             
@@ -551,7 +565,7 @@ class measure_dsp_real : public decorator_dsp {
         /**
          *  Returns best estimation
          */
-        double getStats()
+        std::pair<double, double> getStats()
         {
             return fBench->getStats(fBufferSize, fDSP->getNumInputs(), fDSP->getNumOutputs());
         }
