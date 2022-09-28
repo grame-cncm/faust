@@ -19,7 +19,11 @@
  ************************************************************************
  ************************************************************************/
 
+#if defined(_WIN32)
+#include "compatibility.hh"
+#else // !defined(_WIN32)
 #include <libgen.h>
+#endif // defined(_WIN32)
 
 #include "Text.hh"
 #include "interpreter_dynamic_dsp_aux.hh"
