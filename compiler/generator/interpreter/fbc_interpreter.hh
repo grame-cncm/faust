@@ -1003,9 +1003,9 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     int v2 = popInt();
                     if (TRACE > 0) {
                         int res;
-                        if (__builtin_sadd_overflow(v1, v2, &res)) {
-                            warningOverflow(it);
-                        }
+                        // if (__builtin_sadd_overflow(v1, v2, &res)) {
+                        //    warningOverflow(it);
+                        // }
                         pushInt(res);
                     } else {
                         pushInt(v1 + v2);
@@ -1025,9 +1025,9 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     int v2 = popInt();
                     if (TRACE > 0) {
                         int res;
-                        if (__builtin_ssub_overflow(v1, v2, &res)) {
-                            warningOverflow(it);
-                        }
+                        // if (__builtin_ssub_overflow(v1, v2, &res)) {
+                        //    warningOverflow(it);
+                        // }
                         pushInt(res);
                     } else {
                         pushInt(v1 - v2);
@@ -1047,9 +1047,9 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     int v2 = popInt();
                     if (TRACE > 0) {
                         int res;
-                        if (__builtin_smul_overflow(v1, v2, &res)) {
-                            warningOverflow(it);
-                        }
+                        // if (__builtin_smul_overflow(v1, v2, &res)) {
+                        //    warningOverflow(it);
+                        // }
                         pushInt(res);
                     } else {
                         pushInt(v1 * v2);
@@ -3063,9 +3063,9 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         int v2 = popInt();
         if (TRACE > 0) {
             int res;
-            if (__builtin_sadd_overflow(v1, v2, &res)) {
-                warningOverflow(it);
-            }
+            // if (__builtin_sadd_overflow(v1, v2, &res)) {
+            //    warningOverflow(it);
+            // }
             pushInt(res);
         } else {
             pushInt(v1 + v2);
@@ -3085,9 +3085,9 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         int v2 = popInt();
         if (TRACE > 0) {
             int res;
-            if (__builtin_ssub_overflow(v1, v2, &res)) {
-                warningOverflow(it);
-            }
+            // if (__builtin_ssub_overflow(v1, v2, &res)) {
+            //    warningOverflow(it);
+            // }
             pushInt(res);
         } else {
             pushInt(v1 - v2);
@@ -3107,9 +3107,9 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         int v2 = popInt();
         if (TRACE > 0) {
             int res;
-            if (__builtin_smul_overflow(v1, v2, &res)) {
-                warningOverflow(it);
-            }
+            // if (__builtin_smul_overflow(v1, v2, &res)) {
+            //    warningOverflow(it);
+            // }
             pushInt(res);
         } else {
             pushInt(v1 * v2);
