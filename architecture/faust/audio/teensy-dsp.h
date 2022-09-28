@@ -35,8 +35,8 @@
 #include "AudioStream.h"
 #include "Audio.h"
 
-#define MULT_16 2147483647
-#define DIV_16 4.6566129e-10
+#define MULT_16 32767
+#define DIV_16 0.0000305185
 
 unsigned __exidx_start;
 unsigned __exidx_end;
@@ -73,7 +73,7 @@ class teensyaudio : public AudioStream, public audio {
                     inBlock[channel] = receiveReadOnly(channel);
                     if (inBlock[channel]) {
                         for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-                            int32_t val = inBlock[channel]->data[i] << 16;
+                            int16_t val = inBlock[channel]->data[i];
                             fInChannel[channel][i] = val*DIV_16;
                         }
                         release(inBlock[channel]);
@@ -85,13 +85,13 @@ class teensyaudio : public AudioStream, public audio {
             
             fDSP->compute(AUDIO_BLOCK_SAMPLES, fInChannel, fOutChannel);
             
+            audio_block_t* outBlock[OUTPUTS];
             for (int channel = 0; channel < OUTPUTS; channel++) {
-                audio_block_t* outBlock[OUTPUTS];
                 outBlock[channel] = allocate();
                 if (outBlock[channel]) {
                     for (int i = 0; i < AUDIO_BLOCK_SAMPLES; i++) {
-                        int32_t val = fOutChannel[channel][i]*MULT_16;
-                        outBlock[channel]->data[i] = val >> 16;
+                        int16_t val = fOutChannel[channel][i]*MULT_16;
+                        outBlock[channel]->data[i] = val;
                     }
                     transmit(outBlock[channel], channel);
                     release(outBlock[channel]);
