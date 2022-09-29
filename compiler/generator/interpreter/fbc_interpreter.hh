@@ -625,6 +625,12 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     }
    
 #if defined(_WIN32)
+    
+    // Fake versions for now
+    bool __builtin_sadd_overflow(int v1, int v2, int* res) { return false; }
+    bool __builtin_ssub_overflow(int v1, int v2, int* res) { return false; }
+    bool __builtin_smul_overflow(int v1, int v2, int* res) { return false; }
+    
     void ExecuteBlock(FBCBlockInstruction<REAL>* block, bool compile = false)
     {
         int real_stack_index  = 0;
