@@ -90,7 +90,7 @@ addOptions ()
     # OSC source always copied in the project
     cp -r $FAUSTARCH/osclib "$T"
     # FaustNode.h still has a dependency with public Faust headers, create a self-contained version
-    echo "process = !;" >> "$T"/tmp.dsp
+    echo "process = _;" >> "$T"/tmp.dsp
     echo "" >> "$T"/tmp.cpp
     faust -i -inj "$T"/tmp.cpp -a $FAUSTARCH/osclib/faust/faust/osc/FaustNode.h "$T"/tmp.dsp -o "$T"/osclib/faust/faust/osc/FaustNode.h
     rm "$T"/tmp.dsp "$T"/tmp.cpp
