@@ -310,42 +310,42 @@ class portCollector : public UI
 	// and fields retrieved from the global metadata
 	void fillPortDescription (LADSPA_Descriptor * descriptor, mydsp* dsp) {
 		const char* labl = sym(mydsp);
-		const char* name = NULL, maker = NULL, copyright = NULL;
+		char *name = NULL, *maker = NULL, *copyright = NULL;
 		MY_Meta meta;
 
 		descriptor->Label = strdup(labl);
 		descriptor->UniqueID = makeID(labl);
-		descriptor->PortCount 			= fCtrlCount+fInsCount+fOutsCount;
-		descriptor->PortDescriptors 	= fPortDescs;
-		descriptor->PortNames 			= fPortNames;
-		descriptor->PortRangeHints 		= fPortHints;
+		descriptor->PortCount = fCtrlCount+fInsCount+fOutsCount;
+		descriptor->PortDescriptors = fPortDescs;
+		descriptor->PortNames = fPortNames;
+		descriptor->PortRangeHints = fPortHints;
 		descriptor->Properties = LADSPA_PROPERTY_HARD_RT_CAPABLE;
 
 		dsp->metadata(&meta);
 
 		if (meta.count("name"))
-			name = strdnup(meta["name"], MAX_DESCRIPTOR_STRING);
+			name = strndup(meta["name"], MAX_DESCRIPTOR_STRING);
 
 		if (name)
-			descriptor->Name = name;
+			descriptor->Name = (const char*) name;
 		else
 			descriptor->Name = labl;
 
 		if (meta.count("author"))
-			maker = strdnup(meta["author"], MAX_DESCRIPTOR_STRING);
+			maker = strndup(meta["author"], MAX_DESCRIPTOR_STRING);
 
 		if (maker)
-			descriptor->Maker = maker;
+			descriptor->Maker = (const char*) maker;
 		else
 			descriptor->Maker = "";
 
 		if (meta.count("copyright"))
-			copyright = strdnup(meta["copyright"], MAX_DESCRIPTOR_STRING);
+			copyright = strndup(meta["copyright"], MAX_DESCRIPTOR_STRING);
 		else if (meta.count("license"))
-			copyright = strdnup(meta["license"], MAX_DESCRIPTOR_STRING);
+			copyright = strndup(meta["license"], MAX_DESCRIPTOR_STRING);
 
 		if (copyright)
-			descriptor->Copyright = copyright;
+			descriptor->Copyright = (const char*) copyright;
 		else
 			descriptor->Maker = "undefined";
 	}
