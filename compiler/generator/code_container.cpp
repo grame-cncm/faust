@@ -301,12 +301,13 @@ void CodeContainer::sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<
 
 // Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
 void CodeContainer::produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod,
-                                         FunTyped::FunAttribute funtype, TextInstVisitor* producer)
+                                         FunTyped::FunAttribute funtype, TextInstVisitor* producer,
+                                         const string& in_fun, const string& out_fun)
 {
     // Input/Output method
     producer->Tab(tabs);
-    generateGetInputs(subst("getNumInputs$0", classname), obj, ismethod, funtype)->accept(producer);
-    generateGetOutputs(subst("getNumOutputs$0", classname), obj, ismethod, funtype)->accept(producer);
+    generateGetInputs(in_fun + classname, obj, ismethod, funtype)->accept(producer);
+    generateGetOutputs(out_fun + classname, obj, ismethod, funtype)->accept(producer);
 }
 
 void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst* count, bool omp)

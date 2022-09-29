@@ -112,7 +112,7 @@ travis:
 # c++ and c backends
 cpp:
 	$(MAKE) -f Make.gcc outdir=cpp/double           lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double"
-	$(MAKE) -f Make.gcc outdir=cpp/double/lp        lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -fp"
+	$(MAKE) -f Make.gcc outdir=cpp/double/fp        lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -fp"
 	$(MAKE) -f Make.gcc outdir=cpp/double/mcd0      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -mcd 0"
 	$(MAKE) -f Make.gcc outdir=cpp/double/mapp      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -mapp"
 	$(MAKE) -f Make.gcc outdir=cpp/double/rui       lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -rui"

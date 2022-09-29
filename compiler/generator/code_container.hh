@@ -299,7 +299,7 @@ class CodeContainer : public virtual Garbageable {
     DeclareFunInst* generateDeleteDsp(const string& name, const string& obj);
 
     void produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod, FunTyped::FunAttribute funtype,
-                              TextInstVisitor* producer);
+                              TextInstVisitor* producer, const string& in_fun = "getNumInputs", const string& out_fun = "getNumOutputs");
 
     void generateDAGLoop(BlockInst* loop_code, DeclareVarInst* count);
     

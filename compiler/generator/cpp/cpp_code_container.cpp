@@ -406,7 +406,12 @@ void CPPCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     // No class name for main class
-    produceInfoFunctions(n + 1, "", "dsp", true, ((gGlobal->gNoVirtual) ? FunTyped::kStaticConstExpr : FunTyped::kVirtual), fCodeProducer);  // Inits
+    if (gGlobal->gNoVirtual) {
+        produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kStaticConstExpr, fCodeProducer, "getStaticNumInputs", "getStaticNumOutputs");
+        produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kDefault, fCodeProducer);
+    } else {
+        produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kVirtual, fCodeProducer);
+    }
 
     // TODO
     /*
@@ -786,7 +791,12 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     
     tab(n + 1, *fOut);
     // No class name for main class
-    produceInfoFunctions(n + 1, "", "dsp", true, ((gGlobal->gNoVirtual) ? FunTyped::kStaticConstExpr : FunTyped::kVirtual), fCodeProducer);  // Inits
+    if (gGlobal->gNoVirtual) {
+        produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kStaticConstExpr, fCodeProducer, "getStaticNumInputs", "getStaticNumOutputs");
+        produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kDefault, fCodeProducer);
+    } else {
+        produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kVirtual, fCodeProducer);
+    }
     
     // Dummy
     tab(n + 1, *fOut);
@@ -1053,7 +1063,12 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
     
     tab(n + 1, *fOut);
     // No class name for main class
-    produceInfoFunctions(n + 1, "", "dsp", true, ((gGlobal->gNoVirtual) ? FunTyped::kStaticConstExpr : FunTyped::kVirtual), fCodeProducer);  // Inits
+    if (gGlobal->gNoVirtual) {
+        produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kStaticConstExpr, fCodeProducer, "getStaticNumInputs", "getStaticNumOutputs");
+        produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kDefault, fCodeProducer);
+    } else {
+        produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kVirtual, fCodeProducer);
+    }
     
     // Dummy
     tab(n + 1, *fOut);
@@ -1345,7 +1360,12 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     
     tab(n + 1, *fOut);
     // No class name for main class
-    produceInfoFunctions(n + 1, "", "dsp", true, ((gGlobal->gNoVirtual) ? FunTyped::kStaticConstExpr : FunTyped::kVirtual), fCodeProducer);  // Inits
+    if (gGlobal->gNoVirtual) {
+        produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kStaticConstExpr, fCodeProducer, "getStaticNumInputs", "getStaticNumOutputs");
+        produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kDefault, fCodeProducer);
+    } else {
+        produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kVirtual, fCodeProducer);
+    }
     
     // Dummy
     tab(n + 1, *fOut);
@@ -1659,7 +1679,12 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
     
     tab(n + 1, *fOut);
     // No class name for main class
-    produceInfoFunctions(n + 1, "", "dsp", true, ((gGlobal->gNoVirtual) ? FunTyped::kStaticConstExpr : FunTyped::kVirtual), fCodeProducer);  // Inits
+    if (gGlobal->gNoVirtual) {
+        produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kStaticConstExpr, fCodeProducer, "getStaticNumInputs", "getStaticNumOutputs");
+        produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kDefault, fCodeProducer);
+    } else {
+        produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kVirtual, fCodeProducer);
+    }
     
     // Dummy
     tab(n + 1, *fOut);
