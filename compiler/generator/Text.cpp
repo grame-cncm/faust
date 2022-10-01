@@ -215,10 +215,10 @@ static string addSuffix(const string& num)
  */
 string TAux(float n)
 {
-    char c[64];
+    char c[512];
     int  p = 1;
     
-    do { snprintf(c, 32, "%.*g", p++, n); } while (strtof(c, 0) != n);
+    do { snprintf(c, 512, "%.*g", p++, n); } while (strtof(c, 0) != n);
     
     ensureFloat(c);
     return string(c);
@@ -232,18 +232,18 @@ string T(float n) { return addSuffix(TAux(n)); }
 */
 string TAux(double n)
 {
-    char  c[64];
+    char  c[512];
     char* endp;
     int   p = 1;
     
     if (gGlobal->gFloatSize == 1) {
         float v = (float)n;
-        do { snprintf(c, 32, "%.*g", p++, v); endp = nullptr; } while (strtof(c, &endp) != v);
+        do { snprintf(c, 512, "%.*g", p++, v); endp = nullptr; } while (strtof(c, &endp) != v);
     } else if (gGlobal->gFloatSize == 2) {
-        do { snprintf(c, 32, "%.*g", p++, n); endp = nullptr; } while (strtod(c, &endp) != n);
+        do { snprintf(c, 512, "%.*g", p++, n); endp = nullptr; } while (strtod(c, &endp) != n);
     } if (gGlobal->gFloatSize == 3) {
         long double q = (long double)n;
-        do { snprintf(c, 32, "%.*Lg", p++, q); endp = nullptr; } while (strtold(c, &endp) != q);
+        do { snprintf(c, 512, "%.*Lg", p++, q); endp = nullptr; } while (strtold(c, &endp) != q);
     }
     ensureFloat(c);
     return string(c);

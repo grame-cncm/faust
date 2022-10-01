@@ -687,7 +687,7 @@ struct NamedAddress : public Address {
 
     NamedAddress(const string& name, AccessType access) : fName(name), fAccess(access) {}
 
-    void                setAccess(Address::AccessType type) { fAccess = type; }
+    void                setAccess(Address::AccessType access) { fAccess = access; }
     Address::AccessType getAccess() const { return fAccess; }
 
     void   setName(const string& name) { fName = name; }
@@ -976,7 +976,6 @@ struct LoadVarInst : public ValueInst {
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
     virtual bool isSimpleValue() const;
-
 };
 
 struct LoadVarAddressInst : public ValueInst {
@@ -1281,7 +1280,6 @@ struct ControlInst : public StatementInst {
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
-
 };
 
 struct IfInst : public StatementInst {
@@ -1454,13 +1452,16 @@ class BasicCloneVisitor : public CloneVisitor {
     // Declarations
     virtual StatementInst* visit(DeclareVarInst* inst)
     {
-        return new DeclareVarInst(inst->fAddress->clone(this), inst->fType->clone(this),
-                                  ((inst->fValue) ? inst->fValue->clone(this) : nullptr));
+        // To be sure args are evaluated in order
+        Address* cloned_address = inst->fAddress->clone(this);
+        Typed* cloned_type = inst->fType->clone(this);
+        return new DeclareVarInst(cloned_address, cloned_type, ((inst->fValue) ? inst->fValue->clone(this) : nullptr));
     }
     virtual StatementInst* visit(DeclareFunInst* inst)
     {
-        return new DeclareFunInst(inst->fName, static_cast<FunTyped*>(inst->fType->clone(this)),
-                                  static_cast<BlockInst*>(inst->fCode->clone(this)));
+        // To be sure args are evaluated in order
+        FunTyped* cloned_fun = static_cast<FunTyped*>(inst->fType->clone(this));
+        return new DeclareFunInst(inst->fName, cloned_fun, static_cast<BlockInst*>(inst->fCode->clone(this)));
     }
     virtual StatementInst* visit(DeclareStructTypeInst* inst)
     {
@@ -1476,11 +1477,17 @@ class BasicCloneVisitor : public CloneVisitor {
     virtual ValueInst* visit(LoadVarAddressInst* inst) { return new LoadVarAddressInst(inst->fAddress->clone(this)); }
     virtual ValueInst* visit(TeeVarInst* inst)
     {
-        return new TeeVarInst(inst->fAddress->clone(this), inst->fValue->clone(this));
+        // To be sure args are evaluated in order
+        Address* cloned_address = inst->fAddress->clone(this);
+        ValueInst* cloned_value = inst->fValue->clone(this);
+        return new TeeVarInst(cloned_address, cloned_value);
     }
     virtual StatementInst* visit(StoreVarInst* inst)
     {
-        return new StoreVarInst(inst->fAddress->clone(this), inst->fValue->clone(this));
+        // To be sure args are evaluated in order
+        Address* cloned_address = inst->fAddress->clone(this);
+        ValueInst* cloned_value = inst->fValue->clone(this);
+        return new StoreVarInst(cloned_address, cloned_value);
     }
     virtual StatementInst* visit(ShiftArrayVarInst* inst)
     {
@@ -1513,18 +1520,27 @@ class BasicCloneVisitor : public CloneVisitor {
     // Numerical computation
     virtual ValueInst* visit(BinopInst* inst)
     {
-        return new BinopInst(inst->fOpcode, inst->fInst1->clone(this), inst->fInst2->clone(this));
+        // To be sure args are evaluated in order
+        ValueInst* cloned_arg1 = inst->fInst1->clone(this);
+        ValueInst* cloned_arg2 = inst->fInst2->clone(this);
+        return new BinopInst(inst->fOpcode, cloned_arg1, cloned_arg2);
     }
 
     // Cast
     virtual ValueInst* visit(CastInst* inst)
     {
-        return new CastInst(inst->fInst->clone(this), inst->fType->clone(this));
+        // To be sure args are evaluated in order
+        ValueInst* cloned_value = inst->fInst->clone(this);
+        Typed* cloned_type = inst->fType->clone(this);
+        return new CastInst(cloned_value, cloned_type);
     }
 
     virtual ValueInst* visit(BitcastInst* inst)
     {
-        return new BitcastInst(inst->fInst->clone(this), inst->fType->clone(this));
+        // To be sure args are evaluated in order
+        ValueInst* cloned_value = inst->fInst->clone(this);
+        Typed* cloned_type = inst->fType->clone(this);
+        return new BitcastInst(cloned_value, cloned_type);
     }
 
     // Function call
@@ -1550,22 +1566,28 @@ class BasicCloneVisitor : public CloneVisitor {
     // Conditional
     virtual ValueInst* visit(Select2Inst* inst)
     {
-        ValueInst* then_exp = inst->fThen->clone(this);
-        ValueInst* else_exp = inst->fElse->clone(this);
-        ValueInst* cond_exp = inst->fCond->clone(this);
+        ValueInst* cloned_then = inst->fThen->clone(this);
+        ValueInst* cloned_else = inst->fElse->clone(this);
+        ValueInst* cloned_cond = inst->fCond->clone(this);
         // cond_exp has to be evaluated last for FunctionInliner to correctly work in gHasTeeLocal mode
-        return new Select2Inst(cond_exp, then_exp, else_exp);
+        return new Select2Inst(cloned_cond, cloned_then, cloned_else);
     }
 
     virtual StatementInst* visit(ControlInst* inst)
     {
-        return new ControlInst(inst->fCond->clone(this), inst->fStatement->clone(this));
+        // To be sure args are evaluated in order
+        ValueInst* cloned_cond = inst->fCond->clone(this);
+        StatementInst* cloned_statement = inst->fStatement->clone(this);
+        return new ControlInst(cloned_cond, cloned_statement);
     }
 
     virtual StatementInst* visit(IfInst* inst)
     {
-        return new IfInst(inst->fCond->clone(this), static_cast<BlockInst*>(inst->fThen->clone(this)),
-                          static_cast<BlockInst*>(inst->fElse->clone(this)));
+        // To be sure args are evaluated in order
+        ValueInst* cond_exp = inst->fCond->clone(this);
+        BlockInst* then_exp = static_cast<BlockInst*>(inst->fThen->clone(this));
+        BlockInst* else_exp = static_cast<BlockInst*>(inst->fElse->clone(this));
+        return new IfInst(cond_exp, then_exp, else_exp);
     }
     virtual StatementInst* visit(SwitchInst* inst)
     {
@@ -1579,13 +1601,20 @@ class BasicCloneVisitor : public CloneVisitor {
     // Loop
     virtual StatementInst* visit(ForLoopInst* inst)
     {
-        return new ForLoopInst(inst->fInit->clone(this), inst->fEnd->clone(this), inst->fIncrement->clone(this),
+        // To be sure args are evaluated in order
+        StatementInst* cloned_init = inst->fInit->clone(this);
+        ValueInst* cloned_end = inst->fEnd->clone(this);
+        StatementInst* cloned_increment = inst->fIncrement->clone(this);
+        return new ForLoopInst(cloned_init, cloned_end, cloned_increment,
                                static_cast<BlockInst*>(inst->fCode->clone(this)), inst->fIsRecursive);
     }
 
     virtual StatementInst* visit(SimpleForLoopInst* inst)
     {
-        return new SimpleForLoopInst(inst->fName, inst->fUpperBound->clone(this), inst->fLowerBound->clone(this),
+        // To be sure args are evaluated in order
+        ValueInst* cloned_upper = inst->fUpperBound->clone(this);
+        ValueInst* cloned_lower = inst->fLowerBound->clone(this);
+        return new SimpleForLoopInst(inst->fName, cloned_upper, cloned_lower,
                                      inst->fReverse, static_cast<BlockInst*>(inst->fCode->clone(this)));
     }
 
@@ -1600,7 +1629,10 @@ class BasicCloneVisitor : public CloneVisitor {
 
     virtual StatementInst* visit(WhileLoopInst* inst)
     {
-        return new WhileLoopInst(inst->fCond->clone(this), static_cast<BlockInst*>(inst->fCode->clone(this)));
+        // To be sure args are evaluated in order
+        ValueInst* cloned_cond = inst->fCond->clone(this);
+        BlockInst* cloned_code = static_cast<BlockInst*>(inst->fCode->clone(this));
+        return new WhileLoopInst(cloned_cond, cloned_code);
     }
 
     // Block

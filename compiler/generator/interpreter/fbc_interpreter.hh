@@ -735,7 +735,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     Soundfile* sf = this->fSoundTable[(*it)->fName];
                     int field_index = popInt();
                     int part = popInt();
-                    int* field;
+                    int* field = nullptr;
                     switch (field_index) {
                         case Soundfile::kLength: {
                             field = sf->fLength;
@@ -749,6 +749,9 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                             field = sf->fOffset;
                             break;
                         }
+                        default:
+                            faustassert(false);
+                            break;
                     }
                     pushInt(field[part]);
                     dispatchNextScal();
@@ -2797,7 +2800,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         Soundfile* sf = this->fSoundTable[(*it)->fName];
         int field_index = popInt();
         int part = popInt();
-        int* field;
+        int* field = nullptr;
         switch (field_index) {
             case Soundfile::kLength: {
                 field = sf->fLength;
@@ -2811,6 +2814,9 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                 field = sf->fOffset;
                 break;
             }
+            default:
+                faustassert(false);
+                break;
         }
         pushInt(field[part]);
         dispatchNextScal();

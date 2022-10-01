@@ -431,7 +431,7 @@ struct LoopVariableRenamer : public BasicCloneVisitor {
     virtual Address* visit(NamedAddress* address)
     {
         if (address->fAccess == Address::kLoop && fLoopIndexMap.find(address->getName()) != fLoopIndexMap.end()) {
-            return new NamedAddress(fLoopIndexMap[address->getName()], address->fAccess);
+            return InstBuilder::genNamedAddress(fLoopIndexMap[address->getName()], address->fAccess);
         } else {
             return BasicCloneVisitor::visit(address);
         }
