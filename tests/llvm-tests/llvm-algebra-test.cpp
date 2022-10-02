@@ -109,15 +109,15 @@ static void benchDSP(const string& title, const string& code, dsp* combined)
   
     measure_dsp* mes1 = new measure_dsp(dsp, 512, 5.);       // Buffer_size and duration in sec of measure
     mes1->measure();
-    double res1 = mes1->getStats();
-    cout << res1 << " " << "(DSP CPU % : " << (mes1->getCPULoad() * 100) << ")" << endl;
+    pair<double, double> res1 = mes1->getStats();
+    cout << res1.first << " " << "(DSP CPU % : " << (mes1->getCPULoad() * 100) << ")" << endl;
     
     measure_dsp* mes2 = new measure_dsp(combined, 512, 5.);  // Buffer_size and duration in sec of measure
     mes2->measure();
-    double res2 = mes2->getStats();
-    cout << res2 << " " << "(DSP CPU % : " << (mes2->getCPULoad() * 100) << ")" << endl;
+    pair<double, double> res2 = mes2->getStats();
+    cout << res2.first << " " << "(DSP CPU % : " << (mes2->getCPULoad() * 100) << ")" << endl;
     
-    cout << "Ratio = " << (res1/res2) << endl;
+    cout << "Ratio = " << (res1.first/res2.first) << endl;
     
     delete mes1;
     delete mes2;
