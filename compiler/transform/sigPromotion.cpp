@@ -19,15 +19,19 @@
  ************************************************************************
  ************************************************************************/
 
-#include "sigPromotion.hh"
 #include <stdlib.h>
 #include <cstdlib>
 
-#include "signals.hh"
-#include "prim2.hh"
+#include "interval.hh"
+
 #include "global.hh"
-#include "xtended.hh"
+
+#include "sigPromotion.hh"
+
+#include "prim2.hh"
+#include "signals.hh"
 #include "sigtyperules.hh"
+#include "xtended.hh"
 
 void SignalTreeChecker::visit(Tree sig)
 {
@@ -139,20 +143,20 @@ void SignalTreeChecker::visit(Tree sig)
             cerr << "ERROR : isSigSoundfileBuffer with a wrong typed ridx : " << *sig << endl;
             faustassert(false);
         }
-        
-    // Bargraph
+
+        // Bargraph
     } else if (isSigHBargraph(sig, label, min, max, t0)) {
         if (getCertifiedSigType(t0)->nature() == kInt) {
             cerr << "ERROR : isSigHBargraph of a kInt signal : " << *sig << endl;
             faustassert(false);
         }
-        
+
     } else if (isSigVBargraph(sig, label, min, max, t0)) {
         if (getCertifiedSigType(t0)->nature() == kInt) {
             cerr << "ERROR : isSigVBargraph of a kInt signal : " << *sig << endl;
             faustassert(false);
         }
- 
+
     } else {
         // Default case
         SignalVisitor::visit(sig);
@@ -229,7 +233,7 @@ Tree SignalPromotion::transformation(Tree sig)
                 // Done here instead of 'simplify' to be sure the signals are correctly typed.
                 interval i1 = tx->getInterval();
                 interval j1 = ty->getInterval();
-                if (i1.valid & j1.valid && gGlobal->gMathExceptions && j1.hasZero()) {
+                if (i1.isValid() & j1.isValid() && gGlobal->gMathExceptions && j1.hasZero()) {
                     cerr << "WARNING : potential division by zero (" << i1 << "/" << j1 << ")" << endl;
                 }
                 // the result of a division is always a float
@@ -306,18 +310,18 @@ Tree SignalPromotion::transformation(Tree sig)
         return sigSoundfileBuffer(self(sf), self(chan), smartIntCast(getCertifiedSigType(part), self(part)),
                                   smartIntCast(getCertifiedSigType(idx), self(idx)));
     }
-    
+
     // Bargraph
     else if (isSigHBargraph(sig, label, min, max, t0)) {
         Type tx0 = getCertifiedSigType(t0);
         return sigHBargraph(label, self(min), self(max), smartFloatCast(tx0, self(t0)));
     }
-    
+
     else if (isSigVBargraph(sig, label, min, max, t0)) {
         Type tx0 = getCertifiedSigType(t0);
         return sigVBargraph(label, self(min), self(max), smartFloatCast(tx0, self(t0)));
     }
-    
+
     // Other cases => identity transformation
     else {
         return SignalIdentity::transformation(sig);

@@ -14,11 +14,9 @@ namespace itv {
 
 interval interval_algebra::Sinh(const interval& x) const
 {
-    if (x.isEmpty()) {
-        return x;
-    } else {
-        return {sinh(x.lo()), sinh(x.hi())};
-    }
+    if (x.isEmpty()) return x;
+
+    return {sinh(x.lo()), sinh(x.hi())};
 }
 
 void interval_algebra::testSinh() const

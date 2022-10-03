@@ -21,6 +21,10 @@
 
 #include <stdio.h>
 
+#include "interval.hh"
+
+#include "global.hh"
+
 #include "signals.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"

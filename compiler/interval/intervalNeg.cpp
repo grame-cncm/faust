@@ -12,11 +12,9 @@ namespace itv {
 
 interval interval_algebra::Neg(const interval& x) const
 {
-    if (x.isEmpty()) {
-        return {};
-    } else {
-        return {-x.hi(), -x.lo()};
-    }
+    if (x.isEmpty()) return {};
+
+    return {-x.hi(), -x.lo()};
 }
 
 void interval_algebra::testNeg() const

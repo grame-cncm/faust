@@ -15,10 +15,9 @@ namespace itv {
 interval interval_algebra::Sqrt(const interval& x) const
 {
     if (x.isEmpty()) return x;
-    if (x.lo() < 0)
-        return {};  // sqrt of negative numbers
-    else
-        return {sqrt(x.lo()), sqrt(x.hi())};
+    if (x.lo() < 0) return {};  // sqrt of negative numbers
+
+    return {sqrt(x.lo()), sqrt(x.hi())};
 }
 
 void interval_algebra::testSqrt() const

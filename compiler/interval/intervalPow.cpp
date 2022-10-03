@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cassert>
 #include <functional>
 #include <random>
 
@@ -12,59 +13,51 @@ namespace itv {
 // interval Pow(const interval& x, const interval& y) const;
 // void testPow() const;
 
+static interval ipow(const interval& x, int y)
+{
+    assert(y >= 0);
+    if (y == 0) {
+        return interval(1.0);
+    }
+
+    if ((y & 1) == 0) {
+        // y is even
+        double z0 = std::pow(x.lo(), y);
+        double z1 = std::pow(x.hi(), y);
+        return {0, std::max(z0, z1)};
+    }
+
+    // y is odd
+    return {std::pow(x.lo(), y), std::pow(x.hi(), y)};
+}
+
 interval interval_algebra::Pow(const interval& x, const interval& y) const
 {
     if (x.lo() > 0) {
         // x all positive
         return Exp(Mul(y, Log(x)));
-
-    } else {
-#if 0
-        int n;
-        if (isInt(y, n)) {
-            if (n >= 0) {
-                if (x.hi() < 0) {
-                    // x all negative
-                    if (n % 2 == 0) {
-                        // n is even
-                        return interval(pow(x.hi(), n), pow(x.lo(), n));
-                    } else {
-                        // n is odd
-                    return interval(pow(x.lo(), n), pow(x.hi()), n))
-                    }
-                } else {
-                    // x is on both sides of 0
-                    if (n % 2 == 0) {
-                        // n is even
-                        return interval(1, std::max(pow(x.lo(), n), pow(x.hi(), n)));
-                    } else {
-                        // n is odd
-                        return interval(1, -1);
-                    }
-                }
-            }
-            if (n % 2 == 0) {
-                return Pow(x, n);
-            } else {
-                return Pow(x, n - 1);
-            }
-        } else {
-            return Exp(Mul(y, Log(x)));
-        }
-#endif
-        return {};
     }
+
+    int      y0 = std::max(0, int(y.lo()));
+    int      y1 = std::max(0, int(y.hi()));
+    interval z  = ipow(x, y0);
+    for (int i = y0 + 1; i <= y1; ++i) {
+        z = reunion(z, ipow(x, i));
+    }
+    return z;
 }
 
 static double myPow(double x, double y)
 {
-    return pow(x, y);
+    return std::pow(x, y);
 }
 
 void interval_algebra::testPow() const
 {
-    analyzeBinaryMethod(10, 2000, "Pow", interval(1, 1000), interval(-10, 10), myPow, &interval_algebra::Pow);
-    analyzeBinaryMethod(10, 2000, "Pow", interval(0.001, 1), interval(-10, 10), myPow, &interval_algebra::Pow);
-    analyzeBinaryMethod(10, 2000, "Pow", interval(0.001, 10), interval(-20, 20), myPow, &interval_algebra::Pow);
+    analyzeBinaryMethod(10, 2000, "Pow2", interval(-1, 1), interval(1, 3), myPow, &interval_algebra::Pow);
+    analyzeBinaryMethod(10, 2000, "Pow2", interval(-1, 1), interval(1, 10), myPow, &interval_algebra::Pow);
+    analyzeBinaryMethod(10, 2000, "Pow2", interval(1, 1000), interval(-10, 10), myPow, &interval_algebra::Pow);
+    analyzeBinaryMethod(10, 2000, "Pow2", interval(0.001, 1), interval(-10, 10), myPow, &interval_algebra::Pow);
+    analyzeBinaryMethod(10, 2000, "Pow2", interval(0.001, 10), interval(-20, 20), myPow, &interval_algebra::Pow);
 }
 }  // namespace itv

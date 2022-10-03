@@ -16,13 +16,14 @@ interval interval_algebra::Ne(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return {};
-    } else if ((x.hi() < y.lo()) || x.lo() > y.hi()) {
-        return interval{1.0};
-    } else if ((x.hi() == y.lo()) || x.lo() == y.hi()) {
-        return interval{0.0};
-    } else {
-        return {0, 1};
     }
+    if ((x.hi() < y.lo()) || x.lo() > y.hi()) {
+        return interval{1.0};
+    }
+    if ((x.hi() == y.lo()) || x.lo() == y.hi()) {
+        return interval{0.0};
+    }
+    return {0, 1};
 }
 
 void interval_algebra::testNe() const

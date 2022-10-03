@@ -38,6 +38,10 @@
 #include <sstream>
 #include <string>
 
+#include "interval.hh"
+
+#include "global.hh"
+
 #include "Text.hh"
 #include "floats.hh"
 #include "klass.hh"
@@ -89,7 +93,7 @@ void Klass::openLoop(Tree recsymbol, const string& size)
 
 void Klass::listAllLoopProperties(Tree sig, set<Loop*>& L, set<Tree>& visited)
 {
-    if (visited.count(sig)==0) {
+    if (visited.count(sig) == 0) {
         visited.insert(sig);
         Loop* l;
         if (getLoopProperty(sig, l)) {
@@ -112,15 +116,15 @@ void Klass::listAllLoopProperties(Tree sig, set<Loop*>& L, set<Tree>& visited)
 void Klass::closeLoop(Tree sig)
 {
     faustassert(fTopLoop);
-    
+
     // fix the missing dependencies
     set<Loop*> L;
-    set<Tree> V;
+    set<Tree>  V;
     listAllLoopProperties(sig, L, V);
     for (Loop* l : L) {
         fTopLoop->fBackwardLoopDependencies.insert(l);
     }
-  
+
     Loop* l  = fTopLoop;
     fTopLoop = l->fEnclosingLoop;
     faustassert(fTopLoop);
@@ -972,7 +976,8 @@ void Klass::println(int n, ostream& fout)
             }
         }
         tab(n + 1, fout);
-        fout << "#define FAUST_CLASS_NAME " << "\"" << fKlassName << "\"";
+        fout << "#define FAUST_CLASS_NAME "
+             << "\"" << fKlassName << "\"";
         tab(n + 1, fout);
         fout << "#define FAUST_COMPILATION_OPIONS \"" << gGlobal->printCompilationOptions1() << "\"";
         tab(n + 1, fout);

@@ -21,6 +21,7 @@ interval interval_algebra::Abs(const interval& x) const
 
 void interval_algebra::testAbs() const
 {
-    analyzeUnaryMethod(10, 1000, "abs", interval(-10, 10), std::abs, &interval_algebra::Abs);
+    analyzeUnaryMethod(10, 1000, "abs", interval(-10, 10), [](double x){
+        return std::abs(x);}, &interval_algebra::Abs);
 }
 }  // namespace itv

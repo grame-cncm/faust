@@ -31,15 +31,13 @@ static double max4(double a, double b, double c, double d)
 
 interval interval_algebra::Mul(const interval& x, const interval& y) const
 {
-    if (x.isEmpty() || y.isEmpty()) {
-        return {};
-    } else {
-        double a = specialmult(x.lo(), y.lo());
-        double b = specialmult(x.lo(), y.hi());
-        double c = specialmult(x.hi(), y.lo());
-        double d = specialmult(x.hi(), y.hi());
-        return {min4(a, b, c, d), max4(a, b, c, d)};
-    }
+    if (x.isEmpty() || y.isEmpty()) return {};
+
+    double a = specialmult(x.lo(), y.lo());
+    double b = specialmult(x.lo(), y.hi());
+    double c = specialmult(x.hi(), y.lo());
+    double d = specialmult(x.hi(), y.hi());
+    return {min4(a, b, c, d), max4(a, b, c, d)};
 }
 
 void interval_algebra::testMul() const

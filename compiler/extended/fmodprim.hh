@@ -39,7 +39,7 @@ class FmodPrim : public xtended {
 
         interval i = args[0]->getInterval();
         interval j = args[1]->getInterval();
-        if (j.valid && gGlobal->gMathExceptions && j.hasZero()) {
+        if (j.isValid() && gGlobal->gMathExceptions && j.hasZero()) {
             cerr << "WARNING : potential division by zero in fmod(" << i << ", " << j << ")" << endl;
         }
 

@@ -73,20 +73,16 @@ interval bmAnd(const interval& x, int mask)
     int w  = hi - lo;
     int p  = mask + 1;
 
-    if (w >= p) {
-        return interval{0, double(mask)};
-    } else {
-        // shit x to be positive
-        lo = lo % p;
-        if (lo < 0) lo += p;
-        hi = lo + w;
+    if (w >= p) return interval{0, double(mask)};
 
-        if (hi < p) {
-            return interval{double(lo), double(hi)};
-        } else {
-            return interval{0, double(mask)};
-        }
-    }
+    // shit x to be positive
+    lo = lo % p;
+    if (lo < 0) lo += p;
+    hi = lo + w;
+
+    if (hi < p) return interval{double(lo), double(hi)};
+
+    return interval{0, double(mask)};
 }
 /*
 interval interval_algebra::And(const interval& x, const interval& y) const
@@ -113,10 +109,10 @@ interval interval_algebra::And(const interval& x, const interval& y) const
 interval interval_algebra::And(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) return {};
-    int x0 = x.lo();
-    int x1 = x.hi();
-    int y0 = y.lo();
-    int y1 = y.hi();
+    int x0 = int(x.lo());
+    int x1 = int(x.hi());
+    int y0 = int(y.lo());
+    int y1 = int(y.hi());
 
     int z0 = INT32_MAX;
     int z1 = INT32_MIN;
@@ -128,7 +124,7 @@ interval interval_algebra::And(const interval& x, const interval& y) const
             if (z > z1) z1 = z;
         }
     }
-    return interval(double(z0), double(z1));
+    return {double(z0), double(z1)};
 }
 
 void interval_algebra::testAnd() const

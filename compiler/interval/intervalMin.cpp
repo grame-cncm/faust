@@ -14,11 +14,9 @@ namespace itv {
 
 interval interval_algebra::Min(const interval& x, const interval& y) const
 {
-    if (x.isEmpty() || y.isEmpty()) {
-        return {};
-    } else {
-        return {std::min(x.lo(), y.lo()), std::min(x.hi(), y.hi())};
-    }
+    if (x.isEmpty() || y.isEmpty()) return {};
+
+    return {std::min(x.lo(), y.lo()), std::min(x.hi(), y.hi())};
 }
 
 void interval_algebra::testMin() const

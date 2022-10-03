@@ -24,13 +24,15 @@
 
 #include <vector>
 
+#include "global.hh"
+
 #include "garbageable.hh"
 #include "instructions.hh"
 #include "klass.hh"
 #include "lateq.hh"
+#include "ppsig.hh"
 #include "sigtype.hh"
 #include "tlib.hh"
-#include "ppsig.hh"
 
 class CodeContainer;
 
@@ -70,19 +72,16 @@ class xtended : public virtual Garbageable {
 
     virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types) = 0;
     virtual int    infereSigOrder(const vector<int>& args)                                               = 0;
-    virtual ::Type infereSigType(ConstTypes args)                                                       = 0;
+    virtual ::Type infereSigType(ConstTypes args)                                                        = 0;
     virtual Tree   computeSigOutput(const vector<Tree>& args)                                            = 0;
-    virtual bool   needCache()                                                                          = 0;
+    virtual bool   needCache()                                                                           = 0;
 
     virtual bool isSpecialInfix()
     {
         return false;
     }  ///< generally false, but true for binary op # such that #(x) == _#x
-  
-    ValueInst* generateFun(CodeContainer* container,
-                           const string& fun_name,
-                           const Values& args,
-                           ::Type rtype,
+
+    ValueInst* generateFun(CodeContainer* container, const string& fun_name, const Values& args, ::Type rtype,
                            ConstTypes types);
 };
 

@@ -12,11 +12,9 @@ namespace itv {
 
 interval interval_algebra::Sub(const interval& x, const interval& y) const
 {
-    if (x.isEmpty() || y.isEmpty()) {
-        return {};
-    } else {
-        return {x.lo() - y.hi(), x.hi() - y.lo()};
-    }
+    if (x.isEmpty() || y.isEmpty()) return {};
+
+    return {x.lo() - y.hi(), x.hi() - y.lo()};
 }
 
 void interval_algebra::testSub() const

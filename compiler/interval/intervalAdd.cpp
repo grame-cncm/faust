@@ -13,11 +13,9 @@ namespace itv {
 
 interval interval_algebra::Add(const interval& x, const interval& y) const
 {
-    if (x.isEmpty() || y.isEmpty()) {
-        return {};
-    } else {
-        return {x.lo() + y.lo(), x.hi() + y.hi()};
-    }
+    if (x.isEmpty() || y.isEmpty()) return {};
+
+    return {x.lo() + y.lo(), x.hi() + y.hi()};
 }
 
 void interval_algebra::testAdd() const

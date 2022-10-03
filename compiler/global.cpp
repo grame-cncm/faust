@@ -970,3 +970,6 @@ void Garbageable::operator delete[](void* ptr)
     }
     free(ptr);
 }
+
+// global algebra used for intervals
+itv::interval_algebra gAlgebra;

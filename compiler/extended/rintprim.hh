@@ -38,8 +38,8 @@ class RintPrim : public xtended {
     {
         faustassert(args.size() == arity());
         interval i = args[0]->getInterval();
-        if (i.valid) {
-            return castInterval(floatCast(args[0]), interval(rint(i.lo), rint(i.hi)));
+        if (i.isValid()) {
+            return castInterval(floatCast(args[0]), interval(rint(i.lo()), rint(i.hi())));
         } else {
             return floatCast(args[0]);
         }

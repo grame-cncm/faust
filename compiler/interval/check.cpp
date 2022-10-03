@@ -186,10 +186,10 @@ void analyzeUnaryMethod(int E, int M, const char* title, const itv::interval& D,
         itv::interval Z = (A.*mp)(X);
 
         if (Z >= Y) {
-            double precision = (Z.size() == 0) ? 1 : Y.size() / Z.size();
+            double lsb = (Z.size() == 0) ? 1 : Y.size() / Z.size();
 
             std::cout << "OK    " << e << ": " << title << "(" << X << ") = " << Z << " >= " << Y << " (precision "
-                      << precision << ")" << std::endl;
+                      << lsb << ")" << std::endl;
         } else {
             std::cout << "ERROR " << e << ": " << title << "(" << X << ") = " << Z << " INSTEAD OF " << Y << std::endl;
         }
@@ -235,13 +235,13 @@ void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& D
                 if (z > zhi) zhi = z;
             }
         }
-        itv::interval Zm(zlo, zhi);               // the measured Z
-        itv::interval Zc        = (A.*bm)(X, Y);  // the computed Z
-        double        precision = Zm.size() / Zc.size();
+        itv::interval Zm(zlo, zhi);         // the measured Z
+        itv::interval Zc  = (A.*bm)(X, Y);  // the computed Z
+        double        lsb = Zm.size() / Zc.size();
 
         if (Zc >= Zm) {
             std::cout << "OK    " << e << ": " << title << "(" << X << "," << Y << ") =c=> " << Zc << " >= " << Zm
-                      << " (precision " << precision << ")" << std::endl;
+                      << " (precision " << lsb << ")" << std::endl;
         } else {
             std::cout << "ERROR " << e << ": " << title << "(" << X << "," << Y << ") =c=> " << Zc << " != " << Zm
                       << std::endl;

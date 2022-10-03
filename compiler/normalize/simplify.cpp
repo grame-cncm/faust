@@ -101,27 +101,27 @@ static Tree simplification(Tree sig)
 
     } else if (isSigBinOp(sig, &opnum, t1, t2)) {
         BinOp* op = gBinOpTable[opnum];
-        Node n1 = t1->node();
-        Node n2 = t2->node();
+        Node   n1 = t1->node();
+        Node   n2 = t2->node();
 
         if (isNum(n1) && isNum(n2))
             return tree(op->compute(n1, n2));
 
         else if (opnum == kSub && isZero(n1))
             return sigBinOp(kMul, sigInt(-1), t2);
-       
+
         else if (op->isLeftNeutral(n1))
             return t2;
-        
-        else if (op->isLeftAbsorbing(n1)) 
+
+        else if (op->isLeftAbsorbing(n1))
             return t1;
-     
+
         else if (op->isRightNeutral(n2))
             return t1;
-        
+
         else if (op->isRightAbsorbing(n2))
             return t2;
-      
+
         else
             return normalizeAddTerm(sig);
 
@@ -138,7 +138,7 @@ static Tree simplification(Tree sig)
 
         if (isInt(n1, &i)) return t1;
         if (isDouble(n1, &x)) return tree(int(x));
-   
+
         return sig;
 
     } else if (isSigFloatCast(sig, t1)) {
@@ -148,7 +148,7 @@ static Tree simplification(Tree sig)
 
         if (isInt(n1, &i)) return tree(double(i));
         if (isDouble(n1, &x)) return t1;
-    
+
         return sig;
 
     } else if (isSigSelect2(sig, t1, t2, t3)) {
@@ -187,15 +187,15 @@ static Tree simplification(Tree sig)
 
         else
             return sig;
-	
-    } else if (isSigLowest(sig, t1)){
+
+    } else if (isSigLowest(sig, t1)) {
         Type ty = getCertifiedSigType(t1);
-        return sigReal(ty->getInterval().lo);
-        
-    } else if (isSigHighest(sig, t1)){
+        return sigReal(ty->getInterval().lo());
+
+    } else if (isSigHighest(sig, t1)) {
         Type ty = getCertifiedSigType(t1);
-        return sigReal(ty->getInterval().hi);
-        
+        return sigReal(ty->getInterval().hi());
+
     } else {
         return sig;
     }
