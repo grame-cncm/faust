@@ -23,6 +23,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <limits>
 
 // ***************************************************************************
 //
@@ -33,9 +34,9 @@
 namespace itv {
 class interval {
    private:
-    double fLo{NAN};   ///< minimal value
-    double fHi{NAN};   ///< maximal value
-    int    fLSB{-24};  ///< lsb in bits
+    double fLo{std::numeric_limits<double>::lowest()};  ///< minimal value
+    double fHi{std::numeric_limits<double>::max()};     ///< maximal value
+    int    fLSB{-24};                                   ///< lsb in bits
 
    public:
     //-------------------------------------------------------------------------
