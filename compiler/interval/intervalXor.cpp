@@ -38,7 +38,7 @@ interval interval_algebra::Xor(const interval& x, const interval& y) const
             if (z > z1) z1 = z;
         }
     }
-    return interval(double(z0), double(z1));
+    return {double(z0), double(z1)};
 }
 
 void interval_algebra::testXor() const

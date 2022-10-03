@@ -21,7 +21,16 @@
 
 #include <stdio.h>
 #include "compatibility.hh"
+
+#include "interval.hh"
+
+#include "global.hh"
+
 #include "sigtype.hh"
+
+#include "interval.hh"
+
+#include "global.hh"
 
 #include "exception.hh"
 #include "global.hh"

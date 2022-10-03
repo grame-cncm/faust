@@ -26,9 +26,12 @@
 #include <string>
 #include <vector>
 #include "garbageable.hh"
-#include "interval.hh"
 #include "smartpointer.hh"
 #include "tree.hh"
+
+#include "interval.hh"
+
+#include "global.hh"
 
 /*********************************************************************
  *
@@ -88,14 +91,14 @@ typedef const vector<Type>& ConstTypes;
 
 class AudioType : public virtual Garbageable {
    protected:
-    int      fNature;         ///< the kind of data represented
-    int      fVariability;    ///< how fast values change
-    int      fComputability;  ///< when are values available
-    int      fVectorability;  ///< when a signal can be vectorized
-    int      fBoolean;        ///< when a signal stands for a boolean value
-    interval fInterval;       ///< Minimal and maximal values the signal can take
-    res      fRes;            ///< Resolution (fixed-point)
-    Tree     fCode;           ///< Tree representation (for memoization purposes)
+    int           fNature;         ///< the kind of data represented
+    int           fVariability;    ///< how fast values change
+    int           fComputability;  ///< when are values available
+    int           fVectorability;  ///< when a signal can be vectorized
+    int           fBoolean;        ///< when a signal stands for a boolean value
+    itv::interval fInterval;       ///< Minimal and maximal values the signal can take
+    res           fRes;            ///< Resolution (fixed-point)
+    Tree          fCode;           ///< Tree representation (for memoization purposes)
 
    public:
     AudioType(int n, int v, int c, int vec = kVect, int b = kNum, interval i = interval(), res r = res());

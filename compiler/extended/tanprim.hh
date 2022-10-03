@@ -45,9 +45,9 @@ class TanPrim : public xtended {
         interval     resultInterval;
 
         // the check can be improved to ensure that no infinity is in the range
-        if ((-halfpi < srcInterval.lo) && (srcInterval.hi < halfpi))
-                resultInterval = interval(tan(srcInterval.lo), tan(srcInterval.hi));
-        
+        if ((-halfpi < srcInterval.lo()) && (srcInterval.hi() < halfpi))
+            resultInterval = interval(tan(srcInterval.lo()), tan(srcInterval.hi()));
+
         return castInterval(floatCast(args[0]), resultInterval);
     }
 

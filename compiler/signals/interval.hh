@@ -24,9 +24,19 @@
 
 #include <cmath>
 #include <iostream>
+
 #include "exception.hh"
-#include "interval/interval_algebra.hh"
+#include "garbageable.hh"
+
+//#include "global.hh"
+
 #include "interval/interval_def.hh"
+
+#include "interval/interval_algebra.hh"
+
+extern itv::interval_algebra gAlgebra;
+
+//#include "global.hh"
 
 #ifdef _WIN32
 inline double log2(double e)
@@ -54,7 +64,10 @@ inline double max4(double a, double b, double c, double d)
     return max(max(a, b), max(c, d));
 }
 
-itv::interval_algebra gAlgebra;
+// itv::interval_algebra gAlgebra;
+
+// extern global* gGlobal;
+
 using interval = itv::interval;
 
 inline interval operator+(const interval& x, const interval& y)

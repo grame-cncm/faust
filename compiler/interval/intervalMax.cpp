@@ -14,11 +14,9 @@ namespace itv {
 
 interval interval_algebra::Max(const interval& x, const interval& y) const
 {
-    if (x.isEmpty() || y.isEmpty()) {
-        return {};
-    } else {
-        return {std::max(x.lo(), y.lo()), std::max(x.hi(), y.hi())};
-    }
+    if (x.isEmpty() || y.isEmpty()) return {};
+
+    return {std::max(x.lo(), y.lo()), std::max(x.hi(), y.hi())};
 }
 
 void interval_algebra::testMax() const

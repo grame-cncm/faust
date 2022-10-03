@@ -14,12 +14,10 @@ namespace itv {
 
 interval interval_algebra::Log(const interval& x) const
 {
-    if (x.isEmpty()) {
-        return {};
-    } else {
-        interval i = intersection(interval(0, HUGE_VAL), x);
-        return {log(i.lo()), log(i.hi())};
-    }
+    if (x.isEmpty()) return {};
+
+    interval i = intersection(interval(0, HUGE_VAL), x);
+    return {log(i.lo()), log(i.hi())};
 }
 
 void interval_algebra::testLog() const

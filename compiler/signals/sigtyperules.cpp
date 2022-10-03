@@ -75,12 +75,12 @@ static double constSig2double(Tree sig)
             " known at compile time\n");
     }
     interval bds = ty->getInterval();
-    if (bds.lo != bds.hi) {
+    if (bds.lo() != bds.hi()) {
         throw faustexception(
             "ERROR : constSig2double, constant value with non-singleton interval, don't know what"
             " to do, please report");
     }
-    return bds.lo;
+    return bds.lo();
 }
 
 /**
@@ -121,17 +121,17 @@ static interval arithmetic(int opcode, const interval& x, const interval& y)
         case kARsh:
             return x >> y;
         case kGT:
-            return x > y;
+            return gAlgebra.Gt(x, y);
         case kLT:
-            return x < y;
+            return gAlgebra.Lt(x, y);
         case kGE:
-            return x >= y;
+            return gAlgebra.Ge(x, y);
         case kLE:
-            return x <= y;
+            return gAlgebra.Le(x, y);
         case kEQ:
-            return x == y;
+            return gAlgebra.Eq(x, y);
         case kNE:
-            return x != y;
+            return gAlgebra.Ne(x, y);
         case kAND:
             return x & y;
         case kOR:
@@ -301,21 +301,21 @@ void typeAnnotation(Tree sig, bool causality)
                     oldI = oldRecType[j]->getInterval();
 
                     TRACE(cerr << gGlobal->TABBER << "inspecting " << newTuplet[j] << endl;)
-                    if (newI.lo != oldI.lo) {
-                        faustassert(newI.lo < oldI.lo);
+                    if (newI.lo() != oldI.lo()) {
+                        faustassert(newI.lo() < oldI.lo());
                         vAgeMin[i][j]++;
                         if (vAgeMin[i][j] > gGlobal->gWideningLimit) {
                             TRACE(cerr << gGlobal->TABBER << "low widening of " << newTuplet[j] << endl;)
-                            newI.lo = vUp[i][j]->getInterval().lo;
+                            newI = {vUp[i][j]->getInterval().lo(), newI.hi()};
                         }
                     }
 
-                    if (newI.hi != oldI.hi) {
-                        faustassert(newI.hi > oldI.hi);
+                    if (newI.hi() != oldI.hi()) {
+                        faustassert(newI.hi() > oldI.hi());
                         vAgeMax[i][j]++;
                         if (vAgeMax[i][j] > gGlobal->gWideningLimit) {
                             TRACE(cerr << gGlobal->TABBER << "up widening of " << newTuplet[j] << endl;)
-                            newI.hi = vUp[i][j]->getInterval().hi;
+                            newI = {newI.lo(), vUp[i][j]->getInterval().hi()};
                         }
                     }
 
@@ -427,7 +427,7 @@ static Type T(Tree term, Tree ignoreenv)
 static void CheckPartInterval(Tree s, Type t)
 {
     interval i = t->getInterval();
-    if (!i.valid || (i.lo < 0) || (i.hi >= MAX_SOUNDFILE_PARTS)) {
+    if (!i.isValid() || (i.lo() < 0) || (i.hi() >= MAX_SOUNDFILE_PARTS)) {
         stringstream error;
         error << "ERROR : out of range soundfile part number (" << i << " instead of interval(0,"
               << MAX_SOUNDFILE_PARTS - 1 << ")) in expression : " << ppsig(s) << endl;
@@ -495,13 +495,13 @@ static Type infereSigType(Tree sig, Tree env)
         //				<< t1 << ':' << ppsig(s1) << ", s2 = "
         //                << t2 << ':' << ppsig(s2) << endl;
         if (gGlobal->gCausality) {
-            if (!(i1.valid) || !(i1.isbounded())) {
+            if (!(i1.isValid()) || !(i1.isBounded())) {
                 stringstream error;
                 error << "ERROR : can't compute the min and max values of : " << ppsig(s2) << endl
                       << "        used in delay expression : " << ppsig(sig) << endl
                       << "        (probably a recursive signal)" << endl;
                 throw faustexception(error.str());
-            } else if (i1.lo < 0) {
+            } else if (i1.lo() < 0) {
                 stringstream error;
                 error << "ERROR : possible negative values of : " << ppsig(s2) << endl
                       << "        used in delay expression : " << ppsig(sig) << endl
@@ -692,8 +692,8 @@ static Type infereSigType(Tree sig, Tree env)
         interval i3 = t3->getInterval();
         interval iEnd;
         constSig2double(min);
-        if (i3.valid) {
-            iEnd = interval(std::max(i3.lo, constSig2double(min)), std::min(i3.hi, constSig2double(max)));
+        if (i3.isValid()) {
+            iEnd = interval(std::max(i3.lo(), constSig2double(min)), std::min(i3.hi(), constSig2double(max)));
         } else {
             iEnd = interval(constSig2double(min), constSig2double(max));
         }
@@ -702,13 +702,13 @@ static Type infereSigType(Tree sig, Tree env)
 
     else if (isSigLowest(sig, s1)) {
         interval i1 = T(s1, env)->getInterval();
-        return makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(i1.lo));
+        return makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(i1.lo()));
         // change this part   ^^^^^ once there are interval bounds depending on signal type
     }
 
     else if (isSigHighest(sig, s1)) {
         interval i1 = T(s1, env)->getInterval();
-        return makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(i1.hi));
+        return makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(i1.hi()));
         // change this part   ^^^^^ once there are interval bounds depending on signal type
     }
 

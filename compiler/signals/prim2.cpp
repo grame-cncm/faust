@@ -21,8 +21,11 @@
 
 #include <stdlib.h>
 
-#include "prim2.hh"
+#include "interval.hh"
+
 #include "global.hh"
+
+#include "prim2.hh"
 
 Tree ffunction(Tree signature, Tree incfile, Tree libfile)
 {

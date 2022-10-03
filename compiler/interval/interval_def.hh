@@ -33,8 +33,9 @@
 namespace itv {
 class interval {
    private:
-    double fLo{NAN};  ///< minimal value
-    double fHi{NAN};  ///< maximal value
+    double fLo{NAN};   ///< minimal value
+    double fHi{NAN};   ///< maximal value
+    int    fLSB{-24};  ///< lsb in bits
 
    public:
     //-------------------------------------------------------------------------
@@ -43,7 +44,7 @@ class interval {
 
     interval() = default;
 
-    interval(double n, double m)
+    interval(double n, double m, int lsb = -24) noexcept
     {
         if (std::isnan(n) || std::isnan(m)) {
             fLo = NAN;
@@ -52,9 +53,10 @@ class interval {
             fLo = std::min(n, m);
             fHi = std::max(n, m);
         }
+        fLSB = lsb;
     }
 
-    explicit interval(double n) : interval(n, n) {}
+    explicit interval(double n) noexcept : interval(n, n) {}
 
     // interval(const interval& r) : fEmpty(r.empty()), fLo(r.lo()), fHi(r.hi())
     // {}
@@ -64,6 +66,9 @@ class interval {
     //-------------------------------------------------------------------------
 
     bool isEmpty() const { return std::isnan(fLo) || std::isnan(fHi); }
+    bool isValid() const { return !isEmpty(); }  // for compatibility reasons
+    bool isUnbounded() const { return isinf(fLo) || isinf(fHi); }
+    bool isBounded() const { return !isUnbounded(); }
     bool has(double x) const { return (fLo <= x) && (fHi >= x); }
     bool is(double x) const { return (fLo == x) && (fHi == x); }
     bool hasZero() const { return has(0.0); }
@@ -82,17 +87,29 @@ class interval {
         return isconst() && ((n & (-n)) == n);
     }
 
-    double      lo() const { return fLo; }
-    double      hi() const { return fHi; }
-    double      size() const { return fHi - fLo; }
-    std::string toString() const
+    double lo() const { return fLo; }
+    double hi() const { return fHi; }
+    double size() const { return fHi - fLo; }
+    int    lsb() const { return fLSB; }
+    int    msb() const
+    {
+        double range = std::max(1.0, std::max(std::abs(fLo), std::abs(fHi)));
+        int    m     = int(std::ceil(std::log2(range)));
+
+        if (fLo >= 0) {
+            // no need for a sign bit
+            return m;
+        } else {
+            // we generally need a sign bit
+            return 1 + m;
+        }
+    }
+    std::string to_string() const
     {
         if (isEmpty()) {
             return "[]";
-        } else if (isconst()) {
-            return std::to_string(fLo);
         } else {
-            return "[" + std::to_string(fLo) + "," + std::to_string(fHi) + "]";
+            return std::to_string('[') + std::to_string(fLo) + ',' + std::to_string(fHi) + ']';
         }
     }
 };
@@ -105,10 +122,8 @@ inline std::ostream& operator<<(std::ostream& dst, const interval& i)
 {
     if (i.isEmpty()) {
         return dst << "interval()";
-    } else if (i.lo() == i.hi()) {
-        return dst << "interval(" << i.lo() << ")";
     } else {
-        return dst << "interval(" << i.lo() << "," << i.hi() << ")";
+        return dst << "interval(" << i.lo() << ',' << i.hi() << ',' << i.lsb() << ")";
     }
 }
 

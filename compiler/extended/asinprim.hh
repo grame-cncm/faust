@@ -38,14 +38,14 @@ class AsinPrim : public xtended {
         faustassert(args.size() == 1);
         Type     t = args[0];
         interval i = t->getInterval();
-        if (i.valid && gGlobal->gMathExceptions && (i.lo < -1 || i.hi > 1)) {
+        if (i.isValid() && gGlobal->gMathExceptions && (i.lo() < -1 || i.hi() > 1)) {
             cerr << "WARNING : potential out of domain in asin(" << i << ")" << endl;
         }
         return floatCast(args[0]);
-     }
-    
+    }
+
     virtual int infereSigOrder(const vector<int>& args) { return args[0]; }
-    
+
     virtual Tree computeSigOutput(const vector<Tree>& args)
     {
         num n;

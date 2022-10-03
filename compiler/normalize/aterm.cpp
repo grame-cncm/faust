@@ -21,6 +21,11 @@
 
 #include "aterm.hh"
 #include "ppsig.hh"
+
+#include "interval.hh"
+
+#include "global.hh"
+
 #include "sigtype.hh"
 
 using namespace std;
@@ -28,7 +33,8 @@ using namespace std;
 typedef map<Tree, mterm> SM;
 
 aterm::aterm()
-{}
+{
+}
 
 /**
  * create a aterm from a tree expression

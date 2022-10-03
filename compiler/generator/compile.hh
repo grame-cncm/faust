@@ -26,6 +26,11 @@
 #include <map>
 #include <stack>
 #include <string>
+
+#include "interval.hh"
+
+#include "global.hh"
+
 #include "Text.hh"
 #include "klass.hh"
 #include "signals.hh"

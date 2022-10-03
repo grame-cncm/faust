@@ -15,55 +15,68 @@ interval interval_algebra::Mod(const interval& x, double m) const
 {
     if (x.isEmpty() || (m == 0)) {
         return {};
-    } else if (x.hi() < 0) {
+    }
+
+    if (x.hi() < 0) {
         return Neg(Mod({-x.hi(), -x.lo()}, m));
         // (3): split into negative and non-negative interval, compute and join
-    } else if (x.lo() < 0) {
+    }
+
+    if (x.lo() < 0) {
         return reunion(Mod({x.lo(), nextafter(-0.0, -HUGE_VAL)}, m), Mod({0.0, x.hi()}, m));
         // (4): there is no k > 0 such that x.lo() < k*m <= x.hi()
-    } else if ((x.size() < fabs(m)) && (fmod(x.lo(), m) <= fmod(x.hi(), m))) {
+    }
+
+    if ((x.size() < fabs(m)) && (fmod(x.lo(), m) <= fmod(x.hi(), m))) {
         return {fmod(x.lo(), m), fmod(x.hi(), m)};
         // (5): we can't do better than that
-    } else {
-        // [0,m[
-        return {0, nextafter(fabs(m), 0.0)};
     }
+    // [0,m[
+    return {0, nextafter(fabs(m), 0.0)};
 }
 
 interval interval_algebra::Mod(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) {
         return {};
-    } else if (x.hi() < 0) {
+    }
+    if (x.hi() < 0) {
         return Neg(Mod({-x.hi(), -x.lo()}, {y.lo(), y.hi()}));
         // (3): split into negative and non-negative interval, compute, and join
-    } else if (x.lo() < 0) {
+    }
+    if (x.lo() < 0) {
         return reunion(Mod({x.lo(), -1}, {y.lo(), y.hi()}), Mod({0, x.hi()}, {y.lo(), y.hi()}));
         // (4) use the simpler function from before
-    } else if (y.lo() == y.hi()) {
+    }
+    if (y.lo() == y.hi()) {
         return Mod({x.lo(), x.hi()}, y.lo());
         // (5) use only non-negative y.lo() and y.hi()
-    } else if (y.hi() <= 0) {
+    }
+    if (y.hi() <= 0) {
         return Mod({x.lo(), x.hi()}, {-y.hi(), -y.lo()});
         // (6) similar to (5), make modulus non-negative
-    } else if (y.lo() <= 0) {
+    }
+    if (y.lo() <= 0) {
         return Mod({x.lo(), x.hi()}, {1, std::max(-y.lo(), y.hi())});
         // (7) compare to (4) in mod1, check x.hi()-x.lo() < |modulus|
-    } else if (x.hi() - x.lo() >= y.hi()) {
+    }
+    if (x.hi() - x.lo() >= y.hi()) {
         return {0, y.hi() - 1};
         // (8) similar to (7), split interval, compute, and join
-    } else if (x.hi() - x.lo() >= y.lo()) {
+    }
+    if (x.hi() - x.lo() >= y.lo()) {
         return reunion({0, x.hi() - x.lo() - 1}, Mod({x.lo(), x.hi()}, {x.hi() - x.lo() + 1, y.hi()}));
         // (9) modulo has no effect
-    } else if (y.lo() > x.hi()) {
+    }
+    if (y.lo() > x.hi()) {
         return {x.lo(), x.hi()};
         // (10) there is some overlapping of {x.lo(),x.hi()} and {y.hi(),y.lo()}
-    } else if (y.hi() > x.hi()) {
+    }
+    if (y.hi() > x.hi()) {
         return {0, x.hi()};
         // (11)  either compute all possibilities and join, or be imprecise
-    } else {
-        return {0, y.hi() - 1};
     }
+    return {0, y.hi() - 1};
 }
 
 void interval_algebra::testMod() const

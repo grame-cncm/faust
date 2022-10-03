@@ -34,6 +34,8 @@
 #include <unistd.h>
 #endif
 
+#include "interval.hh"  // A VERIFIER
+
 #include "exception.hh"
 #include "instructions_type.hh"
 #include "loopDetector.hh"

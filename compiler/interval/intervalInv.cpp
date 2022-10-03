@@ -14,13 +14,14 @@ interval interval_algebra::Inv(const interval& x) const
 {
     if (x.isEmpty()) {
         return {};
-    } else if ((x.hi() < 0) || (x.lo() >= 0)) {
-        return {1.0 / x.hi(), 1.0 / x.lo()};
-    } else if (x.hi() == 0) {
-        return {-HUGE_VAL, 1.0 / x.lo()};
-    } else {
-        return {-HUGE_VAL, HUGE_VAL};
     }
+    if ((x.hi() < 0) || (x.lo() >= 0)) {
+        return {1.0 / x.hi(), 1.0 / x.lo()};
+    }
+    if (x.hi() == 0) {
+        return {-HUGE_VAL, 1.0 / x.lo()};
+    }
+    return {-HUGE_VAL, HUGE_VAL};
 }
 
 void interval_algebra::testInv() const
