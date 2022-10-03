@@ -72,6 +72,7 @@ set (FAUST_INC ${SRCDIR}
 	${SRCDIR}/normalize ${SRCDIR}/parallelize ${SRCDIR}/parser
 	${SRCDIR}/patternmatcher ${SRCDIR}/propagate ${SRCDIR}/signals
 	${SRCDIR}/tlib ${SRCDIR}/transform ${SRCDIR}/utils
+	${SRCDIR}/interval
 	${SRCDIR}/draw/device ${SRCDIR}/draw/schema
 	${SRCDIR}/../architecture /usr/local/include)
 
