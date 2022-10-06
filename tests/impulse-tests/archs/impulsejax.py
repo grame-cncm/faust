@@ -39,7 +39,7 @@ class SubClass(mydsp):
 
     @nn.compact
     def __call__(self, x, T: int) -> jnp.array:
-        state = self.classInit(self.sample_rate, x, T)
+        state = self.initialize(self.sample_rate, x, T)
 
         # impulse all the buttons
         for key in state:
