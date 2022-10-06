@@ -32,8 +32,8 @@ StatementInst* InstructionsCompilerJAX::generateShiftArray(const string& vname, 
     return InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genFunCallInst(string("jnp.roll"), truncated_args));
 }
 
-ValueInst* InstructionsCompilerJAX::generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd,
-                                                   Address::AccessType& var_access, ValueInst* ccs)
+ValueInst* InstructionsCompilerJAX::generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname,
+                                                      int mxd, Address::AccessType& var_access, ValueInst* ccs)
 {
     if (mxd == 0) {
         // Generate scalar use
@@ -127,24 +127,6 @@ ValueInst* InstructionsCompilerJAX::generateDelayLine(ValueInst* exp, Typed::Var
     return exp;
 }
 
-
-/**
- * Generate code for a unique IOTA variable increased at each sample
- * and used to index ring buffers.
- */
-void InstructionsCompilerJAX::ensureIotaCode()
-{
-    if (fCurrentIOTA == "") {
-        fCurrentIOTA = gGlobal->getFreshID("IOTA");
-        pushDeclare(InstBuilder::genDecStructVar(fCurrentIOTA, InstBuilder::genInt32Typed()));
-		// note that the line below is different from the superclass's implementation.
-		pushUserInterfaceMethod(InstBuilder::genStoreStructVar(fCurrentIOTA, InstBuilder::genInt32NumInst(0)));
-
-        FIRIndex value = FIRIndex(InstBuilder::genLoadStructVar(fCurrentIOTA)) + 1;
-        pushPostComputeDSPMethod(InstBuilder::genStoreStructVar(fCurrentIOTA, value));
-    }
-}
-
 ValueInst* InstructionsCompilerJAX::generateSoundfile(Tree sig, Tree path)
 {
     string varname = gGlobal->getFreshID("fSoundfile");
@@ -168,7 +150,6 @@ ValueInst* InstructionsCompilerJAX::generateSoundfile(Tree sig, Tree path)
     if (gGlobal->gOneSample >= 0) {
         pushDeclare(InstBuilder::genDecStructVar(SFcache, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
         pushComputeBlockMethod(InstBuilder::genStoreStructVar(SFcache, InstBuilder::genLoadStructVar(varname)));
-        pushPostComputeBlockMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadStructVar(SFcache)));
     } else {
         pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache, InstBuilder::genBasicTyped(Typed::kSound_ptr),
                                                            InstBuilder::genLoadStructVar(varname)));

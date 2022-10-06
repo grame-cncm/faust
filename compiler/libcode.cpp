@@ -410,10 +410,6 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gElementarySwitch = true;
             i += 1;
 
-        } else if (isCmd(argv[i], "-jax", "--jax")) {
-            gGlobal->gJAXSwitch = true;
-            i += 1;
-
         } else if (isCmd(argv[i], "-f", "--fold") && (i + 1 < argc)) {
             gGlobal->gFoldThreshold = std::atoi(argv[i + 1]);
             i += 2;
@@ -1596,6 +1592,7 @@ static void compileJAX(Tree signals, int numInputs, int numOutputs, ostream* out
 {
 #ifdef JAX_BUILD
     gGlobal->gAllowForeignFunction = true;  // foreign functions are supported (we use jax.random.PRNG for example)
+    gGlobal->gNeedManualPow        = false;
     container = JAXCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
     
     if (gGlobal->gVectorSwitch) {

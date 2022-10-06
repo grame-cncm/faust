@@ -31,12 +31,10 @@ class InstructionsCompilerJAX : public InstructionsCompiler {
     InstructionsCompilerJAX(CodeContainer* container): InstructionsCompiler(container)
     {}
 
-    ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd,
-                                                   Address::AccessType& var_access, ValueInst* ccs) override;
-
 	StatementInst* generateShiftArray(const string& vname, int delay) override;
 
-    void ensureIotaCode();
+    ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd,
+                                                   Address::AccessType& var_access, ValueInst* ccs) override;
 
 	ValueInst* generateSoundfile(Tree sig, Tree path);
 };

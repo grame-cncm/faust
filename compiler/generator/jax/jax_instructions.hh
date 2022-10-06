@@ -126,9 +126,22 @@ class JAXInstVisitor : public TextInstVisitor {
     map<string, string> gPolyMathLibTable;
     
     bool fMutateFun;
-    bool is_storing_lhs = false;
-    bool will_set_array = false;
-    bool is_doing_while = false;
+    
+	// bool for "is storing left-hand-side".
+	// Suppose the output code will be `state['foo'] = bar`.
+	// This boolean indicates that we are starting this line but haven't yet reached the equals sign.
+	bool fIsStoringLhs = false; 
+
+	// bool for "will set array".
+	// jax has a special syntax for setting items of arrays:
+	// https://jax.readthedocs.io/en/latest/_autosummary/jax.numpy.ndarray.at.html
+	// This bool helps us know that we're going to use the .at[X] operator followed by the set(Y) operator.
+	// This bool is used in tandem with fIsStoringLhs.
+    bool fWillSetArray = false;
+
+	// This bool is not related to fIsStoringLhs or fWillSetArray.
+	// It is used so that we don't cast to integers in the condition of a while (cond) loop.
+    bool fIsDoingWhile = false;
 
     std::set<std::string> fLogSet;  // set of widget zone having a log UI scale
     std::set<std::string> fExpSet;  // set of widget zone having an exp UI scale
@@ -466,7 +479,7 @@ class JAXInstVisitor : public TextInstVisitor {
             inst->fInst2->accept(this);
             *fOut << ")";
 
-            if (inst->fOpcode > 7 && !is_doing_while) {
+            if (inst->fOpcode > 7 && !fIsDoingWhile) {
                 // these opcodes (>,>=,<,<= etc.) result in bools which should be re-cast to integers
                 *fOut << ".astype(jnp.int32)";
             }
@@ -602,14 +615,14 @@ class JAXInstVisitor : public TextInstVisitor {
                 Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->getIndex());
                 *fOut << "[\"" << struct_type->fType->getName(field_index->fNum) << "\"]";
             } else {
-                if (is_storing_lhs) {
-                    will_set_array = true;
+                if (fIsStoringLhs) {
+                    fWillSetArray = true;
                     return;
                 }
 
-                if (will_set_array) {
+                if (fWillSetArray) {
                     *fOut << ".at";
-                    will_set_array = false;
+                    fWillSetArray = false;
                 }
 
                 Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->getIndex());
@@ -633,12 +646,12 @@ class JAXInstVisitor : public TextInstVisitor {
     
     virtual void visit(StoreVarInst* inst)
     {
-        is_storing_lhs = true;
+        fIsStoringLhs = true;
         inst->fAddress->accept(this);
-        is_storing_lhs = false;
+        fIsStoringLhs = false;
         *fOut << " = ";
 
-        if (will_set_array) {
+        if (fWillSetArray) {
             inst->fAddress->accept(this);
             *fOut << ".set(";
             inst->fValue->accept(this);
@@ -727,14 +740,14 @@ class JAXInstVisitor : public TextInstVisitor {
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
 
-        is_doing_while = true;
+        fIsDoingWhile = true;
 
         fFinishLine = false;
         inst->fInit->accept(this);
         tab(fTab, *fOut);
         *fOut << "while ";
         inst->fEnd->accept(this);
-        is_doing_while = false;
+        fIsDoingWhile = false;
         *fOut << ":";
         tab(fTab, *fOut);
         fFinishLine = true;

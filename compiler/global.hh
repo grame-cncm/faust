@@ -571,7 +571,6 @@ struct global {
     int    gVHDLFloatMSB;
     int    gVHDLFloatLSB;
     bool   gElementarySwitch;
-    bool   gJAXSwitch;
     bool   gPrintXMLSwitch;
     bool   gPrintJSONSwitch;
     bool   gPrintDocSwitch;

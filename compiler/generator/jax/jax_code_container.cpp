@@ -182,7 +182,7 @@ void JAXCodeContainer::produceClass()
     tab(n + 1, *fOut);
     produceInfoFunctions(n + 1, "", "self", false, FunTyped::kDefault, gGlobal->gJAXVisitor);
     
-    *fOut << "def classInit(self, sample_rate, x, T):";
+    *fOut << "def initialize(self, sample_rate, x, T):";
     {
         tab(n + 2, *fOut);
         *fOut << "state = {}";
@@ -445,7 +445,7 @@ void JAXCodeContainer::generateCompute(int n)
     tab(n, *fOut);
     *fOut << "def __call__(self, x, T: int) -> jnp.array:";
     tab(n + 1, *fOut);
-    *fOut << "state = self.classInit(self.sample_rate, x, T)";
+    *fOut << "state = self.initialize(self.sample_rate, x, T)";
     tab(n + 1, *fOut);
     *fOut << "return jnp.transpose(jax.lax.scan(self.tick, state, jnp.transpose(x, axes=(1, 0)))[1], axes=(1,0))";
     tab(n, *fOut);

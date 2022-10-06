@@ -146,8 +146,7 @@ class PowPrim : public xtended {
         if (isIntPowArg(types[1], *it, pow_arg)
             && (types[1]->variability() == kKonst)
             && (types[1]->computability() == kComp)
-            && (gGlobal->gNeedManualPow)
-            && (gGlobal->gOutputLang != "jax")) {
+            && (gGlobal->gNeedManualPow)) {
             
             Typed::VarType t0 = convert2FIRType(types[0]->nature());
             vector<Typed::VarType> atypes = { t0, Typed::kInt32};

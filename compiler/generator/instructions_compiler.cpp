@@ -499,9 +499,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         } else if (gGlobal->gOutputLang == "julia") {
             // special handling Julia backend
             pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("input", "inputs", fContainer->inputs(), ptr_type, false));
-        } else if (gGlobal->gOutputLang == "jax") {
-            // do nothing
-        } else {
+        } else if (gGlobal->gOutputLang != "jax") {
             // "input" and "inputs" used as a name convention
             if (gGlobal->gOneSampleControl) {
                 for (int index = 0; index < fContainer->inputs(); index++) {
@@ -532,9 +530,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         } else if (gGlobal->gOutputLang == "julia") {
             // special handling for Julia backend
             pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("output", "outputs", fContainer->outputs(), ptr_type, true));
-        } else if (gGlobal->gOutputLang == "jax") {
-            // do nothing
-        } else {
+        } else if (gGlobal->gOutputLang != "jax") {
             // "output" and "outputs" used as a name convention
             if (gGlobal->gOneSampleControl) {
                 for (int index = 0; index < fContainer->outputs(); index++) {
@@ -554,8 +550,8 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     }
 
     // these two vars are only used for jax
-    std::string return_string = "state, jnp.stack(";
-    std::string sep = "[";
+    std::string return_string = "state, jnp.stack([";
+    std::string sep = "";
 
     for (int index = 0; isList(L); L = tl(L), index++) {
         Tree sig = hd(L);
