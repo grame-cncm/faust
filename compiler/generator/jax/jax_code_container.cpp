@@ -28,6 +28,35 @@
 
 using namespace std;
 
+
+/*
+ JAX backend and module description:
+
+ - Whereas a normal code container would generate a "compute" method, we generate
+   a one-sample loop "tick" method. Our hard-coded "compute" method is always the same.
+   It uses JAX's scan function in conjunction with the generated tick function.
+ - Inside "compute" and before "scan", we setup the arrays, soundfiles, user interface parameters,
+   and other state variables.
+ - One tricky part of JAX is modifying arrays in-place:
+   https://jax.readthedocs.io/en/latest/_autosummary/jax.numpy.ndarray.at.html
+   Whereas C++ would look like
+   `fRec1[0] = fTemp0`
+   in JAX we have to do
+   `state["fRec1"] = state["fRec1"].at[0].set(fTemp0)`
+   Also, this at-and-set operation is slow, so we only use it inside the tick method.
+   This is why in all other places (like initializing sound files which are vectors),
+   we use numpy arrays instead of jnp arrays. It's best to just look at the generated code and notice
+   how the jnp prefix is used differently than the np prefix.
+ - In order to simplify global array typing, subcontainers are actually merged in the main DSP structure:
+    - so 'mergeSubContainers' is used
+    - global variables are added in the DSP structure
+    - the JAXInitFieldsVisitor class does initialisation for waveforms. This makes it easy to use numpy
+	  instead of jax when initializing arrays (good for speed). We also use fUseNumpy in this decision making.
+	  We convert the numpy arrays to jax numpy before they're used in the tick method.
+    - the fGlobalDeclarationInstructions contains global functions and variables. It is "manually" used
+	  to generate global functions and move global variables declaration at DSP structure level.
+*/
+
 map<string, bool> JAXInstVisitor::gFunctionSymbolTable;
 
 dsp_factory_base* JAXCodeContainer::produceFactory()
@@ -212,15 +241,6 @@ void JAXCodeContainer::produceClass()
         *fOut << "# instance clear:";
         tab(n + 2, *fOut);
         generateClear(gGlobal->gJAXVisitor);
-        tab(n + 2, *fOut);
-        *fOut << "# build user interface parameters";
-        tab(n + 2, *fOut);
-        *fOut << "state = self.build_interface(state, x, T)";
-        tab(n + 2, *fOut);
-        tab(n + 2, *fOut);
-        *fOut << "# convert numpy array to jax numpy array";
-        tab(n + 2, *fOut);
-        *fOut << "state = jax.tree_map(jnp.array, state)";
         tab(n + 2, *fOut);
         tab(n + 2, *fOut);
         *fOut << "return state";
@@ -431,14 +451,14 @@ void JAXCodeContainer::generateCompute(int n)
     gGlobal->gJAXVisitor->Tab(n + 1);
 
     // Generates local variables declaration and setup
-    gGlobal->gJAXVisitor->use_numpy = false;
+    gGlobal->gJAXVisitor->fUseNumpy = false;
     generateComputeBlock(gGlobal->gJAXVisitor);
 
     auto loop = fCurLoop->generateOneSample();
     loop->accept(gGlobal->gJAXVisitor);
 
     generatePostComputeBlock(gGlobal->gJAXVisitor);
-    gGlobal->gJAXVisitor->use_numpy = true;
+    gGlobal->gJAXVisitor->fUseNumpy = true;
 
     tab(n, *fOut);
     *fOut << "@nn.compact";
@@ -446,6 +466,12 @@ void JAXCodeContainer::generateCompute(int n)
     *fOut << "def __call__(self, x, T: int) -> jnp.array:";
     tab(n + 1, *fOut);
     *fOut << "state = self.initialize(self.sample_rate, x, T)";
+    tab(n + 1, *fOut);
+    *fOut << "state = self.build_interface(state, x, T)";
+    tab(n + 1, *fOut);
+    *fOut << "# convert numpy array to jax numpy array";
+    tab(n + 1, *fOut);
+    *fOut << "state = jax.tree_map(jnp.array, state)";
     tab(n + 1, *fOut);
     *fOut << "return jnp.transpose(jax.lax.scan(self.tick, state, jnp.transpose(x, axes=(1, 0)))[1], axes=(1,0))";
     tab(n, *fOut);

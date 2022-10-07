@@ -124,9 +124,7 @@ class JAXInstVisitor : public TextInstVisitor {
 
     // Polymorphic math functions
     map<string, string> gPolyMathLibTable;
-    
-    bool fMutateFun;
-    
+        
 	// bool for "is storing left-hand-side".
 	// Suppose the output code will be `state['foo'] = bar`.
 	// This boolean indicates that we are starting this line but haven't yet reached the equals sign.
@@ -151,10 +149,13 @@ class JAXInstVisitor : public TextInstVisitor {
    public:
     using TextInstVisitor::visit;
 
-    bool use_numpy = true;
+    // This bool indicates that we should use the numpy functions, so the prefix "np."
+    // If false, use jax.numpy "jnp."
+    // We want to use numpy when initializing arrays and sound files because it's faster than JAX.
+    bool fUseNumpy = true;
 
     JAXInstVisitor(std::ostream* out, const string& struct_name, int tab = 0, bool mutate_fun = false)
-        : TextInstVisitor(out, ".", new JAXStringTypeManager(xfloat(), "*", struct_name), tab), fMutateFun(mutate_fun)
+        : TextInstVisitor(out, ".", new JAXStringTypeManager(xfloat(), "*", struct_name), tab)
     {
         // Mark all math.h functions as generated...
         gFunctionSymbolTable["abs"] = true;
@@ -479,7 +480,20 @@ class JAXInstVisitor : public TextInstVisitor {
             inst->fInst2->accept(this);
             *fOut << ")";
 
-            if (inst->fOpcode > 7 && !fIsDoingWhile) {
+			// clang-format off
+			bool opCodeIsBoolean = (
+				   (inst->fOpcode == kGT)
+				|| (inst->fOpcode == kLT)
+				|| (inst->fOpcode == kGE)
+				|| (inst->fOpcode == kLE)
+				|| (inst->fOpcode == kEQ)
+				|| (inst->fOpcode == kNE)
+				|| (inst->fOpcode == kAND)
+				|| (inst->fOpcode == kOR)
+				|| (inst->fOpcode == kXOR)
+				);
+			// clang-format on
+            if (opCodeIsBoolean && !fIsDoingWhile) {
                 // these opcodes (>,>=,<,<= etc.) result in bools which should be re-cast to integers
                 *fOut << ".astype(jnp.int32)";
             }
@@ -586,7 +600,7 @@ class JAXInstVisitor : public TextInstVisitor {
     */
     virtual void visit(IndexedAddress* indexed)
     {
-        if (use_numpy) {
+        if (fUseNumpy) {
 
 			indexed->fAddress->accept(this);
         
@@ -703,7 +717,7 @@ class JAXInstVisitor : public TextInstVisitor {
     {
         string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
 
-		if (use_numpy && name.rfind("jnp.") == 0) {
+		if (fUseNumpy && name.rfind("jnp.") == 0) {
 			// turn "jnp." into "np."
             name = name.substr(1, name.size() - 1);
 		}

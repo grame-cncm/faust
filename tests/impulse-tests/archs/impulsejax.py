@@ -40,7 +40,10 @@ class SubClass(mydsp):
     @nn.compact
     def __call__(self, x, T: int) -> jnp.array:
         state = self.initialize(self.sample_rate, x, T)
-
+        state = self.build_interface(state, x, T)
+        # convert numpy array to jax numpy array
+        state = jax.tree_map(jnp.array, state)
+        
         # impulse all the buttons
         for key in state:
             if key.startswith('fButton'):
