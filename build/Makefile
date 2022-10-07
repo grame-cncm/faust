@@ -19,7 +19,7 @@ CACHE  = $(FAUSTDIR)/CMakeCache.txt
 BCACHE = $(FAUSTDIR)/backends.txt
 TCACHE = $(FAUSTDIR)/targets.txt
 LCACHE = $(FAUSTDIR)/libsdir.txt
-ifeq ($(system),  MINGW)
+ifeq ($(system), MINGW)
 	GENERATOR ?= $(shell [ -f $(CACHE) ] && (grep CMAKE_GENERATOR:INTERNAL $(CACHE) | cut -d= -f2) || echo MSYS Makefiles)
 	NATIVEPACK = winpack
 else
@@ -28,9 +28,9 @@ else
 endif
 DESTDIR ?=
 
-ifeq ($(system),  MINGW)
+ifeq ($(system), MINGW)
 	NATIVEPACK = winpack
-else ifeq ($(system),  Darwin)
+else ifeq ($(system), Darwin)
 	NATIVEPACK = macpack
 else
 	NATIVEPACK = linuxpack
@@ -203,6 +203,8 @@ macpack: package/README.html
 mactools:
 	$(MAKE) -C ../tools/benchmark FAUST=$(FAUSTDIR)/bin/faust TARGETS="dynamic-faust faustbench-llvm interp-tracer"
 	$(MAKE) -C ../tools/benchmark install PREFIX=$(FAUSTDIR) FAUST=$(FAUSTDIR)/bin/faust TARGETS="dynamic-faust faustbench-llvm interp-tracer"
+	$(MAKE) -C ../tools/sound2faust FAUST=$(FAUSTDIR)/bin/faust TARGETS="sound2faust sound2file"
+	$(MAKE) -C ../tools/sound2faust install PREFIX=$(FAUSTDIR) FAUST=$(FAUSTDIR)/bin/faust TARGETS="sound2faust sound2file"
 
 linuxpack:
 	@echo Linux packaging not implemented. 
