@@ -87,7 +87,7 @@ struct LIBFAUST_API dsp_factory_base {
     
     virtual ~dsp_factory_base() {}
     
-    virtual void write(std::ostream* out, bool binary = false, bool compact = false) {}
+    virtual void write(std::ostream* /*out*/, bool /*binary*/ = false, bool /*compact*/ = false) {}
 };
 
 /**
