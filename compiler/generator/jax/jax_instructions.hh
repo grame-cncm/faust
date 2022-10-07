@@ -481,17 +481,7 @@ class JAXInstVisitor : public TextInstVisitor {
             *fOut << ")";
 
 			// clang-format off
-			bool opCodeIsBoolean = (
-				   (inst->fOpcode == kGT)
-				|| (inst->fOpcode == kLT)
-				|| (inst->fOpcode == kGE)
-				|| (inst->fOpcode == kLE)
-				|| (inst->fOpcode == kEQ)
-				|| (inst->fOpcode == kNE)
-				|| (inst->fOpcode == kAND)
-				|| (inst->fOpcode == kOR)
-				|| (inst->fOpcode == kXOR)
-				);
+			bool opCodeIsBoolean = inst->fOpcode >= kGT && inst->fOpcode <= kXOR;
 			// clang-format on
             if (opCodeIsBoolean && !fIsDoingWhile) {
                 // these opcodes (>,>=,<,<= etc.) result in bools which should be re-cast to integers
