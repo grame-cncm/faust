@@ -12,23 +12,20 @@ LIBS = -lwsock32
 EXE = .exe
 endif
 
-all : sound2faust sound2file
+all : static
 
 sound2faust : sound2faust.cpp
-
 	$(CXX) -O3 $(LDFLAGS) sound2faust.cpp -I../../architecture $(shell pkg-config --cflags --static --libs sndfile) -o sound2faust $(LIBS)
 
 sound2file : sound2file.cpp
-
 	$(CXX) -O3 $(LDFLAGS) sound2file.cpp -I../../architecture $(shell pkg-config --cflags --static --libs sndfile) -o sound2file $(LIBS)
 
 static:
-
+	# To compile libsndfile in static mode and no external libs: ./configure --enable-static=yes --enable-dynamic=no --disable-external-libs
 	$(CXX) -O3 $(LDFLAGS) sound2faust.cpp -I../../architecture $(shell pkg-config --cflags  sndfile)  /usr/local/lib/libsndfile.a -o sound2faust
 	$(CXX) -O3 $(LDFLAGS) sound2file.cpp -I../../architecture $(shell pkg-config --cflags  sndfile)  /usr/local/lib/libsndfile.a -o sound2file
 
 install :
-
 	([ -e sound2faust ]) && install sound2faust $(prefix)/bin/ || echo sound2faust not found
 	([ -e sound2file ]) && install sound2file $(prefix)/bin/ || echo sound2file not found
 	([ -e sound2reader ]) && install sound2reader $(prefix)/bin/ || echo sound2reader not found
