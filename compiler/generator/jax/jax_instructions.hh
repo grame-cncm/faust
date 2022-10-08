@@ -110,7 +110,6 @@ struct JAXInitFieldsVisitor : public DispatchVisitor {
         }
         *fOut << "], dtype=np.float64)";
     }
-    
 };
 
 class JAXInstVisitor : public TextInstVisitor {
@@ -125,16 +124,16 @@ class JAXInstVisitor : public TextInstVisitor {
     // Polymorphic math functions
     map<string, string> gPolyMathLibTable;
         
-	// bool for "is storing left-hand-side".
-	// Suppose the output code will be `state['foo'] = bar`.
-	// This boolean indicates that we are starting this line but haven't yet reached the equals sign.
-	bool fIsStoringLhs = false; 
+    // bool for "is storing left-hand-side".
+    // Suppose the output code will be `state['foo'] = bar`.
+    // This boolean indicates that we are starting this line but haven't yet reached the equals sign.
+    bool fIsStoringLhs = false; 
 
-	// bool for "will set array".
-	// jax has a special syntax for setting items of arrays:
-	// https://jax.readthedocs.io/en/latest/_autosummary/jax.numpy.ndarray.at.html
-	// This bool helps us know that we're going to use the .at[X] operator followed by the set(Y) operator.
-	// This bool is used in tandem with fIsStoringLhs.
+    // bool for "will set array".
+    // jax has a special syntax for setting items of arrays:
+    // https://jax.readthedocs.io/en/latest/_autosummary/jax.numpy.ndarray.at.html
+    // This bool helps us know that we're going to use the .at[X] operator followed by the set(Y) operator.
+    // This bool is used in tandem with fIsStoringLhs.
     bool fWillSetArray = false;
 
     // This bool is not related to fIsStoringLhs or fWillSetArray.
@@ -480,9 +479,9 @@ class JAXInstVisitor : public TextInstVisitor {
             inst->fInst2->accept(this);
             *fOut << ")";
 
-			// clang-format off
-			bool opCodeIsBoolean = inst->fOpcode >= kGT && inst->fOpcode <= kXOR;
-			// clang-format on
+            // clang-format off
+            bool opCodeIsBoolean = inst->fOpcode >= kGT && inst->fOpcode <= kXOR;
+            // clang-format on
             if (opCodeIsBoolean && !fIsDoingWhile) {
                 // these opcodes (>,>=,<,<= etc.) result in bools which should be re-cast to integers
                 *fOut << ".astype(jnp.int32)";
@@ -700,8 +699,8 @@ class JAXInstVisitor : public TextInstVisitor {
     virtual void visit(FunCallInst* inst)
     {
         string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
-		if (fUseNumpy && name.rfind("jnp.") == 0) {
-			// turn "jnp." into "np."
+        if (fUseNumpy && name.rfind("jnp.") == 0) {
+            // turn "jnp." into "np."
             name = name.substr(1, name.size() - 1);
         }
         *fOut << name << "(";
@@ -782,7 +781,6 @@ class JAXInstVisitor : public TextInstVisitor {
             Int32NumInst* lower_bound = dynamic_cast<Int32NumInst*>(inst->fLowerBound);
             faustassert(lower_bound);
             Int32NumInst* upper_bound = dynamic_cast<Int32NumInst*>(inst->fUpperBound);
-
             if (upper_bound) {
                 *fOut << "range(" << lower_bound->fNum << ", " << upper_bound->fNum;
 

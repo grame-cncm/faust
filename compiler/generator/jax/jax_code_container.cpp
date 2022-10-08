@@ -28,7 +28,6 @@
 
 using namespace std;
 
-
 /*
  JAX backend and module description:
 
@@ -51,10 +50,10 @@ using namespace std;
     - so 'mergeSubContainers' is used
     - global variables are added in the DSP structure
     - the JAXInitFieldsVisitor class does initialisation for waveforms. This makes it easy to use numpy
-	  instead of jax when initializing arrays (good for speed). We also use fUseNumpy in this decision making.
-	  We convert the numpy arrays to jax numpy before they're used in the tick method.
+      instead of jax when initializing arrays (good for speed). We also use fUseNumpy in this decision making.
+      We convert the numpy arrays to jax numpy before they're used in the tick method.
     - the fGlobalDeclarationInstructions contains global functions and variables. It is "manually" used
-	  to generate global functions and move global variables declaration at DSP structure level.
+      to generate global functions and move global variables declaration at DSP structure level.
 */
 
 map<string, bool> JAXInstVisitor::gFunctionSymbolTable;
