@@ -28,6 +28,7 @@
 #include "instructions.hh"
 #include "instructions_compiler.hh"
 #include "instructions_compiler1.hh"
+#include "instructions_compiler_jax.hh"
 #include "prim2.hh"
 #include "privatise.hh"
 #include "recursivness.hh"
@@ -390,6 +391,9 @@ CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree s
     if (gGlobal->gOutputLang == "rust" || gGlobal->gOutputLang == "julia") {
         InstructionsCompiler1 C(container);
         C.compileSingleSignal(sig);
+    } else if (gGlobal->gOutputLang == "jax") {
+        InstructionsCompilerJAX C(container);
+        C.compileSingleSignal(sig);
     } else {
         InstructionsCompiler C(container);
         C.compileSingleSignal(sig);
@@ -495,7 +499,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         } else if (gGlobal->gOutputLang == "julia") {
             // special handling Julia backend
             pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("input", "inputs", fContainer->inputs(), ptr_type, false));
-        } else {
+        } else if (gGlobal->gOutputLang != "jax") {
             // "input" and "inputs" used as a name convention
             if (gGlobal->gOneSampleControl) {
                 for (int index = 0; index < fContainer->inputs(); index++) {
@@ -526,8 +530,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         } else if (gGlobal->gOutputLang == "julia") {
             // special handling for Julia backend
             pushComputeBlockMethod(InstBuilder::genDeclareBufferIterators("output", "outputs", fContainer->outputs(), ptr_type, true));
-                
-        } else {
+        } else if (gGlobal->gOutputLang != "jax") {
             // "output" and "outputs" used as a name convention
             if (gGlobal->gOneSampleControl) {
                 for (int index = 0; index < fContainer->outputs(); index++) {
@@ -546,6 +549,10 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         }
     }
 
+    // These two vars are only used for JAX
+    std::string return_string = "state, jnp.stack([";
+    std::string sep = "";
+
     for (int index = 0; isList(L); L = tl(L), index++) {
         Tree sig = hd(L);
 
@@ -557,6 +564,12 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         if (gGlobal->gOutputLang == "rust") {
             name = subst("*output$0", T(index));
             pushComputeDSPMethod(InstBuilder::genStoreStackVar(name, res));
+        } else if (gGlobal->gOutputLang == "jax") {
+            res = CS(sig);
+            auto result_var = "_result" + to_string(index);
+            return_string = return_string + sep + result_var;
+            sep = ",";
+            pushComputeDSPMethod(InstBuilder::genStoreStackVar(result_var, res));
         } else if (gGlobal->gOneSampleControl) {
             name = subst("output$0", T(index));
             if (gGlobal->gComputeMix) {
@@ -582,6 +595,11 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
                 pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
             }
         }
+    }
+
+    if (gGlobal->gOutputLang == "jax") {
+        return_string = return_string + "])";
+        pushPostComputeDSPMethod(InstBuilder::genRetInst(InstBuilder::genLoadStackVar(return_string)));
     }
 
     Tree ui = InstructionsCompiler::prepareUserInterfaceTree(fUIRoot);
@@ -877,6 +895,8 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     // HACK for Rust backend
     if (gGlobal->gOutputLang == "rust") {
         res = InstBuilder::genLoadStackVar(subst("*input$0", T(idx)));
+    } else if (gGlobal->gOutputLang == "jax") {
+        res = InstBuilder::genLoadArrayStackVar("inputs", InstBuilder::genInt32NumInst(idx));
     } else if (gGlobal->gOneSampleControl) {
         res = InstBuilder::genLoadStructVar(subst("input$0", T(idx)));
     } else if (gGlobal->gOneSample >= 0) {

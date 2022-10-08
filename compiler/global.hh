@@ -56,6 +56,7 @@ class Garbageable;
 struct DispatchVisitor;
 class WASTInstVisitor;
 class WASMInstVisitor;
+class JAXInstVisitor;
 class JuliaInstVisitor;
 struct TableSizeVisitor;
 struct DeclareStructTypeInst;
@@ -139,7 +140,7 @@ struct global {
     int  gFTZMode;
     bool gRangeUI;  // whether to generate code to limit vslider/hslider/nentry values in [min..max] range
 
-    int gFloatSize;
+    int gFloatSize; // 0 for 'float', 1 for 'double', 2 for 'quad', 3 for 'fixed-point'
 
     bool gPrintFileListSwitch;
     bool gInlineArchSwitch;
@@ -547,6 +548,10 @@ struct global {
 
 #ifdef SOUL_BUILD
     TableSizeVisitor* gTableSizeVisitor;
+#endif
+
+#ifdef JAX_BUILD
+    JAXInstVisitor* gJAXVisitor;
 #endif
 
     bool gHelpSwitch;

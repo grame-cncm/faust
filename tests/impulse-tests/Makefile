@@ -46,6 +46,7 @@ all:
 	$(MAKE) interp1
 	$(MAKE) rust
 	$(MAKE) dlang
+	$(MAKE) jax
 	$(MAKE) julia
 
 help:
@@ -76,6 +77,7 @@ help:
 	@echo " 'rust'   : check double output with rust backend and various options"
 	@echo " 'soul'   : check double output with soul backend and various options"
 	@echo " 'dlang'  : check double output with D backend and various options"
+	@echo " 'jax'    : check double output with JAX backend and various options"
 	@echo " 'julia'  : check double output with Julia backend and various options"
 	@echo " 'me'     : check double outputs with the cpp backend in scalar with activated math exceptions"
 	@echo "Warning: you must have at least 10G available on your hard disk to run all the tests"
@@ -366,6 +368,11 @@ dlang:
 	$(MAKE) -f Make.dlang outdir=dlang/double       FAUSTOPTIONS="-I dsp -double"
 	$(MAKE) -f Make.dlang outdir=dlang/doouble/lp   FAUSTOPTIONS="-I dsp -double -fp"
 	$(MAKE) -f Make.dlang outdir=dlang/double/vec   FAUSTOPTIONS="-I dsp -double -vec"
+
+#########################################################################
+# JAX backend
+jax:
+	$(MAKE) -f Make.jax outdir=jax/double   FAUSTOPTIONS="-I dsp -double"
 	
 #########################################################################
 # Julia backend

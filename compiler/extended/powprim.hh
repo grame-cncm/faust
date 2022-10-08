@@ -155,7 +155,7 @@ class PowPrim : public xtended {
             // Expand the pow depending of the exposant argument
             BlockInst* block = InstBuilder::genBlockInst();
             string faust_power_name = container->getFaustPowerName() + to_string(pow_arg) + ((rtype == Typed::kInt32) ? "_i" : "_f");
-            
+
             Names named_args;
             named_args.push_back(InstBuilder::genNamedTyped("value", InstBuilder::genBasicTyped(t0)));
             
