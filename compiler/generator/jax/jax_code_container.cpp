@@ -33,9 +33,9 @@ using namespace std;
  JAX backend and module description:
 
  - Whereas a normal code container would generate a "compute" method, we generate
-   a one-sample loop "tick" method. Our hard-coded "compute" method is always the same.
-   It uses JAX's scan function in conjunction with the generated tick function.
- - Inside "compute" and before "scan", we setup the arrays, soundfiles, user interface parameters,
+   a one-sample loop "tick" method. Our hard-coded "compute" method is __call__
+   and it's always the same. It uses JAX's scan function in conjunction with the generated tick function.
+ - Inside "__call__" and before using "scan", we setup the arrays, soundfiles, user interface parameters,
    and other state variables.
  - One tricky part of JAX is modifying arrays in-place:
    https://jax.readthedocs.io/en/latest/_autosummary/jax.numpy.ndarray.at.html
@@ -44,7 +44,7 @@ using namespace std;
    in JAX we have to do
    `state["fRec1"] = state["fRec1"].at[0].set(fTemp0)`
    Also, this at-and-set operation is slow, so we only use it inside the tick method.
-   This is why in all other places (like initializing sound files which are vectors),
+   This is why in all other places (like initializing sound files which are arrays),
    we use numpy arrays instead of jnp arrays. It's best to just look at the generated code and notice
    how the jnp prefix is used differently than the np prefix.
  - In order to simplify global array typing, subcontainers are actually merged in the main DSP structure:
@@ -145,24 +145,6 @@ void JAXCodeContainer::produceClass()
     tab(n, *fOut);
     *fOut << "\"\"\"";
     tab(n, *fOut);
-    
-    tab(n, *fOut);
-    *fOut << "import math";
-    tab(n, *fOut);
-    *fOut << "import jax";
-    tab(n, *fOut);
-    *fOut << "import jax.numpy as jnp";
-    tab(n, *fOut);
-    *fOut << "from flax import linen as nn";
-    tab(n, *fOut);
-    *fOut << "import numpy as np";
-    tab(n, *fOut);
-    *fOut << "import librosa";
-    tab(n, *fOut);
-    *fOut << "import json";
-    tab(n, *fOut);
-    *fOut << "import re";
-    tab(n, *fOut);
 
     if (std::string(ifloat()) == "jnp.float64") {
         tab(n, *fOut);
@@ -172,21 +154,15 @@ void JAXCodeContainer::produceClass()
         tab(n, *fOut);
         *fOut << "config.update(\"jax_enable_x64\", True)";
         tab(n, *fOut);
+        *fOut << "FAUSTFLOAT = jnp.float64";
+        tab(n, *fOut);
+    } else {
+        tab(n, *fOut);
+        *fOut << "# enable single precision";
+        tab(n, *fOut);
+        *fOut << "FAUSTFLOAT = jnp.float32";
+        tab(n, *fOut);
     }
-
-    tab(n, *fOut);
-    *fOut << "def FAUSTFLOAT(x):";
-    tab(n+1, *fOut);
-    *fOut << "return x";
-    tab(n, *fOut);
-
-    tab(n, *fOut);
-    *fOut << "def remainder(x, y):";
-    tab(n+1, *fOut);
-    *fOut << "a = jnp.remainder(x, y)";
-    tab(n+1, *fOut);  
-    *fOut << "return a - y*((a > y/2).astype(jnp.int32))";
-    tab(n, *fOut);  
 
     // Merge sub containers
     mergeSubContainers();
@@ -228,7 +204,7 @@ void JAXCodeContainer::produceClass()
         }
         tab(n + 2, *fOut);
         tab(n + 2, *fOut);
-        *fOut << "# init constants";
+        *fOut << "# init constants:";
         tab(n + 2, *fOut);
         gGlobal->gJAXVisitor->Tab(n + 2);
         inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gJAXVisitor);
@@ -267,160 +243,6 @@ void JAXCodeContainer::produceClass()
         *fOut << "return json.loads(json_str)";
         tab(n + 1, *fOut);
     }
-
-    tab(n + 1, *fOut);
-    *fOut << "def load_soundfile(self, filepath):";
-    tab(n + 2, *fOut);
-    *fOut << "try:";
-    tab(n + 3, *fOut);
-    *fOut << "audio, sr = librosa.load(filepath, mono=False, sr=None)";
-    tab(n + 2, *fOut);
-    *fOut << "except FileNotFoundError:";
-    tab(n + 3, *fOut);
-    *fOut << "return np.zeros((1,1024)), 44100";
-    tab(n + 2, *fOut);
-    *fOut << "if audio.ndim == 1:";
-    tab(n + 3, *fOut);
-    *fOut << "audio = np.expand_dims(audio, 0)";
-    tab(n + 2, *fOut);
-    *fOut << "return audio, sr";
-    tab(n + 1, *fOut);
-
-    tab(n + 1, *fOut);
-    *fOut << "def add_soundfile(self, state, x, label: str, url: str, key: str):";
-    tab(n + 2, *fOut);
-    *fOut << "# todo: better parsing";
-    tab(n + 2, *fOut);
-    *fOut << "filepaths = url[2:-2].split(\"\';\'\")";
-    tab(n + 2, *fOut);
-    *fOut << "fLength, fOffset, fSR, offset = [], [], [], 0";
-    tab(n + 2, *fOut);
-    *fOut << "audio_data = [self.load_soundfile(filepath) for filepath in filepaths]";
-    tab(n + 2, *fOut);
-    *fOut << "num_chans = max([y.shape[0] for y, _ in audio_data])";
-    tab(n + 2, *fOut);
-    *fOut << "total_length = sum([y.shape[1] for y, _ in audio_data])";
-    tab(n + 2, *fOut);
-    *fOut << "fBuffers = jnp.zeros((num_chans, total_length))";
-    tab(n + 2, *fOut);
-    *fOut << "for y, sr in audio_data:";
-    tab(n + 3, *fOut);
-    *fOut << "fSR.append(sr)";
-    tab(n + 3, *fOut);
-    *fOut << "assert y.ndim == 2";
-    tab(n + 3, *fOut);
-    *fOut << "y = jnp.array(y)";
-    tab(n + 3, *fOut);
-    *fOut << "fLength.append(y.shape[1])";
-    tab(n + 3, *fOut);
-    *fOut << "fOffset.append(offset)";
-    tab(n + 3, *fOut);
-    *fOut << "fBuffers = fBuffers.at[:y.shape[0],offset:offset+y.shape[1]].set(y)";
-    tab(n + 3, *fOut);
-    *fOut << "offset += y.shape[1]";
-    tab(n + 2, *fOut);
-    *fOut << "if label.startswith('param:'):";
-    tab(n + 3, *fOut);
-    *fOut << "label = label[6:]  # remove param:";
-	tab(n + 3, *fOut);
-    *fOut << "fBuffers = self.param(\"_\"+label, (lambda key, shape: fBuffers), None)";
-    tab(n + 2, *fOut);
-    *fOut << "self.sow('intermediates', label, fBuffers)";
-    tab(n + 2, *fOut);
-    *fOut << "state[key] = {'fLength': fLength, 'fOffset': fOffset, 'fBuffers': fBuffers, 'fSR': fSR}";
-    tab(n + 2, *fOut);
-    *fOut << "return state";
-    tab(n + 1, *fOut);
-
-    tab(n + 1, *fOut);
-    *fOut << "def add_nentry(self, zone: str, label: str, init: float, a_min: float, a_max: float, step_size: float, scale_mode='linear'):";
-    tab(n + 2, *fOut);
-    *fOut << "num_steps = int(jnp.round((a_max-a_min)/step_size))+1";
-    tab(n + 2, *fOut);
-    *fOut << "init_unit = int(jnp.round(init-a_min)/step_size)";
-    tab(n + 2, *fOut);
-    *fOut << "param = jnp.ones((num_steps,))";
-    tab(n + 2, *fOut);
-    *fOut << "param = param.at[init_unit].set(2)";
-    tab(n + 2, *fOut);
-    *fOut << "param = nn.softmax(param)";
-    tab(n + 2, *fOut);
-    *fOut << "param = self.param(zone+\"_\"+label, (lambda key, shape: param), None)";
-    tab(n + 2, *fOut);
-    *fOut << "param = jnp.argmax(param, axis=-1)*step_size+a_min";
-    tab(n + 2, *fOut);
-    *fOut << "self.sow('intermediates', label, param)";
-    tab(n + 2, *fOut);
-    *fOut << "return param";
-    tab(n + 1, *fOut);
-
-    tab(n + 1, *fOut);
-    *fOut << "def add_button(self, zone: str, label: str):";
-    tab(n + 2, *fOut);
-    *fOut << "param = self.param(zone+ \"_\"+label, nn.initializers.constant(0.), ())";
-    tab(n + 2, *fOut);
-    *fOut << "param = jnp.where(param>0., 1., 0.)";
-    tab(n + 2, *fOut);
-    *fOut << "self.sow('intermediates', label, param)";
-    tab(n + 2, *fOut);
-    *fOut << "return param";
-    tab(n + 1, *fOut);
-
-    tab(n + 1, *fOut);
-    *fOut << "def add_slider(self, zone: str, label: str, init: float, a_min: float, a_max: float, scale_mode='linear'):";
-    tab(n + 2, *fOut);
-    *fOut << "init, a_min, a_max = float(init), float(a_min), float(a_max)";
-    tab(n + 2, *fOut);
-    *fOut << "if scale_mode == 'linear':";
-    tab(n + 3, *fOut);
-    *fOut << "init = jnp.interp(init, jnp.array([a_min, a_max]), jnp.array([-1.,1.]))";
-    tab(n + 3, *fOut);
-    *fOut << "param = self.param(zone+\"_\"+label, nn.initializers.constant(init), ())";
-    tab(n + 3, *fOut);
-    *fOut << "param = jnp.clip(param, -1., 1.)";
-    tab(n + 3, *fOut);
-    *fOut << "param = jnp.interp(param, jnp.array([-1., 1.]), jnp.array([a_min, a_max]))";
-    tab(n + 2, *fOut);
-    *fOut << "elif scale_mode == 'exp':";
-    tab(n + 3, *fOut);
-    *fOut << "init = jnp.interp(init, jnp.array([a_min, a_max]), jnp.array([1., jnp.e]))";
-    tab(n + 3, *fOut);
-    *fOut << "init = jnp.log(init)";
-    tab(n + 3, *fOut);
-    *fOut << "init = jnp.interp(init, jnp.array([0., 1.]), jnp.array([-1.,1.]))";
-    tab(n + 3, *fOut);
-    *fOut << "param = self.param(zone+\"_\"+label, nn.initializers.constant(init), ())";
-    tab(n + 3, *fOut);
-    *fOut << "param = jnp.clip(param, -1., 1.)";
-    tab(n + 3, *fOut);
-    *fOut << "param = jnp.interp(param, jnp.array([-1., 1.]), jnp.array([0., 1.]))";
-    tab(n + 3, *fOut);
-    *fOut << "param = jnp.interp(jnp.exp(param), jnp.array([1., jnp.e]), jnp.array([a_min, a_max]))";
-    tab(n + 2, *fOut);
-    *fOut << "elif scale_mode == 'log':";
-    tab(n + 3, *fOut);
-    *fOut << "init = jnp.interp(init, jnp.array([a_min, a_max]), jnp.array([-4., 0.]))";
-    tab(n + 3, *fOut);
-    *fOut << "init = jnp.power(10., init)";
-    tab(n + 3, *fOut);
-    *fOut << "init = jnp.interp(init, jnp.array([10.**-4., 1.]), jnp.array([-1.,1.]))";
-    tab(n + 3, *fOut);
-    *fOut << "param = self.param(zone+\"_\"+label, nn.initializers.constant(init), ())";
-    tab(n + 3, *fOut);
-    *fOut << "param = jnp.clip(param, -1., 1.)";
-    tab(n + 3, *fOut);
-    *fOut << "param = jnp.interp(param, jnp.array([-1., 1.]), jnp.array([10.**-4., 1.]))";
-    tab(n + 3, *fOut);
-    *fOut << "param = jnp.interp(jnp.log10(param), jnp.array([-4., 0.]), jnp.array([a_min, a_max]))";
-    tab(n + 2, *fOut);
-    *fOut << "else:";
-    tab(n + 3, *fOut);
-    *fOut << "raise ValueError(f\" Unknown scale '{scale_mode}'.\")";
-    tab(n + 2, *fOut);
-    *fOut << "self.sow('intermediates', label, param)";
-    tab(n + 2, *fOut);
-    *fOut << "return param";
-    tab(n + 1, *fOut);
 
     // User interface
     tab(n + 1, *fOut);
