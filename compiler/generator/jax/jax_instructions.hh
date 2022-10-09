@@ -287,7 +287,7 @@ class JAXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["log2f"]      = "jnp.log2";
         gPolyMathLibTable["log10f"]     = "jnp.log10";
         gPolyMathLibTable["powf"]       = "jnp.power";
-        gPolyMathLibTable["remainderf"] = "remainder";  // todo: we must rely on a custom remainder implementation in jax_code_container.cpp.
+        gPolyMathLibTable["remainderf"] = "remainder";  // todo: we currently rely on a custom remainder implementation in the architecture file.
         gPolyMathLibTable["rintf"]      = "jnp.rint";
         gPolyMathLibTable["roundf"]     = "jnp.round";
         gPolyMathLibTable["sinf"]       = "jnp.sin";
@@ -326,7 +326,7 @@ class JAXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["log2"]      = "jnp.log2";
         gPolyMathLibTable["log10"]     = "jnp.log10";
         gPolyMathLibTable["pow"]       = "jnp.power";
-        gPolyMathLibTable["remainder"] = "remainder"; // todo: we must rely on a custom remainder implementation in jax_code_container.cpp.
+        gPolyMathLibTable["remainder"] = "remainder"; // todo: we currently rely on a custom remainder implementation in the architecture file.
         gPolyMathLibTable["rint"]      = "jnp.rint";
         gPolyMathLibTable["round"]     = "jnp.round";
         gPolyMathLibTable["sin"]       = "jnp.sin";

@@ -63,8 +63,6 @@ class JAXCodeContainer : public virtual CodeContainer {
                                           std::ostream* dst = new std::stringstream());
 
     BlockInst* get_fComputeBlockInstructions() { return fComputeBlockInstructions; }
-
-    BlockInst* inlineSubcontainersFunCalls(BlockInst* block);
 };
 
 class JAXScalarCodeContainer : public JAXCodeContainer {
