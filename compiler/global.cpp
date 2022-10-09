@@ -116,92 +116,12 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 {
     CTree::init();
     Symbol::init();
+    // Part of the state that needs to be initialized between consecutive calls to Box/Signal API.
+    reset();
 
     EVALPROPERTY   = symbol("EvalProperty");
     PMPROPERTYNODE = symbol("PMPROPERTY");
-
-    gResult          = nullptr;
-    gResult2         = nullptr;
-    gExpandedDefList = nullptr;
-
-    gDetailsSwitch    = false;
-    gDrawSignals      = false;
-    gDrawRouteFrame   = false;
-    gShadowBlur       = false;  // note: svg2pdf doesn't like the blur filter
-    gScaledSVG        = false;
-    gStripDocSwitch   = false;  // Strip <mdoc> content from doc listings.
-    gFoldThreshold    = 25;
-    gFoldComplexity   = 2;
-    gMaxNameSize      = 40;
-    gSimpleNames      = false;
-    gSimplifyDiagrams = false;
-    gMaxCopyDelay     = 16;
-
-    gVectorSwitch      = false;
-    gDeepFirstSwitch   = false;
-    gVecSize           = 32;
-    gVectorLoopVariant = 0;
-
-    gOpenMPSwitch    = false;
-    gOpenMPLoop      = false;
-    gSchedulerSwitch = false;
-    gOpenCLSwitch    = false;
-    gCUDASwitch      = false;
-    gGroupTaskSwitch = false;
-    gFunTaskSwitch   = false;
-
-    gUIMacroSwitch = false;
-    gDumpNorm      = -1;
-    gFTZMode       = 0;
-    gRangeUI       = false;
-
-    gFloatSize = 1;
-
-    gPrintFileListSwitch = false;
-    gInlineArchSwitch    = false;
-
-    gDSPStruct  = false;
-    gLightMode  = false;
-    gClang      = false;
-    gNoVirtual  = false;
-    gCheckTable = "";
-
-    gMathExceptions = false;
-
-    gClassName      = "mydsp";
-    gSuperClassName = "dsp";
-    gProcessName    = "process";
-
-    gDSPFactory = nullptr;
-
-    gInputString = nullptr;
-
-    // Backend configuration : default values
-    gAllowForeignFunction = true;
-    gAllowForeignConstant = true;
-    gAllowForeignVar      = true;
-    gComputeIOTA          = false;
-    gFAUSTFLOAT2Internal  = false;
-    gInPlace              = false;
-    gHasExp10             = false;
-    gLoopVarInBytes       = false;
-    gWaveformInDSP        = false;
-    gUseDefaultSound      = true;
-    gHasTeeLocal          = false;
-    gFastMath             = false;
-    gMathApprox           = false;
-    gNeedManualPow        = true;
-    gRemoveVarAddress     = false;
-    gOneSample            = -1;
-    gOneSampleControl     = false;
-    gComputeMix           = false;
-    gFastMathLib          = "default";
-    gNameSpace            = "";
-    gFullParentheses      = false;
-
-    gNarrowingLimit = 0;
-    gWideningLimit  = 0;
-
+    
     // Fastmath mapping float version
     gFastMathLibTable["fabsf"]      = "fast_fabsf";
     gFastMathLibTable["acosf"]      = "fast_acosf";
@@ -249,34 +169,6 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gFastMathLibTable["sin"]       = "fast_sin";
     gFastMathLibTable["sqrt"]      = "fast_sqrt";
     gFastMathLibTable["tan"]       = "fast_tan";
-
-    gLstDependenciesSwitch = true;  ///< mdoc listing management.
-    gLstMdocTagsSwitch     = true;  ///< mdoc listing management.
-    gLstDistributedSwitch  = true;  ///< mdoc listing management.
-
-    gLatexDocSwitch = true;  // Only LaTeX outformat is handled for the moment.
-
-    gErrorCount = 0;
-
-    gFileNum = 0;
-
-    gBoxCounter    = 0;
-    gSignalCounter = 0;
-
-    gCountInferences = 0;
-    gCountMaximal    = 0;
-
-    gDummyInput = 10000;
-
-    gBoxSlotNumber = 0;
-    gMemoryManager = false;
-
-    gLocalCausalityCheck = false;
-    gCausality           = false;
-
-    gOccurrences = nullptr;
-    gFoldingFlag = false;
-    gDevSuffix   = nullptr;
 
     gAbsPrim       = new AbsPrim();
     gAcosPrim      = new AcosPrim();
@@ -438,29 +330,142 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 #endif
 
     gMachineMaxStackSize = MAX_MACHINE_STACK_SIZE;
-    gOutputLang          = "";
+}
 
+void global::reset()
+{
+    gResult          = nullptr;
+    gResult2         = nullptr;
+    gExpandedDefList = nullptr;
+    
+    gDetailsSwitch    = false;
+    gDrawSignals      = false;
+    gDrawRouteFrame   = false;
+    gShadowBlur       = false;  // note: svg2pdf doesn't like the blur filter
+    gScaledSVG        = false;
+    gStripDocSwitch   = false;  // Strip <mdoc> content from doc listings.
+    gFoldThreshold    = 25;
+    gFoldComplexity   = 2;
+    gMaxNameSize      = 40;
+    gSimpleNames      = false;
+    gSimplifyDiagrams = false;
+    gMaxCopyDelay     = 16;
+    
+    gVectorSwitch      = false;
+    gDeepFirstSwitch   = false;
+    gVecSize           = 32;
+    gVectorLoopVariant = 0;
+    
+    gOpenMPSwitch    = false;
+    gOpenMPLoop      = false;
+    gSchedulerSwitch = false;
+    gOpenCLSwitch    = false;
+    gCUDASwitch      = false;
+    gGroupTaskSwitch = false;
+    gFunTaskSwitch   = false;
+    
+    gUIMacroSwitch = false;
+    gDumpNorm      = -1;
+    gFTZMode       = 0;
+    gRangeUI       = false;
+    
+    gFloatSize = 1;
+    
+    gPrintFileListSwitch = false;
+    gInlineArchSwitch    = false;
+    
+    gDSPStruct  = false;
+    gLightMode  = false;
+    gClang      = false;
+    gNoVirtual  = false;
+    gCheckTable = "";
+    
+    gMathExceptions = false;
+    
+    gClassName      = "mydsp";
+    gSuperClassName = "dsp";
+    gProcessName    = "process";
+    
+    gDSPFactory = nullptr;
+    
+    gInputString = nullptr;
+    
+    // Backend configuration : default values
+    gAllowForeignFunction = true;
+    gAllowForeignConstant = true;
+    gAllowForeignVar      = true;
+    gComputeIOTA          = false;
+    gFAUSTFLOAT2Internal  = false;
+    gInPlace              = false;
+    gHasExp10             = false;
+    gLoopVarInBytes       = false;
+    gWaveformInDSP        = false;
+    gUseDefaultSound      = true;
+    gHasTeeLocal          = false;
+    gFastMath             = false;
+    gMathApprox           = false;
+    gNeedManualPow        = true;
+    gRemoveVarAddress     = false;
+    gOneSample            = -1;
+    gOneSampleControl     = false;
+    gComputeMix           = false;
+    gFastMathLib          = "default";
+    gNameSpace            = "";
+    gFullParentheses      = false;
+    
+    gNarrowingLimit = 0;
+    gWideningLimit  = 0;
+    
+    gLstDependenciesSwitch = true;  ///< mdoc listing management.
+    gLstMdocTagsSwitch     = true;  ///< mdoc listing management.
+    gLstDistributedSwitch  = true;  ///< mdoc listing management.
+    
+    gLatexDocSwitch = true;  // Only LaTeX outformat is handled for the moment.
+    
+    gErrorCount = 0;
+    gFileNum = 0;
+    
+    gBoxCounter    = 0;
+    gSignalCounter = 0;
+    
+    gCountInferences = 0;
+    gCountMaximal    = 0;
+    
+    gDummyInput = 10000;
+    
+    gBoxSlotNumber = 0;
+    gMemoryManager = false;
+    
+    gLocalCausalityCheck = false;
+    gCausality           = false;
+    
+    gOccurrences = nullptr;
+    gFoldingFlag = false;
+    gDevSuffix   = nullptr;
+    
+    gOutputLang  = "";
+    
 #ifdef WASM_BUILD
     gWASMVisitor = nullptr;  // Will be (possibly) allocated in WebAssembly backend
     gWASTVisitor = nullptr;  // Will be (possibly) allocated in WebAssembly backend
 #endif
-
+    
 #ifdef INTERP_BUILD
     gInterpreterVisitor = nullptr;  // Will be (possibly) allocated in Interp backend
 #endif
-
+    
 #ifdef JULIA_BUILD
     gJuliaVisitor = nullptr;  // Will be (possibly) allocated in Julia backend
 #endif
-
+    
 #ifdef SOUL_BUILD
     gTableSizeVisitor = nullptr;  // Will be (possibly) allocated in SOUL backend
 #endif
-
+    
 #ifdef JAX_BUILD
     gJAXVisitor = nullptr;    // Will be (possibly) allocated in JAX backend
 #endif
-
+    
     gHelpSwitch       = false;
     gVersionSwitch    = false;
     gLibDirSwitch     = false;
@@ -482,22 +487,21 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gPrintDocSwitch   = false;
     gArchFile         = "";
     gExportDSP        = false;
-
+    
     gTimeout = 120;  // Time out to abort compiler (in seconds)
-
+    
     // Globals to transfer results in thread based evaluation
     gProcessTree  = nullptr;
     gLsignalsTree = nullptr;
     gNumInputs    = 0;
     gNumOutputs   = 0;
     gErrorMessage = "";
-
+    
     // By default use "cpp" output
     gOutputLang = (getenv("FAUST_DEFAULT_BACKEND")) ? string(getenv("FAUST_DEFAULT_BACKEND")) : "cpp";
 }
 
 // Done after contructor since part of the following allocations need the "global" object to be fully built
-
 void global::init()
 {
     gPureRoutingProperty   = new property<bool>();

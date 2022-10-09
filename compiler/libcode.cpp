@@ -3393,8 +3393,9 @@ LIBFAUST_API Tree* CsimplifyToNormalForm2(Tree* s)
 // Can generate faustexception, used in createDSPFactoryFromBoxes and createInterpreterDSPFactoryFromBoxes
 tvec boxesToSignalsAux(Tree box)
 {
-    // Cleanup all variables
+    // Cleanup all variables and reset gGlobal state
     DeclareVarInst::cleanup();
+    gGlobal->reset();
     
     int numInputs, numOutputs;
     if (!getBoxType(box, &numInputs, &numOutputs)) {

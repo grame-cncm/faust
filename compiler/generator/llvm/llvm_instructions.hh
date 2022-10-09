@@ -549,6 +549,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         } else if (access & Address::kFunArgs) {
             return loadFunArg(name);
         } else if (access & Address::kStack || access & Address::kLoop) {
+            faustassert(fStackVars.find(name) != fStackVars.end());
             return fStackVars[name];
         } else if ((access & Address::kGlobal) || (access & Address::kStaticStruct)) {
             return fModule->getGlobalVariable(name, true);

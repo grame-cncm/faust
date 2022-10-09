@@ -645,6 +645,8 @@ struct global {
     void initTypeSizeMap();
 
     int audioSampleSize();
+    
+    void reset();
 
     // Allows to test if a given debug variable is set
     static bool isDebug(const string& debug_val);
