@@ -33,8 +33,8 @@ using namespace std;
  JAX backend and module description:
 
  - Whereas a normal code container would generate a "compute" method, we generate
-   a one-sample loop "tick" method. Our hard-coded "compute" method is __call__
-   and it's always the same. It uses JAX's scan function in conjunction with the generated tick function.
+   a one-sample loop "tick" method. Our hard-coded "compute" method __call__ is implemented
+   in an architecture file. It uses JAX's scan function in conjunction with the generated tick function.
  - Inside "__call__" and before using "scan", we setup the arrays, soundfiles, user interface parameters,
    and other state variables.
  - One tricky part of JAX is modifying arrays in-place:
@@ -275,48 +275,6 @@ void JAXCodeContainer::generateCompute(int n)
 
     generatePostComputeBlock(gGlobal->gJAXVisitor);
     gGlobal->gJAXVisitor->fUseNumpy = true;
-
-    tab(n, *fOut);
-    *fOut << "@nn.compact";
-    tab(n, *fOut);
-    *fOut << "def __call__(self, x, T: int) -> jnp.array:";
-    tab(n + 1, *fOut);
-    *fOut << "state = self.initialize(self.sample_rate, x, T)";
-    tab(n + 1, *fOut);
-    *fOut << "state = self.build_interface(state, x, T)";
-    tab(n + 1, *fOut);
-    *fOut << "# convert numpy array to jax numpy array";
-    tab(n + 1, *fOut);
-    *fOut << "state = jax.tree_map(jnp.array, state)";
-    tab(n + 1, *fOut);
-    *fOut << "return jnp.transpose(jax.lax.scan(self.tick, state, jnp.transpose(x, axes=(1, 0)))[1], axes=(1,0))";
-    tab(n, *fOut);
-}
-
-BlockInst* JAXCodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
-{
-    // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-    block = DspRenamer().getCode(block);
-    // dump2FIR(block);
-
-    // Inline subcontainers 'instanceInit' and 'fill' function call
-    for (const auto& it : fSubContainers) {
-        // Build the function to be inlined (prototype and code)
-        DeclareFunInst* inst_init_fun =
-            it->generateInstanceInitFun("instanceInit" + it->getClassName(), "dsp", true, false);
-        // dump2FIR(inst_init_fun);
-        block = FunctionCallInliner(inst_init_fun).getCode(block);
-        // dump2FIR(block);
-
-        // Build the function to be inlined (prototype and code)
-        DeclareFunInst* fill_fun = it->generateFillFun("fill" + it->getClassName(), "dsp", true, false);
-        // dump2FIR(fill_fun);
-        block = FunctionCallInliner(fill_fun).getCode(block);
-        // dump2FIR(block);
-    }
-    // dump2FIR(block);
-
-    return block;
 }
 
 // Scalar
