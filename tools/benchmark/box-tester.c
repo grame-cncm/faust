@@ -113,6 +113,7 @@ static Box phasor(Box f)
 
 static void test1()
 {
+    printf("test1\n");
     createLibContext();
     {
         Box box = phasor(CboxReal(2000));
@@ -156,6 +157,7 @@ static Box osc(Box f)
 
 static void test2()
 {
+    printf("test2\n");
     createLibContext();
     {
         Box box = CboxPar(osc(CboxReal(440.0)), osc(CboxReal(440.0)));
@@ -193,6 +195,7 @@ static void test2()
 
 static void test3()
 {
+    printf("test3\n");
     createLibContext();
     {
         Box freq = CboxVSlider("h:Oscillator/freq", CboxReal(440), CboxReal(50), CboxReal(1000), CboxReal(0.1));
@@ -226,8 +229,9 @@ static void test3()
 }
 
 // Compile a complete DSP program to a box expression, then use the result in another expression
-static void test4(int argc, const char* argv[])
+static void test4()
 {
+    printf("test4\n");
     createLibContext();
     {
         int inputs = 0;
@@ -235,7 +239,7 @@ static void test4(int argc, const char* argv[])
         char error_msg[4096];
         
         // Create the filter without parameter
-        Box filter = CDSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = fi.lowpass(5);", argc, argv, &inputs, &outputs, error_msg);
+        Box filter = CDSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = fi.lowpass(5);", 0, NULL, &inputs, &outputs, error_msg);
         
         // Create the filter parameters and connect
         Box cutoff = CboxHSlider("cutoff", CboxReal(300), CboxReal(100), CboxReal(2000), CboxReal(0.01));
@@ -274,7 +278,7 @@ int main(int argc, const char* argv[])
     test1();
     test2();
     test3();
-    test4(argc, argv);
+    test4();
     
     return 0;
 }

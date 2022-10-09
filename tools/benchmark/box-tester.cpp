@@ -636,30 +636,35 @@ static void test24(int argc, const char* argv[])
 }
 
 // Compile a complete DSP program to a box expression
-static void test25(int argc, const char* argv[])
+static void test25()
 {
-    createLibContext();
-    {
-        int inputs = 0;
-        int outputs = 0;
-        string error_msg;
-    
-        // Create the oscillator
-        Box osc = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", argc, argv, &inputs, &outputs, error_msg);
+    cout << "test25\n";
+    vector<const char*> lang = { "c", "cpp", "csharp", "dlang", "interp", "jax", "julia", "rust", "soul", "wast" };
+    // Context has to be created/destroyed each time
+    for (const auto& it : lang) {
+        createLibContext();
+        {
+            int inputs = 0;
+            int outputs = 0;
+            string error_msg;
+      
+            // Create the oscillator
+            Box osc = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", 0, nullptr, &inputs, &outputs, error_msg);
         
-        // Compile it
-        string source = createSourceFromBoxes("FaustDSP", osc, "cpp", argc, (const char**)argv, error_msg);
-        if (source != "") {
-            cout << source;
-        } else {
-            cerr << error_msg;
+            // Compile it
+            string source = createSourceFromBoxes("FaustDSP", osc, it, 0, nullptr, error_msg);
+            if (source != "") {
+                cout << source;
+            } else {
+                cerr << error_msg;
+            }
         }
+        destroyLibContext();
     }
-    destroyLibContext();
 }
 
 // Compile a complete DSP program to a box expression, then use the result in another expression
-static void test26(int argc, const char* argv[])
+static void test26()
 {
     cout << "test26\n";
     createLibContext();
@@ -669,7 +674,7 @@ static void test26(int argc, const char* argv[])
         string error_msg;
         
         // Create the filter without parameter
-        Box filter = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = fi.lowpass(5);", argc, argv, &inputs, &outputs, error_msg);
+        Box filter = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = fi.lowpass(5);", 0, nullptr, &inputs, &outputs, error_msg);
         
         // Create the filter parameters and connect
         Box cutoff = boxHSlider("cutoff", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
@@ -680,7 +685,7 @@ static void test26(int argc, const char* argv[])
         std::cout << "getBoxType inputs: " << inputs << " outputs: " << outputs << std::endl;
     
         // Compile it
-        string source = createSourceFromBoxes("FaustDSP", filteredInput, "cpp", argc, (const char**)argv, error_msg);
+        string source = createSourceFromBoxes("FaustDSP", filteredInput, "cpp", 0, nullptr, error_msg);
         if (source != "") {
             cout << source;
         } else {
@@ -717,12 +722,11 @@ int main(int argc, const char* argv[])
     test18();
     test19();
     test20();
+    // Test 'DSPToBoxes' API
+    test25();
     
     // Test 'DSPToBoxes' API
-    test25(argc, argv);
-    
-    // Test 'DSPToBoxes' API
-    test26(argc, argv);
+    test26();
     
     // Test with audio, GUI and LLVM backend
     test21(argc, argv);
@@ -735,7 +739,6 @@ int main(int argc, const char* argv[])
     
     // Test with audio, GUI, MIDI and Interp backend
     test24(argc, argv);
-    
     return 0;
 }
 
