@@ -142,8 +142,6 @@ class JAXInstVisitor : public TextInstVisitor {
 
     std::set<std::string> fLogSet;  // set of widget zone having a log UI scale
     std::set<std::string> fExpSet;  // set of widget zone having an exp UI scale
-    
-    //string cast2FAUSTFLOAT(const string& str) { return str; }
    
    public:
     using TextInstVisitor::visit;
