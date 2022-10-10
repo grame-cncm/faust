@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _SOUL_INSTRUCTIONS_H
-#define _SOUL_INSTRUCTIONS_H
+#ifndef _CMAJ_INSTRUCTIONS_H
+#define _CMAJ_INSTRUCTIONS_H
 
 #include <sstream>
 #include <string>
@@ -35,17 +35,17 @@ using namespace std;
 
 static vector<char> gReplace = {' ', '(', ')', '\\', '.', '-'};
 
-struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
+struct CmajorInstUIVisitor : public DispatchVisitor, public PathBuilder {
     std::stringstream     fOut;
-    SOULStringTypeManager fTypeManager;
+    CmajorStringTypeManager fTypeManager;
     int                   fTab;
     bool                  fHasBargraph;  // Whether the DSP code has some Bargraphs
     
     std::vector<std::pair <std::string, std::string> > fMetaAux;
 
     using DispatchVisitor::visit;
-  
-    SOULInstUIVisitor(int tab = 1) : fTypeManager(xfloat(), "*"), fTab(tab), fHasBargraph(false) {}
+
+    CmajorInstUIVisitor(int tab = 1) : fTypeManager(xfloat(), "*"), fTab(tab), fHasBargraph(false) {}
     
     void addMeta()
     {
@@ -59,11 +59,11 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
         fMetaAux.clear();
     }
     
-    std::string getSoulMatadata()
+    std::string getCmajorMetadata()
     {
         if (fMetaAux.size() > 0) {
             for (size_t i = 0; i < fMetaAux.size(); i++) {
-                if (fMetaAux[i].first == "soul") return fMetaAux[i].second;
+                if (fMetaAux[i].first == "cmajor") return fMetaAux[i].second;
             }
         }
         return "";
@@ -76,7 +76,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
    
     virtual void visit(AddButtonInst* inst)
     {
-        if (gGlobal->gOutputLang == "soul-poly") {
+        if (gGlobal->gOutputLang == "cmajor-poly") {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << replaceCharList(inst->fLabel, gReplace, '_')
             << " [[ name: " << quote(inst->fLabel)
@@ -84,14 +84,14 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             if (inst->fType != AddButtonInst::kDefaultButton) {
                 fOut << ", latching";
             }
-            fOut<< ", text: \"off|on\""
+            fOut << ", text: \"off|on\""
             << ", boolean";
             addMeta();
             fOut << " ]];";
-        } else if (gGlobal->gOutputLang == "soul-hybrid") {
-            string soul_meta = getSoulMatadata();
+        } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
+            string cmajor_meta = getCmajorMetadata();
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
-            << " " << ((soul_meta != "") ? soul_meta : replaceCharList(inst->fLabel, gReplace, '_'))
+            << " " << ((cmajor_meta != "") ? cmajor_meta : replaceCharList(inst->fLabel, gReplace, '_'))
             << " [[ name: " << quote(inst->fLabel)
             << ", group: " << quote(buildPath(inst->fLabel));
             if (inst->fType != AddButtonInst::kDefaultButton) {
@@ -119,7 +119,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
 
     virtual void visit(AddSliderInst* inst)
     {
-        if (gGlobal->gOutputLang == "soul-poly") {
+        if (gGlobal->gOutputLang == "cmajor-poly") {
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << replaceCharList(inst->fLabel, gReplace, '_')
             << " [[ name: " << quote(inst->fLabel)
@@ -130,10 +130,10 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             << ", step: " << checkReal(inst->fStep);
             addMeta();
             fOut << " ]];";
-        } else if (gGlobal->gOutputLang == "soul-hybrid") {
-            string soul_meta = getSoulMatadata();
+        } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
+            string cmajor_meta = getCmajorMetadata();
             fOut << "input event " << fTypeManager.fTypeDirectTable[itfloat()]
-            << " " << ((soul_meta != "") ? soul_meta : replaceCharList(inst->fLabel, gReplace, '_'))
+            << " " << ((cmajor_meta != "") ? cmajor_meta : replaceCharList(inst->fLabel, gReplace, '_'))
             << " [[ name: " << quote(inst->fLabel)
             << ", group: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
@@ -162,7 +162,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
         // We have bargraphs
         fHasBargraph = true;
         
-        if (gGlobal->gOutputLang == "soul-poly") {
+        if (gGlobal->gOutputLang == "cmajor-poly") {
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
             << " event_" << quote(replaceCharList(inst->fLabel, gReplace, '_'))
             << " [[ name: " << quote(inst->fLabel)
@@ -171,10 +171,10 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
             << ", max: " << checkReal(inst->fMax);
             addMeta();
             fOut << " ]];";
-        } else if (gGlobal->gOutputLang == "soul-hybrid") {
-            string soul_meta = getSoulMatadata();
+        } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
+            string cmajor_meta = getCmajorMetadata();
             fOut << "output event " << fTypeManager.fTypeDirectTable[itfloat()]
-            << " " << ((soul_meta != "") ? soul_meta : replaceCharList(inst->fLabel, gReplace, '_'))
+            << " " << ((cmajor_meta != "") ? cmajor_meta : replaceCharList(inst->fLabel, gReplace, '_'))
             << " [[ name: " << quote(inst->fLabel)
             << ", group: " << quote(buildPath(inst->fLabel))
             << ", min: " << checkReal(inst->fMin)
@@ -218,7 +218,7 @@ struct SOULInstUIVisitor : public DispatchVisitor, public PathBuilder {
     
 };
 
-class SOULInstVisitor : public TextInstVisitor {
+class CmajorInstVisitor : public TextInstVisitor {
    private:
     // Polymorphic math functions
     map<string, string> gPolyMathLibTable;
@@ -237,19 +237,19 @@ class SOULInstVisitor : public TextInstVisitor {
         return (std::isinf(val)) ? "inf" : T(val);
     }
     
-    std::string getSoulMatadata()
+    std::string getCmajorMetadata()
     {
         if (fMetaAux.size() > 0) {
             for (size_t i = 0; i < fMetaAux.size(); i++) {
-                if (fMetaAux[i].first == "soul") return fMetaAux[i].second;
+                if (fMetaAux[i].first == "cmajor") return fMetaAux[i].second;
             }
         }
         return "";
     }
 
    public:
-    SOULInstVisitor(std::ostream* out, int tab = 0)
-        : TextInstVisitor(out, ".", new SOULStringTypeManager(xfloat(), ""), tab)
+    CmajorInstVisitor(std::ostream* out, int tab = 0)
+        : TextInstVisitor(out, ".", new CmajorStringTypeManager(xfloat(), ""), tab)
     {
         // Polymath mapping int version
         gPolyMathLibTable["abs"]   = "abs";
@@ -277,13 +277,13 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["log10f"]     = "log10";
         gPolyMathLibTable["powf"]       = "pow";
         gPolyMathLibTable["remainderf"] = "remainder";
-        gPolyMathLibTable["rintf"]      = "roundToInt";
+        gPolyMathLibTable["rintf"]      = "rint";
         gPolyMathLibTable["roundf"]     = "round";
         gPolyMathLibTable["sinf"]       = "sin";
         gPolyMathLibTable["sqrtf"]      = "sqrt";
         gPolyMathLibTable["tanf"]       = "tan";
         
-        // Additional hyperbolic math functions are included in SOUL
+        // Additional hyperbolic math functions are included in Cmajor
         gPolyMathLibTable["acoshf"] = "acosh";
         gPolyMathLibTable["asinhf"] = "asinh";
         gPolyMathLibTable["atanhf"] = "atanh";
@@ -317,13 +317,13 @@ class SOULInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["log10"]     = "log10";
         gPolyMathLibTable["pow"]       = "pow";
         gPolyMathLibTable["remainder"] = "remainder";
-        gPolyMathLibTable["rint"]      = "roundToInt";
+        gPolyMathLibTable["rint"]      = "rint";
         gPolyMathLibTable["round"]     = "round";
         gPolyMathLibTable["sin"]       = "sin";
         gPolyMathLibTable["sqrt"]      = "sqrt";
         gPolyMathLibTable["tan"]       = "tan";
 
-        // Additional hyperbolic math functions are included in SOUL
+        // Additional hyperbolic math functions are included in Cmajor
         gPolyMathLibTable["acosh"] = "acosh";
         gPolyMathLibTable["asinh"] = "asinh";
         gPolyMathLibTable["atanh"] = "atanh";
@@ -339,7 +339,7 @@ class SOULInstVisitor : public TextInstVisitor {
         fIntAsBool = false;
     }
 
-    virtual ~SOULInstVisitor() {}
+    virtual ~CmajorInstVisitor() {}
    
     virtual void visit(AddMetaDeclareInst* inst)
     {
@@ -360,13 +360,13 @@ class SOULInstVisitor : public TextInstVisitor {
     {
         *fOut << "// " << inst->fLabel;
         EndLine(' ');
-        if (gGlobal->gOutputLang == "soul-poly") {
+        if (gGlobal->gOutputLang == "cmajor-poly") {
             *fOut << "event event_" << replaceCharList(inst->fLabel, gReplace, '_') << " ("
                   << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone
                   << " = val; fUpdated = true; }";
-        } else if (gGlobal->gOutputLang == "soul-hybrid") {
-            string soul_meta = getSoulMatadata();
-            *fOut << "event " << ((soul_meta != "") ? soul_meta : replaceCharList(inst->fLabel, gReplace, '_'))
+        } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
+            string cmajor_meta = getCmajorMetadata();
+            *fOut << "event " << ((cmajor_meta != "") ? cmajor_meta : replaceCharList(inst->fLabel, gReplace, '_'))
                   << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
                   << inst->fZone << " = val; fUpdated = true; }";
             fMetaAux.clear();
@@ -383,13 +383,13 @@ class SOULInstVisitor : public TextInstVisitor {
               << ", min = " << checkReal(inst->fMin) << ", max = " << checkReal(inst->fMax)
               << ", step = " << checkReal(inst->fStep) << "]";
         EndLine(' ');
-        if (gGlobal->gOutputLang == "soul-poly") {
+        if (gGlobal->gOutputLang == "cmajor-poly") {
             *fOut << "event event_" << replaceCharList(inst->fLabel, gReplace, '_') << " ("
                   << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone
                   << " = val; fUpdated = true; }";
-        } else if (gGlobal->gOutputLang == "soul-hybrid") {
-            string soul_meta = getSoulMatadata();
-            *fOut << "event " << ((soul_meta != "") ? soul_meta : replaceCharList(inst->fLabel, gReplace, '_'))
+        } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
+            string cmajor_meta = getCmajorMetadata();
+            *fOut << "event " << ((cmajor_meta != "") ? cmajor_meta : replaceCharList(inst->fLabel, gReplace, '_'))
                   << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
                   << inst->fZone << " = val; fUpdated = true; }";
             fMetaAux.clear();
@@ -410,7 +410,7 @@ class SOULInstVisitor : public TextInstVisitor {
     virtual void visit(AddSoundfileInst* inst)
     {
         // Not supported for now
-        throw faustexception("ERROR : 'soundfile' primitive not yet supported for SOUL\n");
+        throw faustexception("ERROR : 'soundfile' primitive not yet supported for Cmajor\n");
     }
     
     virtual void visit(DeclareVarInst* inst)
@@ -453,7 +453,7 @@ class SOULInstVisitor : public TextInstVisitor {
                 indexed->getIndex()->accept(this);
                 *fOut << "]";
             } else {
-                // wrap code is automatically added by the SOUL compiler (and the same if [idex] syntax is used)
+                // wrap code is automatically added by the Cmajor compiler (and the same if [idex] syntax is used)
                 *fOut << ".at (";
                 indexed->getIndex()->accept(this);
                 *fOut << ")";
@@ -466,7 +466,7 @@ class SOULInstVisitor : public TextInstVisitor {
         // special case for 'output' considered as a 'stream'
         if (startWith(inst->fAddress->getName(), "output")) {
             inst->fAddress->accept(this);
-            *fOut << " << ";
+            *fOut << " <- ";
             inst->fValue->accept(this);
             EndLine();
             // special case for 'bargraph' considered as an 'output event'
@@ -486,7 +486,7 @@ class SOULInstVisitor : public TextInstVisitor {
                 *fOut << "if (fControlSlice == 0) { ";
                 *fOut << "event";
                 inst->fAddress->accept(this);
-                *fOut << " << ";
+                *fOut << " <- ";
                 inst->fAddress->accept(this);
                 *fOut << "; }";
                 tab(fTab, *fOut);
@@ -597,7 +597,7 @@ class SOULInstVisitor : public TextInstVisitor {
             *fOut << "int (";
         }
 
-        // Hack to make it work again with 'soul' version 0.0.6
+        // Hack to make it work again with 'cmajor' version 0.0.6
         if (isLogicalOpcode(inst->fOpcode)) {
             Typed::VarType type = TypingVisitor::getType(inst->fInst1);
             if (isInt64Type(type)) {
@@ -613,7 +613,7 @@ class SOULInstVisitor : public TextInstVisitor {
         inst->fInst1->accept(this);
         if (cond1) *fOut << ")";
 
-        // Hack to make it work again with 'soul' version 0.0.6
+        // Hack to make it work again with 'cmajor' version 0.0.6
         if (isLogicalOpcode(inst->fOpcode)) {
             *fOut << ")";
         }
@@ -622,7 +622,7 @@ class SOULInstVisitor : public TextInstVisitor {
         *fOut << gBinOpTable[inst->fOpcode]->fName;
         *fOut << " ";
 
-        // Hack to make it work again with 'soul' version 0.0.6
+        // Hack to make it work again with 'cmajor' version 0.0.6
         if (isLogicalOpcode(inst->fOpcode)) {
             Typed::VarType type = TypingVisitor::getType(inst->fInst2);
             if (isInt64Type(type)) {
@@ -638,7 +638,7 @@ class SOULInstVisitor : public TextInstVisitor {
         inst->fInst2->accept(this);
         if (cond2) *fOut << ")";
 
-        // Hack to make it work again with 'soul' version 0.0.6
+        // Hack to make it work again with 'cmajor' version 0.0.6
         if (isLogicalOpcode(inst->fOpcode)) {
             *fOut << ")";
         }
@@ -697,9 +697,9 @@ class SOULInstVisitor : public TextInstVisitor {
 };
 
 // For subcontainers: variable access is specific
-class SOULSubContainerInstVisitor : public SOULInstVisitor {
+class CmajorSubContainerInstVisitor : public CmajorInstVisitor {
    public:
-    SOULSubContainerInstVisitor(std::ostream* out, int tab = 0) : SOULInstVisitor(out, tab) {}
+    CmajorSubContainerInstVisitor(std::ostream* out, int tab = 0) : CmajorInstVisitor(out, tab) {}
 
     virtual void visit(NamedAddress* named)
     {

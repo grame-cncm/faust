@@ -3,8 +3,8 @@ set -e
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to SOUL                     #
-#               (c) Grame, 2019                                     #
+#               Compiles Faust programs to Cmajor                   #
+#               (c) Grame, 2019-2022                                #
 #                                                                   #
 #####################################################################
 
@@ -12,7 +12,7 @@ set -e
 . faustoptflags
 . usage.sh
 
-ARCHFILE=$FAUSTARCH/soul/minimal.soul
+ARCHFILE=$FAUSTARCH/cmajor/minimal.cmajor
 
 #-------------------------------------------------------------------
 # dispatch command arguments
@@ -25,15 +25,15 @@ OPTIONS=""
 PLAY="false"
 JUCE="false"
 MIDI="false"
-SOUL_EXT="soul";
+CMAJ_EXT="cmajor";
 
 while [ $1 ]
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2soul "[options] [Faust options] <file.dsp>"
-        echo  "Compiles Faust programs to SOUL"
+        usage faust2cmajor "[options] [Faust options] <file.dsp>"
+        echo  "Compiles Faust programs to Cmajor"
         option
         option -midi
         option "-nvoices <num>"
@@ -41,17 +41,17 @@ do
         option "-effect auto"
         option -juce "to create a JUCE project"
         option -dsp "to create a 'dsp' compatible subclass"
-        option -play "to start the 'soul' runtime with the generated SOUL file"
+        option -play "to start the 'cmaj' runtime with the generated Cmajor file"
         option "Faust options"
         exit
     fi
 
     if [ $p = "-nvoices" ]; then
-          ARCHFILE=$FAUSTARCH/soul/poly-dsp.soul
+        ARCHFILE=$FAUSTARCH/cmajor/poly-dsp.cmajor
         shift
         NVOICES=$1
     elif [ $p = "-effect" ]; then
-        ARCHFILE=$FAUSTARCH/soul/poly-dsp-effect.soul
+        ARCHFILE=$FAUSTARCH/cmajor/poly-dsp-effect.cmajor
         POLY="POLY2"
         shift
         EFFECT=$1
@@ -63,7 +63,7 @@ do
     elif [ $p = "-juce" ]; then
         JUCE="true"
     elif [ $p = "-dsp" ]; then
-        SOUL_EXT="soul-dsp"
+        CMAJ_EXT="cmajor-dsp"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
@@ -76,27 +76,25 @@ shift
 
 done
 
-createSOULPatch()
+createCmajorPatch()
 {
     (
-    echo '{'
-    echo -e '\t"soulPatchV1":'
-    echo -e '\t{'
-    echo -e "\t\t\"ID\": \"grame.soul.$1\","
-    echo -e '\t\t"version": "1.0",'
-    echo -e "\t\t\"name\": \"$1\","
-    echo -e '\t\t"description": "SOUL example",'
-    echo -e '\t\t"category": "synth",'
-    echo -e '\t\t"manufacturer": "GRAME",'
-    echo -e '\t\t"website": "https://faust.grame.fr",'
+    echo -e '{'
+    echo -e "\t\"CmajorVersion\": 1,"
+    echo -e "\t\"ID\": \"grame.cmajor.$1\","
+    echo -e '\t"version": "1.0",'
+    echo -e "\t\"name\": \"$1\","
+    echo -e '\t"description": "Cmajor example",'
+    echo -e '\t"category": "synth",'
+    echo -e '\t"manufacturer": "GRAME",'
+    echo -e '\t"website": "https://faust.grame.fr",'
     if [ $MIDI = "true" ]; then
-        echo -e '\t\t"isInstrument": true,'
+        echo -e '\t"isInstrument": true,'
     else
-        echo -e '\t\t"isInstrument": false,'
+        echo -e '\t"isInstrument": false,'
     fi
-    echo -e "\t\t\"source\": \"$1.soul\""
-    echo -e '\t}'
-    echo '}'
+    echo -e "\t\"source\": \"$1.cmajor\""
+    echo -e '}'
     ) > "$2"
 }
 
@@ -116,7 +114,7 @@ for p in $FILES; do
     TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
 
-    # compile Faust to SOUL
+    # compile Faust to Cmajor
     if [ $POLY = "POLY2" ]; then
        if [ $EFFECT = "auto" ]; then
             cat > $TMP/effect.dsp << EndOfCode
@@ -127,46 +125,46 @@ for p in $FILES; do
             adaptor(F,G) = adapt(outputs(F),inputs(G));
             process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
 EndOfCode
-            faust -lang soul-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
-            faust -lang $SOUL_EXT -cn effect "$TMP/effect.dsp" -o "$TMP/effect.soul" || exit
+            faust -lang cmajor-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.cmajor" || exit
+            faust -lang $CMAJ_EXT -cn effect "$TMP/effect.dsp" -o "$TMP/effect.cmajor" || exit
         else
-            faust -lang soul-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
-            faust -lang $SOUL_EXT -cn effect "$SRCDIR/$EFFECT" -o "$TMP/effect.soul" || exit
+            faust -lang cmajor-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.cmajor" || exit
+            faust -lang $CMAJ_EXT -cn effect "$SRCDIR/$EFFECT" -o "$TMP/effect.cmajor" || exit
         fi
-        cat "$TMP/effect.soul" > "$TMP/${f%.dsp}.soul"
-        sed -e "s/NVOICES/"$NVOICES"/g" "$TMP/${f%.dsp}_tmp1.soul" >> "$TMP/${f%.dsp}_tmp2.soul"
-        cat "$TMP/${f%.dsp}_tmp2.soul" >> "$TMP/${f%.dsp}.soul"
+        cat "$TMP/effect.cmajor" > "$TMP/${f%.dsp}.cmajor"
+        sed -e "s/NVOICES/"$NVOICES"/g" "$TMP/${f%.dsp}_tmp1.cmajor" >> "$TMP/${f%.dsp}_tmp2.cmajor"
+        cat "$TMP/${f%.dsp}_tmp2.cmajor" >> "$TMP/${f%.dsp}.cmajor"
     else
         if [ $NVOICES != -1 ]; then
-            faust -lang soul-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
+            faust -lang cmajor-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.cmajor" || exit
         else
-            faust -lang $SOUL_EXT -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.soul" || exit
+            faust -lang $CMAJ_EXT -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.cmajor" || exit
         fi
-        sed -e "s/NVOICES/"$NVOICES"/g" "$TMP/${f%.dsp}_tmp1.soul" >> "$TMP/${f%.dsp}.soul"
+        sed -e "s/NVOICES/"$NVOICES"/g" "$TMP/${f%.dsp}_tmp1.cmajor" >> "$TMP/${f%.dsp}.cmajor"
     fi
 
     # create patch
-    createSOULPatch "${f%.dsp}" "${f%.dsp}.soulpatch"
-
-    rm -f $p.json "$TMP/${f%.dsp}_tmp1.soul" "$TMP/${f%.dsp}_tmp2.soul" "$TMP/effect.dsp"
-    cp -r  "$TMP/${f%.dsp}.soul" "$SRCDIR/${f%.dsp}.soul"
+    createCmajorPatch "${f%.dsp}" "${f%.dsp}.cmajorpatch"
+    
+    rm -f $p.json "$TMP/${f%.dsp}_tmp1.cmajor" "$TMP/${f%.dsp}_tmp2.cmajor" "$TMP/effect.dsp"
+    cp -r "$TMP/${f%.dsp}.cmajor" "$SRCDIR/${f%.dsp}.cmajor"
     rm -rf "$TDR"
 
     #  create final folder
     rm -rf "$SRCDIR/$dspName"
     mkdir "$SRCDIR/$dspName"
-    mv "$SRCDIR/${f%.dsp}.soul" "$SRCDIR/$dspName"
-    mv "${f%.dsp}.soulpatch" "$SRCDIR/$dspName"
-
+    mv "$SRCDIR/${f%.dsp}.cmajor" "$SRCDIR/$dspName"
+    mv "${f%.dsp}.cmajorpatch" "$SRCDIR/$dspName"
+    
     if [ $PLAY = "true" ] ; then
-        soul play "$SRCDIR/$dspName"
+        cmaj play "$SRCDIR/$dspName/${f%.dsp}.cmajorpatch"
     fi
 
     # collect binary file name for FaustGIDE
-    BINARIES="$SRCDIR/$dspName/${f%.dsp}.soul;$SRCDIR/$dspName/${f%.dsp}.soulpatch"
-
+    BINARIES="$SRCDIR/$dspName/${f%.dsp}.cmajor;$SRCDIR/$dspName/${f%.dsp}.cmajorpatch"
+      
     if [ $JUCE = "true" ] ; then
-        soul generate --juce "$SRCDIR/$dspName/${f%.dsp}.soulpatch" --output="$SRCDIR/$dspName/${f%.dsp}"
+        cmaj generate --juce "$SRCDIR/$dspName/${f%.dsp}.cmajorpatch" --output="$SRCDIR/$dspName/${f%.dsp}"
         BINARIES="$BINARIES;$SRCDIR/$dspName/${f%.dsp}"
     fi
 

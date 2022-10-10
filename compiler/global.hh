@@ -546,7 +546,7 @@ struct global {
     JuliaInstVisitor* gJuliaVisitor;
 #endif
 
-#ifdef SOUL_BUILD
+#ifdef CMAJOR_BUILD
     TableSizeVisitor* gTableSizeVisitor;
 #endif
 

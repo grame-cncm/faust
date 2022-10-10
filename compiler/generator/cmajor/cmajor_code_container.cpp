@@ -19,59 +19,59 @@
  ************************************************************************
  ************************************************************************/
 
-#include "soul_code_container.hh"
+#include "cmajor_code_container.hh"
 #include "global.hh"
 
 using namespace std;
 
 /*
- SOUL backend description:
+ Cmajor backend description:
 
  - sub-containers are compiled as 'struct' with associated functions
- - classInit is a Processor method for now (waiting for the SOUL external model to be ready)
+ - classInit is a Processor method for now (waiting for the Cmajor external model to be ready)
  - 'faustpower' function fallbacks to regular 'pow' (see powprim.h)
  - 'boolean' type:
     - are casted to 'int' (for indexes...) and kept for tests (in SelectInst...).
     - 'int' results are casted to 'bool' for tests (in SelectInst...).
-    - see the SOULInstVisitor fIntAsBool variable.
+    - see the CmajorInstVisitor fIntAsBool variable.
  - the 'fillXXX' function needs to generate the actual size of the table argument type. This is done using the
  TableSizeVisitor class.
  - bargraphs use 'output event' type and are outputting values at 50 Hz. The code is conditionally generated.
 */
 
-dsp_factory_base* SOULCodeContainer::produceFactory()
+dsp_factory_base* CmajorCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
         fKlassName, "", "", ((static_cast<ostringstream*>(fOut)) ? static_cast<ostringstream*>(fOut)->str() : ""), "");
 }
 
-CodeContainer* SOULCodeContainer::createScalarContainer(const string& name, int sub_container_type)
+CodeContainer* CmajorCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new SOULScalarCodeContainer(name, 0, 1, sub_container_type, fOut);
+    return new CmajorScalarCodeContainer(name, 0, 1, sub_container_type, fOut);
 }
 
-CodeContainer* SOULCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
+CodeContainer* CmajorCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
 {
     CodeContainer* container;
 
     if (gGlobal->gOpenMPSwitch) {
-        throw faustexception("ERROR : OpenMP not supported for SOUL\n");
+        throw faustexception("ERROR : OpenMP not supported for Cmajor\n");
     } else if (gGlobal->gSchedulerSwitch) {
-        throw faustexception("ERROR : Scheduler not supported for SOUL\n");
+        throw faustexception("ERROR : Scheduler not supported for Cmajor\n");
     } else if (gGlobal->gVectorSwitch) {
-        throw faustexception("ERROR : Vector mode not supported for SOUL\n");
-        // container = new SOULVectorCodeContainer(name, numInputs, numOutputs, dst);
+        throw faustexception("ERROR : Vector mode not supported for Cmajor\n");
+        // container = new CmajorVectorCodeContainer(name, numInputs, numOutputs, dst);
     } else {
-        container = new SOULScalarCodeContainer(name, numInputs, numOutputs, kInt, dst);
+        container = new CmajorScalarCodeContainer(name, numInputs, numOutputs, kInt, dst);
     }
 
     return container;
 }
 
-void SOULCodeContainer::produceInternal()
+void CmajorCodeContainer::produceInternal()
 {
     int n = 0;
-    SOULSubContainerInstVisitor struct_visitor(fOut);
+    CmajorSubContainerInstVisitor struct_visitor(fOut);
 
     // Global declarations
     generateGlobalDeclarations(&struct_visitor);
@@ -144,10 +144,10 @@ void SOULCodeContainer::produceInternal()
     tab(n + 1, *fOut);
 }
 
-void SOULCodeContainer::produceInit(int tabs)
+void CmajorCodeContainer::produceInit(int tabs)
 {
     tab(tabs, *fOut);
-    *fOut << "void init ()";
+    *fOut << "void init()";
     tab(tabs, *fOut);
     *fOut << "{";
     tab(tabs + 1, *fOut);
@@ -183,7 +183,7 @@ void SOULCodeContainer::produceInit(int tabs)
     tab(tabs, *fOut);
 }
 
-void SOULCodeContainer::produceClass()
+void CmajorCodeContainer::produceClass()
 {
     int n = 0;
    
@@ -201,7 +201,7 @@ void SOULCodeContainer::produceClass()
     tab(n + 1, *fOut);
     fCodeProducer.Tab(n + 1);
     
-    if (gGlobal->gOutputLang == "soul-dsp") {
+    if (gGlobal->gOutputLang == "cmajor-dsp") {
         string json = generateJSONAux();
         *fOut << "// Event used to call additional methods";
         tab(n + 1, *fOut);
@@ -255,7 +255,7 @@ void SOULCodeContainer::produceClass()
     
     /*
     // Debug version
-    if (gGlobal->gOutputLang == "soul-dsp") {
+    if (gGlobal->gOutputLang == "cmajor-dsp") {
         *fOut << "// Event handler used to call additional methods";
         tab(n + 1, *fOut);
         *fOut << "event eventbuildUserInterface (int dummy) { console << \"eventbuildUserInterface\n\"; }";
@@ -272,7 +272,7 @@ void SOULCodeContainer::produceClass()
     }
     */
     
-    if (gGlobal->gOutputLang == "soul-dsp") {
+    if (gGlobal->gOutputLang == "cmajor-dsp") {
         *fOut << "// Event handler used to call additional methods";
         tab(n + 1, *fOut);
         *fOut << "event eventbuildUserInterface (int dummy) {}";
@@ -393,10 +393,10 @@ void SOULCodeContainer::produceClass()
     *fOut << "}" << endl;
 }
 
-void SOULScalarCodeContainer::generateCompute(int n)
+void CmajorScalarCodeContainer::generateCompute(int n)
 {
     tab(n, *fOut);
-    *fOut << "void run()";
+    *fOut << "void main()";
     tab(n, *fOut);
     *fOut << "{";
     tab(n + 1, *fOut);
@@ -437,10 +437,10 @@ void SOULScalarCodeContainer::generateCompute(int n)
     *fOut << "}" << endl;
 }
 
-void SOULVectorCodeContainer::generateCompute(int n)
+void CmajorVectorCodeContainer::generateCompute(int n)
 {
     tab(n, *fOut);
-    *fOut << "void run()";
+    *fOut << "void main()";
     tab(n, *fOut);
     *fOut << "{";
     tab(n + 1, *fOut);

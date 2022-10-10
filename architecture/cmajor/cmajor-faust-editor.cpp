@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2021 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2021-2022 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -27,7 +27,7 @@
 #include <unistd.h>
 #include <efsw/efsw.h>
 
-#include "faust/dsp/soulpatch-dsp.h"
+#include "cmajor-tools.h"
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/misc.h"
 
@@ -76,15 +76,15 @@ struct HybridEditor {
     void compilePatch()
     {
         cout << "compilePatch : '" << fInFilename << "' to '" << fOutFilename << "' and '" << fOutFilename + "patch'" << endl;
-        // We have a pure SOUL file or a Faust/SOUL file, parse it, compile the Faust part to SOUL, generate the SOUL result
-        faust_soul_parser parser;
-        if (!parser.parseSOULFile(fInFilename, fOutFilename, fArgc1, fArgv1)) {
+        // We have a pure Cmajor file or a Faust/Cmajor file, parse it, compile the Faust part to Cmajor, generate the Cmajor result
+        faust_cmajor_parser parser;
+        if (!parser.parseCmajorFile(fInFilename, fOutFilename, fArgc1, fArgv1)) {
             cerr << "ERROR : file '" << fInFilename << "' cannot be opened or compiled!\n";
             return;
         }
         
-        // Generate "soulpatch" file
-        parser.createSOULPatch(fOutFilename);
+        // Generate "cmajorpatch" file
+        parser.createCmajorPatch(fOutFilename);
     }
     
     static void watchCallback(efsw_watcher watcher,
@@ -112,17 +112,17 @@ struct HybridEditor {
 int main(int argc, char* argv[])
 {
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "Copyright (c) 2021 Grame, version 0.1" << endl;
-        cout << "Usage: soul-faust-editor [Faust options : any option (e.g. -ftz 1...)] <foo.soul> -o <output.soul>" << endl;
+        cout << "Copyright (c) 2021-2022 Grame, version 0.2" << endl;
+        cout << "Usage: cmajor-faust-editor [Faust options : any option (e.g. -ftz 1...)] <foo.cmajor> -o <output.cmajor>" << endl;
         exit(-1);
     }
     
     string in_filename;
-    string out_filename = "hybrid.soul";
+    string out_filename = "hybrid.cmajor";
     int argc1 = 0;
     const char* argv1[64];
     for (int i = 1; i < argc; i++) {
-        if (endWith(string(argv[i]), ".soul")) {
+        if (endWith(string(argv[i]), ".cmajor")) {
             in_filename = argv[i];
             continue;
         } else if (string(argv[i]) == "-o") {
@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
     
     cout << "Libfaust version : " << getCLibFaustVersion() << endl;
     
-    if (endWith(in_filename, "soul")) {
+    if (endWith(in_filename, "cmajor")) {
         HybridEditor editor(in_filename, out_filename, argc1, argv1);
     } else {
         cout << "ERROR : incorrect file type" << endl;

@@ -242,11 +242,11 @@ class RustStringTypeManager : public StringTypeManager {
     }
 };
 
-// StringTypeManager for SOUL backend
+// StringTypeManager for CMajor backend
 
-class SOULStringTypeManager : public StringTypeManager {
+class CmajorStringTypeManager : public StringTypeManager {
    public:
-    SOULStringTypeManager(const std::string& float_macro_name, const std::string& ptr_ref)
+    CmajorStringTypeManager(const std::string& float_macro_name, const std::string& ptr_ref)
         : StringTypeManager(float_macro_name, ptr_ref)
     {
         fPtrRef = ptr_ref;
