@@ -19,12 +19,12 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _SOUL_CODE_CONTAINER_H
-#define _SOUL_CODE_CONTAINER_H
+#ifndef _CMAJ_CODE_CONTAINER_H
+#define _CMAJ_CODE_CONTAINER_H
 
 #include "code_container.hh"
 #include "omp_code_container.hh"
-#include "soul_instructions.hh"
+#include "cmajor_instructions.hh"
 #include "vec_code_container.hh"
 #include "wss_code_container.hh"
 
@@ -75,10 +75,10 @@ struct TableSizeCloneVisitor : public BasicCloneVisitor {
 
 };
 
-class SOULCodeContainer : public virtual CodeContainer {
+class CmajorCodeContainer : public virtual CodeContainer {
    protected:
-    SOULInstVisitor fCodeProducer;
-    SOULInstUIVisitor fUIVisitor;
+    CmajorInstVisitor fCodeProducer;
+    CmajorInstUIVisitor fUIVisitor;
     std::ostream*   fOut;
 
     void produceInit(int tabs);
@@ -86,7 +86,7 @@ class SOULCodeContainer : public virtual CodeContainer {
     virtual void printHeader() { CodeContainer::printHeader(*fOut); }
 
    protected:
-    SOULCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out) : fCodeProducer(out), fOut(out)
+    CmajorCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out) : fCodeProducer(out), fOut(out)
     {
         initialize(numInputs, numOutputs);
         fKlassName = name;
@@ -107,11 +107,11 @@ class SOULCodeContainer : public virtual CodeContainer {
     static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, ostream* dst);
 };
 
-class SOULScalarCodeContainer : public SOULCodeContainer {
+class CmajorScalarCodeContainer : public CmajorCodeContainer {
    private:
    public:
-    SOULScalarCodeContainer(const string& name, int numInputs, int numOutputs, int sub_container_type, ostream* dst)
-        : SOULCodeContainer(name, numInputs, numOutputs, dst)
+    CmajorScalarCodeContainer(const string& name, int numInputs, int numOutputs, int sub_container_type, ostream* dst)
+        : CmajorCodeContainer(name, numInputs, numOutputs, dst)
     {
         fSubContainerType = sub_container_type;
     }
@@ -119,11 +119,11 @@ class SOULScalarCodeContainer : public SOULCodeContainer {
     void generateCompute(int tab);
 };
 
-class SOULVectorCodeContainer : public VectorCodeContainer, public SOULCodeContainer {
+class CmajorVectorCodeContainer : public VectorCodeContainer, public CmajorCodeContainer {
    private:
    public:
-    SOULVectorCodeContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
-        : VectorCodeContainer(numInputs, numOutputs), SOULCodeContainer(name, numInputs, numOutputs, dst)
+    CmajorVectorCodeContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
+        : VectorCodeContainer(numInputs, numOutputs), CmajorCodeContainer(name, numInputs, numOutputs, dst)
     {
     }
 

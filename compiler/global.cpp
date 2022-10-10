@@ -457,9 +457,9 @@ void global::reset()
 #ifdef JULIA_BUILD
     gJuliaVisitor = nullptr;  // Will be (possibly) allocated in Julia backend
 #endif
-    
-#ifdef SOUL_BUILD
-    gTableSizeVisitor = nullptr;  // Will be (possibly) allocated in SOUL backend
+
+#ifdef CMAJOR_BUILD
+    gTableSizeVisitor = nullptr;  // Will be (possibly) allocated in Cmajor backend
 #endif
     
 #ifdef JAX_BUILD
@@ -791,10 +791,9 @@ bool global::hasForeignFunction(const string& name, const string& inc_file)
 #else
     bool is_linkable = false;
 #endif
-
     bool internal_math_ff =
         ((gOutputLang == "llvm") || startWith(gOutputLang, "wast") || startWith(gOutputLang, "wasm") ||
-         (gOutputLang == "interp") || startWith(gOutputLang, "soul") || (gOutputLang == "dlang") ||
+         (gOutputLang == "interp") || startWith(gOutputLang, "cmajor") || (gOutputLang == "dlang") ||
          (gOutputLang == "csharp") || (gOutputLang == "rust") || (gOutputLang == "julia") ||
          (gOutputLang == "jax"));
 

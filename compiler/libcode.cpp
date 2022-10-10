@@ -77,6 +77,10 @@
 #include "cpp_gpu_code_container.hh"
 #endif
 
+#ifdef CMAJOR_BUILD
+#include "cmajor_code_container.hh"
+#endif
+
 #ifdef CSHARP_BUILD
 #include "csharp_code_container.hh"
 #endif
@@ -118,10 +122,6 @@
 
 #ifdef RUST_BUILD
 #include "rust_code_container.hh"
-#endif
-
-#ifdef SOUL_BUILD
-#include "soul_code_container.hh"
 #endif
 
 #ifdef WASM_BUILD
@@ -167,6 +167,10 @@ static void enumBackends(ostream& out)
     out << dspto << "C++" << endl;
 #endif
 
+#ifdef CMAJOR_BUILD
+    out << dspto << "Cmajor" << endl;
+#endif
+
 #ifdef CSHARP_BUILD
     out << dspto << "CSharp" << endl;
 #endif
@@ -205,10 +209,6 @@ static void enumBackends(ostream& out)
 
 #ifdef RUST_BUILD
     out << dspto << "Rust" << endl;
-#endif
-
-#ifdef SOUL_BUILD
-    out << dspto << "SOUL" << endl;
 #endif
 
 #ifdef WASM_BUILD
@@ -753,17 +753,17 @@ static bool processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : 'ocpp' backend can only be used in scalar mode\n");
     }
 #endif
-    if (gGlobal->gOneSample >= 0 && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "c" &&
-        gGlobal->gOutputLang != "dlang" && !startWith(gGlobal->gOutputLang, "soul") && gGlobal->gOutputLang != "fir") {
-        throw faustexception("ERROR : '-os' option cannot only be used with 'cpp', 'c', 'fir' or 'soul' backends\n");
+    if (gGlobal->gOneSample >= 0 && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "c" && gGlobal->gOutputLang != "dlang" &&
+        !startWith(gGlobal->gOutputLang, "cmajor") && gGlobal->gOutputLang != "fir") {
+        throw faustexception("ERROR : '-os' option cannot only be used with 'cpp', 'c', 'fir' or 'cmajor' backends\n");
     }
 
     if (gGlobal->gOneSample >= 0 && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : '-os' option cannot only be used in scalar mode\n");
     }
 
-    if (gGlobal->gFTZMode == 2 && gGlobal->gOutputLang == "soul") {
-        throw faustexception("ERROR : '-ftz 2' option cannot be used in 'soul' backend\n");
+    if (gGlobal->gFTZMode == 2 && gGlobal->gOutputLang == "cmajor") {
+        throw faustexception("ERROR : '-ftz 2' option cannot be used in 'cmajor' backend\n");
     }
 
     if (gGlobal->gVectorLoopVariant < 0 || gGlobal->gVectorLoopVariant > 1) {
@@ -810,8 +810,8 @@ static bool processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : -cm cannot be used with the 'interp' backend\n");
     }
 
-    if (gGlobal->gComputeMix && gGlobal->gOutputLang == "soul") {
-        throw faustexception("ERROR : -cm cannot be used with the 'soul' backend\n");
+    if (gGlobal->gComputeMix && gGlobal->gOutputLang == "cmajor") {
+        throw faustexception("ERROR : -cm cannot be used with the 'cmajor' backend\n");
     }
 
     if (gGlobal->gFloatSize == 4 && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "ocpp" &&
@@ -836,7 +836,7 @@ static bool processCmdline(int argc, const char* argv[])
     if (gGlobal->gArchFile != "" &&
         ((gGlobal->gOutputLang == "wast") || (gGlobal->gOutputLang == "wasm") || (gGlobal->gOutputLang == "interp") ||
          (gGlobal->gOutputLang == "llvm") || (gGlobal->gOutputLang == "fir"))) {
-        throw faustexception("ERROR : -a can only be used with 'c', 'cpp', 'ocpp', 'rust' and 'soul' backends\n");
+        throw faustexception("ERROR : -a can only be used with 'c', 'cpp', 'ocpp', 'rust' and 'cmajor' backends\n");
     }
 
     if (gGlobal->gClassName == "") {
@@ -942,9 +942,8 @@ static void printHelp()
     cout << endl << "Code generation options:" << line;
     cout << tab << "-lang <lang> --language                 select output language," << endl;
     cout << tab
-         << "                                        'lang' should be c, cpp (default), csharp, dlang, fir, interp, "
-            "java, jax, julia, llvm, "
-            "ocpp, rust, soul or wast/wasm."
+         << "                                        'lang' should be c, cpp (default), cmajor, csharp, dlang, fir, interp, java, jax, julia, llvm, "
+            "ocpp, rust or wast/wasm."
          << endl;
     cout << tab
          << "-single     --single-precision-floats   use single precision floats for internal computations (default)."
@@ -1629,9 +1628,9 @@ static void compileCSharp(Tree signals, int numInputs, int numOutputs, ostream* 
 #endif
 }
 
-static void compileSOUL(Tree signals, int numInputs, int numOutputs, ostream* out)
+static void compileCmajor(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
-#ifdef SOUL_BUILD
+#ifdef CMAJOR_BUILD
     gGlobal->gAllowForeignFunction = false;  // No foreign functions
     gGlobal->gAllowForeignConstant = false;  // No foreign constant
     gGlobal->gAllowForeignVar      = false;  // No foreign variable
@@ -1642,9 +1641,7 @@ static void compileSOUL(Tree signals, int numInputs, int numOutputs, ostream* ou
     // "one sample control" model by default;
     gGlobal->gOneSampleControl = true;
     gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
-
-    container = SOULCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
-
+    container = CmajorCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
     if (gGlobal->gVectorSwitch) {
         new_comp = new DAGInstructionsCompiler(container);
     } else {
@@ -1654,7 +1651,7 @@ static void compileSOUL(Tree signals, int numInputs, int numOutputs, ostream* ou
     if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
     new_comp->compileMultiSignal(signals);
 #else
-    throw faustexception("ERROR : -lang soul not supported since SOUL backend is not built\n");
+    throw faustexception("ERROR : -lang cmajor not supported since Cmajor backend is not built\n");
 #endif
 }
 
@@ -2010,8 +2007,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         compileJulia(signals, numInputs, numOutputs, dst.get());
     } else if (gGlobal->gOutputLang == "csharp") {
         compileCSharp(signals, numInputs, numOutputs, dst.get());
-    } else if (startWith(gGlobal->gOutputLang, "soul")) {
-        compileSOUL(signals, numInputs, numOutputs, dst.get());
+    } else if (startWith(gGlobal->gOutputLang, "cmajor")) {
+        compileCmajor(signals, numInputs, numOutputs, dst.get());
     } else if (startWith(gGlobal->gOutputLang, "wast")) {
         compileWAST(signals, numInputs, numOutputs, dst.get(), outpath);
     } else if (startWith(gGlobal->gOutputLang, "wasm")) {

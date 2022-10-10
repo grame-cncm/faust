@@ -75,7 +75,7 @@ help:
 	@echo " 'interp' : check double output with interpreter backend and various options"
 	@echo " 'interp1' : check double output with interpreter/(llvm or MIR) backend and various options"
 	@echo " 'rust'   : check double output with rust backend and various options"
-	@echo " 'soul'   : check double output with soul backend and various options"
+	@echo " 'cmajor' : check double output with cmajor backend and various options"
 	@echo " 'dlang'  : check double output with D backend and various options"
 	@echo " 'jax'    : check double output with JAX backend and various options"
 	@echo " 'julia'  : check double output with Julia backend and various options"
@@ -356,11 +356,11 @@ rust:
 	$(MAKE) -f Make.rust   FAUSTOPTIONS="-I dsp -double -fp"
 
 #########################################################################
-# SOUL backend
-soul:
-	$(MAKE) -f Make.soul soul outdir=soul/double       FAUSTOPTIONS=" -I dsp -double"
-	$(MAKE) -f Make.soul soul outdir=soul/double/lp    FAUSTOPTIONS=" -I dsp -double -fp"
-	$(MAKE) -f Make.soul soul outdir=soul/double/mapp  FAUSTOPTIONS=" -I dsp -double -mapp"
+# Cmajor backend
+cmajor:
+	$(MAKE) -f Make.cmajor cmajor outdir=cmajor       FAUSTOPTIONS=" -I dsp -double"
+	$(MAKE) -f Make.cmajor cmajor outdir=cmajor/fp    FAUSTOPTIONS=" -I dsp -double -fp"
+	$(MAKE) -f Make.cmajor cmajor outdir=cmajor/mapp  FAUSTOPTIONS=" -I dsp -double -mapp"
 
 #########################################################################
 # D backend

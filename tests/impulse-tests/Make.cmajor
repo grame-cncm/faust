@@ -1,5 +1,5 @@
 #
-# Makefile for generating ir using SOUL  
+# Makefile for generating ir using Cmajor  
 #
 
 system := $(shell uname -s)
@@ -14,10 +14,10 @@ endif
 MAKE ?= make
 
 GCCOPTIONS := -Ofast -I../../architecture -Iarchs -pthread -std=c++17
-outdir ?= soul/double
+outdir ?= cmajor/double
 lang ?= cpp
 ext  ?= o
-arch ?= impulsesoul.cpp
+arch ?= impulsecmajor.cpp
 precision ?=		# filesCompare precision (empty by default)
 FAUSTOPTIONS ?= 
 
@@ -29,7 +29,7 @@ listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir)
 SRCDIR := tools
 
 #########################################################################
-soul: ir/$(outdir) $(call listfiles,$(outdir))
+cmajor: ir/$(outdir) $(call listfiles,$(outdir))
 
 test:
 	@echo $(call listfiles,$(outdir))
@@ -37,7 +37,7 @@ test:
 help:
 	@echo "-------- FAUST impulse response tests --------"
 	@echo "Available targets are:"
-	@echo " 'soul' (default): check the double output using the SOUL backend"
+	@echo " 'cmajor' (default): check the double output using the Cmajor backend"
 	@echo
 	@echo "Options:"
 	@echo " 'outdir' 	   : define the output directory (default to 'soul')"
@@ -58,15 +58,15 @@ filesCompare: $(SRCDIR)/filesCompare.cpp
 # precision issues
 
 #########################################################################
-# rules for soul
+# rules for Cmajor
 
 # Specific rule to test 'control' primitive that currently uses the -lang ocpp backend (still compiling in scalar mode...)
 ir/$(outdir)/control.ir: dsp/control.dsp reference/control.ir
-	@echo "Cannot be tested with the SOUL backend"
+	@echo "Cannot be tested with the Cmajor backend"
 	
 ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir
-	$(FAUST) -lang soul-dsp -cn souldsp $(FAUSTOPTIONS) $< -o souldsp.soul
-	soul generate --max-state-size=26214400 --cpp souldsp.soul --output=souldsp.h
-	$(CXX) $(GCCOPTIONS) archs/$(arch) -o impulsesoul
-	./impulsesoul > $@
+	$(FAUST) -lang cmajor -cn cmajordsp $(FAUSTOPTIONS) $< -o cmajordsp.cmajor
+	cmaj generate --target=cpp cmajordsp.cmajor --output=cmajordsp.h
+	$(CXX) $(GCCOPTIONS) archs/$(arch) -o impulsecmajor
+	./impulsecmajor > $@
 	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)

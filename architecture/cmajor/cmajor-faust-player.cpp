@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2019-2020 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2019-2022 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -26,24 +26,26 @@
 
 #include "faust/gui/GTKUI.h"
 #include "faust/audio/jack-dsp.h"
-#include "faust/dsp/soulpatch-dsp.h"
+#include "faust/dsp/cmajorpatch-dsp.h"
+#include "cmajor-tools.h"
 #include "faust/dsp/libfaust.h"
 #include "faust/misc.h"
 #include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
+#include <cmajor/helpers/cmaj_PatchUtilities.h>
 
 using namespace std;
 
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
-#define FAUST_FILE        "faust.soul"
-#define FAUST_PATCH_FILE  "faust.soulpatch"
+#define FAUST_FILE        "faust.cmajor"
+#define FAUST_PATCH_FILE  "faust.cmajorpatch"
 
-#define HYBRID_FILE       "hybrid.soul"
-#define HYBRID_PATCH_FILE "hybrid.soulpatch"
+#define HYBRID_FILE       "hybrid.cmajor"
+#define HYBRID_PATCH_FILE "hybrid.cmajorpatch"
 
-static bool endWith(const string& str, const string& suffix)
+inline bool endWith(const string& str, const string& suffix)
 {
     size_t i = str.rfind(suffix);
     return (i != string::npos) && (i == (str.length() - suffix.length()));
@@ -52,7 +54,7 @@ static bool endWith(const string& str, const string& suffix)
 int main(int argc, char* argv[])
 {
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "soul-faust-player <foo.dsp> (pure Faust code), <foo.soulpatch> (pure SOUL patch) or <foo.soul> (pure SOUL code or Faust/SOUL hybrid code)" << endl;
+        cout << "cmajor-faust-player <foo.dsp> (pure Faust code), <foo.cmajorpatch> (pure Cmajor patch) or <foo.cmajor> (pure Cmajor code or Faust/Cmajor hybrid code)" << endl;
         exit(-1);
     }
     
@@ -67,33 +69,34 @@ int main(int argc, char* argv[])
     
     if (endWith(filename, ".dsp")) {
         
-        // We have a pure Faust file, compile it to SOUL
-        faust_soul_parser parser;
-        if (!parser.generateSOULFile(filename, FAUST_FILE, argc1, argv1)) {
+        // We have a pure Faust file, compile it to Cmajor
+        faust_cmajor_parser parser;
+        if (!parser.generateCmajorFile(filename, FAUST_FILE, argc1, argv1)) {
             cerr << "ERROR : file '" << filename << "' cannot be opened or compiled!\n";
             exit(-1);
         }
         
-        // Generate "soulpatch" file
-        parser.createSOULPatch(FAUST_FILE);
+        // Generate "cmajorpatch" file
+        parser.createCmajorPatch(FAUST_FILE);
         real_file = FAUST_PATCH_FILE;
         
-    } else if (endWith(filename, ".soul")) {
+    } else if (endWith(filename, ".cmajor")) {
         
-        // We have a pure SOUL file or a Faust/SOUL file, parse it, compile the Faust part to SOUL, generate the SOUL result
-        faust_soul_parser parser;
-        if (!parser.parseSOULFile(filename, HYBRID_FILE, argc1, argv1)) {
+        // We have a pure Cmajor file or a Faust/Cmajor file, parse it, compile the Faust part to Cmajor, generate the Cmajor result
+        faust_cmajor_parser parser;
+        if (!parser.parseCmajorFile(filename, HYBRID_FILE, argc1, argv1)) {
             cerr << "ERROR : file '" << filename << "' cannot be opened or compiled!\n";
             exit(-1);
         }
         
-        // Generate "soulpatch" file
-        parser.createSOULPatch(HYBRID_FILE);
-        real_file = HYBRID_PATCH_FILE;
+        // Generate "cmajorpatch" file
+        parser.createCmajorPatch(HYBRID_FILE);
+        //real_file = HYBRID_PATCH_FILE;
+        real_file = HYBRID_FILE;
         
-    } else if (endWith(filename, ".soulpatch")) {
+    } else if (endWith(filename, ".cmajorpatch")) {
         
-        // We have a SOUL patchfile
+        // We have a Cmajor patchfile
         real_file = filename;
         
     } else {
@@ -103,12 +106,12 @@ int main(int argc, char* argv[])
    
     try {
         string error_msg;
-        soul_dsp_factory* factory = createSOULDSPFactoryFromFile(real_file, argc, (const char**)argv, error_msg);
+        cmajor_dsp_factory* factory = createCmajorDSPFactoryFromFile(real_file, argc, (const char**)argv, error_msg);
         if (!factory) {
             cerr << "Cannot create factory : " << error_msg;
             exit(1);
         }
-        soulpatch_dsp* DSP = factory->createDSPInstance();
+        cmajorpatch_dsp* DSP = factory->createDSPInstance();
         
         cout << "getNumInputs " << DSP->getNumInputs() << endl;
         cout << "getNumOutputs " << DSP->getNumOutputs() << endl;
@@ -136,7 +139,7 @@ int main(int argc, char* argv[])
         delete DSP;
         delete factory;
     } catch (...) {
-        cerr << "ERROR : cannot allocate soulpatch_dsp\n";
+        cerr << "ERROR : cannot allocate cmajorpatch_dsp\n";
         exit(-1);
     }
     

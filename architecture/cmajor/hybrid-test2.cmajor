@@ -2,7 +2,7 @@
 faust Osc
 {
     import("stdfaust.lib");
-    freq = hslider("freq [soul:osc_freq]", 300, 200, 2000, 0.1);
+    freq = hslider("freq [cmajor:osc_freq]", 300, 200, 2000, 0.1);
     vol = hslider("vol", 0.5, 0, 1, 0.01);
     process = os.osc(freq) * vol <: (_,_);
 }
@@ -23,11 +23,11 @@ processor Gain
     output stream float output0;
     output stream float output1;
 
-    void run() 
+    void main() 
     {
         loop {
-            output0 << input0 * volume;
-            output1 << input1 * volume;
+            output0 <- input0 * volume;
+            output1 <- input1 * volume;
             advance();
         }
     }

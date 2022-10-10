@@ -13,7 +13,7 @@ processor ClassicRingtone
 {
     output stream float out;
 
-    void run()
+    void main()
     {
         int[] pitches    = (76, 74, 66, 68, 73, 71, 62, 64, 71, 69, 61, 64, 69);
         int[] durations  = ( 1,  1,  2,  2,  1,  1,  2,  2,  1,  1,  2,  2,  4);
@@ -24,13 +24,13 @@ processor ClassicRingtone
         loop {
             for (int noteIndex = 0; noteIndex < pitches.size; ++noteIndex)
             {
-                let noteFrequency  = soul::noteNumberToFrequency (pitches.at (noteIndex));
+                let noteFrequency  = std::notes::noteToFrequency (pitches.at (noteIndex));
                 let noteLength     = samplesPerQuarterNote * durations.at (noteIndex);
                 let phaseIncrement = float (noteFrequency * twoPi * processor.period);
 
                 loop (noteLength)  // play our next note...
                 {
-                    out << 0.9f * sin (sinewavePhase);
+                    out <- 0.9f * sin (sinewavePhase);
                     sinewavePhase = addModulo2Pi (sinewavePhase, phaseIncrement);
                     advance();
                 }

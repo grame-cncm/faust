@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2019-2020 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2019-2022 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -24,12 +24,16 @@
 #include <iostream>
 #include <string>
 
-#include "faust/dsp/soulpatch-dsp.h"
+#include "faust/dsp/cmajorpatch-dsp.h"
+#include "cmajor-tools.h"
 #include "faust/dsp/dsp-optimizer.h"
 #include "faust/misc.h"
+#include "faust/dsp/interpreter-dsp.h"
 
-#define FAUST_FILE        "faust.soul"
-#define FAUST_PATCH_FILE  "faust.soulpatch"
+#define FAUST_FILE        "faust.cmajor"
+#define FAUST_PATCH_FILE  "faust.cmajorpatch"
+
+#define INTERP 1
 
 using namespace std;
 
@@ -47,28 +51,37 @@ static void measureDSP(const string& filename, dsp* DSP)
     // Buffer_size and duration in sec of measure, no trace and activated control 
     measure_dsp mes(DSP, buffer_size, 5., false, is_control);
     mes.measure();
-    cout << filename << " : " << mes.getStats() << " MBytes/sec (DSP CPU % : " << (mes.getCPULoad() * 100) << " at 44100 Hz)" << endl;
-    FAUSTBENCH_LOG<double>(mes.getStats());
+    pair<double, double> res =  mes.getStats();
+    cout << filename << " : " << res.first << " MBytes/sec (DSP CPU % : " << (mes.getCPULoad() * 100) << " at 44100 Hz)" << endl;
+    FAUSTBENCH_LOG<double>(res.first);
 }
 
 static void testFaust(const string& filename, int argc1, const char* argv1[])
 {
     // Faust compilation and test
     string error_msg;
-    llvm_dsp_factory* factory = createDSPFactoryFromFile(filename, argc1, argv1, "", error_msg, -1);
+#ifdef INTERP
+    dsp_factory* factory = createInterpreterDSPFactoryFromFile(filename, argc1, argv1, error_msg);
+#else
+    dsp_factory* factory = createDSPFactoryFromFile(filename, argc1, argv1, "", error_msg, -1);
+#endif
     if (!factory) {
         cerr << "ERROR : file '" << filename << "' cannot be opened with " << error_msg << "\n";
         exit(-1);
     }
     measureDSP(filename, factory->createDSPInstance());
-    deleteDSPFactory(factory);
+#ifdef INTERP
+    deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
+#else
+    deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+#endif
 }
 
-static void testSOULPatch(const string& filename, int argc1, const char* argv1[])
+static void testCmajorPatch(const string& filename, int argc1, const char* argv1[])
 {
-    // SOUL compilation and test
+    // Cmajor compilation and test
     string error_msg;
-    soul_dsp_factory* factory = createSOULDSPFactoryFromFile(filename, argc1, argv1, error_msg);
+    cmajor_dsp_factory* factory = createCmajorDSPFactoryFromFile(filename, argc1, argv1, error_msg);
     if (!factory) {
         cerr << "ERROR : file '" << filename << "' : " << error_msg << "\n";
         exit(-1);
@@ -78,25 +91,25 @@ static void testSOULPatch(const string& filename, int argc1, const char* argv1[]
     delete factory;
 }
 
-static void testSOUL(const string& filename, int argc1, const char* argv1[])
+static void testCmajor(const string& filename, int argc1, const char* argv1[])
 {
-    // Faust => SOUL compilation
-    faust_soul_parser parser;
-    if (!parser.generateSOULFile(filename, FAUST_FILE, argc1, argv1)) {
+    // Faust => Cmajor compilation
+    faust_cmajor_parser parser;
+    if (!parser.generateCmajorFile(filename, FAUST_FILE, argc1, argv1)) {
         cerr << "ERROR : file '" << filename << "' cannot be opened or compiled! \n";
         exit(-1);
     }
     
-    // Generate "soulpatch" file
-    parser.createSOULPatch(FAUST_FILE);
+    // Generate "cmajorpatch" file
+    parser.createCmajorPatch(FAUST_FILE);
     
-    testSOULPatch(FAUST_PATCH_FILE, argc1, argv1);
+    testCmajorPatch(FAUST_PATCH_FILE, argc1, argv1);
 }
 
 int main(int argc, char* argv[])
 {
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "soul-faust-tester [-bs <frames>] [-control] [Faust options : any option (e.g. -vec -vs 8...)] foo.dsp|foo.soulpatch" << endl;
+        cout << "cmajor-faust-tester [-bs <frames>] [-control] [Faust options : any option (e.g. -vec -vs 8...)] foo.dsp|foo.cmajorpatch" << endl;
         cout << "Use '-bs <frames>' to set the maximum buffer-size in frames\n";
         cout << "Use '-control' to update all controllers with random values at each cycle\n";
         exit(-1);
@@ -119,11 +132,11 @@ int main(int argc, char* argv[])
         argv1[argc1++] = argv[i];
     }
     
-    if (endWith(filename, "soulpatch")) {
-        testSOULPatch(filename, argc1, argv1);
+    if (endWith(filename, "cmajorpatch")) {
+        testCmajorPatch(filename, argc1, argv1);
     } else {
         testFaust(filename, argc1, argv1);
-        testSOUL(filename, argc1, argv1);
+        testCmajor(filename, argc1, argv1);
     }
     
     return 0;

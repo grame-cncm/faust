@@ -213,7 +213,7 @@ inline string flatten(const string& src)
     return dst;
 }
 
-// To be used for WASM or SOUL
+// To be used for WASM or CMaj
 inline string flattenJSON(const string& src)
 {
     string dst;
