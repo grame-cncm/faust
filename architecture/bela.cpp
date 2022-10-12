@@ -975,7 +975,7 @@ class TrillCraftWidget : public TrillWidget
                 } else if (parseWord(parameters, "DOWN")) {
                     fMode = "DOWN";
                 } else if (parseWord(parameters, "SLIDER")) {
-                    mode = "SLIDER";
+                    fMode = "SLIDER";
                 }
                 double tmpval = 0.;
                 if (parameters && parseDouble(parameters, tmpval)) {
