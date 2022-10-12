@@ -58,14 +58,15 @@ julia:
 rust:
 	$(MAKE) -f Make.lang outdir=rust lang=rust ext=rust FAUSTOPTIONS=""
 	
-soul:
-	$(MAKE) -f Make.lang outdir=soul lang=soul ext=soul FAUSTOPTIONS=""
 
 trace:
 	$(MAKE) -f Make.lang interp-tracer 
 	
 jtrace:
 	$(MAKE) -f Make.lang julia-tracer 
+
+cmajor:
+	$(MAKE) -f Make.lang cmajor 
 
 me:
 	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp FAUSTOPTIONS=" -me -a ./min.cpp"
@@ -86,7 +87,6 @@ help:
 	@echo "              Output is located in a folder named using faust version ($(version))"
 	@echo "Specific targets:"
 	@echo " 'gcc'        : compiles the C and C++ output of the 'cpp', 'ocpp' and 'c' backends"
-	@echo " 'soul'       : compiles using the SOUL backend"
 	@echo " 'llvm'       : compiles using the LLVM backend"
 	@echo " 'interp'     : compiles using the interpreter backend"
 	@echo " 'julia'       : compiles using the Julia backend"
@@ -94,6 +94,7 @@ help:
 	@echo " 'web'        : compiles using the wast/wasm backends"
 	@echo " 'trace'      : compiles using the interp-tracer application"
 	@echo " 'jtrace'     : compiles using Julia minimal-control architecture"
+	@echo " 'cmajor'     : compiles Cmajor examples"
 	@echo " 'me'         : compiles using the C++ backend with -me option"
 	@echo " 'clean'      : to remove the folder named using faust version"
 	@echo "Using a specific version of Faust libraries:"

@@ -30,7 +30,6 @@ regressionfiles = $(shell ./filter $(lang) $(rawregressionfiles))
 examplesout 	:= $(dspfiles:$(SAMPLESROOT)/%.dsp=$(version)/$(outdir)/%.$(ext))
 regressionout 	:= $(regressionfiles:$(REGRESSION)/%.dsp=$(version)/$(outdir)/%.$(ext))
 
-
 all: $(version)/$(outdir) $(examplesout) $(regressionout)
 
 test:
@@ -39,6 +38,11 @@ test:
 interp-tracer:
 	for file in $(dspfiles) ; do \
 		interp-tracer -trace 4 -control -noui $$file ; \
+	done
+	
+cmajor:
+	for file in $(dspfiles) ; do \
+		faust2cmajor $$file ; \
 	done
 
 julia-tracer:
