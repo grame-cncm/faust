@@ -131,6 +131,48 @@ Will directly compile the `osc.dsp` file, generate the `osc.cmajor` and `osc.cma
 
 And activate the **cmaj** program to run the processor. 
 
+The following [polyphonic ready instrument](https://faustdoc.grame.fr/manual/midi/#midi-polyphony-support) DSP can be converted to a MIDI ready cmajor instrument:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+process = organ, organ
+with {
+    decimalpart(x) = x-int(x);
+    phasor(f) = f/ma.SR : (+ : decimalpart) ~ _;
+    osc(f) = sin(2 * ma.PI * phasor(f));
+    freq = nentry("freq", 100, 100, 3000, 0.01);
+    gate = button("gate");
+    gain = nentry("gain", 0.5, 0, 1, 0.01);
+    organ = gate * (osc(freq) * gain + osc(2 * freq) * gain);
+};
+```
+<!-- /faust-run -->
+
+The following command then opens the **cmaj** program and MDI events can be sent to control the instrument:
+```bash
+faust2cmajor -play -midi -nvoices 16 organ.dsp 
+```
+
+Note that the generated GUI is empty, since the generated processor cannot automatically reflects its controls in the main graph.
+
+The following [polyphonic ready instrument](https://faustdoc.grame.fr/manual/midi/#audio-effects-and-polyphonic-synthesizer) DSP, with an integrated effect, can be converted to a MIDI ready cmajor instrument:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+process = pm.clarinet_ui_MIDI <: _,_;
+effect = dm.freeverb_demo;
+```
+<!-- /faust-run -->
+
+The following command then opens the **cmaj** program and MDI events can be sent to control the instrument:
+```bash
+faust2cmajor -play -midi -nvoices 16 -effect auto clarinet.dsp 
+```
+
+Here again the generated GUI is empty.
+
 ## Using the Faust Web IDE
 
 Faust DSP program can be written, tested in the [Faust Web IDE](https://faustide.grame.fr/) and generated as embeddable Cmajor code.
