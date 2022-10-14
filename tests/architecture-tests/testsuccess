@@ -22,13 +22,13 @@ fi
 : ${XLIST1:="faust2md"}
 
 if [ "$system" = "Darwin" ]; then
-    : ${TESTS:=faust2soul faust2vcvrack faust2cagtk faust2android faust2au faust2caqt faust2csound faust2faustvst faust2jack faust2jaqt faust2w32max6 faust2w64max6 faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2w32vst faust2w64vst faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole faust2lv2 faust2sndfile faust2csvplot faust2plot}
+    : ${TESTS:=faust2cmajor faust2vcvrack faust2cagtk faust2android faust2au faust2caqt faust2csound faust2faustvst faust2jack faust2jaqt faust2w32max6 faust2w64max6 faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2w32vst faust2w64vst faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole faust2lv2 faust2sndfile faust2csvplot faust2plot}
     : ${TESTS_SOUND:=faust2cagtk faust2android faust2caqt faust2jaqt faust2jack faust2ios faust2max6 faust2msp faust2jackconsole faust2juce faust2bela}
     : ${TESTS_SOUNDSR:=faust2cagtk faust2caqt faust2jaqt faust2jack}
-    : ${TESTS_MIDI:=faust2soul faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole}
-    : ${TESTS_POLY:=faust2unity faust2soul faust2vcvrack faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole faust2lv2}
-    : ${TESTS_POLYMIDI:=faust2soul faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole}
-    : ${TESTS_POLY2MIDI:=faust2soul faust2cagtk faust2caqt faust2ios faust2max6 faust2msp faust2juce faust2netjackconsole faust2netjackqt}
+    : ${TESTS_MIDI:=faust2cmajor faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole}
+    : ${TESTS_POLY:=faust2unity faust2cmajor faust2vcvrack faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole faust2lv2}
+    : ${TESTS_POLYMIDI:=faust2cmajor faust2cagtk faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole}
+    : ${TESTS_POLY2MIDI:=faust2cmajor faust2cagtk faust2caqt faust2ios faust2max6 faust2msp faust2juce faust2netjackconsole faust2netjackqt}
     : ${TESTS_HTTPD:=faust2cagtk faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole}
     : ${TESTS_OSC:=faust2cagtk faust2ios faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole faust2max6 faust2msp faust2android}
     : ${TESTS_OSCHTTPD:=faust2cagtk faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole}

@@ -42,7 +42,7 @@ SAMPLERATELIBS=""
 OPT=""
 
 echoHelp() 
-s{
+{
     usage faust2caqt "[options] [Faust options] <file.dsp>"
     platform MacOS
     require QT
