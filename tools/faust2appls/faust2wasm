@@ -29,6 +29,31 @@ OPTIONS="-ftz 2"
 EXPORTED_MONO="['_"$name"_constructor','_"$name"_destructor','_"$name"_getSampleRate','_"$name"_init','_"$name"_instanceInit','_"$name"_instanceConstants','_"$name"_instanceResetUserInterface','_"$name"_instanceClear','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setParamValue','_"$name"_getParamValue','_"$name"_getJSON']"
 EXPORTED_POLY="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_getSampleRate','_"$name"_poly_init','_"$name"_poly_instanceInit','_"$name"_poly_instanceConstants','_"$name"_poly_instanceResetUserInterface','_"$name"_poly_instanceClear','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setParamValue','_"$name"_poly_getParamValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_allNotesOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel']"
 
+
+echoHelp()
+{
+    usage faust2wasm "[options] <file.dsp>"
+    echo "Compiles Faust programs to WASM modules"
+    option
+    option -poly
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option -opt "optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
+    option -worklet "generates AudioWorklet compatible code"
+    option -wap "generates a WAP (Web Audio Plugin). This forces -worklet mode, and create additional files"
+    option -wap2 "generates a WAP V2 (Web Audio Plugin). This forces -worklet mode, and create additional files"
+    option -comb "combine several DSPs in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
+    option -emcc "compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used [experimental]"
+    option -npm "add a package.json file for npm package distribution"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -40,23 +65,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2wasm "[options] <file.dsp>"
-        echo "Compiles Faust programs to WASM modules"
-        option
-        option -poly
-        option "-effect <effect.dsp>"
-        option "-effect auto"
-        option -opt "optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
-        option -worklet "generates AudioWorklet compatible code"
-        option -wap "generates a WAP (Web Audio Plugin). This forces -worklet mode, and create additional files"
-        option -wap2 "generates a WAP V2 (Web Audio Plugin). This forces -worklet mode, and create additional files"
-        option -comb "combine several DSPs in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
-        option -emcc "compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used [experimental]"
-        option -npm "add a package.json file for npm package distribution"
-        exit
-    fi
-
-    if [ $p = "-comb" ]; then
+        echoHelp
+    elif [ $p = "-comb" ]; then
         COMB="true"
     elif [ $p = "-poly" ]; then
         POLY="true"

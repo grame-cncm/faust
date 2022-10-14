@@ -26,6 +26,20 @@ ARCHFILE=$FAUSTARCH/minimal.cpp
 OPTIONS=""
 FILES=""
 
+echoHelp()
+{
+    usage faust2minimal "[options] [Faust options] <file.dsp>"
+    echo "Compiles Faust programs to a minimal executable"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # dispatch command arguments
 #-------------------------------------------------------------------
@@ -35,10 +49,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2minimal "[options] [Faust options] <file.dsp>"
-        echo "Compiles Faust programs to a minimal executable"
-        option "Faust options"
-        exit
+        echoHelp
     fi
 
     echo "dispatch command arguments"

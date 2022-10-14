@@ -28,6 +28,26 @@ else
     ARCHLIB+="-L/usr/local/lib -ljacknet -ljack -lpthread"
 fi
 
+echoHelp()
+{
+    usage faust2netjackqt "[options] [Faust options] <file.dsp>"
+    require Jack, QT
+    echo "Compiles Faust programs to NetJack and QT"
+    option
+    options -httpd -osc -midi
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
 
@@ -51,19 +71,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2netjackqt "[options] [Faust options] <file.dsp>"
-        require Jack, QT
-        echo "Compiles Faust programs to NetJack and QT"
-        option
-        options -httpd -osc -midi
-        option "-nvoices <num>"
-        option "-effect <effect.dsp>"
-        option "-effect auto"
-        option "Faust options"
-        exit
-    fi
-
-    if [ $p = "-nvoices" ]; then
+        echoHelp
+    elif [ $p = "-nvoices" ]; then
         POLYDEFS="DEFINES += POLY"
         shift
         NVOICES=$1

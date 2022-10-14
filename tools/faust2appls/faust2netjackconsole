@@ -12,6 +12,26 @@ NVOICES=-1
 POLY="POLY"
 EFFECT=""
 
+echoHelp()
+{
+    usage faust2netjackconsole "[options] [Faust options] <file.dsp>"
+    require Jack
+    echo "Compiles Faust programs to NetJack"
+    option
+    options -httpd -osc -midi
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # Check Darwin specifics
 #
@@ -32,19 +52,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2netjackconsole "[options] [Faust options] <file.dsp>"
-        require Jack
-        echo "Compiles Faust programs to NetJack"
-        option
-        options -httpd -osc -midi
-        option "-nvoices <num>"
-        option "-effect <effect.dsp>"
-        option "-effect auto"
-        option "Faust options"
-        exit
-    fi
-
-    if [ $p = "-nvoices" ]; then
+        echoHelp
+    elif [ $p = "-nvoices" ]; then
         POLYDEFS="-DPOLY"
         shift
         NVOICES=$1

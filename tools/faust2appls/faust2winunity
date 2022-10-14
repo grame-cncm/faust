@@ -22,6 +22,24 @@ CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 NVOICES=-1
 
+echoHelp()
+{
+    echo "faust2unitywin -32 -64 [Faust options] <file1.dsp> [<file2.dsp>]"
+    echo "Create Microsoft 32/64bits library for Faust Unity plugins"
+    echo "Mingw crosscompiler should be installed ('mingw32' package on Ubuntu)"
+    echo "Use 'faust2unity -w32 -w64' to also create the C# and JSON files"
+    echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
+    echo "See architecture/unity/README.md for more info"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-----------------------------------------------------------------------
 # Dispatch command arguments
 
@@ -30,17 +48,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2unitywin -32 -64 [Faust options] <file1.dsp> [<file2.dsp>]"
-        echo "Create Microsoft 32/64bits library for Faust Unity plugins"
-        echo "Mingw crosscompiler should be installed ('mingw32' package on Ubuntu)"
-        echo "Use 'faust2unity -w32 -w64' to also create the C# and JSON files"
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
-        echo "See architecture/unity/README.md for more info"
-        option "Faust options"
-        exit
-    fi
-
-    if [ $p = "-32" ]; then
+        echoHelp
+    elif [ $p = "-32" ]; then
         BITS="$BITS 32"
     elif [ $p = "-64" ]; then
         BITS="$BITS 64"

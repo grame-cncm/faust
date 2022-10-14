@@ -33,23 +33,32 @@ else
     ARCHLIB="`pkg-config --cflags --libs alsa` -lpthread"
 fi
 
+echoHelp()
+{
+    usage faust2dummymem "[options] [Faust options] <file.dsp>"
+    platform MacOS
+    echo "Compiles Faust programs to dummy audio driver"
+    option
+    options -httpd -osc -midi
+    option "-nvoices <num>"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #PHASE 2 : dispatch command arguments
 while [ $1 ]
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2dummymem "[options] [Faust options] <file.dsp>"
-        platform MacOS
-        echo "Compiles Faust programs to dummy audio driver"
-        option
-        options -httpd -osc -midi
-        option "-nvoices <num>"
-        option "Faust options"
-        exit
-    fi
-
-    if [ $p = "-osc" ]; then
+        echoHelp
+    elif [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
         HTTPDEFS="-DHTTPCTRL -lHTTPDFaust"

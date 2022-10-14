@@ -28,7 +28,7 @@ SOURCE=0
 REUSE=0
 INSTALL=0
 
-echoHelp ()
+echoHelp()
 {
     echo "FAUST2SMARTKEYB - MUSICAL MOBILE APP GENERATOR"
     echo ""
@@ -49,7 +49,14 @@ echoHelp ()
     option -source "only generate the source (no compilation)"
     option "Faust options"
     echo "More information and tutorials at: https://ccrma.stanford.edu/~rmichon/smartKeyboard"
+    exit
 }
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
 
 ###########################
 # Processing Arguments
@@ -61,7 +68,6 @@ do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echoHelp
-        exit 0
     elif [[ -f "$p" ]]; then
         FILE="$p"
     elif [ $p = "-android" ]; then
@@ -88,7 +94,6 @@ do
         else
             echo "No file specified after -effect"
             echoHelp
-            exit 1
         fi
     elif [ $p = "-nvoices" ]; then
         shift
@@ -104,17 +109,6 @@ do
 shift
 
 done
-
-# Options post processing
-#if [ -z "$OSC" ]; then
-#    echo "No osc"
-#    OSC=""
-#fi
-
-if [ -z $FILE ]; then
-    echo "Please, provide a Faust file to process"
-    exit 1
-fi
 
 ###################################
 # Configuring
@@ -133,7 +127,6 @@ elif [ $IOS -eq 1 ]; then
 else
     echo "Please, specify a platform: -android or -ios"
     echoHelp
-    exit 1
 fi
 
 ###############################

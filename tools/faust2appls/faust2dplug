@@ -21,25 +21,34 @@ PLUGINID="PlUg"
 HOMEPAGE="https://faust.grame.fr/"
 EFFECTTYPE="effectOther"
 
+echoHelp()
+{
+    usage faust2dplug "[options] [Faust options] <file.dsp>"
+    require Dplug
+    echo "Compiles Faust programs to Dplug plugins"
+    option
+    options "-vendor <My Company Name>"
+    options "-vendorid <FaUs>"
+    options "-pluginid <PlUg>"
+    options "-homepage <https://faust.grame.fr/>"
+    options "-effectType <effectDynamics>"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 while [ $1 ]
 do
     p=$1
 
     if [ $p = "--help" ] || [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2dplug "[options] [Faust options] <file.dsp>"
-        require Dplug
-        echo "Compiles Faust programs to Dplug plugins"
-        option
-        options "-vendor <My Company Name>"
-        options "-vendorid <FaUs>"
-        options "-pluginid <PlUg>"
-        options "-homepage <https://faust.grame.fr/>"
-        options "-effectType <effectDynamics>"
-        option "Faust options"
-        exit
-    fi
-
-    if [ "$p" = -debug ]; then
+        echoHelp
+    elif [ "$p" = -debug ]; then
         DEBUG=true
     elif [ $p = "-midi" ]; then
         IS_MIDI="1"

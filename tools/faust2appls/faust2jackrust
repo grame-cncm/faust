@@ -14,20 +14,29 @@
 SRC="0"
 ARCHFILE=$FAUSTARCH/jack.rs
 
+echoHelp()
+{
+    usage faust2jackrust "[options] [Faust options] <file.dsp>"
+    echo "Compiles Faust programs to JACK and Rust binary"
+    option
+    option -source "only generates the source project."
+    option "Faust options"
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #PHASE 2 : dispatch command arguments
 while [ $1 ]
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2jackrust "[options] [Faust options] <file.dsp>"
-        echo "Compiles Faust programs to JACK and Rust binary"
-        option
-        option -source "only generates the source project."
-        option "Faust options"
-    fi
-
-    if [ $p = "-source" ]; then
+        echoHelp
+    elif [ $p = "-source" ]; then
         SRC="1"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"

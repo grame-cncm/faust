@@ -16,6 +16,26 @@ CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 COMPILE=yes
 ARCHFILE=$FAUSTARCH/puredata.cpp
 
+echoHelp()
+{
+    usage faust2puredata "[options] [Faust options] <file.dsp>"
+    platform Linux
+    require PureData
+    echo "Compiles Faust programs to PureData"
+    option -arch32 "compile a 32 bits architecture."
+    option -arch64 "compile a 64 bits architecture."
+    option -poly "generates a polyphonic self-contained DSP."
+    option -tosource "skip the C++ compiling step and only generate the C++ source file."
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -27,19 +47,8 @@ ARCHFILE=$FAUSTARCH/puredata.cpp
 for p in $@; do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2puredata "[options] [Faust options] <file.dsp>"
-        platform Linux
-        require PureData
-        echo "Compiles Faust programs to PureData"
-        option -arch32 "compile a 32 bits architecture."
-        option -arch64 "compile a 64 bits architecture."
-        option -poly "generates a polyphonic self-contained DSP."
-        option -tosource "skip the C++ compiling step and only generate the C++ source file."
-        option "Faust options"
-        exit
-    fi
-
-    if [ $p = "-arch32" ]; then
+        echoHelp
+    elif [ $p = "-arch32" ]; then
         PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-poly" ]; then
         F2PDPOLY="-n 8"

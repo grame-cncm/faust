@@ -24,6 +24,31 @@ XCODE="0"
 ARCHIVE="0"
 SOUNDFILE="0"
 
+echoHelp()
+{
+    usage faust2ios "[options] [Faust options] <file.dsp>"
+    platform iOS
+    echo "Compiles Faust programs to iOS applications"
+    option
+    options -midi -osc -soundfile
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option -xcode "to compile and keep the intermediate Xcode project"
+    option -xcodeproj "to produce the intermediate Xcode project"
+    option -archive "to generate the archive for Apple Store"
+    option -32bits "to compile 32 bits only binary"
+    option -noagc "to deactivate audio automatic gain control"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #PHASE 1 : collects files and options from the command line
 
 while [ $1 ]
@@ -31,24 +56,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2ios "[options] [Faust options] <file.dsp>"
-        platform iOS
-        echo "Compiles Faust programs to iOS applications"
-        option
-        options -midi -osc -soundfile
-        option "-nvoices <num>"
-        option "-effect <effect.dsp>"
-        option "-effect auto"
-        option -xcode "to compile and keep the intermediate Xcode project"
-        option -xcodeproj "to produce the intermediate Xcode project"
-        option -archive "to generate the archive for Apple Store"
-        option -32bits "to compile 32 bits only binary"
-        option -noagc "to deactivate audio automatic gain control"
-        option "Faust options"
-        exit
-    fi
-
-    if [ $p = "-osc" ]; then
+        echoHelp
+    elif [ $p = "-osc" ]; then
         OSCCTRL="1"
     elif [ $p = "-soundfile" ]; then
         SOUNDFILE="1"

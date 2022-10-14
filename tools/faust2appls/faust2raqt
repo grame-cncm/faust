@@ -29,8 +29,24 @@ QMAKE=$(which qmake-qt4 || echo qmake)
 # existing *.dsp files          -> FILES
 #
 
-#PHASE 2 : dispatch command arguments
+echoHelp()
+{
+    usage faust2raqt "[options] [Faust options] <file.dsp>"
+    require QT
+    echo "Compiles Faust programs to RtAudio and QT"
+    option
+    options -httpd -osc -midi -qrcode -poly -nodeploy
+    option "Faust options"
+    exit
+}
 
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
+#PHASE 2 : dispatch command arguments
 OSCINC=""
 QTDEFS=""
 OSCLIB=""
@@ -38,16 +54,8 @@ DEPLOY="yes"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2raqt "[options] [Faust options] <file.dsp>"
-        require QT
-        echo "Compiles Faust programs to RtAudio and QT"
-        option
-        options -httpd -osc -midi -qrcode -poly -nodeploy
-        option "Faust options"
-        exit
-    fi
-
-    if [ $p = "-poly" ]; then
+        echoHelp
+    elif [ $p = "-poly" ]; then
         POLYDEFS="DEFINES += POLY"
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"

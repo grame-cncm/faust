@@ -23,6 +23,29 @@ OSCDEFS=""
 SEND2BELA=""
 OPTIONS=""
 
+echoHelp() 
+{
+    usage faust2bela "[options] [Faust options] <file.dsp>"
+    platform Bela
+    echo "Compiles Faust programs to the BELA board"
+    option
+    options -osc -midi -soundfile
+    option "-nvoices <num>"
+    echo "Polyphonic mode means MIDI instrument with at least 1 voice. Use no arguments for a simple effect."
+    option -gui "activates a self-hosted GUI interface. Requires to have libmicrohttpd and libHTTPDFaust installed."
+    option "-effect <effect.dsp>" "generates a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
+    option "-effect auto" "generates a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
+    option -tobela "to send C++ file into bela, and to run it"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 #PHASE 1 : dispatch command arguments
 #-------------------------------------------------------------------
@@ -32,23 +55,9 @@ do
 
     # HELP:
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2bela "[options] [Faust options] <file.dsp>"
-        platform Bela
-        echo "Compiles Faust programs to the BELA board"
-        option
-        options -osc -midi -soundfile
-        option "-nvoices <num>"
-        echo "Polyphonic mode means MIDI instrument with at least 1 voice. Use no arguments for a simple effect."
-        option -gui "activates a self-hosted GUI interface. Requires to have libmicrohttpd and libHTTPDFaust installed."
-        option "-effect <effect.dsp>" "generates a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
-        option "-effect auto" "generates a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
-        option -tobela "to send C++ file into bela, and to run it"
-        option "Faust options"
-        exit
-    fi
-
+        echoHelp
     # -NVOICES:
-    if [ $p = "-nvoices" ]; then
+    elif [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
     # -EFFECT:

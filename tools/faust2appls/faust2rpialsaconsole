@@ -42,21 +42,31 @@ CXX=$BASE_DIR"/x-tools/arm-unknown-linux-gnueabi/bin/arm-unknown-linux-gnueabi-c
 LD_LIBRARY_PATHS="-L$LINUX_KERNEL_INSTALL_DIR/lib -lasound"
 INCLUDES_DIR="-L$LINUX_KERNEL_INSTALL_DIR_INCLUDE/include/"
 
+echoHelp()
+{
+    usage faust2rpialsaconsole "[options] [Faust options] <file.dsp>"
+    platform RaspberryPi
+    require Alsa
+    echo "Compiles Faust programs to RaspberryPi - alsa console architecture"
+    option
+    options -osc -httpd
+    option -arch32 "generates a 32 bit architecture."
+    option -arch64 "generates a 64 bit architecture."
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 # dispatch command arguments
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2rpialsaconsole "[options] [Faust options] <file.dsp>"
-        platform RaspberryPi
-        require Alsa
-        echo "Compiles Faust programs to RaspberryPi - alsa console architecture"
-        option
-        options -osc -httpd
-        option -arch32 "generates a 32 bit architecture."
-        option -arch64 "generates a 64 bit architecture."
-        option "Faust options"
-        exit
-    fi
-    if [ $p = "-osc" ]; then
+        echoHelp
+    elif [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then
         HTTPDEFS="-DHTTPCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib -lHTTPDFaust"

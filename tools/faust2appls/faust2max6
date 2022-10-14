@@ -39,7 +39,8 @@ MSPINC=$MAXSDK/msp-includes
 
 JSFILE_PATH="ui.js"
 
-createInfoPList() {
+createInfoPList()
+{
     (
     echo '<?xml version="1.0" encoding="UTF-8"?>'
     echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
@@ -72,6 +73,34 @@ createInfoPList() {
     ) > "$2"
 }
 
+echoHelp()
+{
+    usage faust2max6 "[options] [Faust options] <file.dsp>"
+    require Max/MSP SDK
+    echo "Compiles Faust programs to Max6 externals using double precision samples"
+    option
+    options -osc -midi -soundfile
+    option -soundfile-dynamic "similar to -soundfile, but using the installed libsndfile (so possibly using dynamic link)."
+    option "-opt native|generic" "activates the best compilation options for the native or generic CPU."
+    option "-nvoices <num>"
+    option "-us <factor>"
+    option "-ds <factor>"
+    option "-filter <filter>"
+    option "-effect <effect.dsp>"
+    option -native "to compile for the native CPU (otherwise the 'generic' mode is used by default)"
+    option -universal "to generate a arm/intel external"
+    option -nopatch "to deactivate patch generation"
+    option -nopost "to disable Faust messages to Max console"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -85,27 +114,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2max6 "[options] [Faust options] <file.dsp>"
-        require Max/MSP SDK
-        echo "Compiles Faust programs to Max6 externals using double precision samples"
-        option
-        options -osc -midi -soundfile
-        option -soundfile-dynamic "similar to -soundfile, but using the installed libsndfile (so possibly using dynamic link)."
-        option "-opt native|generic" "activates the best compilation options for the native or generic CPU."
-        option "-nvoices <num>"
-        option "-us <factor>"
-        option "-ds <factor>"
-        option "-filter <filter>"
-        option "-effect <effect.dsp>"
-        option -native "to compile for the native CPU (otherwise the 'generic' mode is used by default)"
-        option -universal "to generate a arm/intel external"
-        option -nopatch "to deactivate patch generation"
-        option -nopost "to disable Faust messages to Max console"
-        option "Faust options"
-        exit
-    fi
-
-    if [ $p = "-opt" ]; then
+       echoHelp
+    elif [ $p = "-opt" ]; then
         shift
         OPT=$1
     elif [ $p = "-nvoices" ]; then

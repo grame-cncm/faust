@@ -25,6 +25,24 @@ else
     SPEC="-fPIC -shared"
 fi
 
+echoHelp()
+{
+    usage faust2ladspa "[options] [Faust options] <file.dsp>"
+    platform Linux
+    echo "Compiles Faust programs to LADSPA plugins"
+    option
+    option -arch32 "generates a 32 bit architecture."
+    option -arch64 "generates a 64 bit architecture."
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -35,17 +53,8 @@ fi
 # dispatch command arguments
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2ladspa "[options] [Faust options] <file.dsp>"
-        platform Linux
-        echo "Compiles Faust programs to LADSPA plugins"
-        option
-        option -arch32 "generates a 32 bit architecture."
-        option -arch64 "generates a 64 bit architecture."
-        option "Faust options"
-        exit
-    fi
-
-     if [ $p = "-arch32" ]; then
+        echoHelp
+    elif [ $p = "-arch32" ]; then
         PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
         PROCARCH="-m64"

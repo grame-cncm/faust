@@ -19,6 +19,25 @@ EXPORT="false"
 WORKLET="false"
 OPTIONS="-ftz 2"
 
+echoHelp()
+{
+    usage faust2webaudiowast "[options] <file.dsp>"
+    echo "Compiles Faust programs to self-contained HTML pages with WASM"
+    option
+    option -poly
+    option -opt "optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
+    option -worklet "generates AudioWorklet compatible code"
+    option -links "add links to source code and SVG diagrams in the generated HTML file"
+    option -emcc "compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -27,18 +46,8 @@ OPTIONS="-ftz 2"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2webaudiowast "[options] <file.dsp>"
-        echo "Compiles Faust programs to self-contained HTML pages with WASM"
-        option
-        option -poly
-        option -opt "optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
-        option -worklet "generates AudioWorklet compatible code"
-        option -links "add links to source code and SVG diagrams in the generated HTML file"
-        option -emcc "compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
-        exit
-    fi
-
-    if [ $p = "-links" ]; then
+       echoHelp
+    elif [ $p = "-links" ]; then
         SVG="-svg"
         LINKS="<div style=\"text-align:center;height:20px\">
                 <style>

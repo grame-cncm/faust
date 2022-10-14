@@ -15,9 +15,10 @@
 # - faust ;-)
 
 # Usage.
-print_usage()
+echoHelp()
 {
     echo Usage : args of faust2mathviewer should be a \'.dsp\' file, or a list of \'.dsp\' files.
+    exit
 }
 
 # Visit each directory transmitted as argument,
@@ -78,8 +79,7 @@ for FILEPATH in $@ ; do
         ;;
     esac
     else
-    print_usage
-    exit 1
+    echoHelp
     fi
 done
 exit 0

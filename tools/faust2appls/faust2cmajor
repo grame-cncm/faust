@@ -14,6 +14,28 @@ set -e
 
 ARCHFILE=$FAUSTARCH/cmajor/minimal.cmajor
 
+echoHelp() 
+{
+    usage faust2cmajor "[options] [Faust options] <file.dsp>"
+    echo  "Compiles Faust programs to Cmajor"
+    option
+    option -midi
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option -juce "to create a JUCE project"
+    option -dsp "to create a 'dsp' compatible subclass"
+    option -play "to start the 'cmaj' runtime with the generated Cmajor file"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # dispatch command arguments
 #-------------------------------------------------------------------
@@ -32,21 +54,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2cmajor "[options] [Faust options] <file.dsp>"
-        echo  "Compiles Faust programs to Cmajor"
-        option
-        option -midi
-        option "-nvoices <num>"
-        option "-effect <effect.dsp>"
-        option "-effect auto"
-        option -juce "to create a JUCE project"
-        option -dsp "to create a 'dsp' compatible subclass"
-        option -play "to start the 'cmaj' runtime with the generated Cmajor file"
-        option "Faust options"
-        exit
-    fi
-
-    if [ $p = "-nvoices" ]; then
+        echoHelp
+    elif [ $p = "-nvoices" ]; then
         ARCHFILE=$FAUSTARCH/cmajor/poly-dsp.cmajor
         shift
         NVOICES=$1

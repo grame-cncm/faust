@@ -16,7 +16,7 @@
 # - faust ;-)
 
 # Usage.
-print_usage()
+echoHelp()
 {
     usage faust2mathdoc "[options] <file.dsp>"
     require svg2pdf pdflatex breqn
@@ -24,6 +24,7 @@ print_usage()
     option
     option "-l LANG" "LANG is usually a 2-lowercase-letters language name, like en, fr, or it."
     option -utf8 "force file.dsp to be recoded in UTF-8 before being processed"
+    exit
 }
 
 # Visit each directory transmitted as argument,
@@ -100,10 +101,10 @@ then
     shift 1
 fi
 
-if [ $# -eq 0 ]
-then
-    print_usage
-    exit 1
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
 fi
 
 #    Main loop of this script :
@@ -135,8 +136,7 @@ for FILEPATH in $@ ; do
         ;;
     esac
     else
-    print_usage
-    exit 1
+        echoHelp
     fi
 done
 exit 0

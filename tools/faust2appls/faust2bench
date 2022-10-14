@@ -25,6 +25,20 @@ ARCHFILE=$FAUSTARCH/bench.cpp
 OPTIONS=""
 FILES=""
 
+echoHelp() 
+s{
+    usage faust2bench "[Faust options] <file.dsp>"
+    echo "Compiles Faust programs to a benchmark executable"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # dispatch command arguments
 #-------------------------------------------------------------------
@@ -34,13 +48,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2bench "[Faust options] <file.dsp>"
-        echo "Compiles Faust programs to a benchmark executable"
-        option "Faust options"
-        exit
-    fi
-
-    if [ ${p:0:1} = "-" ]; then
+       echoHelp
+    elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"

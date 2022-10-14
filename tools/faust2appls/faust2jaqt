@@ -29,6 +29,29 @@ ARCHLIB="`pkg-config --cflags --libs jack`"
 
 QMAKE=$(which qmake-qt5 || which qmake-qt4 || echo qmake)
 
+echoHelp()
+{
+    usage faust2jaqt "[options] [Faust options] <file.dsp>"
+    require Jack, QT
+    echo "Compiles Faust programs to JACK and QT"
+    option
+    options -httpd -osc -midi -soundfile -qrcode
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option "-preset <directory>" "add a preset manager on top of GUI and save the preset files in the given directory"
+    option "-preset auto" "add a preset manager on top of GUI and save the preset files in a system temporary directory"
+    option -resample "to resample soundfiles to the audio driver sample rate."
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #PHASE 2 : dispatch command arguments
 
 OSCINC=""
@@ -51,19 +74,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2jaqt "[options] [Faust options] <file.dsp>"
-        require Jack, QT
-        echo "Compiles Faust programs to JACK and QT"
-        option
-        options -httpd -osc -midi -soundfile -qrcode
-        option "-nvoices <num>"
-        option "-effect <effect.dsp>"
-        option "-effect auto"
-        option "-preset <directory>" "add a preset manager on top of GUI and save the preset files in the given directory"
-        option "-preset auto" "add a preset manager on top of GUI and save the preset files in a system temporary directory"
-        option -resample "to resample soundfiles to the audio driver sample rate."
-        option "Faust options"
-        exit
+        echoHelp
     fi
 
     if [ "$p" = -omp ]; then

@@ -16,21 +16,30 @@ NVOICES=-1
 
 JSFILE_PATH="ui.js"
 
+echoHelp()
+{
+    usage faust2gen "[options] <file.dsp>"
+    require Max/MSP SDK
+    echo "Compiles Faust programs to a fausgen~ patch"
+    option
+    option '-nvoices <num>'
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 # dispatch command arguments
 while [ $1 ]
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2gen "[options] <file.dsp>"
-        require Max/MSP SDK
-        echo "Compiles Faust programs to a fausgen~ patch"
-        option
-        option '-nvoices <num>'
-        exit
-    fi
-
-    if [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+       echoHelp
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     elif [ $p = "-nvoices" ]; then
         POLY="POLY1"

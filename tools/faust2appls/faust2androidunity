@@ -24,6 +24,27 @@ CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 NVOICES=-1
 ANDROID_MK=Android.mk
 
+echoHelp() 
+{
+    usage faust2androidunity "[options] [Faust options] <file1.dsp> [<file2.dsp>]"
+    platform Android Unity
+    require Android SDK "Make sure the ANDROID_HOME environment variable is set to the sdk folder."
+    echo "Creates android libraries (armeabi-v7a and x86) for faust unity plugin."
+    echo "If you need other android architectures, open architecture/unity/Android/Application.mk and modify APP_ABI."
+    echo "See architecture/unity/README.md for more info (also available from the compile folder)"
+    option
+    option "-nvoices <num>"
+    option -android "creates also the c# and JSON files"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # Dispatch command arguments
 
@@ -34,22 +55,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2androidunity "[options] [Faust options] <file1.dsp> [<file2.dsp>]"
-        platform Android Unity
-        require Android SDK "Make sure the ANDROID_HOME environment variable is set to the sdk folder."
-
-        echo "Creates android libraries (armeabi-v7a and x86) for faust unity plugin."
-        echo "If you need other android architectures, open architecture/unity/Android/Application.mk and modify APP_ABI."
-        echo "See architecture/unity/README.md for more info (also available from the compile folder)"
-
-        option
-        option "-nvoices <num>"
-        option -android "creates also the c# and JSON files"
-        option "Faust options"
-        exit
-    fi
-
-    if [ $p = "-nvoices" ]; then
+        echoHelp
+    elif [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
         if [ $NVOICES != -1 ]; then

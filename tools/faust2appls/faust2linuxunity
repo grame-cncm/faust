@@ -22,6 +22,24 @@ CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 NVOICES=-1
 
+echoHelp()
+{
+    usage faust2linuxunity "[options] [Faust options] <file.dsp>"
+    platform Linux
+    require Jack, Unity
+    echo "Compiles Faust programs to Linux x86_64 libraries suitable for the Unity environment"
+    option
+    option "-nvoices <num>"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # Dispatch command arguments
 
@@ -30,17 +48,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2linuxunity "[options] [Faust options] <file.dsp>"
-        platform Linux
-        require Jack, Unity
-        echo "Compiles Faust programs to Linux x86_64 libraries suitable for the Unity environment"
-        option
-        option "-nvoices <num>"
-        option "Faust options"
-        exit
-    fi
-
-    if [ $p = "-nvoices" ]; then
+        echoHelp
+    elif [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
     elif [ ${p:0:1} = "-" ]; then

@@ -26,6 +26,24 @@ QMAKE=qmake-ios
 which $QMAKE > /dev/null || nqmakeios
 DEBUG=false
 
+echoHelp() 
+{
+    usage faust2caqtios "[options] [Faust options] <file.dsp>"
+    platform iOS
+    require QT
+    echo "Compiles Faust programs to CoreAudio and QT for iOS"
+    option
+    options -httpd -osc -midi -qrcode -poly
+    option -debug "print all the build steps"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -41,17 +59,8 @@ OSCLIB=""
 
 for p in $@; do
 	if [ $p = "-help" ] || [ $p = "-h" ]; then
-		usage faust2caqtios "[options] [Faust options] <file.dsp>"
-		platform iOS
-		require QT
-		echo "Compiles Faust programs to CoreAudio and QT for iOS"
-		option
-		options -httpd -osc -midi -qrcode -poly
-		option -debug "print all the build steps"
-		exit
-	fi
-
-	if [ "$p" = -debug ]; then
+		echoHelp
+	elif [ "$p" = -debug ]; then
 		DEBUG=true
 	elif [ "$p" = -icc ]; then
 		ignore=" "

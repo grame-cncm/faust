@@ -42,6 +42,25 @@ CXX=$BASE_DIR"/x-tools/arm-unknown-linux-gnueabi/bin/arm-unknown-linux-gnueabi-c
 LD_LIBRARY_PATHS="-L$LINUX_KERNEL_INSTALL_DIR/lib/ -lasound -ljacknet"
 INCLUDES_DIR="-I$LINUX_KERNEL_INSTALL_DIR/include/"
 
+
+echoHelp()
+{
+    usage faust2rpialsaconsole "[options] [Faust options] <file.dsp>"
+    platform RaspberryPi
+    require NetJack
+    echo "Compiles Faust programs to RaspberryPi - netjack-console architecture"
+    option
+    options -osc -httpd
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -50,16 +69,8 @@ INCLUDES_DIR="-I$LINUX_KERNEL_INSTALL_DIR/include/"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2rpialsaconsole "[options] [Faust options] <file.dsp>"
-        platform RaspberryPi
-        require NetJack
-        echo "Compiles Faust programs to RaspberryPi - netjack-console architecture"
-        option
-        options -osc -httpd
-        option "Faust options"
-        exit
-    fi
-    if [ $p = "-osc" ]; then
+        echoHelp
+    elif [ $p = "-osc" ]; then
          OSCDEFS="-DOSCCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then
          HTTPDEFS="-DHTTPCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lHTTPDFaust"

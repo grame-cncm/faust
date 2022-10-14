@@ -16,6 +16,24 @@ CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 ARCHFILE=$FAUSTARCH/dssi.cpp
 OSCDEFS=""
 
+echoHelp()
+{
+    usage faust2dssi "[options] [Faust options] <file.dsp>"
+    echo  "Compiles Faust programs to dssi plugins"
+    option
+    option -osc
+    option -arch32 "generates a 32 bit architecture."
+    option -arch64 "generates a 64 bit architecture."
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -26,16 +44,8 @@ OSCDEFS=""
 # dispatch command arguments
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2dssi "[options] [Faust options] <file.dsp>"
-        echo  "Compiles Faust programs to dssi plugins"
-        option
-        option -osc
-        option -arch32 "generates a 32 bit architecture."
-        option -arch64 "generates a 64 bit architecture."
-        option "Faust options"
-        exit
-    fi
-      if [ $p = "-arch32" ]; then
+       echoHelp
+    elif [ $p = "-arch32" ]; then
         PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
         PROCARCH="-m64"

@@ -110,6 +110,28 @@ cat > "$2" << DELIM
 DELIM
 }
 
+echoHelp()
+{
+    usage faust2osxiosunity "[options] [Faust options] <file.dsp>"
+    platform MacOSX
+    require Unity
+    echo "Compiles Faust programs to OSX/iOS libraries suitable for the Unity environment"
+    option
+    option "-nvoices <num>"
+    option -ios "      create an iOS static library"
+    option -universal "generate a 64/32 bits external"
+    option "Faust options"
+    # echo "Use 'faust2unity -osx -ios' to also create the c# and JSON files"
+    echo "See architecture/unity/README.md for more info."
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #---------------------------------------
 # Dispatch command arguments
 
@@ -121,21 +143,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2osxiosunity "[options] [Faust options] <file.dsp>"
-        platform MacOSX
-        require Unity
-        echo "Compiles Faust programs to OSX/iOS libraries suitable for the Unity environment"
-        option
-        option "-nvoices <num>"
-        option -ios "      create an iOS static library"
-        option -universal "generate a 64/32 bits external"
-        option "Faust options"
-        # echo "Use 'faust2unity -osx -ios' to also create the c# and JSON files"
-        echo "See architecture/unity/README.md for more info."
-        exit
-    fi
-
-    if [ $p = "-ios" ]; then
+        echoHelp
+    elif [ $p = "-ios" ]; then
         IOS=1
         CXXFLAGS="-arch armv7 -arch armv7s -arch arm64 -pipe -O3 -gdwarf-2"
     elif [ $p = "-nvoices" ]; then

@@ -19,6 +19,27 @@ POLY="POLY"
 NVOICES=-1
 OSCDEFS=""
 
+echoHelp() 
+{
+    usage faust2alsaconsole "[options] [Faust options] <file.dsp>"
+    platform Linux
+    require Alsa
+    echo "Compiles Faust programs to CLI and ALSA"
+    option
+    options -httpd -osc -midi
+    option "-nvoices <num>"
+    option -arch32 "compiles a 32 bits binary"
+    option -arch64 "compiles a 64 bits binary"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -32,17 +53,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2alsaconsole "[options] [Faust options] <file.dsp>"
-        platform Linux
-        require Alsa
-        echo "Compiles Faust programs to CLI and ALSA"
-        option
-        options -httpd -osc -midi
-        option "-nvoices <num>"
-        option -arch32 "compiles a 32 bits binary"
-        option -arch64 "compiles a 64 bits binary"
-        option "Faust options"
-        exit
+       echoHelp
     fi
 
     if [ $p = "-nvoices" ]; then

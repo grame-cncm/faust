@@ -18,22 +18,31 @@ PLAY=false
 THREAD=1
 OSC=""
 
+echoHelp()
+{
+    usage faust2portaudiojulia "[options] [Faust options] <file.dsp>"
+    require PortAudio
+    echo "Compiles Faust programs to PortAudio and Julia binary"
+    option "-osc" "to activate OSC control on 5000 and 5001 ports"
+    option "-play <num>" "to start the 'Julia' runtime with <num> threads and the generated file.jl"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #PHASE 2 : dispatch command arguments
 while [ $1 ]
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2portaudiojulia "[options] [Faust options] <file.dsp>"
-        require PortAudio
-        echo "Compiles Faust programs to PortAudio and Julia binary"
-        option "-osc" "to activate OSC control on 5000 and 5001 ports"
-        option "-play <num>" "to start the 'Julia' runtime with <num> threads and the generated file.jl"
-        option "Faust options"
-        exit
-    fi
-
-    if [ $p = "-source" ]; then
+        echoHelp
+    elif [ $p = "-source" ]; then
         SRC="1"
     elif [[ $p = -osc* ]]; then
         OSC=$p

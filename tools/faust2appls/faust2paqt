@@ -19,6 +19,27 @@ if [[ $(uname -s) != Darwin ]]; then
     LFLAGS+="-no-pie"
 fi
 
+echoHelp()
+{
+    usage faust2paqt "[options] [Faust options] <file.dsp>"
+    require PortAudio, QT
+    echo "Compiles Faust programs to PortAudio and QT"
+    option
+    options -httpd -osc -midi -qrcode
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option -nodeploy
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
 
@@ -44,20 +65,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2paqt "[options] [Faust options] <file.dsp>"
-        require PortAudio, QT
-        echo "Compiles Faust programs to PortAudio and QT"
-        option
-        options -httpd -osc -midi -qrcode
-        option "-nvoices <num>"
-        option "-effect <effect.dsp>"
-        option "-effect auto"
-        option -nodeploy
-        option "Faust options"
-        exit
-    fi
-
-    if [ $p = "-nvoices" ]; then
+       echoHelp
+    elif [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
         if [ $NVOICES -ge 0 ]; then

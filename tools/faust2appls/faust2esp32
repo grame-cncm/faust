@@ -34,7 +34,7 @@ DRIVER=""
 SOUNDFILE="0"
 #OPTIONS=""
 
-echoHelp ()
+echoHelp()
 {
     usage faust2esp32 "[options] [Faust options] <file.dsp> <file.dsp>"
     echo "faust2esp32 can be used to fully program the ESP32 microncontroller and to generate DSP objects"
@@ -48,7 +48,14 @@ echoHelp ()
     option "-nvoices <num>"
     option "-wm8978, -es8388 or -ac101" "to choose codec driver"
     option "Faust options"
+    exit
 }
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
 
 ###########################
 # Processing Arguments
@@ -60,7 +67,6 @@ do
     # help
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echoHelp
-        exit 0
     # -nvoices:
     elif [ $p = "-nvoices" ]; then
         shift

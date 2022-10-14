@@ -37,29 +37,38 @@ else
     ARCHLIB+=" `pkg-config --cflags --libs alsa`"
 fi
 
+echoHelp()
+{
+    usage faust2jack "[options] [Faust options] <file.dsp>"
+    platform Linux
+    require Jack
+    echo "Compiles Faust programs to JACK and GTK"
+    option
+    options -httpd -osc -midi -soundfile -dyn
+    option -resample "to resample soundfiles to the audio driver sample rate."
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option "-preset <directory>" "add a preset manager on top of GUI and save the preset files in the given directory"
+    option "-preset auto" "add a preset manager on top of GUI and save the preset files in a system temporary directory"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #PHASE 2 : dispatch command arguments
 while [ $1 ]
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2jack "[options] [Faust options] <file.dsp>"
-        platform Linux
-        require Jack
-        echo "Compiles Faust programs to JACK and GTK"
-        option
-        options -httpd -osc -midi -soundfile -dyn
-        option -resample "to resample soundfiles to the audio driver sample rate."
-        option "-nvoices <num>"
-        option "-effect <effect.dsp>"
-        option "-effect auto"
-        option "-preset <directory>" "add a preset manager on top of GUI and save the preset files in the given directory"
-        option "-preset auto" "add a preset manager on top of GUI and save the preset files in a system temporary directory"
-        option "Faust options"
-        exit
-    fi
-
-    if [ $p = "-nvoices" ]; then
+        echoHelp
+    elif [ $p = "-nvoices" ]; then
         POLYDEFS="-DPOLY"
         shift
         NVOICES=$1

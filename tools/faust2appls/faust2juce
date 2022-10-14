@@ -15,6 +15,33 @@ CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 DEBUG=false
 
+echoHelp()
+{
+    usage faust2juce "[options] [Faust options] <file.dsp>"
+    require Juce
+    echo "Compiles Faust programs to JUCE standalones or plugins"
+    option
+    options -osc -midi -soundfile
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option -standalone "to produce a standalone project, otherwise a plugin project is generated"
+    option -"vst2sdkdir <folder>" "to set directory to VST 2 SDK."
+    option -"jucemodulesdir <folder>" "to set JUCE modules directory to <folder>, such as ~/JUCE/modules"
+    option -disable-splash-screen "to disable the JUCE splash screen (license is required)."
+    option -jsynth "to use JUCE polyphonic Synthesizer instead of Faust polyphonic code"
+    option -llvm "to use the LLVM compilation chain (OSX and Linux for now)"
+    option -magic "to generate a project using the PluginGuiMagic GUI builder"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 #PHASE 1 : dispatch command arguments
 #-------------------------------------------------------------------
@@ -43,23 +70,7 @@ do
     p=$1
 
     if [ $p = "--help" ] || [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2juce "[options] [Faust options] <file.dsp>"
-        require Juce
-        echo "Compiles Faust programs to JUCE standalones or plugins"
-        option
-        options -osc -midi -soundfile
-        option "-nvoices <num>"
-        option "-effect <effect.dsp>"
-        option "-effect auto"
-        option -standalone "to produce a standalone project, otherwise a plugin project is generated"
-        option -"vst2sdkdir <folder>" "to set directory to VST 2 SDK."
-        option -"jucemodulesdir <folder>" "to set JUCE modules directory to <folder>, such as ~/JUCE/modules"
-        option -disable-splash-screen "to disable the JUCE splash screen (license is required)."
-        option -jsynth "to use JUCE polyphonic Synthesizer instead of Faust polyphonic code"
-        option -llvm "to use the LLVM compilation chain (OSX and Linux for now)"
-        option -magic "to generate a project using the PluginGuiMagic GUI builder"
-        option "Faust options"
-        exit
+        echoHelp
     fi
 
     if [ "$p" = -debug ]; then

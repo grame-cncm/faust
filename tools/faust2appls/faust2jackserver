@@ -30,23 +30,32 @@ QMAKE=$(which qmake-qt4 || echo qmake)
 
 CXXFLAGS='-std=c++11 -Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
 
-# dispatch command arguments
-
 OSCINC=""
 QTDEFS=""
 OSCLIB=""
 
+echoHelp()
+{
+    usage faust2jackserver "[options] [Faust options] <file.dsp>"
+    require Jack, QT
+    echo "Compiles Faust programs to JACK and QT (server mode)"
+    option
+    options -httpd -osc -qrcode
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
+# dispatch command arguments
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2jackserver "[options] [Faust options] <file.dsp>"
-        require Jack, QT
-        echo "Compiles Faust programs to JACK and QT (server mode)"
-        option
-        options -httpd -osc -qrcode
-        option "Faust options"
-        exit
-    fi
-    if [ $p = "-osc" ]; then
+        echoHelp
+    elif [ $p = "-osc" ]; then
          OSCDEFS="DEFINES += OSCCTRL"
          OSCLIBS="-lOSCFaust"
     elif [ "$p" = "-httpd" ]; then

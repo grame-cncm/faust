@@ -30,7 +30,7 @@ MIDI="0"
 NODOC="0"
 EFFECT=""
 
-echoHelp ()
+echoHelp()
 {
     usage faust2sam "[options] [Faust options] <file.dsp>"
     platform "ADI SHARC Audio Module board"
@@ -40,7 +40,14 @@ echoHelp ()
     option "-nvoices <num>"
     option "-effect <effect.dsp>"
     option "Faust options"
+    exit
 }
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
 
 createAPI ()
 {
@@ -90,7 +97,6 @@ do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echoHelp
-        exit
     elif [ "$PACKAGENAME" = "-1" ]; then
         PACKAGENAME="$p"
     elif [[ -f "$p" ]]; then
@@ -117,11 +123,6 @@ do
 shift
 
 done
-
-if [ -z $FILE ]; then
-    echoHelp
-    exit 1
-fi
 
 ###################################
 # GENERATING API

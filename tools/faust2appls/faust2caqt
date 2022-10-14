@@ -41,33 +41,44 @@ SAMPLERATEDEFS=""
 SAMPLERATELIBS=""
 OPT=""
 
+echoHelp() 
+s{
+    usage faust2caqt "[options] [Faust options] <file.dsp>"
+    platform MacOS
+    require QT
+    echo "Compiles Faust programs to CoreAudio and QT"
+    option
+    options -httpd -osc -midi -qrcode -soundfile
+    option "-opt native' to activate the best compilation options for the native CPU"
+    option "-opt generic' to activate the best compilation options for a generic CPU"
+    option "-nvoices <num>"
+    option -resample "to resample soundfiles to the audio driver sample rate"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option "-preset <directory>" "add a preset manager on top of GUI and save the preset files in the given directory"
+    option "-preset auto" "add a preset manager on top of GUI and save the preset files in a system temporary directory"
+    option -me "to catch math computation exceptions (floating point exceptions and integer div-by-zero or overflow)"
+    option -debug "to print all the build steps"
+    option -nodeploy
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
+# dispatch command arguments
+
 while [ $1 ]
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2caqt "[options] [Faust options] <file.dsp>"
-        platform MacOS
-        require QT
-        echo "Compiles Faust programs to CoreAudio and QT"
-        option
-        options -httpd -osc -midi -qrcode -soundfile
-        option "-opt native' to activate the best compilation options for the native CPU"
-        option "-opt generic' to activate the best compilation options for a generic CPU"
-        option "-nvoices <num>"
-        option -resample "to resample soundfiles to the audio driver sample rate"
-        option "-effect <effect.dsp>"
-        option "-effect auto"
-        option "-preset <directory>" "add a preset manager on top of GUI and save the preset files in the given directory"
-        option "-preset auto" "add a preset manager on top of GUI and save the preset files in a system temporary directory"
-        option -me "to catch math computation exceptions (floating point exceptions and integer div-by-zero or overflow)"
-        option -debug "to print all the build steps"
-        option -nodeploy
-        option "Faust options"
-        exit
-    fi
-
-    if [ "$p" = -debug ]; then
+        echoHelp
+    elif [ "$p" = -debug ]; then
         DEBUG=true
     elif [ $p = "-opt" ]; then
         shift

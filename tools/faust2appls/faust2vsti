@@ -24,7 +24,8 @@ LIBS=" -framework Carbon -framework CoreServices"
 
 SOURCES=" $VSTSDK/public.sdk/source/vst2.x/audioeffect.cpp $VSTSDK/public.sdk/source/vst2.x/audioeffectx.cpp $VSTSDK/public.sdk/source/vst2.x/vstplugmain.cpp"
 
-createInfoPList() {
+createInfoPList()
+{
     (
     echo '<?xml version="1.0" encoding="UTF-8"?>' > info.plist
     echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'

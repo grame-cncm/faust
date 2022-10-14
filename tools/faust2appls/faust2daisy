@@ -43,7 +43,14 @@ echoHelp ()
     option -source
     option "Faust options"
     echo ""
+    exit
 }
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
 
 ###########################
 # Processing Arguments
@@ -55,7 +62,6 @@ do
     # help
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echoHelp
-        exit 0
     # -nvoices:
     elif [ $p = "-nvoices" ]; then
         shift
@@ -88,12 +94,6 @@ do
 
 shift
 done
-
-
-if [ -z $FILE ]; then
-    echo "Please, provide a Faust file to process"
-    exit 1
-fi
 
 ###########################
 # Compile the *.dsp files

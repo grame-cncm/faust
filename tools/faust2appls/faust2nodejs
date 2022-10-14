@@ -38,10 +38,6 @@ PLATFORM=$(uname)
 
 echoHelp ()
 {
-    if [ $p != "-help" ] && [ $p != "-h" ]; then
-        echo "$p wrong argument"
-        echo ""
-    fi
     usage faust2nodejs "[driver] [Faust options] <file.dsp>"
     echo "Generate Faust-based nodejs native addons. The generated addons can embed most of the audio engines supported by Faust: ALSA, JACK, CoreAudio, RtAudio, PortAudio, etc. Since faust2nodejs essentially acts as a wrapper to faust2api, it offers the same features than this system (MIDI and OSC support, polyphony, separate effect file, etc.)."
     echo
@@ -56,7 +52,14 @@ echoHelp ()
     option "-electronv <VERSION>" "allows to specify the current version of electron if generating an addon for this framework"
     option -debug "prints compilation output"
     option "Faust options"
+    exit
 }
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
 
 # dispatch command arguments
 while [ $1 ]
@@ -64,7 +67,6 @@ do
     p=$1
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echoHelp
-    exit
     elif [[ -f "$p" ]]; then
         FILE="$p"
     elif [ $p = "-coreaudio" ] || [ $p = "-alsa" ] || [ $p = "-jack" ] || [ $p = "-portaudio" ] || [ $p = "-rtaudio" ] || [ $p = "-dummy" ] ; then
@@ -99,11 +101,6 @@ do
     fi
 shift
 done
-
-if [ -z $FILE ]; then
-    echo "Please, provide a Faust file to process"
-    exit 1
-fi
 
 NODE_NAME="${FILE%.dsp}"
 NODE_FOLDER=$NODE_NAME"-faustnode"
