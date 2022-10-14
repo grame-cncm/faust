@@ -62,7 +62,7 @@
         declare trill_settings "{ 'CRAFT_n' : { 'prescaler' : 4 ; 'threshold' : 0.15 } ; CRAFT_m ... }"
         
     mapping of the sensors i2c adresses (required) :
-        declare trill_mappings "{'BAR' : {'0' : 32 ; '1' : 33 ...} ; 'SQUARE' : {'0' : 40 ; '1' : 41 ...} ; 'CRAFT' : '{'0' : 48 ...}' }"
+        declare trill_mappings "{'BAR' : {'0' : 32 ; '1' : 33 ...} ; 'SQUARE' : {'0' : 40 ; '1' : 41 ...} ; 'CRAFT' : {'0' : 48 ...} }"
         
     keyboard for polyphony :
         declare trill_keyboard "{CRAFT_n : {'start_pin' : 0 ; 'end_pin' : 29 ; 'start_note' : {'C' : 4} ; 'scale' : {1 ; 0.5 ; 1 ; 1 ; 1 ; 1 ; 0.5 } }; CRAFT_m : {'start_pin' : 0 ; 'end_pin' : 12 ...} ...}"
@@ -797,7 +797,7 @@ class TrillWidget : public BelaWidget
                 case kBAR_TOUCH_7:
                     if (fSensor)
                         val = fSensor->getNumTouches();
-                    *fZone = max(fRange,val);
+                    *fZone = min(fRange,val);
                     break;
                     
                 case kSQUARE_XPOS_0:
@@ -849,7 +849,7 @@ class TrillWidget : public BelaWidget
                 case kSQUARE_TOUCH_7:
                     if (fSensor)
                         val = fSensor->getNumTouches();
-                    *fZone = max(fRange,val);
+                    *fZone = min(fRange,val);
                     break;
                     
                 default:
