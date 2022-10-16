@@ -242,6 +242,8 @@ void JAXCodeContainer::produceClass()
     tab(n + 1, *fOut);
     *fOut << "def build_interface(self, state, x, T: int):";
     tab(n + 2, *fOut);
+    *fOut << "ui_path = []";
+    tab(n + 2, *fOut);
     gGlobal->gJAXVisitor->Tab(n + 2);
     generateUserInterface(gGlobal->gJAXVisitor);
     tab(n + 2, *fOut);
