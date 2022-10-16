@@ -358,14 +358,21 @@ class JAXInstVisitor : public TextInstVisitor {
         }
     }
 
-    virtual void visit(OpenboxInst* inst) {}
+    virtual void visit(OpenboxInst* inst)
+    {
+        *fOut << "ui_path.append(" << quote(inst->fName) << ")";
+        EndLine(' ');
+    }
 
-    virtual void visit(CloseboxInst* inst) {}
+    virtual void visit(CloseboxInst* inst)
+    {
+        *fOut << "ui_path.pop()";
+        tab(fTab, *fOut);
+    }
     
     virtual void visit(AddButtonInst* inst)
     {
-        *fOut << "state[" << quote(inst->fZone) << "] = ";
-        *fOut << "self.add_button(" << quote(inst->fZone) << ", " << quote(inst->fLabel) << ")";
+        *fOut << "self.add_button(state, " << quote(inst->fZone) << ", ui_path," << quote(inst->fLabel) << ")";
         EndLine(' ');
     }
 
@@ -380,13 +387,12 @@ class JAXInstVisitor : public TextInstVisitor {
             scaleMode = "\"linear\"";
         }
 
-        *fOut << "state[" << quote(inst->fZone) << "] = ";
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
             case AddSliderInst::kVertical:
                 // clang-format off
-                *fOut << "self.add_slider(" 
-                    << quote(inst->fZone) << ", "
+                *fOut << "self.add_slider(state, " 
+                    << quote(inst->fZone) << ", ui_path, "
                     << quote(inst->fLabel) << ", "
                     << checkReal(inst->fInit) << ", "
                     << checkReal(inst->fMin) << ", "
@@ -396,8 +402,8 @@ class JAXInstVisitor : public TextInstVisitor {
                 // clang-format on
             case AddSliderInst::kNumEntry:
                 // clang-format off
-                *fOut << "self.add_nentry(" 
-                    << quote(inst->fZone) << ", "
+                *fOut << "self.add_nentry(state, " 
+                    << quote(inst->fZone) << ", ui_path, "
                     << quote(inst->fLabel) << ", "
                     << checkReal(inst->fInit) << ", "
                     << checkReal(inst->fMin) << ", "
@@ -417,8 +423,7 @@ class JAXInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSoundfileInst* inst)
     {
-        *fOut << "self.add_soundfile(state, x, " << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", " << quote(inst->fSFZone)
-              << ")";
+        *fOut << "self.add_soundfile(state, " << quote(inst->fSFZone) << ", ui_path, " << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", x)";
         EndLine(' ');
     }
 
@@ -477,9 +482,7 @@ class JAXInstVisitor : public TextInstVisitor {
             inst->fInst2->accept(this);
             *fOut << ")";
 
-            // clang-format off
             bool opCodeIsBoolean = inst->fOpcode >= kGT && inst->fOpcode <= kXOR;
-            // clang-format on
             if (opCodeIsBoolean && !fIsDoingWhile) {
                 // these opcodes (>,>=,<,<= etc.) result in bools which should be re-cast to integers
                 *fOut << ".astype(jnp.int32)";

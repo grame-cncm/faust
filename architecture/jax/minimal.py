@@ -16,6 +16,7 @@
 
 import json
 import re
+from typing import List
 
 import numpy as np
 import librosa
@@ -43,7 +44,7 @@ def remainder(x, y):
 			audio = np.expand_dims(audio, 0)
 		return audio, sr
 	
-	def add_soundfile(self, state, x, label: str, url: str, key: str):
+	def add_soundfile(self, state, zone: str, ui_path: List[str], label: str, url: str, x):
 		# todo: better parsing
 		filepaths = url[2:-2].split("';'")
 		fLength, fOffset, fSR, offset = [], [], [], 0
@@ -61,40 +62,45 @@ def remainder(x, y):
 			offset += y.shape[1]
 		if label.startswith('param:'):
 			label = label[6:]  # remove param:
-			fBuffers = self.param(key+"_"+label, (lambda key, shape: fBuffers), None)
+			label = "/".join(ui_path+[label])
+			fBuffers = self.param("_"+label, (lambda key, shape: fBuffers), None)
+		else:
+			label = "/".join(ui_path+[label])
 		self.sow('intermediates', label, fBuffers)
-		state[key] = {'fLength': fLength, 'fOffset': fOffset, 'fBuffers': fBuffers, 'fSR': fSR}
-		return state
+		state[zone] = {'fLength': fLength, 'fOffset': fOffset, 'fBuffers': fBuffers, 'fSR': fSR}
 	
-	def add_nentry(self, zone: str, label: str, init: float, a_min: float, a_max: float, step_size: float, scale_mode='linear'):
+	def add_nentry(self, state, zone: str, ui_path: List[str], label: str, init: float, a_min: float, a_max: float, step_size: float, scale_mode='linear'):
+		label = "/".join(ui_path+[label])
 		num_steps = int(jnp.round((a_max-a_min)/step_size))+1
 		init_unit = int(jnp.round(init-a_min)/step_size)
 		param = jnp.ones((num_steps,))
 		param = param.at[init_unit].set(2)
 		param = nn.softmax(param)
-		param = self.param(zone+"_"+label, (lambda key, shape: param), None)
+		param = self.param("_"+label, (lambda key, shape: param), None)
 		param = jnp.argmax(param, axis=-1)*step_size+a_min
 		self.sow('intermediates', label, param)
-		return param
+		state[zone] = param
 	
-	def add_button(self, zone: str, label: str):
-		param = self.param(zone+ "_"+label, nn.initializers.constant(0.), ())
+	def add_button(self, state, zone: str, ui_path: List[str], label: str):
+		label = "/".join(ui_path+[label])
+		param = self.param(zone+ ";"+label, nn.initializers.constant(0.), ())
 		param = jnp.where(param>0., 1., 0.)
 		self.sow('intermediates', label, param)
-		return param
+		state[zone] = param
 	
-	def add_slider(self, zone: str, label: str, init: float, a_min: float, a_max: float, scale_mode='linear'):
+	def add_slider(self, state, zone: str, ui_path: List[str], label: str, init: float, a_min: float, a_max: float, scale_mode='linear'):
+		label = "/".join(ui_path+[label])
 		init, a_min, a_max = float(init), float(a_min), float(a_max)
 		if scale_mode == 'linear':
 			init = jnp.interp(init, jnp.array([a_min, a_max]), jnp.array([-1.,1.]))
-			param = self.param(zone+"_"+label, nn.initializers.constant(init), ())
+			param = self.param("_"+label, nn.initializers.constant(init), ())
 			param = jnp.clip(param, -1., 1.)
 			param = jnp.interp(param, jnp.array([-1., 1.]), jnp.array([a_min, a_max]))
 		elif scale_mode == 'exp':
 			init = jnp.interp(init, jnp.array([a_min, a_max]), jnp.array([1., jnp.e]))
 			init = jnp.log(init)
 			init = jnp.interp(init, jnp.array([0., 1.]), jnp.array([-1.,1.]))
-			param = self.param(zone+"_"+label, nn.initializers.constant(init), ())
+			param = self.param("_"+label, nn.initializers.constant(init), ())
 			param = jnp.clip(param, -1., 1.)
 			param = jnp.interp(param, jnp.array([-1., 1.]), jnp.array([0., 1.]))
 			param = jnp.interp(jnp.exp(param), jnp.array([1., jnp.e]), jnp.array([a_min, a_max]))
@@ -102,14 +108,14 @@ def remainder(x, y):
 			init = jnp.interp(init, jnp.array([a_min, a_max]), jnp.array([-4., 0.]))
 			init = jnp.power(10., init)
 			init = jnp.interp(init, jnp.array([10.**-4., 1.]), jnp.array([-1.,1.]))
-			param = self.param(zone+"_"+label, nn.initializers.constant(init), ())
+			param = self.param("_"+label, nn.initializers.constant(init), ())
 			param = jnp.clip(param, -1., 1.)
 			param = jnp.interp(param, jnp.array([-1., 1.]), jnp.array([10.**-4., 1.]))
 			param = jnp.interp(jnp.log10(param), jnp.array([-4., 0.]), jnp.array([a_min, a_max]))
 		else:
 			raise ValueError(f"Unknown scale '{scale_mode}'.")
 		self.sow('intermediates', label, param)
-		return param
+		state[zone] = param
 		
 	@nn.compact
 	def __call__(self, x, T: int) -> jnp.array:
