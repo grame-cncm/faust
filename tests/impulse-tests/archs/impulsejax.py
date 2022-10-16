@@ -80,7 +80,7 @@ def remainder(x, y):
 	
 	def add_button(self, state, zone: str, ui_path: List[str], label: str):
 		label = "/".join(ui_path+[label])
-		param = self.param(zone+ ";"+label, nn.initializers.constant(0.), ())
+		param = self.param("_"+label, nn.initializers.constant(0.), ())
 		param = jnp.where(param>0., 1., 0.)
 		self.sow('intermediates', label, param)
 		state[zone] = param
