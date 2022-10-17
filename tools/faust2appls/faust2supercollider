@@ -18,6 +18,7 @@
 . faustoptflags
 
 CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
+UNIVERSAL="0"
 
 ARCHFILE=$FAUSTARCH/supercollider.cpp
 
@@ -55,7 +56,7 @@ INCLUDE="-I$SC/plugin_interface/ -I$SC/common/ -I$SC/server/ -I$FAUSTINC"
 
 if [ $# = 0 ]; then
     echo USAGE:
-    echo "$0 [-d[ebug]] [-dm] [-sd] [-ks] [-sn] [-noprefix] file1.dsp [file2.dsp ...]"
+    echo "$0 [-d[ebug]] [-dm] [-sd] [-ks] [-sn] [-noprefix] [-universal] file1.dsp [file2.dsp ...]"
     exit 1
 fi
 
@@ -69,6 +70,7 @@ fi
 # if -noprefix                  -> NO_FAUST_PREFIX
 # if -sd or -synthdef           -> SYNTHDEF
 # if -sn                        -> SUPERNOVA_FLAG
+# if -universal                 -> build a universal (arm/intel) external
 # existing *.dsp files          -> FILES
 #
 
@@ -94,6 +96,8 @@ for p in $@; do
         SYNTHDEF="--synthdef"
     elif [ "$p" = -sn ] || [ "$p" = -supernova ]; then
         SUPERNOVA_FLAG=1
+    elif [ $p = "-universal" ]; then
+        UNIVERSAL="1"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
@@ -118,7 +122,7 @@ fi
 
 if [ "$FILES" = "" ]; then
     echo USAGE:
-    echo "$0 [-d[ebug]] [-dm] [-sd] [-ks] [-sn] [-noprefix] file1.dsp [file2.dsp ...]"
+    echo "$0 [-d[ebug]] [-dm] [-sd] [-ks] [-sn] [-noprefix] [-universal] file1.dsp [file2.dsp ...]"
     exit 1
 fi
 
@@ -166,11 +170,23 @@ for p in $FILES; do
         BUILDFLAGS="$FAUSTTOOLSFLAGS $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP -DSC_FAUST_PREFIX=\"$SC_FAUST_PREFIX\""
 
         # build for build scsynth
-        $CXX $BUILDFLAGS "-Dmydsp=${f%.dsp}" -o "${f%.dsp}.$EXT" "${f%.dsp}.cpp"
-
+        # universal binaries produced on M1
+        if [[ $(uname) == Darwin && ($(uname -p) = arm  || "$UNIVERSAL" = "1") ]]; then
+            $CXX $BUILDFLAGS -arch x86_64 "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_x86_64.$EXT" 
+            $CXX $BUILDFLAGS -arch arm64 "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_arm64.$EXT"
+            $LIPO -create "${f%.dsp}_x86_64.$EXT" "${f%.dsp}_arm64.$EXT" -output "${f%.dsp}.$EXT" || exit
+        else
+            $CXX $BUILDFLAGS "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}.$EXT" 
+        fi 
         # build for supernova
         if [ $SUPERNOVA_FLAG = 1 ]; then
-            $CXX $BUILDFLAGS -DSUPERNOVA "-Dmydsp=${f%.dsp}" -o "${f%.dsp}_supernova.$EXT" "${f%.dsp}.cpp"
+            if [[ $(uname) == Darwin && ($(uname -p) = arm  || "$UNIVERSAL" = "1") ]]; then
+                $CXX $BUILDFLAGS -arch x86_64 -DSUPERNOVA "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_supernova_x86_64.$EXT" 
+                $CXX $BUILDFLAGS -arch arm64 -DSUPERNOVA "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_supernova_arm64.$EXT" 
+                $LIPO -create "${f%.dsp}_supernova_x86_64.$EXT" "${f%.dsp}_supernova_arm64.$EXT" -output "${f%.dsp}_supernova.$EXT" || exit
+            else
+                $CXX $BUILDFLAGS -DSUPERNOVA "-Dmydsp=${f%.dsp}" "${f%.dsp}.cpp" -o "${f%.dsp}_supernova.$EXT" 
+            fi
         fi
 
     )> $OUTDEV || exit

@@ -88,7 +88,7 @@ echoHelp()
     option "-filter <filter>"
     option "-effect <effect.dsp>"
     option -native "to compile for the native CPU (otherwise the 'generic' mode is used by default)"
-    option -universal "to generate a arm/intel external"
+    option -universal "to generate a universal (arm/intel) external"
     option -nopatch "to deactivate patch generation"
     option -nopost "to disable Faust messages to Max console"
     option "Faust options"
