@@ -539,6 +539,18 @@ void CScalarOneSampleCodeContainer1::produceClass()
     
     tab(n, *fOut);
     tab(n, *fOut);
+    *fOut << "void instanceConstants" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate) {";
+    {
+        tab(n + 1, *fOut);
+        fCodeProducer->Tab(n + 1);
+        // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+        inlineSubcontainersFunCalls(fInitInstructions)->accept(fCodeProducer);
+    }
+    back(1, *fOut);
+    *fOut << "}";
+    
+    tab(n, *fOut);
+    tab(n, *fOut);
     *fOut << "void instanceResetUserInterface" << fKlassName << "(" << fKlassName << "* dsp) {";
     {
         tab(n + 1, *fOut);
@@ -555,18 +567,6 @@ void CScalarOneSampleCodeContainer1::produceClass()
         tab(n + 1, *fOut);
         fCodeProducer->Tab(n + 1);
         generateClear(fCodeProducer);
-    }
-    back(1, *fOut);
-    *fOut << "}";
-    
-    tab(n, *fOut);
-    tab(n, *fOut);
-    *fOut << "void instanceConstants" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate) {";
-    {
-        tab(n + 1, *fOut);
-        fCodeProducer->Tab(n + 1);
-        // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
-        inlineSubcontainersFunCalls(fInitInstructions)->accept(fCodeProducer);
     }
     back(1, *fOut);
     *fOut << "}";
@@ -787,30 +787,8 @@ void CScalarOneSampleCodeContainer2::produceClass()
     }
     back(1, *fOut);
     *fOut << "}";
+    tab(n, *fOut);
     
-    tab(n, *fOut);
-    tab(n, *fOut);
-    *fOut << "void instanceResetUserInterface" << fKlassName << "(" << fKlassName << "* dsp) {";
-    {
-        tab(n + 1, *fOut);
-        fCodeProducer->Tab(n + 1);
-        generateResetUserInterface(fCodeProducer);
-    }
-    back(1, *fOut);
-    *fOut << "}";
-    
-    tab(n, *fOut);
-    tab(n, *fOut);
-    *fOut << "void instanceClear" << fKlassName << "(" << fKlassName << "* dsp, " << subst("int* iZone, $0* fZone) {", ifloat());
-    {
-        tab(n + 1, *fOut);
-        fCodeProducer->Tab(n + 1);
-        generateClear(fCodeProducer);
-    }
-    back(1, *fOut);
-    *fOut << "}";
-    
-    tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "void instanceConstants" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     {
@@ -821,8 +799,30 @@ void CScalarOneSampleCodeContainer2::produceClass()
     }
     back(1, *fOut);
     *fOut << "}";
+    tab(n, *fOut);
     
     tab(n, *fOut);
+    *fOut << "void instanceResetUserInterface" << fKlassName << "(" << fKlassName << "* dsp) {";
+    {
+        tab(n + 1, *fOut);
+        fCodeProducer->Tab(n + 1);
+        generateResetUserInterface(fCodeProducer);
+    }
+    back(1, *fOut);
+    *fOut << "}";
+    tab(n, *fOut);
+    
+    tab(n, *fOut);
+    *fOut << "void instanceClear" << fKlassName << "(" << fKlassName << "* dsp, " << subst("int* iZone, $0* fZone) {", ifloat());
+    {
+        tab(n + 1, *fOut);
+        fCodeProducer->Tab(n + 1);
+        generateClear(fCodeProducer);
+    }
+    back(1, *fOut);
+    *fOut << "}";
+    tab(n, *fOut);
+    
     tab(n, *fOut);
     *fOut << "void instanceInit" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     // staticInit has to be called for each instance since the tables are actually not shared between instances
@@ -836,8 +836,8 @@ void CScalarOneSampleCodeContainer2::produceClass()
     *fOut << "instanceClear" << fKlassName << "(dsp, iZone, fZone);";
     tab(n, *fOut);
     *fOut << "}";
-    
     tab(n, *fOut);
+    
     tab(n, *fOut);
     *fOut << "void init" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     tab(n + 1, *fOut);
@@ -856,8 +856,8 @@ void CScalarOneSampleCodeContainer2::produceClass()
         back(1, *fOut);
         *fOut << "}";
     }
-    
     tab(n, *fOut);
+    
     tab(n, *fOut);
     *fOut << "void control" << fKlassName << "(" << fKlassName << "* dsp, " << subst("int* RESTRICT iControl, $0* RESTRICT fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {", ifloat());
     tab(n + 1, *fOut);
@@ -1063,28 +1063,6 @@ void CScalarOneSampleCodeContainer3::produceClass()
     
     tab(n, *fOut);
     tab(n, *fOut);
-    *fOut << "void instanceResetUserInterface" << fKlassName << "(" << fKlassName << "* dsp) {";
-    {
-        tab(n + 1, *fOut);
-        fCodeProducer->Tab(n + 1);
-        generateResetUserInterface(fCodeProducer);
-    }
-    back(1, *fOut);
-    *fOut << "}";
-    
-    tab(n, *fOut);
-    tab(n, *fOut);
-    *fOut << "void instanceClear" << fKlassName << "(" << fKlassName << "* dsp, " << subst("int* iZone, $0* fZone) {", ifloat());
-    {
-        tab(n + 1, *fOut);
-        fCodeProducer->Tab(n + 1);
-        generateClear(fCodeProducer);
-    }
-    back(1, *fOut);
-    *fOut << "}";
-    
-    tab(n, *fOut);
-    tab(n, *fOut);
     *fOut << "void instanceConstants" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     {
         tab(n + 1, *fOut);
@@ -1094,8 +1072,8 @@ void CScalarOneSampleCodeContainer3::produceClass()
     }
     back(1, *fOut);
     *fOut << "}";
-    
     tab(n, *fOut);
+    
     tab(n, *fOut);
     *fOut << "void instanceConstantsFromMem" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     tab(n + 1, *fOut);
@@ -1107,8 +1085,8 @@ void CScalarOneSampleCodeContainer3::produceClass()
     copy_from_mem.getCode(block1)->accept(&visitor1);
     back(1, *fOut);
     *fOut << "}";
-    
     tab(n, *fOut);
+    
     tab(n, *fOut);
     *fOut << "void instanceConstantsToMem" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     tab(n + 1, *fOut);
@@ -1120,8 +1098,30 @@ void CScalarOneSampleCodeContainer3::produceClass()
     copy_to_mem.getCode(block2)->accept(&visitor);
     back(1, *fOut);
     *fOut << "}";
+    tab(n, *fOut);
     
     tab(n, *fOut);
+    *fOut << "void instanceResetUserInterface" << fKlassName << "(" << fKlassName << "* dsp) {";
+    {
+        tab(n + 1, *fOut);
+        fCodeProducer->Tab(n + 1);
+        generateResetUserInterface(fCodeProducer);
+    }
+    back(1, *fOut);
+    *fOut << "}";
+    tab(n, *fOut);
+    
+    tab(n, *fOut);
+    *fOut << "void instanceClear" << fKlassName << "(" << fKlassName << "* dsp, " << subst("int* iZone, $0* fZone) {", ifloat());
+    {
+        tab(n + 1, *fOut);
+        fCodeProducer->Tab(n + 1);
+        generateClear(fCodeProducer);
+    }
+    back(1, *fOut);
+    *fOut << "}";
+    tab(n, *fOut);
+    
     tab(n, *fOut);
     *fOut << "void instanceInit" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     // staticInit has to be called for each instance since the tables are actually not shared between instances
@@ -1137,8 +1137,8 @@ void CScalarOneSampleCodeContainer3::produceClass()
     *fOut << "instanceClear" << fKlassName << "(dsp, iZone, fZone);";
     tab(n, *fOut);
     *fOut << "}";
-    
     tab(n, *fOut);
+    
     tab(n, *fOut);
     *fOut << "void init" << fKlassName << "(" << fKlassName << "* dsp, int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     tab(n + 1, *fOut);
@@ -1157,8 +1157,8 @@ void CScalarOneSampleCodeContainer3::produceClass()
         back(1, *fOut);
         *fOut << "}";
     }
-    
     tab(n, *fOut);
+    
     tab(n, *fOut);
     *fOut << "void control" << fKlassName << "(" << fKlassName << "* dsp, " << subst("int* RESTRICT iControl, $0* RESTRICT fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {", ifloat());
     tab(n + 1, *fOut);

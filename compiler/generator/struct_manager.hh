@@ -303,7 +303,11 @@ struct StructInstVisitor1 : public StructInstVisitor {
             if (is_struct) {
                 // Arrays are allocated in iZone/fZone until fExternalMemory reaches 0
                 // kStaticStruct are always allocated in kExternal
-                if ((access & Address::kStaticStruct) || (fExternalMemory > 0 && array_typed->fSize > fDLThreshold)) {
+                // RW tables ("itblXX" and "ftblXX") are always allocated in kExternal
+                if ((access & Address::kStaticStruct)
+                    || startWith(name, "itbl")
+                    || startWith(name, "ftbl")
+                    || (fExternalMemory > 0 && array_typed->fSize > fDLThreshold)) {
                     fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++,
                                                                      getStructSize(),
                                                                      getStructIntSize(),

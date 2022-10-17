@@ -693,13 +693,20 @@ struct ControlExpander : public BasicCloneVisitor {
 // Base class for iConst/fConst memory copy in -osX modes
 struct ConstantsCopyMemory : public BasicCloneVisitor {
     
+    // Additional variables are added at the end of iZone/fZone arrays
     int fIntIndex = 0;
     int fRealIndex = 0;
     
     ConstantsCopyMemory(int int_index, int float_index):fIntIndex(int_index), fRealIndex(float_index)
     {}
     
+    // Removed instructions
     StatementInst* visit(DeclareVarInst* inst)
+    {
+        return InstBuilder::genDropInst();
+    }
+    
+    StatementInst* visit(ForLoopInst* inst)
     {
         return InstBuilder::genDropInst();
     }

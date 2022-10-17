@@ -1424,7 +1424,7 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
         throw faustexception(error.str());
     }
 
-    ValueInst*     generator = CS(content);
+    ValueInst*     signame = CS(content);
     Typed::VarType ctype;
     Tree           g;
     string         vname;
@@ -1449,10 +1449,10 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
         if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia") {
             // Delete object
             Values args3;
+            args3.push_back(signame);
             if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
                 args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
             }
-            args3.push_back(generator);
             pushPostInitMethod(InstBuilder::genVoidFunCallInst("delete" + kvnames.first, args3));
         }
     }
@@ -1469,13 +1469,13 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
 
     // Init content generator
     Values args1;
-    args1.push_back(generator);
+    args1.push_back(signame);
     args1.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
     pushInitMethod(InstBuilder::genVoidFunCallInst("instanceInit" + tablename, args1, true));
 
     // Fill the table
     Values args2;
-    args2.push_back(generator);
+    args2.push_back(signame);
     args2.push_back(InstBuilder::genInt32NumInst(size));
     // HACK for Rust backend
     args2.push_back(InstBuilder::genLoadMutRefStructVar(vname));
@@ -1495,14 +1495,14 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     }
 
     Tree           g;
-    ValueInst*     cexp;
+    ValueInst*     signame;
     Typed::VarType ctype;
     string         vname;
 
     ensure(isSigGen(content, g));
 
-    if (!getCompiledExpression(content, cexp)) {
-        cexp = setCompiledExpression(content, generateStaticSigGen(content, g));
+    if (!getCompiledExpression(content, signame)) {
+        signame = setCompiledExpression(content, generateStaticSigGen(content, g));
     } else {
         // already compiled but check if we need to add declarations
         pair<string, string> kvnames;
@@ -1523,10 +1523,10 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
             if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia") {
                 // Delete object
                 Values args3;
+                args3.push_back(signame);
                 if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
                     args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
                 }
-                args3.push_back(cexp);
                 pushPostInitMethod(InstBuilder::genVoidFunCallInst("delete" + kvnames.first, args3));
             }
         }
@@ -1553,7 +1553,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
 
     // Init content generator
     Values args1;
-    args1.push_back(cexp);
+    args1.push_back(signame);
     args1.push_back(InstBuilder::genLoadFunArgsVar("sample_rate"));
     pushStaticInitMethod(InstBuilder::genVoidFunCallInst("instanceInit" + tablename, args1, true));
 
@@ -1573,7 +1573,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
 
     // Fill the table
     Values args2;
-    args2.push_back(cexp);
+    args2.push_back(signame);
     args2.push_back(InstBuilder::genInt32NumInst(size));
     // HACK for Rust backend
     args2.push_back(InstBuilder::genLoadStaticMutRefStructVar(vname));

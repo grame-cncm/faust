@@ -826,6 +826,7 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     }
   
     tab(n + 1, *fOut);
+    
     tab(n + 1, *fOut);
     *fOut << genVirtual() << "void instanceConstants(int sample_rate) {";
     tab(n + 2, *fOut);
@@ -1400,7 +1401,8 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     *fOut << genVirtual() << "void instanceConstants(int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);
-    generateInit(fCodeProducer);
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    inlineSubcontainersFunCalls(fInitInstructions)->accept(fCodeProducer);
     back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
@@ -1408,9 +1410,11 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     tab(n + 1, *fOut);
     *fOut << genVirtual() << "void instanceConstantsFromMem(int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     tab(n + 2, *fOut);
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    BlockInst* block1 = inlineSubcontainersFunCalls(fInitInstructions);
     ConstantsCopyFromMemory copy_from_mem(int_zone_size, real_zone_size);
     CPPInstVisitor visitor1(fOut, n + 2);
-    copy_from_mem.getCode(fInitInstructions)->accept(&visitor1);
+    copy_from_mem.getCode(block1)->accept(&visitor1);
     back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
@@ -1418,9 +1422,11 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     tab(n + 1, *fOut);
     *fOut << genVirtual() << "void instanceConstantsToMem(int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     tab(n + 2, *fOut);
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    BlockInst* block2 = inlineSubcontainersFunCalls(fInitInstructions);
     ConstantsCopyToMemory copy_to_mem(int_zone_size, real_zone_size);
     CPPInstVisitor visitor2(fOut, n + 2);
-    copy_to_mem.getCode(fInitInstructions)->accept(&visitor2);
+    copy_to_mem.getCode(block2)->accept(&visitor2);
     back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
@@ -1720,7 +1726,8 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
     *fOut << genVirtual() << "void instanceConstants(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);
-    generateInit(fCodeProducer);
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    inlineSubcontainersFunCalls(fInitInstructions)->accept(fCodeProducer);
     back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
@@ -1728,9 +1735,11 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
     tab(n + 1, *fOut);
     *fOut << genVirtual() << "void instanceConstantsFromMem(int sample_rate) {";
     tab(n + 2, *fOut);
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    BlockInst* block1 = inlineSubcontainersFunCalls(fInitInstructions);
     ConstantsCopyFromMemory1 copy_from_mem(int_zone_size, real_zone_size);
     CPPInstVisitor visitor1(fOut, n + 2);
-    copy_from_mem.getCode(fInitInstructions)->accept(&visitor1);
+    copy_from_mem.getCode(block1)->accept(&visitor1);
     back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
@@ -1738,9 +1747,11 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
     tab(n + 1, *fOut);
     *fOut << genVirtual() << "void instanceConstantsToMem(int sample_rate) {";
     tab(n + 2, *fOut);
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    BlockInst* block2 = inlineSubcontainersFunCalls(fInitInstructions);
     ConstantsCopyToMemory1 copy_to_mem(int_zone_size, real_zone_size);
     CPPInstVisitor visitor2(fOut, n + 2);
-    copy_to_mem.getCode(fInitInstructions)->accept(&visitor2);
+    copy_to_mem.getCode(block2)->accept(&visitor2);
     // Keep the updated values
     int_zone_size = copy_from_mem.fIntIndex;
     real_zone_size = copy_from_mem.fRealIndex;
