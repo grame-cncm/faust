@@ -1,4 +1,4 @@
-declare version "2.50.2";
+declare version "2.52.2";
 declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/UITester.dsp -o reference/UITester.box";
 declare author "O. Guillerminet";
 declare copyright "(c) O. Guillerminet 2012";

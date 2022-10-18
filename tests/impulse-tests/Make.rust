@@ -94,6 +94,7 @@ all: ir/rust/stereoecho.ir
 all: ir/rust/switcher.ir
 all: ir/rust/table.ir
 all: ir/rust/table1.ir
+all: ir/rust/table2.ir
 all: ir/rust/tapiir.ir
 all: ir/rust/tester.ir
 all: ir/rust/tester2.ir
