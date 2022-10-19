@@ -29,6 +29,104 @@
 
 using namespace std;
 
+// Visitor used to initialize array fields into the DSP structure
+struct TemplateInitFieldsVisitor : public DispatchVisitor {
+    std::ostream* fOut;
+    int           fTab;
+    
+    TemplateInitFieldsVisitor(std::ostream* out, int tab = 0) : fOut(out), fTab(tab) {}
+    
+    virtual void visit(DeclareVarInst* inst)
+    {
+        // TO CHECK
+        /*
+         ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(inst->fType);
+         if (array_type) {
+            tab(fTab, *fOut);
+            inst->fAddress->accept(this);
+            *fOut << " = ";
+            if (inst->fValue) {
+                inst->fValue->accept(this);
+            } else {
+                ZeroInitializer(fOut, inst->fType);
+            }
+         }
+         */
+    }
+    
+    virtual void visit(NamedAddress* named)
+    {
+        // kStaticStruct are actually merged in the main DSP
+        /*
+         if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
+            *fOut << "dsp.";
+         }
+         *fOut << named->fName;
+         */
+    }
+    
+    static void ZeroInitializer(std::ostream* fOut, Typed* typed)
+    {
+        // TO CHECK
+        /*
+         ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(typed);
+         faustassert(array_type);
+         if (isIntPtrType(typed->getType())) {
+            *fOut << "zeros(Int32, " << array_type->fSize << ")";
+         } else {
+            *fOut << "zeros(T, " << array_type->fSize << ")";
+         }
+         */
+    }
+    
+    // Needed for waveforms
+    virtual void visit(Int32ArrayNumInst* inst)
+    {
+        // TO CHECK
+        /*
+         char sep = '[';
+         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << sep << "Int32(" << inst->fNumTable[i] << ")";
+            sep = ',';
+         }
+         *fOut << ']';
+         */
+    }
+    
+    virtual void visit(FloatArrayNumInst* inst)
+    {
+        // TO CHECK
+        /*
+         char sep = '[';
+         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << sep << checkFloat(inst->fNumTable[i]);
+            sep = ',';
+         }
+         *fOut << ']';
+         */
+    }
+    
+    virtual void visit(DoubleArrayNumInst* inst)
+    {
+        // TO CHECK
+        /*
+         char sep = '[';
+         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << sep << checkDouble(inst->fNumTable[i]);
+            sep = ',';
+         }
+         *fOut << ']';
+         */
+    }
+    
+};
+
+/*
+    A subclass of TextInstVisitor that implements a lot of generic behaviors.
+    Some methods mays have to be redefined in this class, anf the exposed list
+    of them is given as an example, to be adapted in the real case.
+*/
+
 class TemplateInstVisitor : public TextInstVisitor {
    private:
     
@@ -66,10 +164,7 @@ class TemplateInstVisitor : public TextInstVisitor {
     {}
 
     virtual void visit(AddSoundfileInst* inst)
-    {
-        // Not supported for now
-        throw faustexception("ERROR : 'soundfile' primitive not yet supported for Template\n");
-    }
+    {}
     
     virtual void visit(Int32NumInst* inst) {}
     
@@ -89,7 +184,7 @@ class TemplateInstVisitor : public TextInstVisitor {
    
     virtual void visit(DeclareVarInst* inst)
     {}
-
+    
     virtual void visit(DropInst* inst)
     {}
     

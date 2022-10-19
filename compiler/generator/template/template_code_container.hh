@@ -31,6 +31,7 @@
 #pragma warning(disable : 4250)
 #endif
 
+// Base class for all backend code generation options (-scalar, -vec, -omp, -sch)
 class TemplateCodeContainer : public virtual CodeContainer {
    protected:
     static TemplateInstVisitor* gTemplateVisitor;
@@ -49,7 +50,7 @@ class TemplateCodeContainer : public virtual CodeContainer {
     
     virtual ~TemplateCodeContainer()
     {
-        // fCodeProducer is a 'Garbageable'
+        // fCodeProducer is a 'Garbageable', so nothing to delete
     }
     
     virtual void generateCompute(int tab) = 0;
@@ -62,6 +63,7 @@ class TemplateCodeContainer : public virtual CodeContainer {
                                           std::ostream* dst = new std::stringstream());
 };
 
+// Used in -scalar (= default) mode
 class TemplateScalarCodeContainer : public TemplateCodeContainer {
    protected:
   
@@ -76,18 +78,19 @@ class TemplateScalarCodeContainer : public TemplateCodeContainer {
     virtual ~TemplateScalarCodeContainer()
     {}
 
-    virtual void generateCompute(int n);
+    void generateCompute(int n);
 };
 
+// Used in -vec mode
 class TemplateVectorCodeContainer : public VectorCodeContainer, public TemplateCodeContainer {
     protected:
         
     public:
-        TemplateVectorCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
-        virtual ~TemplateVectorCodeContainer()
-        {}
+      TemplateVectorCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
+      virtual ~TemplateVectorCodeContainer()
+      {}
         
-        virtual void generateCompute(int tab);
+      void generateCompute(int tab);
 };
 
 #endif

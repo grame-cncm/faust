@@ -72,7 +72,6 @@ struct JuliaInitFieldsVisitor : public DispatchVisitor {
     }
     
     // Needed for waveforms
-    
     virtual void visit(Int32ArrayNumInst* inst)
     {
         char sep = '[';

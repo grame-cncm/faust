@@ -77,7 +77,6 @@ struct JAXInitFieldsVisitor : public DispatchVisitor {
     }
     
     // Needed for waveforms
-    
     virtual void visit(Int32ArrayNumInst* inst)
     {
         *fOut << "np.array(";

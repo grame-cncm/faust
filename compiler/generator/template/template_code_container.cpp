@@ -55,6 +55,12 @@ CodeContainer* TemplateCodeContainer::createScalarContainer(const string& name, 
     return new TemplateScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
 }
 
+/*
+    The given template implements -scalar (= default) and -vec mode.
+    For  options like -omp, -sch, the corresponding TemplateOpenMPCodeContainer
+    and TemplateWorkStealingCodeContainer classes would have to be implemented
+    and activated.
+*/
 CodeContainer* TemplateCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
 {
     gGlobal->gDSPStruct = true;
@@ -84,6 +90,7 @@ CodeContainer* TemplateCodeContainer::createContainer(const string& name, int nu
 void TemplateCodeContainer::produceInternal()
 {}
 
+// Given as an example of what a real backend would have to implement.
 void TemplateCodeContainer::produceClass()
 {
     int n = 0;
@@ -108,12 +115,18 @@ void TemplateCodeContainer::produceClass()
     // Info functions: getNumInputs/getNumOuputs
     
     // classInit
+    // TODO if mergeSubContainers() is used
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    // inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gTemplateVisitor);
     
     // instanceResetUserInterface
     
     // instanceClear
   
     // instanceConstants
+    // TODO if mergeSubContainers() is used
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    // inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gTemplateVisitor);
 
     // instanceInit
    
@@ -138,11 +151,12 @@ TemplateScalarCodeContainer::TemplateScalarCodeContainer(const string& name,
     fSubContainerType = sub_container_type;
 }
 
+// Given as an example of what a real backend would have to implement.
 void TemplateScalarCodeContainer::generateCompute(int n)
 {
     *fOut << "TemplateScalarCodeContainer::generateCompute\n";
     
-    // Generates declaration
+    // Generates declarations
 
     // Generates local variables declaration and setup
 
@@ -158,13 +172,14 @@ TemplateVectorCodeContainer::TemplateVectorCodeContainer(const string& name,
     : VectorCodeContainer(numInputs, numOutputs), TemplateCodeContainer(name, numInputs, numOutputs, out)
 {}
 
+// Given as an example of what a real backend would have to implement.
 void TemplateVectorCodeContainer::generateCompute(int n)
 {
     *fOut << "TemplateVectorCodeContainer::generateCompute\n";
     
     // Possibly generate separated functions
     
-    // Generates declaration
+    // Generates declarations
     
     // Generates local variables declaration and setup
     
