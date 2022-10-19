@@ -68,23 +68,23 @@ def remainder(x, y):
 			label = "/".join(ui_path+[label])
 		self.sow('intermediates', label, fBuffers)
 		state[zone] = {'fLength': fLength, 'fOffset': fOffset, 'fBuffers': fBuffers, 'fSR': fSR}
+
+	def add_button(self, state, zone: str, ui_path: List[str], label: str):
+		label = "/".join(ui_path+[label])
+		param = self.param("_"+label, nn.initializers.constant(0.), ())
+		param = jnp.where(param>0., 1., 0.)
+		self.sow('intermediates', label, param)
+		state[zone] = param
 	
 	def add_nentry(self, state, zone: str, ui_path: List[str], label: str, init: float, a_min: float, a_max: float, step_size: float, scale_mode='linear'):
 		label = "/".join(ui_path+[label])
-		num_steps = int(jnp.round((a_max-a_min)/step_size))+1
-		init_unit = int(jnp.round(init-a_min)/step_size)
+		num_steps = int(round((a_max-a_min)/step_size))+1
+		init_unit = int(round(init-a_min)/step_size)
 		param = jnp.ones((num_steps,))
 		param = param.at[init_unit].set(2)
 		param = nn.softmax(param)
 		param = self.param("_"+label, (lambda key, shape: param), None)
 		param = jnp.argmax(param, axis=-1)*step_size+a_min
-		self.sow('intermediates', label, param)
-		state[zone] = param
-	
-	def add_button(self, state, zone: str, ui_path: List[str], label: str):
-		label = "/".join(ui_path+[label])
-		param = self.param("_"+label, nn.initializers.constant(0.), ())
-		param = jnp.where(param>0., 1., 0.)
 		self.sow('intermediates', label, param)
 		state[zone] = param
 	
