@@ -2174,7 +2174,7 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     return out.str();
 }
 
-LIBFAUST_API Tree DSPToBoxes(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], int* inputs, int* outputs, std::string& error_msg)
+LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, int argc, const char* argv[], int* inputs, int* outputs, string& error_msg)
 {
     int argc1 = 0;
     const char* argv1[64];
@@ -2325,7 +2325,7 @@ static void createFactoryAux(const char* name, const char* dsp_content, int argc
     if (gGlobal->gDetailsSwitch) {
         cout << "output signals are : " << endl;
         printSignal(lsignals, stdout);
-        cout << std::endl << ppsig(lsignals) << std::endl;
+        cout << endl << ppsig(lsignals) << endl;
         cout << "\n\n";
     }
 
@@ -2414,7 +2414,7 @@ dsp_factory_base* createFactory(const char* name, const char* dsp_content, int a
     return factory;
 }
 
-dsp_factory_base* createFactory(const char* name, tvec signals, int argc, const char* argv[], std::string& error_msg)
+dsp_factory_base* createFactory(const char* name, tvec signals, int argc, const char* argv[], string& error_msg)
 {
     dsp_factory_base* factory = nullptr;
 
@@ -2455,10 +2455,10 @@ string expandDSP(int argc, const char* argv[], const char* name, const char* dsp
 // Signal C++ API
 // ===============
 
-LIBFAUST_API std::string createSourceFromSignals(const std::string& name_app, tvec signals,
-                                                 const std::string& lang,
-                                                 int argc, const char* argv[],
-                                                 std::string& error_msg)
+LIBFAUST_API string createSourceFromSignals(const string& name_app, tvec signals,
+                                         const string& lang,
+                                         int argc, const char* argv[],
+                                         string& error_msg)
 {
     int         argc1 = 0;
     const char* argv1[64];
@@ -2508,42 +2508,42 @@ LIBFAUST_API Tree sigFVar(SType type, const string& name, const string& file)
 
 // User Interface
 
-LIBFAUST_API Tree sigButton(const std::string& label)
+LIBFAUST_API Tree sigButton(const string& label)
 {
     return sigButton(normalizePath(cons(tree(label), gGlobal->nil)));
 }
 
-LIBFAUST_API Tree sigCheckbox(const std::string& label)
+LIBFAUST_API Tree sigCheckbox(const string& label)
 {
     return sigCheckbox(normalizePath(cons(tree(label), gGlobal->nil)));
 }
 
-LIBFAUST_API Tree sigVSlider(const std::string& label, Tree cur, Tree min, Tree max, Tree step)
+LIBFAUST_API Tree sigVSlider(const string& label, Tree cur, Tree min, Tree max, Tree step)
 {
     return sigVSlider(normalizePath(cons(tree(label), gGlobal->nil)), cur, min, max, step);
 }
 
-LIBFAUST_API Tree sigHSlider(const std::string& label, Tree cur, Tree min, Tree max, Tree step)
+LIBFAUST_API Tree sigHSlider(const string& label, Tree cur, Tree min, Tree max, Tree step)
 {
     return sigHSlider(normalizePath(cons(tree(label), gGlobal->nil)), cur, min, max, step);
 }
 
-LIBFAUST_API Tree sigNumEntry(const std::string& label, Tree cur, Tree min, Tree max, Tree step)
+LIBFAUST_API Tree sigNumEntry(const string& label, Tree cur, Tree min, Tree max, Tree step)
 {
     return sigNumEntry(normalizePath(cons(tree(label), gGlobal->nil)), cur, min, max, step);
 }
 
-LIBFAUST_API Tree sigVBargraph(const std::string& label, Tree min, Tree max, Tree x)
+LIBFAUST_API Tree sigVBargraph(const string& label, Tree min, Tree max, Tree x)
 {
     return sigVBargraph(normalizePath(cons(tree(label), gGlobal->nil)), min, max, x);
 }
 
-LIBFAUST_API Tree sigHBargraph(const std::string& label, Tree min, Tree max, Tree x)
+LIBFAUST_API Tree sigHBargraph(const string& label, Tree min, Tree max, Tree x)
 {
     return sigHBargraph(normalizePath(cons(tree(label), gGlobal->nil)), min, max, x);
 }
 
-LIBFAUST_API Tree sigSoundfile(const std::string& label)
+LIBFAUST_API Tree sigSoundfile(const string& label)
 {
     return sigSoundfile(normalizePath(cons(tree(label), gGlobal->nil)));
 }
@@ -3406,7 +3406,7 @@ tvec boxesToSignalsAux(Tree box)
     return treeConvert(ouputs_nf);
 }
 
-LIBFAUST_API tvec boxesToSignals(Tree box, std::string& error_msg)
+LIBFAUST_API tvec boxesToSignals(Tree box, string& error_msg)
 {
     try {
         return boxesToSignalsAux(box);
@@ -3416,10 +3416,10 @@ LIBFAUST_API tvec boxesToSignals(Tree box, std::string& error_msg)
     }
 }
 
-LIBFAUST_API std::string createSourceFromBoxes(const std::string& name_app, Tree box,
-                                               const std::string& lang,
-                                               int argc, const char* argv[],
-                                               std::string& error_msg)
+LIBFAUST_API string createSourceFromBoxes(const string& name_app, Tree box,
+                                       const string& lang,
+                                       int argc, const char* argv[],
+                                       string& error_msg)
 {
     try {
         tvec signals = boxesToSignalsAux(box);
@@ -3454,7 +3454,7 @@ LIBFAUST_API Tree boxWriteReadTable()
     return boxPrim5(sigWriteReadTable);
 }
 
-LIBFAUST_API Tree boxSoundfile(const std::string& label, Tree chan)
+LIBFAUST_API Tree boxSoundfile(const string& label, Tree chan)
 {
     return boxSoundfile(tree(label), chan);
 }
@@ -3469,12 +3469,12 @@ LIBFAUST_API Tree boxSelect3()
     return boxPrim4(sigSelect3);
 }
 
-LIBFAUST_API Tree boxFConst(SType type, const std::string& name, const std::string& file)
+LIBFAUST_API Tree boxFConst(SType type, const string& name, const string& file)
 {
     return boxFConst(tree(type), tree(name), tree(file));
 }
 
-LIBFAUST_API Tree boxFVar(SType type, const std::string& name, const std::string& file)
+LIBFAUST_API Tree boxFVar(SType type, const string& name, const string& file)
 {
     return boxFVar(tree(type), tree(name), tree(file));
 }
@@ -3650,37 +3650,37 @@ LIBFAUST_API Tree boxAsin()
 
 // User Interface
 
-LIBFAUST_API Tree boxButton(const std::string& label)
+LIBFAUST_API Tree boxButton(const string& label)
 {
     return boxButton(tree(label));
 }
 
-LIBFAUST_API Tree boxCheckbox(const std::string& label)
+LIBFAUST_API Tree boxCheckbox(const string& label)
 {
     return boxButton(tree(label));
 }
 
-LIBFAUST_API Tree boxVSlider(const std::string& label, Tree init, Tree min, Tree max, Tree step)
+LIBFAUST_API Tree boxVSlider(const string& label, Tree init, Tree min, Tree max, Tree step)
 {
     return boxVSlider(tree(label), init, min, max, step);
 }
 
-LIBFAUST_API Tree boxHSlider(const std::string& label, Tree init, Tree min, Tree max, Tree step)
+LIBFAUST_API Tree boxHSlider(const string& label, Tree init, Tree min, Tree max, Tree step)
 {
     return boxHSlider(tree(label), init, min, max, step);
 }
 
-LIBFAUST_API Tree boxNumEntry(const std::string& label, Tree init, Tree min, Tree max, Tree step)
+LIBFAUST_API Tree boxNumEntry(const string& label, Tree init, Tree min, Tree max, Tree step)
 {
     return boxNumEntry(tree(label), init, min, max, step);
 }
 
-LIBFAUST_API Tree boxVBargraph(const std::string& label, Tree min, Tree max)
+LIBFAUST_API Tree boxVBargraph(const string& label, Tree min, Tree max)
 {
     return boxVBargraph(tree(label), min, max);
 }
 
-LIBFAUST_API Tree boxHBargraph(const std::string& label, Tree min, Tree max)
+LIBFAUST_API Tree boxHBargraph(const string& label, Tree min, Tree max)
 {
     return boxHBargraph(tree(label), min, max);
 }
@@ -3732,7 +3732,7 @@ LIBFAUST_API Tree boxWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tre
     return boxSeq(boxPar5(n, init, widx, wsig, ridx), boxWriteReadTable());
 }
 
-LIBFAUST_API Tree boxSoundfile(const std::string& label, Tree chan, Tree part, Tree ridx)
+LIBFAUST_API Tree boxSoundfile(const string& label, Tree chan, Tree part, Tree ridx)
 {
     return boxSeq(boxPar(part, ridx), boxSoundfile(label, chan));
 }
@@ -3942,12 +3942,12 @@ LIBFAUST_API Tree boxAtan2(Tree b1, Tree b2)
     return boxSeq(boxPar(b1, b2), boxAtan2());
 }
 
-LIBFAUST_API Tree boxVBargraph(const std::string& label, Tree min, Tree max, Tree x)
+LIBFAUST_API Tree boxVBargraph(const string& label, Tree min, Tree max, Tree x)
 {
     return boxSeq(x, boxVBargraph(label, min, max));
 }
 
-LIBFAUST_API Tree boxHBargraph(const std::string& label, Tree min, Tree max, Tree x)
+LIBFAUST_API Tree boxHBargraph(const string& label, Tree min, Tree max, Tree x)
 {
     return boxSeq(x, boxHBargraph(label, min, max));
 }
@@ -3990,6 +3990,21 @@ LIBFAUST_API Tree* CboxesToSignals(Tree box, char* error_msg)
         res[i] = nullptr;
         return res;
     } else {
+        return nullptr;
+    }
+}
+    
+LIBFAUST_API char* CcreateSourceFromBoxes(const char* name_app, Tree box,
+                                          const char* lang,
+                                          int argc, const char* argv[],
+                                          char* error_msg)
+{
+    string error_msg_aux;
+    string source = createSourceFromBoxes(name_app, box, lang, argc, argv, error_msg_aux);
+    if (source.size() > 0) {
+        return strdup(source.c_str());
+    } else {
+        strncpy(error_msg, error_msg_aux.c_str(), 4096);
         return nullptr;
     }
 }

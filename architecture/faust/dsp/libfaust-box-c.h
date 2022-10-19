@@ -699,11 +699,39 @@ extern "C"
      */
     LIBFAUST_API Signal* CboxesToSignals(Box box, char* error_msg);
     
+    /**
+     * Create source code in a target language from a box expression.
+     *
+     * @param name_app - the name of the Faust program
+     * @param box - the box expression
+     * @param lang - the target source code's language which can be one of "c",
+     * "cpp", "cmajor", "csharp", "dlang", "fir", "interp", "java", "julia", "ocpp", "rust" or "wast"
+     * (depending of which of the corresponding backends are compiled in libfaust)
+     * @param argc - the number of parameters in argv array
+     * @param argv - the array of parameters
+     * @param error_msg - the error string to be filled
+     *
+     * @return a string of source code on success (to be deleted by the caller using freeCMemory) or a nullptr and setting error_msg on error.
+     */
+    LIBFAUST_API char* CcreateSourceFromBoxes(const char* name_app, Box box,
+                                            const char* lang,
+                                            int argc, const char* argv[],
+                                            char* error_msg);
+  
+    /**
+     * The free function to be used on memory returned CcreateSourceFromBoxes.
+     *
+     * This is MANDATORY on Windows when otherwise all nasty runtime version related crashes can occur.
+     *
+     * @param ptr - the pointer to be deleted.
+     */
+    LIBFAUST_API void freeCMemory(void* ptr);
+    
     /*
      [1] Constant numerical expression : see https://faustdoc.grame.fr/manual/syntax/#constant-numerical-expressions
      [2] Label definition : https://faustdoc.grame.fr/manual/syntax/#variable-parts-of-a-label
      */
-    
+
 #ifdef __cplusplus
 }
 #endif

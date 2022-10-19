@@ -52,7 +52,7 @@ Here are the available options:
 - `-magic` : to generate a project using the [PluginGuiMagic GUI builder](https://foleysfinest.com/developer/pluginguimagic/)
 Tested with PGM version 1.13. Support for Faust components is incomplete. Supporting some features (e.g. visualizers) in PGM requires editing the generated C++ code.
 
- This creates a preprocessor definition "PLUGIN_MAGIC" in the jucer file e.g. using VisualStudio 2019.
+This creates a preprocessor definition "PLUGIN_MAGIC" in the jucer file e.g. using VisualStudio 2019.
 
 ![image](https://user-images.githubusercontent.com/3178344/125528513-d8f127a0-a896-4f50-8210-ba7b8dcf0386.png)
 

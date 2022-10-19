@@ -273,12 +273,42 @@ static void test4()
     destroyLibContext();
 }
 
+// Compile a complete DSP program to a box expression, then to a source string
+static void test5()
+{
+    printf("test25\n");
+    const char* lang[] = { "c", "cpp", "cmajor", "csharp", "dlang", "interp", "jax", "julia", "rust", "wast" };
+    // Context has to be created/destroyed each time
+    for (int i = 0; i < 10; i++) {
+        createLibContext();
+        {
+            int inputs = 0;
+            int outputs = 0;
+            char error_msg[4096];
+            
+            // Create the oscillator
+            Box osc = CDSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", 0, NULL, &inputs, &outputs, error_msg);
+            
+            // Compile it
+            char* source = CcreateSourceFromBoxes("FaustDSP", osc, lang[i], 0, NULL, error_msg);
+            if (source) {
+                printf("%s\n", source);
+                freeCMemory(source);
+            } else {
+                printf("%s\n", error_msg);
+            }
+        }
+        destroyLibContext();
+    }
+}
+
 int main(int argc, const char* argv[])
 {
     test1();
     test2();
     test3();
     test4();
+    test5();
     
     return 0;
 }

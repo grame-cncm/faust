@@ -635,11 +635,11 @@ static void test24(int argc, const char* argv[])
     }
 }
 
-// Compile a complete DSP program to a box expression
+// Compile a complete DSP program to a box expression, then to a source string
 static void test25()
 {
     cout << "test25\n";
-    vector<const char*> lang = { "c", "cpp", "csharp", "dlang", "interp", "jax", "julia", "rust", "soul", "wast" };
+    vector<const char*> lang = { "c", "cpp", "cmajor", "csharp", "dlang", "interp", "jax", "julia", "rust", "wast" };
     // Context has to be created/destroyed each time
     for (const auto& it : lang) {
         createLibContext();
