@@ -99,6 +99,10 @@
 #include "jax_code_container.hh"
 #endif
 
+#ifdef TEMPLATE_BUILD
+#include "template_code_container.hh"
+#endif
+
 // Parser
 extern FILE*       yyin;
 extern const char* yyfilename;
@@ -465,7 +469,11 @@ void global::reset()
 #ifdef JAX_BUILD
     gJAXVisitor = nullptr;    // Will be (possibly) allocated in JAX backend
 #endif
-    
+
+#ifdef TEMPLATE_BUILD
+    gTemplateVisitor = nullptr;    // Will be (possibly) allocated in Template backend
+#endif
+
     gHelpSwitch       = false;
     gVersionSwitch    = false;
     gLibDirSwitch     = false;

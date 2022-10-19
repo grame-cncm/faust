@@ -523,4 +523,28 @@ class JAXStringTypeManager : public StringTypeManager {
     }
 };
 
+// StringTypeManager for Template backend
+
+class TemplateStringTypeManager : public StringTypeManager {
+
+    public:
+    TemplateStringTypeManager(const std::string& float_macro_name, const std::string& ptr_ref, const std::string& struct_name = "")
+        : StringTypeManager(float_macro_name, ptr_ref)
+    {
+        // TODO
+    }
+    
+    virtual std::string generateType(Typed* type, NamedTyped::Attribute attr = NamedTyped::kDefault)
+    {
+        // TODO
+        return "";
+    }
+    
+    virtual std::string generateType(Typed* type, const std::string& name)
+    {
+        // TODO
+        return "";
+    }
+};
+
 #endif

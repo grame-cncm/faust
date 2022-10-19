@@ -58,6 +58,7 @@ class WASTInstVisitor;
 class WASMInstVisitor;
 class JAXInstVisitor;
 class JuliaInstVisitor;
+class TemplateInstVisitor;
 struct TableSizeVisitor;
 struct DeclareStructTypeInst;
 
@@ -552,6 +553,10 @@ struct global {
 
 #ifdef JAX_BUILD
     JAXInstVisitor* gJAXVisitor;
+#endif
+    
+#ifdef TEMPLATE_BUILD
+    TemplateInstVisitor* gTemplateVisitor;
 #endif
 
     bool gHelpSwitch;

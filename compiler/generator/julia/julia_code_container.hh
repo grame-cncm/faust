@@ -43,8 +43,6 @@ class JuliaCodeContainer : public virtual CodeContainer {
     // Not used
     virtual void produceInternal() {}
 
-    void generateCompute(int n);
-
    public:
     JuliaCodeContainer()
     {}
@@ -61,6 +59,9 @@ class JuliaCodeContainer : public virtual CodeContainer {
 
     static CodeContainer* createContainer(const std::string& name, int numInputs, int numOutputs,
                                           std::ostream* dst = new std::stringstream());
+    
+    virtual void generateCompute(int tab) = 0;
+
 };
 
 class JuliaScalarCodeContainer : public JuliaCodeContainer {
@@ -77,6 +78,7 @@ class JuliaScalarCodeContainer : public JuliaCodeContainer {
     virtual ~JuliaScalarCodeContainer()
     {}
 
+    void generateCompute(int tab);
 };
 
 class JuliaVectorCodeContainer : public VectorCodeContainer, public JuliaCodeContainer {

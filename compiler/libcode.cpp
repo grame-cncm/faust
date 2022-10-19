@@ -124,6 +124,10 @@
 #include "rust_code_container.hh"
 #endif
 
+#ifdef TEMPLATE_BUILD
+#include "template_code_container.hh"
+#endif
+
 #ifdef WASM_BUILD
 #include "wasm_code_container.hh"
 #include "wast_code_container.hh"
@@ -209,6 +213,10 @@ static void enumBackends(ostream& out)
 
 #ifdef RUST_BUILD
     out << dspto << "Rust" << endl;
+#endif
+    
+#ifdef TEMPLATE_BUILD
+    out << dspto << "Template" << endl;
 #endif
 
 #ifdef WASM_BUILD
@@ -1608,6 +1616,28 @@ static void compileJAX(Tree signals, int numInputs, int numOutputs, ostream* out
 #endif
 }
 
+static void compileTemplate(Tree signals, int numInputs, int numOutputs, ostream* out)
+{
+#ifdef TEMPLATE_BUILD
+    // Backend configuration
+    gGlobal->gAllowForeignFunction = true;
+    gGlobal->gNeedManualPow        = false;
+    gGlobal->gFAUSTFLOAT2Internal  = true;
+    container = TemplateCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
+    
+    if (gGlobal->gVectorSwitch) {
+        new_comp = new DAGInstructionsCompiler(container);
+    } else {
+        new_comp = new InstructionsCompiler(container);
+    }
+    
+    if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
+    new_comp->compileMultiSignal(signals);
+#else
+    throw faustexception("ERROR : -lang temp not supported since Template backend is not built\n");
+#endif
+}
+
 static void compileCSharp(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
 #ifdef CSHARP_BUILD
@@ -2003,6 +2033,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         compileJava(signals, numInputs, numOutputs, dst.get());
     } else if (gGlobal->gOutputLang == "jax") {
         compileJAX(signals, numInputs, numOutputs, dst.get());
+    } else if (gGlobal->gOutputLang == "temp") {
+        compileTemplate(signals, numInputs, numOutputs, dst.get());
     } else if (gGlobal->gOutputLang == "julia") {
         compileJulia(signals, numInputs, numOutputs, dst.get());
     } else if (gGlobal->gOutputLang == "csharp") {
