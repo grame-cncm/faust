@@ -40,8 +40,9 @@ Faust compilation and installation is based on CMake, you should look at the [Fa
 
 A set of cmake files have to be adapted for the new backed to be properly commpiled and activated:
 
-- targets included into your projects are specified using a configuration file located in the targets folder. 
-- the [backends selection](https://github.com/grame-cncm/faust/wiki/backends#selecting-your-backends) is described using `backends` files located in the [backends](https://github.com/grame-cncm/faust/tree/master-dev/build/backends) folder. **These files will have to be adapted to activate the new backend**.
+- targets included into your projects are specified using a configuration file located in the targets folder
+- the [backends selection](https://github.com/grame-cncm/faust/wiki/backends#selecting-your-backends) is described using `backends` files located in the [backends](https://github.com/grame-cncm/faust/tree/master-dev/build/backends) folder. **These files will have to be adapted to activate the new backend**
+- the backend build flag (like `TEMPLATE_BUILD` in this case) has to be added in the [scan_backends](https://github.com/grame-cncm/faust/blob/master-dev/build/misc/llvm.cmake#L14) function defined in the [llvm.cmake](https://github.com/grame-cncm/faust/blob/master-dev/build/misc/llvm.cmake) file
 
 The new backend may define some globals that have to be added in the `global` class defined in `global.hh`and `global.cpp` files. For instance the unique `TemplateInstVisitor` object is defined and allocated with the appropriate `#ifdef TEMPLATE_BUILD .... #endif` flags.
 

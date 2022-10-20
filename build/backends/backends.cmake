@@ -20,5 +20,6 @@ set ( JULIA_BACKEND  COMPILER STATIC DYNAMIC        CACHE STRING  "Include Julia
 set ( LLVM_BACKEND            STATIC DYNAMIC        CACHE STRING  "Include LLVM backend"      FORCE )
 set ( OLDCPP_BACKEND COMPILER STATIC DYNAMIC        CACHE STRING  "Include old CPP backend"   FORCE )
 set ( RUST_BACKEND   COMPILER STATIC DYNAMIC        CACHE STRING  "Include Rust backend"      FORCE )
-set ( TEMPLATE_BACKEND   COMPILER STATIC DYNAMIC    CACHE STRING  "Include Template backend"  FORCE )
+# Template is deactivated 
+set ( TEMPLATE_BACKEND   OFF    CACHE STRING  "Include Template backend"  FORCE )
 set ( WASM_BACKEND   COMPILER STATIC DYNAMIC WASM   CACHE STRING  "Include WASM backend"      FORCE )

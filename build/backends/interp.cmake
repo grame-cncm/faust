@@ -20,5 +20,6 @@ set ( JULIA_BACKEND  OFF    CACHE STRING  "Include Julia backend" FORCE )
 set ( LLVM_BACKEND   OFF    CACHE STRING  "Include LLVM backend" FORCE )
 set ( OLDCPP_BACKEND OFF    CACHE STRING  "Include old CPP backend" FORCE )
 set ( RUST_BACKEND   OFF    CACHE STRING  "Include Rust backend" FORCE )
+# Template is deactivated 
 set ( TEMPLATE_BACKEND   OFF    CACHE STRING  "Include Template backend" FORCE )
 set ( WASM_BACKEND   OFF    CACHE STRING  "Include WASM backend" FORCE )
