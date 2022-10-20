@@ -230,7 +230,7 @@ LIBFAUST_API string expandDSPFromFile(const string& filename, int argc, const ch
 Same DSP code and same normalized compilation options will generate the same SHA key.
 */
 LIBFAUST_API string expandDSPFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[],
-                                  string& sha_key, string& error_msg)
+                                    string& sha_key, string& error_msg)
 {
     LOCK_API
     if (dsp_content == "") {
@@ -260,7 +260,7 @@ LIBFAUST_API string expandDSPFromString(const string& name_app, const string& ds
         argv1[argc1] = nullptr;  // NULL terminated argv
 
         // 'expandDsp' adds the normalized compilation options in the DSP code before computing the SHA key
-        return expandDSP(argc1, argv1, name_app.c_str(), dsp_content.c_str(), sha_key, error_msg);
+        return expandDSP(name_app, dsp_content, argc1, argv1, sha_key, error_msg);
     }
 }
 
@@ -291,7 +291,7 @@ LIBFAUST_API bool generateAuxFilesFromString(const string& name_app, const strin
         }
         argv1[argc1] = nullptr;  // NULL terminated argv
 
-        dsp_factory_base* factory = createFactory(name_app.c_str(), dsp_content.c_str(), argc1, argv1, error_msg, false);
+        dsp_factory_base* factory = createFactory(name_app, dsp_content, argc1, argv1, error_msg, false);
         // Factory is no more needed
         delete factory;
         return (factory != nullptr);
@@ -305,7 +305,7 @@ extern "C" {
 #endif
     
 LIBFAUST_API const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key,
-                                      char* error_msg)
+                                        char* error_msg)
 {
     string sha_key_aux;
     string error_msg_aux;

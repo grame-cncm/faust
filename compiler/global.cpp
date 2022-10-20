@@ -392,7 +392,9 @@ void global::reset()
     
     gDSPFactory = nullptr;
     
-    gInputString = nullptr;
+    gInputString = "";
+    gInputFiles.clear();
+    gMetaDataSet.clear();
     
     // Backend configuration : default values
     gAllowForeignFunction = true;

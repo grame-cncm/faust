@@ -302,10 +302,10 @@ Tree SourceReader::parseString(const char* fname)
     yyerr = 0;
     yylineno = 1;
     yyfilename = fname;
-    yy_scan_string(gGlobal->gInputString);
+    yy_scan_string(gGlobal->gInputString.c_str());
 
     // Clear global "inputstring" so that imported files will be correctly parsed with "parse"
-    gGlobal->gInputString = nullptr;
+    gGlobal->gInputString = "";
     return parseLocal(fname);
 }
 
@@ -355,7 +355,7 @@ Tree SourceReader::getList(const char* fname)
 	if (!cached(fname)) {
         // Previous metadata need to be cleared before parsing a file
         gGlobal->gFunMDSet.clear();
-        Tree ldef = (gGlobal->gInputString) ? parseString(fname) : parseFile(fname);
+        Tree ldef = (gGlobal->gInputString != "") ? parseString(fname) : parseFile(fname);
         // Definitions with metadata have to be wrapped into a boxMetadata construction
         fFileCache[fname] = addFunctionMetadata(ldef, gGlobal->gFunMDSet);
 	}

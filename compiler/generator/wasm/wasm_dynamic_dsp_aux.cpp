@@ -107,7 +107,7 @@ LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name
         }
         argv1[argc1] = nullptr;  // NULL terminated argv
 
-        dsp_factory_base* dsp_factory_aux = createFactory(name_app.c_str(), dsp_content.c_str(), argc1, argv1, error_msg, true);
+        dsp_factory_base* dsp_factory_aux = createFactory(name_app, dsp_content, argc1, argv1, error_msg, true);
         if (dsp_factory_aux) {
             dsp_factory_aux->setName(name_app);
             wasm_dsp_factory* factory = new wasm_dsp_factory(dsp_factory_aux);
@@ -139,7 +139,7 @@ LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromSignals(const string& nam
     }
     argv1[argc1] = nullptr;  // NULL terminated argv
     
-    dsp_factory_base* dsp_factory_aux = createFactory(name_app.c_str(), signals, argc1, argv1, error_msg);
+    dsp_factory_base* dsp_factory_aux = createFactory(name_app, signals, argc1, argv1, error_msg);
     if (dsp_factory_aux) {
         dsp_factory_aux->setName(name_app);
         wasm_dsp_factory* factory = new wasm_dsp_factory(dsp_factory_aux);
@@ -166,7 +166,7 @@ LIBFAUST_API string generateWasmFromString(const string& name_app, const string&
     }
     argv1[argc1] = nullptr;  // NULL terminated argv
     
-    dsp_factory_base* dsp_factory_aux = createFactory(name_app.c_str(), dsp_content.c_str(), argc1, argv1, error_msg, true);
+    dsp_factory_base* dsp_factory_aux = createFactory(name_app, dsp_content, argc1, argv1, error_msg, true);
     return (dsp_factory_aux) ? dsp_factory_aux->getBinaryCode() : "";
 }
 

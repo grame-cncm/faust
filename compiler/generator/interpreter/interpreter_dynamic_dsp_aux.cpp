@@ -77,7 +77,7 @@ LIBFAUST_API interpreter_dsp_factory* createInterpreterDSPFactoryFromString(cons
                 }
                 argv1[argc1] = nullptr;  // NULL terminated argv
                 
-                dsp_factory_base* dsp_factory_aux = createFactory(name_app.c_str(), dsp_content.c_str(), argc1, argv1, error_msg, true);
+                dsp_factory_base* dsp_factory_aux = createFactory(name_app, dsp_content, argc1, argv1, error_msg, true);
                 if (dsp_factory_aux) {
                     dsp_factory_aux->setName(name_app);
                     interpreter_dsp_factory* factory = new interpreter_dsp_factory(dsp_factory_aux);
@@ -114,7 +114,7 @@ LIBFAUST_API interpreter_dsp_factory* createInterpreterDSPFactoryFromSignals(con
         }
         argv1[argc1] = nullptr;  // NULL terminated argv
         
-        dsp_factory_base* dsp_factory_aux = createFactory(name_app.c_str(), signals, argc1, argv1, error_msg);
+        dsp_factory_base* dsp_factory_aux = createFactory(name_app, signals, argc1, argv1, error_msg);
         if (dsp_factory_aux) {
             dsp_factory_aux->setName(name_app);
             interpreter_dsp_factory* factory = new interpreter_dsp_factory(dsp_factory_aux);

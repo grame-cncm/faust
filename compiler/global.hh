@@ -191,7 +191,7 @@ struct global {
 
     dsp_factory_base* gDSPFactory;
 
-    const char* gInputString;
+    string gInputString;
 
     bool gLstDependenciesSwitch;  ///< mdoc listing management
     bool gLstMdocTagsSwitch;      ///< mdoc listing management

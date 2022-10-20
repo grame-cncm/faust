@@ -178,16 +178,20 @@ class CTree;
 typedef CTree* Signal;
 typedef std::vector<Signal> tvec;
 
-dsp_factory_base* createFactory(const char* name, const char* input,
+dsp_factory_base* createFactory(const std::string& name_app,
+                                const std::string& dsp_content,
                                 int argc, const char* argv[],
                                 std::string& error_msg, bool generate);
 
-dsp_factory_base* createFactory(const char* name, tvec signals,
+dsp_factory_base* createFactory(const std::string& name_app,
+                                tvec signals,
                                 int argc, const char* argv[],
                                 std::string& error_msg);
 
-std::string expandDSP(int argc, const char* argv[], const char* name,
-                      const char* input, std::string& sha_key,
+std::string expandDSP(const std::string& name_app,
+                      const std::string& dsp_content,
+                      int argc, const char* argv[],
+                      std::string& sha_key,
                       std::string& error_msg);
 
 #endif

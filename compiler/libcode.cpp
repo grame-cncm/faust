@@ -2173,7 +2173,7 @@ static void expandDSPInternalAux(int argc, const char* argv[], ostream& out)
     boxppShared(gGlobal->gProcessTree, out);
 }
 
-static string expandDSPInternal(int argc, const char* argv[], const char* name, const char* dsp_content)
+static string expandDSPInternal(const string& name_app, const string& dsp_content, int argc, const char* argv[])
 {
     /****************************************************************
      1 - process command line
@@ -2184,9 +2184,9 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     /****************************************************************
      2 - parse source files
     *****************************************************************/
-    if (dsp_content) {
+    if (dsp_content != "") {
         gGlobal->gInputString = dsp_content;
-        gGlobal->gInputFiles.push_back(name);
+        gGlobal->gInputFiles.push_back(name_app);
     }
     initDocumentNames();
     initFaustFloat();
@@ -2258,7 +2258,7 @@ LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, 
     }
 }
 
-static void createFactoryAux(const char* name, const char* dsp_content, int argc, const char* argv[], bool generate)
+static void createFactoryAux(const string& name_app, const string& dsp_content, int argc, const char* argv[], bool generate)
 {
     /****************************************************************
      1 - process command line
@@ -2313,9 +2313,9 @@ static void createFactoryAux(const char* name, const char* dsp_content, int argc
     /****************************************************************
      2 - parse source files
     *****************************************************************/
-    if (dsp_content) {
+    if (dsp_content != "") {
         gGlobal->gInputString = dsp_content;
-        gGlobal->gInputFiles.push_back(name);
+        gGlobal->gInputFiles.push_back(name_app);
     }
     initDocumentNames();
     initFaustFloat();
@@ -2379,8 +2379,8 @@ static void createFactoryAux(const char* name, const char* dsp_content, int argc
     generateOutputFiles();
 }
 
-static void createFactoryAux(const char* name, Tree signals, int argc, const char* argv[], int numInputs,
-                             int numOutputs, bool generate)
+static void createFactoryAux(const string& name_app, Tree signals, int argc, const char* argv[],
+                            int numInputs, int numOutputs, bool generate)
 {
     /****************************************************************
      1 - process command line
@@ -2395,7 +2395,7 @@ static void createFactoryAux(const char* name, Tree signals, int argc, const cha
      5 - preparation of the signal tree and translate output signals
      **************************************************************************/
 
-    gGlobal->gMetaDataSet[tree("name")].insert(tree(quote(name)));
+    gGlobal->gMetaDataSet[tree("name")].insert(tree(quote(name_app)));
     generateCode(signals, numInputs, numOutputs, generate);
 }
 
@@ -2427,15 +2427,18 @@ struct MaxInputsCounter : public SignalVisitor {
     }
 };
 
-dsp_factory_base* createFactory(const char* name, const char* dsp_content, int argc, const char* argv[],
-                                string& error_msg, bool generate)
+dsp_factory_base* createFactory(const string& name_app,
+                                const string& dsp_content,
+                                int argc, const char* argv[],
+                                string& error_msg,
+                                bool generate)
 {
     gGlobal                   = nullptr;
     dsp_factory_base* factory = nullptr;
 
     try {
         global::allocate();
-        createFactoryAux(name, dsp_content, argc, argv, generate);
+        createFactoryAux(name_app, dsp_content, argc, argv, generate);
         error_msg = gGlobal->gErrorMsg;
         factory   = gGlobal->gDSPFactory;
     } catch (faustexception& e) {
@@ -2446,7 +2449,7 @@ dsp_factory_base* createFactory(const char* name, const char* dsp_content, int a
     return factory;
 }
 
-dsp_factory_base* createFactory(const char* name, tvec signals, int argc, const char* argv[], string& error_msg)
+dsp_factory_base* createFactory(const string& name_app, tvec signals, int argc, const char* argv[], string& error_msg)
 {
     dsp_factory_base* factory = nullptr;
 
@@ -2454,7 +2457,7 @@ dsp_factory_base* createFactory(const char* name, tvec signals, int argc, const 
         Tree             outputs    = listConvert(signals);
         Tree             outputs_nf = simplifyToNormalForm(outputs);
         MaxInputsCounter counter(outputs_nf);
-        createFactoryAux(name, outputs_nf, argc, argv, counter.fMaxInputs, signals.size(), true);
+        createFactoryAux(name_app, outputs_nf, argc, argv, counter.fMaxInputs, signals.size(), true);
         error_msg = gGlobal->gErrorMsg;
         factory   = gGlobal->gDSPFactory;
     } catch (faustexception& e) {
@@ -2464,7 +2467,10 @@ dsp_factory_base* createFactory(const char* name, tvec signals, int argc, const 
     return factory;
 }
 
-string expandDSP(int argc, const char* argv[], const char* name, const char* dsp_content, string& sha_key,
+string expandDSP(const string& name_app,
+                 const string& dsp_content,
+                 int argc, const char* argv[],
+                 string& sha_key,
                  string& error_msg)
 {
     gGlobal    = nullptr;
@@ -2472,7 +2478,7 @@ string expandDSP(int argc, const char* argv[], const char* name, const char* dsp
 
     try {
         global::allocate();
-        res       = expandDSPInternal(argc, argv, name, dsp_content);
+        res       = expandDSPInternal(name_app, dsp_content, argc, argv);
         sha_key   = generateSHA1(res);
         error_msg = gGlobal->gErrorMsg;
     } catch (faustexception& e) {
@@ -2506,7 +2512,7 @@ LIBFAUST_API string createSourceFromSignals(const string& name_app, tvec signals
     }
     argv1[argc1] = nullptr;  // NULL terminated argv
     
-    dsp_factory_base* factory = createFactory(name_app.c_str(), signals, argc1, argv1, error_msg);
+    dsp_factory_base* factory = createFactory(name_app, signals, argc1, argv1, error_msg);
     if (factory) {
         // Print the textual class
         stringstream str;
@@ -3448,10 +3454,11 @@ LIBFAUST_API tvec boxesToSignals(Tree box, string& error_msg)
     }
 }
 
-LIBFAUST_API string createSourceFromBoxes(const string& name_app, Tree box,
-                                       const string& lang,
-                                       int argc, const char* argv[],
-                                       string& error_msg)
+LIBFAUST_API string createSourceFromBoxes(const string& name_app,
+                                        Tree box,
+                                        const string& lang,
+                                        int argc, const char* argv[],
+                                        string& error_msg)
 {
     try {
         tvec signals = boxesToSignalsAux(box);
@@ -4027,9 +4034,9 @@ LIBFAUST_API Tree* CboxesToSignals(Tree box, char* error_msg)
 }
     
 LIBFAUST_API char* CcreateSourceFromBoxes(const char* name_app, Tree box,
-                                          const char* lang,
-                                          int argc, const char* argv[],
-                                          char* error_msg)
+                                        const char* lang,
+                                        int argc, const char* argv[],
+                                        char* error_msg)
 {
     string error_msg_aux;
     string source = createSourceFromBoxes(name_app, box, lang, argc, argv, error_msg_aux);
