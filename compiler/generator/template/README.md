@@ -92,13 +92,15 @@ static void compileTemplate(Tree signals, int numInputs, int numOutputs, ostream
 }
 ```
 
-To be added in `generateCode` function:
+To be added in `generateCode` function with a new `temp` flag to be used in the `-lang` option (like `-lang temp` with this new template backend):
 
 ```c++
 else if (gGlobal->gOutputLang == "temp") {
     compileTemplate(signals, numInputs, numOutputs, dst.get());
 }
 ```
+
+The `-lang` option in the `printHelp` documentation function has to be manually adapted.
 
 ## Textual backend
 
