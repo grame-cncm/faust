@@ -863,6 +863,9 @@ global::~global()
 #ifdef JAX_BUILD
     JAXInstVisitor::cleanup();
 #endif
+#ifdef TEMPLATE_BUILD
+    TemplateInstVisitor::cleanup();
+#endif
 #ifdef RUST_BUILD
     RustInstVisitor::cleanup();
 #endif
