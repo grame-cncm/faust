@@ -25,6 +25,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <thread>
 
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/libfaust.h"
@@ -86,19 +87,10 @@ FAUST_API extern "C" float ForeignLLVM(float val)
     return val + 0.12345;
 }
 
-int main(int argc, char* argv[])
+static void Test(const char* dspFileAux)
 {
-    if (isopt((char**)argv, "-h") || isopt((char**)argv, "-help") || argc < 2) {
-        cout << "llvm-test foo.dsp" << endl;
-        exit(EXIT_FAILURE);
-    }
-    
     string error_msg;
-    cout << "Libfaust version : " << getCLibFaustVersion () << endl;
-    string dspFile = argv[1];
-    
-    std::cout << "getDSPMachineTarget " << getDSPMachineTarget() << std::endl;
-   
+    string dspFile = dspFileAux;
     cout << "=============================\n";
     cout << "Test createDSPFactoryFromFile\n";
     {
@@ -128,7 +120,7 @@ int main(int argc, char* argv[])
         
         dummyaudio audio(1);
         if (!audio.init("FaustDSP", DSP)) {
-            return 0;
+            exit(EXIT_FAILURE);
         }
         
         audio.start();
@@ -162,7 +154,7 @@ int main(int argc, char* argv[])
         
         dummyaudio audio(1);
         if (!audio.init("FaustDSP", DSP)) {
-            return 0;
+            exit(EXIT_FAILURE);
         }
         
         audio.start();
@@ -201,7 +193,7 @@ int main(int argc, char* argv[])
           
         dummyaudio audio(1);
         if (!audio.init("FaustDSP", DSP)) {
-            return 0;
+            exit(EXIT_FAILURE);
         }
         
         audio.start();
@@ -274,6 +266,24 @@ int main(int argc, char* argv[])
             }
         }
     }
+}
+
+int main(int argc, char* argv[])
+{
+    if (isopt((char**)argv, "-h") || isopt((char**)argv, "-help") || argc < 2) {
+        cout << "llvm-test foo.dsp" << endl;
+        exit(EXIT_FAILURE);
+    }
+    
+    cout << "Libfaust version : " << getCLibFaustVersion () << endl;
+    std::cout << "getDSPMachineTarget " << getDSPMachineTarget() << std::endl;
+   
+    // Running in the main thread
+    Test(argv[1]);
+    
+    // Starting in a separated thread
+    thread th(&Test, argv[1]);
+    th.join();
     
     return 0;
 }
