@@ -19,6 +19,7 @@ The `TemplateCodeContainer` base class implements in particular:
 - the `produceClass` method wich is responsible to generate the entire piece of code
 - the `produceInternal` method possibly used for sub containers
 - the `produceMetadata` method to generate the global metadata
+- the waveforms are inlined in the DSP structure (see `TemplateInitFieldsVisitor`usage in the `TemplateCodeContainer::produceClass` method, in the `// Fields` section
 
 The `TemplateScalarCodeContainer` class implements the `compute` method to generate the specific version of DSP computation in *-scalar* mode. The `TemplateVectorCodeContainer` class implements the `compute` method to generate the specific version of DSP computation in *-vec* mode. 
 

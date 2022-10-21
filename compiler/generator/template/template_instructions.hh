@@ -38,10 +38,8 @@ struct TemplateInitFieldsVisitor : public DispatchVisitor {
     
     virtual void visit(DeclareVarInst* inst)
     {
-        // TO CHECK
-        /*
-         ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(inst->fType);
-         if (array_type) {
+        ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(inst->fType);
+        if (array_type) {
             tab(fTab, *fOut);
             inst->fAddress->accept(this);
             *fOut << " = ";
@@ -50,8 +48,7 @@ struct TemplateInitFieldsVisitor : public DispatchVisitor {
             } else {
                 ZeroInitializer(fOut, inst->fType);
             }
-         }
-         */
+        }
     }
     
     virtual void visit(NamedAddress* named)
@@ -220,6 +217,9 @@ class TemplateInstVisitor : public TextInstVisitor {
     {}
   
     virtual void visit(ForLoopInst* inst)
+    {}
+    
+    virtual void visit(SimpleForLoopInst* inst)
     {}
 
     static void cleanup() { gFunctionSymbolTable.clear(); }

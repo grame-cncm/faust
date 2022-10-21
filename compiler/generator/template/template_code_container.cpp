@@ -86,11 +86,13 @@ CodeContainer* TemplateCodeContainer::createContainer(const string& name, int nu
     return container;
 }
 
-// Used for subcontainers
+// Used for subcontainers if 'inlining sub containers' model is not used
 void TemplateCodeContainer::produceInternal()
 {}
 
-// Given as an example of what a real backend would have to implement.
+/*
+ Given as an example of what a real backend would have to do: add or remove FIR visiting code etc.
+*/
 void TemplateCodeContainer::produceClass()
 {
     int n = 0;
@@ -104,13 +106,42 @@ void TemplateCodeContainer::produceClass()
     // mergeSubContainers();
 
     // Functions
-  
+    /*
+    // Only generate globals functions
+    for (const auto& it : fGlobalDeclarationInstructions->fCode) {
+        if (dynamic_cast<DeclareFunInst*>(it)) {
+            it->accept(gGlobal->gTemplateVisitor);
+        }
+    }
+    */
+    
     // Fields
+    /*
+    generateDeclarations(gGlobal->gTemplateVisitor);
+    // Generate global variables definition
+    for (const auto& it : fGlobalDeclarationInstructions->fCode) {
+        if (dynamic_cast<DeclareVarInst*>(it)) {
+            it->accept(gGlobal->gTemplateVisitor);
+        }
+    }
+    */
+    
+    /*
+    TemplateInitFieldsVisitor initializer(fOut, n + 2);
+    generateDeclarations(&initializer);
+    // Generate global variables initialisation
+    for (const auto& it : fGlobalDeclarationInstructions->fCode) {
+        if (dynamic_cast<DeclareVarInst*>(it)) {
+            it->accept(&initializer);
+        }
+    }
+    */
     
     // Print metadata declaration
     // produceMetadata(n);
 
     // getSampleRate
+    // generateGetSampleRate("getSampleRate", "dsp", false, false)->accept(gGlobal->gTemplateVisitor);
   
     // Info functions: getNumInputs/getNumOuputs
     
@@ -120,8 +151,10 @@ void TemplateCodeContainer::produceClass()
     // inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gTemplateVisitor);
     
     // instanceResetUserInterface
+    // generateResetUserInterface(gGlobal->gTemplateVisitor);
     
     // instanceClear
+    // generateClear(gGlobal->gTemplateVisitor);
   
     // instanceConstants
     // TODO if mergeSubContainers() is used
@@ -129,11 +162,14 @@ void TemplateCodeContainer::produceClass()
     // inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gTemplateVisitor);
 
     // instanceInit
-   
+    // TODO
+    
     // init
-   
+    // TODO
+    
     // buildUserInterface
     
+    // TODO
     // Compute
     generateCompute(n);
 }
@@ -157,12 +193,18 @@ void TemplateScalarCodeContainer::generateCompute(int n)
     *fOut << "TemplateScalarCodeContainer::generateCompute\n";
     
     // Generates declarations
+    // TODO
 
     // Generates local variables declaration and setup
+    // generateComputeBlock(gGlobal->gTemplateVisitor);
 
     // Generates one single scalar loop
+    // TO CHECK
+    // SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(fFullCount);
+    // loop->accept(gGlobal->gTemplateVisitor);
 
     // Generates post compute
+    // generatePostComputeBlock(gGlobal->gTemplateVisitor);
 }
 
 // Vector

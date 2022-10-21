@@ -2230,8 +2230,8 @@ LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, 
      2 - parse source files
      *****************************************************************/
     if (dsp_content.c_str()) {
-        gGlobal->gInputString = dsp_content.c_str();
-        gGlobal->gInputFiles.push_back(name_app.c_str());
+        gGlobal->gInputString = dsp_content;
+        gGlobal->gInputFiles.push_back(name_app);
     }
     initDocumentNames();
     initFaustFloat();
