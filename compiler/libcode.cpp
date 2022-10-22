@@ -224,16 +224,29 @@ static void enumBackends(ostream& out)
 #endif
 }
 
-typedef void* (*compile_fun)(void* arg);
+typedef void* (*threaded_fun)(void* arg);
 
-static void callFun(compile_fun fun)
+// Used to pass parameters and possibly return a result
+struct CallContext {
+    string fNameApp = "";
+    string fDSPContent = "";
+    int fArgc = 0;
+    const char** fArgv = nullptr;
+    bool fGenerate = false;
+    int fNumInputs = -1;
+    int fNumOutputs = -1;
+    Tree fTree = nullptr;   // Used for in/out
+    string fRes = "";       // Used for out
+};
+
+static void callFun(threaded_fun fun, void* arg)
 {
 #if defined(EMCC)
-    // No thread support in JS or WIN32
-    fun(NULL);
+    // No thread support in JavaScript
+    fun(arg);
 #elif defined(_WIN32)
     DWORD  id;
-    HANDLE thread = CreateThread(NULL, MAX_STACK_SIZE, LPTHREAD_START_ROUTINE(fun), NULL, 0, &id);
+    HANDLE thread = CreateThread(NULL, MAX_STACK_SIZE, LPTHREAD_START_ROUTINE(fun), arg, 0, &id);
     faustassert(thread != NULL);
     WaitForSingleObject(thread, INFINITE);
 #else
@@ -242,33 +255,9 @@ static void callFun(compile_fun fun)
     faustassert(pthread_attr_init(&attr) == 0);
     faustassert(pthread_attr_setstacksize(&attr, MAX_STACK_SIZE) == 0);
     faustassert(pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE) == 0);
-    faustassert(pthread_create(&thread, &attr, fun, nullptr) == 0);
+    faustassert(pthread_create(&thread, &attr, fun, arg) == 0);
     pthread_join(thread, nullptr);
 #endif
-}
-
-static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
-
-static void* threadEvaluateBlockDiagram(void* arg)
-{
-    try {
-        gGlobal->gProcessTree =
-            evaluateBlockDiagram(gGlobal->gExpandedDefList, gGlobal->gNumInputs, gGlobal->gNumOutputs);
-    } catch (faustexception& e) {
-        gGlobal->gErrorMessage = e.Message();
-    }
-    return 0;
-}
-
-static void* threadBoxPropagateSig(void* arg)
-{
-    try {
-        gGlobal->gLsignalsTree =
-            boxPropagateSig(gGlobal->nil, gGlobal->gProcessTree, makeSigInputList(gGlobal->gNumInputs));
-    } catch (faustexception& e) {
-        gGlobal->gErrorMessage = e.Message();
-    }
-    return 0;
 }
 
 /****************************************************************
@@ -2154,7 +2143,7 @@ static void generateOutputFiles()
     }
 }
 
-static void expandDSPInternalAux(int argc, const char* argv[], ostream& out)
+static void expandDSPInternalAux(Tree process_tree, int argc, const char* argv[], ostream& out)
 {
     // Encode compilation options as a 'declare' : has to be located first in the string
     out << "declare version \"" << FAUSTVERSION << "\";" << endl;
@@ -2170,40 +2159,63 @@ static void expandDSPInternalAux(int argc, const char* argv[], ostream& out)
     }
 
     printDeclareHeader(out);
-    boxppShared(gGlobal->gProcessTree, out);
+    boxppShared(process_tree, out);
 }
 
-static string expandDSPInternal(const string& name_app, const string& dsp_content, int argc, const char* argv[])
+static void* expandDSPInternal(void* arg)
 {
-    /****************************************************************
-     1 - process command line
-    *****************************************************************/
-    initFaustDirectories(argc, argv);
-    processCmdline(argc, argv);
+    try {
+        CallContext* context = static_cast<CallContext*>(arg);
+        string name_app = context->fNameApp;
+        string dsp_content = context->fDSPContent;
+        int argc = context->fArgc;
+        const char** argv = context->fArgv;
+        
+        /****************************************************************
+         1 - process command line
+        *****************************************************************/
+        initFaustDirectories(argc, argv);
+        processCmdline(argc, argv);
 
-    /****************************************************************
-     2 - parse source files
-    *****************************************************************/
-    if (dsp_content != "") {
-        gGlobal->gInputString = dsp_content;
-        gGlobal->gInputFiles.push_back(name_app);
+        /****************************************************************
+         2 - parse source files
+        *****************************************************************/
+        if (dsp_content != "") {
+            gGlobal->gInputString = dsp_content;
+            gGlobal->gInputFiles.push_back(name_app);
+        }
+        initDocumentNames();
+        initFaustFloat();
+
+        parseSourceFiles();
+
+        /****************************************************************
+         3 - evaluate 'process' definition
+        *****************************************************************/
+        Tree processTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, gGlobal->gNumInputs, gGlobal->gNumOutputs);
+        
+        stringstream out;
+        expandDSPInternalAux(processTree, argc, argv, out);
+        context->fRes = out.str();
+        return nullptr;
+        
+    } catch (faustexception& e) {
+        gGlobal->gErrorMessage = e.Message();
+        return nullptr;
     }
-    initDocumentNames();
-    initFaustFloat();
+}
 
-    parseSourceFiles();
-
-    /****************************************************************
-     3 - evaluate 'process' definition
-    *****************************************************************/
-    callFun(threadEvaluateBlockDiagram);  // In a thread with more stack size...
-    if (!gGlobal->gProcessTree) {
-        throw faustexception(gGlobal->gErrorMessage);
+static void* EvaluateBlockDiagram(void* arg)
+{
+    CallContext* context = static_cast<CallContext*>(arg);
+    try {
+        context->fTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, gGlobal->gNumInputs, gGlobal->gNumOutputs);
+        return nullptr;
+    } catch (faustexception& e) {
+        context->fTree = nullptr;
+        gGlobal->gErrorMessage = e.Message();
+        return nullptr;
     }
-
-    stringstream out;
-    expandDSPInternalAux(argc, argv, out);
-    return out.str();
 }
 
 LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, int argc, const char* argv[], int* inputs, int* outputs, string& error_msg)
@@ -2246,157 +2258,180 @@ LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, 
     /****************************************************************
      3 - evaluate 'process' definition
      *****************************************************************/
-
-    callFun(threadEvaluateBlockDiagram);  // In a thread with more stack size...
-    if (gGlobal->gProcessTree) {
+    
+    CallContext context;
+    callFun(EvaluateBlockDiagram, &context);
+    if (context.fTree) {
         *inputs  = gGlobal->gNumInputs;
         *outputs = gGlobal->gNumOutputs;
-        return gGlobal->gProcessTree;
+        return context.fTree;
     } else {
-        error_msg = gGlobal->gErrorMessage;
         return nullptr;
     }
 }
 
-static void createFactoryAux(const string& name_app, const string& dsp_content, int argc, const char* argv[], bool generate)
+static void* createFactoryAux1(void* arg)
 {
-    /****************************************************************
-     1 - process command line
-    *****************************************************************/
-    initFaustDirectories(argc, argv);
-    processCmdline(argc, argv);
+    try {
+        CallContext* context = static_cast<CallContext*>(arg);
+        string name_app = context->fNameApp;
+        string dsp_content = context->fDSPContent;
+        int argc = context->fArgc;
+        const char** argv = context->fArgv;
+        bool generate = context->fGenerate;
+        
+        /****************************************************************
+         1 - process command line
+        *****************************************************************/
+        initFaustDirectories(argc, argv);
+        processCmdline(argc, argv);
 
-    if (gGlobal->gHelpSwitch) {
-        printHelp();
-        throw faustexception("");
-    }
-    if (gGlobal->gVersionSwitch) {
-        printVersion();
-        throw faustexception("");
-    }
-    if (gGlobal->gLibDirSwitch) {
-        printLibDir();
-        throw faustexception("");
-    }
-    if (gGlobal->gIncludeDirSwitch) {
-        printIncludeDir();
-        throw faustexception("");
-    }
-    if (gGlobal->gArchDirSwitch) {
-        printArchDir();
-        throw faustexception("");
-    }
-    if (gGlobal->gDspDirSwitch) {
-        printDspDir();
-        throw faustexception("");
-    }
-    if (gGlobal->gPathListSwitch) {
-        printPaths();
-        throw faustexception("");
-    }
-
-    faust_alarm(gGlobal->gTimeout);
-
-    /****************************************************************
-     1.5 - Check and open some input files
-    *****************************************************************/
-    // Check for injected code (before checking for architectures)
-    if (gGlobal->gInjectFlag) {
-        injcode = openArchStream(gGlobal->gInjectFile.c_str());
-        if (!injcode) {
-            stringstream error;
-            error << "ERROR : can't inject \"" << gGlobal->gInjectFile << "\" external code file, file not found\n";
-            throw faustexception(error.str());
+        if (gGlobal->gHelpSwitch) {
+            printHelp();
+            throw faustexception("");
         }
+        if (gGlobal->gVersionSwitch) {
+            printVersion();
+            throw faustexception("");
+        }
+        if (gGlobal->gLibDirSwitch) {
+            printLibDir();
+            throw faustexception("");
+        }
+        if (gGlobal->gIncludeDirSwitch) {
+            printIncludeDir();
+            throw faustexception("");
+        }
+        if (gGlobal->gArchDirSwitch) {
+            printArchDir();
+            throw faustexception("");
+        }
+        if (gGlobal->gDspDirSwitch) {
+            printDspDir();
+            throw faustexception("");
+        }
+        if (gGlobal->gPathListSwitch) {
+            printPaths();
+            throw faustexception("");
+        }
+
+        faust_alarm(gGlobal->gTimeout);
+
+        /****************************************************************
+         1.5 - Check and open some input files
+        *****************************************************************/
+        // Check for injected code (before checking for architectures)
+        if (gGlobal->gInjectFlag) {
+            injcode = openArchStream(gGlobal->gInjectFile.c_str());
+            if (!injcode) {
+                stringstream error;
+                error << "ERROR : can't inject \"" << gGlobal->gInjectFile << "\" external code file, file not found\n";
+                throw faustexception(error.str());
+            }
+        }
+
+        /****************************************************************
+         2 - parse source files
+        *****************************************************************/
+        if (dsp_content != "") {
+            gGlobal->gInputString = dsp_content;
+            gGlobal->gInputFiles.push_back(name_app);
+        }
+        initDocumentNames();
+        initFaustFloat();
+
+        parseSourceFiles();
+
+        /****************************************************************
+         3 - evaluate 'process' definition
+        *****************************************************************/
+        Tree processTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, gGlobal->gNumInputs, gGlobal->gNumOutputs);
+
+        /****************************************************************
+         3.1 - possibly expand the DSP and return
+         *****************************************************************/
+
+        if (gGlobal->gExportDSP) {
+            string outpath =
+                (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
+            ofstream out(outpath.c_str());
+            expandDSPInternalAux(processTree, argc, argv, out);
+            return nullptr;
+        }
+
+        /****************************************************************
+         4 - compute output signals of 'process'
+        *****************************************************************/
+        startTiming("propagation");
+
+        Tree lsignals = boxPropagateSig(gGlobal->nil, processTree, makeSigInputList(gGlobal->gNumInputs));
+
+        if (gGlobal->gDetailsSwitch) {
+            cout << "output signals are : " << endl;
+            printSignal(lsignals, stdout);
+            cout << endl << ppsig(lsignals) << endl;
+            cout << "\n\n";
+        }
+
+        endTiming("propagation");
+
+        /*************************************************************************
+        5 - preparation of the signal tree and translate output signals
+        **************************************************************************/
+        int numInputs  = gGlobal->gNumInputs;
+        int numOutputs = gGlobal->gNumOutputs;
+        if (numOutputs == 0) {
+            throw faustexception("ERROR : the Faust program has no output signal\n");
+        }
+        generateCode(lsignals, numInputs, numOutputs, generate);
+
+        /****************************************************************
+         6 - generate xml description, documentation or dot files
+        *****************************************************************/
+        generateOutputFiles();
+        
+        return nullptr;
+        
+    } catch (faustexception& e) {
+        gGlobal->gErrorMsg = e.Message();
+        return nullptr;
     }
-
-    /****************************************************************
-     2 - parse source files
-    *****************************************************************/
-    if (dsp_content != "") {
-        gGlobal->gInputString = dsp_content;
-        gGlobal->gInputFiles.push_back(name_app);
-    }
-    initDocumentNames();
-    initFaustFloat();
-
-    parseSourceFiles();
-
-    /****************************************************************
-     3 - evaluate 'process' definition
-    *****************************************************************/
-
-    callFun(threadEvaluateBlockDiagram);  // In a thread with more stack size...
-    if (!gGlobal->gProcessTree) {
-        throw faustexception(gGlobal->gErrorMessage);
-    }
-
-    /****************************************************************
-     3.1 - possibly expand the DSP and return
-     *****************************************************************/
-
-    if (gGlobal->gExportDSP) {
-        string outpath =
-            (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
-        ofstream out(outpath.c_str());
-        expandDSPInternalAux(argc, argv, out);
-        return;
-    }
-
-    /****************************************************************
-     4 - compute output signals of 'process'
-    *****************************************************************/
-    startTiming("propagation");
-
-    callFun(threadBoxPropagateSig);  // In a thread with more stack size...
-    if (!gGlobal->gLsignalsTree) {
-        throw faustexception(gGlobal->gErrorMessage);
-    }
-    Tree lsignals = gGlobal->gLsignalsTree;
-
-    if (gGlobal->gDetailsSwitch) {
-        cout << "output signals are : " << endl;
-        printSignal(lsignals, stdout);
-        cout << endl << ppsig(lsignals) << endl;
-        cout << "\n\n";
-    }
-
-    endTiming("propagation");
-
-    /*************************************************************************
-    5 - preparation of the signal tree and translate output signals
-    **************************************************************************/
-    int numInputs  = gGlobal->gNumInputs;
-    int numOutputs = gGlobal->gNumOutputs;
-    if (numOutputs == 0) {
-        throw faustexception("ERROR : the Faust program has no output signal\n");
-    }
-    generateCode(lsignals, numInputs, numOutputs, generate);
-
-    /****************************************************************
-     6 - generate xml description, documentation or dot files
-    *****************************************************************/
-    generateOutputFiles();
 }
 
-static void createFactoryAux(const string& name_app, Tree signals, int argc, const char* argv[],
-                            int numInputs, int numOutputs, bool generate)
+static void* createFactoryAux2(void* arg)
 {
-    /****************************************************************
-     1 - process command line
-     *****************************************************************/
-    initFaustDirectories(argc, argv);
-    processCmdline(argc, argv);
+    try {
+        CallContext* context = static_cast<CallContext*>(arg);
+        string name_app = context->fNameApp;
+        Tree signals = context->fTree;
+        int argc = context->fArgc;
+        const char** argv = context->fArgv;
+        int numInputs = context->fNumInputs;
+        int numOutputs = context->fNumOutputs;
+        bool generate = context->fGenerate;
+        
+        /****************************************************************
+         1 - process command line
+         *****************************************************************/
+        initFaustDirectories(argc, argv);
+        processCmdline(argc, argv);
 
-    initDocumentNames();
-    initFaustFloat();
+        initDocumentNames();
+        initFaustFloat();
 
-    /*************************************************************************
-     5 - preparation of the signal tree and translate output signals
-     **************************************************************************/
+        /*************************************************************************
+         5 - preparation of the signal tree and translate output signals
+         **************************************************************************/
 
-    gGlobal->gMetaDataSet[tree("name")].insert(tree(quote(name_app)));
-    generateCode(signals, numInputs, numOutputs, generate);
+        gGlobal->gMetaDataSet[tree("name")].insert(tree(quote(name_app)));
+        generateCode(signals, numInputs, numOutputs, generate);
+        
+        return nullptr;
+        
+    } catch (faustexception& e) {
+        gGlobal->gErrorMsg = e.Message();
+        return nullptr;
+    }
 }
 
 // ============
@@ -2433,38 +2468,47 @@ dsp_factory_base* createFactory(const string& name_app,
                                 string& error_msg,
                                 bool generate)
 {
-    gGlobal                   = nullptr;
-    dsp_factory_base* factory = nullptr;
-
-    try {
-        global::allocate();
-        createFactoryAux(name_app, dsp_content, argc, argv, generate);
-        error_msg = gGlobal->gErrorMsg;
-        factory   = gGlobal->gDSPFactory;
-    } catch (faustexception& e) {
-        error_msg = e.Message();
-    }
-
+    gGlobal = nullptr;
+    global::allocate();
+    
+    // Threaded call
+    CallContext context;
+    context.fNameApp = name_app;
+    context.fDSPContent = dsp_content;
+    context.fArgc = argc;
+    context.fArgv = argv;
+    context.fGenerate = generate;
+    callFun(createFactoryAux1, &context);
+    dsp_factory_base* factory = gGlobal->gDSPFactory;
+    error_msg = gGlobal->gErrorMsg;
+   
     global::destroy();
     return factory;
 }
 
 dsp_factory_base* createFactory(const string& name_app, tvec signals, int argc, const char* argv[], string& error_msg)
 {
-    dsp_factory_base* factory = nullptr;
-
     try {
-        Tree             outputs    = listConvert(signals);
-        Tree             outputs_nf = simplifyToNormalForm(outputs);
+        Tree outputs = listConvert(signals);
+        // Can trigger faustexception
+        Tree outputs_nf = simplifyToNormalForm(outputs);
         MaxInputsCounter counter(outputs_nf);
-        createFactoryAux(name_app, outputs_nf, argc, argv, counter.fMaxInputs, signals.size(), true);
+        // Threaded call
+        CallContext context;
+        context.fNameApp = name_app;
+        context.fTree = outputs_nf;
+        context.fArgc = argc;
+        context.fArgv = argv;
+        context.fNumInputs = counter.fMaxInputs;
+        context.fNumOutputs = signals.size();
+        context.fGenerate = true;
+        callFun(createFactoryAux2, &context);
         error_msg = gGlobal->gErrorMsg;
-        factory   = gGlobal->gDSPFactory;
+        return gGlobal->gDSPFactory;
     } catch (faustexception& e) {
         error_msg = e.Message();
+        return nullptr;
     }
-
-    return factory;
 }
 
 string expandDSP(const string& name_app,
@@ -2473,18 +2517,20 @@ string expandDSP(const string& name_app,
                  string& sha_key,
                  string& error_msg)
 {
-    gGlobal    = nullptr;
-    string res = "";
-
-    try {
-        global::allocate();
-        res       = expandDSPInternal(name_app, dsp_content, argc, argv);
-        sha_key   = generateSHA1(res);
-        error_msg = gGlobal->gErrorMsg;
-    } catch (faustexception& e) {
-        error_msg = e.Message();
-    }
-
+    gGlobal = nullptr;
+    global::allocate();
+    
+    // Threaded call
+    CallContext context;
+    context.fNameApp = name_app;
+    context.fDSPContent = dsp_content;
+    context.fArgc = argc;
+    context.fArgv = argv;
+    callFun(expandDSPInternal, &context);
+    string res = context.fRes;
+    sha_key   = generateSHA1(res);
+    error_msg = gGlobal->gErrorMsg;
+  
     global::destroy();
     return res;
 }

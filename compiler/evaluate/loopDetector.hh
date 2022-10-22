@@ -48,7 +48,7 @@ class loopDetector : public virtual Garbageable {
     bool detect(Tree t);
 };
 
-#define MAX_STACK_SIZE 524288 * 128
+#define MAX_STACK_SIZE 1024 * 1024 * 16  // 16 MO
 #define STACK_FRAME 65536 * 4
 
 class stackOverflowDetector {
