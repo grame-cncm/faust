@@ -2258,7 +2258,6 @@ LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, 
     /****************************************************************
      3 - evaluate 'process' definition
      *****************************************************************/
-    
     CallContext context;
     callFun(EvaluateBlockDiagram, &context);
     if (context.fTree) {
@@ -2398,17 +2397,44 @@ static void* createFactoryAux1(void* arg)
     }
 }
 
+// Keep the maximum index of inputs signals
+struct MaxInputsCounter : public SignalVisitor {
+    int fMaxInputs = 0;
+    
+    MaxInputsCounter(Tree L)
+    {
+        // L is in normal form
+        while (!isNil(L)) {
+            self(hd(L));
+            L = tl(L);
+        }
+    }
+    
+    void visit(Tree sig)
+    {
+        int input;
+        if (isSigInput(sig, &input)) {
+            fMaxInputs = std::max(fMaxInputs, input + 1);
+        } else {
+            SignalVisitor::visit(sig);
+        }
+    }
+};
+
 static void* createFactoryAux2(void* arg)
 {
     try {
         CallContext* context = static_cast<CallContext*>(arg);
         string name_app = context->fNameApp;
-        Tree signals = context->fTree;
+        Tree signals1 = context->fTree;
         int argc = context->fArgc;
         const char** argv = context->fArgv;
-        int numInputs = context->fNumInputs;
-        int numOutputs = context->fNumOutputs;
         bool generate = context->fGenerate;
+        
+        Tree signals2 = simplifyToNormalForm(signals1);
+        MaxInputsCounter counter(signals2);
+        int numInputs = counter.fMaxInputs;
+        int numOutputs = context->fNumOutputs;
         
         /****************************************************************
          1 - process command line
@@ -2422,9 +2448,8 @@ static void* createFactoryAux2(void* arg)
         /*************************************************************************
          5 - preparation of the signal tree and translate output signals
          **************************************************************************/
-
         gGlobal->gMetaDataSet[tree("name")].insert(tree(quote(name_app)));
-        generateCode(signals, numInputs, numOutputs, generate);
+        generateCode(signals2, numInputs, numOutputs, generate);
         
         return nullptr;
         
@@ -2437,30 +2462,6 @@ static void* createFactoryAux2(void* arg)
 // ============
 // Backend API
 // ============
-
-// Keep the maximum index of inputs signals
-struct MaxInputsCounter : public SignalVisitor {
-    int fMaxInputs = 0;
-
-    MaxInputsCounter(Tree L)
-    {
-        // L is in normal form
-        while (!isNil(L)) {
-            self(hd(L));
-            L = tl(L);
-        }
-    }
-
-    void visit(Tree sig)
-    {
-        int input;
-        if (isSigInput(sig, &input)) {
-            fMaxInputs = std::max(fMaxInputs, input + 1);
-        } else {
-            SignalVisitor::visit(sig);
-        }
-    }
-};
 
 dsp_factory_base* createFactory(const string& name_app,
                                 const string& dsp_content,
@@ -2488,27 +2489,18 @@ dsp_factory_base* createFactory(const string& name_app,
 
 dsp_factory_base* createFactory(const string& name_app, tvec signals, int argc, const char* argv[], string& error_msg)
 {
-    try {
-        Tree outputs = listConvert(signals);
-        // Can trigger faustexception
-        Tree outputs_nf = simplifyToNormalForm(outputs);
-        MaxInputsCounter counter(outputs_nf);
-        // Threaded call
-        CallContext context;
-        context.fNameApp = name_app;
-        context.fTree = outputs_nf;
-        context.fArgc = argc;
-        context.fArgv = argv;
-        context.fNumInputs = counter.fMaxInputs;
-        context.fNumOutputs = signals.size();
-        context.fGenerate = true;
-        callFun(createFactoryAux2, &context);
-        error_msg = gGlobal->gErrorMsg;
-        return gGlobal->gDSPFactory;
-    } catch (faustexception& e) {
-        error_msg = e.Message();
-        return nullptr;
-    }
+    Tree outputs = listConvert(signals);
+    // Threaded call
+    CallContext context;
+    context.fNameApp = name_app;
+    context.fTree = outputs;
+    context.fArgc = argc;
+    context.fArgv = argv;
+    context.fNumOutputs = signals.size();
+    context.fGenerate = true;
+    callFun(createFactoryAux2, &context);
+    error_msg = gGlobal->gErrorMsg;
+    return gGlobal->gDSPFactory;
 }
 
 string expandDSP(const string& name_app,
@@ -3471,6 +3463,20 @@ LIBFAUST_API Tree* CsimplifyToNormalForm2(Tree* s)
 // Box C++ API
 // ============
 
+static void* boxesToSignalsAux2(void* arg)
+{
+    CallContext* context = static_cast<CallContext*>(arg);
+    try {
+        Tree outputs = boxPropagateSig(gGlobal->nil, context->fTree, makeSigInputList(context->fNumInputs));
+        context->fTree = simplifyToNormalForm(outputs);
+        return nullptr;
+    } catch (faustexception& e) {
+        context->fTree = nullptr;
+        gGlobal->gErrorMessage = e.Message();
+        return nullptr;
+    }
+}
+
 // Can generate faustexception, used in createDSPFactoryFromBoxes and createInterpreterDSPFactoryFromBoxes
 tvec boxesToSignalsAux(Tree box)
 {
@@ -3484,10 +3490,13 @@ tvec boxesToSignalsAux(Tree box)
         error << "ERROR during the evaluation of process : " << boxpp(box) << endl;
         throw faustexception(error.str());
     }
-
-    Tree outputs   = boxPropagateSig(gGlobal->nil, box, makeSigInputList(numInputs));
-    Tree ouputs_nf = simplifyToNormalForm(outputs);
-    return treeConvert(ouputs_nf);
+    
+    // Threaded call
+    CallContext context;
+    context.fTree = box;
+    context.fNumInputs = numInputs;
+    callFun(boxesToSignalsAux2, &context);
+    return treeConvert(context.fTree);
 }
 
 LIBFAUST_API tvec boxesToSignals(Tree box, string& error_msg)
