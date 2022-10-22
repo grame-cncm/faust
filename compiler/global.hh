@@ -589,13 +589,9 @@ struct global {
     int gTimeout;  // Time out to abort compiler (in seconds)
 
     // Globals to transfer results in thread based evaluation
-    Tree   gProcessTree;
-    Tree   gLsignalsTree;
-    int    gNumInputs;
-    int    gNumOutputs;
     string gErrorMessage;
 
-    // GC
+    // Garbage collection
     static list<Garbageable*> gObjectTable;
     static bool               gHeapCleanup;
 

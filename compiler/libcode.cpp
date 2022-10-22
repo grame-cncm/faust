@@ -2192,7 +2192,9 @@ static void* expandDSPInternal(void* arg)
         /****************************************************************
          3 - evaluate 'process' definition
         *****************************************************************/
-        Tree processTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, gGlobal->gNumInputs, gGlobal->gNumOutputs);
+        int numInputs;
+        int numOutputs;
+        Tree processTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
         
         stringstream out;
         expandDSPInternalAux(processTree, argc, argv, out);
@@ -2205,11 +2207,11 @@ static void* expandDSPInternal(void* arg)
     }
 }
 
-static void* EvaluateBlockDiagram(void* arg)
+static void* evaluateBlockDiagram2(void* arg)
 {
     CallContext* context = static_cast<CallContext*>(arg);
     try {
-        context->fTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, gGlobal->gNumInputs, gGlobal->gNumOutputs);
+        context->fTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, context->fNumInputs, context->fNumOutputs);
         return nullptr;
     } catch (faustexception& e) {
         context->fTree = nullptr;
@@ -2259,10 +2261,10 @@ LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, 
      3 - evaluate 'process' definition
      *****************************************************************/
     CallContext context;
-    callFun(EvaluateBlockDiagram, &context);
+    callFun(evaluateBlockDiagram2, &context);
     if (context.fTree) {
-        *inputs  = gGlobal->gNumInputs;
-        *outputs = gGlobal->gNumOutputs;
+        *inputs = context.fNumInputs;
+        *outputs = context.fNumOutputs;
         return context.fTree;
     } else {
         return nullptr;
@@ -2344,12 +2346,16 @@ static void* createFactoryAux1(void* arg)
         /****************************************************************
          3 - evaluate 'process' definition
         *****************************************************************/
-        Tree processTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, gGlobal->gNumInputs, gGlobal->gNumOutputs);
+        int numInputs;
+        int numOutputs;
+        Tree processTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, numInputs, numOutputs);
+        if (numOutputs == 0) {
+            throw faustexception("ERROR : the Faust program has no output signal\n");
+        }
 
         /****************************************************************
          3.1 - possibly expand the DSP and return
          *****************************************************************/
-
         if (gGlobal->gExportDSP) {
             string outpath =
                 (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
@@ -2363,7 +2369,7 @@ static void* createFactoryAux1(void* arg)
         *****************************************************************/
         startTiming("propagation");
 
-        Tree lsignals = boxPropagateSig(gGlobal->nil, processTree, makeSigInputList(gGlobal->gNumInputs));
+        Tree lsignals = boxPropagateSig(gGlobal->nil, processTree, makeSigInputList(numInputs));
 
         if (gGlobal->gDetailsSwitch) {
             cout << "output signals are : " << endl;
@@ -2377,11 +2383,6 @@ static void* createFactoryAux1(void* arg)
         /*************************************************************************
         5 - preparation of the signal tree and translate output signals
         **************************************************************************/
-        int numInputs  = gGlobal->gNumInputs;
-        int numOutputs = gGlobal->gNumOutputs;
-        if (numOutputs == 0) {
-            throw faustexception("ERROR : the Faust program has no output signal\n");
-        }
         generateCode(lsignals, numInputs, numOutputs, generate);
 
         /****************************************************************

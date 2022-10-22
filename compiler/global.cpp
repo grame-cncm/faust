@@ -501,10 +501,6 @@ void global::reset()
     gTimeout = 120;  // Time out to abort compiler (in seconds)
     
     // Globals to transfer results in thread based evaluation
-    gProcessTree  = nullptr;
-    gLsignalsTree = nullptr;
-    gNumInputs    = 0;
-    gNumOutputs   = 0;
     gErrorMessage = "";
     
     // By default use "cpp" output
