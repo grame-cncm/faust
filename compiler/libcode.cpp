@@ -224,8 +224,6 @@ static void enumBackends(ostream& out)
 #endif
 }
 
-typedef void* (*threaded_fun)(void* arg);
-
 // Used to pass parameters and possibly return a result
 struct CallContext {
     string fNameApp = "";
@@ -238,6 +236,9 @@ struct CallContext {
     Tree fTree = nullptr;   // Used for in/out
     string fRes = "";       // Used for out
 };
+
+// Threaded function prototype
+typedef void* (*threaded_fun)(void* arg);
 
 static void callFun(threaded_fun fun, void* arg)
 {

@@ -509,7 +509,6 @@ LIBFAUST_API Box boxXOR(Box b1, Box b2);
 /**
  * Extended unary mathematical functions.
  */
-
 LIBFAUST_API Box boxAbs();
 LIBFAUST_API Box boxAbs(Box x);
 LIBFAUST_API Box boxAcos();
@@ -544,7 +543,6 @@ LIBFAUST_API Box boxAsin(Box x);
 /**
  * Extended binary mathematical functions.
  */
-
 LIBFAUST_API Box boxRemainder();
 LIBFAUST_API Box boxRemainder(Box b1, Box b2);
 LIBFAUST_API Box boxPow();
