@@ -3496,7 +3496,11 @@ tvec boxesToSignalsAux(Tree box)
     context.fTree = box;
     context.fNumInputs = numInputs;
     callFun(boxesToSignalsAux2, &context);
-    return treeConvert(context.fTree);
+    if (context.fTree) {
+        return treeConvert(context.fTree);
+    } else {
+        throw faustexception(gGlobal->gErrorMessage);
+    }
 }
 
 LIBFAUST_API tvec boxesToSignals(Tree box, string& error_msg)
