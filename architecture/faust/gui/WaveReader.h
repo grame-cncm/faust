@@ -310,7 +310,7 @@ struct WaveReader : public SoundfileReader {
     WaveReader() {}
     virtual ~WaveReader() {}
     
-    virtual bool checkFile(const std::string& path_name)
+    bool checkFile(const std::string& path_name) override
     {
         try {
             FileReader reader(path_name);
@@ -320,14 +320,14 @@ struct WaveReader : public SoundfileReader {
         }
     }
     
-    virtual void getParamsFile(const std::string& path_name, int& channels, int& length)
+    void getParamsFile(const std::string& path_name, int& channels, int& length) override
     {
         FileReader reader(path_name);
         channels = reader.fWave->num_channels;
         length = (reader.fWave->subchunk_2_size * 8) / (reader.fWave->num_channels * reader.fWave->bits_per_sample);
     }
     
-    virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
+    void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan) override
     {
         FileReader reader(path_name);
         reader.load_wave();

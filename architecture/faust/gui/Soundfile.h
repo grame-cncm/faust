@@ -265,6 +265,7 @@ class SoundfileReader {
 
   public:
     
+    SoundfileReader() {}
     virtual ~SoundfileReader() {}
     
     void setSampleRate(int sample_rate) { fDriverSR = sample_rate; }
