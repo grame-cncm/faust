@@ -262,7 +262,7 @@ class JSFXInstVisitor : public TextInstVisitor {
         //gPolyMathLibTable["fmodf"]      = "mod";
         gPolyMathLibTable["logf"]       = "log";
         //gPolyMathLibTable["log2f"]      = "log2";
-        gPolyMathLibTable["log10f"]     = "log10";
+        //gPolyMathLibTable["log10f"]     = "log10";
         gPolyMathLibTable["powf"]       = "pow";
         //gPolyMathLibTable["remainderf"] = "remainder";
         gPolyMathLibTable["rintf"]      = "rint";
@@ -357,8 +357,8 @@ class JSFXInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSliderInst* inst)
     {
-        *fOut << "slider" << ++slider_count << ":" << inst->fLabel << "=" << inst->fInit
-              << "<" << inst->fMin << "," << inst->fMax << "," << inst->fStep << ">";
+        *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=" << inst->fInit
+              << "<" << inst->fMin << "," << inst->fMax << "," << inst->fStep << ">" << inst->fLabel;
               
         EndLine(' ');
 
@@ -380,6 +380,14 @@ class JSFXInstVisitor : public TextInstVisitor {
     
     virtual void visit(Int64NumInst* inst) {
         *fOut << "floor(" << inst->fNum << ")";
+    }
+
+    virtual void visit(FloatNumInst* inst) {
+        *fOut << fixed << inst->fNum;
+    }
+
+    virtual void visit(DoubleNumInst* inst) {
+        *fOut << fixed << inst->fNum;
     }
     
     virtual void visit(Int32ArrayNumInst* inst)
@@ -436,8 +444,10 @@ class JSFXInstVisitor : public TextInstVisitor {
     virtual void visit(DeclareVarInst* inst)
     {
         //*fOut << inst->getName();
+        std::string n = inst->fAddress->getName();
+        if(n.find("output") != n.npos) 
+            return;
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
-            // Invalid in JSFX
              *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
         } else {
             *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
@@ -512,7 +522,15 @@ class JSFXInstVisitor : public TextInstVisitor {
         // kStaticStruct are actually merged in the main DSP
         if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
         }
-        *fOut << named->fName;
+        std::string name = named->fName;
+        if(name.find("output") != name.npos) 
+        {
+            name.replace(0, 6, "spl");
+        } else if(name.find("sample_rate") != name.npos)
+        {
+            name.replace(0, name.size(), "srate");
+        }
+        *fOut << name;
     }
     
     /*
@@ -526,6 +544,10 @@ class JSFXInstVisitor : public TextInstVisitor {
             Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->getIndex());
             *fOut << "." << struct_type->fType->getName(field_index->fNum);
         } else {
+            std::string name = indexed->fAddress->getName();
+            if(name.find("output") != name.npos) {
+                return;
+            }
             *fOut << "[";
             Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->getIndex());
             if (field_index) {
@@ -535,7 +557,6 @@ class JSFXInstVisitor : public TextInstVisitor {
                 *fOut << "]";
             }
         }
-
     }
       
     virtual void visit(::CastInst* inst)
@@ -604,48 +625,34 @@ class JSFXInstVisitor : public TextInstVisitor {
         EndLine();
         tab(fTab, *fOut);
     }
-/*    
+
+
+    // DSP Loop
     virtual void visit(SimpleForLoopInst* inst)
     {
+        inst->fCode->accept(this);
+        /*
         // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
-
-        if(inst->fReverse) {
-            Int32NumInst* lower_bound = dynamic_cast<Int32NumInst*>(inst->fLowerBound);
-            faustassert(lower_bound);
-            Int32NumInst* upper_bound = dynamic_cast<Int32NumInst*>(inst->fUpperBound);
-
-
-            *fOut << "while(";
-            *fOut << "loop_index > " << lower_bound << ")";
-            if(upper_bound) {
-                *fOut << upper_bound->fNum;
-            } else {
-                inst->fUpperBound->accept(this);
-            }
-            *fOut << ")\n";
+        Int32NumInst* lower_bound = dynamic_cast<Int32NumInst*>(inst->fLowerBound);
+        faustassert(lower_bound);
+        Int32NumInst* upper_bound = dynamic_cast<Int32NumInst*>(inst->fUpperBound);
+        *fOut << "loop(";
+        if(upper_bound) {
+            *fOut << upper_bound->fNum;
         } else {
-            *fOut << "while(";
-            Int32NumInst* lower_bound = dynamic_cast<Int32NumInst*>(inst->fLowerBound);
-            faustassert(lower_bound);
-            *fOut << lower_bound->fNum << " < ";
-            Int32NumInst* upper_bound = dynamic_cast<Int32NumInst*>(inst->fUpperBound);
-            if(upper_bound) {
-                *fOut << upper_bound->fNum;
-            } else {
-                inst->fUpperBound->accept(this);
-            }
-            *fOut << ")\n";
-        }     
-        *fOut << "(\n";
+            inst->fUpperBound->accept(this);
+        }
+        *fOut << ",";
         fTab++;
         tab(fTab, *fOut);
         inst->fCode->accept(this);
         fTab--;
-        *fOut << ")";
         tab(fTab, *fOut);
+        *fOut << ")";
+        EndLine();
+        */
     }
-*/
 
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };

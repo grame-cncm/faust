@@ -483,12 +483,12 @@ class JSFXStringTypeManager : public StringTypeManager {
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
   
         if (basic_typed) {
-            return fTypeDirectTable[basic_typed->fType];
+            return ""; //fTypeDirectTable[basic_typed->fType];
         } else if (named_typed) {
             string ty_str = generateType(named_typed->fType);
-            return named_typed->fName + ((ty_str != "") ? ("::" + ty_str) : "");
+            return ""; //named_typed->fName + ((ty_str != "") ? ("::" + ty_str) : "");
         } else if (array_typed) {
-            return fTypeDirectTable[array_typed->getType()];
+            return "";// fTypeDirectTable[array_typed->getType()];
         } else {
             faustassert(false);
             return "";
@@ -502,15 +502,12 @@ class JSFXStringTypeManager : public StringTypeManager {
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
 
         if (basic_typed) {
-            return name; // + "::" + fTypeDirectTable[basic_typed->fType];
+            return name;// + "::" + fTypeDirectTable[basic_typed->fType];
         } else if (named_typed) {
-            string ty_str = named_typed->fName + generateType(named_typed->fType);
-            return name; // + ((ty_str != "") ? ("::" + ty_str) : "");
+            //string ty_str = named_typed->fName + generateType(named_typed->fType);
+            return name;// + ((ty_str != "") ? ("::" + ty_str) : "");
         } else if (array_typed) {
             return name; //
-            //return (array_typed->fSize == 0)
-            //        ? name + "::" + fPtrRef + generateType(array_typed->fType)
-            //        : name + "::Vector{" + generateType(array_typed->fType) + "}";
         } else {
             faustassert(false);
             return "";
