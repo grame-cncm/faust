@@ -1,0 +1,246 @@
+/************************************************************************
+ ************************************************************************
+    FAUST compiler
+    Copyright (C) 2022 GRAME, Centre National de Creation Musicale
+    ---------------------------------------------------------------------
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ ************************************************************************
+ ************************************************************************/
+
+#include "jsfx_code_container.hh"
+#include "Text.hh"
+#include "exception.hh"
+#include "fir_function_builder.hh"
+#include "floats.hh"
+#include "global.hh"
+
+using namespace std;
+
+map<string, bool> JSFXInstVisitor::gFunctionSymbolTable;
+
+dsp_factory_base* JSFXCodeContainer::produceFactory()
+{
+    return new text_dsp_factory_aux(
+        fKlassName, "", "",
+        ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), "");
+}
+
+JSFXCodeContainer::JSFXCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out)
+{
+    // Mandatory
+    initialize(numInputs, numOutputs);
+    fKlassName = name;
+    fOut = out;
+    
+    // Allocate one static visitor
+    if (!gGlobal->gJSFXVisitor) {
+        gGlobal->gJSFXVisitor = new JSFXInstVisitor(out, name);
+    }
+}
+
+CodeContainer* JSFXCodeContainer::createScalarContainer(const string& name, int sub_container_type)
+{
+    return new JSFXScalarCodeContainer(name, 0, 1, fOut, sub_container_type);
+}
+
+/*
+    The given template implements -scalar (= default) and -vec mode.
+    For  options like -omp, -sch, the corresponding JSFXOpenMPCodeContainer
+    and JSFXWorkStealingCodeContainer classes would have to be implemented
+    and activated.
+*/
+CodeContainer* JSFXCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
+{
+    gGlobal->gDSPStruct = true;
+    CodeContainer* container;
+
+    if (gGlobal->gOpenCLSwitch) {
+        throw faustexception("ERROR : OpenCL not supported for JSFX\n");
+    }
+    if (gGlobal->gCUDASwitch) {
+        throw faustexception("ERROR : CUDA not supported for JSFX\n");
+    }
+
+    if (gGlobal->gOpenMPSwitch) {
+        throw faustexception("ERROR : OpenMP not supported for JSFX\n");
+    } else if (gGlobal->gSchedulerSwitch) {
+        throw faustexception("ERROR : Scheduler not supported for JSFX\n");
+    } else if (gGlobal->gVectorSwitch) {
+        throw faustexception("ERROR : Vector not supported for JSFX\n");
+    } else {
+        container = new JSFXScalarCodeContainer(name, numInputs, numOutputs, dst, kInt);
+    }
+
+    return container;
+}
+
+// Used for subcontainers if 'inlining sub containers' model is not used
+void JSFXCodeContainer::produceInternal()
+{
+
+
+
+}
+
+
+/*
+ Given as an example of what a real backend would have to do: add or remove FIR visiting code etc.
+*/
+void JSFXCodeContainer::produceClass()
+{
+    int n = 0;
+
+    //buildUserInterface
+    generateUserInterface(gGlobal->gJSFXVisitor);
+
+
+    // classInit
+    *fOut << "@init" << endl;
+    
+    *fOut << "\n"
+             << "// GLOBAL Functions \n"
+             << "\n";
+    // Globals functions 
+    *fOut << "/*\n"
+             << " * Initialise memory allocator \n"
+             << " */\n"
+             << "function init_memory() instance(index) (\n"
+             << " index = 0;\n"
+             << ");\n";
+    *fOut << "/*\n"
+             << " *Allocate memory \n"
+             << " */\n"
+             << "function alloc_memory(amount) instance(index) local(i) (\n"
+             << " i = index; \n"
+             << " index += amount; \n"
+             << " i;\n"
+             << ");\n";
+
+    *fOut << "MEMORY.init_memory();\n\n";
+
+    *fOut << "/*\n"
+          << " * Allocate and fill with zeros \n" 
+          << " */\n"
+          << "function zeros(amount) (\n"
+          << " start = MEMORY.alloc_memory(amount);\n"
+          << " i = 0;\n"
+          << " loop(amount, start[i] = 0; i+=1;);\n"
+          << " start;\n"
+          << ");\n";
+
+    *fOut << "/*\n"
+          << " * Mathematical functions \n"
+          << " */\n"
+          << "function exp2(arg) (\n"
+          << " pow(2, n);\n"
+          << ");\n\n"
+          << "function exp10(arg) (\n"
+          << " pow(10, n);\n"
+          << " );\n\n"
+          << "function log2(arg) (\n"
+          << " pow(10, n);\n"
+          << ");\n\n"
+          << "function log2(x) (\n"
+          << " (x==1)\n"
+          << " ? 0 : (x>1)\n"
+          << " ? log(x) : (x < 1 && x > 0)\n"
+          << " ? (log(x)*-1) : -0;\n"
+          << ");\n";
+    
+    *fOut << endl;
+
+     mergeSubContainers();
+
+    // Print header
+    produceInfoFunctions(n, "", "", false, FunTyped::kDefault, gGlobal->gJSFXVisitor);
+    // generateGetSampleRate("srate", "", false, false)->accept(gGlobal->gJSFXVisitor);
+    // Possibly missing mathematical functions
+    // Possibly merge sub containers (with an empty 'produceInternal' method)
+
+    // Functions
+    // Only generate globals functions
+    for (const auto& it : fGlobalDeclarationInstructions->fCode) {
+        if (dynamic_cast<DeclareFunInst*>(it)) {
+            it->accept(gGlobal->gJSFXVisitor);
+        }
+    }
+    *fOut << endl;
+    
+    // Fields - not needed here since declarations are dynamic in JSFX
+    /*
+    generateDeclarations(gGlobal->gJSFXVisitor);
+    // Generate global variables definition
+    for (const auto& it : fGlobalDeclarationInstructions->fCode) {
+        if (dynamic_cast<DeclareVarInst*>(it)) {
+            it->accept(gGlobal->gJSFXVisitor);
+        }
+    }
+    */
+
+    *fOut << "fSampleRate = srate;\n";
+    JSFXInitFieldsVisitor initializer(fOut, n + 2);
+    generateDeclarations(&initializer);
+    // Generate global variables initialisation
+    for (const auto& it : fGlobalDeclarationInstructions->fCode) {
+        if (dynamic_cast<DeclareVarInst*>(it)) {
+            it->accept(&initializer);
+        } 
+    }
+    *fOut << endl;
+    generateResetUserInterface(gGlobal->gJSFXVisitor);
+    *fOut << endl;
+    generateClear(gGlobal->gJSFXVisitor);
+
+    inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gJSFXVisitor);
+    inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gJSFXVisitor);
+
+    *fOut << "@slider \n";
+    *fOut << endl;
+    *fOut << "@block \n";
+    *fOut << endl;
+
+    *fOut << "@sample\n";
+    generateCompute(n);
+    *fOut << endl;
+}
+
+void JSFXCodeContainer::produceMetadata(int tabs)
+{}
+
+// Scalar
+JSFXScalarCodeContainer::JSFXScalarCodeContainer(const string& name,
+                                                    int numInputs, int numOutputs,
+                                                    std::ostream* out,
+                                                    int sub_container_type)
+    : JSFXCodeContainer(name, numInputs, numOutputs, out)
+{
+    fSubContainerType = sub_container_type;
+}
+
+
+// Given as an example of what a real backend would have to implement.
+void JSFXScalarCodeContainer::generateCompute(int n)
+{
+    generateComputeBlock(gGlobal->gJSFXVisitor);
+
+    // Generates one single scalar loop
+    // TO CHECK
+    SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(fFullCount);
+    loop->accept(gGlobal->gJSFXVisitor);
+
+    // Generates post compute
+     generatePostComputeBlock(gGlobal->gJSFXVisitor);
+     *fOut << endl;
+}
