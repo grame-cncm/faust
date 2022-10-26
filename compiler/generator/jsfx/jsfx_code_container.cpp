@@ -152,15 +152,33 @@ void JSFXCodeContainer::produceClass()
           << "function exp10(arg) (\n"
           << " pow(10, n);\n"
           << " );\n\n"
-          << "function log2(arg) (\n"
-          << " pow(10, n);\n"
-          << ");\n\n"
+          << "function log2(x) (\n"
+          << " log(x) / log(2);\n"
+          << ");\n"
+          << "function round(x) (\n"
+          << " a = floor(x);\n"
+          << " b = ceil(x); \n"
+          << " ((x - a) < (b - x)) ? \n"
+          << " a : b; \n"
+          << ");\n" 
+          << "function rint(x) (\n"
+          << " round(x);\n"
+          << ");\n"
+          << "function mod(a,b) (\n"
+          << " a%b;\n"
+          << ");\n"
+          << "function remainder(x,y) (\n"
+          << " x - (round(x/y)*y);\n"
+          << ");\n"; 
+
+          /*
           << "function log2(x) (\n"
           << " (x==1)\n"
           << " ? 0 : (x>1)\n"
           << " ? log(x) : (x < 1 && x > 0)\n"
           << " ? (log(x)*-1) : -0;\n"
           << ");\n";
+          */
     
     *fOut << endl;
 
@@ -203,10 +221,10 @@ void JSFXCodeContainer::produceClass()
             it->accept(&initializer);
         } 
     }
-    *fOut << endl;
-    generateResetUserInterface(gGlobal->gJSFXVisitor);
-    *fOut << endl;
-    generateClear(gGlobal->gJSFXVisitor);
+    //*fOut << endl;
+    //generateResetUserInterface(gGlobal->gJSFXVisitor);
+    //*fOut << endl;
+    //generateClear(gGlobal->gJSFXVisitor);
 
     inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gJSFXVisitor);
     inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gJSFXVisitor);

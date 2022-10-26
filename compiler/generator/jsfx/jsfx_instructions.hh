@@ -160,11 +160,11 @@ class JSFXInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["expf"]       = true;
         gFunctionSymbolTable["exp10f"]     = true;
         gFunctionSymbolTable["floorf"]     = true;
-        gFunctionSymbolTable["fmodf"]      = false;
+        gFunctionSymbolTable["fmodf"]      = true;
         gFunctionSymbolTable["logf"]       = true;
-        gFunctionSymbolTable["log10f"]     = false;
+        gFunctionSymbolTable["log10f"]     = true;
         gFunctionSymbolTable["powf"]       = true;
-        gFunctionSymbolTable["remainderf"] = false;
+        gFunctionSymbolTable["remainderf"] = true;
         gFunctionSymbolTable["rintf"]      = true;
         gFunctionSymbolTable["roundf"]     = true;
         gFunctionSymbolTable["sinf"]       = true;
@@ -190,11 +190,11 @@ class JSFXInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["exp"]       = true;
         gFunctionSymbolTable["exp10"]     = true;
         gFunctionSymbolTable["floor"]     = true;
-        gFunctionSymbolTable["fmod"]      = false;
+        gFunctionSymbolTable["fmod"]      = true;
         gFunctionSymbolTable["log"]       = true;
-        gFunctionSymbolTable["log10"]     = false;
+        gFunctionSymbolTable["log10"]     = true;
         gFunctionSymbolTable["pow"]       = true;
-        gFunctionSymbolTable["remainder"] = false;
+        gFunctionSymbolTable["remainder"] = true;
         gFunctionSymbolTable["rint"]      = true;
         gFunctionSymbolTable["round"]     = true;
         gFunctionSymbolTable["sin"]       = true;
@@ -259,12 +259,12 @@ class JSFXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["exp2f"]      = "exp2";
         gPolyMathLibTable["exp10f"]     = "exp10";
         gPolyMathLibTable["floorf"]     = "floor";
-        //gPolyMathLibTable["fmodf"]      = "mod";
+        gPolyMathLibTable["fmodf"]      = "mod";
         gPolyMathLibTable["logf"]       = "log";
-        //gPolyMathLibTable["log2f"]      = "log2";
-        //gPolyMathLibTable["log10f"]     = "log10";
+        gPolyMathLibTable["log2f"]      = "log2";
+        gPolyMathLibTable["log10f"]     = "log10";
         gPolyMathLibTable["powf"]       = "pow";
-        //gPolyMathLibTable["remainderf"] = "remainder";
+        gPolyMathLibTable["remainderf"] = "remainder";
         gPolyMathLibTable["rintf"]      = "rint";
         gPolyMathLibTable["roundf"]     = "round";
         gPolyMathLibTable["sinf"]       = "sin";
@@ -300,12 +300,12 @@ class JSFXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["exp2"]      = "exp2";
         gPolyMathLibTable["exp10"]     = "exp10";
         gPolyMathLibTable["floor"]     = "floor";
-        //gPolyMathLibTable["fmod"]      = "mod";
+        gPolyMathLibTable["fmod"]      = "mod";
         gPolyMathLibTable["log"]       = "log";
-        //gPolyMathLibTable["log2"]      = "log2";
-        //gPolyMathLibTable["log10"]     = "log10";
+        gPolyMathLibTable["log2"]      = "log2";
+        gPolyMathLibTable["log10"]     = "log10";
         gPolyMathLibTable["pow"]       = "pow";
-        //gPolyMathLibTable["remainder"] = "remainder";
+        gPolyMathLibTable["remainder"] = "remainder";
         gPolyMathLibTable["rint"]      = "rint";
         gPolyMathLibTable["round"]     = "round";
         gPolyMathLibTable["sin"]       = "sin";
@@ -445,7 +445,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     {
         //*fOut << inst->getName();
         std::string n = inst->fAddress->getName();
-        if(n.find("output") != n.npos) 
+        if(n.find("output") != n.npos || n.find("input") != n.npos) 
             return;
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
              *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
@@ -523,11 +523,11 @@ class JSFXInstVisitor : public TextInstVisitor {
         if (named->getAccess() & Address::kStruct || named->getAccess() & Address::kStaticStruct) {
         }
         std::string name = named->fName;
-        if(name.find("output") != name.npos) 
-        {
+        if(name.find("output") != name.npos) {
             name.replace(0, 6, "spl");
-        } else if(name.find("sample_rate") != name.npos)
-        {
+        } else if(name.find("input") != name.npos) {
+            name.replace(0, 5, "spl");
+        } else if(name.find("sample_rate") != name.npos) {
             name.replace(0, name.size(), "srate");
         }
         *fOut << name;
@@ -545,7 +545,7 @@ class JSFXInstVisitor : public TextInstVisitor {
             *fOut << "." << struct_type->fType->getName(field_index->fNum);
         } else {
             std::string name = indexed->fAddress->getName();
-            if(name.find("output") != name.npos) {
+            if( (name.find("output") != name.npos) || (name.find("input") != name.npos) ) {
                 return;
             }
             *fOut << "[";
