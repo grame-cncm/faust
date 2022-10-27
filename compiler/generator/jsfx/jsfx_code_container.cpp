@@ -135,53 +135,71 @@ void JSFXCodeContainer::produceClass()
 
     *fOut << "MEMORY.init_memory();\n\n";
 
-    *fOut << "/*\n"
-          << " * Allocate and fill with zeros \n" 
-          << " */\n"
-          << "function zeros(amount) (\n"
+    *fOut <<"function zeros(amount) (\n"
           << " start = MEMORY.alloc_memory(amount);\n"
           << " i = 0;\n"
           << " loop(amount, start[i] = 0; i+=1;);\n"
           << " start;\n"
           << ");\n";
 
+    // Int32 operations
+    *fOut <<"function int32(x) ( \n"
+            " x >= 2147483648 ? x - 4294967296 : x; \n"
+            "); \n"
+
+            "function uint32(x) ( \n"
+            " x < 0 ? x + 4294967296 : x; \n"
+            "); \n"
+             
+            "function add32(x, y) ( \n"
+            " (x += y) >= 4294967296 ? x - 4294967296 : x; \n"
+            "); \n"
+
+            "function sub32(x, y) ( \n"
+            " (x -= y) < 0 ? x + 4294967296 : x; \n"
+            "); \n"
+
+            "function mul32(x, y) local(a, b) ( \n"
+            " x = uint32(x); \n"
+            " y = uint32(y); \n"
+            " a = x & 0xFFFF; \n"
+            " b = y & 0xFFFF; \n"
+            " y = ((((y / 65536)|0) * a + ((x / 65536)|0) * b) & 0xFFFF) * 65536 + a * b; \n"
+            " y >= 4294967296 ? y - 4294967296 : y; \n"
+            "); \n";
+
     *fOut << "/*\n"
           << " * Mathematical functions \n"
           << " */\n"
-          << "function exp2(arg) (\n"
-          << " pow(2, n);\n"
-          << ");\n\n"
-          << "function exp10(arg) (\n"
-          << " pow(10, n);\n"
-          << " );\n\n"
-          << "function log2(x) (\n"
-          << " log(x) / log(2);\n"
-          << ");\n"
-          << "function round(x) (\n"
-          << " a = floor(x);\n"
-          << " b = ceil(x); \n"
-          << " ((x - a) < (b - x)) ? \n"
-          << " a : b; \n"
-          << ");\n" 
-          << "function rint(x) (\n"
-          << " round(x);\n"
-          << ");\n"
+          << "function exp2(arg) ( pow(2, n) ); \n"
+          << "function exp10(arg) (pow(10, n)); \n"
+          << "function log2(x) ( log(x) / log(2)); \n"
+          << "function round(N) (0|(N+sign(N)*0.5)); \n"
+          << "function rint(x) ( round(int32(x)) ); \n"
+          // Not working for floats (to fix)
           << "function mod(a,b) (\n"
           << " a%b;\n"
           << ");\n"
           << "function remainder(x,y) (\n"
           << " x - (round(x/y)*y);\n"
-          << ");\n"; 
-
+          << ");\n"
           /*
-          << "function log2(x) (\n"
-          << " (x==1)\n"
-          << " ? 0 : (x>1)\n"
-          << " ? log(x) : (x < 1 && x > 0)\n"
-          << " ? (log(x)*-1) : -0;\n"
-          << ");\n";
+          << "function truncate(x) ( \n"
+          << " (x < 0) ? ceil(x) : floor(x); \n"
+          << "); \n"
+          << "function fmod(x,y) ( \n"
+          << " x - truncate(x/y)*y; \n"
+          << "); \n"
           */
-    
+          << "function fmod(x,y) ( \n"
+          << " y = abs(y); \n"
+          << " res = remainder(abs(x), y); \n"
+          << " (res < 0) ? res += y; \n" 
+          << " (x < 0) ? -res : res; \n" 
+          << "); \n";
+
+
+
     *fOut << endl;
 
      mergeSubContainers();
@@ -213,7 +231,6 @@ void JSFXCodeContainer::produceClass()
         }
     }
     */
-
     //*fOut << "fSampleRate = srate;\n";
     JSFXInitFieldsVisitor initializer(fOut, n + 2);
     generateDeclarations(&initializer);
@@ -259,7 +276,7 @@ void JSFXCodeContainer::produceMetadata(int tabs)
     }
     
     tab(tabs, *fOut);
-    *fOut << "end" << endl;
+    *fOut << endl;
 }
 
 // Scalar

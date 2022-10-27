@@ -26,7 +26,6 @@
 
 #include "text_instructions.hh"
 #include "struct_manager.hh"
-#include"MetaDataUI.h"
 
 using namespace std;
 
@@ -81,7 +80,7 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     virtual void visit(Int32ArrayNumInst* inst)
     {
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << fCurArray << "[" << i << "] = floor(" << inst->fNumTable[i] << ");\n";
+            *fOut << fCurArray << "[" << i << "] = int32(" << inst->fNumTable[i] << ");\n";
         }
         *fOut << "\n";
     }
@@ -110,6 +109,12 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
 */
 struct JSFXMidiInstr
 {
+    JSFXMidiInstr(std::string type_, std::string vname_, int nbr_, int channel_ = -1)
+    : type(type_)
+    , variable_name(vname_)
+    , nbr(nbr_)
+    , channel(channel_)
+    {}
     std::string type;
     std::string variable_name;
     int nbr;
@@ -264,7 +269,7 @@ class JSFXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["exp2f"]      = "exp2";
         gPolyMathLibTable["exp10f"]     = "exp10";
         gPolyMathLibTable["floorf"]     = "floor";
-        gPolyMathLibTable["fmodf"]      = "mod";
+        gPolyMathLibTable["fmodf"]      = "fmod";
         gPolyMathLibTable["logf"]       = "log";
         gPolyMathLibTable["log2f"]      = "log2";
         gPolyMathLibTable["log10f"]     = "log10";
@@ -305,7 +310,7 @@ class JSFXInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["exp2"]      = "exp2";
         gPolyMathLibTable["exp10"]     = "exp10";
         gPolyMathLibTable["floor"]     = "floor";
-        gPolyMathLibTable["fmod"]      = "mod";
+        gPolyMathLibTable["fmod"]      = "fmod";
         gPolyMathLibTable["log"]       = "log";
         gPolyMathLibTable["log2"]      = "log2";
         gPolyMathLibTable["log10"]     = "log10";
@@ -367,15 +372,14 @@ class JSFXInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddMetaDeclareInst* inst)
     {
-        cout << "Meta -> " << inst->getName() << " " << inst->fKey << " " << inst->fValue << "  " << inst->fZone << endl;
         if(inst->getName() == "midi") {
             std::pair<int, int> params = extractIntegerWords(inst->fValue);
-            _midi_instructions.push_back( {
+            _midi_instructions.push_back(JSFXMidiInstr(
                 inst->fKey,
                 inst->fZone,
                 params.first, 
                 params.second
-            });
+            ));
             skip_slider = true;
         } 
     }
@@ -426,11 +430,11 @@ class JSFXInstVisitor : public TextInstVisitor {
     }
     
     virtual void visit(Int32NumInst* inst) {
-        *fOut << "floor(" << inst->fNum << ")";
+        *fOut << "int32(" << inst->fNum << ")";
     }
     
     virtual void visit(Int64NumInst* inst) {
-        *fOut << "floor(" << inst->fNum << ")";
+        *fOut << "int32(" << inst->fNum << ")";
     }
 
     virtual void visit(FloatNumInst* inst) {
@@ -445,7 +449,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << "floor(" << inst->fNumTable[i] << ")";
+            *fOut << sep << "int32(" << inst->fNumTable[i] << ")";
             sep = ',';
         }
         *fOut << ']';
@@ -474,7 +478,36 @@ class JSFXInstVisitor : public TextInstVisitor {
     
     virtual void visit(BinopInst* inst)
     {
-         if (inst->fOpcode == kXOR) {
+        Typed::VarType type1 = TypingVisitor::getType(inst->fInst1);
+        Typed::VarType type2 = TypingVisitor::getType(inst->fInst1);
+        // Div not implemented yet for int32
+        if(isInt32Type(type1) && (isInt32Type(type2) || isInt64Type(type2) ) ) {
+
+            if(inst->fOpcode == kAdd) {
+                *fOut << "int32(add32(";
+                inst->fInst1->accept(this);
+                *fOut << ", ";
+                inst->fInst2->accept(this);
+                *fOut << "))";
+                return;
+            } else if (inst->fOpcode == kSub) {
+                *fOut << "int32(sub32(";
+                inst->fInst1->accept(this);
+                *fOut << ", ";
+                inst->fInst2->accept(this);
+                *fOut << "))";
+                return;
+            } else if(inst->fOpcode == kMul) {
+                *fOut << "int32(mul32(";
+                inst->fInst1->accept(this);
+                *fOut << ", ";
+                inst->fInst2->accept(this);
+                *fOut << "))";
+                return;
+            }
+        } 
+
+        if (inst->fOpcode == kXOR) {
             *fOut << "(";
             inst->fInst1->accept(this);
             *fOut << " ~ ";
@@ -613,7 +646,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     virtual void visit(::CastInst* inst)
     {
         if (isIntType(inst->fType->getType())) {
-            *fOut << "floor(";
+            *fOut << "int32(";
         } else {
             *fOut << "(";
         }
@@ -677,33 +710,12 @@ class JSFXInstVisitor : public TextInstVisitor {
         tab(fTab, *fOut);
     }
 
-
-    // DSP Loop
+    // @sample DSP Loop
     virtual void visit(SimpleForLoopInst* inst)
     {
         inst->fCode->accept(this);
-        /*
-        // Don't generate empty loops...
-        if (inst->fCode->size() == 0) return;
-        Int32NumInst* lower_bound = dynamic_cast<Int32NumInst*>(inst->fLowerBound);
-        faustassert(lower_bound);
-        Int32NumInst* upper_bound = dynamic_cast<Int32NumInst*>(inst->fUpperBound);
-        *fOut << "loop(";
-        if(upper_bound) {
-            *fOut << upper_bound->fNum;
-        } else {
-            inst->fUpperBound->accept(this);
-        }
-        *fOut << ",";
-        fTab++;
-        tab(fTab, *fOut);
-        inst->fCode->accept(this);
-        fTab--;
-        tab(fTab, *fOut);
-        *fOut << ")";
-        EndLine();
-        */
     }
+
 
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
