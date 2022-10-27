@@ -79,7 +79,7 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     virtual void visit(Int32ArrayNumInst* inst)
     {
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << fCurArray << "[" << i << "] = Int32(" << inst->fNumTable[i] << ");\n";
+            *fOut << fCurArray << "[" << i << "] = floor(" << inst->fNumTable[i] << ");\n";
         }
         *fOut << "\n";
     }

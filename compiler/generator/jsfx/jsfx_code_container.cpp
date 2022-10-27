@@ -224,14 +224,13 @@ void JSFXCodeContainer::produceClass()
     //*fOut << endl;
     //generateResetUserInterface(gGlobal->gJSFXVisitor);
     //*fOut << endl;
-    //generateClear(gGlobal->gJSFXVisitor);
+    generateClear(gGlobal->gJSFXVisitor);
 
     inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gJSFXVisitor);
     inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gJSFXVisitor);
 
     *fOut << endl;
     *fOut << "@slider \n";
-    //*fOut << "@sample\n";
     generateCompute(n);
     *fOut << endl;
 }
