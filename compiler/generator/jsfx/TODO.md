@@ -1,5 +1,7 @@
 # TODO
 
+* CheckDouble partout
+
 * Remove init redundency (zeros for init arrays, so some "while" are useless)
 * Metadata and description 
 * Optimizations     ?
