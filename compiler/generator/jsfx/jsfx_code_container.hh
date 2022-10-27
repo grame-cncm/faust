@@ -37,6 +37,8 @@ class JSFXCodeContainer : public virtual CodeContainer {
     static JSFXInstVisitor* gJSFXVisitor;
     std::ostream* fOut;
 
+    bool midi = false;
+
     virtual void produceClass();
     
     void produceMetadata(int tabs);

@@ -26,6 +26,7 @@
 
 #include "text_instructions.hh"
 #include "struct_manager.hh"
+#include"MetaDataUI.h"
 
 using namespace std;
 
@@ -35,6 +36,7 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     int           fTab;
     // The name of the currently generated array
     string        fCurArray;
+
     
     JSFXInitFieldsVisitor(std::ostream* out, int tab = 0) : fOut(out), fTab(tab) {}
     
@@ -69,9 +71,9 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
          ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(typed);
          faustassert(array_type);
          if (isIntPtrType(typed->getType())) {
-            *fOut << "zeros(" << array_type->fSize << ")";
+            *fOut << "MEMORY.alloc_memory(" << array_type->fSize << ")";
          } else {
-            *fOut << "zeros(" << array_type->fSize << ")";
+            *fOut << "MEMORY.alloc_memory(" << array_type->fSize << ")";
          }
     }
     
@@ -87,7 +89,7 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     virtual void visit(FloatArrayNumInst* inst)
     {
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << fCurArray << "[" << i << "] = " << inst->fNumTable[i] << ";\n";
+            *fOut << fCurArray << "[" << i << "] = " << fixed << inst->fNumTable[i] << ";\n";
         }
         *fOut << "\n";
     }
@@ -95,7 +97,7 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     virtual void visit(DoubleArrayNumInst* inst)
     {
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << fCurArray << "[" << i << "] = " << inst->fNumTable[i] << ";\n";
+            *fOut << fCurArray << "[" << i << "] = " << fixed << inst->fNumTable[i] << ";\n";
         }
         *fOut << "\n";
     }
@@ -106,6 +108,13 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     Some methods mays have to be redefined in this class, anf the exposed list
     of them is given as an example, to be adapted in the real case.
 */
+struct JSFXMidiInstr
+{
+    std::string type;
+    std::string variable_name;
+    int nbr;
+    int channel = -1;
+};
 
 class JSFXInstVisitor : public TextInstVisitor {
    private:
@@ -117,9 +126,12 @@ class JSFXInstVisitor : public TextInstVisitor {
     static map<string, bool> gFunctionSymbolTable;
     // Polymorphic math functions
     map<string, string> gPolyMathLibTable; 
-
+    
     // Global count for sliders
     size_t slider_count = 0;
+
+    bool skip_slider = false;
+    std::vector<JSFXMidiInstr> _midi_instructions;
 
    public:
     using TextInstVisitor::visit;
@@ -322,8 +334,57 @@ class JSFXInstVisitor : public TextInstVisitor {
 
     virtual ~JSFXInstVisitor() {}
 
+    // Extract midi parameters (number, channel) from Metadata
+    std::pair<int, int> extractIntegerWords(string str)
+    {
+        stringstream ss;
+    
+        /* Storing the whole string into string stream */
+        ss << str;
+    
+        /* Running loop till the end of the stream */
+        string temp;
+        int found = 0;
+        std::pair<int, int> res = make_pair(0, -1);
+        int nfound;
+        while (!ss.eof()) {
+    
+            /* extracting word by word from stream */
+            ss >> temp;
+    
+            /* Checking the given word is integer or not */
+            if (stringstream(temp) >> found)
+            {
+                if(nfound == 0) res.first = found;
+                else res.second = found;
+            }
+    
+            /* To save from space at the end of string */
+            temp = "";
+        }
+        return res;
+    }
+
     virtual void visit(AddMetaDeclareInst* inst)
-    {}
+    {
+        cout << "Meta -> " << inst->getName() << " " << inst->fKey << " " << inst->fValue << "  " << inst->fZone << endl;
+        if(inst->getName() == "midi") {
+            std::pair<int, int> params = extractIntegerWords(inst->fValue);
+            _midi_instructions.push_back( {
+                inst->fKey,
+                inst->fZone,
+                params.first, 
+                params.second
+            });
+            skip_slider = true;
+        } 
+    }
+
+    // To implement (in @block)
+    void generateMIDI()
+    {
+
+    }
 
     virtual void visit(OpenboxInst* inst)
     {
@@ -335,25 +396,22 @@ class JSFXInstVisitor : public TextInstVisitor {
     
     virtual void visit(AddButtonInst* inst)
     {
-        throw(faustexception("ERROR : Button is not available in JSFX.\n"));
-        /*
-        string name;
-        if (inst->fType == AddButtonInst::kDefaultButton) {
-            name = "addButton!(";
-        } else {
-            name = "addCheckButton!(";
+        if(!skip_slider) {
+            *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=0<0,1,1>" << inst->fLabel;
+            EndLine();
         }
-        *fOut << name << "ui_interface, " << quote(inst->fLabel) << ", :" << inst->fZone << ")";
-        EndLine(' ');
-        */
+        skip_slider = false;
     }
 
     virtual void visit(AddSliderInst* inst)
     {
-        *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=" << inst->fInit
-              << "<" << inst->fMin << "," << inst->fMax << "," << inst->fStep << ">" << inst->fLabel;
+        if(!skip_slider) {
+            *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=" << inst->fInit
+                  << "<" << inst->fMin << "," << inst->fMax << "," << inst->fStep << ">" << inst->fLabel;
               
-        EndLine(' ');
+            EndLine(' ');
+        }
+        skip_slider = false;
 
     }
 
@@ -397,7 +455,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkFloat(inst->fNumTable[i]);
+            *fOut << sep << fixed << inst->fNumTable[i];
             sep = ',';
         }
         *fOut << ']';
@@ -407,7 +465,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     {
         char sep = '[';
         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkDouble(inst->fNumTable[i]);
+            *fOut << sep << fixed << inst->fNumTable[i];
             sep = ',';
         }
         *fOut << ']';
