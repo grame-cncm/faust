@@ -33,6 +33,8 @@ using namespace std;
 struct JSFXInitFieldsVisitor : public DispatchVisitor {
     std::ostream* fOut;
     int           fTab;
+    // The name of the currently generated array
+    string        fCurArray;
     
     JSFXInitFieldsVisitor(std::ostream* out, int tab = 0) : fOut(out), fTab(tab) {}
     
@@ -41,14 +43,15 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
         ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(inst->fType);
         if (array_type) {
             //tab(fTab, *fOut);
-            inst->fAddress->accept(this);
-            *fOut << " = ";
             if (inst->fValue) {
+                fCurArray = inst->fAddress->getName();
                 inst->fValue->accept(this);
             } else {
+                inst->fAddress->accept(this);
+                *fOut << " = ";
                 ZeroInitializer(fOut, inst->fType);
+                *fOut << ";\n";
             }
-        *fOut << ";\n";
         }
     }
     
@@ -75,37 +78,27 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     // Needed for waveforms
     virtual void visit(Int32ArrayNumInst* inst)
     {
-        // TO CHECK
-         char sep = '[';
-         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << "Int32(" << inst->fNumTable[i] << ")";
-            sep = ',';
-         }
-         *fOut << ']';
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << fCurArray << "[" << i << "] = Int32(" << inst->fNumTable[i] << ");\n";
+        }
+        *fOut << "\n";
     }
     
     virtual void visit(FloatArrayNumInst* inst)
     {
-        // TO CHECK
-         char sep = '[';
-         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkFloat(inst->fNumTable[i]);
-            sep = ',';
-         }
-         *fOut << ']';
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << fCurArray << "[" << i << "] = " << inst->fNumTable[i] << ";\n";
+        }
+        *fOut << "\n";
     }
     
     virtual void visit(DoubleArrayNumInst* inst)
     {
-        // TO CHECK
-         char sep = '[';
-         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
-            *fOut << sep << checkDouble(inst->fNumTable[i]);
-            sep = ',';
-         }
-         *fOut << ']';
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << fCurArray << "[" << i << "] = " << inst->fNumTable[i] << ";\n";
+        }
+        *fOut << "\n";
     }
-    
 };
 
 /*
