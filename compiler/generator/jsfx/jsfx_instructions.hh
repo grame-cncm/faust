@@ -351,7 +351,7 @@ class JSFXInstVisitor : public TextInstVisitor {
         string temp;
         int found = 0;
         std::pair<int, int> res = make_pair(0, -1);
-        int nfound;
+        int nfound = 0;
         while (!ss.eof()) {
     
             /* extracting word by word from stream */
@@ -372,6 +372,8 @@ class JSFXInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddMetaDeclareInst* inst)
     {
+        // Deactivated for now
+        /*
         if(inst->getName() == "midi") {
             std::pair<int, int> params = extractIntegerWords(inst->fValue);
             _midi_instructions.push_back(JSFXMidiInstr(
@@ -381,7 +383,8 @@ class JSFXInstVisitor : public TextInstVisitor {
                 params.second
             ));
             skip_slider = true;
-        } 
+        }
+        */
     }
 
     // To implement (in @block)
@@ -400,8 +403,8 @@ class JSFXInstVisitor : public TextInstVisitor {
     
     virtual void visit(AddButtonInst* inst)
     {
-        if(!skip_slider) {
-            *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=0<0,1,1>" << inst->fLabel;
+        if (!skip_slider) {
+            *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=0<0,1,1>" << gGlobal->getFreshID(inst->fLabel);
             EndLine();
         }
         skip_slider = false;
@@ -409,19 +412,17 @@ class JSFXInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSliderInst* inst)
     {
-        if(!skip_slider) {
+        if (!skip_slider) {
             *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=" << inst->fInit
-                  << "<" << inst->fMin << "," << inst->fMax << "," << inst->fStep << ">" << inst->fLabel;
-              
+                  << "<" << inst->fMin << "," << inst->fMax << "," << inst->fStep << ">" << gGlobal->getFreshID(inst->fLabel);
             EndLine(' ');
         }
         skip_slider = false;
-
     }
 
     virtual void visit(AddBargraphInst* inst)
     {
-        throw(faustexception("ERROR : Bargraph is not available in JSFX.\n"));
+        //throw(faustexception("ERROR : Bargraph is not available in JSFX.\n"));
     }
 
     virtual void visit(AddSoundfileInst* inst)
@@ -481,8 +482,8 @@ class JSFXInstVisitor : public TextInstVisitor {
         Typed::VarType type1 = TypingVisitor::getType(inst->fInst1);
         Typed::VarType type2 = TypingVisitor::getType(inst->fInst1);
         // Div not implemented yet for int32
-        if(isInt32Type(type1) && (isInt32Type(type2) || isInt64Type(type2) ) ) {
-
+        if(isInt32Type(type1) && (isInt32Type(type2) || isInt64Type(type2))) {
+            
             if(inst->fOpcode == kAdd) {
                 *fOut << "int32(add32(";
                 inst->fInst1->accept(this);
