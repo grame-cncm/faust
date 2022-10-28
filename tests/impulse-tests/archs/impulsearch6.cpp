@@ -24,8 +24,8 @@ static void runDSP2(dsp* DSP, const string& file, int& linenum, int nbsamples, b
     DSP->buildUserInterface(&finterface);
     
     // Soundfile
-    TestMemoryReader memory_reader;
-    SoundUI sound_ui("", -1, &memory_reader, (sizeof(FAUSTFLOAT) == sizeof(double)));
+    TestMemoryReader* memory_reader = new TestMemoryReader();
+    SoundUI sound_ui("", -1, memory_reader, (sizeof(FAUSTFLOAT) == sizeof(double)));
     DSP->buildUserInterface(&sound_ui);
     
     // Get control and then 'initRandom'

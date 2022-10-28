@@ -6,8 +6,8 @@ The **faust2daisy** tool compiles a Faust DSP program in a folder containing the
 
 Here are the available options:
 
-- `-patch : to compile for 4 ins/outs Patch (TODO)`
-- `-pod : to compile for 2 ins/outs Pod (knob[1,3])`
+- `-patch to compile for 4 ins/outs Patch (TODO)`
+- `-pod to compile for 2 ins/outs Pod (knob[1,3])`
 - `-midi to activate MIDI control`
 - `-nvoices <num> to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI (TODO)`
 - `-sr <num> to specify sample rate (default 44100)`
