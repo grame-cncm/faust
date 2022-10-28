@@ -151,7 +151,7 @@ void JSFXCodeContainer::produceClass()
           << ");\n";
 
     // Int32 operations
-    *fOut <<"function int32(x) ( \n"
+    *fOut << "function int32(x) ( \n"
             " x >= 2147483648 ? x - 4294967296 : x; \n"
             "); \n"
 
@@ -174,7 +174,11 @@ void JSFXCodeContainer::produceClass()
             " b = y & 0xFFFF; \n"
             " y = ((((y / 65536)|0) * a + ((x / 65536)|0) * b) & 0xFFFF) * 65536 + a * b; \n"
             " y >= 4294967296 ? y - 4294967296 : y; \n"
-            "); \n";
+            "); \n"
+        
+            "function ftoi32(x) ( \n"
+            " x <= -1 ? ((min(max(-2147483648, x), -1)|0) + 4294967296;) : (min(max(0, x), 4294967295)|0;); \n"
+            ");";
 
     *fOut << "/*\n"
           << " * Mathematical functions \n"
