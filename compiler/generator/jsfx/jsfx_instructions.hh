@@ -383,7 +383,6 @@ class JSFXInstVisitor : public TextInstVisitor {
                 params.second
             ));
             skip_slider = true;
-        }
         */
     }
 
@@ -482,9 +481,8 @@ class JSFXInstVisitor : public TextInstVisitor {
         Typed::VarType type1 = TypingVisitor::getType(inst->fInst1);
         Typed::VarType type2 = TypingVisitor::getType(inst->fInst1);
         // Div not implemented yet for int32
-        if(isInt32Type(type1) && (isInt32Type(type2) || isInt64Type(type2))) {
-            
-            if(inst->fOpcode == kAdd) {
+        if (isInt32Type(type1) && (isInt32Type(type2) || isInt64Type(type2))) {
+            if (inst->fOpcode == kAdd) {
                 *fOut << "int32(add32(";
                 inst->fInst1->accept(this);
                 *fOut << ", ";
