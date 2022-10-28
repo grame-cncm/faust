@@ -46,6 +46,7 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
             //tab(fTab, *fOut);
             if (inst->fValue) {
                 fCurArray = inst->fAddress->getName();
+                *fOut << fCurArray << " = MEMORY.alloc_memory(" << array_type->fSize << ");\n";
                 inst->fValue->accept(this);
             } else {
                 inst->fAddress->accept(this);
@@ -645,12 +646,14 @@ class JSFXInstVisitor : public TextInstVisitor {
     virtual void visit(::CastInst* inst)
     {
         if (isIntType(inst->fType->getType())) {
-            *fOut << "int32(";
+            *fOut << "int32(ftoi32(";
+            inst->fInst->accept(this);
+            *fOut << "))";
         } else {
             *fOut << "(";
+            inst->fInst->accept(this);
+            *fOut << ")";
         }
-        inst->fInst->accept(this);
-        *fOut << ")"; 
     }
 
     virtual void visit(BitcastInst* inst)
