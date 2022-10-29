@@ -104,7 +104,7 @@ void JSFXCodeContainer::produceClass()
     *fOut << "desc: Effect " << fKlassName << "\n";
 
     // Needed ?
-    //produceMetadata(n);
+    produceMetadata(n);
     
     // buildUserInterface
     generateUserInterface(gGlobal->gJSFXVisitor);
@@ -209,6 +209,14 @@ void JSFXCodeContainer::produceClass()
           << " (res < 0) ? res += y; \n" 
           << " (x < 0) ? -res : res; \n" 
           << "); \n";
+    
+        *fOut << "/* \n"
+          << " * MIDI Constants \n"
+          << " */ \n"
+          << "CC = 0xB0; \n"
+          << "NOTE_ON = 0x90; \n"
+          << "NOTE_OFF = 0x80; \n" ;
+
 
     *fOut << endl;
 
@@ -269,7 +277,17 @@ void JSFXCodeContainer::produceMetadata(int tabs)
     for (const auto& i : gGlobal->gMetaDataSet) {
         if (i.first == tree("options")) {
             for (set<Tree>::iterator j = i.second.begin(); j != i.second.end(); j++) {
-                    *fOut << "desc: " << *(i.first) << " " << **j << "\n";
+                std::stringstream ss;
+                ss<<**j;
+                std::string s;
+                ss >> s;
+                if(s.find("[midi:on]") != s.npos)
+                {
+                    midi = true;
+                } else if(s.find("[nvoices:")) {
+                    
+                }
+                *fOut << "desc: " << *(i.first) << " " << **j << "\n";
             }
         } else {
             // But the "author" meta data is accumulated, the upper level becomes the main author and sub-levels become
@@ -300,19 +318,17 @@ JSFXScalarCodeContainer::JSFXScalarCodeContainer(const string& name,
 // Given as an example of what a real backend would have to implement.
 void JSFXScalarCodeContainer::generateCompute(int n)
 {
-    *fOut << "@slider \n";
+
+    *fOut << "@block \n";
+    gGlobal->gJSFXVisitor->generateMIDIInstructions();
+    *fOut << endl;
+    
+    if(!midi)*fOut << "@slider \n";
+    //*fOut << "@slider \n";
     //generateComputeFunctions(gGlobal->gJSFXVisitor);
     generateComputeBlock(gGlobal->gJSFXVisitor);
-
-    // Generates one single scalar loop
-    // TO CHECK
-
     *fOut << endl;
-
-    //*fOut << "@block \n";
-    //gGlobal->gJSFXVisitor->generateButtonsInstructions();
-    //*fOut << endl;
-
+    
     *fOut << "@sample \n";
     SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(fFullCount);
     loop->accept(gGlobal->gJSFXVisitor);

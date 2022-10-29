@@ -23,6 +23,7 @@
 #define _JSFX_INSTRUCTIONS_H
 
 #include <string>
+#include<unordered_map>
 
 #include "text_instructions.hh"
 #include "struct_manager.hh"
@@ -103,25 +104,26 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
     }
 };
 
-/*
-    A subclass of TextInstVisitor that implements a lot of generic behaviors.
-    Some methods mays have to be redefined in this class, anf the exposed list
-    of them is given as an example, to be adapted in the real case.
-*/
 struct JSFXMidiInstr
 {
     JSFXMidiInstr(std::string type_, std::string vname_, int nbr_, int channel_ = -1)
-    : type(type_)
+    : type_name(type_)
     , variable_name(vname_)
     , nbr(nbr_)
     , channel(channel_)
     {}
-    std::string type;
+    
+    std::string type_name;
     std::string variable_name;
     int nbr;
     int channel = -1;
 };
 
+/*
+    A subclass of TextInstVisitor that implements a lot of generic behaviors.
+    Some methods mays have to be redefined in this class, anf the exposed list
+    of them is given as an example, to be adapted in the real case.
+*/
 class JSFXInstVisitor : public TextInstVisitor {
    private:
     
@@ -137,7 +139,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     size_t slider_count = 0;
 
     bool skip_slider = false;
-    std::vector<JSFXMidiInstr> _midi_instructions;
+    std::unordered_map<std::string, std::string> _midi_instructions;
 
    public:
     using TextInstVisitor::visit;
@@ -341,13 +343,15 @@ class JSFXInstVisitor : public TextInstVisitor {
     virtual ~JSFXInstVisitor() {}
 
     // Extract midi parameters (number, channel) from Metadata
-    std::pair<int, int> extractIntegerWords(string str)
+    JSFXMidiInstr parseMIDIInstruction(std::string fzone, std::string value)
     {
         stringstream ss;
     
         /* Storing the whole string into string stream */
-        ss << str;
+        ss << value;
     
+        std::string type;
+        ss >> type;
         /* Running loop till the end of the stream */
         string temp;
         int found = 0;
@@ -361,36 +365,85 @@ class JSFXInstVisitor : public TextInstVisitor {
             /* Checking the given word is integer or not */
             if (stringstream(temp) >> found)
             {
-                if(nfound == 0) res.first = found;
+                if(nfound == 0)  {
+                    res.first = found;
+                    nfound++;
+                }
+                
                 else res.second = found;
             }
     
             /* To save from space at the end of string */
             temp = "";
         }
-        return res;
+        return JSFXMidiInstr(type, fzone, res.first, res.second);
     }
 
     virtual void visit(AddMetaDeclareInst* inst)
     {
         // Deactivated for now
-        /*
-        if(inst->getName() == "midi") {
-            std::pair<int, int> params = extractIntegerWords(inst->fValue);
-            _midi_instructions.push_back(JSFXMidiInstr(
-                inst->fKey,
-                inst->fZone,
-                params.first, 
-                params.second
-            ));
+        if(inst->fKey == "midi") {
+            _midi_instructions[inst->fZone] = inst->fValue;
             skip_slider = true;
-        */
+        }
     }
 
     // To implement (in @block)
-    void generateMIDI()
+    void generateMIDIInstructions()
     {
-
+        if(_midi_instructions.size() > 0) {
+            std::vector<JSFXMidiInstr> keyons, keyoffs, ccs;
+            for(auto & midi_str : _midi_instructions) {
+                JSFXMidiInstr it = parseMIDIInstruction(midi_str.first, midi_str.second);
+                if(it.type_name == std::string("key")) {
+                    keyons.push_back(it);
+                    keyoffs.push_back(it);
+                } else if(it.type_name == std::string("keyon")) {
+                    keyons.push_back(it);
+                } else if(it.type_name == std::string("keyoff")) {
+                    keyoffs.push_back(it);
+                } else if(it.type_name == std::string("ctrl")) {
+                    ccs.push_back(it);
+                }
+            }
+            *fOut << "while (midirecv(mpos, msg1, msg2, msg3)) ( \n";
+            *fOut  << "status = msg1&0xF0; \n"
+              << "channel = msg1&0x0F; \n";
+            if(ccs.size() > 0) {
+                *fOut << "(status == CC) ? ( \n";
+                for(auto & cc : ccs) {
+                    *fOut << "(msg2 == 0x" << std::hex << cc.nbr;
+                    if(cc.channel >= 0) {
+                        *fOut << " && channel == 0x" << std::hex << cc.channel;
+                    }
+                    *fOut << ") ? (" << cc.variable_name << " = 0xF0&msg3); \n";
+                }
+                *fOut << "); \n";
+            }
+            if(keyons.size() > 0) {
+                *fOut << "(status == NOTE_ON) ? ( \n";
+                for(auto & k : keyons) {
+                    *fOut << "(msg2 == 0x" << std::hex << k.nbr;
+                    if(k.channel >= 0) {
+                        *fOut << " && channel == 0x" << std::hex << k.channel;
+                    }
+                    *fOut << ") ? (" << k.variable_name << " = 0xF0&msg3); \n";
+                }
+                *fOut << "); \n";
+            }
+            if(keyoffs.size() > 0) {
+                *fOut << "(status == NOTE_OFF) ? ( \n";
+                for(auto & k : keyoffs) {
+                    *fOut << "(msg2 == 0x" << std::hex << k.nbr;
+                    if(k.channel >= 0) {
+                        *fOut << " && channel == 0x" << std::hex << k.channel;
+                    }
+                    *fOut << ") ? (" << k.variable_name << " = 0xF0&msg3); \n";
+                }
+                *fOut << "); \n";
+            }
+            *fOut << "); \n";
+        }
     }
 
     virtual void visit(OpenboxInst* inst)
@@ -403,26 +456,25 @@ class JSFXInstVisitor : public TextInstVisitor {
     
     virtual void visit(AddButtonInst* inst)
     {
-        if (!skip_slider) {
-            *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=0<0,1,1>" << gGlobal->getFreshID(inst->fLabel);
-            EndLine();
+        if(!skip_slider) {
+        *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=0<0,1,1>" << gGlobal->getFreshID(inst->fLabel);
+        EndLine();
         }
         skip_slider = false;
     }
 
     virtual void visit(AddSliderInst* inst)
     {
-        if (!skip_slider) {
-            *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=" << inst->fInit
-                  << "<" << inst->fMin << "," << inst->fMax << "," << inst->fStep << ">" << gGlobal->getFreshID(inst->fLabel);
-            EndLine(' ');
+        if(!skip_slider) {
+        *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=" << inst->fInit
+              << "<" << inst->fMin << "," << inst->fMax << "," << inst->fStep << ">"  << gGlobal->getFreshID(inst->fLabel);
+        EndLine(' ');
         }
         skip_slider = false;
     }
 
     virtual void visit(AddBargraphInst* inst)
     {
-        //throw(faustexception("ERROR : Bargraph is not available in JSFX.\n"));
     }
 
     virtual void visit(AddSoundfileInst* inst)
@@ -480,7 +532,7 @@ class JSFXInstVisitor : public TextInstVisitor {
     virtual void visit(BinopInst* inst)
     {
         Typed::VarType type1 = TypingVisitor::getType(inst->fInst1);
-        Typed::VarType type2 = TypingVisitor::getType(inst->fInst1);
+        Typed::VarType type2 = TypingVisitor::getType(inst->fInst2);
         // Div not implemented yet for int32
         if (isInt32Type(type1) && (isInt32Type(type2) || isInt64Type(type2))) {
             if (inst->fOpcode == kAdd) {

@@ -37,7 +37,13 @@ class JSFXCodeContainer : public virtual CodeContainer {
     static JSFXInstVisitor* gJSFXVisitor;
     std::ostream* fOut;
 
-    bool midi = false;
+
+   // Is midi metadata on ? 
+    bool midi = false; 
+
+    // Is nvoices set  (not implemented yet)
+    bool poly = false;
+    int nvoices = 0;
 
     virtual void produceClass();
     
