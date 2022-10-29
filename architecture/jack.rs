@@ -108,7 +108,17 @@ fn main() {
     let (client, _status) = j::Client::new("faust_rust", j::client_options::NO_START_SERVER).unwrap();
 
     // Allocation DSP on the heap
-    let mut dsp = Box::new(mydsp::new());
+    let mut dsp;
+    #[cfg(feature = "default-boxed")]
+    {
+        use default_boxed::DefaultBoxed;
+        dsp = mydsp::default_boxed();
+    }
+
+    #[cfg(not(feature = "default-boxed"))]
+    {
+        dsp = Box::new(mydsp::new());
+    }
 
     println!("Faust Rust code running with JACK: sample-rate = {} buffer-size = {}", client.sample_rate(), client.buffer_size());
 

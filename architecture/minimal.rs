@@ -189,7 +189,18 @@ fn main() {
 
     println!("Faust Rust DSP");
 
-    let mut dsp = Box::new(mydsp::new());
+    // Allocation DSP on the heap
+    let mut dsp;
+    #[cfg(feature = "default-boxed")]
+    {
+        use default_boxed::DefaultBoxed;
+        dsp = mydsp::default_boxed();
+    }
+
+    #[cfg(not(feature = "default-boxed"))]
+    {
+        dsp = Box::new(mydsp::new());
+    }
 
     println!("get_num_inputs: {}", dsp.get_num_inputs());
     println!("get_num_outputs: {}", dsp.get_num_outputs());
