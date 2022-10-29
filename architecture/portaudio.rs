@@ -115,7 +115,17 @@ fn run() -> Result<(), pa::Error> {
     let pa = pa::PortAudio::new()?;
 
     // Allocation DSP on the heap
-    let mut dsp = Box::new(mydsp::new());
+    let mut dsp;
+    #[cfg(feature = "default-boxed")]
+    {
+        use default_boxed::DefaultBoxed;
+        dsp = mydsp::default_boxed();
+    }
+
+    #[cfg(not(feature = "default-boxed"))]
+    {
+        dsp = Box::new(mydsp::new());
+    }
 
     println!("Faust Rust code running with Portaudio: sample-rate = {} buffer-size = {}", SAMPLE_RATE, FRAMES_PER_BUFFER);
 
