@@ -39,6 +39,7 @@
 #include "normalform.hh"
 #include "timing.hh"
 #include "sigtyperules.hh"
+#include "signalVisitor.hh"
 
 using namespace std;
 
@@ -112,7 +113,7 @@ void InstructionsCompiler::sharingAnnotation(int vctxt, Tree sig)
     } else {
         // it is our first visit,
         int v = getCertifiedSigType(sig)->variability();
-
+       
         // check "time sharing" cases
         if (v < vctxt) {
             setSharingCount(sig, 2);  // time sharing occurence : slower expression in faster context
@@ -472,12 +473,40 @@ ValueInst* InstructionsCompiler::getConditionCode(Tree sig)
 
 void InstructionsCompiler::compileMultiSignal(Tree L)
 {
+    // Compile inputs
+    struct InputCompiler : public SignalVisitor {
+        
+        InstructionsCompiler* fComp;
+        
+        InputCompiler(Tree L, InstructionsCompiler* comp)
+        {
+            fComp = comp;
+            while (!isNil(L)) {
+                self(hd(L));
+                L = tl(L);
+            }
+        }
+        
+        void visit(Tree sig)
+        {
+            int input;
+            if (isSigInput(sig, &input)) {
+                fComp->CS(sig);
+            } else {
+                SignalVisitor::visit(sig);
+            }
+        }
+    };
+    
     startTiming("compileMultiSignal");
     
     // Has to be done *after* gMachinePtrSize is set by the actual backend
     gGlobal->initTypeSizeMap();
 
     L = prepare(L);  // Optimize, share and annotate expression
+    
+    // Compile inputs when gInPlace;
+    if (gGlobal->gInPlace) InputCompiler(L, this);
 
 #ifdef LLVM_DEBUG
     // Add function declaration
@@ -505,9 +534,6 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
                 for (int index = 0; index < fContainer->inputs(); index++) {
                     string name = subst("input$0", T(index));
                     pushDeclare(InstBuilder::genDecStructVar(name, type));
-                    if (gGlobal->gInPlace) {
-                        CS(sigInput(index));
-                    }
                 }
             } else if (gGlobal->gOneSample >= 0) {
             // Nothing...
@@ -516,9 +542,6 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
                     string name = subst("input$0", T(index));
                     pushComputeBlockMethod(InstBuilder::genDecStackVar(name, ptr_type,
                         InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genInt32NumInst(index))));
-                    if (gGlobal->gInPlace) {
-                        CS(sigInput(index));
-                    }
                 }
             }
         }
@@ -1021,7 +1044,7 @@ ValueInst* InstructionsCompiler::forceCacheCode(Tree sig, ValueInst* exp)
     if (getCompiledExpression(sig, code)) {
         return code;
     }
-
+   
     string         vname;
     Typed::VarType ctype;
     old_Occurences*    o = fOccMarkup->retrieve(sig);
