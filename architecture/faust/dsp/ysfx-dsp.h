@@ -113,12 +113,33 @@ class ysfx_dsp : public dsp {
                 ysfx_slider_range_t ra;
                 ysfx_slider_get_range(fDSP, i, &ra);
                 fInputsValue.push_back(new ControlValue(ra.def));
-                ui_interface->addHorizontalSlider(ysfx_slider_get_name(fDSP, i),
-                                                  &fInputsValue[i]->fValue,
-                                                  ra.def,
-                                                  ra.min,
-                                                  ra.max,
-                                                  ra.inc);
+                string name = ysfx_slider_get_name(fDSP, i);
+                if (startWith(name, "button")) {
+                    ui_interface->addButton(ysfx_slider_get_name(fDSP, i), &fInputsValue[i]->fValue);
+                } else if (startWith(name, "checkbox")) {
+                    ui_interface->addCheckbox(ysfx_slider_get_name(fDSP, i), &fInputsValue[i]->fValue);
+                } else if (startWith(name, "hslider")) {
+                    ui_interface->addHorizontalSlider(ysfx_slider_get_name(fDSP, i),
+                                                      &fInputsValue[i]->fValue,
+                                                      ra.def,
+                                                      ra.min,
+                                                      ra.max,
+                                                      ra.inc);
+                } else if (startWith(name, "vslider")) {
+                    ui_interface->addVorizontalSlider(ysfx_slider_get_name(fDSP, i),
+                                                      &fInputsValue[i]->fValue,
+                                                      ra.def,
+                                                      ra.min,
+                                                      ra.max,
+                                                      ra.inc);
+                } else if (startWith(name, "nentry")) {
+                    ui_interface->addNumEntry(ysfx_slider_get_name(fDSP, i),
+                                              &fInputsValue[i]->fValue,
+                                              ra.def,
+                                              ra.min,
+                                              ra.max,
+                                              ra.inc);
+                }
                 i++;
             }
             ui_interface->closeBox();
