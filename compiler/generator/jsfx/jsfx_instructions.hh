@@ -735,14 +735,15 @@ class JSFXInstVisitor : public TextInstVisitor {
     {
         *fOut << "(";
         visitCond(inst->fCond);
-        *fOut << ") ? (";
+        *fOut << ") ? (\n";
         inst->fThen->accept(this);
         *fOut << ")";
         if(inst->fElse->fCode.size() > 0) {
-            *fOut << " : (";
+            *fOut << " : (\n";
             inst->fElse->accept(this);
             *fOut << ")";
-        } 
+        }
+        EndLine();
     }
   
     virtual void visit(ForLoopInst* inst)
