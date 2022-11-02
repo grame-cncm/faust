@@ -1600,6 +1600,8 @@ static void compileJSFX(Tree signals, int numInputs, int numOutputs, ostream* ou
     gGlobal->gAllowForeignFunction = true;
     gGlobal->gNeedManualPow        = false;
     gGlobal->gFAUSTFLOAT2Internal  = true;
+    // JSFX actually uses the in "inplace" model
+    gGlobal->gInPlace              = true;
     container = JSFXCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
     
     if (gGlobal->gVectorSwitch) {

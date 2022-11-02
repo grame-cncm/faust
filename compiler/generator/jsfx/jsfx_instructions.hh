@@ -456,19 +456,37 @@ class JSFXInstVisitor : public TextInstVisitor {
     
     virtual void visit(AddButtonInst* inst)
     {
-        if(!skip_slider) {
-        *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=0<0,1,1>" << gGlobal->getFreshID(inst->fLabel);
-        EndLine();
+        if (!skip_slider) {
+            string prefix;
+            if (inst->fType == AddButtonInst::kDefaultButton) {
+                prefix = "button_";
+            } else {
+                prefix = "checkbox_";
+            }
+            *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=0<0,1,1>" << prefix << gGlobal->getFreshID(inst->fLabel);
+            EndLine();
         }
         skip_slider = false;
     }
 
     virtual void visit(AddSliderInst* inst)
     {
-        if(!skip_slider) {
-        *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=" << inst->fInit
-              << "<" << inst->fMin << "," << inst->fMax << "," << inst->fStep << ">"  << gGlobal->getFreshID(inst->fLabel);
-        EndLine(' ');
+        if (!skip_slider) {
+            string prefix;
+            switch (inst->fType) {
+                case AddSliderInst::kHorizontal:
+                    prefix = ">hslider_";
+                    break;
+                case AddSliderInst::kVertical:
+                    prefix = ">vslider_";
+                    break;
+                case AddSliderInst::kNumEntry:
+                    prefix = ">nentry_";
+                    break;
+            }
+            *fOut << "slider" << ++slider_count << ":" << inst->fZone << "=" << inst->fInit
+                  << "<" << inst->fMin << "," << inst->fMax << "," << inst->fStep << prefix << gGlobal->getFreshID(inst->fLabel);
+            EndLine(' ');
         }
         skip_slider = false;
     }
