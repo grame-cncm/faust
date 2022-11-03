@@ -505,7 +505,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
     L = prepare(L);  // Optimize, share and annotate expression
     
-    // Compile inputs when gInPlace;
+    // Compile inputs when gInPlace (force caching for in-place transformations)
     if (gGlobal->gInPlace) InputCompiler(L, this);
 
 #ifdef LLVM_DEBUG

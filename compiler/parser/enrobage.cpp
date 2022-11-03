@@ -170,7 +170,7 @@ static void inject(ostream& dst, const string& fname)
         if (src) {
             streamCopyUntilEnd(*src, dst);
         } else {
-            gGlobal->gErrorMsg = "ERROR : " + fname + " not found\n";
+            gGlobal->gErrorMessage = "ERROR : " + fname + " not found\n";
         }
     }
 }

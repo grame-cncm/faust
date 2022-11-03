@@ -404,10 +404,6 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gVHDLFloatLSB = std::atoi(argv[i + 1]);
             i += 2;
 
-        } else if (isCmd(argv[i], "-elm", "--elementary")) {
-            gGlobal->gElementarySwitch = true;
-            i += 1;
-
         } else if (isCmd(argv[i], "-f", "--fold") && (i + 1 < argc)) {
             gGlobal->gFoldThreshold = std::atoi(argv[i + 1]);
             i += 2;
@@ -844,7 +840,7 @@ static bool processCmdline(int argc, const char* argv[])
     if (err != 0) {
         stringstream error;
         error << "WARNING : " << parse_error.str() << endl;
-        gGlobal->gErrorMsg = error.str();
+        gGlobal->gErrorMessage = error.str();
     }
 
     return (err == 0);
@@ -1272,7 +1268,7 @@ static void parseSourceFiles()
     startTiming("parser");
 
     list<string>::iterator s;
-    gGlobal->gResult2 = gGlobal->nil;
+    Tree result = gGlobal->nil;
     gGlobal->gReader.init();
 
     if (!gGlobal->gInjectFlag && gGlobal->gInputFiles.begin() == gGlobal->gInputFiles.end()) {
@@ -1282,11 +1278,10 @@ static void parseSourceFiles()
         if (s == gGlobal->gInputFiles.begin()) {
             gGlobal->gMasterDocument = *s;
         }
-        gGlobal->gResult2 = cons(importFile(tree(s->c_str())), gGlobal->gResult2);
+        result = cons(importFile(tree(s->c_str())), result);
     }
 
-    gGlobal->gExpandedDefList = gGlobal->gReader.expandList(gGlobal->gResult2);
-
+    gGlobal->gExpandedDefList = gGlobal->gReader.expandList(result);
     endTiming("parser");
 }
 
@@ -1708,7 +1703,7 @@ static void compileWAST(Tree signals, int numInputs, int numOutputs, ostream* ou
     gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
     gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
     gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
-                                         // gGlobal->gHasTeeLocal = true;     // combined store/load
+                                       // gGlobal->gHasTeeLocal = true;     // combined store/load
 
     gGlobal->gUseDefaultSound = false;
 
@@ -1748,7 +1743,7 @@ static void compileWASM(Tree signals, int numInputs, int numOutputs, ostream* ou
     gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
     gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
     gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
-                                         // gGlobal->gHasTeeLocal = true;     // combined store/load
+                                       // gGlobal->gHasTeeLocal = true;     // combined store/load
 
     gGlobal->gUseDefaultSound = false;
 
@@ -2394,7 +2389,7 @@ static void* createFactoryAux1(void* arg)
         return nullptr;
         
     } catch (faustexception& e) {
-        gGlobal->gErrorMsg = e.Message();
+        gGlobal->gErrorMessage = e.Message();
         return nullptr;
     }
 }
@@ -2456,7 +2451,7 @@ static void* createFactoryAux2(void* arg)
         return nullptr;
         
     } catch (faustexception& e) {
-        gGlobal->gErrorMsg = e.Message();
+        gGlobal->gErrorMessage = e.Message();
         return nullptr;
     }
 }
@@ -2483,7 +2478,7 @@ dsp_factory_base* createFactory(const string& name_app,
     context.fGenerate = generate;
     callFun(createFactoryAux1, &context);
     dsp_factory_base* factory = gGlobal->gDSPFactory;
-    error_msg = gGlobal->gErrorMsg;
+    error_msg = gGlobal->gErrorMessage;
    
     global::destroy();
     return factory;
@@ -2501,7 +2496,7 @@ dsp_factory_base* createFactory(const string& name_app, tvec signals, int argc, 
     context.fNumOutputs = signals.size();
     context.fGenerate = true;
     callFun(createFactoryAux2, &context);
-    error_msg = gGlobal->gErrorMsg;
+    error_msg = gGlobal->gErrorMessage;
     return gGlobal->gDSPFactory;
 }
 
@@ -2523,7 +2518,7 @@ string expandDSP(const string& name_app,
     callFun(expandDSPInternal, &context);
     string res = context.fRes;
     sha_key   = generateSHA1(res);
-    error_msg = gGlobal->gErrorMsg;
+    error_msg = gGlobal->gErrorMessage;
   
     global::destroy();
     return res;

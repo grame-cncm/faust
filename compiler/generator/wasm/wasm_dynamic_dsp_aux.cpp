@@ -65,7 +65,7 @@ string wasm_dynamic_dsp_factory::generateWasmFromString2(const string& name_app,
     }
     argv1[argc1] = nullptr;  // NULL terminated argv
     
-    return generateWasmFromString(name_app, dsp_content, argc1, argv1,wasm_dsp_factory::gErrorMessage, internal_memory);
+    return generateWasmFromString(name_app, dsp_content, argc1, argv1, wasm_dsp_factory::gErrorMessage, internal_memory);
 }
 
 // C++ API

@@ -1,21 +1,21 @@
 /************************************************************************
  ************************************************************************
-    FAUST compiler
-    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as published by
-    the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ FAUST compiler
+ Copyright (C) 2003-2022 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
+ (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Lesser General Public License for more details.
+ 
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
 
@@ -103,7 +103,7 @@
 #include "template_code_container.hh"
 #endif
 
-// Parser
+// Globals for lex/yack parser
 extern FILE*       yyin;
 extern const char* yyfilename;
 
@@ -115,12 +115,12 @@ bool               global::gHeapCleanup = false;
 faust1 uses a loop size of 512, but 512 makes faust2 crash (stack allocation error).
 So we use a lower value here.
 */
-
 global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(MAX_STACK_SIZE), gNextFreeColor(1)
 {
     CTree::init();
     Symbol::init();
-    // Part of the state that needs to be initialized between consecutive calls to Box/Signal API.
+    
+    // Part of the state that needs to be initialized between consecutive calls to Box/Signal API
     reset();
 
     EVALPROPERTY   = symbol("EvalProperty");
@@ -336,10 +336,10 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gMachineMaxStackSize = MAX_MACHINE_STACK_SIZE;
 }
 
+// Part of the state that needs to be initialized between consecutive calls to Box/Signal API
 void global::reset()
 {
     gResult          = nullptr;
-    gResult2         = nullptr;
     gExpandedDefList = nullptr;
     
     gDetailsSwitch    = false;
@@ -373,7 +373,7 @@ void global::reset()
     gFTZMode       = 0;
     gRangeUI       = false;
     
-    gFloatSize = 1;
+    gFloatSize = 1; // -single by default
     
     gPrintFileListSwitch = false;
     gInlineArchSwitch    = false;
@@ -422,13 +422,12 @@ void global::reset()
     gNarrowingLimit = 0;
     gWideningLimit  = 0;
     
-    gLstDependenciesSwitch = true;  ///< mdoc listing management.
-    gLstMdocTagsSwitch     = true;  ///< mdoc listing management.
-    gLstDistributedSwitch  = true;  ///< mdoc listing management.
+    gLstDependenciesSwitch = true;  // mdoc listing management.
+    gLstMdocTagsSwitch     = true;  // mdoc listing management.
+    gLstDistributedSwitch  = true;  // mdoc listing management.
     
     gLatexDocSwitch = true;  // Only LaTeX outformat is handled for the moment.
     
-    gErrorCount = 0;
     gFileNum = 0;
     
     gBoxCounter    = 0;
@@ -491,7 +490,6 @@ void global::reset()
     gVHDLFloatType    = 0;  // sfixed
     gVHDLFloatMSB     = 8;
     gVHDLFloatLSB     = -23;
-    gElementarySwitch = false;
     gPrintXMLSwitch   = false;
     gPrintJSONSwitch  = false;
     gPrintDocSwitch   = false;
@@ -500,7 +498,7 @@ void global::reset()
     
     gTimeout = 120;  // Time out to abort compiler (in seconds)
     
-    // Globals to transfer results in thread based evaluation
+    gErrorCount = 0;
     gErrorMessage = "";
     
     // By default use "cpp" output
@@ -544,13 +542,12 @@ void global::init()
     // !!! TRECMAX Maximal only in the last component of the type lattice
     TRECMAX = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(-HUGE_VAL, HUGE_VAL));
 
-    // empty Predefined bit depth
+    // empty predefined bit depth
     RES = res();
 
     // Predefined symbols CONS and NIL
     CONS = symbol("cons");
     NIL  = symbol("nil");
-
     // Predefined nil tree
     nil = tree(NIL);
 
@@ -609,8 +606,7 @@ void global::init()
     gExternalStructTypes[Typed::kSound] =
         InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
 
-    // Foreign math functions supported by the Interp, SOUL, wasm/wast backends
-
+    // Foreign math functions supported by the Interp, Cmajor, wasm/wast backends
     gMathForeignFunctions["acoshf"] = true;
     gMathForeignFunctions["acosh"]  = true;
     gMathForeignFunctions["acoshl"] = true;
@@ -789,7 +785,7 @@ bool global::hasForeignFunction(const string& name, const string& inc_file)
 {
 #ifdef LLVM_BUILD
     // LLVM backend can use 'standard' foreign linked functions
-    static vector<std::string> inc_list = {"<math.h>", "<cmath>", "<stdlib.h>"};
+    static vector<string> inc_list = {"<math.h>", "<cmath>", "<stdlib.h>"};
     bool                       is_inc   = find(begin(inc_list), end(inc_list), inc_file) != inc_list.end();
     // or custom added ones
     bool is_ff       = llvm_dsp_factory_aux::gForeignFunctions.count(name) > 0;
@@ -927,9 +923,10 @@ bool global::isDebug(const string& debug_val)
     return debug_var == debug_val;
 }
 
+// Memory management
 void Garbageable::cleanup()
 {
-    std::list<Garbageable*>::iterator it;
+    list<Garbageable*>::iterator it;
 
     // Here removing the deleted pointer from the list is pointless
     // and takes time, thus we don't do it.
@@ -948,6 +945,7 @@ void Garbageable::cleanup()
     global::gHeapCleanup = false;
 }
 
+// For box/sig generation
 void global::clear()
 {
     gBoxCounter = 0;

@@ -72,7 +72,7 @@ struct TeeVarInst;
 template <class TYPE>
 struct ArrayNumInst;
 
-// Numbers
+// Numbers and array of numbers
 struct FloatNumInst;
 struct FloatArrayNumInst;
 struct Int32NumInst;
@@ -94,6 +94,7 @@ struct BitcastInst;
 // Selector
 struct Select2Inst;
 
+// Null value
 struct NullValueInst;
 
 // ===========
@@ -109,6 +110,7 @@ struct DeclareStructTypeInst;
 
 // Memory store
 struct StoreVarInst;
+// Array move
 struct ShiftArrayVarInst;
 
 // Function call
@@ -129,7 +131,10 @@ struct WhileLoopInst;
 // Block of statements
 struct BlockInst;
 
+// A no-op statement
 struct DropInst;
+
+// Null statement
 struct NullStatementInst;
 
 // ======
@@ -324,7 +329,9 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(VectorTyped* typed) {}
 };
 
+// =======================
 // Clone a FIR expression
+// =======================
 
 struct CloneVisitor : public virtual Garbageable {
     CloneVisitor() {}

@@ -24,7 +24,7 @@
 
 #include <string>
 
-// implements a code statement with an optional condition
+// Implements a code statement with an optional condition
 
 class Statement {
    private:

@@ -33,6 +33,8 @@
 #define audioPtrSize gGlobal->audioSampleSize()
 #define wasmBlockSize int(pow(2, 16))
 
+typedef map<string, int> PathTableType;
+
 /*
  wast/wasm module ABI:
 
