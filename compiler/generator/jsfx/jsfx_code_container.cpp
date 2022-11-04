@@ -217,9 +217,8 @@ void JSFXCodeContainer::produceClass()
           << "NOTE_ON = 0x90; \n"
           << "NOTE_OFF = 0x80; \n" ;
 
-
-    *fOut << endl;
-
+    tab(n, *fOut);
+    
     mergeSubContainers();
 
     // Print header
@@ -230,6 +229,10 @@ void JSFXCodeContainer::produceClass()
     // Possibly missing mathematical functions
     // Possibly merge sub containers (with an empty 'produceInternal' method)
 
+    tab(n, *fOut);
+    *fOut << "function init() (";
+    // TODO
+    // gGlobal->gJSFXVisitor->Tab(n + 1);
     // Functions
     // Only generate globals functions
     for (const auto& it : fGlobalDeclarationInstructions->fCode) {
@@ -237,7 +240,7 @@ void JSFXCodeContainer::produceClass()
             it->accept(gGlobal->gJSFXVisitor);
         }
     }
-    *fOut << endl;
+    tab(n, *fOut);
     
     // Fields - not needed here since declarations are dynamic in JSFX
     /*
@@ -258,17 +261,18 @@ void JSFXCodeContainer::produceClass()
             it->accept(&initializer);
         } 
     }
-    //*fOut << endl;
-    //generateResetUserInterface(gGlobal->gJSFXVisitor);
-    //*fOut << endl;
     generateClear(gGlobal->gJSFXVisitor);
 
     inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gJSFXVisitor);
     inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gJSFXVisitor);
 
-    *fOut << endl;
+    *fOut << ");";
+    tab(n, *fOut);
+    *fOut << "dsp.init();";
+    tab(n, *fOut);
+    
     generateCompute(n);
-    *fOut << endl;
+    tab(n, *fOut);
 }
 
 void JSFXCodeContainer::produceMetadata(int tabs)
@@ -318,22 +322,38 @@ JSFXScalarCodeContainer::JSFXScalarCodeContainer(const string& name,
 // Given as an example of what a real backend would have to implement.
 void JSFXScalarCodeContainer::generateCompute(int n)
 {
-
-    *fOut << "@block \n";
-    gGlobal->gJSFXVisitor->generateMIDIInstructions();
-    *fOut << endl;
-    
-    if(!midi)*fOut << "@slider \n";
-    //*fOut << "@slider \n";
-    //generateComputeFunctions(gGlobal->gJSFXVisitor);
+    tab(n, *fOut);
+    *fOut << "function control() (";
+    tab(n, *fOut);
+    // Empty functions are not allowed, so generate a dummy line
+    *fOut << "dummy = 0;";
+    tab(n, *fOut);
     generateComputeBlock(gGlobal->gJSFXVisitor);
-    *fOut << endl;
+    *fOut << ");";
+    tab(n, *fOut);
     
-    *fOut << "@sample \n";
+    tab(n, *fOut);
+    *fOut << "function compute() (";
+    tab(n, *fOut);
     SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(fFullCount);
     loop->accept(gGlobal->gJSFXVisitor);
-
-    // Generates post compute
-     //generatePostComputeBlock(gGlobal->gJSFXVisitor);
-     *fOut << endl;
+    *fOut << ");";
+    tab(n, *fOut);
+    
+    tab(n, *fOut);
+    *fOut << "@block";
+    gGlobal->gJSFXVisitor->generateMIDIInstructions();
+    tab(n, *fOut);
+    
+    tab(n, *fOut);
+    if (!midi) *fOut << "@slider";
+    tab(n, *fOut);
+    *fOut << "dsp.control();";
+    tab(n, *fOut);
+    
+    tab(n, *fOut);
+    *fOut << "@sample";
+    tab(n, *fOut);
+    *fOut << "dsp.compute();";
+    tab(n, *fOut);
 }
