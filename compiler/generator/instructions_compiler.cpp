@@ -1916,42 +1916,45 @@ ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tr
     ValueInst* v1   = CS(s1);
     ValueInst* v2   = CS(s2);
     
-    ::Type ct1 = getCertifiedSigType(s1);
-    ::Type ct2 = getCertifiedSigType(s2);
-    
-    string v_then, v_else;
-    Typed::VarType t_then, t_else;
-    getTypedNames(ct1, "Then", t_then, v_then);
-    getTypedNames(ct2, "Else", t_else, v_else);
-    
-    // Create local variables to force proper execution of both branches of 'select2'
-    switch (getCertifiedSigType(sig)->variability()) {
-            
-        case kBlock:
-            // Local variable is only created if needed that is if the expression
-            // is not already a 'simple value', constant or variable
-            if (!v1->isSimpleValue()) {
-                pushComputeBlockMethod(InstBuilder::genDecStackVar(v_then, InstBuilder::genBasicTyped(t_then), v1));
-                v1 = InstBuilder::genLoadStackVar(v_then);
-            }
-            if (!v2->isSimpleValue()) {
-                pushComputeBlockMethod(InstBuilder::genDecStackVar(v_else, InstBuilder::genBasicTyped(t_else), v2));
-                v2 = InstBuilder::genLoadStackVar(v_else);
-            }
-            break;
-            
-        case kSamp:
-            // Local variable is only created if needed that is if the expression
-            // is not already a 'simple value', constant or variable
-            if (!v1->isSimpleValue()) {
-                pushComputeDSPMethod(InstBuilder::genDecStackVar(v_then, InstBuilder::genBasicTyped(t_then), v1));
-                v1 = InstBuilder::genLoadStackVar(v_then);
-            }
-            if (!v2->isSimpleValue()) {
-                pushComputeDSPMethod(InstBuilder::genDecStackVar(v_else, InstBuilder::genBasicTyped(t_else), v2));
-                v2 = InstBuilder::genLoadStackVar(v_else);
-            }
-            break;
+    if (gGlobal->gStrictSelect) {
+        
+        ::Type ct1 = getCertifiedSigType(s1);
+        ::Type ct2 = getCertifiedSigType(s2);
+        
+        string v_then, v_else;
+        Typed::VarType t_then, t_else;
+        getTypedNames(ct1, "Then", t_then, v_then);
+        getTypedNames(ct2, "Else", t_else, v_else);
+        
+        // Create local variables to force proper execution of both branches of 'select2'
+        switch (getCertifiedSigType(sig)->variability()) {
+                
+            case kBlock:
+                // Local variable is only created if needed that is if the expression
+                // is not already a 'simple value', constant or variable
+                if (!v1->isSimpleValue()) {
+                    pushComputeBlockMethod(InstBuilder::genDecStackVar(v_then, InstBuilder::genBasicTyped(t_then), v1));
+                    v1 = InstBuilder::genLoadStackVar(v_then);
+                }
+                if (!v2->isSimpleValue()) {
+                    pushComputeBlockMethod(InstBuilder::genDecStackVar(v_else, InstBuilder::genBasicTyped(t_else), v2));
+                    v2 = InstBuilder::genLoadStackVar(v_else);
+                }
+                break;
+                
+            case kSamp:
+                // Local variable is only created if needed that is if the expression
+                // is not already a 'simple value', constant or variable
+                if (!v1->isSimpleValue()) {
+                    pushComputeDSPMethod(InstBuilder::genDecStackVar(v_then, InstBuilder::genBasicTyped(t_then), v1));
+                    v1 = InstBuilder::genLoadStackVar(v_then);
+                }
+                if (!v2->isSimpleValue()) {
+                    pushComputeDSPMethod(InstBuilder::genDecStackVar(v_else, InstBuilder::genBasicTyped(t_else), v2));
+                    v2 = InstBuilder::genLoadStackVar(v_else);
+                }
+                break;
+        }
     }
   
     return generateCacheCode(sig, InstBuilder::genSelect2Inst(cond, v2, v1));

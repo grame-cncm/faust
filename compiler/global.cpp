@@ -403,6 +403,7 @@ void global::reset()
     gComputeIOTA          = false;
     gFAUSTFLOAT2Internal  = false;
     gInPlace              = false;
+    gStrictSelect         = false;
     gHasExp10             = false;
     gLoopVarInBytes       = false;
     gWaveformInDSP        = false;
@@ -416,7 +417,7 @@ void global::reset()
     gOneSampleControl     = false;
     gComputeMix           = false;
     gFastMathLib          = "default";
-    gNameSpace            = "";
+    gNamespace            = "";
     gFullParentheses      = false;
     
     gNarrowingLimit = 0;

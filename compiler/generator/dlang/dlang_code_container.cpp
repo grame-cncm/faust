@@ -241,8 +241,9 @@ string DLangCodeContainer::dModuleName(const string& klassName)
 {
     string moduleName = klassName;
     transform(moduleName.begin(), moduleName.end(), moduleName.begin(), ::tolower);
-    if (gGlobal->gNameSpace != "")
-        moduleName = gGlobal->gNameSpace + "." + moduleName;
+    if (gGlobal->gNamespace != "") {
+        moduleName = gGlobal->gNamespace + "." + moduleName;
+    }
     return moduleName;
 }
 

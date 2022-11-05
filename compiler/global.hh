@@ -158,7 +158,8 @@ struct global {
     bool gMemoryManager;         // -mem option
     bool gRangeUI;               // -rui option, whether to generate code to limit vslider/hslider/nentry values in [min..max] range
     int  gFTZMode;               // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
-    bool gInPlace;               // -inpl, add cache to input for correct in-place computations
+    bool gInPlace;               // -inpl option, add cache to input for correct in-place computations
+    bool gStrictSelect;          // -sts option, generate strict code for 'selectX' even for stateless branches (both are computed)
     
     bool gDSPStruct;             // to control method generation in -fun mode
     bool gLightMode;             // -light option, do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module for JavaScript)
@@ -190,9 +191,9 @@ struct global {
     bool   gNeedManualPow;         // If manual pow(x, y) generation when y is an integer is needed
     bool   gRemoveVarAddress;      // If used of variable addresses (like &foo or &foo[n]) have to be removed
     int    gOneSample;             // -osX options, generate one sample computation
-    bool   gOneSampleControl;      // -osX options, gnerate one sample computation control structure in DSP module
+    bool   gOneSampleControl;      // -osX options, generate one sample computation control structure in DSP module
     bool   gComputeMix;            // -cm option, mix in outputs buffers
-    string gNameSpace;             // Wrapping namespace used with the C++ backend
+    string gNamespace;             // Wrapping namespace used with the C++ backend
   
     int gWideningLimit;   // Max number of iterations before interval widening
     int gNarrowingLimit;  // Max number of iterations to compute interval widener

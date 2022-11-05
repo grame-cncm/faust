@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "man" "1" "" "Version 2.52.7 (02-November-2022)" "Faust man page"
+.TH "man" "1" "" "Version 2.53.0 (05-November-2022)" "Faust man page"
 .hy
 .SH NAME
 .PP
@@ -150,7 +150,8 @@ vslider/hslider/nentry values in [min..max] range.
 \f[B]-inj\f[R] <f> \f[B]\[en]inject\f[R] <f> inject source file <f> into
 architecture file instead of compiling a dsp file.
 .PP
-\f[B]-scal\f[R] \f[B]\[en]scalar\f[R] generate non-vectorized code.
+\f[B]-scal\f[R] \f[B]\[en]scalar\f[R] generate non-vectorized code
+(default).
 .PP
 \f[B]-inpl\f[R] \f[B]\[en]in-place\f[R] generates code working when
 input and output buffers are the same (scalar mode only).
@@ -279,6 +280,9 @@ range.
 \f[B]-me\f[R] \f[B]\[en]math-exceptions\f[R] check / for 0 as
 denominator and remainder, fmod, sqrt, log10, log, acos, asin functions
 domain.
+.PP
+\f[B]-sts\f[R] \f[B]\[en]strict-select\f[R] generate strict code for
+`selectX' even for stateless branches (both are computed).
 .SS Information options:
 .PP
 \f[B]-h\f[R] \f[B]\[en]help\f[R] print this help message.

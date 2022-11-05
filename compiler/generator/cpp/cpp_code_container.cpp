@@ -292,9 +292,9 @@ void CPPCodeContainer::produceClass()
     printLibrary(*fOut);
     printIncludeFile(*fOut);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "namespace " << gGlobal->gNameSpace << " {" << endl;
+        *fOut << "namespace " << gGlobal->gNamespace << " {" << endl;
     }
  
     tab(n, *fOut);
@@ -660,9 +660,9 @@ void CPPCodeContainer::produceClass()
     // Generate user interface macros if needed
     printMacros(*fOut, n);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "} // namespace " << gGlobal->gNameSpace << endl;
+        *fOut << "} // namespace " << gGlobal->gNamespace << endl;
     }
 }
 
@@ -675,9 +675,9 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     printLibrary(*fOut);
     printIncludeFile(*fOut);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "namespace " << gGlobal->gNameSpace << " {" << endl;
+        *fOut << "namespace " << gGlobal->gNamespace << " {" << endl;
     }
  
     // Sub containers are merged in the main class
@@ -934,9 +934,9 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     // Generate user interface macros if needed
     printMacros(*fOut, n);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "} // namespace " << gGlobal->gNameSpace << endl;
+        *fOut << "} // namespace " << gGlobal->gNamespace << endl;
     }
 }
 
@@ -949,9 +949,9 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
     printLibrary(*fOut);
     printIncludeFile(*fOut);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "namespace " << gGlobal->gNameSpace << " {" << endl;
+        *fOut << "namespace " << gGlobal->gNamespace << " {" << endl;
     }
     
     // Sub containers are merged in the main class
@@ -1224,9 +1224,9 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
     // Generate user interface macros if needed
     printMacros(*fOut, n);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "} // namespace " << gGlobal->gNameSpace << endl;
+        *fOut << "} // namespace " << gGlobal->gNamespace << endl;
     }
 }
 
@@ -1246,9 +1246,9 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     printLibrary(*fOut);
     printIncludeFile(*fOut);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "namespace " << gGlobal->gNameSpace << " {" << endl;
+        *fOut << "namespace " << gGlobal->gNamespace << " {" << endl;
     }
     
     // Sub containers are merged in the main class
@@ -1549,9 +1549,9 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     // Generate user interface macros if needed
     printMacros(*fOut, n);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "} // namespace " << gGlobal->gNameSpace << endl;
+        *fOut << "} // namespace " << gGlobal->gNamespace << endl;
     }
 }
 
@@ -1571,9 +1571,9 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
     printLibrary(*fOut);
     printIncludeFile(*fOut);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "namespace " << gGlobal->gNameSpace << " {" << endl;
+        *fOut << "namespace " << gGlobal->gNamespace << " {" << endl;
     }
     
     // Sub containers are merged in the main class
@@ -1942,9 +1942,9 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
     // Generate user interface macros if needed
     printMacros(*fOut, n);
     
-    if (gGlobal->gNameSpace != "" && gGlobal->gArchFile == "") {
+    if (gGlobal->gNamespace != "" && gGlobal->gArchFile == "") {
         tab(n, *fOut);
-        *fOut << "} // namespace " << gGlobal->gNameSpace << endl;
+        *fOut << "} // namespace " << gGlobal->gNamespace << endl;
     }
 }
 

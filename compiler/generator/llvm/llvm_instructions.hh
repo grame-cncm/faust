@@ -884,19 +884,19 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         }
     }
     
+    /*
     // Strict select
     virtual void visit(Select2Inst* inst)
     {
         visitSelect(inst);
     }
+    */
     
-    /*
-    // Lazy select
+    // Non-strict select
     virtual void visit(Select2Inst* inst)
     {
         visitIf(inst);
     }
-    */
     
     // Select that computes both branches
     void visitSelect(Select2Inst* inst)

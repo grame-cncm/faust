@@ -1,4 +1,4 @@
-% man(1) Version 2.52.7 (02-November-2022) | Faust man page
+% man(1) Version 2.53.0 (05-November-2022) | Faust man page
 
 NAME
 ====
@@ -107,7 +107,7 @@ Code generation options:
 
   **-inj** \<f>    **--inject** \<f>                inject source file \<f> into architecture file instead of compiling a dsp file.
 
-  **-scal**       **--scalar**                    generate non-vectorized code.
+  **-scal**       **--scalar**                    generate non-vectorized code (default).
 
   **-inpl**       **--in-place**                  generates code working when input and output buffers are the same (scalar mode only).
 
@@ -206,6 +206,8 @@ Debug options:
   **-cat**        **--check-all-table**           check all table index range.
 
   **-me**         **--math-exceptions**           check / for 0 as denominator and remainder, fmod, sqrt, log10, log, acos, asin functions domain.
+
+  **-sts**        **--strict-select**             generate strict code for 'selectX' even for stateless branches (both are computed).
 
 
 Information options:

@@ -151,6 +151,8 @@ Here are the available options:
  - `-trace 5 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, CAST_INT_OVERFLOW and LOAD/STORE errors, continue after FP_INFINITE, FP_NAN, CAST_INT_OVERFLOW or LOAD/STORE error`
  - `-trace 6 to only check LOAD/STORE errors and continue`
  - `-trace 7 to only check LOAD/STORE errors and exit`
+ 
+ Note that additional Faust compiler options can be used to check specific versions of the generated code. For instance even if the semantics of Faust is always strict, the generated code for `select2` is non-strict by default, and to save CPU, only one branch is computed depending of the condition. The `-sts` option can be used to force both branches to be computed, thus allowing to test both of them for misbehaving behaviours. 
 
 ## faustbench
 

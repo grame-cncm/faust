@@ -625,7 +625,7 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-ns", "--namespace")) {
-            gGlobal->gNameSpace = argv[i + 1];
+            gGlobal->gNamespace = argv[i + 1];
             i += 2;
 
         } else if (isCmd(argv[i], "-fp", "--full-parentheses")) {
@@ -676,6 +676,10 @@ static bool processCmdline(int argc, const char* argv[])
 
         } else if (isCmd(argv[i], "-inpl", "--in-place")) {
             gGlobal->gInPlace = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-sts", "--strict-select")) {
+            gGlobal->gStrictSelect = true;
             i += 1;
 
         } else if (isCmd(argv[i], "-es", "--enable-semantics")) {
@@ -786,7 +790,7 @@ static bool processCmdline(int argc, const char* argv[])
         }
     }
 
-    if (gGlobal->gNameSpace != "" && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "dlang") {
+    if (gGlobal->gNamespace != "" && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "dlang") {
         throw faustexception("ERROR : -ns can only be used with the 'cpp' or 'dlang' backend\n");
     }
 
@@ -1013,7 +1017,7 @@ static void printHelp()
         << "-inj <f>    --inject <f>                inject source file <f> into architecture file instead of compiling "
            "a dsp file."
         << endl;
-    cout << tab << "-scal       --scalar                    generate non-vectorized code." << endl;
+    cout << tab << "-scal       --scalar                    generate non-vectorized code (default)." << endl;
     cout << tab
          << "-inpl       --in-place                  generates code working when input and output buffers are the same "
             "(scalar mode only)."
@@ -1107,7 +1111,8 @@ static void printHelp()
          << "-me         --math-exceptions           check / for 0 as denominator and remainder, fmod, sqrt, log10, "
             "log, acos, asin functions domain."
          << endl;
-
+    cout << tab << "-sts        --strict-select             generate strict code for 'selectX' even for stateless branches (both are computed)." << endl;
+    
     cout << endl << "Information options:" << line;
     cout << tab << "-h          --help                      print this help message." << endl;
     cout << tab << "-v          --version                   print version information and embedded backends list."
@@ -1792,8 +1797,8 @@ static void generateCodeAux1(unique_ptr<ostream>& dst)
 {
     if (gGlobal->gArchFile != "") {
         if ((enrobage = openArchStream(gGlobal->gArchFile.c_str()))) {
-            if (gGlobal->gNameSpace != "" && gGlobal->gOutputLang == "cpp")
-                *dst.get() << "namespace " << gGlobal->gNameSpace << " {" << endl;
+            if (gGlobal->gNamespace != "" && gGlobal->gOutputLang == "cpp")
+                *dst.get() << "namespace " << gGlobal->gNamespace << " {" << endl;
 #ifdef DLANG_BUILD
             else if (gGlobal->gOutputLang == "dlang") {
                 DLangCodeContainer::printDRecipeComment(*dst.get(), container->getClassName());
@@ -1838,8 +1843,8 @@ static void generateCodeAux1(unique_ptr<ostream>& dst)
                 gGlobal->gDSPFactory->write(&cout, false, false);
             }
 
-            if (gGlobal->gNameSpace != "" && gGlobal->gOutputLang == "cpp") {
-                *dst.get() << "} // namespace " << gGlobal->gNameSpace << endl;
+            if (gGlobal->gNamespace != "" && gGlobal->gOutputLang == "cpp") {
+                *dst.get() << "} // namespace " << gGlobal->gNamespace << endl;
             }
 
         } else {
