@@ -25,6 +25,7 @@ echoHelp()
     option "-effect auto"
     option -juce "to create a JUCE project"
     option -dsp "to create a 'dsp' compatible subclass"
+    option -test "to test the resulting patch with 'cmaj render'"
     option -play "to start the 'cmaj' runtime with the generated Cmajor file"
     option "Faust options"
     exit
@@ -45,6 +46,7 @@ EFFECT=""
 NVOICES=-1
 OPTIONS=""
 PLAY="false"
+TEST="false"
 JUCE="false"
 MIDI="false"
 CMAJ_EXT="cmajor";
@@ -71,6 +73,8 @@ do
         PLAY="true"
     elif [ $p = "-juce" ]; then
         JUCE="true"
+    elif [ $p = "-test" ]; then
+        TEST="true"
     elif [ $p = "-dsp" ]; then
         CMAJ_EXT="cmajor-dsp"
     elif [ ${p:0:1} = "-" ]; then
@@ -167,6 +171,10 @@ EndOfCode
     
     if [ $PLAY = "true" ] ; then
         cmaj play "$SRCDIR/$dspName/${f%.dsp}.cmajorpatch"
+    fi
+    
+    if [ $TEST = "true" ] ; then
+        cmaj render --length=100000 --rate=44100 --output=/dev/null "$SRCDIR/$dspName/${f%.dsp}.cmajorpatch"
     fi
 
     # collect binary file name for FaustGIDE

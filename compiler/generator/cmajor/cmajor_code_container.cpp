@@ -52,8 +52,14 @@ CodeContainer* CmajorCodeContainer::createScalarContainer(const string& name, in
 
 CodeContainer* CmajorCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
 {
+    if (isdigit(name[0])) {
+        stringstream error;
+        error << "ERROR : processor '" << name << "' cannot start with a digit\n";
+        throw faustexception(error.str());
+    }
+    
     CodeContainer* container;
-
+    
     if (gGlobal->gOpenMPSwitch) {
         throw faustexception("ERROR : OpenMP not supported for Cmajor\n");
     } else if (gGlobal->gSchedulerSwitch) {

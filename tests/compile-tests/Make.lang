@@ -23,7 +23,7 @@ ext    ?= cpp
 
 version := $(shell $(FAUST) --version | grep Version | sed -e 's/^..*Version //')
 
-dspfiles  = $(shell find $(SAMPLESROOT)/examples -name "*.dsp" | grep -v "TODO\|old\|faust-stk\|SAM" )
+dspfiles = $(shell find $(SAMPLESROOT)/examples -name "*.dsp" | grep -v "TODO\|old\|faust-stk\|SAM")
 rawregressionfiles = $(shell find $(REGRESSION)/codegen-tests -name "*.dsp" | grep -v BUG)
 regressionfiles = $(shell ./filter $(lang) $(rawregressionfiles))
 
@@ -42,7 +42,7 @@ interp-tracer:
 	
 cmajor:
 	for file in $(dspfiles) ; do \
-		faust2cmajor $$file ; \
+		faust2cmajor -test $$file ; \
 	done
 
 julia-tracer:
