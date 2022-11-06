@@ -1654,6 +1654,7 @@ static void compileCmajor(Tree signals, int numInputs, int numOutputs, ostream* 
     gGlobal->gAllowForeignFunction = false;  // No foreign functions
     gGlobal->gAllowForeignConstant = false;  // No foreign constant
     gGlobal->gAllowForeignVar      = false;  // No foreign variable
+    gGlobal->gBool2Int             = true;   // Cast bool binary operations (comparison operations) to int
 
     // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;

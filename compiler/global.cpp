@@ -416,6 +416,7 @@ void global::reset()
     gOneSample            = -1;
     gOneSampleControl     = false;
     gComputeMix           = false;
+    gBool2Int             = false;
     gFastMathLib          = "default";
     gNamespace            = "";
     gFullParentheses      = false;

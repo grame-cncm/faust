@@ -193,6 +193,7 @@ struct global {
     int    gOneSample;             // -osX options, generate one sample computation
     bool   gOneSampleControl;      // -osX options, generate one sample computation control structure in DSP module
     bool   gComputeMix;            // -cm option, mix in outputs buffers
+    bool   gBool2Int;              // Cast bool binary operations (comparison operations) to int
     string gNamespace;             // Wrapping namespace used with the C++ backend
   
     int gWideningLimit;   // Max number of iterations before interval widening

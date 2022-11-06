@@ -222,10 +222,7 @@ class CmajorInstVisitor : public TextInstVisitor {
    private:
     // Polymorphic math functions
     map<string, string> gPolyMathLibTable;
-
-    // Whether to consider an 'int' as a 'boolean' later on in code generation
-    bool fIntAsBool;
-    
+ 
     std::vector<std::pair <std::string, std::string> > fMetaAux;
     
     inline string checkFloat(float val)
@@ -335,8 +332,6 @@ class CmajorInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["isinf"]  = "isinf";
         // Manually implemented
         gPolyMathLibTable["copysignf"]  = "copysign";
-
-        fIntAsBool = false;
     }
 
     virtual ~CmajorInstVisitor() {}
@@ -546,27 +541,17 @@ class CmajorInstVisitor : public TextInstVisitor {
 
     virtual void visit(BitcastInst* inst) { faustassert(false); }
 
-    virtual void visit(Select2Inst* inst)
+    virtual void visitCond(ValueInst* cond)
     {
-        *fOut << "(bool (";
-        fIntAsBool = true;
-        inst->fCond->accept(this);
-        fIntAsBool = false;
-        *fOut << ") ? ";
-        inst->fThen->accept(this);
-        *fOut << " : ";
-        inst->fElse->accept(this);
+        *fOut << "bool (";
+        cond->accept(this);
         *fOut << ")";
     }
-    
+        
     virtual void visit(IfInst* inst)
     {
         *fOut << "if ";
-        *fOut << "(bool (";
-        fIntAsBool = true;
         visitCond(inst->fCond);
-        fIntAsBool = false;
-        *fOut << "))";
         *fOut << " {";
         fTab++;
         tab(fTab, *fOut);
@@ -585,67 +570,6 @@ class CmajorInstVisitor : public TextInstVisitor {
             *fOut << "}";
         }
         tab(fTab, *fOut);
-    }
-
-    virtual void visit(BinopInst* inst)
-    {
-        bool cond1 = leftArgNeedsParentheses(inst, inst->fInst1);
-        bool cond2 = rightArgNeedsParentheses(inst, inst->fInst2);
-    
-        bool int_as_bool = fIntAsBool;
-        if (isBoolOpcode(inst->fOpcode) && !int_as_bool) {
-            *fOut << "int (";
-        }
-
-        // Hack to make it work again with 'cmajor' version 0.0.6
-        if (isLogicalOpcode(inst->fOpcode)) {
-            Typed::VarType type = TypingVisitor::getType(inst->fInst1);
-            if (isInt64Type(type)) {
-                *fOut << "int64 (";
-            } else if (isInt32Type(type) || isBoolType(type)) {
-                *fOut << "int32 (";
-            } else {
-                faustassert(false);
-            }
-        }
-
-        if (cond1) *fOut << "(";
-        inst->fInst1->accept(this);
-        if (cond1) *fOut << ")";
-
-        // Hack to make it work again with 'cmajor' version 0.0.6
-        if (isLogicalOpcode(inst->fOpcode)) {
-            *fOut << ")";
-        }
-
-        *fOut << " ";
-        *fOut << gBinOpTable[inst->fOpcode]->fName;
-        *fOut << " ";
-
-        // Hack to make it work again with 'cmajor' version 0.0.6
-        if (isLogicalOpcode(inst->fOpcode)) {
-            Typed::VarType type = TypingVisitor::getType(inst->fInst2);
-            if (isInt64Type(type)) {
-                *fOut << "int64 (";
-            } else if (isInt32Type(type) || isBoolType(type)) {
-                *fOut << "int32 (";
-            } else {
-                faustassert(false);
-            }
-        }
-
-        if (cond2) *fOut << "(";
-        inst->fInst2->accept(this);
-        if (cond2) *fOut << ")";
-
-        // Hack to make it work again with 'cmajor' version 0.0.6
-        if (isLogicalOpcode(inst->fOpcode)) {
-            *fOut << ")";
-        }
-
-        if (isBoolOpcode(inst->fOpcode) && !int_as_bool) {
-            *fOut << ")";
-        }
     }
 
     virtual void visit(FunCallInst* inst)
@@ -675,9 +599,7 @@ class CmajorInstVisitor : public TextInstVisitor {
         inst->fInit->accept(this);
         *fOut << "; ";
 
-        fIntAsBool = true;
         inst->fEnd->accept(this);
-        fIntAsBool = false;
         *fOut << "; ";
 
         inst->fIncrement->accept(this);

@@ -29,15 +29,20 @@
 #include "signalVisitor.hh"
 #include "sigtyperules.hh"
 
-/* Check a signal:
-- for correct extended typing
-- for correct SinBinOp args typing
-- for proper SigIntCast and SigFloatCast use.
-To be used on a type annotated signal.
+/*
+ Check a signal:
+ - for correct extended typing
+ - for correct SinBinOp args typing
+ - for proper SigIntCast and SigFloatCast use
+ 
+ To be used on a type annotated signal.
 */
  
 class SignalTreeChecker final : public SignalVisitor {
     
+    protected:
+        void visit(Tree sig) override;
+
     public:
         SignalTreeChecker(Tree L)
         {
@@ -45,9 +50,6 @@ class SignalTreeChecker final : public SignalVisitor {
             getCertifiedSigType(L);
             visitRoot(L);
         }
-        
-    protected:
-        void visit(Tree sig) override;
 };
 
 
@@ -58,29 +60,49 @@ class SignalTreeChecker final : public SignalVisitor {
 //----------------------------------------------------------------------
 
 class SignalPromotion final : public SignalIdentity {
-   public:
-    SignalPromotion()
-    {
-        // Go inside tables
-        fVisitGen = true;
-    }
-
-   protected:
-    Tree transformation(Tree sig);
     
-    // Cast a sig to t1 if t1 != t2
-    Tree         smartCast(Type t1, Type t2, Tree sig);
-    Tree         smartCast(int t1, int t2, Tree sig);
-    // Cast a sig to t
-    Tree         cast(Type t, Tree sig);
-    Tree         cast(int t, Tree sig);
-    // Adds an intCast only if needed
-    Tree         smartIntCast(Type t, Tree sig);
-    // Adds a floatCast only if needed
-    Tree         smartFloatCast(Type t, Tree sig);
+    private:
+        Tree transformation(Tree sig);
+        
+        // Cast a sig to t1 if t1 != t2
+        Tree smartCast(Type t1, Type t2, Tree sig);
+        Tree smartCast(int t1, int t2, Tree sig);
+        // Cast a sig to t
+        Tree cast(Type t, Tree sig);
+        Tree cast(int t, Tree sig);
+        // Adds an intCast only if needed
+        Tree smartIntCast(Type t, Tree sig);
+        // Adds a floatCast only if needed
+        Tree smartFloatCast(Type t, Tree sig);
+    
+    public:
+        SignalPromotion()
+        {
+            // Go inside tables
+            fVisitGen = true;
+        }
+
+};
+
+//-------------------------SignalBool2IntPromotion-------------------------------
+// Cast bool binary operations (comparison operations) to int
+//----------------------------------------------------------------------
+class SignalBool2IntPromotion final : public SignalIdentity {
+    
+    private:
+        Tree transformation(Tree sig);
+
+    public:
+        SignalBool2IntPromotion()
+        {
+            // Go inside tables
+            fVisitGen = true;
+        }
+
 };
 
 // Public API
 Tree sigPromote(Tree sig, bool trace = false);
+Tree sigBool2IntPromote(Tree sig);
 
 #endif

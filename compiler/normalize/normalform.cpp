@@ -69,7 +69,6 @@ static Tree simplifyToNormalFormAux(Tree LS)
     
     // Check signal tree
     SignalTreeChecker checker(L4);
-    
     return L4;
 }
 

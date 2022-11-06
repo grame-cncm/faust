@@ -40,6 +40,7 @@
 #include "timing.hh"
 #include "sigtyperules.hh"
 #include "signalVisitor.hh"
+#include "sigPromotion.hh"
 
 using namespace std;
 
@@ -229,6 +230,9 @@ Tree InstructionsCompiler::prepare(Tree LS)
 {
     startTiming("prepare");
     Tree L1 = simplifyToNormalForm(LS);
+    
+    // Possibly cast bool binary operations (comparison operations) to int
+    if (gGlobal->gBool2Int) L1 = sigBool2IntPromote(L1);
     
     // dump normal form
     if (gGlobal->gDumpNorm == 0) {
