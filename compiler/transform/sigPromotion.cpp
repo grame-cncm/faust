@@ -32,7 +32,7 @@
 void SignalTreeChecker::visit(Tree sig)
 {
     int  opnum;
-    Tree id, x, y, sel, sf, ff, args, chan, part, idx, tb, ws, label, min, max, t0;
+    Tree id, x, y, sel, sf, ff, largs, chan, part, idx, tb, ws, label, min, max, t0;
 
     // Extended
     xtended* p = (xtended*)getUserData(sig);
@@ -59,11 +59,11 @@ void SignalTreeChecker::visit(Tree sig)
         }
         
     // Foreign functions
-    } else if (isSigFFun(sig, ff, args)) {
+    } else if (isSigFFun(sig, ff, largs)) {
         int len = ffarity(ff) - 1;
         for (int i = 0; i < ffarity(ff); i++) {
             int type = ffargtype(ff, len - i);
-            if (getCertifiedSigType(nth(args, i))->nature() != type && type != kAny) {
+            if (getCertifiedSigType(nth(largs, i))->nature() != type && type != kAny) {
                 cerr << "ERROR : isSigFFun of args with incoherent types : " << ppsig(sig) << endl;
                 faustassert(false);
             }
@@ -153,10 +153,10 @@ void SignalTreeChecker::visit(Tree sig)
             faustassert(false);
         }
  
-    } else {
-        // Default case
-        SignalVisitor::visit(sig);
     }
+        
+    // Default case and recursion
+    SignalVisitor::visit(sig);
 }
 
 //-------------------------SignalPromotion-------------------------------
@@ -307,6 +307,9 @@ Tree SignalPromotion::transformation(Tree sig)
                                   smartIntCast(getCertifiedSigType(part), self(part)),
                                   smartIntCast(getCertifiedSigType(idx), self(idx)));
     }
+    
+    // All UI items with range (vslider, hslider, nentry) are treated
+    // as float 'constant numerical expressions'. See realeval in eval.cpp
     
     // Bargraph
     else if (isSigHBargraph(sig, label, min, max, t0)) {

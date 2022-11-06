@@ -221,13 +221,12 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     virtual void visit(LoadVarInst* inst)
     {
-        Typed::VarType type = TypingVisitor::getType(inst);
+        Typed::VarType        type = TypingVisitor::getType(inst);
         Address::AccessType access = inst->fAddress->getAccess();
         string                name = inst->fAddress->getName();
-        IndexedAddress*    indexed =  dynamic_cast<IndexedAddress*>(inst->fAddress);
+        IndexedAddress*    indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
         if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
-            
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 if (isRealType(type)) {
@@ -279,9 +278,9 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     {
         Typed::VarType type = TypingVisitor::getType(inst->fValue);
         Address::AccessType access = inst->fAddress->getAccess();
+        IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
   
-        if (access & Address::kStruct || access & Address::kStaticStruct ||
-            dynamic_cast<IndexedAddress*>(inst->fAddress)) {
+        if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 if (isRealType(type) || isRealPtrType(type)) {

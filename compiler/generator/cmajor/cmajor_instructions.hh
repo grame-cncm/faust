@@ -458,16 +458,15 @@ class CmajorInstVisitor : public TextInstVisitor {
 
     virtual void visit(StoreVarInst* inst)
     {
+        string name = inst->fAddress->getName();
         // special case for 'output' considered as a 'stream'
-        if (startWith(inst->fAddress->getName(), "output")) {
+        if (startWith(name, "output")) {
             inst->fAddress->accept(this);
             *fOut << " <- ";
             inst->fValue->accept(this);
             EndLine();
             // special case for 'bargraph' considered as an 'output event'
-        } else if (startWith(inst->fAddress->getName(), "fHbargraph") ||
-                   startWith(inst->fAddress->getName(), "fVbargraph")) {
-            
+        } else if (startWith(name, "fHbargraph") || startWith(name, "fVbargraph")) {
             // value is stored in the bargraph variable
             {
                 inst->fAddress->accept(this);
@@ -475,7 +474,6 @@ class CmajorInstVisitor : public TextInstVisitor {
                 inst->fValue->accept(this);
                 EndLine();
             }
-            
             // and the bargraph variable is sent using the 'output' event handler
             {
                 *fOut << "if (fControlSlice == 0) { ";
@@ -486,7 +484,6 @@ class CmajorInstVisitor : public TextInstVisitor {
                 *fOut << "; }";
                 tab(fTab, *fOut);
             }
-            
         } else {
             inst->fAddress->accept(this);
             *fOut << " = ";

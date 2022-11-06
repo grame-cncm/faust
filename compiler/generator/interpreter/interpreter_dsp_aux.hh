@@ -730,7 +730,15 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
                 
             } catch (faustexception& e) {
                 std::cerr << e.Message();
-                fFBCExecutor->dumpMemory(fFactory->fComputeDSPBlock,
+                std::vector<FBCBlockInstruction<REAL>*> blocks = {
+                    fFactory->fStaticInitBlock,
+                    fFactory->fInitBlock,
+                    fFactory->fResetUIBlock,
+                    fFactory->fClearBlock,
+                    fFactory->fComputeBlock,
+                    fFactory->fComputeDSPBlock
+                };
+                fFBCExecutor->dumpMemory(blocks,
                                          fFactory->getName(),
                                          "DumpMem-" + fFactory->getName() + std::to_string(fCycle) + ".txt");
                 std::ofstream code_out("DumpCode-" + fFactory->getName() + ".txt");
@@ -740,7 +748,16 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
             }
 
             if ((TRACE == 7) && (fCycle < 4)) {
-                fFBCExecutor->dumpMemory(fFactory->fComputeDSPBlock, fFactory->getName(),
+                std::vector<FBCBlockInstruction<REAL>*> blocks = {
+                    fFactory->fStaticInitBlock,
+                    fFactory->fInitBlock,
+                    fFactory->fResetUIBlock,
+                    fFactory->fClearBlock,
+                    fFactory->fComputeBlock,
+                    fFactory->fComputeDSPBlock
+                };
+                fFBCExecutor->dumpMemory(blocks,
+                                         fFactory->getName(),
                                          "DumpMem-" + fFactory->getName() + std::to_string(fCycle) + ".txt");
             }
 

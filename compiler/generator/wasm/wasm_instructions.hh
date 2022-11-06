@@ -293,17 +293,18 @@ struct LocalVariableCounter : public DispatchVisitor {
     {
         string         name = inst->fAddress->getName();
         Typed::VarType type = inst->fType->getType();
+        Address::AccessType access = inst->fAddress->getAccess();
 
         faustassert(fLocalVarTable.find(name) == fLocalVarTable.end());
 
         // stack/loop variables accessed by [var_num, type] pairs
-        if (inst->fAddress->getAccess() & Address::kStack || inst->fAddress->getAccess() & Address::kLoop) {
+        if (access & Address::kStack || access & Address::kLoop) {
             if (isIntOrPtrType(type)) {
-                fLocalVarTable[name] = LocalVarDesc(fIn32Type++, type, inst->fAddress->getAccess());
+                fLocalVarTable[name] = LocalVarDesc(fIn32Type++, type, access);
             } else if (type == Typed::kFloat) {
-                fLocalVarTable[name] = LocalVarDesc(fF32Type++, type, inst->fAddress->getAccess());
+                fLocalVarTable[name] = LocalVarDesc(fF32Type++, type, access);
             } else if (type == Typed::kDouble) {
-                fLocalVarTable[name] = LocalVarDesc(fF64Type++, type, inst->fAddress->getAccess());
+                fLocalVarTable[name] = LocalVarDesc(fF64Type++, type, access);
             } else {
                 faustassert(false);
             }
@@ -889,13 +890,12 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
     virtual void visit(LoadVarInst* inst)
     {
-        Typed::VarType type = TypingVisitor::getType(inst);
+        Typed::VarType type        = TypingVisitor::getType(inst);
         Address::AccessType access = inst->fAddress->getAccess();
         string                name = inst->fAddress->getName();
         IndexedAddress*    indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-
+    
         if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
-            
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 // Generate 0
@@ -944,11 +944,12 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
     virtual void visit(StoreVarInst* inst)
     {
-        Typed::VarType type = TypingVisitor::getType(inst->fValue);
-        string         name = inst->fAddress->getName();
+        Typed::VarType type        = TypingVisitor::getType(inst->fValue);
+        Address::AccessType access = inst->fAddress->getAccess();
+        string name                = inst->fAddress->getName();
+        IndexedAddress* indexed    = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
-        if (inst->fAddress->getAccess() & Address::kStruct || inst->fAddress->getAccess() & Address::kStaticStruct ||
-            dynamic_cast<IndexedAddress*>(inst->fAddress)) {
+        if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 // Generate 0

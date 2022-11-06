@@ -52,7 +52,7 @@ class FBCExecutor {
         virtual void updateInputControls() {}
         virtual void updateOutputControls() {}
 
-        virtual void dumpMemory(FBCBlockInstruction<REAL>* block, const std::string& name, const std::string& filename) {}
+        virtual void dumpMemory(std::vector<FBCBlockInstruction<REAL>*> blocks, const std::string& name, const std::string& filename) {}
  
 };
 
