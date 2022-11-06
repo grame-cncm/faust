@@ -37,7 +37,7 @@ test:
 
 interp-tracer:
 	for file in $(dspfiles) ; do \
-		interp-tracer -trace 4 -control -noui $$file ; \
+		interp-tracer -trace 4 -control -noui -sts $$file ; \
 	done
 	
 cmajor:
