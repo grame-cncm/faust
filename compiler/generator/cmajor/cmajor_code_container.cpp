@@ -30,10 +30,6 @@ using namespace std;
  - sub-containers are compiled as 'struct' with associated functions
  - classInit is a Processor method for now (waiting for the Cmajor external model to be ready)
  - 'faustpower' function fallbacks to regular 'pow' (see powprim.h)
- - 'boolean' type:
-    - are casted to 'int' (for indexes...) and kept for tests (in SelectInst...).
-    - 'int' results are casted to 'bool' for tests (in SelectInst...).
-    - see the CmajorInstVisitor fIntAsBool variable.
  - the 'fillXXX' function needs to generate the actual size of the table argument type. This is done using the
  TableSizeVisitor class.
  - bargraphs use 'output event' type and are outputting values at 50 Hz. The code is conditionally generated.
