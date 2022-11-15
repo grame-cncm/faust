@@ -111,6 +111,12 @@ void JSFXCodeContainer::produceClass()
 
     // inputs/outputs
     tab(n, *fOut);
+    if (fNumInputs > 64) {
+        throw(faustexception("ERROR : JSFX format does not support more than 64 inputs\n"));
+    }
+    if (fNumOutputs > 64) {
+        throw(faustexception("ERROR : JSFX format does not support more than 64 outputs\n"));
+    }
     for (int i = 0; i < fNumInputs; i++) {
         *fOut << "in_pin:input" << std::to_string(i)<< "\n";
     }

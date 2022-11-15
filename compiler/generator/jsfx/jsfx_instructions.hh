@@ -106,7 +106,7 @@ struct JSFXInitFieldsVisitor : public DispatchVisitor {
 
 struct JSFXMidiInstr
 {
-    JSFXMidiInstr(std::string type_, std::string vname_, int nbr_, int channel_ = -1)
+    JSFXMidiInstr(const std::string& type_, const std::string& vname_, int nbr_, int channel_ = -1)
     : type_name(type_)
     , variable_name(vname_)
     , nbr(nbr_)
@@ -467,6 +467,9 @@ class JSFXInstVisitor : public TextInstVisitor {
             EndLine(' ');
         }
         skip_slider = false;
+        if (slider_count == 64) {
+            throw(faustexception("ERROR : JSFX format does not support more than 64 controllers\n"));
+        }
     }
 
     virtual void visit(AddSliderInst* inst)
@@ -489,6 +492,9 @@ class JSFXInstVisitor : public TextInstVisitor {
             EndLine(' ');
         }
         skip_slider = false;
+        if (slider_count == 64) {
+            throw(faustexception("ERROR : JSFX format does not support more than 64 controllers\n"));
+        }
     }
 
     virtual void visit(AddBargraphInst* inst)
@@ -497,22 +503,26 @@ class JSFXInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSoundfileInst* inst)
     {
-        throw(faustexception("ERROR : Soundfile is not available in JSFX.\n"));
+        throw(faustexception("ERROR : Soundfile is not available in JSFX\n"));
     }
     
-    virtual void visit(Int32NumInst* inst) {
+    virtual void visit(Int32NumInst* inst)
+    {
         *fOut << "int32(" << inst->fNum << ")";
     }
     
-    virtual void visit(Int64NumInst* inst) {
+    virtual void visit(Int64NumInst* inst)
+    {
         *fOut << "int32(" << inst->fNum << ")";
     }
 
-    virtual void visit(FloatNumInst* inst) {
+    virtual void visit(FloatNumInst* inst)
+    {
         *fOut << fixed << inst->fNum;
     }
 
-    virtual void visit(DoubleNumInst* inst) {
+    virtual void visit(DoubleNumInst* inst)
+    {
         *fOut << fixed << inst->fNum;
     }
     
@@ -733,7 +743,6 @@ class JSFXInstVisitor : public TextInstVisitor {
 
     virtual void visit(BitcastInst* inst)
     {
-
     }
     
     virtual void visitCond(ValueInst* cond)
