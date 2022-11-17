@@ -320,7 +320,7 @@ llvm1:
 #########################################################################
 # interp backend
 interp:
-	#$(MAKE) -f Make.interp outdir=interp/double              FAUSTOPTIONS="-I dsp"
+	$(MAKE) -f Make.interp outdir=interp/double              FAUSTOPTIONS="-I dsp"
 	$(MAKE) -f Make.interp outdir=interp/double/ct           FAUSTOPTIONS="-I dsp -ct"
 	$(MAKE) -f Make.interp outdir=interp/double/mapp         FAUSTOPTIONS="-I dsp -mapp"
 	$(MAKE) -f Make.interp outdir=interp/double/rui          FAUSTOPTIONS="-I dsp -rui"
