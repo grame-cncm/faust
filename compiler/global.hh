@@ -171,7 +171,7 @@ struct global {
     string gSuperClassName;      // -scn option, name of the root class the generated dsp class inherits from, by default 'dsp'
     
     // Debug option
-    string gCheckTable;          // -ct and -cat options whether to check RDTable and RWTable index range
+    bool gCheckTable;            // -ct to check rtable/rwtable index range and generate safe access codes
 
     // Backend configuration
     string gOutputLang;            // Chosen backend

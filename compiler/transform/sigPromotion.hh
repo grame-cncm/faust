@@ -23,6 +23,7 @@
 #define __SIGPROMOTION__
 
 #include <vector>
+#include <map>
 #include <string>
 #include <sstream>
 #include "sigIdentity.hh"
@@ -53,7 +54,7 @@ class SignalTreeChecker final : public SignalVisitor {
 };
 
 
-//-------------------------SignalPromotion-------------------------------
+//-------------------------SignalPromotion------------------------------
 // Adds explicit int or float cast when needed. This is needed prior
 // to any optimisations to avoid to scramble int and float expressions.
 // To be used on a type annotated signal.
@@ -84,7 +85,7 @@ class SignalPromotion final : public SignalIdentity {
 
 };
 
-//-------------------------SignalBool2IntPromotion-------------------------------
+//-------------------------SignalBool2IntPromotion----------------------
 // Cast bool binary operations (comparison operations) to int
 //----------------------------------------------------------------------
 class SignalBool2IntPromotion final : public SignalIdentity {
@@ -101,8 +102,32 @@ class SignalBool2IntPromotion final : public SignalIdentity {
 
 };
 
+//-------------------------SignalTablePromotion-------------------------
+// Generate safe access to rdtable/rwtable (wdx/rdx in [0..size-1])
+//----------------------------------------------------------------------
+class SignalTablePromotion final : public SignalIdentity {
+    
+    private:
+        Tree transformation(Tree sig);
+    
+        // Safe version of rtable/rwtable access
+        Tree safeSigRDTbl(Tree sig, Tree tb, Tree size, Tree idx);
+        Tree safeSigWRTbl(Tree sig, Tree id, Tree tb, Tree size, Tree idx, Tree ws);
+    
+        std::map<Tree, Tree> fTableSize;  // Map of sigTables with their size
+        
+    public:
+        SignalTablePromotion()
+        {
+            // Go inside tables
+            fVisitGen = true;
+        }
+    
+};
+
 // Public API
 Tree sigPromote(Tree sig, bool trace = false);
 Tree sigBool2IntPromote(Tree sig);
+Tree signalTablePromote(Tree sig);
 
 #endif

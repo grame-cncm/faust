@@ -67,9 +67,22 @@ static Tree simplifyToNormalFormAux(Tree LS)
     typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
     endTiming("L4 typeAnnotation");
     
+    Tree L5 = nullptr;
+    if (gGlobal->gCheckTable) {
+        // Generate safe access to rdtable/rwtable
+        L5 = signalTablePromote(L4);
+        typeAnnotation(L5, gGlobal->gLocalCausalityCheck);
+        L5 = simplify(L5);
+        typeAnnotation(L5, gGlobal->gLocalCausalityCheck);
+        L5 = sigPromote(L5);
+        typeAnnotation(L5, gGlobal->gLocalCausalityCheck);
+    } else {
+        L5 = L4;
+    }
+    
     // Check signal tree
-    SignalTreeChecker checker(L4);
-    return L4;
+    SignalTreeChecker checker(L5);
+    return L5;
 }
 
 // Public API

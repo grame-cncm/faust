@@ -397,6 +397,71 @@ Tree SignalBool2IntPromotion::transformation(Tree sig)
     }
 }
 
+Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tb, Tree size, Tree idx)
+{
+    interval idx_i = getCertifiedSigType(idx)->getInterval();
+    if (idx_i.lo < 0 || idx_i.hi >= tree2int(size)) {
+        stringstream error;
+        error << "WARNING : RDTbl read index [" << idx_i.lo << ":" <<idx_i.hi
+              << "] is outside of table size (" << tree2int(size) << ") in "
+              << *sig << endl;
+        cerr << error.str();
+        return sigRDTbl(self(tb), sigMax(sigInt(0), sigMin(self(idx), sigSub(size, sigInt(1)))));
+    } else {
+        return SignalIdentity::transformation(sig);
+    }
+}
+
+Tree SignalTablePromotion::safeSigWRTbl(Tree sig, Tree id, Tree tb, Tree size, Tree idx, Tree ws)
+{
+    interval idx_i = getCertifiedSigType(idx)->getInterval();
+    if (idx_i.lo < 0 || idx_i.hi >= tree2int(size)) {
+        stringstream error;
+        error << "WARNING : WRTbl read index [" << idx_i.lo << ":" <<idx_i.hi
+              << "] is outside of table size (" << tree2int(size) << ") in "
+              << *sig << endl;
+        cerr << error.str();
+        return sigWRTbl(id, self(tb), sigMax(sigInt(0), sigMin(self(idx), sigSub(size, sigInt(1)))), self(ws));
+    } else {
+        return SignalIdentity::transformation(sig);
+    }
+}
+
+Tree SignalTablePromotion::transformation(Tree sig)
+{
+    Tree tb, id, idx, ws, size, content;
+    
+    // Tables
+    if (isSigTable(sig, id, size, content)) {
+        // Keep table size
+        fTableSize[sig] = size;
+        // Default case
+        return SignalIdentity::transformation(sig);
+    }
+    
+    else if (isSigRDTbl(sig, tb, idx)) {
+        
+        // Recurse to fill fTableSize
+        SignalIdentity::transformation(sig);
+        faustassert(fTableSize.find(tb) != fTableSize.end());
+        return safeSigRDTbl(sig, tb, fTableSize[tb], idx);
+    }
+    
+    else if (isSigWRTbl(sig, id, tb, idx, ws)) {
+        
+        // Recurse to fill fTableSize
+        SignalIdentity::transformation(sig);
+        faustassert(fTableSize.find(tb) != fTableSize.end());
+        // Keep table size
+        fTableSize[sig] = fTableSize[tb];
+        return safeSigWRTbl(sig, id, tb, fTableSize[tb], idx, ws);
+           
+    // Other cases => identity transformation
+    } else {
+        return SignalIdentity::transformation(sig);
+    }
+}
+
 // Public API
 Tree sigPromote(Tree sig, bool trace)
 {
@@ -414,5 +479,14 @@ Tree sigBool2IntPromote(Tree sig)
     getCertifiedSigType(sig);
     
     SignalBool2IntPromotion SP;
+    return SP.mapself(sig);
+}
+
+Tree signalTablePromote(Tree sig)
+{
+    // Check that the root tree is properly type annotated
+    getCertifiedSigType(sig);
+    
+    SignalTablePromotion SP;
     return SP.mapself(sig);
 }

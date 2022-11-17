@@ -231,7 +231,12 @@ Tree InstructionsCompiler::prepare(Tree LS)
     startTiming("prepare");
     Tree L1 = simplifyToNormalForm(LS);
     
-    // Possibly cast bool binary operations (comparison operations) to int
+    /*
+        Possibly cast bool binary operations (comparison operations) to int.
+        Done after simplifyToNormalForm with does SignalTreeChecker,
+        that would fail after sigBool2IntPromote which adds additional
+        sigIntCast on bool producing BinOp operations.
+    */
     if (gGlobal->gBool2Int) L1 = sigBool2IntPromote(L1);
     
     // dump normal form
@@ -1620,29 +1625,6 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
     LoadVarInst* load_value = dynamic_cast<LoadVarInst*>(tblname);
     faustassert(load_value);
 
-    Tree id, size, content;
-    if (isSigTable(tbl, id, size, content)) {
-        // Check write access
-        if (gGlobal->gCheckTable != "") {
-            // Check if index is inside the table range (to rework with a low, high, impose interval model)
-            interval idx_i = getCertifiedSigType(idx)->getInterval();
-            if (idx_i.lo < 0 || idx_i.hi >= tree2int(size)) {
-                stringstream error;
-                if (gGlobal->gCheckTable == "cat") {
-                    error << "WARNING : WRTbl write index [" << idx_i.lo << ":" <<idx_i.hi
-                          << "] is outside of table size (" << tree2int(size) << ") in "
-                          << *sig << endl;
-                    cerr << error.str();
-                } else {
-                    error << "ERROR : WRTbl write index [" << idx_i.lo << ":" <<idx_i.hi
-                          << "] is outside of table size (" << tree2int(size) << ") in "
-                          << *sig << endl;
-                    throw faustexception(error.str());
-                }
-            }
-        }
-    }
-
     ValueInst* cdata = CS(data);
     string vname = load_value->fAddress->getName();
 
@@ -1679,25 +1661,6 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
     Address::AccessType access;
 
     if (isSigTable(tbl, id, size, content)) {
-        // Check read access
-        if (gGlobal->gCheckTable != "") {
-            // Check if index is inside the table range (to rework with a low, high, impose interval model)
-            interval idx_i = getCertifiedSigType(idx)->getInterval();
-            if (idx_i.lo < 0 || (idx_i.hi >= tree2int(size))) {
-                stringstream error;
-                if (gGlobal->gCheckTable == "cat") {
-                    error << "WARNING : RDTbl read index [" << idx_i.lo << ":" <<idx_i.hi
-                          << "] is outside of table size (" << tree2int(size) << ") in "
-                          << *sig << endl;
-                    cerr << error.str();
-                } else {
-                    error << "ERROR : RDTbl read index [" << idx_i.lo << ":" <<idx_i.hi
-                          << "] is outside of table size (" << tree2int(size) << ") in "
-                          << *sig << endl;
-                    throw faustexception(error.str());
-                }
-            }
-        }
         access = Address::kStaticStruct;
         if (!getCompiledExpression(tbl, tblname)) {
             tblname = setCompiledExpression(tbl, generateStaticTable(tbl, size, content));

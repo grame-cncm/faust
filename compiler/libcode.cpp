@@ -703,13 +703,9 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-ct", "--check-table")) {
-            gGlobal->gCheckTable = "ct";
+            gGlobal->gCheckTable = true;
             i += 1;
-
-        } else if (isCmd(argv[i], "-cat", "--check-all-table")) {
-            gGlobal->gCheckTable = "cat";
-            i += 1;
-
+  
         } else if (isCmd(argv[i], "-me", "--math-exceptions")) {
             gGlobal->gMathExceptions = true;
             i += 1;
@@ -1105,8 +1101,7 @@ static void printHelp()
     cout << tab << "-tg         --task-graph                print the internal task graph in dot format." << endl;
     cout << tab << "-sg         --signal-graph              print the internal signal graph in dot format." << endl;
     cout << tab << "-norm       --normalized-form           print signals in normalized form and exit." << endl;
-    cout << tab << "-ct         --check-table               check table index range and exit at first failure." << endl;
-    cout << tab << "-cat        --check-all-table           check all table index range." << endl;
+    cout << tab << "-ct         --check-table               check rtable/rwtable index range and generate safe access code." << endl;
     cout << tab
          << "-me         --math-exceptions           check / for 0 as denominator and remainder, fmod, sqrt, log10, "
             "log, acos, asin functions domain."
