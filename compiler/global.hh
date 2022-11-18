@@ -153,7 +153,7 @@ struct global {
     int gMaxCopyDelay;           // -mcd option
     int gFloatSize;              // -single/double/quad/fx option (0 for 'float', 1 for 'double', 2 for 'quad', 3 for 'fixed-point')
     int gMaskDelayLineThreshold; // -dlt <num> power-of-two and mask delay-lines treshold
-    bool gEnableFlag;            // -es option
+    bool gEnableFlag;            // -es option (0/1: 0 by default)
     bool gNoVirtual;             // -nvi option, when compiled with the C++ backend, does not add the 'virtual' keyword
     bool gMemoryManager;         // -mem option
     bool gRangeUI;               // -rui option, whether to generate code to limit vslider/hslider/nentry values in [min..max] range
@@ -171,7 +171,7 @@ struct global {
     string gSuperClassName;      // -scn option, name of the root class the generated dsp class inherits from, by default 'dsp'
     
     // Debug option
-    bool gCheckTable;            // -ct to check rtable/rwtable index range and generate safe access codes
+    bool gCheckTable;            // -ct to check rtable/rwtable index range and generate safe access codes (0/1: 1 by default)
 
     // Backend configuration
     string gOutputLang;            // Chosen backend

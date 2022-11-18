@@ -25,7 +25,7 @@
 #ifndef __export__
 #define __export__
 
-#define FAUSTVERSION "2.53.3"
+#define FAUSTVERSION "2.53.4"
 
 // Use FAUST_API for code that is part of the external API but is also compiled in faust and libfaust
 // Use LIBFAUST_API for code that is compiled in faust and libfaust

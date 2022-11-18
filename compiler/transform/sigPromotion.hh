@@ -113,9 +113,8 @@ class SignalTablePromotion final : public SignalIdentity {
         // Safe version of rtable/rwtable access
         Tree safeSigRDTbl(Tree sig, Tree tb, Tree size, Tree idx);
         Tree safeSigWRTbl(Tree sig, Tree id, Tree tb, Tree size, Tree idx, Tree ws);
+        Tree getSize(Tree sig);
     
-        std::map<Tree, Tree> fTableSize;  // Map of sigTables with their size
-        
     public:
         SignalTablePromotion()
         {

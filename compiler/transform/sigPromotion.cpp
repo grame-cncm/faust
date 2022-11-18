@@ -427,35 +427,25 @@ Tree SignalTablePromotion::safeSigWRTbl(Tree sig, Tree id, Tree tb, Tree size, T
     }
 }
 
+Tree SignalTablePromotion::getSize(Tree sig)
+{
+    Tree id, tb, size, content, idx, ws;
+    
+    if (isSigTable(sig, id, size, content)) {
+        return size;
+    } else if (isSigWRTbl(sig, id, tb, idx, ws)) {
+        return getSize(tb);
+    }
+}
+
 Tree SignalTablePromotion::transformation(Tree sig)
 {
-    Tree tb, id, idx, ws, size, content;
+    Tree tb, id, idx, ws;
     
-    // Tables
-    if (isSigTable(sig, id, size, content)) {
-        // Keep table size
-        fTableSize[sig] = size;
-        // Default case
-        return SignalIdentity::transformation(sig);
-    }
-    
-    else if (isSigRDTbl(sig, tb, idx)) {
-        
-        // Recurse to fill fTableSize
-        SignalIdentity::transformation(sig);
-        faustassert(fTableSize.find(tb) != fTableSize.end());
-        return safeSigRDTbl(sig, tb, fTableSize[tb], idx);
-    }
-    
-    else if (isSigWRTbl(sig, id, tb, idx, ws)) {
-        
-        // Recurse to fill fTableSize
-        SignalIdentity::transformation(sig);
-        faustassert(fTableSize.find(tb) != fTableSize.end());
-        // Keep table size
-        fTableSize[sig] = fTableSize[tb];
-        return safeSigWRTbl(sig, id, tb, fTableSize[tb], idx, ws);
-           
+    if (isSigRDTbl(sig, tb, idx)) {
+        return safeSigRDTbl(sig, tb, getSize(tb), idx);
+    } else if (isSigWRTbl(sig, id, tb, idx, ws)) {
+        return safeSigWRTbl(sig, id, tb, getSize(tb), idx, ws);
     // Other cases => identity transformation
     } else {
         return SignalIdentity::transformation(sig);

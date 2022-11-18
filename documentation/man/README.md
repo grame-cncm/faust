@@ -1,4 +1,4 @@
-% man(1) Version 2.53.3 (17-November-2022) | Faust man page
+% man(1) Version 2.53.4 (18-November-2022) | Faust man page
 
 NAME
 ====
@@ -201,7 +201,7 @@ Debug options:
 
   **-norm**       **--normalized-form**           print signals in normalized form and exit.
 
-  **-ct**         **--check-table**               check rtable/rwtable index range and generate safe access.
+  **-ct**         **--check-table**               check rtable/rwtable index range and generate safe access code.
 
   **-me**         **--math-exceptions**           check / for 0 as denominator and remainder, fmod, sqrt, log10, log, acos, asin functions domain.
 

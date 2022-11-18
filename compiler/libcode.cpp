@@ -683,7 +683,7 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-es", "--enable-semantics")) {
-            gGlobal->gEnableFlag = std::atoi(argv[i + 1]) == 1;
+            gGlobal->gEnableFlag = (std::atoi(argv[i + 1]) == 1);
             i += 2;
 
         } else if (isCmd(argv[i], "-lcc", "--local-causality-check")) {
@@ -703,8 +703,8 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-ct", "--check-table")) {
-            gGlobal->gCheckTable = true;
-            i += 1;
+            gGlobal->gCheckTable = (std::atoi(argv[i + 1]) == 1);
+            i += 2;
   
         } else if (isCmd(argv[i], "-me", "--math-exceptions")) {
             gGlobal->gMathExceptions = true;
@@ -1704,7 +1704,7 @@ static void compileWAST(Tree signals, int numInputs, int numOutputs, ostream* ou
     gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
     gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
     gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
-                                       // gGlobal->gHasTeeLocal = true;     // combined store/load
+                                         // gGlobal->gHasTeeLocal = true;     // combined store/load
 
     gGlobal->gUseDefaultSound = false;
 
@@ -1744,7 +1744,7 @@ static void compileWASM(Tree signals, int numInputs, int numOutputs, ostream* ou
     gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
     gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
     gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
-                                       // gGlobal->gHasTeeLocal = true;     // combined store/load
+                                         // gGlobal->gHasTeeLocal = true;     // combined store/load
 
     gGlobal->gUseDefaultSound = false;
 
@@ -2395,32 +2395,32 @@ static void* createFactoryAux1(void* arg)
     }
 }
 
-// Keep the maximum index of inputs signals
-struct MaxInputsCounter : public SignalVisitor {
-    int fMaxInputs = 0;
-    
-    MaxInputsCounter(Tree L)
-    {
-        // L is in normal form
-        while (!isNil(L)) {
-            self(hd(L));
-            L = tl(L);
-        }
-    }
-    
-    void visit(Tree sig)
-    {
-        int input;
-        if (isSigInput(sig, &input)) {
-            fMaxInputs = std::max(fMaxInputs, input + 1);
-        } else {
-            SignalVisitor::visit(sig);
-        }
-    }
-};
-
 static void* createFactoryAux2(void* arg)
 {
+    // Keep the maximum index of inputs signals
+    struct MaxInputsCounter : public SignalVisitor {
+        int fMaxInputs = 0;
+        
+        MaxInputsCounter(Tree L)
+        {
+            // L is in normal form
+            while (!isNil(L)) {
+                self(hd(L));
+                L = tl(L);
+            }
+        }
+            
+        void visit(Tree sig)
+        {
+            int input;
+            if (isSigInput(sig, &input)) {
+                fMaxInputs = std::max(fMaxInputs, input + 1);
+            } else {
+                SignalVisitor::visit(sig);
+            }
+        }
+    };
+
     try {
         CallContext* context = static_cast<CallContext*>(arg);
         string name_app = context->fNameApp;

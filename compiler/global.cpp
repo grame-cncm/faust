@@ -382,7 +382,7 @@ void global::reset()
     gLightMode  = false;
     gClang      = false;
     gNoVirtual  = false;
-    gCheckTable = false;
+    gCheckTable = true;
     
     gMathExceptions = false;
     
