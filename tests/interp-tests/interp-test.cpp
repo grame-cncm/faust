@@ -136,6 +136,24 @@ int main(int argc, const char** argv)
     }
     
     cout << "=============================\n";
+    cout << "Test createInterpreterDSPFactoryFromString with getWarningMessages\n";
+    {
+        const char* argv[8];
+        int argc = 0;
+        argv[argc++] = "-wall";
+        argv[argc] = nullptr; // NULL terminated argv
+        string code = "process = rwtable(10, 10.0, idx, _, idx) with { idx = +(1)~_; };";
+        interpreter_dsp_factory* factory = createInterpreterDSPFactoryFromString("FaustDSP", code, argc, argv, error_msg);
+        if (!factory) {
+            cerr << "Cannot create factory : " << error_msg;
+            exit(EXIT_FAILURE);
+        }
+        cout << "getCompileOptions " << factory->getCompileOptions() << endl;
+        printList(factory->getWarningMessages());
+        deleteInterpreterDSPFactory(factory);
+    }
+    
+    cout << "=============================\n";
     cout << "Test readInterpreterDSPFactoryFromBitcodeFile\n";
     {
         // Read bitcode file

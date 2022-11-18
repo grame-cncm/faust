@@ -59,7 +59,7 @@ class TreeTraversal : public Garbageable {
     void trace(bool b, const std::string& m)
     {
         fTrace = b;
-        fMessage   = m;
+        fMessage = m;
     }
     
     int getVisitCount(Tree sig)

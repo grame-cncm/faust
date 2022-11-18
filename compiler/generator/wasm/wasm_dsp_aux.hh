@@ -318,6 +318,7 @@ class LIBFAUST_API wasm_dsp_factory : public dsp_factory, public faust_smartable
     JSONUIDecoderBase*  fDecoder;
     int                 fInstance; // Index of wasm DSP instance
     MapUI               fMapUI;
+   
 /*
 #ifdef EMCC
     SoundUI* fSoundUI;
@@ -343,6 +344,8 @@ class LIBFAUST_API wasm_dsp_factory : public dsp_factory, public faust_smartable
     std::string              getCompileOptions();
     std::vector<std::string> getLibraryList();
     std::vector<std::string> getIncludePathnames();
+    
+    std::vector<std::string> getWarningMessages();
 
     JSONUIDecoderBase* getDecoder() { return fDecoder; }
 

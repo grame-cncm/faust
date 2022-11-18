@@ -273,6 +273,7 @@ class LIBFAUST_API llvm_dsp_factory : public dsp_factory, public faust_smartable
 
     std::vector<std::string> getLibraryList() { return fFactory->getLibraryList(); }
     std::vector<std::string> getIncludePathnames() { return fFactory->getIncludePathnames(); }
+    std::vector<std::string> getWarningMessages() { return fFactory->getWarningMessages(); }
 
     std::string getTarget() { return fFactory->getTarget(); }
 
@@ -369,6 +370,8 @@ LIBFAUST_API char* getCDSPMachineTarget();
 LIBFAUST_API const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory);
 
 LIBFAUST_API const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory);
+
+LIBFAUST_API const char** getCWarningMessages(llvm_dsp_factory* factory);
 
 LIBFAUST_API char* getCDSPFactoryCompileOptions(llvm_dsp_factory* factory);
 

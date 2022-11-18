@@ -25,6 +25,7 @@
 #include <string.h>
 #include <ostream>
 #include <string>
+#include <vector>
 
 #include "faust/export.h"
 #include "faust/gui/CInterface.h"
@@ -35,6 +36,8 @@
 
 #define COMPILATION_OPTIONS_KEY "compile_options"
 #define COMPILATION_OPTIONS "declare compile_options "
+
+extern std::vector<std::string> gWarningMessages;
 
 /*
  In order to better separate compilation and execution for dynamic backends (LLVM, Interpreter, WebAssembly).
@@ -60,7 +63,9 @@ struct dsp_factory_base {
     virtual void        setDSPCode(const std::string& code) = 0;
     
     virtual std::string getCompileOptions() = 0;
-
+    
+    virtual std::vector<std::string> getWarningMessages() = 0;
+  
     virtual dsp* createDSPInstance(dsp_factory* factory) = 0;
 
     virtual void                setMemoryManager(dsp_memory_manager* manager) = 0;
@@ -79,9 +84,10 @@ struct dsp_factory_base {
 
 class dsp_factory_imp : public dsp_factory_base {
    protected:
-    std::string         fName;
-    std::string         fSHAKey;
-    std::string         fExpandedDSP;
+    std::string fName;
+    std::string fSHAKey;
+    std::string fExpandedDSP;
+    
     dsp_memory_manager* fManager;
 
    public:
@@ -116,7 +122,9 @@ class dsp_factory_imp : public dsp_factory_base {
     void        setDSPCode(const std::string& code) { fExpandedDSP = code; }
     
     virtual std::string getCompileOptions() { return ""; };
-
+    
+    virtual std::vector<std::string> getWarningMessages() { return gWarningMessages; }
+  
     virtual dsp* createDSPInstance(dsp_factory* factory)
     {
         faustassert(false);

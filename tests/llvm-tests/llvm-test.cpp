@@ -164,6 +164,25 @@ static void Test(const char* dspFileAux)
         deleteDSPFactory(factory);
     }
     
+    
+    cout << "=============================\n";
+    cout << "Test createDSPFactoryFromString with getWarningMessages\n";
+    {
+        const char* argv[8];
+        int argc = 0;
+        argv[argc++] = "-wall";
+        argv[argc] = nullptr; // NULL terminated argv
+        string code = "process = rwtable(10, 10.0, idx, _, idx) with { idx = +(1)~_; };";
+        llvm_dsp_factory* factory = createDSPFactoryFromString("FaustDSP", code, argc, argv, JIT_TARGET, error_msg, -1);
+        if (!factory) {
+            cerr << "Cannot create factory : " << error_msg;
+            exit(EXIT_FAILURE);
+        }
+        cout << "getCompileOptions " << factory->getCompileOptions() << endl;
+        printList(factory->getWarningMessages());
+        deleteDSPFactory(factory);
+    }
+    
     cout << "=============================\n";
     cout << "Test createDSPFactoryFromString with registerForeignFunction\n";
     {

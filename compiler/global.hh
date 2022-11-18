@@ -74,6 +74,10 @@ struct comp_str {
 typedef map<Tree, set<Tree>, comp_str>  MetaDataSet;
 typedef map<Tree, set<Tree>>           FunMDSet;  // foo -> {(file/foo/key,value)...}
 
+// Global outside of the global context
+extern vector<string> gWarningMessages;
+extern bool           gAllWarning;
+
 // Global singleton like compiler state
 struct global {
     
@@ -217,12 +221,12 @@ struct global {
     set<string>         gDocAutodocKeySet;
     map<string, bool>   gDocNoticeFlagMap;
     map<string, string> gDocMathStringMap;
-    vector<Tree>        gDocVector;  ///< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM
+    vector<Tree>        gDocVector;      //< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM
     map<string, string> gDocNoticeStringMap;
     set<string>         gDocNoticeKeySet;
     set<string>         gDocMathKeySet;
-    const char*          gDocDevSuffix;  ///< ".tex" (or .??? - used to choose output device)
-    string              gCurrentDir;    ///< Room to save current directory name
+    const char*         gDocDevSuffix;   //< ".tex" (or .??? - used to choose output device)
+    string              gCurrentDir;     //< Room to save current directory name
     string              gLatexheaderfilename;
     struct tm           gCompilationDate;
     int                 gFileNum;
@@ -230,9 +234,9 @@ struct global {
     string              gDocTextsDefaultFile;
 
     // Error handling
-    int     gErrorCount;
-    string  gErrorMessage;
-    Tabber  TABBER;
+    int    gErrorCount;
+    string gErrorMessage;
+    Tabber TABBER;
 
     // ------------
     // boxppShared
@@ -265,7 +269,7 @@ struct global {
     // Used in eval
     int gBoxSlotNumber;  //counter for unique slot number
 
-    bool gCausality;  // FIXME: global used as a parameter of typeAnnotation when true trigs causality errors (negative delay)
+    bool gCausality;     // FIXME: global used as a parameter of typeAnnotation when true trigs causality errors (negative delay)
 
     // Properties
     Tree BOXTYPEPROP;

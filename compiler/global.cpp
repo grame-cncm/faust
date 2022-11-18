@@ -339,6 +339,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 // Part of the state that needs to be initialized between consecutive calls to Box/Signal API
 void global::reset()
 {
+    gAllWarning = false;
+    gWarningMessages.clear();
+    
     gResult          = nullptr;
     gExpandedDefList = nullptr;
     

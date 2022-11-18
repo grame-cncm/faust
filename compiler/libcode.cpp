@@ -705,7 +705,11 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-ct", "--check-table")) {
             gGlobal->gCheckTable = (std::atoi(argv[i + 1]) == 1);
             i += 2;
-  
+            
+        } else if (isCmd(argv[i], "-wall", "--warning-all")) {
+            gAllWarning = true;
+            i += 1;
+        
         } else if (isCmd(argv[i], "-me", "--math-exceptions")) {
             gGlobal->gMathExceptions = true;
             i += 1;
@@ -1101,12 +1105,13 @@ static void printHelp()
     cout << tab << "-tg         --task-graph                print the internal task graph in dot format." << endl;
     cout << tab << "-sg         --signal-graph              print the internal signal graph in dot format." << endl;
     cout << tab << "-norm       --normalized-form           print signals in normalized form and exit." << endl;
-    cout << tab << "-ct         --check-table               check rtable/rwtable index range and generate safe access code." << endl;
+    cout << tab << "-ct         --check-table               check rtable/rwtable index range and generate safe access code (0/1: 1 by default)." << endl;
     cout << tab
          << "-me         --math-exceptions           check / for 0 as denominator and remainder, fmod, sqrt, log10, "
             "log, acos, asin functions domain."
          << endl;
     cout << tab << "-sts        --strict-select             generate strict code for 'selectX' even for stateless branches (both are computed)." << endl;
+    cout << tab << "-wall       --warning-all               print all warnings." << endl;
     
     cout << endl << "Information options:" << line;
     cout << tab << "-h          --help                      print this help message." << endl;
@@ -2420,7 +2425,7 @@ static void* createFactoryAux2(void* arg)
             }
         }
     };
-
+    
     try {
         CallContext* context = static_cast<CallContext*>(arg);
         string name_app = context->fNameApp;
@@ -2480,7 +2485,7 @@ dsp_factory_base* createFactory(const string& name_app,
     callFun(createFactoryAux1, &context);
     dsp_factory_base* factory = gGlobal->gDSPFactory;
     error_msg = gGlobal->gErrorMessage;
-   
+
     global::destroy();
     return factory;
 }

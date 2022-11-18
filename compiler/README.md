@@ -1,4 +1,4 @@
-% man(1) Version 2.53.4 (18-November-2022) | Faust man page
+% man(1) Version 2.54.0 (18-November-2022) | Faust man page
 
 NAME
 ====
@@ -201,11 +201,13 @@ Debug options:
 
   **-norm**       **--normalized-form**           print signals in normalized form and exit.
 
-  **-ct**         **--check-table**               check rtable/rwtable index range and generate safe access code.
+  **-ct**         **--check-table**               check rtable/rwtable index range and generate safe access code (0/1: 1 by default).
 
   **-me**         **--math-exceptions**           check / for 0 as denominator and remainder, fmod, sqrt, log10, log, acos, asin functions domain.
 
   **-sts**        **--strict-select**             generate strict code for 'selectX' even for stateless branches (both are computed).
+
+  **-wall**       **--warning-all**               print all warnings.
 
 
 Information options:

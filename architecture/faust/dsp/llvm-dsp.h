@@ -108,7 +108,7 @@ class LIBFAUST_API llvm_dsp_factory : public dsp_factory {
         */
         std::string getName();
     
-        /* Return factory LLVM target (like 'i386-apple-macosx10.6.0:opteron')*/
+        /* Return factory LLVM target (like 'i386-apple-macosx10.6.0:opteron') */
         std::string getTarget();
         
         /* Return factory SHA key */
@@ -125,6 +125,9 @@ class LIBFAUST_API llvm_dsp_factory : public dsp_factory {
         
         /* Get the list of all used includes */
         std::vector<std::string> getIncludePathnames();
+    
+        /* Get warning messages list for a given compilation */
+        std::vector<std::string> getWarningMessages();
         
         /* Create a new DSP instance, to be deleted with C++ 'delete' */
         llvm_dsp* createDSPInstance();

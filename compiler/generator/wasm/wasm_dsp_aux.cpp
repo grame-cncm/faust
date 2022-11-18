@@ -494,13 +494,20 @@ LIBFAUST_API string wasm_dsp_factory::getCompileOptions()
 {
     return fDecoder->getCompileOptions();
 }
+
 LIBFAUST_API vector<string> wasm_dsp_factory::getLibraryList()
 {
     return fDecoder->getLibraryList();
 }
+
 LIBFAUST_API vector<string> wasm_dsp_factory::getIncludePathnames()
 {
     return fDecoder->getIncludePathnames();
+}
+
+LIBFAUST_API vector<string> wasm_dsp_factory::getWarningMessages()
+{
+    return gWarningMessages;
 }
 
 LIBFAUST_API void wasm_dsp_factory::setMemoryManager(dsp_memory_manager* manager)
@@ -516,6 +523,7 @@ LIBFAUST_API void wasm_dsp_factory::write(ostream* out, bool binary, bool small)
 {
     fFactory->write(out, binary, small);
 }
+
 LIBFAUST_API void wasm_dsp_factory::writeHelper(ostream* out, bool binary, bool small)
 {
     fFactory->writeHelper(out, binary, small);

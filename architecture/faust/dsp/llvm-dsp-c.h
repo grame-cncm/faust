@@ -252,6 +252,15 @@ extern "C"
     LIBFAUST_API const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory);
     
     /**
+     * Get warning messages list for a given compilation as a null-terminated array.
+     *
+     * @param factory - the DSP factory.
+     *
+     * @return the warning messages list (the array and it's content has to be deleted by the caller using freeCMemory).
+     */
+    LIBFAUST_API const char** getCWarningMessages(llvm_dsp_factory* factory);
+
+    /**
      * Delete all Faust DSP factories kept in the library cache. Beware: all kept factory pointers (in local variables...) thus become invalid.
      */                                 
     LIBFAUST_API void deleteAllCDSPFactories();

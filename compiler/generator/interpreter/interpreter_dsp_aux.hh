@@ -890,6 +890,8 @@ class LIBFAUST_API interpreter_dsp_factory : public dsp_factory, public faust_sm
     void        setDSPCode(std::string code) { fFactory->setDSPCode(code); }
 
     std::string getCompileOptions() { return fFactory->getCompileOptions(); }
+    
+    std::vector<std::string> getWarningMessages() { return fFactory->getWarningMessages(); }
 
     interpreter_dsp* createDSPInstance();
 

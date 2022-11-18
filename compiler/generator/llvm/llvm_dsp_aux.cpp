@@ -740,6 +740,25 @@ LIBFAUST_API const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* facto
         return nullptr;
     }
 }
+    
+LIBFAUST_API const char** getCWarningMessages(llvm_dsp_factory* factory)
+{
+    if (factory) {
+        vector<string> include_list1 = factory->getWarningMessages();
+        const char**   include_list2 = (const char**)malloc(sizeof(char*) * (include_list1.size() + 1));
+        
+        size_t i;
+        for (i = 0; i < include_list1.size(); i++) {
+            include_list2[i] = strdup(include_list1[i].c_str());
+        }
+        
+        // Last element is NULL
+        include_list2[i] = nullptr;
+        return include_list2;
+    } else {
+        return nullptr;
+    }
+}
 
 LIBFAUST_API char* getCDSPFactoryCompileOptions(llvm_dsp_factory* factory)
 {

@@ -113,7 +113,10 @@ class LIFAUST_API wasm_dsp_factory : public dsp_factory {
 
         /* Get the list of all used includes */
         std::vector<std::string> getIncludePathnames();
-
+    
+        /* Get warning messages list for a given compilation */
+        std::vector<std::string> getWarningMessages();
+   
         /* Create a new DSP instance, to be deleted with C++ 'delete' */
         wasm_dsp* createDSPInstance();
 

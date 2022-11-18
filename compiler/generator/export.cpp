@@ -20,8 +20,16 @@
  ************************************************************************/
 
 #include <string>
+#include <vector>
 
 #include "faust/export.h"
+
+/*
+    Global outside of the global context, compiled here
+    to be defined in libfaust and libfaustmachine libraries.
+*/
+std::vector<std::string> gWarningMessages;
+bool                     gAllWarning = false;
 
 // External libfaust API
 
@@ -36,7 +44,6 @@ extern "C" LIBFAUST_API const char* getCLibFaustVersion()
 }
 
 /*
-
  Regular C++ exceptions are deactivated when compiled with 'emcc' since adding
  them (using Emscripten runtime mechanism) practically doubles the size of the generated wasm library.
 
@@ -47,7 +54,6 @@ extern "C" LIBFAUST_API const char* getCLibFaustVersion()
  - a regular JS exception is triggered and catched on JS side
  - the actual exception message is retrieved on JS side using 'getErrorAfterException'
  - and finally global context cleanup is done from JS side using 'cleanupAfterException'
-
  */
 
 #ifdef EMCC

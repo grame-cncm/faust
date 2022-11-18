@@ -244,6 +244,7 @@ class cmajor_dsp_factory : public dsp_factory {
         virtual std::string getCompileOptions() { return ""; }
         virtual std::vector<std::string> getLibraryList() { return {}; }
         virtual std::vector<std::string> getIncludePathnames() { return {}; }
+        virtual std::vector<std::string> getWarningMessages() { return {}; }
     
         virtual cmajorpatch_dsp* createDSPInstance()
         {
