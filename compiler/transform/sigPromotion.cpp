@@ -30,6 +30,14 @@
 
 #include "sigPromotion.hh"
 
+#include "interval.hh"
+#include "prim2.hh"
+#include "signals.hh"
+
+#include "global.hh"
+
+#include "sigPromotion.hh"
+
 #include "prim2.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"

@@ -19,6 +19,7 @@ GCCOPTIONS := -O3 -I../../architecture -Iarchs -pthread -std=c++14
 outdir ?= float
 arch ?= ./archs/impulsearch.cpp
 FAUSTOPTIONS := -t 0 -lang cpp -double -i -a $(arch)
+FAUSTOPTIONS := -t 0 -lang cpp -double -i -a $(arch)
 
 .PHONY: test reference
 
