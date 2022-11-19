@@ -454,26 +454,6 @@ class TupletType : public AudioType {
 //-------------------------------------------------
 
 //--------------------------------------------------
-// list of predefined types
-
-extern Type TINT;
-extern Type TREAL;
-
-extern Type TKONST;
-extern Type TBLOCK;
-extern Type TSAMP;
-
-extern Type TCOMP;
-extern Type TINIT;
-extern Type TEXEC;
-
-extern Type TINPUT;
-extern Type TGUI;
-extern Type TGUI01;
-extern Type INT_TGUI;
-extern Type TREC;
-
-//--------------------------------------------------
 // types creation
 
 Type table(const Type& t);

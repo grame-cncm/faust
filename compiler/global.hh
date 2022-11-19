@@ -449,28 +449,15 @@ struct global {
     map<Typed::VarType, DeclareStructTypeInst*> gExternalStructTypes;
 
     // Essential predefined types
-    Type TINT;
-    Type TREAL;
-
-    Type TKONST;
-    Type TBLOCK;
-    Type TSAMP;
-
-    Type TCOMP;
-    Type TINIT;
-    Type TEXEC;
-
-    // More predefined types
     Type TINPUT;
     Type TGUI;
     Type TGUI01;
-    Type INT_TGUI;
-
+ 
     // Trying to accelerate type convergence
     Type TREC;  // kVect ou kScal ?
     Type TRECMAX;
 
-    // empty predefined bit depth
+    // Empty predefined bit depth
     res RES;
 
     // Predefined symbols CONS and NIL

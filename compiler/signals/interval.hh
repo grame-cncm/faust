@@ -183,9 +183,10 @@ inline interval operator/(const interval& x, const interval& y)
     return (x.valid && y.valid && ((y.lo > 0) || (y.hi < 0))) ? x * interval(1 / y.hi, 1 / y.lo) : interval();
 }
 
+// The result should be [0..y.hi[, approximated with 0, nexttoward(y.hi, -INFINITY)
 inline interval operator%(const interval& x, const interval& y)
 {
-    return (x.valid && y.valid && x.lo >= 0 && y.lo > 0) ? interval(0, y.hi) : interval();
+    return (x.valid && y.valid && x.lo >= 0 && y.lo > 0) ? interval(0, nexttoward(y.hi, -INFINITY)) : interval();
 }
 
 /**

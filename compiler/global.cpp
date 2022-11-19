@@ -526,28 +526,16 @@ void global::init()
     // True by default but only usable with -lang ocpp backend
     gEnableFlag = true;
 
-    TINT  = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
-    TREAL = makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval());
-
-    TKONST = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
-    TBLOCK = makeSimpleType(kInt, kBlock, kComp, kVect, kNum, interval());
-    TSAMP  = makeSimpleType(kInt, kSamp, kComp, kVect, kNum, interval());
-
-    TCOMP = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
-    TINIT = makeSimpleType(kInt, kKonst, kInit, kVect, kNum, interval());
-    TEXEC = makeSimpleType(kInt, kKonst, kExec, kVect, kNum, interval());
-
-    // More predefined types
+    // Essential predefined types
     TINPUT   = makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval(-1, 1));
     TGUI     = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval());
     TGUI01   = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval(0, 1));
-    INT_TGUI = makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval());
-
+   
     TREC = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(0, 0));
     // !!! TRECMAX Maximal only in the last component of the type lattice
     TRECMAX = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(-HUGE_VAL, HUGE_VAL));
 
-    // empty predefined bit depth
+    // Empty predefined bit depth
     RES = res();
 
     // Predefined symbols CONS and NIL
