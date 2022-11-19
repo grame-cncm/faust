@@ -41,6 +41,13 @@
 
 using namespace std;
 
+static void printList(const vector<string>& list)
+{
+    for (int i = 0; i < list.size(); i++) {
+        cout << "item: " << list[i] << "\n";
+    }
+}
+
 //----------------------------------------------------------------------------
 // DSP control UI
 //----------------------------------------------------------------------------
@@ -338,6 +345,7 @@ end:
     delete DSP;
     delete interface;
     
+    printList(factory->getWarningMessages());
     deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
     return 0;
 }
