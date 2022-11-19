@@ -416,9 +416,9 @@ Tree SignalBool2IntPromotion::transformation(Tree sig)
 Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tb, Tree size, Tree idx)
 {
     interval idx_i = getCertifiedSigType(idx)->getInterval();
-    if (idx_i.lo < 0 || idx_i.hi >= tree2int(size)) {
+    if (idx_i.lo() < 0 || idx_i.hi() >= tree2int(size)) {
         stringstream error;
-        error << "WARNING : RDTbl read index [" << idx_i.lo << ":" << idx_i.hi << "] is outside of table size ("
+        error << "WARNING : RDTbl read index [" << idx_i.lo() << ":" << idx_i.hi() << "] is outside of table size ("
               << tree2int(size) << ") in " << ppsig(sig);
         if (gAllWarning) gWarningMessages.push_back(error.str());
         return sigRDTbl(self(tb), sigMax(sigInt(0), sigMin(self(idx), sigSub(size, sigInt(1)))));
@@ -430,9 +430,9 @@ Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tb, Tree size, Tree idx)
 Tree SignalTablePromotion::safeSigWRTbl(Tree sig, Tree id, Tree tb, Tree size, Tree idx, Tree ws)
 {
     interval idx_i = getCertifiedSigType(idx)->getInterval();
-    if (idx_i.lo < 0 || idx_i.hi >= tree2int(size)) {
+    if (idx_i.lo() < 0 || idx_i.hi() >= tree2int(size)) {
         stringstream error;
-        error << "WARNING : WRTbl write index [" << idx_i.lo << ":" << idx_i.hi << "] is outside of table size ("
+        error << "WARNING : WRTbl write index [" << idx_i.lo() << ":" << idx_i.hi() << "] is outside of table size ("
               << tree2int(size) << ") in " << ppsig(sig);
         if (gAllWarning) gWarningMessages.push_back(error.str());
         return sigWRTbl(id, self(tb), sigMax(sigInt(0), sigMin(self(idx), sigSub(size, sigInt(1)))), self(ws));

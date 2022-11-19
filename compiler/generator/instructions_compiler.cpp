@@ -1634,12 +1634,12 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
     Tree id, size, content;
     if (isSigTable(tbl, id, size, content)) {
         // Check write access
-        if (gGlobal->gCheckTable != "") {
+        if (gGlobal->gCheckTable) {
             // Check if index is inside the table range (to rework with a low, high, impose interval model)
             interval idx_i = getCertifiedSigType(idx)->getInterval();
             if (idx_i.lo() < 0 || idx_i.hi() >= tree2int(size)) {
                 stringstream error;
-                if (gGlobal->gCheckTable == "cat") {
+                if (gGlobal->gCheckTable) {
                     error << "WARNING : WRTbl write index [" << idx_i.lo() << ":" << idx_i.hi()
                           << "] is outside of table size (" << tree2int(size) << ") in " << *sig << endl;
                     cerr << error.str();
@@ -1690,12 +1690,12 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
 
     if (isSigTable(tbl, id, size, content)) {
         // Check read access
-        if (gGlobal->gCheckTable != "") {
+        if (gGlobal->gCheckTable) {
             // Check if index is inside the table range (to rework with a low, high, impose interval model)
             interval idx_i = getCertifiedSigType(idx)->getInterval();
             if (idx_i.lo() < 0 || (idx_i.hi() >= tree2int(size))) {
                 stringstream error;
-                if (gGlobal->gCheckTable == "cat") {
+                if (gGlobal->gCheckTable) {
                     error << "WARNING : RDTbl read index [" << idx_i.lo() << ":" << idx_i.hi()
                           << "] is outside of table size (" << tree2int(size) << ") in " << *sig << endl;
                     cerr << error.str();
