@@ -416,7 +416,7 @@ Tree SignalTablePromotion::safeSigWRTbl(Tree sig, Tree id, Tree tb, Tree size, T
     interval idx_i = getCertifiedSigType(idx)->getInterval();
     if (idx_i.lo < 0 || idx_i.hi >= tree2int(size)) {
         stringstream error;
-        error << "WARNING : WRTbl read index [" << idx_i.lo << ":" << idx_i.hi
+        error << "WARNING : WRTbl write index [" << idx_i.lo << ":" << idx_i.hi
               << "] is outside of table size (" << tree2int(size) << ") in " << ppsig(sig);
         if (gAllWarning) gWarningMessages.push_back(error.str());
         return sigWRTbl(id, self(tb), sigMax(sigInt(0), sigMin(self(idx), sigSub(size, sigInt(1)))), self(ws));
