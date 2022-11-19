@@ -984,6 +984,7 @@ static void printHelp()
          << endl;
 
     cout << tab << "-cm         --compute-mix               mix in outputs buffers." << endl;
+    cout << tab << "-ct         --check-table               check rtable/rwtable index range and generate safe access code (0/1: 1 by default)." << endl;
     cout << tab
          << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp."
          << endl;
@@ -1105,7 +1106,6 @@ static void printHelp()
     cout << tab << "-tg         --task-graph                print the internal task graph in dot format." << endl;
     cout << tab << "-sg         --signal-graph              print the internal signal graph in dot format." << endl;
     cout << tab << "-norm       --normalized-form           print signals in normalized form and exit." << endl;
-    cout << tab << "-ct         --check-table               check rtable/rwtable index range and generate safe access code (0/1: 1 by default)." << endl;
     cout << tab
          << "-me         --math-exceptions           check / for 0 as denominator and remainder, fmod, sqrt, log10, "
             "log, acos, asin functions domain."
