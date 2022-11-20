@@ -1010,7 +1010,7 @@ static void printHelp()
             "2:mask based (fastest)]."
          << endl;
     cout << tab
-         << "-rui        --range-ui                  whether to generate code to limit vslider/hslider/nentry values "
+         << "-rui        --range-ui                  whether to generate code to constraint vslider/hslider/nentry values "
             "in [min..max] range."
          << endl;
     cout

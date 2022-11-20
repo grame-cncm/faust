@@ -409,35 +409,17 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
     else if (isBoxVSlider(box, label, cur, min, max, step)) {
         faustassert(lsig.size() == 0);
-        Tree slider = sigVSlider(normalizePath(cons(label, path)), cur, min, max, step);
-        // Possibly limit the value in [min..max]
-        if (gGlobal->gRangeUI) {
-            return makeList(sigMax(min, sigMin(max, slider)));
-        } else {
-            return makeList(slider);
-        }
+        return makeList(sigVSlider(normalizePath(cons(label, path)), cur, min, max, step));
     }
 
     else if (isBoxHSlider(box, label, cur, min, max, step)) {
         faustassert(lsig.size() == 0);
-        Tree slider = sigHSlider(normalizePath(cons(label, path)), cur, min, max, step);
-        // Possibly limit the value in [min..max]
-        if (gGlobal->gRangeUI) {
-            return makeList(sigMax(min, sigMin(max, slider)));
-        } else {
-            return makeList(slider);
-        }
+        return makeList(sigHSlider(normalizePath(cons(label, path)), cur, min, max, step));
     }
 
     else if (isBoxNumEntry(box, label, cur, min, max, step)) {
         faustassert(lsig.size() == 0);
-        Tree nentry = sigNumEntry(normalizePath(cons(label, path)), cur, min, max, step);
-        // Possibly limit the value in [min..max]
-        if (gGlobal->gRangeUI) {
-            return makeList(sigMax(min, sigMin(max, nentry)));
-        } else {
-            return makeList(nentry);
-        }
+        return makeList(sigNumEntry(normalizePath(cons(label, path)), cur, min, max, step));
     }
 
     else if (isBoxVBargraph(box, label, min, max)) {

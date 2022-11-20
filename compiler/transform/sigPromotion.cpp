@@ -453,6 +453,20 @@ Tree SignalTablePromotion::transformation(Tree sig)
     }
 }
 
+Tree SignalUIPromotion::transformation(Tree sig)
+{
+    Tree label, init, min, max, step;
+    
+    if (isSigVSlider(sig, label, init, min, max, step)
+        || isSigHSlider(sig, label, init, min, max, step)
+        || isSigNumEntry(sig, label, init, min, max, step)) {
+        return sigMax(min, sigMin(max, sig));
+    // Other cases => identity transformation
+    } else {
+        return SignalIdentity::transformation(sig);
+    }
+}
+
 // Public API
 Tree sigPromote(Tree sig, bool trace)
 {
@@ -479,5 +493,14 @@ Tree signalTablePromote(Tree sig)
     getCertifiedSigType(sig);
     
     SignalTablePromotion SP;
+    return SP.mapself(sig);
+}
+
+Tree signalUIPromote(Tree sig)
+{
+    // Check that the root tree is properly type annotated
+    getCertifiedSigType(sig);
+    
+    SignalUIPromotion SP;
     return SP.mapself(sig);
 }

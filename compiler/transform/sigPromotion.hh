@@ -124,9 +124,27 @@ class SignalTablePromotion final : public SignalIdentity {
     
 };
 
+//-------------------------SignalUIPromotion-------------------------
+// Generate safe access to range UI items (sliders and nentry)
+//----------------------------------------------------------------------
+class SignalUIPromotion final : public SignalIdentity {
+    
+    private:
+        Tree transformation(Tree sig);
+            
+    public:
+        SignalUIPromotion()
+        {
+            // Go inside tables
+            fVisitGen = true;
+        }
+    
+};
+
 // Public API
 Tree sigPromote(Tree sig, bool trace = false);
 Tree sigBool2IntPromote(Tree sig);
 Tree signalTablePromote(Tree sig);
+Tree signalUIPromote(Tree sig);
 
 #endif

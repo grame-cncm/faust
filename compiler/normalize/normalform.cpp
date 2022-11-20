@@ -39,7 +39,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
     Tree L1 = deBruijn2Sym(LS);
     endTiming("deBruijn2Sym");
     
-    // Annotate L1 with type information (needed by castPromote)
+    // Annotate L1 with type information
     startTiming("L1 typeAnnotation");
     typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
     endTiming("L1 typeAnnotation");
@@ -50,7 +50,19 @@ static Tree simplifyToNormalFormAux(Tree LS)
         L1 = signalTablePromote(L1);
         endTiming("Safe access to rdtable/rwtable");
         
-        // Annotate L1 with type information (needed by castPromote)
+        // Annotate L1 with type information
+        startTiming("L1 typeAnnotation");
+        typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
+        endTiming("L1 typeAnnotation");
+    }
+    
+    if (gGlobal->gRangeUI) {
+        // Generate safe values for range UI items (sliders and nentry)
+        startTiming("Safe access to rdtable/rwtable");
+        L1 = signalUIPromote(L1);
+        endTiming("Safe access to rdtable/rwtable");
+        
+        // Annotate L1 with type information
         startTiming("L1 typeAnnotation");
         typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
         endTiming("L1 typeAnnotation");
@@ -66,7 +78,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
     Tree L3 = simplify(L2);
     endTiming("L2 simplification");
     
-    // Annotate L3 with type information (needed by castPromote)
+    // Annotate L3 with type information
     startTiming("L3 typeAnnotation");
     typeAnnotation(L3, gGlobal->gLocalCausalityCheck);
     endTiming("L3 typeAnnotation");
@@ -78,22 +90,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
     startTiming("L4 typeAnnotation");
     typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
     endTiming("L4 typeAnnotation");
-    
-    /*
-    Tree L5 = nullptr;
-    if (gGlobal->gCheckTable) {
-        // Generate safe access to rdtable/rwtable
-        L5 = signalTablePromote(L4);
-        typeAnnotation(L5, gGlobal->gLocalCausalityCheck);
-        L5 = simplify(L5);
-        typeAnnotation(L5, gGlobal->gLocalCausalityCheck);
-        L5 = sigPromote(L5);
-        typeAnnotation(L5, gGlobal->gLocalCausalityCheck);
-    } else {
-        L5 = L4;
-    }
-    */
-    
+     
     // Check signal tree
     SignalTreeChecker checker(L4);
     return L4;
