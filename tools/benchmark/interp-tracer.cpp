@@ -29,10 +29,12 @@
 #include <vector>
 #include <algorithm>
 #include <unistd.h>
+#include <assert.h>
 
 #include "faust/audio/dummy-audio.h"
 #include "faust/dsp/interpreter-dsp.h"
 #include "faust/dsp/dsp-bench.h"
+#include "faust/dsp/dsp-combiner.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/MapUI.h"
@@ -45,6 +47,30 @@ static void printList(const vector<string>& list)
 {
     for (int i = 0; i < list.size(); i++) {
         cout << "item: " << list[i] << "\n";
+    }
+}
+
+static void testProgram(const string& code, dsp* DSP)
+{
+    string error_msg;
+    dsp_factory* factory = createInterpreterDSPFactoryFromString("FaustDSP", code, 0, nullptr, error_msg);
+    assert(factory);
+    dsp* tester = factory->createDSPInstance();
+    assert(tester);
+    dsp* combined = createDSPSplitter(tester, DSP, error_msg);
+    if (combined) {
+        cout << "----[" << code << "]----" << endl;
+        dummyaudio_real<float> audio(44100, 16, INT_MAX, -1, false, true);
+        if (!audio.init("dummy", combined)) {
+            exit(EXIT_FAILURE);
+        }
+        for (int step = 0; step < 1000; step++) {
+            audio.render();
+        }
+        delete combined;
+        deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
+    } else {
+        cerr << error_msg;
     }
 }
 
@@ -118,14 +144,16 @@ int main(int argc, char* argv[])
     snprintf(filename, 255, "%s", basename(argv[argc-1]));
     
     int trace_mode = lopt(argv, "-trace", 0);
+    bool is_input = isopt(argv, "-input");
     bool is_output = isopt(argv, "-output");
     bool is_control = isopt(argv, "-control");
     bool is_noui = isopt(argv, "-noui");
     int time_out = lopt(argv, "-timeout", 10);
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || trace_mode < 0 || trace_mode > 7) {
-        cout << "interp-tracer [-trace <1-7>] [-control] [-output] [-noui] [-timeout <num>] [additional Faust options (-ftz xx)] foo.dsp" << endl;
+        cout << "interp-tracer [-trace <1-7>] [-control] [-output] [-noui] [-timeout <num>] [additional Faust ftestPrograms (-ftz xx)] foo.dsp" << endl;
         cout << "-control to activate min/max control check then setting all controllers (inside their range) in a random way\n";
+        cout << "-input to test effects with various test signals (impulse, noise) \n";
         cout << "-output to display output samples\n";
         cout << "-noui to start the application without UI\n";
         cout << "-timeout <num> when used in -noui mode, to stop the application after a given timeout in seconds (default = 10s)\n";
@@ -149,6 +177,7 @@ int main(int argc, char* argv[])
     for (int i = 1; i < argc-1; i++) {
         if (string(argv[i]) == "-control"
             || string(argv[i]) == "-noui"
+            || string(argv[i]) == "-input"
             || string(argv[i]) == "-output") {
             continue;
         } else if (string(argv[i]) == "-trace" || string(argv[i]) == "-timeout") {
@@ -160,6 +189,11 @@ int main(int argc, char* argv[])
     }
     cout << endl;
     argv1[argc1] = nullptr;  // NULL terminated argv
+    
+    if (trace_mode != 4) {
+        cout << "ERROR : -input option can only be used with -trace 4 mode" << endl;
+        exit(EXIT_FAILURE);
+    }
     
     cout << "Using interpreter backend" << endl;
     if (trace_mode > 0) {
@@ -318,6 +352,18 @@ int main(int argc, char* argv[])
                 random.update();
                 audio->render();
             }
+            
+            goto end;
+            
+        } else if (is_input) {
+            
+            // Test with impulse and noise
+            cout << "------------------------------" << endl;
+            cout << "-------- Test impulse --------" << endl;
+            testProgram("process = 1-1';", DSP->clone());
+            cout << "------------------------------" << endl;
+            cout << "-------- Test noise ----------" << endl;
+            testProgram("import(\"stdfaust.lib\"); process = no.noise;", DSP->clone());
             
             goto end;
             

@@ -134,7 +134,9 @@ The **interp-tracer** tool runs and instruments the compiled program using the I
 
 Mode 4 and 5 allow to display the stack trace of the running code when FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, CAST_INT_OVERFLOW and LOAD/STORE errors are produced. 
 
-The `-control` mode allows to check control parameters, by explicitly setting their *min* and *max* values, then running the DSP and setting all controllers (inside their range) in a random way. 
+The `-control` option allows to check control parameters, by explicitly setting their *min* and *max* values, then running the DSP and setting all controllers (inside their range) in a random way. 
+
+The `-input` option allows to test effects by sending them an *impulse* then a *noise* test signal on all inputs. 
 
 Mode 4 up to 7 also check LOAD/STORE errors, mode 7 is typically used by the Faust compiler developers to check the generated code. Mode 4 and 7 produce FBC (Faust Byte Code) trace as a `DumpCode-foo.txt` file, and the program memory layout as `DumpMem-fooXXX.txt` file.
 
@@ -143,6 +145,7 @@ Mode 4 up to 7 also check LOAD/STORE errors, mode 7 is typically used by the Fau
 Here are the available options:
 
  - `-control to activate min/max control check then setting all controllers (inside their range) in a random way`
+ - `-input to test effects with various test signals (impulse, noise)`
  - `-output to print output frames`
  - `-trace 1 to collect FP_SUBNORMAL only` 
  - `-trace 2 to collect FP_SUBNORMAL, FP_INFINITE and FP_NAN`
