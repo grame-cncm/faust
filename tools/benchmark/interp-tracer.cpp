@@ -189,12 +189,7 @@ int main(int argc, char* argv[])
     }
     cout << endl;
     argv1[argc1] = nullptr;  // NULL terminated argv
-    
-    if (trace_mode != 4) {
-        cout << "ERROR : -input option can only be used with -trace 4 mode" << endl;
-        exit(EXIT_FAILURE);
-    }
-    
+  
     cout << "Using interpreter backend" << endl;
     if (trace_mode > 0) {
         char mode[8]; sprintf(mode, "%d", trace_mode);
