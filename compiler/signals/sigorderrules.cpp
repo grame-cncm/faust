@@ -128,7 +128,7 @@ static int infereSigOrder(Tree sig)
         return O(s1);
 
     else if (isSigFFun(sig, ff, ls) && isNil(ls))
-        return 1;
+        return 3;
 
     else if (isSigFFun(sig, ff, ls))
         return max(1, O(ls));

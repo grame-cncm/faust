@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "man" "1" "" "Version 2.54.1 (19-November-2022)" "Faust man page"
+.TH "man" "1" "" "Version 2.54.2 (21-November-2022)" "Faust man page"
 .hy
 .SH NAME
 .PP
@@ -121,6 +121,9 @@ DSP struct).
 .PP
 \f[B]-cm\f[R] \f[B]\[en]compute-mix\f[R] mix in outputs buffers.
 .PP
+\f[B]-ct\f[R] \f[B]\[en]check-table\f[R] check rtable/rwtable index
+range and generate safe access code (0/1: 1 by default).
+.PP
 \f[B]-cn\f[R] <name> \f[B]\[en]class-name\f[R] <name> specify the name
 of the dsp class to be used instead of mydsp.
 .PP
@@ -144,8 +147,8 @@ state using a custom memory manager.
 recursive signals [0:no (default), 1:fabs based, 2:mask based
 (fastest)].
 .PP
-\f[B]-rui\f[R] \f[B]\[en]range-ui\f[R] whether to generate code to limit
-vslider/hslider/nentry values in [min..max] range.
+\f[B]-rui\f[R] \f[B]\[en]range-ui\f[R] whether to generate code to
+constraint vslider/hslider/nentry values in [min..max] range.
 .PP
 \f[B]-inj\f[R] <f> \f[B]\[en]inject\f[R] <f> inject source file <f> into
 architecture file instead of compiling a dsp file.
@@ -270,9 +273,6 @@ graph in dot format.
 .PP
 \f[B]-norm\f[R] \f[B]\[en]normalized-form\f[R] print signals in
 normalized form and exit.
-.PP
-\f[B]-ct\f[R] \f[B]\[en]check-table\f[R] check rtable/rwtable index
-range and generate safe access code (0/1: 1 by default).
 .PP
 \f[B]-me\f[R] \f[B]\[en]math-exceptions\f[R] check / for 0 as
 denominator and remainder, fmod, sqrt, log10, log, acos, asin functions

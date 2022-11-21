@@ -1,4 +1,4 @@
-% man(1) Version 2.54.1 (19-November-2022) | Faust man page
+% man(1) Version 2.54.2 (21-November-2022) | Faust man page
 
 NAME
 ====
@@ -89,6 +89,8 @@ Code generation options:
 
   **-cm**         **--compute-mix**               mix in outputs buffers.
 
+  **-ct**         **--check-table**               check rtable/rwtable index range and generate safe access code (0/1: 1 by default).
+
   **-cn** \<name>  **--class-name** \<name>         specify the name of the dsp class to be used instead of mydsp.
 
   **-scn** \<name> **--super-class-name** \<name>   specify the name of the super class to be used instead of dsp.
@@ -103,7 +105,7 @@ Code generation options:
 
   **-ftz** \<n>    **--flush-to-zero** \<n>         code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)].
 
-  **-rui**        **--range-ui**                  whether to generate code to limit vslider/hslider/nentry values in [min..max] range.
+  **-rui**        **--range-ui**                  whether to generate code to constraint vslider/hslider/nentry values in [min..max] range.
 
   **-inj** \<f>    **--inject** \<f>                inject source file \<f> into architecture file instead of compiling a dsp file.
 
@@ -200,8 +202,6 @@ Debug options:
   **-sg**         **--signal-graph**              print the internal signal graph in dot format.
 
   **-norm**       **--normalized-form**           print signals in normalized form and exit.
-
-  **-ct**         **--check-table**               check rtable/rwtable index range and generate safe access code (0/1: 1 by default).
 
   **-me**         **--math-exceptions**           check / for 0 as denominator and remainder, fmod, sqrt, log10, log, acos, asin functions domain.
 
