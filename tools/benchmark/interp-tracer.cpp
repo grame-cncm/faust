@@ -80,18 +80,21 @@ static void testProgram(const string& code, dsp* DSP)
 
 struct CheckControlUI : public MapUI {
     
+    bool fReset = true;
     struct ZoneDesc {
         
+        string fLabel;
         FAUSTFLOAT fInit;
         FAUSTFLOAT fMin;
         FAUSTFLOAT fMax;
         FAUSTFLOAT fStep;
         
-        ZoneDesc(FAUSTFLOAT init,
+        ZoneDesc(const string& label,
+                 FAUSTFLOAT init,
                  FAUSTFLOAT min,
                  FAUSTFLOAT max,
                  FAUSTFLOAT step)
-        :fInit(init), fMin(min), fMax(max), fStep(step)
+        :fLabel(label), fInit(init), fMin(min), fMax(max), fStep(step)
         {}
     };
     
@@ -100,34 +103,43 @@ struct CheckControlUI : public MapUI {
     virtual void addButton(const char* label, FAUSTFLOAT* zone)
     {
         MapUI::addButton(label, zone);
-        addItem(zone, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(1), FAUSTFLOAT(0));
+        addItem(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(1), FAUSTFLOAT(0));
     }
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
     {
         MapUI::addCheckButton(label, zone);
-        addItem(zone, FAUSTFLOAT(1), FAUSTFLOAT(1), FAUSTFLOAT(1), FAUSTFLOAT(0));
+        addItem(label, zone, FAUSTFLOAT(1), FAUSTFLOAT(1), FAUSTFLOAT(1), FAUSTFLOAT(0));
     }
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         MapUI::addVerticalSlider(label, zone, init, min, max, step);
-        addItem(zone, init, min, max, step);
+        addItem(label, zone, init, min, max, step);
     }
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         MapUI::addHorizontalSlider(label, zone, init, min, max, step);
-        addItem(zone, init, min, max, step);
+        addItem(label, zone, init, min, max, step);
     }
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         MapUI::addNumEntry(label, zone, init, min, max, step);
-        addItem(zone, init, min, max, step);
+        addItem(label, zone, init, min, max, step);
     }
     
-    void addItem(FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    void addItem(const string& label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
         // Reset to init
-        *zone = init;
-        fControlZone.push_back(make_pair(zone, ZoneDesc(init, min, max, step)));
+        if (fReset) *zone = init;
+        addZoneLabel(label, zone);
+        fControlZone.push_back(make_pair(zone, ZoneDesc(label, init, min, max, step)));
+    }
+    
+    void display()
+    {
+        cout << "--------- Control state ---------"  << endl;
+        for (const auto& it : fPathZoneMap) {
+            cout << "Control : " << it.first << " = " << *it.second << endl;
+        }
     }
     
 };
@@ -379,6 +391,10 @@ int main(int argc, char* argv[])
     } catch (...) {
         cout << endl;
         random.display();
+        CheckControlUI ctl;
+        ctl.fReset = false;
+        DSP->buildUserInterface(&ctl);
+        ctl.display();
     }
     
 end:
