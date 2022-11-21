@@ -831,7 +831,8 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     *fOut << genVirtual() << "void instanceConstants(int sample_rate) {";
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);
-    generateInit(fCodeProducer);
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    inlineSubcontainersFunCalls(fInitInstructions)->accept(fCodeProducer);
     back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
@@ -1104,7 +1105,8 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
     *fOut << genVirtual() << "void instanceConstants(int sample_rate, " << subst("int* iZone, $0* fZone) {", ifloat());
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);
-    generateInit(fCodeProducer);
+    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
+    inlineSubcontainersFunCalls(fInitInstructions)->accept(fCodeProducer);
     back(1, *fOut);
     *fOut << "}";
     tab(n + 1, *fOut);
