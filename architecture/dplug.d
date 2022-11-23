@@ -157,10 +157,11 @@ struct FaustParam
 }
 
 version(unittest){}
+version(faustoverride){}
 else
 mixin(pluginEntryPoints!FaustClient);
 
-final class FaustClient : dplug.client.Client
+class FaustClient : dplug.client.Client
 {
 public:
 nothrow:
@@ -203,6 +204,9 @@ nothrow:
             if(param.isButton)
             {
                 params ~= mallocNew!BoolParameter(faustParamIndexStart++, param.label, cast(bool)(*param.val));
+            }
+            else if (param.step == 1.0f) {
+                params ~= mallocNew!IntegerParameter(faustParamIndexStart++, param.label, param.label, cast(int)param.min, cast(int)param.max, cast(int)param.initial);
             }
             else
             {
@@ -249,8 +253,6 @@ nothrow:
         assert(maxFrames <= 512); // guaranteed by audio buffer splitting
     }
 
-    // TODO: use parameter listeners to update the faust param values rather
-    // than force updating them on every process call
     void updateFaustParams()
     {
         foreach(param; params())
@@ -259,7 +261,22 @@ nothrow:
             {
                 if(param.label() == faustParam.label)
                 {
-                    *(faustParam.val) = (cast(FloatParameter)param).value();
+                    if(cast(FloatParameter)param)
+                    {
+                        *(faustParam.val) = (cast(FloatParameter)param).valueAtomic();
+                    }
+                    else if (cast(IntegerParameter)param)
+                    {
+                        *(faustParam.val) = cast(FAUSTFLOAT)((cast(IntegerParameter)param).valueAtomic());
+                    }
+                    else if (cast(BoolParameter)param)
+                    {
+                        *(faustParam.val) = cast(FAUSTFLOAT)((cast(BoolParameter)param).valueAtomic());
+                    }
+                    else
+                    {
+                        assert(false, "Parameter type not implemented");
+                    }
                 }
             }
         }
