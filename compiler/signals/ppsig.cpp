@@ -289,7 +289,7 @@ ostream& ppsig::print(ostream& fout) const
     }
 
     else {
-        cerr << "[[" << *fSig << "]]";
+        // cerr << "[[" << *fSig << "]]";
     }
     return fout;
 }
@@ -548,7 +548,7 @@ ostream& ppsigShared::print(ostream& fout) const
     }
     
     else {
-        cerr << "[[" << *fSig << "]]";
+        // cerr << "[[" << *fSig << "]]";
     }
     return fout;
 }

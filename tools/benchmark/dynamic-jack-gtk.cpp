@@ -231,7 +231,9 @@ struct DynamicDSP {
         }
         
         cout << "getCompileOptions " << fFactory->getCompileOptions() << endl;
+        cout << "getLibraryList" << endl;
         printList(fFactory->getLibraryList());
+        cout << "getIncludePathnames" << endl;
         printList(fFactory->getIncludePathnames());
         
         fDSP = fFactory->createDSPInstance();
