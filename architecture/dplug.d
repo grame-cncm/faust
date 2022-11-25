@@ -108,31 +108,40 @@ nothrow:
         {
             nextParamId = cast(int)strtol(key.ptr, null, 0);
         }
+        else if (key == "unit")
+        {
+            nextParamUnit = value;
+        }
     }
 
     override void addButton(string label, FAUSTFLOAT* val)
     {
-        _faustParams.pushBack(FaustParam(label, val, 0, 0, 0, 0, true, nextParamId));
+        _faustParams.pushBack(FaustParam(label, nextParamUnit, val, 0, 0, 0, 0, true, nextParamId));
+        resetNextParamMeta();
     }
     
     override void addCheckButton(string label, FAUSTFLOAT* val)
     {
-        _faustParams.pushBack(FaustParam(label, val, 0, 0, 0, 0, true, nextParamId));
+        _faustParams.pushBack(FaustParam(label, nextParamUnit, val, 0, 0, 0, 0, true, nextParamId));
+        resetNextParamMeta();
     }
     
     override void addVerticalSlider(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        _faustParams.pushBack(FaustParam(label, val, init, min, max, step, false, nextParamId));
+        _faustParams.pushBack(FaustParam(label, nextParamUnit, val, init, min, max, step, false, nextParamId));
+        resetNextParamMeta();
     }
 
     override void addHorizontalSlider(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        _faustParams.pushBack(FaustParam(label, val, init, min, max, step, false, nextParamId));
+        _faustParams.pushBack(FaustParam(label, nextParamUnit, val, init, min, max, step, false, nextParamId));
+        resetNextParamMeta();
     }
 
     override void addNumEntry(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        _faustParams.pushBack(FaustParam(label, val, init, min, max, step, false, nextParamId));
+        _faustParams.pushBack(FaustParam(label, nextParamUnit, val, init, min, max, step, false, nextParamId));
+        resetNextParamMeta();
     }
 
     FaustParam[] readParams()
@@ -154,7 +163,14 @@ nothrow:
 
 private:
 	Vec!FaustParam _faustParams;
-    int nextParamId = 0;
+    int nextParamId = -1;
+    string nextParamUnit = "";
+
+    void resetNextParamMeta()
+    {
+        nextParamId = -1;
+        nextParamUnit = "";
+    }
 
     // simple bubble sort
     FaustParam[] sortParams(FaustParam[] params)
@@ -183,6 +199,7 @@ private:
 struct FaustParam
 {
 	string label;
+    string unit;
 	FAUSTFLOAT* val;
 	FAUSTFLOAT initial;
 	FAUSTFLOAT min;
@@ -242,11 +259,11 @@ nothrow:
                 params ~= mallocNew!BoolParameter(faustParamIndexStart++, param.label, cast(bool)(*param.val));
             }
             else if (param.step == 1.0f) {
-                params ~= mallocNew!IntegerParameter(faustParamIndexStart++, param.label, param.label, cast(int)param.min, cast(int)param.max, cast(int)param.initial);
+                params ~= mallocNew!IntegerParameter(faustParamIndexStart++, param.label, param.unit, cast(int)param.min, cast(int)param.max, cast(int)param.initial);
             }
             else
             {
-                params ~= mallocNew!LinearFloatParameter(faustParamIndexStart++, param.label, param.label, param.min, param.max, param.initial);
+                params ~= mallocNew!LinearFloatParameter(faustParamIndexStart++, param.label, param.unit, param.min, param.max, param.initial);
             }
         }
 
