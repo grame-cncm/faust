@@ -36,6 +36,7 @@
 
 import dplug.core.vec;
 import dplug.client;
+import core.stdc.stdlib : strtol;
 
 alias FAUSTFLOAT = float;
 
@@ -101,34 +102,44 @@ nothrow:
         _faustParams = makeVec!FaustParam();
     }
 
+    override void declare(FAUSTFLOAT* id, string key, string value)
+    {
+        if(value == "")
+        {
+            nextParamId = cast(int)strtol(key.ptr, null, 0);
+        }
+    }
+
     override void addButton(string label, FAUSTFLOAT* val)
     {
-        _faustParams.pushBack(FaustParam(label, val, 0, 0, 0, 0, true));
+        _faustParams.pushBack(FaustParam(label, val, 0, 0, 0, 0, true, nextParamId));
     }
     
     override void addCheckButton(string label, FAUSTFLOAT* val)
     {
-        _faustParams.pushBack(FaustParam(label, val, 0, 0, 0, 0, true));
+        _faustParams.pushBack(FaustParam(label, val, 0, 0, 0, 0, true, nextParamId));
     }
     
     override void addVerticalSlider(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        _faustParams.pushBack(FaustParam(label, val, init, min, max, step));
+        _faustParams.pushBack(FaustParam(label, val, init, min, max, step, false, nextParamId));
     }
 
     override void addHorizontalSlider(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        _faustParams.pushBack(FaustParam(label, val, init, min, max, step));
+        _faustParams.pushBack(FaustParam(label, val, init, min, max, step, false, nextParamId));
     }
 
     override void addNumEntry(string label, FAUSTFLOAT* val, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        _faustParams.pushBack(FaustParam(label, val, init, min, max, step));
+        _faustParams.pushBack(FaustParam(label, val, init, min, max, step, false, nextParamId));
     }
 
     FaustParam[] readParams()
     {
-        return _faustParams.releaseData();
+        /* return _faustParams.releaseData(); */
+        /* Vec!FaustParam _sortedList = makeVec!FaustParam(); */
+        return sortParams(_faustParams.releaseData());
     }
 
     FaustParam readParam(int index)
@@ -143,6 +154,30 @@ nothrow:
 
 private:
 	Vec!FaustParam _faustParams;
+    int nextParamId = 0;
+
+    // simple bubble sort
+    FaustParam[] sortParams(FaustParam[] params)
+    {
+        bool success = true;
+        do
+        {
+            success = true;
+            for(int i = 0; i < params.length - 1; ++i)
+            {
+                auto left = params[i];
+                auto right = params[i + 1];
+                if (right.ParamId < left.ParamId)
+                {
+                    params[i] = right;
+                    params[i + 1] = left;
+                    success = false;
+                }
+            }
+        }
+        while(!success);
+        return params;
+    }
 }
 
 struct FaustParam
@@ -154,6 +189,7 @@ struct FaustParam
 	FAUSTFLOAT max;
 	FAUSTFLOAT step;
     bool isButton = false;
+    int ParamId;
 }
 
 version(unittest){}
