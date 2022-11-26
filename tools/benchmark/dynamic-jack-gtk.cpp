@@ -81,6 +81,16 @@ static void splitTarget(const string& target, string& triple, string& cpu)
 
 struct DynamicDSP {
     
+    bool hasCompileOption(const std::string& compile_options, const std::string& option)
+    {
+        std::istringstream iss(compile_options);
+        std::string token;
+        while (std::getline(iss, token, ' ')) {
+            if (token == option) return true;
+        }
+        return false;
+    }
+    
     dsp_factory* fFactory = nullptr;
     dsp* fDSP = nullptr;
     MidiUI* fMIDIInterface = nullptr;
@@ -125,7 +135,6 @@ struct DynamicDSP {
         bool is_generic = isopt(argv, "-generic");
         bool is_httpd = isopt(argv, "-httpd");
         bool is_resample = isopt(argv, "-resample");
-        bool is_double = isopt(argv, "-double");
         
         if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
         #ifdef JACK
@@ -231,8 +240,11 @@ struct DynamicDSP {
         }
         
         cout << "getCompileOptions " << fFactory->getCompileOptions() << endl;
+        bool is_double = hasCompileOption(fFactory->getCompileOptions(), "-double");
+    
         cout << "getLibraryList" << endl;
         printList(fFactory->getLibraryList());
+    
         cout << "getIncludePathnames" << endl;
         printList(fFactory->getIncludePathnames());
         
