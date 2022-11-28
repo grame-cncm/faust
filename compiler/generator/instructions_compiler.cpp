@@ -2479,7 +2479,7 @@ void InstructionsCompiler::generateWidgetMacro(const string& pathname, Tree full
     Tree                      path, c, x, y, z;
     string                    label;
     map<string, set<string>>  metadata;
-
+  
     extractMetadata(tree2str(fulllabel), label, metadata);
     string pathlabel = pathname + label;
     string rawlabel = label;

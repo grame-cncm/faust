@@ -241,10 +241,15 @@ string TAux(double n)
         do { snprintf(c, 512, "%.*g", p++, v); endp = nullptr; } while (strtof(c, &endp) != v);
     } else if (gGlobal->gFloatSize == 2) {
         do { snprintf(c, 512, "%.*g", p++, n); endp = nullptr; } while (strtod(c, &endp) != n);
-    } if (gGlobal->gFloatSize == 3) {
+    } else if (gGlobal->gFloatSize == 3) {
         long double q = (long double)n;
         do { snprintf(c, 512, "%.*Lg", p++, q); endp = nullptr; } while (strtold(c, &endp) != q);
+    } else if (gGlobal->gFloatSize == 4) {
+        do { snprintf(c, 512, "%.*g", p++, n); endp = nullptr; } while (strtod(c, &endp) != n);
+    } else {
+        faustassert(false);
     }
+    
     ensureFloat(c);
     return string(c);
 }

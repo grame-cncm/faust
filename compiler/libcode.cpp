@@ -812,9 +812,12 @@ static bool processCmdline(int argc, const char* argv[])
         throw faustexception("ERROR : -cm cannot be used with the 'cmajor' backend\n");
     }
 
-    if (gGlobal->gFloatSize == 4 && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "ocpp" &&
-        gGlobal->gOutputLang != "c") {
-        throw faustexception("ERROR : -fx can only be used with 'c', 'cpp' or 'ocpp' backends\n");
+    if (gGlobal->gFloatSize == 4
+        && gGlobal->gOutputLang != "cpp"
+        && gGlobal->gOutputLang != "ocpp"
+        && gGlobal->gOutputLang != "c"
+        && gGlobal->gOutputLang != "fir") {
+        throw faustexception("ERROR : -fx can only be used with 'c', 'cpp', 'ocpp' or 'fir' backends\n");
     }
 
     if (gGlobal->gClang && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "ocpp" &&

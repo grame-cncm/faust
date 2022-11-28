@@ -458,6 +458,18 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
         *fOut << '}';
     }
+    
+    virtual void visit(FixedPointNumInst* inst) { *fOut << "FixedPoint(" << checkFloat(inst->fNum) << ")"; }
+    
+    virtual void visit(FixedPointArrayNumInst* inst)
+    {
+        char sep = '{';
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << sep << "FixedPoint(" << checkFloat(inst->fNumTable[i]) << ")";
+            sep = ',';
+        }
+        *fOut << '}';
+    }
 
     virtual void visit(BinopInst* inst)
     {
