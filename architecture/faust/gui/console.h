@@ -34,6 +34,8 @@
 #include <cstdlib>
 #include <unistd.h>
 #include <string.h>
+#include <thread>
+#include <atomic>
 #include <stdio.h>
 
 #include "faust/gui/GUI.h"
@@ -53,6 +55,9 @@
 class CMDUI : public UI
 {
     private:
+    
+        std::atomic<bool> fRun;
+        std::thread* fThread;
     
         struct param {
             FAUSTFLOAT* fZone; FAUSTFLOAT fMin; FAUSTFLOAT fMax;
@@ -135,8 +140,14 @@ class CMDUI : public UI
     public:
     
         CMDUI(int argc, char* argv[], bool ignore_param = false)
-        : UI(), fArgc(argc), fArgv(argv), fIgnoreParam(ignore_param) { fPrefix.push("-"); }
-        virtual ~CMDUI() {}
+        : UI(), fThread(nullptr), fRun(true),
+        fArgc(argc), fArgv(argv),
+        fIgnoreParam(ignore_param)
+        {
+            fPrefix.push("-");
+        }
+    
+        virtual ~CMDUI() { delete fThread; }
     
         // Can be used as public method
         void addOption(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max)
@@ -184,14 +195,24 @@ class CMDUI : public UI
     
         virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
     
-        virtual bool run()
+        static void update_gui(CMDUI* ui)
         {
-            char c;
-            std::cout << "Type 'q' to quit\n";
-            while ((c = getchar()) && (c != 'q')) {
+            while (ui->fRun) {
                 usleep(40 * 1000); // 25Hz
                 GUI::updateAllGuis();
             }
+        }
+    
+        virtual bool run()
+        {
+            fThread = new std::thread(update_gui, this);
+            std::cout << "Type 'q' to quit\n";
+            char c;
+            while ((c = getchar()) && (c != 'q')) {
+                usleep(100 * 1000); 
+            }
+            fRun = false;
+            fThread->join();
             return true;
         }
     
