@@ -324,12 +324,15 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     inline int assertStoreIntHeap(InstructionIT it, int index, int size = -1)
     {
+        int index_in_array = index - (*it)->fOffset1;
         if (TRACE >= 4 &&
-            ((index < 0) || (index >= fFactory->fIntHeapSize) || (size > 0 && (index >= ((*it)->fOffset1 + size))))) {
+            ((index < 0)
+             || (index >= fFactory->fIntHeapSize)
+             || (size > 0 && ((index_in_array < 0) || (index_in_array >= size))))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
             if (size > 0) {
                 std::cout << "assertStoreIntHeap array: fIntHeapSize ";
-                std::cout << fFactory->fIntHeapSize << " index " << (index - (*it)->fOffset1);
+                std::cout << fFactory->fIntHeapSize << " index " << index_in_array;
                 std::cout << " size " << size;
                 std::cout << " name " << (*it)->fName << std::endl;
             } else {
@@ -348,16 +351,19 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     inline int assertStoreRealHeap(InstructionIT it, int index, int size = -1)
     {
+        int index_in_array = index - (*it)->fOffset1;
         if (TRACE >= 4 &&
-            ((index < 0) || (index >= fFactory->fRealHeapSize) || (size > 0 && (index >= ((*it)->fOffset1 + size))))) {
+            ((index < 0)
+             || (index >= fFactory->fRealHeapSize)
+             || (size > 0 && ((index_in_array < 0) || (index_in_array >= size))))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
             if (size > 0) {
-                std::cout << "assertStoreRealHeap array: fIntHeapSize ";
-                std::cout << fFactory->fRealHeapSize << " index " << (index - (*it)->fOffset1);
+                std::cout << "assertStoreRealHeap array: fRealHeapSize ";
+                std::cout << fFactory->fRealHeapSize << " index " << index_in_array;
                 std::cout << " size " << size;
                 std::cout << " name " << (*it)->fName << std::endl;
             } else {
-                std::cout << "assertStoreRealHeap scalar: fIntHeapSize ";
+                std::cout << "assertStoreRealHeap scalar: fRealHeapSize ";
                 std::cout << fFactory->fRealHeapSize << " index " << index;
                 std::cout << " name " << (*it)->fName << std::endl;
             }
@@ -372,15 +378,16 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     inline int assertLoadIntHeap(InstructionIT it, int index, int size = -1)
     {
+        int index_in_array = index - (*it)->fOffset1;
         if ((TRACE >= 4) &&
             ((index < 0)
              || (index >= fFactory->fIntHeapSize)
-             || (size > 0 && (index >= ((*it)->fOffset1 + size)))
+             || (size > 0 && ((index_in_array < 0) || (index_in_array >= size)))
              || (fIntHeap[index] == DUMMY_INT))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
             if (size > 0) {
                 std::cout << "assertLoadIntHeap array: fIntHeapSize ";
-                std::cout << fFactory->fIntHeapSize << " index " << (index - (*it)->fOffset1);
+                std::cout << fFactory->fIntHeapSize << " index " << index_in_array;
                 std::cout << " size " << size;
                 if (index >= 0) std::cout << " value " << fIntHeap[index];
                 std::cout << " name " << (*it)->fName << std::endl;
@@ -400,15 +407,16 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
     inline int assertLoadRealHeap(InstructionIT it, int index, int size = -1)
     {
+        int index_in_array = index - (*it)->fOffset1;
         if ((TRACE >= 4) &&
             ((index < 0)
              || (index >= fFactory->fRealHeapSize)
-             || (size > 0 && (index >= ((*it)->fOffset1 + size)))
+             || (size > 0 && ((index_in_array < 0) || (index_in_array >= size)))
              || (fRealHeap[index] == REAL(DUMMY_REAL)))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
             if (size > 0) {
                 std::cout << "assertLoadRealHeap array: fRealHeapSize ";
-                std::cout << fFactory->fRealHeapSize << " index " << (index - (*it)->fOffset1);
+                std::cout << fFactory->fRealHeapSize << " index " << index_in_array;
                 std::cout << " size " << size;
                 if (index >= 0) std::cout << " value " << fRealHeap[index];
                 std::cout << " name " << (*it)->fName << std::endl;
@@ -426,20 +434,6 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         return index;
     }
     
-    inline void assertIndex(InstructionIT it, int index, int size = -1)
-    {
-        if ((TRACE >= 4) && ((index < 0) || (index >= size))) {
-            std::cout << "-------- Interpreter crash trace start --------" << std::endl;
-            std::cout << "index " << index << " size " << size << std::endl;
-            traceInstruction(it);
-            fTraceContext.write(&std::cout);
-            throw faustexception("Interpreter exit\n");
-        }
-        if (TRACE == 4 || TRACE == 7) {
-            throw faustexception("Interpreter exit\n");
-        }
-    }
-
     inline REAL checkReal(InstructionIT it, REAL val) { return (TRACE > 0) ? checkRealAux(it, val) : val; }
 
     void updateInputControls()
@@ -809,8 +803,6 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                 case FBCInstruction::kLoadIndexedReal : {
                     int offset = popInt();
                     if (TRACE > 0) {
-                        // DEBUG
-                        // assertIndex(it, offset, (*it)->fOffset2);
                         pushReal(it, fRealHeap[assertLoadRealHeap(it, (*it)->fOffset1 + offset, (*it)->fOffset2)]);
                     } else {
                         pushReal(it, fRealHeap[(*it)->fOffset1 + offset]);
@@ -821,8 +813,6 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                 case FBCInstruction::kLoadIndexedInt : {
                     int offset = popInt();
                     if (TRACE > 0) {
-                        // DEBUG
-                        // assertIndex(it, offset, (*it)->fOffset2);
                         pushInt(fIntHeap[assertLoadIntHeap(it, (*it)->fOffset1 + offset, (*it)->fOffset2)]);
                     } else {
                         pushInt(fIntHeap[(*it)->fOffset1 + offset]);
@@ -833,8 +823,6 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                 case FBCInstruction::kStoreIndexedReal : {
                     int offset = popInt();
                     if (TRACE > 0) {
-                        // DEBUG
-                        // assertIndex(it, offset, (*it)->fOffset2);
                         fRealHeap[assertStoreRealHeap(it, (*it)->fOffset1 + offset, (*it)->fOffset2)] = popReal(it);
                     } else {
                         fRealHeap[(*it)->fOffset1 + offset] = popReal(it);
@@ -845,8 +833,6 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                 case FBCInstruction::kStoreIndexedInt : {
                     int offset = popInt();
                     if (TRACE > 0) {
-                        // DEBUG
-                        // assertIndex(it, offset, (*it)->fOffset2);
                         fIntHeap[assertStoreIntHeap(it, (*it)->fOffset1 + offset, (*it)->fOffset2)] = popInt();
                     } else {
                         fIntHeap[(*it)->fOffset1 + offset] = popInt();
@@ -2884,8 +2870,6 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     do_kLoadIndexedInt : {
         int offset = popInt();
         if (TRACE > 0) {
-            // DEBUG
-            // assertIndex(it, offset, (*it)->fOffset2);
             pushInt(fIntHeap[assertLoadIntHeap(it, (*it)->fOffset1 + offset, (*it)->fOffset2)]);
         } else {
             pushInt(fIntHeap[(*it)->fOffset1 + offset]);
@@ -2896,8 +2880,6 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     do_kStoreIndexedReal : {
         int offset = popInt();
         if (TRACE > 0) {
-            // DEBUG
-            // assertIndex(it, offset, (*it)->fOffset2);
             fRealHeap[assertStoreRealHeap(it, (*it)->fOffset1 + offset, (*it)->fOffset2)] = popReal(it);
         } else {
             fRealHeap[(*it)->fOffset1 + offset] = popReal(it);
@@ -2908,8 +2890,6 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     do_kStoreIndexedInt : {
         int offset = popInt();
         if (TRACE > 0) {
-            // DEBUG
-            // assertIndex(it, offset, (*it)->fOffset2);
             fIntHeap[assertStoreIntHeap(it, (*it)->fOffset1 + offset, (*it)->fOffset2)] = popInt();
         } else {
             fIntHeap[(*it)->fOffset1 + offset] = popInt();
