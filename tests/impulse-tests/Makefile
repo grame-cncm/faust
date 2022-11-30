@@ -284,6 +284,7 @@ wast:
 # llvm backend
 llvm:
 	$(MAKE) -f Make.llvm outdir=llvm/double               FAUSTOPTIONS="-I dsp"
+	$(MAKE) -f Make.llvm outdir=llvm/double/ct            FAUSTOPTIONS="-I dsp -ct 0"
 	$(MAKE) -f Make.llvm outdir=llvm/double/mapp          FAUSTOPTIONS="-I dsp -mapp"
 	$(MAKE) -f Make.llvm outdir=llvm/double/rui           FAUSTOPTIONS="-I dsp -rui"
 	$(MAKE) -f Make.llvm outdir=llvm/double/inpl          FAUSTOPTIONS="-I dsp -inpl"

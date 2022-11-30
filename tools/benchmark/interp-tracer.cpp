@@ -24,6 +24,7 @@
 
 #include <libgen.h>
 #include <iostream>
+#include <ostream>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -81,6 +82,7 @@ static void testProgram(const string& code, dsp* DSP)
 struct CheckControlUI : public MapUI {
     
     bool fReset = true;
+    string fName;
     struct ZoneDesc {
         
         string fLabel;
@@ -97,6 +99,9 @@ struct CheckControlUI : public MapUI {
         :fLabel(label), fInit(init), fMin(min), fMax(max), fStep(step)
         {}
     };
+    
+    CheckControlUI(const string& name = ""):fName(name)
+    {}
     
     vector<pair<FAUSTFLOAT*, ZoneDesc> > fControlZone;
     
@@ -137,9 +142,12 @@ struct CheckControlUI : public MapUI {
     void display()
     {
         cout << "--------- Control state ---------"  << endl;
+        ofstream out(fName + "rc");
         for (const auto& it : fPathZoneMap) {
-            cout << "Control : " << it.first << " = " << *it.second << endl;
+            out << (std::to_string(*it.second) + " " + it.first + " \n");
+            cout << ("Control : " + it.first + " = " + std::to_string(*it.second) + "\n");
         }
+        out.close();
     }
     
 };
@@ -391,7 +399,8 @@ int main(int argc, char* argv[])
     } catch (...) {
         cout << endl;
         random.display();
-        CheckControlUI ctl;
+        string fn = string(filename);
+        CheckControlUI ctl(fn.substr(0, fn.length()-4));
         ctl.fReset = false;
         DSP->buildUserInterface(&ctl);
         ctl.display();

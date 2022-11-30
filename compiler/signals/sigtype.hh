@@ -274,9 +274,12 @@ class SimpleType : public AudioType {
 
 inline Type intCast(Type t)
 {
-    return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(), t->boolean(),
-                          t->getInterval());
+    interval I = t->getInterval();
+    I.lo = std::isinf(I.lo) ? I.lo : int(I.lo);
+    I.hi = std::isinf(I.hi) ? I.hi : int(I.hi);
+    return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(), t->boolean(), I);
 }
+
 inline Type floatCast(Type t)
 {
     return makeSimpleType(kReal, t->variability(), t->computability(), t->vectorability(), t->boolean(),
