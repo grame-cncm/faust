@@ -384,6 +384,9 @@ static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, cons
     } else {
         try {
             LLVMContext* context = new LLVMContext();
+#if LLVM_VERSION_MAJOR == 15
+            context->setOpaquePointers(false);
+#endif
             Module*      module  = ParseBitcodeFile(buffer, *context, error_msg);
             if (!module) return nullptr;
             llvm_dynamic_dsp_factory_aux* factory_aux
@@ -491,6 +494,9 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
             }
             setlocale(LC_ALL, "C");
             LLVMContext* context = new LLVMContext();
+#if LLVM_VERSION_MAJOR == 15
+            context->setOpaquePointers(false);
+#endif
             SMDiagnostic err;
             // parseIR takes ownership of the given buffer, so don't delete it
             Module* module = parseIR(buffer, err, *context).release();
