@@ -58,9 +58,6 @@ using namespace llvm;
 #define MakeIdx(beg, end) llvm::ArrayRef<LLVMValue>(beg, end)
 #define MakeArgs(args) llvm::ArrayRef<lLLVMValue>(args)
 #if LLVM_VERSION_MAJOR >= 14
-    #if LLVM_VERSION_MAJOR == 15
-    #error LLVM 15 not yet supported
-    #endif
 #define GetType(ptr) ptr->getType()->getScalarType()->getPointerElementType()
 #define MakeStructGEP(v1, v2) fBuilder->CreateStructGEP(GetType(v1), v1, v2);
 #define MyCreateLoad(var, is_volatile) fBuilder->CreateLoad(GetType(var), var, is_volatile)

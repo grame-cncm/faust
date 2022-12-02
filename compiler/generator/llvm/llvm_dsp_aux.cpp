@@ -152,6 +152,9 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& 
 
     // Creates module and context
     fContext = new LLVMContext();
+#if LLVM_VERSION_MAJOR == 15
+    fContext->setOpaquePointers(false);
+#endif
     fModule  = new Module(string(LLVM_BACKEND_NAME) + ", v" + string(FAUSTVERSION), *fContext);
     fDecoder = nullptr;
 }
@@ -179,7 +182,11 @@ llvm_dsp_factory_aux::~llvm_dsp_factory_aux()
     if (fJIT) {
         fJIT->runStaticConstructorsDestructors(true);
         // fModule is kept and deleted by fJIT
+    #if defined(__APPLE__) && LLVM_VERSION_MAJOR < 15
+        // This cause 'recursive_mutex lock failed: Invalid argument'
+        // starting at LLVM_15, so deactivated for now
         delete fJIT;
+    #endif
     }
     delete fContext;
     delete fDecoder;
@@ -909,4 +916,3 @@ LIBFAUST_API void registerCForeignFunction(const char* name)
 #ifdef __cplusplus
 }
 #endif
-
