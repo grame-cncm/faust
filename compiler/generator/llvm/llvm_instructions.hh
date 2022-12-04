@@ -55,10 +55,36 @@ using namespace llvm;
 #define LLVMVecTypes vector<LLVMType>
 #define MapOfTtypes map<Typed::VarType, LLVMType>
 
+inline static LLVMType getOpaquePointerElementType(LLVMValue ptr) {
+    if (isa<LoadInst>(ptr) || isa<StoreInst>(ptr)) return getLoadStoreType(ptr);
+    if (isa<AllocaInst>(ptr)) return reinterpret_cast<AllocaInst *>(ptr)->getAllocatedType();
+    if (isa<GlobalValue>(ptr)) return reinterpret_cast<GlobalValue *>(ptr)->getValueType();
+    if (isa<Function>(ptr)) return reinterpret_cast<Function *>(ptr)->getFunctionType();
+    if (isa<Argument>(ptr)) {
+        if (auto *argument = reinterpret_cast<Argument *>(ptr)) {
+            // Getting tripped up here.
+            // Called from: https://github.com/grame-cncm/faust/blob/master-dev/compiler/generator/llvm/llvm_instructions.hh#L30
+            // Attempting to get the type of the `dsp` pointer from its opaque function `Argument` pointer.
+            // Maybe something like...
+            // if (argument->hasByValAttr()) return argument->getParamByValType();
+            // if (argument->has...Attr()) return argument->getParamBy...Type();
+            // But none of these work. I think we may need to restructure this somehow to get access to the `dsp`.
+            // Relevant discussion here? https://discourse.llvm.org/t/get-pointee-type-from-an-opaque-pointer-type-in-function-argument/66434o
+            // This current code results in:
+            // `Assertion failed: (Ty && "Invalid GetElementPtrInst indices for type!"), function checkGEPType, file Instructions.h, line 922.`
+            return argument->getType();
+        }
+    }
+    return ptr->getType();
+}
+
 #define MakeIdx(beg, end) llvm::ArrayRef<LLVMValue>(beg, end)
-#define MakeArgs(args) llvm::ArrayRef<lLLVMValue>(args)
-#if LLVM_VERSION_MAJOR >= 14
+#if LLVM_VERSION_MAJOR >= 15
+#define GetType(ptr) getOpaquePointerElementType(ptr)
+#elif LLVM_VERSION_MAJOR >= 14
 #define GetType(ptr) ptr->getType()->getScalarType()->getPointerElementType()
+#endif
+#if LLVM_VERSION_MAJOR >= 14
 #define MakeStructGEP(v1, v2) fBuilder->CreateStructGEP(GetType(v1), v1, v2);
 #define MyCreateLoad(var, is_volatile) fBuilder->CreateLoad(GetType(var), var, is_volatile)
 #define MyCreateLoad1(var) fBuilder->CreateLoad(GetType(var), var)
@@ -308,7 +334,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
     LLVMValue loadArrayAsPointer(LLVMValue var, bool is_volatile = false)
     {
+        #if LLVM_VERSION_MAJOR >= 15
+        if (isa<ArrayType>(GetType(var))) {
+        #else
         if (isa<ArrayType>(var->getType()->getPointerElementType())) {
+        #endif
             LLVMValue idx[] = {genInt32(0), genInt32(0)};
         #if LLVM_VERSION_MAJOR >= 14
             return fBuilder->CreateInBoundsGEP(GetType(var), var, MakeIdx(idx, idx + 2));
@@ -547,6 +577,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             return loadFunArg(name);
         } else if (access & Address::kStack || access & Address::kLoop) {
             faustassert(fStackVars.find(name) != fStackVars.end());
+//            getLoadStoreType(fStackVars[name]);
             return fStackVars[name];
         } else if ((access & Address::kGlobal) || (access & Address::kStaticStruct)) {
             return fModule->getGlobalVariable(name, true);
@@ -568,7 +599,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         LLVMValue           load_ptr;
 
         if (access & Address::kStruct) {
-            load_ptr = loadArrayAsPointer(loadStructArrayVarAddress(name));
+            load_ptr = loadArrayAsPointer(loadStructArrayVarAddress(name)); // is array
         } else if (access & Address::kFunArgs) {
             load_ptr = loadFunArg(name);
         } else if (access & Address::kStack || access & Address::kLoop) {

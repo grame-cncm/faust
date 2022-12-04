@@ -52,9 +52,6 @@ CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int 
 LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs)
 {
     LLVMContext* context = new LLVMContext();
-#if LLVM_VERSION_MAJOR == 15
-     context->setOpaquePointers(false);
-#endif
     Module* module = new Module(gGlobal->printCompilationOptions1() + ", v" + string(FAUSTVERSION), *context);
     
     init(name, numInputs, numOutputs, module, context);
