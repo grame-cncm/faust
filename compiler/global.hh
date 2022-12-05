@@ -140,7 +140,7 @@ struct global {
     bool gPrintXMLSwitch;        // -xml option
     bool gPrintJSONSwitch;       // -json option
     bool gPrintDocSwitch;        // -mdoc option
-    bool gExportDSP;             // -e optiopn
+    bool gExportDSP;             // -e option
   
     // code generation options
     bool gVectorSwitch;          // -vec option

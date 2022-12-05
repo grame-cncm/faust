@@ -75,7 +75,11 @@ class InstComplexityVisitor : public DispatchVisitor {
         DispatchVisitor::visit(inst);
     }
 
-    virtual void visit(LoadVarInst* inst) { fLoad++; }
+    virtual void visit(LoadVarInst* inst)
+    {
+        fLoad++;
+        DispatchVisitor::visit(inst);
+    }
     virtual void visit(StoreVarInst* inst)
     {
         fStore++;
