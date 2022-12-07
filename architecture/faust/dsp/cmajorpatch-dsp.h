@@ -159,15 +159,11 @@ class cmajor_dsp_factory : public dsp_factory {
     
         cmajor_dsp_factory(const std::string& dsp_content, std::string& error_msg)
         {
-            //std::string filename = "/usr/local/lib/" + std::string(cmaj::Library::getDLLName());
-            std::string filename = "/usr/local/lib/libCmajPerformer.dylib";
-        
+            std::string filename = "/usr/local/lib/" + std::string(cmaj::Library::getDLLName());
             if (!cmaj::Library::initialise(filename)) {
                 error_msg = "ERROR : cannot load CMajor library\n";
                 throw std::bad_alloc();
             }
-        
-            std::cout << "dsp_content " << dsp_content << std::endl;
         
             fEngine = cmaj::Engine::create();
             cmaj::DiagnosticMessageList messages;
@@ -187,12 +183,14 @@ class cmajor_dsp_factory : public dsp_factory {
                 throw std::bad_alloc();
             }
 
-            std::cout << "Input endpoints:" << std::endl
+            /*
+             std::cout << "Input endpoints:" << std::endl
                 << fEngine.getInputEndpoints().getDescription() << std::endl
                 << std::endl
                 << "Output endpoints:" << std::endl
                 << fEngine.getOutputEndpoints().getDescription() << std::endl
                 << std::endl;
+             */
         
             cmaj::EndpointDetailsList endpoint_inputs = fEngine.getInputEndpoints();
             cmaj::EndpointDetailsList endpoint_outputs = fEngine.getOutputEndpoints();
@@ -385,7 +383,7 @@ void cmajorpatch_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outpu
     }
     
     // Update output controls
-    //updateOutputControls();
+    // updateOutputControls();
     
     /*
      // MIDI input handling
@@ -437,6 +435,7 @@ cmajor_dsp_factory* createCmajorDSPFactoryFromString(const std::string& name_app
     try {
         return new cmajor_dsp_factory(dsp_content, error_msg);
     } catch (...) {
+        if (error_msg == "") error_msg = "ERROR : createCmajorDSPFactoryFromString\n";
         return nullptr;
     }
 }

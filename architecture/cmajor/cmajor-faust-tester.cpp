@@ -33,7 +33,7 @@
 #define FAUST_FILE        "faust.cmajor"
 #define FAUST_PATCH_FILE  "faust.cmajorpatch"
 
-#define INTERP 1
+//#define INTERP
 
 using namespace std;
 
@@ -102,8 +102,7 @@ static void testCmajor(const string& filename, int argc1, const char* argv1[])
     
     // Generate "cmajorpatch" file
     parser.createCmajorPatch(FAUST_FILE);
-    
-    testCmajorPatch(FAUST_PATCH_FILE, argc1, argv1);
+    testCmajorPatch(FAUST_FILE, argc1, argv1);
 }
 
 int main(int argc, char* argv[])

@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
         
         // Generate "cmajorpatch" file
         parser.createCmajorPatch(FAUST_FILE);
-        real_file = FAUST_PATCH_FILE;
+        real_file = FAUST_FILE;
         
     } else if (endWith(filename, ".cmajor")) {
         
@@ -91,7 +91,6 @@ int main(int argc, char* argv[])
         
         // Generate "cmajorpatch" file
         parser.createCmajorPatch(HYBRID_FILE);
-        //real_file = HYBRID_PATCH_FILE;
         real_file = HYBRID_FILE;
         
     } else if (endWith(filename, ".cmajorpatch")) {
@@ -103,7 +102,7 @@ int main(int argc, char* argv[])
         cerr << "Unsupported file extension" << endl;
         exit(1);
     }
-   
+    
     try {
         string error_msg;
         cmajor_dsp_factory* factory = createCmajorDSPFactoryFromFile(real_file, argc, (const char**)argv, error_msg);
