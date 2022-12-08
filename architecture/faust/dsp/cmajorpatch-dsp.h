@@ -84,7 +84,9 @@ class cmajorpatch_dsp : public dsp {
         cmajorpatch_dsp(cmajor_dsp_factory* factory, std::string& error_msg);
     
         virtual ~cmajorpatch_dsp()
-        {}
+        {
+            delete [] fZoneMap;
+        }
     
         void setMidiHandler(midi_handler* handler) { fMIDIHander = handler; }
         midi_handler* getMidiHandler() { return fMIDIHander; }
@@ -202,13 +204,14 @@ class cmajor_dsp_factory : public dsp_factory {
                     || choc::text::startsWith(name, "eventfButton")
                     || choc::text::startsWith(name, "eventfHslider")
                     || choc::text::startsWith(name, "eventfVslider")
-                    || choc::text::startsWith(name, "eventfVbargraph")) {
+                    || choc::text::startsWith(name, "eventfEntry")) {
                     fHandleInputControls[name] = fEngine.getEndpointHandle(it.endpointID);
                 }
             }
             for (const auto& it : endpoint_outputs) {
                 std::string name = it.endpointID.toString();
-                if (choc::text::startsWith(name, "eventfHbargraph") || choc::text::startsWith(name, "eventfVbargraph")) {
+                if (choc::text::startsWith(name, "eventfHbargraph")
+                    || choc::text::startsWith(name, "eventfVbargraph")) {
                     fHandleOutputControls[name] = fEngine.getEndpointHandle(it.endpointID);
                 }
             }

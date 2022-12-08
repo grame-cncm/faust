@@ -68,7 +68,7 @@ The **cmajor-faust-editor** tool loads an hybrid Faust/Cmajor code file and comp
 So for instance to setup a Faust/Cmajor hybrid file edition session:
 
 - `cmajor-faust-editor hybrid-test2.cmajor` to start editing an hybrid Faust/Cmajor code
-- `cmajor play hybrid.cmajorpatch` to play the Cmajor dynamically generated `hybrid.cmajorpatch`
+- `cmaj play hybrid.cmajorpatch` to play the Cmajor dynamically generated `hybrid.cmajorpatch`
 
 ## Hybrid Faust/Cmajor Syntax
 

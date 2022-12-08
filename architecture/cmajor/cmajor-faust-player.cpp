@@ -93,11 +93,6 @@ int main(int argc, char* argv[])
         parser.createCmajorPatch(HYBRID_FILE);
         real_file = HYBRID_FILE;
         
-    } else if (endWith(filename, ".cmajorpatch")) {
-        
-        // We have a Cmajor patchfile
-        real_file = filename;
-        
     } else {
         cerr << "Unsupported file extension" << endl;
         exit(1);

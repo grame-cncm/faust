@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
         argv1[argc1++] = argv[i];
     }
     
-    if (endWith(filename, "cmajorpatch")) {
+    if (endWith(filename, "cmajor")) {
         testCmajorPatch(filename, argc1, argv1);
     } else {
         testFaust(filename, argc1, argv1);
