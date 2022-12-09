@@ -1977,12 +1977,14 @@ class JuceGUI : public GUI, public MetaDataUI, public juce::Component
         /** Add an horizontal slider to the user interface. */
         virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
         {
+            if (isHidden(zone)) return;
             addSlider(label, zone, init, min, max, step, kHSliderWidth, kHSliderHeight, HSlider);
         }
         
         /** Add a vertical slider to the user interface. */
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
         {
+            if (isHidden(zone)) return;
             int newWidth = juce::jmax(juce::Font().getStringWidth(juce::String(label)), kVSliderWidth) + kMargin;
             addSlider(label, zone, init, min, max, step, newWidth, kVSliderHeight, VSlider);
         }
@@ -1990,12 +1992,14 @@ class JuceGUI : public GUI, public MetaDataUI, public juce::Component
         /** Add a button to the user interface. */
         virtual void addButton(const char* label, FAUSTFLOAT* zone) override
         {
+            if (isHidden(zone)) return;
             fCurrentBox->add(new uiButton(this, zone, kButtonWidth, kButtonHeight, juce::String(label), juce::String(fTooltip[zone])));
         }
         
         /** Add a check button to the user interface. */
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) override
         {
+            if (isHidden(zone)) return;
             // newWidth is his text size, plus the check box size
             int newWidth = juce::Font().getStringWidth(juce::String(label)) + kCheckButtonWidth;
             fCurrentBox->add(new uiCheckButton(this, zone, newWidth, kCheckButtonHeight, juce::String(label), juce::String(fTooltip[zone])));
@@ -2004,6 +2008,7 @@ class JuceGUI : public GUI, public MetaDataUI, public juce::Component
         /** Add a numerical entry to the user interface. */
         virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
         {
+            if (isHidden(zone)) return;
             // kMargin pixels between the slider and his name
             int newWidth = juce::Font().getStringWidth(juce::String(label)) + kNumEntryWidth + kMargin;
             fCurrentBox->add(new uiSlider(this, zone, newWidth, kNumEntryHeight, *zone, min, max, step, juce::String(label), juce::String(fUnit[zone]), juce::String(fTooltip[zone]), getScale(zone), NumEntry));
@@ -2012,12 +2017,14 @@ class JuceGUI : public GUI, public MetaDataUI, public juce::Component
         /** Add a vertical bargraph to the user interface. */
         virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override
         {
+            if (isHidden(zone)) return;
             addBargraph(label, zone, min, max, kVBargraphWidth, kVBargraphHeight, VVUMeter);
         }
         
         /** Add a vertical bargraph to the user interface. */
         virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override
         {
+            if (isHidden(zone)) return;
             addBargraph(label, zone, min, max, kHBargraphWidth, kHBargraphHeight, HVUMeter);
         }
       

@@ -65,31 +65,6 @@
         <MODULEPATH id="juce_osc" path="JUCE_MODULES_DIR_DEFAULT"/>
       </MODULEPATHS>
     </XCODE_IPHONE>
-    <VS2015 targetFolder="Builds/VisualStudio2015" vstLegacyFolder="VST2_SDK_DEFAULT" extraDefs="PreProcDef"
-            extraCompilerFlags="-DNVOICES=NUM_VOICES -DFAUSTFLOAT=FAUST_FLOAT">
-      <CONFIGURATIONS>
-        <CONFIGURATION name="Debug" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
-                       isDebug="1" optimisation="1" targetName="APPL_NAME"/>
-        <CONFIGURATION name="Release" winWarningLevel="4" generateManifest="1" winArchitecture="32-bit"
-                       isDebug="0" optimisation="3" targetName="APPL_NAME"/>
-      </CONFIGURATIONS>
-      <MODULEPATHS>
-        <MODULEPATH id="juce_audio_utils" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_opengl" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_gui_extra" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_gui_basics" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_graphics" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_events" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_data_structures" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_core" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_audio_processors" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_audio_plugin_client" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_audio_formats" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_audio_devices" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_audio_basics" path="JUCE_MODULES_DIR_DEFAULT"/>
-        <MODULEPATH id="juce_osc" path="JUCE_MODULES_DIR_DEFAULT"/>
-      </MODULEPATHS>
-    </VS2015>
     <LINUX_MAKE targetFolder="Builds/LinuxMakefile" extraDefs="PreProcDef" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES -DFAUSTFLOAT=FAUST_FLOAT"
                 vstLegacyFolder="VST2_SDK_DEFAULT">
       <CONFIGURATIONS>
