@@ -18,16 +18,17 @@
         <activity
             android:name="com.faust.FaustActivity"
             android:label="@string/app_name"
+            android:exported="false"
             android:windowSoftInputMode="stateHidden" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
             android:name="com.faust.PianoActivity"
             android:label="@string/keyboard_activity"
+            android:exported="false"
             android:parentActivityName="com.faust.FaustActivity"
             android:screenOrientation="landscape"
             android:configChanges="orientation|keyboardHidden"
@@ -39,6 +40,7 @@
         <activity
             android:name="com.faust.MultiActivity"
             android:label="@string/multi_activity"
+            android:exported="false"
             android:parentActivityName="com.faust.FaustActivity"
             android:screenOrientation="landscape"
             android:configChanges="orientation|keyboardHidden"
@@ -50,6 +52,7 @@
         <activity
             android:name="com.faust.MultiKeyboardActivity"
             android:label="@string/multi_keyboard_activity"
+            android:exported="false"
             android:parentActivityName="com.faust.FaustActivity"
             android:screenOrientation="landscape"
             android:configChanges="orientation|keyboardHidden"
