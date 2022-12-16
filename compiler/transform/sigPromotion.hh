@@ -33,7 +33,7 @@
 /*
  Check a signal:
  - for correct extended typing
- - for correct SinBinOp args typing
+ - for correct SigBinOp args typing
  - for proper SigIntCast and SigFloatCast use
  
  To be used on a type annotated signal.
