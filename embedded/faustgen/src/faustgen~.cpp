@@ -246,7 +246,6 @@ faustgen_factory::~faustgen_factory()
     fSoundUI = nullptr;
 }
 
-
 void faustgen_factory::free_sourcecode()
 {
     if (fSourceCode) {

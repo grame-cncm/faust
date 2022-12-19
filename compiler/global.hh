@@ -631,4 +631,21 @@ extern global* gGlobal;
 #define MAX_MACHINE_STACK_SIZE 65536
 #define MAX_SOUNDFILE_PARTS 256
 
+// Threaded calls API
+typedef void* (*threaded_fun)(void* arg);
+void callFun(threaded_fun fun, void* arg);
+
+// Used to pass parameters and possibly return a result
+struct CallContext {
+    std::string fNameApp = "";
+    std::string fDSPContent = "";
+    int fArgc = 0;
+    const char** fArgv = nullptr;
+    bool fGenerate = false;
+    int fNumInputs = -1;
+    int fNumOutputs = -1;
+    Tree fTree = nullptr;   // Used for in/out
+    std::string fRes = "";  // Used for out
+};
+
 #endif
