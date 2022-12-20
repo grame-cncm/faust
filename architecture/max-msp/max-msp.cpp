@@ -564,20 +564,20 @@ void faust_assist(t_faust* x, void* b, long msg, long a, char* dst)
     if (msg == ASSIST_INLET) {
         if (a == 0) {
             if (x->m_dsp->getNumInputs() == 0) {
-                sprintf(dst, "(messages)");
+                snprintf(dst, 512, "(messages)");
             } else {
-                sprintf(dst, "(messages/signal) : Audio Input %ld", (a+1));
+                snprintf(dst, 512, "(messages/signal) : Audio Input %ld", (a+1));
             }
         } else if (a < x->m_dsp->getNumInputs()) {
-            sprintf(dst, "(signal) : Audio Input %ld", (a+1));
+            snprintf(dst, 512, "(signal) : Audio Input %ld", (a+1));
         }
     } else if (msg == ASSIST_OUTLET) {
         if (a < x->m_dsp->getNumOutputs()) {
-            sprintf(dst, "(signal) : Audio Output %ld", (a+1));
+            snprintf(dst, 512, "(signal) : Audio Output %ld", (a+1));
         } else if (a == x->m_dsp->getNumOutputs()) {
-            sprintf(dst, "(list) : [path, cur|init, min, max]*");
+            snprintf(dst, 512, "(list) : [path, cur|init, min, max]*");
         } else {
-            sprintf(dst, "(int) : raw MIDI bytes*");
+            snprintf(dst, 512, "(int) : raw MIDI bytes*");
         }
     }
 }

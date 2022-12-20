@@ -304,7 +304,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
 llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
 {
     char name_app[64];
-    sprintf(name_app, "faustgen-%d", fFaustNumber);
+    snprintf(name_app, 64, "faustgen-%d", fFaustNumber);
     
     // To be sure we get a correct SVG diagram...
     remove_svg();
@@ -652,20 +652,20 @@ void faustgen::assist(void* b, long msg, long a, char* dst)
         if (msg == ASSIST_INLET) {
             if (a == 0) {
                 if (fDSP->getNumInputs() == 0) {
-                    sprintf(dst, "(messages)");
+                    snprintf(dst, 512, "(messages)");
                 } else {
-                    sprintf(dst, "(messages/signal) : Audio Input %ld", (a+1));
+                    snprintf(dst, 512, "(messages/signal) : Audio Input %ld", (a+1));
                 }
             } else if (a < fDSP->getNumInputs()) {
-                sprintf(dst, "(signal) : Audio Input %ld", (a+1));
+                snprintf(dst, 512, "(signal) : Audio Input %ld", (a+1));
             }
         } else if (msg == ASSIST_OUTLET) {
             if (a < fDSP->getNumOutputs()) {
-                sprintf(dst, "(signal) : Audio Output %ld", (a+1));
+                snprintf(dst, 512, "(signal) : Audio Output %ld", (a+1));
             } else if (a == fDSP->getNumOutputs()) {
-                sprintf(dst, "(list) : [path, cur|init, min, max]*");
+                snprintf(dst, 512, "(list) : [path, cur|init, min, max]*");
             } else {
-                sprintf(dst, "(int) : raw MIDI bytes*");
+                snprintf(dst, 512, "(int) : raw MIDI bytes*");
             }
         }
     }
@@ -678,9 +678,9 @@ bool faustgen_factory::try_open_svg()
     // Open the svg diagram file inside a web browser
     char command[512];
 #ifdef WIN32
-    sprintf(command, "type \"file:///%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
+    snprintf(command, 512, "type \"file:///%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
 #else
-    sprintf(command, "open \"file://%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
+    snprintf(command, 512, "open \"file://%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
 #endif
     return (system(command) == 0);
 }
@@ -690,9 +690,9 @@ void faustgen_factory::open_svg()
     // Open the svg diagram file inside a web browser
     char command[512];
 #ifdef WIN32
-    sprintf(command, "start \"\" \"file:///%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
+    snprintf(command, 512, "start \"\" \"file:///%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
 #else
-    sprintf(command, "open \"file://%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
+    snprintf(command, 512, "open \"file://%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
 #endif
     system(command);
 }
@@ -702,9 +702,9 @@ void faustgen_factory::remove_svg()
     // Possibly done by "compileoptions" or display_svg
     char command[512];
 #ifdef WIN32
-    sprintf(command, "rmdir /S/Q \"%sfaustgen-%d-svg\"", fDrawPath.c_str(), fFaustNumber);
+    snprintf(command, 512, "rmdir /S/Q \"%sfaustgen-%d-svg\"", fDrawPath.c_str(), fFaustNumber);
 #else
-    sprintf(command, "rm -r \"%sfaustgen-%d-svg\"", fDrawPath.c_str(), fFaustNumber);
+    snprintf(command, 512, "rm -r \"%sfaustgen-%d-svg\"", fDrawPath.c_str(), fFaustNumber);
 #endif
     system(command);
 }
@@ -729,9 +729,9 @@ bool faustgen_factory::open_file(const char* file)
 {
     char command[512];
 #ifdef WIN32
-    sprintf(command, "start \"\" \"%s%s\"", (*fLibraryPath.begin()).c_str(), file);
+    snprintf(command, 512, "start \"\" \"%s%s\"", (*fLibraryPath.begin()).c_str(), file);
 #else
-    sprintf(command, "open \"%s%s\"", (*fLibraryPath.begin()).c_str(), file);
+    snprintf(command, 512, "open \"%s%s\"", (*fLibraryPath.begin()).c_str(), file);
 #endif
     post(command);
     return (system(command) == 0);
@@ -741,9 +741,9 @@ bool faustgen_factory::open_file(const char* appl, const char* file)
 {
     char command[512];
 #ifdef WIN32
-    sprintf(command, "start \"\" %s \"%s%s\"", appl, (*fLibraryPath.begin()).c_str(), file);
+    snprintf(command, 512, "start \"\" %s \"%s%s\"", appl, (*fLibraryPath.begin()).c_str(), file);
 #else
-    sprintf(command, "open -a %s \"%s%s\"", appl, (*fLibraryPath.begin()).c_str(), file);
+    snprintf(command, 512, "open -a %s \"%s%s\"", appl, (*fLibraryPath.begin()).c_str(), file);
 #endif
     return (system(command) == 0);
 }
@@ -753,9 +753,9 @@ void faustgen_factory::display_documentation()
     // Open the Web documentation
     char command[512];
 #ifdef WIN32
-    sprintf(command, "start \"\" \"https://faustdoc.grame.fr/manual/introduction\"");
+    snprintf(command, 512, "start \"\" \"https://faustdoc.grame.fr/manual/introduction\"");
 #else
-    sprintf(command, "open \"https://faustdoc.grame.fr/manual/introduction\"");
+    snprintf(command, 512, "open \"https://faustdoc.grame.fr/manual/introduction\"");
 #endif
     system(command);
 }
@@ -1160,7 +1160,7 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     
     // Needed to script objects
     char name[64];
-    sprintf(name, "faustgen-%lld", (long long)this);
+    snprintf(name, 64, "faustgen-%lld", (long long)this);
     jbox_set_varname(box, gensym(name));
     
     // Fetch the data inside the max patcher using the dictionary
