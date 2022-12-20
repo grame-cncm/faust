@@ -70,11 +70,11 @@ class Compiler : public virtual Garbageable {
     virtual Tree prepare(Tree L0)  = 0;
     virtual Tree prepare2(Tree L0) = 0;
 
-    // gestion des includes et librairies
+    // management of includes and libraries
     void addIncludeFile(const string& str) { fClass->addIncludeFile(str); }
     void addLibrary(const string& str) { fClass->addLibrary(str); }
 
-    // gestion de la description arborescente de l'IU
+    // management of the tree-like description of the UI
     void addUIWidget(Tree path, Tree widget);
     void generateWidgetCode(Tree fulllabel, Tree varname, Tree sig);
     void generateMetaData();

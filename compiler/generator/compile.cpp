@@ -355,7 +355,6 @@ void Compiler::generateMacroInterfaceTree(const string& pathname, Tree t)
 
     if (isUiFolder(t, label, elements)) {
         string pathname2 = pathname;
-        // string str = unquote(tree2str(right(label)));
         string str = tree2str(right(label));
         if (str.length() > 0) pathname2 += str + "/";
         generateMacroInterfaceElements(pathname2, elements);

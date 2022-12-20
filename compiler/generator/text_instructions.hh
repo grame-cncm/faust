@@ -43,7 +43,7 @@ inline bool isControl(const string& name)
            name == "fZone" || name == "fSampleRate";
 }
 
-// Base class to textual visitor: C, C++, CSharp, Dlang, JAX, Julia, SOUL, Rust, wast
+// Base class to textual visitor: C, C++, Cmajor, CSharp, Dlang, JAX, Julia, Rust, wast
 
 class TextInstVisitor : public InstVisitor {
    protected:

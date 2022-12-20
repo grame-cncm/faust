@@ -370,7 +370,7 @@ void CodeContainer::processFIR(void)
     gGlobal->setVarType("sample_rate", Typed::kInt32);
     
     /*
-        Used in SOUL backend and -os mode (C/C++)
+        Used in Cmajor backend and -os mode (C/C++)
         18/08/22 : gGlobal->gOneSample == 3 fails because of typing
         issues with iControl/fControl, so deactivated for now
     */

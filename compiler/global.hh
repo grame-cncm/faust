@@ -168,14 +168,14 @@ struct global {
     bool gDSPStruct;             // to control method generation in -fun mode
     bool gLightMode;             // -light option, do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module for JavaScript)
     bool gClang;                 // -clang opttion, when compiled with clang/clang++, adds specific #pragma for auto-vectorization
-    bool gFullParentheses;       // -fp option, generate less parenthesis in some textual backends: C/C++, Dlang, rust, SOUL
+    bool gFullParentheses;       // -fp option, generate less parenthesis in some textual backends: C/C++, Cmajor, Dlang, Rust
 
     string gClassName;           // -cn option, name of the generated dsp class, by default 'mydsp'
     string gProcessName;         // -pn option, name of the entry point of the Faust program, by default 'process'
     string gSuperClassName;      // -scn option, name of the root class the generated dsp class inherits from, by default 'dsp'
     
     // Debug option
-    bool gCheckTable;            // -ct to check rtable/rwtable index range and generate safe access codes (0/1: 1 by default)
+    bool gCheckTable;            // -ct to check rtable/rwtable index range and generate safe access code (0/1: 1 by default)
 
     // Backend configuration
     string gOutputLang;            // Chosen backend
@@ -267,7 +267,7 @@ struct global {
     int gDummyInput;
 
     // Used in eval
-    int gBoxSlotNumber;  //counter for unique slot number
+    int gBoxSlotNumber;  // counter for unique slot number
 
     bool gCausality;     // FIXME: global used as a parameter of typeAnnotation when true trigs causality errors (negative delay)
 
@@ -386,7 +386,7 @@ struct global {
 
     property<Tree>* gSimplifiedBoxProperty;
 
-    // the property used to memoize the results
+    // The property used to memoize the results
     property<Tree>* gSymListProp;
 
     // Memoized type contruction
@@ -493,7 +493,7 @@ struct global {
     // To generate unique identifiers
     map<string, int> gIDCounters;
 
-    // internal state during drawing
+    // Internal state during drawing
     Occurrences*      gOccurrences;
     bool              gFoldingFlag;     // true with complex block-diagrams
     stack<Tree>       gPendingExp;      // Expressions that need to be drawn
@@ -509,7 +509,7 @@ struct global {
     map<Typed::VarType, int>         gTypeSizeMap;   // Size of types in bytes
     map<string, pair<string, int>>   gTablesSize;    // Global tables size in bytes: class name, <table name, size>
 
-    // colorize
+    // Colorize
     map<Tree, int> gColorMap;
     int            gNextFreeColor;
 
@@ -620,7 +620,7 @@ struct global {
 
     int audioSampleSize();
   
-    // Allows to test if a given debug variable is set
+    // Allows to test if a given debug environment variable is set
     static bool isDebug(const string& debug_val);
 };
 

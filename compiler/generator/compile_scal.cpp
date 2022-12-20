@@ -493,7 +493,7 @@ string ScalarCompiler::generateCode(Tree sig)
         throw faustexception("ERROR : annotations should have been deleted in Simplification process\n");
     }
 
-    /* we should not have any control at this stage*/
+    /* we should not have any control at this stage */
     else {
         cerr << "ERROR : when compiling, unrecognized signal : " << ppsig(sig) << endl;
         faustassert(false);
@@ -972,8 +972,8 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
         fClass->addInitCode(subst("$0 $1;", kvnames.first, kvnames.second));
     }
 
-    // definition du nom et du type de la table
-    // A REVOIR !!!!!!!!!
+    // definition of table name and type
+    // TO CHECK !!!!!!!!!
     Type t = getCertifiedSigType(content);  //, tEnv);
 
     if (t->nature() == kInt) {
@@ -984,15 +984,15 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
         ctype = ifloat();
     }
 
-    // declaration de la table
+    // table declaration
     fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(size)));
 
-    // initialisation du generateur de contenu
+    // initialization of the content generator
     fClass->addInitCode(subst("$0.init(sample_rate);", generator));
-    // remplissage de la table
+    // filling the table
     fClass->addInitCode(subst("$0.fill($1,$2);", generator, T(size), vname));
 
-    // on retourne le nom de la table
+    // returning the table name
     return vname;
 }
 
@@ -1024,8 +1024,8 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
         }
     }
 
-    // definition du nom et du type de la table
-    // A REVOIR !!!!!!!!!
+    // definition of table name and type
+    // TO CHECK !!!!!!!!!
     Type t = getCertifiedSigType(content);  //, tEnv);
 
     if (t->nature() == kInt) {
@@ -1036,7 +1036,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
         ctype = ifloat();
     }
 
-    // declaration de la table
+    // table declaration
     if (gGlobal->gMemoryManager) {
         fClass->addDeclCode(subst("static $0* \t$1;", ctype, vname));
         fClass->addStaticFields(subst("$0* \t$1::$2 = 0;", ctype, fClass->getClassName(), vname));
@@ -1048,12 +1048,12 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
         fClass->addStaticFields(subst("$0 \t$1::$2[$3];", ctype, fClass->getClassName(), vname, T(size)));
     }
 
-    // initialisation du generateur de contenu
+    // initialization of the content generator
     fClass->addStaticInitCode(subst("$0.init(sample_rate);", cexp));
-    // remplissage de la table
+    // filling the table
     fClass->addStaticInitCode(subst("$0.fill($1,$2);", cexp, T(size), vname));
 
-    // on retourne le nom de la table
+    // returning the table name
     return vname;
 }
 
@@ -1091,8 +1091,8 @@ string ScalarCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
 
 string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
 {
-    // YO le 21/04/05 : La lecture des tables n'était pas mise dans le cache
-    // et donc le code était dupliqué (dans tester.dsp par exemple)
+    // YO le 21/04/05 : The reading of the tables was not put in the cache
+    // and so the code was duplicated (in tester.dsp for example)
     // return subst("$0[$1]", CS(tEnv, tbl), CS(tEnv, idx));
 
     // cerr << "generateRDTable " << *sig << endl;
