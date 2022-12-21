@@ -49,6 +49,10 @@
 
 using namespace llvm;
 
+#if LLVM_VERSION_MAJOR >= 15
+#warning Beware: LLVM 15 and later still not correctly supported !
+#endif
+
 #define LLVMValue llvm::Value*
 #define LLVMType llvm::Type*
 #define LLVMPtrType llvm::PointerType*

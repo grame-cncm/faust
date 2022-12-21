@@ -248,6 +248,7 @@ int main(int argc, char* argv[])
         string error_msg;
         
         string expanded_dsp1 = expandDSPFromFile(argv[1], argc1, argv1, sha_key, error_msg);
+        deleteDSPFactory(factory);
         factory = createDSPFactoryFromString("FausDSP", expanded_dsp1, argc1, argv1, "", error_msg, 3);
     
         if (!factory) {
@@ -257,6 +258,7 @@ int main(int argc, char* argv[])
         
         // Second time to check [FIX] expand code related global variables moved in 'global' class. 
         string expanded_dsp2 = expandDSPFromFile(argv[1], argc1, argv1, sha_key, error_msg);
+        deleteDSPFactory(factory);
         factory = createDSPFactoryFromString("FausDSP", expanded_dsp2, argc1, argv1, "", error_msg, 3);
         
         if (!factory) {
@@ -277,6 +279,8 @@ int main(int argc, char* argv[])
         runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
         runPolyDSP1(factory, linenum, nbsamples/4, 4);
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
+    
+        deleteDSPFactory(factory);
     }
     
     return 0;

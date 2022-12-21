@@ -182,14 +182,7 @@ llvm_dsp_factory_aux::~llvm_dsp_factory_aux()
     if (fJIT) {
         fJIT->runStaticConstructorsDestructors(true);
         // fModule is kept and deleted by fJIT
-    #if defined(__APPLE__)
-        #if (LLVM_VERSION_MAJOR < 15)
-            // This cause 'recursive_mutex lock failed: Invalid argument' starting at LLVM_15, so deactivated for now
-            delete fJIT;
-        #endif
-    #else
         delete fJIT;
-    #endif
     }
     delete fContext;
     delete fDecoder;
