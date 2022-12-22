@@ -23,11 +23,11 @@
 #include <stdlib.h>
 #include <cstdlib>
 
-#include "signals.hh"
-#include "prim2.hh"
 #include "global.hh"
-#include "xtended.hh"
+#include "prim2.hh"
+#include "signals.hh"
 #include "sigtyperules.hh"
+#include "xtended.hh"
 
 void SignalTreeChecker::visit(Tree sig)
 {
@@ -48,8 +48,8 @@ void SignalTreeChecker::visit(Tree sig)
                 faustassert(false);
             }
         }
-        
-    // Binary operations
+
+        // Binary operations
     } else if (isSigBinOp(sig, &opnum, x, y)) {
         Type tx = getCertifiedSigType(x);
         Type ty = getCertifiedSigType(y);
@@ -57,8 +57,8 @@ void SignalTreeChecker::visit(Tree sig)
             cerr << "ERROR : isSigBinOp of args with different types : " << ppsig(sig) << endl;
             faustassert(false);
         }
-        
-    // Foreign functions
+
+        // Foreign functions
     } else if (isSigFFun(sig, ff, largs)) {
         int len = ffarity(ff) - 1;
         for (int i = 0; i < ffarity(ff); i++) {
@@ -72,22 +72,22 @@ void SignalTreeChecker::visit(Tree sig)
             cerr << "ERROR : isSigFFun of res with incoherent type : " << ppsig(sig) << endl;
             faustassert(false);
         }
-        
-    // Select2 (and Select3 expressed with Select2)
+
+        // Select2 (and Select3 expressed with Select2)
     } else if (isSigSelect2(sig, sel, x, y)) {
         if (getCertifiedSigType(sel)->nature() != kInt) {
             cerr << "ERROR : isSigSelect2 with wrong typed selector : " << ppsig(sig) << endl;
             faustassert(false);
         }
 
-    // Delay
+        // Delay
     } else if (isSigDelay(sig, x, y)) {
         if (getCertifiedSigType(y)->nature() != kInt) {
             cerr << "ERROR : isSigDelay with a wrong typed delay : " << ppsig(sig) << endl;
             faustassert(false);
         }
 
-    // Int and Float Cast
+        // Int and Float Cast
     } else if (isSigIntCast(sig, x)) {
         if (getCertifiedSigType(x)->nature() == kInt) {
             cerr << "ERROR : isSigIntCast of a kInt signal : " << ppsig(sig) << endl;
@@ -99,14 +99,14 @@ void SignalTreeChecker::visit(Tree sig)
             cerr << "ERROR : isSigFloatCast of a kReal signal : " << ppsig(sig) << endl;
             faustassert(false);
         }
-        
-    // Tables
+
+        // Tables
     } else if (isSigRDTbl(sig, tb, idx)) {
         if (getCertifiedSigType(idx)->nature() != kInt) {
             cerr << "ERROR : isSigRDTbl with a wrong typed rdx : " << ppsig(sig) << endl;
             faustassert(false);
         }
-        
+
     } else if (isSigWRTbl(sig, id, tb, idx, ws)) {
         if (getCertifiedSigType(idx)->nature() != kInt) {
             cerr << "ERROR : isSigWRTbl with a wrong typed wdx : " << ppsig(sig) << endl;
@@ -116,8 +116,8 @@ void SignalTreeChecker::visit(Tree sig)
             cerr << "ERROR : isSigWRTbl with non matching tb and ws types : " << ppsig(sig) << endl;
             faustassert(false);
         }
- 
-    // Soundfiles
+
+        // Soundfiles
     } else if (isSigSoundfileLength(sig, sf, part)) {
         if (getCertifiedSigType(part)->nature() != kInt) {
             cerr << "ERROR : isSigSoundfileLength with a wrong typed part : " << ppsig(sig) << endl;
@@ -139,22 +139,21 @@ void SignalTreeChecker::visit(Tree sig)
             cerr << "ERROR : isSigSoundfileBuffer with a wrong typed ridx : " << ppsig(sig) << endl;
             faustassert(false);
         }
-        
-    // Bargraph
+
+        // Bargraph
     } else if (isSigHBargraph(sig, label, min, max, t0)) {
         if (getCertifiedSigType(t0)->nature() == kInt) {
             cerr << "ERROR : isSigHBargraph of a kInt signal : " << ppsig(sig) << endl;
             faustassert(false);
         }
-        
+
     } else if (isSigVBargraph(sig, label, min, max, t0)) {
         if (getCertifiedSigType(t0)->nature() == kInt) {
             cerr << "ERROR : isSigVBargraph of a kInt signal : " << ppsig(sig) << endl;
             faustassert(false);
         }
- 
     }
-        
+
     // Default case and recursion
     SignalVisitor::visit(sig);
 }
@@ -229,7 +228,7 @@ Tree SignalPromotion::transformation(Tree sig)
                 // done here instead of 'simplify' to be sure the signals are correctly typed
                 interval i1 = tx->getInterval();
                 interval j1 = ty->getInterval();
-                if (i1.valid & j1.valid && gGlobal->gMathExceptions && j1.haszero()) {
+                if (i1.isValid() & j1.isValid() && gGlobal->gMathExceptions && j1.hasZero()) {
                     cerr << "WARNING : potential division by zero (" << i1 << "/" << j1 << ")" << endl;
                 }
                 // the result of a division is always a float
@@ -303,25 +302,24 @@ Tree SignalPromotion::transformation(Tree sig)
     } else if (isSigSoundfileRate(sig, sf, part)) {
         return sigSoundfileRate(self(sf), smartIntCast(getCertifiedSigType(part), self(part)));
     } else if (isSigSoundfileBuffer(sig, sf, chan, part, idx)) {
-        return sigSoundfileBuffer(self(sf), self(chan),
-                                  smartIntCast(getCertifiedSigType(part), self(part)),
+        return sigSoundfileBuffer(self(sf), self(chan), smartIntCast(getCertifiedSigType(part), self(part)),
                                   smartIntCast(getCertifiedSigType(idx), self(idx)));
     }
-    
+
     // All UI items with range (vslider, hslider, nentry) are treated
     // as float 'constant numerical expressions'. See realeval in eval.cpp
-    
+
     // Bargraph
     else if (isSigHBargraph(sig, label, min, max, t0)) {
         Type tx0 = getCertifiedSigType(t0);
         return sigHBargraph(label, self(min), self(max), smartFloatCast(tx0, self(t0)));
     }
-    
+
     else if (isSigVBargraph(sig, label, min, max, t0)) {
         Type tx0 = getCertifiedSigType(t0);
         return sigVBargraph(label, self(min), self(max), smartFloatCast(tx0, self(t0)));
     }
-    
+
     // Other cases => identity transformation
     else {
         return SignalIdentity::transformation(sig);
@@ -382,16 +380,16 @@ Tree SignalPromotion::smartFloatCast(Type t, Tree sig)
 
 Tree SignalBool2IntPromotion::transformation(Tree sig)
 {
-    int op;
+    int  op;
     Tree x, y;
-    
+
     if (isSigBinOp(sig, &op, x, y)) {
         if (isBoolOpcode(op)) {
             return sigIntCast(sigBinOp(op, self(x), self(y)));
         } else {
             return SignalIdentity::transformation(sig);
         }
-    // Other cases => identity transformation
+        // Other cases => identity transformation
     } else {
         return SignalIdentity::transformation(sig);
     }
@@ -400,10 +398,10 @@ Tree SignalBool2IntPromotion::transformation(Tree sig)
 Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tb, Tree size, Tree idx)
 {
     interval idx_i = getCertifiedSigType(idx)->getInterval();
-    if (idx_i.lo < 0 || idx_i.hi >= tree2int(size)) {
+    if (idx_i.lo() < 0 || idx_i.hi() >= tree2int(size)) {
         stringstream error;
-        error << "WARNING : RDTbl read index [" << idx_i.lo << ":" << idx_i.hi
-              << "] is outside of table size (" << tree2int(size) << ") in " << ppsig(sig);
+        error << "WARNING : RDTbl read index [" << idx_i.lo() << ":" << idx_i.hi() << "] is outside of table size ("
+              << tree2int(size) << ") in " << ppsig(sig);
         if (gAllWarning) gWarningMessages.push_back(error.str());
         return sigRDTbl(self(tb), sigMax(sigInt(0), sigMin(self(idx), sigSub(size, sigInt(1)))));
     } else {
@@ -414,10 +412,10 @@ Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tb, Tree size, Tree idx)
 Tree SignalTablePromotion::safeSigWRTbl(Tree sig, Tree id, Tree tb, Tree size, Tree idx, Tree ws)
 {
     interval idx_i = getCertifiedSigType(idx)->getInterval();
-    if (idx_i.lo < 0 || idx_i.hi >= tree2int(size)) {
+    if (idx_i.lo() < 0 || idx_i.hi() >= tree2int(size)) {
         stringstream error;
-        error << "WARNING : WRTbl write index [" << idx_i.lo << ":" << idx_i.hi
-              << "] is outside of table size (" << tree2int(size) << ") in " << ppsig(sig);
+        error << "WARNING : WRTbl write index [" << idx_i.lo() << ":" << idx_i.hi() << "] is outside of table size ("
+              << tree2int(size) << ") in " << ppsig(sig);
         if (gAllWarning) gWarningMessages.push_back(error.str());
         return sigWRTbl(id, self(tb), sigMax(sigInt(0), sigMin(self(idx), sigSub(size, sigInt(1)))), self(ws));
     } else {
@@ -428,7 +426,7 @@ Tree SignalTablePromotion::safeSigWRTbl(Tree sig, Tree id, Tree tb, Tree size, T
 Tree SignalTablePromotion::getSize(Tree sig)
 {
     Tree id, tb, size, content, idx, ws;
-    
+
     if (isSigTable(sig, id, size, content)) {
         return size;
     } else if (isSigWRTbl(sig, id, tb, idx, ws)) {
@@ -442,12 +440,12 @@ Tree SignalTablePromotion::getSize(Tree sig)
 Tree SignalTablePromotion::transformation(Tree sig)
 {
     Tree tb, id, idx, ws;
-    
+
     if (isSigRDTbl(sig, tb, idx)) {
         return safeSigRDTbl(sig, tb, getSize(tb), idx);
     } else if (isSigWRTbl(sig, id, tb, idx, ws)) {
         return safeSigWRTbl(sig, id, tb, getSize(tb), idx, ws);
-    // Other cases => identity transformation
+        // Other cases => identity transformation
     } else {
         return SignalIdentity::transformation(sig);
     }
@@ -456,12 +454,11 @@ Tree SignalTablePromotion::transformation(Tree sig)
 Tree SignalUIPromotion::transformation(Tree sig)
 {
     Tree label, init, min, max, step;
-    
-    if (isSigVSlider(sig, label, init, min, max, step)
-        || isSigHSlider(sig, label, init, min, max, step)
-        || isSigNumEntry(sig, label, init, min, max, step)) {
+
+    if (isSigVSlider(sig, label, init, min, max, step) || isSigHSlider(sig, label, init, min, max, step) ||
+        isSigNumEntry(sig, label, init, min, max, step)) {
         return sigMax(min, sigMin(max, sig));
-    // Other cases => identity transformation
+        // Other cases => identity transformation
     } else {
         return SignalIdentity::transformation(sig);
     }
@@ -482,7 +479,7 @@ Tree sigBool2IntPromote(Tree sig)
 {
     // Check that the root tree is properly type annotated
     getCertifiedSigType(sig);
-    
+
     SignalBool2IntPromotion SP;
     return SP.mapself(sig);
 }
@@ -491,7 +488,7 @@ Tree signalTablePromote(Tree sig)
 {
     // Check that the root tree is properly type annotated
     getCertifiedSigType(sig);
-    
+
     SignalTablePromotion SP;
     return SP.mapself(sig);
 }
@@ -500,7 +497,7 @@ Tree signalUIPromote(Tree sig)
 {
     // Check that the root tree is properly type annotated
     getCertifiedSigType(sig);
-    
+
     SignalUIPromotion SP;
     return SP.mapself(sig);
 }

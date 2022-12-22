@@ -54,12 +54,12 @@ class AbsPrim : public xtended {
         double f;
         int    i;
         faustassert(args.size() == arity());
-    
+
         // abs(abs(sig)) ==> abs(sig)
         xtended* xt = (xtended*)getUserData(args[0]);
         if (xt == gGlobal->gAbsPrim) {
             return args[0];
-            
+
         } else if (isDouble(args[0]->node(), &f)) {
             return tree(fabs(f));
 
@@ -75,13 +75,14 @@ class AbsPrim : public xtended {
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
-  
+
         /*
-         04/25/22 : this optimisation cannot be done because interval computation is buggy: like no.noise interval [O..inf] !
+         04/25/22 : this optimisation cannot be done because interval computation is buggy: like no.noise interval
+         [O..inf] !
          */
-    
+
         /*
-            if (i.valid && i.lo >= 0) {
+            if (i.isValid() && i.lo() >= 0) {
                 return *args.begin();
             } else {
                 // Only compute abs when arg is < 0
@@ -97,7 +98,7 @@ class AbsPrim : public xtended {
                 }
             }
         */
-    
+
         string fun_name = (result->nature() == kInt) ? "abs" : subst("fabs$0", isuffix());
         return generateFun(container, fun_name, args, result, types);
     }

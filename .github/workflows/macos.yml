@@ -3,8 +3,7 @@ name: MacOS
 on:
   push:
     branches: 
-        - master
-        - master-dev
+        - '*'
   pull_request:
     branches: [ master-dev ]
 

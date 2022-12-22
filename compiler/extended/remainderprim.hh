@@ -37,13 +37,13 @@ class RemainderPrim : public xtended {
     virtual ::Type infereSigType(ConstTypes args)
     {
         faustassert(args.size() == arity());
-    
+
         interval i = args[0]->getInterval();
         interval j = args[1]->getInterval();
-        if (j.valid && gGlobal->gMathExceptions && j.haszero()) {
+        if (j.isValid() && gGlobal->gMathExceptions && j.hasZero()) {
             cerr << "WARNING : potential division by zero in remainder(" << i << ", " << j << ")" << endl;
         }
-    
+
         return castInterval(floatCast(args[0] | args[1]), interval());  // temporary rule !!!
     }
 
@@ -66,7 +66,9 @@ class RemainderPrim : public xtended {
         } else {
             if (gGlobal->gMathApprox) {
                 // res = x - (y * T(int(0.5f + x / y)));
-                return sigSub(args[0], sigBinOp(kMul, args[1], sigFloatCast(sigIntCast(sigAdd( sigReal(0.5), sigDiv(args[0], args[1]))))));
+                return sigSub(
+                    args[0],
+                    sigBinOp(kMul, args[1], sigFloatCast(sigIntCast(sigAdd(sigReal(0.5), sigDiv(args[0], args[1]))))));
             } else {
                 return tree(symbol(), args[0], args[1]);
             }
@@ -77,7 +79,7 @@ class RemainderPrim : public xtended {
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
-        
+
         return generateFun(container, subst("remainder$0", isuffix()), args, result, types);
     }
 

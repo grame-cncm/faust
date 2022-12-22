@@ -24,7 +24,13 @@
 
 #include <cmath>
 #include <iostream>
+
 #include "exception.hh"
+#include "garbageable.hh"
+#include "interval/interval_def.hh"
+#include "interval/interval_algebra.hh"
+
+extern itv::interval_algebra gAlgebra;
 
 #ifdef _WIN32
 inline double log2(double e)
@@ -52,292 +58,134 @@ inline double max4(double a, double b, double c, double d)
     return max(max(a, b), max(c, d));
 }
 
-struct interval : public virtual Garbageable {
-    bool   valid;  ///< true if it is a valid interval
-    double lo;     ///< minimal value
-    double hi;     ///< maximal value
+// itv::interval_algebra gAlgebra;
 
-    interval() : valid(false), lo(-HUGE_VAL), hi(HUGE_VAL) {}
-    interval(double n) : valid(true), lo(n), hi(n)
-    {
-        if (std::isnan(n)) {
-            throw faustexception("ERROR1 : n is NaN in an Interval\n");
-        }
-    }
-    interval(bool v, double n, double m) : valid(v), lo(n), hi(m)
-    {
-        if (std::isnan(n)) {
-            throw faustexception("ERROR2 : n is NaN in an Interval\n");
-        }
-        if (std::isnan(m)) {
-            throw faustexception("ERROR2 : m is NaN in an Interval\n");
-        }
-    }
-    interval(double n, double m) : valid(true), lo(min(n, m)), hi(max(n, m))
-    {
-        if (std::isnan(n)) {
-            throw faustexception("ERROR3 : n is NaN in an Interval\n");
-        }
-        if (std::isnan(m)) {
-            throw faustexception("ERROR3 : m is NaN in an Interval\n");
-        }
-    }
+// extern global* gGlobal;
 
-    bool isvalid() { return valid; }
-    bool isbounded() { return !(std::isinf(lo) || std::isinf(hi)); }
-    bool isempty() { return hi < lo; }
-    bool isconst() { return valid && (lo == hi); }
-    bool ispowerof2()
-    {
-        int n = int(hi);
-        return isconst() && ((n & (-n)) == n);
-    }
-    bool isbitmask()
-    {
-        int n = int(hi) + 1;
-        return isconst() && ((n & (-n)) == n);
-    }
-    bool haszero() { return (lo <= 0) && (0 <= hi); }
+using interval = itv::interval;
 
-    // convention, the invalid interval contains everyone 
-    bool contains(interval j)
-    {
-        return !valid || (lo <= j.lo && hi >= j.hi);
-    }
-    
-    /**
-     * @brief Pretty print an interval (string version)
-     * @details usage of stringsteams seems problematic for old versions of gcc
-     * @return a string representing the interval if valid, ??? otherwise
-     */
-    string toString() const
-    {
-        string sout = ("[");
-        if (valid) {
-            sout += (lo > -HUGE_VAL)?to_string(lo):"-inf";
-            sout += ", ";
-            sout += (hi < HUGE_VAL)?to_string(hi):"inf";
-        } else {
-            sout += "???";
-        }
-        sout += "]";
-        return sout;
-    }
-};
-
-inline ostream& operator<<(ostream& dst, const interval& i)
+inline interval cast2int(const interval& x)
 {
-    return dst << i.toString();
-}
-
-inline interval reunion(const interval& x, const interval& y)
-{
-    if (x.valid & y.valid) {
-        return interval(min(x.lo, y.lo), max(x.hi, y.hi));
-    } else {
-        return interval();
-    }
-}
-
-inline interval intersection(const interval& x, const interval& y)
-{
-    if (x.valid & y.valid) {
-        double lo = max(x.lo, y.lo);
-        double hi = min(x.hi, y.hi);
-        return interval(true, lo, hi);
-    } else {
-        return interval();
-    }
+    return gAlgebra.Int(x);
 }
 
 inline interval operator+(const interval& x, const interval& y)
 {
-    return (x.valid & y.valid) ? interval(x.lo + y.lo, x.hi + y.hi) : interval();
+    return gAlgebra.Add(x, y);
 }
 
 inline interval operator-(const interval& x, const interval& y)
 {
-    return (x.valid & y.valid) ? interval(x.lo - y.hi, x.hi - y.lo) : interval();
+    return gAlgebra.Sub(x, y);
 }
 
-inline double specialmult(double a, double b)
-{
-    // we want inf*0 to be 0
-    return ((a == 0.0) || (b == 0.0)) ? 0.0 : a * b;
-}
 inline interval operator*(const interval& x, const interval& y)
 {
-    if (x.valid & y.valid) {
-        double a = specialmult(x.lo, y.lo);
-        double b = specialmult(x.lo, y.hi);
-        double c = specialmult(x.hi, y.lo);
-        double d = specialmult(x.hi, y.hi);
-        return interval(min4(a, b, c, d), max4(a, b, c, d));
-    } else {
-        return interval();
-    }
+    return gAlgebra.Mul(x, y);
 }
 
 inline interval operator/(const interval& x, const interval& y)
 {
-    return (x.valid && y.valid && ((y.lo > 0) || (y.hi < 0))) ? x * interval(1 / y.hi, 1 / y.lo) : interval();
+    return gAlgebra.Div(x, y);
 }
 
 // The result should be [0..y.hi[, approximated with 0, nexttoward(y.hi, -INFINITY)
 inline interval operator%(const interval& x, const interval& y)
 {
-    return (x.valid && y.valid && x.lo >= 0 && y.lo > 0) ? interval(0, nexttoward(y.hi, -INFINITY)) : interval();
-}
-
-/**
- * Convert a number 1bbb..b into a bit mask 1111..1 of same width
- */
-inline int bitmask(double x)
-{
-    int v = int(x);
-    for (int i = 1; i < 32; i *= 2) {
-        v |= v >> i;
-    }
-    return v;
+    return gAlgebra.Mod(x, y);
 }
 
 //----------------------booleans&bits--------------------------------------
 
 inline interval operator&(const interval& x, const interval& y)
 {
-    if (x.valid && y.valid) {
-        if (x.lo >= 0 && y.lo >= 0) {
-            return interval(0, bitmask(x.hi) & bitmask(y.hi));
-        } else if (y.lo >= 0) {
-            return interval(0, bitmask(y.hi));
-        } else if (x.lo >= 0) {
-            return interval(0, bitmask(y.hi));
-        } else {
-            return interval();
-        }
-    } else if (x.valid && x.lo >= 0) {
-        return interval(0, bitmask(x.hi));
-    } else if (y.valid && y.lo >= 0) {
-        return interval(0, bitmask(y.hi));
-    } else {
-        return interval();
-    }
+    return gAlgebra.And(x, y);
 }
 
 inline interval operator|(const interval& x, const interval& y)
 {
-    if (x.valid && y.valid && x.lo >= 0 && y.lo >= 0) {
-        return interval(0, bitmask(x.hi) | bitmask(y.hi));
-    } else {
-        return interval();
-    }
+    return gAlgebra.Or(x, y);
 }
 
-inline interval operator^(const interval&, const interval&)
+inline interval operator^(const interval& x, const interval& y)
 {
-    return interval();
+    return gAlgebra.Xor(x, y);
 }
 
 inline interval operator<<(const interval& x, const interval& y)
 {
-    int hi = int(x.hi) << int(y.hi);
-    int lo = int(x.lo) << int(y.lo);
-
-    return interval(lo, hi);
+    return gAlgebra.Lsh(x, y);
 }
 
 inline interval operator>>(const interval& x, const interval& y)
 {
-    int hi = int(x.hi) >> int(y.lo);
-    int lo = int(x.lo) >> int(y.hi);
-
-    return interval(lo, hi);
+    return gAlgebra.Rsh(x, y);
 }
 
 // ---------------------comparaisons------------------------------
 // Note : the comparisons are not about the intervals
 // but the interval of the signal comparisons
 
-inline interval operator<(const interval&, const interval&)
+inline interval operator<(const interval& x, const interval& y)
+{
+    return gAlgebra.Lt(x, y);
+}
+
+inline interval operator<=(const interval& x, const interval& y)
+{
+    return gAlgebra.Le(x, y);
+}
+
+inline interval operator>(const interval& x, const interval& y)
+{
+    return gAlgebra.Gt(x, y);
+}
+
+inline interval operator>=(const interval& x, const interval& y)
 {
     return interval(0, 1);
 }
 
-inline interval operator<=(const interval&, const interval&)
+inline interval operator==(const interval& x, const interval& y)
 {
-    return interval(0, 1);
+    return gAlgebra.Eq(x, y);
 }
 
-inline interval operator>(const interval&, const interval&)
+inline interval operator!=(const interval& x, const interval& y)
 {
-    return interval(0, 1);
-}
-
-inline interval operator>=(const interval&, const interval&)
-{
-    return interval(0, 1);
-}
-
-inline interval operator==(const interval&, const interval&)
-{
-    return interval(0, 1);
-}
-
-inline interval operator!=(const interval&, const interval&)
-{
-    return interval(0, 1);
+    return gAlgebra.Ne(x, y);
 }
 
 //-----------------------------------------------------------------------
 
 inline interval min(const interval& x, const interval& y)
 {
-    return interval(min(x.lo, y.lo), min(x.hi, y.hi));
+    return gAlgebra.Min(x, y);
 }
 
 inline interval max(const interval& x, const interval& y)
 {
-    return interval(max(x.lo, y.lo), max(x.hi, y.hi));
+    return gAlgebra.Max(x, y);
 }
 
 inline interval pow(const interval& x, const interval& y)
 {
-    if (x.lo > 0.0) {
-        double a = pow(x.lo, y.lo);
-        double b = pow(x.lo, y.hi);
-        double c = pow(x.hi, y.lo);
-        double d = pow(x.hi, y.hi);
-        return interval(min4(a, b, c, d), max4(a, b, c, d));
-    } else {
-        // std::cerr << "interval not computed for : pow(" << x <<"," << y << ")" << std::endl;
-        return interval();
-    }
+    return gAlgebra.Pow(x, y);
 }
 
 inline interval iint(const interval& x)
 {
-    return interval(double(int(x.lo)), double(int(x.hi)));
+    return gAlgebra.Int(x);
 }
 
 inline interval fmod(const interval& x, const interval& y)
 {
-    interval n = iint(x / y);
-    return x - n * y;
+    return gAlgebra.Mod(x, y);
 }
 
 inline interval abs(const interval& x)
 {
-    if (x.valid) {
-        if (x.lo >= 0) {
-            return x;
-        } else if (x.hi < 0) {
-            return interval(fabs(x.hi), fabs(x.lo));
-        } else {
-            return interval(0, max(fabs(x.lo), x.hi));
-        }
-    } else {
-        return x;
-    }
+    return gAlgebra.Abs(x);
 }
 
 /**

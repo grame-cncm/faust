@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 
+#include "interval.hh"
 #include "exception.hh"
 #include "sigToGraph.hh"
 #include "signals.hh"
@@ -141,7 +142,7 @@ static string edgeattr(Type t)
 {
     string sout(commonAttr(t));
     sout += " label =\"";
-    sout += t->getInterval().toString();
+    sout += t->getInterval().to_string();
     sout += ", ";
     sout += t->getRes().toString();
     sout += "\"";

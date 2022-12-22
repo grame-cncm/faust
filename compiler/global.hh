@@ -7,12 +7,12 @@
  it under the terms of the GNU Lesser General Public License as published by
  the Free Software Foundation; either version 2.1 of the License, or
  (at your option) any later version.
- 
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU Lesser General Public License for more details.
- 
+
  You should have received a copy of the GNU Lesser General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -34,13 +34,16 @@
 #include <unistd.h>
 #endif
 
+#include "smartpointer.hh"
 #include "exception.hh"
 #include "instructions_type.hh"
 #include "loopDetector.hh"
 #include "occurrences.hh"
 #include "property.hh"
-#include "sigtype.hh"
 #include "sourcereader.hh"
+
+class AudioType;
+typedef P<AudioType> Type;
 
 class CTree;
 typedef CTree* Tree;
@@ -71,7 +74,7 @@ struct comp_str {
     bool operator()(Tree s1, Tree s2) const { return (strcmp(tree2str(s1), tree2str(s2)) < 0); }
 };
 
-typedef map<Tree, set<Tree>, comp_str>  MetaDataSet;
+typedef map<Tree, set<Tree>, comp_str> MetaDataSet;
 typedef map<Tree, set<Tree>>           FunMDSet;  // foo -> {(file/foo/key,value)...}
 
 // Global outside of the global context
@@ -80,7 +83,6 @@ extern bool           gAllWarning;
 
 // Global singleton like compiler state
 struct global {
-    
     // Parsing
     SourceReader gReader;
     Tree         gExpandedDefList;
@@ -88,17 +90,17 @@ struct global {
     list<string> gInputFiles;
     tvec         gWaveForm;  // used in the parser to keep values parsed for a given waveform
     Tree         gResult;
-    
+
     // Metadata handling
     MetaDataSet gMetaDataSet;
     FunMDSet    gFunMDSet;
- 
+
     // File handling
     string         gFaustSuperSuperDirectory;
     string         gFaustSuperDirectory;
     string         gFaustDirectory;
     string         gFaustExeDir;
-    string         gFaustRootDir;         // abs path to Faust root directory
+    string         gFaustRootDir;  // abs path to Faust root directory
     string         gMasterDocument;
     string         gMasterDirectory;
     string         gMasterName;
@@ -108,9 +110,9 @@ struct global {
     string         gOutputDir;
     string         gImportFilename;
     string         gOutputFile;
-    string         gArchFile;             // -a option
-    set<string>    gAlreadyIncluded;      // to keep track of already injected files
-  
+    string         gArchFile;         // -a option
+    set<string>    gAlreadyIncluded;  // to keep track of already injected files
+
     // compilation options
     bool gDetailsSwitch;         // -d option
     bool gDrawSignals;           // -sg option
@@ -199,7 +201,7 @@ struct global {
     bool   gComputeMix;            // -cm option, mix in outputs buffers
     bool   gBool2Int;              // Cast bool binary operations (comparison operations) to int
     string gNamespace;             // Wrapping namespace used with the C++ backend
-  
+
     int gWideningLimit;   // Max number of iterations before interval widening
     int gNarrowingLimit;  // Max number of iterations to compute interval widener
 
@@ -221,12 +223,12 @@ struct global {
     set<string>         gDocAutodocKeySet;
     map<string, bool>   gDocNoticeFlagMap;
     map<string, string> gDocMathStringMap;
-    vector<Tree>        gDocVector;      //< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM
+    vector<Tree>        gDocVector;  //< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM
     map<string, string> gDocNoticeStringMap;
     set<string>         gDocNoticeKeySet;
     set<string>         gDocMathKeySet;
-    const char*         gDocDevSuffix;   //< ".tex" (or .??? - used to choose output device)
-    string              gCurrentDir;     //< Room to save current directory name
+    const char*         gDocDevSuffix;  //< ".tex" (or .??? - used to choose output device)
+    string              gCurrentDir;    //< Room to save current directory name
     string              gLatexheaderfilename;
     struct tm           gCompilationDate;
     int                 gFileNum;
@@ -244,7 +246,7 @@ struct global {
     // Tree is used to identify the same nodes during Box tree traversal,
     // but gBoxCounter is then used to generate unique IDs
     map<Tree, pair<int, string>> gBoxTable;
-    int gBoxCounter;
+    int                          gBoxCounter;
     // To keep the box tree traversing trace
     vector<string> gBoxTrace;
 
@@ -254,7 +256,7 @@ struct global {
     // Tree is used to identify the same nodes during Signal tree traversal,
     // but gSignalCounter is then used to generate unique IDs
     map<Tree, pair<int, string>> gSignalTable;
-    int gSignalCounter;
+    int                          gSignalCounter;
     // To keep the signal tree traversing trace
     vector<string> gSignalTrace;
 
@@ -269,7 +271,8 @@ struct global {
     // Used in eval
     int gBoxSlotNumber;  // counter for unique slot number
 
-    bool gCausality;     // FIXME: global used as a parameter of typeAnnotation when true trigs causality errors (negative delay)
+    bool gCausality;  // FIXME: global used as a parameter of typeAnnotation when true trigs causality errors (negative
+                      // delay)
 
     // Properties
     Tree BOXTYPEPROP;
@@ -439,7 +442,7 @@ struct global {
     Sym SIGSOUNDFILEBUFFER;
     Sym SIGTUPLE;
     Sym SIGTUPLEACCESS;
-    
+
     // Types
     Sym SIMPLETYPE;
     Sym TABLETYPE;
@@ -452,13 +455,10 @@ struct global {
     Type TINPUT;
     Type TGUI;
     Type TGUI01;
- 
+
     // Trying to accelerate type convergence
     Type TREC;  // kVect ou kScal ?
     Type TRECMAX;
-
-    // Empty predefined bit depth
-    res RES;
 
     // Predefined symbols CONS and NIL
     Sym  CONS;
@@ -498,10 +498,10 @@ struct global {
     bool              gFoldingFlag;     // true with complex block-diagrams
     stack<Tree>       gPendingExp;      // Expressions that need to be drawn
     set<Tree>         gDrawnExp;        // Expressions drawn or scheduled so far
-    const char*        gDevSuffix;       // .svg or .ps used to choose output device
+    const char*       gDevSuffix;       // .svg or .ps used to choose output device
     string            gSchemaFileName;  // name of schema file beeing generated
     Tree              gInverter[6];
-    map<Tree, string> gBackLink;        // link to enclosing file for sub schema
+    map<Tree, string> gBackLink;  // link to enclosing file for sub schema
 
     // FIR
     map<Typed::VarType, BasicTyped*> gTypeTable;     // To share a unique BasicTyped* object for a given type
@@ -539,7 +539,7 @@ struct global {
 #ifdef JAX_BUILD
     JAXInstVisitor* gJAXVisitor;
 #endif
-    
+
 #ifdef TEMPLATE_BUILD
     TemplateInstVisitor* gTemplateVisitor;
 #endif
@@ -568,7 +568,7 @@ struct global {
 
     // Done after contructor since part of the following allocations need the "global" object to be fully built
     void init();
-    
+
     // Part of the state that needs to be initialized between consecutive calls to Box/Signal API
     void reset();
 
@@ -594,10 +594,7 @@ struct global {
         }
     }
 
-    bool hasVarType(const string& name)
-    {
-        return gVarTypeTable.find(name) != gVarTypeTable.end();
-    }
+    bool hasVarType(const string& name) { return gVarTypeTable.find(name) != gVarTypeTable.end(); }
 
     BasicTyped* genBasicTyped(Typed::VarType type);
 
@@ -605,10 +602,7 @@ struct global {
 
     void setVarType(const string& name, Typed::VarType type);
 
-    inline bool startWith(const string& str, const string& prefix)
-    {
-        return (str.substr(0, prefix.size()) == prefix);
-    }
+    inline bool startWith(const string& str, const string& prefix) { return (str.substr(0, prefix.size()) == prefix); }
 
     // Some backends have an internal implementation of foreign functions like acos, asinh...
     bool hasForeignFunction(const string& name, const string& inc_file);
@@ -619,7 +613,7 @@ struct global {
     void initTypeSizeMap();
 
     int audioSampleSize();
-  
+
     // Allows to test if a given debug environment variable is set
     static bool isDebug(const string& debug_val);
 };

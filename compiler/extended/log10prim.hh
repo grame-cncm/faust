@@ -37,10 +37,10 @@ class Log10Prim : public xtended {
     {
         faustassert(args.size() == arity());
         interval i = args[0]->getInterval();
-        if (i.valid) {
+        if (i.isValid()) {
             // log10(0) gives -INF but is still in the function domain
-            if (i.lo >= 0) {
-                return castInterval(floatCast(args[0]), interval(log10(i.lo), log10(i.hi)));
+            if (i.lo() >= 0) {
+                return castInterval(floatCast(args[0]), interval(log10(i.lo()), log10(i.hi())));
             } else if (gGlobal->gMathExceptions) {
                 cerr << "WARNING : potential out of domain in log10(" << i << ")" << endl;
             }
@@ -58,7 +58,7 @@ class Log10Prim : public xtended {
     {
         num n;
         faustassert(args.size() == arity());
-    
+
         // log10(exp10(sig)) ==> sig
         xtended* xt = (xtended*)getUserData(args[0]);
         if (xt == gGlobal->gExp10Prim) {

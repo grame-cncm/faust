@@ -26,9 +26,9 @@
 #include <string>
 #include <vector>
 #include "garbageable.hh"
-#include "interval.hh"
 #include "smartpointer.hh"
 #include "tree.hh"
+#include "interval.hh"
 
 /*********************************************************************
  *
@@ -76,7 +76,7 @@ using namespace std;
 
 class AudioType;
 
-typedef P<AudioType> Type;
+typedef P<AudioType>        Type;
 typedef const vector<Type>& ConstTypes;
 
 /**
@@ -88,14 +88,14 @@ typedef const vector<Type>& ConstTypes;
 
 class AudioType : public virtual Garbageable {
    protected:
-    int      fNature;         ///< the kind of data represented
-    int      fVariability;    ///< how fast values change
-    int      fComputability;  ///< when are values available
-    int      fVectorability;  ///< when a signal can be vectorized
-    int      fBoolean;        ///< when a signal stands for a boolean value
-    interval fInterval;       ///< Minimal and maximal values the signal can take
-    res      fRes;            ///< Resolution (fixed-point)
-    Tree     fCode;           ///< Tree representation (for memoization purposes)
+    int           fNature;         ///< the kind of data represented
+    int           fVariability;    ///< how fast values change
+    int           fComputability;  ///< when are values available
+    int           fVectorability;  ///< when a signal can be vectorized
+    int           fBoolean;        ///< when a signal stands for a boolean value
+    itv::interval fInterval;       ///< Minimal and maximal values the signal can take
+    res           fRes;            ///< Resolution (fixed-point)
+    Tree          fCode;           ///< Tree representation (for memoization purposes)
 
    public:
     AudioType(int n, int v, int c, int vec = kVect, int b = kNum, interval i = interval(), res r = res());
@@ -198,19 +198,11 @@ inline interval mergeinterval(ConstTypes v)
     if (v.size() == 0) {
         return interval();
     } else {
-        double lo = 0, hi = 0;
-        for (unsigned int i = 0; i < v.size(); i++) {
-            interval r = v[i]->getInterval();
-            if (!r.valid) return r;
-            if (i == 0) {
-                lo = r.lo;
-                hi = r.hi;
-            } else {
-                lo = min(lo, r.lo);
-                hi = max(hi, r.hi);
-            }
+        interval r = v[0]->getInterval();
+        for (unsigned int i = 1; i < v.size(); i++) {
+            r = itv::reunion(r, v[i]->getInterval());
         }
-        return interval(lo, hi);
+        return r;
     }
 }
 
@@ -274,12 +266,9 @@ class SimpleType : public AudioType {
 
 inline Type intCast(Type t)
 {
-    interval I = t->getInterval();
-    I.lo = std::isinf(I.lo) ? I.lo : int(I.lo);
-    I.hi = std::isinf(I.hi) ? I.hi : int(I.hi);
-    return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(), t->boolean(), I);
+    return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(), t->boolean(),
+                          cast2int(t->getInterval()));
 }
-
 inline Type floatCast(Type t)
 {
     return makeSimpleType(kReal, t->variability(), t->computability(), t->vectorability(), t->boolean(),

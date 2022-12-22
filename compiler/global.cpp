@@ -7,12 +7,12 @@
  it under the terms of the GNU Lesser General Public License as published by
  the Free Software Foundation; either version 2.1 of the License, or
  (at your option) any later version.
- 
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU Lesser General Public License for more details.
- 
+
  You should have received a copy of the GNU Lesser General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -115,13 +115,13 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
 {
     CTree::init();
     Symbol::init();
-    
+
     // Part of the state that needs to be initialized between consecutive calls to Box/Signal API
     reset();
 
     EVALPROPERTY   = symbol("EvalProperty");
     PMPROPERTYNODE = symbol("PMPROPERTY");
-    
+
     // Fastmath mapping float version
     gFastMathLibTable["fabsf"]      = "fast_fabsf";
     gFastMathLibTable["acosf"]      = "fast_acosf";
@@ -337,10 +337,10 @@ void global::reset()
 {
     gAllWarning = false;
     gWarningMessages.clear();
-    
+
     gResult          = nullptr;
     gExpandedDefList = nullptr;
-    
+
     gDetailsSwitch    = false;
     gDrawSignals      = false;
     gDrawRouteFrame   = false;
@@ -353,12 +353,12 @@ void global::reset()
     gSimpleNames      = false;
     gSimplifyDiagrams = false;
     gMaxCopyDelay     = 16;
-    
+
     gVectorSwitch      = false;
     gDeepFirstSwitch   = false;
     gVecSize           = 32;
     gVectorLoopVariant = 0;
-    
+
     gOpenMPSwitch    = false;
     gOpenMPLoop      = false;
     gSchedulerSwitch = false;
@@ -366,35 +366,35 @@ void global::reset()
     gCUDASwitch      = false;
     gGroupTaskSwitch = false;
     gFunTaskSwitch   = false;
-    
+
     gUIMacroSwitch = false;
     gDumpNorm      = -1;
     gFTZMode       = 0;
     gRangeUI       = false;
-    
-    gFloatSize = 1; // -single by default
-    
+
+    gFloatSize = 1;  // -single by default
+
     gPrintFileListSwitch = false;
     gInlineArchSwitch    = false;
-    
+
     gDSPStruct  = false;
     gLightMode  = false;
     gClang      = false;
     gNoVirtual  = false;
     gCheckTable = true;
-    
+
     gMathExceptions = false;
-    
+
     gClassName      = "mydsp";
     gSuperClassName = "dsp";
     gProcessName    = "process";
-    
+
     gDSPFactory = nullptr;
-    
+
     gInputString = "";
     gInputFiles.clear();
     gMetaDataSet.clear();
-    
+
     // Backend configuration : default values
     gAllowForeignFunction = true;
     gAllowForeignConstant = true;
@@ -419,47 +419,47 @@ void global::reset()
     gFastMathLib          = "default";
     gNamespace            = "";
     gFullParentheses      = false;
-    
+
     gNarrowingLimit = 0;
     gWideningLimit  = 0;
-    
+
     gLstDependenciesSwitch = true;  // mdoc listing management.
     gLstMdocTagsSwitch     = true;  // mdoc listing management.
     gLstDistributedSwitch  = true;  // mdoc listing management.
-    
+
     gLatexDocSwitch = true;  // Only LaTeX outformat is handled for the moment.
-    
+
     gFileNum = 0;
-    
+
     gBoxCounter    = 0;
     gSignalCounter = 0;
-    
+
     gCountInferences = 0;
     gCountMaximal    = 0;
-    
+
     gDummyInput = 10000;
-    
+
     gBoxSlotNumber = 0;
     gMemoryManager = false;
-    
+
     gLocalCausalityCheck = false;
     gCausality           = false;
-    
+
     gOccurrences = nullptr;
     gFoldingFlag = false;
     gDevSuffix   = nullptr;
-    
-    gOutputLang  = "";
-    
+
+    gOutputLang = "";
+
 #ifdef WASM_BUILD
     gWASMVisitor = nullptr;  // Will be (possibly) allocated in WebAssembly backend
     gWASTVisitor = nullptr;  // Will be (possibly) allocated in WebAssembly backend
 #endif
-    
+
 #ifdef INTERP_BUILD
     gInterpreterVisitor = nullptr;  // Will be (possibly) allocated in Interp backend
 #endif
-    
+
 #ifdef JULIA_BUILD
     gJuliaVisitor = nullptr;  // Will be (possibly) allocated in Julia backend
 #endif
@@ -467,13 +467,13 @@ void global::reset()
 #ifdef CMAJOR_BUILD
     gTableSizeVisitor = nullptr;  // Will be (possibly) allocated in Cmajor backend
 #endif
-    
+
 #ifdef JAX_BUILD
-    gJAXVisitor = nullptr;    // Will be (possibly) allocated in JAX backend
+    gJAXVisitor = nullptr;  // Will be (possibly) allocated in JAX backend
 #endif
 
 #ifdef TEMPLATE_BUILD
-    gTemplateVisitor = nullptr;    // Will be (possibly) allocated in Template backend
+    gTemplateVisitor = nullptr;  // Will be (possibly) allocated in Template backend
 #endif
 
     gHelpSwitch       = false;
@@ -496,12 +496,12 @@ void global::reset()
     gPrintDocSwitch   = false;
     gArchFile         = "";
     gExportDSP        = false;
-    
+
     gTimeout = 120;  // Time out to abort compiler (in seconds)
-    
-    gErrorCount = 0;
+
+    gErrorCount   = 0;
     gErrorMessage = "";
-    
+
     // By default use "cpp" output
     gOutputLang = (getenv("FAUST_DEFAULT_BACKEND")) ? string(getenv("FAUST_DEFAULT_BACKEND")) : "cpp";
 }
@@ -523,16 +523,13 @@ void global::init()
     gEnableFlag = true;
 
     // Essential predefined types
-    TINPUT   = makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval(-1, 1));
-    TGUI     = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval());
-    TGUI01   = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval(0, 1));
-   
+    TINPUT = makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval(-1, 1));
+    TGUI   = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval());
+    TGUI01 = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval(0, 1));
+
     TREC = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(0, 0));
     // !!! TRECMAX Maximal only in the last component of the type lattice
     TRECMAX = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(-HUGE_VAL, HUGE_VAL));
-
-    // Empty predefined bit depth
-    RES = res();
 
     // Predefined symbols CONS and NIL
     CONS = symbol("cons");
@@ -775,7 +772,7 @@ bool global::hasForeignFunction(const string& name, const string& inc_file)
 #ifdef LLVM_BUILD
     // LLVM backend can use 'standard' foreign linked functions
     static vector<string> inc_list = {"<math.h>", "<cmath>", "<stdlib.h>"};
-    bool                       is_inc   = find(begin(inc_list), end(inc_list), inc_file) != inc_list.end();
+    bool                  is_inc   = find(begin(inc_list), end(inc_list), inc_file) != inc_list.end();
     // or custom added ones
     bool is_ff       = llvm_dsp_factory_aux::gForeignFunctions.count(name) > 0;
     bool is_linkable = (gOutputLang == "llvm") && (is_inc || is_ff);
@@ -785,8 +782,7 @@ bool global::hasForeignFunction(const string& name, const string& inc_file)
     bool internal_math_ff =
         ((gOutputLang == "llvm") || startWith(gOutputLang, "wast") || startWith(gOutputLang, "wasm") ||
          (gOutputLang == "interp") || startWith(gOutputLang, "cmajor") || (gOutputLang == "dlang") ||
-         (gOutputLang == "csharp") || (gOutputLang == "rust") || (gOutputLang == "julia") ||
-         (gOutputLang == "jax"));
+         (gOutputLang == "csharp") || (gOutputLang == "rust") || (gOutputLang == "julia") || (gOutputLang == "jax"));
 
     return (internal_math_ff && (gMathForeignFunctions.find(name) != gMathForeignFunctions.end())) || is_linkable;
 }

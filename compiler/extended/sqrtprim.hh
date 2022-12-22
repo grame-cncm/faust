@@ -38,9 +38,9 @@ class SqrtPrim : public xtended {
         faustassert(args.size() == 1);
         Type     t = args[0];
         interval i = t->getInterval();
-        if (i.valid) {
-            if (i.lo >= 0) {
-                return castInterval(floatCast(t), interval(sqrt(i.lo), sqrt(i.hi)));
+        if (i.isValid()) {
+            if (i.lo() >= 0) {
+                return castInterval(floatCast(t), interval(sqrt(i.lo()), sqrt(i.hi())));
             } else if (gGlobal->gMathExceptions) {
                 cerr << "WARNING : potential out of domain in sqrt(" << i << ")" << endl;
             }

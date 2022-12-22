@@ -37,11 +37,11 @@ class LogPrim : public xtended {
     {
         faustassert(args.size() == arity());
         interval i = args[0]->getInterval();
-    
-        if (i.valid) {
+
+        if (i.isValid()) {
             // log(0) gives -INF but is still in the function domain
-            if (i.lo >= 0) {
-                return castInterval(floatCast(args[0]), interval(log(i.lo), log(i.hi)));
+            if (i.lo() >= 0) {
+                return castInterval(floatCast(args[0]), interval(log(i.lo()), log(i.hi())));
             } else if (gGlobal->gMathExceptions) {
                 cerr << "WARNING : potential out of domain in log(" << i << ")" << endl;
             }
@@ -59,7 +59,7 @@ class LogPrim : public xtended {
     {
         num n;
         faustassert(args.size() == arity());
-    
+
         // log(exp(sig)) ==> sig
         xtended* xt = (xtended*)getUserData(args[0]);
         if (xt == gGlobal->gExpPrim) {

@@ -36,10 +36,10 @@ class FmodPrim : public xtended {
     virtual ::Type infereSigType(ConstTypes args)
     {
         faustassert(args.size() == arity());
-    
+
         interval i = args[0]->getInterval();
         interval j = args[1]->getInterval();
-        if (j.valid && gGlobal->gMathExceptions && j.haszero()) {
+        if (j.isValid() && gGlobal->gMathExceptions && j.hasZero()) {
             cerr << "WARNING : potential division by zero in fmod(" << i << ", " << j << ")" << endl;
         }
 
