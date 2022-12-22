@@ -3,6 +3,7 @@
 #include <limits.h>
 #include <iostream>
 #include <utility>
+#include <algorithm>
 
 namespace itv
 {
