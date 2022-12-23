@@ -22,8 +22,6 @@
 #ifndef _DLANG_INSTRUCTIONS_H
 #define _DLANG_INSTRUCTIONS_H
 
-using namespace std;
-
 #include "text_instructions.hh"
 #include "type_manager.hh"
 
@@ -33,12 +31,12 @@ class DLangInstVisitor : public TextInstVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated at most once in the module.
      */
-    static map<string, bool> gFunctionSymbolTable;
+    static std::map<std::string, bool> gFunctionSymbolTable;
 
     // Polymorphic math functions
-    map<string, string> gPolyMathLibTable;
+    std::map<std::string, std::string> gPolyMathLibTable;
     
-    string cast2FAUSTFLOAT(const string& str) { return "cast(FAUSTFLOAT)" + str; }
+    std::string cast2FAUSTFLOAT(const std::string& str) { return "cast(FAUSTFLOAT)" + str; }
 
    public:
     using TextInstVisitor::visit;
@@ -148,7 +146,7 @@ class DLangInstVisitor : public TextInstVisitor {
 
     virtual void visit(OpenboxInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fOrient) {
             case OpenboxInst::kVerticalBox:
                 name = "uiInterface.openVerticalBox(";
@@ -182,7 +180,7 @@ class DLangInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSliderInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
                 name = "uiInterface.addHorizontalSlider";
@@ -204,7 +202,7 @@ class DLangInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddBargraphInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
                 name = "uiInterface.addHorizontalBargraph";
@@ -241,7 +239,7 @@ class DLangInstVisitor : public TextInstVisitor {
         }
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         if (array_typed && array_typed->fSize > 1) {
-            string type = fTypeManager->fTypeDirectTable[array_typed->fType->getType()];
+            std::string type = fTypeManager->fTypeDirectTable[array_typed->fType->getType()];
             if (inst->fValue) {
                 *fOut << type << "[] " << inst->fAddress->getName() << " = ";
                 inst->fValue->accept(this);
@@ -296,7 +294,7 @@ class DLangInstVisitor : public TextInstVisitor {
     virtual void generateFunDefBody(DeclareFunInst* inst)
     {
         if (inst->fCode->fCode.size() == 0) {
-            *fOut << ") nothrow @nogc;" << endl;  // Pure prototype
+            *fOut << ") nothrow @nogc;" << std::endl;  // Pure prototype
         } else {
             // Function body
             *fOut << ") nothrow @nogc {";
@@ -365,7 +363,7 @@ class DLangInstVisitor : public TextInstVisitor {
 
     virtual void visit(FunCallInst* inst)
     {
-        string name = gGlobal->getMathFunction(inst->fName);
+        std::string name = gGlobal->getMathFunction(inst->fName);
         name = (gPolyMathLibTable.find(name) != gPolyMathLibTable.end()) ? gPolyMathLibTable[name] : name;
         generateFunCall(inst, name);
     }

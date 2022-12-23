@@ -42,7 +42,7 @@ class TreeTransform : public Garbageable {
     // used when tracing
     bool   fTrace;      // trace transformations when true
     int    fIndent;     // current indentation during trace
-    string fMessage;    // trace message
+    std::string fMessage;    // trace message
 
    public:
     TreeTransform() : fTrace(false), fIndent(0), fMessage("TreeTransform") {}
@@ -51,7 +51,7 @@ class TreeTransform : public Garbageable {
     Tree mapself(Tree lt);
 
     void trace(bool b) { fTrace = b; }
-    void trace(bool b, const string& m)
+    void trace(bool b, const std::string& m)
     {
         fTrace = b;
         fMessage = m;

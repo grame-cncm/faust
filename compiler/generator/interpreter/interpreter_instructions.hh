@@ -249,7 +249,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     // Declarations
     virtual void visit(DeclareVarInst* inst)
     {
-        string name = inst->fAddress->getName();
+        std::string name = inst->fAddress->getName();
         
         // HACK : completely adhoc code for input/output using kLoadInput and kStoreOutput instructions
         if ((startWith(name, "input") || startWith(name, "output"))) {
@@ -555,7 +555,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     virtual void visit(FunCallInst* inst)
     {
         // Compile args in reverse order
-        list<ValueInst*>::reverse_iterator it;
+        std::list<ValueInst*>::reverse_iterator it;
         for (it = inst->fArgs.rbegin(); it != inst->fArgs.rend(); it++) {
             (*it)->accept(this);
         }

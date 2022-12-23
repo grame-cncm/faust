@@ -31,6 +31,8 @@
 #include "sigtyperules.hh"
 #include "timing.hh"
 
+using namespace std;
+
 // Implementation
 static Tree simplifyToNormalFormAux(Tree LS)
 {

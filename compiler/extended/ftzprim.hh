@@ -63,13 +63,13 @@ class FtzPrim : public xtended {
         return types[0];
     }
 
-    virtual int infereSigOrder(const vector<int>& args)
+    virtual int infereSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
         return args[0];
     }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {
         int    i;
         double r;
@@ -101,7 +101,7 @@ class FtzPrim : public xtended {
                     container->pushGlobalDeclare(InstBuilder::genDeclareFunInst(subst("fabs$0", isuffix()), fun_type));
 
                     // we need to create a temporary variable to store the expression
-                    string vname = gGlobal->getFreshID("fTempFTZ");
+                    std::string vname = gGlobal->getFreshID("fTempFTZ");
                     container->addIncludeFile("<float.h>");
                     container->pushComputeDSPMethod(
                         InstBuilder::genDecStackVar(vname, InstBuilder::genItFloatTyped(), *args.begin()));
@@ -122,7 +122,7 @@ class FtzPrim : public xtended {
 
                 case 2: {
                     // Bitcast based solution
-                    string vname = gGlobal->getFreshID("fTempFTZ");
+                    std::string vname = gGlobal->getFreshID("fTempFTZ");
                     container->pushComputeDSPMethod(
                         InstBuilder::genDecStackVar(vname, InstBuilder::genItFloatTyped(), *args.begin()));
                     switch (gGlobal->gFloatSize) {
@@ -156,7 +156,7 @@ class FtzPrim : public xtended {
         }
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -164,7 +164,7 @@ class FtzPrim : public xtended {
         Type t = infereSigType(types);
         if ((t->nature() == kReal) && (gGlobal->gFTZMode > 0)) {
             // we need to create a temporary variable to store the expression
-            string vname = subst("fTempFTZ$0", T(++freshnum));
+            std::string vname = subst("fTempFTZ$0", T(++freshnum));
             klass->addIncludeFile("<float.h>");
             klass->addExecCode(Statement("", subst("$0 $1 = $2;", ifloat(), vname, args[0])));
             return subst(FTZPattern[gGlobal->gFloatSize][gGlobal->gFTZMode], vname);
@@ -174,7 +174,7 @@ class FtzPrim : public xtended {
         }
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

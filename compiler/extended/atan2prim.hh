@@ -39,9 +39,9 @@ class Atan2Prim : public xtended {
         return floatCast(args[0] | args[1]);
     }
 
-    virtual int infereSigOrder(const vector<int>& args) { return max(args[0], args[1]); }
+    virtual int infereSigOrder(const std::vector<int>& args) { return max(args[0], args[1]); }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {
         faustassert(args.size() == 2);
         num n, m;
@@ -60,7 +60,7 @@ class Atan2Prim : public xtended {
         return generateFun(container, subst("atan2$0", isuffix()), args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -68,7 +68,7 @@ class Atan2Prim : public xtended {
         return subst("atan2$2($0,$1)", args[0], args[1], isuffix());
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

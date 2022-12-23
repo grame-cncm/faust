@@ -43,13 +43,13 @@ class AbsPrim : public xtended {
         return t;
     }
 
-    virtual int infereSigOrder(const vector<int>& args)
+    virtual int infereSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
         return args[0];
     }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {
         double f;
         int    i;
@@ -99,11 +99,11 @@ class AbsPrim : public xtended {
             }
         */
 
-        string fun_name = (result->nature() == kInt) ? "abs" : subst("fabs$0", isuffix());
+        std::string fun_name = (result->nature() == kInt) ? "abs" : subst("fabs$0", isuffix());
         return generateFun(container, fun_name, args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -116,7 +116,7 @@ class AbsPrim : public xtended {
         }
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

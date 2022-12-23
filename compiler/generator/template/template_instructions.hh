@@ -27,8 +27,6 @@
 #include "text_instructions.hh"
 #include "struct_manager.hh"
 
-using namespace std;
-
 // Visitor used to initialize array fields into the DSP structure
 struct TemplateInitFieldsVisitor : public DispatchVisitor {
     std::ostream* fOut;
@@ -131,12 +129,12 @@ class TemplateInstVisitor : public TextInstVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
      */
-    static map<string, bool> gFunctionSymbolTable;
+    static std::map<std::string, bool> gFunctionSymbolTable;
     
    public:
     using TextInstVisitor::visit;
 
-    TemplateInstVisitor(std::ostream* out, const string& struct_name, int tab = 0)
+    TemplateInstVisitor(std::ostream* out, const std::string& struct_name, int tab = 0)
         : TextInstVisitor(out, ".", new TemplateStringTypeManager(xfloat(), "*", struct_name), tab)
     {}
 

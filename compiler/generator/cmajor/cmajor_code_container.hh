@@ -34,7 +34,7 @@
 
 // Look for the "fillXXX" function call and keep the size of the third 'table' argument
 struct TableSizeVisitor : public DispatchVisitor {
-    map<string, int> fSizeTable;
+    std::map<std::string, int> fSizeTable;
 
     virtual void visit(FunCallInst* inst)
     {
@@ -46,7 +46,7 @@ struct TableSizeVisitor : public DispatchVisitor {
             it++;
             LoadVarInst* table = dynamic_cast<LoadVarInst*>(*it);
             faustassert(table);
-            fSizeTable[inst->fName + "_" + to_string(size->fNum)] = size->fNum;
+            fSizeTable[inst->fName + "_" + std::to_string(size->fNum)] = size->fNum;
         }
     }
 };
@@ -67,7 +67,7 @@ struct TableSizeCloneVisitor : public BasicCloneVisitor {
             for (const auto& it1 : inst->fArgs) {
                 cloned_args.push_back(it1->clone(this));
             }
-            return new FunCallInst(inst->fName + "_" + to_string(size->fNum), cloned_args, inst->fMethod);
+            return new FunCallInst(inst->fName + "_" + std::to_string(size->fNum), cloned_args, inst->fMethod);
         } else {
             return BasicCloneVisitor::visit(inst);
         }
@@ -79,14 +79,14 @@ class CmajorCodeContainer : public virtual CodeContainer {
    protected:
     CmajorInstVisitor fCodeProducer;
     CmajorInstUIVisitor fUIVisitor;
-    std::ostream*   fOut;
+    std::ostream* fOut;
 
     void produceInit(int tabs);
 
     virtual void printHeader() { CodeContainer::printHeader(*fOut); }
 
    protected:
-    CmajorCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out) : fCodeProducer(out), fOut(out)
+    CmajorCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out) : fCodeProducer(out), fOut(out)
     {
         initialize(numInputs, numOutputs);
         fKlassName = name;
@@ -96,7 +96,7 @@ class CmajorCodeContainer : public virtual CodeContainer {
         }
     }
    
-    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+    CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
     void           produceInternal();
     void           produceClass();
     virtual void   generateCompute(int tab) = 0;
@@ -104,13 +104,13 @@ class CmajorCodeContainer : public virtual CodeContainer {
     virtual dsp_factory_base* produceFactory();
 
    public:
-    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, ostream* dst);
+    static CodeContainer* createContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* dst);
 };
 
 class CmajorScalarCodeContainer : public CmajorCodeContainer {
    private:
    public:
-    CmajorScalarCodeContainer(const string& name, int numInputs, int numOutputs, int sub_container_type, ostream* dst)
+    CmajorScalarCodeContainer(const std::string& name, int numInputs, int numOutputs, int sub_container_type, std::ostream* dst)
         : CmajorCodeContainer(name, numInputs, numOutputs, dst)
     {
         fSubContainerType = sub_container_type;
@@ -122,7 +122,7 @@ class CmajorScalarCodeContainer : public CmajorCodeContainer {
 class CmajorVectorCodeContainer : public VectorCodeContainer, public CmajorCodeContainer {
    private:
    public:
-    CmajorVectorCodeContainer(const string& name, int numInputs, int numOutputs, ostream* dst)
+    CmajorVectorCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* dst)
         : VectorCodeContainer(numInputs, numOutputs), CmajorCodeContainer(name, numInputs, numOutputs, dst)
     {
     }

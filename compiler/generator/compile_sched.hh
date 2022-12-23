@@ -33,7 +33,7 @@
 
 class SchedulerCompiler : public VectorCompiler {
    public:
-    SchedulerCompiler(const string& name, const string& super, int numInputs, int numOutputs)
+    SchedulerCompiler(const std::string& name, const std::string& super, int numInputs, int numOutputs)
         : VectorCompiler(name, super, numInputs, numOutputs)
     {
     }
@@ -42,8 +42,8 @@ class SchedulerCompiler : public VectorCompiler {
     virtual void compileMultiSignal(Tree L);
 
    protected:
-    virtual void vectorLoop(const string& tname, const string& dlname, const string& cexp, const string& ccs);
-    virtual void dlineLoop(const string& tname, const string& dlname, int delay, const string& cexp, const string& ccs);
+    virtual void vectorLoop(const std::string& tname, const std::string& dlname, const std::string& cexp, const std::string& ccs);
+    virtual void dlineLoop(const std::string& tname, const std::string& dlname, int delay, const std::string& cexp, const std::string& ccs);
 };
 
 #endif

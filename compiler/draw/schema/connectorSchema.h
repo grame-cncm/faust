@@ -22,7 +22,6 @@
 #ifndef __connectorSchema__
 #define __connectorSchema__
 
-#include <string>
 #include <vector>
 #include "schema.h"
 
@@ -34,8 +33,8 @@
 class connectorSchema : public schema {
    protected:
     // fields only defined after place() is called
-    vector<point> fInputPoint;   ///< input connection points
-    vector<point> fOutputPoint;  ///< output connection points
+    std::vector<point> fInputPoint;   ///< input connection points
+    std::vector<point> fOutputPoint;  ///< output connection points
 
    public:
     friend schema* makeConnectorSchema();

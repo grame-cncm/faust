@@ -42,22 +42,22 @@ class SqrtPrim : public xtended {
             if (i.lo() >= 0) {
                 return castInterval(floatCast(t), interval(sqrt(i.lo()), sqrt(i.hi())));
             } else if (gGlobal->gMathExceptions) {
-                cerr << "WARNING : potential out of domain in sqrt(" << i << ")" << endl;
+                std::cerr << "WARNING : potential out of domain in sqrt(" << i << ")" << std::endl;
             }
         }
         return castInterval(floatCast(t), interval());
     }
 
-    virtual int infereSigOrder(const vector<int>& args) { return args[0]; }
+    virtual int infereSigOrder(const std::vector<int>& args) { return args[0]; }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {
         // check simplifications
         num n;
         if (isNum(args[0], n)) {
             if (double(n) < 0) {
-                stringstream error;
-                error << "ERROR : out of domain sqrt(" << ppsig(args[0]) << ")" << endl;
+                std::stringstream error;
+                error << "ERROR : out of domain sqrt(" << ppsig(args[0]) << ")" << std::endl;
                 throw faustexception(error.str());
             } else {
                 return tree(sqrt(double(n)));
@@ -75,7 +75,7 @@ class SqrtPrim : public xtended {
         return generateFun(container, subst("sqrt$0", isuffix()), args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -83,7 +83,7 @@ class SqrtPrim : public xtended {
         return subst("sqrt$1($0)", args[0], isuffix());
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

@@ -22,8 +22,6 @@
 #ifndef _CPP_INSTRUCTIONS_H
 #define _CPP_INSTRUCTIONS_H
 
-using namespace std;
-
 #include "struct_manager.hh"
 #include "text_instructions.hh"
 #include "type_manager.hh"
@@ -38,12 +36,12 @@ class CPPInstVisitor : public TextInstVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated at most once in the module.
      */
-    static map<string, bool> gFunctionSymbolTable;
+    static std::map<std::string, bool> gFunctionSymbolTable;
 
     // Polymorphic math functions
-    map<string, string> gPolyMathLibTable;
+    std::map<std::string, std::string> gPolyMathLibTable;
 
-    string cast2FAUSTFLOAT(const string& str) { return "FAUSTFLOAT(" + str + ")"; }
+    std::string cast2FAUSTFLOAT(const std::string& str) { return "FAUSTFLOAT(" + str + ")"; }
 
    public:
     using TextInstVisitor::visit;
@@ -227,7 +225,7 @@ class CPPInstVisitor : public TextInstVisitor {
 
     virtual void visit(OpenboxInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fOrient) {
             case OpenboxInst::kVerticalBox:
                 name = "ui_interface->openVerticalBox(";
@@ -261,7 +259,7 @@ class CPPInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSliderInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
                 name = "ui_interface->addHorizontalSlider";
@@ -282,7 +280,7 @@ class CPPInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddBargraphInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
                 name = "ui_interface->addHorizontalBargraph";
@@ -419,7 +417,7 @@ class CPPInstVisitor : public TextInstVisitor {
 
     virtual void visit(::CastInst* inst)
     {
-        string type = fTypeManager->generateType(inst->fType);
+        std::string type = fTypeManager->generateType(inst->fType);
         if (endWith(type, "*")) {
             *fOut << "static_cast<" << type << ">(";
             inst->fInst->accept(this);
@@ -462,8 +460,8 @@ class CPPInstVisitor : public TextInstVisitor {
 
     virtual void visit(FunCallInst* inst)
     {
-        string name = gGlobal->getMathFunction(inst->fName);
-        name        = (gPolyMathLibTable.find(name) != gPolyMathLibTable.end()) ? gPolyMathLibTable[name] : name;
+        std::string name = gGlobal->getMathFunction(inst->fName);
+        name = (gPolyMathLibTable.find(name) != gPolyMathLibTable.end()) ? gPolyMathLibTable[name] : name;
         generateFunCall(inst, name);
     }
 
@@ -503,7 +501,7 @@ class CPPInstVisitor1 : public CPPInstVisitor {
     virtual void visit(DeclareVarInst* inst)
     {
         Address::AccessType access = inst->fAddress->getAccess();
-        string              name   = inst->fAddress->getName();
+        std::string         name   = inst->fAddress->getName();
         if (((access & Address::kStruct) || (access & Address::kStaticStruct)) && !isControl(name)) {
             fStructVisitor.visit(inst);
         } else {
@@ -514,7 +512,7 @@ class CPPInstVisitor1 : public CPPInstVisitor {
     virtual void visit(NamedAddress* named)
     {
         Typed::VarType type;
-        string         name = named->getName();
+        std::string   name = named->getName();
 
         if (fStructVisitor.hasField(name, type)) {
             if (type == Typed::kInt32) {
@@ -532,7 +530,7 @@ class CPPInstVisitor1 : public CPPInstVisitor {
     virtual void visit(IndexedAddress* indexed)
     {
         Typed::VarType type;
-        string         name = indexed->getName();
+        std::string name = indexed->getName();
 
         if (fStructVisitor.hasField(name, type)) {
             if (type == Typed::kInt32) {
@@ -571,7 +569,7 @@ class CPPInstVisitor2 : public CPPInstVisitor {
     virtual void visit(DeclareVarInst* inst)
     {
         Address::AccessType access = inst->fAddress->getAccess();
-        string              name   = inst->fAddress->getName();
+        std::string         name   = inst->fAddress->getName();
         if (((access & Address::kStruct) || (access & Address::kStaticStruct)) && !isControl(name)) {
             fStructVisitor.visit(inst);
             // Local fields have to be generated
@@ -586,7 +584,7 @@ class CPPInstVisitor2 : public CPPInstVisitor {
     virtual void visit(IndexedAddress* indexed)
     {
         Typed::VarType type;
-        string         name = indexed->getName();
+        std::string name = indexed->getName();
 
         if (fStructVisitor.hasField(name, type) && fStructVisitor.getFieldMemoryType(name) == MemoryDesc::kExternal) {
             if (type == Typed::kInt32) {
@@ -618,7 +616,7 @@ class CPPInstVisitor3 : public CPPInstVisitor2 {
     virtual void visit(IndexedAddress* indexed)
     {
         Typed::VarType type;
-        string         name = indexed->getName();
+        std::string name = indexed->getName();
 
         if (fStructVisitor.hasField(name, type) && fStructVisitor.getFieldMemoryType(name) == MemoryDesc::kExternal) {
             if (type == Typed::kInt32) {

@@ -44,6 +44,8 @@ Compile a list of FAUST signals into a C++ class.
 #include "sigtype.hh"
 #include "sigtyperules.hh"
 
+using namespace std;
+
 /*****************************************************************************
 ******************************************************************************
 

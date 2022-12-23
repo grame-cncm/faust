@@ -33,6 +33,8 @@
 #include "ppsig.hh"
 #include "property.hh"
 
+using namespace std;
+
 // History
 // 2009/09/08 : get/setDefNameProperty
 

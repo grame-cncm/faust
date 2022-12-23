@@ -28,6 +28,8 @@
 #include "tlib.hh"
 #include "faust/export.h"
 
+using namespace std;
+
 // Declaration of implementation
 static Tree calcDeBruijn2Sym(Tree t);
 static Tree substitute(Tree t, int n, Tree id);

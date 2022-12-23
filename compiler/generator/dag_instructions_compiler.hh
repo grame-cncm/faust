@@ -40,9 +40,9 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
 
     virtual ValueInst* generateWaveform(Tree sig);
 
-    void generateVectorLoop(Typed::VarType ctype, const string& vecname, ValueInst* exp,
+    void generateVectorLoop(Typed::VarType ctype, const std::string& vecname, ValueInst* exp,
                             Address::AccessType& var_access);
-    void generateDlineLoop(Typed::VarType ctype, const string& vecname, int delay, ValueInst* exp,
+    void generateDlineLoop(Typed::VarType ctype, const std::string& vecname, int delay, ValueInst* exp,
                            Address::AccessType& var_access);
 
     virtual ValueInst* generateVariableStore(Tree sig, ValueInst* inst);
@@ -50,11 +50,11 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
     virtual ValueInst* generateInput(Tree sig, int idx);
 
     virtual ValueInst* generateDelay(Tree sig, Tree arg, Tree size);
-    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd);
-    virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd,
+    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd);
+    virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd,
                                          Address::AccessType& var_access, ValueInst* ccs);
 
-    StatementInst* generateCopyBackArray(const string& vname_to, const string& vname_from, int size);
+    StatementInst* generateCopyBackArray(const std::string& vname_to, const std::string& vname_from, int size);
 
     // private helper functions
     bool needSeparateLoop(Tree sig);

@@ -74,11 +74,11 @@ struct comp_str {
     bool operator()(Tree s1, Tree s2) const { return (strcmp(tree2str(s1), tree2str(s2)) < 0); }
 };
 
-typedef map<Tree, set<Tree>, comp_str> MetaDataSet;
-typedef map<Tree, set<Tree>>           FunMDSet;  // foo -> {(file/foo/key,value)...}
+typedef std::map<Tree, std::set<Tree>, comp_str> MetaDataSet;
+typedef std::map<Tree, std::set<Tree>>           FunMDSet;  // foo -> {(file/foo/key,value)...}
 
 // Global outside of the global context
-extern vector<string> gWarningMessages;
+extern std::vector<std::string> gWarningMessages;
 extern bool           gAllWarning;
 
 // Global singleton like compiler state
@@ -86,8 +86,8 @@ struct global {
     // Parsing
     SourceReader gReader;
     Tree         gExpandedDefList;
-    string       gInputString;
-    list<string> gInputFiles;
+    std::string           gInputString;
+    std::list<std::string> gInputFiles;
     tvec         gWaveForm;  // used in the parser to keep values parsed for a given waveform
     Tree         gResult;
 
@@ -96,22 +96,22 @@ struct global {
     FunMDSet    gFunMDSet;
 
     // File handling
-    string         gFaustSuperSuperDirectory;
-    string         gFaustSuperDirectory;
-    string         gFaustDirectory;
-    string         gFaustExeDir;
-    string         gFaustRootDir;  // abs path to Faust root directory
-    string         gMasterDocument;
-    string         gMasterDirectory;
-    string         gMasterName;
-    vector<string> gImportDirList;        // dir list enrobage.cpp/fopensearch() searches for imports, etc.
-    vector<string> gArchitectureDirList;  // dir list enrobage.cpp/fopensearch() searches for architecture files
-    vector<string> gLibraryList;
-    string         gOutputDir;
-    string         gImportFilename;
-    string         gOutputFile;
-    string         gArchFile;         // -a option
-    set<string>    gAlreadyIncluded;  // to keep track of already injected files
+    std::string gFaustSuperSuperDirectory;
+    std::string gFaustSuperDirectory;
+    std::string gFaustDirectory;
+    std::string gFaustExeDir;
+    std::string gFaustRootDir;  // abs path to Faust root directory
+    std::string gMasterDocument;
+    std::string gMasterDirectory;
+    std::string gMasterName;
+    std::vector<std::string> gImportDirList;        // dir list enrobage.cpp/fopensearch() searches for imports, etc.
+    std::vector<std::string> gArchitectureDirList;  // dir list enrobage.cpp/fopensearch() searches for architecture files
+    std::vector<std::string> gLibraryList;
+    std::string         gOutputDir;
+    std::string         gImportFilename;
+    std::string         gOutputFile;
+    std::string         gArchFile;         // -a option
+    std::set<std::string>    gAlreadyIncluded;  // to keep track of already injected files
 
     // compilation options
     bool gDetailsSwitch;         // -d option
@@ -172,15 +172,15 @@ struct global {
     bool gClang;                 // -clang opttion, when compiled with clang/clang++, adds specific #pragma for auto-vectorization
     bool gFullParentheses;       // -fp option, generate less parenthesis in some textual backends: C/C++, Cmajor, Dlang, Rust
 
-    string gClassName;           // -cn option, name of the generated dsp class, by default 'mydsp'
-    string gProcessName;         // -pn option, name of the entry point of the Faust program, by default 'process'
-    string gSuperClassName;      // -scn option, name of the root class the generated dsp class inherits from, by default 'dsp'
+    std::string gClassName;           // -cn option, name of the generated dsp class, by default 'mydsp'
+    std::string gProcessName;         // -pn option, name of the entry point of the Faust program, by default 'process'
+    std::string gSuperClassName;      // -scn option, name of the root class the generated dsp class inherits from, by default 'dsp'
     
     // Debug option
     bool gCheckTable;            // -ct to check rtable/rwtable index range and generate safe access code (0/1: 1 by default)
 
     // Backend configuration
-    string gOutputLang;            // Chosen backend
+    std::string gOutputLang;       // Chosen backend
     bool   gAllowForeignFunction;  // Can use foreign functions
     bool   gAllowForeignConstant;  // Can use foreign constant
     bool   gAllowForeignVar;       // Can use foreign variable
@@ -192,7 +192,7 @@ struct global {
     bool   gUseDefaultSound;       // If default global variable is used in 'soundfile' primitive generation
     bool   gHasTeeLocal;           // For wast/wasm backends
     bool   gFastMath;              // -fm, faster version of some mathematical functions (pow/exp/log)
-    string gFastMathLib;           // -fm option, the fastmath code mapping file
+    std::string gFastMathLib;      // -fm option, the fastmath code mapping file
     bool   gMathApprox;            // -mapp option, simpler/faster versions of 'floor/fmod/remainder' functions
     bool   gNeedManualPow;         // If manual pow(x, y) generation when y is an integer is needed
     bool   gRemoveVarAddress;      // If used of variable addresses (like &foo or &foo[n]) have to be removed
@@ -200,13 +200,13 @@ struct global {
     bool   gOneSampleControl;      // -osX options, generate one sample computation control structure in DSP module
     bool   gComputeMix;            // -cm option, mix in outputs buffers
     bool   gBool2Int;              // Cast bool binary operations (comparison operations) to int
-    string gNamespace;             // Wrapping namespace used with the C++ backend
+    std::string gNamespace;        // Wrapping namespace used with the C++ backend
 
     int gWideningLimit;   // Max number of iterations before interval widening
     int gNarrowingLimit;  // Max number of iterations to compute interval widener
 
-    map<string, string> gFastMathLibTable;      // Mapping table for fastmath functions
-    map<string, bool>   gMathForeignFunctions;  // Map of math foreign functions
+    std::map<std::string, std::string> gFastMathLibTable;      // Mapping table for fastmath functions
+    std::map<std::string, bool>        gMathForeignFunctions;  // Map of math foreign functions
 
     dsp_factory_base* gDSPFactory;  // compiled factory
 
@@ -215,29 +215,29 @@ struct global {
     bool gLstDistributedSwitch;   // mdoc listing management
 
     // Automatic documentation
-    string              gDocLang;
-    string              gDocName;
-    map<string, string> gDocMetadatasStringMap;
-    set<string>         gDocMetadatasKeySet;
-    map<string, string> gDocAutodocStringMap;
-    set<string>         gDocAutodocKeySet;
-    map<string, bool>   gDocNoticeFlagMap;
-    map<string, string> gDocMathStringMap;
-    vector<Tree>        gDocVector;  //< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM
-    map<string, string> gDocNoticeStringMap;
-    set<string>         gDocNoticeKeySet;
-    set<string>         gDocMathKeySet;
+    std::string         gDocLang;
+    std::string         gDocName;
+    std::map<std::string, std::string> gDocMetadatasStringMap;
+    std::set<std::string> gDocMetadatasKeySet;
+    std::map<std::string, std::string> gDocAutodocStringMap;
+    std::set<std::string> gDocAutodocKeySet;
+    std::map<std::string, bool>   gDocNoticeFlagMap;
+    std::map<std::string, std::string> gDocMathStringMap;
+    std::vector<Tree>   gDocVector;  //< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM
+    std::map<std::string, std::string> gDocNoticeStringMap;
+    std::set<std::string> gDocNoticeKeySet;
+    std::set<std::string> gDocMathKeySet;
     const char*         gDocDevSuffix;  //< ".tex" (or .??? - used to choose output device)
-    string              gCurrentDir;    //< Room to save current directory name
-    string              gLatexheaderfilename;
+    std::string         gCurrentDir;    //< Room to save current directory name
+    std::string         gLatexheaderfilename;
     struct tm           gCompilationDate;
     int                 gFileNum;
     bool                gLatexDocSwitch;  // Only LaTeX outformat is handled for the moment
-    string              gDocTextsDefaultFile;
+    std::string         gDocTextsDefaultFile;
 
     // Error handling
     int    gErrorCount;
-    string gErrorMessage;
+    std::string gErrorMessage;
     Tabber TABBER;
 
     // ------------
@@ -245,20 +245,20 @@ struct global {
     // ------------
     // Tree is used to identify the same nodes during Box tree traversal,
     // but gBoxCounter is then used to generate unique IDs
-    map<Tree, pair<int, string>> gBoxTable;
-    int                          gBoxCounter;
+    std::map<Tree, std::pair<int, std::string>> gBoxTable;
+    int                                       gBoxCounter;
     // To keep the box tree traversing trace
-    vector<string> gBoxTrace;
+    std::vector<std::string> gBoxTrace;
 
     // ------------
     // ppsigShared
     // ------------
     // Tree is used to identify the same nodes during Signal tree traversal,
     // but gSignalCounter is then used to generate unique IDs
-    map<Tree, pair<int, string>> gSignalTable;
-    int                          gSignalCounter;
+    std::map<Tree, std::pair<int, std::string>> gSignalTable;
+    int                                       gSignalCounter;
     // To keep the signal tree traversing trace
-    vector<string> gSignalTrace;
+    std::vector<std::string> gSignalTrace;
 
     // Typing
     int gCountInferences;
@@ -449,7 +449,7 @@ struct global {
     Sym TUPLETTYPE;
 
     // The map of types and associated Structured types
-    map<Typed::VarType, DeclareStructTypeInst*> gExternalStructTypes;
+    std::map<Typed::VarType, DeclareStructTypeInst*> gExternalStructTypes;
 
     // Essential predefined types
     Type TINPUT;
@@ -491,26 +491,26 @@ struct global {
     int gMachineMaxStackSize;
 
     // To generate unique identifiers
-    map<string, int> gIDCounters;
+    std::map<std::string, int> gIDCounters;
 
     // Internal state during drawing
     Occurrences*      gOccurrences;
-    bool              gFoldingFlag;     // true with complex block-diagrams
-    stack<Tree>       gPendingExp;      // Expressions that need to be drawn
-    set<Tree>         gDrawnExp;        // Expressions drawn or scheduled so far
+    bool              gFoldingFlag;    // true with complex block-diagrams
+    std::stack<Tree>  gPendingExp;      // Expressions that need to be drawn
+    std::set<Tree>    gDrawnExp;        // Expressions drawn or scheduled so far
     const char*       gDevSuffix;       // .svg or .ps used to choose output device
-    string            gSchemaFileName;  // name of schema file beeing generated
+    std::string       gSchemaFileName;  // name of schema file beeing generated
     Tree              gInverter[6];
-    map<Tree, string> gBackLink;  // link to enclosing file for sub schema
+    std::map<Tree, std::string> gBackLink;  // link to enclosing file for sub schema
 
     // FIR
-    map<Typed::VarType, BasicTyped*> gTypeTable;     // To share a unique BasicTyped* object for a given type
-    map<string, Typed*>              gVarTypeTable;  // Types of variables or functions
-    map<Typed::VarType, int>         gTypeSizeMap;   // Size of types in bytes
-    map<string, pair<string, int>>   gTablesSize;    // Global tables size in bytes: class name, <table name, size>
+    std::map<Typed::VarType, BasicTyped*> gTypeTable;     // To share a unique BasicTyped* object for a given type
+    std::map<std::string, Typed*>         gVarTypeTable;  // Types of variables or functions
+    std::map<Typed::VarType, int>         gTypeSizeMap;   // Size of types in bytes
+    std::map<std::string, std::pair<std::string, int>>   gTablesSize;    // Global tables size in bytes: class name, <table name, size>
 
     // Colorize
-    map<Tree, int> gColorMap;
+    std::map<Tree, int> gColorMap;
     int            gNextFreeColor;
 
     // To keep current local
@@ -555,13 +555,13 @@ struct global {
 
     // Source file injection
     bool   gInjectFlag;
-    string gInjectFile;
+    std::string gInjectFile;
 
     int gTimeout;  // Time out to abort compiler (in seconds)
 
     // Garbage collection
-    static list<Garbageable*> gObjectTable;
-    static bool               gHeapCleanup;
+    static std::list<Garbageable*> gObjectTable;
+    static bool                   gHeapCleanup;
 
     global();
     ~global();
@@ -578,14 +578,14 @@ struct global {
     static void allocate();
     static void destroy();
 
-    static string printFloat();
+    static std::string printFloat();
 
-    string getFreshID(const string& prefix);
+    std::string getFreshID(const std::string& prefix);
 
-    string makeDrawPath();
-    string makeDrawPathNoExt();
+    std::string makeDrawPath();
+    std::string makeDrawPathNoExt();
 
-    string getMathFunction(const string& name)
+    std::string getMathFunction(const std::string& name)
     {
         if (gFastMath && (gFastMathLibTable.find(name) != gFastMathLibTable.end())) {
             return gFastMathLibTable[name];
@@ -594,28 +594,28 @@ struct global {
         }
     }
 
-    bool hasVarType(const string& name) { return gVarTypeTable.find(name) != gVarTypeTable.end(); }
+    bool hasVarType(const std::string& name) { return gVarTypeTable.find(name) != gVarTypeTable.end(); }
 
     BasicTyped* genBasicTyped(Typed::VarType type);
 
-    Typed::VarType getVarType(const string& name);
+    Typed::VarType getVarType(const std::string& name);
 
-    void setVarType(const string& name, Typed::VarType type);
+    void setVarType(const std::string& name, Typed::VarType type);
 
-    inline bool startWith(const string& str, const string& prefix) { return (str.substr(0, prefix.size()) == prefix); }
+    inline bool startWith(const std::string& str, const std::string& prefix) { return (str.substr(0, prefix.size()) == prefix); }
 
     // Some backends have an internal implementation of foreign functions like acos, asinh...
-    bool hasForeignFunction(const string& name, const string& inc_file);
+    bool hasForeignFunction(const std::string& name, const std::string& inc_file);
 
-    void   printCompilationOptions(stringstream& dst, bool backend = true);
-    string printCompilationOptions1();
+    void   printCompilationOptions(std::stringstream& dst, bool backend = true);
+    std::string printCompilationOptions1();
 
     void initTypeSizeMap();
 
     int audioSampleSize();
 
     // Allows to test if a given debug environment variable is set
-    static bool isDebug(const string& debug_val);
+    static bool isDebug(const std::string& debug_val);
 };
 
 // Unique shared global pointer

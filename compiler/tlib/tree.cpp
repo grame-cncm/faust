@@ -83,6 +83,8 @@ storage of trees.
 #include "exception.hh"
 #include "tree.hh"
 
+using namespace std;
+
 #ifdef WIN32
 #pragma warning(disable : 4800)
 #endif

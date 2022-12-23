@@ -23,6 +23,8 @@
 #include "floats.hh"
 #include "ppsig.hh"
 
+using namespace std;
+
 void SchedulerCompiler::compileMultiSignal(Tree L)
 {
     // contextor recursivness(0);

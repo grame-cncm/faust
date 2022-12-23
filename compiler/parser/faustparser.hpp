@@ -320,7 +320,7 @@ typedef union YYSTYPE
 {
 	CTree* 	exp;
 	char* str;
-	string* cppstr;
+	std::string* cppstr;
 	bool b;
 	int numvariant;
 }

@@ -57,8 +57,6 @@
 #include "garbageable.hh"
 #include "symbol.hh"
 
-using namespace std;
-
 /**
  * Tags used to define the type of a Node
  */
@@ -92,7 +90,7 @@ class Node : public virtual Garbageable {
         fData.f = 0;
         fData.s = symbol(name);
     }
-    Node(const string& name) : fType(kSymNode)
+    Node(const std::string& name) : fType(kSymNode)
     {
         fData.f = 0;
         fData.s = symbol(name);
@@ -124,11 +122,11 @@ class Node : public virtual Garbageable {
     operator int() const { return (fType == kIntNode) ? fData.i : (fType == kDoubleNode) ? int(fData.f) : 0; }
     operator double() const { return (fType == kIntNode) ? double(fData.i) : (fType == kDoubleNode) ? fData.f : 0.0; }
 
-    ostream& print(ostream& fout) const;  ///< print a node on a stream
+    std::ostream& print(std::ostream& fout) const;  ///< print a node on a stream
 };
 
 // printing
-inline ostream& operator<<(ostream& s, const Node& n)
+inline std::ostream& operator<<(std::ostream& s, const Node& n)
 {
     return n.print(s);
 }
@@ -266,8 +264,8 @@ inline const Node divExtendedNode(const Node& x, const Node& y)
     }
 
 raise_exception:
-    stringstream error;
-    error << "ERROR : division by 0 in " << x << " / " << y << endl;
+    std::stringstream error;
+    error << "ERROR : division by 0 in " << x << " / " << y << std::endl;
     throw faustexception(error.str());
     return {};
 }
@@ -275,8 +273,8 @@ raise_exception:
 inline const Node remNode(const Node& x, const Node& y)
 {
     if (int(y) == 0) {
-        stringstream error;
-        error << "ERROR : % by 0 in " << x << " % " << y << endl;
+        std::stringstream error;
+        error << "ERROR : % by 0 in " << x << " % " << y << std::endl;
         throw faustexception(error.str());
     }
     return Node(int(x) % int(y));

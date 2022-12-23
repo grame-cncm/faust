@@ -66,12 +66,12 @@ class xtended : public virtual Garbageable {
     // FIR backends
     virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type rtype, ConstTypes types) = 0;
     // Old CPP backend
-    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types) = 0;
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types) = 0;
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types) = 0;
-    virtual int    infereSigOrder(const vector<int>& args)                                               = 0;
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, const std::vector< ::Type>& types) = 0;
+    virtual int    infereSigOrder(const std::vector<int>& args)                                           = 0;
     virtual ::Type infereSigType(ConstTypes args)                                                        = 0;
-    virtual Tree   computeSigOutput(const vector<Tree>& args)                                            = 0;
+    virtual Tree   computeSigOutput(const std::vector<Tree>& args)                                        = 0;
     virtual bool   needCache()                                                                           = 0;
 
     virtual bool isSpecialInfix()
@@ -79,7 +79,7 @@ class xtended : public virtual Garbageable {
         return false;
     }  ///< generally false, but true for binary op # such that #(x) == _#x
 
-    ValueInst* generateFun(CodeContainer* container, const string& fun_name, const Values& args, ::Type rtype,
+    ValueInst* generateFun(CodeContainer* container, const std::string& fun_name, const Values& args, ::Type rtype,
                            ConstTypes types);
 };
 

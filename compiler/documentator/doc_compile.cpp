@@ -51,6 +51,8 @@
 #include "tlib.hh"
 #include "xtended.hh"
 
+using namespace std;
+
 extern bool getSigListNickName(Tree t, Tree& id);
 
 /*****************************************************************************

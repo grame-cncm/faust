@@ -26,6 +26,8 @@
 #include "signals.hh"
 #include "xtended.hh"
 
+using namespace std;
+
 /********************************************************************
 SignalConstantPropagation::transformation(Tree sig) :
 

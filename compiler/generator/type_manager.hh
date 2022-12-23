@@ -210,7 +210,7 @@ class RustStringTypeManager : public StringTypeManager {
         if (basic_typed) {
             return fTypeDirectTable[basic_typed->fType];
         } else if (named_typed) {
-            string ty_str = generateType(named_typed->fType);
+            std::string ty_str = generateType(named_typed->fType);
             return named_typed->fName + ((ty_str != "") ? (": " + ty_str) : "");
         } else if (array_typed) {
             return fTypeDirectTable[array_typed->getType()];
@@ -229,7 +229,7 @@ class RustStringTypeManager : public StringTypeManager {
         if (basic_typed) {
             return name + ": " + fTypeDirectTable[basic_typed->fType];
         } else if (named_typed) {
-            string ty_str = named_typed->fName + generateType(named_typed->fType);
+            std::string ty_str = named_typed->fName + generateType(named_typed->fType);
             return name + ((ty_str != "") ? (": " + ty_str) : "");
         } else if (array_typed) {
             return (array_typed->fSize == 0)
@@ -392,7 +392,7 @@ class JuliaStringTypeManager : public StringTypeManager {
         if (basic_typed) {
             return fTypeDirectTable[basic_typed->fType];
         } else if (named_typed) {
-            string ty_str = generateType(named_typed->fType);
+            std::string ty_str = generateType(named_typed->fType);
             return named_typed->fName + ((ty_str != "") ? ("::" + ty_str) : "");
         } else if (array_typed) {
             return fTypeDirectTable[array_typed->getType()];
@@ -411,7 +411,7 @@ class JuliaStringTypeManager : public StringTypeManager {
         if (basic_typed) {
             return name + "::" + fTypeDirectTable[basic_typed->fType];
         } else if (named_typed) {
-            string ty_str = named_typed->fName + generateType(named_typed->fType);
+            std::string ty_str = named_typed->fName + generateType(named_typed->fType);
             return name + ((ty_str != "") ? ("::" + ty_str) : "");
         } else if (array_typed) {
             return (array_typed->fSize == 0)
@@ -485,7 +485,7 @@ class JAXStringTypeManager : public StringTypeManager {
         if (basic_typed) {
             return fTypeDirectTable[basic_typed->fType];
         } else if (named_typed) {
-            string ty_str = generateType(named_typed->fType);
+            std::string ty_str = generateType(named_typed->fType);
             if (ty_str != "") {
                 return ty_str + "(" + named_typed->fName + ")";
             }
@@ -508,7 +508,7 @@ class JAXStringTypeManager : public StringTypeManager {
             return name;
             //return name + "::" + fTypeDirectTable[basic_typed->fType];
         } else if (named_typed) {
-            string ty_str = named_typed->fName + generateType(named_typed->fType);
+            std::string ty_str = named_typed->fName + generateType(named_typed->fType);
             //return name + ((ty_str != "") ? ("::" + ty_str) : "");
             return name;
         } else if (array_typed) {

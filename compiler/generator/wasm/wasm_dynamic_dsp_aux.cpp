@@ -27,6 +27,8 @@
 #include "Text.hh"
 #include "compatibility.hh"
 
+using namespace std;
+
 #ifdef WIN32
 #define strdup _strdup
 #endif

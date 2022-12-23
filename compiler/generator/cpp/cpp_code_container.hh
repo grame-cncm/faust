@@ -103,10 +103,10 @@ class CPPCodeContainer : public virtual CodeContainer {
     }
 
     CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
-    static CodeContainer* createScalarContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, ostream* dst, int sub_container_type);
+    static CodeContainer* createScalarContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* dst, int sub_container_type);
     
     static CodeContainer* createContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs,
-                                          ostream* dst = new std::stringstream());
+                                          std::ostream* dst = new std::stringstream());
 };
 
 /**
@@ -204,8 +204,7 @@ class CPPScalarOneSampleCodeContainer3 : public CPPScalarOneSampleCodeContainer2
     protected:
         virtual void produceClass();
     public:
-        CPPScalarOneSampleCodeContainer3(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out,
-                                         int sub_container_type)
+        CPPScalarOneSampleCodeContainer3(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type)
         {
             initialize(numInputs, numOutputs);
             fKlassName = name;

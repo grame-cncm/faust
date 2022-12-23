@@ -46,6 +46,8 @@
 #include "signals.hh"
 #include "uitree.hh"
 
+using namespace std;
+
 static int gTaskCount = 0;
 
 bool Klass::fNeedPowerDef = false;

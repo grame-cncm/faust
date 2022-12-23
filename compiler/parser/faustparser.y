@@ -96,7 +96,7 @@ inline Tree unquote(char* str)
 %union {
 	CTree* 	exp;
 	char* str;
-	string* cppstr;
+	std::string* cppstr;
 	bool b;
 	int numvariant;
 }

@@ -27,8 +27,6 @@
 #include "text_instructions.hh"
 #include "struct_manager.hh"
 
-using namespace std;
-
 // Visitor used to initialize array fields into the DSP structure
 struct JAXInitFieldsVisitor : public DispatchVisitor {
     std::ostream* fOut;
@@ -118,10 +116,10 @@ class JAXInstVisitor : public TextInstVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
      */
-    static map<string, bool> gFunctionSymbolTable;
+    static std::map<std::string, bool> gFunctionSymbolTable;
 
     // Polymorphic math functions
-    map<string, string> gPolyMathLibTable;
+    std::map<std::string, std::string> gPolyMathLibTable;
         
     // bool for "is storing left-hand-side".
     // Suppose the output code will be `state['foo'] = bar`.
@@ -150,7 +148,7 @@ class JAXInstVisitor : public TextInstVisitor {
     // We want to use numpy when initializing arrays and sound files because it's faster than JAX.
     bool fUseNumpy = true;
 
-    JAXInstVisitor(std::ostream* out, const string& struct_name, int tab = 0)
+    JAXInstVisitor(std::ostream* out, const std::string& struct_name, int tab = 0)
         : TextInstVisitor(out, ".", new JAXStringTypeManager(xfloat(), "*", struct_name), tab)
     {
         // Mark all math.h functions as generated...
@@ -698,7 +696,7 @@ class JAXInstVisitor : public TextInstVisitor {
     // Generate standard funcall (not 'method' like funcall...)
     virtual void visit(FunCallInst* inst)
     {
-        string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
+        std::string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
         if (fUseNumpy && name.rfind("jnp.") == 0) {
             // turn "jnp." into "np."
             name = name.substr(1, name.size() - 1);

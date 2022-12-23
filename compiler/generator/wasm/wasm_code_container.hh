@@ -29,8 +29,6 @@
 #include "wasm_instructions.hh"
 #include "json_instructions.hh"
 
-using namespace std;
-
 class WASMCodeContainer : public virtual CodeContainer {
    protected:
     std::ostream*          fOut;
@@ -38,24 +36,24 @@ class WASMCodeContainer : public virtual CodeContainer {
     std::stringstream      fHelper;
     int                    fInternalMemory;  // Whether memory is allocated inside wasm module or JS
 
-    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual);
-    DeclareFunInst* generateClassInit(const string& name);
-    DeclareFunInst* generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual);
-    DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual);
-    DeclareFunInst* generateInstanceResetUserInterface(const string& name, const string& obj, bool ismethod,
+    DeclareFunInst* generateInstanceInitFun(const std::string& name, const std::string& obj, bool ismethod, bool isvirtual);
+    DeclareFunInst* generateClassInit(const std::string& name);
+    DeclareFunInst* generateInstanceClear(const std::string& name, const std::string& obj, bool ismethod, bool isvirtual);
+    DeclareFunInst* generateInstanceConstants(const std::string& name, const std::string& obj, bool ismethod, bool isvirtual);
+    DeclareFunInst* generateInstanceResetUserInterface(const std::string& name, const std::string& obj, bool ismethod,
                                                        bool isvirtual);
 
     void generateComputeAux(BlockInst* compute_block);
     
     template <typename REAL>
-    string generateJSON()
+    std::string generateJSON()
     {
         // JSON generation
         JSONInstVisitor<REAL> json_visitor1;
         generateUserInterface(&json_visitor1);
 
         PathTableType path_index_table;
-        map<string, MemoryDesc>&      fieldTable1 = gGlobal->gWASMVisitor->getFieldTable();
+        std::map<std::string, MemoryDesc>&      fieldTable1 = gGlobal->gWASMVisitor->getFieldTable();
         for (const auto& it : json_visitor1.fPathTable) {
             faustassert(path_index_table.find(it.second) == path_index_table.end());
             // Get field index
@@ -75,7 +73,7 @@ class WASMCodeContainer : public virtual CodeContainer {
     }
 
    public:
-    WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+    WASMCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out,
                       bool internal_memory = true);
     virtual ~WASMCodeContainer() {}
 
@@ -85,17 +83,17 @@ class WASMCodeContainer : public virtual CodeContainer {
     void                      produceInternal() {}
     virtual dsp_factory_base* produceFactory();
 
-    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
-    CodeContainer* createScalarContainer(const string& name, int sub_container_type, bool internal_memory = true);
+    CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
+    CodeContainer* createScalarContainer(const std::string& name, int sub_container_type, bool internal_memory = true);
 
-    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, std::ostream* dst,
+    static CodeContainer* createContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* dst,
                                           bool internal_memory);
 };
 
 class WASMScalarCodeContainer : public WASMCodeContainer {
    protected:
    public:
-    WASMScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+    WASMScalarCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out,
                             int sub_container_type, bool internal_memory);
     virtual ~WASMScalarCodeContainer() {}
 
@@ -105,7 +103,7 @@ class WASMScalarCodeContainer : public WASMCodeContainer {
 class WASMVectorCodeContainer : public VectorCodeContainer, public WASMCodeContainer {
    protected:
    public:
-    WASMVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
+    WASMVectorCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
     virtual ~WASMVectorCodeContainer() {}
 
     void generateCompute();

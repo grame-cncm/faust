@@ -45,6 +45,8 @@
 #include "prim2.hh"
 #include "xtended.hh"
 
+using namespace std;
+
 static bool infereBoxType(Tree box, int* inum, int* onum);
 
 /**

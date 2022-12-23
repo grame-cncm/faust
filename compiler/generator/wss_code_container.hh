@@ -29,20 +29,20 @@
 
 class WSSCodeContainer : public virtual CodeContainer {
    protected:
-    string fObjName;
+    std::string fObjName;
 
     void moveCompute2ComputeThread();
 
-    void generateLocalInputs(BlockInst* loop_code, const string& index_string);
-    void generateLocalOutputs(BlockInst* loop_code, const string& index_string);
+    void generateLocalInputs(BlockInst* loop_code, const std::string& index);
+    void generateLocalOutputs(BlockInst* loop_code, const std::string& index);
 
     BlockInst* generateDAGLoopWSS(lclgraph dag);
     void       generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, int cur_thread = 0);
-    void       generateDAGLoopWSSAux2(lclgraph dag, const string& counter);
-    void       generateDAGLoopWSSAux3(int loop_count, const vector<int>& ready_loop);
+    void       generateDAGLoopWSSAux2(lclgraph dag, const std::string& counter);
+    void       generateDAGLoopWSSAux3(int loop_count, const std::vector<int>& ready_loop);
 
-    DeclareFunInst* generateComputeThread(const string& name, const string& obj, bool ismethod, bool isvirtual);
-    DeclareFunInst* generateComputeThreadExternal(const string& name, const string& obj);
+    DeclareFunInst* generateComputeThread(const std::string& name, const std::string& obj, bool ismethod, bool isvirtual);
+    DeclareFunInst* generateComputeThreadExternal(const std::string& name, const std::string& obj);
 
     void       processFIR(void);
     BlockInst* flattenFIR(void);
@@ -58,7 +58,7 @@ class WSSCodeContainer : public virtual CodeContainer {
     }
 
    public:
-    WSSCodeContainer(int numInputs, int numOutputs, string const& objName)
+    WSSCodeContainer(int numInputs, int numOutputs, const std::string& objName)
         : fObjName(objName), fComputeThreadBlockInstructions(InstBuilder::genBlockInst())
     {
         initialize(numInputs, numOutputs);

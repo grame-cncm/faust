@@ -2,11 +2,11 @@
 
 name: Windows
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the dev branch
   push:
-    branches: 
+    branches:
         - '*'
   pull_request:
     branches: [ master-dev ]
@@ -28,9 +28,8 @@ jobs:
 
       # Runs a set of commands using the runners shell
       - name: Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v1.1
-        with:
-          vs-version: '[16.4,16.5)'
+        uses: microsoft/setup-msbuild@v1
+    
       - name: Get latest CMake and ninja
         uses: lukka/get-cmake@latest
 

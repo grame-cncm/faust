@@ -22,8 +22,6 @@
 #ifndef _FUNCTION_BUILDER_H
 #define _FUNCTION_BUILDER_H
 
-using namespace std;
-
 #include <string.h>
 #include <algorithm>
 #include <iostream>
@@ -32,7 +30,6 @@ using namespace std;
 #include <sstream>
 #include <stack>
 #include <string>
-#include <vector>
 
 #include "exception.hh"
 #include "global.hh"
@@ -82,8 +79,8 @@ using namespace std;
 
 struct Loop2FunctionBuider : public DispatchVisitor {
     // Variable management
-    map<string, Address::AccessType> fLocalVarTable;
-    list<string>                     fAddedVarTable;
+    std::map<std::string, Address::AccessType> fLocalVarTable;
+    std::list<std::string>                     fAddedVarTable;
 
     // Function definition creation
     Names fArgsTypeList;
@@ -98,7 +95,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
         switch (address->getAccess()) {
             case Address::kStack:
             case Address::kLoop: {
-                string name = address->getName();
+                std::string name = address->getName();
                 if (fLocalVarTable.find(name) == fLocalVarTable.end()) {
                     if (find(fAddedVarTable.begin(), fAddedVarTable.end(), name) ==
                         fAddedVarTable.end()) {  // First encounter
@@ -126,7 +123,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
             }
 
             case Address::kFunArgs: {
-                string name = address->getName();
+                std::string name = address->getName();
                 if (find(fAddedVarTable.begin(), fAddedVarTable.end(), name) ==
                     fAddedVarTable.end()) {  // First encounter
 
@@ -188,16 +185,16 @@ struct Loop2FunctionBuider : public DispatchVisitor {
         createParameter(inst->fAddress);
     }
 
-    Loop2FunctionBuider(const string& fun_name, BlockInst* block, bool add_object = false)
+    Loop2FunctionBuider(const std::string& fun_name, BlockInst* block, bool add_object = false)
     {
         // This prepare fArgsTypeList and fArgsValueList
         block->accept(this);
 
         // Change the status of all variables used in function parameter list
         struct LoopCloneVisitor : public BasicCloneVisitor {
-            list<string>& fAddedVarTable;
+            std::list<std::string>& fAddedVarTable;
 
-            LoopCloneVisitor(list<string>& table) : fAddedVarTable(table) {}
+            LoopCloneVisitor(std::list<std::string>& table) : fAddedVarTable(table) {}
 
             virtual Address* visit(NamedAddress* address)
             {
@@ -238,7 +235,7 @@ Constant propagation :
 */
 
 struct ConstantPropagationBuilder : public BasicCloneVisitor {
-    map<string, ValueInst*> fValueTable;
+    std::map<std::string, ValueInst*> fValueTable;
 
     virtual ValueInst* visit(BinopInst* inst)
     {
@@ -323,7 +320,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         ValueInst*    val1   = inst->fValue->clone(this);
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
         Int32NumInst* int1   = dynamic_cast<Int32NumInst*>(val1);
-        string        name   = inst->fAddress->getName();
+        std::string  name   = inst->fAddress->getName();
 
         if (float1) {
             // float1->dump();
@@ -342,7 +339,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
 
     virtual ValueInst* visit(LoadVarInst* inst)
     {
-        string name = inst->fAddress->getName();
+        std::string name = inst->fAddress->getName();
         if (fValueTable.find(name) != fValueTable.end()) {
             return fValueTable[name];
         } else {
@@ -356,7 +353,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         ValueInst*    val1   = inst->fValue->clone(this);
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
         Int32NumInst* int1   = dynamic_cast<Int32NumInst*>(val1);
-        string        name   = inst->fAddress->getName();
+        std::string  name   = inst->fAddress->getName();
 
         if (float1) {
             // float1->dump();

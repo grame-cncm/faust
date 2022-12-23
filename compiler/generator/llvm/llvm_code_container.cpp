@@ -31,6 +31,9 @@
 #include "llvm_dynamic_dsp_aux.hh"
 #include "llvm_instructions.hh"
 
+using namespace llvm;
+using namespace std;
+
 /*
  LLVM module description:
 

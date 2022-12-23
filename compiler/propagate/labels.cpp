@@ -23,6 +23,8 @@
 #include "compatibility.hh"
 #include "global.hh"
 
+using namespace std;
+
 //=========================== PATHNAME ===============================
 
 /**

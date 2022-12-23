@@ -24,6 +24,8 @@
 #include "ppsig.hh"
 #include "sigtyperules.hh"
 
+using namespace std;
+
 StatementInst* InstructionsCompilerJAX::generateShiftArray(const string& vname, int delay)
 {
     Values truncated_args;

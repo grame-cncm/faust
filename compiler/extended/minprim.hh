@@ -42,13 +42,13 @@ class MinPrim : public xtended {
         return castInterval(args[0] | args[1], min(i, j));
     }
 
-    virtual int infereSigOrder(const vector<int>& args)
+    virtual int infereSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
         return max(args[0], args[1]);
     }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {
         double f, g;
         int    i, j;
@@ -102,11 +102,11 @@ class MinPrim : public xtended {
             }
          */
 
-        string fun_name = (result->nature() == kInt) ? "min_i" : subst("min_$0", isuffix());
+        std::string fun_name = (result->nature() == kInt) ? "min_i" : subst("min_$0", isuffix());
         return generateFun(container, fun_name, args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -151,7 +151,7 @@ class MinPrim : public xtended {
         }
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

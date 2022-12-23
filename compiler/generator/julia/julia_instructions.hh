@@ -27,8 +27,6 @@
 #include "text_instructions.hh"
 #include "struct_manager.hh"
 
-using namespace std;
-
 // Visitor used to initialize array fields into the DSP structure
 struct JuliaInitFieldsVisitor : public DispatchVisitor {
     std::ostream* fOut;
@@ -111,19 +109,19 @@ class JuliaInstVisitor : public TextInstVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
      */
-    static map<string, bool> gFunctionSymbolTable;
+    static std::map<std::string, bool> gFunctionSymbolTable;
 
     // Polymorphic math functions
-    map<string, string> gPolyMathLibTable;
+    std::map<std::string, std::string> gPolyMathLibTable;
     
     bool fMutateFun;
     
-    string cast2FAUSTFLOAT(const string& str) { return "FAUSTFLOAT(" + str + ")"; }
+    std::string cast2FAUSTFLOAT(const std::string& str) { return "FAUSTFLOAT(" + str + ")"; }
     
    public:
     using TextInstVisitor::visit;
 
-    JuliaInstVisitor(std::ostream* out, const string& struct_name, int tab = 0, bool mutate_fun = false)
+    JuliaInstVisitor(std::ostream* out, const std::string& struct_name, int tab = 0, bool mutate_fun = false)
         : TextInstVisitor(out, ".", new JuliaStringTypeManager(xfloat(), "*", struct_name), tab), fMutateFun(mutate_fun)
     {
         // Mark all math.h functions as generated...
@@ -332,7 +330,7 @@ class JuliaInstVisitor : public TextInstVisitor {
 
     virtual void visit(OpenboxInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fOrient) {
             case OpenboxInst::kVerticalBox:
                 name = "openVerticalBox!(";
@@ -356,7 +354,7 @@ class JuliaInstVisitor : public TextInstVisitor {
     
     virtual void visit(AddButtonInst* inst)
     {
-        string name;
+        std::string name;
         if (inst->fType == AddButtonInst::kDefaultButton) {
             name = "addButton!(";
         } else {
@@ -368,7 +366,7 @@ class JuliaInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSliderInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
                 name = "addHorizontalSlider!(";
@@ -390,7 +388,7 @@ class JuliaInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddBargraphInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
                 name = "addHorizontalBargraph!(";
@@ -528,7 +526,7 @@ class JuliaInstVisitor : public TextInstVisitor {
     virtual void generateFunDefBody(DeclareFunInst* inst)
     {
         if (inst->fCode->fCode.size() == 0) {
-            *fOut << ") where {T}" << endl;  // Pure prototype
+            *fOut << ") where {T}" << std::endl;  // Pure prototype
         } else {
             // Function body
             *fOut << ") where {T}";
@@ -613,7 +611,7 @@ class JuliaInstVisitor : public TextInstVisitor {
     // Generate standard funcall (not 'method' like funcall...)
     virtual void visit(FunCallInst* inst)
     {
-        string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
+        std::string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
         // Function that mutate their arguments use the '!' syntax
         *fOut << name << ((fMutateFun && inst->fArgs.size() > 0) ?  "!(" : "(");
         // Compile parameters

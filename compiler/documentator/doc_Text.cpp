@@ -33,6 +33,8 @@
 #include "exception.hh"
 #include "floats.hh"
 
+using namespace std;
+
 const string symbolicNumber(double n);
 
 #if 0

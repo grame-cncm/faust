@@ -39,20 +39,20 @@ class AsinPrim : public xtended {
         Type     t = args[0];
         interval i = t->getInterval();
         if (i.isValid() && gGlobal->gMathExceptions && (i.lo() < -1 || i.hi() > 1)) {
-            cerr << "WARNING : potential out of domain in asin(" << i << ")" << endl;
+            std::cerr << "WARNING : potential out of domain in asin(" << i << ")" << std::endl;
         }
         return floatCast(args[0]);
     }
 
-    virtual int infereSigOrder(const vector<int>& args) { return args[0]; }
+    virtual int infereSigOrder(const std::vector<int>& args) { return args[0]; }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {
         num n;
         if (isNum(args[0], n)) {
             if ((double(n) < -1) || (double(n) > 1)) {
-                stringstream error;
-                error << "ERROR : out of domain  in asin(" << ppsig(args[0]) << ")" << endl;
+                std::stringstream error;
+                error << "ERROR : out of domain  in asin(" << ppsig(args[0]) << ")" << std::endl;
                 throw faustexception(error.str());
             } else {
                 return tree(asin(double(n)));
@@ -70,7 +70,7 @@ class AsinPrim : public xtended {
         return generateFun(container, subst("asin$0", isuffix()), args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -78,7 +78,7 @@ class AsinPrim : public xtended {
         return subst("asin$1($0)", args[0], isuffix());
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

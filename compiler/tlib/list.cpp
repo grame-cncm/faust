@@ -108,6 +108,8 @@ This file contains several extensions to the tree library :
 #include "global.hh"
 #include "property.hh"
 
+using namespace std;
+
 Tree cons(Tree a, Tree b)
 {
     return tree(gGlobal->CONS, a, b);

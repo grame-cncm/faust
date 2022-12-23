@@ -29,6 +29,8 @@
 #include "ppsig.hh"
 #include "Text.hh"
 
+using namespace std;
+
 //-------------------------SignalIdentity-------------------------------
 // An identity transformation on signals. Can be used to test
 // that everything works, and as a pattern for real transformations.

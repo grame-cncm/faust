@@ -38,8 +38,6 @@
 #include "boxes.hh"
 #include "garbageable.hh"
 
-using namespace std;
-
 LIBFAUST_API const char *prim0name(CTree *(*ptr)());
 LIBFAUST_API const char *prim1name(CTree *(*ptr)(CTree *));
 LIBFAUST_API const char *prim2name(CTree *(*ptr)(CTree *, CTree *));
@@ -58,10 +56,10 @@ class boxpp : public virtual Garbageable {
     public:
         boxpp(Tree b, int p = 0) : fBox(b), fPriority(p) {}
         virtual ~boxpp() {}
-        virtual ostream &print(ostream &fout) const;
+        virtual std::ostream &print(std::ostream &fout) const;
 };
 
-inline ostream &operator<<(ostream &file, const boxpp &bpp)
+inline std::ostream &operator<<(std::ostream &file, const boxpp &bpp)
 {
     return bpp.print(file);
 }
@@ -73,19 +71,19 @@ class boxppShared : public boxpp {
   
     public:
         boxppShared(Tree b, int p = 0) : boxpp(b, p) {}
-        boxppShared(Tree L, ostream& fout):boxpp(L)
+        boxppShared(Tree L, std::ostream& fout):boxpp(L)
         {
             // Create a map of <ID, expression>
-            stringstream s; s << boxppShared(L);
+            std::stringstream s; s << boxppShared(L);
             // Print the <ID, expression> list
             printIDs(fout);
-            fout << "process = " << s.str() << ";" << endl;
+            fout << "process = " << s.str() << ";" << std::endl;
         }
     
         virtual ~boxppShared() {}
-        virtual ostream &print(ostream &fout) const;
+        virtual std::ostream &print(std::ostream &fout) const;
     
-        static void printIDs(ostream& fout);
+        static void printIDs(std::ostream& fout);
 };
 
 // environment pretty printer.
@@ -96,10 +94,10 @@ class envpp : public virtual Garbageable {
 
     public:
         envpp(Tree e) : fEnv(e) {}
-        ostream &print(ostream &fout) const;
+        std::ostream &print(std::ostream &fout) const;
 };
 
-inline ostream &operator<<(ostream &file, const envpp &epp)
+inline std::ostream &operator<<(std::ostream &file, const envpp &epp)
 {
     return epp.print(file);
 }

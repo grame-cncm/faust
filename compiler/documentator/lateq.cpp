@@ -47,6 +47,8 @@
 #include "global.hh"
 #include "lateq.hh"
 
+using namespace std;
+
 static int  getLateqIndex(const string& s);
 static bool compLateqIndexes(const string& s1, const string& s2);
 static void initDocMathKeySet();

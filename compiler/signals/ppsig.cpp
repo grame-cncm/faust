@@ -29,6 +29,8 @@
 #include "recursivness.hh"
 #include "xtended.hh"
 
+using namespace std;
+
 ppsig::ppsig(Tree s) : fSig(s), fEnv(gGlobal->nil), fPriority(0), fHideRecursion(false)
 {
 }

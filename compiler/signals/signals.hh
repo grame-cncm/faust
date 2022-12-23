@@ -30,8 +30,6 @@
 #include "exception.hh"
 #include "tlib.hh"
 
-using namespace std;
-
 #if defined(WIN32) && !defined(__GNUC__)
 #pragma warning(disable : 4800)
 #endif
@@ -357,7 +355,7 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen = true);
  */
 bool verySimple(Tree exp);
 
-bool sigList2vecInt(Tree ls, vector<int>& v);
+bool sigList2vecInt(Tree ls, std::vector<int>& v);
 
 /**
  * Convert an stl vector of signals into a tree list of signals

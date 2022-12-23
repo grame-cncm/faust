@@ -24,6 +24,8 @@
 #include "exception.hh"
 #include "global.hh"
 
+using namespace std;
+
 static Tree makeSubFolderChain(Tree path, Tree elem);
 static Tree putFolder(Tree folder, Tree item);
 static Tree getFolder(Tree folder, Tree ilabel);

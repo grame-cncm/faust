@@ -27,6 +27,8 @@
 #include "timing.hh"
 #include "fir_to_fir.hh"
 
+using namespace std;
+
 DAGInstructionsCompiler::DAGInstructionsCompiler(CodeContainer* container) : InstructionsCompiler(container)
 {
 }

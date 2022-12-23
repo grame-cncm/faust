@@ -29,8 +29,6 @@
 #include "instructions.hh"
 #include "exception.hh"
 
-using namespace std;
-
 #ifdef WIN32
 #pragma warning(disable : 4244)
 #endif
@@ -41,12 +39,12 @@ using namespace std;
 
 template <typename REAL>
 struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
-    map<string, string> fPathTable; // Table : field_name, complete path
-    set<string> fControlPathSet;    // Set of already used control paths
+    std::map<std::string, std::string> fPathTable; // Table : field_name, complete path
+    std::set<std::string> fControlPathSet;    // Set of already used control paths
  
     using DispatchVisitor::visit;
     
-    const string& insertPath(const string& path, bool check = true)
+    const std::string& insertPath(const std::string& path, bool check = true)
     {
         if (check && fControlPathSet.find(path) != fControlPathSet.end()) {
             throw faustexception("ERROR : path '" + path + "' is already used\n");

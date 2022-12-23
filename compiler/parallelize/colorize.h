@@ -28,6 +28,6 @@
 
 #include "tlib.hh"
 
-void splitDependance(const set<Tree>& exps, set<Tree>& post, set<Tree>& pre);
+void splitDependance(const std::set<Tree>& exps, std::set<Tree>& post, std::set<Tree>& pre);
 
 #endif

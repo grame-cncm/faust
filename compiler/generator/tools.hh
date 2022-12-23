@@ -25,12 +25,10 @@
 #include <stddef.h>
 #include <iostream>
 
-using namespace std;
-
 template <typename T>
 void print_type(char const* name)
 {
-    cout << name << " sizeof = " << sizeof(T) << " alignof = " << __alignof__(T) << endl;
+    std::cout << name << " sizeof = " << sizeof(T) << " alignof = " << __alignof__(T) << std::endl;
 }
 
 // Author: Nick Strupat

@@ -25,6 +25,8 @@
 #include "ppsig.hh"
 #include "treeTraversal.hh"
 
+using namespace std;
+
 //------------------------------------------------------------------------------
 // TreeTraversal: Bottom up traversal
 //------------------------------------------------------------------------------

@@ -38,6 +38,8 @@
 #include "simplify.hh"
 #include "xtended.hh"
 
+using namespace std;
+
 #undef TRACE
 
 // declarations

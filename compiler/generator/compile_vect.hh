@@ -33,7 +33,7 @@
 
 class VectorCompiler : public ScalarCompiler {
    public:
-    VectorCompiler(const string& name, const string& super, int numInputs, int numOutputs)
+    VectorCompiler(const std::string& name, const std::string& super, int numInputs, int numOutputs)
         : ScalarCompiler(name, super, numInputs, numOutputs)
     {
     }
@@ -42,22 +42,22 @@ class VectorCompiler : public ScalarCompiler {
     virtual void compileMultiSignal(Tree L);
 
    protected:
-    virtual string CS(Tree sig);
-    virtual string generateCode(Tree sig);
+    virtual std::string CS(Tree sig);
+    virtual std::string generateCode(Tree sig);
     virtual void   generateCodeRecursions(Tree sig);
-    virtual string generateCodeNonRec(Tree sig);
-    virtual string generateLoopCode(Tree sig);
+    virtual std::string generateCodeNonRec(Tree sig);
+    virtual std::string generateLoopCode(Tree sig);
 
-    virtual string generateCacheCode(Tree sig, const string& exp);
-    virtual void   generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
-                                     const string& ccs);
-    virtual string generateVariableStore(Tree sig, const string& exp);
-    virtual string generateDelay(Tree sig, Tree exp, Tree delay);
-    virtual string generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
-    virtual void   generateVectorLoop(const string& tname, const string& dlname, const string& cexp, const string& ccs);
-    virtual void   generateDlineLoop(const string& tname, const string& dlname, int delay, const string& cexp,
-                                     const string& ccs);
-    virtual string generateWaveform(Tree sig);
+    virtual std::string generateCacheCode(Tree sig, const std::string& exp);
+    virtual void   generateDelayLine(const std::string& ctype, const std::string& vname, int mxd, const std::string& exp,
+                                     const std::string& ccs);
+    virtual std::string generateVariableStore(Tree sig, const std::string& exp);
+    virtual std::string generateDelay(Tree sig, Tree exp, Tree delay);
+    virtual std::string generateDelayVec(Tree sig, const std::string& exp, const std::string& ctype, const std::string& vname, int mxd);
+    virtual void   generateVectorLoop(const std::string& tname, const std::string& dlname, const std::string& cexp, const std::string& ccs);
+    virtual void   generateDlineLoop(const std::string& tname, const std::string& dlname, int delay, const std::string& cexp,
+                                     const std::string& ccs);
+    virtual std::string generateWaveform(Tree sig);
 
     bool needSeparateLoop(Tree sig);
 };

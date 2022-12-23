@@ -25,6 +25,8 @@
 #include "Text.hh"
 #include "ppsig.hh"
 
+using namespace std;
+
 //------------------------------------------------------------------------------
 // TreeTransform: Recursive transformation of a Tree with memoization
 //------------------------------------------------------------------------------

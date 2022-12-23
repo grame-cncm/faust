@@ -24,6 +24,8 @@
 #include <sstream>
 #include "exception.hh"
 
+using namespace std;
+
 /**
  * Extract the sub signals of a signal expression, that is not
  * necessarily all the subtrees.

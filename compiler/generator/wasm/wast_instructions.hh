@@ -31,7 +31,7 @@
 
 class WASTInstVisitor : public TextInstVisitor, public WASInst {
    private:
-    string type2String(Typed::VarType type)
+    std::string type2String(Typed::VarType type)
     {
         if (isIntOrPtrType(type) || isBoolType(type)) {
             return "i32";
@@ -45,7 +45,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         }
     }
 
-    string ensureFloat(string str)
+    std::string ensureFloat(std::string& str)
     {
         bool dot   = false;
         int  e_pos = -1;
@@ -75,7 +75,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     // Special version without termination
     template <class T>
-    string checkReal(T val)
+    std::string checkReal(T val)
     {
         if (std::isinf(val)) {
             return "inf";
@@ -105,7 +105,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         Address::AccessType access      = inst->fAddress->getAccess();
         bool                is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
         ArrayTyped*         array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        string              name        = inst->fAddress->getName();
+        std::string              name        = inst->fAddress->getName();
   
         // fSampleRate may appear several time (in subcontainers and in main DSP)
         if (name != "fSampleRate") {
@@ -223,7 +223,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     {
         Typed::VarType        type = TypingVisitor::getType(inst);
         Address::AccessType access = inst->fAddress->getAccess();
-        string                name = inst->fAddress->getName();
+        std::string          name = inst->fAddress->getName();
         IndexedAddress*    indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
         if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
@@ -262,7 +262,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     {
         // 'tee_local' is generated the first time the variable is used
         // All future access simply use a local.get
-        string name = inst->fAddress->getName();
+        std::string name = inst->fAddress->getName();
 
         if (fTeeMap.find(name) == fTeeMap.end()) {
             *fOut << "(tee_local $" << name << " ";
@@ -590,7 +590,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     }
 
     // Special case for min/max
-    void generateMinMax(const Values& args, const string& fun)
+    void generateMinMax(const Values& args, const std::string& fun)
     {
         Values::iterator it;
         ValueInst* arg1 = *(args.begin());
@@ -715,7 +715,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         if (inst->fCode->size() == 0) return;
 
         // Local variables declaration including the loop counter have been moved outside of the loop
-        string name = inst->getName();
+        std::string name = inst->getName();
 
         // Init loop counter
         inst->fInit->accept(this);

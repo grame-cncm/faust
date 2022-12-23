@@ -35,8 +35,6 @@
 #include "simplify.hh"
 #include "tlib.hh"
 
-using namespace std;
-
 /**
  * Implements a multiplicative term, a term of type
  * k*x^n*y^m*... and its arithmetic.
@@ -47,8 +45,8 @@ struct CompareTree {
 };
 
 class mterm : public virtual Garbageable {
-    Tree                        fCoef;     ///< constant part of the term (usually 1 or -1)
-    map<Tree, int, CompareTree> fFactors;  ///< non constant terms and their power
+    Tree fCoef;     ///< constant part of the term (usually 1 or -1)
+    std::map<Tree, int, CompareTree> fFactors;  ///< non constant terms and their power
 
    public:
     mterm();                ///< create a 0 mterm
@@ -74,7 +72,7 @@ class mterm : public virtual Garbageable {
 
     mterm    operator*(const mterm& m) const;  ///< mterms multiplication
     mterm    operator/(const mterm& m) const;  ///< mterms division
-    ostream& print(ostream& dst) const;        ///< print a mterm k*x1**n1*x2**n2...
+    std::ostream& print(std::ostream& dst) const;        ///< print a mterm k*x1**n1*x2**n2...
 
     int  complexity() const;  ///< return an evaluation of the complexity
     Tree normalizedTree(bool sign = false,
@@ -85,7 +83,7 @@ class mterm : public virtual Garbageable {
     friend mterm gcd(const mterm& m1, const mterm& m2);  /// greatest common divisor of two mterms
 };
 
-inline ostream& operator<<(ostream& s, const mterm& m)
+inline std::ostream& operator<<(std::ostream& s, const mterm& m)
 {
     return m.print(s);
 }

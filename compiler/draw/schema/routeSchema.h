@@ -35,14 +35,14 @@ using namespace std;
  */
 class routeSchema : public schema {
    protected:
-    const string           fText;    ///< Text to be displayed
-    const string           fColor;   ///< color of the box
-    const string           fLink;    ///< option URL link
+    const std::string      fText;    ///< Text to be displayed
+    const std::string      fColor;   ///< color of the box
+    const std::string      fLink;    ///< option URL link
     const std::vector<int> fRoutes;  ///< route description: s1,d2,s2,d2,...
 
     // fields only defined after place() is called
-    vector<point> fInputPoint;   ///< input connection points
-    vector<point> fOutputPoint;  ///< output connection points
+    std::vector<point> fInputPoint;   ///< input connection points
+    std::vector<point> fOutputPoint;  ///< output connection points
 
    public:
     friend schema* makeRouteSchema(unsigned int n, unsigned int m, const std::vector<int>& routes);

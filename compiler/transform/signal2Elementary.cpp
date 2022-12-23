@@ -25,6 +25,8 @@
 #include <cstdlib>
 #include "Text.hh"
 
+using namespace std;
+
 //-------------------------SignalVisitor-------------------------------
 // An identity transformation on signals. Can be used to test
 // that everything works, and as a pattern for real transformations.

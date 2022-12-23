@@ -29,6 +29,8 @@
 #include "sigtyperules.hh"
 #include "xtended.hh"
 
+using namespace std;
+
 void SignalTreeChecker::visit(Tree sig)
 {
     int  opnum;

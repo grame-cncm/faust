@@ -40,25 +40,25 @@ class FmodPrim : public xtended {
         interval i = args[0]->getInterval();
         interval j = args[1]->getInterval();
         if (j.isValid() && gGlobal->gMathExceptions && j.hasZero()) {
-            cerr << "WARNING : potential division by zero in fmod(" << i << ", " << j << ")" << endl;
+            std::cerr << "WARNING : potential division by zero in fmod(" << i << ", " << j << ")" << std::endl;
         }
 
         return castInterval(floatCast(args[0] | args[1]), fmod(i, j));
     }
 
-    virtual int infereSigOrder(const vector<int>& args)
+    virtual int infereSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
         return max(args[0], args[1]);
     }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {
         num n, m;
         faustassert(args.size() == arity());
         if (isZero(args[1])) {
-            stringstream error;
-            error << "ERROR : % by 0 in " << ppsig(args[0]) << " % " << ppsig(args[1]) << endl;
+            std::stringstream error;
+            error << "ERROR : % by 0 in " << ppsig(args[0]) << " % " << ppsig(args[1]) << std::endl;
             throw faustexception(error.str());
         } else if (isNum(args[0], n) && isNum(args[1], m)) {
             return tree(fmod(double(n), double(m)));
@@ -80,7 +80,7 @@ class FmodPrim : public xtended {
         return generateFun(container, subst("fmod$0", isuffix()), args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, ConstTypes types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -88,7 +88,7 @@ class FmodPrim : public xtended {
         return subst("fmod$2($0,$1)", args[0], args[1], isuffix());
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, ConstTypes types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

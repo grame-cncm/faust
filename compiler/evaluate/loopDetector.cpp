@@ -25,6 +25,8 @@
 #include "loopDetector.hh"
 #include "ppbox.hh"
 
+using namespace std;
+
 bool loopDetector::detect(Tree t)
 {
     fPhase++;

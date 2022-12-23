@@ -31,10 +31,10 @@ class InstructionsCompilerJAX : public InstructionsCompiler {
     InstructionsCompilerJAX(CodeContainer* container): InstructionsCompiler(container)
     {}
 
-    StatementInst* generateShiftArray(const string& vname, int delay) override;
+    StatementInst* generateShiftArray(const std::string& vname, int delay) override;
 
-    ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd,
-                                                   Address::AccessType& var_access, ValueInst* ccs) override;
+    ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd,
+                                Address::AccessType& var_access, ValueInst* ccs) override;
 
     ValueInst* generateSoundfile(Tree sig, Tree path) override;
 };

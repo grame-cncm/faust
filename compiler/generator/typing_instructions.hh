@@ -24,8 +24,6 @@
 
 #include "instructions.hh"
 
-using namespace std;
-
 /*
  Typing visitor: to be used when knowing the exact type of the currenty compiled value is needed.
  */
@@ -39,7 +37,7 @@ struct TypingVisitor : public InstVisitor {
 
     virtual void visit(LoadVarInst* inst)
     {
-        string name = inst->getName();
+        std::string name = inst->getName();
         // Stack or struct variables
         if (gGlobal->hasVarType(name)) {
             fCurType                = gGlobal->getVarType(name);
@@ -56,19 +54,19 @@ struct TypingVisitor : public InstVisitor {
             }
         } else {
             fCurType = Typed::kNoType;
-            cerr << "ERROR in TypingVisitor : variable '" << name << "' has Typed::kNoType" << endl;
+            std::cerr << "ERROR in TypingVisitor : variable '" << name << "' has Typed::kNoType" << std::endl;
             faustassert(false);
         }
     }
 
     virtual void visit(TeeVarInst* inst)
     {
-        string name = inst->getName();
+        std::string name = inst->getName();
         if (gGlobal->hasVarType(name)) {
             fCurType = gGlobal->getVarType(name);
         } else {
             fCurType = Typed::kNoType;
-            cerr << "ERROR in TypingVisitor : variable '" << name << "' has Typed::kNoType" << endl;
+            std::cerr << "ERROR in TypingVisitor : variable '" << name << "' has Typed::kNoType" << std::endl;
             faustassert(false);
         }
     }
@@ -111,8 +109,8 @@ struct TypingVisitor : public InstVisitor {
                     fCurType = Typed::kInt32;
                 } else {
                     // Should never happen...
-                    cerr << "ERROR in TypingVisitor : BinopInst a1 = ";
-                    cerr << Typed::gTypeString[type1] << " a2 = " << Typed::gTypeString[type2] << endl;
+                    std::cerr << "ERROR in TypingVisitor : BinopInst a1 = ";
+                    std::cerr << Typed::gTypeString[type1] << " a2 = " << Typed::gTypeString[type2] << std::endl;
                     faustassert(false);
                 }
             }
@@ -135,7 +133,7 @@ struct TypingVisitor : public InstVisitor {
             fCurType = gGlobal->getVarType(inst->fName);
         } else {
             // Should never happen...
-            cerr << "TypingVisitor::visit(FunCallInst* inst) name " << inst->fName << std::endl;
+            std::cerr << "TypingVisitor::visit(FunCallInst* inst) name " << inst->fName << std::endl;
             faustassert(false);
         }
     }

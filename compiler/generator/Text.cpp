@@ -35,6 +35,8 @@
 #include "floats.hh"
 #include "global.hh"
 
+using namespace std;
+
 static string substitution(const string& model, const vector<string>& args)
 {
     char   c;

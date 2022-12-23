@@ -42,8 +42,6 @@
 
 ***********************************************************************/
 
-using namespace std;
-
 #include <list>
 #include <map>
 #include <string>
@@ -57,20 +55,20 @@ class Lateq : public virtual Garbageable {
     ~Lateq() {}
 
     /** Add a line of a latex equation code corresponding to a signal. */
-    void addInputSigFormula(const string& str) { fInputSigsFormulas.push_back(str); }
-    void addConstSigFormula(const string& str) { fConstSigsFormulas.push_back(str); }
-    void addParamSigFormula(const string& str) { fParamSigsFormulas.push_back(str); }
-    void addStoreSigFormula(const string& str) { fStoreSigsFormulas.push_back(str); }
-    void addRecurSigFormula(const string& str) { fRecurSigsFormulas.push_back(str); }
-    void addRDTblSigFormula(const string& str) { fRDTblSigsFormulas.push_back(str); }
-    void addRWTblSigFormula(const string& str) { fRWTblSigsFormulas.push_back(str); }
-    void addSelectSigFormula(const string& str) { fSelectSigsFormulas.push_back(str); }
-    void addPrefixSigFormula(const string& str) { fPrefixSigsFormulas.push_back(str); }
-    void addOutputSigFormula(const string& str) { fOutputSigsFormulas.push_back(str); }
-    void addUISigFormula(const string& path, const string& str) { fUISigsFormulas.insert(make_pair(path, str)); };
+    void addInputSigFormula(const std::string& str) { fInputSigsFormulas.push_back(str); }
+    void addConstSigFormula(const std::string& str) { fConstSigsFormulas.push_back(str); }
+    void addParamSigFormula(const std::string& str) { fParamSigsFormulas.push_back(str); }
+    void addStoreSigFormula(const std::string& str) { fStoreSigsFormulas.push_back(str); }
+    void addRecurSigFormula(const std::string& str) { fRecurSigsFormulas.push_back(str); }
+    void addRDTblSigFormula(const std::string& str) { fRDTblSigsFormulas.push_back(str); }
+    void addRWTblSigFormula(const std::string& str) { fRWTblSigsFormulas.push_back(str); }
+    void addSelectSigFormula(const std::string& str) { fSelectSigsFormulas.push_back(str); }
+    void addPrefixSigFormula(const std::string& str) { fPrefixSigsFormulas.push_back(str); }
+    void addOutputSigFormula(const std::string& str) { fOutputSigsFormulas.push_back(str); }
+    void addUISigFormula(const std::string& path, const std::string& str) { fUISigsFormulas.insert(make_pair(path, str)); };
 
     /** Top-level method to print a whole set of compiled LaTeX formulas. */
-    void println(ostream& docout);
+    void println(std::ostream& docout);
 
     int inputs() const { return fNumInputs; }
     int outputs() const { return fNumOutputs; }
@@ -80,35 +78,35 @@ class Lateq : public virtual Garbageable {
     const int fNumOutputs;
 
     /** LaTeX formulas to print. */
-    list<string>             fInputSigsFormulas;
-    list<string>             fConstSigsFormulas;
-    list<string>             fParamSigsFormulas;
-    list<string>             fStoreSigsFormulas;
-    list<string>             fRecurSigsFormulas;
-    list<string>             fRDTblSigsFormulas;
-    list<string>             fRWTblSigsFormulas;
-    list<string>             fSelectSigsFormulas;
-    list<string>             fPrefixSigsFormulas;
-    list<string>             fOutputSigsFormulas;
-    multimap<string, string> fUISigsFormulas;
+    std::list<std::string>             fInputSigsFormulas;
+    std::list<std::string>             fConstSigsFormulas;
+    std::list<std::string>             fParamSigsFormulas;
+    std::list<std::string>             fStoreSigsFormulas;
+    std::list<std::string>             fRecurSigsFormulas;
+    std::list<std::string>             fRDTblSigsFormulas;
+    std::list<std::string>             fRWTblSigsFormulas;
+    std::list<std::string>             fSelectSigsFormulas;
+    std::list<std::string>             fPrefixSigsFormulas;
+    std::list<std::string>             fOutputSigsFormulas;
+    std::multimap<std::string, std::string> fUISigsFormulas;
 
-    string                makeItemTitle(size_t formulasListSize, const string& titleName);
-    string                makeSignamesList(const list<string>& formulasList, const string& ending);
-    string                makeSignamesList(const vector<list<string> >& formulasListsVector,
-                                           const string&                ending);  ///< For all "internal" signals.
-    string                getSigName(const string& s);
-    string                makeSigDomain(const list<string>& formulasList);
-    string                getUISigName(const string& s);
-    char                  getUISigType(const string& s);
-    vector<list<string> > makeUISignamesVector(const multimap<string, string>& field);
+    std::string                makeItemTitle(size_t formulasListSize, const std::string& titleName);
+    std::string                makeSignamesList(const std::list<std::string>& formulasList, const std::string& ending);
+    std::string                makeSignamesList(const std::vector<std::list<std::string> >& formulasListsVector,
+                                           const std::string& ending);  ///< For all "internal" signals.
+    std::string                getSigName(const std::string& s);
+    std::string                makeSigDomain(const std::list<std::string>& formulasList);
+    std::string                getUISigName(const std::string& s);
+    char                  getUISigType(const std::string& s);
+    std::vector<std::list<std::string>> makeUISignamesVector(const std::multimap<std::string, std::string>& field);
 
-    void printOneLine(const string& section, ostream& docout);
-    void printHierarchy(const string& section, multimap<string, string>& field, ostream& docout);
-    void printDGroup(const string& section, list<string>& field, ostream& docout);
-    void printMath(const string& section, list<string>& field, ostream& docout);
+    void printOneLine(const std::string& section, std::ostream& docout);
+    void printHierarchy(const std::string& section, std::multimap<std::string, std::string>& field, std::ostream& docout);
+    void printDGroup(const std::string& section, std::list<std::string>& field, std::ostream& docout);
+    void printMath(const std::string& section, std::list<std::string>& field, std::ostream& docout);
 
-    bool hasNotOnlyEmptyKeys(multimap<string, string>& mm);
-    void tab(int n, ostream& docout) const;
+    bool hasNotOnlyEmptyKeys(std::multimap<std::string, std::string>& mm);
+    void tab(int n, std::ostream& docout) const;
 };
 
 void initDocMath();

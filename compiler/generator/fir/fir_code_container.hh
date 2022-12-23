@@ -32,25 +32,23 @@
 #include "vec_code_container.hh"
 #include "wss_code_container.hh"
 
-using namespace std;
-
 class FIRCodeContainer : public virtual CodeContainer {
    private:
-    void dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* dst);
-    void dumpUserInterface(FIRInstVisitor& firvisitor, ostream* dst);
-    void dumpSubContainers(FIRInstVisitor& firvisitor, ostream* dst);
+    void dumpGlobalsAndInit(FIRInstVisitor& firvisitor, std::ostream* dst);
+    void dumpUserInterface(FIRInstVisitor& firvisitor, std::ostream* dst);
+    void dumpSubContainers(FIRInstVisitor& firvisitor, std::ostream* dst);
 
-    virtual void dumpThread(FIRInstVisitor& firvisitor, ostream* dst){};
-    virtual void dumpComputeBlock(FIRInstVisitor& firvisitor, ostream* dst);
-    virtual void dumpCompute(FIRInstVisitor& firvisitor, ostream* dst) = 0;
-    virtual void dumpPostCompute(FIRInstVisitor& firvisitor, ostream* dst);
-    virtual void dumpMemory(ostream* dst);
-    virtual void dumpFlatten(ostream* dst);
+    virtual void dumpThread(FIRInstVisitor& firvisitor, std::ostream* dst){};
+    virtual void dumpComputeBlock(FIRInstVisitor& firvisitor, std::ostream* dst);
+    virtual void dumpCompute(FIRInstVisitor& firvisitor, std::ostream* dst) = 0;
+    virtual void dumpPostCompute(FIRInstVisitor& firvisitor, std::ostream* dst);
+    virtual void dumpMemory(std::ostream* dst);
+    virtual void dumpFlatten(std::ostream* dst);
 
     std::ostream* fOut;
 
    protected:
-    FIRCodeContainer(const string& name, int numInputs, int numOutputs, ostream* dst, bool top_level)
+    FIRCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* dst, bool top_level)
     {
         fTopLevel  = top_level;
         fKlassName = name;
@@ -58,7 +56,7 @@ class FIRCodeContainer : public virtual CodeContainer {
         initialize(numInputs, numOutputs);
     }
 
-    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+    CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
     void           produceInternal();
     void           produceClass();
 
@@ -67,17 +65,16 @@ class FIRCodeContainer : public virtual CodeContainer {
     bool fTopLevel;
 
    public:
-    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, ostream* dst,
+    static CodeContainer* createContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* dst,
                                           bool top_level = false);
 };
 
 class FIRScalarCodeContainer : public FIRCodeContainer {
    private:
-    virtual void dumpCompute(FIRInstVisitor& firvisitor, ostream* dst);
+    virtual void dumpCompute(FIRInstVisitor& firvisitor, std::ostream* dst);
 
    public:
-    FIRScalarCodeContainer(const string& name, int numInputs, int numOutputs, int sub_container_type, ostream* dst,
-                           bool top_level)
+    FIRScalarCodeContainer(const std::string& name, int numInputs, int numOutputs, int sub_container_type, std::ostream* dst, bool top_level)
         : FIRCodeContainer(name, numInputs, numOutputs, dst, top_level)
     {
         fSubContainerType = sub_container_type;
@@ -86,10 +83,10 @@ class FIRScalarCodeContainer : public FIRCodeContainer {
 
 class FIRVectorCodeContainer : public VectorCodeContainer, public FIRCodeContainer {
    private:
-    virtual void dumpCompute(FIRInstVisitor& firvisitor, ostream* dst);
+    virtual void dumpCompute(FIRInstVisitor& firvisitor, std::ostream* dst);
 
    public:
-    FIRVectorCodeContainer(const string& name, int numInputs, int numOutputs, ostream* dst, bool top_level)
+    FIRVectorCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* dst, bool top_level)
         : VectorCodeContainer(numInputs, numOutputs), FIRCodeContainer(name, numInputs, numOutputs, dst, top_level)
     {
     }
@@ -97,10 +94,10 @@ class FIRVectorCodeContainer : public VectorCodeContainer, public FIRCodeContain
 
 class FIROpenMPCodeContainer : public OpenMPCodeContainer, public FIRCodeContainer {
    private:
-    virtual void dumpCompute(FIRInstVisitor& firvisitor, ostream* dst);
+    virtual void dumpCompute(FIRInstVisitor& firvisitor, std::ostream* dst);
 
    public:
-    FIROpenMPCodeContainer(const string& name, int numInputs, int numOutputs, ostream* dst, bool top_level)
+    FIROpenMPCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* dst, bool top_level)
         : OpenMPCodeContainer(numInputs, numOutputs), FIRCodeContainer(name, numInputs, numOutputs, dst, top_level)
     {
     }
@@ -108,12 +105,12 @@ class FIROpenMPCodeContainer : public OpenMPCodeContainer, public FIRCodeContain
 
 class FIRWorkStealingCodeContainer : public WSSCodeContainer, public FIRCodeContainer {
    private:
-    virtual void dumpCompute(FIRInstVisitor& firvisitor, ostream* dst);
-    virtual void dumpThread(FIRInstVisitor& firvisitor, ostream* dst);
-    virtual void dumpMemory(ostream* dst);
+    virtual void dumpCompute(FIRInstVisitor& firvisitor, std::ostream* dst);
+    virtual void dumpThread(FIRInstVisitor& firvisitor, std::ostream* dst);
+    virtual void dumpMemory(std::ostream* dst);
 
    public:
-    FIRWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs, ostream* dst, bool top_level)
+    FIRWorkStealingCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* dst, bool top_level)
         : WSSCodeContainer(numInputs, numOutputs, "this"), FIRCodeContainer(name, numInputs, numOutputs, dst, top_level)
     {
     }

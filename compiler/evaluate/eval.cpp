@@ -45,6 +45,8 @@
 #include "simplify.hh"
 #include "xtended.hh"
 
+using namespace std;
+
 // History
 // 23/05/2005 : New environment management
 

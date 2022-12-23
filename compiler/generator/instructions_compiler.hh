@@ -39,28 +39,26 @@
 
 #define _DNF_ 1
 
-using namespace std;
-
 class InstructionsCompiler : public virtual Garbageable {
    protected:
     CodeContainer* fContainer;
 
-    property<ValueInst*>            fCompileProperty;
-    property<string>                fVectorProperty;
-    property<pair<string, string>>  fStaticInitProperty;
-    property<pair<string, string>>  fInstanceInitProperty;
-    property<string>                fTableProperty;
+    property<ValueInst*>  fCompileProperty;
+    property<std::string> fVectorProperty;
+    property<std::pair<std::string, std::string>>  fStaticInitProperty;
+    property<std::pair<std::string, std::string>>  fInstanceInitProperty;
+    property<std::string> fTableProperty;
     
-    map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
+    std::map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
     
-    Tree                            fSharingKey;
-    old_OccMarkup*                  fOccMarkup;
+    Tree            fSharingKey;
+    old_OccMarkup*  fOccMarkup;
 
     // Ensure IOTA base fixed delays are computed once
-    map<int, string> fIOTATable;
+    std::map<int, std::string> fIOTATable;
     
     // Several 'IOTA' variables may be needed when subcontainers are inlined in the main module
-    string fCurrentIOTA;
+    std::string fCurrentIOTA;
 
     Tree         fUIRoot;
     Description* fDescription;
@@ -71,28 +69,28 @@ class InstructionsCompiler : public virtual Garbageable {
      'select' delay-line use N+1 and use select to wrap the read/write indexes (use less memory but slower)
     */
   
-    void getTypedNames(::Type t, const string& prefix, Typed::VarType& ctype, string& vname);
+    void getTypedNames(::Type t, const std::string& prefix, Typed::VarType& ctype, std::string& vname);
 
     bool getCompiledExpression(Tree sig, ValueType& cexp);
     ValueType setCompiledExpression(Tree sig, const ValueType& cexp);
 
-    bool getVectorNameProperty(Tree sig, string& vecname);
-    void setVectorNameProperty(Tree sig, const string& vecname);
+    bool getVectorNameProperty(Tree sig, std::string& vecname);
+    void setVectorNameProperty(Tree sig, const std::string& vecname);
     
-    bool getTableNameProperty(Tree sig, string& vecname);
-    void setTableNameProperty(Tree sig, const string& vecname);
+    bool getTableNameProperty(Tree sig, std::string& vecname);
+    void setTableNameProperty(Tree sig, const std::string& vecname);
   
     // Redefined by RustInstructionsCompiler
-    virtual StatementInst* generateInitArray(const string& vname, Typed::VarType ctype, int delay);
-    virtual StatementInst* generateCopyArray(const string& vname, int index_from, int index_to);
-    virtual StatementInst* generateCopyArray(const string& vname_to, const string& vname_from, int size);
+    virtual StatementInst* generateInitArray(const std::string& vname, Typed::VarType ctype, int delay);
+    virtual StatementInst* generateCopyArray(const std::string& vname, int index_from, int index_to);
+    virtual StatementInst* generateCopyArray(const std::string& vname_to, const std::string& vname_from, int size);
     
     // Redefined in InterpreterInstructionsCompiler
-    virtual StatementInst* generateShiftArray(const string& vname, int delay);
+    virtual StatementInst* generateShiftArray(const std::string& vname, int delay);
 
-    ValueInst* generateButtonAux(Tree sig, Tree path, const string& name);
-    ValueInst* generateSliderAux(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step, const string& name);
-    ValueInst* generateBargraphAux(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp, const string& name);
+    ValueInst* generateButtonAux(Tree sig, Tree path, const std::string& name);
+    ValueInst* generateSliderAux(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step, const std::string& name);
+    ValueInst* generateBargraphAux(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp, const std::string& name);
 
     // Wrapper functions to access code container
     StatementInst* pushInitMethod(StatementInst* inst) { return fContainer->pushInitMethod(inst); }
@@ -136,7 +134,7 @@ class InstructionsCompiler : public virtual Garbageable {
         return x && (!(x&(x-1)));
     }
 
-    CodeContainer* signal2Container(const string& name, Tree sig);
+    CodeContainer* signal2Container(const std::string& name, Tree sig);
 
     int  getSharingCount(Tree sig);
     void setSharingCount(Tree sig, int count);
@@ -145,7 +143,7 @@ class InstructionsCompiler : public virtual Garbageable {
 
     FIRIndex getCurrentLoopIndex() { return FIRIndex(fContainer->getCurLoop()->getLoopIndex()); }
     
-    void declareWaveform(Tree sig, string& vname, int& size);
+    void declareWaveform(Tree sig, std::string& vname, int& size);
     
     // Enable/control
     void conditionAnnotation(Tree l);
@@ -221,11 +219,11 @@ class InstructionsCompiler : public virtual Garbageable {
 
     virtual ValueInst* generateIntNumber(Tree sig, int num);
     virtual ValueInst* generateRealNumber(Tree sig, double num);
-    virtual ValueInst* generateFConst(Tree sig, Tree type, const string& file, const string& name);
-    virtual ValueInst* generateFVar(Tree sig, Tree type, const string& file, const string& name);
+    virtual ValueInst* generateFConst(Tree sig, Tree type, const std::string& file, const std::string& name);
+    virtual ValueInst* generateFVar(Tree sig, Tree type, const std::string& file, const std::string& name);
 
-    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd);
-    virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname, int mxd,
+    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd);
+    virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd,
                                          Address::AccessType& var_access, ValueInst* ccs);
     
     virtual ValueInst* generateControl(Tree sig, Tree x, Tree y);
@@ -237,9 +235,9 @@ class InstructionsCompiler : public virtual Garbageable {
     void generateUserInterfaceElements(Tree elements);
     void generateWidgetCode(Tree fulllabel, Tree varname, Tree sig);
 
-    void generateMacroInterfaceTree(const string& pathname, Tree t);
-    void generateMacroInterfaceElements(const string& pathname, Tree elements);
-    void generateWidgetMacro(const string& pathname, Tree fulllabel, Tree varname, Tree sig);
+    void generateMacroInterfaceTree(const std::string& pathname, Tree t);
+    void generateMacroInterfaceElements(const std::string& pathname, Tree elements);
+    void generateWidgetMacro(const std::string& pathname, Tree fulllabel, Tree varname, Tree sig);
 
     void setDescription(Description* descr) { fDescription = descr; }
     Description* getDescription() { return fDescription; }

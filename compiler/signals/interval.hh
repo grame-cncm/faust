@@ -39,8 +39,6 @@ inline double log2(double e)
 }
 #endif
 
-using namespace std;
-
 inline double min(double x, double y)
 {
     return (x < y) ? x : y;
@@ -202,17 +200,17 @@ struct res : public virtual Garbageable {
     res() : valid(false), index(0) {}
     res(int i) : valid(true), index(i) {}
 
-    string toString() const
+    std::string toString() const
     {
-        string sout;
+        std::string sout;
         sout += "r(";
-        sout += valid ? to_string(index) : "???";
+        sout += valid ? std::to_string(index) : "???";
         sout += ")";
         return sout;
     }
 };
 
-inline ostream& operator<<(ostream& dst, const res& r)
+inline std::ostream& operator<<(std::ostream& dst, const res& r)
 {
     return dst << r.toString();
 }

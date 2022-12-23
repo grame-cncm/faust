@@ -29,8 +29,6 @@
 #include "wast_instructions.hh"
 #include "json_instructions.hh"
 
-using namespace std;
-
 class WASTCodeContainer : public virtual CodeContainer {
    protected:
     std::ostream*     fOut;
@@ -46,20 +44,20 @@ class WASTCodeContainer : public virtual CodeContainer {
         block_res->accept(gGlobal->gWASTVisitor);
     }
 
-    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual);
+    DeclareFunInst* generateInstanceInitFun(const std::string& name, const std::string& obj, bool ismethod, bool isvirtual);
 
     void generateComputeAux1(int n);
     void generateComputeAux2(BlockInst* compute_block, int n);
     
     template <typename REAL>
-    string generateJSON()
+    std::string generateJSON()
     {
         // JSON generation
         JSONInstVisitor<REAL> json_visitor1;
         generateUserInterface(&json_visitor1);
         
         PathTableType path_index_table;
-        map<string, MemoryDesc>& fieldTable1 = gGlobal->gWASTVisitor->getFieldTable();
+        std::map<std::string, MemoryDesc>& fieldTable1 = gGlobal->gWASTVisitor->getFieldTable();
         for (const auto& it : json_visitor1.fPathTable) {
             faustassert(path_index_table.find(it.second) == path_index_table.end());
             // Get field index
@@ -79,7 +77,7 @@ class WASTCodeContainer : public virtual CodeContainer {
     }
 
    public:
-    WASTCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
+    WASTCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
     virtual ~WASTCodeContainer() {}
 
     virtual void produceClass();
@@ -88,17 +86,17 @@ class WASTCodeContainer : public virtual CodeContainer {
     void                      produceInternal() {}
     virtual dsp_factory_base* produceFactory();
 
-    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
-    CodeContainer* createScalarContainer(const string& name, int sub_container_type, bool internal_memory = true);
+    CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
+    CodeContainer* createScalarContainer(const std::string& name, int sub_container_type, bool internal_memory = true);
 
-    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, std::ostream* dst,
+    static CodeContainer* createContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* dst,
                                           bool internal_memory);
 };
 
 class WASTScalarCodeContainer : public WASTCodeContainer {
    protected:
    public:
-    WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+    WASTScalarCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out,
                             int sub_container_type, bool internal_memory);
     virtual ~WASTScalarCodeContainer() {}
 
@@ -108,7 +106,7 @@ class WASTScalarCodeContainer : public WASTCodeContainer {
 class WASTVectorCodeContainer : public VectorCodeContainer, public WASTCodeContainer {
    protected:
    public:
-    WASTVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
+    WASTVectorCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
     virtual ~WASTVectorCodeContainer() {}
 
     void generateCompute(int tab);

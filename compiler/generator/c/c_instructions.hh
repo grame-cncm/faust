@@ -27,8 +27,6 @@
 #include "text_instructions.hh"
 #include "struct_manager.hh"
 
-using namespace std;
-
 /**
  * Implement C FIR visitor.
  */
@@ -39,17 +37,17 @@ class CInstVisitor : public TextInstVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
      */
-    static map<string, bool> gFunctionSymbolTable;
+    static std::map<std::string, bool> gFunctionSymbolTable;
 
     // Polymorphic math functions
-    map<string, string> gPolyMathLibTable;
+    std::map<std::string, std::string> gPolyMathLibTable;
     
-    string cast2FAUSTFLOAT(const string& str) { return "(FAUSTFLOAT)" + str; }
+    std::string cast2FAUSTFLOAT(const std::string& str) { return "(FAUSTFLOAT)" + str; }
     
    public:
     using TextInstVisitor::visit;
 
-    CInstVisitor(std::ostream* out, const string& struct_name, int tab = 0)
+    CInstVisitor(std::ostream* out, const std::string& struct_name, int tab = 0)
         : TextInstVisitor(out, "->", new CStringTypeManager(xfloat(), "*", struct_name), tab)
     {
         // Mark all math.h functions as generated...
@@ -158,7 +156,7 @@ class CInstVisitor : public TextInstVisitor {
 
     virtual void visit(OpenboxInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fOrient) {
             case OpenboxInst::kVerticalBox:
                 name = "ui_interface->openVerticalBox(";
@@ -182,7 +180,7 @@ class CInstVisitor : public TextInstVisitor {
     
     virtual void visit(AddButtonInst* inst)
     {
-        string name;
+        std::string name;
         if (inst->fType == AddButtonInst::kDefaultButton) {
             name = "ui_interface->addButton(";
         } else {
@@ -194,7 +192,7 @@ class CInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSliderInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
                 name = "ui_interface->addHorizontalSlider(";
@@ -216,7 +214,7 @@ class CInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddBargraphInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
                 name = "ui_interface->addHorizontalBargraph(";
@@ -386,7 +384,7 @@ class CInstVisitor : public TextInstVisitor {
     // Generate standard funcall (not 'method' like funcall...)
     virtual void visit(FunCallInst* inst)
     {
-        string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
+        std::string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
         *fOut << gGlobal->getMathFunction(name) << "(";
 
         // Compile parameters
@@ -467,7 +465,7 @@ class CInstVisitor1 : public CInstVisitor {
     
     public:
     
-        CInstVisitor1(std::ostream* out, const string& structname, int tab = 0)
+        CInstVisitor1(std::ostream* out, const std::string& structname, int tab = 0)
         :CInstVisitor(out, structname, tab)
         {}
     
@@ -480,7 +478,7 @@ class CInstVisitor1 : public CInstVisitor {
         virtual void visit(DeclareVarInst* inst)
         {
             Address::AccessType access = inst->fAddress->getAccess();
-            string name = inst->fAddress->getName();
+            std::string name = inst->fAddress->getName();
             if (((access & Address::kStruct) || (access & Address::kStaticStruct)) && !isControl(name)) {
                 fStructVisitor.visit(inst);
             } else {
@@ -491,7 +489,7 @@ class CInstVisitor1 : public CInstVisitor {
         virtual void visit(NamedAddress* named)
         {
             Typed::VarType type;
-            string name = named->getName();
+            std::string name = named->getName();
             
             if (fStructVisitor.hasField(name, type)) {
                 if (type == Typed::kInt32) {
@@ -509,7 +507,7 @@ class CInstVisitor1 : public CInstVisitor {
         virtual void visit(IndexedAddress* indexed)
         {
             Typed::VarType type;
-            string name = indexed->getName();
+            std::string name = indexed->getName();
             
             if (fStructVisitor.hasField(name, type)) {
                 if (type == Typed::kInt32) {
@@ -543,14 +541,14 @@ class CInstVisitor2 : public CInstVisitor {
          
     public:
         
-        CInstVisitor2(std::ostream* out, const string& structname, int external_memory, int tab = 0)
+        CInstVisitor2(std::ostream* out, const std::string& structname, int external_memory, int tab = 0)
         :CInstVisitor(out, structname, tab), fStructVisitor(external_memory, 4)
         {}
         
         virtual void visit(DeclareVarInst* inst)
         {
             Address::AccessType access = inst->fAddress->getAccess();
-            string name = inst->fAddress->getName();
+            std::string name = inst->fAddress->getName();
             if (((access & Address::kStruct) || (access & Address::kStaticStruct)) && !isControl(name)) {
                 fStructVisitor.visit(inst);
                 // Local fields have to be generated
@@ -565,7 +563,7 @@ class CInstVisitor2 : public CInstVisitor {
         virtual void visit(IndexedAddress* indexed)
         {
             Typed::VarType type;
-            string name = indexed->getName();
+            std::string name = indexed->getName();
             
             if (fStructVisitor.hasField(name, type) && fStructVisitor.getFieldMemoryType(name) == MemoryDesc::kExternal) {
                 if (type == Typed::kInt32) {
@@ -594,14 +592,14 @@ class CInstVisitor3 : public CInstVisitor2 {
     
     public:
         
-        CInstVisitor3(std::ostream* out, const string& structname, int external_memory, int tab = 0)
+        CInstVisitor3(std::ostream* out, const std::string& structname, int external_memory, int tab = 0)
         :CInstVisitor2(out, structname, external_memory, tab)
         {}
          
         virtual void visit(IndexedAddress* indexed)
         {
             Typed::VarType type;
-            string name = indexed->getName();
+            std::string name = indexed->getName();
             
             if (fStructVisitor.hasField(name, type) && fStructVisitor.getFieldMemoryType(name) == MemoryDesc::kExternal) {
                 if (type == Typed::kInt32) {

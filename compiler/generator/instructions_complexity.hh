@@ -47,8 +47,8 @@ class InstComplexityVisitor : public DispatchVisitor {
     int fSelect;
     int fLoop;
   
-    map<string, int> gFunctionSymbolTable;
-    map<string, int> gBinopSymbolTable;
+    std::map<std::string, int> gFunctionSymbolTable;
+    std::map<std::string, int> gBinopSymbolTable;
 
    public:
     using DispatchVisitor::visit;
@@ -97,9 +97,9 @@ class InstComplexityVisitor : public DispatchVisitor {
         Typed::VarType type1 = TypingVisitor::getType(inst->fInst1);
         Typed::VarType type2 = TypingVisitor::getType(inst->fInst2);
         if (isRealType(type1) || isRealType(type2)) {
-            gBinopSymbolTable["Real(" + string(gBinOpTable[inst->fOpcode]->fName) + ")"]++;
+            gBinopSymbolTable["Real(" + std::string(gBinOpTable[inst->fOpcode]->fName) + ")"]++;
         } else {
-            gBinopSymbolTable["Int(" + string(gBinOpTable[inst->fOpcode]->fName) + ")"]++;
+            gBinopSymbolTable["Int(" + std::string(gBinOpTable[inst->fOpcode]->fName) + ")"]++;
         }
         DispatchVisitor::visit(inst);
     }

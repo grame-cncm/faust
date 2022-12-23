@@ -23,7 +23,6 @@
 #define _SigType_
 
 #include <iostream>
-#include <string>
 #include <vector>
 #include "garbageable.hh"
 #include "smartpointer.hh"
@@ -72,12 +71,10 @@ enum {
 
 ----------------------------------------------------------------------*/
 
-using namespace std;
-
 class AudioType;
 
 typedef P<AudioType>        Type;
-typedef const vector<Type>& ConstTypes;
+typedef const std::vector<Type>& ConstTypes;
 
 /**
  * The Root class for all audio data types.
@@ -126,7 +123,7 @@ class AudioType : public virtual Garbageable {
     virtual AudioType* promoteBoolean(int n)              = 0;  ///< promote the booleanity of a type
     virtual AudioType* promoteInterval(const interval& i) = 0;  ///< promote the interval of a type
 
-    virtual ostream& print(ostream& dst) const = 0;  ///< print nicely a type
+    virtual std::ostream& print(std::ostream& dst) const = 0;  ///< print nicely a type
     ///< true when type is maximal (and therefore can't change depending of hypothesis)
     virtual bool isMaximal() const = 0;
 
@@ -135,7 +132,7 @@ class AudioType : public virtual Garbageable {
 };
 
 // printing
-inline ostream& operator<<(ostream& s, const AudioType& n)
+inline std::ostream& operator<<(std::ostream& s, const AudioType& n)
 {
     return n.print(s);
 }
@@ -230,7 +227,7 @@ class SimpleType : public AudioType {
         // cerr << "new simple type " << i << " -> " << *this << endl;
     }  ///< constructs a SimpleType from a nature a variability and a computability
 
-    virtual ostream& print(ostream& dst) const;  ///< print a SimpleType
+    virtual std::ostream& print(std::ostream& dst) const;  ///< print a SimpleType
 
     virtual AudioType* promoteNature(int n)
     {
@@ -345,7 +342,7 @@ class TableType : public AudioType {
        ///< vectorability
 
     Type             content() const { return fContent; }  ///< return the type of data store in the table
-    virtual ostream& print(ostream& dst) const;            ///< print a TableType
+    virtual std::ostream& print(std::ostream& dst) const;            ///< print a TableType
 
     virtual AudioType* promoteNature(int n)
     {
@@ -383,7 +380,7 @@ class TableType : public AudioType {
  */
 class TupletType : public AudioType {
    protected:
-    vector<Type> fComponents;
+    std::vector<Type> fComponents;
 
    public:
     TupletType() : AudioType(0, 0, 0) {}
@@ -404,7 +401,7 @@ class TupletType : public AudioType {
 
     int              arity() const { return (int)fComponents.size(); }
     Type             operator[](unsigned int i) const { return fComponents[i]; }
-    virtual ostream& print(ostream& dst) const;
+    virtual std::ostream& print(std::ostream& dst) const;
 
     virtual AudioType* promoteNature(int n)
     {
@@ -485,10 +482,10 @@ TupletType* isTupletType(AudioType* t);
 //--------------------------------------------------
 // types impressions
 
-ostream& operator<<(ostream& dst, const SimpleType& t);
-ostream& operator<<(ostream& dst, const Type& t);
-ostream& operator<<(ostream& dst, const TableType& t);
-ostream& operator<<(ostream& dst, const TupletType& t);
+std::ostream& operator<<(std::ostream& dst, const SimpleType& t);
+std::ostream& operator<<(std::ostream& dst, const Type& t);
+std::ostream& operator<<(std::ostream& dst, const TableType& t);
+std::ostream& operator<<(std::ostream& dst, const TupletType& t);
 
 //--------------------------------------------------
 // type verification

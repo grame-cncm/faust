@@ -46,6 +46,8 @@
 #include "tlib.hh"
 #include "xtended.hh"
 
+using namespace std;
+
 static int infereSigOrder(Tree sig);
 
 /**

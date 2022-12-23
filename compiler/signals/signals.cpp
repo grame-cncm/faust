@@ -32,6 +32,8 @@
 #include "signals.hh"
 #include "xtended.hh"
 
+using namespace std;
+
 LIBFAUST_API Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
 {
     /*

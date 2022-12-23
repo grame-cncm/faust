@@ -44,7 +44,7 @@ class P {
 
     ~P() {}
 
-       operator T*() const { return p; }
+    operator T*() const { return p; }
     T& operator*() const
     {
         if (p == nullptr) {

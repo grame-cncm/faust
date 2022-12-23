@@ -41,6 +41,8 @@ Compile a list of FAUST signals into a LaTeX equation.
 #include "sigtype.hh"
 #include "sigtyperules.hh"
 
+using namespace std;
+
 /*****************************************************************************
 ******************************************************************************
 

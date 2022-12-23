@@ -44,8 +44,8 @@
 
 class DocCompiler : public virtual Garbageable {
    protected:
-    property<string> fCompileProperty;
-    property<string> fVectorProperty;
+    property<std::string> fCompileProperty;
+    property<std::string> fVectorProperty;
 
     Lateq*       fLateq;
     Description* fDescription;
@@ -71,77 +71,77 @@ class DocCompiler : public virtual Garbageable {
     Description* getDescription() { return fDescription; }
 
    protected:
-    string CS(Tree sig, int priority);
-    string generateCode(Tree sig, int priority);
-    string generateCacheCode(Tree sig, const string& exp);
-    string generateVariableStore(Tree sig, const string& exp);
+    std::string CS(Tree sig, int priority);
+    std::string generateCode(Tree sig, int priority);
+    std::string generateCacheCode(Tree sig, const std::string& exp);
+    std::string generateVariableStore(Tree sig, const std::string& exp);
 
-    string getFreshID(const string& prefix);
+    std::string getFreshID(const std::string& prefix);
 
-    bool   getCompiledExpression(Tree sig, string& name);
-    string setCompiledExpression(Tree sig, const string& name);
+    bool   getCompiledExpression(Tree sig, std::string& name);
+    std::string setCompiledExpression(Tree sig, const std::string& name);
 
-    void setVectorNameProperty(Tree sig, const string& vecname);
-    bool getVectorNameProperty(Tree sig, string& vecname);
+    void setVectorNameProperty(Tree sig, const std::string& vecname);
+    bool getVectorNameProperty(Tree sig, std::string& vecname);
 
     int  getSharingCount(Tree t);
     void setSharingCount(Tree t, int count);
     void sharingAnalysis(Tree t);
     void sharingAnnotation(int vctxt, Tree t);
 
-    bool isShortEnough(string& s, unsigned int max);
+    bool isShortEnough(std::string& s, unsigned int max);
 
     /* Code generation. */
 
-    string generateXtended(Tree sig, int priority);
-    string generateDelay(Tree sig, Tree arg, Tree size, int priority);
-    string generatePrefix(Tree sig, Tree x, Tree e, int priority);
-    string generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2, int priority);
+    std::string generateXtended(Tree sig, int priority);
+    std::string generateDelay(Tree sig, Tree arg, Tree size, int priority);
+    std::string generatePrefix(Tree sig, Tree x, Tree e, int priority);
+    std::string generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2, int priority);
 
-    string generateFFun(Tree sig, Tree ff, Tree largs, int priority);
+    std::string generateFFun(Tree sig, Tree ff, Tree largs, int priority);
 
-    string generateInput(Tree sig, const string& idx);
-    string generateOutput(Tree sig, const string& idx, const string& arg1);
+    std::string generateInput(Tree sig, const std::string& idx);
+    std::string generateOutput(Tree sig, const std::string& idx, const std::string& arg1);
 
-    string generateDocConstantTbl(Tree sig, Tree size, Tree content);
-    string generateDocWriteTbl(Tree sig, Tree size, Tree content, Tree widx, Tree wsig);
-    string generateDocAccessTbl(Tree sig, Tree tbl, Tree ridx);
+    std::string generateDocConstantTbl(Tree sig, Tree size, Tree content);
+    std::string generateDocWriteTbl(Tree sig, Tree size, Tree content, Tree widx, Tree wsig);
+    std::string generateDocAccessTbl(Tree sig, Tree tbl, Tree ridx);
 
-    string generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2, int priority);
+    std::string generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2, int priority);
    
-    string generateRecProj(Tree sig, Tree exp, int i, int priority);
+    std::string generateRecProj(Tree sig, Tree exp, int i, int priority);
     void   generateRec(Tree sig, Tree var, Tree le, int priority);
 
-    string generateIntCast(Tree sig, Tree x, int priority);
-    string generateFloatCast(Tree sig, Tree x, int priority);
+    std::string generateIntCast(Tree sig, Tree x, int priority);
+    std::string generateFloatCast(Tree sig, Tree x, int priority);
 
-    string generateButton(Tree sig, Tree label);
-    string generateCheckbox(Tree sig, Tree label);
-    string generateVSlider(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-    string generateHSlider(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-    string generateNumEntry(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
+    std::string generateButton(Tree sig, Tree label);
+    std::string generateCheckbox(Tree sig, Tree label);
+    std::string generateVSlider(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
+    std::string generateHSlider(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
+    std::string generateNumEntry(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
 
-    string generateVBargraph(Tree sig, Tree label, Tree min, Tree max, const string& exp);
-    string generateHBargraph(Tree sig, Tree label, Tree min, Tree max, const string& exp);
-    string generateAttach(Tree sig, Tree x, Tree y, int priority);
-    string generateControl(Tree sig, Tree arg1, Tree arg2, int priority);
-    string generateNumber(Tree sig, const string& exp);
-    string generateFConst(Tree sig, const string& file, const string& name);
-    string generateFVar(Tree sig, const string& file, const string& name);
+    std::string generateVBargraph(Tree sig, Tree label, Tree min, Tree max, const std::string& exp);
+    std::string generateHBargraph(Tree sig, Tree label, Tree min, Tree max, const std::string& exp);
+    std::string generateAttach(Tree sig, Tree x, Tree y, int priority);
+    std::string generateControl(Tree sig, Tree arg1, Tree arg2, int priority);
+    std::string generateNumber(Tree sig, const std::string& exp);
+    std::string generateFConst(Tree sig, const std::string& file, const std::string& name);
+    std::string generateFVar(Tree sig, const std::string& file, const std::string& name);
 
-    string generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
-    string generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
-    void   generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp);
+    std::string generateDelayVec(Tree sig, const std::string& exp, const std::string& ctype, const std::string& vname, int mxd);
+    std::string generateDelayVecNoTemp(Tree sig, const std::string& exp, const std::string& ctype, const std::string& vname, int mxd);
+    void   generateDelayLine(const std::string& ctype, const std::string& vname, int mxd, const std::string& exp);
 
-    void getTypedNames(Type t, const string& prefix, string& ctype, string& vname);
-    void printGCCall(Tree sig, const string& calledFunction);
+    void getTypedNames(Type t, const std::string& prefix, std::string& ctype, std::string& vname);
+    void printGCCall(Tree sig, const std::string& calledFunction);
 
     /* Managment of user interface elements. */
 
-    void   getUIDocInfos(Tree path, string& label, string& unit);
-    string getUIDir(Tree pathname);
-    string prepareBinaryUI(const string& name, Tree pathname);
-    string prepareIntervallicUI(const string& name, Tree path, Tree tcur, Tree tmin, Tree tmax);
+    void   getUIDocInfos(Tree path, std::string& label, std::string& unit);
+    std::string getUIDir(Tree pathname);
+    std::string prepareBinaryUI(const std::string& name, Tree pathname);
+    std::string prepareIntervallicUI(const std::string& name, Tree path, Tree tcur, Tree tmin, Tree tmax);
 };
 
 #endif
