@@ -68,7 +68,7 @@ class ppsig : public virtual Garbageable {
     Tree fSig;
     Tree fEnv;            ///< recursive environment stack
     int  fPriority;       ///< priority context
-    bool fHideRecursion;  ///<
+    bool fHideRecursion; 
     
 };
 

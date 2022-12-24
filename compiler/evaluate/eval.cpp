@@ -807,7 +807,7 @@ static void writeIdentValue(string& dst, const string& format, const string& ide
 {
     int  f = std::atoi(format.c_str());
     int  n = eval2int(boxIdent(ident.c_str()), visited, localValEnv);
-    int  i = min(4, max(f, 0));
+    int  i = std::min(4, std::max(f, 0));
     char val[256];
 
     snprintf(val, 250, Formats[i], n);

@@ -73,7 +73,7 @@ enum {
 
 class AudioType;
 
-typedef P<AudioType>        Type;
+typedef P<AudioType> Type;
 typedef const std::vector<Type>& ConstTypes;
 
 /**
@@ -399,8 +399,9 @@ class TupletType : public AudioType {
     {
     }
 
-    int              arity() const { return (int)fComponents.size(); }
-    Type             operator[](unsigned int i) const { return fComponents[i]; }
+    int arity() const { return (int)fComponents.size(); }
+    Type operator[](unsigned int i) const { return fComponents[i]; }
+    
     virtual std::ostream& print(std::ostream& dst) const;
 
     virtual AudioType* promoteNature(int n)

@@ -54,7 +54,7 @@ class PowPrim : public xtended {
     virtual int infereSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
-        return max(args[0], args[1]);
+        return std::max(args[0], args[1]);
     }
     
     // Fast integer based power, for positive exponent

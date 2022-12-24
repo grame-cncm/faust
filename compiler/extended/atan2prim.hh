@@ -39,7 +39,7 @@ class Atan2Prim : public xtended {
         return floatCast(args[0] | args[1]);
     }
 
-    virtual int infereSigOrder(const std::vector<int>& args) { return max(args[0], args[1]); }
+    virtual int infereSigOrder(const std::vector<int>& args) { return std::max(args[0], args[1]); }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {

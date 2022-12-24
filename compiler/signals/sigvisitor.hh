@@ -43,9 +43,9 @@ struct sigvisitor {
     virtual void visitOutput(Tree sig, int i, Tree s) = 0;
 
     // fixed size delays
-    virtual void visitDelay1(Tree sig, Tree s)             = 0;
-    virtual void visitPrefix(Tree sig, Tree s1, Tree s2)   = 0;
-    virtual void visitDelay(Tree sig, Tree s1, Tree s2) = 0;
+    virtual void visitDelay1(Tree sig, Tree s)           = 0;
+    virtual void visitPrefix(Tree sig, Tree s1, Tree s2) = 0;
+    virtual void visitDelay(Tree sig, Tree s1, Tree s2)  = 0;
 
     // numerical operations
     virtual void visitBinOp(Tree sig, int opcode, Tree s1, Tree s2)     = 0;
@@ -83,7 +83,7 @@ struct sigvisitor {
     virtual void visitDocAccessTbl(Tree sig, Tree s1, Tree s2)                  = 0;
 
     // Selectors
-    virtual void visitSelect2(Tree sig, Tree sel, Tree s1, Tree s2)          = 0;
+    virtual void visitSelect2(Tree sig, Tree sel, Tree s1, Tree s2) = 0;
 
     // Tuples
     virtual void visitTuple(Tree sig, int mod, Tree ls)        = 0;

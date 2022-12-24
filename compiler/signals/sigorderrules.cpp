@@ -121,7 +121,7 @@ static int infereSigOrder(Tree sig)
         return 3;
 
     else if (isSigBinOp(sig, &i, s1, s2))
-        return max(O(s1), O(s2));
+        return std::max(O(s1), O(s2));
 
     else if (isSigIntCast(sig, s1))
         return O(s1);
@@ -133,7 +133,7 @@ static int infereSigOrder(Tree sig)
         return 3;
 
     else if (isSigFFun(sig, ff, ls))
-        return max(1, O(ls));
+        return std::max(1, O(ls));
 
     else if (isSigFConst(sig, type, name, file))
         return 1;

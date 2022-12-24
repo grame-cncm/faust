@@ -50,7 +50,7 @@ class RemainderPrim : public xtended {
     virtual int infereSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
-        return max(args[0], args[1]);
+        return std::max(args[0], args[1]);
     }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args)

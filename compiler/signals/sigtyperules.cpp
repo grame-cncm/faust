@@ -716,7 +716,7 @@ static Type infereSigType(Tree sig, Tree env)
 
     // unrecognized signal here
     throw faustexception("ERROR : inferring signal type, unrecognized signal\n");
-    return 0;
+    return nullptr;
 }
 
 /**
@@ -865,7 +865,7 @@ static TupletType* maximalRecType(Tree t)
 static Type infereRecType(Tree sig, Tree body, Tree env)
 {
     faustassert(false);  // we should not come here
-    return 0;
+    return nullptr;
 }
 
 /**

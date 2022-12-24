@@ -39,26 +39,14 @@ inline double log2(double e)
 }
 #endif
 
-inline double min(double x, double y)
-{
-    return (x < y) ? x : y;
-}
-inline double max(double x, double y)
-{
-    return (x > y) ? x : y;
-}
 inline double min4(double a, double b, double c, double d)
 {
-    return min(min(a, b), min(c, d));
+    return std::min(std::min(a, b), std::min(c, d));
 }
 inline double max4(double a, double b, double c, double d)
 {
-    return max(max(a, b), max(c, d));
+    return std::max(std::max(a, b), std::max(c, d));
 }
-
-// itv::interval_algebra gAlgebra;
-
-// extern global* gGlobal;
 
 using interval = itv::interval;
 

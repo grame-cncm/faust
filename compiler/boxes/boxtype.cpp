@@ -335,7 +335,7 @@ static bool infereBoxType(Tree t, int* inum, int* onum)
         if ((x > v) || (y > u)) {
             throw faustexception(computeTypeRecErrorMessage(a, b, u, v, x, y));
         }
-        *inum = max(0, u - y);
+        *inum = std::max(0, u - y);
         *onum = v;
 
     } else if (isBoxEnvironment(t)) {

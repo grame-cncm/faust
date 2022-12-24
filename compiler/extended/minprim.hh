@@ -39,13 +39,13 @@ class MinPrim : public xtended {
         faustassert(args.size() == arity());
         interval i = args[0]->getInterval();
         interval j = args[1]->getInterval();
-        return castInterval(args[0] | args[1], min(i, j));
+        return castInterval(args[0] | args[1], std::min(i, j));
     }
 
     virtual int infereSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
-        return max(args[0], args[1]);
+        return std::max(args[0], args[1]);
     }
 
     virtual Tree computeSigOutput(const std::vector<Tree>& args)
@@ -57,18 +57,18 @@ class MinPrim : public xtended {
 
         if (isDouble(args[0]->node(), &f)) {
             if (isDouble(args[1]->node(), &g)) {
-                return tree(min(f, g));
+                return tree(std::min(f, g));
             } else if (isInt(args[1]->node(), &j)) {
-                return tree(min(f, double(j)));
+                return tree(std::min(f, double(j)));
             } else {
                 return tree(symbol(), args[0], args[1]);
             }
 
         } else if (isInt(args[0]->node(), &i)) {
             if (isDouble(args[1]->node(), &g)) {
-                return tree(min(double(i), g));
+                return tree(std::min(double(i), g));
             } else if (isInt(args[1]->node(), &j)) {
-                return tree(min(i, j));
+                return tree(std::min(i, j));
             } else {
                 return tree(symbol(), args[0], args[1]);
             }
