@@ -519,6 +519,10 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-norm1", "--normalized-form1")) {
             gGlobal->gDumpNorm = 1;
             i += 1;
+            
+        } else if (isCmd(argv[i], "-norm2", "--normalized-form2")) {
+            gGlobal->gDumpNorm = 2;
+            i += 1;
 
         } else if (isCmd(argv[i], "-cn", "--class-name") && (i + 1 < argc)) {
             vector<char> rep    = {'@', ' ', '(', ')', '/', '\\', '.'};

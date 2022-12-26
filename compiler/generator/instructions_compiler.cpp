@@ -246,6 +246,10 @@ Tree InstructionsCompiler::prepare(Tree LS)
     } else if (gGlobal->gDumpNorm == 1) {
         ppsigShared(L1, cout);
         throw faustexception("Dump shared normal form finished...\n");
+    } else if (gGlobal->gDumpNorm == 2) {
+        // Print signal tree type
+        SignalTypePrinter printer(L1);
+        throw faustexception("Dump signal type finished...\n");
     }
     
     startTiming("privatise");

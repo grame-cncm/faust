@@ -31,6 +31,25 @@
 #include "sigtyperules.hh"
 
 /*
+ Print the type of a signal.
+ To be used on a type annotated signal.
+ */
+
+class SignalTypePrinter final : public SignalVisitor {
+    
+    protected:
+        void visit(Tree sig) override;
+        
+    public:
+        SignalTypePrinter(Tree L)
+        {
+            // Check that the root tree is properly type annotated
+            getCertifiedSigType(L);
+            visitRoot(L);
+        }
+};
+
+/*
  Check a signal:
  - for correct extended typing
  - for correct SigBinOp args typing
@@ -39,20 +58,19 @@
  To be used on a type annotated signal.
 */
  
-class SignalTreeChecker final : public SignalVisitor {
+class SignalChecker final : public SignalVisitor {
     
     protected:
         void visit(Tree sig) override;
 
     public:
-        SignalTreeChecker(Tree L)
+        SignalChecker(Tree L)
         {
             // Check that the root tree is properly type annotated
             getCertifiedSigType(L);
             visitRoot(L);
         }
 };
-
 
 //-------------------------SignalPromotion------------------------------
 // Adds explicit int or float cast when needed. This is needed prior

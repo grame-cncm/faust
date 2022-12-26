@@ -24,8 +24,9 @@ FAUSTOPTIONS := -lang $(lang) -double -i -a $(arch)
 dspfiles := $(wildcard dsp/*.dsp)
 reffiles := $(patsubst dsp/%.dsp, $(refdir)/%.ir, $(dspfiles))
 
-sigfiles := $(patsubst dsp/%.dsp, $(refdir)/%.sig, $(dspfiles))
 boxfiles := $(patsubst dsp/%.dsp, $(refdir)/%.box, $(dspfiles))
+sigfiles := $(patsubst dsp/%.dsp, $(refdir)/%.sig, $(dspfiles))
+typefiles := $(patsubst dsp/%.dsp, $(refdir)/%.type, $(dspfiles))
 
 listintermediate = $(dspfiles:dsp/%.dsp=$1/%) $(dspfiles:dsp/%.dsp=$1/%.cpp) $(dspfiles:dsp/%.dsp=$1/vec/%) $(dspfiles:dsp/%.dsp=$1/vec/%.cpp) $(dspfiles:dsp/%.dsp=$1/sched/%) $(dspfiles:dsp/%.dsp=$1/sched/%.cpp) 
 
@@ -41,7 +42,9 @@ reference: filesCompare $(refdir)/vec $(refdir)/sched $(reffiles)
 
 reference-box: $(boxfiles) 
 
-reference-signal: $(sigfiles) 	
+reference-signal: $(sigfiles) 
+
+reference-type: $(typefiles)
 
 help:
 	@echo "-------- FAUST impulse tests --------"
@@ -74,6 +77,10 @@ $(refdir)/%.box: dsp/%.dsp
 # rules for reference-signal
 $(refdir)/%.sig: dsp/%.dsp
 	$(FAUST) $(FAUSTOPTIONS) -norm1 $<  > $@ ; echo $<
+
+# rules for reference-type
+$(refdir)/%.type: dsp/%.dsp
+	$(FAUST) $(FAUSTOPTIONS) -norm2 $<  > $@ ; echo $<
 
 # rules for reference
 $(refdir)/%.ir: dsp/% $(refdir)/vec/%.ir $(refdir)/sched/%.ir dsp/%.dsp dsp/%.cpp 

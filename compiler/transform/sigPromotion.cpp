@@ -31,7 +31,16 @@
 
 using namespace std;
 
-void SignalTreeChecker::visit(Tree sig)
+void SignalTypePrinter::visit(Tree sig)
+{
+    ::Type type = getCertifiedSigType(sig);
+    cout << "Type = " << type << endl;
+    
+    // Default case and recursion
+    SignalVisitor::visit(sig);
+}
+
+void SignalChecker::visit(Tree sig)
 {
     int  opnum;
     Tree id, x, y, sel, sf, ff, largs, chan, part, idx, tb, ws, label, min, max, t0;

@@ -94,7 +94,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
     endTiming("L4 typeAnnotation");
      
     // Check signal tree
-    SignalTreeChecker checker(L4);
+    SignalChecker checker(L4);
     return L4;
 }
 

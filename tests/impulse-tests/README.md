@@ -25,6 +25,7 @@ There is no target `clean`: simply delete the `ir` folder or one of its subfolde
 ### Testing the Box and Signal creation intermediate steps
 - the Box tree (created by the `-e`option) can be generated as a textual file. A set of references files can be created using `make reference-box`, then tested using `make test-box`.
 - the Signal tree (created by the `-norm1`option) can be generated as a textual file. A set of references files can be created using `make reference-signal`, then tested using `make test-signal`.
+- the tree type (created by the `-norm2`option) can be generated as a textual file. A set of references files can be created using `make reference-type`, then tested using `make test-type`.
 
 ### Checking the FIR
 An experimental FIR checker can be activated for all backends testing using `export FAUST_DEBUG=FIR_CHECKER`.

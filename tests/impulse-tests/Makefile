@@ -88,6 +88,7 @@ help:
 	@echo " 'reference'         : builds the reference files"
 	@echo " 'reference-box'     : builds the reference box files"
 	@echo " 'reference-signal'  : builds the reference signal files"
+	@echo " 'reference-type'    : builds the reference signal type files"
 	@echo " 'test-box'          : test box creation intermediate step"
 	@echo " 'test-signal'       : test signal creation intermediate step"
 	@echo " 'tools'             : builds binary tools used by the tests"
@@ -393,11 +394,13 @@ reference:
 	$(MAKE) -f Make.ref
 
 reference-box:
-	$(MAKE) -f Make.ref reference-box         FAUSTOPTIONS="-I dsp"
+	$(MAKE) -f Make.ref reference-box       FAUSTOPTIONS="-I dsp"
 	
-
 reference-signal:
-	$(MAKE) -f Make.ref reference-signal      FAUSTOPTIONS="-I dsp"
+	$(MAKE) -f Make.ref reference-signal    FAUSTOPTIONS="-I dsp"
+
+reference-type:
+	$(MAKE) -f Make.ref reference-type      FAUSTOPTIONS="-I dsp"
 
 tools: filesCompare impulsellvm impulseinterp impulseinterp1
 
@@ -412,6 +415,12 @@ test-box:
 
 test-signal:
 	cd dsp && ./sig-script *.dsp
+	
+#########################################################################
+# Testing signal type
+
+test-type:
+	cd dsp && ./type-script *.dsp
 
 #########################################################################
 # tools
