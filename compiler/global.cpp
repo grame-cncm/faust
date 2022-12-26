@@ -103,6 +103,8 @@
 #include "template_code_container.hh"
 #endif
 
+using namespace std;
+
 // Globals for lex/yack parser
 extern FILE*       yyin;
 extern const char* yyfilename;

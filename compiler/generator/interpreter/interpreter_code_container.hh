@@ -29,14 +29,12 @@
 #include "interpreter_instructions.hh"
 #include "vec_code_container.hh"
 
-using namespace std;
-
 template <class REAL>
 class InterpreterCodeContainer : public virtual CodeContainer {
    protected:
     static InterpreterInstVisitor<REAL>* gInterpreterVisitor;
 
-    FIRMetaBlockInstruction* produceMetadata(string& name);
+    FIRMetaBlockInstruction* produceMetadata(std::string& name);
 
     virtual void generateSR()
     {
@@ -49,16 +47,16 @@ class InterpreterCodeContainer : public virtual CodeContainer {
     virtual FBCBlockInstruction<REAL>* generateCompute() = 0;
 
    public:
-    InterpreterCodeContainer(const string& name, int numInputs, int numOutputs);
+    InterpreterCodeContainer(const std::string& name, int numInputs, int numOutputs);
 
     virtual ~InterpreterCodeContainer() {}
 
     void                      produceInternal() {}
     virtual dsp_factory_base* produceFactory();
 
-    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+    CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
 
-    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs);
+    static CodeContainer* createContainer(const std::string& name, int numInputs, int numOutputs);
 };
 
 template <class REAL>
@@ -67,7 +65,7 @@ class InterpreterScalarCodeContainer : public InterpreterCodeContainer<REAL> {
     virtual FBCBlockInstruction<REAL>* generateCompute();
 
    public:
-    InterpreterScalarCodeContainer(const string& name, int numInputs, int numOutputs, int sub_container_type);
+    InterpreterScalarCodeContainer(const std::string& name, int numInputs, int numOutputs, int sub_container_type);
     virtual ~InterpreterScalarCodeContainer();
 };
 
@@ -77,7 +75,7 @@ class InterpreterVectorCodeContainer : public VectorCodeContainer, public Interp
     virtual FBCBlockInstruction<REAL>* generateCompute();
 
    public:
-    InterpreterVectorCodeContainer(const string& name, int numInputs, int numOutputs)
+    InterpreterVectorCodeContainer(const std::string& name, int numInputs, int numOutputs)
         : VectorCodeContainer(numInputs, numOutputs), InterpreterCodeContainer<REAL>(name, numInputs, numOutputs)
     {
     }
@@ -90,15 +88,15 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
 
    protected:
     
-    StatementInst* generateShiftArray(const string& vname, int delay) override
+    StatementInst* generateShiftArray(const std::string& vname, int delay) override
     {
         return InstBuilder::genShiftArrayVarInst(InstBuilder::genNamedAddress(vname, Address::kStruct), delay);
     }
     
     ValueInst* generateSoundfile(Tree sig, Tree path) override
     {
-        string varname = gGlobal->getFreshID("fSoundfile");
-        string SFcache = varname + "ca";
+        std::string varname = gGlobal->getFreshID("fSoundfile");
+        std::string SFcache = varname + "ca";
 
         addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
         
@@ -127,7 +125,7 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
         faustassert(load);
     
         // In reverse order for the Interp stack
-        vector<ValueInst*> indices = { x, InstBuilder::genInt32NumInst(Soundfile::kLength) };
+        std::vector<ValueInst*> indices = { x, InstBuilder::genInt32NumInst(Soundfile::kLength) };
         return InstBuilder::genLoadArrayStructVar(load->fAddress->getName(), indices);
     }
     
@@ -138,7 +136,7 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
         faustassert(load);
         
         // In reverse order for the Interp stack
-        vector<ValueInst*> indices = { x, InstBuilder::genInt32NumInst(Soundfile::kSR) };
+        std::vector<ValueInst*> indices = { x, InstBuilder::genInt32NumInst(Soundfile::kSR) };
         return InstBuilder::genLoadArrayStructVar(load->fAddress->getName(), indices);
     }
     
@@ -149,10 +147,10 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
         faustassert(load);
      
         // In reverse order for the Interp stack
-        vector<ValueInst*> indices1 = { y, InstBuilder::genInt32NumInst(Soundfile::kOffset) };
+        std::vector<ValueInst*> indices1 = { y, InstBuilder::genInt32NumInst(Soundfile::kOffset) };
         ValueInst* offset = InstBuilder::genLoadArrayStructVar(load->fAddress->getName(), indices1);
         // In reverse order for the Interp stack
-        vector<ValueInst*> indices2 = { InstBuilder::genAdd(offset, z), x, InstBuilder::genInt32NumInst(Soundfile::kBuffers) };
+        std::vector<ValueInst*> indices2 = { InstBuilder::genAdd(offset, z), x, InstBuilder::genInt32NumInst(Soundfile::kBuffers) };
     
         return InstBuilder::genLoadArrayStructVar(load->fAddress->getName(), indices2);
      }

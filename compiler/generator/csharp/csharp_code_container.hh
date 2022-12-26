@@ -27,8 +27,6 @@
 #include "dsp_factory.hh"
 #include "csharp_instructions.hh"
 
-using namespace std;
-
 class CSharpCodeContainer : public virtual CodeContainer {
    protected:
     CSharpInstVisitor fCodeProducer;
@@ -45,8 +43,7 @@ class CSharpCodeContainer : public virtual CodeContainer {
     virtual ~CSharpCodeContainer() {}
 
     virtual void produceClass();
-    virtual void produceInfoFunctions(int tabs, const std::string& classname, const std::string& obj, bool ismethod, FunTyped::FunAttribute funtype,
-                              TextInstVisitor* producer);
+    virtual void produceInfoFunctions(int tabs, const std::string& classname, const std::string& obj, bool ismethod, FunTyped::FunAttribute funtype, TextInstVisitor* producer);
     virtual void generateCompute(int tab) = 0;
     void         produceInternal();
 
@@ -56,7 +53,7 @@ class CSharpCodeContainer : public virtual CodeContainer {
 
     CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
 
-    static CodeContainer* createContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* dst = new stringstream());
+    static CodeContainer* createContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* dst = new std::stringstream());
 };
 
 class CSharpScalarCodeContainer : public CSharpCodeContainer {

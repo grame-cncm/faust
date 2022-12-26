@@ -22,8 +22,6 @@
 #ifndef _INSTRUCTIONS_COMPLEXITY_H
 #define _INSTRUCTIONS_COMPLEXITY_H
 
-using namespace std;
-
 #include <iostream>
 #include <list>
 #include <map>
@@ -164,7 +162,7 @@ class InstComplexityVisitor : public DispatchVisitor {
         DispatchVisitor::visit(inst);
     }
 
-    void dump(ostream* dst)
+    void dump(std::ostream* dst)
     {
         *dst << "Instructions complexity : ";
         *dst << "Load = " << fLoad << " Store = " << fStore;

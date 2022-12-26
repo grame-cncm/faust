@@ -23,8 +23,6 @@
 #ifndef _CSHARP_INSTRUCTIONS_H
 #define _CSHARP_INSTRUCTIONS_H
 
-using namespace std;
-
 #include "text_instructions.hh"
 #include "typing_instructions.hh"
 
@@ -34,7 +32,7 @@ class CSharpInstVisitor : public TextInstVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
      */
-    static std::map<std::string, bool>   gFunctionSymbolTable;
+    static std::map<std::string, bool> gFunctionSymbolTable;
     static std::map<std::string, std::string> gMathLibTable;
 
    public:
@@ -290,7 +288,7 @@ class CSharpInstVisitor : public TextInstVisitor {
 
         // Prototype arguments
         if (inst->fType->fAttribute & FunTyped::kInline) {
-            *fOut << "[MethodImpl(MethodImplOptions.AggressiveInlining)]" << endl;
+            *fOut << "[MethodImpl(MethodImplOptions.AggressiveInlining)]" << std::endl;
         }
 
         if (!(inst->fType->fAttribute & FunTyped::kLocal)) {
@@ -310,7 +308,7 @@ class CSharpInstVisitor : public TextInstVisitor {
     virtual void generateFunDefBody(DeclareFunInst* inst)
     {
         if (inst->fCode->fCode.size() == 0) {
-            *fOut << ");" << endl;  // Pure prototype
+            *fOut << ");" << std::endl;  // Pure prototype
         } else {
             // Function body
             *fOut << ")";
@@ -322,7 +320,7 @@ class CSharpInstVisitor : public TextInstVisitor {
             fTab--;
             back(1, *fOut);
             *fOut << "}";
-            *fOut << endl;
+            *fOut << std::endl;
             tab(fTab, *fOut);
         }
     }
