@@ -39,7 +39,8 @@ class MaxPrim : public xtended {
         faustassert(args.size() == arity());
         interval i = args[0]->getInterval();
         interval j = args[1]->getInterval();
-        return castInterval(args[0] | args[1], std::max(i, j));
+        // Use 'max' on intervals here...
+        return castInterval(args[0] | args[1], max(i, j));
     }
 
     virtual int infereSigOrder(const std::vector<int>& args)

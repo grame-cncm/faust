@@ -237,8 +237,6 @@ void typeAnnotation(Tree sig, bool causality)
     vector<vector<int>> vAgeMax;  ///< age of the maximum of every subsignal of the recursive signal
 
     // work variables used in widening loop
-
-    Type         newType;
     vector<Type> newTuplet;
     TupletType   newRecType;
     TupletType   oldRecType;
