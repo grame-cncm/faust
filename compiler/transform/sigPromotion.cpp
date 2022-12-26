@@ -33,8 +33,7 @@ using namespace std;
 
 void SignalTypePrinter::visit(Tree sig)
 {
-    ::Type type = getCertifiedSigType(sig);
-    cout << "Type = " << type << endl;
+    cout << "Type = " << getCertifiedSigType(sig) << endl;
     
     // Default case and recursion
     SignalVisitor::visit(sig);

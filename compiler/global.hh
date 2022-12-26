@@ -554,14 +554,14 @@ struct global {
     bool gPathListSwitch;
 
     // Source file injection
-    bool   gInjectFlag;
+    bool gInjectFlag;
     std::string gInjectFile;
 
     int gTimeout;  // Time out to abort compiler (in seconds)
 
     // Garbage collection
     static std::list<Garbageable*> gObjectTable;
-    static bool                   gHeapCleanup;
+    static bool                    gHeapCleanup;
 
     global();
     ~global();

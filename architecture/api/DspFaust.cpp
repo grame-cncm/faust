@@ -152,6 +152,8 @@ static void osc_compute_callback(void* arg)
 
 #include "DspFaust.h"
 
+using namespace std;
+
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 

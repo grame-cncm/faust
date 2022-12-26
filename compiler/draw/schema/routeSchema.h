@@ -26,8 +26,6 @@
 #include <vector>
 #include "schema.h"
 
-using namespace std;
-
 /**
  * A simple rectangular box with a text and inputs and outputs.
  * The constructor is private in order to make sure
