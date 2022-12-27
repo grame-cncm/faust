@@ -103,6 +103,10 @@
 #include "template_code_container.hh"
 #endif
 
+using std::list;
+using std::vector;
+using std::string;
+
 // Globals for lex/yack parser
 extern FILE*       yyin;
 extern const char* yyfilename;
@@ -655,7 +659,7 @@ string global::printFloat()
     }
 }
 
-void global::printCompilationOptions(stringstream& dst, bool backend)
+void global::printCompilationOptions(std::stringstream& dst, bool backend)
 {
     if (gArchFile != "") dst << "-a " << gArchFile << " ";
     if (backend) {
@@ -702,7 +706,7 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
 
 string global::printCompilationOptions1()
 {
-    stringstream dst;
+    std::stringstream dst;
     printCompilationOptions(dst, true);
     string res = dst.str();
     return res.substr(0, res.size() - 1);
