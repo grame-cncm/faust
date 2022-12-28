@@ -91,6 +91,7 @@ help:
 	@echo " 'reference-type'    : builds the reference signal type files"
 	@echo " 'test-box'          : test box creation intermediate step"
 	@echo " 'test-signal'       : test signal creation intermediate step"
+	@echo " 'test-type'         : test signal typing intermediate step"
 	@echo " 'tools'             : builds binary tools used by the tests"
 	
 	@echo
