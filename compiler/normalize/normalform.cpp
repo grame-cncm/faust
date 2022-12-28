@@ -60,9 +60,9 @@ static Tree simplifyToNormalFormAux(Tree LS)
     
     if (gGlobal->gRangeUI) {
         // Generate safe values for range UI items (sliders and nentry)
-        startTiming("Safe access to rdtable/rwtable");
+        startTiming("Safe values for range UI items");
         L1 = signalUIPromote(L1);
-        endTiming("Safe access to rdtable/rwtable");
+        endTiming("Safe values for range UI items");
         
         // Annotate L1 with type information
         startTiming("L1 typeAnnotation");
