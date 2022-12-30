@@ -47,7 +47,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
     endTiming("L1 typeAnnotation");
     
     if (gGlobal->gCheckTable) {
-        // Generate safe access to rdtable/rwtable
+        // Check and generate safe access to rdtable/rwtable
         startTiming("Safe access to rdtable/rwtable");
         L1 = signalTablePromote(L1);
         endTiming("Safe access to rdtable/rwtable");
@@ -93,6 +93,18 @@ static Tree simplifyToNormalFormAux(Tree LS)
     typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
     endTiming("L4 typeAnnotation");
      
+    if (gGlobal->gCheckIntRange) {
+        // Check and generate safe float to integer range conversion;
+        startTiming("Safe float to integer conversion");
+        L4 = signalIntCastPromote(L4);
+        endTiming("Safe float to integer conversion");
+        
+        // Annotate L4 with type information
+        startTiming("L4 typeAnnotation");
+        typeAnnotation(L4, gGlobal->gLocalCausalityCheck);
+        endTiming("L4 typeAnnotation");
+    }
+    
     // Check signal tree
     SignalChecker checker(L4);
     return L4;

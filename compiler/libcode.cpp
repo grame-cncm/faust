@@ -598,6 +598,10 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-fp", "--full-parentheses")) {
             gGlobal->gFullParentheses = true;
             i += 1;
+            
+        } else if (isCmd(argv[i], "-cir", "--check-integer-range")) {
+            gGlobal->gCheckIntRange = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i + 1 < argc)) {
             if ((strstr(argv[i + 1], "http://") != 0) || (strstr(argv[i + 1], "https://") != 0)) {
@@ -935,7 +939,8 @@ static void printHelp()
          << "-nvi        --no-virtual                when compiled with the C++ backend, does not add the 'virtual' "
             "keyword."
          << endl;
-    cout << tab << "-fp         --full-parentheses          always add parentheses around binops " << endl;
+    cout << tab << "-fp         --full-parentheses          always add parentheses around binops." << endl;
+    cout << tab << "-cir        --check-integer-range       check float to integer range conversion." << endl;
     cout << tab << "-exp10      --generate-exp10            pow(10,x) replaced by possibly faster exp10(x)." << endl;
     cout << tab << "-os         --one-sample                generate one sample computation (same as -os0)." << endl;
     cout << tab << "-os0        --one-sample0               generate one sample computation (0 = separated control)."

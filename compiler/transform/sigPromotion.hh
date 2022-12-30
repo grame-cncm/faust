@@ -120,6 +120,23 @@ class SignalBool2IntPromotion final : public SignalIdentity {
 
 };
 
+//-------------------------SignalIntCastPromotion----------------------
+// Cast bool binary operations (comparison operations) to int
+//----------------------------------------------------------------------
+class SignalIntCastPromotion final : public SignalIdentity {
+    
+    private:
+        Tree transformation(Tree sig);
+        
+    public:
+        SignalIntCastPromotion()
+        {
+            // Go inside tables
+            fVisitGen = true;
+        }
+    
+};
+
 //-------------------------SignalTablePromotion-------------------------
 // Generate safe access to rdtable/rwtable (wdx/rdx in [0..size-1])
 //----------------------------------------------------------------------
@@ -163,6 +180,7 @@ class SignalUIPromotion final : public SignalIdentity {
 Tree sigPromote(Tree sig, bool trace = false);
 Tree sigBool2IntPromote(Tree sig);
 Tree signalTablePromote(Tree sig);
+Tree signalIntCastPromote(Tree sig);
 Tree signalUIPromote(Tree sig);
 
 #endif

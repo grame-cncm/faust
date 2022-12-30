@@ -421,6 +421,7 @@ void global::reset()
     gFastMathLib          = "default";
     gNamespace            = "";
     gFullParentheses      = false;
+    gCheckIntRange        = false;
 
     gNarrowingLimit = 0;
     gWideningLimit  = 0;

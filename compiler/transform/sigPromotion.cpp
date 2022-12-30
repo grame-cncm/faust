@@ -465,6 +465,25 @@ Tree SignalTablePromotion::transformation(Tree sig)
     }
 }
 
+Tree SignalIntCastPromotion::transformation(Tree sig)
+{
+    Tree x;
+    if (isSigIntCast(sig, x)) {
+        interval x_i = getCertifiedSigType(x)->getInterval();
+        if (x_i.lo() <= INT32_MIN || x_i.hi() >= INT32_MAX) {
+            if (gAllWarning) {
+                stringstream error;
+                error << "WARNING : float to integer conversion [" << x_i.lo() << ":" << x_i.hi()
+                      << "] is outside of integer range in " << ppsigShared(sig, error);
+                gWarningMessages.push_back(error.str());
+            }
+            return sigIntCast(sigMin(sigReal(INT32_MAX), sigMax(x, sigReal(INT32_MIN))));
+        }
+    }
+    // Other cases => identity transformation
+    return SignalIdentity::transformation(sig);
+}
+
 Tree SignalUIPromotion::transformation(Tree sig)
 {
     Tree label, init, min, max, step;
@@ -504,6 +523,15 @@ Tree signalTablePromote(Tree sig)
     getCertifiedSigType(sig);
 
     SignalTablePromotion SP;
+    return SP.mapself(sig);
+}
+
+Tree signalIntCastPromote(Tree sig)
+{
+    // Check that the root tree is properly type annotated
+    getCertifiedSigType(sig);
+    
+    SignalIntCastPromotion SP;
     return SP.mapself(sig);
 }
 

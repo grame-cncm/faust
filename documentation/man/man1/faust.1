@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "man" "1" "" "Version 2.55.2 (28-December-2022)" "Faust man page"
+.TH "man" "1" "" "Version 2.56.0 (30-December-2022)" "Faust man page"
 .hy
 .SH NAME
 .PP
@@ -99,8 +99,13 @@ adds specific #pragma for auto-vectorization.
 backend, does not add the `virtual' keyword.
 .PP
 \f[B]-fp\f[R] \f[B]\[en]full-parentheses\f[R] always add parentheses
-around binops \f[B]-exp10\f[R] \f[B]\[en]generate-exp10\f[R] pow(10,x)
-replaced by possibly faster exp10(x).
+around binops.
+.PP
+\f[B]-cir\f[R] \f[B]\[en]check-integer-range\f[R] check float to integer
+conversion.
+.PP
+\f[B]-exp10\f[R] \f[B]\[en]generate-exp10\f[R] pow(10,x) replaced by
+possibly faster exp10(x).
 .PP
 \f[B]-os\f[R] \f[B]\[en]one-sample\f[R] generate one sample computation
 (same as -os0).

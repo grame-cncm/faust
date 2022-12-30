@@ -171,10 +171,11 @@ struct global {
     bool gLightMode;             // -light option, do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module for JavaScript)
     bool gClang;                 // -clang opttion, when compiled with clang/clang++, adds specific #pragma for auto-vectorization
     bool gFullParentheses;       // -fp option, generate less parenthesis in some textual backends: C/C++, Cmajor, Dlang, Rust
+    bool gCheckIntRange;         // -cir option, check float to integer range conversion
 
-    std::string gClassName;           // -cn option, name of the generated dsp class, by default 'mydsp'
-    std::string gProcessName;         // -pn option, name of the entry point of the Faust program, by default 'process'
-    std::string gSuperClassName;      // -scn option, name of the root class the generated dsp class inherits from, by default 'dsp'
+    std::string gClassName;      // -cn option, name of the generated dsp class, by default 'mydsp'
+    std::string gProcessName;    // -pn option, name of the entry point of the Faust program, by default 'process'
+    std::string gSuperClassName; // -scn option, name of the root class the generated dsp class inherits from, by default 'dsp'
     
     // Debug option
     bool gCheckTable;            // -ct to check rtable/rwtable index range and generate safe access code (0/1: 1 by default)

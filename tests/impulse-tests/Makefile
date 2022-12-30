@@ -326,6 +326,7 @@ llvm1:
 interp:
 	$(MAKE) -f Make.interp outdir=interp/double              FAUSTOPTIONS="-I dsp"
 	$(MAKE) -f Make.interp outdir=interp/double/ct           FAUSTOPTIONS="-I dsp -ct 0"
+	$(MAKE) -f Make.interp outdir=interp/double/cir          FAUSTOPTIONS="-I dsp -cir"
 	$(MAKE) -f Make.interp outdir=interp/double/mapp         FAUSTOPTIONS="-I dsp -mapp"
 	$(MAKE) -f Make.interp outdir=interp/double/rui          FAUSTOPTIONS="-I dsp -rui"
 	$(MAKE) -f Make.interp outdir=interp/double/dlt0         FAUSTOPTIONS="-I dsp -dlt 0"
