@@ -135,9 +135,9 @@ class cmajorpatch_dsp : public dsp {
     
         virtual void metadata(Meta* m) {}
     
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+        virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
     
-        virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
+        virtual void compute(double /*date_usec*/, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
        
 };
 
@@ -365,7 +365,7 @@ void cmajorpatch_dsp::buildUserInterface(UI* ui_interface)
     ui_interface->closeBox();
 }
 
-void cmajorpatch_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+void cmajorpatch_dsp::compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
 {
     fPerformer.setBlockSize(count);
     

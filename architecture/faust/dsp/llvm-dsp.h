@@ -86,7 +86,7 @@ class LIBFAUST_API llvm_dsp : public dsp {
         
         void metadata(Meta* m);
         
-        void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+        void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
     
 };
 

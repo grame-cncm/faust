@@ -193,9 +193,9 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     virtual ~dsp_voice()
     {}
     
-    void computeSlice(int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+    void computeSlice(int offset, int slice, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
-        FAUSTFLOAT** inputsSlice = static_cast<FAUSTFLOAT**>(alloca(sizeof(FAUSTFLOAT*) * getNumInputs()));
+        const FAUSTFLOAT** inputsSlice = static_cast<FAUSTFLOAT**>(alloca(sizeof(FAUSTFLOAT*) * getNumInputs()));
         for (int chan = 0; chan < getNumInputs(); chan++) {
             inputsSlice[chan] = &(inputs[chan][offset]);
         }
@@ -206,7 +206,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         compute(slice, inputsSlice, outputsSlice);
     }
     
-    void computeLegato(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+    void computeLegato(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
         int slice = count/2;
         
@@ -795,7 +795,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             return new mydsp_poly(fDSP->clone(), int(fVoiceTable.size()), fVoiceControl, fGroupControl);
         }
 
-        void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             assert(count <= MIX_BUFFER_SIZE);
 
@@ -839,7 +839,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             copy(count, fOutBuffer, outputs);
         }
 
-        void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        void compute(double date_usec, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             compute(count, inputs, outputs);
         }

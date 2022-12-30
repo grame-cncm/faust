@@ -616,7 +616,7 @@ void Faust::initProcess()
 }
 
 //----------------------------------------------------------------------------
-void Faust::processReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs, VstInt32 sampleFrames)
+void Faust::processReplacing(const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs, VstInt32 sampleFrames)
 {
     AVOIDDENORMALS;
 #ifdef DEBUG
@@ -640,7 +640,7 @@ inline float midiToFreq(int note)
 }
 
 //----------------------------------------------------------------------------
-void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
+void Faust::synthProcessReplacing(const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
                                   VstInt32 sampleFrames)
 {
     float* outptr[MAX_NOUTS] = {NULL,};
@@ -752,7 +752,7 @@ void Faust::synthProcessReplacing(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
 }
 
 //----------------------------------------------------------------------------
-void Faust::compute(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
+void Faust::compute(const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs,
                       VstInt32 sampleFrames)
 {
     const unsigned int output_buffer_size = sizeof(FAUSTFLOAT) * sampleFrames;

@@ -187,7 +187,7 @@ class interpreter_dsp_aux_pe : public interpreter_dsp_aux<REAL, TRACE> {
              */
         }
     
-        virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
+        virtual void compute(int count, const FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
         {
             if (count == 0) return;  // Beware: compiled loop don't work with an index of 0
             

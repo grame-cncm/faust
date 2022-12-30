@@ -86,8 +86,8 @@ class rack_dsp {
         virtual void instanceClear() = 0;
         virtual rack_dsp* clone() = 0;
         virtual void metadata(Meta* m) = 0;
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) = 0;
-        virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
+        virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) = 0;
+        virtual void compute(double /*date_usec*/, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
     
 };
 
@@ -125,10 +125,10 @@ struct one_sample_dsp : public rack_dsp {
     
     virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs, int* iControl, FAUSTFLOAT* fControl) = 0;
     
-    virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
+    virtual void compute(int count, const FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
     {}
     
-    virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+    virtual void compute(double date_usec, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
         compute(count, inputs, outputs);
     }

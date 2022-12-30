@@ -48,7 +48,7 @@ class Faust : public AudioEffectX {
         // Destructor
         virtual ~Faust();
 
-        virtual void processReplacing (FAUSTFLOAT** inputs, FAUSTFLOAT** outputs, VstInt32 sampleFrames);
+        virtual void processReplacing (const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs, VstInt32 sampleFrames);
         virtual VstInt32 processEvents (VstEvents* events);
 
         virtual void setProgram (VstInt32 program);

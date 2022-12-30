@@ -99,8 +99,8 @@ class proxy_dsp : public dsp {
         virtual proxy_dsp* clone() { return new proxy_dsp(fDecoder->fJSON); }
         virtual void metadata(Meta* m) { fDecoder->metadata(m); }
     
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {} 
+        virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
+        virtual void compute(double date_usec, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {} 
         
 };
 

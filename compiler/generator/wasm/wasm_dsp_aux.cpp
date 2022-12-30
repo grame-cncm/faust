@@ -284,7 +284,7 @@ LIBFAUST_API void wasm_dsp::computeJS(int count, uintptr_t inputs, uintptr_t out
 #endif
 }
 
-LIBFAUST_API void wasm_dsp::compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+LIBFAUST_API void wasm_dsp::compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
 {
 #ifdef AUDIO_WORKLET
     EM_ASM({ AudioWorkletGlobalScope.faust_module.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4); }, fFactory->fInstance, fDSP, count,
@@ -442,7 +442,7 @@ LIBFAUST_API void wasm_dsp::metadata(Meta* m)
 {
 }
 
-LIBFAUST_API void wasm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+LIBFAUST_API void wasm_dsp::compute(int count, const FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
 }
 

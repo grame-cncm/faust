@@ -277,7 +277,7 @@ LIBFAUST_API void interpreter_dsp::buildUserInterface(UIGlue* ui_glue)
     fDSP->buildUserInterface(&glue);
 }
 
-LIBFAUST_API void interpreter_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+LIBFAUST_API void interpreter_dsp::compute(int count, const FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     fDSP->compute(count, input, output);
 }
@@ -428,7 +428,7 @@ LIBFAUST_API void buildUserInterfaceCInterpreterDSPInstance(interpreter_dsp* dsp
     }
 }
 
-LIBFAUST_API void computeCInterpreterDSPInstance(interpreter_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+LIBFAUST_API void computeCInterpreterDSPInstance(interpreter_dsp* dsp, int count, const FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     if (dsp) {
         dsp->compute(count, input, output);

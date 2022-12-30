@@ -371,7 +371,7 @@ void Klass::buildTasksList()
     int index_task = START_TASK_INDEX;
 
     addDeclCode("TaskGraph fGraph;");
-    addDeclCode("FAUSTFLOAT** input;");
+    addDeclCode("const FAUSTFLOAT** input;");
     addDeclCode("FAUSTFLOAT** output;");
     addDeclCode("volatile bool fIsFinished;");
     addDeclCode("int fCount;");

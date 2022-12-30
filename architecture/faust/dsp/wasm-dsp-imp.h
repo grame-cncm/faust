@@ -180,8 +180,8 @@ class LIFAUST_API wasm_dsp_imp : public dsp {
             fFactory->fDecoder->metadata(m);
         }
         // Beware: subclasses usually have to overload the two 'compute' methods
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
+        virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
+        virtual void compute(double date_usec, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
 };
 
 #endif

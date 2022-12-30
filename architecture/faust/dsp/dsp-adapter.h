@@ -46,7 +46,7 @@ class dsp_adapter : public decorator_dsp {
         int fHWOutputs;
         int fBufferSize;
     
-        void adaptBuffers(FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        void adaptBuffers(const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             for (int i = 0; i < fHWInputs; i++) {
                 fAdaptedInputs[i] = inputs[i];
@@ -95,13 +95,13 @@ class dsp_adapter : public decorator_dsp {
     
         virtual dsp_adapter* clone() { return new dsp_adapter(fDSP->clone(), fHWInputs, fHWOutputs, fBufferSize); }
     
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(double date_usec, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             adaptBuffers(inputs, outputs);
             fDSP->compute(date_usec, count, fAdaptedInputs, fAdaptedOutputs);
         }
     
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             adaptBuffers(inputs, outputs);
             fDSP->compute(count, fAdaptedInputs, fAdaptedOutputs);
@@ -117,7 +117,7 @@ class dsp_sample_adapter : public decorator_dsp {
         REAL_INT** fAdaptedInputs;
         REAL_INT** fAdaptedOutputs;
     
-        void adaptInputBuffers(int count, FAUSTFLOAT** inputs)
+        void adaptInputBuffers(int count, const FAUSTFLOAT** inputs)
         {
             for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
                 for (int frame = 0; frame < count; frame++) {
@@ -165,7 +165,7 @@ class dsp_sample_adapter : public decorator_dsp {
     
         virtual dsp_sample_adapter* clone() { return new dsp_sample_adapter(fDSP->clone()); }
     
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             assert(count <= 4096);
             adaptInputBuffers(count, inputs);
@@ -174,7 +174,7 @@ class dsp_sample_adapter : public decorator_dsp {
             adaptOutputsBuffers(count, outputs);
         }
     
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(double date_usec, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             assert(count <= 4096);
             adaptInputBuffers(count, inputs);
@@ -460,14 +460,14 @@ struct dsp_bus : public dsp {
     
     virtual void metadata(Meta* m) {}
     
-    virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+    virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
         for (int chan = 0; chan < fChannels; chan++) {
             memcpy(outputs[chan], inputs[chan], sizeof(FAUSTFLOAT) * count);
         }
     }
     
-    virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+    virtual void compute(double /*date_usec*/, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
         compute(count, inputs, outputs);
     }
@@ -524,7 +524,7 @@ class dsp_down_sampler : public sr_sampler<FILTER> {
     
         virtual dsp_down_sampler* clone() { return new dsp_down_sampler(decorator_dsp::clone()); }
     
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             int real_count = count / this->getFactor();
             
@@ -565,7 +565,7 @@ class dsp_down_sampler : public sr_sampler<FILTER> {
             }
         }
     
-        virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
+        virtual void compute(double /*date_usec*/, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
 };
 
 // Up sample-rate adapter
@@ -594,7 +594,7 @@ class dsp_up_sampler : public sr_sampler<FILTER> {
     
         virtual dsp_up_sampler* clone() { return new dsp_up_sampler(decorator_dsp::clone()); }
     
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             int real_count = count * this->getFactor();
             
@@ -637,7 +637,7 @@ class dsp_up_sampler : public sr_sampler<FILTER> {
             }
         }
     
-        virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
+        virtual void compute(double /*date_usec*/, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
 };
 
 // Create a UP/DS + Filter adapted DSP

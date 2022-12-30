@@ -198,7 +198,7 @@ class remote_dsp : public dsp, public midi {
     
         void metadata(Meta* m);
     
-        void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+        void compute(int count, const FAUSTFLOAT** input, FAUSTFLOAT** output);
     
         // MIDI polyphonic control
         MapUI* keyOn(int channel, int pitch, int velocity);

@@ -933,7 +933,7 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
 
         tab(tabs + 1, out);
         tab(tabs + 1, out);
-        out << "virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)";
+        out << "virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)";
         {
             FBCCPPCompiler<T> compiler;
             compiler.AddBlock();

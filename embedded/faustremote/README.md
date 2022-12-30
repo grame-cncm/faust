@@ -50,7 +50,7 @@ Use instance as any static DSP:
 * `virtual int getNumOutputs()`
 * `virtual void init(int samplingFreq)`
 * `virtual void buildUserInterface(UI* ui)`
-* `virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)`
+* `virtual void compute(int count, const FAUSTFLOAT** input, FAUSTFLOAT** output)`
 
 * `void deleteRemoteDSPInstance(remote_dsp* dsp)`
 * `void deleteRemoteDSPFactory(remote_dsp_factory* factory)`

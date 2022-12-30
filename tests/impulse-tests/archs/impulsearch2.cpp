@@ -92,12 +92,12 @@ class Cdsp : public dsp {
             metadatamydsp(&glue);
         }
         
-        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+        virtual void compute(int count, const FAUSTFLOAT** input, FAUSTFLOAT** output)
         {
             computemydsp(fDSP, count, input, output);
         }
     
-        virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(double /*date_usec*/, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             compute(count, inputs, outputs);
         }

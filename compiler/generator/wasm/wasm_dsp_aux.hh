@@ -299,7 +299,7 @@ class LIBFAUST_API wasm_dsp : public dsp, public JSONControl {
 
     virtual void metadata(Meta* m);
 
-    virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+    virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 
     virtual void computeJS(int count, uintptr_t inputs, uintptr_t outputs);
     

@@ -480,7 +480,7 @@ extern "C"
     
     LIBFAUST_API void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
     
-    LIBFAUST_API void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    LIBFAUST_API void computeCDSPInstance(llvm_dsp* dsp, int count, const FAUSTFLOAT** input, FAUSTFLOAT** output);
     
     /* Set custom memory manager to be used when creating instances */
     LIBFAUST_API void setCMemoryManager(llvm_dsp_factory* factory, MemoryManagerGlue* manager);

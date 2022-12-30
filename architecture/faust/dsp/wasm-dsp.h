@@ -78,7 +78,7 @@ class LIFAUST_API wasm_dsp : public dsp {
 
         void metadata(Meta* m);
 
-        void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+        void compute(int count, const FAUSTFLOAT** input, FAUSTFLOAT** output);
     
 };
 

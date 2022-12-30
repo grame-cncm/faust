@@ -465,7 +465,7 @@ void remote_dsp_aux::buildUserInterface(UI* ui)
     }
 }
 
-void remote_dsp_aux::setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset)
+void remote_dsp_aux::setupBuffers(const FAUSTFLOAT** input, FAUSTFLOAT** output, int offset)
 {
     for (int i = 0; i < getNumInputs(); i++) {
         fAudioInputs[i] = &input[i][offset];
@@ -497,7 +497,7 @@ void remote_dsp_aux::recvSlice(int buffer_size)
 }
 
 // Compute of the DSP, adding the controls to the input/output passed
-void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+void remote_dsp_aux::compute(int count, const FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     if (fRunning) {
         
@@ -1152,7 +1152,7 @@ EXPORT void remote_dsp::buildUserInterface(UI* interface)
     reinterpret_cast<remote_dsp_aux*>(this)->buildUserInterface(interface);
 }
 
-EXPORT void remote_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+EXPORT void remote_dsp::compute(int count, const FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     reinterpret_cast<remote_dsp_aux*>(this)->compute(count, input, output);
 }

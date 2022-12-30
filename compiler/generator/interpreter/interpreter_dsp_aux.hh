@@ -484,9 +484,9 @@ struct interpreter_dsp_base : public dsp {
     virtual void metadata(MetaGlue* meta) {}
 
     // Not implemented...
-    virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
+    virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
 
-    virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
+    virtual void compute(double date_usec, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {}
 };
 
 template <class REAL, int TRACE>
@@ -688,7 +688,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         */
     }
 
-    virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
+    virtual void compute(int count, const FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
     {
         if (count == 0) return;  // Beware: compiled loop does not work with an index of 0
 
@@ -869,7 +869,7 @@ class LIBFAUST_API interpreter_dsp : public dsp {
     
     void metadata(MetaGlue* meta);
 
-    void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+    void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 };
 
 class LIBFAUST_API interpreter_dsp_factory : public dsp_factory, public faust_smartable {

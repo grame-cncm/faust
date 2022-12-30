@@ -439,7 +439,7 @@ void llvm_dsp::buildUserInterface(UIGlue* glue)
     fDecoder->buildUserInterface(glue, fDSP);
 }
 
-void llvm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+void llvm_dsp::compute(int count, const FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     if (fDecoder->hasDSPProxy()) {
         // Update inputs control
@@ -875,7 +875,7 @@ LIBFAUST_API void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* glue)
     }
 }
 
-LIBFAUST_API void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+LIBFAUST_API void computeCDSPInstance(llvm_dsp* dsp, int count, const FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
     if (dsp) {
         dsp->compute(count, input, output);

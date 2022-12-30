@@ -113,7 +113,7 @@ class FAUST_API one_sample_dsp : public dsp {
         virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs, int* iControl, FAUSTFLOAT* fControl) = 0;
     
         // The standard 'compute' expressed using the control/compute (one sample) model
-        virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
+        virtual void compute(int count, const FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
         {
             // Control
             control();
@@ -149,7 +149,7 @@ class FAUST_API one_sample_dsp : public dsp {
             }
         }
         
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(double date_usec, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             compute(count, inputs, outputs);
         }
@@ -309,7 +309,7 @@ class FAUST_API one_sample_dsp_real : public dsp {
                              int* iZone, REAL* fZone) = 0;
         
         // The standard 'compute' expressed using the control/compute (one sample) model
-        virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
+        virtual void compute(int count, const FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
         {
             assert(fInputs);
             
@@ -347,7 +347,7 @@ class FAUST_API one_sample_dsp_real : public dsp {
             }
         }
         
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(double date_usec, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             compute(count, inputs, outputs);
         }
@@ -423,7 +423,7 @@ class FAUST_API one_sample_dsp_real1 : public dsp {
         virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs) = 0;
         
         // The standard 'compute' expressed using the control/compute (one sample) model
-        virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
+        virtual void compute(int count, const FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
         {
             // TODO : not RT safe
             if (!fInputs) {
@@ -465,7 +465,7 @@ class FAUST_API one_sample_dsp_real1 : public dsp {
             }
         }
         
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(double date_usec, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             compute(count, inputs, outputs);
         }

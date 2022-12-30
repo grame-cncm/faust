@@ -157,7 +157,7 @@ class sound_base_player : public dsp {
             m->declare("name", fFileName.c_str());
         }
         
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             if (fPlayButton == FAUSTFLOAT(1) && fMutex.try_lock()) {
                 

@@ -303,7 +303,7 @@ class FaustPolyEngine {
             fFinalDSP->buildUserInterface(ui_interface);
         }
     
-        void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             fFinalDSP->compute(count, inputs, outputs);
         }

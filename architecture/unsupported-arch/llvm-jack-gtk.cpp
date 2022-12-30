@@ -144,7 +144,7 @@ class llvmdsp : public dsp {
         buildUserInterfacemydsp(fDsp, &glue);
  	}
 
-	virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+	virtual void compute(int count, const FAUSTFLOAT** input, FAUSTFLOAT** output)
     {
         AVOIDDENORMALS;
 		computemydsp(fDsp, count, input, output);

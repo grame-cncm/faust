@@ -182,13 +182,13 @@ class dsp_sequencer : public dsp_binary_combiner {
             return new dsp_sequencer(fDSP1->clone(), fDSP2->clone(), fBufferSize, fLayout, fLabel);
         }
 
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             fDSP1->compute(count, inputs, fDSP1Outputs);
             fDSP2->compute(count, fDSP1Outputs, outputs);
         }
 
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
+        virtual void compute(double date_usec, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
 
 };
 
@@ -232,7 +232,7 @@ class dsp_parallelizer : public dsp_binary_combiner {
             return new dsp_parallelizer(fDSP1->clone(), fDSP2->clone(), fBufferSize, fLayout, fLabel);
         }
 
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             fDSP1->compute(count, inputs, outputs);
 
@@ -247,7 +247,7 @@ class dsp_parallelizer : public dsp_binary_combiner {
             fDSP2->compute(count, fDSP2Inputs, fDSP2Outputs);
         }
 
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
+        virtual void compute(double date_usec, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
 
 };
 
@@ -291,7 +291,7 @@ class dsp_splitter : public dsp_binary_combiner {
             return new dsp_splitter(fDSP1->clone(), fDSP2->clone(), fBufferSize, fLayout, fLabel);
         }
 
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             fDSP1->compute(count, inputs, fDSP1Outputs);
 
@@ -353,7 +353,7 @@ class dsp_merger : public dsp_binary_combiner {
             return new dsp_merger(fDSP1->clone(), fDSP2->clone(), fBufferSize, fLayout, fLabel);
         }
 
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             fDSP1->compute(count, fDSP1Inputs, fDSP1Outputs);
 
@@ -418,7 +418,7 @@ class dsp_recursiver : public dsp_binary_combiner {
             return new dsp_recursiver(fDSP1->clone(), fDSP2->clone(), fLayout, fLabel);
         }
 
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             for (int frame = 0; (frame < count); frame++) {
 
@@ -444,7 +444,7 @@ class dsp_recursiver : public dsp_binary_combiner {
             }
         }
 
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
+        virtual void compute(double date_usec, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
 
 };
 
@@ -520,7 +520,7 @@ class dsp_crossfader: public dsp_binary_combiner {
             return new dsp_crossfader(fDSP1->clone(), fDSP2->clone(), fLayout, fLabel);
         }
     
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             if (fCrossfade == FAUSTFLOAT(1)) {
                 fDSP1->compute(count, inputs, outputs);
@@ -541,7 +541,7 @@ class dsp_crossfader: public dsp_binary_combiner {
             }
         }
     
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
+        virtual void compute(double date_usec, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
 };
 
 #ifndef __dsp_algebra_api__

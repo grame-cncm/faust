@@ -126,7 +126,7 @@ class Interleaver
             delete [] fOutput;
         }
         
-        FAUSTFLOAT** inputs() { return fInputs; }
+        const FAUSTFLOAT** inputs() { return fInputs; }
         
         FAUSTFLOAT* output() { return fOutput; }
         

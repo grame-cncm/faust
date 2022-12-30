@@ -196,7 +196,7 @@ class cmajor_cpp_dsp : public dsp {
         virtual void metadata(Meta* m)
         {}
     
-        void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             // Copy audio inputs
             if (fDSP.numAudioInputChannels > 0) {
@@ -221,7 +221,7 @@ class cmajor_cpp_dsp : public dsp {
             }
         }
     
-        virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(double /*date_usec*/, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             compute(count, inputs, outputs);
         }

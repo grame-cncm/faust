@@ -165,7 +165,7 @@ class Cdsp : public dsp {
             metadatamydsp(&glue);
         }
     
-        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+        virtual void compute(int count, const FAUSTFLOAT** input, FAUSTFLOAT** output)
         {
             computemydsp(fDSP, count, input, output);
         }

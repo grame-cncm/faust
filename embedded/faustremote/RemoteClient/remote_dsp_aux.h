@@ -198,7 +198,7 @@ class remote_dsp_aux : public dsp, public jack_midi {
         JSONUIDecoder*          fJSONDecoder;
     
         void fillBufferWithZerosOffset(int channels, int offset, int size, FAUSTFLOAT** buffer);
-        void setupBuffers(FAUSTFLOAT** input, FAUSTFLOAT** output, int offset);
+        void setupBuffers(const FAUSTFLOAT** input, FAUSTFLOAT** output, int offset);
     
         void sendSlice(int buffer_size);
         void recvSlice(int buffer_size);
@@ -234,7 +234,7 @@ class remote_dsp_aux : public dsp, public jack_midi {
     
         virtual void metadata(Meta* m);
     
-        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+        virtual void compute(int count, const FAUSTFLOAT** input, FAUSTFLOAT** output);
     
         remote_dsp_factory* getFactory() { return fFactory; }
     
@@ -314,7 +314,7 @@ class EXPORT remote_dsp : public dsp, public midi {
     
         int getSampleRate();
     
-        void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+        void compute(int count, const FAUSTFLOAT** input, FAUSTFLOAT** output);
     
         // MIDI polyphonic control
         MapUI* keyOn(int channel, int pitch, int velocity);

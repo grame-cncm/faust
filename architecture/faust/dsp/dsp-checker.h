@@ -77,7 +77,7 @@ class dsp_me_checker : public decorator_dsp
     
         virtual ~dsp_me_checker() {}
     
-        void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             if (fRuntime) {
                 TRY_FPE
@@ -88,7 +88,7 @@ class dsp_me_checker : public decorator_dsp
                 getStats(count, outputs);
             }
         }
-        void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        void compute(double date_usec, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             if (fRuntime) {
                 TRY_FPE

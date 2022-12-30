@@ -50,7 +50,7 @@ extern "C"
     void instanceConstantsmydsp(comp_llvm_mydsp* dsp, int sample_rate);
     void instanceClearmydsp(comp_llvm_mydsp* dsp);
     void classInitmydsp(int sample_rate);
-    void computemydsp(comp_llvm_mydsp* dsp, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+    void computemydsp(comp_llvm_mydsp* dsp, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
     char* getJSONmydsp();
     
 #ifdef __cplusplus
@@ -141,12 +141,12 @@ class mydsp : public dsp {
             fDecoder->metadata(m);
         }
         
-        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+        virtual void compute(int count, const FAUSTFLOAT** input, FAUSTFLOAT** output)
         {
             computemydsp(fDSP, count, input, output);
         }
     
-        virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(double /*date_usec*/, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             compute(count, inputs, outputs);
         }

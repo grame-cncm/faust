@@ -50,12 +50,12 @@ class dsp_compute_mix : public decorator_dsp {
         dsp_compute_mix(dsp* dsp) : decorator_dsp(dsp)
         {}
     
-        virtual void computeAdding(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void computeAdding(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             fDSP->compute(count, inputs, outputs);
         }
     
-        virtual void computeRemplacing(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void computeRemplacing(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
                 memset(outputs[chan], 0, sizeof(FAUSTFLOAT) * count);

@@ -85,7 +85,7 @@ extern "C" EXPORT void instanceConstants(dsp* self, int sample_rate) { self->ins
 extern "C" EXPORT void instanceResetUserInterface(dsp* self) { self->instanceResetUserInterface(); }
 extern "C" EXPORT dsp*  clone(dsp* self) { return self->clone(); }
 extern "C" EXPORT void metadata(dsp* self, Meta* m) { self->metadata(m); }
-extern "C" EXPORT void compute(dsp* self, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { self->compute(count, inputs, outputs); }
+extern "C" EXPORT void compute(dsp* self, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { self->compute(count, inputs, outputs); }
 
 /******************* END module.cpp ****************/
 

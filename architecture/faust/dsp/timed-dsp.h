@@ -141,7 +141,7 @@ class timed_dsp : public decorator_dsp {
         FAUSTFLOAT** fInputsSlice;
         FAUSTFLOAT** fOutputsSlice;
     
-        void computeSlice(int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
+        void computeSlice(int offset, int slice, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
             if (slice > 0) {
                 for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
@@ -183,7 +183,7 @@ class timed_dsp : public decorator_dsp {
             return it2;
         }
         
-        virtual void computeAux(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs, bool convert_ts)
+        virtual void computeAux(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs, bool convert_ts)
         {
             int slice, offset = 0;
             ztimedmap::iterator it;
@@ -246,12 +246,12 @@ class timed_dsp : public decorator_dsp {
         }
     
         // Default method take a timestamp at 'compute' call time
-        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             compute(::GetCurrentTimeInUsec(), count, inputs, outputs);
         }    
         
-        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        virtual void compute(double date_usec, int count, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             if (date_usec == -1) {
                 // Timestamp is expressed in frames

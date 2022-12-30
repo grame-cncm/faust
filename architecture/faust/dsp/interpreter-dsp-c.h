@@ -257,7 +257,7 @@ extern "C"
     
     LIBFAUST_API void metadataCInterpreterDSPInstance(interpreter_dsp* dsp, MetaGlue* meta);
     
-    LIBFAUST_API void computeCInterpreterDSPInstance(interpreter_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    LIBFAUST_API void computeCInterpreterDSPInstance(interpreter_dsp* dsp, int count, const FAUSTFLOAT** input, FAUSTFLOAT** output);
     
     /**
      * Create a Faust DSP instance.

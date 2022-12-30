@@ -115,7 +115,7 @@ typedef void (* instanceInitFun) (dsp_imp* dsp, int sample_rate);
 typedef void (* instanceConstantsFun) (dsp_imp* dsp, int sample_rate);
 typedef void (* instanceResetUserInterfaceFun) (dsp_imp* dsp);
 typedef void (* instanceClearFun) (dsp_imp* dsp);
-typedef void (* computeFun) (dsp_imp* dsp, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+typedef void (* computeFun) (dsp_imp* dsp, int len, const FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 typedef void (* metadataFun) (MetaGlue* meta);
     
 /***************************************

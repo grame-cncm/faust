@@ -100,7 +100,7 @@ class mydsp : public dsp {
             return fSampleRate;
         }
         virtual void buildUserInterface(UI* interface) {}
-        virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {}
+        virtual void compute (int count, const FAUSTFLOAT** input, FAUSTFLOAT** output) {}
 };
 
 /***************************END USER SECTION ***************************/

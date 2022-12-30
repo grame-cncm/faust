@@ -111,7 +111,7 @@ class LIBFAUST_API llvm_dsp : public dsp {
 
     virtual void metadata(MetaGlue* glue);
 
-    virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    virtual void compute(int count, const FAUSTFLOAT** input, FAUSTFLOAT** output);
 };
 
 class FaustObjectCache : public llvm::ObjectCache {
@@ -417,7 +417,7 @@ LIBFAUST_API void instanceClearCDSPInstance(llvm_dsp* dsp);
 
 LIBFAUST_API llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp);
 
-LIBFAUST_API void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+LIBFAUST_API void computeCDSPInstance(llvm_dsp* dsp, int count, const FAUSTFLOAT** input, FAUSTFLOAT** output);
 
 LIBFAUST_API void setCMemoryManager(llvm_dsp_factory* factory, MemoryManagerGlue* manager);
 
