@@ -14,8 +14,8 @@ namespace itv {
 // void testXor() const;
 static double myXor(double x, double y)
 {
-    auto a = int(x);
-    auto b = int(y);
+    auto a = saturatedIntCast(x);
+    auto b = saturatedIntCast(y);
     int  c = a ^ b;
     return double(c);
 }
@@ -24,10 +24,10 @@ static double myXor(double x, double y)
 interval interval_algebra::Xor(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) return {};
-    auto x0 = int(x.lo());
-    auto x1 = int(x.hi());
-    auto y0 = int(y.lo());
-    auto y1 = int(y.hi());
+    auto x0 = saturatedIntCast(x.lo());
+    auto x1 = saturatedIntCast(x.hi());
+    auto y0 = saturatedIntCast(y.lo());
+    auto y1 = saturatedIntCast(y.hi());
 
     SInterval z = bitwiseSignedXOr({x0, x1}, {y0, y1});
     return {double(z.lo), double(z.hi)};

@@ -1,3 +1,4 @@
+// Size = 9
 ID_0 = waveform{...};
 ID_1 = TABLE(6,ID_0);
 ID_2 = abs(IN[0]);

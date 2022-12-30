@@ -15,8 +15,8 @@ namespace itv {
 interval interval_algebra::Not(const interval& x) const
 {
     if (x.isEmpty()) return x;
-    int x0 = int(x.lo());
-    int x1 = int(x.hi());
+    int x0 = saturatedIntCast(x.lo());
+    int x1 = saturatedIntCast(x.hi());
 
     int z0 = INT32_MAX;
     int z1 = INT32_MIN;
@@ -31,7 +31,7 @@ interval interval_algebra::Not(const interval& x) const
 
 static double myNot(double x)
 {
-    int a = int(x);
+    int a = saturatedIntCast(x);
     int b = ~a;
     return double(b);
 }

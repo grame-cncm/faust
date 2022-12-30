@@ -37,7 +37,8 @@
 
 class SignalTypePrinter final : public SignalVisitor {
     
-    protected:
+    private:
+        std::vector<std::string> fPrinted;
         void visit(Tree sig) override;
         
     public:
@@ -46,6 +47,16 @@ class SignalTypePrinter final : public SignalVisitor {
             // Check that the root tree is properly type annotated
             getCertifiedSigType(L);
             visitRoot(L);
+            /*
+                HACK: since the signal tree shape is still not deterministic,
+                we sort the list to be sure it stays the same.
+                To be removed if the tree shape becomes deterministic.
+             */
+            std::sort(fPrinted.begin(), fPrinted.end());
+            std::cout << "Size = " << fPrinted.size() << std::endl;
+            for (const auto& it : fPrinted) {
+                std::cout << it;
+            }
         }
 };
 

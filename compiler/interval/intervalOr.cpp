@@ -14,8 +14,8 @@ namespace itv {
 // void testOr() const;
 static double myOr(double x, double y)
 {
-    int a = int(x);
-    int b = int(y);
+    int a = saturatedIntCast(x);
+    int b = saturatedIntCast(y);
     int c = a | b;
     return double(c);
 }
@@ -24,10 +24,10 @@ static double myOr(double x, double y)
 interval interval_algebra::Or(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) return {};
-    int x0 = int(x.lo());
-    int x1 = int(x.hi());
-    int y0 = int(y.lo());
-    int y1 = int(y.hi());
+    int x0 = saturatedIntCast(x.lo());
+    int x1 = saturatedIntCast(x.hi());
+    int y0 = saturatedIntCast(y.lo());
+    int y1 = saturatedIntCast(y.hi());
 
     SInterval z = bitwiseSignedOr({x0, x1}, {y0, y1});
     return {double(z.lo), double(z.hi)};

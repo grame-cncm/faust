@@ -1,3 +1,4 @@
+// Size = 10
 ID_0 = vbargraph("foo0",0.0f,1e+01f,0.0f);
 ID_1 = vbargraph("foo1",0.0f,1e+01f,1e+01f);
 ID_2 = vbargraph("foo2",0.0f,1e+01f,2e+01f);

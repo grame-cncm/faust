@@ -555,8 +555,15 @@ ostream& ppsigShared::print(ostream& fout) const
     return fout;
 }
 
-void ppsigShared::printIDs(ostream& fout)
+void ppsigShared::printIDs(ostream& fout, bool sort)
 {
+    /*
+     HACK: since the signal tree shape is still not deterministic,
+     we sort the list to be sure it stays the same.
+     To be removed if the tree shape becomes deterministic.
+     */
+    if (sort) std::sort(gGlobal->gSignalTrace.begin(), gGlobal->gSignalTrace.end());
+    cout << "// Size = " << gGlobal->gSignalTrace.size() << endl;
     for (const auto& it : gGlobal->gSignalTrace) {
         fout << it;
     }

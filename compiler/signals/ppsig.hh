@@ -101,18 +101,18 @@ class ppsigShared final : public ppsig {
     
     public:
         ppsigShared(Tree s):ppsig(s) {}
-        ppsigShared(Tree L, std::ostream& fout):ppsig(L)
+        ppsigShared(Tree L, std::ostream& fout, bool sort = false):ppsig(L)
         {
             // Create a map of <ID, expression>
             std::stringstream s; s << ppsigShared(L);
             // Print the <ID, expression> list
-            printIDs(fout);
+            printIDs(fout, sort);
             fout << "SIG = " << s.str() << ";" << std::endl;
         }
         ppsigShared(Tree s, Tree env, int priority = 0) : ppsig(s, env, priority) {}
         std::ostream& print(std::ostream& fout) const;
     
-        static void printIDs(std::ostream& fout);
+        static void printIDs(std::ostream& fout, bool sort);
 };
 
 #endif

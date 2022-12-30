@@ -38,8 +38,8 @@ interval interval_algebra::Pow(const interval& x, const interval& y) const
         return Exp(Mul(y, Log(x)));
     }
 
-    int      y0 = std::max(0, int(y.lo()));
-    int      y1 = std::max(0, int(y.hi()));
+    int      y0 = std::max(0, saturatedIntCast(y.lo()));
+    int      y1 = std::max(0, saturatedIntCast(y.hi()));
     interval z  = ipow(x, y0);
     for (int i = y0 + 1; i <= y1; ++i) {
         z = reunion(z, ipow(x, i));

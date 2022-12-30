@@ -85,7 +85,7 @@ ir/$(outdir)/control.cpp : dsp/control.dsp
 # Specific rule to test 'enable/control' primitives that currently only work in scalar mode
 ir/$(outdir)/osc_enable.$(ext) : dsp/osc_enable.dsp
 	@echo "Can only be tested in scalar mode"
-	$(DYNFAUST) -double -I dsp  $< -o $@
+	$(DYNFAUST) -double  $< -o $@
 
 ir/$(outdir)/%.$(ext) : dsp/%.dsp
-	$(DYNFAUST) $(FAUSTOPTIONS) -I dsp $< -o $@
+	$(DYNFAUST) $(FAUSTOPTIONS) $< -o $@

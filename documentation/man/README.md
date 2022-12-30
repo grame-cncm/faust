@@ -1,4 +1,4 @@
-% man(1) Version 2.56.0 (30-December-2022) | Faust man page
+% man(1) Version 2.56.1 (30-December-2022) | Faust man page
 
 NAME
 ====
@@ -76,7 +76,7 @@ Code generation options:
 
   **-fp**         **--full-parentheses**          always add parentheses around binops.
 
-  **-cir**        **--check-integer-range**       check float to integer conversion.
+  **-cir**        **--check-integer-range**       check float to integer range conversion.
 
   **-exp10**      **--generate-exp10**            pow(10,x) replaced by possibly faster exp10(x).
 

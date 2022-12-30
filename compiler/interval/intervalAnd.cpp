@@ -16,7 +16,7 @@ namespace itv {
 //----------------------booleans&bits--------------------------------------
 inline int bitmask(double x)
 {
-    int v = int(x);
+    int v = saturatedIntCast(x);
     for (int i = 1; i < 32; i *= 2) {
         v |= v >> i;
     }
@@ -54,8 +54,8 @@ bool isBitMask(int x)
 // }
 static double myAnd(double x, double y)
 {
-    int a = int(x);
-    int b = int(y);
+    int a = saturatedIntCast(x);
+    int b = saturatedIntCast(y);
     int c = a & b;
     return double(c);
 }
@@ -69,8 +69,8 @@ static double myAnd(double x, double y)
 
 interval bmAnd(const interval& x, int mask)
 {
-    int lo = int(x.lo());
-    int hi = int(x.hi());
+    int lo = saturatedIntCast(x.lo());
+    int hi = saturatedIntCast(x.hi());
     int w  = hi - lo;
     int p  = mask + 1;
 
@@ -110,10 +110,10 @@ interval interval_algebra::And(const interval& x, const interval& y) const
 interval interval_algebra::And(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) return {};
-    int x0 = int(x.lo());
-    int x1 = int(x.hi());
-    int y0 = int(y.lo());
-    int y1 = int(y.hi());
+    int x0 = saturatedIntCast(x.lo());
+    int x1 = saturatedIntCast(x.hi());
+    int y0 = saturatedIntCast(y.lo());
+    int y1 = saturatedIntCast(y.hi());
 
     SInterval z = bitwiseSignedAnd({x0, x1}, {y0, y1});
     return {double(z.lo), double(z.hi)};

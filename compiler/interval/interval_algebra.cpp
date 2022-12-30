@@ -24,11 +24,11 @@ void interval_algebra::testAll() const
     testDiv();
     testEq();
     testExp();
-    testFloat();
+    testFloatCast();
     testFloor();
     testGe();
     testGt();
-    testInt();
+    testIntCast();
     testInv();
     testLog();
     testLog10();

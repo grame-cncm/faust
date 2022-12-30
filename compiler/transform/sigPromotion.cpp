@@ -22,6 +22,7 @@
 #include "sigPromotion.hh"
 #include <stdlib.h>
 #include <cstdlib>
+#include <sstream>
 
 #include "global.hh"
 #include "prim2.hh"
@@ -33,7 +34,9 @@ using namespace std;
 
 void SignalTypePrinter::visit(Tree sig)
 {
-    cout << "Type = " << getCertifiedSigType(sig) << endl;
+    stringstream type;
+    type << "Type = " << getCertifiedSigType(sig) << endl;
+    fPrinted.push_back(type.str());
     
     // Default case and recursion
     SignalVisitor::visit(sig);

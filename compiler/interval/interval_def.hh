@@ -33,6 +33,15 @@
 //
 //****************************************************************************
 namespace itv {
+
+/**
+ * Cast a double to an int, with saturation.
+ */
+inline int saturatedIntCast(double d)
+{
+    return int(std::min(2147483647.0, std::max(d, -2147483648.0)));
+}
+
 class interval {
    private:
     double fLo{std::numeric_limits<double>::lowest()};  ///< minimal value

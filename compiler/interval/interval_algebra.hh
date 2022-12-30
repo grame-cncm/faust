@@ -2,9 +2,26 @@
 
 #include "interval_def.hh"
 
+#include "faust_algebra.hh"
+
 namespace itv {
-class interval_algebra {
+class interval_algebra : public faust_algebra<interval> {
    public:
+    // Injections of external values
+    interval String(const std::string& x) const;
+    interval IntNum(int x) const;
+    interval FloatNum(double x) const;
+
+    // User interface elements
+    interval Button(const interval& name) const;
+    interval Checkbox(const interval& name) const;
+    interval VSlider(const interval& name, const interval& init, const interval& lo, const interval& hi,
+                     const interval& step) const;
+    interval HSlider(const interval& name, const interval& init, const interval& lo, const interval& hi,
+                     const interval& step) const;
+    interval NumEntry(const interval& name, const interval& init, const interval& lo, const interval& hi,
+                      const interval& step) const;
+
     interval Abs(const interval& x) const;
     void     testAbs() const;
     //
@@ -67,16 +84,16 @@ class interval_algebra {
     void     testEq() const;
     interval Exp(const interval& x) const;
     void     testExp() const;
-    interval Float(const interval& x) const;
-    void     testFloat() const;
+    interval FloatCast(const interval& x) const;
+    void     testFloatCast() const;
     interval Floor(const interval& x) const;
     void     testFloor() const;
     interval Ge(const interval& x, const interval& y) const;
     void     testGe() const;
     interval Gt(const interval& x, const interval& y) const;
     void     testGt() const;
-    interval Int(const interval& x) const;
-    void     testInt() const;
+    interval IntCast(const interval& x) const;
+    void     testIntCast() const;
     interval Le(const interval& x, const interval& y) const;
     void     testLe() const;
     interval Log(const interval& x) const;
