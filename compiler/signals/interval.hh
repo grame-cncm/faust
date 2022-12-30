@@ -159,11 +159,6 @@ inline interval pow(const interval& x, const interval& y)
     return gAlgebra.Pow(x, y);
 }
 
-inline interval iint(const interval& x)
-{
-    return gAlgebra.Int(x);
-}
-
 inline interval fmod(const interval& x, const interval& y)
 {
     return gAlgebra.Mod(x, y);
