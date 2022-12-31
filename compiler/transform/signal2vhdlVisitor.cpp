@@ -26,6 +26,8 @@
 #include "signal2vhdlVisitor.hh"
 #include "sigtyperules.hh"
 
+using namespace std;
+
 //-------------------------Signal2VHDLVisitor-------------------------------
 // An identity transformation on signals. Can be used to test
 // that everything works, and as a pattern for real transformations.

@@ -30,7 +30,6 @@
 //-------------------------Signal2VHDLVisitor-------------------------------
 // A a signal visitor used to compile signals to vhdl code
 //----------------------------------------------------------------------
-using namespace std;
 
 #define HIGH 8  //  gGlobal->gVHDLFloatMSB
 #define LOW -23 //  gGlobal->gVHDLFloatLSB
@@ -63,7 +62,7 @@ class Signal2VHDLVisitor : public SignalVisitor {
           *  - Each port list has a direction (in/out/inout) and a type
           */
         void entity_bin_op(const std::string& name, const char* op, int nature, std::string& str);   // arithmetic and modulo operation
-        void entity_bin_op_concat(const std::string& name, const char* op, int nature, string& str);   // arithmetic and modulo operation
+        void entity_bin_op_concat(const std::string& name, const char* op, int nature, std::string& str);   // arithmetic and modulo operation
         void entity_cmp_op(const std::string& name, const char* op, int nature, std::string& str);   // compare operation
         void entity_delay(int nature, std::string& str);                                       // delay
         void entity_delay_var_reg(int nature, std::string& str);                                // variable delay (Using Registers)
@@ -90,10 +89,10 @@ class Signal2VHDLVisitor : public SignalVisitor {
           *   the port map statements to connect the ports
           */
         void inst_bin_op(const std::string& name, Tree sig, Tree x, Tree y, std::string& str); // arith, mod, compare
-        void inst_delay(Tree sig, Tree x, Tree y, std::string& str);                      // delay
-        void inst_delay_var(Tree sig, Tree x, Tree y, std::string& str, int mxd);         // variable delay
+        void inst_delay(Tree sig, Tree x, Tree y, std::string& str);                           // delay
+        void inst_delay_var(Tree sig, Tree x, Tree y, std::string& str, int mxd);               // variable delay
         void inst_sincos(const std::string& name, Tree sig, Tree x, int nature, std::string& str);         // cosinus & sinus
-        void inst_bypass(const std::string& name, Tree sig, Tree x, std::string& str);         // bypass
+        void inst_bypass(const std::string& name, Tree sig, Tree x, std::string& str);          // bypass
         void inst_select2(const std::string& name, Tree sig, Tree sel, Tree x, Tree y, std::string& str);  // select
 
         void decl_sig(Tree x, int msb, int lsb, int nature); // Declare the internal signals of the IP block with a type (and an initial value)
@@ -106,12 +105,13 @@ class Signal2VHDLVisitor : public SignalVisitor {
         void bypass(const std::string& name, Tree sig, Tree x);
         void cast(const std::string& name, Tree sig, Tree x);
 
-
-        bool globalCodingFloat() {
+        bool globalCodingFloat()
+        {
             return gGlobal->gVHDLFloatType == 1;
         }
 
-        bool globalCodingSfixed() {
+        bool globalCodingSfixed()
+        {
             return gGlobal->gVHDLFloatType == 0;
         }
 
@@ -172,7 +172,7 @@ class Signal2VHDLVisitor : public SignalVisitor {
     public:
         Signal2VHDLVisitor(old_OccMarkup* occ_markup) : SignalVisitor(), fOccMarkup(occ_markup) {};
 
-        void sigToVHDL(Tree sig, ostream& fout);
+        void sigToVHDL(Tree sig, std::ostream& fout);
 
     protected:
         void visit(Tree sig) override;

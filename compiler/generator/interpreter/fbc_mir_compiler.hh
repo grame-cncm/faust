@@ -48,7 +48,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
 
     typedef void (*compiledFun)(MIR_val_t int_heap, MIR_val_t real_heap, MIR_val_t inputs, MIR_val_t outputs);
 
-   protected:
+   private:
     compiledFun fCompiledFun;
     
     std::map<std::string, int> fIDCounters;

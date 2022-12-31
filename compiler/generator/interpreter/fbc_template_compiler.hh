@@ -31,7 +31,7 @@
 
 /*
  * FBC template compiler, where REAL will be either 'float' or 'double'
- * depending of the compiler choosen option: -single or -double
+ * depending of the compiler option: -single or -double
  */
 template <class REAL>
 class FBCTemplateCompiler : public FBCExecuteFun<REAL> {

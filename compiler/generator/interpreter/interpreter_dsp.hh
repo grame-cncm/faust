@@ -214,8 +214,8 @@ dsp* interpreter_dsp_factory_aux<REAL, TRACE>::createDSPInstance(dsp_factory* fa
     faustassert(tmp);
     
     if (tmp->getMemoryManager()) {
-        return new (tmp->getFactory()->allocate(sizeof(interpreter_dsp)))
-        interpreter_dsp(tmp, new (tmp->getFactory()->allocate(sizeof(interpreter_dsp_aux<REAL, TRACE>)))
+        return new(tmp->getFactory()->allocate(sizeof(interpreter_dsp)))
+        interpreter_dsp(tmp, new(tmp->getFactory()->allocate(sizeof(interpreter_dsp_aux<REAL, TRACE>)))
                         interpreter_dsp_aux<REAL, TRACE>(this));
     } else {
     #ifdef MACHINE
@@ -225,6 +225,5 @@ dsp* interpreter_dsp_factory_aux<REAL, TRACE>::createDSPInstance(dsp_factory* fa
     #endif
     }
 }
-
 
 #endif

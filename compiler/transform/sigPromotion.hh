@@ -34,7 +34,6 @@
  Print the type of a signal.
  To be used on a type annotated signal.
  */
-
 class SignalTypePrinter final : public SignalVisitor {
     
     private:
@@ -68,10 +67,9 @@ class SignalTypePrinter final : public SignalVisitor {
  
  To be used on a type annotated signal.
 */
- 
 class SignalChecker final : public SignalVisitor {
     
-    protected:
+    private:
         void visit(Tree sig) override;
 
     public:
@@ -88,7 +86,6 @@ class SignalChecker final : public SignalVisitor {
 // to any optimisations to avoid to scramble int and float expressions.
 // To be used on a type annotated signal.
 //----------------------------------------------------------------------
-
 class SignalPromotion final : public SignalIdentity {
     
     private:
@@ -115,7 +112,7 @@ class SignalPromotion final : public SignalIdentity {
 };
 
 //-------------------------SignalBool2IntPromotion----------------------
-// Cast bool binary operations (comparison operations) to int
+// Cast bool binary operations (comparison operations) to int.
 //----------------------------------------------------------------------
 class SignalBool2IntPromotion final : public SignalIdentity {
     
@@ -132,7 +129,7 @@ class SignalBool2IntPromotion final : public SignalIdentity {
 };
 
 //-------------------------SignalIntCastPromotion----------------------
-// Cast bool binary operations (comparison operations) to int
+// Float to integer conversion, checking the range.
 //----------------------------------------------------------------------
 class SignalIntCastPromotion final : public SignalIdentity {
     
@@ -149,7 +146,7 @@ class SignalIntCastPromotion final : public SignalIdentity {
 };
 
 //-------------------------SignalTablePromotion-------------------------
-// Generate safe access to rdtable/rwtable (wdx/rdx in [0..size-1])
+// Generate safe access to rdtable/rwtable (wdx/rdx in [0..size-1]).
 //----------------------------------------------------------------------
 class SignalTablePromotion final : public SignalIdentity {
     
@@ -171,7 +168,7 @@ class SignalTablePromotion final : public SignalIdentity {
 };
 
 //-------------------------SignalUIPromotion-------------------------
-// Generate safe access to range UI items (sliders and nentry)
+// Generate safe access to range UI items (sliders and nentry).
 //----------------------------------------------------------------------
 class SignalUIPromotion final : public SignalIdentity {
     

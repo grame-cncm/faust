@@ -326,6 +326,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     new FBCBasicInstruction<REAL>(FBCInstruction::kLoadInput, 0, 0, std::atoi(num.c_str()), 0));
             } else {
                 DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
+                // For soundfile
                 if (struct_type) {
                     std::vector<ValueInst*> indices = indexed->getIndices();
                     // Field_index is last in the indices vector

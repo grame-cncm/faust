@@ -94,7 +94,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
     endTiming("L4 typeAnnotation");
      
     if (gGlobal->gCheckIntRange) {
-        // Check and generate safe float to integer range conversion;
+        // Check and generate safe float to integer range conversion
         startTiming("Safe float to integer conversion");
         L4 = signalIntCastPromote(L4);
         endTiming("Safe float to integer conversion");

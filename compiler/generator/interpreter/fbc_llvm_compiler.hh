@@ -42,7 +42,7 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
 
     typedef void (*compiledFun)(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs);
 
-   protected:
+   private:
     LLVMExecutionEngineRef fJIT;
     LLVMModuleRef          fModule;
     LLVMBuilderRef         fBuilder;
@@ -86,7 +86,6 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
             LLVMInt32Type(),
             LLVMInt1Type()
         };
-        
         return LLVMStructType(types, 7, true);
     }
     
