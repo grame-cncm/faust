@@ -223,11 +223,11 @@ struct Automaton : public virtual Garbageable {
     // number of rules
     int n_rules() { return (int)rhs.size(); }
     // markers of rules still active in state s
-    const list<Rule>& rules(int s) { return state[s]->rules; }
+    const list<Rule>& rules(int s1) { return state[s1]->rules; }
     // transitions in state s
-    const list<Trans>& trans(int s) { return state[s]->trans; }
+    const list<Trans>& trans(int s1) { return state[s1]->trans; }
     // is s a final state?
-    bool final(int s) { return trans(s).empty(); }
+    bool final(int s1) { return trans(s1).empty(); }
 
     // assign state numbers and build the state table
     int  s;
@@ -533,22 +533,22 @@ Automaton* make_pattern_matcher(Tree R)
     for (r = 0; r < n; r++) {
         Tree lhs, rhs;
         if (isCons(rules[r], lhs, rhs)) {
-            Tree         pat, rest;
+            Tree         pat, rest1;
             int          m = len(lhs), i = m;
             vector<Tree> pats(len(lhs), (Tree)NULL);
             State*      state0 = new State, *state = state0;
             A->rhs.push_back(rhs);
-            while (isCons(lhs, pat, rest)) {
+            while (isCons(lhs, pat, rest1)) {
                 pats[--i] = pat;
-                lhs       = rest;
+                lhs       = rest1;
             }
             testpats[r] = pats;
             for (i = 0; i < m; i++) {
                 Path p;
                 state = make_state(state, r, pats[i], p);
             }
-            Rule rule(r, NULL);
-            state->rules.push_back(rule);
+            Rule rule1(r, NULL);
+            state->rules.push_back(rule1);
             merge_state(start, state0);
         }
     }

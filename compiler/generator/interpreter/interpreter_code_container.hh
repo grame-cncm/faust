@@ -99,20 +99,7 @@ class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
         std::string SFcache = varname + "ca";
 
         addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
-        
         pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
-        
-        if (gGlobal->gUseDefaultSound) {
-            BlockInst* block = InstBuilder::genBlockInst();
-            block->pushBackInst(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadGlobalVar("defaultsound")));
-            
-            pushResetUIInstructions(InstBuilder::genIfInst(
-                InstBuilder::genEqual(InstBuilder::genCastInst(InstBuilder::genLoadStructVar(varname),
-                        InstBuilder::genBasicTyped(Typed::kUint_ptr)),
-                        InstBuilder::genTypedZero(Typed::kSound_ptr)),
-                        block, InstBuilder::genBlockInst()));
-        }
-    
         return InstBuilder::genLoadStructVar(varname);
     }
     

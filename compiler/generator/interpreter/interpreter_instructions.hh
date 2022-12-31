@@ -353,6 +353,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         if (!startWith(address->getName(), "output")) {
             faustassert(fFieldTable.find(address->getName()) != fFieldTable.end());
         }
+    
         // Waveform array store...
         ArrayTyped* array_typed;
         if (type && (array_typed = dynamic_cast<ArrayTyped*>(type))) {

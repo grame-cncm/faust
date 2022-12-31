@@ -88,7 +88,6 @@ clean:
 distclean:
 	rm -rf $(FAUSTDIR)
 
-
 #===============================================================
 help:
 	@echo "-------- FAUST compiler makefile --------"

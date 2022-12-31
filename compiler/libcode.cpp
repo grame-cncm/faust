@@ -1401,6 +1401,7 @@ static void compileInterp(Tree signals, int numInputs, int numOutputs)
     gGlobal->gFAUSTFLOAT2Internal = true;
     gGlobal->gNeedManualPow       = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
     gGlobal->gRemoveVarAddress    = true;   // To be used in -vec mode
+    gGlobal->gUseDefaultSound     = false;
 
     if (gGlobal->gVectorSwitch) {
         new_comp = new DAGInstructionsCompiler(container);
@@ -1671,7 +1672,6 @@ static void compileWAST(Tree signals, int numInputs, int numOutputs, ostream* ou
     gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
     gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
                                          // gGlobal->gHasTeeLocal = true;     // combined store/load
-
     gGlobal->gUseDefaultSound = false;
 
     // This speedup (freeverb for instance) ==> to be done at signal level
@@ -1711,7 +1711,6 @@ static void compileWASM(Tree signals, int numInputs, int numOutputs, ostream* ou
     gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
     gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
                                          // gGlobal->gHasTeeLocal = true;     // combined store/load
-
     gGlobal->gUseDefaultSound = false;
 
     // This speedup (freeverb for instance) ==> to be done at signal level

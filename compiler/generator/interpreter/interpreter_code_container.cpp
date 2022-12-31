@@ -138,12 +138,7 @@ dsp_factory_base* InterpreterCodeContainer<REAL>::produceFactory()
 {
     // "count" variable added to be setup later by 'compute'
     pushDeclare(InstBuilder::genDecStructVar("count", InstBuilder::genInt32Typed()));
-
-    // Has to be explicity added in the FIR (C/C++ backends generated code will be compiled with SoundUI which defines
-    // 'defaultsound')
-    pushGlobalDeclare(InstBuilder::genDecGlobalVar("defaultsound", InstBuilder::genBasicTyped(Typed::kSound_ptr),
-                                                   InstBuilder::genTypedZero(Typed::kSound_ptr)));
-
+   
     // Sub containers are merged
     mergeSubContainers();
 
