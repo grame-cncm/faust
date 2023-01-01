@@ -404,7 +404,7 @@ reference-signal:
 reference-type:
 	$(MAKE) -f Make.ref reference-type      FAUSTOPTIONS="-I dsp"
 
-tools: filesCompare impulsellvm impulseinterp impulseinterp1
+tools: filesCompare impulsellvm impulseinterp impulseinterp1 
 
 clean:
 	rm -f filesCompare impulsellvm impulseinterp impulseinterp1
@@ -435,8 +435,9 @@ impulseinterp: $(SRCDIR)/impulseinterp.cpp ./archs/controlTools.h $(LIB)
 impulseinterp1: $(SRCDIR)/impulseinterp1.cpp ./archs/controlTools.h $(LIB)
 	$(CXX) $(TOOLSOPTIONS) -L/opt/local/lib -Iarchs $(SRCDIR)/impulseinterp1.cpp $(MACHINE_LIB) $(LLVM_LIB) -o impulseinterp1
 
+# Target to use the Interp MIR backend
 impulseinterp2: $(SRCDIR)/impulseinterp1.cpp ./archs/controlTools.h $(LIB)
-	$(CXX) $(TOOLSOPTIONS) -L/opt/local/lib -Iarchs $(SRCDIR)/impulseinterp1.cpp $(MACHINE_LIB) /usr/local/lib/libmir.a -o impulseinterp2
+	$(CXX) $(TOOLSOPTIONS) -L/opt/local/lib -Iarchs $(SRCDIR)/impulseinterp1.cpp $(MACHINE_LIB) /usr/local/lib/libmir.a -o impulseinterp1
 
 impulsellvm: $(SRCDIR)/impulsellvm.cpp ./archs/controlTools.h $(LIB)
 	$(CXX) $(TOOLSOPTIONS) -L/opt/local/lib -Iarchs $(SRCDIR)/impulsellvm.cpp $(LIB) $(LLVM_LIB) $(WINSOCK) -o impulsellvm
