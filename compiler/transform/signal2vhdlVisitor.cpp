@@ -178,51 +178,51 @@ void Signal2VHDLVisitor::visit(Tree sig)
         return;
     } else if (isSigBinOp(sig, &i, x, y)) {
         switch (i) {
-            case 0:
+            case kAdd:
                 bin_op("ADD" + suffixe, binopname[i], sig, x, y);
                 break;
-            case 1:
+            case kSub:
                 bin_op("SUB" + suffixe, binopname[i], sig, x, y);
                 break;
-            case 2:
+            case kMul:
                 bin_op("MUL" + suffixe, binopname[i], sig, x, y);
                 break;
-            case 3:
+            case kDiv:
                 bin_op("DIV" + suffixe, binopname[i], sig, x, y);
                 break;
-            case 4:
+            case kRem:
                 bin_op("MODULO" + suffixe, "mod", sig, x, y);
                 break;
-            case 8:
+            case kGT:
                 cmp_op("GT" + suffixe, ">", sig, x, y);
                 break;
-            case 9:
+            case kLT:
                 cmp_op("LT" + suffixe, "<", sig, x, y);
                 break;
-            case 10:
+            case kGE:
                 cmp_op("GE" + suffixe, ">=", sig, x, y);
                 break;
-            case 11:
+            case kLE:
                 cmp_op("LE" + suffixe, "<=", sig, x, y);
                 break;
-            case 12:
+            case kEQ:
                 cmp_op("EQUAL" + suffixe, "=", sig, x, y);
                 break;
-            case 13:
+            case kNE:
                 cmp_op("DIFF" + suffixe, "/=", sig, x, y);
                 break;
-            case 14:
+            case kAND:
                 bin_op("ANDL" + suffixe, "and", sig, x, y);
                 break;
-            case 15:
+            case kOR:
                 bin_op("ORL" + suffixe, "or", sig, x, y);
                 break;
-            case 16:
+            case kXOR:
                 bin_op("XORL" + suffixe, "xor", sig, x, y);
                 break;
             default:
                 // operator is doesn't match any case constant (+, -, *, /, ...)
-                cout << "Error! The operator is not correct";
+                throw faustexception("ERROR : the operator is not supported\n");
                 break;
         }
         self(x);

@@ -226,10 +226,10 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
     void pushLoadInput(int index)
     {
         LLVMTypeRef type           = getRealTy();
-        LLVMTypeRef ptr_type       = LLVMPointerType(getRealTy(), 0);
+        LLVMTypeRef type_ptr       = LLVMPointerType(type, 0);
         LLVMValueRef idx1[]        = {genInt32(index)};
-        LLVMValueRef input_ptr_ptr = LLVMBuildInBoundsGEP2(fBuilder, ptr_type, fLLVMInputs, idx1, 1, "");
-        LLVMValueRef input_ptr     = LLVMBuildLoad2(fBuilder, ptr_type, input_ptr_ptr, "");
+        LLVMValueRef input_ptr_ptr = LLVMBuildInBoundsGEP2(fBuilder, type_ptr, fLLVMInputs, idx1, 1, "");
+        LLVMValueRef input_ptr     = LLVMBuildLoad2(fBuilder, type_ptr, input_ptr_ptr, "");
         LLVMValueRef idx2[]        = {popValue()};
         LLVMValueRef input         = LLVMBuildInBoundsGEP2(fBuilder, type, input_ptr, idx2, 1, "");
         pushValue(LLVMBuildLoad2(fBuilder, type, input, ""));
@@ -238,10 +238,10 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
     void pushStoreOutput(int index)
     {
         LLVMTypeRef type            = getRealTy();
-        LLVMTypeRef ptr_type        = LLVMPointerType(getRealTy(), 0);
+        LLVMTypeRef type_ptr        = LLVMPointerType(type, 0);
         LLVMValueRef idx1[]         = {genInt32(index)};
-        LLVMValueRef output_ptr_ptr = LLVMBuildInBoundsGEP2(fBuilder, ptr_type, fLLVMOutputs, idx1, 1, "");
-        LLVMValueRef output_ptr     = LLVMBuildLoad2(fBuilder, ptr_type, output_ptr_ptr, "");
+        LLVMValueRef output_ptr_ptr = LLVMBuildInBoundsGEP2(fBuilder, type_ptr, fLLVMOutputs, idx1, 1, "");
+        LLVMValueRef output_ptr     = LLVMBuildLoad2(fBuilder, type_ptr, output_ptr_ptr, "");
         LLVMValueRef idx2[]         = {popValue()};
         LLVMValueRef output         = LLVMBuildInBoundsGEP2(fBuilder, type, output_ptr, idx2, 1, "");
         LLVMBuildStore(fBuilder, popValue(), output);
