@@ -62,6 +62,8 @@ int main(int argc, char* argv[])
             runDSP1(factory, argv[1], linenum, nbsamples/4, false, inpl, true);
             runPolyDSP1(factory, linenum, nbsamples/4, 4);
             runPolyDSP1(factory, linenum, nbsamples/4, 1);
+        
+            delete DSP;
         }
         
         {
@@ -90,6 +92,8 @@ int main(int argc, char* argv[])
             runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
             runPolyDSP1(factory, linenum, nbsamples/4, 4);
             runPolyDSP1(factory, linenum, nbsamples/4, 1);
+        
+            delete DSP;
         }
         
         {
@@ -118,6 +122,7 @@ int main(int argc, char* argv[])
             runPolyDSP1(factory, linenum, nbsamples/4, 4);
             runPolyDSP1(factory, linenum, nbsamples/4, 1);
         
+            delete DSP;
             deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
         }
      
@@ -146,6 +151,7 @@ int main(int argc, char* argv[])
         runPolyDSP1(factory, linenum, nbsamples/4, 4);
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
         
+        delete DSP;
         deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
     }
   

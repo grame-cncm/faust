@@ -100,8 +100,8 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     
     interpreter_dsp_factory_aux<REAL, TRACE>* fFactory;
 
-    int*        fIntHeap;
-    REAL*       fRealHeap;
+    int*  fIntHeap;
+    REAL* fRealHeap;
    
     REAL** fInputs;
     REAL** fOutputs;
@@ -484,7 +484,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         }
     }
 
-    void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<REAL>* block, UIInterface* glue)
+    void executeBuildUserInterface(FIRUserInterfaceBlockInstruction<REAL>* block, UIInterface* glue)
     {
         // UI may have to be adapted if REAL and FAUSTFLOAT size do not match
         bool need_proxy = sizeof(REAL) != glue->sizeOfFAUSTFLOAT();
@@ -573,6 +573,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
 
                 case FBCInstruction::kAddSoundfile:
                     // fKey use for label, fValue used for URL, fLabel for SF field name
+                    // The fSoundTable entry is created with it->fLabel
                     glue->addSoundfile(it->fKey.c_str(), it->fValue.c_str(), &this->fSoundTable[it->fLabel]);
                     break;
 
@@ -625,7 +626,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     bool __builtin_ssub_overflow(int v1, int v2, int* res) { return false; }
     bool __builtin_smul_overflow(int v1, int v2, int* res) { return false; }
     
-    void ExecuteBlock(FBCBlockInstruction<REAL>* block, bool compile = false)
+    void executeBlock(FBCBlockInstruction<REAL>* block)
     {
         int real_stack_index  = 0;
         int int_stack_index   = 0;
@@ -706,24 +707,6 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                 }
                     
                 // Memory operations
-                case FBCInstruction::kLoadReal: {
-                    if (TRACE > 0) {
-                        pushReal(it, fRealHeap[assertLoadRealHeap(it, (*it)->fOffset1)]);
-                    } else {
-                        pushReal(it, fRealHeap[(*it)->fOffset1]);
-                    }
-                    dispatchNextScal();
-                }
-                    
-                case FBCInstruction::kLoadInt: {
-                    if (TRACE > 0) {
-                        pushInt(fIntHeap[assertLoadIntHeap(it, (*it)->fOffset1)]);
-                    } else {
-                        pushInt(fIntHeap[(*it)->fOffset1]);
-                    }
-                    dispatchNextScal();
-                }
-                    
                 case FBCInstruction::kLoadSoundFieldInt: {
                     faustassert(this->fSoundTable.find((*it)->fName) != this->fSoundTable.end());
                     Soundfile* sf = this->fSoundTable[(*it)->fName];
@@ -763,6 +746,24 @@ class FBCInterpreter : public FBCExecutor<REAL> {
                     dispatchNextScal();
                 }
         
+                case FBCInstruction::kLoadReal: {
+                    if (TRACE > 0) {
+                        pushReal(it, fRealHeap[assertLoadRealHeap(it, (*it)->fOffset1)]);
+                    } else {
+                        pushReal(it, fRealHeap[(*it)->fOffset1]);
+                    }
+                    dispatchNextScal();
+                }
+                    
+                case FBCInstruction::kLoadInt: {
+                    if (TRACE > 0) {
+                        pushInt(fIntHeap[assertLoadIntHeap(it, (*it)->fOffset1)]);
+                    } else {
+                        pushInt(fIntHeap[(*it)->fOffset1]);
+                    }
+                    dispatchNextScal();
+                }
+                    
                 case FBCInstruction::kStoreReal: {
                     if (TRACE > 0) {
                         fRealHeap[assertStoreRealHeap(it, (*it)->fOffset1)] = popReal(it);
@@ -2572,7 +2573,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         assertInterp(real_stack_index == 0 && int_stack_index == 0);
     }
    #else
-    void ExecuteBlock(FBCBlockInstruction<REAL>* block, bool compile = false)
+    void executeBlock(FBCBlockInstruction<REAL>* block)
     {
         static void* fDispatchTable[] = {
 
@@ -2752,24 +2753,6 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     }
 
     // Memory operations
-    do_kLoadReal: {
-        if (TRACE > 0) {
-            pushReal(it, fRealHeap[assertLoadRealHeap(it, (*it)->fOffset1)]);
-        } else {
-            pushReal(it, fRealHeap[(*it)->fOffset1]);
-        }
-        dispatchNextScal();
-    }
-
-    do_kLoadInt: {
-        if (TRACE > 0) {
-            pushInt(fIntHeap[assertLoadIntHeap(it, (*it)->fOffset1)]);
-        } else {
-            pushInt(fIntHeap[(*it)->fOffset1]);
-        }
-        dispatchNextScal();
-    }
-
     do_kLoadSoundFieldInt: {
         faustassert(this->fSoundTable.find((*it)->fName) != this->fSoundTable.end());
         Soundfile* sf = this->fSoundTable[(*it)->fName];
@@ -2806,6 +2789,24 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         int offset = popInt();
         REAL* buffer = reinterpret_cast<REAL**>(sf->fBuffers)[chan];
         pushReal(it, buffer[offset]);
+        dispatchNextScal();
+    }
+    
+    do_kLoadReal: {
+        if (TRACE > 0) {
+            pushReal(it, fRealHeap[assertLoadRealHeap(it, (*it)->fOffset1)]);
+        } else {
+            pushReal(it, fRealHeap[(*it)->fOffset1]);
+        }
+        dispatchNextScal();
+    }
+    
+    do_kLoadInt: {
+        if (TRACE > 0) {
+            pushInt(fIntHeap[assertLoadIntHeap(it, (*it)->fOffset1)]);
+        } else {
+            pushInt(fIntHeap[(*it)->fOffset1]);
+        }
         dispatchNextScal();
     }
 

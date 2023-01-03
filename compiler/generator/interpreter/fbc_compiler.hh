@@ -46,32 +46,24 @@ class FBCCompiler : public FBCInterpreter<REAL,0> {
     FBCCompiler(interpreter_dsp_factory_aux<REAL,0>* factory, CompiledBlocksType* map) : FBCInterpreter<REAL,0>(factory)
     {
         fCompiledBlocks = map;
-
-        // FBC blocks compilation
-        CompileBlock(factory->fComputeBlock);
-        CompileBlock(factory->fComputeDSPBlock);
     }
 
     virtual ~FBCCompiler() {}
 
-    void ExecuteBlock(FBCBlockInstruction<REAL>* block, bool compile)
+    void executeBlock(FBCBlockInstruction<REAL>* block)
     {
-        if (compile && fCompiledBlocks->find(block) == fCompiledBlocks->end()) {
-            CompileBlock(block);
-        }
-
         // The 'DSP' compute block only is compiled..
         if (fCompiledBlocks->find(block) != fCompiledBlocks->end()) {
             ((*fCompiledBlocks)[block])->Execute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
         } else {
-            FBCInterpreter<REAL,0>::ExecuteBlock(block);
+            FBCInterpreter<REAL,0>::executeBlock(block);
         }
     }
 
-   protected:
+   private:
     CompiledBlocksType* fCompiledBlocks;
 
-    void CompileBlock(FBCBlockInstruction<REAL>* block)
+    void compileBlock(FBCBlockInstruction<REAL>* block)
     {
         if (fCompiledBlocks->find(block) == fCompiledBlocks->end()) {
         #ifdef MIR_BUILD

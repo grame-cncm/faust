@@ -171,15 +171,20 @@ static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
     return (fabs(f) < FAUSTFLOAT(0.000001) ? FAUSTFLOAT(0.0) : f);
 }
 
+
+//---------------------------------------------------------------------
+// Soundfile: has to be global to be share across multiple instances
+//----------------------------------------------------------------------
+static TestMemoryReader* memory_reader = new TestMemoryReader();
+static SoundUI* sound_ui = new SoundUI("", -1, memory_reader, (sizeof(FAUSTFLOAT) == sizeof(double)));
+
 // To be used in static context
 static void runPolyDSP(dsp* dsp, int& linenum, int nbsamples, int num_voices = 4)
 {
     mydsp_poly* DSP = new mydsp_poly(dsp, num_voices, true, false);
-    
-    // Soundfile
-    TestMemoryReader* memory_reader = new TestMemoryReader();
-    SoundUI sound_ui("", -1, memory_reader, (sizeof(FAUSTFLOAT) == sizeof(double)));
-    DSP->buildUserInterface(&sound_ui);
+
+    // Soundfile setting
+    DSP->buildUserInterface(sound_ui);
   
     // Get control and then 'initRandom'
     CheckControlUI controlui;
@@ -266,14 +271,13 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
     string filename = file;
     filename = filename.substr(0, filename.find ('.'));
     snprintf(rcfilename, 255, "%src", filename.c_str());
+    dsp* oldDSP = DSP;
     
     FUI finterface;
     DSP->buildUserInterface(&finterface);
     
-    // Soundfile
-    TestMemoryReader* memory_reader = new TestMemoryReader();
-    SoundUI sound_ui("", -1, memory_reader, (sizeof(FAUSTFLOAT) == sizeof(double)));
-    DSP->buildUserInterface(&sound_ui);
+    // Soundfile setting
+    DSP->buildUserInterface(sound_ui);
     
     // Get control and then 'initRandom'
     CheckControlUI controlui;
@@ -318,7 +322,7 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
     
     // Init UIs on cloned DSP
     DSP->buildUserInterface(&finterface);
-    DSP->buildUserInterface(&sound_ui);
+    DSP->buildUserInterface(sound_ui);
     DSP->buildUserInterface(&midi_ui);
     
     int nins = DSP->getNumInputs();
@@ -358,7 +362,6 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
                 finterface.setButtons(false);
             }
             int nFrames = min(kFrames, nbsamples);
-            
             if (random) {
                 int randval = rand();
                 int n1 = randval % nFrames;
@@ -387,6 +390,7 @@ static void runDSP(dsp* DSP, const string& file, int& linenum, int nbsamples, bo
     
     delete ichan;
     if (ochan != ichan) delete ochan;
+    delete oldDSP;
     delete DSP;
 }
 

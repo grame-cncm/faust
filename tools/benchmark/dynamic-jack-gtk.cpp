@@ -81,10 +81,10 @@ static void splitTarget(const string& target, string& triple, string& cpu)
 
 struct DynamicDSP {
     
-    bool hasCompileOption(const std::string& compile_options, const std::string& option)
+    bool hasCompileOption(const string& compile_options, const string& option)
     {
-        std::istringstream iss(compile_options);
-        std::string token;
+        istringstream iss(compile_options);
+        string token;
         while (std::getline(iss, token, ' ')) {
             if (token == option) return true;
         }
@@ -277,10 +277,6 @@ struct DynamicDSP {
         fFInterface = new FUI();
         fDSP->buildUserInterface(fFInterface);
         
-        if (!fAudio.init(filename, fDSP)) {
-            throw bad_alloc();
-        }
-        
         // After audio init to get SR
         fSoundinterface = new SoundUI("", ((is_resample) ? fAudio.getSampleRate() : -1), nullptr, is_double);
         fDSP->buildUserInterface(fSoundinterface);
@@ -303,6 +299,10 @@ struct DynamicDSP {
             fMIDIInterface = new MidiUI(fMidiHandler);
         #endif
             fDSP->buildUserInterface(fMIDIInterface);
+        }
+     
+        if (!fAudio.init(filename, fDSP)) {
+            throw bad_alloc();
         }
         
         // State (after UI construction)

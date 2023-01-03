@@ -36,15 +36,19 @@ Interpreter backend description:
  - a single global visitor for main and subcontainers
  - 'fSampleRate' and 'count' variable manually added in the IntHeap to be setup in 'instanceInit' and 'compute'
  - DSP struct and stack variables are actually allocated in the Int32 and Real heaps
- - multiple unneeded cast are eliminated in CastInst
  - 'faustpower' function fallbacks to regular 'pow' (see powprim.h)
- - subcontainers code is 'inlined' : fields declarations (using the global visitor) and code 'classInit', and
-'instanceInit' of the main container
+ - subcontainers code is 'inlined': fields declarations (using the global visitor) and code 'classInit', and 'instanceInit' of the main container
  - 'clone' method is implemented in the 'interpreter_dsp' wrapping code
- - soundfile: Soundfile* pointers are put in special Sound heap (TODO)
+ - soundfile support:
+    - Soundfile* pointers are kept in FBCExecutor::fSoundTable map
+    - this fSoundTable is filled in FBCInterpreter::executeBuildUserInterface when excuting FBCInstruction::kAddSoundfile, `
+    triggered by 'buildUserInterface', so has to be done at least once before calling DSP 'init'.
+    - the FBCInstruction::kLoadSoundFieldInt and FBCInstruction::kLoadSoundFieldReal FPC instructions directly access the
+    prepared fSoundTable in Interp mode. In Interp/LLVM they are compiled as access in a module global soundfile table
+    built at construction time (see FBCLLVMCompiler constructor)
 
- TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and destroy time (after
-global memory allocation is implemented)
+ TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and destroy time
+ (after global memory allocation is implemented)
 */
 
 template <class REAL>

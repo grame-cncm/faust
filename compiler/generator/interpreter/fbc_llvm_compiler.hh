@@ -51,7 +51,7 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
 
     LLVMValueRef  fLLVMStack[512];
     InstructionIT fAddressStack[64];
- 
+    
     int fLLVMStackIndex;
     int fAddrStackIndex;
 
@@ -60,8 +60,11 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
     LLVMValueRef fLLVMInputs;
     LLVMValueRef fLLVMOutputs;
     
+    // Global variable for all soundfiles
     LLVMValueRef fLLVMSoundTable;
-   
+    // Associate the soundfile name with its index in fLLVMSoundTable
+    std::map<std::string, LLVMValueRef> fSoundTableID;
+    
     LLVMValueRef genFloat(float num) { return LLVMConstReal(LLVMFloatType(), num); }
     LLVMValueRef genDouble(double num) { return LLVMConstReal(LLVMDoubleType(), num); }
     LLVMValueRef genReal(double num) { return (sizeof(REAL) == sizeof(double)) ? genDouble(num) : genFloat(num); }
@@ -71,34 +74,29 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
     LLVMTypeRef getFloatTy() { return LLVMFloatType(); }
     LLVMTypeRef getDoubleTy() { return LLVMDoubleType(); }
     LLVMTypeRef getRealTy() { return (sizeof(REAL) == sizeof(double)) ? getDoubleTy() : getFloatTy(); }
+    LLVMTypeRef getRealTyPtr() { return LLVMPointerType(getRealTy(), 0); }
+    LLVMTypeRef getRealTyPtrPtr() { return LLVMPointerType(getRealTyPtr(), 0); }
     LLVMTypeRef getInt32Ty() { return LLVMInt32Type(); }
+    LLVMTypeRef getInt32TyPtr() { return LLVMPointerType(getInt32Ty(), 0); }
     LLVMTypeRef getInt64Ty() { return LLVMInt64Type(); }
-    LLVMTypeRef getInt1Ty() { return LLVMInt1Type(); }
+    LLVMTypeRef getBoolTy() { return LLVMInt1Type(); }
+    LLVMTypeRef getInt8TyPtr() { return LLVMPointerType(LLVMInt8Type(), 0); }
     
     LLVMTypeRef genSoundFileTy()
     {
-        LLVMTypeRef types[] = {
-            LLVMVoidType(),
-            LLVMPointerType(LLVMInt32Type(), 0),
-            LLVMPointerType(LLVMInt32Type(), 0),
-            LLVMPointerType(LLVMInt32Type(), 0),
-            LLVMInt32Type(),
-            LLVMInt32Type(),
-            LLVMInt1Type()
+       LLVMTypeRef types[] = {
+            LLVMPointerType(LLVMInt8Type(), 0),
+            getInt32TyPtr(),
+            getInt32TyPtr(),
+            getInt32TyPtr(),
+            getInt32Ty(),
+            getInt32Ty(),
+            getInt32Ty()
         };
         return LLVMStructType(types, 7, true);
     }
     
-    LLVMTypeRef genSoundFileMapTy()
-    {
-        LLVMTypeRef types[] = {
-            genSoundFileTy(), genSoundFileTy(),
-            genSoundFileTy(), genSoundFileTy(),
-            genSoundFileTy(), genSoundFileTy(),
-            genSoundFileTy(), genSoundFileTy()
-        };
-        return LLVMStructType(types, 8, true);
-    }
+    LLVMTypeRef genSoundFileTyPtr() { return LLVMPointerType(genSoundFileTy(), 0); }
   
     std::string getMathName(const std::string& name) { return (sizeof(REAL) == sizeof(float)) ? (name + "f") : name; }
 
@@ -211,26 +209,38 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
 
     void pushLoadArray(LLVMValueRef array, LLVMValueRef index, LLVMTypeRef type)
     {
-        LLVMValueRef idx[]    = {index};
+        LLVMValueRef idx[]    = { index };
         LLVMValueRef load_ptr = LLVMBuildInBoundsGEP2(fBuilder, type, array, idx, 1, "");
         pushValue(LLVMBuildLoad2(fBuilder, type, load_ptr, ""));
+    }
+    
+    void pushLoadIndexedArray(LLVMValueRef array, LLVMValueRef index, int shift, LLVMTypeRef type)
+    {
+        LLVMValueRef offset = LLVMBuildAdd(fBuilder, genInt32(shift), index, "");
+        pushLoadArray(array, offset, type);
     }
 
     void pushStoreArray(LLVMValueRef array, LLVMValueRef index, LLVMTypeRef type)
     {
-        LLVMValueRef idx[]     = {index};
+        LLVMValueRef idx[]     = { index };
         LLVMValueRef store_ptr = LLVMBuildInBoundsGEP2(fBuilder, type, array, idx, 1, "");
         LLVMBuildStore(fBuilder, popValue(), store_ptr);
+    }
+    
+    void pushStoreIndexedArray(LLVMValueRef array, LLVMValueRef index, int shift, LLVMTypeRef type)
+    {
+        LLVMValueRef offset = LLVMBuildAdd(fBuilder, genInt32(shift), index, "");
+        pushStoreArray(array, offset, type);
     }
 
     void pushLoadInput(int index)
     {
         LLVMTypeRef type           = getRealTy();
         LLVMTypeRef type_ptr       = LLVMPointerType(type, 0);
-        LLVMValueRef idx1[]        = {genInt32(index)};
+        LLVMValueRef idx1[]        = { genInt32(index )};
         LLVMValueRef input_ptr_ptr = LLVMBuildInBoundsGEP2(fBuilder, type_ptr, fLLVMInputs, idx1, 1, "");
         LLVMValueRef input_ptr     = LLVMBuildLoad2(fBuilder, type_ptr, input_ptr_ptr, "");
-        LLVMValueRef idx2[]        = {popValue()};
+        LLVMValueRef idx2[]        = { popValue() };
         LLVMValueRef input         = LLVMBuildInBoundsGEP2(fBuilder, type, input_ptr, idx2, 1, "");
         pushValue(LLVMBuildLoad2(fBuilder, type, input, ""));
     }
@@ -239,10 +249,10 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
     {
         LLVMTypeRef type            = getRealTy();
         LLVMTypeRef type_ptr        = LLVMPointerType(type, 0);
-        LLVMValueRef idx1[]         = {genInt32(index)};
+        LLVMValueRef idx1[]         = { genInt32(index) };
         LLVMValueRef output_ptr_ptr = LLVMBuildInBoundsGEP2(fBuilder, type_ptr, fLLVMOutputs, idx1, 1, "");
         LLVMValueRef output_ptr     = LLVMBuildLoad2(fBuilder, type_ptr, output_ptr_ptr, "");
-        LLVMValueRef idx2[]         = {popValue()};
+        LLVMValueRef idx2[]         = { popValue() };
         LLVMValueRef output         = LLVMBuildInBoundsGEP2(fBuilder, type, output_ptr, idx2, 1, "");
         LLVMBuildStore(fBuilder, popValue(), output);
     }
@@ -331,11 +341,66 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
                     break;
 
                     // Memory load/store
+                 case FBCInstruction::kLoadSoundFieldInt: {
+                    faustassert(this->fSoundTable.find((*it)->fName) != this->fSoundTable.end());
+                       
+                    // Load SoundFile
+                    LLVMValueRef idx0[]  = { fSoundTableID[(*it)->fName] };
+                    LLVMValueRef gsf_ptr = LLVMBuildInBoundsGEP2(fBuilder, genSoundFileTyPtr(), fLLVMSoundTable, idx0, 1, "");
+                    LLVMValueRef sf_ptr  = LLVMBuildLoad2(fBuilder, genSoundFileTyPtr(), gsf_ptr, "");
+
+                    // Load SoundFile field
+                    LLVMValueRef field_index = popValue();
+                    LLVMValueRef idx1[]      = { field_index };
+                    LLVMValueRef field_ptr   = LLVMBuildInBoundsGEP2(fBuilder, getInt32TyPtr(), sf_ptr, idx1, 1, "");
+                    LLVMValueRef field       = LLVMBuildLoad2(fBuilder, getInt32TyPtr(), field_ptr, "");
+
+                    // Load SoundFile part in the field
+                    LLVMValueRef part        = popValue();
+                    LLVMValueRef idx2[]      = { part };
+                    LLVMValueRef part_ptr    = LLVMBuildInBoundsGEP2(fBuilder, getInt32Ty(), field, idx2, 1, "");
+                    pushValue(LLVMBuildLoad2(fBuilder, getInt32Ty(), part_ptr, ""));
+                 
+                    it++;
+                    break;
+                }
+                    
+                case FBCInstruction::kLoadSoundFieldReal: {
+                    faustassert(this->fSoundTable.find((*it)->fName) != this->fSoundTable.end());
+                    
+                    // Load SoundFile
+                    LLVMValueRef idx0[]  = { fSoundTableID[(*it)->fName] };
+                    LLVMValueRef gsf_ptr = LLVMBuildInBoundsGEP2(fBuilder, genSoundFileTyPtr(), fLLVMSoundTable, idx0, 1, "");
+                    LLVMValueRef sf_ptr  = LLVMBuildLoad2(fBuilder, genSoundFileTyPtr(), gsf_ptr, "");
+                    
+                    // Load SoundFile buffer
+                    LLVMValueRef field_index = popValue();
+                    LLVMValueRef idx1[]      = { field_index };
+                    LLVMValueRef field_ptr   = LLVMBuildInBoundsGEP2(fBuilder, getInt8TyPtr(), sf_ptr, idx1, 1, "");
+                    LLVMValueRef field       = LLVMBuildLoad2(fBuilder, getInt8TyPtr(), field_ptr, "");
+                    LLVMValueRef real_field  = LLVMBuildBitCast(fBuilder, field, getRealTyPtr(), "");
+                    
+                    // Load SoundFile channel from the buffer
+                    LLVMValueRef chan        = popValue();
+                    LLVMValueRef idx2[]      = { chan };
+                    LLVMValueRef buffer_ptr  = LLVMBuildInBoundsGEP2(fBuilder, getRealTyPtr(), real_field, idx2, 1, "");
+                    LLVMValueRef buffer      = LLVMBuildLoad2(fBuilder, getRealTyPtr(), buffer_ptr, "");
+                    
+                    // Load SoundFile sample from the channel
+                    LLVMValueRef offset      = popValue();
+                    LLVMValueRef idx3[]      = { offset };
+                    LLVMValueRef sample_ptr  = LLVMBuildInBoundsGEP2(fBuilder, getRealTy(), buffer, idx3, 1, "");
+                    pushValue(LLVMBuildLoad2(fBuilder, getRealTy(), sample_ptr, ""));
+                    
+                    it++;
+                    break;
+                }
+                    
                 case FBCInstruction::kLoadReal:
                     pushLoadArray(fLLVMRealHeap, (*it)->fOffset1, getRealTy());
                     it++;
                     break;
-
+                    
                 case FBCInstruction::kLoadInt:
                     pushLoadArray(fLLVMIntHeap, (*it)->fOffset1, getInt32Ty());
                     it++;
@@ -345,82 +410,33 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
                     pushStoreArray(fLLVMRealHeap, (*it)->fOffset1, getRealTy());
                     it++;
                     break;
-
+                    
                 case FBCInstruction::kStoreInt:
                     pushStoreArray(fLLVMIntHeap, (*it)->fOffset1, getInt32Ty());
                     it++;
                     break;
-
+                    
                     // Indexed memory load/store: constant values are added at generation time by CreateBinOp...
                 case FBCInstruction::kLoadIndexedReal: {
-                    LLVMValueRef offset = LLVMBuildAdd(fBuilder, genInt32((*it)->fOffset1), popValue(), "");
-                    pushLoadArray(fLLVMRealHeap, offset, getRealTy());
+                    pushLoadIndexedArray(fLLVMRealHeap, popValue(), (*it)->fOffset1, getRealTy());
                     it++;
                     break;
                 }
                     
-                case FBCInstruction::kLoadSoundFieldInt: {
-                    /*
-                        faustassert(this->fSoundTable.find((*it)->fName) != this->fSoundTable.end());
-                        Soundfile* sf = this->fSoundTable[(*it)->fName];
-                        LLVMTypeRef sf_type = genSoundFileTy();
-                        LLVMValueRef field_index = popValue();
-                        LLVMValueRef part = popValue();
-                        int* field;
-                        switch (field_index) {
-                            case Soundfile::kLength: {
-                                field = sf->fLength;
-                                break;
-                            }
-                            case Soundfile::kSR: {
-                                field = sf->fSR;
-                                break;
-                            }
-                            case Soundfile::kOffset: {
-                                field = sf->fOffset;
-                                break;
-                            }
-                        }
-                        pushValue(genInt32(field[part]));
-                        it++;
-                     */
-                    throw faustexception("ERROR : kLoadSoundFieldInt not yet supported in FBCLLVMCompiler\n");
-                    break;
-                }
-                    
-                case FBCInstruction::kLoadSoundFieldReal: {
-                    /*
-                         faustassert(this->fSoundTable.find((*it)->fName) != this->fSoundTable.end());
-                         Soundfile* sf = this->fSoundTable[(*it)->fName];
-                         // field_index (unused)
-                         popValue();
-                         LLVMValueRef chan = popValue();
-                         LLVMValueRef offset = popValue();
-                         REAL* buffer = reinterpret_cast<REAL**>(sf->fBuffers)[chan];
-                         pushValue(genReal(buffer[offset]));
-                         it++;
-                     */
-                    throw faustexception("ERROR : kLoadSoundFieldReal not yet supported in FBCLLVMCompiler\n");
-                    break;
-                }
-
                 case FBCInstruction::kLoadIndexedInt: {
-                    LLVMValueRef offset = LLVMBuildAdd(fBuilder, genInt32((*it)->fOffset1), popValue(), "");
-                    pushLoadArray(fLLVMIntHeap, offset, getInt32Ty());
+                    pushLoadIndexedArray(fLLVMIntHeap, popValue(), (*it)->fOffset1, getInt32Ty());
                     it++;
                     break;
                 }
 
                 case FBCInstruction::kStoreIndexedReal: {
-                    LLVMValueRef offset = LLVMBuildAdd(fBuilder, genInt32((*it)->fOffset1), popValue(), "");
-                    pushStoreArray(fLLVMRealHeap, offset, getRealTy());
+                    pushStoreIndexedArray(fLLVMRealHeap, popValue(), (*it)->fOffset1, getRealTy());
                     it++;
                     break;
                 }
 
                 case FBCInstruction::kStoreIndexedInt: {
-                    LLVMValueRef offset = LLVMBuildAdd(fBuilder, genInt32((*it)->fOffset1), popValue(), "");
-                    pushStoreArray(fLLVMIntHeap, offset, getInt32Ty());
+                    pushStoreIndexedArray(fLLVMIntHeap, popValue(), (*it)->fOffset1, getInt32Ty());
                     it++;
                     break;
                 }
@@ -919,20 +935,38 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
 
         fBuilder       = LLVMCreateBuilder();
         fAllocaBuilder = LLVMCreateBuilder();
-    
-        
+     
         fModule      = LLVMModuleCreateWithName(FAUSTVERSION);
         char* triple = LLVMGetDefaultTargetTriple();
         LLVMSetTarget(fModule, triple);
         LLVMDisposeMessage(triple);
-    
-        // TODO : finish initialization
-        fLLVMSoundTable = LLVMAddGlobal(fModule, genSoundFileMapTy(), "sound_table");
         
+        // Prepare global soundfile table
+        if (this->fSoundTable.size() > 0) {
+            LLVMTypeRef sf_types[this->fSoundTable.size()];
+            LLVMValueRef sf_ptrs[this->fSoundTable.size()];
+            int i = 0;
+            for (const auto& it : this->fSoundTable) {
+                sf_types[i] = genSoundFileTyPtr();
+                // C++ pointer is seed as an Int64 then casted as a pointer
+                LLVMValueRef sf_ref = LLVMConstInt(LLVMInt64Type(), (unsigned long long)it.second, 0);
+                sf_ptrs[i] = LLVMConstIntToPtr(sf_ref, genSoundFileTyPtr());
+                // Keep the soundfile index in fLLVMSoundTable
+                fSoundTableID[it.first] = genInt32(i);
+                i++;
+            }
+            // Create the global soundfile table
+            LLVMTypeRef sound_table = LLVMStructType(sf_types, this->fSoundTable.size(), false);
+            fLLVMSoundTable = LLVMAddGlobal(fModule, sound_table, "sound_table");
+            // Init it with C++ soundfile pointers
+            LLVMValueRef initializer = LLVMConstNamedStruct(sound_table, sf_ptrs, this->fSoundTable.size());
+            LLVMSetInitializer(fLLVMSoundTable, initializer);
+        } else {
+            fLLVMSoundTable = nullptr;
+        }
+         
         // Compile compute function
-        LLVMTypeRef args_types[] = {LLVMPointerType(getInt32Ty(), 0), LLVMPointerType(getRealTy(), 0),
-                                     LLVMPointerType(LLVMPointerType(getRealTy(), 0), 0),
-                                     LLVMPointerType(LLVMPointerType(getRealTy(), 0), 0)};
+        LLVMTypeRef args_types[] = { getInt32TyPtr(), getRealTyPtr(), getRealTyPtrPtr(), getRealTyPtrPtr() };
 
         LLVMTypeRef  execute_type = LLVMFunctionType(LLVMVoidType(), args_types, 4, false);
         LLVMValueRef execute      = LLVMAddFunction(fModule, "execute", execute_type);
@@ -994,7 +1028,6 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
         LLVMPassManagerBuilderSetSizeLevel(pass_buider, 0);
 
         LLVMPassManagerRef function_passes = LLVMCreateFunctionPassManagerForModule(fModule);
-
         LLVMPassManagerBuilderPopulateFunctionPassManager(pass_buider, function_passes);
 
         LLVMAddSLPVectorizePass(function_passes);

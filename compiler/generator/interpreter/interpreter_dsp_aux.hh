@@ -566,7 +566,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         
         try {
             // Execute static init instructions
-            fFBCExecutor->ExecuteBlock(fFactory->fStaticInitBlock);
+            fFBCExecutor->executeBlock(fFactory->fStaticInitBlock);
         } catch (faustexception& e) {
             std::cerr << e.Message();
             exit(1);
@@ -585,7 +585,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
         try {
             // Execute state init instructions
-            fFBCExecutor->ExecuteBlock(fFactory->fInitBlock);
+            fFBCExecutor->executeBlock(fFactory->fInitBlock);
         } catch (faustexception& e) {
             std::cerr << e.Message();
             exit(1);
@@ -601,7 +601,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         
         try {
             // Execute reset UI instructions
-            fFBCExecutor->ExecuteBlock(fFactory->fResetUIBlock);
+            fFBCExecutor->executeBlock(fFactory->fResetUIBlock);
         } catch (faustexception& e) {
             std::cerr << e.Message();
             exit(1);
@@ -617,7 +617,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         
         try {
             // Execute clear instructions
-            fFBCExecutor->ExecuteBlock(fFactory->fClearBlock);
+            fFBCExecutor->executeBlock(fFactory->fClearBlock);
         } catch (faustexception& e) {
             std::cerr << e.Message();
             exit(1);
@@ -647,6 +647,10 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         }
         
         fInitialized = true;
+    
+        // Possibly compile (when using LLVM or MIR)
+        //fFBCExecutor->compileBlock(fFactory->fComputeBlock);
+        fFBCExecutor->compileBlock(fFactory->fComputeDSPBlock);
         
         // classInit is not called here since the tables are actually not shared between instances
         instanceInit(sample_rate);
@@ -655,7 +659,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
     virtual void buildUserInterface(UIInterface* glue)
     {
         try {
-            fFBCExecutor->ExecuteBuildUserInterface(fFactory->fUserInterfaceBlock, glue);
+            fFBCExecutor->executeBuildUserInterface(fFactory->fUserInterfaceBlock, glue);
         } catch (faustexception& e) {
             std::cerr << e.Message();
             exit(1);
@@ -671,19 +675,19 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
         /*
         if (vec_size == 1) {
-            fFBCExecutor->ExecuteBlock<REAL, 1, TRACE>(block);
+            fFBCExecutor->executeBlock<REAL, 1, TRACE>(block);
         } else if (vec_size == 4) {
-            fFBCExecutor->ExecuteBlock<REAL, 4, TRACE>(block);
+            fFBCExecutor->executeBlock<REAL, 4, TRACE>(block);
         } else if (vec_size == 8) {
-            fFBCExecutor->ExecuteBlock<REAL, 8, TRACE>(block);
+            fFBCExecutor->executeBlock<REAL, 8, TRACE>(block);
         } else if (vec_size == 16) {
-            fFBCExecutor->ExecuteBlock<REAL, 16, TRACE>(block);
+            fFBCExecutor->executeBlock<REAL, 16, TRACE>(block);
         } else if (vec_size == 32) {
-            fFBCExecutor->ExecuteBlock<REAL, 32, TRACE>(block);
+            fFBCExecutor->executeBlock<REAL, 32, TRACE>(block);
         } else if (vec_size == 64) {
-            fFBCExecutor->ExecuteBlock<REAL, 64, TRACE>(block);
+            fFBCExecutor->executeBlock<REAL, 64, TRACE>(block);
         } else {
-            fFBCExecutor->ExecuteBlock<REAL, 128, TRACE>(block);
+            fFBCExecutor->executeBlock<REAL, 128, TRACE>(block);
         }
         */
     }
@@ -720,10 +724,10 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
                 fFBCExecutor->updateInputControls();
                 
                 // Executes the 'control' block
-                fFBCExecutor->ExecuteBlock(fFactory->fComputeBlock);
+                fFBCExecutor->executeBlock(fFactory->fComputeBlock);
 
                 // Executes the 'DSP' block
-                fFBCExecutor->ExecuteBlock(fFactory->fComputeDSPBlock);
+                fFBCExecutor->executeBlock(fFactory->fComputeDSPBlock);
                 
                 // Needed when used in DSPProxy
                 fFBCExecutor->updateOutputControls();
@@ -765,7 +769,9 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
                 std::cout << std::setprecision(std::numeric_limits<REAL>::digits10+1);
                 for (int chan = 0; chan < fFactory->fNumOutputs; chan++) {
                     for (int frame = 0; frame < count; frame++) {
-                        std::cout << "Index : " << ((fCycle * count) + frame) << " chan: " << chan << " sample: " << outputs[chan][frame] << std::endl;
+                        std::cout << "Index : " << ((fCycle * count) + frame)
+                                  << " chan: " << chan << " sample: " << outputs[chan][frame]
+                                  << std::endl;
                     }
                 }
             }

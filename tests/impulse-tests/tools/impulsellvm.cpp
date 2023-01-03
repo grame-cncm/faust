@@ -69,6 +69,8 @@ int main(int argc, char* argv[])
             runPolyDSP1(factory, linenum, nbsamples/4, 4);
             runPolyDSP1(factory, linenum, nbsamples/4, 1);
         }
+    
+        delete DSP;
     }
     
     // Test writeDSPFactoryToBitcodeFile/readDSPFactoryFromBitcodeFile
@@ -99,6 +101,8 @@ int main(int argc, char* argv[])
         runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
         runPolyDSP1(factory, linenum, nbsamples/4, 4);
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
+    
+        delete DSP;
     }
     
     // Test writeDSPFactoryToBitcode/readDSPFactoryFromBitcode
@@ -126,6 +130,8 @@ int main(int argc, char* argv[])
         runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
         runPolyDSP1(factory, linenum, nbsamples/4, 4);
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
+    
+        delete DSP;
     }
    
     // Test writeDSPFactoryToIRFile/readDSPFactoryFromIRFile
@@ -156,6 +162,8 @@ int main(int argc, char* argv[])
         runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
         runPolyDSP1(factory, linenum, nbsamples/4, 4);
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
+    
+        delete DSP;
     }
     
     // Test writeDSPFactoryToIR/readDSPFactoryFromIR
@@ -183,6 +191,8 @@ int main(int argc, char* argv[])
         runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
         runPolyDSP1(factory, linenum, nbsamples/4, 4);
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
+    
+        delete DSP;
     }
     
     // Test writeDSPFactoryToMachineFile/readDSPFactoryFromMachineFile
@@ -213,6 +223,8 @@ int main(int argc, char* argv[])
         runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
         runPolyDSP1(factory, linenum, nbsamples/4, 4);
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
+    
+        delete DSP;
     }
     
     // Test writeDSPFactoryToMachine/readDSPFactoryFromMachine
@@ -240,6 +252,8 @@ int main(int argc, char* argv[])
         runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
         runPolyDSP1(factory, linenum, nbsamples/4, 4);
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
+    
+        delete DSP;
     }
     
     // Test expandDSPFromFile
@@ -280,6 +294,7 @@ int main(int argc, char* argv[])
         runPolyDSP1(factory, linenum, nbsamples/4, 4);
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
     
+        delete DSP;
         deleteDSPFactory(factory);
     }
     
