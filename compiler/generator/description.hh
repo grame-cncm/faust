@@ -36,7 +36,7 @@
 #include "tlib.hh"
 #include "uitree.hh"
 
-void extractMetadata(const std::string& fulllabel, std::string& label, std::map<std::string, std::set<std::string> >& metadata);
+void extractMetadata(const std::string& fulllabel, std::string& label, std::map<std::string, std::set<std::string>>& metadata);
 
 LIBFAUST_API std::string extractName(Tree full_label);
 

@@ -1,4 +1,4 @@
-% man(1) Version 2.56.1 (30-December-2022) | Faust man page
+% man(1) Version 2.57.0 (03-January-2023) | Faust man page
 
 NAME
 ====
@@ -109,6 +109,8 @@ Code generation options:
   **-ftz** \<n>    **--flush-to-zero** \<n>         code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)].
 
   **-rui**        **--range-ui**                  whether to generate code to constraint vslider/hslider/nentry values in [min..max] range.
+
+  **-fui**        **--freeze-ui**                 whether to freeze vslider/hslider/nentry to a given value (init value by default).
 
   **-inj** \<f>    **--inject** \<f>                inject source file \<f> into architecture file instead of compiling a dsp file.
 
@@ -249,6 +251,6 @@ Please report bugs to: **<https://github.com/grame-cncm/faust/issues>**
 AUTHOR
 ======
 
-Copyright (C) 2002-2022, GRAME - Centre National de Creation Musicale.
+Copyright (C) 2002-2023, GRAME - Centre National de Creation Musicale.
 All rights reserved.
 

@@ -581,6 +581,10 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-rui", "--range-ui")) {
             gGlobal->gRangeUI = true;
             i += 1;
+            
+        } else if (isCmd(argv[i], "-fui", "--freeze-ui")) {
+            gGlobal->gFreezeUI = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-fm", "--fast-math")) {
             gGlobal->gFastMath    = true;
@@ -987,6 +991,9 @@ static void printHelp()
     cout << tab
          << "-rui        --range-ui                  whether to generate code to constraint vslider/hslider/nentry values "
             "in [min..max] range."
+         << endl;
+    cout << tab
+         << "-fui        --freeze-ui                 whether to freeze vslider/hslider/nentry to a given value (init value by default)."
          << endl;
     cout
         << tab

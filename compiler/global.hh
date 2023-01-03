@@ -163,6 +163,7 @@ struct global {
     bool gNoVirtual;             // -nvi option, when compiled with the C++ backend, does not add the 'virtual' keyword
     bool gMemoryManager;         // -mem option
     bool gRangeUI;               // -rui option, whether to generate code to limit vslider/hslider/nentry values in [min..max] range
+    bool gFreezeUI;              // -fui option, whether to freeze vslider/hslider/nentry to a given value (init value by default)
     int  gFTZMode;               // -ftz option, 0 = no (default), 1 = fabs based, 2 = mask based (fastest)
     bool gInPlace;               // -inpl option, add cache to input for correct in-place computations
     bool gStrictSelect;          // -sts option, generate strict code for 'selectX' even for stateless branches (both are computed)

@@ -373,6 +373,7 @@ void global::reset()
     gDumpNorm      = -1;
     gFTZMode       = 0;
     gRangeUI       = false;
+    gFreezeUI      = false;
 
     gFloatSize = 1;  // -single by default
 

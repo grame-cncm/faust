@@ -111,9 +111,9 @@ class SignalPromotion final : public SignalIdentity {
 
 };
 
-//-------------------------SignalBool2IntPromotion----------------------
+//--------------------SignalBool2IntPromotion------------------
 // Cast bool binary operations (comparison operations) to int.
-//----------------------------------------------------------------------
+//-------------------------------------------------------------
 class SignalBool2IntPromotion final : public SignalIdentity {
     
     private:
@@ -128,9 +128,9 @@ class SignalBool2IntPromotion final : public SignalIdentity {
 
 };
 
-//-------------------------SignalIntCastPromotion----------------------
+//-------------SignalIntCastPromotion---------------
 // Float to integer conversion, checking the range.
-//----------------------------------------------------------------------
+//--------------------------------------------------
 class SignalIntCastPromotion final : public SignalIdentity {
     
     private:
@@ -145,9 +145,9 @@ class SignalIntCastPromotion final : public SignalIdentity {
     
 };
 
-//-------------------------SignalTablePromotion-------------------------
+//-------------------------SignalTablePromotion----------------------
 // Generate safe access to rdtable/rwtable (wdx/rdx in [0..size-1]).
-//----------------------------------------------------------------------
+//-------------------------------------------------------------------
 class SignalTablePromotion final : public SignalIdentity {
     
     private:
@@ -167,9 +167,9 @@ class SignalTablePromotion final : public SignalIdentity {
     
 };
 
-//-------------------------SignalUIPromotion-------------------------
+//-------------------------SignalUIPromotion--------------------
 // Generate safe access to range UI items (sliders and nentry).
-//----------------------------------------------------------------------
+//--------------------------------------------------------------
 class SignalUIPromotion final : public SignalIdentity {
     
     private:
@@ -184,11 +184,29 @@ class SignalUIPromotion final : public SignalIdentity {
     
 };
 
+//-------------------------SignalUIFreezePromotion---------------------------
+// Freeze range UI items (sliders and nentry)to their init value. Everything
+// that depends of sliders and nentry will be computed at compile time.
+//---------------------------------------------------------------------------
+class SignalUIFreezePromotion final : public SignalIdentity {
+    
+    private:
+        Tree transformation(Tree sig);
+        
+    public:
+        SignalUIFreezePromotion()
+        {
+            // Go inside tables
+            fVisitGen = true;
+        }
+    
+};
+
 // Public API
 Tree sigPromote(Tree sig, bool trace = false);
 Tree sigBool2IntPromote(Tree sig);
 Tree signalTablePromote(Tree sig);
 Tree signalIntCastPromote(Tree sig);
 Tree signalUIPromote(Tree sig);
-
+Tree signalUIFreezePromote(Tree sig);
 #endif

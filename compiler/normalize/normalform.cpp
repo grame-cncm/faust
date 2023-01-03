@@ -70,6 +70,18 @@ static Tree simplifyToNormalFormAux(Tree LS)
         endTiming("L1 typeAnnotation");
     }
     
+    if (gGlobal->gFreezeUI) {
+        // Freeze range UI items (sliders and nentry)to their init value
+        startTiming("Freeze values for range UI items");
+        L1 = signalUIFreezePromote(L1);
+        endTiming("Freeze values for range UI items");
+        
+        // Annotate L1 with type information
+        startTiming("L1 typeAnnotation");
+        typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
+        endTiming("L1 typeAnnotation");
+    }
+    
     // Needed before 'simplify' (see sigPromotion.hh)
     startTiming("Cast and Promotion");
     Tree L2 = sigPromote(L1);
