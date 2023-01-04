@@ -86,7 +86,7 @@ class FBCExecuteFun {
          * @param inputs - the audio inputs
          * @param outputs - the audio outputs
          */
-        virtual void Execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs) {}
+        virtual void execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs) {}
     
 };
 

@@ -149,7 +149,7 @@ class PowPrim : public xtended {
             && (gGlobal->gNeedManualPow)) {
             
             Typed::VarType t0 = convert2FIRType(types[0]->nature());
-            std::vector<Typed::VarType> atypes = { t0, Typed::kInt32};
+            std::vector<Typed::VarType> atypes = { t0, Typed::kInt32 };
             Typed::VarType rtype = convert2FIRType(result->nature());
             
             // Expand the pow depending of the exposant argument
@@ -180,7 +180,7 @@ class PowPrim : public xtended {
         } else {
             
             // Both arguments forced to itfloat()
-            std::vector<Typed::VarType> atypes = {itfloat(), itfloat()};
+            std::vector<Typed::VarType> atypes = { itfloat(), itfloat() };
             
             Values cargs;
             ValuesIt it2 = args.begin();

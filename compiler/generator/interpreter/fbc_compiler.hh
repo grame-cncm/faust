@@ -54,7 +54,7 @@ class FBCCompiler : public FBCInterpreter<REAL,0> {
     {
         // The 'DSP' compute block only is compiled..
         if (fCompiledBlocks->find(block) != fCompiledBlocks->end()) {
-            ((*fCompiledBlocks)[block])->Execute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
+            ((*fCompiledBlocks)[block])->execute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
         } else {
             FBCInterpreter<REAL,0>::executeBlock(block);
         }

@@ -1068,7 +1068,7 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
         LLVMShutdown();
     }
 
-    void Execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs)
+    void execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs)
     {
         fCompiledFun(int_heap, real_heap, inputs, outputs);
     }
