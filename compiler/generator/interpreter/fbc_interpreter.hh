@@ -2701,7 +2701,6 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         dispatchFirstScal();                  \
     }
 
-        
 #define dispatchBranch1Scal()                        \
     {                                                \
         it = (*it)->fBranch1->fInstructions.begin(); \

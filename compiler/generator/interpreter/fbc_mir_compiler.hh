@@ -46,9 +46,13 @@ extern "C" {
 template <class REAL>
 class FBCMIRCompiler : public FBCExecuteFun<REAL> {
 
-    typedef void (*compiledFun)(MIR_val_t int_heap, MIR_val_t real_heap, MIR_val_t inputs, MIR_val_t outputs, MIR_val_t sound_table);
+  private:
+    typedef void (*compiledFun)(MIR_val_t int_heap,
+                                MIR_val_t real_heap,
+                                MIR_val_t inputs,
+                                MIR_val_t outputs,
+                                MIR_val_t sound_table);
 
-   private:
     compiledFun fCompiledFun;
     
     std::map<std::string, int> fIDCounters;
@@ -60,9 +64,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
     MIR_item_t fCompute;
 
     MIR_reg_t fMIRStack[512];
-  
     int fMIRStackIndex;
-    int fAddrStackIndex;
 
     MIR_reg_t fMIRIntHeap;
     MIR_reg_t fMIRRealHeap;
@@ -352,7 +354,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
     {
         faustassert(this->fSoundTable.find(sf_name) != this->fSoundTable.end());
     
-        // Load SoundFile
+        // Load SoundFile: pointer is handled as an Int64
         MIR_reg_t sf_reg = createIndexReg(fSoundTableID[sf_name]);
         MIR_reg_t sf_ptr = createVar(getInt64Ty(), "sf_ptr");
         MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, MIR_MOV,
@@ -360,8 +362,8 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                                                          MIR_new_mem_op(fContext,
                                                                         getInt64Ty(), 0,
                                                                         fMIRSoundTable, sf_reg,
-                                                                        sizeof(char*))));
-        // Load SoundFile field
+                                                                        sizeof(int64_t))));
+        // Load SoundFile field: pointer is handled as an Int64
         MIR_reg_t field_index = popValue();
         MIR_reg_t field_ptr = createVar(getInt64Ty(), "field_ptr");
         MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, MIR_MOV,
@@ -369,26 +371,26 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                                                          MIR_new_mem_op(fContext,
                                                                         getInt64Ty(), 0,
                                                                         sf_ptr, field_index,
-                                                                        sizeof(char*))));
+                                                                        sizeof(int64_t))));
     
     
-        // Load SoundFile part in the field
+        // Load SoundFile part in the field: result is an Int32
         MIR_reg_t part = popValue();
-        MIR_reg_t part_ptr = createVar(getInt64Ty(), "part_ptr");
+        MIR_reg_t part_val = createVar(getInt64Ty(), "part_val");
         MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, MIR_MOV,
-                                                         MIR_new_reg_op(fContext, part_ptr),
+                                                         MIR_new_reg_op(fContext, part_val),
                                                          MIR_new_mem_op(fContext,
                                                                         getInt64Ty(), 0,
                                                                         field_ptr, part,
                                                                         sizeof(int))));
-        pushValue(part_ptr);
+        pushValue(part_val);
     }
     
     void pushLoadSoundFieldReal(const std::string& sf_name)
     {
         faustassert(this->fSoundTable.find(sf_name) != this->fSoundTable.end());
     
-        // Load SoundFile
+        // Load SoundFile: pointer is handled as an Int64
         MIR_reg_t sf_reg = createIndexReg(fSoundTableID[sf_name]);
         MIR_reg_t sf_ptr = createVar(getInt64Ty(), "sf_ptr");
         MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, MIR_MOV,
@@ -396,38 +398,37 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
                                                          MIR_new_mem_op(fContext,
                                                                         getInt64Ty(), 0,
                                                                         fMIRSoundTable, sf_reg,
-                                                                        sizeof(char*))));
-       // Load SoundFile buffer
-        MIR_reg_t field = popValue();
-        MIR_reg_t field_ptr = createVar(getInt64Ty(), "field_ptr");
+                                                                        sizeof(int64_t))));
+       // Load SoundFile buffer: pointer is handled as an Int64
+        MIR_reg_t buffer_field = popValue();
+        MIR_reg_t buffer_ptr = createVar(getInt64Ty(), "buffer_ptr");
         MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, MIR_MOV,
-                                                         MIR_new_reg_op(fContext, field_ptr),
+                                                         MIR_new_reg_op(fContext, buffer_ptr),
                                                          MIR_new_mem_op(fContext,
                                                                         getInt64Ty(), 0,
-                                                                        sf_ptr, field,
-                                                                        sizeof(char*))));
+                                                                        sf_ptr, buffer_field,
+                                                                        sizeof(int64_t))));
         
-        // Load SoundFile channel from the buffer
+        // Load SoundFile channel from the buffer: pointer is handled as an Int64
         MIR_reg_t chan = popValue();
         MIR_reg_t chan_ptr = createVar(getInt64Ty(), "chan_ptr");
         MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, MIR_MOV,
                                                          MIR_new_reg_op(fContext, chan_ptr),
                                                          MIR_new_mem_op(fContext,
                                                                         getInt64Ty(), 0,
-                                                                        field_ptr, chan,
-                                                                        sizeof(char*))));
-    
-        
+                                                                        buffer_ptr, chan,
+                                                                        sizeof(int64_t))));
+     
         // Load SoundFile sample from the channel
         MIR_reg_t offset = popValue();
-        MIR_reg_t sample_ptr = createVar(getRealTy(), "sample_ptr");
+        MIR_reg_t sample = createVar(getRealTy(), "sample");
         MIR_append_insn(fContext, fCompute, MIR_new_insn(fContext, typedReal(MIR_FMOV, MIR_DMOV),
-                                                         MIR_new_reg_op(fContext, sample_ptr),
+                                                         MIR_new_reg_op(fContext, sample),
                                                          MIR_new_mem_op(fContext,
                                                                         getRealTy(), 0,
                                                                         chan_ptr, offset,
                                                                         sizeof(REAL))));
-        pushValue(sample_ptr);
+        pushValue(sample);
     }
    
     // Select that only computes one branch: a local variable is create and written in 'then' and 'else' blocks, and loaded in the 'merge' block
@@ -1092,7 +1093,6 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         gMathLib["mir_max"] = (void*)mir_max;
         
         fMIRStackIndex = 0;
-        fAddrStackIndex = 0;
     
         // Prepare global soundfile table
         if (this->fSoundTable.size() > 0) {
@@ -1101,7 +1101,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
             for (const auto& it : this->fSoundTable) {
                 // Keep each Soundfile*
                 fSoundArrayTable[i] = it.second;
-                // Keep the soundfile index in fMIRSoundTable
+                // Keep the soundfile index in fSoundArrayTable
                 fSoundTableID[it.first] = i;
                 i++;
             }
@@ -1166,6 +1166,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
 
     void execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs)
     {
+        // Compiled mode
         fCompiledFun((MIR_val_t){.a = (void*)int_heap},
                      (MIR_val_t){.a = (void*)real_heap},
                      (MIR_val_t){.a = (void*)inputs},

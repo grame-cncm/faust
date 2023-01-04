@@ -50,11 +50,8 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
     compiledFun            fCompiledFun;
 
     LLVMValueRef  fLLVMStack[512];
-    InstructionIT fAddressStack[64];
-    
     int fLLVMStackIndex;
-    int fAddrStackIndex;
-
+  
     LLVMValueRef fLLVMIntHeap;
     LLVMValueRef fLLVMRealHeap;
     LLVMValueRef fLLVMInputs;
@@ -923,7 +920,6 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
     :FBCExecuteFun<REAL>(fbc_block, sound_table)
     {
         fLLVMStackIndex = 0;
-        fAddrStackIndex = 0;
       
         LLVMInitializeCore(LLVMGetGlobalPassRegistry());
 
