@@ -259,7 +259,7 @@ static void Test(const char* dspFileAux)
         if (!generateAuxFilesFromFile(dspFile, argc2, argv2, error_msg)) {
             cout << "ERROR in generateAuxFilesFromFile : " << error_msg;
         } else {
-            string filename =  string(dspFile);
+            string filename = string(dspFile);
             string pathname = tempDir + filename.substr(0, filename.size() - 4) + "-svg";
             ifstream reader(pathname.c_str());
             if (!reader.is_open()) {

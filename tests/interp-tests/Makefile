@@ -11,6 +11,14 @@ all: interp-test interp-test-c interp-machine-test
 interp-test: interp-test.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 interp-test.cpp -I $(INC) -L/opt/local/lib $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` -o interp-test
 
+# To test the Interp/MIR backend with static libfaust
+interp-test1: interp-test.cpp $(LIB)/libfaust.a
+	$(CXX) -std=c++11 -O3 interp-test.cpp -I $(INC) $(LIB)/libfaust.a /usr/local/lib/libmir.a -o interp-test1
+
+# To test the Interp/MIR backend with dynamic libfaust
+interp-test2: interp-test.cpp
+	$(CXX) -std=c++11 -O3 interp-test.cpp -I $(INC) -lfaust -o interp-test2
+
 interp-test-c: interp-test.c $(LIB)/libfaust.a
 	$(CXX) -O3 interp-test.c -I $(INC) -L/opt/local/lib $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` -o interp-test-c
 

@@ -44,12 +44,20 @@ Interpreter backend description:
     - this fSoundTable is filled in FBCInterpreter::executeBuildUserInterface when excuting FBCInstruction::kAddSoundfile, `
     triggered by 'buildUserInterface', so has to be done at least once before calling DSP 'init'.
     - the FBCInstruction::kLoadSoundFieldInt and FBCInstruction::kLoadSoundFieldReal FPC instructions directly access the
-    prepared fSoundTable in Interp mode. In Interp/LLVM they are compiled as access in a module global soundfile table
-    built at construction time (see FBCLLVMCompiler constructor)
+    prepared fSoundTable in Interp mode. In Interp/[LLVM|MIR] they are compiled as access in a module global soundfile table
+    built at construction time (see FBCLLVMCompiler constructor).
 
  TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and destroy time
  (after global memory allocation is implemented)
 */
+
+static string replace_first(string s, const string& toReplace, const string& replaceWith)
+{
+    size_t pos = s.find(toReplace);
+    if (pos == string::npos) return s;
+    s.replace(pos, toReplace.length(), replaceWith);
+    return s;
+}
 
 template <class REAL>
 map<string, FBCInstruction::Opcode> InterpreterInstVisitor<REAL>::gMathLibTable;
@@ -195,10 +203,17 @@ dsp_factory_base* InterpreterCodeContainer<REAL>::produceFactory()
     int         mode  = (trace) ? std::atoi(trace) : 0;
 
     // Prepare compilation options
+    stringstream tmp;
     stringstream compile_options;
-    gGlobal->printCompilationOptions(compile_options);
- 
+    gGlobal->printCompilationOptions(tmp);
+#if MIR_BUILD
+    compile_options << replace_first(tmp.str(), "interp", "interp-mir");
+#elif LLVM_BUILD
+    compile_options << replace_first(tmp.str(), "interp", "interp-llvm");
+#endif
+    
     switch (mode) {
+#if defined(INTERP_BUILD)
         case 1:
             return new interpreter_dsp_factory_aux<REAL, 1>(
                 name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs,
@@ -261,7 +276,7 @@ dsp_factory_base* InterpreterCodeContainer<REAL>::produceFactory()
                 getInterpreterVisitor<REAL>()->getFieldOffset("count"), getInterpreterVisitor<REAL>()->getFieldOffset("IOTA"),
                 INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<REAL>()->fUserInterfaceBlock, init_static_block,
                 init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
-
+            
         default:
             // Default case, no trace...
             return new interpreter_dsp_factory_aux<REAL, 0>(
@@ -271,6 +286,17 @@ dsp_factory_base* InterpreterCodeContainer<REAL>::produceFactory()
                 getInterpreterVisitor<REAL>()->getFieldOffset("count"), getInterpreterVisitor<REAL>()->getFieldOffset("IOTA"),
                 INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<REAL>()->fUserInterfaceBlock, init_static_block,
                 init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
+#elif defined(INTERP_COMP_BUILD)
+        default:
+            // Default case, no trace...
+            return new interpreter_comp_dsp_factory_aux<REAL, 0>(
+                 name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs,
+                 getInterpreterVisitor<REAL>()->fIntHeapOffset, getInterpreterVisitor<REAL>()->fRealHeapOffset,
+                 getInterpreterVisitor<REAL>()->getFieldOffset("fSampleRate"),
+                 getInterpreterVisitor<REAL>()->getFieldOffset("count"), getInterpreterVisitor<REAL>()->getFieldOffset("IOTA"),
+                 INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<REAL>()->fUserInterfaceBlock, init_static_block,
+                 init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
+#endif
     }
 }
 

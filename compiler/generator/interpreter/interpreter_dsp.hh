@@ -169,7 +169,7 @@ interpreter_dsp_factory_aux<REAL, TRACE>* interpreter_dsp_factory_aux<REAL, TRAC
     // Read DSP block
     getline(*in, dummy);  // Read "dsp_block" line
     FBCBlockInstruction<REAL>* compute_dsp_block = readCodeBlock(in);
-#ifdef MACHINE
+#if defined(MACHINE) || defined(INTERP_COMP_BUILD)
     return new interpreter_comp_dsp_factory_aux<REAL,TRACE>(factory_name, compile_options, sha_key,
                                                             file_num, inputs, outputs, int_heap_size,
                                                             real_heap_size, sr_offset, count_offset,
@@ -218,11 +218,11 @@ dsp* interpreter_dsp_factory_aux<REAL, TRACE>::createDSPInstance(dsp_factory* fa
         interpreter_dsp(tmp, new(tmp->getFactory()->allocate(sizeof(interpreter_dsp_aux<REAL, TRACE>)))
                         interpreter_dsp_aux<REAL, TRACE>(this));
     } else {
-    #ifdef MACHINE
+#if defined(MACHINE) || defined(INTERP_COMP_BUILD)
         return new interpreter_dsp(tmp, new interpreter_comp_dsp_aux<REAL, TRACE>(this));
-    #else
+#else
         return new interpreter_dsp(tmp, new interpreter_dsp_aux<REAL, TRACE>(this));
-    #endif
+#endif
     }
 }
 

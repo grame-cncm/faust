@@ -93,7 +93,7 @@
 #include "fir_code_container.hh"
 #endif
 
-#ifdef INTERP_BUILD
+#if defined(INTERP_BUILD) || defined(INTERP_COMP_BUILD)
 #include "interpreter_code_container.cpp"
 #endif
 
@@ -187,7 +187,7 @@ static void enumBackends(ostream& out)
     out << dspto << "FIR" << endl;
 #endif
 
-#ifdef INTERP_BUILD
+#if defined(INTERP_BUILD) || defined(INTERP_COMP_BUILD)
     out << dspto << "Interpreter" << endl;
 #endif
 
@@ -1391,7 +1391,7 @@ static void compileLLVM(Tree signals, int numInputs, int numOutputs, bool genera
 
 static void compileInterp(Tree signals, int numInputs, int numOutputs)
 {
-#ifdef INTERP_BUILD
+#if defined(INTERP_BUILD) || defined(INTERP_COMP_BUILD)
     if (gGlobal->gFloatSize == 1) {
         container = InterpreterCodeContainer<float>::createContainer(gGlobal->gClassName, numInputs, numOutputs);
     } else if (gGlobal->gFloatSize == 2) {

@@ -524,7 +524,7 @@ struct global {
     WASTInstVisitor* gWASTVisitor;
 #endif
 
-#ifdef INTERP_BUILD
+#if defined(INTERP_BUILD) || defined(INTERP_COMP_BUILD)
     // One single global visitor Interpreter backend, so that sub-containers and the global container use the same heap
     DispatchVisitor* gInterpreterVisitor;
 #endif

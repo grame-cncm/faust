@@ -460,7 +460,7 @@ void global::reset()
     gWASTVisitor = nullptr;  // Will be (possibly) allocated in WebAssembly backend
 #endif
 
-#ifdef INTERP_BUILD
+#if defined(INTERP_BUILD) || defined(INTERP_COMP_BUILD)
     gInterpreterVisitor = nullptr;  // Will be (possibly) allocated in Interp backend
 #endif
 

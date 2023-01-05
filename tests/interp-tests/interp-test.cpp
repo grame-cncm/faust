@@ -27,6 +27,7 @@
 #include <sstream>
 
 #include "faust/dsp/interpreter-dsp.h"
+#include "faust/dsp/libfaust.h"
 #include "faust/audio/dummy-audio.h"
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/PrintUI.h"
@@ -86,6 +87,23 @@ int main(int argc, const char** argv)
         
         audio.start();
         audio.stop();
+    
+        /*
+        // Test generateAuxFilesFromFile
+        string tempDir = "/private/var/tmp/";
+        int argc2 = 0;
+        const char* argv2[16];
+        argv2[argc2++] = "-o";
+        argv2[argc2++] = (dspFile+".cpp").c_str();
+        argv2[argc2++] = "-O";
+        argv2[argc2++] = tempDir.c_str();
+        argv2[argc2] = nullptr;  // NULL terminated argv
+        cout << "=============================\n";
+        cout << "Test generateAuxFilesFromFile\n";
+        if (!generateAuxFilesFromFile(dspFile, argc2, argv2, error_msg)) {
+            cout << "ERROR in generateAuxFilesFromFile : " << error_msg;
+        }
+        */
         
         delete DSP;
         deleteInterpreterDSPFactory(factory);
