@@ -77,3 +77,7 @@ If you plan to use **faust2max6/faust2msp** on your own machine, you will have t
 - install [Max/MSP SDK](https://cycling74.com/downloads/sdk)
 - edit the `faust/tools/faust2appls/faustpath` script to properly setup the $MAXSDK variable, then re-install the scripts again using `sudo make install`
 - alternatively you can locally change the $MAXSDK variable in a terminal using `export MAXSDK=/your/alternate/path`, then use **faust2max6/faust2msp** in this terminal.
+
+## Misc:
+
+- the original DSP file as well as the compiled self-contained C++ file are kept in the compiled `.mxo` external, to be accessed using the *Show Package Contents* option. 
