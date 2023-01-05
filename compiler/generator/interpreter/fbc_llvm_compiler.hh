@@ -67,6 +67,7 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
     LLVMValueRef genReal(double num) { return (sizeof(REAL) == sizeof(double)) ? genDouble(num) : genFloat(num); }
     LLVMValueRef genInt32(int num) { return LLVMConstInt(LLVMInt32Type(), num, true); }
     LLVMValueRef genInt64(int64_t num) { return LLVMConstInt(LLVMInt64Type(), num, true); }
+    LLVMValueRef genUInt64(uint64_t num) { return LLVMConstInt(LLVMInt64Type(), num, true); }
 
     LLVMTypeRef getFloatTy() { return LLVMFloatType(); }
     LLVMTypeRef getDoubleTy() { return LLVMDoubleType(); }
@@ -953,7 +954,7 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
             for (const auto& it : this->fSoundTable) {
                 sf_types[i] = genSoundFileTyPtr();
                 // C++ pointer is first seen as an Int64 then casted as a pointer
-                LLVMValueRef sf_ref = LLVMConstInt(LLVMInt64Type(), (unsigned long long)it.second, 0);
+                LLVMValueRef sf_ref = genUInt64(uint64_t(it.second));
                 sf_ptrs[i] = LLVMConstIntToPtr(sf_ref, genSoundFileTyPtr());
                 // Keep the soundfile index in fLLVMSoundTable
                 fSoundTableID[it.first] = genInt32(i);

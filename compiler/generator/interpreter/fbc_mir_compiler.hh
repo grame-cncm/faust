@@ -24,7 +24,6 @@
 
 #include <string>
 #include <map>
-#include <stdio.h>
 
 #include "interpreter_bytecode.hh"
 #include "fbc_executor.hh"

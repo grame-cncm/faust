@@ -42,6 +42,17 @@ static inline void checkToken(const std::string& token, const std::string& expec
     if (token != expected) throw faustexception("ERROR : unrecognized file format [" + token + "] [" + expected + "]\n");
 }
 
+static inline std::string replace_first(std::string s, const std::string& toReplace, const std::string& replaceWith)
+{
+    std::size_t pos = s.find(toReplace);
+    if (pos == std::string::npos) {
+        return s;
+    } else {
+        s.replace(pos, toReplace.length(), replaceWith);
+        return s;
+    }
+}
+
 class interpreter_dsp_factory;
 
 typedef class faust_smartptr<interpreter_dsp_factory> SDsp_factory;
@@ -93,7 +104,6 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
           fIOTAOffset(iota_offset),
           fOptLevel(opt_level),
           fOptimized(false),
-          fCompileOptions(compile_options),
           fMetaBlock(meta),
           fUserInterfaceBlock(firinterface),
           fStaticInitBlock(static_init),
@@ -102,7 +112,16 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
           fClearBlock(clear),
           fComputeBlock(compute_control),
           fComputeDSPBlock(compute_dsp)
-    {}
+    {
+    // Hack to display the LLVM or MIR used compiler
+#if MIR_BUILD
+    fCompileOptions = replace_first(compile_options, "interp", "interp-mir");
+#elif LLVM_BUILD
+    fCompileOptions = replace_first(compile_options, "interp", "interp-llvm");
+#else
+    fCompileOptions = compile_options;
+#endif
+    }
 
     virtual FBCExecutor<REAL>* createFBCExecutor()
     {

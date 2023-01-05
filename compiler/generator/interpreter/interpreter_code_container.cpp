@@ -45,19 +45,11 @@ Interpreter backend description:
     triggered by 'buildUserInterface', so has to be done at least once before calling DSP 'init'.
     - the FBCInstruction::kLoadSoundFieldInt and FBCInstruction::kLoadSoundFieldReal FPC instructions directly access the
     prepared fSoundTable in Interp mode. In Interp/[LLVM|MIR] they are compiled as access in a module global soundfile table
-    built at construction time (see FBCLLVMCompiler constructor).
+    built at construction time (see FBCLLVMCompiler/FBCMIRCompiler constructors).
 
  TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and destroy time
  (after global memory allocation is implemented)
 */
-
-static string replace_first(string s, const string& toReplace, const string& replaceWith)
-{
-    size_t pos = s.find(toReplace);
-    if (pos == string::npos) return s;
-    s.replace(pos, toReplace.length(), replaceWith);
-    return s;
-}
 
 template <class REAL>
 map<string, FBCInstruction::Opcode> InterpreterInstVisitor<REAL>::gMathLibTable;
@@ -203,14 +195,8 @@ dsp_factory_base* InterpreterCodeContainer<REAL>::produceFactory()
     int         mode  = (trace) ? std::atoi(trace) : 0;
 
     // Prepare compilation options
-    stringstream tmp;
     stringstream compile_options;
-    gGlobal->printCompilationOptions(tmp);
-#if MIR_BUILD
-    compile_options << replace_first(tmp.str(), "interp", "interp-mir");
-#elif LLVM_BUILD
-    compile_options << replace_first(tmp.str(), "interp", "interp-llvm");
-#endif
+    gGlobal->printCompilationOptions(compile_options);
     
     switch (mode) {
 #if defined(INTERP_BUILD)
