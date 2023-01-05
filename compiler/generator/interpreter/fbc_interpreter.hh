@@ -51,12 +51,12 @@
  5 : collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, continue after FP_INFINITE or FP_NAN
 */
 
-#define INTEGER_OVERFLOW -1
-#define DIV_BY_ZERO_REAL -2
-#define DIV_BY_ZERO_INT -3
-#define CAST_INT_OVERFLOW -4
-#define DUMMY_REAL 0.12233344445555
-#define DUMMY_INT 1223334444
+#define INTEGER_OVERFLOW    -1
+#define DIV_BY_ZERO_REAL    -2
+#define DIV_BY_ZERO_INT     -3
+#define CAST_INT_OVERFLOW   -4
+#define DUMMY_REAL          0.12233344445555
+#define DUMMY_INT           1223334444
 
 //#define assertInterp(exp) faustassert(exp)
 #define assertInterp(exp)
@@ -4613,6 +4613,29 @@ class FBCInterpreter : public FBCExecutor<REAL> {
     }
 #endif
     
+    
+    inline bool startWith(const std::string& str, const std::string& prefix)
+    {
+        return (str.substr(0, prefix.size()) == prefix);
+    }
+    
+    void buildMemoryMap(FBCBlockInstruction<REAL>* block,
+                        std::map<int, std::pair<int, std::string>>& memory_map,
+                        std::vector<std::string> mem_opcodes)
+    {
+        if (!block) return;
+        for (const auto& it : block->fInstructions) {
+            for (const auto& mem_opcode : mem_opcodes) {
+                if (startWith(gFBCInstructionTable[it->fOpcode], mem_opcode)) {
+                    memory_map[it->fOffset1] = std::make_pair(it->fOffset2, it->fName);
+                    break;
+                }
+            }
+            buildMemoryMap(it->getBranch1(), memory_map, mem_opcodes);
+            buildMemoryMap(it->getBranch2(), memory_map, mem_opcodes);
+        }
+    }
+
    public:
     FBCInterpreter(interpreter_dsp_factory_aux<REAL, TRACE>* factory)
     {
@@ -4682,28 +4705,6 @@ class FBCInterpreter : public FBCExecutor<REAL> {
             printStats();
         }
     }
-    
-    inline bool startWith(const std::string& str, const std::string& prefix)
-    {
-        return (str.substr(0, prefix.size()) == prefix);
-    }
-    
-    void buildMemoryMap(FBCBlockInstruction<REAL>* block,
-                        std::map<int, std::pair<int, std::string>>& memory_map,
-                        std::vector<std::string> mem_opcodes)
-    {
-        if (!block) return;
-        for (const auto& it : block->fInstructions) {
-            for (const auto& mem_opcode : mem_opcodes) {
-                if (startWith(gFBCInstructionTable[it->fOpcode], mem_opcode)) {
-                    memory_map[it->fOffset1] = std::make_pair(it->fOffset2, it->fName);
-                    break;
-                }
-            }
-            buildMemoryMap(it->getBranch1(), memory_map, mem_opcodes);
-            buildMemoryMap(it->getBranch2(), memory_map, mem_opcodes);
-        }
-    }
 
     void dumpMemory(std::vector<FBCBlockInstruction<REAL>*> blocks,
                     const std::string& name,
@@ -4720,7 +4721,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         out << "=================================" << std::endl;
         out << "REAL memory: " << fFactory->fRealHeapSize << std::endl;
         for (int i = 0; i < fFactory->fRealHeapSize;) {
-            //out << "mem: " << i << " " << fRealHeap[i] << " " << memory_map[i] << std::endl;
+            // out << "mem: " << i << " " << fRealHeap[i] << " " << memory_map[i] << std::endl;
             if (memory_map_real[i].first > 0) {
                 // Array
                 int j = 0;
@@ -4738,7 +4739,7 @@ class FBCInterpreter : public FBCExecutor<REAL> {
         // Built <index, field> int map
         std::map<int, std::pair<int, std::string>> memory_map_int;
         for (const auto& it : blocks) {
-            buildMemoryMap(it, memory_map_int, {"kLoadInt", "kStoreInt", "kLoadIndexedInt", "kStoreIndexedInts"});
+            buildMemoryMap(it, memory_map_int, {"kLoadInt", "kStoreInt", "kLoadIndexedInt", "kStoreIndexedInt"});
         }
         out << "=================================" << std::endl;
         out << "INT memory: " << fFactory->fIntHeapSize << std::endl;

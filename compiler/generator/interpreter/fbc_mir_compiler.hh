@@ -39,19 +39,23 @@ extern "C" {
 }
 #endif
 
-#define typedReal(op1, op2) ((sizeof(REAL) == sizeof(float)) ? op1 : op2)
-
 // FBC MIR compiler
 template <class REAL>
 class FBCMIRCompiler : public FBCExecuteFun<REAL> {
 
   private:
+    
+    inline MIR_insn_code_t typedReal(MIR_insn_code_t float_op, MIR_insn_code_t double_op)
+    {
+        return ((sizeof(REAL) == sizeof(float)) ? float_op : double_op);
+    }
+    
     typedef void (*compiledFun)(MIR_val_t int_heap,
                                 MIR_val_t real_heap,
                                 MIR_val_t inputs,
                                 MIR_val_t outputs,
                                 MIR_val_t sound_table);
-
+    
     compiledFun fCompiledFun;
     
     std::map<std::string, int> fIDCounters;
@@ -1112,7 +1116,8 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
         MIR_module_t module = MIR_new_module(fContext, "Faust");
         
         // Create 'compute' function
-        fCompute = MIR_new_func(fContext, "compute", 0,
+        fCompute = MIR_new_func(fContext,
+                                "compute", 0,
                                 NULL, 5,
                                 MIR_T_P, "int_heap",
                                 MIR_T_P, "real_heap",
