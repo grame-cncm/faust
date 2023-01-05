@@ -232,6 +232,8 @@ for p in $FILES; do
         faust -i -cn ${f%.dsp} -uim -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
         faust -i -cn effect -a $FAUSTARCH/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
     fi
+    # compile self-contained expanded
+    faust -e "$SRCDIR/$f" -o "$TMP/${f%.dsp}-exp.dsp"
 
     # compile c++ to binary
     (
@@ -250,9 +252,11 @@ for p in $FILES; do
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
 
-    # Keep .dsp and .cpp files in the plug-in
+    # Keep .dsp, self-contained expanded .dsp and self-contained .cpp files in the plugin
     cp "$TMP/${f%.dsp}.cpp" "$TMP/${f%.dsp}$EXT"
+    cp "$TMP/${f%.dsp}-exp.dsp" "$TMP/${f%.dsp}$EXT"
     cp "$SRCDIR/$f" "$TMP/${f%.dsp}$EXT"
+ 
     # Create Info.plist
     createInfoPList "${f%.dsp}~" "$TMP/${f%.dsp}$EXT/Contents/Info.plist"
 
