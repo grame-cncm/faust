@@ -38,7 +38,7 @@ using namespace std;
  LLVM module description:
 
  - 'clone' method is implemented in the 'llvm_dsp' wrapping code
- - starting with LLVM 15, the LLVMInstVisitor::fVarTypes keeps association of addresses and types
+ - starting with LLVM 15, the LLVMInstVisitor::fVarTypes keeps association of address and types
 
  TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and destroy time
 */

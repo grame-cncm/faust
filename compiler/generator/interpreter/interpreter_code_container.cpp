@@ -39,7 +39,7 @@ Interpreter backend description:
  - 'faustpower' function fallbacks to regular 'pow' (see powprim.h)
  - subcontainers code is 'inlined': fields declarations (using the global visitor) and code 'classInit', and 'instanceInit' of the main container
  - 'clone' method is implemented in the 'interpreter_dsp' wrapping code
- - the backend exits is 3 versions:
+ - the backend exits in 3 versions:
     - pure Interpreter model: the slowest (FBCInterpreter class)
     - hybrid interpreter/MIR compiler (FBCLLVMCompiler class): the 'init' functions done once are interpreted, the hot 'compute' function is compiled to native using MIR machinery, faster
     - hybrid interpreter/LLVM compiler (FBCMIRCompiler class): the 'init' functions done once are interpreted, the hot 'compute' function is compiled to native using LLVM machinery, even faster, but slower that the pure LLVM backend

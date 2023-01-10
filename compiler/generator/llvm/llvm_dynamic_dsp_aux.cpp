@@ -256,13 +256,15 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     initializeCodeGen(Registry);
     initializeCore(Registry);
     initializeScalarOpts(Registry);
+#ifndef LLVM_VERSION_MAJOR >= 16
     initializeObjCARCOpts(Registry);
+    initializeInstrumentation(Registry);
+#endif
     initializeVectorization(Registry);
     initializeIPO(Registry);
     initializeAnalysis(Registry);
     initializeTransformUtils(Registry);
     initializeInstCombine(Registry);
-    initializeInstrumentation(Registry);
     initializeTarget(Registry);
 
     EngineBuilder builder((unique_ptr<Module>(fModule)));

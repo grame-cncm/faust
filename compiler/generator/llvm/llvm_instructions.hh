@@ -67,7 +67,12 @@
 }
 
 #define MakeIdx(beg, end) llvm::ArrayRef<LLVMValue>(beg, end)
-#define MakeArgs(args) llvm::ArrayRef<lLLVMValue>(args)
+
+#if LLVM_VERSION_MAJOR >= 16
+#define InsertBlock(fun, block) fun->insert(fun->end(), block);
+#else
+#define InsertBlock(fun, block) fun->getBasicBlockList().push_back(block);
+#endif
 
 #if LLVM_VERSION_MAJOR >= 14
 #define MakeCreateInBoundsGEP(type, v1, v2) fBuilder->CreateInBoundsGEP(type, v1, v2);
@@ -644,7 +649,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         if (named_address) {
             return visitNameAddress(named_address);
         } else if (indexed_address) {
-            LLVMType unused;
+            LLVMType unused = nullptr;
             return visitIndexedAddress(indexed_address, unused);
         } else {
             faustassert(false);
@@ -673,7 +678,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         } else if (indexed_address) {
             faustassert(fVarTypes.find(indexed_address->getName()) != fVarTypes.end());
-            LLVMType type;
+            LLVMType type = nullptr;
             LLVMValue load_ptr = visitIndexedAddress(indexed_address, type);
             fCurValue = MakeCreateLoad1(type, load_ptr);
         } else {
@@ -1009,7 +1014,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         fBuilder->CreateBr(merge_block);
         
         // Emit else block
-        function->getBasicBlockList().push_back(else_block);
+        InsertBlock(function, else_block);
         fBuilder->SetInsertPoint(else_block);
         
         // Compile else branch
@@ -1022,7 +1027,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         fBuilder->CreateBr(merge_block);
         
         // Emit merge block
-        function->getBasicBlockList().push_back(merge_block);
+        InsertBlock(function, merge_block);
         fBuilder->SetInsertPoint(merge_block);
         fCurValue = MakeCreateLoad1(cur_type, typed_res);
     }
@@ -1056,7 +1061,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         fBuilder->CreateBr(merge_block);
     
         // Emit else block
-        function->getBasicBlockList().push_back(else_block);
+        InsertBlock(function, else_block);
         fBuilder->SetInsertPoint(else_block);
 
         // Compile else branch
@@ -1067,7 +1072,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         fBuilder->CreateBr(merge_block);
     
         // Emit merge block
-        function->getBasicBlockList().push_back(merge_block);
+        InsertBlock(function, merge_block);
         fBuilder->SetInsertPoint(merge_block);
 
         // No result in fCurValue
