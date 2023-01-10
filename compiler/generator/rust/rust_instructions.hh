@@ -674,8 +674,8 @@ class RustInstVisitor : public TextInstVisitor {
  */
 class UserInterfaceParameterMapping : public InstVisitor {
    private:
-    std::map<std::string, int>      fParameterLookup;
-    int                   fParameterIndex;
+    std::map<std::string, int> fParameterLookup;
+    int fParameterIndex;
 
    public:
     using InstVisitor::visit;
@@ -738,7 +738,7 @@ class UserInterfaceParameterMapping : public InstVisitor {
  */
 class RustUIInstVisitor : public TextInstVisitor {
    private:
-    std::map<std::string, int>      fParameterLookup;
+    std::map<std::string, int> fParameterLookup;
 
     int getParameterIndex(const std::string& name) {
         auto parameterIndex = fParameterLookup.find(name);

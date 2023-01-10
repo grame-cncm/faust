@@ -136,6 +136,8 @@ struct Typed : public Printable {
                 return kBool_vec_ptr;
             case kVoid:
                 return kVoid_ptr;
+            case kObj:
+                return kObj_ptr;
             case kSound:
                 return kSound_ptr;
             default:
@@ -212,6 +214,8 @@ struct Typed : public Printable {
                 return kBool_vec;
             case kVoid_ptr:
                 return kVoid;
+            case kObj_ptr:
+                return kObj;
             case kSound_ptr:
                 return kSound;
             default:

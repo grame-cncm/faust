@@ -40,9 +40,9 @@
 template <class REAL>
 class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
 
+  private:
     typedef void (*compiledFun)(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs);
-
-   private:
+    
     LLVMExecutionEngineRef fJIT;
     LLVMModuleRef          fModule;
     LLVMBuilderRef         fBuilder;
@@ -235,7 +235,7 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
     {
         LLVMTypeRef type           = getRealTy();
         LLVMTypeRef type_ptr       = LLVMPointerType(type, 0);
-        LLVMValueRef idx1[]        = { genInt32(index )};
+        LLVMValueRef idx1[]        = { genInt32(index) };
         LLVMValueRef input_ptr_ptr = LLVMBuildInBoundsGEP2(fBuilder, type_ptr, fLLVMInputs, idx1, 1, "");
         LLVMValueRef input_ptr     = LLVMBuildLoad2(fBuilder, type_ptr, input_ptr_ptr, "");
         LLVMValueRef idx2[]        = { popValue() };
@@ -961,10 +961,10 @@ class FBCLLVMCompiler : public FBCExecuteFun<REAL> {
                 i++;
             }
             // Create the global soundfile table
-            LLVMTypeRef sound_table = LLVMStructType(sf_types, this->fSoundTable.size(), false);
-            fLLVMSoundTable = LLVMAddGlobal(fModule, sound_table, "sound_table");
+            LLVMTypeRef sound_table1 = LLVMStructType(sf_types, this->fSoundTable.size(), false);
+            fLLVMSoundTable = LLVMAddGlobal(fModule, sound_table1, "sound_table");
             // Init it with C++ soundfile pointers
-            LLVMValueRef initializer = LLVMConstNamedStruct(sound_table, sf_ptrs, this->fSoundTable.size());
+            LLVMValueRef initializer = LLVMConstNamedStruct(sound_table1, sf_ptrs, this->fSoundTable.size());
             LLVMSetInitializer(fLLVMSoundTable, initializer);
         } else {
             fLLVMSoundTable = nullptr;

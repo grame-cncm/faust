@@ -37,7 +37,8 @@ using namespace std;
 /*
  LLVM module description:
 
-- 'clone' method is implemented in the 'llvm_dsp' wrapping code
+ - 'clone' method is implemented in the 'llvm_dsp' wrapping code
+ - starting with LLVM 15, the LLVMInstVisitor::fVarTypes keeps association of addresses and types
 
  TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and destroy time
 */
@@ -55,9 +56,6 @@ CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int 
 LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs)
 {
     LLVMContext* context = new LLVMContext();
-#if LLVM_VERSION_MAJOR == 15
-     context->setOpaquePointers(false);
-#endif
     Module* module = new Module(gGlobal->printCompilationOptions1() + ", v" + string(FAUSTVERSION), *context);
     
     init(name, numInputs, numOutputs, module, context);
@@ -123,18 +121,6 @@ CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInp
     return container;
 }
 
-PointerType* LLVMCodeContainer::generateDspStruct()
-{
-    // Generate DSP structure
-    LLVMTypeHelper type_helper(fModule);
-    generateDeclarations(&fStructVisitor);
-
-    DeclareStructTypeInst* dec_type = fStructVisitor.getStructType(fKlassName);
-  
-    LLVMType dsp_type = type_helper.convertFIRType(dec_type->fType);
-    return PointerType::get(dsp_type, 0);
-}
-
 void LLVMCodeContainer::generateFunMaps()
 {
     if (gGlobal->gFastMath) {
@@ -195,8 +181,12 @@ void LLVMCodeContainer::generateFunMap(const string& fun1_aux, const string& fun
 
 void LLVMCodeContainer::produceInternal()
 {
+    // Build DSP struct
+    generateDeclarations(&fStructVisitor);
+    DeclareStructTypeInst* dec_type = fStructVisitor.getStructType(fKlassName);
+
     // Generate DSP structure
-    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, generateDspStruct());
+    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, dec_type);
 
     /// Memory methods
     generateCalloc()->accept(fCodeProducer);
@@ -219,9 +209,13 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
 {
     // Generate gub containers
     generateSubContainers();
+    
+    // Build DSP struct
+    generateDeclarations(&fStructVisitor);
+    DeclareStructTypeInst* dec_type = fStructVisitor.getStructType(fKlassName);
 
     // Generate DSP structure
-    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, generateDspStruct());
+    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, dec_type);
 
     generateFunMaps();
 

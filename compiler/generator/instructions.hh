@@ -174,16 +174,6 @@ inline bool isRealType(Typed::VarType type)
     return (type == Typed::kFloat || type == Typed::kFloatMacro || type == Typed::kDouble);
 }
 
-inline bool isRealPtrType(Typed::VarType type)
-{
-    return (type == Typed::kFloat_ptr
-            || type == Typed::kFloat_ptr_ptr
-            || type == Typed::kFloatMacro_ptr
-            || type == Typed::kFloatMacro_ptr_ptr
-            || type == Typed::kDouble_ptr
-            || type == Typed::kDouble_ptr_ptr);
-}
-
 inline bool isIntType(Typed::VarType type)
 {
     return (type == Typed::kInt32 || type == Typed::kInt64);
@@ -214,29 +204,38 @@ inline bool isFloatMacroType(Typed::VarType type)
     return (type == Typed::kFloatMacro);
 }
 
-inline bool isIntPtrType(Typed::VarType type)
-{
-    return (type == Typed::kInt32_ptr || type == Typed::kInt64_ptr);
-}
-
-inline bool isPtrType(Typed::VarType type)
-{
-    return isRealPtrType(type) || isIntPtrType(type);
-}
-
 inline bool isBoolType(Typed::VarType type)
 {
     return (type == Typed::kBool);
 }
 
-inline bool isIntOrPtrType(Typed::VarType type)
+inline bool isIntPtrType(Typed::VarType type)
 {
-    return (isIntType(type)
+    return (type == Typed::kInt32_ptr || type == Typed::kInt64_ptr);
+}
+
+inline bool isRealPtrType(Typed::VarType type)
+{
+    return (type == Typed::kFloat_ptr
+            || type == Typed::kFloat_ptr_ptr
+            || type == Typed::kFloatMacro_ptr
+            || type == Typed::kFloatMacro_ptr_ptr
+            || type == Typed::kDouble_ptr
+            || type == Typed::kDouble_ptr_ptr);
+}
+
+inline bool isPtrType(Typed::VarType type)
+{
+    return (isRealPtrType(type)
             || isIntPtrType(type)
-            || isRealPtrType(type)
             || type == Typed::kVoid_ptr
             || type == Typed::kObj_ptr
             || type == Typed::kSound_ptr);
+}
+
+inline bool isIntOrPtrType(Typed::VarType type)
+{
+    return isIntType(type) || isPtrType(type);
 }
 
 DeclareStructTypeInst* isStructType(const std::string& name);
@@ -656,8 +655,12 @@ struct Address : public Printable {
 
     virtual void                setAccess(Address::AccessType type) = 0;
     virtual Address::AccessType getAccess() const                   = 0;
-    bool isStack() { return getAccess() == kStack; }
-    bool isStruct() { return getAccess() == kStruct; }
+    
+    bool isStack() { return getAccess() & kStack; }
+    bool isLoop() { return getAccess() & kLoop; }
+    bool isStruct() { return getAccess() & kStruct; }
+    bool isFunArgs() { return getAccess() & kFunArgs; }
+    bool isVolatile() { return getAccess() & kVolatile; }
 
     virtual void   setName(const std::string& name) = 0;
     virtual std::string getName() const             = 0;
@@ -690,7 +693,7 @@ struct Address : public Printable {
 
 struct NamedAddress : public Address {
     std::string fName;
-    AccessType   fAccess;
+    AccessType  fAccess;
 
     NamedAddress(const std::string& name, AccessType access) : fName(name), fAccess(access) {}
 
