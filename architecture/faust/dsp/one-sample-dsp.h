@@ -28,6 +28,7 @@ architecture section is not modified.
 #include <assert.h>
 #include "faust/dsp/dsp.h"
 
+template <typename REAL>
 class FAUST_API one_sample_dsp : public dsp {
   
     protected:
@@ -36,7 +37,7 @@ class FAUST_API one_sample_dsp : public dsp {
         FAUSTFLOAT* fOutputs;
     
         int* iControl;
-        FAUSTFLOAT* fControl;
+        REAL* fControl;
     
         bool fDelete;
     
@@ -58,7 +59,7 @@ class FAUST_API one_sample_dsp : public dsp {
         one_sample_dsp():fInputs(nullptr), fOutputs(nullptr), iControl(nullptr), fControl(nullptr), fDelete(true)
         {}
         
-        one_sample_dsp(int* iControl, FAUSTFLOAT* fControl)
+        one_sample_dsp(int* iControl, REAL* fControl)
         :fInputs(nullptr), fOutputs(nullptr),
         iControl(iControl), fControl(fControl), fDelete(false)
         {}
@@ -93,7 +94,7 @@ class FAUST_API one_sample_dsp : public dsp {
          * @param iControl - an externally allocated array of 'int' typed values used to keep the DSP control state
          * @param fControl - an externally allocated array of 'float, double or quad' typed values used to keep the DSP control state
          */
-        virtual void control(int* iControl, FAUSTFLOAT* fControl) = 0;
+        virtual void control(int* iControl, REAL* fControl) = 0;
     
         // Alternative external version
         virtual void control()
@@ -110,7 +111,7 @@ class FAUST_API one_sample_dsp : public dsp {
          * @param iControl - the externally allocated array of 'int' typed values used to keep the DSP control state
          * @param fControl - the externally allocated array of 'float, double or quad' typed values used to keep the DSP control state
          */
-        virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs, int* iControl, FAUSTFLOAT* fControl) = 0;
+        virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs, int* iControl, REAL* fControl) = 0;
     
         // The standard 'compute' expressed using the control/compute (one sample) model
         virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
@@ -155,7 +156,7 @@ class FAUST_API one_sample_dsp : public dsp {
         }
     
         int* getIControl() { return iControl; }
-        FAUSTFLOAT* getFControl() { return fControl; }
+        REAL* getFControl() { return fControl; }
     
 };
 
@@ -170,7 +171,7 @@ class FAUST_API one_sample_dsp_real : public dsp {
         FAUSTFLOAT* fOutputs;
         
         int* iControl;
-        FAUSTFLOAT* fControl;
+        REAL* fControl;
     
         int* iZone;
         REAL* fZone;
@@ -186,7 +187,7 @@ class FAUST_API one_sample_dsp_real : public dsp {
             }
             if (!iControl) {
                 iControl = new int[getNumIntControls()];
-                fControl = new FAUSTFLOAT[getNumRealControls()];
+                fControl = new REAL[getNumRealControls()];
                 iZone = new int[getiZoneSize()];
                 fZone = new REAL[getfZoneSize()];
             }
@@ -200,7 +201,7 @@ class FAUST_API one_sample_dsp_real : public dsp {
         iZone(nullptr), fZone(nullptr), fDelete(true)
         {}
     
-        one_sample_dsp_real(int* iControl, FAUSTFLOAT* fControl, int* iZone, REAL* fZone)
+        one_sample_dsp_real(int* iControl, REAL* fControl, int* iZone, REAL* fZone)
         :fInputs(nullptr), fOutputs(nullptr),
         iControl(iControl), fControl(fControl),
         iZone(iZone), fZone(fZone), fDelete(false)
@@ -286,7 +287,7 @@ class FAUST_API one_sample_dsp_real : public dsp {
          * @param iZone - an externally allocated array of 'int' typed values used to keep the DSP state
          * @param fZone - an externally allocated array of 'float, double or quad' typed values used to keep the DSP state
          */
-        virtual void control(int* iControl, FAUSTFLOAT* fControl, int* iZone, REAL* fZone) = 0;
+        virtual void control(int* iControl, REAL* fControl, int* iZone, REAL* fZone) = 0;
         
         // Alternative external version
         virtual void control()
@@ -305,7 +306,7 @@ class FAUST_API one_sample_dsp_real : public dsp {
          * @param fZone - an externally allocated array of 'float, double or quad' typed values used to keep the DSP state
          */
         virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs,
-                             int* iControl, FAUSTFLOAT* fControl,
+                             int* iControl, REAL* fControl,
                              int* iZone, REAL* fZone) = 0;
         
         // The standard 'compute' expressed using the control/compute (one sample) model
@@ -353,7 +354,7 @@ class FAUST_API one_sample_dsp_real : public dsp {
         }
     
         int* getIControl() { return iControl; }
-        FAUSTFLOAT* getFControl() { return fControl; }
+        REAL* getFControl() { return fControl; }
         
         int* getIZone() { return iZone; }
         REAL* getFZone() { return fZone; }

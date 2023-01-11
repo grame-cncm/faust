@@ -712,7 +712,7 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     tab(n, *fOut);
     
     tab(n, *fOut);
-    fSuperKlassName = "one_sample_dsp";
+    fSuperKlassName = "one_sample_dsp<" + string(ifloat()) + ">";
     *fOut << "class " << fKlassName << genFinal() << " : public " << fSuperKlassName << " {";
     tab(n + 1, *fOut);
     
@@ -1987,9 +1987,9 @@ void CPPScalarOneSampleCodeContainer1::generateCompute(int n)
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
     if (gGlobal->gInPlace) {
-        *fOut << genVirtual() << subst("void compute($0* inputs, $0* outputs, int* RESTRICT iControl, $0* RESTRICT fControl) {", ifloat());
+        *fOut << genVirtual() << subst("void compute($0* inputs, $0* outputs, int* RESTRICT iControl, $0* RESTRICT fControl) {", xfloat());
     } else {
-        *fOut << genVirtual() << subst("void compute($0* RESTRICT inputs, $0* RESTRICT outputs, int* RESTRICT iControl, $0* RESTRICT fControl) {", ifloat());
+        *fOut << genVirtual() << subst("void compute($0* RESTRICT inputs, $0* RESTRICT outputs, int* RESTRICT iControl, $1* RESTRICT fControl) {", xfloat(), ifloat());
     }
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);
@@ -2015,9 +2015,9 @@ void CPPScalarOneSampleCodeContainer2::generateCompute(int n)
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
     if (gGlobal->gInPlace) {
-        *fOut << genVirtual() << subst("void compute($0* inputs, $0* outputs, int* RESTRICT iControl, $0* RESTRICT fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {", ifloat());
+        *fOut << genVirtual() << subst("void compute($0* inputs, $0* outputs, int* RESTRICT iControl, $1* RESTRICT fControl, int* RESTRICT iZone, $1* RESTRICT fZone) {", xfloat(), ifloat());
     } else {
-        *fOut << genVirtual() << subst("void compute($0* RESTRICT inputs, $0* RESTRICT outputs, int* RESTRICT iControl, $0* RESTRICT fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {", ifloat());
+        *fOut << genVirtual() << subst("void compute($0* RESTRICT inputs, $0* RESTRICT outputs, int* RESTRICT iControl, $1* RESTRICT fControl, int* RESTRICT iZone, $1* RESTRICT fZone) {", xfloat(), ifloat());
     }
     tab(n + 2, *fOut);
     fCodeProducer->Tab(n + 2);

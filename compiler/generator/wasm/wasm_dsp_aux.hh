@@ -38,8 +38,8 @@ class wasm_dsp_factory;
 struct JSONUIDecoderBase;
 
 /*
- Read the wasm binary module, extract the JSON, define a new end for the module (without the last 'data segment'
- section).
+ Read the wasm binary module, extract the JSON, define a new end for the module
+ (without the last 'data segment' section).
  */
 
 struct WasmBinaryReader {
@@ -63,7 +63,7 @@ struct WasmBinaryReader {
 
     uint8_t getInt8()
     {
-        if (!more()) throw faustexception("unexpected end of input");
+        if (!more()) throw faustexception("ERROR : WasmBinaryReader, unexpected end of input\n");
         return input[pos++];
     }
 
@@ -100,19 +100,19 @@ struct WasmBinaryReader {
     void verifyInt8(int8_t x)
     {
         int8_t y = getInt8();
-        if (x != y) throw faustexception("WasmBinaryReader : surprising value");
+        if (x != y) throw faustexception("ERROR : WasmBinaryReader, surprising value\n");
     }
 
     void verifyInt16(int16_t x)
     {
         int16_t y = getInt16();
-        if (x != y) throw faustexception("WasmBinaryReader : surprising value");
+        if (x != y) throw faustexception("ERROR : WasmBinaryReader, surprising value\n");
     }
 
     void verifyInt32(int32_t x)
     {
         int32_t y = getInt32();
-        if (x != y) throw faustexception("WasmBinaryReader : surprising value");
+        if (x != y) throw faustexception("ERROR : WasmBinaryReader, surprising value\n");
     }
 
     void read()
@@ -124,7 +124,7 @@ struct WasmBinaryReader {
             size_t   sectionCode_start = pos;
             uint32_t sectionCode       = getU32LEB();
             uint32_t payloadLen        = getU32LEB();
-            if (pos + payloadLen > size) faustexception("Section extends beyond end of input");
+            if (pos + payloadLen > size) faustexception("ERROR : WasmBinaryReader, section extends beyond end of input\n");
             auto oldPos = pos;
 
             switch (sectionCode) {
@@ -233,7 +233,7 @@ struct WasmBinaryReader {
         for (size_t i = 0; i < num; i++) {
             auto memoryIndex = getU32LEB();
             if (memoryIndex != 0) {
-                faustexception("bad memory index, must be 0");
+                faustexception("ERROR : WasmBinaryReader, bad memory index, must be 0\n");
             }
 
             // Offset defined as an 'initializer expression' is 0 (see WASMInstVisitor::generateJSON)

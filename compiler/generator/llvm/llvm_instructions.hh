@@ -75,10 +75,12 @@
 #endif
 
 #if LLVM_VERSION_MAJOR >= 14
+#define ADD_ATTRIBUTE_AT_INDEX(a, b, c) a->addAttributeAtIndex(b, c)
 #define MakeCreateInBoundsGEP(type, v1, v2) fBuilder->CreateInBoundsGEP(type, v1, v2);
 #define MakeCreateLoad(type, var, is_volatile) fBuilder->CreateLoad(type, var, is_volatile)
 #define MakeCreateLoad1(type, var) fBuilder->CreateLoad(type, var)
 #else
+#define ADD_ATTRIBUTE_AT_INDEX(a, b, c) a->addAttribute(b, c)
 #define MakeCreateInBoundsGEP(type, v1, v2) fBuilder->CreateInBoundsGEP(v1, v2);
 #define MakeCreateLoad(type, var, is_volatile) fBuilder->CreateLoad(var, is_volatile)
 #define MakeCreateLoad1(type, var) fBuilder->CreateLoad(var)
@@ -90,12 +92,6 @@
 #define CreateFuncall(fun, args) fBuilder->CreateCall(fun, makeArrayRef(args))
 #define CreatePhi(type, name) fBuilder->CreatePHI(type, 0, name);
 #define GetIterator(it) &(*(it))
-
-#if LLVM_VERSION_MAJOR >= 14
-    #define ADD_ATTRIBUTE_AT_INDEX(a, b, c) a->addAttributeAtIndex(b, c)
-#else
-    #define ADD_ATTRIBUTE_AT_INDEX(a, b, c) a->addAttribute(b, c)
-#endif
 
 //=============================
 // Helper class handling types

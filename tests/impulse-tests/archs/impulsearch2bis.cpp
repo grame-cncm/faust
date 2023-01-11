@@ -17,7 +17,8 @@
 
 // Wrapping C++ class for the C object in 'one sample' mode
 
-class Cdsp : public one_sample_dsp {
+template <typename REAL>
+class Cdsp : public one_sample_dsp<REAL> {
     
     private:
     
@@ -115,13 +116,13 @@ int main(int argc, char* argv[])
     int nbsamples = 60000;
     
     // print general informations
-    printHeader(new Cdsp(), nbsamples);
+    printHeader(new Cdsp<double>(), nbsamples);
     
     // linenum is incremented in runDSP and runPolyDSP
-    runDSP(new Cdsp(), argv[0], linenum, nbsamples/4);
-    runDSP(new Cdsp(), argv[0], linenum, nbsamples/4, false, true);
-    runPolyDSP(new Cdsp(), linenum, nbsamples/4, 4);
-    runPolyDSP(new Cdsp(), linenum, nbsamples/4, 1);
+    runDSP(new Cdsp<double>(), argv[0], linenum, nbsamples/4);
+    runDSP(new Cdsp<double>(), argv[0], linenum, nbsamples/4, false, true);
+    runPolyDSP(new Cdsp<double>(), linenum, nbsamples/4, 4);
+    runPolyDSP(new Cdsp<double>(), linenum, nbsamples/4, 1);
     
     return 0;
 }
