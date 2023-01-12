@@ -2219,6 +2219,7 @@ LIBFAUST_API Tree DSPToBoxes(const string& name_app, const string& dsp_content, 
 
     try {
         parseSourceFiles();
+        error_msg = "";
     } catch (faustexception& e) {
         error_msg = e.what();
         return nullptr;
