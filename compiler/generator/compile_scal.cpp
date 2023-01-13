@@ -1240,19 +1240,6 @@ string ScalarCompiler::generateXtended(Tree sig)
     }
 }
 
-/**
- * Compute the minimal power of 2 greater than x
- */
-
-int ScalarCompiler::pow2limit(int x)
-{
-    int n = 2;
-    while (n < x) {
-        n = 2 * n;
-    }
-    return n;
-}
-
 /*****************************************************************************
  N-SAMPLE FIXED DELAY : sig = exp@delay
 

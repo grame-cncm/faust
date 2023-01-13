@@ -266,4 +266,15 @@ inline bool testArg(const char* arg)
 
 std::vector<std::string> tokenizeString(const std::string& str, char sep);
 
+/**
+ * Compute the minimal power of 2 greater than x
+ */
+int pow2limit(int x, int def = 2);
+
+inline bool ispowerof2(int x)
+{
+    /* First x in the below expression is for the case when x is 0 */
+    return x && (!(x&(x-1)));
+}
+
 #endif

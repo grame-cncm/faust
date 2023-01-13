@@ -45,14 +45,8 @@ typedef std::map<std::string, int> PathTableType;
 
 */
 
-inline int wasm_pow2limit(int x)
-{
-    int n = wasmBlockSize;  // Minimum = 64 kB
-    while (n < x) {
-        n = 2 * n;
-    }
-    return n;
-}
+// Minimum = 64 kB
+inline int wasm_pow2limit(int x) { return pow2limit(x, wasmBlockSize); }
 
 // DSP size + (inputs + outputs) * (fsize() + max_buffer_size * audioSampleSize), json_len
 inline int genMemSize(int struct_size, int channels, int json_len)

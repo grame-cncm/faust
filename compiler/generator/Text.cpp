@@ -374,3 +374,17 @@ vector<string> tokenizeString(const string& str, char sep)
     return res;
 }
     
+int pow2limit(int x, int def)
+{
+    if (x > INT_MAX/2) {
+        throw faustexception("ERROR : tool big delay value '"
+                             + std::to_string(x)
+                             + "' which cannot be implemented with a power-of-two delay line\n");
+    }
+    
+    int n = def;
+    while (n < x) {
+        n = 2 * n;
+    }
+    return n;
+}

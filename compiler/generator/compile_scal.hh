@@ -143,8 +143,7 @@ class ScalarCompiler : public Compiler {
 
     void getTypedNames(::Type t, const std::string& prefix, std::string& ctype, std::string& vname);
     void ensureIotaCode();
-    int  pow2limit(int x);
-
+  
     void declareWaveform(Tree sig, std::string& vname, int& size);
 
     virtual std::string generateControl(Tree sig, Tree x, Tree y);

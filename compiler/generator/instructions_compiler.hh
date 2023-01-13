@@ -118,22 +118,7 @@ class InstructionsCompiler : public virtual Garbageable {
     StatementInst* pushPostComputeDSPMethod(StatementInst* inst) { return fContainer->pushPostComputeDSPMethod(inst); }
 
     void ensureIotaCode();
-
-    int pow2limit(int x)
-    {
-        int n = 2;
-        while (n < x) {
-            n = 2 * n;
-        }
-        return n;
-    }
-    
-    bool ispowerof2(int x)
-    {
-        /* First x in the below expression is for the case when x is 0 */
-        return x && (!(x&(x-1)));
-    }
-
+ 
     CodeContainer* signal2Container(const std::string& name, Tree sig);
 
     int  getSharingCount(Tree sig);
