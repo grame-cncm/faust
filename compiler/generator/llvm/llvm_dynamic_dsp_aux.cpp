@@ -256,7 +256,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     initializeCodeGen(Registry);
     initializeCore(Registry);
     initializeScalarOpts(Registry);
-#ifndef LLVM_VERSION_MAJOR >= 16
+#if LLVM_VERSION_MAJOR < 16
     initializeObjCARCOpts(Registry);
     initializeInstrumentation(Registry);
 #endif
@@ -474,7 +474,6 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFile(const string&
 }
         
 // IR <==> string
-
 static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const string& target, string& error_msg,
                                                  int opt_level)
 {
@@ -523,7 +522,6 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
 }
 
 // Helper functions
-
 ModulePTR loadSingleModule(const string filename, LLVMContext* context)
 {
     SMDiagnostic err;
@@ -576,7 +574,6 @@ Module* linkAllModules(LLVMContext* context, Module* dst, string& error)
 }
         
 // Public C++ API
-
 LIBFAUST_API llvm_dsp_factory* createDSPFactoryFromFile(const string& filename, int argc, const char* argv[],
                                                   const string& target, string& error_msg, int opt_level)
 {
@@ -777,7 +774,6 @@ LIBFAUST_API bool writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const strin
 }
 
 // Public C interface : lock management is done by called C++ API
-
 #ifdef __cplusplus
 extern "C" {
 #endif
