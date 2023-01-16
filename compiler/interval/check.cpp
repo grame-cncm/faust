@@ -1,3 +1,17 @@
+/* Copyright 2023 Yann ORLAREY
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include <iostream>
 #include <random>
 #include <sstream>
@@ -197,6 +211,18 @@ void analyzeUnaryMethod(int E, int M, const char* title, const itv::interval& D,
     std::cout << std::endl;
 }
 
+/**
+ * @brief Check the binary interval function gives a good approximation of the numerical function.
+ *
+ * @param E number of intervals/experiments
+ * @param M number of measurements used to estimate the resulting interval
+ * @param title, name of the tested function
+ * @param Dx maximal interval for x
+ * @param Dy maximal interval for y
+ * @param f the numerical function of reference
+ * @param bm the interval method corresponding to f
+ */
+
 void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& Dx, const itv::interval& Dy, bfun f,
                          bmth bm)
 {
@@ -228,6 +254,7 @@ void analyzeBinaryMethod(int E, int M, const char* title, const itv::interval& D
         std::uniform_real_distribution rvx(X.lo(), X.hi());
         std::uniform_real_distribution rvy(Y.lo(), Y.hi());
 
+        // measure the interval Z using the numerical function f
         for (int m = 0; m < M; m++) {  // M measurements
             double z = f(rvx(generator), rvy(generator));
             if (!std::isnan(z)) {

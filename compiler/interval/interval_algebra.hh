@@ -6,6 +6,10 @@
 
 namespace itv {
 class interval_algebra : public faust_algebra<interval> {
+   private:
+    interval iPow(const interval& x, const interval& y) const;  // integer power, when x can be negative
+    interval fPow(const interval& x, const interval& y) const;  // float power, when x is positive
+
    public:
     // Injections of external values
     interval String(const std::string& x) const;
@@ -116,7 +120,7 @@ class interval_algebra : public faust_algebra<interval> {
     void     testNot() const;
     interval Or(const interval& x, const interval& y) const;
     void     testOr() const;
-    interval Pow(const interval& x, const interval& y) const;
+    interval Pow(const interval& x, const interval& y) const;  // for all cases
     void     testPow() const;
     interval Remainder(const interval& x) const;
     void     testRemainder() const;
