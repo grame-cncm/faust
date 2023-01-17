@@ -24,11 +24,11 @@
 
 #include "fbc_interpreter.hh"
 
-#ifdef MIR_BUILD
+#ifdef INTERP_MIR_BUILD
 #include "fbc_mir_compiler.hh"
-#elif LLVM_BUILD
+#elif INTERP_LLVM_BUILD
 #include "fbc_llvm_compiler.hh"
-#elif TEMPLATE_BUILD
+#elif INTERP_TEMPLATE_BUILD
 #include "fbc_template_compiler.hh"
 #endif
 
@@ -62,14 +62,19 @@ class FBCCompiler : public FBCInterpreter<REAL,0> {
     void compileBlock(FBCBlockInstruction<REAL>* block)
     {
         if (fCompiledBlocks->find(block) == fCompiledBlocks->end()) {
-        #ifdef MIR_BUILD
-            // Run with interp/MIR compiler
-            (*fCompiledBlocks)[block] = new FBCMIRCompiler<REAL>(block, this->fSoundTable);
-        #elif LLVM_BUILD
-            // Run with interp/LLVM compiler
-            (*fCompiledBlocks)[block] = new FBCLLVMCompiler<REAL>(block, this->fSoundTable);
-        #elif TEMPLATE_BUILD
-            (*fCompiledBlocks)[block] = new FBCTemplateCompiler<REAL>(block, this->fSoundTable);
+        #ifdef INTERP_COMP_BUILD
+            #ifdef INTERP_MIR_BUILD
+                // Run with interp/MIR compiler
+                (*fCompiledBlocks)[block] = new FBCMIRCompiler<REAL>(block, this->fSoundTable);
+            #elif INTERP_LLVM_BUILD
+                // Run with interp/LLVM compiler
+                (*fCompiledBlocks)[block] = new FBCLLVMCompiler<REAL>(block, this->fSoundTable);
+            #elif INTERP_TEMPLATE_BUILD
+                // Run with template compiler
+                (*fCompiledBlocks)[block] = new FBCTemplateCompiler<REAL>(block, this->fSoundTable);
+            #endif
+        #else
+            #warning pure Interpreter mode
         #endif
         } else {
             // std::cout << "FBCCompiler: reuse compiled block" << std::endl;
