@@ -49,7 +49,7 @@ LIBFAUST_API void generateCSHA1(const char* data, char* sha_key);
  * @param filename - the DSP filename
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use
- * generateAuxFiles)
+ * generateCAuxFilesXX)
  * @param sha_key - a SHA key to be filled by for the resulting DSP
  * @param error_msg - the error string to be filled, has to be 4096 characters long
  *
@@ -65,7 +65,7 @@ LIBFAUST_API const char* expandCDSPFromFile(const char* filename, int argc, cons
  * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use
- * generateAuxFiles)
+ * generateCAuxFilesXX)
  * @param sha_key - a SHA key to be filled by for the resulting DSP
  * @param error_msg - the error string to be filled, has to be 4096 characters long
  *

@@ -48,7 +48,7 @@ LIBFAUST_API std::string generateSHA1(const std::string& data);
  * @param filename - the DSP filename
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use
- * generateAuxFiles)
+ * generateAuxFilesXX)
  * @param sha_key - a SHA key to be filled by for the resulting DSP
  * @param error_msg - the error string to be filled
  *
@@ -64,7 +64,7 @@ LIBFAUST_API std::string expandDSPFromFile(const std::string& filename, int argc
  * @param dsp_content - the Faust program as a string
  * @param argc - the number of parameters in argv array
  * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use
- * generateAuxFiles)
+ * generateAuxFilesXX)
  * @param sha_key - a SHA key to be filled by for the resulting DSP
  * @param error_msg - the error string to be filled
  *
