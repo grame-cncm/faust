@@ -296,7 +296,7 @@ class FaustPlugInAudioProcessor : public foleys::MagicProcessor, private juce::T
         JuceStateUI fStateUI;
         JuceParameterUI fParameterUI;
         
-        bool fFirstcall = true;
+        std::atomic<bool> fFirstCall = true;
         
     private:
         
@@ -380,7 +380,7 @@ class FaustPlugInAudioProcessor : public juce::AudioProcessor, private juce::Tim
         JuceStateUI fStateUI;
         JuceParameterUI fParameterUI;
     
-        bool fFirstcall = true;
+        std::atomic<bool> fFirstCall = true;
     
     private:
     
@@ -633,6 +633,9 @@ bool FaustPlugInAudioProcessor::supportsDoublePrecisionProcessing() const
 //==============================================================================
 void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
+    // Reset DSP adaptation
+    fFirstCall = true;
+    
 #ifdef JUCE_POLY
     fSynth->setCurrentPlaybackSampleRate (sampleRate);
 #else
@@ -677,22 +680,8 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
 
 bool FaustPlugInAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-#ifdef JUCE_POLY
+    // Always return true and have the DSP adapts its buffer layout with a dsp_adapter (see 'prepareToPlay' and 'process')
     return true;
-#else
-    
-#if JucePlugin_IsSynth
-    // Stereo is supported
-    return (layouts.getMainOutputChannelSet().size() == 2) || (layouts.getMainOutputChannelSet().size() == fDSP->getNumOutputs());
-#else
-    // Stereo is supported
-    return
-    ((layouts.getMainInputChannelSet().size() == 2) && (layouts.getMainOutputChannelSet().size() == 2))
-    ||
-    ((layouts.getMainInputChannelSet().size() == fDSP->getNumInputs()) && (layouts.getMainOutputChannelSet().size() == fDSP->getNumOutputs()));
-#endif
-    
-#endif
 }
 
 template <typename FloatType>
@@ -709,8 +698,8 @@ void FaustPlugInAudioProcessor::process (juce::AudioBuffer<FloatType>& buffer, j
         So adapting the sample format (float/double) and the inputs/outputs layout is done
         once at first process call even if this possibly allocates memory, which is not RT safe.
     */
-    if (fFirstcall) {
-        fFirstcall = false;
+    if (fFirstCall) {
+        fFirstCall = false;
         
         // Possible sample size adaptation
         if (supportsDoublePrecisionProcessing()) {
