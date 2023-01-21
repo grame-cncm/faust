@@ -1,6 +1,6 @@
 # faust2max6/faust2msp
 
-The **faust2max6/faust2msp** tools transform a Faust DSP program into a compiled Max/MSP external, and a ready-to-use patch to load and use it. Polyphonic and MIDI controllable instruments can be created. Note that **faust2msp** is the old version compiling 32 bits external for Max5, and **faust2max6** compiles 64 bits or 64/32 bits externals for Max6 and later versions, and should be preferably used. 
+The **faust2max6/faust2msp** tools transform a Faust DSP program into a compiled Max/MSP external, and a ready-to-use patch to load and use it. Polyphonic and MIDI controllable instruments can be created. Note that **faust2msp** is the old version compiling 32 bits external for Max5, and **faust2max6** compiles 64 bits for Max6 and newer versions, and should be preferably used. 
 
 ## How to use
 
@@ -61,7 +61,7 @@ Here are the available options:
   - `-us <factor>` : upsample the DSP by a factor
   - `-ds <factor>` : downsample the DSP by a factor
   - `-filter <filter>` : use a filter for upsampling or downsampling [0..4]
-  - `-universal` : to generate a 64/32 bits external
+  - `-universal` : to generate a 64 bits x86/ARM universal external on macOS 
   - `-nopatch` : to deactivate patch generation
   - `-nopost` : to disable Faust messages to Max console
   - `-soundfile`: when compiling DSP using 'soundfile' primitive, to add the needed resources (soundfiles) in the produced .mxo file, and have the required libsndfile library statically linked
