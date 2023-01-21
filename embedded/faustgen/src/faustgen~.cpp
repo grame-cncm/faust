@@ -35,6 +35,8 @@
 #define LLVM_DSP
 #include "faust/dsp/poly-dsp.h"
 
+using namespace std;
+
 // Globals
 int faustgen_factory::gFaustCounter = 0;
 map<string, faustgen_factory*> faustgen_factory::gFactoryMap;
@@ -47,13 +49,13 @@ ztimedmap GUI::gTimedZoneMap;
 // Faust DSP Factory
 //===================
 
-struct MyMeta : public Meta, public std::map<std::string, std::string>
+struct MyMeta : public Meta, public map<string, string>
 {
     void declare(const char* key, const char* value)
     {
         (*this)[key] = value;
     }
-    const std::string get(const char* key, const char* def)
+    const string get(const char* key, const char* def)
     {
         return (this->find(key) != this->end()) ? (*this)[key] : def;
     }
@@ -290,7 +292,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
         delete fSoundUI;
         fSoundUI = new SoundUI(factory->getIncludePathnames(), -1, nullptr, true);
         /*
-         std::vector<std::string> sound_directories = factory->getIncludePathnames();
+         vector<string> sound_directories = factory->getIncludePathnames();
          for (int i = 0; i < sound_directories.size(); i++) {
             post("sound_directories %d %s", i, sound_directories[i].c_str());
          }

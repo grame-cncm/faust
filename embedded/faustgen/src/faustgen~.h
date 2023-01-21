@@ -91,8 +91,8 @@ class faustgen;
 
 class faustgen_factory {
     
-        typedef vector<string>::const_iterator StringVectorIt;
-        typedef set<string>::const_iterator StringSetIt;
+        typedef std::vector<std::string>::const_iterator StringVectorIt;
+        typedef std::set<std::string>::const_iterator StringSetIt;
         
         friend class faustgen;
         
@@ -100,7 +100,7 @@ class faustgen_factory {
     
         enum sampleFormat { kFloat, kDouble, kNone };
         
-        set<faustgen*> fInstances;      // Set of all DSP
+        std::set<faustgen*> fInstances; // Set of all DSP
         llvm_dsp_factory* fDSPfactory;  // Pointer to the LLVM Faust factory
         SoundUI* fSoundUI;              // Generic Soundfile interface
         
@@ -110,21 +110,21 @@ class faustgen_factory {
         long fBitCodeSize;              // Length of the bitcode string
         char** fBitCode;                // Bitcode string
         
-        set<string> fLibraryPath;       // Path towards the Faust libraries
-        string fResourcePath;           // Path of the resource folder
-        string fDrawPath;               // Path where to put SVG files
+        std::set<std::string> fLibraryPath;  // Path towards the Faust libraries
+        std::string fResourcePath;           // Path of the resource folder
+        std::string fDrawPath;               // Path where to put SVG files
         
-        vector<string> fOptions;        // Options set in the 'compileoptions' message
+        std::vector<std::string> fOptions;   // Options set in the 'compileoptions' message
         
         int fFaustNumber;               // faustgen object's number inside the patcher
         
-        string fName;                   // Name of the DSP group
-        string fJSON;                   // JSON
+        std::string fName;              // Name of the DSP group
+        std::string fJSON;              // JSON
         
-        recursive_mutex fAudioMutex;    // Mutex to protect RT audio thread when recompiling DSP
-        recursive_mutex fUIMutex;       // Mutex to protect UI thread when recompiling DSP
+        std::recursive_mutex fAudioMutex;    // Mutex to protect RT audio thread when recompiling DSP
+        std::recursive_mutex fUIMutex;       // Mutex to protect UI thread when recompiling DSP
     
-        vector<string> fCompileOptions; // Faust compiler options
+        std::vector<std::string> fCompileOptions;   // Faust compiler options
         
         int fOptLevel;                  // LLVM optimization level
         sampleFormat fSampleFormat;     // Sample format in the LLVM module
@@ -138,9 +138,9 @@ class faustgen_factory {
         bool open_file(const char* file);
         bool open_file(const char* appl, const char* file);
         
-        void add_library_path(const string& library_path);
-        void add_compile_option(const string& key, const string& value);
-        void add_compile_option(const string& value);
+        void add_library_path(const std::string& library_path);
+        void add_compile_option(const std::string& key, const std::string& value);
+        void add_compile_option(const std::string& value);
         void display_libraries_aux(const char* lib);
         void make_json(::dsp* dsp);
     
@@ -149,7 +149,7 @@ class faustgen_factory {
         
     public:
         
-        faustgen_factory(const string& name);
+        faustgen_factory(const std::string& name);
         ~faustgen_factory();
         
         llvm_dsp_factory* create_factory_from_bitcode();
@@ -167,7 +167,7 @@ class faustgen_factory {
         void appendtodictionary(t_dictionary* d);
         
         int get_number() { return fFaustNumber; }
-        string get_name() { return fName; }
+        std::string get_name() { return fName; }
     
         void read(long inlet, t_symbol* s);
         void write(long inlet, t_symbol* s);
@@ -214,7 +214,7 @@ class faustgen_factory {
     
         static int gFaustCounter; // Global variable to count the number of faustgen objects inside the patcher
         
-        static map<string, faustgen_factory*> gFactoryMap;
+        static std::map<std::string, faustgen_factory*> gFactoryMap;
 };
 
 //====================
@@ -228,7 +228,7 @@ class faustgen : public MspCpp5<faustgen> {
     private:
         
         faustgen_factory* fDSPfactory;
-        map<string, vector<t_object*> > fOutputTable;  // Output UI items (like bargraph) in the patcher to be notified
+        std::map<std::string, std::vector<t_object*> > fOutputTable;  // Output UI items (like bargraph) in the patcher to be notified
     
         max_midi  fMidiHandler;         // Generic MIDI handler
         mspUI* fDSPUI;                  // Control UI
@@ -264,7 +264,7 @@ class faustgen : public MspCpp5<faustgen> {
         void create_jsui();
         void update_outputs();
         
-        bool allocate_factory(const string& effect_name);
+        bool allocate_factory(const std::string& effect_name);
         
         void init_controllers();
         

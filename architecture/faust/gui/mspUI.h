@@ -80,7 +80,7 @@ struct Max_Meta3 : Meta
     bool endWith(const std::string& str, const std::string& suffix)
     {
         size_t i = str.rfind(suffix);
-        return (i != string::npos) && (i == (str.length() - suffix.length()));
+        return (i != std::string::npos) && (i == (str.length() - suffix.length()));
     }
     
     void declare(const char* key, const char* value)
