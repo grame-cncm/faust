@@ -123,7 +123,7 @@ help :
 	@echo " 'libsall'       : builds the Faust compiler (without the LLVM backend) and includes all the static and dynamic libraries"
 	@echo
 	@echo " 'install'       : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/share/faust $(prefix)/include/faust"
-	@echo " 'clean'         : remove all object files"
+	@echo " 'clean'         : remove all object files (but keep build configurations)"
 	@echo " 'reset'         : reset everything by removing the build/faustdir folder"
 	@echo 
 	@echo "Other targets"
