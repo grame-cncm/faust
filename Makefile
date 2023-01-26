@@ -124,6 +124,7 @@ help :
 	@echo
 	@echo " 'install'       : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/share/faust $(prefix)/include/faust"
 	@echo " 'clean'         : remove all object files"
+	@echo " 'reset'         : reset everything by removing the build/faustdir folder"
 	@echo 
 	@echo "Other targets"
 	@echo " 'debug'         : similar to 'all' target but with debug info. Output is in $(BUILDLOCATION)/$(DEBUGFOLDER)"
@@ -173,6 +174,8 @@ clean :
 	$(MAKE) -C tools/sound2faust clean
 	$(MAKE) -C tools/benchmark clean
 
+reset :
+	rm -rf build/faustdir
 
 doc: $(wildcard compiler/*.cpp) $(wildcard compiler/*/*.cpp) $(wildcard compiler/*/*.h) $(wildcard compiler/*/*.hh)
 	cd documentation/libfaust && doxygen
