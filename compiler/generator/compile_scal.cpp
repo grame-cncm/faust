@@ -951,11 +951,9 @@ string ScalarCompiler::generateStaticSigGen(Tree sig, Tree content)
 string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 {
     int size;
-    if (!isSigInt(tsize, &size)) {
-        stringstream error;
-        error << "ERROR : generateTable : " << *tsize << " is not an integer expression " << endl;
-        throw faustexception(error.str());
-    }
+    bool res = isSigInt(tsize, &size);
+    // Size type is previously checked in sigWriteReadTable or sigReadOnlyTable
+    faustassert(res);
 
     string generator(CS(content));
     Tree   g;
@@ -999,11 +997,9 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 {
     int size;
-    if (!isSigInt(tsize, &size)) {
-        stringstream error;
-        error << "ERROR : generateStaticTable : " << *tsize << " is not an integer expression " << endl;
-        throw faustexception(error.str());
-    }
+    bool res = isSigInt(tsize, &size);
+    // Size type is previously checked in sigWriteReadTable or sigReadOnlyTable
+    faustassert(res);
 
     Tree   g;
     string cexp;

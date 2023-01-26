@@ -1454,11 +1454,9 @@ ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf
 ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 {
     int size;
-    if (!isSigInt(tsize, &size)) {
-        stringstream error;
-        error << "ERROR : generateTable : " << *tsize << " is not an integer expression " << endl;
-        throw faustexception(error.str());
-    }
+    bool res = isSigInt(tsize, &size);
+    // Size type is previously checked in sigWriteReadTable or sigReadOnlyTable
+    faustassert(res);
 
     ValueInst*     signame = CS(content);
     Typed::VarType ctype;
@@ -1524,11 +1522,9 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
 ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 {
     int size;
-    if (!isSigInt(tsize, &size)) {
-        stringstream error;
-        error << "ERROR : generateStaticTable : " << *tsize << " is not an integer expression " << endl;
-        throw faustexception(error.str());
-    }
+    bool res = isSigInt(tsize, &size);
+    // Size type is previously checked in sigWriteReadTable or sigReadOnlyTable
+    faustassert(res);
 
     Tree           g;
     ValueInst*     signame;
