@@ -101,7 +101,6 @@ class FAUST_API Interpolator {
             double operator()(double x) { return (x<fLo) ? fLo : (x>fHi) ? fHi : x; }
         };
 
-
         Range fRange;
         double fCoef;
         double fOffset;
@@ -261,13 +260,14 @@ class FAUST_API LinearValueConverter2 : public UpdatableValueConverter {
 class FAUST_API LogValueConverter : public LinearValueConverter {
 
     public:
-
+    
+        // We use DBL_EPSILON which is bigger than DBL_MIN (safer)
         LogValueConverter(double umin, double umax, double fmin, double fmax) :
-            LinearValueConverter(umin, umax, std::log(std::max<double>(DBL_MIN, fmin)), std::log(std::max<double>(DBL_MIN, fmax)))
+            LinearValueConverter(umin, umax, std::log(std::max<double>(DBL_EPSILON, fmin)), std::log(std::max<double>(DBL_EPSILON, fmax)))
         {}
 
         virtual double ui2faust(double x) { return std::exp(LinearValueConverter::ui2faust(x)); }
-        virtual double faust2ui(double x) { return LinearValueConverter::faust2ui(std::log(std::max<double>(x, DBL_MIN))); }
+        virtual double faust2ui(double x) { return LinearValueConverter::faust2ui(std::log(std::max<double>(DBL_EPSILON, x))); }
 
 };
 
