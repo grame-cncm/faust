@@ -139,6 +139,7 @@ struct global {
     int  gVHDLFloatType;         // -vhdl-type 0: sfixed(msb downto lsb) or 1: float(msb downto lsb)
     int  gVHDLFloatMSB;          // -vhdl-msb option
     int  gVHDLFloatLSB;          // -vhdl-lsb option
+    int  gFPGAMemory;            // -fpga-mem option: FPGA block ram max size
     bool gPrintXMLSwitch;        // -xml option
     bool gPrintJSONSwitch;       // -json option
     bool gPrintDocSwitch;        // -mdoc option

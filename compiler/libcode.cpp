@@ -366,6 +366,10 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-vhdl-lsb", "--vhdl-lsb") && (i + 1 < argc)) {
             gGlobal->gVHDLFloatLSB = std::atoi(argv[i + 1]);
             i += 2;
+            
+        } else if (isCmd(argv[i], "-fpga-mem", "-fpga-mem") && (i + 1 < argc)) {
+            gGlobal->gFPGAMemory = std::atoi(argv[i + 1]);
+            i += 2;
 
         } else if (isCmd(argv[i], "-f", "--fold") && (i + 1 < argc)) {
             gGlobal->gFoldThreshold = std::atoi(argv[i + 1]);
@@ -1041,6 +1045,7 @@ static void printHelp()
     cout << tab << "-vhdl-type 0|1 --vhdl-type 0|1          sample format 0 = sfixed (default), 1 = float." << endl;
     cout << tab << "-vhdl-msb <n>  --vhdl-msb <n>           MSB number of bits." << endl;
     cout << tab << "-vhdl-lsb <n>  --vhdl-lsb <n>           LSB number of bits." << endl;
+    cout << tab << "-fpga-mem <n>  --fpga-mem <n>           FPGA block ram max size, using in -os2/-os3 mode." << endl;
 
     cout << tab << "-wi <n>     --widening-iterations <n>   number of iterations before widening in signal bounding."
          << endl;

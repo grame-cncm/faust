@@ -495,6 +495,7 @@ void global::reset()
     gVHDLFloatType    = 0;  // sfixed
     gVHDLFloatMSB     = 8;
     gVHDLFloatLSB     = -23;
+    gFPGAMemory       = 10000;
     gPrintXMLSwitch   = false;
     gPrintJSONSwitch  = false;
     gPrintDocSwitch   = false;

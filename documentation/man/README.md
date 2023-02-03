@@ -1,4 +1,4 @@
-% man(1) Version 2.57.7 (30-January-2023) | Faust man page
+% man(1) Version 2.58.0 (03-February-2023) | Faust man page
 
 NAME
 ====
@@ -155,6 +155,8 @@ Code generation options:
   **-vhdl**-msb \<n>  **--vhdl-msb** \<n>           MSB number of bits.
 
   **-vhdl**-lsb \<n>  **--vhdl-lsb** \<n>           LSB number of bits.
+
+  **-fpga**-mem \<n>  **--fpga-mem** \<n>           FPGA block ram max size, using in -os2/-os3 mode.
 
   **-wi** \<n>     **--widening-iterations** \<n>   number of iterations before widening in signal bounding.
 
