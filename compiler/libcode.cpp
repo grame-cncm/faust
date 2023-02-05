@@ -1045,7 +1045,7 @@ static void printHelp()
     cout << tab << "-vhdl-type 0|1 --vhdl-type 0|1          sample format 0 = sfixed (default), 1 = float." << endl;
     cout << tab << "-vhdl-msb <n>  --vhdl-msb <n>           MSB number of bits." << endl;
     cout << tab << "-vhdl-lsb <n>  --vhdl-lsb <n>           LSB number of bits." << endl;
-    cout << tab << "-fpga-mem <n>  --fpga-mem <n>           FPGA block ram max size, using in -os2/-os3 mode." << endl;
+    cout << tab << "-fpga-mem <n>  --fpga-mem <n>           FPGA block ram max size, used in -os2/-os3 mode." << endl;
 
     cout << tab << "-wi <n>     --widening-iterations <n>   number of iterations before widening in signal bounding."
          << endl;
