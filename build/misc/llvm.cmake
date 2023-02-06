@@ -76,7 +76,7 @@ function (scan_backends TARGET FLAG)
 	if (${POS} GREATER -1)
 		backend (LLVM llvm ${TARGET})
 		target_compile_definitions (${TARGET} PRIVATE -D${LLVM_VERSION})
-		target_include_directories (${TARGET} PRIVATE ${SRCDIR}/generator/c ${SRCDIR}/generator/cpp  ${LLVM_INCLUDE_DIRS})
+		target_include_directories (${TARGET} PRIVATE ${LLVM_INCLUDE_DIRS})
 	endif()
 endfunction()
 

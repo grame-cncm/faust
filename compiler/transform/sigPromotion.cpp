@@ -241,7 +241,7 @@ Tree SignalPromotion::transformation(Tree sig)
                 // done here instead of 'simplify' to be sure the signals are correctly typed
                 interval i1 = tx->getInterval();
                 interval j1 = ty->getInterval();
-                if (i1.isValid() & j1.isValid() && gGlobal->gMathExceptions && j1.hasZero()) {
+                if (i1.isValid() && j1.isValid() && gGlobal->gMathExceptions && j1.hasZero()) {
                     cerr << "WARNING : potential division by zero (" << i1 << "/" << j1 << ")" << endl;
                 }
                 // the result of a division is always a float
