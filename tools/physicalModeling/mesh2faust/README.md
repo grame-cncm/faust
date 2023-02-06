@@ -204,7 +204,7 @@ model where mode frequencies are dynamically calculated in function of a given
 fundamental frequency (mode 0) simply by providing the `--freqcontrol` flag.
 
 Obviously, this will increase the amount of computation of the model and change
-its number of arguments (see [Using Generated Models](#using-generated-models)).
+its number of arguments (see [Using Generated Models](#using-the-generated-models)).
 
 ### Debugging
 
@@ -254,7 +254,7 @@ of this function. So if 1, decay will be linear, if 2, decay will be a power of
 
 ### Dynamic F0 Model
 
-The [Making a Transposable Model](making-a-transposable-model) section shows how to
+The [Making a Transposable Model](#making-a-transposable-model) section shows how to
 make a model with a dynamic fundamental frequency. Models generated using this
 option look like:
 
