@@ -74,7 +74,11 @@ class FBCCompiler : public FBCInterpreter<REAL,0> {
                 (*fCompiledBlocks)[block] = new FBCTemplateCompiler<REAL>(block, this->fSoundTable);
             #endif
         #else
-            #warning pure Interpreter mode
+            #ifdef WIN32
+                #pragma message("warning pure Interpreter mode");
+            #else
+                #warning pure Interpreter mode
+            #endif
         #endif
         } else {
             // std::cout << "FBCCompiler: reuse compiled block" << std::endl;
