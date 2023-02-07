@@ -16,7 +16,10 @@
 if [ "$(uname -m)" = armv6l ]; then        # for Raspberry PI
     MYGCCFLAGS="-std=c++11 -O3 -march=armv6zk -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -ffast-math -ftree-vectorize"
 elif [ "$(uname -s)" = Darwin ]; then      # for macOS
-    if [ "$(uname -p)" = arm ]; then       # uname -m returns x86_64!
+    # WARNING: THE FOLLOWING TEST FAILS ON ARM WHEN RUNNING IN ROSETTA (observed in an Emacs shell).
+    # In a Rosetta-mode shell, uname -p returns i386, after which -march=native is not recognized.
+    # Use the native Terminal.app instead.
+    if [ "$(uname -p)" = arm ]; then
         # Silicon MX
         MYGCCFLAGS="-std=c++11 -Ofast"
     else
