@@ -95,7 +95,7 @@ LIBFAUST_API bool generateCAuxFilesFromFile(const char* filename, int argc, cons
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled, has to be 4096 characters long
  *
- * @return the expanded DSP or a empty string in case of failure
+ * @return the true if success or false and an error message in case of failure
  */
 LIBFAUST_API bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
                                            char* error_msg);
