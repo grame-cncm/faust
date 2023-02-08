@@ -191,6 +191,7 @@ struct global {
     bool   gFAUSTFLOAT2Internal;   // FAUSTFLOAT type (= kFloatMacro) forced to internal real
     bool   gHasExp10;              // -exp10, if the 'exp10' math function is available
     bool   gLoopVarInBytes;        // If the 'i' variable used in the scalar loop moves by bytes instead of frames
+    bool   gUseMemmove;            // Use 'memmove' function to shift arrays
     bool   gWaveformInDSP;         // If waveform are allocated in the DSP and not as global data
     bool   gUseDefaultSound;       // If default global variable is used in 'soundfile' primitive generation
     bool   gHasTeeLocal;           // For wast/wasm backends

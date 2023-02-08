@@ -347,6 +347,8 @@ LIBFAUST_API std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, con
 LIBFAUST_API bool writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path,
                                                const std::string& target);
 
+LIBFAUST_API void registerForeignFunction(const std::string& name);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -426,6 +428,8 @@ LIBFAUST_API llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 LIBFAUST_API void deleteCDSPInstance(llvm_dsp* dsp);
 
 LIBFAUST_API void generateCSHA1(const char* data, char* key);
+    
+LIBFAUST_API void registerCForeignFunction(const char* name);
 
 #ifdef __cplusplus
 }

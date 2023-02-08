@@ -535,6 +535,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 LLVMValue arg = GetIterator(args++);
                 arg->setName(it->fName);
                 // Pointers are set with 'noalias' for non paired arguments, which are garantied to be unique
+                // TODO: better associate a proper kNoalias atribute at FIR creation time
                 if (isPtrType(it->getType()) && !inst->fType->isPairedFunArg(it->fName)) {
                     function->addParamAttr(arg_index, llvm::Attribute::NoAlias);
                 }

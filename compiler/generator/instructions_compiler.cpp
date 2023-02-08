@@ -2059,20 +2059,42 @@ StatementInst* InstructionsCompiler::generateInitArray(const string& vname, Type
 
 StatementInst* InstructionsCompiler::generateShiftArray(const string& vname, int delay)
 {
-    string index = gGlobal->getFreshID("j");
+    if (gGlobal->gUseMemmove) {
+        
+        /*
+        // Generate prototype
+        Names fun_args;
+        fun_args.push_back(InstBuilder::genNamedTyped("dst", Typed::kVoid_ptr));
+        fun_args.push_back(InstBuilder::genNamedTyped("src", Typed::kVoid_ptr));
+        fun_args.push_back(InstBuilder::genNamedTyped("size", Typed::kInt32));
+        
+        FunTyped* fun_type = InstBuilder::genFunTyped(fun_args, InstBuilder::genBasicTyped(Typed::kVoid_ptr), FunTyped::kDefault);
+        pushGlobalDeclare(InstBuilder::genDeclareFunInst("memmove", fun_type));
+        */
+        
+        // Return funcall
+        Values args;
+        args.push_back(InstBuilder::genLoadArrayStructVarAddress(vname, InstBuilder::genInt32NumInst(0)));
+        args.push_back(InstBuilder::genLoadArrayStructVarAddress(vname, InstBuilder::genInt32NumInst(1)));
+        args.push_back(InstBuilder::genInt32NumInst(delay*4));
+        return InstBuilder::genDropInst(InstBuilder::genFunCallInst("memmove", args));
+        
+    } else {
+        string index = gGlobal->getFreshID("j");
 
-    // Generates init table loop
-    DeclareVarInst* loop_decl =
-        InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(delay));
-    ValueInst*    loop_end = InstBuilder::genGreaterThan(loop_decl->load(), InstBuilder::genInt32NumInst(0));
-    StoreVarInst* loop_inc = loop_decl->store(InstBuilder::genSub(loop_decl->load(), InstBuilder::genInt32NumInst(1)));
+        // Generates init table loop
+        DeclareVarInst* loop_decl =
+            InstBuilder::genDecLoopVar(index, InstBuilder::genInt32Typed(), InstBuilder::genInt32NumInst(delay));
+        ValueInst*    loop_end = InstBuilder::genGreaterThan(loop_decl->load(), InstBuilder::genInt32NumInst(0));
+        StoreVarInst* loop_inc = loop_decl->store(InstBuilder::genSub(loop_decl->load(), InstBuilder::genInt32NumInst(1)));
 
-    ForLoopInst* loop        = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_inc);
-    ValueInst*   load_value2 = InstBuilder::genSub(loop_decl->load(), InstBuilder::genInt32NumInst(1));
-    ValueInst*   load_value3 = InstBuilder::genLoadArrayStructVar(vname, load_value2);
+        ForLoopInst* loop        = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_inc);
+        ValueInst*   load_value2 = InstBuilder::genSub(loop_decl->load(), InstBuilder::genInt32NumInst(1));
+        ValueInst*   load_value3 = InstBuilder::genLoadArrayStructVar(vname, load_value2);
 
-    loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname, loop_decl->load(), load_value3));
-    return loop;
+        loop->pushFrontInst(InstBuilder::genStoreArrayStructVar(vname, loop_decl->load(), load_value3));
+        return loop;
+    }
 }
 
 StatementInst* InstructionsCompiler::generateCopyArray(const string& vname, int index_from, int index_to)

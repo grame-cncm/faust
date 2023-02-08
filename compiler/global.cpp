@@ -408,6 +408,7 @@ void global::reset()
     gStrictSelect         = false;
     gHasExp10             = false;
     gLoopVarInBytes       = false;
+    gUseMemmove           = false;
     gWaveformInDSP        = false;
     gUseDefaultSound      = true;
     gHasTeeLocal          = false;

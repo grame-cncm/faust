@@ -97,6 +97,9 @@ struct Select2Inst;
 // Null value
 struct NullValueInst;
 
+// Function call
+struct FunCallInst;
+
 // ===========
 // Statements
 // ===========
@@ -113,9 +116,10 @@ struct StoreVarInst;
 // Array move
 struct ShiftArrayVarInst;
 
-// Function call
-struct FunCallInst;
+// Used in function
 struct RetInst;
+
+// Used for enable/control
 struct ControlInst;
 
 // Control flow
