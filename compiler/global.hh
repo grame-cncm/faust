@@ -629,6 +629,8 @@ extern global* gGlobal;
 #define MAX_MACHINE_STACK_SIZE 65536
 #define MAX_SOUNDFILE_PARTS 256
 
+#define MAX_ERROR_SIZE 192
+
 // Threaded calls API
 typedef void* (*threaded_fun)(void* arg);
 void callFun(threaded_fun fun, void* arg);

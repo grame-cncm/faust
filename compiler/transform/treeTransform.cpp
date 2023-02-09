@@ -19,11 +19,13 @@
  ************************************************************************
  ************************************************************************/
 
-#include "treeTransform.hh"
+
 #include <stdlib.h>
 #include <cstdlib>
+
 #include "Text.hh"
-#include "ppsig.hh"
+#include "treeTransform.hh"
+#include "list.hh"
 
 using namespace std;
 

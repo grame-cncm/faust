@@ -495,7 +495,7 @@ string ScalarCompiler::generateCode(Tree sig)
 
     /* we should not have any control at this stage */
     else {
-        cerr << "ERROR : when compiling, unrecognized signal : " << ppsig(sig) << endl;
+        cerr << "ERROR : when compiling, unrecognized signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
         faustassert(false);
     }
     return "error in generated code";
@@ -1251,7 +1251,6 @@ string ScalarCompiler::generateXtended(Tree sig)
  Y(t-0)	Y(t-1)	Y(t-2)  ...
  V[0]	V[1]	V[2]	...
 
-
  *****************************************************************************/
 
 /**
@@ -1274,7 +1273,7 @@ string ScalarCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
             // cerr << "it is a pure zero delay : " << code << endl;
             return code;
         } else {
-            cerr << "ERROR : no vector name for : " << ppsig(exp) << endl;
+            cerr << "ERROR : no vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
     }

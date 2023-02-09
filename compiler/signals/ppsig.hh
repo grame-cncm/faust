@@ -42,8 +42,10 @@
 
 class ppsig : public virtual Garbageable {
    public:
-    ppsig(Tree s);
-    ppsig(Tree s, Tree env, int priority = 0) : fSig(s), fEnv(env), fPriority(priority), fHideRecursion(false) {}
+    ppsig(Tree s, int max_size = INT_MAX);
+    ppsig(Tree s, Tree env, int priority = 0, int max_size = INT_MAX)
+        : fSig(s), fEnv(env), fPriority(priority), fHideRecursion(false), fMaxSize(max_size)
+    {}
     virtual std::ostream& print(std::ostream& fout) const;
 
    protected:
@@ -68,7 +70,8 @@ class ppsig : public virtual Garbageable {
     Tree fSig;
     Tree fEnv;            ///< recursive environment stack
     int  fPriority;       ///< priority context
-    bool fHideRecursion; 
+    bool fHideRecursion;
+    int fMaxSize;
     
 };
 
@@ -109,7 +112,7 @@ class ppsigShared final : public ppsig {
             printIDs(fout, sort);
             fout << "SIG = " << s.str() << ";" << std::endl;
         }
-        ppsigShared(Tree s, Tree env, int priority = 0) : ppsig(s, env, priority) {}
+        ppsigShared(Tree s, Tree env, int priority = 0) : ppsig(s, env, priority, INT_MAX) {}
         std::ostream& print(std::ostream& fout) const;
     
         static void printIDs(std::ostream& fout, bool sort);

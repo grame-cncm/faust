@@ -63,7 +63,7 @@ LIBFAUST_API Tree sigRem(Tree x, Tree y)
 {
     if (isZero(y)) {
         stringstream error;
-        error << "ERROR : % by 0 in " << ppsig(x) << " % " << ppsig(y) << endl;
+        error << "ERROR : % by 0 in " << ppsig(x, MAX_ERROR_SIZE) << " % " << ppsig(y, MAX_ERROR_SIZE) << endl;
         throw faustexception(error.str());
     }
     return sigBinOp(kRem, x, y);
@@ -934,9 +934,10 @@ Tree sigFTZ(Tree s)
 /*****************************************************************************
  *                          sigList2vectInt
  *****************************************************************************/
-// Convert a list of signals (representing numbers) into a vector of ints
-// the result is true if the conversion was possible
-
+/**
+ * Convert a list of signals (representing numbers) into a vector of ints
+ * the result is true if the conversion was possible.
+ */
 bool sigList2vecInt(Tree ls, vector<int>& v)
 {
     int    i;

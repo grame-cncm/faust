@@ -142,7 +142,7 @@ LIBFAUST_API tvec simplifyToNormalForm2(tvec siglist)
     return treeConvert(simplifyToNormalForm(listConvert(siglist)));
 }
 
-LIBFAUST_API string printSignal(Tree sig, bool shared)
+LIBFAUST_API string printSignal(Tree sig, bool shared, int max_size)
 {
     // Clear print state
     gGlobal->clear();
@@ -150,12 +150,12 @@ LIBFAUST_API string printSignal(Tree sig, bool shared)
     if (shared) {
         ppsigShared(sig, str);
     } else {
-        str << ppsig(sig) << endl;
+        str << ppsig(sig, max_size) << endl;
     }
     return str.str();
 }
 
-LIBFAUST_API string printBox(Tree box, bool shared)
+LIBFAUST_API string printBox(Tree box, bool shared, int max_size)
 {
     // Clear print state
     gGlobal->clear();
@@ -163,7 +163,7 @@ LIBFAUST_API string printBox(Tree box, bool shared)
     if (shared) {
         boxppShared(box, str);
     } else {
-        str << boxpp(box) << endl;
+        str << mBox(box, max_size) << endl;
     }
     return str.str();
 }

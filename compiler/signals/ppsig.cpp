@@ -31,43 +31,43 @@
 
 using namespace std;
 
-ppsig::ppsig(Tree s) : fSig(s), fEnv(gGlobal->nil), fPriority(0), fHideRecursion(false)
-{
-}
+ppsig::ppsig(Tree s, int max_size) : fSig(s), fEnv(gGlobal->nil),
+    fPriority(0), fHideRecursion(false), fMaxSize(max_size)
+{}
 
 ostream& ppsig::printinfix(ostream& fout, const string& opname, int priority, Tree x, Tree y) const
 {
     if (fPriority > priority) fout << "(";
-    fout << ppsig(x, fEnv, priority) << opname << ppsig(y, fEnv, priority);
+    fout << ppsig(x, fEnv, priority, fMaxSize) << opname << ppsig(y, fEnv, priority, fMaxSize);
     if (fPriority > priority) fout << ")";
     return fout;
 }
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x) const
 {
-    return fout << funame << '(' << ppsig(x, fEnv) << ')';
+    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize) << ')';
 }
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y) const
 {
-    return fout << funame << '(' << ppsig(x, fEnv) << ',' << ppsig(y, fEnv) << ')';
+    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize) << ',' << ppsig(y, fEnv, 0, fMaxSize) << ')';
 }
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z) const
 {
-    return fout << funame << '(' << ppsig(x, fEnv) << ',' << ppsig(y, fEnv) << ',' << ppsig(z, fEnv) << ')';
+    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize) << ',' << ppsig(y, fEnv, 0, fMaxSize) << ',' << ppsig(z, fEnv, 0, fMaxSize) << ')';
 }
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree zz) const
 {
-    return fout << funame << '(' << ppsig(x, fEnv) << ',' << ppsig(y, fEnv) << ',' << ppsig(z, fEnv) << ','
-                << ppsig(zz, fEnv) << ')';
+    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize) << ',' << ppsig(y, fEnv, 0, fMaxSize) << ',' << ppsig(z, fEnv, 0, fMaxSize) << ','
+                << ppsig(zz, fEnv, 0, fMaxSize) << ')';
 }
 
 ostream& ppsig::printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree z2, Tree z3) const
 {
-    return fout << funame << '(' << ppsig(x, fEnv) << ',' << ppsig(y, fEnv) << ',' << ppsig(z, fEnv) << ','
-                << ppsig(z2, fEnv) << ',' << ppsig(z3, fEnv) << ')';
+    return fout << funame << '(' << ppsig(x, fEnv, 0, fMaxSize) << ',' << ppsig(y, fEnv, 0, fMaxSize) << ',' << ppsig(z, fEnv, 0, fMaxSize) << ','
+                << ppsig(z2, fEnv, 0, fMaxSize) << ',' << ppsig(z3, fEnv, 0, fMaxSize) << ')';
 }
 
 ostream& ppsig::printui(ostream& fout, const string& funame, Tree label) const
@@ -81,21 +81,21 @@ ostream& ppsig::printui(ostream& fout, const string& funame, Tree label, Tree lo
 {
     fout << funame << '(';
     printlabel(fout, label);
-    return fout << ',' << ppsig(lo, fEnv) << ',' << ppsig(hi, fEnv) << ',' << ppsig(step, fEnv) << ')';
+    return fout << ',' << ppsig(lo, fEnv, 0, fMaxSize) << ',' << ppsig(hi, fEnv, 0, fMaxSize) << ',' << ppsig(step, fEnv, 0, fMaxSize) << ')';
 }
 
 ostream& ppsig::printui(ostream& fout, const string& funame, Tree label, Tree cur, Tree lo, Tree hi, Tree step) const
 {
     fout << funame << '(';
     printlabel(fout, label);
-    return fout << ',' << ppsig(cur, fEnv) << ',' << ppsig(lo, fEnv) << ',' << ppsig(hi, fEnv) << ','
-                << ppsig(step, fEnv) << ')';
+    return fout << ',' << ppsig(cur, fEnv, 0, fMaxSize) << ',' << ppsig(lo, fEnv, 0, fMaxSize) << ',' << ppsig(hi, fEnv, 0, fMaxSize) << ','
+                << ppsig(step, fEnv, 0, fMaxSize) << ')';
 }
 
 ostream& ppsig::printout(ostream& fout, int i, Tree x) const
 {
     if (fPriority > 0) fout << "(";
-    fout << "OUT" << i << " = " << ppsig(x, fEnv, 0);
+    fout << "OUT" << i << " = " << ppsig(x, fEnv, 0, fMaxSize);
     if (fPriority > 0) fout << ")";
     return fout;
 }
@@ -117,7 +117,7 @@ ostream& ppsig::printlist(ostream& fout, Tree largs) const
     string sep = "";
     fout << '(';
     while (!isNil(largs)) {
-        fout << sep << ppsig(hd(largs), fEnv);
+        fout << sep << ppsig(hd(largs), fEnv, 0, fMaxSize);
         sep   = ", ";
         largs = tl(largs);
     }
@@ -137,7 +137,7 @@ ostream& ppsig::printDelay(ostream& fout, Tree exp, Tree delay) const
     int d;
 
     if (isSigInt(delay, &d) && (d == 1)) {
-        fout << ppsig(exp, fEnv, 8) << "'";
+        fout << ppsig(exp, fEnv, 8, fMaxSize) << "'";
     } else {
         printinfix(fout, "@", 8, exp, delay);
     }
@@ -151,14 +151,26 @@ ostream& ppsig::printrec(ostream& fout, Tree var, Tree lexp, bool hide) const
     } else if (hide) {
         fout << *var;
     } else {
-        fout << "letrec(" << *var << " = " << ppsig(lexp, addElement(var, fEnv)) << ")";
+        stringstream str_rec;
+        str_rec << ppsig(lexp, addElement(var, fEnv), 0, fMaxSize);
+        if (str_rec.tellp() == 0) {
+            fout << "letrec(" << *var << " = ...)";
+        } else {
+            fout << "letrec(" << *var << " = " << str_rec.str() << ")";
+        }
     }
     return fout;
 }
 
 ostream& ppsig::printrec(ostream& fout, Tree lexp, bool hide) const
 {
-    fout << "debruijn(" << ppsig(lexp, fEnv) << ")";
+    stringstream str_rec;
+    str_rec << ppsig(lexp, fEnv, 0, fMaxSize);
+    if (str_rec.tellp() == 0) {
+        fout << "debruijn(...)";
+    } else {
+        fout << "debruijn(" << str_rec.str() << ")";
+    }
     return fout;
 }
 
@@ -169,7 +181,7 @@ ostream& ppsig::printextended(ostream& fout, Tree sig1) const
 
     fout << p->name() << '(';
     for (int i = 0; i < sig1->arity(); i++) {
-        fout << sep << ppsig(sig1->branch(i), fEnv);
+        fout << sep << ppsig(sig1->branch(i), fEnv, 0, fMaxSize);
         sep = ", ";
     }
     fout << ')';
@@ -178,6 +190,9 @@ ostream& ppsig::printextended(ostream& fout, Tree sig1) const
 
 ostream& ppsig::print(ostream& fout) const
 {
+    // Stops printing at fMaxSize characters
+    if (fout.tellp() > fMaxSize) { fout << "..."; return fout; }
+    
     int    i;
     double r;
     Tree   c, sel, x, y, z, u, var, le, label, id, ff, largs, type, name, file, sf;
@@ -185,7 +200,7 @@ ostream& ppsig::print(ostream& fout) const
     if (isList(fSig)) {
         printlist(fout, fSig);
     } else if (isProj(fSig, &i, x)) {
-        fout << "proj" << i << '(' << ppsig(x, fEnv) << ')';
+        fout << "proj" << i << '(' << ppsig(x, fEnv, 0, fMaxSize) << ')';
     } else if (isRec(fSig, var, le)) {
         printrec(fout, var, le, fHideRecursion /*&& (getRecursivness(sig)==0)*/);
     }
@@ -212,7 +227,7 @@ ostream& ppsig::print(ostream& fout) const
     }
 
     else if (isSigDelay1(fSig, x)) {
-        fout << ppsig(x, fEnv, 9) << "'";
+        fout << ppsig(x, fEnv, 9, fMaxSize) << "'";
     }
     else if (isSigDelay(fSig, x, y)) {
         printDelay(fout, x, y);
@@ -235,7 +250,7 @@ ostream& ppsig::print(ostream& fout) const
     } else if (isSigRDTbl(fSig, x, y)) {
         printfun(fout, "read", x, y);
     } else if (isSigGen(fSig, x)) {
-        fout << ppsig(x, fEnv, fPriority);
+        fout << ppsig(x, fEnv, fPriority, fMaxSize);
     }
 
     else if (isSigDocConstantTbl(fSig, x, y)) {
@@ -471,7 +486,7 @@ ostream& ppsigShared::print(ostream& fout) const
     }
     
     else if (isSigDelay1(fSig, x)) {
-        SIG_INSERT_ID(s << ppsig(x, fEnv, 9) << "'");
+        SIG_INSERT_ID(s << ppsigShared(x, fEnv, 9) << "'");
     }
     else if (isSigDelay(fSig, x, y)) {
         SIG_INSERT_ID(printDelay(s, x, y));
@@ -494,7 +509,7 @@ ostream& ppsigShared::print(ostream& fout) const
     } else if (isSigRDTbl(fSig, x, y)) {
         SIG_INSERT_ID(printfun(s, "read", x, y));
     } else if (isSigGen(fSig, x)) {
-        SIG_INSERT_ID(s << ppsig(x, fEnv, fPriority));
+        SIG_INSERT_ID(s << ppsigShared(x, fEnv, fPriority));
     }
     
     else if (isSigDocConstantTbl(fSig, x, y)) {
@@ -563,7 +578,7 @@ void ppsigShared::printIDs(ostream& fout, bool sort)
      To be removed if the tree shape becomes deterministic.
      */
     if (sort) std::sort(gGlobal->gSignalTrace.begin(), gGlobal->gSignalTrace.end());
-    cout << "// Size = " << gGlobal->gSignalTrace.size() << endl;
+    fout << "// Size = " << gGlobal->gSignalTrace.size() << endl;
     for (const auto& it : gGlobal->gSignalTrace) {
         fout << it;
     }

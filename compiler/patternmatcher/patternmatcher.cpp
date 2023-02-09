@@ -574,10 +574,12 @@ Automaton* make_pattern_matcher(Tree R)
                            be shadowed. */
                         Tree lhs1, rhs1, lhs2, rhs2;
                         if (isCons(rules[ru->r], lhs1, rhs1) && isCons(rules[r], lhs2, rhs2)) {
-                            cerr << "WARNING : shadowed pattern-matching rule: " << boxpp(reverse(lhs2)) << " => "
-                                 << boxpp(rhs2) << ";"
-                                 << " previous rule was: " << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
-                                 << endl;
+                            stringstream error;
+                            error << "WARNING : shadowed pattern-matching rule: " << boxpp(reverse(lhs2)) << " => "
+                                  << boxpp(rhs2) << ";"
+                                  << " previous rule was: " << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
+                                  << endl;
+                            gWarningMessages.push_back(error.str());
                         } else {
                             stringstream error;
                             error << "ERROR : " << __FILE__ << ":" << __LINE__ << endl;

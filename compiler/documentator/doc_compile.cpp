@@ -968,8 +968,8 @@ string DocCompiler::generatePrefix(Tree sig, Tree x, Tree e, int priority)
     string vecname;
 
     if (!getVectorNameProperty(e, vecname)) {
-        cerr << "No vector name for : " << ppsig(e) << endl;
-        faustassert(0);
+        cerr << "No vector name for : " << ppsig(e, MAX_ERROR_SIZE) << endl;
+        faustassert(false);
     }
 
     string ltqPrefixDef;
@@ -1103,8 +1103,8 @@ string DocCompiler::generateDelay(Tree sig, Tree exp, Tree delay, int priority)
     CS(exp, 0);  // ensure exp is compiled to have a vector name
 
     if (!getVectorNameProperty(exp, vecname)) {
-        cerr << "No vector name for : " << ppsig(exp) << endl;
-        faustassert(0);
+        cerr << "No vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
+        faustassert(false);
     }
 
     if (isSigInt(delay, &d) && (d == 0)) {

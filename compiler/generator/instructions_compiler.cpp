@@ -804,7 +804,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         
     /* we should not have any control at this stage*/
     } else {
-        cerr << "ERROR : when compiling, unrecognized signal : " << ppsig(sig) << endl;
+        cerr << "ERROR : when compiling, unrecognized signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
         faustassert(false);
     }
     return InstBuilder::genNullValueInst();
@@ -861,7 +861,7 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
     if (name != "fSampleRate" && !gGlobal->gAllowForeignConstant) {
         stringstream error;
         error << "ERROR : accessing foreign constant '" << name << "'"
-        << " is not allowed in this compilation mode!" << endl;
+        << " is not allowed in this compilation mode" << endl;
         throw faustexception(error.str());
     }
 
@@ -904,7 +904,7 @@ ValueInst* InstructionsCompiler::generateFVar(Tree sig, Tree type, const string&
         || (name == fFullCount && (gGlobal->gOneSample >= 0 || gGlobal->gOneSampleControl))) {
         stringstream error;
         error << "ERROR : accessing foreign variable '" << name << "'"
-        << " is not allowed in this compilation mode!" << endl;
+        << " is not allowed in this compilation mode" << endl;
         throw faustexception(error.str());
     }
 
@@ -991,7 +991,7 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     } else {
         stringstream error;
         error << "ERROR : calling foreign function '" << funname << "'"
-              << " is not allowed in this compilation mode!" << endl;
+              << " is not allowed in this compilation mode" << endl;
         throw faustexception(error.str());
     }
 }
@@ -1983,7 +1983,7 @@ ValueInst* InstructionsCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
             // cerr << "it is a pure zero delay : " << code << endl;
             return code;
         } else {
-            cerr << "ERROR : no vector name for : " << ppsig(exp) << endl;
+            cerr << "ERROR : no vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
     }

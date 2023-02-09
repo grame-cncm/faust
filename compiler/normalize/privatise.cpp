@@ -29,6 +29,8 @@
 #include "sigprint.hh"
 #include "sigtyperules.hh"
 
+using namespace std;
+
 /*****************************************************************************
                          privatise : compile a list of signals
 *****************************************************************************/
@@ -117,7 +119,8 @@ static Tree computePrivatisation(const Tree& k, const Tree& exp)
         /*
          We do not visit the contents of the tables.
          */
-        throw faustexception("ERROR : computePrivatisation");
+        cerr << "ERROR : computePrivatisation\n";
+        faustassert(false);
 
     } else if (isRec(exp, var, body)) {
         /*
@@ -160,7 +163,8 @@ static Tree labelize(const Tree& newid, const Tree& exp)
         return sigTable(newid, size, content);
 
     } else {
-        throw faustexception("ERROR : labelize");
+        cerr << "ERROR : labelize\n";
+        faustassert(false);
     }
 
     return exp;

@@ -203,7 +203,7 @@ static void equivalent1()
          // Print the signals
          cout << "\nPrint the signals\n";
          for (size_t i = 0; i < signals.size(); i++) {
-             cout << printSignal(signals[i], false);
+             cout << printSignal(signals[i], false, INT_MAX);
          }
      )
 }
@@ -221,7 +221,7 @@ static void equivalent2()
          // Print the signals
          cout << "\nPrint the signals\n";
          for (size_t i = 0; i < signals.size(); i++) {
-             cout << printSignal(signals[i], false);
+             cout << printSignal(signals[i], false, INT_MAX);
          }
     )
 }
@@ -241,12 +241,17 @@ static void normalform()
         // Print the signals
         cout << "\nPrint the signals\n";
         for (size_t i = 0; i < signals.size(); i++) {
-            cout << printSignal(signals[i], false);
+            cout << printSignal(signals[i], false, INT_MAX);
+        }
+     
+        cout << "\nPrint the signals in short form\n";
+        for (size_t i = 0; i < signals.size(); i++) {
+             cout << printSignal(signals[i], false, 128);
         }
 
         cout << "\nPrint the signals in shared form\n";
         for (size_t i = 0; i < signals.size(); i++) {
-            cout << printSignal(signals[i], true);
+            cout << printSignal(signals[i], true, INT_MAX);
         }
 
         // Compute normal form
@@ -254,13 +259,18 @@ static void normalform()
      
         cout << "\nPrint the signals in normal form\n";
         for (size_t i = 0; i < nf.size(); i++) {
-            cout << printSignal(nf[i], false);
+            cout << printSignal(nf[i], false, INT_MAX);
         }
      
-         cout << "\nPrint the signals in normal form in shared mode\n";
-         for (size_t i = 0; i < nf.size(); i++) {
-             cout << printSignal(nf[i], true);
-         }
+        cout << "\nPrint the signals in short form\n";
+        for (size_t i = 0; i < nf.size(); i++) {
+            cout << printSignal(nf[i], false, 128);
+        }
+
+        cout << "\nPrint the signals in normal form in shared mode\n";
+        for (size_t i = 0; i < nf.size(); i++) {
+            cout << printSignal(nf[i], true, INT_MAX);
+        }
      )
 }
 

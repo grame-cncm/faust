@@ -40,16 +40,17 @@ class TanPrim : public xtended {
     virtual ::Type infereSigType(ConstTypes args)
     {
         faustassert(args.size() == 1);
-        interval     srcInterval = args[0]->getInterval();
-        const double halfpi      = M_PI / 2;
-        interval     resultInterval;
+        interval     i = args[0]->getInterval();
+        const double halfpi = M_PI / 2;
+        interval     r;
 
-        // the check can be improved to ensure that no infinity is in the range
-        if (srcInterval.isValid()) {
-            if ((-halfpi < srcInterval.lo()) && (srcInterval.hi() < halfpi))
-                resultInterval = interval(tan(srcInterval.lo()), tan(srcInterval.hi()));
+        // The check can be improved to ensure that no infinity is in the range
+        if (i.isValid()) {
+            if ((-halfpi < i.lo()) && (i.hi() < halfpi)) {
+                r = interval(tan(i.lo()), tan(i.hi()));
+            }
         }
-        return castInterval(floatCast(args[0]), resultInterval);
+        return castInterval(floatCast(args[0]), r);
     }
 
     virtual int infereSigOrder(const std::vector<int>& args) { return args[0]; }

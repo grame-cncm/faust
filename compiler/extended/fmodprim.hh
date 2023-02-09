@@ -40,7 +40,9 @@ class FmodPrim : public xtended {
         interval i = args[0]->getInterval();
         interval j = args[1]->getInterval();
         if (j.isValid() && gGlobal->gMathExceptions && j.hasZero()) {
-            std::cerr << "WARNING : potential division by zero in fmod(" << i << ", " << j << ")" << std::endl;
+            std::stringstream error;
+            error << "WARNING : potential division by zero in fmod(" << i << ", " << j << ")" << std::endl;
+            gWarningMessages.push_back(error.str());
         }
 
         return castInterval(floatCast(args[0] | args[1]), fmod(i, j));
@@ -58,7 +60,7 @@ class FmodPrim : public xtended {
         faustassert(args.size() == arity());
         if (isZero(args[1])) {
             std::stringstream error;
-            error << "ERROR : % by 0 in " << ppsig(args[0]) << " % " << ppsig(args[1]) << std::endl;
+            error << "ERROR : % by 0 in " << ppsig(args[0], MAX_ERROR_SIZE) << " % " << ppsig(args[1], MAX_ERROR_SIZE) << std::endl;
             throw faustexception(error.str());
         } else if (isNum(args[0], n) && isNum(args[1], m)) {
             return tree(fmod(double(n), double(m)));

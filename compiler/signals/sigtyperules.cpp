@@ -64,7 +64,8 @@ static Type infereDocAccessTblType(Type tbl, Type ridx);
 static Type infereWaveformType(Tree lv, Tree env);
 
 /**
- * convert a constant signal into a double using its bounds (not very safe)
+ * Convert a constant signal into a double using its bounds (not very safe).
+ *
  * @param sig the signal to be converted
  * @return the mean of its biggest and smallest value
  */
@@ -72,9 +73,7 @@ static double constSig2double(Tree sig)
 {
     Type ty = getSigType(sig);
     if (ty->variability() != kKonst) {
-        throw faustexception(
-            "ERROR : constSig2double, the parameter must be a constant value"
-            " known at compile time\n");
+        throw faustexception("ERROR : constSig2double, must a constant numerical expression\n");
     }
     interval bds = ty->getInterval();
     if (bds.lo() != bds.hi()) {
@@ -86,8 +85,9 @@ static double constSig2double(Tree sig)
 }
 
 /**
- * dereference a Type to AudioType and promote its type to TupletType
- * if the AudioType is not a TupletType, then fails
+ * Dereference a Type to AudioType and promote its type to TupletType.
+ * if the AudioType is not a TupletType, then fails.
+ *
  * @param t the type to promote
  * @return the *t as a TupletType
  */
@@ -99,7 +99,8 @@ static ::TupletType derefRecCert(Type t)
 }
 
 /**
- * Compute the resulting interval of an arithmetic operation
+ * Compute the resulting interval of an arithmetic operation.
+ *
  * @param op code of the operation
  * @param s1 interval of the left operand
  * @param s2 interval of the right operand
@@ -368,7 +369,7 @@ static void annotationStatistics()
  */
 static void setSigType(Tree sig, Type t)
 {
-    TRACE(cerr << gGlobal->TABBER << "SET FIX TYPE OF " << ppsig(sig) << " TO TYPE " << *t << endl;)
+    TRACE(cerr << gGlobal->TABBER << "SET FIX TYPE OF " << ppsig(sig, MAX_ERROR_SIZE) << " TO TYPE " << *t << endl;)
     sig->setType(t);
 }
 
@@ -380,9 +381,9 @@ static Type getSigType(Tree sig)
 {
     AudioType* ty = (AudioType*)sig->getType();
     if (ty == nullptr) {
-        TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << ppsig(sig) << " HAS NO TYPE YET" << endl;)
+        TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << ppsig(sig, MAX_ERROR_SIZE) << " HAS NO TYPE YET" << endl;)
     } else {
-        TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << ppsig(sig) << " IS TYPE " << *ty << endl;)
+        TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << ppsig(sig, MAX_ERROR_SIZE) << " IS TYPE " << *ty << endl;)
     }
     return ty;
 }
@@ -408,29 +409,29 @@ static Type getSigType(Tree sig)
  */
 static Type T(Tree term, Tree ignoreenv)
 {
-    TRACE(cerr << ++gGlobal->TABBER << "ENTER T() " << ppsig(term) << endl;)
+    TRACE(cerr << ++gGlobal->TABBER << "ENTER T() " << ppsig(term, MAX_ERROR_SIZE) << endl;)
 
     if (term->isAlreadyVisited()) {
         Type ty = getSigType(term);
-        TRACE(cerr << --gGlobal->TABBER << "EXIT 1 T() " << ppsig(term) << " AS TYPE " << *ty << endl);
+        TRACE(cerr << --gGlobal->TABBER << "EXIT 1 T() " << ppsig(term, MAX_ERROR_SIZE) << " AS TYPE " << *ty << endl);
         return ty;
 
     } else {
         Type ty = infereSigType(term, ignoreenv);
         setSigType(term, ty);
         term->setVisited();
-        TRACE(cerr << --gGlobal->TABBER << "EXIT 2 T() " << ppsig(term) << " AS TYPE " << *ty << endl);
+        TRACE(cerr << --gGlobal->TABBER << "EXIT 2 T() " << ppsig(term, MAX_ERROR_SIZE) << " AS TYPE " << *ty << endl);
         return ty;
     }
 }
 
-static void CheckPartInterval(Tree s, Type t)
+static void checkPartInterval(Tree s, Type t)
 {
     interval i = t->getInterval();
     if (!i.isValid() || (i.lo() < 0) || (i.hi() >= MAX_SOUNDFILE_PARTS)) {
         stringstream error;
         error << "ERROR : out of range soundfile part number (" << i << " instead of interval(0,"
-              << MAX_SOUNDFILE_PARTS - 1 << ")) in expression : " << ppsig(s) << endl;
+              << MAX_SOUNDFILE_PARTS - 1 << ")) in expression : " << ppsig(s, MAX_ERROR_SIZE) << endl;
         throw faustexception(error.str());
     }
 }
@@ -497,14 +498,14 @@ static Type infereSigType(Tree sig, Tree env)
         if (gGlobal->gCausality) {
             if (!(i1.isValid()) || !(i1.isBounded())) {
                 stringstream error;
-                error << "ERROR : can't compute the min and max values of : " << ppsig(s2) << endl
-                      << "        used in delay expression : " << ppsig(sig) << endl
+                error << "ERROR : can't compute the min and max values of : " << ppsig(s2, MAX_ERROR_SIZE) << endl
+                      << "        used in delay expression : " << ppsig(sig, MAX_ERROR_SIZE) << endl
                       << "        (probably a recursive signal)" << endl;
                 throw faustexception(error.str());
             } else if (i1.lo() < 0) {
                 stringstream error;
-                error << "ERROR : possible negative values of : " << ppsig(s2) << endl
-                      << "        used in delay expression : " << ppsig(sig) << endl
+                error << "ERROR : possible negative values of : " << ppsig(s2, MAX_ERROR_SIZE) << endl
+                      << "        used in delay expression : " << ppsig(sig, MAX_ERROR_SIZE) << endl
                       << "        " << i1 << endl;
                 throw faustexception(error.str());
             }
@@ -521,11 +522,11 @@ static Type infereSigType(Tree sig, Tree env)
         // cerr <<"type rule for : " << ppsig(sig) << " -> " << *t3 << endl;
 
         if (i == kDiv) {
-            return floatCast(t3);  // division always result in a float even with int arguments
+            return floatCast(t3);   // division always result in a float even with int arguments
         } else if ((i >= kGT) && (i <= kNE)) {
-            return boolCast(t3);  // comparison always result in a boolean int
+            return boolCast(t3);    // comparison always result in a boolean int
         } else if (((i >= kLsh) && (i <= kLRsh)) || ((i >= kAND) && (i <= kXOR))) {
-            return intCast(t3);  // boolean and logical operators always result in an int
+            return intCast(t3);     // boolean and logical operators always result in an int
         } else {
             return t3;  //  otherwise most general of t1 and t2
         }
@@ -597,7 +598,7 @@ static Type infereSigType(Tree sig, Tree env)
     else if (isSigSoundfileLength(sig, sf, part)) {
         Type t1 = T(sf, env);
         Type t2 = T(part, env);
-        CheckPartInterval(sig, t2);
+        checkPartInterval(sig, t2);
         int c = std::max(int(kBlock), t2->variability());
         return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));  // A REVOIR (YO)
     }
@@ -605,7 +606,7 @@ static Type infereSigType(Tree sig, Tree env)
     else if (isSigSoundfileRate(sig, sf, part)) {
         Type t1 = T(sf, env);
         Type t2 = T(part, env);
-        CheckPartInterval(sig, t2);
+        checkPartInterval(sig, t2);
         int c = std::max(int(kBlock), t2->variability());
         return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
     }
@@ -615,8 +616,7 @@ static Type infereSigType(Tree sig, Tree env)
         T(x, env);
         Type tp = T(part, env);
         T(z, env);
-
-        CheckPartInterval(sig, tp);
+        checkPartInterval(sig, tp);
         return makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
     }
 
@@ -713,7 +713,8 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     // unrecognized signal here
-    throw faustexception("ERROR : inferring signal type, unrecognized signal\n");
+    cerr << "ERROR : when compiling, unrecognized signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+    faustassert(false);
     return nullptr;
 }
 
@@ -778,7 +779,7 @@ static Type infereWriteTableType(Type tbl, Type wi, Type ws)
                << "VS?TS"[vec] << ", b="
                << "N?B"[b] << ", i=" << i << endl);
     Type tbltype = makeTableType(tt->content(), n, v, c, vec, b, i);
-    TRACE(cerr << gGlobal->TABBER << "infering write table type : result=" << tbltype << endl);
+    TRACE(cerr << gGlobal->TABBER << "infering write table type : result = " << tbltype << endl);
     return tbltype;
 }
 
@@ -811,14 +812,12 @@ static Type infereReadTableType(Type tbl, Type ri)
 static Type infereDocConstantTblType(Type size, Type init)
 {
     checkKonst(checkInt(checkInit(size)));
-
     return init;
 }
 
 static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig)
 {
     checkKonst(checkInt(checkInit(size)));
-
     Type temp = init->promoteVariability(kSamp)  // difficult to tell, therefore kSamp to be safe
                     ->promoteComputability(widx->computability() | wsig->computability())
                     ->promoteVectorability(kScal)       // difficult to tell, therefore kScal to be safe

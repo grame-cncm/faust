@@ -766,7 +766,7 @@ void FaustPlugInAudioProcessor::setStateInformation (const void* data, int sizeI
     // whose contents will have been created by the getStateInformation() call.
     
     fStateUI.setStateInformation(data, sizeInBytes);
- }
+}
 #endif
 //==============================================================================
 // This creates new instances of the plugin..

@@ -45,7 +45,7 @@ LIBFAUST_API const char *prim3name(CTree *(*ptr)(CTree *, CTree *, CTree *));
 LIBFAUST_API const char *prim4name(CTree *(*ptr)(CTree *, CTree *, CTree *, CTree *));
 LIBFAUST_API const char *prim5name(CTree *(*ptr)(CTree *, CTree *, CTree *, CTree *, CTree *));
 
-// box pretty printer.
+// Box pretty printer.
 // usage : out << boxpp(aBoxExp);
 
 class boxpp : public virtual Garbageable {
@@ -56,10 +56,10 @@ class boxpp : public virtual Garbageable {
     public:
         boxpp(Tree b, int p = 0) : fBox(b), fPriority(p) {}
         virtual ~boxpp() {}
-        virtual std::ostream &print(std::ostream &fout) const;
+        virtual std::ostream& print(std::ostream& fout) const;
 };
 
-inline std::ostream &operator<<(std::ostream &file, const boxpp &bpp)
+inline std::ostream& operator<<(std::ostream& file, const boxpp &bpp)
 {
     return bpp.print(file);
 }
@@ -81,7 +81,7 @@ class boxppShared : public boxpp {
         }
     
         virtual ~boxppShared() {}
-        virtual std::ostream &print(std::ostream &fout) const;
+        virtual std::ostream& print(std::ostream& fout) const;
     
         static void printIDs(std::ostream& fout);
 };
@@ -94,12 +94,14 @@ class envpp : public virtual Garbageable {
 
     public:
         envpp(Tree e) : fEnv(e) {}
-        std::ostream &print(std::ostream &fout) const;
+        std::ostream& print(std::ostream& fout) const;
 };
 
-inline std::ostream &operator<<(std::ostream &file, const envpp &epp)
+inline std::ostream& operator<<(std::ostream& file, const envpp &epp)
 {
     return epp.print(file);
 }
+
+std::string mBox(Tree b, int max_size);
 
 #endif

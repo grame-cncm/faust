@@ -139,7 +139,8 @@ static siglist listLift(const siglist& l)
 }
 
 /**
- * Store the propagation result as a property of the arguments tuplet
+ * Store the propagation result as a property of the arguments tuplet.
+ *
  * @param args propagation arguments
  * @param value propagation result
  */
@@ -149,7 +150,8 @@ static void setPropagateProperty(Tree args, const siglist& lsig)
 }
 
 /**
- * Retreive the propagation result as a property of the arguments tuplet
+ * Retreive the propagation result as a property of the arguments tuplet.
+ *
  * @param args propagation arguments
  * @param lsig the propagation result if any
  * @return true if a propagation result was stored
@@ -167,6 +169,7 @@ static bool getPropagateProperty(Tree args, siglist& lsig)
 
 /**
  * Propagate a list of signals into a block diagram.
+ *
  * @param slotenv environment associating slots and signals
  * @param path user interface group path
  * @param box the block diagram
@@ -178,6 +181,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
 
 /**
  * Propagate a list of signals into a block diagram. Do memoization.
+ *
  * @param slotenv environment associating slots and signals
  * @param path user interface group path
  * @param box the block diagram
@@ -199,7 +203,7 @@ siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
     return result;
 }
 
-// Apply sigFTZ() to all signals of a vector
+// Apply sigFTZ() to all signals of a vector.
 static siglist wrapWithFTZ(const siglist& l1)
 {
     siglist l2;
@@ -210,7 +214,7 @@ static siglist wrapWithFTZ(const siglist& l1)
 }
 
 // Collect the leaf numbers of tree l into vector v.
-// return true if l is a number or a parallel tree of numbers
+// return true if l is a number or a parallel tree of numbers.
 static bool isIntTree(Tree l, vector<int>& v)
 {
     int    n;
@@ -238,6 +242,7 @@ static bool isIntTree(Tree l, vector<int>& v)
 
 /**
  * Propagate a list of signals into a block diagram. Actual function.
+ *
  * @param slotenv environment associating slots and signals
  * @param path user interface group path
  * @param box the block diagram
@@ -514,12 +519,12 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
     }
 
     else if (isBoxRec(box, t1, t2)) {
-        // Bug Corrected
         int in1, out1, in2, out2;
         getBoxType(t1, &in1, &out1);
         getBoxType(t2, &in2, &out2);
 
-        Tree slotenv2 = lift(slotenv);  // the environment must also be lifted
+        // The environment must also be lifted
+        Tree slotenv2 = lift(slotenv);
 
         siglist l0 = makeMemSigProjList(ref(1), in2);
         siglist l1 = propagate(slotenv2, path, t2, l0);
@@ -603,6 +608,7 @@ siglist makeSigInputList(int n)
 }
 /**
  * Top level propagate a list of signals into a block diagram. Do memoization.
+ *
  * @param path user interface group path
  * @param box the block diagram
  * @param lsig the list of input signals to propagate

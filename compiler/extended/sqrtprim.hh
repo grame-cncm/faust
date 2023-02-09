@@ -42,7 +42,9 @@ class SqrtPrim : public xtended {
             if (i.lo() >= 0) {
                 return castInterval(floatCast(t), interval(sqrt(i.lo()), sqrt(i.hi())));
             } else if (gGlobal->gMathExceptions) {
-                std::cerr << "WARNING : potential out of domain in sqrt(" << i << ")" << std::endl;
+                std::stringstream error;
+                error << "WARNING : potential out of domain in sqrt(" << i << ")" << std::endl;
+                gWarningMessages.push_back(error.str());
             }
         }
         return castInterval(floatCast(t), interval());
@@ -57,7 +59,7 @@ class SqrtPrim : public xtended {
         if (isNum(args[0], n)) {
             if (double(n) < 0) {
                 std::stringstream error;
-                error << "ERROR : out of domain sqrt(" << ppsig(args[0]) << ")" << std::endl;
+                error << "ERROR : out of domain in sqrt(" << ppsig(args[0], MAX_ERROR_SIZE) << ")" << std::endl;
                 throw faustexception(error.str());
             } else {
                 return tree(sqrt(double(n)));

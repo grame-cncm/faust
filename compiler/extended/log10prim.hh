@@ -42,7 +42,9 @@ class Log10Prim : public xtended {
             if (i.lo() >= 0) {
                 return castInterval(floatCast(args[0]), interval(log10(i.lo()), log10(i.hi())));
             } else if (gGlobal->gMathExceptions) {
-                std::cerr << "WARNING : potential out of domain in log10(" << i << ")" << std::endl;
+                std::stringstream error;
+                error << "WARNING : potential out of domain in log10(" << i << ")" << std::endl;
+                gWarningMessages.push_back(error.str());
             }
         }
         return floatCast(args[0]);
@@ -66,7 +68,7 @@ class Log10Prim : public xtended {
         } else if (isNum(args[0], n)) {
             if (double(n) < 0) {
                 std::stringstream error;
-                error << "ERROR : out of domain log10(" << ppsig(args[0]) << ")" << std::endl;
+                error << "ERROR : out of domain in log10(" << ppsig(args[0], MAX_ERROR_SIZE) << ")" << std::endl;
                 throw faustexception(error.str());
             } else {
                 return tree(log10(double(n)));

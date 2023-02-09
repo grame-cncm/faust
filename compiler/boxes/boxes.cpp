@@ -1074,7 +1074,7 @@ static Tree preparePattern(Tree box)
     // None of the previous tests succeded, then it is not a valid box
     else {
         stringstream error;
-        error << "ERROR in preparePattern() : " << *box << " is not a valid box" << endl;
+        error << "ERROR : preparePattern() : " << *box << " is not a valid box" << endl;
         throw faustexception(error.str());
     }
 

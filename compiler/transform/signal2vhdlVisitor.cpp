@@ -25,6 +25,7 @@
 
 #include "signal2vhdlVisitor.hh"
 #include "sigtyperules.hh"
+#include "binop.hh"
 
 using namespace std;
 
@@ -94,7 +95,7 @@ void Signal2VHDLVisitor::sigToVHDL(Tree L, ostream& fout)
 
 void Signal2VHDLVisitor::visit(Tree sig)
 {
-    int    i;
+    int    i, op;
     double r;
     vector<Tree> subsig;
     Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
@@ -176,19 +177,19 @@ void Signal2VHDLVisitor::visit(Tree sig)
         self(x);
         self(y);
         return;
-    } else if (isSigBinOp(sig, &i, x, y)) {
-        switch (i) {
+    } else if (isSigBinOp(sig, &op, x, y)) {
+        switch (op) {
             case kAdd:
-                bin_op("ADD" + suffixe, binopname[i], sig, x, y);
+                bin_op("ADD" + suffixe, binopname[op], sig, x, y);
                 break;
             case kSub:
-                bin_op("SUB" + suffixe, binopname[i], sig, x, y);
+                bin_op("SUB" + suffixe, binopname[op], sig, x, y);
                 break;
             case kMul:
-                bin_op("MUL" + suffixe, binopname[i], sig, x, y);
+                bin_op("MUL" + suffixe, binopname[op], sig, x, y);
                 break;
             case kDiv:
-                bin_op("DIV" + suffixe, binopname[i], sig, x, y);
+                bin_op("DIV" + suffixe, binopname[op], sig, x, y);
                 break;
             case kRem:
                 bin_op("MODULO" + suffixe, "mod", sig, x, y);
@@ -222,7 +223,9 @@ void Signal2VHDLVisitor::visit(Tree sig)
                 break;
             default:
                 // operator is doesn't match any case constant (+, -, *, /, ...)
-                throw faustexception("ERROR : the operator is not supported\n");
+                stringstream error;
+                error << "ERROR : the operator " << BinOp::getString(op) << " is not supported\n";
+                throw faustexception(error.str());
                 break;
         }
         self(x);

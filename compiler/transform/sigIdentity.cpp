@@ -39,13 +39,13 @@ using namespace std;
 void SignalIdentity::traceEnter(Tree t)
 {
     tab(fIndent, cerr);
-    cerr << fMessage << ": " << ppsig(t) << endl;
+    cerr << fMessage << ": " << ppsig(t, MAX_ERROR_SIZE) << endl;
 }
 
 void SignalIdentity::traceExit(Tree t, Tree r)
 {
     tab(fIndent, cerr);
-    cerr << fMessage << ": " << ppsig(t) << " => " << ppsig(r) << endl;
+    cerr << fMessage << ": " << ppsig(t, MAX_ERROR_SIZE) << " => " << ppsig(r, MAX_ERROR_SIZE) << endl;
 }
 
 Tree SignalIdentity::transformation(Tree sig)

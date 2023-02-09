@@ -23,6 +23,7 @@
 #define __XTENDED__
 
 #include <vector>
+#include <sstream>
 
 #include "garbageable.hh"
 #include "instructions.hh"

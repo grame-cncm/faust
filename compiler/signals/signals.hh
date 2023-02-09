@@ -355,6 +355,10 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen = true);
  */
 bool verySimple(Tree exp);
 
+/**
+ * Convert a list of signals (representing numbers) into a vector of ints
+ * the result is true if the conversion was possible.
+ */
 bool sigList2vecInt(Tree ls, std::vector<int>& v);
 
 /**

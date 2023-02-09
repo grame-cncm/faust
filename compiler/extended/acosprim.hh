@@ -39,7 +39,9 @@ class AcosPrim : public xtended {
         Type     t = args[0];
         interval i = t->getInterval();
         if (i.isValid() && gGlobal->gMathExceptions && (i.lo() < -1 || i.hi() > 1)) {
-            std::cerr << "WARNING : potential out of domain in acos(" << i << ")" << std::endl;
+            std::stringstream error;
+            error << "WARNING : potential out of domain in acos(" << i << ")" << std::endl;
+            gWarningMessages.push_back(error.str());
         }
         return floatCast(args[0]);
     }
@@ -52,7 +54,7 @@ class AcosPrim : public xtended {
         if (isNum(args[0], n)) {
             if ((double(n) < -1) || (double(n) > 1)) {
                 std::stringstream error;
-                error << "ERROR : out of domain  in acos(" << ppsig(args[0]) << ")" << std::endl;
+                error << "ERROR : out of domain in acos(" << ppsig(args[0], MAX_ERROR_SIZE) << ")" << std::endl;
                 throw faustexception(error.str());
             } else {
                 return tree(acos(double(n)));

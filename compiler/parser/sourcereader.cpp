@@ -57,7 +57,7 @@ using namespace std;
 int yyparse();
 int yylex_destroy(void);
 void yyrestart(FILE* new_file);
-struct yy_buffer_state* yy_scan_string(const char *yy_str); // In principle YY_BUFFER_STATE
+struct yy_buffer_state* yy_scan_string(const char* yy_str); // In principle YY_BUFFER_STATE
 
 int yyerr;
 extern int yydebug;
@@ -95,7 +95,7 @@ static string printPatternError(Tree symbol, Tree lhs1, Tree rhs1, Tree lhs2, Tr
         << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
         << endl;
     } else {
-        error << "ERROR (file " << yyfilename << ":" << yylineno << ") : in the definition of " << boxpp(symbol) << endl
+        error << "ERROR : [file " << yyfilename << " : " << yylineno << "] : in the definition of " << boxpp(symbol) << endl
         << "Inconsistent number of parameters in pattern-matching rule: "
         << boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
         << " previous rule was: "
@@ -110,7 +110,7 @@ static string printRedefinitionError(Tree symbol, list<Tree>& variants)
 {
     stringstream error;
 
-    error << "ERROR (file " << yyfilename << ":" << yylineno << ") : multiple definitions of symbol " << boxpp(symbol) << endl;
+    error << "ERROR : [file " << yyfilename << " : " << yylineno << "] : multiple definitions of symbol '" << boxpp(symbol) << "'" << endl;
     for (const auto& p : variants) {
         Tree params = hd(p);
         Tree body = tl(p);
@@ -464,7 +464,7 @@ Tree checkRulelist(Tree lr)
     Tree lrules = lr;
     if (isNil(lrules)) {
         stringstream error;
-        error << "ERROR (file " << yyfilename << ":" << yylineno << ") : a case expression can't be empty" << endl;
+        error << "ERROR : [file " << yyfilename << " : " << yylineno << "] : a case expression can't be empty" << endl;
         throw faustexception(error.str());
     }
     // first pattern used as a reference

@@ -24,7 +24,6 @@
 #include <cstdlib>
 #include "Text.hh"
 #include "global.hh"
-#include "ppsig.hh"
 #include "property.hh"
 #include "signalVisitor.hh"
 #include "signals.hh"

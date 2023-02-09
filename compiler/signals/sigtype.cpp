@@ -308,7 +308,6 @@ Type checkWRTbl(Type tbl, Type wr)
 /**
     \brief Check is a type is appropriate for a delay.
     @return an exception if not appropriate, mxd (max delay) if appropriate
-
  */
 int checkDelayInterval(Type t)
 {

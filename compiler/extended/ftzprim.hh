@@ -23,7 +23,6 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "ppsig.hh"
 #include "sigtyperules.hh"
 #include "xtended.hh"
 
