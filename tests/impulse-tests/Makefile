@@ -342,32 +342,32 @@ interp1:
 #########################################################################
 # Rust backend
 rust:
-	$(MAKE) -f Make.rust   FAUSTOPTIONS="-I dsp -double"
-	$(MAKE) -f Make.rust   FAUSTOPTIONS="-I dsp -double -fp"
+	$(MAKE) -f Make.rust FAUSTOPTIONS="-I dsp -double"
+	$(MAKE) -f Make.rust FAUSTOPTIONS="-I dsp -double -fp"
 
 #########################################################################
 # Cmajor backend
 cmajor:
-	$(MAKE) -f Make.cmajor cmajor outdir=cmajor       FAUSTOPTIONS=" -I dsp -double"
-	$(MAKE) -f Make.cmajor cmajor outdir=cmajor/fp    FAUSTOPTIONS=" -I dsp -double -fp"
-	$(MAKE) -f Make.cmajor cmajor outdir=cmajor/mapp  FAUSTOPTIONS=" -I dsp -double -mapp"
+	$(MAKE) -f Make.cmajor outdir=cmajor      FAUSTOPTIONS=" -I dsp -double"
+	$(MAKE) -f Make.cmajor outdir=cmajor/fp   FAUSTOPTIONS=" -I dsp -double -fp"
+	$(MAKE) -f Make.cmajor outdir=cmajor/mapp FAUSTOPTIONS=" -I dsp -double -mapp"
 
 #########################################################################
 # D backend
 dlang:
-	$(MAKE) -f Make.dlang outdir=dlang/double       FAUSTOPTIONS="-I dsp -double"
-	$(MAKE) -f Make.dlang outdir=dlang/doouble/lp   FAUSTOPTIONS="-I dsp -double -fp"
-	$(MAKE) -f Make.dlang outdir=dlang/double/vec   FAUSTOPTIONS="-I dsp -double -vec"
+	$(MAKE) -f Make.dlang outdir=dlang/double     FAUSTOPTIONS="-I dsp -double"
+	$(MAKE) -f Make.dlang outdir=dlang/doouble/lp FAUSTOPTIONS="-I dsp -double -fp"
+	$(MAKE) -f Make.dlang outdir=dlang/double/vec FAUSTOPTIONS="-I dsp -double -vec"
 
 #########################################################################
 # JAX backend
 jax:
-	$(MAKE) -f Make.jax outdir=jax/double   FAUSTOPTIONS="-I dsp -double"
+	$(MAKE) -f Make.jax outdir=jax/double FAUSTOPTIONS="-I dsp -double"
 	
 #########################################################################
 # Julia backend
 julia:
-	$(MAKE) -f Make.julia outdir=julia/double   FAUSTOPTIONS="-I dsp -double"
+	$(MAKE) -f Make.julia outdir=julia/double FAUSTOPTIONS="-I dsp -double"
 
 #########################################################################
 # output directories
@@ -380,13 +380,13 @@ reference:
 	$(MAKE) -f Make.ref
 
 reference-box:
-	$(MAKE) -f Make.ref reference-box       FAUSTOPTIONS="-I dsp"
+	$(MAKE) -f Make.ref reference-box FAUSTOPTIONS="-I dsp"
 	
 reference-signal:
-	$(MAKE) -f Make.ref reference-signal    FAUSTOPTIONS="-I dsp"
+	$(MAKE) -f Make.ref reference-signal FAUSTOPTIONS="-I dsp"
 
 reference-type:
-	$(MAKE) -f Make.ref reference-type      FAUSTOPTIONS="-I dsp"
+	$(MAKE) -f Make.ref reference-type FAUSTOPTIONS="-I dsp"
 
 tools: filesCompare impulsellvm impulseinterp impulseinterp1 
 

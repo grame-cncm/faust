@@ -66,7 +66,7 @@ ir/$(outdir)/control.ir: dsp/control.dsp reference/control.ir
 	
 ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir
 	$(FAUST) -lang cmajor -cn cmajordsp $(FAUSTOPTIONS) $< -o cmajordsp.cmajor
-	cmaj generate --target=cpp cmajordsp.cmajor --output=cmajordsp.h
+	cmaj generate --target=cpp cmajordsp.cmajorpatch --output=cmajordsp.h
 	$(CXX) $(GCCOPTIONS) archs/$(arch) -o impulsecmajor
 	./impulsecmajor > $@
 	$(COMPARE) $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)

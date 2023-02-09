@@ -70,7 +70,7 @@ class cmajor_cpp_dsp : public dsp {
     
         choc::com::String* getInputEndpoints()
         {
-            return choc::com::createRawString(fDSP.inputEndpointDetailsJSON);
+            return choc::com::createRawString(fDSP.programDetailsJSON);
         }
     
     public:
@@ -79,7 +79,7 @@ class cmajor_cpp_dsp : public dsp {
         {
             // numInputEndpoints actually counts controllers and audio inputs
             fZoneMap = new FAUSTFLOAT[fDSP.numInputEndpoints];
-            fControllers = choc::json::parse(fDSP.inputEndpointDetailsJSON);
+            fControllers = choc::json::parse(fDSP.programDetailsJSON);
         }
     
         virtual ~cmajor_cpp_dsp()
