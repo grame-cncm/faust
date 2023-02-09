@@ -33,6 +33,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <climits>
 
 #include "garbageable.hh"
 #include "signals.hh"

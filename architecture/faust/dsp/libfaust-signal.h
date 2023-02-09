@@ -94,7 +94,7 @@ struct LIBFAUST_API dsp_factory_base {
  *  Print the box.
  *
  * @param box - the box to be printed
- * @param shared - whether the identical sub boxes are printed as indentifiers
+ * @param shared - whether the identical sub boxes are printed as identifiers
  * @param max_size - the maximum number of characters to be printed (possibly needed for big expressions in non shared mode)
  *
  * @return the printed box as a string
@@ -105,7 +105,7 @@ LIBFAUST_API std::string printBox(Box box, bool shared, int max_size);
  *  Print the signal.
  *
  * @param sig - the signal to be printed
- * @param shared - whether the identical sub signals are printed as indentifiers
+ * @param shared - whether the identical sub signals are printed as identifiers
  * @param max_size - the maximum number of characters to be printed (possibly needed for big expressions in non shared mode)
  *
  * @return the printed signal as a string
