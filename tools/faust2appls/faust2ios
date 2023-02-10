@@ -174,6 +174,8 @@ EndOfCode
         if [ "$XCODE" == "2" ]; then
             warnSoundfile
             mv $T $XCODEPROJ
+            # remove temporary JSON file
+            rm $p.json
             exit
         fi
         (
@@ -197,6 +199,8 @@ EndOfCode
         if [ "$XCODE" == "2" ]; then
             warnSoundfile
             mv $T $XCODEPROJ
+            # remove temporary JSON file
+            rm $p.json
             exit
         fi
         (
@@ -276,7 +280,7 @@ EndOfCode
         BINARIES="$BINARIES$S/$P.app;"
     fi
 
-    # remove temporary files
+    # remove temporary JSON file
     rm $p.json
 done
 
