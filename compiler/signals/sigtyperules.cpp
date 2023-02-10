@@ -142,7 +142,7 @@ static interval arithmetic(int opcode, const interval& x, const interval& y)
         case kXOR:
             return x ^ y;
         default:
-            cerr << "ERROR : unrecognized opcode : " << opcode << endl;
+            cerr << "ASSERT : unrecognized opcode : " << opcode << endl;
             faustassert(false);
             return {};
     }
@@ -713,7 +713,7 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     // unrecognized signal here
-    cerr << "ERROR : when compiling, unrecognized signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+    cerr << "ASSERT : when compiling, unrecognized signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
     faustassert(false);
     return nullptr;
 }

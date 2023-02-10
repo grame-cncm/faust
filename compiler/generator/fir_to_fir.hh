@@ -561,7 +561,7 @@ struct FIRChecker : public DispatchVisitor {
         }
         // Fail
         dump2FIR(inst);
-        std::cerr << "ERROR : FIRChecker in BinopInst";
+        std::cerr << "ASSERT : FIRChecker in BinopInst";
         std::cerr << " a1_type = " << Typed::gTypeString[a1_type];
         std::cerr << " a2_type = " << Typed::gTypeString[a2_type] << std::endl;
         faustassert(false);
@@ -572,7 +572,7 @@ struct FIRChecker : public DispatchVisitor {
         Typed::VarType cond_type = TypingVisitor::getType(inst->fCond);
         if (!(isIntType(cond_type) || isBoolType(cond_type))) {
             dump2FIR(inst);
-            std::cerr << "ERROR : FIRChecker in Select2Inst";
+            std::cerr << "ASSERT : FIRChecker in Select2Inst";
             std::cerr << " cond_type = " << Typed::gTypeString[cond_type] << std::endl;
             faustassert(false);
         }
@@ -586,7 +586,7 @@ struct FIRChecker : public DispatchVisitor {
         if (isInt32Type(cast_type)) {
             if (isInt32Type(val_type)) {
                 dump2FIR(inst);
-                std::cerr << "ERROR : FIRChecker in CastInst Int";
+                std::cerr << "ASSERT : FIRChecker in CastInst Int";
                 std::cerr << " value_type = " << Typed::gTypeString[val_type];
                 std::cerr << " cast_type = " << Typed::gTypeString[cast_type] << std::endl;
                 faustassert(false);
@@ -594,7 +594,7 @@ struct FIRChecker : public DispatchVisitor {
         } else if (isFloatType(cast_type)) {
             if (isFloatType(val_type)) {
                 dump2FIR(inst);
-                std::cerr << "ERROR : FIRChecker in CastInst Float";
+                std::cerr << "ASSERT : FIRChecker in CastInst Float";
                 std::cerr << " val_type = " << Typed::gTypeString[val_type];
                 std::cerr << " cast_type = " << Typed::gTypeString[cast_type] << std::endl;
                 faustassert(false);
@@ -602,7 +602,7 @@ struct FIRChecker : public DispatchVisitor {
         } else if (isDoubleType(cast_type)) {
             if (isDoubleType(val_type)) {
                 dump2FIR(inst);
-                std::cerr << "ERROR : FIRChecker in CastInst Double";
+                std::cerr << "ASSERT : FIRChecker in CastInst Double";
                 std::cerr << " val_type = " << Typed::gTypeString[val_type];
                 std::cerr << " cast_type = " << Typed::gTypeString[cast_type] << std::endl;
                 faustassert(false);

@@ -804,7 +804,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         
     /* we should not have any control at this stage*/
     } else {
-        cerr << "ERROR : when compiling, unrecognized signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+        cerr << "ASSERT : when compiling, unrecognized signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
         faustassert(false);
     }
     return InstBuilder::genNullValueInst();
@@ -1042,7 +1042,7 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
         return exp;
 
     } else {
-        cerr << "ERROR : in sharing count (" << sharing << ") for " << *sig << endl;
+        cerr << "ASSERT : in sharing count (" << sharing << ") for " << *sig << endl;
         faustassert(false);
         return {};
     }
@@ -1983,7 +1983,7 @@ ValueInst* InstructionsCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
             // cerr << "it is a pure zero delay : " << code << endl;
             return code;
         } else {
-            cerr << "ERROR : no vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
+            cerr << "ASSERT : no vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
     }
@@ -2361,7 +2361,7 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t, bool root)
     } else if (isUiWidget(t, label, varname, sig)) {
         generateWidgetCode(label, varname, sig);
     } else {
-        cerr << "ERROR : user interface generation\n";
+        cerr << "ASSERT : user interface generation\n";
         faustassert(false);
     }
 }
@@ -2453,7 +2453,7 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
             checkNullLabel(varname, label, true), ((url == "") ? prepareURL(label) : url), tree2str(varname)));
 
     } else {
-        cerr << "ERROR : generating widget code\n";
+        cerr << "ASSERT : generating widget code\n";
         faustassert(false);
     }
 }
@@ -2476,7 +2476,7 @@ void InstructionsCompiler::generateMacroInterfaceTree(const string& pathname, Tr
     } else if (isUiWidget(t, label, varname, sig)) {
         generateWidgetMacro(pathname, label, varname, sig);
     } else {
-        cerr << "ERROR : user interface macro generation\n";
+        cerr << "ASSERT : user interface macro generation\n";
         faustassert(false);
     }
 }
@@ -2554,7 +2554,7 @@ void InstructionsCompiler::generateWidgetMacro(const string& pathname, Tree full
         fContainer->addUIMacro(subst("FAUST_ADDSOUNDFILE(\"$0\", $1);", pathlabel, tree2str(varname)));
 
     } else {
-        cerr << "ERROR : generating widget code\n";
+        cerr << "ASSERT : generating widget code\n";
         faustassert(false);
     }
 }

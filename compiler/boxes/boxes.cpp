@@ -348,7 +348,7 @@ Tree buildBoxAppl(Tree fun, Tree revarglist)
 Tree buildBoxAppl(Tree fun, Tree revarglist)
 {
     if (isNil(revarglist)) {
-        cerr << "ERROR : buildBoxAppl called with null revarglist\n";
+        cerr << "ASSERT : buildBoxAppl called with null revarglist\n";
         faustassert(false);
     }
     return boxAppl(fun, revarglist);

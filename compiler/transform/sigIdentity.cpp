@@ -193,7 +193,7 @@ Tree SignalIdentity::transformation(Tree sig)
     }
     	
     else {
-       cerr << "ERROR : unrecognized signal : " << *sig << endl;
+        cerr << "ASSERT : unrecognized signal : " << *sig << endl;
         faustassert(false);
     }
     return 0;

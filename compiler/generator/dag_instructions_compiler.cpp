@@ -441,7 +441,7 @@ ValueInst* DAGInstructionsCompiler::generateDelay(Tree sig, Tree exp, Tree delay
             // cerr << "it is a pure zero delay : " << code << endl;
             return code;
         } else {
-            cerr << "ERROR : no vector name for : " << ppsig(exp) << endl;
+            cerr << "ASSERT : no vector name for : " << ppsig(exp) << endl;
             faustassert(false);
         }
     }

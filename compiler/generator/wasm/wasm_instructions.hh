@@ -546,7 +546,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             }
         }
 
-        std::cerr << "getFunctionIndex " << name << std::endl;
+        std::cerr << "ASSERT : getFunctionIndex " << name << std::endl;
         faustassert(false);
         return -1;
     }
@@ -561,7 +561,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             }
             i++;
         }
-        std::cerr << "getFunctionTypeIndex " << name << std::endl;
+        std::cerr << "ASSERT : getFunctionTypeIndex " << name << std::endl;
         faustassert(false);
         return -1;
     }

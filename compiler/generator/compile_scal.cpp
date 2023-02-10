@@ -495,7 +495,7 @@ string ScalarCompiler::generateCode(Tree sig)
 
     /* we should not have any control at this stage */
     else {
-        cerr << "ERROR : when compiling, unrecognized signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+        cerr << "ASSERT : when compiling, unrecognized signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
         faustassert(false);
     }
     return "error in generated code";
@@ -687,7 +687,7 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
         return exp;
 
     } else {
-        cerr << "ERROR : sharing count (" << sharing << ") for " << *sig << endl;
+        cerr << "ASSERT : sharing count (" << sharing << ") for " << *sig << endl;
         faustassert(false);
         return {};
     }
@@ -1273,7 +1273,7 @@ string ScalarCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
             // cerr << "it is a pure zero delay : " << code << endl;
             return code;
         } else {
-            cerr << "ERROR : no vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
+            cerr << "ASSERT : no vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
     }

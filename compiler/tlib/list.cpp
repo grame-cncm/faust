@@ -459,7 +459,7 @@ bool getProperty(Tree t, Tree key, Tree& val)
 
 void remProperty(Tree t, Tree key)
 {
-    cerr << "ERROR : remProperty not implemented\n";
+    cerr << "ASSERT : remProperty not implemented\n";
     faustassert(false);
 }
 #endif

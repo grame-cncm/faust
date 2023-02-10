@@ -57,7 +57,7 @@ void SignalChecker::visit(Tree sig)
         Type tx = p->infereSigType(vt);
         for (Tree b : sig->branches()) {
             if (tx->nature() != getCertifiedSigType(b)->nature()) {
-                cerr << "ERROR : xtended with args of incorrect types : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+                cerr << "ASSERT : xtended with args of incorrect types : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
                 faustassert(false);
             }
         }
@@ -67,7 +67,7 @@ void SignalChecker::visit(Tree sig)
         Type tx = getCertifiedSigType(x);
         Type ty = getCertifiedSigType(y);
         if (tx->nature() != ty->nature()) {
-            cerr << "ERROR : isSigBinOp of args with different types : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            cerr << "ASSERT : isSigBinOp of args with different types : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
 
@@ -77,92 +77,92 @@ void SignalChecker::visit(Tree sig)
         for (int i = 0; i < ffarity(ff); i++) {
             int type = ffargtype(ff, len - i);
             if (getCertifiedSigType(nth(largs, i))->nature() != type && type != kAny) {
-                cerr << "ERROR : isSigFFun of args with incoherent types : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+                cerr << "ASSERT : isSigFFun of args with incoherent types : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
                 faustassert(false);
             }
         }
         if (ffrestype(ff) != getCertifiedSigType(sig)->nature()) {
-            cerr << "ERROR : isSigFFun of res with incoherent type : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            cerr << "ASSERT : isSigFFun of res with incoherent type : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
 
         // Select2 (and Select3 expressed with Select2)
     } else if (isSigSelect2(sig, sel, x, y)) {
         if (getCertifiedSigType(sel)->nature() != kInt) {
-            cerr << "ERROR : isSigSelect2 with wrong typed selector : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            cerr << "ASSERT : isSigSelect2 with wrong typed selector : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
 
         // Delay
     } else if (isSigDelay(sig, x, y)) {
         if (getCertifiedSigType(y)->nature() != kInt) {
-            cerr << "ERROR : isSigDelay with a wrong typed delay : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            cerr << "ASSERT : isSigDelay with a wrong typed delay : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
 
         // Int and Float Cast
     } else if (isSigIntCast(sig, x)) {
         if (getCertifiedSigType(x)->nature() == kInt) {
-            cerr << "ERROR : isSigIntCast of a kInt signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            cerr << "ASSERT : isSigIntCast of a kInt signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
 
     } else if (isSigFloatCast(sig, x)) {
         if (getCertifiedSigType(x)->nature() == kReal) {
-            cerr << "ERROR : isSigFloatCast of a kReal signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            cerr << "ASSERT : isSigFloatCast of a kReal signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
 
         // Tables
     } else if (isSigRDTbl(sig, tb, idx)) {
         if (getCertifiedSigType(idx)->nature() != kInt) {
-            cerr << "ERROR : isSigRDTbl with a wrong typed rdx : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            cerr << "ASSERT : isSigRDTbl with a wrong typed rdx : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
 
     } else if (isSigWRTbl(sig, id, tb, idx, ws)) {
         if (getCertifiedSigType(idx)->nature() != kInt) {
-            cerr << "ERROR : isSigWRTbl with a wrong typed wdx : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            cerr << "ASSERT : isSigWRTbl with a wrong typed wdx : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
         if (getCertifiedSigType(tb)->nature() != getCertifiedSigType(ws)->nature()) {
-            cerr << "ERROR : isSigWRTbl with non matching tb and ws types : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            cerr << "ASSERT : isSigWRTbl with non matching tb and ws types : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
 
         // Soundfiles
     } else if (isSigSoundfileLength(sig, sf, part)) {
         if (getCertifiedSigType(part)->nature() != kInt) {
-            cerr << "ERROR : isSigSoundfileLength with a wrong typed part : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            cerr << "ASSERT : isSigSoundfileLength with a wrong typed part : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
 
     } else if (isSigSoundfileRate(sig, sf, part)) {
         if (getCertifiedSigType(part)->nature() != kInt) {
-            cerr << "ERROR : isSigSoundfileRate with a wrong typed part : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            cerr << "ASSERT : isSigSoundfileRate with a wrong typed part : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
 
     } else if (isSigSoundfileBuffer(sig, sf, chan, part, idx)) {
         if (getCertifiedSigType(part)->nature() != kInt) {
-            cerr << "ERROR : isSigSoundfileBuffer with a wrong typed part : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            cerr << "ASSERT : isSigSoundfileBuffer with a wrong typed part : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
         if (getCertifiedSigType(idx)->nature() != kInt) {
-            cerr << "ERROR : isSigSoundfileBuffer with a wrong typed ridx : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            cerr << "ASSERT : isSigSoundfileBuffer with a wrong typed ridx : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
 
         // Bargraph
     } else if (isSigHBargraph(sig, label, min, max, t0)) {
         if (getCertifiedSigType(t0)->nature() == kInt) {
-            cerr << "ERROR : isSigHBargraph of a kInt signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            cerr << "ASSERT : isSigHBargraph of a kInt signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
 
     } else if (isSigVBargraph(sig, label, min, max, t0)) {
         if (getCertifiedSigType(t0)->nature() == kInt) {
-            cerr << "ERROR : isSigVBargraph of a kInt signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            cerr << "ASSERT : isSigVBargraph of a kInt signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
     }

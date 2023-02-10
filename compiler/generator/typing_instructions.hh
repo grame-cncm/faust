@@ -54,7 +54,7 @@ struct TypingVisitor : public InstVisitor {
             }
         } else {
             fCurType = Typed::kNoType;
-            std::cerr << "ERROR in TypingVisitor : variable '" << name << "' has Typed::kNoType" << std::endl;
+            std::cerr << "ASSERT : TypingVisitor : variable '" << name << "' has Typed::kNoType" << std::endl;
             faustassert(false);
         }
     }
@@ -66,7 +66,7 @@ struct TypingVisitor : public InstVisitor {
             fCurType = gGlobal->getVarType(name);
         } else {
             fCurType = Typed::kNoType;
-            std::cerr << "ERROR in TypingVisitor : variable '" << name << "' has Typed::kNoType" << std::endl;
+            std::cerr << "ASSERT : TypingVisitor : variable '" << name << "' has Typed::kNoType" << std::endl;
             faustassert(false);
         }
     }
@@ -109,7 +109,7 @@ struct TypingVisitor : public InstVisitor {
                     fCurType = Typed::kInt32;
                 } else {
                     // Should never happen...
-                    std::cerr << "ERROR in TypingVisitor : BinopInst a1 = ";
+                    std::cerr << "ASSERT : TypingVisitor : BinopInst a1 = ";
                     std::cerr << Typed::gTypeString[type1] << " a2 = " << Typed::gTypeString[type2] << std::endl;
                     faustassert(false);
                 }
@@ -133,7 +133,7 @@ struct TypingVisitor : public InstVisitor {
             fCurType = gGlobal->getVarType(inst->fName);
         } else {
             // Should never happen...
-            std::cerr << "TypingVisitor::visit(FunCallInst* inst) name " << inst->fName << std::endl;
+            std::cerr << "ASSERT : TypingVisitor::visit(FunCallInst* inst) name " << inst->fName << std::endl;
             faustassert(false);
         }
     }

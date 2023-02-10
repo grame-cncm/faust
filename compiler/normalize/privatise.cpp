@@ -119,7 +119,7 @@ static Tree computePrivatisation(const Tree& k, const Tree& exp)
         /*
          We do not visit the contents of the tables.
          */
-        cerr << "ERROR : computePrivatisation\n";
+        cerr << "ASSERT : computePrivatisation\n";
         faustassert(false);
 
     } else if (isRec(exp, var, body)) {
@@ -133,7 +133,6 @@ static Tree computePrivatisation(const Tree& k, const Tree& exp)
         /*
          We go through the other trees by privatizing the branches.
          */
-
         tvec br;
         int  n = exp->arity();
         for (int i = 0; i < n; i++) {
@@ -163,7 +162,7 @@ static Tree labelize(const Tree& newid, const Tree& exp)
         return sigTable(newid, size, content);
 
     } else {
-        cerr << "ERROR : labelize\n";
+        cerr << "ASSERT : labelize\n";
         faustassert(false);
     }
 

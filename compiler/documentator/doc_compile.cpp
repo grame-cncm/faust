@@ -280,12 +280,12 @@ string DocCompiler::generateCode(Tree sig, int priority)
     }
 
     else {
-        cerr << "ERROR : unrecognized signal : " << *sig << endl;
+        cerr << "ASSERT : unrecognized signal : " << *sig << endl;
         faustassert(false);
     }
     faustassert(false);
     // Never reached
-    return "ERROR : in generate code";
+    return "ASSERT : in generate code";
 }
 
 /**
@@ -968,7 +968,7 @@ string DocCompiler::generatePrefix(Tree sig, Tree x, Tree e, int priority)
     string vecname;
 
     if (!getVectorNameProperty(e, vecname)) {
-        cerr << "No vector name for : " << ppsig(e, MAX_ERROR_SIZE) << endl;
+        cerr << "ASSERT : no vector name for : " << ppsig(e, MAX_ERROR_SIZE) << endl;
         faustassert(false);
     }
 
@@ -1103,7 +1103,7 @@ string DocCompiler::generateDelay(Tree sig, Tree exp, Tree delay, int priority)
     CS(exp, 0);  // ensure exp is compiled to have a vector name
 
     if (!getVectorNameProperty(exp, vecname)) {
-        cerr << "No vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
+        cerr << "ASSERT : no vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
         faustassert(false);
     }
 

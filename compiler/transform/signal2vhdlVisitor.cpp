@@ -369,7 +369,7 @@ void Signal2VHDLVisitor::visit(Tree sig)
         // now nil can appear in table write instructions
         return;
     } else {
-        cerr << __FILE__ << ":" << __LINE__ << " ERROR : unrecognized signal : " << *sig << endl;
+        cerr << __FILE__ << ":" << __LINE__ << " ASSERT : unrecognized signal : " << *sig << endl;
         faustassert(false);
     }
 }

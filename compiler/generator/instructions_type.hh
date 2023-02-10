@@ -142,7 +142,7 @@ struct Typed : public Printable {
                 return kSound_ptr;
             default:
                 // Not supposed to happen
-                std::cerr << "getPtrFromType " << type << std::endl;
+                std::cerr << "ASSERT : getPtrFromType " << type << std::endl;
                 faustassert(false);
                 return kNoType;
         }
@@ -166,7 +166,7 @@ struct Typed : public Printable {
                 return kBool_vec;
             default:
                 // Not supposed to happen
-                std::cerr << "getVecFromType " << type << std::endl;
+                std::cerr << "ASSERT : getVecFromType " << type << std::endl;
                 faustassert(false);
                 return kNoType;
         }
@@ -220,7 +220,7 @@ struct Typed : public Printable {
                 return kSound;
             default:
                 // Not supposed to happen
-                std::cerr << "getTypeFromPtr " << Typed::gTypeString[type] << std::endl;
+                std::cerr << "ASSERT : getTypeFromPtr " << Typed::gTypeString[type] << std::endl;
                 faustassert(false);
                 return kNoType;
         }
@@ -244,7 +244,7 @@ struct Typed : public Printable {
                 return kBool;
             default:
                 // Not supposed to happen
-                std::cerr << "getTypeFromVec " << Typed::gTypeString[type] << std::endl;
+                std::cerr << "ASSERT : getTypeFromVec " << Typed::gTypeString[type] << std::endl;
                 faustassert(false);
                 return kNoType;
         }

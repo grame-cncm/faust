@@ -267,6 +267,7 @@ string TAux(double n)
             endp = nullptr;
         } while (strtod(c, &endp) != n);
     } else {
+        cerr << "ASSERT : incorrect float format : " << gGlobal->gFloatSize << endl;
         faustassert(false);
     }
 

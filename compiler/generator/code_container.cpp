@@ -631,6 +631,7 @@ void CodeContainer::printMacros(ostream& fout, int n)
             fout << "pub const FAUST_PASSIVES: i32 = " << fNumPassives << ";";
             tab(n, fout);
         } else {
+            cerr << "ASSERT : incorrect backend : " << gGlobal->gOutputLang << endl;
             faustassert(false);
         }
     }

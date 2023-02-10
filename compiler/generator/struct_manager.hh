@@ -110,7 +110,7 @@ struct StructInstVisitor : public DispatchVisitor {
         for (const auto& field : fFieldTable) {
             if (field.first == name) return field.second.fOffset;
         }
-        std::cerr << "ERROR in getFieldOffset : " << name << std::endl;
+        std::cerr << "ASSERT : getFieldOffset : " << name << std::endl;
         faustassert(false);
         return -1;
     }
@@ -121,7 +121,7 @@ struct StructInstVisitor : public DispatchVisitor {
         for (const auto& field : fFieldTable) {
             if (field.first == name) return field.second.fIntOffset;
         }
-        std::cerr << "ERROR in getFieldIntOffset : " << name << std::endl;
+        std::cerr << "ASSERT : getFieldIntOffset : " << name << std::endl;
         faustassert(false);
         return -1;
     }
@@ -132,7 +132,7 @@ struct StructInstVisitor : public DispatchVisitor {
         for (const auto& field : fFieldTable) {
             if (field.first == name) return field.second.fRealOffset;
         }
-        std::cerr << "ERROR in getFieldRealOffset : " << name << std::endl;
+        std::cerr << "ASSERT : getFieldRealOffset : " << name << std::endl;
         faustassert(false);
         return -1;
     }
@@ -143,7 +143,7 @@ struct StructInstVisitor : public DispatchVisitor {
         for (const auto& field : fFieldTable) {
             if (field.first == name) return field.second.fIndex;
         }
-        std::cerr << "ERROR in getFieldIndex : " << name << std::endl;
+        std::cerr << "ASSERT : getFieldIndex : " << name << std::endl;
         faustassert(false);
         return -1;
     }
@@ -154,7 +154,7 @@ struct StructInstVisitor : public DispatchVisitor {
         for (const auto& field : fFieldTable) {
             if (field.first == name) return field.second.fType;
         }
-        std::cerr << "ERROR in getFieldType : " << name << std::endl;
+        std::cerr << "ASSERT : getFieldType : " << name << std::endl;
         faustassert(false);
         return Typed::kNoType;
     }
@@ -165,7 +165,7 @@ struct StructInstVisitor : public DispatchVisitor {
         for (const auto& field : fFieldTable) {
             if (field.first == name) return field.second.fMemType;
         }
-        std::cerr << "ERROR in getFieldMemoryType : " << name << std::endl;
+        std::cerr << "ASSERT : getFieldMemoryType : " << name << std::endl;
         faustassert(false);
         return MemoryDesc::kLocal;
     }
@@ -212,7 +212,7 @@ struct StructInstVisitor : public DispatchVisitor {
     // Declarations
     void visit(DeclareVarInst* inst)
     {
-        std::string         name   = inst->fAddress->getName();
+        std::string         name  = inst->fAddress->getName();
         Address::AccessType access = inst->fAddress->getAccess();
         
         bool        is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);

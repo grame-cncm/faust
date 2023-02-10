@@ -225,7 +225,7 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
     }
     
     else {
-        cerr << "ERROR : getSubSignals unrecognized signal : " << *sig << endl;
+        cerr << "ASSERT : getSubSignals unrecognized signal : " << *sig << endl;
         faustassert(false);
     }
     return 0;

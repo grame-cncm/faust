@@ -70,7 +70,7 @@ int getRecursivness(Tree sig)
 {
     Tree tr;
     if (!getProperty(sig, gGlobal->RECURSIVNESS, tr)) {
-        cerr << "ERROR : getRecursivness of " << *sig << endl;
+        cerr << "ASSERT : getRecursivness of " << *sig << endl;
         faustassert(false);
     }
     return tree2int(tr);

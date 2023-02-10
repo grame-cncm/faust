@@ -324,7 +324,7 @@ void Description::addGroup(int level, Tree t)
         addLayoutLine(level, subst("<widgetref id=\"$0\" />", T(w)));
 
     } else {
-        cerr << "ERROR : user interface generation\n";
+        cerr << "ASSERT : user interface generation\n";
         faustassert(false);
     }
 }
@@ -432,7 +432,7 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         addPassiveLine("</widget>");
 
     } else {
-        cerr << "ERROR : describing widget : unrecognized expression\n";
+        cerr << "ASSERT : describing widget : unrecognized expression\n";
         faustassert(false);
     }
 

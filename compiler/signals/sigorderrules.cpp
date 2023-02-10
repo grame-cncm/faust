@@ -169,7 +169,7 @@ static int infereSigOrder(Tree sig)
         return std::max(O(s1), O(s2));  // O(s1);
 
     else if (isSigSoundfile(sig, l)) {
-        cerr << "ERROR : inferring signal order : isSigSoundfile\n";  // not supposed to happen
+        cerr << "ASSERT : inferring signal order : isSigSoundfile\n";  // not supposed to happen
         faustassert(false);
         return -1;
 
@@ -186,12 +186,12 @@ static int infereSigOrder(Tree sig)
         return std::max(1, O(s1));  // at least a constant
 
     else if (isRec(sig, var, body)) {
-        cerr << "ERROR : inferring signal order : isRec\n";  // not supposed to happen
+        cerr << "ASSERT : inferring signal order : isRec\n";  // not supposed to happen
         faustassert(false);
         return -1;
 
     } else if (isRef(sig, var)) {
-        cerr << "ERROR : inferring signal order : isRef\n";  // not supposed to happen.
+        cerr << "ASSERT : inferring signal order : isRef\n";  // not supposed to happen.
         faustassert(false);
         return -1;
         
@@ -232,7 +232,7 @@ static int infereSigOrder(Tree sig)
     }
 
     // Unrecognized signal here
-    cerr << "ERROR : inferring signal order : unrecognized signal\n";
+    cerr << "ASSERT : inferring signal order : unrecognized signal\n";
     faustassert(false);
     return -1;
 }

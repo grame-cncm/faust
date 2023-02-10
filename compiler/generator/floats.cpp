@@ -305,6 +305,7 @@ int ifloatsize()
         case 4:
             return gGlobal->gMachineFixedPointSize;
         default:
+            cerr << "ASSERT : incorrect float format : " << gGlobal->gFloatSize << endl;
             faustassert(false);
             return 0;
     }
@@ -322,6 +323,7 @@ Typed::VarType itfloat()
         case 4:
             return Typed::kFixedPoint;
         default:
+            cerr << "ASSERT : incorrect float format : " << gGlobal->gFloatSize << endl;
             faustassert(false);
             return Typed::kNoType;
     }
@@ -339,6 +341,7 @@ Typed::VarType itfloatptr()
         case 4:
             return Typed::kFixedPoint_ptr;
         default:
+            cerr << "ASSERT : incorrect float format : " << gGlobal->gFloatSize << endl;
             faustassert(false);
             return Typed::kNoType;
     }
@@ -356,6 +359,7 @@ Typed::VarType itfloatptrptr()
         case 4:
             return Typed::kFixedPoint_ptr_ptr;
         default:
+            cerr << "ASSERT : incorrect float format : " << gGlobal->gFloatSize << endl;
             faustassert(false);
             return Typed::kNoType;
     }

@@ -176,7 +176,6 @@ static bool getPropagateProperty(Tree args, siglist& lsig)
  * @param lsig the list of input signals to propagate
  * @return the resulting list of output signals
  */
-
 static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig);
 
 /**
@@ -188,7 +187,6 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
  * @param lsig the list of input signals to propagate
  * @return the resulting list of output signals
  */
-
 siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
 {
     Tree    args = tree(gGlobal->PROPAGATEPROPERTY, slotenv, path, box, listConvert(lsig));
@@ -249,7 +247,6 @@ static bool isIntTree(Tree l, vector<int>& v)
  * @param lsig the list of input signals to propagate
  * @return the resulting list of output signals
  */
-
 static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
 {
     int    i;
@@ -532,7 +529,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         siglist l3 = (gGlobal->gFTZMode > 0) ? wrapWithFTZ(l2) : l2;
         Tree    g  = rec(listConvert(l3));
 
-        // compute output list of recursive signals
+        // Compute output list of recursive signals
         siglist ol(out1);  // output list
         int     p = 0;     // projection number
 
@@ -560,7 +557,6 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         int         ins, outs;
         vector<int> route;
         siglist     outsigs;
-        // cerr << "TRACE propagate into a route " << boxpp(box) << endl;
         // ins, outs, route are casted to int in realeval
         if (isBoxInt(t1, &ins) && isBoxInt(t2, &outs) && isIntTree(t3, route)) {
             // initialize output signals
@@ -589,7 +585,7 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
             throw faustexception(error.str());
         }
     }
-    cerr << "ERROR : file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box)
+    cerr << "ASSERT : file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box)
          << endl;
     faustassert(false);
 
