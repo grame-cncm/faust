@@ -19,11 +19,11 @@
  ************************************************************************
  ************************************************************************/
 
-#include "sigPromotion.hh"
 #include <stdlib.h>
 #include <cstdlib>
 #include <sstream>
 
+#include "sigPromotion.hh"
 #include "global.hh"
 #include "prim2.hh"
 #include "signals.hh"
@@ -45,7 +45,7 @@ void SignalTypePrinter::visit(Tree sig)
 void SignalChecker::visit(Tree sig)
 {
     int  opnum;
-    Tree id, x, y, sel, sf, ff, largs, chan, part, idx, tb, ws, label, min, max, t0;
+    Tree id, x, y, sel, sf, ff, largs, chan, part, idx, tb, ws, label, init, min, max, step, t0;
 
     // Extended
     xtended* p = (xtended*)getUserData(sig);
@@ -152,6 +152,12 @@ void SignalChecker::visit(Tree sig)
             cerr << "ASSERT : isSigSoundfileBuffer with a wrong typed ridx : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
+        
+        // Sliders and Numentry
+    } else if (isSigVSlider(sig, label, init, min, max, step)
+               || isSigHSlider(sig, label, init, min, max, step)
+               || isSigNumEntry(sig, label, init, min, max, step)) {
+        isRange(sig, init, min, max);
 
         // Bargraph
     } else if (isSigHBargraph(sig, label, min, max, t0)) {

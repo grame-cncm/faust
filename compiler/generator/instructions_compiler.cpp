@@ -1185,13 +1185,11 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
  CASTING
  *****************************************************************************/
 
-// Generate cast only when really necessary...
 ValueInst* InstructionsCompiler::generateIntCast(Tree sig, Tree x)
 {
     return generateCacheCode(sig, InstBuilder::genCastInt32Inst(CS(x)));
 }
 
-// Generate cast only when really necessary...
 ValueInst* InstructionsCompiler::generateFloatCast(Tree sig, Tree x)
 {
     return generateCacheCode(sig, InstBuilder::genCastRealInst(CS(x)));

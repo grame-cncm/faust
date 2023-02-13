@@ -26,9 +26,11 @@
 #include <map>
 #include <string>
 #include <sstream>
+
 #include "sigIdentity.hh"
 #include "signalVisitor.hh"
 #include "sigtyperules.hh"
+#include "ppsig.hh"
 
 /*
  Print the type of a signal.
@@ -64,13 +66,29 @@ class SignalTypePrinter final : public SignalVisitor {
  - for correct extended typing
  - for correct SigBinOp args typing
  - for proper SigIntCast and SigFloatCast use
- 
+ - for correct range in sliders (min < max and default in [min...max] range)
+
  To be used on a type annotated signal.
 */
 class SignalChecker final : public SignalVisitor {
     
     private:
         void visit(Tree sig) override;
+    
+        void isRange(Tree sig, Tree init_aux, Tree min_aux, Tree max_aux)
+        {
+            std::stringstream error;
+            double init = tree2float(init_aux);
+            double min = tree2float(min_aux);
+            double max = tree2float(max_aux);
+            if (min > max) {
+                error << "ERROR : min = " << min << " should be less than max = " << max << " in '" << ppsig(sig) << "'\n";
+                throw faustexception(error.str());
+            } else if (init < min || init > max) {
+                error << "ERROR : init = " << init << " outside of [" << min << " " << max << "] range in '" << ppsig(sig) << "'\n";
+                throw faustexception(error.str());
+            }
+        }
 
     public:
         SignalChecker(Tree L)

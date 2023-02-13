@@ -2024,40 +2024,16 @@ struct InstBuilder {
 
     static AddSliderInst* genAddHorizontalSliderInst(const std::string& label, const std::string& zone, double init, double min, double max, double step)
     {
-        std::stringstream error;
-        if (min > max) {
-            error << "ERROR : horizontal slider \'"<< label << "\' min = " << min << " should be less than max = " << max << "\n";
-            throw faustexception(error.str());
-        } else if (init < min || init > max) {
-            error << "ERROR : horizontal slider \'"<< label << "\' init = " << init << " outside of [" << min << " " << max << "] range\n";
-            throw faustexception(error.str());
-        }
         return new AddSliderInst(label, zone, init, min, max, step, AddSliderInst::kHorizontal);
     }
 
     static AddSliderInst* genAddVerticalSliderInst(const std::string& label, const std::string& zone, double init, double min, double max, double step)
     {
-        std::stringstream error;
-        if (min > max) {
-            error << "ERROR : vertical slider \'"<< label << "\' min = " << min << " should be less than max = " << max << "\n";
-            throw faustexception(error.str());
-        } else if (init < min || init > max) {
-            error << "ERROR : vertical slider \'" << label << "\' init = " << init << " outside of [" << min << " " << max << "] range\n";
-            throw faustexception(error.str());
-        }
         return new AddSliderInst(label, zone, init, min, max, step, AddSliderInst::kVertical);
     }
 
     static AddSliderInst* genAddNumEntryInst(const std::string& label, const std::string& zone, double init, double min, double max, double step)
     {
-        std::stringstream error;
-        if (min > max) {
-            error << "ERROR : num entry \'"<< label << "\' min = " << min << " should be less than max = " << max << "\n";
-            throw faustexception(error.str());
-        } else if (init < min || init > max) {
-            error << "ERROR : num entry \'" << label << "\' init = " << init << " outside of [" << min << " " << max << "] range\n";
-            throw faustexception(error.str());
-        }
         return new AddSliderInst(label, zone, init, min, max, step, AddSliderInst::kNumEntry);
     }
 
