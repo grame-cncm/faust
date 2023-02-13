@@ -4,16 +4,16 @@
     Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -28,17 +28,18 @@
 
 #include "faust/gui/MapUI.h"
 #include "faust/gui/JSONControl.h"
+#include "faust/export.h"
+
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
-#include "export.hh"
 #include "wasm_binary.hh"
 
 class wasm_dsp_factory;
 struct JSONUIDecoderBase;
 
 /*
- Read the wasm binary module, extract the JSON, define a new end for the module (without the last 'data segment'
- section).
+ Read the wasm binary module, extract the JSON, define a new end for the module
+ (without the last 'data segment' section).
  */
 
 struct WasmBinaryReader {
@@ -62,7 +63,7 @@ struct WasmBinaryReader {
 
     uint8_t getInt8()
     {
-        if (!more()) throw faustexception("unexpected end of input");
+        if (!more()) throw faustexception("ERROR : WasmBinaryReader, unexpected end of input\n");
         return input[pos++];
     }
 
@@ -99,19 +100,19 @@ struct WasmBinaryReader {
     void verifyInt8(int8_t x)
     {
         int8_t y = getInt8();
-        if (x != y) throw faustexception("WasmBinaryReader : surprising value");
+        if (x != y) throw faustexception("ERROR : WasmBinaryReader, surprising value\n");
     }
 
     void verifyInt16(int16_t x)
     {
         int16_t y = getInt16();
-        if (x != y) throw faustexception("WasmBinaryReader : surprising value");
+        if (x != y) throw faustexception("ERROR : WasmBinaryReader, surprising value\n");
     }
 
     void verifyInt32(int32_t x)
     {
         int32_t y = getInt32();
-        if (x != y) throw faustexception("WasmBinaryReader : surprising value");
+        if (x != y) throw faustexception("ERROR : WasmBinaryReader, surprising value\n");
     }
 
     void read()
@@ -123,7 +124,7 @@ struct WasmBinaryReader {
             size_t   sectionCode_start = pos;
             uint32_t sectionCode       = getU32LEB();
             uint32_t payloadLen        = getU32LEB();
-            if (pos + payloadLen > size) faustexception("Section extends beyond end of input");
+            if (pos + payloadLen > size) faustexception("ERROR : WasmBinaryReader, section extends beyond end of input\n");
             auto oldPos = pos;
 
             switch (sectionCode) {
@@ -232,7 +233,7 @@ struct WasmBinaryReader {
         for (size_t i = 0; i < num; i++) {
             auto memoryIndex = getU32LEB();
             if (memoryIndex != 0) {
-                faustexception("bad memory index, must be 0");
+                faustexception("ERROR : WasmBinaryReader, bad memory index, must be 0\n");
             }
 
             // Offset defined as an 'initializer expression' is 0 (see WASMInstVisitor::generateJSON)
@@ -266,7 +267,7 @@ struct WasmBinaryReader {
 class SoundUI;
 class MidiUI;
 
-class EXPORT wasm_dsp : public dsp, public JSONControl {
+class LIBFAUST_API wasm_dsp : public dsp, public JSONControl {
    private:
     wasm_dsp_factory* fFactory;
     int               fDSP;       // Index of wasm DSP memory
@@ -310,13 +311,14 @@ class EXPORT wasm_dsp : public dsp, public JSONControl {
 
 typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;
 
-class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
+class LIBFAUST_API wasm_dsp_factory : public dsp_factory, public faust_smartable {
     friend class wasm_dsp;
    protected:
     dsp_factory_base*   fFactory;
     JSONUIDecoderBase*  fDecoder;
     int                 fInstance; // Index of wasm DSP instance
     MapUI               fMapUI;
+   
 /*
 #ifdef EMCC
     SoundUI* fSoundUI;
@@ -342,6 +344,8 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     std::string              getCompileOptions();
     std::vector<std::string> getLibraryList();
     std::vector<std::string> getIncludePathnames();
+    
+    std::vector<std::string> getWarningMessages();
 
     JSONUIDecoderBase* getDecoder() { return fDecoder; }
 
@@ -373,16 +377,16 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     static dsp_factory_table<SDsp_factory> gWasmFactoryTable;
 };
 
-EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory);
+LIBFAUST_API bool deleteWasmDSPFactory(wasm_dsp_factory* factory);
 
-EXPORT void deleteAllWasmDSPFactories();
+LIBFAUST_API void deleteAllWasmDSPFactories();
 
-EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code, std::string& error_msg);
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code, std::string& error_msg);
 
-EXPORT std::string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory);
+LIBFAUST_API std::string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory);
 
-EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path, std::string& error_msg);
+LIBFAUST_API wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path, std::string& error_msg);
 
-EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const std::string& machine_code_path);
+LIBFAUST_API void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const std::string& machine_code_path);
 
 #endif

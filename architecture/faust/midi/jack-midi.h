@@ -33,7 +33,7 @@ architecture section is not modified.
 #include "faust/midi/midi.h"
 #include "faust/gui/ring-buffer.h"
 
-class MapUI;
+class FAUST_API MapUI;
 
 /**
  *  MIDI input/output handling using JACK library: https://jackaudio.org

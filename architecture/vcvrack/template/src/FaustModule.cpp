@@ -91,16 +91,17 @@ class rack_dsp {
     
 };
 
+template <typename REAL>
 struct one_sample_dsp : public rack_dsp {
     
     int* iZone;
-    FAUSTFLOAT* fZone;
+    REAL* fZone;
     
     one_sample_dsp()
     :iZone(nullptr), fZone(nullptr)
     {}
     
-    one_sample_dsp(int* icontrol, FAUSTFLOAT* fcontrol)
+    one_sample_dsp(int* icontrol, REAL* fcontrol)
     :iZone(icontrol), fZone(fcontrol)
     {
         assert(false);
@@ -121,9 +122,9 @@ struct one_sample_dsp : public rack_dsp {
     virtual int getNumIntControls() = 0;
     virtual int getNumRealControls() = 0;
     
-    virtual void control(int* iControl, FAUSTFLOAT* fControl) = 0;
+    virtual void control(int* iControl, REAL* fControl) = 0;
     
-    virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs, int* iControl, FAUSTFLOAT* fControl) = 0;
+    virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs, int* iControl, REAL* fControl) = 0;
     
     virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
     {}

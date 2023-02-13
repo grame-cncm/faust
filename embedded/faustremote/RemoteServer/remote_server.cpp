@@ -341,7 +341,8 @@ void dsp_server_connection_info::getJson(dsp_factory* factory)
                 std::vector<std::string>(),
                 std::vector<std::string>(),
                 0,
-                std::map<std::string, int>());
+                std::map<std::string, int>(),
+                MemoryLayoutType());
     tmp_dsp->metadata(&json);
     tmp_dsp->buildUserInterface(&json);
     delete tmp_dsp;

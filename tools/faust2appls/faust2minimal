@@ -17,6 +17,7 @@
 . usage.sh
 
 CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
+LIBADD+=" -lpthread"
 
 # The architecture file name
 ARCHFILE=$FAUSTARCH/minimal.cpp
@@ -25,6 +26,20 @@ ARCHFILE=$FAUSTARCH/minimal.cpp
 OPTIONS=""
 FILES=""
 
+echoHelp()
+{
+    usage faust2minimal "[options] [Faust options] <file.dsp>"
+    echo "Compiles Faust programs to a minimal executable"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # dispatch command arguments
 #-------------------------------------------------------------------
@@ -32,13 +47,11 @@ FILES=""
 while [ $1 ]
 do
     p=$1
- 
+
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2minimal "[options] [Faust options] <file.dsp>"
-        echo "Compiles Faust programs to a minimal self-contained C++ file"
-        exit
+        echoHelp
     fi
-    
+
     echo "dispatch command arguments"
 
     if [ ${p:0:1} = "-" ]; then
@@ -46,7 +59,7 @@ do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -54,7 +67,7 @@ shift
 done
 
 #-------------------------------------------------------------------
-# compile the *.dsp files 
+# compile the *.dsp files
 #-------------------------------------------------------------------
 
 for f in $FILES; do
@@ -62,14 +75,14 @@ for f in $FILES; do
     # compile the DSP to c++ using the architecture file
     echo "compile the DSP to c++ using the architecture file"
     faust -i -a $ARCHFILE $OPTIONS "$f" -o "${f%.dsp}.cpp"|| exit
-   
+
     # compile c++ to binary
     echo "compile c++ to binary"
     (
-        $CXX $CXXFLAGS "${f%.dsp}.cpp" -o "${f%.dsp}"
+        $CXX $CXXFLAGS "${f%.dsp}.cpp" -o "${f%.dsp}" ${LIBADD}
     ) > /dev/null || exit
 
-    # remove tempory files
+    # remove temporary files
     rm -f "${f%.dsp}.cpp"
 
     # collect binary file name for FaustWorks

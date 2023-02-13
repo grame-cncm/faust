@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.4.0)
 project (faustgen)
-set (VERSION "1.57")
+set (VERSION "1.63")
 
 set(ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -172,6 +172,8 @@ endif()
 # post install processing
 if (APPLE)
 install (
+    # not sure this is the right place, but it works...
+    CODE  "execute_process (COMMAND codesign --sign - --deep --force ${PACKDIR}/${DST}/faustgen/externals/msp/faustgen\~.mxo)"
     CODE  "execute_process (COMMAND hdiutil create ${PACKDIR}/${DST}-macosx.dmg -fs HFS+ -srcfolder ${PACKDIR}/${DST} -format UDBZ -ov)"
 )
 endif()

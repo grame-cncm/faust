@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -23,8 +23,6 @@
 #define _TYPING_INSTRUCTIONS_H
 
 #include "instructions.hh"
-
-using namespace std;
 
 /*
  Typing visitor: to be used when knowing the exact type of the currenty compiled value is needed.
@@ -39,35 +37,37 @@ struct TypingVisitor : public InstVisitor {
 
     virtual void visit(LoadVarInst* inst)
     {
+        std::string name = inst->getName();
         // Stack or struct variables
-        if (gGlobal->hasVarType(inst->getName())) {
-            fCurType                = gGlobal->getVarType(inst->getName());
+        if (gGlobal->hasVarType(name)) {
+            fCurType                = gGlobal->getVarType(name);
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
             if (indexed) {
                 // IndexedAddress is also used for struct type
                 DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
                 if (struct_type) {
-                    Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
+                    Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->getIndex());
                     fCurType                  = struct_type->fType->getType(field_index->fNum);
                 } else {
                     fCurType = Typed::getTypeFromPtr(fCurType);
                 }
             }
-            // Specific cases for FunArgs
-        } else if (startWith(inst->getName(), "count") || startWith(inst->getName(), "sample_rate")) {
-            fCurType = Typed::kInt32;
         } else {
             fCurType = Typed::kNoType;
-            throw faustexception("ERROR in TypingVisitor : variable '" + inst->getName() + "' has Typed::kNoType\n");
+            std::cerr << "ASSERT : TypingVisitor : variable '" << name << "' has Typed::kNoType" << std::endl;
+            faustassert(false);
         }
     }
 
     virtual void visit(TeeVarInst* inst)
     {
-        if (gGlobal->hasVarType(inst->getName())) {
-            fCurType = gGlobal->getVarType(inst->getName());
+        std::string name = inst->getName();
+        if (gGlobal->hasVarType(name)) {
+            fCurType = gGlobal->getVarType(name);
         } else {
             fCurType = Typed::kNoType;
+            std::cerr << "ASSERT : TypingVisitor : variable '" << name << "' has Typed::kNoType" << std::endl;
+            faustassert(false);
         }
     }
 
@@ -109,6 +109,8 @@ struct TypingVisitor : public InstVisitor {
                     fCurType = Typed::kInt32;
                 } else {
                     // Should never happen...
+                    std::cerr << "ASSERT : TypingVisitor : BinopInst a1 = ";
+                    std::cerr << Typed::gTypeString[type1] << " a2 = " << Typed::gTypeString[type2] << std::endl;
                     faustassert(false);
                 }
             }
@@ -121,31 +123,7 @@ struct TypingVisitor : public InstVisitor {
 
     virtual void visit(Select2Inst* inst)
     {
-        inst->fThen->accept(this);
-        Typed::VarType type1 = fCurType;
-        if (isRealType(type1)) {
-            fCurType = type1;
-        } else {
-            inst->fElse->accept(this);
-            Typed::VarType type2 = fCurType;
-            if (isRealType(type2)) {
-                fCurType = type2;
-            } else if (isInt32Type(type1) || isInt32Type(type2)) {
-                fCurType = Typed::kInt32;
-            } else if (isInt64Type(type1) || isInt64Type(type2)) {
-                fCurType = Typed::kInt64;
-            } else if (isBoolType(type1) && isBoolType(type2)) {
-                fCurType = Typed::kBool;
-            } else {
-                // Should never happen...
-                faustassert(false);
-            }
-        }
-    }
-
-    virtual void visit(IfInst* inst)
-    {
-        // Type in the one of 'then' or 'else'
+        // Type is the one of 'then' or 'else'
         inst->fThen->accept(this);
     }
 
@@ -155,88 +133,18 @@ struct TypingVisitor : public InstVisitor {
             fCurType = gGlobal->getVarType(inst->fName);
         } else {
             // Should never happen...
-            cerr << "TypingVisitor::visit(FunCallInst* inst) name " << inst->fName << std::endl;
+            std::cerr << "ASSERT : TypingVisitor::visit(FunCallInst* inst) name " << inst->fName << std::endl;
             faustassert(false);
         }
     }
-};
-
-struct BasicTypingCloneVisitor : public BasicCloneVisitor {
-    TypingVisitor fTypingVisitor;
-
-    BasicTypingCloneVisitor() {}
-
-    // Memory
-    virtual ValueInst* visit(LoadVarInst* inst)
+    
+    static Typed::VarType getType(ValueInst* value)
     {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
+        TypingVisitor typing;
+        value->accept(&typing);
+        return typing.fCurType;
     }
-
-    // Numbers
-    virtual ValueInst* visit(FloatNumInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-    virtual ValueInst* visit(Int32NumInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-    virtual ValueInst* visit(Int64NumInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-    virtual ValueInst* visit(BoolNumInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-    virtual ValueInst* visit(DoubleNumInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-
-    // Numerical computation
-    virtual ValueInst* visit(BinopInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-
-    // Cast
-    virtual ValueInst* visit(::CastInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-    virtual ValueInst* visit(BitcastInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-
-    // Function call
-    virtual ValueInst* visit(FunCallInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-
-    // Conditionnal
-    virtual ValueInst* visit(Select2Inst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
-    virtual StatementInst* visit(IfInst* inst)
-    {
-        fTypingVisitor.visit(inst);
-        return BasicCloneVisitor::visit(inst);
-    }
+    
 };
 
 #endif

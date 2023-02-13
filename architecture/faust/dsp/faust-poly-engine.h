@@ -43,8 +43,6 @@ architecture section is not modified.
 // Mono or polyphonic audio DSP engine
 //**************************************************************
 
-using namespace std;
-
 class FaustPolyEngine {
         
     protected:
@@ -54,8 +52,8 @@ class FaustPolyEngine {
     
         APIUI fAPIUI;             // the UI description
 
-        string fJSONUI;
-        string fJSONMeta;
+        std::string fJSONUI;
+        std::string fJSONMeta;
         bool fRunning;
         audio* fDriver;
     
@@ -110,7 +108,7 @@ class FaustPolyEngine {
             // Retrieving DSP object name
             struct MyMeta : public Meta
             {
-                string fName;
+                std::string fName;
                 void declare(const char* key, const char* value)
                 {
                     if (strcmp(key, "name") == 0) fName = value;
@@ -325,28 +323,18 @@ class FaustPolyEngine {
          */
         void setParamValue(const char* address, float value)
         {
-            int id = (address) ? fAPIUI.getParamIndex(address) : -1;
-            if (id >= 0) {
-                setParamValue(id, value);
-            } else {
-                fprintf(stderr, "setParamValue : '%s' not found\n", (address == nullptr ? "NULL" : address));
-            }
+            fAPIUI.setParamValue(address, value);
+            // In POLY mode, update all voices
+            GUI::updateAllGuis();
         }
         
         /*
          * getParamValue(address)
-         * Takes the address of a parameter and returns its current
-         * value.
+         * Takes the address of a parameter and returns its current value.
          */
         float getParamValue(const char* address)
         {
-            int id = (address) ? fAPIUI.getParamIndex(address) : -1;
-            if (id >= 0) {
-                return fAPIUI.getParamValue(id);
-            } else {
-                fprintf(stderr, "getParamValue : '%s' not found\n", (address == nullptr ? "NULL" : address));
-                return 0.f;
-            }
+            return fAPIUI.getParamValue(address);
         }
     
         /*
@@ -362,8 +350,7 @@ class FaustPolyEngine {
         
         /*
          * getParamValue(id)
-         * Takes the id of a parameter and returns its current
-         * value.
+         * Takes the id of a parameter and returns its current value.
          */
         float getParamValue(int id)
         {
@@ -373,8 +360,7 @@ class FaustPolyEngine {
         /*
          * setVoiceParamValue(address, voice, value)
          * Sets the value of the parameter associated with address for
-         * the voice. setVoiceParamValue can only be
-         * used if nvoices > 0.
+         * the voice. setVoiceParamValue can only be used if nvoices > 0.
          */
         void setVoiceParamValue(const char* address, uintptr_t voice, float value)
         {
@@ -384,8 +370,7 @@ class FaustPolyEngine {
         /*
          * setVoiceParamValue(id, voice, value)
          * Sets the value of the parameter associated with the id for
-         * the voice. setVoiceParamValue can only be
-         * used if nvoices > 0.
+         * the voice. setVoiceParamValue can only be used if nvoices > 0.
          */
         void setVoiceParamValue(int id, uintptr_t voice, float value)
         {
@@ -413,6 +398,24 @@ class FaustPolyEngine {
         }
     
         /*
+         * getParamLabel(id)
+         * Returns the label of a parameter in function of its "id".
+         */
+        const char* getParamLabel(int id)
+        {
+            return fAPIUI.getParamLabel(id);
+        }
+    
+        /*
+         * getParamShortname(id)
+         * Returns the shortname of a parameter in function of its "id".
+         */
+        const char* getParamShortname(int id)
+        {
+            return fAPIUI.getParamShortname(id);
+        }
+
+        /*
          * getParamAddress(id)
          * Returns the address of a parameter in function of its "id".
          */
@@ -423,8 +426,7 @@ class FaustPolyEngine {
 
         /*
          * getVoiceParamAddress(id, voice)
-         * Returns the address of a parameter for a specific voice 
-         * in function of its "id".
+         * Returns the address of a parameter for a specific voice in function of its "id".
          */
         const char* getVoiceParamAddress(int id, uintptr_t voice)
         {
@@ -554,10 +556,10 @@ class FaustPolyEngine {
         float getCPULoad() { return (fDriver) ? fDriver->getCPULoad() : 0.f; }
 
         /*
-         * getScreenColor() -> c:int
-         * Get the requested screen color c :
-         * c < 0 : no screen color requested (keep regular UI)
-         * c >= 0 : requested color (no UI but a colored screen)
+         * getScreenColor()
+         * Get the requested screen color.
+         * -1 means no screen color control (no screencolor metadata found)
+         * otherwise return 0x00RRGGBB a ready to use color
          */
         int getScreenColor()
         {
@@ -610,6 +612,8 @@ extern "C" {
         return reinterpret_cast<FaustPolyEngine*>(dsp)->getVoiceParamValue(address, voice);
     }
     
+    const char* getParamLabel(void* dsp, int id) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamLabel(id); }
+    const char* getParamShortname(void* dsp, int id) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamShortname(id); }
     const char* getParamAddress(void* dsp, int id) { return reinterpret_cast<FaustPolyEngine*>(dsp)->getParamAddress(id); }
 
     void propagateAcc(void* dsp, int acc, float v) { reinterpret_cast<FaustPolyEngine*>(dsp)->propagateAcc(acc, v); }

@@ -29,6 +29,24 @@ else
     ARCHLIB+=" `pkg-config --cflags --libs alsa`"
 fi
 
+echoHelp()
+{
+    usage faust2jackconsole "[options] [Faust options] <file.dsp>"
+    require Jack
+    echo "Compiles Faust programs to CLI and JACK"
+    option
+    options -httpd -osc -midi -soundfile
+    option "-nvoices <num>"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -42,20 +60,11 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2jackconsole "[options] [Faust options] <file.dsp>"
-        require Jack
-        echo "Compiles Faust programs to CLI and JACK"
-        option
-        options -httpd -osc -midi -soundfile
-        option "-nvoices <num>"
-        option "Faust options"
-        exit
-    fi
-  
-      if [ $p = "-osc" ]; then
+        echoHelp
+    elif [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
-        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust"
         HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
     elif [ $p = "-nvoices" ]; then
         shift
@@ -78,18 +87,18 @@ do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
-    
+
 shift
 
 done
-    
+
 #-------------------------------------------------------------------
 # compile the *.dsp files using JACK and console
 #
 for f in $FILES; do
-    
+
     # compile faust to c++
     faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
@@ -100,8 +109,8 @@ for f in $FILES; do
             codesign --sign - --deep --force "${f%.dsp}"
         fi
     ) > /dev/null || exit
-    
-    # remove tempory files
+
+    # remove temporary files
     rm -f "$f.cpp"
 
     # collect binary file name for FaustWorks

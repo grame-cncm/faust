@@ -44,12 +44,12 @@ struct JuceStateUI : public MapUI {
         
         // Write path and values
         if (sizeof(FAUSTFLOAT) == sizeof(float)) {
-            for (const auto& it : fPathZoneMap) {
+            for (const auto& it : getFullpathMap()) {
                 stream.writeString(it.first);
                 stream.writeFloat(*it.second);
             }
         } else {
-            for (const auto& it : fPathZoneMap) {
+            for (const auto& it : getFullpathMap()) {
                 stream.writeString(it.first);
                 stream.writeDouble(*it.second);
             }

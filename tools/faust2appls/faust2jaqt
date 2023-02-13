@@ -29,6 +29,29 @@ ARCHLIB="`pkg-config --cflags --libs jack`"
 
 QMAKE=$(which qmake-qt5 || which qmake-qt4 || echo qmake)
 
+echoHelp()
+{
+    usage faust2jaqt "[options] [Faust options] <file.dsp>"
+    require Jack, QT
+    echo "Compiles Faust programs to JACK and QT"
+    option
+    options -httpd -osc -midi -soundfile -qrcode
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option "-preset <directory>" "add a preset manager on top of GUI and save the preset files in the given directory"
+    option "-preset auto" "add a preset manager on top of GUI and save the preset files in a system temporary directory"
+    option -resample "to resample soundfiles to the audio driver sample rate."
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #PHASE 2 : dispatch command arguments
 
 OSCINC=""
@@ -51,21 +74,9 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2jaqt "[options] [Faust options] <file.dsp>"
-        require Jack, Qt
-        echo "Compiles Faust programs to JACK and QT"
-        option
-        options -httpd -osc -midi -soundfile -qrcode
-        option "-nvoices <num>"
-        option "-effect <effect.dsp>"
-        option "-effect auto"
-        option "-preset <directory>" "add a preset manager on top of GUI and save the preset files in the given directory"
-        option "-preset auto" "add a preset manager on top of GUI and save the preset files in a system temporary directory"
-        option -resample "to resample soundfiles to the audio driver sample rate."
-        option "Faust options"
-        exit
+        echoHelp
     fi
-    
+
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then
             OMP="-openmp"
@@ -73,7 +84,7 @@ do
             OMP="-fopenmp"
         fi
     fi
-  
+
     if [ "$p" = -icc ]; then
         ignore=" "
     elif [ $p = "-deploy" ]; then
@@ -105,7 +116,7 @@ do
         OSCLIBS="-lOSCFaust"
     elif [ "$p" = "-httpd" ]; then
     HTTPDEFS="DEFINES += HTTPCTRL"
-    HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+    HTTPLIBS="-lHTTPDFaust"
     HTTPLIBS1=`pkg-config --cflags --libs libmicrohttpd`
     elif [ "$p" = "-preset" ]; then
         PRESETDEFS="DEFINES += PRESETUI"
@@ -133,7 +144,7 @@ if [[ $(uname) == Darwin ]]; then
     if [ $SYS_VERSION -ge 13 ]
     then
         SPEC="-spec macx-clang"
-        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
+        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"
         CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
     else
         SPEC="-spec macx-g++"
@@ -158,7 +169,7 @@ for p in $FILES; do
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
 
-    # creates a temporary dir 
+    # creates a temporary dir
     TDR=$(mktemp -d faust.XXXXXX)
     TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
@@ -184,7 +195,7 @@ EndOfCode
     else
         faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
     fi
-    
+
     # add preset management
     if [ $PRESETDIR = "auto" ]; then
         echo "#define PRESETDIR \"/var/tmp/\"" > "$TMP/preset.cpp"
@@ -221,7 +232,7 @@ EndOfCode
             # copy found soundfiles in the final binary
             for snd in $(cat $p-tmp.txt); do
                 if [ -f $snd ]; then
-                    if [ ${snd:0:1} = "/" ]; then 
+                    if [ ${snd:0:1} = "/" ]; then
                         echo "Warning: soundfile with absolute path is not copied !"
                     else
                         # create destination path and possibly create directory
@@ -248,7 +259,7 @@ EndOfCode
         fi
     fi
 
-    # remove tempory files
+    # remove temporary files
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
     cp -a "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
     if [[ $(uname) == Darwin ]]; then

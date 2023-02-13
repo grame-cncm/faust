@@ -39,7 +39,7 @@ help:
 	@echo "Options:"
 	@echo " 'outdir' 	   : define the output directory (default to 'llvm')"
 	@echo " 'FAUSTOPTIONS' : define additional faust options (empty by default)"
-    @echo " 'precision'    : define filesCompare expected precision (empty by default)"
+	@echo " 'precision'    : define filesCompare expected precision (empty by default)"
 
 #########################################################################
 # output directories

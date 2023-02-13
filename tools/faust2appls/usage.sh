@@ -1,37 +1,38 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-function usage() {
+usage() {
     name=$1
     shift
     args=$*
     echo "Usage: $name $args"
 }
 
-function platform() {
+platform() {
     echo "Target platform: $*"
 }
 
-function require() {
+require() {
     echo "Require: $*"
 }
 
-function options() {
+options() {
     while [ "$1" ]
     do
-        option $1
+        option "$1"
         shift
     done
 }
 
-function option() {
-    if [ $# -ne 0 ] 
+option() {
+    if [ $# -ne 0 ]
     then
-        option=$1
+        option="$1"
         shift
         doc=$*
         if [ -z "$doc" ]
         then
             case $option in
+            	"-dyn") doc="create libfaust + LLVM backend dynamic version";;
                 "-httpd") doc="activates HTTP control";;
                 "-osc") doc="activates OSC control";;
                 "-midi") doc="activates MIDI control";;

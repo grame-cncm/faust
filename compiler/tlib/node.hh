@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -28,19 +28,19 @@
  *
  * <b>API:</b>
  *
- * 	Node(symbol("abcd")); 	: node with symbol content
- * 	Node(10);				: node with int content
- * 	Node(3.14159);			: node with double content
+ * Node(symbol("abcd")); : node with symbol content
+ * Node(10);             : node with int content
+ * Node(3.14159);        : node with double content
  *
- * 	n->type();				: kIntNode or kDoubleNode or kSymNode
+ * n->type();            : kIntNode or kDoubleNode or kSymNode
  *
- * 	n->getInt();			: int content of n
- * 	n->getDouble();			: double content of n
- * 	n->getSym();			: symbol content of n
+ * n->getInt();          : int content of n
+ * n->getDouble();       : double content of n
+ * n->getSym();          : symbol content of n
  *
- * 	if (isInt(n, &i))	... : int i = int content of n
- * 	if (isDouble(n, &f))	... : double f = double content of n
- * 	if (isSym(n, &s))	... : Sym s = Sym content of n
+ * if (isInt(n, &i))     : int i = int content of n
+ * if (isDouble(n, &f))  : double f = double content of n
+ * if (isSym(n, &s))     : Sym s = Sym content of n
  *
  */
 
@@ -56,8 +56,6 @@
 
 #include "garbageable.hh"
 #include "symbol.hh"
-
-using namespace std;
 
 /**
  * Tags used to define the type of a Node
@@ -92,7 +90,7 @@ class Node : public virtual Garbageable {
         fData.f = 0;
         fData.s = symbol(name);
     }
-    Node(const string& name) : fType(kSymNode)
+    Node(const std::string& name) : fType(kSymNode)
     {
         fData.f = 0;
         fData.s = symbol(name);
@@ -124,11 +122,11 @@ class Node : public virtual Garbageable {
     operator int() const { return (fType == kIntNode) ? fData.i : (fType == kDoubleNode) ? int(fData.f) : 0; }
     operator double() const { return (fType == kIntNode) ? double(fData.i) : (fType == kDoubleNode) ? fData.f : 0.0; }
 
-    ostream& print(ostream& fout) const;  ///< print a node on a stream
+    std::ostream& print(std::ostream& fout) const;  ///< print a node on a stream
 };
 
 // printing
-inline ostream& operator<<(ostream& s, const Node& n)
+inline std::ostream& operator<<(std::ostream& s, const Node& n)
 {
     return n.print(s);
 }
@@ -266,8 +264,8 @@ inline const Node divExtendedNode(const Node& x, const Node& y)
     }
 
 raise_exception:
-    stringstream error;
-    error << "ERROR : division by 0 in " << x << " / " << y << endl;
+    std::stringstream error;
+    error << "ERROR : division by 0 in " << x << " / " << y << std::endl;
     throw faustexception(error.str());
     return {};
 }
@@ -275,8 +273,8 @@ raise_exception:
 inline const Node remNode(const Node& x, const Node& y)
 {
     if (int(y) == 0) {
-        stringstream error;
-        error << "ERROR : % by 0 in " << x << " % " << y << endl;
+        std::stringstream error;
+        error << "ERROR : % by 0 in " << x << " % " << y << std::endl;
         throw faustexception(error.str());
     }
     return Node(int(x) % int(y));

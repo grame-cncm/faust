@@ -4,16 +4,16 @@
  Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
  (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Lesser General Public License for more details.
 
- You should have received a copy of the GNU General Public License
+ You should have received a copy of the GNU Lesser General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -55,7 +55,7 @@ class old_Occurences : public virtual Garbageable {
 class old_OccMarkup : public virtual Garbageable {
     Tree            fRootTree;    ///< occurences computed within this tree
     Tree            fPropKey;     ///< key used to store occurences property
-    map<Tree, Tree> fConditions;  ///< condition associated to each tree
+    std::map<Tree, Tree> fConditions;  ///< condition associated to each tree
 
     void            incOcc(Tree env, int v, int r, int d, Tree xc, Tree t);  ///< inc the occurence of t in context v,r
     old_Occurences* getOcc(Tree t);                                          ///< get Occurences property of t or null
@@ -63,7 +63,7 @@ class old_OccMarkup : public virtual Garbageable {
 
    public:
     old_OccMarkup() : fRootTree(nullptr), fPropKey(nullptr) {}
-    old_OccMarkup(map<Tree, Tree> conditions) : fRootTree(nullptr), fPropKey(nullptr), fConditions(conditions) {}
+    old_OccMarkup(std::map<Tree, Tree> conditions) : fRootTree(nullptr), fPropKey(nullptr), fConditions(conditions) {}
 
     void            mark(Tree root);   ///< start markup of root tree with new unique key
     old_Occurences* retrieve(Tree t);  ///< occurences of subtree t within root tree

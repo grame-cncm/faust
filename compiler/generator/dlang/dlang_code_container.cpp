@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -189,7 +189,7 @@ void DLangCodeContainer::produceInternal()
     tab(n + 1, *fOut);
 
     // fKlassName used in method naming for subclasses
-    produceInfoFunctions(n + 1, fKlassName, "dsp", true, false, &fCodeProducer);
+    produceInfoFunctions(n + 1, fKlassName, "dsp", true, FunTyped::kDefault, &fCodeProducer);
 
     // TODO
     // generateInstanceInitFun("instanceInit" + fKlassName, true, false)->accept(&fCodeProducer);
@@ -241,8 +241,9 @@ string DLangCodeContainer::dModuleName(const string& klassName)
 {
     string moduleName = klassName;
     transform(moduleName.begin(), moduleName.end(), moduleName.begin(), ::tolower);
-    if (gGlobal->gNameSpace != "")
-        moduleName = gGlobal->gNameSpace + "." + moduleName;
+    if (gGlobal->gNamespace != "") {
+        moduleName = gGlobal->gNamespace + "." + moduleName;
+    }
     return moduleName;
 }
 
@@ -328,7 +329,7 @@ void DLangCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     // No class name for main class
-    produceInfoFunctions(n + 1, "", "dsp", true, true, &fCodeProducer);  // Inits
+    produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kVirtual, &fCodeProducer);  // Inits
 
     tab(n + 1, *fOut);
     *fOut << "static void classInit(int sample_rate) nothrow @nogc {";
@@ -548,7 +549,7 @@ void DLangScalarOneSampleCodeContainer::produceClass()
 
     tab(n + 1, *fOut);
     // No class name for main class
-    produceInfoFunctions(n + 1, "", "dsp", true, true, &fCodeProducer);  // Inits
+    produceInfoFunctions(n + 1, "", "dsp", true, FunTyped::kVirtual, &fCodeProducer);  // Inits
 
     tab(n + 1, *fOut);
     *fOut << "static void classInit(int sample_rate) nothrow @nogc {";

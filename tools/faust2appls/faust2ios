@@ -24,6 +24,31 @@ XCODE="0"
 ARCHIVE="0"
 SOUNDFILE="0"
 
+echoHelp()
+{
+    usage faust2ios "[options] [Faust options] <file.dsp>"
+    platform iOS
+    echo "Compiles Faust programs to iOS applications"
+    option
+    options -midi -osc -soundfile
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option -xcode "to compile and keep the intermediate Xcode project"
+    option -xcodeproj "to produce the intermediate Xcode project"
+    option -archive "to generate the archive for Apple Store"
+    option -32bits "to compile 32 bits only binary"
+    option -noagc "to deactivate audio automatic gain control"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #PHASE 1 : collects files and options from the command line
 
 while [ $1 ]
@@ -31,23 +56,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2ios "[options] [Faust options] <file.dsp>"
-        platform iOS
-        echo "Compiles Faust programs to iOS applications"
-        option
-        options -midi -osc -soundfile
-        option "-nvoices <num>"
-        option "-effect <effect.dsp>"
-        option "-effect auto"
-        option -xcode "to compile and keep the intermediate Xcode project"
-        option -xcodeproj "to produce the intermediate Xcode project"
-        option -archive "to generate the archive for Apple Store"
-        option -32bits "to compile 32 bits only binary"
-        option -noagc "to deactivate audio automatic gain control"
-        exit
-    fi
-
-    if [ $p = "-osc" ]; then
+        echoHelp
+    elif [ $p = "-osc" ]; then
         OSCCTRL="1"
     elif [ $p = "-soundfile" ]; then
         SOUNDFILE="1"
@@ -89,11 +99,11 @@ addOptions ()
     # OSC source always copied in the project
     cp -r $FAUSTARCH/osclib "$T"
     # FaustNode.h still has a dependency with public Faust headers, create a self-contained version
-    echo "process = !;" >> "$T"/tmp.dsp
+    echo "process = _;" >> "$T"/tmp.dsp
     echo "" >> "$T"/tmp.cpp
     faust -i -inj "$T"/tmp.cpp -a $FAUSTARCH/osclib/faust/faust/osc/FaustNode.h "$T"/tmp.dsp -o "$T"/osclib/faust/faust/osc/FaustNode.h
     rm "$T"/tmp.dsp "$T"/tmp.cpp
-  
+
     if [ "$OSCCTRL" = "1" ]; then
         echo "#define OSCCTRL 1" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
     fi
@@ -109,10 +119,10 @@ addOptions ()
     if [ $NVOICES -ge 0 ]; then
         echo "#define NVOICES $NVOICES" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
     fi
-    
+
     # Copy libsndfile in the project
     cp -r /usr/local/lib/ios-libsndfile.a "$T"
-    
+
     if [ "$SOUNDFILE" = "1" ]; then
         echo "#define SOUNDFILE 1" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
     fi
@@ -136,7 +146,7 @@ for p in $FILES; do
 
     T=$(mktemp -d faust.XXX)
     cp -r $FAUSTARCH/iOS/* $T
-    
+
     if [ "$ALL" = "1" ]; then
         echo "Compile with CoreAudio support in 64/32 bits"
         faust -i $OPTIONS -json -a $ARCHFILE "$p" -o "$T/ios-faust.h" || exit
@@ -164,6 +174,8 @@ EndOfCode
         if [ "$XCODE" == "2" ]; then
             warnSoundfile
             mv $T $XCODEPROJ
+            # remove temporary JSON file
+            rm $p.json
             exit
         fi
         (
@@ -187,6 +199,8 @@ EndOfCode
         if [ "$XCODE" == "2" ]; then
             warnSoundfile
             mv $T $XCODEPROJ
+            # remove temporary JSON file
+            rm $p.json
             exit
         fi
         (
@@ -266,7 +280,7 @@ EndOfCode
         BINARIES="$BINARIES$S/$P.app;"
     fi
 
-    # remove temporary files
+    # remove temporary JSON file
     rm $p.json
 done
 

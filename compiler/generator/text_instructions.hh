@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -22,12 +22,12 @@
 #ifndef _TEXT_INSTRUCTIONS_H
 #define _TEXT_INSTRUCTIONS_H
 
+#include <climits>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
-#include <map>
-#include <climits>
 
 #include "Text.hh"
 #include "fir_to_fir.hh"
@@ -35,21 +35,15 @@
 #include "type_manager.hh"
 
 // To check all control fields in the DSP structure
-inline bool isControl(const string& name)
+inline bool isControl(const std::string& name)
 {
-    return startWith(name, "fButton")
-        || startWith(name, "fCheckbox")
-        || startWith(name, "fVslider")
-        || startWith(name, "fHslider")
-        || startWith(name, "fEntry")
-        || startWith(name, "fVbargraph")
-        || startWith(name, "fHbargraph")
-        || name == "iControl"
-        || name == "fControl"
-        || name == "iZone"
-        || name == "fZone"
-        || name == "fSampleRate";
+    return startWith(name, "fButton") || startWith(name, "fCheckbox") || startWith(name, "fVslider") ||
+           startWith(name, "fHslider") || startWith(name, "fEntry") || startWith(name, "fVbargraph") ||
+           startWith(name, "fHbargraph") || name == "iControl" || name == "fControl" || name == "iZone" ||
+           name == "fZone" || name == "fSampleRate";
 }
+
+// Base class to textual visitor: C, C++, Cmajor, CSharp, Dlang, JAX, Julia, Rust, wast
 
 class TextInstVisitor : public InstVisitor {
    protected:
@@ -66,7 +60,7 @@ class TextInstVisitor : public InstVisitor {
             tab(fTab, *fOut);
         }
     }
-    
+
     // To be adapted in subclasses
     virtual void visitCond(ValueInst* cond)
     {
@@ -74,7 +68,7 @@ class TextInstVisitor : public InstVisitor {
         cond->accept(this);
         *fOut << ")";
     }
-  
+
    public:
     using InstVisitor::visit;
 
@@ -142,11 +136,11 @@ class TextInstVisitor : public InstVisitor {
         indexed->fAddress->accept(this);
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
-            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
+            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->getIndex());
             *fOut << "->" << struct_type->fType->getName(field_index->fNum);
         } else {
             *fOut << "[";
-            indexed->fIndex->accept(this);
+            indexed->getIndex()->accept(this);
             *fOut << "]";
         }
     }
@@ -202,19 +196,83 @@ class TextInstVisitor : public InstVisitor {
         }
         *fOut << '}';
     }
-    
-    virtual bool needParenthesis(BinopInst* inst, ValueInst* arg)
+
+    /**
+     * @brief some binary operations need parentheses in order to silent some c++ warning
+     *
+     * @param name of the binop to test
+     * @return true if parentheses are needed to silence warnings
+     * @return false otherwise
+     */
+    bool special(const std::string& name)
     {
-        int p0 = gBinOpTable[inst->fOpcode]->fPriority;
+        return (name == "==") || (name == "!=") || (name == "<") || (name == ">") || (name == "<=") || (name == ">=") ||
+               (name == ">>") || (name == "<<") || (name == "&") || (name == "|");
+    }
+
+    /**
+     * @brief test if a left expression needs parentheses
+     *
+     * @param inst the top binary operation
+     * @param arg the left expression
+     * @return true if parentheses are needed, falter otherwise
+     */
+    virtual bool leftArgNeedsParentheses(BinopInst* inst, ValueInst* arg)
+    {
         BinopInst* a = dynamic_cast<BinopInst*>(arg);
-        int p1 = a ? gBinOpTable[a->fOpcode]->fPriority : INT_MAX;
-        return (isLogicalOpcode(inst->fOpcode) || (p0 > p1)) && !arg->isSimpleValue();
+        if (a) {
+            if (gGlobal->gFullParentheses || special(gBinOpTable[inst->fOpcode]->fName)) {
+                // to silence warnings we add parentheses to arguments of special binops
+                return true;
+            } else {
+                int p0 = gBinOpTable[inst->fOpcode]->fPriority;
+                int p1 = gBinOpTable[a->fOpcode]->fPriority;
+                //  left binary expressions need parentheses only when they
+                //  have a lower priority (or a special form to silence warnings)
+                return (p0 > p1) || special(gBinOpTable[a->fOpcode]->fName);
+            }
+        } else {
+            // non binary expressions have higher priorities and don't need parentheses
+            return false;
+        }
+    }
+
+    /**
+     * @brief test if a right expression needs parentheses.
+     *
+     * @param inst the top binary instruction
+     * @param arg the left expression
+     * @return true if parentheses are needed, false otherwise
+     */
+    virtual bool rightArgNeedsParentheses(BinopInst* inst, ValueInst* arg)
+    {
+        BinopInst* a = dynamic_cast<BinopInst*>(arg);
+        if (a) {
+            if (gGlobal->gFullParentheses || special(gBinOpTable[inst->fOpcode]->fName)) {
+                // to silence warnings we add parentheses to arguments of special binops
+                return true;
+            }
+            int p0 = gBinOpTable[inst->fOpcode]->fPriority;
+            int p1 = gBinOpTable[a->fOpcode]->fPriority;
+            if (special(gBinOpTable[a->fOpcode]->fName)) {
+                // to silence warnings we add also parentheses to special arguments
+                return true;
+            } else if ((p0 < p1) || ((inst->fOpcode == a->fOpcode) && gBinOpTable[inst->fOpcode]->fAssociativity)) {
+                // no parentheses for higher priority right arguments or in case of associative operation
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            // non binary expressions have higher priorities and don't need parentheses
+            return false;
+        }
     }
 
     virtual void visit(BinopInst* inst)
     {
-        bool cond1 = needParenthesis(inst, inst->fInst1);
-        bool cond2 = needParenthesis(inst, inst->fInst2);
+        bool cond1 = leftArgNeedsParentheses(inst, inst->fInst1);
+        bool cond2 = rightArgNeedsParentheses(inst, inst->fInst2);
         if (cond1) *fOut << "(";
         inst->fInst1->accept(this);
         if (cond1) *fOut << ")";
@@ -239,10 +297,10 @@ class TextInstVisitor : public InstVisitor {
         }
     }
 
-    virtual void generateFunCallArgs(ListValuesIt beg, ListValuesIt end, size_t size)
+    virtual void generateFunCallArgs(ValuesIt beg, ValuesIt end, size_t size)
     {
         size_t i = 0;
-        for (ListValuesIt it = beg; it != end; it++, i++) {
+        for (ValuesIt it = beg; it != end; it++, i++) {
             // Compile argument
             (*it)->accept(this);
             if (i < size - 1) *fOut << ", ";
@@ -262,7 +320,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void generateFunDefBody(DeclareFunInst* inst)
     {
         if (inst->fCode->fCode.size() == 0) {
-            *fOut << ");" << endl;  // Pure prototype
+            *fOut << ");" << std::endl;  // Pure prototype
         } else {
             // Function body
             *fOut << ") {";
@@ -279,7 +337,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void generateFunCall(FunCallInst* inst, const std::string& fun_name)
     {
         if (inst->fMethod) {
-            ListValuesIt it = inst->fArgs.begin();
+            ValuesIt it = inst->fArgs.begin();
             // Compile object arg
             (*it)->accept(this);
             // Compile parameters
@@ -398,7 +456,7 @@ class TextInstVisitor : public InstVisitor {
         *fOut << ") {";
         fTab++;
         tab(fTab, *fOut);
-        list<pair<int, BlockInst*> >::const_iterator it;
+        std::list<std::pair<int, BlockInst*> >::const_iterator it;
         for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
             if ((*it).first == -1) {  // -1 used to code "default" case
                 *fOut << "default: {";
@@ -423,11 +481,10 @@ class TextInstVisitor : public InstVisitor {
     }
 
     StringTypeManager* getTypeManager() { return fTypeManager; }
-    
 };
 
-// Mathematical functions are declared as variables, they have to be generated before any other function (like
-// 'faustpower')
+// Mathematical functions are declared as variables, they have to be generated
+// before any other function (like 'faustpower')
 struct sortDeclareFunctions {
     std::map<std::string, std::string> fMathLibTable;
 

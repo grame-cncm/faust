@@ -115,17 +115,17 @@ int main(int argc, char* argv[])
     int nvoices = 0;
     bool control = true;
     
+    if (isopt(argv, "-h")) {
+        cout << argv[0] << " [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
+        exit(1);
+    }
+    
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
     
     snprintf(name, 256, "%s", basename(argv[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, name);
-    
-    if (isopt(argv, "-h")) {
-        cout << "prog [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
-        exit(1);
-    }
     
 #ifdef POLY2
     nvoices = lopt(argv, "--nvoices", nvoices);

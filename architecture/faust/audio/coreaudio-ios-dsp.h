@@ -40,8 +40,6 @@
 #include <AudioToolbox/AudioServices.h>
 #include <AudioUnit/AudioUnit.h>
 
-using namespace std;
-
 /******************************************************************************
 *******************************************************************************
 
@@ -53,8 +51,7 @@ using namespace std;
 #define OPEN_ERR -1
 #define NO_ERR 0
 
-class TiPhoneCoreAudioRenderer
-{
+class TiPhoneCoreAudioRenderer {
 
     protected:
 

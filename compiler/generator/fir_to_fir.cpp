@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -162,11 +162,10 @@ BlockInst* FunctionInliner::ReplaceParameterByArg(BlockInst* code, NamedTyped* n
     return inliner.getCode(code);
 }
 
-BlockInst* FunctionInliner::ReplaceParametersByArgs(BlockInst* code, list<NamedTyped*> args_type, list<ValueInst*> args,
-                                                    bool ismethod)
+BlockInst* FunctionInliner::ReplaceParametersByArgs(BlockInst* code, Names args_type, Values args, bool ismethod)
 {
-    list<NamedTyped*>::iterator it1 = args_type.begin();
-    list<ValueInst*>::iterator  it2 = args.begin();
+    NamesIt it1 = args_type.begin();
+    ValuesIt  it2 = args.begin();
     if (ismethod) { it2++; }
     
     for (; it1 != args_type.end(); it1++, it2++) {

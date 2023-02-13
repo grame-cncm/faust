@@ -4,16 +4,16 @@
     Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -28,8 +28,6 @@
 #include <set>
 #include <string>
 #include <vector>
-
-using namespace std;
 
 const double dWire = 8;  ///< distance between two wires
 // const double dLetter = 6;			///< width of a letter
@@ -80,11 +78,11 @@ struct trait : public virtual Garbageable {
 };
 
 struct collector : public virtual Garbageable {
-    set<point> fOutputs;     // collect real outputs
-    set<point> fInputs;      // collect real inputs
-    set<trait> fTraits;      // collect traits to draw
-    set<trait> fWithInput;   // collect traits with a real input
-    set<trait> fWithOutput;  // collect traits with a real output
+    std::set<point> fOutputs;     // collect real outputs
+    std::set<point> fInputs;      // collect real inputs
+    std::set<trait> fTraits;      // collect traits to draw
+    std::set<trait> fWithInput;   // collect traits with a real input
+    std::set<trait> fWithOutput;  // collect traits with a real output
 
     void addOutput(const point& p) { fOutputs.insert(p); }
     void addInput(const point& p) { fInputs.insert(p); }
@@ -158,10 +156,10 @@ class schema : public virtual Garbageable {
 
 // various functions to create schemas
 
-schema* makeBlockSchema(unsigned int inputs, unsigned int outputs, const string& name, const string& color,
-                        const string& link);
+schema* makeBlockSchema(unsigned int inputs, unsigned int outputs, const std::string& name, const std::string& color,
+                        const std::string& link);
 schema* makeCableSchema(unsigned int n = 1);
-schema* makeInverterSchema(const string& color);
+schema* makeInverterSchema(const std::string& color);
 schema* makeCutSchema();
 schema* makeEnlargedSchema(schema* s, double width);
 schema* makeParSchema(schema* s1, schema* s2);
@@ -169,9 +167,9 @@ schema* makeSeqSchema(schema* s1, schema* s2);
 schema* makeMergeSchema(schema* s1, schema* s2);
 schema* makeSplitSchema(schema* s1, schema* s2);
 schema* makeRecSchema(schema* s1, schema* s2);
-schema* makeTopSchema(schema* s1, double margin, const string& text, const string& link);
-schema* makeDecorateSchema(schema* s1, double margin, const string& text);
+schema* makeTopSchema(schema* s1, double margin, const std::string& text, const std::string& link);
+schema* makeDecorateSchema(schema* s1, double margin, const std::string& text);
 schema* makeConnectorSchema();
-schema* makeRouteSchema(unsigned int inputs, unsigned int outputs, const vector<int>& routes);
+schema* makeRouteSchema(unsigned int inputs, unsigned int outputs, const std::vector<int>& routes);
 
 #endif

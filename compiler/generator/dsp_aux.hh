@@ -33,9 +33,10 @@
 #pragma warning(disable : 4800)
 #endif
 
-#include "exception.hh"
-#include "export.hh"
+#include "faust/export.h"
 #include "faust/dsp/dsp.h"
+
+#include "exception.hh"
 
 /*!
     \brief the base class for smart pointers implementation
@@ -291,7 +292,7 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
     }
 };
 
-// Compute SHA1 key from name_app, dsp_content and compialtions arguments, and returns the dsp_content
+// Compute SHA1 key from name_app, dsp_content and compilations arguments, and returns the dsp_content
 std::string sha1FromDSP(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& sha_key);
 
 class CTree;
@@ -304,19 +305,88 @@ tvec boxesToSignalsAux(Tree box);
 extern "C" {
 #endif
 
-EXPORT const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key,
+LIBFAUST_API const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key,
                                       char* error_msg);
 
-EXPORT const char* expandCDSPFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
+LIBFAUST_API const char* expandCDSPFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
                                         char* sha_key, char* error_msg);
 
-EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
+LIBFAUST_API bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
 
-EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
+LIBFAUST_API bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
                                         char* error_msg);
 
 #ifdef __cplusplus
 }
 #endif
+
+#define BUFFER_SIZE 1024
+#define SAMPLE_RATE 44100
+#define MAX_CHAN 64
+#define MAX_SOUNDFILE_PARTS 256
+
+#ifdef _MSC_VER
+#define PRE_PACKED_STRUCTURE __pragma(pack(push, 1))
+#define POST_PACKED_STRUCTURE \
+;                         \
+__pragma(pack(pop))
+#else
+#define PRE_PACKED_STRUCTURE
+#define POST_PACKED_STRUCTURE __attribute__((__packed__))
+#endif
+
+PRE_PACKED_STRUCTURE
+struct Soundfile {
+    enum { kBuffers, kLength, kSR, kOffset };
+    double** fBuffers; // use the largest size to cover 'float' and 'double' cases
+    int* fLength;      // length of each part
+    int* fSR;          // sample rate of each part
+    int* fOffset;      // offset of each part in the global buffer
+    int fChannels;     // max number of channels of all concatenated files
+    int fParts;        // the total number of loaded parts
+    bool fIsDouble;    // keep the sample format (float or double)
+    
+    Soundfile(int max_chan)
+    {
+        fBuffers = new double*[max_chan];
+        fLength  = new int[MAX_SOUNDFILE_PARTS];
+        fSR      = new int[MAX_SOUNDFILE_PARTS];
+        fOffset  = new int[MAX_SOUNDFILE_PARTS];
+        
+        for (int part = 0; part < MAX_SOUNDFILE_PARTS; part++) {
+            fLength[part] = BUFFER_SIZE;
+            fSR[part]     = SAMPLE_RATE;
+            fOffset[part] = 0;
+        }
+        
+        // Allocate 1 channel
+        fChannels = 1;
+        fParts = 0;
+        fBuffers[0] = new double[BUFFER_SIZE];
+        faustassert(fBuffers[0]);
+        fIsDouble = true;
+        memset(fBuffers[0], 0, BUFFER_SIZE * sizeof(double));
+        
+        // Share the same buffer for all other channels so that we have max_chan channels available
+        for (int chan = fChannels; chan < max_chan; chan++) {
+            fBuffers[chan] = fBuffers[0];
+        }
+    }
+    
+    ~Soundfile()
+    {
+        // Free the real channels only
+        for (int chan = 0; chan < fChannels; chan++) {
+            delete[] fBuffers[chan];
+        }
+        delete[] fBuffers;
+        delete[] fLength;
+        delete[] fSR;
+        delete[] fOffset;
+    }
+    
+} POST_PACKED_STRUCTURE;
+
+typedef std::map<std::string, Soundfile*> soundTable;
 
 #endif

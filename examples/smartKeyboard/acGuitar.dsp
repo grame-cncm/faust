@@ -29,36 +29,36 @@
 //##############################################################################
 
 declare interface "SmartKeyboard{
-	'Number of Keyboards':'7',
-	'Max Keyboard Polyphony':'0',
-	'Rounding Mode':'2',
-	'Keyboard 0 - Number of Keys':'14',
-  'Keyboard 1 - Number of Keys':'14',
-	'Keyboard 2 - Number of Keys':'14',
-	'Keyboard 3 - Number of Keys':'14',
-	'Keyboard 4 - Number of Keys':'14',
-	'Keyboard 5 - Number of Keys':'14',
-	'Keyboard 6 - Number of Keys':'6',
-	'Keyboard 0 - Lowest Key':'52',
-	'Keyboard 1 - Lowest Key':'57',
-	'Keyboard 2 - Lowest Key':'62',
-	'Keyboard 3 - Lowest Key':'67',
-	'Keyboard 4 - Lowest Key':'71',
-	'Keyboard 5 - Lowest Key':'76',
-	'Keyboard 0 - Send Keyboard Freq':'1',
-	'Keyboard 1 - Send Keyboard Freq':'1',
-	'Keyboard 2 - Send Keyboard Freq':'1',
-	'Keyboard 3 - Send Keyboard Freq':'1',
-	'Keyboard 4 - Send Keyboard Freq':'1',
-	'Keyboard 5 - Send Keyboard Freq':'1',
-	'Keyboard 6 - Piano Keyboard':'0',
-	'Keyboard 6 - Send Key Status':'1',
-	'Keyboard 6 - Key 0 - Label':'S0',
-	'Keyboard 6 - Key 1 - Label':'S1',
-	'Keyboard 6 - Key 2 - Label':'S2',
-	'Keyboard 6 - Key 3 - Label':'S3',
-	'Keyboard 6 - Key 4 - Label':'S4',
-	'Keyboard 6 - Key 5 - Label':'S5'
+    'Number of Keyboards':'7',
+    'Max Keyboard Polyphony':'0',
+    'Rounding Mode':'2',
+    'Keyboard 0 - Number of Keys':'14',
+    'Keyboard 1 - Number of Keys':'14',
+    'Keyboard 2 - Number of Keys':'14',
+    'Keyboard 3 - Number of Keys':'14',
+    'Keyboard 4 - Number of Keys':'14',
+    'Keyboard 5 - Number of Keys':'14',
+    'Keyboard 6 - Number of Keys':'6',
+    'Keyboard 0 - Lowest Key':'52',
+    'Keyboard 1 - Lowest Key':'57',
+    'Keyboard 2 - Lowest Key':'62',
+    'Keyboard 3 - Lowest Key':'67',
+    'Keyboard 4 - Lowest Key':'71',
+    'Keyboard 5 - Lowest Key':'76',
+    'Keyboard 0 - Send Keyboard Freq':'1',
+    'Keyboard 1 - Send Keyboard Freq':'1',
+    'Keyboard 2 - Send Keyboard Freq':'1',
+    'Keyboard 3 - Send Keyboard Freq':'1',
+    'Keyboard 4 - Send Keyboard Freq':'1',
+    'Keyboard 5 - Send Keyboard Freq':'1',
+    'Keyboard 6 - Piano Keyboard':'0',
+    'Keyboard 6 - Send Key Status':'1',
+    'Keyboard 6 - Key 0 - Label':'S0',
+    'Keyboard 6 - Key 1 - Label':'S1',
+    'Keyboard 6 - Key 2 - Label':'S2',
+    'Keyboard 6 - Key 3 - Label':'S3',
+    'Keyboard 6 - Key 4 - Label':'S4',
+    'Keyboard 6 - Key 5 - Label':'S5'
 }";
 
 import("stdfaust.lib");
@@ -88,13 +88,13 @@ kb6kstatus(5) = hslider("kb6k5status",0,0,1,1) <: ==(1) | ==(4) : int;
 sl(i) = kbfreq(i)*kbbend(i) : pm.f2l : si.smoo;
 // pluck position is controlled by the x axis of the accel
 pluckPosition =
-	hslider("pluckPosition[acc: 1 0 -10 0 10]",0.5,0,1,0.01) : si.smoo;
+    hslider("pluckPosition[acc: 1 0 -10 0 10]",0.5,0,1,0.01) : si.smoo;
 
 // ASSEMBLING MODELS
 // number of strings
 nStrings = 6;
 guitar = par(i,nStrings,
-	kb6kstatus(i) : ba.impulsify : // using "raw" impulses to drive the models
-	pm.nylonGuitarModel(sl(i),pluckPosition)) :> _;
+    kb6kstatus(i) : ba.impulsify : // using "raw" impulses to drive the models
+    pm.nylonGuitarModel(sl(i),pluckPosition)) :> _;
 
 process = guitar <: _,_;

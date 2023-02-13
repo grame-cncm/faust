@@ -69,6 +69,8 @@ int main(int argc, char* argv[])
             runPolyDSP1(factory, linenum, nbsamples/4, 4);
             runPolyDSP1(factory, linenum, nbsamples/4, 1);
         }
+    
+        delete DSP;
     }
     
     // Test writeDSPFactoryToBitcodeFile/readDSPFactoryFromBitcodeFile
@@ -78,7 +80,7 @@ int main(int argc, char* argv[])
         if (!writeDSPFactoryToBitcodeFile(factory, str.str())) {
              cerr << "ERROR in writeDSPFactoryToBitcodeFile \n";
         }
-        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+        deleteDSPFactory(factory);
         factory = readDSPFactoryFromBitcodeFile(str.str(), "", error_msg);
         
         if (!factory) {
@@ -99,13 +101,15 @@ int main(int argc, char* argv[])
         runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
         runPolyDSP1(factory, linenum, nbsamples/4, 4);
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
+    
+        delete DSP;
     }
     
     // Test writeDSPFactoryToBitcode/readDSPFactoryFromBitcode
     {
         string error_msg;
         string factory_str = writeDSPFactoryToBitcode(factory);
-        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+        deleteDSPFactory(factory);
         factory = readDSPFactoryFromBitcode(factory_str, "", error_msg);
         
         if (!factory) {
@@ -126,6 +130,8 @@ int main(int argc, char* argv[])
         runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
         runPolyDSP1(factory, linenum, nbsamples/4, 4);
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
+    
+        delete DSP;
     }
    
     // Test writeDSPFactoryToIRFile/readDSPFactoryFromIRFile
@@ -135,7 +141,7 @@ int main(int argc, char* argv[])
         if (!writeDSPFactoryToIRFile(factory, str.str())) {
             cerr << "ERROR in writeDSPFactoryToIRFile \n";
         }
-        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+        deleteDSPFactory(factory);
         factory = readDSPFactoryFromIRFile(str.str(), "", error_msg);
         
         if (!factory) {
@@ -156,13 +162,15 @@ int main(int argc, char* argv[])
         runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
         runPolyDSP1(factory, linenum, nbsamples/4, 4);
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
+    
+        delete DSP;
     }
     
     // Test writeDSPFactoryToIR/readDSPFactoryFromIR
     {
         string error_msg;
         string factory_str = writeDSPFactoryToIR(factory);
-        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+        deleteDSPFactory(factory);
         factory = readDSPFactoryFromIR(factory_str, "", error_msg);
         
         if (!factory) {
@@ -183,6 +191,8 @@ int main(int argc, char* argv[])
         runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
         runPolyDSP1(factory, linenum, nbsamples/4, 4);
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
+    
+        delete DSP;
     }
     
     // Test writeDSPFactoryToMachineFile/readDSPFactoryFromMachineFile
@@ -192,7 +202,7 @@ int main(int argc, char* argv[])
         if (!writeDSPFactoryToMachineFile(factory, machine_file_name, "")) {
             cerr << "ERROR in writeDSPFactoryToMachineFile \n";
         }
-        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+        deleteDSPFactory(factory);
         factory = readDSPFactoryFromMachineFile(machine_file_name, "", error_msg);
         
         if (!factory) {
@@ -213,13 +223,15 @@ int main(int argc, char* argv[])
         runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
         runPolyDSP1(factory, linenum, nbsamples/4, 4);
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
+    
+        delete DSP;
     }
     
     // Test writeDSPFactoryToMachine/readDSPFactoryFromMachine
     {
         string error_msg;
         string factory_str = writeDSPFactoryToMachine(factory, "");
-        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+        deleteDSPFactory(factory);
         factory = readDSPFactoryFromMachine(factory_str, "", error_msg);
         
         if (!factory) {
@@ -240,6 +252,8 @@ int main(int argc, char* argv[])
         runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
         runPolyDSP1(factory, linenum, nbsamples/4, 4);
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
+    
+        delete DSP;
     }
     
     // Test expandDSPFromFile
@@ -248,6 +262,7 @@ int main(int argc, char* argv[])
         string error_msg;
         
         string expanded_dsp1 = expandDSPFromFile(argv[1], argc1, argv1, sha_key, error_msg);
+        deleteDSPFactory(factory);
         factory = createDSPFactoryFromString("FausDSP", expanded_dsp1, argc1, argv1, "", error_msg, 3);
     
         if (!factory) {
@@ -257,6 +272,7 @@ int main(int argc, char* argv[])
         
         // Second time to check [FIX] expand code related global variables moved in 'global' class. 
         string expanded_dsp2 = expandDSPFromFile(argv[1], argc1, argv1, sha_key, error_msg);
+        deleteDSPFactory(factory);
         factory = createDSPFactoryFromString("FausDSP", expanded_dsp2, argc1, argv1, "", error_msg, 3);
         
         if (!factory) {
@@ -277,6 +293,9 @@ int main(int argc, char* argv[])
         runDSP1(factory, argv[1], linenum, nbsamples/4, false, false, true);
         runPolyDSP1(factory, linenum, nbsamples/4, 4);
         runPolyDSP1(factory, linenum, nbsamples/4, 1);
+    
+        delete DSP;
+        deleteDSPFactory(factory);
     }
     
     return 0;

@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -31,10 +31,14 @@
 #include "llvm_dynamic_dsp_aux.hh"
 #include "llvm_instructions.hh"
 
+using namespace llvm;
+using namespace std;
+
 /*
  LLVM module description:
 
-- 'clone' method is implemented in the 'llvm_dsp' wrapping code
+ - 'clone' method is implemented in the 'llvm_dsp' wrapping code
+ - starting with LLVM 15, the LLVMInstVisitor::fVarTypes keeps association of address and types
 
  TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and destroy time
 */
@@ -117,18 +121,6 @@ CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInp
     return container;
 }
 
-PointerType* LLVMCodeContainer::generateDspStruct()
-{
-    // Generate DSP structure
-    LLVMTypeHelper type_helper(fModule);
-    generateDeclarations(&fStructVisitor);
-
-    DeclareStructTypeInst* dec_type = fStructVisitor.getStructType(fKlassName);
-  
-    LLVMType dsp_type = type_helper.convertFIRType(dec_type->fType);
-    return PointerType::get(dsp_type, 0);
-}
-
 void LLVMCodeContainer::generateFunMaps()
 {
     if (gGlobal->gFastMath) {
@@ -189,8 +181,12 @@ void LLVMCodeContainer::generateFunMap(const string& fun1_aux, const string& fun
 
 void LLVMCodeContainer::produceInternal()
 {
+    // Build DSP struct
+    generateDeclarations(&fStructVisitor);
+    DeclareStructTypeInst* dec_type = fStructVisitor.getStructType(fKlassName);
+
     // Generate DSP structure
-    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, generateDspStruct());
+    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, dec_type);
 
     /// Memory methods
     generateCalloc()->accept(fCodeProducer);
@@ -213,9 +209,13 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
 {
     // Generate gub containers
     generateSubContainers();
+    
+    // Build DSP struct
+    generateDeclarations(&fStructVisitor);
+    DeclareStructTypeInst* dec_type = fStructVisitor.getStructType(fKlassName);
 
     // Generate DSP structure
-    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, generateDspStruct());
+    fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, &fStructVisitor, dec_type);
 
     generateFunMaps();
 

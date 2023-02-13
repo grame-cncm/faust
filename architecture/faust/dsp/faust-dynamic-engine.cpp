@@ -173,7 +173,7 @@ struct dsp_aux {
     bool init2(const char* name, int sr, int bsize, int renderer)
     {
         switch (renderer) {
-         #ifdef HAS_JACK
+        #ifdef HAS_JACK
             case kJackRenderer:
                 fDriver = new jackaudio();
                 break;
@@ -233,7 +233,7 @@ static audio* createDriver()
 
 static jackaudio* getJackDriver(dsp* dsp_ext)
 {
-    return (dsp_ext) ? dynamic_cast<jackaudio*>(reinterpret_cast<dsp_aux*>(dsp_ext)->fDriver) : 0;
+    return (dsp_ext) ? dynamic_cast<jackaudio*>(reinterpret_cast<dsp_aux*>(dsp_ext)->fDriver) : nullptr;
 }
 #endif
 
@@ -252,7 +252,7 @@ extern "C"
         } else {
             int res = 0;
             audio* driver = createDriver();
-            if (driver && driver->init("dummy", 0)) {
+            if (driver && driver->init("dummy", nullptr)) {
                 res = driver->getNumInputs();
                 delete driver;
             }
@@ -271,7 +271,7 @@ extern "C"
         } else {
             int res = 0;
             audio* driver = createDriver();
-            if (driver && driver->init("dummy", 0)) {
+            if (driver && driver->init("dummy", nullptr)) {
                 res = driver->getNumInputs();
                 delete driver;
             }
@@ -287,12 +287,12 @@ extern "C"
     #if HAS_JACK
         jackaudio* driver1 = getJackDriver(dsp1_ext);
         jackaudio* driver2 = getJackDriver(dsp2_ext);
-        if (driver1 == NULL && driver2 == NULL) return;
+        if (driver1 == nullptr && driver2 == nullptr) return;
        
-        if (driver1 == NULL) {
+        if (driver1 == nullptr) {
             // Connnection with physical input
             driver2->connect(driver1, src, dst, true);
-        } else if (driver2 == NULL) {
+        } else if (driver2 == nullptr) {
             // Connnection with physical output
             driver1->connect(driver2, src, dst, false);
         } else {
@@ -307,12 +307,12 @@ extern "C"
     #if HAS_JACK
         jackaudio* driver1 = getJackDriver(dsp1_ext);
         jackaudio* driver2 = getJackDriver(dsp2_ext);
-        if (driver1 == NULL && driver2 == NULL) return;
+        if (driver1 == nullptr && driver2 == nullptr) return;
      
-        if (driver1 == NULL) {
+        if (driver1 == nullptr) {
             // Disconnnection with physical input
             driver2->disconnect(driver1, src, dst, true);
-        } else if (driver2 == NULL) {
+        } else if (driver2 == nullptr) {
             // Disconnnection with physical output
             driver1->disconnect(driver2, src, dst, false);
         } else {
@@ -327,12 +327,12 @@ extern "C"
     #if HAS_JACK
         jackaudio* driver1 = getJackDriver(dsp1_ext);
         jackaudio* driver2 = getJackDriver(dsp2_ext);
-        if (driver1 == NULL && driver2 == NULL) false;
+        if (driver1 == nullptr && driver2 == nullptr) false;
       
-        if (driver1 == NULL) {
+        if (driver1 == nullptr) {
             // Connection test with physical input
             return driver2->isConnected(driver1, src, dst, true);
-        } else if (driver2 == NULL) {
+        } else if (driver2 == nullptr) {
             // Connection test with physical output
             return driver1->isConnected(driver2, src, dst, false);
         } else {

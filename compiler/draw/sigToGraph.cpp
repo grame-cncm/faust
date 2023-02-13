@@ -4,16 +4,16 @@
  Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
  (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Lesser General Public License for more details.
 
- You should have received a copy of the GNU General Public License
+ You should have received a copy of the GNU Lesser General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 
+#include "interval.hh"
 #include "exception.hh"
 #include "sigToGraph.hh"
 #include "signals.hh"
@@ -109,7 +110,7 @@ static void recdraw(Tree sig, set<Tree>& drawn, ostream& fout)
                 for (int i = 0; i < n; i++) {
                     recdraw(subsig[i], drawn, fout);
                     fout << 'S' << subsig[i] << " -> " << 'S' << sig << "[" << edgeattr(getCertifiedSigType(subsig[i]))
-                         << "]" << endl;
+                         << "];" << endl;
                 }
             }
         }
@@ -141,7 +142,7 @@ static string edgeattr(Type t)
 {
     string sout(commonAttr(t));
     sout += " label =\"";
-    sout += t->getInterval().toString();
+    sout += t->getInterval().to_string();
     sout += ", ";
     sout += t->getRes().toString();
     sout += "\"";
@@ -226,7 +227,7 @@ static string sigLabel(Tree sig)
     else if (isSigSelect2(sig, sel, x, y)) {
         fout << "select2";
     }
-    
+
     else if (isSigGen(sig, x)) {
         fout << "generator";
     }
@@ -274,15 +275,15 @@ static string sigLabel(Tree sig)
         fout << "attach";
     }
 
-    else if (isSigAssertBounds(sig, x, y, z)){
+    else if (isSigAssertBounds(sig, x, y, z)) {
         fout << "assertbounds";
     }
 
-    else if (isSigLowest(sig, x)){
+    else if (isSigLowest(sig, x)) {
         fout << "lowest";
     }
-    
-    else if (isSigHighest(sig, x)){
+
+    else if (isSigHighest(sig, x)) {
         fout << "highest";
     }
 

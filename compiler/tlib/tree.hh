@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -25,44 +25,41 @@
 /** \file tree.hh
  * A tree library with hashconsing and maximal sharing capabilities.
  *
- * A tree library with hashconsing and maximal sharing capabilities.
- *
  * <b>API:</b>
  *
- * \li tree (n) 				: tree of node n with no branch
- * \li tree (n, t1) 			: tree of node n with a branch t
- * \li tree (n, t1,...,tm)		: tree of node n with m branches t1,...,tm
+ * \li tree (n)            : tree of node n with no branch
+ * \li tree (n, t1)        : tree of node n with a branch t
+ * \li tree (n, t1,...,tm) : tree of node n with m branches t1,...,tm
  *
  * <b>Useful conversions :</b>
  *
- * \li int 			tree2int (t)	: if t has a node of type int, return it otherwise error
- * \li float 		tree2float (t)	: if t has a node of type float, return it otherwise error
- * \li const char* 	tree2str (t)	: if t has a node of type symbol, return its name otherwise error
- * \li void* 		tree2ptr (t)	: if t has a node of type ptr, return it otherwise error
+ * \li int          tree2int (t)   : if t has a node of type int, return it otherwise error
+ * \li float        tree2float (t) : if t has a node of type float, return it otherwise error
+ * \li const char*  tree2str (t)   : if t has a node of type symbol, return its name otherwise error
+ * \li void*        tree2ptr (t)   : if t has a node of type ptr, return it otherwise error
  *
  * <b>Pattern matching :</b>
  *
- * \li if (isTree (t, n)) 		... 	: t has node n and no branches;
- * \li if (isTree (t, n, &t1)		... : t has node n and 1 branch, t1 is set accordingly;
- * \li if (isTree (t, n, &t1...&tm)...	: t has node n and m branches, ti's are set accordingly;
+ * \li if (isTree (t, n))           : t has node n and no branches;
+ * \li if (isTree (t, n, &t1)       : t has node n and 1 branch, t1 is set accordingly;
+ * \li if (isTree (t, n, &t1...&tm) : t has node n and m branches, ti's are set accordingly;
  *
  * <b>Accessors :</b>
  *
- * \li t->node()		: the node of t		{ return fNode; }
- * \li t->height() 		: lambda height such that H(x)=0, H(\x.e)=1+H(e), H(e*f)=max(H(e),H(f))
- * \li t->arity() 		: the number of branches of t { return fArity; }
- * \li t->branch(i) 	: the ith branch of t
+ * \li t->node()     : the node of t { return fNode; }
+ * \li t->height()   : lambda height such that H(x)=0, H(\x.e)=1+H(e), H(e*f)=max(H(e),H(f))
+ * \li t->arity()    : the number of branches of t { return fArity; }
+ * \li t->branch(i)  : the ith branch of t
  *
  * <b>Attributs :</b>
  *
- * \li t->attribut() 	: return the attribut (also a tree) of t
- * \li t->attribut(t')	: set the attribut of t to t'
- *
+ * \li t->attribut()   : return the attribute (also a tree) of t
+ * \li t->attribut(t') : set the attribute of t to t'
  *
  * <b>Properties:</b>
  *
  * If p and q are two CTree pointers :
- * 		p != q  <=>  *p != *q
+ *     p != q <=> *p != *q
  *
  **/
 
@@ -85,11 +82,10 @@
 class CTree;
 typedef CTree* Tree;
 
-typedef map<Tree, Tree> plist;
-typedef vector<Tree>    tvec;
+typedef std::map<Tree, Tree> plist;
+typedef std::vector<Tree>    tvec;
 
 /**
- * A CTree = (Node x [CTree]) is a Node associated with a list of subtrees called branches.
  * A CTree = (Node x [CTree]) is the association of a content Node and a list of subtrees
  * called branches. In order to maximize the sharing of trees, hashconsing techniques are used.
  * Ctrees at different addresses always have a different content. A first consequence of this
@@ -102,18 +98,19 @@ typedef vector<Tree>    tvec;
  * a deBruijn representation and progressively build a classical representation such that
  * alpha-equivalent recursive CTrees are necesseraly identical (and therefore shared).
  *
- * WARNING : in the current implementation CTrees are allocated but never deleted
+ * WARNING : in the current implementation CTrees are allocated but never deleted.
  **/
 
-class CTree : public virtual Garbageable {
+class LIBFAUST_API CTree : public virtual Garbageable {
    private:
     static const int kHashTableSize = 400009;     ///< size of the hash table (prime number)
     static size_t    gSerialCounter;              ///< the serial number counter
     static Tree      gHashTable[kHashTableSize];  ///< hash table used for "hash consing"
 
    public:
+    
     static bool         gDetails;    ///< Ctree::print() print with more details when true
-    static unsigned int gVisitTime;  ///< Should be incremented for each new visit to keep track of visited tree.
+    static unsigned int gVisitTime;  ///< Should be incremented for each new visit to keep track of visited tree
 
    private:
     // fields
@@ -151,7 +148,7 @@ class CTree : public virtual Garbageable {
     void        setAperture(int a) { fAperture = a; }   ///< modify the aperture of a tree
 
     // Print a tree and the hash table (for debugging purposes)
-    ostream&    print(ostream& fout) const;  ///< print recursively the content of a tree on a stream
+    std::ostream&    print(std::ostream& fout) const;  ///< print recursively the content of a tree on a stream
     static void control();                   ///< print the hash table content (for debug purpose)
 
     static void init();
@@ -164,7 +161,7 @@ class CTree : public virtual Garbageable {
     static void startNewVisit() { ++gVisitTime; }
     bool        isAlreadyVisited() { return fVisitTime == gVisitTime; }
     void        setVisited()
-    { /*faustassert(fVisitTime!=gVisitTime);*/
+    {
         fVisitTime = gVisitTime;
     }
 
@@ -173,7 +170,7 @@ class CTree : public virtual Garbageable {
     void clearProperty(Tree key) { fProperties.erase(key); }
     void clearProperties() { fProperties = plist(); }
 
-    void exportProperties(vector<Tree>& keys, vector<Tree>& values);
+    void exportProperties(std::vector<Tree>& keys, std::vector<Tree>& values);
 
     Tree getProperty(Tree key)
     {
@@ -226,13 +223,13 @@ inline Tree tree(const Node& n, const tvec& br)
 }
 
 // useful conversions
-int         tree2int(Tree t);     ///< if t has a node of type int, return it otherwise error
+LIBFAUST_API int tree2int(Tree t); ///< if t has a node of type int, return it otherwise error
 double      tree2float(Tree t);   ///< if t has a node of type float, return it otherwise error
 double      tree2double(Tree t);  ///< if t has a node of type float, return it otherwise error
-const char* tree2str(Tree t);     ///< if t has a node of type symbol, return its name otherwise error
-string      tree2quotedstr(Tree t);
+LIBFAUST_API const char* tree2str(Tree t);     ///< if t has a node of type symbol, return its name otherwise error
+std::string tree2quotedstr(Tree t);
 void*       tree2ptr(Tree t);     ///< if t has a node of type ptr, return it otherwise error
-void*       getUserData(Tree t);  ///< if t has a node of type symbol, return the associated user data
+LIBFAUST_API void* getUserData(Tree t);  ///< if t has a node of type symbol, return the associated user data
 
 // pattern matching
 bool isTree(const Tree& t, const Node& n);
@@ -243,7 +240,7 @@ bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d);
 bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tree& e);
 
 // printing
-inline ostream& operator<<(ostream& s, const CTree& t)
+inline std::ostream& operator<<(std::ostream& s, const CTree& t)
 {
     return t.print(s);
 }
@@ -258,7 +255,7 @@ Tree rec(Tree body);           ///< create a de Bruijn recursive tree
 Tree rec(Tree id, Tree body);  ///< create a symbolic recursive tree
 
 bool isRec(Tree t, Tree& body);            ///< is t a de Bruijn recursive tree
-bool isRec(Tree t, Tree& id, Tree& body);  ///< is t a symbolic recursive tree
+LIBFAUST_API bool isRec(Tree t, Tree& id, Tree& body);  ///< is t a symbolic recursive tree
 
 // creation of recursive references
 
@@ -305,7 +302,7 @@ class Tabber {
         return *this;
     }
 
-    ostream& print(ostream& fout)
+    std::ostream& print(std::ostream& fout)
     {
         for (int i = 0; i < fIndent; i++) fout << '\t';
         fIndent += fPostInc;
@@ -315,7 +312,7 @@ class Tabber {
 };
 
 // printing
-inline ostream& operator<<(ostream& s, Tabber& t)
+inline std::ostream& operator<<(std::ostream& s, Tabber& t)
 {
     return t.print(s);
 }

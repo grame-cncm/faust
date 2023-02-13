@@ -33,14 +33,35 @@ else
     ARCHLIB="`pkg-config --cflags --libs alsa` -lpthread"
 fi
 
+echoHelp()
+{
+    usage faust2dummymem "[options] [Faust options] <file.dsp>"
+    platform MacOS
+    echo "Compiles Faust programs to dummy audio driver"
+    option
+    options -httpd -osc -midi
+    option "-nvoices <num>"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #PHASE 2 : dispatch command arguments
 while [ $1 ]
 do
     p=$1
-    if [ $p = "-osc" ]; then
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echoHelp
+    elif [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
-        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust"
         HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
     elif [ $p = "-nvoices" ]; then
         shift
@@ -51,12 +72,12 @@ do
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
 
 shift
 
@@ -66,21 +87,21 @@ done
 # compile the *.dsp files using dummy
 #
 for f in $FILES; do
-	
-	# compile faust to c++
-	faust -i -a $ARCHFILE -mem $OPTIONS "$f" -o "$f.cpp" || exit
 
-	# compile c++ to binary
-	(
-		$CXX $CXXFLAGS "$f.cpp" $OSCDEFS $HTTPDEFS $HTTPLIBS $POLYDEFS $MIDIDEFS $ARCHLIB -o "${f%.dsp}"
-		if [[ $(uname) == Darwin ]]; then
-		    codesign --sign - --deep --force "${f%.dsp}"
-		fi
-	) > /dev/null || exit
-	rm "$f.cpp"
+    # compile faust to c++
+    faust -i -a $ARCHFILE -mem $OPTIONS "$f" -o "$f.cpp" || exit
 
-	# collect binary file name for FaustWorks
-	BINARIES="$BINARIES${f%.dsp};"
+    # compile c++ to binary
+    (
+        $CXX $CXXFLAGS "$f.cpp" $OSCDEFS $HTTPDEFS $HTTPLIBS $POLYDEFS $MIDIDEFS $ARCHLIB -o "${f%.dsp}"
+        if [[ $(uname) == Darwin ]]; then
+            codesign --sign - --deep --force "${f%.dsp}"
+        fi
+    ) > /dev/null || exit
+    rm "$f.cpp"
+
+    # collect binary file name for FaustWorks
+    BINARIES="$BINARIES${f%.dsp};"
 done
 
 echo $BINARIES

@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -213,19 +213,26 @@ void routeSchema::drawInputArrows(device& dev)
  * Draw horizontal arrows from the input points to the
  * routeSchema rectangle
  */
+bool routeSchema::isValidRoute(int src, int dst) const
+{
+    return (src > 0) && (src <= (int)inputs()) && (dst > 0) && (dst <= (int)outputs());
+}
+
 void routeSchema::collectTraits(collector& c)
 {
     collectInputWires(c);
     collectOutputWires(c);
     // additional routing traits
     for (unsigned int i = 0; i < fRoutes.size() - 1; i += 2) {
-        int   src = fRoutes[i] - 1;
-        int   dst = fRoutes[i + 1] - 1;
-        point p1  = fInputPoint[src];
-        point p2  = fOutputPoint[dst];
-        // cerr << "add traits: " << p1.x << 'x' << p1.y << " -> " << p2.x << "x" << p2.y << endl;
-        double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
-        c.addTrait(trait(point(p1.x + dx, p1.y), point(p2.x - dx, p2.y)));
+        if (isValidRoute(fRoutes[i], fRoutes[i + 1])) {
+            int   src = fRoutes[i] - 1;
+            int   dst = fRoutes[i + 1] - 1;
+            point p1  = fInputPoint[src];
+            point p2  = fOutputPoint[dst];
+            // cerr << "add traits: " << p1.x << 'x' << p1.y << " -> " << p2.x << "x" << p2.y << endl;
+            double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
+            c.addTrait(trait(point(p1.x + dx, p1.y), point(p2.x - dx, p2.y)));
+        }
     }
 }
 

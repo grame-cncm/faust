@@ -4,16 +4,16 @@
     Copyright (C) 2016 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -25,15 +25,19 @@
 #include <string.h>
 #include <ostream>
 #include <string>
+#include <vector>
 
-#include "exception.hh"
-#include "export.hh"
+#include "faust/export.h"
 #include "faust/gui/CInterface.h"
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
 
-#define COMPILATION_OPTIONS_KEY "compilation_options"
-#define COMPILATION_OPTIONS "declare compilation_options    "
+#include "exception.hh"
+
+#define COMPILATION_OPTIONS_KEY "compile_options"
+#define COMPILATION_OPTIONS "declare compile_options "
+
+extern std::vector<std::string> gWarningMessages;
 
 /*
  In order to better separate compilation and execution for dynamic backends (LLVM, Interpreter, WebAssembly).
@@ -59,7 +63,9 @@ struct dsp_factory_base {
     virtual void        setDSPCode(const std::string& code) = 0;
     
     virtual std::string getCompileOptions() = 0;
-
+    
+    virtual std::vector<std::string> getWarningMessages() = 0;
+  
     virtual dsp* createDSPInstance(dsp_factory* factory) = 0;
 
     virtual void                setMemoryManager(dsp_memory_manager* manager) = 0;
@@ -78,9 +84,10 @@ struct dsp_factory_base {
 
 class dsp_factory_imp : public dsp_factory_base {
    protected:
-    std::string         fName;
-    std::string         fSHAKey;
-    std::string         fExpandedDSP;
+    std::string fName;
+    std::string fSHAKey;
+    std::string fExpandedDSP;
+    
     dsp_memory_manager* fManager;
 
    public:
@@ -115,7 +122,9 @@ class dsp_factory_imp : public dsp_factory_base {
     void        setDSPCode(const std::string& code) { fExpandedDSP = code; }
     
     virtual std::string getCompileOptions() { return ""; };
-
+    
+    virtual std::vector<std::string> getWarningMessages() { return gWarningMessages; }
+  
     virtual dsp* createDSPInstance(dsp_factory* factory)
     {
         faustassert(false);
@@ -177,16 +186,20 @@ class CTree;
 typedef CTree* Signal;
 typedef std::vector<Signal> tvec;
 
-dsp_factory_base* createFactory(const char* name, const char* input,
+dsp_factory_base* createFactory(const std::string& name_app,
+                                const std::string& dsp_content,
                                 int argc, const char* argv[],
                                 std::string& error_msg, bool generate);
 
-dsp_factory_base* createFactory(const char* name, tvec signals,
+dsp_factory_base* createFactory(const std::string& name_app,
+                                tvec signals,
                                 int argc, const char* argv[],
                                 std::string& error_msg);
 
-std::string expandDSP(int argc, const char* argv[], const char* name,
-                      const char* input, std::string& sha_key,
+std::string expandDSP(const std::string& name_app,
+                      const std::string& dsp_content,
+                      int argc, const char* argv[],
+                      std::string& sha_key,
                       std::string& error_msg);
 
 #endif

@@ -1,0 +1,7 @@
+declare version "2.50.2";
+declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/bs.dsp -o reference/bs.box";
+declare filename "bs.dsp";
+declare name "bs";
+ID_0 = \(x1).(\(x2).(((x1,(x2,fvariable(int count, <math.h>) : /) : +),x2 : <),(((x1,(x2,fvariable(int count, <math.h>) : /) : -),x2 : >),x2,(x1,(x2,fvariable(int count, <math.h>) : /) : -) : select2),(x1,(x2,fvariable(int count, <math.h>) : /) : +) : select2)) ~ _;
+ID_1 = 10 : ID_0;
+process = ID_1;

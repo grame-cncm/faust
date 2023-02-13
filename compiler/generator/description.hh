@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -36,29 +36,28 @@
 #include "tlib.hh"
 #include "uitree.hh"
 
-using namespace std;
+void extractMetadata(const std::string& fulllabel, std::string& label, std::map<std::string, std::set<std::string>>& metadata);
 
-void   extractMetadata(const string& fulllabel, string& label, map<string, set<string> >& metadata);
-string extractName(Tree fulllabel);
+LIBFAUST_API std::string extractName(Tree full_label);
 
 class Description : public virtual Garbageable {
-    string                    fName;
-    string                    fAuthor;
-    string                    fCopyright;
-    string                    fLicense;
-    string                    fVersion;
-    map<string, set<string> > fMetadata;
+    std::string fName;
+    std::string fAuthor;
+    std::string fCopyright;
+    std::string fLicense;
+    std::string fVersion;
+    std::map<std::string, std::set<std::string>> fMetadata;
 
-    string       fClassName;
-    int          fInputs;
-    int          fOutputs;
-    int          fWidgetID;
-    int          fActiveWidgetCount;
-    int          fPassiveWidgetCount;
-    list<string> fActiveLines;
-    list<string> fPassiveLines;
-    list<string> fLayoutLines;
-    list<int>    fLayoutTabs;
+    std::string fClassName;
+    int         fInputs;
+    int         fOutputs;
+    int         fWidgetID;
+    int         fActiveWidgetCount;
+    int         fPassiveWidgetCount;
+    std::list<std::string> fActiveLines;
+    std::list<std::string> fPassiveLines;
+    std::list<std::string> fLayoutLines;
+    std::list<int>         fLayoutTabs;
 
    public:
     Description()
@@ -70,33 +69,33 @@ class Description : public virtual Garbageable {
     {
     }
 
-    Description* name(const string& s)
+    Description* name(const std::string& s)
     {
         fName = s;
         return this;
     }
-    Description* author(const string& s)
+    Description* author(const std::string& s)
     {
         fAuthor = s;
         return this;
     }
-    Description* copyright(const string& s)
+    Description* copyright(const std::string& s)
     {
         fCopyright = s;
         return this;
     }
-    Description* license(const string& s)
+    Description* license(const std::string& s)
     {
         fLicense = s;
         return this;
     }
-    Description* version(const string& s)
+    Description* version(const std::string& s)
     {
         fVersion = s;
         return this;
     }
 
-    Description* className(const string& s)
+    Description* className(const std::string& s)
     {
         fClassName = s;
         return this;
@@ -111,25 +110,25 @@ class Description : public virtual Garbageable {
         fOutputs = n;
         return this;
     }
-    Description* declare(const string& key, const string& value)
+    Description* declare(const std::string& key, const std::string& value)
     {
         fMetadata[key].insert(value);
         return this;
     }
 
     void ui(Tree t);
-    void print(int n, ostream& fout);
+    void print(int n, std::ostream& fout);
 
    private:
     void addGroup(int level, Tree t);
     int  addWidget(Tree label, Tree varname, Tree sig);
 
-    void tab(int n, ostream& fout);
-    void addActiveLine(const string& l) { fActiveLines.push_back(l); }
-    void addPassiveLine(const string& l) { fPassiveLines.push_back(l); }
+    void tab(int n, std::ostream& fout);
+    void addActiveLine(const std::string& l) { fActiveLines.push_back(l); }
+    void addPassiveLine(const std::string& l) { fPassiveLines.push_back(l); }
     void addActiveMetadata(Tree label);
     void addPassiveMetadata(Tree label);
-    void addLayoutLine(int n, const string& l)
+    void addLayoutLine(int n, const std::string& l)
     {
         fLayoutTabs.push_back(n);
         fLayoutLines.push_back(l);

@@ -45,6 +45,8 @@ struct MemoryReader : public SoundfileReader {
     
     MemoryReader()
     {}
+    virtual ~MemoryReader()
+    {}
     
     /**
      * Check the availability of a sound resource.
@@ -53,7 +55,7 @@ struct MemoryReader : public SoundfileReader {
      *
      * @return true if the sound resource is available, false otherwise.
      */
-    virtual bool checkFile(const std::string& path_name) { return true; }
+    virtual bool checkFile(const std::string& path_name) override { return true; }
     
     /**
      * Get the channels and length values of the given sound resource.
@@ -63,7 +65,7 @@ struct MemoryReader : public SoundfileReader {
      * @param length - the length value to be filled with the sound resource length in frames
      *
      */
-    virtual void getParamsFile(const std::string& path_name, int& channels, int& length)
+    virtual void getParamsFile(const std::string& path_name, int& channels, int& length) override
     {
         channels = SOUND_CHAN;
         length = SOUND_LENGTH;
@@ -78,7 +80,7 @@ struct MemoryReader : public SoundfileReader {
      * @param max_chan - the maximum number of mono channels to fill
      *
      */
-    virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
+    virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan) override
     {
         soundfile->fLength[part] = SOUND_LENGTH;
         soundfile->fSR[part] = SOUND_SR;

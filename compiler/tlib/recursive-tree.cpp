@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -26,6 +26,9 @@
 #include "exception.hh"
 #include "global.hh"
 #include "tlib.hh"
+#include "faust/export.h"
+
+using namespace std;
 
 // Declaration of implementation
 static Tree calcDeBruijn2Sym(Tree t);
@@ -80,7 +83,7 @@ Tree rec(Tree var, Tree body)
     return t;
 }
 
-bool isRec(Tree t, Tree& var, Tree& body)
+bool LIBFAUST_API isRec(Tree t, Tree& var, Tree& body)
 {
     if (isTree(t, gGlobal->SYMREC, var)) {
         body = t->getProperty(gGlobal->RECDEF);
@@ -101,9 +104,9 @@ bool isRef(Tree t, Tree& v)
 }
 
 //-----------------------------------------------------------------------------------------
-// L'aperture d'un arbre est la plus profonde reference de Bruijn qu'il contienne.
-// Les references symboliques compte pour zero ce qui veut dire qu'un arbre d'aperture
-// 0 ne compte aucun reference de bruijn libres.
+// The aperture of a tree is the deepest deBruijn reference it contains.
+// Symbolic references count as zero which means that a tree with aperture
+// 0 has no free de bruijn references.
 
 int CTree::calcTreeAperture(const Node& n, const tvec& br)
 {
@@ -140,7 +143,7 @@ Tree lift(Tree t)
 
 void printSignal(Tree sig, FILE* out, int prec = 0);
 
-// lift (t) : increase free references by 1
+// lift(t) : increase free references by 1
 
 #if 0
 static Tree _liftn(Tree t, int threshold);
@@ -228,7 +231,8 @@ static Tree calcDeBruijn2Sym(Tree t)
         return t;
 
     } else if (isRef(t, i)) {
-        throw faustexception("ERROR : one Bruijn reference found !\n");
+        cerr << "ASSERT : one Bruijn reference found\n";
+        faustassert(false);
         return t;
 
     } else {
@@ -262,7 +266,7 @@ static Tree calcsubstitute(Tree t, int level, Tree id)
     Tree body;
 
     if (t->aperture() < level) {
-        //		fprintf(stderr, "aperture %d < level %d !!\n", t->aperture(), level);
+        // fprintf(stderr, "aperture %d < level %d !!\n", t->aperture(), level);
         return t;
     }
     if (isRef(t, l)) return (l == level) ? id : t;

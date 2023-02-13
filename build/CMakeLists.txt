@@ -3,7 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.40.6)
+set (VERSION 2.58.1)
 macro (get_major_minor_patch version)
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\1"  VERSION_MAJOR ${version} )
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\2"  VERSION_MINOR ${version} )
@@ -22,7 +22,7 @@ set (SRCDIR ${ROOT}/compiler)
 set (BINDIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
 set (LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/${LIBSDIR})
 
-set (CMAKE_CXX_STANDARD 11)
+set (CMAKE_CXX_STANDARD 17)
 
 #######################################
 # Output options
@@ -68,7 +68,7 @@ set (FAUST_INC ${SRCDIR}
 	${SRCDIR}/generator/julia
 	${SRCDIR}/generator/interpreter
 	${SRCDIR}/generator/rust
-	${SRCDIR}/generator/soul
+	${SRCDIR}/generator/cmajor
 	${SRCDIR}/normalize ${SRCDIR}/parallelize ${SRCDIR}/parser
 	${SRCDIR}/patternmatcher ${SRCDIR}/propagate ${SRCDIR}/signals
 	${SRCDIR}/tlib ${SRCDIR}/transform ${SRCDIR}/utils
@@ -105,7 +105,7 @@ endif()
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLLVM_VERSION="${LLVM_PACKAGE_VERSION}")
 
 	if("${LLVM_PACKAGE_VERSION}" VERSION_GREATER_EQUAL 10)
-        set (CMAKE_CXX_STANDARD 14)
+        set (CMAKE_CXX_STANDARD 17)
 	endif()
 endif()
 
@@ -136,6 +136,7 @@ if(APPLE)
 			set (CMAKE_OSX_ARCHITECTURES x86_64 arm64)
 			set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLLVM_BUILD_UNIVERSAL)
 		endif()
+		link_directories(/opt/local/lib)
 	endif()
 elseif(WIN32 OR MSYS)
 	if (NOT MSVC)
@@ -153,8 +154,9 @@ if (MSVC)
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DMSVisualStudio)
 else()
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLIBDIR="${LIBSDIR}")
-	set(CMAKE_CXX_FLAGS_DEBUG   "-g  -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
-	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual")
+	#set(CMAKE_CXX_FLAGS_DEBUG "-g -fsanitize=address -fno-omit-frame-pointer -fsanitize-address-use-after-scope -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
+	set(CMAKE_CXX_FLAGS_DEBUG "-g -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual -Wshadow")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -fvisibility=hidden -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -Wno-overloaded-virtual")
 endif()
 
 
@@ -167,8 +169,8 @@ if (INCLUDE_EXECUTABLE)
 	target_include_directories (faust PRIVATE ${FAUST_INC} ${LLVM_INC})
 	target_link_libraries (faust PRIVATE ${FAUST_LIBS})
 	scan_backends (faust COMPILER)
-	set_target_properties(faust  PROPERTIES
-		RUNTIME_OUTPUT_DIRECTORY ${BINDIR})
+	set_target_properties(faust PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${BINDIR})
+	set_target_properties(faust PROPERTIES COMPILE_FLAGS -DFAUST_EXE)
 	set (INSTALL_TARGETS faust)
 endif()
 
@@ -184,11 +186,11 @@ if (INCLUDE_STATIC)
 		ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
 		LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
 	if (MSVC)
-		set_target_properties(staticlib  PROPERTIES OUTPUT_NAME libfaust)
+		set_target_properties(staticlib PROPERTIES OUTPUT_NAME libfaust)
 	elseif (IOS)
 		set_target_properties(staticlib PROPERTIES OUTPUT_NAME faust.ios)
 	else()
-		set_target_properties(staticlib  PROPERTIES OUTPUT_NAME faust)
+		set_target_properties(staticlib PROPERTIES OUTPUT_NAME faust)
 	endif()
 	set_target_properties(staticlib PROPERTIES COMPILE_FLAGS -DFAUST_LIB
 		POSITION_INDEPENDENT_CODE ON)
@@ -208,18 +210,18 @@ if (INCLUDE_STATIC)
 
 endif()
 
-
 # dynamic faust library
 if (INCLUDE_DYNAMIC)
 	add_library(dynamiclib SHARED ${SRC} ${HH})
 	target_compile_definitions (dynamiclib PRIVATE ${FAUST_DEFINITIONS})
 	target_include_directories (dynamiclib PRIVATE ${FAUST_INC} ${LLVM_INC})
+	# set (FAUST_LIBS /usr/local/lib/libmir.a ${FAUST_LIBS})
 	target_link_libraries (dynamiclib PRIVATE ${FAUST_LIBS})
 	if (WIN32 OR MSYS)
 		enable_language(RC)
 		set_target_properties(dynamiclib PROPERTIES
-			ARCHIVE_OUTPUT_DIRECTORY  ${LIBDIR}
-			RUNTIME_OUTPUT_DIRECTORY  ${LIBDIR})
+			ARCHIVE_OUTPUT_DIRECTORY ${LIBDIR}
+			RUNTIME_OUTPUT_DIRECTORY ${LIBDIR})
 		set_target_properties(dynamiclib PROPERTIES OUTPUT_NAME faust)
 		target_sources (faust PRIVATE ${ROOT}/windows/faust.rc)
 		target_sources (dynamiclib PRIVATE ${ROOT}/windows/faustdll.rc)
@@ -240,7 +242,7 @@ if (INCLUDE_DYNAMIC)
 #	set (INSTALL_TARGETS ${INSTALL_TARGETS} dynamiclib)
 endif()
 
-#self contained library
+# self contained library
 if (SELF_CONTAINED_LIBRARY)
 	add_definitions( -DFAUST_SELF_CONTAINED_LIB )
 endif()
@@ -321,7 +323,6 @@ install (
 endif()
 
 
-
 ####################################
 # install headers
 install (
@@ -333,7 +334,7 @@ install (
     PATTERN "*.o" EXCLUDE
 )
 install (
-    FILES     ${ARCHINC}/misc.h ${ARCHINC}/sound-file.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust
+    FILES     ${ARCHINC}/misc.h ${ARCHINC}/sound-file.h ${ARCHINC}/export.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 install (
@@ -416,7 +417,7 @@ install (
 )
 
 # install folders
-set (ARCHSRC android api AU audiokit daisy esp32 iOS juce julia soul max-msp nodejs osclib sam smartKeyboard teensy unity vcvrack webaudio)
+set (ARCHSRC android api AU audiokit daisy esp32 iOS juce julia cmajor max-msp nodejs osclib sam smartKeyboard teensy unity vcvrack webaudio)
 foreach (dir ${ARCHSRC})
 	set(ARCHFOLDERS ${ARCHFOLDERS} ${ARCHDIR}/${dir})
 endforeach()

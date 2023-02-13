@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -27,7 +27,9 @@
 #include "text_instructions.hh"
 #include "struct_manager.hh"
 
-using namespace std;
+/**
+ * Implement C FIR visitor.
+ */
 
 class CInstVisitor : public TextInstVisitor {
    private:
@@ -35,17 +37,17 @@ class CInstVisitor : public TextInstVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
      */
-    static map<string, bool> gFunctionSymbolTable;
+    static std::map<std::string, bool> gFunctionSymbolTable;
 
     // Polymorphic math functions
-    map<string, string> gPolyMathLibTable;
+    std::map<std::string, std::string> gPolyMathLibTable;
     
-    string cast2FAUSTFLOAT(const string& str) { return "(FAUSTFLOAT)" + str; }
+    std::string cast2FAUSTFLOAT(const std::string& str) { return "(FAUSTFLOAT)" + str; }
     
    public:
     using TextInstVisitor::visit;
 
-    CInstVisitor(std::ostream* out, const string& struct_name, int tab = 0)
+    CInstVisitor(std::ostream* out, const std::string& struct_name, int tab = 0)
         : TextInstVisitor(out, "->", new CStringTypeManager(xfloat(), "*", struct_name), tab)
     {
         // Mark all math.h functions as generated...
@@ -154,7 +156,7 @@ class CInstVisitor : public TextInstVisitor {
 
     virtual void visit(OpenboxInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fOrient) {
             case OpenboxInst::kVerticalBox:
                 name = "ui_interface->openVerticalBox(";
@@ -178,7 +180,7 @@ class CInstVisitor : public TextInstVisitor {
     
     virtual void visit(AddButtonInst* inst)
     {
-        string name;
+        std::string name;
         if (inst->fType == AddButtonInst::kDefaultButton) {
             name = "ui_interface->addButton(";
         } else {
@@ -190,7 +192,7 @@ class CInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSliderInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
                 name = "ui_interface->addHorizontalSlider(";
@@ -212,7 +214,7 @@ class CInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddBargraphInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
                 name = "ui_interface->addHorizontalBargraph(";
@@ -287,6 +289,7 @@ class CInstVisitor : public TextInstVisitor {
         size_t size = inst->fType->fArgsTypes.size(), i = 0;
         for (const auto& it : inst->fType->fArgsTypes) {
             // Pointers are set with 'noalias' for non paired arguments, which are garantied to be unique
+            // TODO: better associate a proper kNoalias atribute at FIR creation time
             if (isPtrType(it->getType()) && !inst->fType->isPairedFunArg(it->fName)) {
                 *fOut << fTypeManager->generateType(it, NamedTyped::kNoalias);
             } else {
@@ -314,11 +317,10 @@ class CInstVisitor : public TextInstVisitor {
     {
         // Special case for 'logical right-shift'
         if (strcmp(gBinOpTable[inst->fOpcode]->fName, ">>>") == 0) {
-            TypingVisitor typing;
-            inst->fInst1->accept(&typing);
-            if (isInt64Type(typing.fCurType)) {
+            Typed::VarType type = TypingVisitor::getType(inst->fInst1);
+            if (isInt64Type(type)) {
                 *fOut << "((int64_t)((uint64_t)";
-            } else if (isInt32Type(typing.fCurType)) {
+            } else if (isInt32Type(type)) {
                 *fOut << "((int32_t)(uint32_t)";
             } else {
                 faustassert(false);
@@ -383,7 +385,7 @@ class CInstVisitor : public TextInstVisitor {
     // Generate standard funcall (not 'method' like funcall...)
     virtual void visit(FunCallInst* inst)
     {
-        string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
+        std::string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
         *fOut << gGlobal->getMathFunction(name) << "(";
 
         // Compile parameters
@@ -451,7 +453,10 @@ class CInstVisitor : public TextInstVisitor {
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 
-// Used for -os1 mode (TODO : does not work with 'soundfile')
+/**
+ Implement C FIR visitor: used for -os1 mode (TODO : does not work with 'soundfile').
+ */
+
 class CInstVisitor1 : public CInstVisitor {
     
     private:
@@ -461,7 +466,7 @@ class CInstVisitor1 : public CInstVisitor {
     
     public:
     
-        CInstVisitor1(std::ostream* out, const string& structname, int tab = 0)
+        CInstVisitor1(std::ostream* out, const std::string& structname, int tab = 0)
         :CInstVisitor(out, structname, tab)
         {}
     
@@ -474,7 +479,7 @@ class CInstVisitor1 : public CInstVisitor {
         virtual void visit(DeclareVarInst* inst)
         {
             Address::AccessType access = inst->fAddress->getAccess();
-            string name = inst->fAddress->getName();
+            std::string name = inst->fAddress->getName();
             if (((access & Address::kStruct) || (access & Address::kStaticStruct)) && !isControl(name)) {
                 fStructVisitor.visit(inst);
             } else {
@@ -485,7 +490,7 @@ class CInstVisitor1 : public CInstVisitor {
         virtual void visit(NamedAddress* named)
         {
             Typed::VarType type;
-            string name = named->getName();
+            std::string name = named->getName();
             
             if (fStructVisitor.hasField(name, type)) {
                 if (type == Typed::kInt32) {
@@ -503,14 +508,14 @@ class CInstVisitor1 : public CInstVisitor {
         virtual void visit(IndexedAddress* indexed)
         {
             Typed::VarType type;
-            string name = indexed->getName();
+            std::string name = indexed->getName();
             
             if (fStructVisitor.hasField(name, type)) {
                 if (type == Typed::kInt32) {
-                    FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
+                    FIRIndex value = FIRIndex(indexed->getIndex()) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
                     InstBuilder::genLoadArrayFunArgsVar("iZone", value)->accept(this);
                 } else {
-                    FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
+                    FIRIndex value = FIRIndex(indexed->getIndex()) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
                     InstBuilder::genLoadArrayFunArgsVar("fZone", value)->accept(this);
                 }
             } else {
@@ -524,7 +529,10 @@ class CInstVisitor1 : public CInstVisitor {
    
 };
 
-// Used for -os2 mode, accessing iZone/fZone as function args (TODO : does not work with 'soundfile')
+/**
+ Implement C FIR visitor: used for -os2 mode, accessing iZone/fZone as function args (TODO : does not work with 'soundfile').
+ */
+
 class CInstVisitor2 : public CInstVisitor {
     
     protected:
@@ -534,14 +542,14 @@ class CInstVisitor2 : public CInstVisitor {
          
     public:
         
-        CInstVisitor2(std::ostream* out, const string& structname, int external_memory, int tab = 0)
+        CInstVisitor2(std::ostream* out, const std::string& structname, int external_memory, int tab = 0)
         :CInstVisitor(out, structname, tab), fStructVisitor(external_memory, 4)
         {}
         
         virtual void visit(DeclareVarInst* inst)
         {
             Address::AccessType access = inst->fAddress->getAccess();
-            string name = inst->fAddress->getName();
+            std::string name = inst->fAddress->getName();
             if (((access & Address::kStruct) || (access & Address::kStaticStruct)) && !isControl(name)) {
                 fStructVisitor.visit(inst);
                 // Local fields have to be generated
@@ -556,14 +564,14 @@ class CInstVisitor2 : public CInstVisitor {
         virtual void visit(IndexedAddress* indexed)
         {
             Typed::VarType type;
-            string name = indexed->getName();
+            std::string name = indexed->getName();
             
             if (fStructVisitor.hasField(name, type) && fStructVisitor.getFieldMemoryType(name) == MemoryDesc::kExternal) {
                 if (type == Typed::kInt32) {
-                    FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
+                    FIRIndex value = FIRIndex(indexed->getIndex()) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
                     InstBuilder::genLoadArrayFunArgsVar("iZone", value)->accept(this);
                 } else {
-                    FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
+                    FIRIndex value = FIRIndex(indexed->getIndex()) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
                     InstBuilder::genLoadArrayFunArgsVar("fZone", value)->accept(this);
                 }
             } else {
@@ -577,26 +585,29 @@ class CInstVisitor2 : public CInstVisitor {
     
 };
 
-// Used for -os3 mode, accessing iZone/fZone in DSP struct (TODO : does not work with 'soundfile')
+/**
+ Implement C FIR visitor: used for -os3 mode, accessing iZone/fZone in DSP struct (TODO : does not work with 'soundfile').
+ */
+
 class CInstVisitor3 : public CInstVisitor2 {
     
     public:
         
-        CInstVisitor3(std::ostream* out, const string& structname, int external_memory, int tab = 0)
+        CInstVisitor3(std::ostream* out, const std::string& structname, int external_memory, int tab = 0)
         :CInstVisitor2(out, structname, external_memory, tab)
         {}
          
         virtual void visit(IndexedAddress* indexed)
         {
             Typed::VarType type;
-            string name = indexed->getName();
+            std::string name = indexed->getName();
             
             if (fStructVisitor.hasField(name, type) && fStructVisitor.getFieldMemoryType(name) == MemoryDesc::kExternal) {
                 if (type == Typed::kInt32) {
-                    FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
+                    FIRIndex value = FIRIndex(indexed->getIndex()) + fStructVisitor.getFieldIntOffset(name)/sizeof(int);
                     InstBuilder::genLoadArrayStructVar("iZone", value)->accept(this);
                 } else {
-                    FIRIndex value = FIRIndex(indexed->fIndex) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
+                    FIRIndex value = FIRIndex(indexed->getIndex()) + fStructVisitor.getFieldRealOffset(name)/ifloatsize();
                     InstBuilder::genLoadArrayStructVar("fZone", value)->accept(this);
                 }
             } else {

@@ -78,7 +78,7 @@ class JuceOSCUI : private juce::OSCReceiver, private juce::OSCReceiver::Listener
             
             for (int i = 0; i < message.size(); ++i) {
                 if (message[i].isFloat32()) {
-                    fAPIUI.setParamValue(fAPIUI.getParamIndex(address.toStdString().c_str()), FAUSTFLOAT(message[i].getFloat32()));
+                    fAPIUI.setParamValue(address.toStdString().c_str(), FAUSTFLOAT(message[i].getFloat32()));
                     // "get" message with correct address
                 } else if (message[i].isString()
                            && message[i].getString().equalsIgnoreCase("get")

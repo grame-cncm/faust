@@ -59,8 +59,8 @@ static string replaceChar(string str, char src, char dst)
 template <typename REAL>
 static vector<string> bench(dsp_optimizer_real<REAL> optimizer, const string& name)
 {
-    tuple<double, double, TOption> res = optimizer.findOptimizedParameters();
-    return get<2>(res);
+    tuple<double, double, double, TOption> res = optimizer.findOptimizedParameters();
+    return get<3>(res);
 }
 
 int main(int argc, char* argv[])

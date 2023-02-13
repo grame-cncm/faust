@@ -78,7 +78,7 @@ echo " updating $MAKERELEASE"
 sed "s/^SET VERSION=[0-9].*/SET VERSION=$VERSION/" $MAKERELEASE > TMP$$
 mv TMP$$ $MAKERELEASE
 
-FAUST=$ROOT/compiler/generator/export.hh
+FAUST=$ROOT/architecture/faust/export.h
 echo " updating $FAUST"
 sed "s/FAUSTVERSION[ 	]\".*\"/FAUSTVERSION \"$VERSION\"/" $FAUST > TMP$$
 mv -f TMP$$ $FAUST
@@ -117,6 +117,11 @@ DOXYFILE3=$ROOT/documentation/libfaustremote/Doxyfile
 echo " updating $DOXYFILE3"
 sed "s/PROJECT_NUMBER         = [ 	]*[0-9].*/PROJECT_NUMBER         = $VERSION/" $DOXYFILE3 > TMP$$
 mv -f TMP$$ $DOXYFILE3
+
+DOXYFILE4=$ROOT/documentation/compiler/Doxyfile
+echo " updating $DOXYFILE4"
+sed "s/PROJECT_NUMBER         = [ 	]*[0-9].*/PROJECT_NUMBER         = $VERSION/" $DOXYFILE4 > TMP$$
+mv -f TMP$$ $DOXYFILE4
 
 make man
 

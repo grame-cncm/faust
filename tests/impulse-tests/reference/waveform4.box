@@ -1,0 +1,17 @@
+declare version "2.50.2";
+declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/waveform4.dsp -o reference/waveform4.box";
+declare filename "waveform4.dsp";
+declare name "waveform4";
+ID_0 = waveform{10,20,30,40,50,60,70};
+ID_1 = _, 7;
+ID_2 = (ID_1 : %);
+ID_3 = _, 3;
+ID_4 = (ID_3 : +);
+ID_5 = ID_2 ~ ID_4;
+ID_6 = ID_0, ID_5;
+ID_7 = (ID_6 : rdtable);
+ID_8 = waveform{1.1f,2.2f,3.3f,4.4f,5.5f,6.6f,7.7f};
+ID_9 = ID_8, ID_5;
+ID_10 = (ID_9 : rdtable);
+ID_11 = ID_7, ID_10;
+process = ID_11;

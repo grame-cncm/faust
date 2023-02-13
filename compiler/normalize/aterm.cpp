@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -123,13 +123,11 @@ static void addTermsWithSign(bool p1, Tree v1, bool p2, Tree v2, bool& p3, Tree&
 
 Tree aterm::normalizedTree() const
 {
-    // store positive and negative tems by order and sign
+    // store positive and negative terms by order and sign
     // positive terms are stored in P[]
     // negative terms are inverted (made positive) and stored in N[]
     Tree P[4], N[4];
-    bool hasPositiveTerm = false;
-    bool hasNegativeTerm = false;
-
+ 
     // prepare
     for (int order = 0; order < 4; order++) P[order] = N[order] = tree(0);
 
@@ -140,12 +138,10 @@ Tree aterm::normalizedTree() const
             Tree t          = m.normalizedTree(false, true);
             int  order      = getSigOrder(t);
             N[order]        = simplifyingAdd(N[order], t);
-            hasNegativeTerm = true;
         } else {
             Tree t          = m.normalizedTree();
             int  order      = getSigOrder(t);
             P[order]        = simplifyingAdd(P[order], t);
-            hasPositiveTerm = true;
         }
     }
 
@@ -165,10 +161,7 @@ Tree aterm::normalizedTree() const
     }
 
     if (!signe) {
-        AudioType* ty   = (AudioType*)SUM->getType();
-        Tree       zero = (ty && ty->nature() == kReal) ? sigReal(0.0) : sigInt(0);
-
-        SUM = sigSub(zero, SUM);
+        SUM = sigSub(sigInt(0), SUM);
     }
 #ifdef TRACE
     cerr << __LINE__ << ":" << __FUNCTION__ << "(" << *this << ") ---> " << ppsig(SUM) << endl;

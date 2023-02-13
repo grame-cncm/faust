@@ -296,7 +296,7 @@ class FaustPlugInAudioProcessor : public foleys::MagicProcessor, private juce::T
         JuceStateUI fStateUI;
         JuceParameterUI fParameterUI;
         
-        bool fIsPrepared = false;
+        std::atomic<bool> fFirstCall = true;
         
     private:
         
@@ -380,7 +380,7 @@ class FaustPlugInAudioProcessor : public juce::AudioProcessor, private juce::Tim
         JuceStateUI fStateUI;
         JuceParameterUI fParameterUI;
     
-        bool fIsPrepared = false;
+        std::atomic<bool> fFirstCall = true;
     
     private:
     
@@ -633,34 +633,43 @@ bool FaustPlugInAudioProcessor::supportsDoublePrecisionProcessing() const
 //==============================================================================
 void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // prepareToPlay may be called several times (like in VST3 context)
-    if (fIsPrepared) return;
-    
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need...
-    
-    fIsPrepared = true;
+    // Reset DSP adaptation
+    fFirstCall = true;
     
 #ifdef JUCE_POLY
     fSynth->setCurrentPlaybackSampleRate (sampleRate);
 #else
     
-    // Possible sample size adaptation
-    if (sizeof(FAUSTFLOAT) == 8) {
-        fDSP = std::make_unique<dsp_sample_adapter<FAUSTFLOAT, float>>(fDSP.release());
-    }
-    
-    // Possibly adapt DSP inputs/outputs number
-    if (fDSP->getNumInputs() > getTotalNumInputChannels() || fDSP->getNumOutputs() > getTotalNumOutputChannels()) {
-        fDSP = std::make_unique<dsp_adapter>(fDSP.release(), getTotalNumInputChannels(), getTotalNumOutputChannels(), 4096);
-    }
-   
     // Setting the DSP control values has already been done
     // by 'buildUserInterface(&fStateUI)', using the saved values or the default ones.
     // What has to be done to finish the DSP initialization is done now.
     mydsp::classInit(int(sampleRate));
     fDSP->instanceConstants(int(sampleRate));
     fDSP->instanceClear();
+    
+    // Get latency metadata
+    struct LatencyMeta : public Meta {
+        
+        float fLatencyFrames = -1.f;
+        float fLatencySec = -1.f;
+        
+        void declare(const char* key, const char* value)
+        {
+            if (std::string(key) == "latency_frames" || std::string(key) == "latency_samples") {
+                fLatencyFrames = std::atof(value);
+            } else if (std::string(key) == "latency_sec") {
+                fLatencySec = std::atof(value);
+            }
+        }
+    };
+    
+    LatencyMeta meta;
+    fDSP->metadata(&meta);
+    if (meta.fLatencyFrames > 0) {
+        setLatencySamples(meta.fLatencyFrames);
+    } else if (meta.fLatencySec > 0) {
+        setLatencySamples(meta.fLatencySec * sampleRate);
+    }
     
 #endif
 #ifdef MAGIC_LEVEL_SOURCE
@@ -671,28 +680,47 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
 
 bool FaustPlugInAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-#ifdef JUCE_POLY
+    // Always return true and have the DSP adapts its buffer layout with a dsp_adapter (see 'prepareToPlay' and 'process')
     return true;
-#else
-    
-#if JucePlugin_IsSynth
-    // Stereo is supported
-    return (layouts.getMainOutputChannelSet().size() == 2) || (layouts.getMainOutputChannelSet().size() == fDSP->getNumOutputs());
-#else
-    // Stereo is supported
-    return
-    ((layouts.getMainInputChannelSet().size() == 2) && (layouts.getMainOutputChannelSet().size() == 2))
-    ||
-    ((layouts.getMainInputChannelSet().size() == fDSP->getNumInputs()) && (layouts.getMainOutputChannelSet().size() == fDSP->getNumOutputs()));
-#endif
-    
-#endif
 }
 
 template <typename FloatType>
 void FaustPlugInAudioProcessor::process (juce::AudioBuffer<FloatType>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
+    
+    /*
+        prepareToPlay is possibly called several times with different values for sampleRate
+        and isUsingDoublePrecision() state (this has been seen in particular with VTS3),
+        making proper sample format (float/double) and the inputs/outputs layout adaptation
+        more complex at this stage.
+        
+        So adapting the sample format (float/double) and the inputs/outputs layout is done
+        once at first process call even if this possibly allocates memory, which is not RT safe.
+    */
+    if (fFirstCall) {
+        fFirstCall = false;
+        
+        // Possible sample size adaptation
+        if (supportsDoublePrecisionProcessing()) {
+            if (isUsingDoublePrecision()) {
+                // Nothing to do
+            } else {
+                fDSP = std::make_unique<dsp_sample_adapter<double, float>>(fDSP.release());
+            }
+        } else {
+            if (isUsingDoublePrecision()) {
+                fDSP = std::make_unique<dsp_sample_adapter<float, double>>(fDSP.release());
+            } else {
+                // Nothing to do
+            }
+        }
+        
+        // Possibly adapt DSP inputs/outputs number
+        if (fDSP->getNumInputs() > getTotalNumInputChannels() || fDSP->getNumOutputs() > getTotalNumOutputChannels()) {
+            fDSP = std::make_unique<dsp_adapter>(fDSP.release(), getTotalNumInputChannels(), getTotalNumOutputChannels(), 4096);
+        }
+    }
     
 #ifdef JUCE_POLY
     fSynth->renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
@@ -738,7 +766,7 @@ void FaustPlugInAudioProcessor::setStateInformation (const void* data, int sizeI
     // whose contents will have been created by the getStateInformation() call.
     
     fStateUI.setStateInformation(data, sizeInBytes);
- }
+}
 #endif
 //==============================================================================
 // This creates new instances of the plugin..

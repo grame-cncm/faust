@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -23,12 +23,11 @@
 #define _SigType_
 
 #include <iostream>
-#include <string>
 #include <vector>
 #include "garbageable.hh"
-#include "interval.hh"
 #include "smartpointer.hh"
 #include "tree.hh"
+#include "interval.hh"
 
 /*********************************************************************
  *
@@ -48,7 +47,7 @@
 //--------------------------------------------------
 // simple types quality
 
-enum { kInt = 0, kReal = 1 };  ///< nature : integer or floating point values
+enum { kInt = 0, kReal = 1, kAny = 2 };  ///< nature : integer or floating point values
 enum {
     kNum  = 0,
     kBool = 1
@@ -72,11 +71,10 @@ enum {
 
 ----------------------------------------------------------------------*/
 
-using namespace std;
-
 class AudioType;
 
 typedef P<AudioType> Type;
+typedef const std::vector<Type>& ConstTypes;
 
 /**
  * The Root class for all audio data types.
@@ -87,14 +85,14 @@ typedef P<AudioType> Type;
 
 class AudioType : public virtual Garbageable {
    protected:
-    int      fNature;         ///< the kind of data represented
-    int      fVariability;    ///< how fast values change
-    int      fComputability;  ///< when are values available
-    int      fVectorability;  ///< when a signal can be vectorized
-    int      fBoolean;        ///< when a signal stands for a boolean value
-    interval fInterval;       ///< Minimal and maximal values the signal can take
-    res      fRes;            ///< Resolution (fixed-point)
-    Tree     fCode;           ///< Tree representation (for memoization purposes)
+    int           fNature;         ///< the kind of data represented
+    int           fVariability;    ///< how fast values change
+    int           fComputability;  ///< when are values available
+    int           fVectorability;  ///< when a signal can be vectorized
+    int           fBoolean;        ///< when a signal stands for a boolean value
+    itv::interval fInterval;       ///< Minimal and maximal values the signal can take
+    res           fRes;            ///< Resolution (fixed-point)
+    Tree          fCode;           ///< Tree representation (for memoization purposes)
 
    public:
     AudioType(int n, int v, int c, int vec = kVect, int b = kNum, interval i = interval(), res r = res());
@@ -125,7 +123,7 @@ class AudioType : public virtual Garbageable {
     virtual AudioType* promoteBoolean(int n)              = 0;  ///< promote the booleanity of a type
     virtual AudioType* promoteInterval(const interval& i) = 0;  ///< promote the interval of a type
 
-    virtual ostream& print(ostream& dst) const = 0;  ///< print nicely a type
+    virtual std::ostream& print(std::ostream& dst) const = 0;  ///< print nicely a type
     ///< true when type is maximal (and therefore can't change depending of hypothesis)
     virtual bool isMaximal() const = 0;
 
@@ -134,7 +132,7 @@ class AudioType : public virtual Garbageable {
 };
 
 // printing
-inline ostream& operator<<(ostream& s, const AudioType& n)
+inline std::ostream& operator<<(std::ostream& s, const AudioType& n)
 {
     return n.print(s);
 }
@@ -142,7 +140,7 @@ inline ostream& operator<<(ostream& s, const AudioType& n)
 /**
  * Return the nature of a vector of types.
  */
-inline int mergenature(const vector<Type>& v)
+inline int mergenature(ConstTypes v)
 {
     int r = 0;
     for (unsigned int i = 0; i < v.size(); i++) r |= v[i]->nature();
@@ -152,7 +150,7 @@ inline int mergenature(const vector<Type>& v)
 /**
  * Return the variability of a vector of types.
  */
-inline int mergevariability(const vector<Type>& v)
+inline int mergevariability(ConstTypes v)
 {
     int r = 0;
     for (unsigned int i = 0; i < v.size(); i++) r |= v[i]->variability();
@@ -162,7 +160,7 @@ inline int mergevariability(const vector<Type>& v)
 /**
  * Return the computability of a vector of types.
  */
-inline int mergecomputability(const vector<Type>& v)
+inline int mergecomputability(ConstTypes v)
 {
     int r = 0;
     for (unsigned int i = 0; i < v.size(); i++) r |= v[i]->computability();
@@ -172,7 +170,7 @@ inline int mergecomputability(const vector<Type>& v)
 /**
  * Return the vectorability of a vector of types.
  */
-inline int mergevectorability(const vector<Type>& v)
+inline int mergevectorability(ConstTypes v)
 {
     int r = 0;
     for (unsigned int i = 0; i < v.size(); i++) r |= v[i]->vectorability();
@@ -182,7 +180,7 @@ inline int mergevectorability(const vector<Type>& v)
 /**
  * Return the booleanity of a vector of types.
  */
-inline int mergeboolean(const vector<Type>& v)
+inline int mergeboolean(ConstTypes v)
 {
     int r = 0;
     for (unsigned int i = 0; i < v.size(); i++) r |= v[i]->boolean();
@@ -192,24 +190,16 @@ inline int mergeboolean(const vector<Type>& v)
 /**
  * Return the interval of a vector of types.
  */
-inline interval mergeinterval(const vector<Type>& v)
+inline interval mergeinterval(ConstTypes v)
 {
     if (v.size() == 0) {
         return interval();
     } else {
-        double lo = 0, hi = 0;
-        for (unsigned int i = 0; i < v.size(); i++) {
-            interval r = v[i]->getInterval();
-            if (!r.valid) return r;
-            if (i == 0) {
-                lo = r.lo;
-                hi = r.hi;
-            } else {
-                lo = min(lo, r.lo);
-                hi = max(hi, r.hi);
-            }
+        interval r = v[0]->getInterval();
+        for (unsigned int i = 1; i < v.size(); i++) {
+            r = itv::reunion(r, v[i]->getInterval());
         }
-        return interval(lo, hi);
+        return r;
     }
 }
 
@@ -220,8 +210,8 @@ AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i
 AudioType* makeTableType(const Type& ct);
 AudioType* makeTableType(const Type& ct, int n, int v, int c, int vec, int b, const interval& i);
 
-AudioType* makeTupletType(const vector<Type>& vt);
-AudioType* makeTupletType(const vector<Type>& vt, int n, int v, int c, int vec, int b, const interval& i);
+AudioType* makeTupletType(ConstTypes vt);
+AudioType* makeTupletType(ConstTypes vt, int n, int v, int c, int vec, int b, const interval& i);
 
 /**
  * The type of a simple numeric audio signal.
@@ -237,7 +227,7 @@ class SimpleType : public AudioType {
         // cerr << "new simple type " << i << " -> " << *this << endl;
     }  ///< constructs a SimpleType from a nature a variability and a computability
 
-    virtual ostream& print(ostream& dst) const;  ///< print a SimpleType
+    virtual std::ostream& print(std::ostream& dst) const;  ///< print a SimpleType
 
     virtual AudioType* promoteNature(int n)
     {
@@ -274,7 +264,7 @@ class SimpleType : public AudioType {
 inline Type intCast(Type t)
 {
     return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(), t->boolean(),
-                          t->getInterval());
+                          cast2int(t->getInterval()));
 }
 inline Type floatCast(Type t)
 {
@@ -352,7 +342,7 @@ class TableType : public AudioType {
        ///< vectorability
 
     Type             content() const { return fContent; }  ///< return the type of data store in the table
-    virtual ostream& print(ostream& dst) const;            ///< print a TableType
+    virtual std::ostream& print(std::ostream& dst) const;            ///< print a TableType
 
     virtual AudioType* promoteNature(int n)
     {
@@ -390,28 +380,29 @@ class TableType : public AudioType {
  */
 class TupletType : public AudioType {
    protected:
-    vector<Type> fComponents;
+    std::vector<Type> fComponents;
 
    public:
     TupletType() : AudioType(0, 0, 0) {}
 
-    TupletType(const vector<Type>& vt)
+    TupletType(ConstTypes vt)
         : AudioType(mergenature(vt), mergevariability(vt), mergecomputability(vt), mergevectorability(vt),
                     mergeboolean(vt), mergeinterval(vt)),
           fComponents(vt)
     {
     }
 
-    TupletType(const vector<Type>& vt, int n, int v, int c, int vec, int b, const interval& i)
+    TupletType(ConstTypes vt, int n, int v, int c, int vec, int b, const interval& i)
         : AudioType(n | mergenature(vt), v | mergevariability(vt), c | mergecomputability(vt),
                     vec | mergevectorability(vt), b | mergeboolean(vt), i),
           fComponents(vt)
     {
     }
 
-    int              arity() const { return (int)fComponents.size(); }
-    Type             operator[](unsigned int i) const { return fComponents[i]; }
-    virtual ostream& print(ostream& dst) const;
+    int arity() const { return (int)fComponents.size(); }
+    Type operator[](unsigned int i) const { return fComponents[i]; }
+    
+    virtual std::ostream& print(std::ostream& dst) const;
 
     virtual AudioType* promoteNature(int n)
     {
@@ -453,26 +444,6 @@ class TupletType : public AudioType {
 //-------------------------------------------------
 
 //--------------------------------------------------
-// list of predefined types
-
-extern Type TINT;
-extern Type TREAL;
-
-extern Type TKONST;
-extern Type TBLOCK;
-extern Type TSAMP;
-
-extern Type TCOMP;
-extern Type TINIT;
-extern Type TEXEC;
-
-extern Type TINPUT;
-extern Type TGUI;
-extern Type TGUI01;
-extern Type INT_TGUI;
-extern Type TREC;
-
-//--------------------------------------------------
 // types creation
 
 Type table(const Type& t);
@@ -512,10 +483,10 @@ TupletType* isTupletType(AudioType* t);
 //--------------------------------------------------
 // types impressions
 
-ostream& operator<<(ostream& dst, const SimpleType& t);
-ostream& operator<<(ostream& dst, const Type& t);
-ostream& operator<<(ostream& dst, const TableType& t);
-ostream& operator<<(ostream& dst, const TupletType& t);
+std::ostream& operator<<(std::ostream& dst, const SimpleType& t);
+std::ostream& operator<<(std::ostream& dst, const Type& t);
+std::ostream& operator<<(std::ostream& dst, const TableType& t);
+std::ostream& operator<<(std::ostream& dst, const TupletType& t);
 
 //--------------------------------------------------
 // type verification

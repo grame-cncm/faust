@@ -4,16 +4,16 @@
     Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -33,6 +33,8 @@
 #define audioPtrSize gGlobal->audioSampleSize()
 #define wasmBlockSize int(pow(2, 16))
 
+typedef std::map<std::string, int> PathTableType;
+
 /*
  wast/wasm module ABI:
 
@@ -43,14 +45,8 @@
 
 */
 
-inline int wasm_pow2limit(int x)
-{
-    int n = wasmBlockSize;  // Minimum = 64 kB
-    while (n < x) {
-        n = 2 * n;
-    }
-    return n;
-}
+// Minimum = 64 kB
+inline int wasm_pow2limit(int x) { return pow2limit(x, wasmBlockSize); }
 
 // DSP size + (inputs + outputs) * (fsize() + max_buffer_size * audioSampleSize), json_len
 inline int genMemSize(int struct_size, int channels, int json_len)
@@ -71,7 +67,7 @@ struct WASInst {
 
         MathFunDesc() {}
 
-        MathFunDesc(Gen mode, const string& name, WasmOp op, Typed::VarType type_in, Typed::VarType type_out, int args)
+        MathFunDesc(Gen mode, const std::string& name, WasmOp op, Typed::VarType type_in, Typed::VarType type_out, int args)
             : fMode(mode),
             fName(name),
             fWasmOp(op),
@@ -80,7 +76,7 @@ struct WASInst {
             fArgs(args)
         {}
 
-        MathFunDesc(Gen mode, const string& name, Typed::VarType type_in, Typed::VarType type_out, int args)
+        MathFunDesc(Gen mode, const std::string& name, Typed::VarType type_in, Typed::VarType type_out, int args)
             : fMode(mode),
             fName(name),
             fWasmOp(WasmOp::Dummy),
@@ -90,20 +86,19 @@ struct WASInst {
         {}
 
         Gen            fMode;
-        string         fName;
+        std::string    fName;
         WasmOp         fWasmOp;
         Typed::VarType fTypeIn;
         Typed::VarType fTypeOut;
         int            fArgs;
     };
 
-    TypingVisitor            fTypingVisitor;
-    map<string, bool>        fFunctionSymbolTable;  // Already generated functions
-    map<string, MathFunDesc> fMathLibTable;         // Table : field_name, math description
-    map<string, MemoryDesc>  fFieldTable;           // Table : field_name, { offset, size, type }
+    std::map<std::string, bool>        fFunctionSymbolTable;  // Already generated functions
+    std::map<std::string, MathFunDesc> fMathLibTable;         // Table : field_name, math description
+    std::map<std::string, MemoryDesc>  fFieldTable;           // Table : field_name, { offset, size, type }
 
     // To generate tee_local the first time the variable access is compiled, then local.get will be used
-    map<string, bool> fTeeMap;
+    std::map<std::string, bool> fTeeMap;
 
     int  fStructOffset;  // Keep the offset in bytes of the structure
     int  fSubContainerType;
@@ -199,19 +194,19 @@ struct WASInst {
     // The DSP size in bytes
     int getStructSize() { return fStructOffset; }
 
-    map<string, MemoryDesc>& getFieldTable() { return fFieldTable; }
+    std::map<std::string, MemoryDesc>& getFieldTable() { return fFieldTable; }
 
     // Check if address is constant, so that to be used as an 'offset' in load/store
     int getConstantOffset(Address* address)
     {
         static char* wasm_opt      = getenv("FAUST_WASM");
-        static bool  no_offset_opt = wasm_opt && (string(wasm_opt) == "no-offset");
+        static bool  no_offset_opt = wasm_opt && (std::string(wasm_opt) == "no-offset");
 
         if (!fFastMemory || no_offset_opt) {
             return 0;
         }
         
-        string name = address->getName();
+        std::string name = address->getName();
         NamedAddress*   named   = dynamic_cast<NamedAddress*>(address);
         IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address);
         
@@ -221,7 +216,7 @@ struct WASInst {
                 return tmp.fOffset;
             } else if (indexed) {
                 Int32NumInst* num;
-                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->getIndex()))) {
                     return tmp.fOffset + (num->fNum << offStrNum);
                 }
             }

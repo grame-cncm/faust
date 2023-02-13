@@ -47,9 +47,9 @@
 #define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
 
 /*
-faust -uim -a minimal-static.cpp noise.dsp -o noise.cpp && c++ noise.cpp -o noise && ./noise
-faust -uim -a minimal-static.cpp clarinetMIDI.dsp -o clarinetMIDI.cpp && c++ clarinetMIDI.cpp -o clarinetMIDI && ./clarinetMIDI
-faust -uim -a minimal-static.cpp vumeter.dsp -o vumeter.cpp && c++ vumeter.cpp -o vumeter && ./vumeter
+faust -uim -a minimal-static.cpp noise.dsp -o noise.cpp && c++ -std=c++11 noise.cpp -o noise && ./noise
+faust -uim -a minimal-static.cpp clarinetMIDI.dsp -o clarinetMIDI.cpp && c++ -std=c++11 clarinetMIDI.cpp -o clarinetMIDI && ./clarinetMIDI
+faust -uim -a minimal-static.cpp vumeter.dsp -o vumeter.cpp && c++ -std=c++11 vumeter.cpp -o vumeter && ./vumeter
 */
 
 /******************************************************************************

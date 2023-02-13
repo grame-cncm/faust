@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -33,41 +33,43 @@ class LogPrim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual ::Type infereSigType(const vector<::Type>& args)
+    virtual ::Type infereSigType(ConstTypes args)
     {
         faustassert(args.size() == arity());
         interval i = args[0]->getInterval();
-    
-        if (i.valid) {
+
+        if (i.isValid()) {
             // log(0) gives -INF but is still in the function domain
-            if (i.lo >= 0) {
-                return castInterval(floatCast(args[0]), interval(log(i.lo), log(i.hi)));
+            if (i.lo() >= 0) {
+                return castInterval(floatCast(args[0]), interval(log(i.lo()), log(i.hi())));
             } else if (gGlobal->gMathExceptions) {
-                cerr << "WARNING : potential out of domain in log(" << i << ")" << endl;
+                std::stringstream error;
+                error << "WARNING : potential out of domain in log(" << i << ")" << std::endl;
+                gWarningMessages.push_back(error.str());
             }
         }
         return floatCast(args[0]);
     }
 
-    virtual int infereSigOrder(const vector<int>& args)
+    virtual int infereSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
         return args[0];
     }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {
         num n;
         faustassert(args.size() == arity());
-    
+
         // log(exp(sig)) ==> sig
         xtended* xt = (xtended*)getUserData(args[0]);
         if (xt == gGlobal->gExpPrim) {
             return args[0]->branch(0);
         } else if (isNum(args[0], n)) {
             if (double(n) < 0) {
-                stringstream error;
-                error << "ERROR : out of domain log(" << ppsig(args[0]) << ")" << endl;
+                std::stringstream error;
+                error << "ERROR : out of domain in log(" << ppsig(args[0], MAX_ERROR_SIZE) << ")" << std::endl;
                 throw faustexception(error.str());
             } else {
                 return tree(log(double(n)));
@@ -77,21 +79,15 @@ class LogPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, list<ValueInst*>& args, ::Type result,
-                                    vector< ::Type> const& types)
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
-        Typed::VarType         result_type;
-        vector<Typed::VarType> arg_types;
-        list<ValueInst*>       casted_args;
-        prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
-
-        return container->pushFunction(subst("log$0", isuffix()), result_type, arg_types, casted_args);
+        return generateFun(container, subst("log$0", isuffix()), args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, const vector<::Type>& types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -99,7 +95,7 @@ class LogPrim : public xtended {
         return subst("log$1($0)", args[0], isuffix());
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<::Type>& types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

@@ -4,16 +4,16 @@
     Copyright (C) 2021 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -22,8 +22,9 @@
 #ifndef SHA_KEY_H
 #define SHA_KEY_H
 
-#include "export.hh"
-#include "stdint.h"
+#include <stdint.h>
+
+#include "faust/export.h"
 
 /*
  SHA-1 in C (see: https://github.com/clibs/sha1/blob/master/sha1.h)
@@ -274,7 +275,7 @@ inline void SHA1(char* hash_out, const char* str, unsigned int len)
 
 // External C++ libfaust API
 
-EXPORT std::string generateSHA1(const std::string& data)
+LIBFAUST_API std::string generateSHA1(const std::string& data)
 {
     SHA1_CTX ctx;
     unsigned char obuf[20] = {0};
@@ -297,7 +298,7 @@ EXPORT std::string generateSHA1(const std::string& data)
 
 // External C libfaust API
 
-extern "C" EXPORT void generateCSHA1(const char* data, char* sha_key)
+extern "C" FAUST_API void generateCSHA1(const char* data, char* sha_key)
 {
     SHA1_CTX ctx;
     unsigned char obuf[20] = {0};

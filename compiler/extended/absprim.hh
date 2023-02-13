@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -35,27 +35,32 @@ class AbsPrim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual ::Type infereSigType(const vector<::Type>& types)
+    virtual ::Type infereSigType(ConstTypes args)
     {
-        faustassert(types.size() == arity());
-        Type t = types[0];
+        faustassert(args.size() == arity());
+        Type t = args[0];
         return castInterval(t, abs(t->getInterval()));
         return t;
     }
 
-    virtual int infereSigOrder(const vector<int>& args)
+    virtual int infereSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
         return args[0];
     }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {
         double f;
         int    i;
         faustassert(args.size() == arity());
-    
-        if (isDouble(args[0]->node(), &f)) {
+
+        // abs(abs(sig)) ==> abs(sig)
+        xtended* xt = (xtended*)getUserData(args[0]);
+        if (xt == gGlobal->gAbsPrim) {
+            return args[0];
+
+        } else if (isDouble(args[0]->node(), &f)) {
             return tree(fabs(f));
 
         } else if (isInt(args[0]->node(), &i)) {
@@ -66,53 +71,39 @@ class AbsPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, list<ValueInst*>& args, ::Type result,
-                                    vector<::Type> const& types)
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
 
-        Typed::VarType         result_type;
-        vector<Typed::VarType> arg_types;
-
-        ::Type t = infereSigType(types);
-        interval i = types[0]->getInterval();
-     
         /*
-         04/25/22 : this optimisation cannot be done because interval computation is buggy: like no.noise interval [O..inf] !
+         04/25/22 : this optimisation cannot be done because interval computation is buggy: like no.noise interval
+         [O..inf] !
          */
-    
+
         /*
-            if (i.valid && i.lo >= 0) {
+            if (i.isValid() && i.lo() >= 0) {
                 return *args.begin();
             } else {
                 // Only compute abs when arg is < 0
                 if (t->nature() == kReal) {
-                    list<ValueInst*> casted_args;
-                    prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
-                    return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, casted_args);
+                    Values cargs;
+                    prepareTypeArgsResult(result, args, types, rtype, atypes, cargs);
+                    return container->pushFunction(subst("fabs$0", isuffix()), rtype, atypes, cargs);
                 } else {
                     // "Int" abs
-                    result_type = Typed::kInt32;
-                    arg_types.push_back(Typed::kInt32);
-                    return container->pushFunction("abs", result_type, arg_types, args);
+                    rtype = Typed::kInt32;
+                    atypes.push_back(Typed::kInt32);
+                    return container->pushFunction("abs", rtype, atypes, args);
                 }
             }
         */
-    
-        if (t->nature() == kReal) {
-            list<ValueInst*> casted_args;
-            prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
-            return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, casted_args);
-        } else {
-            // "Int" abs
-            result_type = Typed::kInt32;
-            arg_types.push_back(Typed::kInt32);
-            return container->pushFunction("abs", result_type, arg_types, args);
-        }
+
+        std::string fun_name = (result->nature() == kInt) ? "abs" : subst("fabs$0", isuffix());
+        return generateFun(container, fun_name, args, result, types);
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, const vector<::Type>& types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -125,7 +116,7 @@ class AbsPrim : public xtended {
         }
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<::Type>& types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

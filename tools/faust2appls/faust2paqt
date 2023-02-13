@@ -19,6 +19,27 @@ if [[ $(uname -s) != Darwin ]]; then
     LFLAGS+="-no-pie"
 fi
 
+echoHelp()
+{
+    usage faust2paqt "[options] [Faust options] <file.dsp>"
+    require PortAudio, QT
+    echo "Compiles Faust programs to PortAudio and QT"
+    option
+    options -httpd -osc -midi -qrcode
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option -nodeploy
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
 
@@ -44,20 +65,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2paqt "[options] [Faust options] <file.dsp>"
-        require PortAudio, Qt
-        echo "Compiles Faust programs to PortAudio and QT"
-        option
-        options -httpd -osc -midi -qrcode
-        option "-nvoices <num>"
-        option "-effect <effect.dsp>"
-        option "-effect auto"
-        option -nodeploy
-        option "Faust options"
-        exit
-    fi
-    
-    if [ $p = "-nvoices" ]; then
+       echoHelp
+    elif [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
         if [ $NVOICES -ge 0 ]; then
@@ -75,7 +84,7 @@ do
          OSCLIBS="-lOSCFaust"
     elif [ "$p" = "-httpd" ]; then
         HTTPDEFS="DEFINES += HTTPCTRL"
-        HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+        HTTPLIBS="-lHTTPDFaust"
         HTTPLIBS1=`pkg-config --cflags --libs libmicrohttpd`
     elif [ $p = "-nodeploy" ]; then
         DEPLOY="no"
@@ -86,7 +95,7 @@ do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -113,7 +122,7 @@ for p in $FILES; do
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
 
-    # creates a temporary dir 
+    # creates a temporary dir
     TDR=$(mktemp -d faust.XXXXXX)
     TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
@@ -147,7 +156,7 @@ EndOfCode
         $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
         make
     ) > /dev/null || exit
-    
+
     # on Mac add the QT libraries to the bundle
     if [[ $(uname) == Darwin ]]; then
         if [ "$DEPLOY" = "yes" ]; then

@@ -20,6 +20,23 @@ ARCHFILE=$FAUSTARCH/jack-qt-chain-header.cpp
 
 ARCHLIB="`pkg-config --cflags --libs jack`"
 
+echoHelp()
+{
+    usage faust2jaqtchain "[options] [Faust options] <file.dsp>"
+    require Jack, QT
+    echo "Compiles several Faust programs to JACK and QT"
+    option
+    options -httpd -osc
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
 
@@ -40,16 +57,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2jaqtchain "[options] [Faust options] <file.dsp>"
-        require Jack, Qt
-        echo "Compiles several Faust programs to JACK and QT"
-        option
-        options -httpd -osc
-        option "Faust options"
-        exit
-    fi
-
-    if [ "$p" = -icc ]; then
+        echoHelp
+    elif [ "$p" = -icc ]; then
         ignore=" "
     elif [ $p = "-deploy" ]; then
         DEPLOY="yes"
@@ -58,14 +67,14 @@ do
         OSCLIBS="-lOSCFaust"
     elif [ "$p" = "-httpd" ]; then
         HTTPDEFS="DEFINES += HTTPCTRL"
-        HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+        HTTPLIBS="-lHTTPDFaust"
         HTTPLIBS1=`pkg-config --cflags --libs libmicrohttpd`
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -81,7 +90,7 @@ if [[ $(uname) == Darwin ]]; then
     if [ $SYS_VERSION -ge 13 ]
     then
         SPEC="-spec macx-clang"
-        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
+        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"
         CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
     else
         SPEC="-spec macx-g++"

@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -37,13 +37,14 @@ Compile a list of FAUST signals into a C++ class.
 
 #include "compile.hh"
 #include "floats.hh"
-#include "ppsig.hh"
 #include "privatise.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
 #include "simplify.hh"
 #include "timing.hh"
+
+using namespace std;
 
 /*****************************************************************************
 ******************************************************************************
@@ -174,8 +175,8 @@ void Compiler::generateUserInterfaceTree(Tree t, bool root)
         const int orient = tree2int(left(label));
         // Empty labels will be renamed with a 0xABCD (address) kind of name that is ignored and not displayed by UI
         // architectures
-        const char* str = tree2str(right(label));
-        const char* model;
+        const char* str   = tree2str(right(label));
+        const char* model = nullptr;
 
         // extract metadata from group label str resulting in a simplifiedLabel
         // and metadata declarations for fictive zone at address 0
@@ -212,7 +213,9 @@ void Compiler::generateUserInterfaceTree(Tree t, bool root)
                 fJSON.openTabBox(group.c_str());
                 break;
             default:
-                throw faustexception("ERROR in user interface generation 1\n");
+                cerr << "ASSERT : user interface generation 1\n";
+                faustassert(false);
+                break;
         }
 
         fClass->addUICode(subst(model, group));
@@ -223,7 +226,8 @@ void Compiler::generateUserInterfaceTree(Tree t, bool root)
     } else if (isUiWidget(t, label, varname, sig)) {
         generateWidgetCode(label, varname, sig);
     } else {
-        throw faustexception("ERROR in user interface generation 2\n");
+        cerr << "ASSERT : user interface generation 2\n";
+        faustassert(false);
     }
 }
 
@@ -335,7 +339,8 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
         fJSON.addSoundfile(checkNullLabel(varname, label).c_str(),
                            ((url == "") ? prepareURL(label).c_str() : url.c_str()), NULL);
     } else {
-        throw faustexception("ERROR in generating widget code 3\n");
+        cerr << "ASSERT : generating widget code 3\n";
+        faustassert(false);
     }
 }
 
@@ -351,14 +356,14 @@ void Compiler::generateMacroInterfaceTree(const string& pathname, Tree t)
 
     if (isUiFolder(t, label, elements)) {
         string pathname2 = pathname;
-        // string str = unquote(tree2str(right(label)));
         string str = tree2str(right(label));
         if (str.length() > 0) pathname2 += str + "/";
         generateMacroInterfaceElements(pathname2, elements);
     } else if (isUiWidget(t, label, varname, sig)) {
         generateWidgetMacro(pathname, label, varname, sig);
     } else {
-        throw faustexception("ERROR in user interface macro generation 2\n");
+        cerr << "ASSERT : user interface macro generation 2\n";
+        faustassert(false);
     }
 }
 
@@ -416,6 +421,7 @@ void Compiler::generateWidgetMacro(const string& pathname, Tree fulllabel, Tree 
         fClass->addUIMacro(subst("FAUST_ADDSOUNDFILE(\"$0\", $1);", pathlabel, tree2str(varname)));
 
     } else {
-        throw faustexception("ERROR in generating widget macro\n");
+        cerr << "ASSERT in generating widget macro\n";
+        faustassert(false);
     }
 }

@@ -15,17 +15,16 @@
 
 CXXFLAGS+=" $MYGCCFLAGSGENERIC"  # So that additional CXXFLAGS can be used
 
-UNIVERSAL=""
 OSCDEFS=""
 OSCLIB=""
 POLY=""
 NOPATCH="0"
 NVOICES=-1
 EFFECT=""
+UNIVERSAL="0"
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
-SOUNDFILEARCH="intel"
 OPT=""
 US="0"
 DS="0"
@@ -38,14 +37,10 @@ POST="-DPOST"
 MAXINC=$MAXSDK/max-includes
 MSPINC=$MAXSDK/msp-includes
 
-# discover the machine architecture to select the appropriate libsndfile version 
-if [[ $(uname -p) == arm ]]; then
-    SOUNDFILEARCH="arm"
-fi
-
 JSFILE_PATH="ui.js"
 
-createInfoPList() {
+createInfoPList()
+{
     (
     echo '<?xml version="1.0" encoding="UTF-8"?>'
     echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
@@ -78,6 +73,34 @@ createInfoPList() {
     ) > "$2"
 }
 
+echoHelp()
+{
+    usage faust2max6 "[options] [Faust options] <file.dsp>"
+    require Max/MSP SDK
+    echo "Compiles Faust programs to Max6 externals using double precision samples"
+    option
+    options -osc -midi -soundfile
+    option -soundfile-dynamic "similar to -soundfile, but using the installed libsndfile (so possibly using dynamic link)."
+    option "-opt native|generic" "activates the best compilation options for the native or generic CPU."
+    option "-nvoices <num>"
+    option "-us <factor>"
+    option "-ds <factor>"
+    option "-filter <filter>"
+    option "-effect <effect.dsp>"
+    option -native "to compile for the native CPU (otherwise the 'generic' mode is used by default)"
+    option -universal "to generate a universal (arm/intel) external"
+    option -nopatch "to deactivate patch generation"
+    option -nopost "to disable Faust messages to Max console"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -91,27 +114,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2max6 "[options] [Faust options] <file.dsp>"
-        require Max/MSP SDK
-        echo "Compiles Faust programs to Max6 externals using double precision samples"
-        option
-        options -osc -midi -soundfile
-        option -soundfile-dynamic "similar to -soundfile, but using the installed libsndfile (so possibly using dynamic link)."
-        option "-opt native|generic" "activates the best compilation options for the native or generic CPU."
-        option "-nvoices <num>"
-        option "-us <factor>"
-        option "-ds <factor>"
-        option "-filter <filter>"
-        option "-effect <effect.dsp>"
-        option -native "to compile for the native CPU (otherwise the 'generic' mode is used by default)"
-        option -universal "to generate a 64/32 bits external"
-        option -nopatch "to deactivate patch generation"
-        option -nopost "to disable Faust messages to Max console"
-        option "Faust options"
-        exit
-    fi
-
-    if [ $p = "-opt" ]; then
+       echoHelp
+    elif [ $p = "-opt" ]; then
         shift
         OPT=$1
     elif [ $p = "-nvoices" ]; then
@@ -128,8 +132,7 @@ do
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
     elif [ $p = "-universal" ]; then
-        UNIVERSAL="-arch i386 -arch x86_64"
-        echo "generate a 32/64 bits external"
+        UNIVERSAL="1"
     elif [ $p = "-soundfile-dynamic" ]; then
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE"
@@ -138,12 +141,13 @@ do
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE -I$FAUSTARCH/max-msp/sndfile"
         SFDIR=$FAUSTARCH/max-msp/sndfile
-        SOUNDFILELIBS="$SFDIR/$SOUNDFILEARCH/libsndfile.a"
+        SOUNDFILELIBS_ARM="$SFDIR/arm/libsndfile.a"
+        SOUNDFILELIBS_INTEL="$SFDIR/intel/libsndfile.a"
     elif [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL"
         OSCLIBS="-lOSCFaust"
     elif [ $p = "-nopost" ]; then
-        POST="" 
+        POST=""
     elif [ $p = "-nopatch" ]; then
         NOPATCH="1"
     elif [ $p = "-native" ]; then
@@ -159,7 +163,7 @@ do
     elif [ $p = "-filter" ]; then
         shift
         FILTER=$1
-    # '-A path' also added as '-I path' in the C++ command 
+    # '-A path' also added as '-I path' in the C++ command
     elif [ $p = "-A" ]; then
         shift
         CXXFLAGS="$CXXFLAGS -I $1"
@@ -169,7 +173,7 @@ do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"       
+        OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -200,7 +204,7 @@ for p in $FILES; do
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
 
-    # creates a temporary dir 
+    # creates a temporary dir
     TDR=$(mktemp -d faust.XXX)
     TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
@@ -215,7 +219,7 @@ for p in $FILES; do
         OPTIONS="$OPTIONS $(faustbench-llvm -notrace $OPTIONS $f)"
         echo $OPTIONS
     fi
-    
+
     # -double is used by default
     if [ "$FAUSTFLOAT" = "double" ]; then
         OPTIONS="$OPTIONS -double"
@@ -228,19 +232,31 @@ for p in $FILES; do
         faust -i -cn ${f%.dsp} -uim -json -a $FAUSTARCH/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
         faust -i -cn effect -a $FAUSTARCH/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
     fi
-   
+    # compile self-contained expanded
+    faust -e "$SRCDIR/$f" -o "$TMP/${f%.dsp}-exp.dsp"
+
     # compile c++ to binary
     (
         cd "$TMP"
         install -d "${f%.dsp}$EXT/Contents/MacOS"
-        $CXX $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+        # universal binaries produced on M1
+        if [[ $(uname -p) = arm  || "$UNIVERSAL" = "1" ]]; then
+            $CXX $CXXFLAGS -arch arm64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_ARM $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64"
+            $CXX $CXXFLAGS -arch x86_64 -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64"
+            $LIPO -create "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.arm64" "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~.x86_64" -output "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~" || exit
+        else
+           $CXX $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+        fi
+        codesign --sign - --deep --force "${f%.dsp}$EXT"
        ) > /dev/null || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
 
-    # Keep .dsp and .cpp files in the plug-in
-    cp "$TMP/${f%.dsp}.cpp" "$TMP/${f%.dsp}$EXT"   
+    # Keep .dsp, self-contained expanded .dsp and self-contained .cpp files in the plugin
+    cp "$TMP/${f%.dsp}.cpp" "$TMP/${f%.dsp}$EXT"
+    cp "$TMP/${f%.dsp}-exp.dsp" "$TMP/${f%.dsp}$EXT"
     cp "$SRCDIR/$f" "$TMP/${f%.dsp}$EXT"
+ 
     # Create Info.plist
     createInfoPList "${f%.dsp}~" "$TMP/${f%.dsp}$EXT/Contents/Info.plist"
 
@@ -266,7 +282,7 @@ for p in $FILES; do
                 else
                     #create destination path and possibly create directory
                     sfpath="$TMP/${f%.dsp}$EXT/$(dirname $snd)/"
-                    if ! [ -d $sfpath ]; then 
+                    if ! [ -d $sfpath ]; then
                         echo "Create $sfpath"
                         mkdir $sfpath
                     fi
@@ -299,11 +315,11 @@ for p in $FILES; do
 
         # copy JavaScript UI file
         cp $FAUSTARCH/max-msp/ui.js .
-        
+
         rm ${f%.dsp}-temp1.maxpat
         rm ${f%.dsp}-temp2.maxpat
     fi
-    
+
 done
 
 if [ "$NOPATCH" = "0" ]; then

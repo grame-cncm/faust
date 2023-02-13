@@ -36,12 +36,23 @@
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/httpdUI.h"
 #include "faust/gui/OSCUI.h"
+#include "faust/gui/SoundUI.h"
 #include "faust/misc.h"
 
 using namespace std;
 
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
+
+static bool hasCompileOption(const string& compile_options, const string& option)
+{
+    istringstream iss(compile_options);
+    string token;
+    while (std::getline(iss, token, ' ')) {
+        if (token == option) return true;
+    }
+    return false;
+}
 
 int main(int argc, char* argv[])
 {
@@ -74,6 +85,7 @@ int main(int argc, char* argv[])
     MidiUI* midiinterface = nullptr;
     httpdUI* httpdinterface = nullptr;
     GUI* oscinterface = nullptr;
+    SoundUI* fSoundinterface = nullptr;
     jackaudio_midi audio;
     string error_msg;
     
@@ -94,6 +106,9 @@ int main(int argc, char* argv[])
     cout << "getName " << factory->getName() << endl;
     cout << "getSHAKey " << factory->getSHAKey() << endl;
     
+    cout << "getCompileOptions " << factory->getCompileOptions() << endl;
+    bool is_double = hasCompileOption(factory->getCompileOptions(), "-double");
+    
     // Before reading the -nvoices parameter
     MidiMeta::analyse(DSP, midi_sync, nvoices);
     nvoices = lopt(argv, "-nvoices", nvoices);
@@ -103,8 +118,9 @@ int main(int argc, char* argv[])
         DSP = new mydsp_poly(DSP, nvoices, true, true);
     }
     
-    if (isopt(argv, "-double")) {
+    if (is_double) {
         cout << "Running in double..." << endl;
+        DSP = new dsp_sample_adapter<double, float>(DSP);
     }
     
     GUI* interface = new GTKUI(filename, &argc, &argv);
@@ -113,9 +129,9 @@ int main(int argc, char* argv[])
     FUI* finterface = new FUI();
     DSP->buildUserInterface(finterface);
     
-    if (!audio.init(filename, DSP)) {
-        exit(EXIT_FAILURE);
-    }
+    // After audio init to get SR
+    fSoundinterface = new SoundUI("", -1, nullptr, is_double);
+    DSP->buildUserInterface(fSoundinterface);
     
     if (is_httpd) {
         httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
@@ -130,6 +146,10 @@ int main(int argc, char* argv[])
     if (is_midi) {
         midiinterface = new MidiUI(&audio);
         DSP->buildUserInterface(midiinterface);
+    }
+    
+    if (!audio.init(filename, DSP)) {
+        exit(EXIT_FAILURE);
     }
     
     // State (after UI construction)
@@ -159,6 +179,7 @@ int main(int argc, char* argv[])
     delete finterface;
     delete midiinterface;
     delete httpdinterface;
+    delete fSoundinterface;
     delete oscinterface;
     deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
     

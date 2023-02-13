@@ -1,3 +1,40 @@
+/*
+//enveloppe en cloche de cosinus//
+import("stdfaust.lib");
+grainsize = hslider("grainsize [unit:msec]", 100, 1, 1000, 1);
+rarefaction = hslider("rarefaction", 0.2, 0, 1, 0.01);
+//durée maximale du retard tiré au sort//
+delaymax = hslider("delaymax", 1000, 10, 10000, 1);
+//calcul de la fréquence du grain//
+grainfreq = 1000 / grainsize;
+//ma.PI est le nombre PI
+ramp = os.phasor(1, grainfreq);
+//@1 : 1 retard de 1 échantillon, c'est l'échantillon d'avant//
+//on veut détecter le moment où le phasor (qui monte de 0 à 1 en boucle) passe la valeur 0.0001
+//seuil vaut presque tout le temps 0, et 1 quand le phasor franchit la valeur 0.0001
+seuil = (ramp > 0.0001) * (ramp@1 <= 0.0001);
+phase = ramp : *(0.5) : *(2) : *(ma.PI);
+//pas besoin de soustraire -0.25
+//parce que l'équivalent de cos~ est oscp qui est un sinus
+
+//on s'occupe du tirage au sort de l'enveloppe : 1 ou 0
+//on utilise le noise qui fait des tirages au sort en permanence//
+//entre -1 et 1
+source = _;
+
+//on prend un noise qu'on ajuste entre 0 et 1
+//la comparaison avec > donne 1 (vrai) ou 0 (faux)
+test = (no.noise : +(1) : *(0.5)) > rarefaction;
+//sample and hold pour laisser passer uniquement quand seuil vaut 1//
+factor = test : ba.sAndH(seuil);
+
+//tirage au sort de la durée du retard
+//passage de la nouvelle valeur uniquement au début de chaque période
+del = no.noise : +(1) : *(0.5) : *(delaymax) : *(ma.SR) : /(1000) : ba.sAndH(seuil);
+
+process = source : de.fdelay(524288, del) : *(os.oscp(0, phase)) *(factor);
+*/
+
 declare compilation_options    "-single -scal -e grain3.dsp -o grain3.dsp";
 declare library_path "/Documents/faust-github-faust2/tests/impulse-tests/dsp/grain3.dsp";
 declare library_path "/usr/local/share/faust/stdfaust.lib";

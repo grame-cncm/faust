@@ -125,9 +125,9 @@ def faustoptflags():
 # Return the header paths if they exists.
 def get_header_paths(headerpath):
     folders = [
-        path.join(headerpath, "plugin_interface"),
-        path.join(headerpath, "server"),
-        path.join(headerpath, "common")
+        path.join(headerpath, "include", "plugin_interface"),
+        path.join(headerpath, "include", "server"),
+        path.join(headerpath, "include",  "common")
     ]
 
     if all(path.exists(folder) for folder in folders):

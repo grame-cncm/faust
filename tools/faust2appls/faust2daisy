@@ -24,23 +24,33 @@ NVOICES=0
 MIDI=false
 POLY=""
 PATCH=false
+POD=false
 SR=44100
 BS=16
 SOURCE=false
 
 echoHelp ()
 {
-    echo "faust2daisy [-patch] [-midi] [-nvoices <num>] [-sr <num>] [-bs <num>] [-source] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+    echo "faust2daisy [-patch] [-midi] [-nvoices <num>] [-sr <num>] [-bs <num>] [-source] [Faust options (-vec -vs 8...)] <file.dsp>"
     echo "Compiles Faust programs to Daisy boards"
     option
-    option -patch "to compile for 4 ins/outs Patch"
+    option -patch "to compile for 4 ins/outs Patch (knob[1,2,3,4])"
+    option -pod "to compile for 2 ins/outs Pod (knob[1,3])"
     options -midi
     option "-nvoices <num>"
     option "-sr <num>"
     option "-bs <num>"
-    option -source 
+    option -source
+    option "Faust options"
     echo ""
+    exit
 }
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
 
 ###########################
 # Processing Arguments
@@ -52,7 +62,6 @@ do
     # help
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echoHelp
-        exit 0
     # -nvoices:
     elif [ $p = "-nvoices" ]; then
         shift
@@ -63,6 +72,8 @@ do
     #patch
     elif [ $p = "-patch" ]; then
         PATCH=true
+    elif [ $p = "-pod" ]; then
+        POD=true
     # -sr
     elif [ $p = "-sr" ]; then
         shift
@@ -84,12 +95,6 @@ do
 shift
 done
 
-
-if [ -z $FILE ]; then
-    echo "Please, provide a Faust file to process"
-    exit 1
-fi
-
 ###########################
 # Compile the *.dsp files
 ###########################
@@ -98,12 +103,12 @@ for p in $FILE; do
     CUR=$(pwd)
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
-    
-    # creates the dir 
+
+    # creates the dir
     dspName="${f%.dsp}"
     rm -rf "$SRCDIR/$dspName"
     mkdir "$SRCDIR/$dspName"
-    
+
     # compile faust to c++
     cp -r $FAUSTARCH/daisy/Makefile "$SRCDIR/$dspName/"
     faust -i -a $ARCHFILE $OPTIONS $f -o "$SRCDIR/$dspName/ex_faust.cpp" || exit
@@ -112,18 +117,22 @@ for p in $FILE; do
     if [ $PATCH == true ]; then
         echo "#define PATCH" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
-    
+    # for POD support
+    if [ $POD == true ]; then
+        echo "#define POD" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
+    fi
+
     # for MIDI
     if [ $MIDI == true ]; then
         echo "#define MIDICTRL" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
     fi
-    
-    # for Sample Rate 
+
+    # for Sample Rate
     echo "#define MY_SAMPLE_RATE $SR" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
-    
+
     # for Buffer Size
     echo "#define MY_BUFFER_SIZE $BS" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
-    
+
     # for POLY
     if [ "$NVOICES" -gt "0" ]; then
         echo "#define POLY" | cat - "$SRCDIR/$dspName/ex_faust.cpp" > temp && mv temp "$SRCDIR/$dspName/ex_faust.cpp"
@@ -138,6 +147,6 @@ for p in $FILE; do
         echo "Success !"
     else
         echo "Create the $SRCDIR/$dspName folder"
-    fi 
-    
+    fi
+
 done

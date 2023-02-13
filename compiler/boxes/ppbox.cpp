@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -96,6 +96,15 @@ const char* prim5name(CTree *(*ptr)(CTree *, CTree *, CTree *, CTree *, CTree *)
 {
     if (ptr == sigWriteReadTable) return "rwtable";
     return "prim5???";
+}
+
+// Limit the box description string to max_size characters
+string mBox(Tree b, int max_size)
+{
+    stringstream error;
+    error << boxpp(b);
+    string str = error.str();
+    return (int(str.size()) > max_size) ? (str.substr(0, max_size) + " ...") : str;
 }
 
 static void streambinop(ostream &fout, Tree t1, const char *op, Tree t2, int curPriority, int upPriority)
@@ -371,20 +380,22 @@ ostream& boxpp::print(ostream& fout) const
     // None of the previous tests succeded, then it is not a valid box
     else {
         stringstream error;
-        error << "ERROR in box::print() : " << *fBox << " is not a valid box" << endl;
+        error << "ERROR : box::print() : " << *fBox << " is not a valid box" << endl;
         throw faustexception(error.str());
     }
 
     return fout;
 }
 
-#define INSERT_ID(exp)                             \
-    if (gGlobal->gExpTable.find(fBox) == gGlobal->gExpTable.end()) { \
-        stringstream s;                            \
-        (exp);                                                     \
-        gGlobal->gExpTable[fBox] = make_pair(gGlobal->gExpCounter++, s.str());  \
-    }                                              \
-    fout << "ID_" << gGlobal->gExpTable[fBox].first;        \
+#define BOX_INSERT_ID(exp) \
+    if (gGlobal->gBoxTable.find(fBox) == gGlobal->gBoxTable.end()) { \
+        stringstream s; \
+        (exp); \
+        gGlobal->gBoxTable[fBox] = make_pair(gGlobal->gBoxCounter, s.str()); \
+        gGlobal->gBoxTrace.push_back("ID_" + std::to_string(gGlobal->gBoxCounter) + " = " + s.str() + ";\n"); \
+        gGlobal->gBoxCounter++;\
+    } \
+    fout << "ID_" << gGlobal->gBoxTable[fBox].first; \
 
 ostream& boxppShared::print(ostream& fout) const
 {
@@ -433,12 +444,12 @@ ostream& boxppShared::print(ostream& fout) const
         // BoxAbstr cannot be safely expanded with 'boxppShared' since 'arg' used in 'body' will be somewhat free
         fout << "\\" << boxpp(arg) << ".(" << boxpp(body) << ")";
     } else if (isBoxAppl(fBox, fun, args)) {
-        INSERT_ID(s << boxppShared(fun) << boxppShared(args));
+        BOX_INSERT_ID(s << boxppShared(fun) << boxppShared(args));
     } else if (isBoxWithLocalDef(fBox, body, ldef)) {
-        INSERT_ID(s << boxppShared(body) << " with { " << envpp(ldef) << " }");
+        BOX_INSERT_ID(s << boxppShared(body) << " with { " << envpp(ldef) << " }");
     // Foreign elements
     } else if (isBoxFFun(fBox, ff)) {
-        if (gGlobal->gExpTable.find(fBox) == gGlobal->gExpTable.end()) {
+        if (gGlobal->gBoxTable.find(fBox) == gGlobal->gBoxTable.end()) {
             stringstream s;
                 
             s << "ffunction(" << type2str(ffrestype(ff));
@@ -456,70 +467,72 @@ ostream& boxppShared::print(ostream& fout) const
             s << ')';
             s << ',' << ffincfile(ff) << ',' << fflibfile(ff) << ')';
             
-            gGlobal->gExpTable[fBox] = make_pair(gGlobal->gExpCounter++, s.str());
+            gGlobal->gBoxTable[fBox] = make_pair(gGlobal->gBoxCounter, s.str());
+            gGlobal->gBoxTrace.push_back("ID_" + std::to_string(gGlobal->gBoxCounter) + " = " + s.str() + ";\n");
+            gGlobal->gBoxCounter++;
         }
-        // gGlobal->gExpCounter used a ID
-        fout << "ID_" << gGlobal->gExpTable[fBox].first;
+        // gGlobal->gBoxCounter used a ID
+        fout << "ID_" << gGlobal->gBoxTable[fBox].first;
     } else if (isBoxFConst(fBox, type, name, file)) {
-        INSERT_ID(s << "fconstant(" << type2str(tree2int(type)) << ' ' << tree2str(name) << ", " << tree2str(file) << ')');
+        BOX_INSERT_ID(s << "fconstant(" << type2str(tree2int(type)) << ' ' << tree2str(name) << ", " << tree2str(file) << ')');
     } else if (isBoxFVar(fBox, type, name, file)) {
-        INSERT_ID(s << "fvariable(" << type2str(tree2int(type)) << ' ' << tree2str(name) << ", " << tree2str(file) << ')');
+        BOX_INSERT_ID(s << "fvariable(" << type2str(tree2int(type)) << ' ' << tree2str(name) << ", " << tree2str(file) << ')');
     // Block diagram binary operator
     } else if (isBoxSeq(fBox, t1, t2)) {
-        INSERT_ID(streambinopShared(s, t1, " : ", t2, 1, fPriority));
+        BOX_INSERT_ID(streambinopShared(s, t1, " : ", t2, 1, fPriority));
     } else if (isBoxSplit(fBox, t1, t2)) {
-        INSERT_ID(streambinopShared(s, t1, " <: ", t2, 1, fPriority));
+        BOX_INSERT_ID(streambinopShared(s, t1, " <: ", t2, 1, fPriority));
     } else if (isBoxMerge(fBox, t1, t2)) {
-        INSERT_ID(streambinopShared(s, t1, " :> ", t2, 1, fPriority));
+        BOX_INSERT_ID(streambinopShared(s, t1, " :> ", t2, 1, fPriority));
     } else if (isBoxPar(fBox, t1, t2)) {
-        INSERT_ID(streambinopShared(s, t1, ", ", t2, 2, fPriority));
+        BOX_INSERT_ID(streambinopShared(s, t1, ", ", t2, 2, fPriority));
     } else if (isBoxRec(fBox, t1, t2)) {
-        INSERT_ID(streambinopShared(s, t1, " ~ ", t2, 4, fPriority));
+        BOX_INSERT_ID(streambinopShared(s, t1, " ~ ", t2, 4, fPriority));
     // Iterative block diagram construction
     } else if (isBoxIPar(fBox, t1, t2, t3)) {
-        INSERT_ID(s << "par(" << boxppShared(t1) << ", " << boxppShared(t2) << ") {" << boxppShared(t3) << "}");
+        BOX_INSERT_ID(s << "par(" << boxppShared(t1) << ", " << boxppShared(t2) << ") {" << boxppShared(t3) << "}");
     } else if (isBoxISeq(fBox, t1, t2, t3)) {
-        INSERT_ID(s << "seq(" << boxppShared(t1) << ", " << boxppShared(t2) << ") {" << boxppShared(t3) << "}");
+        BOX_INSERT_ID(s << "seq(" << boxppShared(t1) << ", " << boxppShared(t2) << ") {" << boxppShared(t3) << "}");
      } else if (isBoxISum(fBox, t1, t2, t3)) {
-        INSERT_ID(s << "sum(" << boxppShared(t1) << ", " << boxppShared(t2) << ") {" << boxppShared(t3) << "}");
+        BOX_INSERT_ID(s << "sum(" << boxppShared(t1) << ", " << boxppShared(t2) << ") {" << boxppShared(t3) << "}");
     } else if (isBoxIProd(fBox, t1, t2, t3)) {
-        INSERT_ID(s << "prod(" << boxppShared(t1) << ", " << boxppShared(t2) << ") {" << boxppShared(t3) << "}");
+        BOX_INSERT_ID(s << "prod(" << boxppShared(t1) << ", " << boxppShared(t2) << ") {" << boxppShared(t3) << "}");
     } else if (isBoxInputs(fBox, t1)) {
-        INSERT_ID(s << "inputs(" << boxppShared(t1) << ")");
+        BOX_INSERT_ID(s << "inputs(" << boxppShared(t1) << ")");
     } else if (isBoxOutputs(fBox, t1)) {
-        INSERT_ID(s << "outputs(" << boxppShared(t1) << ")");
+        BOX_INSERT_ID(s << "outputs(" << boxppShared(t1) << ")");
     
     // User interface
     } else if (isBoxButton(fBox, label)) {
-        INSERT_ID(s  << "button(" << tree2quotedstr(label) << ')');
+        BOX_INSERT_ID(s  << "button(" << tree2quotedstr(label) << ')');
     } else if (isBoxCheckbox(fBox, label)) {
-        INSERT_ID(s << "checkbox(" << tree2quotedstr(label) << ')');
+        BOX_INSERT_ID(s << "checkbox(" << tree2quotedstr(label) << ')');
     } else if (isBoxVSlider(fBox, label, cur, min, max, step)) {
-        INSERT_ID(s << "vslider(" << tree2quotedstr(label) << ", " << boxppShared(cur) << ", " << boxppShared(min) << ", " << boxppShared(max) << ", " << boxppShared(step) << ')');
+        BOX_INSERT_ID(s << "vslider(" << tree2quotedstr(label) << ", " << boxppShared(cur) << ", " << boxppShared(min) << ", " << boxppShared(max) << ", " << boxppShared(step) << ')');
     } else if (isBoxHSlider(fBox, label, cur, min, max, step)) {
-        INSERT_ID(s << "hslider(" << tree2quotedstr(label) << ", " << boxppShared(cur) << ", " << boxppShared(min) << ", " << boxppShared(max) << ", " << boxppShared(step) << ')');
+        BOX_INSERT_ID(s << "hslider(" << tree2quotedstr(label) << ", " << boxppShared(cur) << ", " << boxppShared(min) << ", " << boxppShared(max) << ", " << boxppShared(step) << ')');
     } else if (isBoxVGroup(fBox, label, t1)) {
-        INSERT_ID(s << "vgroup(" << tree2quotedstr(label) << ", " << boxppShared(t1, 0) << ')');
+        BOX_INSERT_ID(s << "vgroup(" << tree2quotedstr(label) << ", " << boxppShared(t1, 0) << ')');
     } else if (isBoxHGroup(fBox, label, t1)) {
-        INSERT_ID(s << "hgroup(" << tree2quotedstr(label) << ", " << boxppShared(t1, 0) << ')');
+        BOX_INSERT_ID(s << "hgroup(" << tree2quotedstr(label) << ", " << boxppShared(t1, 0) << ')');
     } else if (isBoxTGroup(fBox, label, t1)) {
-        INSERT_ID(s << "tgroup(" << tree2quotedstr(label) << ", " << boxppShared(t1, 0) << ')');
+        BOX_INSERT_ID(s << "tgroup(" << tree2quotedstr(label) << ", " << boxppShared(t1, 0) << ')');
     } else if (isBoxHBargraph(fBox, label, min, max)) {
-        INSERT_ID(s << "hbargraph(" << tree2quotedstr(label) << ", " << boxppShared(min) << ", " << boxppShared(max) << ')');
+        BOX_INSERT_ID(s << "hbargraph(" << tree2quotedstr(label) << ", " << boxppShared(min) << ", " << boxppShared(max) << ')');
     } else if (isBoxMetadata(fBox, t1, t2)) {
-        INSERT_ID(s << boxppShared(t1, 0) << "/* md */");
+        BOX_INSERT_ID(s << boxppShared(t1, 0) << "/* md */");
     } else if (isBoxVBargraph(fBox, label, min, max)) {
-        INSERT_ID(s << "vbargraph(" << tree2quotedstr(label) << ", " << boxppShared(min) << ", " << boxppShared(max) << ')');
+        BOX_INSERT_ID(s << "vbargraph(" << tree2quotedstr(label) << ", " << boxppShared(min) << ", " << boxppShared(max) << ')');
     } else if (isBoxNumEntry(fBox, label, cur, min, max, step)) {
-        INSERT_ID(s << "nentry(" << tree2quotedstr(label) << ", " << boxppShared(cur) << ", " << boxppShared(min) << ", " << boxppShared(max) << ", " << boxppShared(step) << ')');
+        BOX_INSERT_ID(s << "nentry(" << tree2quotedstr(label) << ", " << boxppShared(cur) << ", " << boxppShared(min) << ", " << boxppShared(max) << ", " << boxppShared(step) << ')');
     } else if (isBoxSoundfile(fBox, label, chan)) {
-        INSERT_ID(s << "soundfile(" << tree2quotedstr(label) << ", " << boxppShared(chan) << ')');
+        BOX_INSERT_ID(s << "soundfile(" << tree2quotedstr(label) << ", " << boxppShared(chan) << ')');
     }
     
     else if (isNil(fBox)) {
         fout << "()";
     } else if (isList(fBox)) {
-        if (gGlobal->gExpTable.find(fBox) == gGlobal->gExpTable.end()) {
+        if (gGlobal->gBoxTable.find(fBox) == gGlobal->gBoxTable.end()) {
             stringstream s;
             Tree l   = fBox;
             char sep = '(';
@@ -531,12 +544,14 @@ ostream& boxppShared::print(ostream& fout) const
             } while (isList(l));
             
             s << ')';
-            gGlobal->gExpTable[fBox] = make_pair(gGlobal->gExpCounter++, s.str());
+            gGlobal->gBoxTable[fBox] = make_pair(gGlobal->gBoxCounter, s.str());
+            gGlobal->gBoxTrace.push_back("ID_" + std::to_string(gGlobal->gBoxCounter) + " = " + s.str() + ";\n");
+            gGlobal->gBoxCounter++;
         }
-        // gGlobal->gExpCounter used a ID
-        fout << "ID_" << gGlobal->gExpTable[fBox].first;
+        // gGlobal->gBoxCounter used a ID
+        fout << "ID_" << gGlobal->gBoxTable[fBox].first;
     } else if (isBoxWaveform(fBox)) {
-        if (gGlobal->gExpTable.find(fBox) == gGlobal->gExpTable.end()) {
+        if (gGlobal->gBoxTable.find(fBox) == gGlobal->gBoxTable.end()) {
             stringstream s;
             s << "waveform";
             char sep = '{';
@@ -545,14 +560,16 @@ ostream& boxppShared::print(ostream& fout) const
                 sep = ',';
             }
             s << '}';
-            gGlobal->gExpTable[fBox] = make_pair(gGlobal->gExpCounter++, s.str());
+            gGlobal->gBoxTable[fBox] = make_pair(gGlobal->gBoxCounter, s.str());
+            gGlobal->gBoxTrace.push_back("ID_" + std::to_string(gGlobal->gBoxCounter) + " = " + s.str() + ";\n");
+            gGlobal->gBoxCounter++;
         }
-        // gGlobal->gExpCounter used a ID
-        fout << "ID_" << gGlobal->gExpTable[fBox].first;
+        // gGlobal->gBoxCounter used a ID
+        fout << "ID_" << gGlobal->gBoxTable[fBox].first;
     } else if (isBoxEnvironment(fBox)) {
         fout << "environment";
     } else if (isClosure(fBox, abstr, genv, vis, lenv)) {
-        INSERT_ID(s << "closure[" << boxppShared(abstr) << ", genv = " << envpp(genv) << ", lenv = " << envpp(lenv) << "]");
+        BOX_INSERT_ID(s << "closure[" << boxppShared(abstr) << ", genv = " << envpp(genv) << ", lenv = " << envpp(lenv) << "]");
     } else if (isBoxComponent(fBox, label)) {
         fout << "component(" << tree2quotedstr(label) << ')';
     } else if (isBoxAccess(fBox, t1, t2)) {
@@ -593,7 +610,7 @@ ostream& boxppShared::print(ostream& fout) const
     }
     
     else if (isBoxRoute(fBox, ins, outs, lroutes)) {
-        INSERT_ID(s << "route(" << boxppShared(ins) << "," << boxppShared(outs) << "," << boxppShared(lroutes) << ")");
+        BOX_INSERT_ID(s << "route(" << boxppShared(ins) << "," << boxppShared(outs) << "," << boxppShared(lroutes) << ")");
     }
     
     else if (isBoxError(fBox)) {
@@ -603,7 +620,7 @@ ostream& boxppShared::print(ostream& fout) const
     // None of the previous tests succeded, then it is not a valid box
     else {
         stringstream error;
-        error << "ERROR in boxppShared::print() : " << *fBox << " is not a valid box" << endl;
+        error << "ERROR : boxppShared::print() : " << *fBox << " is not a valid box" << endl;
         throw faustexception(error.str());
     }
     
@@ -612,8 +629,8 @@ ostream& boxppShared::print(ostream& fout) const
 
 void boxppShared::printIDs(ostream& fout)
 {
-    for (const auto& it : gGlobal->gExpTable) {
-        fout << "ID_" << it.second.first << " = " << it.second.second << ';' << endl;
+    for (const auto& it : gGlobal->gBoxTrace) {
+        fout << it;
     }
 }
 

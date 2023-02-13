@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -29,8 +29,6 @@
 #include "instructions.hh"
 #include "exception.hh"
 
-using namespace std;
-
 #ifdef WIN32
 #pragma warning(disable : 4244)
 #endif
@@ -41,17 +39,17 @@ using namespace std;
 
 template <typename REAL>
 struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
-    map<string, string> fPathTable; // Table : field_name, complete path
-    set<string> fControlPathSet;    // Set of already used control paths
+    std::map<std::string, std::string> fPathTable; // Table : field_name, complete path
+    std::set<std::string> fControlPathSet;    // Set of already used control paths
  
     using DispatchVisitor::visit;
     
-    const string& checkPath(set<string>& table, const string& path)
+    const std::string& insertPath(const std::string& path, bool check = true)
     {
-        if (table.find(path) != table.end()) {
+        if (check && fControlPathSet.find(path) != fControlPathSet.end()) {
             throw faustexception("ERROR : path '" + path + "' is already used\n");
         } else {
-            table.insert(path);
+            fControlPathSet.insert(path);
         }
         return path;
     }
@@ -72,7 +70,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
     JSONInstVisitor() : JSONUIReal<REAL>() {}
 
     virtual ~JSONInstVisitor() {}
-
+  
     virtual void visit(AddMetaDeclareInst* inst) { this->declare(NULL, inst->fKey.c_str(), inst->fValue.c_str()); }
 
     virtual void visit(OpenboxInst* inst)
@@ -106,7 +104,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
                 break;
         }
         faustassert(fPathTable.find(inst->fZone) == fPathTable.end());
-        fPathTable[inst->fZone] = checkPath(fControlPathSet, this->buildPath(inst->fLabel));
+        fPathTable[inst->fZone] = insertPath(this->buildPath(inst->fLabel));
     }
 
     virtual void visit(AddSliderInst* inst)
@@ -126,7 +124,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
                 break;
         }
         faustassert(fPathTable.find(inst->fZone) == fPathTable.end());
-        fPathTable[inst->fZone] = checkPath(fControlPathSet, this->buildPath(inst->fLabel));
+        fPathTable[inst->fZone] = insertPath(this->buildPath(inst->fLabel));
     }
 
     virtual void visit(AddBargraphInst* inst)
@@ -143,14 +141,14 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
                 break;
         }
         faustassert(fPathTable.find(inst->fZone) == fPathTable.end());
-        fPathTable[inst->fZone] = checkPath(fControlPathSet, this->buildPath(inst->fLabel));
+        fPathTable[inst->fZone] = insertPath(this->buildPath(inst->fLabel), false);
     }
 
     virtual void visit(AddSoundfileInst* inst)
     {
         this->addSoundfile(inst->fLabel.c_str(), inst->fURL.c_str(), nullptr);
         faustassert(fPathTable.find(inst->fSFZone) == fPathTable.end());
-        fPathTable[inst->fSFZone] = checkPath(fControlPathSet, this->buildPath(inst->fLabel));
+        fPathTable[inst->fSFZone] = insertPath(this->buildPath(inst->fLabel));
     }
 
     void setInputs(int input) { this->fInputs = input; }

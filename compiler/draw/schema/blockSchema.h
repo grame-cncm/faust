@@ -4,16 +4,16 @@
     Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -33,17 +33,16 @@
  */
 class blockSchema : public schema {
    protected:
-    const string fText;   ///< Text to be displayed
-    const string fColor;  ///< color of the box
-    const string fLink;   ///< option URL link
+    const std::string fText;   ///< Text to be displayed
+    const std::string fColor;  ///< color of the box
+    const std::string fLink;   ///< option URL link
 
     // fields only defined after place() is called
-    vector<point> fInputPoint;   ///< input connection points
-    vector<point> fOutputPoint;  ///< output connection points
+    std::vector<point> fInputPoint;   ///< input connection points
+    std::vector<point> fOutputPoint;  ///< output connection points
 
    public:
-    friend schema* makeBlockSchema(unsigned int inputs, unsigned int outputs, const string& name, const string& color,
-                                   const string& link);
+    friend schema* makeBlockSchema(unsigned int inputs, unsigned int outputs, const std::string& name, const std::string& color, const std::string& link);
 
     virtual void  place(double x, double y, int orientation);
     virtual void  draw(device& dev);
@@ -52,8 +51,8 @@ class blockSchema : public schema {
     virtual void  collectTraits(collector& c);
 
    protected:
-    blockSchema(unsigned int inputs, unsigned int outputs, double width, double height, const string& name,
-                const string& color, const string& link);
+    blockSchema(unsigned int inputs, unsigned int outputs, double width, double height, const std::string& name,
+                const std::string& color, const std::string& link);
 
     void placeInputPoints();
     void placeOutputPoints();

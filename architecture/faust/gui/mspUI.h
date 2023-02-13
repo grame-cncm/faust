@@ -29,6 +29,7 @@
 #define _mspUI_h
 
 #include <math.h>
+#include <assert.h>
 #include <string>
 #include <map>
 
@@ -46,8 +47,6 @@
     #define NAN (*(const float *) __nan)
 #endif
 #endif
-
-using namespace std;
 
 struct Max_Meta1 : Meta
 {
@@ -76,18 +75,18 @@ struct Max_Meta2 : Meta
 
 struct Max_Meta3 : Meta
 {
-    string fName;
+    std::string fName;
     
-    bool endWith(const string& str, const string& suffix)
+    bool endWith(const std::string& str, const std::string& suffix)
     {
         size_t i = str.rfind(suffix);
-        return (i != string::npos) && (i == (str.length() - suffix.length()));
+        return (i != std::string::npos) && (i == (str.length() - suffix.length()));
     }
     
     void declare(const char* key, const char* value)
     {
         if ((strcmp("filename", key) == 0)) {
-            string val = value;
+            std::string val = value;
             if (endWith(value, ".dsp")) {
                 fName = "com.grame." + val.substr(0, val.size() - 4) + "~";
             } else {
@@ -101,14 +100,14 @@ class mspUIObject {
     
     protected:
         
-        string fLabel;
+        std::string fLabel;
         FAUSTFLOAT* fZone;
         
         FAUSTFLOAT range(FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT val) {return (val < min) ? min : (val > max) ? max : val;}
         
     public:
         
-        mspUIObject(const string& label, FAUSTFLOAT* zone):fLabel(label),fZone(zone) {}
+        mspUIObject(const std::string& label, FAUSTFLOAT* zone):fLabel(label),fZone(zone) {}
         virtual ~mspUIObject() {}
         
         virtual void setValue(FAUSTFLOAT f) { *fZone = range(0.0, 1.0, f); }
@@ -119,14 +118,14 @@ class mspUIObject {
         virtual FAUSTFLOAT getMaxValue() { return FAUSTFLOAT(0); }
     
         virtual void toString(char* buffer) {}
-        virtual string getName() { return fLabel; }
+        virtual std::string getName() { return fLabel; }
 };
 
 class mspCheckButton : public mspUIObject {
     
     public:
         
-        mspCheckButton(const string& label, FAUSTFLOAT* zone):mspUIObject(label,zone) {}
+        mspCheckButton(const std::string& label, FAUSTFLOAT* zone):mspUIObject(label,zone) {}
         virtual ~mspCheckButton() {}
         
         void toString(char* buffer)
@@ -139,7 +138,7 @@ class mspButton : public mspUIObject {
     
     public:
         
-        mspButton(const string& label, FAUSTFLOAT* zone):mspUIObject(label,zone) {}
+        mspButton(const std::string& label, FAUSTFLOAT* zone):mspUIObject(label,zone) {}
         virtual ~mspButton() {}
         
         void toString(char* buffer)
@@ -159,15 +158,15 @@ class mspSlider : public mspUIObject {
         
     public:
         
-        mspSlider(const string& label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        mspSlider(const std::string& label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         :mspUIObject(label,zone),fInit(init),fMin(min),fMax(max),fStep(step) {}
         virtual ~mspSlider() {}
         
         void toString(char* buffer)
         {
-            stringstream str;
+            std::stringstream str;
             str << "Slider(float): " << fLabel << " [init=" << fInit << ":min=" << fMin << ":max=" << fMax << ":step=" << fStep << ":cur=" << *fZone << "]";
-            string res = str.str();
+            std::string res = str.str();
             snprintf(buffer, STR_SIZE, "%s", res.c_str());
         }
         
@@ -189,15 +188,15 @@ class mspBargraph : public mspUIObject {
         
     public:
         
-        mspBargraph(const string& label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        mspBargraph(const std::string& label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         :mspUIObject(label,zone), fMin(min), fMax(max), fCurrent(*zone) {}
         virtual ~mspBargraph() {}
         
         void toString(char* buffer)
         {
-            stringstream str;
+            std::stringstream str;
             str << "Bargraph(float): " << fLabel << " [min=" << fMin << ":max=" << fMax << ":cur=" << *fZone << "]";
-            string res = str.str();
+            std::string res = str.str();
             snprintf(buffer, STR_SIZE, "%s", res.c_str());
         }
     
@@ -222,25 +221,26 @@ class mspUI : public UI, public PathBuilder
 {
     private:
         
-        map<string, mspUIObject*> fInputLabelTable;      // Input table using labels
-        map<string, mspUIObject*> fInputPathTable;       // Input table using paths
-        map<string, mspUIObject*> fOutputLabelTable;     // Table containing bargraph with labels
-        map<string, mspUIObject*> fOutputPathTable;      // Table containing bargraph with paths
+        std::map<std::string, mspUIObject*> fInputLabelTable;      // Input table using labels
+        std::map<std::string, mspUIObject*> fInputShortnameTable;  // Input table using shortnames
+        std::map<std::string, mspUIObject*> fInputPathTable;       // Input table using paths
+        std::map<std::string, mspUIObject*> fOutputLabelTable;     // Table containing bargraph with labels
+        std::map<std::string, mspUIObject*> fOutputShortnameTable; // Table containing bargraph with shortnames
+        std::map<std::string, mspUIObject*> fOutputPathTable;      // Table containing bargraph with paths
         
-        map<const char*, const char*> fDeclareTable;
+        std::map<const char*, const char*> fDeclareTable;
         
         FAUSTFLOAT* fMultiTable[MULTI_SIZE];
         int fMultiIndex;
         int fMultiControl;
         
-        string createLabel(const char* label)
+        std::string createLabel(const char* label)
         {
-            map<const char*, const char*>::reverse_iterator it;
+            std::map<const char*, const char*>::reverse_iterator it;
             if (fDeclareTable.size() > 0) {
-                unsigned int i = 0;
-                string res = string(label);
+                std::string res = std::string(label);
                 char sep = '[';
-                for (it = fDeclareTable.rbegin(); it != fDeclareTable.rend(); it++, i++) {
+                for (it = fDeclareTable.rbegin(); it != fDeclareTable.rend(); it++) {
                     res = res + sep + (*it).first + ":" + (*it).second;
                     sep = ',';
                 }
@@ -248,29 +248,33 @@ class mspUI : public UI, public PathBuilder
                 fDeclareTable.clear();
                 return res;
             } else {
-                return string(label);
+                return std::string(label);
             }
         }
     
         void addSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
             mspUIObject* obj = new mspSlider(createLabel(label), zone, init, min, max, step);
-            fInputLabelTable[string(label)] = obj;
-            fInputPathTable[buildPath(label)] = obj;
+            fInputLabelTable[std::string(label)] = obj;
+            std::string path = buildPath(label);
+            fInputPathTable[path] = obj;
+            fFullPaths.push_back(path);
             fDeclareTable.clear();
         }
     
         void addBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
             mspUIObject* obj = new mspBargraph(createLabel(label), zone, min, max);
-            fOutputLabelTable[string(label)] = obj;
-            fOutputPathTable[buildPath(label)] = obj;
+            fOutputLabelTable[std::string(label)] = obj;
+            std::string path = buildPath(label);
+            fOutputPathTable[path] = obj;
+            fFullPaths.push_back(path);
             fDeclareTable.clear();
         }
     
     public:
         
-        typedef map<string, mspUIObject*>::iterator iterator;
+        typedef std::map<std::string, mspUIObject*>::iterator iterator;
         
         mspUI()
         {
@@ -288,15 +292,19 @@ class mspUI : public UI, public PathBuilder
         void addButton(const char* label, FAUSTFLOAT* zone)
         {
             mspUIObject* obj = new mspButton(createLabel(label), zone);
-            fInputLabelTable[string(label)] = obj;
-            fInputPathTable[buildPath(label)] = obj;
+            fInputLabelTable[std::string(label)] = obj;
+            std::string path = buildPath(label);
+            fInputPathTable[path] = obj;
+            fFullPaths.push_back(path);
         }
         
         void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
             mspUIObject* obj = new mspCheckButton(createLabel(label), zone);
-            fInputLabelTable[string(label)] = obj;
-            fInputPathTable[buildPath(label)] = obj;
+            fInputLabelTable[std::string(label)] = obj;
+            std::string path = buildPath(label);
+            fInputPathTable[path] = obj;
+            fFullPaths.push_back(path);
         }
         
         void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
@@ -329,7 +337,24 @@ class mspUI : public UI, public PathBuilder
         void openTabBox(const char* label) { pushLabel(label); fDeclareTable.clear(); }
         void openHorizontalBox(const char* label) { pushLabel(label); fDeclareTable.clear(); }
         void openVerticalBox(const char* label) { pushLabel(label); fDeclareTable.clear(); }
-        void closeBox() { popLabel(); fDeclareTable.clear(); }
+        void closeBox()
+        {
+            fDeclareTable.clear();
+            if (popLabel()) {
+                // Shortnames can be computed when all fullnames are known
+                computeShortNames();
+                // Fill 'shortname' map
+                for (const auto& path : fFullPaths) {
+                    if (fInputPathTable.count(path)) {
+                        fInputShortnameTable[fFull2Short[path]] = fInputPathTable[path];
+                    } else if (fOutputPathTable.count(path)) {
+                        fOutputShortnameTable[fFull2Short[path]] = fOutputPathTable[path];
+                    } else {
+                        assert(false);
+                    }
+                }
+             }
+        }
         
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
@@ -359,25 +384,28 @@ class mspUI : public UI, public PathBuilder
         
         bool isMulti() { return fMultiControl > 0; }
         
-        bool isValue(const string& name)
+        bool isValue(const std::string& name)
         {
-            return (fInputLabelTable.count(name) || fInputPathTable.count(name));
+            return (isOutputValue(name) || isInputValue(name));
         }
     
-        bool isOutputValue(const string& name)
+        bool isInputValue(const std::string& name)
         {
-            return fOutputPathTable.count(name);
+            return fInputLabelTable.count(name) || fInputShortnameTable.count(name) || fInputPathTable.count(name);
         }
     
-        bool isInputValue(const string& name)
+        bool isOutputValue(const std::string& name)
         {
-            return fInputPathTable.count(name);
+            return fOutputLabelTable.count(name) || fOutputShortnameTable.count(name) || fOutputPathTable.count(name);
         }
     
-        bool setValue(const string& name, FAUSTFLOAT val)
+        bool setValue(const std::string& name, FAUSTFLOAT val)
         {
             if (fInputLabelTable.count(name)) {
                 fInputLabelTable[name]->setValue(val);
+                return true;
+            } else if (fInputShortnameTable.count(name)) {
+                fInputShortnameTable[name]->setValue(val);
                 return true;
             } else if (fInputPathTable.count(name)) {
                 fInputPathTable[name]->setValue(val);
@@ -387,7 +415,7 @@ class mspUI : public UI, public PathBuilder
             }
         }
     
-        FAUSTFLOAT getOutputValue(const string& name, bool& new_val)
+        FAUSTFLOAT getOutputValue(const std::string& name, bool& new_val)
         {
             return static_cast<mspBargraph*>(fOutputPathTable[name])->getValue(new_val);
         }
@@ -413,29 +441,33 @@ class mspUI : public UI, public PathBuilder
                 delete it.second;
             }
             fInputLabelTable.clear();
+            fInputShortnameTable.clear();
             fInputPathTable.clear();
             
             for (const auto& it : fOutputLabelTable) {
                 delete it.second;
             }
             fOutputLabelTable.clear();
+            fOutputShortnameTable.clear();
             fOutputPathTable.clear();
         }
         
         void displayControls()
         {
-            post("------- Range and path ----------");
+            post("------- Range, shortname and path ----------");
             for (const auto& it : fInputPathTable) {
                 char param[STR_SIZE];
                 it.second->toString(param);
                 post(param);
-                string path = "Complete path: " + it.first;
+                std::string shortname = "Shortname: " + fFull2Short[it.first];
+                post(shortname.c_str());
+                std::string path = "Complete path: " + it.first;
                 post(path.c_str());
             }
-            post("---------------------------------");
+            post("---------------------------------------------");
         }
     
-        static bool checkDigit(const string& name)
+        static bool checkDigit(const std::string& name)
         {
             for (int i = name.size() - 1; i >= 0; i--) {
                 if (isdigit(name[i])) { return true; }
@@ -443,7 +475,7 @@ class mspUI : public UI, public PathBuilder
             return false;
         }
         
-        static int countDigit(const string& name)
+        static int countDigit(const std::string& name)
         {
             int count = 0;
             for (int i = name.size() - 1; i >= 0; i--) {

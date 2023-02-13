@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -31,11 +31,11 @@ using namespace std;
 //-----------------------------------------------
 // float size coding :
 //-----------------------------------------------
-//          0: external float (macro name)
-//          1: single precision float
-//          2: double precision float
-//          3: long double precision float
-//          4: fixed-point
+//   0: external float (macro name)
+//   1: single precision float
+//   2: double precision float
+//   3: long double precision float
+//   4: fixed-point float
 
 static const char* mathsuffix[5];       // suffix for math functions
 static const char* numsuffix[5];        // suffix for numeric constants
@@ -124,6 +124,44 @@ void initFaustFloat()
         castname[3] = "(dummy)";
         castname[4] = "(dummy)";
         
+        floatmin[0] = 0;
+        floatmin[1] = FLT_MIN;
+        floatmin[2] = DBL_MIN;
+        floatmin[3] = LDBL_MIN;
+        floatmin[4] = FLT_MIN;
+
+    // Specific for JAX backend
+    } else  if (gGlobal->gOutputLang == "jax") {
+        numsuffix[0] = "";
+        numsuffix[1] = "";
+        numsuffix[2] = "";
+        numsuffix[3] = "";
+        numsuffix[4] = "";
+
+        floatname[0] = FLOATMACRO;
+        floatname[1] = "jnp.float32";
+        floatname[2] = "jnp.float64";
+        floatname[3] = "dummy";
+        floatname[4] = "dummy";
+
+        floatptrname[0] = FLOATMACROPTR;
+        floatptrname[1] = "jnp.float32*";
+        floatptrname[2] = "jnp.float64*";
+        floatptrname[3] = "dummy*";
+        floatptrname[4] = "dummy*";
+
+        floatptrptrname[0] = FLOATMACROPTRPTR;
+        floatptrptrname[1] = "jnp.float32**";
+        floatptrptrname[2] = "jnp.float64**";
+        floatptrptrname[3] = "dummy**";
+        floatptrptrname[4] = "dummy**";
+
+        castname[0] = FLOATCASTER;
+        castname[1] = "(jnp.float32)";
+        castname[2] = "(jnp.float64)";
+        castname[3] = "(dummy)";
+        castname[4] = "(dummy)";
+
         floatmin[0] = 0;
         floatmin[1] = FLT_MIN;
         floatmin[2] = DBL_MIN;
@@ -267,6 +305,7 @@ int ifloatsize()
         case 4:
             return gGlobal->gMachineFixedPointSize;
         default:
+            cerr << "ASSERT : incorrect float format : " << gGlobal->gFloatSize << endl;
             faustassert(false);
             return 0;
     }
@@ -284,6 +323,7 @@ Typed::VarType itfloat()
         case 4:
             return Typed::kFixedPoint;
         default:
+            cerr << "ASSERT : incorrect float format : " << gGlobal->gFloatSize << endl;
             faustassert(false);
             return Typed::kNoType;
     }
@@ -301,6 +341,7 @@ Typed::VarType itfloatptr()
         case 4:
             return Typed::kFixedPoint_ptr;
         default:
+            cerr << "ASSERT : incorrect float format : " << gGlobal->gFloatSize << endl;
             faustassert(false);
             return Typed::kNoType;
     }
@@ -318,6 +359,7 @@ Typed::VarType itfloatptrptr()
         case 4:
             return Typed::kFixedPoint_ptr_ptr;
         default:
+            cerr << "ASSERT : incorrect float format : " << gGlobal->gFloatSize << endl;
             faustassert(false);
             return Typed::kNoType;
     }

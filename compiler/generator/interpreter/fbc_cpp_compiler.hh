@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -30,8 +30,7 @@
 
 #include "fbc_interpreter.hh"
 #include "interpreter_bytecode.hh"
-
-using namespace std;
+#include "Text.hh"
 
 static void tab(int n, ostream& fout)
 {
@@ -94,9 +93,9 @@ struct CPPBlockList : public std::vector<CPPBlock> {
 
     void addBlock() { push_back(CPPBlock(fCurrent++)); }
 
-    void addInst(const string& code) { at(fCurrent - 1).push_back(code); }
+    void addInst(const std::string& code) { at(fCurrent - 1).push_back(code); }
 
-    void addPreviousInst(const string& code) { at(fCurrent - 2).push_back(code); }
+    void addPreviousInst(const std::string& code) { at(fCurrent - 2).push_back(code); }
 
     std::string getIndex() { return at(fCurrent - 1).fNum; }
 };
@@ -105,7 +104,7 @@ struct CPPBlockList : public std::vector<CPPBlock> {
 template <class T>
 class FBCCPPCompiler {
    protected:
-    string        fCPPStack[512];
+    std::string   fCPPStack[512];
     InstructionIT fAddressStack[64];
 
     int fCPPStackIndex;
@@ -115,15 +114,11 @@ class FBCCPPCompiler {
 
     std::string genFloat(float num)
     {
-        std::stringstream str;
-        str << std::setprecision(std::numeric_limits<T>::max_digits10) << num;
-        return str.str();
+        return T(num);
     }
     std::string genDouble(double num)
     {
-        std::stringstream str;
-        str << std::setprecision(std::numeric_limits<T>::max_digits10) << num;
-        return str.str();
+        return T(num);
     }
     std::string genReal(double num) { return (sizeof(T) == sizeof(double)) ? genDouble(num) : genFloat(num); }
     std::string genInt32(int num) { return std::to_string(num); }
@@ -216,6 +211,16 @@ class FBCCPPCompiler {
                     it++;
                     break;
                 }
+                    
+                case FBCInstruction::kLoadSoundFieldInt:
+                    // TODO
+                    it++;
+                    break;
+                    
+                case FBCInstruction::kLoadSoundFieldReal:
+                    // TODO
+                    it++;
+                    break;
 
                 case FBCInstruction::kStoreIndexedReal: {
                     std::string offset = genInt32((*it)->fOffset1) + "+" + popValue();
@@ -793,7 +798,7 @@ class FBCCPPCompiler {
 
     void AddBlock() { fBlockList.addBlock(); }
 
-    void AddInst(const string& inst) { fBlockList.addInst(inst); }
+    void AddInst(const std::string& inst) { fBlockList.addInst(inst); }
 
     static std::string getRealTy() { return (sizeof(T) == sizeof(double)) ? "double" : "float"; }
 };
@@ -889,7 +894,7 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
         {
             FBCCPPCompiler<T> compiler;
             compiler.AddBlock();
-            compiler.AddInst("fIntHeap[" + to_string(this->fFactory->fSROffset) + "] = sample_rate;");
+            compiler.AddInst("fIntHeap[" + std::to_string(this->fFactory->fSROffset) + "] = sample_rate;");
             compiler.CompileBlock(this->fFactory->fInitBlock, tabs + 1, out);
         }
 
@@ -933,7 +938,7 @@ class FBCCPPGenerator : public FBCInterpreter<T, 0> {
             FBCCPPCompiler<T> compiler;
             compiler.AddBlock();
             compiler.AddInst("if (count == 0) return; // Beware: compiled loop don't work with an index of 0");
-            compiler.AddInst("fIntHeap[" + to_string(this->fFactory->fCountOffset) + "] = count;");
+            compiler.AddInst("fIntHeap[" + std::to_string(this->fFactory->fCountOffset) + "] = count;");
             if (control_block) {
                 control_block->write(&std::cout);
                 compiler.CompileBlock(control_block, tabs + 1, out, false);

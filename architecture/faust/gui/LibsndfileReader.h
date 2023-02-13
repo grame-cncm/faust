@@ -141,7 +141,7 @@ struct LibsndfileReader : public SoundfileReader {
     typedef sf_count_t (* sample_read)(SNDFILE* sndfile, void* buffer, sf_count_t frames);
 	
     // Check file
-    bool checkFile(const std::string& path_name)
+    bool checkFile(const std::string& path_name) override
     {
         SF_INFO snd_info;
         snd_info.format = 0;
@@ -149,7 +149,7 @@ struct LibsndfileReader : public SoundfileReader {
         return checkFileAux(snd_file, path_name);
     }
     
-    bool checkFile(unsigned char* buffer, size_t length)
+    bool checkFile(unsigned char* buffer, size_t length) override
     {
         SF_INFO snd_info;
         snd_info.format = 0;
@@ -170,7 +170,7 @@ struct LibsndfileReader : public SoundfileReader {
     }
 
     // Open the file and returns its length and channels
-    void getParamsFile(const std::string& path_name, int& channels, int& length)
+    void getParamsFile(const std::string& path_name, int& channels, int& length) override
     {
         SF_INFO	snd_info;
         snd_info.format = 0;
@@ -178,7 +178,7 @@ struct LibsndfileReader : public SoundfileReader {
         getParamsFileAux(snd_file, snd_info, channels, length);
     }
     
-    void getParamsFile(unsigned char* buffer, size_t size, int& channels, int& length)
+    void getParamsFile(unsigned char* buffer, size_t size, int& channels, int& length) override
     {
         SF_INFO	snd_info;
         snd_info.format = 0;
@@ -200,7 +200,7 @@ struct LibsndfileReader : public SoundfileReader {
     }
     
     // Read the file
-    void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
+    void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan) override
     {
         SF_INFO	snd_info;
         snd_info.format = 0;
@@ -208,7 +208,7 @@ struct LibsndfileReader : public SoundfileReader {
         readFileAux(soundfile, snd_file, snd_info, part, offset, max_chan);
     }
     
-    void readFile(Soundfile* soundfile, unsigned char* buffer, size_t length, int part, int& offset, int max_chan)
+    void readFile(Soundfile* soundfile, unsigned char* buffer, size_t length, int part, int& offset, int max_chan) override
     {
         SF_INFO	snd_info;
         snd_info.format = 0;

@@ -1,4 +1,4 @@
-/************************** BEGIN llvm-c-dsp.h *****************************
+/************************** BEGIN llvm-dsp-c.h *****************************
 FAUST Architecture File
 Copyright (C) 2003-2022 GRAME, Centre National de Creation Musicale
 ---------------------------------------------------------------------
@@ -31,7 +31,8 @@ architecture section is not modified.
 #include "faust/dsp/libfaust-signal-c.h"
 
 /*!
- \addtogroup llvmc C interface for compiling Faust code with the LLVM backend. Note that the API is not thread safe : use 'startMTDSPFactories/stopMTDSPFactories' to use it in a multi-thread context.
+ \addtogroup llvmc C interface for compiling Faust code with the LLVM backend.
+ Note that the API is not thread safe : use 'startMTDSPFactories/stopMTDSPFactories' to use it in a multi-thread context.
  @{
  */
 
@@ -55,14 +56,14 @@ extern "C"
      * 
      * @return the library version as a static string.
      */
-    const char* getCLibFaustVersion();
+    LIBFAUST_API const char* getCLibFaustVersion();
       
     /**
      * Get the target (triple + CPU) of the machine.
      * 
      * @return the target as a string (to be deleted by the caller using freeCMemory).
      */
-     char* getCDSPMachineTarget();
+    LIBFAUST_API char* getCDSPMachineTarget();
   
     /**
      * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
@@ -73,7 +74,7 @@ extern "C"
      *
      * @return a valid DSP factory if one is associated with the SHA key, otherwise a null pointer.
      */
-    llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key);
+    LIBFAUST_API llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key);
     
     /**
      * Create a Faust DSP factory from a DSP source code as a file. Note that the library keeps an internal cache of all 
@@ -93,12 +94,12 @@ extern "C"
      *
      * @return a valid DSP factory on success, otherwise a null pointer.
      */ 
-    llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename,
-                                                int argc, const char* argv[],
-                                                const char* target, 
-                                                char* error_msg,
-                                                int opt_level);
-    
+    LIBFAUST_API llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename,
+                                                             int argc, const char* argv[],
+                                                             const char* target,
+                                                             char* error_msg,
+                                                             int opt_level);
+
     /**
      * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all 
      * allocated factories so that the compilation of the same DSP code (that is same source code and 
@@ -118,13 +119,13 @@ extern "C"
      *
      * @return a valid DSP factory on success, otherwise a null pointer.
      */ 
-    llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app,
-                                                  const char* dsp_content,
-                                                  int argc, const char* argv[],
-                                                  const char* target, 
-                                                  char* error_msg,
-                                                  int opt_level);
-    
+    LIBFAUST_API llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app,
+                                                               const char* dsp_content,
+                                                               int argc, const char* argv[],
+                                                               const char* target,
+                                                               char* error_msg,
+                                                               int opt_level);
+
     /**
      * Create a Faust DSP factory from a null terminated array of output signals.
      * It has to be used with the signal API defined in libfaust-signal-c.h.
@@ -136,18 +137,18 @@ extern "C"
      * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
      *                 using an empty string takes the current machine settings,
      *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
-     * @param error_msg - the error string to be filled
+     * @param error_msg - the error string to be filled, has to be 4096 characters long
      * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
      * since the maximum value may change with new LLVM versions)
      *
      * @return a DSP factory on success, otherwise a null pointer.
      */
-    llvm_dsp_factory* createCDSPFactoryFromSignals(const char* name_app,
-                                                   Signal* signals,
-                                                   int argc, const char* argv[],
-                                                   const char* target,
-                                                   char* error_msg,
-                                                   int opt_level);
+    LIBFAUST_API llvm_dsp_factory* createCDSPFactoryFromSignals(const char* name_app,
+                                                                Signal* signals,
+                                                                int argc, const char* argv[],
+                                                                const char* target,
+                                                                char* error_msg,
+                                                                int opt_level);
 
     /**
      * Create a Faust DSP factory from a box expression.
@@ -160,18 +161,18 @@ extern "C"
      * @param target - the LLVM machine target: like 'i386-apple-macosx10.6.0:opteron',
      *                 using an empty string takes the current machine settings,
      *                 and i386-apple-macosx10.6.0:generic kind of syntax for a generic processor
-     * @param error_msg - the error string to be filled
+     * @param error_msg - the error string to be filled, has to be 4096 characters long
      * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
      * since the maximum value may change with new LLVM versions)
      *
      * @return a DSP factory on success, otherwise a null pointer.
      */
-    llvm_dsp_factory* createCDSPFactoryFromBoxes(const char* name_app,
-                                                 Box box,
-                                                 int argc, const char* argv[],
-                                                 const char* target,
-                                                 char* error_msg,
-                                                 int opt_level);
+    LIBFAUST_API llvm_dsp_factory* createCDSPFactoryFromBoxes(const char* name_app,
+                                                            Box box,
+                                                            int argc, const char* argv[],
+                                                            const char* target,
+                                                            char* error_msg,
+                                                            int opt_level);
 
     /**
      * Delete a Faust DSP factory, that is decrements it's reference counter, possibly really deleting the internal pointer. 
@@ -182,7 +183,7 @@ extern "C"
      *
      * @return true if the factory internal pointer was really deleted, and false if only 'decremented'.
      */                                 
-    bool deleteCDSPFactory(llvm_dsp_factory* factory);
+    LIBFAUST_API bool deleteCDSPFactory(llvm_dsp_factory* factory);
     
     /**
      *  Returns factory name :
@@ -194,7 +195,7 @@ extern "C"
      * 
      * @return the name as a string (to be deleted by the caller using freeCMemory).
      */
-    char* getCName(llvm_dsp_factory* factory);
+    LIBFAUST_API char* getCName(llvm_dsp_factory* factory);
 
     /**
      * Get the SHA Key of the Faust DSP factory.
@@ -203,7 +204,7 @@ extern "C"
      * 
      * @return the SHA key as a string (to be deleted by the caller using freeCMemory).
      */
-    char* getCSHAKey(llvm_dsp_factory* factory);
+    LIBFAUST_API char* getCSHAKey(llvm_dsp_factory* factory);
     
     /**
      * Get the expanded DSP code of the Faust DSP factory.
@@ -212,7 +213,7 @@ extern "C"
      * 
      * @return the expanded DSP code string (to be deleted by the caller using freeCMemory).
      */
-    char* getCDSPCode(llvm_dsp_factory* factory);
+    LIBFAUST_API char* getCDSPCode(llvm_dsp_factory* factory);
     
     /**
      * Get the compile options of the Faust DSP factory.
@@ -221,7 +222,7 @@ extern "C"
      *
      * @return the LLVM compile options as a string (to be deleted by the caller using freeCMemory).
      */
-    char* getCDSPFactoryCompileOptions(llvm_dsp_factory* factory);
+    LIBFAUST_API char* getCDSPFactoryCompileOptions(llvm_dsp_factory* factory);
     
     /**
      * Get the LLVM target of the Faust DSP factory.
@@ -230,7 +231,7 @@ extern "C"
      * 
      * @return the LLVM target as a string (to be deleted by the caller using freeCMemory).
      */
-    char* getCTarget(llvm_dsp_factory* factory);
+    LIBFAUST_API char* getCTarget(llvm_dsp_factory* factory);
   
     /**
      * Get the Faust DSP factory list of library dependancies as a null-terminated array.
@@ -239,7 +240,7 @@ extern "C"
      * 
      * @return the library dependancies (the array and it's content has to be deleted by the caller using freeCMemory).
      */
-    const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory);
+    LIBFAUST_API const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory);
     
     /**
      * Get the list of all used includes as a null-terminated array.
@@ -248,33 +249,40 @@ extern "C"
      *
      * @return the includes list (the array and it's content has to be deleted by the caller using freeCMemory).
      */
-    const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory);
+    LIBFAUST_API const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory);
     
     /**
+     * Get warning messages list for a given compilation as a null-terminated array.
+     *
+     * @param factory - the DSP factory.
+     *
+     * @return the warning messages list (the array and it's content has to be deleted by the caller using freeCMemory).
+     */
+    LIBFAUST_API const char** getCWarningMessages(llvm_dsp_factory* factory);
+
+    /**
      * Delete all Faust DSP factories kept in the library cache. Beware: all kept factory pointers (in local variables...) thus become invalid.
-     * 
      */                                 
-    void deleteAllCDSPFactories();
+    LIBFAUST_API void deleteAllCDSPFactories();
     
     /**
      * Return Faust DSP factories of the library cache as a null-terminated array of their SHA keys.
      * 
      * @return the Faust DSP factories (the array and it's content has to be deleted by the caller using freeCMemory).
      */    
-    const char** getAllCDSPFactories();
+    LIBFAUST_API const char** getAllCDSPFactories();
     
     /**
      * Start multi-thread access mode (since by default the library is not 'multi-thread' safe).
      * 
      * @return true if 'multi-thread' safe access is started.
      */ 
-    bool startMTDSPFactories();
+    LIBFAUST_API bool startMTDSPFactories();
 
     /**
      * Stop multi-thread access mode.
-     * 
      */ 
-    void stopMTDSPFactories();
+    LIBFAUST_API void stopMTDSPFactories();
   
     /**
      * Create a Faust DSP factory from a base64 encoded LLVM bitcode string. Note that the library keeps an internal cache of all 
@@ -293,7 +301,7 @@ extern "C"
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
-    llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, char* error_msg, int opt_level);
+    LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, char* error_msg, int opt_level);
     
     /**
      * Write a Faust DSP factory into a base64 encoded LLVM bitcode string.
@@ -302,7 +310,7 @@ extern "C"
      *
      * @return the LLVM bitcode as a string (to be deleted by the caller using freeCMemory).
      */
-    char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory);
+    LIBFAUST_API char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory);
     
     /**
      * Create a Faust DSP factory from a LLVM bitcode file. Note that the library keeps an internal cache of all 
@@ -321,7 +329,7 @@ extern "C"
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
-    llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, char* error_msg, int opt_level);
+    LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, char* error_msg, int opt_level);
     
     /**
      * Write a Faust DSP factory into a LLVM bitcode file.
@@ -331,7 +339,7 @@ extern "C"
      *
      * @return true on success, false on failure.
      */
-    bool writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char* bit_code_path);
+    LIBFAUST_API bool writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char* bit_code_path);
     
     /**
      * Create a Faust DSP factory from a LLVM IR (textual) string. Note that the library keeps an internal cache of all 
@@ -349,7 +357,7 @@ extern "C"
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
-    llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* target, char* error_msg, int opt_level);
+    LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* target, char* error_msg, int opt_level);
     
     /**
      * Write a Faust DSP factory into a LLVM IR (textual) string.
@@ -358,7 +366,7 @@ extern "C"
      *
      * @return the LLVM IR (textual) as a string (to be deleted by the caller using freeCMemory).
      */
-    char* writeCDSPFactoryToIR(llvm_dsp_factory* factory);
+    LIBFAUST_API char* writeCDSPFactoryToIR(llvm_dsp_factory* factory);
     
     /**
      * Create a Faust DSP factory from a LLVM IR (textual) file. Note that the library keeps an internal cache of all 
@@ -377,7 +385,7 @@ extern "C"
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
-    llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, char* error_msg, int opt_level);
+    LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, char* error_msg, int opt_level);
     
     /**
      * Write a Faust DSP factory into a LLVM IR (textual) file.
@@ -387,7 +395,7 @@ extern "C"
      *
      * @return true on success, false on failure.
      */
-    bool writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path);
+    LIBFAUST_API bool writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path);
     
     /**
      * Create a Faust DSP factory from a base64 encoded machine code string. Note that the library keeps an internal cache of all 
@@ -403,7 +411,7 @@ extern "C"
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
-    llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, char* error_msg, const char* target);
+    LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, char* error_msg, const char* target);
 
     /**
      * Write a Faust DSP factory into a base64 encoded machine code string.
@@ -415,7 +423,7 @@ extern "C"
      *
      * @return the machine code as a string (to be deleted by the caller using freeCMemory).
      */
-    char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target);
+    LIBFAUST_API char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target);
 
     /**
      * Create a Faust DSP factory from a machine code file. Note that the library keeps an internal cache of all 
@@ -431,7 +439,7 @@ extern "C"
      *
      * @return the DSP factory on success, otherwise a null pointer.
      */
-    llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target, char* error_msg);
+    LIBFAUST_API llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target, char* error_msg);
 
     /**
      * Write a Faust DSP factory into a machine code file.
@@ -444,38 +452,38 @@ extern "C"
      *
      * @return true on success, false on failure.
      */
-    bool writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
+    LIBFAUST_API bool writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
     
     /**
      * Instance functions.
      */
     
-    int getNumInputsCDSPInstance(llvm_dsp* dsp);
+    LIBFAUST_API int getNumInputsCDSPInstance(llvm_dsp* dsp);
     
-    int getNumOutputsCDSPInstance(llvm_dsp* dsp);
+    LIBFAUST_API int getNumOutputsCDSPInstance(llvm_dsp* dsp);
     
-    void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* interface);
+    LIBFAUST_API void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* interface);
     
-    int getSampleRateCDSPInstance(llvm_dsp* dsp);
+    LIBFAUST_API int getSampleRateCDSPInstance(llvm_dsp* dsp);
     
-    void initCDSPInstance(llvm_dsp* dsp, int sample_rate);
+    LIBFAUST_API void initCDSPInstance(llvm_dsp* dsp, int sample_rate);
     
-    void instanceInitCDSPInstance(llvm_dsp* dsp, int sample_rate);
+    LIBFAUST_API void instanceInitCDSPInstance(llvm_dsp* dsp, int sample_rate);
     
-    void instanceConstantsCDSPInstance(llvm_dsp* dsp, int sample_rate);
+    LIBFAUST_API void instanceConstantsCDSPInstance(llvm_dsp* dsp, int sample_rate);
     
-    void instanceResetUserInterfaceCDSPInstance(llvm_dsp* dsp);
+    LIBFAUST_API void instanceResetUserInterfaceCDSPInstance(llvm_dsp* dsp);
     
-    void instanceClearCDSPInstance(llvm_dsp* dsp);
+    LIBFAUST_API void instanceClearCDSPInstance(llvm_dsp* dsp);
     
-    llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp);
+    LIBFAUST_API llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp);
     
-    void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
+    LIBFAUST_API void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
     
-    void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    LIBFAUST_API void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
     
     /* Set custom memory manager to be used when creating instances */
-    void setCMemoryManager(llvm_dsp_factory* factory, MemoryManagerGlue* manager);
+    LIBFAUST_API void setCMemoryManager(llvm_dsp_factory* factory, MemoryManagerGlue* manager);
     
     /**
      * Create a Faust DSP instance.
@@ -484,14 +492,21 @@ extern "C"
      * 
      * @return the DSP instance on success, otherwise a null pointer.
      */
-    llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
+    LIBFAUST_API llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
     
     /**
      * Delete a Faust DSP instance.
      * 
      * @param dsp - the DSP instance to be deleted.
      */ 
-    void deleteCDSPInstance(llvm_dsp* dsp);
+    LIBFAUST_API void deleteCDSPInstance(llvm_dsp* dsp);
+    
+    /**
+     * Register a custom foreign function that will be exported by the host binary running the DSP code.
+     *
+     * @param function_name - the function name to be available
+     */
+    LIBFAUST_API void registerCForeignFunction(const char* function_name);
     
 #ifdef __cplusplus
 }
@@ -502,4 +517,4 @@ extern "C"
  */
  
 #endif
-/************************** END llvm-c-dsp.h **************************/
+/************************** END llvm-dsp-c.h **************************/

@@ -31,7 +31,7 @@
 #define FAUSTFLOAT float
 #endif
 
-struct JSONControl {
+struct FAUST_API JSONControl {
     
     virtual std::string getJSON() { return ""; }
 

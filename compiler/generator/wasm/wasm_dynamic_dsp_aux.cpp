@@ -4,16 +4,16 @@
     Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -27,6 +27,8 @@
 #include "Text.hh"
 #include "compatibility.hh"
 
+using namespace std;
+
 #ifdef WIN32
 #define strdup _strdup
 #endif
@@ -37,10 +39,10 @@
 using namespace emscripten;
 #endif
 
-wasm_dsp_factory* wasm_dynamic_dsp_factory::createWasmDSPFactoryFromString2(const string&         name_app,
-                                                                            const string&         dsp_content,
-                                                                            const vector<string>& argv,
-                                                                            bool                  internal_memory)
+wasm_dsp_factory* wasm_dynamic_dsp_factory::createWasmDSPFactoryFromString2(const string& name_app,
+                                                                        const string& dsp_content,
+                                                                        const vector<string>& argv,
+                                                                        bool internal_memory)
 {
     int         argc1 = 0;
     const char* argv1[64];
@@ -53,10 +55,10 @@ wasm_dsp_factory* wasm_dynamic_dsp_factory::createWasmDSPFactoryFromString2(cons
                                                                wasm_dsp_factory::gErrorMessage, internal_memory);
 }
 
-std::string wasm_dynamic_dsp_factory::generateWasmFromString2(const std::string&           name_app,
-                                                            const std::string&              dsp_content,
-                                                            const std::vector<std::string>& argv,
-                                                            bool                            internal_memory)
+string wasm_dynamic_dsp_factory::generateWasmFromString2(const string& name_app,
+                                                     const string& dsp_content,
+                                                     const vector<string>& argv,
+                                                     bool internal_memory)
 {
     int         argc1 = 0;
     const char* argv1[64];
@@ -65,12 +67,12 @@ std::string wasm_dynamic_dsp_factory::generateWasmFromString2(const std::string&
     }
     argv1[argc1] = nullptr;  // NULL terminated argv
     
-    return generateWasmFromString(name_app, dsp_content, argc1, argv1,wasm_dsp_factory::gErrorMessage, internal_memory);
+    return generateWasmFromString(name_app, dsp_content, argc1, argv1, wasm_dsp_factory::gErrorMessage, internal_memory);
 }
 
 // C++ API
 
-EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const string& filename, int argc, const char* argv[],
+LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromFile(const string& filename, int argc, const char* argv[],
                                                       string& error_msg, bool internal_memory)
 {
     string base = basename((char*)filename.c_str());
@@ -85,8 +87,8 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const string& filename, in
     }
 }
 
-EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc,
-                                                        const char* argv[], string& error_msg, bool internal_memory)
+LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc,
+                                                            const char* argv[], string& error_msg, bool internal_memory)
 {
     string expanded_dsp_content, sha_key;
 
@@ -107,7 +109,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
         }
         argv1[argc1] = nullptr;  // NULL terminated argv
 
-        dsp_factory_base* dsp_factory_aux = createFactory(name_app.c_str(), dsp_content.c_str(), argc1, argv1, error_msg, true);
+        dsp_factory_base* dsp_factory_aux = createFactory(name_app, dsp_content, argc1, argv1, error_msg, true);
         if (dsp_factory_aux) {
             dsp_factory_aux->setName(name_app);
             wasm_dsp_factory* factory = new wasm_dsp_factory(dsp_factory_aux);
@@ -121,9 +123,9 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
     }
 }
 
-EXPORT wasm_dsp_factory* createWasmDSPFactoryFromSignals(const std::string& name_app, tvec signals,
-                                                         int argc, const char* argv[], std::string& error_msg,
-                                                         bool internal_memory)
+LIBFAUST_API wasm_dsp_factory* createWasmDSPFactoryFromSignals(const string& name_app, tvec signals,
+                                                            int argc, const char* argv[], string& error_msg,
+                                                            bool internal_memory)
 {
     int         argc1 = 0;
     const char* argv1[64];
@@ -139,7 +141,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromSignals(const std::string& name
     }
     argv1[argc1] = nullptr;  // NULL terminated argv
     
-    dsp_factory_base* dsp_factory_aux = createFactory(name_app.c_str(), signals, argc1, argv1, error_msg);
+    dsp_factory_base* dsp_factory_aux = createFactory(name_app, signals, argc1, argv1, error_msg);
     if (dsp_factory_aux) {
         dsp_factory_aux->setName(name_app);
         wasm_dsp_factory* factory = new wasm_dsp_factory(dsp_factory_aux);
@@ -150,7 +152,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromSignals(const std::string& name
     }
 }
 
-EXPORT std::string generateWasmFromString(const string& name_app, const string& dsp_content, int argc,
+LIBFAUST_API string generateWasmFromString(const string& name_app, const string& dsp_content, int argc,
                                          const char* argv[], string& error_msg, bool internal_memory)
 {
     int         argc1 = 0;
@@ -166,7 +168,7 @@ EXPORT std::string generateWasmFromString(const string& name_app, const string& 
     }
     argv1[argc1] = nullptr;  // NULL terminated argv
     
-    dsp_factory_base* dsp_factory_aux = createFactory(name_app.c_str(), dsp_content.c_str(), argc1, argv1, error_msg, true);
+    dsp_factory_base* dsp_factory_aux = createFactory(name_app, dsp_content, argc1, argv1, error_msg, true);
     return (dsp_factory_aux) ? dsp_factory_aux->getBinaryCode() : "";
 }
 
@@ -174,12 +176,12 @@ EXPORT std::string generateWasmFromString(const string& name_app, const string& 
 extern "C" {
 #endif
 
-EXPORT void deleteAllWasmCDSPFactories()
+LIBFAUST_API void deleteAllWasmCDSPFactories()
 {
     deleteAllWasmDSPFactories();
 }
 
-EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromFile2(const char* filename, int argc, const char* argv[],
+LIBFAUST_API wasm_dsp_factory* createWasmCDSPFactoryFromFile2(const char* filename, int argc, const char* argv[],
                                                         char* error_msg, bool internal_memory)
 {
     string error_msg_aux;
@@ -188,7 +190,7 @@ EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromFile2(const char* filename, in
     return factory;
 }
 
-EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromString2(const char* name_app, const char* dsp_content, int argc,
+LIBFAUST_API wasm_dsp_factory* createWasmCDSPFactoryFromString2(const char* name_app, const char* dsp_content, int argc,
                                                           const char* argv[], char* error_msg, bool internal_memory)
 {
     string error_msg_aux;
@@ -198,7 +200,7 @@ EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromString2(const char* name_app, 
     return factory;
 }
     
-EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromSignals2(const char* name_app, tvec signals,
+LIBFAUST_API wasm_dsp_factory* createWasmCDSPFactoryFromSignals2(const char* name_app, tvec signals,
                                                            int argc, const char* argv[], char* error_msg,
                                                            bool internal_memory)
 {
@@ -232,7 +234,7 @@ static WasmModule* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const str
     }
 }
 
-EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg,
+LIBFAUST_API WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg,
                                                  bool internal_memory)
 {
     string            error_msg_aux;
@@ -240,7 +242,7 @@ EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc,
     return createWasmCDSPFactoryAux(factory, error_msg_aux, error_msg);
 }
 
-EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc,
+LIBFAUST_API WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc,
                                                    const char* argv[], char* error_msg, bool internal_memory)
 {
     string            error_msg_aux;
@@ -249,22 +251,22 @@ EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const c
     return createWasmCDSPFactoryAux(factory, error_msg_aux, error_msg);
 }
 
-EXPORT const char* getWasmCModule(WasmModule* module)
+LIBFAUST_API const char* getWasmCModule(WasmModule* module)
 {
     return module->fWASMCode;
 }
 
-EXPORT int getWasmCModuleSize(WasmModule* module)
+LIBFAUST_API int getWasmCModuleSize(WasmModule* module)
 {
     return module->fWASMCodeSize;
 }
 
-EXPORT const char* getWasmCHelpers(WasmModule* module)
+LIBFAUST_API const char* getWasmCHelpers(WasmModule* module)
 {
     return module->fJSHelpers;
 }
 
-EXPORT void freeWasmCModule(WasmModule* module)
+LIBFAUST_API void freeWasmCModule(WasmModule* module)
 {
     free((void*)module->fWASMCode);
     free((void*)module->fJSHelpers);

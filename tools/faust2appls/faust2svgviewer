@@ -3,9 +3,9 @@
 VIEWER_LAUNCH=${FAUST2FIREFOX_VIEWER_LAUNCH}
 if [[ -z "${VIEWER_LAUNCH}" ]]; then
     if [[ $(uname) == Darwin ]]; then
-	VIEWER_LAUNCH=open
+        VIEWER_LAUNCH=open
     else
-	VIEWER_LAUNCH=xdg-open
+        VIEWER_LAUNCH=xdg-open
     fi
 fi
 

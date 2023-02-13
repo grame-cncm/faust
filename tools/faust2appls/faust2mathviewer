@@ -2,7 +2,7 @@
 
 # faust2mathviewer.sh
 #
-# Generate a full Faust documentation, in a '*-mdoc' top directory 
+# Generate a full Faust documentation, in a '*-mdoc' top directory
 # and open the resulting pdf file
 #
 # Karim Barkati
@@ -15,12 +15,13 @@
 # - faust ;-)
 
 # Usage.
-print_usage() 
+echoHelp()
 {
     echo Usage : args of faust2mathviewer should be a \'.dsp\' file, or a list of \'.dsp\' files.
+    exit
 }
 
-# Visit each directory transmited as argument,
+# Visit each directory transmitted as argument,
 # in order to convert .svg files into pdf.
 # This function uses the svg2pdf command,
 # from the Cairo 2D graphics library.
@@ -62,9 +63,9 @@ for FILEPATH in $@ ; do
     if [ -f $FILEPATH ] ; then
     FILENAME=`basename $FILEPATH` &&
     case $FILENAME in
-        *.dsp )  
+        *.dsp )
         faust -o ${FILEPATH%.dsp}.cpp --mathdoc $FILEPATH || exit
-        cd ${FILEPATH%.dsp}-mdoc/ && 
+        cd ${FILEPATH%.dsp}-mdoc/ &&
         cd svg && convert_svgdirs2pdf svg-* && cd .. &&
         cd tex && pdflatex ${FILENAME%.dsp}.tex && pdflatex ${FILENAME%.dsp}.tex && cd .. &&
         mkdir -p pdf && cp tex/${FILENAME%.dsp}.pdf pdf &&
@@ -76,10 +77,9 @@ for FILEPATH in $@ ; do
         echo error : \'$FILENAME\' does not have a \'.dsp\' extension.
         exit 2
         ;;
-    esac    
+    esac
     else
-    print_usage
-    exit 1
+    echoHelp
     fi
 done
 exit 0

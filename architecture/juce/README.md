@@ -6,7 +6,7 @@ Polyphonic synthesiser can be created using JUCE Synthesiser model or Faust own 
 
 **faust2juce** uses several UI interfaces, subclasses of the base UI class (defined in the architecture/faust/gui/UI.h header) to link to various JUCE components:
 
- - `JuceGUI.h`: contains the main JuceGUI class (and additional helpers classes) to display Faust UI components (buttons, sliders, bargraphs...) using JUCE widgets
+ - `JuceGUI.h`: contains the main JuceGUI class (and additional helpers classes) to display Faust UI components (buttons, sliders, bargraphs...) using JUCE widgets. The following `[style:knob]`, `[style:led]`, `[style:numerical]`, `[style:radio]`, `[style:menu]`, `[scale:log]`, `[scale:exp]`, `[tooltip:xx]`, `[hidden:0|1]` metadata are supported.
  - `JuceOSCUI.h`: allows to link Faust UI components (buttons, sliders, bargraphs...) to the JUCE OSC messaging system, allowing to control them in both directions
  - `JuceParameterUI.h`: allows to link Faust UI components (buttons, sliders, bargraphs...) with the JUCE AudioParameterFloat/AudioParameterFloat classes
  - `JuceStateUI.h`: allows to save/restore Faust UI components (buttons, sliders, bargraphs...) values using the JUCE state management system (MemoryInputStream/MemoryOutputStream classes)
@@ -52,7 +52,7 @@ Here are the available options:
 - `-magic` : to generate a project using the [PluginGuiMagic GUI builder](https://foleysfinest.com/developer/pluginguimagic/)
 Tested with PGM version 1.13. Support for Faust components is incomplete. Supporting some features (e.g. visualizers) in PGM requires editing the generated C++ code.
 
- This creates a preprocessor definition "PLUGIN_MAGIC" in the jucer file e.g. using VisualStudio 2019.
+This creates a preprocessor definition "PLUGIN_MAGIC" in the jucer file e.g. using VisualStudio 2019.
 
 ![image](https://user-images.githubusercontent.com/3178344/125528513-d8f127a0-a896-4f50-8210-ba7b8dcf0386.png)
 
@@ -75,3 +75,10 @@ To use either of these options, either enter the option into the JUCER exporter 
 
 As usual with faust2xx tools, other Faust compiler specific options can be given to **faust2juce**, like `-vec -lv 1` to compile in vector mode.etc.
 
+## Latency setting
+
+Some plugins add latency in the signal path. A special global metadata can be used in the DSP code to define it, so that the C++ architecture file can extract it and use the JUCE `AudioProcessor::setLatencySamples()` method to have the plugin inform the host about its added latency. The following syntax can be used:
+
+- `declare latency_frames "7000";` (or alternatively `declare latency_samples "7000";`) to express the latency in samples/frames
+
+- `declare latency_sec "0.5";` to express the latency in seconds, to be converted internally in samples/frames using the host sample rate 

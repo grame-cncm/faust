@@ -80,6 +80,7 @@
 //--------------------------------useful constants--------------------------------------
 
 #define MAXPORT 1024
+#define MAX_DESCRIPTOR_STRING 1024
 static const int ICONTROL 	= LADSPA_PORT_INPUT|LADSPA_PORT_CONTROL;
 static const int OCONTROL 	= LADSPA_PORT_OUTPUT|LADSPA_PORT_CONTROL;
 static const int RANGE 		= LADSPA_PORT_INPUT|LADSPA_PORT_CONTROL;
@@ -122,7 +123,6 @@ class portCollector : public UI
 
     std::string					fPluginName;			// toplevel prefix used as plugin name
     std::stack<std::string>		fPrefix;				// current prefix for controls name
-
 
 	//--------------------------------------------------------------------------------------
     std::string simplify(const std::string& src)
@@ -307,22 +307,47 @@ class portCollector : public UI
 	}
 
 	// fill a ladspa descriptor with the information collected on ports
-	void fillPortDescription (LADSPA_Descriptor * descriptor) {
-		const char* name = sym(mydsp);
-		descriptor->PortCount 			= fCtrlCount+fInsCount+fOutsCount;
-		descriptor->PortDescriptors 	= fPortDescs;
-		descriptor->PortNames 			= fPortNames;
-		descriptor->PortRangeHints 		= fPortHints;
+	// and fields retrieved from the global metadata
+	void fillPortDescription (LADSPA_Descriptor * descriptor, mydsp* dsp) {
+		const char* labl = sym(mydsp);
+		char *name = NULL, *maker = NULL, *copyright = NULL;
+		MY_Meta meta;
 
-		descriptor->Label = strdup(name);
-		descriptor->UniqueID = makeID(name);
-//		descriptor->Label = strdup(fPluginName.c_str());
-//		descriptor->UniqueID = makeID(fPluginName.c_str());
+		descriptor->Label = strdup(labl);
+		descriptor->UniqueID = makeID(labl);
+		descriptor->PortCount = fCtrlCount+fInsCount+fOutsCount;
+		descriptor->PortDescriptors = fPortDescs;
+		descriptor->PortNames = fPortNames;
+		descriptor->PortRangeHints = fPortHints;
 		descriptor->Properties = LADSPA_PROPERTY_HARD_RT_CAPABLE;
-		descriptor->Name = name;
-//		descriptor->Name = strdup(fPluginName.c_str());
-		descriptor->Maker = "undefined";
-		descriptor->Copyright = "undefined";
+
+		dsp->metadata(&meta);
+
+		if (meta.count("name"))
+			name = strndup(meta["name"], MAX_DESCRIPTOR_STRING);
+
+		if (name)
+			descriptor->Name = (const char*) name;
+		else
+			descriptor->Name = labl;
+
+		if (meta.count("author"))
+			maker = strndup(meta["author"], MAX_DESCRIPTOR_STRING);
+
+		if (maker)
+			descriptor->Maker = (const char*) maker;
+		else
+			descriptor->Maker = "";
+
+		if (meta.count("copyright"))
+			copyright = strndup(meta["copyright"], MAX_DESCRIPTOR_STRING);
+		else if (meta.count("license"))
+			copyright = strndup(meta["license"], MAX_DESCRIPTOR_STRING);
+
+		if (copyright)
+			descriptor->Copyright = (const char*) copyright;
+		else
+			descriptor->Maker = "undefined";
 	}
 };
 
@@ -503,7 +528,7 @@ const LADSPA_Descriptor* ladspa_descriptor(unsigned long Index)
 				p->buildUserInterface(c);
 				gDescriptor = new LADSPA_Descriptor;
 				init_descriptor(gDescriptor);
-				c->fillPortDescription(gDescriptor);
+				c->fillPortDescription(gDescriptor, p);
 				delete p;
 			} else {
 				printf("Memory Error : unable to allocate the dsp object\n");

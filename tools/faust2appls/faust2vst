@@ -2,7 +2,7 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to VST (OSX version)		#
+#               Compiles Faust programs to VST (OSX version)        #
 #               (c) Grame, 2012                                     #
 #                                                                   #
 #####################################################################
@@ -24,35 +24,36 @@ LIBS=" -framework Carbon -framework CoreServices"
 
 SOURCES=" $VSTSDK/public.sdk/source/vst2.x/audioeffect.cpp $VSTSDK/public.sdk/source/vst2.x/audioeffectx.cpp $VSTSDK/public.sdk/source/vst2.x/vstplugmain.cpp"
 
-createInfoPList() {
-	(
-	echo '<?xml version="1.0" encoding="UTF-8"?>' > info.plist
-	echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
-	echo '<plist version="1.0">'
-	echo '<dict>'
-	echo '	<key>CFBundleDevelopmentRegion</key>'
-	echo '	<string>English</string>'
-	echo '	<key>CFBundleExecutable</key>'
-	echo "	<string>$1</string>"
-	echo '	<key>CFBundleIdentifier</key>'
-	echo "	<string>$1</string>"
-	echo '	<key>CFBundleInfoDictionaryVersion</key>'
-	echo '	<string>6.0</string>'
-	echo '	<key>CFBundleName</key>'
-	echo "	<string>$1</string>"
-	echo '	<key>CFBundlePackageType</key>'
-	echo '	<string>BNDL</string>'
-	echo '	<key>CFBundleShortVersionString</key>'
-	echo '	<string>2.4</string>'
-	echo '	<key>CFBundleSignature</key>'
-	echo '	<string>????</string>'
-	echo '	<key>CFBundleVersion</key>'
-	echo '	<string>2.4</string>'
-	echo '	<key>CSResourcesFileMapped</key>'
-	echo '	<true/>'
-	echo '</dict>'
-	echo '</plist>'
-	) > "$2"
+createInfoPList()
+{
+    (
+    echo '<?xml version="1.0" encoding="UTF-8"?>' > info.plist
+    echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
+    echo '<plist version="1.0">'
+    echo '<dict>'
+    echo '    <key>CFBundleDevelopmentRegion</key>'
+    echo '    <string>English</string>'
+    echo '    <key>CFBundleExecutable</key>'
+    echo "    <string>$1</string>"
+    echo '    <key>CFBundleIdentifier</key>'
+    echo "    <string>$1</string>"
+    echo '    <key>CFBundleInfoDictionaryVersion</key>'
+    echo '    <string>6.0</string>'
+    echo '    <key>CFBundleName</key>'
+    echo "    <string>$1</string>"
+    echo '    <key>CFBundlePackageType</key>'
+    echo '    <string>BNDL</string>'
+    echo '    <key>CFBundleShortVersionString</key>'
+    echo '    <string>2.4</string>'
+    echo '    <key>CFBundleSignature</key>'
+    echo '    <string>????</string>'
+    echo '    <key>CFBundleVersion</key>'
+    echo '    <string>2.4</string>'
+    echo '    <key>CSResourcesFileMapped</key>'
+    echo '    <true/>'
+    echo '</dict>'
+    echo '</plist>'
+    ) > "$2"
 }
 
 #-------------------------------------------------------------------
@@ -65,9 +66,9 @@ createInfoPList() {
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
 for p in $@; do
-	if [ "$p" = -icc ]; then
-		CXX=icpc
-		CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2'
+    if [ "$p" = -icc ]; then
+        CXX=icpc
+        CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2'
     fi
 done
 
@@ -80,25 +81,25 @@ for p in $@; do
             OMP="-fopenmp"
         fi
     fi
-  
+
     if [ "$p" = -icc ]; then
-    	ignore=" "
+        ignore=" "
     elif [ $p = "-osc" ]; then
-	 	OSCDEFS="-DOSCCTRL -lOSCFaust"
+         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
-	 	HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
-	 	HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
+         HTTPDEFS="-DHTTPCTRL -lHTTPDFaust"
+         HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
     elif [ $p = "-arch32" ]; then
-		PROCARCH="-m32 -L/usr/lib32"
+        PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
-		PROCARCH="-m64"
+        PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
 done
 
 #-------------------------------------------------------------------
@@ -110,28 +111,28 @@ for p in $FILES; do
 
     CUR=$(pwd)
     f=$(basename "$p")
-	SRCDIR=$(dirname "$p")
+    SRCDIR=$(dirname "$p")
 
-    # creates a temporary dir 
+    # creates a temporary dir
     TMP=$(mktemp -d faust.XXX)
 
     # compile faust to c++
-	faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
 
     # compile c++ to binary
     (
-	cd "$TMP"
-	install -d "${f%.dsp}$EXT/Contents/MacOS"
-	if [[ $(uname) == "Darwin" ]]; then
-		g++ -arch arm64 $CXXFLAGS $FAUSTTOOLSFLAGS $INCLUDES -bundle $PROCARCH -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}.arm64" "${f%.dsp}.cpp" $SOURCES
-		g++ -arch x86_64 $CXXFLAGS $FAUSTTOOLSFLAGS $INCLUDES -bundle $PROCARCH -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}.x86_64" "${f%.dsp}.cpp" $SOURCES
-		lipo -create "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}.arm64" "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}.x86_64" -output "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}"
-	else
- 		g++ -fPIC -shared $CXXFLAGS $FAUSTTOOLSFLAGS $INCLUDES -o "${f%.dsp}.so" "${f%.dsp}.cpp" $SOURCES
-	fi
+    cd "$TMP"
+    install -d "${f%.dsp}$EXT/Contents/MacOS"
+    if [[ $(uname) == "Darwin" ]]; then
+        g++ -arch arm64 $CXXFLAGS $FAUSTTOOLSFLAGS $INCLUDES -bundle $PROCARCH -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}.arm64" "${f%.dsp}.cpp" $SOURCES
+        g++ -arch x86_64 $CXXFLAGS $FAUSTTOOLSFLAGS $INCLUDES -bundle $PROCARCH -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}.x86_64" "${f%.dsp}.cpp" $SOURCES
+        lipo -create "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}.arm64" "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}.x86_64" -output "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}"
+    else
+        g++ -fPIC -shared $CXXFLAGS $FAUSTTOOLSFLAGS $INCLUDES -o "${f%.dsp}.so" "${f%.dsp}.cpp" $SOURCES
+    fi
 
-	createInfoPList "${f%.dsp}" "${f%.dsp}$EXT/Contents/Info.plist"
-	echo "BNDL????" > "${f%.dsp}$EXT/Contents/PkgInfo"
+    createInfoPList "${f%.dsp}" "${f%.dsp}$EXT/Contents/Info.plist"
+    echo "BNDL????" > "${f%.dsp}$EXT/Contents/PkgInfo"
     )> /dev/null || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"

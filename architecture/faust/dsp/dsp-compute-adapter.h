@@ -43,7 +43,6 @@ architecture section is not modified.
  
  delete dsp;
  */
-
 class dsp_compute_mix : public decorator_dsp {
     
     public:
@@ -80,7 +79,6 @@ class dsp_compute_mix : public decorator_dsp {
  
  delete dsp;
  */
-
 class dsp_compute_inpl : public decorator_dsp {
     
     public:
@@ -109,7 +107,6 @@ class dsp_compute_inpl : public decorator_dsp {
  
  delete dsp;
  */
-
 class dsp_compute_inpl_mix : public decorator_dsp {
     
     private:

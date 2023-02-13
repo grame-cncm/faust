@@ -4,16 +4,16 @@
     Copyright (C) 2021 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -173,13 +173,14 @@ void JuliaCodeContainer::produceClass()
     // Print metadata declaration
     produceMetadata(n);
 
-    // Get sample rate method
+    // getSampleRate
     tab(n, *fOut);
     gGlobal->gJuliaVisitor->Tab(n);
     generateGetSampleRate("getSampleRate", "dsp", false, false)->accept(gGlobal->gJuliaVisitor);
 
+    // Info functions: getNumInputs/getNumOuputs
     tab(n, *fOut);
-    produceInfoFunctions(n, "", "dsp", false, false, gGlobal->gJuliaVisitor);
+    produceInfoFunctions(n, "", "dsp", false, FunTyped::kDefault, gGlobal->gJuliaVisitor);
     
     tab(n, *fOut);
     *fOut << "function classInit!(dsp::" << fKlassName << "{T}, sample_rate::Int32) where {T}";
@@ -190,8 +191,8 @@ void JuliaCodeContainer::produceClass()
     }
     back(1, *fOut);
     *fOut << "end";
-    
     tab(n, *fOut);
+    
     tab(n, *fOut);
     *fOut << "function instanceResetUserInterface!(dsp::" << fKlassName << "{T}) where {T}";
     {
@@ -200,8 +201,8 @@ void JuliaCodeContainer::produceClass()
     }
     back(1, *fOut);
     *fOut << "end";
-    
     tab(n, *fOut);
+    
     tab(n, *fOut);
     *fOut << "function instanceClear!(dsp::" << fKlassName << "{T}) where {T}";
     {
@@ -210,8 +211,8 @@ void JuliaCodeContainer::produceClass()
     }
     back(1, *fOut);
     *fOut << "end";
-
     tab(n, *fOut);
+    
     tab(n, *fOut);
     *fOut << "function instanceConstants!(dsp::" << fKlassName << "{T}, sample_rate::Int32) where {T}";
     {
@@ -220,8 +221,8 @@ void JuliaCodeContainer::produceClass()
     }
     back(1, *fOut);
     *fOut << "end";
-   
     tab(n, *fOut);
+    
     tab(n, *fOut);
     *fOut << "function instanceInit!(dsp::" << fKlassName << "{T}, sample_rate::Int32) where {T}";
     tab(n + 1, *fOut);
@@ -232,8 +233,8 @@ void JuliaCodeContainer::produceClass()
     *fOut << "instanceClear!(dsp)";
     tab(n, *fOut);
     *fOut << "end";
-
     tab(n, *fOut);
+    
     tab(n, *fOut);
     *fOut << "function init!(dsp::" << fKlassName << "{T}, sample_rate::Int32) where {T}";
     tab(n + 1, *fOut);
@@ -242,9 +243,9 @@ void JuliaCodeContainer::produceClass()
     *fOut << "instanceInit!(dsp, sample_rate)";
     tab(n, *fOut);
     *fOut << "end";
+    tab(n, *fOut);
     
     // JSON generation
-    tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "function getJSON(dsp::" << fKlassName << "{T}) where {T}";
     {
@@ -255,9 +256,9 @@ void JuliaCodeContainer::produceClass()
     }
     back(1, *fOut);
     *fOut << "end";
+    tab(n, *fOut);
 
     // User interface
-    tab(n, *fOut);
     tab(n, *fOut);
     *fOut << "function buildUserInterface!(dsp::" << fKlassName << "{T}, ui_interface::UI) where {T}";
     tab(n + 1, *fOut);
@@ -269,32 +270,6 @@ void JuliaCodeContainer::produceClass()
     
     // Compute
     generateCompute(n);
-}
-
-void JuliaCodeContainer::generateCompute(int n)
-{
-    // Generates declaration
-    tab(n, *fOut);
-    *fOut << "@inbounds function compute!(dsp::" << fKlassName
-          << "{T}, " << fFullCount << subst("::Int32, inputs::Matrix{$0}, outputs::Matrix{$0}) where {T}", xfloat());
-    tab(n + 1, *fOut);
-    gGlobal->gJuliaVisitor->Tab(n + 1);
-
-    // Generates local variables declaration and setup
-    generateComputeBlock(gGlobal->gJuliaVisitor);
-
-    // Generates one single scalar loop
-    SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(fFullCount);
-    loop->accept(gGlobal->gJuliaVisitor);
-    
-    /*
-    // TODO : atomic switch
-    // Currently for soundfile management
-    */
-    generatePostComputeBlock(gGlobal->gJuliaVisitor);
-
-    back(1, *fOut);
-    *fOut << "end" << endl;
 }
 
 void JuliaCodeContainer::produceMetadata(int tabs)
@@ -329,11 +304,39 @@ void JuliaCodeContainer::produceMetadata(int tabs)
 }
 
 // Scalar
-JuliaScalarCodeContainer::JuliaScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
-                                                   int sub_container_type)
+JuliaScalarCodeContainer::JuliaScalarCodeContainer(const string& name,
+                                                int numInputs, int numOutputs,
+                                                std::ostream* out,
+                                                int sub_container_type)
     : JuliaCodeContainer(name, numInputs, numOutputs, out)
 {
     fSubContainerType = sub_container_type;
+}
+
+void JuliaScalarCodeContainer::generateCompute(int n)
+{
+    // Generates declaration
+    tab(n, *fOut);
+    *fOut << "@inbounds function compute!(dsp::" << fKlassName
+    << "{T}, " << fFullCount << subst("::Int32, inputs::Matrix{$0}, outputs::Matrix{$0}) where {T}", xfloat());
+    tab(n + 1, *fOut);
+    gGlobal->gJuliaVisitor->Tab(n + 1);
+    
+    // Generates local variables declaration and setup
+    generateComputeBlock(gGlobal->gJuliaVisitor);
+    
+    // Generates one single scalar loop
+    SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(fFullCount);
+    loop->accept(gGlobal->gJuliaVisitor);
+    
+    /*
+     // TODO : atomic switch
+     // Currently for soundfile management
+     */
+    generatePostComputeBlock(gGlobal->gJuliaVisitor);
+    
+    back(1, *fOut);
+    *fOut << "end" << endl;
 }
 
 // Vector

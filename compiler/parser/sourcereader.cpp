@@ -4,16 +4,16 @@
  Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
  (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Lesser General Public License for more details.
 
- You should have received a copy of the GNU General Public License
+ You should have received a copy of the GNU Lesser General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -57,7 +57,7 @@ using namespace std;
 int yyparse();
 int yylex_destroy(void);
 void yyrestart(FILE* new_file);
-struct yy_buffer_state* yy_scan_string(const char *yy_str); // In principle YY_BUFFER_STATE
+struct yy_buffer_state* yy_scan_string(const char* yy_str); // In principle YY_BUFFER_STATE
 
 int yyerr;
 extern int yydebug;
@@ -95,7 +95,7 @@ static string printPatternError(Tree symbol, Tree lhs1, Tree rhs1, Tree lhs2, Tr
         << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
         << endl;
     } else {
-        error << "ERROR (file " << yyfilename << ":" << yylineno << ") : in the definition of " << boxpp(symbol) << endl
+        error << "ERROR : [file " << yyfilename << " : " << yylineno << "] : in the definition of " << boxpp(symbol) << endl
         << "Inconsistent number of parameters in pattern-matching rule: "
         << boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
         << " previous rule was: "
@@ -110,7 +110,7 @@ static string printRedefinitionError(Tree symbol, list<Tree>& variants)
 {
     stringstream error;
 
-    error << "ERROR (file " << yyfilename << ":" << yylineno << ") : multiple definitions of symbol " << boxpp(symbol) << endl;
+    error << "ERROR : [file " << yyfilename << " : " << yylineno << "] : multiple definitions of symbol '" << boxpp(symbol) << "'" << endl;
     for (const auto& p : variants) {
         Tree params = hd(p);
         Tree body = tl(p);
@@ -302,10 +302,10 @@ Tree SourceReader::parseString(const char* fname)
     yyerr = 0;
     yylineno = 1;
     yyfilename = fname;
-    yy_scan_string(gGlobal->gInputString);
+    yy_scan_string(gGlobal->gInputString.c_str());
 
     // Clear global "inputstring" so that imported files will be correctly parsed with "parse"
-    gGlobal->gInputString = nullptr;
+    gGlobal->gInputString = "";
     return parseLocal(fname);
 }
 
@@ -355,7 +355,7 @@ Tree SourceReader::getList(const char* fname)
 	if (!cached(fname)) {
         // Previous metadata need to be cleared before parsing a file
         gGlobal->gFunMDSet.clear();
-        Tree ldef = (gGlobal->gInputString) ? parseString(fname) : parseFile(fname);
+        Tree ldef = (gGlobal->gInputString != "") ? parseString(fname) : parseFile(fname);
         // Definitions with metadata have to be wrapped into a boxMetadata construction
         fFileCache[fname] = addFunctionMetadata(ldef, gGlobal->gFunMDSet);
 	}
@@ -464,7 +464,7 @@ Tree checkRulelist(Tree lr)
     Tree lrules = lr;
     if (isNil(lrules)) {
         stringstream error;
-        error << "ERROR (file " << yyfilename << ":" << yylineno << ") : a case expression can't be empty" << endl;
+        error << "ERROR : [file " << yyfilename << " : " << yylineno << "] : a case expression can't be empty" << endl;
         throw faustexception(error.str());
     }
     // first pattern used as a reference

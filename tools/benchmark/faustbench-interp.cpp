@@ -45,8 +45,9 @@ int main(int argc, char* argv[])
     
     measure_dsp mes(DSP, 512, 5.);  // Buffer_size and duration in sec of measure
     mes.measure();
-    cout << argv[argc-1] << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
-    FAUSTBENCH_LOG<double>(mes.getStats());
+    pair<double, double> res = mes.getStats();
+    cout << argv[argc-1] << " : " << res.first << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
+    FAUSTBENCH_LOG<double>(res.first);
     
     // DSP deleted by mes
     return 0;

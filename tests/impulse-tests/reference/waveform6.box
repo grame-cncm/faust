@@ -1,0 +1,5 @@
+declare version "2.50.2";
+declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/waveform6.dsp -o reference/waveform6.box";
+declare filename "waveform6.dsp";
+declare name "waveform6";
+process = \(x1).(\(x2).(x2,(waveform{10,20,30,40,50,60},(4,(x1 : abs) : * : int) : rdtable : sin) : *));

@@ -37,29 +37,38 @@ else
     ARCHLIB+=" `pkg-config --cflags --libs alsa`"
 fi
 
+echoHelp()
+{
+    usage faust2jack "[options] [Faust options] <file.dsp>"
+    platform Linux
+    require Jack
+    echo "Compiles Faust programs to JACK and GTK"
+    option
+    options -httpd -osc -midi -soundfile -dyn
+    option -resample "to resample soundfiles to the audio driver sample rate."
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option "-preset <directory>" "add a preset manager on top of GUI and save the preset files in the given directory"
+    option "-preset auto" "add a preset manager on top of GUI and save the preset files in a system temporary directory"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #PHASE 2 : dispatch command arguments
 while [ $1 ]
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2jack "[options] [Faust options] <file.dsp>"
-        platform Linux
-        require Jack
-        echo "Compiles Faust programs to JACK and GTK"
-        option
-        options -httpd -osc -midi -soundfile
-        option -resample "to resample soundfiles to the audio driver sample rate."
-        option "-nvoices <num>"
-        option "-effect <effect.dsp>"
-        option "-effect auto"
-        option "-preset <directory>" "add a preset manager on top of GUI and save the preset files in the given directory"
-        option "-preset auto" "add a preset manager on top of GUI and save the preset files in a system temporary directory"
-        option "Faust options"
-        exit
-    fi
-
-    if [ $p = "-nvoices" ]; then
+        echoHelp
+    elif [ $p = "-nvoices" ]; then
         POLYDEFS="-DPOLY"
         shift
         NVOICES=$1
@@ -73,6 +82,9 @@ do
         EFFECT=$1
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
+    elif [ $p = "-dyn" ]; then
+        OPTIONS="$OPTIONS -inj template-llvm.cpp"
+        LLVM_LIBS="$STRIP $FAUSTLDDIR/libfaust.a `llvm-config --ldflags --libs all --system-libs`"
     elif [ $p = "-soundfile" ]; then
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE"
@@ -83,7 +95,7 @@ do
     elif [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
-        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust"
         HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
     elif [ "$p" = "-preset" ]; then
         PRESETDEFS="-DPRESETUI"
@@ -101,7 +113,7 @@ do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -134,7 +146,7 @@ EndOfCode
     else
         faust -i -a $ARCHFILE $OPTIONS "$f" -o "${f%.dsp}_tmp.cpp"|| exit
     fi
-    
+
     # add preset management
     if [ $PRESETDIR = "auto" ]; then
         echo "#define PRESETDIR \"/var/tmp/\"" > "preset.cpp"
@@ -147,13 +159,13 @@ EndOfCode
 
     # compile c++ to binary
     (
-        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS "${f%.dsp}.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $SAMPLERATELIBS $PROCARCH $OSCDEFS $HTTPDEFS $HTTPLIBS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $SAMPLERATEDEFS $PRESETDEFS $ARCHLIB $LFLAGS -o "${f%.dsp}"
+        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS "${f%.dsp}.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $LLVM_LIBS $SOUNDFILELIBS $SAMPLERATELIBS $PROCARCH $OSCDEFS $HTTPDEFS $HTTPLIBS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $SAMPLERATEDEFS $PRESETDEFS $ARCHLIB $LFLAGS -o "${f%.dsp}"
         if [[ $(uname) == Darwin ]]; then
             codesign --sign - --deep --force "${f%.dsp}"
         fi
     ) > /dev/null || exit
 
-    # remove tempory files
+    # remove temporary files
     rm -f "${f%.dsp}.cpp" effect.h "$f.json"
 
     # collect binary file name for FaustWorks

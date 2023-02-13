@@ -40,6 +40,7 @@
 #include <sstream>
 #include <stdio.h> // We use the lighter fprintf code
 #include <ctype.h>
+#include <assert.h>
 
 #ifndef _WIN32
 # pragma GCC diagnostic ignored "-Wunused-function"
@@ -48,8 +49,9 @@
 struct itemInfo {
     std::string type;
     std::string label;
-    std::string url;
+    std::string shortname;
     std::string address;
+    std::string url;
     int index;
     double init;
     double fmin;
@@ -450,15 +452,21 @@ static bool parseUI(const char*& p, std::vector<itemInfo>& uiItems, int& numItem
                     }
                 }
                 
-                else if (label == "url") {
+                else if (label == "shortname") {
                     if (parseChar(p, ':') && parseDQString(p, value)) {
-                        uiItems[numItems].url = value;
+                        uiItems[numItems].shortname = value;
                     }
                 }
                 
                 else if (label == "address") {
                     if (parseChar(p, ':') && parseDQString(p, value)) {
                         uiItems[numItems].address = value;
+                    }
+                }
+                
+                else if (label == "url") {
+                    if (parseChar(p, ':') && parseDQString(p, value)) {
+                        uiItems[numItems].url = value;
                     }
                 }
                 
@@ -513,6 +521,10 @@ static bool parseUI(const char*& p, std::vector<itemInfo>& uiItems, int& numItem
                             numItems++;
                         }
                     }
+            
+                } else {
+                    fprintf(stderr, "Parse error unknown : %s \n", label.c_str());
+                    assert(false);
                 }
             } else {
                 p = saved;

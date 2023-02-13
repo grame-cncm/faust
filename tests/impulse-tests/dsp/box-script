@@ -1,0 +1,6 @@
+for f in $@
+do
+  echo "Processing $f file..."
+  faust -e $f -o ${f%.dsp}.box
+  diff ${f%.dsp}.box ../reference/${f%.dsp}.box ; echo Done
+done

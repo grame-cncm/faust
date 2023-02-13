@@ -1,0 +1,17 @@
+declare version "2.50.2";
+declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/sound.dsp -o reference/sound.box";
+declare filename "sound.dsp";
+declare name "sound";
+ID_0 = _, 1;
+ID_1 = (ID_0 : +);
+ID_2 = _ ~ ID_1;
+ID_3 = 0, ID_2;
+ID_4 = soundfile("son[url:{'sound1';'sound2'}]", 4);
+ID_5 = _, _;
+ID_6 = _, ID_5;
+ID_7 = _, ID_6;
+ID_8 = !, ID_7;
+ID_9 = !, ID_8;
+ID_10 = ID_4 : ID_9;
+ID_11 = ID_3 : ID_10;
+process = ID_11;

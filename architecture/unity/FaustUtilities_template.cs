@@ -1,3 +1,28 @@
+/************************************************************************
+ FAUST Architecture File
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
+ ************************************************************************
+ ************************************************************************/
+ 
 // @notes MODEL, RELEVANTJSONFILE, PLUGNAME and PLUGINNAME are replaced during processing
 using System;
 using System.Text;
@@ -539,9 +564,19 @@ namespace FaustUtilities_MODEL {
 										uiItems[numItems].label = value.ToString();
 									}
 									break;
+								case "shortname":
+									if (parseChar(ref s, ':') && parseDQString(ref s, out value)) {
+										uiItems[numItems].shortname = value.ToString();
+									}
+									break;
 								case "address":
 									if (parseChar(ref s, ':') && parseDQString(ref s, out value)) {
 										uiItems[numItems].address = value.ToString();
+									}
+									break;
+								case "url":
+									if (parseChar(ref s, ':') && parseDQString(ref s, out value)) {
+										uiItems[numItems].url = value.ToString();
 									}
 									break;
 								case "meta":
@@ -601,9 +636,11 @@ namespace FaustUtilities_MODEL {
 	public class Group {
 		public string type;
 		public string label;
+		public string shortname;
+		public string address;
+		public string url;
 		public List < Meta > meta;
 		public List < Group > items;
-		public string address;
 		public float init;
 		public float min;
 		public float max;

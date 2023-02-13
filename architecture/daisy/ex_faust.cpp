@@ -36,6 +36,8 @@
 
 #ifdef PATCH
 #include "daisy_patch.h"
+#elif defined POD
+#include "daisy_pod.h"
 #else
 #include "daisy_seed.h"
 #endif
@@ -79,6 +81,8 @@ using namespace std;
 
 #ifdef PATCH
 static daisy::DaisyPatch hw;
+#elif defined POD
+static daisy::DaisyPod hw; 
 #else
 static daisy::DaisySeed hw;
 #endif
@@ -97,13 +101,13 @@ static void AudioCallback(daisy::AudioHandle::InputBuffer in, daisy::AudioHandle
     control_UI->update();
     
     // DSP processing
-    DSP->compute(count, static_cast<float**>(in), out);
+    DSP->compute(count, const_cast<float**>(in), out);
 }
 
 int main(void)
 {
     // initialize seed hardware and daisysp modules
-#ifndef PATCH
+#if (!defined PATCH) || (!defined POD)
     hw.Configure();
 #endif
     hw.Init();
@@ -126,19 +130,19 @@ int main(void)
     DSP->init(MY_SAMPLE_RATE);
     
     // setup controllers
-#ifdef PATCH
+#if (defined PATCH) || (defined POD)
     control_UI = new DaisyControlUI(&hw.seed, MY_SAMPLE_RATE/MY_BUFFER_SIZE);
-#else
-    control_UI = new DaisyControlUI(&hw, MY_SAMPLE_RATE/MY_BUFFER_SIZE);
-#endif
     DSP->buildUserInterface(control_UI);
-    
+    hw.StartAdc();
+#else
+    //initialize UI for seed
+    control_UI = new DaisyControlUI(&hw, MY_SAMPLE_RATE/MY_BUFFER_SIZE);
+    DSP->buildUserInterface(control_UI);
     // start ADC
     hw.adc.Start();
-    
+#endif
     // define and start callback
     hw.StartAudio(AudioCallback);
-    
 #ifdef MIDICTRL
     daisy_midi midi_handler;
     MidiUI midi_interface(&midi_handler);

@@ -127,7 +127,12 @@ int main(int argc, char* argv[])
             || (string(argv[i]) == "-httpd")
             || (string(argv[i]) == "-resample")) {
             continue;
-        } else if (string(argv[i]) == "-nvoices") {
+        } else if ((string(argv[i]) == "-nvoices")
+                   || (string(argv[i]) == "-port")
+                   || (string(argv[i]) == "-outport")
+                   || (string(argv[i]) == "-errport")
+                   || (string(argv[i]) == "-desthost")
+                   || (string(argv[i]) == "-xmit")) {
             i++;
             continue;
         }

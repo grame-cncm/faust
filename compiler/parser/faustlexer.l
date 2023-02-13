@@ -27,11 +27,12 @@
 %}
 
 DIGIT    [0-9]
-ID       [a-zA-Z][_a-zA-Z0-9]*
+ID       _*[a-zA-Z][_a-zA-Z0-9]*
 LETTER   [a-zA-Z]
 NUMBER   ({DIGIT}+"."{DIGIT}*|"."{DIGIT}+|{DIGIT}+)
 WSPACE   [ \t\n]
 TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
+NSID	 {ID}("::"{ID})*
 
 %option yylineno
 %option nounput
@@ -135,12 +136,14 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "."			return DOT;
 "with"		return WITH;
 "letrec"	return LETREC;
+"where"		return WHERE;
 
 "mem"		return MEM;
 "prefix"	return PREFIX;
 
 "int"		return INTCAST;
 "float"		return FLOATCAST;
+"any"		return NOTYPECAST;
 
 "rdtable"	return RDTBL;
 "rwtable"	return RWTBL;
@@ -226,8 +229,8 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "fixedpointprecision"    return FIXEDPOINTMODE;
 
 
-_{ID}   	return IDENT;
-{ID}   		return IDENT;
+"::"{NSID}   	return IDENT;
+{NSID}   		return IDENT;
 
 "\""[^\"]*"\""	return STRING;
 

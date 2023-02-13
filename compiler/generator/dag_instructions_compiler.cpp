@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -21,17 +21,13 @@
 
 #include <fstream>
 
-#include "Text.hh"
 #include "dag_instructions_compiler.hh"
-#include "exception.hh"
 #include "ppsig.hh"
-#include "prim2.hh"
-#include "privatise.hh"
-#include "recursivness.hh"
 #include "sigtyperules.hh"
-#include "simplify.hh"
 #include "timing.hh"
-#include "xtended.hh"
+#include "fir_to_fir.hh"
+
+using namespace std;
 
 DAGInstructionsCompiler::DAGInstructionsCompiler(CodeContainer* container) : InstructionsCompiler(container)
 {
@@ -91,8 +87,9 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 
             fContainer->openLoop("i");
 
-            // Cast to external float
-            ValueInst* res = InstBuilder::genCastFloatMacroInst(CS(sig));
+            // Possibly cast to external float
+            ValueInst* res = genCastedOutput(getCertifiedSigType(sig)->nature(), CS(sig));
+
             pushComputeDSPMethod(InstBuilder::genStoreArrayFunArgsVar(
                 name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("vindex"), res));
 
@@ -106,9 +103,9 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 
             fContainer->openLoop("i");
 
-            // Cast to external float
-            ValueInst* res = InstBuilder::genCastFloatMacroInst(CS(sig));
-            
+            // Possibly cast to external float
+            ValueInst* res = genCastedOutput(getCertifiedSigType(sig)->nature(), CS(sig));
+   
             if (gGlobal->gComputeMix) {
                 ValueInst* res1 = InstBuilder::genAdd(res, InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex()));
                 pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res1));
@@ -129,6 +126,14 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
     // Apply FIR to FIR transformations
     fContainer->processFIR();
     
+    // Check FIR code
+    if (global::isDebug("FIR_CHECKER")) {
+        startTiming("FIR checker");
+        FIRChecker fir_checker;
+        fContainer->flattenFIR()->accept(&fir_checker);
+        endTiming("FIR checker");
+    }
+  
     endTiming("compileMultiSignal");
 }
 
@@ -279,7 +284,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
     Typed::VarType ctype;
     int            sharing = getSharingCount(sig);
     ::Type         t       = getCertifiedSigType(sig);
-    old_Occurences*    o   = fOccMarkup->retrieve(sig);
+    old_Occurences* o      = fOccMarkup->retrieve(sig);
     int            d       = o->getMaxDelay();
 
     if (t->variability() < kSamp) {
@@ -413,17 +418,15 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
         string     name = subst("input$0", T(idx));
         ValueInst* res =
             InstBuilder::genLoadArrayFunArgsVar(name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("vindex"));
-        // Cast to internal float
-        res = InstBuilder::genCastFloatInst(res);
-        return generateCacheCode(sig, res);
+        // Possibly cast to internal float
+        return generateCacheCode(sig, genCastedInput(res));
 
     } else {
         // "fInput" use as a name convention
         string     name = subst("input$0", T(idx));
         ValueInst* res  = InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex());
-        // Cast to internal float
-        res = InstBuilder::genCastFloatInst(res);
-        return generateCacheCode(sig, res);
+        // Possibly cast to internal float
+        return generateCacheCode(sig, genCastedInput(res));
     }
 }
 
@@ -438,9 +441,8 @@ ValueInst* DAGInstructionsCompiler::generateDelay(Tree sig, Tree exp, Tree delay
             // cerr << "it is a pure zero delay : " << code << endl;
             return code;
         } else {
-            stringstream error;
-            error << "ERROR : no vector name for : " << ppsig(exp) << endl;
-            throw faustexception(error.str());
+            cerr << "ASSERT : no vector name for : " << ppsig(exp) << endl;
+            faustassert(false);
         }
     }
 

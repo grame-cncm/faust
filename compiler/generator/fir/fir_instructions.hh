@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -35,14 +35,12 @@
 #include "instructions.hh"
 #include "type_manager.hh"
 
-using namespace std;
-
 class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
    private:
     int               fTab;
     std::ostream*     fOut;
     bool              fFinishLine;
-    map<string, bool> fFunctionSymbolTable;
+    std::map<std::string, bool> fFunctionSymbolTable;
 
     void Tab(int n) { fTab = n; }
 
@@ -61,7 +59,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual ~FIRInstVisitor() {}
 
-    virtual string generateType(Typed* type)
+    virtual std::string generateType(Typed* type)
     {
         BasicTyped*  basic_typed  = dynamic_cast<BasicTyped*>(type);
         NamedTyped*  named_typed  = dynamic_cast<NamedTyped*>(type);
@@ -115,7 +113,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
     }
 
-    virtual string generateType(Typed* type, const string& name)
+    virtual std::string generateType(Typed* type, const std::string& name)
     {
         BasicTyped*  basic_typed  = dynamic_cast<BasicTyped*>(type);
         NamedTyped*  named_typed  = dynamic_cast<NamedTyped*>(type);
@@ -177,7 +175,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(OpenboxInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fOrient) {
             case OpenboxInst::kVerticalBox:
                 name = "OpenVerticalBox(";
@@ -212,7 +210,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(AddSliderInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
                 name = "AddHorizontalSlider(";
@@ -231,7 +229,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(AddBargraphInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
                 name = "AddHorizontalBargraph(";
@@ -270,13 +268,14 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         EndLine();
     }
     
-    // For Rust backend
+    // For Rust and Julia backends
     virtual void visit(DeclareBufferIterators* inst)
     {
         *fOut << "DeclareBufferIterators(";
-        *fOut << inst->fBufferName1 << " ";
-        *fOut << inst->fBufferName2 << " ";
-        *fOut << inst->fNumChannels << " ";
+        *fOut << inst->fBufferName1 << ", ";
+        *fOut << inst->fBufferName2 << ", ";
+        *fOut << inst->fChannels << ", ";
+        *fOut << generateType(inst->fType, "all") << ", ";
         *fOut << inst->fMutable << ")";
         EndLine();
     }
@@ -318,9 +317,9 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
         // If function is actually a method (that is "xx::name"), then keep "xx::name" in gSymbolGlobalsTable but print
         // "name"
-        string fun_name = inst->fName;
+        std::string fun_name = inst->fName;
         size_t pos;
-        if ((pos = inst->fName.find("::")) != string::npos) {
+        if ((pos = inst->fName.find("::")) != std::string::npos) {
             fun_name = inst->fName.substr(pos + 2);  // After the "::"
         }
 
@@ -356,18 +355,28 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     {
         *fOut << "Address(" << named->fName << ", " << Address::dumpString(named->fAccess) << ")";
     }
+    
+    void visitIndices(const std::vector<ValueInst*>& indices, int start)
+    {
+        if (indices.size() > 0) {
+            for (size_t i = start; i < indices.size(); i++) {
+                *fOut << "[";
+                indices[i]->accept(this);
+                *fOut << "]";
+            }
+        }
+    }
 
     virtual void visit(IndexedAddress* indexed)
     {
         indexed->fAddress->accept(this);
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
-            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
+            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->getIndex());
             *fOut << "->" << struct_type->fType->getName(field_index->fNum);
+            visitIndices(indexed->getIndices(), 1);
         } else {
-            *fOut << "[";
-            indexed->fIndex->accept(this);
-            *fOut << "]";
+            visitIndices(indexed->getIndices(), 0);
         }
     }
     
@@ -447,6 +456,18 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         }
         *fOut << '}';
     }
+    
+    virtual void visit(FixedPointNumInst* inst) { *fOut << "FixedPoint(" << checkFloat(inst->fNum) << ")"; }
+    
+    virtual void visit(FixedPointArrayNumInst* inst)
+    {
+        char sep = '{';
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << sep << "FixedPoint(" << checkFloat(inst->fNumTable[i]) << ")";
+            sep = ',';
+        }
+        *fOut << '}';
+    }
 
     virtual void visit(BinopInst* inst)
     {
@@ -483,7 +504,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(FunCallInst* inst)
     {
-        string fun_name = (inst->fMethod) ? "MethodFunCallInst(" : "FunCallInst(";
+        std::string fun_name = (inst->fMethod) ? "MethodFunCallInst(" : "FunCallInst(";
         *fOut << fun_name;
 
         *fOut << "\"" << inst->fName << "\"";
@@ -569,6 +590,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << "SimpleForLoopInst ";
         fTab++;
         tab(fTab, *fOut);
+        inst->fInit->accept(this);
         inst->fLowerBound->accept(this);
         tab(fTab, *fOut);
         inst->fUpperBound->accept(this);

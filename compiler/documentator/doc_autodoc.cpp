@@ -4,16 +4,16 @@
  Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 2 of the License, or
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
  (at your option) any later version.
 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU Lesser General Public License for more details.
 
- You should have received a copy of the GNU General Public License
+ You should have received a copy of the GNU Lesser General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -30,6 +30,8 @@
 #include "doc_autodoc.hh"
 #include "global.hh"
 #include "tlib.hh"
+
+using namespace std;
 
 /*****************************************************************************
                         Public functions
@@ -104,7 +106,7 @@ void declareAutoDoc()
 
     /** Autodoc's "body", with equation and diagram of process, and notice and listing. */
 
-    string autoPresentationTxt = "\n\\bigskip\n" + gGlobal->gDocAutodocStringMap["thisdoc"] + "\n\n";
+    string autoPresentationTxt = "\n\\bigskip \\\\ " + gGlobal->gDocAutodocStringMap["thisdoc"] + " \\\\ ";
     autodoc                    = cons(docTxt(autoPresentationTxt.c_str()), autodoc);
 
     string autoEquationTxt = "\n" + gGlobal->gDocAutodocStringMap["autoeqntitle"] + "\n\n";
@@ -143,19 +145,19 @@ void declareAutoDoc()
 void initDocAutodoc()
 {
     gGlobal->gDocAutodocKeySet.insert("thisdoc");
-    
+
     gGlobal->gDocAutodocKeySet.insert("autoeqntitle");
     gGlobal->gDocAutodocKeySet.insert("autoeqntext");
-    
+
     gGlobal->gDocAutodocKeySet.insert("autodgmtitle");
     gGlobal->gDocAutodocKeySet.insert("autodgmtext");
-    
+
     gGlobal->gDocAutodocKeySet.insert("autontctitle");
     gGlobal->gDocAutodocKeySet.insert("autontctext");
-    
+
     gGlobal->gDocAutodocKeySet.insert("autolsttitle1");
     gGlobal->gDocAutodocKeySet.insert("autolsttext1");
-    
+
     gGlobal->gDocAutodocKeySet.insert("autolsttitle2");
     gGlobal->gDocAutodocKeySet.insert("autolsttext2");
 }

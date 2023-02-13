@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -164,17 +164,19 @@ struct BinOp {
     FBCInstruction::Opcode fInterpFloatInst;
 
     comp fCompute;
+    int  fPriority;
+    bool fAssociativity;
+    
     pred fLeftNeutral;
     pred fRightNeutral;
     pred fLeftAbsorbing;
     pred fRightAbsorbing;
-    int  fPriority;
-
+   
     BinOp(const char* name, const char* name_vec, const char* name_scal, const char* name_llvm_int,
           const char* name_llvm_float, unsigned int llvm_int, unsigned int llvm_float, const char* name_wasm_int32,
           const char* name_wasm_int64, const char* name_wasm_float, const char* name_wasm_double, WasmOp wasm_int32,
           WasmOp wasm_int64, WasmOp wasm_float, WasmOp wasm_double, FBCInstruction::Opcode interp_int32,
-          FBCInstruction::Opcode interp_float, comp fun, pred ln, pred rn, int priority, pred la = falsePredicate,
+          FBCInstruction::Opcode interp_float, int priority, bool associativity, comp fun, pred ln, pred rn, pred la = falsePredicate,
           pred ra = falsePredicate)
         : fName(name),
           fNameVec(name_vec),
@@ -194,11 +196,12 @@ struct BinOp {
           fInterpIntInst32(interp_int32),
           fInterpFloatInst(interp_float),
           fCompute(fun),
+          fPriority(priority),
+          fAssociativity(associativity),
           fLeftNeutral(ln),
           fRightNeutral(rn),
           fLeftAbsorbing(la),
-          fRightAbsorbing(ra),
-          fPriority(priority)
+          fRightAbsorbing(ra)
     {
     }
 
@@ -208,6 +211,9 @@ struct BinOp {
     bool isLeftNeutral(const Node& a) { return fLeftNeutral(a); }
     bool isLeftAbsorbing(const Node& a) { return fLeftAbsorbing(a); }
     bool isRightAbsorbing(const Node& a) { return fRightAbsorbing(a); }
+    
+    static const char* getString(int op);
+
 };
 
 extern BinOp* gBinOpTable[];

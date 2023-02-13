@@ -2,8 +2,8 @@
 
 #####################################################################
 #                                                                   #
-#               Crosscompiles Faust programs to RaspberryPi 		#
-#				alsa-console architecture     						#
+#               Crosscompiles Faust programs to RaspberryPi         #
+#               alsa-console architecture                           #
 #               Author : Pilar de la Cruz                           #
 #               (c) Grame, 2009-2013                                #
 #                                                                   #
@@ -38,58 +38,68 @@ LINUX_KERNEL_INSTALL_DIR="$BASE_DIR/x-tools/arm-unknown-linux-gnueabi/arm-unknow
 
 CXX=$BASE_DIR"/x-tools/arm-unknown-linux-gnueabi/bin/arm-unknown-linux-gnueabi-c++"
 
-# Librairies and includes directories for Rapsberry Pi
+# Libraries and includes directories for Rapsberry Pi
 LD_LIBRARY_PATHS="-L$LINUX_KERNEL_INSTALL_DIR/lib -lasound"
 INCLUDES_DIR="-L$LINUX_KERNEL_INSTALL_DIR_INCLUDE/include/"
+
+echoHelp()
+{
+    usage faust2rpialsaconsole "[options] [Faust options] <file.dsp>"
+    platform RaspberryPi
+    require Alsa
+    echo "Compiles Faust programs to RaspberryPi - alsa console architecture"
+    option
+    options -osc -httpd
+    option -arch32 "generates a 32 bit architecture."
+    option -arch64 "generates a 64 bit architecture."
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
 
 # dispatch command arguments
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2rpialsaconsole "[options] [Faust options] <file.dsp>"
-        platform RaspberryPi
-        require Alsa
-		echo "Compiles Faust programs to RaspberryPi - alsa console architecture"
-		option
-		options -osc -httpd
-		option -arch32 "generates a 32 bit architecture."
-		option -arch64 "generates a 64 bit architecture."
-        option "Faust options"
-    	exit
-    fi
-    if [ $p = "-osc" ]; then
-	 	OSCDEFS="-DOSCCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lOSCFaust -loscpack"
+        echoHelp
+    elif [ $p = "-osc" ]; then
+        OSCDEFS="-DOSCCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then
-	 	HTTPDEFS="-DHTTPCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib -lHTTPDFaust -lmicrohttpd"
-	 	HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
+        HTTPDEFS="-DHTTPCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib -lHTTPDFaust"
+        HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
     elif [ $p = "-arch32" ]; then
-		PROCARCH="-m32 -L/usr/lib32"
+        PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
-		PROCARCH="-m64"
+        PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
 done
 
 #-------------------------------------------------------------------
 # compile the *.dsp files using ALSA and GTK on linux
 #
 for f in $FILES; do
-	
-	# compile faust to c++
-	faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
-	# compile c++ to binary
-	(
-		$CXX $CXXFLAGS $OMP "$f.cpp" $INCLUDES_DIR $LD_LIBRARY_PATHS $PROCARCH $OSCDEFS $HTTPDEFS $HTTPLIBS -o "${f%.dsp}"
-	) > /dev/null || exit
-	rm "$f.cpp"
+    # compile faust to c++
+    faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
-	# collect binary file name for FaustWorks
-	BINARIES="$BINARIES${f%.dsp};"
+    # compile c++ to binary
+    (
+        $CXX $CXXFLAGS $OMP "$f.cpp" $INCLUDES_DIR $LD_LIBRARY_PATHS $PROCARCH $OSCDEFS $HTTPDEFS $HTTPLIBS -o "${f%.dsp}"
+    ) > /dev/null || exit
+    rm "$f.cpp"
+
+    # collect binary file name for FaustWorks
+    BINARIES="$BINARIES${f%.dsp};"
 done
 
 echo $BINARIES

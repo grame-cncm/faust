@@ -5,6 +5,19 @@
 
 . usage.sh
 
+echoHelp()
+{
+    usage faust2sig "[options] <file.dsp>" to display the graph of signals
+    option "-svg" to display the SVG
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 FILES=""
 IGNORE=""
 FORMAT="pdf"
@@ -12,11 +25,8 @@ FORMAT="pdf"
 # Analyze command line
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2sig "[options] <file.dsp>" to display the graph of signals
-        option "-svg" to display the SVG
-        exit
-    fi
-    if [ "$p" = -svg ]; then
+       echoHelp
+    elif [ "$p" = -svg ]; then
         FORMAT="svg"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"

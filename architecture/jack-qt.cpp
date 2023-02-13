@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
     snprintf(rcfilename, 256, "%s/.%src", home, name);
     
     if (isopt(argv, "-h")) {
-        cout << "prog [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
+        cout << argv[0] << " [--nvoices <val>] [--control <0/1>] [--group <0/1>]\n";
         exit(1);
     }
     

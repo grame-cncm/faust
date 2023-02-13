@@ -96,7 +96,7 @@ inline Tree unquote(char* str)
 %union {
 	CTree* 	exp;
 	char* str;
-	string* cppstr;
+	std::string* cppstr;
 	bool b;
 	int numvariant;
 }
@@ -131,6 +131,7 @@ inline Tree unquote(char* str)
 
 %token INTCAST
 %token FLOATCAST
+%token NOTYPECAST
 %token FFUNCTION
 %token FCONSTANT
 %token FVARIABLE
@@ -199,6 +200,7 @@ inline Tree unquote(char* str)
 %token RCROC
 %token WITH
 %token LETREC
+%token WHERE
 %token DEF
 
 %token IMPORT
@@ -296,6 +298,7 @@ inline Tree unquote(char* str)
 %type <exp> fstring
 %type <exp> type
 %type <exp> typelist
+%type <exp> argtype
 %type <exp> fun
 
 %type <exp> fpar
@@ -453,7 +456,8 @@ params			: ident					   				{ $$ = cons($1,gGlobal->nil); }
                 ;
 
 expression		: expression WITH LBRAQ deflist RBRAQ	{ $$ = boxWithLocalDef($1,formatDefinitions($4)); }
-                | expression LETREC LBRAQ reclist RBRAQ	{ $$ = boxWithRecDef  ($1,formatDefinitions($4)); }
+                | expression LETREC LBRAQ reclist RBRAQ	{ $$ = boxWithRecDef($1,formatDefinitions($4), gGlobal->nil); }
+                | expression LETREC LBRAQ reclist WHERE deflist RBRAQ	{ $$ = boxWithRecDef($1,formatDefinitions($4),formatDefinitions($6)); }
                 | expression PAR expression  			{ $$ = boxPar($1,$3); }
 				| expression SEQ expression  			{ $$ = boxSeq($1,$3); }
 				| expression SPLIT  expression 		    { $$ = boxSplit($1,$3); }
@@ -587,6 +591,7 @@ primitive		: INT   						{ $$ = boxInt(str2int(yytext)); }
                 | LIBRARY LPAR uqstring RPAR    { $$ = boxLibrary($3); }
                 | ENVIRONMENT LBRAQ stmtlist RBRAQ { $$ = boxWithLocalDef(boxEnvironment(),formatDefinitions($3)); }
                 | WAVEFORM LBRAQ vallist RBRAQ  { $$ = boxWaveform(gGlobal->gWaveForm); gGlobal->gWaveForm.clear(); }
+				| ROUTE LPAR argument PAR argument RPAR   	{ $$ = boxRoute($3, $5, boxPar(boxInt(0),boxInt(0))); } // fake route
 				| ROUTE LPAR argument PAR argument PAR expression RPAR   	{ $$ = boxRoute($3, $5, $7); }
 				| button						{ $$ = $1; }
 				| checkbox						{ $$ = $1; }
@@ -726,8 +731,8 @@ signature		: type fun LPAR typelist RPAR               { $$ = cons($1, cons(cons
 fun				: IDENT							{ $$ = tree(yytext); }
 				;
 
-typelist		: type							{ $$ = cons($1,gGlobal->nil); }
-				| typelist PAR type				{ $$ = cons($3,$1); }
+typelist		: argtype						{ $$ = cons($1,gGlobal->nil); }
+				| typelist PAR argtype			{ $$ = cons($3,$1); }
                 ;
 
 rulelist		: rule							{ $$ = cons($1,gGlobal->nil); }
@@ -740,6 +745,11 @@ rule			: LPAR arglist RPAR ARROW expression ENDDEF
 
 type			: INTCAST                       { $$ = tree(0); }
 				| FLOATCAST						{ $$ = tree(1); }
+				;
+
+argtype			: INTCAST                       { $$ = tree(0); }
+				| FLOATCAST						{ $$ = tree(1); }
+				| NOTYPECAST					{ $$ = tree(2); }
 				;
 
 %%

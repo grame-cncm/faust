@@ -4,16 +4,16 @@
     Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -33,13 +33,13 @@
 class topSchema : public schema {
     schema*       fSchema;
     double        fMargin;
-    string        fText;
-    string        fLink;
-    vector<point> fInputPoint;
-    vector<point> fOutputPoint;
+    std::string   fText;
+    std::string   fLink;
+    std::vector<point> fInputPoint;
+    std::vector<point> fOutputPoint;
 
    public:
-    friend schema* makeTopSchema(schema* s1, double margin, const string& text, const string& link);
+    friend schema* makeTopSchema(schema* s1, double margin, const std::string& text, const std::string& link);
 
     virtual void  place(double ox, double oy, int orientation);
     virtual void  draw(device& dev);
@@ -48,7 +48,7 @@ class topSchema : public schema {
     virtual void  collectTraits(collector& c);
 
    private:
-    topSchema(schema* s1, double margin, const string& text, const string& link);
+    topSchema(schema* s1, double margin, const std::string& text, const std::string& link);
 };
 
 #endif

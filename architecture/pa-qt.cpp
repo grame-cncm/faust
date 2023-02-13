@@ -58,6 +58,8 @@
 #include "faust/midi/RtMidi.cpp"
 #endif
 
+using namespace std;
+
 /******************************************************************************
  *******************************************************************************
  
@@ -91,7 +93,7 @@
 
 dsp* DSP;
 
-std::list<GUI*> GUI::fGuiList;
+list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
 /******************************************************************************
@@ -119,7 +121,7 @@ int main(int argc, char* argv[])
     snprintf(rcfilename, 256, "%s/.%src", home, name);
     
     if (isopt(argv, "-h")) {
-        std::cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <num>] [--control <0/1>] [--group <0/1>] [--virtual-midi <0/1>]\n";
+        cout << argv[0] << " [--frequency <val>] [--buffer <val>] [--nvoices <num>] [--control <0/1>] [--group <0/1>] [--virtual-midi <0/1>]\n";
         exit(1);
     }
 
@@ -132,7 +134,7 @@ int main(int argc, char* argv[])
     control = lopt(argv, "--control", control);
     int group = lopt(argv, "--group", 1);
     
-    std::cout << "Started with " << nvoices << " voices\n";
+    cout << "Started with " << nvoices << " voices\n";
     DSP = new mydsp_poly(new mydsp(), nvoices, control, group);
     
 #if MIDICTRL
@@ -149,10 +151,10 @@ int main(int argc, char* argv[])
     nvoices = lopt(argv, "--nvoices", nvoices);
     control = lopt(argv, "--control", control);
     int group = lopt(argv, "--group", 1);
-    std::cout << "nvoices  " << nvoices << " voices\n";
+    cout << "nvoices  " << nvoices << " voices\n";
     
     if (nvoices > 0) {
-        std::cout << "Started with " << nvoices << " voices\n";
+        cout << "Started with " << nvoices << " voices\n";
         DSP = new mydsp_poly(new mydsp(), nvoices, control, group);
 #if MIDICTRL
         if (midi_sync) {
@@ -183,7 +185,7 @@ int main(int argc, char* argv[])
 #endif
     
     if (!DSP) {
-        std::cerr << "Unable to allocate Faust DSP object" << std::endl;
+        cerr << "Unable to allocate Faust DSP object" << endl;
         exit(1);
     }
 
@@ -198,13 +200,13 @@ int main(int argc, char* argv[])
     rt_midi midi_handler(name, is_virtual);
     MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
-    std::cout << "MIDI is on" << std::endl;
+    cout << "MIDI is on" << endl;
 #endif
 
 #ifdef HTTPCTRL
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(&httpdinterface);
-    std::cout << "HTTPD is on" << std::endl;
+    cout << "HTTPD is on" << endl;
 #endif
 
 #ifdef OSCCTRL
@@ -223,8 +225,8 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    std::cout << "ins " << audio.getNumInputs() << std::endl;
-    std::cout << "outs " << audio.getNumOutputs() << std::endl;
+    cout << "ins " << audio.getNumInputs() << endl;
+    cout << "outs " << audio.getNumOutputs() << endl;
     
 #ifdef HTTPCTRL
     httpdinterface.run();
@@ -238,7 +240,7 @@ int main(int argc, char* argv[])
 #endif
 #ifdef MIDICTRL
     if (!midiinterface.run()) {
-        std::cerr << "MidiUI run error\n";
+        cerr << "MidiUI run error\n";
     }
 #endif
     interface->run();

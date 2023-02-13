@@ -118,7 +118,7 @@ for p in $FILES; do
 
     # collect binary file name for FaustWorks
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
-        
+
     # create Max patch
     if [ "$NOPATCH" = "0" ]; then
         if [ "$POLY" = "POLY1" ]; then

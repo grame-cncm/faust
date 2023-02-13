@@ -32,10 +32,11 @@ architecture section is not modified.
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/JSONUIDecoder.h"
+#include "faust/export.h"
 
 // Generic wasm_dsp_factory class that keeps the JSON decoder.
 
-class wasm_dsp_factory_imp : public dsp_factory {
+class LIFAUST_API wasm_dsp_factory_imp : public dsp_factory {
     
     public:
     
@@ -68,7 +69,7 @@ class wasm_dsp_factory_imp : public dsp_factory {
 
 // Generic wasm_dsp class that creates and use the JSON decoder, and manage DSP and audio memory.
 
-class wasm_dsp_imp : public dsp {
+class LIFAUST_API wasm_dsp_imp : public dsp {
     
     protected:
     

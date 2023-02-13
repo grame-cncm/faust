@@ -27,6 +27,7 @@
 #include <sstream>
 
 #include "faust/dsp/interpreter-dsp.h"
+#include "faust/dsp/libfaust.h"
 #include "faust/audio/dummy-audio.h"
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/PrintUI.h"
@@ -86,6 +87,23 @@ int main(int argc, const char** argv)
         
         audio.start();
         audio.stop();
+    
+        /*
+        // Test generateAuxFilesFromFile
+        string tempDir = "/private/var/tmp/";
+        int argc2 = 0;
+        const char* argv2[16];
+        argv2[argc2++] = "-o";
+        argv2[argc2++] = (dspFile+".cpp").c_str();
+        argv2[argc2++] = "-O";
+        argv2[argc2++] = tempDir.c_str();
+        argv2[argc2] = nullptr;  // NULL terminated argv
+        cout << "=============================\n";
+        cout << "Test generateAuxFilesFromFile\n";
+        if (!generateAuxFilesFromFile(dspFile, argc2, argv2, error_msg)) {
+            cout << "ERROR in generateAuxFilesFromFile : " << error_msg;
+        }
+        */
         
         delete DSP;
         deleteInterpreterDSPFactory(factory);
@@ -132,6 +150,24 @@ int main(int argc, const char** argv)
         audio.stop();
         
         delete DSP;
+        deleteInterpreterDSPFactory(factory);
+    }
+    
+    cout << "=============================\n";
+    cout << "Test createInterpreterDSPFactoryFromString with getWarningMessages\n";
+    {
+        const char* argv[8];
+        int argc = 0;
+        argv[argc++] = "-wall";
+        argv[argc] = nullptr; // NULL terminated argv
+        string code = "process = rwtable(10, 10.0, idx, _, idx) with { idx = +(1)~_; };";
+        interpreter_dsp_factory* factory = createInterpreterDSPFactoryFromString("FaustDSP", code, argc, argv, error_msg);
+        if (!factory) {
+            cerr << "Cannot create factory : " << error_msg;
+            exit(EXIT_FAILURE);
+        }
+        cout << "getCompileOptions " << factory->getCompileOptions() << endl;
+        printList(factory->getWarningMessages());
         deleteInterpreterDSPFactory(factory);
     }
     

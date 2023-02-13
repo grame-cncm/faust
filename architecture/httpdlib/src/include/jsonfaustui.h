@@ -31,10 +31,10 @@
 namespace httpdfaust
 {
 
-template <typename C> class jsonui;
+template <typename C> class FAUST_API jsonui;
  
-class jsonfaustui : public UI, public Meta
-{
+class FAUST_API jsonfaustui : public UI, public Meta {
+    
 	jsonui<FAUSTFLOAT>* fJSON;
     
 	public:

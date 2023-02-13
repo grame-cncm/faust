@@ -1,0 +1,192 @@
+#! /bin/bash -e
+set -e
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to Cmajor                   #
+#               (c) Grame, 2019-2022                                #
+#                                                                   #
+#####################################################################
+
+. faustpath
+. faustoptflags
+. usage.sh
+
+ARCHFILE=$FAUSTARCH/cmajor/minimal.cmajor
+
+echoHelp() 
+{
+    usage faust2cmajor "[options] [Faust options] <file.dsp>"
+    echo  "Compiles Faust programs to Cmajor"
+    option
+    option -midi
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option -juce "to create a JUCE project"
+    option -dsp "to create a 'dsp' compatible subclass"
+    option -test "to test the resulting patch with 'cmaj render'"
+    option -play "to start the 'cmaj' runtime with the generated Cmajor file"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
+#-------------------------------------------------------------------
+# dispatch command arguments
+#-------------------------------------------------------------------
+
+POLY="POLY"
+EFFECT=""
+NVOICES=-1
+OPTIONS=""
+PLAY="false"
+TEST="false"
+JUCE="false"
+MIDI="false"
+CMAJ_EXT="cmajor";
+
+while [ $1 ]
+do
+    p=$1
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echoHelp
+    elif [ $p = "-nvoices" ]; then
+        ARCHFILE=$FAUSTARCH/cmajor/poly-dsp.cmajor
+        shift
+        NVOICES=$1
+    elif [ $p = "-effect" ]; then
+        ARCHFILE=$FAUSTARCH/cmajor/poly-dsp-effect.cmajor
+        POLY="POLY2"
+        shift
+        EFFECT=$1
+    elif [ $p = "-midi" ]; then
+        MIDI="true"
+        echo "MIDI will be used"
+    elif [ $p = "-play" ]; then
+        PLAY="true"
+    elif [ $p = "-juce" ]; then
+        JUCE="true"
+    elif [ $p = "-test" ]; then
+        TEST="true"
+    elif [ $p = "-dsp" ]; then
+        CMAJ_EXT="cmajor-dsp"
+    elif [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+
+shift
+
+done
+
+createCmajorPatch()
+{
+    (
+    echo -e '{'
+    echo -e "\t\"CmajorVersion\": 1,"
+    echo -e "\t\"ID\": \"grame.cmajor.$1\","
+    echo -e '\t"version": "1.0",'
+    echo -e "\t\"name\": \"$1\","
+    echo -e '\t"description": "Cmajor example",'
+    echo -e '\t"category": "synth",'
+    echo -e '\t"manufacturer": "GRAME",'
+    echo -e '\t"website": "https://faust.grame.fr",'
+    if [ $MIDI = "true" ]; then
+        echo -e '\t"isInstrument": true,'
+    else
+        echo -e '\t"isInstrument": false,'
+    fi
+    echo -e "\t\"source\": \"$1.cmajor\""
+    echo -e '}'
+    ) > "$2"
+}
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+#-------------------------------------------------------------------
+
+for p in $FILES; do
+
+    CUR=$(pwd)
+    f=$(basename "$p")
+    SRCDIR=$(dirname "$p")
+
+    # create a temporary dir
+    dspName="${f%.dsp}"
+    TDR=$(mktemp -d faust.XXXXXX)
+    TMP="$TDR/${f%.dsp}"
+    mkdir "$TMP"
+
+    # compile Faust to Cmajor
+    if [ $POLY = "POLY2" ]; then
+       if [ $EFFECT = "auto" ]; then
+            cat > $TMP/effect.dsp << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
+            process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
+EndOfCode
+            faust -lang cmajor-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.cmajor" || exit
+            faust -lang $CMAJ_EXT -cn effect "$TMP/effect.dsp" -o "$TMP/effect.cmajor" || exit
+        else
+            faust -lang cmajor-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.cmajor" || exit
+            faust -lang $CMAJ_EXT -cn effect "$SRCDIR/$EFFECT" -o "$TMP/effect.cmajor" || exit
+        fi
+        cat "$TMP/effect.cmajor" > "$TMP/${f%.dsp}.cmajor"
+        sed -e "s/NVOICES/"$NVOICES"/g" "$TMP/${f%.dsp}_tmp1.cmajor" >> "$TMP/${f%.dsp}_tmp2.cmajor"
+        cat "$TMP/${f%.dsp}_tmp2.cmajor" >> "$TMP/${f%.dsp}.cmajor"
+    else
+        if [ $NVOICES != -1 ]; then
+            faust -lang cmajor-poly -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.cmajor" || exit
+        else
+            faust -lang $CMAJ_EXT -cn "${f%.dsp}" -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp1.cmajor" || exit
+        fi
+        sed -e "s/NVOICES/"$NVOICES"/g" "$TMP/${f%.dsp}_tmp1.cmajor" >> "$TMP/${f%.dsp}.cmajor"
+    fi
+
+    # create patch
+    createCmajorPatch "${f%.dsp}" "${f%.dsp}.cmajorpatch"
+    
+    rm -f $p.json "$TMP/${f%.dsp}_tmp1.cmajor" "$TMP/${f%.dsp}_tmp2.cmajor" "$TMP/effect.dsp"
+    cp -r "$TMP/${f%.dsp}.cmajor" "$SRCDIR/${f%.dsp}.cmajor"
+    rm -rf "$TDR"
+
+    #  create final folder
+    rm -rf "$SRCDIR/$dspName"
+    mkdir "$SRCDIR/$dspName"
+    mv "$SRCDIR/${f%.dsp}.cmajor" "$SRCDIR/$dspName"
+    mv "${f%.dsp}.cmajorpatch" "$SRCDIR/$dspName"
+    
+    if [ $PLAY = "true" ] ; then
+        cmaj play "$SRCDIR/$dspName/${f%.dsp}.cmajorpatch"
+    fi
+    
+    if [ $TEST = "true" ] ; then
+        cmaj render --length=100000 --rate=44100 --output=/dev/null "$SRCDIR/$dspName/${f%.dsp}.cmajorpatch"
+    fi
+
+    # collect binary file name for FaustGIDE
+    BINARIES="$SRCDIR/$dspName/${f%.dsp}.cmajor;$SRCDIR/$dspName/${f%.dsp}.cmajorpatch"
+      
+    if [ $JUCE = "true" ] ; then
+        cmaj generate --juce "$SRCDIR/$dspName/${f%.dsp}.cmajorpatch" --output="$SRCDIR/$dspName/${f%.dsp}"
+        BINARIES="$BINARIES;$SRCDIR/$dspName/${f%.dsp}"
+    fi
+
+done
+
+echo $BINARIES
+
+

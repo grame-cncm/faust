@@ -27,10 +27,13 @@ architecture section is not modified.
 
 #include <vector>
 #include <string>
+#include <string.h>
 #include <algorithm>
 #include <assert.h>
 
-class MapUI;
+#include "faust/export.h"
+
+class FAUST_API MapUI;
 
 /**
  * A timestamped short MIDI message used with SOUL.
@@ -46,7 +49,7 @@ struct MIDIMessage
 #pragma pack (pop)
 
 /**
- * For timestamped MIDI messages.
+ * For timestamped MIDI messages (in usec).
  */
 struct DatedMessage {
     

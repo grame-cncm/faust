@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -23,7 +23,6 @@
 
 #include "Text.hh"
 #include "floats.hh"
-#include "ppsig.hh"
 #include "sigtyperules.hh"
 #include "xtended.hh"
 
@@ -57,19 +56,19 @@ class FtzPrim : public xtended {
 
     virtual bool needCache() { return true; }
 
-    virtual Type infereSigType(const vector<Type>& types)
+    virtual Type infereSigType(ConstTypes types)
     {
         faustassert(types.size() == arity());
         return types[0];
     }
 
-    virtual int infereSigOrder(const vector<int>& args)
+    virtual int infereSigOrder(const std::vector<int>& args)
     {
         faustassert(args.size() == arity());
         return args[0];
     }
 
-    virtual Tree computeSigOutput(const vector<Tree>& args)
+    virtual Tree computeSigOutput(const std::vector<Tree>& args)
     {
         int    i;
         double r;
@@ -85,8 +84,7 @@ class FtzPrim : public xtended {
         }
     }
 
-    virtual ValueInst* generateCode(CodeContainer* container, list<ValueInst*>& args, ::Type result,
-                                    vector<::Type> const& types)
+    virtual ValueInst* generateCode(CodeContainer* container, Values& args, ::Type result, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -96,16 +94,16 @@ class FtzPrim : public xtended {
             switch (gGlobal->gFTZMode) {
                 case 1: {
                     // "fabs" function has to be declared
-                    list<NamedTyped*> args_types;
-                    args_types.push_back(InstBuilder::genNamedTyped("dummy", InstBuilder::genBasicTyped(itfloat())));
-                    FunTyped* fun_type = InstBuilder::genFunTyped(args_types, InstBuilder::genBasicTyped(itfloat()));
+                    Names args_types;
+                    args_types.push_back(InstBuilder::genNamedTyped("dummy", InstBuilder::genItFloatTyped()));
+                    FunTyped* fun_type = InstBuilder::genFunTyped(args_types, InstBuilder::genItFloatTyped());
                     container->pushGlobalDeclare(InstBuilder::genDeclareFunInst(subst("fabs$0", isuffix()), fun_type));
 
                     // we need to create a temporary variable to store the expression
-                    string vname = gGlobal->getFreshID("fTempFTZ");
+                    std::string vname = gGlobal->getFreshID("fTempFTZ");
                     container->addIncludeFile("<float.h>");
                     container->pushComputeDSPMethod(
-                        InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()), *args.begin()));
+                        InstBuilder::genDecStackVar(vname, InstBuilder::genItFloatTyped(), *args.begin()));
                     ValueInst* real_min;
                     if (gGlobal->gFloatSize == 1) {
                         real_min = InstBuilder::genFloatNumInst(inummin());
@@ -113,7 +111,7 @@ class FtzPrim : public xtended {
                         real_min = InstBuilder::genDoubleNumInst(inummin());
                     }
 
-                    list<ValueInst*> args_value;
+                    Values args_value;
                     args_value.push_back(InstBuilder::genLoadStackVar(vname));
                     return InstBuilder::genSelect2Inst(
                         InstBuilder::genGreaterThan(InstBuilder::genFunCallInst(subst("fabs$0", isuffix()), args_value),
@@ -123,9 +121,9 @@ class FtzPrim : public xtended {
 
                 case 2: {
                     // Bitcast based solution
-                    string vname = gGlobal->getFreshID("fTempFTZ");
+                    std::string vname = gGlobal->getFreshID("fTempFTZ");
                     container->pushComputeDSPMethod(
-                        InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()), *args.begin()));
+                        InstBuilder::genDecStackVar(vname, InstBuilder::genItFloatTyped(), *args.begin()));
                     switch (gGlobal->gFloatSize) {
                         case 1:
                             return InstBuilder::genSelect2Inst(
@@ -157,7 +155,7 @@ class FtzPrim : public xtended {
         }
     }
 
-    virtual string generateCode(Klass* klass, const vector<string>& args, const vector<::Type>& types)
+    virtual std::string generateCode(Klass* klass, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
@@ -165,10 +163,9 @@ class FtzPrim : public xtended {
         Type t = infereSigType(types);
         if ((t->nature() == kReal) && (gGlobal->gFTZMode > 0)) {
             // we need to create a temporary variable to store the expression
-            string ctype = ifloat();
-            string vname = subst("fTempFTZ$0", T(++freshnum));
+            std::string vname = subst("fTempFTZ$0", T(++freshnum));
             klass->addIncludeFile("<float.h>");
-            klass->addExecCode(Statement("", subst("$0 $1 = $2;", ctype, vname, args[0])));
+            klass->addExecCode(Statement("", subst("$0 $1 = $2;", ifloat(), vname, args[0])));
             return subst(FTZPattern[gGlobal->gFloatSize][gGlobal->gFTZMode], vname);
         } else {
             // No ftz code for integer signals
@@ -176,7 +173,7 @@ class FtzPrim : public xtended {
         }
     }
 
-    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<::Type>& types)
+    virtual std::string generateLateq(Lateq* lateq, const std::vector<std::string>& args, ConstTypes types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());

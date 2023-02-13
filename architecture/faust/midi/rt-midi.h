@@ -311,6 +311,5 @@ class rt_midi : public midi_handler {
     
 };
 
-
 #endif // __rt_midi__
 /**************************  END  rt-midi.h **************************/

@@ -23,14 +23,22 @@ set -e
 NVOICES=0
 MIDI=false
 
-echoHelp ()
+echoHelp()
 {
-    echo "faust2audiokit [-midi] [-nvoices <num>] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+    echo "faust2audiokit [-midi] [-nvoices <num>] [Faust options] <file.dsp>"
     option
     options -midi
     option "-nvoices <num>"
+    option "Faust options"
     echo ""
+    exit
 }
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
 
 ###########################
 # Processing Arguments
@@ -42,7 +50,6 @@ do
     # help
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echoHelp
-        exit 0
     # -nvoices:
     elif [ $p = "-nvoices" ]; then
         shift
@@ -60,11 +67,6 @@ do
 shift
 done
 
-if [ -z $FILE ]; then
-    echo "Please, provide a Faust file to process"
-    exit 1
-fi
-
 ###########################
 # Compile the *.dsp files
 ###########################
@@ -73,16 +75,16 @@ for p in $FILE; do
     CUR=$(pwd)
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
-    
-    # creates the dir 
+
+    # creates the dir
     dspName="${f%.dsp}"
     rm -rf "$SRCDIR/$dspName"
     mkdir "$SRCDIR/$dspName"
-    
+
     # compile faust to c++
     faust -uim -i -cn $dspName -a $ARCHFILE1 $OPTIONS $f -o "$SRCDIR/$dspName/FaustDSP.mm" || exit
     faust -i -a $ARCHFILE2 $f -o "$SRCDIR/$dspName/faust2swift.cpp" || exit
-    
+
     # for MIDI
     if [ $MIDI == true ]; then
         echo "#define MIDICTRL" | cat - "$SRCDIR/$dspName/FaustDSP.mm" > temp && mv temp "$SRCDIR/$dspName/FaustDSP.mm"
@@ -93,12 +95,12 @@ for p in $FILE; do
         echo "#define NVOICES $NVOICES" | cat - "$SRCDIR/$dspName/FaustDSP.mm" > temp && mv temp "$SRCDIR/$dspName/FaustDSP.mm"
     fi
 
- 	# create Swift wrapper
+    # create Swift wrapper
     (
-    	cd "$SRCDIR/$dspName" && c++ -std=c++11 -O3 faust2swift.cpp -o faust2swift && ./faust2swift && rm faust2swift faust2swift.cpp
+        cd "$SRCDIR/$dspName" && c++ -std=c++11 -O3 faust2swift.cpp -o faust2swift && ./faust2swift && rm faust2swift faust2swift.cpp
     ) > /dev/null || exit
 
     # create the source folder
     echo "Create the $SRCDIR/$dspName folder"
-    
+
 done

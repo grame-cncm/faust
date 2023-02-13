@@ -5,16 +5,16 @@
     Modified to C# from Java by Mike Oliphant
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -27,16 +27,14 @@
 #include "dsp_factory.hh"
 #include "csharp_instructions.hh"
 
-using namespace std;
-
 class CSharpCodeContainer : public virtual CodeContainer {
    protected:
     CSharpInstVisitor fCodeProducer;
     std::ostream*   fOut;
-    string          fSuperKlassName;
+    std::string     fSuperKlassName;
 
    public:
-    CSharpCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
+    CSharpCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out)
         : fCodeProducer(out), fOut(out), fSuperKlassName(super)
     {
         initialize(numInputs, numOutputs);
@@ -45,8 +43,7 @@ class CSharpCodeContainer : public virtual CodeContainer {
     virtual ~CSharpCodeContainer() {}
 
     virtual void produceClass();
-    virtual void produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod, bool isvirtual,
-                              TextInstVisitor* producer);
+    virtual void produceInfoFunctions(int tabs, const std::string& classname, const std::string& obj, bool ismethod, FunTyped::FunAttribute funtype, TextInstVisitor* producer);
     virtual void generateCompute(int tab) = 0;
     void         produceInternal();
 
@@ -54,16 +51,15 @@ class CSharpCodeContainer : public virtual CodeContainer {
 
     virtual void printHeader() { CodeContainer::printHeader(*fOut); }
 
-    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+    CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
 
-    static CodeContainer* createContainer(const string& name, const string& super, int numInputs, int numOutputs,
-                                          ostream* dst = new stringstream());
+    static CodeContainer* createContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* dst = new std::stringstream());
 };
 
 class CSharpScalarCodeContainer : public CSharpCodeContainer {
    protected:
    public:
-    CSharpScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out,
+    CSharpScalarCodeContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out,
                             int sub_container_type);
     virtual ~CSharpScalarCodeContainer();
 

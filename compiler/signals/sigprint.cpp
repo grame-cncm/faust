@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -66,10 +66,6 @@ void printSigType(int n, int v, int c)
     putchar("CI X"[c]);
 }
 
-static const char* binopname[] = {"+", "-", "*", "/", "%", "<<", ">>", ">", "<", ">=", "<=", "==", "!=", "&", "|", "^"};
-
-static int binopprec[] = {2, 2, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-
 void printSignal(Tree sig, FILE* out, int prec)
 {
     int    i;
@@ -88,11 +84,12 @@ void printSignal(Tree sig, FILE* out, int prec)
     }
 
     else if (isSigBinOp(sig, &i, x, y)) {
-        if (prec > binopprec[i]) fputs("(", out);
-        printSignal(x, out, binopprec[i]);
-        fputs(binopname[i], out);
-        printSignal(y, out, binopprec[i]);
-        if (prec > binopprec[i]) fputs(")", out);
+        int pri = gBinOpTable[i]->fPriority;
+        if (prec > pri) fputs("(", out);
+        printSignal(x, out, pri);
+        fputs(gBinOpTable[i]->fName, out);
+        printSignal(y, out, pri);
+        if (prec > pri) fputs(")", out);
     } else if (isSigDelay1(sig, x)) {
         fputs("mem(", out);
         printSignal(x, out, 0);

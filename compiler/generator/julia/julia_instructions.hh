@@ -4,16 +4,16 @@
     Copyright (C) 2021 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -26,8 +26,6 @@
 
 #include "text_instructions.hh"
 #include "struct_manager.hh"
-
-using namespace std;
 
 // Visitor used to initialize array fields into the DSP structure
 struct JuliaInitFieldsVisitor : public DispatchVisitor {
@@ -72,7 +70,6 @@ struct JuliaInitFieldsVisitor : public DispatchVisitor {
     }
     
     // Needed for waveforms
-    
     virtual void visit(Int32ArrayNumInst* inst)
     {
         char sep = '[';
@@ -112,19 +109,19 @@ class JuliaInstVisitor : public TextInstVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
      */
-    static map<string, bool> gFunctionSymbolTable;
+    static std::map<std::string, bool> gFunctionSymbolTable;
 
     // Polymorphic math functions
-    map<string, string> gPolyMathLibTable;
+    std::map<std::string, std::string> gPolyMathLibTable;
     
     bool fMutateFun;
     
-    string cast2FAUSTFLOAT(const string& str) { return "FAUSTFLOAT(" + str + ")"; }
+    std::string cast2FAUSTFLOAT(const std::string& str) { return "FAUSTFLOAT(" + str + ")"; }
     
    public:
     using TextInstVisitor::visit;
 
-    JuliaInstVisitor(std::ostream* out, const string& struct_name, int tab = 0, bool mutate_fun = false)
+    JuliaInstVisitor(std::ostream* out, const std::string& struct_name, int tab = 0, bool mutate_fun = false)
         : TextInstVisitor(out, ".", new JuliaStringTypeManager(xfloat(), "*", struct_name), tab), fMutateFun(mutate_fun)
     {
         // Mark all math.h functions as generated...
@@ -333,7 +330,7 @@ class JuliaInstVisitor : public TextInstVisitor {
 
     virtual void visit(OpenboxInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fOrient) {
             case OpenboxInst::kVerticalBox:
                 name = "openVerticalBox!(";
@@ -357,7 +354,7 @@ class JuliaInstVisitor : public TextInstVisitor {
     
     virtual void visit(AddButtonInst* inst)
     {
-        string name;
+        std::string name;
         if (inst->fType == AddButtonInst::kDefaultButton) {
             name = "addButton!(";
         } else {
@@ -369,7 +366,7 @@ class JuliaInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddSliderInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
                 name = "addHorizontalSlider!(";
@@ -391,7 +388,7 @@ class JuliaInstVisitor : public TextInstVisitor {
 
     virtual void visit(AddBargraphInst* inst)
     {
-        string name;
+        std::string name;
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
                 name = "addHorizontalBargraph!(";
@@ -455,7 +452,7 @@ class JuliaInstVisitor : public TextInstVisitor {
              inst->fInst2->accept(this);
             *fOut << ")";
         } else {
-            // Operator prededence is not like C/C++, so for simplicity, we keep the fully parenthesized version
+            // Operator precedence is not like C/C++, so for simplicity, we keep the fully parenthesized version
             *fOut << "(";
             inst->fInst1->accept(this);
             *fOut << " ";
@@ -518,9 +515,9 @@ class JuliaInstVisitor : public TextInstVisitor {
     virtual void visit(DeclareBufferIterators* inst)
     {
         // Don't generate if no channels
-        if (inst->fNumChannels == 0) return;
+        if (inst->fChannels == 0) return;
     
-        for (int i = 0; i < inst->fNumChannels; ++i) {
+        for (int i = 0; i < inst->fChannels; ++i) {
             *fOut << inst->fBufferName1 << i << " = @inbounds @view " << inst->fBufferName2 << "[:, " << (i+1) << "]";
             tab(fTab, *fOut);
         }
@@ -529,7 +526,7 @@ class JuliaInstVisitor : public TextInstVisitor {
     virtual void generateFunDefBody(DeclareFunInst* inst)
     {
         if (inst->fCode->fCode.size() == 0) {
-            *fOut << ") where {T}" << endl;  // Pure prototype
+            *fOut << ") where {T}" << std::endl;  // Pure prototype
         } else {
             // Function body
             *fOut << ") where {T}";
@@ -560,16 +557,16 @@ class JuliaInstVisitor : public TextInstVisitor {
         indexed->fAddress->accept(this);
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
-            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
+            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->getIndex());
             *fOut << "." << struct_type->fType->getName(field_index->fNum);
         } else {
             *fOut << "[";
-            Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->fIndex);
+            Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->getIndex());
             // Julia arrays start at 1
             if (field_index) {
                 *fOut << (field_index->fNum + 1) << "]";
             } else {
-                indexed->fIndex->accept(this);
+                indexed->getIndex()->accept(this);
                 *fOut << "+1]";
             }
         }
@@ -611,21 +608,10 @@ class JuliaInstVisitor : public TextInstVisitor {
         *fOut << " != 0)";
     }
     
-    virtual void visit(Select2Inst* inst)
-    {
-        *fOut << "(";
-        visitCond(inst->fCond);
-        *fOut << " ? ";
-        inst->fThen->accept(this);
-        *fOut << " : ";
-        inst->fElse->accept(this);
-        *fOut << ")";
-    }
-
     // Generate standard funcall (not 'method' like funcall...)
     virtual void visit(FunCallInst* inst)
     {
-        string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
+        std::string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
         // Function that mutate their arguments use the '!' syntax
         *fOut << name << ((fMutateFun && inst->fArgs.size() > 0) ?  "!(" : "(");
         // Compile parameters

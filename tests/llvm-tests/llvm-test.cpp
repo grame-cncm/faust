@@ -25,6 +25,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <thread>
 
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/libfaust.h"
@@ -80,23 +81,20 @@ struct TestUI : public GenericUI {
     
 };
 
-int main(int argc, const char** argv)
+// The foreign function has to be exported with C linkage and should be made public
+FAUST_API extern "C" float ForeignLLVM(float val)
 {
-    if (isopt((char**)argv, "-h") || isopt((char**)argv, "-help") || argc < 2) {
-        cout << "llvm-test foo.dsp" << endl;
-        exit(EXIT_FAILURE);
-    }
-    
+    return val + 0.12345;
+}
+
+static void Test(const char* dspFileAux)
+{
     string error_msg;
-    cout << "Libfaust version : " << getCLibFaustVersion () << endl;
-    string dspFile = argv[1];
-    
-    std::cout << "getDSPMachineTarget " << getDSPMachineTarget() << std::endl;
-   
+    string dspFile = dspFileAux;
     cout << "=============================\n";
     cout << "Test createDSPFactoryFromFile\n";
     {
-        dsp_factory* factory = createDSPFactoryFromFile(dspFile, 0, NULL, JIT_TARGET, error_msg, -1);
+        llvm_dsp_factory* factory = createDSPFactoryFromFile(dspFile, 0, nullptr, JIT_TARGET, error_msg, -1);
         
         if (!factory) {
             cerr << "Cannot create factory : " << error_msg;
@@ -122,20 +120,20 @@ int main(int argc, const char** argv)
         
         dummyaudio audio(1);
         if (!audio.init("FaustDSP", DSP)) {
-            return 0;
+            exit(EXIT_FAILURE);
         }
         
         audio.start();
         audio.stop();
         
         delete DSP;
-        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+        deleteDSPFactory(factory);
     }
     
     cout << "=============================\n";
     cout << "Test createDSPFactoryFromString\n";
     {
-        dsp_factory* factory = createDSPFactoryFromString("FaustDSP", "process = +;", 0, NULL, JIT_TARGET, error_msg, -1);
+        llvm_dsp_factory* factory = createDSPFactoryFromString("FaustDSP", "process = +;", 0, NULL, JIT_TARGET, error_msg, -1);
         if (!factory) {
             cerr << "Cannot create factory : " << error_msg;
             exit(EXIT_FAILURE);
@@ -156,20 +154,78 @@ int main(int argc, const char** argv)
         
         dummyaudio audio(1);
         if (!audio.init("FaustDSP", DSP)) {
-            return 0;
+            exit(EXIT_FAILURE);
         }
         
         audio.start();
         audio.stop();
         
         delete DSP;
-        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+        deleteDSPFactory(factory);
+    }
+    
+    
+    cout << "=============================\n";
+    cout << "Test createDSPFactoryFromString with getWarningMessages\n";
+    {
+        const char* argv[8];
+        int argc = 0;
+        argv[argc++] = "-wall";
+        argv[argc] = nullptr; // NULL terminated argv
+        string code = "process = rwtable(10, 10.0, idx, _, idx) with { idx = +(1)~_; };";
+        llvm_dsp_factory* factory = createDSPFactoryFromString("FaustDSP", code, argc, argv, JIT_TARGET, error_msg, -1);
+        if (!factory) {
+            cerr << "Cannot create factory : " << error_msg;
+            exit(EXIT_FAILURE);
+        }
+        cout << "getCompileOptions " << factory->getCompileOptions() << endl;
+        printList(factory->getWarningMessages());
+        deleteDSPFactory(factory);
+    }
+    
+    cout << "=============================\n";
+    cout << "Test createDSPFactoryFromString with registerForeignFunction\n";
+    {
+        registerForeignFunction("ForeignLLVM");
+        llvm_dsp_factory* factory = createDSPFactoryFromString("FaustDSP", "process = ffunction(float ForeignLLVM(float), <dummy.h>, \"\");", 0, NULL, JIT_TARGET, error_msg, -1);
+     
+        if (!factory) {
+            cerr << "Cannot create factory : " << error_msg;
+            exit(EXIT_FAILURE);
+        }
+        
+        cout << "getCompileOptions " << factory->getCompileOptions() << endl;
+        printList(factory->getLibraryList());
+        printList(factory->getIncludePathnames());
+    
+        // Print LLVM IR code
+        // cout << "Code = " << writeDSPFactoryToIR(factory) << endl;
+        
+        dsp* DSP = factory->createDSPInstance();
+        if (!DSP) {
+            cerr << "Cannot create instance "<< endl;
+            exit(EXIT_FAILURE);
+        }
+        
+        cout << "getName " << factory->getName() << endl;
+        cout << "getSHAKey " << factory->getSHAKey() << endl;
+          
+        dummyaudio audio(1);
+        if (!audio.init("FaustDSP", DSP)) {
+            exit(EXIT_FAILURE);
+        }
+        
+        audio.start();
+        audio.stop();
+        
+        delete DSP;
+        deleteDSPFactory(factory);
     }
     
     cout << "=============================\n";
     cout << "Test of UI element encoding\n";
     {
-        dsp_factory* factory = createDSPFactoryFromString("FaustDSP", "process = vslider(\"Volume\", 0.5, 0, 1, 0.025);", 0, NULL, JIT_TARGET, error_msg, -1);
+        llvm_dsp_factory* factory = createDSPFactoryFromString("FaustDSP", "process = vslider(\"Volume\", 0.5, 0, 1, 0.025);", 0, NULL, JIT_TARGET, error_msg, -1);
         if (!factory) {
             cerr << "Cannot create factory : " << error_msg;
             exit(EXIT_FAILURE);
@@ -185,7 +241,7 @@ int main(int argc, const char** argv)
         DSP->buildUserInterface(&test);
         
         delete DSP;
-        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+        deleteDSPFactory(factory);
     }
     
     // Test generateAuxFilesFromFile/generateAuxFilesFromString
@@ -203,7 +259,7 @@ int main(int argc, const char** argv)
         if (!generateAuxFilesFromFile(dspFile, argc2, argv2, error_msg)) {
             cout << "ERROR in generateAuxFilesFromFile : " << error_msg;
         } else {
-            string filename =  string(dspFile);
+            string filename = string(dspFile);
             string pathname = tempDir + filename.substr(0, filename.size() - 4) + "-svg";
             ifstream reader(pathname.c_str());
             if (!reader.is_open()) {
@@ -229,6 +285,24 @@ int main(int argc, const char** argv)
             }
         }
     }
+}
+
+int main(int argc, char* argv[])
+{
+    if (isopt((char**)argv, "-h") || isopt((char**)argv, "-help") || argc < 2) {
+        cout << "llvm-test foo.dsp" << endl;
+        exit(EXIT_FAILURE);
+    }
+    
+    cout << "Libfaust version : " << getCLibFaustVersion () << endl;
+    std::cout << "getDSPMachineTarget " << getDSPMachineTarget() << std::endl;
+   
+    // Running in the main thread
+    Test(argv[1]);
+    
+    // Starting in a separated thread
+    thread th(&Test, argv[1]);
+    th.join();
     
     return 0;
 }

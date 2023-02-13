@@ -71,10 +71,10 @@ int main(int argc, char* argv[])
     measure1->measure();
     measure2->measure();
     
-    double res1 = measure1->getStats();
-    double res2 = measure2->getStats();
+    std::pair<double, double> res1 = measure1->getStats();
+    std::pair<double, double> res2 = measure2->getStats();
     
-    cout << "Result LLVM : " << res1 <<  " Interpreter : " << res2 << " ratio : " << res1/res2 << endl;
+    cout << "Result LLVM : " << res1.first <<  " Interpreter : " << res2.first << " ratio : " << res1.first/res2.first << endl;
     
     delete measure1;
     delete measure2;

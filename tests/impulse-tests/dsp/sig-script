@@ -1,0 +1,6 @@
+for f in $@
+do
+  echo "Processing $f file..."
+  faust -norm1  $f > ${f%.dsp}.sig
+  diff ${f%.dsp}.sig ../reference/${f%.dsp}.sig ; echo Done
+done

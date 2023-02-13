@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -43,8 +43,8 @@ This file contains several extensions to the tree library :
     nth(l,i)			= ith element of l (or nil)
     replace(l,i,e)		= a copy of l where the ith element is e
     len(l)				= number of elements of l
-    isNil(nil) 			= true 		(false otherwise)
-    isList(cons(x,l)) 	= true 		(false otherwise)
+    isNil(nil) 			= true (false otherwise)
+    isList(cons(x,l)) 	= true (false otherwise)
     list(a,b,..)		= cons(a, list(b,...))
 
     lmap(f, cons(x,l))	= cons(f(x), lmap(f,l))
@@ -72,7 +72,7 @@ This file contains several extensions to the tree library :
     pushEnv (key, val, env) -> env' create a new environment
     searchEnv (key,&v,env) -> bool  search for key in env and set v accordingly
 
-    search(k1,&v, push(k2,x,env)) 	= true and v is set to x if k1==k2
+    search(k1,&v, push(k2,x,env)) 	= true and v is set to x if k1 == k2
                                     = search(k1,&v,env) if k1 != k2
     Property list :
     ---------------
@@ -144,7 +144,7 @@ inline Tree tl(Tree l)
 }
 
 // predicates
-bool isNil(Tree l);
+LIBFAUST_API bool isNil(Tree l);
 bool isList(Tree l);
 
 // predicates

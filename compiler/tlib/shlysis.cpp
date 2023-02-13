@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -21,7 +21,7 @@
 
 /*****************************************************************************
 ******************************************************************************
-                                Tree Sharing Analysis
+                          Tree Sharing Analysis
                         Y. Orlarey, (c) Grame 2002
 ------------------------------------------------------------------------------
 The sharing analysis of tree t is the annotation of all its subtrees t'
@@ -32,9 +32,9 @@ unique to each sharing analysis must be generated.
  API:
  ----
 
-    shprkey(t) -> k		= unique sharing property key of t
-    shcount(k,t') -> n	= returns the number of occurences of t' in t (where k = shprkey(t))
-    shlysis(t)	-> k	= annotated the subtrees of t with prop (key sharing-count)
+    shprkey(t) -> k     = unique sharing property key of t
+    shcount(k,t') -> n  = returns the number of occurences of t' in t (where k = shprkey(t))
+    shlysis(t)    -> k  = annotated the subtrees of t with prop (key sharing-count)
                           (0 if t' is not a subtree of t)
 
  History :

@@ -1,0 +1,103 @@
+/************************************************************************ 
+ IMPORTANT NOTE : this file contains two clearly delimited sections :
+ the ARCHITECTURE section (in two parts) and the USER section. Each section
+ is governed by its own copyright and license. Please check individually
+ each section for license and copyright information.
+ *************************************************************************/
+
+/******************* BEGIN poly-dsp.cmajor ****************/
+
+/************************************************************************
+ FAUST Architecture File
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
+ ************************************************************************
+ ************************************************************************/
+  
+ <<includeIntrinsic>>
+//----------------------------------------------------------------------------
+//  FAUST generated signal processor
+//----------------------------------------------------------------------------
+<<includeclass>>
+
+/*
+    Connect the wrapper with the real processor. 
+    This indirection is done since the "expose control event" model is not yet in place.
+    So we have some 'ad-hoc' code for now that may change in the future
+*/
+graph dsp_voice
+{
+    input event (std::notes::NoteOn,
+                std::notes::NoteOff,
+                std::notes::PitchBend) eventIn;
+    
+    output stream float audioOut0;
+    output stream float audioOut1;
+
+    event eventIn (std::notes::NoteOn e)
+    {
+        mydsp.event_freq <- std::notes::noteToFrequency (e.pitch);
+        mydsp.event_gain <- e.velocity;
+        mydsp.event_gate <- 1.0f;
+    }
+     
+    event eventIn (std::notes::NoteOff e)
+    { 
+        mydsp.event_gate <- 0.0f;
+    }
+    
+    event eventIn (std::notes::PitchBend e)
+    {
+        // TODO
+    }
+
+    connection
+    {        
+        mydsp.output0 ->  audioOut0;
+        mydsp.output1 ->  audioOut1;
+    }
+}
+
+// Allocates voices, does dynamic voice management, connect to MIDI parser
+graph mydsp_poly [[ main ]]
+{
+    input event std::midi::Message midiIn;
+    output stream float audioOut0;
+    output stream float audioOut1;
+    
+    node
+    {
+        midiParser = std::midi::MPEConverter;
+        voices = dsp_voice[NVOICES];
+        voiceAllocator = std::voices::VoiceAllocator (NVOICES);
+    }
+     
+    connection
+    {
+        midiIn -> midiParser -> voiceAllocator -> voices;
+   
+        // Sum the voices audio out to the output
+        voices.audioOut0 -> audioOut0;
+        voices.audioOut1 -> audioOut1;
+    }
+}
+
+/******************** END poly-dsp.cmajor ****************/

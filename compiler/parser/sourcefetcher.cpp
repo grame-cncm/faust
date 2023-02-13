@@ -6,7 +6,7 @@
  * 
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Library General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
+ * Free Software Foundation; either version 2.1 of the License, or (at your
  * option) any later version.
  * 
  * This library is distributed in the hope that it will be useful, but WITHOUT
@@ -92,7 +92,7 @@ char convertedError[128];
  * necessary space is allocated for fileBuf. Returns size of download on
  * success, -1 on error is set.
  */
-int http_fetch(const char* url_tmp, char** fileBuf)
+LIBFAUST_API int http_fetch(const char* url_tmp, char** fileBuf)
 {
 	fd_set rfds;
 	struct timeval tv;

@@ -74,6 +74,8 @@
 #include <vector>
 #include <assert.h>
 
+#include "faust/export.h"
+
 //--------------------------------------------------------------------------------------
 // Interpolator(lo,hi,v1,v2)
 // Maps a value x between lo and hi to a value y between v1 and v2
@@ -83,8 +85,8 @@
 // y = v1 - lo*coef + x*coef
 // y = offset + x*coef              with offset = v1 - lo*coef
 //--------------------------------------------------------------------------------------
-class Interpolator
-{
+class FAUST_API Interpolator {
+    
     private:
 
         //--------------------------------------------------------------------------------------
@@ -98,7 +100,6 @@ class Interpolator
             Range(double x, double y) : fLo(std::min<double>(x,y)), fHi(std::max<double>(x,y)) {}
             double operator()(double x) { return (x<fLo) ? fLo : (x>fHi) ? fHi : x; }
         };
-
 
         Range fRange;
         double fCoef;
@@ -135,8 +136,7 @@ class Interpolator
 // Interpolator3pt(lo,mi,hi,v1,vm,v2)
 // Map values between lo mid hi to values between v1 vm v2
 //--------------------------------------------------------------------------------------
-class Interpolator3pt
-{
+class FAUST_API Interpolator3pt {
 
     private:
 
@@ -162,8 +162,7 @@ class Interpolator3pt
 //--------------------------------------------------------------------------------------
 // Abstract ValueConverter class. Converts values between UI and Faust representations
 //--------------------------------------------------------------------------------------
-class ValueConverter // Identity by default
-{
+class FAUST_API ValueConverter {
 
     public:
 
@@ -176,7 +175,7 @@ class ValueConverter // Identity by default
 // A converter than can be updated
 //--------------------------------------------------------------------------------------
 
-class UpdatableValueConverter : public ValueConverter {
+class FAUST_API UpdatableValueConverter : public ValueConverter {
     
     protected:
         
@@ -200,8 +199,7 @@ class UpdatableValueConverter : public ValueConverter {
 //--------------------------------------------------------------------------------------
 // Linear conversion between ui and Faust values
 //--------------------------------------------------------------------------------------
-class LinearValueConverter : public ValueConverter
-{
+class FAUST_API LinearValueConverter : public ValueConverter {
     
     private:
         
@@ -224,8 +222,7 @@ class LinearValueConverter : public ValueConverter
 //--------------------------------------------------------------------------------------
 // Two segments linear conversion between ui and Faust values
 //--------------------------------------------------------------------------------------
-class LinearValueConverter2 : public UpdatableValueConverter
-{
+class FAUST_API LinearValueConverter2 : public UpdatableValueConverter {
     
     private:
     
@@ -260,25 +257,24 @@ class LinearValueConverter2 : public UpdatableValueConverter
 //--------------------------------------------------------------------------------------
 // Logarithmic conversion between ui and Faust values
 //--------------------------------------------------------------------------------------
-class LogValueConverter : public LinearValueConverter
-{
+class FAUST_API LogValueConverter : public LinearValueConverter {
 
     public:
-
+    
+        // We use DBL_EPSILON which is bigger than DBL_MIN (safer)
         LogValueConverter(double umin, double umax, double fmin, double fmax) :
-            LinearValueConverter(umin, umax, std::log(std::max<double>(DBL_MIN, fmin)), std::log(std::max<double>(DBL_MIN, fmax)))
+            LinearValueConverter(umin, umax, std::log(std::max<double>(DBL_EPSILON, fmin)), std::log(std::max<double>(DBL_EPSILON, fmax)))
         {}
 
         virtual double ui2faust(double x) { return std::exp(LinearValueConverter::ui2faust(x)); }
-        virtual double faust2ui(double x) { return LinearValueConverter::faust2ui(std::log(std::max<double>(x, DBL_MIN))); }
+        virtual double faust2ui(double x) { return LinearValueConverter::faust2ui(std::log(std::max<double>(DBL_EPSILON, x))); }
 
 };
 
 //--------------------------------------------------------------------------------------
 // Exponential conversion between ui and Faust values
 //--------------------------------------------------------------------------------------
-class ExpValueConverter : public LinearValueConverter
-{
+class FAUST_API ExpValueConverter : public LinearValueConverter {
 
     public:
 
@@ -295,8 +291,7 @@ class ExpValueConverter : public LinearValueConverter
 // Convert accelerometer or gyroscope values to Faust values
 // Using an Up curve (curve 0)
 //--------------------------------------------------------------------------------------
-class AccUpConverter : public UpdatableValueConverter
-{
+class FAUST_API AccUpConverter : public UpdatableValueConverter {
 
     private:
 
@@ -331,8 +326,7 @@ class AccUpConverter : public UpdatableValueConverter
 // Convert accelerometer or gyroscope values to Faust values
 // Using a Down curve (curve 1)
 //--------------------------------------------------------------------------------------
-class AccDownConverter : public UpdatableValueConverter
-{
+class FAUST_API AccDownConverter : public UpdatableValueConverter {
 
     private:
 
@@ -366,8 +360,7 @@ class AccDownConverter : public UpdatableValueConverter
 // Convert accelerometer or gyroscope values to Faust values
 // Using an Up-Down curve (curve 2)
 //--------------------------------------------------------------------------------------
-class AccUpDownConverter : public UpdatableValueConverter
-{
+class FAUST_API AccUpDownConverter : public UpdatableValueConverter {
 
     private:
 
@@ -401,8 +394,7 @@ class AccUpDownConverter : public UpdatableValueConverter
 // Convert accelerometer or gyroscope values to Faust values
 // Using a Down-Up curve (curve 3)
 //--------------------------------------------------------------------------------------
-class AccDownUpConverter : public UpdatableValueConverter
-{
+class FAUST_API AccDownUpConverter : public UpdatableValueConverter {
 
     private:
 
@@ -435,8 +427,7 @@ class AccDownUpConverter : public UpdatableValueConverter
 //--------------------------------------------------------------------------------------
 // Base class for ZoneControl
 //--------------------------------------------------------------------------------------
-class ZoneControl
-{
+class FAUST_API ZoneControl {
 
     protected:
 
@@ -464,8 +455,7 @@ class ZoneControl
 //--------------------------------------------------------------------------------------
 //  Useful to implement accelerometers metadata as a list of ZoneControl for each axes
 //--------------------------------------------------------------------------------------
-class ConverterZoneControl : public ZoneControl
-{
+class FAUST_API ConverterZoneControl : public ZoneControl {
 
     protected:
 
@@ -486,8 +476,7 @@ class ConverterZoneControl : public ZoneControl
 // Association of a zone and a four value converter, each one for each possible curve.
 // Useful to implement accelerometers metadata as a list of ZoneControl for each axes
 //--------------------------------------------------------------------------------------
-class CurveZoneControl : public ZoneControl
-{
+class FAUST_API CurveZoneControl : public ZoneControl {
 
     private:
 
@@ -530,8 +519,7 @@ class CurveZoneControl : public ZoneControl
         int getCurve() { return fCurve; }
 };
 
-class ZoneReader
-{
+class FAUST_API ZoneReader {
 
     private:
 

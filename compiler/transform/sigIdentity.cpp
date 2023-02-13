@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -23,16 +23,13 @@
 
 #include <stdlib.h>
 #include <cstdlib>
-#include <map>
-#include "Text.hh"
+
+#include "signals.hh"
 #include "global.hh"
 #include "ppsig.hh"
-#include "property.hh"
-#include "signals.hh"
-#include "sigtyperules.hh"
-#include "tlib.hh"
-#include "tree.hh"
-#include "treeTransform.hh"
+#include "Text.hh"
+
+using namespace std;
 
 //-------------------------SignalIdentity-------------------------------
 // An identity transformation on signals. Can be used to test
@@ -42,13 +39,13 @@
 void SignalIdentity::traceEnter(Tree t)
 {
     tab(fIndent, cerr);
-    cerr << fMessage << ": " << ppsig(t) << endl;
+    cerr << fMessage << ": " << ppsig(t, MAX_ERROR_SIZE) << endl;
 }
 
 void SignalIdentity::traceExit(Tree t, Tree r)
 {
     tab(fIndent, cerr);
-    cerr << fMessage << ": " << ppsig(t) << " => " << ppsig(r) << endl;
+    cerr << fMessage << ": " << ppsig(t, MAX_ERROR_SIZE) << " => " << ppsig(r, MAX_ERROR_SIZE) << endl;
 }
 
 Tree SignalIdentity::transformation(Tree sig)
@@ -196,9 +193,8 @@ Tree SignalIdentity::transformation(Tree sig)
     }
     	
     else {
-        stringstream error;
-        error << "ERROR : unrecognized signal : " << *sig << endl;
-        throw faustexception(error.str());
+        cerr << "ASSERT : unrecognized signal : " << *sig << endl;
+        faustassert(false);
     }
     return 0;
 }

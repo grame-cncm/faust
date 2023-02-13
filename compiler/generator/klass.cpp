@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -41,10 +41,11 @@
 #include "Text.hh"
 #include "floats.hh"
 #include "klass.hh"
-#include "ppsig.hh"
 #include "recursivness.hh"
 #include "signals.hh"
 #include "uitree.hh"
+
+using namespace std;
 
 static int gTaskCount = 0;
 
@@ -154,7 +155,7 @@ void Klass::closeLoop(Tree sig)
 /**
  * Print a list of elements (e1, e2,...)
  */
-void printdecllist(int n, const string& decl, list<string>& content, ostream& fout)
+static void printdecllist(int n, const string& decl, list<string>& content, ostream& fout)
 {
     if (!content.empty()) {
         fout << "\\";
@@ -1220,7 +1221,7 @@ void Klass::printComputeMethodOpenMP(int n, ostream& fout)
 }
 
 /*
-void Klass::printComputeMethodScheduler (int n, ostream& fout)
+void Klass::printComputeMethodScheduler(int n, ostream& fout)
 {
     tab(n+1,fout); fout << subst("virtual void compute (int fullcount, $0** input, $0** output) {", xfloat());
         printlines(n+2, fZone1Code, fout);

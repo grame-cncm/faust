@@ -33,9 +33,12 @@
  
 #include <algorithm>
 
+#include "faust/gui/PrintUI.h"
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
 #include "faust/dsp/dsp.h"
+#include "faust/audio/dummy-audio.h"
+#include "faust/dsp/one-sample-dsp.h"
 
 #if defined(SOUNDFILE)
 #include "faust/gui/SoundUI.h"
@@ -65,5 +68,24 @@ typedef ap_fixed<32, 8, AP_RND_CONV, AP_SAT> fixpoint_t;
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
+using namespace std;
+
+int main(int argc, char* argv[])
+{
+    mydsp DSP;
+    cout << "DSP size: " << sizeof(DSP) << " bytes\n";
+    
+    // Activate the UI, here that only print the control paths
+    PrintUI ui;
+    DSP.buildUserInterface(&ui);
+    
+    // Allocate the audio driver to render 5 buffers of 512 frames
+    dummyaudio audio(5);
+    audio.init("Test", static_cast<dsp*>(&DSP));
+    
+    // Render buffers...
+    audio.start();
+    audio.stop();
+}
 
 /******************* END minimal-fixed-point.cpp ****************/

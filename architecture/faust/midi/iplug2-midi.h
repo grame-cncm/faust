@@ -28,7 +28,7 @@ architecture section is not modified.
 #include "faust/midi/midi.h"
 #include "IPlugMidi.h"
 
-class MapUI;
+class FAUST_API MapUI;
 
 BEGIN_IPLUG_NAMESPACE
 

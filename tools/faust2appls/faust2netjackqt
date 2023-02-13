@@ -28,10 +28,30 @@ else
     ARCHLIB+="-L/usr/local/lib -ljacknet -ljack -lpthread"
 fi
 
+echoHelp()
+{
+    usage faust2netjackqt "[options] [Faust options] <file.dsp>"
+    require Jack, QT
+    echo "Compiles Faust programs to NetJack and QT"
+    option
+    options -httpd -osc -midi
+    option "-nvoices <num>"
+    option "-effect <effect.dsp>"
+    option "-effect auto"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
 
-QMAKE=$(which qmake-qt4 || echo qmake) 
+QMAKE=$(which qmake-qt4 || echo qmake)
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -51,19 +71,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2netjackqt "[options] [Faust options] <file.dsp>"
-        require Jack, Qt
-        echo "Compiles Faust programs to NetJack and QT"
-        option
-        options -httpd -osc -midi
-        option "-nvoices <num>"
-        option "-effect <effect.dsp>"
-        option "-effect auto"
-        option "Faust options"
-        exit
-    fi
-    
-    if [ $p = "-nvoices" ]; then
+        echoHelp
+    elif [ $p = "-nvoices" ]; then
         POLYDEFS="DEFINES += POLY"
         shift
         NVOICES=$1
@@ -80,7 +89,7 @@ do
          OSCLIBS="-lOSCFaust"
     elif [ "$p" = "-httpd" ]; then
         HTTPDEFS="DEFINES += HTTPCTRL"
-        HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+        HTTPLIBS="-lHTTPDFaust"
         HTTPLIBS1=`pkg-config --cflags --libs libmicrohttpd`
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"
@@ -89,7 +98,7 @@ do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -104,7 +113,7 @@ if [[ $(uname) == Darwin ]]; then
     if [ $SYS_VERSION -gt 12 ]
     then
         SPEC=""
-        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
+        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"
         CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
     else
         SPEC="-spec macx-g++"
@@ -122,7 +131,7 @@ for p in $FILES; do
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
 
-    # creates a temporary dir 
+    # creates a temporary dir
     TDR=$(mktemp -d faust.XXX)
     TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"

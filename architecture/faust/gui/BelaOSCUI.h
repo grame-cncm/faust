@@ -113,7 +113,7 @@ class BelaOSCUI : public GUI {
             }
         }
     
-        static void oscMessageReceived(oscpkt::Message* msg, void* arg)
+        static void oscMessageReceived(oscpkt::Message* msg, const char* addr, void* arg)
         {
             static_cast<BelaOSCUI*>(arg)->oscMessageReceivedAux(msg);
         }

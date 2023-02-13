@@ -20,6 +20,33 @@
 . faustpath
 . usage.sh
 
+echoHelp()
+{
+    usage faust2unity "[options] [Faust options] <file.dsp>"
+    platform Android, Linux, MacOSX, iOS, Windows
+    require Unity
+    echo "Generates a unity package (compressed .unitypackage folder) with all available architecture libraries for faust unity plugin and the C# files required. Use arguments to generate specific architectures"
+    option
+    option -w32 "generates a Windows 32 bits library"
+    option -w64 "generates a Windows 64 bits library"
+    option -osx "generates a macOS library"
+    option -ios "generates an iOS library"
+    option -android "generates Android libraries (armeabi-v7a and x86)."
+    option -linux "generates a Linux library"
+    option "-nvoices <num>"
+    option -source "generates the source files (uncompressed folder)"
+    option -unpacked "generates an unpacked folder with files organized like the Unity Asset hierarchy. Use this options to add specific files in the unity package (in the Assets folder, then use 'encoderunitypackage <folder>' to compress and pack it."
+    option "Faust options"
+    echo "See architecture/unity/README.md for more info."
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-----------------------------------------------------------------
 # Dispatch command arguments
 
@@ -35,30 +62,13 @@ UNPCK="0"
 NVOICES=-1
 FAUST_UTILITY=FaustUtilities_template.cs
 
-while [ $1 ] 
+while [ $1 ]
 do
     p=$1
-    
+
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2unity "[options] [Faust options] <file.dsp>"
-        platform Android, Linux, MacOSX, iOS, Windows
-        require Unity
-        echo "Generates a unity package (compressed .unitypackage folder) with all available architecture libraries for faust unity plugin and the C# files required. Use arguments to generate specific architectures"
-        option
-        option -w32 "generates a Windows 32 bits library"
-        option -w64 "generates a Windows 64 bits library"
-        option -osx "generates a macOS library"
-        option -ios "generates an iOS library"
-        option -android "generates Android libraries (armeabi-v7a and x86)."
-        option -linux "generates a Linux library"
-        option "-nvoices <num>"
-        option -source "generates the source files (uncompressed folder)"
-        option -unpacked "generates an unpacked folder with files organized like the Unity Asset hierarchy. Use this options to add specific files in the unity package (in the Assets folder, then use 'encoderunitypackage <folder>' to compress and pack it."
-        echo "See architecture/unity/README.md for more info."
-        exit
-    fi
-     
-    if [ $p = "-w32" ]; then
+        echoHelp
+    elif [ $p = "-w32" ]; then
         W32="1"
         ALL="0"
     elif [ $p = "-w64" ]; then
@@ -92,7 +102,7 @@ do
     else
         OPTIONS="$OPTIONS $p"
     fi
-    
+
 shift
 done
 
@@ -148,12 +158,12 @@ for p in $FILES; do
     if [ $W64 = "1" ] || [ $ALL = "1" ]; then
         WINBITS="$WINBITS -64"
     fi
-    
+
     # w32
     if [ $W32 = "1" ] || [ $ALL = "1" ]; then
         WINBITS="$WINBITS -32"
     fi
-    
+
     # win
     if [ -n "$WINBITS" ]; then
         faust2winunity -nvoices $NVOICES $WINBITS $f || exit

@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -57,7 +57,7 @@ dsp_factory_base* WASTCodeContainer::produceFactory()
         ((dynamic_cast<ostringstream*>(fOut)) ? dynamic_cast<ostringstream*>(fOut)->str() : ""), fHelper.str());
 }
 
-WASTCodeContainer::WASTCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+WASTCodeContainer::WASTCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out,
                                      bool internal_memory)
     : fOut(out)
 {
@@ -115,7 +115,7 @@ CodeContainer* WASTCodeContainer::createContainer(const string& name, int numInp
 }
 
 // Scalar
-WASTScalarCodeContainer::WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+WASTScalarCodeContainer::WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out,
                                                  int sub_container_type, bool internal_memory)
     : WASTCodeContainer(name, numInputs, numOutputs, out, internal_memory)
 {
@@ -126,7 +126,7 @@ WASTScalarCodeContainer::WASTScalarCodeContainer(const string& name, int numInpu
 DeclareFunInst* WASTCodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod,
                                                            bool isvirtual)
 {
-    list<NamedTyped*> args;
+    Names args;
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
@@ -206,8 +206,8 @@ void WASTCodeContainer::produceClass()
     WASInst::generateIntMax()->accept(gGlobal->gWASTVisitor);
     
     // getNumInputs/getNumOutputs
-    generateGetInputs("getNumInputs", "dsp", false, false)->accept(gGlobal->gWASTVisitor);
-    generateGetOutputs("getNumOutputs", "dsp", false, false)->accept(gGlobal->gWASTVisitor);
+    generateGetInputs("getNumInputs", "dsp", false, FunTyped::kDefault)->accept(gGlobal->gWASTVisitor);
+    generateGetOutputs("getNumOutputs", "dsp", false, FunTyped::kDefault)->accept(gGlobal->gWASTVisitor);
 
     // Inits
     tab(n + 1, fOutAux);
@@ -372,7 +372,7 @@ DeclareFunInst* WASInst::generateIntMin()
     string v1 = gGlobal->getFreshID("v1");
     string v2 = gGlobal->getFreshID("v2");
 
-    list<NamedTyped*> args;
+    Names args;
     args.push_back(InstBuilder::genNamedTyped(v1, Typed::kInt32));
     args.push_back(InstBuilder::genNamedTyped(v2, Typed::kInt32));
 
@@ -390,7 +390,7 @@ DeclareFunInst* WASInst::generateIntMax()
     string v1 = gGlobal->getFreshID("v1");
     string v2 = gGlobal->getFreshID("v2");
 
-    list<NamedTyped*> args;
+    Names args;
     args.push_back(InstBuilder::genNamedTyped(v1, Typed::kInt32));
     args.push_back(InstBuilder::genNamedTyped(v2, Typed::kInt32));
 
@@ -428,9 +428,6 @@ void WASTCodeContainer::generateComputeAux2(BlockInst* compute_block, int n)
 
     // Put local variables at the begining
     BlockInst* block = MoveVariablesInFront2().getCode(fComputeBlockInstructions, true);
-    
-    // Remove unecessary cast
-    block = CastRemover().getCode(block);
 
     block->accept(gGlobal->gWASTVisitor);
     back(1, fOutAux);
@@ -452,7 +449,7 @@ void WASTScalarCodeContainer::generateCompute(int n)
 }
 
 // Vector
-WASTVectorCodeContainer::WASTVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+WASTVectorCodeContainer::WASTVectorCodeContainer(const string& name, int numInputs, int numOutputs, ostream* out,
                                                  bool internal_memory)
     : VectorCodeContainer(numInputs, numOutputs), WASTCodeContainer(name, numInputs, numOutputs, out, internal_memory)
 {

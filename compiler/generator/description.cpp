@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -36,7 +36,7 @@
 using namespace std;
 
 /**
- * Extracts metdata from a label : 'vol [unit: dB]' -> 'vol' + metadata
+ * Extracts metadata from a label : 'vol [unit: dB]' -> 'vol' + metadata
  */
 void extractMetadata(const string& fulllabel, string& label, map<string, set<string>>& metadata)
 {
@@ -144,7 +144,7 @@ void extractMetadata(const string& fulllabel, string& label, map<string, set<str
             default: {
                 stringstream error;
                 error << "ERROR unrecognized state " << state << endl;
-                gGlobal->gErrorMsg = error.str();
+                gGlobal->gErrorMessage = error.str();
             }
         }
     }
@@ -153,12 +153,12 @@ void extractMetadata(const string& fulllabel, string& label, map<string, set<str
 
 //------------------------ specific schema -------------------------
 
-string extractName(Tree fulllabel)
+string extractName(Tree full_label)
 {
     string                   name;
     map<string, set<string>> metadata;
 
-    extractMetadata(tree2str(fulllabel), name, metadata);
+    extractMetadata(tree2str(full_label), name, metadata);
     return name;
 }
 
@@ -324,7 +324,8 @@ void Description::addGroup(int level, Tree t)
         addLayoutLine(level, subst("<widgetref id=\"$0\" />", T(w)));
 
     } else {
-        throw faustexception("ERROR in user interface generation\n");
+        cerr << "ASSERT : user interface generation\n";
+        faustassert(false);
     }
 }
 
@@ -431,7 +432,8 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
         addPassiveLine("</widget>");
 
     } else {
-        throw faustexception("ERROR describing widget : unrecognized expression\n");
+        cerr << "ASSERT : describing widget : unrecognized expression\n";
+        faustassert(false);
     }
 
     return fWidgetID;

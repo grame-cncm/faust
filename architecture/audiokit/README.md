@@ -1,4 +1,4 @@
-# faust2audiokit
+# faust2audiokit [Work In Progress]
 
 The **faust2audiokit** tool transforms a Faust DSP program into a fully working [AudioKit](https://audiokit.io) node. The result can be a monophonic DSP or a MIDI controllable polyphonic one (when the DSP describes an instrument, following the `freq, gain, gate` [parameter naming convention](https://faustdoc.grame.fr/manual/midi/#midi-polyphony-support)). 
 

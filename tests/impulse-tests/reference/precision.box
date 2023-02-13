@@ -1,0 +1,6 @@
+declare version "2.50.2";
+declare compile_options "-single -scal ../../build/bin/faust -I dsp -e dsp/precision.dsp -o reference/precision.box";
+declare filename "precision.dsp";
+declare name "precision";
+ID_0 = waveform{-1.8376776f,-1.8376776f,2,3,4,5,6,7,8,9,1.2f,1.02f,1.002f,1.0002f,1.00002f,1.000002f,1.0000002f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,9999};
+process = ID_0;

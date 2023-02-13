@@ -13,7 +13,7 @@
 
 DEBUG=false
 
-# MIDI not yet supported in this file.  Needs to be connected in minimal-dplug.d architecture file
+# MIDI not yet supported in this file.  Needs to be connected in dplug.d architecture file
 IS_MIDI="0"
 VENDOR="Faust"
 VENDORID="FaUs"
@@ -21,24 +21,34 @@ PLUGINID="PlUg"
 HOMEPAGE="https://faust.grame.fr/"
 EFFECTTYPE="effectOther"
 
+echoHelp()
+{
+    usage faust2dplug "[options] [Faust options] <file.dsp>"
+    require Dplug
+    echo "Compiles Faust programs to Dplug plugins"
+    option
+    options "-vendor <My Company Name>"
+    options "-vendorid <FaUs>"
+    options "-pluginid <PlUg>"
+    options "-homepage <https://faust.grame.fr/>"
+    options "-effectType <effectDynamics>"
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 while [ $1 ]
 do
     p=$1
 
     if [ $p = "--help" ] || [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2dplug "[options] [Faust options] <file.dsp>"
-        require Dplug
-        echo "Compiles Faust programs to Dplug plugins"
-        option
-        options "-vendor <My Company Name>"
-        options "-vendorid <FaUs>"
-        options "-pluginid <PlUg>"
-        options "-homepage <https://faust.grame.fr/>"
-        options "-effectType <effectDynamics>"
-        exit
-    fi
-
-    if [ "$p" = -debug ]; then
+        echoHelp
+    elif [ "$p" = -debug ]; then
         DEBUG=true
     elif [ $p = "-midi" ]; then
         IS_MIDI="1"
@@ -60,7 +70,7 @@ do
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"    
+        OPTIONS="$OPTIONS $p"
     fi
 
 shift
@@ -74,13 +84,13 @@ fi
 
 DUBFILE="dub.json"
 PLUGFILE="plugin.json"
-    
+
 for p in $FILES; do
     CUR=$(pwd)
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
 
-    # creates the dir 
+    # creates the dir
     dspName="${f%.dsp}"
     SUB_TYPE=$(shasum $p)
     SUB_TYPE=${SUB_TYPE:0:4}
@@ -196,6 +206,6 @@ _bundleExit
 
 EndOfFile
 
-    faust -i -lang dlang -a $FAUSTARCH/minimal-dplug.d $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/source/main.d"
+    faust -i -lang dlang -a $FAUSTARCH/dplug.d $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/source/main.d"
 
 done

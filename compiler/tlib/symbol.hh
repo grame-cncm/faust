@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -26,7 +26,7 @@
  *
  *   - Sym q = symbol("abcd");     <i>returns the symbol of name "abcd"</i>
  *   - const char* s = name(q);    <i>returns the name of symbol q</i>
- *   - Sym q = unique("TOTO");	   <i>returns a new unique symbol of name "TOTOnnn"</i>
+ *   - Sym q = unique("TOTO");	 <i>returns a new unique symbol of name "TOTOnnn"</i>
  *
  *  <b>Properties:</b>
  *
@@ -67,7 +67,7 @@ class Symbol : public virtual Garbageable {
 
     // Others
     bool                equiv(unsigned int hash,
-                              const char*  str) const;  ///< Check if the name of the symbol is equal to string \p str
+                              const char* str) const;  ///< Check if the name of the symbol is equal to string \p str
     static unsigned int calcHashKey(const char* str);  ///< Compute the 32-bits hash key of string \p str
 
     // Static methods

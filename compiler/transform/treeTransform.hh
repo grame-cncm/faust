@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -25,7 +25,6 @@
 #include <stdlib.h>
 #include <cstdlib>
 #include "property.hh"
-#include "sigtyperules.hh"
 #include "tree.hh"
 
 //------------------------------------------------------------------------------
@@ -37,25 +36,25 @@
 // (or `mapself(lt)` for a list).
 //------------------------------------------------------------------------------
 
-class TreeTransform {
+class TreeTransform : public Garbageable {
    protected:
     property<Tree> fResult;  // cache previously computed transformations
     // used when tracing
-    bool   fTraceFlag;  // trace transformations when true
+    bool   fTrace;      // trace transformations when true
     int    fIndent;     // current indentation during trace
-    string fMessage;    // trace message
+    std::string fMessage;    // trace message
 
    public:
-    TreeTransform() : fTraceFlag(false), fIndent(0), fMessage("TreeTransform") {}
+    TreeTransform() : fTrace(false), fIndent(0), fMessage("TreeTransform") {}
 
     Tree self(Tree t);
     Tree mapself(Tree lt);
 
-    void trace(bool b) { fTraceFlag = b; }
-    void trace(bool b, const string& m)
+    void trace(bool b) { fTrace = b; }
+    void trace(bool b, const std::string& m)
     {
-        fTraceFlag = b;
-        fMessage   = m;
+        fTrace = b;
+        fMessage = m;
     }
 
    protected:

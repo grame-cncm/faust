@@ -123,17 +123,17 @@ int main(int argc, char* argv[])
     int nvoices = 0;
     bool control = true;
     
+    if (isopt(argv, "-help") || isopt(argv, "-h")) {
+        cout << argv[0] << " [--frequency <val>] [--buffer <val>] [--nvoices <val>] [--control <0/1>] [--group <0/1>] [--virtual-midi <0/1>]\n";
+        exit(1);
+    }
+    
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
     
     snprintf(name, 256, "%s", basename(argv[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, name);
-    
-    if (isopt(argv, "-help") || isopt(argv, "-h")) {
-        cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <val>] [--control <0/1>] [--group <0/1>] [--virtual-midi <0/1>]\n";
-        exit(1);
-    }
     
     long srate = (long)lopt(argv, "--frequency", -1);
     int fpb = lopt(argv, "--buffer", 512);

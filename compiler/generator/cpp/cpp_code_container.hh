@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -33,6 +33,10 @@
 #ifdef WIN32
 #pragma warning(disable : 4250)
 #endif
+
+/**
+ * Implement C++ FIR base container.
+ */
 
 class CPPCodeContainer : public virtual CodeContainer {
    protected:
@@ -99,11 +103,15 @@ class CPPCodeContainer : public virtual CodeContainer {
     }
 
     CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
-    static CodeContainer* createScalarContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, ostream* dst, int sub_container_type);
+    static CodeContainer* createScalarContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* dst, int sub_container_type);
     
     static CodeContainer* createContainer(const std::string& name, const std::string& super, int numInputs, int numOutputs,
-                                          ostream* dst = new std::stringstream());
+                                          std::ostream* dst = new std::stringstream());
 };
+
+/**
+ * Implement C++ FIR scalar container.
+ */
 
 class CPPScalarCodeContainer : public CPPCodeContainer {
    protected:
@@ -118,7 +126,10 @@ class CPPScalarCodeContainer : public CPPCodeContainer {
     void generateCompute(int tab);
 };
 
-// Special version for -os0 generation mode
+/**
+ * Implement C++ FIR scalar container (special version for -os0 generation mode).
+ */
+
 class CPPScalarOneSampleCodeContainer1 : public CPPScalarCodeContainer {
    protected:
     virtual void produceClass();
@@ -149,7 +160,10 @@ class CPPScalarOneSampleCodeContainer1 : public CPPScalarCodeContainer {
     void generateCompute(int tab);
 };
 
-// Special version for -os1 generation mode with iZone and fZone
+/**
+ * Implement C++ FIR scalar container (special version for -os1 generation mode with iZone and fZone).
+ */
+
 class CPPScalarOneSampleCodeContainer2 : public CPPScalarCodeContainer {
     protected:
         virtual void produceClass();
@@ -182,18 +196,15 @@ class CPPScalarOneSampleCodeContainer2 : public CPPScalarCodeContainer {
         void generateCompute(int tab);
 };
 
-/*
- Some of the DSP struct fields will be moved in the iZone/fZone (typically long delay lines).
- The others will stay in the DSP structure.
+/**
+ Implement C++ FIR scalar container (special version for -os2 generation mode with iZone and fZone). Some of the DSP struct fields will be moved in the iZone/fZone (typically long delay lines). The others will stay in the DSP structure.
  */
 
-// Special version for -os2 generation mode with iZone and fZone
 class CPPScalarOneSampleCodeContainer3 : public CPPScalarOneSampleCodeContainer2 {
     protected:
         virtual void produceClass();
     public:
-        CPPScalarOneSampleCodeContainer3(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out,
-                                         int sub_container_type)
+        CPPScalarOneSampleCodeContainer3(const std::string& name, const std::string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type)
         {
             initialize(numInputs, numOutputs);
             fKlassName = name;
@@ -218,7 +229,10 @@ class CPPScalarOneSampleCodeContainer3 : public CPPScalarOneSampleCodeContainer2
  
 };
 
-// Special version for -os3 generation mode with iZone and fZone in DSP struct
+/**
+ Implement C++ FIR scalar container (special version for -os3 generation mode with iZone and fZone in DSP struct).
+ */
+
 class CPPScalarOneSampleCodeContainer4 : public CPPScalarOneSampleCodeContainer3 {
 
     protected:
@@ -238,6 +252,10 @@ class CPPScalarOneSampleCodeContainer4 : public CPPScalarOneSampleCodeContainer3
     
 };
 
+/**
+ Implement C++ FIR vector container.
+ */
+
 class CPPVectorCodeContainer : public VectorCodeContainer, public CPPCodeContainer {
    protected:
    public:
@@ -248,6 +266,10 @@ class CPPVectorCodeContainer : public VectorCodeContainer, public CPPCodeContain
     void generateCompute(int tab);
 };
 
+/**
+ Implement C++ FIR OpenMP container.
+ */
+
 class CPPOpenMPCodeContainer : public OpenMPCodeContainer, public CPPCodeContainer {
    protected:
    public:
@@ -257,6 +279,10 @@ class CPPOpenMPCodeContainer : public OpenMPCodeContainer, public CPPCodeContain
 
     void generateCompute(int tab);
 };
+
+/**
+ Implement C++ FIR Work Stealing container.
+ */
 
 class CPPWorkStealingCodeContainer : public WSSCodeContainer, public CPPCodeContainer {
    protected:

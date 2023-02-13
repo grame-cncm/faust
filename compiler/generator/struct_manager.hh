@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -86,14 +86,14 @@ struct StructInstVisitor : public DispatchVisitor {
     MemoryDesc fDefault;
     
     // Vector is used so that field names are ordered in 'getStructType'
-    typedef vector<pair<string, MemoryDesc> > field_table_type;
+    typedef std::vector<std::pair<std::string, MemoryDesc> > field_table_type;
     
     field_table_type fFieldTable;  // Table: field_name, MemoryDesc
     
     StructInstVisitor() : fStructIntOffset(0), fStructRealOffset(0), fFieldIndex(0) {}
     
     // Check if the field name exists
-    bool hasField(const string& name, Typed::VarType& type)
+    bool hasField(const std::string& name, Typed::VarType& type)
     {
         for (const auto& field : fFieldTable) {
             if (field.first == name) {
@@ -105,73 +105,73 @@ struct StructInstVisitor : public DispatchVisitor {
     }
     
     // Return the offset of a given field in bytes
-    int getFieldOffset(const string& name)
+    int getFieldOffset(const std::string& name)
     {
         for (const auto& field : fFieldTable) {
             if (field.first == name) return field.second.fOffset;
         }
-        std::cerr << "ERROR in getFieldOffset : " << name << std::endl;
+        std::cerr << "ASSERT : getFieldOffset : " << name << std::endl;
         faustassert(false);
         return -1;
     }
     
     // Return the int offset of a given field in bytes
-    int getFieldIntOffset(const string& name)
+    int getFieldIntOffset(const std::string& name)
     {
         for (const auto& field : fFieldTable) {
             if (field.first == name) return field.second.fIntOffset;
         }
-        std::cerr << "ERROR in getFieldIntOffset : " << name << std::endl;
+        std::cerr << "ASSERT : getFieldIntOffset : " << name << std::endl;
         faustassert(false);
         return -1;
     }
     
     // Return the real offset of a given field in bytes
-    int getFieldRealOffset(const string& name)
+    int getFieldRealOffset(const std::string& name)
     {
         for (const auto& field : fFieldTable) {
             if (field.first == name) return field.second.fRealOffset;
         }
-        std::cerr << "ERROR in getFieldRealOffset : " << name << std::endl;
+        std::cerr << "ASSERT : getFieldRealOffset : " << name << std::endl;
         faustassert(false);
         return -1;
     }
     
     // Return the index of a given field
-    int getFieldIndex(const string& name)
+    int getFieldIndex(const std::string& name)
     {
         for (const auto& field : fFieldTable) {
             if (field.first == name) return field.second.fIndex;
         }
-        std::cerr << "ERROR in getFieldIndex : " << name << std::endl;
+        std::cerr << "ASSERT : getFieldIndex : " << name << std::endl;
         faustassert(false);
         return -1;
     }
     
     // Return the FIR type of a given field
-    Typed::VarType getFieldType(const string& name)
+    Typed::VarType getFieldType(const std::string& name)
     {
         for (const auto& field : fFieldTable) {
             if (field.first == name) return field.second.fType;
         }
-        std::cerr << "ERROR in getFieldType : " << name << std::endl;
+        std::cerr << "ASSERT : getFieldType : " << name << std::endl;
         faustassert(false);
         return Typed::kNoType;
     }
     
     // Return the memory type of a given field
-    MemoryDesc::memType getFieldMemoryType(const string& name)
+    MemoryDesc::memType getFieldMemoryType(const std::string& name)
     {
         for (const auto& field : fFieldTable) {
             if (field.first == name) return field.second.fMemType;
         }
-        std::cerr << "ERROR in getFieldMemoryType : " << name << std::endl;
+        std::cerr << "ASSERT : getFieldMemoryType : " << name << std::endl;
         faustassert(false);
         return MemoryDesc::kLocal;
     }
     
     // Return the memory description of a given field
-    MemoryDesc& getMemoryDesc(const string& name)
+    MemoryDesc& getMemoryDesc(const std::string& name)
     {
         for (auto& field : fFieldTable) {
             if (field.first == name) return field.second;
@@ -200,9 +200,9 @@ struct StructInstVisitor : public DispatchVisitor {
     }
     
     // Return the struct type
-    DeclareStructTypeInst* getStructType(const string& name)
+    DeclareStructTypeInst* getStructType(const std::string& name)
     {
-        vector<NamedTyped*> dsp_type_fields;
+        std::vector<NamedTyped*> dsp_type_fields;
         for (auto& field : fFieldTable) {
             dsp_type_fields.push_back(InstBuilder::genNamedTyped(field.first, field.second.getTyped()));
         }
@@ -212,7 +212,7 @@ struct StructInstVisitor : public DispatchVisitor {
     // Declarations
     void visit(DeclareVarInst* inst)
     {
-        string              name   = inst->fAddress->getName();
+        std::string         name  = inst->fAddress->getName();
         Address::AccessType access = inst->fAddress->getAccess();
         
         bool        is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
@@ -292,7 +292,7 @@ struct StructInstVisitor1 : public StructInstVisitor {
     // Declarations
     void visit(DeclareVarInst* inst)
     {
-        string              name   = inst->fAddress->getName();
+        std::string         name   = inst->fAddress->getName();
         Address::AccessType access = inst->fAddress->getAccess();
         
         bool        is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
@@ -303,7 +303,11 @@ struct StructInstVisitor1 : public StructInstVisitor {
             if (is_struct) {
                 // Arrays are allocated in iZone/fZone until fExternalMemory reaches 0
                 // kStaticStruct are always allocated in kExternal
-                if ((access & Address::kStaticStruct) || (fExternalMemory > 0 && array_typed->fSize > fDLThreshold)) {
+                // RW tables ("itblXX" and "ftblXX") are always allocated in kExternal
+                if ((access & Address::kStaticStruct)
+                    || startWith(name, "itbl")
+                    || startWith(name, "ftbl")
+                    || (fExternalMemory > 0 && array_typed->fSize > fDLThreshold)) {
                     fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++,
                                                                      getStructSize(),
                                                                      getStructIntSize(),

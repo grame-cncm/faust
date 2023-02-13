@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -45,6 +45,8 @@
 #include "prim2.hh"
 #include "xtended.hh"
 
+using namespace std;
+
 static bool infereBoxType(Tree box, int* inum, int* onum);
 
 /**
@@ -55,7 +57,7 @@ static bool infereBoxType(Tree box, int* inum, int* onum);
  * \return true if type is defined, false if undefined
  */
 
-bool getBoxType(Tree box, int* inum, int* onum)
+LIBFAUST_API bool getBoxType(Tree box, int* inum, int* onum)
 {
     Tree t;
     if (getProperty(box, gGlobal->BOXTYPEPROP, t)) {
@@ -116,19 +118,21 @@ static string inputs(int n)
  * \return the error message as a string
  */
 
-static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string opcode, const string opname,
-                                      const string msg)
+static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string& opcode, const string& opname,
+                                    const string& msg)
 {
     stringstream error;
     string       aStr("A"), bStr("B");
     Tree         aID, bID;
+    
     if (getDefNameProperty(a, aID)) aStr = tree2str(aID);
     if (getDefNameProperty(b, bID)) bStr = tree2str(bID);
-    error << "ERROR in " << opname << " " << aStr << opcode << bStr << endl
+      
+    error << "ERROR : " << opname << " " << aStr << opcode << bStr << endl
           << "The number of outputs [" << o << "] of " << aStr << msg << "the number of inputs [" << i << "] of "
           << bStr << endl << endl
-          << "Here  " << aStr << " = " << boxpp(a) << ";" << endl << "has " << outputs(o) << endl << endl
-          << "while " << bStr << " = " << boxpp(b) << ";" << endl << "has " << inputs(i) << endl;
+          << "Here  " << aStr << " = " << mBox(a, MAX_ERROR_SIZE) << ";" << endl << "has " << outputs(o) << endl << endl
+          << "while " << bStr << " = " << mBox(b, MAX_ERROR_SIZE) << ";" << endl << "has " << inputs(i) << endl;
     return error.str();
 }
 
@@ -145,21 +149,22 @@ static string computeTypeErrorMessage(Tree a, Tree b, int o, int i, const string
 
 static string computeTypeRecErrorMessage(Tree a, Tree b, int u, int v, int x, int y)
 {
-    stringstream msg;
+    stringstream error;
     string       aStr("A"), bStr("B");
     Tree         aID, bID;
 
     if (getDefNameProperty(a, aID)) aStr = tree2str(aID);
     if (getDefNameProperty(b, bID)) bStr = tree2str(bID);
     
-    msg << "ERROR in recursive composition " << aStr << '~' << bStr << endl;
+    error << "ERROR : recursive composition " << aStr << '~' << bStr << endl;
     if (v < x)
-        msg << "The number of outputs [" << v << "] of " << aStr << " must be at least the number of inputs [" << x << "] of " << bStr << ". ";
+        error << "The number of outputs [" << v << "] of " << aStr << " must be at least the number of inputs [" << x << "] of " << bStr << ". ";
     if (u < y)
-        msg << "The number of inputs [" << u << "] of " << aStr << " must be at least the number of outputs [" << y << "] of " << bStr << ". ";
+        error << "The number of inputs [" << u << "] of " << aStr << " must be at least the number of outputs [" << y << "] of " << bStr << ". " << endl << endl;
 
-    msg << endl << endl << "Here  " << aStr << " = " << boxpp(a) << "; has " << inputs(u) << " and " << outputs(v) << "," << endl << "while " << bStr << " = " << boxpp(b) << "; has " << inputs(x) << " and " << outputs(y) << "." << endl;
-    return msg.str();
+    error << "Here  " << aStr << " = " << mBox(a, MAX_ERROR_SIZE) << ";" << endl << "has " << inputs(u) << " and " << outputs(v) << endl << endl
+          << "while " << bStr << " = " << mBox(b, MAX_ERROR_SIZE) << ";" << endl << "has " << inputs(x) << " and " << outputs(y) << endl;
+    return error.str();
 }
 
 /**
@@ -333,7 +338,7 @@ static bool infereBoxType(Tree t, int* inum, int* onum)
         if ((x > v) || (y > u)) {
             throw faustexception(computeTypeRecErrorMessage(a, b, u, v, x, y));
         }
-        *inum = max(0, u - y);
+        *inum = std::max(0, u - y);
         *onum = v;
 
     } else if (isBoxEnvironment(t)) {

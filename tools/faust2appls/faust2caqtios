@@ -19,12 +19,30 @@ PATH=$PATH:/usr/local/bin
 
 function nqmakeios() {
 	echo "#### qmake-ios is not available"
-	echo "#### you must create an alias named 'qmake-ios' that points to the appropriate qmake in your Qt ios dist"
+	echo "#### you must create an alias named 'qmake-ios' that points to the appropriate qmake in your QT ios dist"
 	exit 1
 }
-QMAKE=qmake-ios 
+QMAKE=qmake-ios
 which $QMAKE > /dev/null || nqmakeios
 DEBUG=false
+
+echoHelp() 
+{
+    usage faust2caqtios "[options] [Faust options] <file.dsp>"
+    platform iOS
+    require QT
+    echo "Compiles Faust programs to CoreAudio and QT for iOS"
+    option
+    options -httpd -osc -midi -qrcode -poly
+    option -debug "print all the build steps"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -40,40 +58,31 @@ QTDEFS=""
 OSCLIB=""
 
 for p in $@; do
-    if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2caqtios "[options] [Faust options] <file.dsp>"
-		platform iOS
-		require Qt
-		echo "Compiles Faust programs to CoreAudio and QT for iOS"
-		option
-		options -httpd -osc -midi -qrcode -poly
-        option -debug "print all the build steps"
-        exit
-    fi
-   
-    if [ "$p" = -debug ]; then
-    	DEBUG=true
-    elif [ "$p" = -icc ]; then
-    	ignore=" "
-    elif [ $p = "-poly" ]; then
-        POLYDEFS="DEFINES += POLY"
-    elif [ $p = "-midi" ]; then
-        MIDIDEFS="DEFINES += MIDICTRL"
-    elif [ $p = "-osc" ]; then
-		 OSCDEFS="DEFINES += OSCCTRL"
-		 OSCLIBS="-lOSCFaust"
+	if [ $p = "-help" ] || [ $p = "-h" ]; then
+		echoHelp
+	elif [ "$p" = -debug ]; then
+		DEBUG=true
+	elif [ "$p" = -icc ]; then
+		ignore=" "
+	elif [ $p = "-poly" ]; then
+		POLYDEFS="DEFINES += POLY"
+	elif [ $p = "-midi" ]; then
+		MIDIDEFS="DEFINES += MIDICTRL"
+	elif [ $p = "-osc" ]; then
+		OSCDEFS="DEFINES += OSCCTRL"
+		OSCLIBS="-lOSCFaust"
 	elif [ "$p" = "-httpd" ]; then
 		HTTPDEFS="DEFINES += HTTPCTRL"
-		HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+		HTTPLIBS="-lHTTPDFaust"
 		HTTPLIBS1=`pkg-config --cflags --libs libmicrohttpd`
 	elif [ "$p" = "-qrcode" ]; then # requires -httpd
 		QRDEFS="DEFINES += QRCODECTRL"
-    elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
+	elif [ ${p:0:1} = "-" ]; then
+		OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
+		FILES="$FILES $p"
 	else
-	    OPTIONS="$OPTIONS $p"        
+		OPTIONS="$OPTIONS $p"
 	fi
 done
 
@@ -83,17 +92,17 @@ done
 # Check darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
-    SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
-    CXXFLAGS+=" -D__MACOSX_CORE__"
+	SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
+	CXXFLAGS+=" -D__MACOSX_CORE__"
 	if [ $SYS_VERSION -gt 12 ]
 	then
-	    SPEC="-spec macx-clang"
-	    CLANGOPT="CONFIG+=c++11"
+		SPEC="-spec macx-clang"
+		CLANGOPT="CONFIG+=c++11"
 	else
-	    SPEC="-spec macx-g++"
-	    CLANGOPT=""
+		SPEC="-spec macx-g++"
+		CLANGOPT=""
 	fi
-    EXT=".app"
+	EXT=".app"
 fi
 
 #-------------------------------------------------------------------
@@ -101,16 +110,16 @@ fi
 #
 for p in $FILES; do
 
-    CUR=$(pwd)
-    f=$(basename "$p")
+	CUR=$(pwd)
+	f=$(basename "$p")
 	SRCDIR=$(dirname "$p")
 
-    # creates a temporary dir 
-    TDR=$(mktemp -d faust.XXX)
+	# creates a temporary dir
+	TDR=$(mktemp -d faust.XXX)
 	TMP="$TDR/${f%.dsp}"
-    mkdir "$TMP"
+	mkdir "$TMP"
 
-    # compile faust to c++
+	# compile faust to c++
 	FAUST='faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp"'
 	if $DEBUG; then echo $FAUST; fi
 	eval $FAUST || exit
@@ -123,35 +132,32 @@ for p in $FILES; do
 
 	BUILD='$QMAKE -spec macx-xcode && xcodebuild -jobs 8 -project ${f%.dsp}.xcodeproj -target ${f%.dsp} -configuration Release'
 
-    # compile c++ to binary
-    if $DEBUG;
-    then (
-	    cd "$TMP"
-    	echo $PRJ
-    	eval $PRJ
-    	echo $BUILD
-    	eval $BUILD
-    )
-	else (
-	    cd "$TMP"
-    	eval $PRJ
-    	eval $BUILD
-    ) > /dev/null || exit
-    fi
+	# compile c++ to binary
+	if $DEBUG; then (
+		cd "$TMP"
+		echo $PRJ
+		eval $PRJ
+		echo $BUILD
+		eval $BUILD
+	) else (
+		cd "$TMP"
+		eval $PRJ
+		eval $BUILD
+	) > /dev/null || exit
+	fi
 
-    rm -rf "$SRCDIR/${f%.dsp}$EXT"
-    cp -r "$TMP/Release-iphoneos/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
-    RMTMP=true
-    if $DEBUG;
-    then
-	    echo "====> delete temporary folder $TDR ? [Y/n]"
-	    read DEL
-	    [ $DEL == "n" ] && RMTMP=false
-	fi	
+	rm -rf "$SRCDIR/${f%.dsp}$EXT"
+	cp -r "$TMP/Release-iphoneos/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
+	RMTMP=true
+	if $DEBUG; then
+		echo "====> delete temporary folder $TDR ? [Y/n]"
+		read DEL
+		[ $DEL == "n" ] && RMTMP=false
+	fi
 	[ $RMTMP == true ] && rm -rf "$TDR"
 
-    # collect binary file name for FaustGIDE
-    BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
+	# collect binary file name for FaustGIDE
+	BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
 done
 
 echo $BINARIES

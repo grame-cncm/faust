@@ -49,8 +49,9 @@ class APIUI : public PathBuilder, public Meta, public UI
         enum Mapping { kLin = 0, kLog = 1, kExp = 2 };
 
         struct Item {
-            std::string fPath;
             std::string fLabel;
+            std::string fShortname;
+            std::string fPath;
             ValueConverter* fConversion;
             FAUSTFLOAT* fZone;
             FAUSTFLOAT fInit;
@@ -58,6 +59,20 @@ class APIUI : public PathBuilder, public Meta, public UI
             FAUSTFLOAT fMax;
             FAUSTFLOAT fStep;
             ItemType fItemType;
+            
+            Item(const std::string& label,
+                 const std::string& short_name,
+                 const std::string& path,
+                 ValueConverter* conversion,
+                 FAUSTFLOAT* zone,
+                 FAUSTFLOAT init,
+                 FAUSTFLOAT min,
+                 FAUSTFLOAT max,
+                 FAUSTFLOAT step,
+                 ItemType item_type)
+            :fLabel(label), fShortname(short_name), fPath(path), fConversion(conversion),
+            fZone(zone), fInit(init), fMin(min), fMax(max), fStep(step), fItemType(item_type)
+            {}
         };
         std::vector<Item> fItems;
 
@@ -91,6 +106,7 @@ class APIUI : public PathBuilder, public Meta, public UI
                                   ItemType type)
         {
             std::string path = buildPath(label);
+            fFullPaths.push_back(path);
 
             // handle scale metadata
             ValueConverter* converter = nullptr;
@@ -107,7 +123,7 @@ class APIUI : public PathBuilder, public Meta, public UI
             }
             fCurrentScale = kLin;
 
-            fItems.push_back({path, label, converter, zone, init, min, max, step, type });
+            fItems.push_back(Item(label, "", path, converter, zone, init, min, max, step, type));
        
             if (fCurrentAcc.size() > 0 && fCurrentGyr.size() > 0) {
                 fprintf(stderr, "warning : 'acc' and 'gyr' metadata used for the same %s parameter !!\n", label);
@@ -260,7 +276,18 @@ class APIUI : public PathBuilder, public Meta, public UI
         virtual void openTabBox(const char* label) { pushLabel(label); }
         virtual void openHorizontalBox(const char* label) { pushLabel(label); }
         virtual void openVerticalBox(const char* label) { pushLabel(label); }
-        virtual void closeBox() { popLabel(); }
+        virtual void closeBox()
+        {
+            if (popLabel()) {
+                // Shortnames can be computed when all fullnames are known
+                computeShortNames();
+                // Fill 'shortname' field for each item
+                for (const auto& it : fFull2Short) {
+                    int index = getParamIndex(it.first.c_str());
+                    fItems[index].fShortname = it.second;
+                }
+            }
+        }
 
         // -- active widgets
 
@@ -339,24 +366,63 @@ class APIUI : public PathBuilder, public Meta, public UI
         //-------------------------------------------------------------------------------
         // Simple API part
         //-------------------------------------------------------------------------------
+    
+        /**
+         * Return the number of parameters in the UI.
+         *
+         * @return the number of parameters
+         */
         int getParamsCount() { return int(fItems.size()); }
 
-        int getParamIndex(const char* path)
+        /**
+         * Return the param index.
+         *
+         * @param str - the UI parameter label/shortname/path
+         *
+         * @return the param index
+         */
+        int getParamIndex(const char* str)
         {
-            auto it1 = find_if(fItems.begin(), fItems.end(), [=](const Item& it) { return it.fPath == std::string(path); });
-            if (it1 != fItems.end()) {
-                return int(it1 - fItems.begin());
-            }
-
-            auto it2 = find_if(fItems.begin(), fItems.end(), [=](const Item& it) { return it.fLabel == std::string(path); });
-            if (it2 != fItems.end()) {
-                return int(it2 - fItems.begin());
-            }
-
-            return -1;
+            std::string path = std::string(str);
+            auto it = find_if(fItems.begin(), fItems.end(),
+                              [=](const Item& it) { return (it.fLabel == path) || (it.fShortname == path) || (it.fPath == path); });
+            return (it != fItems.end()) ? int(it - fItems.begin()) : -1;
         }
-        const char* getParamAddress(int p) { return fItems[uint(p)].fPath.c_str(); }
+    
+        /**
+         * Return the param label.
+         *
+         * @param p - the UI parameter index
+         *
+         * @return the param label
+         */
         const char* getParamLabel(int p) { return fItems[uint(p)].fLabel.c_str(); }
+    
+        /**
+         * Return the param shortname.
+         *
+         * @param p - the UI parameter index
+         *
+         * @return the param shortname
+         */
+        const char* getParamShortname(int p) { return fItems[uint(p)].fShortname.c_str(); }
+    
+        /**
+         * Return the param path.
+         *
+         * @param p - the UI parameter index
+         *
+         * @return the param path
+         */
+        const char* getParamAddress(int p) { return fItems[uint(p)].fPath.c_str(); }
+    
+        /**
+         * Return the param metadata.
+         *
+         * @param p - the UI parameter index
+         *
+         * @return the param metadata as a map<key, value>
+         */
         std::map<const char*, const char*> getMetadata(int p)
         {
             std::map<const char*, const char*> res;
@@ -367,25 +433,107 @@ class APIUI : public PathBuilder, public Meta, public UI
             return res;
         }
 
+        /**
+         * Return the param metadata value.
+         *
+         * @param p - the UI parameter index
+         * @param key - the UI parameter index
+         *
+         * @return the param metadata value associate to the key
+         */
         const char* getMetadata(int p, const char* key)
         {
             return (fMetaData[uint(p)].find(key) != fMetaData[uint(p)].end()) ? fMetaData[uint(p)][key].c_str() : "";
         }
+    
+        /**
+         * Return the param minimum value.
+         *
+         * @param p - the UI parameter index
+         *
+         * @return the param minimum value
+         */
         FAUSTFLOAT getParamMin(int p) { return fItems[uint(p)].fMin; }
+    
+        /**
+         * Return the param maximum value.
+         *
+         * @param p - the UI parameter index
+         *
+         * @return the param maximum value
+         */
         FAUSTFLOAT getParamMax(int p) { return fItems[uint(p)].fMax; }
+    
+        /**
+         * Return the param step value.
+         *
+         * @param p - the UI parameter index
+         *
+         * @return the param step value
+         */
         FAUSTFLOAT getParamStep(int p) { return fItems[uint(p)].fStep; }
+    
+        /**
+         * Return the param init value.
+         *
+         * @param p - the UI parameter index
+         *
+         * @return the param init value
+         */
         FAUSTFLOAT getParamInit(int p) { return fItems[uint(p)].fInit; }
 
+        /**
+         * Return the param memory zone.
+         *
+         * @param p - the UI parameter index
+         *
+         * @return the param memory zone.
+         */
         FAUSTFLOAT* getParamZone(int p) { return fItems[uint(p)].fZone; }
 
+        /**
+         * Return the param value.
+         *
+         * @param p - the UI parameter index
+         *
+         * @return the param value.
+         */
         FAUSTFLOAT getParamValue(int p) { return *fItems[uint(p)].fZone; }
-        FAUSTFLOAT getParamValue(const char* path)
+    
+        /**
+         * Return the param value.
+         *
+         * @param str - the UI parameter label/shortname/path
+         *
+         * @return the param value.
+         */
+        FAUSTFLOAT getParamValue(const char* str)
         {
-            int index = getParamIndex(path);
-            return (index >= 0) ? getParamValue(index) : FAUSTFLOAT(0);
+            int index = getParamIndex(str);
+            if (index >= 0) {
+                return getParamValue(index);
+            } else {
+                fprintf(stderr, "getParamValue : '%s' not found\n", (str == nullptr ? "NULL" : str));
+                return FAUSTFLOAT(0);
+            }
         }
 
+        /**
+         * Set the param value.
+         *
+         * @param p - the UI parameter index
+         * @param v - the UI parameter value
+         *
+         */
         void setParamValue(int p, FAUSTFLOAT v) { *fItems[uint(p)].fZone = v; }
+        
+        /**
+         * Set the param value.
+         *
+         * @param p - the UI parameter label/shortname/path
+         * @param v - the UI parameter value
+         *
+         */
         void setParamValue(const char* path, FAUSTFLOAT v)
         {
             int index = getParamIndex(path);
@@ -456,7 +604,7 @@ class APIUI : public PathBuilder, public Meta, public UI
          *
          * @param p - the UI parameter index
          * @param acc - 0 for X accelerometer, 1 for Y accelerometer, 2 for Z accelerometer (-1 means "no mapping")
-         * @param curve - between 0 and 3
+         * @param curve - between 0 and 3 (0: up, 1: down, 2: up and down, 2: down and up)
          * @param amin - mapping 'min' point
          * @param amid - mapping 'middle' point
          * @param amax - mapping 'max' point
@@ -471,8 +619,8 @@ class APIUI : public PathBuilder, public Meta, public UI
          * Used to edit gyroscope curves and mapping. Set curve and related mapping for a given UI parameter.
          *
          * @param p - the UI parameter index
-         * @param acc - 0 for X gyroscope, 1 for Y gyroscope, 2 for Z gyroscope (-1 means "no mapping")
-         * @param curve - between 0 and 3
+         * @param gyr - 0 for X gyroscope, 1 for Y gyroscope, 2 for Z gyroscope (-1 means "no mapping")
+         * @param curve - between 0 and 3 (0: up, 1: down, 2: up and down, 2: down and up)
          * @param amin - mapping 'min' point
          * @param amid - mapping 'middle' point
          * @param amax - mapping 'max' point
@@ -488,7 +636,7 @@ class APIUI : public PathBuilder, public Meta, public UI
          *
          * @param p - the UI parameter index
          * @param acc - the acc value to be retrieved (-1 means "no mapping")
-         * @param curve - the curve value to be retrieved
+         * @param curve - the curve value to be retrieved (between 0 and 3)
          * @param amin - the amin value to be retrieved
          * @param amid - the amid value to be retrieved
          * @param amax - the amax value to be retrieved
@@ -504,7 +652,7 @@ class APIUI : public PathBuilder, public Meta, public UI
          *
          * @param p - the UI parameter index
          * @param gyr - the gyr value to be retrieved (-1 means "no mapping")
-         * @param curve - the curve value to be retrieved
+         * @param curve - the curve value to be retrieved (between 0 and 3)
          * @param amin - the amin value to be retrieved
          * @param amid - the amid value to be retrieved
          * @param amax - the amax value to be retrieved
@@ -553,8 +701,13 @@ class APIUI : public PathBuilder, public Meta, public UI
             return (gyr >= 0 && gyr < 3) ? int(fGyr[gyr].size()) : 0;
         }
 
-        // getScreenColor() : -1 means no screen color control (no screencolor metadata found)
-        // otherwise return 0x00RRGGBB a ready to use color
+        /**
+         * Get the requested screen color.
+         *
+         * -1 means no screen color control (no screencolor metadata found)
+         * otherwise return 0x00RRGGBB a ready to use color
+         *
+         */
         int getScreenColor()
         {
             if (fHasScreenControl) {

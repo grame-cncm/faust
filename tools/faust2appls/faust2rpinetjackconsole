@@ -2,8 +2,8 @@
 
 #####################################################################
 #                                                                   #
-#               Crosscompiles Faust programs to RaspberryPi 		#
-#				netjack-console architecture     					#
+#               Crosscompiles Faust programs to RaspberryPi         #
+#               netjack-console architecture                        #
 #               Author : Pilar de la Cruz                           #
 #               (c) Grame, 2009-2013                                #
 #                                                                   #
@@ -38,9 +38,28 @@ LINUX_KERNEL_INSTALL_DIR="$BASE_DIR/x-tools/arm-unknown-linux-gnueabi/arm-unknow
 
 CXX=$BASE_DIR"/x-tools/arm-unknown-linux-gnueabi/bin/arm-unknown-linux-gnueabi-c++"
 
-# Librairies and includes directories for Rapsberry Pi
+# Libraries and includes directories for Rapsberry Pi
 LD_LIBRARY_PATHS="-L$LINUX_KERNEL_INSTALL_DIR/lib/ -lasound -ljacknet"
 INCLUDES_DIR="-I$LINUX_KERNEL_INSTALL_DIR/include/"
+
+
+echoHelp()
+{
+    usage faust2rpialsaconsole "[options] [Faust options] <file.dsp>"
+    platform RaspberryPi
+    require NetJack
+    echo "Compiles Faust programs to RaspberryPi - netjack-console architecture"
+    option
+    options -osc -httpd
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -50,27 +69,19 @@ INCLUDES_DIR="-I$LINUX_KERNEL_INSTALL_DIR/include/"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2rpialsaconsole "[options] [Faust options] <file.dsp>"
-        platform RaspberryPi
-        require NetJack
-		echo "Compiles Faust programs to RaspberryPi - netjack-console architecture"
-		option
-		options -osc -httpd
-        option "Faust options"
-    	exit
-    fi
-    if [ $p = "-osc" ]; then
-	 	OSCDEFS="-DOSCCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lOSCFaust -loscpack"
+        echoHelp
+    elif [ $p = "-osc" ]; then
+         OSCDEFS="-DOSCCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then
-	 	HTTPDEFS="-DHTTPCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lHTTPDFaust -lmicrohttpd"
-	 	HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
+         HTTPDEFS="-DHTTPCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lHTTPDFaust"
+         HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
 done
 
 #-------------------------------------------------------------------

@@ -40,18 +40,22 @@
 /*******************************************************************************
  * JSONUI : Faust User Interface
  * This class produce a complete JSON decription of the DSP instance.
+ *
+ * Since 'shortname' can only be computed when all paths have been created,
+ * the fAllUI vector is progressively filled with partially built UI items,
+ * which are finally created in the JSON(...) method.
  ******************************************************************************/
 
 typedef std::vector<std::tuple<std::string, int, int, int, int, int>> MemoryLayoutType;
 typedef std::map<std::string, int> PathTableType;
 
 template <typename REAL>
-class JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL>
-{
+class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL> {
 
     protected:
     
         std::stringstream fUI;
+        std::vector<std::string> fAllUI;
         std::stringstream fMeta;
         std::vector<std::pair <std::string, std::string> > fMetaAux;
         std::string fVersion;           // Compiler version
@@ -62,6 +66,7 @@ class JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL>
         std::string fFileName;
         std::string fExpandedCode;
         std::string fSHAKey;
+        std::string fJSON;
         int fDSPSize;                   // In bytes
         PathTableType fPathTable;
         MemoryLayoutType fMemoryLayout;
@@ -243,7 +248,10 @@ class JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL>
     
         virtual void closeBox()
         {
-            popLabel();
+            if (popLabel()) {
+                // Shortnames can be computed when all fullnames are known
+                computeShortNames();
+            }
             fTab -= 1;
             tab(fTab, fUI); fUI << "]";
             fTab -= 1;
@@ -256,12 +264,21 @@ class JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL>
         virtual void addGenericButton(const char* label, const char* name)
         {
             std::string path = buildPath(label);
+            fFullPaths.push_back(path);
             
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             fTab += 1;
             tab(fTab, fUI); fUI << "\"type\": \"" << name << "\",";
             tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
+        
+            // Generate 'shortname' entry
+            tab(fTab, fUI); fUI << "\"shortname\": \"";
+        
+            // Add fUI section
+            fAllUI.push_back(fUI.str());
+            fUI.str("");
+        
             if (fPathTable.size() > 0) {
                 tab(fTab, fUI); fUI << "\"address\": \"" << path << "\",";
                 tab(fTab, fUI); fUI << "\"index\": " << getAddressIndex(path) << ((fMetaAux.size() > 0) ? "," : "");
@@ -287,12 +304,21 @@ class JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL>
         virtual void addGenericEntry(const char* label, const char* name, REAL init, REAL min, REAL max, REAL step)
         {
             std::string path = buildPath(label);
+            fFullPaths.push_back(path);
             
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             fTab += 1;
             tab(fTab, fUI); fUI << "\"type\": \"" << name << "\",";
             tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
+         
+            // Generate 'shortname' entry
+            tab(fTab, fUI); fUI << "\"shortname\": \"";
+        
+            // Add fUI section
+            fAllUI.push_back(fUI.str());
+            fUI.str("");
+        
             tab(fTab, fUI); fUI << "\"address\": \"" << path << "\",";
             if (fPathTable.size() > 0) {
                 tab(fTab, fUI); fUI << "\"index\": " << getAddressIndex(path) << ",";
@@ -327,12 +353,21 @@ class JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL>
         virtual void addGenericBargraph(const char* label, const char* name, REAL min, REAL max) 
         {
             std::string path = buildPath(label);
+            fFullPaths.push_back(path);
             
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             fTab += 1;
             tab(fTab, fUI); fUI << "\"type\": \"" << name << "\",";
             tab(fTab, fUI); fUI << "\"label\": \"" << label << "\",";
+         
+            // Generate 'shortname' entry
+            tab(fTab, fUI); fUI << "\"shortname\": \"";
+        
+            // Add fUI section
+            fAllUI.push_back(fUI.str());
+            fUI.str("");
+            
             tab(fTab, fUI); fUI << "\"address\": \"" << path << "\",";
             if (fPathTable.size() > 0) {
                 tab(fTab, fUI); fUI << "\"index\": " << getAddressIndex(path) << ",";
@@ -395,74 +430,92 @@ class JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL>
     
         std::string JSON(bool flat = false)
         {
-            fTab = 0;
-            std::stringstream JSON;
-            if (fExtended) {
-                JSON << std::setprecision(std::numeric_limits<REAL>::max_digits10);
-            }
-            JSON << "{";
-            fTab += 1;
-            tab(fTab, JSON); JSON << "\"name\": \"" << fName << "\",";
-            tab(fTab, JSON); JSON << "\"filename\": \"" << fFileName << "\",";
-            if (fVersion != "") { tab(fTab, JSON); JSON << "\"version\": \"" << fVersion << "\","; }
-            if (fCompileOptions != "") { tab(fTab, JSON); JSON << "\"compile_options\": \"" <<  fCompileOptions << "\","; }
-            if (fLibraryList.size() > 0) {
-                tab(fTab, JSON);
-                JSON << "\"library_list\": [";
-                for (size_t i = 0; i < fLibraryList.size(); i++) {
-                    JSON << "\"" << fLibraryList[i] << "\"";
-                    if (i < (fLibraryList.size() - 1)) JSON << ",";
+            if (fJSON.empty()) {
+                fTab = 0;
+                std::stringstream JSON;
+                if (fExtended) {
+                    JSON << std::setprecision(std::numeric_limits<REAL>::max_digits10);
                 }
-                JSON << "],";
-            }
-            if (fIncludePathnames.size() > 0) {
-                tab(fTab, JSON);
-                JSON << "\"include_pathnames\": [";
-                for (size_t i = 0; i < fIncludePathnames.size(); i++) {
-                    JSON << "\"" << fIncludePathnames[i] << "\"";
-                    if (i < (fIncludePathnames.size() - 1)) JSON << ",";
+                JSON << "{";
+                fTab += 1;
+                tab(fTab, JSON); JSON << "\"name\": \"" << fName << "\",";
+                tab(fTab, JSON); JSON << "\"filename\": \"" << fFileName << "\",";
+                if (fVersion != "") { tab(fTab, JSON); JSON << "\"version\": \"" << fVersion << "\","; }
+                if (fCompileOptions != "") { tab(fTab, JSON); JSON << "\"compile_options\": \"" <<  fCompileOptions << "\","; }
+                if (fLibraryList.size() > 0) {
+                    tab(fTab, JSON);
+                    JSON << "\"library_list\": [";
+                    for (size_t i = 0; i < fLibraryList.size(); i++) {
+                        JSON << "\"" << fLibraryList[i] << "\"";
+                        if (i < (fLibraryList.size() - 1)) JSON << ",";
+                    }
+                    JSON << "],";
                 }
-                JSON << "],";
-            }
-            if (fMemoryLayout.size() > 0) {
-                tab(fTab, JSON);
-                JSON << "\"memory_layout\": [";
-                for (size_t i = 0; i < fMemoryLayout.size(); i++) {
-                    // DSP or field name, type, size, sizeBytes, reads, writes
-                    std::tuple<std::string, int, int, int, int, int> item = fMemoryLayout[i];
-                    tab(fTab + 1, JSON);
-                    JSON << "{\"size\": " << std::get<3>(item) << ", ";
-                    JSON << "\"reads\": " << std::get<4>(item) << ", ";
-                    JSON << "\"writes\": " << std::get<5>(item) << "}";
-                    if (i < (fMemoryLayout.size() - 1)) JSON << ",";
+                if (fIncludePathnames.size() > 0) {
+                    tab(fTab, JSON);
+                    JSON << "\"include_pathnames\": [";
+                    for (size_t i = 0; i < fIncludePathnames.size(); i++) {
+                        JSON << "\"" << fIncludePathnames[i] << "\"";
+                        if (i < (fIncludePathnames.size() - 1)) JSON << ",";
+                    }
+                    JSON << "],";
                 }
-                tab(fTab, JSON);
-                JSON << "],";
+                if (fMemoryLayout.size() > 0) {
+                    tab(fTab, JSON);
+                    JSON << "\"memory_layout\": [";
+                    for (size_t i = 0; i < fMemoryLayout.size(); i++) {
+                        // DSP or field name, type, size, sizeBytes, reads, writes
+                        std::tuple<std::string, int, int, int, int, int> item = fMemoryLayout[i];
+                        tab(fTab + 1, JSON);
+                        JSON << "{\"size\": " << std::get<3>(item) << ", ";
+                        JSON << "\"reads\": " << std::get<4>(item) << ", ";
+                        JSON << "\"writes\": " << std::get<5>(item) << "}";
+                        if (i < (fMemoryLayout.size() - 1)) JSON << ",";
+                    }
+                    tab(fTab, JSON);
+                    JSON << "],";
+                }
+                if (fDSPSize != -1) { tab(fTab, JSON); JSON << "\"size\": " << fDSPSize << ","; }
+                if (fSHAKey != "") { tab(fTab, JSON); JSON << "\"sha_key\": \"" << fSHAKey << "\","; }
+                if (fExpandedCode != "") { tab(fTab, JSON); JSON << "\"code\": \"" << fExpandedCode << "\","; }
+                tab(fTab, JSON); JSON << "\"inputs\": " << fInputs << ",";
+                tab(fTab, JSON); JSON << "\"outputs\": " << fOutputs << ",";
+                if (fSRIndex != -1) { tab(fTab, JSON); JSON << "\"sr_index\": " << fSRIndex << ","; }
+                tab(fTab, fMeta); fMeta << "],";
+              
+                // Add last UI section
+                fAllUI.push_back(fUI.str());
+                // Finalize UI generation
+                fUI.str("");
+                // Add N-1 sections
+                for (size_t i = 0; i < fAllUI.size()-1; i++) {
+                    fUI << fAllUI[i] << fFull2Short[fFullPaths[i]] << "\",";
+                }
+                // And the last one
+                fUI << fAllUI[fAllUI.size()-1];
+                // Terminates the UI section
+                tab(fTab, fUI); fUI << "]";
+            
+                fTab -= 1;
+                if (fCloseMetaPar == ',') { // If "declare" has been called, fCloseMetaPar state is now ','
+                    JSON << fMeta.str() << fUI.str();
+                } else {
+                    JSON << fUI.str();
+                }
+                
+                tab(fTab, JSON); JSON << "}";
+                
+                // Keep result in fJSON
+                fJSON = JSON.str();
             }
-            if (fDSPSize != -1) { tab(fTab, JSON); JSON << "\"size\": " << fDSPSize << ","; }
-            if (fSHAKey != "") { tab(fTab, JSON); JSON << "\"sha_key\": \"" << fSHAKey << "\","; }
-            if (fExpandedCode != "") { tab(fTab, JSON); JSON << "\"code\": \"" << fExpandedCode << "\","; }
-            tab(fTab, JSON); JSON << "\"inputs\": " << fInputs << ",";
-            tab(fTab, JSON); JSON << "\"outputs\": " << fOutputs << ",";
-            if (fSRIndex != -1) { tab(fTab, JSON); JSON << "\"sr_index\": " << fSRIndex << ","; }
-            tab(fTab, fMeta); fMeta << "],";
-            tab(fTab, fUI); fUI << "]";
-            fTab -= 1;
-            if (fCloseMetaPar == ',') { // If "declare" has been called, fCloseMetaPar state is now ','
-                JSON << fMeta.str() << fUI.str();
-            } else {
-                JSON << fUI.str();
-            }
-            tab(fTab, JSON); JSON << "}";
-            return (flat) ? flatten(JSON.str()) : JSON.str();
+            return (flat) ? flatten(fJSON) : fJSON;
         }
     
 };
 
 // Externally available class using FAUSTFLOAT
 
-struct JSONUI : public JSONUIReal<FAUSTFLOAT>, public UI
-{
+struct FAUST_API JSONUI : public JSONUIReal<FAUSTFLOAT>, public UI {
     
     JSONUI(const std::string& name,
            const std::string& filename,

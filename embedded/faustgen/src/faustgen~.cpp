@@ -35,6 +35,8 @@
 #define LLVM_DSP
 #include "faust/dsp/poly-dsp.h"
 
+using namespace std;
+
 // Globals
 int faustgen_factory::gFaustCounter = 0;
 map<string, faustgen_factory*> faustgen_factory::gFactoryMap;
@@ -47,13 +49,13 @@ ztimedmap GUI::gTimedZoneMap;
 // Faust DSP Factory
 //===================
 
-struct MyMeta : public Meta, public std::map<std::string, std::string>
+struct MyMeta : public Meta, public map<string, string>
 {
     void declare(const char* key, const char* value)
     {
         (*this)[key] = value;
     }
-    const std::string get(const char* key, const char* def)
+    const string get(const char* key, const char* def)
     {
         return (this->find(key) != this->end()) ? (*this)[key] : def;
     }
@@ -69,6 +71,16 @@ static const char* getCodeSize()
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <IOKit/IOKitLib.h>
+
+#if TARGET_CPU_ARM64
+// Content of commonsyms.c, adding this code solves missing symbols issue.
+t_common_symbols_table *_common_symbols = NULL;
+
+void common_symbols_init(void)
+{
+    _common_symbols = common_symbols_gettable();
+}
+#endif
 
 static string getTarget()
 {
@@ -187,7 +199,8 @@ faustgen_factory::faustgen_factory(const string& name)
     assert(res);
     
     // Built the complete resource path
-    fLibraryPath.insert(string((const char*)bundle_path) + string(FAUST_LIBRARY_PATH));
+    fResourcePath = string((const char*)bundle_path) + string(FAUST_LIBRARY_PATH);
+    fLibraryPath.insert(fResourcePath);
     
     // Draw path in temporary folder
     fDrawPath = string(FAUST_DRAW_PATH);
@@ -202,7 +215,8 @@ faustgen_factory::faustgen_factory(const string& name)
         string str_name = string(name);
         str_name = str_name.substr(0, str_name.find_last_of("\\"));
         // Built the complete resource path
-        fLibraryPath.insert(string(str_name) + string(FAUST_LIBRARY_PATH));
+        fResourcePath = string(str_name) + string(FAUST_LIBRARY_PATH);
+        fLibraryPath.insert(fResourcePath);
         // Draw path in temporary folder
         TCHAR lpTempPathBuffer[MAX_PATH];
         // Gets the temp path env string (no guarantee it's a valid path).
@@ -233,7 +247,6 @@ faustgen_factory::~faustgen_factory()
     delete fSoundUI;
     fSoundUI = nullptr;
 }
-
 
 void faustgen_factory::free_sourcecode()
 {
@@ -279,7 +292,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
         delete fSoundUI;
         fSoundUI = new SoundUI(factory->getIncludePathnames(), -1, nullptr, true);
         /*
-         std::vector<std::string> sound_directories = factory->getIncludePathnames();
+         vector<string> sound_directories = factory->getIncludePathnames();
          for (int i = 0; i < sound_directories.size(); i++) {
             post("sound_directories %d %s", i, sound_directories[i].c_str());
          }
@@ -293,7 +306,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
 llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
 {
     char name_app[64];
-    sprintf(name_app, "faustgen-%d", fFaustNumber);
+    snprintf(name_app, 64, "faustgen-%d", fFaustNumber);
     
     // To be sure we get a correct SVG diagram...
     remove_svg();
@@ -306,10 +319,9 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     const char* argv[64];
     
     assert(fCompileOptions.size() < 64);
-    StringVectorIt it;
     int i = 0;
-    for (it = fCompileOptions.begin(); it != fCompileOptions.end(); it++) {
-        argv[i++] = (char*)(*it).c_str();
+    for (const auto& it : fCompileOptions) {
+        argv[i++] = (char*)it.c_str();
     }
     argv[fCompileOptions.size()] = 0;  // NULL terminated argv
     
@@ -456,9 +468,8 @@ void faustgen_factory::print_compile_options()
 {
     if (fCompileOptions.size() > 0) {
         post("-----------------------------");
-        StringVectorIt it;
-        for (it = fCompileOptions.begin(); it != fCompileOptions.end(); it++) {
-            post("Compile option = %s", (*it).c_str());
+        for (const auto& it : fCompileOptions) {
+            post("Compile option = %s", it.c_str());
         }
         post("-----------------------------");
     }
@@ -474,9 +485,8 @@ void faustgen_factory::default_compile_options()
     add_compile_option("-svg");
     
     // All library paths
-    StringSetIt it1;
-    for (it1 = fLibraryPath.begin(); it1 != fLibraryPath.end(); it1++) {
-        add_compile_option("-I", *it1);
+    for (const auto& it1 : fLibraryPath) {
+        add_compile_option("-I", it1);
     }
     
     // Draw path
@@ -614,12 +624,11 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
     dictionary_appendlong(d, gensym("sample_format"), fSampleFormat);
     
     // Write fLibraryPath
-    StringSetIt it;
     int i = 0;
-    for (it = fLibraryPath.begin(); it != fLibraryPath.end(); it++) {
+    for (const auto &it : fLibraryPath) {
         char library_path[32];
         snprintf(library_path, 32, "library_path%d", i++);
-        dictionary_appendstring(d, gensym(library_path), (*it).c_str());
+        dictionary_appendstring(d, gensym(library_path), it.c_str());
     }
     
     // Write source code
@@ -645,20 +654,20 @@ void faustgen::assist(void* b, long msg, long a, char* dst)
         if (msg == ASSIST_INLET) {
             if (a == 0) {
                 if (fDSP->getNumInputs() == 0) {
-                    sprintf(dst, "(messages)");
+                    snprintf(dst, 512, "(messages)");
                 } else {
-                    sprintf(dst, "(messages/signal) : Audio Input %ld", (a+1));
+                    snprintf(dst, 512, "(messages/signal) : Audio Input %ld", (a+1));
                 }
             } else if (a < fDSP->getNumInputs()) {
-                sprintf(dst, "(signal) : Audio Input %ld", (a+1));
+                snprintf(dst, 512, "(signal) : Audio Input %ld", (a+1));
             }
         } else if (msg == ASSIST_OUTLET) {
             if (a < fDSP->getNumOutputs()) {
-                sprintf(dst, "(signal) : Audio Output %ld", (a+1));
+                snprintf(dst, 512, "(signal) : Audio Output %ld", (a+1));
             } else if (a == fDSP->getNumOutputs()) {
-                sprintf(dst, "(list) : [path, cur|init, min, max]*");
+                snprintf(dst, 512, "(list) : [path, cur|init, min, max]*");
             } else {
-                sprintf(dst, "(int) : raw MIDI bytes*");
+                snprintf(dst, 512, "(int) : raw MIDI bytes*");
             }
         }
     }
@@ -671,9 +680,9 @@ bool faustgen_factory::try_open_svg()
     // Open the svg diagram file inside a web browser
     char command[512];
 #ifdef WIN32
-    sprintf(command, "type \"file:///%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
+    snprintf(command, 512, "type \"file:///%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
 #else
-    sprintf(command, "open \"file://%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
+    snprintf(command, 512, "open \"file://%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
 #endif
     return (system(command) == 0);
 }
@@ -683,9 +692,9 @@ void faustgen_factory::open_svg()
     // Open the svg diagram file inside a web browser
     char command[512];
 #ifdef WIN32
-    sprintf(command, "start \"\" \"file:///%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
+    snprintf(command, 512, "start \"\" \"file:///%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
 #else
-    sprintf(command, "open \"file://%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
+    snprintf(command, 512, "open \"file://%sfaustgen-%d-svg/process.svg\"", fDrawPath.c_str(), fFaustNumber);
 #endif
     system(command);
 }
@@ -695,9 +704,9 @@ void faustgen_factory::remove_svg()
     // Possibly done by "compileoptions" or display_svg
     char command[512];
 #ifdef WIN32
-    sprintf(command, "rmdir /S/Q \"%sfaustgen-%d-svg\"", fDrawPath.c_str(), fFaustNumber);
+    snprintf(command, 512, "rmdir /S/Q \"%sfaustgen-%d-svg\"", fDrawPath.c_str(), fFaustNumber);
 #else
-    sprintf(command, "rm -r \"%sfaustgen-%d-svg\"", fDrawPath.c_str(), fFaustNumber);
+    snprintf(command, 512, "rm -r \"%sfaustgen-%d-svg\"", fDrawPath.c_str(), fFaustNumber);
 #endif
     system(command);
 }
@@ -722,9 +731,9 @@ bool faustgen_factory::open_file(const char* file)
 {
     char command[512];
 #ifdef WIN32
-    sprintf(command, "start \"\" \"%s%s\"", (*fLibraryPath.begin()).c_str(), file);
+    snprintf(command, 512, "start \"\" \"%s%s\"", (*fLibraryPath.begin()).c_str(), file);
 #else
-    sprintf(command, "open \"%s%s\"", (*fLibraryPath.begin()).c_str(), file);
+    snprintf(command, 512, "open \"%s%s\"", (*fLibraryPath.begin()).c_str(), file);
 #endif
     post(command);
     return (system(command) == 0);
@@ -734,9 +743,9 @@ bool faustgen_factory::open_file(const char* appl, const char* file)
 {
     char command[512];
 #ifdef WIN32
-    sprintf(command, "start \"\" %s \"%s%s\"", appl, (*fLibraryPath.begin()).c_str(), file);
+    snprintf(command, 512, "start \"\" %s \"%s%s\"", appl, (*fLibraryPath.begin()).c_str(), file);
 #else
-    sprintf(command, "open -a %s \"%s%s\"", appl, (*fLibraryPath.begin()).c_str(), file);
+    snprintf(command, 512, "open -a %s \"%s%s\"", appl, (*fLibraryPath.begin()).c_str(), file);
 #endif
     return (system(command) == 0);
 }
@@ -746,9 +755,9 @@ void faustgen_factory::display_documentation()
     // Open the Web documentation
     char command[512];
 #ifdef WIN32
-    sprintf(command, "start \"\" \"https://faustdoc.grame.fr/manual/introduction\"");
+    snprintf(command, 512, "start \"\" \"https://faustdoc.grame.fr/manual/introduction\"");
 #else
-    sprintf(command, "open \"https://faustdoc.grame.fr/manual/introduction\"");
+    snprintf(command, 512, "open \"https://faustdoc.grame.fr/manual/introduction\"");
 #endif
     system(command);
 }
@@ -892,7 +901,11 @@ void faustgen_factory::update_sourcecode(int size, char* source_code)
 
 void faustgen_factory::librarypath(long inlet, t_symbol* s)
 {
-    if (s != gensym("")) {
+    if (s == gensym("")) {
+        fLibraryPath.clear();
+        // fResourcePath has to stay
+        fLibraryPath.insert(fResourcePath);
+    } else {
         add_library_path(getFolderFromPath(s->s_name));
     }
 }
@@ -1041,16 +1054,14 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
     fOptions.clear();
     int i;
     t_atom* ap;
+    bool compilation = true;
     
     // Increment ap each time to get to the next atom
     for (i = 0, ap = argv; i < argc; i++, ap++) {
         switch (atom_gettype(ap)) {
                 
             case A_LONG: {
-                stringstream num;
-                num << atom_getlong(ap);
-                string res = num.str();
-                fOptions.push_back(res.c_str());
+                fOptions.push_back(to_string(atom_getlong(ap)).c_str());
                 break;
             }
                 
@@ -1059,8 +1070,13 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
                 break;
                 
             case A_SYM:
-                // Add options to default ones
-                fOptions.push_back(atom_getsym(ap)->s_name);
+                // Check compilation mode
+                if (strcmp(atom_getsym(ap)->s_name, "nc") == 0) {
+                    compilation = false;
+                } else {
+                    // Add options to default ones
+                    fOptions.push_back(atom_getsym(ap)->s_name);
+                }
                 break;
                 
             default:
@@ -1068,28 +1084,18 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
                 break;
         }
     }
-    
-    /*
-     if (optimize) {
-     post("Start looking for optimal compilation options...");
-     #ifdef __APPLE__
-     double best;
-     dsp_optimizer optimizer(string(*fSourceCode), (*fLibraryPath.begin()).c_str(), getTarget(), sys_getblksize());
-     fOptions = optimizer.findOptimizedParameters(best);
-     #endif
-     post("Optimal compilation options found");
-     }
-     */
-    
-    // Delete the existing Faust module
-    free_dsp_factory();
-    
-    // Free the memory allocated for fBitCode
-    free_bitcode();
-    
-    // Update all instances
-    for (const auto& it : fInstances) {
-        it->update_sourcecode();
+   
+    if (compilation) {
+        // Delete the existing Faust module
+        free_dsp_factory();
+        
+        // Free the memory allocated for fBitCode
+        free_bitcode();
+        
+        // Update all instances
+        for (const auto& it : fInstances) {
+            it->update_sourcecode();
+        }
     }
 }
 
@@ -1144,9 +1150,7 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     // Empty (= no name) faustgen~ will be internally separated as groups with different names
     if (!fDSPfactory) {
         string effect_name;
-        stringstream num;
-        num << faustgen_factory::gFaustCounter;
-        effect_name = "faustgen_factory-" + num.str();
+        effect_name = "faustgen_factory-" + to_string(faustgen_factory::gFaustCounter);
         res = allocate_factory(effect_name);
     }
     
@@ -1158,7 +1162,7 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     
     // Needed to script objects
     char name[64];
-    sprintf(name, "faustgen-%lld", (long long)this);
+    snprintf(name, 64, "faustgen-%lld", (long long)this);
     jbox_set_varname(box, gensym(name));
     
     // Fetch the data inside the max patcher using the dictionary
@@ -1631,7 +1635,6 @@ void faustgen::display_dsp_source()
 void faustgen::display_dsp_params()
 {
     fDSPUI->displayControls();
-    post("JSON : %s", fDSPfactory->get_json());
 }
 
 void faustgen::display_svg()
@@ -1835,11 +1838,13 @@ extern "C" void ext_main(void* r)
     done = true;
 #endif
     
+    common_symbols_init();
+    
     // Creates an instance of Faustgen
     t_class * mclass = faustgen::makeMaxClass("faustgen~");
     post("faustgen~ v%s (sample = 64 bits code = %s)", FAUSTGEN_VERSION, getCodeSize());
     post("LLVM powered Faust embedded compiler v%s", getCLibFaustVersion());
-    post("Copyright (c) 2012-2022 Grame");
+    post("Copyright (c) 2012-2023 Grame");
     
     // Start 'libfaust' in multi-thread safe mode
     startMTDSPFactories();

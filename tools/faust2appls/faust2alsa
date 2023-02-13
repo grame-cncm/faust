@@ -20,6 +20,24 @@ if [[ $(uname -s) != Darwin ]]; then
     LFLAGS+="-no-pie"
 fi
 
+echoHelp() 
+{
+    usage faust2alsa "[options] [Faust options] <file.dsp>"
+    platform Linux
+    require Alsa
+    echo "Compiles Faust programs to ALSA and GTK"
+    option
+    options -httpd -osc -midi -qrcode -poly
+    option "Faust options"
+    exit
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -30,15 +48,9 @@ fi
 # dispatch command arguments
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2alsa "[options] <file.dsp>"
-        platform Linux
-        require Alsa
-        echo "Compiles Faust programs to ALSA and GTK"
-        option
-        options -httpd -osc -midi -qrcode -poly
-        exit
+        echoHelp
     fi
-  
+
     if [ $p = "-poly" ]; then
         POLYDEFS="-DPOLY"
     elif [ $p = "-midi" ]; then
@@ -47,7 +59,7 @@ for p in $@; do
         OSCDEFS="-DOSCCTRL -lOSCFaust"
         YPATH="-L/usr/local/lib"
     elif [ $p = "-httpd" ]; then
-        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust"
         HTTPLIBS=`pkg-config --cflags --libs libmicrohttpd`
         YPATH="-L/usr/local/lib"
     elif [ $p = "-arch32" ]; then
@@ -59,7 +71,7 @@ for p in $@; do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 done
 
@@ -67,7 +79,7 @@ done
 # compile the *.dsp files using ALSA and GTK on linux
 #
 for f in $FILES; do
-    
+
     # compile faust to c++
     faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 

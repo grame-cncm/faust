@@ -4,16 +4,16 @@
     Copyright (C) 2020 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -113,7 +113,7 @@ interpreter_dsp_factory_aux<REAL, TRACE>* interpreter_dsp_factory_aux<REAL, TRAC
     
     // Read int/real heap size and sr offset
     std::string heap_size;
-    int         int_heap_size, real_heap_size, sound_heap_size, sr_offset, count_offset, iota_offset;
+    int         int_heap_size, real_heap_size, sr_offset, count_offset, iota_offset;
     getline(*in, heap_size);
     
     std::stringstream heap_size_reader(heap_size);
@@ -125,11 +125,7 @@ interpreter_dsp_factory_aux<REAL, TRACE>* interpreter_dsp_factory_aux<REAL, TRAC
     heap_size_reader >> dummy;  // Read "real_heap_size" token
     checkToken(dummy, "real_heap_size");
     heap_size_reader >> real_heap_size;
-    
-    heap_size_reader >> dummy;  // Read "sound_heap_size" token
-    checkToken(dummy, "sound_heap_size");
-    heap_size_reader >> sound_heap_size;
-    
+     
     heap_size_reader >> dummy;  // Read "sr_offet" token
     checkToken(dummy, "sr_offset");
     heap_size_reader >> sr_offset;
@@ -173,14 +169,22 @@ interpreter_dsp_factory_aux<REAL, TRACE>* interpreter_dsp_factory_aux<REAL, TRAC
     // Read DSP block
     getline(*in, dummy);  // Read "dsp_block" line
     FBCBlockInstruction<REAL>* compute_dsp_block = readCodeBlock(in);
-#ifdef MACHINE
-    return new interpreter_comp_dsp_factory_aux<REAL,TRACE>(factory_name, compile_options, sha_key, file_num, inputs, outputs, int_heap_size, real_heap_size,
-                                                         sound_heap_size, sr_offset, count_offset, iota_offset, opt_level, meta_block, ui_block, static_init_block,
-                                                         init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
+#if defined(MACHINE) || defined(INTERP_COMP_BUILD)
+    return new interpreter_comp_dsp_factory_aux<REAL,TRACE>(factory_name, compile_options, sha_key,
+                                                            file_num, inputs, outputs, int_heap_size,
+                                                            real_heap_size, sr_offset, count_offset,
+                                                            iota_offset, opt_level, meta_block,
+                                                            ui_block, static_init_block,
+                                                            init_block, resetui_block, clear_block,
+                                                            compute_control_block, compute_dsp_block);
 #else
-    return new interpreter_dsp_factory_aux<REAL,TRACE>(factory_name, compile_options, sha_key, file_num, inputs, outputs, int_heap_size, real_heap_size,
-                                                    sound_heap_size, sr_offset, count_offset, iota_offset, opt_level, meta_block, ui_block, static_init_block,
-                                                    init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
+    return new interpreter_dsp_factory_aux<REAL,TRACE>(factory_name, compile_options, sha_key,
+                                                       file_num, inputs, outputs, int_heap_size,
+                                                       real_heap_size, sr_offset, count_offset,
+                                                       iota_offset, opt_level, meta_block,
+                                                       ui_block, static_init_block,
+                                                       init_block, resetui_block, clear_block,
+                                                       compute_control_block, compute_dsp_block);
 #endif
 }
 
@@ -210,17 +214,16 @@ dsp* interpreter_dsp_factory_aux<REAL, TRACE>::createDSPInstance(dsp_factory* fa
     faustassert(tmp);
     
     if (tmp->getMemoryManager()) {
-        return new (tmp->getFactory()->allocate(sizeof(interpreter_dsp)))
-        interpreter_dsp(tmp, new (tmp->getFactory()->allocate(sizeof(interpreter_dsp_aux<REAL, TRACE>)))
+        return new(tmp->getFactory()->allocate(sizeof(interpreter_dsp)))
+        interpreter_dsp(tmp, new(tmp->getFactory()->allocate(sizeof(interpreter_dsp_aux<REAL, TRACE>)))
                         interpreter_dsp_aux<REAL, TRACE>(this));
     } else {
-    #ifdef MACHINE
+#if defined(MACHINE) || defined(INTERP_COMP_BUILD)
         return new interpreter_dsp(tmp, new interpreter_comp_dsp_aux<REAL, TRACE>(this));
-    #else
+#else
         return new interpreter_dsp(tmp, new interpreter_dsp_aux<REAL, TRACE>(this));
-    #endif
+#endif
     }
 }
-
 
 #endif

@@ -42,8 +42,7 @@
 
 #include "faust/gui/UI.h"
 
-class RosCI : public UI
-{
+class RosCI : public UI {
     
     public:
     

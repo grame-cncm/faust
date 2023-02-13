@@ -53,7 +53,7 @@
 typedef std::function<void(FAUSTFLOAT)> ReflectFunction;
 typedef std::function<FAUSTFLOAT()> ModifyFunction;
 
-struct ExtZoneParam {
+struct FAUST_API ExtZoneParam {
 
     virtual void reflectZone() = 0;
     virtual void modifyZone() = 0;
@@ -68,7 +68,7 @@ struct ExtZoneParam {
 
 // Templated decoder
 
-struct JSONUIDecoderBase
+struct FAUST_API JSONUIDecoderBase
 {
     virtual ~JSONUIDecoderBase()
     {}
@@ -99,7 +99,7 @@ struct JSONUIDecoderBase
 };
 
 template <typename REAL>
-struct JSONUIDecoderReal : public JSONUIDecoderBase {
+struct FAUST_API JSONUIDecoderReal : public JSONUIDecoderBase {
     
     struct ZoneParam : public ExtZoneParam {
         
@@ -564,7 +564,7 @@ struct JSONUIDecoderReal : public JSONUIDecoderBase {
 
 // FAUSTFLOAT templated decoder
 
-struct JSONUIDecoder : public JSONUIDecoderReal<FAUSTFLOAT>
+struct FAUST_API JSONUIDecoder : public JSONUIDecoderReal<FAUSTFLOAT>
 {
     JSONUIDecoder(const std::string& json):JSONUIDecoderReal<FAUSTFLOAT>(json)
     {}

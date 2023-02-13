@@ -48,6 +48,11 @@ set( INCLUDE
 	/usr/local/include)
 
 set( MACHINEDEFS -DMACHINE -D${LLVM_VERSION})
+if (WIN32 OR MSYS)
+else()
+	set( MACHINE_DYN_LIBS ${MACHINE_DYN_LIBS} -lpthread)
+endif()
+
 
 ####################################
 # LLVM
@@ -78,7 +83,7 @@ endif()
 if (NOT IOS AND ITPDYNAMIC)
 	add_library( faustmachinedynamic SHARED ${SRC} ${SRCH} )
 	target_include_directories (faustmachinedynamic PRIVATE ${INCLUDE} ${LLVM_INCLUDE_DIRS})
-	target_link_libraries (faustmachinedynamic PRIVATE ${LLVM_LD_FLAGS} ${LLVM_LIBS})
+	target_link_libraries (faustmachinedynamic PRIVATE ${LLVM_LD_FLAGS} ${LLVM_LIBS} ${MACHINE_DYN_LIBS})
 	target_compile_definitions (faustmachinedynamic PRIVATE ${MACHINEDEFS})
 	set_target_properties(faustmachinedynamic PROPERTIES 
 		VERSION ${VERSION}

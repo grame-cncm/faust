@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -31,7 +31,7 @@
 
 class WASTInstVisitor : public TextInstVisitor, public WASInst {
    private:
-    string type2String(Typed::VarType type)
+    std::string type2String(Typed::VarType type)
     {
         if (isIntOrPtrType(type) || isBoolType(type)) {
             return "i32";
@@ -45,7 +45,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         }
     }
 
-    string ensureFloat(string str)
+    std::string ensureFloat(std::string& str)
     {
         bool dot   = false;
         int  e_pos = -1;
@@ -75,14 +75,12 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     // Special version without termination
     template <class T>
-    string checkReal(T val)
+    std::string checkReal(T val)
     {
         if (std::isinf(val)) {
             return "inf";
         } else {
-            std::stringstream num;
-            num << setprecision(numeric_limits<T>::max_digits10) << val;
-            return ensureFloat(num.str());
+            return TAux(val);
         }
     }
 
@@ -107,13 +105,17 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         Address::AccessType access      = inst->fAddress->getAccess();
         bool                is_struct   = (access & Address::kStruct) || (access & Address::kStaticStruct);
         ArrayTyped*         array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-        string              name        = inst->fAddress->getName();
-
+        std::string              name        = inst->fAddress->getName();
+  
         // fSampleRate may appear several time (in subcontainers and in main DSP)
         if (name != "fSampleRate") {
+            // When inlined in classInit and instanceConstants, kStaticStruct may appear several times
+            if (fFieldTable.find(name) != fFieldTable.end() && (access & Address::kStaticStruct)) {
+                return;
+            }
             faustassert(fFieldTable.find(name) == fFieldTable.end());
         }
-
+      
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
                 fFieldTable[name] = MemoryDesc(-1, fStructOffset, array_typed->fSize, array_typed->getSizeBytes(), array_typed->fType->getType());
@@ -169,10 +171,10 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         fTab--;
     }
 
-    virtual void generateFunCallArgs(ListValuesIt beg, ListValuesIt end, size_t size)
+    virtual void generateFunCallArgs(ValuesIt beg, ValuesIt end, size_t size)
     {
         size_t i = 0;
-        for (ListValuesIt it = beg; it != end; it++, i++) {
+        for (ValuesIt it = beg; it != end; it++, i++) {
             // Compile argument
             (*it)->accept(this);
             if (i < size - 1) *fOut << " ";
@@ -219,14 +221,12 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     virtual void visit(LoadVarInst* inst)
     {
-        fTypingVisitor.visit(inst);
-        Typed::VarType        type = fTypingVisitor.fCurType;
+        Typed::VarType        type = TypingVisitor::getType(inst);
         Address::AccessType access = inst->fAddress->getAccess();
-        string                name = inst->fAddress->getName();
-        IndexedAddress*    indexed =  dynamic_cast<IndexedAddress*>(inst->fAddress);
+        std::string          name = inst->fAddress->getName();
+        IndexedAddress*    indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
         if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
-            
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 if (isRealType(type)) {
@@ -262,7 +262,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     {
         // 'tee_local' is generated the first time the variable is used
         // All future access simply use a local.get
-        string name = inst->fAddress->getName();
+        std::string name = inst->fAddress->getName();
 
         if (fTeeMap.find(name) == fTeeMap.end()) {
             *fOut << "(tee_local $" << name << " ";
@@ -276,12 +276,11 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     virtual void visit(StoreVarInst* inst)
     {
-        inst->fValue->accept(&fTypingVisitor);
-        Typed::VarType      type   = fTypingVisitor.fCurType;
+        Typed::VarType type = TypingVisitor::getType(inst->fValue);
         Address::AccessType access = inst->fAddress->getAccess();
+        IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
   
-        if (access & Address::kStruct || access & Address::kStaticStruct ||
-            dynamic_cast<IndexedAddress*>(inst->fAddress)) {
+        if (access & Address::kStruct || access & Address::kStaticStruct || indexed) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 if (isRealType(type) || isRealPtrType(type)) {
@@ -341,8 +340,8 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
         // HACK : completely adhoc code for inputs/outputs...
         if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
-            // Since indexed->fIndex is always a known constant value, offset can be directly generated
-            Int32NumInst* num = dynamic_cast<Int32NumInst*>(indexed->fIndex);
+            // Since indexed->getIndex() is always a known constant value, offset can be directly generated
+            Int32NumInst* num = dynamic_cast<Int32NumInst*>(indexed->getIndex());
             faustassert(num);
             *fOut << "(i32.add (local.get $" << indexed->getName() << ") (i32.const " << (num->fNum << 2) << "))";
             // HACK : completely adhoc code for input/output...
@@ -350,11 +349,11 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             // If 'i' loop variable moves in bytes, save index code generation of input/output
             if (gGlobal->gLoopVarInBytes) {
                 *fOut << "(i32.add (local.get $" << indexed->getName() << ") ";
-                indexed->fIndex->accept(this);
+                indexed->getIndex()->accept(this);
                 *fOut << ")";
             } else {
                 *fOut << "(i32.add (local.get $" << indexed->getName() << ") (i32.shl ";
-                indexed->fIndex->accept(this);
+                indexed->getIndex()->accept(this);
                 // Force "output" access to be coherent with fSubContainerType (integer or real)
                 if (fSubContainerType == kInt) {
                     *fOut << " (i32.const 2)))";
@@ -370,7 +369,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             if (fFieldTable.find(indexed->getName()) != fFieldTable.end()) {
                 MemoryDesc    tmp = fFieldTable[indexed->getName()];
                 Int32NumInst* num;
-                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->getIndex()))) {
                     // Index can be computed at compile time
                     if (fFastMemory) {
                         *fOut << "(i32.const " << (tmp.fOffset + (num->fNum << offStrNum)) << ")";
@@ -384,22 +383,22 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                         // Micro optimization if the field is actually the first one in the structure
                         if (tmp.fOffset == 0) {
                             *fOut << "(i32.shl ";
-                            indexed->fIndex->accept(this);
+                            indexed->getIndex()->accept(this);
                             *fOut << " (i32.const " << offStr << "))";
                         } else {
                             *fOut << "(i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
-                            indexed->fIndex->accept(this);
+                            indexed->getIndex()->accept(this);
                             *fOut << " (i32.const " << offStr << ")))";
                         }
                     } else {
                         // Micro optimization if the field is actually the first one in the structure
                         if (tmp.fOffset == 0) {
                             *fOut << "(i32.add (local.get $dsp) (i32.shl ";
-                            indexed->fIndex->accept(this);
+                            indexed->getIndex()->accept(this);
                             *fOut << " (i32.const " << offStr << ")))";
                         } else {
                             *fOut << "(i32.add (local.get $dsp) (i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
-                            indexed->fIndex->accept(this);
+                            indexed->getIndex()->accept(this);
                             *fOut << " (i32.const " << offStr << "))))";
                         }
                     }
@@ -407,7 +406,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             } else {
                 // Local variable
                 Int32NumInst* num;
-                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->getIndex()))) {
                     // Hack for 'soundfile'
                     DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
                     *fOut << "(i32.add (local.get " << indexed->getName();
@@ -419,7 +418,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                     *fOut << "))";
                 } else {
                     *fOut << "(i32.add (local.get " << indexed->getName() << ") (i32.shl ";
-                    indexed->fIndex->accept(this);
+                    indexed->getIndex()->accept(this);
                     *fOut << " (i32.const " << offStr << ")))";
                 }
             }
@@ -434,13 +433,11 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     virtual void visit(FloatNumInst* inst)
     {
-        fTypingVisitor.visit(inst);
         *fOut << "(f32.const " << checkReal<float>(inst->fNum) << ")";
     }
 
     virtual void visit(DoubleNumInst* inst)
     {
-        fTypingVisitor.visit(inst);
         *fOut << "(f64.const " << checkReal<double>(inst->fNum) << ")";
     }
 
@@ -448,13 +445,11 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     virtual void visit(Int32NumInst* inst)
     {
-        fTypingVisitor.visit(inst);
         *fOut << "(i32.const " << inst->fNum << ")";
     }
 
     virtual void visit(Int64NumInst* inst)
     {
-        fTypingVisitor.visit(inst);
         *fOut << "(i64.const " << inst->fNum << ")";
     }
 
@@ -495,15 +490,13 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
 
     virtual void visit(BinopInst* inst)
     {
-        inst->fInst1->accept(&fTypingVisitor);
-        Typed::VarType type1 = fTypingVisitor.fCurType;
+        Typed::VarType type1 = TypingVisitor::getType(inst->fInst1);
 
         if (isRealType(type1)) {
             visitAuxReal(inst, type1);
         } else {
             // type1 is kInt
-            inst->fInst2->accept(&fTypingVisitor);
-            Typed::VarType type2 = fTypingVisitor.fCurType;
+            Typed::VarType type2 = TypingVisitor::getType(inst->fInst2);
             if (isRealType(type2)) {
                 visitAuxReal(inst, type2);
             } else if (isIntType(type1) || isIntType(type2)) {
@@ -515,20 +508,18 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 faustassert(false);
             }
         }
-
-        fTypingVisitor.visit(inst);
     }
 
     virtual void visit(::CastInst* inst)
     {
-        inst->fInst->accept(&fTypingVisitor);
-        Typed::VarType type = fTypingVisitor.fCurType;
+        Typed::VarType type = TypingVisitor::getType(inst->fInst);
      
         switch (inst->fType->getType()) {
             case Typed::kInt32:
                 if (isInt32Type(type)) {
-                    // std::cout << "CastInst : cast to int, but arg already int !" << std::endl;
-                    inst->fInst->accept(this);
+                    // Should not happen with properly casted FIR
+                    dump2FIR(inst);
+                    faustassert(false);
                 } else if (isInt64Type(type)) {
                     *fOut << "(i32.wrap_i64 ";
                     inst->fInst->accept(this);
@@ -547,8 +538,9 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             case Typed::kFloat:
             case Typed::kDouble:
                 if (isRealType(type)) {
-                    // std::cout << "CastInst : cast to real, but arg already real !" << std::endl;
-                    inst->fInst->accept(this);
+                    // Should not happen with properly casted FIR
+                    dump2FIR(inst);
+                    faustassert(false);
                 } else if (isInt64Type(type)) {
                     *fOut << "(" << realStr << ".convert_i64_s ";
                     inst->fInst->accept(this);
@@ -566,8 +558,6 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 faustassert(false);
                 break;
         }
-
-        fTypingVisitor.visit(inst);
     }
 
     virtual void visit(BitcastInst* inst)
@@ -597,17 +587,15 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 faustassert(false);
                 break;
         }
-
-        fTypingVisitor.visit(inst);
     }
 
     // Special case for min/max
-    void generateMinMax(const list<ValueInst*>& args, const string& fun)
+    void generateMinMax(const Values& args, const std::string& fun)
     {
-        list<ValueInst*>::iterator it;
-        ValueInst*                 arg1 = *(args.begin());
-        arg1->accept(&fTypingVisitor);
-        if (isIntType(fTypingVisitor.fCurType)) {
+        Values::iterator it;
+        ValueInst* arg1 = *(args.begin());
+        Typed::VarType type = TypingVisitor::getType(arg1);
+        if (isIntType(type)) {
             // Using manually generated min/max
             *fOut << "(call $" << fun << " ";
         } else {
@@ -647,9 +635,9 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         inst->fElse->accept(this);
         *fOut << " ";
         // Condition is last item
-        inst->fCond->accept(&fTypingVisitor);
+        Typed::VarType type = TypingVisitor::getType(inst->fCond);
         // Possibly convert i64 to i32
-        if (isInt64Type(fTypingVisitor.fCurType)) {
+        if (isInt64Type(type)) {
             // Compare to 0
             *fOut << "(i64.ne ";
             inst->fCond->accept(this);
@@ -658,8 +646,6 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             inst->fCond->accept(this);
         }
         *fOut << ")";
-        
-        fTypingVisitor.visit(inst);
     }
     */
 
@@ -668,13 +654,13 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     {
         *fOut << "(if ";
         // Result type
-        inst->fThen->accept(&fTypingVisitor);
-        *fOut << "(result " << type2String(fTypingVisitor.fCurType) << ") ";
+        Typed::VarType then = TypingVisitor::getType(inst->fThen);
+        *fOut << "(result " << type2String(then) << ") ";
         
         // Compile 'cond'
-        inst->fCond->accept(&fTypingVisitor);
+        Typed::VarType cond = TypingVisitor::getType(inst->fCond);
         // Possibly convert i64 to i32
-        if (isInt64Type(fTypingVisitor.fCurType)) {
+        if (isInt64Type(cond)) {
             // Compare to 0
             *fOut << "(i64.ne ";
             inst->fCond->accept(this);
@@ -689,17 +675,15 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         *fOut << " ";
         inst->fElse->accept(this);
         *fOut << ")";
-        
-        fTypingVisitor.visit(inst);
     }
  
     // Conditional : if
     virtual void visit(IfInst* inst)
     {
         *fOut << "(if ";
-        inst->fCond->accept(&fTypingVisitor);
+        Typed::VarType cond = TypingVisitor::getType(inst->fCond);
         // Possibly convert i64 to i32
-        if (isInt64Type(fTypingVisitor.fCurType)) {
+        if (isInt64Type(cond)) {
             // Compare to 0
             *fOut << "(i64.ne ";
             inst->fCond->accept(this);
@@ -722,9 +706,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         tab(fTab, *fOut);
         *fOut << ")";
         tab(fTab, *fOut);
-
-        fTypingVisitor.visit(inst);
-    }
+   }
 
     // Loop : beware: compiled loop don't work with an index of 0
     virtual void visit(ForLoopInst* inst)
@@ -733,7 +715,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         if (inst->fCode->size() == 0) return;
 
         // Local variables declaration including the loop counter have been moved outside of the loop
-        string name = inst->getName();
+        std::string name = inst->getName();
 
         // Init loop counter
         inst->fInit->accept(this);

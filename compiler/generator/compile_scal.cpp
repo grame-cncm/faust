@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -40,14 +40,11 @@
 #include "prim2.hh"
 #include "privatise.hh"
 #include "recursivness.hh"
-#include "sigConstantPropagation.hh"
-#include "sigPromotion.hh"
 #include "sigToGraph.hh"
 #include "signal2vhdlVisitor.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
-#include "sigtyperules.hh"
-#include "simplify.hh"
+#include "normalform.hh"
 #include "timing.hh"
 #include "xtended.hh"
 
@@ -90,85 +87,57 @@ string ScalarCompiler::getFreshID(const string& prefix)
 
 Tree ScalarCompiler::prepare(Tree LS)
 {
-    startTiming("ScalarCompiler::prepare");
-    //  startTiming("first simplification");
-    //  LS = simplify(LS);
-    //  endTiming("first simplification");
-    startTiming("deBruijn2Sym");
-    Tree L1 = deBruijn2Sym(LS);  // convert debruijn recursion into symbolic recursion
-    endTiming("deBruijn2Sym");
-
-    startTiming("L1 typeAnnotation");
-    // Annotate L1 with type information (needed by castAndPromotion(), but don't check causality)
-    typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
-    endTiming("L1 typeAnnotation");
-
-    startTiming("Cast and Promotion");
-    SignalPromotion SP;
-    // SP.trace(true, "Cast");
-    Tree L1b = SP.mapself(L1);
-    endTiming("Cast and Promotion");
-
-    startTiming("second simplification");
-    Tree L2 = simplify(L1b);  // Simplify by executing every computable operation
-    endTiming("second simplification");
-
-    startTiming("Constant propagation");
-    SignalConstantPropagation SK;
-    // SK.trace(true, "ConstProp2");
-    Tree L2b = SK.mapself(L2);
-    endTiming("Constant propagation");
-
-    startTiming("privatise");
-    Tree L3 = privatise(L2b);  // Un-share tables with multiple writers
-    endTiming("privatise");
-
-    startTiming("conditionAnnotation");
-    conditionAnnotation(L3);
-    endTiming("conditionAnnotation");
-    // conditionStatistics(L3); // Count condition occurrences
-
+    startTiming("prepare");
+    Tree L1 = simplifyToNormalForm(LS);
+    
     // dump normal form
-    if (gGlobal->gDumpNorm) {
-        cout << ppsig(L3) << endl;
+    if (gGlobal->gDumpNorm == 0) {
+        cout << ppsig(L1) << endl;
         throw faustexception("Dump normal form finished...\n");
+    } else if (gGlobal->gDumpNorm == 1) {
+        ppsigShared(L1, cout);
+        throw faustexception("Dump shared normal form finished...\n");
     }
-
+    
+    startTiming("privatise");
+    Tree L2 = privatise(L1);  // Un-share tables with multiple writers
+    endTiming("privatise");
+    
+    startTiming("conditionAnnotation");
+    conditionAnnotation(L2);
+    endTiming("conditionAnnotation");
+    
     startTiming("recursivnessAnnotation");
-    recursivnessAnnotation(L3);  // Annotate L3 with recursivness information
+    recursivnessAnnotation(L2);  // Annotate L2 with recursivness information
     endTiming("recursivnessAnnotation");
-
-    startTiming("typeAnnotation");
-    typeAnnotation(L3, true);  // Annotate L3 with type information
-    endTiming("typeAnnotation");
-
+    
+    startTiming("L2 typeAnnotation");
+    typeAnnotation(L2, true);     // Annotate L2 with type information and check causality
+    endTiming("L2 typeAnnotation");
+    
     startTiming("sharingAnalysis");
-    sharingAnalysis(L3);  // Annotate L3 with sharing count
+    sharingAnalysis(L2);         // Annotate L2 with sharing count
     endTiming("sharingAnalysis");
-
+    
     startTiming("occurrences analysis");
     delete fOccMarkup;
     fOccMarkup = new old_OccMarkup(fConditionProperty);
-    fOccMarkup->mark(L3);  // Annotate L3 with occurrences analysis
+    fOccMarkup->mark(L2);        // Annotate L2 with occurrences analysis
     endTiming("occurrences analysis");
-
-    endTiming("ScalarCompiler::prepare");
-
+    
+    endTiming("prepare");
+    
     if (gGlobal->gDrawSignals) {
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
-        sigToGraph(L3, dotfile);
+        sigToGraph(L2, dotfile);
     }
-
-    // Generate VHDL if --vhdl option is set
+    
+    // Generate VHDL if -vhdl option is set
     if (gGlobal->gVHDLSwitch) {
-        Signal2VHDLVisitor V(fOccMarkup);
-        ofstream           dotfile(subst("faust.vhd", gGlobal->makeDrawPath()).c_str());
-        V.sigToVHDL(L3, dotfile);
-        V.trace(gGlobal->gVHDLTrace, "VHDL");  // activate with --trace option
-        V.mapself(L3);
+        sigVHDLFile(fOccMarkup, L2, gGlobal->gVHDLTrace);
     }
-
-    return L3;
+    
+    return L2;
 }
 
 Tree ScalarCompiler::prepare2(Tree L0)
@@ -524,11 +493,10 @@ string ScalarCompiler::generateCode(Tree sig)
         throw faustexception("ERROR : annotations should have been deleted in Simplification process\n");
     }
 
-    /* we should not have any control at this stage*/
+    /* we should not have any control at this stage */
     else {
-        stringstream error;
-        error << "ERROR when compiling, ScalarCompiler::generateCode unrecognized signal : " << ppsig(sig) << endl;
-        throw faustexception(error.str());
+        cerr << "ASSERT : when compiling, unrecognized signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+        faustassert(false);
     }
     return "error in generated code";
 }
@@ -621,6 +589,9 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
     int p0 = gBinOpTable[opcode]->fPriority;
     int p1 = binopPriority(arg1);
     int p2 = binopPriority(arg2);
+    
+    bool np1 = (p0 > p1) || isLogicalOpcode(opcode);
+    bool np2 = (p0 > p2) || isLogicalOpcode(opcode);
 
     string c1 = CS(arg1);
     string c2 = CS(arg2);
@@ -630,32 +601,23 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
         Type t1 = getCertifiedSigType(arg1);
         Type t2 = getCertifiedSigType(arg2);
 
-        interval j = t2->getInterval();
-
-        if (j.haszero()) {
-            // potential division by zero
-            // interval    i = t1->getInterval();
-            // std::cerr << "WARNING : potential division by zero (" << i << "/" << j << ") in " << ppsig(sig) <<
-            // std::endl;
-        }
-
         if (t1->nature() == kInt && t2->nature() == kInt) {
             return generateCacheCode(sig, subst("($3($0) $1 $3($2))", c1, gBinOpTable[opcode]->fName, c2, ifloat()));
         } else if (t1->nature() == kInt && t2->nature() == kReal) {
-            if (p0 > p2) c2 = subst("($0)", c2);
+            if (np2) c2 = subst("($0)", c2);
             return generateCacheCode(sig, subst("($3($0) $1 $2)", c1, gBinOpTable[opcode]->fName, c2, ifloat()));
         } else if (t1->nature() == kReal && t2->nature() == kInt) {
-            if (p0 > p1) c1 = subst("($0)", c1);
+            if (np1) c1 = subst("($0)", c1);
             return generateCacheCode(sig, subst("($0 $1 $3($2))", c1, gBinOpTable[opcode]->fName, c2, ifloat()));
         } else {
-            if (p0 > p1) c1 = subst("($0)", c1);
-            if (p0 > p2) c2 = subst("($0)", c2);
+            if (np1) c1 = subst("($0)", c1);
+            if (np2) c2 = subst("($0)", c2);
             return generateCacheCode(sig, subst("($0 $1 $2)", c1, gBinOpTable[opcode]->fName, c2, ifloat()));
         }
     } else {
-        if (p0 > p1) c1 = subst("($0)", c1);
-        if (p0 > p2) c2 = subst("($0)", c2);
-        return generateCacheCode(sig, subst("$0 $1 $2", c1, gBinOpTable[opcode]->fName, c2));
+        if (np1) c1 = subst("($0)", c1);
+        if (np2) c2 = subst("($0)", c2);
+        return generateCacheCode(sig, subst("($0 $1 $2)", c1, gBinOpTable[opcode]->fName, c2));
     }
 }
 
@@ -725,12 +687,10 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
         return exp;
 
     } else {
-        stringstream error;
-        error << "ERROR in sharing count (" << sharing << ") for " << *sig << endl;
-        throw faustexception(error.str());
+        cerr << "ASSERT : sharing count (" << sharing << ") for " << *sig << endl;
+        faustassert(false);
+        return {};
     }
-
-    return "Error in generateCacheCode";
 }
 
 // like generateCacheCode but we force caching like if sharing was always > 1
@@ -991,11 +951,9 @@ string ScalarCompiler::generateStaticSigGen(Tree sig, Tree content)
 string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 {
     int size;
-    if (!isSigInt(tsize, &size)) {
-        stringstream error;
-        error << "ERROR in generateTable : " << *tsize << " is not an integer expression " << endl;
-        throw faustexception(error.str());
-    }
+    bool res = isSigInt(tsize, &size);
+    // Size type is previously checked in sigWriteReadTable or sigReadOnlyTable
+    faustassert(res);
 
     string generator(CS(content));
     Tree   g;
@@ -1012,8 +970,8 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
         fClass->addInitCode(subst("$0 $1;", kvnames.first, kvnames.second));
     }
 
-    // definition du nom et du type de la table
-    // A REVOIR !!!!!!!!!
+    // definition of table name and type
+    // TO CHECK !!!!!!!!!
     Type t = getCertifiedSigType(content);  //, tEnv);
 
     if (t->nature() == kInt) {
@@ -1024,26 +982,24 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
         ctype = ifloat();
     }
 
-    // declaration de la table
+    // table declaration
     fClass->addDeclCode(subst("$0 \t$1[$2];", ctype, vname, T(size)));
 
-    // initialisation du generateur de contenu
+    // initialization of the content generator
     fClass->addInitCode(subst("$0.init(sample_rate);", generator));
-    // remplissage de la table
+    // filling the table
     fClass->addInitCode(subst("$0.fill($1,$2);", generator, T(size), vname));
 
-    // on retourne le nom de la table
+    // returning the table name
     return vname;
 }
 
 string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 {
     int size;
-    if (!isSigInt(tsize, &size)) {
-        stringstream error;
-        error << "ERROR in generateStaticTable : " << *tsize << " is not an integer expression " << endl;
-        throw faustexception(error.str());
-    }
+    bool res = isSigInt(tsize, &size);
+    // Size type is previously checked in sigWriteReadTable or sigReadOnlyTable
+    faustassert(res);
 
     Tree   g;
     string cexp;
@@ -1064,8 +1020,8 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
         }
     }
 
-    // definition du nom et du type de la table
-    // A REVOIR !!!!!!!!!
+    // definition of table name and type
+    // TO CHECK !!!!!!!!!
     Type t = getCertifiedSigType(content);  //, tEnv);
 
     if (t->nature() == kInt) {
@@ -1076,7 +1032,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
         ctype = ifloat();
     }
 
-    // declaration de la table
+    // table declaration
     if (gGlobal->gMemoryManager) {
         fClass->addDeclCode(subst("static $0* \t$1;", ctype, vname));
         fClass->addStaticFields(subst("$0* \t$1::$2 = 0;", ctype, fClass->getClassName(), vname));
@@ -1088,12 +1044,12 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
         fClass->addStaticFields(subst("$0 \t$1::$2[$3];", ctype, fClass->getClassName(), vname, T(size)));
     }
 
-    // initialisation du generateur de contenu
+    // initialization of the content generator
     fClass->addStaticInitCode(subst("$0.init(sample_rate);", cexp));
-    // remplissage de la table
+    // filling the table
     fClass->addStaticInitCode(subst("$0.fill($1,$2);", cexp, T(size), vname));
 
-    // on retourne le nom de la table
+    // returning the table name
     return vname;
 }
 
@@ -1131,8 +1087,8 @@ string ScalarCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
 
 string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
 {
-    // YO le 21/04/05 : La lecture des tables n'était pas mise dans le cache
-    // et donc le code était dupliqué (dans tester.dsp par exemple)
+    // YO le 21/04/05 : The reading of the tables was not put in the cache
+    // and so the code was duplicated (in tester.dsp for example)
     // return subst("$0[$1]", CS(tEnv, tbl), CS(tEnv, idx));
 
     // cerr << "generateRDTable " << *sig << endl;
@@ -1217,17 +1173,25 @@ string ScalarCompiler::generateControl(Tree sig, Tree x, Tree y)
 
 string ScalarCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 {
-    Type te = getCertifiedSigType(sig);  //, tEnv);
-
-    string vperm = getFreshID("M");
-    string vtemp = getFreshID("T");
-
-    string type = (te->nature() == kInt) ? "int" : ifloat();
+    string vperm = getFreshID("pfPerm");
+    string vtemp = getFreshID("pfTemp");
+    string type = (getCertifiedSigType(sig)->nature() == kInt) ? "int" : ifloat();
 
     fClass->addDeclCode(subst("$0 \t$1;", type, vperm));
     fClass->addInitCode(subst("$0 = $1;", vperm, CS(x)));
 
     fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 \t$1 = $2;", type, vtemp, vperm)));
+    
+    /*
+    string res = CS(e);
+    string vname;
+    if (getVectorNameProperty(e, vname)) {
+        setVectorNameProperty(sig, vname);
+    } else {
+        faustassert(false);
+    }
+    */
+    
     fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", vperm, CS(e))));
     return vtemp;
 }
@@ -1272,19 +1236,6 @@ string ScalarCompiler::generateXtended(Tree sig)
     }
 }
 
-/**
- * Compute the minimal power of 2 greater than x
- */
-
-int ScalarCompiler::pow2limit(int x)
-{
-    int n = 2;
-    while (n < x) {
-        n = 2 * n;
-    }
-    return n;
-}
-
 /*****************************************************************************
  N-SAMPLE FIXED DELAY : sig = exp@delay
 
@@ -1299,7 +1250,6 @@ int ScalarCompiler::pow2limit(int x)
  case max delay >= gMaxCopyDelay :
  Y(t-0)	Y(t-1)	Y(t-2)  ...
  V[0]	V[1]	V[2]	...
-
 
  *****************************************************************************/
 
@@ -1323,8 +1273,8 @@ string ScalarCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
             // cerr << "it is a pure zero delay : " << code << endl;
             return code;
         } else {
-            cerr << "No vector name for : " << ppsig(exp) << endl;
-            faustassert(0);
+            cerr << "ASSERT : no vector name for : " << ppsig(exp, MAX_ERROR_SIZE) << endl;
+            faustassert(false);
         }
     }
 

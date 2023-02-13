@@ -1,4 +1,4 @@
-# FAUST Impulse Response Tests  #
+# FAUST Impulse Response Tests #
 
 This test suite allows to check that the compiler generates correct code by comparing the impulse response of a set of Faust programs with the expected one. When the DSP code contains buttons, they are set to 1 at the first sample to simulate button press.
 
@@ -22,6 +22,14 @@ Type `make help` for details about the available targets.
 
 There is no target `clean`: simply delete the `ir` folder or one of its subfolders to regenerate the impulse responses.
 
+### Testing the Box and Signal creation intermediate steps
+- the Box tree (created by the `-e`option) can be generated as a textual file. A set of references files can be created using `make reference-box`, then tested using `make test-box`.
+- the Signal tree (created by the `-norm1`option) can be generated as a textual file. A set of references files can be created using `make reference-signal`, then tested using `make test-signal`.
+- the tree type (created by the `-norm2`option) can be generated as a textual file. A set of references files can be created using `make reference-type`, then tested using `make test-type`.
+
+### Checking the FIR
+An experimental FIR checker can be activated for all backends testing using `export FAUST_DEBUG=FIR_CHECKER`.
+
 **Note**:
 
 When using the make option `-j`, I suggest to also add a `-i` option (`--ignore-errors : Ignore errors from commands`), especially with the 'cpp' and 'c' targets. Indeed, make should first _1)_ build all the C++ and/or C output, _2)_ compile these output and _3)_ finally run the Faust program and check the result.
@@ -35,11 +43,18 @@ The generated impulse responses are not preserved by the shell scripts. Intermed
 
 You should run `make tools` before first run of `tests.sh`.
 
+### JAX tests
+
+#### Prerequisites
+- `faust` must be available from the `../../build/bin` folder. It must be compiled with the JAX backend
+- install the python requirements: `pip install -r requirements.txt`
+- install [JAX](https://jax.readthedocs.io/en/latest/) and [Flax](https://flax.readthedocs.io/en/latest/). These are harder to install, so they're left out of `requirements.txt`
+
 ### To do
-- add precision arg to filesCompare (for float and fastmath outputs)
-- check that all test.sh subscripts are based on the current development branch and don't require any installation
+- add precision arg to `filesCompare` (for float and fastmath outputs)
+- check that all `test.sh` subscripts are based on the current development branch and don't require any installation
 - simplify and rename the `faust2impulse_xxx_` scripts
 
 ### Deprecated Files
-- install.sh
-- testwithmute.sh
+- `install.sh`
+- `testwithmute.sh`

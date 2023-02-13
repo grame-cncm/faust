@@ -4,16 +4,16 @@
     Copyright (C) 2021 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -31,13 +31,13 @@
 
 /*
  * FBC template compiler, where REAL will be either 'float' or 'double'
- * depending of the compiler choosen option: -single or -double
+ * depending of the compiler option: -single or -double
  */
 template <class REAL>
 class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
 
    protected:
-    
+      
     // Compile the FBC code used in 'compute'
     void CompileBlock(FBCBlockInstruction<REAL>* block)
     {
@@ -66,7 +66,7 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
                 case FBCInstruction::kLoadInt:
                     it++;
                     break;
-
+                    
                 case FBCInstruction::kStoreReal:
                     it++;
                     break;
@@ -84,6 +84,14 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
                     it++;
                     break;
              
+                case FBCInstruction::kLoadSoundFieldInt:
+                    it++;
+                    break;
+                    
+                case FBCInstruction::kLoadSoundFieldReal:
+                    it++;
+                    break;
+            
                 case FBCInstruction::kStoreIndexedReal:
                     it++;
                     break;
@@ -399,7 +407,8 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
     }
     
    public:
-    FBCTemplateCompiler(FBCBlockInstruction<REAL>* fbc_block)
+    FBCTemplateCompiler(FBCBlockInstruction<REAL>* fbc_block, soundTable& sound_table)
+    :FBCExecuteFun<REAL>(fbc_block, sound_table)
     {
         // Compile the 'compute' function once.
         CompileBlock(fbc_block);
@@ -416,7 +425,7 @@ class FBCTemplateCompiler : public FBCExecuteFun<REAL> {
      * @param inputs - the audio inputs
      * @param outputs - the audio outputs
      */
-    void Execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs)
+    void execute(int* int_heap, REAL* real_heap, REAL** inputs, REAL** outputs)
     {}
     
 };

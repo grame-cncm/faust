@@ -65,17 +65,17 @@ class vstUIObject { /* superclass of all VST UI widgets */
         virtual ~vstUIObject()
         {}
         
-        virtual void  GetName(char *text)
+        virtual void GetName(char* text)
         {
             std::strcpy(text,fLabel.c_str());
         }
         
-        virtual void  SetValue(double f)
+        virtual void SetValue(double f)
         {
             *fZone = normalize(0.0f,1.0f,(float)f);
         }
         
-        virtual void  SetValueNoNormalization(double f)
+        virtual void SetValueNoNormalization(double f)
         {
             *fZone = clip(0.0f,1.0f,(float)f);
         }
@@ -90,12 +90,12 @@ class vstUIObject { /* superclass of all VST UI widgets */
             return *fZone;
         }
         
-        virtual void  GetDisplay(char *text)
+        virtual void GetDisplay(char* text)
         {
             std::sprintf(text,"%f",*fZone);
         }
         
-        virtual long  GetID()
+        virtual long GetID()
         {
             /* returns the sum of all the ASCII characters  contained in the 
              parameter's label */
@@ -133,7 +133,7 @@ public:
 		*fZone = (f>0.5f) ? 1.0f : 0.0f;
 	}
     
-	virtual void  GetDisplay(char *text)
+	virtual void GetDisplay(char* text)
     {
 		(*fZone > 0.5f) ? std::strcpy(text,"ON") : std::strcpy(text,"OFF");
 	}
@@ -155,9 +155,9 @@ class vstCheckButton : public vstUIObject {
         
         virtual void SetValue(double f) { *fZone = (f>0.5f)?1.0f:0.0f; }
         
-        virtual void GetDisplay(char *text)
+        virtual void GetDisplay(char* text)
         {
-            (*fZone>0.5f)? std::strcpy(text,"ON"): std::strcpy(text,"OFF");
+            (*fZone>0.5f) ? std::strcpy(text,"ON") : std::strcpy(text,"OFF");
         }
 };
 
@@ -173,7 +173,7 @@ class vstButton : public vstUIObject {
         virtual ~vstButton() {}		
         virtual float GetValue() { return *fZone; }
         virtual void SetValue(double f) { *fZone = (f>0.5f)?1.0f:0.0f; }
-        virtual void GetDisplay(char *text){(*fZone>0.5f)? std::strcpy(text,"ON"): std::strcpy(text,"OFF"); }
+        virtual void GetDisplay(char* text){(*fZone>0.5f)? std::strcpy(text,"ON"): std::strcpy(text,"OFF"); }
 };
 
 #define MAX_PARAM_DISPLAY_PRECISION 6
@@ -225,11 +225,12 @@ class vstSlider : public vstUIObject {
             return fMax;
         }
         
-        int getStep() const {
+        int getStep() const
+        {
             return fStep;
         }
         
-        void GetDisplay(char *text)
+        void GetDisplay(char* text)
         {
             if (fPrecision == 0) {
                 std::sprintf(text, "%d", int(*fZone));
@@ -241,8 +242,7 @@ class vstSlider : public vstUIObject {
 };
 
 /*--------------------------------------------------------------------------*/
-class vstUI : public UI
-{
+class vstUI : public UI {
     
     private:
         
@@ -316,7 +316,7 @@ class vstUI : public UI
                 return defaultString;
             }
             
-            const	float* zone = fUITable[index]->getZone();
+            const float* zone = fUITable[index]->getZone();
             map<const float*, Meta*>::iterator iter = m_controlMetadataMap.find(zone);
             if (iter == m_controlMetadataMap.end()) {
                 TRACE(fprintf(stderr, "Metadata for control %d not found\n", index));
@@ -326,7 +326,7 @@ class vstUI : public UI
             return iter->second->get(key, defaultString);
         } // end of getControlMetadata
         
-        void setAny(int anyIndex, float val, const char *str)
+        void setAny(int anyIndex, float val, const char* str)
         {
             if (anyIndex < 0) {
                 // On the Receptor, and perhaps other hosts, output to stderr is 
@@ -461,7 +461,7 @@ class vstUI : public UI
         void openVerticalBox(const char* label) {}
         void closeBox() {}
         
-        void  SetValue(VstInt32 index, double f)
+        void SetValue(VstInt32 index, double f)
         {
             assert(index < (VstInt32)fUITable.size()); 
             fUITable[index]->SetValue(f);
@@ -473,13 +473,13 @@ class vstUI : public UI
             return fUITable[index]->GetValue();
         }
         
-        void  GetDisplay(VstInt32 index, char* text)
+        void GetDisplay(VstInt32 index, char* text)
         {
             assert(index < (VstInt32)fUITable.size()); 
             fUITable[index]->GetDisplay(text);
         }
         
-        void  GetName(VstInt32 index, char* text)
+        void GetName(VstInt32 index, char* text)
         {
             assert(index < (VstInt32)fUITable.size()); 
             fUITable[index]->GetName(text);
@@ -498,7 +498,7 @@ class vstUI : public UI
         {
             const long maxNumberOfId = 128;
             long baseid = 'FAUS';
-            long id=0;
+            long id = 0;
             
             for(int i = 0; i < (int)fUITable.size(); i++) {
                 id += fUITable[i]->GetID();

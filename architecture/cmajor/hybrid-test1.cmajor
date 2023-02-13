@@ -1,0 +1,100 @@
+
+faust addSynth
+{
+    import("stdfaust.lib");
+
+    vol = hslider("volume [unit:dB]", -20, -96, 0, 0.1) : ba.db2linear : si.smoo;
+    freq = hslider("freq [unit:Hz]", 500, 100, 2000, 1);
+
+    process = vgroup("addSynth", (os.osc(freq) + 0.5*os.osc(2.*freq) + 0.25*os.osc(3.*freq)) * vol);
+}
+
+processor ClassicRingtone
+{
+    output stream float out;
+
+    // This simple struct holds a note + duration for our melody
+    struct Note
+    {
+        int pitch, length;
+
+        void play() const
+        {
+            let numFrames = this.length * framesPerQuarterNote;
+            let frequency  = std::notes::noteToFrequency (this.pitch);
+            let phaseDelta = float (frequency * processor.period * twoPi);
+
+            loop (numFrames)
+            {
+                out <- volume * sin (phase);
+                phase = addModulo2Pi (phase, phaseDelta);
+                advance();
+            }
+        }
+    }
+
+    // This is our processor's entry-point function, which is invoked
+    // by the system
+    void main()
+    {
+        let melody = Note[] ( (79, 1),  (77, 1),  (69, 2),  (71, 2),
+                              (76, 1),  (74, 1),  (65, 2),  (67, 2),
+                              (74, 1),  (72, 1),  (64, 2),  (67, 2),
+                              (72, 4) );
+
+        for (wrap<melody.size> i)
+            melody[i].play();
+    }
+
+    // We'll define a couple of constants here to set the volume and tempo
+    let volume = 0.15f;
+    let framesPerQuarterNote = int (processor.frequency / 7);
+
+    float phase;
+}
+
+faust stereoEcho
+{
+    import("stdfaust.lib");
+    
+    gain = hslider("gain", 0.5, 0, 1, 0.01);
+    feedback = hslider("feedback", 0.8, 0, 1, 0.01);
+ 
+    echo(del_sec, fb, g) = + ~ de.delay(50000, del_samples) * fb * g
+    with {
+        del_samples = del_sec*ma.SR;
+    };
+
+    process = echo(1.6, 0.6, 0.7), echo(0.7, feedback, gain);
+}
+
+graph sequence [[main]]
+{
+    // Events to control Faust Synth
+    input event float32 freq [[ name: "freq", path: "/addSynth/freq", min: 100.0f, max: 2000.0f, init: 500.0f, step: 0.01f, unit: "Hz" ]];
+    input event float32 volume [[ name: "volume", path: "/addSynth/volume", min: -96.0f, max: 0.0f, init: -20.0f, step: 0.100000001f, unit: "dB" ]];
+
+    // Events to control Faust Echo
+    input event float32 gain [[ name: "gain", path: "/stereoEcho/gain", min: 0.0f, max: 1.0f, init: 0.5, step: 0.01f ]];
+    input event float32 feedback [[ name: "feedback", path: "/stereoEcho/feedback", min: 0.0f, max: 1.0f, init: 0.8, step: 0.01f ]];
+
+    output stream float audioOut0;
+    output stream float audioOut1;
+
+    connection 
+    {
+        // Connect to Faust addSynth
+        volume -> addSynth.volume;
+        freq -> addSynth.freq;
+
+        // Connect to Faust stereoEcho
+        feedback -> stereoEcho.feedback;
+        gain -> stereoEcho.gain;
+
+        addSynth.output0 -> stereoEcho.input0;
+        ClassicRingtone.out -> stereoEcho.input1;
+
+        stereoEcho.output0 -> audioOut0;
+        stereoEcho.output1 -> audioOut1;
+    }
+}

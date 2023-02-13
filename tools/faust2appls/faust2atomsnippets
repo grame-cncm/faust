@@ -126,7 +126,7 @@ try:
         raise getopt.error("At least one file argument required")
 except getopt.error as e:
     print(e.msg)
-    print("usage: %s [-s][-t tabsize] file ..." % (sys.argv[0],))
+    print("usage: %s [-s] [-t tabsize] *.lib > faust-library.cson" % (sys.argv[0],))
     sys.exit(1)
 for optname, optvalue in opts:
     if optname == '-t':

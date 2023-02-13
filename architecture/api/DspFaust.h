@@ -5,15 +5,23 @@
  Copyright (C) 2014-2016 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
 
- This is sample code. This file is provided as an example of minimal
- FAUST architecture file. Redistribution and use in source and binary
- forms, with or without modification, in part or in full are permitted.
- In particular you can create a derived work of this FAUST architecture
- and distribute that work under terms of your choice.
-
- This sample code is distributed in the hope that it will be useful,
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
  ************************************************************************
  ************************************************************************/
 
@@ -68,16 +76,16 @@ class DspFaust
     public:
 
         //--------------`DspFaust(bool auto_connect = true)`----------------
-        // Default constructor, to be used wih audio drivers that impose their sample rate and buffer size (like JACK and JUCE).
+        // Default constructor for the static model, to be used wih audio drivers that impose their sample rate and buffer size (like JACK and JUCE).
         //
         // #### Arguments
         //
-        // * `auto_connect`: whether to automatically connect audio outpus to the hardware (usable with JACK)
+        // * `auto_connect`: whether to automatically connect audio outputs to the hardware (usable with JACK)
         //----
         DspFaust(bool auto_connect = true);
 
         //--------------`DspFaust(int SR, int BS, bool auto_connect = true)`----------------
-        // Constructor.
+        // Constructor for the static model.
         //
         // #### Arguments
         //
@@ -88,7 +96,7 @@ class DspFaust
         DspFaust(int SR, int BS, bool auto_connect = true);
 
         //--------------`DspFaust(const string& dsp_content, int SR, int BS, bool auto_connect = true)`----------------
-        // Constructor.
+        // Constructor for the dynamic model, using LLVM + JIT compilation.
         //
         // #### Arguments
         //
@@ -121,7 +129,7 @@ class DspFaust
         //--------------------------------------------------------
         bool isRunning();
 
-        //--------`long keyOn(int pitch, int velocity)`-----------
+        //--------`uintptr_t keyOn(int pitch, int velocity)`-----------
         // Instantiate a new polyphonic voice. This method can
         // only be used if the `-nvoices` flag has been
         // provided before compilation.
@@ -199,7 +207,7 @@ class DspFaust
         // #### Arguments
         //
         // * `count`: size of the message (1-3)
-        // * `time`: time stamp
+        // * `time`: time stamp in usec
         // * `type`: message type (byte)
         // * `channel`: channel number
         // * `data1`: first data byte (should be `null` if `count<2`)
@@ -233,11 +241,11 @@ class DspFaust
 
         //----`void setParamValue(const char* address, float value)`------
         // Set the value of one of the parameters of the Faust
-        // object in function of its address (path).
+        // object in function of its address (label/shortname/path).
         //
         // #### Arguments
         //
-        // * `address`: address (path) of the parameter
+        // * `address`: address (label/shortname/path) of the parameter
         // * `value`: value of the parameter
         //--------------------------------------------------------
         void setParamValue(const char* address, float value);
@@ -255,11 +263,11 @@ class DspFaust
 
         //----`float getParamValue(const char* address)`----------
         // Returns the value of a parameter in function of its
-        // address (path).
+        // address (label/shortname/path).
         //
         // #### Arguments
         //
-        // * `address`: address (path) of the parameter
+        // * `address`: address (label/shortname/path) of the parameter
         //--------------------------------------------------------
         float getParamValue(const char* address);
 
@@ -274,11 +282,11 @@ class DspFaust
 
         //----`void setVoiceParamValue(const char* address, uintptr_t voice, float value)`-----
         // Set the value of one of the parameters of the Faust
-        // object in function of its address (path) for a specific voice.
+        // object in function of its address (label/shortname/path) for a specific voice.
         //
         // #### Arguments
         //
-        // * `address`: address (path) of the parameter
+        // * `address`: address (label/shortname/path) of the parameter
         // * `voice`: address of the polyphonic voice (retrieved from `keyOn`)
         // * `value`: value of the parameter
         //--------------------------------------------------------
@@ -298,11 +306,11 @@ class DspFaust
 
         //----`float getVoiceParamValue(const char* address, uintptr_t voice)`----
         // Returns the value of a parameter in function of its
-        // address (path) for a specific voice.
+        // address (label/shortname/path) for a specific voice.
         //
         // #### Arguments
         //
-        // * `address`: address (path) of the parameter
+        // * `address`: address (label/shortname/path) of the parameter
         // * `voice`: address of the polyphonic voice (retrieved from `keyOn`)
         //--------------------------------------------------------
         float getVoiceParamValue(const char* address, uintptr_t voice);
@@ -314,13 +322,12 @@ class DspFaust
         // #### Arguments
         //
         // * `id`: id of the parameter
-        // * `voice`: address of the polyphonic voice (retrieved
-        // from `keyOn`)
+        // * `voice`: address of the polyphonic voice (retrieved from `keyOn`)
         //--------------------------------------------------------
         float getVoiceParamValue(int id, uintptr_t voice);
 
         //----`const char* getParamAddress(int id)`---------------
-        // Returns the address (path) of a parameter in function of its ID.
+        // Returns the address (label/shortname/path) of a parameter in function of its ID.
         //
         // #### Arguments
         //
@@ -329,7 +336,7 @@ class DspFaust
         const char* getParamAddress(int id);
 
         //----`const char* getVoiceParamAddress(int id, uintptr_t voice)`-----
-        // Returns the address (path) of a parameter in function of its ID.
+        // Returns the address (label/shortname/path) of a parameter in function of its ID.
         //
         // #### Arguments
         //
@@ -340,11 +347,11 @@ class DspFaust
 
         //-------`float getParamMin(const char* address)`---------
         // Returns the minimum value of a parameter in function of
-        // its address (path).
+        // its address (label/shortname/path).
         //
         // #### Arguments
         //
-        // * `address`: address (path) of the parameter
+        // * `address`: address (label/shortname/path) of the parameter
         //--------------------------------------------------------
         float getParamMin(const char* address);
 
@@ -360,11 +367,11 @@ class DspFaust
 
         //-------`float getParamMax(const char* address)`---------
         // Returns the maximum value of a parameter in function of
-        // its address (path).
+        // its address (label/shortname/path).
         //
         // #### Arguments
         //
-        // * `address`: address (path) of the parameter
+        // * `address`: address (label/shortname/path) of the parameter
         //--------------------------------------------------------
         float getParamMax(const char* address);
 
@@ -380,11 +387,11 @@ class DspFaust
 
         //-------`float getParamInit(const char* address)`---------
         // Returns the default value of a parameter in function of
-        // its address (path).
+        // its address (label/shortname/path).
         //
         // #### Arguments
         //
-        // * `address`: address (path) of the parameter
+        // * `address`: address (label/shortname/path) of the parameter
         //--------------------------------------------------------
         float getParamInit(const char* address);
 
@@ -400,11 +407,11 @@ class DspFaust
 
         //-----`const char* getMetadata(const char* address, const char* key)`-----
         // Returns the metadataof a parameter in function of
-        // its address (path) and the metadata key.
+        // its address (label/shortname/path) and the metadata key.
         //
         // #### Arguments
         //
-        // * `address`: address (path) of the parameter
+        // * `address`: address (label/shortname/path) of the parameter
         // * `key`: the metadata key
         //--------------------------------------------------------
         const char* getMetadata(const char* address, const char* key);
@@ -431,14 +438,14 @@ class DspFaust
         //--------------------------------------------------------
         void propagateAcc(int acc, float v);
 
-        //----`void setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)`-----
+        //----`void setAccConverter(int id, int acc, int curve, float amin, float amid, float amax)`-----
         // Set the conversion curve for the accelerometer.
         //
         // #### Arguments
         //
         // * `id`: the UI parameter id
         // * `acc`: the accelerometer axis (**0**: x, **1**: y, **2**: z)
-        // * `curve`: the curve (**0**: up, **1**: down, **2**: up and down)
+        // * `curve`: the curve (**0**: up, **1**: down, **2**: up and down, **2**: down and up)
         // * `amin`: mapping min point
         // * `amid`: mapping middle point
         // * `amax`: mapping max point
@@ -456,14 +463,14 @@ class DspFaust
         //--------------------------------------------------------
         void propagateGyr(int gyr, float v);
 
-        //----`void setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax)`-----
+        //----`void setGyrConverter(int id, int gyr, int curve, float amin, float amid, float amax)`-----
         // Set the conversion curve for the gyroscope.
         //
         // #### Arguments
         //
         // * `id`: the UI parameter id
         // * `gyr`: the gyroscope axis (**0**: x, **1**: y, **2**: z)
-        // * `curve`: the curve (**0**: up, **1**: down, **2**: up and down)
+        // * `curve`: the curve (**0**: up, **1**: down, **2**: up and down, **2**: down and up)
         // * `amin`: mapping min point
         // * `amid`: mapping middle point
         // * `amax`: mapping max point
@@ -493,6 +500,11 @@ class DspFaust
         //-----------------------------------------
         bool isOSCOn();
     
+        //----------`int getScreenColor()`---------------
+        // Get the requested screen color.
+        // -1 means no screen color control (no screencolor metadata found)
+        // otherwise return 0x00RRGGBB a ready to use color
+        //-----------------------------------------
         int getScreenColor();
 };
 

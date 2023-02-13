@@ -14,20 +14,29 @@
 SRC="0"
 ARCHFILE=$FAUSTARCH/jack.rs
 
+echoHelp()
+{
+    usage faust2jackrust "[options] [Faust options] <file.dsp>"
+    echo "Compiles Faust programs to JACK and Rust binary"
+    option
+    option -source "only generates the source project."
+    option "Faust options"
+}
+
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
 #PHASE 2 : dispatch command arguments
 while [ $1 ]
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2jackrust "[options] [Faust options] <file.dsp>"
-        echo "Compiles Faust programs to JACK and Rust binary"
-        option
-        option -source "only generates the source project."
-        option "Faust options"
-    fi
-
-    if [ $p = "-source" ]; then
+        echoHelp
+    elif [ $p = "-source" ]; then
         SRC="1"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
@@ -63,8 +72,18 @@ for p in $FILES; do
     faust -a $ARCHFILE -lang rust $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/src/main.rs"
 
     # add dependencies
-    echo "jack = \"0.5.3\"" >> "$SRCDIR/$dspName/Cargo.toml"
-    echo "libm = \"*\"" >> "$SRCDIR/$dspName/Cargo.toml"
+    cat <<EOT >> "$SRCDIR/$dspName/Cargo.toml"
+jack = "0.5.3"
+libm = "*"
+
+[dependencies.default-boxed]
+version = "0.2.0"
+optional = true
+
+[features]
+default = ["default-boxed"]
+default-boxed = ["dep:default-boxed"]
+EOT
 
     # build the project
     if [ $SRC = "0" ]; then

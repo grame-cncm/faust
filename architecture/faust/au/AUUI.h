@@ -37,18 +37,16 @@
  the corresponding license.
  ************************************************************************/
 
-#include <set>
+#include <vector>
 
 #include "faust/gui/UI.h"
 #include "faust/gui/MetaDataUI.h"
-
-using namespace std;
 
 class auUI;
 
 struct auUIObject {
     
-    string fLabel;
+    std::string fLabel;
     FAUSTFLOAT* fZone;
     
     FAUSTFLOAT range(FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT val)
@@ -121,7 +119,7 @@ struct auToggleButton: public auUIObject {
 };
 
 /**********************************************************************************/
-struct auCheckButton: public auUIObject {
+struct auCheckButton : public auUIObject {
     
     auCheckButton(const char* label, FAUSTFLOAT* zone) :
     auUIObject(label, zone)
@@ -236,7 +234,7 @@ struct auBargraph: public auUIObject {
 
 struct auBox: public auUIObject {
     
-	vector<auUIObject*> fChildren;
+	std::vector<auUIObject*> fChildren;
     bool fIsVertical;
     auBox* parent;
     
@@ -257,10 +255,9 @@ struct auBox: public auUIObject {
 /**********************************************************************************/
 //eunum Direction {HORIZONTAL, VERTICAL}; //TODO
 
-struct auUI: public UI, public MetaDataUI {
+struct auUI : public UI, public MetaDataUI {
     
-	vector<auUIObject*> fUITable;
-    
+	std::vector<auUIObject*> fUITable;
     auBox* currentBox = NULL;
     auBox* boundingBox = NULL;
     
@@ -271,7 +268,7 @@ struct auUI: public UI, public MetaDataUI {
     
 	virtual ~auUI()
     {
-		for (vector<auUIObject*>::iterator iter = fUITable.begin();
+		for (std::vector<auUIObject*>::iterator iter = fUITable.begin();
             iter != fUITable.end(); iter++)
 			delete *iter;
         // TODO delete boxes

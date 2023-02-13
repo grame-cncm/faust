@@ -28,15 +28,15 @@ for p in $@; do
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 done
 
 #-------------------------------------------------------------------
-# compile the *.dsp files 
+# compile the *.dsp files
 
 for f in $FILES; do
-    
+
     # compile faust to c++
     faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 

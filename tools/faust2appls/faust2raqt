@@ -14,12 +14,14 @@
 CXXFLAGS+=" $MYGCCFLAGS"  # So that additional CXXFLAGS can be used
 
 ARCHFILE=$FAUSTARCH/ra-qt.cpp
-ARCHLIB="-L/usr/local/lib -lrtaudio"
+ARCHLIB="$(pkg-config --libs rtaudio || echo -L/usr/local/lib -lrtaudio)"
+CXXFLAGS+=" $(pkg-config --cflags rtaudio || true)"
+
 
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
 
-QMAKE=$(which qmake-qt4 || echo qmake) 
+QMAKE=$(which qmake-qt4 || echo qmake)
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -27,8 +29,24 @@ QMAKE=$(which qmake-qt4 || echo qmake)
 # existing *.dsp files          -> FILES
 #
 
-#PHASE 2 : dispatch command arguments
+echoHelp()
+{
+    usage faust2raqt "[options] [Faust options] <file.dsp>"
+    require QT
+    echo "Compiles Faust programs to RtAudio and QT"
+    option
+    options -httpd -osc -midi -qrcode -poly -nodeploy
+    option "Faust options"
+    exit
+}
 
+if [ "$#" -eq 0 ]; then
+    echo 'Please, provide a Faust file to process !'
+    echo ''
+    echoHelp
+fi
+
+#PHASE 2 : dispatch command arguments
 OSCINC=""
 QTDEFS=""
 OSCLIB=""
@@ -36,16 +54,8 @@ DEPLOY="yes"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        usage faust2raqt "[options] [Faust options] <file.dsp>"
-        require Qt
-        echo "Compiles Faust programs to RtAudio and QT"
-        option
-        options -httpd -osc -midi -qrcode -poly -nodeploy
-        option "Faust options"
-        exit
-    fi
-    
-    if [ $p = "-poly" ]; then
+        echoHelp
+    elif [ $p = "-poly" ]; then
         POLYDEFS="DEFINES += POLY"
     elif [ $p = "-midi" ]; then
         MIDIDEFS="DEFINES += MIDICTRL"
@@ -54,7 +64,7 @@ for p in $@; do
         OSCLIBS="-lOSCFaust"
     elif [ "$p" = "-httpd" ]; then
         HTTPDEFS="DEFINES += HTTPCTRL"
-        HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+        HTTPLIBS="-lHTTPDFaust"
         HTTPLIBS1=`pkg-config --cflags --libs libmicrohttpd`
     elif [ $p = "-nodeploy" ]; then
         DEPLOY="no"
@@ -65,7 +75,7 @@ for p in $@; do
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"
     else
-        OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
     fi
 done
 
@@ -79,7 +89,7 @@ if [[ $(uname) == Darwin ]]; then
     if [ $SYS_VERSION -gt 12 ]
     then
         SPEC=""
-        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
+        CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"
         CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
     else
         SPEC="-spec macx-g++"
@@ -104,14 +114,14 @@ for p in $FILES; do
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
 
-    # creates a temporary dir 
+    # creates a temporary dir
     TDR=$(mktemp -d faust.XXX)
     TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
 
     # compile faust to c++
      faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
-  
+
     # compile c++ to binary
     (
         cd "$TMP"
@@ -119,7 +129,7 @@ for p in $FILES; do
         $QMAKE $SPEC QMAKE_CFLAGS_ISYSTEM=-I
         make
     ) > /dev/null || exit
-     
+
     # on Mac add the QT libraries to the bundle
     if [[ $(uname) == Darwin ]]; then
         if [ "$DEPLOY" = "yes" ]; then

@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -33,7 +33,7 @@ class P {
     T* p;
 
    public:
-    P() : p(0) {}
+    P() : p(nullptr) {}
     P(T* rawptr) : p(rawptr) {}
     P(const P& ptr) : p((T*)ptr) {}
 
@@ -44,18 +44,20 @@ class P {
 
     ~P() {}
 
-       operator T*() const { return p; }
+    operator T*() const { return p; }
     T& operator*() const
     {
-        if (p == 0) {
-            throw faustexception("ERROR : null dereference in P<?>::operator*() const \n");
+        if (p == nullptr) {
+            std::cerr << "ASSERT : null dereference in P<?>::operator*() const \n";
+            faustassert(false);
         }
         return *p;
     }
     T* operator->() const
     {
-        if (p == 0) {
-            throw faustexception("ERROR : null dereference in P<?>::operator->() const \n");
+        if (p == nullptr) {
+            std::cerr << "ASSERT : null dereference in P<?>::operator->() const \n";
+            faustassert(false);
         }
         return p;
     }

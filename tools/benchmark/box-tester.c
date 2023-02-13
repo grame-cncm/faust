@@ -113,6 +113,7 @@ static Box phasor(Box f)
 
 static void test1()
 {
+    printf("test1\n");
     createLibContext();
     {
         Box box = phasor(CboxReal(2000));
@@ -156,6 +157,7 @@ static Box osc(Box f)
 
 static void test2()
 {
+    printf("test2\n");
     createLibContext();
     {
         Box box = CboxPar(osc(CboxReal(440.0)), osc(CboxReal(440.0)));
@@ -193,6 +195,7 @@ static void test2()
 
 static void test3()
 {
+    printf("test3\n");
     createLibContext();
     {
         Box freq = CboxVSlider("h:Oscillator/freq", CboxReal(440), CboxReal(50), CboxReal(1000), CboxReal(0.1));
@@ -225,11 +228,87 @@ static void test3()
     destroyLibContext();
 }
 
-int main(int argc, char* argv[])
+// Compile a complete DSP program to a box expression, then use the result in another expression
+static void test4()
+{
+    printf("test4\n");
+    createLibContext();
+    {
+        int inputs = 0;
+        int outputs = 0;
+        char error_msg[4096];
+        
+        // Create the filter without parameter
+        Box filter = CDSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = fi.lowpass(5);", 0, NULL, &inputs, &outputs, error_msg);
+        
+        // Create the filter parameters and connect
+        Box cutoff = CboxHSlider("cutoff", CboxReal(300), CboxReal(100), CboxReal(2000), CboxReal(0.01));
+        Box cutoffAndInput = CboxPar(cutoff, CboxWire());
+        Box filteredInput = CboxSeq(cutoffAndInput, filter);
+        
+        CgetBoxType(filteredInput, &inputs, &outputs);
+        printf("CgetBoxType inputs: %d outputs: %d\n", inputs, outputs);
+        
+        llvm_dsp_factory* factory = createCDSPFactoryFromBoxes("test4", filteredInput, 0, NULL, "", error_msg, -1);
+        if (factory) {
+            
+            llvm_dsp* dsp = createCDSPInstance(factory);
+            assert(dsp);
+            
+            printf("=================UI=================\n");
+            
+            // Defined in PrintCUI.h
+            metadataCDSPInstance(dsp, &mglue);
+            
+            buildUserInterfaceCDSPInstance(dsp, &uglue);
+            
+            // Cleanup
+            deleteCDSPInstance(dsp);
+            deleteCDSPFactory(factory);
+            
+        } else {
+            printf("Cannot create factory : %s\n", error_msg);
+        }
+    }
+    destroyLibContext();
+}
+
+// Compile a complete DSP program to a box expression, then to a source string
+static void test5()
+{
+    printf("test25\n");
+    const char* lang[] = { "c", "cpp", "cmajor", "csharp", "dlang", "interp", "jax", "julia", "rust", "wast" };
+    // Context has to be created/destroyed each time
+    for (int i = 0; i < 10; i++) {
+        createLibContext();
+        {
+            int inputs = 0;
+            int outputs = 0;
+            char error_msg[4096];
+            
+            // Create the oscillator
+            Box osc = CDSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", 0, NULL, &inputs, &outputs, error_msg);
+            
+            // Compile it
+            char* source = CcreateSourceFromBoxes("FaustDSP", osc, lang[i], 0, NULL, error_msg);
+            if (source) {
+                printf("%s\n", source);
+                freeCMemory(source);
+            } else {
+                printf("%s\n", error_msg);
+            }
+        }
+        destroyLibContext();
+    }
+}
+
+int main(int argc, const char* argv[])
 {
     test1();
     test2();
     test3();
+    test4();
+    test5();
     
     return 0;
 }

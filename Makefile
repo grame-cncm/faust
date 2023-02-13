@@ -1,4 +1,4 @@
-version := 2.40.6
+version := 2.58.1
 
 system	?= $(shell uname -s)
 
@@ -123,7 +123,8 @@ help :
 	@echo " 'libsall'       : builds the Faust compiler (without the LLVM backend) and includes all the static and dynamic libraries"
 	@echo
 	@echo " 'install'       : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/share/faust $(prefix)/include/faust"
-	@echo " 'clean'         : remove all object files"
+	@echo " 'clean'         : remove all object files (but keep build configurations)"
+	@echo " 'distclean'     : clean everything by removing the build/faustdir folder"
 	@echo 
 	@echo "Other targets"
 	@echo " 'debug'         : similar to 'all' target but with debug info. Output is in $(BUILDLOCATION)/$(DEBUGFOLDER)"
@@ -173,6 +174,8 @@ clean :
 	$(MAKE) -C tools/sound2faust clean
 	$(MAKE) -C tools/benchmark clean
 
+distclean :
+	rm -rf build/faustdir
 
 doc: $(wildcard compiler/*.cpp) $(wildcard compiler/*/*.cpp) $(wildcard compiler/*/*.h) $(wildcard compiler/*/*.hh)
 	cd documentation/libfaust && doxygen

@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -21,6 +21,8 @@
 
 #include "cpp_gpu_code_container.hh"
 #include "fir_to_fir.hh"
+
+using namespace std;
 
 static void tab1(int n, ostream& fout)
 {
@@ -73,7 +75,7 @@ void CPPOpenCLCodeContainer::produceInternal()
     // Input method
     tab(n + 1, *fOut);
     // TO CHECK
-    produceInfoFunctions(n + 1, fKlassName, "dsp", false, false, fCodeProducer);
+    produceInfoFunctions(n + 1, fKlassName, "dsp", false, FunTyped::kDefault, fCodeProducer);
 
     // Inits
     tab(n + 1, *fOut);
@@ -845,7 +847,7 @@ void CPPOpenCLCodeContainer::produceClass()
     tab(n + 1, *fOut);
 
     // TO CHECK
-    produceInfoFunctions(n + 1, fKlassName, "dsp", false, true, fCodeProducer);
+    produceInfoFunctions(n + 1, fKlassName, "dsp", false, FunTyped::kVirtual, fCodeProducer);
 
     // Inits
     tab(n + 1, *fOut);
@@ -1051,7 +1053,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     // Generate : int count = min(32, (fullcount - index))
     ValueInst*       init1 = InstBuilder::genLoadFunArgsVar(counter);
     ValueInst*       init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
-    list<ValueInst*> min_fun_args;
+    Values min_fun_args;
     min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
     ValueInst*      init3     = InstBuilder::genFunCallInst("min", min_fun_args);
@@ -1059,7 +1061,7 @@ void CPPOpenCLVectorCodeContainer::generateComputeKernel(int n)
     loop_code->pushBackInst(count_dec);
 
     // Generates get_global_id access
-    list<ValueInst*> args;
+    Values args;
     args.push_back(InstBuilder::genInt32NumInst(0));
     loop_code->pushBackInst(InstBuilder::genDecStackVar("tasknum", InstBuilder::genInt32Typed(),
                                                         InstBuilder::genFunCallInst("get_global_id", args)));
@@ -1140,7 +1142,7 @@ void CPPCUDACodeContainer::produceInternal()
 
     tab(n + 1, *fOut);
     // TO CHECK
-    produceInfoFunctions(n + 1, fKlassName, "dsp", false, false, fCodeProducer);
+    produceInfoFunctions(n + 1, fKlassName, "dsp", false, FunTyped::kDefault, fCodeProducer);
 
     // Inits
     tab(n + 1, *fOut);
@@ -1793,7 +1795,7 @@ void CPPCUDACodeContainer::produceClass()
     tab(n + 1, *fOut);
 
     // TO CHECK
-    produceInfoFunctions(n + 1, fKlassName, "dsp", false, true, fCodeProducer);
+    produceInfoFunctions(n + 1, fKlassName, "dsp", false, FunTyped::kVirtual, fCodeProducer);
 
     // Inits
     tab(n + 1, *fOut);
@@ -1986,7 +1988,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     // Generate : int count = min(32, (fullcount - index))
     ValueInst*       init1 = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress(counter, Address::kFunArgs));
     ValueInst*       init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
-    list<ValueInst*> min_fun_args;
+    Values min_fun_args;
     min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
     ValueInst*      init3     = InstBuilder::genFunCallInst("min", min_fun_args);
@@ -1994,7 +1996,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     loop_code->pushBackInst(count_dec);
 
     // Generates get_global_id access
-    list<ValueInst*> args;
+    Values args;
     args.push_back(InstBuilder::genInt32NumInst(0));
 
     /*

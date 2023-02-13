@@ -1,20 +1,27 @@
 /************************************************************************
-************************************************************************
-FAUST Architecture File
-Copyright (C) 2017-2020 GRAME, Centre National de Creation Musicale
----------------------------------------------------------------------
-
-This is sample code. This file is provided as an example of minimal
-FAUST architecture file. Redistribution and use in source and binary
-forms, with or without modification, in part or in full are permitted.
-In particular you can create a derived work of this FAUST architecture
-and distribute that work under terms of your choice.
-
-This sample code is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-************************************************************************
-************************************************************************/
+ FAUST Architecture File
+ Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ 
+ ************************************************************************
+ ************************************************************************/
 
 #![allow(unused_parens)]
 #![allow(non_snake_case)]
@@ -101,7 +108,17 @@ fn main() {
     let (client, _status) = j::Client::new("faust_rust", j::client_options::NO_START_SERVER).unwrap();
 
     // Allocation DSP on the heap
-    let mut dsp = Box::new(mydsp::new());
+    let mut dsp;
+    #[cfg(feature = "default-boxed")]
+    {
+        use default_boxed::DefaultBoxed;
+        dsp = mydsp::default_boxed();
+    }
+
+    #[cfg(not(feature = "default-boxed"))]
+    {
+        dsp = Box::new(mydsp::new());
+    }
 
     println!("Faust Rust code running with JACK: sample-rate = {} buffer-size = {}", client.sample_rate(), client.buffer_size());
 

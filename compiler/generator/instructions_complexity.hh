@@ -4,16 +4,16 @@
     Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation; either version 2.1 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+    GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received a copy of the GNU Lesser General Public License
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
@@ -21,8 +21,6 @@
 
 #ifndef _INSTRUCTIONS_COMPLEXITY_H
 #define _INSTRUCTIONS_COMPLEXITY_H
-
-using namespace std;
 
 #include <iostream>
 #include <list>
@@ -47,8 +45,8 @@ class InstComplexityVisitor : public DispatchVisitor {
     int fSelect;
     int fLoop;
   
-    map<string, int> gFunctionSymbolTable;
-    map<string, int> gBinopSymbolTable;
+    std::map<std::string, int> gFunctionSymbolTable;
+    std::map<std::string, int> gBinopSymbolTable;
 
    public:
     using DispatchVisitor::visit;
@@ -75,7 +73,11 @@ class InstComplexityVisitor : public DispatchVisitor {
         DispatchVisitor::visit(inst);
     }
 
-    virtual void visit(LoadVarInst* inst) { fLoad++; }
+    virtual void visit(LoadVarInst* inst)
+    {
+        fLoad++;
+        DispatchVisitor::visit(inst);
+    }
     virtual void visit(StoreVarInst* inst)
     {
         fStore++;
@@ -90,14 +92,12 @@ class InstComplexityVisitor : public DispatchVisitor {
     virtual void visit(BinopInst* inst)
     {
         fBinop++;
-        TypingVisitor typing1;
-        inst->fInst1->accept(&typing1);
-        TypingVisitor typing2;
-        inst->fInst2->accept(&typing2);
-        if (isRealType(typing1.fCurType) || isRealType(typing1.fCurType)) {
-            gBinopSymbolTable["Real(" + string(gBinOpTable[inst->fOpcode]->fName) + ")"]++;
+        Typed::VarType type1 = TypingVisitor::getType(inst->fInst1);
+        Typed::VarType type2 = TypingVisitor::getType(inst->fInst2);
+        if (isRealType(type1) || isRealType(type2)) {
+            gBinopSymbolTable["Real(" + std::string(gBinOpTable[inst->fOpcode]->fName) + ")"]++;
         } else {
-            gBinopSymbolTable["Int(" + string(gBinOpTable[inst->fOpcode]->fName) + ")"]++;
+            gBinopSymbolTable["Int(" + std::string(gBinOpTable[inst->fOpcode]->fName) + ")"]++;
         }
         DispatchVisitor::visit(inst);
     }
@@ -162,7 +162,7 @@ class InstComplexityVisitor : public DispatchVisitor {
         DispatchVisitor::visit(inst);
     }
 
-    void dump(ostream* dst)
+    void dump(std::ostream* dst)
     {
         *dst << "Instructions complexity : ";
         *dst << "Load = " << fLoad << " Store = " << fStore;
