@@ -350,7 +350,6 @@ Example : faust2tidalcycles -p 1 /myFaustDSPdir/MyEffect.dsp
 
 faust2tidalcycles create package files in your DSP location
 
-R.><]]]^>
     '''
 
     argument_beautify = ', '.join(argument_list)
@@ -397,7 +396,6 @@ def glober(pattern:str):
     |    Coresynths   |
     |  ,----------------
     \_/_______________/
-
 """
 
 def cs_placeholder_filler(cs_filling : str):
