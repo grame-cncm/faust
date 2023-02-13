@@ -64,7 +64,6 @@ def car_filtor (oldlist : list, dspname : str) :
             td_new_list.append(x)
     return td_new_list
 
-
 def parameter_gatherer(data):
     """ JSON Parameter extractor """
     parameter_list = []
@@ -85,7 +84,6 @@ def find_file(file_name, directory_name):
                 file_path = os.path.join(path,name)
                 files_found.append(file_path)
     return files_found
-
 
     ###installer prog
 
@@ -186,7 +184,6 @@ def cs_inject_new_definition(text_content: str, filepath: str):
     \_/_______________/
 """
 
-
 def cm_placeholder_filler(synth_name: str, argument_list: list):
     """ Inserting arguments in placeholder """
     template = '''\n~dirt.addModule('{synth_name}',
@@ -219,7 +216,6 @@ def cm_find_penultimate_occurence(filepath: str, pattern: str):
 
     return penultimate_occurence
 
-
 def cm_inject_new_definition(text_content: str, filepath: str):
     """ Inject new definition in core-modules.scd """
     index = cm_find_penultimate_occurence(filepath, pattern=");")
@@ -248,7 +244,6 @@ def cm_inject_new_definition(text_content: str, filepath: str):
     \_/______________/
 """
 
-
 def bt_placeholder_filler(synth_name: str, argument_list: list):
     """ Inserting arguments in placeholder SynthDef """
     template = '''\n:{{\nlet\n     {parameters}
@@ -271,7 +266,6 @@ def bt_find_penultimate_occurence(filepath: str, pattern: str):
                 penultimate_occurence = index
 
     return penultimate_occurence
-
 
 def bt_inject_new_definition(text_content: str, filepath: str):
     """ Inject new definition in boottidal """
@@ -301,8 +295,6 @@ def bt_inject_new_definition(text_content: str, filepath: str):
     \_/______________/
 """
 
-
-
 def help_placeholder_filler(synth_name: str, c_synth_name: str, argument_list: list, nb_inputs : int, nb_outputs : int):
     """ Creating the help file template """
     template = '''
@@ -316,10 +308,9 @@ you need to have faust installed on your computer.
 
 faust2tidalcycles has two arguments
 
-(optional)-p 1 , to create the package, 0 == no package, 0 by default
+(optional)-p 1, to create the package, 0 == no package, 0 by default
 (necessary in automatic installation mode)-i BootTidalPath, path to your BootTidal.hs
 inputdsp : path to your DSP
-
 
 Currently the effect you want to add is named : {c_synth_name}.
 And all his parameters are : {argument_list}.
@@ -329,7 +320,7 @@ The number of outputs is : {nb_outputs}.
 /automatic_installation\
 
 The real interesting thing is the automatic installation,
-just run the python program faust2tidalcycles with two argument :
+just run the python program faust2tidalcycles with two arguments :
 
 -i : the path to your BootTidal.hs
 inputdsp : path to your DSP
@@ -370,7 +361,6 @@ import os
 import glob
 import pathlib
 
-
 def namesearcher(ext : str, dos : str):
 
     fileDir = r""+os.getcwd()+dos
@@ -389,7 +379,6 @@ def opener(path : str) :
 def glober(pattern:str):
     targetPattern = r+pattern
     return glob.glob(targetPattern)
-
 
 """
  / \------------------,
@@ -444,9 +433,6 @@ def cs_inject_new_definition(text_content: str, filepath: str):
     \_/_______________/
 """
 
-
-
-
 def cm_placeholder_filler(cm_filling : str):
     """ Inserting text in placeholder SynthDef """
     template = "{{cm_filling}}"
@@ -462,7 +448,6 @@ def cm_find_penultimate_occurence(filepath: str, pattern: str):
                 penultimate_occurence = index
 
     return penultimate_occurence
-
 
 def cm_inject_new_definition(text_content: str, filepath: str):
     """ Inject new definition in core-modules.scd """
@@ -507,7 +492,6 @@ def bt_find_penultimate_occurence(filepath: str, pattern: str):
 
     return penultimate_occurence
 
-
 def bt_inject_new_definition(text_content: str, filepath: str):
     """ Inject new definition in boottidal """
     index = bt_find_penultimate_occurence(filepath, pattern=":}}")
@@ -528,9 +512,6 @@ def bt_inject_new_definition(text_content: str, filepath: str):
 
     return True
 
-
-
-
 def find_file(file_name, directory_name):
     files_found = []
     for path, subdirs, files in os.walk(directory_name):
@@ -550,7 +531,6 @@ if __name__ == "__main__":
     )
 
     parser.add_argument("boottidalloc", help="Your BootTidal.hs path, it's never where you think it is, be careful")
-
 
     args, unknownargs = parser.parse_known_args()
 
@@ -604,21 +584,13 @@ if __name__ == "__main__":
 
     return template.format(synth_name=synth_name)
 
-
-
 def filecreator(filename : str, cont : str) :
     myFile = open(filename, "w+")
-
     myFile.write(cont)
-
     myFile.close()
-
     return myFile
 
-
-
 if __name__ == "__main__":
-
 
     import argparse
     import tempfile
@@ -628,20 +600,16 @@ if __name__ == "__main__":
     )
 
     parser.add_argument("-p", "--package", help="Create the Package : 1==make package / 0 == no package, 0 by default", type=int, choices=[0,1])
-
     parser.add_argument("-i", "--boottidalloc", help="Path to boot tidal for the installation")
-
     parser.add_argument("inputdsp", help="A Faust .dsp file to be used")
-
+    
     args, unknownargs = parser.parse_known_args()
 
     # Flatten list of arguments to one string
     unknownargs = " ".join(unknownargs)
     faustflags = unknownargs or ""
 
-
     packarg = args.package or 0
-
     pathDSP = os.path.dirname(os.path.abspath(args.inputdsp))
 
 ##FAUST2SC
@@ -664,11 +632,7 @@ if __name__ == "__main__":
             param = list(flatten(param))
             param = car_filtor(param, my_name)
 
-
-
-
     if (packarg) == 0:
-
 
     #coresynth
 
@@ -682,7 +646,7 @@ if __name__ == "__main__":
                   argument_list = param)
         cs_inject_new_definition(text_content=new_def, filepath=cs_FILEPATH)
 
-#coremodules
+	#coremodules
 
         cm_FILEPATH = ''.join(find_file('core-modules.scd', os.environ['HOME']+'/.local/share/SuperCollider'))
         print("the path to core-modules.scd : ")
@@ -692,7 +656,7 @@ if __name__ == "__main__":
                   argument_list = param)
         cm_inject_new_definition(text_content=new_def, filepath=cm_FILEPATH)
 
-#boottidal
+	#boottidal
 
         bt_FILEPATH = args.boottidalloc
         print("the path to BootTidal.hs : ")
@@ -702,8 +666,7 @@ if __name__ == "__main__":
                   argument_list = param)
         bt_inject_new_definition(text_content=new_def, filepath=bt_FILEPATH)
 
-
-    #move .sc .so
+	#move .sc .so
         os.mkdir( os.environ['HOME']+"/.local/share/SuperCollider/Extensions/" + "Faust" + '_'+ my_name)
         os.mkdir( os.environ['HOME']+"/.local/share/SuperCollider/Extensions/" + "Faust" + '_'+ my_name + "/Classes")
         scpath=  os.environ['HOME']+"/.local/share/SuperCollider/Extensions/" + "Faust" + '_'+ my_name + "/Classes"
@@ -711,14 +674,11 @@ if __name__ == "__main__":
         shutil.move(str(namesearcher(".sc","")), str(scpath))
         shutil.move(str(namesearcher(".so","")), str(sopath))
 
-
-#json
+	#json
 
 # Opening JSON file
 
-
     elif (packarg) == 1:
-
 
         os.mkdir(pathDSP+"/"+my_name+'.files2add')
 
@@ -732,7 +692,6 @@ if __name__ == "__main__":
 
 #coremodules
 
-
         new_def = cm_placeholder_filler(synth_name = my_name,
                   argument_list = param)
         filecreator(filename = pathDSP+"/"+my_name+".files2add/"+my_name+".core-modules",
@@ -740,14 +699,12 @@ if __name__ == "__main__":
 
 #boottidal
 
-
         new_def = bt_placeholder_filler(synth_name = my_name,
                   argument_list = param)
         filecreator(filename = pathDSP+"/"+my_name+".files2add/"+my_name+".BootTidal",
                     cont=new_def)
 
 #HelpFile
-
 
         new_def = help_placeholder_filler(synth_name = my_name,
                   c_synth_name = my_name.capitalize(),
@@ -759,10 +716,6 @@ if __name__ == "__main__":
 
 #pyFile
 
-
         new_def = py_placeholder_filler(synth_name = my_name)
         filecreator(filename = pathDSP+"/"+my_name +".faust2tidalcycles_installer.py",
                     cont=new_def)
-
-
-
