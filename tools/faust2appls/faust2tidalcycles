@@ -350,6 +350,7 @@ Example : faust2tidalcycles -p 1 /myFaustDSPdir/MyEffect.dsp
 
 faust2tidalcycles create package files in your DSP location
 
+R.><]]]^>
     '''
 
     argument_beautify = ', '.join(argument_list)
@@ -396,6 +397,7 @@ def glober(pattern:str):
     |    Coresynths   |
     |  ,----------------
     \_/_______________/
+
 """
 
 def cs_placeholder_filler(cs_filling : str):
@@ -644,7 +646,7 @@ if __name__ == "__main__":
 
 ##FAUST2SC
 
-    cmd = "faust2supercollider -json "+args.inputdsp
+    cmd = "faust2supercollider -json -noprefix "+args.inputdsp
 
     os.system(cmd)
     time.sleep(2.5)
@@ -761,6 +763,5 @@ if __name__ == "__main__":
         new_def = py_placeholder_filler(synth_name = my_name)
         filecreator(filename = pathDSP+"/"+my_name +".faust2tidalcycles_installer.py",
                     cont=new_def)
-
 
 
