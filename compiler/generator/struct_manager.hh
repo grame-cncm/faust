@@ -40,31 +40,41 @@ struct MemoryDesc {
     int fSize;              // Size in frames
     int fSizeBytes;         // Size in bytes
     Typed::VarType fType;   // FIR type
+    bool fIsConst;          // True when constant
+    bool fIsControl;        // True when control (slider, nentry, buttons, checkbox, bargraph)
     memType fMemType;       // Memory type
 
     MemoryDesc() : fIndex(-1), fOffset(-1),
         fIntOffset(-1), fRealOffset(-1),
         fRAccessCount(0), fWAccessCount(0),
         fSize(-1), fSizeBytes(-1),
-        fType(Typed::kNoType), fMemType(kLocal) {}
+        fType(Typed::kNoType),
+        fIsConst(false), fIsControl(false),
+        fMemType(kLocal) {}
 
     MemoryDesc(int index, int offset, int size, int size_bytes, Typed::VarType type)
     : fIndex(index), fOffset(offset),
         fIntOffset(-1), fRealOffset(-1),
         fRAccessCount(0), fWAccessCount(0),
         fSize(size), fSizeBytes(size_bytes),
-        fType(type), fMemType(kLocal) {}
+        fType(type),
+        fIsConst(false), fIsControl(false),
+        fMemType(kLocal) {}
  
     MemoryDesc(int index, int offset,
                int int_offset, int real_offset,
                int size, int size_bytes,
                Typed::VarType type,
+               bool is_const,
+               bool is_control,
                memType mem_type = kLocal)
         : fIndex(index), fOffset(offset),
         fIntOffset(int_offset), fRealOffset(real_offset),
         fRAccessCount(0), fWAccessCount(0),
         fSize(size), fSizeBytes(size_bytes),
-        fType(type), fMemType(mem_type) {}
+        fType(type),
+        fIsConst(is_const), fIsControl(is_control),
+        fMemType(mem_type) {}
     
     Typed* getTyped()
     {
@@ -227,7 +237,8 @@ struct StructInstVisitor : public DispatchVisitor {
                                                                  getStructRealSize(),
                                                                  array_typed->fSize,
                                                                  array_typed->getSizeBytes(),
-                                                                 type)));
+                                                                 type,
+                                                                 false, false)));
                 if (type == Typed::kInt32) {
                     fStructIntOffset += array_typed->getSizeBytes();
                 } else {
@@ -245,7 +256,9 @@ struct StructInstVisitor : public DispatchVisitor {
                                                                  getStructRealSize(),
                                                                  1,
                                                                  inst->fType->getSizeBytes(),
-                                                                 inst->fType->getType())));
+                                                                 inst->fType->getType(),
+                                                                 isConst(name),
+                                                                 isControl(name))));
                 if (inst->fType->getType() == Typed::kInt32) {
                     fStructIntOffset += inst->fType->getSizeBytes();
                 } else {
@@ -315,6 +328,7 @@ struct StructInstVisitor1 : public StructInstVisitor {
                                                                      array_typed->fSize,
                                                                      array_typed->getSizeBytes(),
                                                                      type,
+                                                                     false, false,
                                                                      MemoryDesc::kExternal)));
                     
                     if (type == Typed::kInt32) {
@@ -332,6 +346,7 @@ struct StructInstVisitor1 : public StructInstVisitor {
                                                                      array_typed->fSize,
                                                                      array_typed->getSizeBytes(),
                                                                      type,
+                                                                     false, false,
                                                                      MemoryDesc::kLocal)));
                 }
             } else {
@@ -348,6 +363,8 @@ struct StructInstVisitor1 : public StructInstVisitor {
                                                                  1,
                                                                  inst->fType->getSizeBytes(),
                                                                  inst->fType->getType(),
+                                                                 isConst(name),
+                                                                 isControl(name),
                                                                  MemoryDesc::kLocal)));
             }
         }

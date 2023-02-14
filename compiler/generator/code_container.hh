@@ -62,8 +62,9 @@ struct SearchSubcontainer : public DispatchVisitor {
     }
 };
 
-// DSP or field name, type, size, sizeBytes, reads, writes
-typedef std::vector<std::tuple<std::string, int, int, int, int, int>> MemoryLayoutType;
+// DSP or field name, type, size, size-in-bytes, reads, writes
+typedef std::tuple<std::string, std::string, int, int, int, int> MemoryLayoutItem;
+typedef std::vector<MemoryLayoutItem> MemoryLayoutType;
 
 class CodeContainer : public virtual Garbageable {
    protected:

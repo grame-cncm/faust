@@ -425,14 +425,14 @@ void CodeContainer::processFIR(void)
                     // Subcontainer size
                     VariableSizeCounter struct_size(Address::kStruct);
                     it->generateDeclarations(&struct_size);
-                    fMemoryLayout.push_back(make_tuple(it->getClassName(), int(Typed::kNoType), 0, struct_size.fSizeBytes, 0, 0));
+                    fMemoryLayout.push_back(make_tuple(it->getClassName(), "kObj_ptr", 0, struct_size.fSizeBytes, 0, 0));
                     
                     // Get the associated table size and access
                     pair<string, int> field = gGlobal->gTablesSize[it->getClassName()];
                     
                     // Check the table name memory description
                     MemoryDesc& decs = struct_visitor.getMemoryDesc(field.first);
-                    fMemoryLayout.push_back(make_tuple(field.first, int(Typed::kNoType), 0, field.second, decs.fRAccessCount, 0));
+                    fMemoryLayout.push_back(make_tuple(field.first, Typed::gTypeString[decs.fType], 0, field.second, decs.fRAccessCount, 0));
                 }
             }
         }
@@ -464,7 +464,7 @@ void CodeContainer::processFIR(void)
             VariableSizeCounter struct_size(Address::kStruct);
             array_pointer.getCode(fDeclarationInstructions)->accept(&struct_size);
             fMemoryLayout.push_back(make_tuple(fKlassName,
-                                                int(Typed::kNoType),
+                                                "kObj_ptr",
                                                 0,
                                                 // Upper value : add virtual method pointer (8 bytes in 64 bits)
                                                 // + 8 bytes for memory alignment
@@ -474,10 +474,17 @@ void CodeContainer::processFIR(void)
             
             // Arrays inside the DSP object
             for (const auto& it : struct_visitor.getFieldTable()) {
-                // Arrays have size > 1
-                if (it.second.fSize > 1) {
+                if (it.second.fSize == 1 && !it.second.fIsControl) {
                     fMemoryLayout.push_back(make_tuple(it.first,
-                                                        int(it.second.fType),
+                                                       Typed::gTypeString[it.second.fType],
+                                                       it.second.fSize,
+                                                       it.second.fSizeBytes,
+                                                       it.second.fRAccessCount,
+                                                       it.second.fWAccessCount));
+                // Arrays have size > 1
+                } else if (it.second.fSize > 1) {
+                    fMemoryLayout.push_back(make_tuple(it.first,
+                                                        Typed::gTypeString[Typed::getPtrFromType(it.second.fType)],
                                                         it.second.fSize,
                                                         it.second.fSizeBytes,
                                                         it.second.fRAccessCount,
@@ -493,7 +500,7 @@ void CodeContainer::processFIR(void)
                 if (search_class.fFound) {
                     VariableSizeCounter struct_size(Address::kStruct);
                     it->generateDeclarations(&struct_size);
-                    fMemoryLayout.push_back(make_tuple(it->getClassName(), int(Typed::kNoType), 0, struct_size.fSizeBytes, 0, 0));
+                    fMemoryLayout.push_back(make_tuple(it->getClassName(), "kObj_ptr", 0, struct_size.fSizeBytes, 0, 0));
                 }
             }
         }

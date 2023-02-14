@@ -46,7 +46,9 @@
  * which are finally created in the JSON(...) method.
  ******************************************************************************/
 
-typedef std::vector<std::tuple<std::string, int, int, int, int, int>> MemoryLayoutType;
+// DSP or field name, type, size, size-in-bytes, reads, writes
+typedef std::tuple<std::string, std::string, int, int, int, int> MemoryLayoutItem;
+typedef std::vector<MemoryLayoutItem> MemoryLayoutType;
 typedef std::map<std::string, int> PathTableType;
 
 template <typename REAL>
@@ -464,12 +466,15 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
                     tab(fTab, JSON);
                     JSON << "\"memory_layout\": [";
                     for (size_t i = 0; i < fMemoryLayout.size(); i++) {
-                        // DSP or field name, type, size, sizeBytes, reads, writes
-                        std::tuple<std::string, int, int, int, int, int> item = fMemoryLayout[i];
+                        // DSP or field name, type, size, size-in-bytes, reads, writes
+                        MemoryLayoutItem item = fMemoryLayout[i];
                         tab(fTab + 1, JSON);
-                        JSON << "{\"size\": " << std::get<3>(item) << ", ";
-                        JSON << "\"reads\": " << std::get<4>(item) << ", ";
-                        JSON << "\"writes\": " << std::get<5>(item) << "}";
+                        JSON << "{\"name\": " << std::get<0>(item) << ", ";
+                        JSON << "\"type\": " << std::get<1>(item) << ", ";
+                        JSON << "\"size\": " << std::get<2>(item) << ", ";
+                        JSON << "\"size_bytes\": " << std::get<3>(item) << ", ";
+                        JSON << "\"read\": " << std::get<4>(item) << ", ";
+                        JSON << "\"write\": " << std::get<5>(item) << "}";
                         if (i < (fMemoryLayout.size() - 1)) JSON << ",";
                     }
                     tab(fTab, JSON);

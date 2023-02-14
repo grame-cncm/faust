@@ -34,15 +34,6 @@
 #include "instructions.hh"
 #include "type_manager.hh"
 
-// To check all control fields in the DSP structure
-inline bool isControl(const std::string& name)
-{
-    return startWith(name, "fButton") || startWith(name, "fCheckbox") || startWith(name, "fVslider") ||
-           startWith(name, "fHslider") || startWith(name, "fEntry") || startWith(name, "fVbargraph") ||
-           startWith(name, "fHbargraph") || name == "iControl" || name == "fControl" || name == "iZone" ||
-           name == "fZone" || name == "fSampleRate";
-}
-
 // Base class to textual visitor: C, C++, Cmajor, CSharp, Dlang, JAX, Julia, Rust, wast
 
 class TextInstVisitor : public InstVisitor {

@@ -565,16 +565,26 @@ void CPPCodeContainer::produceClass()
         *fOut << "static void memoryInfo() {";
         tab(n + 2, *fOut);
         
-        *fOut << "fManager->begin(" << fMemoryLayout.size() << ");";
+        // Count arrays
+        int array_count = 0;
+        for (const auto& it : fMemoryLayout) {
+            if (get<2>(it) > 1) {
+                array_count++;
+            }
+        }
+        
+        *fOut << "fManager->begin(" << array_count << ");";
         tab(n + 2, *fOut);
         
         for (size_t i = 0; i < fMemoryLayout.size(); i++) {
-            // DSP or field name, type, size, sizeBytes, reads, wri
-            tuple<string, int, int, int, int, int> item = fMemoryLayout[i];
-            *fOut << "// " << get<0>(item);
-            tab(n + 2, *fOut);
-            *fOut << "fManager->info(" << get<3>(item) << ", " << get<4>(item) << ", " << get<5>(item) << ");";
-            tab(n + 2, *fOut);
+            // DSP or field name, type, size, size-in-bytes, reads, write
+            MemoryLayoutItem item = fMemoryLayout[i];
+            if (get<2>(item) > 1) {
+                *fOut << "// " << get<0>(item);
+                tab(n + 2, *fOut);
+                *fOut << "fManager->info(" << get<3>(item) << ", " << get<4>(item) << ", " << get<5>(item) << ");";
+                tab(n + 2, *fOut);
+            }
         }
         
         *fOut << "fManager->end();";
@@ -589,9 +599,9 @@ void CPPCodeContainer::produceClass()
         tab(n + 2, *fOut);
         for (size_t i = 0; i < fMemoryLayout.size(); i++) {
             // DSP or field name, type, size, sizeBytes, reads, wri
-            tuple<string, int, int, int, int, int> item = fMemoryLayout[i];
+            MemoryLayoutItem item = fMemoryLayout[i];
             if (get<2>(item) > 1) {
-                if (Typed::VarType(get<1>(item)) == Typed::kInt32) {
+                if (get<1>(item) == "kInt32_ptr") {
                     *fOut << get<0>(item) << " = static_cast<int*>(fManager->allocate(" << get<3>(item) << "));";
                 } else {
                     *fOut << get<0>(item) << " = static_cast<" << ifloat() << "*>(fManager->allocate(" << get<3>(item) << "));";
@@ -609,7 +619,7 @@ void CPPCodeContainer::produceClass()
         tab(n + 2, *fOut);
         for (size_t i = 0; i < fMemoryLayout.size(); i++) {
             // DSP or field name, type, size, sizeBytes, reads, wri
-            tuple<string, int, int, int, int, int> item = fMemoryLayout[i];
+            MemoryLayoutItem item = fMemoryLayout[i];
             if (get<2>(item) > 1) {
                 *fOut << "fManager->destroy(" << get<0>(item) << ");";
                 tab(n + 2, *fOut);
