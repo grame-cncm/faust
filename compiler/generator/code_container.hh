@@ -32,6 +32,7 @@
 #include "garbageable.hh"
 #include "instructions.hh"
 #include "json_instructions.hh"
+#include "instructions_complexity.hh"
 #include "property.hh"
 #include "sigtype.hh"
 #include "tlib.hh"
@@ -66,6 +67,9 @@ struct SearchSubcontainer : public DispatchVisitor {
 typedef std::tuple<std::string, std::string, int, int, int, int> MemoryLayoutItem;
 typedef std::vector<MemoryLayoutItem> MemoryLayoutType;
 
+typedef std::tuple<std::string, std::string, int, int, int, int> MemoryLayoutItem;
+
+
 class CodeContainer : public virtual Garbageable {
    protected:
     std::list<CodeContainer*> fSubContainers;
@@ -81,7 +85,7 @@ class CodeContainer : public virtual Garbageable {
     bool fGeneratedSR;
 
     MemoryLayoutType fMemoryLayout;
-
+ 
     std::string fKlassName;
 
     // Declaration part
@@ -348,13 +352,18 @@ class CodeContainer : public virtual Garbageable {
     template <typename REAL>
     void generateJSON(JSONInstVisitor<REAL>* visitor)
     {
+        // Prepare instructions complexity
+        ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
+        InstComplexityVisitor complexity;
+        loop->accept(&complexity);
+    
         // "name", "filename" found in medata
         visitor->init("", "", fNumInputs, fNumOutputs, -1, "", "",
                       FAUSTVERSION, gGlobal->printCompilationOptions1(),
                       gGlobal->gReader.listLibraryFiles(),
                       gGlobal->gImportDirList,
                       -1, std::map<std::string, int>(),
-                      fMemoryLayout);
+                      fMemoryLayout, complexity.getInstComplexity());
         generateUserInterface(visitor);
         generateMetaData(visitor);
     }
