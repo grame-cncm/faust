@@ -116,7 +116,7 @@ class InstComplexityVisitor : public DispatchVisitor {
 
         // Takes the max of both then/else branches
         if (then_branch.cost() > else_branch.cost()) {
-           fIComp = fIComp + then_branch.fIComp;
+            fIComp = fIComp + then_branch.fIComp;
         } else {
             fIComp = fIComp + else_branch.fIComp;
         }

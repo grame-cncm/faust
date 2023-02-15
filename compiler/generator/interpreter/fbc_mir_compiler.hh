@@ -1104,7 +1104,7 @@ class FBCMIRCompiler : public FBCExecuteFun<REAL> {
             for (const auto& it : this->fSoundTable) {
                 // Keep each Soundfile*
                 fSoundArrayTable[i] = it.second;
-                // Keep the soundfile index in fSoundArrayTable
+                // Keep the soundfile index in fSoundTableID
                 fSoundTableID[it.first] = i;
                 i++;
             }
