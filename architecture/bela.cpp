@@ -519,7 +519,6 @@ static bool parseBracketString(const char*& p, string& s)
  * @param value the value found as String
  * @return true if a nemu item was found
  */
-
 static bool parseMenuItemStr(const char*& p, string& name, string& value)
 {
     const char* saved = p;  // to restore position if we fail
@@ -844,7 +843,7 @@ class TrillWidget : public BelaWidget
                 fType = Trill::BAR;
             } else if (strstr(pinNamesStrings[fBelaPin], "SQUARE")) {
                 fType = Trill::SQUARE;
-            } else if(strstr(pinNamesStrings[fBelaPin], "HEX")) {
+            } else if (strstr(pinNamesStrings[fBelaPin], "HEX")) {
                 fType = Trill::HEX;
             } else {
                 fType = Trill::NONE;
@@ -915,7 +914,7 @@ class TrillWidget : public BelaWidget
                     if (fSensor->getNumTouches() > 0) {
                         val = fSensor->compoundTouchLocation();
                         *fZone = fMin + fRange * val;
-                    } else if(!fBuffered) {
+                    } else if (!fBuffered) {
                         *fZone = fDefaultValue;
                     }
                     break;
@@ -931,7 +930,7 @@ class TrillWidget : public BelaWidget
                     if (fSensor->getNumTouches() > 0) {
                         val = fSensor->compoundTouchSize();
                         *fZone = fMin + fRange * val;
-                    } else if(!fBuffered) {
+                    } else if (!fBuffered) {
                         *fZone = fDefaultValue;
                     }
                     break;
@@ -959,7 +958,7 @@ class TrillWidget : public BelaWidget
                     if (fSensor->getNumTouches() > 0) {
                         val = fSensor->compoundTouchHorizontalLocation();
                         *fZone = fMin + fRange * val;
-                    } else if(!fBuffered) {
+                    } else if (!fBuffered) {
                         *fZone = fDefaultValue;
                     }
                     break;
@@ -975,7 +974,7 @@ class TrillWidget : public BelaWidget
                     if (fSensor->getNumTouches() > 0) {
                         val = fSensor->compoundTouchLocation();
                         *fZone = fMin + fRange * val;
-                    } else if(!fBuffered) {
+                    } else if (!fBuffered) {
                         *fZone = fDefaultValue;
                     }
                     break;
@@ -991,7 +990,7 @@ class TrillWidget : public BelaWidget
                     if (fSensor->getNumTouches() > 0) {
                         val = fSensor->compoundTouchSize();
                         *fZone = fMin + fRange * val;
-                    } else if(!fBuffered) {
+                    } else if (!fBuffered) {
                         *fZone = fDefaultValue;
                     }
                     break;
@@ -1019,7 +1018,7 @@ class TrillWidget : public BelaWidget
                     if (fSensor->getNumTouches() > 0) {
                         val = fSensor->compoundTouchSize();
                         *fZone = fMin + fRange * val;
-                    } else if(!fBuffered) {
+                    } else if (!fBuffered) {
                         *fZone = fDefaultValue;
                     }
                     break;
@@ -1047,7 +1046,7 @@ class TrillWidget : public BelaWidget
                     if (fSensor->getNumTouches() > 0) {
                         val = fSensor->compoundTouchHorizontalLocation();
                         *fZone = fMin + fRange * val;
-                    } else if(!fBuffered) {
+                    } else if (!fBuffered) {
                         *fZone = fDefaultValue;
                     }
                     break;
@@ -1063,7 +1062,7 @@ class TrillWidget : public BelaWidget
                     if (fSensor->getNumTouches() > 0) {
                         val = fSensor->compoundTouchLocation();
                         *fZone = fMin + fRange * val;
-                    } else if(!fBuffered) {
+                    } else if (!fBuffered) {
                         *fZone = fDefaultValue;
                     }
                     break;
@@ -1079,7 +1078,7 @@ class TrillWidget : public BelaWidget
                     if (fSensor->getNumTouches() > 0) {
                         val = fSensor->compoundTouchSize();
                         *fZone = fMin + fRange * val;
-                    } else if(!fBuffered) {
+                    } else if (!fBuffered) {
                         *fZone = fDefaultValue;
                     }
                     break;
@@ -1250,7 +1249,7 @@ class TrillCraftWidget : public TrillWidget
 
         virtual void setParameter(const string& name, const string& value)
         {
-            const char* tmpval=value.c_str();
+            const char* tmpval = value.c_str();
             if (name == "start_note") {
                 vector<string> names;
                 vector<double> values;
@@ -1270,16 +1269,14 @@ class TrillCraftWidget : public TrillWidget
         
         virtual void update(BelaContext* context)
         {
-            if (fSensor && fLopin >= 0)
-            {
+            if (fSensor && fLopin >= 0) {
                 float val = -1.f;
                 if (fMode == "PIN") {
                     *fZone = fMin + fRange * fSensor->rawData[fLopin];
                 }
                 else if (fMode == "UP") {
                     float sval = 0.f;
-                    for (int i = fHipin; i >= fLopin; i--)
-                    {
+                    for (int i = fHipin; i >= fLopin; i--) {
                         sval = fSensor->rawData[i];
                         if (sval > 0.f)
                         {    
@@ -1291,8 +1288,7 @@ class TrillCraftWidget : public TrillWidget
                 }
                 else if (fMode == "DOWN") {
                     float sval = 0.f;
-                    for (int i = fLopin; i <= fHipin; i++)
-                    {
+                    for (int i = fLopin; i <= fHipin; i++) {
                         sval = fSensor->rawData[i];
                         if (sval > 0.f)
                         {
@@ -1359,7 +1355,7 @@ class TrillCraftWidgetCheckBox : public TrillCraftWidget
         
         TrillCraftWidgetCheckBox(const TrillCraftWidgetCheckBox& w): TrillCraftWidget((TrillCraftWidget) w) {}
         
-        TrillCraftWidgetCheckBox(EInOutPin pin, FAUSTFLOAT* z, const char* l,FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step): TrillCraftWidget(pin, z, l, init, lo, hi, step) {}
+        TrillCraftWidgetCheckBox(EInOutPin pin, FAUSTFLOAT* z, const char* l, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step): TrillCraftWidget(pin, z, l, init, lo, hi, step) {}
         
         virtual ~TrillCraftWidgetCheckBox() {}
         
@@ -1393,8 +1389,7 @@ class TrillCraftWidgetSlider : public TrillCraftWidget
         
         virtual void update(BelaContext* context)
         {
-            if (fSensor && fLopin >= 0 && fMode == "SLIDER")
-            {
+            if (fSensor && fLopin >= 0 && fMode == "SLIDER") {
                 double downKey = fSensor->rawData[fLopin];
                 double upKey = fSensor->rawData[fHipin];
                 double value_state = (double) fSliderSystem.getOutState(downKey, upKey);
@@ -1409,23 +1404,24 @@ class TrillCraftWidgetSlider : public TrillCraftWidget
 class TrillRingPosWidget : public TrillWidget
 {
     protected:
-        int         fTurnLimit;
-        int         fTurnNumber;
-        bool        fMultiTurn;
-        float       fTurnDetectZone;
+        int   fTurnLimit;
+        int   fTurnNumber;
+        bool  fMultiTurn;
+        float fTurnDetectZone;
         
         int ChangeTurnDetect(float oldpos, float newpos)
         {
-            if(oldpos <= (fTurnDetectZone/2) && newpos >= (1 - fTurnDetectZone/2)) {
+            if (oldpos <= (fTurnDetectZone/2) && newpos >= (1 - fTurnDetectZone/2)) {
                 return -1;
-            } else if(oldpos >= (1 - fTurnDetectZone/2) && newpos <= (fTurnDetectZone/2)) {
+            } else if (oldpos >= (1 - fTurnDetectZone/2) && newpos <= (fTurnDetectZone/2)) {
                 return 1;
             }    
             return 0;
         }
         
     public:
-        TrillRingPosWidget(): TrillWidget() {
+        TrillRingPosWidget(): TrillWidget()
+        {
             fTurnLimit = 1;
             fTurnNumber = 0;
             fMultiTurn = false;
@@ -1433,7 +1429,8 @@ class TrillRingPosWidget : public TrillWidget
             fType = Trill::RING;
         }
         
-        TrillRingPosWidget(const TrillRingPosWidget& w): TrillWidget((TrillWidget) w) {
+        TrillRingPosWidget(const TrillRingPosWidget& w): TrillWidget((TrillWidget) w)
+        {
             fTurnLimit = w.fTurnLimit;
             fTurnNumber = w.fTurnNumber;
             fMultiTurn = w.fMultiTurn;
@@ -1441,13 +1438,13 @@ class TrillRingPosWidget : public TrillWidget
             fType = Trill::RING;
         }
         
-        TrillRingPosWidget(EInOutPin pin, FAUSTFLOAT* z, const char* l,FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step, float turndetectsensitivity = 0.2f ): TrillWidget(pin, z, l, init, lo, hi, step) { 
+        TrillRingPosWidget(EInOutPin pin, FAUSTFLOAT* z, const char* l,FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step, float turndetectsensitivity = 0.2f ): TrillWidget(pin, z, l, init, lo, hi, step)
+        {
            fTurnLimit = 1;
            fTurnNumber = 0;
            fMultiTurn = false;
            fTurnDetectZone = turndetectsensitivity;
            fType = Trill::RING;
-           
         }
         
         virtual ~TrillRingPosWidget() {}
@@ -1465,17 +1462,17 @@ class TrillRingPosWidget : public TrillWidget
                     fTurnLimit = 1;
                 }               
             }
-            if(fMultiTurn && fTurnLimit > 1 && fDefaultValue != fMin) // if multiturn mode, calculate the current turn
+            if (fMultiTurn && fTurnLimit > 1 && fDefaultValue != fMin) // if multiturn mode, calculate the current turn
             {
-                    float turnrange = fRange / fTurnLimit;
-                    fTurnNumber = floor((fDefaultValue - fMin) / turnrange);
+                float turnrange = fRange / fTurnLimit;
+                fTurnNumber = floor((fDefaultValue - fMin) / turnrange);
             }
             return true;
         }
         
         virtual void update(BelaContext* context)
         {
-            if(!fSensor)
+            if (!fSensor)
                 return;            
             float val = 0.f;
             switch (fBelaPin) {
@@ -1489,15 +1486,15 @@ class TrillRingPosWidget : public TrillWidget
                 case kRING_POS_7:
                     if (fSensor->getNumTouches() > 0) {
                         val = fSensor->compoundTouchLocation();
-                        if(fMultiTurn) {
+                        if (fMultiTurn) {
                             float turnrange = fRange / fTurnLimit;                                              
                             float oldfZone = *fZone;
                             float oldsensorPos = (oldfZone - fMin - turnrange * fTurnNumber) / turnrange;
                             int turnincrement = ChangeTurnDetect(oldsensorPos, val);
                             float newval = fMin + turnrange * val + turnrange * (fTurnNumber+turnincrement);
-                            if(newval > (fMin + fRange)) {
+                            if (newval > (fMin + fRange)) {
                                 *fZone = fMin + fRange;
-                            } else if(newval < fMin) {
+                            } else if (newval < fMin) {
                                 *fZone = fMin;
                             } else {
                                 *fZone = newval;                                
@@ -1508,7 +1505,7 @@ class TrillRingPosWidget : public TrillWidget
                             *fZone = fMin + fRange * val;
                         } 
                     }
-                    else if(!fMultiTurn) {
+                    else if (!fMultiTurn) {
                         *fZone = fDefaultValue;
                     }
                     break;
@@ -2017,8 +2014,8 @@ bool setup(BelaContext* context, void* userData)
         cerr << "Unable to allocate Faust DSP object" << endl;
         return false;
     }
-    // using dsp_adapter when the number of bela Audio IO channels are less than the DSP
-    if(gDSP->getNumInputs() > context->audioInChannels || gDSP->getNumOutputs() >  context->audioOutChannels) {
+    // Using dsp_adapter when the number of bela Audio IO channels are less than the DSP
+    if (gDSP->getNumInputs() > context->audioInChannels || gDSP->getNumOutputs() > context->audioOutChannels) {
         gDSP = new dsp_adapter(gDSP, context->audioInChannels, context->audioOutChannels, context->audioFrames);
     }
     gDSP->init(context->audioSampleRate);
