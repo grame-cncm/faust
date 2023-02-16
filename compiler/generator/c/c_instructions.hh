@@ -473,7 +473,7 @@ class CInstVisitor1 : public CInstVisitor {
         virtual void visit(AddSoundfileInst* inst)
         {
             // Not supported for now
-            throw faustexception("ERROR : AddSoundfileInst not supported for -osX mode\n");
+            throw faustexception("ERROR : AddSoundfileInst not supported for -os1 mode\n");
         }
     
         virtual void visit(DeclareVarInst* inst)

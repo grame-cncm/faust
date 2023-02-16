@@ -8,7 +8,13 @@
 
 #import "ViewController.h"
 
-int bench_all(const char* name, int run, bool trace);
+#import "../Config.h"
+#include "faust/gui/Soundfile.h"
+
+// To be used by DSP code if no SoundUI is used
+extern Soundfile* defaultsound;
+
+extern "C" int bench_all(const char* name, int run, int buffer_size, bool is_trace, bool is_control, int ds, int us, int filter);
 
 @interface ViewController ()
 
@@ -19,9 +25,10 @@ int bench_all(const char* name, int run, bool trace);
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
-    bench_all("Test iOS", 1, true);
+    defaultsound = new Soundfile(MAX_CHAN, 1024, MAX_CHAN, 1, (sizeof(FAUSTFLOAT) == 8));
+    bench_all("Test iOS", 1, 512, true, false, DOWN_SAMPLING, UP_SAMPLING, FILTER_TYPE);
+    delete defaultsound;
 }
-
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];

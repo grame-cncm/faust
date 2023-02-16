@@ -227,25 +227,9 @@ void CCodeContainer::produceClass()
     tab(n, *fOut);
     if (!gGlobal->gLightMode) {
         
-        if (fAllocateInstructions->fCode.size() > 0) {
-            tab(n, *fOut);
-            *fOut << "static void allocate" << fKlassName << "(" << fKlassName << "* dsp) {";
-            tab(n + 1, *fOut);
-            generateAllocate(fCodeProducer);
-            back(1, *fOut);
-            *fOut << "}";
-        }
+        generateAllocateFun(n);
         tab(n, *fOut);
-
-        if (fDestroyInstructions->fCode.size() > 0) {
-            tab(n, *fOut);
-            *fOut << "static void destroy" << fKlassName << "(" << fKlassName << "* dsp) {";
-            tab(n + 1, *fOut);
-            generateDestroy(fCodeProducer);
-            back(1, *fOut);
-            *fOut << "}";
-            tab(n, *fOut);
-        }
+        generateDestroyFun(n);
 
         *fOut << fKlassName << "* new" << fKlassName << "() { ";
         tab(n + 1, *fOut);
@@ -462,26 +446,10 @@ void CScalarOneSampleCodeContainer1::produceClass()
     tab(n, *fOut);
     if (!gGlobal->gLightMode) {
         
-        if (fAllocateInstructions->fCode.size() > 0) {
-            tab(n, *fOut);
-            *fOut << "static void allocate" << fKlassName << "(" << fKlassName << "* dsp) {";
-            tab(n + 1, *fOut);
-            generateAllocate(fCodeProducer);
-            tab(n, *fOut);
-            *fOut << "}";
-        }
+        generateAllocateFun(n);
         tab(n, *fOut);
-        
-        if (fDestroyInstructions->fCode.size() > 0) {
-            tab(n, *fOut);
-            *fOut << "static void destroy" << fKlassName << "(" << fKlassName << "* dsp) {";
-            tab(n + 1, *fOut);
-            generateDestroy(fCodeProducer);
-            tab(n, *fOut);
-            *fOut << "}";
-            tab(n, *fOut);
-        }
-        
+        generateDestroyFun(n);
+         
         *fOut << fKlassName << "* new" << fKlassName << "() { ";
         tab(n + 1, *fOut);
         *fOut << fKlassName << "* dsp = (" << fKlassName << "*)calloc(1, sizeof(" << fKlassName << "));";
@@ -711,26 +679,10 @@ void CScalarOneSampleCodeContainer2::produceClass()
     tab(n, *fOut);
     if (!gGlobal->gLightMode) {
         
-        if (fAllocateInstructions->fCode.size() > 0) {
-            tab(n, *fOut);
-            *fOut << "static void allocate" << fKlassName << "(" << fKlassName << "* dsp) {";
-            tab(n + 1, *fOut);
-            generateAllocate(fCodeProducer);
-            tab(n, *fOut);
-            *fOut << "}";
-        }
+        generateAllocateFun(n);
         tab(n, *fOut);
-        
-        if (fDestroyInstructions->fCode.size() > 0) {
-            tab(n, *fOut);
-            *fOut << "static void destroy" << fKlassName << "(" << fKlassName << "* dsp) {";
-            tab(n + 1, *fOut);
-            generateDestroy(fCodeProducer);
-            tab(n, *fOut);
-            *fOut << "}";
-            tab(n, *fOut);
-        }
-        
+        generateDestroyFun(n);
+       
         *fOut << fKlassName << "* new" << fKlassName << "() { ";
         tab(n + 1, *fOut);
         *fOut << fKlassName << "* dsp = (" << fKlassName << "*)calloc(1, sizeof(" << fKlassName << "));";
@@ -981,26 +933,10 @@ void CScalarOneSampleCodeContainer3::produceClass()
     tab(n, *fOut);
     if (!gGlobal->gLightMode) {
         
-        if (fAllocateInstructions->fCode.size() > 0) {
-            tab(n, *fOut);
-            *fOut << "static void allocate" << fKlassName << "(" << fKlassName << "* dsp) {";
-            tab(n + 1, *fOut);
-            generateAllocate(fCodeProducer);
-            tab(n, *fOut);
-            *fOut << "}";
-        }
+        generateAllocateFun(n);
         tab(n, *fOut);
-        
-        if (fDestroyInstructions->fCode.size() > 0) {
-            tab(n, *fOut);
-            *fOut << "static void destroy" << fKlassName << "(" << fKlassName << "* dsp) {";
-            tab(n + 1, *fOut);
-            generateDestroy(fCodeProducer);
-            tab(n, *fOut);
-            *fOut << "}";
-            tab(n, *fOut);
-        }
-        
+        generateDestroyFun(n);
+    
         *fOut << fKlassName << "* new" << fKlassName << "() { ";
         tab(n + 1, *fOut);
         *fOut << fKlassName << "* dsp = (" << fKlassName << "*)calloc(1, sizeof(" << fKlassName << "));";
@@ -1288,25 +1224,9 @@ void CScalarOneSampleCodeContainer4::produceClass()
     tab(n, *fOut);
     if (!gGlobal->gLightMode) {
         
-        if (fAllocateInstructions->fCode.size() > 0) {
-            tab(n, *fOut);
-            *fOut << "static void allocate" << fKlassName << "(" << fKlassName << "* dsp) {";
-            tab(n + 1, *fOut);
-            generateAllocate(fCodeProducer);
-            tab(n, *fOut);
-            *fOut << "}";
-        }
+        generateAllocateFun(n);
         tab(n, *fOut);
-        
-        if (fDestroyInstructions->fCode.size() > 0) {
-            tab(n, *fOut);
-            *fOut << "static void destroy" << fKlassName << "(" << fKlassName << "* dsp) {";
-            tab(n + 1, *fOut);
-            generateDestroy(fCodeProducer);
-            tab(n, *fOut);
-            *fOut << "}";
-            tab(n, *fOut);
-        }
+        generateDestroyFun(n);
         
         *fOut << fKlassName << "* new" << fKlassName << "(int* icontrol, " << ifloat() << "* fcontrol, int* izone, " << ifloat() << "* fzone) {";
         tab(n + 1, *fOut);

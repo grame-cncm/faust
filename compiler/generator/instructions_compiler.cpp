@@ -1304,6 +1304,8 @@ ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
     if (gGlobal->gUseDefaultSound) {
         BlockInst* block = InstBuilder::genBlockInst();
         block->pushBackInst(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadGlobalVar("defaultsound")));
+        
+        pushAllocateMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genTypedZero(Typed::kSound_ptr)));
 
         pushResetUIInstructions(InstBuilder::genIfInst(
             InstBuilder::genEqual(InstBuilder::genCastInst(InstBuilder::genLoadStructVar(varname),

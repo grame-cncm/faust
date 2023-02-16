@@ -30,6 +30,7 @@
 #include "text_instructions.hh"
 #include "type_manager.hh"
 #include "struct_manager.hh"
+#include "instructions_complexity.hh"
 
 using namespace std;
 

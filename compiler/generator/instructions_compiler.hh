@@ -98,6 +98,7 @@ class InstructionsCompiler : public virtual Garbageable {
     StatementInst* pushClearMethod(StatementInst* inst) { return fContainer->pushClearMethod(inst); }
     StatementInst* pushPostInitMethod(StatementInst* inst) { return fContainer->pushPostInitMethod(inst); }
     StatementInst* pushPreInitMethod(StatementInst* inst) { return fContainer->pushPreInitMethod(inst); }
+    StatementInst* pushAllocateMethod(StatementInst* inst) { return fContainer->pushAllocateMethod(inst); }
     StatementInst* pushDestroyMethod(StatementInst* inst) { return fContainer->pushDestroyMethod(inst); }
     StatementInst* pushStaticInitMethod(StatementInst* inst) { return fContainer->pushStaticInitMethod(inst); }
     StatementInst* pushPostStaticInitMethod(StatementInst* inst) { return fContainer->pushPostStaticInitMethod(inst); }
@@ -108,7 +109,7 @@ class InstructionsCompiler : public virtual Garbageable {
         return fContainer->pushPostComputeBlockMethod(inst);
     }
     StatementInst* pushUserInterfaceMethod(StatementInst* inst) { return fContainer->pushUserInterfaceMethod(inst); }
-
+  
     StatementInst* pushDeclare(StatementInst* inst) { return fContainer->pushDeclare(inst); }
     StatementInst* pushGlobalDeclare(StatementInst* inst) { return fContainer->pushGlobalDeclare(inst); }
     StatementInst* pushExtGlobalDeclare(StatementInst* inst) { return fContainer->pushExtGlobalDeclare(inst); }

@@ -4,7 +4,7 @@
 #                                                                   #
 #               Bench several versions of a Faust DSP program       #
 #               usign different compilation options                 #
-#               (c) Grame, 2020-2021                                #
+#               (c) Grame, 2020-2023                                #
 #                                                                   #
 #####################################################################
 
@@ -221,54 +221,61 @@ for p in $FILES; do
         faust -cn dsp_vec1g_32 $OPTIONS -vec -lv 1 -vs 32 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_32.h"
 
     elif [ $TESTS == "single" ]; then
-
         faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
     fi
-
+  
     if [ $IOS == "1" ]; then
         echo "Files generated for iOS project in $TMP"
-        cp "$FAUSTLIB/faustbench.cpp" "$TMP/faustbench.cpp"
+       
+        # Create config file
+        echo -n >> "$TMP/Config.h"
+         
+        # float of double mode
         if [ $DOUBLE == "1" ]; then
-            echo " #define FAUSTFLOAT double" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
+            echo "#define FAUSTFLOAT double" >> "$TMP/Config.h"
         else
-            echo " #define FAUSTFLOAT float" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
+            echo "#define FAUSTFLOAT float" >> "$TMP/Config.h"
         fi
+        # which tests to compile
         if [ $TESTS == "all" ]; then
-            echo " #define ALL_TESTS" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
+            echo "#define ALL_TESTS" >> "$TMP/Config.h"
         elif [ $TESTS == "fast" ]; then
-            echo " #define FAST_TESTS" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
+             echo "#define FAST_TESTS" >> "$TMP/Config.h"
         elif [ $TESTS == "single" ]; then
-            echo " #define SINGLE_TESTS" | cat - "$TMP/faustbench.cpp" > temp && mv temp "$TMP/faustbench.cpp"
+            echo "#define SINGLE_TESTS" >> "$TMP/Config.h"
         fi
+        # add info for UP/DS + filter adapter
+        echo "#define DOWN_SAMPLING $DS" >> "$TMP/Config.h"
+        echo "#define UP_SAMPLING $US" >> "$TMP/Config.h"
+        echo "#define FILTER_TYPE $FILTER" >> "$TMP/Config.h"
+   
+        cat "$TMP/Config.h" "$FAUSTLIB/faustbench.cpp" > "$TMP/faustbench.cpp"
         cp -r $FAUSTLIB/iOS-bench/* $TMP
         exit
     fi
 
     cd "$TMP"
 
+    # Create config file
+    echo -n >> Config
     if [ $DOUBLE == "1" ]; then
-        echo " #define FAUSTFLOAT double" | cat - "$FAUSTLIB/faustbench.cpp" > temp && mv temp "faustbench.cpp"
+        echo "#define FAUSTFLOAT double" >> Config
     else
-        echo " #define FAUSTFLOAT float" | cat - "$FAUSTLIB/faustbench.cpp" > temp && mv temp "faustbench.cpp"
+        echo "#define FAUSTFLOAT float" >> Config
     fi
-
-    # add info for UP/DS + filter adapter
-    echo "#define DOWN_SAMPLING $DS" | cat -  "$FAUSTLIB/faustbench.cpp" > temp && mv temp "faustbench.cpp"
-    echo "#define UP_SAMPLING $US" | cat -  "$FAUSTLIB/faustbench.cpp" > temp && mv temp "faustbench.cpp"
-    echo "#define FILTER_TYPE $FILTER" | cat -  "$FAUSTLIB/faustbench.cpp" > temp && mv temp "faustbench.cpp"
+   
+    cat Config "$FAUSTLIB/faustbench.cpp" > "faustbench.cpp"
 
     # keep sources
     if $SOURCE ; then 
         # create Makefile
         echo "$dspName:" > Makefile
+        echo -n -e '\t' >> Makefile
         if [ $TESTS == "all" ]; then
-            echo -n -e '\t' >> Makefile
             echo "$CXX $CXXFLAGS -std=c++11 -I `faust -includedir` -DALL_TESTS faustbench.cpp $LIBS -o $dspName" >> Makefile
         elif [ $TESTS == "fast" ]; then
-            echo -n -e '\t' >> Makefile
             echo "$CXX $CXXFLAGS -std=c++11 -I `faust -includedir` -DFAST_TESTS faustbench.cpp $LIBS -o $dspName" >> Makefile
         elif [ $TESTS == "single" ]; then
-            echo -n -e '\t' >> Makefile
             echo "$CXX $CXXFLAGS -std=c++11 -I `faust -includedir` -DSINGLE_TESTS faustbench.cpp $LIBS -o $dspName" >> Makefile
         fi
         echo -e '\n' >> Makefile

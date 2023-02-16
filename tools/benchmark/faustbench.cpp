@@ -33,6 +33,11 @@
 #include "faust/dsp/dsp-bench.h"
 #include "faust/misc.h"
 
+#include "faust/gui/Soundfile.h"
+
+// To be used by DSP code if no SoundUI is used
+Soundfile* defaultsound = nullptr;
+
 #if defined(ALL_TESTS)
 
 #include "dsp_scal.h"
@@ -303,7 +308,10 @@ int main(int argc, char* argv[])
     int us = lopt(argv, "-us", 0);
     int filter = lopt(argv, "-filter", 0);
    
-    return bench_all(argv[0], run, buffer_size, is_trace, is_control, ds, us, filter);
+    defaultsound = new Soundfile(MAX_CHAN, 1024, MAX_CHAN, 1, (sizeof(FAUSTFLOAT) == 8));
+    int res = bench_all(argv[0], run, buffer_size, is_trace, is_control, ds, us, filter);
+    delete defaultsound;
+    return res;
 }
 
 #endif

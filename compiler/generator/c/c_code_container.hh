@@ -71,6 +71,31 @@ class CCodeContainer : public virtual CodeContainer {
             generateComputeAux(n);
         }
     }
+    
+    void generateAllocateFun(int n)
+    {
+        if (fAllocateInstructions->fCode.size() > 0) {
+            tab(n, *fOut);
+            *fOut << "void allocate" << fKlassName << "(" << fKlassName << "* dsp) {";
+            tab(n + 1, *fOut);
+            generateAllocate(fCodeProducer);
+            back(1, *fOut);
+            *fOut << "}";
+        }
+    }
+    
+    void generateDestroyFun(int n)
+    {
+        if (fDestroyInstructions->fCode.size() > 0) {
+            tab(n, *fOut);
+            *fOut << "void destroy" << fKlassName << "(" << fKlassName << "* dsp) {";
+            tab(n + 1, *fOut);
+            generateDestroy(fCodeProducer);
+            back(1, *fOut);
+            *fOut << "}";
+            tab(n, *fOut);
+        }
+    }
 
    public:
     CCodeContainer()

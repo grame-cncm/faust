@@ -85,7 +85,7 @@ class CodeContainer : public virtual Garbageable {
     bool fGeneratedSR;
 
     MemoryLayoutType fMemoryLayout;
- 
+
     std::string fKlassName;
 
     // Declaration part

@@ -49,6 +49,61 @@ class CPPCodeContainer : public virtual CodeContainer {
     
     std::string genVirtual();
     std::string genFinal();
+    
+    void generateAllocateFun(int n)
+    {
+        if (fAllocateInstructions->fCode.size() > 0) {
+            tab(n + 1, *fOut);
+            *fOut << "void allocate() {";
+            tab(n + 2, *fOut);
+            fCodeProducer->Tab(n + 2);
+            generateAllocate(fCodeProducer);
+            back(1, *fOut);
+            *fOut << "}";
+            tab(n + 1, *fOut);
+        }
+    }
+    
+    void generateDestroyFun(int n)
+    {
+        if (fDestroyInstructions->fCode.size() > 0) {
+            tab(n + 1, *fOut);
+            *fOut << "void destroy() {";
+            tab(n + 2, *fOut);
+            fCodeProducer->Tab(n + 2);
+            generateDestroy(fCodeProducer);
+            back(1, *fOut);
+            *fOut << "}";
+            tab(n + 1, *fOut);
+        }
+    }
+    
+    void generateConstructor(const std::string& fun_proto, int n)
+    {
+        if (fAllocateInstructions->fCode.size() > 0) {
+            tab(n + 1, *fOut);
+            *fOut << fun_proto << " {";
+            tab(n + 2, *fOut);
+            *fOut << "allocate();";
+            tab(n + 1, *fOut);
+            *fOut << "}" << std::endl;
+        } else {
+            tab(n + 1, *fOut);
+            *fOut << fun_proto << " {}" << std::endl;
+        }
+    }
+    
+    void generateDestructor(int n)
+    {
+        if (fDestroyInstructions->fCode.size() > 0) {
+            tab(n + 1, *fOut);
+            *fOut << "virtual ~" << fKlassName << "() {";
+            tab(n + 2, *fOut);
+            *fOut << "destroy();";
+            tab(n + 1, *fOut);
+            *fOut << "}" << std::endl;
+        }
+    }
   
    public:
     CPPCodeContainer()

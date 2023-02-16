@@ -59,7 +59,7 @@ static LibsndfileReader gReader;
 #endif
 
 // To be used by DSP code if no SoundUI is used
-static std::vector<std::string> path_name_list;
+static std::vector<std::string> gPathNameList;
 static Soundfile* defaultsound = nullptr;
 
 class SoundUI : public SoundUIInterface
@@ -96,7 +96,7 @@ class SoundUI : public SoundUIInterface
                 : std::shared_ptr<SoundfileReader>(std::shared_ptr<SoundfileReader>{}, &gReader);
             fSoundReader->setSampleRate(sample_rate);
             fIsDouble = is_double;
-            if (!defaultsound) defaultsound = gReader.createSoundfile(path_name_list, MAX_CHAN, is_double);
+            if (!defaultsound) defaultsound = gReader.createSoundfile(gPathNameList, MAX_CHAN, is_double);
         }
     
         /**
@@ -118,7 +118,7 @@ class SoundUI : public SoundUIInterface
                 : std::shared_ptr<SoundfileReader>(std::shared_ptr<SoundfileReader>{}, &gReader);
             fSoundReader->setSampleRate(sample_rate);
             fIsDouble = is_double;
-            if (!defaultsound) defaultsound = gReader.createSoundfile(path_name_list, MAX_CHAN, is_double);
+            if (!defaultsound) defaultsound = gReader.createSoundfile(gPathNameList, MAX_CHAN, is_double);
         }
     
         virtual ~SoundUI()

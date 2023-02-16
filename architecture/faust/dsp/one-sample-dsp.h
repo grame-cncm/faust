@@ -50,7 +50,7 @@ class FAUST_API one_sample_dsp : public dsp {
             }
             if (!iControl) {
                 iControl = new int[getNumIntControls()];
-                fControl = new FAUSTFLOAT[getNumRealControls()];
+                fControl = new REAL[getNumRealControls()];
             }
         }
     
