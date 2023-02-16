@@ -151,6 +151,41 @@ struct malloc_memory_manager : public dsp_memory_manager {
     
 };
 
+struct malloc_memory_manager_check : public dsp_memory_manager {
+    
+    int fZoneCount = 0;
+    int fMaxSize = 0;
+    
+    virtual void begin(size_t count)
+    {
+        fZoneCount = count;
+    }
+    
+    virtual void info(size_t size, size_t reads, size_t writes)
+    {
+        if (--fZoneCount < 0) {
+            throw std::runtime_error("malloc_memory_manager_check::info : " + std::to_string(size));
+        }
+        fMaxSize += size;
+    }
+    
+    virtual void end() {}
+    
+    virtual void* allocate(size_t size)
+    {
+        if (--fMaxSize < 0) {
+            throw std::runtime_error("malloc_memory_manager_check::allocate : " + std::to_string(size));
+        }
+        return calloc(1, size);
+    }
+    
+    virtual void destroy(void* ptr)
+    {
+        free(ptr);
+    }
+    
+};
+
 static void printHeader(dsp* DSP, int nbsamples)
 {
     // Print general informations

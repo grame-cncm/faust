@@ -144,7 +144,7 @@ static void runDSP2(dsp* DSP, const string& file, int& linenum, int nbsamples, b
 }
 
 
-malloc_memory_manager gManager;
+malloc_memory_manager_check gManager;
 
 int main(int argc, char* argv[])
 {

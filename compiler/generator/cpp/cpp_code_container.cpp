@@ -535,20 +535,20 @@ void CPPCodeContainer::produceClass()
         tab(n + 2, *fOut);
         
         // Count arrays
-        int array_count = 0;
+        int ptr_count = 0;
         for (const auto& it : fMemoryLayout) {
-            if (get<2>(it) > 1) {
-                array_count++;
+            if (isPtr(get<1>(it))) {
+                ptr_count++;
             }
         }
         
-        *fOut << "fManager->begin(" << array_count << ");";
+        *fOut << "fManager->begin(" << ptr_count << ");";
         tab(n + 2, *fOut);
         
         for (size_t i = 0; i < fMemoryLayout.size(); i++) {
             // DSP or field name, type, size, size-in-bytes, reads, write
             MemoryLayoutItem item = fMemoryLayout[i];
-            if (get<2>(item) > 1) {
+            if (isPtr(get<1>(item))) {
                 *fOut << "// " << get<0>(item);
                 tab(n + 2, *fOut);
                 *fOut << "fManager->info(" << get<3>(item) << ", " << get<4>(item) << ", " << get<5>(item) << ");";

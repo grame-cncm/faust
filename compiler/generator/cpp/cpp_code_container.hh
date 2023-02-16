@@ -50,6 +50,11 @@ class CPPCodeContainer : public virtual CodeContainer {
     std::string genVirtual();
     std::string genFinal();
     
+    inline bool isPtr(const std::string& type)
+    {
+        return (type == "kFloat_ptr" || type == "kDouble_ptr" || type == "kQuad_ptr" || type == "kInt32_ptr" || type == "kObj_ptr");
+    }
+    
     void generateAllocateFun(int n)
     {
         if (fAllocateInstructions->fCode.size() > 0) {
