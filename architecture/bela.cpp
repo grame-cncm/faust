@@ -44,6 +44,8 @@
         BAR : Position, Pressure, Touched. (Multitouch not supported)
         SQUARE : Position X & Y, Pressure, Touched. (Multitouch not supported)
         CRAFT : Pressure or index of (first or last) active pin (depend on mode)
+        RING : Position, Pressure, Touched. (Multitouch not supported)
+        HEX : Position, Pressure, Touched. (Multitouch not supported)
     usage : add in Meta data in UI widget of the Faust Code
         TRILL:BAR_POS_n
         TRILL:BAR_LVL_n
@@ -56,16 +58,28 @@
         TRILL:CRAFT_n UP lo_pin-hi_pin (return the index of the higher pin active in the array of pin defined or -1 if no pin active)
         TRILL:CRAFT_n DOWN lo_pin-hi_pin (return the index of the lower pin active in the array of pin defined or -1 if no pin active)
         TRILL:CRAFT_n SLIDER down_pin-up_pin (return a buffered value. press the down_pin décraise the value, press the up_pin incraise the value)
+        TRILL:RING_POS_n
+        TRILL:RING_POS_n MULTITURN nbr (the range oh value is extended on 'nbr' turn)
+        TRILL:RING_LVL_n
+        TRILL:RING_TOUCH_n
+        TRILL:HEX_POS_n
+        TRILL:HEX_LVL_n
+        TRILL:HEX_TOUCH_n 
     where n is the sensors index. index suported are 0 to 7 for each type of sensor.
+    
+    for the sensors BAR, SQUARE and HEX they are a buffered value option (for RING_POS sensors the value is buffered in MULTITURN mode). 
+    if BUFFERED is set, the value are persistent when the sensor is not touched. If not set, the value return to default value.
+    (This option as no effect for the TOUCH value of the sensors)
+    usage : [ TRILL:XXXX_n BUFFERED ]
     
     sensibility settings for craft :
         declare trill_settings "{ 'CRAFT_n' : { 'prescaler' : 4 ; 'threshold' : 0.15 } ; CRAFT_m ... }"
         
     mapping of the sensors i2c adresses (required) :
-        declare trill_mappings "{'BAR' : {'0' : 32 ; '1' : 33 ...} ; 'SQUARE' : {'0' : 40 ; '1' : 41 ...} ; 'CRAFT' : {'0' : 48 ...} }"
+        declare trill_mappings "{'BAR' : {'0' : 32 ; '1' : 33 ...} ; 'SQUARE' : {'0' : 40 ; '1' : 41 ...} ; 'CRAFT' : {'0' : 48 ...} ; 'RING' : { '0' : 56 ... } ; 'HEX' : { '0' : 56 ... } }"
         
     keyboard for polyphony :
-        declare trill_keyboard "{CRAFT_n : {'start_pin' : 0 ; 'end_pin' : 29 ; 'start_note' : {'C' : 4} ; 'scale' : {1 ; 0.5 ; 1 ; 1 ; 1 ; 1 ; 0.5 } }; CRAFT_m : {'start_pin' : 0 ; 'end_pin' : 12 ...} ...}"
+        declare trill_keyboard "{'CRAFT_n' : {'start_pin' : 0 ; 'end_pin' : 29 ; 'start_note' : {'C' : 4} ; 'scale' : {1 ; 0.5 ; 1 ; 1 ; 1 ; 1 ; 0.5 } }; CRAFT_m : {'start_pin' : 0 ; 'end_pin' : 12 ...} ...}"
         
         'start_pin' and 'end_pin' are the limits of the array of pin used for a craft sensor.
         'start_note' is note of the first keyboard's pin in the forme : { 'Note' : octave }.
@@ -226,7 +240,63 @@ const char* const pinNamesStrings[] =
     "CRAFT_4",
     "CRAFT_5",
     "CRAFT_6",
-    "CRAFT_7"
+    "CRAFT_7",
+    "RING_POS_0",
+    "RING_LVL_0",
+    "RING_TOUCH_0",
+    "RING_POS_1",
+    "RING_LVL_1",
+    "RING_TOUCH_1",
+    "RING_POS_2",
+    "RING_LVL_2",
+    "RING_TOUCH_2",
+    "RING_POS_3",
+    "RING_LVL_3",
+    "RING_TOUCH_3",
+    "RING_POS_4",
+    "RING_LVL_4",
+    "RING_TOUCH_4",
+    "RING_POS_5",
+    "RING_LVL_5",
+    "RING_TOUCH_5",
+    "RING_POS_6",
+    "RING_LVL_6",
+    "RING_TOUCH_6",
+    "RING_POS_7",
+    "RING_LVL_7",
+    "RING_TOUCH_7",
+    "HEX_XPOS_0",
+    "HEX_YPOS_0",
+    "HEX_LVL_0",
+    "HEX_TOUCH_0",
+    "HEX_XPOS_1",
+    "HEX_YPOS_1",
+    "HEX_LVL_1",
+    "HEX_TOUCH_1",
+    "HEX_XPOS_2",
+    "HEX_YPOS_2",
+    "HEX_LVL_2",
+    "HEX_TOUCH_2",
+    "HEX_XPOS_3",
+    "HEX_YPOS_3",
+    "HEX_LVL_3",
+    "HEX_TOUCH_3",
+    "HEX_XPOS_4",
+    "HEX_YPOS_4",
+    "HEX_LVL_4",
+    "HEX_TOUCH_4",
+    "HEX_XPOS_5",
+    "HEX_YPOS_5",
+    "HEX_LVL_5",
+    "HEX_TOUCH_5",
+    "HEX_XPOS_6",
+    "HEX_YPOS_6",
+    "HEX_LVL_6",
+    "HEX_TOUCH_6",
+    "HEX_XPOS_7",
+    "HEX_YPOS_7",
+    "HEX_LVL_7",
+    "HEX_TOUCH_7"
 };
 
 enum EInOutPin
@@ -330,6 +400,62 @@ enum EInOutPin
     kCRAFT_5,
     kCRAFT_6,
     kCRAFT_7,
+    kRING_POS_0,
+    kRING_LVL_0,
+    kRING_TOUCH_0,
+    kRING_POS_1,
+    kRING_LVL_1,
+    kRING_TOUCH_1,
+    kRING_POS_2,
+    kRING_LVL_2,
+    kRING_TOUCH_2,
+    kRING_POS_3,
+    kRING_LVL_3,
+    kRING_TOUCH_3,
+    kRING_POS_4,
+    kRING_LVL_4,
+    kRING_TOUCH_4,
+    kRING_POS_5,
+    kRING_LVL_5,
+    kRING_TOUCH_5,
+    kRING_POS_6,
+    kRING_LVL_6,
+    kRING_TOUCH_6,
+    kRING_POS_7,
+    kRING_LVL_7,
+    kRING_TOUCH_7,
+    kHEX_XPOS_0,
+    kHEX_YPOS_0,
+    kHEX_LVL_0,
+    kHEX_TOUCH_0,
+    kHEX_XPOS_1,
+    kHEX_YPOS_1,
+    kHEX_LVL_1,
+    kHEX_TOUCH_1,
+    kHEX_XPOS_2,
+    kHEX_YPOS_2,
+    kHEX_LVL_2,
+    kHEX_TOUCH_2,
+    kHEX_XPOS_3,
+    kHEX_YPOS_3,
+    kHEX_LVL_3,
+    kHEX_TOUCH_3,
+    kHEX_XPOS_4,
+    kHEX_YPOS_4,
+    kHEX_LVL_4,
+    kHEX_TOUCH_4,
+    kHEX_XPOS_5,
+    kHEX_YPOS_5,
+    kHEX_LVL_5,
+    kHEX_TOUCH_5,
+    kHEX_XPOS_6,
+    kHEX_YPOS_6,
+    kHEX_LVL_6,
+    kHEX_TOUCH_6,
+    kHEX_XPOS_7,
+    kHEX_YPOS_7,
+    kHEX_LVL_7,
+    kHEX_TOUCH_7,
     kNumInputPins
 };
 
@@ -639,7 +765,7 @@ class BelaWidgetCheckBox : public BelaWidget
             fZone = z;      // zone
             fLabel = l;     // label
             fMin = lo;      // minimal value
-            fRange = hi; 
+            fRange = hi - lo; 
             fStep = step;
         }
         
@@ -680,8 +806,10 @@ class TrillWidget : public BelaWidget
 {
     protected:
        
-        Trill* fSensor;
-        Trill::Device fType;
+        Trill*          fSensor;
+        Trill::Device   fType;
+        FAUSTFLOAT      fDefaultValue;
+        bool            fBuffered;
       
     public:
      
@@ -689,30 +817,39 @@ class TrillWidget : public BelaWidget
         {
             fSensor = NULL;
             fType = Trill::NONE;
+            fDefaultValue = 0;
+            fBuffered = false;
         }
 
         TrillWidget(const TrillWidget& w):BelaWidget((BelaWidget)w)
         {
             fSensor = NULL;
             fType = Trill::NONE;
+            fDefaultValue = w.fDefaultValue;
+            fBuffered = w.fBuffered;
         }
 
-        TrillWidget(EInOutPin pin, FAUSTFLOAT* z, const char* l, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
+        TrillWidget(EInOutPin pin, FAUSTFLOAT* z, const char* l, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
         {
             fBelaPin = pin;
             fZone = z;      // zone
             fLabel = l;     // label
             fMin = lo;      // minimal value
-            fRange = hi;
+            fRange = hi - lo;
             fStep = step;
             fSensor = NULL;
+            fDefaultValue = init;
+            *fZone = fDefaultValue;
             if (strstr(pinNamesStrings[fBelaPin], "BAR")) {
                 fType = Trill::BAR;
             } else if (strstr(pinNamesStrings[fBelaPin], "SQUARE")) {
                 fType = Trill::SQUARE;
+            } else if(strstr(pinNamesStrings[fBelaPin], "HEX")) {
+                fType = Trill::HEX;
             } else {
                 fType = Trill::NONE;
             }
+            fBuffered = false;
         }
         
         virtual ~TrillWidget() {}
@@ -727,7 +864,11 @@ class TrillWidget : public BelaWidget
         {
             const char* saved = parameters; // to restore position if we fail
             bool result = false;
-            if (parseChar(parameters, '{')) {
+            if (parseWord(parameters, "BUFFERED")) {
+                    fBuffered = true;
+                    result = true;
+            }
+            else if (parseChar(parameters, '{')) {
                 do {
                     string n;
                     string v;
@@ -759,6 +900,8 @@ class TrillWidget : public BelaWidget
 
         virtual void update(BelaContext* context)
         {
+            if (!fSensor)
+                return;
             float val = 0.f;
             switch (fBelaPin) {
                 case kBAR_POS_0:
@@ -769,9 +912,12 @@ class TrillWidget : public BelaWidget
                 case kBAR_POS_5:
                 case kBAR_POS_6:
                 case kBAR_POS_7:
-                    if (fSensor && fSensor->getNumTouches() > 0)
+                    if (fSensor->getNumTouches() > 0) {
                         val = fSensor->compoundTouchLocation();
-                    *fZone = fMin + fRange * val;
+                        *fZone = fMin + fRange * val;
+                    } else if(!fBuffered) {
+                        *fZone = fDefaultValue;
+                    }
                     break;
                 
                 case kBAR_LVL_0:
@@ -782,9 +928,12 @@ class TrillWidget : public BelaWidget
                 case kBAR_LVL_5:
                 case kBAR_LVL_6:
                 case kBAR_LVL_7:
-                    if (fSensor && fSensor->getNumTouches() > 0)
+                    if (fSensor->getNumTouches() > 0) {
                         val = fSensor->compoundTouchSize();
-                    *fZone = fMin + fRange * val;
+                        *fZone = fMin + fRange * val;
+                    } else if(!fBuffered) {
+                        *fZone = fDefaultValue;
+                    }
                     break;
                     
                 case kBAR_TOUCH_0:
@@ -795,8 +944,7 @@ class TrillWidget : public BelaWidget
                 case kBAR_TOUCH_5:
                 case kBAR_TOUCH_6:
                 case kBAR_TOUCH_7:
-                    if (fSensor)
-                        val = fSensor->getNumTouches();
+                    val = fSensor->getNumTouches();
                     *fZone = min(fRange,val);
                     break;
                     
@@ -808,9 +956,12 @@ class TrillWidget : public BelaWidget
                 case kSQUARE_XPOS_5:
                 case kSQUARE_XPOS_6:
                 case kSQUARE_XPOS_7:
-                    if (fSensor && fSensor->getNumTouches() > 0)
+                    if (fSensor->getNumTouches() > 0) {
                         val = fSensor->compoundTouchHorizontalLocation();
-                    *fZone = fMin + fRange * val;
+                        *fZone = fMin + fRange * val;
+                    } else if(!fBuffered) {
+                        *fZone = fDefaultValue;
+                    }
                     break;
                 
                 case kSQUARE_YPOS_0:
@@ -821,9 +972,12 @@ class TrillWidget : public BelaWidget
                 case kSQUARE_YPOS_5:
                 case kSQUARE_YPOS_6:
                 case kSQUARE_YPOS_7:
-                    if (fSensor && fSensor->getNumTouches() > 0)
+                    if (fSensor->getNumTouches() > 0) {
                         val = fSensor->compoundTouchLocation();
-                    *fZone = fMin + fRange * val;
+                        *fZone = fMin + fRange * val;
+                    } else if(!fBuffered) {
+                        *fZone = fDefaultValue;
+                    }
                     break;
                 
                 case kSQUARE_LVL_0:
@@ -834,9 +988,12 @@ class TrillWidget : public BelaWidget
                 case kSQUARE_LVL_5:
                 case kSQUARE_LVL_6:
                 case kSQUARE_LVL_7:
-                    if (fSensor && fSensor->getNumTouches() > 0)
+                    if (fSensor->getNumTouches() > 0) {
                         val = fSensor->compoundTouchSize();
-                    *fZone = fMin + fRange * val;
+                        *fZone = fMin + fRange * val;
+                    } else if(!fBuffered) {
+                        *fZone = fDefaultValue;
+                    }
                     break;
                 
                 case kSQUARE_TOUCH_0:
@@ -847,8 +1004,95 @@ class TrillWidget : public BelaWidget
                 case kSQUARE_TOUCH_5:
                 case kSQUARE_TOUCH_6:
                 case kSQUARE_TOUCH_7:
-                    if (fSensor)
-                        val = fSensor->getNumTouches();
+                     val = fSensor->getNumTouches();
+                    *fZone = min(fRange,val);
+                    break;
+               
+                case kRING_LVL_0:
+                case kRING_LVL_1:
+                case kRING_LVL_2:
+                case kRING_LVL_3:
+                case kRING_LVL_4:
+                case kRING_LVL_5:
+                case kRING_LVL_6:
+                case kRING_LVL_7:
+                    if (fSensor->getNumTouches() > 0) {
+                        val = fSensor->compoundTouchSize();
+                        *fZone = fMin + fRange * val;
+                    } else if(!fBuffered) {
+                        *fZone = fDefaultValue;
+                    }
+                    break;
+                    
+                case kRING_TOUCH_0:
+                case kRING_TOUCH_1:
+                case kRING_TOUCH_2:
+                case kRING_TOUCH_3:
+                case kRING_TOUCH_4:
+                case kRING_TOUCH_5:
+                case kRING_TOUCH_6:
+                case kRING_TOUCH_7:
+                    val = fSensor->getNumTouches();
+                    *fZone = min(fRange,val);
+                    break;   
+
+                case kHEX_XPOS_0:
+                case kHEX_XPOS_1:
+                case kHEX_XPOS_2:
+                case kHEX_XPOS_3:
+                case kHEX_XPOS_4:
+                case kHEX_XPOS_5:
+                case kHEX_XPOS_6:
+                case kHEX_XPOS_7:
+                    if (fSensor->getNumTouches() > 0) {
+                        val = fSensor->compoundTouchHorizontalLocation();
+                        *fZone = fMin + fRange * val;
+                    } else if(!fBuffered) {
+                        *fZone = fDefaultValue;
+                    }
+                    break;
+                
+                case kHEX_YPOS_0:
+                case kHEX_YPOS_1:
+                case kHEX_YPOS_2:
+                case kHEX_YPOS_3:
+                case kHEX_YPOS_4:
+                case kHEX_YPOS_5:
+                case kHEX_YPOS_6:
+                case kHEX_YPOS_7:
+                    if (fSensor->getNumTouches() > 0) {
+                        val = fSensor->compoundTouchLocation();
+                        *fZone = fMin + fRange * val;
+                    } else if(!fBuffered) {
+                        *fZone = fDefaultValue;
+                    }
+                    break;
+                
+                case kHEX_LVL_0:
+                case kHEX_LVL_1:
+                case kHEX_LVL_2:
+                case kHEX_LVL_3:
+                case kHEX_LVL_4:
+                case kHEX_LVL_5:
+                case kHEX_LVL_6:
+                case kHEX_LVL_7:
+                    if (fSensor->getNumTouches() > 0) {
+                        val = fSensor->compoundTouchSize();
+                        *fZone = fMin + fRange * val;
+                    } else if(!fBuffered) {
+                        *fZone = fDefaultValue;
+                    }
+                    break;
+                    
+                case kHEX_TOUCH_0:
+                case kHEX_TOUCH_1:
+                case kHEX_TOUCH_2:
+                case kHEX_TOUCH_3:
+                case kHEX_TOUCH_4:
+                case kHEX_TOUCH_5:
+                case kHEX_TOUCH_6:
+                case kHEX_TOUCH_7:
+                    val = fSensor->getNumTouches();
                     *fZone = min(fRange,val);
                     break;
                     
@@ -915,6 +1159,7 @@ class TrillCraftWidget : public TrillWidget
             fThreshold = 0.10;
             fStartNote = 0;
             fScale.push_back(1);     // default chromatic scale
+            fDefaultValue = 0;
         }
 
         TrillCraftWidget(const TrillCraftWidget& w):TrillWidget((TrillWidget)w)
@@ -928,15 +1173,16 @@ class TrillCraftWidget : public TrillWidget
             fThreshold = 0.10;
             fStartNote = 0;
             fScale.push_back(1);     // default chromatic scale
+            fDefaultValue = 0;
         }
 
-        TrillCraftWidget(EInOutPin pin, FAUSTFLOAT* z, const char* l, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
+        TrillCraftWidget(EInOutPin pin, FAUSTFLOAT* z, const char* l, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
         {
             fBelaPin = pin;
             fZone = z;  // zone
             fLabel = l; // label
             fMin = lo;  // minimal value
-            fRange = hi;
+            fRange = hi - lo;
             fStep = step;
             fSensor = NULL;
             fType = Trill::CRAFT;
@@ -947,6 +1193,7 @@ class TrillCraftWidget : public TrillWidget
             fThreshold = 0.10;
             fStartNote = 0;
             fScale.push_back(1);     //default chromatic scale
+            fDefaultValue = init;
         }
         
         virtual ~TrillCraftWidget() 
@@ -1112,7 +1359,7 @@ class TrillCraftWidgetCheckBox : public TrillCraftWidget
         
         TrillCraftWidgetCheckBox(const TrillCraftWidgetCheckBox& w): TrillCraftWidget((TrillCraftWidget) w) {}
         
-        TrillCraftWidgetCheckBox(EInOutPin pin, FAUSTFLOAT* z, const char* l, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step): TrillCraftWidget(pin, z, l, lo, hi, step) {}
+        TrillCraftWidgetCheckBox(EInOutPin pin, FAUSTFLOAT* z, const char* l,FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step): TrillCraftWidget(pin, z, l, init, lo, hi, step) {}
         
         virtual ~TrillCraftWidgetCheckBox() {}
         
@@ -1136,10 +1383,10 @@ class TrillCraftWidgetSlider : public TrillCraftWidget
         
         TrillCraftWidgetSlider(): TrillCraftWidget() {}
         
-        TrillCraftWidgetSlider(const TrillCraftWidgetCheckBox& w): TrillCraftWidget((TrillCraftWidget) w) {}
+        TrillCraftWidgetSlider(const TrillCraftWidgetSlider& w): TrillCraftWidget((TrillCraftWidget) w) {}
         
-        TrillCraftWidgetSlider(EInOutPin pin, FAUSTFLOAT* z, const char* l, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step ): TrillCraftWidget(pin, z, l, lo, hi, step) {
-            
+        TrillCraftWidgetSlider(EInOutPin pin, FAUSTFLOAT* z, const char* l,FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step ): TrillCraftWidget(pin, z, l, init, lo, hi, step) {
+           *fZone = init; 
         }
         
         virtual ~TrillCraftWidgetSlider() {}
@@ -1157,6 +1404,120 @@ class TrillCraftWidgetSlider : public TrillCraftWidget
                 }
             }
         }
+};
+
+class TrillRingPosWidget : public TrillWidget
+{
+    protected:
+        int         fTurnLimit;
+        int         fTurnNumber;
+        bool        fMultiTurn;
+        float       fTurnDetectZone;
+        
+        int ChangeTurnDetect(float oldpos, float newpos)
+        {
+            if(oldpos <= (fTurnDetectZone/2) && newpos >= (1 - fTurnDetectZone/2)) {
+                return -1;
+            } else if(oldpos >= (1 - fTurnDetectZone/2) && newpos <= (fTurnDetectZone/2)) {
+                return 1;
+            }    
+            return 0;
+        }
+        
+    public:
+        TrillRingPosWidget(): TrillWidget() {
+            fTurnLimit = 1;
+            fTurnNumber = 0;
+            fMultiTurn = false;
+            fTurnDetectZone = 0.2f;
+            fType = Trill::RING;
+        }
+        
+        TrillRingPosWidget(const TrillRingPosWidget& w): TrillWidget((TrillWidget) w) {
+            fTurnLimit = w.fTurnLimit;
+            fTurnNumber = w.fTurnNumber;
+            fMultiTurn = w.fMultiTurn;
+            fTurnDetectZone = w.fTurnDetectZone;
+            fType = Trill::RING;
+        }
+        
+        TrillRingPosWidget(EInOutPin pin, FAUSTFLOAT* z, const char* l,FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step, float turndetectsensitivity = 0.2f ): TrillWidget(pin, z, l, init, lo, hi, step) { 
+           fTurnLimit = 1;
+           fTurnNumber = 0;
+           fMultiTurn = false;
+           fTurnDetectZone = turndetectsensitivity;
+           fType = Trill::RING;
+           
+        }
+        
+        virtual ~TrillRingPosWidget() {}
+        
+        virtual bool setParameters(const char* parameters)
+        {
+            if (parameters && !TrillWidget::setParameters(parameters)) {
+                if (parseWord(parameters, "MULTITURN")) {
+                    fMultiTurn = true;
+                }
+                double tmpval = 0.f;
+                if (parameters && parseDouble(parameters, tmpval) && fMultiTurn) {
+                    fTurnLimit = (int)tmpval;
+                } else {
+                    fTurnLimit = 1;
+                }               
+            }
+            if(fMultiTurn && fTurnLimit > 1 && fDefaultValue != fMin) // if multiturn mode, calculate the current turn
+            {
+                    float turnrange = fRange / fTurnLimit;
+                    fTurnNumber = floor((fDefaultValue - fMin) / turnrange);
+            }
+            return true;
+        }
+        
+        virtual void update(BelaContext* context)
+        {
+            if(!fSensor)
+                return;            
+            float val = 0.f;
+            switch (fBelaPin) {
+                case kRING_POS_0:
+                case kRING_POS_1:
+                case kRING_POS_2:
+                case kRING_POS_3:
+                case kRING_POS_4:
+                case kRING_POS_5:
+                case kRING_POS_6:
+                case kRING_POS_7:
+                    if (fSensor->getNumTouches() > 0) {
+                        val = fSensor->compoundTouchLocation();
+                        if(fMultiTurn) {
+                            float turnrange = fRange / fTurnLimit;                                              
+                            float oldfZone = *fZone;
+                            float oldsensorPos = (oldfZone - fMin - turnrange * fTurnNumber) / turnrange;
+                            int turnincrement = ChangeTurnDetect(oldsensorPos, val);
+                            float newval = fMin + turnrange * val + turnrange * (fTurnNumber+turnincrement);
+                            if(newval > (fMin + fRange)) {
+                                *fZone = fMin + fRange;
+                            } else if(newval < fMin) {
+                                *fZone = fMin;
+                            } else {
+                                *fZone = newval;                                
+                            }
+                            fTurnNumber += turnincrement;
+                            
+                        } else {
+                            *fZone = fMin + fRange * val;
+                        } 
+                    }
+                    else if(!fMultiTurn) {
+                        *fZone = fDefaultValue;
+                    }
+                    break;
+                default:
+                    break;
+            };
+        }
+                
+
 };
 
 /**************************************************************************************
@@ -1212,19 +1573,25 @@ class BelaUI : public GenericUI, public Meta
             fBelaPin = kNoPin;
         }
         
-        void addTrillWidget(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
+        void addTrillWidget(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
         {
             if (fTrillPin != kNoPin) {
             
                 if (strstr(pinNamesStrings[fTrillPin], "CRAFT"))
                 {
-                    TrillCraftWidget* newcraft = new TrillCraftWidget(fTrillPin, zone, label, lo, hi, step);
+                    TrillCraftWidget* newcraft = new TrillCraftWidget(fTrillPin, zone, label, init, lo, hi, step);
                     newcraft->setParameters(fTrillParams);
                     fTrillTable.push_back(newcraft);
                 }
+                else if (strstr(pinNamesStrings[fTrillPin], "RING_POS"))
+                {
+                    TrillRingPosWidget* newringpos = new TrillRingPosWidget(fTrillPin, zone, label, init, lo, hi, step);
+                    newringpos->setParameters(fTrillParams);
+                    fTrillTable.push_back(newringpos);
+                }
                 else
                 {
-                    TrillWidget* newtrill = new TrillWidget(fTrillPin, zone, label, lo, hi, step);
+                    TrillWidget* newtrill = new TrillWidget(fTrillPin, zone, label, init, lo, hi, step);
                     newtrill->setParameters(fTrillParams);
                     fTrillTable.push_back(newtrill);
                 }
@@ -1234,13 +1601,13 @@ class BelaUI : public GenericUI, public Meta
             fTrillParams = NULL;
         }
         
-        void addTrillWidgetCheckBox(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi)
+        void addTrillWidgetCheckBox(const char* label, FAUSTFLOAT* zone,  FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi)
         {
             if (fTrillPin != kNoPin) {
             
                 if (strstr(pinNamesStrings[fTrillPin], "CRAFT"))
                 {
-                    TrillCraftWidgetCheckBox* newcraft = new TrillCraftWidgetCheckBox(fTrillPin, zone, label, lo, hi, 0);
+                    TrillCraftWidgetCheckBox* newcraft = new TrillCraftWidgetCheckBox(fTrillPin, zone, label, init, lo, hi, 0);
                     newcraft->setParameters(fTrillParams);
                     fTrillTable.push_back(newcraft);
                 }                
@@ -1249,7 +1616,7 @@ class BelaUI : public GenericUI, public Meta
             fTrillParams = NULL;
         }
         
-        void addTrillWidgetSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
+        void addTrillWidgetSlider(const char* label, FAUSTFLOAT* zone,  FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
         {
             if (fTrillPin != kNoPin) {
             
@@ -1257,18 +1624,24 @@ class BelaUI : public GenericUI, public Meta
                 if (strstr(pinNamesStrings[fTrillPin], "CRAFT"))
                 {
                     if (strstr(fTrillParams, "SLIDER")) {
-                        TrillCraftWidgetSlider* newcraftslider = new TrillCraftWidgetSlider(fTrillPin, zone, label, lo, hi, step);
+                        TrillCraftWidgetSlider* newcraftslider = new TrillCraftWidgetSlider(fTrillPin, zone, label, init, lo, hi, step);
                         newcraft = (TrillCraftWidget*) newcraftslider;
                     } else {
-                        TrillCraftWidget* newcraftsensor = new TrillCraftWidget(fTrillPin, zone, label, lo, hi, step);
+                        TrillCraftWidget* newcraftsensor = new TrillCraftWidget(fTrillPin, zone, label, init, lo, hi, step);
                         newcraft = newcraftsensor;
                     }
                     newcraft->setParameters(fTrillParams);
                     fTrillTable.push_back(newcraft);
                 }
+                else if (strstr(pinNamesStrings[fTrillPin], "RING_POS"))
+                {
+                    TrillRingPosWidget* newringpos = new TrillRingPosWidget(fTrillPin, zone, label, init, lo, hi, step);
+                    newringpos->setParameters(fTrillParams);
+                    fTrillTable.push_back(newringpos);
+                }
                 else
                 {
-                    TrillWidget* newtrill = new TrillWidget(fTrillPin, zone, label, lo, hi, step);
+                    TrillWidget* newtrill = new TrillWidget(fTrillPin, zone, label, init, lo, hi, step);
                     newtrill->setParameters(fTrillParams);
                     fTrillTable.push_back(newtrill);
                 }
@@ -1332,7 +1705,7 @@ class BelaUI : public GenericUI, public Meta
             if (fBelaPin != kNoPin)
                 addBelaWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1),0); 
             else
-                addTrillWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1),0); 
+                addTrillWidget(label, zone, 0, FAUSTFLOAT(0), FAUSTFLOAT(1),0); 
         }
         
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
@@ -1340,7 +1713,7 @@ class BelaUI : public GenericUI, public Meta
             if (fBelaPin != kNoPin)
                 addBelaWidgetCheckBox(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1)); 
             else
-                addTrillWidgetCheckBox(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1));  
+                addTrillWidgetCheckBox(label, zone, 0, FAUSTFLOAT(0), FAUSTFLOAT(1));  
         }
         
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
@@ -1348,7 +1721,7 @@ class BelaUI : public GenericUI, public Meta
             if (fBelaPin != kNoPin)
                 addBelaWidget(label, zone, lo, hi, step); 
             else
-                addTrillWidgetSlider(label, zone, lo, hi, step); 
+                addTrillWidgetSlider(label, zone, init, lo, hi, step); 
         }
         
         virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
@@ -1356,7 +1729,7 @@ class BelaUI : public GenericUI, public Meta
             if (fBelaPin != kNoPin)
                 addBelaWidget(label, zone, lo, hi, step); 
             else
-                addTrillWidgetSlider(label, zone, lo, hi, step); 
+                addTrillWidgetSlider(label, zone, init, lo, hi, step); 
         }
         
         virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
@@ -1364,7 +1737,7 @@ class BelaUI : public GenericUI, public Meta
             if (fBelaPin != kNoPin)
                 addBelaWidget(label, zone, lo, hi, step); 
             else
-                addTrillWidget(label, zone, lo, hi, step); 
+                addTrillWidget(label, zone, init, lo, hi, step); 
         }
         
         // -- passive widgets
@@ -1424,6 +1797,10 @@ class BelaUI : public GenericUI, public Meta
                            initSensorWidgets(Trill::SQUARE, values[i]);
                        } else if (names[i] == "CRAFT") {
                            initSensorWidgets(Trill::CRAFT, values[i]);
+                       } else if (names[i] == "RING") {
+                           initSensorWidgets(Trill::RING, values[i]);
+                       } else if (names[i] == "HEX") {
+                           initSensorWidgets(Trill::HEX, values[i]);
                        }
                    }                       
                 }
@@ -1640,7 +2017,10 @@ bool setup(BelaContext* context, void* userData)
         cerr << "Unable to allocate Faust DSP object" << endl;
         return false;
     }
-    
+    // using dsp_adapter when the number of bela Audio IO channels are less than the DSP
+    if(gDSP->getNumInputs() > context->audioInChannels || gDSP->getNumOutputs() >  context->audioOutChannels) {
+        gDSP = new dsp_adapter(gDSP, context->audioInChannels, context->audioOutChannels, context->audioFrames);
+    }
     gDSP->init(context->audioSampleRate);
     gDSP->buildUserInterface(&gControlUI);  // Maps Bela Analog/Digital IO, Trill sensors and Faust widgets
 	gDSP->metadata(&gControlUI);            // Get the extra settings for Trill sensors
