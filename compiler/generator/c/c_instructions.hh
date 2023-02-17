@@ -530,7 +530,7 @@ class CInstVisitor1 : public CInstVisitor {
 };
 
 /**
- Implement C FIR visitor: used for -os2 mode, accessing iZone/fZone as function args (TODO : does not work with 'soundfile').
+ Implement C FIR visitor: used for -os2 mode, accessing iZone/fZone as function args.
  */
 
 class CInstVisitor2 : public CInstVisitor {
@@ -586,7 +586,7 @@ class CInstVisitor2 : public CInstVisitor {
 };
 
 /**
- Implement C FIR visitor: used for -os3 mode, accessing iZone/fZone in DSP struct (TODO : does not work with 'soundfile').
+ Implement C FIR visitor: used for -os3 mode, accessing iZone/fZone in DSP struct.
  */
 
 class CInstVisitor3 : public CInstVisitor2 {

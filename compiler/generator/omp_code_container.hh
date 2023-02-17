@@ -24,6 +24,9 @@
 
 #include "code_container.hh"
 
+/*
+ Base class for -omp code generation (Open MP).
+ */
 class OpenMPCodeContainer : public virtual CodeContainer {
    private:
     StatementInst* generateDAGLoopOMP(const std::string& counter);

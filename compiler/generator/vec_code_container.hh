@@ -24,11 +24,17 @@
 
 #include "code_container.hh"
 
+/*
+ Base class code -vec code generation.
+ */
 class VectorCodeContainer : public virtual CodeContainer {
    private:
     void moveStack2Struct();
 
+    // Code generated with -lv 0 option
     BlockInst* generateDAGLoopVariant0(const std::string& counter);
+    
+    // Code generated with -lv 1 option
     BlockInst* generateDAGLoopVariant1(const std::string& counter);
 
     void generateLocalInputs(BlockInst* loop_code, const std::string& index);

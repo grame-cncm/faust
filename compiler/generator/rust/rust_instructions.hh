@@ -50,7 +50,7 @@ struct RustInitFieldsVisitor : public DispatchVisitor {
         if (inst->fAddress->getAccess() & Address::kStruct) *fOut << ",";
     }
 
-    // Generate zero intialisation code for simple int/real scalar and arrays types
+    // Generate zero initialisation code for simple int/real scalar and arrays types
     static void ZeroInitializer(std::ostream* fOut, Typed* typed)
     {
         Typed::VarType type       = typed->getType();
@@ -80,7 +80,17 @@ class RustInstVisitor : public TextInstVisitor {
      */
     static std::map<std::string, bool> gFunctionSymbolTable;
     std::map<std::string, std::string> fMathLibTable;
+    // Integer wrapping operators
     std::map<int, std::string>         fWrappingOpTable;
+    
+    // Function returning 'bool', to be casted to 'int'
+    inline bool isBoolFun(const std::string& name)
+    {
+        return (name == "F32::is_nan")
+        || (name == "F64::is_nan")
+        || (name == "F32::is_infinite")
+        || (name == "F64::is_infinite");
+    }
 
    public:
     using TextInstVisitor::visit;
@@ -473,16 +483,7 @@ class RustInstVisitor : public TextInstVisitor {
             generateFunCall(inst, inst->fName);
         }
     }
-    
-    // Function returning 'bool', to be casted to 'int'
-    bool isBoolFun(const std::string& name)
-    {
-        return (name == "F32::is_nan")
-            || (name == "F64::is_nan")
-            || (name == "F32::is_infinite")
-            || (name == "F64::is_infinite");
-    }
-
+  
     virtual void generateFunCall(FunCallInst* inst, const std::string& fun_name)
     {
         if (inst->fMethod) {
@@ -672,16 +673,16 @@ class RustInstVisitor : public TextInstVisitor {
 /**
  * Helper visitor that allows to build a parameter lookup table.
  */
-class UserInterfaceParameterMapping : public InstVisitor {
+class UserInterfaceParameterMapping : public DispatchVisitor {
    private:
     std::map<std::string, int> fParameterLookup;
     int fParameterIndex;
 
    public:
-    using InstVisitor::visit;
+    using DispatchVisitor::visit;
 
     UserInterfaceParameterMapping()
-        : InstVisitor(), fParameterLookup{}, fParameterIndex{0}
+        : DispatchVisitor(), fParameterLookup{}, fParameterIndex{0}
     {}
 
     virtual ~UserInterfaceParameterMapping() {}
@@ -689,15 +690,6 @@ class UserInterfaceParameterMapping : public InstVisitor {
     std::map<std::string, int> getParameterLookup()
     {
         return fParameterLookup;
-    }
-
-    virtual void visit(BlockInst* inst)
-    {
-        // BlockInst visitor is unimplemented in base class, so we need a trivial implementation
-        // to actually visit the user interface statements in the BlockInst.
-        for (const auto& it : inst->fCode) {
-            it->accept(this);
-        }
     }
 
     virtual void visit(AddMetaDeclareInst* inst)

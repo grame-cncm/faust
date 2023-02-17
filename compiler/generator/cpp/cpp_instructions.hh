@@ -552,8 +552,7 @@ class CPPInstVisitor1 : public CPPInstVisitor {
 };
 
 /**
- Implement C++ FIR visitor: Used for -os2 mode, accessing iZone/fZone as function args (TODO : does not work with
- 'soundfile').
+ Implement C++ FIR visitor: Used for -os2 mode, accessing iZone/fZone as function args.
  */
 
 class CPPInstVisitor2 : public CPPInstVisitor {
@@ -606,8 +605,7 @@ class CPPInstVisitor2 : public CPPInstVisitor {
 };
 
 /**
- Implement C++ FIR visitor: used for -os3 mode, accessing iZone/fZone in DSP struct (TODO : does not work with
- 'soundfile').
+ Implement C++ FIR visitor: used for -os3 mode, accessing iZone/fZone in DSP struct.
  */
 
 class CPPInstVisitor3 : public CPPInstVisitor2 {

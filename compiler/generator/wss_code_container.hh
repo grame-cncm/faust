@@ -27,6 +27,9 @@
 // The name of the struct variable used to share the 'count' parameter between 'compute' and 'computeThread'
 #define fFFullCount "fCount"
 
+/*
+ Base class for -sch code generation (Work Stealing Scheduler).
+ */
 class WSSCodeContainer : public virtual CodeContainer {
    protected:
     std::string fObjName;

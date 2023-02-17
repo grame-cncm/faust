@@ -28,10 +28,13 @@
 
 #include "instructions.hh"
 
-// Describe a field memory location in the DSP structure
+/*
+ Describe a field memory location in the DSP structure
+*/
 struct MemoryDesc {
+    // Location: kLocal for on chip (faster), kExternal for slower memory
     enum memType { kLocal, kExternal };
-    int fIndex;             // Index
+    int fFieldIndex;        // Index in memory array
     int fOffset;            // Offset in bytes in a mixed int/real zone
     int fIntOffset;         // Offset in bytes in a separated int zone
     int fRealOffset;        // Offset in bytes in a separated real zone
@@ -44,7 +47,7 @@ struct MemoryDesc {
     bool fIsControl;        // True when control (slider, nentry, buttons, checkbox, bargraph)
     memType fMemType;       // Memory type
 
-    MemoryDesc() : fIndex(-1), fOffset(-1),
+    MemoryDesc() : fFieldIndex(-1), fOffset(-1),
         fIntOffset(-1), fRealOffset(-1),
         fRAccessCount(0), fWAccessCount(0),
         fSize(-1), fSizeBytes(-1),
@@ -53,7 +56,7 @@ struct MemoryDesc {
         fMemType(kLocal) {}
 
     MemoryDesc(int index, int offset, int size, int size_bytes, Typed::VarType type)
-    : fIndex(index), fOffset(offset),
+    : fFieldIndex(index), fOffset(offset),
         fIntOffset(-1), fRealOffset(-1),
         fRAccessCount(0), fWAccessCount(0),
         fSize(size), fSizeBytes(size_bytes),
@@ -68,7 +71,7 @@ struct MemoryDesc {
                bool is_const,
                bool is_control,
                memType mem_type = kLocal)
-        : fIndex(index), fOffset(offset),
+        : fFieldIndex(index), fOffset(offset),
         fIntOffset(int_offset), fRealOffset(real_offset),
         fRAccessCount(0), fWAccessCount(0),
         fSize(size), fSizeBytes(size_bytes),
@@ -87,7 +90,7 @@ struct MemoryDesc {
 };
 
 /*
- Compute all field info, the DSP size, and separate 'int' and 'real' types
+ Compute all fields info, the DSP size, and separate 'int' and 'real' types
  */
 struct StructInstVisitor : public DispatchVisitor {
     int        fStructIntOffset;    // Keep the int offset in bytes
@@ -151,7 +154,7 @@ struct StructInstVisitor : public DispatchVisitor {
     int getFieldIndex(const std::string& name)
     {
         for (const auto& field : fFieldTable) {
-            if (field.first == name) return field.second.fIndex;
+            if (field.first == name) return field.second.fFieldIndex;
         }
         std::cerr << "ASSERT : getFieldIndex : " << name << std::endl;
         faustassert(false);
@@ -318,8 +321,7 @@ struct StructInstVisitor1 : public StructInstVisitor {
                 // kStaticStruct are always allocated in kExternal
                 // RW tables ("itblXX" and "ftblXX") are always allocated in kExternal
                 if ((access & Address::kStaticStruct)
-                    || startWith(name, "itbl")
-                    || startWith(name, "ftbl")
+                    || isTable(name)
                     || (fExternalMemory > 0 && array_typed->fSize > fDLThreshold)) {
                     fFieldTable.push_back(make_pair(name, MemoryDesc(fFieldIndex++,
                                                                      getStructSize(),

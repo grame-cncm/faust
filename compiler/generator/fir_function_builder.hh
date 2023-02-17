@@ -228,7 +228,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 };
 
 /*
-Constant propagation :
+Constant propagation:
 
 1) change variables to constants in the initial code
 2) clone the code with ConstantPropagationCloneVisitor

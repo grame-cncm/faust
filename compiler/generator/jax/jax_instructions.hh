@@ -673,7 +673,9 @@ class JAXInstVisitor : public TextInstVisitor {
 
     // TODO : does not work, put this code in a function
     virtual void visit(BitcastInst* inst)
-    {}
+    {
+        faustassert(false);
+    }
     
     virtual void visitCond(ValueInst* cond)
     {
@@ -781,7 +783,6 @@ class JAXInstVisitor : public TextInstVisitor {
             Int32NumInst* upper_bound = dynamic_cast<Int32NumInst*>(inst->fUpperBound);
             if (upper_bound) {
                 *fOut << "range(" << lower_bound->fNum << ", " << upper_bound->fNum;
-
                 if (upper_bound->fNum <= lower_bound->fNum) {
                     *fOut << ", -1";
                 }

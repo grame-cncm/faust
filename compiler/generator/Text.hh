@@ -211,7 +211,7 @@ inline std::string flatten(const std::string& src)
     return dst;
 }
 
-// To be used for WASM or CMaj
+// To be used for WASM or CMajor
 inline std::string flattenJSON(const std::string& src)
 {
     std::string dst;
@@ -291,6 +291,11 @@ inline bool isControl(const std::string& name)
 inline bool isConst(const std::string& name)
 {
     return startWith(name, "fConst") || startWith(name, "iConst");
+}
+
+inline bool isTable(const std::string& name)
+{
+    return startWith(name, "itbl") || startWith(name, "ftbl");
 }
 
 #endif

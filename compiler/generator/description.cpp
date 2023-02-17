@@ -163,7 +163,7 @@ string extractName(Tree full_label)
 }
 
 /**
- * removes enclosing quotes and transforms '<', '>' and '&' characters
+ * Removes enclosing quotes and transforms '<', '>' and '&' characters
  */
 static string xmlize(const string& fullsrc)
 {
