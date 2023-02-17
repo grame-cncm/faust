@@ -182,6 +182,7 @@ void CCodeContainer::produceClass()
     *fOut << "#define RESTRICT __restrict__" << endl;
     *fOut << "#endif" << endl;
     tab(n, *fOut);
+    
   
     // Libraries
     printLibrary(*fOut);
@@ -380,19 +381,8 @@ void CScalarOneSampleCodeContainer1::produceClass()
 {
     int n = 0;
     
-    tab(n, *fOut);
-    *fOut << "#ifdef __cplusplus" << endl;
-    *fOut << "extern \"C\" {" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#if defined(_WIN32)" << endl;
-    *fOut << "#define RESTRICT __restrict" << endl;
-    *fOut << "#else" << endl;
-    *fOut << "#define RESTRICT __restrict__" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
+    generateHeader1(n);
+     
     // Libraries
     printLibrary(*fOut);
     printIncludeFile(*fOut);
@@ -405,23 +395,7 @@ void CScalarOneSampleCodeContainer1::produceClass()
     fCodeProducer->Tab(n);
     generateGlobalDeclarations(fCodeProducer);
     
-    tab(n, *fOut);
-    *fOut << "#ifndef FAUSTCLASS " << endl;
-    *fOut << "#define FAUSTCLASS " << fKlassName << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#ifdef __APPLE__ " << endl;
-    *fOut << "#define exp10f __exp10f" << endl;
-    *fOut << "#define exp10 __exp10" << endl;
-    *fOut << "#endif" << endl;
-    
-    if (gGlobal->gLightMode) {
-        tab(n, *fOut);
-        *fOut << "#define max(a,b) ((a < b) ? b : a)\n";
-        *fOut << "#define min(a,b) ((a < b) ? a : b)\n";
-        tab(n, *fOut);
-    }
+    generateHeader2(n);
     
     tab(n, *fOut);
     *fOut << "typedef struct {";
@@ -613,19 +587,8 @@ void CScalarOneSampleCodeContainer2::produceClass()
 {
     int n = 0;
     
-    tab(n, *fOut);
-    *fOut << "#ifdef __cplusplus" << endl;
-    *fOut << "extern \"C\" {" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#if defined(_WIN32)" << endl;
-    *fOut << "#define RESTRICT __restrict" << endl;
-    *fOut << "#else" << endl;
-    *fOut << "#define RESTRICT __restrict__" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
+    generateHeader1(n);
+      
     // Libraries
     printLibrary(*fOut);
     printIncludeFile(*fOut);
@@ -638,23 +601,7 @@ void CScalarOneSampleCodeContainer2::produceClass()
     fCodeProducer->Tab(n);
     generateGlobalDeclarations(fCodeProducer);
     
-    tab(n, *fOut);
-    *fOut << "#ifndef FAUSTCLASS " << endl;
-    *fOut << "#define FAUSTCLASS " << fKlassName << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#ifdef __APPLE__ " << endl;
-    *fOut << "#define exp10f __exp10f" << endl;
-    *fOut << "#define exp10 __exp10" << endl;
-    *fOut << "#endif" << endl;
-    
-    if (gGlobal->gLightMode) {
-        tab(n, *fOut);
-        *fOut << "#define max(a,b) ((a < b) ? b : a)\n";
-        *fOut << "#define min(a,b) ((a < b) ? a : b)\n";
-        tab(n, *fOut);
-    }
+    generateHeader2(n);
     
     tab(n, *fOut);
     *fOut << "typedef struct {";
@@ -867,19 +814,8 @@ void CScalarOneSampleCodeContainer3::produceClass()
     
     int n = 0;
     
-    tab(n, *fOut);
-    *fOut << "#ifdef __cplusplus" << endl;
-    *fOut << "extern \"C\" {" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#if defined(_WIN32)" << endl;
-    *fOut << "#define RESTRICT __restrict" << endl;
-    *fOut << "#else" << endl;
-    *fOut << "#define RESTRICT __restrict__" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
+    generateHeader1(n);
+       
     // Libraries
     printLibrary(*fOut);
     printIncludeFile(*fOut);
@@ -892,23 +828,7 @@ void CScalarOneSampleCodeContainer3::produceClass()
     fCodeProducer->Tab(n);
     generateGlobalDeclarations(fCodeProducer);
     
-    tab(n, *fOut);
-    *fOut << "#ifndef FAUSTCLASS " << endl;
-    *fOut << "#define FAUSTCLASS " << fKlassName << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#ifdef __APPLE__ " << endl;
-    *fOut << "#define exp10f __exp10f" << endl;
-    *fOut << "#define exp10 __exp10" << endl;
-    *fOut << "#endif" << endl;
-    
-    if (gGlobal->gLightMode) {
-        tab(n, *fOut);
-        *fOut << "#define max(a,b) ((a < b) ? b : a)\n";
-        *fOut << "#define min(a,b) ((a < b) ? a : b)\n";
-        tab(n, *fOut);
-    }
+    generateHeader2(n);
     
     tab(n, *fOut);
     *fOut << "typedef struct {";
@@ -1152,18 +1072,7 @@ void CScalarOneSampleCodeContainer4::produceClass()
      
     int n = 0;
     
-    tab(n, *fOut);
-    *fOut << "#ifdef __cplusplus" << endl;
-    *fOut << "extern \"C\" {" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#if defined(_WIN32)" << endl;
-    *fOut << "#define RESTRICT __restrict" << endl;
-    *fOut << "#else" << endl;
-    *fOut << "#define RESTRICT __restrict__" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
+    generateHeader1(n);
     
     // Libraries
     printLibrary(*fOut);
@@ -1177,23 +1086,7 @@ void CScalarOneSampleCodeContainer4::produceClass()
     fCodeProducer->Tab(n);
     generateGlobalDeclarations(fCodeProducer);
     
-    tab(n, *fOut);
-    *fOut << "#ifndef FAUSTCLASS " << endl;
-    *fOut << "#define FAUSTCLASS " << fKlassName << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#ifdef __APPLE__ " << endl;
-    *fOut << "#define exp10f __exp10f" << endl;
-    *fOut << "#define exp10 __exp10" << endl;
-    *fOut << "#endif" << endl;
-    
-    if (gGlobal->gLightMode) {
-        tab(n, *fOut);
-        *fOut << "#define max(a,b) ((a < b) ? b : a)\n";
-        *fOut << "#define min(a,b) ((a < b) ? a : b)\n";
-        tab(n, *fOut);
-    }
+    generateHeader2(n);
     
     tab(n, *fOut);
     *fOut << "typedef struct {";

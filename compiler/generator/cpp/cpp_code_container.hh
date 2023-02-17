@@ -55,6 +55,27 @@ class CPPCodeContainer : public virtual CodeContainer {
         return (type == "kFloat_ptr" || type == "kDouble_ptr" || type == "kQuad_ptr" || type == "kInt32_ptr" || type == "kObj_ptr");
     }
     
+    void generateHeader(int n)
+    {
+        tab(n, *fOut);
+        *fOut << "#ifndef FAUSTCLASS " << std::endl;
+        *fOut << "#define FAUSTCLASS " << fKlassName << std::endl;
+        *fOut << "#endif" << std::endl;
+        tab(n, *fOut);
+        
+        *fOut << "#ifdef __APPLE__ " << std::endl;
+        *fOut << "#define exp10f __exp10f" << std::endl;
+        *fOut << "#define exp10 __exp10" << std::endl;
+        *fOut << "#endif" << std::endl;
+        tab(n, *fOut);
+        
+        *fOut << "#if defined(_WIN32)" << std::endl;
+        *fOut << "#define RESTRICT __restrict" << std::endl;
+        *fOut << "#else" << std::endl;
+        *fOut << "#define RESTRICT __restrict__" << std::endl;
+        *fOut << "#endif" << std::endl;
+    }
+    
     void generateAllocateFun(int n)
     {
         if (fAllocateInstructions->fCode.size() > 0) {

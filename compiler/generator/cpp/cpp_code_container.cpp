@@ -297,23 +297,7 @@ void CPPCodeContainer::produceClass()
         *fOut << "namespace " << gGlobal->gNamespace << " {" << endl;
     }
  
-    tab(n, *fOut);
-    *fOut << "#ifndef FAUSTCLASS " << endl;
-    *fOut << "#define FAUSTCLASS " << fKlassName << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#ifdef __APPLE__ " << endl;
-    *fOut << "#define exp10f __exp10f" << endl;
-    *fOut << "#define exp10 __exp10" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#if defined(_WIN32)" << endl;
-    *fOut << "#define RESTRICT __restrict" << endl;
-    *fOut << "#else" << endl;
-    *fOut << "#define RESTRICT __restrict__" << endl;
-    *fOut << "#endif" << endl;
+    generateHeader(n);
 
     // Generate gub containers
     generateSubContainers();
@@ -353,7 +337,6 @@ void CPPCodeContainer::produceClass()
     }
 
     generateAllocateFun(n);
-    
     generateDestroyFun(n);
 
     tab(n, *fOut);
@@ -667,23 +650,7 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     fCodeProducer->Tab(n);
     generateGlobalDeclarations(fCodeProducer);
     
-    tab(n, *fOut);
-    *fOut << "#ifndef FAUSTCLASS " << endl;
-    *fOut << "#define FAUSTCLASS " << fKlassName << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#ifdef __APPLE__ " << endl;
-    *fOut << "#define exp10f __exp10f" << endl;
-    *fOut << "#define exp10 __exp10" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#if defined(_WIN32)" << endl;
-    *fOut << "#define RESTRICT __restrict" << endl;
-    *fOut << "#else" << endl;
-    *fOut << "#define RESTRICT __restrict__" << endl;
-    *fOut << "#endif" << endl;
+    generateHeader(n);
     
     tab(n, *fOut);
     *fOut << "#define FAUST_INT_CONTROLS " << fInt32ControlNum  << endl;
@@ -710,7 +677,6 @@ void CPPScalarOneSampleCodeContainer1::produceClass()
     generateDeclarations(fCodeProducer);
     
     generateAllocateFun(n);
-    
     generateDestroyFun(n);
     
     tab(n, *fOut);
@@ -909,23 +875,7 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
     fCodeProducer->Tab(n);
     generateGlobalDeclarations(fCodeProducer);
     
-    tab(n, *fOut);
-    *fOut << "#ifndef FAUSTCLASS " << endl;
-    *fOut << "#define FAUSTCLASS " << fKlassName << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#ifdef __APPLE__ " << endl;
-    *fOut << "#define exp10f __exp10f" << endl;
-    *fOut << "#define exp10 __exp10" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#if defined(_WIN32)" << endl;
-    *fOut << "#define RESTRICT __restrict" << endl;
-    *fOut << "#else" << endl;
-    *fOut << "#define RESTRICT __restrict__" << endl;
-    *fOut << "#endif" << endl;
+    generateHeader(n);
     
     tab(n, *fOut);
     fSuperKlassName = "one_sample_dsp_real<" + string(ifloat()) + ">";
@@ -951,7 +901,6 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
     int real_zone_size = static_cast<CPPInstVisitor1*>(fCodeProducer)->getRealZoneSize();
     
     generateAllocateFun(n);
-    
     generateDestroyFun(n);
     
     tab(n, *fOut);
@@ -1172,23 +1121,7 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     fCodeProducer->Tab(n);
     generateGlobalDeclarations(fCodeProducer);
     
-    tab(n, *fOut);
-    *fOut << "#ifndef FAUSTCLASS " << endl;
-    *fOut << "#define FAUSTCLASS " << fKlassName << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#ifdef __APPLE__ " << endl;
-    *fOut << "#define exp10f __exp10f" << endl;
-    *fOut << "#define exp10 __exp10" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#if defined(_WIN32)" << endl;
-    *fOut << "#define RESTRICT __restrict" << endl;
-    *fOut << "#else" << endl;
-    *fOut << "#define RESTRICT __restrict__" << endl;
-    *fOut << "#endif" << endl;
+    generateHeader(n);
     
     tab(n, *fOut);
     fSuperKlassName = "one_sample_dsp_real<" + string(ifloat()) + ">";
@@ -1214,7 +1147,6 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
     int real_zone_size = static_cast<CPPInstVisitor1*>(fCodeProducer)->getRealZoneSize();
     
     generateAllocateFun(n);
-    
     generateDestroyFun(n);
     
     tab(n, *fOut);
@@ -1461,23 +1393,7 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
     fCodeProducer->Tab(n);
     generateGlobalDeclarations(fCodeProducer);
     
-    tab(n, *fOut);
-    *fOut << "#ifndef FAUSTCLASS " << endl;
-    *fOut << "#define FAUSTCLASS " << fKlassName << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#ifdef __APPLE__ " << endl;
-    *fOut << "#define exp10f __exp10f" << endl;
-    *fOut << "#define exp10 __exp10" << endl;
-    *fOut << "#endif" << endl;
-    tab(n, *fOut);
-    
-    *fOut << "#if defined(_WIN32)" << endl;
-    *fOut << "#define RESTRICT __restrict" << endl;
-    *fOut << "#else" << endl;
-    *fOut << "#define RESTRICT __restrict__" << endl;
-    *fOut << "#endif" << endl;
+    generateHeader(n);
     
     tab(n, *fOut);
     fSuperKlassName = "one_sample_dsp_real1<" + string(ifloat()) + ">";
@@ -1509,7 +1425,6 @@ void CPPScalarOneSampleCodeContainer4::produceClass()
     int real_zone_size = static_cast<CPPInstVisitor1*>(fCodeProducer)->getRealZoneSize();
     
     generateAllocateFun(n);
-    
     generateDestroyFun(n);
     
     tab(n, *fOut);

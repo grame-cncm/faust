@@ -96,6 +96,43 @@ class CCodeContainer : public virtual CodeContainer {
             tab(n, *fOut);
         }
     }
+    
+    void generateHeader1(int n)
+    {
+        tab(n, *fOut);
+        *fOut << "#ifdef __cplusplus" << std::endl;
+        *fOut << "extern \"C\" {" << std::endl;
+        *fOut << "#endif" << std::endl;
+        tab(n, *fOut);
+        
+        *fOut << "#if defined(_WIN32)" << std::endl;
+        *fOut << "#define RESTRICT __restrict" << std::endl;
+        *fOut << "#else" << std::endl;
+        *fOut << "#define RESTRICT __restrict__" << std::endl;
+        *fOut << "#endif" << std::endl;
+        tab(n, *fOut);
+    }
+    
+    void generateHeader2(int n)
+    {
+        tab(n, *fOut);
+        *fOut << "#ifndef FAUSTCLASS " << std::endl;
+        *fOut << "#define FAUSTCLASS " << fKlassName << std::endl;
+        *fOut << "#endif" << std::endl;
+        tab(n, *fOut);
+        
+        *fOut << "#ifdef __APPLE__ " << std::endl;
+        *fOut << "#define exp10f __exp10f" << std::endl;
+        *fOut << "#define exp10 __exp10" << std::endl;
+        *fOut << "#endif" << std::endl;
+        
+        if (gGlobal->gLightMode) {
+            tab(n, *fOut);
+            *fOut << "#define max(a,b) ((a < b) ? b : a)\n";
+            *fOut << "#define min(a,b) ((a < b) ? a : b)\n";
+            tab(n, *fOut);
+        }
+    }
 
    public:
     CCodeContainer()
