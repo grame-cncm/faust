@@ -146,6 +146,23 @@ class SignalBool2IntPromotion final : public SignalIdentity {
 
 };
 
+//--------------------SignalFXPromotion------------------
+// Special math function casting mode in -fx generation.
+//-------------------------------------------------------------
+class SignalFXPromotion final : public SignalIdentity {
+    
+    private:
+        Tree transformation(Tree sig);
+        
+    public:
+        SignalFXPromotion()
+        {
+            // Go inside tables
+            fVisitGen = true;
+        }
+    
+};
+
 //-------------SignalIntCastPromotion---------------
 // Float to integer conversion, checking the range.
 //--------------------------------------------------
@@ -221,8 +238,9 @@ class SignalUIFreezePromotion final : public SignalIdentity {
 };
 
 // Public API
-Tree sigPromote(Tree sig, bool trace = false);
-Tree sigBool2IntPromote(Tree sig);
+Tree signalPromote(Tree sig, bool trace = false);
+Tree signalBool2IntPromote(Tree sig);
+Tree signalFXPromote(Tree sig);
 Tree signalTablePromote(Tree sig);
 Tree signalIntCastPromote(Tree sig);
 Tree signalUIPromote(Tree sig);

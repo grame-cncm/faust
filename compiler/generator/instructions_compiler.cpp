@@ -237,7 +237,12 @@ Tree InstructionsCompiler::prepare(Tree LS)
         that would fail after sigBool2IntPromote which adds additional
         sigIntCast on bool producing BinOp operations.
     */
-    if (gGlobal->gBool2Int) L1 = sigBool2IntPromote(L1);
+    if (gGlobal->gBool2Int) L1 = signalBool2IntPromote(L1);
+    
+    /*
+        Special math function casting mode in -fx generation.
+     */
+    // if (gGlobal->gFloatSize == 4) L1 = signalFXPromote(L1);
     
     // dump normal form
     if (gGlobal->gDumpNorm == 0) {

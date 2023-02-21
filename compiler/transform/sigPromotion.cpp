@@ -403,13 +403,29 @@ Tree SignalBool2IntPromotion::transformation(Tree sig)
 {
     int  op;
     Tree x, y;
-
+    
     if (isSigBinOp(sig, &op, x, y)) {
         if (isBoolOpcode(op)) {
             return sigIntCast(sigBinOp(op, self(x), self(y)));
         } else {
             return SignalIdentity::transformation(sig);
         }
+        // Other cases => identity transformation
+    } else {
+        return SignalIdentity::transformation(sig);
+    }
+}
+
+Tree SignalFXPromotion::transformation(Tree sig)
+{
+    // Extended
+    xtended* p = (xtended*)getUserData(sig);
+    if (p) {
+        vector<Tree> new_branches;
+        for (Tree b : sig->branches()) {
+            new_branches.push_back(sigFloatCast(self(b)));
+        }
+        return sigFloatCast(tree(sig->node(), new_branches));
         // Other cases => identity transformation
     } else {
         return SignalIdentity::transformation(sig);
@@ -531,7 +547,7 @@ Tree SignalUIFreezePromotion::transformation(Tree sig)
 
 
 // Public API
-Tree sigPromote(Tree sig, bool trace)
+Tree signalPromote(Tree sig, bool trace)
 {
     // Check that the root tree is properly type annotated
     getCertifiedSigType(sig);
@@ -541,12 +557,21 @@ Tree sigPromote(Tree sig, bool trace)
     return SP.mapself(sig);
 }
 
-Tree sigBool2IntPromote(Tree sig)
+Tree signalBool2IntPromote(Tree sig)
 {
     // Check that the root tree is properly type annotated
     getCertifiedSigType(sig);
 
     SignalBool2IntPromotion SP;
+    return SP.mapself(sig);
+}
+
+Tree signalFXPromote(Tree sig)
+{
+    // Check that the root tree is properly type annotated
+    getCertifiedSigType(sig);
+    
+    SignalFXPromotion SP;
     return SP.mapself(sig);
 }
 

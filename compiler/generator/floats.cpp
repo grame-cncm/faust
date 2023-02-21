@@ -52,7 +52,7 @@ void initFaustFloat()
     mathsuffix[1] = "f";
     mathsuffix[2] = "";
     mathsuffix[3] = "l";
-    mathsuffix[4] = "";
+    mathsuffix[4] = "fx";
     
     // Specific for Rust backend
     if (gGlobal->gOutputLang == "rust") {

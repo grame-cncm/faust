@@ -206,6 +206,33 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sinl"]       = "std::sin";
         gPolyMathLibTable["sqrtl"]      = "std::sqrt";
         gPolyMathLibTable["tanl"]       = "std::tan";
+    
+        // Polymath mapping fx version
+        gPolyMathLibTable["max_fx"] = "std::max<fixpoint_t>";
+        gPolyMathLibTable["min_fx"] = "std::min<fixpoint_t>";
+        
+        gPolyMathLibTable["fabsfx"]      = "std::fabs";
+        gPolyMathLibTable["acosfx"]      = "std::acos";
+        gPolyMathLibTable["asinfx"]      = "std::asin";
+        gPolyMathLibTable["atanfx"]      = "std::atan";
+        gPolyMathLibTable["atan2fx"]     = "std::atan2";
+        gPolyMathLibTable["ceilfx"]      = "std::ceil";
+        gPolyMathLibTable["cosfx"]       = "std::cos";
+        gPolyMathLibTable["expfx"]       = "std::exp";
+        gPolyMathLibTable["exp2fx"]      = "std::exp2";
+        gPolyMathLibTable["exp10fx"]     = "exp10";
+        gPolyMathLibTable["floorfx"]     = "std::floor";
+        gPolyMathLibTable["fmodfx"]      = "std::fmod";
+        gPolyMathLibTable["logfx"]       = "std::log";
+        gPolyMathLibTable["log2fx"]      = "std::log2";
+        gPolyMathLibTable["log10fx"]     = "std::log10";
+        gPolyMathLibTable["powfx"]       = "std::pow";
+        gPolyMathLibTable["remainderfx"] = "std::remainder";
+        gPolyMathLibTable["rintfx"]      = "std::rint";
+        gPolyMathLibTable["roundfx"]     = "std::round";
+        gPolyMathLibTable["sinfx"]       = "std::sin";
+        gPolyMathLibTable["sqrtfx"]      = "std::sqrt";
+        gPolyMathLibTable["tanfx"]       = "std::tan";
     }
 
     virtual ~CPPInstVisitor() {}
@@ -465,7 +492,7 @@ class CPPInstVisitor : public TextInstVisitor {
         name = (gPolyMathLibTable.find(name) != gPolyMathLibTable.end()) ? gPolyMathLibTable[name] : name;
         generateFunCall(inst, name);
     }
-
+    
     virtual void visit(ForLoopInst* inst)
     {
         // Don't generate empty loops...
