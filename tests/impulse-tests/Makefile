@@ -139,6 +139,19 @@ cpp:
 	$(MAKE) -f Make.gcc outdir=cpp/float/sched      lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -single -sch"
 	$(MAKE) -f Make.gcc outdir=cpp/float/omp        lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -single -omp"
 
+quad:
+	$(MAKE) -f Make.gcc outdir=cpp/quad        lang=cpp arch=impulsearch.cpp   FAUSTOPTIONS="-I dsp -quad"
+	$(MAKE) -f Make.gcc outdir=cpp/quad/vec    lang=cpp arch=impulsearch.cpp   FAUSTOPTIONS="-I dsp -quad -vec"
+	$(MAKE) -f Make.gcc outdir=cpp/quad/sched  lang=cpp arch=impulsearch.cpp   FAUSTOPTIONS="-I dsp -quad -sch"
+	$(MAKE) -f Make.gcc outdir=cpp/quad/omp    lang=cpp arch=impulsearch.cpp   FAUSTOPTIONS="-I dsp -quad -omp"
+	$(MAKE) -f Make.gcc outdir=c/quad          lang=c arch=impulsearch2.cpp    FAUSTOPTIONS="-I dsp -quad"
+	$(MAKE) -f Make.gcc outdir=c/quad/vec      lang=c arch=impulsearch2.cpp    FAUSTOPTIONS="-I dsp -quad -vec"
+	$(MAKE) -f Make.gcc outdir=c/quad/sched    lang=c arch=impulsearch2.cpp    FAUSTOPTIONS="-I dsp -quad -sch"
+	$(MAKE) -f Make.gcc outdir=c/quad/omp      lang=c arch=impulsearch2.cpp    FAUSTOPTIONS="-I dsp -quad -omp"
+
+fx:
+	$(MAKE) -f Make.gcc outdir=cpp/fx        lang=cpp arch=impulsearchfx.cpp   FAUSTOPTIONS="-I dsp -fx"
+
 cpp1:
 	$(MAKE) -f Make.gcc outdir=cpp1/double       lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os0"
 	$(MAKE) -f Make.gcc outdir=cpp1/double/mcd0  lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os0 -mcd 0"
@@ -230,16 +243,6 @@ c4:
 	$(MAKE) -f Make.gcc outdir=c4_s1/double lang=c arch=impulsearch2qua.cpp FAUSTOPTIONS="-I dsp -double -os3 -fpga-mem 1000"
 	$(MAKE) -f Make.gcc outdir=c4_s2/double lang=c arch=impulsearch2qua.cpp FAUSTOPTIONS="-I dsp -double -os3 -fpga-mem 10000"
 	$(MAKE) -f Make.gcc outdir=c4_s3/double lang=c arch=impulsearch2qua.cpp FAUSTOPTIONS="-I dsp -double -os3 -fpga-mem 50000"
-
-quad:
-	$(MAKE) -f Make.gcc outdir=cpp/quad        lang=cpp arch=impulsearch.cpp   FAUSTOPTIONS="-I dsp -quad"
-	$(MAKE) -f Make.gcc outdir=cpp/quad/vec    lang=cpp arch=impulsearch.cpp   FAUSTOPTIONS="-I dsp -quad -vec"
-	$(MAKE) -f Make.gcc outdir=cpp/quad/sched  lang=cpp arch=impulsearch.cpp   FAUSTOPTIONS="-I dsp -quad -sch"
-	$(MAKE) -f Make.gcc outdir=cpp/quad/omp    lang=cpp arch=impulsearch.cpp   FAUSTOPTIONS="-I dsp -quad -omp"
-	$(MAKE) -f Make.gcc outdir=c/quad          lang=c arch=impulsearch2.cpp    FAUSTOPTIONS="-I dsp -quad"
-	$(MAKE) -f Make.gcc outdir=c/quad/vec      lang=c arch=impulsearch2.cpp    FAUSTOPTIONS="-I dsp -quad -vec"
-	$(MAKE) -f Make.gcc outdir=c/quad/sched    lang=c arch=impulsearch2.cpp    FAUSTOPTIONS="-I dsp -quad -sch"
-	$(MAKE) -f Make.gcc outdir=c/quad/omp      lang=c arch=impulsearch2.cpp    FAUSTOPTIONS="-I dsp -quad -omp"
 
 mute: ir/mute  $(mutefiles)
 
