@@ -39,7 +39,7 @@ class CPPInstVisitor : public TextInstVisitor {
     static std::map<std::string, bool> gFunctionSymbolTable;
 
     // Polymorphic math functions
-    std::map<std::string, std::string> gPolyMathLibTable;
+    std::map<std::string, std::string> fPolyMathLibTable;
 
     std::string cast2FAUSTFLOAT(const std::string& str) { return "FAUSTFLOAT(" + str + ")"; }
 
@@ -144,117 +144,117 @@ class CPPInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["tanfx"]       = true;
 
         // Polymath mapping int version
-        gPolyMathLibTable["abs"]   = "std::abs";
-        gPolyMathLibTable["max_i"] = "std::max<int>";
-        gPolyMathLibTable["min_i"] = "std::min<int>";
+        fPolyMathLibTable["abs"]   = "std::abs";
+        fPolyMathLibTable["max_i"] = "std::max<int>";
+        fPolyMathLibTable["min_i"] = "std::min<int>";
 
         // Polymath mapping float version
-        gPolyMathLibTable["max_f"] = "std::max<float>";
-        gPolyMathLibTable["min_f"] = "std::min<float>";
+        fPolyMathLibTable["max_f"] = "std::max<float>";
+        fPolyMathLibTable["min_f"] = "std::min<float>";
 
-        gPolyMathLibTable["fabsf"]      = "std::fabs";
-        gPolyMathLibTable["acosf"]      = "std::acos";
-        gPolyMathLibTable["asinf"]      = "std::asin";
-        gPolyMathLibTable["atanf"]      = "std::atan";
-        gPolyMathLibTable["atan2f"]     = "std::atan2";
-        gPolyMathLibTable["ceilf"]      = "std::ceil";
-        gPolyMathLibTable["cosf"]       = "std::cos";
-        gPolyMathLibTable["expf"]       = "std::exp";
-        gPolyMathLibTable["exp2f"]      = "std::exp2";
-        gPolyMathLibTable["exp10f"]     = "exp10f";
-        gPolyMathLibTable["floorf"]     = "std::floor";
-        gPolyMathLibTable["fmodf"]      = "std::fmod";
-        gPolyMathLibTable["logf"]       = "std::log";
-        gPolyMathLibTable["log2f"]      = "std::log2";
-        gPolyMathLibTable["log10f"]     = "std::log10";
-        gPolyMathLibTable["powf"]       = "std::pow";
-        gPolyMathLibTable["remainderf"] = "std::remainder";
-        gPolyMathLibTable["rintf"]      = "std::rint";
-        gPolyMathLibTable["roundf"]     = "std::round";
-        gPolyMathLibTable["sinf"]       = "std::sin";
-        gPolyMathLibTable["sqrtf"]      = "std::sqrt";
-        gPolyMathLibTable["tanf"]       = "std::tan";
+        fPolyMathLibTable["fabsf"]      = "std::fabs";
+        fPolyMathLibTable["acosf"]      = "std::acos";
+        fPolyMathLibTable["asinf"]      = "std::asin";
+        fPolyMathLibTable["atanf"]      = "std::atan";
+        fPolyMathLibTable["atan2f"]     = "std::atan2";
+        fPolyMathLibTable["ceilf"]      = "std::ceil";
+        fPolyMathLibTable["cosf"]       = "std::cos";
+        fPolyMathLibTable["expf"]       = "std::exp";
+        fPolyMathLibTable["exp2f"]      = "std::exp2";
+        fPolyMathLibTable["exp10f"]     = "exp10f";
+        fPolyMathLibTable["floorf"]     = "std::floor";
+        fPolyMathLibTable["fmodf"]      = "std::fmod";
+        fPolyMathLibTable["logf"]       = "std::log";
+        fPolyMathLibTable["log2f"]      = "std::log2";
+        fPolyMathLibTable["log10f"]     = "std::log10";
+        fPolyMathLibTable["powf"]       = "std::pow";
+        fPolyMathLibTable["remainderf"] = "std::remainder";
+        fPolyMathLibTable["rintf"]      = "std::rint";
+        fPolyMathLibTable["roundf"]     = "std::round";
+        fPolyMathLibTable["sinf"]       = "std::sin";
+        fPolyMathLibTable["sqrtf"]      = "std::sqrt";
+        fPolyMathLibTable["tanf"]       = "std::tan";
 
         // Polymath mapping double version
-        gPolyMathLibTable["max_"] = "std::max<double>";
-        gPolyMathLibTable["min_"] = "std::min<double>";
+        fPolyMathLibTable["max_"] = "std::max<double>";
+        fPolyMathLibTable["min_"] = "std::min<double>";
 
-        gPolyMathLibTable["fabs"]      = "std::fabs";
-        gPolyMathLibTable["acos"]      = "std::acos";
-        gPolyMathLibTable["asin"]      = "std::asin";
-        gPolyMathLibTable["atan"]      = "std::atan";
-        gPolyMathLibTable["atan2"]     = "std::atan2";
-        gPolyMathLibTable["ceil"]      = "std::ceil";
-        gPolyMathLibTable["cos"]       = "std::cos";
-        gPolyMathLibTable["exp"]       = "std::exp";
-        gPolyMathLibTable["exp2"]      = "std::exp2";
-        gPolyMathLibTable["exp10"]     = "exp10";
-        gPolyMathLibTable["floor"]     = "std::floor";
-        gPolyMathLibTable["fmod"]      = "std::fmod";
-        gPolyMathLibTable["log"]       = "std::log";
-        gPolyMathLibTable["log2"]      = "std::log2";
-        gPolyMathLibTable["log10"]     = "std::log10";
-        gPolyMathLibTable["pow"]       = "std::pow";
-        gPolyMathLibTable["remainder"] = "std::remainder";
-        gPolyMathLibTable["rint"]      = "std::rint";
-        gPolyMathLibTable["round"]     = "std::round";
-        gPolyMathLibTable["sin"]       = "std::sin";
-        gPolyMathLibTable["sqrt"]      = "std::sqrt";
-        gPolyMathLibTable["tan"]       = "std::tan";
+        fPolyMathLibTable["fabs"]      = "std::fabs";
+        fPolyMathLibTable["acos"]      = "std::acos";
+        fPolyMathLibTable["asin"]      = "std::asin";
+        fPolyMathLibTable["atan"]      = "std::atan";
+        fPolyMathLibTable["atan2"]     = "std::atan2";
+        fPolyMathLibTable["ceil"]      = "std::ceil";
+        fPolyMathLibTable["cos"]       = "std::cos";
+        fPolyMathLibTable["exp"]       = "std::exp";
+        fPolyMathLibTable["exp2"]      = "std::exp2";
+        fPolyMathLibTable["exp10"]     = "exp10";
+        fPolyMathLibTable["floor"]     = "std::floor";
+        fPolyMathLibTable["fmod"]      = "std::fmod";
+        fPolyMathLibTable["log"]       = "std::log";
+        fPolyMathLibTable["log2"]      = "std::log2";
+        fPolyMathLibTable["log10"]     = "std::log10";
+        fPolyMathLibTable["pow"]       = "std::pow";
+        fPolyMathLibTable["remainder"] = "std::remainder";
+        fPolyMathLibTable["rint"]      = "std::rint";
+        fPolyMathLibTable["round"]     = "std::round";
+        fPolyMathLibTable["sin"]       = "std::sin";
+        fPolyMathLibTable["sqrt"]      = "std::sqrt";
+        fPolyMathLibTable["tan"]       = "std::tan";
 
         // Polymath mapping quad version
-        gPolyMathLibTable["max_l"] = "std::max<quad>";
-        gPolyMathLibTable["min_l"] = "std::min<quad>";
+        fPolyMathLibTable["max_l"] = "std::max<quad>";
+        fPolyMathLibTable["min_l"] = "std::min<quad>";
 
-        gPolyMathLibTable["fabsl"]      = "std::fabs";
-        gPolyMathLibTable["acosl"]      = "std::acos";
-        gPolyMathLibTable["asinl"]      = "std::asin";
-        gPolyMathLibTable["atanl"]      = "std::atan";
-        gPolyMathLibTable["atan2l"]     = "std::atan2";
-        gPolyMathLibTable["ceill"]      = "std::ceil";
-        gPolyMathLibTable["cosl"]       = "std::cos";
-        gPolyMathLibTable["expl"]       = "std::exp";
-        gPolyMathLibTable["exp2l"]      = "std::exp2";
-        gPolyMathLibTable["exp10l"]     = "exp10";
-        gPolyMathLibTable["floorl"]     = "std::floor";
-        gPolyMathLibTable["fmodl"]      = "std::fmod";
-        gPolyMathLibTable["logl"]       = "std::log";
-        gPolyMathLibTable["log2l"]      = "std::log2";
-        gPolyMathLibTable["log10l"]     = "std::log10";
-        gPolyMathLibTable["powl"]       = "std::pow";
-        gPolyMathLibTable["remainderl"] = "std::remainder";
-        gPolyMathLibTable["rintl"]      = "std::rint";
-        gPolyMathLibTable["roundl"]     = "std::round";
-        gPolyMathLibTable["sinl"]       = "std::sin";
-        gPolyMathLibTable["sqrtl"]      = "std::sqrt";
-        gPolyMathLibTable["tanl"]       = "std::tan";
+        fPolyMathLibTable["fabsl"]      = "std::fabs";
+        fPolyMathLibTable["acosl"]      = "std::acos";
+        fPolyMathLibTable["asinl"]      = "std::asin";
+        fPolyMathLibTable["atanl"]      = "std::atan";
+        fPolyMathLibTable["atan2l"]     = "std::atan2";
+        fPolyMathLibTable["ceill"]      = "std::ceil";
+        fPolyMathLibTable["cosl"]       = "std::cos";
+        fPolyMathLibTable["expl"]       = "std::exp";
+        fPolyMathLibTable["exp2l"]      = "std::exp2";
+        fPolyMathLibTable["exp10l"]     = "exp10";
+        fPolyMathLibTable["floorl"]     = "std::floor";
+        fPolyMathLibTable["fmodl"]      = "std::fmod";
+        fPolyMathLibTable["logl"]       = "std::log";
+        fPolyMathLibTable["log2l"]      = "std::log2";
+        fPolyMathLibTable["log10l"]     = "std::log10";
+        fPolyMathLibTable["powl"]       = "std::pow";
+        fPolyMathLibTable["remainderl"] = "std::remainder";
+        fPolyMathLibTable["rintl"]      = "std::rint";
+        fPolyMathLibTable["roundl"]     = "std::round";
+        fPolyMathLibTable["sinl"]       = "std::sin";
+        fPolyMathLibTable["sqrtl"]      = "std::sqrt";
+        fPolyMathLibTable["tanl"]       = "std::tan";
     
         // Polymath mapping fx version
-        gPolyMathLibTable["max_fx"] = "std::max<fixpoint_t>";
-        gPolyMathLibTable["min_fx"] = "std::min<fixpoint_t>";
+        fPolyMathLibTable["max_fx"] = "std::max<fixpoint_t>";
+        fPolyMathLibTable["min_fx"] = "std::min<fixpoint_t>";
         
-        gPolyMathLibTable["fabsfx"]      = "fabsfx";
-        gPolyMathLibTable["acosfx"]      = "acosfx";
-        gPolyMathLibTable["asinfx"]      = "asinfx";
-        gPolyMathLibTable["atanfx"]      = "atanfx";
-        gPolyMathLibTable["atan2fx"]     = "atan2fx";
-        gPolyMathLibTable["ceilfx"]      = "ceilfx";
-        gPolyMathLibTable["cosfx"]       = "cosfx";
-        gPolyMathLibTable["expfx"]       = "expfx";
-        gPolyMathLibTable["exp2fx"]      = "exp2fx";
-        gPolyMathLibTable["exp10fx"]     = "exp10fx";
-        gPolyMathLibTable["floorfx"]     = "floorfx";
-        gPolyMathLibTable["fmodfx"]      = "fmodfx";
-        gPolyMathLibTable["logfx"]       = "logfx";
-        gPolyMathLibTable["log2fx"]      = "log2fx";
-        gPolyMathLibTable["log10fx"]     = "log10fx";
-        gPolyMathLibTable["powfx"]       = "powfx";
-        gPolyMathLibTable["remainderfx"] = "remainderfx";
-        gPolyMathLibTable["rintfx"]      = "rintfx";
-        gPolyMathLibTable["roundfx"]     = "roundfx";
-        gPolyMathLibTable["sinfx"]       = "sinfx";
-        gPolyMathLibTable["sqrtfx"]      = "sqrtfx";
-        gPolyMathLibTable["tanfx"]       = "tanfx";
+        fPolyMathLibTable["fabsfx"]      = "fabsfx";
+        fPolyMathLibTable["acosfx"]      = "acosfx";
+        fPolyMathLibTable["asinfx"]      = "asinfx";
+        fPolyMathLibTable["atanfx"]      = "atanfx";
+        fPolyMathLibTable["atan2fx"]     = "atan2fx";
+        fPolyMathLibTable["ceilfx"]      = "ceilfx";
+        fPolyMathLibTable["cosfx"]       = "cosfx";
+        fPolyMathLibTable["expfx"]       = "expfx";
+        fPolyMathLibTable["exp2fx"]      = "exp2fx";
+        fPolyMathLibTable["exp10fx"]     = "exp10fx";
+        fPolyMathLibTable["floorfx"]     = "floorfx";
+        fPolyMathLibTable["fmodfx"]      = "fmodfx";
+        fPolyMathLibTable["logfx"]       = "logfx";
+        fPolyMathLibTable["log2fx"]      = "log2fx";
+        fPolyMathLibTable["log10fx"]     = "log10fx";
+        fPolyMathLibTable["powfx"]       = "powfx";
+        fPolyMathLibTable["remainderfx"] = "remainderfx";
+        fPolyMathLibTable["rintfx"]      = "rintfx";
+        fPolyMathLibTable["roundfx"]     = "roundfx";
+        fPolyMathLibTable["sinfx"]       = "sinfx";
+        fPolyMathLibTable["sqrtfx"]      = "sqrtfx";
+        fPolyMathLibTable["tanfx"]       = "tanfx";
     }
 
     virtual ~CPPInstVisitor() {}
@@ -511,7 +511,7 @@ class CPPInstVisitor : public TextInstVisitor {
     virtual void visit(FunCallInst* inst)
     {
         std::string name = gGlobal->getMathFunction(inst->fName);
-        name = (gPolyMathLibTable.find(name) != gPolyMathLibTable.end()) ? gPolyMathLibTable[name] : name;
+        name = (fPolyMathLibTable.find(name) != fPolyMathLibTable.end()) ? fPolyMathLibTable[name] : name;
         generateFunCall(inst, name);
     }
     

@@ -40,7 +40,7 @@ class CInstVisitor : public TextInstVisitor {
     static std::map<std::string, bool> gFunctionSymbolTable;
 
     // Polymorphic math functions
-    std::map<std::string, std::string> gPolyMathLibTable;
+    std::map<std::string, std::string> fPolyMathLibTable;
     
     std::string cast2FAUSTFLOAT(const std::string& str) { return "(FAUSTFLOAT)" + str; }
     
@@ -145,24 +145,24 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["tanfx"]       = true;
         
         // Polymath mapping int version
-        gPolyMathLibTable["min_i"] = "min";
-        gPolyMathLibTable["max_i"] = "max";
+        fPolyMathLibTable["min_i"] = "min";
+        fPolyMathLibTable["max_i"] = "max";
         
         // Polymath mapping float version
-        gPolyMathLibTable["min_f"]  = "fminf";
-        gPolyMathLibTable["max_f"]  = "fmaxf";
+        fPolyMathLibTable["min_f"]  = "fminf";
+        fPolyMathLibTable["max_f"]  = "fmaxf";
         
         // Polymath mapping double version
-        gPolyMathLibTable["min_"]   = "fmin";
-        gPolyMathLibTable["max_"]   = "fmax";
+        fPolyMathLibTable["min_"]   = "fmin";
+        fPolyMathLibTable["max_"]   = "fmax";
         
         // Polymath mapping quad version
-        gPolyMathLibTable["min_l"]  = "fminl";
-        gPolyMathLibTable["max_l"]  = "fmaxl";
+        fPolyMathLibTable["min_l"]  = "fminl";
+        fPolyMathLibTable["max_l"]  = "fmaxl";
     
         // Polymath mapping fx version
-        gPolyMathLibTable["min_fx"]  = "fminfx";
-        gPolyMathLibTable["max_fx"]  = "fmaxfx";
+        fPolyMathLibTable["min_fx"]  = "fminfx";
+        fPolyMathLibTable["max_fx"]  = "fmaxfx";
     }
 
     virtual ~CInstVisitor() {}
@@ -411,7 +411,7 @@ class CInstVisitor : public TextInstVisitor {
     // Generate standard funcall (not 'method' like funcall...)
     virtual void visit(FunCallInst* inst)
     {
-        std::string name = (gPolyMathLibTable.find(inst->fName) != gPolyMathLibTable.end()) ? gPolyMathLibTable[inst->fName] : inst->fName;
+        std::string name = (fPolyMathLibTable.find(inst->fName) != fPolyMathLibTable.end()) ? fPolyMathLibTable[inst->fName] : inst->fName;
         *fOut << gGlobal->getMathFunction(name) << "(";
 
         // Compile parameters

@@ -966,7 +966,7 @@ static void printHelp()
          << endl;
 
     cout << tab << "-cm         --compute-mix               mix in outputs buffers." << endl;
-    cout << tab << "-ct         --check-table               check rtable/rwtable index range and generate safe access code (0/1: 1 by default)." << endl;
+    cout << tab << "-ct         --check-table               check rtable/rwtable index range and generate safe access code [0/1: 1 by default]." << endl;
     cout << tab
          << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp."
          << endl;
@@ -1010,7 +1010,7 @@ static void printHelp()
          << endl;
     cout << tab << "-vec        --vectorize                 generate easier to vectorize code." << endl;
     cout << tab << "-vs <n>     --vec-size <n>              size of the vector (default 32 samples)." << endl;
-    cout << tab << "-lv <n>     --loop-variant <n>          [0:fastest (default), 1:simple]." << endl;
+    cout << tab << "-lv <n>     --loop-variant <n>          [0:fastest, fixed vector size and a remaining loop (default), 1:simple, variable vector size]." << endl;
     cout << tab << "-omp        --openmp                    generate OpenMP pragmas, activates --vectorize option."
          << endl;
     cout << tab << "-pl         --par-loop                  generate parallel loops in --openmp mode." << endl;
