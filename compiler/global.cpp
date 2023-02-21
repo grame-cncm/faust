@@ -677,12 +677,29 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     }
     if (gInlineArchSwitch) dst << "-i ";
     if (gInPlace) dst << "-inpl ";
-    if (gOneSample >= 0) dst << "-os" << gOneSample << " ";
+    if (gStrictSelect) dst << "-sts ";
+    if (gOneSample >= 0) {
+        dst << "-os" << gOneSample << " ";
+        dst << "-fpga-mem " << gFPGAMemory << " ";
+    }
     if (gLightMode) dst << "-light ";
     if (gMemoryManager) dst << "-mem ";
     if (gComputeMix) dst << "-cm ";
     if (gRangeUI) dst << "-rui ";
+    if (gNoVirtual) dst << "-nvi ";
+    if (gFullParentheses) dst << "-fp ";
+    if (gCheckIntRange) dst << "-cir ";
+    dst << "-ct " << gCheckTable << " ";
     if (gMathApprox) dst << "-mapp ";
+    if (gMathExceptions) dst << "-me ";
+    if (gFastMath) dst << "-fm " << gFastMathLib << " ";
+    if (gVHDLSwitch) {
+        dst << "-vhdl ";
+        if (gVHDLTrace) dst << "-vhdl-trace ";
+        dst << "-vhdl-type " << gVHDLFloatType << " ";
+        dst << "-vhdl-msb " << gVHDLFloatMSB << " ";
+        dst << "-vhdl-lsb " << gVHDLFloatLSB << " ";
+    }
     if (gClassName != "mydsp") dst << "-cn " << gClassName << " ";
     if (gSuperClassName != "dsp") dst << "-scn " << gSuperClassName << " ";
     if (gProcessName != "process") dst << "-pn " << gProcessName << " ";
@@ -693,7 +710,8 @@ void global::printCompilationOptions(stringstream& dst, bool backend)
     if (gOpenMPSwitch) dst << "-omp " << ((gOpenMPLoop) ? "-pl " : "");
     dst << "-mcd " << gGlobal->gMaxCopyDelay << " ";
     if (gGlobal->gUIMacroSwitch) dst << "-uim ";
-    dst << printFloat() << "-ftz " << gFTZMode << " ";
+    dst << printFloat();
+    dst << "-ftz " << gFTZMode << " ";
     if (gVectorSwitch) {
         dst << "-vec "
             << "-lv " << gVectorLoopVariant << " "
