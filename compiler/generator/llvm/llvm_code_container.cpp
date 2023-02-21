@@ -123,7 +123,7 @@ CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInp
 
 void LLVMCodeContainer::generateFunMaps()
 {
-    if (gGlobal->gFastMath) {
+    if (gGlobal->gFastMathLib != "") {
         generateFunMap("fabs", "fast_fabs", 1);
         generateFunMap("acos", "fast_acos", 1);
         generateFunMap("asin", "fast_asin", 1);

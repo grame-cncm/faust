@@ -120,6 +120,28 @@ class CPPInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sinl"]       = true;
         gFunctionSymbolTable["sqrtl"]      = true;
         gFunctionSymbolTable["tanl"]       = true;
+    
+        // Fx version
+        gFunctionSymbolTable["fabsfx"]      = true;
+        gFunctionSymbolTable["acosfx"]      = true;
+        gFunctionSymbolTable["asinfx"]      = true;
+        gFunctionSymbolTable["atanfx"]      = true;
+        gFunctionSymbolTable["atan2fx"]     = true;
+        gFunctionSymbolTable["ceilfx"]      = true;
+        gFunctionSymbolTable["cosfx"]       = true;
+        gFunctionSymbolTable["expfx"]       = true;
+        gFunctionSymbolTable["exp10fx"]     = true;
+        gFunctionSymbolTable["floorfx"]     = true;
+        gFunctionSymbolTable["fmodfx"]      = true;
+        gFunctionSymbolTable["logfx"]       = true;
+        gFunctionSymbolTable["log10fx"]     = true;
+        gFunctionSymbolTable["powfx"]       = true;
+        gFunctionSymbolTable["remainderfx"] = true;
+        gFunctionSymbolTable["rintfx"]      = true;
+        gFunctionSymbolTable["roundfx"]     = true;
+        gFunctionSymbolTable["sinfx"]       = true;
+        gFunctionSymbolTable["sqrtfx"]      = true;
+        gFunctionSymbolTable["tanfx"]       = true;
 
         // Polymath mapping int version
         gPolyMathLibTable["abs"]   = "std::abs";
@@ -211,28 +233,28 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["max_fx"] = "std::max<fixpoint_t>";
         gPolyMathLibTable["min_fx"] = "std::min<fixpoint_t>";
         
-        gPolyMathLibTable["fabsfx"]      = "std::fabs";
-        gPolyMathLibTable["acosfx"]      = "std::acos";
-        gPolyMathLibTable["asinfx"]      = "std::asin";
-        gPolyMathLibTable["atanfx"]      = "std::atan";
-        gPolyMathLibTable["atan2fx"]     = "std::atan2";
-        gPolyMathLibTable["ceilfx"]      = "std::ceil";
-        gPolyMathLibTable["cosfx"]       = "std::cos";
-        gPolyMathLibTable["expfx"]       = "std::exp";
-        gPolyMathLibTable["exp2fx"]      = "std::exp2";
-        gPolyMathLibTable["exp10fx"]     = "exp10";
-        gPolyMathLibTable["floorfx"]     = "std::floor";
-        gPolyMathLibTable["fmodfx"]      = "std::fmod";
-        gPolyMathLibTable["logfx"]       = "std::log";
-        gPolyMathLibTable["log2fx"]      = "std::log2";
-        gPolyMathLibTable["log10fx"]     = "std::log10";
-        gPolyMathLibTable["powfx"]       = "std::pow";
-        gPolyMathLibTable["remainderfx"] = "std::remainder";
-        gPolyMathLibTable["rintfx"]      = "std::rint";
-        gPolyMathLibTable["roundfx"]     = "std::round";
-        gPolyMathLibTable["sinfx"]       = "std::sin";
-        gPolyMathLibTable["sqrtfx"]      = "std::sqrt";
-        gPolyMathLibTable["tanfx"]       = "std::tan";
+        gPolyMathLibTable["fabsfx"]      = "fabsfx";
+        gPolyMathLibTable["acosfx"]      = "acosfx";
+        gPolyMathLibTable["asinfx"]      = "asinfx";
+        gPolyMathLibTable["atanfx"]      = "atanfx";
+        gPolyMathLibTable["atan2fx"]     = "atan2fx";
+        gPolyMathLibTable["ceilfx"]      = "ceilfx";
+        gPolyMathLibTable["cosfx"]       = "cosfx";
+        gPolyMathLibTable["expfx"]       = "expfx";
+        gPolyMathLibTable["exp2fx"]      = "exp2fx";
+        gPolyMathLibTable["exp10fx"]     = "exp10fx";
+        gPolyMathLibTable["floorfx"]     = "floorfx";
+        gPolyMathLibTable["fmodfx"]      = "fmodfx";
+        gPolyMathLibTable["logfx"]       = "logfx";
+        gPolyMathLibTable["log2fx"]      = "log2fx";
+        gPolyMathLibTable["log10fx"]     = "log10fx";
+        gPolyMathLibTable["powfx"]       = "powfx";
+        gPolyMathLibTable["remainderfx"] = "remainderfx";
+        gPolyMathLibTable["rintfx"]      = "rintfx";
+        gPolyMathLibTable["roundfx"]     = "roundfx";
+        gPolyMathLibTable["sinfx"]       = "sinfx";
+        gPolyMathLibTable["sqrtfx"]      = "sqrtfx";
+        gPolyMathLibTable["tanfx"]       = "tanfx";
     }
 
     virtual ~CPPInstVisitor() {}

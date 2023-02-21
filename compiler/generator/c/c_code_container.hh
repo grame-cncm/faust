@@ -144,9 +144,8 @@ class CCodeContainer : public virtual CodeContainer {
         fOut = out;
 
         // For mathematical functions
-        if (gGlobal->gFastMath) {
-            addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                                                        : ("\"" + gGlobal->gFastMathLib + "\""));
+        if (gGlobal->gFastMathLib != "") {
+            includeFastMath();
         } else {
             addIncludeFile("<math.h>");
         }
@@ -231,9 +230,8 @@ class CScalarOneSampleCodeContainer1 : public CScalarCodeContainer {
         fOut = out;
         
         // For mathematical functions
-        if (gGlobal->gFastMath) {
-            addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                           : ("\"" + gGlobal->gFastMathLib + "\""));
+        if (gGlobal->gFastMathLib != "") {
+            includeFastMath();
         } else {
             addIncludeFile("<math.h>");
         }
@@ -274,9 +272,8 @@ class CScalarOneSampleCodeContainer2 : public CScalarCodeContainer {
             fOut = out;
             
             // For mathematical functions
-            if (gGlobal->gFastMath) {
-                addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                               : ("\"" + gGlobal->gFastMathLib + "\""));
+            if (gGlobal->gFastMathLib != "") {
+                includeFastMath();
             } else {
                 addIncludeFile("<math.h>");
             }
@@ -315,9 +312,8 @@ class CScalarOneSampleCodeContainer3 : public CScalarOneSampleCodeContainer2 {
             fOut = out;
             
             // For mathematical functions
-            if (gGlobal->gFastMath) {
-                addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                               : ("\"" + gGlobal->gFastMathLib + "\""));
+            if (gGlobal->gFastMathLib != "") {
+                includeFastMath();
             } else {
                 addIncludeFile("<math.h>");
             }

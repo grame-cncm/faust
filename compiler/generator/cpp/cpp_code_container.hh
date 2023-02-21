@@ -130,7 +130,7 @@ class CPPCodeContainer : public virtual CodeContainer {
             *fOut << "}" << std::endl;
         }
     }
-  
+   
    public:
     CPPCodeContainer()
     {}
@@ -141,9 +141,8 @@ class CPPCodeContainer : public virtual CodeContainer {
         fOut = out;
 
         // For mathematical functions
-        if (gGlobal->gFastMath) {
-            addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                                                            : ("\"" + gGlobal->gFastMathLib + "\""));
+        if (gGlobal->gFastMathLib != "") {
+            includeFastMath();
         } else {
             addIncludeFile("<cmath>");
             addIncludeFile("<algorithm>");
@@ -223,9 +222,8 @@ class CPPScalarOneSampleCodeContainer1 : public CPPScalarCodeContainer {
         fOut = out;
         
         // For mathematical functions
-        if (gGlobal->gFastMath) {
-            addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                           : ("\"" + gGlobal->gFastMathLib + "\""));
+        if (gGlobal->gFastMathLib != "") {
+            includeFastMath();
         } else {
             addIncludeFile("<cmath>");
             addIncludeFile("<algorithm>");
@@ -259,9 +257,8 @@ class CPPScalarOneSampleCodeContainer2 : public CPPScalarCodeContainer {
             fOut = out;
             
             // For mathematical functions
-            if (gGlobal->gFastMath) {
-                addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                               : ("\"" + gGlobal->gFastMathLib + "\""));
+            if (gGlobal->gFastMathLib != "") {
+                includeFastMath();
             } else {
                 addIncludeFile("<cmath>");
                 addIncludeFile("<algorithm>");
@@ -292,9 +289,8 @@ class CPPScalarOneSampleCodeContainer3 : public CPPScalarOneSampleCodeContainer2
             fOut = out;
             
             // For mathematical functions
-            if (gGlobal->gFastMath) {
-                addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                               : ("\"" + gGlobal->gFastMathLib + "\""));
+            if (gGlobal->gFastMathLib != "") {
+                includeFastMath();
             } else {
                 addIncludeFile("<cmath>");
                 addIncludeFile("<algorithm>");

@@ -77,12 +77,12 @@ std::string replaceCharList(const std::string& str, const std::vector<char>& ch1
 
 inline bool checkMin(const std::string& str)
 {
-    return ((str == "min") || (str == "min_i") || (str == "min_f") || (str == "min_") || (str == "min_l"));
+    return ((str == "min") || (str == "min_i") || (str == "min_f") || (str == "min_") || (str == "min_l") || (str == "min_fx"));
 }
 
 inline bool checkMax(const std::string& str)
 {
-    return ((str == "max") || (str == "max_i") || (str == "max_f") || (str == "max_") || (str == "max_l"));
+    return ((str == "max") || (str == "max_i") || (str == "max_f") || (str == "max_") || (str == "max_l") || (str == "max_fx"));
 }
 
 inline bool checkMinMax(const std::string& str)

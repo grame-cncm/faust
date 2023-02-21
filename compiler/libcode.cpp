@@ -591,7 +591,6 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-fm", "--fast-math")) {
-            gGlobal->gFastMath    = true;
             gGlobal->gFastMathLib = argv[i + 1];
             i += 2;
 
@@ -762,7 +761,7 @@ static bool processCmdline(int argc, const char* argv[])
         }
     }
 
-    if (gGlobal->gFastMath) {
+    if (gGlobal->gFastMathLib != "") {
         if (!(gGlobal->gOutputLang == "c" || gGlobal->gOutputLang == "cpp" || gGlobal->gOutputLang == "llvm" ||
               startWith(gGlobal->gOutputLang, "wast") || startWith(gGlobal->gOutputLang, "wasm"))) {
             throw faustexception("ERROR : -fm can only be used with 'c', 'cpp', 'llvm' or 'wast/wast' backends\n");
@@ -1032,7 +1031,7 @@ static void printHelp()
          << endl;
     cout << tab
          << "-fm <file>  --fast-math <file>          use optimized versions of mathematical functions implemented in "
-            "<file>, use 'faust/dsp/fastmath.cpp' when file is 'def'."
+            "<file>, use 'faust/dsp/fastmath.cpp' when file is 'def', assume functions are defined in the architecture file when file is 'arch'."
          << endl;
     cout << tab
 

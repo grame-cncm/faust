@@ -195,8 +195,7 @@ struct global {
     bool   gWaveformInDSP;         // If waveform are allocated in the DSP and not as global data
     bool   gUseDefaultSound;       // If default global variable is used in 'soundfile' primitive generation
     bool   gHasTeeLocal;           // For wast/wasm backends
-    bool   gFastMath;              // -fm, faster version of some mathematical functions (pow/exp/log)
-    std::string gFastMathLib;      // -fm option, the fastmath code mapping file
+    std::string gFastMathLib;      // -fm faster version of some mathematical functions (pow/exp/log), the fastmath code mapping file
     bool   gMathApprox;            // -mapp option, simpler/faster versions of 'floor/fmod/remainder' functions
     bool   gNeedManualPow;         // If manual pow(x, y) generation when y is an integer is needed
     bool   gRemoveVarAddress;      // If used of variable addresses (like &foo or &foo[n]) have to be removed
@@ -591,7 +590,7 @@ struct global {
 
     std::string getMathFunction(const std::string& name)
     {
-        if (gFastMath && (gFastMathLibTable.find(name) != gFastMathLibTable.end())) {
+        if (gFastMathLib != "" && (gFastMathLibTable.find(name) != gFastMathLibTable.end())) {
             return gFastMathLibTable[name];
         } else {
             return name;

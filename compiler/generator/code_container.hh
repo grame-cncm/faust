@@ -156,6 +156,17 @@ class CodeContainer : public virtual Garbageable {
                             bool omp = false);
     void generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst* count, bool omp);
 
+    void includeFastMath()
+    {
+        if (gGlobal->gFastMathLib == "def") {
+            addIncludeFile("\"faust/dsp/fastmath.cpp\"");
+        } else if (gGlobal->gFastMathLib == "arch") {
+            // Nothing
+        } else {
+            addIncludeFile("\"" + gGlobal->gFastMathLib + "\"");
+        }
+    }
+    
     void printHeader(std::ostream& dst)
     {
         // defines the metadata we want to print as comments at the begin of in the file

@@ -121,6 +121,28 @@ class CInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sinl"]       = true;
         gFunctionSymbolTable["sqrtl"]      = true;
         gFunctionSymbolTable["tanl"]       = true;
+    
+        // Fx version
+        gFunctionSymbolTable["fabsfx"]      = true;
+        gFunctionSymbolTable["acosfx"]      = true;
+        gFunctionSymbolTable["asinfx"]      = true;
+        gFunctionSymbolTable["atanfx"]      = true;
+        gFunctionSymbolTable["atan2fx"]     = true;
+        gFunctionSymbolTable["ceilfx"]      = true;
+        gFunctionSymbolTable["cosfx"]       = true;
+        gFunctionSymbolTable["expfx"]       = true;
+        gFunctionSymbolTable["exp10fx"]     = true;
+        gFunctionSymbolTable["floorfx"]     = true;
+        gFunctionSymbolTable["fmodfx"]      = true;
+        gFunctionSymbolTable["logfx"]       = true;
+        gFunctionSymbolTable["log10fx"]     = true;
+        gFunctionSymbolTable["powfx"]       = true;
+        gFunctionSymbolTable["remainderfx"] = true;
+        gFunctionSymbolTable["rintfx"]      = true;
+        gFunctionSymbolTable["roundfx"]     = true;
+        gFunctionSymbolTable["sinfx"]       = true;
+        gFunctionSymbolTable["sqrtfx"]      = true;
+        gFunctionSymbolTable["tanfx"]       = true;
         
         // Polymath mapping int version
         gPolyMathLibTable["min_i"] = "min";
@@ -137,6 +159,10 @@ class CInstVisitor : public TextInstVisitor {
         // Polymath mapping quad version
         gPolyMathLibTable["min_l"]  = "fminl";
         gPolyMathLibTable["max_l"]  = "fmaxl";
+    
+        // Polymath mapping fx version
+        gPolyMathLibTable["min_fx"]  = "fminfx";
+        gPolyMathLibTable["max_fx"]  = "fmaxfx";
     }
 
     virtual ~CInstVisitor() {}
