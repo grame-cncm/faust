@@ -1435,7 +1435,7 @@ static Tree numericBoxSimplification(Tree box)
         error << *box << endl;
         throw faustexception(error.str());
     }
-
+   
     if (ins == 0 && outs == 1) {
         // This box can potentially denote a number
         if (isBoxInt(box, &i) || isBoxReal(box, &x)) {
@@ -1477,6 +1477,7 @@ static Tree insideBoxSimplification(Tree box)
     prim5  p5;
 
     Tree t1, t2, ff, label, cur, min, max, step, type, name, file, slot, body;
+    Tree ins, outs, routes;
 
     xtended* xt = (xtended*)getUserData(box);
 
@@ -1624,6 +1625,18 @@ static Tree insideBoxSimplification(Tree box)
     else if (isBoxMetadata(box, t1, t2)) {
         Tree s1 = boxSimplification(t1);
         return boxMetadata(s1, t2);
+    
+    }
+    
+    else if (isBoxWaveform(box)) {
+        // A waveform is always in Normal Form, nothing to simplify
+        return box;
+    }
+    
+    else if (isBoxRoute(box, ins, outs, routes)) {
+        Tree s1 = boxSimplification(ins);
+        Tree s2 = boxSimplification(outs);
+        return boxRoute(s1, s2, routes);
     }
 
     cerr << "ASSERT : in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << *box << endl;
