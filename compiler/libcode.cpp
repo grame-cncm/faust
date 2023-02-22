@@ -1075,6 +1075,7 @@ static void printHelp()
             "generation."
          << endl;
     cout << tab << "-blur      --shadow-blur                add a shadow blur to SVG boxes." << endl;
+    cout << tab << "-sc        --scaled-svg                 automatic scalable SVG." << endl;
 
     cout << endl << "Math doc options:" << line;
     cout << tab
