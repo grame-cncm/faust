@@ -1,4 +1,4 @@
-% man(1) Version 2.58.5 (22-February-2023) | Faust man page
+% man(1) Version 2.58.6 (22-February-2023) | Faust man page
 
 NAME
 ====
@@ -92,7 +92,7 @@ Code generation options:
 
   **-cm**         **--compute-mix**               mix in outputs buffers.
 
-  **-ct**         **--check-table**               check rtable/rwtable index range and generate safe access code (0/1: 1 by default).
+  **-ct**         **--check-table**               check rtable/rwtable index range and generate safe access code [0/1: 1 by default].
 
   **-cn** \<name>  **--class-name** \<name>         specify the name of the dsp class to be used instead of mydsp.
 
@@ -122,7 +122,7 @@ Code generation options:
 
   **-vs** \<n>     **--vec-size** \<n>              size of the vector (default 32 samples).
 
-  **-lv** \<n>     **--loop-variant** \<n>          [0:fastest (default), 1:simple].
+  **-lv** \<n>     **--loop-variant** \<n>          [0:fastest, fixed vector size and a remaining loop (default), 1:simple, variable vector size].
 
   **-omp**        **--openmp**                    generate OpenMP pragmas, activates --vectorize option.
 
@@ -140,7 +140,7 @@ Code generation options:
 
   **-fun**        **--fun-tasks**                 separate tasks code as separated functions (in -vec, -sch, or -omp mode).
 
-  **-fm** \<file>  **--fast-math** \<file>          use optimized versions of mathematical functions implemented in \<file>, use 'faust/dsp/fastmath.cpp' when file is 'def'.
+  **-fm** \<file>  **--fast-math** \<file>          use optimized versions of mathematical functions implemented in \<file>, use 'faust/dsp/fastmath.cpp' when file is 'def', assume functions are defined in the architecture file when file is 'arch'.
 
   **-mapp**       **--math-approximation**        simpler/faster versions of 'floor/ceil/fmod/remainder' functions.
 
@@ -183,6 +183,8 @@ Block diagram options:
   **-sn**        **--simple-names**               use simple names (without arguments) during block-diagram generation.
 
   **-blur**      **--shadow-blur**                add a shadow blur to SVG boxes.
+
+  **-sc**        **--scaled-svg**                 automatic scalable SVG.
 
 
 Math doc options:

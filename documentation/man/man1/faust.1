@@ -14,7 +14,7 @@
 . ftr VB CB
 . ftr VBI CBI
 .\}
-.TH "man" "1" "" "Version 2.58.5 (22-February-2023)" "Faust man page"
+.TH "man" "1" "" "Version 2.58.6 (22-February-2023)" "Faust man page"
 .hy
 .SH NAME
 .PP
@@ -127,7 +127,7 @@ DSP struct).
 \f[B]-cm\f[R] \f[B]\[en]compute-mix\f[R] mix in outputs buffers.
 .PP
 \f[B]-ct\f[R] \f[B]\[en]check-table\f[R] check rtable/rwtable index
-range and generate safe access code (0/1: 1 by default).
+range and generate safe access code [0/1: 1 by default].
 .PP
 \f[B]-cn\f[R] <name> \f[B]\[en]class-name\f[R] <name> specify the name
 of the dsp class to be used instead of mydsp.
@@ -173,8 +173,9 @@ code.
 \f[B]-vs\f[R] <n> \f[B]\[en]vec-size\f[R] <n> size of the vector
 (default 32 samples).
 .PP
-\f[B]-lv\f[R] <n> \f[B]\[en]loop-variant\f[R] <n> [0:fastest (default),
-1:simple].
+\f[B]-lv\f[R] <n> \f[B]\[en]loop-variant\f[R] <n> [0:fastest, fixed
+vector size and a remaining loop (default), 1:simple, variable vector
+size].
 .PP
 \f[B]-omp\f[R] \f[B]\[en]openmp\f[R] generate OpenMP pragmas, activates
 \[en]vectorize option.
@@ -202,7 +203,8 @@ functions (in -vec, -sch, or -omp mode).
 .PP
 \f[B]-fm\f[R] <file> \f[B]\[en]fast-math\f[R] <file> use optimized
 versions of mathematical functions implemented in <file>, use
-`faust/dsp/fastmath.cpp' when file is `def'.
+`faust/dsp/fastmath.cpp' when file is `def', assume functions are
+defined in the architecture file when file is `arch'.
 .PP
 \f[B]-mapp\f[R] \f[B]\[en]math-approximation\f[R] simpler/faster
 versions of `floor/ceil/fmod/remainder' functions.
@@ -256,6 +258,8 @@ arguments) during block-diagram generation.
 .PP
 \f[B]-blur\f[R] \f[B]\[en]shadow-blur\f[R] add a shadow blur to SVG
 boxes.
+.PP
+\f[B]-sc\f[R] \f[B]\[en]scaled-svg\f[R] automatic scalable SVG.
 .SS Math doc options:
 .PP
 \f[B]-mdoc\f[R] \f[B]\[en]mathdoc\f[R] print math documentation of the
