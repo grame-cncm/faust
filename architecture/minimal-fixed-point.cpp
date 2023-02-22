@@ -143,11 +143,11 @@ inline fixpoint_t tanfx(fixpoint_t x)
     return fixpoint_t(std::tan(float(x)));
 }
 // min/max
-inline fixpoint_t minfx(fixpoint_t x, fixpoint_t y)
+inline fixpoint_t fminfx(fixpoint_t x, fixpoint_t y)
 {
     return fixpoint_t(std::min(float(x), float(y)));
 }
-inline fixpoint_t maxfx(fixpoint_t x, fixpoint_t y)
+inline fixpoint_t fmaxfx(fixpoint_t x, fixpoint_t y)
 {
     return fixpoint_t(std::max(float(x), float(y)));
 }

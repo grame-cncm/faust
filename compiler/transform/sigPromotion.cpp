@@ -418,18 +418,13 @@ Tree SignalBool2IntPromotion::transformation(Tree sig)
 
 Tree SignalFXPromotion::transformation(Tree sig)
 {
-    // Extended
-    xtended* p = (xtended*)getUserData(sig);
-    if (p) {
-        vector<Tree> new_branches;
-        for (Tree b : sig->branches()) {
-            new_branches.push_back(sigFloatCast(self(b)));
-        }
-        return sigFloatCast(tree(sig->node(), new_branches));
+    Tree sel, x, y;
+    if (isSigSelect2(sig, sel, x, y)) {
+        return sigSelect2(self(sel), sigFloatCast(self(x)), sigFloatCast(self(y)));
         // Other cases => identity transformation
     } else {
         return SignalIdentity::transformation(sig);
-    }
+   }
 }
 
 Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tb, Tree size, Tree idx)

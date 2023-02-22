@@ -32,13 +32,19 @@ using namespace std;
 
 /*
  C backend and module description:
-    - in -os mode:
+ 
+    1) in -os mode:
         - subcontainers are merged in the main class
         - CScalarOneSampleCodeContainer1 (used in -os0) separates the DSP control state in iControl/fControl (possibly to be allocated elsewhere)
         - CScalarOneSampleCodeContainer2 (used in -os1) separates the DSP control state in iControl/fControl and the DSP state in iZone/fZone (possibly to be allocated elsewhere)
         - CScalarOneSampleCodeContainer3 (used in -os2) separates the DSP control state in iControl/fControl and the DSP state in iZone/fZone (possibly to be allocated elsewhere). Short delay lines remain in DSP struct, long delay lines are moved in iZone/fZone.
         Additional functions 'instanceConstantsFromMem' and 'instanceConstantsToMem' to copy iConst/fConst variables from/to memory are generated.
-        - CScalarOneSampleCodeContainer4 (used in -os3) is similar to CPPScalarOneSampleCodeContainer3, but iControl/fControl and iZone/fZone pointers stay in the DSP class. The -mem option uses the memory manager to allocate/destroy the iControl/fControl and iZone/fZone pointers 
+        - CScalarOneSampleCodeContainer4 (used in -os3) is similar to CPPScalarOneSampleCodeContainer3, but iControl/fControl and iZone/fZone pointers stay in the DSP class. The -mem option uses the memory manager to allocate/destroy the iControl/fControl and iZone/fZone pointers
+ 
+    2) in -fx mode:
+         - then/else branches of 'select2' are explicitly casted to 'float', otherwise AP_fixed compilation may trigger "ambigous type" errors
+         - all math operators are named "FOOfx" and are supposed to be implemented in the architecture file (doing the proper cast on arguments and return value when needed)
+
  */
 
 map<string, bool> CInstVisitor::gFunctionSymbolTable;
@@ -1428,10 +1434,10 @@ void CScalarOneSampleCodeContainer1::generateComputeAux(int n)
     tab(n, *fOut);
     if (gGlobal->gInPlace) {
         *fOut << "void compute" << fKlassName << "(" << fKlassName
-        << subst("* dsp, $0* inputs, $0* outputs, int* RESTRICT iControl, $0* RESTRICT fControl) {", ifloat());
+        << subst("* dsp, $0* inputs, $0* outputs, int* RESTRICT iControl, $1* RESTRICT fControl) {", xfloat(), ifloat());
     } else {
         *fOut << "void compute" << fKlassName << "(" << fKlassName
-        << subst("* dsp, $0* RESTRICT inputs, $0* RESTRICT outputs, int* RESTRICT iControl, $0* RESTRICT fControl) {", ifloat());
+        << subst("* dsp, $0* RESTRICT inputs, $0* RESTRICT outputs, int* RESTRICT iControl, $1* RESTRICT fControl) {", xfloat(), ifloat());
     }
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
@@ -1457,11 +1463,11 @@ void CScalarOneSampleCodeContainer2::generateComputeAux(int n)
     tab(n, *fOut);
     if (gGlobal->gInPlace) {
         *fOut << "void compute" << fKlassName << "(" << fKlassName
-        << subst("* dsp, $0* inputs, $0* outputs, int* RESTRICT iControl, $0* RESTRICT fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {", ifloat());
+        << subst("* dsp, $0* inputs, $0* outputs, int* RESTRICT iControl, $1* RESTRICT fControl, int* RESTRICT iZone, $1* RESTRICT fZone) {", xfloat(), ifloat());
         
     } else {
         *fOut << "void compute" << fKlassName << "(" << fKlassName
-        << subst("* dsp, $0* RESTRICT inputs, $0* RESTRICT outputs, int* RESTRICT iControl, $0* RESTRICT fControl, int* RESTRICT iZone, $0* RESTRICT fZone) {", ifloat());
+        << subst("* dsp, $0* RESTRICT inputs, $0* RESTRICT outputs, int* RESTRICT iControl, $1* RESTRICT fControl, int* RESTRICT iZone, $1* RESTRICT fZone) {", xfloat(), ifloat());
     }
     tab(n + 1, *fOut);
     fCodeProducer->Tab(n + 1);
@@ -1487,7 +1493,7 @@ void CScalarOneSampleCodeContainer4::generateComputeAux(int n)
     tab(n, *fOut);
     if (gGlobal->gInPlace) {
         *fOut << "void compute" << fKlassName << "(" << fKlassName
-              << subst("* dsp, $0* inputs, $0* outputs) {", xfloat(), ifloat());
+              << subst("* dsp, $0* inputs, $0* outputs) {", xfloat());
         
     } else {
         *fOut << "void compute" << fKlassName << "(" << fKlassName

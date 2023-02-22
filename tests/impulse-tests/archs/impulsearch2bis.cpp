@@ -3,9 +3,14 @@
 #define FAUSTFLOAT double
 #endif
 
+#ifndef REAL
+#define REAL double
+#endif
+
 #include "faust/gui/CGlue.h"
 #include "faust/dsp/one-sample-dsp.h"
 #include "controlTools.h"
+#include "fixed-point.h"
 
 //----------------------------------------------------------------------------
 //FAUST generated code
@@ -40,7 +45,7 @@ class Cdsp : public one_sample_dsp<REAL> {
     
         virtual int getNumRealControls() { return getNumRealControlsmydsp(fDSP); }
     
-        virtual void control(int* iControl, FAUSTFLOAT* fControl)
+        virtual void control(int* iControl, REAL* fControl)
         {
             controlmydsp(fDSP, iControl, fControl);
         }
@@ -103,28 +108,34 @@ class Cdsp : public one_sample_dsp<REAL> {
             metadatamydsp(&glue);
         }
     
-        virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs, int* iControl, FAUSTFLOAT* fControl)
+        virtual void compute(FAUSTFLOAT* inputs, FAUSTFLOAT* outputs, int* iControl, REAL* fControl)
         {
             computemydsp(fDSP, inputs, outputs, iControl, fControl);
         }
     
 };
 
-int main(int argc, char* argv[])
+template <typename REAL>
+static int main_aux(int argc, char* argv[])
 {
     int linenum = 0;
     int nbsamples = 60000;
     
     // print general informations
-    printHeader(new Cdsp<double>(), nbsamples);
+    printHeader(new Cdsp<REAL>(), nbsamples);
     
     // linenum is incremented in runDSP and runPolyDSP
-    runDSP(new Cdsp<double>(), argv[0], linenum, nbsamples/4);
-    runDSP(new Cdsp<double>(), argv[0], linenum, nbsamples/4, false, true);
-    runPolyDSP(new Cdsp<double>(), linenum, nbsamples/4, 4);
-    runPolyDSP(new Cdsp<double>(), linenum, nbsamples/4, 1);
+    runDSP(new Cdsp<REAL>(), argv[0], linenum, nbsamples/4);
+    runDSP(new Cdsp<REAL>(), argv[0], linenum, nbsamples/4, false, true);
+    runPolyDSP(new Cdsp<REAL>(), linenum, nbsamples/4, 4);
+    runPolyDSP(new Cdsp<REAL>(), linenum, nbsamples/4, 1);
     
     return 0;
 }
 
+int main(int argc, char* argv[])
+{
+    //return main_aux<fixpoint_t>(argc, argv);
+    return main_aux<double>(argc, argv);
+}
 

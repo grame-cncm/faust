@@ -33,13 +33,18 @@ using namespace std;
 
 /*
  C++ backend and module description:
-    - in -os mode:
+ 
+    1) in -os mode:
         - subcontainers are merged in the main class
         - CPPScalarOneSampleCodeContainer1 (used in -os0) separates the DSP control state in iControl/fControl (possibly to be allocated elsewhere)
         - CPPScalarOneSampleCodeContainer2 (used in -os1) separates the DSP control state in iControl/fControl and the DSP state in iZone/fZone (possibly to be allocated elsewhere)
         - CPPScalarOneSampleCodeContainer3 (used in -os2) separates the DSP control state in iControl/fControl and the DSP state in iZone/fZone (possibly to be allocated elsewhere). Short delay lines remain in DSP struct, long delay lines are moved in iZone/fZone.
         Additional functions 'instanceConstantsFromMem' and 'instanceConstantsToMem' to copy iConst/fConst variables from/to memory are generated.
-        - CPPScalarOneSampleCodeContainer4 (used in -os3) is similar to CPPScalarOneSampleCodeContainer3, but iControl/fControl and iZone/fZone pointers stay in the DSP class. The -mem option uses the memory manager to allocate/destroy the iControl/fControl and iZone/fZone pointers 
+        - CPPScalarOneSampleCodeContainer4 (used in -os3) is similar to CPPScalarOneSampleCodeContainer3, but iControl/fControl and iZone/fZone pointers stay in the DSP class. The -mem option uses the memory manager to allocate/destroy the iControl/fControl and iZone/fZone pointers
+ 
+    2) in -fx mode:
+        - then/else branches of 'select2' are explicitly casted to 'float', otherwise AP_fixed compilation may trigger "ambigous type" errors
+        - all math operators are named "FOOfx" and are supposed to be implemented in the architecture file (doing the proper cast on arguments and return value when needed)
  */
 
 map<string, bool> CPPInstVisitor::gFunctionSymbolTable;
@@ -1743,7 +1748,7 @@ void CPPScalarOneSampleCodeContainer1::generateCompute(int n)
     tab(n + 1, *fOut);
     tab(n + 1, *fOut);
     if (gGlobal->gInPlace) {
-        *fOut << genVirtual() << subst("void compute($0* inputs, $0* outputs, int* RESTRICT iControl, $0* RESTRICT fControl) {", xfloat());
+        *fOut << genVirtual() << subst("void compute($0* inputs, $0* outputs, int* RESTRICT iControl, $1* RESTRICT fControl) {", xfloat(), ifloat());
     } else {
         *fOut << genVirtual() << subst("void compute($0* RESTRICT inputs, $0* RESTRICT outputs, int* RESTRICT iControl, $1* RESTRICT fControl) {", xfloat(), ifloat());
     }

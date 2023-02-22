@@ -240,9 +240,9 @@ Tree InstructionsCompiler::prepare(Tree LS)
     if (gGlobal->gBool2Int) L1 = signalBool2IntPromote(L1);
     
     /*
-        Special math function casting mode in -fx generation.
+        Special 'select' casting mode in -fx generation.
      */
-    // if (gGlobal->gFloatSize == 4) L1 = signalFXPromote(L1);
+    if (gGlobal->gFloatSize == 4) L1 = signalFXPromote(L1);
     
     // dump normal form
     if (gGlobal->gDumpNorm == 0) {
@@ -2273,6 +2273,16 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
                 double_array->setValue(k, double(i));
             } else if (isSigReal(sig->branch(k), &r)) {
                 double_array->setValue(k, r);
+            }
+        }
+    } else if (ctype == Typed::kFixedPoint) {
+        FixedPointArrayNumInst* fx_array = dynamic_cast<FixedPointArrayNumInst*>(num_array);
+        faustassert(fx_array);
+        for (int k = 0; k < size; k++) {
+            if (isSigInt(sig->branch(k), &i)) {
+                fx_array->setValue(k, double(i));
+            } else if (isSigReal(sig->branch(k), &r)) {
+                fx_array->setValue(k, r);
             }
         }
     } else {

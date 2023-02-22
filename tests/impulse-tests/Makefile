@@ -150,7 +150,15 @@ quad:
 	$(MAKE) -f Make.gcc outdir=c/quad/omp      lang=c arch=impulsearch2.cpp    FAUSTOPTIONS="-I dsp -quad -omp"
 
 fx:
-	$(MAKE) -f Make.gcc outdir=cpp/fx        lang=cpp arch=impulsearchfx.cpp   FAUSTOPTIONS="-I dsp -fx"
+	$(MAKE) -f Make.gcc outdir=cpp/fx            lang=cpp arch=impulsearchfx.cpp   FAUSTOPTIONS="-I dsp -fx"
+	$(MAKE) -f Make.gcc outdir=cpp/fx/os0        lang=cpp arch=impulsearchfx.cpp   FAUSTOPTIONS="-I dsp -fx -os0"
+	$(MAKE) -f Make.gcc outdir=cpp/fx/os1        lang=cpp arch=impulsearchfx.cpp   FAUSTOPTIONS="-I dsp -fx -os1"
+	$(MAKE) -f Make.gcc outdir=cpp/fx/os2        lang=cpp arch=impulsearchfx.cpp   FAUSTOPTIONS="-I dsp -fx -os2"
+	$(MAKE) -f Make.gcc outdir=c/fx              lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -fx"
+	$(MAKE) -f Make.gcc outdir=c/fx/os0          lang=c arch=impulsearch2bis.cpp FAUSTOPTIONS="-I dsp -fx -os0"
+	$(MAKE) -f Make.gcc outdir=c/fx/os1          lang=c arch=impulsearch2ter.cpp FAUSTOPTIONS="-I dsp -fx -os1"
+	$(MAKE) -f Make.gcc outdir=c/fx/os2          lang=c arch=impulsearch2ter.cpp FAUSTOPTIONS="-I dsp -fx -os2"
+	$(MAKE) -f Make.gcc outdir=c/fx/os3          lang=c arch=impulsearch2qua.cpp FAUSTOPTIONS="-I dsp -fx -os3"
 
 cpp1:
 	$(MAKE) -f Make.gcc outdir=cpp1/double       lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-I dsp -double -os0"
