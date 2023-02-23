@@ -60,6 +60,7 @@
 #include "routeSchema.h"
 #include "schema.h"
 #include "xtended.hh"
+#include "occur.hh"
 
 #if 0
 #define linkcolor "#b3d1dc"
@@ -232,7 +233,7 @@ static void writeSchemaFile(Tree bd)
 
     char temp[1024];
 
-    gGlobal->gOccurrences = new Occurrences(bd);
+    gGlobal->gOccurrences = new Occur(bd);
     getBoxType(bd, &ins, &outs);
 
     bool hasname = getDefNameProperty(bd, id);

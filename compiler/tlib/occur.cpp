@@ -20,28 +20,28 @@
  ************************************************************************/
 /**
  * @file occurrences.cpp
- * Count the number of occurences of each subtree of a root tree.
+ * Count the number of occurrences of each subtree of a root tree.
  */
 
-// construction des representations graphiques
+// Construction of graphic representations
 
-#include "occurrences.hh"
+#include "occur.hh"
 #include "compatibility.hh"
 
 /**
  * Count the number of occurrences of each subtree of root
  */
-Occurrences::Occurrences(Tree root)
+Occur::Occur(Tree root)
 {
     fKey = specificKey(root);
     countOccurrences(root);
-    setCount(root, 0);  // root as no occurences in itself
+    setCount(root, 0);  // root as no occurrences in itself
 }
 
 /**
  * Get the number of occurrences of t
  */
-int Occurrences::getCount(Tree t)
+int Occur::getCount(Tree t)
 {
     Tree c;
     return (getProperty(t, fKey, c)) ? c->node().getInt() : 0;
@@ -50,7 +50,7 @@ int Occurrences::getCount(Tree t)
 /**
  * Set the number of occurrences of t
  */
-void Occurrences::setCount(Tree t, int c)
+void Occur::setCount(Tree t, int c)
 {
     setProperty(t, fKey, tree(c));
 }
@@ -58,7 +58,7 @@ void Occurrences::setCount(Tree t, int c)
 /**
  * Creates a specific property key for occurrences count in root
  */
-Tree Occurrences::specificKey(Tree root)
+Tree Occur::specificKey(Tree root)
 {
     char keyname[256];
     snprintf(keyname, 256, "OCCURRENCES COUNT IN %p : ", (void*)(CTree*)root);
@@ -69,7 +69,7 @@ Tree Occurrences::specificKey(Tree root)
 /**
  * Increment the occurrences count of t and its subtrees
  */
-void Occurrences::countOccurrences(Tree t)
+void Occur::countOccurrences(Tree t)
 {
     setCount(t, getCount(t) + 1);  // increment t occurrences count
     for (int i = 0; i < t->arity(); i++) {

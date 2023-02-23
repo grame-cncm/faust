@@ -316,8 +316,8 @@ void DocCompiler::printGCCall(Tree sig, const string& calledFunction)
 string DocCompiler::generateNumber(Tree sig, const string& exp)
 {
     string      ctype, vname;
-    Occurences* o = fOccMarkup.retrieve(sig);
-
+    Occurrences* o = fOccMarkup.retrieve(sig);
+ 
     // check for number occuring in delays
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "r", ctype, vname);
@@ -335,8 +335,8 @@ string DocCompiler::generateNumber(Tree sig, const string& exp)
 string DocCompiler::generateFConst(Tree sig, const string& file, const string& exp)
 {
     string      ctype, vname;
-    Occurences* o = fOccMarkup.retrieve(sig);
-
+    Occurrences* o = fOccMarkup.retrieve(sig);
+   
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "r", ctype, vname);
         gGlobal->gDocNoticeFlagMap["recursigs"] = true;
@@ -359,8 +359,8 @@ string DocCompiler::generateFConst(Tree sig, const string& file, const string& e
 string DocCompiler::generateFVar(Tree sig, const string& file, const string& exp)
 {
     string      ctype, vname;
-    Occurences* o = fOccMarkup.retrieve(sig);
-
+    Occurrences* o = fOccMarkup.retrieve(sig);
+  
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "r", ctype, vname);
         gGlobal->gDocNoticeFlagMap["recursigs"] = true;
@@ -566,8 +566,8 @@ string DocCompiler::generateCacheCode(Tree sig, const string& exp)
     string vname, ctype, code, vectorname;
 
     int         sharing = getSharingCount(sig);
-    Occurences* o       = fOccMarkup.retrieve(sig);
-
+    Occurrences* o = fOccMarkup.retrieve(sig);
+   
     // check reentrance
     if (getCompiledExpression(sig, code)) {
         // cerr << "!! generateCacheCode called a true getCompiledExpression" << endl;

@@ -217,7 +217,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
     string          vname, ctype;
     int             sharing = getSharingCount(sig);
     Type            t       = getCertifiedSigType(sig);
-    old_Occurences* o       = fOccMarkup->retrieve(sig);
+    Occurrences* o       = fOccMarkup->retrieve(sig);
     int             d       = o->getMaxDelay();
 
     if (t->variability() < kSamp) {
@@ -299,7 +299,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
  */
 bool VectorCompiler::needSeparateLoop(Tree sig)
 {
-    old_Occurences* o = fOccMarkup->retrieve(sig);
+    Occurrences* o = fOccMarkup->retrieve(sig);
     Type            t = getCertifiedSigType(sig);
     int             c = getSharingCount(sig);
     bool            b;

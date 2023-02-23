@@ -34,7 +34,7 @@
 #include "global.hh"
 #include "instructions.hh"
 #include "dcond.hh"
-#include "old_occurences.hh"
+#include "occurrences.hh"
 #include "property.hh"
 
 #define _DNF_ 1
@@ -52,7 +52,7 @@ class InstructionsCompiler : public virtual Garbageable {
     std::map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
     
     Tree            fSharingKey;
-    old_OccMarkup*  fOccMarkup;
+    OccMarkup*  fOccMarkup;
 
     // Ensure IOTA base fixed delays are computed once
     std::map<int, std::string> fIOTATable;

@@ -39,6 +39,8 @@ class RustCodeContainer : public virtual CodeContainer {
     std::ostream*   fOut;
 
     void produceMetadata(int tabs);
+    
+    virtual void printHeader() { CodeContainer::printHeader(*fOut); }
 
    public:
     RustCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out)

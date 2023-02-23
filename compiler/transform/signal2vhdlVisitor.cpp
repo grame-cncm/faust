@@ -1125,7 +1125,7 @@ void Signal2VHDLVisitor::cast(const string& name, Tree sig, Tree x)
 }
 
 // Public API
-void sigVHDLFile(old_OccMarkup* markup, Tree L, bool trace)
+void sigVHDLFile(OccMarkup* markup, Tree L, bool trace)
 {
     Signal2VHDLVisitor V(markup);
     ofstream file("faust.vhd");

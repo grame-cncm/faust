@@ -89,6 +89,9 @@ jtrace:
 cmajor:
 	$(MAKE) -f Make.lang cmajor 
 
+doc:
+	$(MAKE) -f Make.lang doc 
+
 me:
 	$(MAKE) -f Make.lang outdir=cpp lang=cpp ext=cpp FAUSTOPTIONS=" -me -a ./min.cpp"
 
@@ -121,6 +124,8 @@ help:
 	@echo " 'jtrace'     : compiles using Julia minimal-control architecture"
 	@echo " 'cmajor'     : compiles Cmajor examples"
 	@echo " 'me'         : compiles using the C++ backend with -me option"
+	@echo " 'doc'        : test the -mdoc, -svg options"
+
 	@echo " 'clean'      : to remove the folder named using faust version"
 	@echo "Using a specific version of Faust libraries:"
 	@echo " 'make FAUSTLIBS=/path/to/libraries'"

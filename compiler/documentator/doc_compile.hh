@@ -31,7 +31,7 @@
 #include "doc_Text.hh"
 #include "garbageable.hh"
 #include "lateq.hh"
-#include "occurences.hh"
+#include "occurrences.hh"
 #include "property.hh"
 #include "signals.hh"
 #include "sigtyperules.hh"

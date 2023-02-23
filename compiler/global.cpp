@@ -50,6 +50,7 @@
 #include "sqrtprim.hh"
 #include "tanprim.hh"
 #include "tree.hh"
+#include "occur.hh"
 
 #ifdef WIN32
 #pragma warning(disable : 4996)

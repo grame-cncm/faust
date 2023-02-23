@@ -47,6 +47,14 @@ cmajor:
 	for file in $(dspfiles) ; do \
 		faust2cmajor -test $$file ; \
 	done
+	
+doc:
+	for file in $(dspfiles) ; do \
+		faust -svg $$file ; \
+	done
+	for file in $(dspfiles) ; do \
+		faust -mdoc $$file ; \
+	done
 
 julia-tracer:
 	for file in $(dspfiles) ; do \

@@ -29,7 +29,7 @@
 
 #include "compile.hh"
 #include "dcond.hh"
-#include "old_occurences.hh"
+#include "occurrences.hh"
 #include "property.hh"
 #include "sigtyperules.hh"
 
@@ -51,7 +51,7 @@ class ScalarCompiler : public Compiler {
 
     static std::map<std::string, int> fIDCounters;
     Tree                    fSharingKey;
-    old_OccMarkup*          fOccMarkup;
+    OccMarkup*              fOccMarkup;
     int                     fMaxIota;
 
    public:

@@ -23,9 +23,8 @@
 #include <iostream>
 #include <algorithm>
 
-#include "exception.hh"
 #include "global.hh"
-#include "occurences.hh"
+#include "occurrences.hh"
 #include "recursivness.hh"
 #include "sigtyperules.hh"
 
@@ -47,21 +46,27 @@ static int xVariability(int v, int r)
 //	Occurences methods
 //-------------------------------------------------
 
-Occurences::Occurences(int v, int r) : fXVariability(xVariability(v, r))
+int Occurrences::getOccurrence(int variability) const
 {
-    for (int i = 0; i < 4; i++) fOccurences[i] = 0;
-    fMultiOcc    = false;
-    fOutDelayOcc = false;
-    fMinDelay    = 0;
-    fMaxDelay    = 0;
+    return fOccurrences[variability];
 }
 
-Occurences* Occurences::incOccurences(int v, int r, int d)
+Occurrences::Occurrences(int v, int r, Tree xc) : fXVariability(xVariability(v, r))
+{
+    for (int i = 0; i < 4; i++) fOccurrences[i] = 0;
+    fMultiOcc      = false;
+    fOutDelayOcc   = false;
+    fMinDelay      = 0;
+    fMaxDelay      = 0;
+    fExecCondition = xc;
+}
+
+Occurrences* Occurrences::incOccurrences(int v, int r, int d, Tree xc)
 {
     int ctxt = xVariability(v, r);
-    // faustassert(ctxt >= fXVariability);
-    fOccurences[ctxt] += 1;
-    fMultiOcc = fMultiOcc | (ctxt > fXVariability) | (fOccurences[ctxt] > 1);
+    // assert (ctxt >= fXVariability);
+    fOccurrences[ctxt] += 1;
+    fMultiOcc = fMultiOcc | (ctxt > fXVariability) | (fOccurrences[ctxt] > 1);
     if (d == 0) {
         // cerr << "Occurence outside a delay " << endl;
         fOutDelayOcc = true;
@@ -70,27 +75,37 @@ Occurences* Occurences::incOccurences(int v, int r, int d)
         // cerr << "Max delay : " << fMaxDelay << " <- " << d << endl;
         fMaxDelay = d;
     }
+
+    // check if used in different execution conditions
+    if (fExecCondition != xc) {
+        fMultiOcc = true;
+    }
     return this;
 }
 
-bool Occurences::hasMultiOccurences() const
+bool Occurrences::hasMultiOccurrences() const
 {
     return fMultiOcc;
 }
 
-bool Occurences::hasOutDelayOccurences() const
+bool Occurrences::hasOutDelayOccurrences() const
 {
     return fOutDelayOcc;
 }
 
-int Occurences::getMaxDelay() const
+int Occurrences::getMaxDelay() const
 {
     return fMaxDelay;
 }
 
-//--------------------------------------------------
-//	Mark and retrieve occurences of subtrees of root
-//--------------------------------------------------
+Tree Occurrences::getExecCondition() const
+{
+    return fExecCondition;
+}
+
+//----------------------------------------------------
+//	Mark and retrieve occurrences of subtrees of root
+//----------------------------------------------------
 
 void OccMarkup::mark(Tree root)
 {
@@ -100,37 +115,39 @@ void OccMarkup::mark(Tree root)
     if (isList(root)) {
         while (isList(root)) {
             // incOcc(kSamp, 1, hd(root));
-            incOcc(gGlobal->nil, kSamp, 0, 0, hd(root));
+            incOcc(gGlobal->nil, kSamp, 0, 0, gGlobal->nil, hd(root));
             root = tl(root);
         }
         // cerr << "END OF LIST IS " << *root << endl;
     } else {
         // incOcc(kSamp, 1, root);
-        incOcc(gGlobal->nil, kSamp, 0, 0, root);
+        incOcc(gGlobal->nil, kSamp, 0, 0, gGlobal->nil, root);
     }
 }
 
-Occurences* OccMarkup::retrieve(Tree t)
+Occurrences* OccMarkup::retrieve(Tree t)
 {
     return getOcc(t);
 }
 
 //------------------------------------------------------------------------------
-// Increment the occurences of t within context v,r,d and proceed recursively
+// Increment the occurrences of t within context v,r,d,xc and proceed recursively
+// xc : exec condition expression
 //------------------------------------------------------------------------------
 
-void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree t)
+void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
 {
     // Check if we have already visited this tree
-    Occurences* occ = getOcc(t);
+    Occurrences* occ = getOcc(t);
 
     if (occ == 0) {
         // 1) We build initial occurence information
         Type ty = getCertifiedSigType(t);
         int  v0 = ty->variability();
         int  r0 = getRecursivness(t);
-
-        occ = new Occurences(v0, r0);
+        // fConditions may have been initialized empty
+        Tree c0 = (fConditions.find(t) == fConditions.end()) ? gGlobal->nil : fConditions[t];        
+        occ     = new Occurrences(v0, r0, c0);
         setOcc(t, occ);
 
         // We mark the subtrees of t
@@ -139,34 +156,34 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree t)
             Type g2 = getCertifiedSigType(y);
             int  d2 = checkDelayInterval(g2);
             faustassert(d2 >= 0);
-            incOcc(env, v0, r0, d2, x);
-            incOcc(env, v0, r0, 0, y);
+            incOcc(env, v0, r0, d2, c0, x);
+            incOcc(env, v0, r0, 0, c0, y);
         } else if (isSigPrefix(t, y, x)) {
-            incOcc(env, v0, r0, 1, x);
-            incOcc(env, v0, r0, 0, y);
+            incOcc(env, v0, r0, 1, c0, x);
+            incOcc(env, v0, r0, 0, c0, y);
         } else {
             vector<Tree> br;
             int          n = getSubSignals(t, br);
             if (n > 0 && !isSigGen(t)) {
-                for (int i = 0; i < n; i++) incOcc(env, v0, r0, 0, br[i]);
+                for (int i = 0; i < n; i++) incOcc(env, v0, r0, 0, c0, br[i]);
             }
         }
     }
 
-    occ->incOccurences(v, r, d);
+    occ->incOccurrences(v, r, d, xc);
 }
 
-Occurences* OccMarkup::getOcc(Tree t)
+Occurrences* OccMarkup::getOcc(Tree t)
 {
     Tree p = t->getProperty(fPropKey);
     if (p) {
-        return (Occurences*)tree2ptr(p);
+        return (Occurrences*)tree2ptr(p);
     } else {
         return 0;
     }
 }
 
-void OccMarkup::setOcc(Tree t, Occurences* occ)
+void OccMarkup::setOcc(Tree t, Occurrences* occ)
 {
     t->setProperty(fPropKey, tree(occ));
 }
@@ -181,8 +198,8 @@ void OccMarkup::setOcc(Tree t, Occurences* occ)
  */
 static int position(Tree env, Tree t, int p)
 {
-    if (isNil(env)) return 0;	// was not in the environment
-    if (hd(env) == t) return p;
-    else return position(tl(env), t, p+1);
+	if (isNil(env)) return 0;	// was not in the environment
+	if (hd(env) == t) return p;
+	else return position(tl(env), t, p+1);
 }
 #endif

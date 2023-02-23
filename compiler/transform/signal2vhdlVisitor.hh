@@ -25,7 +25,7 @@
 #include "signalVisitor.hh"
 #include "global.hh"
 #include "xtended.hh"
-#include "old_occurences.hh"
+#include "occurrences.hh"
 
 //-------------------------Signal2VHDLVisitor-------------------------------
 // A a signal visitor used to compile signals to vhdl code
@@ -37,7 +37,7 @@
 class Signal2VHDLVisitor : public SignalVisitor {
 
     private:
-        old_OccMarkup* fOccMarkup;
+        OccMarkup* fOccMarkup;
         std::map<std::string, bool> fEntity;
         /** Fields used to accumulate strings for different parts of the .vhd file */
         std::string fInput;
@@ -170,7 +170,7 @@ class Signal2VHDLVisitor : public SignalVisitor {
         }
 
     public:
-        Signal2VHDLVisitor(old_OccMarkup* occ_markup) : SignalVisitor(), fOccMarkup(occ_markup) {};
+        Signal2VHDLVisitor(OccMarkup* occ_markup) : SignalVisitor(), fOccMarkup(occ_markup) {};
 
         void sigToVHDL(Tree sig, std::ostream& fout);
 
@@ -179,4 +179,4 @@ class Signal2VHDLVisitor : public SignalVisitor {
 };
 
 // Public API
-void sigVHDLFile(old_OccMarkup* markup, Tree L, bool trace);
+void sigVHDLFile(OccMarkup* markup, Tree L, bool trace);

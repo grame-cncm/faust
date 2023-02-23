@@ -278,7 +278,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
     
     startTiming("occurrences analysis");
     delete fOccMarkup;
-    fOccMarkup = new old_OccMarkup(fConditionProperty);
+    fOccMarkup = new OccMarkup(fConditionProperty);
     fOccMarkup->mark(L2);        // Annotate L2 with occurrences analysis
     endTiming("occurrences analysis");
     
@@ -306,7 +306,7 @@ Tree InstructionsCompiler::prepare2(Tree L0)
     sharingAnalysis(L0);         // Annotate L0 with sharing count
    
     delete fOccMarkup;
-    fOccMarkup = new old_OccMarkup();
+    fOccMarkup = new OccMarkup();
     fOccMarkup->mark(L0);        // Annotate L0 with occurrences analysis
 
     endTiming("prepare2");
@@ -820,7 +820,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
 
 ValueInst* InstructionsCompiler::generateIntNumber(Tree sig, int num)
 {
-    old_Occurences* o = fOccMarkup->retrieve(sig);
+    Occurrences* o = fOccMarkup->retrieve(sig);
 
     // Check for number occuring in delays
     if (o->getMaxDelay() > 0) {
@@ -837,7 +837,7 @@ ValueInst* InstructionsCompiler::generateIntNumber(Tree sig, int num)
 ValueInst* InstructionsCompiler::generateRealNumber(Tree sig, double num)
 {
     Typed::VarType ctype = itfloat();
-    old_Occurences*    o = fOccMarkup->retrieve(sig);
+    Occurrences*    o = fOccMarkup->retrieve(sig);
 
     // Check for number occuring in delays
     if (o->getMaxDelay() > 0) {
@@ -877,7 +877,7 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
     // Check for number occuring in delays
     Typed::VarType ctype;
     string         vname;
-    old_Occurences*    o = fOccMarkup->retrieve(sig);
+    Occurrences*    o = fOccMarkup->retrieve(sig);
 
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
@@ -1027,7 +1027,7 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
     string         vname;
     Typed::VarType ctype;
     int            sharing = getSharingCount(sig);
-    old_Occurences* o      = fOccMarkup->retrieve(sig);
+    Occurrences* o      = fOccMarkup->retrieve(sig);
     faustassert(o);
 
     // Check for expression occuring in delays
@@ -1039,7 +1039,7 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
             return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
         }
 
-    } else if (sharing > 1 || (o->hasMultiOccurences())) {
+    } else if (sharing > 1 || (o->hasMultiOccurrences())) {
         return generateVariableStore(sig, exp);
 
     } else if (sharing == 1) {
@@ -1064,7 +1064,7 @@ ValueInst* InstructionsCompiler::forceCacheCode(Tree sig, ValueInst* exp)
    
     string         vname;
     Typed::VarType ctype;
-    old_Occurences*    o = fOccMarkup->retrieve(sig);
+    Occurrences*    o = fOccMarkup->retrieve(sig);
     faustassert(o);
 
     // check for expression occuring in delays
@@ -1081,14 +1081,14 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
     string         vname, vname_perm;
     Typed::VarType ctype;
     ::Type         t = getCertifiedSigType(sig);
-    old_Occurences* o = fOccMarkup->retrieve(sig);
+    Occurrences* o = fOccMarkup->retrieve(sig);
     faustassert(o);
 
     switch (t->variability()) {
         case kKonst:
             getTypedNames(t, "Const", ctype, vname);
             // The variable is used in compute (kBlock or kSamp), so define is as a field in the DSP struct
-            if (o->getOccurence(kBlock) || o->getOccurence(kSamp)) {
+            if (o->getOccurrence(kBlock) || o->getOccurrence(kSamp)) {
                 pushDeclare(InstBuilder::genDecStructVar(vname, InstBuilder::genBasicTyped(ctype)));
                 pushInitMethod(InstBuilder::genStoreStructVar(vname, exp));
                 return InstBuilder::genLoadStructVar(vname);

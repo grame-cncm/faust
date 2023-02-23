@@ -19,26 +19,26 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __OCCURRENCES__
-#define __OCCURRENCES__
+#ifndef __OCCUR__
+#define __OCCUR__
 
 #include "garbageable.hh"
 #include "tlib.hh"
 
 /**
- * Count subtree occurences
- * Count the number of occurences of each subtree of a root tree.
+ * Count subtree occurrences
+ * Count the number of occurrences of each subtree of a root tree.
  */
 
-class Occurrences : public virtual Garbageable {
+class Occur : public virtual Garbageable {
     Tree fKey;  // specific property key
 
    public:
-    Occurrences(Tree root);  // count the occurrences of each subtree of root
-    int getCount(Tree t);    // return the number of occurrences of t in root
+    Occur(Tree root);     // count the occurrences of each subtree of root
+    int getCount(Tree t);  // return the number of occurrences of t in root
 
    private:
-    Tree specificKey(Tree root);    // specific key for occurences counting in root
+    Tree specificKey(Tree root);    // specific key for occurrences counting in root
     void countOccurrences(Tree t);  // increment the occurrences of t and its subtrees
     void setCount(Tree t, int c);   // set the number of occurrences of t
 };

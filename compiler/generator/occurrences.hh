@@ -19,17 +19,17 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef __OLD_OCCURENCES__
-#define __OLD_OCCURENCES__
+#ifndef __OCCURRENCES__
+#define __OCCURRENCES__
 
 #include <map>
 
 #include "garbageable.hh"
 #include "tlib.hh"
 
-class old_Occurences : public virtual Garbageable {
+class Occurrences : public virtual Garbageable {
     const int fXVariability;   ///< Extended Variability of the expression
-    int       fOccurences[4];  ///< Occurences count according to Contexts
+    int       fOccurrences[4]; ///< Occurrences count according to Contexts
     bool      fMultiOcc;       ///< True when exp has multiple occ. or occ. in higher ctxt
     bool      fOutDelayOcc;    ///< True when exp has at least one occ. outside a delay
     int       fMinDelay;       ///< Minimal fix delay usage
@@ -37,36 +37,36 @@ class old_Occurences : public virtual Garbageable {
     Tree      fExecCondition;  ///< When this expression must be computed
 
    public:
-    old_Occurences(int v, int r, Tree xc);
-    old_Occurences* incOccurences(int v, int r, int d, Tree xc);  ///< inc occurences in context v,r,d,xc
+    Occurrences(int v, int r, Tree xc);
+    Occurrences* incOccurrences(int v, int r, int d, Tree xc);  ///< inc occurrences in context v,r,d,xc
 
-    bool hasMultiOccurences() const;     ///< true if multiple occurences or occ. in higher ctxt
-    bool hasOutDelayOccurences() const;  ///< true if has occurences outside a a delay
-    int  getMaxDelay() const;            ///< return the maximal delay collected
-    int  getMinDelay() const;            ///< return the minimal delay collected
-    Tree getExecCondition() const;       ///< return the exec condition
-    int getOccurence(int variability) const; ///< return the number of occurence by variability
+    bool hasMultiOccurrences() const;          ///< true if multiple occurrences or occ. in higher ctxt
+    bool hasOutDelayOccurrences() const;       ///< true if has occurrences outside a a delay
+    int  getMaxDelay() const;                 ///< return the maximal delay collected
+    int  getMinDelay() const;                 ///< return the minimal delay collected
+    Tree getExecCondition() const;            ///< return the exec condition
+    int getOccurrence(int variability) const; ///< return the number of occurrence by variability
 };
 
 /**
- * Occurences Markup of a root tree. First create an OccMarkup om,
+ * Occurrences Markup of a root tree. First create an OccMarkup om,
  * second om.mark(root) then om.retrieve(subtree)
  */
-class old_OccMarkup : public virtual Garbageable {
-    Tree            fRootTree;    ///< occurences computed within this tree
-    Tree            fPropKey;     ///< key used to store occurences property
+class OccMarkup : public virtual Garbageable {
+    Tree            fRootTree;         ///< occurrences computed within this tree
+    Tree            fPropKey;          ///< key used to store occurrences property
     std::map<Tree, Tree> fConditions;  ///< condition associated to each tree
 
-    void            incOcc(Tree env, int v, int r, int d, Tree xc, Tree t);  ///< inc the occurence of t in context v,r
-    old_Occurences* getOcc(Tree t);                                          ///< get Occurences property of t or null
-    void            setOcc(Tree t, old_Occurences* occ);                     ///< set Occurences property of t
+    void            incOcc(Tree env, int v, int r, int d, Tree xc, Tree t);  ///< inc the occurrence of t in context v,r
+    Occurrences*    getOcc(Tree t);                                         ///< get Occurrences property of t or null
+    void            setOcc(Tree t, Occurrences* occ);                       ///< set Occurrences property of t
 
    public:
-    old_OccMarkup() : fRootTree(nullptr), fPropKey(nullptr) {}
-    old_OccMarkup(std::map<Tree, Tree> conditions) : fRootTree(nullptr), fPropKey(nullptr), fConditions(conditions) {}
+    OccMarkup() : fRootTree(nullptr), fPropKey(nullptr) {}
+    OccMarkup(std::map<Tree, Tree> conditions) : fRootTree(nullptr), fPropKey(nullptr), fConditions(conditions) {}
 
     void            mark(Tree root);   ///< start markup of root tree with new unique key
-    old_Occurences* retrieve(Tree t);  ///< occurences of subtree t within root tree
+    Occurrences*    retrieve(Tree t);  ///< occurrences of subtree t within root tree
 };
 
 #endif

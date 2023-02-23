@@ -121,7 +121,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     
     startTiming("occurrences analysis");
     delete fOccMarkup;
-    fOccMarkup = new old_OccMarkup(fConditionProperty);
+    fOccMarkup = new OccMarkup(fConditionProperty);
     fOccMarkup->mark(L2);        // Annotate L2 with occurrences analysis
     endTiming("occurrences analysis");
     
@@ -151,7 +151,7 @@ Tree ScalarCompiler::prepare2(Tree L0)
     if (fOccMarkup != 0) {
         delete fOccMarkup;
     }
-    fOccMarkup = new old_OccMarkup();
+    fOccMarkup = new OccMarkup();
     fOccMarkup->mark(L0);  // annotate L0 with occurrences analysis
 
     endTiming("ScalarCompiler::prepare2");
@@ -508,7 +508,7 @@ string ScalarCompiler::generateCode(Tree sig)
 string ScalarCompiler::generateNumber(Tree sig, const string& exp)
 {
     string          ctype, vname;
-    old_Occurences* o = fOccMarkup->retrieve(sig);
+    Occurrences* o = fOccMarkup->retrieve(sig);
 
     // check for number occuring in delays
     if (o->getMaxDelay() > 0) {
@@ -528,7 +528,7 @@ string ScalarCompiler::generateFConst(Tree sig, const string& file, const string
     string exp = (exp_aux == "fSamplingFreq") ? "fSampleRate" : exp_aux;
 
     string          ctype, vname;
-    old_Occurences* o = fOccMarkup->retrieve(sig);
+    Occurrences* o = fOccMarkup->retrieve(sig);
 
     addIncludeFile(file);
 
@@ -668,7 +668,7 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 
     string          vname, ctype;
     int             sharing = getSharingCount(sig);
-    old_Occurences* o       = fOccMarkup->retrieve(sig);
+    Occurrences* o       = fOccMarkup->retrieve(sig);
     faustassert(o);
 
     // check for expression occuring in delays
@@ -680,7 +680,7 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
             return generateDelayVec(sig, exp, ctype, vname, o->getMaxDelay());
         }
 
-    } else if ((sharing > 1) || (o->hasMultiOccurences())) {
+    } else if ((sharing > 1) || (o->hasMultiOccurrences())) {
         return generateVariableStore(sig, exp);
 
     } else if (sharing == 1) {
@@ -704,7 +704,7 @@ string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
     }
 
     string          vname, ctype;
-    old_Occurences* o = fOccMarkup->retrieve(sig);
+    Occurrences* o = fOccMarkup->retrieve(sig);
     faustassert(o);
 
     // check for expression occuring in delays
@@ -720,14 +720,14 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
 {
     string          vname, vname_perm, ctype;
     Type            t = getCertifiedSigType(sig);
-    old_Occurences* o = fOccMarkup->retrieve(sig);
+    Occurrences* o = fOccMarkup->retrieve(sig);
     faustassert(o);
 
     switch (t->variability()) {
         case kKonst:
             getTypedNames(t, "Const", ctype, vname);
             // The variable is used in compute (kBlock or kSamp), so define is as a field in the DSP struct
-            if (o->getOccurence(kBlock) || o->getOccurence(kSamp)) {
+            if (o->getOccurrence(kBlock) || o->getOccurrence(kSamp)) {
                 fClass->addDeclCode(subst("$0 \t$1;", ctype, vname));
                 fClass->addInitCode(subst("$0 = $1;", vname, exp));
             } else {
@@ -1320,7 +1320,7 @@ string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const
 {
     faustassert(mxd > 0);
 
-    // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurences();
+    // bool odocc = fOccMarkup->retrieve(sig)->hasOutDelayOccurrences();
     string ccs = getConditionCode(sig);
 
     if (mxd < gGlobal->gMaxCopyDelay) {
