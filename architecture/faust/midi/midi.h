@@ -469,5 +469,7 @@ class midi_handler : public midi, public midi_interface {
   
 };
 
+#define ucast(v) static_cast<unsigned char>(v)
+
 #endif // __midi__
 /**************************  END  midi.h **************************/

@@ -508,45 +508,45 @@ struct max_midi : public midi_handler {
     // MIDI output API
     MapUI* keyOn(int channel, int pitch, int velocity)
     {
-        std::vector<unsigned char> message = {(MIDI_NOTE_ON + channel), pitch, velocity};
+        std::vector<unsigned char> message = {ucast(MIDI_NOTE_ON + channel), ucast(pitch), ucast(velocity)};
         sendMessage(message);
         return NULL;
     }
     
     void keyOff(int channel, int pitch, int velocity)
     {
-        std::vector<unsigned char> message = {(MIDI_NOTE_OFF + channel), pitch, velocity};
+        std::vector<unsigned char> message = {ucast(MIDI_NOTE_OFF + channel), ucast(pitch), ucast(velocity)};
         sendMessage(message);
     }
     
     void ctrlChange(int channel, int ctrl, int val)
     {
-        std::vector<unsigned char> message = {(MIDI_CONTROL_CHANGE + channel), ctrl, val};
+        std::vector<unsigned char> message = {ucast(MIDI_CONTROL_CHANGE + channel), ucast(ctrl), ucast(val)};
         sendMessage(message);
     }
     
     void chanPress(int channel, int press)
     {
-        std::vector<unsigned char> message = {(MIDI_AFTERTOUCH + channel), press};
+        std::vector<unsigned char> message = {ucast(MIDI_AFTERTOUCH + channel), ucast(press)};
         sendMessage(message);
     }
     
     void progChange(int channel, int pgm)
     {
-        std::vector<unsigned char> message = {(MIDI_PROGRAM_CHANGE + channel), pgm};
+        std::vector<unsigned char> message = {ucast(MIDI_PROGRAM_CHANGE + channel), ucast(pgm)};
         sendMessage(message);
     }
     
     void keyPress(int channel, int pitch, int press)
     {
-        std::vector<unsigned char> message = {(MIDI_POLY_AFTERTOUCH + channel), pitch, press};
+        std::vector<unsigned char> message = {ucast(MIDI_POLY_AFTERTOUCH + channel), ucast(pitch), ucast(press)};
         sendMessage(message);
     }
     
     void pitchWheel(int channel, int wheel)
     {
         // lsb 7bit, msb 7bit
-        std::vector<unsigned char> message = {(MIDI_PITCH_BEND + channel), (wheel & 0x7F), ((wheel >> 7) & 0x7F)};
+        std::vector<unsigned char> message = {ucast(MIDI_PITCH_BEND + channel), ucast(wheel & 0x7F), ucast((wheel >> 7) & 0x7F)};
         sendMessage(message);
     }
     
@@ -554,19 +554,19 @@ struct max_midi : public midi_handler {
     
     void startSync(double date)
     {
-        std::vector<unsigned char> message = {MIDI_START};
+        std::vector<unsigned char> message = {ucast(MIDI_START)};
         sendMessage(message);
     }
     
     void stopSync(double date)
     {
-        std::vector<unsigned char> message = {MIDI_STOP};
+        std::vector<unsigned char> message = {ucast(MIDI_STOP)};
         sendMessage(message);
     }
     
     void clock(double date)
     {
-        std::vector<unsigned char> message = {MIDI_CLOCK};
+        std::vector<unsigned char> message = {ucast(MIDI_CLOCK)};
         sendMessage(message);
     }
     

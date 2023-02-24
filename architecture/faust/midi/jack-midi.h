@@ -21,6 +21,7 @@ that contains this FAUST architecture section and distribute
 that work under terms of your choice, so long as this FAUST
 architecture section is not modified.
 ***************************************************************************/
+
 #ifndef __jack_midi__
 #define __jack_midi__
 
@@ -34,8 +35,6 @@ architecture section is not modified.
 #include "faust/gui/ring-buffer.h"
 
 class FAUST_API MapUI;
-
-#define ucast(v) static_cast<unsigned char>(v)
 
 /**
  *  MIDI input/output handling using JACK library: https://jackaudio.org
