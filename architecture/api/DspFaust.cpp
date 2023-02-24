@@ -139,11 +139,11 @@
 #include "faust/gui/JuceOSCUI.h"
 #else
 #include "faust/gui/OSCUI.h"
-#endif
 static void osc_compute_callback(void* arg)
 {
     static_cast<OSCUI*>(arg)->endBundle();
 }
+#endif
 #endif
 
 #if DYNAMIC_DSP
