@@ -837,7 +837,7 @@ ValueInst* InstructionsCompiler::generateIntNumber(Tree sig, int num)
 ValueInst* InstructionsCompiler::generateRealNumber(Tree sig, double num)
 {
     Typed::VarType ctype = itfloat();
-    Occurrences*    o = fOccMarkup->retrieve(sig);
+    Occurrences*       o = fOccMarkup->retrieve(sig);
 
     // Check for number occuring in delays
     if (o->getMaxDelay() > 0) {
@@ -877,7 +877,7 @@ ValueInst* InstructionsCompiler::generateFConst(Tree sig, Tree type, const strin
     // Check for number occuring in delays
     Typed::VarType ctype;
     string         vname;
-    Occurrences*    o = fOccMarkup->retrieve(sig);
+    Occurrences* o = fOccMarkup->retrieve(sig);
 
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
@@ -1027,7 +1027,7 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
     string         vname;
     Typed::VarType ctype;
     int            sharing = getSharingCount(sig);
-    Occurrences* o      = fOccMarkup->retrieve(sig);
+    Occurrences* o         = fOccMarkup->retrieve(sig);
     faustassert(o);
 
     // Check for expression occuring in delays
@@ -1081,7 +1081,7 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
     string         vname, vname_perm;
     Typed::VarType ctype;
     ::Type         t = getCertifiedSigType(sig);
-    Occurrences* o = fOccMarkup->retrieve(sig);
+    Occurrences*   o = fOccMarkup->retrieve(sig);
     faustassert(o);
 
     switch (t->variability()) {

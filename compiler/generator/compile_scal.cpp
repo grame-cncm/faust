@@ -668,7 +668,7 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 
     string          vname, ctype;
     int             sharing = getSharingCount(sig);
-    Occurrences* o       = fOccMarkup->retrieve(sig);
+    Occurrences* o          = fOccMarkup->retrieve(sig);
     faustassert(o);
 
     // check for expression occuring in delays

@@ -538,9 +538,9 @@ class CmajorInstVisitor : public TextInstVisitor {
 
     virtual void visitCond(ValueInst* cond)
     {
-        *fOut << "bool (";
+        *fOut << "(bool (";
         cond->accept(this);
-        *fOut << ")";
+        *fOut << "))";
     }
         
     virtual void visit(IfInst* inst)

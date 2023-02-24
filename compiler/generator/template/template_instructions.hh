@@ -118,8 +118,8 @@ struct TemplateInitFieldsVisitor : public DispatchVisitor {
 
 /*
     A subclass of TextInstVisitor that implements a lot of generic behaviors.
-    Some methods mays have to be redefined in this class, anf the exposed list
-    of them is given as an example, to be adapted in the real case.
+    Some methods mays have to be redefined in this class, and the exposed list
+    of them is given as an example, to be adapted in the real use case.
 */
 
 class TemplateInstVisitor : public TextInstVisitor {

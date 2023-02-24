@@ -357,9 +357,9 @@ class TextInstVisitor : public InstVisitor {
 
     virtual void visit(IfInst* inst)
     {
-        *fOut << "if (";
+        *fOut << "if ";
         visitCond(inst->fCond);
-        *fOut << ") {";
+        *fOut << " {";
         fTab++;
         tab(fTab, *fOut);
         inst->fThen->accept(this);
@@ -404,9 +404,9 @@ class TextInstVisitor : public InstVisitor {
 
     virtual void visit(WhileLoopInst* inst)
     {
-        *fOut << "while (";
+        *fOut << "while ";
         visitCond(inst->fCond);
-        *fOut << ") {";
+        *fOut << " {";
         fTab++;
         tab(fTab, *fOut);
         inst->fCode->accept(this);
@@ -442,9 +442,9 @@ class TextInstVisitor : public InstVisitor {
 
     virtual void visit(::SwitchInst* inst)
     {
-        *fOut << "switch (";
-        inst->fCond->accept(this);
-        *fOut << ") {";
+        *fOut << "switch ";
+        visitCond(inst->fCond);
+        *fOut << " {";
         fTab++;
         tab(fTab, *fOut);
         std::list<std::pair<int, BlockInst*> >::const_iterator it;
