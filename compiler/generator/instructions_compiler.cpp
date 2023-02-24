@@ -22,7 +22,6 @@
 #include <string>
 
 #include "Text.hh"
-#include "ensure.hh"
 #include "fir_to_fir.hh"
 #include "floats.hh"
 #include "instructions.hh"
@@ -1536,7 +1535,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     Typed::VarType ctype;
     string         vname;
 
-    ensure(isSigGen(content, g));
+    faustassert(isSigGen(content, g));
 
     if (!getCompiledExpression(content, signame)) {
         signame = setCompiledExpression(content, generateStaticSigGen(content, g));
@@ -1764,9 +1763,9 @@ ValueInst* InstructionsCompiler::generateRecProj(Tree sig, Tree r, int i)
     ValueInst* res;
 
     if (!getVectorNameProperty(sig, vname)) {
-        ensure(isRec(r, var, le));
+        faustassert(isRec(r, var, le));
         res = generateRec(r, var, le, i);
-        ensure(getVectorNameProperty(sig, vname));
+        faustassert(getVectorNameProperty(sig, vname));
     } else {
         res = InstBuilder::genNullValueInst();  // Result not used
     }

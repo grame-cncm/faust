@@ -20,7 +20,6 @@
  ************************************************************************/
 
 #include "instructions_compiler_jax.hh"
-#include "ensure.hh"
 #include "ppsig.hh"
 #include "sigtyperules.hh"
 

@@ -508,63 +508,45 @@ struct max_midi : public midi_handler {
     // MIDI output API
     MapUI* keyOn(int channel, int pitch, int velocity)
     {
-        std::vector<unsigned char> message;
-        message.push_back(MIDI_NOTE_ON + channel);
-        message.push_back(pitch);
-        message.push_back(velocity);
+        std::vector<unsigned char> message = {(MIDI_NOTE_ON + channel), pitch, velocity};
         sendMessage(message);
         return NULL;
     }
     
     void keyOff(int channel, int pitch, int velocity)
     {
-        std::vector<unsigned char> message;
-        message.push_back(MIDI_NOTE_OFF + channel);
-        message.push_back(pitch);
-        message.push_back(velocity);
+        std::vector<unsigned char> message = {(MIDI_NOTE_OFF + channel), pitch, velocity};
         sendMessage(message);
     }
     
     void ctrlChange(int channel, int ctrl, int val)
     {
-        std::vector<unsigned char> message;
-        message.push_back(MIDI_CONTROL_CHANGE + channel);
-        message.push_back(ctrl);
-        message.push_back(val);
+        std::vector<unsigned char> message = {(MIDI_CONTROL_CHANGE + channel), ctrl, val};
         sendMessage(message);
     }
     
     void chanPress(int channel, int press)
     {
-        std::vector<unsigned char> message;
-        message.push_back(MIDI_AFTERTOUCH + channel);
-        message.push_back(press);
+        std::vector<unsigned char> message = {(MIDI_AFTERTOUCH + channel), press};
         sendMessage(message);
     }
     
     void progChange(int channel, int pgm)
     {
-        std::vector<unsigned char> message;
-        message.push_back(MIDI_PROGRAM_CHANGE + channel);
-        message.push_back(pgm);
+        std::vector<unsigned char> message = {(MIDI_PROGRAM_CHANGE + channel), pgm};
         sendMessage(message);
     }
     
     void keyPress(int channel, int pitch, int press)
     {
-        std::vector<unsigned char> message;
-        message.push_back(MIDI_POLY_AFTERTOUCH + channel);
-        message.push_back(pitch);
-        message.push_back(press);
+        std::vector<unsigned char> message = {(MIDI_POLY_AFTERTOUCH + channel), pitch, press};
         sendMessage(message);
     }
     
     void pitchWheel(int channel, int wheel)
     {
-        std::vector<unsigned char> message;
-        message.push_back(MIDI_PITCH_BEND + channel);
-        message.push_back(wheel & 0x7F);           // lsb 7bit
-        message.push_back((wheel >> 7) & 0x7F);    // msb 7bit
+        // lsb 7bit, msb 7bit
+        std::vector<unsigned char> message = {(MIDI_PITCH_BEND + channel), (wheel & 0x7F), ((wheel >> 7) & 0x7F)};
         sendMessage(message);
     }
     
@@ -572,22 +554,19 @@ struct max_midi : public midi_handler {
     
     void startSync(double date)
     {
-        std::vector<unsigned char> message;
-        message.push_back(MIDI_START);
+        std::vector<unsigned char> message = {MIDI_START};
         sendMessage(message);
     }
     
     void stopSync(double date)
     {
-        std::vector<unsigned char> message;
-        message.push_back(MIDI_STOP);
+        std::vector<unsigned char> message = {MIDI_STOP};
         sendMessage(message);
     }
     
     void clock(double date)
     {
-        std::vector<unsigned char> message;
-        message.push_back(MIDI_CLOCK);
+        std::vector<unsigned char> message = {MIDI_CLOCK};
         sendMessage(message);
     }
     

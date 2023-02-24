@@ -35,6 +35,8 @@ architecture section is not modified.
 
 class FAUST_API MapUI;
 
+#define ucast(v) static_cast<unsigned char>(v)
+
 /**
  *  MIDI input/output handling using JACK library: https://jackaudio.org
  */
@@ -166,10 +168,7 @@ class jack_midi : public midi_handler {
         {
             for (int i = 0; i < count; ++i) {
                 MIDIMessage message = (*messages)[i];
-                unsigned char buffer[3]
-                    = { static_cast<unsigned char>(message.byte0),
-                        static_cast<unsigned char>(message.byte1),
-                        static_cast<unsigned char>(message.byte2) };
+                unsigned char buffer[3] = { ucast(message.byte0), ucast(message.byte1), ucast(message.byte2) };
                 writeMessage(0, buffer, 3);
             }
         }
@@ -177,63 +176,44 @@ class jack_midi : public midi_handler {
         // MIDI output API
         MapUI* keyOn(int channel, int pitch, int velocity)
         {
-            unsigned char buffer[3]
-                = { static_cast<unsigned char>(MIDI_NOTE_ON + channel),
-                    static_cast<unsigned char>(pitch),
-                    static_cast<unsigned char>(velocity) };
+            unsigned char buffer[3] = { ucast(MIDI_NOTE_ON + channel), ucast(pitch), ucast(velocity) };
             writeMessage(0, buffer, 3);
             return 0;
         }
 
         void keyOff(int channel, int pitch, int velocity)
         {
-            unsigned char buffer[3]
-                = { static_cast<unsigned char>(MIDI_NOTE_OFF + channel),
-                    static_cast<unsigned char>(pitch),
-                    static_cast<unsigned char>(velocity) };
+            unsigned char buffer[3] = { ucast(MIDI_NOTE_OFF + channel), ucast(pitch), ucast(velocity) };
             writeMessage(0, buffer, 3);
         }
 
         void ctrlChange(int channel, int ctrl, int val)
         {
-            unsigned char buffer[3]
-                = { static_cast<unsigned char>(MIDI_CONTROL_CHANGE + channel),
-                    static_cast<unsigned char>(ctrl),
-                    static_cast<unsigned char>(val) };
+            unsigned char buffer[3] = { ucast(MIDI_CONTROL_CHANGE + channel), ucast(ctrl), ucast(val) };
             writeMessage(0, buffer, 3);
         }
 
         void chanPress(int channel, int press)
         {
-            unsigned char buffer[2]
-                = { static_cast<unsigned char>(MIDI_AFTERTOUCH + channel),
-                    static_cast<unsigned char>(press) };
+            unsigned char buffer[2] = { ucast(MIDI_AFTERTOUCH + channel), ucast(press) };
             writeMessage(0, buffer, 2);
         }
 
         void progChange(int channel, int pgm)
         {
-            unsigned char buffer[2]
-                = { static_cast<unsigned char>(MIDI_PROGRAM_CHANGE + channel),
-                    static_cast<unsigned char>(pgm) };
+            unsigned char buffer[2] = { ucast(MIDI_PROGRAM_CHANGE + channel), ucast(pgm) };
             writeMessage(0, buffer, 2);
         }
 
         void keyPress(int channel, int pitch, int press)
         {
-            unsigned char buffer[3]
-                = { static_cast<unsigned char>(MIDI_POLY_AFTERTOUCH + channel),
-                    static_cast<unsigned char>(pitch),
-                    static_cast<unsigned char>(press) };
+            unsigned char buffer[3] = { ucast(MIDI_POLY_AFTERTOUCH + channel), ucast(pitch), ucast(press) };
             writeMessage(0, buffer, 3);
         }
 
         void pitchWheel(int channel, int wheel)
         {
-            unsigned char buffer[3]
-                = { static_cast<unsigned char>(MIDI_PITCH_BEND + channel),
-                    static_cast<unsigned char>(wheel & 0x7F),
-                    static_cast<unsigned char>((wheel >> 7) & 0x7F) };
+            unsigned char buffer[3] = { ucast(MIDI_PITCH_BEND + channel), ucast(wheel & 0x7F), ucast((wheel >> 7) & 0x7F) };
             writeMessage(0, buffer, 3);
         }
 
