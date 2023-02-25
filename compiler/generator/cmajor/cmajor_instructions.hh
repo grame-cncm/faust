@@ -355,17 +355,17 @@ class CmajorInstVisitor : public TextInstVisitor {
         EndLine(' ');
         if (gGlobal->gOutputLang == "cmajor-poly") {
             *fOut << "event event_" << replaceCharList(inst->fLabel, gReplace, '_') << " ("
-                  << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone
-                  << " = val; fUpdated = true; }";
+                  << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
+                  << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
         } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
             std::string cmajor_meta = getCmajorMetadata();
             *fOut << "event " << ((cmajor_meta != "") ? cmajor_meta : replaceCharList(inst->fLabel, gReplace, '_'))
                   << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
-                  << inst->fZone << " = val; fUpdated = true; }";
+                  << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
             fMetaAux.clear();
         } else {
             *fOut << "event event" << inst->fZone << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
-                  << inst->fZone << " = val; fUpdated = true; }";
+                  << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
         }
         EndLine(' ');
     }
@@ -378,17 +378,17 @@ class CmajorInstVisitor : public TextInstVisitor {
         EndLine(' ');
         if (gGlobal->gOutputLang == "cmajor-poly") {
             *fOut << "event event_" << replaceCharList(inst->fLabel, gReplace, '_') << " ("
-                  << fTypeManager->fTypeDirectTable[itfloat()] << " val) { " << inst->fZone
-                  << " = val; fUpdated = true; }";
+                  << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
+                  << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
         } else if (gGlobal->gOutputLang == "cmajor-hybrid") {
             std::string cmajor_meta = getCmajorMetadata();
             *fOut << "event " << ((cmajor_meta != "") ? cmajor_meta : replaceCharList(inst->fLabel, gReplace, '_'))
                   << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
-                  << inst->fZone << " = val; fUpdated = true; }";
+                  << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
             fMetaAux.clear();
         } else {
             *fOut << "event event" << inst->fZone << " (" << fTypeManager->fTypeDirectTable[itfloat()] << " val) { "
-                  << inst->fZone << " = val; fUpdated = true; }";
+                  << "fUpdated ||= (" << inst->fZone << " != val); " << inst->fZone << " = val; }";
         }
         EndLine(' ');
     }
