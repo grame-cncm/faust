@@ -249,7 +249,7 @@ Tree SignalPromotion::transformation(Tree sig)
                 interval j1 = ty->getInterval();
                 if (i1.isValid() && j1.isValid() && gGlobal->gMathExceptions && j1.hasZero()) {
                     stringstream error;
-                    error << "WARNING : potential division by zero (" << i1 << "/" << j1 << ")" << endl;
+                    error << "WARNING : potential division by zero (" << i1 << "/" << j1 << ")";
                     gWarningMessages.push_back(error.str());
                 }
                 // the result of a division is always a float

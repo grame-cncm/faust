@@ -59,7 +59,6 @@ class WASTCodeContainer : public virtual CodeContainer {
         PathTableType path_index_table;
         std::map<std::string, MemoryDesc>& fieldTable1 = gGlobal->gWASTVisitor->getFieldTable();
         for (const auto& it : json_visitor1.fPathTable) {
-            faustassert(path_index_table.find(it.second) == path_index_table.end());
             // Get field index
             MemoryDesc tmp              = fieldTable1[it.first];
             path_index_table[it.second] = tmp.fOffset;

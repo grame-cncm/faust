@@ -33,20 +33,27 @@
 #define audioPtrSize gGlobal->audioSampleSize()
 #define wasmBlockSize int(pow(2, 16))
 
-typedef std::map<std::string, int> PathTableType;
-
 /*
  wast/wasm module ABI:
 
  - in internal memory mode, a memory segment is allocated, otherwise it is given by the external JS runtime
  - DSP fields start at offset 0, then followed by audio buffers
  - the JSON string is written at offset 0, to be copied and converted in a string
- by the runtime (JS or something else) before using the DSP itsef.
-
+   by the runtime (JS or something else) before using the DSP itsef.
 */
 
 // Minimum = 64 kB
-inline int wasm_pow2limit(int x) { return pow2limit(x, wasmBlockSize); }
+inline int wasm_pow2limit(int x)
+{
+    if (x > INT_MAX / 2) {
+        throw faustexception("ERROR : too big value '" + std::to_string(x) + "' for wasm memory\n");
+    }
+    int n = wasmBlockSize;
+    while (n < x) {
+        n = 2 * n;
+    }
+    return n;
+}
 
 // DSP size + (inputs + outputs) * (fsize() + max_buffer_size * audioSampleSize), json_len
 inline int genMemSize(int struct_size, int channels, int json_len)

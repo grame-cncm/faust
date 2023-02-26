@@ -62,7 +62,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
         JSONInstVisitor<REAL> json_visitor1;
         generateUserInterface(&json_visitor1);
 
-        std::map<std::string, int> path_index_table;
+        PathTableType path_index_table;
         for (const auto& it : json_visitor1.fPathTable) {
             // Get field index
             path_index_table[it.second] = fStructVisitor.getFieldOffset(it.first);

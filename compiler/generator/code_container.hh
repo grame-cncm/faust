@@ -373,7 +373,7 @@ class CodeContainer : public virtual Garbageable {
                       FAUSTVERSION, gGlobal->printCompilationOptions1(),
                       gGlobal->gReader.listLibraryFiles(),
                       gGlobal->gImportDirList,
-                      -1, std::map<std::string, int>(),
+                      -1, PathTableType(),
                       fMemoryLayout, complexity.getInstComplexity());
         generateUserInterface(visitor);
         generateMetaData(visitor);

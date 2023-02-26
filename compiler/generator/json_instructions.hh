@@ -23,6 +23,7 @@
 #define _JSON_INSTRUCTIONS_H
 
 #include <string>
+#include <sstream>
 #include <set>
 
 #include "faust/gui/JSONUI.h"
@@ -39,18 +40,43 @@
 
 template <typename REAL>
 struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
-    std::map<std::string, std::string> fPathTable; // Table : field_name, complete path
-    std::set<std::string> fControlPathSet;    // Set of already used control paths
+    std::map<std::string, std::string> fPathTable;  // Table : field_name, complete path
+    std::set<std::string> fInputsPathSet;           // Set of already used inputs control paths
+    std::set<std::string> fOuputsPathSet;           // Set of already used outputs control paths
  
     using DispatchVisitor::visit;
     
-    const std::string& insertPath(const std::string& path, bool check = true)
+    const std::string& insertInputsPath(const std::string& path)
     {
-        if (check && fControlPathSet.find(path) != fControlPathSet.end()) {
+        // Two input control cannot have a same path (ERROR)
+        if (fInputsPathSet.find(path) != fInputsPathSet.end()) {
             throw faustexception("ERROR : path '" + path + "' is already used\n");
-        } else {
-            fControlPathSet.insert(path);
         }
+        // An input control and a bargraph can have the same path (WARNING)
+        if (fOuputsPathSet.find(path) != fOuputsPathSet.end()) {
+            std::stringstream error;
+            error << "WARNING : input control path '" + path + "' is already used for a bargraph";
+            gWarningMessages.push_back(error.str());
+        }
+        fInputsPathSet.insert(path);
+        return path;
+    }
+    
+    const std::string& insertOutputsPath(const std::string& path)
+    {
+        // An input control and a bargraph can have the same path (WARNING)
+        if (fInputsPathSet.find(path) != fInputsPathSet.end()) {
+            std::stringstream error;
+            error << "WARNING : bargraph path '" + path + "' is already used for a input control";
+            gWarningMessages.push_back(error.str());
+        }
+        // Two bargraph can have the same path (WARNING)
+        if (fOuputsPathSet.find(path) != fOuputsPathSet.end()) {
+            std::stringstream error;
+            error << "WARNING : bargraph path '" + path + "' is already used";
+            gWarningMessages.push_back(error.str());
+        }
+        fOuputsPathSet.insert(path);
         return path;
     }
   
@@ -58,7 +84,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
                     const std::string& sha_key, const std::string& dsp_code, const std::string& version,
                     const std::string& compile_options, const std::vector<std::string>& library_list,
                     const std::vector<std::string>& include_pathnames, int size,
-                    const std::map<std::string, int>& path_table,
+                    const PathTableType& path_table,
                     MemoryLayoutType memory_layout,
                     InstComplexity inst_comp = {})
         : JSONUIReal<REAL>(name, filename, inputs, outputs, sr_index, sha_key, dsp_code, version, compile_options, library_list,
@@ -105,7 +131,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
                 break;
         }
         faustassert(fPathTable.find(inst->fZone) == fPathTable.end());
-        fPathTable[inst->fZone] = insertPath(this->buildPath(inst->fLabel));
+        fPathTable[inst->fZone] = insertInputsPath(this->buildPath(inst->fLabel));
     }
 
     virtual void visit(AddSliderInst* inst)
@@ -125,7 +151,7 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
                 break;
         }
         faustassert(fPathTable.find(inst->fZone) == fPathTable.end());
-        fPathTable[inst->fZone] = insertPath(this->buildPath(inst->fLabel));
+        fPathTable[inst->fZone] = insertInputsPath(this->buildPath(inst->fLabel));
     }
 
     virtual void visit(AddBargraphInst* inst)
@@ -142,14 +168,14 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
                 break;
         }
         faustassert(fPathTable.find(inst->fZone) == fPathTable.end());
-        fPathTable[inst->fZone] = insertPath(this->buildPath(inst->fLabel), false);
+        fPathTable[inst->fZone] = insertOutputsPath(this->buildPath(inst->fLabel));
     }
 
     virtual void visit(AddSoundfileInst* inst)
     {
         this->addSoundfile(inst->fLabel.c_str(), inst->fURL.c_str(), nullptr);
         faustassert(fPathTable.find(inst->fSFZone) == fPathTable.end());
-        fPathTable[inst->fSFZone] = insertPath(this->buildPath(inst->fLabel));
+        fPathTable[inst->fSFZone] = insertInputsPath(this->buildPath(inst->fLabel));
     }
 
     void setInputs(int input) { this->fInputs = input; }

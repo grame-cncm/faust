@@ -38,8 +38,10 @@ all:
 	$(MAKE) -f Make.lang outdir=fir lang=fir ext=fir FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=julia lang=julia ext=julia FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=rust lang=rust ext=rust FAUSTOPTIONS=""
-	$(MAKE) -f Make.lang outdir=llvm lang=llvm ext=llvm FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=dlang lang=dlang ext=dlang FAUSTOPTIONS=""
 	$(MAKE) -f Make.lang outdir=cmajor lang=cmajor ext=cmajor FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=interp lang=interp ext=interp FAUSTOPTIONS=""
+	$(MAKE) -f Make.lang outdir=jax lang=jax ext=jax FAUSTOPTIONS=""
 	$(MAKE) gcc1
 	$(MAKE) gcc2
 	
