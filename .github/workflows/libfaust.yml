@@ -45,19 +45,36 @@ jobs:
         make
         make install
 
+    - name: Cache libsndfile output
+      id: cachelibsndfile
+      uses: actions/cache@v3
+      with:
+        path: libsndfile
+        key: output-files-libsndfile-${{ matrix.name }}-${{ hashFiles('libsndfile') }}
+
     - name: Clone libsndfile
+      if: steps.cachelibsndfile.outputs.cache-hit != 'true'
       uses: actions/checkout@v3
       with:
         repository: libsndfile/libsndfile
         path: libsndfile
 
     - name: Build libsndfile
+      if: steps.cachelibsndfile.outputs.cache-hit != 'true'
       run: |
         cd libsndfile
         cmake -Bbuild -G "Unix Makefiles" ${{matrix.cmake-options}} -DENABLE_EXTERNAL_LIBS=off
         cmake --build build --config Release
 
+    - name: Cache LLVM output
+      id: cachellvm
+      uses: actions/cache@v3
+      with:
+        path: llvm-project/llvm
+        key: output-files-llvm-${{ matrix.name }}-${{ hashFiles('llvm-project/llvm') }}
+
     - name: Clone LLVM
+      if: steps.cachellvm.outputs.cache-hit != 'true'
       uses: actions/checkout@v3
       with:
         repository: llvm/llvm-project
@@ -65,25 +82,29 @@ jobs:
         ref: f28c006a5895fc0e329fe15fead81e37457cb1d1
 
     - name: Build LLVM
+      if: steps.cachellvm.outputs.cache-hit != 'true'
       run: |
         cd llvm-project/llvm
         cmake -Bbuild -DCMAKE_INSTALL_PREFIX="./llvm" ${{matrix.cmake-options}} ${{matrix.llvm-options}} -DLLVM_ENABLE_ZLIB=off -DLLVM_OPTIMIZED_TABLEGEN=ON
         cmake --build build --config Release
-    - name: Use CMake for TD-Faust
+
+    - name: Build libfaust
       run: |
-        export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH;$PWD/llvm-project/llvm/build/lib/cmake/llvm;/usr/local/ncurses/6_3/lib/pkgconfig
-        export SndFile_DIR=$PWD/libsndfile/build
-        export CURSES_LIBRARY=/usr/local/ncurses/6_3/lib
-        export CURSES_INCLUDE_PATH=/usr/local/ncurses/6_3/include/ncurses
+        export CMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH;/usr/local/ncurses/6_3/lib/pkgconfig;$PWD/llvm-project/llvm/build/lib/cmake/llvm"
+        export SndFile_DIR="$PWD/libsndfile/build"
+        export CURSES_LIBRARY="/usr/local/ncurses/6_3/lib"
+        export CURSES_INCLUDE_PATH="/usr/local/ncurses/6_3/include/ncurses"
         cd build
         cmake . -Bbuild ${{matrix.cmake-options}} -DUSE_LLVM_CONFIG=off -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH -DSndFile_DIR=$SndFile_DIR -DCURSES_LIBRARY=$CURSES_LIBRARY -DCURSES_INCLUDE_PATH=$CURSES_INCLUDE_PATH -C backends/all_with_libfaust.cmake
         cmake . -Bbuild ${{matrix.cmake-options}} -DUSE_LLVM_CONFIG=off -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH -DSndFile_DIR=$SndFile_DIR -DCURSES_LIBRARY=$CURSES_LIBRARY -DCURSES_INCLUDE_PATH=$CURSES_INCLUDE_PATH -C backends/all_with_libfaust.cmake
         cmake --build build --config Release
+   
     - name: Make distribution
       run: |
         mkdir libfaust_dist
         cp -v -r build/lib libfaust_dist
         zip -r libfaust-${{ matrix.name }}.zip libfaust_dist
+   
     - name: Upload artifact
       uses: actions/upload-artifact@v2
       with:
