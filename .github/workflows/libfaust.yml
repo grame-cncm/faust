@@ -1,0 +1,91 @@
+name: libfaust
+
+# Controls when the action will run.
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  build-ubuntu:
+    strategy:
+      matrix:
+        include:
+          - name: ubuntu-x86_64
+            theContainer: docker://quay.io/pypa/manylinux2014_x86_64
+            os: ubuntu-latest
+            cmake-options: >-
+              -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_VERBOSE_MAKEFILE=ON
+            llvm-options: >-
+              -DLLVM_TARGETS_TO_BUILD="X86"
+              -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-linux-gnu"
+
+    runs-on: ubuntu-latest
+    container:
+      image: ${{matrix.theContainer}}
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - name: Checkout ncurses
+      uses: actions/checkout@v3
+      with:
+        repository: mirror/ncurses
+        path: ncurses
+
+    - name: ncurses install
+      run: |
+        yum install zip -y
+        cd ncurses
+        ./configure --prefix=/usr/local/ncurses/6_3 --with-shared --with-pkg-config-libdir=/usr/local/ncurses/6_3/lib/pkgconfig --enable-pc-files
+        make
+        make install
+
+    - name: Clone libsndfile
+      uses: actions/checkout@v3
+      with:
+        repository: libsndfile/libsndfile
+        path: libsndfile
+
+    - name: Build libsndfile
+      run: |
+        cd libsndfile
+        cmake -Bbuild -G "Unix Makefiles" ${{matrix.cmake-options}} -DENABLE_EXTERNAL_LIBS=off
+        cmake --build build --config Release
+
+    - name: Clone LLVM
+      uses: actions/checkout@v3
+      with:
+        repository: llvm/llvm-project
+        path: llvm-project
+        ref: f28c006a5895fc0e329fe15fead81e37457cb1d1
+
+    - name: Build LLVM
+      run: |
+        cd llvm-project/llvm
+        cmake -Bbuild -DCMAKE_INSTALL_PREFIX="./llvm" ${{matrix.cmake-options}} ${{matrix.llvm-options}} -DLLVM_ENABLE_ZLIB=off -DLLVM_OPTIMIZED_TABLEGEN=ON
+        cmake --build build --config Release
+    - name: Use CMake for TD-Faust
+      run: |
+        export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH;$PWD/llvm-project/llvm/build/lib/cmake/llvm;/usr/local/ncurses/6_3/lib/pkgconfig
+        export SndFile_DIR=$PWD/libsndfile/build
+        export CURSES_LIBRARY=/usr/local/ncurses/6_3/lib
+        export CURSES_INCLUDE_PATH=/usr/local/ncurses/6_3/include/ncurses
+        cd build
+        cmake . -Bbuild ${{matrix.cmake-options}} -DUSE_LLVM_CONFIG=off -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH -DSndFile_DIR=$SndFile_DIR -DCURSES_LIBRARY=$CURSES_LIBRARY -DCURSES_INCLUDE_PATH=$CURSES_INCLUDE_PATH -C backends/all_with_libfaust.cmake
+        cmake . -Bbuild ${{matrix.cmake-options}} -DUSE_LLVM_CONFIG=off -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH -DSndFile_DIR=$SndFile_DIR -DCURSES_LIBRARY=$CURSES_LIBRARY -DCURSES_INCLUDE_PATH=$CURSES_INCLUDE_PATH -C backends/all_with_libfaust.cmake
+        cmake --build build --config Release
+    - name: Make distribution
+      run: |
+        mkdir libfaust_dist
+        cp -v -r build/lib libfaust_dist
+        zip -r libfaust-${{ matrix.name }}.zip libfaust_dist
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: my-artifact-${{ matrix.name }}
+        path: libfaust-${{ matrix.name }}.zip
