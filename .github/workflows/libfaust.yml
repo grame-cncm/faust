@@ -45,33 +45,33 @@ jobs:
         make
         make install
 
-    # - name: Restore libsndfile
-    #   id: cache-libsndfile-restore
-    #   uses: actions/cache/restore@v3
-    #   with:
-    #     path: libsndfile
-    #     key: cache-libsndfile-${{ matrix.name }}
+    - name: Restore libsndfile
+      id: cache-libsndfile-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: libsndfile
+        key: cache-libsndfile-${{ matrix.name }}
 
     - name: Clone libsndfile
-      # if: steps.cache-libsndfile-restore.outputs.cache-hit != 'true'
+      if: steps.cache-libsndfile-restore.outputs.cache-hit != 'true'
       uses: actions/checkout@v3
       with:
         repository: libsndfile/libsndfile
         path: libsndfile
 
     - name: Build libsndfile
-      # if: steps.cache-libsndfile-restore.outputs.cache-hit != 'true'
+      if: steps.cache-libsndfile-restore.outputs.cache-hit != 'true'
       run: |
         cd libsndfile
         cmake -Bbuild -G "Unix Makefiles" ${{matrix.cmake-options}} -DENABLE_EXTERNAL_LIBS=off
         cmake --build build --config Release
 
-    # - name: Cache libsndfile output
-    #   id: cache-libsndfile-save
-    #   uses: actions/cache/save@v3
-    #   with:
-    #     path: libsndfile
-    #     key: ${{ steps.cache-libsndfile-restore.outputs.cache-primary-key }}
+    - name: Cache libsndfile output
+      id: cache-libsndfile-save
+      uses: actions/cache/save@v3
+      with:
+        path: libsndfile
+        key: ${{ steps.cache-libsndfile-restore.outputs.cache-primary-key }}
 
     - name: Restore LLVM
       id: cache-llvm-restore
@@ -104,10 +104,9 @@ jobs:
 
     - name: Build libfaust
       run: |
-        ls -R libsndfile/build
         export CURSES_LIBRARY="/usr/local/ncurses/6_3/lib"
         cd build
-        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DINCLUDE_CURSES=ON -DCMAKE_PREFIX_PATH="$PWD/../llvm-project/llvm/build/lib/cmake/llvm" -DSndFile_DIR="$PWD/../libsndfile/build" -DCURSES_LIBRARY=$CURSES_LIBRARY
+        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DINCLUDE_CURSES=ON -DCMAKE_PREFIX_PATH="$PWD/../llvm-project/llvm/build/lib/cmake/llvm;$PWD/../libsndfile/cmake" -DSndFile_DIR="$PWD/../libsndfile/build" -DCURSES_LIBRARY=$CURSES_LIBRARY
         cmake --build build --config Release
    
     - name: Make distribution

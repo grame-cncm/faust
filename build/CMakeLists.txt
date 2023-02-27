@@ -107,7 +107,6 @@ endif()
 
 	if (INCLUDE_SNDFILE)
 		message(STATUS "SndFile_DIR: ${SndFile_DIR}")
-		set(SndFile_DIR ${SndFile_DIR})
 		find_package(SndFile REQUIRED)
 		set (FAUST_LIBS ${FAUST_LIBS} SndFile::sndfile)
 	endif()
