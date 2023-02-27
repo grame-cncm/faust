@@ -116,7 +116,10 @@ macro (llvm_cmake)
 		message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 		message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 		# Find the libraries that correspond to the LLVM components that we wish to use
-		llvm_map_components_to_libnames(LLVM_LIBS all)
+		execute_process(COMMAND ${LLVM_DIR}/../../../bin/llvm-config --libs all
+		                OUTPUT_VARIABLE LLVM_LIBS)
+		message(LLVM_LIBS: ${LLVM_LIBS})
+		string(STRIP "${LLVM_LIBS}" LLVM_LIBS)
 #		list(REMOVE_ITEM LLVM_LIBS LTO)
 	else()
 		llvm_config()
