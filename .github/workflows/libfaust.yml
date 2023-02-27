@@ -70,6 +70,7 @@ jobs:
     - name: Cache libsndfile output
       uses: actions/cache/save@v3
       id: cachelibsndfile
+      with:
         path: libsndfile
         key: output-files-libsndfile-${{ matrix.name }}-${{ hashFiles('libsndfile') }}
 
