@@ -45,34 +45,34 @@ jobs:
         make
         make install
 
-    # - name: Restore libsndfile
-    #   id: cache-libsndfile-restore
-    #   uses: actions/cache/restore@v3
-    #   with:
-    #     path: libsndfile
-    #     key: cache-libsndfile-${{ matrix.name }}
+    - name: Restore libsndfile
+      id: cache-libsndfile-restore1
+      uses: actions/cache/restore@v3
+      with:
+        path: libsndfile
+        key: cache-libsndfile-${{ matrix.name }}
 
     - name: Clone libsndfile
-      # if: steps.cache-libsndfile-restore.outputs.cache-hit != 'true'
+      if: steps.cache-libsndfile-restore1.outputs.cache-hit != 'true'
       uses: actions/checkout@v3
       with:
         repository: libsndfile/libsndfile
         path: libsndfile
 
     - name: Build libsndfile
-      # if: steps.cache-libsndfile-restore.outputs.cache-hit != 'true'
+      if: steps.cache-libsndfile-restore1.outputs.cache-hit != 'true'
       run: |
         cd libsndfile
         mkdir CMakeBuild && cd CMakeBuild
         cmake .. -G "Unix Makefiles" ${{matrix.cmake-options}} -DENABLE_EXTERNAL_LIBS=off -DBUILD_EXAMPLES=OFF
         cmake --build . --config Release
 
-    # - name: Cache libsndfile output
-    #   id: cache-libsndfile-save
-    #   uses: actions/cache/save@v3
-    #   with:
-    #     path: libsndfile
-    #     key: ${{ steps.cache-libsndfile-restore.outputs.cache-primary-key }}
+    - name: Cache libsndfile output
+      id: cache-libsndfile-save
+      uses: actions/cache/save@v3
+      with:
+        path: libsndfile
+        key: ${{ steps.cache-libsndfile-restore1.outputs.cache-primary-key }}
 
     - name: Restore LLVM
       id: cache-llvm-restore
@@ -110,6 +110,7 @@ jobs:
         export SndFile_DIR="$PWD/libsndfile/CMakeBuild"
         cp -r libsndfile/include libsndfile/CMakeBuild/include
         cd build
+        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DSndFile_DIR=$SndFile_DIR -DINCLUDE_CURSES=ON -DCURSES_LIBRARY=$CURSES_LIBRARY -DCURSES_INCLUDE_PATH=$CURSES_INCLUDE_PATH -DCMAKE_PREFIX_PATH="$PWD/../llvm-project/llvm/build/lib/cmake/llvm;$PWD/../libsndfile/cmake;/usr/local/ncurses/6_3/lib/pkgconfig"
         cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DSndFile_DIR=$SndFile_DIR -DINCLUDE_CURSES=ON -DCURSES_LIBRARY=$CURSES_LIBRARY -DCURSES_INCLUDE_PATH=$CURSES_INCLUDE_PATH -DCMAKE_PREFIX_PATH="$PWD/../llvm-project/llvm/build/lib/cmake/llvm;$PWD/../libsndfile/cmake;/usr/local/ncurses/6_3/lib/pkgconfig"
         cmake --build build --config Release
    
