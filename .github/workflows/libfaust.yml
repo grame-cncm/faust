@@ -106,8 +106,8 @@ jobs:
       run: |
         export CURSES_LIBRARY="/usr/local/ncurses/6_3/lib"
         export CURSES_INCLUDE_PATH="/usr/local/ncurses/6_3/include/ncurses"
-        export SndFile_DIR="$PWD/libsndfile/CMakeBuild"
-        cp -r libsndfile/include libsndfile/CMakeBuild/include
+        export SndFile_DIR="$PWD/libsndfile/build"
+        cp -r libsndfile/include libsndfile/build/include
         cd build
         cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DSndFile_DIR=$SndFile_DIR -DINCLUDE_CURSES=ON -DCURSES_LIBRARY=$CURSES_LIBRARY -DCURSES_INCLUDE_PATH=$CURSES_INCLUDE_PATH -DCMAKE_PREFIX_PATH="$PWD/../llvm-project/llvm/build/lib/cmake/llvm;$PWD/../libsndfile/cmake;/usr/local/ncurses/6_3/lib/pkgconfig"
         cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DSndFile_DIR=$SndFile_DIR -DINCLUDE_CURSES=ON -DCURSES_LIBRARY=$CURSES_LIBRARY -DCURSES_INCLUDE_PATH=$CURSES_INCLUDE_PATH -DCMAKE_PREFIX_PATH="$PWD/../llvm-project/llvm/build/lib/cmake/llvm;$PWD/../libsndfile/cmake;/usr/local/ncurses/6_3/lib/pkgconfig"
