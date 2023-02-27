@@ -45,12 +45,13 @@ jobs:
         make
         make install
 
-    - name: Cache libsndfile output
+    - name: Restore libsndfile
+    - uses: actions/cache/restore@v3
       id: cachelibsndfile
-      uses: actions/cache@v3
       with:
         path: libsndfile
-        key: output-files-libsndfile-${{ matrix.name }}-${{ hashFiles('libsndfile') }}
+        key: output-files-libsndfile-${{ matrix.name }}-
+        restore-keys: output-files-libsndfile-${{ matrix.name }}-
 
     - name: Clone libsndfile
       if: steps.cachelibsndfile.outputs.cache-hit != 'true'
@@ -66,12 +67,19 @@ jobs:
         cmake -Bbuild -G "Unix Makefiles" ${{matrix.cmake-options}} -DENABLE_EXTERNAL_LIBS=off
         cmake --build build --config Release
 
-    - name: Cache LLVM output
+    - name: Cache libsndfile output
+      uses: actions/cache/save@v3
+      id: cachelibsndfile
+        path: libsndfile
+        key: output-files-libsndfile-${{ matrix.name }}-${{ hashFiles('libsndfile') }}
+
+    - name: Restore LLVM
+    - uses: actions/cache/restore@v3
       id: cachellvm
-      uses: actions/cache@v3
       with:
         path: llvm-project/llvm
-        key: output-files-llvm-${{ matrix.name }}-${{ hashFiles('llvm-project/llvm') }}
+        key: output-files-llvm-${{ matrix.name }}-
+        restore-keys: output-files-llvm-${{ matrix.name }}-
 
     - name: Clone LLVM
       if: steps.cachellvm.outputs.cache-hit != 'true'
@@ -87,6 +95,12 @@ jobs:
         cd llvm-project/llvm
         cmake -Bbuild -DCMAKE_INSTALL_PREFIX="./llvm" ${{matrix.cmake-options}} ${{matrix.llvm-options}} -DLLVM_ENABLE_ZLIB=off -DLLVM_OPTIMIZED_TABLEGEN=ON
         cmake --build build --config Release
+
+    - name: Cache LLVM output
+      uses: actions/cache/save@v3
+      id: cachellvm
+        path: llvm-project/llvm
+        key: output-files-llvm-${{ matrix.name }}-${{ hashFiles('llvm-project/llvm') }}
 
     - name: Build libfaust
       run: |
