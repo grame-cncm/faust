@@ -64,7 +64,7 @@ jobs:
       run: |
         cd libsndfile
         mkdir CMakeBuild && cd CMakeBuild
-        cmake .. -G "Unix Makefiles" ${{matrix.cmake-options}} -DENABLE_EXTERNAL_LIBS=off -DBUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX="$PWD"
+        cmake .. -G "Unix Makefiles" ${{matrix.cmake-options}} -DENABLE_EXTERNAL_LIBS=off -DBUILD_EXAMPLES=OFF
         cmake --build . --config Release
 
     # - name: Cache libsndfile output
@@ -106,10 +106,8 @@ jobs:
     - name: Build libfaust
       run: |
         export CURSES_LIBRARY="/usr/local/ncurses/6_3/lib"
-        export SndFile_DIR="$PWD/libsndfile/CMakeBuild"
-        ls -r $SndFile_DIR
         cd build
-        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DINCLUDE_CURSES=ON -DCMAKE_PREFIX_PATH="$PWD/../llvm-project/llvm/build/lib/cmake/llvm" -DSndFile_DIR=$SndFile_DIR -DCURSES_LIBRARY=$CURSES_LIBRARY
+        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DINCLUDE_CURSES=ON -DCMAKE_PREFIX_PATH="$PWD/../llvm-project/llvm/build/lib/cmake/llvm;$PWD/../libsndfile/cmake" -DCURSES_LIBRARY=$CURSES_LIBRARY
         cmake --build build --config Release
    
     - name: Make distribution

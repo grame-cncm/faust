@@ -106,7 +106,7 @@ endif()
 	set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LD_FLAGS} ${LLVM_LIBS})
 
 	if (INCLUDE_SNDFILE)
-		message(STATUS "SndFile_DIR: ${SndFile_DIR}")
+		message(STATUS "Finding SndFile...")
 		find_package(SndFile REQUIRED)
 		message(STATUS "Found SndFile")
 		set (FAUST_LIBS ${FAUST_LIBS} SndFile::sndfile)
