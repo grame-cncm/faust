@@ -46,44 +46,42 @@ jobs:
         make install
 
     - name: Restore libsndfile
+      id: cache-libsndfile-restore
       uses: actions/cache/restore@v3
-      id: cachelibsndfile
       with:
         path: libsndfile
-        key: output-files-libsndfile-${{ matrix.name }}-
-        restore-keys: output-files-libsndfile-${{ matrix.name }}-
+        key: cache-libsndfile-${{ matrix.name }}
 
     - name: Clone libsndfile
-      if: steps.cachelibsndfile.outputs.cache-hit != 'true'
+      if: steps.cache-libsndfile-restore.outputs.cache-hit != 'true'
       uses: actions/checkout@v3
       with:
         repository: libsndfile/libsndfile
         path: libsndfile
 
     - name: Build libsndfile
-      if: steps.cachelibsndfile.outputs.cache-hit != 'true'
+      if: steps.cache-libsndfile-restore.outputs.cache-hit != 'true'
       run: |
         cd libsndfile
         cmake -Bbuild -G "Unix Makefiles" ${{matrix.cmake-options}} -DENABLE_EXTERNAL_LIBS=off
         cmake --build build --config Release
 
     - name: Cache libsndfile output
+      id: cache-libsndfile-save
       uses: actions/cache/save@v3
-      id: cachelibsndfile
       with:
         path: libsndfile
-        key: output-files-libsndfile-${{ matrix.name }}-${{ hashFiles('libsndfile') }}
+        key: ${{ steps.cache-libsndfile-restore.outputs.cache-primary-key }}
 
     - name: Restore LLVM
+      id: cache-llvm-restore
       uses: actions/cache/restore@v3
-      id: cachellvm
       with:
-        path: llvm-project/llvm
-        key: output-files-llvm-${{ matrix.name }}-
-        restore-keys: output-files-llvm-${{ matrix.name }}-
+        path: llvm-project
+        key: cache-llvm-${{ matrix.name }}
 
     - name: Clone LLVM
-      if: steps.cachellvm.outputs.cache-hit != 'true'
+      if: steps.cache-llvm-restore.outputs.cache-hit != 'true'
       uses: actions/checkout@v3
       with:
         repository: llvm/llvm-project
@@ -91,18 +89,18 @@ jobs:
         ref: f28c006a5895fc0e329fe15fead81e37457cb1d1
 
     - name: Build LLVM
-      if: steps.cachellvm.outputs.cache-hit != 'true'
+      if: steps.cache-llvm-restore.outputs.cache-hit != 'true'
       run: |
         cd llvm-project/llvm
         cmake -Bbuild -DCMAKE_INSTALL_PREFIX="./llvm" ${{matrix.cmake-options}} ${{matrix.llvm-options}} -DLLVM_ENABLE_ZLIB=off -DLLVM_OPTIMIZED_TABLEGEN=ON
         cmake --build build --config Release
 
     - name: Cache LLVM output
+      id: cache-llvm-save
       uses: actions/cache/save@v3
-      id: cachellvm
       with:
-        path: llvm-project/llvm
-        key: output-files-llvm-${{ matrix.name }}-${{ hashFiles('llvm-project/llvm') }}
+        path: llvm-project
+        key: ${{ steps.cache-llvm-restore.outputs.cache-primary-key }}
 
     - name: Build libfaust
       run: |
