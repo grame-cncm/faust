@@ -46,33 +46,32 @@ jobs:
         make install
 
     - name: Restore libsndfile
-      id: cache-libsndfile-restore1
+      id: cache-libsndfile-restore
       uses: actions/cache/restore@v3
       with:
         path: libsndfile
         key: cache-libsndfile-${{ matrix.name }}
 
     - name: Clone libsndfile
-      if: steps.cache-libsndfile-restore1.outputs.cache-hit != 'true'
+      if: steps.cache-libsndfile-restore.outputs.cache-hit != 'true'
       uses: actions/checkout@v3
       with:
         repository: libsndfile/libsndfile
         path: libsndfile
 
     - name: Build libsndfile
-      if: steps.cache-libsndfile-restore1.outputs.cache-hit != 'true'
+      if: steps.cache-libsndfile-restore.outputs.cache-hit != 'true'
       run: |
         cd libsndfile
-        mkdir CMakeBuild && cd CMakeBuild
-        cmake .. -G "Unix Makefiles" ${{matrix.cmake-options}} -DENABLE_EXTERNAL_LIBS=off -DBUILD_EXAMPLES=OFF
-        cmake --build . --config Release
+        cmake .. -Bbuild -G "Unix Makefiles" ${{matrix.cmake-options}} -DENABLE_EXTERNAL_LIBS=off -DBUILD_EXAMPLES=OFF
+        cmake --build build --config Release
 
     - name: Cache libsndfile output
       id: cache-libsndfile-save
       uses: actions/cache/save@v3
       with:
         path: libsndfile
-        key: ${{ steps.cache-libsndfile-restore1.outputs.cache-primary-key }}
+        key: ${{ steps.cache-libsndfile-restore.outputs.cache-primary-key }}
 
     - name: Restore LLVM
       id: cache-llvm-restore
