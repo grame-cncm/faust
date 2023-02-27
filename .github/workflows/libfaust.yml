@@ -46,7 +46,7 @@ jobs:
         make install
 
     - name: Restore libsndfile
-    - uses: actions/cache/restore@v3
+      uses: actions/cache/restore@v3
       id: cachelibsndfile
       with:
         path: libsndfile
@@ -74,7 +74,7 @@ jobs:
         key: output-files-libsndfile-${{ matrix.name }}-${{ hashFiles('libsndfile') }}
 
     - name: Restore LLVM
-    - uses: actions/cache/restore@v3
+      uses: actions/cache/restore@v3
       id: cachellvm
       with:
         path: llvm-project/llvm
