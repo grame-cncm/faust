@@ -21,7 +21,7 @@ set ( JULIA_BACKEND  COMPILER STATIC DYNAMIC        CACHE STRING  "Include Julia
 set ( LLVM_BACKEND   COMPILER STATIC DYNAMIC        CACHE STRING  "Include LLVM backend"      FORCE )
 set ( OLDCPP_BACKEND COMPILER STATIC DYNAMIC        CACHE STRING  "Include old CPP backend"   FORCE )
 set ( RUST_BACKEND   COMPILER STATIC DYNAMIC        CACHE STRING  "Include Rust backend"      FORCE )
-set ( TEMPLATE_BACKEND   OFF    CACHE STRING  "Include Template backend"  FORCE )
+set ( TEMPLATE_BACKEND   OFF    					CACHE STRING  "Include Template backend"  FORCE )
 set ( WASM_BACKEND   COMPILER STATIC DYNAMIC WASM   CACHE STRING  "Include WASM backend"      FORCE )
 
 target_compile_definitions(dynamiclib PUBLIC LLVM_BUILD_UNIVERSAL=1)
@@ -31,12 +31,13 @@ target_link_libraries(dynamiclib PUBLIC SndFile::sndfile)
 include(FindCurses)
 
 ## Link the Pure Data external with llvm
+message(STATUS "Looking for LLVM...")
 find_package(LLVM REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 add_definitions(${LLVM_DEFINITIONS})
 
-execute_process(COMMAND ${LLVM_DIR_TEMP}/../../../bin/llvm-config --libs all
+execute_process(COMMAND ${LLVM_DIR}/../../../bin/llvm-config --libs all
                 OUTPUT_VARIABLE llvm_components)
 ## If you're seeing linker errors, uncomment this message line and 
 ## make sure it's printing many paths to .lib files.
