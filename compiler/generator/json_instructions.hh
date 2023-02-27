@@ -52,11 +52,9 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
         if (fInputsPathSet.find(path) != fInputsPathSet.end()) {
             throw faustexception("ERROR : path '" + path + "' is already used\n");
         }
-        // An input control and a bargraph can have the same path (WARNING)
+        // An input control and a bargraph cannot have the same path (ERROR)
         if (fOuputsPathSet.find(path) != fOuputsPathSet.end()) {
-            std::stringstream error;
-            error << "WARNING : input control path '" + path + "' is already used for a bargraph";
-            gWarningMessages.push_back(error.str());
+            throw faustexception("ERROR : path '" + path + "' is already used for a bargraph\n");
         }
         fInputsPathSet.insert(path);
         return path;
@@ -64,11 +62,9 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUIReal<REAL> {
     
     const std::string& insertOutputsPath(const std::string& path)
     {
-        // An input control and a bargraph can have the same path (WARNING)
+        // An input control and a bargraph cannot have the same path (ERROR)
         if (fInputsPathSet.find(path) != fInputsPathSet.end()) {
-            std::stringstream error;
-            error << "WARNING : bargraph path '" + path + "' is already used for a input control";
-            gWarningMessages.push_back(error.str());
+            throw faustexception("ERROR : path '" + path + "' is already used for a input control\n");
         }
         // Two bargraph can have the same path (WARNING)
         if (fOuputsPathSet.find(path) != fOuputsPathSet.end()) {
