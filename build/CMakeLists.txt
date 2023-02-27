@@ -108,7 +108,7 @@ endif()
 	add_definitions(${LLVM_DEFINITIONS})
 	include_directories(${LLVM_INCLUDE_DIRS})
 	
-	set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LD_FLAGS} ${LLVM_LIBS})
+	set (FAUST_LIBS ${FAUST_LIBS} "-ldl" ${LLVM_LD_FLAGS} ${LLVM_LIBS})
 
 	if (INCLUDE_SNDFILE)
 		message(STATUS "Finding SndFile...")
