@@ -97,8 +97,9 @@ jobs:
         cmake --build build --config Release
    
     - name: Make distribution
+      # We're in a CentOS container, so we use yum install
       run: |
-        apt-get install zip
+        yum install zip
         strip --strip-unneeded build/lib/libfaust.so
         mkdir libfaust_dist
         cp -v -r build/lib/libfaust.so libfaust_dist
