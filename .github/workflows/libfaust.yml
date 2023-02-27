@@ -95,8 +95,7 @@ jobs:
         export CURSES_LIBRARY="/usr/local/ncurses/6_3/lib"
         export CURSES_INCLUDE_PATH="/usr/local/ncurses/6_3/include/ncurses"
         cd build
-        cmake . -Bbuild ${{matrix.cmake-options}} -DUSE_LLVM_CONFIG=off -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH -DSndFile_DIR=$SndFile_DIR -DCURSES_LIBRARY=$CURSES_LIBRARY -DCURSES_INCLUDE_PATH=$CURSES_INCLUDE_PATH -C backends/all_with_libfaust.cmake
-        cmake . -Bbuild ${{matrix.cmake-options}} -DUSE_LLVM_CONFIG=off -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH -DSndFile_DIR=$SndFile_DIR -DCURSES_LIBRARY=$CURSES_LIBRARY -DCURSES_INCLUDE_PATH=$CURSES_INCLUDE_PATH -C backends/all_with_libfaust.cmake
+        cmake . -Bbuild ${{matrix.cmake-options}} -DUSE_LLVM_CONFIG=off -DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH -DSndFile_DIR=$SndFile_DIR -DCURSES_LIBRARY=$CURSES_LIBRARY -DCURSES_INCLUDE_PATH=$CURSES_INCLUDE_PATH -C ./backends/all_with_libfaust.cmake
         cmake --build build --config Release
    
     - name: Make distribution
