@@ -30,7 +30,7 @@
 #include <iostream>
 using namespace std;
 
-const char* yyfilename = "????";
+const char* FAUSTfilename = "????";
 
 void faustassertaux(bool cond, const string& file, int line)
 {
@@ -61,10 +61,10 @@ void lexerror(const char* msg)
     throw faustexception(fullmsg);
 }
 
-void yyerror(const char* msg)
+void FAUSTerror(const char* msg)
 {
     stringstream error;
-    error << yyfilename << " : " << yylineno << " : ERROR : " << msg << endl;
+    error << FAUSTfilename << " : " << FAUSTlineno << " : ERROR : " << msg << endl;
     gGlobal->gErrorCount++;
     throw faustexception(error.str());
 }

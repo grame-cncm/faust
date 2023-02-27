@@ -58,6 +58,14 @@
 /* Using locations.  */
 #define YYLSP_NEEDED 0
 
+/* Substitute the variable and function names.  */
+#define yyparse FAUSTparse
+#define yylex   FAUSTlex
+#define yyerror FAUSTerror
+#define yylval  FAUSTlval
+#define yychar  FAUSTchar
+#define yydebug FAUSTdebug
+#define yynerrs FAUSTnerrs
 
 
 /* Tokens.  */
@@ -366,12 +374,12 @@
 	
 using namespace std;
 
-extern char* 		yytext;
-extern const char* 	yyfilename;
-extern int 			yylineno;
-extern int 			yyerr;
+extern char*        FAUSTtext;
+extern const char*  FAUSTfilename;
+extern int          FAUSTlineno;
+extern int          FAUSTerr;
 
-int yylex();
+int FAUSTlex();
 
 //----------------------------------------------------------
 // unquote() : remove enclosing quotes and carriage return 
@@ -463,7 +471,7 @@ typedef union YYSTYPE
 	int numvariant;
 }
 /* Line 193 of yacc.c.  */
-#line 467 "faustparser.cpp"
+#line 475 "faustparser.cpp"
 	YYSTYPE;
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
@@ -476,7 +484,7 @@ typedef union YYSTYPE
 
 
 /* Line 216 of yacc.c.  */
-#line 480 "faustparser.cpp"
+#line 488 "faustparser.cpp"
 
 #ifdef short
 # undef short
@@ -2263,32 +2271,32 @@ yyreduce:
 
   case 17:
 #line 380 "faustparser.y"
-    { (yyval.exp) = boxInt(str2int(yytext)); ;}
+    { (yyval.exp) = boxInt(str2int(FAUSTtext)); ;}
     break;
 
   case 18:
 #line 381 "faustparser.y"
-    { (yyval.exp) = boxReal(atof(yytext)); ;}
+    { (yyval.exp) = boxReal(atof(FAUSTtext)); ;}
     break;
 
   case 19:
 #line 382 "faustparser.y"
-    { (yyval.exp) = boxInt(str2int(yytext)); ;}
+    { (yyval.exp) = boxInt(str2int(FAUSTtext)); ;}
     break;
 
   case 20:
 #line 383 "faustparser.y"
-    { (yyval.exp) = boxReal(atof(yytext)); ;}
+    { (yyval.exp) = boxReal(atof(FAUSTtext)); ;}
     break;
 
   case 21:
 #line 384 "faustparser.y"
-    { (yyval.exp) = boxInt(-str2int(yytext)); ;}
+    { (yyval.exp) = boxInt(-str2int(FAUSTtext)); ;}
     break;
 
   case 22:
 #line 385 "faustparser.y"
-    { (yyval.exp) = boxReal(-atof(yytext)); ;}
+    { (yyval.exp) = boxReal(-atof(FAUSTtext)); ;}
     break;
 
   case 23:
@@ -2363,7 +2371,7 @@ yyreduce:
 
   case 37:
 #line 408 "faustparser.y"
-    { (yyval.cppstr) = &((yyvsp[(1) - (2)].cppstr)->append(yytext)); ;}
+    { (yyval.cppstr) = &((yyvsp[(1) - (2)].cppstr)->append(FAUSTtext)); ;}
     break;
 
   case 38:
@@ -2428,27 +2436,27 @@ yyreduce:
 
   case 50:
 #line 439 "faustparser.y"
-    { (yyval.exp) = cons((yyvsp[(1) - (7)].exp),cons((yyvsp[(3) - (7)].exp),(yyvsp[(6) - (7)].exp))); setDefProp((yyvsp[(1) - (7)].exp), yyfilename, yylineno); ;}
+    { (yyval.exp) = cons((yyvsp[(1) - (7)].exp),cons((yyvsp[(3) - (7)].exp),(yyvsp[(6) - (7)].exp))); setDefProp((yyvsp[(1) - (7)].exp), FAUSTfilename, FAUSTlineno); ;}
     break;
 
   case 51:
 #line 440 "faustparser.y"
-    { (yyval.exp) = cons((yyvsp[(1) - (4)].exp),cons(gGlobal->nil,(yyvsp[(3) - (4)].exp)));  setDefProp((yyvsp[(1) - (4)].exp), yyfilename, yylineno); ;}
+    { (yyval.exp) = cons((yyvsp[(1) - (4)].exp),cons(gGlobal->nil,(yyvsp[(3) - (4)].exp)));  setDefProp((yyvsp[(1) - (4)].exp), FAUSTfilename, FAUSTlineno); ;}
     break;
 
   case 52:
 #line 441 "faustparser.y"
-    { (yyval.exp) = gGlobal->nil; yyerr++; ;}
+    { (yyval.exp) = gGlobal->nil; FAUSTerr++; ;}
     break;
 
   case 53:
 #line 444 "faustparser.y"
-    { (yyval.exp) = cons((yyvsp[(1) - (4)].exp),cons(gGlobal->nil,(yyvsp[(3) - (4)].exp))); setDefProp((yyvsp[(1) - (4)].exp), yyfilename, yylineno); ;}
+    { (yyval.exp) = cons((yyvsp[(1) - (4)].exp),cons(gGlobal->nil,(yyvsp[(3) - (4)].exp))); setDefProp((yyvsp[(1) - (4)].exp), FAUSTfilename, FAUSTlineno); ;}
     break;
 
   case 54:
 #line 445 "faustparser.y"
-    { (yyval.exp) = gGlobal->nil; yyerr++; ;}
+    { (yyval.exp) = gGlobal->nil; FAUSTerr++; ;}
     break;
 
   case 55:
@@ -2633,32 +2641,32 @@ yyreduce:
 
   case 91:
 #line 499 "faustparser.y"
-    { (yyval.exp) = boxInt(str2int(yytext)); ;}
+    { (yyval.exp) = boxInt(str2int(FAUSTtext)); ;}
     break;
 
   case 92:
 #line 500 "faustparser.y"
-    { (yyval.exp) = boxReal(atof(yytext)); ;}
+    { (yyval.exp) = boxReal(atof(FAUSTtext)); ;}
     break;
 
   case 93:
 #line 502 "faustparser.y"
-    { (yyval.exp) = boxInt (str2int(yytext)); ;}
+    { (yyval.exp) = boxInt (str2int(FAUSTtext)); ;}
     break;
 
   case 94:
 #line 503 "faustparser.y"
-    { (yyval.exp) = boxReal(atof(yytext)); ;}
+    { (yyval.exp) = boxReal(atof(FAUSTtext)); ;}
     break;
 
   case 95:
 #line 505 "faustparser.y"
-    { (yyval.exp) = boxInt ( -str2int(yytext) ); ;}
+    { (yyval.exp) = boxInt ( -str2int(FAUSTtext) ); ;}
     break;
 
   case 96:
 #line 506 "faustparser.y"
-    { (yyval.exp) = boxReal( -atof(yytext) ); ;}
+    { (yyval.exp) = boxReal( -atof(FAUSTtext) ); ;}
     break;
 
   case 97:
@@ -2933,7 +2941,7 @@ yyreduce:
 
   case 151:
 #line 578 "faustparser.y"
-    { (yyval.exp) = (yyvsp[(1) - (1)].exp);  setUseProp((yyvsp[(1) - (1)].exp), yyfilename, yylineno);;}
+    { (yyval.exp) = (yyvsp[(1) - (1)].exp);  setUseProp((yyvsp[(1) - (1)].exp), FAUSTfilename, FAUSTlineno);;}
     break;
 
   case 152:
@@ -3088,12 +3096,12 @@ yyreduce:
 
   case 182:
 #line 618 "faustparser.y"
-    { (yyval.exp) = boxIdent(yytext); setUseProp((yyval.exp), yyfilename, yylineno);  ;}
+    { (yyval.exp) = boxIdent(FAUSTtext); setUseProp((yyval.exp), FAUSTfilename, FAUSTlineno);  ;}
     break;
 
   case 183:
 #line 621 "faustparser.y"
-    { (yyval.exp) = tree(yytext); setUseProp((yyval.exp), yyfilename, yylineno);  ;}
+    { (yyval.exp) = tree(FAUSTtext); setUseProp((yyval.exp), FAUSTfilename, FAUSTlineno);  ;}
     break;
 
   case 184:
@@ -3133,22 +3141,22 @@ yyreduce:
 
   case 191:
 #line 635 "faustparser.y"
-    { (yyval.exp) = tree(yytext); ;}
+    { (yyval.exp) = tree(FAUSTtext); ;}
     break;
 
   case 192:
 #line 638 "faustparser.y"
-    { (yyval.exp) = unquote(yytext); ;}
+    { (yyval.exp) = unquote(FAUSTtext); ;}
     break;
 
   case 193:
 #line 641 "faustparser.y"
-    { (yyval.exp) = tree(yytext); ;}
+    { (yyval.exp) = tree(FAUSTtext); ;}
     break;
 
   case 194:
 #line 642 "faustparser.y"
-    { (yyval.exp) = tree(yytext); ;}
+    { (yyval.exp) = tree(FAUSTtext); ;}
     break;
 
   case 195:
@@ -3283,7 +3291,7 @@ yyreduce:
 
   case 221:
 #line 731 "faustparser.y"
-    { (yyval.exp) = tree(yytext); ;}
+    { (yyval.exp) = tree(FAUSTtext); ;}
     break;
 
   case 222:
@@ -3338,7 +3346,7 @@ yyreduce:
 
 
 /* Line 1267 of yacc.c.  */
-#line 3342 "faustparser.cpp"
+#line 3350 "faustparser.cpp"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
