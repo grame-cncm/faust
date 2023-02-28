@@ -54,9 +54,12 @@ struct aliastarget
 	aliastarget(const char* address, double imin, double imax, double omin, double omax)
 		: fMinIn(imin), fMaxIn(imax), fMinOut(omin), fMaxOut(omax), fTarget(address) {}
 
-	aliastarget(const aliastarget& t)
-		: fMinIn(t.fMinIn), fMaxIn(t.fMaxIn), fMinOut(t.fMinOut), fMaxOut(t.fMaxOut), fTarget(t.fTarget) {}
-
+    aliastarget(const aliastarget& t)
+        : fMinIn(t.fMinIn), fMaxIn(t.fMaxIn), fMinOut(t.fMinOut), fMaxOut(t.fMaxOut), fTarget(t.fTarget) {}
+    
+    // explicit copy assignment operator
+    aliastarget& operator=(const aliastarget& other) { return *this; }
+    
 	double scale(double x) const 
     {
         if (fMinIn < fMaxIn) {

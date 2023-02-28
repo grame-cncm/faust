@@ -121,6 +121,7 @@ static Tree computePrivatisation(const Tree& k, const Tree& exp)
          */
         cerr << "ASSERT : computePrivatisation\n";
         faustassert(false);
+        return nullptr;
 
     } else if (isRec(exp, var, body)) {
         /*
