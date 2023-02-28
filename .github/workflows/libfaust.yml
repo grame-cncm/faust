@@ -265,7 +265,7 @@ jobs:
       if: steps.cache-libsndfile-restore.outputs.cache-hit != 'true'
       run: |
         cd libsndfile
-        cmake -Bbuild -G ${{matrix.cmake-options}} -DENABLE_EXTERNAL_LIBS=off -DBUILD_EXAMPLES=OFF
+        cmake -Bbuild ${{matrix.cmake-options}} -DENABLE_EXTERNAL_LIBS=off -DBUILD_EXAMPLES=OFF
         cmake --build build --config Release
 
     - name: Cache libsndfile output
