@@ -101,7 +101,6 @@ jobs:
         strip --strip-unneeded build/lib/libfaust.so
         mkdir libfaust_dist
         cp -v -r build/lib/libfaust.so libfaust_dist
-        zip -r libfaust-${{ matrix.name }}.zip libfaust_dist
    
     - name: Upload artifact
       uses: actions/upload-artifact@v3
