@@ -97,16 +97,14 @@ jobs:
         cmake --build build --config Release
    
     - name: Make distribution
-      # We're in a CentOS container, so we use yum install
       run: |
-        yum install zip
         strip --strip-unneeded build/lib/libfaust.so
         mkdir libfaust_dist
         cp -v -r build/lib/libfaust.so libfaust_dist
         zip -r libfaust-${{ matrix.name }}.zip libfaust_dist
    
     - name: Upload artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: my-artifact-${{ matrix.name }}
-        path: libfaust-${{ matrix.name }}.zip
+        path: libfaust_dist
