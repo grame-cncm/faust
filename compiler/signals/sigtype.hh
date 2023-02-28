@@ -31,30 +31,29 @@
 
 /*********************************************************************
  *
- *						Type System for FAUST
+ *                        Type System for FAUST
  *
- *	<type> 			::= <simpletype> ||  table(<type>)
- *			 		 	||  <type>|<type>  || <type>*<type>
- *	<simpletype>	::= <nature><variability><computability><vectorability>||<boolean>
- *	<nature>		::= TINT || TREAL
- *	<variability>	::= TKONST || TBLOCK || TSAMP
- *	<computability>	::= TCOMP  || TINIT  || TEXEC
- *	<vectorability> ::= KVECT  || KSCAL  || KTRUESCAL
- *	<boolean>       ::= KNUM   || KBOOL
+ *    <type>          ::= <simpletype> || table(<type>) || <type>|<type> || <type>*<type>
+ *    <simpletype>    ::= <nature><variability><computability><vectorability>||<boolean>
+ *    <nature>        ::= TINT || TREAL
+ *    <variability>   ::= TKONST || TBLOCK || TSAMP
+ *    <computability> ::= TCOMP  || TINIT  || TEXEC
+ *    <vectorability> ::= KVECT  || KSCAL  || KTRUESCAL
+ *    <boolean>       ::= KNUM   || KBOOL
  *
  **********************************************************************/
 
 //--------------------------------------------------
 // simple types quality
 
-enum { kInt = 0, kReal = 1, kAny = 2 };  ///< nature : integer or floating point values
-enum {
+enum Nature { kInt = 0, kReal = 1, kAny = 2 };  ///< nature : integer or floating point values
+enum Boolean {
     kNum  = 0,
     kBool = 1
 };  ///< boolean : when a signal stands for a boolean value ( while being of c-type int or float )
-enum { kKonst = 0, kBlock = 1, kSamp = 3 };  ///< variability : how fast values change
-enum { kComp = 0, kInit = 1, kExec = 3 };    ///< computability : when values are available
-enum {
+enum Variability { kKonst = 0, kBlock = 1, kSamp = 3 };  ///< variability : how fast values change
+enum Computability { kComp = 0, kInit = 1, kExec = 3 };  ///< computability : when values are available
+enum Vectorability {
     kVect     = 0,
     kScal     = 1,
     kTrueScal = 3 /*, kIndex = 4*/
@@ -316,17 +315,17 @@ class TableType : public AudioType {
     {
     }  ///< construct a TableType with a content of a type t
 #if 0
-	TableType(const Type& t, int v, int c) :
-		  AudioType(t->nature(), t->variability()|v, t->computability()|c, t->vectorability(), t->boolean()),
-		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting variability and computability
+    TableType(const Type& t, int v, int c) :
+          AudioType(t->nature(), t->variability()|v, t->computability()|c, t->vectorability(), t->boolean()),
+          fContent(t) {}        ///< construct a TableType with a content of a type t, promoting variability and computability
 
-	TableType(const Type& t, int n, int v, int c) :
-		  AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability(), t->boolean()),
-		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting nature, variability and computability
+    TableType(const Type& t, int n, int v, int c) :
+          AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability(), t->boolean()),
+          fContent(t) {}        ///< construct a TableType with a content of a type t, promoting nature, variability and computability
 
-	TableType(const Type& t, int n, int v, int c, int vec, int b) :
-		  AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability()|vec, t->boolean()|b),
-		  fContent(t) {}		///< construct a TableType with a content of a type t, promoting nature, variability, computability, vectorability and booleanity
+    TableType(const Type& t, int n, int v, int c, int vec, int b) :
+          AudioType(t->nature()|n, t->variability()|v, t->computability()|c, t->vectorability()|vec, t->boolean()|b),
+          fContent(t) {}        ///< construct a TableType with a content of a type t, promoting nature, variability, computability, vectorability and booleanity
 #endif
 
     TableType(const Type& t, int n, int v, int c, int vec, int b, const interval& i)
@@ -439,7 +438,7 @@ class TupletType : public AudioType {
 
 //-------------------------------------------------
 //-------------------------------------------------
-// 				operations on types
+//                 operations on types
 //-------------------------------------------------
 //-------------------------------------------------
 
