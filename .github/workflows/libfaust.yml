@@ -242,7 +242,7 @@ jobs:
         submodules: true
 
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@latest
+      uses: microsoft/setup-msbuild@v1.1
 
     - name: Get CMake
       uses: lukka/get-cmake@latest
