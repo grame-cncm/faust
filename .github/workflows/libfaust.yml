@@ -150,6 +150,11 @@ jobs:
         repository: libsndfile/libsndfile
         path: libsndfile
 
+    - name: Install libsndfile MacOS dependencies
+      if: startsWith(matrix.os,'macos')
+      run: |
+        brew install automake autogen speex mpg123
+
     - name: Build libsndfile
       if: steps.cache-libsndfile-restore.outputs.cache-hit != 'true'
       run: |
@@ -308,6 +313,7 @@ jobs:
       run: |
         cp -r libsndfile/include libsndfile/build/include
         cd build
+        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DSndFile_DIR=%SndFile_DIR% -DCMAKE_PREFIX_PATH="%LLVM_DIR%;%SndFile_DIR%/../cmake"
         cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DSndFile_DIR=%SndFile_DIR% -DCMAKE_PREFIX_PATH="%LLVM_DIR%;%SndFile_DIR%/../cmake"
         cmake --build build --config Release
       env:
