@@ -124,16 +124,19 @@ macro (llvm_cmake)
 		                OUTPUT_VARIABLE LLVM_LIBS)
 		endif()
 
+		string(STRIP "${LLVM_LIBS}" LLVM_LIBS)
+
 		if(APPLE)
 		# Expecting to find -lz -lpthread -ledit -lcurses -lm
 		execute_process(COMMAND ${LLVM_DIR}/../../../bin/llvm-config --system-libs
                 OUTPUT_VARIABLE LLVM_SYSLIBS)
+		string(STRIP "${LLVM_SYSLIBS}" LLVM_SYSLIBS)
 		message(LLVM_SYSLIBS: ${LLVM_SYSLIBS})
 		set(LLVM_LIBS ${LLVM_LIBS} ${LLVM_SYSLIBS})
 		endif()
 
 		message(LLVM_LIBS: ${LLVM_LIBS})
-		string(STRIP "${LLVM_LIBS}" LLVM_LIBS)
+		
 #		list(REMOVE_ITEM LLVM_LIBS LTO)
 	else()
 		llvm_config()

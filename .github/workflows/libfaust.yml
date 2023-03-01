@@ -246,12 +246,6 @@ jobs:
       with:
         submodules: true
 
-    - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v1.1
-
-    - name: Get CMake
-      uses: lukka/get-cmake@latest
-
     - name: Restore libsndfile
       id: cache-libsndfile-restore
       uses: actions/cache/restore@v3
@@ -300,7 +294,7 @@ jobs:
       run: |
         cd llvm-project/llvm
         cmake -Bbuild ${{matrix.llvm-options}}
-        msbuild build/LLVM.sln /property:Configuration=Release
+        cmake --build build --config Release
     
     - name: Cache LLVM output
       id: cache-llvm-save
