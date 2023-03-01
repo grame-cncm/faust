@@ -119,9 +119,11 @@ macro (llvm_cmake)
 		if(WIN32)
 		execute_process(COMMAND ${LLVM_DIR}/../../../Release/bin/llvm-config.exe --libs all
 		                OUTPUT_VARIABLE LLVM_LIBS)
+		string(STRIP ${LLVM_LIBS} LLVM_LIBS)  # this will cause errors if the build paths contain whitespace
 		else()
 		execute_process(COMMAND ${LLVM_DIR}/../../../bin/llvm-config --libs all
 		                OUTPUT_VARIABLE LLVM_LIBS)
+
 		string(STRIP "${LLVM_LIBS}" LLVM_LIBS)
 		endif()
 
