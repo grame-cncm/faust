@@ -103,14 +103,14 @@ jobs:
     - name: Make distribution
       run: |
         strip --strip-unneeded build/lib/libfaust.so
-        mkdir libfaust_dist
-        cp -v -r build/lib/libfaust.so libfaust_dist
+        mkdir libfaust
+        cp -v -r build/lib/libfaust.so libfaust
    
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
         name: my-artifact-${{ matrix.name }}
-        path: libfaust_dist
+        path: libfaust
 
   build-macos:
     strategy:
@@ -210,14 +210,16 @@ jobs:
    
     - name: Make distribution
       run: |
-        mkdir libfaust_dist
-        cp -v -r build/lib/* libfaust_dist
+        ls -r build/lib/*
+        mkdir libfaust
+        cp build/lib/libfaust.2.dylib libfaust/libfaust.2.dylib
+        cp -v -r build/lib/*.a libfaust
    
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
         name: my-artifact-${{ matrix.name }}
-        path: libfaust_dist
+        path: libfaust
 
   build-windows:
     runs-on: ${{ matrix.os }}
