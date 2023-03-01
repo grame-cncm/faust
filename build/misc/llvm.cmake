@@ -132,7 +132,7 @@ macro (llvm_cmake)
 		
 		string(STRIP "${LLVM_LIBS}" LLVM_LIBS)
 
-		if(APPLE)
+		if(!WIN32)
 		# Expecting to find -lz -lpthread -ledit -lcurses -lm
 		execute_process(COMMAND ${LLVM_DIR}/../../../bin/llvm-config --system-libs
                 OUTPUT_VARIABLE LLVM_SYSLIBS)
