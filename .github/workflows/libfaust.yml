@@ -14,7 +14,7 @@ jobs:
         include:
           - name: ubuntu-x86_64
             theContainer: docker://quay.io/pypa/manylinux2014_x86_64
-            os: ubuntu-latest
+            os: ubuntu-20.04
             cmake-options: >-
               -DCMAKE_BUILD_TYPE=Release
               -DCMAKE_VERBOSE_MAKEFILE=ON
@@ -24,7 +24,7 @@ jobs:
               -DLLVM_ENABLE_ZLIB=off
               -DLLVM_OPTIMIZED_TABLEGEN=ON
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     container:
       image: ${{matrix.theContainer}}
 
@@ -117,12 +117,12 @@ jobs:
       matrix:
         include:
           - name: macos-x86_64
-            os: macos-latest
+            os: macos-11
             cmake-options: >-
               -DCMAKE_BUILD_TYPE=Release
               -DCMAKE_VERBOSE_MAKEFILE=ON
               -DCMAKE_OSX_ARCHITECTURES="x86_64"
-              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.13
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
             llvm-options: >-
               -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-apple-darwin19.6.0"
               -DLLVM_TARGETS_TO_BUILD="X86"
@@ -130,7 +130,7 @@ jobs:
               -DLLVM_OPTIMIZED_TABLEGEN=ON
               -DCMAKE_INSTALL_PREFIX="./llvm"
 
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
       with:
