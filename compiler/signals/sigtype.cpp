@@ -57,7 +57,7 @@ bool SimpleType::isMaximal() const  ///< true when type is maximal (and therefor
 
 //------------------------------------------------------------------------------------
 //
-//		Overloading << printing operator
+//        Overloading << printing operator
 //
 //------------------------------------------------------------------------------------
 
@@ -83,7 +83,7 @@ ostream& operator<<(ostream& dst, const TupletType& t)
 
 //------------------------------------------------------------------------------------
 //
-//		Print method definition
+//        Print method definition
 //
 //------------------------------------------------------------------------------------
 
@@ -143,8 +143,8 @@ bool TupletType::isMaximal() const
 
 //------------------------------------------------------------------------------------
 //
-//		Types constructions
-// 		t := p, table(t), t|t, t*t
+//        Types constructions
+//        t := p, table(t), t|t, t*t
 //
 //------------------------------------------------------------------------------------
 

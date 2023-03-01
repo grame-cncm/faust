@@ -91,7 +91,7 @@ inline fixpoint_t exp10fx(fixpoint_t x)
 #ifdef __APPLE__
     return fixpoint_t(__exp10f(float(x)));
 #else
-    return fixpoint_t(std::exp10(float(x)));
+    return fixpoint_t(exp10(float(x)));
 #endif
 }
 inline fixpoint_t floorfx(fixpoint_t x)

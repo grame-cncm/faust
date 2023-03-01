@@ -54,16 +54,16 @@ using namespace std;
  Parser variables
  *****************************************************************/
 
-int yyparse();
-int yylex_destroy(void);
-void yyrestart(FILE* new_file);
-struct yy_buffer_state* yy_scan_string(const char* yy_str); // In principle YY_BUFFER_STATE
+int FAUSTparse();
+int FAUSTlex_destroy(void);
+void FAUSTrestart(FILE* new_file);
+struct yy_buffer_state* FAUST_scan_string(const char* yy_str); // In principle YY_BUFFER_STATE
 
-int yyerr;
-extern int yydebug;
-extern FILE* yyin;
-extern int yylineno;
-extern const char* yyfilename;
+int FAUSTerr;
+extern int FAUSTdebug;
+extern FILE* FAUSTin;
+extern int FAUSTlineno;
+extern const char* FAUSTfilename;
 
 /**
  * Checks an argument list for containing only
@@ -95,7 +95,7 @@ static string printPatternError(Tree symbol, Tree lhs1, Tree rhs1, Tree lhs2, Tr
         << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
         << endl;
     } else {
-        error << "ERROR : [file " << yyfilename << " : " << yylineno << "] : in the definition of " << boxpp(symbol) << endl
+        error << "ERROR : [file " << FAUSTfilename << " : " << FAUSTlineno << "] : in the definition of " << boxpp(symbol) << endl
         << "Inconsistent number of parameters in pattern-matching rule: "
         << boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
         << " previous rule was: "
@@ -110,7 +110,7 @@ static string printRedefinitionError(Tree symbol, list<Tree>& variants)
 {
     stringstream error;
 
-    error << "ERROR : [file " << yyfilename << " : " << yylineno << "] : multiple definitions of symbol '" << boxpp(symbol) << "'" << endl;
+    error << "ERROR : [file " << FAUSTfilename << " : " << FAUSTlineno << "] : multiple definitions of symbol '" << boxpp(symbol) << "'" << endl;
     for (const auto& p : variants) {
         Tree params = hd(p);
         Tree body = tl(p);
@@ -194,12 +194,12 @@ static Tree addFunctionMetadata(Tree ldef, FunMDSet& M)
 
 void SourceReader::checkName()
 {
-    if (gGlobal->gMasterDocument == yyfilename) {
+    if (gGlobal->gMasterDocument == FAUSTfilename) {
         Tree name = tree("name");
         if (gGlobal->gMetaDataSet.find(name) == gGlobal->gMetaDataSet.end()) {
-            gGlobal->gMetaDataSet[name].insert(tree(quote(stripEnd(basename((char*)yyfilename), ".dsp"))));
+            gGlobal->gMetaDataSet[name].insert(tree(quote(stripEnd(basename((char*)FAUSTfilename), ".dsp"))));
         }
-        gGlobal->gMetaDataSet[tree("filename")].insert(tree(quote(basename((char*)yyfilename))));
+        gGlobal->gMetaDataSet[tree("filename")].insert(tree(quote(basename((char*)FAUSTfilename))));
     }
 }
 
@@ -216,12 +216,12 @@ inline bool isFILE(const char* name) { return strstr(name, "file://") != 0; }
 
 Tree SourceReader::parseFile(const char* fname)
 {
-    yyerr = 0;
-    yylineno = 1;
-    yyfilename = fname;
+    FAUSTerr = 0;
+    FAUSTlineno = 1;
+    FAUSTfilename = fname;
  
     // We are requested to parse an URL file
-    if (isURL(yyfilename)) {
+    if (isURL(FAUSTfilename)) {
         char* buffer = nullptr;
     #ifdef EMCC
         // Call JS code to load URL
@@ -238,7 +238,7 @@ Tree SourceReader::parseFile(const char* fname)
                 console.log(e);
             }
             return allocate(intArrayFromString(dsp_code), 'i8', ALLOC_STACK);
-        }, yyfilename);
+        }, FAUSTfilename);
 
         Tree res = nullptr;
         if (strlen(buffer) == 0) {
@@ -246,18 +246,18 @@ Tree SourceReader::parseFile(const char* fname)
             error << "ERROR : unable to access URL '" << fname << "'" << endl;
             throw faustexception(error.str());
         } else {
-            yy_scan_string(buffer);
-            res = parseLocal(yyfilename);
+            FAUST_scan_string(buffer);
+            res = parseLocal(FAUSTfilename);
         }
     #else
         // Otherwise use http URL fetch code
-        if (http_fetch(yyfilename, &buffer) == -1) {
+        if (http_fetch(FAUSTfilename, &buffer) == -1) {
             stringstream error;
             error << "ERROR : unable to access URL '" << fname << "' : " << http_strerror() << endl;
             throw faustexception(error.str());
         }
-        yy_scan_string(buffer);
-        Tree res = parseLocal(yyfilename);
+        FAUST_scan_string(buffer);
+        Tree res = parseLocal(FAUSTfilename);
         // 'http_fetch' result must be deallocated
         free(buffer);
     #endif
@@ -266,14 +266,14 @@ Tree SourceReader::parseFile(const char* fname)
     } else {
 
         // Test for local url
-        if (isFILE(yyfilename)) {
-            yyfilename = &yyfilename[7]; // skip 'file://'
+        if (isFILE(FAUSTfilename)) {
+            FAUSTfilename = &FAUSTfilename[7]; // skip 'file://'
         }
         
         // Try to open local file
         string fullpath1;
-        FILE* tmp_file = yyin = fopenSearch(yyfilename, fullpath1); // Keep file to properly close it
-        if (yyin) {
+        FILE* tmp_file = FAUSTin = fopenSearch(FAUSTfilename, fullpath1); // Keep file to properly close it
+        if (FAUSTin) {
             Tree res = parseLocal(fullpath1.c_str());
             fclose(tmp_file);
             return res;
@@ -283,7 +283,7 @@ Tree SourceReader::parseFile(const char* fname)
             Tree res = nullptr;
             for (size_t i = 0; i < gGlobal->gImportDirList.size(); i++) {
                 if (isURL(gGlobal->gImportDirList[i].c_str())) {
-                    // Keep the created filename in the global state, so that the 'yyfilename'
+                    // Keep the created filename in the global state, so that the 'FAUSTfilename'
                     // global variable always points to a valid string
                     gGlobal->gImportFilename = gGlobal->gImportDirList[i] + fname;
                     if ((res = parseFile(gGlobal->gImportFilename.c_str()))) return res;
@@ -291,7 +291,7 @@ Tree SourceReader::parseFile(const char* fname)
             }
         #endif
             stringstream error;
-            error << "ERROR : unable to open file " << yyfilename << endl;
+            error << "ERROR : unable to open file " << FAUSTfilename << endl;
             throw faustexception(error.str());
         }
     }
@@ -299,10 +299,10 @@ Tree SourceReader::parseFile(const char* fname)
 
 Tree SourceReader::parseString(const char* fname)
 {
-    yyerr = 0;
-    yylineno = 1;
-    yyfilename = fname;
-    yy_scan_string(gGlobal->gInputString.c_str());
+    FAUSTerr = 0;
+    FAUSTlineno = 1;
+    FAUSTfilename = fname;
+    FAUST_scan_string(gGlobal->gInputString.c_str());
 
     // Clear global "inputstring" so that imported files will be correctly parsed with "parse"
     gGlobal->gInputString = "";
@@ -311,19 +311,19 @@ Tree SourceReader::parseString(const char* fname)
 
 Tree SourceReader::parseLocal(const char* fname)
 {
-    int r = yyparse();
+    int r = FAUSTparse();
     stringstream error;
 
     if (r) {
         error << "ERROR : parse code = " << r << endl;
         throw faustexception(error.str());
     }
-    if (yyerr > 0) {
-        error << "ERROR : parse code = " << yyerr << endl;
+    if (FAUSTerr > 0) {
+        error << "ERROR : parse code = " << FAUSTerr << endl;
         throw faustexception(error.str());
     }
 
-    yylex_destroy();
+    FAUSTlex_destroy();
 
     // We have parsed a valid file
     checkName();
@@ -464,7 +464,7 @@ Tree checkRulelist(Tree lr)
     Tree lrules = lr;
     if (isNil(lrules)) {
         stringstream error;
-        error << "ERROR : [file " << yyfilename << " : " << yylineno << "] : a case expression can't be empty" << endl;
+        error << "ERROR : [file " << FAUSTfilename << " : " << FAUSTlineno << "] : a case expression can't be empty" << endl;
         throw faustexception(error.str());
     }
     // first pattern used as a reference
@@ -487,11 +487,11 @@ Tree checkRulelist(Tree lr)
 
 void declareMetadata(Tree key, Tree value)
 {
-    if (gGlobal->gMasterDocument == yyfilename) {
+    if (gGlobal->gMasterDocument == FAUSTfilename) {
         // Inside master document, no prefix needed to declare metadata
         gGlobal->gMetaDataSet[key].insert(value);
     } else {
-        string fkey(yyfilename);
+        string fkey(FAUSTfilename);
         if (fkey != "") {
             fkey += "/";
         }
@@ -511,7 +511,7 @@ gFunMetaDataSet = map<tree, tuple<Tree,Tree,Tree,Tree>>
 void declareDefinitionMetadata(Tree id, Tree key, Tree value)
 {
     stringstream fullkeystream;
-    fullkeystream << yyfilename << "/" << tree2str(id) << ":" << tree2str(key);
+    fullkeystream << FAUSTfilename << "/" << tree2str(id) << ":" << tree2str(key);
     string fullkey = fullkeystream.str();
     Tree md = cons(tree(fullkey), value);
     //cout << "Creation of a function metadata : " << *md << endl;

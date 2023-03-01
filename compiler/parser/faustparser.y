@@ -25,12 +25,12 @@
 	
 using namespace std;
 
-extern char* 		yytext;
-extern const char* 	yyfilename;
-extern int 			yylineno;
-extern int 			yyerr;
+extern char*        FAUSTtext;
+extern const char*  FAUSTfilename;
+extern int          FAUSTlineno;
+extern int          FAUSTerr;
 
-int yylex();
+int FAUSTlex();
 
 //----------------------------------------------------------
 // unquote() : remove enclosing quotes and carriage return 
@@ -377,12 +377,12 @@ vallist         : number                              { gGlobal->gWaveForm.push_
                 | vallist PAR number                  { gGlobal->gWaveForm.push_back($3); }
                 ;
 
-number			: INT   						{ $$ = boxInt(str2int(yytext)); }
-				| FLOAT 						{ $$ = boxReal(atof(yytext)); }
-				| ADD INT   					{ $$ = boxInt(str2int(yytext)); }
-				| ADD FLOAT 					{ $$ = boxReal(atof(yytext)); }
-				| SUB INT   					{ $$ = boxInt(-str2int(yytext)); }
-				| SUB FLOAT 					{ $$ = boxReal(-atof(yytext)); }				
+number			: INT   						{ $$ = boxInt(str2int(FAUSTtext)); }
+				| FLOAT 						{ $$ = boxReal(atof(FAUSTtext)); }
+				| ADD INT   					{ $$ = boxInt(str2int(FAUSTtext)); }
+				| ADD FLOAT 					{ $$ = boxReal(atof(FAUSTtext)); }
+				| SUB INT   					{ $$ = boxInt(-str2int(FAUSTtext)); }
+				| SUB FLOAT 					{ $$ = boxReal(-atof(FAUSTtext)); }				
 				;
 							
 statement       : IMPORT LPAR uqstring RPAR ENDDEF	   	{ $$ = importFile($3); }
@@ -405,7 +405,7 @@ docelem         : doctxt 							   	{ $$ = docTxt($1->c_str()); delete $1; }
 				;
 
 doctxt          : /* empty */				   		   	{ $$ = new string(); }
-				| doctxt DOCCHAR					   	{ $$ = &($1->append(yytext)); }
+				| doctxt DOCCHAR					   	{ $$ = &($1->append(FAUSTtext)); }
 				;
 
 doceqn          : BEQN expression EEQN			   	   	{ $$ = $2; }
@@ -436,13 +436,13 @@ lstattrval		: LSTTRUE								{ $$ = true; }
 docmtd          : BMETADATA name EMETADATA				{ $$ = $2; }
 				;
 
-definition		: defname LPAR arglist RPAR DEF expression ENDDEF	{ $$ = cons($1,cons($3,$6)); setDefProp($1, yyfilename, yylineno); }
-				| defname DEF expression ENDDEF		   	{ $$ = cons($1,cons(gGlobal->nil,$3));  setDefProp($1, yyfilename, yylineno); }
-				| error ENDDEF				   		   	{ $$ = gGlobal->nil; yyerr++; }
+definition		: defname LPAR arglist RPAR DEF expression ENDDEF	{ $$ = cons($1,cons($3,$6)); setDefProp($1, FAUSTfilename, FAUSTlineno); }
+				| defname DEF expression ENDDEF		   	{ $$ = cons($1,cons(gGlobal->nil,$3));  setDefProp($1, FAUSTfilename, FAUSTlineno); }
+				| error ENDDEF				   		   	{ $$ = gGlobal->nil; FAUSTerr++; }
 				;
 
-recinition		: recname DEF expression ENDDEF		   	{ $$ = cons($1,cons(gGlobal->nil,$3)); setDefProp($1, yyfilename, yylineno); }
-                | error ENDDEF				   		   	{ $$ = gGlobal->nil; yyerr++; }
+recinition		: recname DEF expression ENDDEF		   	{ $$ = cons($1,cons(gGlobal->nil,$3)); setDefProp($1, FAUSTfilename, FAUSTlineno); }
+                | error ENDDEF				   		   	{ $$ = gGlobal->nil; FAUSTerr++; }
                 ;
 
 defname			: ident 								{ $$=$1; }
@@ -496,14 +496,14 @@ infixexp		: infixexp ADD infixexp 	{ $$ = boxSeq(boxPar($1,$3),boxPrim2(sigAdd))
 				| primitive						{ $$ = $1; }
 				;
 
-primitive		: INT   						{ $$ = boxInt(str2int(yytext)); }
-				| FLOAT 						{ $$ = boxReal(atof(yytext)); }
+primitive		: INT   						{ $$ = boxInt(str2int(FAUSTtext)); }
+				| FLOAT 						{ $$ = boxReal(atof(FAUSTtext)); }
 
-				| ADD INT   					{ $$ = boxInt (str2int(yytext)); }
-				| ADD FLOAT 					{ $$ = boxReal(atof(yytext)); }
+				| ADD INT   					{ $$ = boxInt (str2int(FAUSTtext)); }
+				| ADD FLOAT 					{ $$ = boxReal(atof(FAUSTtext)); }
 
-				| SUB INT   					{ $$ = boxInt ( -str2int(yytext) ); }
-				| SUB FLOAT 					{ $$ = boxReal( -atof(yytext) ); }
+				| SUB INT   					{ $$ = boxInt ( -str2int(FAUSTtext) ); }
+				| SUB FLOAT 					{ $$ = boxReal( -atof(FAUSTtext) ); }
 
 				| WIRE   						{ $$ = boxWire(); }
 				| CUT   						{ $$ = boxCut(); }
@@ -575,7 +575,7 @@ primitive		: INT   						{ $$ = boxInt(str2int(yytext)); }
 				| LOWEST						{ $$ = boxPrim1(sigLowest);}
 				| HIGHEST						{ $$ = boxPrim1(sigHighest);}
 
-				| ident 						{ $$ = $1;  setUseProp($1, yyfilename, yylineno);}
+				| ident 						{ $$ = $1;  setUseProp($1, FAUSTfilename, FAUSTlineno);}
                 | SUB ident                     { $$ = boxSeq(boxPar(boxInt(0),$2),boxPrim2(sigSub)); }
 
 				| LPAR expression RPAR			{ $$ = $2; }
@@ -615,10 +615,10 @@ primitive		: INT   						{ $$ = boxInt(str2int(yytext)); }
 				;
 
 
-ident			: IDENT							{ $$ = boxIdent(yytext); setUseProp($$, yyfilename, yylineno);  }
+ident			: IDENT							{ $$ = boxIdent(FAUSTtext); setUseProp($$, FAUSTfilename, FAUSTlineno);  }
 				;
 
-name			: IDENT							{ $$ = tree(yytext); setUseProp($$, yyfilename, yylineno);  }
+name			: IDENT							{ $$ = tree(FAUSTtext); setUseProp($$, FAUSTfilename, FAUSTlineno);  }
 				;
 
 arglist			: argument						{ $$ = cons($1,gGlobal->nil); }
@@ -632,14 +632,14 @@ argument		: argument SEQ argument  		{ $$ = boxSeq($1,$3); }
 				| infixexp						{ $$ = $1; }
 				;
 
-string			: STRING						{ $$ = tree(yytext); }
+string			: STRING						{ $$ = tree(FAUSTtext); }
 				;
 
-uqstring		: STRING						{ $$ = unquote(yytext); }
+uqstring		: STRING						{ $$ = unquote(FAUSTtext); }
 				;
 
-fstring			: STRING						{ $$ = tree(yytext); }
-				| FSTRING						{ $$ = tree(yytext); }
+fstring			: STRING						{ $$ = tree(FAUSTtext); }
+				| FSTRING						{ $$ = tree(FAUSTtext); }
 				;
 
 /* description of iterative expressions */
@@ -728,7 +728,7 @@ signature		: type fun LPAR typelist RPAR               { $$ = cons($1, cons(cons
                 | type fun OR fun OR fun LPAR RPAR			{ $$ = cons($1, cons(cons($2,cons($4,cons($6,gGlobal->nil))), gGlobal->nil)); }
                 ;
 
-fun				: IDENT							{ $$ = tree(yytext); }
+fun				: IDENT							{ $$ = tree(FAUSTtext); }
 				;
 
 typelist		: argtype						{ $$ = cons($1,gGlobal->nil); }

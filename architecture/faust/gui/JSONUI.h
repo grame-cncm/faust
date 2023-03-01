@@ -82,6 +82,9 @@ typedef std::tuple<std::string, std::string, int, int, int, int> MemoryLayoutIte
 typedef std::vector<MemoryLayoutItem> MemoryLayoutType;
 typedef std::map<std::string, int> PathTableType;
 
+/*
+    Build a JSON description of the DSP.
+ */
 template <typename REAL>
 class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL> {
 
@@ -255,7 +258,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
    
         // -- widget's layouts
     
-        virtual void openGenericGroup(const char* label, const char* name)
+        virtual void openGenericBox(const char* label, const char* name)
         {
             pushLabel(label);
             fUI << fCloseUIPar;
@@ -271,17 +274,17 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
 
         virtual void openTabBox(const char* label)
         {
-            openGenericGroup(label, "tgroup");
+            openGenericBox(label, "tgroup");
         }
     
         virtual void openHorizontalBox(const char* label)
         {
-            openGenericGroup(label, "hgroup");
+            openGenericBox(label, "hgroup");
         }
     
         virtual void openVerticalBox(const char* label)
         {
-            openGenericGroup(label, "vgroup");
+            openGenericBox(label, "vgroup");
         }
     
         virtual void closeBox()
@@ -339,7 +342,7 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
             addGenericButton(label, "checkbox");
         }
 
-        virtual void addGenericEntry(const char* label, const char* name, REAL init, REAL min, REAL max, REAL step)
+        virtual void addGenericRange(const char* label, const char* name, REAL init, REAL min, REAL max, REAL step)
         {
             std::string path = buildPath(label);
             fFullPaths.push_back(path);
@@ -373,17 +376,17 @@ class FAUST_API JSONUIReal : public PathBuilder, public Meta, public UIReal<REAL
     
         virtual void addVerticalSlider(const char* label, REAL* zone, REAL init, REAL min, REAL max, REAL step)
         {
-            addGenericEntry(label, "vslider", init, min, max, step);
+            addGenericRange(label, "vslider", init, min, max, step);
         }
     
         virtual void addHorizontalSlider(const char* label, REAL* zone, REAL init, REAL min, REAL max, REAL step)
         {
-            addGenericEntry(label, "hslider", init, min, max, step);
+            addGenericRange(label, "hslider", init, min, max, step);
         }
     
         virtual void addNumEntry(const char* label, REAL* zone, REAL init, REAL min, REAL max, REAL step)
         {
-            addGenericEntry(label, "nentry", init, min, max, step);
+            addGenericRange(label, "nentry", init, min, max, step);
         }
 
         // -- passive widgets

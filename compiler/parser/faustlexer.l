@@ -40,10 +40,7 @@ NSID	 {ID}("::"{ID})*
 %x doc
 %x lst
 
-
-
 %%
-
 
 "/*"							BEGIN(comment);
 <comment>[^*\x0a\x0d]*			/* eat anything that's not a '*' 		*/

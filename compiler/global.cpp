@@ -106,9 +106,9 @@
 
 using namespace std;
 
-// Globals for lex/yack parser
-extern FILE*       yyin;
-extern const char* yyfilename;
+// Globals for flex/bison parser
+extern FILE*       FAUSTin;
+extern const char* FAUSTfilename;
 
 // Garbageable globals
 list<Garbageable*> global::gObjectTable;
@@ -614,9 +614,9 @@ void global::init()
 
     PROPAGATEPROPERTY = symbol("PropagateProperty");
 
-    // yyfilename is defined in errormsg.cpp but must be redefined at each compilation.
-    yyfilename = "";
-    yyin       = nullptr;
+    // FAUSTfilename is defined in errormsg.cpp but must be redefined at each compilation.
+    FAUSTfilename = "";
+    FAUSTin       = nullptr;
 
     gLatexheaderfilename = "latexheader.tex";
     gDocTextsDefaultFile = "mathdoctexts-default.txt";

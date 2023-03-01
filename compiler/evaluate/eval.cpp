@@ -201,7 +201,7 @@ static Tree real_a2sb(Tree exp)
             return abstr;
 
         } else {
-            evalerror(yyfilename, -1, "a2sb : internal error : not an abstraction inside closure (1)", exp);
+            evalerror(FAUSTfilename, -1, "a2sb : internal error : not an abstraction inside closure (1)", exp);
             // Never reached since evalerror throws an exception
             return 0;
         }
@@ -720,7 +720,7 @@ static double eval2double(Tree exp, Tree visited, Tree localValEnv)
     int  numInputs, numOutputs;
     getBoxType(diagram, &numInputs, &numOutputs);
     if ((numInputs > 0) || (numOutputs != 1)) {
-        evalerror(yyfilename, yylineno, "not a constant expression of type : (0->1)", exp);
+        evalerror(FAUSTfilename, FAUSTlineno, "not a constant expression of type : (0->1)", exp);
         // Never reached since evalerror throws an exception
         return 1;
     } else {
@@ -749,7 +749,7 @@ static int eval2int(Tree exp, Tree visited, Tree localValEnv)
     int  numInputs, numOutputs;
     getBoxType(diagram, &numInputs, &numOutputs);
     if ((numInputs > 0) || (numOutputs != 1)) {
-        evalerror(yyfilename, yylineno, "not a constant expression of type : (0->1)", exp);
+        evalerror(FAUSTfilename, FAUSTlineno, "not a constant expression of type : (0->1)", exp);
         // Never reached since evalerror throws an exception
         return 1;
     } else {
@@ -1160,7 +1160,7 @@ static Tree applyList(Tree fun, Tree larg)
 
     // Here fun is a closure, we can test the content of abstr
     if (isBoxEnvironment(abstr)) {
-        evalerrorbox(yyfilename, -1, "an environment can't be used as a function", fun);
+        evalerrorbox(FAUSTfilename, -1, "an environment can't be used as a function", fun);
     }
 
     if (isBoxIdent(abstr)) {
@@ -1170,7 +1170,7 @@ static Tree applyList(Tree fun, Tree larg)
     }
 
     if (!isBoxAbstr(abstr, id, body)) {
-        evalerror(yyfilename, -1, "(internal) not an abstraction inside closure (2)", fun);
+        evalerror(FAUSTfilename, -1, "(internal) not an abstraction inside closure (2)", fun);
     }
 
     // Here abstr is an abstraction, we can test the content of abstr.
@@ -1223,7 +1223,7 @@ static Tree revEvalList(Tree lexp, Tree visited, Tree localValEnv)
 static Tree larg2par(Tree larg)
 {
     if (isNil(larg)) {
-        evalerror(yyfilename, -1, "empty list of arguments", larg);
+        evalerror(FAUSTfilename, -1, "empty list of arguments", larg);
     }
     if (isNil(tl(larg))) {
         return hd(larg);
