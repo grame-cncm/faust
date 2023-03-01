@@ -101,7 +101,12 @@ if (NOT MSVC)
 	set_property(SOURCE ${TMP}/llvm_dsp_aux.cpp ${TMP}/llvm_dynamic_dsp_aux.cpp APPEND_STRING PROPERTY COMPILE_FLAGS "-fno-rtti ${LLVM_DEFINITIONS}")
 	set_property(SOURCE ${TMP}/llvm_dsp_aux.cpp ${TMP}/llvm_dynamic_dsp_aux.cpp APPEND_STRING PROPERTY CMAKE_CXX_FLAGS "-fno-rtti ${LLVM_DEFINITIONS}")
 endif()
-	set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LD_FLAGS} ${LLVM_LIBS})
+	if (DEFINED LLVM_LD_FLAGS)
+		set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LD_FLAGS} ${LLVM_LIBS})
+	else()
+		# MSVC doesn't like when LLVM_LD_FLAGS is blank, which would introduce an extra whitespace.
+		set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LIBS})
+	endif()
 
 	if(!WIN32)
 	set (FAUST_LIBS ${FAUST_LIBS} "-ldl")
