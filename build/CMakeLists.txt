@@ -107,12 +107,7 @@ endif()
 		set (FAUST_LIBS ${FAUST_LIBS} SndFile::sndfile)
 	endif()
 
-	if (DEFINED LLVM_LD_FLAGS)
-		set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LD_FLAGS} ${LLVM_LIBS})
-	else()
-		# MSVC doesn't like when LLVM_LD_FLAGS is blank, which would introduce an extra whitespace.
-		set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LIBS})
-	endif()
+	set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LD_FLAGS} ${LLVM_LIBS})
 
 	if(!WIN32)
 	set (FAUST_LIBS ${FAUST_LIBS} "-ldl")

@@ -117,8 +117,12 @@ macro (llvm_cmake)
 		message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 		# Find the libraries that correspond to the LLVM components that we wish to use
 		if(WIN32)
+		# Normally we'd just want to do the following:
 		# execute_process(COMMAND ${LLVM_DIR}/../../../Release/bin/llvm-config.exe --libs all
 		#                 OUTPUT_VARIABLE LLVM_LIBS)
+		# But this results in LLVM_LIBS having a list of full paths to .lib files.
+		# With MSVC, link.exe wasn't working with full paths, so instead
+		# what we want is a list of basenames of .lib files.
 		FILE(GLOB LLVM_LIBS ${LLVM_DIR}/../../../Release/lib/*.lib)
 		list(FILTER LLVM_LIBS EXCLUDE REGEX ".*LLVM-C\.lib")
 		else()
