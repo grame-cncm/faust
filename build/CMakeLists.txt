@@ -109,7 +109,7 @@ endif()
 
 	set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LD_FLAGS} ${LLVM_LIBS})
 
-	if(!MSVC)
+	if(NOT MSVC)
 	set (FAUST_LIBS ${FAUST_LIBS} "-ldl")
 	endif()
 	
