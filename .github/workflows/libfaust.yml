@@ -94,7 +94,7 @@ jobs:
   #     run: |
   #       cp -r libsndfile/include libsndfile/build/include
   #       cd build
-  #       cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DSndFile_DIR=$SndFile_DIR -DCMAKE_PREFIX_PATH="$LLVM_DIR;$SndFile_DIR/../cmake"
+  #       cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DSndFile_DIR=$SndFile_DIR -DCMAKE_PREFIX_PATH="$LLVM_DIR" -DCMAKE_MODULE_PATH="$SndFile_DIR/../cmake"
   #       cmake --build build --config Release
   #     env:
   #       LLVM_DIR: ${{ github.workspace }}/llvm-project/llvm/build/lib/cmake/llvm
@@ -202,7 +202,7 @@ jobs:
       run: |
         cp -r libsndfile/include libsndfile/build/include
         cd build
-        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DSndFile_DIR=$SndFile_DIR -DCMAKE_PREFIX_PATH="$LLVM_DIR;$SndFile_DIR/../cmake"
+        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DSndFile_DIR=$SndFile_DIR -DCMAKE_PREFIX_PATH="$LLVM_DIR" -DCMAKE_MODULE_PATH="$SndFile_DIR/../cmake"
         cmake --build build --config Release
       env:
         LLVM_DIR: ${{ github.workspace }}/llvm-project/llvm/build/lib/cmake/llvm
@@ -222,12 +222,12 @@ jobs:
 
 
   build-windows:
-    runs-on: windows-2019
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
           - name: win-x86_64
-            os: windows-2019
+            os: windows-2022
             cmake-options: >-
               -DCMAKE_BUILD_TYPE=Release
               -DCMAKE_VERBOSE_MAKEFILE=ON
@@ -313,8 +313,7 @@ jobs:
       run: |
         cp -r libsndfile/include libsndfile/build/include
         cd build
-        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DSndFile_DIR=%SndFile_DIR% -DCMAKE_PREFIX_PATH="%LLVM_DIR%;%SndFile_DIR%/../cmake"
-        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DSndFile_DIR=%SndFile_DIR% -DCMAKE_PREFIX_PATH="%LLVM_DIR%;%SndFile_DIR%/../cmake"
+        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DSndFile_DIR=%SndFile_DIR% -DCMAKE_PREFIX_PATH="%LLVM_DIR%" -DCMAKE_MODULE_PATH="%SndFile_DIR%/../cmake"
         cmake --build build --config Release
       env:
         LLVM_DIR: ${{ github.workspace }}/llvm-project/llvm/build/lib/cmake/llvm
