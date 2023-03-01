@@ -121,9 +121,9 @@ macro (llvm_cmake)
 		                OUTPUT_VARIABLE LLVM_LIBS)
 		string(STRIP ${LLVM_LIBS} LLVM_LIBS)  # this will cause errors if the build paths contain whitespace
 		# Remove leading and trailing quotes from LLVM_LIBS variable
-		if(LLVM_LIBS MATCHES "^\"(.*)\"$")
+		if(${LLVM_LIBS} MATCHES "^\"(.*)\"$")
 			message(Removed leading and trailing quotes from LLVM_LIBS)
-			set(LLVM_LIBS "${CMAKE_MATCH_1}")
+			set(LLVM_LIBS ${CMAKE_MATCH_1})
 		endif()
 		else()
 		execute_process(COMMAND ${LLVM_DIR}/../../../bin/llvm-config --libs all
