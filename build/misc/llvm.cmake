@@ -117,8 +117,10 @@ macro (llvm_cmake)
 		message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 		# Find the libraries that correspond to the LLVM components that we wish to use
 		if(WIN32)
-		execute_process(COMMAND ${LLVM_DIR}/../../../Release/bin/llvm-config.exe --libs all
-		                OUTPUT_VARIABLE LLVM_LIBS)
+		# execute_process(COMMAND ${LLVM_DIR}/../../../Release/bin/llvm-config.exe --libs all
+		#                 OUTPUT_VARIABLE LLVM_LIBS)
+		FILE(GLOB LLVM_LIBS ${LLVM_DIR}/../../../Release/lib/*.lib)
+		list(FILTER LLVM_LIBS EXCLUDE REGEX ".*LLVM-C\.lib")
 		else()
 		execute_process(COMMAND ${LLVM_DIR}/../../../bin/llvm-config --libs all
 		                OUTPUT_VARIABLE LLVM_LIBS)
