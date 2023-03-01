@@ -103,9 +103,7 @@ if (NOT MSVC)
 endif()
 	set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LD_FLAGS} ${LLVM_LIBS})
 
-	if(WIN32)
-	add_definitions(${LLVM_DEFINITIONS})
-	else()
+	if(!WIN32)
 	set (FAUST_LIBS ${FAUST_LIBS} "-ldl")
 	endif()
 

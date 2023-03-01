@@ -122,9 +122,8 @@ macro (llvm_cmake)
 		else()
 		execute_process(COMMAND ${LLVM_DIR}/../../../bin/llvm-config --libs all
 		                OUTPUT_VARIABLE LLVM_LIBS)
-		endif()
-
 		string(STRIP "${LLVM_LIBS}" LLVM_LIBS)
+		endif()
 
 		if(APPLE)
 		# Expecting to find -lz -lpthread -ledit -lcurses -lm
