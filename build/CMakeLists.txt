@@ -102,16 +102,16 @@ if (NOT MSVC)
 	set_property(SOURCE ${TMP}/llvm_dsp_aux.cpp ${TMP}/llvm_dynamic_dsp_aux.cpp APPEND_STRING PROPERTY CMAKE_CXX_FLAGS "-fno-rtti ${LLVM_DEFINITIONS}")
 endif()
 
-	if (INCLUDE_SNDFILE)
-		find_package(SndFile REQUIRED)
-		set (FAUST_LIBS ${FAUST_LIBS} SndFile::sndfile)
-	endif()
+	set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LD_FLAGS} ${LLVM_LIBS})
 
 	if(!WIN32)
 	set (FAUST_LIBS ${FAUST_LIBS} "-ldl")
 	endif()
 
-	set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LD_FLAGS} ${LLVM_LIBS})
+	if (INCLUDE_SNDFILE)
+		find_package(SndFile REQUIRED)
+		set (FAUST_LIBS ${FAUST_LIBS} SndFile::sndfile)
+	endif()
 	
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLLVM_VERSION="${LLVM_PACKAGE_VERSION}" -DLLVM_BUILD_UNIVERSAL)
 
