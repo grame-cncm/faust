@@ -1,0 +1,327 @@
+name: libfaust
+
+# Controls when the action will run.
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  build-ubuntu:
+    strategy:
+      matrix:
+        include:
+          - name: ubuntu-x86_64
+            theContainer: docker://quay.io/pypa/manylinux2014_x86_64
+            os: ubuntu-20.04
+            cmake-options: >-
+              -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_VERBOSE_MAKEFILE=ON
+            llvm-options: >-
+              -DLLVM_TARGETS_TO_BUILD="X86"
+              -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-linux-gnu"
+              -DLLVM_ENABLE_ZLIB=off
+              -DLLVM_OPTIMIZED_TABLEGEN=ON
+
+    runs-on: ${{ matrix.os }}
+    container:
+      image: ${{matrix.theContainer}}
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - name: Restore libsndfile
+      id: cache-libsndfile-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: libsndfile
+        key: cache-libsndfile-${{ matrix.name }}
+
+    - name: Clone libsndfile
+      if: steps.cache-libsndfile-restore.outputs.cache-hit != 'true'
+      uses: actions/checkout@v3
+      with:
+        repository: libsndfile/libsndfile
+        path: libsndfile
+
+    - name: Build libsndfile
+      if: steps.cache-libsndfile-restore.outputs.cache-hit != 'true'
+      run: |
+        cd libsndfile
+        cmake -Bbuild -G "Unix Makefiles" ${{matrix.cmake-options}} -DENABLE_EXTERNAL_LIBS=off -DBUILD_EXAMPLES=OFF
+        cmake --build build --config Release
+
+    - name: Cache libsndfile output
+      id: cache-libsndfile-save
+      uses: actions/cache/save@v3
+      with:
+        path: libsndfile
+        key: ${{ steps.cache-libsndfile-restore.outputs.cache-primary-key }}
+
+    - name: Restore LLVM
+      id: cache-llvm-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: llvm-project
+        key: cache-llvm-${{ matrix.name }}
+
+    - name: Clone LLVM
+      if: steps.cache-llvm-restore.outputs.cache-hit != 'true'
+      uses: actions/checkout@v3
+      with:
+        repository: llvm/llvm-project
+        path: llvm-project
+        ref: f28c006a5895fc0e329fe15fead81e37457cb1d1
+
+    - name: Build LLVM
+      if: steps.cache-llvm-restore.outputs.cache-hit != 'true'
+      run: |
+        cd llvm-project/llvm
+        cmake -Bbuild -DCMAKE_INSTALL_PREFIX="./llvm" ${{matrix.cmake-options}} ${{matrix.llvm-options}}
+        cmake --build build --config Release
+
+    - name: Cache LLVM output
+      id: cache-llvm-save
+      uses: actions/cache/save@v3
+      with:
+        path: llvm-project
+        key: ${{ steps.cache-llvm-restore.outputs.cache-primary-key }}
+
+    - name: Build libfaust
+      run: |
+        cp -r libsndfile/include libsndfile/build/include
+        cd build
+        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DSndFile_DIR=$SndFile_DIR -DCMAKE_PREFIX_PATH="$LLVM_DIR" -DCMAKE_MODULE_PATH="$SndFile_DIR/../cmake"
+        cmake --build build --config Release
+      env:
+        LLVM_DIR: ${{ github.workspace }}/llvm-project/llvm/build/lib/cmake/llvm
+        SndFile_DIR: ${{ github.workspace }}/libsndfile/build
+   
+    - name: Make distribution
+      # We make a zip ourself because of a possible issue with upload-artifact on ubuntu
+      run: |
+        yum install zip -y
+        strip --strip-unneeded build/lib/libfaust.so
+        mkdir libfaust
+        cp -v -r build/lib/libfaust.so libfaust
+        cp -v -r build/lib/libOSCFaust.a libfaust
+        zip -r libfaust-${{ matrix.name }}.zip libfaust
+   
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: libfaust-${{ matrix.name }}
+        path: libfaust-${{ matrix.name }}.zip
+        if-no-files-found: error
+
+  build-macos:
+    strategy:
+      matrix:
+        include:
+          - name: macos-x86_64
+            os: macos-11
+            cmake-options: >-
+              -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_VERBOSE_MAKEFILE=ON
+              -DCMAKE_OSX_ARCHITECTURES="x86_64"
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
+            llvm-options: >-
+              -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-apple-darwin19.6.0"
+              -DLLVM_TARGETS_TO_BUILD="X86"
+              -DLLVM_ENABLE_ZLIB=off
+              -DLLVM_OPTIMIZED_TABLEGEN=ON
+              -DCMAKE_INSTALL_PREFIX="./llvm"
+
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - name: Restore libsndfile
+      id: cache-libsndfile-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: libsndfile
+        key: cache-libsndfile-${{ matrix.name }}
+
+    - name: Clone libsndfile
+      if: steps.cache-libsndfile-restore.outputs.cache-hit != 'true'
+      uses: actions/checkout@v3
+      with:
+        repository: libsndfile/libsndfile
+        path: libsndfile
+
+    - name: Install libsndfile MacOS dependencies
+      if: startsWith(matrix.os,'macos')
+      run: |
+        brew install automake autogen speex mpg123 lame flac libogg
+
+    - name: Build libsndfile
+      if: steps.cache-libsndfile-restore.outputs.cache-hit != 'true'
+      run: |
+        cd libsndfile
+        cmake -Bbuild -G "Unix Makefiles" ${{matrix.cmake-options}} -DENABLE_EXTERNAL_LIBS=off -DBUILD_EXAMPLES=OFF
+        cmake --build build --config Release
+
+    - name: Cache libsndfile output
+      id: cache-libsndfile-save
+      uses: actions/cache/save@v3
+      with:
+        path: libsndfile
+        key: ${{ steps.cache-libsndfile-restore.outputs.cache-primary-key }}
+
+    - name: Restore LLVM
+      id: cache-llvm-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: llvm-project
+        key: cache-llvm-${{ matrix.name }}
+
+    - name: Clone LLVM
+      if: steps.cache-llvm-restore.outputs.cache-hit != 'true'
+      uses: actions/checkout@v3
+      with:
+        repository: llvm/llvm-project
+        path: llvm-project
+        ref: f28c006a5895fc0e329fe15fead81e37457cb1d1
+
+    - name: Build LLVM
+      if: steps.cache-llvm-restore.outputs.cache-hit != 'true'
+      run: |
+        cd llvm-project/llvm
+        cmake -Bbuild ${{matrix.cmake-options}} ${{matrix.llvm-options}}
+        cmake --build build --config Release
+
+    - name: Cache LLVM output
+      id: cache-llvm-save
+      uses: actions/cache/save@v3
+      with:
+        path: llvm-project
+        key: ${{ steps.cache-llvm-restore.outputs.cache-primary-key }}
+
+    - name: Build libfaust
+      run: |
+        cp -r libsndfile/include libsndfile/build/include
+        cd build
+        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DSndFile_DIR=$SndFile_DIR -DCMAKE_PREFIX_PATH="$LLVM_DIR" -DCMAKE_MODULE_PATH="$SndFile_DIR/../cmake"
+        cmake --build build --config Release
+      env:
+        LLVM_DIR: ${{ github.workspace }}/llvm-project/llvm/build/lib/cmake/llvm
+        SndFile_DIR: ${{ github.workspace }}/libsndfile/build
+   
+    - name: Make distribution
+      run: |
+        ls -r build/lib/*
+        mkdir libfaust
+        cp build/lib/libfaust.2.dylib libfaust/libfaust.2.dylib
+        cp -v -r build/lib/*.a libfaust
+   
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: libfaust-${{ matrix.name }}
+        path: libfaust
+        if-no-files-found: error
+
+  build-windows:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - name: win-x86_64
+            os: windows-2022
+            cmake-options: >-
+              -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_VERBOSE_MAKEFILE=ON
+            llvm-options: >-
+              -Thost=x64
+              -DLLVM_USE_CRT_DEBUG=MDd
+              -DLLVM_USE_CRT_RELEASE=MD
+              -DLLVM_BUILD_TESTS=Off
+              -DCMAKE_INSTALL_PREFIX="./llvm"
+              -DLLVM_ENABLE_ZLIB=off
+              -DLLVM_OPTIMIZED_TABLEGEN=ON
+              -DLLVM_TARGETS_TO_BUILD="X86;ARM"
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - name: Restore libsndfile
+      id: cache-libsndfile-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: libsndfile
+        key: cache-libsndfile-${{ matrix.name }}
+
+    - name: Clone libsndfile
+      if: steps.cache-libsndfile-restore.outputs.cache-hit != 'true'
+      uses: actions/checkout@v3
+      with:
+        repository: libsndfile/libsndfile
+        path: libsndfile
+
+    - name: Build libsndfile
+      if: steps.cache-libsndfile-restore.outputs.cache-hit != 'true'
+      run: |
+        cd libsndfile
+        cmake -Bbuild ${{matrix.cmake-options}} -DENABLE_EXTERNAL_LIBS=off -DBUILD_EXAMPLES=OFF
+        cmake --build build --config Release
+
+    - name: Cache libsndfile output
+      id: cache-libsndfile-save
+      uses: actions/cache/save@v3
+      with:
+        path: libsndfile
+        key: ${{ steps.cache-libsndfile-restore.outputs.cache-primary-key }}
+
+    - name: Restore LLVM
+      id: cache-llvm-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: llvm-project
+        key: cache-llvm-${{ matrix.name }}
+
+    - name: Clone LLVM
+      if: steps.cache-llvm-restore.outputs.cache-hit != 'true'
+      uses: actions/checkout@v3
+      with:
+        repository: llvm/llvm-project
+        path: llvm-project
+        ref: f28c006a5895fc0e329fe15fead81e37457cb1d1
+
+    - name: Build LLVM
+      if: steps.cache-llvm-restore.outputs.cache-hit != 'true'
+      run: |
+        cd llvm-project/llvm
+        cmake -Bbuild ${{matrix.llvm-options}}
+        cmake --build build --config Release
+    
+    - name: Cache LLVM output
+      id: cache-llvm-save
+      uses: actions/cache/save@v3
+      with:
+        path: llvm-project
+        key: ${{ steps.cache-llvm-restore.outputs.cache-primary-key }}
+
+    - name: Build libfaust
+      run: |
+        cp -r libsndfile/include libsndfile/build/include
+        cd build
+        cmake -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DINCLUDE_SNDFILE=ON -DSndFile_DIR=%SndFile_DIR% -DCMAKE_PREFIX_PATH="%LLVM_DIR%" -DCMAKE_MODULE_PATH="%SndFile_DIR%/../cmake"
+        cmake --build build --config Release
+      env:
+        LLVM_DIR: ${{ github.workspace }}/llvm-project/llvm/build/lib/cmake/llvm
+        SndFile_DIR: ${{ github.workspace }}/libsndfile/build
+   
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: libfaust-${{ matrix.name }}
+        path: build/lib/Release
+        if-no-files-found: error
