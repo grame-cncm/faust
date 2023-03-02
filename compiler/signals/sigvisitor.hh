@@ -36,6 +36,7 @@ struct sigvisitor {
     //---------------abstract methods---------------
     // numbers
     virtual void visitInt(Tree sig, int i)     = 0;
+    virtual void visitInt64(Tree sig, int i)   = 0;
     virtual void visitReal(Tree sig, double r) = 0;
 
     // audio inputs-outputs
@@ -50,6 +51,7 @@ struct sigvisitor {
     // numerical operations
     virtual void visitBinOp(Tree sig, int opcode, Tree s1, Tree s2)     = 0;
     virtual void visitIntCast(Tree sig, Tree s)                         = 0;
+    virtual void visitBitCast(Tree sig, Tree s)                         = 0;
     virtual void visitFloatCast(Tree sig, Tree s)                       = 0;
     virtual void visitFFun(Tree sig, Tree ff, Tree ls)                  = 0;
     virtual void visitFConst(Tree sig, Tree type, Tree name, Tree file) = 0;
@@ -117,6 +119,7 @@ struct fullvisitor : sigvisitor {
 
     // numerical operations
     virtual void visitIntCast(Tree sig, Tree s) { visit(s); }
+    virtual void visitBitCast(Tree sig, Tree s) { visit(s); }
     virtual void visitFloatCast(Tree sig, Tree s) { visit(s); }
     virtual void visitBinOp(Tree sig, int op, Tree s1, Tree s2)
     {

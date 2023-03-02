@@ -597,9 +597,7 @@ class JuliaInstVisitor : public TextInstVisitor {
         *fOut << ")";
     }
 
-    // TODO : does not work, put this code in a function
-    virtual void visit(BitcastInst* inst)
-    {}
+    virtual void visit(BitcastInst* inst) { faustassert(false); }
     
     virtual void visitCond(ValueInst* cond)
     {

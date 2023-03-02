@@ -388,9 +388,10 @@ string ScalarCompiler::generateCode(Tree sig)
 	fprintf(stderr, ")\n");
 #endif
 
-    int    i;
-    double r;
-    Tree   c, sel, x, y, z, label, id, ff, largs, type, name, file, sf;
+    int     i;
+    int64_t i64;
+    double  r;
+    Tree    c, sel, x, y, z, label, id, ff, largs, type, name, file, sf;
 
     // printf("compilation of %p : ", sig); print(sig); printf("\n");
 
@@ -398,6 +399,8 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateXtended(sig);
     } else if (isSigInt(sig, &i)) {
         return generateNumber(sig, T(i));
+    } else if (isSigInt64(sig, &i64)) {
+        return generateNumber(sig, T(i64));
     } else if (isSigReal(sig, &r)) {
         return generateNumber(sig, T(r));
     } else if (isSigWaveform(sig)) {
@@ -444,6 +447,8 @@ string ScalarCompiler::generateCode(Tree sig)
 
     else if (isSigIntCast(sig, x)) {
         return generateIntCast(sig, x);
+    } else if (isSigBitCast(sig, x)) {
+        return generateBitCast(sig, x);
     } else if (isSigFloatCast(sig, x)) {
         return generateFloatCast(sig, x);
     }
@@ -770,6 +775,18 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
 string ScalarCompiler::generateIntCast(Tree sig, Tree x)
 {
     return generateCacheCode(sig, subst("int($0)", CS(x)));
+}
+
+string ScalarCompiler::generateBitCast(Tree sig, Tree x)
+{
+    if (gGlobal->gFloatSize == 1) {
+        return generateCacheCode(sig, subst("(*(int*)&$0)", CS(x)));
+    } else if (gGlobal->gFloatSize == 2) {
+        return generateCacheCode(sig, subst("((*(long int*)&$0)", CS(x)));
+    } else {
+        faustassert(false);
+        return "";
+    }
 }
 
 string ScalarCompiler::generateFloatCast(Tree sig, Tree x)

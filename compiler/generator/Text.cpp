@@ -155,6 +155,13 @@ string T(int n)
     return string(c);
 }
 
+string T(int64_t n)
+{
+    char c[64];
+    snprintf(c, 63, "%lld", n);
+    return string(c);
+}
+
 string T(long n)
 {
     char c[64];

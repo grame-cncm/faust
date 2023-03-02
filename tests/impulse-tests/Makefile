@@ -281,6 +281,8 @@ wast:
 # llvm backend
 llvm:
 	$(MAKE) -f Make.llvm outdir=llvm/double               FAUSTOPTIONS="-I dsp"
+	$(MAKE) -f Make.llvm outdir=llvm/double/ftz1          FAUSTOPTIONS="-I dsp -ftz 1"
+	$(MAKE) -f Make.llvm outdir=llvm/double/ftz2          FAUSTOPTIONS="-I dsp -ftz 2"
 	$(MAKE) -f Make.llvm outdir=llvm/double/ct            FAUSTOPTIONS="-I dsp -ct 0"
 	$(MAKE) -f Make.llvm outdir=llvm/double/mapp          FAUSTOPTIONS="-I dsp -mapp"
 	$(MAKE) -f Make.llvm outdir=llvm/double/rui           FAUSTOPTIONS="-I dsp -rui"
@@ -333,7 +335,7 @@ interp:
 	#$(MAKE) -f Make.interp outdir=interp/double/vec/vs200   FAUSTOPTIONS="-I dsp -vec -vs 200"
 	$(MAKE) -f Make.interp outdir=interp/double/vec/g        FAUSTOPTIONS="-I dsp -vec -lv 1 -g"
 	$(MAKE) -f Make.interp outdir=interp/double/inpl         FAUSTOPTIONS="-I dsp -inpl"
-	$(MAKE) -f Make.interp outdir=interp/double/ftz          FAUSTOPTIONS="-I dsp -ftz 0"
+	$(MAKE) -f Make.interp outdir=interp/double/ftz          FAUSTOPTIONS="-I dsp -ftz 1"
 
 #########################################################################
 # interp backend in LLVM mode
@@ -348,7 +350,7 @@ interp1:
 	#$(MAKE) -f Make.interp1 outdir=interp1/double/vec/vs200   FAUSTOPTIONS="-I dsp -vec -vs 200"
 	$(MAKE) -f Make.interp1 outdir=interp1/double/vec/g        FAUSTOPTIONS="-I dsp -vec -lv 1 -g"
 	$(MAKE) -f Make.interp1 outdir=interp1/double/inpl         FAUSTOPTIONS="-I dsp -inpl"
-	$(MAKE) -f Make.interp1 outdir=interp1/double/ftz          FAUSTOPTIONS="-I dsp -ftz 0"
+	$(MAKE) -f Make.interp1 outdir=interp1/double/ftz          FAUSTOPTIONS="-I dsp -ftz 1"
 
 #########################################################################
 # Rust backend

@@ -35,14 +35,18 @@ using namespace std;
 
 void sigvisitor::visit(Tree sig)
 {
-    int    i;
-    double r;
+    int     i;
+    int64_t i64;
+    double  r;
     Tree   sel, s1, s2, s3, s4, ff, id, ls, l, var, body, type, name, file, cur, min, max, step;
 
     faustassert(sig);
 
     if (isSigInt(sig, &i))
         visitInt(sig, i);
+
+    if (isSigInt64(sig, &i64))
+        visitInt(sig, i64);
 
     else if (isSigReal(sig, &r))
         visitReal(sig, r);
@@ -67,6 +71,9 @@ void sigvisitor::visit(Tree sig)
 
     else if (isSigIntCast(sig, s1))
         visitIntCast(sig, s1);
+
+    else if (isSigBitCast(sig, s1))
+        visitBitCast(sig, s1);
 
     else if (isSigFloatCast(sig, s1))
         visitFloatCast(sig, s1);

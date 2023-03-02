@@ -29,6 +29,7 @@
 #include "signals.hh"
 #include "sigtyperules.hh"
 #include "xtended.hh"
+#include "floats.hh"
 
 using namespace std;
 
@@ -100,10 +101,16 @@ void SignalChecker::visit(Tree sig)
             faustassert(false);
         }
 
-        // Int and Float Cast
+        // Int, Bit and Float Cast
     } else if (isSigIntCast(sig, x)) {
         if (getCertifiedSigType(x)->nature() == kInt) {
             cerr << "ASSERT : isSigIntCast of a kInt signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+            faustassert(false);
+        }
+        
+    } else if (isSigBitCast(sig, x)) {
+        if (getCertifiedSigType(x)->nature() == kInt) {
+            cerr << "ASSERT : isSigBitCast of a kInt signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
 
@@ -297,9 +304,11 @@ Tree SignalPromotion::transformation(Tree sig)
         }
     }
 
-    // Int and Float Cast
+    // Int, Bit and Float Cast
     else if (isSigIntCast(sig, x)) {
         return smartIntCast(getCertifiedSigType(x), self(x));
+    } else if (isSigBitCast(sig, x)) {
+        return sigBitCast(self(x));
     } else if (isSigFloatCast(sig, x)) {
         return smartFloatCast(getCertifiedSigType(x), self(x));
     }
@@ -540,6 +549,26 @@ Tree SignalUIFreezePromotion::transformation(Tree sig)
     }
 }
 
+Tree SignalFTZPromotion::selfRec(Tree l)
+{
+    // Recursion here
+    l = self(l);
+    
+    // Add FTZ on real signals only
+    if (getCertifiedSigType(l)->nature() == kReal) {
+        if (gGlobal->gFTZMode == 1) {
+            return sigSelect2(sigGT(sigAbs(l), sigReal(inummin())), sigReal(0.0), l);
+        } else if (gGlobal->gFTZMode == 2) {
+            if (gGlobal->gFloatSize == 1) {
+                return sigSelect2(sigAND(sigBitCast(l), sigInt(inummax())), sigReal(0.0), l);
+            } else if (gGlobal->gFloatSize == 2) {
+                return sigSelect2(sigAND(sigBitCast(l), sigInt64(inummax())), sigReal(0.0), l);
+            }
+        }
+    }
+    
+    return l;
+}
 
 // Public API
 Tree signalPromote(Tree sig, bool trace)
@@ -603,5 +632,14 @@ Tree signalUIFreezePromote(Tree sig)
     getCertifiedSigType(sig);
     
     SignalUIFreezePromotion SP;
+    return SP.mapself(sig);
+}
+
+Tree signalFTZPromotion(Tree sig)
+{
+    // Check that the root tree is properly type annotated
+    getCertifiedSigType(sig);
+    
+    SignalFTZPromotion SP;
     return SP.mapself(sig);
 }

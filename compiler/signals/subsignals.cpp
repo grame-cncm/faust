@@ -38,9 +38,10 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
 {
     vsigs.clear();
 
-    int    i;
-    double r;
-    Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
+    int     i;
+    int64_t i64;
+    double  r;
+    Tree    c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
 
     if (getUserData(sig)) {
         for (int i1 = 0; i1 < sig->arity(); i1++) {
@@ -48,6 +49,8 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
         }
         return sig->arity();
     } else if (isSigInt(sig, &i)) {
+        return 0;
+    } else if (isSigInt64(sig, &i64)) {
         return 0;
     } else if (isSigReal(sig, &r)) {
         return 0;
@@ -150,6 +153,9 @@ int getSubSignals(Tree sig, tvec& vsigs, bool visitgen)
     }
 
     else if (isSigIntCast(sig, x)) {
+        vsigs.push_back(x);
+        return 1;
+    } else if (isSigBitCast(sig, x)) {
         vsigs.push_back(x);
         return 1;
     } else if (isSigFloatCast(sig, x)) {

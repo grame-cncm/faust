@@ -199,6 +199,10 @@ void printSignal(Tree sig, FILE* out, int prec)
         fputs("int(", out);
         printSignal(x, out, 0);
         fputs(")", out);
+    }else if (isSigBitCast(sig, x)) {
+        fputs("bit(", out);
+        printSignal(x, out, 0);
+        fputs(")", out);
     } else if (isSigFloatCast(sig, x)) {
         fputs("float(", out);
         printSignal(x, out, 0);

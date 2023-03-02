@@ -78,6 +78,15 @@ LIBFAUST_API bool isSigInt(Tree t, int* i)
     return isInt(t->node(), i);
 }
 
+Tree sigInt64(int64_t i)
+{
+    return tree(i);
+}
+bool isSigInt64(Tree t, int64_t* i)
+{
+    return isInt64(t->node(), i);
+}
+
 LIBFAUST_API Tree sigReal(double r)
 {
     return tree(r);
@@ -329,7 +338,7 @@ LIBFAUST_API bool isProj(Tree t, int* i, Tree& rgroup)
     return isTree(t, gGlobal->SIGPROJ, x, rgroup) && isInt(x->node(), i);
 }
 
-// Int and Float casting
+// Int, Bitcast and Float casting
 
 LIBFAUST_API Tree sigIntCast(Tree t)
 {
@@ -341,6 +350,11 @@ LIBFAUST_API Tree sigIntCast(Tree t)
     if (isDouble(n, &x)) return tree(int(x));
 
     return tree(gGlobal->SIGINTCAST, t);
+}
+
+Tree sigBitCast(Tree t)
+{
+    return tree(gGlobal->SIGBITCAST, t);
 }
 
 LIBFAUST_API Tree sigFloatCast(Tree t)
@@ -363,6 +377,16 @@ bool isSigIntCast(Tree t)
 LIBFAUST_API bool isSigIntCast(Tree t, Tree& x)
 {
     return isTree(t, gGlobal->SIGINTCAST, x);
+}
+
+bool isSigBitCast(Tree t)
+{
+    Tree x;
+    return isTree(t, gGlobal->SIGBITCAST, x);
+}
+bool isSigBitCast(Tree t, Tree& x)
+{
+    return isTree(t, gGlobal->SIGBITCAST, x);
 }
 
 bool isSigFloatCast(Tree t)
@@ -917,18 +941,6 @@ bool verySimple(Tree exp)
     Tree   type, name, file;
 
     return isSigInt(exp, &i) || isSigReal(exp, &r) || isSigInput(exp, &i) || isSigFConst(exp, type, name, file);
-}
-
-/*****************************************************************************
-                             FTZ wrapping
-    Add FTZ wrapping to a signal
-*****************************************************************************/
-
-// \(x).(select2(abs(x)<mmm, x, 0))
-
-Tree sigFTZ(Tree s)
-{
-    return tree(gGlobal->gFtzPrim->symbol(), s);
 }
 
 /*****************************************************************************

@@ -31,7 +31,7 @@
 // TreeTransform: Recursive transformation of a Tree with memoization
 //------------------------------------------------------------------------------
 // This is an abstract class. Derived class just have to implement the
-// `transformation(t)` method. The `transformation(t)` method
+// `transformation(t)` or `selfRec(t)` methods. The `transformation(t)` method
 // should not call itself recursively directly, but exclusively via `self(t)`
 // (or `mapself(lt)` for a list).
 //------------------------------------------------------------------------------
@@ -40,8 +40,8 @@ class TreeTransform : public Garbageable {
    protected:
     property<Tree> fResult;  // cache previously computed transformations
     // used when tracing
-    bool   fTrace;      // trace transformations when true
-    int    fIndent;     // current indentation during trace
+    bool   fTrace;           // trace transformations when true
+    int    fIndent;          // current indentation during trace
     std::string fMessage;    // trace message
 
    public:
@@ -49,6 +49,10 @@ class TreeTransform : public Garbageable {
 
     Tree self(Tree t);
     Tree mapself(Tree lt);
+    
+    // recursive signals transformation
+    virtual Tree selfRec(Tree t);
+    virtual Tree mapselfRec(Tree lt);
 
     void trace(bool b) { fTrace = b; }
     void trace(bool b, const std::string& m)

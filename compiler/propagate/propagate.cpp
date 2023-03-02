@@ -196,19 +196,9 @@ siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
         setPropagateProperty(args, result);
     }
     // cerr << "propagate in " << boxpp(box) << endl;
-    // for (int i=0; i<lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i]) << endl; }
+    // for (int i = 0; i < lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i]) << endl; }
     // cerr << endl;
     return result;
-}
-
-// Apply sigFTZ() to all signals of a vector.
-static siglist wrapWithFTZ(const siglist& l1)
-{
-    siglist l2;
-    for (const auto& x : l1) {
-        l2.push_back(sigFTZ(x));
-    }
-    return l2;
 }
 
 // Collect the leaf numbers of tree l into vector v.
@@ -526,14 +516,13 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
         siglist l0 = makeMemSigProjList(ref(1), in2);
         siglist l1 = propagate(slotenv2, path, t2, l0);
         siglist l2 = propagate(slotenv2, path, t1, listConcat(l1, listLift(lsig)));
-        siglist l3 = (gGlobal->gFTZMode > 0) ? wrapWithFTZ(l2) : l2;
-        Tree    g  = rec(listConvert(l3));
+        Tree    g  = rec(listConvert(l2));
 
         // Compute output list of recursive signals
         siglist ol(out1);  // output list
         int     p = 0;     // projection number
 
-        for (const auto& exp : l3) {
+        for (const auto& exp : l2) {
             if (exp->aperture() > 0) {
                 // it is a regular recursive expression branch
                 ol[p] = sigDelay0(sigProj(p, g));

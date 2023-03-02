@@ -142,6 +142,9 @@ static Tree simplification(Tree sig)
         if (isDouble(n1, &x)) return tree(int(x));
 
         return sig;
+        
+    } else if (isSigBitCast(sig, t1)) {
+        return sig;
 
     } else if (isSigFloatCast(sig, t1)) {
         int    i;

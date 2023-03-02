@@ -719,7 +719,10 @@ static bool processCmdline(int argc, const char* argv[])
     // Adjust related options
     if (gGlobal->gOpenMPSwitch || gGlobal->gSchedulerSwitch) gGlobal->gVectorSwitch = true;
 
+    // ========================
     // Check options coherency
+    // ========================
+    
     if (gGlobal->gInPlace && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : '-inpl' option can only be used in scalar mode\n");
     }
@@ -736,10 +739,6 @@ static bool processCmdline(int argc, const char* argv[])
 
     if (gGlobal->gOneSample >= 0 && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : '-os' option cannot only be used in scalar mode\n");
-    }
-
-    if (gGlobal->gFTZMode == 2 && gGlobal->gOutputLang == "cmajor") {
-        throw faustexception("ERROR : '-ftz 2' option cannot be used in 'cmajor' backend\n");
     }
 
     if (gGlobal->gVectorLoopVariant < 0 || gGlobal->gVectorLoopVariant > 1) {
@@ -796,6 +795,16 @@ static bool processCmdline(int argc, const char* argv[])
         && gGlobal->gOutputLang != "c"
         && gGlobal->gOutputLang != "fir") {
         throw faustexception("ERROR : -fx can only be used with 'c', 'cpp', 'ocpp' or 'fir' backends\n");
+    }
+    
+    if (gGlobal->gFTZMode == 2
+        && gGlobal->gOutputLang != "cpp"
+        && gGlobal->gOutputLang != "ocpp"
+        && gGlobal->gOutputLang != "c"
+        && gGlobal->gOutputLang != "llvm"
+        && startWith(gGlobal->gOutputLang, "wast")
+        && startWith(gGlobal->gOutputLang,  "wasm")) {
+        throw faustexception("ERROR : -ftz 2 can only be used with 'c', 'cpp', 'ocpp', 'llvm' or wast/wasm backends\n");
     }
 
     if (gGlobal->gClang && gGlobal->gOutputLang != "cpp" && gGlobal->gOutputLang != "ocpp" &&

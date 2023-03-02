@@ -240,6 +240,8 @@ static string sigLabel(Tree sig)
 
     else if (isSigIntCast(sig, x)) {
         fout << "int";
+    } else if (isSigBitCast(sig, x)) {
+        fout << "bit";
     } else if (isSigFloatCast(sig, x)) {
         fout << "float";
     }

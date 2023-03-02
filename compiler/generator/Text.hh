@@ -51,6 +51,7 @@ std::string TAux(float n);
 std::string T(float n);
 std::string TAux(double n);
 std::string T(double n);
+std::string T(int64_t n);
 
 // Add and remove quotes of a std::string
 std::string unquote(const std::string& s);

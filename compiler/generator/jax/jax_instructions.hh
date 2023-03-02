@@ -671,7 +671,6 @@ class JAXInstVisitor : public TextInstVisitor {
         }
     }
 
-    // TODO : does not work, put this code in a function
     virtual void visit(BitcastInst* inst)
     {
         faustassert(false);

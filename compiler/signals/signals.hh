@@ -46,9 +46,11 @@ typedef std::vector<Tree> siglist;
 
 // Constant signals : for all t, x(t)=n
 LIBFAUST_API Tree sigInt(int n);
+Tree sigInt64(int64_t n);
 LIBFAUST_API Tree sigReal(double n);
 
 LIBFAUST_API bool isSigInt(Tree t, int* i);
+bool isSigInt64(Tree t, int64_t* i);
 LIBFAUST_API bool isSigReal(Tree t, double* r);
 
 // Waveforms
@@ -73,14 +75,17 @@ LIBFAUST_API bool isSigDelay(Tree t, Tree& t0, Tree& t1);
 Tree sigPrefix(Tree t0, Tree t1);
 LIBFAUST_API bool isSigPrefix(Tree t, Tree& t0, Tree& t1);
 
-// Int and Double casting
+// Int, Bitcast and Double casting
 LIBFAUST_API Tree sigIntCast(Tree t);
+Tree sigBitCast(Tree t);
 LIBFAUST_API Tree sigFloatCast(Tree t);
 
 bool isSigIntCast(Tree t);
+bool isSigBitCast(Tree t);
 bool isSigFloatCast(Tree t);
 
 LIBFAUST_API bool isSigIntCast(Tree t, Tree& x);
+bool isSigBitCast(Tree t, Tree& x);
 LIBFAUST_API bool isSigFloatCast(Tree t, Tree& x);
 
 // Tables

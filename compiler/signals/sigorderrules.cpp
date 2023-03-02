@@ -82,8 +82,9 @@ int getSigOrder(Tree sig)
  */
 static int infereSigOrder(Tree sig)
 {
-    int    i;
-    double r;
+    int     i;
+    int64_t i64;
+    double  r;
     Tree   sel, s1, s2, s3, s4, ff, id, ls, l, x, y, z, var, body, type, name, file, sf;
 
     xtended* xt = (xtended*)getUserData(sig);
@@ -97,6 +98,9 @@ static int infereSigOrder(Tree sig)
     }
 
     else if (isSigInt(sig, &i))
+        return 0;
+    
+    else if (isSigInt64(sig, &i64))
         return 0;
 
     else if (isSigReal(sig, &r))
@@ -124,6 +128,9 @@ static int infereSigOrder(Tree sig)
         return std::max(O(s1), O(s2));
 
     else if (isSigIntCast(sig, s1))
+        return O(s1);
+    
+    else if (isSigBitCast(sig, s1))
         return O(s1);
 
     else if (isSigFloatCast(sig, s1))

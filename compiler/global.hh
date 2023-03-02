@@ -321,8 +321,7 @@ struct global {
     xtended* gAtanPrim;
     xtended* gAtan2Prim;
     xtended* gAsinPrim;
-    xtended* gFtzPrim;
-
+ 
     // Signals
     Sym BOXIDENT;
     Sym BOXCUT;
@@ -428,6 +427,7 @@ struct global {
     Sym SIGFVAR;
     Sym SIGPROJ;
     Sym SIGINTCAST;
+    Sym SIGBITCAST;
     Sym SIGFLOATCAST;
     Sym SIGBUTTON;
     Sym SIGCHECKBOX;

@@ -301,6 +301,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
     LLVMType getCurType() { return fCurValue->getType(); }
     
+    LLVMValue genTypedZero() { return (getCurType() == getInt32Ty()) ?  genInt32(0) :  genInt64(0); }
+    
     LLVMBlock genBlock(const std::string& name, LLVMFun fun = nullptr)
     {
         return llvm::BasicBlock::Create(fModule->getContext(), name, fun);
@@ -940,6 +942,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         visitIf(inst);
     }
     
+    
     // Select that computes both branches
     void visitSelect(Select2Inst* inst)
     {
@@ -947,7 +950,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         inst->fCond->accept(this);
      
         // Compare condition to 0
-        LLVMValue cond_value = fBuilder->CreateICmp(llvm::ICmpInst::ICMP_NE, fCurValue, genInt32(0));
+        LLVMValue cond_value = fBuilder->CreateICmp(llvm::ICmpInst::ICMP_NE, fCurValue, genTypedZero());
 
         // Compile then branch, result in fCurValue
         inst->fThen->accept(this);
@@ -979,7 +982,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         inst->fCond->accept(this);
         
         // Compare condition to 0
-        LLVMValue cond_value = fBuilder->CreateICmp(llvm::ICmpInst::ICMP_NE, fCurValue, genInt32(0));
+        LLVMValue cond_value = fBuilder->CreateICmp(llvm::ICmpInst::ICMP_NE, fCurValue, genTypedZero());
       
         // Get enclosing function
         LLVMFun function = fBuilder->GetInsertBlock()->getParent();
@@ -1035,7 +1038,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         inst->fCond->accept(this);
   
         // Compare condition to 0
-        LLVMValue cond_value = fBuilder->CreateICmp(llvm::ICmpInst::ICMP_NE, fCurValue, genInt32(0));
+        LLVMValue cond_value = fBuilder->CreateICmp(llvm::ICmpInst::ICMP_NE, fCurValue, genTypedZero());
  
         // Get enclosing function
         LLVMFun function = fBuilder->GetInsertBlock()->getParent();
@@ -1127,7 +1130,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             inst->fEnd->accept(this);
    
             // Compare condition to 0
-            LLVMValue end_cond = fBuilder->CreateICmp(llvm::ICmpInst::ICMP_NE, fCurValue, genInt32(0));
+            LLVMValue end_cond = fBuilder->CreateICmp(llvm::ICmpInst::ICMP_NE, fCurValue, genTypedZero());
       
             // Insert the conditional branch into the last block of loop
             fBuilder->CreateCondBr(end_cond, loop_body_block, exit_block);
@@ -1194,7 +1197,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         LLVMBlock exit_block = genBlock("exit_block", function);
  
         // Compare condition to 0
-        LLVMValue end_cond = fBuilder->CreateICmp(llvm::ICmpInst::ICMP_NE, fCurValue, genInt32(0));
+        LLVMValue end_cond = fBuilder->CreateICmp(llvm::ICmpInst::ICMP_NE, fCurValue, genTypedZero());
     
         // Insert the conditional branch into the end of cond_block
         fBuilder->CreateCondBr(end_cond, test_block, exit_block);

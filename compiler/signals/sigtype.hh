@@ -265,6 +265,11 @@ inline Type intCast(Type t)
     return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(), t->boolean(),
                           cast2int(t->getInterval()));
 }
+inline Type bitCast(Type t)
+{
+    return makeSimpleType(kInt, t->variability(), t->computability(), t->vectorability(), t->boolean(),
+                          t->getInterval());
+}
 inline Type floatCast(Type t)
 {
     return makeSimpleType(kReal, t->variability(), t->computability(), t->vectorability(), t->boolean(),

@@ -35,7 +35,6 @@
 #include "floats.hh"
 #include "floorprim.hh"
 #include "fmodprim.hh"
-#include "ftzprim.hh"
 #include "global.hh"
 #include "instructions.hh"
 #include "log10prim.hh"
@@ -242,8 +241,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     gAtanPrim      = new AtanPrim();
     gAtan2Prim     = new Atan2Prim();
     gAsinPrim      = new AsinPrim();
-    gFtzPrim       = new FtzPrim();
-
+  
     BOXIDENT         = symbol("BoxIdent");
     BOXCUT           = symbol("BoxCut");
     BOXWAVEFORM      = symbol("BoxWaveform");
@@ -334,6 +332,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     SIGFVAR            = symbol("SigFVar");
     SIGPROJ            = symbol("SigProj");
     SIGINTCAST         = symbol("SigIntCast");
+    SIGBITCAST         = symbol("SigBitCast");
     SIGFLOATCAST       = symbol("SigFloatCast");
     SIGBUTTON          = symbol("SigButton");
     SIGCHECKBOX        = symbol("SigCheckbox");

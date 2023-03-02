@@ -19,7 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-
 #include <stdlib.h>
 #include <cstdlib>
 
@@ -33,7 +32,7 @@ using namespace std;
 // TreeTransform: Recursive transformation of a Tree with memoization
 //------------------------------------------------------------------------------
 // This is an abstract class. Derived class just have to implement the
-// `transformation(t)` method. The `transformation(t)` method
+// `transformation(t)` or `selfRec(t)` methods. The `transformation(t)` method
 // should not call itself recursively directly, but exclusively via `self(t)`
 // (or `mapself(lt)` for a list).
 //------------------------------------------------------------------------------
@@ -70,5 +69,21 @@ Tree TreeTransform::mapself(Tree lt)
         return lt;
     } else {
         return cons(self(hd(lt)), mapself(tl(lt)));
+    }
+}
+
+// To be implemented by subclassess for a specific transformation on recursive signals
+Tree TreeTransform::selfRec(Tree t)
+{
+    return self(t);
+}
+
+// Apply selfRec on all recursive signals in the group
+Tree TreeTransform::mapselfRec(Tree lt)
+{
+    if (isNil(lt)) {
+        return lt;
+    } else {
+        return cons(selfRec(hd(lt)), mapselfRec(tl(lt)));
     }
 }

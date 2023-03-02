@@ -44,6 +44,7 @@ static const char* floatptrname[5];     // float ptr types
 static const char* floatptrptrname[5];  // float ptr ptr types
 static const char* castname[5];         // float castings
 static double      floatmin[5];         // minimum float values before denormals
+static int64_t     floatmax[5];         // maximum float values
 
 void initFaustFloat()
 {
@@ -92,6 +93,12 @@ void initFaustFloat()
         floatmin[3] = LDBL_MIN;
         floatmin[4] = FLT_MIN;
         
+        floatmax[0] = 0;
+        floatmax[1] = 0x7F800000;
+        floatmax[2] = 0x7FF0000000000000;
+        floatmax[3] = 0x7FF0000000000000;
+        floatmax[4] = 0x7F800000;
+        
     // Specific for Julia backend
     } else  if (gGlobal->gOutputLang == "julia") {
         numsuffix[0] = "";
@@ -129,6 +136,12 @@ void initFaustFloat()
         floatmin[2] = DBL_MIN;
         floatmin[3] = LDBL_MIN;
         floatmin[4] = FLT_MIN;
+        
+        floatmax[0] = 0;
+        floatmax[1] = 0x7F800000;
+        floatmax[2] = 0x7FF0000000000000;
+        floatmax[3] = 0x7FF0000000000000;
+        floatmax[4] = 0x7F800000;
 
     // Specific for JAX backend
     } else  if (gGlobal->gOutputLang == "jax") {
@@ -167,6 +180,12 @@ void initFaustFloat()
         floatmin[2] = DBL_MIN;
         floatmin[3] = LDBL_MIN;
         floatmin[4] = FLT_MIN;
+        
+        floatmax[0] = 0;
+        floatmax[1] = 0x7F800000;
+        floatmax[2] = 0x7FF0000000000000;
+        floatmax[3] = 0x7FF0000000000000;
+        floatmax[4] = 0x7F800000;
             
     // Specific for D backend
     } else if (gGlobal->gOutputLang == "dlang") {
@@ -206,6 +225,12 @@ void initFaustFloat()
         floatmin[3] = LDBL_MIN;
         floatmin[4] = FLT_MIN;
         
+        floatmax[0] = 0;
+        floatmax[1] = 0x7F800000;
+        floatmax[2] = 0x7FF0000000000000;
+        floatmax[3] = 0x7FF0000000000000;
+        floatmax[4] = 0x7F800000;
+        
     // Specific for C/C++ backends
     } else {
         numsuffix[0] = "";
@@ -243,6 +268,12 @@ void initFaustFloat()
         floatmin[2] = DBL_MIN;
         floatmin[3] = LDBL_MIN;
         floatmin[4] = FLT_MIN;
+        
+        floatmax[0] = 0;
+        floatmax[1] = 0x7F800000;
+        floatmax[2] = 0x7FF0000000000000;
+        floatmax[3] = 0x7FF0000000000000;
+        floatmax[4] = 0x7F800000;
     }
 }
 
@@ -281,6 +312,11 @@ const char* icast()
 double inummin()
 {
     return floatmin[gGlobal->gFloatSize];
+}
+
+int64_t inummax()
+{
+    return floatmax[gGlobal->gFloatSize];
 }
 
 const char* xfloat()

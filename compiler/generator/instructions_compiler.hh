@@ -187,6 +187,7 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* generateRec(Tree sig, Tree var, Tree le, int index = -1);
 
     virtual ValueInst* generateIntCast(Tree sig, Tree x);
+    virtual ValueInst* generateBitCast(Tree sig, Tree x);
     virtual ValueInst* generateFloatCast(Tree sig, Tree x);
 
     virtual ValueInst* generateButton(Tree sig, Tree label);
@@ -204,6 +205,7 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y, ValueInst* z);
 
     virtual ValueInst* generateIntNumber(Tree sig, int num);
+    virtual ValueInst* generateInt64Number(Tree sig, int64_t num);
     virtual ValueInst* generateRealNumber(Tree sig, double num);
     virtual ValueInst* generateFConst(Tree sig, Tree type, const std::string& file, const std::string& name);
     virtual ValueInst* generateFVar(Tree sig, Tree type, const std::string& file, const std::string& name);

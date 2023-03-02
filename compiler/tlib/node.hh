@@ -60,7 +60,7 @@
 /**
  * Tags used to define the type of a Node
  */
-enum { kIntNode, kDoubleNode, kSymNode, kPointerNode };
+enum NodeType { kIntNode, kInt64Node, kDoubleNode, kSymNode, kPointerNode };
 
 /**
  * Class Node = (type x (int + double + Sym + void*))
@@ -85,6 +85,7 @@ class Node : public virtual Garbageable {
         fData.i = x;
     }
     Node(double x) : fType(kDoubleNode) { fData.f = x; }
+    Node(int64_t x) : fType(kInt64Node) { fData.v = x; }
     Node(const char* name) : fType(kSymNode)
     {
         fData.f = 0;
@@ -113,10 +114,11 @@ class Node : public virtual Garbageable {
     // accessors
     int type() const { return fType; }
 
-    int    getInt() const { return fData.i; }
-    double getDouble() const { return fData.f; }
-    Sym    getSym() const { return fData.s; }
-    void*  getPointer() const { return fData.p; }
+    int     getInt() const { return fData.i; }
+    int64_t getInt64() const { return fData.v; }
+    double  getDouble() const { return fData.f; }
+    Sym     getSym() const { return fData.s; }
+    void*   getPointer() const { return fData.p; }
 
     // conversions and promotion for numbers
     operator int() const { return (fType == kIntNode) ? fData.i : (fType == kDoubleNode) ? int(fData.f) : 0; }
@@ -135,7 +137,7 @@ inline std::ostream& operator<<(std::ostream& s, const Node& n)
 // Predicates and pattern matching
 //-------------------------------------------------------------------------
 
-// integers
+// integers 32 bits
 inline bool isInt(const Node& n)
 {
     return (n.type() == kIntNode);
@@ -145,6 +147,22 @@ inline bool isInt(const Node& n, int* x)
 {
     if (n.type() == kIntNode) {
         *x = n.getInt();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// integer 64 bits: incomplete implementation but enough to be used in FTZ = 2 mode
+inline bool isInt64(const Node& n)
+{
+    return (n.type() == kInt64Node);
+}
+
+inline bool isInt64(const Node& n, int64_t* x)
+{
+    if (n.type() == kInt64Node) {
+        *x = n.getInt64();
         return true;
     } else {
         return false;

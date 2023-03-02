@@ -40,9 +40,10 @@ using namespace std;
 
 void SignalVisitor::visit(Tree sig)
 {
-    int    i;
-    double r;
-    Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
+    int     i;
+    int64_t i64;
+    double  r;
+    Tree    c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
 
     if (getUserData(sig)) {
         for (Tree b : sig->branches()) {
@@ -50,6 +51,8 @@ void SignalVisitor::visit(Tree sig)
         }
         return;
     } else if (isSigInt(sig, &i)) {
+        return;
+    } else if (isSigInt64(sig, &i64)) {
         return;
     } else if (isSigReal(sig, &r)) {
         return;
@@ -147,8 +150,11 @@ void SignalVisitor::visit(Tree sig)
         return;
     }
 
-    // Int and Float Cast
+    // Int, Bit and Float Cast
     else if (isSigIntCast(sig, x)) {
+        self(x);
+        return;
+    }else if (isSigBitCast(sig, x)) {
         self(x);
         return;
     } else if (isSigFloatCast(sig, x)) {

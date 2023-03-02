@@ -120,6 +120,7 @@ class ScalarCompiler : public Compiler {
     void   generateRec(Tree sig, Tree var, Tree le);
 
     std::string generateIntCast(Tree sig, Tree x);
+    std::string generateBitCast(Tree sig, Tree x);
     std::string generateFloatCast(Tree sig, Tree x);
 
     std::string generateButton(Tree sig, Tree label);

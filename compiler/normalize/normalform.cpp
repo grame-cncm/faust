@@ -82,6 +82,18 @@ static Tree simplifyToNormalFormAux(Tree LS)
         endTiming("L1 typeAnnotation");
     }
     
+    if (gGlobal->gFTZMode > 0) {
+        // Wrap real signals with FTZ
+        startTiming("FTZ on recursive signals");
+        L1 = signalFTZPromotion(L1);
+        endTiming("FTZ on recursive signals");
+        
+        // Annotate L1 with type information
+        startTiming("L1 typeAnnotation");
+        typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
+        endTiming("L1 typeAnnotation");
+    }
+    
     // Needed before 'simplify' (see sigPromotion.hh)
     startTiming("Cast and Promotion");
     Tree L2 = signalPromote(L1);

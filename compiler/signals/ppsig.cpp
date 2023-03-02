@@ -267,6 +267,8 @@ ostream& ppsig::print(ostream& fout) const
 
     else if (isSigIntCast(fSig, x)) {
         printfun(fout, "int", x);
+    } else if (isSigBitCast(fSig, x)) {
+        printfun(fout, "bit", x);
     } else if (isSigFloatCast(fSig, x)) {
         printfun(fout, "float", x);
     }
@@ -526,6 +528,8 @@ ostream& ppsigShared::print(ostream& fout) const
     
     else if (isSigIntCast(fSig, x)) {
         SIG_INSERT_ID(printfun(s, "int", x));
+    } else if (isSigBitCast(fSig, x)) {
+        SIG_INSERT_ID(printfun(s, "bit", x));
     } else if (isSigFloatCast(fSig, x)) {
         SIG_INSERT_ID(printfun(s, "float", x));
     }

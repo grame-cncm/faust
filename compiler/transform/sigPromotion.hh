@@ -237,6 +237,25 @@ class SignalUIFreezePromotion final : public SignalIdentity {
     
 };
 
+//-------------SignalFTZPromotion---------------
+// The wrapping code allows to flush to zero denormalized number.
+// This option should be used only when it is not available on the CPU.
+//--------------------------------------------------
+class SignalFTZPromotion final : public SignalIdentity {
+    
+    private:
+    
+        Tree selfRec(Tree t);
+          
+    public:
+        SignalFTZPromotion()
+        {
+            // Go inside tables
+            fVisitGen = true;
+        }
+    
+};
+
 // Public API
 Tree signalPromote(Tree sig, bool trace = false);
 Tree signalBool2IntPromote(Tree sig);
@@ -245,4 +264,5 @@ Tree signalTablePromote(Tree sig);
 Tree signalIntCastPromote(Tree sig);
 Tree signalUIPromote(Tree sig);
 Tree signalUIFreezePromote(Tree sig);
+Tree signalFTZPromotion(Tree sig);
 #endif

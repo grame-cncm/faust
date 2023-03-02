@@ -50,8 +50,9 @@ void SignalIdentity::traceExit(Tree t, Tree r)
 
 Tree SignalIdentity::transformation(Tree sig)
 {
-    int    i;
-    double r;
+    int     i;
+    int64_t i64;
+    double  r;
     Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
 
     if (getUserData(sig)) {
@@ -61,6 +62,8 @@ Tree SignalIdentity::transformation(Tree sig)
         }
         return tree(sig->node(), newBranches);
     } else if (isSigInt(sig, &i)) {
+        return sig;
+    } else if (isSigInt64(sig, &i64)) {
         return sig;
     } else if (isSigReal(sig, &r)) {
         return sig;
@@ -131,13 +134,15 @@ Tree SignalIdentity::transformation(Tree sig)
         } else {
             // first visit
             rec(var, gGlobal->nil);  // to avoid infinite recursions
-            return rec(var, mapself(le));
+            return rec(var, mapselfRec(le));
         }
     }
 
     // Int and Float Cast
     else if (isSigIntCast(sig, x)) {
         return sigIntCast(self(x));
+    }else if (isSigBitCast(sig, x)) {
+        return sigBitCast(self(x));
     } else if (isSigFloatCast(sig, x)) {
         return sigFloatCast(self(x));
     }
