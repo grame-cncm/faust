@@ -150,23 +150,12 @@ string T(char* c)
 
 string T(int n)
 {
-    char c[64];
-    snprintf(c, 63, "%d", n);
-    return string(c);
+    return std::to_string(n);
 }
 
 string T(int64_t n)
 {
-    char c[64];
-    snprintf(c, 63, "%lld", n);
-    return string(c);
-}
-
-string T(long n)
-{
-    char c[64];
-    snprintf(c, 63, "%ld", n);
-    return string(c);
+    return std::to_string(n);
 }
 
 /**
