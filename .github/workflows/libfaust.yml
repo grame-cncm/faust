@@ -102,8 +102,12 @@ jobs:
    
     - name: Make distribution
       run: |
-        strip --strip-unneeded build/lib/libfaust.so
-   
+        cd build/lib
+        rm -f libfaust.so libfaust.so.2
+        newest=$(ls -1 libfaust.so.* | tail -n1)
+        mv "$newest" libfaust.so
+        strip --strip-unneeded libfaust.so
+        
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
