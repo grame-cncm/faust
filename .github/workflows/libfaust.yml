@@ -101,16 +101,21 @@ jobs:
         SndFile_DIR: ${{ github.workspace }}/libsndfile/build
    
     - name: Make distribution
+      # We make a zip ourself because of a possible issue with upload-artifact on ubuntu
       run: |
+        yum install zip -y
         strip --strip-unneeded build/lib/libfaust.so
         mkdir libfaust
         cp -v -r build/lib/libfaust.so libfaust
+        cp -v -r build/lib/libOSCFaust.a libfaust
+        zip -r libfaust-${{ matrix.name }}.zip libfaust
    
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: my-artifact-${{ matrix.name }}
-        path: libfaust
+        name: libfaust-${{ matrix.name }}
+        path: libfaust-${{ matrix.name }}.zip
+        if-no-files-found: error
 
   build-macos:
     strategy:
@@ -218,8 +223,9 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: my-artifact-${{ matrix.name }}
+        name: libfaust-${{ matrix.name }}
         path: libfaust
+        if-no-files-found: error
 
   build-windows:
     runs-on: ${{ matrix.os }}
@@ -316,5 +322,6 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: my-artifact-${{ matrix.name }}
+        name: libfaust-${{ matrix.name }}
         path: build/lib/Release
+        if-no-files-found: error
