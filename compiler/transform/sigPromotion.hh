@@ -43,22 +43,8 @@ class SignalTypePrinter final : public SignalVisitor {
         void visit(Tree sig) override;
         
     public:
-        SignalTypePrinter(Tree L)
-        {
-            // Check that the root tree is properly type annotated
-            getCertifiedSigType(L);
-            visitRoot(L);
-            /*
-                HACK: since the signal tree shape is still not deterministic,
-                we sort the list to be sure it stays the same.
-                To be removed if the tree shape becomes deterministic.
-             */
-            std::sort(fPrinted.begin(), fPrinted.end());
-            std::cout << "Size = " << fPrinted.size() << std::endl;
-            for (const auto& it : fPrinted) {
-                std::cout << it;
-            }
-        }
+        SignalTypePrinter(Tree L);
+
 };
 
 /*
@@ -67,6 +53,8 @@ class SignalTypePrinter final : public SignalVisitor {
  - for correct SigBinOp args typing
  - for proper SigIntCast and SigFloatCast use
  - for correct range in sliders (min < max and default in [min...max] range)
+ - for use on control/enable (not available in -vec mode)
+ - for proper simplication of sigLowest/sigHigest
 
  To be used on a type annotated signal.
 */
@@ -75,21 +63,8 @@ class SignalChecker final : public SignalVisitor {
     private:
         void visit(Tree sig) override;
     
-        void isRange(Tree sig, Tree init_aux, Tree min_aux, Tree max_aux)
-        {
-            std::stringstream error;
-            double init = tree2float(init_aux);
-            double min = tree2float(min_aux);
-            double max = tree2float(max_aux);
-            if (min > max) {
-                error << "ERROR : min = " << min << " should be less than max = " << max << " in '" << ppsig(sig) << "'\n";
-                throw faustexception(error.str());
-            } else if (init < min || init > max) {
-                error << "ERROR : init = " << init << " outside of [" << min << " " << max << "] range in '" << ppsig(sig) << "'\n";
-                throw faustexception(error.str());
-            }
-        }
-
+        void isRange(Tree sig, Tree init_aux, Tree min_aux, Tree max_aux);
+  
     public:
         SignalChecker(Tree L)
         {
@@ -220,7 +195,7 @@ class SignalUIPromotion final : public SignalIdentity {
 };
 
 //-------------------------SignalUIFreezePromotion---------------------------
-// Freeze range UI items (sliders and nentry)to their init value. Everything
+// Freeze range UI items (sliders and nentry) to their init value. Everything
 // that depends of sliders and nentry will be computed at compile time.
 //---------------------------------------------------------------------------
 class SignalUIFreezePromotion final : public SignalIdentity {

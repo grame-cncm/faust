@@ -173,8 +173,8 @@ static interval arithmetic(int opcode, const interval& x, const interval& y)
  * @param inter if set to false, the interval of the new type is the union of the old one and the computed one,
  * otherwise it is the intersection
  */
-void updateRecTypes(vector<Tree>& vrec, const vector<Tree>& vdef, const vector<int>& vdefSizes, vector<Type>& vtype,
-                    const bool inter)
+static void updateRecTypes(vector<Tree>& vrec, const vector<Tree>& vdef, const vector<int>& vdefSizes, vector<Type>& vtype,
+                         const bool inter)
 {
     Type         newType;
     vector<Type> newTuplet;

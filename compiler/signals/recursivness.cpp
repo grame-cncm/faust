@@ -38,9 +38,9 @@ using namespace std;
  * Annotate a signal expression with recursivness information. Recursiveness
  * indicates the amount of recursive dependencies of a signal. A closed signal
  * has a recursivness of 0 because is has no recursive dependencies. This means
- * that the succesive samples of this signal can be computed in parallel.
+ * that the successive samples of this signal can be computed in parallel.
  * In a signal of type \x.(...F(x)...), F(x) has a recursivness of 1. In a
- * signal of type \x.(... \y.(...F(x)...G(y)...)...) F(x) has a recursivness of 2
+ * signal of type \x.(... \y.(...F(x)...G(y)...)...), F(x) has a recursivness of 2
  * while G(y) has a recursivness of 1.
  */
 
@@ -50,8 +50,7 @@ static int position(Tree env, Tree t, int p = 1);
 //--------------------------------------------------------------------------
 
 /**
- * Annotate a signal with recursivness. Should be used before
- * calling getRecursivness
+ * Annotate a signal with recursivness. Should be used before calling getRecursivness.
  * @param sig signal to annotate
  */
 void recursivnessAnnotation(Tree sig)
@@ -129,7 +128,6 @@ static int position(Tree env, Tree t, int p)
 }
 
 //-----------------------------------list recursive symbols-----------------------
-
 /**
  * Return the set of recursive symbols appearing in a signal.
  * @param sig the signal to analyze
@@ -164,6 +162,12 @@ static Tree symlistVisit(Tree sig, set<Tree>& visited)
         }
     }
 }
+
+/**
+ * Return the set of recursive symbols appearing in a signal.
+ * @param sig the signal to analyze
+ * @return the set of symbols
+ */
 
 Tree symlist(Tree sig)
 {

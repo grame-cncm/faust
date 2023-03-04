@@ -24,6 +24,15 @@
 
 #include "boxes.hh"
 
+/**
+ * Return the complexity property of a box expression tree.
+ *
+ * @param box an evaluated box expression tree
+ * @return the complexity of box
+ *
+ * @see computeBoxComplexity
+ */
+
 int boxComplexity(Tree box);
 
 #endif

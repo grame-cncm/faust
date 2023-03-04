@@ -31,6 +31,7 @@
 #include "type_manager.hh"
 #include "struct_manager.hh"
 #include "instructions_complexity.hh"
+#include "timing.hh"
 
 using namespace std;
 
@@ -516,6 +517,14 @@ void CodeContainer::processFIR(void)
      fDeclarationInstructions->fCode.sort(sortArrayDeclarations);
      fDeclarationInstructions->fCode.sort(sortTypeDeclarations);
      */
+    
+    // Check FIR code
+    if (global::isDebug("FIR_CHECKER")) {
+        startTiming("FIR checker");
+        FIRChecker fir_checker;
+        flattenFIR()->accept(&fir_checker);
+        endTiming("FIR checker");
+    }
 }
 
 BlockInst* CodeContainer::flattenFIR(void)

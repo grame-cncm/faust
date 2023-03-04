@@ -33,10 +33,6 @@
 
 using namespace std;
 
-/**
- * property Key used to store box complexity
- */
-
 static int computeBoxComplexity(Tree box);
 
 /**
@@ -78,7 +74,7 @@ int boxComplexity(Tree box)
  * @param box an evaluated box expression tree
  * @return the complexity of box
  */
-int computeBoxComplexity(Tree box)
+static int computeBoxComplexity(Tree box)
 {
     int    i;
     double r;

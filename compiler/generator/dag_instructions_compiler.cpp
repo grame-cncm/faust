@@ -125,14 +125,6 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 
     // Apply FIR to FIR transformations
     fContainer->processFIR();
-    
-    // Check FIR code
-    if (global::isDebug("FIR_CHECKER")) {
-        startTiming("FIR checker");
-        FIRChecker fir_checker;
-        fContainer->flattenFIR()->accept(&fir_checker);
-        endTiming("FIR checker");
-    }
   
     endTiming("compileMultiSignal");
 }

@@ -652,14 +652,6 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     // Apply FIR to FIR transformations
     fContainer->processFIR();
     
-    // Check FIR code
-    if (global::isDebug("FIR_CHECKER")) {
-        startTiming("FIR checker");
-        FIRChecker fir_checker;
-        fContainer->flattenFIR()->accept(&fir_checker);
-        endTiming("FIR checker");
-    }
-
     endTiming("compileMultiSignal");
 }
 
@@ -704,10 +696,10 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         return code;
     }
 
-    int      i;
-    int64_t  i64;
-    double r;
-    Tree   c, sel, x, y, z, label, id, ff, largs, type, name, file, sf;
+    int     i;
+    int64_t i64;
+    double  r;
+    Tree    c, sel, x, y, z, label, id, ff, largs, type, name, file, sf;
 
     // printf("compilation of %p : ", sig); print(sig); printf("\n");
 
@@ -798,19 +790,11 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
     else if (isSigAttach(sig, x, y)) {
         CS(y);
         return generateCacheCode(sig, CS(x));
-       
     } else if (isSigControl(sig, x, y)) {
-        if (gGlobal->gVectorSwitch) {
-            throw faustexception("ERROR : 'control/enable' can only be used in scalar mode\n");
-        }
         return generateControl(sig, x, y);
-        
     } else if (isSigAssertBounds(sig, x, y, z)) {
         /* no debug option for the moment */
         return generateCode(z);
-    } else if (isSigLowest(sig, x) || isSigHighest(sig, x)) {
-        throw faustexception("ERROR : annotations should have been deleted in Simplification process\n");
-        
     /* we should not have any control at this stage*/
     } else {
         cerr << "ASSERT : when compiling, unrecognized signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;

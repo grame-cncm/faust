@@ -37,32 +37,31 @@ using namespace std;
  * <rpath> = (<gname> '/')+
  * <gname> = ".." | "." | <gtype> <name>
  * <gtype> = "h:" | "H:" | "v:" | V:" | "t:" | "T:"
- *
  */
 
-Tree pathRoot()
+static Tree pathRoot()
 {
     return tree(gGlobal->PATHROOT);
 }
-bool isPathRoot(Tree t)
+static bool isPathRoot(Tree t)
 {
     return isTree(t, gGlobal->PATHROOT);
 }
 
-Tree pathParent()
+static Tree pathParent()
 {
     return tree(gGlobal->PATHPARENT);
 }
-bool isPathParent(Tree t)
+static bool isPathParent(Tree t)
 {
     return isTree(t, gGlobal->PATHPARENT);
 }
 
-Tree pathCurrent()
+static Tree pathCurrent()
 {
     return tree(gGlobal->PATHCURRENT);
 }
-bool isPathCurrent(Tree t)
+static bool isPathCurrent(Tree t)
 {
     return isTree(t, gGlobal->PATHCURRENT);
 }
@@ -169,6 +168,7 @@ static Tree normalizeLabel(Tree label, Tree path)
     }
 }
 
+// Normalize a path
 Tree normalizePath(Tree path)
 {
     // cout << "Normalize Path [[" << *path << "]]" << endl;

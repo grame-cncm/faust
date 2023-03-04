@@ -254,6 +254,7 @@ TupletType* isTupletType(AudioType* t)
 
 //--------------------------------------------------
 // Type checking
+//--------------------------------------------------
 
 Type checkInt(Type t)
 {

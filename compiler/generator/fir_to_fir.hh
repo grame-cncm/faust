@@ -612,7 +612,6 @@ struct FIRChecker : public DispatchVisitor {
 };
 
 /*
- 
   Remove usage of var address:
   int* v1 = &foo[n]; ==> v1 definition is removed, usage of v1[m] are replaced with foo[n+m]
   v1 = &foo[n];      ==> usage of v1[m] are replaced with foo[n+m]

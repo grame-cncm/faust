@@ -33,6 +33,23 @@
 
 using namespace std;
 
+SignalTypePrinter::SignalTypePrinter(Tree L)
+{
+    // Check that the root tree is properly type annotated
+    getCertifiedSigType(L);
+    visitRoot(L);
+    /*
+     HACK: since the signal tree shape is still not deterministic,
+     we sort the list to be sure it stays the same.
+     To be removed if the tree shape becomes deterministic.
+     */
+    std::sort(fPrinted.begin(), fPrinted.end());
+    std::cout << "Size = " << fPrinted.size() << std::endl;
+    for (const auto& it : fPrinted) {
+        std::cout << it;
+    }
+}
+
 void SignalTypePrinter::visit(Tree sig)
 {
     stringstream type;
@@ -41,6 +58,21 @@ void SignalTypePrinter::visit(Tree sig)
     
     // Default case and recursion
     SignalVisitor::visit(sig);
+}
+
+void SignalChecker::isRange(Tree sig, Tree init_aux, Tree min_aux, Tree max_aux)
+{
+    std::stringstream error;
+    double init = tree2float(init_aux);
+    double min = tree2float(min_aux);
+    double max = tree2float(max_aux);
+    if (min > max) {
+        error << "ERROR : min = " << min << " should be less than max = " << max << " in '" << ppsig(sig) << "'\n";
+        throw faustexception(error.str());
+    } else if (init < min || init > max) {
+        error << "ERROR : init = " << init << " outside of [" << min << " " << max << "] range in '" << ppsig(sig) << "'\n";
+        throw faustexception(error.str());
+    }
 }
 
 void SignalChecker::visit(Tree sig)
@@ -160,7 +192,7 @@ void SignalChecker::visit(Tree sig)
             faustassert(false);
         }
         
-        // Sliders and Numentry
+        // Sliders and nentry
     } else if (isSigVSlider(sig, label, init, min, max, step)
                || isSigHSlider(sig, label, init, min, max, step)
                || isSigNumEntry(sig, label, init, min, max, step)) {
@@ -178,6 +210,15 @@ void SignalChecker::visit(Tree sig)
             cerr << "ASSERT : isSigVBargraph of a kInt signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
+        
+        // signal bounds
+    } else if (isSigLowest(sig, x) || isSigHighest(sig, x)) {
+        cerr << "ASSERT : annotations should have been deleted in Simplification process" << endl;
+        faustassert(false);
+        
+        // enable/control
+    } else if (isSigControl(sig, x, y) && gGlobal->gVectorSwitch) {
+        throw faustexception("ERROR : 'control/enable' can only be used in scalar mode\n");
     }
 
     // Default case and recursion
@@ -203,7 +244,6 @@ Tree SignalPromotion::transformation(Tree sig)
             vt.push_back(getCertifiedSigType(b));
         }
         Type tr = p->infereSigType(vt);
-
         vector<Tree> new_branches;
         for (Tree b : sig->branches()) {
             new_branches.push_back(smartCast(tr, getCertifiedSigType(b), self(b)));

@@ -102,6 +102,7 @@ inline std::ostream& operator<<(std::ostream& file, const envpp &epp)
     return epp.print(file);
 }
 
+// Limit the box description string to max_size characters
 std::string mBox(Tree b, int max_size);
 
 #endif

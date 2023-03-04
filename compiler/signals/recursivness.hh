@@ -24,9 +24,27 @@
 
 #include "signals.hh"
 
+/**
+ * Annotate a signal with recursivness. Should be used before
+ * calling getRecursivness.
+ * @param sig signal to annotate
+ */
 void recursivnessAnnotation(Tree sig);
-int  getRecursivness(Tree t);
 
+/**
+ * Return the recursivness of a previously
+ * annotated signal. An error is generated
+ * if the signal has no recursivness property.
+ * @param sig signal
+ * @return recursivness of the signal
+ */
+int getRecursivness(Tree t);
+
+/**
+ * Return the set of recursive symbols appearing in a signal.
+ * @param sig the signal to analyze
+ * @return the set of symbols
+ */
 Tree symlist(Tree sig);
 
 #endif

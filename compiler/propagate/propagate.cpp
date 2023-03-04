@@ -178,29 +178,6 @@ static bool getPropagateProperty(Tree args, siglist& lsig)
  */
 static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig);
 
-/**
- * Propagate a list of signals into a block diagram. Do memoization.
- *
- * @param slotenv environment associating slots and signals
- * @param path user interface group path
- * @param box the block diagram
- * @param lsig the list of input signals to propagate
- * @return the resulting list of output signals
- */
-siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
-{
-    Tree    args = tree(gGlobal->PROPAGATEPROPERTY, slotenv, path, box, listConvert(lsig));
-    siglist result;
-    if (!getPropagateProperty(args, result)) {
-        result = realPropagate(slotenv, path, box, lsig);
-        setPropagateProperty(args, result);
-    }
-    // cerr << "propagate in " << boxpp(box) << endl;
-    // for (int i = 0; i < lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i]) << endl; }
-    // cerr << endl;
-    return result;
-}
-
 // Collect the leaf numbers of tree l into vector v.
 // return true if l is a number or a parallel tree of numbers.
 static bool isIntTree(Tree l, vector<int>& v)
@@ -581,8 +558,33 @@ static siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& l
     return siglist();
 }
 
+//------------------
 // Public Interface
 //------------------
+
+/**
+ * Propagate a list of signals into a block diagram. Do memoization.
+ *
+ * @param slotenv environment associating slots and signals
+ * @param path user interface group path
+ * @param box the block diagram
+ * @param lsig the list of input signals to propagate
+ * @return the resulting list of output signals
+ */
+
+siglist propagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
+{
+    Tree    args = tree(gGlobal->PROPAGATEPROPERTY, slotenv, path, box, listConvert(lsig));
+    siglist result;
+    if (!getPropagateProperty(args, result)) {
+        result = realPropagate(slotenv, path, box, lsig);
+        setPropagateProperty(args, result);
+    }
+        // cerr << "propagate in " << boxpp(box) << endl;
+        // for (int i = 0; i < lsig.size(); i++) { cerr << " -> signal " << i << " : " << *(lsig[i]) << endl; }
+        // cerr << endl;
+    return result;
+}
 
 //! build a list of n inputs
 siglist makeSigInputList(int n)

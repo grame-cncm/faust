@@ -486,18 +486,11 @@ string ScalarCompiler::generateCode(Tree sig)
         CS(y);
         return generateCacheCode(sig, CS(x));
     } else if (isSigControl(sig, x, y)) {
-        if (gGlobal->gVectorSwitch) {
-            throw faustexception("ERROR : 'control/enable' can only be used in scalar mode\n");
-        }
         return generateControl(sig, x, y);
-
     } else if (isSigAssertBounds(sig, x, y, z)) {
         /* no debug option for the moment */
         return generateCode(z);
-    } else if (isSigLowest(sig, x) || isSigHighest(sig, x)) {
-        throw faustexception("ERROR : annotations should have been deleted in Simplification process\n");
     }
-
     /* we should not have any control at this stage */
     else {
         cerr << "ASSERT : when compiling, unrecognized signal : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
