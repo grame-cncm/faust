@@ -45,7 +45,11 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/Support/raw_ostream.h>
+#if LLVM_VERSION_MAJOR >= 17
+#include <llvm/TargetParser/Host.h>
+#else
 #include <llvm/Support/Host.h>
+#endif
 
 #define LLVMBuilder llvm::IRBuilder<>*
 #define LLVMModule llvm::Module*
@@ -89,7 +93,12 @@
 #define MakeConstGEP32(type, llvm_name) fBuilder->CreateConstGEP2_32(type, llvm_name, 0, 0);
 #define MakeIntPtrType() fModule->getDataLayout().getIntPtrType(fModule->getContext())
 
+#if LLVM_VERSION_MAJOR >= 17
+#define CreateFuncall(fun, args) fBuilder->CreateCall(fun, llvm::ArrayRef<LLVMValue>(args))
+#else
 #define CreateFuncall(fun, args) fBuilder->CreateCall(fun, makeArrayRef(args))
+#endif
+
 #define CreatePhi(type, name) fBuilder->CreatePHI(type, 0, name);
 #define GetIterator(it) &(*(it))
 
@@ -215,7 +224,11 @@ struct LLVMTypeHelper {
         if (!struct_type) {
             struct_type = llvm::StructType::create(fModule->getContext(), name);
             // Create "packed" struct type to match the size of C++ "packed" defined ones
-            struct_type->setBody(makeArrayRef(types), true);
+        #if LLVM_VERSION_MAJOR >= 17
+            struct_type->setBody(llvm::ArrayRef<LLVMType>(types), true);
+        #else
+             struct_type->setBody(makeArrayRef(types), true);
+        #endif
         }
         return struct_type;
     }
@@ -517,7 +530,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
 
             // Creates function
+        #if LLVM_VERSION_MAJOR >= 17
+            llvm::FunctionType* fun_type = llvm::FunctionType::get(return_type, llvm::ArrayRef<LLVMType>(fun_args_type), false);
+        #else
             llvm::FunctionType* fun_type = llvm::FunctionType::get(return_type, makeArrayRef(fun_args_type), false);
+        #endif
             function = llvm::Function::Create(fun_type, (inst->fType->fAttribute & FunTyped::kLocal
                                                    || inst->fType->fAttribute & FunTyped::kStatic)
                                         ? llvm::GlobalValue::InternalLinkage
