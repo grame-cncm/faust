@@ -84,20 +84,20 @@ typedef const std::vector<Type>& ConstTypes;
 
 class AudioType : public virtual Garbageable {
    protected:
-    int           fNature;         ///< the kind of data represented
-    int           fVariability;    ///< how fast values change
-    int           fComputability;  ///< when are values available
-    int           fVectorability;  ///< when a signal can be vectorized
-    int           fBoolean;        ///< when a signal stands for a boolean value
+    int           fNature;         ///< The kind of data represented
+    int           fVariability;    ///< How fast values change
+    int           fComputability;  ///< When are values available
+    int           fVectorability;  ///< When a signal can be vectorized
+    int           fBoolean;        ///< When a signal stands for a boolean value
     itv::interval fInterval;       ///< Minimal and maximal values the signal can take
     res           fRes;            ///< Resolution (fixed-point)
     Tree          fCode;           ///< Tree representation (for memoization purposes)
 
    public:
-    AudioType(int n, int v, int c, int vec = kVect, int b = kNum, interval i = interval(), res r = res());
+    AudioType(int n, int v, int c, int vec = kVect, int b = kNum, itv::interval i = interval(), res r = res());
     virtual ~AudioType() {}  ///< not really useful here, but make compiler happier
 
-    int nature() const { return fNature; }  ///< returns the kind of values (integre or floating point)
+    int nature() const { return fNature; }  ///< returns the kind of values (integer or floating point)
     int variability() const
     {
         return fVariability;
@@ -109,11 +109,11 @@ class AudioType : public virtual Garbageable {
     int vectorability() const { return fVectorability; }  ///< returns when a signal can be vectorized
     int boolean() const { return fBoolean; }              ///< returns when a signal stands for a boolean value
 
-    interval getInterval() const { return fInterval; }  ///< returns the interval (min dn max values) of a signal
-    res      getRes() const { return fRes; }            ///< return the resolution of the signal (fixed)
+    interval getInterval() const { return fInterval; }  ///< returns the interval (min and max values) of a signal
+    res      getRes() const { return fRes; }            ///< returns the resolution of the signal (fixed)
 
-    void setCode(Tree code) { fCode = code; }  ///< returns the interval (min dn max values) of a signal
-    Tree getCode() { return fCode; }           ///< returns the interval (min dn max values) of a signal
+    void setCode(Tree code) { fCode = code; }  ///< sets the memoized code of a signal
+    Tree getCode() { return fCode; }           ///< returns the memoized code of a signal
 
     virtual AudioType* promoteNature(int n)               = 0;  ///< promote the nature of a type
     virtual AudioType* promoteVariability(int n)          = 0;  ///< promote the variability of a type

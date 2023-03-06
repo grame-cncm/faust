@@ -133,6 +133,21 @@ class CCodeContainer : public virtual CodeContainer {
             tab(n, *fOut);
         }
     }
+    
+    void printMathHeader()
+    {
+        // For mathematical functions
+        if (gGlobal->gFastMathLib != "") {
+            includeFastMath();
+        } else {
+            addIncludeFile("<math.h>");
+        }
+        
+        // For malloc/free
+        addIncludeFile("<stdlib.h>");
+        // For int64_t type
+        addIncludeFile("<stdint.h>");
+    }
 
    public:
     CCodeContainer()
@@ -143,17 +158,7 @@ class CCodeContainer : public virtual CodeContainer {
         fKlassName = name;
         fOut = out;
 
-        // For mathematical functions
-        if (gGlobal->gFastMathLib != "") {
-            includeFastMath();
-        } else {
-            addIncludeFile("<math.h>");
-        }
-
-        // For malloc/free
-        addIncludeFile("<stdlib.h>");
-        // For int64_t type
-        addIncludeFile("<stdint.h>");
+        printMathHeader();
         
         fCodeProducer = new CInstVisitor(out, name);
     }
@@ -229,17 +234,7 @@ class CScalarOneSampleCodeContainer1 : public CScalarCodeContainer {
         fKlassName = name;
         fOut = out;
         
-        // For mathematical functions
-        if (gGlobal->gFastMathLib != "") {
-            includeFastMath();
-        } else {
-            addIncludeFile("<math.h>");
-        }
-        
-        // For malloc/free
-        addIncludeFile("<stdlib.h>");
-        // For int64_t type
-        addIncludeFile("<stdint.h>");
+        printMathHeader();
         
         fSubContainerType = sub_container_type;
         fCodeProducer = new CInstVisitor(out, name);
@@ -271,17 +266,7 @@ class CScalarOneSampleCodeContainer2 : public CScalarCodeContainer {
             fKlassName = name;
             fOut = out;
             
-            // For mathematical functions
-            if (gGlobal->gFastMathLib != "") {
-                includeFastMath();
-            } else {
-                addIncludeFile("<math.h>");
-            }
-            
-            // For malloc/free
-            addIncludeFile("<stdlib.h>");
-            // For int64_t type
-            addIncludeFile("<stdint.h>");
+            printMathHeader();
             
             fSubContainerType = sub_container_type;
             fCodeProducer = new CInstVisitor1(out, name);
@@ -311,20 +296,9 @@ class CScalarOneSampleCodeContainer3 : public CScalarOneSampleCodeContainer2 {
             fKlassName = name;
             fOut = out;
             
-            // For mathematical functions
-            if (gGlobal->gFastMathLib != "") {
-                includeFastMath();
-            } else {
-                addIncludeFile("<math.h>");
-            }
-            
-            // For malloc/free
-            addIncludeFile("<stdlib.h>");
-            // For int64_t type
-            addIncludeFile("<stdint.h>");
+            printMathHeader();
             
             fSubContainerType = sub_container_type;
-        
             // Setup in produceClass
             fCodeProducer = nullptr;
         }

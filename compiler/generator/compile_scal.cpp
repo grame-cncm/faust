@@ -714,6 +714,7 @@ string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
     }
 }
 
+// Definition of variables: Const (computed at init time), Slow (computed at control rate) and "Temp" (computed at sample rate)
 string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
 {
     string          vname, vname_perm, ctype;

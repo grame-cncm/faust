@@ -83,7 +83,7 @@ extern "C" EXPORT void init(dsp* self, int sample_rate) { self->init(sample_rate
 extern "C" EXPORT void instanceInit(dsp* self, int sample_rate) { self->instanceInit(sample_rate); }
 extern "C" EXPORT void instanceConstants(dsp* self, int sample_rate) { self->instanceConstants(sample_rate); }
 extern "C" EXPORT void instanceResetUserInterface(dsp* self) { self->instanceResetUserInterface(); }
-extern "C" EXPORT dsp*  clone(dsp* self) { return self->clone(); }
+extern "C" EXPORT dsp* clone(dsp* self) { return self->clone(); }
 extern "C" EXPORT void metadata(dsp* self, Meta* m) { self->metadata(m); }
 extern "C" EXPORT void compute(dsp* self, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { self->compute(count, inputs, outputs); }
 

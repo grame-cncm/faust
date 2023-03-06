@@ -67,7 +67,7 @@ struct TableSizeCloneVisitor : public BasicCloneVisitor {
             for (const auto& it1 : inst->fArgs) {
                 cloned_args.push_back(it1->clone(this));
             }
-            return new FunCallInst(inst->fName + "_" + std::to_string(size->fNum), cloned_args, inst->fMethod);
+            return InstBuilder::genFunCallInst(inst->fName + "_" + std::to_string(size->fNum), cloned_args, inst->fMethod);
         } else {
             return BasicCloneVisitor::visit(inst);
         }
