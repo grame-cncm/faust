@@ -67,9 +67,6 @@ struct SearchSubcontainer : public DispatchVisitor {
 typedef std::tuple<std::string, std::string, int, int, int, int> MemoryLayoutItem;
 typedef std::vector<MemoryLayoutItem> MemoryLayoutType;
 
-typedef std::tuple<std::string, std::string, int, int, int, int> MemoryLayoutItem;
-
-
 class CodeContainer : public virtual Garbageable {
    protected:
     std::list<CodeContainer*> fSubContainers;

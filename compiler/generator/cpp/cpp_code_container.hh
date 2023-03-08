@@ -90,6 +90,19 @@ class CPPCodeContainer : public virtual CodeContainer {
         }
     }
     
+    void printMathHeader()
+    {
+        // For mathematical functions
+        if (gGlobal->gFastMathLib != "") {
+            includeFastMath();
+        } else {
+            addIncludeFile("<cmath>");
+            addIncludeFile("<algorithm>");
+            // For int64_t type
+            addIncludeFile("<cstdint>");
+        }
+    }
+    
     void generateDestroyFun(int n)
     {
         if (fDestroyInstructions->fCode.size() > 0) {
@@ -140,15 +153,7 @@ class CPPCodeContainer : public virtual CodeContainer {
         fKlassName = name;
         fOut = out;
 
-        // For mathematical functions
-        if (gGlobal->gFastMathLib != "") {
-            includeFastMath();
-        } else {
-            addIncludeFile("<cmath>");
-            addIncludeFile("<algorithm>");
-            // For int64_t type
-            addIncludeFile("<cstdint>");
-        }
+        printMathHeader();
     
         fCodeProducer = new CPPInstVisitor(out);
     }
@@ -221,15 +226,7 @@ class CPPScalarOneSampleCodeContainer1 : public CPPScalarCodeContainer {
         fKlassName = name;
         fOut = out;
         
-        // For mathematical functions
-        if (gGlobal->gFastMathLib != "") {
-            includeFastMath();
-        } else {
-            addIncludeFile("<cmath>");
-            addIncludeFile("<algorithm>");
-            // For int64_t type
-            addIncludeFile("<cstdint>");
-        }
+        printMathHeader();
         
         fCodeProducer = new CPPInstVisitor(out);
     }
@@ -256,15 +253,7 @@ class CPPScalarOneSampleCodeContainer2 : public CPPScalarCodeContainer {
             fKlassName = name;
             fOut = out;
             
-            // For mathematical functions
-            if (gGlobal->gFastMathLib != "") {
-                includeFastMath();
-            } else {
-                addIncludeFile("<cmath>");
-                addIncludeFile("<algorithm>");
-                // For int64_t type
-                addIncludeFile("<cstdint>");
-            }
+            printMathHeader();
         
             fCodeProducer = new CPPInstVisitor1(out);
         }
@@ -288,15 +277,7 @@ class CPPScalarOneSampleCodeContainer3 : public CPPScalarOneSampleCodeContainer2
             fKlassName = name;
             fOut = out;
             
-            // For mathematical functions
-            if (gGlobal->gFastMathLib != "") {
-                includeFastMath();
-            } else {
-                addIncludeFile("<cmath>");
-                addIncludeFile("<algorithm>");
-                // For int64_t type
-                addIncludeFile("<cstdint>");
-            }
+            printMathHeader();
         
             // Setup in produceClass
             fCodeProducer = nullptr;

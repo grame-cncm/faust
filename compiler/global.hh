@@ -159,7 +159,7 @@ struct global {
     bool gGroupTaskSwitch;       // -g option
     bool gFunTaskSwitch;         // -fun option
     int gMaxCopyDelay;           // -mcd option
-    int gFloatSize;              // -single/double/quad/fx option (0 for 'float', 1 for 'double', 2 for 'quad', 3 for 'fixed-point')
+    int gFloatSize;              // -single/double/quad/fx option (1 for 'float', 2 for 'double', 3 for 'quad', 4 for 'fixed-point')
     int gMaskDelayLineThreshold; // -dlt <num> power-of-two and mask delay-lines treshold
     bool gEnableFlag;            // -es option (0/1: 0 by default)
     bool gNoVirtual;             // -nvi option, when compiled with the C++ backend, does not add the 'virtual' keyword
