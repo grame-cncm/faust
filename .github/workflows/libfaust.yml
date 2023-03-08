@@ -1,0 +1,195 @@
+name: libfaust
+
+env:
+  LLVM_PACKAGE_VERSION: 15.0.7
+  LLVM_COMMIT: 8dfdcc7b7bf66834a761bd8de445840ef68e4d1a
+
+# Controls when the action will run.
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  build-ubuntu:
+    strategy:
+      matrix:
+        include:
+          - name: ubuntu-x86_64
+            theContainer: docker://quay.io/pypa/manylinux2014_x86_64
+            os: ubuntu-20.04
+            cmake-options: >-
+              -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_VERBOSE_MAKEFILE=ON
+            llvm-options: >-
+              -DLLVM_TARGETS_TO_BUILD="X86"
+              -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-linux-gnu"
+              -DLLVM_ENABLE_ZLIB=off
+              -DLLVM_INCLUDE_TESTS=OFF
+
+    runs-on: ${{ matrix.os }}
+    container:
+      image: ${{matrix.theContainer}}
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - name: Restore LLVM
+      id: cache-llvm-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: llvm-project
+        key: cache-llvm-${{env.LLVM_PACKAGE_VERSION}}-${{ matrix.name }}
+
+    - name: Clone LLVM
+      if: steps.cache-llvm-restore.outputs.cache-hit != 'true'
+      uses: actions/checkout@v3
+      with:
+        repository: llvm/llvm-project
+        path: llvm-project
+        # LLVM tag 15.0.7
+        ref: ${{ env.LLVM_COMMIT }}
+
+    - name: Build LLVM
+      if: steps.cache-llvm-restore.outputs.cache-hit != 'true'
+      run: |
+        cd llvm-project/llvm
+        cmake -Bbuild -DCMAKE_INSTALL_PREFIX="./llvm" ${{matrix.cmake-options}} ${{matrix.llvm-options}}
+        cmake --build build --config Release
+
+    - name: Cache LLVM output
+      id: cache-llvm-save
+      uses: actions/cache/save@v3
+      with:
+        path: llvm-project
+        key: ${{ steps.cache-llvm-restore.outputs.cache-primary-key }}
+
+    - name: Build libfaust
+      run: |
+        cd build
+        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DCMAKE_PREFIX_PATH="$LLVM_DIR"
+        cmake --build build --config Release
+      env:
+        LLVM_DIR: ${{ github.workspace }}/llvm-project/llvm/build/lib/cmake/llvm
+   
+    - name: Make distribution
+      run: |
+        cd build/lib
+        rm -f libfaust.so libfaust.so.2
+        newest=$(ls -1 libfaust.so.* | tail -n1)
+        mv "$newest" libfaust.so
+        strip --strip-unneeded libfaust.so
+        
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: libfaust-${{ matrix.name }}
+        path: build/lib
+        if-no-files-found: error
+
+  build-macos:
+    strategy:
+      matrix:
+        include:
+          - name: macos-arm64
+            os: macos-11
+            cmake-options: >-
+              -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_VERBOSE_MAKEFILE=ON
+              -DCMAKE_OSX_ARCHITECTURES="arm64"
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
+            llvm-url: https://github.com/DBraun/TD-Faust/releases/download/llvm-15.0.7-macos/llvm-15.0.7-macos10.15-arm64.zip
+          - name: macos-x86_64
+            os: macos-11
+            cmake-options: >-
+              -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_VERBOSE_MAKEFILE=ON
+              -DCMAKE_OSX_ARCHITECTURES="x86_64"
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15
+            llvm-url: https://github.com/DBraun/TD-Faust/releases/download/llvm-15.0.7-macos10.15-x86_64/llvm-15.0.7-macos10.15-x86_64.zip
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - name: Download LLVM
+      run: |
+        # Libfaust will need to link against LLVM.
+        # Since we're using an x86_64 GitHub actions runner, we're unable to build arm64 LLVM on-demand.
+        # To get around this, we download a compatible LLVM build that we've built in advance.
+        curl -L ${{ matrix.llvm-url }} -o llvm.zip
+        unzip llvm.zip
+
+    - name: Build libfaust
+      run: |
+        export LLVM_DIR=$PWD/llvm/lib/cmake/llvm
+        export LLVM_LIB_DIR=$PWD/llvm/lib
+        export LLVM_INCLUDE_DIRS=$PWD/llvm/include
+        export LLVM_LIBS=$(ls $LLVM_LIB_DIR/lib*.a | sed "s|$LLVM_LIB_DIR/lib\(.*\)\.a|-l\1|g" | tr '\n' ' ')
+        export LLVM_LIBS="-lm -lcurses -lxml2 $LLVM_LIBS"
+        export LLVM_DEFINITIONS="-D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS"
+        cd build
+        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DCMAKE_PREFIX_PATH="$LLVM_DIR" -DLLVM_LIBS="$LLVM_LIBS" -DLLVM_LIB_DIR="$LLVM_LIB_DIR" -DLLVM_INCLUDE_DIRS="$LLVM_INCLUDE_DIRS" -DLLVM_PACKAGE_VERSION=$LLVM_PACKAGE_VERSION -DLLVM_DEFINITIONS="$LLVM_DEFINITIONS"
+        cmake --build build --config Release     
+   
+    - name: Make distribution
+      run: |
+        cd build/lib
+        rm -f libfaust.dylib libfaust.2.dylib
+        newest=$(ls -1 libfaust.*.dylib | tail -n1)
+        mv "$newest" libfaust.2.dylib
+   
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: libfaust-${{ matrix.name }}
+        path: build/lib
+        if-no-files-found: error
+
+  build-windows:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - name: win-x86_64
+            os: windows-2022
+            cmake-options: >-
+              -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_VERBOSE_MAKEFILE=ON
+            llvm-url: https://github.com/DBraun/TD-Faust/releases/download/llvm-15.0.7-win11-x86_64/llvm-15.0.7-win11-x86_64.zip
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - name: prepare
+      run: |
+        # Libfaust will need to link against LLVM.
+        # We download a Windows x86_64 LLVM build that we've built in advance.
+        curl -L ${{ matrix.llvm-url }} -o llvm.zip
+        7z x llvm.zip
+
+    - name: Build libfaust
+      shell: cmd
+      run: |
+        cd build
+        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DCMAKE_PREFIX_PATH="%LLVM_DIR%" -DLLVM_LIB_DIR="%LLVM_LIB_DIR%" -DLLVM_INCLUDE_DIRS="%LLVM_INCLUDE_DIRS%" -DLLVM_PACKAGE_VERSION=%LLVM_PACKAGE_VERSION%
+        cmake --build build --config Release
+      env:
+        LLVM_DIR: ${{ github.workspace }}/llvm/lib/cmake/llvm
+        LLVM_LIB_DIR: ${{ github.workspace }}/llvm/lib
+        LLVM_INCLUDE_DIRS: ${{ github.workspace }}/llvm/include
+   
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: libfaust-${{ matrix.name }}
+        path: build/lib/Release
+        if-no-files-found: error
