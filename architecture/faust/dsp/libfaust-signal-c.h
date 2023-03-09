@@ -343,15 +343,15 @@ extern "C"
     LIBFAUST_API Signal CsigAtan2(Signal x, Signal y);
     
     /**
-     * Create a recursive signal inside the sigRecursion expression.
+     * Create a recursive signal inside the CsigRecursion expression.
      *
      * @return the recursive signal.
      */
     LIBFAUST_API Signal CsigSelf();
     
     /**
-     * Create a recursive signal. Use sigSelf() to refer to the
-     * recursive signal inside the sigRecursion expression.
+     * Create a recursive signal. Use CsigSelf() to refer to the
+     * recursive signal inside the CsigRecursion expression.
      *
      * @param s - the signal to recurse on.
      *
@@ -359,6 +359,25 @@ extern "C"
      */
     LIBFAUST_API Signal CsigRecursion(Signal s);
     
+    /**
+     * Create a recursive signal inside the CsigRecursionN expression.
+     *
+     * @param id - the recursive signal index (starting from 0, up to the number of outputs signals in the recursive block)
+     *
+     * @return the recursive signal.
+     */
+    LIBFAUST_API Signal CsigSelfN(int id);
+    
+    /**
+     * Create a recursive block of signals. Use CsigSelfN() to refer to the
+     * recursive signal inside the CsigRecursionN expression.
+     *
+     * @param rf - the list of signals to recurse on.
+     *
+     * @return the list of signals with recursions.
+     */
+    LIBFAUST_API Signal* CsigRecursionN(Signal* rf);
+
     /**
      * Create a button signal.
      *

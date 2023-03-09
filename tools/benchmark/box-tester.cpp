@@ -45,7 +45,7 @@ using namespace std;
  *
  * @return the current runtime sample rate.
  */
-inline Box getSampleRate()
+inline Box SR()
 {
     return boxMin(boxReal(192000.0), boxMax(boxReal(1.0), boxFConst(SType::kSInt, "fSamplingFreq", "<math.h>")));
 }
@@ -57,7 +57,7 @@ inline Box getSampleRate()
  *
  * @return the current runtime buffer size.
  */
-inline Box getBufferSize()
+inline Box BS()
 {
     return boxFVar(SType::kSInt, "count", "<math.h>");
 }
@@ -243,7 +243,7 @@ static void test11()
 {
     COMPILER
     (
-        Box box = boxPar(getSampleRate(), getBufferSize());
+        Box box = boxPar(SR(), BS());
      
         compile("test11", box);
     )
@@ -320,7 +320,7 @@ static Box decimalpart()
 
 static Box phasor(Box f)
 {
-    return boxSeq(boxDiv(f, getSampleRate()), boxRec(boxSplit(boxAdd(), decimalpart()), boxWire()));
+    return boxSeq(boxDiv(f, SR()), boxRec(boxSplit(boxAdd(), decimalpart()), boxWire()));
 }
 
 static void test16()
