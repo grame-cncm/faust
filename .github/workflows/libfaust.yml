@@ -1,6 +1,8 @@
 name: libfaust
 
 env:
+  FAUST_VERSION: 2.58.10
+  FAUSTGEN_VERSION: 1.63
   LLVM_PACKAGE_VERSION: 15.0.7
   LLVM_COMMIT: 8dfdcc7b7bf66834a761bd8de445840ef68e4d1a
 
@@ -50,7 +52,6 @@ jobs:
       with:
         repository: llvm/llvm-project
         path: llvm-project
-        # LLVM tag 15.0.7
         ref: ${{ env.LLVM_COMMIT }}
 
     - name: Build LLVM
@@ -159,37 +160,66 @@ jobs:
         include:
           - name: win-x86_64
             os: windows-2022
-            cmake-options: >-
-              -DCMAKE_BUILD_TYPE=Release
-              -DCMAKE_VERBOSE_MAKEFILE=ON
             llvm-url: https://github.com/DBraun/TD-Faust/releases/download/llvm-15.0.7-win11-x86_64/llvm-15.0.7-win11-x86_64.zip
+            libsndfile-url: https://github.com/libsndfile/libsndfile/releases/download/1.2.0/libsndfile-1.2.0-win64.zip
 
     steps:
     - uses: actions/checkout@v3
       with:
         submodules: true
 
-    - name: prepare
+    - name: Download LLVM
       run: |
         # Libfaust will need to link against LLVM.
         # We download a Windows x86_64 LLVM build that we've built in advance.
         curl -L ${{ matrix.llvm-url }} -o llvm.zip
         7z x llvm.zip
 
+    - name: Download Libsndfile
+      run: |
+        curl -L ${{ matrix.libsndfile-url }} -o libsndfile.zip
+        7z x libsndfile.zip
+        mv libsndfile-1.2.0-win64 libsndfile
+
+    - name: Download libmicrohttpd
+      run: |
+        curl -L https://ftpmirror.gnu.org/libmicrohttpd/libmicrohttpd-latest-w32-bin.zip -o libmicrohttpd.zip
+        7z x libmicrohttpd.zip
+
+    - name: Clone Max SDK
+      uses: actions/checkout@v3
+      with:
+        repository: Cycling74/max-sdk
+        path: max-sdk
+
     - name: Build libfaust
       shell: cmd
       run: |
         cd build
-        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=off -DCMAKE_PREFIX_PATH="%LLVM_DIR%" -DLLVM_LIB_DIR="%LLVM_LIB_DIR%" -DLLVM_INCLUDE_DIRS="%LLVM_INCLUDE_DIRS%" -DLLVM_PACKAGE_VERSION=%LLVM_PACKAGE_VERSION%
-        cmake --build build --config Release
-      env:
-        LLVM_DIR: ${{ github.workspace }}/llvm/lib/cmake/llvm
-        LLVM_LIB_DIR: ${{ github.workspace }}/llvm/lib
-        LLVM_INCLUDE_DIRS: ${{ github.workspace }}/llvm/include
-   
-    - name: Upload artifact
+        call MakeRelease.bat
+
+    - name: Cleanup
+      shell: cmd
+      run: |
+        rm build/lib/libfaustwithllvm.lib
+
+    - name: Upload Faust installer
       uses: actions/upload-artifact@v3
       with:
-        name: libfaust-${{ matrix.name }}
-        path: build/lib/Release
+        name: faust-${{env.FAUST_VERSION}}-${{ matrix.name }}
+        path: build/build/faust
+        if-no-files-found: error
+   
+    - name: Upload libfaust artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: libfaust-${{env.FAUST_VERSION}}-${{ matrix.name }}
+        path: build/lib
+        if-no-files-found: error
+
+    - name: Upload faustgen~ artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}
+        path: embedded/faustgen/package/faustgen-${{env.FAUSTGEN_VERSION}}-win64
         if-no-files-found: error

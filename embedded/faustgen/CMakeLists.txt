@@ -46,7 +46,7 @@ if (WIN32)
 	if (NOT DEFINED LIBSNDFILE)
 		set (LIBSNDFILE "C:/Program Files/Mega-Nerd/libsndfile")
 	endif()
-    set (SNDFILELIB ${LIBSNDFILE}/lib/libsndfile-1.lib)
+    set (SNDFILELIB ${LIBSNDFILE}/lib/sndfile.lib)
 	set (SNDFILEINC ${LIBSNDFILE}/include)
 else()
 	set (SNDFILEINC ${ROOT}/MacOS/sndfile) 
@@ -137,7 +137,7 @@ install (
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ  WORLD_READ
 )
 install (
-    FILES    ${LIBSNDFILE}/bin/libsndfile-1.dll DESTINATION ${PACKDIR}/${DST}
+    FILES    ${LIBSNDFILE}/bin/sndfile.dll DESTINATION ${PACKDIR}/${DST}
 )
 endif()
 
@@ -153,16 +153,10 @@ install (
 ####################################
 # install VS redistributables
 if (WIN32)
-set (VS "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/redist")
-if (${CMAKE_GENERATOR} STREQUAL "Visual Studio 14 2015 Win64")
-	set (VS "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/redist")
-elseif (${CMAKE_GENERATOR} STREQUAL "Visual Studio 15 2017 Win64")
-	set (VS "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Redist/MSVC/14.16.27012")
-else()
-	set (VS "/unknown/visual/studio/version")
-endif()
+# Suppose VS_REDIST is
+# C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Redist/MSVC/14.29.30133/vc_redist.x64.exe
 install (
-    FILES  "${VS}/vc_redist.x64.exe" DESTINATION ${PACKDIR}/${DST}
+    FILES  ${VS_REDIST} DESTINATION ${PACKDIR}/${DST}
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 endif()
