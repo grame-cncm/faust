@@ -960,7 +960,7 @@ bool GTKUI::run()
     gtk_widget_show(fBox[0]);
     gtk_widget_show(fWindow);
 
-    g_timeout_add(.04, callUpdateAllGuis, nullptr);
+    g_timeout_add(40, callUpdateAllGuis, nullptr);
     gtk_main();
     return true;
 }
