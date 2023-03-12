@@ -72,10 +72,11 @@ jobs:
     - name: Build libfaust
       run: |
         cd build
-        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_STATIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=OFF -DCMAKE_PREFIX_PATH="$LLVM_DIR"
+        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_STATIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=ON -DLLVM_CONFIG=$LLVM_CONFIG -DCMAKE_PREFIX_PATH="$LLVM_DIR"
         cmake --build build --config Release
       env:
         LLVM_DIR: ${{ github.workspace }}/llvm-project/llvm/build/lib/cmake/llvm
+        LLVM_CONFIG: ${{ github.workspace }}/llvm-project/llvm/build/bin/llvm-config
    
     - name: Make distribution
       run: |
