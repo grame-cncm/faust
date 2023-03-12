@@ -16,16 +16,16 @@ A backend typically subclasses the `CodeContainer` class which will contain the 
 A `TemplateInstVisitor` visitor pattern implemented in `template_instructions.hh` is used to traverse the FIR code to generate the code. It actually shows an example of a [textual backend](#textual-backend), and is written by subclassing the `TextInstVisitor` base class for textual visitors. Note that this template code is given as an example and will have to be adapted to real use-cases. Looking at already written ones like the C or Julia backends can help.
 
 The `TemplateCodeContainer` base class implements in particular:
-- the `produceClass` method wich is responsible to generate the entire piece of code
-- the `produceInternal` method possibly used for sub containers
+- the `produceClass` method responsible to generate the entire piece of code
+- the `produceInternal` method possibly used for sub-containers
 - the `produceMetadata` method to generate the global metadata
 - the waveforms are inlined in the DSP structure (see `TemplateInitFieldsVisitor`usage in the `TemplateCodeContainer::produceClass` method, in the `// Fields` section)
 
 The `TemplateScalarCodeContainer` class implements the `compute` method to generate the specific version of DSP computation in *-scalar* mode. The `TemplateVectorCodeContainer` class implements the `compute` method to generate the specific version of DSP computation in *-vec* mode. 
 
-### Inlining subcontainers
+### Inlining sub-containers
 
-The `rdtable` and `rwtable` primitives are treated as *sub containers* which possibly generate separated pieces of code (like additional C++ classes in the C++ backend, or LLVM modules in the LLVM backend). It may be easier to have the sub containers *be inlined* in the main module. This can be done at the appropriate locations using this kind of code:
+The `rdtable` and `rwtable` primitives are treated as *sub-containers* which possibly generate separated pieces of code (like additional C++ classes in the C++ backend, or LLVM modules in the LLVM backend). It may be easier to have the sub-containers *be inlined* in the main module. This can be done at the appropriate locations using this kind of code:
 
 ```c++
 // Rename 'sig' in 'dsp', remove 'dsp' allocation, 
@@ -39,7 +39,7 @@ Look at the `TemplateCodeContainer::produceClass()` method for a precise way of 
 
 Faust compilation and installation is based on CMake, you should look at the [Faust wiki pages](https://github.com/grame-cncm/faust/wiki). 
 
-A set of cmake files have to be adapted for the new backed to be properly commpiled and activated:
+A set of cmake files have to be adapted for the new backed to be properly compiled and activated:
 
 - targets included into your projects are specified using a configuration file located in the targets folder
 - the [backends selection](https://github.com/grame-cncm/faust/wiki/backends#selecting-your-backends) is described using `backends` files located in the [backends](https://github.com/grame-cncm/faust/tree/master-dev/build/backends) folder. **These files will have to be adapted to activate the new backend**
@@ -109,4 +109,4 @@ A textual backend will generate code in a C++ stream. It typically uses a subcla
 
 ## Binary backend 
 
-A binary backend will generate binary code using an tailor-made output, which can greaty depends of the use-case. Look at the LLVM backend which outputs LLVM IR code, and the WASM backend which outputs binary WebAssembly code.
+A binary backend will generate binary code using a tailor-made output, which can greatly depend on the use-case. Look at the LLVM backend which outputs LLVM IR code, and the WASM backend which outputs binary WebAssembly code.

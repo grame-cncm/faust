@@ -114,6 +114,19 @@ struct TemplateInitFieldsVisitor : public DispatchVisitor {
          */
     }
     
+    virtual void visit(FixedPointArrayNumInst* inst)
+    {
+        // TO CHECK
+        /*
+         char sep = '[';
+         for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+             *fOut << sep << checkDouble(inst->fNumTable[i]);
+             sep = ',';
+         }
+         *fOut << ']';
+         */
+    }
+    
 };
 
 /*
@@ -161,17 +174,31 @@ class TemplateInstVisitor : public TextInstVisitor {
     virtual void visit(AddSoundfileInst* inst)
     {}
     
-    virtual void visit(Int32NumInst* inst) {}
-    
-    virtual void visit(Int64NumInst* inst) {}
+    virtual void visit(Int32NumInst* inst)
+    {}
     
     virtual void visit(Int32ArrayNumInst* inst)
+    {}
+    
+    virtual void visit(Int64NumInst* inst)
+    {}
+    
+    virtual void visit(FloatNumInst* inst)
     {}
     
     virtual void visit(FloatArrayNumInst* inst)
     {}
     
+    virtual void visit(DoubleNumInst* inst)
+    {}
+    
     virtual void visit(DoubleArrayNumInst* inst)
+    {}
+    
+    virtual void visit(FixedPointNumInst* inst)
+    {}
+    
+    virtual void visit(FixedPointArrayNumInst* inst)
     {}
     
     virtual void visit(BinopInst* inst)
