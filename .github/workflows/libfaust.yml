@@ -134,6 +134,7 @@ jobs:
       with:
         repository: Cycling74/max-sdk
         path: max-sdk
+        submodules: true
 
     - name: Clone faustlive
       uses: actions/checkout@v3
@@ -142,7 +143,7 @@ jobs:
         path: faustlive
 
     - name: Brew install requirements (arm64)
-      if: endsWith("arm64", ${{env.name}})
+      if: endsWith(${{matrix.name}}, "arm64")
       run: |
         mkdir -p ~/arm-target/bin
         mkdir -p ~/arm-target/brew-cache
@@ -165,7 +166,7 @@ jobs:
         ln -s ~/arm-target/arm-homebrew/bin/pkg-config ~/arm-target/bin/arm-pkg-config
 
     - name: Brew install requirements (x86_64)
-      if: endsWith("x86_64", ${{env.name}})
+      if: endsWith(${{matrix.name}}, "x86_64")
       run: brew install gtk+3 qt@5 libsndfile
 
     - name: Build everything
@@ -257,6 +258,7 @@ jobs:
       with:
         repository: Cycling74/max-sdk
         path: max-sdk
+        submodules: true
 
     - name: Build libfaust
       shell: cmd
