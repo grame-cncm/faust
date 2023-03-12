@@ -148,9 +148,10 @@ jobs:
         set -x
         for PACKAGE in "${PACKAGES[@]}"
         do
-          response=$($BREW_PATH fetch --force --bottle-tag=arm64_big_sur $PACKAGE | grep "Downloaded to")
-          parsed=($response)
-          $BREW_PATH install "${parsed[3]}"
+          response=$($BREW_PATH fetch --force --bottle-tag=arm64_big_sur $PACKAGE | grep "Downloaded to:")
+          package_path=$(echo "$response" | cut -d' ' -f3)
+          echo "package path: $package_path"
+          $BREW_PATH install "$package_path"
         done
         set +x
 
