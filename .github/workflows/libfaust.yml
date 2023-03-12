@@ -94,6 +94,7 @@ jobs:
 
   build-macos:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: macos-arm64
