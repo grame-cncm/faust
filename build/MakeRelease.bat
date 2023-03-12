@@ -13,22 +13,22 @@ set "VS_REDIST=%VS_REDIST:\=/%"
 
 if not exist "%LLVM_CONFIG%" (
     echo "llvm-config.exe was not found at location: %LLVM_CONFIG%"
-    EXIT /B
+    EXIT /B 1
 )
 
 if not exist "%MAXSDK%" (
     echo "The Max SDK was not found at location: %MAXSDK%"
-    EXIT /B
+    EXIT /B 1
 )
 
 if not exist "%LIBSNDFILE%" (
     echo "libsndfile was not found at location: %LIBSNDFILE%"
-    EXIT /B
+    EXIT /B 1
 )
 
 if not exist "%VS_REDIST%" (
     echo "Windows Redistributables were not found at location: %VS_REDIST%"
-    EXIT /B
+    EXIT /B 1
 )
 
 echo "Building Faust version: %FAUST_VERSION%"
