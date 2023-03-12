@@ -100,7 +100,7 @@ jobs:
       matrix:
         include:
           - name: macos-arm64
-            os: macos-12
+            os: macos-11
             llvm-url: https://github.com/DBraun/TD-Faust/releases/download/llvm-15.0.7-macos/llvm-15.0.7-macos10.15-arm64.zip
             ARCHS: "-arch arm64"
             CMAKE_OSX_ARCHITECTURES: arm64
@@ -141,15 +141,28 @@ jobs:
     - name: Brew install requirements (arm64)
       if: ${{ endsWith( matrix.name, 'arm64') }}
       run: |
-        brew update
-        brew cleanup
+        mkdir -p ~/arm-target/bin
+        mkdir -p ~/arm-target/brew-cache
+        export PATH="$HOME/arm-target/bin:$PATH"
+
+        cd ~/arm-target
+        mkdir arm-homebrew && curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C arm-homebrew
+        ln -s ~/arm-target/arm-homebrew/bin/brew ~/arm-target/bin/arm-brew
+
+        export HOMEBREW_CACHE=~/arm-target/brew-cache
+        export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
+
         PACKAGES=(gtk+3 qt@5 libsndfile libmicrohttpd)
         for PACKAGE in "${PACKAGES[@]}"
         do
-            result=$(brew --cache --bottle-tag=arm64_monterey $PACKAGE)
+            result=$(arm-brew --cache --bottle-tag=arm64_big_sur $PACKAGE)
             echo "Looking for arm64 version of $result"
-            brew install $result
+            arm-brew install $result
         done
+
+        # Install host version of pkg-config so we can call it in the build system
+        arm-brew install pkg-config
+        ln -s ~/arm-target/arm-homebrew/bin/pkg-config ~/arm-target/bin/arm-pkg-config
 
     - name: Brew install requirements (x86_64)
       if: ${{ endsWith( matrix.name, 'x86_64') }}
