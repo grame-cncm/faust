@@ -61,6 +61,7 @@ jobs:
         cd llvm-project/llvm
         cmake -Bbuild -DCMAKE_INSTALL_PREFIX="./llvm" ${{matrix.cmake-options}} ${{matrix.llvm-options}}
         cmake --build build --config Release
+        cmake --build build --target install
 
     - name: Cache LLVM output
       id: cache-llvm-save
