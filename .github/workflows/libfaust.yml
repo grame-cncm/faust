@@ -15,82 +15,82 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
 
-  # build-ubuntu:
-  #   strategy:
-  #     matrix:
-  #       include:
-  #         - name: ubuntu-x86_64
-  #           theContainer: docker://quay.io/pypa/manylinux2014_x86_64
-  #           os: ubuntu-20.04
-  #           cmake-options: >-
-  #             -DCMAKE_BUILD_TYPE=Release
-  #             -DCMAKE_VERBOSE_MAKEFILE=ON
-  #           llvm-options: >-
-  #             -DLLVM_TARGETS_TO_BUILD="X86"
-  #             -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-linux-gnu"
-  #             -DLLVM_ENABLE_ZLIB=off
-  #             -DLLVM_INCLUDE_TESTS=OFF
+  build-ubuntu:
+    strategy:
+      matrix:
+        include:
+          - name: ubuntu-x86_64
+            theContainer: docker://quay.io/pypa/manylinux2014_x86_64
+            os: ubuntu-20.04
+            cmake-options: >-
+              -DCMAKE_BUILD_TYPE=Release
+              -DCMAKE_VERBOSE_MAKEFILE=ON
+            llvm-options: >-
+              -DLLVM_TARGETS_TO_BUILD="X86"
+              -DLLVM_DEFAULT_TARGET_TRIPLE="x86_64-linux-gnu"
+              -DLLVM_ENABLE_ZLIB=off
+              -DLLVM_INCLUDE_TESTS=OFF
 
-  #   runs-on: ${{ matrix.os }}
-  #   container:
-  #     image: ${{matrix.theContainer}}
+    runs-on: ${{ matrix.os }}
+    container:
+      image: ${{matrix.theContainer}}
 
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #     with:
-  #       submodules: true
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
 
-  #   - name: Restore LLVM
-  #     id: cache-llvm-restore
-  #     uses: actions/cache/restore@v3
-  #     with:
-  #       path: llvm-project
-  #       key: cache-llvm-${{env.LLVM_PACKAGE_VERSION}}-${{ matrix.name }}
+    - name: Restore LLVM
+      id: cache-llvm-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: llvm-project
+        key: cache-llvm-${{env.LLVM_PACKAGE_VERSION}}-${{ matrix.name }}
 
-  #   - name: Clone LLVM
-  #     if: steps.cache-llvm-restore.outputs.cache-hit != 'true'
-  #     uses: actions/checkout@v3
-  #     with:
-  #       repository: llvm/llvm-project
-  #       path: llvm-project
-  #       ref: ${{ env.LLVM_COMMIT }}
+    - name: Clone LLVM
+      if: steps.cache-llvm-restore.outputs.cache-hit != 'true'
+      uses: actions/checkout@v3
+      with:
+        repository: llvm/llvm-project
+        path: llvm-project
+        ref: ${{ env.LLVM_COMMIT }}
 
-  #   - name: Build LLVM
-  #     if: steps.cache-llvm-restore.outputs.cache-hit != 'true'
-  #     run: |
-  #       cd llvm-project/llvm
-  #       cmake -Bbuild -DCMAKE_INSTALL_PREFIX="./llvm" ${{matrix.cmake-options}} ${{matrix.llvm-options}}
-  #       cmake --build build --config Release
+    - name: Build LLVM
+      if: steps.cache-llvm-restore.outputs.cache-hit != 'true'
+      run: |
+        cd llvm-project/llvm
+        cmake -Bbuild -DCMAKE_INSTALL_PREFIX="./llvm" ${{matrix.cmake-options}} ${{matrix.llvm-options}}
+        cmake --build build --config Release
 
-  #   - name: Cache LLVM output
-  #     id: cache-llvm-save
-  #     uses: actions/cache/save@v3
-  #     with:
-  #       path: llvm-project
-  #       key: ${{ steps.cache-llvm-restore.outputs.cache-primary-key }}
+    - name: Cache LLVM output
+      id: cache-llvm-save
+      uses: actions/cache/save@v3
+      with:
+        path: llvm-project
+        key: ${{ steps.cache-llvm-restore.outputs.cache-primary-key }}
 
-  #   - name: Build libfaust
-  #     run: |
-  #       cd build
-  #       cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_STATIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=ON -DCMAKE_PREFIX_PATH="$LLVM_DIR"
-  #       cmake --build build --config Release
-  #     env:
-  #       LLVM_DIR: ${{ github.workspace }}/llvm-project/llvm/build/lib/cmake/llvm
+    - name: Build libfaust
+      run: |
+        cd build
+        cmake  -C ./backends/all.cmake . -Bbuild ${{matrix.cmake-options}} -DINCLUDE_DYNAMIC=ON -DINCLUDE_STATIC=ON -DINCLUDE_LLVM=ON -DUSE_LLVM_CONFIG=OFF -DCMAKE_PREFIX_PATH="$LLVM_DIR"
+        cmake --build build --config Release
+      env:
+        LLVM_DIR: ${{ github.workspace }}/llvm-project/llvm/build/lib/cmake/llvm
    
-  #   - name: Make distribution
-  #     run: |
-  #       cd build/lib
-  #       rm -f libfaust.so libfaust.so.2
-  #       newest=$(ls -1 libfaust.so.* | tail -n1)
-  #       mv "$newest" libfaust.so
-  #       strip --strip-unneeded libfaust.so
+    - name: Make distribution
+      run: |
+        cd build/lib
+        rm -f libfaust.so libfaust.so.2
+        newest=$(ls -1 libfaust.so.* | tail -n1)
+        mv "$newest" libfaust.so
+        strip --strip-unneeded libfaust.so
         
-  #   - name: Upload libfaust artifact
-  #     uses: actions/upload-artifact@v3
-  #     with:
-  #       name: libfaust-${{ matrix.name }}
-  #       path: build/lib
-  #       if-no-files-found: error
+    - name: Upload libfaust artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: libfaust-${{ matrix.name }}
+        path: build/lib
+        if-no-files-found: error
 
   build-macos:
     strategy:
