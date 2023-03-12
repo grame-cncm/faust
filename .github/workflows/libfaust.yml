@@ -199,7 +199,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}
-        path: build/Release-${{env.FAUST_VERSION}}/faustgen-{{env.FAUSTGEN_VERSION}}-macosx.dmg
+        path: build/Release-${{env.FAUST_VERSION}}/faustgen-${{env.FAUSTGEN_VERSION}}-macosx.dmg
         if-no-files-found: error
 
   build-windows:
