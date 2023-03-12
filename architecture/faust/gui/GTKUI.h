@@ -421,27 +421,6 @@ void GTKUI::addButton(const char* label, FAUSTFLOAT* zone)
     checkForTooltip(zone, button);
 }
 
-// ---------------------------  Toggle Buttons ---------------------------
-
-struct uiToggleButton : public uiItem {
-    GtkToggleButton* fButton;
-
-    uiToggleButton(GUI* ui, FAUSTFLOAT* zone, GtkToggleButton* b) : uiItem(ui, zone), fButton(b) {}
-
-    static void toggled(GtkToggleButton* widget, gpointer data)
-    {
-        FAUSTFLOAT v = (gtk_toggle_button_get_active(widget)) ? 1.0 : 0.0;
-        ((uiItem*)data)->modifyZone(v);
-    }
-
-    virtual void reflectZone()
-    {
-        FAUSTFLOAT v = *fZone;
-        fCache       = v;
-        gtk_toggle_button_set_active(fButton, v > 0.0);
-    }
-};
-
 // ---------------------------  Check Button ---------------------------
 
 struct uiCheckButton : public uiItem {
