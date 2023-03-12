@@ -11,7 +11,9 @@
 . faustoptflags
 . usage.sh
 
-CXXFLAGS+=" $MYGCCFLAGS -I/opt/local/include" # So that additional CXXFLAGS can be used
+#CXXFLAGS+=" $MYGCCFLAGS -I/opt/local/include" # So that additional CXXFLAGS can be used
+
+CXXFLAGS+=" -g -std=c++11 -I/opt/local/include" # So that additional CXXFLAGS can be used
 
 ARCHFILE=$FAUSTARCH/ca-gtk.cpp
 
@@ -141,7 +143,7 @@ EndOfCode
 
     # compile c++ to binary
     (
-        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS "${f%.dsp}.cpp" `pkg-config --cflags --libs $OCVLIBS gtk+-2.0` $LLVM_LIBS $SOUNDFILELIBS $SAMPLERATELIBS $PROCARCH $OSCDEFS $HTTPDEFS $HTTPLIBS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $SAMPLERATEDEFS $PRESETDEFS $ARCHLIB $LFLAGS -o "${f%.dsp}"
+        $CXX $CXXFLAGS $FAUSTTOOLSFLAGS "${f%.dsp}.cpp" `pkg-config --cflags --libs $OCVLIBS gtk+-3.0` $LLVM_LIBS $SOUNDFILELIBS $SAMPLERATELIBS $PROCARCH $OSCDEFS $HTTPDEFS $HTTPLIBS $OCVDEFS $MIDIDEFS $POLYDEFS $SOUNDFILEDEFS $SAMPLERATEDEFS $PRESETDEFS $ARCHLIB $LFLAGS -o "${f%.dsp}"
         codesign --sign - --deep --force "${f%.dsp}"
     ) > /dev/null || exit
 

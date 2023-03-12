@@ -78,7 +78,7 @@ class GTKUI : public GUI, public MetaDataUI {
     GtkWidget* fBox[kStackSize];
     int        fMode[kStackSize];
 
-    GtkWidget*   addWidget(const char* label, GtkWidget* w);
+    GtkWidget*  addWidget(const char* label, GtkWidget* w);
     virtual void pushBox(int mode, GtkWidget* w);
 
    public:
