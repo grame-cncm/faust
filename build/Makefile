@@ -2,6 +2,34 @@
 # FAUST compiler makefile
 #
 
+ifndef FAUST_VERSION
+$(error FAUST_VERSION is not set)
+endif
+
+ifndef FAUSTGEN_VERSION
+$(error FAUSTGEN_VERSION is not set)
+endif
+
+ARCHS ?= 
+LLVM ?= 
+
+LLVM_PACKAGE_VERSION ?= 
+LLVM_DIR ?= 
+LLVM_LIB_DIR ?= 
+LLVM_INCLUDE_DIRS ?= 
+LLVM_LIBS ?= 
+LLVM_DEFINITIONS ?= 
+LLVM_LD_FLAGS ?= 
+INCLUDE_LLVM ?= ON
+USE_LLVM_CONFIG ?= ON
+MAXSDK ?= $(shell echo $(pwd)/../max-sdk/source/max-sdk-base/c74support)
+
+ifdef LAME_DIR
+LAME_LD_FLAGS = "-L$(LAME_DIR)/lib"
+endif
+LAME_DIR ?= 
+LAME_LD_FLAGS ?= 
+
 # start to determine the current platform
 system := $(shell uname -s)
 # normalizes MINGW versions
@@ -11,7 +39,6 @@ system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo 
 # output directories
 FAUSTDIR ?= faustdir
 IOSDIR   := iosdir
-VERSION := 2.58.10
 
 #===============================================================
 # current generator and backends
@@ -180,30 +207,30 @@ jsscripts:
 # packaging
 #===============================================================
 # don't change the PACK variable, files are put at first hierarchy level
-PACK := package/Faust-$(VERSION)
+PACK := package/Faust-$(FAUST_VERSION)
 package:
 	$(MAKE) $(NATIVEPACK)
 
 winpack:
-	cd $(FAUSTDIR) && $(CMAKE) -DUSE_LLVM_CONFIG=off -DPACK=on -C ../bakckends/most.cmake -C ../targets/most.cmake ..
+	cd $(FAUSTDIR) && $(CMAKE) -DUSE_LLVM_CONFIG=off -DPACK=on -C ../backends/most.cmake -C ../targets/most.cmake ..
 	$(MAKE)
 	cd $(FAUSTDIR) && cpack -G NSIS64
 	mv $(FAUSTDIR)/Faust-*.exe .
 
 macpack: package/README.html
 	-[ -d $(PACK) ] && rm -rf $(PACK)
-	$(MAKE) cmake BACKENDs=all.cmake TARGETS=all.cmake  CMAKEOPT="-DDEPLOYMENT_TARGET=on"
-	$(MAKE) install PREFIX=../$(PACK)/Faust-$(VERSION)
-	$(MAKE) mactools FAUSTDIR=../../build/$(PACK)/Faust-$(VERSION)
+	$(MAKE) cmake BACKENDs=all.cmake TARGETS=all.cmake DEPLOYMENT="-DDEPLOYMENT_TARGET=ON"
+	$(MAKE) install PREFIX=../$(PACK)/Faust-$(FAUST_VERSION)
+	$(MAKE) mactools FAUSTDIR=../../build/$(PACK)/Faust-$(FAUST_VERSION)
 	cp package/INSTALL.html $(PACK)
 	cp package/README.html $(PACK)
-	hdiutil create Faust-$(VERSION).dmg -fs HFS+ -srcfolder $(PACK) -format UDBZ -ov
+	hdiutil create Faust-$(FAUST_VERSION).dmg -fs HFS+ -srcfolder $(PACK) -format UDBZ -ov
 
 mactools:
-	$(MAKE) -C ../tools/benchmark FAUST=$(FAUSTDIR)/bin/faust TARGETS="dynamic-faust faustbench-llvm interp-tracer"
-	$(MAKE) -C ../tools/benchmark install PREFIX=$(FAUSTDIR) FAUST=$(FAUSTDIR)/bin/faust TARGETS="dynamic-faust faustbench-llvm interp-tracer"
-	$(MAKE) -C ../tools/sound2faust FAUST=$(FAUSTDIR)/bin/faust TARGETS="sound2faust sound2file"
-	$(MAKE) -C ../tools/sound2faust install PREFIX=$(FAUSTDIR) FAUST=$(FAUSTDIR)/bin/faust TARGETS="sound2faust sound2file"
+	$(MAKE) -C ../tools/benchmark FAUST=$(FAUSTDIR)/bin/faust TARGETS="dynamic-faust faustbench-llvm interp-tracer" LLVM="$(LLVM)" ARCHS="$(ARCHS)" LAME_LD_FLAGS=$(LAME_LD_FLAGS)
+	$(MAKE) -C ../tools/benchmark install PREFIX=$(FAUSTDIR) FAUST=$(FAUSTDIR)/bin/faust TARGETS="dynamic-faust faustbench-llvm interp-tracer" LLVM="$(LLVM)" ARCHS="$(ARCHS)" LAME_LD_FLAGS=$(LAME_LD_FLAGS)
+	$(MAKE) -C ../tools/sound2faust FAUST=$(FAUSTDIR)/bin/faust TARGETS="sound2faust sound2file" ARCHS="$(ARCHS)" LAME_LD_FLAGS=$(LAME_LD_FLAGS)
+	$(MAKE) -C ../tools/sound2faust install PREFIX=$(FAUSTDIR) FAUST=$(FAUSTDIR)/bin/faust TARGETS="sound2faust sound2file" ARCHS="$(ARCHS)" LAME_LD_FLAGS=$(LAME_LD_FLAGS)
 
 linuxpack:
 	@echo Linux packaging not implemented. 
@@ -220,35 +247,34 @@ package/README.html: ../README.md
 # release
 #===============================================================
 FAUSTLIVE ?=../../faustlive
-release: FAUSTGEN=../embedded/faustgen
+FAUSTGEN ?=../embedded/faustgen
 release: APATH=$(shell pwd)
 release:
-	git pull --rebase
 	@echo "################## Building faust package ###################"
-	$(MAKE) cmake BACKENDS=all.cmake TARGETS=all.cmake CMAKEOPT="-DDEPLOYMENT_TARGET=on"
+	$(MAKE) cmake BACKENDS=all.cmake TARGETS=all.cmake DEPLOYMENT="-DDEPLOYMENT_TARGET=ON"
 	$(MAKE) all
 	$(MAKE) package
-	@[ -d Release-$(VERSION) ] || mkdir Release-$(VERSION)
-	rm -rf Release-$(VERSION)/*
-	cp Faust-$(VERSION).dmg Release-$(VERSION) 
-	$(MAKE) install PREFIX=$(HOME)/Faust-$(VERSION)
+	@[ -d Release-$(FAUST_VERSION) ] || mkdir Release-$(FAUST_VERSION)
+	rm -rf Release-$(FAUST_VERSION)/*
+	cp Faust-$(FAUST_VERSION).dmg Release-$(FAUST_VERSION) 
+	$(MAKE) install PREFIX=$(HOME)/Faust-$(FAUST_VERSION)
 	@echo "################## Building faust src distribution ###################"
 	$(MAKE) -C .. dist
-	mv ../faust-$(VERSION).tar.gz Release-$(VERSION)
+	mv ../faust-$(FAUST_VERSION).tar.gz Release-$(FAUST_VERSION)
 	$(MAKE) faustgen
-	$(MAKE) faustlive
+# 	$(MAKE) faustlive  # todo:
 
 faustgen:
 	@echo "################## Building faustgen package ###################"
 	$(MAKE) -C $(FAUSTGEN) clean
-	$(MAKE) -C $(FAUSTGEN) FAUST=$(HOME)/Faust-$(VERSION)/bin/faust
+	$(MAKE) -C $(FAUSTGEN) FAUST=$(HOME)/Faust-$(FAUST_VERSION)/bin/faust LLVM_LIBS="$(LLVM_LIBS)" LLVM_LD_FLAGS="$(LLVM_LD_FLAGS)"
 	$(MAKE) -C $(FAUSTGEN) package
-	cp $(FAUSTGEN)/package/*.dmg Release-$(VERSION) 
+	cp $(FAUSTGEN)/package/*.dmg Release-$(FAUST_VERSION)
 
 faustlive: APATH=$(shell pwd)
 faustlive:
 	@echo "################## Building faustlive package ###################"
-	$(MAKE) -C $(FAUSTLIVE)/Build release FAUST=$(HOME)/Faust-$(VERSION)/bin/faust DEST=$(APATH)/Release-$(VERSION)
+	$(MAKE) -C $(FAUSTLIVE)/Build release FAUST=$(HOME)/Faust-$(FAUST_VERSION)/bin/faust DEST=$(APATH)/Release-$(FAUST_VERSION)
 
 
 #===============================================================
@@ -301,7 +327,7 @@ silent: $(FAUSTDIR)
 	cd $(FAUSTDIR) && $(CMAKE) -DCMAKE_VERBOSE_MAKEFILE=OFF ..
 
 cmake: $(FAUSTDIR)
-	cd $(FAUSTDIR) && $(CMAKE) -C ../backends/$(BACKENDS) -C ../targets/$(TARGETS) $(CMAKEOPT) -DLIBSDIR=$(LIBSDIR) -G '$(GENERATOR)' ..
+	cd $(FAUSTDIR) && $(CMAKE) -C ../backends/$(BACKENDS) -C ../targets/$(TARGETS) $(CMAKEOPT) -DINCLUDE_LLVM=$(INCLUDE_LLVM) -DUSE_LLVM_CONFIG=$(USE_LLVM_CONFIG) -DLLVM_PACKAGE_VERSION=$(LLVM_PACKAGE_VERSION) -DLLVM_LIBS="$(LLVM_LIBS)" -DLLVM_LIB_DIR="$(LLVM_LIB_DIR)" -DLLVM_INCLUDE_DIRS="$(LLVM_INCLUDE_DIRS)" -DLLVM_DEFINITIONS="$(LLVM_DEFINITIONS)" -DLLVM_LD_FLAGS="$(LLVM_LD_FLAGS)" $(DEPLOYMENT) -DLIBSDIR=$(LIBSDIR) -G '$(GENERATOR)' ..
 	@echo BACKENDS=$(BACKENDS) > $(BCACHE)
 	@echo TARGETS=$(TARGETS) > $(TCACHE)
 	@echo LIBSDIR=$(LIBSDIR) > $(LCACHE)
@@ -330,8 +356,8 @@ checkemcc:
 installLog := $(FAUSTDIR)/install_manifest.txt
 install:
 	if test -d ../.git; then git submodule update --init; fi
-	cd $(FAUSTDIR) && $(CMAKE) .. -DCMAKE_INSTALL_PREFIX=$(PREFIX)
-	$(CMAKE)  --build $(FAUSTDIR) --target install
+	cd $(FAUSTDIR) && $(CMAKE) .. -DCMAKE_INSTALL_PREFIX=$(PREFIX) $(CMAKEOPT)
+	$(CMAKE) --build $(FAUSTDIR) --target install
 
 uninstall: $(installLog)
 	$(shell cat $(installLog) | xargs rm -f)

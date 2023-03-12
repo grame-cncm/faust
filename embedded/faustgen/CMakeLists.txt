@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.4.0)
 project (faustgen)
-set (VERSION "1.63")
+
+if (NOT DEFINED ENV{FAUSTGEN_VERSION})
+	message (FATAL_ERROR "FAUSTGEN_VERSION undefined. Set it as an environment variable")
+endif()
+set (VERSION $ENV{FAUSTGEN_VERSION})
 
 set(ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -16,7 +20,7 @@ if (NOT DEFINED MAXSDK)
 else()
 	message (STATUS "Using MAXSDK from ${MAXSDK}")
 endif()
-set (MAXINCL ${MAXSDK}/max-includes  ${MAXSDK}/msp-includes)
+set (MAXINCL ${MAXSDK}/max-includes ${MAXSDK}/msp-includes)
 if (APPLE)
 	set (MAXLIBS "-F${MAXSDK}/max-includes -framework MaxAPI  -F${MAXSDK}/msp-includes -framework MaxAudioAPI")
 elseif (WIN32)
@@ -42,15 +46,24 @@ message (STATUS "Using Faust libraries from ${FAUSTLIB}")
 
 #######################################
 # libsndfile
+set(LAME_LIB_DIR "")
 if (WIN32)
 	if (NOT DEFINED LIBSNDFILE)
 		set (LIBSNDFILE "C:/Program Files/Mega-Nerd/libsndfile")
 	endif()
-    set (SNDFILELIB ${LIBSNDFILE}/lib/sndfile.lib)
-	set (SNDFILEINC ${LIBSNDFILE}/include)
+	set (SNDFILE_LIBRARIES ${LIBSNDFILE}/lib/sndfile.lib)
+	set (SNDFILE_INCLUDE_DIRS ${LIBSNDFILE}/include)
 else()
-	set (SNDFILEINC ${ROOT}/MacOS/sndfile) 
-	file (GLOB SNDFILELIB MacOS/sndfile/*.a)
+	if(CMAKE_OSX_ARCHITECTURES MATCHES "arm64")
+		find_package(PkgConfig REQUIRED)
+		pkg_check_modules(SNDFILE REQUIRED sndfile)
+		# need lame due to brew's lame not having a .pc file
+		set(LAME_LIB_DIR ${LAME_DIR}/lib)
+	else()
+		set (SNDFILE_INCLUDE_DIRS ${ROOT}/MacOS/sndfile)
+		file (GLOB SNDFILE_LIBRARIES MacOS/sndfile/*.a)
+	endif()
+
 endif()
 
 #######################################
@@ -59,11 +72,13 @@ file (GLOB DSPLIBS ${ROOT}/../../libraries/*.lib)
 
 ####################################
 # LLVM
+if(NOT DEFINED LLVM_LD_FLAGS OR NOT DEFINED LLVM_LIBS)
 include (../../build/misc/llvm.cmake)
 if(USE_LLVM_CONFIG)
 	llvm_config()
 else()
 	llvm_cmake()
+endif()
 endif()
 
 ####################################
@@ -74,7 +89,6 @@ if (WIN32)
 else()
 	set (MACLIBS "-framework CoreServices -framework IOKit")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-	set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12")
 	set (FAUSTLIBS ${FAUSTLIB}/libfaust.a ${FAUSTLIB}/libOSCFaust.a)
 endif()
 
@@ -82,8 +96,11 @@ endif()
 # Add the faustgen target
 ####################################
 add_library(faustgen MODULE ${ROOT}/src/faustgen~.cpp ${WINSRC} ${DSPLIBS})
-target_include_directories (faustgen PRIVATE ${ROOT}/src/ ${MAXINCL} ${FAUSTINC} ${SNDFILEINC})
-target_link_libraries (faustgen ${FAUSTLIBS}  ${MAXLIBS} ${SNDFILELIB} ${LLVM_LD_FLAGS} ${LLVM_LIBS} )
+target_include_directories(faustgen PRIVATE ${ROOT}/src/ ${MAXINCL} ${FAUSTINC} ${SNDFILE_INCLUDE_DIRS} )
+if(DEFINED LAME_LIB_DIR OR DEFINED SNDFILE_LIBRARY_DIRS)
+target_link_directories(faustgen PRIVATE ${LAME_LIB_DIR} ${SNDFILE_LIBRARY_DIRS})
+endif()
+target_link_libraries (faustgen ${FAUSTLIBS} ${MAXLIBS} ${SNDFILE_LIBRARIES} ${LLVM_LD_FLAGS} ${LLVM_LIBS} )
 
 if (APPLE)
 set_target_properties (faustgen PROPERTIES 
