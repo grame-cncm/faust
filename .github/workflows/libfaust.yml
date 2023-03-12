@@ -122,12 +122,12 @@ jobs:
         # Since we're using an x86_64 GitHub actions runner, we're unable to build arm64 LLVM on-demand.
         # To get around this, we download a compatible LLVM build that we've built in advance.
         curl -L ${{ matrix.llvm-url }} -o llvm.zip
-        unzip llvm.zip
+        unzip -o llvm.zip
 
     - name: Download libmicrohttpd
       run: |
         curl -L ${{ matrix.libmicrohttpd-url }} -o libmicrohttpd.zip
-        unzip libmicrohttpd.zip
+        unzip -o libmicrohttpd.zip
 
     - name: Clone MAX SDK
       uses: actions/checkout@v3
@@ -239,18 +239,18 @@ jobs:
         # Libfaust will need to link against LLVM.
         # We download a Windows x86_64 LLVM build that we've built in advance.
         curl -L ${{ matrix.llvm-url }} -o llvm.zip
-        7z x llvm.zip
+        7z x llvm.zip -y
 
     - name: Download Libsndfile
       run: |
         curl -L ${{ matrix.libsndfile-url }} -o libsndfile.zip
-        7z x libsndfile.zip
+        7z x libsndfile.zip -y
         mv libsndfile-1.2.0-win64 libsndfile
 
     - name: Download libmicrohttpd
       run: |
         curl -L https://ftpmirror.gnu.org/libmicrohttpd/libmicrohttpd-latest-w32-bin.zip -o libmicrohttpd.zip
-        7z x libmicrohttpd.zip
+        7z x libmicrohttpd.zip -y
 
     - name: Clone Max SDK
       uses: actions/checkout@v3
