@@ -338,28 +338,6 @@ void GTKUI::openHandleBox(const char* label)
     }
 }
 
-struct uiExpanderBox : public uiItem {
-    GtkExpander* fButton;
-    uiExpanderBox(GUI* ui, FAUSTFLOAT* zone, GtkExpander* b) : uiItem(ui, zone), fButton(b) {}
-    static void expanded(GtkWidget* widget, gpointer data)
-    {
-        FAUSTFLOAT v = gtk_expander_get_expanded(GTK_EXPANDER(widget));
-        if (v == 1.000000) {
-            v = 0;
-        } else {
-            v = 1;
-        }
-        ((uiItem*)data)->modifyZone(v);
-    }
-
-    virtual void reflectZone()
-    {
-        FAUSTFLOAT v = *fZone;
-        fCache       = v;
-        gtk_expander_set_expanded(GTK_EXPANDER(fButton), v);
-    }
-};
-
 GtkWidget* GTKUI::addWidget(const char* label, GtkWidget* w)
 {
     switch (fMode[fTop]) {
