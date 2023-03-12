@@ -141,28 +141,17 @@ jobs:
     - name: Brew install requirements (arm64)
       if: ${{ endsWith( matrix.name, 'arm64') }}
       run: |
-        mkdir -p ~/arm-target/bin
-        mkdir -p ~/arm-target/brew-cache
-        export PATH="$HOME/arm-target/bin:$PATH"
-
-        cd ~/arm-target
-        mkdir arm-homebrew && curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C arm-homebrew
-        ln -s ~/arm-target/arm-homebrew/bin/brew ~/arm-target/bin/arm-brew
-
-        export HOMEBREW_CACHE=~/arm-target/brew-cache
-        export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
-
         PACKAGES=(gtk+3 qt@5 libsndfile libmicrohttpd)
+        setopt sh_word_split
+        mkdir arm-homebrew && curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C arm-homebrew
+        alias arm-brew='$(pwd)/arm-homebrew/bin/brew'
+
         for PACKAGE in "${PACKAGES[@]}"
         do
-            result=$(arm-brew --cache --bottle-tag=arm64_big_sur $PACKAGE)
-            echo "Looking for arm64 version of $result"
-            arm-brew install $result
+          response=$(arm-brew fetch --force --bottle-tag=arm64_big_sur $PACKAGE | grep "Downloaded to")
+          parsed=($response)
+          arm-brew install $parsed[3]
         done
-
-        # Install host version of pkg-config so we can call it in the build system
-        arm-brew install pkg-config
-        ln -s ~/arm-target/arm-homebrew/bin/pkg-config ~/arm-target/bin/arm-pkg-config
 
     - name: Brew install requirements (x86_64)
       if: ${{ endsWith( matrix.name, 'x86_64') }}
