@@ -125,7 +125,7 @@ jobs:
         set -x
         for PACKAGE in "${PACKAGES[@]}"
         do
-          response=$($brew fetch --force --bottle-tag=arm64_big_sur $PACKAGE | grep "Downloaded to:")
+          response=$($brew --cache --bottle-tag=arm64_big_sur $PACKAGE | grep "Downloaded to:")
           package_path=$(echo "$response" | cut -d' ' -f3)
           echo "package path: $package_path"
           brew install --force-bottle "$package_path"
