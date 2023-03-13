@@ -120,11 +120,10 @@ jobs:
     - name: Brew install requirements (arm64)
       if: ${{ endsWith( matrix.name, 'arm64') }}
       run: |
-        mkdir -p /opt/hb
         PACKAGES=(gtk+3 qt@5 libsndfile libmicrohttpd)
         export HOMEBREW_NO_INSTALL_CLEANUP=1
-        curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C /opt/hb
-        BREW_PATH="$(pwd)/hb/bin/brew"
+        mkdir arm-homebrew && curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C arm-homebrew
+        BREW_PATH="$(pwd)/arm-homebrew/bin/brew"
 
         set -x
         for PACKAGE in "${PACKAGES[@]}"
