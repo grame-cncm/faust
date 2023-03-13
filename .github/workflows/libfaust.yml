@@ -141,7 +141,10 @@ jobs:
     - name: Brew install requirements (arm64)
       if: ${{ endsWith( matrix.name, 'arm64') }}
       run: |
-        PACKAGES=(gtk+3 qt@5 libsndfile libmicrohttpd)
+        PACKAGES=(gettext ninja pkg-config mpdecimal ca-certificates openssl@1.1 readline sqlite, xz python@3.11 meson pcre2 glib atk docutils bison libpng freetype fontconfig util-macros xtrans xorgproto libxau libxdmcp libxcb libx11 libxext libxrender lzo, pixman cairo gobject-introspection jpeg-turbo lz4 zstd libtiff gdk-pixbuf gsettings-desktop-schemas hicolor-icon-theme libepoxy fribidi graphite2 icu4c harfbuzz pango gtk+3 qt@5 libsndfile libmicrohttpd)
+
+        export HOMEBREW_NO_INSTALL_CLEANUP=1
+
         mkdir arm-homebrew && curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C arm-homebrew
         BREW_PATH="$(pwd)/arm-homebrew/bin/brew"
 
