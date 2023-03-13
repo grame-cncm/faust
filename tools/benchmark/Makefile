@@ -1,5 +1,7 @@
 STRIP =
 
+system := $(shell uname -s)
+
 FAUST 	?= faust
 ifeq ($(system), Darwin)
 # We can't execute an arm64 faust executable on a GitHub x86 runner,
@@ -34,7 +36,6 @@ PREFIX ?= /usr/local
 prefix := $(DESTDIR)$(PREFIX)
 
 TARGETS ?= dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-interp dynamic-jack-gtk interp-tracer faust-osc-controller signal-tester signal-tester-c box-tester box-tester-c
-system := $(shell uname -s)
 ifeq ($(system), Darwin)
 	STRIP = -dead_strip
 	TARGETS := $(TARGETS) dynamic-coreaudio-gtk poly-dynamic-jack-gtk dynamic-machine-jack-gtk 
