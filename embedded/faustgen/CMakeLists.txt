@@ -32,6 +32,12 @@ endif()
 
 #######################################
 # Faust part
+if(APPLE AND CMAKE_OSX_ARCHITECTURES MATCHES "arm64")
+# We can't execute an arm64 faust executable on a GitHub x86 runner,
+# so we may some strong assumptions about where the include/libs are.
+set(FINC ${FAUST}/../../include)
+set(FLIB ${FAUST}/../../lib)
+else()
 if (NOT DEFINED FAUST)
 	set (FAUST faust)
 endif()
@@ -42,7 +48,7 @@ execute_process (COMMAND ${FAUST} --libdir OUTPUT_VARIABLE FLIB)
 string ( STRIP ${FLIB} FAUSTLIB )
 
 message (STATUS "Using Faust libraries from ${FAUSTLIB}")
-
+endif()
 
 #######################################
 # libsndfile

@@ -1,10 +1,19 @@
 STRIP =
 
 FAUST 	?= faust
+ifeq ($(system), Darwin)
+# We can't execute an arm64 faust executable on a GitHub x86 runner,
+# so we may some strong assumptions about where the include/libs are.
+LIB 	?= $(FAUST)/../../lib
+INC 	:= $(FAUST)/../../include
+FARCH 	:= $(FAUST)/../../share/faust
+else
 LIB 	?= $(shell $(FAUST) -libdir)
 INC 	:= $(shell $(FAUST) -includedir)
+FARCH 	:= $(shell $(FAUST) -archdir)
+endif
+FASTMATH = $(INC)/faust/dsp/fastmath.cpp
 LIBS 	:= $(LIB)/libfaust.a
-FASTMATH = $(shell $(FAUST) -includedir)/faust/dsp/fastmath.cpp
 ifndef LLVM
 LLVM	:= `llvm-config --ldflags --libs all --system-libs`
 endif
@@ -98,7 +107,7 @@ install:
 	cp faustbench-wasm $(prefix)/bin
 	cp faust2benchwasm $(prefix)/bin
 	cp faust-tester $(prefix)/bin	
-	cp -r iOS-bench $(shell $(FAUST) --archdir)
+	cp -r iOS-bench $(FARCH)
 
 install-package:
 	cp $(TARGETS) $(prefix)/bin
