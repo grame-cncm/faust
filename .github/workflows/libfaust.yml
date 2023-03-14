@@ -120,7 +120,7 @@ jobs:
     - name: Brew install requirements (arm64)
       if: ${{ endsWith( matrix.name, 'arm64') }}
       run: |
-        PACKAGES=(gtk+3 qt@5 libsndfile libmicrohttpd)
+        PACKAGES=$(brew deps gtk+3 qt@5 libsndfile libmicrohttpd)
         export HOMEBREW_NO_INSTALL_CLEANUP=1
         set -x
         for PACKAGE in "${PACKAGES[@]}"
@@ -128,7 +128,7 @@ jobs:
           response=$(brew fetch --bottle-tag=arm64_big_sur $PACKAGE | grep "Downloaded to:")
           package_path=$(echo "$response" | cut -d' ' -f3)
           echo "package path: $package_path"
-          brew install --force-bottle "$package_path" || true
+          brew install --force-bottle "$package_path"
         done
         set +x
 
