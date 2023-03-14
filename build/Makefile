@@ -227,10 +227,10 @@ macpack: package/README.html
 	hdiutil create Faust-$(FAUST_VERSION).dmg -fs HFS+ -srcfolder $(PACK) -format UDBZ -ov
 
 mactools:
-	$(MAKE) -C ../tools/benchmark FAUST=$(FAUSTDIR)/bin/faust TARGETS="dynamic-faust faustbench-llvm interp-tracer" LLVM="$(LLVM)" ARCHS="$(ARCHS)" LAME_LD_FLAGS=$(LAME_LD_FLAGS)
-	$(MAKE) -C ../tools/benchmark install PREFIX=$(FAUSTDIR) FAUST=$(FAUSTDIR)/bin/faust TARGETS="dynamic-faust faustbench-llvm interp-tracer" LLVM="$(LLVM)" ARCHS="$(ARCHS)" LAME_LD_FLAGS=$(LAME_LD_FLAGS)
-	$(MAKE) -C ../tools/sound2faust FAUST=$(FAUSTDIR)/bin/faust TARGETS="sound2faust sound2file" ARCHS="$(ARCHS)" LAME_LD_FLAGS=$(LAME_LD_FLAGS)
-	$(MAKE) -C ../tools/sound2faust install PREFIX=$(FAUSTDIR) FAUST=$(FAUSTDIR)/bin/faust TARGETS="sound2faust sound2file" ARCHS="$(ARCHS)" LAME_LD_FLAGS=$(LAME_LD_FLAGS)
+	$(MAKE) -C ../tools/benchmark FAUSTDIR=$(FAUSTDIR) TARGETS="dynamic-faust faustbench-llvm interp-tracer" LLVM="$(LLVM)" ARCHS="$(ARCHS)" LAME_LD_FLAGS=$(LAME_LD_FLAGS)
+	$(MAKE) -C ../tools/benchmark install PREFIX=$(FAUSTDIR) FAUSTDIR=$(FAUSTDIR) TARGETS="dynamic-faust faustbench-llvm interp-tracer" LLVM="$(LLVM)" ARCHS="$(ARCHS)" LAME_LD_FLAGS=$(LAME_LD_FLAGS)
+	$(MAKE) -C ../tools/sound2faust FAUSTDIR=$(FAUSTDIR) TARGETS="sound2faust sound2file" ARCHS="$(ARCHS)" LAME_LD_FLAGS=$(LAME_LD_FLAGS)
+	$(MAKE) -C ../tools/sound2faust install PREFIX=$(FAUSTDIR) FAUSTDIR=$(FAUSTDIR) TARGETS="sound2faust sound2file" ARCHS="$(ARCHS)" LAME_LD_FLAGS=$(LAME_LD_FLAGS)
 
 linuxpack:
 	@echo Linux packaging not implemented. 

@@ -2,17 +2,17 @@ STRIP =
 
 system := $(shell uname -s)
 
-FAUST 	?= faust
+FAUSTDIR	?= $(HOME)/Faust-$(FAUST_VERSION)
 ifeq ($(system), Darwin)
 # We can't execute an arm64 faust executable on a GitHub x86 runner,
 # so we may some strong assumptions about where the include/libs are.
-LIB 	?= $(FAUST)/../../lib
-INC 	:= $(FAUST)/../../include
-FARCH 	:= $(FAUST)/../../share/faust
+LIB 	?= $(FAUSTDIR)/lib
+INC 	:= $(FAUSTDIR)/include
+FARCH 	:= $(FAUSTDIR)/share/faust
 else
-LIB 	?= $(shell $(FAUST) -libdir)
-INC 	:= $(shell $(FAUST) -includedir)
-FARCH 	:= $(shell $(FAUST) -archdir)
+LIB 	?= $(shell $(FAUSTDIR)/bin/faust -libdir)
+INC 	:= $(shell $(FAUSTDIR)/bin/faust -includedir)
+FARCH 	:= $(shell $(FAUSTDIR)/bin/faust -archdir)
 endif
 FASTMATH = $(INC)/faust/dsp/fastmath.cpp
 LIBS 	:= $(LIB)/libfaust.a
