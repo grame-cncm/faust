@@ -127,7 +127,7 @@ jobs:
           response=$(brew fetch --bottle-tag=arm64_big_sur $PACKAGE | grep "Downloaded to:")
           package_path=$(echo "$response" | cut -d' ' -f3)
           echo "package path: $package_path"
-          brew install --force-bottle "$package_path"
+          brew install --verbose --force-bottle "$package_path"
         done
 
     - name: Brew install requirements (x86_64)
