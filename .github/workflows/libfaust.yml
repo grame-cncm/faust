@@ -130,6 +130,7 @@ jobs:
           downloaded=${response##*Downloaded to: }
           echo "Downloaded: $downloaded"
           package_path=${downloaded%%SHA256*}
+          package_path=$(echo "$package_path" | xargs)
           echo "Package Path: $package_path"
           brew install --verbose --force-bottle "$package_path" || true
         done
