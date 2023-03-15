@@ -125,10 +125,12 @@ jobs:
         export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
         for PACKAGE in "${PACKAGES[@]}"
         do
-          echo "fetching bottle for $PACKAGE"
-          response=$(brew fetch --bottle-tag=arm64_monterey $PACKAGE | grep "Downloaded to:")
-          package_path=$(echo "$response" | cut -d' ' -f3)
-          echo "package path: $package_path"
+          echo "Fetching bottle: $PACKAGE"
+          response=$(brew fetch --bottle-tag=arm64_monterey $PACKAGE 2>&1)
+          downloaded=$(echo $response | grep "Downloaded to:")
+          echo "Downloaded: $downloaded"
+          package_path=$(echo "$downloaded" | cut -d' ' -f3)
+          echo "Package Path: $package_path"
           brew install --verbose --force-bottle "$package_path" || true
         done
 
