@@ -120,8 +120,9 @@ jobs:
     - name: Brew install requirements (arm64)
       if: ${{ endsWith( matrix.name, 'arm64') }}
       run: |
-        PACKAGES=($(brew deps --union gtk+3 qt@5 libsndfile libmicrohttpd | tr '\n' ' '))
+        PACKAGES=($(brew deps --union --topological gtk+3 qt@5 libsndfile libmicrohttpd | tr '\n' ' '))
         export HOMEBREW_NO_INSTALL_CLEANUP=1
+        export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
         for PACKAGE in "${PACKAGES[@]}"
         do
           response=$(brew fetch --bottle-tag=arm64_big_sur $PACKAGE | grep "Downloaded to:")
