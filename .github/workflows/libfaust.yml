@@ -127,9 +127,9 @@ jobs:
         do
           echo "Fetching bottle: $PACKAGE"
           response=$(brew fetch --bottle-tag=arm64_monterey $PACKAGE 2>&1)
-          downloaded=$(echo $response | grep "Downloaded to:")
+          downloaded=${response##*Downloaded to: }
           echo "Downloaded: $downloaded"
-          package_path=$(echo "$downloaded" | cut -d' ' -f3)
+          package_path=${downloaded%%SHA256*}
           echo "Package Path: $package_path"
           brew install --verbose --force-bottle "$package_path" || true
         done
