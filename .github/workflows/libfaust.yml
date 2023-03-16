@@ -119,6 +119,7 @@ jobs:
 
     - name: Brew install requirements (arm64)
       if: ${{ endsWith( matrix.name, 'arm64') }}
+      # Note that we reinstall curl at the end to make sure we have x86_64 curl (not arm64), which we can call
       run: |
         brew update
         PACKAGES=(gtk+3 qt@5 libsndfile libmicrohttpd)
@@ -135,6 +136,8 @@ jobs:
           echo "Package Path: $package_path"
           brew reinstall --verbose --force-bottle "$package_path" || true
         done
+
+        brew reinstall curl
 
     - name: Brew install requirements (x86_64)
       if: ${{ endsWith( matrix.name, 'x86_64') }}
