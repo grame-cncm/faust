@@ -121,7 +121,7 @@ jobs:
       if: ${{ endsWith( matrix.name, 'arm64') }}
       run: |
         brew update
-        PACKAGES="gtk+3 qt@5 libsndfile libmicrohttpd"
+        PACKAGES=(gtk+3 qt@5 libsndfile libmicrohttpd)
         DEPS=($(brew deps --union --topological $(echo $PACKAGES) | tr '\n' ' '))
         PACKAGES=("${DEPS[@]}" "${PACKAGES[@]}")
         export HOMEBREW_NO_INSTALL_CLEANUP=1
