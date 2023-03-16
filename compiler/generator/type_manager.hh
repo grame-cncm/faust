@@ -115,7 +115,9 @@ class CStringTypeManager : public StringTypeManager {
         } else if (named_typed) {
             return generateType(named_typed->fType) + NamedTyped::AttributeMap[attr] + named_typed->fName;
         } else if (array_typed) {
-            return fTypeDirectTable[array_typed->getType()];
+            return (array_typed->fSize == 0)
+                ? generateType(array_typed->fType) + fPtrRef
+                : generateType(array_typed->fType) + "[" + std::to_string(array_typed->fSize) + "]";
         } else if (struct_typed) {
             std::string res = "typedef struct " + struct_typed->fName + " { ";
             for (const auto& it : struct_typed->fFields) {
@@ -141,8 +143,8 @@ class CStringTypeManager : public StringTypeManager {
             return named_typed->fName + generateType(named_typed->fType) + " " + name;
         } else if (array_typed) {
             return (array_typed->fSize == 0)
-                    ? generateType(array_typed->fType) + fPtrRef + " " + name
-                    : generateType(array_typed->fType) + " " + name + "[" + std::to_string(array_typed->fSize) + "]";
+                ? generateType(array_typed->fType) + fPtrRef + " " + name
+                : generateType(array_typed->fType) + " " + name + "[" + std::to_string(array_typed->fSize) + "]";
         } else {
             faustassert(false);
             return "";
@@ -213,7 +215,9 @@ class RustStringTypeManager : public StringTypeManager {
             std::string ty_str = generateType(named_typed->fType);
             return named_typed->fName + ((ty_str != "") ? (": " + ty_str) : "");
         } else if (array_typed) {
-            return fTypeDirectTable[array_typed->getType()];
+            return (array_typed->fSize == 0)
+                ? fPtrRef + generateType(array_typed->fType)
+                : "[" + generateType(array_typed->fType) + ";" + std::to_string(array_typed->fSize) + "]";
         } else {
             faustassert(false);
             return "";
@@ -232,9 +236,7 @@ class RustStringTypeManager : public StringTypeManager {
             std::string ty_str = named_typed->fName + generateType(named_typed->fType);
             return name + ((ty_str != "") ? (": " + ty_str) : "");
         } else if (array_typed) {
-            return (array_typed->fSize == 0)
-                       ? name + ": " + fPtrRef + generateType(array_typed->fType)
-                       : name + ": [" + generateType(array_typed->fType) + ";" + std::to_string(array_typed->fSize) + "]";
+            return name + ": " + generateType(type);
         } else {
             faustassert(false);
             return "";
@@ -303,7 +305,9 @@ class CmajorStringTypeManager : public StringTypeManager {
         } else if (named_typed) {
             return generateType(named_typed->fType) + " " + named_typed->fName;
         } else if (array_typed) {
-            return fTypeDirectTable[array_typed->getType()];
+            return (array_typed->fSize == 0)
+                ? generateType(array_typed->fType) + fPtrRef
+                : generateType(array_typed->fType) + "[" + std::to_string(array_typed->fSize) + "]";
         } else {
             faustassert(false);
             return "";
@@ -321,9 +325,7 @@ class CmajorStringTypeManager : public StringTypeManager {
         } else if (named_typed) {
             return named_typed->fName + generateType(named_typed->fType) + " " + name;
         } else if (array_typed) {
-            return (array_typed->fSize == 0)
-                    ? generateType(array_typed->fType) + fPtrRef + " " + name
-                    : generateType(array_typed->fType) + "[" + std::to_string(array_typed->fSize) + "] " + name;
+            return generateType(type) + " " + name;
         } else {
             faustassert(false);
             return "";
@@ -395,7 +397,9 @@ class JuliaStringTypeManager : public StringTypeManager {
             std::string ty_str = generateType(named_typed->fType);
             return named_typed->fName + ((ty_str != "") ? ("::" + ty_str) : "");
         } else if (array_typed) {
-            return fTypeDirectTable[array_typed->getType()];
+            return (array_typed->fSize == 0)
+                ? "::" + fPtrRef + generateType(array_typed->fType)
+                : "::Vector{" + generateType(array_typed->fType) + "}";
         } else {
             faustassert(false);
             return "";
@@ -414,9 +418,7 @@ class JuliaStringTypeManager : public StringTypeManager {
             std::string ty_str = named_typed->fName + generateType(named_typed->fType);
             return name + ((ty_str != "") ? ("::" + ty_str) : "");
         } else if (array_typed) {
-            return (array_typed->fSize == 0)
-                    ? name + "::" + fPtrRef + generateType(array_typed->fType)
-                    : name + "::Vector{" + generateType(array_typed->fType) + "}";
+            return name + generateType(type);
         } else {
             faustassert(false);
             return "";
