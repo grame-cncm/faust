@@ -136,7 +136,7 @@ jobs:
           brew reinstall --verbose --force-bottle "$package_path" || true
         done
 
-        brew uninstall curl || true
+        brew uninstall --ignore-dependencies curl || true
 
     - name: Brew install requirements (x86_64)
       if: ${{ endsWith( matrix.name, 'x86_64') }}
