@@ -125,7 +125,6 @@ jobs:
         DEPS=($(brew deps --union --topological $(echo $PACKAGES) | tr '\n' ' '))
         PACKAGES=("${DEPS[@]}" "${PACKAGES[@]}")
         export HOMEBREW_NO_INSTALL_CLEANUP=1
-        export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
         for PACKAGE in "${PACKAGES[@]}"
         do
           echo "Fetching bottle: $PACKAGE"
@@ -133,8 +132,14 @@ jobs:
           package_path=$(echo $response | sed -n 's/.*\:\ \(.*\.tar\.gz\).*/\1/p')
           package_path=$(echo "$package_path" | xargs)
           echo "Package Path: $package_path"
-          brew install --verbose --force-bottle "$package_path" || true
+          brew reinstall --verbose --force-bottle "$package_path" || true
         done
+
+        echo "trying pkg-config gtk+3"
+        pkg-config --cflags gtk+-3.0 || true
+        export PKG_CONFIG_PATH="/usr/local/opt/qt@5/lib/pkgconfig:/usr/local/Cellar/gtk+3/3.24.37/lib/pkgconfig"
+        echo "trying pkg-config gtk+3 AGAIN"
+        pkg-config --cflags gtk+-3.0 || true        
 
     - name: Brew install requirements (x86_64)
       if: ${{ endsWith( matrix.name, 'x86_64') }}
@@ -163,6 +168,7 @@ jobs:
 
     - name: Build everything
       run: |
+        export PKG_CONFIG_PATH="/usr/local/opt/qt@5/lib/pkgconfig:/usr/local/Cellar/gtk+3/3.24.37/lib/pkgconfig"
         export LLVM_DIR=$PWD/llvm/lib/cmake/llvm
         export LLVM_LIB_DIR=$PWD/llvm/lib
         export LLVM_INCLUDE_DIRS=$PWD/llvm/include
