@@ -120,16 +120,17 @@ jobs:
     - name: Brew install requirements (arm64)
       if: ${{ endsWith( matrix.name, 'arm64') }}
       run: |
-        PACKAGES=($(brew deps --union --topological gtk+3 qt@5 libsndfile libmicrohttpd | tr '\n' ' '))
+        brew update
+        PACKAGES="gtk+3 qt@5 libsndfile libmicrohttpd"
+        DEPS=($(brew deps --union --topological $(echo $PACKAGES) | tr '\n' ' '))
+        PACKAGES=("${DEPS[@]}" "${PACKAGES[@]}")
         export HOMEBREW_NO_INSTALL_CLEANUP=1
         export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
         for PACKAGE in "${PACKAGES[@]}"
         do
           echo "Fetching bottle: $PACKAGE"
           response=$(brew fetch --bottle-tag=arm64_monterey $PACKAGE 2>&1)
-          downloaded=${response##*Downloaded to: }
-          echo "Downloaded: $downloaded"
-          package_path=${downloaded%%SHA256*}
+          package_path=$(echo $response | sed -n 's/.*\:\ \(.*\.tar\.gz\).*/\1/p')
           package_path=$(echo "$package_path" | xargs)
           echo "Package Path: $package_path"
           brew install --verbose --force-bottle "$package_path" || true
