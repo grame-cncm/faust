@@ -40,12 +40,12 @@
 #include <mutex>
 #include <map>
 
-#include "faust/dsp/llvm-dsp.h"
-#include "faust/gui/JSONUI.h"
-#include "faust/gui/MidiUI.h"
-#include "faust/gui/SoundUI.h"
-#include "faust/gui/OSCUI.h"
-#include "faust/gui/SaveUI.h"
+#include <faust/dsp/llvm-dsp.h>
+#include <faust/gui/JSONUI.h>
+#include <faust/gui/MidiUI.h>
+#include <faust/gui/SoundUI.h>
+#include <faust/gui/OSCUI.h>
+#include <faust/gui/SaveUI.h>
 
 #include "maxcpp5.h"
 
@@ -54,7 +54,7 @@
 #endif
 
 // Here to be able to use 'post'
-#include "faust/gui/mspUI.h"
+#include <faust/gui/mspUI.h>
 
 #include "jpatcher_api.h"
 #include "jgraphics.h"
@@ -66,7 +66,7 @@
 #define FAUST_PDF_LIBRARY "library.pdf"
 
 #ifdef __APPLE__
-#include "faust/dsp/dsp-optimizer.h"
+#include <faust/dsp/dsp-optimizer.h>
 #define FAUST_LIBRARY_PATH "/Contents/Resources/"
 #define FAUST_DRAW_PATH "/var/tmp/"
 #define SEPARATOR '/'

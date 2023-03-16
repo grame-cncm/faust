@@ -35,8 +35,10 @@ endif()
 if(APPLE AND CMAKE_OSX_ARCHITECTURES MATCHES "arm64")
 # We can't execute an arm64 faust executable on a GitHub x86 runner,
 # so we may some strong assumptions about where the include/libs are.
-set(FINC ${FAUST}/../../include)
-set(FLIB ${FAUST}/../../lib)
+cmake_path(GET FAUST PARENT_PATH FAUST_DIR)
+cmake_path(GET FAUST_DIR PARENT_PATH FAUST_DIR)
+set(FAUSTINC ${FAUST_DIR}/include)
+set(FAUSTLIB ${FAUST_DIR}/lib)
 else()
 if (NOT DEFINED FAUST)
 	set (FAUST faust)
