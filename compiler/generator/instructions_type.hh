@@ -261,6 +261,8 @@ struct Typed : public Printable {
     virtual void accept(InstVisitor* visitor) = 0;
 
     virtual Typed* clone(CloneVisitor* cloner) = 0;
+    
+    virtual std::string toString() = 0;
 };
 
 #endif

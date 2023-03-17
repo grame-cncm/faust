@@ -687,7 +687,7 @@ Tree signalUIFreezePromote(Tree sig)
     return SP.mapself(sig);
 }
 
-Tree signalFTZPromotion(Tree sig)
+Tree signalFTZPromote(Tree sig)
 {
     // Check that the root tree is properly type annotated
     getCertifiedSigType(sig);

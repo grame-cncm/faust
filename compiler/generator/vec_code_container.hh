@@ -37,11 +37,11 @@ class VectorCodeContainer : public virtual CodeContainer {
     // Code generated with -lv 1 option
     BlockInst* generateDAGLoopVariant1(const std::string& counter);
 
-    void generateLocalInputs(BlockInst* loop_code, const std::string& index);
-    void generateLocalOutputs(BlockInst* loop_code, const std::string& index);
+    void generateLocalInputs(BlockInst* loop_code, const std::string& index) override;
+    void generateLocalOutputs(BlockInst* loop_code, const std::string& index) override;
 
-    void       processFIR(void);
-    BlockInst* flattenFIR(void);
+    void       processFIR(void) override;
+    BlockInst* flattenFIR(void) override;
 
    protected:
     BlockInst* fDAGBlock;

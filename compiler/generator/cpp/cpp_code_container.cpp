@@ -35,7 +35,7 @@ using namespace std;
  C++ backend and module description:
  
     1) in -os mode:
-        - subcontainers are merged in the main class
+        - subcontainers are merged in the main class: in -os0 mode,  static tables are allocated as global, and in iZone/fZone in -os(1|2|3) modes
         - CPPScalarOneSampleCodeContainer1 (used in -os0) separates the DSP control state in iControl/fControl (possibly to be allocated elsewhere)
         - CPPScalarOneSampleCodeContainer2 (used in -os1) separates the DSP control state in iControl/fControl and the DSP state in iZone/fZone (possibly to be allocated elsewhere)
         - CPPScalarOneSampleCodeContainer3 (used in -os2) separates the DSP control state in iControl/fControl and the DSP state in iZone/fZone (possibly to be allocated elsewhere). Short delay lines remain in DSP struct, long delay lines are moved in iZone/fZone.
@@ -1103,6 +1103,7 @@ void CPPScalarOneSampleCodeContainer2::produceClass()
 // Used with -os2 option
 void CPPScalarOneSampleCodeContainer3::produceClass()
 {
+    // Allocate fCodeProducer here
     VariableSizeCounter heap_counter(Address::kStruct);
     generateDeclarations(&heap_counter);
     fCodeProducer = new CPPInstVisitor2(fOut, std::max(0, heap_counter.fSizeBytes - gGlobal->gFPGAMemory));
@@ -1375,6 +1376,7 @@ void CPPScalarOneSampleCodeContainer3::produceClass()
 // Used with -os3 option
 void CPPScalarOneSampleCodeContainer4::produceClass()
 {
+    // Allocate fCodeProducer here
     VariableSizeCounter heap_counter(Address::kStruct);
     generateDeclarations(&heap_counter);
     fCodeProducer = new CPPInstVisitor3(fOut, std::max(0, heap_counter.fSizeBytes - gGlobal->gFPGAMemory));

@@ -154,6 +154,7 @@ fx:
 	$(MAKE) -f Make.gcc outdir=cpp/fx/os0        lang=cpp arch=impulsearchfx.cpp   FAUSTOPTIONS="-I dsp -fx -os0"
 	$(MAKE) -f Make.gcc outdir=cpp/fx/os1        lang=cpp arch=impulsearchfx.cpp   FAUSTOPTIONS="-I dsp -fx -os1"
 	$(MAKE) -f Make.gcc outdir=cpp/fx/os2        lang=cpp arch=impulsearchfx.cpp   FAUSTOPTIONS="-I dsp -fx -os2"
+	$(MAKE) -f Make.gcc outdir=cpp/fx/os3        lang=cpp arch=impulsearch4.cpp   FAUSTOPTIONS="-I dsp -fx -os3"
 	$(MAKE) -f Make.gcc outdir=c/fx              lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-I dsp -fx"
 	$(MAKE) -f Make.gcc outdir=c/fx/os0          lang=c arch=impulsearch2bis.cpp FAUSTOPTIONS="-I dsp -fx -os0"
 	$(MAKE) -f Make.gcc outdir=c/fx/os1          lang=c arch=impulsearch2ter.cpp FAUSTOPTIONS="-I dsp -fx -os1"

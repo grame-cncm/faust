@@ -120,7 +120,7 @@ class TextInstVisitor : public InstVisitor {
     virtual void visit(NamedAddress* named) { *fOut << named->fName; }
 
     /*
-     Indexed address can actually be values in an array or fields in a struct type
+     Indexed address can actually be values in an array or fields in a struct type.
      */
     virtual void visit(IndexedAddress* indexed)
     {
@@ -162,8 +162,6 @@ class TextInstVisitor : public InstVisitor {
 
     virtual void visit(Int32NumInst* inst) { *fOut << inst->fNum; }
 
-    virtual void visit(Int64NumInst* inst) { *fOut << inst->fNum; }
-
     virtual void visit(Int32ArrayNumInst* inst)
     {
         char sep = '{';
@@ -173,6 +171,8 @@ class TextInstVisitor : public InstVisitor {
         }
         *fOut << '}';
     }
+
+    virtual void visit(Int64NumInst* inst) { *fOut << inst->fNum; }
 
     virtual void visit(BoolNumInst* inst) { *fOut << ((inst->fNum) ? "true" : "false"); }
 
@@ -188,8 +188,20 @@ class TextInstVisitor : public InstVisitor {
         *fOut << '}';
     }
 
+    virtual void visit(FixedPointNumInst* inst) { *fOut << checkFloat(inst->fNum); }
+    
+    virtual void visit(FixedPointArrayNumInst* inst)
+    {
+        char sep = '{';
+        for (size_t i = 0; i < inst->fNumTable.size(); i++) {
+            *fOut << sep << checkFloat(inst->fNumTable[i]);
+            sep = ',';
+        }
+        *fOut << '}';
+    }
+
     /**
-     * @brief some binary operations need parentheses in order to silent some c++ warning
+     * @brief some binary operations need parentheses in order to silent some c++ warning.
      *
      * @param name of the binop to test
      * @return true if parentheses are needed to silence warnings
@@ -202,7 +214,7 @@ class TextInstVisitor : public InstVisitor {
     }
 
     /**
-     * @brief test if a left expression needs parentheses
+     * @brief test if a left expression needs parentheses.
      *
      * @param inst the top binary operation
      * @param arg the left expression

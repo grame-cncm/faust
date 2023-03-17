@@ -47,6 +47,9 @@
 #include "faust/gui/GTKUI.h"
 #include "faust/misc.h"
 #include "faust/audio/coreaudio-dsp.h"
+#ifdef FIXED_POINT
+#include "faust/dsp/fixed-point.h"
+#endif
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"

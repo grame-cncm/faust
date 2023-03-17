@@ -63,12 +63,20 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     {
         BasicTyped*  basic_typed  = dynamic_cast<BasicTyped*>(type);
         NamedTyped*  named_typed  = dynamic_cast<NamedTyped*>(type);
+        FixedTyped*  fx_typed     = dynamic_cast<FixedTyped*>(type);
         FunTyped*    fun_typed    = dynamic_cast<FunTyped*>(type);
         ArrayTyped*  array_typed  = dynamic_cast<ArrayTyped*>(type);
         VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(type);
         StructTyped* struct_typed = dynamic_cast<StructTyped*>(type);
 
-        if (basic_typed) {
+        // fx_typed is a subclass of basic_typed, so has to be tested first
+        if (fx_typed) {
+            if (fx_typed->fIsSigned) {
+                return "\"sfx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ")\"";
+            } else {
+                return "\"ufx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + ")\"";
+            }
+        } else if (basic_typed) {
             faustassert(fTypeDirectTable.find(basic_typed->fType) != fTypeDirectTable.end());
             return "\"" + fTypeDirectTable[basic_typed->fType] + "\"";
         } else if (named_typed) {
@@ -117,12 +125,20 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     {
         BasicTyped*  basic_typed  = dynamic_cast<BasicTyped*>(type);
         NamedTyped*  named_typed  = dynamic_cast<NamedTyped*>(type);
+        FixedTyped*  fx_typed     = dynamic_cast<FixedTyped*>(type);
         FunTyped*    fun_typed    = dynamic_cast<FunTyped*>(type);
         ArrayTyped*  array_typed  = dynamic_cast<ArrayTyped*>(type);
         VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(type);
         StructTyped* struct_typed = dynamic_cast<StructTyped*>(type);
 
-        if (basic_typed) {
+        // fx_typed is a subclass of basic_typed, so has to be tested first
+        if (fx_typed) {
+            if (fx_typed->fIsSigned) {
+                return "\"sfx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + "\"), " + name;
+            } else {
+                return "\"ufx_t(" + std::to_string(fx_typed->fMSB) + "," + std::to_string(fx_typed->fLSB) + "\"), " + name;
+            }
+        } else if (basic_typed) {
             return "\"" + fTypeDirectTable[basic_typed->fType] + "\", " + name;
         } else if (named_typed) {
             // TODO : break code with subclasses

@@ -64,6 +64,9 @@ for p in $@; do
     elif [ $p = "-soundfile" ]; then
         CXXFLAGS="$CXXFLAGS -DSOUNDFILE"
         SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
+    elif [ $p = "-fx" ]; then
+        OPTIONS="$OPTIONS $p"
+        CXXFLAGS="$CXXFLAGS -I /usr/local/include/ap_fixed -DFIXED_POINT"
     elif [ $p = "-dyn" ]; then
         OPTIONS="$OPTIONS -inj template-llvm.cpp"
         LLVM_LIBS="$STRIP $FAUSTLDDIR/libfaust.a `llvm-config --ldflags --libs all --system-libs`"

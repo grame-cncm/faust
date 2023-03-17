@@ -36,7 +36,6 @@
 
 /**
  *	An automatic stack of contexts
- *
  */
 class contextor {
     static int top;

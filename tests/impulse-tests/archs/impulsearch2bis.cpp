@@ -10,7 +10,6 @@
 #include "faust/gui/CGlue.h"
 #include "faust/dsp/one-sample-dsp.h"
 #include "controlTools.h"
-#include "fixed-point.h"
 
 //----------------------------------------------------------------------------
 //FAUST generated code

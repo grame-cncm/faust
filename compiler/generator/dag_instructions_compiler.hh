@@ -28,31 +28,31 @@ class DAGInstructionsCompiler : public InstructionsCompiler {
    public:
     DAGInstructionsCompiler(CodeContainer* container);
 
-    virtual void compileMultiSignal(Tree sig);
+    virtual void compileMultiSignal(Tree sig) override;
 
    private:
     // reimplemented code generation methods
-    virtual ValueInst* CS(Tree sig);
-    virtual ValueInst* generateCode(Tree sig);
+    virtual ValueInst* CS(Tree sig) override;
+    virtual ValueInst* generateCode(Tree sig) override;
     virtual void       generateCodeRecursions(Tree sig);
     virtual ValueInst* generateCodeNonRec(Tree sig);
     virtual ValueInst* generateLoopCode(Tree sig);
 
-    virtual ValueInst* generateWaveform(Tree sig);
+    virtual ValueInst* generateWaveform(Tree sig) override;
 
-    void generateVectorLoop(Typed::VarType ctype, const std::string& vecname, ValueInst* exp,
+    void generateVectorLoop(BasicTyped* ctype, const std::string& vecname, ValueInst* exp,
                             Address::AccessType& access);
-    void generateDlineLoop(Typed::VarType ctype, const std::string& vecname, int delay, ValueInst* exp,
-                           Address::AccessType& access);
+    void generateDlineLoop(BasicTyped* ctype, const std::string& vecname, int delay, ValueInst* exp,
+                            Address::AccessType& access);
 
-    virtual ValueInst* generateVariableStore(Tree sig, ValueInst* inst);
-    virtual ValueInst* generateCacheCode(Tree sig, ValueInst* inst);
-    virtual ValueInst* generateInput(Tree sig, int idx);
+    virtual ValueInst* generateVariableStore(Tree sig, ValueInst* inst) override;
+    virtual ValueInst* generateCacheCode(Tree sig, ValueInst* inst) override;
+    virtual ValueInst* generateInput(Tree sig, int idx) override;
 
-    virtual ValueInst* generateDelay(Tree sig, Tree arg, Tree size);
-    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd);
-    virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd,
-                                         Address::AccessType& access, ValueInst* ccs);
+    virtual ValueInst* generateDelay(Tree sig, Tree arg, Tree size) override;
+    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, BasicTyped* ctype, const std::string& vname, int mxd) override;
+    virtual ValueInst* generateDelayLine(ValueInst* exp, BasicTyped* ctype, const std::string& vname, int mxd,
+                                         Address::AccessType& access, ValueInst* ccs) override;
 
     StatementInst* generateCopyBackArray(const std::string& vname_to, const std::string& vname_from, int size);
 

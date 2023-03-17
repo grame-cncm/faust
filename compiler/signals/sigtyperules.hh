@@ -52,4 +52,11 @@ void typeAnnotation(Tree sig, bool causality);
  */
 ::Type getCertifiedSigType(Tree term);
 
+/**
+ * Set the type annotation of sig
+ * @param sig the signal we want to type
+ * @param t the type of the signal
+ */
+void setSigType(Tree sig, Type t);
+
 #endif

@@ -238,5 +238,5 @@ Tree signalTablePromote(Tree sig);
 Tree signalIntCastPromote(Tree sig);
 Tree signalUIPromote(Tree sig);
 Tree signalUIFreezePromote(Tree sig);
-Tree signalFTZPromotion(Tree sig);
+Tree signalFTZPromote(Tree sig);
 #endif

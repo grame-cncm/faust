@@ -34,7 +34,10 @@ std::stack<BlockInst*> BasicCloneVisitor::fBlockStack;
 
 vector<string> NamedTyped::AttributeMap = {" ", " RESTRICT "};
 
-BasicTyped* InstBuilder::genItFloatTyped() { return genBasicTyped(itfloat()); }
+BasicTyped* InstBuilder::genItFloatTyped()
+{
+    return genBasicTyped(itfloat());
+}
 
 DeclareStructTypeInst* isStructType(const string& name)
 {
@@ -57,6 +60,8 @@ ValueInst* InstBuilder::genTypedZero(Typed::VarType type)
         return genInt64NumInst(0);
     } else if (isRealType(type)) {
         return genRealNumInst(type, 0.0);
+    } else if (isFixedPoint(type)) {
+        return genFixedPointNumInst(0.0);
     } else {
         // Pointer type
         if (gGlobal->gMachinePtrSize == 4) {
@@ -146,14 +151,16 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
             ArrayTyped* array_t1 = dynamic_cast<ArrayTyped*>(gGlobal->gVarTypeTable[fAddress->getName()]);
             ArrayTyped* array_t2 = dynamic_cast<ArrayTyped*>(type);
             if (array_t1 && array_t2) {
-                // Arrays have the exact same size
-                bool same_size = array_t1->fSize == array_t2->fSize;
+                // Arrays have the same string representation
+                bool same_type = array_t1->fType->toString() == array_t2->fType->toString();
                 // Or not but one of them is actually a pointer
-                bool compatible_size = (array_t1->fSize != array_t2->fSize)
-                    && array_t1->fType == array_t2->fType
-                    && (array_t1->fSize == 0 || array_t2->fSize == 0);
-                bool same_type = array_t1->fType == array_t2->fType;
-                faustassert((same_size && same_type) || compatible_size);
+                bool compatible_type = (array_t1->fSize != array_t2->fSize)
+                                        && array_t1->fType == array_t2->fType
+                                        && (array_t1->fSize == 0 || array_t2->fSize == 0);
+                faustassert(same_type || compatible_type);
+            // If fixed-point, check the string representations
+            } else if (dynamic_cast<FixedTyped*>(gGlobal->gVarTypeTable[fAddress->getName()])) {
+                faustassert(gGlobal->gVarTypeTable[fAddress->getName()]->toString() == type->toString());
             } else {
                 dump2FIR(address);
                 dump2FIR(type);
@@ -221,7 +228,7 @@ DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* co
         FunTyped* fun_type = static_cast<FunTyped*>(gGlobal->gVarTypeTable[name]);
         // If same result type
         if (fun_type->getTyped() == type->getTyped()) {
-            if ((gGlobal->gOutputLang == "llvm") && (fun_type->getPrototype() != type->getPrototype())) {
+            if ((gGlobal->gOutputLang == "llvm") && (fun_type->toString() != type->toString())) {
                 stringstream str;
                 str << "ERROR : foreign function '" << name
                     << "' conflicts with another (possibly compiler internally defined) function with a different "
