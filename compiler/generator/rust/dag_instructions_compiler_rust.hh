@@ -33,9 +33,9 @@ class DAGInstructionsCompilerRust : public DAGInstructionsCompiler {
     void compileMultiSignal(Tree sig) override;
 
    private:
-    StatementInst* generateInitArray(const std::string& vname, Typed::VarType ctype, int delay) override;
-    StatementInst* generateShiftArray(const std::string& vname, int delay) override;
-    StatementInst* generateCopyArray(const std::string& vname_to, const std::string& vname_from, int size) override;
+    virtual StatementInst* generateInitArray(const std::string& vname, BasicTyped* ctype, int delay) override;
+    virtual StatementInst* generateShiftArray(const std::string& vname, int delay) override;
+    virtual StatementInst* generateCopyArray(const std::string& vname_to, const std::string& vname_from, int size) override;
 };
 
 #endif  // FAUST_DAG_INSTRUCTIONS_COMPILER_RUST_H

@@ -153,6 +153,7 @@ struct Typed;
 
 struct BasicTyped;
 struct NamedTyped;
+struct FixedTyped;
 struct FunTyped;
 struct ArrayTyped;
 struct StructTyped;
@@ -180,7 +181,7 @@ typedef std::list<NamedTyped*>::const_iterator NamesIt;
 
 inline bool isRealType(Typed::VarType type)
 {
-    return (type == Typed::kFloat || type == Typed::kFloatMacro || type == Typed::kDouble || type == Typed::kQuad);
+    return (type == Typed::kFloat || type == Typed::kFloatMacro || type == Typed::kDouble || type == Typed::kQuad || type == Typed::kFixedPoint);
 }
 
 inline bool isIntType(Typed::VarType type)
@@ -211,6 +212,11 @@ inline bool isDoubleType(Typed::VarType type)
 inline bool isQuadType(Typed::VarType type)
 {
     return (type == Typed::kQuad);
+}
+
+inline bool isFixedPoint(Typed::VarType type)
+{
+    return (type == Typed::kFixedPoint);
 }
 
 inline bool isFloatMacroType(Typed::VarType type)
@@ -341,6 +347,7 @@ struct InstVisitor : public virtual Garbageable {
     // Types
     virtual void visit(BasicTyped* typed) {}
     virtual void visit(NamedTyped* typed) {}
+    virtual void visit(FixedTyped* typed) {}
     virtual void visit(FunTyped* typed) {}
     virtual void visit(ArrayTyped* typed) {}
     virtual void visit(StructTyped* typed) {}
@@ -372,11 +379,11 @@ struct CloneVisitor : public virtual Garbageable {
     virtual StatementInst* visit(ShiftArrayVarInst* inst)  = 0;
 
     // Numbers
+    virtual ValueInst* visit(Int32NumInst* inst)       = 0;
+    virtual ValueInst* visit(Int32ArrayNumInst* inst)  = 0;
+    virtual ValueInst* visit(Int64NumInst* inst)       = 0;
     virtual ValueInst* visit(FloatNumInst* inst)       = 0;
     virtual ValueInst* visit(FloatArrayNumInst* inst)  = 0;
-    virtual ValueInst* visit(Int32NumInst* inst)       = 0;
-    virtual ValueInst* visit(Int64NumInst* inst)       = 0;
-    virtual ValueInst* visit(Int32ArrayNumInst* inst)  = 0;
     virtual ValueInst* visit(BoolNumInst* inst)        = 0;
     virtual ValueInst* visit(DoubleNumInst* inst)      = 0;
     virtual ValueInst* visit(DoubleArrayNumInst* inst) = 0;
@@ -431,6 +438,7 @@ struct CloneVisitor : public virtual Garbageable {
     // Types
     virtual Typed* visit(BasicTyped* type)  = 0;
     virtual Typed* visit(NamedTyped* type)  = 0;
+    virtual Typed* visit(FixedTyped* type)  = 0;
     virtual Typed* visit(FunTyped* type)    = 0;
     virtual Typed* visit(ArrayTyped* type)  = 0;
     virtual Typed* visit(StructTyped* type) = 0;
@@ -509,7 +517,8 @@ struct BasicTyped : public Typed {
     virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
-  
+    
+    virtual std::string toString() { return gTypeString[fType]; }
 };
 
 struct NamedTyped : public Typed {
@@ -533,6 +542,25 @@ struct NamedTyped : public Typed {
     virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    virtual std::string toString() { return "[" + fName + "_" + fType->toString() + "]"; }
+};
+
+struct FixedTyped : public BasicTyped {
+    
+    int fMSB;
+    int fLSB;
+    bool fIsSigned;
+    
+    FixedTyped(int msb, int lsb, bool is_signed):BasicTyped(Typed::kFixedPoint), fMSB(msb), fLSB(lsb), fIsSigned(is_signed) {}
+    
+    virtual ~FixedTyped() {}
+    
+    virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    std::string toString() { return "[" + BasicTyped::toString() + "(" + std::to_string(fMSB) + "," + std::to_string(fLSB) + ")]"; }
 };
 
 struct FunTyped : public Typed {
@@ -552,7 +580,7 @@ struct FunTyped : public Typed {
     Typed* getTyped() { return fResult; }
 
     // Arguments type encoded as a string
-    std::string getPrototype()
+    std::string toString()
     {
         std::string res, sep = "[";
         if (fArgsTypes.size() > 0) {
@@ -598,6 +626,8 @@ struct ArrayTyped : public Typed {
     virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    std::string toString() { return "[" + fType->toString() + "," + std::to_string(fSize) + "]"; }
 };
 
 struct StructTyped : public Typed {
@@ -634,6 +664,16 @@ struct StructTyped : public Typed {
     virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    std::string toString()
+    {
+        std::string res = "[";
+        for (const auto& it : fFields) {
+            res = res + it->toString() + ",";
+        }
+        res += "]";
+        return res;
+    }
 };
 
 struct VectorTyped : public Typed {
@@ -651,6 +691,8 @@ struct VectorTyped : public Typed {
     virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    std::string toString() { return "[" + fType->toString() + std::to_string(fSize) + "]"; }
 };
 
 // Base class for number values
@@ -1187,8 +1229,9 @@ struct FixedPointNumInst : public ValueInst, public NumValueInst {
 };
 
 struct FixedPointArrayNumInst : public ArrayNumInst<double> {
-    FixedPointArrayNumInst(const std::vector<double>& nums) : ArrayNumInst<double>(nums) {}
-    FixedPointArrayNumInst(int size) : ArrayNumInst<double>(size) {}
+    FixedTyped* fType;
+    FixedPointArrayNumInst(const std::vector<double>& nums, FixedTyped* type) : ArrayNumInst<double>(nums), fType(type) {}
+    FixedPointArrayNumInst(int size, FixedTyped* type) : ArrayNumInst<double>(size), fType(type) {}
     
     void accept(InstVisitor* visitor) { visitor->visit(this); }
     
@@ -1596,7 +1639,7 @@ class BasicCloneVisitor : public CloneVisitor {
     virtual ValueInst* visit(QuadNumInst* inst) { return new QuadNumInst(inst->fNum); }
     virtual ValueInst* visit(QuadArrayNumInst* inst) { return new QuadArrayNumInst(inst->fNumTable); }
     virtual ValueInst* visit(FixedPointNumInst* inst) { return new FixedPointNumInst(inst->fNum); }
-    virtual ValueInst* visit(FixedPointArrayNumInst* inst) { return new FixedPointArrayNumInst(inst->fNumTable); }
+    virtual ValueInst* visit(FixedPointArrayNumInst* inst) { return new FixedPointArrayNumInst(inst->fNumTable, inst->fType); }
 
     // Numerical computation
     virtual ValueInst* visit(MinusInst* inst)
@@ -1763,6 +1806,7 @@ class BasicCloneVisitor : public CloneVisitor {
     // Typed
     virtual Typed* visit(BasicTyped* typed);  // Moved in instructions.cpp
     virtual Typed* visit(NamedTyped* typed) { return new NamedTyped(typed->fName, typed->fType); }
+    virtual Typed* visit(FixedTyped* typed) { return new FixedTyped(typed->fMSB, typed->fLSB, typed->fIsSigned); }
     virtual Typed* visit(FunTyped* typed)
     {
         Names cloned;
@@ -2080,6 +2124,7 @@ class CombinerVisitor : public DispatchVisitor {
 #define castFloat(e) dynamic_cast<FloatNumInst*>(e)
 #define castDouble(e) dynamic_cast<DoubleNumInst*>(e)
 #define castQuad(e) dynamic_cast<QuadNumInst*>(e)
+#define castFixed(e) dynamic_cast<FixedPointNumInst*>(e)
 
 struct InstBuilder {
     // User interface
@@ -2184,6 +2229,8 @@ struct InstBuilder {
     }
 
     // Numbers
+    static Int32NumInst*       genInt32NumInst(int num) { return new Int32NumInst(num); }
+    static Int32ArrayNumInst*  genInt32ArrayNumInst(int num) { return new Int32ArrayNumInst(num); }
     static FloatNumInst*       genFloatNumInst(float num) { return new FloatNumInst(num); }
     static FloatArrayNumInst*  genFloatArrayNumInst(int size) { return new FloatArrayNumInst(size); }
     static DoubleNumInst*      genDoubleNumInst(double num) { return new DoubleNumInst(num); }
@@ -2191,13 +2238,15 @@ struct InstBuilder {
     static QuadNumInst*        genQuadNumInst(long double num) { return new QuadNumInst(num); }
     static QuadArrayNumInst*   genQuadArrayNumInst(int size) { return new QuadArrayNumInst(size); }
     static FixedPointNumInst*       genFixedPointNumInst(double num) { return new FixedPointNumInst(num); }
-    static FixedPointArrayNumInst*  genFixedPointArrayNumInst(int size) { return new FixedPointArrayNumInst(size); }
-    
+    static FixedPointArrayNumInst*  genFixedPointArrayNumInst(int size, FixedTyped* type) { return new FixedPointArrayNumInst(size, type); }
+    static DoubleNumInst*      genQuadNumInst(double num) { return new DoubleNumInst(num); }  // Use DoubleNumInst
+
     static ValueInst* genTypedNum(Typed::VarType type, double num);
     static ValueInst* genTypedZero(Typed::VarType type);
+    static ValueInst* genTypedZero(BasicTyped* type) { return genTypedZero(type->getType()); }
     static ValueInst* genRealNumInst(Typed::VarType ctype, double num);
    
-    static ValueInst* genArrayNumInst(Typed::VarType ctype, int size)
+    static ValueInst* genArrayNumInst(Typed::VarType ctype, int size, FixedTyped* type = nullptr)
     {
         if (ctype == Typed::kInt32) {
             return new Int32ArrayNumInst(size);
@@ -2208,14 +2257,13 @@ struct InstBuilder {
         } else if (ctype == Typed::kQuad) {
             return new QuadArrayNumInst(size);
         } else if (ctype == Typed::kFixedPoint) {
-            return new FixedPointArrayNumInst(size);
+            return new FixedPointArrayNumInst(size, type);
         } else {
             faustassert(false);
         }
         return nullptr;
     }
 
-    static Int32NumInst* genInt32NumInst(int num) { return new Int32NumInst(num); }
     static Int64NumInst* genInt64NumInst(int64_t num) { return new Int64NumInst(num); }
     static BoolNumInst*  genBoolNumInst(bool num) { return new BoolNumInst(num); }
 
@@ -2333,6 +2381,8 @@ struct InstBuilder {
 
     static NamedTyped* genNamedTyped(const std::string& name, Typed* type);
     static NamedTyped* genNamedTyped(const std::string& name, Typed::VarType type);
+    
+    static FixedTyped* genFixedTyped(int msb, int lsb, bool is_signed = true) { return new FixedTyped(msb, lsb, is_signed); }
 
     static FunTyped* genFunTyped(const Names& args, BasicTyped* result,
                                  FunTyped::FunAttribute attribute = FunTyped::kDefault)
@@ -2663,7 +2713,8 @@ struct InstBuilder {
             || (castInt64(val) && castInt64(val)->fNum == 0)
             || (castFloat(val) && castFloat(val)->fNum == 0.f)
             || (castDouble(val) && castDouble(val)->fNum == 0.)
-            || (castQuad(val) && castQuad(val)->fNum == 0.L);
+            || (castQuad(val) && castQuad(val)->fNum == 0.L)
+            || (castFixed(val) && castFixed(val)->fNum == 0.);
     }
     
     static bool isOne(ValueInst* val)
@@ -2672,7 +2723,8 @@ struct InstBuilder {
             || (castInt64(val) && castInt64(val)->fNum == 1)
             || (castFloat(val) && castFloat(val)->fNum == 1.f)
             || (castDouble(val) && castDouble(val)->fNum == 1.)
-            || (castQuad(val) && castQuad(val)->fNum == 1.L);
+            || (castQuad(val) && castQuad(val)->fNum == 1.L)
+            || (castFixed(val) && castFixed(val)->fNum == 1.);
     }
 
     // Binop operations
@@ -2692,6 +2744,8 @@ struct InstBuilder {
             return genDoubleNumInst(castDouble(a1)->fNum + castDouble(a2)->fNum);
         } else if (castQuad(a1) && castQuad(a2)) {
             return genQuadNumInst(castQuad(a1)->fNum + castQuad(a2)->fNum);
+        } else if (castFixed(a1) && castFixed(a2)) {
+            return genFixedPointNumInst(castFixed(a1)->fNum + castFixed(a2)->fNum);
         }  else {
             return genBinopInst(kAdd, a1, a2);
         }
@@ -2926,7 +2980,7 @@ Statement   := DeclareVar (Address, Type, Value)
 
 Value       := LoadVar (Address)
             | Float | Int | Double | Bool
-            | Select (Value1, Value2, Value3)
+            | Select (Cond, Value1, Value2)
             | Binop (Opcode, Value1, Value2)
             | Cast (Type, Value)
             | Null ()
@@ -2978,19 +3032,14 @@ Scalarisation (some ideas, possibly not correct or not complete...):
  TODO: management of loop indices
  
  - in IndexedAddress, put a ValueInst instead of fIndex, update visitors
- 
  - in InstructionsCompiler, generate accesses with "LoadVar" (loop-index)
- 
  - in ForLoopInst, fName becomes a "DeclareVarInst" (allows to name and initialize the index), add a test expression,
 addition of ValueInst fNext, calculation using fName.
- 
  - new kLoop access type for loop variables
- 
  - when transforming loops, Loop2FunctionBuider, SeqLoopBuilderVisitor, "disable" statements that
  manipulate the indices of the loop ? (no need, they don't appear in the loop body, but
  the loop index is used in the loop body, it must be matched with the new loop index,
  renaming necessary?)
- 
  - use the *same* index name in ForLoopInst and in the internal code of the loop
  
 */

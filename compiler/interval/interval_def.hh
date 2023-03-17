@@ -47,7 +47,7 @@ class interval {
    private:
     double fLo{std::numeric_limits<double>::lowest()};  ///< minimal value
     double fHi{std::numeric_limits<double>::max()};     ///< maximal value
-    int    fLSB{-24};                                   ///< lsb in bits
+    int    fLSB{-32};                                   ///< lsb in bits
 
    public:
     //-------------------------------------------------------------------------
@@ -56,7 +56,7 @@ class interval {
 
     interval() = default;
 
-    interval(double n, double m, int lsb = -24) noexcept
+    interval(double n, double m, int lsb = -32) noexcept
     {
         if (std::isnan(n) || std::isnan(m)) {
             fLo = NAN;
@@ -106,15 +106,8 @@ class interval {
     int    msb() const
     {
         double range = std::max(1.0, std::max(std::abs(fLo), std::abs(fHi)));
-        int    m     = int(std::ceil(std::log2(range)));
-
-        if (fLo >= 0) {
-            // no need for a sign bit
-            return m;
-        } else {
-            // we generally need a sign bit
-            return 1 + m;
-        }
+        // The sign bit will be added later on
+        return int(std::ceil(std::log2(range)));
     }
     std::string to_string() const
     {

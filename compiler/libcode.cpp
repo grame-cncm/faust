@@ -413,6 +413,10 @@ static void compileFIR(Tree signals, int numInputs, int numOutputs, ostream* out
 
     if (gGlobal->gVectorSwitch) {
         gNewComp = new DAGInstructionsCompiler(gContainer);
+
+    } else if (gGlobal->gFloatSize == 4) {
+        // Special compiler for -fx mode
+        gNewComp = new InstructionsFXCompiler(gContainer);
     } else {
         gNewComp = new InstructionsCompiler(gContainer);
     }
@@ -475,6 +479,9 @@ static void compileCPP(Tree signals, int numInputs, int numOutputs, ostream* out
     
     if (gGlobal->gVectorSwitch) {
         gNewComp = new DAGInstructionsCompiler(gContainer);
+    } else if (gGlobal->gFloatSize == 4) {
+        // Special compiler for -fx mode
+        gNewComp = new InstructionsFXCompiler(gContainer);
     } else {
         gNewComp = new InstructionsCompiler(gContainer);
     }

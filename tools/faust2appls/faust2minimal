@@ -53,8 +53,10 @@ do
     fi
 
     echo "dispatch command arguments"
-
-    if [ ${p:0:1} = "-" ]; then
+    if [ $p = "-fx" ]; then
+        OPTIONS="$OPTIONS $p"
+        CXXFLAGS="$CXXFLAGS -I /usr/local/include/ap_fixed -DFIXED_POINT"
+    elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
         FILES="$FILES $p"

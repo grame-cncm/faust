@@ -33,16 +33,15 @@ StatementInst* InstructionsCompilerJAX::generateShiftArray(const string& vname, 
     return InstBuilder::genStoreArrayStructVar(vname, InstBuilder::genFunCallInst(string("jnp.roll"), truncated_args));
 }
 
-ValueInst* InstructionsCompilerJAX::generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname,
+ValueInst* InstructionsCompilerJAX::generateDelayLine(ValueInst* exp, BasicTyped* ctype, const string& vname,
                                                       int mxd, Address::AccessType& access, ValueInst* ccs)
 {
     if (mxd == 0) {
         // Generate scalar use
         if (dynamic_cast<NullValueInst*>(ccs)) {
-            pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype), exp));
+            pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, ctype, exp));
         } else {
-            pushPreComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype),
-                                                                InstBuilder::genTypedZero(ctype)));
+            pushPreComputeDSPMethod(InstBuilder::genDecStackVar(vname, ctype, InstBuilder::genTypedZero(ctype)));
             pushComputeDSPMethod(InstBuilder::genControlInst(ccs, InstBuilder::genStoreStackVar(vname, exp)));
         }
 
