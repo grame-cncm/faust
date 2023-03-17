@@ -46,6 +46,7 @@
 #include "sigtype.hh"
 #include "normalform.hh"
 #include "timing.hh"
+#include "sharing.hh"
 #include "xtended.hh"
 
 using namespace std;
@@ -116,7 +117,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     endTiming("L2 typeAnnotation");
     
     startTiming("sharingAnalysis");
-    sharingAnalysis(L2);         // Annotate L2 with sharing count
+    sharingAnalysis(L2, fSharingKey); // Annotate L2 with sharing count
     endTiming("sharingAnalysis");
     
     startTiming("occurrences analysis");
@@ -144,13 +145,11 @@ Tree ScalarCompiler::prepare2(Tree L0)
 {
     startTiming("ScalarCompiler::prepare2");
 
-    recursivnessAnnotation(L0);  // Annotate L0 with recursivness information
-    typeAnnotation(L0, true);    // Annotate L0 with type information
-    sharingAnalysis(L0);         // annotate L0 with sharing count
+    recursivnessAnnotation(L0);       // Annotate L0 with recursivness information
+    typeAnnotation(L0, true);         // Annotate L0 with type information
+    sharingAnalysis(L0, fSharingKey); // annotate L0 with sharing count
 
-    if (fOccMarkup != 0) {
-        delete fOccMarkup;
-    }
+    delete fOccMarkup;
     fOccMarkup = new OccMarkup();
     fOccMarkup->mark(L0);  // annotate L0 with occurrences analysis
 
@@ -159,8 +158,20 @@ Tree ScalarCompiler::prepare2(Tree L0)
 }
 
 /*****************************************************************************
- compileMultiSignal
+ Condition annotation due to enabled expressions
  *****************************************************************************/
+
+#if _DNF_
+#define CND2CODE dnf2code
+#define _OR_ dnfOr
+#define _AND_ dnfAnd
+#define _CND_ dnfCond
+#else
+#define CND2CODE cnf2code
+#define _OR_ cnfOr
+#define _AND_ cnfAnd
+#define _CND_ cnfCond
+#endif
 
 string ScalarCompiler::dnf2code(Tree cc)
 {
@@ -210,13 +221,7 @@ string ScalarCompiler::or2code(Tree cs)
     }
 }
 
-#if _DNF_
-#define CND2CODE dnf2code
-#else
-#define CND2CODE cnf2code
-#endif
-
-// temporary implementation for test purposes
+// Temporary implementation for test purposes
 string ScalarCompiler::getConditionCode(Tree sig)
 {
     Tree cc = fConditionProperty[sig];
@@ -224,6 +229,80 @@ string ScalarCompiler::getConditionCode(Tree sig)
         return CND2CODE(cc);
     } else {
         return "";
+    }
+}
+
+#if 0
+void ScalarCompiler::conditionStatistics(Tree l)
+{
+    for (const auto& p : fConditionProperty) {
+        fConditionStatistics[p.second]++;
+    }
+    std::cout << "\nConditions statistics" << std::endl;
+    for (const auto& p : fConditionStatistics) {
+        std::cout << ppsig(p.first) << ":" << p.second << std::endl;
+        
+    }
+}
+#endif
+
+void ScalarCompiler::conditionStatistics(Tree l)
+{
+    map<Tree, int> fConditionStatistics;  // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
+    for (const auto& p : fConditionProperty) {
+        for (Tree lc = p.second; !isNil(lc); lc = tl(lc)) {
+            fConditionStatistics[hd(lc)]++;
+        }
+    }
+    std::cout << "\nConditions statistics" << std::endl;
+    for (const auto& p : fConditionStatistics) {
+        std::cout << ppsig(p.first) << ":" << p.second << std::endl;
+    }
+}
+
+void ScalarCompiler::conditionAnnotation(Tree l)
+{
+    while (isList(l)) {
+        conditionAnnotation(hd(l), gGlobal->nil);
+        l = tl(l);
+    }
+}
+
+void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
+{
+    // Check if we need to annotate the tree with new conditions
+    auto p = fConditionProperty.find(t);
+    if (p != fConditionProperty.end()) {
+        Tree cc = p->second;
+        Tree xc = _OR_(cc, nc);
+        if (cc == xc) {
+            // Tree t already correctly annotated, nothing to change
+            return;
+        } else {
+            // we need to re-annotate the tree with a new condition
+            nc        = xc;
+            p->second = nc;
+        }
+    } else {
+        // first visit
+        fConditionProperty[t] = nc;
+    }
+    
+    // Annotate the subtrees with the new condition nc
+    // which is either the nc passed as argument or nc <- (cc v nc)
+    Tree x, y;
+    if (isSigControl(t, x, y)) {
+        // specific annotation case for SigControl
+        conditionAnnotation(y, nc);
+        conditionAnnotation(x, _AND_(nc, _CND_(y)));
+    } else {
+        // general annotation case
+        // Annotate the sub signals with nc
+        vector<Tree> subsig;
+        int          n = getSubSignals(t, subsig);
+        if (n > 0 && !isSigGen(t)) {
+            for (int i = 0; i < n; i++) conditionAnnotation(subsig[i], nc);
+        }
     }
 }
 
@@ -665,7 +744,7 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
     }
 
     string          vname, ctype;
-    int             sharing = getSharingCount(sig);
+    int             sharing = getSharingCount(sig, fSharingKey);
     Occurrences* o          = fOccMarkup->retrieve(sig);
     faustassert(o);
 

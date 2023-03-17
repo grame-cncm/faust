@@ -25,6 +25,7 @@
 #include "ppsig.hh"
 #include "sigtyperules.hh"
 #include "timing.hh"
+#include "sharing.hh"
 #include "fir_to_fir.hh"
 
 using namespace std;
@@ -274,7 +275,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 {
     string         vname;
     Typed::VarType ctype;
-    int            sharing = getSharingCount(sig);
+    int            sharing = getSharingCount(sig, fSharingKey);
     ::Type         t       = getCertifiedSigType(sig);
     Occurrences*   o       = fOccMarkup->retrieve(sig);
     int            d       = o->getMaxDelay();
@@ -363,7 +364,7 @@ bool DAGInstructionsCompiler::needSeparateLoop(Tree sig)
 {
     Occurrences* o = fOccMarkup->retrieve(sig);
     ::Type      t = getCertifiedSigType(sig);
-    int         c = getSharingCount(sig);
+    int         c = getSharingCount(sig, fSharingKey);
     bool        b;
 
     int  i;

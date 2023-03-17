@@ -56,11 +56,11 @@ class ScalarCompiler : public Compiler {
 
    public:
     ScalarCompiler(const std::string& name, const std::string& super, int numInputs, int numOutputs)
-        : Compiler(name, super, numInputs, numOutputs, false), fOccMarkup(0), fMaxIota(-1)
+        : Compiler(name, super, numInputs, numOutputs, false), fSharingKey(nullptr), fOccMarkup(nullptr), fMaxIota(-1)
     {
     }
 
-    ScalarCompiler(Klass* k) : Compiler(k), fOccMarkup(0), fMaxIota(-1) {}
+    ScalarCompiler(Klass* k) : Compiler(k), fSharingKey(nullptr), fOccMarkup(nullptr), fMaxIota(-1) {}
 
     virtual void compileMultiSignal(Tree lsig);
     virtual void compileSingleSignal(Tree lsig);
@@ -83,19 +83,13 @@ class ScalarCompiler : public Compiler {
 
     void setVectorNameProperty(Tree sig, const std::string& vecname);
     bool getVectorNameProperty(Tree sig, std::string& vecname);
-
-    int  getSharingCount(Tree t);
-    void setSharingCount(Tree t, int count);
-    void sharingAnalysis(Tree t);
-    void sharingAnnotation(int vctxt, Tree t);
-
+  
     void   conditionAnnotation(Tree l);
     void   conditionAnnotation(Tree t, Tree nc);
     void   conditionStatistics(Tree l);
     std::string getConditionCode(Tree t);
 
     // code generation
-
     std::string         generateXtended(Tree sig);
     virtual std::string generateDelay(Tree sig, Tree arg, Tree size);
     std::string         generatePrefix(Tree sig, Tree x, Tree e);

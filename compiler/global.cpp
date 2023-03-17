@@ -612,7 +612,7 @@ void global::init()
     LETRECBODY       = boxIdent("RECURSIVEBODY");
 
     PROPAGATEPROPERTY = symbol("PropagateProperty");
-
+ 
     // FAUSTfilename is defined in errormsg.cpp but must be redefined at each compilation.
     FAUSTfilename = "";
     FAUSTin       = nullptr;
