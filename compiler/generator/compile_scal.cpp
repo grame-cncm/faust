@@ -224,7 +224,7 @@ string ScalarCompiler::or2code(Tree cs)
     }
 }
 
-// Temporary implementation for test purposes
+// temporary implementation for test purposes
 string ScalarCompiler::getConditionCode(Tree sig)
 {
     Tree cc = fConditionProperty[sig];
@@ -539,17 +539,17 @@ string ScalarCompiler::generateCode(Tree sig)
     } else if (isSigCheckbox(sig, label)) {
         return generateCheckbox(sig, label);
     } else if (isSigVSlider(sig, label, c, x, y, z)) {
-        return generateVSlider(sig, label, c, x, y, z);
+        return generateVSlider(sig, label, c);
     } else if (isSigHSlider(sig, label, c, x, y, z)) {
-        return generateHSlider(sig, label, c, x, y, z);
+        return generateHSlider(sig, label, c);
     } else if (isSigNumEntry(sig, label, c, x, y, z)) {
-        return generateNumEntry(sig, label, c, x, y, z);
+        return generateNumEntry(sig, label, c);
     }
 
     else if (isSigVBargraph(sig, label, x, y, z)) {
-        return generateVBargraph(sig, label, x, y, CS(z));
+        return generateVBargraph(sig, label, CS(z));
     } else if (isSigHBargraph(sig, label, x, y, z)) {
-        return generateHBargraph(sig, label, x, y, CS(z));
+        return generateHBargraph(sig, label, CS(z));
     }
 
     else if (isSigSoundfile(sig, label)) {
@@ -606,7 +606,7 @@ string ScalarCompiler::generateFConst(Tree sig, const string& file, const string
     // Special case for 02/25/19 renaming
     string exp = (exp_aux == "fSamplingFreq") ? "fSampleRate" : exp_aux;
 
-    string          ctype, vname;
+    string ctype, vname;
     Occurrences* o = fOccMarkup->retrieve(sig);
 
     addIncludeFile(file);
@@ -742,7 +742,7 @@ string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
         return code;
     }
 
-    string          vname, ctype;
+    string vname, ctype;
     Occurrences* o = fOccMarkup->retrieve(sig);
     faustassert(o);
 
@@ -758,8 +758,8 @@ string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
 // Definition of variables: Const (computed at init time), Slow (computed at control rate) and "Temp" (computed at sample rate)
 string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
 {
-    string          vname, vname_perm, ctype;
-    Type            t = getCertifiedSigType(sig);
+    string vname, vname_perm, ctype;
+    Type t = getCertifiedSigType(sig);
     Occurrences* o = fOccMarkup->retrieve(sig);
     faustassert(o);
 
@@ -840,7 +840,6 @@ string ScalarCompiler::generateButton(Tree sig, Tree path)
     fClass->addInitUICode(subst("$0 = 0.0;", varname));
     fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    // return generateCacheCode(sig, varname);
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
@@ -851,44 +850,40 @@ string ScalarCompiler::generateCheckbox(Tree sig, Tree path)
     fClass->addInitUICode(subst("$0 = 0.0;", varname));
     fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    // return generateCacheCode(sig, varname);
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
-string ScalarCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
+string ScalarCompiler::generateVSlider(Tree sig, Tree path, Tree cur)
 {
     string varname = getFreshID("fslider");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
     fClass->addInitUICode(subst("$0 = $1;", varname, T(tree2float(cur))));
     fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    // return generateCacheCode(sig, varname);
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
-string ScalarCompiler::generateHSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
+string ScalarCompiler::generateHSlider(Tree sig, Tree path, Tree cur)
 {
     string varname = getFreshID("fslider");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
     fClass->addInitUICode(subst("$0 = $1;", varname, T(tree2float(cur))));
     fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    // return generateCacheCode(sig, varname);
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
-string ScalarCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
+string ScalarCompiler::generateNumEntry(Tree sig, Tree path, Tree cur)
 {
     string varname = getFreshID("fentry");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
     fClass->addInitUICode(subst("$0 = $1;", varname, T(tree2float(cur))));
     fUITree.addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
-    // return generateCacheCode(sig, varname);
     return generateCacheCode(sig, subst("$1($0)", varname, ifloat()));
 }
 
-string ScalarCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
+string ScalarCompiler::generateVBargraph(Tree sig, Tree path, const string& exp)
 {
     string varname = getFreshID("fbargraph");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -909,11 +904,10 @@ string ScalarCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max
             break;
     }
 
-    // return varname;
     return generateCacheCode(sig, varname);
 }
 
-string ScalarCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
+string ScalarCompiler::generateHBargraph(Tree sig, Tree path, const string& exp)
 {
     string varname = getFreshID("fbargraph");
     fClass->addDeclCode(subst("$1 \t$0;", varname, xfloat()));
@@ -934,7 +928,6 @@ string ScalarCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max
             break;
     }
 
-    // return varname;
     return generateCacheCode(sig, varname);
 }
 
@@ -1008,6 +1001,7 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 
     // Already compiled but check if we need to add declarations
     faustassert(isSigGen(content, g));
+    
     pair<string, string> kvnames;
     if (!fInstanceInitProperty.get(g, kvnames)) {
         // Not declared here, we add a declaration
@@ -1089,6 +1083,17 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 string ScalarCompiler::generateWRTbl(Tree sig, Tree size, Tree gen, Tree wi, Tree ws)
 {
     string tblName = generateTable(sig, size, gen);
+    
+    /*
+     // TODO
+     Tree id, size, content;
+     if (isSigTable(tbl, id, size, content)) {
+        // The type of the allocated table has to take the type of the WRTbl
+        // (which is the union of the 'init signal' and the 'input signal')
+        setSigType(content, getCertifiedSigType(sig));
+     }
+     */
+    
     switch (getCertifiedSigType(sig)->variability()) {
         case kKonst:
             fClass->addInitCode(subst("$0[$1] = $2;", tblName, CS(wi), CS(ws)));
@@ -1329,7 +1334,7 @@ string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const strin
  * Generate code for the delay mecchanism without using temporary variables
  */
 string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname,
-                                              int mxd)
+                                            int mxd)
 {
     faustassert(mxd > 0);
 
@@ -1448,12 +1453,10 @@ void ScalarCompiler::declareWaveform(Tree sig, string& vname, int& size)
     // computes C type and unique name for the waveform
     string ctype;
     getTypedNames(getCertifiedSigType(sig), "Wave", ctype, vname);
-
     size = sig->arity();
 
     // Converts waveform into a string : "{a,b,c,...}"
     stringstream content;
-
     char sep = '{';
     for (int i = 0; i < size; i++) {
         content << sep << ppsig(sig->branch(i));

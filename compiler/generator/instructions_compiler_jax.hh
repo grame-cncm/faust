@@ -33,7 +33,7 @@ class InstructionsCompilerJAX : public InstructionsCompiler {
 
     StatementInst* generateShiftArray(const std::string& vname, int delay) override;
 
-    ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd,
+    ValueInst* generateDelayLine(ValueInst* exp, BasicTyped* ctype, const std::string& vname, int mxd,
                                 Address::AccessType& access, ValueInst* ccs) override;
 
     ValueInst* generateSoundfile(Tree sig, Tree path) override;

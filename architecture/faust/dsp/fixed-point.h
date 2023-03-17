@@ -1,54 +1,41 @@
 /************************************************************************
- IMPORTANT NOTE : this file contains two clearly delimited sections :
- the ARCHITECTURE section (in two parts) and the USER section. Each section
- is governed by its own copyright and license. Please check individually
- each section for license and copyright information.
- *************************************************************************/
-
-/******************* BEGIN minimal-fixed-point.cpp ****************/
-/************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2019 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2023 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
- This Architecture section is free software; you can redistribute it
- and/or modify it under the terms of the GNU General Public License
- as published by the Free Software Foundation; either version 3 of
- the License, or (at your option) any later version.
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU Lesser General Public License as published by
+ the Free Software Foundation; either version 2.1 of the License, or
+ (at your option) any later version.
  
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU Lesser General Public License for more details.
  
- You should have received a copy of the GNU General Public License
- along with this program; If not, see <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU Lesser General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  
  EXCEPTION : As a special exception, you may create a larger work
  that contains this FAUST architecture section and distribute
  that work under terms of your choice, so long as this FAUST
  architecture section is not modified.
- 
- ************************************************************************
- ************************************************************************/
- 
-#include <algorithm>
+ **************************************************************************/
+
+#ifndef FIXED_POINT_H
+#define FIXED_POINT_H
+
 #include <cmath>
-
-#include "faust/gui/PrintUI.h"
-#include "faust/gui/UI.h"
-#include "faust/gui/meta.h"
-#include "faust/dsp/dsp.h"
-#include "faust/audio/dummy-audio.h"
-#include "faust/dsp/one-sample-dsp.h"
-
-#if defined(SOUNDFILE)
-#include "faust/gui/SoundUI.h"
-#endif
-
+// Code for ap_fixed type mode
 #include "ap_fixed.h"
 
-typedef ap_fixed<32, 8, AP_RND_CONV, AP_SAT> fixpoint_t;
+typedef ap_fixed<32,8,AP_RND_CONV,AP_SAT> fixpoint_t;
 
+// m: MSB, l: LSB (negative coding)
+#define sfx_t(m,l) ap_fixed<(m-l+1),m+1,AP_RND_CONV,AP_SAT>
+#define ufx_t(m,l) ap_ufixed<(m-l),m,AP_RND_CONV,AP_SAT>
+
+/*
 // fx version
 inline fixpoint_t fabsfx(fixpoint_t x)
 {
@@ -91,7 +78,7 @@ inline fixpoint_t exp10fx(fixpoint_t x)
 #ifdef __APPLE__
     return fixpoint_t(__exp10f(float(x)));
 #else
-    return fixpoint_t(exp10(float(x)));
+    return fixpoint_t(std::exp10(float(x)));
 #endif
 }
 inline fixpoint_t floorfx(fixpoint_t x)
@@ -151,45 +138,108 @@ inline fixpoint_t fmaxfx(fixpoint_t x, fixpoint_t y)
 {
     return fixpoint_t(std::max(float(x), float(y)));
 }
+*/
 
-/******************************************************************************
- *******************************************************************************
- 
- VECTOR INTRINSICS
- 
- *******************************************************************************
- *******************************************************************************/
-
-<<includeIntrinsic>>
-
-/********************END ARCHITECTURE SECTION (part 1/2)****************/
-
-/**************************BEGIN USER SECTION **************************/
-
-<<includeclass>>
-
-/***************************END USER SECTION ***************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-
-using namespace std;
-
-int main(int argc, char* argv[])
+// fx version
+inline float fabsfx(float x)
 {
-    mydsp DSP;
-    cout << "DSP size: " << sizeof(DSP) << " bytes\n";
-    
-    // Activate the UI, here that only print the control paths
-    PrintUI ui;
-    DSP.buildUserInterface(&ui);
-    
-    // Allocate the audio driver to render 5 buffers of 512 frames
-    dummyaudio audio(5);
-    audio.init("Test", static_cast<dsp*>(&DSP));
-    
-    // Render buffers...
-    audio.start();
-    audio.stop();
+    return std::fabs(x);
 }
+inline float acosfx(float x)
+{
+    return std::acos(x);
+}
+inline float asinfx(float x)
+{
+    return std::asin(x);
+}
+inline float atanfx(float x)
+{
+    return std::atan(x);
+}
+inline float atan2fx(float x, float y)
+{
+    return std::atan2(x, y);
+}
+inline float ceilfx(float x)
+{
+    return std::ceil(x);
+}
+inline float cosfx(float x)
+{
+    return std::cos(x);
+}
+inline float expfx(float x)
+{
+    return std::exp(x);
+}
+inline float exp2fx(float x)
+{
+    return std::exp2(x);
+}
+inline float exp10fx(float x)
+{
+#ifdef __APPLE__
+    return __exp10f(x);
+#else
+    return exp10(x);
+#endif
+}
+inline float floorfx(float x)
+{
+    return std::floor(x);
+}
+inline float fmodfx(float x, float y)
+{
+    return std::fmod(x, y);
+}
+inline float logfx(float x)
+{
+    return std::log(x);
+}
+inline float log2fx(float x)
+{
+    return std::log2(x);
+}
+inline float log10fx(float x)
+{
+    return std::log10(x);
+}
+inline float powfx(float x, float y)
+{
+    return std::pow(x, y);
+}
+inline float remainderfx(float x, float y)
+{
+    return std::remainder(x, y);
+}
+inline float rintfx(float x)
+{
+    return std::rint(x);
+}
+inline float roundfx(float x)
+{
+    return std::round(x);
+}
+inline float sinfx(float x)
+{
+    return std::sin(x);
+}
+inline float sqrtfx(float x)
+{
+    return std::sqrt(x);
+}
+inline float tanfx(float x)
+{
+    return std::tan(x);
+}
+// min/max
+/*
+#define minfx(x, y) { (((x) < (y)) ? (x) : (y)) }
+#define maxfx(x, y) { (((x) < (y)) ? (y) : (x)) }
+*/
 
-/******************* END minimal-fixed-point.cpp ****************/
+inline float minfx(float x, float y) { return (x < y) ? x : y; }
+inline float maxfx(float x, float y) { return (x < y) ? y : x; }
+
+#endif

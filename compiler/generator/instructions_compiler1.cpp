@@ -23,10 +23,10 @@
 
 using namespace std;
 
-StatementInst* InstructionsCompiler1::generateInitArray(const string& vname, Typed::VarType ctype, int delay)
+StatementInst* InstructionsCompiler1::generateInitArray(const string& vname, BasicTyped* ctype, int delay)
 {
     ValueInst*  init  = InstBuilder::genTypedZero(ctype);
-    BasicTyped* typed = InstBuilder::genBasicTyped(ctype);
+    BasicTyped* typed = ctype;
     string      index = gGlobal->getFreshID("l");
 
     // Generates table declaration

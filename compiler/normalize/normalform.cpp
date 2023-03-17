@@ -73,7 +73,7 @@ static Tree simplifyToNormalFormAux(Tree LS)
     if (gGlobal->gFTZMode > 0) {
         // Wrap real signals with FTZ
         startTiming("FTZ on recursive signals");
-        L1 = signalFTZPromotion(L1);
+        L1 = signalFTZPromote(L1);
         endTiming("FTZ on recursive signals");
         
         // Annotate L1 with type information

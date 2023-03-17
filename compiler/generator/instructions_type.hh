@@ -268,6 +268,7 @@ struct Typed : public Printable {
     bool isStructTyped();
     bool isVectorTyped();
 
+    virtual std::string toString() = 0;
 };
 
 #endif

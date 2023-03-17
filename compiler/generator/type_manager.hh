@@ -107,10 +107,18 @@ class CStringTypeManager : public StringTypeManager {
     {
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
+        FixedTyped* fx_typed    = dynamic_cast<FixedTyped*>(type);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
         StructTyped* struct_typed = dynamic_cast<StructTyped*>(type);
 
-        if (basic_typed) {
+        // fx_typed is a subclass of basic_typed, so has to be tested first
+        if (fx_typed) {
+            if (fx_typed->fIsSigned) {
+                return "sfx_t(" + std::to_string(std::min<int>(20, std::abs(fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ")";
+            } else {
+                return "ufx_t(" + std::to_string(std::min<int>(20, std::abs(fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ")";
+            }
+        } else if (basic_typed) {
             return fTypeDirectTable[basic_typed->fType];
         } else if (named_typed) {
             return generateType(named_typed->fType) + NamedTyped::AttributeMap[attr] + named_typed->fName;
@@ -133,9 +141,17 @@ class CStringTypeManager : public StringTypeManager {
     {
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
+        FixedTyped* fx_typed    = dynamic_cast<FixedTyped*>(type);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
 
-        if (basic_typed) {
+        // fx_typed is a subclass of basic_typed, so has to be tested first
+        if (fx_typed) {
+            if (fx_typed->fIsSigned) {
+                return "sfx_t(" + std::to_string(std::min<int>(20, std::abs(fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
+            } else {
+                return "ufx_t(" + std::to_string(std::min<int>(20, std::abs(fx_typed->fMSB))) + "," + std::to_string(fx_typed->fLSB) + ") " + name;
+            }
+        } else if (basic_typed) {
             return fTypeDirectTable[basic_typed->fType] + " " + name;
         } else if (named_typed) {
             return named_typed->fName + generateType(named_typed->fType) + " " + name;

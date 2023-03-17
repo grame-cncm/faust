@@ -78,7 +78,7 @@ inline std::string checkQuad(long double val)
 }
 std::string checkReal(double val);
 
-std::string indent(std::string const& str, int tabs);
+std::string indent(const std::string& str, int tabs);
 std::string replaceChar(std::string str, char ch1, char ch2);
 std::string replaceCharList(const std::string& str, const std::vector<char>& ch1, char ch2);
 

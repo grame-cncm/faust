@@ -3,7 +3,6 @@
 #endif
 
 #include "controlTools.h"
-#include "fixed-point.h"
 
 //----------------------------------------------------------------------------
 //FAUST generated code
