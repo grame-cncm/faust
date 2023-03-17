@@ -274,7 +274,7 @@ ValueInst* DAGInstructionsCompiler::generateLoopCode(Tree sig)
 ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 {
     string         vname;
-    Typed::VarType ctype;
+    BasicTyped*    ctype;
     int            sharing = getSharingCount(sig, fSharingKey);
     ::Type         t       = getCertifiedSigType(sig);
     Occurrences*   o       = fOccMarkup->retrieve(sig);
@@ -394,7 +394,7 @@ ValueInst* DAGInstructionsCompiler::generateVariableStore(Tree sig, ValueInst* e
 
     if (t->variability() == kSamp) {
         string         vname;
-        Typed::VarType ctype;
+        BasicTyped* ctype;
         getTypedNames(t, "Vector", ctype, vname);
         Address::AccessType access;
         generateVectorLoop(ctype, vname, exp, access);
@@ -486,7 +486,7 @@ ValueInst* DAGInstructionsCompiler::generateDelay(Tree sig, Tree exp, Tree delay
     }
 }
 
-ValueInst* DAGInstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype,
+ValueInst* DAGInstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, BasicTyped* ctype,
                                                      const string& vname, int mxd)
 {
     // it is a non-sample but used delayed
@@ -503,7 +503,7 @@ ValueInst* DAGInstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, T
     }
 }
 
-ValueInst* DAGInstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarType ctype, const string& vname,
+ValueInst* DAGInstructionsCompiler::generateDelayLine(ValueInst* exp, BasicTyped* ctype, const string& vname,
                                                       int mxd, Address::AccessType& access, ValueInst* unused)
 {
     if (mxd == 0) {
@@ -515,12 +515,12 @@ ValueInst* DAGInstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::Var
     return exp;
 }
 
-void DAGInstructionsCompiler::generateVectorLoop(Typed::VarType ctype, const string& vname, ValueInst* exp,
-                                                 Address::AccessType& access)
+void DAGInstructionsCompiler::generateVectorLoop(BasicTyped* ctype, const string& vname, ValueInst* exp,
+                                            Address::AccessType& access)
 {
     // "$0 $1[$2];"
     DeclareVarInst* table_inst = InstBuilder::genDecStackVar(
-        vname, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), gGlobal->gVecSize));
+        vname, InstBuilder::genArrayTyped(ctype, gGlobal->gVecSize));
     pushComputeBlockMethod(table_inst);
 
     // -- compute the new samples
@@ -531,10 +531,10 @@ void DAGInstructionsCompiler::generateVectorLoop(Typed::VarType ctype, const str
     access = Address::kStack;
 }
 
-void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const string& vname, int delay, ValueInst* exp,
-                                                Address::AccessType& access)
+void DAGInstructionsCompiler::generateDlineLoop(BasicTyped* ctype, const string& vname, int delay, ValueInst* exp,
+                                            Address::AccessType& access)
 {
-    BasicTyped* typed = InstBuilder::genBasicTyped(ctype);
+    BasicTyped* typed = ctype;
 
     if (delay < gGlobal->gMaxCopyDelay) {
         // Implementation of a copy based delayline
@@ -609,8 +609,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
     }
 }
 
-StatementInst* DAGInstructionsCompiler::generateCopyBackArray(const string& vname_to, const string& vname_from,
-                                                              int size)
+StatementInst* DAGInstructionsCompiler::generateCopyBackArray(const string& vname_to, const string& vname_from, int size)
 {
     string index = gGlobal->getFreshID("j");
 

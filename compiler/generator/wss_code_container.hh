@@ -36,8 +36,8 @@ class WSSCodeContainer : public virtual CodeContainer {
 
     void moveCompute2ComputeThread();
 
-    void generateLocalInputs(BlockInst* loop_code, const std::string& index);
-    void generateLocalOutputs(BlockInst* loop_code, const std::string& index);
+    void generateLocalInputs(BlockInst* loop_code, const std::string& index) override;
+    void generateLocalOutputs(BlockInst* loop_code, const std::string& index) override;
 
     BlockInst* generateDAGLoopWSS(lclgraph dag);
     void       generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, int cur_thread = 0);
@@ -47,8 +47,8 @@ class WSSCodeContainer : public virtual CodeContainer {
     DeclareFunInst* generateComputeThread(const std::string& name, const std::string& obj, bool ismethod, bool isvirtual);
     DeclareFunInst* generateComputeThreadExternal(const std::string& name, const std::string& obj);
 
-    void       processFIR(void);
-    BlockInst* flattenFIR(void);
+    void       processFIR(void) override;
+    BlockInst* flattenFIR(void) override;
 
    protected:
     BlockInst* fThreadLoopBlock;

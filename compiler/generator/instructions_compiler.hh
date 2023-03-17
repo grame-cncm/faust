@@ -45,8 +45,8 @@ class InstructionsCompiler : public virtual Garbageable {
 
     property<ValueInst*>  fCompileProperty;
     property<std::string> fVectorProperty;
-    property<std::pair<std::string, std::string>>  fStaticInitProperty;
-    property<std::pair<std::string, std::string>>  fInstanceInitProperty;
+    property<std::pair<std::string, std::string>> fStaticInitProperty;
+    property<std::pair<std::string, std::string>> fInstanceInitProperty;
     property<std::string> fTableProperty;
     
     std::map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
@@ -70,6 +70,7 @@ class InstructionsCompiler : public virtual Garbageable {
     */
   
     void getTypedNames(::Type t, const std::string& prefix, Typed::VarType& ctype, std::string& vname);
+    void getTypedNames(::Type t, const std::string& prefix, BasicTyped*& ctype, std::string& vname);
 
     bool getCompiledExpression(Tree sig, ValueType& cexp);
     ValueType setCompiledExpression(Tree sig, const ValueType& cexp);
@@ -81,16 +82,17 @@ class InstructionsCompiler : public virtual Garbageable {
     void setTableNameProperty(Tree sig, const std::string& vecname);
   
     // Redefined by RustInstructionsCompiler
-    virtual StatementInst* generateInitArray(const std::string& vname, Typed::VarType ctype, int delay);
+    virtual StatementInst* generateInitArray(const std::string& vname, BasicTyped* ctype, int delay);
     virtual StatementInst* generateCopyArray(const std::string& vname, int index_from, int index_to);
     virtual StatementInst* generateCopyArray(const std::string& vname_to, const std::string& vname_from, int size);
     
     // Redefined in InterpreterInstructionsCompiler
     virtual StatementInst* generateShiftArray(const std::string& vname, int delay);
 
-    ValueInst* generateButtonAux(Tree sig, Tree path, const std::string& name);
-    ValueInst* generateSliderAux(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step, const std::string& name);
-    ValueInst* generateBargraphAux(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp, const std::string& name);
+    virtual ValueInst* generateButtonAux(Tree sig, Tree path, const std::string& name);
+    virtual ValueInst* generateSliderAux(Tree sig, Tree path, Tree cur, const std::string& name);
+    virtual ValueInst* generateBargraphAux(Tree sig, Tree path, ValueInst* exp, const std::string& name);
+    virtual ValueInst* generateSelect2Aux(Tree sig, Tree s1, Tree s2, ValueInst* cond, ValueInst* v1, ValueInst* v2);
 
     // Wrapper functions to access code container
     StatementInst* pushInitMethod(StatementInst* inst) { return fContainer->pushInitMethod(inst); }
@@ -139,15 +141,18 @@ class InstructionsCompiler : public virtual Garbageable {
     
     ValueInst* getConditionCode(Tree sig);
     
+    // Casting for inputs/ousputs
+    virtual ValueInst* genCastedInput(ValueInst* value);
     ValueInst* genCastedOutput(int type, ValueInst* value);
-    ValueInst* genCastedInput(ValueInst* value);
- 
+    
+    virtual BasicTyped* genFloatType(::Type type);
+    
+    virtual ValueInst* CS(Tree sig);
+
    public:
     InstructionsCompiler(CodeContainer* container);
 
     virtual ~InstructionsCompiler() {}
-
-    virtual ValueInst* CS(Tree sig);
 
     virtual void compileMultiSignal(Tree sig);
     virtual void compileSingleSignal(Tree sig);
@@ -158,7 +163,7 @@ class InstructionsCompiler : public virtual Garbageable {
 
     // Code generation
     virtual ValueInst* generateCode(Tree sig);
-
+  
     virtual ValueInst* generateXtended(Tree sig);
     virtual ValueInst* generateDelay(Tree sig, Tree arg, Tree size);
     virtual ValueInst* generatePrefix(Tree sig, Tree x, Tree e);
@@ -177,7 +182,7 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* generateStaticSigGen(Tree sig, Tree content);
 
     virtual ValueInst* generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2);
-
+   
     virtual ValueInst* generateRecProj(Tree sig, Tree exp, int i);
     virtual ValueInst* generateRec(Tree sig, Tree var, Tree le, int index = -1);
 
@@ -187,26 +192,28 @@ class InstructionsCompiler : public virtual Garbageable {
 
     virtual ValueInst* generateButton(Tree sig, Tree label);
     virtual ValueInst* generateCheckbox(Tree sig, Tree label);
-    virtual ValueInst* generateVSlider(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-    virtual ValueInst* generateHSlider(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-    virtual ValueInst* generateNumEntry(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
+    virtual ValueInst* generateVSlider(Tree sig, Tree label, Tree cur);
+    virtual ValueInst* generateHSlider(Tree sig, Tree label, Tree cur);
+    virtual ValueInst* generateNumEntry(Tree sig, Tree label, Tree cur);
 
-    virtual ValueInst* generateVBargraph(Tree sig, Tree label, Tree min, Tree max, ValueInst* exp);
-    virtual ValueInst* generateHBargraph(Tree sig, Tree label, Tree min, Tree max, ValueInst* exp);
+    virtual ValueInst* generateVBargraph(Tree sig, Tree label, ValueInst* exp);
+    virtual ValueInst* generateHBargraph(Tree sig, Tree label, ValueInst* exp);
 
     virtual ValueInst* generateSoundfile(Tree sig, Tree label);
     virtual ValueInst* generateSoundfileLength(Tree sig, ValueInst* sf, ValueInst* part);
     virtual ValueInst* generateSoundfileRate(Tree sig, ValueInst* sf, ValueInst* part);
     virtual ValueInst* generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y, ValueInst* z);
 
+    virtual ValueInst* generateAttach(Tree sig, Tree x, Tree y);
+    
     virtual ValueInst* generateIntNumber(Tree sig, int num);
     virtual ValueInst* generateInt64Number(Tree sig, int64_t num);
     virtual ValueInst* generateRealNumber(Tree sig, double num);
     virtual ValueInst* generateFConst(Tree sig, Tree type, const std::string& file, const std::string& name);
     virtual ValueInst* generateFVar(Tree sig, Tree type, const std::string& file, const std::string& name);
 
-    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd);
-    virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd,
+    virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, BasicTyped* ctype, const std::string& vname, int mxd);
+    virtual ValueInst* generateDelayLine(ValueInst* exp, BasicTyped* ctype, const std::string& vname, int mxd,
                                          Address::AccessType& access, ValueInst* ccs);
     
     virtual ValueInst* generateControl(Tree sig, Tree x, Tree y);
@@ -226,6 +233,58 @@ class InstructionsCompiler : public virtual Garbageable {
     Tree prepare(Tree LS);
     Tree prepare2(Tree L0);
   
+};
+
+// =========================================
+// Special version for -fx mode compilation
+// =========================================
+
+class InstructionsFXCompiler : public InstructionsCompiler {
+
+    protected:
+    
+        ValueInst* castFX(Tree sig, ValueInst* value);
+        virtual BasicTyped* genFloatType(::Type type) override;
+        virtual ValueInst* genCastedInput(ValueInst* value) override;
+    
+    public:
+    
+        InstructionsFXCompiler(CodeContainer* container)
+        :InstructionsCompiler(container)
+        {}
+    
+        ValueInst* generateCacheCode(Tree sig, ValueInst* inst) override;
+        ValueInst* generateRealNumber(Tree sig, double num) override;
+       
+        /*
+        ValueInst* generateXtended(Tree sig) override;
+        
+        ValueInst* generateWaveform(Tree sig) override;
+        ValueInst* generateInput(Tree sig, int input) override;
+        ValueInst* generateDelay(Tree sig, Tree x, Tree y) override;
+        ValueInst* generatePrefix(Tree sig, Tree x, Tree y) override;
+        
+        ValueInst* generateBinOp(Tree sig, int op, Tree x, Tree y) override;
+        
+        ValueInst* generateFFun(Tree sig, Tree ff, Tree largs) override;
+        ValueInst* generateFConst(Tree sig, Tree type, const std::string& file, const std::string& name) override;
+        ValueInst* generateFVar(Tree sig, Tree type, const std::string& file, const std::string& name) override;
+
+        ValueInst* generateTable(Tree sig, Tree x, Tree y) override;
+        ValueInst* generateRDTbl(Tree sig, Tree x, Tree y) override;
+        ValueInst* generateSigGen(Tree sig, Tree x) override;
+         */
+        ValueInst* generateSelect2(Tree sig, Tree sel, Tree x, Tree y) override;
+    
+        /*
+        ValueInst* generateRecProj(Tree sig, Tree x, int proj) override;
+        ValueInst* generateFloatCast(Tree sig, Tree x) override;
+        ValueInst* generateButtonAux(Tree sig, Tree path, const std::string& name) override;
+        ValueInst* generateSliderAux(Tree sig, Tree path, Tree cur, const std::string& name) override;
+        ValueInst* generateBargraphAux(Tree sig, Tree path, ValueInst* exp, const std::string& name) override;
+        ValueInst* generateAttach(Tree sig, Tree x, Tree y) override;
+        */
+
 };
 
 #endif

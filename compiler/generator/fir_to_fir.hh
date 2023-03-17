@@ -248,6 +248,19 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                             return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
                                                                 inst->fValue->clone(&cloner));
                         }
+                    } else if (ctype == Typed::kFixedPoint) {
+                        FixedPointArrayNumInst* fixed_array = dynamic_cast<FixedPointArrayNumInst*>(inst->fValue);
+                        if (fixed_array) {
+                            for (int i = 0; i < array_typed->fSize; i++) {
+                                fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(
+                                  inst->fAddress->getName(), InstBuilder::genInt32NumInst(i),
+                                  InstBuilder::genCastInst(InstBuilder::genFixedPointNumInst(fixed_array->getValue(i)), fixed_array->fType)));
+                                
+                            }
+                        } else {
+                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                                                inst->fValue->clone(&cloner));
+                        }
                     } else {
                         faustassert(false);
                     }
@@ -368,6 +381,18 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
                                 fVarTableStore.push_back(InstBuilder::genStoreArrayStaticStructVar(
                                     inst->fAddress->getName(), InstBuilder::genInt32NumInst(i),
                                     InstBuilder::genDoubleNumInst(double_array->getValue(i))));
+                            }
+                        } else {
+                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                                                inst->fValue->clone(&cloner));
+                        }
+                    } else if (ctype == Typed::kFixedPoint) {
+                        FixedPointArrayNumInst* fixed_array = dynamic_cast<FixedPointArrayNumInst*>(inst->fValue);
+                        if (fixed_array) {
+                            for (int i = 0; i < array_typed->fSize; i++) {
+                                fVarTableStore.push_back(InstBuilder::genStoreArrayStaticStructVar(
+                                   inst->fAddress->getName(), InstBuilder::genInt32NumInst(i),
+                                   InstBuilder::genCastInst(InstBuilder::genFixedPointNumInst(fixed_array->getValue(i)), fixed_array->fType)));
                             }
                         } else {
                             return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),

@@ -119,12 +119,12 @@ class ScalarCompiler : public Compiler {
 
     std::string generateButton(Tree sig, Tree label);
     std::string generateCheckbox(Tree sig, Tree label);
-    std::string generateVSlider(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-    std::string generateHSlider(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-    std::string generateNumEntry(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
+    std::string generateVSlider(Tree sig, Tree label, Tree cur);
+    std::string generateHSlider(Tree sig, Tree label, Tree cur);
+    std::string generateNumEntry(Tree sig, Tree label, Tree cur);
 
-    std::string generateVBargraph(Tree sig, Tree label, Tree min, Tree max, const std::string& exp);
-    std::string generateHBargraph(Tree sig, Tree label, Tree min, Tree max, const std::string& exp);
+    std::string generateVBargraph(Tree sig, Tree label, const std::string& exp);
+    std::string generateHBargraph(Tree sig, Tree label, const std::string& exp);
     std::string generateSoundfile(Tree sig, Tree path);
 
     std::string generateNumber(Tree sig, const std::string& exp);

@@ -72,10 +72,10 @@ void DAGInstructionsCompilerRust::compileMultiSignal(Tree L)
     endTiming("compileMultiSignal");
 }
 
-StatementInst* DAGInstructionsCompilerRust::generateInitArray(const string& vname, Typed::VarType ctype, int delay)
+StatementInst* DAGInstructionsCompilerRust::generateInitArray(const string& vname, BasicTyped* ctype, int delay)
 {
     ValueInst*  init  = InstBuilder::genTypedZero(ctype);
-    BasicTyped* typed = InstBuilder::genBasicTyped(ctype);
+    BasicTyped* typed = ctype;
 
     // Generates table declaration
     pushDeclare(InstBuilder::genDecStructVar(vname, InstBuilder::genArrayTyped(typed, delay)));
