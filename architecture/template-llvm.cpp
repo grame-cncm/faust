@@ -49,12 +49,15 @@ using namespace std;
  
  faust2cagtk -inj template-llvm.cpp faust2cagtk-llvm.dsp (a dummy DSP)
  to generate a monophonic 'faust2cagtk-llvm' application.
+  
+ or:
  
- Or:
- 
- faust2cagtk -inj template-llvm.cpp -midi -nvoices 8 faust2cagtk-llvm.dsp (a dummy DSP)
+ faust2cagtk -inj template-llvm.cpp -midi -nvoices 8 faust2cagtk-llvm.dsp
  to generate a polyphonic (8 voices), MIDI controllable 'faust2cagtk-llvm' application.
  
+ Note that libfaust and LLVM libraries still have to be added at the link stage,
+ so a '-dyn : create libfaust + LLVM backend dynamic version' option has been added to the faust2cagtk tool and some others.
+
  Then 'faust2cagtk-llvm' will ask for a DSP to compile:
  
  ./faust2cagtk-llvm
