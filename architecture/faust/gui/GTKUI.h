@@ -168,11 +168,11 @@ GTKUI::GTKUI(char* name, int* pargc, char*** pargv)
         gInitialized = true;
     }
     fWindow = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    
     // gtk_container_set_border_width (GTK_CONTAINER (fWindow), 10);
     gtk_window_set_title(GTK_WINDOW(fWindow), name);
     g_signal_connect(fWindow, "delete_event", G_CALLBACK(delete_event), NULL);
     g_signal_connect(fWindow, "destroy", G_CALLBACK(destroy_event), NULL);
-
 
     fTop        = 0;
     fBox[fTop]  = gtk_vbox_new(homogene, 4);
@@ -437,7 +437,8 @@ void GTKUI::addCheckButton(const char* label, FAUSTFLOAT* zone)
 struct uiAdjustment : public uiItem {
     GtkAdjustment* fAdj;
 
-    uiAdjustment(GUI* ui, FAUSTFLOAT* zone, GtkAdjustment* adj) : uiItem(ui, zone), fAdj(adj) {}
+    uiAdjustment(GUI* ui, FAUSTFLOAT* zone, GtkAdjustment* adj) : uiItem(ui, zone), fAdj(adj)
+    {}
 
     static void changed(GtkWidget* widget, gpointer data)
     {
@@ -497,7 +498,6 @@ void GTKUI::addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTF
     GtkAdjustment* adj = gtk_adjustment_new(init, min, max, step, 10 * step, 0);
 
     uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
-
     g_signal_connect_swapped(adj, "value-changed", G_CALLBACK(uiAdjustment::changed), c);
 
     GtkWidget* slider = gtk_vbox_new(false, 0);
@@ -580,7 +580,6 @@ void GTKUI::addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT 
     GtkAdjustment* adj = gtk_adjustment_new(init, min, max, step, 10 * step, 0);
 
     uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
-
     g_signal_connect_swapped(adj, "value-changed", G_CALLBACK(uiAdjustment::changed), c);
 
     GtkWidget* slider = gtk_hscale_new(GTK_ADJUSTMENT(adj));
@@ -719,14 +718,15 @@ bool GTKUI::run()
     gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &rect);
 
     // Possibly setup scroll window
-    GtkAllocation* allocation;
+    GtkAllocation* allocation = static_cast<GtkAllocation*>(malloc(sizeof(GtkAllocation)));
     gtk_widget_get_allocation(fWindow, allocation);
     if (allocation->width > rect.width || allocation->height > rect.height) {
         g_object_ref(fBox[fTop]);  // To avoid desallocation with 'gtk_container_remove'
         gtk_container_remove(GTK_CONTAINER(fWindow), fBox[fTop]);
         fScrolledWindow = gtk_scrolled_window_new(NULL, NULL);
         gtk_widget_set_size_request(fScrolledWindow, rect.width / 2, rect.height / 2);
-        gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(fScrolledWindow), GTK_POLICY_AUTOMATIC,
+        gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(fScrolledWindow),
+                                       GTK_POLICY_AUTOMATIC,
                                        GTK_POLICY_AUTOMATIC);
         gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(fScrolledWindow), fBox[fTop]);
         gtk_container_add(GTK_CONTAINER(fWindow), fScrolledWindow);
@@ -738,6 +738,7 @@ bool GTKUI::run()
 
     g_timeout_add(40, callUpdateAllGuis, nullptr);
     gtk_main();
+    free(allocation);
     return true;
 }
 
