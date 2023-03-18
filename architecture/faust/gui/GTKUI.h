@@ -44,7 +44,7 @@
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 #include <gdk/gdktypes.h>
-#include <gdk/gdkkeysyms.h>
+#include <gtkmm.h>
 
 #include "faust/gui/GUI.h"
 #include "faust/gui/MetaDataUI.h"
@@ -723,9 +723,9 @@ bool GTKUI::run()
     gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &rect);
 
     // Possibly setup scroll window
-    GtkAllocation* allocation = (GtkAllocation*)(malloc(sizeof(GtkAllocation)));
-    gtk_widget_get_allocation(fWindow, allocation);
-    if (allocation->width > rect.width || allocation->height > rect.height) {
+    GtkAllocation allocation;
+    gtk_widget_get_allocation(fWindow, &allocation);
+    if (allocation.width > rect.width || allocation.height > rect.height) {
         g_object_ref(fBox[fTop]);  // To avoid desallocation with 'gtk_container_remove'
         gtk_container_remove(GTK_CONTAINER(fWindow), fBox[fTop]);
         fScrolledWindow = gtk_scrolled_window_new(NULL, NULL);
@@ -743,7 +743,6 @@ bool GTKUI::run()
 
     g_timeout_add(40, callUpdateAllGuis, nullptr);
     gtk_main();
-    free(allocation);
     return true;
 }
 
