@@ -378,10 +378,11 @@ struct uiButton : public uiItem {
     {
         FAUSTFLOAT v = *fZone;
         fCache       = v;
-        if (v > 0.0)
+        if (v > 0.0) {
             gtk_button_pressed(fButton);
-        else
+        } else {
             gtk_button_released(fButton);
+        }
     }
 };
 
@@ -393,8 +394,8 @@ void GTKUI::addButton(const char* label, FAUSTFLOAT* zone)
 
     uiButton* c = new uiButton(this, zone, GTK_BUTTON(button));
 
-    g_signal_connect_swapped(button, "pressed", G_CALLBACK(uiButton::pressed), c);
-    g_signal_connect_swapped(button, "released", G_CALLBACK(uiButton::released), c);
+    g_signal_connect(button, "pressed", G_CALLBACK(uiButton::pressed), c);
+    g_signal_connect(button, "released", G_CALLBACK(uiButton::released), c);
 
     checkForTooltip(zone, button);
 }
@@ -425,9 +426,9 @@ void GTKUI::addCheckButton(const char* label, FAUSTFLOAT* zone)
     *zone             = 0.0;
     GtkWidget* button = gtk_check_button_new_with_label(label);
     addWidget(label, button);
-
+ 
     uiCheckButton* c = new uiCheckButton(this, zone, GTK_TOGGLE_BUTTON(button));
-    g_signal_connect_swapped(button, "toggled", G_CALLBACK(uiCheckButton::toggled), c);
+    g_signal_connect(button, "toggled", G_CALLBACK(uiCheckButton::toggled), c);
 
     checkForTooltip(zone, button);
 }
@@ -494,12 +495,12 @@ struct uiValueDisplay : public uiItem {
 void GTKUI::addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max,
                     FAUSTFLOAT step)
 {
-    *zone          = init;
+    *zone = init;
     GtkAdjustment* adj = gtk_adjustment_new(init, min, max, step, 10 * step, 0);
-
+   
     uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
-    g_signal_connect_swapped(adj, "value-changed", G_CALLBACK(uiAdjustment::changed), c);
-
+    g_signal_connect(adj, "value-changed", G_CALLBACK(uiAdjustment::changed), c);
+ 
     GtkWidget* slider = gtk_vbox_new(false, 0);
     GtkWidget* fil    = gtk_vbox_new(false, 0);
     GtkWidget* rei    = gtk_vbox_new(false, 0);
@@ -540,11 +541,11 @@ void GTKUI::addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT in
         addKnob(label, zone, init, min, max, step);
         return;
     }
-    *zone          = init;
+    *zone = init;
     GtkAdjustment* adj = gtk_adjustment_new(init, min, max, step, 10 * step, 0);
 
     uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
-    g_signal_connect_swapped(adj, "value-changed", G_CALLBACK(uiAdjustment::changed), c);
+    g_signal_connect(adj, "value-changed", G_CALLBACK(uiAdjustment::changed), c);
 
     GtkWidget* slider = gtk_vscale_new(GTK_ADJUSTMENT(adj));
     gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
@@ -576,12 +577,12 @@ void GTKUI::addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT 
         addKnob(label, zone, init, min, max, step);
         return;
     }
-    *zone          = init;
+    *zone = init;
     GtkAdjustment* adj = gtk_adjustment_new(init, min, max, step, 10 * step, 0);
-
+    
     uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
-    g_signal_connect_swapped(adj, "value-changed", G_CALLBACK(uiAdjustment::changed), c);
-
+    g_signal_connect(adj, "value-changed", G_CALLBACK(uiAdjustment::changed), c);
+   
     GtkWidget* slider = gtk_hscale_new(GTK_ADJUSTMENT(adj));
     gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
     FAUSTFLOAT size = 160;
@@ -611,11 +612,11 @@ void GTKUI::addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FA
         addKnob(label, zone, init, min, max, step);
         return;
     }
-    *zone          = init;
+    *zone = init;
     GtkAdjustment* adj = gtk_adjustment_new(init, min, max, step, 10 * step, step);
 
     uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
-    g_signal_connect_swapped(adj, "value-changed", G_CALLBACK(uiAdjustment::changed), c);
+    g_signal_connect(adj, "value-changed", G_CALLBACK(uiAdjustment::changed), c);
     GtkWidget* spinner = gtk_spin_button_new(GTK_ADJUSTMENT(adj), 0.005, precision(step));
 
     label = startWith(label, "0x") ? "" : label;
@@ -718,7 +719,7 @@ bool GTKUI::run()
     gdk_screen_get_monitor_geometry(screen, gdk_screen_get_primary_monitor(screen), &rect);
 
     // Possibly setup scroll window
-    GtkAllocation* allocation = static_cast<GtkAllocation*>(malloc(sizeof(GtkAllocation)));
+    GtkAllocation* allocation = (GtkAllocation*)(malloc(sizeof(GtkAllocation)));
     gtk_widget_get_allocation(fWindow, allocation);
     if (allocation->width > rect.width || allocation->height > rect.height) {
         g_object_ref(fBox[fTop]);  // To avoid desallocation with 'gtk_container_remove'
