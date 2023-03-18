@@ -497,9 +497,10 @@ void GTKUI::addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTF
 {
     *zone = init;
     GtkAdjustment* adj = gtk_adjustment_new(init, min, max, step, 10 * step, 0);
+    GtkRange* range = GTK_RANGE(gtk_scale_new(GTK_ORIENTATION_VERTICAL, adj));
    
     uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
-    g_signal_connect(adj, "value-changed", G_CALLBACK(uiAdjustment::changed), c);
+    g_signal_connect(range, "value-changed", G_CALLBACK(uiAdjustment::changed), c);
  
     GtkWidget* slider = gtk_vbox_new(false, 0);
     GtkWidget* fil    = gtk_vbox_new(false, 0);
@@ -543,9 +544,10 @@ void GTKUI::addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT in
     }
     *zone = init;
     GtkAdjustment* adj = gtk_adjustment_new(init, min, max, step, 10 * step, 0);
+    GtkRange* range = GTK_RANGE(gtk_scale_new(GTK_ORIENTATION_VERTICAL, adj));
 
     uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
-    g_signal_connect(adj, "value-changed", G_CALLBACK(uiAdjustment::changed), c);
+    g_signal_connect(range, "value-changed", G_CALLBACK(uiAdjustment::changed), c);
 
     GtkWidget* slider = gtk_vscale_new(GTK_ADJUSTMENT(adj));
     gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
@@ -579,9 +581,10 @@ void GTKUI::addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT 
     }
     *zone = init;
     GtkAdjustment* adj = gtk_adjustment_new(init, min, max, step, 10 * step, 0);
+    GtkRange* range = GTK_RANGE(gtk_scale_new(GTK_ORIENTATION_HORIZONTAL, adj));
     
     uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
-    g_signal_connect(adj, "value-changed", G_CALLBACK(uiAdjustment::changed), c);
+    g_signal_connect(range, "value-changed", G_CALLBACK(uiAdjustment::changed), c);
    
     GtkWidget* slider = gtk_hscale_new(GTK_ADJUSTMENT(adj));
     gtk_scale_set_digits(GTK_SCALE(slider), precision(step));
@@ -614,9 +617,10 @@ void GTKUI::addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FA
     }
     *zone = init;
     GtkAdjustment* adj = gtk_adjustment_new(init, min, max, step, 10 * step, step);
+    GtkRange* range = GTK_RANGE(gtk_scale_new(GTK_ORIENTATION_HORIZONTAL, adj));
 
     uiAdjustment* c = new uiAdjustment(this, zone, GTK_ADJUSTMENT(adj));
-    g_signal_connect(adj, "value-changed", G_CALLBACK(uiAdjustment::changed), c);
+    g_signal_connect(range, "value-changed", G_CALLBACK(uiAdjustment::changed), c);
     GtkWidget* spinner = gtk_spin_button_new(GTK_ADJUSTMENT(adj), 0.005, precision(step));
 
     label = startWith(label, "0x") ? "" : label;
