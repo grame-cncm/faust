@@ -37,6 +37,7 @@
 #include "sigprint.hh"
 #include "normalform.hh"
 #include "timing.hh"
+#include "sharing.hh"
 #include "sigtyperules.hh"
 #include "signalVisitor.hh"
 #include "sigPromotion.hh"
@@ -71,69 +72,173 @@ InstructionsCompiler::InstructionsCompiler(CodeContainer* container)
       fDescription(nullptr)
 {}
 
-// Taken from sharing.cpp
+/*****************************************************************************
+ prepare
+ *****************************************************************************/
 
-int InstructionsCompiler::getSharingCount(Tree sig)
+Tree InstructionsCompiler::prepare(Tree LS)
 {
-    Tree c;
-    if (getProperty(sig, fSharingKey, c)) {
-        return c->node().getInt();
+    startTiming("prepare");
+    Tree L1 = simplifyToNormalForm(LS);
+    
+    /*
+     Possibly cast bool binary operations (comparison operations) to int.
+     Done after simplifyToNormalForm with does SignalTreeChecker,
+     that would fail after sigBool2IntPromote which adds additional
+     sigIntCast on bool producing BinOp operations.
+     */
+    if (gGlobal->gBool2Int) L1 = signalBool2IntPromote(L1);
+    
+    /*
+     Special 'select' casting mode in -fx generation.
+     */
+    if (gGlobal->gFloatSize == 4) L1 = signalFXPromote(L1);
+    
+        // dump normal form
+    if (gGlobal->gDumpNorm == 0) {
+        cout << ppsig(L1) << endl;
+        throw faustexception("Dump normal form finished...\n");
+    } else if (gGlobal->gDumpNorm == 1) {
+        ppsigShared(L1, cout, true);
+        throw faustexception("Dump shared normal form finished...\n");
+    } else if (gGlobal->gDumpNorm == 2) {
+        // Print signal tree type
+        SignalTypePrinter printer(L1);
+        throw faustexception("Dump signal type finished...\n");
+    }
+    
+    startTiming("privatise");
+    Tree L2 = privatise(L1);  // Un-share tables with multiple writers
+    endTiming("privatise");
+    
+    startTiming("conditionAnnotation");
+    conditionAnnotation(L2);
+    endTiming("conditionAnnotation");
+    
+    startTiming("recursivnessAnnotation");
+    recursivnessAnnotation(L2);  // Annotate L2 with recursivness information
+    endTiming("recursivnessAnnotation");
+    
+    startTiming("L2 typeAnnotation");
+    typeAnnotation(L2, true);     // Annotate L2 with type information and check causality
+    endTiming("L2 typeAnnotation");
+    
+    startTiming("sharingAnalysis");
+    sharingAnalysis(L2, fSharingKey);  // Annotate L2 with sharing count
+    endTiming("sharingAnalysis");
+    
+    startTiming("occurrences analysis");
+    delete fOccMarkup;
+    fOccMarkup = new OccMarkup(fConditionProperty);
+    fOccMarkup->mark(L2);        // Annotate L2 with occurrences analysis
+    endTiming("occurrences analysis");
+    
+    endTiming("prepare");
+    
+    if (gGlobal->gDrawSignals) {
+        ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
+        sigToGraph(L2, dotfile);
+    }
+    
+        // Generate VHDL if -vhdl option is set
+    if (gGlobal->gVHDLSwitch) {
+        sigVHDLFile(fOccMarkup, L2, gGlobal->gVHDLTrace);
+    }
+    
+    return L2;
+}
+
+Tree InstructionsCompiler::prepare2(Tree L0)
+{
+    startTiming("prepare2");
+    
+    recursivnessAnnotation(L0);       // Annotate L0 with recursivness information
+    typeAnnotation(L0, true);         // Annotate L0 with type information
+    sharingAnalysis(L0, fSharingKey); // Annotate L0 with sharing count
+    
+    delete fOccMarkup;
+    fOccMarkup = new OccMarkup();
+    fOccMarkup->mark(L0);        // Annotate L0 with occurrences analysis
+    
+    endTiming("prepare2");
+    return L0;
+}
+
+/*****************************************************************************
+ Condition annotation due to enabled expressions
+ *****************************************************************************/
+
+#if _DNF_
+#define CND2CODE dnf2code
+#define _OR_ dnfOr
+#define _AND_ dnfAnd
+#define _CND_ dnfCond
+#else
+#define CND2CODE cnf2code
+#define _OR_ cnfOr
+#define _AND_ cnfAnd
+#define _CND_ cnfCond
+#endif
+
+ValueInst* InstructionsCompiler::dnf2code(Tree cc)
+{
+    if (cc == gGlobal->nil) return InstBuilder::genNullValueInst();
+    Tree c1 = hd(cc);
+    cc      = tl(cc);
+    if (cc == gGlobal->nil) {
+        return and2code(c1);
     } else {
-        return 0;
+        return InstBuilder::genOr(and2code(c1), dnf2code(cc));
     }
 }
 
-void InstructionsCompiler::setSharingCount(Tree sig, int count)
+ValueInst* InstructionsCompiler::and2code(Tree cs)
 {
-    setProperty(sig, fSharingKey, tree(count));
-}
-
-void InstructionsCompiler::sharingAnalysis(Tree t)
-{
-    fSharingKey = shprkey(t);
-    if (isList(t)) {
-        while (isList(t)) {
-            sharingAnnotation(kSamp, hd(t));
-            t = tl(t);
-        }
+    if (cs == gGlobal->nil) return InstBuilder::genNullValueInst();
+    Tree c1 = hd(cs);
+    cs      = tl(cs);
+    if (cs == gGlobal->nil) {
+        return CS(c1);
     } else {
-        sharingAnnotation(kSamp, t);
+        return InstBuilder::genAnd(CS(c1), and2code(cs));
     }
 }
 
-void InstructionsCompiler::sharingAnnotation(int vctxt, Tree sig)
+ValueInst* InstructionsCompiler::cnf2code(Tree cs)
 {
-    // cerr << "START sharing annotation of " << *sig << endl;
-    int count = getSharingCount(sig);
-
-    if (count > 0) {
-        // it is not our first visit
-        setSharingCount(sig, count + 1);
-
+    if (cs == gGlobal->nil) return InstBuilder::genNullValueInst();
+    Tree c1 = hd(cs);
+    cs      = tl(cs);
+    if (cs == gGlobal->nil) {
+        return or2code(c1);
     } else {
-        // it is our first visit,
-        int v = getCertifiedSigType(sig)->variability();
-       
-        // check "time sharing" cases
-        if (v < vctxt) {
-            setSharingCount(sig, 2);  // time sharing occurence : slower expression in faster context
-        } else {
-            setSharingCount(sig, 1);  // regular occurence
-        }
-
-        // Annotate the sub signals
-        vector<Tree> subsig;
-        int          n = getSubSignals(sig, subsig);
-        if (n > 0 && !isSigGen(sig)) {
-            for (int i = 0; i < n; i++) sharingAnnotation(v, subsig[i]);
-        }
+        return InstBuilder::genAnd(or2code(c1), cnf2code(cs));
     }
-    // cerr << "END sharing annotation of " << *sig << endl;
 }
 
-//------------------------------------------------------------------------------
-// Condition annotation due to enabled expressions
-//------------------------------------------------------------------------------
+ValueInst* InstructionsCompiler::or2code(Tree cs)
+{
+    if (cs == gGlobal->nil) return InstBuilder::genNullValueInst();
+    Tree c1 = hd(cs);
+    cs      = tl(cs);
+    if (cs == gGlobal->nil) {
+        return CS(c1);
+    } else {
+        return InstBuilder::genOr(CS(c1), or2code(cs));
+    }
+}
+
+// Temporary implementation for test purposes
+ValueInst* InstructionsCompiler::getConditionCode(Tree sig)
+{
+    Tree cc = fConditionProperty[sig];
+    if ((cc != 0) && (cc != gGlobal->nil)) {
+        return CND2CODE(cc);
+    } else {
+        return InstBuilder::genNullValueInst();
+    }
+}
+
 #if 0
 void InstructionsCompiler::conditionStatistics(Tree l)
 {
@@ -168,20 +273,6 @@ void InstructionsCompiler::conditionAnnotation(Tree l)
         l = tl(l);
     }
 }
-
-#if _DNF_
-
-#define _OR_ dnfOr
-#define _AND_ dnfAnd
-#define _CND_ dnfCond
-
-#else
-
-#define _OR_ cnfOr
-#define _AND_ cnfAnd
-#define _CND_ cnfCond
-
-#endif
 
 void InstructionsCompiler::conditionAnnotation(Tree t, Tree nc)
 {
@@ -219,98 +310,6 @@ void InstructionsCompiler::conditionAnnotation(Tree t, Tree nc)
             for (int i = 0; i < n; i++) conditionAnnotation(subsig[i], nc);
         }
     }
-}
-
-/*****************************************************************************
- prepare
- *****************************************************************************/
-
-Tree InstructionsCompiler::prepare(Tree LS)
-{
-    startTiming("prepare");
-    Tree L1 = simplifyToNormalForm(LS);
-    
-    /*
-        Possibly cast bool binary operations (comparison operations) to int.
-        Done after simplifyToNormalForm with does SignalTreeChecker,
-        that would fail after sigBool2IntPromote which adds additional
-        sigIntCast on bool producing BinOp operations.
-    */
-    if (gGlobal->gBool2Int) L1 = signalBool2IntPromote(L1);
-    
-    /*
-        Special 'select' casting mode in -fx generation.
-     */
-    if (gGlobal->gFloatSize == 4) L1 = signalFXPromote(L1);
-    
-    // dump normal form
-    if (gGlobal->gDumpNorm == 0) {
-        cout << ppsig(L1) << endl;
-        throw faustexception("Dump normal form finished...\n");
-    } else if (gGlobal->gDumpNorm == 1) {
-        ppsigShared(L1, cout, true);
-        throw faustexception("Dump shared normal form finished...\n");
-    } else if (gGlobal->gDumpNorm == 2) {
-        // Print signal tree type
-        SignalTypePrinter printer(L1);
-        throw faustexception("Dump signal type finished...\n");
-    }
-    
-    startTiming("privatise");
-    Tree L2 = privatise(L1);  // Un-share tables with multiple writers
-    endTiming("privatise");
-    
-    startTiming("conditionAnnotation");
-    conditionAnnotation(L2);
-    endTiming("conditionAnnotation");
-    
-    startTiming("recursivnessAnnotation");
-    recursivnessAnnotation(L2);  // Annotate L2 with recursivness information
-    endTiming("recursivnessAnnotation");
-    
-    startTiming("L2 typeAnnotation");
-    typeAnnotation(L2, true);     // Annotate L2 with type information and check causality
-    endTiming("L2 typeAnnotation");
-    
-    startTiming("sharingAnalysis");
-    sharingAnalysis(L2);         // Annotate L2 with sharing count
-    endTiming("sharingAnalysis");
-    
-    startTiming("occurrences analysis");
-    delete fOccMarkup;
-    fOccMarkup = new OccMarkup(fConditionProperty);
-    fOccMarkup->mark(L2);        // Annotate L2 with occurrences analysis
-    endTiming("occurrences analysis");
-    
-    endTiming("prepare");
-    
-    if (gGlobal->gDrawSignals) {
-        ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
-        sigToGraph(L2, dotfile);
-    }
-    
-    // Generate VHDL if -vhdl option is set
-    if (gGlobal->gVHDLSwitch) {
-        sigVHDLFile(fOccMarkup, L2, gGlobal->gVHDLTrace);
-    }
-    
-    return L2;
-}
-
-Tree InstructionsCompiler::prepare2(Tree L0)
-{
-    startTiming("prepare2");
-
-    recursivnessAnnotation(L0);  // Annotate L0 with recursivness information
-    typeAnnotation(L0, true);    // Annotate L0 with type information
-    sharingAnalysis(L0);         // Annotate L0 with sharing count
-   
-    delete fOccMarkup;
-    fOccMarkup = new OccMarkup();
-    fOccMarkup->mark(L0);        // Annotate L0 with occurrences analysis
-
-    endTiming("prepare2");
-    return L0;
 }
 
 /*****************************************************************************
@@ -422,71 +421,6 @@ CodeContainer* InstructionsCompiler::signal2Container(const string& name, Tree s
 /*****************************************************************************
  compileMultiSignal
  *****************************************************************************/
-
-ValueInst* InstructionsCompiler::dnf2code(Tree cc)
-{
-    if (cc == gGlobal->nil) return InstBuilder::genNullValueInst();
-    Tree c1 = hd(cc);
-    cc      = tl(cc);
-    if (cc == gGlobal->nil) {
-        return and2code(c1);
-    } else {
-        return InstBuilder::genOr(and2code(c1), dnf2code(cc));
-    }
-}
-
-ValueInst* InstructionsCompiler::and2code(Tree cs)
-{
-    if (cs == gGlobal->nil) return InstBuilder::genNullValueInst();
-    Tree c1 = hd(cs);
-    cs      = tl(cs);
-    if (cs == gGlobal->nil) {
-        return CS(c1);
-    } else {
-        return InstBuilder::genAnd(CS(c1), and2code(cs));
-    }
-}
-
-ValueInst* InstructionsCompiler::cnf2code(Tree cs)
-{
-    if (cs == gGlobal->nil) return InstBuilder::genNullValueInst();
-    Tree c1 = hd(cs);
-    cs      = tl(cs);
-    if (cs == gGlobal->nil) {
-        return or2code(c1);
-    } else {
-        return InstBuilder::genAnd(or2code(c1), cnf2code(cs));
-    }
-}
-
-ValueInst* InstructionsCompiler::or2code(Tree cs)
-{
-    if (cs == gGlobal->nil) return InstBuilder::genNullValueInst();
-    Tree c1 = hd(cs);
-    cs      = tl(cs);
-    if (cs == gGlobal->nil) {
-        return CS(c1);
-    } else {
-        return InstBuilder::genOr(CS(c1), or2code(cs));
-    }
-}
-
-#if _DNF_
-#define CND2CODE dnf2code
-#else
-#define CND2CODE cnf2code
-#endif
-
-// Temporary implementation for test purposes
-ValueInst* InstructionsCompiler::getConditionCode(Tree sig)
-{
-    Tree cc = fConditionProperty[sig];
-    if ((cc != 0) && (cc != gGlobal->nil)) {
-        return CND2CODE(cc);
-    } else {
-        return InstBuilder::genNullValueInst();
-    }
-}
 
 void InstructionsCompiler::compileMultiSignal(Tree L)
 {
@@ -1031,7 +965,7 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 
     string         vname;
     Typed::VarType ctype;
-    int            sharing = getSharingCount(sig);
+    int            sharing = getSharingCount(sig, fSharingKey);
     Occurrences* o         = fOccMarkup->retrieve(sig);
     faustassert(o);
 

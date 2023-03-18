@@ -436,6 +436,25 @@ LIBFAUST_API Signal sigSelf();
 LIBFAUST_API Signal sigRecursion(Signal s);
 
 /**
+ * Create a recursive signal inside the sigRecursionN expression.
+ *
+ * @param id - the recursive signal index (starting from 0, up to the number of outputs signals in the recursive block)
+ *
+ * @return the recursive signal.
+ */
+LIBFAUST_API Signal sigSelfN(int id);
+
+/**
+ * Create a recursive block of signals. Use sigSelfN() to refer to the
+ * recursive signal inside the sigRecursionN expression.
+ *
+ * @param rf - the list of signals to recurse on.
+ *
+ * @return the list of signals with recursions.
+ */
+LIBFAUST_API tvec sigRecursionN(const tvec& rf);
+
+/**
  * Create a button signal.
  *
  * @param label - the label definition (see [2])

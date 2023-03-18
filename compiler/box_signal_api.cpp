@@ -169,17 +169,42 @@ LIBFAUST_API Tree sigSoundfile(const string& label)
     return sigSoundfile(normalizePath(cons(tree(label), gGlobal->nil)));
 }
 
+// Recursions
+
 LIBFAUST_API Tree sigSelf()
 {
     return sigDelay1(sigProj(0, ref(1)));
 }
 
-// Tree liftn(Tree t, int threshold);
-
 LIBFAUST_API Tree sigRecursion(Tree s)
 {
-    // return sigDelay0(sigProj(0, rec(cons(liftn(s, 0), gGlobal->nil))));
     return sigDelay0(sigProj(0, rec(cons(s, gGlobal->nil))));
+}
+
+// Version for a N x M block
+LIBFAUST_API Tree sigSelfN(int i)
+{
+    return sigDelay1(sigProj(i, ref(1)));
+}
+
+LIBFAUST_API tvec sigRecursionN(const tvec& ins)
+{
+    Tree out = rec(listConvert(ins));
+    siglist outs(ins.size());
+    // projection number
+    int p = 0;
+    for (const auto& exp : ins) {
+        if (exp->aperture() > 0) {
+            // it is a regular recursive expression branch
+            outs[p] = sigDelay0(sigProj(p, out));
+        } else {
+            // this expression is a closed term,
+            // it doesn't need to be inside this recursion group.
+            outs[p] = exp;
+        }
+        p++;
+    }
+    return outs;
 }
 
 // =============
@@ -189,6 +214,19 @@ LIBFAUST_API Tree sigRecursion(Tree s)
 #ifdef __cplusplus
 extern "C" {
 #endif
+    
+static Tree* list2array(tvec list)
+{
+    if (list.size() > 0) {
+        Tree* res = (Tree*)malloc(sizeof(Tree) * (list.size() + 1));
+        size_t i;
+        for (i = 0; i < list.size(); i++) res[i] = list[i];
+        res[i] = nullptr;
+        return res;
+    } else {
+        return nullptr;
+    }
+}
 
 LIBFAUST_API bool CisNil(Tree s)
 {
@@ -471,6 +509,23 @@ LIBFAUST_API Tree CsigSelf()
 LIBFAUST_API Tree CsigRecursion(Tree s1)
 {
     return sigRecursion(s1);
+}
+
+LIBFAUST_API Tree CsigSelfN(int i)
+{
+    return sigSelfN(i);
+}
+
+LIBFAUST_API Signal* CsigRecursionN(Signal* ins_aux)
+{
+    tvec ins;
+    int  i = 0;
+    while (ins[i]) {
+        ins.push_back(ins_aux[i]);
+        i++;
+    }
+    tvec outs = sigRecursionN(ins);
+    return list2array(outs);
 }
 
 LIBFAUST_API Tree CsigButton(const char* label)
@@ -976,17 +1031,9 @@ LIBFAUST_API Tree* CsimplifyToNormalForm2(Tree* s)
         in++;
     }
     tvec outputs = simplifyToNormalForm2(inputs);
-    if (outputs.size() > 0) {
-        Tree*  res = (Tree*)malloc(sizeof(Tree) * (outputs.size() + 1));
-        size_t i;
-        for (i = 0; i < outputs.size(); i++) res[i] = outputs[i];
-        res[i] = nullptr;
-        return res;
-    } else {
-        return nullptr;
-    }
+    return list2array(outputs);
 }
-
+    
 #ifdef __cplusplus
 }
 #endif

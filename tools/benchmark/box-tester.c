@@ -40,7 +40,7 @@
  *
  * @return the current runtime sample rate.
  */
-inline Box getSampleRate()
+inline Box SR()
 {
     return CboxMinAux(CboxReal(192000.0), CboxMaxAux(CboxReal(1.0), CboxFConst(kSInt, "fSamplingFreq", "<math.h>")));
 }
@@ -108,7 +108,7 @@ static Box decimalpart()
 
 static Box phasor(Box f)
 {
-    return CboxSeq(CboxDivAux(f, getSampleRate()), CboxRec(CboxSplit(CboxAdd(), decimalpart()), CboxWire()));
+    return CboxSeq(CboxDivAux(f, SR()), CboxRec(CboxSplit(CboxAdd(), decimalpart()), CboxWire()));
 }
 
 static void test1()

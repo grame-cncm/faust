@@ -51,7 +51,7 @@ class InstructionsCompiler : public virtual Garbageable {
     
     std::map<Tree, Tree> fConditionProperty;  // used with the new X,Y:enable --> sigControl(X*Y,Y>0) primitive
     
-    Tree            fSharingKey;
+    Tree        fSharingKey;
     OccMarkup*  fOccMarkup;
 
     // Ensure IOTA base fixed delays are computed once
@@ -121,11 +121,6 @@ class InstructionsCompiler : public virtual Garbageable {
     void ensureIotaCode();
  
     CodeContainer* signal2Container(const std::string& name, Tree sig);
-
-    int  getSharingCount(Tree sig);
-    void setSharingCount(Tree sig, int count);
-    void sharingAnalysis(Tree t);
-    void sharingAnnotation(int vctxt, Tree sig);
 
     FIRIndex getCurrentLoopIndex() { return FIRIndex(fContainer->getCurLoop()->getLoopIndex()); }
     

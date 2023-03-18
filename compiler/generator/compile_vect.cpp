@@ -25,6 +25,7 @@
 
 #include "compile_vect.hh"
 #include "floats.hh"
+#include "sharing.hh"
 #include "ppsig.hh"
 
 using namespace std;
@@ -215,7 +216,7 @@ string VectorCompiler::generateLoopCode(Tree sig)
 string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
 {
     string        vname, ctype;
-    int           sharing = getSharingCount(sig);
+    int           sharing = getSharingCount(sig, fSharingKey);
     Type          t       = getCertifiedSigType(sig);
     Occurrences*  o       = fOccMarkup->retrieve(sig);
     int           d       = o->getMaxDelay();
@@ -301,7 +302,7 @@ bool VectorCompiler::needSeparateLoop(Tree sig)
 {
     Occurrences* o = fOccMarkup->retrieve(sig);
     Type         t = getCertifiedSigType(sig);
-    int          c = getSharingCount(sig);
+    int          c = getSharingCount(sig, fSharingKey);
     bool         b;
 
     int  i;
