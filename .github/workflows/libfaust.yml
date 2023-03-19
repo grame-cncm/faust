@@ -100,12 +100,12 @@ jobs:
       matrix:
         include:
           - name: arm64
-            os: macos-12
+            os: macos-11
             llvm-url: https://github.com/DBraun/TD-Faust/releases/download/llvm-15.0.7-macos/llvm-15.0.7-macos10.15-arm64.zip
             ARCHS: "-arch arm64"
             CMAKE_OSX_ARCHITECTURES: arm64
           - name: x64
-            os: macos-12
+            os: macos-11
             llvm-url: https://github.com/DBraun/TD-Faust/releases/download/llvm-15.0.7-macos10.15-x86_64/llvm-15.0.7-macos10.15-x86_64.zip
             ARCHS: "-arch x86_64"
             CMAKE_OSX_ARCHITECTURES: x86_64
@@ -121,10 +121,11 @@ jobs:
       if: ${{ endsWith( matrix.name, 'arm64') }}
       run: |
         brew update
-        PACKAGES=(gtk+3 gtkmm3 qt@5 libsndfile libmicrohttpd)
+        PACKAGES=(gtk+3 gtkmm3 qt@5 lame flac libogg libtool libvorbis opus mpg123 libsndfile libmicrohttpd)
         DEPS=($(brew deps --union --topological $(echo $PACKAGES) | tr '\n' ' '))
         PACKAGES=("${DEPS[@]}" "${PACKAGES[@]}")
         export HOMEBREW_NO_INSTALL_CLEANUP=1
+        export HOMEBREW_NO_INSTALL_UPGRADE=1
         export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
         for PACKAGE in "${PACKAGES[@]}"
         do
@@ -140,7 +141,7 @@ jobs:
 
     - name: Brew install requirements (x64)
       if: ${{ endsWith( matrix.name, 'x64') }}
-      run: brew install pkg-config gtk+3 gtkmm3 qt@5 libsndfile libmicrohttpd
+      run: brew install pkg-config gtk+3 gtkmm3 qt@5 lame flac libogg libtool libvorbis opus mpg123 libsndfile libmicrohttpd
 
     - name: Download LLVM
       run: |
@@ -188,7 +189,7 @@ jobs:
 
         make release
 
-        cd build/Release-${{env.FAUST_VERSION}}
+        cd Release-${{env.FAUST_VERSION}}
         cp Faust-${{env.FAUST_VERSION}}.dmg Faust-${{env.FAUST_VERSION}}-${{matrix.name}}.dmg
         cp faustgen-${{env.FAUSTGEN_VERSION}}-macosx.dmg faustgen-${{env.FAUSTGEN_VERSION}}-${{matrix.name}}.dmg
       env:
