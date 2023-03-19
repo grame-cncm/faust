@@ -3,10 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-if (NOT DEFINED ENV{FAUST_VERSION})
-	message (FATAL_ERROR "FAUST_VERSION undefined. Set it as an environment variable")
-endif()
-set (VERSION $ENV{FAUST_VERSION})
+set (VERSION 2.58.11)
 macro (get_major_minor_patch version)
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\1"  VERSION_MAJOR ${version} )
 	string( REGEX REPLACE "([0-9]*)\\.([0-9]*)\\.([0-9]*)" "\\2"  VERSION_MINOR ${version} )
@@ -29,7 +26,6 @@ set (CMAKE_CXX_STANDARD 17)
 
 #######################################
 # Output options
-option ( DEPLOYMENT_TARGET 	"[MacOS]"	off )
 option ( UNIVERSAL 	"Compiles and combines i386 and x86_64 architectures [MacOS]"	off )
 option ( IOS     	"Compiles for iOS"	off )
 option ( USE_LLVM_CONFIG    "Force use off llvm-config"	on )
@@ -43,10 +39,6 @@ option ( INCLUDE_EMCC    	"Include emcc targets"	on )
 option ( INCLUDE_WASM_GLUE  "Include wasm glue targets"	on )
 option ( MSVC_STATIC		"Use static runtimes with MSVC" off)
 option ( SELF_CONTAINED_LIBRARY	"Don't search system architecture files." off)
-
-if (NOT DEFINED DEPLOYMENT_TARGET_VERSION)
-	set ( DEPLOYMENT_TARGET_VERSION  10.12)
-endif()
 
 #######################################
 # Check output options

@@ -12,10 +12,7 @@ CMAKEOPT ?=
 LAME_DIR ?= 
 LLVM_LIBS ?= 
 LLVM_LD_FLAGS ?= 
-
-ifndef MAXSDK
-$(error MAXSDK is not set)
-endif
+MAXSDK ?= $(shell echo $(PWD)/../max-sdk/source/max-sdk-base/c74support)
 
 all: 
 	$(MAKE) cmake

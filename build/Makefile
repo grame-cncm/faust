@@ -2,13 +2,7 @@
 # FAUST compiler makefile
 #
 
-ifndef FAUST_VERSION
-$(error FAUST_VERSION is not set)
-endif
-
-ifndef FAUSTGEN_VERSION
-$(error FAUSTGEN_VERSION is not set)
-endif
+VERSION := 2.58.11
 
 ARCHS ?= 
 LLVM ?= 
@@ -21,8 +15,7 @@ LLVM_LIBS ?=
 LLVM_DEFINITIONS ?= 
 LLVM_LD_FLAGS ?= 
 INCLUDE_LLVM ?= ON
-USE_LLVM_CONFIG ?= ON
-MAXSDK ?= $(shell echo $(pwd)/../max-sdk/source/max-sdk-base/c74support)
+USE_LLVM_CONFIG ?= OFF
 
 ifdef LAME_DIR
 LAME_LD_FLAGS = "-L$(LAME_DIR)/lib"
@@ -207,7 +200,7 @@ jsscripts:
 # packaging
 #===============================================================
 # don't change the PACK variable, files are put at first hierarchy level
-PACK := package/Faust-$(FAUST_VERSION)
+PACK := package/Faust-$(VERSION)
 package:
 	$(MAKE) $(NATIVEPACK)
 
@@ -219,12 +212,12 @@ winpack:
 
 macpack: package/README.html
 	-[ -d $(PACK) ] && rm -rf $(PACK)
-	$(MAKE) cmake BACKENDs=all.cmake TARGETS=all.cmake DEPLOYMENT="-DDEPLOYMENT_TARGET=ON"
-	$(MAKE) install PREFIX=../$(PACK)/Faust-$(FAUST_VERSION)
-	$(MAKE) mactools FAUSTDIR=../../build/$(PACK)/Faust-$(FAUST_VERSION)
+	$(MAKE) cmake BACKENDs=all.cmake TARGETS=all.cmake
+	$(MAKE) install PREFIX=../$(PACK)/Faust-$(VERSION)
+	$(MAKE) mactools FAUSTDIR=../../build/$(PACK)/Faust-$(VERSION)
 	cp package/INSTALL.html $(PACK)
 	cp package/README.html $(PACK)
-	hdiutil create Faust-$(FAUST_VERSION).dmg -fs HFS+ -srcfolder $(PACK) -format UDBZ -ov
+	hdiutil create Faust-$(VERSION).dmg -fs HFS+ -srcfolder $(PACK) -format UDBZ -ov
 
 mactools:
 	$(MAKE) -C ../tools/benchmark FAUSTDIR=$(FAUSTDIR) TARGETS="dynamic-faust faustbench-llvm interp-tracer" LLVM="$(LLVM)" ARCHS="$(ARCHS)" LAME_LD_FLAGS=$(LAME_LD_FLAGS)
@@ -251,30 +244,30 @@ FAUSTGEN ?=../embedded/faustgen
 release: APATH=$(shell pwd)
 release:
 	@echo "################## Building faust package ###################"
-	$(MAKE) cmake BACKENDS=all.cmake TARGETS=all.cmake DEPLOYMENT="-DDEPLOYMENT_TARGET=ON"
+	$(MAKE) cmake BACKENDS=all.cmake TARGETS=all.cmake
 	$(MAKE) all
 	$(MAKE) package
-	@[ -d Release-$(FAUST_VERSION) ] || mkdir Release-$(FAUST_VERSION)
-	rm -rf Release-$(FAUST_VERSION)/*
-	cp Faust-$(FAUST_VERSION).dmg Release-$(FAUST_VERSION) 
-	$(MAKE) install PREFIX=$(HOME)/Faust-$(FAUST_VERSION)
+	@[ -d Release-$(VERSION) ] || mkdir Release-$(VERSION)
+	rm -rf Release-$(VERSION)/*
+	cp Faust-$(VERSION).dmg Release-$(VERSION) 
+	$(MAKE) install PREFIX=$(HOME)/Faust-$(VERSION)
 	@echo "################## Building faust src distribution ###################"
 	$(MAKE) -C .. dist
-	mv ../faust-$(FAUST_VERSION).tar.gz Release-$(FAUST_VERSION)
+	mv ../faust-$(VERSION).tar.gz Release-$(VERSION)
 	$(MAKE) faustgen
 # 	$(MAKE) faustlive  # todo:
 
 faustgen:
 	@echo "################## Building faustgen package ###################"
 	$(MAKE) -C $(FAUSTGEN) clean
-	$(MAKE) -C $(FAUSTGEN) FAUST=$(HOME)/Faust-$(FAUST_VERSION)/bin/faust LLVM_LIBS="$(LLVM_LIBS)" LLVM_LD_FLAGS="$(LLVM_LD_FLAGS)"
+	$(MAKE) -C $(FAUSTGEN) FAUST=$(HOME)/Faust-$(VERSION)/bin/faust LLVM_LIBS="$(LLVM_LIBS)" LLVM_LD_FLAGS="$(LLVM_LD_FLAGS)"
 	$(MAKE) -C $(FAUSTGEN) package
-	cp $(FAUSTGEN)/package/*.dmg Release-$(FAUST_VERSION)
+	cp $(FAUSTGEN)/package/*.dmg Release-$(VERSION)
 
 faustlive: APATH=$(shell pwd)
 faustlive:
 	@echo "################## Building faustlive package ###################"
-	$(MAKE) -C $(FAUSTLIVE)/Build release FAUST=$(HOME)/Faust-$(FAUST_VERSION)/bin/faust DEST=$(APATH)/Release-$(FAUST_VERSION)
+	$(MAKE) -C $(FAUSTLIVE)/Build release FAUST=$(HOME)/Faust-$(VERSION)/bin/faust DEST=$(APATH)/Release-$(VERSION)
 
 
 #===============================================================

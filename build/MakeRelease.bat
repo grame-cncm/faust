@@ -1,5 +1,9 @@
 echo off
 
+SET VERSION=2.58.11
+SET BUILD=%1
+SET FAUSTGENVERSION=1.63
+
 SET MYPATH=%cd%
 set "MYPATH=%MYPATH:\=/%"
 SET BUILD=%MYPATH%/build
@@ -31,8 +35,8 @@ if not exist "%VS_REDIST%" (
     EXIT /B 1
 )
 
-echo "Building Faust version: %FAUST_VERSION%"
-echo "Building Faustgen version: %FAUSTGEN_VERSION%"
+echo "Building Faust version: %VERSION%"
+echo "Building Faustgen version: %FAUSTGENVERSION%"
 echo "VS_REDIST is %VS_REDIST%"
 echo "Using build folder %BUILD%"
 echo "Make sure that faust submodules are up-to-date"
@@ -57,11 +61,11 @@ cmake -DFAUST="%BUILD%/faust/bin/faust.exe" -DUSE_LLVM_CONFIG=ON -DLLVM_CONFIG="
 cmake --build . --config Release --  /maxcpucount:4
 cmake --build . --config Release --target install
 cd ../package
-"C:\Program Files\7-Zip\7z.exe" a -r faustgen-%FAUSTGEN_VERSION%-win64.zip -w faustgen-%FAUSTGEN_VERSION%-win64 -mem=AES256
+"C:\Program Files\7-Zip\7z.exe" a -r faustgen-%FAUSTGENVERSION%-win64.zip -w faustgen-%FAUSTGENVERSION%-win64 -mem=AES256
 cd ../../../build
 
 echo "####################### Creating release folder #######################"
-set DEST=Release-%FAUST_VERSION%
+set DEST=Release-%VERSION%
 IF EXIST %DEST% ( 
     echo Warning ! %DEST% exist and may be non empty
     GOTO NEXT
@@ -69,7 +73,7 @@ IF EXIST %DEST% (
 mkdir %DEST%
 
 :NEXT
-COPY Faust-%FAUST_VERSION%-win64.exe %DEST%
-COPY ..\embedded\faustgen\package\faustgen-%FAUSTGEN_VERSION%-win64.zip %DEST%
+COPY Faust-%VERSION%-win64.exe %DEST%
+COPY ..\embedded\faustgen\package\faustgen-%FAUSTGENVERSION%-win64.zip %DEST%
 
-echo DONE VERSION %FAUST_VERSION%
+echo DONE VERSION %VERSION%

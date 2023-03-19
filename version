@@ -58,6 +58,11 @@ else
 	exit 1
 fi
 
+LIBFAUSTACTION=$ROOT/.github/workflows/libfaust.yml
+echo " updating $LIBFAUSTACTION"
+sed "s/FAUST_VERSION*: *..*/FAUST_VERSION: $VERSION/" $LIBFAUSTACTION > TMP$$
+mv -f TMP$$ $LIBFAUSTACTION
+
 MAKEF=$ROOT/Makefile
 echo " updating $MAKEF"
 sed "s/^version *:= *..*/version := $VERSION/" $MAKEF > TMP$$

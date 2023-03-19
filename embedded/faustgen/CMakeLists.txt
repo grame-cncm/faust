@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 3.4.0)
 project (faustgen)
-
-if (NOT DEFINED ENV{FAUSTGEN_VERSION})
-	message (FATAL_ERROR "FAUSTGEN_VERSION undefined. Set it as an environment variable")
-endif()
-set (VERSION $ENV{FAUSTGEN_VERSION})
+set (VERSION "1.63")
 
 set(ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -39,6 +35,8 @@ cmake_path(GET FAUST PARENT_PATH FAUST_DIR)
 cmake_path(GET FAUST_DIR PARENT_PATH FAUST_DIR)
 set(FAUSTINC ${FAUST_DIR}/include)
 set(FAUSTLIB ${FAUST_DIR}/lib)
+string ( STRIP ${FAUSTINC} FAUSTINC )
+message("USING FAUSTINC ${FAUSTINC}")
 else()
 if (NOT DEFINED FAUST)
 	set (FAUST faust)

@@ -1,7 +1,7 @@
 name: libfaust
 
 env:
-  FAUST_VERSION: 2.58.10
+  FAUST_VERSION: 2.58.11
   FAUSTGEN_VERSION: 1.63
   LLVM_PACKAGE_VERSION: 15.0.7
   CMAKE_OSX_DEPLOYMENT_TARGET: 10.15
@@ -121,7 +121,7 @@ jobs:
       if: ${{ endsWith( matrix.name, 'arm64') }}
       run: |
         brew update
-        PACKAGES=(gtk+3 qt@5 libsndfile libmicrohttpd)
+        PACKAGES=(gtk+3 gtkmm3 qt@5 libsndfile libmicrohttpd)
         DEPS=($(brew deps --union --topological $(echo $PACKAGES) | tr '\n' ' '))
         PACKAGES=("${DEPS[@]}" "${PACKAGES[@]}")
         export HOMEBREW_NO_INSTALL_CLEANUP=1
@@ -140,7 +140,7 @@ jobs:
 
     - name: Brew install requirements (x86_64)
       if: ${{ endsWith( matrix.name, 'x86_64') }}
-      run: brew install pkg-config gtk+3 qt@5 libsndfile libmicrohttpd
+      run: brew install pkg-config gtk+3 gtkmm3 qt@5 libsndfile libmicrohttpd
 
     - name: Download LLVM
       run: |
@@ -176,7 +176,6 @@ jobs:
         export LLVM_LD_FLAGS="-L$LLVM_LIB_DIR -Wl,-search_paths_first -Wl,-headerpad_max_install_names"
         export LLVM="$LLVM_LD_FLAGS $LLVM_LIBS"
 
-        export MAXSDK=$PWD/max-sdk/source/max-sdk-base/c74support
         export FAUSTLIVE=$PWD/faustlive
 
         export LAME_DIR=$(brew info lame | grep -o '.*/Cellar/lame/[^ ]*')
