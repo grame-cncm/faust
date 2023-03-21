@@ -171,6 +171,7 @@ jobs:
         cmake .. -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$LIBSNDFILE_INSTALL_PREFIX" -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_OSX_ARCHITECTURES=$CMAKE_OSX_ARCHITECTURES -DCMAKE_OSX_DEPLOYMENT_TARGET=$CMAKE_OSX_DEPLOYMENT_TARGET -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF
         make && make install
         echo "Testing pkg-config for sndfile"
+        export PKG_CONFIG_PATH="$LIBSNDFILE_INSTALL_PREFIX/lib/pkgconfig"
         pkg-config --cflags sndfile
       env:
         CMAKE_OSX_ARCHITECTURES: ${{matrix.CMAKE_OSX_ARCHITECTURES}}
@@ -191,7 +192,7 @@ jobs:
     - name: Build everything
       # todo: do we need to specify the qt@5 path for PKG_CONFIG_PATH?
       run: |
-        export PKG_CONFIG_PATH="/usr/local/opt/qt@5/lib/pkgconfig"
+        export PKG_CONFIG_PATH="/usr/local/opt/qt@5/lib/pkgconfig:$PWD/libsndfile/install/lib/pkgconfig"
         export LLVM_DIR=$PWD/llvm/lib/cmake/llvm
         export LLVM_LIB_DIR=$PWD/llvm/lib
         export LLVM_INCLUDE_DIRS=$PWD/llvm/include
