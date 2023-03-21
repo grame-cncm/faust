@@ -62,7 +62,16 @@ if (WIN32)
 else()
 	if(CMAKE_OSX_ARCHITECTURES MATCHES "arm64")
 		find_package(PkgConfig REQUIRED)
-		pkg_check_modules(SNDFILE REQUIRED sndfile)
+		set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+		list(APPEND PKG_CONFIG_EXECUTABLE "--static")  # append temporarily
+		pkg_check_modules(SNDFILE REQUIRED IMPORTED_TARGET sndfile)
+		pkg_check_modules(FLAC REQUIRED IMPORTED_TARGET flac)
+		pkg_check_modules(VORBIS REQUIRED IMPORTED_TARGET vorbis)
+		pkg_check_modules(OGG REQUIRED IMPORTED_TARGET ogg)
+		pkg_check_modules(OPUS REQUIRED IMPORTED_TARGET opus)
+		pkg_check_modules(MPG123 REQUIRED IMPORTED_TARGET libmpg123)
+		list(POP_BACK PKG_CONFIG_EXECUTABLE)  # undo the append above
+
 		# need lame due to brew's lame not having a .pc file
 		set(LAME_LIB_DIR ${LAME_DIR}/lib)
 	else()
@@ -102,11 +111,13 @@ endif()
 # Add the faustgen target
 ####################################
 add_library(faustgen MODULE ${ROOT}/src/faustgen~.cpp ${WINSRC} ${DSPLIBS})
-target_include_directories(faustgen PRIVATE ${ROOT}/src/ ${MAXINCL} ${FAUSTINC} ${SNDFILE_INCLUDE_DIRS} )
-if(DEFINED LAME_LIB_DIR OR DEFINED SNDFILE_LIBRARY_DIRS)
-target_link_directories(faustgen PRIVATE ${LAME_LIB_DIR} ${SNDFILE_LIBRARY_DIRS})
+target_include_directories(faustgen PRIVATE ${ROOT}/src/ ${MAXINCL} ${FAUSTINC} ${SNDFILE_INCLUDE_DIRS})
+if (DEFINED LAME_LIB_DIR OR DEFINED SNDFILE_LIBRARY_DIRS)
+target_link_directories(faustgen PRIVATE ${LAME_LIB_DIR})
+target_link_libraries (faustgen ${FAUSTLIBS} ${MAXLIBS} PkgConfig::SNDFILE PkgConfig::FLAC PkgConfig::VORBIS PkgConfig::OGG PkgConfig::OPUS PkgConfig::MPG123 ${LLVM_LD_FLAGS} ${LLVM_LIBS} )
+else()
+target_link_libraries (faustgen ${FAUSTLIBS} ${MAXLIBS} ${SNDFILE_LIBRARIES} ${LLVM_LD_FLAGS} ${LLVM_LIBS})
 endif()
-target_link_libraries (faustgen ${FAUSTLIBS} ${MAXLIBS} ${SNDFILE_LIBRARIES} ${SNDFILE_STATIC_LIBRARIES} ${LLVM_LD_FLAGS} ${LLVM_LIBS} )
 
 if (APPLE)
 set_target_properties (faustgen PROPERTIES 
