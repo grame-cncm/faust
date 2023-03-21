@@ -131,7 +131,7 @@ using namespace std;
 #define ASSIST_INLET 	1
 #define ASSIST_OUTLET 	2
 
-#define EXTERNAL_VERSION    "0.86"
+#define EXTERNAL_VERSION    "0.87"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -182,16 +182,21 @@ void faust_allocate(t_faust* x, int nvoices)
 {
     // Delete old
     delete x->m_dsp;
-    if (x->m_dspUI) x->m_dspUI->clear();
+    delete x->m_dspUI;
+    x->m_dspUI = new mspUI();
     
     if (nvoices > 0) {
+    #ifdef POST
         post("polyphonic DSP voices = %d", nvoices);
+    #endif
         x->m_dsp = new mydsp_poly(new mydsp(), nvoices, true, true);
-#ifdef POLY2
+    #ifdef POLY2
         x->m_dsp = new dsp_sequencer(x->m_dsp, new effect());
-#endif
+    #endif
     } else {
+    #ifdef POST
         post("monophonic DSP");
+    #endif
         // Create a DS/US + Filter adapted DSP
         x->m_dsp = createSRAdapter<FAUSTFLOAT>(new mydsp(), DOWN_SAMPLING, UP_SAMPLING, FILTER_TYPE);
     }
@@ -388,7 +393,8 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     delete tmp_dsp;
     
     x->m_savedUI = new SaveLabelUI();
-    x->m_dspUI = new mspUI();
+    // allocation is done in faust_allocate
+    x->m_dspUI = NULL;
     x->m_dsp = NULL;
     x->m_json = NULL;
     x->m_mute = false;
@@ -706,10 +712,10 @@ void ext_main(void* r)
     class_dspinit(c);
     class_register(CLASS_BOX, c);
     faust_class = c;
-    
+#ifdef POST
     post((char*)"Faust DSP object v%s (sample = 32 bits code = 32 bits)", EXTERNAL_VERSION);
     post((char*)"Copyright (c) 2012-2023 Grame");
-   
+#endif
     Max_Meta1 meta1;
     tmp_dsp->metadata(&meta1);
     if (meta1.fCount > 0) {
