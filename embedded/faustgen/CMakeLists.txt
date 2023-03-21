@@ -106,7 +106,7 @@ target_include_directories(faustgen PRIVATE ${ROOT}/src/ ${MAXINCL} ${FAUSTINC} 
 if(DEFINED LAME_LIB_DIR OR DEFINED SNDFILE_LIBRARY_DIRS)
 target_link_directories(faustgen PRIVATE ${LAME_LIB_DIR} ${SNDFILE_LIBRARY_DIRS})
 endif()
-target_link_libraries (faustgen ${FAUSTLIBS} ${MAXLIBS} ${SNDFILE_LIBRARIES} ${LLVM_LD_FLAGS} ${LLVM_LIBS} )
+target_link_libraries (faustgen ${FAUSTLIBS} ${MAXLIBS} ${SNDFILE_LIBRARIES} ${SNDFILE_STATIC_LIBRARIES} ${LLVM_LD_FLAGS} ${LLVM_LIBS} )
 
 if (APPLE)
 set_target_properties (faustgen PROPERTIES 
