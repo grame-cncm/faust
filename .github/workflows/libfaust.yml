@@ -90,7 +90,7 @@ jobs:
   #   - name: Upload libfaust artifact
   #     uses: actions/upload-artifact@v3
   #     with:
-  #       name: libfaust-${{ matrix.name }}
+  #       name: libfaust-${{ matrix.name }}.zip
   #       path: build/lib
   #       if-no-files-found: error
 
@@ -120,6 +120,7 @@ jobs:
     - name: Brew install requirements (arm64)
       if: ${{ endsWith( matrix.name, 'arm64') }}
       # note that we don't install libsndfile because the brew version isn't static
+      # todo: should we bother with brew update?
       run: |
         brew update
         PACKAGES=(gtk+3 gtkmm3 qt@5 lame flac libogg libtool libvorbis opus mpg123 libmicrohttpd)
@@ -153,6 +154,7 @@ jobs:
         unzip -o llvm.zip
 
     - name: Clone Libsndfile
+      if: ${{ endsWith( matrix.name, 'arm64') }}
       uses: actions/checkout@v3
       with:
         repository: libsndfile/libsndfile
@@ -160,11 +162,12 @@ jobs:
         submodules: true
 
     - name: Build libsndfile
+      if: ${{ endsWith( matrix.name, 'arm64') }}
       run: |
         cd libsndfile
         LIBSNDFILE_INSTALL_PREFIX="$PWD/install"
         mkdir CMakeBuild && cd CMakeBuild
-        cmake .. -DCMAKE_INSTALL_PREFIX="$LIBSNDFILE_INSTALL_PREFIX" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF
+        cmake .. -DCMAKE_INSTALL_PREFIX="$LIBSNDFILE_INSTALL_PREFIX" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_OSX_ARCHITECTURES="$CMAKE_OSX_ARCHITECTURES" -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF
         make && make install
 
     - name: Clone MAX SDK
@@ -181,6 +184,7 @@ jobs:
         path: faustlive
 
     - name: Build everything
+      # todo: do we need to specify the qt@5 path for PKG_CONFIG_PATH?
       run: |
         export PKG_CONFIG_PATH="/usr/local/opt/qt@5/lib/pkgconfig"
         export LLVM_DIR=$PWD/llvm/lib/cmake/llvm
@@ -215,7 +219,7 @@ jobs:
     - name: Upload Faust artifact
       uses: actions/upload-artifact@v3
       with:
-        name: faust-${{env.FAUST_VERSION}}-${{ matrix.name }}
+        name: faust-${{env.FAUST_VERSION}}-${{ matrix.name }}.dmg
         path: build/Release-${{env.FAUST_VERSION}}/Faust-${{env.FAUST_VERSION}}-${{matrix.name}}.dmg
         if-no-files-found: error
 
@@ -223,14 +227,14 @@ jobs:
       if: ${{ endsWith( matrix.name, 'arm64') }}
       uses: actions/upload-artifact@v3
       with:
-        name: faust-${{env.FAUST_VERSION}}-${{ matrix.name }}
+        name: faust-${{env.FAUST_VERSION}}-${{ matrix.name }}.tar.gz
         path: build/Release-${{env.FAUST_VERSION}}/faust-${{env.FAUST_VERSION}}.tar.gz
         if-no-files-found: error
 
     - name: Upload faustgen~ artifact
       uses: actions/upload-artifact@v3
       with:
-        name: faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}
+        name: faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}.dmg
         path: build/Release-${{env.FAUST_VERSION}}/faustgen-${{env.FAUSTGEN_VERSION}}-${{matrix.name}}.dmg
         if-no-files-found: error
 
@@ -298,7 +302,7 @@ jobs:
   #   - name: Upload faustgen~ artifact
   #     uses: actions/upload-artifact@v3
   #     with:
-  #       name: faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}
+  #       name: faustgen-${{env.FAUSTGEN_VERSION}}-${{ matrix.name }}.zip
   #       path: embedded/faustgen/package/faustgen-${{env.FAUSTGEN_VERSION}}-win64
   #       if-no-files-found: error
 
