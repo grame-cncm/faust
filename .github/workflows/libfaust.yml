@@ -119,9 +119,10 @@ jobs:
 
     - name: Brew install requirements (arm64)
       if: ${{ endsWith( matrix.name, 'arm64') }}
+      # note that we don't install libsndfile because the brew version isn't static
       run: |
         brew update
-        PACKAGES=(gtk+3 gtkmm3 qt@5 lame flac libogg libtool libvorbis opus mpg123 libsndfile libmicrohttpd)
+        PACKAGES=(gtk+3 gtkmm3 qt@5 lame flac libogg libtool libvorbis opus mpg123 libmicrohttpd)
         DEPS=($(brew deps --union --topological $(echo $PACKAGES) | tr '\n' ' '))
         PACKAGES=("${DEPS[@]}" "${PACKAGES[@]}")
         export HOMEBREW_NO_INSTALL_CLEANUP=1
@@ -130,7 +131,7 @@ jobs:
         for PACKAGE in "${PACKAGES[@]}"
         do
           echo "Fetching bottle: $PACKAGE"
-          response=$(brew fetch --bottle-tag=arm64_monterey $PACKAGE 2>&1)
+          response=$(brew fetch --bottle-tag=arm64_big_sur $PACKAGE 2>&1)
           package_path=$(echo $response | sed -n 's/.*\:\ \(.*\.tar\.gz\).*/\1/p')
           package_path=$(echo "$package_path" | xargs)
           echo "Package Path: $package_path"
@@ -150,6 +151,21 @@ jobs:
         # To get around this, we download a compatible LLVM build that we've built in advance.
         curl -L ${{ matrix.llvm-url }} -o llvm.zip
         unzip -o llvm.zip
+
+    - name: Clone Libsndfile
+      uses: actions/checkout@v3
+      with:
+        repository: libsndfile/libsndfile
+        path: libsndfile
+        submodules: true
+
+    - name: Build libsndfile
+      run: |
+        cd libsndfile
+        LIBSNDFILE_INSTALL_PREFIX="$PWD/install"
+        mkdir CMakeBuild && cd CMakeBuild
+        cmake .. -DCMAKE_INSTALL_PREFIX="$LIBSNDFILE_INSTALL_PREFIX" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF
+        make && make install
 
     - name: Clone MAX SDK
       uses: actions/checkout@v3
