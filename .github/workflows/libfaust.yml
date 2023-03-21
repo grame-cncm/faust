@@ -100,7 +100,7 @@ jobs:
       matrix:
         include:
           - name: arm64
-            os: macos-11
+            os: macos-12
             llvm-url: https://github.com/DBraun/TD-Faust/releases/download/llvm-15.0.7-macos/llvm-15.0.7-macos10.15-arm64.zip
             ARCHS: "-arch arm64"
             CMAKE_OSX_ARCHITECTURES: arm64
