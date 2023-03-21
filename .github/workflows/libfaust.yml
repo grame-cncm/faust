@@ -100,7 +100,7 @@ jobs:
       matrix:
         include:
           - name: arm64
-            os: macos-12
+            os: macos-11
             llvm-url: https://github.com/DBraun/TD-Faust/releases/download/llvm-15.0.7-macos/llvm-15.0.7-macos10.15-arm64.zip
             ARCHS: "-arch arm64"
             CMAKE_OSX_ARCHITECTURES: arm64
@@ -119,7 +119,7 @@ jobs:
 
     - name: Brew install requirements (arm64)
       if: ${{ endsWith( matrix.name, 'arm64') }}
-      # note that we don't install libsndfile because the brew version isn't static
+      # note that we uninstall libsndfile because the brew version isn't static.
       # todo: should we bother with brew update?
       run: |
         brew update
@@ -140,6 +140,7 @@ jobs:
         done
 
         brew uninstall --ignore-dependencies curl git || true
+        brew uninstall --ignore-dependencies libsndfile || true
 
     - name: Brew install requirements (x64)
       if: ${{ endsWith( matrix.name, 'x64') }}
@@ -167,8 +168,10 @@ jobs:
         cd libsndfile
         LIBSNDFILE_INSTALL_PREFIX="$PWD/install"
         mkdir CMakeBuild && cd CMakeBuild
-        cmake .. -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$LIBSNDFILE_INSTALL_PREFIX" -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_OSX_ARCHITECTURES=$CMAKE_OSX_ARCHITECTURES -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF
+        cmake .. -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$LIBSNDFILE_INSTALL_PREFIX" -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_OSX_ARCHITECTURES=$CMAKE_OSX_ARCHITECTURES -DCMAKE_OSX_DEPLOYMENT_TARGET=$CMAKE_OSX_DEPLOYMENT_TARGET -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF
         make && make install
+        echo "Testing pkg-config for sndfile"
+        pkg-config --cflags sndfile
       env:
         CMAKE_OSX_ARCHITECTURES: ${{matrix.CMAKE_OSX_ARCHITECTURES}}
 
