@@ -27,7 +27,7 @@ set (CMAKE_CXX_STANDARD 17)
 #######################################
 # Output options
 option ( DEPLOYMENT_TARGET 	"[MacOS]"	off )
-option ( UNIVERSAL 	"Compiles and combines i386 and x86_64 architectures [MacOS]"	off )
+option ( UNIVERSAL 	"Compiles and combines x86_64 and arm64 architectures [MacOS]" off )
 option ( IOS     	"Compiles for iOS"	off )
 option ( USE_LLVM_CONFIG    "Force use off llvm-config"	on )
 option ( INCLUDE_EXECUTABLE	"Include runtime executable"	on )
