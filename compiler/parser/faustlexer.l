@@ -22,7 +22,7 @@
 #define YY_FATAL_ERROR lexerror
 #endif
 
-#define register		// suppress the deprecated 'register' warning
+#define register        // suppress the deprecated 'register' warning
 
 %}
 
@@ -32,7 +32,7 @@ LETTER   [a-zA-Z]
 NUMBER   ({DIGIT}+"."{DIGIT}*|"."{DIGIT}+|{DIGIT}+)
 WSPACE   [ \t\n]
 TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
-NSID	 {ID}("::"{ID})*
+NSID     {ID}("::"{ID})*
 
 %option yylineno
 %option nounput
@@ -42,39 +42,39 @@ NSID	 {ID}("::"{ID})*
 
 %%
 
-"/*"							BEGIN(comment);
-<comment>[^*\x0a\x0d]*			/* eat anything that's not a '*' 		*/
-<comment>"*"+[^*/\x0a\x0d]*		/* eat up '*'s not followed by '/'s 	*/
-<comment>\x0a\x0d				/* no need to increment yylineno here 	*/
-<comment>\x0a					/* no need to increment yylineno here 	*/
-<comment>\x0d					/* no need to increment yylineno here 	*/
-<comment>"*"+"/"				BEGIN(INITIAL);
+"/*"                            BEGIN(comment);
+<comment>[^*\x0a\x0d]*          /* eat anything that's not a '*'         */
+<comment>"*"+[^*/\x0a\x0d]*     /* eat up '*'s not followed by '/'s     */
+<comment>\x0a\x0d               /* no need to increment yylineno here     */
+<comment>\x0a                   /* no need to increment yylineno here     */
+<comment>\x0d                   /* no need to increment yylineno here     */
+<comment>"*"+"/"                BEGIN(INITIAL);
 
-"<mdoc>"						{ BEGIN(doc); return BDOC; }
-<doc>.							return DOCCHAR; /* char by char, may be slow ?? */
-<doc>\n							return DOCCHAR; /* keep newline chars */
-<doc>"<notice/>"				return NOTICE;  /* autoclosing tag */
-<doc>"<notice />"				return NOTICE;  /* autoclosing tag */
-<doc>"<listing"					{ BEGIN(lst);		return BLST; } /* autoclosing tag */
-<doc>"<equation>"				{ BEGIN(INITIAL); 	return BEQN; }
-"</equation>"					{ BEGIN(doc); 		return EEQN; }
-<doc>"<diagram>"				{ BEGIN(INITIAL); 	return BDGM; }
-"</diagram>"					{ BEGIN(doc); 		return EDGM; }
-<doc>"<metadata>"				{ BEGIN(INITIAL); 	return BMETADATA; }
-"</metadata>"					{ BEGIN(doc); 		return EMETADATA; }
-<doc>"</mdoc>"					{ BEGIN(INITIAL); 	return EDOC; }
+"<mdoc>"                        { BEGIN(doc); return BDOC; }
+<doc>.                          return DOCCHAR; /* char by char, may be slow ?? */
+<doc>\n                         return DOCCHAR; /* keep newline chars */
+<doc>"<notice/>"                return NOTICE;  /* autoclosing tag */
+<doc>"<notice />"               return NOTICE;  /* autoclosing tag */
+<doc>"<listing"                 { BEGIN(lst);        return BLST; } /* autoclosing tag */
+<doc>"<equation>"               { BEGIN(INITIAL);     return BEQN; }
+"</equation>"                   { BEGIN(doc);         return EEQN; }
+<doc>"<diagram>"                { BEGIN(INITIAL);     return BDGM; }
+"</diagram>"                    { BEGIN(doc);         return EDGM; }
+<doc>"<metadata>"               { BEGIN(INITIAL);     return BMETADATA; }
+"</metadata>"                   { BEGIN(doc);         return EMETADATA; }
+<doc>"</mdoc>"                  { BEGIN(INITIAL);     return EDOC; }
 
-<lst>"true"						return LSTTRUE;
-<lst>"false"					return LSTFALSE;
-<lst>"dependencies"				return LSTDEPENDENCIES;
-<lst>"mdoctags"					return LSTMDOCTAGS;
-<lst>"distributed"				return LSTDISTRIBUTED;
-<lst>"="						return LSTEQ;
-<lst>"\""						return LSTQ;
-<lst>"/>"						{ BEGIN(doc); 	return ELST; }
+<lst>"true"                     return LSTTRUE;
+<lst>"false"                    return LSTFALSE;
+<lst>"dependencies"             return LSTDEPENDENCIES;
+<lst>"mdoctags"                 return LSTMDOCTAGS;
+<lst>"distributed"              return LSTDISTRIBUTED;
+<lst>"="                        return LSTEQ;
+<lst>"\""                       return LSTQ;
+<lst>"/>"                       { BEGIN(doc);     return ELST; }
 
 
-{DIGIT}+    		return INT;
+{DIGIT}+            return INT;
 
 {DIGIT}+"f"                             return FLOAT;
 {DIGIT}+"."{DIGIT}*                     return FLOAT;
@@ -88,160 +88,160 @@ NSID	 {ID}("::"{ID})*
 "."{DIGIT}+e[-+]?{DIGIT}+               return FLOAT;
 "."{DIGIT}+e[-+]?{DIGIT}+"f"            return FLOAT;
 
-":"   		return SEQ;
-","   		return PAR;
-"<:"   		return SPLIT;
-"+>"   		return MIX;
-":>"   		return MIX;
-"~"   		return REC;
+":"           return SEQ;
+","           return PAR;
+"<:"          return SPLIT;
+"+>"          return MIX;
+":>"          return MIX;
+"~"           return REC;
 
-"+"   		return ADD;
-"-"   		return SUB;
-"*"   		return MUL;
-"/"   		return DIV;
-"%"   		return MOD;
-"@"			return FDELAY;
-"'"			return DELAY1;
+"+"           return ADD;
+"-"           return SUB;
+"*"           return MUL;
+"/"           return DIV;
+"%"           return MOD;
+"@"           return FDELAY;
+"'"           return DELAY1;
 
-"&"   		return AND;
-"|"   		return OR;
-"xor"       return XOR;
+"&"           return AND;
+"|"           return OR;
+"xor"         return XOR;
 
-"<<"   		return LSH;
-">>"   		return RSH;
+"<<"          return LSH;
+">>"          return RSH;
 
-"<"   		return LT;
-"<="   		return LE;
-">"   		return GT;
-">="   		return GE;
-"=="   		return EQ;
-"!="   		return NE;
+"<"           return LT;
+"<="          return LE;
+">"           return GT;
+">="          return GE;
+"=="          return EQ;
+"!="          return NE;
 
-"_"			return WIRE;
-"!"			return CUT;
+"_"           return WIRE;
+"!"           return CUT;
 
-";"			return ENDDEF;
-"="			return DEF;
-"("			return LPAR;
-")"			return RPAR;
-"{"			return LBRAQ;
-"}"			return RBRAQ;
-"["			return LCROC;
-"]"			return RCROC;
+";"           return ENDDEF;
+"="           return DEF;
+"("           return LPAR;
+")"           return RPAR;
+"{"           return LBRAQ;
+"}"           return RBRAQ;
+"["           return LCROC;
+"]"           return RCROC;
 
-"\\"		return LAMBDA;
-"."			return DOT;
-"with"		return WITH;
-"letrec"	return LETREC;
-"where"		return WHERE;
+"\\"          return LAMBDA;
+"."           return DOT;
+"with"        return WITH;
+"letrec"      return LETREC;
+"where"       return WHERE;
 
-"mem"		return MEM;
-"prefix"	return PREFIX;
+"mem"         return MEM;
+"prefix"      return PREFIX;
 
-"int"		return INTCAST;
-"float"		return FLOATCAST;
-"any"		return NOTYPECAST;
+"int"         return INTCAST;
+"float"       return FLOATCAST;
+"any"         return NOTYPECAST;
 
-"rdtable"	return RDTBL;
-"rwtable"	return RWTBL;
+"rdtable"     return RDTBL;
+"rwtable"     return RWTBL;
 
-"select2"	return SELECT2;
-"select3"	return SELECT3;
+"select2"     return SELECT2;
+"select3"     return SELECT3;
 
-"ffunction"	return FFUNCTION;
-"fconstant" return FCONSTANT;
-"fvariable" return FVARIABLE;
+"ffunction"   return FFUNCTION;
+"fconstant"   return FCONSTANT;
+"fvariable"   return FVARIABLE;
 
-"button"	return BUTTON;
-"checkbox"	return CHECKBOX;
-"vslider"	return VSLIDER;
-"hslider"	return HSLIDER;
-"nentry"	return NENTRY;
-"vgroup"	return VGROUP;
-"hgroup"	return HGROUP;
-"tgroup"	return TGROUP;
-"vbargraph"	return VBARGRAPH;
-"hbargraph"	return HBARGRAPH;
-"soundfile" return SOUNDFILE;
+"button"      return BUTTON;
+"checkbox"    return CHECKBOX;
+"vslider"     return VSLIDER;
+"hslider"     return HSLIDER;
+"nentry"      return NENTRY;
+"vgroup"      return VGROUP;
+"hgroup"      return HGROUP;
+"tgroup"      return TGROUP;
+"vbargraph"   return VBARGRAPH;
+"hbargraph"   return HBARGRAPH;
+"soundfile"   return SOUNDFILE;
 
-"attach"	return ATTACH;
+"attach"      return ATTACH;
 
-"acos"		return ACOS;
-"asin"		return ASIN;
-"atan"		return ATAN;
-"atan2"		return ATAN2;
+"acos"        return ACOS;
+"asin"        return ASIN;
+"atan"        return ATAN;
+"atan2"       return ATAN2;
 
-"cos"		return COS;
-"sin"		return SIN;
-"tan"		return TAN;
+"cos"         return COS;
+"sin"         return SIN;
+"tan"         return TAN;
 
-"exp"		return EXP;
-"log"		return LOG;
-"log10"		return LOG10;
-"^"         return POWOP;
-"pow"       return POWFUN;
-"sqrt"		return SQRT;
+"exp"         return EXP;
+"log"         return LOG;
+"log10"       return LOG10;
+"^"           return POWOP;
+"pow"         return POWFUN;
+"sqrt"        return SQRT;
 
-"abs"		return ABS;
-"min"		return MIN;
-"max"		return MAX;
+"abs"         return ABS;
+"min"         return MIN;
+"max"         return MAX;
 
-"fmod"		return FMOD;
-"remainder"	return REMAINDER;
+"fmod"        return FMOD;
+"remainder"   return REMAINDER;
 
-"floor"		return FLOOR;
-"ceil"		return CEIL;
-"rint"		return RINT;
+"floor"       return FLOOR;
+"ceil"        return CEIL;
+"rint"        return RINT;
 
-"seq"		return ISEQ;
-"par"		return IPAR;
-"sum"		return ISUM;
-"prod"		return IPROD;
+"seq"         return ISEQ;
+"par"         return IPAR;
+"sum"         return ISUM;
+"prod"        return IPROD;
 
-"inputs"	return INPUTS;
-"outputs"	return OUTPUTS;
+"inputs"      return INPUTS;
+"outputs"     return OUTPUTS;
 
-"import"	return IMPORT;
-"component" return COMPONENT;
-"library"   return LIBRARY;
-"environment"   return ENVIRONMENT;
+"import"      return IMPORT;
+"component"   return COMPONENT;
+"library"     return LIBRARY;
+"environment" return ENVIRONMENT;
 
-"waveform"  return WAVEFORM;
-"route"     return ROUTE;
-"enable"   	return ENABLE;
-"control"   return CONTROL;
+"waveform"    return WAVEFORM;
+"route"       return ROUTE;
+"enable"      return ENABLE;
+"control"     return CONTROL;
 
-"declare"	return DECLARE;
+"declare"     return DECLARE;
 
-"case"		return CASE;
-"=>"		return ARROW;
+"case"        return CASE;
+"=>"          return ARROW;
 
 "assertbounds" return ASSERTBOUNDS;
-"lowest"  return LOWEST;
-"highest"  return HIGHEST;
+"lowest"       return LOWEST;
+"highest"       return HIGHEST;
 
 "singleprecision" return FLOATMODE;
-"doubleprecision"  return DOUBLEMODE;
-"quadprecision"    return QUADMODE;
+"doubleprecision" return DOUBLEMODE;
+"quadprecision"   return QUADMODE;
 "fixedpointprecision"    return FIXEDPOINTMODE;
 
 
-"::"{NSID}   	return IDENT;
-{NSID}   		return IDENT;
+"::"{NSID}       return IDENT;
+{NSID}           return IDENT;
 
-"\""[^\"]*"\""	return STRING;
+"\""[^\"]*"\""   return STRING;
 
-"<"{LETTER}*"."{LETTER}">"	return FSTRING;
-"<"{LETTER}*">"				return FSTRING;
+"<"{LETTER}*"."{LETTER}">"    return FSTRING;
+"<"{LETTER}*">"               return FSTRING;
 
 
-"//"[^\x0a\x0d]*	/* eat up one-line comments */
+"//"[^\x0a\x0d]*    /* eat up one-line comments */
 
-[ \t\x0a\x0d]+		/* eat up whitespace */
+[ \t\x0a\x0d]+      /* eat up whitespace */
 
-<<EOF>>		yyterminate();
+<<EOF>>   yyterminate();
 
-.           printf("extra text is : %s\n", yytext); return EXTRA;
+.  printf("extra text is : %s\n", yytext); return EXTRA;
 
 
 %%

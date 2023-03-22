@@ -1225,7 +1225,7 @@ char *yytext;
 #define YY_FATAL_ERROR lexerror
 #endif
 
-#define register		// suppress the deprecated 'register' warning
+#define register        // suppress the deprecated 'register' warning
 
 #line 1230 "faustlexer.cpp"
 
@@ -1525,29 +1525,29 @@ BEGIN(comment);
 case 2:
 YY_RULE_SETUP
 #line 46 "faustlexer.l"
-/* eat anything that's not a '*' 		*/
+/* eat anything that's not a '*'         */
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
 #line 47 "faustlexer.l"
-/* eat up '*'s not followed by '/'s 	*/
+/* eat up '*'s not followed by '/'s     */
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
 #line 48 "faustlexer.l"
-/* no need to increment yylineno here 	*/
+/* no need to increment yylineno here     */
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
 #line 49 "faustlexer.l"
-/* no need to increment yylineno here 	*/
+/* no need to increment yylineno here     */
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
 #line 50 "faustlexer.l"
-/* no need to increment yylineno here 	*/
+/* no need to increment yylineno here     */
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
@@ -1583,42 +1583,42 @@ return NOTICE;  /* autoclosing tag */
 case 13:
 YY_RULE_SETUP
 #line 58 "faustlexer.l"
-{ BEGIN(lst);		return BLST; } /* autoclosing tag */
+{ BEGIN(lst);        return BLST; } /* autoclosing tag */
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
 #line 59 "faustlexer.l"
-{ BEGIN(INITIAL); 	return BEQN; }
+{ BEGIN(INITIAL);     return BEQN; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
 #line 60 "faustlexer.l"
-{ BEGIN(doc); 		return EEQN; }
+{ BEGIN(doc);         return EEQN; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
 #line 61 "faustlexer.l"
-{ BEGIN(INITIAL); 	return BDGM; }
+{ BEGIN(INITIAL);     return BDGM; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
 #line 62 "faustlexer.l"
-{ BEGIN(doc); 		return EDGM; }
+{ BEGIN(doc);         return EDGM; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
 #line 63 "faustlexer.l"
-{ BEGIN(INITIAL); 	return BMETADATA; }
+{ BEGIN(INITIAL);     return BMETADATA; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
 #line 64 "faustlexer.l"
-{ BEGIN(doc); 		return EMETADATA; }
+{ BEGIN(doc);         return EMETADATA; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
 #line 65 "faustlexer.l"
-{ BEGIN(INITIAL); 	return EDOC; }
+{ BEGIN(INITIAL);     return EDOC; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
@@ -1658,7 +1658,7 @@ return LSTQ;
 case 28:
 YY_RULE_SETUP
 #line 74 "faustlexer.l"
-{ BEGIN(doc); 	return ELST; }
+{ BEGIN(doc);     return ELST; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
