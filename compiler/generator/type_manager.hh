@@ -214,8 +214,8 @@ class RustStringTypeManager : public StringTypeManager {
             return named_typed->fName + ((ty_str != "") ? (": " + ty_str) : "");
         } else if (array_typed) {
             return (array_typed->fSize == 0)
-                ? fPtrRef + generateType(array_typed->fType)
-                : "[" + generateType(array_typed->fType) + ";" + std::to_string(array_typed->fSize) + "]";
+                       ? fPtrRef + "[" + generateType(array_typed->fType) + "]"
+                       : "[" + generateType(array_typed->fType) + ";" + std::to_string(array_typed->fSize) + "]";
         } else {
             faustassert(false);
             return "";
