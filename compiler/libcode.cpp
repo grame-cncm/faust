@@ -1382,7 +1382,6 @@ static void compileLLVM(Tree signals, int numInputs, int numOutputs, bool genera
     gGlobal->gAllowForeignFunction = false; 
     // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
-    gGlobal->gNeedManualPow       = false;  // Standard pow function will be used in pow(x,y) when y in an integer
     gGlobal->gUseDefaultSound     = false;
 
     if (gGlobal->gVectorSwitch) {
@@ -1458,7 +1457,6 @@ static void compileFIR(Tree signals, int numInputs, int numOutputs, ostream* out
 static void compileC(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
 #ifdef C_BUILD
-    gGlobal->gNeedManualPow = false;  // Standard pow function will be used in pow(x,y) when y in an integer
     container = CCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
     
     if (gGlobal->gVectorSwitch) {
@@ -1477,7 +1475,6 @@ static void compileC(Tree signals, int numInputs, int numOutputs, ostream* out)
 static void compileCPP(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
 #ifdef CPP_BUILD
-    gGlobal->gNeedManualPow = false;  // Standard pow function will be used in pow(x,y) when y in an integer
     container = CPPCodeContainer::createContainer(gGlobal->gClassName,
                                                   gGlobal->gSuperClassName,
                                                   numInputs, numOutputs, out);
