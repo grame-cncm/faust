@@ -8,10 +8,8 @@ endif
 include vega/Makefile-headers/Makefile-header
 R ?= vega
 
-MESH2FAUST_LIBS=minivector mesher windingNumber volumetricMesh stvk sparseSolver sparseMatrix objMesh matrix matrixIO
-
-# TODO: this might need some cleaning
-MESH2FAUST_LINK=$(addprefix -l, $(MESH2FAUST_LIBS)) $(ARPACK_LIB) $(BLASLAPACK_LIB) $(PARDISO_LIB) $(STANDARD_LIBS)
+MESH2FAUST_LIBS=mesher windingNumber volumetricMesh stvk sparseMatrix objMesh
+MESH2FAUST_LINK=$(addprefix -l, $(MESH2FAUST_LIBS)) $(STANDARD_LIBS)
 
 MESH2FAUST_HEADER_FILENAMES=$(addprefix $(R)/src/, $(MESH2FAUST_HEADERS))
 MESH2FAUST_LIB_MAKEFILES=$(call GET_LIB_MAKEFILES, $(MESH2FAUST_LIBS))
