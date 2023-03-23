@@ -29,33 +29,19 @@ steps to build and install `mesh2faust` on your system.
 
 ### Linux
 
-* First, install the Intel MKL Library (<https://software.intel.com/en-us/intel-mkl>).
-Unfortunately, this library is not open source (but it's free), so you wont find
-it in your usual package manager.
-* Get `libarpack` with your package manager (`libarpack2-dev` in Ubuntu).
+* Install Eigen3: `sudo apt install libeigen3-dev`
 * Go in `/vega/Makefile-headers/` and run "`selectLinux`", this will update the
 dynamic link of `Makefile-header` to the right Makefile for your system.
-* You might have to make some adjustments in
-`/vega/Makefile-headers/Makefile-header.linux` in the "MKL Paths" section
-(Intel tends to change the organization of this lib pretty often).
 * Run: `make`
 * Run: `sudo make install`
 * NOTE: Additional adjustments might have to be made to `Makefile-header.linux`
-(compilation was only tested on Linux Mint)
+(compilation was only tested on Ubuntu)
 
 ### OSX
 
-* First, install the Intel MKL Library (<https://software.intel.com/en-us/intel-mkl>).
-Unfortunately, this library is not open source (but it's free), so you wont find
-it in your usual package manager.
-* Get `arpack`. The `mesh2faust` makefiles were configured to work with the MacPort
-version of `arpack`, so we advise you to use this package manager to get it
-(e.g., `port install arpack`).
+* Install Eigen3: `brew install eigen`
 * Go in `/vega/Makefile-headers/` and run "`selectMacOSX`", this will update the
 dynamic link of `Makefile-header` to the right Makefile for your system.
-* You might have to make some adjustments in
-`/vega/Makefile-headers/Makefile-header.osx` in the "MKL Paths" and "ARPACK" sections
-depending on how you installed these 2 packages.
 * Run: `make`
 * Run: `sudo make install`
 * NOTE: Additional adjustments might have to be made to `Makefile-header.osx`
