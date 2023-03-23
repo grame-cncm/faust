@@ -98,13 +98,13 @@ protected:
 
     struct DelaunayBallEdgeRefineCMP           // sort radius/minEdge descend
     {
-      bool operator () (const DelaunayBallWithRefineInfo * const & p1, const DelaunayBallWithRefineInfo * const & p2);
+      bool operator () (const DelaunayBallWithRefineInfo * const & p1, const DelaunayBallWithRefineInfo * const & p2) const;
     };
 
 
     struct DelaunayBallAngleRefineCMP         // sort dihedral angel ascend
     {
-      bool operator () (const DelaunayBallWithRefineInfo * const & p1, const DelaunayBallWithRefineInfo * const & p2);
+      bool operator () (const DelaunayBallWithRefineInfo * const & p1, const DelaunayBallWithRefineInfo * const & p2) const;
     };
 
     typedef std::set<const DelaunayBallWithRefineInfo *, DelaunayBallEdgeRefineCMP>::const_iterator EdgeRefineIterator;
