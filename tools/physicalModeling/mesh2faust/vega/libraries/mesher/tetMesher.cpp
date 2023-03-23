@@ -1236,7 +1236,7 @@ int TetMesher::segmentRecovery()
 }
 
 bool TetMesher::TetMeshWithRefineInfo::DelaunayBallEdgeRefineCMP
-::operator ()(const DelaunayBallWithRefineInfo* const & p1, const DelaunayBallWithRefineInfo* const & p2)
+::operator ()(const DelaunayBallWithRefineInfo* const & p1, const DelaunayBallWithRefineInfo* const & p2) const
 {
   if (p1->edgeQuality > p2->edgeQuality)
     return true;
@@ -1246,7 +1246,7 @@ bool TetMesher::TetMeshWithRefineInfo::DelaunayBallEdgeRefineCMP
 }
 
 bool TetMesher::TetMeshWithRefineInfo::DelaunayBallAngleRefineCMP
-::operator ()(const DelaunayBallWithRefineInfo* const & p1, const DelaunayBallWithRefineInfo* const & p2)
+::operator ()(const DelaunayBallWithRefineInfo* const & p1, const DelaunayBallWithRefineInfo* const & p2) const
 {
   if (p1->minDihedral < p2->minDihedral)
     return true;
