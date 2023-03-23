@@ -1,57 +1,59 @@
-#include "ARPACKSolver.h"
 #include "StVKElementABCDLoader.h"
 #include "StVKStiffnessMatrix.h"
 #include "generateMassMatrix.h"
 #include "tetMesher.h"
 #include <fstream>
+#include <Eigen/Core>
+#include <Eigen/SparseCore>
+#include <Spectra/SymGEigsShiftSolver.h>
+#include <Spectra/MatOp/SymShiftInvert.h>
+#include <Spectra/MatOp/SparseSymMatProd.h>
 
 using namespace std;
 
 void printHelp()
 {
-    std::cout << "MESH2FAUST: FAUST PHYSICAL MODEL GENERATOR\n\n";
-    std::cout << "mesh2faust is an open-source modal physical model generator "
-    "for the Faust programming language. mesh2faust takes a volumetric mesh of "
-    "a 3D object as its main argument, carries out a finite element analysis, "
-    "and generates the corresponding Faust modal physical model. A wide range "
-    "of parameters can be configured to fine-tune the analysis as well as the "
-    "behavior of the generated object.\n";
-    std::cout << "Additional resources: https://github.com/grame-cncm/faust/blob/master-dev/tools/physicalModeling/mesh2faust/README.md\n\n";
-    std::cout << "USAGE:\n\n";
-    std::cout << "mesh2faust --infile 3dObject.obj\n";
-    std::cout << "Where 3dObject.obj is a volumetric mesh file\n\n";
-    std::cout << "OPTIONS:\n\n";
-    std::cout << "--help: prints this help\n";
-    std::cout << "--debug: verboses the output of mesh2faust\n";
-    std::cout << "--showfreqs: prints the list of frequencies of the calculated "
-    "modes\n";
-    std::cout << "--infile: specifies the path to the volumetric mesh "
-    "file. Dimensions of the mesh should be in meters. E.g.: --infile file.obj\n";
-    std::cout << "--freqcontrol: adds frequency control to the generated "
-    "model by adding a freq parameter to it\n";
-    std::cout << "--name: specifies the name of the generated model "
-    "(no spaces or special characters). E.g.: --name modelName\n";
-    std::cout << "--minmode: specifies the minimum frequency of the "
-    "lowest mode. E.g.: --minmode 30\n";
-    std::cout << "--maxmode: specifies the maximum frequency of the "
-    "highest mode. E.g.: --maxmode 9000\n";
-    std::cout << "--lmexpos: specifies the maximum number of excitation "
-    "positions in the model. E.g.: --lmexpos 10\n";
-    std::cout << "--expos: specifies excitation positions as a list "
-    "of vertex IDs. E.g.: --expos 89 63 45\n";
-    std::cout << "--nfemmodes: specifies the number of modes to be computed "
-    "for the finite element analysis. E.g.: --nfemmodes 300\n";
-    std::cout << "--nsynthmodes: specifies the max number of modes to be added "
-    "to the physical model and synthesized. E.g.: --nsynthmodes 50\n";
+    cout << "MESH2FAUST: FAUST PHYSICAL MODEL GENERATOR\n\n";
+    cout << "mesh2faust is an open-source modal physical model generator "
+        "for the Faust programming language. mesh2faust takes a volumetric mesh of "
+        "a 3D object as its main argument, carries out a finite element analysis, "
+        "and generates the corresponding Faust modal physical model. A wide range "
+        "of parameters can be configured to fine-tune the analysis as well as the "
+        "behavior of the generated object.\n";
+    cout << "Additional resources: https://github.com/grame-cncm/faust/blob/master-dev/tools/physicalModeling/mesh2faust/README.md\n\n";
+    cout << "USAGE:\n\n";
+    cout << "mesh2faust --infile 3dObject.obj\n";
+    cout << "Where 3dObject.obj is a volumetric mesh file\n\n";
+    cout << "OPTIONS:\n\n";
+    cout << "--help: prints this help\n";
+    cout << "--debug: verboses the output of mesh2faust\n";
+    cout << "--showfreqs: prints the list of frequencies of the calculated modes\n";
+    cout << "--infile: specifies the path to the volumetric mesh "
+        "file. Dimensions of the mesh should be in meters. E.g.: --infile file.obj\n";
+    cout << "--freqcontrol: adds frequency control to the generated "
+        "model by adding a freq parameter to it\n";
+    cout << "--name: specifies the name of the generated model "
+        "(no spaces or special characters). E.g.: --name modelName\n";
+    cout << "--minmode: specifies the minimum frequency of the "
+        "lowest mode. E.g.: --minmode 30\n";
+    cout << "--maxmode: specifies the maximum frequency of the "
+        "highest mode. E.g.: --maxmode 9000\n";
+    cout << "--lmexpos: specifies the maximum number of excitation "
+        "positions in the model. E.g.: --lmexpos 10\n";
+    cout << "--expos: specifies excitation positions as a list "
+        "of vertex IDs. E.g.: --expos 89 63 45\n";
+    cout << "--nfemmodes: specifies the number of modes to be computed "
+        "for the finite element analysis. E.g.: --nfemmodes 300\n";
+    cout << "--nsynthmodes: specifies the max number of modes to be added "
+        "to the physical model and synthesized. E.g.: --nsynthmodes 50\n";
 }
 
 int main(int argc, char **argv)
 {
     const char *modelFileName = "";        // .obj file name
     std::string objectName = "modalModel"; // generated object name
-    double materialProperties[3] = {
-        70E9, 0.35,
-        2700}; // young's modulus, poisson's ratio and density - default: aluminum
+    // Young's modulus, Poisson's ratio and density - default: aluminum
+    double materialProperties[3] = {70E9, 0.35, 2700}; 
     std::vector<int> exPos;
     bool debugMode = false;     // debug mode activated
     bool showFreqs = false;     // hide or show frequencies in the selected range
@@ -61,11 +63,10 @@ int main(int argc, char **argv)
     int targetNModes = 20;      // number of synthesized modes
     int femNModes = 100;        // number of synthesized modes
     int nExPos = -1;            // number of excitation positions (default is max)
-    int modesSelMode =
-    0; // mode to select modes (linear/max gains/cricital bands)
-    
+    int modesSelMode = 0; // mode to select modes (linear/max gains/cricital bands)
+ 
     /////////////////////////////////////
-    // PARSING ARGUMENTS
+    // PARSE ARGUMENTS
     /////////////////////////////////////
     int currentArg = 0;
     if (argc > 1) {
@@ -183,18 +184,18 @@ int main(int argc, char **argv)
         printHelp();
         return 0;
     }
-    
+ 
     /////////////////////////////////////
-    // RETRIEVING MODEL
+    // RETRIEVE MODEL
     /////////////////////////////////////
-    
-    // loading mesh file
+
+    // Load mesh file.
     if (debugMode) {
         cout << "Loading the mesh file\n";
     }
     ObjMesh *objMesh = new ObjMesh(modelFileName);
-    
-    // generating 3D volumetric mesh from 2D mesh
+ 
+    // Generate 3D volumetric mesh from 2D mesh.
     if (debugMode) {
         cout << "\nGenerating a 3D mesh with the following properties\n";
         cout << "Young's modulus: " << materialProperties[0] << "\n";
@@ -203,80 +204,83 @@ int main(int argc, char **argv)
     }
     // TODO: no way to prevent printing here (yet)
     TetMesh *volumetricMesh = TetMesher().compute(objMesh);
-    // setting mesh material properties
-    volumetricMesh->setSingleMaterial(
-                                      materialProperties[0], materialProperties[1], materialProperties[2]);
-    
-    // computing mas matrix
+    // Set mesh material properties.
+    volumetricMesh->setSingleMaterial(materialProperties[0], materialProperties[1], materialProperties[2]);
+ 
+    // Compute mass matrix.
     if (debugMode) {
         cout << "Creating and computing mass matrix\n";
     }
     SparseMatrix *massMatrix;
     GenerateMassMatrix::computeMassMatrix(volumetricMesh, &massMatrix, true);
-    
+
     // computing stiffness matrix
     if (debugMode) {
         cout << "Creating and computing stiffness matrix\n";
     }
-    StVKElementABCD *precomputedIntegrals =
-    StVKElementABCDLoader::load(volumetricMesh);
-    StVKInternalForces *internalForces =
-    new StVKInternalForces(volumetricMesh, precomputedIntegrals);
+    StVKElementABCD *precomputedIntegrals = StVKElementABCDLoader::load(volumetricMesh);
+    StVKInternalForces *internalForces = new StVKInternalForces(volumetricMesh, precomputedIntegrals);
     SparseMatrix *stiffnessMatrix;
-    StVKStiffnessMatrix *stiffnessMatrixClass =
-    new StVKStiffnessMatrix(internalForces);
+    StVKStiffnessMatrix *stiffnessMatrixClass = new StVKStiffnessMatrix(internalForces);
     stiffnessMatrixClass->GetStiffnessMatrixTopology(&stiffnessMatrix);
-    double *zero =
-    (double *)calloc(3 * volumetricMesh->getNumVertices(), sizeof(double));
+    double *zero = (double *)calloc(3 * volumetricMesh->getNumVertices(), sizeof(double));
     stiffnessMatrixClass->ComputeStiffnessMatrix(zero, stiffnessMatrix);
-    
+
+    std::vector<Eigen::Triplet<double>> K_triplets, M_triplets;
+    for (int i = 0; i < stiffnessMatrix->GetNumRows(); i++) {
+        for (int j = 0; j < stiffnessMatrix->GetRowLength(i); j++) {
+            K_triplets.push_back({i, stiffnessMatrix->GetColumnIndex(i, j), stiffnessMatrix->GetEntry(i, j)});
+        }
+    }
+    for (int i = 0; i < massMatrix->GetNumRows(); i++) {
+        for (int j = 0; j < massMatrix->GetRowLength(i); j++) {
+            M_triplets.push_back({i, massMatrix->GetColumnIndex(i, j), massMatrix->GetEntry(i, j)});
+        }
+    }
+
     /////////////////////////////////////
     // EIGEN ANALYSIS
     /////////////////////////////////////
-    
-    // temporary variables for analysis
-    // int numModes = stiffnessMatrix->Getn()-1; // number of computed modes:
-    // always max
-    // int numModes = 110;
-    double *eigenValues = (double *)malloc(sizeof(double) * femNModes);
-    double *eigenVectors =
-    (double *)malloc(sizeof(double) * stiffnessMatrix->Getn() * femNModes);
-    
-    // solver parameters
-    double sigma = -1.0;
-    int numLinearSolverThreads =
-    1; // by default only one thread but could try more...
-    // starting solver
+
     if (debugMode) {
         cout << "\nStarting the eigen solver\n";
         cout << femNModes << " modes will be computed for the FEM analysis\n\n";
     }
-    ARPACKSolver generalizedEigenvalueProblem;
-    int nconv = generalizedEigenvalueProblem.SolveGenEigShInv(
-                                                              stiffnessMatrix, massMatrix, femNModes, eigenValues, eigenVectors, sigma,
-                                                              numLinearSolverThreads, 0);
-    // int nconv = generalizedEigenvalueProblem.SolveGenEigReg(stiffnessMatrix,
-    // massMatrix, femNModes, eigenValues, eigenVectors, "LM",
-    // numLinearSolverThreads,0);
-    
-    if (nconv == femNModes) { // if analysis was successful...
-        
+
+    int n = stiffnessMatrix->Getn();
+    double sigma = -1.0;
+
+    Eigen::SparseMatrix<double> K(n, n), M(n, n);
+    K.setFromTriplets(K_triplets.begin(), K_triplets.end());
+    M.setFromTriplets(M_triplets.begin(), M_triplets.end());
+
+    using OpType = Spectra::SymShiftInvert<double, Eigen::Sparse, Eigen::Sparse>;
+    using BOpType = Spectra::SparseSymMatProd<double>;
+    OpType op(K, M);
+    BOpType Bop(M);
+    int convergence_ratio = max(2*femNModes+1, 20);
+    Spectra::SymGEigsShiftSolver<OpType, BOpType, Spectra::GEigsMode::ShiftInvert>
+        eigs(op, Bop, femNModes, convergence_ratio, sigma);
+    eigs.init();
+    int nconv = eigs.compute(Spectra::SortRule::LargestMagn);
+
+    if (eigs.info() == Spectra::CompInfo::Successful) { // if analysis was successful...
+        Eigen::VectorXd eigenValues = eigs.eigenvalues();
+        Eigen::MatrixXd eigenVectors = eigs.eigenvectors();
+
         /////////////////////////////////////
-        // COMPUTING MODE FREQS
+        // COMPUTE MODE FREQS
         /////////////////////////////////////
-        
+ 
         if (debugMode) {
-            printf("Computing modes frequencies\n\n");
+            cout << "Computing modes frequencies\n\n";
         }
         float modesFreqs[femNModes]; // modes freqs
         int lowestModeIndex = 0;
         int highestModeIndex = 0;
         for (int i = 0; i < femNModes; i++) {
-            if (eigenValues[i] <= 0) {
-                modesFreqs[femNModes] = 0.0;
-            } else {
-                modesFreqs[i] = sqrt((float)eigenValues[i]) / (2 * M_PI);
-            }
+            double eigenValue = eigenValues[femNModes - 1 - i]; // Eigenvalues are ordered largest-first.
+            modesFreqs[i] = eigenValue <= 0 ? 0.0 : sqrt((float)eigenValue) / (2 * M_PI);
             if (modesFreqs[i] < modesMinFreq) {
                 lowestModeIndex++;
             }
@@ -286,118 +290,87 @@ int main(int argc, char **argv)
                 highestModeIndex++;
             }
         }
-        
-        // adjusting number of target modes to modes range
+ 
+        // Adjust number of target modes to modes range.
         int modesRange = highestModeIndex - lowestModeIndex;
-        if (modesRange < targetNModes) {
-            targetNModes = modesRange;
-        }
-        
-        // diplaying mode frequencies
+        if (modesRange < targetNModes) targetNModes = modesRange;
+ 
+        // Diplay mode frequencies.
         if (showFreqs) {
-            cout << "Mode frequencies between " << modesMinFreq << "Hz and "
-            << modesMaxFreq << "Hz:\n";
+            cout << "Mode frequencies between " << modesMinFreq << "Hz and " << modesMaxFreq << "Hz:\n";
             for (int i = 0; i < targetNModes; i++) {
                 cout << modesFreqs[i + lowestModeIndex] << "\n";
             }
             cout << "\n";
         }
-        
+ 
         /////////////////////////////////////
-        // COMPUTING GAINS
+        // COMPUTE GAINS
         /////////////////////////////////////
-        
+ 
         if (debugMode) {
             cout << "Computing modes gains for modes between " << modesMinFreq
-            << "Hz and " << modesMaxFreq << "Hz\n\n";
+                << "Hz and " << modesMaxFreq << "Hz\n\n";
         }
-        if (exPos.size() >
-            0) { // if exPos specified, then retrieve number of ex positions
+        if (exPos.size() > 0) {
+            // If exPos specified, then retrieve number of ex positions.if (exPos.size() > 0) {
             nExPos = exPos.size();
         }
-        if (nExPos == -1 ||
-            nExPos > volumetricMesh->getNumVertices()) { // if nExPos not specified,
-            // then max number of exPos
+        if (nExPos == -1 || nExPos > volumetricMesh->getNumVertices()) {
+            // If nExPos not specified, then max number of exPos.
             nExPos = volumetricMesh->getNumVertices();
         }
-        int exPosStep = volumetricMesh->getNumVertices() /
-        nExPos;                    // to skip excitation positions
-        float modesGains[nExPos][targetNModes];    // modes gains matrix
-        for (int i = 0; i < nExPos; i++) {         // i = excitation position
-            float maxGain = 0;                       // for normalization
+        int exPosStep = volumetricMesh->getNumVertices() / nExPos; // to skip excitation positions
+        float modesGains[nExPos][targetNModes]; // modes gains matrix
+        for (int i = 0; i < nExPos; i++) { // i = excitation position
+            float maxGain = 0; // for normalization
             for (int j = 0; j < targetNModes; j++) { // j = current mode
-                if (exPos.size() > 0) { // if expos was defined, then retrieve data
-                    modesGains[i][j] = sqrt(
-                                            pow(eigenVectors[(j + lowestModeIndex) * stiffnessMatrix->Getn() +
-                                                             (exPos[i] * 3)],
-                                                2) +
-                                            pow(eigenVectors[(j + lowestModeIndex) * stiffnessMatrix->Getn() +
-                                                             (exPos[i] * 3) + 1],
-                                                2) +
-                                            pow(eigenVectors[(j + lowestModeIndex) * stiffnessMatrix->Getn() +
-                                                             (exPos[i] * 3) + 2],
-                                                2));
-                } else { // otherwise choose linear ex pos
-                    modesGains[i][j] = sqrt(
-                                            pow(eigenVectors[(j + lowestModeIndex) * stiffnessMatrix->Getn() +
-                                                             (i * exPosStep * 3)],
-                                                2) +
-                                            pow(eigenVectors[(j + lowestModeIndex) * stiffnessMatrix->Getn() +
-                                                             (i * exPosStep * 3) + 1],
-                                                2) +
-                                            pow(eigenVectors[(j + lowestModeIndex) * stiffnessMatrix->Getn() +
-                                                             (i * exPosStep * 3) + 2],
-                                                2));
-                }
-                if (modesGains[i][j] > maxGain)
-                maxGain = modesGains[i][j]; // saving max gain for normalization
+                // If exPos was defined, then retrieve data. Otherwise, choose linear ex pos.
+                int evIndex = j + lowestModeIndex;
+                evIndex = femNModes - 1 - evIndex; // Eigenvectors are ordered largest-first.
+                int evValueIndex = 3 * (exPos.size() > 0 ? exPos[i] : (i * exPosStep));
+                // Eigen is column-major by default.
+                modesGains[i][j] = sqrt(pow(eigenVectors(evValueIndex, evIndex), 2) +
+                                        pow(eigenVectors(evValueIndex + 1, evIndex), 2) +
+                                        pow(eigenVectors(evValueIndex + 2, evIndex), 2));
+                if (modesGains[i][j] > maxGain) maxGain = modesGains[i][j]; // Save max gain for normalization.
             }
-            // normalizing gains for current position
+            // Normalize gains for current position.
             for (int j = 0; j < targetNModes; j++) {
-                modesGains[i][j] = modesGains[i][j] / maxGain;
-                /*
-                 if(i==0){
-                 cout << modesFreqs[lowestModeIndex+j] << ":\t" <<
-                 modesGains[i][j] << "\n";
-                 }
-                 */
+                modesGains[i][j] /= maxGain;
             }
         }
         
         /////////////////////////////////////
-        // GENERATING FAUST FILE
+        // GENERATE FAUST FILE
         /////////////////////////////////////
         
-        // TODO: say something about the model that will be generated (parameters
-        // available, etc.)
-        
+        // TODO: say something about the model that will be generated (parameters available, etc.)
+ 
         std::string faustFileName;
         faustFileName.append(objectName).append(".lib");
         std::ofstream faustFile(faustFileName.c_str());
         faustFile << "import(\"stdfaust.lib\");\n\n";
         if (freqControl) {
             faustFile << objectName
-            << "(freq,exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: "
-            "par(i,nModes,pm.modeFilter(modesFreqs(i),modesT60s(i),"
-            "modesGains(int(exPos),i))) :> /(nModes)\n";
+                << "(freq,exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: "
+                "par(i,nModes,pm.modeFilter(modesFreqs(i),modesT60s(i),"
+                "modesGains(int(exPos),i))) :> /(nModes)\n";
         } else {
             faustFile << objectName
-            << "(exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: "
-            "par(i,nModes,pm.modeFilter(modesFreqs(i),modesT60s(i),"
-            "modesGains(int(exPos),i))) :> /(nModes)\n";
+                << "(exPos,t60,t60DecayRatio,t60DecaySlope) = _ <: "
+                "par(i,nModes,pm.modeFilter(modesFreqs(i),modesT60s(i),"
+                "modesGains(int(exPos),i))) :> /(nModes)\n";
         }
         faustFile << "with{\n";
         faustFile << "nModes = " << targetNModes << ";\n";
-        if (nExPos > 1)
-        faustFile << "nExPos = " << nExPos << ";\n";
-        
+        if (nExPos > 1) faustFile << "nExPos = " << nExPos << ";\n";
+ 
         if (freqControl) {
             faustFile << "modesFreqRatios(n) = ba.take(n+1,(";
             for (int i = 0; i < targetNModes; i++) {
-                faustFile << modesFreqs[lowestModeIndex + i] /
-                modesFreqs[lowestModeIndex];
-                if (i < (targetNModes - 1))
-                faustFile << ",";
+                faustFile << modesFreqs[lowestModeIndex + i] / modesFreqs[lowestModeIndex];
+                if (i < (targetNModes - 1)) faustFile << ",";
             }
             faustFile << "));\n";
             faustFile << "modesFreqs(i) = freq*modesFreqRatios(i);\n";
@@ -405,8 +378,7 @@ int main(int argc, char **argv)
             faustFile << "modesFreqs(n) = ba.take(n+1,(";
             for (int i = 0; i < targetNModes; i++) {
                 faustFile << modesFreqs[lowestModeIndex + i];
-                if (i < (targetNModes - 1))
-                faustFile << ",";
+                if (i < (targetNModes - 1)) faustFile << ",";
             }
             faustFile << "));\n";
         }
@@ -414,46 +386,41 @@ int main(int argc, char **argv)
         for (int i = 0; i < nExPos; i++) {
             for (int j = 0; j < targetNModes; j++) {
                 faustFile << modesGains[i][j];
-                if (j < (targetNModes - 1))
-                faustFile << ",";
+                if (j < (targetNModes - 1)) faustFile << ",";
             }
-            if (i < (nExPos - 1))
-            faustFile << ",";
+            if (i < (nExPos - 1)) faustFile << ",";
         }
         if (freqControl) {
-            faustFile << "},int(p*nModes+n) : rdtable : "
-            "select2(modesFreqs(n)<(ma.SR/2-1),0);\n";
-            faustFile << "modesT60s(i) = t60*pow(1-(modesFreqRatios(i)/"
-            << modesFreqs[highestModeIndex] / modesFreqs[lowestModeIndex]
-            << ")*t60DecayRatio,t60DecaySlope);\n";
+            faustFile << "},int(p*nModes+n) : rdtable : select2(modesFreqs(n)<(ma.SR/2-1),0);\n"
+                << "modesT60s(i) = t60*pow(1-(modesFreqRatios(i)/"
+                << modesFreqs[highestModeIndex] / modesFreqs[lowestModeIndex]
+                << ")*t60DecayRatio,t60DecaySlope);\n";
         } else {
-            faustFile << "},int(p*nModes+n) : rdtable;\n";
-            faustFile << "modesT60s(i) = t60*pow(1-(modesFreqs(i)/"
-            << modesFreqs[highestModeIndex]
-            << ")*t60DecayRatio,t60DecaySlope);\n";
+            faustFile << "},int(p*nModes+n) : rdtable;\n"
+                << "modesT60s(i) = t60*pow(1-(modesFreqs(i)/"
+                << modesFreqs[highestModeIndex]
+                << ")*t60DecayRatio,t60DecaySlope);\n";
         }
         faustFile << "};\n";
         faustFile.close();
     }
-    
+ 
     // cleaning
-    free(eigenValues);
-    free(eigenVectors);
     free(zero);
     delete stiffnessMatrixClass;
-    stiffnessMatrixClass = NULL;
+    stiffnessMatrixClass = nullptr;
     delete stiffnessMatrix;
-    stiffnessMatrix = NULL;
+    stiffnessMatrix = nullptr;
     delete internalForces;
-    internalForces = NULL;
+    internalForces = nullptr;
     delete precomputedIntegrals;
-    precomputedIntegrals = NULL;
+    precomputedIntegrals = nullptr;
     delete massMatrix;
-    massMatrix = NULL;
+    massMatrix = nullptr;
     delete volumetricMesh;
-    volumetricMesh = NULL;
+    volumetricMesh = nullptr;
     delete objMesh;
-    objMesh = NULL;
-    
+    objMesh = nullptr;
+ 
     return 0;
 }

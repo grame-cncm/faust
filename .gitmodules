@@ -13,3 +13,6 @@
 [submodule "architecture/max-msp/py2max"]
 	path = architecture/max-msp/py2max
 	url = https://github.com/shakfu/py2max.git
+[submodule "tools/physicalModeling/mesh2faust/spectra"]
+	path = tools/physicalModeling/mesh2faust/spectra
+	url = git@github.com:yixuan/spectra.git
