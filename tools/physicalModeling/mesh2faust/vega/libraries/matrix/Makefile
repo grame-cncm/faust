@@ -30,7 +30,7 @@ $(L)/matrix/libmatrix.a: $(MATRIX_OBJECTS_FILENAMES)
 	ar r $@ $^; cp $@ $(L)/lib; cp $(L)/matrix/*.h $(L)/include
 
 $(L)/matrix/example: $(L)/matrix/libmatrix.a $(L)/matrix/example.cpp
-	$(CXXLD) $(LDFLAGS) $(L)/matrix/example.cpp $(L)/matrix/libmatrix.a $(L)/matrixIO/libmatrixIO.a $(SPOOLES_LIB) $(PARDISO_LIB) $(STANDARD_LIBS) $(INCLUDE) -o $@
+	$(CXXLD) $(LDFLAGS) $(L)/matrix/example.cpp $(L)/matrix/libmatrix.a $(L)/matrixIO/libmatrixIO.a $(STANDARD_LIBS) $(INCLUDE) -o $@
 
 $(MATRIX_OBJECTS_FILENAMES): %.o: %.cpp $(MATRIX_LIB_FILENAMES) $(MATRIX_HEADER_FILENAMES)
 	$(CXX) $(CXXFLAGS) -c $(INCLUDE) -I/usr/include/mkl $(BLASLAPACK_INCLUDE) $< -o $@
