@@ -15,4 +15,4 @@
 	url = https://github.com/shakfu/py2max.git
 [submodule "tools/physicalModeling/mesh2faust/spectra"]
 	path = tools/physicalModeling/mesh2faust/spectra
-	url = git@github.com:yixuan/spectra.git
+	url = https://github.com/yixuan/spectra.git
