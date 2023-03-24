@@ -24,3 +24,5 @@ INCLUDE=-I$(LIBRARIES_DIR)/include -I/usr/X11R6/include -I/usr/include
 LIBRARYPATH=-L$(LIBRARIES_DIR)/lib -L/usr/X11R6/lib/ -L/usr/lib
 OPENGL_LIBS=-lGL
 STANDARD_LIBS= $(OPENGL_LIBS) -lm -lpthread $(LIBRARYPATH)
+
+EIGEN_INCLUDE_DIR=/usr/include/eigen3
