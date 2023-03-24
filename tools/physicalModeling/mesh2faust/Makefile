@@ -20,7 +20,7 @@ include $(MESH2FAUST_LIB_MAKEFILES)
 all: vega/libraries/wildMagic/rational vega/libraries/wildMagic/meshKey vega/libraries/wildMagic/geometryQuery src/mesh2faust
 
 src/mesh2faust: src/mesh2faust.cpp
-	$(CXXLD) $(LDFLAGS) $(INCLUDE) -I/usr/include/eigen3 -Ispectra/include $(MESH2FAUST_OBJECTS) src/mesh2faust.cpp $(MESH2FAUST_LINK) -lgeometryQuery -lmeshKey -lrational -o $@
+	$(CXXLD) $(CXXFLAGS) $(LDFLAGS) $(INCLUDE) -I$(EIGEN_INCLUDE_DIR) -Ispectra/include $(MESH2FAUST_OBJECTS) src/mesh2faust.cpp $(MESH2FAUST_LINK) -lgeometryQuery -lmeshKey -lrational -o $@
 
 ifeq ($(CLEANFOLDER), MESH2FAUST)
 clean: cleanMeshToFaust

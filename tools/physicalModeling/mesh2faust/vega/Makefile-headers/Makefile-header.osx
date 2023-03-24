@@ -3,7 +3,7 @@
 OPTIMIZATIONFLAG=-O2
 
 CXX=g++
-CXXFLAGS=-Wall -Wno-write-strings -flax-vector-conversions $(OPTIMIZATIONFLAG)
+CXXFLAGS=-Wall -std=c++14 -Wno-write-strings -flax-vector-conversions $(OPTIMIZATIONFLAG)
 CXXLD=$(CXX)
 LDFLAGS=$(OPTIMIZATIONFLAG)
 
@@ -24,3 +24,5 @@ INCLUDE=-I$(LIBRARIES_DIR)/include
 LIBRARYPATH=-L$(LIBRARIES_DIR)/lib
 OPENGL_LIBS=-framework OpenGL
 STANDARD_LIBS= $(OPENGL_LIBS) -framework Foundation -framework Accelerate -lz -lm $(LIBRARYPATH)
+
+EIGEN_INCLUDE_DIR=/opt/homebrew/Cellar/eigen/3.4.0_1/include/eigen3
