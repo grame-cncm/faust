@@ -63,7 +63,6 @@ int main(int argc, char **argv)
     int targetNModes = 20;      // number of synthesized modes
     int femNModes = 100;        // number of synthesized modes
     int nExPos = -1;            // number of excitation positions (default is max)
-    int modesSelMode = 0; // mode to select modes (linear/max gains/cricital bands)
  
     /////////////////////////////////////
     // PARSE ARGUMENTS
@@ -226,6 +225,7 @@ int main(int argc, char **argv)
     double *zero = (double *)calloc(3 * volumetricMesh->getNumVertices(), sizeof(double));
     stiffnessMatrixClass->ComputeStiffnessMatrix(zero, stiffnessMatrix);
 
+    // Copy Vega sparse matrices to Eigen matrices.
     std::vector<Eigen::Triplet<double>> K_triplets, M_triplets;
     for (int i = 0; i < stiffnessMatrix->GetNumRows(); i++) {
         for (int j = 0; j < stiffnessMatrix->GetRowLength(i); j++) {
@@ -262,7 +262,7 @@ int main(int argc, char **argv)
     Spectra::SymGEigsShiftSolver<OpType, BOpType, Spectra::GEigsMode::ShiftInvert>
         eigs(op, Bop, femNModes, convergence_ratio, sigma);
     eigs.init();
-    int nconv = eigs.compute(Spectra::SortRule::LargestMagn);
+    eigs.compute(Spectra::SortRule::LargestMagn);
 
     if (eigs.info() == Spectra::CompInfo::Successful) { // if analysis was successful...
         Eigen::VectorXd eigenValues = eigs.eigenvalues();
