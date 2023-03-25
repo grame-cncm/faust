@@ -247,7 +247,10 @@ for p in $FILES; do
         else
            $CXX $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS $POST -DDOWN_SAMPLING=$DS -DUP_SAMPLING=$US -DFILTER_TYPE=$FILTER -DFAUSTFLOAT=$FAUSTFLOAT -I ../../ -I"$MAXINC" -I"$MSPINC" -F"$MAXINC" -F"$MSPINC" -framework MaxAPI -framework MaxAudioAPI $SOUNDFILELIBS $SOUNDFILELIBS_INTEL $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
         fi
-        codesign --sign - --deep --force "${f%.dsp}$EXT"
+        if [[ $(uname) == Darwin ]]; then
+            codesign --sign - --deep --force "${f%.dsp}$EXT"
+        fi
+
        ) > /dev/null || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
