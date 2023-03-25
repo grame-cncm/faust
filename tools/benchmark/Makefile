@@ -27,7 +27,7 @@ LAME_LD_FLAGS ?=
 
 COMPILEOPT  := -std=c++11 -O3 -Wall
 COMPILEOPT1 := -O3 -Wall
-COMMLIBS	:= $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a -lmicrohttpd -lpthread
+COMMLIBS	:= $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a -lpthread $(shell pkg-config --libs libmicrohttpd)
 MACOSLIBS	:= -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation
 
 DESTDIR ?=
