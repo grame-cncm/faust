@@ -119,7 +119,6 @@ jobs:
 
     - name: Brew install requirements (arm64)
       if: ${{ endsWith( matrix.name, 'arm64') }}
-      # note that we uninstall libsndfile because the brew version isn't static.
       # todo: should we bother with brew update?
       run: |
         brew update
@@ -140,11 +139,10 @@ jobs:
         done
 
         brew uninstall --ignore-dependencies curl git || true
-        brew uninstall --ignore-dependencies libsndfile || true
 
     - name: Brew install requirements (x64)
       if: ${{ endsWith( matrix.name, 'x64') }}
-      run: brew install pkg-config gtk+3 gtkmm3 qt@5 lame flac libogg libtool libvorbis opus mpg123 libsndfile libmicrohttpd
+      run: brew install pkg-config gtk+3 gtkmm3 qt@5 lame flac libogg libtool libvorbis opus mpg123 libmicrohttpd
 
     - name: Download LLVM
       run: |
@@ -155,7 +153,6 @@ jobs:
         unzip -o llvm.zip
 
     - name: Clone Libsndfile
-      if: ${{ endsWith( matrix.name, 'arm64') }}
       uses: actions/checkout@v3
       with:
         repository: libsndfile/libsndfile
@@ -163,13 +160,15 @@ jobs:
         submodules: true
 
     - name: Build libsndfile
-      if: ${{ endsWith( matrix.name, 'arm64') }}
+      # Note that can't use the libsndfile from brew because it lacks libsndfile.a, the static lib.
       run: |
+        brew uninstall --ignore-dependencies libsndfile || true
         cd libsndfile
         LIBSNDFILE_INSTALL_PREFIX="$PWD/install"
         mkdir CMakeBuild && cd CMakeBuild
         cmake .. -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$LIBSNDFILE_INSTALL_PREFIX" -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_OSX_ARCHITECTURES=$CMAKE_OSX_ARCHITECTURES -DCMAKE_OSX_DEPLOYMENT_TARGET=$CMAKE_OSX_DEPLOYMENT_TARGET -DCMAKE_BUILD_TYPE=Release -DBUILD_EXAMPLES=OFF -DBUILD_TESTING=OFF
         make && make install
+        otool -L $LIBSNDFILE_INSTALL_PREFIX/lib/libsndfile.a
         echo "Testing pkg-config for sndfile"
         export PKG_CONFIG_PATH="$LIBSNDFILE_INSTALL_PREFIX/lib/pkgconfig"
         pkg-config --cflags sndfile
