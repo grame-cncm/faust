@@ -1379,7 +1379,7 @@ static void compileLLVM(Tree signals, int numInputs, int numOutputs, bool genera
     container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
     // libc functions will be found by the LLVM linker, but not user defined ones...
-    gGlobal->gAllowForeignFunction = false;
+    gGlobal->gAllowForeignFunction = false; 
     // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
     gGlobal->gUseDefaultSound     = false;
@@ -1420,7 +1420,7 @@ static void compileInterp(Tree signals, int numInputs, int numOutputs)
 
     // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     gGlobal->gFAUSTFLOAT2Internal = true;
-    gGlobal->gNeedManualPow       = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+    gGlobal->gNeedManualPow       = false;  // Standard pow function will be used in pow(x,y) when y in an integer
     gGlobal->gRemoveVarAddress    = true;   // To be used in -vec mode
     gGlobal->gUseDefaultSound     = false;
 
@@ -1458,7 +1458,7 @@ static void compileC(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
 #ifdef C_BUILD
     container = CCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
-
+    
     if (gGlobal->gVectorSwitch) {
         new_comp = new DAGInstructionsCompiler(container);
     } else {
@@ -1475,9 +1475,10 @@ static void compileC(Tree signals, int numInputs, int numOutputs, ostream* out)
 static void compileCPP(Tree signals, int numInputs, int numOutputs, ostream* out)
 {
 #ifdef CPP_BUILD
-    container =
-        CPPCodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs, out);
-
+    container = CPPCodeContainer::createContainer(gGlobal->gClassName,
+                                                  gGlobal->gSuperClassName,
+                                                  numInputs, numOutputs, out);
+    
     if (gGlobal->gVectorSwitch) {
         new_comp = new DAGInstructionsCompiler(container);
     } else {
@@ -1572,7 +1573,7 @@ static void compileJAX(Tree signals, int numInputs, int numOutputs, ostream* out
 {
 #ifdef JAX_BUILD
     gGlobal->gAllowForeignFunction = true;  // foreign functions are supported (we use jax.random.PRNG for example)
-    gGlobal->gNeedManualPow        = false;
+    gGlobal->gNeedManualPow        = false; // Standard pow function will be used in pow(x,y) when y in an integer
     gGlobal->gFAUSTFLOAT2Internal  = true;
     container = JAXCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
     
@@ -1594,7 +1595,7 @@ static void compileTemplate(Tree signals, int numInputs, int numOutputs, ostream
 #ifdef TEMPLATE_BUILD
     // Backend configuration
     gGlobal->gAllowForeignFunction = true;
-    gGlobal->gNeedManualPow        = false;
+    gGlobal->gNeedManualPow        = false; // Standard pow function will be used in pow(x,y) when y in an integer
     gGlobal->gFAUSTFLOAT2Internal  = true;
     container = TemplateCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
     
@@ -1644,7 +1645,7 @@ static void compileCmajor(Tree signals, int numInputs, int numOutputs, ostream* 
 
     // "one sample control" model by default;
     gGlobal->gOneSampleControl = true;
-    gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+    gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when y in an integer
     container = CmajorCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, out);
     if (gGlobal->gVectorSwitch) {
         new_comp = new DAGInstructionsCompiler(container);
@@ -1690,7 +1691,7 @@ static void compileWAST(Tree signals, int numInputs, int numOutputs, ostream* ou
     gGlobal->gLoopVarInBytes   = true;
     gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data
     gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
-    gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+    gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when y in an integer
     gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
                                          // gGlobal->gHasTeeLocal = true;     // combined store/load
     gGlobal->gUseDefaultSound = false;
@@ -1729,7 +1730,7 @@ static void compileWASM(Tree signals, int numInputs, int numOutputs, ostream* ou
     gGlobal->gLoopVarInBytes   = true;
     gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data
     gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
-    gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+    gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when y in an integer
     gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
                                          // gGlobal->gHasTeeLocal = true;     // combined store/load
     gGlobal->gUseDefaultSound = false;

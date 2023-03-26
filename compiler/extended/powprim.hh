@@ -107,7 +107,7 @@ class PowPrim : public xtended {
         return tree(symbol(), args[0], args[1]);
     }
     
-    // Check that power argument is an integer or possibly represents an integer, up to 32
+    // Check that power argument is an integer or possibly represents an integer, up to 8
     bool isIntPowArg(::Type ty, ValueInst* val, int& pow_arg)
     {
         if (ty->nature() == kInt) {

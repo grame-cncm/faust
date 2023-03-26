@@ -72,7 +72,7 @@ class ControlUI : public UI {
         { 
             assert(fControlOut.size() <= frames);
             
-            for (unsigned int i = 0; i < fControlOut.size(); i++) {
+            for (size_t i = 0; i < fControlOut.size(); i++) {
                 control_buffer[i] = *fControlOut[i];
             }
         }
@@ -81,7 +81,7 @@ class ControlUI : public UI {
         {
             assert(fControlIn.size() <= frames);
             
-            for (unsigned int i = 0; i < fControlIn.size(); i++) {
+            for (size_t i = 0; i < fControlIn.size(); i++) {
                *fControlIn[i] = control_buffer[i];
             }
         }
@@ -91,7 +91,7 @@ class ControlUI : public UI {
             assert(fControlOut.size() <= frames);
             jack_midi_reset_buffer(midi_control_buffer);
           
-            for (unsigned int i = 0; i < fControlOut.size(); i++) {
+            for (size_t i = 0; i < fControlOut.size(); i++) {
                 jack_midi_data_t* buffer = jack_midi_event_reserve(midi_control_buffer, i, 4);
                 assert(buffer);
                 *((float*)buffer) = *fControlOut[i];
@@ -102,7 +102,7 @@ class ControlUI : public UI {
         {
             jack_midi_reset_buffer(midi_control_buffer);
             
-            for (unsigned int i = 0; i < count; i++) {
+            for (size_t i = 0; i < count; i++) {
                 jack_midi_data_t* buffer = jack_midi_event_reserve(midi_control_buffer, i, 4);
                 assert(buffer);
                 *((float*)buffer) = control_buffer[i];

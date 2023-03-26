@@ -140,13 +140,14 @@ The `-input` option allows to test effects by sending them an *impulse* then a *
 
 Mode 4 up to 7 also check LOAD/STORE errors, mode 7 is typically used by the Faust compiler developers to check the generated code. Mode 4 and 7 produce FBC (Faust Byte Code) trace as a `DumpCode-foo.txt` file, and the program memory layout as `DumpMem-fooXXX.txt` file.
 
-`interp-tracer [-trace <1-7>] [-control] [-output] [additional Faust options (-ftz xx)] foo.dsp`
+`interp-tracer [-trace <1-7>] [-control] [-output] [-timeout <num>] [additional Faust options (-ftz xx)] foo.dsp`
 
 Here are the available options:
 
  - `-control to activate min/max control check then setting all controllers (inside their range) in a random way`
  - `-input to test effects with various test signals (impulse, noise)`
  - `-output to print output frames`
+ - ` timeout <num> to stop the application after a given timeout in seconds (default = 10s)`
  - `-trace 1 to collect FP_SUBNORMAL only` 
  - `-trace 2 to collect FP_SUBNORMAL, FP_INFINITE and FP_NAN`
  - `-trace 3 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO and CAST_INT_OVERFLOW`

@@ -40,7 +40,7 @@
  *
  * @return the current runtime sample rate.
  */
-inline Signal getSampleRate()
+inline Signal SR()
 {
     return CsigMin(CsigReal(192000.0), CsigMax(CsigReal(1.0), CsigFConst(kSInt, "fSamplingFreq", "<math.h>")));
 }
@@ -52,7 +52,7 @@ inline Signal getSampleRate()
  *
  * @return the current runtime buffer size.
  */
-inline Signal getBufferSize()
+inline Signal BS()
 {
     return CsigFVar(kSInt, "count", "<math.h>");
 }
@@ -108,7 +108,7 @@ static Signal decimalpart(Signal x)
 
 static Signal phasor(Signal f)
 {
-    return CsigRecursion(decimalpart(CsigAdd(CsigSelf(), CsigDiv(f, getSampleRate()))));
+    return CsigRecursion(decimalpart(CsigAdd(CsigSelf(), CsigDiv(f, SR()))));
 }
 
 static void test1()

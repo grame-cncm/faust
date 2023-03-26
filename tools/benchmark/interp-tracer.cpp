@@ -39,7 +39,6 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/MapUI.h"
-#include "faust/gui/GTKUI.h"
 #include "faust/misc.h"
 
 using namespace std;
@@ -152,9 +151,6 @@ struct CheckControlUI : public MapUI {
     
 };
 
-list<GUI*> GUI::fGuiList;
-ztimedmap GUI::gTimedZoneMap;
-
 int main(int argc, char* argv[])
 {
     char name[256];
@@ -167,7 +163,6 @@ int main(int argc, char* argv[])
     bool is_input = isopt(argv, "-input");
     bool is_output = isopt(argv, "-output");
     bool is_control = isopt(argv, "-control");
-    bool is_noui = isopt(argv, "-noui");
     int time_out = lopt(argv, "-timeout", 10);
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || trace_mode < 0 || trace_mode > 7) {
@@ -175,8 +170,7 @@ int main(int argc, char* argv[])
         cout << "-control to activate min/max control check then setting all controllers (inside their range) in a random way\n";
         cout << "-input to test effects with various test signals (impulse, noise) \n";
         cout << "-output to display output samples\n";
-        cout << "-noui to start the application without UI\n";
-        cout << "-timeout <num> when used in -noui mode, to stop the application after a given timeout in seconds (default = 10s)\n";
+        cout << "-timeout <num> to stop the application after a given timeout in seconds (default = 10s)\n";
         cout << "-trace 1 to collect FP_SUBNORMAL only\n";
         cout << "-trace 2 to collect FP_SUBNORMAL, FP_INFINITE and FP_NAN\n";
         cout << "-trace 3 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO and CAST_INT_OVERFLOW\n";
@@ -223,7 +217,6 @@ int main(int argc, char* argv[])
     
     dsp_factory* factory = nullptr;
     dsp* DSP = nullptr;
-    GUI* interface = nullptr;
     RandomControlUI random;
     
     try {
@@ -257,11 +250,6 @@ int main(int argc, char* argv[])
         }
         if (!audio->init(filename, DSP)) {
             exit(EXIT_FAILURE);
-        }
-        
-        if (!is_noui) {
-            interface = new GTKUI(filename, &argc, &argv);
-            DSP->buildUserInterface(interface);
         }
         
         if (is_control) {
@@ -386,12 +374,8 @@ int main(int argc, char* argv[])
             audio->start();
         }
         
-        if (!is_noui) {
-            interface->run();
-        } else {
-            cout << "Use Ctrl-c to Quit" << endl;
-            usleep(time_out * 1e6);
-        }
+        cout << "Use Ctrl-c to Quit" << endl;
+        usleep(time_out * 1e6);
         
         audio->stop();
         delete audio;
@@ -409,8 +393,6 @@ int main(int argc, char* argv[])
 end:
     
     delete DSP;
-    delete interface;
-    
     printList(factory->getWarningMessages());
     deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
     return 0;

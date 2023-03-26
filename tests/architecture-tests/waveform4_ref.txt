@@ -4,7 +4,7 @@ malloc_memory_manager::info size = 28 reads = 1 writes = 0
 malloc_memory_manager::info size = 4 reads = 0 writes = 0
 malloc_memory_manager::info size = 28 reads = 1 writes = 0
 malloc_memory_manager::info size = 28 reads = 0 writes = 0
-malloc_memory_manager::info size = 8 reads = 4 writes = 2
+malloc_memory_manager::info size = 8 reads = 3 writes = 2
 malloc_memory_manager::end
 malloc_manager::allocate 4
 malloc_manager::allocate 28
@@ -15,15 +15,15 @@ malloc_memory_manager::destroy
 malloc_manager::allocate 24
 malloc_manager::allocate 8
 Render one buffer
-sample out 40.000000
+sample out 40.0000000000
 Render one buffer
-sample out 70.000000
+sample out 70.0000000000
 Render one buffer
-sample out 30.000000
+sample out 30.0000000000
 Render one buffer
-sample out 60.000000
+sample out 60.0000000000
 Render one buffer
-sample out 20.000000
+sample out 20.0000000000
 malloc_memory_manager::destroy
 malloc_memory_manager::destroy
 malloc_memory_manager::destroy

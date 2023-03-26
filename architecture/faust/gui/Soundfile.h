@@ -277,7 +277,7 @@ class SoundfileReader {
             int total_length = 0;
             
             // Compute total length and channels max of all files
-            for (int i = 0; i < int(path_name_list.size()); i++) {
+            for (size_t i = 0; i < path_name_list.size(); i++) {
                 int chan, length;
                 if (path_name_list[i] == "__empty_sound__") {
                     length = BUFFER_SIZE;
@@ -299,7 +299,7 @@ class SoundfileReader {
             int offset = 0;
             
             // Read all files
-            for (int i = 0; i < int(path_name_list.size()); i++) {
+            for (size_t i = 0; i < path_name_list.size(); i++) {
                 if (path_name_list[i] == "__empty_sound__") {
                     soundfile->emptyFile(i, offset);
                 } else {
@@ -308,7 +308,7 @@ class SoundfileReader {
             }
             
             // Complete with empty parts
-            for (int i = int(path_name_list.size()); i < MAX_SOUNDFILE_PARTS; i++) {
+            for (size_t i = path_name_list.size(); i < MAX_SOUNDFILE_PARTS; i++) {
                 soundfile->emptyFile(i, offset);
             }
             

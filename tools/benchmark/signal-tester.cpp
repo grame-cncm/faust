@@ -46,7 +46,7 @@ using namespace std;
  *
  * @return the current runtime sample rate.
  */
-inline Signal getSampleRate()
+inline Signal SR()
 {
     return sigMin(sigReal(192000.0), sigMax(sigReal(1.0), sigFConst(SType::kSInt, "fSamplingFreq", "<math.h>")));
 }
@@ -58,7 +58,7 @@ inline Signal getSampleRate()
  *
  * @return the current runtime buffer size.
  */
-inline Signal getBufferSize()
+inline Signal BS()
 {
     return sigFVar(SType::kSInt, "count", "<math.h>");
 }
@@ -325,6 +325,37 @@ static void test10()
     )
 }
 
+// Alternate way of writing
+static void test10bis()
+{
+    COMPILER
+    (
+        Signal in1 = sigInput(0);
+        tvec ins;
+        ins.push_back(sigAdd(sigSelfN(0), in1));
+        tvec outs = sigRecursionN(ins);
+     
+        compile("test10bis", outs);
+    )
+}
+
+// mutual recursion
+static void test10ter()
+{
+    COMPILER
+    (
+        Signal in0 = sigInput(0);
+        Signal in1 = sigInput(1);
+        tvec ins;
+        ins.push_back(sigAdd(sigMul(sigSelfN(1), sigReal(0.5)), in0));
+        ins.push_back(sigAdd(sigMul(sigSelfN(0), sigReal(0.9)), in1));
+        tvec outs = sigRecursionN(ins);
+        
+        compile("test10ter", outs);
+     )
+}
+
+
 // import("stdfaust.lib");
 // process = ma.SR, ma.BS;
 
@@ -333,8 +364,8 @@ static void test11()
     COMPILER
     (
         tvec signals;
-        signals.push_back(getSampleRate());
-        signals.push_back(getBufferSize());
+        signals.push_back(SR());
+        signals.push_back(BS());
         
         compile("test11", signals);
     )
@@ -439,7 +470,7 @@ static Signal decimalpart(Signal x)
 
 static Signal phasor(Signal f)
 {
-    return sigRecursion(decimalpart(sigAdd(sigSelf(), sigDiv(f, getSampleRate()))));
+    return sigRecursion(decimalpart(sigAdd(sigSelf(), sigDiv(f, SR()))));
 }
 
 static void test17()
@@ -727,6 +758,8 @@ int main(int argc, char* argv[])
     test8();
     test9();
     test10();
+    test10bis();
+    test10ter();
     test11();
     test12();
     test13();
@@ -747,7 +780,7 @@ int main(int argc, char* argv[])
     
     // Test with audio, GUI, MIDI and Interp backend
     test24(argc, argv);
-    
+
     return 0;
 }
 

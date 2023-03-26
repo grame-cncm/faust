@@ -2,9 +2,9 @@
 
 import("math.lib");
 
-my_isnan = ffunction(int isnanf|isnan|isnanl (float),<math.h>,"");
-my_isinf = ffunction(int isinff|isinf|isinfl (float),<math.h>,"");
-my_copysign = ffunction(float copysignf|copysign|copysignl (float, float),<math.h>,"");
+my_isnan = ffunction(int isnanf|isnan|isnanl|isnanfx(float),<math.h>,"");
+my_isinf = ffunction(int isinff|isinf|isinfl|isinffx(float),<math.h>,"");
+my_copysign = ffunction(float copysignf|copysign|copysignl|copysignfx(float, float),<math.h>,"");
 
 process = ((2.0', 2', 2.0, 2) : par( i, 4, ^(30))),
         my_isnan,

@@ -151,7 +151,7 @@ static interval arithmetic(int opcode, const interval& x, const interval& y)
 }
 
 // Uncomment to activate type inferrence tracing
-//#define TRACE(x) x
+// #define TRACE(x) x
 
 #define TRACE(x) \
     {            \
@@ -173,8 +173,8 @@ static interval arithmetic(int opcode, const interval& x, const interval& y)
  * @param inter if set to false, the interval of the new type is the union of the old one and the computed one,
  * otherwise it is the intersection
  */
-static void updateRecTypes(vector<Tree>& vrec, const vector<Tree>& vdef, const vector<int>& vdefSizes, vector<Type>& vtype,
-                         const bool inter)
+static void updateRecTypes(vector<Tree>& vrec, const vector<Tree>& vdef, const vector<int>& vdefSizes,
+                           vector<Type>& vtype, const bool inter)
 {
     Type         newType;
     vector<Type> newTuplet;
@@ -381,9 +381,11 @@ static Type getSigType(Tree sig)
 {
     AudioType* ty = (AudioType*)sig->getType();
     if (ty == nullptr) {
-        TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << ppsig(sig, MAX_ERROR_SIZE) << " HAS NO TYPE YET" << endl;)
+        TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << ppsig(sig, MAX_ERROR_SIZE) << " HAS NO TYPE YET"
+                   << endl;)
     } else {
-        TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << ppsig(sig, MAX_ERROR_SIZE) << " IS TYPE " << *ty << endl;)
+        TRACE(cerr << gGlobal->TABBER << "GET FIX TYPE OF " << ppsig(sig, MAX_ERROR_SIZE) << " IS TYPE " << *ty
+                   << endl;)
     }
     return ty;
 }
@@ -444,11 +446,11 @@ static void checkPartInterval(Tree s, Type t)
  */
 static Type infereSigType(Tree sig, Tree env)
 {
-    int    i;
+    int     i;
     int64_t i64;
-    double r;
-    Tree   sel, s1, s2, s3, ff, id, ls, l, x, y, z, part, u, var, body, type, name, file, sf;
-    Tree   label, cur, min, max, step;
+    double  r;
+    Tree    sel, s1, s2, s3, ff, id, ls, l, x, y, z, part, u, var, body, type, name, file, sf;
+    Tree    label, cur, min, max, step;
 
     gGlobal->gCountInferences++;
 
@@ -459,7 +461,7 @@ static Type infereSigType(Tree sig, Tree env)
         Type t = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval(i));
         /*sig->setType(t);*/ return t;
     }
-    
+
     else if (isSigInt64(sig, &i64)) {
         Type t = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval(i));
         /*sig->setType(t);*/ return t;
@@ -528,11 +530,11 @@ static Type infereSigType(Tree sig, Tree env)
         // cerr <<"type rule for : " << ppsig(sig) << " -> " << *t3 << endl;
 
         if (i == kDiv) {
-            return floatCast(t3);   // division always result in a float even with int arguments
+            return floatCast(t3);  // division always result in a float even with int arguments
         } else if ((i >= kGT) && (i <= kNE)) {
-            return boolCast(t3);    // comparison always result in a boolean int
+            return boolCast(t3);  // comparison always result in a boolean int
         } else if (((i >= kLsh) && (i <= kLRsh)) || ((i >= kAND) && (i <= kXOR))) {
-            return intCast(t3);     // boolean and logical operators always result in an int
+            return intCast(t3);  // boolean and logical operators always result in an int
         } else {
             return t3;  //  otherwise most general of t1 and t2
         }
@@ -777,7 +779,7 @@ static Type infereWriteTableType(Type tbl, Type wi, Type ws)
     int      v   = wi->variability() | ws->variability();
     int      c   = wi->computability() | ws->computability();
     int      vec = wi->vectorability() | ws->vectorability();
-    interval i   = ws->getInterval();
+    interval i   = reunion(ws->getInterval(), tbl->getInterval());
     // return dst << "NR"[nature()] << "KB?S"[variability()] << "CI?E"[computability()] << "VS?TS"[vectorability()]
     //            << "N?B"[boolean()] << " " << fInterval;
 

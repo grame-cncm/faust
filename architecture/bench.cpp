@@ -41,15 +41,15 @@
 using namespace std;
 
 template <typename REAL>
-static pair<double, double> bench(dsp* dsp, const string& name, int run, int buffer_size, bool is_control)
+static void bench(dsp* dsp, const string& name, int run, int buffer_size, bool is_control)
 {
     measure_dsp_real<REAL> mes(dsp, buffer_size, 5., is_control);  // Buffer_size and duration in sec of measure
     for (int i = 0; i < run; i++) {
         mes.measure();
-        cout << name << " : " << mes.getStats() << " MBytes/sec (DSP CPU % : " << (mes.getCPULoad() * 100) << " at " << BENCH_SAMPLE_RATE << " Hz)" << endl;
-        FAUSTBENCH_LOG<double>(mes.getStats());
+        std::pair<double, double> res = mes.getStats();
+        cout << name << " : " << res.first << " MBytes/sec, SD : " << res.second << "% (DSP CPU : " << (mes.getCPULoad() * 100) << "% at 44100 Hz)" << endl;
+        FAUSTBENCH_LOG<double>(res.first);
     }
-    return make_pair(mes.getStats(), mes.getCPULoad());
 }
 
 /******************************************************************************

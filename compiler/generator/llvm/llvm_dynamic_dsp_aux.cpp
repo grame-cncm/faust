@@ -48,7 +48,7 @@
 #include <llvm/MC/SubtargetFeature.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/FormattedStream.h>
-#if LLVM_VERSION_MAJOR >= 17
+#if LLVM_VERSION_MAJOR >= 16
 #include <llvm/TargetParser/Host.h>
 #else
 #include <llvm/Support/Host.h>
@@ -57,9 +57,10 @@
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/TargetSelect.h>
-#include <llvm/Support/Host.h>
 #include <llvm/Transforms/IPO.h>
+#if LLVM_VERSION_MAJOR < 17
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
+#endif
 #include <llvm/Transforms/IPO/AlwaysInliner.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Analysis/TargetLibraryInfo.h>
@@ -431,7 +432,7 @@ bool llvm_dynamic_dsp_factory_aux::writeDSPFactoryToObjectcodeFileAux(const stri
     StringRef CPU = sys::getHostCPUName();
     string Features;
     TargetOptions opt;
-#if LLVM_VERSION_MAJOR >= 17
+#if LLVM_VERSION_MAJOR >= 16
     auto RM = optional<Reloc::Model>();
 #else
     auto RM = Optional<Reloc::Model>();

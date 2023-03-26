@@ -298,7 +298,7 @@ struct global {
     Tree BCOMPLEXITY;  // Node used for memoization purposes
     Tree LETRECBODY;
     Node PROPAGATEPROPERTY;
-
+    
     // Extended math
     xtended* gAbsPrim;
     xtended* gAcosPrim;

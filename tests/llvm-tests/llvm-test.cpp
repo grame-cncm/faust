@@ -37,7 +37,9 @@
 using namespace std;
 
 // To do CPU native compilation
+#ifndef JIT_TARGET
 #define JIT_TARGET ""
+#endif
 
 // To do cross-compilation for a given target
 //#define JIT_TARGET "x86_64-apple-darwin20.6.0:westmere"

@@ -1,4 +1,5 @@
 LIB := $(shell faust --libdir)
+LIB_OPT := /opt/local/lib
 INC := $(shell faust --includedir)
 
 DESTDIR ?=
@@ -9,21 +10,21 @@ prefix := $(DESTDIR)$(PREFIX)
 all: interp-test interp-test-c interp-machine-test
 
 interp-test: interp-test.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 interp-test.cpp -I $(INC) -L/opt/local/lib $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` -o interp-test
+	$(CXX) -std=c++11 -O3 interp-test.cpp -I $(INC) -L$(LIB) -L$(LIB_OPT) $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` -o interp-test
 
 # To test the Interp/MIR backend with static libfaust
 interp-test1: interp-test.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 interp-test.cpp -I $(INC) $(LIB)/libfaust.a /usr/local/lib/libmir.a -o interp-test1
+	$(CXX) -std=c++11 -O3 interp-test.cpp -I $(INC) -L$(LIB_OPT) $(LIB)/libfaust.a $(LIB)/libmir.a -o interp-test1
 
 # To test the Interp/MIR backend with dynamic libfaust
 interp-test2: interp-test.cpp
-	$(CXX) -std=c++11 -O3 interp-test.cpp -I $(INC) -lfaust -o interp-test2
+	$(CXX) -std=c++11 -O3 interp-test.cpp -I $(INC) -L$(LIB) -lfaust -o interp-test2
 
 interp-test-c: interp-test.c $(LIB)/libfaust.a
-	$(CXX) -O3 interp-test.c -I $(INC) -L/opt/local/lib $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` -o interp-test-c
+	$(CXX) -O3 interp-test.c -I $(INC) -L$(LIB) -L$(LIB_OPT) $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` -o interp-test-c
 
 interp-machine-test: interp-machine-test.cpp $(LIB)/libfaustmachine.a foo.fbc
-	$(CXX) -std=c++11 -O3 interp-machine-test.cpp -I $(INC) $(LIB)/libfaustmachine.a -o interp-machine-test
+	$(CXX) -std=c++11 -O3 interp-machine-test.cpp -I $(INC) -L$(LIB_OPT) $(LIB)/libfaustmachine.a -o interp-machine-test
 
 foo.fbc:
 	faust -lang interp foo.dsp -o foo.fbc

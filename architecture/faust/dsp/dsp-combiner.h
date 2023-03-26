@@ -654,9 +654,9 @@ static dsp* createDSPRecursiver(dsp* dsp1, dsp* dsp2,
 }
 
 static dsp* createDSPCrossfader(dsp* dsp1, dsp* dsp2,
-                                 std::string& error,
-                                 Layout layout = Layout::kTabGroup,
-                                 const std::string& label = "Crossfade")
+                                std::string& error,
+                                Layout layout = Layout::kTabGroup,
+                                const std::string& label = "Crossfade")
 {
     if (dsp1->getNumInputs() != dsp2->getNumInputs()) {
         std::stringstream error_aux;
