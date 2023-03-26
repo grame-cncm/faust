@@ -52,7 +52,6 @@ endif()
 
 #######################################
 # libsndfile
-set(LAME_LIB_DIR "")
 if (WIN32)
 	if (NOT DEFINED LIBSNDFILE)
 		set (LIBSNDFILE "C:/Program Files/Mega-Nerd/libsndfile")
@@ -60,24 +59,22 @@ if (WIN32)
 	set (SNDFILE_LIBRARIES ${LIBSNDFILE}/lib/sndfile.lib)
 	set (SNDFILE_INCLUDE_DIRS ${LIBSNDFILE}/include)
 else()
-	if(CMAKE_OSX_ARCHITECTURES MATCHES "arm64")
-		find_package(PkgConfig REQUIRED)
-		set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
-		list(APPEND PKG_CONFIG_EXECUTABLE "--static")  # append temporarily
-		pkg_check_modules(SNDFILE REQUIRED IMPORTED_TARGET sndfile)
-		pkg_check_modules(FLAC REQUIRED IMPORTED_TARGET flac)
-		pkg_check_modules(VORBIS REQUIRED IMPORTED_TARGET vorbis)
-		pkg_check_modules(OGG REQUIRED IMPORTED_TARGET ogg)
-		pkg_check_modules(OPUS REQUIRED IMPORTED_TARGET opus)
-		pkg_check_modules(MPG123 REQUIRED IMPORTED_TARGET libmpg123)
-		list(POP_BACK PKG_CONFIG_EXECUTABLE)  # undo the append above
+	# We expect the user to have built libsndfile as a static lib
+	# and for it to be accessible via `pkg-config --static libsndfile`
+	set(SNDFILE_IS_STATIC 1)
+	find_package(PkgConfig REQUIRED)
+	set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+	list(APPEND PKG_CONFIG_EXECUTABLE "--static")  # append temporarily
+	pkg_check_modules(SNDFILE REQUIRED IMPORTED_TARGET sndfile)
+	pkg_check_modules(FLAC REQUIRED IMPORTED_TARGET flac)
+	pkg_check_modules(VORBIS REQUIRED IMPORTED_TARGET vorbis)
+	pkg_check_modules(OGG REQUIRED IMPORTED_TARGET ogg)
+	pkg_check_modules(OPUS REQUIRED IMPORTED_TARGET opus)
+	pkg_check_modules(MPG123 REQUIRED IMPORTED_TARGET libmpg123)
+	list(POP_BACK PKG_CONFIG_EXECUTABLE)  # undo the append above
 
-		# need lame due to brew's lame not having a .pc file
-		set(LAME_LIB_DIR ${LAME_DIR}/lib)
-	else()
-		set (SNDFILE_INCLUDE_DIRS ${ROOT}/MacOS/sndfile)
-		file (GLOB SNDFILE_LIBRARIES MacOS/sndfile/*.a)
-	endif()
+	# need lame due to brew's lame not having a .pc file
+	set(LAME_LIB_DIR ${LAME_DIR}/lib)
 
 endif()
 
@@ -112,7 +109,7 @@ endif()
 ####################################
 add_library(faustgen MODULE ${ROOT}/src/faustgen~.cpp ${WINSRC} ${DSPLIBS})
 target_include_directories(faustgen PRIVATE ${ROOT}/src/ ${MAXINCL} ${FAUSTINC} ${SNDFILE_INCLUDE_DIRS})
-if (DEFINED LAME_LIB_DIR OR DEFINED SNDFILE_LIBRARY_DIRS)
+if (DEFINED SNDFILE_IS_STATIC)
 target_link_directories(faustgen PRIVATE ${LAME_LIB_DIR})
 target_link_libraries (faustgen ${FAUSTLIBS} ${MAXLIBS} PkgConfig::SNDFILE PkgConfig::FLAC PkgConfig::VORBIS PkgConfig::OGG PkgConfig::OPUS PkgConfig::MPG123 ${LLVM_LD_FLAGS} ${LLVM_LIBS} )
 else()
