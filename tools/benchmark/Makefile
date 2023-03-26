@@ -75,7 +75,7 @@ faust-osc-controller: faust-osc-controller.cpp
 	$(CXX) $(COMPILEOPT) $(ARCHS) faust-osc-controller.cpp -I $(INC) `pkg-config --cflags --libs gtk+-3.0 gtkmm-3.0` $(STRIP) $(LIB)/libOSCFaust.a -llo -o $@
 
 interp-tracer: interp-tracer.cpp $(LIB)/libfaust.a
-	$(CXX) $(COMPILEOPT) $(ARCHS) interp-tracer.cpp $(LIBS) -I $(INC) $(LLVM) $(STRIP) -lz -lncurses -lpthread -o $@
+	$(CXX) $(COMPILEOPT) $(ARCHS) interp-tracer.cpp -L $(LIB_FLAGS) $(LIBS) -I $(INC) $(LLVM) $(STRIP) -lz -lncurses -lpthread -o $@
 
 signal-tester: signal-tester.cpp $(LIB)/libfaust.a
 	$(CXX) $(COMPILEOPT) $(ARCHS) signal-tester.cpp -L $(LIB_FLAGS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs jack gtk+-3.0 gtkmm-3.0` $(STRIP) -lz -lncurses -lpthread -o $@
