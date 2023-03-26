@@ -23,8 +23,7 @@ endif
 ARCHS   ?=
 # ARCHS   ?= -arch x86_64
 
-LAME_LD_FLAGS ?= 
-
+LAME_STATIC_LIBS ?= 
 COMPILEOPT  := -std=c++11 -O3 -Wall
 COMPILEOPT1 := -O3 -Wall
 COMMLIBS	:= $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a -lpthread $(shell pkg-config --libs libmicrohttpd)
@@ -59,16 +58,16 @@ dynamic-faust: dynamic-faust.cpp $(LIB)/libfaust.a
 	$(CXX) $(COMPILEOPT) $(ARCHS) dynamic-faust.cpp -L/opt/local/lib $(LIBS) -I $(INC) $(LLVM) $(STRIP) -lpthread -o $@
 
 dynamic-jack-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
-	$(CXX) -DJACK $(COMPILEOPT) $(ARCHS) dynamic-jack-gtk.cpp -L/opt/local/lib $(LAME_LD_FLAGS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate jack gtk+-3.0 gtkmm-3.0` `pkg-config --cflags --libs --static sndfile flac vorbis ogg opus libmpg123` $(STRIP) $(COMMLIBS) -o $@
+	$(CXX) -DJACK $(COMPILEOPT) $(ARCHS) dynamic-jack-gtk.cpp -L/opt/local/lib $(LAME_STATIC_LIBS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate jack gtk+-3.0 gtkmm-3.0` `pkg-config --cflags --libs --static sndfile flac vorbis ogg opus libmpg123` $(STRIP) $(COMMLIBS) -o $@
 
 dynamic-machine-jack-gtk: dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a
-	$(CXX) $(COMPILEOPT) $(ARCHS) dynamic-machine-jack-gtk.cpp -L/opt/local/lib $(LAME_LD_FLAGS) $(LIB)/libfaustmachine.a /usr/local/lib/libmir.a -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate jack gtk+-3.0 gtkmm-3.0` `pkg-config --cflags --libs --static sndfile flac vorbis ogg opus libmpg123` $(STRIP) $(COMMLIBS) -o $@
+	$(CXX) $(COMPILEOPT) $(ARCHS) dynamic-machine-jack-gtk.cpp -L/opt/local/lib $(LAME_STATIC_LIBS) $(LIB)/libfaustmachine.a /usr/local/lib/libmir.a -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate jack gtk+-3.0 gtkmm-3.0` `pkg-config --cflags --libs --static sndfile flac vorbis ogg opus libmpg123` $(STRIP) $(COMMLIBS) -o $@
 
 dynamic-coreaudio-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
-	$(CXX) $(COMPILEOPT) $(ARCHS) dynamic-jack-gtk.cpp -L/opt/local/lib $(LAME_LD_FLAGS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate gtk+-3.0 gtkmm-3.0` `pkg-config --cflags --libs --static sndfile flac vorbis ogg opus libmpg123` $(STRIP) $(COMMLIBS) $(MACOSLIBS) -o $@
+	$(CXX) $(COMPILEOPT) $(ARCHS) dynamic-jack-gtk.cpp -L/opt/local/lib $(LAME_STATIC_LIBS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate gtk+-3.0 gtkmm-3.0` `pkg-config --cflags --libs --static sndfile flac vorbis ogg opus libmpg123` $(STRIP) $(COMMLIBS) $(MACOSLIBS) -o $@
 
 poly-dynamic-jack-gtk: poly-dynamic-jack-gtk.cpp $(LIB)/libfaust.a
-	$(CXX) $(COMPILEOPT) $(ARCHS) poly-dynamic-jack-gtk.cpp -L/opt/local/lib $(LAME_LD_FLAGS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs jack gtk+-3.0 gtkmm-3.0 samplerate` `pkg-config --cflags --libs --static sndfile flac vorbis ogg opus libmpg123` $(STRIP) -lz -lncurses -lpthread $(COMMLIBS) $(MACOSLIBS) -o $@
+	$(CXX) $(COMPILEOPT) $(ARCHS) poly-dynamic-jack-gtk.cpp -L/opt/local/lib $(LAME_STATIC_LIBS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs jack gtk+-3.0 gtkmm-3.0 samplerate` `pkg-config --cflags --libs --static sndfile flac vorbis ogg opus libmpg123` $(STRIP) -lz -lncurses -lpthread $(COMMLIBS) $(MACOSLIBS) -o $@
 
 faust-osc-controller: faust-osc-controller.cpp
 	$(CXX) $(COMPILEOPT) $(ARCHS) faust-osc-controller.cpp -I $(INC) `pkg-config --cflags --libs gtk+-3.0 gtkmm-3.0` $(STRIP) $(LIB)/libOSCFaust.a -llo -o $@
