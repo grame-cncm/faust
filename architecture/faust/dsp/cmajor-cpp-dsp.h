@@ -110,39 +110,44 @@ class cmajor_cpp_dsp : public dsp {
                     std::string name = it["endpointID"].getWithDefault("");
                     uint32_t index = fDSP.getEndpointHandleForName(name);
                     if (startWith(name, "eventfCheckbox")) {
-                        ui_interface->addCheckButton(name.c_str(), &fInputsZoneMap[ins]);
+                        std::string label = it["annotation"]["name"].toString();
+                        ui_interface->addCheckButton(label.c_str(), &fInputsZoneMap[ins]);
                         fInputsZoneMap[ins] = 0;
                         fZoneFunMap[&fInputsZoneMap[ins]] = [=](FAUSTFLOAT value) { fDSP.addEvent(index, 0, &value); };
                         ins++;
                     } else if (startWith(name, "eventfButton")) {
-                        ui_interface->addButton(name.c_str(), &fInputsZoneMap[ins]);
+                        std::string label = it["annotation"]["name"].toString();
+                        ui_interface->addButton(label.c_str(), &fInputsZoneMap[ins]);
                         fInputsZoneMap[ins] = 0;
                         fZoneFunMap[&fInputsZoneMap[ins]] = [=](FAUSTFLOAT value) { fDSP.addEvent(index, 0, &value); };
                         ins++;
                     } else if (startWith(name, "eventfHslider")) {
+                        std::string label = it["annotation"]["name"].toString();
                         FAUSTFLOAT min_v = it["annotation"]["min"].getWithDefault<FAUSTFLOAT>(0);
                         FAUSTFLOAT max_v = it["annotation"]["max"].getWithDefault<FAUSTFLOAT>(0);
                         FAUSTFLOAT init = it["annotation"]["init"].getWithDefault<FAUSTFLOAT>(0);
                         FAUSTFLOAT step = it["annotation"]["step"].getWithDefault<FAUSTFLOAT>(0);
-                        ui_interface->addHorizontalSlider(name.c_str(), &fInputsZoneMap[ins], init, min_v, max_v, step);
+                        ui_interface->addHorizontalSlider(label.c_str(), &fInputsZoneMap[ins], init, min_v, max_v, step);
                         fInputsZoneMap[ins] = init;
                         fZoneFunMap[&fInputsZoneMap[ins]] = [=](FAUSTFLOAT value) { fDSP.addEvent(index, 0, &value); };
                         ins++;
                     } else if (startWith(name, "eventfVslider")) {
+                        std::string label = it["annotation"]["name"].toString();
                         FAUSTFLOAT min_v = it["annotation"]["min"].getWithDefault<FAUSTFLOAT>(0);
                         FAUSTFLOAT max_v = it["annotation"]["max"].getWithDefault<FAUSTFLOAT>(0);
                         FAUSTFLOAT init = it["annotation"]["init"].getWithDefault<FAUSTFLOAT>(0);
                         FAUSTFLOAT step = it["annotation"]["step"].getWithDefault<FAUSTFLOAT>(0);
-                        ui_interface->addVerticalSlider(name.c_str(), &fInputsZoneMap[ins], init, min_v, max_v, step);
+                        ui_interface->addVerticalSlider(label.c_str(), &fInputsZoneMap[ins], init, min_v, max_v, step);
                         fInputsZoneMap[ins] = init;
                         fZoneFunMap[&fInputsZoneMap[ins]] = [=](FAUSTFLOAT value) { fDSP.addEvent(index, 0, &value); };
                         ins++;
                     } else if (startWith(name, "eventfEntry")) {
+                        std::string label = it["annotation"]["name"].toString();
                         FAUSTFLOAT min_v = it["annotation"]["min"].getWithDefault<FAUSTFLOAT>(0);
                         FAUSTFLOAT max_v = it["annotation"]["max"].getWithDefault<FAUSTFLOAT>(0);
                         FAUSTFLOAT init = it["annotation"]["init"].getWithDefault<FAUSTFLOAT>(0);
                         FAUSTFLOAT step = it["annotation"]["step"].getWithDefault<FAUSTFLOAT>(0);
-                        ui_interface->addNumEntry(name.c_str(), &fInputsZoneMap[ins], init, min_v, max_v, step);
+                        ui_interface->addNumEntry(label.c_str(), &fInputsZoneMap[ins], init, min_v, max_v, step);
                         fInputsZoneMap[ins] = init;
                         fZoneFunMap[&fInputsZoneMap[ins]] = [=](FAUSTFLOAT value) { fDSP.addEvent(index, 0, &value); };
                         ins++;
@@ -156,15 +161,17 @@ class cmajor_cpp_dsp : public dsp {
                     std::string name = it["endpointID"].getWithDefault("");
                     uint32_t index = fDSP.getEndpointHandleForName(name);
                     if (startWith(name, "eventfVbargraph")) {
+                        std::string label = it["annotation"]["name"].toString();
                         FAUSTFLOAT min_v = it["annotation"]["min"].getWithDefault<FAUSTFLOAT>(0);
                         FAUSTFLOAT max_v = it["annotation"]["max"].getWithDefault<FAUSTFLOAT>(0);
-                        ui_interface->addHorizontalBargraph(name.c_str(), &fOutputsZoneMap[outs], min_v, max_v);
+                        ui_interface->addHorizontalBargraph(label.c_str(), &fOutputsZoneMap[outs], min_v, max_v);
                         fOutputsZoneMap[outs] = 0;
                         outs++;
                     } else if (startWith(name, "eventfHbargraph")) {
+                        std::string label = it["annotation"]["name"].toString();
                         FAUSTFLOAT min_v = it["annotation"]["min"].getWithDefault<FAUSTFLOAT>(0);
                         FAUSTFLOAT max_v = it["annotation"]["max"].getWithDefault<FAUSTFLOAT>(0);
-                        ui_interface->addVerticalBargraph(name.c_str(), &fOutputsZoneMap[outs], min_v, max_v);
+                        ui_interface->addVerticalBargraph(label.c_str(), &fOutputsZoneMap[outs], min_v, max_v);
                         fOutputsZoneMap[outs] = 0;
                         outs++;
                     }

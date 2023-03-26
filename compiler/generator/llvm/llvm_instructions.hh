@@ -45,7 +45,7 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/Support/raw_ostream.h>
-#if LLVM_VERSION_MAJOR >= 17
+#if LLVM_VERSION_MAJOR >= 16
 #include <llvm/TargetParser/Host.h>
 #else
 #include <llvm/Support/Host.h>
@@ -93,7 +93,7 @@
 #define MakeConstGEP32(type, llvm_name) fBuilder->CreateConstGEP2_32(type, llvm_name, 0, 0);
 #define MakeIntPtrType() fModule->getDataLayout().getIntPtrType(fModule->getContext())
 
-#if LLVM_VERSION_MAJOR >= 17
+#if LLVM_VERSION_MAJOR >= 16
 #define CreateFuncall(fun, args) fBuilder->CreateCall(fun, llvm::ArrayRef<LLVMValue>(args))
 #else
 #define CreateFuncall(fun, args) fBuilder->CreateCall(fun, makeArrayRef(args))
@@ -224,7 +224,7 @@ struct LLVMTypeHelper {
         if (!struct_type) {
             struct_type = llvm::StructType::create(fModule->getContext(), name);
             // Create "packed" struct type to match the size of C++ "packed" defined ones
-        #if LLVM_VERSION_MAJOR >= 17
+        #if LLVM_VERSION_MAJOR >= 16
             struct_type->setBody(llvm::ArrayRef<LLVMType>(types), true);
         #else
              struct_type->setBody(makeArrayRef(types), true);
@@ -530,7 +530,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
 
             // Creates function
-        #if LLVM_VERSION_MAJOR >= 17
+        #if LLVM_VERSION_MAJOR >= 16
             llvm::FunctionType* fun_type = llvm::FunctionType::get(return_type, llvm::ArrayRef<LLVMType>(fun_args_type), false);
         #else
             llvm::FunctionType* fun_type = llvm::FunctionType::get(return_type, makeArrayRef(fun_args_type), false);

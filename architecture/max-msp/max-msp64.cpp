@@ -142,7 +142,7 @@ using namespace std;
 #define ASSIST_INLET 	1
 #define ASSIST_OUTLET 	2
 
-#define EXTERNAL_VERSION    "0.86"
+#define EXTERNAL_VERSION    "0.87"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -200,7 +200,8 @@ void faust_allocate(t_faust* x, int nvoices)
 {
     // Delete old
     delete x->m_dsp;
-    x->m_dspUI->clear();
+    delete x->m_dspUI;
+    x->m_dspUI = new mspUI();
     
     if (nvoices > 0) {
     #ifdef POST
@@ -441,7 +442,8 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     delete tmp_dsp;
     
     x->m_savedUI = new SaveLabelUI();
-    x->m_dspUI = new mspUI();
+    // allocation is done in faust_allocate
+    x->m_dspUI = NULL;
     x->m_dsp = NULL;
     x->m_json = NULL;
     x->m_mute = false;

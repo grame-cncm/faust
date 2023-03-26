@@ -2,8 +2,6 @@
 # FAUST compiler makefile
 #
 
-VERSION := 2.58.11
-
 ARCHS ?= 
 LLVM ?= 
 
@@ -32,6 +30,7 @@ system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo 
 # output directories
 FAUSTDIR ?= faustdir
 IOSDIR   := iosdir
+VERSION := 2.58.13
 
 #===============================================================
 # current generator and backends

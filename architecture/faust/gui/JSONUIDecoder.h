@@ -39,6 +39,9 @@
 #ifdef _WIN32
 #include <windows.h>
 #define snprintf _snprintf
+#define STRDUP _strdup
+#else
+#define STRDUP strdup
 #endif
 
 //------------------------------------------------------------------------------------------
@@ -316,7 +319,7 @@ struct FAUST_API JSONUIDecoderReal : public JSONUIDecoderBase {
         // MANDATORY: to be sure floats or double are correctly parsed
         char* tmp_local = setlocale(LC_ALL, nullptr);
         if (tmp_local != NULL) {
-            tmp_local = strdup(tmp_local);
+            tmp_local = STRDUP(tmp_local);
         }
         setlocale(LC_ALL, "C");
         
@@ -397,7 +400,7 @@ struct FAUST_API JSONUIDecoderReal : public JSONUIDecoderBase {
         // MANDATORY: to be sure floats or double are correctly parsed
         char* tmp_local = setlocale(LC_ALL, nullptr);
         if (tmp_local != NULL) {
-            tmp_local = strdup(tmp_local);
+            tmp_local = STRDUP(tmp_local);
         }
         setlocale(LC_ALL, "C");
         
@@ -467,7 +470,7 @@ struct FAUST_API JSONUIDecoderReal : public JSONUIDecoderBase {
         // MANDATORY: to be sure floats or double are correctly parsed
         char* tmp_local = setlocale(LC_ALL, nullptr);
         if (tmp_local != NULL) {
-            tmp_local = strdup(tmp_local);
+            tmp_local = STRDUP(tmp_local);
         }
         setlocale(LC_ALL, "C");
         

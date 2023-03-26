@@ -57,7 +57,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
     {
         LLVMPtrType string_ptr = llvm::PointerType::get(fBuilder->getInt8Ty(), 0);
         LLVMVecTypes getJSON_args;
-    #if LLVM_VERSION_MAJOR >= 17
+    #if LLVM_VERSION_MAJOR >= 16
         llvm::FunctionType* getJSON_type = llvm::FunctionType::get(string_ptr, llvm::ArrayRef<LLVMType>(getJSON_args), false);
     #else
         llvm::FunctionType* getJSON_type = llvm::FunctionType::get(string_ptr, makeArrayRef(getJSON_args), false);
