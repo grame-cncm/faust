@@ -100,7 +100,11 @@ else ()
 			set_pkg_config_path ()
 			message(STATUS "Using MSYS PKG_CONFIG_PATH $ENV{PKG_CONFIG_PATH}")
 		endif()
-		pkg_search_module(LMHD libmicrohttpd)
+		set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+		list(APPEND PKG_CONFIG_EXECUTABLE "--static")  # append temporarily
+		pkg_check_modules(LMHD REQUIRED IMPORTED_TARGET libmicrohttpd)
+		list(POP_BACK PKG_CONFIG_EXECUTABLE)  # undo the append above
+
 		if (${LMHD_FOUND})
 			foreach (A ${LMHD_CFLAGS})
 				set(LIBMICROHTTPD__CFLAGS "${LIBMICROHTTPD__CFLAGS} ${A}")
@@ -144,6 +148,7 @@ if (INCLUDE_HTTP)
 		endif()
 		target_link_libraries(httpstatic  ws2_32 ${LMHLIB})
 	else()
+		target_link_libraries(httpstatic  ws2_32 PkgConfig::LMHD)
 		set_target_properties (httpstatic PROPERTIES 
 			OUTPUT_NAME ${TARGET}
 			COMPILE_FLAGS  "${LIBMICROHTTPD__CFLAGS}"
@@ -165,10 +170,7 @@ if (HTTPDYNAMIC)
 	elseif(MSYS)
 		target_link_libraries (httpdynamic ${LIBMICROHTTPD__LDFLAGS})
 	else()
-		target_link_libraries (httpdynamic microhttpd)
-		set_target_properties (httpdynamic PROPERTIES 
-			COMPILE_FLAGS  "${LIBMICROHTTPD__CFLAGS}"
-			LINK_FLAGS     "${LIBMICROHTTPD__LDFLAGS}")
+		target_link_libraries (httpdynamic PkgConfig::LMHD)
 	endif()
 
 endif()

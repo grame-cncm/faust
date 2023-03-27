@@ -122,7 +122,7 @@ jobs:
       # todo: should we bother with brew update?
       run: |
         brew update
-        PACKAGES=(gtk+3 gtkmm3 qt@5 lame flac libogg libtool libvorbis opus mpg123 libmicrohttpd)
+        PACKAGES=(gtk+3 gtkmm3 qt@5 lame flac libogg libtool libvorbis opus mpg123)
         DEPS=($(brew deps --union --topological $(echo $PACKAGES) | tr '\n' ' '))
         PACKAGES=("${DEPS[@]}" "${PACKAGES[@]}")
         export HOMEBREW_NO_INSTALL_CLEANUP=1
@@ -142,7 +142,7 @@ jobs:
 
     - name: Brew install requirements (x64)
       if: ${{ endsWith( matrix.name, 'x64') }}
-      run: brew install pkg-config gtk+3 gtkmm3 qt@5 lame flac libogg libtool libvorbis opus mpg123 libmicrohttpd
+      run: brew install pkg-config gtk+3 gtkmm3 qt@5 lame flac libogg libtool libvorbis opus mpg123
 
     - name: Download LLVM
       run: |
@@ -188,10 +188,20 @@ jobs:
         repository: grame-cncm/faustlive
         path: faustlive
 
+    - name: Build libmicrohttpd
+      run: |
+        brew uninstall --ignore-dependencies libmicrohttpd || true
+        curl -L https://mirrors.sarata.com/gnu/libmicrohttpd/libmicrohttpd-0.9.76.tar.gz -o libmicrohttpd-0.9.76.tar.gz
+        tar -xvf libmicrohttpd-0.9.76.tar.gz
+        mv libmicrohttpd-0.9.76 libmicrohttpd
+        cd libmicrohttpd
+        ./configure  --enable-https=no --prefix=$PWD/libmicrohttpd CC="gcc ${{matrix.ARCHS}}" CXX="g++ ${{matrix.ARCHS}}" CPP="gcc -E" CXXCPP="g++ -E"
+        make && make install
+
     - name: Build everything
       # todo: do we need to specify the qt@5 path for PKG_CONFIG_PATH?
       run: |
-        export PKG_CONFIG_PATH="/usr/local/opt/qt@5/lib/pkgconfig:$PWD/libsndfile/install/lib/pkgconfig"
+        export PKG_CONFIG_PATH="/usr/local/opt/qt@5/lib/pkgconfig:$PWD/libsndfile/install/lib/pkgconfig:$PWD/libmicrohttpd/libmicrohttpd/lib/pkgconfig"
         export LLVM_DIR=$PWD/llvm/lib/cmake/llvm
         export LLVM_LIB_DIR=$PWD/llvm/lib
         export LLVM_INCLUDE_DIRS=$PWD/llvm/include
