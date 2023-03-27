@@ -104,13 +104,13 @@ jobs:
             llvm-url: https://github.com/DBraun/TD-Faust/releases/download/llvm-15.0.7-macos/llvm-15.0.7-macos10.15-arm64.zip
             ARCHS: "-arch arm64"
             CMAKE_OSX_ARCHITECTURES: arm64
-            HOST: aarch64
+            HOST: aarch64-apple-darwin
           - name: x64
             os: macos-11
             llvm-url: https://github.com/DBraun/TD-Faust/releases/download/llvm-15.0.7-macos10.15-x86_64/llvm-15.0.7-macos10.15-x86_64.zip
             ARCHS: "-arch x86_64"
             CMAKE_OSX_ARCHITECTURES: x86_64
-            HOST: x86_64
+            HOST: x86_64-apple-darwin
 
     runs-on: ${{ matrix.os }}
 
