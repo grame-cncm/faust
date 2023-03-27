@@ -102,7 +102,7 @@ else ()
 		endif()
 		set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
 		list(APPEND PKG_CONFIG_EXECUTABLE "--static")  # append temporarily
-		pkg_check_modules(LMHD REQUIRED IMPORTED_TARGET libmicrohttpd)
+		pkg_check_modules(LMHD IMPORTED_TARGET libmicrohttpd)
 		list(POP_BACK PKG_CONFIG_EXECUTABLE)  # undo the append above
 
 		if (${LMHD_FOUND})

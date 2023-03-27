@@ -104,11 +104,13 @@ jobs:
             llvm-url: https://github.com/DBraun/TD-Faust/releases/download/llvm-15.0.7-macos/llvm-15.0.7-macos10.15-arm64.zip
             ARCHS: "-arch arm64"
             CMAKE_OSX_ARCHITECTURES: arm64
+            HOST: aarch64
           - name: x64
             os: macos-11
             llvm-url: https://github.com/DBraun/TD-Faust/releases/download/llvm-15.0.7-macos10.15-x86_64/llvm-15.0.7-macos10.15-x86_64.zip
             ARCHS: "-arch x86_64"
             CMAKE_OSX_ARCHITECTURES: x86_64
+            HOST: x86_64
 
     runs-on: ${{ matrix.os }}
 
@@ -116,6 +118,15 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: true
+
+    - name: Build libmicrohttpd
+      run: |
+        curl -L https://mirrors.sarata.com/gnu/libmicrohttpd/libmicrohttpd-0.9.76.tar.gz -o libmicrohttpd-0.9.76.tar.gz
+        tar -xvf libmicrohttpd-0.9.76.tar.gz
+        mv libmicrohttpd-0.9.76 libmicrohttpd
+        cd libmicrohttpd
+        ./configure  --enable-https=no --prefix=$PWD/libmicrohttpd --host=${{matrix.HOST}}
+        make && make install
 
     - name: Brew install requirements (arm64)
       if: ${{ endsWith( matrix.name, 'arm64') }}
@@ -187,16 +198,6 @@ jobs:
       with:
         repository: grame-cncm/faustlive
         path: faustlive
-
-    - name: Build libmicrohttpd
-      run: |
-        brew uninstall --ignore-dependencies libmicrohttpd || true
-        curl -L https://mirrors.sarata.com/gnu/libmicrohttpd/libmicrohttpd-0.9.76.tar.gz -o libmicrohttpd-0.9.76.tar.gz
-        tar -xvf libmicrohttpd-0.9.76.tar.gz
-        mv libmicrohttpd-0.9.76 libmicrohttpd
-        cd libmicrohttpd
-        ./configure  --enable-https=no --prefix=$PWD/libmicrohttpd CC="gcc ${{matrix.ARCHS}}" CXX="g++ ${{matrix.ARCHS}}" CPP="gcc -E" CXXCPP="g++ -E"
-        make && make install
 
     - name: Build everything
       # todo: do we need to specify the qt@5 path for PKG_CONFIG_PATH?
