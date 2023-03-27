@@ -125,7 +125,12 @@ jobs:
         tar -xvf libmicrohttpd-0.9.76.tar.gz
         mv libmicrohttpd-0.9.76 libmicrohttpd
         cd libmicrohttpd
-        ./configure  --enable-https=no --prefix=$PWD/libmicrohttpd --host=${{matrix.HOST}}
+        export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
+        export TARGET=${{matrix.HOST}}
+        export CC=$(xcrun -find -sdk macosx gcc)
+        export CFLAGS="${{matrix.ARCHS}} -target $TARGET -isysroot $SDKROOT"
+        export LDFLAGS="${{matrix.ARCHS}} -target $TARGET -isysroot $SDKROOT"
+        ./configure --enable-https=no --host=$TARGET --prefix=$PWD/libmicrohttpd
         make && make install
 
     - name: Brew install requirements (arm64)
