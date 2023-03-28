@@ -100,10 +100,14 @@ else ()
 			set_pkg_config_path ()
 			message(STATUS "Using MSYS PKG_CONFIG_PATH $ENV{PKG_CONFIG_PATH}")
 		endif()
+		if (BUILD_HTTP_STATIC)
 		set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
 		list(APPEND PKG_CONFIG_EXECUTABLE "--static")  # append temporarily
+		endif()
 		pkg_check_modules(LMHD IMPORTED_TARGET libmicrohttpd)
+		if (BUILD_HTTP_STATIC)
 		list(POP_BACK PKG_CONFIG_EXECUTABLE)  # undo the append above
+		endif()
 
 		if (${LMHD_FOUND})
 			foreach (A ${LMHD_CFLAGS})
