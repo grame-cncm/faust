@@ -212,7 +212,9 @@ package/README.html: ../README.md
 	echo "<!DOCTYPE html><html><xmp>" > package/README.html
 	cat ../README.md >> package/README.html
 	echo "</xmp>" >> package/README.html
-	echo "<script src=http://strapdownjs.com/v/0.2/strapdown.js></script>" >> package/README.html
+	echo "<script type=\"text/javascript\">" >> package/README.html
+	cat package/strapdown.min.js >> package/README.html
+	echo "</script>" >> package/README.html
 	echo "</html>" >> package/README.html
 
 
