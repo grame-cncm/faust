@@ -15,7 +15,9 @@ LIBS = -lwsock32
 EXE = .exe
 endif
 
-LAME_STATIC_LIBS ?= 
+LAME_PRIMARY_PREFIX ?= /usr/local/Cellar/lame
+LAME_BACKUP_PREFIX ?= /opt/homebrew/Cellar/lame
+LAME_STATIC_LIBS ?= $(shell find $(LAME_PRIMARY_PREFIX) -name libmp3lame.a 2>/dev/null || find $(LAME_BACKUP_PREFIX) -name libmp3lame.a 2>/dev/null)
 SNDFILE_STATIC_LIBS = $(shell pkg-config --libs sndfile | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libsndfile.a
 FLAC_STATIC_LIBS = $(shell pkg-config --libs flac | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libflac.a
 OGG_STATIC_LIBS = $(shell pkg-config --libs ogg | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libogg.a

@@ -72,10 +72,6 @@ else()
 	pkg_check_modules(OPUS REQUIRED IMPORTED_TARGET opus)
 	pkg_check_modules(MPG123 REQUIRED IMPORTED_TARGET libmpg123)
 	list(POP_BACK PKG_CONFIG_EXECUTABLE)  # undo the append above
-
-	# need lame due to brew's lame not having a .pc file
-	set(LAME_LIB_DIR ${LAME_DIR}/lib)
-
 endif()
 
 #######################################
@@ -110,7 +106,6 @@ endif()
 add_library(faustgen MODULE ${ROOT}/src/faustgen~.cpp ${WINSRC} ${DSPLIBS})
 target_include_directories(faustgen PRIVATE ${ROOT}/src/ ${MAXINCL} ${FAUSTINC} ${SNDFILE_INCLUDE_DIRS})
 if (DEFINED SNDFILE_IS_STATIC)
-target_link_directories(faustgen PRIVATE ${LAME_LIB_DIR})
 target_link_libraries (faustgen ${FAUSTLIBS} ${MAXLIBS} PkgConfig::SNDFILE PkgConfig::FLAC PkgConfig::VORBIS PkgConfig::OGG PkgConfig::OPUS PkgConfig::MPG123 ${LLVM_LD_FLAGS} ${LLVM_LIBS} )
 else()
 target_link_libraries (faustgen ${FAUSTLIBS} ${MAXLIBS} ${SNDFILE_LIBRARIES} ${LLVM_LD_FLAGS} ${LLVM_LIBS})

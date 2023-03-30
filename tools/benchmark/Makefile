@@ -1,18 +1,20 @@
 STRIP =
 
+version := 2.58.13
+FAUST 	?= faust
 system := $(shell uname -s)
 
-FAUSTDIR	?= $(HOME)/Faust-$(FAUST_VERSION)
 ifeq ($(system), Darwin)
 # We can't execute an arm64 faust executable on a GitHub x86 runner,
 # so we may some strong assumptions about where the include/libs are.
+FAUSTDIR ?= ../../build/package/Faust-$(version)/Faust-$(version)
 LIB 	?= $(FAUSTDIR)/lib
 INC 	:= $(FAUSTDIR)/include
 FARCH 	:= $(FAUSTDIR)/share/faust
 else
-LIB 	?= $(shell $(FAUSTDIR)/bin/faust -libdir)
-INC 	:= $(shell $(FAUSTDIR)/bin/faust -includedir)
-FARCH 	:= $(shell $(FAUSTDIR)/bin/faust -archdir)
+LIB 	?= $(shell $(FAUST) -libdir)
+INC 	:= $(shell $(FAUST) -includedir)
+FARCH 	:= $(shell $(FAUST) -archdir)
 endif
 FASTMATH = $(INC)/faust/dsp/fastmath.cpp
 LIBS 	:= $(LIB)/libfaust.a
@@ -25,7 +27,21 @@ endif
 ARCHS   ?=
 # ARCHS   ?= -arch x86_64
 
-LAME_STATIC_LIBS ?= 
+LAME_PRIMARY_PREFIX ?= /usr/local/Cellar/lame
+LAME_BACKUP_PREFIX ?= /opt/homebrew/Cellar/lame
+LAME_STATIC_LIBS ?= $(shell find $(LAME_PRIMARY_PREFIX) -name libmp3lame.a 2>/dev/null || find $(LAME_BACKUP_PREFIX) -name libmp3lame.a 2>/dev/null)
+SNDFILE_STATIC_LIBS = $(shell pkg-config --libs sndfile | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libsndfile.a
+FLAC_STATIC_LIBS = $(shell pkg-config --libs flac | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libflac.a
+OGG_STATIC_LIBS = $(shell pkg-config --libs ogg | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libogg.a
+VORBIS_STATIC_LIBS = $(shell pkg-config --libs vorbis | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libvorbis.a
+VORBISFILE_STATIC_LIBS = $(shell pkg-config --libs vorbis | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libvorbisfile.a
+VORBISENC_STATIC_LIBS = $(shell pkg-config --libs vorbis | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libvorbisenc.a
+MPG123_STATIC_LIBS = $(shell pkg-config --libs libmpg123 | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libmpg123.a
+OPUS_STATIC_LIBS = $(shell pkg-config --libs opus | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libopus.a
+
+EXTRA_LIBS = $(SNDFILE_STATIC_LIBS) $(FLAC_STATIC_LIBS) $(OGG_STATIC_LIBS) $(VORBIS_STATIC_LIBS) $(VORBISFILE_STATIC_LIBS) $(VORBISENC_STATIC_LIBS) $(MPG123_STATIC_LIBS) $(OPUS_STATIC_LIBS) $(LAME_STATIC_LIBS)
+
+
 COMPILEOPT  := -std=c++11 -O3 -Wall
 COMPILEOPT1 := -O3 -Wall
 COMMLIBS	:= $(LIB)/libOSCFaust.a $(LIB)/libHTTPDFaust.a -lpthread $(shell pkg-config --libs libmicrohttpd)
@@ -54,25 +70,25 @@ faustbench-interp: faustbench-interp.cpp $(LIB)/libfaust.a
 	$(CXX) $(COMPILEOPT) $(ARCHS) faustbench-interp.cpp -L $(LIB_FLAGS) $(LIBS) -I $(INC)  $(LLVM) $(STRIP) -lz -lncurses -lpthread -o $@
 
 faustbench-interp-comp: faustbench-interp-comp.cpp $(LIB)/libfaustmachine.a
-	$(CXX) $(COMPILEOPT) $(ARCHS) faustbench-interp-comp.cpp $(LIB)/libfaustmachine.a /usr/local/lib/libmir.a -I $(INC) $(LLVM) $(STRIP) -lz -lncurses -lpthread -o $@
+	$(CXX) $(COMPILEOPT) $(ARCHS) faustbench-interp-comp.cpp $(LIB)/libfaustmachine.a -I $(INC) $(LLVM) $(STRIP) -lz -lncurses -lpthread -o $@
 
 dynamic-faust: dynamic-faust.cpp $(LIB)/libfaust.a
 	$(CXX) $(COMPILEOPT) $(ARCHS) dynamic-faust.cpp -L $(LIB_FLAGS) $(LIBS) -I $(INC) $(LLVM) $(STRIP) -lpthread -o $@
 
 dynamic-jack-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
-	$(CXX) -DJACK $(COMPILEOPT) $(ARCHS) dynamic-jack-gtk.cpp -L $(LIB_FLAGS) $(LAME_STATIC_LIBS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate jack gtk+-3.0 gtkmm-3.0` `pkg-config --cflags --libs --static sndfile flac vorbis ogg opus libmpg123` $(STRIP) $(COMMLIBS) -o $@
+	$(CXX) -DJACK $(COMPILEOPT) $(ARCHS) dynamic-jack-gtk.cpp -L $(LIB_FLAGS) $(EXTRA_LIBS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate jack gtk+-3.0 gtkmm-3.0` `pkg-config --cflags sndfile` $(STRIP) $(COMMLIBS) -o $@
 
 dynamic-machine-jack-gtk: dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a
-	$(CXX) $(COMPILEOPT) $(ARCHS) dynamic-machine-jack-gtk.cpp -L $(LIB_FLAGS) $(LAME_STATIC_LIBS) $(LIB)/libfaustmachine.a /usr/local/lib/libmir.a -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate jack gtk+-3.0 gtkmm-3.0` `pkg-config --cflags --libs --static sndfile flac vorbis ogg opus libmpg123` $(STRIP) $(COMMLIBS) -o $@
+	$(CXX) $(COMPILEOPT) $(ARCHS) dynamic-machine-jack-gtk.cpp -L $(LIB_FLAGS) $(EXTRA_LIBS) $(LIB)/libfaustmachine.a -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate jack gtk+-3.0 gtkmm-3.0` `pkg-config --cflags sndfile` $(STRIP) $(COMMLIBS) -o $@
 
 dynamic-coreaudio-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
-	$(CXX) $(COMPILEOPT) $(ARCHS) dynamic-jack-gtk.cpp -L $(LIB_FLAGS) $(LAME_STATIC_LIBS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate gtk+-3.0 gtkmm-3.0` `pkg-config --cflags --libs --static sndfile flac vorbis ogg opus libmpg123` $(STRIP) $(COMMLIBS) $(MACOSLIBS) -o $@
+	$(CXX) $(COMPILEOPT) $(ARCHS) dynamic-jack-gtk.cpp -L $(LIB_FLAGS) $(EXTRA_LIBS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate gtk+-3.0 gtkmm-3.0` `pkg-config --cflags sndfile` $(STRIP) $(COMMLIBS) $(MACOSLIBS) -o $@
 
 poly-dynamic-jack-gtk: poly-dynamic-jack-gtk.cpp $(LIB)/libfaust.a
-	$(CXX) $(COMPILEOPT) $(ARCHS) poly-dynamic-jack-gtk.cpp -L $(LIB_FLAGS) $(LAME_STATIC_LIBS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs jack gtk+-3.0 gtkmm-3.0 samplerate` `pkg-config --cflags --libs --static sndfile flac vorbis ogg opus libmpg123` $(STRIP) -lz -lncurses -lpthread $(COMMLIBS) $(MACOSLIBS) -o $@
+	$(CXX) $(COMPILEOPT) $(ARCHS) poly-dynamic-jack-gtk.cpp -L $(LIB_FLAGS) $(EXTRA_LIBS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs jack gtk+-3.0 gtkmm-3.0 samplerate` `pkg-config --cflags sndfile` $(STRIP) -lz -lncurses -lpthread $(COMMLIBS) $(MACOSLIBS) -o $@
 
 faust-osc-controller: faust-osc-controller.cpp
-	$(CXX) $(COMPILEOPT) $(ARCHS) faust-osc-controller.cpp -I $(INC) `pkg-config --cflags --libs gtk+-3.0 gtkmm-3.0` $(STRIP) $(LIB)/libOSCFaust.a -llo -o $@
+	$(CXX) $(COMPILEOPT) $(ARCHS) faust-osc-controller.cpp -I $(INC) `pkg-config --cflags --libs gtk+-3.0 gtkmm-3.0 liblo` $(STRIP) $(LIB)/libOSCFaust.a -llo -o $@
 
 interp-tracer: interp-tracer.cpp $(LIB)/libfaust.a
 	$(CXX) $(COMPILEOPT) $(ARCHS) interp-tracer.cpp -L $(LIB_FLAGS) $(LIBS) -I $(INC) $(LLVM) $(STRIP) -lz -lncurses -lpthread -o $@
