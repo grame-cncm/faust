@@ -115,9 +115,7 @@ class CStringTypeManager : public StringTypeManager {
         } else if (named_typed) {
             return generateType(named_typed->fType) + NamedTyped::AttributeMap[attr] + named_typed->fName;
         } else if (array_typed) {
-            return (array_typed->fSize == 0)
-                ? generateType(array_typed->fType) + fPtrRef
-                : generateType(array_typed->fType) + "[" + std::to_string(array_typed->fSize) + "]";
+            return fTypeDirectTable[array_typed->getType()];
         } else if (struct_typed) {
             std::string res = "typedef struct " + struct_typed->fName + " { ";
             for (const auto& it : struct_typed->fFields) {
