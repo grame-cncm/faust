@@ -21,7 +21,7 @@ TARGETS ?= dynamic-faust faustbench-llvm faustbench-llvm-interp faustbench-inter
 system := $(shell uname -s)
 ifeq ($(system), Darwin)
 	STRIP = -dead_strip
-	TARGETS := $(TARGETS) dynamic-coreaudio-gtk poly-dynamic-jack-gtk dynamic-machine-jack-gtk 
+	TARGETS := $(TARGETS) dynamic-coreaudio-gtk poly-dynamic-jack-gtk 
 endif
 
 all: $(TARGETS)
