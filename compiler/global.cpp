@@ -578,7 +578,7 @@ void global::init()
     // Essential predefined types
     TINPUT = makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval(-1, 1));
     TGUI   = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval());
-    TGUI01 = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval(0, 1));
+    // TGUI01 = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval(0, 1));
 
     TREC = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval(0, 0));
     // !!! TRECMAX Maximal only in the last component of the type lattice
