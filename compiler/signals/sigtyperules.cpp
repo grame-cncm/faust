@@ -458,17 +458,17 @@ static Type infereSigType(Tree sig, Tree env)
         return infereXType(sig, env);
 
     else if (isSigInt(sig, &i)) {
-        Type t = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval(i));
+        Type t = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, gAlgebra.IntNum(i));
         /*sig->setType(t);*/ return t;
     }
 
     else if (isSigInt64(sig, &i64)) {
-        Type t = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval(i));
+        Type t = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, gAlgebra.IntNum(i));
         /*sig->setType(t);*/ return t;
     }
 
     else if (isSigReal(sig, &r)) {
-        Type t = makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval(r));
+        Type t = makeSimpleType(kReal, kKonst, kComp, kVect, kNum, gAlgebra.FloatNum(r));
         /*sig->setType(t);*/ return t;
     }
 
@@ -559,11 +559,13 @@ static Type infereSigType(Tree sig, Tree env)
         return infereFVarType(type);
 
     else if (isSigButton(sig)) { /*sig->setType(TGUI01);*/
-        return gGlobal->TGUI01;
+        return castInterval(gGlobal->TGUI, 
+                            gAlgebra.Button(interval(0,0))); // todo replace the name
     }
 
     else if (isSigCheckbox(sig)) { /*sig->setType(TGUI01);*/
-        return gGlobal->TGUI01;
+        return castInterval(gGlobal->TGUI,
+                            gAlgebra.Checkbox(interval(0,0))); // todo replace the name
     }
 
     else if (isSigVSlider(sig, label, cur, min, max, step)) {
@@ -571,7 +573,12 @@ static Type infereSigType(Tree sig, Tree env)
         Type t2 = T(min, env);
         Type t3 = T(max, env);
         Type t4 = T(step, env);
-        return castInterval(gGlobal->TGUI, interval(tree2float(min), tree2float(max)));
+        return castInterval(gGlobal->TGUI, 
+                gAlgebra.VSlider(interval(0,0), // todo replace the name
+                                t1->getInterval(), 
+                                t2->getInterval(),
+                                t3->getInterval(),
+                                t4->getInterval()));
     }
 
     else if (isSigHSlider(sig, label, cur, min, max, step)) {
@@ -579,7 +586,12 @@ static Type infereSigType(Tree sig, Tree env)
         Type t2 = T(min, env);
         Type t3 = T(max, env);
         Type t4 = T(step, env);
-        return castInterval(gGlobal->TGUI, interval(tree2float(min), tree2float(max)));
+        return castInterval(gGlobal->TGUI, 
+                            gAlgebra.HSlider(interval(0,0), // todo replace the name
+                            t1->getInterval(),
+                            t2->getInterval(),
+                            t3->getInterval(),
+                            t4->getInterval()));
     }
 
     else if (isSigNumEntry(sig, label, cur, min, max, step)) {
@@ -587,7 +599,12 @@ static Type infereSigType(Tree sig, Tree env)
         Type t2 = T(min, env);
         Type t3 = T(max, env);
         Type t4 = T(step, env);
-        return castInterval(gGlobal->TGUI, interval(tree2float(min), tree2float(max)));
+        return castInterval(gGlobal->TGUI, 
+                            gAlgebra.NumEntry(interval(0,0), // todo replace the name
+                            t1->getInterval(),
+                            t2->getInterval(),
+                            t3->getInterval(),
+                            t4->getInterval()));
     }
 
     else if (isSigHBargraph(sig, l, x, y, s1)) {
