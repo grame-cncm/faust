@@ -43,7 +43,7 @@ class AsinPrim : public xtended {
             error << "WARNING : potential out of domain in asin(" << i << ")" << std::endl;
             gWarningMessages.push_back(error.str());
         }
-        return floatCast(args[0]);
+        return castInterval(t, gAlgebra.Asin(i));
     }
 
     virtual int infereSigOrder(const std::vector<int>& args) { return args[0]; }

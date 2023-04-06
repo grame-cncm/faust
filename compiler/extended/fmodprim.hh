@@ -45,7 +45,7 @@ class FmodPrim : public xtended {
             gWarningMessages.push_back(error.str());
         }
 
-        return castInterval(floatCast(args[0] | args[1]), fmod(i, j));
+        return castInterval(floatCast(args[0] | args[1]), gAlgebra.Mod(i, j));
     }
 
     virtual int infereSigOrder(const std::vector<int>& args)

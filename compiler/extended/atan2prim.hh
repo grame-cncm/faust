@@ -36,7 +36,11 @@ class Atan2Prim : public xtended {
     virtual ::Type infereSigType(ConstTypes args)
     {
         faustassert(args.size() == 2);
-        return floatCast(args[0] | args[1]);
+        Type t = args[0];
+        Type u = args[1];
+        interval i = t->getInterval();
+        interval j = u->getInterval();
+        return castInterval(floatCast(t | u), gAlgebra.Atan2(i, j));
     }
 
     virtual int infereSigOrder(const std::vector<int>& args) { return std::max(args[0], args[1]); }

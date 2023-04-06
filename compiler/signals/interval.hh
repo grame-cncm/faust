@@ -142,33 +142,6 @@ inline interval operator!=(const interval& x, const interval& y)
     return gAlgebra.Ne(x, y);
 }
 
-//-----------------------------------------------------------------------
-
-inline interval min(const interval& x, const interval& y)
-{
-    return gAlgebra.Min(x, y);
-}
-
-inline interval max(const interval& x, const interval& y)
-{
-    return gAlgebra.Max(x, y);
-}
-
-inline interval pow(const interval& x, const interval& y)
-{
-    return gAlgebra.Pow(x, y);
-}
-
-inline interval fmod(const interval& x, const interval& y)
-{
-    return gAlgebra.Mod(x, y);
-}
-
-inline interval abs(const interval& x)
-{
-    return gAlgebra.Abs(x);
-}
-
 /**
  * @struct res
  * the fixed-point resolution of the signal
