@@ -43,7 +43,7 @@ class AcosPrim : public xtended {
             error << "WARNING : potential out of domain in acos(" << i << ")" << std::endl;
             gWarningMessages.push_back(error.str());
         }
-        return floatCast(args[0]);
+        return castInterval(floatCast(t), gAlgebra.Acos(i));
     }
 
     virtual int infereSigOrder(const std::vector<int>& args) { return args[0]; }

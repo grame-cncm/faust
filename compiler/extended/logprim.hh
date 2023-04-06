@@ -36,7 +36,8 @@ class LogPrim : public xtended {
     virtual ::Type infereSigType(ConstTypes args)
     {
         faustassert(args.size() == arity());
-        interval i = args[0]->getInterval();
+        Type t = args[0];
+        interval i = t->getInterval();
 
         if (i.isValid()) {
             // log(0) gives -INF but is still in the function domain
@@ -48,7 +49,7 @@ class LogPrim : public xtended {
                 gWarningMessages.push_back(error.str());
             }
         }
-        return floatCast(args[0]);
+        return castInterval(floatCast(t), gAlgebra.Log(i));
     }
 
     virtual int infereSigOrder(const std::vector<int>& args)

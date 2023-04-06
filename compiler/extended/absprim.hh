@@ -39,8 +39,9 @@ class AbsPrim : public xtended {
     {
         faustassert(args.size() == arity());
         Type t = args[0];
-        return castInterval(t, abs(t->getInterval()));
-        return t;
+        interval i = t->getInterval();
+        return castInterval(t, gAlgebra.Abs(i));
+        // return t;
     }
 
     virtual int infereSigOrder(const std::vector<int>& args)
