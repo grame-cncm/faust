@@ -142,7 +142,7 @@ jobs:
       # todo: should we bother with brew update?
       run: |
         brew update
-        PACKAGES=(gtk+2 qt@5 liblo lame flac libogg libtool libvorbis opus mpg123)
+        PACKAGES=(gtk+ qt@5 liblo lame flac libogg libtool libvorbis opus mpg123)
         DEPS=($(brew deps --union --topological $(echo $PACKAGES) | tr '\n' ' '))
         PACKAGES=("${DEPS[@]}" "${PACKAGES[@]}")
         export HOMEBREW_NO_INSTALL_CLEANUP=1
@@ -162,7 +162,7 @@ jobs:
 
     - name: Brew install requirements (x64)
       if: ${{ endsWith( matrix.name, 'x64') }}
-      run: brew install pkg-config gtk+2 qt@5 liblo lame flac libogg libtool libvorbis opus mpg123
+      run: brew install pkg-config gtk+ qt@5 liblo lame flac libogg libtool libvorbis opus mpg123
 
     - name: Download LLVM
       run: |
