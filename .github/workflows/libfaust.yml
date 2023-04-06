@@ -335,7 +335,6 @@ jobs:
         if-no-files-found: error
 
   create-release:
-
     if: ${{ startsWith(github.ref, 'refs/tags/v') && inputs.create_release }} 
     needs: [build-ubuntu, build-macos, build-windows]
     runs-on: ubuntu-latest
