@@ -8,9 +8,19 @@ AR   ?= ar
 
 TMP 	?= __tmp_llvm_lib__
 OUTPUT 	?= lib/libfaustwithllvm.a
+
+# start to determine the current platform
+system := $(shell uname -s)
+
+ifeq ($(system), Darwin)
+LLVM    := $(shell pwd)/../llvm/lib
+INPUT   := $(shell ls $(LLVM)/lib*.a | sed "s|$(LLVM)/\(lib.*\.a\)|\1|g" | tr '\n' ' ')
+SYSLIBS := -lm -lz -lcurses -lxml2
+else
 INPUT 	:= $(shell llvm-config --libnames --link-static)
 LLVM 	:= $(shell llvm-config --libdir)
 SYSLIBS := $(shell llvm-config --system-libs)
+endif
 
 FOLDERS := $(INPUT:%.a=$(TMP)/%.dir) $(TMP)/libfaust.dir
 CONFIG  := ../tools/faust-config
