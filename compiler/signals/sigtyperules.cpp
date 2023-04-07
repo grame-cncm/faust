@@ -501,7 +501,7 @@ static Type infereSigType(Tree sig, Tree env)
         interval i1 = t2->getInterval();
 
         //        cerr << "for sig fix delay : s1 = "
-        //				<< t1 << ':' << ppsig(s1) << ", s2 = "
+        //        << t1 << ':' << ppsig(s1) << ", s2 = "
         //                << t2 << ':' << ppsig(s2) << endl;
         if (gGlobal->gCausality) {
             if (!(i1.isValid()) || !(i1.isBounded())) {
@@ -574,11 +574,11 @@ static Type infereSigType(Tree sig, Tree env)
         Type t3 = T(max, env);
         Type t4 = T(step, env);
         return castInterval(gGlobal->TGUI, 
-                gAlgebra.VSlider(interval(0,0), // todo replace the name
-                                t1->getInterval(), 
-                                t2->getInterval(),
-                                t3->getInterval(),
-                                t4->getInterval()));
+                            gAlgebra.VSlider(interval(0,0), // todo replace the name
+                            t1->getInterval(), 
+                            t2->getInterval(),
+                            t3->getInterval(),
+                            t4->getInterval()));
     }
 
     else if (isSigHSlider(sig, label, cur, min, max, step)) {

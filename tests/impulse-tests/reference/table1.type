@@ -1,7 +1,7 @@
 Size = 15
-Type = NKCVN interval(0,0,-24)
-Type = NKCVN interval(1,1,-24)
-Type = NKCVN interval(8,8,-24)
+Type = NKCVN interval(0,0,0)
+Type = NKCVN interval(1,1,0)
+Type = NKCVN interval(8,8,0)
 Type = NSISN interval(0,8,-24)
 Type = NSISN interval(0,inf,-24)
 Type = NSISN interval(0,inf,-24)
