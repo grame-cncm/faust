@@ -107,22 +107,27 @@ Soundfile* defaultsound = nullptr;
 
 using namespace std;
 
-#define ADD_DOUBLE string((sizeof(FAUSTFLOAT) == 8) ? "-double " : "")
-
 ofstream* gFaustbenchLog = nullptr;
 
 template <typename REAL>
 static tuple<double, double, double> bench(dsp* dsp, int dsp_size, const string& name, int run, int buffer_size, bool is_trace, bool is_control, int ds, int us, int filter)
 {
     measure_dsp_real<REAL> mes(dsp, buffer_size, 5., is_trace, is_control, ds, us, filter);  // Buffer_size and duration in sec of measure
+    // Keep best values
+    std::pair<double, double> best_res(0,0);
+    double best_cpu = 0.;
+    // Several runs
     for (int i = 0; i < run; i++) {
         mes.measure();
         std::pair<double, double> res = mes.getStats();
         if (is_trace) cout << name << " : " << res.first << " MBytes/sec, SD : " << res.second << "% (DSP CPU : " << (mes.getCPULoad() * 100) << "% at 44100 Hz)" << endl;
         FAUSTBENCH_LOG<REAL>(res.first);
+        if (res.first > best_res.first) {
+            best_res = res;
+            best_cpu = mes.getCPULoad();
+        }
     }
-    std::pair<double, double> res = mes.getStats();
-    return make_tuple(res.first, res.second, mes.getCPULoad());
+    return make_tuple(best_res.first, best_res.second, best_cpu);
 }
 
 static bool compareFun(tuple<double, double, double> i, tuple<double, double, double> j)
@@ -145,68 +150,68 @@ extern "C" int bench_all(const char* name, int run, int buffer_size, bool is_tra
     
 #if defined(ALL_TESTS)
     
-    options.push_back(ADD_DOUBLE + "-scal");
-    options.push_back(ADD_DOUBLE + "-scal -exp10");
-    options.push_back(ADD_DOUBLE + "-scal -os");
+    options.push_back("-scal" + OPTIONS);
+    options.push_back("-scal -exp10" + OPTIONS);
+    options.push_back("-scal -os" + OPTIONS);
     
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 4");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 8");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 16");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 32");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 64");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 128");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 256");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 512");
+    options.push_back("-vec -lv 0 -vs 4" + OPTIONS);
+    options.push_back("-vec -lv 0 -vs 8" + OPTIONS);
+    options.push_back("-vec -lv 0 -vs 16" + OPTIONS);
+    options.push_back("-vec -lv 0 -vs 32" + OPTIONS);
+    options.push_back("-vec -lv 0 -vs 64" + OPTIONS);
+    options.push_back("-vec -lv 0 -vs 128" + OPTIONS);
+    options.push_back("-vec -lv 0 -vs 256" + OPTIONS);
+    options.push_back("-vec -lv 0 -vs 512" + OPTIONS);
     
-    options.push_back(ADD_DOUBLE + "-vec -fun -lv 0 -vs 4");
-    options.push_back(ADD_DOUBLE + "-vec -fun -lv 0 -vs 8");
-    options.push_back(ADD_DOUBLE + "-vec -fun -lv 0 -vs 16");
-    options.push_back(ADD_DOUBLE + "-vec -fun -lv 0 -vs 32");
-    options.push_back(ADD_DOUBLE + "-vec -fun -lv 0 -vs 64");
-    options.push_back(ADD_DOUBLE + "-vec -fun -lv 0 -vs 128");
-    options.push_back(ADD_DOUBLE + "-vec -fun -lv 0 -vs 256");
-    options.push_back(ADD_DOUBLE + "-vec -fun -lv 0 -vs 512");
+    options.push_back("-vec -fun -lv 0 -vs 4" + OPTIONS);
+    options.push_back("-vec -fun -lv 0 -vs 8" + OPTIONS);
+    options.push_back("-vec -fun -lv 0 -vs 16" + OPTIONS);
+    options.push_back("-vec -fun -lv 0 -vs 32" + OPTIONS);
+    options.push_back("-vec -fun -lv 0 -vs 64" + OPTIONS);
+    options.push_back("-vec -fun -lv 0 -vs 128" + OPTIONS);
+    options.push_back("-vec -fun -lv 0 -vs 256" + OPTIONS);
+    options.push_back("-vec -fun -lv 0 -vs 512" + OPTIONS);
     
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -g -vs 4");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -g -vs 8");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -g -vs 16");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -g -vs 32");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -g -vs 64");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -g -vs 128");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -g -vs 256");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -g -vs 512");
+    options.push_back("-vec -lv 0 -g -vs 4" + OPTIONS);
+    options.push_back("-vec -lv 0 -g -vs 8" + OPTIONS);
+    options.push_back("-vec -lv 0 -g -vs 16" + OPTIONS);
+    options.push_back("-vec -lv 0 -g -vs 32" + OPTIONS);
+    options.push_back("-vec -lv 0 -g -vs 64" + OPTIONS);
+    options.push_back("-vec -lv 0 -g -vs 128" + OPTIONS);
+    options.push_back("-vec -lv 0 -g -vs 256" + OPTIONS);
+    options.push_back("-vec -lv 0 -g -vs 512" + OPTIONS);
     
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 4");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 8");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 16");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 32");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 64");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 128");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 256");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 512");
+    options.push_back("-vec -lv 1 -vs 4" + OPTIONS);
+    options.push_back("-vec -lv 1 -vs 8" + OPTIONS);
+    options.push_back("-vec -lv 1 -vs 16" + OPTIONS);
+    options.push_back("-vec -lv 1 -vs 32" + OPTIONS);
+    options.push_back("-vec -lv 1 -vs 64" + OPTIONS);
+    options.push_back("-vec -lv 1 -vs 128" + OPTIONS);
+    options.push_back("-vec -lv 1 -vs 256" + OPTIONS);
+    options.push_back("-vec -lv 1 -vs 512" + OPTIONS);
     
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -g -vs 4");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -g -vs 8");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -g -vs 16");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -g -vs 32");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -g -vs 64");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -g -vs 128");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -g -vs 256");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -g -vs 512");
+    options.push_back("-vec -lv 1 -g -vs 4" + OPTIONS);
+    options.push_back("-vec -lv 1 -g -vs 8" + OPTIONS);
+    options.push_back("-vec -lv 1 -g -vs 16" + OPTIONS);
+    options.push_back("-vec -lv 1 -g -vs 32" + OPTIONS);
+    options.push_back("-vec -lv 1 -g -vs 64" + OPTIONS);
+    options.push_back("-vec -lv 1 -g -vs 128" + OPTIONS);
+    options.push_back("-vec -lv 1 -g -vs 256" + OPTIONS);
+    options.push_back("-vec -lv 1 -g -vs 512" + OPTIONS);
     
 #elif defined(FAST_TESTS)
     
-    options.push_back(ADD_DOUBLE + "-scal");
-    options.push_back(ADD_DOUBLE + "-scal -exp10");
-    options.push_back(ADD_DOUBLE + "-scal -os");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 32");
-    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 32 -g");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 32");
-    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 32 -g");
+    options.push_back("-scal" + OPTIONS);
+    options.push_back("-scal -exp10" + OPTIONS);
+    options.push_back("-scal -os" + OPTIONS);
+    options.push_back("-vec -lv 0 -vs 32" + OPTIONS);
+    options.push_back("-vec -lv 0 -vs 32 -g" + OPTIONS);
+    options.push_back("-vec -lv 1 -vs 32" + OPTIONS);
+    options.push_back("-vec -lv 1 -vs 32 -g" + OPTIONS);
     
 #elif defined(SINGLE_TESTS)
     
-    options.push_back(ADD_DOUBLE + "-scal");
+    options.push_back("-scal" + OPTIONS);
     
 #endif
     

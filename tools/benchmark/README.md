@@ -184,7 +184,7 @@ Here are the available options:
 
 Use `export CXX=/path/to/compiler` before running faustbench to change the C++ compiler, and `export CXXFLAGS=options` to change the C++ compiler options. Additional Faust compiler options can be given.
 
-Using `-single` and additional Faust options (like `-vec -vs 8...`) allows to run a single test with specific options.
+Additional Faust options (like `-mcd 2...`) can be added on the list of all already tested options, to possibly discover a better setup not covered by the standard exploration.
 
 ## faustbench-llvm
 
@@ -209,7 +209,7 @@ Here are the available options:
 - `-ds <factor> to downsample the DSP by a factor (can be 2, 3, 4, 8, 16, 32)`
 - `-filter <filter> for upsampling or downsampling [0..4], 0 means no filtering`
 
-Using `-single` and additional Faust options (like `-vec -vs 8...`) allows to run a single test with specific options.
+Additional Faust options (like `-dlt 0...`) can be added on the list of all already tested options, to possibly discover a better setup not covered by the standard exploration.
 
 ## faustbench-wasm
 
