@@ -38,6 +38,14 @@
 
 using namespace std;
 
+/*
+ Signal typing system is built not doing any assumption about the signal tree,
+ like being already 'typed' using kInt/kReal types and with sigInt/sigFloat
+ operations at the right places.
+ The typeAnnotation/infereSigType functions thus analyze each node and possibly
+ use floatCast, intCast, boolCast when appropriate.
+ */
+
 //--------------------------------------------------------------------------
 // prototypes
 //--------------------------------------------------------------------------
@@ -459,24 +467,24 @@ static Type infereSigType(Tree sig, Tree env)
 
     else if (isSigInt(sig, &i)) {
         Type t = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, gAlgebra.IntNum(i));
-        /*sig->setType(t);*/ return t;
+        return t;
     }
 
     else if (isSigInt64(sig, &i64)) {
         Type t = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, gAlgebra.IntNum(i));
-        /*sig->setType(t);*/ return t;
+        return t;
     }
 
     else if (isSigReal(sig, &r)) {
         Type t = makeSimpleType(kReal, kKonst, kComp, kVect, kNum, gAlgebra.FloatNum(r));
-        /*sig->setType(t);*/ return t;
+        return t;
     }
 
     else if (isSigWaveform(sig)) {
         return infereWaveformType(sig, env);
     }
 
-    else if (isSigInput(sig, &i)) { /*sig->setType(TINPUT);*/
+    else if (isSigInput(sig, &i)) {
         return gGlobal->TINPUT;
     }
 
@@ -502,7 +510,7 @@ static Type infereSigType(Tree sig, Tree env)
 
         //        cerr << "for sig fix delay : s1 = "
         //        << t1 << ':' << ppsig(s1) << ", s2 = "
-        //                << t2 << ':' << ppsig(s2) << endl;
+        //        << t2 << ':' << ppsig(s2) << endl;
         if (gGlobal->gCausality) {
             if (!(i1.isValid()) || !(i1.isBounded())) {
                 stringstream error;
