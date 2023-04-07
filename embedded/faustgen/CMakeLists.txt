@@ -59,19 +59,31 @@ if (WIN32)
 	set (SNDFILE_LIBRARIES ${LIBSNDFILE}/lib/sndfile.lib)
 	set (SNDFILE_INCLUDE_DIRS ${LIBSNDFILE}/include)
 else()
-	# We expect the user to have built libsndfile as a static lib
-	# and for it to be accessible via `pkg-config --static libsndfile`
-	set(SNDFILE_IS_STATIC 1)
 	find_package(PkgConfig REQUIRED)
-	set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
-	list(APPEND PKG_CONFIG_EXECUTABLE "--static")  # append temporarily
-	pkg_check_modules(SNDFILE REQUIRED IMPORTED_TARGET sndfile)
-	pkg_check_modules(FLAC REQUIRED IMPORTED_TARGET flac)
-	pkg_check_modules(VORBIS REQUIRED IMPORTED_TARGET vorbis)
-	pkg_check_modules(OGG REQUIRED IMPORTED_TARGET ogg)
-	pkg_check_modules(OPUS REQUIRED IMPORTED_TARGET opus)
-	pkg_check_modules(MPG123 REQUIRED IMPORTED_TARGET libmpg123)
-	list(POP_BACK PKG_CONFIG_EXECUTABLE)  # undo the append above
+	if (DEFINED USE_STATIC_SNDFILE AND "${USE_STATIC_SNDFILE}" STREQUAL "1" )
+		# We expect the user to have built libsndfile as a static lib
+		# and for it to be accessible via `pkg-config --static libsndfile`
+		set(SNDFILE_IS_STATIC 1)
+		set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+		list(APPEND PKG_CONFIG_EXECUTABLE "--static")  # append temporarily
+		pkg_check_modules(SNDFILE REQUIRED IMPORTED_TARGET sndfile)
+		pkg_check_modules(FLAC REQUIRED IMPORTED_TARGET flac)
+		pkg_check_modules(VORBIS REQUIRED IMPORTED_TARGET vorbis)
+		pkg_check_modules(OGG REQUIRED IMPORTED_TARGET ogg)
+		pkg_check_modules(OPUS REQUIRED IMPORTED_TARGET opus)
+		pkg_check_modules(MPG123 REQUIRED IMPORTED_TARGET libmpg123)
+		list(POP_BACK PKG_CONFIG_EXECUTABLE)  # undo the append above
+	else()
+		# We expect the user to have installed sndfile with
+		# brew install libsndfile
+		set(SNDFILE_IS_STATIC 1)
+		pkg_check_modules(SNDFILE REQUIRED IMPORTED_TARGET sndfile)
+		pkg_check_modules(FLAC REQUIRED IMPORTED_TARGET flac)
+		pkg_check_modules(VORBIS REQUIRED IMPORTED_TARGET vorbis)
+		pkg_check_modules(OGG REQUIRED IMPORTED_TARGET ogg)
+		pkg_check_modules(OPUS REQUIRED IMPORTED_TARGET opus)
+		pkg_check_modules(MPG123 REQUIRED IMPORTED_TARGET libmpg123)
+	endif()
 endif()
 
 #######################################

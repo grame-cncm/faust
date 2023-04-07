@@ -16,6 +16,7 @@ INCLUDE_LLVM ?= OFF
 USE_LLVM_CONFIG ?= ON
 
 BUILD_HTTP_STATIC ?= OFF
+USE_STATIC_SNDFILE ?= 0
 
 # start to determine the current platform
 system := $(shell uname -s)
@@ -215,10 +216,10 @@ macpack: package/README.html
 	hdiutil create Faust-$(VERSION).dmg -fs HFS+ -srcfolder $(PACK) -format UDBZ -ov
 
 mactools:
-	$(MAKE) -C ../tools/benchmark FAUSTDIR=$(FAUSTDIR) TARGETS="dynamic-faust faustbench-llvm interp-tracer" LLVM="$(LLVM)" ARCHS="$(ARCHS)"
-	$(MAKE) -C ../tools/benchmark install PREFIX=$(FAUSTDIR) FAUSTDIR=$(FAUSTDIR) TARGETS="dynamic-faust faustbench-llvm interp-tracer" LLVM="$(LLVM)" ARCHS="$(ARCHS)"
-	$(MAKE) -C ../tools/sound2faust TARGETS="sound2faust sound2file" ARCHS="$(ARCHS)"
-	$(MAKE) -C ../tools/sound2faust install PREFIX=$(FAUSTDIR) TARGETS="sound2faust sound2file" ARCHS="$(ARCHS)"
+	$(MAKE) -C ../tools/benchmark FAUSTDIR=$(FAUSTDIR) TARGETS="dynamic-faust faustbench-llvm interp-tracer" LLVM="$(LLVM)" ARCHS="$(ARCHS)" USE_STATIC_SNDFILE=$(USE_STATIC_SNDFILE)
+	$(MAKE) -C ../tools/benchmark install PREFIX=$(FAUSTDIR) FAUSTDIR=$(FAUSTDIR) TARGETS="dynamic-faust faustbench-llvm interp-tracer" LLVM="$(LLVM)" ARCHS="$(ARCHS)" USE_STATIC_SNDFILE=$(USE_STATIC_SNDFILE)
+	$(MAKE) -C ../tools/sound2faust TARGETS="sound2faust sound2file" ARCHS="$(ARCHS)" USE_STATIC_SNDFILE=$(USE_STATIC_SNDFILE)
+	$(MAKE) -C ../tools/sound2faust install PREFIX=$(FAUSTDIR) TARGETS="sound2faust sound2file" ARCHS="$(ARCHS)" USE_STATIC_SNDFILE=$(USE_STATIC_SNDFILE)
 
 linuxpack:
 	@echo Linux packaging not implemented. 
@@ -255,7 +256,7 @@ release:
 faustgen:
 	@echo "################## Building faustgen package ###################"
 	$(MAKE) -C $(FAUSTGEN) clean
-	$(MAKE) -C $(FAUSTGEN) FAUST=$(HOME)/Faust-$(VERSION)/bin/faust LLVM_LIBS="$(LLVM_LIBS)" LLVM_LD_FLAGS="$(LLVM_LD_FLAGS)"
+	$(MAKE) -C $(FAUSTGEN) FAUST=$(HOME)/Faust-$(VERSION)/bin/faust LLVM_LIBS="$(LLVM_LIBS)" LLVM_LD_FLAGS="$(LLVM_LD_FLAGS)" USE_STATIC_SNDFILE=$(USE_STATIC_SNDFILE)
 	$(MAKE) -C $(FAUSTGEN) package
 	cp $(FAUSTGEN)/package/*.dmg Release-$(VERSION)
 

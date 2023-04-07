@@ -27,20 +27,25 @@ endif
 ARCHS   ?=
 # ARCHS   ?= -arch x86_64
 
-LAME_PRIMARY_PREFIX ?= /usr/local/Cellar/lame
-LAME_BACKUP_PREFIX ?= /opt/homebrew/Cellar/lame
-LAME_STATIC_LIBS ?= $(shell find $(LAME_PRIMARY_PREFIX) -name libmp3lame.a 2>/dev/null || find $(LAME_BACKUP_PREFIX) -name libmp3lame.a 2>/dev/null)
-SNDFILE_STATIC_LIBS = $(shell pkg-config --libs sndfile | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libsndfile.a
-FLAC_STATIC_LIBS = $(shell pkg-config --libs flac | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libflac.a
-OGG_STATIC_LIBS = $(shell pkg-config --libs ogg | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libogg.a
-VORBIS_STATIC_LIBS = $(shell pkg-config --libs vorbis | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libvorbis.a
-VORBISFILE_STATIC_LIBS = $(shell pkg-config --libs vorbis | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libvorbisfile.a
-VORBISENC_STATIC_LIBS = $(shell pkg-config --libs vorbis | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libvorbisenc.a
-MPG123_STATIC_LIBS = $(shell pkg-config --libs libmpg123 | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libmpg123.a
-OPUS_STATIC_LIBS = $(shell pkg-config --libs opus | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libopus.a
+USE_STATIC_SNDFILE ?= 0
 
-EXTRA_LIBS = $(SNDFILE_STATIC_LIBS) $(FLAC_STATIC_LIBS) $(OGG_STATIC_LIBS) $(VORBIS_STATIC_LIBS) $(VORBISFILE_STATIC_LIBS) $(VORBISENC_STATIC_LIBS) $(MPG123_STATIC_LIBS) $(OPUS_STATIC_LIBS) $(LAME_STATIC_LIBS)
+ifeq ($(USE_STATIC_SNDFILE),1)
+	LAME_PRIMARY_PREFIX ?= /usr/local/Cellar/lame
+	LAME_BACKUP_PREFIX ?= /opt/homebrew/Cellar/lame
+	LAME_STATIC_LIBS ?= $(shell find $(LAME_PRIMARY_PREFIX) -name libmp3lame.a 2>/dev/null || find $(LAME_BACKUP_PREFIX) -name libmp3lame.a 2>/dev/null)
+	SNDFILE_STATIC_LIBS = $(shell pkg-config --libs sndfile | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libsndfile.a
+	FLAC_STATIC_LIBS = $(shell pkg-config --libs flac | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libflac.a
+	OGG_STATIC_LIBS = $(shell pkg-config --libs ogg | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libogg.a
+	VORBIS_STATIC_LIBS = $(shell pkg-config --libs vorbis | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libvorbis.a
+	VORBISFILE_STATIC_LIBS = $(shell pkg-config --libs vorbis | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libvorbisfile.a
+	VORBISENC_STATIC_LIBS = $(shell pkg-config --libs vorbis | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libvorbisenc.a
+	MPG123_STATIC_LIBS = $(shell pkg-config --libs libmpg123 | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libmpg123.a
+	OPUS_STATIC_LIBS = $(shell pkg-config --libs opus | sed -n 's/^-L\([^ ]*\).*$$/\1/p')/libopus.a
 
+	SNDFILE_LIBS = $(SNDFILE_STATIC_LIBS) $(FLAC_STATIC_LIBS) $(OGG_STATIC_LIBS) $(VORBIS_STATIC_LIBS) $(VORBISFILE_STATIC_LIBS) $(VORBISENC_STATIC_LIBS) $(MPG123_STATIC_LIBS) $(OPUS_STATIC_LIBS) $(LAME_STATIC_LIBS)
+else
+	SNDFILE_LIBS ?= `pkg-config --cflags --libs sndfile`
+endif
 
 COMPILEOPT  := -std=c++11 -O3 -Wall
 COMPILEOPT1 := -O3 -Wall
@@ -76,16 +81,16 @@ dynamic-faust: dynamic-faust.cpp $(LIB)/libfaust.a
 	$(CXX) $(COMPILEOPT) $(ARCHS) dynamic-faust.cpp -L $(LIB_FLAGS) $(LIBS) -I $(INC) $(LLVM) $(STRIP) -lpthread -o $@
 
 dynamic-jack-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
-	$(CXX) -DJACK $(COMPILEOPT) $(ARCHS) dynamic-jack-gtk.cpp -L $(LIB_FLAGS) $(EXTRA_LIBS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate jack gtk+-2.0` `pkg-config --cflags sndfile` $(STRIP) $(COMMLIBS) -o $@
+	$(CXX) -DJACK $(COMPILEOPT) $(ARCHS) dynamic-jack-gtk.cpp -L $(LIB_FLAGS) $(SNDFILE_LIBS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate jack gtk+-2.0` `pkg-config --cflags sndfile` $(STRIP) $(COMMLIBS) -o $@
 
 dynamic-machine-jack-gtk: dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a
-	$(CXX) $(COMPILEOPT) $(ARCHS) dynamic-machine-jack-gtk.cpp -L $(LIB_FLAGS) $(EXTRA_LIBS) $(LIB)/libfaustmachine.a /usr/local/lib/libmir.a -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate jack gtk+-2.0` `pkg-config --cflags sndfile` $(STRIP) $(COMMLIBS) -o $@
+	$(CXX) $(COMPILEOPT) $(ARCHS) dynamic-machine-jack-gtk.cpp -L $(LIB_FLAGS) $(SNDFILE_LIBS) $(LIB)/libfaustmachine.a /usr/local/lib/libmir.a -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate jack gtk+-2.0` `pkg-config --cflags sndfile` $(STRIP) $(COMMLIBS) -o $@
 
 dynamic-coreaudio-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
-	$(CXX) $(COMPILEOPT) $(ARCHS) dynamic-jack-gtk.cpp -L $(LIB_FLAGS) $(EXTRA_LIBS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate gtk+-2.0` `pkg-config --cflags sndfile` $(STRIP) $(COMMLIBS) $(MACOSLIBS) -o $@
+	$(CXX) $(COMPILEOPT) $(ARCHS) dynamic-jack-gtk.cpp -L $(LIB_FLAGS) $(SNDFILE_LIBS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs samplerate gtk+-2.0` `pkg-config --cflags sndfile` $(STRIP) $(COMMLIBS) $(MACOSLIBS) -o $@
 
 poly-dynamic-jack-gtk: poly-dynamic-jack-gtk.cpp $(LIB)/libfaust.a
-	$(CXX) $(COMPILEOPT) $(ARCHS) poly-dynamic-jack-gtk.cpp -L $(LIB_FLAGS) $(EXTRA_LIBS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs jack gtk+-2.0 samplerate` `pkg-config --cflags sndfile` $(STRIP) -lz -lncurses -lpthread $(COMMLIBS) $(MACOSLIBS) -o $@
+	$(CXX) $(COMPILEOPT) $(ARCHS) poly-dynamic-jack-gtk.cpp -L $(LIB_FLAGS) $(SNDFILE_LIBS) $(LIBS) -I $(INC) $(LLVM) `pkg-config --cflags --libs jack gtk+-2.0 samplerate` `pkg-config --cflags sndfile` $(STRIP) -lz -lncurses -lpthread $(COMMLIBS) $(MACOSLIBS) -o $@
 
 faust-osc-controller: faust-osc-controller.cpp
 	$(CXX) $(COMPILEOPT) $(ARCHS) faust-osc-controller.cpp -I $(INC) `pkg-config --cflags --libs gtk+-2.0 liblo` $(STRIP) $(LIB)/libOSCFaust.a -llo -o $@
