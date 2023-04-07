@@ -240,7 +240,11 @@ static void test4()
         
         // Create the filter without parameter
         Box filter = CDSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = fi.lowpass(5);", 0, NULL, &inputs, &outputs, error_msg);
-        
+        if (!filter) {
+            printf("%s", error_msg);
+            destroyLibContext();
+            return;
+        }
         // Create the filter parameters and connect
         Box cutoff = CboxHSlider("cutoff", CboxReal(300), CboxReal(100), CboxReal(2000), CboxReal(0.01));
         Box cutoffAndInput = CboxPar(cutoff, CboxWire());
@@ -288,7 +292,11 @@ static void test5()
             
             // Create the oscillator
             Box osc = CDSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", 0, NULL, &inputs, &outputs, error_msg);
-            
+            if (!osc) {
+                printf("%s", error_msg);
+                destroyLibContext();
+                return;
+            }
             // Compile it
             char* source = CcreateSourceFromBoxes("FaustDSP", osc, lang[i], 0, NULL, error_msg);
             if (source) {
