@@ -38,14 +38,6 @@
 
 using namespace std;
 
-/*
- Signal typing system is built not doing any assumption about the signal tree,
- like being already 'typed' using kInt/kReal types and with sigInt/sigFloat
- operations at the right places.
- The typeAnnotation/infereSigType functions thus analyze each node and possibly
- use floatCast, intCast, boolCast when appropriate.
- */
-
 //--------------------------------------------------------------------------
 // prototypes
 //--------------------------------------------------------------------------
@@ -467,24 +459,24 @@ static Type infereSigType(Tree sig, Tree env)
 
     else if (isSigInt(sig, &i)) {
         Type t = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, gAlgebra.IntNum(i));
-        return t;
+        /*sig->setType(t);*/ return t;
     }
 
     else if (isSigInt64(sig, &i64)) {
         Type t = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, gAlgebra.IntNum(i));
-        return t;
+        /*sig->setType(t);*/ return t;
     }
 
     else if (isSigReal(sig, &r)) {
         Type t = makeSimpleType(kReal, kKonst, kComp, kVect, kNum, gAlgebra.FloatNum(r));
-        return t;
+        /*sig->setType(t);*/ return t;
     }
 
     else if (isSigWaveform(sig)) {
         return infereWaveformType(sig, env);
     }
 
-    else if (isSigInput(sig, &i)) {
+    else if (isSigInput(sig, &i)) { /*sig->setType(TINPUT);*/
         return gGlobal->TINPUT;
     }
 
@@ -509,8 +501,8 @@ static Type infereSigType(Tree sig, Tree env)
         interval i1 = t2->getInterval();
 
         //        cerr << "for sig fix delay : s1 = "
-        //        << t1 << ':' << ppsig(s1) << ", s2 = "
-        //        << t2 << ':' << ppsig(s2) << endl;
+        //				<< t1 << ':' << ppsig(s1) << ", s2 = "
+        //                << t2 << ':' << ppsig(s2) << endl;
         if (gGlobal->gCausality) {
             if (!(i1.isValid()) || !(i1.isBounded())) {
                 stringstream error;
@@ -538,11 +530,11 @@ static Type infereSigType(Tree sig, Tree env)
         // cerr <<"type rule for : " << ppsig(sig) << " -> " << *t3 << endl;
 
         if (i == kDiv) {
-            return floatCast(t3);   // division always result in a float even with int arguments
+            return floatCast(t3);  // division always result in a float even with int arguments
         } else if ((i >= kGT) && (i <= kNE)) {
-            return boolCast(t3);    // comparison always result in a boolean int
+            return boolCast(t3);  // comparison always result in a boolean int
         } else if (((i >= kLsh) && (i <= kLRsh)) || ((i >= kAND) && (i <= kXOR))) {
-            return intCast(t3);     // boolean and logical operators always result in an int
+            return intCast(t3);  // boolean and logical operators always result in an int
         } else {
             return t3;  //  otherwise most general of t1 and t2
         }
@@ -566,12 +558,12 @@ static Type infereSigType(Tree sig, Tree env)
     else if (isSigFVar(sig, type, name, file))
         return infereFVarType(type);
 
-    else if (isSigButton(sig)) { 
+    else if (isSigButton(sig)) { /*sig->setType(TGUI01);*/
         return castInterval(gGlobal->TGUI, 
                             gAlgebra.Button(interval(0,0))); // todo replace the name
     }
 
-    else if (isSigCheckbox(sig)) {
+    else if (isSigCheckbox(sig)) { /*sig->setType(TGUI01);*/
         return castInterval(gGlobal->TGUI,
                             gAlgebra.Checkbox(interval(0,0))); // todo replace the name
     }
@@ -582,11 +574,11 @@ static Type infereSigType(Tree sig, Tree env)
         Type t3 = T(max, env);
         Type t4 = T(step, env);
         return castInterval(gGlobal->TGUI, 
-                            gAlgebra.VSlider(interval(0,0), // todo replace the name
-                            t1->getInterval(), 
-                            t2->getInterval(),
-                            t3->getInterval(),
-                            t4->getInterval()));
+                gAlgebra.VSlider(interval(0,0), // todo replace the name
+                                t1->getInterval(), 
+                                t2->getInterval(),
+                                t3->getInterval(),
+                                t4->getInterval()));
     }
 
     else if (isSigHSlider(sig, label, cur, min, max, step)) {
