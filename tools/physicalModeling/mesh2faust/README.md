@@ -34,6 +34,34 @@ This section walks you through the different steps to build and install `mesh2fa
 - To install, simply copy the executable to your desired binary location:
   - `sudo cp mesh2faust /usr/local/bin/`
 
+### Using as a static library
+
+`mesh2faust` can also be used as a static library.
+
+Here is an example `CMakeLists.txt` section to build and link the `mesh2faust` static library, without building the `mesh2faust` executable:
+
+```cmake
+# Disable building the mesh2faust executable.
+set(INCLUDE_EXECUTABLE OFF CACHE STRING "Build the mesh2faust executable" FORCE)
+# Assuming you already have the Faust source code under `./lib/faust`:
+set(Mesh2FaustDir ${CMAKE_CURRENT_SOURCE_DIR}/lib/faust/tools/physicalModeling/mesh2faust)
+
+add_subdirectory(${Mesh2FaustDir})
+include_directories(... ${Mesh2FaustDir}/src)
+target_link_libraries(${PROJECT_NAME} PRIVATE ... mesh2faust)
+```
+
+In your project source code, you can then call e.g.
+
+```cpp
+#include "mesh2faust.h"
+...
+
+// Call the main `mesh2faust` method using all default arguments.
+// (All `mesh2faust` code is under the `m2f` namespace.)
+std::string dsp = m2f::mesh2faust();
+```
+
 ## Using `mesh2faust`
 
 `mesh2faust` works as a command line program. The detailed list of options of

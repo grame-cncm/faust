@@ -5,11 +5,16 @@ set(CMAKE_CXX_FLAGS "-O2")
 
 project(mesh2faust VERSION 1.0.0)
 
+# Enable/disable building the `mesh2faust` executable. Defaults to ON.
+# (Disable to only build the static library.)
+option(INCLUDE_EXECUTABLE "Build the mesh2faust executable" ON)
+
 set(VegaDir ${CMAKE_CURRENT_SOURCE_DIR}/vega/libraries)
 
-add_executable(${PROJECT_NAME}
-  src/mesh2faust.cpp
+set(LIBRARY_NAME ${PROJECT_NAME})
 
+add_library(${LIBRARY_NAME} STATIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/mesh2faust.cpp
   ${VegaDir}/objMesh/objMesh.cpp
   ${VegaDir}/objMesh/objMesh-disjointSet.cpp
   ${VegaDir}/objMesh/objMeshOctree.cpp
@@ -48,15 +53,33 @@ add_executable(${PROJECT_NAME}
   ${VegaDir}/wildMagic/meshKey/triKey.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE vega/libraries/include spectra/include)
+set_target_properties(${LIBRARY_NAME} PROPERTIES
+  CXX_STANDARD 14
+  CXX_STANDARD_REQUIRED ON
+  CXX_EXTENSIONS OFF
+)
+
+target_include_directories(${LIBRARY_NAME} PUBLIC src)
+
+target_include_directories(${LIBRARY_NAME} PRIVATE vega/libraries/include spectra/include)
 if(APPLE)
-  target_include_directories(${PROJECT_NAME} PRIVATE /opt/homebrew/Cellar/eigen/3.4.0_1/include/eigen3)
+  target_include_directories(${LIBRARY_NAME} PRIVATE /opt/homebrew/Cellar/eigen/3.4.0_1/include/eigen3)
 else()
-  target_include_directories(${PROJECT_NAME} PRIVATE /usr/include/eigen3)
+  target_include_directories(${LIBRARY_NAME} PRIVATE /usr/include/eigen3)
 endif()
 
 find_package(OpenGL REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE OpenGL::GL)
+target_link_libraries(${LIBRARY_NAME} PRIVATE OpenGL::GL)
 if(APPLE)
-  target_link_libraries(${PROJECT_NAME} PRIVATE "-framework Accelerate")
+  target_link_libraries(${LIBRARY_NAME} PRIVATE "-framework Accelerate")
+endif()
+
+# Conditionally add the executable target.
+if(INCLUDE_EXECUTABLE)
+  add_executable(${PROJECT_NAME}-bin ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+
+  # Link static library to the executable.
+  target_link_libraries(${PROJECT_NAME}-bin PRIVATE ${LIBRARY_NAME})
+  # Remove the "-bin" suffix from the executable's name. (Only added to avoid name clash with the library.)
+  set_target_properties(${PROJECT_NAME}-bin PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 endif()
