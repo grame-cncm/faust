@@ -658,6 +658,11 @@ static void test25()
       
             // Create the oscillator
             Box osc = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", 0, nullptr, &inputs, &outputs, error_msg);
+            if (!osc) {
+                cerr << error_msg;
+                destroyLibContext();
+                return;
+            }
         
             // Compile it
             string source = createSourceFromBoxes("FaustDSP", osc, it, 0, nullptr, error_msg);
@@ -683,7 +688,11 @@ static void test26()
         
         // Create the filter without parameter
         Box filter = DSPToBoxes("FaustDSP", "import(\"stdfaust.lib\"); process = fi.lowpass(5);", 0, nullptr, &inputs, &outputs, error_msg);
-        
+        if (!filter) {
+            cerr << error_msg;
+            destroyLibContext();
+            return;
+        }
         // Create the filter parameters and connect
         Box cutoff = boxHSlider("cutoff", boxReal(300), boxReal(100), boxReal(2000), boxReal(0.01));
         Box cutoffAndInput = boxPar(cutoff, boxWire());
