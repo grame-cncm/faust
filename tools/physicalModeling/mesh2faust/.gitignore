@@ -1,4 +1,4 @@
 *.a
 *.o
 src/mesh2faust
-
+build/

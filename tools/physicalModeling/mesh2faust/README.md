@@ -16,40 +16,23 @@ Tutorials on how to make
 physical models of musical instruments can be found
 [here](https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-physical-models-of-musical-instruments-with-faust).
 
-## Build/Installation
+## Build/Install (Linux & MacOS)
 
 `mesh2faust` relies on [Vega FEM](http://run.usc.edu/vega/) to turn the
 provided volumetric mesh into a 3D mesh and to carry out the finite element
 analysis on it. A lightweight adapted version of this library is part of this
 repository.
 
-Vega itself relies on some libraries that must be installed on your system in
-order to compile `mesh2faust`. This section walks you through the different
-steps to build and install `mesh2faust` on your system.
+This section walks you through the different steps to build and install `mesh2faust` on your system.
 
-### Linux
-
-* Install Eigen3: `sudo apt install libeigen3-dev`
-* Go in `/vega/Makefile-headers/` and run "`selectLinux`", this will update the
-dynamic link of `Makefile-header` to the right Makefile for your system.
-* Run: `make`
-* Run: `sudo make install`
-* NOTE: Additional adjustments might have to be made to `Makefile-header.linux`
-(compilation was only tested on Ubuntu)
-
-### OSX
-
-* Install Eigen3: `brew install eigen`
-* Go in `/vega/Makefile-headers/` and run "`selectMacOSX`", this will update the
-dynamic link of `Makefile-header` to the right Makefile for your system.
-* Run: `make`
-* Run: `sudo make install`
-* NOTE: Additional adjustments might have to be made to `Makefile-header.osx`
-(that's where you want to look at if you get some linker errors, etc.)
-
-### Windows
-
-Ever thought about using Linux? We heard it's great! :)
+- Install the Eigen library:
+  - Linux: `sudo apt install libeigen3-dev`
+  - MacOS: `brew install eigen`
+- Build and make:
+  - `mkdir build && cd build`
+  - `cmake .. && make`
+- To install, simply copy the executable to your desired binary location:
+  - `sudo cp mesh2faust /usr/local/bin/`
 
 ## Using `mesh2faust`
 
@@ -90,9 +73,9 @@ current folder, implementing the modal physical model corresponding to
 `3dObject.obj`, and using the default parameters of `mesh2faust`.
 
 The complexity of the object to analyze (mostly determined by its number of
-  vertices) will greatly impact the duration of this process. For complex objects
-  (e.g., > 3E4 vertices), this can easily take more than 30 mins on a "regular"
-  laptop.
+vertices) will greatly impact the duration of this process. For complex objects
+(e.g., > 3E4 vertices), this can easily take more than 30 mins on a "regular"
+laptop.
 
 ### Physical Model Name
 
@@ -121,7 +104,7 @@ so providing `--material 70E9 0.35 2700` will not change anything.
 ### Excitation Positions
 
 After the finite element analysis, the number of excitation position (the
-  place where energy is introduced) in the
+place where energy is introduced) in the
 physical model is the same as the number of vertices in the provided volumetric
 mesh. Thus, the more vertices, the more excitation positions. The gain of each
 mode in the model is different for each excitation position, so the amount of
@@ -146,7 +129,7 @@ mesh2faust --infile 3dObject.obj --expos 236 589
 
 will generate a physical model with 2 excitation positions corresponding to
 vertex ID 236 and 589.
-[Vertex IDs can be easily retrieved using meshlab.](https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-physical-models-of-musical-instruments-with-faust)     
+[Vertex IDs can be easily retrieved using meshlab.](https://ccrma.stanford.edu/~rmichon/faustTutorials/#making-physical-models-of-musical-instruments-with-faust)
 
 ### Limiting the Number of Modes
 
@@ -156,20 +139,20 @@ human hearing range (or above Nyquist) or too many (the more modes in the
 model, the more computation). Several options allow to tune mode selection
 in `mesh2faust` and are presented in this section.
 
-* `--nfemmodes` controls the number of modes computed during the finite
-element analysis. By default, 200 modes are computed (unless the provided mesh
-has less than 200 vertices, in which case the number of computed modes will be
-the same as the number of vertices in the mesh). Modes are computed by frequency,
-so in this case, "200" corresponds to the first 200 modes. The more modes will
-be computed during the analysis, the more time it will take.
-* `--minmode` sets the minimum frequency of the lowest mode to be synthesized.
-Any mode below this frequency will be discarded (default is 20Hz).  
-* `--maxmode` sets the maximum frequency of the highest mode to be synthesized.
-Any mode above this frequency will be discarded (default is 10KHz).
-* `--nsynthmodes` controls the number of modes to be synthesized (default is 20).
-Modes are selected by frequency starting at `--minmode`. `--nsynthmodes` is
-adjusted (clipped) to the number of modes available between `--minmode` and
-`-maxmode`.
+- `--nfemmodes` controls the number of modes computed during the finite
+  element analysis. By default, 200 modes are computed (unless the provided mesh
+  has less than 200 vertices, in which case the number of computed modes will be
+  the same as the number of vertices in the mesh). Modes are computed by frequency,
+  so in this case, "200" corresponds to the first 200 modes. The more modes will
+  be computed during the analysis, the more time it will take.
+- `--minmode` sets the minimum frequency of the lowest mode to be synthesized.
+  Any mode below this frequency will be discarded (default is 20Hz).
+- `--maxmode` sets the maximum frequency of the highest mode to be synthesized.
+  Any mode above this frequency will be discarded (default is 10KHz).
+- `--nsynthmodes` controls the number of modes to be synthesized (default is 20).
+  Modes are selected by frequency starting at `--minmode`. `--nsynthmodes` is
+  adjusted (clipped) to the number of modes available between `--minmode` and
+  `-maxmode`.
 
 Typically, `-nfemmodes` should be greater than `--nsynthmodes` since some of the
 modes computed during the finite element analysis will be discarded depending
@@ -229,14 +212,14 @@ in a future version, the t60 of the modes of the generated models can be
 configured with 3 different parameters: `t60`, `t60DecayRatio`, and
 `t60DecaySlope` where:
 
-* `t60`: resonance duration of the lowest mode in seconds.
-* `t60DecayRatio`: decay of modes t60s in function of their frequency. The
-range of this parameter is 0-1. If 1, the t60 of the highest mode will be
-close to 0 second.
-* `t60DecaySlope`: controls the slope of the function used to compute the decay
-of modes t60 in function of their frequency. It essentially controls the power
-of this function. So if 1, decay will be linear, if 2, decay will be a power of
-2, etc.
+- `t60`: resonance duration of the lowest mode in seconds.
+- `t60DecayRatio`: decay of modes t60s in function of their frequency. The
+  range of this parameter is 0-1. If 1, the t60 of the highest mode will be
+  close to 0 second.
+- `t60DecaySlope`: controls the slope of the function used to compute the decay
+  of modes t60 in function of their frequency. It essentially controls the power
+  of this function. So if 1, decay will be linear, if 2, decay will be a power of
+  2, etc.
 
 ### Dynamic F0 Model
 
