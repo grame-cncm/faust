@@ -215,6 +215,8 @@ for p in $FILES; do
 
         faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
         faust -cn dsp_scal_exp10 $OPTIONS -exp10 "$SRCDIR/$f" -o "$TMP/dsp_scal_exp10.h"
+        faust -cn dsp_scal_os $OPTIONS -os "$SRCDIR/$f" -o "$TMP/dsp_scal_os.h"
+
         faust -cn dsp_vec0_32 $OPTIONS -vec -lv 0 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec0_32.h"
         faust -cn dsp_vec0g_32 $OPTIONS -vec -lv 0 -vs 32 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_32.h"
         faust -cn dsp_vec1_32 $OPTIONS -vec -lv 1 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec1_32.h"
@@ -244,6 +246,8 @@ for p in $FILES; do
         elif [ $TESTS == "single" ]; then
             echo "#define SINGLE_TESTS" >> "$TMP/Config.h"
         fi
+        # additional options
+        echo "#define OPTIONS string(\"$OPTIONS\")" >> "$TMP/Config.h"
         # add info for UP/DS + filter adapter
         echo "#define DOWN_SAMPLING $DS" >> "$TMP/Config.h"
         echo "#define UP_SAMPLING $US" >> "$TMP/Config.h"
@@ -263,7 +267,8 @@ for p in $FILES; do
     else
         echo "#define FAUSTFLOAT float" >> Config
     fi
-   
+    # additional options
+    echo "#define OPTIONS string(\"$OPTIONS\")" >> Config
     cat Config "$FAUSTLIB/faustbench.cpp" > "faustbench.cpp"
 
     # keep sources
