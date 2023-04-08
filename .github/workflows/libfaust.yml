@@ -50,7 +50,7 @@ jobs:
 
     - name: Install ncurses
       run: |
-        apt-get install libncurses-dev
+        yum install -y ncurses ncurses-devel
 
     - name: Restore LLVM
       id: cache-llvm-restore
