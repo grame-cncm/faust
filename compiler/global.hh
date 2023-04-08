@@ -458,8 +458,7 @@ struct global {
     // Essential predefined types
     Type TINPUT;
     Type TGUI;
-    Type TGUI01;
-
+  
     // Trying to accelerate type convergence
     Type TREC;  // kVect ou kScal ?
     Type TRECMAX;

@@ -40,14 +40,14 @@ class SqrtPrim : public xtended {
         interval i = t->getInterval();
         if (i.isValid()) {
             if (i.lo() >= 0) {
-                return castInterval(floatCast(t), interval(sqrt(i.lo()), sqrt(i.hi())));
+                return castInterval(floatCast(t), gAlgebra.Sqrt(i));
             } else if (gGlobal->gMathExceptions) {
                 std::stringstream error;
                 error << "WARNING : potential out of domain in sqrt(" << i << ")" << std::endl;
                 gWarningMessages.push_back(error.str());
             }
         }
-        return castInterval(floatCast(t), interval());
+        return castInterval(floatCast(t), gAlgebra.Sqrt(i));
     }
 
     virtual int infereSigOrder(const std::vector<int>& args) { return args[0]; }

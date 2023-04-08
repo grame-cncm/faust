@@ -36,7 +36,11 @@ class SinPrim : public xtended {
     virtual ::Type infereSigType(ConstTypes args)
     {
         faustassert(args.size() == 1);
-        return castInterval(floatCast(args[0]), interval(-1, 1));
+
+        Type t = args[0];
+        interval i = t->getInterval();
+
+        return castInterval(floatCast(t), gAlgebra.Sin(i)); // to replace by sin(pi*i) once the new version of the interval library is plugged in
     }
 
     virtual int infereSigOrder(const std::vector<int>& args) { return args[0]; }
