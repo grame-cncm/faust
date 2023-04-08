@@ -249,10 +249,10 @@ static bool processCmdline(int argc, const char* argv[])
 
     /*
     for (int i = 0; i < argc; i++) {
-        cout << "processCmdline i = " << i << " cmd = " << argv[i] << "\n";
+        cerr << "processCmdline i = " << i << " cmd = " << argv[i] << "\n";
     }
     */
-
+    
     while (i < argc) {
         if (isCmd(argv[i], "-h", "--help")) {
             gGlobal->gHelpSwitch = true;

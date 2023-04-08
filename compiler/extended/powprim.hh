@@ -46,9 +46,13 @@ class PowPrim : public xtended {
     {
         faustassert(args.size() == arity());
 
-        interval i = args[0]->getInterval();
-        interval j = args[1]->getInterval();
-        return castInterval(args[0] | args[1], pow(i, j));
+        Type t = args[0];
+        Type u = args[1];
+
+        interval i = t->getInterval();
+        interval j = u->getInterval();
+        
+        return castInterval(t | u, gAlgebra.Pow(i, j)); // maybe we should distinguish between real and integer exponents
     }
 
     virtual int infereSigOrder(const std::vector<int>& args)

@@ -40,7 +40,7 @@ class MaxPrim : public xtended {
         interval i = args[0]->getInterval();
         interval j = args[1]->getInterval();
         // Use 'max' on intervals here...
-        return castInterval(args[0] | args[1], max(i, j));
+        return castInterval(args[0] | args[1], gAlgebra.Max(i, j));
     }
 
     virtual int infereSigOrder(const std::vector<int>& args)

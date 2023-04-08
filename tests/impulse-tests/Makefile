@@ -369,7 +369,7 @@ cmajor:
 # D backend
 dlang:
 	$(MAKE) -f Make.dlang outdir=dlang/double     FAUSTOPTIONS="-I dsp -double"
-	$(MAKE) -f Make.dlang outdir=dlang/doouble/lp FAUSTOPTIONS="-I dsp -double -fp"
+	$(MAKE) -f Make.dlang outdir=dlang/double/lp FAUSTOPTIONS="-I dsp -double -fp"
 	$(MAKE) -f Make.dlang outdir=dlang/double/vec FAUSTOPTIONS="-I dsp -double -vec"
 
 #########################################################################
