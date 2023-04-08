@@ -59,9 +59,7 @@ set_target_properties(${LIBRARY_NAME} PROPERTIES
   CXX_EXTENSIONS OFF
 )
 
-target_include_directories(${LIBRARY_NAME} PUBLIC src)
-
-target_include_directories(${LIBRARY_NAME} PRIVATE vega/libraries/include spectra/include)
+target_include_directories(${LIBRARY_NAME} PUBLIC src vega/libraries/include spectra/include)
 if(APPLE)
   target_include_directories(${LIBRARY_NAME} PRIVATE /opt/homebrew/Cellar/eigen/3.4.0_1/include/eigen3)
 else()

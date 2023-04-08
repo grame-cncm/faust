@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "tetMesh.h"
+
 namespace m2f {
 
 // Defaults to aluminum.
@@ -12,6 +14,8 @@ struct MaterialProperties {
     double density{2700};
 };
 
+// The main library function.
+// The `mesh2faust` command line tool wraps this function.
 // Returns the generated Faust code as a string.
 std::string mesh2faust(
     const char *modelFileName = "",        // .obj file name
@@ -25,7 +29,23 @@ std::string mesh2faust(
     std::vector<int> exPos = {}, // specific excitation positions
     int nExPos = -1,             // number of excitation positions (default is max)
     bool showFreqs = false,      // hide or show frequencies in the selected range
-    bool debugMode = false       // debug mode activated
+    bool debugMode = false       // for verbose printing
+);
+
+// This version takes a pre-loaded tetraheral mesh.
+// Material properties are assumed to already be baked into the mesh.
+std::string mesh2faust(
+    TetMesh *volumetricMesh,
+    std::string objectName,
+    bool freqControl,
+    float modesMinFreq,
+    float modesMaxFreq,
+    int targetNModes,
+    int femNModes,
+    std::vector<int> exPos,
+    int nExPos,
+    bool showFreqs = false,
+    bool debugMode = false
 );
 
 } // namespace mesh2faust
