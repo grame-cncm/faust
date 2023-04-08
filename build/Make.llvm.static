@@ -13,6 +13,14 @@ OUTPUT 	?= lib/libfaustwithllvm.a
 system := $(shell uname -s)
 
 ifeq ($(system), Darwin)
+NCURSES_PRIMARY_PREFIX := /usr/local/Cellar/ncurses
+NCURSES_BACKUP_PREFIX := /opt/homebrew/Cellar/ncurses
+LIBNCURSES_PATH ?= $(shell find $(NCURSES_PRIMARY_PREFIX) -name libncurses.a 2>/dev/null || find $(NCURSES_BACKUP_PREFIX) -name libncurses.a 2>/dev/null)
+else
+LIBNCURSES_PATH ?= $(shell find /usr/lib -name libncurses.a)
+endif
+
+ifeq ($(system), Darwin)
 LLVM    := $(shell pwd)/../llvm/lib
 INPUT   := $(shell ls $(LLVM)/lib*.a | sed "s|$(LLVM)/\(lib.*\.a\)|\1|g" | tr '\n' ' ')
 SYSLIBS := -lm -lz -lcurses -lxml2
@@ -22,7 +30,7 @@ LLVM 	:= $(shell llvm-config --libdir)
 SYSLIBS := $(shell llvm-config --system-libs)
 endif
 
-FOLDERS := $(INPUT:%.a=$(TMP)/%.dir) $(TMP)/libfaust.dir
+FOLDERS := $(INPUT:%.a=$(TMP)/%.dir) $(TMP)/libfaust.dir $(TMP)/libncurses.dir
 CONFIG  := ../tools/faust-config
 
 MAKEFILE := $(lastword $(MAKEFILE_LIST))
@@ -51,4 +59,7 @@ $(TMP)/libfaust.dir: lib/libfaust.a
 	@-[ -d $@ ] && rm -rf $@ 
 	mkdir -p $@ && cd $@ && ar -x ../../$<
 
-
+# Add a new rule for extracting libncurses.a
+$(TMP)/libncurses.dir: $(LIBNCURSES_PATH)
+	@-[ -d $@ ] && rm -rf $@
+	mkdir -p $@ && cd $@ && ar -x $(LIBNCURSES_PATH)

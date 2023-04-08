@@ -48,6 +48,10 @@ jobs:
       with:
         submodules: true
 
+    - name: Install ncurses
+      run: |
+        sudo apt-get install libncurses-dev
+
     - name: Restore LLVM
       id: cache-llvm-restore
       uses: actions/cache/restore@v3

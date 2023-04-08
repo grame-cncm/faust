@@ -95,18 +95,9 @@ if (WIN32)
 	set (WINSRC ${MAXSDK}/max-includes/common/dllmain_win.c ${MAXSDK}/max-includes/common/commonsyms.c)
 else()
 
-	if (NOT DEFINED NCURSES_STATIC_LIB OR NCURSES_STATIC_LIB MATCHES "")
-		find_library(NCURSES_STATIC_LIB NAMES libncurses.a)
-		if(NCURSES_STATIC_LIB)
-			message(STATUS "Found static ncurses library: ${NCURSES_STATIC_LIB}")
-		else()
-			message(FATAL_ERROR "Could not find static ncurses library")
-		endif()
-	endif()
-
 	set (MACLIBS "-framework CoreServices -framework IOKit")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-	set (FAUSTLIBS ${FAUSTLIB}/libfaustwithllvm.a ${FAUSTLIB}/libOSCFaust.a ${NCURSES_STATIC_LIB})
+	set (FAUSTLIBS ${FAUSTLIB}/libfaustwithllvm.a ${FAUSTLIB}/libOSCFaust.a)
 
 endif()
 
