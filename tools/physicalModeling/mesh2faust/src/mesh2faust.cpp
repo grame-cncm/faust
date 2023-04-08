@@ -14,50 +14,25 @@
 using namespace std;
 
 string m2f::mesh2faust(
-    const char *modelFileName,
+    TetMesh *volumetricMesh,
     string objectName,
-    m2f::MaterialProperties materialProperties,
     bool freqControl,
-    float modesMinFreq, float modesMaxFreq,
-    int targetNModes, int femNModes,
+    float modesMinFreq,
+    float modesMaxFreq,
+    int targetNModes,
+    int femNModes,
     vector<int> exPos,
     int nExPos,
-    bool showFreqs, bool debugMode
-)
-{
-    /////////////////////////////////////
-    // RETRIEVE MODEL
-    /////////////////////////////////////
-
-    // Load mesh file.
-    if (debugMode) {
-        cout << "Loading the mesh file\n";
-    }
-    ObjMesh *objMesh = new ObjMesh(modelFileName);
- 
-    // Generate 3D volumetric mesh from 2D mesh.
-    if (debugMode) {
-        cout << "\nGenerating a 3D mesh with the following properties\n";
-        cout << "Young's modulus: " << materialProperties.youngModulus << "\n";
-        cout << "Poisson's ratio: " << materialProperties.poissonRatio << "\n";
-        cout << "Density: " << materialProperties.density << "\n";
-    }
-    // TODO: no way to prevent printing here (yet)
-    TetMesh *volumetricMesh = TetMesher().compute(objMesh);
-    // Set mesh material properties.
-    volumetricMesh->setSingleMaterial(materialProperties.youngModulus, materialProperties.poissonRatio, materialProperties.density);
- 
+    bool showFreqs,
+    bool debugMode
+) {
     // Compute mass matrix.
-    if (debugMode) {
-        cout << "Creating and computing mass matrix\n";
-    }
+    if (debugMode) cout << "Creating and computing mass matrix\n";
     SparseMatrix *massMatrix;
     GenerateMassMatrix::computeMassMatrix(volumetricMesh, &massMatrix, true);
 
     // computing stiffness matrix
-    if (debugMode) {
-        cout << "Creating and computing stiffness matrix\n";
-    }
+    if (debugMode) cout << "Creating and computing stiffness matrix\n";
     StVKElementABCD *precomputedIntegrals = StVKElementABCDLoader::load(volumetricMesh);
     StVKInternalForces *internalForces = new StVKInternalForces(volumetricMesh, precomputedIntegrals);
     SparseMatrix *stiffnessMatrix;
@@ -115,9 +90,7 @@ string m2f::mesh2faust(
         // COMPUTE MODE FREQS
         /////////////////////////////////////
  
-        if (debugMode) {
-            cout << "Computing modes frequencies\n\n";
-        }
+        if (debugMode) cout << "Computing modes frequencies\n\n";
         float modesFreqs[femNModes]; // modes freqs
         int lowestModeIndex = 0;
         int highestModeIndex = 0;
@@ -259,6 +232,45 @@ string m2f::mesh2faust(
     precomputedIntegrals = nullptr;
     delete massMatrix;
     massMatrix = nullptr;
+
+    return dsp;
+}
+
+string m2f::mesh2faust(
+    const char *modelFileName,
+    string objectName,
+    m2f::MaterialProperties materialProperties,
+    bool freqControl,
+    float modesMinFreq, float modesMaxFreq,
+    int targetNModes, int femNModes,
+    vector<int> exPos,
+    int nExPos,
+    bool showFreqs, bool debugMode
+)
+{
+    /////////////////////////////////////
+    // RETRIEVE MODEL
+    /////////////////////////////////////
+
+    // Load mesh file.
+    if (debugMode) cout << "Loading the mesh file\n";
+    ObjMesh *objMesh = new ObjMesh(modelFileName);
+ 
+    // Generate 3D volumetric mesh from 2D mesh.
+    if (debugMode) {
+        cout << "\nGenerating a 3D mesh with the following properties\n";
+        cout << "Young's modulus: " << materialProperties.youngModulus << "\n";
+        cout << "Poisson's ratio: " << materialProperties.poissonRatio << "\n";
+        cout << "Density: " << materialProperties.density << "\n";
+    }
+    // TODO: no way to prevent printing here (yet)
+    TetMesh *volumetricMesh = TetMesher().compute(objMesh);
+    // Set mesh material properties.
+    volumetricMesh->setSingleMaterial(materialProperties.youngModulus, materialProperties.poissonRatio, materialProperties.density);
+
+    string dsp = mesh2faust(volumetricMesh, objectName, freqControl, modesMinFreq, modesMaxFreq,
+        targetNModes, femNModes, exPos, nExPos, showFreqs, debugMode);
+
     delete volumetricMesh;
     volumetricMesh = nullptr;
     delete objMesh;
