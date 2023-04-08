@@ -17,6 +17,7 @@ USE_LLVM_CONFIG ?= ON
 
 BUILD_HTTP_STATIC ?= OFF
 USE_STATIC_SNDFILE ?= 0
+MAXSDK ?= $(shell echo $(PWD)/../max-sdk/source/max-sdk-base/c74support)
 
 # start to determine the current platform
 system := $(shell uname -s)
@@ -256,7 +257,7 @@ release:
 faustgen:
 	@echo "################## Building faustgen package ###################"
 	$(MAKE) -C $(FAUSTGEN) clean
-	$(MAKE) -C $(FAUSTGEN) FAUST=$(HOME)/Faust-$(VERSION)/bin/faust LLVM_LIBS="$(LLVM_LIBS)" LLVM_LD_FLAGS="$(LLVM_LD_FLAGS)" USE_STATIC_SNDFILE=$(USE_STATIC_SNDFILE)
+	$(MAKE) -C $(FAUSTGEN) FAUST_PATH_IS_ABSOLUTE=1 FAUST=$(HOME)/Faust-$(VERSION)/bin/faust LLVM_LIBS="$(LLVM_LIBS)" LLVM_LD_FLAGS="$(LLVM_LD_FLAGS)" USE_STATIC_SNDFILE=$(USE_STATIC_SNDFILE) MAXSDK="$(MAXSDK)"
 	$(MAKE) -C $(FAUSTGEN) package
 	cp $(FAUSTGEN)/package/*.dmg Release-$(VERSION)
 

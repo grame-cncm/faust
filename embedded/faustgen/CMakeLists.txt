@@ -4,8 +4,6 @@ set (VERSION "1.64")
 
 set(ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
-option (USE_LLVM_CONFIG "Use llvm-config" on)
-
 #######################################
 set (CMAKE_CXX_STANDARD 11)
 
@@ -18,7 +16,7 @@ else()
 endif()
 set (MAXINCL ${MAXSDK}/max-includes ${MAXSDK}/msp-includes)
 if (APPLE)
-	set (MAXLIBS "-F${MAXSDK}/max-includes -framework MaxAPI  -F${MAXSDK}/msp-includes -framework MaxAudioAPI")
+	set (MAXLIBS "-F${MAXSDK}/max-includes -framework MaxAPI -F${MAXSDK}/msp-includes -framework MaxAudioAPI")
 elseif (WIN32)
 	file (GLOB MAPI ${MAXSDK}/max-includes/x64/MaxAPI.lib)
 	file (GLOB MAUDIO ${MAXSDK}/msp-includes/x64/MaxAudio.lib)
@@ -28,9 +26,9 @@ endif()
 
 #######################################
 # Faust part
-if(APPLE AND CMAKE_OSX_ARCHITECTURES MATCHES "arm64")
+if(DEFINED FAUST_PATH_IS_ABSOLUTE AND FAUST_PATH_IS_ABSOLUTE MATCHES "1")
 # We can't execute an arm64 faust executable on a GitHub x86 runner,
-# so we may some strong assumptions about where the include/libs are.
+# so we make some strong assumptions about where the include and libs are.
 cmake_path(GET FAUST PARENT_PATH FAUST_DIR)
 cmake_path(GET FAUST_DIR PARENT_PATH FAUST_DIR)
 set(FAUSTINC ${FAUST_DIR}/include)
@@ -91,25 +89,25 @@ endif()
 file (GLOB DSPLIBS ${ROOT}/../../libraries/*.lib)
 
 ####################################
-# LLVM
-if(NOT DEFINED LLVM_LD_FLAGS OR NOT DEFINED LLVM_LIBS)
-include (../../build/misc/llvm.cmake)
-if(USE_LLVM_CONFIG)
-	llvm_config()
-else()
-	llvm_cmake()
-endif()
-endif()
-
-####################################
 # compiler dependent settings
 if (WIN32)
-	set (FAUSTLIBS ${FAUSTLIB}/libfaust.lib ${FAUSTLIB}/libOSCFaust.lib)
+	set (FAUSTLIBS ${FAUSTLIB}/libfaustwithllvm.lib ${FAUSTLIB}/libOSCFaust.lib)
 	set (WINSRC ${MAXSDK}/max-includes/common/dllmain_win.c ${MAXSDK}/max-includes/common/commonsyms.c)
 else()
+
+	if (NOT DEFINED NCURSES_STATIC_LIB OR NCURSES_STATIC_LIB MATCHES "")
+		find_library(NCURSES_STATIC_LIB NAMES libncurses.a)
+		if(NCURSES_STATIC_LIB)
+			message(STATUS "Found static ncurses library: ${NCURSES_STATIC_LIB}")
+		else()
+			message(FATAL_ERROR "Could not find static ncurses library")
+		endif()
+	endif()
+
 	set (MACLIBS "-framework CoreServices -framework IOKit")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-	set (FAUSTLIBS ${FAUSTLIB}/libfaust.a ${FAUSTLIB}/libOSCFaust.a)
+	set (FAUSTLIBS ${FAUSTLIB}/libfaustwithllvm.a ${FAUSTLIB}/libOSCFaust.a ${NCURSES_STATIC_LIB})
+
 endif()
 
 ####################################
@@ -118,14 +116,14 @@ endif()
 add_library(faustgen MODULE ${ROOT}/src/faustgen~.cpp ${WINSRC} ${DSPLIBS})
 target_include_directories(faustgen PRIVATE ${ROOT}/src/ ${MAXINCL} ${FAUSTINC} ${SNDFILE_INCLUDE_DIRS})
 if (DEFINED SNDFILE_IS_STATIC)
-target_link_libraries (faustgen ${FAUSTLIBS} ${MAXLIBS} PkgConfig::SNDFILE PkgConfig::FLAC PkgConfig::VORBIS PkgConfig::OGG PkgConfig::OPUS PkgConfig::MPG123 ${LLVM_LD_FLAGS} ${LLVM_LIBS} )
+target_link_libraries (faustgen ${FAUSTLIBS} ${MAXLIBS} PkgConfig::SNDFILE PkgConfig::FLAC PkgConfig::VORBIS PkgConfig::OGG PkgConfig::OPUS PkgConfig::MPG123)
 else()
-target_link_libraries (faustgen ${FAUSTLIBS} ${MAXLIBS} ${SNDFILE_LIBRARIES} ${LLVM_LD_FLAGS} ${LLVM_LIBS})
+target_link_libraries (faustgen ${FAUSTLIBS} ${MAXLIBS} ${SNDFILE_LIBRARIES})
 endif()
 
 if (APPLE)
 set_target_properties (faustgen PROPERTIES 
-	LINK_FLAGS "${MACLIBS} -Wl,-U,_object_new_imp -Wl,-U,_object_method_imp ${LLVM_LD_FLAGS}"
+	LINK_FLAGS "${MACLIBS} -Wl,-U,_object_new_imp -Wl,-U,_object_method_imp"
 	BUNDLE TRUE
 	BUNDLE_EXTENSION mxo
 	MACOSX_BUNDLE_INFO_PLIST ${ROOT}/Info.plist
