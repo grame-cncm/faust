@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to a bench                  #
-#               (c) Grame, 2022                                     #
+#               (c) Grame, 2022-2023                                #
 #                                                                   #
 #####################################################################
 
@@ -24,6 +24,7 @@ ARCHFILE=$FAUSTARCH/bench.cpp
 # Global variables
 OPTIONS=""
 FILES=""
+DOUBLE="0"
 
 echoHelp() 
 {
@@ -49,6 +50,9 @@ do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
        echoHelp
+    elif [ "$p" = "-double" ]; then
+        DOUBLE="1"
+        OPTIONS="$OPTIONS $p"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]] && [ ${p: -4} == ".dsp" ]; then
@@ -68,7 +72,16 @@ done
 for f in $FILES; do
 
     # compile the DSP to c++ using the architecture file
-    faust -i -a $ARCHFILE $OPTIONS "$f" -o "${f%.dsp}.cpp"|| exit
+    faust -i -a $ARCHFILE $OPTIONS "$f" -o "${f%.dsp}_tmp.cpp"|| exit
+   
+   # Create config file
+    echo -n >> Config
+    if [ $DOUBLE == "1" ]; then
+        echo "#define FAUSTFLOAT double" >> Config
+    else
+        echo "#define FAUSTFLOAT float" >> Config
+    fi
+    cat Config "${f%.dsp}_tmp.cpp" > "${f%.dsp}.cpp"
 
     # compile c++ to binary
     (
@@ -76,7 +89,7 @@ for f in $FILES; do
     ) > /dev/null || exit
 
     # remove temporary files
-    rm -f "${f%.dsp}.cpp"
+    rm -f Config "${f%.dsp}.cpp" "${f%.dsp}_tmp.cpp" 
 
     # collect binary file name for FaustWorks
     BINARIES="$BINARIES${f%.dsp};"

@@ -78,11 +78,13 @@ int main(int argc, char* argv[])
         cout << argv[0] << " [-control] [-run <num>] [-bs <frames>]" << endl;
         return 0;
     }
-
+   
     bool is_control = isopt(argv, "-control");
     int run = lopt(argv, "-run", 1);
     int buffer_size = lopt(argv, "-bs", 512);
     
+    if (sizeof(FAUSTFLOAT) == 8) cout << "Running in double..." << endl;
+
     bench<FAUSTFLOAT>(new mydsp(), argv[0], run, buffer_size, is_control);
 }
 
