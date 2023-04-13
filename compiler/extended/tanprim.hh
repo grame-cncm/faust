@@ -41,7 +41,6 @@ class TanPrim : public xtended {
     {
         faustassert(args.size() == 1);
         interval     i = args[0]->getInterval();
-        const double halfpi = M_PI / 2;
         interval     r = gAlgebra.Tan(i);
         // The check can be improved to ensure that no infinity is in the range
         /*

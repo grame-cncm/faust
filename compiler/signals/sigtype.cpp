@@ -388,7 +388,7 @@ static Tree codeSimpleType(SimpleType* st)
 
 AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i)
 {
-    return makeSimpleType(n, v, c, vec, b, i, res());
+    return makeSimpleType(n, v, c, vec, b, i, res(i.lsb()));
 }
 
 AudioType* makeSimpleType(int n, int v, int c, int vec, int b, const interval& i, const res& lsb)
