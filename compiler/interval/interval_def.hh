@@ -121,7 +121,7 @@ class interval {
         if (isEmpty()) {
             return "[]";
         } else {
-            return std::to_string('[') + std::to_string(fLo) + ',' + std::to_string(fHi) + ']';
+            return "[" + std::to_string(fLo) + ',' + std::to_string(fHi) + ']';
         }
     }
 };
