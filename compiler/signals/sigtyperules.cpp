@@ -62,8 +62,9 @@ static Type infereFFType(Tree ff, Tree ls, Tree env);
 static Type infereFConstType(Tree type);
 static Type infereFVarType(Tree type);
 static Type infereRecType(Tree var, Tree body, Tree env);
+static Type infereTableType(Tree size, Tree gen, Tree env);
 static Type infereReadTableType(Type tbl, Type ri);
-static Type infereWriteTableType(Type tbl, Type wi, Type wd);
+static Type infereWriteTableType(Type tbl, Type wi, Type ws);
 static Type infereProjType(Type t, int i, int vec);
 static Type infereXType(Tree sig, Tree env);
 static Type infereDocConstantTblType(Type size, Type init);
@@ -457,7 +458,7 @@ static Type infereSigType(Tree sig, Tree env)
     int     i;
     int64_t i64;
     double  r;
-    Tree    sel, s1, s2, s3, ff, id, ls, l, x, y, z, part, u, var, body, type, name, file, sf;
+    Tree    sel, s1, s2, s3, s4, ff, ls, l, x, y, z, part, u, var, body, type, name, file, sf;
     Tree    label, cur, min, max, step;
 
     gGlobal->gCountInferences++;
@@ -677,14 +678,16 @@ static Type infereSigType(Tree sig, Tree env)
     else if (isProj(sig, &i, s1))
         return infereProjType(T(s1, env), i, kScal);
 
-    else if (isSigTable(sig, id, s1, s2)) {
-        checkInt(checkInit(T(s1, env)));
-        return makeTableType(checkInit(T(s2, env)));
+    else if (isSigWRTbl(sig, s1, s2, s3, s4)) {
+        if (s3 == gGlobal->nil) {
+            // rdtable
+            return infereTableType(s1, s2, env);
+        } else {
+            // rwtable
+            return infereWriteTableType(infereTableType(s1, s2, env), T(s3, env), T(s4, env));
+        }
     }
-
-    else if (isSigWRTbl(sig, id, s1, s2, s3))
-        return infereWriteTableType(T(s1, env), T(s2, env), T(s3, env));
-
+    
     else if (isSigRDTbl(sig, s1, s2))
         return infereReadTableType(T(s1, env), T(s2, env));
 
@@ -779,9 +782,16 @@ static Type infereProjType(Type t, int i, int vec)
     return temp;
 }
 
+static Type infereTableType(Tree size, Tree gen, Tree env)
+{
+    checkInt(checkInit(T(size, env)));
+    return makeTableType(checkInit(T(gen, env)));
+}
+
 /**
- *	Infere the type of the result of writing into a table
+ *    Infere the type of the result of writing into a table
  */
+
 static Type infereWriteTableType(Type tbl, Type wi, Type ws)
 {
     TableType* tt = isTableType(tbl);
@@ -841,7 +851,7 @@ static Type infereReadTableType(Type tbl, Type ri)
     Type temp = makeSimpleType(tbl->nature(), tbl->variability() | ri->variability(),
                                tbl->computability() | ri->computability(), tbl->vectorability() | ri->vectorability(),
                                tbl->boolean(), tbl->getInterval());
-
+    
     return temp;
 }
 

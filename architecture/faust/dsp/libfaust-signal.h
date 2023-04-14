@@ -610,7 +610,6 @@ LIBFAUST_API bool isSigDelay(Signal t, Signal& t0, Signal& t1);
 LIBFAUST_API bool isSigPrefix(Signal t, Signal& t0, Signal& t1);
 LIBFAUST_API bool isSigRDTbl(Signal s, Signal& t, Signal& i);
 LIBFAUST_API bool isSigWRTbl(Signal u, Signal& id, Signal& t, Signal& i, Signal& s);
-LIBFAUST_API bool isSigTable(Signal t, Signal& id, Signal& n, Signal& sig);
 LIBFAUST_API bool isSigGen(Signal t, Signal& x);
 LIBFAUST_API bool isSigDocConstantTbl(Signal t, Signal& n, Signal& sig);
 LIBFAUST_API bool isSigDocWriteTbl(Signal t, Signal& n, Signal& sig, Signal& widx, Signal& wsig);

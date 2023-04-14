@@ -85,7 +85,7 @@ static int infereSigOrder(Tree sig)
     int     i;
     int64_t i64;
     double  r;
-    Tree   sel, s1, s2, s3, s4, ff, id, ls, l, x, y, z, var, body, type, name, file, sf;
+    Tree   sel, s1, s2, s3, s4, ff, ls, l, x, y, z, var, body, type, name, file, sf;
 
     xtended* xt = (xtended*)getUserData(sig);
     // primitive elements
@@ -205,10 +205,7 @@ static int infereSigOrder(Tree sig)
     } else if (isProj(sig, &i, s1))
         return 3;
 
-    else if (isSigTable(sig, id, s1, s2))
-        return 3;
-
-    else if (isSigWRTbl(sig, id, s1, s2, s3))
+    else if (isSigWRTbl(sig, s1, s2, s3, s4))
         return 3;
 
     else if (isSigRDTbl(sig, s1, s2))

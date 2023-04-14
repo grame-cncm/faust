@@ -317,7 +317,6 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gStackOverflowDetector(M
     SIGPREFIX          = symbol("SigPrefix");
     SIGRDTBL           = symbol("SigRDTbl");
     SIGWRTBL           = symbol("SigWRTbl");
-    SIGTABLE           = symbol("SigTable");
     SIGGEN             = symbol("SigGen");
     SIGDOCONSTANTTBL   = symbol("SigDocConstantTbl");
     SIGDOCWRITETBL     = symbol("SigDocWriteTbl");

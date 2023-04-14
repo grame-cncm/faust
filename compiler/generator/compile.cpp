@@ -37,7 +37,6 @@ Compile a list of FAUST signals into a C++ class.
 
 #include "compile.hh"
 #include "floats.hh"
-#include "privatise.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"

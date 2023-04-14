@@ -23,7 +23,9 @@
 
 #include <stdlib.h>
 #include <cstdlib>
+
 #include "Text.hh"
+#include "global.hh"
 
 using namespace std;
 
@@ -51,7 +53,7 @@ void Signal2Elementary::visit(Tree sig)
 {
     int    i;
     double r;
-    Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
+    Tree   size, gen, wi, ws, tbl, ri, c, sel, x, y, z, u, v, var, le, label, ff, largs, type, name, file, sf;
     
     if (getUserData(sig)) {
         for (Tree b : sig->branches()) {
@@ -103,18 +105,18 @@ void Signal2Elementary::visit(Tree sig)
     }
     
     // Tables
-    else if (isSigTable(sig, id, x, y)) {
-        self(x);
-        self(y);
+    else if (isSigWRTbl(sig, size, gen, wi, ws)) {
+        self(size);
+        self(gen);
+        if (wi != gGlobal->nil) {
+            // rwtable
+            self(wi);
+            self(ws);
+        }
         return;
-    } else if (isSigWRTbl(sig, id, x, y, z)) {
-        self(x);
-        self(y);
-        self(z);
-        return;
-    } else if (isSigRDTbl(sig, x, y)) {
-        self(x);
-        self(y);
+    } else if (isSigRDTbl(sig, tbl, ri)) {
+        self(tbl);
+        self(ri);
         return;
     }
     

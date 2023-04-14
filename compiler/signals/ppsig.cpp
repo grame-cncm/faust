@@ -195,7 +195,7 @@ ostream& ppsig::print(ostream& fout) const
     
     int    i;
     double r;
-    Tree   c, sel, x, y, z, u, var, le, label, id, ff, largs, type, name, file, sf;
+    Tree   c, sel, w, x, y, z, u, var, le, label, ff, largs, type, name, file, sf;
 
     if (isList(fSig)) {
         printlist(fout, fSig);
@@ -243,10 +243,16 @@ ostream& ppsig::print(ostream& fout) const
         fout << tree2str(name);
     }
 
-    else if (isSigTable(fSig, id, x, y)) {
-        printfun(fout, "TABLE", x, y);
-    } else if (isSigWRTbl(fSig, id, x, y, z)) {
-        printfun(fout, "write", x, y, z);
+    if (isSigWRTbl(fSig, w, x, y, z)) {
+        if (y == gGlobal->nil) {
+            // rdtable
+            printfun(fout, "TABLE", w, x);
+        } else {
+            // rwtable
+            printfun(fout, "write(TABLE", w, x);
+            fout << "," << ppsig(y, fEnv, 0, fMaxSize);
+            fout << "," << ppsig(z, fEnv, 0, fMaxSize) << ")";
+        }
     } else if (isSigRDTbl(fSig, x, y)) {
         printfun(fout, "read", x, y);
     } else if (isSigGen(fSig, x)) {
@@ -456,7 +462,7 @@ ostream& ppsigShared::print(ostream& fout) const
 {
     int    i;
     double r;
-    Tree   c, sel, x, y, z, u, var, le, label, id, ff, largs, type, name, file, sf;
+    Tree   c, sel, w, x, y, z, u, var, le, label, ff, largs, type, name, file, sf;
     
     if (isList(fSig)) {
         printlist(fout, fSig);
@@ -504,10 +510,8 @@ ostream& ppsigShared::print(ostream& fout) const
         fout << tree2str(name);
     }
     
-    else if (isSigTable(fSig, id, x, y)) {
-        SIG_INSERT_ID(printfun(s, "TABLE", x, y));
-    } else if (isSigWRTbl(fSig, id, x, y, z)) {
-        SIG_INSERT_ID(printfun(s, "write", x, y, z));
+    if (isSigWRTbl(fSig, w, x, y, z)) {
+        SIG_INSERT_ID(printfun(s, "write", w, x, y, z));
     } else if (isSigRDTbl(fSig, x, y)) {
         SIG_INSERT_ID(printfun(s, "read", x, y));
     } else if (isSigGen(fSig, x)) {

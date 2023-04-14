@@ -53,7 +53,7 @@ Tree SignalIdentity::transformation(Tree sig)
     int     i;
     int64_t i64;
     double  r;
-    Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
+    Tree   c, sel, w, x, y, z, u, v, var, le, label, ff, largs, type, name, file, sf;
 
     if (getUserData(sig)) {
         vector<Tree> newBranches;
@@ -93,10 +93,14 @@ Tree SignalIdentity::transformation(Tree sig)
     }
 
     // Tables
-    else if (isSigTable(sig, id, x, y)) {
-        return sigTable(id, self(x), self(y));
-    } else if (isSigWRTbl(sig, id, x, y, z)) {
-        return sigWRTbl(id, self(x), self(y), self(z));
+    else if (isSigWRTbl(sig, w, x, y, z)) {
+        if (y == gGlobal->nil) {
+            // rdtable
+            return sigWRTbl(self(w), self(x));
+        } else {
+            // rwtable
+            return sigWRTbl(self(w), self(x), self(y), self(z));
+        }
     } else if (isSigRDTbl(sig, x, y)) {
         return sigRDTbl(self(x), self(y));
     }

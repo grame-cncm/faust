@@ -39,9 +39,9 @@ LIBFAUST_API Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tre
     /*
      rwtable are parsed as boxPrim5, so do not have a special treatment in eval/propagate. So we do here:
      - the size argument is supposed to be known at compile time, so is casted at compilation time to int
+     - rwtable is using a fully filled sigWRTbl signal
      */
-    return sigRDTbl(sigWRTbl(gGlobal->nil, sigTable(gGlobal->nil, sigInt(tree2int(n)), sigGen(init)), widx, wsig),
-                    ridx);
+    return sigRDTbl(sigWRTbl(sigInt(tree2int(n)), sigGen(init), widx, wsig), ridx);
 }
 
 LIBFAUST_API Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
@@ -49,8 +49,9 @@ LIBFAUST_API Tree sigReadOnlyTable(Tree n, Tree init, Tree ridx)
     /*
      rtable are parsed as boxPrim3, so do not have a special treatment in eval/propagate. So we do here:
      - the size argument is supposed to be known at compile time, so is casted at compilation time to int
+     - rdtable is using a 'degenerated' sigWRTbl signal with NIL 'wi' and 'ws' parameters
      */
-    return sigRDTbl(sigTable(gGlobal->nil, sigInt(tree2int(n)), sigGen(init)), ridx);
+    return sigRDTbl(sigWRTbl(sigInt(tree2int(n)), sigGen(init)), ridx);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -151,31 +152,28 @@ LIBFAUST_API bool isSigPrefix(Tree t, Tree& t0, Tree& t1)
 
 // Read only and read write tables
 
-Tree sigRDTbl(Tree tb, Tree ri)
+Tree sigRDTbl(Tree tbl, Tree ri)
 {
-    return tree(gGlobal->SIGRDTBL, tb, ri);
+    return tree(gGlobal->SIGRDTBL, tbl, ri);
 }
-LIBFAUST_API bool isSigRDTbl(Tree s, Tree& tb, Tree& ri)
+LIBFAUST_API bool isSigRDTbl(Tree s, Tree& tbl, Tree& ri)
 {
-    return isTree(s, gGlobal->SIGRDTBL, tb, ri);
-}
-
-Tree sigWRTbl(Tree id, Tree tb, Tree wi, Tree ws)
-{
-    return tree(gGlobal->SIGWRTBL, id, tb, wi, ws);
-}
-LIBFAUST_API bool isSigWRTbl(Tree u, Tree& id, Tree& tb, Tree& wi, Tree& ws)
-{
-    return isTree(u, gGlobal->SIGWRTBL, id, tb, wi, ws);
+    return isTree(s, gGlobal->SIGRDTBL, tbl, ri);
 }
 
-Tree sigTable(Tree id, Tree n, Tree sig)
+Tree sigWRTbl(Tree size, Tree gen, Tree wi, Tree ws)
 {
-    return tree(gGlobal->SIGTABLE, id, n, sig);
+    return tree(gGlobal->SIGWRTBL, size, gen, wi, ws);
 }
-LIBFAUST_API bool isSigTable(Tree t, Tree& id, Tree& n, Tree& sig)
+LIBFAUST_API bool isSigWRTbl(Tree u, Tree& size, Tree& gen, Tree& wi, Tree& ws)
 {
-    return isTree(t, gGlobal->SIGTABLE, id, n, sig);
+    return isTree(u, gGlobal->SIGWRTBL, size, gen, wi, ws);
+}
+
+LIBFAUST_API bool isSigWRTbl(Tree u, Tree& size, Tree& gen)
+{
+    Tree wi, ws;
+    return isTree(u, gGlobal->SIGWRTBL, size, gen, wi, ws) && (wi == gGlobal->nil);
 }
 
 // Signal used to generate the initial content of a table
@@ -233,7 +231,7 @@ LIBFAUST_API bool isSigSelect2(Tree t, Tree& selector, Tree& s1, Tree& s2)
     return isTree(t, gGlobal->SIGSELECT2, selector, s1, s2);
 }
 
-//  "select3" expressed with "select2"
+// "select3" expressed with "select2"
 LIBFAUST_API Tree sigSelect3(Tree selector, Tree s1, Tree s2, Tree s3)
 {
     return sigSelect2(sigBinOp(kEQ, selector, sigInt(0)), sigSelect2(sigBinOp(kEQ, selector, sigInt(1)), s3, s2), s1);
@@ -400,6 +398,7 @@ LIBFAUST_API bool isSigFloatCast(Tree t, Tree& x)
 }
 
 // Emulation of all fonctions
+
 LIBFAUST_API Tree sigAdd(Tree x, Tree y)
 {
     return sigBinOp(kAdd, x, y);
@@ -639,6 +638,7 @@ LIBFAUST_API bool isSigControl(Tree t, Tree& t0, Tree& t1)
 }
 
 // Extended math functions
+
 static Tree sigExtended1(Tree sig, Tree x)
 {
     tvec args;
@@ -884,7 +884,7 @@ LIBFAUST_API bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& part,
                              matrix extension
 *****************************************************************************/
 
-// a tuple of signals is basically a list of signals.
+// A tuple of signals is basically a list of signals.
 // mode = 0 means normal, mode = 1 means blocked
 Tree sigTuple(int mode, Tree ls)
 {
@@ -907,7 +907,7 @@ bool isSigTupleAccess(Tree s, Tree& ts, Tree& idx)
     return isTree(s, gGlobal->SIGTUPLEACCESS, ts, idx);
 }
 
-// create a tuple of signals
+// Create a tuple of signals
 Tree sigCartesianProd(Tree s1, Tree s2)
 {
     Tree l1, l2;

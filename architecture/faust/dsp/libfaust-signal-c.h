@@ -487,7 +487,6 @@ extern "C"
     LIBFAUST_API bool CisSigPrefix(Signal t, Signal* t0, Signal* t1);
     LIBFAUST_API bool CisSigRDTbl(Signal s, Signal* t, Signal* i);
     LIBFAUST_API bool CisSigWRTbl(Signal u, Signal* id, Signal* t, Signal* i, Signal* s);
-    LIBFAUST_API bool CisSigTable(Signal t, Signal* id, Signal* n, Signal* sig);
     LIBFAUST_API bool CisSigGen(Signal t, Signal* x);
     LIBFAUST_API bool CisSigGen1(Signal t);
     LIBFAUST_API bool CisSigDocConstantTbl(Signal t, Signal* n, Signal* sig);

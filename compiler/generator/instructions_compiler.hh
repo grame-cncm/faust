@@ -171,8 +171,8 @@ class InstructionsCompiler : public virtual Garbageable {
 
     virtual ValueInst* generateTable(Tree sig, Tree tsize, Tree content);
     virtual ValueInst* generateStaticTable(Tree sig, Tree tsize, Tree content);
-    virtual ValueInst* generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data);
-    virtual ValueInst* generateRDTbl(Tree sig, Tree tbl, Tree idx);
+    virtual ValueInst* generateWRTbl(Tree sig, Tree size, Tree gen, Tree wi, Tree ws);
+    virtual ValueInst* generateRDTbl(Tree sig, Tree tbl, Tree ri);
     virtual ValueInst* generateSigGen(Tree sig, Tree content);
     virtual ValueInst* generateStaticSigGen(Tree sig, Tree content);
 

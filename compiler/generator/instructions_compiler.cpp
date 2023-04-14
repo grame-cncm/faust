@@ -29,7 +29,6 @@
 #include "instructions_compiler1.hh"
 #include "instructions_compiler_jax.hh"
 #include "prim2.hh"
-#include "privatise.hh"
 #include "recursivness.hh"
 #include "sigToGraph.hh"
 #include "signal2vhdlVisitor.hh"
@@ -107,9 +106,8 @@ Tree InstructionsCompiler::prepare(Tree LS)
         throw faustexception("Dump signal type finished...\n");
     }
     
-    startTiming("privatise");
-    Tree L2 = privatise(L1);  // Un-share tables with multiple writers
-    endTiming("privatise");
+    // No more table privatisation
+    Tree L2 = L1;
     
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);
@@ -633,7 +631,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
     int     i;
     int64_t i64;
     double  r;
-    Tree    c, sel, x, y, z, label, id, ff, largs, type, name, file, sf;
+    Tree    size, gen, wi, ws, ri, c, sel, x, y, z, label, tb, ff, largs, type, name, file, sf;
 
     // printf("compilation of %p : ", sig); print(sig); printf("\n");
 
@@ -665,12 +663,10 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         return generateFVar(sig, type, tree2str(file), tree2str(name));
     }
 
-    else if (isSigTable(sig, id, x, y)) {
-        return generateTable(sig, x, y);
-    } else if (isSigWRTbl(sig, id, x, y, z)) {
-        return generateWRTbl(sig, x, y, z);
-    } else if (isSigRDTbl(sig, x, y)) {
-        return generateRDTbl(sig, x, y);
+    else if (isSigWRTbl(sig, size, gen, wi, ws)) {
+        return generateWRTbl(sig, size, gen, wi, ws);
+    } else if (isSigRDTbl(sig, tb, ri)) {
+        return generateRDTbl(sig, tb, ri);
     }
 
     else if (isSigSelect2(sig, sel, x, y)) {
@@ -1568,29 +1564,29 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
  sigWRTable : table assignment
  ----------------------------------------------------------------------------*/
 
-ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
+ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree size, Tree gen, Tree wi, Tree ws)
 {
-    ValueInst*   tblname    = CS(tbl);
+    ValueInst*  tblname = generateTable(sig, size, gen);
     LoadVarInst* load_value = dynamic_cast<LoadVarInst*>(tblname);
     faustassert(load_value);
 
-    ValueInst* cdata = CS(data);
+    ValueInst* cws = CS(ws);
     string vname = load_value->fAddress->getName();
 
-    Type t2 = getCertifiedSigType(idx);
-    Type t3 = getCertifiedSigType(data);
+    Type t2 = getCertifiedSigType(wi);
+    Type t3 = getCertifiedSigType(ws);
     // TODO : for a bug in type caching, t->variability() is not correct.
     // Therefore in the meantime we compute it manually. (YO 2020/03/30)
     int var = t2->variability() | t3->variability();
     switch (var) {
         case kKonst:
-            pushInitMethod(InstBuilder::genStoreArrayStructVar(vname, CS(idx), cdata));
+            pushInitMethod(InstBuilder::genStoreArrayStructVar(vname, CS(wi), cws));
             break;
         case kBlock:
-            pushComputeBlockMethod(InstBuilder::genStoreArrayStructVar(vname, CS(idx), cdata));
+            pushComputeBlockMethod(InstBuilder::genStoreArrayStructVar(vname, CS(wi), cws));
             break;
         default:
-            pushComputeDSPMethod(InstBuilder::genControlInst(getConditionCode(sig), InstBuilder::genStoreArrayStructVar(vname, CS(idx), cdata)));
+            pushComputeDSPMethod(InstBuilder::genControlInst(getConditionCode(sig), InstBuilder::genStoreArrayStructVar(vname, CS(wi), cws)));
             break;
     }
 
@@ -1602,27 +1598,29 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
  sigRDTable : table access
  ----------------------------------------------------------------------------*/
 
-ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
+ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree ri)
 {
     // Test the special case of a read only table that can be compiled as a static member
-    Tree                id, size, content;
     ValueInst*          tblname;
     Address::AccessType access;
 
-    if (isSigTable(tbl, id, size, content)) {
+    Tree size, gen;
+    if (isSigWRTbl(tbl, size, gen)) {
+        // rdtable
         access = Address::kStaticStruct;
         if (!getCompiledExpression(tbl, tblname)) {
-            tblname = setCompiledExpression(tbl, generateStaticTable(tbl, size, content));
+            tblname = setCompiledExpression(tbl, generateStaticTable(tbl, size, gen));
         }
     } else {
+        // rwtable
         access  = Address::kStruct;
         tblname = CS(tbl);
     }
-
+  
     LoadVarInst* load_value1 = dynamic_cast<LoadVarInst*>(tblname);
     faustassert(load_value1);
 
-    LoadVarInst* load_value2 = InstBuilder::genLoadArrayVar(load_value1->fAddress->getName(), access, CS(idx));
+    LoadVarInst* load_value2 = InstBuilder::genLoadArrayVar(load_value1->fAddress->getName(), access, CS(ri));
     return generateCacheCode(sig, load_value2);
 }
 

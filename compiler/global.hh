@@ -412,7 +412,6 @@ struct global {
     Sym SIGPREFIX;
     Sym SIGRDTBL;
     Sym SIGWRTBL;
-    Sym SIGTABLE;
     Sym SIGGEN;
     Sym SIGDOCONSTANTTBL;
     Sym SIGDOCWRITETBL;

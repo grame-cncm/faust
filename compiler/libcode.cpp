@@ -56,7 +56,6 @@
 #include "normalform.hh"
 #include "ppbox.hh"
 #include "ppsig.hh"
-#include "privatise.hh"
 #include "propagate.hh"
 #include "recursivness.hh"
 #include "schema.h"

@@ -23,6 +23,7 @@
 #define __SIGVISITOR__
 
 #include "signals.hh"
+#include "global.hh"
 
 struct sigvisitor {
     // predefined visit scheme
@@ -155,11 +156,15 @@ struct fullvisitor : sigvisitor {
         visit(s1);
         visit(s2);
     }
-    virtual void visitWRTbl(Tree sig, Tree id, Tree s1, Tree s2, Tree s3)
+    virtual void visitWRTbl(Tree sig, Tree id, Tree s1, Tree s2, Tree s3, Tree s4)
     {
         visit(s1);
         visit(s2);
-        visit(s3);
+        if (s3 != gGlobal->nil) {
+            // rwtable
+            visit(s3);
+            visit(s4);
+        }
     }
     virtual void visitRDTbl(Tree sig, Tree s1, Tree s2)
     {

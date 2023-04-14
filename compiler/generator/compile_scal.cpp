@@ -38,7 +38,6 @@
 #include "floats.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
-#include "privatise.hh"
 #include "recursivness.hh"
 #include "sigToGraph.hh"
 #include "signal2vhdlVisitor.hh"
@@ -99,10 +98,8 @@ Tree ScalarCompiler::prepare(Tree LS)
         ppsigShared(L1, cout);
         throw faustexception("Dump shared normal form finished...\n");
     }
-    
-    startTiming("privatise");
-    Tree L2 = privatise(L1);  // Un-share tables with multiple writers
-    endTiming("privatise");
+    // No more table privatisation
+    Tree L2 = L1;
     
     startTiming("conditionAnnotation");
     conditionAnnotation(L2);
@@ -470,7 +467,7 @@ string ScalarCompiler::generateCode(Tree sig)
     int     i;
     int64_t i64;
     double  r;
-    Tree    c, sel, x, y, z, label, id, ff, largs, type, name, file, sf;
+    Tree    size, gen, wi, ws, ri, c, sel, x, y, z, label, tb, ff, largs, type, name, file, sf;
 
     // printf("compilation of %p : ", sig); print(sig); printf("\n");
 
@@ -504,12 +501,10 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateFVar(sig, tree2str(file), tree2str(name));
     }
 
-    else if (isSigTable(sig, id, x, y)) {
-        return generateTable(sig, x, y);
-    } else if (isSigWRTbl(sig, id, x, y, z)) {
-        return generateWRTbl(sig, x, y, z);
-    } else if (isSigRDTbl(sig, x, y)) {
-        return generateRDTbl(sig, x, y);
+    else if (isSigWRTbl(sig, size, gen, wi, ws)) {
+        return generateWRTbl(sig, size, gen, wi, ws);
+    } else if (isSigRDTbl(sig, tb, ri)) {
+        return generateRDTbl(sig, tb, ri);
     }
 
     else if (isSigSelect2(sig, sel, x, y)) {
@@ -1147,27 +1142,28 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
                         sigWRTable : table assignement
 ----------------------------------------------------------------------------*/
 
-string ScalarCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
+string ScalarCompiler::generateWRTbl(Tree sig, Tree size, Tree gen, Tree wi, Tree ws)
 {
-    string tblName(CS(tbl));
+    string tblName = generateTable(sig, size, gen);
 
-    Type t2 = getCertifiedSigType(idx);
-    Type t3 = getCertifiedSigType(data);
+    Type t2 = getCertifiedSigType(wi);
+    Type t3 = getCertifiedSigType(ws);
     // TODO : for a bug in type caching, t->variability() is not correct.
     // Therefore in the meantime we compute it manually. (YO 2020/03/30)
     int var = t2->variability() | t3->variability();
     switch (var) {
         case kKonst:
-            fClass->addInitCode(subst("$0[$1] = $2;", tblName, CS(idx), CS(data)));
+            fClass->addInitCode(subst("$0[$1] = $2;", tblName, CS(wi), CS(ws)));
             break;
         case kBlock:
-            fClass->addZone2(subst("$0[$1] = $2;", tblName, CS(idx), CS(data)));
+            fClass->addZone2(subst("$0[$1] = $2;", tblName, CS(wi), CS(ws)));
             break;
         default:
-            fClass->addExecCode(Statement(getConditionCode(sig), subst("$0[$1] = $2;", tblName, CS(idx), CS(data))));
+            fClass->addExecCode(Statement(getConditionCode(sig), subst("$0[$1] = $2;", tblName, CS(wi), CS(ws))));
             break;
     }
 
+    // Return table access
     return tblName;
 }
 
@@ -1175,23 +1171,20 @@ string ScalarCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data)
                         sigRDTable : table access
 ----------------------------------------------------------------------------*/
 
-string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
+string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree ri)
 {
-    // YO le 21/04/05 : The reading of the tables was not put in the cache
-    // and so the code was duplicated (in tester.dsp for example)
-    // return subst("$0[$1]", CS(tEnv, tbl), CS(tEnv, idx));
-
-    // cerr << "generateRDTable " << *sig << endl;
-    // test the special case of a read only table that can be compiled as a static member
-    Tree id, size, content;
-    if (isSigTable(tbl, id, size, content)) {
+    // Test the special case of a read only table that can be compiled as a static member
+    Tree size, gen;
+    if (isSigWRTbl(tbl, size, gen)) {
+        // rdtable
         string tblname;
         if (!getCompiledExpression(tbl, tblname)) {
-            tblname = setCompiledExpression(tbl, generateStaticTable(tbl, size, content));
+            tblname = setCompiledExpression(tbl, generateStaticTable(tbl, size, gen));
         }
-        return generateCacheCode(sig, subst("$0[$1]", tblname, CS(idx)));
+        return generateCacheCode(sig, subst("$0[$1]", tblname, CS(ri)));
     } else {
-        return generateCacheCode(sig, subst("$0[$1]", CS(tbl), CS(idx)));
+        // rwtable
+        return generateCacheCode(sig, subst("$0[$1]", CS(tbl), CS(ri)));
     }
 }
 

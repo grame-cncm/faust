@@ -78,7 +78,7 @@ void SignalChecker::isRange(Tree sig, Tree init_aux, Tree min_aux, Tree max_aux)
 void SignalChecker::visit(Tree sig)
 {
     int  opnum;
-    Tree id, x, y, sel, sf, ff, largs, chan, part, idx, tb, ws, label, init, min, max, step, t0;
+    Tree size, gen, wi, ri, x, y, sel, sf, ff, largs, chan, part, tb, ws, label, init, min, max, step, t0;
 
     // Extended
     xtended* p = (xtended*)getUserData(sig);
@@ -153,19 +153,19 @@ void SignalChecker::visit(Tree sig)
         }
 
         // Tables
-    } else if (isSigRDTbl(sig, tb, idx)) {
-        if (getCertifiedSigType(idx)->nature() != kInt) {
+    } else if (isSigRDTbl(sig, tb, ri)) {
+        if (getCertifiedSigType(ri)->nature() != kInt) {
             cerr << "ASSERT : isSigRDTbl with a wrong typed rdx : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
 
-    } else if (isSigWRTbl(sig, id, tb, idx, ws)) {
-        if (getCertifiedSigType(idx)->nature() != kInt) {
+    } else if (isSigWRTbl(sig, size, gen, wi, ws)) {
+        if ((wi != gGlobal->nil) && getCertifiedSigType(wi)->nature() != kInt) {
             cerr << "ASSERT : isSigWRTbl with a wrong typed wdx : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
-        if (getCertifiedSigType(tb)->nature() != getCertifiedSigType(ws)->nature()) {
-            cerr << "ASSERT : isSigWRTbl with non matching tb and ws types : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+        if ((wi != gGlobal->nil) && getCertifiedSigType(gen)->nature() != getCertifiedSigType(ws)->nature()) {
+            cerr << "ASSERT : isSigWRTbl with non matching gen and ws types : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
 
@@ -182,13 +182,13 @@ void SignalChecker::visit(Tree sig)
             faustassert(false);
         }
 
-    } else if (isSigSoundfileBuffer(sig, sf, chan, part, idx)) {
+    } else if (isSigSoundfileBuffer(sig, sf, chan, part, ri)) {
         if (getCertifiedSigType(part)->nature() != kInt) {
             cerr << "ASSERT : isSigSoundfileBuffer with a wrong typed part : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
-        if (getCertifiedSigType(idx)->nature() != kInt) {
-            cerr << "ASSERT : isSigSoundfileBuffer with a wrong typed ridx : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
+        if (getCertifiedSigType(ri)->nature() != kInt) {
+            cerr << "ASSERT : isSigSoundfileBuffer with a wrong typed ri : " << ppsig(sig, MAX_ERROR_SIZE) << endl;
             faustassert(false);
         }
         
@@ -234,7 +234,7 @@ void SignalChecker::visit(Tree sig)
 Tree SignalPromotion::transformation(Tree sig)
 {
     int  op;
-    Tree id, sel, x, y, ff, largs, sf, chan, part, tb, idx, ws, min, max, label, t0;
+    Tree size, gen, wi, ri, sel, x, y, ff, largs, sf, chan, part, tb, ws, min, max, label, t0;
 
     // Extended
     xtended* p = (xtended*)getUserData(sig);
@@ -354,16 +354,22 @@ Tree SignalPromotion::transformation(Tree sig)
     }
 
     // Tables
-    else if (isSigRDTbl(sig, tb, idx)) {
-        Type tx = getCertifiedSigType(idx);
-        return sigRDTbl(self(tb), smartIntCast(tx, self(idx)));
+    else if (isSigRDTbl(sig, tb, ri)) {
+        Type tx = getCertifiedSigType(ri);
+        return sigRDTbl(self(tb), smartIntCast(tx, self(ri)));
     }
 
-    else if (isSigWRTbl(sig, id, tb, idx, ws)) {
-        Type tx = getCertifiedSigType(idx);
-        Type t1 = getCertifiedSigType(tb);
-        Type t2 = getCertifiedSigType(ws);
-        return sigWRTbl(id, self(tb), smartIntCast(tx, self(idx)), smartCast(t1, t2, self(ws)));
+    else if (isSigWRTbl(sig, size, gen, wi, ws)) {
+        if (wi == gGlobal->nil) {
+            // rdtable
+            return sigWRTbl(self(size), self(gen));
+        } else {
+            // rwtable
+            Type tx = getCertifiedSigType(wi);
+            Type t1 = getCertifiedSigType(gen);
+            Type t2 = getCertifiedSigType(ws);
+            return sigWRTbl(self(size), self(gen), smartIntCast(tx, self(wi)), smartCast(t1, t2, self(ws)));
+        }
     }
 
     // Soundfiles
@@ -371,9 +377,9 @@ Tree SignalPromotion::transformation(Tree sig)
         return sigSoundfileLength(self(sf), smartIntCast(getCertifiedSigType(part), self(part)));
     } else if (isSigSoundfileRate(sig, sf, part)) {
         return sigSoundfileRate(self(sf), smartIntCast(getCertifiedSigType(part), self(part)));
-    } else if (isSigSoundfileBuffer(sig, sf, chan, part, idx)) {
+    } else if (isSigSoundfileBuffer(sig, sf, chan, part, ri)) {
         return sigSoundfileBuffer(self(sf), self(chan), smartIntCast(getCertifiedSigType(part), self(part)),
-                                  smartIntCast(getCertifiedSigType(idx), self(idx)));
+                                  smartIntCast(getCertifiedSigType(ri), self(ri)));
     }
 
     // All UI items with range (vslider, hslider, nentry) are treated
@@ -476,60 +482,51 @@ Tree SignalFXPromotion::transformation(Tree sig)
    }
 }
 
-Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tb, Tree size, Tree idx)
+Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tbl, Tree size, Tree ri)
 {
-    interval idx_i = getCertifiedSigType(idx)->getInterval();
-    if (idx_i.lo() < 0 || idx_i.hi() >= tree2int(size)) {
+    interval ri_i = getCertifiedSigType(ri)->getInterval();
+    if (ri_i.lo() < 0 || ri_i.hi() >= tree2int(size)) {
         if (gAllWarning) {
             stringstream error;
-            error << "WARNING : RDTbl read index [" << idx_i.lo() << ":" << idx_i.hi() << "] is outside of table size ("
+            error << "WARNING : RDTbl read index [" << ri_i.lo() << ":" << ri_i.hi() << "] is outside of table size ("
                   << tree2int(size) << ") in : " << ppsig(sig, MAX_ERROR_SIZE);
             gWarningMessages.push_back(error.str());
         }
-        return sigRDTbl(self(tb), sigMax(sigInt(0), sigMin(self(idx), sigSub(size, sigInt(1)))));
+        return sigRDTbl(self(tbl), sigMax(sigInt(0), sigMin(self(ri), sigSub(size, sigInt(1)))));
     } else {
         return SignalIdentity::transformation(sig);
     }
 }
 
-Tree SignalTablePromotion::safeSigWRTbl(Tree sig, Tree id, Tree tb, Tree size, Tree idx, Tree ws)
+Tree SignalTablePromotion::safeSigWRTbl(Tree sig, Tree size, Tree gen, Tree wi, Tree ws)
 {
-    interval idx_i = getCertifiedSigType(idx)->getInterval();
-    if (idx_i.lo() < 0 || idx_i.hi() >= tree2int(size)) {
+    interval wi_i = getCertifiedSigType(wi)->getInterval();
+    if (wi_i.lo() < 0 || wi_i.hi() >= tree2int(size)) {
         if (gAllWarning) {
             stringstream error;
-            error << "WARNING : WRTbl write index [" << idx_i.lo() << ":" << idx_i.hi() << "] is outside of table size ("
+            error << "WARNING : WRTbl write index [" << wi_i.lo() << ":" << wi_i.hi() << "] is outside of table size ("
                   << tree2int(size) << ") in : " << ppsig(sig, MAX_ERROR_SIZE);
             gWarningMessages.push_back(error.str());
         }
-        return sigWRTbl(id, self(tb), sigMax(sigInt(0), sigMin(self(idx), sigSub(size, sigInt(1)))), self(ws));
+        return sigWRTbl(self(size), self(gen), sigMax(sigInt(0), sigMin(self(wi), sigSub(size, sigInt(1)))), self(ws));
     } else {
         return SignalIdentity::transformation(sig);
-    }
-}
-
-Tree SignalTablePromotion::getSize(Tree sig)
-{
-    Tree id, tb, size, content, idx, ws;
-
-    if (isSigTable(sig, id, size, content)) {
-        return size;
-    } else if (isSigWRTbl(sig, id, tb, idx, ws)) {
-        return getSize(tb);
-    } else {
-        faustassert(false);
-        return nullptr;
     }
 }
 
 Tree SignalTablePromotion::transformation(Tree sig)
 {
-    Tree tb, id, idx, ws;
+    Tree tbl, size, gen, wi, ws, ri;
 
-    if (isSigRDTbl(sig, tb, idx)) {
-        return safeSigRDTbl(sig, tb, getSize(tb), idx);
-    } else if (isSigWRTbl(sig, id, tb, idx, ws)) {
-        return safeSigWRTbl(sig, id, tb, getSize(tb), idx, ws);
+    if (isSigRDTbl(sig, tbl, ri)) {
+        isSigWRTbl(tbl, size, gen, wi, ws);
+        if (wi == gGlobal->nil) {
+            // rdtable
+            return safeSigRDTbl(sig, tbl, size, ri);
+        } else {
+            // rwtable
+            return safeSigRDTbl(sig, safeSigWRTbl(tbl, size, gen, wi, ws), size, ri);
+        }
         // Other cases => identity transformation
     } else {
         return SignalIdentity::transformation(sig);

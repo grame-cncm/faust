@@ -29,6 +29,7 @@
 #include "binop.hh"
 #include "exception.hh"
 #include "tlib.hh"
+#include "global.hh"
 
 #if defined(WIN32) && !defined(__GNUC__)
 #pragma warning(disable : 4800)
@@ -89,14 +90,16 @@ bool isSigBitCast(Tree t, Tree& x);
 LIBFAUST_API bool isSigFloatCast(Tree t, Tree& x);
 
 // Tables
-Tree sigRDTbl(Tree tb, Tree ri);
-Tree sigWRTbl(Tree id, Tree tb, Tree wi, Tree ws);
-Tree sigTable(Tree id, Tree n, Tree sig);
+Tree sigRDTbl(Tree tbl, Tree ri);
+// for rwtable and rdtable (with wi and ws = gGlobal->nil)
+Tree sigWRTbl(Tree size, Tree gen, Tree wi = gGlobal->nil, Tree ws = gGlobal->nil);
 Tree sigGen(Tree content);
 
-LIBFAUST_API bool isSigRDTbl(Tree s, Tree& tb, Tree& ri);
-LIBFAUST_API bool isSigWRTbl(Tree u, Tree& id, Tree& tb, Tree& wi, Tree& ws);
-LIBFAUST_API bool isSigTable(Tree t, Tree& id, Tree& n, Tree& sig);
+LIBFAUST_API bool isSigRDTbl(Tree s, Tree& tbl, Tree& ri);
+// for rwtable
+LIBFAUST_API bool isSigWRTbl(Tree u, Tree& size, Tree& gen, Tree& wi, Tree& ws);
+// for rdtable
+LIBFAUST_API bool isSigWRTbl(Tree u, Tree& size, Tree& gen);
 LIBFAUST_API bool isSigGen(Tree t, Tree& content);
 bool isSigGen(Tree t);
 
@@ -303,7 +306,7 @@ Tree sigControl(Tree x, Tree y);
 LIBFAUST_API bool isSigControl(Tree s, Tree& x, Tree& y);
 
 /*****************************************************************************
-                             Sounfiles (also UI elements)
+                             Soundfiles (also UI elements)
 *****************************************************************************/
 /*
 A boxSounfile(label,c) has 2 inputs and c+3 outputs:
@@ -338,13 +341,6 @@ LIBFAUST_API bool isSigTupleAccess(Tree s, Tree& ts, Tree& idx);
 
 // Create a tuple of signals
 Tree sigCartesianProd(Tree s1, Tree s2);
-
-/*****************************************************************************
-                             FTZ wrapping
-    Add FTZ wrapping to a signal
-*****************************************************************************/
-
-Tree sigFTZ(Tree s);
 
 /*****************************************************************************
                              Access to sub signals of a signal
