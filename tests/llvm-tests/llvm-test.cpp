@@ -166,6 +166,36 @@ static void Test(const char* dspFileAux)
         deleteDSPFactory(factory);
     }
     
+    cout << "=============================\n";
+    cout << "Test createDSPFactoryFromString with classInit\n";
+    {
+        llvm_dsp_factory* factory = createDSPFactoryFromString("FaustDSP", "import(\"stdfaust.lib\"); process = os.osc(440);", 0, NULL, JIT_TARGET, error_msg, -1);
+        if (!factory) {
+            cerr << "Cannot create factory : " << error_msg;
+            exit(EXIT_FAILURE);
+        }
+        
+        dsp* DSP = factory->createDSPInstance();
+        if (!DSP) {
+            cerr << "Cannot create instance "<< endl;
+            exit(EXIT_FAILURE);
+        }
+    
+        // Static tables initilisation
+        factory->classInit(44100);
+      
+        // Use "manager" mode to test 'classInit'
+        dummyaudio audio(44100, 512, 1 , 512 , true);
+        if (!audio.init("FaustDSP", DSP)) {
+            exit(EXIT_FAILURE);
+        }
+        
+        audio.start();
+        audio.stop();
+        
+        delete DSP;
+        deleteDSPFactory(factory);
+    }
     
     cout << "=============================\n";
     cout << "Test createDSPFactoryFromString with getWarningMessages\n";

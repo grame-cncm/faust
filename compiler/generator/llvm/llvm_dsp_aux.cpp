@@ -769,6 +769,11 @@ LIBFAUST_API char* getCDSPFactoryCompileOptions(llvm_dsp_factory* factory)
         return nullptr;
     }
 }
+    
+LIBFAUST_API void classCInit(llvm_dsp_factory* factory, int sample_rate)
+{
+    factory->classInit(sample_rate);
+}
 
 LIBFAUST_API void deleteAllCDSPFactories()
 {

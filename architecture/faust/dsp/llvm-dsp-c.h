@@ -272,6 +272,10 @@ extern "C"
      */    
     LIBFAUST_API const char** getAllCDSPFactories();
     
+    
+    /* Static tables initialization */
+    LIBFAUST_API void classCInit(llvm_dsp_factory* factory, int sample_rate);
+    
     /**
      * Start multi-thread access mode (since by default the library is not 'multi-thread' safe).
      * 

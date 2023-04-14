@@ -238,7 +238,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     void setClassName(const std::string& class_name) { fClassName = class_name; }
 
     llvm_dsp* createDSPInstance(dsp_factory* factory);
-
+    
     void metadata(Meta* m);
 
     void metadata(MetaGlue* glue);
@@ -278,6 +278,8 @@ class LIBFAUST_API llvm_dsp_factory : public dsp_factory, public faust_smartable
     std::string getTarget() { return fFactory->getTarget(); }
 
     llvm_dsp* createDSPInstance();
+    
+    void classInit(int sample_rate) { fFactory->fClassInit(sample_rate); }
 
     void                setMemoryManager(dsp_memory_manager* manager) { fFactory->setMemoryManager(manager); }
     dsp_memory_manager* getMemoryManager() { return fFactory->getMemoryManager(); }
@@ -376,6 +378,8 @@ LIBFAUST_API const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* facto
 LIBFAUST_API const char** getCWarningMessages(llvm_dsp_factory* factory);
 
 LIBFAUST_API char* getCDSPFactoryCompileOptions(llvm_dsp_factory* factory);
+    
+LIBFAUST_API void classCInit(llvm_dsp_factory* factory, int sample_rate);
 
 LIBFAUST_API void deleteAllCDSPFactories();
 
