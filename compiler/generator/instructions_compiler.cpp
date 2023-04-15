@@ -1569,24 +1569,18 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree size, Tree gen, Tr
     ValueInst*  tblname = generateTable(sig, size, gen);
     LoadVarInst* load_value = dynamic_cast<LoadVarInst*>(tblname);
     faustassert(load_value);
-
-    ValueInst* cws = CS(ws);
     string vname = load_value->fAddress->getName();
-
-    Type t2 = getCertifiedSigType(wi);
-    Type t3 = getCertifiedSigType(ws);
-    // TODO : for a bug in type caching, t->variability() is not correct.
-    // Therefore in the meantime we compute it manually. (YO 2020/03/30)
-    int var = t2->variability() | t3->variability();
-    switch (var) {
+    
+    switch (getCertifiedSigType(sig)->variability()) {
         case kKonst:
-            pushInitMethod(InstBuilder::genStoreArrayStructVar(vname, CS(wi), cws));
+            pushInitMethod(InstBuilder::genStoreArrayStructVar(vname, CS(wi), CS(ws)));
             break;
         case kBlock:
-            pushComputeBlockMethod(InstBuilder::genStoreArrayStructVar(vname, CS(wi), cws));
+            pushComputeBlockMethod(InstBuilder::genStoreArrayStructVar(vname, CS(wi), CS(ws)));
             break;
         default:
-            pushComputeDSPMethod(InstBuilder::genControlInst(getConditionCode(sig), InstBuilder::genStoreArrayStructVar(vname, CS(wi), cws)));
+            pushComputeDSPMethod(InstBuilder::genControlInst(getConditionCode(sig),
+                                                             InstBuilder::genStoreArrayStructVar(vname, CS(wi), CS(ws))));
             break;
     }
 

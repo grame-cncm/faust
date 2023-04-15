@@ -199,7 +199,6 @@ static void updateRecTypes(vector<Tree>& vrec, const vector<Tree>& vdef, const v
     // init recursive types
     for (int i = 0; i < n; i++) {
         setSigType(vrec[i], vtype[i]);
-        // cerr << i << "-" << *getSigType(vrec[i]) << endl;
         vrec[i]->setVisited();
     }
 
@@ -282,7 +281,6 @@ void typeAnnotation(Tree sig, bool causality)
     faustassert((int)vAgeMax.size() == n);
 
     // cerr << "compute upper bounds for recursive types" << endl;
-
     for (int k = 0; k < gGlobal->gNarrowingLimit; k++) {
         updateRecTypes(vrec, vdef, vdefSizes, vtypeUp, true);
     }
@@ -292,7 +290,6 @@ void typeAnnotation(Tree sig, bool causality)
     }
 
     // cerr << "find an upperbound of the least fixpoint" << endl;
-
     while (!finished) {
         updateRecTypes(vrec, vdef, vdefSizes, vtype, false);
 
@@ -532,12 +529,10 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     else if (isSigBinOp(sig, &i, s1, s2)) {
-        // Type t = T(s1,env)|T(s2,env);
         Type t1 = T(s1, env);
         Type t2 = T(s2, env);
         Type t3 = castInterval(t1 | t2, arithmetic(i, t1->getInterval(), t2->getInterval()));
-        // cerr <<"type rule for : " << ppsig(sig) << " -> " << *t3 << endl;
-
+   
         if (i == kDiv) {
             return floatCast(t3);   // division always result in a float even with int arguments
         } else if ((i >= kGT) && (i <= kNE)) {
@@ -629,7 +624,7 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     else if (isSigSoundfile(sig, l)) {
-        return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
+        return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, 2147483647));
     }
 
     else if (isSigSoundfileLength(sig, sf, part)) {
@@ -637,7 +632,7 @@ static Type infereSigType(Tree sig, Tree env)
         Type t2 = T(part, env);
         checkPartInterval(sig, t2);
         int c = std::max(int(kBlock), t2->variability());
-        return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));  // A REVOIR (YO)
+        return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, 2147483647));
     }
 
     else if (isSigSoundfileRate(sig, sf, part)) {
@@ -645,7 +640,7 @@ static Type infereSigType(Tree sig, Tree env)
         Type t2 = T(part, env);
         checkPartInterval(sig, t2);
         int c = std::max(int(kBlock), t2->variability());
-        return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
+        return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, 2147483647));
     }
 
     else if (isSigSoundfileBuffer(sig, sf, x, part, z)) {
@@ -716,7 +711,7 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     else if (isNil(sig)) {
-        Type t = new TupletType(); /*sig->setType(t);*/
+        Type t = new TupletType();
         return t;
     }
 
@@ -768,20 +763,18 @@ static Type infereProjType(Type t, int i, int vec)
         error << "ERROR : inferring projection type, not a tuplet type : " << t << endl;
         throw faustexception(error.str());
     }
-    // return (*tt)[i]	->promoteVariability(t->variability())
-    //		->promoteComputability(t->computability());
     Type temp = (*tt)[i]
                     ->promoteVariability(t->variability())
                     ->promoteComputability(t->computability())
                     ->promoteVectorability(vec /*t->vectorability()*/);
-    //->promoteBooleanity(t->boolean());
-
+ 
     if (vec == kVect) temp = vecCast(temp);
-    // cerr << "infereProjType(" << t << ',' << i << ',' << vec << ")" << " -> " << temp << endl;
-
     return temp;
 }
 
+/**
+ *    Infere the type of a table
+ */
 static Type infereTableType(Tree size, Tree gen, Tree env)
 {
     checkInt(checkInit(T(size, env)));
@@ -791,7 +784,6 @@ static Type infereTableType(Tree size, Tree gen, Tree env)
 /**
  *    Infere the type of the result of writing into a table
  */
-
 static Type infereWriteTableType(Type tbl, Type wi, Type ws)
 {
     TableType* tt = isTableType(tbl);
@@ -815,9 +807,7 @@ static Type infereWriteTableType(Type tbl, Type wi, Type ws)
     int      c   = wi->computability() | ws->computability();
     int      vec = wi->vectorability() | ws->vectorability();
     interval i   = reunion(ws->getInterval(), tbl->getInterval());
-    // return dst << "NR"[nature()] << "KB?S"[variability()] << "CI?E"[computability()] << "VS?TS"[vectorability()]
-    //            << "N?B"[boolean()] << " " << fInterval;
-
+ 
     TRACE(cerr << gGlobal->TABBER << "infering write table type : n="
                << "NR"[n] << ", v="
                << "KB?S"[v] << ", c="
@@ -846,10 +836,10 @@ static Type infereReadTableType(Type tbl, Type ri)
         error << "ERROR : inferring read table type, no read index type : " << ri << endl;
         throw faustexception(error.str());
     }
-    // Type temp = makeSimpleType(tbl->nature(), ri->variability(), kInit | ri->computability(), ri->vectorability(),
-    //                            tbl->boolean(), tbl->getInterval());
+ 
     Type temp = makeSimpleType(tbl->nature(), tbl->variability() | ri->variability(),
-                               tbl->computability() | ri->computability(), tbl->vectorability() | ri->vectorability(),
+                               tbl->computability() | ri->computability(),
+                               tbl->vectorability() | ri->vectorability(),
                                tbl->boolean(), tbl->getInterval());
     
     return temp;
@@ -864,7 +854,7 @@ static Type infereDocConstantTblType(Type size, Type init)
 static Type infereDocWriteTblType(Type size, Type init, Type widx, Type wsig)
 {
     checkKonst(checkInt(checkInit(size)));
-    Type temp = init->promoteVariability(kSamp)  // difficult to tell, therefore kSamp to be safe
+    Type temp = init->promoteVariability(kSamp)         // difficult to tell, therefore kSamp to be safe
                     ->promoteComputability(widx->computability() | wsig->computability())
                     ->promoteVectorability(kScal)       // difficult to tell, therefore kScal to be safe
                     ->promoteNature(wsig->nature())     // nature of the initial and written signal
@@ -996,8 +986,6 @@ static Type infereWaveformType(Tree wfsig, Tree env)
  */
 static Type infereXType(Tree sig, Tree env)
 {
-    // cerr << "infereXType :" << endl;
-    // cerr << "infereXType of " << *sig << endl;
     xtended*     p = (xtended*)getUserData(sig);
     vector<Type> vt;
 
