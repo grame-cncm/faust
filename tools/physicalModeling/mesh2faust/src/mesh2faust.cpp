@@ -137,25 +137,6 @@ string m2f::mesh2faust(
             nExPos = volumetricMesh->getNumVertices();
         }
         int exPosStep = volumetricMesh->getNumVertices() / nExPos; // to skip excitation positions
-        float modesGains[nExPos][targetNModes]; // modes gains matrix
-        for (int i = 0; i < nExPos; i++) { // i = excitation position
-            float maxGain = 0; // for normalization
-            for (int j = 0; j < targetNModes; j++) { // j = current mode
-                // If exPos was defined, then retrieve data. Otherwise, choose linear ex pos.
-                int evIndex = j + lowestModeIndex;
-                evIndex = femNModes - 1 - evIndex; // Eigenvectors are ordered largest-first.
-                int evValueIndex = 3 * (exPos.size() > 0 ? exPos[i] : (i * exPosStep));
-                // Eigen is column-major by default.
-                modesGains[i][j] = sqrt(pow(eigenVectors(evValueIndex, evIndex), 2) +
-                                        pow(eigenVectors(evValueIndex + 1, evIndex), 2) +
-                                        pow(eigenVectors(evValueIndex + 2, evIndex), 2));
-                if (modesGains[i][j] > maxGain) maxGain = modesGains[i][j]; // Save max gain for normalization.
-            }
-            // Normalize gains for current position.
-            for (int j = 0; j < targetNModes; j++) {
-                modesGains[i][j] /= maxGain;
-            }
-        }
 
         /////////////////////////////////////
         // GENERATE FAUST DSP
@@ -197,9 +178,22 @@ string m2f::mesh2faust(
             dspStream << "));\n";
         }
         dspStream << "modesGains(p,n) = waveform{";
-        for (int i = 0; i < nExPos; i++) {
+        float unnormalizedGains[targetNModes]; // Used to store gains for each exitation position.
+        for (int i = 0; i < nExPos; i++) { // i = excitation position
+            float maxGain = 0; // for normalization
+            for (int j = 0; j < targetNModes; j++) { // j = current mode
+                // If exPos was defined, then retrieve data. Otherwise, choose linear ex pos.
+                int evIndex = j + lowestModeIndex;
+                evIndex = femNModes - 1 - evIndex; // Eigenvectors are ordered largest-first.
+                int evValueIndex = 3 * (exPos.size() > 0 ? exPos[i] : (i * exPosStep));
+                // Eigen is column-major by default.
+                unnormalizedGains[j] = sqrt(pow(eigenVectors(evValueIndex, evIndex), 2) +
+                                            pow(eigenVectors(evValueIndex + 1, evIndex), 2) +
+                                            pow(eigenVectors(evValueIndex + 2, evIndex), 2));
+                if (unnormalizedGains[j]  > maxGain) maxGain = unnormalizedGains[j];
+            }
             for (int j = 0; j < targetNModes; j++) {
-                dspStream << modesGains[i][j];
+                dspStream << unnormalizedGains[j] / maxGain;
                 if (j < (targetNModes - 1)) dspStream << ",";
             }
             if (i < (nExPos - 1)) dspStream << ",";
