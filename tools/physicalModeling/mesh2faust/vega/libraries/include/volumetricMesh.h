@@ -59,7 +59,7 @@ class VolumetricMesh
 {
 public:
 
-  // Note: This class is abstract and cannot be instantiated; use the constructors in the derived classes (TetMesh, CubicMesh) to initialize a mesh, or use the load routine in volumetricMeshLoader.h
+  // Note: This class is abstract and cannot be instantiated; use the constructors in the derived classes (TetMesh, CubicMesh) to initialize a mesh.
 
   // copy constructor, destructor
   VolumetricMesh(const VolumetricMesh & volumetricMesh);
@@ -381,9 +381,6 @@ protected:
   static elementType getElementTypeBinary(const char * filename);
 
   elementType temp; // auxiliary
-
-  friend class VolumetricMeshExtensions;
-  friend class VolumetricMeshLoader;
 
   static unsigned int readFromFile(void * buf, unsigned int elementSize, unsigned int numElements, void * fin);
   static unsigned int readFromMemory(void * buf, unsigned int elementSize, unsigned int numElements, void * memoryLocation);
