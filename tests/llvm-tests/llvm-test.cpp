@@ -174,16 +174,16 @@ static void Test(const char* dspFileAux)
             cerr << "Cannot create factory : " << error_msg;
             exit(EXIT_FAILURE);
         }
+    
+        // Static tables initialisation
+        factory->classInit(44100);
         
         dsp* DSP = factory->createDSPInstance();
         if (!DSP) {
             cerr << "Cannot create instance "<< endl;
             exit(EXIT_FAILURE);
         }
-    
-        // Static tables initilisation
-        factory->classInit(44100);
-      
+     
         // Use "manager" mode to test 'classInit'
         dummyaudio audio(44100, 512, 1 , 512 , true);
         if (!audio.init("FaustDSP", DSP)) {
