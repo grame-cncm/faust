@@ -624,7 +624,7 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     else if (isSigSoundfile(sig, l)) {
-        return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, 2147483647));
+        return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, INT32_MAX));
     }
 
     else if (isSigSoundfileLength(sig, sf, part)) {
@@ -632,7 +632,7 @@ static Type infereSigType(Tree sig, Tree env)
         Type t2 = T(part, env);
         checkPartInterval(sig, t2);
         int c = std::max(int(kBlock), t2->variability());
-        return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, 2147483647));
+        return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, INT32_MAX));
     }
 
     else if (isSigSoundfileRate(sig, sf, part)) {
@@ -640,7 +640,7 @@ static Type infereSigType(Tree sig, Tree env)
         Type t2 = T(part, env);
         checkPartInterval(sig, t2);
         int c = std::max(int(kBlock), t2->variability());
-        return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, 2147483647));
+        return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, INT32_MAX));
     }
 
     else if (isSigSoundfileBuffer(sig, sf, x, part, z)) {

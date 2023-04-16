@@ -518,7 +518,7 @@ struct CastRemover : public BasicCloneVisitor {
                 return inst->fInst->clone(this);
             } else {
                 /*
-                // TODO = protection out-of [-2147483647, 2147483647] range
+                // TODO = protection out-of [INT32_MIN, INT32_MAX] range
                 ValueInst* max = InstBuilder::genRealNumInst(Typed::kFloat, double(std::numeric_limits<int>::max()));
                 ValueInst* min = InstBuilder::genRealNumInst(Typed::kFloat, double(std::numeric_limits<int>::min()));
                 

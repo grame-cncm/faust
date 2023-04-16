@@ -395,9 +395,9 @@ Tree SignalPromotion::transformation(Tree sig)
         Type tx0 = getCertifiedSigType(t0);
         return sigVBargraph(label, self(min), self(max), smartFloatCast(tx0, self(t0)));
     }
-
-    // Other cases => identity transformation
+   
     else {
+        // Other cases => identity transformation
         return SignalIdentity::transformation(sig);
     }
 }
@@ -465,8 +465,8 @@ Tree SignalBool2IntPromotion::transformation(Tree sig)
         } else {
             return SignalIdentity::transformation(sig);
         }
-        // Other cases => identity transformation
     } else {
+        // Other cases => identity transformation
         return SignalIdentity::transformation(sig);
     }
 }
@@ -476,40 +476,54 @@ Tree SignalFXPromotion::transformation(Tree sig)
     Tree sel, x, y;
     if (isSigSelect2(sig, sel, x, y)) {
         return sigSelect2(self(sel), sigFloatCast(self(x)), sigFloatCast(self(y)));
-        // Other cases => identity transformation
     } else {
+        // Other cases => identity transformation
         return SignalIdentity::transformation(sig);
    }
 }
 
-Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tbl, Tree size, Tree ri)
+Tree SignalTablePromotion::safeSigRDTbl(Tree sig, Tree tbl, Tree size_aux, Tree ri)
 {
+    int size = tree2int(size_aux);
+    if (size <= 0) {
+        stringstream error;
+        error << "ERROR : RDTbl size = " << size << " should be > 0 \n";
+        throw faustexception(error.str());
+    }
     interval ri_i = getCertifiedSigType(ri)->getInterval();
-    if (ri_i.lo() < 0 || ri_i.hi() >= tree2int(size)) {
+    if (ri_i.lo() < 0 || ri_i.hi() >= size) {
         if (gAllWarning) {
             stringstream error;
             error << "WARNING : RDTbl read index [" << ri_i.lo() << ":" << ri_i.hi() << "] is outside of table size ("
-                  << tree2int(size) << ") in : " << ppsig(sig, MAX_ERROR_SIZE);
+                  << size << ") in : " << ppsig(sig, MAX_ERROR_SIZE);
             gWarningMessages.push_back(error.str());
         }
-        return sigRDTbl(self(tbl), sigMax(sigInt(0), sigMin(self(ri), sigSub(size, sigInt(1)))));
+        return sigRDTbl(self(tbl), sigMax(sigInt(0), sigMin(self(ri), sigSub(size_aux, sigInt(1)))));
     } else {
+        // Other cases => identity transformation
         return SignalIdentity::transformation(sig);
     }
 }
 
-Tree SignalTablePromotion::safeSigWRTbl(Tree sig, Tree size, Tree gen, Tree wi, Tree ws)
+Tree SignalTablePromotion::safeSigWRTbl(Tree sig, Tree size_aux, Tree gen, Tree wi, Tree ws)
 {
+    int size = tree2int(size_aux);
+    if (size <= 0) {
+        stringstream error;
+        error << "ERROR : WRTbl size = " << size << " should be > 0 \n";
+        throw faustexception(error.str());
+    }
     interval wi_i = getCertifiedSigType(wi)->getInterval();
-    if (wi_i.lo() < 0 || wi_i.hi() >= tree2int(size)) {
+    if (wi_i.lo() < 0 || wi_i.hi() >= size) {
         if (gAllWarning) {
             stringstream error;
             error << "WARNING : WRTbl write index [" << wi_i.lo() << ":" << wi_i.hi() << "] is outside of table size ("
-                  << tree2int(size) << ") in : " << ppsig(sig, MAX_ERROR_SIZE);
+                  << size << ") in : " << ppsig(sig, MAX_ERROR_SIZE);
             gWarningMessages.push_back(error.str());
         }
-        return sigWRTbl(self(size), self(gen), sigMax(sigInt(0), sigMin(self(wi), sigSub(size, sigInt(1)))), self(ws));
+        return sigWRTbl(self(size_aux), self(gen), sigMax(sigInt(0), sigMin(self(wi), sigSub(size_aux, sigInt(1)))), self(ws));
     } else {
+        // Other cases => identity transformation
         return SignalIdentity::transformation(sig);
     }
 }
@@ -527,8 +541,8 @@ Tree SignalTablePromotion::transformation(Tree sig)
             // rwtable
             return safeSigRDTbl(sig, safeSigWRTbl(tbl, size, gen, wi, ws), size, ri);
         }
-        // Other cases => identity transformation
     } else {
+        // Other cases => identity transformation
         return SignalIdentity::transformation(sig);
     }
 }
@@ -548,6 +562,7 @@ Tree SignalIntCastPromotion::transformation(Tree sig)
             return sigIntCast(sigMin(sigReal(INT32_MAX), sigMax(x, sigReal(INT32_MIN))));
         }
     }
+    
     // Other cases => identity transformation
     return SignalIdentity::transformation(sig);
 }
@@ -560,8 +575,8 @@ Tree SignalUIPromotion::transformation(Tree sig)
         || isSigHSlider(sig, label, init, min, max, step)
         || isSigNumEntry(sig, label, init, min, max, step)) {
         return sigMax(min, sigMin(max, sig));
-        // Other cases => identity transformation
     } else {
+        // Other cases => identity transformation
         return SignalIdentity::transformation(sig);
     }
 }
@@ -580,8 +595,8 @@ Tree SignalUIFreezePromotion::transformation(Tree sig)
             - or even a JSON file with 'freeze' metadata to externally change the setup
          */
         return init;
-        // Other cases => identity transformation
     } else {
+        // Other cases => identity transformation
         return SignalIdentity::transformation(sig);
     }
 }
