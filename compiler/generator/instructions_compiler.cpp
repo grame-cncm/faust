@@ -138,7 +138,7 @@ Tree InstructionsCompiler::prepare(Tree LS)
         sigToGraph(L2, dotfile);
     }
     
-        // Generate VHDL if -vhdl option is set
+    // Generate VHDL if -vhdl option is set
     if (gGlobal->gVHDLSwitch) {
         sigVHDLFile(fOccMarkup, L2, gGlobal->gVHDLTrace);
     }

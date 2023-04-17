@@ -1,7 +1,7 @@
 
 //-------------------------------------------------
-// 		A simple, fully generative
-//		drum machine
+//    A simple, fully generative
+//    drum machine
 //-------------------------------------------------
 
 import("stdfaust.lib");
