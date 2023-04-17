@@ -40,6 +40,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <algorithm>
 #include <assert.h>
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
@@ -1224,12 +1225,13 @@ struct uiBargraph : public uiItem {
     }
 
     FAUSTFLOAT scale(FAUSTFLOAT v) { return (v - fMin) / (fMax - fMin); }
+    FAUSTFLOAT clip(FAUSTFLOAT v) { return std::max<double>(0.0, std::min<double>(1.0, v)); }
 
     virtual void reflectZone()
     {
         FAUSTFLOAT v = *fZone;
         fCache       = v;
-        gtk_progress_bar_set_fraction(fProgressBar, scale(v));
+        gtk_progress_bar_set_fraction(fProgressBar, clip(scale(v)));
     }
 };
 

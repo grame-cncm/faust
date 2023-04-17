@@ -15,16 +15,16 @@
 //
 // Where:
 //
-// * `amount`: Adjusts the amount of LFO modulation that is
+// * `amount`: adjusts the amount of LFO modulation that is
 //    applied to incoming signals
-// * `rate`: Sets the frequency of the LFO in Hertz.
-// * `phase`: Adjusts the amount of the offset between the
+// * `rate`: sets the frequency of the LFO in Hertz
+// * `phase`: adjusts the amount of the offset between the
 //    waveforms for the left and right channel. At 180,
 //    the LFOs will be perfectly out of phase. For other
-//    values, you will hear more moments where the the
-//    overall volume is reduced.
-// * `shape`: Turning `shape` up pushes the waveforms to their
-//    upper and lower limits, "hardening" their shape.
+//    values, you will hear more moments where the
+//    overall volume is reduced
+// * `shape`: turning `shape` up pushes the waveforms to their
+//    upper and lower limits, "hardening" their shape
 //------------------------------------------------------------
 import("stdfaust.lib");
 
