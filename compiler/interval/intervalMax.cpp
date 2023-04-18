@@ -30,7 +30,7 @@ interval interval_algebra::Max(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) return {};
 
-    return {std::max(x.lo(), y.lo()), std::max(x.hi(), y.hi())};
+    return {std::max(x.lo(), y.lo()), std::max(x.hi(), y.hi()), std::min(x.lsb(), y.lsb())}; // the resulting interval should be as precise as the most precise of the operands
 }
 
 void interval_algebra::testMax() const

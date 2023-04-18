@@ -29,7 +29,7 @@ namespace itv {
 interval interval_algebra::Ceil(const interval& x) const
 {
     if (x.isEmpty()) return {};
-    return {ceil(x.lo()), ceil(x.hi())};
+    return {ceil(x.lo()), ceil(x.hi()), 0}; // ceil yields integers, thus with LSB 0
 }
 
 void interval_algebra::testCeil() const

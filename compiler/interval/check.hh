@@ -1,9 +1,11 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "interval_algebra.hh"
 #include "interval_def.hh"
+#include "utils.hh"
 
 void check(const std::string& testname, const itv::interval& exp);
 
@@ -19,6 +21,8 @@ using bmth = itv::interval (itv::interval_algebra::*)(const itv::interval& x, co
 
 itv::interval testfun(int N, bfun f, const itv::interval& x, const itv::interval& y);
 void          analyzemod(itv::interval x, itv::interval y);
+
+int exactPrecisionUnary(ufun f, long double x, long double epsilon);
 
 void analyzeUnaryFunction(int E, int M, const char* title, const itv::interval& D, ufun f);
 void analyzeUnaryMethod(int E, int M, const char* title, const itv::interval& D, ufun f, umth m);

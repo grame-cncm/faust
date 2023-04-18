@@ -32,12 +32,26 @@ interval interval_algebra::Acosh(const interval& x) const
 {
     interval i = intersection(domain, x);
     if (i.isEmpty()) return i;
-    return {acosh(i.lo()), acosh(i.hi())};
+
+    // the min slope is attained at the highest bound of the interval
+    // we thus compute the gap between f(hi) and f(hi-ε), to remain in the interval
+    int precision = exactPrecisionUnary(acosh, x.hi(), -pow(2, x.lsb()));
+
+    return {acosh(i.lo()), acosh(i.hi()), precision};
 }
 
 void interval_algebra::testAcosh() const
 {
-    analyzeUnaryMethod(10, 1000, "acosh", interval(1, 1000), acosh, &interval_algebra::Acosh);
-    analyzeUnaryMethod(10, 1000, "acosh", interval(0, 10), acosh, &interval_algebra::Acosh);
+    analyzeUnaryMethod(10, 1000, "acosh", interval(1, 1000, 0), acosh, &interval_algebra::Acosh);
+    analyzeUnaryMethod(10, 1000, "acosh", interval(1, 1000, -5), acosh, &interval_algebra::Acosh);
+    analyzeUnaryMethod(10, 1000, "acosh", interval(1, 1000, -10), acosh, &interval_algebra::Acosh);
+    analyzeUnaryMethod(10, 1000, "acosh", interval(1, 1000, -15), acosh, &interval_algebra::Acosh);
+    analyzeUnaryMethod(10, 1000, "acosh", interval(1, 1000, -20), acosh, &interval_algebra::Acosh);
+    
+    analyzeUnaryMethod(10, 1000, "acosh", interval(0, 10, 0), acosh, &interval_algebra::Acosh);
+    analyzeUnaryMethod(10, 1000, "acosh", interval(0, 10, -5), acosh, &interval_algebra::Acosh);
+    analyzeUnaryMethod(10, 1000, "acosh", interval(0, 10, -10), acosh, &interval_algebra::Acosh);
+    analyzeUnaryMethod(10, 1000, "acosh", interval(0, 10, -15), acosh, &interval_algebra::Acosh);
+    analyzeUnaryMethod(10, 1000, "acosh", interval(0, 10, -20), acosh, &interval_algebra::Acosh);
 }
 }  // namespace itv

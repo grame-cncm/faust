@@ -25,15 +25,28 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval addition
 
+static double add(double x, double y)
+{
+    return x + y;
+}
+
 interval interval_algebra::Add(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) return {};
 
-    return {x.lo() + y.lo(), x.hi() + y.hi()};
+    return {x.lo() + y.lo(), x.hi() + y.hi(), std::min(x.lsb(), y.lsb())}; // the result of an addition needs to be as precise as the most precise of the operands
 }
 
 void interval_algebra::testAdd() const
 {
-    check("test algebra Add", Add(interval(0, 100), interval(10, 500)), interval(10, 600));
+    // check("test algebra Add", Add(interval(0, 100), interval(10, 500)), interval(10, 600));
+    analyzeBinaryMethod(10, 2000, "add", interval(0, 10, 0), interval(0, 10, 0), add, &interval_algebra::Add);
+    analyzeBinaryMethod(10, 2000, "add", interval(0, 10, -5), interval(0, 10, 0), add, &interval_algebra::Add);
+    analyzeBinaryMethod(10, 2000, "add", interval(0, 10, -10), interval(0, 10, 0), add, &interval_algebra::Add);
+    analyzeBinaryMethod(10, 2000, "add", interval(0, 10, -15), interval(0, 10, 0), add, &interval_algebra::Add);
+    analyzeBinaryMethod(10, 2000, "add", interval(0, 10, 0), interval(0, 10, -10), add, &interval_algebra::Add);
+    analyzeBinaryMethod(10, 2000, "add", interval(0, 10, -5), interval(0, 10, -10), add, &interval_algebra::Add);
+    analyzeBinaryMethod(10, 2000, "add", interval(0, 10, -10), interval(0, 10, -10), add, &interval_algebra::Add);
+    analyzeBinaryMethod(10, 2000, "add", interval(0, 10, -15), interval(0, 10, -10), add, &interval_algebra::Add);
 }
 }  // namespace itv

@@ -29,9 +29,9 @@ namespace itv {
 interval interval_algebra::Gt(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) return interval{};
-    if (x.lo() > y.hi()) return interval{1};
-    if (x.hi() <= y.lo()) return interval{0};
-    return interval{0, 1};
+    if (x.lo() > y.hi()) return singleton(1,0);
+    if (x.hi() <= y.lo()) return singleton(0,0);
+    return interval{0, 1, 0};
 }
 
 void interval_algebra::testGt() const

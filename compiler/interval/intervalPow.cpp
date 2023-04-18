@@ -27,24 +27,51 @@ namespace itv {
 // interval Pow(const interval& x, const interval& y) const;
 // void testPow() const;
 
+/**
+ * @brief Interval elevated to an integer power
+*/
 static interval ipow(const interval& x, int y)
 {
     assert(y >= 0);
     if (y == 0) {
-        return interval(1.0);
+        return singleton(1.0, 0);
+    }
+
+    // explicit expression because passing an anonymous function to exactPrecisionUnary is complicated
+    int precision = x.lsb()*y; // if x contains 0: finest precision is attained in 0
+    if (not x.hasZero())
+    {
+        double v = minValAbs(x);
+        int sign = signMinValAbs(x);
+        int p1 = y*(int)log2(abs(v));
+        int p2 = 0;
+
+        double epsilon = pow(2, x.lsb());
+        double delta = abs(pow(1+ sign*epsilon/v, y) - 1);
+        if (delta == 0) // in case of epsilon << x
+            p2 = floor((double)log2(y) + x.lsb() - (double)log2(abs(v))); // (1 + eps/v)^y - 1 ≃ y*eps/v if eps/v very small
+        else
+            p2 = floor((double)log2(delta));
+
+        precision = p1+p2;       
     }
 
     if ((y & 1) == 0) {
         // y is even
         double z0 = std::pow(x.lo(), y);
         double z1 = std::pow(x.hi(), y);
-        return {0, std::max(z0, z1)};
+        return {x.hasZero() ? 0 : std::min(z0, z1), // 0 is in the output interval only if it is in the input interval
+                std::max(z0, z1), 
+                precision};
     }
 
     // y is odd
-    return {std::pow(x.lo(), y), std::pow(x.hi(), y)};
+    return {std::pow(x.lo(), y), std::pow(x.hi(), y), precision};
 }
 
+/**
+ * @brief Interval elevated to an interval power
+*/
 interval interval_algebra::fPow(const interval& x, const interval& y) const
 {
     assert(x.lo() > 0);
@@ -86,11 +113,17 @@ static double myiPow(double x, double y)
 
 void interval_algebra::testPow() const
 {
-    analyzeBinaryMethod(10, 2000, "iPow2", interval(-100, 100), interval(0, 20), myiPow, &interval_algebra::iPow);
-    analyzeBinaryMethod(10, 2000, "iPow2", interval(-1, 1), interval(1, 3), myiPow, &interval_algebra::iPow);
-    analyzeBinaryMethod(10, 2000, "iPow2", interval(-1, 1), interval(1, 10), myiPow, &interval_algebra::iPow);
-    analyzeBinaryMethod(10, 2000, "fPow2", interval(1, 1000), interval(-10, 10), myfPow, &interval_algebra::fPow);
-    analyzeBinaryMethod(10, 2000, "fPow2", interval(0.001, 1), interval(-10, 10), myfPow, &interval_algebra::fPow);
-    analyzeBinaryMethod(10, 2000, "fPow2", interval(0.001, 10), interval(-20, 20), myfPow, &interval_algebra::fPow);
+    /* analyzeBinaryMethod(10, 2000000, "iPow^2", interval(-100, 100), interval(2), myiPow, &interval_algebra::iPow);
+    analyzeBinaryMethod(10, 2000000, "iPow^3", interval(-100, 100), interval(3), myiPow, &interval_algebra::iPow);
+    analyzeBinaryMethod(10, 2000000, "iPow^2", interval(-1, 1), interval(2), myiPow, &interval_algebra::iPow);
+    analyzeBinaryMethod(10, 2000000, "iPow^3", interval(-1, 1), interval(3), myiPow, &interval_algebra::iPow);*/
+
+    analyzeBinaryMethod(10, 2000000, "iPow2", interval(-100, 100), interval(0, 200), myiPow, &interval_algebra::iPow);
+    analyzeBinaryMethod(10, 2000000, "iPow2", interval(-1, 1), interval(1, 3), myiPow, &interval_algebra::iPow);
+    analyzeBinaryMethod(10, 2000000, "iPow2", interval(-1, 1), interval(1, 10), myiPow, &interval_algebra::iPow);
+
+    /* analyzeBinaryMethod(10, 2000000, "fPow2", interval(1, 1000), interval(-10, 10), myfPow, &interval_algebra::fPow);
+    analyzeBinaryMethod(10, 2000000, "fPow2", interval(0.001, 1), interval(-10, 10), myfPow, &interval_algebra::fPow);
+    analyzeBinaryMethod(10, 2000000, "fPow2", interval(0.001, 10), interval(-200, 200), myfPow, &interval_algebra::fPow);*/
 }
 }  // namespace itv

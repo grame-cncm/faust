@@ -24,27 +24,51 @@ namespace itv {
 //------------------------------------------------------------------------------------------
 // Interval inverse
 
+static double inv(double x)
+{
+    if (x==0)
+        return HUGE_VAL;
+    return 1/x;
+}
+
 interval interval_algebra::Inv(const interval& x) const
 {
     if (x.isEmpty()) {
         return {};
     }
+
+    int sign = signMaxValAbs(x);
+    double v = maxValAbs(x); // precision is computed at the bound with the highest absolute value
+
+    int precision = exactPrecisionUnary(inv, v, sign*pow(2, x.lsb()));
+
     if ((x.hi() < 0) || (x.lo() >= 0)) {
-        return {1.0 / x.hi(), 1.0 / x.lo()};
+        return {1.0 / x.hi(), 1.0 / x.lo(), precision};
     }
-    if (x.hi() == 0) {
-        return {-HUGE_VAL, 1.0 / x.lo()};
+    if (x.hi() == 0 && x.lo() < 0) {
+        return {-HUGE_VAL, 1.0 / x.lo(), precision};
     }
-    return {-HUGE_VAL, HUGE_VAL};
+    if (x.lo() == 0 && x.hi() > 0) {
+        return {1/x.hi(), HUGE_VAL, precision};
+    }
+    return {-HUGE_VAL, HUGE_VAL, precision};
 }
 
 void interval_algebra::testInv() const
 {
-    check("test algebra Inv", Inv(interval(-16, -4)), interval(-1. / 4., -1. / 16.));
+    /* check("test algebra Inv", Inv(interval(-16, -4)), interval(-1. / 4., -1. / 16.));
     check("test algebra Inv", Inv(interval(4, 16)), interval(1.0 / 16, 0.25));
     check("test algebra Inv", Inv(interval(0, 10)), interval(0.1, +HUGE_VAL));
     check("test algebra Inv", Inv(interval(-10, 0)), interval(-HUGE_VAL, -0.1));
     check("test algebra Inv", Inv(interval(-20, +20)), interval(-HUGE_VAL, +HUGE_VAL));
-    check("test algebra Inv", Inv(interval(0, 0)), interval(+HUGE_VAL, +HUGE_VAL));
+    check("test algebra Inv", Inv(interval(0, 0)), interval(+HUGE_VAL, +HUGE_VAL));*/
+
+    analyzeUnaryMethod(10, 2000, "inv", interval(-16, -4, -5), inv, &interval_algebra::Inv);
+    analyzeUnaryMethod(10, 2000, "inv", interval(4, 16, -5), inv, &interval_algebra::Inv);
+    analyzeUnaryMethod(10, 2000, "inv", interval(0, 10, -5), inv, &interval_algebra::Inv);
+    analyzeUnaryMethod(10, 2000, "inv", interval(-10, 0, -5), inv, &interval_algebra::Inv);
+    analyzeUnaryMethod(10, 2000, "inv", interval(-20, 20, -5), inv, &interval_algebra::Inv);
+    analyzeUnaryMethod(10, 2000, "inv", interval(0, 0, -5), inv, &interval_algebra::Inv);
+    // analyzeUnaryMethod(10, 2000, "inv", interval(-10, 0, -5), inv, &interval_algebra::Inv);
 }
 }  // namespace itv
