@@ -44,15 +44,45 @@ interval interval_algebra::Or(const interval& x, const interval& y) const
     int y1 = saturatedIntCast(y.hi());
 
     SInterval z = bitwiseSignedOr({x0, x1}, {y0, y1});
-    return {double(z.lo), double(z.hi)};
+
+    int precision = std::max(x.lsb(), y.lsb()); // output precision cannot be finer than that of the input intervals
+
+    // however, if one of the intervals is reduced to one element, the mask can make it so 
+    int precisionx = 0;
+
+    if (x0 == x1)
+    {
+        int v = x0; // only element of interval x
+        while ((v & 1) == 1) // while we encounter ones at the lower end of v
+        {
+            v = v/2;
+            precisionx++;
+        }
+    }
+
+    int precisiony = 0;
+
+    if (y0 == y1)
+    {
+        int v = y0; // only element of interval y
+        while ((v & 1) == 1) // while we encounter ones at the lower end of v
+        {
+            v = v/2;
+            precisiony++;
+        }
+    }
+    return {double(z.lo), double(z.hi), std::max(precision, std::max(precisionx, precisiony))};
 }
 
 void interval_algebra::testOr() const
 {
-    analyzeBinaryMethod(10, 2000, "Or", interval(-1000, -800), interval(127), myOr, &interval_algebra::Or);
-    analyzeBinaryMethod(10, 2000, "Or", interval(-1000, -800), interval(123), myOr, &interval_algebra::Or);
-    analyzeBinaryMethod(10, 2000, "Or", interval(-128, 128), interval(127), myOr, &interval_algebra::Or);
-    analyzeBinaryMethod(10, 2000, "Or", interval(0, 1000), interval(63, 127), myOr, &interval_algebra::Or);
-    analyzeBinaryMethod(10, 2000, "Or", interval(-1000, 1000), interval(63, 127), myOr, &interval_algebra::Or);
+    analyzeBinaryMethod(10, 20000, "Or", interval(-1000, -800), interval(127), myOr, &interval_algebra::Or);
+    analyzeBinaryMethod(10, 20000, "Or", interval(-1000, -800), interval(123), myOr, &interval_algebra::Or);
+    analyzeBinaryMethod(10, 20000, "Or", interval(-128, 128), interval(127), myOr, &interval_algebra::Or);
+    analyzeBinaryMethod(10, 20000, "Or", interval(0, 1000), interval(63, 127), myOr, &interval_algebra::Or);
+    analyzeBinaryMethod(10, 20000, "Or", interval(-1000, 1000), interval(63, 127), myOr, &interval_algebra::Or);
+    analyzeBinaryMethod(10, 2000, "Or", interval(10,20), interval(0), myOr, &interval_algebra::Or);
+    analyzeBinaryMethod(10, 2000, "Or", interval(0), interval(15, 25), myOr, &interval_algebra::Or);
+    analyzeBinaryMethod(10, 2000, "Or", interval(0), interval(0), myOr, &interval_algebra::Or);
 }
 }  // namespace itv

@@ -469,7 +469,7 @@ static Type infereSigType(Tree sig, Tree env)
     }
 
     else if (isSigInt64(sig, &i64)) {
-        Type t = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, gAlgebra.IntNum(i));
+        Type t = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, gAlgebra.Int64Num(i));
         return t;
     }
 

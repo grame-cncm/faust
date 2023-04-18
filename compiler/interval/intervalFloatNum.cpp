@@ -21,6 +21,6 @@ namespace itv {
 
 interval interval_algebra::FloatNum(double x) const
 {
-    return {x, x, -24};
+    return singleton(x);
 }
 }  // namespace itv

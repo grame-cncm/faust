@@ -40,7 +40,12 @@ interval interval_algebra::Not(const interval& x) const
         if (z < z0) z0 = z;
         if (z > z1) z1 = z;
     }
-    return {double(z0), double(z1)};
+
+    // the interval is made up of integer so no need to have a precision finer than 0
+    // but take the precision of the original interval if it is even coarser
+    int precision = std::max(0, x.lsb()); 
+
+    return {double(z0), double(z1), precision};
 }
 
 static double myNot(double x)
@@ -55,5 +60,9 @@ void interval_algebra::testNot() const
     analyzeUnaryMethod(10, 1000, "not", interval(-10, -1), myNot, &interval_algebra::Not);
     analyzeUnaryMethod(10, 1000, "not", interval(10, 12), myNot, &interval_algebra::Not);
     analyzeUnaryMethod(10, 1000, "not", interval(-10, 12), myNot, &interval_algebra::Not);
+
+    analyzeUnaryMethod(10, 1000, "not", interval(-10, -1, 5), myNot, &interval_algebra::Not);
+    analyzeUnaryMethod(10, 1000, "not", interval(10, 12, 10), myNot, &interval_algebra::Not);
+    analyzeUnaryMethod(10, 1000, "not", interval(-10, 12, 5), myNot, &interval_algebra::Not);
 }
 }  // namespace itv

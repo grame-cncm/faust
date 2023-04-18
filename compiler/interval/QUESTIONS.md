@@ -1,2 +1,0 @@
-* When storing measurements in order to measure the output precision, should we keep the NaNs? (ie make the insertion inside or outside the !std::isnan(z) test)
-* In the binary function we should probably explicitly add the boundaries of the input intervals just as in the unary function

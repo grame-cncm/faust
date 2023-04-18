@@ -14,6 +14,7 @@ class interval_algebra : public faust_algebra<interval> {
     // Injections of external values
     interval String(const std::string& x) const;
     interval IntNum(int x) const;
+    interval Int64Num(int64_t x) const;
     interval FloatNum(double x) const;
 
     // User interface elements

@@ -32,12 +32,12 @@ interval interval_algebra::Ne(const interval& x, const interval& y) const
         return {};
     }
     if ((x.hi() < y.lo()) || x.lo() > y.hi()) {
-        return interval{1.0};
+        return singleton(1.0,0);
     }
     if ((x.hi() == y.lo()) || x.lo() == y.hi()) {
-        return interval{0.0};
+        return singleton(0.0,0);
     }
-    return {0, 1};
+    return {0, 1, 0};
 }
 
 void interval_algebra::testNe() const
