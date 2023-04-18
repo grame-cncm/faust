@@ -28,10 +28,11 @@ namespace itv {
 
 interval interval_algebra::Eq(const interval& x, const interval& y) const
 {
+    // boolean value => precision 0
     if (x.isEmpty() || y.isEmpty()) return interval{};
-    if (x.lo() == x.hi() && x.lo() == y.lo() && x.lo() == y.hi()) return interval{1};
-    if (x.hi() < y.lo() || x.lo() > y.hi()) return interval{0};
-    return interval{0, 1};
+    if (x.lo() == x.hi() && x.lo() == y.lo() && x.lo() == y.hi()) return singleton(1,1);
+    if (x.hi() < y.lo() || x.lo() > y.hi()) return singleton(0,1);
+    return interval{0, 1, 1};
 }
 
 void interval_algebra::testEq() const

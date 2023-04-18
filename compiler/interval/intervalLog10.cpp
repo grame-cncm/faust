@@ -28,15 +28,25 @@ namespace itv {
 
 interval interval_algebra::Log10(const interval& x) const
 {
-    if (x.isEmpty()) return {};
+    if (x.isEmpty()) {
+        return {};
+    }
+
+    // lowest slope is at the highest bound of the interval
+    int precision = exactPrecisionUnary(
+        log10, x.hi(), -pow(2, x.lsb()));  // -pow because we take the FP number right before the higher bound
 
     interval i = intersection(interval(0, HUGE_VAL), x);
-    return {log10(i.lo()), log10(i.hi())};
+    return {log10(i.lo()), log10(i.hi()), precision};
 }
 
 void interval_algebra::testLog10() const
 {
-    analyzeUnaryMethod(10, 1000, "log10", interval(0, 10), log10, &interval_algebra::Log10);
+    analyzeUnaryMethod(10, 1000, "log10", interval(0, 10, 0), log10, &interval_algebra::Log10);
+    analyzeUnaryMethod(10, 1000, "log10", interval(0, 10, -5), log10, &interval_algebra::Log10);
+    analyzeUnaryMethod(10, 1000, "log10", interval(0, 10, -10), log10, &interval_algebra::Log10);
+    analyzeUnaryMethod(10, 1000, "log10", interval(0, 10, -15), log10, &interval_algebra::Log10);
+    analyzeUnaryMethod(10, 1000, "log10", interval(0, 10, -20), log10, &interval_algebra::Log10);
 
     // check("test algebra Log", Log10(interval(1, 10)), interval(log10(1), log10(10)));
     // check("test algebra Log", Log10(interval(0, 10)), interval(log10(0), log10(10)));

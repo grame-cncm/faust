@@ -29,7 +29,8 @@ namespace itv {
 interval interval_algebra::Mem(const interval& x) const
 {
     if (x.isEmpty()) return {};
-    return reunion(x, interval{0});
+    interval z = reunion(x, interval{0});
+    return {z.lo(), z.hi(), x.lsb()};
 }
 
 void interval_algebra::testMem() const

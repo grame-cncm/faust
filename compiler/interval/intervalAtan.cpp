@@ -32,11 +32,21 @@ namespace itv {
 interval interval_algebra::Atan(const interval& x) const
 {
     if (x.isEmpty()) return x;
-    return {atan(x.lo()), atan(x.hi())};
+
+    double v = maxValAbs(x); // value at which the min slope is attained, here the bound of highest absolute value
+    int sign = signMaxValAbs(x); // whether we compute the difference between f(v) and f(v+ε) or f(v-ε)
+
+    int precision = exactPrecisionUnary(atan, v, sign*pow(2, x.lsb()));
+
+    return {atan(x.lo()), atan(x.hi()), precision};
 }
 
 void interval_algebra::testAtan() const
 {
-    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100), atan, &interval_algebra::Atan);
+    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, 0), atan, &interval_algebra::Atan);
+    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, -5), atan, &interval_algebra::Atan);
+    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, -10), atan, &interval_algebra::Atan);
+    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, -15), atan, &interval_algebra::Atan);
+    analyzeUnaryMethod(10, 1000, "atan", interval(-100, 100, -20), atan, &interval_algebra::Atan);
 }
 }  // namespace itv

@@ -26,17 +26,32 @@ namespace itv {
 // interval Acos(const interval& x) const;
 // void testAcos() const;
 
-static const interval AcosDomain(-1, 1);
+static const interval AcosDomain(-1, 1, 0); // this interval needs 0 digits of precision
 
 interval interval_algebra::Acos(const interval& x) const
 {
     interval i = intersection(AcosDomain, x);
     if (i.isEmpty()) return i;
-    return {acos(i.hi()), acos(i.lo())};
+
+    double v = 0; // value at which the min slope is attained, zero if it is present
+    int sign = 1; // whether we compute the difference between f(x) and f(x+ε) or f(x-ε), chosing the point that lies in the interval
+    if (not i.has(0)) // if zero is not present, it's the bound closer to zero
+    {
+        v = minValAbs(i);
+        sign = signMinValAbs(i);
+    }
+
+    int precision = exactPrecisionUnary(acos, v, sign*pow(2, i.lsb()));
+
+    return {acos(i.hi()), acos(i.lo()), precision};
 }
 
 void interval_algebra::testAcos() const
 {
-    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1), acos, &interval_algebra::Acos);
+    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, 0), acos, &interval_algebra::Acos);
+    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -5), acos, &interval_algebra::Acos);
+    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -10), acos, &interval_algebra::Acos);
+    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -15), acos, &interval_algebra::Acos);
+    analyzeUnaryMethod(10, 1000, "acos", interval(-1, 1, -20), acos, &interval_algebra::Acos);
 }
 }  // namespace itv

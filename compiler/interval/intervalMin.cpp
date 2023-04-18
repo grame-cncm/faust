@@ -30,7 +30,7 @@ interval interval_algebra::Min(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) return {};
 
-    return {std::min(x.lo(), y.lo()), std::min(x.hi(), y.hi())};
+    return {std::min(x.lo(), y.lo()), std::min(x.hi(), y.hi()), std::min(x.lsb(), y.lsb())}; // resulting interval should be as precise as the most precise of the operands
 }
 
 void interval_algebra::testMin() const

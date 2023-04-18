@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -47,7 +48,7 @@ class interval {
    private:
     double fLo{std::numeric_limits<double>::lowest()};  ///< minimal value
     double fHi{std::numeric_limits<double>::max()};     ///< maximal value
-    int    fLSB{-32};                                   ///< lsb in bits
+    int    fLSB{-24};                                   ///< lsb in bits
 
    public:
     //-------------------------------------------------------------------------
@@ -56,7 +57,7 @@ class interval {
 
     interval() = default;
 
-    interval(double n, double m, int lsb = -32) noexcept
+    interval(double n, double m, int lsb = -24) noexcept
     {
         if (std::isnan(n) || std::isnan(m)) {
             fLo = NAN;
@@ -114,7 +115,7 @@ class interval {
         if (isEmpty()) {
             return "[]";
         } else {
-            return '[' + std::to_string(fLo) + ',' + std::to_string(fHi) + ']';
+            return std::to_string('[') + std::to_string(fLo) + ',' + std::to_string(fHi) + ']';
         }
     }
 };
@@ -145,10 +146,11 @@ inline interval intersection(const interval& i, const interval& j)
     } else {
         double l = std::max(i.lo(), j.lo());
         double h = std::min(i.hi(), j.hi());
+        int p = std::min(i.lsb(), j.lsb()); // precision of the intersection should be the finest of the two
         if (l > h) {
             return {};
         } else {
-            return {l, h};
+            return {l, h, p};
         }
     }
 }
@@ -162,8 +164,22 @@ inline interval reunion(const interval& i, const interval& j)
     } else {
         double l = std::min(i.lo(), j.lo());
         double h = std::max(i.hi(), j.hi());
-        return {l, h};
+        int p = std::min(i.lsb(), j.lsb()); // precision of the reunion should be the finest of the two
+        return {l, h, p};
     }
+}
+
+inline interval singleton(double x, int lsb=-24)
+{
+    if (x==0) return {0,0,0};
+
+    int precision = lsb;
+
+    while (floor(x*pow(2, -precision-1)) == x*pow(2, -precision-1) and x != 0)
+    {
+        precision++;
+    }
+    return {x, x, precision};
 }
 
 //-------------------------------------------------------------------------
