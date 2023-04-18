@@ -270,10 +270,9 @@ class MidiUI;
 class LIBFAUST_API wasm_dsp : public dsp, public JSONControl {
    private:
     wasm_dsp_factory* fFactory;
-    int               fDSP;       // Index of wasm DSP memory
-
+ 
    public:
-    wasm_dsp() : fFactory(nullptr), fDSP(-1) {}
+    wasm_dsp() : fFactory(nullptr) {}
     wasm_dsp(wasm_dsp_factory* factory);
     virtual ~wasm_dsp();
 
