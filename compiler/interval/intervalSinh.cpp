@@ -30,11 +30,25 @@ interval interval_algebra::Sinh(const interval& x) const
 {
     if (x.isEmpty()) return x;
 
-    return {sinh(x.lo()), sinh(x.hi())};
+    double v = 0; // absolute lowest slope is at zero
+    int sign = 1;
+
+    // if zero is not included, lowest slope is at the boundary of lowest absolute value
+    if (not x.hasZero())
+    {
+        v = minValAbs(x);
+        sign = signMinValAbs(x);
+    }
+
+    return {sinh(x.lo()), sinh(x.hi()), exactPrecisionUnary(sinh, v, sign*pow(2, x.lsb()))};
 }
 
 void interval_algebra::testSinh() const
 {
-    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10), sinh, &interval_algebra::Sinh);
+    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, 0), sinh, &interval_algebra::Sinh);
+    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, -5), sinh, &interval_algebra::Sinh);
+    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, -10), sinh, &interval_algebra::Sinh);
+    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, -15), sinh, &interval_algebra::Sinh);
+    analyzeUnaryMethod(10, 1000, "sinh", interval(-10, 10, -20), sinh, &interval_algebra::Sinh);
 }
 }  // namespace itv

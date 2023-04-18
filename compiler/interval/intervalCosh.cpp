@@ -28,14 +28,30 @@ namespace itv {
 
 interval interval_algebra::Cosh(const interval& x) const
 {
-    if (x.isEmpty()) return x;
-    if (x.hasZero()) return {1, std::max(cosh(x.lo()), cosh(x.hi()))};
+    double v = 0; // absolute lowest slope is at zero
 
-    return {std::min(cosh(x.lo()), cosh(x.hi())), std::max(cosh(x.lo()), cosh(x.hi()))};
+    if (x.isEmpty()) return x;
+    if (x.hasZero()) return {1, std::max(cosh(x.lo()), cosh(x.hi())), exactPrecisionUnary(cosh, v, pow(2, x.lsb()))};
+
+    int sign = 1;
+
+    // if zero is not included, lowest slope is at the boundary of lowest absolute value
+    if (x.lo()>0) // if the interval is entirely in the positives, 
+        v = x.lo();
+    else if (x.hi() < 0) // if the interval is entirely in the negatives
+    {
+        v = x.hi();
+        sign = -1;
+    }
+
+    return {std::min(cosh(x.lo()), cosh(x.hi())), std::max(cosh(x.lo()), cosh(x.hi())), exactPrecisionUnary(cosh, v, sign*pow(2, x.lsb()))};
 }
 
 void interval_algebra::testCosh() const
 {
-    analyzeUnaryMethod(10, 1000, "cosh", interval(-10, 10), cosh, &interval_algebra::Cosh);
+    // analyzeUnaryMethod(10, 1000, "cosh", interval(-10, 10, 0), cosh, &interval_algebra::Cosh);
+    // analyzeUnaryMethod(10, 1000, "cosh", interval(-10, 10, -5), cosh, &interval_algebra::Cosh);
+    analyzeUnaryMethod(10, 1000, "cosh", interval(-10, 10, -10), cosh, &interval_algebra::Cosh);
+    analyzeUnaryMethod(10, 1000, "cosh", interval(-10, 10, -15), cosh, &interval_algebra::Cosh);
 }
 }  // namespace itv

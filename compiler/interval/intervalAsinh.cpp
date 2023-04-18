@@ -29,11 +29,20 @@ static const interval domain(-HUGE_VAL, HUGE_VAL);
 
 interval interval_algebra::Asinh(const interval& x) const
 {
-    return {asinh(x.lo()), asinh(x.hi())};
+    double v = maxValAbs(x); // value at which the min slope is attained, here the bound of highest absolute value
+    int sign = signMaxValAbs(x); // whether we compute the difference between f(v) and f(v+ε) or f(v-ε)
+
+    int precision = exactPrecisionUnary(asinh, v, sign*pow(2, x.lsb()));
+
+    return {asinh(x.lo()), asinh(x.hi()), precision};
 }
 
 void interval_algebra::testAsinh() const
 {
-    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10), asinh, &interval_algebra::Asinh);
+    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, 0), asinh, &interval_algebra::Asinh);
+    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, -5), asinh, &interval_algebra::Asinh);
+    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, -10), asinh, &interval_algebra::Asinh);
+    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, -15), asinh, &interval_algebra::Asinh);
+    analyzeUnaryMethod(10, 1000, "asinh", interval(-10, 10, -20), asinh, &interval_algebra::Asinh);    
 }
 }  // namespace itv

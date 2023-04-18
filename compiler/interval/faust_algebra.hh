@@ -11,6 +11,7 @@ class faust_algebra {
     // Injections of external values
     T String(const std::string& x) const;
     T IntNum(int x) const;
+    T Int64Num(int64_t x) const;
     T FloatNum(double x) const;
 
     // User interface elements
@@ -71,3 +72,4 @@ class faust_algebra {
     T Xor(const T& x, const T& y) const;
 };
 }  // namespace itv
+

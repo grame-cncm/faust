@@ -30,7 +30,8 @@ interval interval_algebra::Delay(const interval& x, const interval& y) const
 {
     if (x.isEmpty() || y.isEmpty()) return {};
     if (y.isZero()) return x;
-    return reunion(x, interval{0});
+    interval z = reunion(x, interval{0});
+    return {z.lo(), z.hi(), x.lsb()};
 }
 
 void interval_algebra::testDelay() const

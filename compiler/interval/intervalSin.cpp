@@ -27,31 +27,69 @@ namespace itv {
 // interval Sin(const interval& x) const;
 // void testSin() const;
 
+static double sinPi(double x)
+{
+    return sin(x * M_PI);
+}
+
 interval interval_algebra::Sin(const interval& x) const
 {
-    double TWOPI = 2 * M_PI;
-    if (x.size() >= TWOPI) return {-1, 1};
+    int precision = exactPrecisionUnary(sinPi, 0.5, pow(2, x.lsb()));
 
-    // normalize input interval between 0..4PI
-    double l = fmod(x.lo(), TWOPI);
-    if (l < 0) l += TWOPI;
-    interval i(l, l + x.size());
+    if (x.size() >= 2) {
+        return {-1, 1, precision};
+    }
+
+    // normalize input interval between 0..2
+    double l = fmod(x.lo(), 2);
+    if (l < 0) {
+        l += 2;
+    }
+    interval i(l, l + x.size(), x.lsb());
 
     // compute the default boundaries
-    double a  = sin(i.lo());
-    double b  = sin(i.hi());
+    double a  = sinPi(i.lo());
+    double b  = sinPi(i.hi());
     double lo = std::min(a, b);
     double hi = std::max(a, b);
 
-    // check if n*PI are included
-    if (i.has(M_PI_2) || i.has(5 * M_PI_2)) hi = 1;
-    if (i.has(3 * M_PI_2) || i.has(7 * M_PI_2)) lo = -1;
+    // check if integers are included
+    if (i.has(0.5) || i.has(2.5)) {
+        hi = 1;
+    }
+    if (i.has(1.5) || i.has(3.5)) {
+        lo = -1;
+    }
 
-    return {lo, hi};
+    double v = 0.5;  // value of the interval at which the finest precision is computed
+                     // defaults at 0.5, interchangeable with any other half-integer
+
+    // precision if we don't hit the half integers
+    if (i.hi() < 0.5) {
+        v = x.hi();
+    } else if ((i.lo() > 0.5 and i.hi() < 1.5) or (i.lo() > 1.5 and i.hi() < 2.5)) {
+        if (i.lo() - floor(i.lo() - 0.5) >
+            ceil(i.hi() + 0.5) -
+                i.hi()) {  // if i.hi is closer to its higher half-integer than i.lo() to its lower half-integer
+            v = x.hi();
+        } else {
+            v = x.lo();
+        }
+    }
+
+    precision = exactPrecisionUnary(sinPi, v, pow(2, x.lsb()));
+
+    return {lo, hi, precision};
 }
 
 void interval_algebra::testSin() const
 {
-    analyzeUnaryMethod(20, 2000, "sin", interval(-10 * M_PI, 10 * M_PI), sin, &interval_algebra::Sin);
+    // analyzeUnaryMethod(5, 20000, "sin", interval(-1, 1, -3), sinPi, &interval_algebra::Sin);
+    analyzeUnaryMethod(10, 40000, "sin", interval(0, 2, -3), sinPi, &interval_algebra::Sin);
+    analyzeUnaryMethod(10, 40000, "sin", interval(0, 2, -5), sinPi, &interval_algebra::Sin);
+    analyzeUnaryMethod(10, 40000, "sin", interval(0, 2, -10), sinPi, &interval_algebra::Sin);
+    analyzeUnaryMethod(10, 40000, "sin", interval(0, 2, -15), sinPi, &interval_algebra::Sin);
+    analyzeUnaryMethod(10, 40000, "sin", interval(0, 2, -20), sinPi, &interval_algebra::Sin);
+    analyzeUnaryMethod(10, 40000, "sin", interval(0, 2, -24), sinPi, &interval_algebra::Sin);
 }
 }  // namespace itv

@@ -29,17 +29,31 @@ namespace itv {
 // interval Asin(const interval& x) const;
 // void testAsin() const;
 
-static const interval domain(-1, 1);
+static const interval domain(-1, 1, 0); // this interval needs 0 digits of precision
 
 interval interval_algebra::Asin(const interval& x) const
 {
     interval i = intersection(domain, x);
     if (i.isEmpty()) return i;
-    return {asin(i.lo()), asin(i.hi())};
+
+    double v = 0; // value at which the min slope is attained, zero if it is present
+    int sign = 1; // whether we compute the difference between f(v) and f(v+ε) or f(v-ε)
+    if (not i.has(0)) // if zero is not present, it's the bound closer to zero
+    {
+        v = minValAbs(i);
+        sign = signMinValAbs(i);
+    }
+    int precision = exactPrecisionUnary(asin, v, sign*pow(2, i.lsb()));
+
+    return {asin(i.lo()), asin(i.hi()), precision};
 }
 
 void interval_algebra::testAsin() const
 {
-    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1), asin, &interval_algebra::Asin);
+    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, 0), asin, &interval_algebra::Asin);
+    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -5), asin, &interval_algebra::Asin);
+    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -10), asin, &interval_algebra::Asin);
+    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -15), asin, &interval_algebra::Asin);
+    analyzeUnaryMethod(10, 1000, "asin", interval(-1, 1, -20), asin, &interval_algebra::Asin);
 }
 }  // namespace itv

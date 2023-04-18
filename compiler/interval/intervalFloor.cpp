@@ -29,11 +29,11 @@ namespace itv {
 interval interval_algebra::Floor(const interval& x) const
 {
     if (x.isEmpty()) return {};
-    return {floor(x.lo()), floor(x.hi())};
+    return {floor(x.lo()), floor(x.hi()), 0}; // floor yields integers, thus with LSB 0
 }
 
 void interval_algebra::testFloor() const
 {
-    analyzeUnaryMethod(10, 1000, "floor", interval(-10, 10), floor, &interval_algebra::Floor);
+    analyzeUnaryMethod(10, 1000, "floor", interval(-10, 10, -24), floor, &interval_algebra::Floor);
 }
 }  // namespace itv
