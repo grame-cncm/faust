@@ -53,11 +53,11 @@ This is an overview of the content of the top-level folders of the Faust distrib
 
 ## Libraries
 
-Faust libraries are now in a [separated project](https://github.com/grame-cncm/faustlibraries) and included as a git submodule. We also include oboe (https://github.com/google/oboe) as submodule in two different places: architecture/android/app/oboe and architecture/smartkeyboard/app/oboe. These submodules are synchronized from time to time in the main Faust repository using the following commands:
+Faust libraries are now in a [separated project](https://github.com/grame-cncm/faustlibraries) and included as a git submodule. The oboe (https://github.com/google/oboe) project is also included as submodule in two different places: architecture/android/app/oboe and architecture/smartkeyboard/app/oboe. The [faust2ck](https://github.com/ccrma/faust2ck) project is also included as submodule. These submodules are synchronized from time to time in the main Faust repository using the following commands:
 
     git submodule update --remote --merge
-    git add libraries architecture/android/app/oboe architecture/smartKeyboard/android/app/oboe
-    git commit -m "Faust updated to the latest version of the libraries and oboe."
+    git add libraries tools/faust2ck architecture/android/app/oboe architecture/smartKeyboard/android/app/oboe
+    git commit -m "Faust updated to the latest version of the libraries, faust2ck, and oboe"
     git push
 
 Or to synchronize the *libraries* folder only:
@@ -65,6 +65,13 @@ Or to synchronize the *libraries* folder only:
     git submodule update --remote --merge libraries
     git add libraries 
     git commit -m "Faust updated to the latest version of libraries."
+    git push
+    
+Or to synchronize the *faust2ck* folder only:
+
+    git submodule update --remote --merge tools/faust2ck
+    git add tools/faust2ck 
+    git commit -m "Faust updated to the latest version of faust2ck."
     git push
 
 ## Compilation and Installation
