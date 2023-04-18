@@ -8,11 +8,30 @@ AR   ?= ar
 
 TMP 	?= __tmp_llvm_lib__
 OUTPUT 	?= lib/libfaustwithllvm.a
-INPUT 	:= $(shell llvm-config --libnames --link-static)
-LLVM 	:= $(shell llvm-config --libdir)
-SYSLIBS := $(shell llvm-config --system-libs)
 
-FOLDERS := $(INPUT:%.a=$(TMP)/%.dir) $(TMP)/libfaust.dir
+# start to determine the current platform
+system := $(shell uname -s)
+
+ifeq ($(system), Darwin)
+NCURSES_PRIMARY_PREFIX := /usr/local/Cellar/ncurses
+NCURSES_BACKUP1_PREFIX := /opt/homebrew/Cellar/ncurses
+NCURSES_BACKUP2_PREFIX := /opt/local
+LIBNCURSES_PATH ?= $(shell find $(NCURSES_PRIMARY_PREFIX) -name libncurses.a 2>/dev/null || find $(NCURSES_BACKUP1_PREFIX) -name libncurses.a 2>/dev/null || find $(NCURSES_BACKUP2_PREFIX) -name libncurses.a 2>/dev/null)
+else
+LIBNCURSES_PATH ?= $(shell find /usr -name libncurses.a)
+endif
+
+ifdef LLVM_LIB_DIR
+INPUT   := $(shell ls $(LLVM_LIB_DIR)/lib*.a | sed "s|$(LLVM_LIB_DIR)/\(lib.*\.a\)|\1|g" | tr '\n' ' ')
+SYSLIBS := -lm -lz -lcurses -lxml2
+else
+LLVM_CONFIG ?= llvm-config
+INPUT 	:= $(shell $(LLVM_CONFIG) --libnames --link-static)
+LLVM_LIB_DIR 	:= $(shell $(LLVM_CONFIG) --libdir)
+SYSLIBS := $(shell $(LLVM_CONFIG) --system-libs)
+endif
+
+FOLDERS := $(INPUT:%.a=$(TMP)/%.dir) $(TMP)/libfaust.dir $(TMP)/libncurses.dir
 CONFIG  := ../tools/faust-config
 
 MAKEFILE := $(lastword $(MAKEFILE_LIST))
@@ -33,7 +52,7 @@ syslibs:
 	chmod +x $(CONFIG)
 
 ##########################################
-$(TMP)/%.dir: $(LLVM)/%.a
+$(TMP)/%.dir: $(LLVM_LIB_DIR)/%.a
 	@-[ -d $@ ] && rm -rf $@ 
 	mkdir -p $@ && cd $@ && ar -x $<
 
@@ -41,4 +60,7 @@ $(TMP)/libfaust.dir: lib/libfaust.a
 	@-[ -d $@ ] && rm -rf $@ 
 	mkdir -p $@ && cd $@ && ar -x ../../$<
 
-
+# Add a new rule for extracting libncurses.a
+$(TMP)/libncurses.dir: $(LIBNCURSES_PATH)
+	@-[ -d $@ ] && rm -rf $@
+	mkdir -p $@ && cd $@ && ar -x $(LIBNCURSES_PATH)

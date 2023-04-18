@@ -68,10 +68,10 @@ MIDI messages can be received on the left most inlet when [MIDI  control is acti
 
 ### Prerequisites
 
-- you must have [Faust](https://faust.grame.fr/) installed and the `faust` command available from the command line, and the compiled `libfaust` library. **WARNING**: be sure to have `libfaust` compiled with `#define FAUSTFLOAT double` in [architecture/faust/dsp/dsp.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/dsp/dsp.h) and [architecture/faust/gui/UI.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/gui/UI.h)
-- you must have downloaded the [Max SDK](https://cycling74.com/downloads/sdk)
-- you must have [cmake](https://cmake.org/) installed
-- [Windows] you must have [libsndfile](http://www.mega-nerd.com/libsndfile/) installed
+- You must have [Faust](https://faust.grame.fr/) installed and the `faust` command available from the command line. Then execute `faust --libdir` in a shell/Terminal to get a path. Go to this directory and confirm that `libfaustwithllvm.a` exists (`libfaustwithllvm.lib` on Windows). **WARNING**: Be sure to have `libfaustwithllvm` compiled with `#define FAUSTFLOAT double` in [architecture/faust/dsp/dsp.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/dsp/dsp.h) and [architecture/faust/gui/UI.h](https://github.com/grame-cncm/faust/blob/master-dev/architecture/faust/gui/UI.h)
+- You must have downloaded the [Max SDK Base](https://github.com/Cycling74/max-sdk-base)
+- You must have [cmake](https://cmake.org/) installed
+- You must have [libsndfile](https://github.com/libsndfile/libsndfile/releases) installed. MacOS users can simply install `libsndfile` with `brew install libsndfile`. Windows users will have to later specify `-DLIBSNDFILE=/path/to/libsndfile` when invoking cmake.
 
 ### Project generation
 
@@ -80,13 +80,11 @@ MIDI messages can be received on the left most inlet when [MIDI  control is acti
 ~~~~
 $ mkdir build
 $ cd build
-$ cmake .. -DMAXSDK="/path/to/the/max/sdk/source/c74support" -G "your generator"
+$ cmake .. -DMAXSDK="path/to/max-sdk-base/c74support" -G "your generator"
 ~~~~
 
-You must define the path to the Max SDK the first time you invoke `cmake`. Next the value is cached by cmake.
-On Windows, cmake assumes that the libsndfile library is installed in C:/Program Files/Mega-Nerd/libsndfile. To override, you cand define the LIBSNDFILE variable to an alternate location (i.e. add -DLIBSNDFILE=/path/to/libsndfile on the command line).
-
-**Note:** on Windows, you should use the same runtime than the other libraries. Thus make sure everything is compiled with the same Visual Studio version (including LLVM). The current Faust version (2.13.14) makes use of the following cmake generator: "Visual Studio 14 2015 Win64". You must use the same for **faustgen~**.
+You must define the path to the Max SDK the first time you invoke `cmake`. For subsequent calls, the value is cached by cmake.
+On Windows, cmake assumes that the libsndfile library is installed in `C:/Program Files/Mega-Nerd/libsndfile`. To override, you can define the LIBSNDFILE variable to an alternate location (i.e. add `-DLIBSNDFILE=/path/to/libsndfile` on the command line).
 
 ### Version number
 
