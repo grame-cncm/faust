@@ -7,3 +7,6 @@
 [submodule "architecture/smartKeyboard/android/app/oboe"]
 	path = architecture/smartKeyboard/android/app/oboe
 	url = https://github.com/google/oboe
+[submodule "tools/faust2ck"]
+	path = tools/faust2ck
+	url = https://github.com/ccrma/faust2ck

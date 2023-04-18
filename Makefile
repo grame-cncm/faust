@@ -212,7 +212,7 @@ devinstall:
 
 # make a Faust distribution tarball
 dist = faust-$(version)
-submodules = libraries
+submodules = libraries tools/faust2ck
 dist :
 	rm -rf $(dist)
 # Make sure that the submodules are initialized.
