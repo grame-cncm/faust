@@ -326,7 +326,7 @@ LIBFAUST_API bool isSigSoundfileRate(Tree s, Tree& sf, Tree& part);
 LIBFAUST_API bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& part, Tree& ridx);
 
 /*****************************************************************************
-                             matrix extension
+                             Matrix extension
 *****************************************************************************/
 
 // A tuple of signals is basically a list of signals.

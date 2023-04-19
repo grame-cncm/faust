@@ -657,8 +657,8 @@ struct Address : public Printable {
 
     Address() {}
 
-    virtual void                setAccess(Address::AccessType type) = 0;
-    virtual Address::AccessType getAccess() const                   = 0;
+    virtual void                setAccess(Address::AccessType access) = 0;
+    virtual Address::AccessType getAccess() const                     = 0;
     
     bool isStack() { return getAccess() & kStack; }
     bool isLoop() { return getAccess() & kLoop; }
@@ -726,7 +726,7 @@ struct IndexedAddress : public Address {
 
     virtual ~IndexedAddress() {}
 
-    void                setAccess(Address::AccessType type) { fAddress->setAccess(type); }
+    void                setAccess(Address::AccessType access) { fAddress->setAccess(access); }
     Address::AccessType getAccess() const { return fAddress->getAccess(); }
 
     void   setName(const std::string& name) { fAddress->setName(name); }
@@ -739,6 +739,7 @@ struct IndexedAddress : public Address {
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 };
+
 
 // ===============
 // User interface
@@ -913,7 +914,7 @@ struct DeclareVarInst : public StatementInst {
 
     virtual ~DeclareVarInst() {}
 
-    void                setAccess(Address::AccessType type) { fAddress->setAccess(type); }
+    void                setAccess(Address::AccessType access) { fAddress->setAccess(access); }
     Address::AccessType getAccess() const  { return fAddress->getAccess(); }
 
     void   setName(const std::string& name) { fAddress->setName(name); }
@@ -2273,26 +2274,26 @@ struct InstBuilder {
     }
 
     // Helper build methods
-    static DeclareVarInst* genDecArrayVar(const std::string& vname, Address::AccessType var_access, Typed* type, int size)
+    static DeclareVarInst* genDecArrayVar(const std::string& vname, Address::AccessType access, Typed* type, int size)
     {
-        return genDeclareVarInst(genNamedAddress(vname, var_access), genArrayTyped(type, size));
+        return genDeclareVarInst(genNamedAddress(vname, access), genArrayTyped(type, size));
     }
 
-    static LoadVarInst* genLoadArrayVar(const std::string& vname, Address::AccessType var_access, ValueInst* index)
+    static LoadVarInst* genLoadArrayVar(const std::string& vname, Address::AccessType access, ValueInst* index)
     {
-        return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, var_access), index));
+        return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, access), index));
     }
     
     // Actually same as genLoadArrayVar
-    static LoadVarInst* genLoadStructPtrVar(const std::string& vname, Address::AccessType var_access, ValueInst* index)
+    static LoadVarInst* genLoadStructPtrVar(const std::string& vname, Address::AccessType access, ValueInst* index)
     {
-        return genLoadArrayVar(vname, var_access, index);
+        return genLoadArrayVar(vname, access, index);
     }
 
-    static StoreVarInst* genStoreArrayVar(const std::string& vname, Address::AccessType var_access, ValueInst* index,
+    static StoreVarInst* genStoreArrayVar(const std::string& vname, Address::AccessType access, ValueInst* index,
                                           ValueInst* exp)
     {
-        return genStoreVarInst(genIndexedAddress(genNamedAddress(vname, var_access), index), exp);
+        return genStoreVarInst(genIndexedAddress(genNamedAddress(vname, access), index), exp);
     }
 
     // Struct variable
@@ -2669,7 +2670,8 @@ struct InstBuilder {
                                         const std::string& arg6, Typed::VarType arg6_ty, BlockInst* code = new BlockInst());
 };
 
-/* Syntactic sugar for index computations.
+/*
+ * Syntactic sugar for index computations.
  *
  * wrapper for ValueInst* with support for basic arithmetics
  *
@@ -2714,7 +2716,7 @@ class FIRIndex {
         return operator-(lhs, InstBuilder::genInt32NumInst(rhs));
     }
 
-    // Mult
+    // Mul
     friend FIRIndex operator*(FIRIndex const& lhs, ValueInst* rhs)
     {
         return FIRIndex(InstBuilder::genMul(lhs.fValue, rhs));

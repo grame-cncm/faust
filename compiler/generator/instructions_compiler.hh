@@ -207,7 +207,7 @@ class InstructionsCompiler : public virtual Garbageable {
 
     virtual ValueInst* generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd);
     virtual ValueInst* generateDelayLine(ValueInst* exp, Typed::VarType ctype, const std::string& vname, int mxd,
-                                         Address::AccessType& var_access, ValueInst* ccs);
+                                         Address::AccessType& access, ValueInst* ccs);
     
     virtual ValueInst* generateControl(Tree sig, Tree x, Tree y);
 

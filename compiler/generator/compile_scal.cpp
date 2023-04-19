@@ -505,14 +505,12 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateWRTbl(sig, size, gen, wi, ws);
     } else if (isSigRDTbl(sig, tb, ri)) {
         return generateRDTbl(sig, tb, ri);
+    } else if (isSigGen(sig, x)) {
+        return generateSigGen(sig, x);
     }
 
     else if (isSigSelect2(sig, sel, x, y)) {
         return generateSelect2(sig, sel, x, y);
-    }
-
-    else if (isSigGen(sig, x)) {
-        return generateSigGen(sig, x);
     }
 
     else if (isProj(sig, &i, x)) {
@@ -863,7 +861,7 @@ string ScalarCompiler::generateFloatCast(Tree sig, Tree x)
 }
 
 /*****************************************************************************
- user interface elements
+ User interface elements
  *****************************************************************************/
 
 string ScalarCompiler::generateButton(Tree sig, Tree path)
@@ -970,6 +968,10 @@ string ScalarCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max
     // return varname;
     return generateCacheCode(sig, varname);
 }
+
+/*****************************************************************************
+ Soundfile
+ *****************************************************************************/
 
 string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
 {
@@ -1239,7 +1241,7 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
 }
 
 /*****************************************************************************
- PREFIX, DELAY A PREFIX VALUE
+ Control
  *****************************************************************************/
 
 string ScalarCompiler::generateControl(Tree sig, Tree x, Tree y)
@@ -1247,6 +1249,10 @@ string ScalarCompiler::generateControl(Tree sig, Tree x, Tree y)
     CS(y);
     return generateCacheCode(x, CS(x));
 }
+
+/*****************************************************************************
+ PREFIX, DELAY A PREFIX VALUE
+ *****************************************************************************/
 
 string ScalarCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 {
@@ -1271,15 +1277,6 @@ string ScalarCompiler::generatePrefix(Tree sig, Tree x, Tree e)
     
     fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", vperm, CS(e))));
     return vtemp;
-}
-
-/*****************************************************************************
- IOTA(n)
- *****************************************************************************/
-
-static bool isPowerOf2(int n)
-{
-    return !(n & (n - 1));
 }
 
 /*****************************************************************************
@@ -1334,7 +1331,6 @@ string ScalarCompiler::generateXtended(Tree sig)
  * Generate code for accessing a delayed signal. The generated code depend of
  * the maximum delay attached to exp.
  */
-
 string ScalarCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
 {
     // cerr << "ScalarCompiler::generateDelay sig = " << *sig << endl;
@@ -1377,7 +1373,6 @@ string ScalarCompiler::generateDelay(Tree sig, Tree exp, Tree delay)
  * Generate code for the delay mecchanism. The generated code depend of the
  * maximum delay attached to exp and the "less temporaries" switch
  */
-
 string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
 {
     string s = generateDelayVecNoTemp(sig, exp, ctype, vname, mxd);
@@ -1391,7 +1386,6 @@ string ScalarCompiler::generateDelayVec(Tree sig, const string& exp, const strin
 /**
  * Generate code for the delay mecchanism without using temporary variables
  */
-
 string ScalarCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname,
                                               int mxd)
 {

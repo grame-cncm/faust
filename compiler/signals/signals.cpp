@@ -881,7 +881,7 @@ LIBFAUST_API bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& part,
     return isTree(s, gGlobal->SIGSOUNDFILEBUFFER, sf, chan, part, ridx);
 }
 /*****************************************************************************
-                             matrix extension
+                             Matrix extension
 *****************************************************************************/
 
 // A tuple of signals is basically a list of signals.
