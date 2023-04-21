@@ -15,7 +15,7 @@ else
 endif
 
 MAKE ?= make
-GCCOPTIONS := -O3 -I../../architecture -Iarchs -pthread -std=c++14
+GCCOPTIONS := -O3 -I../../architecture -I/usr/local/include/ap_fixed -Iarchs -pthread -std=c++14
 outdir ?= float
 arch ?= ./archs/impulsearch.cpp
 FAUSTOPTIONS := -lang cpp -double -i -a $(arch)
