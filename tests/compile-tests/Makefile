@@ -131,7 +131,7 @@ help:
 	@echo " 'clean'      : to remove the folder named using faust version"
 	@echo "Using a specific version of Faust libraries:"
 	@echo " 'make FAUSTLIBS=/path/to/libraries'"
- 	
+
 gcc1: $(cppobj)
 
 gcc2: $(cobj)
@@ -142,10 +142,10 @@ clean:
 #########################################################################
 # rules for c/c++ compilation
 %.o: %.cpp
-	$(eval tmp1 := $(patsubst $(version)/cpp/%, $(SAMPLESROOT)/%, $(<D)))	
-	$(eval tmp := $(patsubst $(version)/ocpp/%, $(REGRESSION)/%, $(tmp1)))	
+	$(eval tmp1 := $(patsubst $(version)/cpp/%, $(SAMPLESROOT)/%, $(<D)))
+	$(eval tmp := $(patsubst $(version)/ocpp/%, $(REGRESSION)/%, $(tmp1)))
 	$(CXX) -c $(CPP_OPTIONS) -I$(tmp) $< -o $@ 
 
 %.o: %.c
-	$(eval tmp := $(patsubst $(version)/c/%, $(SAMPLESROOT)/%, $(<D)))	
+	$(eval tmp := $(patsubst $(version)/c/%, $(SAMPLESROOT)/%, $(<D)))
 	$(GCC) -c $(C_OPTIONS) -I$(tmp) $< -o $@ 

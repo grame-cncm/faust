@@ -331,9 +331,9 @@ bool InstructionsCompiler::getCompiledExpression(Tree sig, ValueType& cexp)
 }
 
 /**
- * Set the string of a compiled expression is already compiled
+ * Set the ValueType of a compiled expression is already compiled
  * @param sig the signal expression to compile.
- * @param cexp the string representing the compiled expression.
+ * @param cexp the ValueType representing the compiled expression.
  * @return the cexp (for commodity)
  */
 ValueType InstructionsCompiler::setCompiledExpression(Tree sig, const ValueType& cexp)
@@ -1383,7 +1383,7 @@ ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
     CodeContainer* subcontainer = signal2Container(cname, content);
     fContainer->addSubContainer(subcontainer);
     
-        // We must allocate an object of type "cname"
+    // We must allocate an object of type "cname"
     Values args;
     if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
         args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
@@ -1392,9 +1392,9 @@ ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
     pushInitMethod(InstBuilder::genDecStackVar(
                                                signame, InstBuilder::genNamedTyped(cname, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
     
-        // HACK for Rust an Julia backends
+    // HACK for Rust an Julia backends
     if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia") {
-            // Delete object
+        // Delete object
         Values args3;
         args3.push_back(InstBuilder::genLoadStackVar(signame));
         if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
@@ -1417,7 +1417,7 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
     CodeContainer* subcontainer = signal2Container(cname, content);
     fContainer->addSubContainer(subcontainer);
     
-        // We must allocate an object of type "cname"
+    // We must allocate an object of type "cname"
     Values args;
     if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
         args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
@@ -1426,9 +1426,9 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
     pushStaticInitMethod(InstBuilder::genDecStackVar(
                                                      signame, InstBuilder::genNamedTyped(cname, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
     
-        // HACK for Rust and Julia backends
+    // HACK for Rust and Julia backends
     if (gGlobal->gOutputLang != "rust" && gGlobal->gOutputLang != "julia") {
-            // Delete object
+        // Delete object
         Values args3;
         args3.push_back(InstBuilder::genLoadStackVar(signame));
         if (gGlobal->gMemoryManager && (gGlobal->gOneSample == -1)) {
@@ -1459,11 +1459,11 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
     Tree           g;
     string         vname;
 
-    // already compiled but check if we need to add declarations
+    // Already compiled but check if we need to add declarations
     faustassert(isSigGen(content, g));
     pair<string, string> kvnames;
     if (!fInstanceInitProperty.get(g, kvnames)) {
-        // not declared here, we add a declaration
+        // Not declared here, we add a declaration
         bool b = fStaticInitProperty.get(g, kvnames);
         faustassert(b);
         Values args;
@@ -1783,22 +1783,6 @@ ValueInst* InstructionsCompiler::generatePrefix(Tree sig, Tree x, Tree e)
     
     pushComputeDSPMethod(InstBuilder::genControlInst(getConditionCode(sig), InstBuilder::genStoreStructVar(vperm, CS(e))));
     return InstBuilder::genLoadStackVar(vtemp);
-}
-
-/**
- * Generate code for a unique IOTA variable increased at each sample
- * and used to index ring buffers.
- */
-void InstructionsCompiler::ensureIotaCode()
-{
-     if (fCurrentIOTA == "") {
-         fCurrentIOTA = gGlobal->getFreshID("IOTA");
-         pushDeclare(InstBuilder::genDecStructVar(fCurrentIOTA, InstBuilder::genInt32Typed()));
-         pushClearMethod(InstBuilder::genStoreStructVar(fCurrentIOTA, InstBuilder::genInt32NumInst(0)));
-
-         FIRIndex value = FIRIndex(InstBuilder::genLoadStructVar(fCurrentIOTA)) + 1;
-         pushPostComputeDSPMethod(InstBuilder::genStoreStructVar(fCurrentIOTA, value));
-    }
 }
 
 /*****************************************************************************
@@ -2143,6 +2127,22 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
     }
 
     return exp;
+}
+
+/**
+ * Generate code for a unique IOTA variable increased at each sample
+ * and used to index ring buffers.
+ */
+void InstructionsCompiler::ensureIotaCode()
+{
+    if (fCurrentIOTA == "") {
+        fCurrentIOTA = gGlobal->getFreshID("IOTA");
+        pushDeclare(InstBuilder::genDecStructVar(fCurrentIOTA, InstBuilder::genInt32Typed()));
+        pushClearMethod(InstBuilder::genStoreStructVar(fCurrentIOTA, InstBuilder::genInt32NumInst(0)));
+        
+        FIRIndex value = FIRIndex(InstBuilder::genLoadStructVar(fCurrentIOTA)) + 1;
+        pushPostComputeDSPMethod(InstBuilder::genStoreStructVar(fCurrentIOTA, value));
+    }
 }
 
 /*****************************************************************************
