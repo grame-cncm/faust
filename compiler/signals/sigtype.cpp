@@ -187,12 +187,23 @@ bool operator==(const Type& t1, const Type& t2)
     if (t1->computability() != t2->computability()) return false;
 
     if ((st1 = isSimpleType(t1)) && (st2 = isSimpleType(t2)))
+        
         return (st1->nature() == st2->nature()) && (st1->variability() == st2->variability()) &&
                (st1->computability() == st2->computability()) && (st1->vectorability() == st2->vectorability()) &&
                (st1->boolean() == st2->boolean()) && (st1->getInterval().lo() == st2->getInterval().lo()) &&
                (st1->getInterval().hi() == st2->getInterval().hi()) &&
                (st1->getInterval().isValid() == st2->getInterval().isValid()) &&
                st1->getRes().valid == st2->getRes().valid && st1->getRes().index == st2->getRes().index;
+         
+        /*
+        return (st1->nature() == st2->nature()) && (st1->variability() == st2->variability()) &&
+                (st1->computability() == st2->computability()) && (st1->vectorability() == st2->vectorability()) &&
+                (st1->boolean() == st2->boolean()) && (st1->getInterval().lo() == st2->getInterval().lo()) &&
+                (st1->getInterval().hi() == st2->getInterval().hi()) &&
+                (st1->getInterval().isValid() == st2->getInterval().isValid()) &&
+                st1->getRes().valid == st2->getRes().valid;
+         */
+    
     if ((tt1 = isTableType(t1)) && (tt2 = isTableType(t2))) return tt1->content() == tt2->content();
     if ((nt1 = isTupletType(t1)) && (nt2 = isTupletType(t2))) {
         int a1 = nt1->arity();
