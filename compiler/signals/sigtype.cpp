@@ -157,7 +157,7 @@ Type operator|(const Type& t1, const Type& t2)
     if ((st1 = isSimpleType(t1)) && (st2 = isSimpleType(t2))) {
         return makeSimpleType(st1->nature() | st2->nature(), st1->variability() | st2->variability(),
                               st1->computability() | st2->computability(), st1->vectorability() | st2->vectorability(),
-                              st1->boolean() | st2->boolean(), reunion(st1->getInterval(), st2->getInterval()));
+                              st1->boolean() | st2->boolean(), itv::reunion(st1->getInterval(), st2->getInterval()));
 
     } else if ((tt1 = isTableType(t1)) && (tt2 = isTableType(t2))) {
         return makeTableType(tt1->content() | tt2->content());
@@ -180,7 +180,7 @@ Type operator|(const Type& t1, const Type& t2)
 bool operator==(const Type& t1, const Type& t2)
 {
     SimpleType *st1, *st2;
-    TableType * tt1, *tt2;
+    TableType* tt1, *tt2;
     TupletType *nt1, *nt2;
 
     if (t1->variability() != t2->variability()) return false;

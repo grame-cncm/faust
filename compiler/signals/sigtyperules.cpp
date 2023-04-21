@@ -214,7 +214,7 @@ static void updateRecTypes(vector<Tree>& vrec, const vector<Tree>& vdef, const v
             newI = newRecType[j]->getInterval();
             oldI = oldRecType[j]->getInterval();
 
-            newI         = inter ? intersection(newI, oldI) : reunion(newI, oldI);
+            newI         = inter ? intersection(newI, oldI) : itv::reunion(newI, oldI);
             newTuplet[j] = newTuplet[j]->promoteInterval(newI);
         }
         vtype[i] = new TupletType(newTuplet);
@@ -491,14 +491,14 @@ static Type infereSigType(Tree sig, Tree env)
 
     else if (isSigDelay1(sig, s1)) {
         Type t = T(s1, env);
-        return castInterval(sampCast(t), reunion(t->getInterval(), interval(0, 0)));
+        return castInterval(sampCast(t), itv::reunion(t->getInterval(), interval(0, 0)));
     }
 
     else if (isSigPrefix(sig, s1, s2)) {
         Type t1 = T(s1, env);
         Type t2 = T(s2, env);
         checkInit(t1);
-        return castInterval(sampCast(t1 | t2), reunion(t1->getInterval(), t2->getInterval()));
+        return castInterval(sampCast(t1 | t2), itv::reunion(t1->getInterval(), t2->getInterval()));
     }
 
     else if (isSigDelay(sig, s1, s2)) {
@@ -525,7 +525,7 @@ static Type infereSigType(Tree sig, Tree env)
             }
         }
 
-        return castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0, 0)));
+        return castInterval(sampCast(t1), itv::reunion(t1->getInterval(), interval(0, 0)));
     }
 
     else if (isSigBinOp(sig, &i, s1, s2)) {
@@ -707,7 +707,7 @@ static Type infereSigType(Tree sig, Tree env)
                               st1->variability() | st2->variability() | stsel->variability(),
                               st1->computability() | st2->computability() | stsel->computability(),
                               st1->vectorability() | st2->vectorability() | stsel->vectorability(),
-                              st1->boolean() | st2->boolean(), reunion(st1->getInterval(), st2->getInterval()));
+                              st1->boolean() | st2->boolean(), itv::reunion(st1->getInterval(), st2->getInterval()));
     }
 
     else if (isNil(sig)) {
@@ -807,7 +807,7 @@ static Type infereWriteTableType(Type tbl, Type wi, Type ws)
     int      c   = wi->computability() | ws->computability();
     int      vec = wi->vectorability() | ws->vectorability();
     // Interval is the reunion of tbl (and its init signal) and ws
-    interval i   = reunion(tbl->getInterval(), ws->getInterval());
+    interval i   = itv::reunion(tbl->getInterval(), ws->getInterval());
     TRACE(cerr << gGlobal->TABBER << "infering write table type : n="
                << "NR"[n] << ", v="
                << "KB?S"[v] << ", c="
@@ -971,7 +971,7 @@ static Type infereWaveformType(Tree wfsig, Tree env)
         T(v, env);
         // compute interval
         bool iflag2 = isInt(v->node());
-        res = reunion(res, iflag2 ? gAlgebra.IntNum(tree2int(v)) : gAlgebra.FloatNum(tree2float(v)));
+        res = itv::reunion(res, iflag2 ? gAlgebra.IntNum(tree2int(v)) : gAlgebra.FloatNum(tree2float(v)));
         iflag1 &= iflag2;
     }
 

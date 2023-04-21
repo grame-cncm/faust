@@ -187,9 +187,11 @@ void Loop::println(int n, ostream& fout)
         l->println(n, fout);
     }
 
-    tab(n, fout);
-    fout << "// Extra loops  : ";
-    for (Loop* l : fExtraLoops) fout << l << " ";
+    if (fExtraLoops.size() > 0) {
+        tab(n, fout);
+        fout << "// Extra loops: ";
+        for (Loop* l : fExtraLoops) fout << l << " ";
+    }
 
     tab(n, fout);
     fout << "// Backward loops: ";
@@ -200,12 +202,14 @@ void Loop::println(int n, ostream& fout)
     }  ///< Loops that must be computed before this one
     if (emptyflag) fout << "WARNING empty";
 
-    tab(n, fout);
-    fout << "// Forward loops : ";
-    for (Loop* l : fForwardLoopDependencies) fout << l << " ";
+    if (fForwardLoopDependencies.size() > 0) {
+        tab(n, fout);
+        fout << "// Forward loops: ";
+        for (Loop* l : fForwardLoopDependencies) fout << l << " ";
+    }
 
     tab(n, fout);
-    fout << "// " << ((fIsRecursive) ? "Recursive" : "Vectorizable") << " loop " << this;
+    fout << "// " << ((fIsRecursive) ? "Recursive" : "Vectorizable") << " loop: " << this;
 
     if (fPreCode.size() + fExecCode.size() + fPostCode.size() > 0) {
         if (fPreCode.size() > 0) {

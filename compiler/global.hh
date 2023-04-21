@@ -87,7 +87,7 @@ struct global {
     // Parsing
     SourceReader gReader;
     Tree         gExpandedDefList;
-    std::string           gInputString;
+    std::string            gInputString;
     std::list<std::string> gInputFiles;
     tvec         gWaveForm;  // used in the parser to keep values parsed for a given waveform
     Tree         gResult;
@@ -221,18 +221,18 @@ struct global {
     // Automatic documentation
     std::string         gDocLang;
     std::string         gDocName;
-    std::map<std::string, std::string> gDocMetadatasStringMap;
-    std::set<std::string> gDocMetadatasKeySet;
-    std::map<std::string, std::string> gDocAutodocStringMap;
-    std::set<std::string> gDocAutodocKeySet;
-    std::map<std::string, bool>   gDocNoticeFlagMap;
-    std::map<std::string, std::string> gDocMathStringMap;
-    std::vector<Tree>   gDocVector;  //< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM
-    std::map<std::string, std::string> gDocNoticeStringMap;
-    std::set<std::string> gDocNoticeKeySet;
-    std::set<std::string> gDocMathKeySet;
-    const char*         gDocDevSuffix;  //< ".tex" (or .??? - used to choose output device)
-    std::string         gCurrentDir;    //< Room to save current directory name
+    std::map<std::string, std::string>  gDocMetadatasStringMap;
+    std::set<std::string>               gDocMetadatasKeySet;
+    std::map<std::string, std::string>  gDocAutodocStringMap;
+    std::set<std::string>               gDocAutodocKeySet;
+    std::map<std::string, bool>         gDocNoticeFlagMap;
+    std::map<std::string, std::string>  gDocMathStringMap;
+    std::vector<Tree>                   gDocVector;     //< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM
+    std::map<std::string, std::string>  gDocNoticeStringMap;
+    std::set<std::string>               gDocNoticeKeySet;
+    std::set<std::string>               gDocMathKeySet;
+    const char*         gDocDevSuffix;   //< ".tex" (or .??? - used to choose output device)
+    std::string         gCurrentDir;     //< Room to save current directory name
     std::string         gLatexheaderfilename;
     struct tm           gCompilationDate;
     int                 gFileNum;
@@ -240,7 +240,7 @@ struct global {
     std::string         gDocTextsDefaultFile;
 
     // Error handling
-    int    gErrorCount;
+    int gErrorCount;
     std::string gErrorMessage;
     Tabber TABBER;
 
@@ -250,7 +250,7 @@ struct global {
     // Tree is used to identify the same nodes during Box tree traversal,
     // but gBoxCounter is then used to generate unique IDs
     std::map<Tree, std::pair<int, std::string>> gBoxTable;
-    int                                       gBoxCounter;
+    int                                         gBoxCounter;
     // To keep the box tree traversing trace
     std::vector<std::string> gBoxTrace;
 
@@ -260,7 +260,7 @@ struct global {
     // Tree is used to identify the same nodes during Signal tree traversal,
     // but gSignalCounter is then used to generate unique IDs
     std::map<Tree, std::pair<int, std::string>> gSignalTable;
-    int                                       gSignalCounter;
+    int                                         gSignalCounter;
     // To keep the signal tree traversing trace
     std::vector<std::string> gSignalTrace;
 
@@ -497,10 +497,10 @@ struct global {
 
     // Internal state during drawing
     Occur*            gOccurrences;
-    bool              gFoldingFlag;    // true with complex block-diagrams
+    bool              gFoldingFlag;     // true with complex block-diagrams
     std::stack<Tree>  gPendingExp;      // Expressions that need to be drawn
     std::set<Tree>    gDrawnExp;        // Expressions drawn or scheduled so far
-    const char*       gDevSuffix;       // .svg or .ps used to choose output device
+    const char*        gDevSuffix;       // .svg or .ps used to choose output device
     std::string       gSchemaFileName;  // name of schema file beeing generated
     Tree              gInverter[6];
     std::map<Tree, std::string> gBackLink;  // link to enclosing file for sub schema
@@ -513,7 +513,7 @@ struct global {
 
     // Colorize
     std::map<Tree, int> gColorMap;
-    int            gNextFreeColor;
+    int gNextFreeColor;
 
     // To keep current local
     char* gCurrentLocal;
@@ -580,7 +580,7 @@ struct global {
     static void allocate();
     static void destroy();
 
-    static std::string printFloat();
+    std::string printFloat();
 
     std::string getFreshID(const std::string& prefix);
 
@@ -609,7 +609,7 @@ struct global {
     // Some backends have an internal implementation of foreign functions like acos, asinh...
     bool hasForeignFunction(const std::string& name, const std::string& inc_file);
 
-    void   printCompilationOptions(std::stringstream& dst, bool backend = true);
+    void printCompilationOptions(std::stringstream& dst, bool backend = true);
     std::string printCompilationOptions1();
 
     void initTypeSizeMap();
@@ -618,6 +618,20 @@ struct global {
 
     // Allows to test if a given debug environment variable is set
     static bool isDebug(const std::string& debug_val);
+    
+    bool processCmdline(int argc, const char* argv[]);
+    void initDocumentNames();
+    void initDirectories(int argc, const char* argv[]);
+    void printDeclareHeader(std::ostream& dst);
+    void parseSourceFiles();
+    
+    void printLibDir();
+    void printIncludeDir();
+    void printArchDir();
+    void printDspDir();
+    void printPaths();
+    
+    void printDirectories();
 };
 
 // Unique shared global pointer
