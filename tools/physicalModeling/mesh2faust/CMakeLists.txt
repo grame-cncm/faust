@@ -53,11 +53,7 @@ add_library(${LIBRARY_NAME} STATIC
   ${VegaDir}/wildMagic/meshKey/triKey.cpp
 )
 
-set_target_properties(${LIBRARY_NAME} PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED ON
-  CXX_EXTENSIONS OFF
-)
+set_target_properties(${LIBRARY_NAME} PROPERTIES CXX_STANDARD 14)
 
 target_include_directories(${LIBRARY_NAME} PUBLIC src vega/libraries/include spectra/include)
 if(APPLE)
