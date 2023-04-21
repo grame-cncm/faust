@@ -131,11 +131,11 @@ string m2f::mesh2faust(
         if (exPos.size() > 0) {
             // If exPos specified, then retrieve number of ex positions.if (exPos.size() > 0) {
             nExPos = exPos.size();
-        }
-        if (nExPos == -1 || nExPos > volumetricMesh->getNumVertices()) {
+        } else if (nExPos == -1) {
             // If nExPos not specified, then max number of exPos.
             nExPos = volumetricMesh->getNumVertices();
         }
+        nExPos = std::min(nExPos, volumetricMesh->getNumVertices());
         int exPosStep = volumetricMesh->getNumVertices() / nExPos; // to skip excitation positions
 
         /////////////////////////////////////
@@ -185,7 +185,7 @@ string m2f::mesh2faust(
                 // If exPos was defined, then retrieve data. Otherwise, choose linear ex pos.
                 int evIndex = j + lowestModeIndex;
                 evIndex = femNModes - 1 - evIndex; // Eigenvectors are ordered largest-first.
-                int evValueIndex = 3 * (exPos.size() > 0 ? exPos[i] : (i * exPosStep));
+                int evValueIndex = 3 * (i < exPos.size() ? exPos[i] : (i * exPosStep));
                 // Eigen is column-major by default.
                 unnormalizedGains[j] = sqrt(pow(eigenVectors(evValueIndex, evIndex), 2) +
                                             pow(eigenVectors(evValueIndex + 1, evIndex), 2) +
